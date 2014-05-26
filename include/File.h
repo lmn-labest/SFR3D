@@ -13,21 +13,17 @@
   #define WORD_SIZE   120
   #define LINE_SIZE   120
   #define MAX_LINE  200
-/*... uso nadepuração de erros*/
-  #ifdef SRC_NAME
-    #undef  SRC_NAME
-  #endif  
-  #define SRC_NAME "scr/File.c"
+/*... uso na depuração de erros*/
 /*...................................................................*/  
   void  iota(long,char*);
-  FILE* open_file(char *,char *);
-  void  fname(char*,long,int,char**);
-  void  readmacro(FILE*,char*,bool);
-  void  clear_line(char *);
+  FILE* openFile(char *,char *);
+  void  fName(char*,long,int,char**);
+  void  readMacro(FILE*,char*,bool);
+  void  clearLine(char *);
   int   rl(FILE *,char *);
-  int   getnumprop(FILE *);
+  int   getNumProp(FILE *);
 /*...*/  
   char macros[MAX_LINE][WORD_SIZE];/*todas as macros lidas no arquivo*/
-  int nmacro;
+  int  nmacro;
 /*....................................................................*/  
 #endif

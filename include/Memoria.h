@@ -5,6 +5,12 @@
 #include<stdlib.h>
 #include<Mystdbool.h>
 #include<time.h>
+/*...*/
+#ifdef _AD_
+  #undef  _AD_
+#endif  
+#define _AD_ false
+/*.....................................................................*/
 #define CONV_BYTES    1024.0
 #define NPONTEIRO     50/*Numero de ponteiros maximo allocados*/
 #define MNOMEPONTEIRO 20/*Tamanho maximo do nome do vetor*/
@@ -20,20 +26,20 @@ typedef struct Memoria{
   time_t tempmem;/*tempo total de excucao das funcoes*/
 }Memoria;
 /******************************prototipo******************************/
-void   init_mem      (Memoria*,bool ); 
-void   finalize_mem  (Memoria*,bool );
-void*  alloc         (Memoria*,long**,int,char*,int,bool);
-void   setnamepont   (Memoria*,char*,bool);
-int    locatenamepont(Memoria*,char*,bool);
-void*  locate        (Memoria*,char*,bool);
-void   relloc        (Memoria*,int,bool);
-void   movevector    (Memoria*,int,int);
-void   cleannamepont (Memoria*,int);
-void*  dalloc        (Memoria*, char *,bool);
-long   uso_memoria   (Memoria* ,char*);
-void   mapvetor      (Memoria*);
-double memoria_total (char *);
-double memoriavector (Memoria*,char*,char*,bool);
+void   initMem        (Memoria*,bool ); 
+void   finalizeMem    (Memoria*,bool );
+void*  alloc          (Memoria*,long**,int,char*,int,bool);
+void   setNamePoint   (Memoria*,char*,bool);
+int    locateNamePoint(Memoria*,char*,bool);
+void*  locate          (Memoria*,char*,bool);
+void   relloc          (Memoria*,int,bool);
+void   moveVector      (Memoria*,int,int);
+void   cleanNamePoint  (Memoria*,int);
+void*  dalloc          (Memoria*, char *,bool);
+long   usoMemoria      (Memoria* ,char*);
+void   mapVector       (Memoria*);
+double memoriaTotal    (char *);
+double memoriaVector   (Memoria*,char*,char*,bool);
 void   vzero(char*,long,char*);
 /*********************************************************************/
 /*...*/

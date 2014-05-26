@@ -26,8 +26,12 @@ endif
 NAME+=$(PRENAME)_$(COMPILER_NAME)
 #-------------------Fontes--------------------------------
 fontes = \
-	src/Main.c\
-	src/Memoria.c
+src/File.c\
+src/Main.c\
+src/Memoria.c\
+src/ReadFile.c\
+src/Vtk.c\
+src/WriteVtk.c
 #-------------------Flags necessarios--------------------------------
 NFLAGS=-I$(PATH_INCLUDE) 
 LDFLAGS=
