@@ -93,6 +93,13 @@ int main(int argc,char**argv){
 /*... leitura da malha*/
     readFileFv(&m,mesh,fileIn);
 /*...................................................................*/
+
+/*... calcula a vizinhaca do elementos*/
+    viz(&m             ,mesh->elm.node ,mesh->adj.nelcon
+       ,mesh->adj.nViz ,mesh->elm.nen  ,mesh->nnode
+       ,mesh->numel    ,mesh->maxNo    ,mesh->maxViz);
+/*...................................................................*/
+
   }   
 /*===================================================================*/
 
@@ -129,7 +136,7 @@ int main(int argc,char**argv){
     wGeoVtk(&m               ,mesh->node.x     ,mesh->elm.node 
            ,mesh->elm.mat    ,mesh->elm.nen    ,mesh->elm.geomType
            ,mesh->elm.faceRt1,mesh->elm.faceSt1,mesh->nnode   
-           ,mesh->numel      ,mesh->ndm        ,mesh->maxno  
+           ,mesh->numel      ,mesh->ndm        ,mesh->maxNo  
            ,mesh->ndfT       ,nameOut          ,bvtk             
            ,fileOut);
     printf("%s\n\n",DIF);

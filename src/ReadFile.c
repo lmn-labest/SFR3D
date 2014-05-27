@@ -29,29 +29,27 @@ void readFileFv(Memoria *m,Mesh *mesh, FILE* file)
   parametros(&nn,&nel,&maxno,&ndm,&numat,&ndf,file);
   mesh->nnode  = nn;
   mesh->numel  = nel;
-  mesh->maxno  = maxno;
+  mesh->maxNo  = maxno;
+  mesh->maxViz = maxno;
   mesh->ndm    = ndm;
   mesh->numat  = numat;
   mesh->ndfT[0] = ndf;
 
 /*... alocando variavies de elementos*/
 /*... conectividade*/ 
-  Myalloc(int,m,mesh->elm.node      ,nel*maxno ,"elnode",_AD_);
+  Myalloc(long,m,mesh->elm.node     ,nel*maxno ,"elnode",_AD_);
 /*... materiais*/ 
   Myalloc(short,m,mesh->elm.mat     ,nel       ,"elmat" ,_AD_);
 /*... nos por elementos*/
   Myalloc(short,m,mesh->elm.nen     ,nel       ,"elnen" ,_AD_);
 /*... tipo geometrico */
   Myalloc(short,m,mesh->elm.geomType,nel       ,"elgT"  ,_AD_);
-/*... numero do elemento */
-  Myalloc(long,m,mesh->elm.nel       ,nel       ,"nel"   ,_AD_);
 
 /*... zerando os variavies*/
-  zero(mesh->elm.node     ,nel*maxno    ,"int"   );
+  zero(mesh->elm.node     ,nel*maxno    ,"long"  );
   zero(mesh->elm.mat      ,nel          ,"short" );
   zero(mesh->elm.nen      ,nel          ,"short" );
   zero(mesh->elm.geomType ,nel          ,"short" );
-  zero(mesh->elm.nel      ,nel          ,"long"  );
 /*...................................................................*/
 
 
@@ -67,6 +65,15 @@ void readFileFv(Memoria *m,Mesh *mesh, FILE* file)
   zero(mesh->material.type,numat,"short");
 /*...................................................................*/
 
+/*... alocando estruturas para vizinhos*/
+/*... nelcon*/ 
+  Myalloc(long,m,mesh->adj.nelcon,nel*maxno,"adj" ,_AD_);
+/*... type*/ 
+  Myalloc(short,m,mesh->adj.nViz,nel       ,"nViz" ,_AD_);
+/*... zerando os variavies*/
+  zero(mesh->adj.nelcon,nel*maxno,"long");
+  zero(mesh->adj.nViz  ,nel      ,"short");
+/*...................................................................*/
 
 /*---alocando variaveis nodais */      
 /*---alocando coordenadas      */      
@@ -134,7 +141,7 @@ void readFileFv(Memoria *m,Mesh *mesh, FILE* file)
       printf("loading cells ...\n");
       readVfElmt(mesh->elm.node    ,mesh->elm.mat,mesh->elm.nen 
                 ,mesh->elm.geomType,mesh->numel
-                ,mesh->maxno       ,file);
+                ,mesh->maxNo       ,file);
       printf("load.\n");
       printf("%s\n\n",DIF);
     }
@@ -149,7 +156,7 @@ void readFileFv(Memoria *m,Mesh *mesh, FILE* file)
       rflag[5] = true;
       strcpy(str,"endFaceRt1");
       printf("loading faceRt1 ...\n");
-      readVfRes(mesh->elm.faceRt1,mesh->numel,mesh->maxno,str,file);
+      readVfRes(mesh->elm.faceRt1,mesh->numel,mesh->maxNo,str,file);
       printf("load.\n");
       printf("%s\n\n",DIF);
     }
@@ -163,7 +170,7 @@ void readFileFv(Memoria *m,Mesh *mesh, FILE* file)
       rflag[6] = true;
       strcpy(str,"endFaceSt1");
       printf("loading faceSt1 ...\n");
-      readVfSource(mesh->elm.faceSt1,mesh->numel,mesh->maxno
+      readVfSource(mesh->elm.faceSt1,mesh->numel,mesh->maxNo
            ,str,file);  
       printf("load.\n");
       printf("%s\n\n",DIF);
@@ -310,9 +317,9 @@ void readVfCoor(double *x,long int nn, short int ndm,FILE *file){
  
   for(i=0;i<nn;i++){
     fscanf(file,"%ld",&idum);
+    k = idum -1;
     for(j=0;j<ndm;j++){
-      k = (idum-1)*ndm + j;
-      fscanf(file,"%lf",&x[k]);
+      fscanf(file,"%lf",&COOR(k,j,x,ndm));
     }
   }
 #ifdef _DEBUG_MESH_ 
@@ -350,10 +357,10 @@ void readVfCoor(double *x,long int nn, short int ndm,FILE *file){
  * ty   -> numero do tipo geometrico do elemento                     *
  * ------------------------------------------------------------------*
  *********************************************************************/
-void readVfElmt(int *el        ,short int *mat  ,short int *nen 
-               ,short int *ty  ,long int nel  
-               ,short int maxno,FILE *file){
-  long int i,idum,k;
+void readVfElmt(long int *el   ,short int *mat  ,short int *nen 
+               ,short int *ty  ,long int nel    ,short int maxno
+               ,FILE *file){
+  long int i,idum;
   short int nenl;
   int j;
  
@@ -365,8 +372,7 @@ void readVfElmt(int *el        ,short int *mat  ,short int *nen
     fscanf(file,"%hd",&nenl);
     nen[idum] = nenl;
     for(j=0;j<nenl;j++){
-      k = idum*maxno + j;
-      fscanf(file,"%d",&el[k]);
+      fscanf(file,"%ld",&ELM(idum,j,el,maxno));
     }
   }
 #ifdef _DEBUG_MESH_ 

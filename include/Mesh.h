@@ -1,6 +1,7 @@
 #ifndef _MESH_
   #define _MESH_
   #include<time.h>
+  #include<Adjcency.h>
   #include<Mystdbool.h>
 /*numero maximo de propriedade*/
   #define MAXPROP      15 
@@ -13,23 +14,30 @@
   #define VTK_HEXA  12
   #define MAX_TRANS_EQ 3 
 /*...................................................................*/
-
+  #define    ELM(nel,no,vector,maxNo)   vector[nel*maxNo+no]
+  #define NELCON(nel,viz,vector,maxViz) vector[nel*maxViz+viz]
+  #define   COOR(no,j,vector,ndm)       vector[no*ndm+j]
 /*... Material*/
   typedef struct Material{
     double *prop;      /*valores numericos da propriedade*/
     short  *type;      /*tipo da celula*/ 
   } Material;
 /*...................................................................*/
-  
+
+/*...*/
+  typedef struct Adjacency{
+    long  *nelcon;
+    short *nViz;
+  }Adjacency;
+/*...................................................................*/  
 /*... Elementos*/
   typedef struct Elmt{
-    int    *node;      /*conectividades*/
+    long    *node;      /*conectividades*/
     short  *mat;       /*materiais do elementos*/   
     short  *nen;       /*numero de no por elemento*/
     short  *geomType;  /*tipo geometrio do elemento*/
     short  *faceRt1;   /*tipo de condicao de contorno na face*/
     double *faceSt1;   /*valor da condicao de contorno na face*/
-    long   *nel; 
   }Elmt;
 /*...................................................................*/
   
@@ -47,13 +55,15 @@
   typedef struct Mesh{
     long int nnode;/*numero de nos*/
     long int numel;/*numero de elementos*/
-    short ndm;   /*dimensao*/
+    short ndm;     /*dimensao*/
     short ndfT[MAX_TRANS_EQ];   /*graus de liberdade para o problema*/
-    short numat; /*numero maximo de materias no dominio*/
-    short maxno; /*numero maximo de nos por elemento*/
+    short numat;   /*numero maximo de materias no dominio*/
+    short maxNo;   /*numero maximo de nos por elemento*/
+    short maxViz;  /*numero maximo de vizinhos que um elemento posui*/
     Elmt elm;     
     Node node;
     Material material;
+    Adjacency adj;
   }Mesh;
 /*...................................................................*/
 

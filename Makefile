@@ -3,8 +3,8 @@ PATH_INCLUDE="include"
 PRENAME=mfvCell
 CC=gcc
 OPENMP=no
-OT=O3
-DEBUG=no
+OT=O0
+DEBUG=yes
 
 #------------------gerando o nome do excutavel-------------
 ifeq ($(CC),icc)
@@ -26,6 +26,7 @@ endif
 NAME+=$(PRENAME)_$(COMPILER_NAME)
 #-------------------Fontes--------------------------------
 fontes = \
+src/Adjcency.c\
 src/File.c\
 src/Main.c\
 src/Memoria.c\

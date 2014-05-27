@@ -9,7 +9,7 @@
   #include<Mesh.h>
   #include<Memoria.h>
   #include<File.h>
-  void wGeoVtk(Memoria *m        ,double *x      ,int *el 
+  void wGeoVtk(Memoria *m        ,double *x      ,long int *el 
               ,short int *mat    ,short int *nen ,short int *type
               ,short int *faceRt1,double *faceSt1,long int nnode 
               ,long int numel    ,long int ndm   ,short int maxno
