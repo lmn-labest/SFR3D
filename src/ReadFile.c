@@ -156,7 +156,7 @@ void readFileFv(Memoria *m,Mesh *mesh, FILE* file)
       rflag[5] = true;
       strcpy(str,"endFaceRt1");
       printf("loading faceRt1 ...\n");
-      readVfRes(mesh->elm.faceRt1,mesh->numel,mesh->maxNo,str,file);
+      readVfRes(mesh->elm.faceRt1,mesh->numel,mesh->maxViz,str,file);
       printf("load.\n");
       printf("%s\n\n",DIF);
     }
@@ -170,8 +170,8 @@ void readFileFv(Memoria *m,Mesh *mesh, FILE* file)
       rflag[6] = true;
       strcpy(str,"endFaceSt1");
       printf("loading faceSt1 ...\n");
-      readVfSource(mesh->elm.faceSt1,mesh->numel,mesh->maxNo
-           ,str,file);  
+      readVfSource(mesh->elm.faceSt1,mesh->numel,mesh->maxViz
+                  ,str,file);  
       printf("load.\n");
       printf("%s\n\n",DIF);
     }

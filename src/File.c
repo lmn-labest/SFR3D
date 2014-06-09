@@ -259,6 +259,24 @@ void fName(char *name,long num,int cod ,char **out ){
       break;
 /*...................................................................*/
 
+/*... arquivo com o log do solv*/
+    case 12:
+      strcat(ext,".mtx");
+      size1 = strlen(name);
+      size2 = strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao fname, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__FILE__);
+	exit(EXIT_FAILURE);      
+      }
+      strcpy(*out,name);
+      strcat(*out,ext);
+      break;
+/*...................................................................*/
+
 /*...*/
     default:
         printf("\n opcao invalida\n"

@@ -1,5 +1,6 @@
 #!/bin/sh
 PATH_INCLUDE="include"    
+PATH_LIB="lib"    
 PRENAME=mfvCell
 CC=gcc
 OPENMP=no
@@ -27,14 +28,18 @@ NAME+=$(PRENAME)_$(COMPILER_NAME)
 #-------------------Fontes--------------------------------
 fontes = \
 src/Adjcency.c\
+src/Csr.c\
+src/Datastruct.c\
 src/File.c\
 src/Main.c\
 src/Memoria.c\
+src/Numeq.c\
 src/ReadFile.c\
+src/Reord.c\
 src/Vtk.c\
 src/WriteVtk.c
 #-------------------Flags necessarios--------------------------------
-NFLAGS=-I$(PATH_INCLUDE) 
+NFLAGS=-I$(PATH_INCLUDE) -L$(PATH_LIB)
 LDFLAGS=
 #--------------------compiladores------------------------------------
 # intel ifort
@@ -47,7 +52,7 @@ ifeq ($(CC),icc)
 endif
 # gnu gcc
 ifeq ($(CC),gcc)
-  LDFLAGS +=  -lm
+  LDFLAGS +=  -lm -lmmio
   OFLAGS  +=  -Wall -ansi -std=c99 -pedantic-errors
   ifeq ($(OPENMP),yes)
     OFLAGS  += -fopenmp

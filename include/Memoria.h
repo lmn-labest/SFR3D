@@ -14,14 +14,14 @@
 #define CONV_BYTES    1024.0
 #define NPONTEIRO     50/*Numero de ponteiros maximo allocados*/
 #define MNOMEPONTEIRO 20/*Tamanho maximo do nome do vetor*/
-#define NMAX          1000000000
+#define NMAX          1000000
 #define DIF   "***************************************************************"
 typedef struct Memoria{
   char *ia;/*arroanjo principal*/
   char nome_ponteiro[NPONTEIRO][MNOMEPONTEIRO+1];/*nome dos ponterios alocados*/
-  long int pont[NPONTEIRO][2];/*lacalizacao do ponteiro no ia*/                  
+  long int pont[NPONTEIRO][2];/*localizacao do ponteiro no ia*/                  
   unsigned int npont;/*numero de ponteiros alocados*/
-  long int **end[NPONTEIRO];/*endereco dos ponteriosallocados*/
+  long int **end[NPONTEIRO];/*endereco dos ponterios allocados*/
   long int iespont;/*localizacao do ultimo paonteiro allocado no ia*/
   time_t tempmem;/*tempo total de excucao das funcoes*/
 }Memoria;

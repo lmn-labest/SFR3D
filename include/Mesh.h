@@ -17,6 +17,7 @@
   #define    ELM(nel,no,vector,maxNo)   vector[nel*maxNo+no]
   #define NELCON(nel,viz,vector,maxViz) vector[nel*maxViz+viz]
   #define   COOR(no,j,vector,ndm)       vector[no*ndm+j]
+  #define    VET(i,j,vector,col)        vector[i*col+j]
 /*... Material*/
   typedef struct Material{
     double *prop;      /*valores numericos da propriedade*/
@@ -32,11 +33,12 @@
 /*...................................................................*/  
 /*... Elementos*/
   typedef struct Elmt{
-    long    *node;      /*conectividades*/
+    long   *node;      /*conectividades*/
     short  *mat;       /*materiais do elementos*/   
     short  *nen;       /*numero de no por elemento*/
     short  *geomType;  /*tipo geometrio do elemento*/
     short  *faceRt1;   /*tipo de condicao de contorno na face*/
+    short  *rNum;       /*renumeracao dos elementos*/                
     double *faceSt1;   /*valor da condicao de contorno na face*/
   }Elmt;
 /*...................................................................*/
