@@ -77,11 +77,11 @@ void dataStruct(Memoria *m ,long *id   ,long *num   ,long *nelcon
 /*...................................................................*/
 
 /*...*/
-    default:
-        printf("\n opcao invalida\n"
-             "funcao fname(*,*,*)\narquivo = %s\n",__FILE__);
-        exit(EXIT_FAILURE);
-      break;
+     default:
+       printf("\n opcao invalida\n"
+           "funcao fname(*,*,*)\narquivo = %s\n",__FILE__);
+       exit(EXIT_FAILURE);
+     break;
 /*...................................................................*/
   }
 }

@@ -16,7 +16,7 @@
  *********************************************************************/
 void reord( long *num,long *graph,long numel, bool flag){
 
-  long i,j;
+  long i;
 
 /*...*/  
   if(flag); 
@@ -24,9 +24,8 @@ void reord( long *num,long *graph,long numel, bool flag){
 
 /*... numeracao inicial*/  
   else
-    j = numel;
     for(i=0;i<numel;i++){
-      num[i] = j--;
+      num[i] = i+1;
     }
   
 /*....................................................................*/  

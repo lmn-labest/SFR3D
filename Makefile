@@ -37,7 +37,8 @@ src/Numeq.c\
 src/ReadFile.c\
 src/Reord.c\
 src/Vtk.c\
-src/WriteVtk.c
+src/WriteVtk.c\
+src/WriteMtx.c
 #-------------------Flags necessarios--------------------------------
 NFLAGS=-I$(PATH_INCLUDE) -L$(PATH_LIB)
 LDFLAGS=

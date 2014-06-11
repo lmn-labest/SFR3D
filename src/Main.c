@@ -5,6 +5,7 @@
 /*********************************************************************/
 
 /*********************************************************************/
+#include<Coo.h>
 #include<File.h>
 #include<Memoria.h>
 #include<Mesh.h>
@@ -12,7 +13,6 @@
 #include<WriteVtk.h>
 #include<Sisteq.h>
 #include<Reord.h>
-#include<mmio/mmio.h>
 /*********************************************************************/
 
 
@@ -26,8 +26,6 @@ int main(int argc,char**argv){
   SistEq *sistEqT1=NULL;
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
-/*...*/
-  MM_typecode matcode;
 /*...*/
   long i;
 /*Estrutura de dados*/
@@ -130,7 +128,7 @@ int main(int argc,char**argv){
       exit(EXIT_FAILURE);
     }
     sistEqT1->storage = 1;
-    sistEqT1->unsym   = true;    
+    sistEqT1->unsym   = false;    
 /*...................................................................*/
 
 /*... reodenando as celulas para dimuincao da banda*/
@@ -216,19 +214,10 @@ int main(int argc,char**argv){
     printf("%s\n",DIF);
     printf("%s\n",word);
     fName(preName,0,12,&nameOut);
-    fileIn = openFile(nameIn,"r");
-/*...*/    
-    mm_initialize_typecode(&matcode);
-    mm_set_matrix(&matcode);
-    mm_set_coordinate(&matcode);
-    mm_set_real(&matcode);
-/*...................................................................*/
-
 /*...*/
-/*    mm_write_banner(fileOut,matcode);
-    mm_write_mtx_crd_size(fileOut,sistEpT1->neq,sistEpT1->neq
-                         ,sistEpT1->nad);*/
-    fclose(fileOut);
+    writeCoo(&m,sistEqT1->ia,sistEqT1->ja,sistEqT1->neq
+            ,sistEqT1->nad  ,sistEqT1->storage
+            ,sistEqT1->unsym,nameOut);
 /*...................................................................*/
     printf("%s\n\n",DIF);
   }   
