@@ -19,14 +19,14 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void writeCoo(Memoria *m,long *ia   ,long *ja,long neq
-             ,long nad  ,short type
+void writeCoo(Memoria *m,INT *ia   ,INT *ja,INT neq
+             ,INT nad  ,short type
              ,bool unsym,char *name){
 #ifdef _MMIO_  
   MM_typecode matcode;
   int  *lin,*col;
   double *val;
-  long nTotal; 
+  INT nTotal; 
 
 /*...*/    
   mm_initialize_typecode(&matcode);
@@ -98,10 +98,10 @@ void writeCoo(Memoria *m,long *ia   ,long *ja,long neq
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void csrToCoo(int *lin, int *col,double *val,long *ia,long *ja
-             ,long neq,long nad){
+void csrToCoo(int *lin, int *col,double *val,INT *ia,INT *ja
+             ,INT neq,INT nad){
   
-  long i,j,kk,nl1,n,ipoint;
+  INT i,j,kk,nl1,n,ipoint;
 
   kk = 0;
   for(i=0;i<neq;i++){

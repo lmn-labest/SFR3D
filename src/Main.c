@@ -28,7 +28,7 @@ int main(int argc,char**argv){
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
 /*...*/
-  long i,j;
+  INT i,j;
 /*Estrutura de dados*/
   char strIa[MNOMEPONTEIRO],strJa[MNOMEPONTEIRO];
   char strA[MNOMEPONTEIRO],strAd[MNOMEPONTEIRO];
@@ -137,13 +137,13 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... reodenando as celulas para dimuincao da banda*/
-    Myalloc(long,&m,reordMesh->num,mesh->numel,"rNum" ,_AD_);
+    Myalloc(INT,&m,reordMesh->num,mesh->numel,"rNum" ,_AD_);
     reord(&m            ,reordMesh->num,mesh->adj.nelcon,mesh->adj.nViz
          ,mesh->maxViz  ,mesh->numel   ,reordMesh->flag);
 /*...................................................................*/
 
 /*... numeracao das equacoes*/
-    Myalloc(long,&m,sistEqT1->id
+    Myalloc(INT,&m,sistEqT1->id
            ,mesh->numel*mesh->ndfT[0]
            ,"sistT1id",_AD_);
     sistEqT1->neq = numeq(&m,sistEqT1->id  ,reordMesh->num

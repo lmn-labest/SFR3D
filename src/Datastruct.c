@@ -20,8 +20,8 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void dataStruct(Memoria *m ,long *id   ,long *num   ,long *nelcon
-               ,short *nViz,long numel ,short maxViz
+void dataStruct(Memoria *m ,INT *id   ,INT *num   ,INT *nelcon
+               ,short *nViz,INT numel ,short maxViz
                ,short ndf 
                ,char  *strIa,char *strJa,char *strAd,char *strA  
                ,SistEq *sistEqX)
@@ -44,14 +44,14 @@ void dataStruct(Memoria *m ,long *id   ,long *num   ,long *nelcon
 /*...................................................................*/
 
 /*...*/ 
-       Myalloc(long,m,sistEqX->ia     ,sistEqX->neq+1 ,strIa   ,_AD_);
+       Myalloc(INT,m,sistEqX->ia     ,sistEqX->neq+1 ,strIa   ,_AD_);
        sistEqX->nad = csrIa(sistEqX->ia ,id ,num    ,nelcon,nViz
                            ,numel       ,sistEqX->neq, maxViz,ndf
                            ,upper       ,diag        ,lower);
 /*...................................................................*/
 
 /*...*/
-       Myalloc(long,m,sistEqX->ja     ,sistEqX->nad ,strJa   ,_AD_);
+       Myalloc(INT,m,sistEqX->ja     ,sistEqX->nad ,strJa   ,_AD_);
        csrJa(sistEqX->ia ,sistEqX->ja ,id ,num    
             ,nelcon,nViz ,numel       ,sistEqX->neq, maxViz,ndf
             ,upper,diag ,lower);
@@ -70,11 +70,11 @@ void dataStruct(Memoria *m ,long *id   ,long *num   ,long *nelcon
      
 /*... banda da matriz*/
        printf("band Maxima: %ld\n"
-            ,bandCsr(sistEqX->ia,sistEqX->ja,sistEqX->neq,1));
+            ,(long) bandCsr(sistEqX->ia,sistEqX->ja,sistEqX->neq,1));
        printf("band Minima: %ld\n"
-            ,bandCsr(sistEqX->ia,sistEqX->ja,sistEqX->neq,3));
+            ,(long) bandCsr(sistEqX->ia,sistEqX->ja,sistEqX->neq,3));
        printf("band Media : %ld\n"
-            ,bandCsr(sistEqX->ia,sistEqX->ja,sistEqX->neq,2));
+            ,(long) bandCsr(sistEqX->ia,sistEqX->ja,sistEqX->neq,2));
 /*...................................................................*/
      break;
 /*...................................................................*/

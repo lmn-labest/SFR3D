@@ -10,12 +10,12 @@
   #include<Rcm.h>
 
   typedef struct Reord{
-    long *num;
-    long flag;
+    INT *num;
+    INT flag;
   }Reord;
   
-  void reord(Memoria *m  ,long *num  ,long const *adj, short const *nViz
-            ,short const maxViz,long numel , bool flag);
+  void reord(Memoria *m  ,INT *num  ,INT const *adj, short const *nViz
+            ,short const maxViz,INT numel , bool flag);
 
 
 #endif/*_REORD_H*/

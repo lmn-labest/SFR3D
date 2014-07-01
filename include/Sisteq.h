@@ -13,28 +13,28 @@
 
   
   typedef struct SistEq{
-    long *ja,*ia;
+    INT *ja,*ia;
     double *a,*ad,*b,*x,*y;
-    long *id;  /*numeracao da esquacoes por celula*/
+    INT *id;  /*numeracao da esquacoes por celula*/
     bool unsym;/*matriz nao simetrica*/
-    long neq; /*numero de eq*/
-    long nad;
+    INT neq; /*numero de eq*/
+    INT nad;
     short storage; /*tecnica de armazenamenro*/
                   /*1 - csr*/
   }SistEq;
   
-  long numeq(Memoria *m ,long *id  ,long *num, short *rt
-            , short *nen,long numel,short nViz,short ndf);
+  INT numeq(Memoria *m ,INT *id  ,INT *num, short *rt
+            , short *nen,INT numel,short nViz,short ndf);
 
-  void dataStruct(Memoria *m  ,long *id  ,long *num   ,long *nelcon
-                 ,short *nViz ,long numel,short maxViz,short ndf
+  void dataStruct(Memoria *m  ,INT *id  ,INT *num   ,INT *nelcon
+                 ,short *nViz ,INT numel,short maxViz,short ndf
                  ,char  *strIa,char *strJa,char *strAd ,char *strA  
                  ,SistEq *SistEqX);
 
-/*  void datastruct(Memoria *,int *,long *,long,long,short,short
+/*  void datastruct(Memoria *,int *,INT *,INT,INT,short,short
                  ,Sisteq*);*/
 /*SKYLINE*/
-/*  void profil(int*,long*,int*,long,long,short,short,long
-             ,long*);*/
+/*  void profil(int*,INT*,int*,INT,INT,short,short,INT
+             ,INT*);*/
 
 #endif/*_SISTEQ_H*/

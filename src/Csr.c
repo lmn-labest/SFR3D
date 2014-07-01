@@ -24,11 +24,11 @@
  * OBS: a funcao retorna o numero do termos nao nulor no CSR/CSRC    * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-long csrIa(long *ia  ,long *id    ,long *num   ,long  *adj, short *nViz
-          ,long numel,long neq    ,short maxViz,short  ndf, bool upper
+INT csrIa(INT *ia  ,INT *id    ,INT *num   ,INT  *adj, short *nViz
+          ,INT numel,INT neq    ,short maxViz,short  ndf, bool upper
           ,bool diag , bool lower){
   
-  long  i,nel1,neq1,neq2,viz1,col,aux;
+  INT  i,nel1,neq1,neq2,viz1,col,aux;
   short jNdf,kNdf,j;
 /*... gerando arranjo ia*/  
   ia[0] = 0;
@@ -115,12 +115,12 @@ long csrIa(long *ia  ,long *id    ,long *num   ,long  *adj, short *nViz
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void csrJa(long *ia    ,long *ja 
-          ,long *id    ,long *num   ,long  *adj  ,short *nViz
-          ,long numel,long neq      ,short maxViz,short ndf
+void csrJa(INT *ia    ,INT *ja 
+          ,INT *id    ,INT *num   ,INT  *adj  ,short *nViz
+          ,INT numel,INT neq      ,short maxViz,short ndf
           ,bool upper,bool diag     ,bool lower){
   
-  long  i,nel1,neq1,neq2,viz1,col,aux,ipont;
+  INT  i,nel1,neq1,neq2,viz1,col,aux,ipont;
   short j,jNdf,kNdf;
 
 /*... gerando arranjo ja*/  
@@ -210,9 +210,9 @@ void csrJa(long *ia    ,long *ja
  *-------------------------------------------------------------------* 
  *********************************************************************/
 
-long bandCsr(long *ia,long *ja,long  neq,short type){
+INT bandCsr(INT *ia,INT *ja,INT  neq,short type){
 
-  long i,j,bandL,aux;
+  INT i,j,bandL,aux;
   
   switch(type){
 /*... banda maxima da matriz*/

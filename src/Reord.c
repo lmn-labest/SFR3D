@@ -14,11 +14,11 @@
  *-------------------------------------------------------------------* 
  * OBS:                                                              * 
  *********************************************************************/
-void reord(Memoria *m,long *num,long const *adj ,short const*nViz
-          ,short const maxViz  ,long numel, bool flag){
+void reord(Memoria *m,INT *num,INT const *adj ,short const*nViz
+          ,short const maxViz  ,INT numel, bool flag){
 
-  long *xAdj=NULL,*adjncy=NULL,*perm=NULL;
-  long i,nDeg;
+  INT *xAdj=NULL,*adjncy=NULL,*perm=NULL;
+  INT i,nDeg;
 
 /*...*/  
   if(flag){
@@ -27,11 +27,11 @@ void reord(Memoria *m,long *num,long const *adj ,short const*nViz
 
 /*... armazena a malha no formato CSR*/
 /*... calculo do vetor xAdj*/    
-    Myalloc(long,m,xAdj  ,numel+1      ,"xAdj"  ,_AD_);
+    Myalloc(INT,m,xAdj  ,numel+1      ,"xAdj"  ,_AD_);
     convGraph(xAdj,adjncy,adj,nViz,maxViz,numel,true,false);
 /*... calculo do vetor adjncy*/    
     nDeg = xAdj[numel] -xAdj[0];
-    Myalloc(long,m,adjncy,nDeg,"adjncy",_AD_);
+    Myalloc(INT,m,adjncy,nDeg,"adjncy",_AD_);
     convGraph(xAdj,adjncy,adj,nViz,maxViz,numel,false,true);
 /*... ordena o grafo CSR em ordem crescente*/
     sortGraphCsr(xAdj,adjncy,numel);
@@ -46,7 +46,7 @@ void reord(Memoria *m,long *num,long const *adj ,short const*nViz
 /*...................................................................*/
 
 /*...*/    
-    Myalloc(long,m,perm  ,numel        ,"perm"  ,_AD_);
+    Myalloc(INT,m,perm  ,numel        ,"perm"  ,_AD_);
 /*...................................................................*/
 
 /*...*/    

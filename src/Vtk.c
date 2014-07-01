@@ -57,13 +57,13 @@ void headVtk(char *s,bool cod,FILE *f)
  * -------------------------------------------------------------------*
  * -------------------------------------------------------------------*
  *********************************************************************/
-void writeVtkCoor(double *x,long nnode,int ndm,bool cod,FILE *f)
+void writeVtkCoor(double *x,INT nnode,int ndm,bool cod,FILE *f)
 {
-    long i,j;
+    INT i,j;
     double dum;
 /*===*/
    new_section(cod,f); 
-   fprintf(f,"POINTS %ld double\n",nnode);
+   fprintf(f,"POINTS %ld double\n",(long) nnode);
 /*... 1D(x1,0,0,x2,0,0,...)*/  
    if(ndm == 1){
      j = 0;
@@ -113,11 +113,12 @@ void writeVtkCoor(double *x,long nnode,int ndm,bool cod,FILE *f)
  * Parametro de saida :                                               *
  * -------------------------------------------------------------------*
  *********************************************************************/
-void writeVtkCell(int *el        ,short int *nen , short int *type
-                 ,long numel     ,short int maxno,bool cod
+void writeVtkCell(int *el       ,short *nen ,short *type
+                 ,INT numel     ,short maxno,bool cod
                  ,FILE *f)
 {
-  long i,k,aux=0;
+  INT i,k;
+  long aux=0;
   int dum;
   int j;
 
@@ -131,7 +132,7 @@ void writeVtkCell(int *el        ,short int *nen , short int *type
     aux += nen[i] + 1;
 /*...*/
   new_section(cod,f); 
-  fprintf(f,"CELLS %ld %ld\n",numel,aux);
+  fprintf(f,"CELLS %ld %ld\n",(long) numel,aux);
   for(i=0;i<numel;i++){
     dum = nen[i];
     write_int(dum,cod,f);
@@ -145,7 +146,7 @@ void writeVtkCell(int *el        ,short int *nen , short int *type
 
 /*...*/
   new_section(cod,f); 
-  fprintf(f,"CELL_TYPES %ld\n",numel);
+  fprintf(f,"CELL_TYPES %ld\n",(long) numel);
   for(i=0;i<numel;i++){
     if(type[i] == 2) 
       dum = VTK_TRIA;
@@ -186,11 +187,11 @@ void writeVtkCell(int *el        ,short int *nen , short int *type
  * Parametro de saida :                                               *
  * -------------------------------------------------------------------*
  *********************************************************************/
-void writeVtkCellProp(int *iprop,double *dprop,long int numel,int gdl
-                     ,char *s   ,bool cod1    ,short int cod2,FILE *f)
+void writeVtkCellProp(int *iprop,double *dprop,INT numel,int gdl
+                     ,char *s   ,bool cod1    ,short cod2,FILE *f)
 {
 /*===*/
-   long i;
+   INT i;
    int j;
 /*====================================================================*/
 /**/
@@ -249,7 +250,7 @@ void writeVtkNodeProp(int *iprop,double *dprop,short cod1,short cod2
                         ,int nnode,short ndf,char *s,bool cod,FILE *f)
 {
 /*===*/
-   long i;
+   INT i;
    int j;
    double ddum=0.0;
 /*====================================================================*/
@@ -342,7 +343,7 @@ static void write_double(double val,bool cod,FILE *f)
  *      Determines if the machine is little-endian.  If so, then
  *      , for binary data, it will force the data to be big-endian.
  *
- *  Note:       This assumes that all inputs are 4 bytes long.
+ *  Note:       This assumes that all inputs are 4 bytes INT.
  *
  *  Programmer: Hank Childs
  *  Creation:   September 3, 2004

@@ -7,11 +7,11 @@
   #include<Mystdbool.h>
   #include<Mesh.h>
 /*...*/
-  void sortGraphCsr(long *ia,long *ja,long n);
+  void sortGraphCsr(INT *ia,INT *ja,INT n);
 /*...*/  
-  void convGraph(long *xAdj    ,long *adjncy,long const *adj,short const *nViz
-                ,short maxViz  ,long numel  ,bool xAdjFlag  ,bool adjFlag );
+  void convGraph(INT *xAdj    ,INT *adjncy,INT const *adj,short const *nViz
+                ,short maxViz  ,INT numel  ,bool xAdjFlag  ,bool adjFlag );
 /*...*/
-  void bubblesort(long *ja,long n);
+  void bubblesort(INT *ja,INT n);
 
 #endif/*_CSR_H*/

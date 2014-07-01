@@ -46,7 +46,7 @@ FILE *aux;
  * out -> aruivo de saida com a extencao                             * 
  * ------------------------------------------------------------------*
  * *******************************************************************/
-void fName(char *name,long num,int cod ,char **out ){
+void fName(char *name,INT num,int cod ,char **out ){
 /*===*/
   char st[MAX_STR_NUMBER];
   char ext[MAX_EXT];
@@ -303,7 +303,7 @@ void fName(char *name,long num,int cod ,char **out ){
  * st -> string com a volar de istep                                 *
  * ------------------------------------------------------------------*
  *********************************************************************/
-void iota( long t , char* st ){
+void iota( INT t , char* st ){
 /*...*/
   char c;
   int n , dec , j , k;
@@ -380,7 +380,7 @@ void readMacro(FILE* file,char *mc,bool allline)
 
 int rl(FILE *f,char *st){
   
-  long int posicao;
+  long posicao;
   char s[LINE_SIZE];
   
   posicao=ftell(f);

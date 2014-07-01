@@ -16,11 +16,11 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/ 
-void convGraph(long *xAdj       ,long *adjncy ,long const *adj
-              ,short const *nViz,short maxViz ,long numel
+void convGraph(INT *xAdj       ,INT *adjncy ,INT const *adj
+              ,short const *nViz,short maxViz ,INT numel
               ,bool xAdjFlag    ,bool adjFlag){
 
-  long nel,kk=0,viz,n;
+  INT nel,kk=0,viz,n;
   int aux = 0;
   
   if(xAdj) xAdj[0] = 0;
@@ -57,9 +57,9 @@ void convGraph(long *xAdj       ,long *adjncy ,long const *adj
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/ 
-void sortGraphCsr(long *ia,long *ja,long n){
+void sortGraphCsr(INT *ia,INT *ja,INT n){
 
-  long i,nl;
+  INT i,nl;
   
   for(i=0;i<n;i++){
     nl = ia[i+1] - ia[i];
@@ -83,9 +83,9 @@ void sortGraphCsr(long *ia,long *ja,long n){
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/ 
-void bubblesort(long *ja,long n){
+void bubblesort(INT *ja,INT n){
   
-  long i,j;
+  INT i,j;
   bool itroca;
   
   do{

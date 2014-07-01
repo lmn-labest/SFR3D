@@ -20,13 +20,13 @@
  * nViz  -> numero de vizinhos por elemento                          *
  * ------------------------------------------------------------------*
  * *******************************************************************/
-void viz(Memoria *m ,long *el    ,long *nelcon
-        ,short *nViz,short *nen  ,long nnode
-        ,long numel ,short maxNo ,short maxViz){
+void viz(Memoria *m ,INT *el    ,INT *nelcon
+        ,short *nViz,short *nen ,INT nnode
+        ,INT numel ,short maxNo ,short maxViz){
   
-  long *nodcon,nEdge,i;
+  INT *nodcon,nEdge,i;
   
-  Myalloc(long,m,nodcon      ,nnode ,"nodcon",_AD_);
+  Myalloc(INT,m,nodcon      ,nnode ,"nodcon",_AD_);
   
   adj2d(el,nodcon,nelcon,nen,numel,nnode,maxNo,maxViz,&nEdge);
   
@@ -60,12 +60,12 @@ void viz(Memoria *m ,long *el    ,long *nelcon
  * nEdge -> numero de arestas                                        * 
  * ------------------------------------------------------------------*
  * *******************************************************************/
-void adj2d(long *el  ,long *nodcon,long *nelcon,short *nen
-          ,long numel, long nnode ,short maxNo , short maxViz
-          ,long *nEdge){
+void adj2d(INT *el  ,INT *nodcon,INT *nelcon,short *nen
+          ,INT numel, INT nnode ,short maxNo , short maxViz
+          ,INT *nEdge){
  
  
-  long  i,nel1,nel2,no1,no2,no21,no22;
+  INT  i,nel1,nel2,no1,no2,no21,no22;
   int   j,k;
   short is1,is2; 
   bool imiss;

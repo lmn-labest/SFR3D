@@ -21,7 +21,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
            ,"faceSt1"    
 	   };                                             
   bool rflag[NMACROS],macroFlag;
-  long int nn,nel;
+  INT nn,nel;
   short maxno,ndm,numat,ndf;
   int i;
 
@@ -37,7 +37,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 
 /*... alocando variavies de elementos*/
 /*... conectividade*/ 
-  Myalloc(long,m,mesh->elm.node     ,nel*maxno ,"elnode",_AD_);
+  Myalloc(INT,m,mesh->elm.node     ,nel*maxno ,"elnode",_AD_);
 /*... materiais*/ 
   Myalloc(short,m,mesh->elm.mat     ,nel       ,"elmat" ,_AD_);
 /*... nos por elementos*/
@@ -46,7 +46,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
   Myalloc(short,m,mesh->elm.geomType,nel       ,"elgT"  ,_AD_);
 
 /*... zerando os variavies*/
-  zero(mesh->elm.node     ,nel*maxno    ,"long"  );
+  zero(mesh->elm.node     ,nel*maxno    ,INTC);
   zero(mesh->elm.mat      ,nel          ,"short" );
   zero(mesh->elm.nen      ,nel          ,"short" );
   zero(mesh->elm.geomType ,nel          ,"short" );
@@ -67,11 +67,11 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 
 /*... alocando estruturas para vizinhos*/
 /*... nelcon*/ 
-  Myalloc(long,m,mesh->adj.nelcon,nel*maxno,"adj" ,_AD_);
+  Myalloc(INT,m,mesh->adj.nelcon,nel*maxno,"adj" ,_AD_);
 /*... type*/ 
   Myalloc(short,m,mesh->adj.nViz,nel       ,"nViz" ,_AD_);
 /*... zerando os variavies*/
-  zero(mesh->adj.nelcon,nel*maxno,"long");
+  zero(mesh->adj.nelcon,nel*maxno,INTC);
   zero(mesh->adj.nViz  ,nel      ,"short");
 /*...................................................................*/
 
@@ -194,8 +194,8 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
  * file  - ponteiro para o arquivo de dados                          *
  * ----------------------------------------------------------------- *
  *********************************************************************/
-void parametros(long  int *nn   ,long  int *nel  ,short int *maxno
-               ,short int *ndm  ,short int *numat,short int *ndf
+void parametros(INT  *nn   ,INT *nel  ,short *maxno
+               ,short *ndm  ,short *numat,short *ndf
                ,FILE* file)
 {
   char parameter[][WORD_SIZE]={"nnode","numel","numat"
@@ -204,6 +204,7 @@ void parametros(long  int *nn   ,long  int *nel  ,short int *maxno
   char word[WORD_SIZE];
   bool flag[NPARAMETROS];
   int i=0,j;
+  long aux;
 
 
   *nn    = 0;
@@ -220,7 +221,8 @@ void parametros(long  int *nn   ,long  int *nel  ,short int *maxno
     readMacro(file,word,false);
 /*... macro nnode*/   
     if(!strcmp(word,parameter[0])){
-      fscanf(file,"%ld",nn);
+      fscanf(file,"%ld",&aux);
+      *nn = (INT) aux;
 #ifdef _DEBUG_MESH_ 
       printf("nnode %ld\n",*nn);
 #endif      
@@ -231,7 +233,8 @@ void parametros(long  int *nn   ,long  int *nel  ,short int *maxno
 
 /*... macro numel*/   
     else if(!strcmp(word,parameter[1])){
-      fscanf(file,"%ld",nel);
+      fscanf(file,"%ld",&aux);
+      *nel = (INT) aux;
 #ifdef _DEBUG_MESH_ 
       printf("numel %ld\n",*nel);
 #endif      
@@ -312,13 +315,14 @@ void parametros(long  int *nn   ,long  int *nel  ,short int *maxno
  * x    -> coordenada                                                *
  * ------------------------------------------------------------------*
  *********************************************************************/
-void readVfCoor(double *x,long int nn, short int ndm,FILE *file){
-  long int i,idum,k;
+void readVfCoor(double *x,INT nn, short ndm,FILE *file){
+  INT i,k;
+  long idum;
   int j;
  
   for(i=0;i<nn;i++){
     fscanf(file,"%ld",&idum);
-    k = idum -1;
+    k = (INT) idum -1;
     for(j=0;j<ndm;j++){
       fscanf(file,"%lf",&VET(k,j,x,ndm));
     }
@@ -358,11 +362,12 @@ void readVfCoor(double *x,long int nn, short int ndm,FILE *file){
  * ty   -> numero do tipo geometrico do elemento                     *
  * ------------------------------------------------------------------*
  *********************************************************************/
-void readVfElmt(long int *el   ,short int *mat  ,short int *nen 
-               ,short int *ty  ,long int nel    ,short int maxno
+void readVfElmt(INT *el   ,short *mat ,short *nen 
+               ,short *ty ,INT nel    ,short maxno
                ,FILE *file){
-  long int i,idum;
-  short int nenl;
+  INT i;
+  long idum,aux;
+  short nenl;
   int j;
  
   for(i=0;i<nel;i++){
@@ -373,19 +378,10 @@ void readVfElmt(long int *el   ,short int *mat  ,short int *nen
     fscanf(file,"%hd",&nenl);
     nen[idum] = nenl;
     for(j=0;j<nenl;j++){
-      fscanf(file,"%ld",&VET(idum,j,el,maxno));
+      fscanf(file,"%ld",&aux);
+      VET(idum,j,el,maxno) = (INT) aux;
     }
   }
-#ifdef _DEBUG_MESH_ 
-  for(i=0;i<nel;i++){
-    fprintf(stderr,"%ld",i+1);
-    for(j=0;j<ndm;j++){
-      k = i*ndm + j;
-      fprintf(stderr," %lf ",el[k]);
-    }
-    printf("\n");
-  }
-#endif
 }
 /*********************************************************************/
 
@@ -404,12 +400,13 @@ void readVfElmt(long int *el   ,short int *mat  ,short int *nen
  * ----------------------------------------------------------------- *
  * id    - tipos de restricoes                                       *
  *********************************************************************/
-void readVfRes(short int *id,long int numel,short int maxno
+void readVfRes(short *id,INT numel,short maxno
               ,char *str    ,FILE* file){
   
   char word[WORD_SIZE];
   int  j,k,kk,nTerm;
-  long nel;  
+  INT nel;
+  long aux;  
 
   readMacro(file,word,false);
   do{
@@ -422,10 +419,11 @@ void readVfRes(short int *id,long int numel,short int maxno
         fscanf(file,"%hd",&id[k]);
       } 
       else{
+        aux = (long) nel;
         printf("Erro: numero do elemento nao exitentes. Nel = %ld.\n"
                "Arquivo fonte:  \"%s\".\n"
                "Nome da funcao: \"%s\".\n"
-              ,nel,__FILE__,__func__);
+               ,aux,__FILE__,__func__);
         exit(EXIT_FAILURE);
       }
     }
@@ -449,12 +447,13 @@ void readVfRes(short int *id,long int numel,short int maxno
  * ----------------------------------------------------------------- *
  * f     - valores das restricoes                                    *
  *********************************************************************/
-void readVfSource(double *f,long numel, short int maxno,char *str
+void readVfSource(double *f,INT numel, short int maxno,char *str
                  ,FILE* file){
   
   char word[WORD_SIZE];
   int  j,k,kk,nTerm;
-  long nel;  
+  INT nel;
+  long aux;  
 
   readMacro(file,word,false);
   do{
@@ -467,10 +466,11 @@ void readVfSource(double *f,long numel, short int maxno,char *str
         fscanf(file,"%lf",&f[k]);
       }  
       else{
+        aux = (long) nel;
         printf("Erro: numero do elemento nao exitentes. Nel = %ld.\n"
                "Arquivo fonte:  \"%s\".\n"
                "Nome da funcao: \"%s\".\n"
-              ,nel,__FILE__,__func__);
+              ,aux,__FILE__,__func__);
         exit(EXIT_FAILURE);
       }
     }

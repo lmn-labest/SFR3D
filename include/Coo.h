@@ -10,14 +10,15 @@
   #include<Memoria.h>
   #include<stdio.h>
   #include<stdlib.h>
+  #include<Define.h>
 /*...*/
-  void writeCoo(Memoria *m,long *ia   ,long *ja,long neq
-               ,long nad,short type
+  void writeCoo(Memoria *m,INT *ia   ,INT *ja,INT neq
+               ,INT nad,short type
                ,bool unsym,char* name);
 
 /*...*/
-  void csrToCoo(int  *linha,int  *col,double *val,long *ia,long *ja
-               ,long neq ,long nad);
+  void csrToCoo(int  *linha,int  *col,double *val,INT *ia,INT *ja
+               ,INT neq ,INT nad);
 
 
 #endif/*_COO_H*/

@@ -53,18 +53,18 @@
  *    Local, int MASK[NODE_NUM], marks variables that have been       * 
  *    numbered.                                                       *
  **********************************************************************/
-void genrcm (long node_num  , long *adj_row, long *adj
-            , long *perm)
+void genrcm (INT node_num  , INT *adj_row, INT *adj
+            , INT *perm)
 {
-  long i;
-  long iccsze;
-  long level_num;
-  long *level_row=NULL;
+  INT i;
+  INT iccsze;
+  INT level_num;
+  INT *level_row=NULL;
   char *mask=NULL;
-  long num;
-  long root;
+  INT num;
+  INT root;
   
-  if( (level_row = (long *) malloc(sizeof(long)*node_num)) == NULL){
+  if( (level_row = (INT *) malloc(sizeof(INT)*node_num)) == NULL){
     ERRO_RCM;
     fprintf(stderr,"Malloc fail for vector level_row.\n");
     fprintf(stderr,"Func %s, source filee \"%s\"\n" 
@@ -214,21 +214,21 @@ void genrcm (long node_num  , long *adj_row, long *adj
  *                                                                     *
  *   Input, int NODE_NUM, the number of nodes.                         *  
  ***********************************************************************/
-void root_find ( long *root, long *adj_row  , long *adj
-              , char *mask , long *level_num, long *level_row
-              , long *level, long node_num )
+void root_find ( INT *root, INT *adj_row  , INT *adj
+              , char *mask , INT *level_num, INT *level_row
+              , INT *level, INT node_num )
 {
-  long iccsze;
-  long j;
-  long jstrt;
-  long k;
-  long kstop;
-  long kstrt;
-  long level_num2;
-  long mindeg;
-  long nabor;
-  long ndeg;
-  long node;
+  INT iccsze;
+  INT j;
+  INT jstrt;
+  INT k;
+  INT kstop;
+  INT kstrt;
+  INT level_num2;
+  INT mindeg;
+  INT nabor;
+  INT ndeg;
+  INT node;
 /*
     Determine the level structure rooted at ROOT.
 */
@@ -382,20 +382,20 @@ void root_find ( long *root, long *adj_row  , long *adj
  *
  *   Input, int NODE_NUM, the number of nodes.
  *********************************************************************/
-void level_set ( long root  , long *adj_row, long *adj
-                , char *mask , long *level_num, long *level_row
-                , long *level,long node_num )
+void level_set ( INT root  , INT *adj_row, INT *adj
+                , char *mask , INT *level_num, INT *level_row
+                , INT *level,INT node_num )
 { 
-  long i;
-  long iccsze;
-  long j;
-  long jstop;
-  long jstrt;
-  long lbegin;
-  long lvlend;
-  long lvsize;
-  long nbr;
-  long node;
+  INT i;
+  INT iccsze;
+  INT j;
+  INT jstop;
+  INT jstrt;
+  INT lbegin;
+  INT lvlend;
+  INT lvsize;
+  INT nbr;
+  INT node;
   
   mask[root-1] = 0;
   level[0] = root;
@@ -533,23 +533,23 @@ void level_set ( long root  , long *adj_row, long *adj
  *    the degree of the nodes in the section graph specified by mask 
  *    and root.
  *********************************************************************/
-void rcm ( long root, long *adj_row, long *adj, char *mask,
-          long *perm, long *iccsze , long node_num )
+void rcm ( INT root, INT *adj_row, INT *adj, char *mask,
+          INT *perm, INT *iccsze , INT node_num )
 {
-  long *deg=NULL;
-  long fnbr;
-  long i;
-  long j;
-  long jstop;
-  long jstrt;
-  long k;
-  long l;
-  long lbegin;
-  long lnbr;
-  long lperm;
-  long lvlend;
-  long nbr;
-  long node;
+  INT *deg=NULL;
+  INT fnbr;
+  INT i;
+  INT j;
+  INT jstop;
+  INT jstrt;
+  INT k;
+  INT l;
+  INT lbegin;
+  INT lnbr;
+  INT lperm;
+  INT lvlend;
+  INT nbr;
+  INT node;
 /*
     If node_num out of bounds, something is wrong.
 */
@@ -557,7 +557,7 @@ void rcm ( long root, long *adj_row, long *adj, char *mask,
   {
     ERRO_RCM;
     fprintf(stderr,"  Unacceptable input value of NODE_NUM = %ld"
-           ,node_num) ;
+           ,(long) node_num) ;
     exit ( 1 );
   }
 /*
@@ -566,16 +566,16 @@ void rcm ( long root, long *adj_row, long *adj, char *mask,
   if ( root < 1 || node_num < root )
   {
     ERRO_RCM;
-    fprintf(stderr,"  Unacceptable input value of ROOT = %ld \n",root);
+    fprintf(stderr,"  Unacceptable input value of ROOT = %ld \n",(long) root);
     fprintf(stderr
            ,"  Acceptable values are between 1 and %ld inclusive.\n"
-           ,node_num);
+           ,(long) node_num);
     exit ( 1 );
   }
 /*
     Allocate memory for the degree array.
 */
-  if( (deg  = (long  *) malloc(sizeof(long)*node_num)) == NULL){
+  if( (deg  = (INT  *) malloc(sizeof(INT)*node_num)) == NULL){
     ERRO_RCM;
     fprintf(stderr,"Malloc fail for vector deg .\n");
     fprintf(stderr,"Func %s, source filee \"%s\"\n" 
@@ -594,7 +594,7 @@ void rcm ( long root, long *adj_row, long *adj, char *mask,
     ERRO_RCM;
     fprintf(stderr
     ,"  Connected component size ICCSZE returned from DEGREE as %ld\n"
-    ,*iccsze);
+    ,(long) *iccsze);
     exit ( 1 );
   }
 /*
@@ -755,19 +755,19 @@ void rcm ( long root, long *adj_row, long *adj, char *mask,
  *
  *    Input, int NODE_NUM, the number of nodes.
  **********************************************************************/
-  void degree ( long root, long *adj_row, long *adj, char *mask,
-                long *deg, long *iccsze , long *ls, long node_num )
+  void degree ( INT root, INT *adj_row, INT *adj, char *mask,
+                INT *deg, INT *iccsze , INT *ls, INT node_num )
   {
-  long i;
-  long ideg;
-  long j;
-  long jstop;
-  long jstrt;
-  long lbegin;
-  long lvlend;
-  long lvsize;
-  long nbr;
-  long node;
+  INT i;
+  INT ideg;
+  INT j;
+  INT jstop;
+  INT jstrt;
+  INT lbegin;
+  INT lvlend;
+  INT lvsize;
+  INT nbr;
+  INT node;
 /*
     The sign of ADJ_ROW(I) is used to indicate if node I has been considered.
 */
@@ -872,9 +872,9 @@ void rcm ( long root, long *adj_row, long *adj, char *mask,
  *                                                                    *
  *    Input/output, int A(N), the array to be reversed.               *
  **********************************************************************/
-void ivec_reverse ( long n, long *a )
+void ivec_reverse ( INT n, INT *a )
 {
-  long i,j;
+  INT i,j;
 
   for ( i = 0; i < n / 2; i++ )
   {

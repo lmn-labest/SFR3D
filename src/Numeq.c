@@ -18,10 +18,10 @@
  * id    -> numerocao das equacoes por celula                        *
  * ------------------------------------------------------------------*
  * *******************************************************************/
-long numeq(Memoria *m , long *id   ,long *num, short *rt
-          , short *nen,long numel  ,short maxViz, short ndf){
+INT numeq(Memoria *m , INT *id   ,INT *num, short *rt
+          , short *nen,INT numel  ,short maxViz, short ndf){
 
-  long i,neq,nel;
+  INT i,neq,nel;
   short maxRes = (maxViz + 1)*ndf;
   short j,aux;
 

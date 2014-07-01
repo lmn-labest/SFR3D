@@ -26,11 +26,11 @@
  * parametros de saida  :                                             * 
  * ------------------------------------------------------------------ *
  **********************************************************************/
-void wGeoVtk(Memoria *m        ,double *x      ,long int *el 
-            ,short int *mat    ,short int *nen ,short int *type
-            ,short int *faceRt1,double *faceSt1,long int nnode    
-            ,long int numel    ,long int ndm   ,short int maxno   
-            ,short int *ndfT   ,char *nameOut  ,bool iws
+void wGeoVtk(Memoria *m    ,double *x      ,INT *el 
+            ,short *mat    ,short *nen     ,short *type
+            ,short *faceRt1,double *faceSt1,INT nnode    
+            ,INT numel     ,INT ndm        ,short maxno   
+            ,short *ndfT   ,char *nameOut  ,bool iws
             ,FILE *f)
 {
   int *lel=NULL;
@@ -71,7 +71,7 @@ void wGeoVtk(Memoria *m        ,double *x      ,long int *el
 /*...................................................................*/
 
 /*... campo por elemento*/
-  fprintf(f,"CELL_DATA %ld\n",numel);
+  fprintf(f,"CELL_DATA %ld\n",(long) numel);
 /*...................................................................*/
 
 /*... material*/
@@ -129,7 +129,7 @@ void wGeoVtk(Memoria *m        ,double *x      ,long int *el
 /*...................................................................*/
 
 /*.... campo por no*/
-  fprintf(f,"POINT_DATA %ld\n",nnode);
+  fprintf(f,"POINT_DATA %ld\n",(long) nnode);
 /*...................................................................*/
 
 /*... numero do elemento*/

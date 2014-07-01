@@ -8,19 +8,19 @@
   #include<Reord.h>
   #include<Mesh.h>
 /*...*/
-  long csrIa(long *ia  ,long *id    ,long *num   ,long  *adj ,short *nViz
-            ,long numel,long neq    ,short maxViz,short ndf  ,bool upper
+  INT csrIa(INT *ia  ,INT *id    ,INT *num   ,INT  *adj ,short *nViz
+            ,INT numel,INT neq    ,short maxViz,short ndf  ,bool upper
             ,bool diag , bool lower);
 /*...*/
-  void csrJa(long *ia     ,long *ja 
-           ,long *id  ,long *num ,long  *adj, short *nViz
-           ,long numel,long neq ,short maxViz,short ndf
+  void csrJa(INT *ia     ,INT *ja 
+           ,INT *id  ,INT *num ,INT  *adj, short *nViz
+           ,INT numel,INT neq ,short maxViz,short ndf
            ,bool upper,bool diag,bool lower);
 
 /*...*/
-  long bandCsr(long *ia,long *ja,long  neq,short type);
+  INT bandCsr(INT *ia,INT *ja,INT  neq,short type);
 
 /*...*/
-  void sortGraphCsr(long *ia,long *ja,long n);
+  void sortGraphCsr(INT *ia,INT *ja,INT n);
 
 #endif/*_CSR_H*/

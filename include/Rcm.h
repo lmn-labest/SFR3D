@@ -1,29 +1,27 @@
 #ifndef _RCM_H  
   #define _RCM_H
-  #define ERRO_RCM fprintf(stderr,"\nrcm - fatal error!\n")
-  #define vectorPlusOne(v,n,i)  for(i=0;i<n;i++) v[i] = v[i] + 1; 
-  #define vectorMinusOne(v,n,i) for(i=0;i<n;i++) v[i] = v[i] - 1; 
   #include<stdio.h>
   #include<stdlib.h>
+  #include<Define.h>
 /*...*/
-  void genrcm(long node_num, long *adj_row, long *adj
-             ,long *perm);
+  void genrcm(INT node_num, INT *adj_row, INT *adj
+             ,INT *perm);
 
-  void root_find( long *root , long *adj_row  , long *adj
-                , char *mask , long *level_num, long *level_row
-                , long *level, long node_num );
+  void root_find( INT *root , INT *adj_row  , INT *adj
+                , char *mask , INT *level_num, INT *level_row
+                , INT *level, INT node_num );
 
-  void level_set( long root  ,long *adj_row, long *adj
-                , char *mask ,long *level_num, long *level_row
-                , long *level,long node_num );
+  void level_set( INT root  ,INT *adj_row, INT *adj
+                , char *mask ,INT *level_num, INT *level_row
+                , INT *level,INT node_num );
   
-  void degree ( long root, long *adj_row, long *adj, char *mask,
-                long *deg, long *iccsze, long *ls, long node_num );
+  void degree ( INT root, INT *adj_row, INT *adj, char *mask,
+                INT *deg, INT *iccsze, INT *ls, INT node_num );
   
-  void ivec_reverse ( long n, long *a );
+  void ivec_reverse ( INT n, INT *a );
 
-  void rcm ( long root, long *adj_row, long *adj, char *mask,
-            long *perm, long *iccsze , long node_num );
+  void rcm ( INT root, INT *adj_row, INT *adj, char *mask,
+            INT *perm, INT *iccsze , INT node_num );
  
 
 
