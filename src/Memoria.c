@@ -18,7 +18,7 @@
  * m->tempmem  - tempo  em s                                        * 
  * ---------------------------------------------------------------- * 
  ********************************************************************/
-void initMem(Memoria *m, bool iws)
+void initMem(Memoria *m,long nmax, bool iws)
 {
    long int i;
    
@@ -28,11 +28,11 @@ void initMem(Memoria *m, bool iws)
      fprintf(stderr,"inicializando a memoria...\n");
    
    
-   m->ia = (char *) malloc(NMAX*sizeof(char));
+   m->ia = (char *) malloc(nmax*sizeof(char));
    if(!m->ia){
      fprintf(stderr,"Erro memoria Insuficiente:\n"
                    "Memoria solicitada: %ld\n"
-		   ,(long)(NMAX*sizeof(char))); 
+		   ,(long)(nmax*sizeof(char))); 
      exit(0);
    }		  
    m->npont   = 0;
@@ -114,7 +114,7 @@ void* alloc(Memoria *m,long **end,int comp,char *s,int size,bool iws)
 /*... espaco q sera alocado*/
   nec = comp * size;
 /*...espaco livre*/
-  livre = NMAX - m->iespont; 
+  livre = nmax - m->iespont; 
 /*...*/
   if(livre > nec){
 /*...Set name pont*/  
@@ -492,23 +492,23 @@ double memoriaTotal(char *s)
 {
    double conv;
    if(!strcmp(s,"B")){
-     fprintf(stderr,"Total disponivel :%20.4lf bytes\n",(double) NMAX);
-     return (double)NMAX;
+     fprintf(stderr,"Total disponivel :%20.4lf bytes\n",(double) nmax);
+     return (double)nmax;
    } 
    else if(!strcmp(s,"KB")){
      conv = CONV_BYTES; 
-     fprintf(stderr,"Total disponivel : %20.4lf KB\n",NMAX/conv);
-     return NMAX/conv;
+     fprintf(stderr,"Total disponivel : %20.4lf KB\n",nmax/conv);
+     return nmax/conv;
    }  
    else if(!strcmp(s,"MB")){
      conv = CONV_BYTES*CONV_BYTES;
-     fprintf(stderr,"Total disponivel : %20.4lf MB\n",NMAX/conv);
-     return NMAX/conv;
+     fprintf(stderr,"Total disponivel : %20.4lf MB\n",nmax/conv);
+     return nmax/conv;
    } 
    else if(!strcmp(s,"GB")){
      conv = CONV_BYTES*CONV_BYTES*CONV_BYTES;
-     fprintf(stderr,"Total disponivel : %20.4lf GB\n",NMAX/conv);
-     return NMAX/conv;
+     fprintf(stderr,"Total disponivel : %20.4lf GB\n",nmax/conv);
+     return nmax/conv;
    }
    return -1.0;
 }

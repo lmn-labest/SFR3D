@@ -31,17 +31,19 @@ src/Adjcency.c\
 src/Csr.c\
 src/Datastruct.c\
 src/File.c\
+src/Graph.c\
 src/Main.c\
 src/Memoria.c\
 src/Numeq.c\
+src/Rcm.c\
 src/ReadFile.c\
 src/Reord.c\
 src/Vtk.c\
 src/WriteVtk.c\
 src/WriteMtx.c
 #-------------------Flags necessarios--------------------------------
-NFLAGS=-I$(PATH_INCLUDE) -L$(PATH_LIB)
-LDFLAGS=
+NFLAGS=-I$(PATH_INCLUDE) -L$(PATH_LIB) -D_MMIO_  
+LDFLAGS=-lmmio -lmetis-x86_64 
 #--------------------compiladores------------------------------------
 # intel ifort
 ifeq ($(CC),icc)
@@ -53,7 +55,7 @@ ifeq ($(CC),icc)
 endif
 # gnu gcc
 ifeq ($(CC),gcc)
-  LDFLAGS +=  -lm -lmmio
+  LDFLAGS +=  -lm 
   OFLAGS  +=  -Wall -ansi -std=c99 -pedantic-errors
   ifeq ($(OPENMP),yes)
     OFLAGS  += -fopenmp

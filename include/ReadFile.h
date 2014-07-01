@@ -1,7 +1,7 @@
 #ifndef _READ_FILE_
   #define _READ_FILE_
   #define NPARAMETROS   6
-  #define NCONFIG       1
+  #define NCONFIG       3
   #ifdef NMACROS 
     #undef NMACROS
   #endif  
@@ -16,7 +16,7 @@
   #include<Memoria.h>
   void parametros(long int*nnode,long int *nel,short *maxno,short *ndm
                  ,short   *numat,short    *ndf,FILE  *file);
-  void readFileFv(Memoria *m,Mesh *mesh, FILE *file);
+  void readFileFvMesh(Memoria *m,Mesh *mesh, FILE *file);
   void readVfCoor(double *x,long int nn, short int ndm,FILE *file);
   void readVfElmt(long int *el    ,short int *mat ,short int *nen
                  ,short int *ty  ,long int nel   ,short int maxno
@@ -25,5 +25,5 @@
                 ,char *str    ,FILE *file);
   void readVfSource(double *f ,long int numel,short int maxno
                    ,char *str ,FILE *file);
-  void config(bool *bvtk,FILE* f);
+  void config(bool *bvtk,Reord *reord,FILE* f);
 #endif

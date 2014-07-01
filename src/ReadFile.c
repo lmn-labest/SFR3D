@@ -12,7 +12,7 @@
  * ------------------------------------------------------------------*
  * ------------------------------------------------------------------*
  * *******************************************************************/
-void readFileFv(Memoria *m,Mesh *mesh, FILE* file)
+void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 {
   char word[WORD_SIZE],str[WORD_SIZE];
   char macro[NMACROS][WORD_SIZE]={
@@ -84,10 +84,11 @@ void readFileFv(Memoria *m,Mesh *mesh, FILE* file)
 /*...................................................................*/
    if(mesh->ndfT[0] > 0) {   
 /*... alocando memoria*/
-     Myalloc(short,m,mesh->elm.faceRt1,nel*(maxno+1),"faceRt1"  ,_AD_);
+     Myalloc(short,m,mesh->elm.faceRt1
+            ,nel*(maxno+1)*mesh->ndfT[0],"faceRt1"  ,_AD_);
      Myalloc(double,m,mesh->elm.faceSt1
             ,nel*(maxno+1)*ndf,"faceSt1"  ,_AD_);
-     zero(mesh->elm.faceRt1  ,nel*(maxno+1)              ,"short"  );
+     zero(mesh->elm.faceRt1  ,nel*(maxno+1)*mesh->ndfT[0],"short"  );
      zero(mesh->elm.faceSt1  ,nel*(maxno+1)*mesh->ndfT[0],"double" );
 /*...................................................................*/
    }
@@ -224,7 +225,7 @@ void parametros(long  int *nn   ,long  int *nel  ,short int *maxno
       printf("nnode %ld\n",*nn);
 #endif      
       flag[0] = true;
-      i+=1;
+      i++;
     }
 /*...................................................................*/
 
@@ -235,7 +236,7 @@ void parametros(long  int *nn   ,long  int *nel  ,short int *maxno
       printf("numel %ld\n",*nel);
 #endif      
       flag[1] = true;
-      i+=1;
+      i++;
     }
 /*... macro numat*/   
     else if(!strcmp(word,parameter[2])){
@@ -244,7 +245,7 @@ void parametros(long  int *nn   ,long  int *nel  ,short int *maxno
       printf("numat %hd\n",*numat);
 #endif      
       flag[2] = true;
-      i+=1;
+      i++;
     }
 /*...................................................................*/
 
@@ -255,7 +256,7 @@ void parametros(long  int *nn   ,long  int *nel  ,short int *maxno
       printf("maxno %hd\n",*maxno);
 #endif      
       flag[3] = true;
-      i+=1;
+      i++;
     }
 /*...................................................................*/
 
@@ -266,7 +267,7 @@ void parametros(long  int *nn   ,long  int *nel  ,short int *maxno
       printf("ndf %hd\n",*ndf);
 #endif      
       flag[4] = true;
-      i+=1;
+      i++;
     }
 /*...................................................................*/
 
@@ -277,12 +278,12 @@ void parametros(long  int *nn   ,long  int *nel  ,short int *maxno
       printf("ndm %hd\n",*ndm);
 #endif      
       flag[5] = true;
-      i+=1;
+      i++;
     }
 /*...................................................................*/
 
     else
-      i+=1;
+      i++;
   }
   
   for(j=0;j<NPARAMETROS;j++){
@@ -319,7 +320,7 @@ void readVfCoor(double *x,long int nn, short int ndm,FILE *file){
     fscanf(file,"%ld",&idum);
     k = idum -1;
     for(j=0;j<ndm;j++){
-      fscanf(file,"%lf",&COOR(k,j,x,ndm));
+      fscanf(file,"%lf",&VET(k,j,x,ndm));
     }
   }
 #ifdef _DEBUG_MESH_ 
@@ -336,7 +337,7 @@ void readVfCoor(double *x,long int nn, short int ndm,FILE *file){
 /*********************************************************************/
 
 /*********************************************************************
- * READVFELMT: leitura das elementos                                 *
+ * READVFVETT: leitura das elementos                                 *
  *********************************************************************
  * ------------------------------------------------------------------*
  * Parametros de entrada:                                            *
@@ -372,7 +373,7 @@ void readVfElmt(long int *el   ,short int *mat  ,short int *nen
     fscanf(file,"%hd",&nenl);
     nen[idum] = nenl;
     for(j=0;j<nenl;j++){
-      fscanf(file,"%ld",&ELM(idum,j,el,maxno));
+      fscanf(file,"%ld",&VET(idum,j,el,maxno));
     }
   }
 #ifdef _DEBUG_MESH_ 
@@ -414,7 +415,7 @@ void readVfRes(short int *id,long int numel,short int maxno
   do{
     nel = atol(word);  
     fscanf(file,"%d",&nTerm);
-    kk = (nel-1)*(maxno+1);
+    kk = (nel-1)*nTerm;
     for(j = 0;j < nTerm;j++){
       k = kk + j;
       if ( nel > 0 && nel <= numel){ 
@@ -424,7 +425,7 @@ void readVfRes(short int *id,long int numel,short int maxno
         printf("Erro: numero do elemento nao exitentes. Nel = %ld.\n"
                "Arquivo fonte:  \"%s\".\n"
                "Nome da funcao: \"%s\".\n"
-              ,nel,__FILE__,"readVfSource");
+              ,nel,__FILE__,__func__);
         exit(EXIT_FAILURE);
       }
     }
@@ -459,7 +460,7 @@ void readVfSource(double *f,long numel, short int maxno,char *str
   do{
     nel = atol(word);  
     fscanf(file,"%d",&nTerm);
-    kk = (nel-1)*(maxno+1);
+    kk = (nel-1)*nTerm;
     for(j = 0;j < nTerm;j++){
       k = kk + j;
       if ( nel > 0 && nel <= numel){ 
@@ -469,7 +470,7 @@ void readVfSource(double *f,long numel, short int maxno,char *str
         printf("Erro: numero do elemento nao exitentes. Nel = %ld.\n"
                "Arquivo fonte:  \"%s\".\n"
                "Nome da funcao: \"%s\".\n"
-              ,nel,__FILE__,"readVfSource");
+              ,nel,__FILE__,__func__);
         exit(EXIT_FAILURE);
       }
     }
@@ -479,51 +480,75 @@ void readVfSource(double *f,long numel, short int maxno,char *str
 
 
 /*********************************************************************
- * CONFIG : cinfiguracao gerais                                      *
+ * CONFIG : configuraceos gerais                                     *
  *********************************************************************
  * Parametro de entrada:                                             *
  * ----------------------------------------------------------------- *
- * bvtk  - arquivo binario para o vtk                                *
- * nel   - numero de elementos                                       *
- * nen   - numero maximo de nos por elemento                         *
- * numat - numero de materias                                        *
- * ndf   - graus de liberdade (onda)                                 *
+ * bvtk      - arquivo binario para o vtk                            *
+ * reordMesh - reordenacao do malha                                  *
+ * m         - memoria principal                                     *
  * file  - ponteiro para o arquivo de dados                          *
  * ----------------------------------------------------------------- *
  *********************************************************************/
-void config(bool *bvtk,FILE* file)
+void config(bool *bvtk,Reord *reordMesh,FILE* file)
 {
-  char config[][WORD_SIZE]={"bvtk"};
+  char config[][WORD_SIZE]={"bvtk","reord","mem"};
   
   char word[WORD_SIZE];
   bool flag[NCONFIG];
   int i=0,j,temp;
+  double conv;
 
 
-  *bvtk  = 0;
+  *bvtk            = false;
+  reordMesh -> flag= false;
 
   for(j=0;j<NCONFIG;j++)
     flag[j] = false;
 
   while(i < NCONFIG && i < 20){
     readMacro(file,word,false);
-/*... macro nnode*/   
+/*... bvtk*/   
     if(!strcmp(word,config[0])){
       fscanf(file,"%d",&temp);
       *bvtk = (bool) temp;
       flag[0] = true;
-      i+=1;
+      i++;
+      if(*bvtk)
+        printf("bvtk: true\n");
+      else
+        printf("bvtk: false\n");
     }
-/*...................................................................*/
-
+/*... reord*/   
+    else if(!strcmp(word,config[1])){
+      fscanf(file,"%d",&temp);
+      reordMesh -> flag= (bool) temp;
+      flag[1] = true;
+      i++;
+      if(reordMesh->flag)
+        printf("Reord: true\n");
+      else
+        printf("Reod: false\n");
+    }
+/*... mem*/   
+    else if(!strcmp(word,config[2])){
+      fscanf(file,"%d",&temp);
+      conv    = CONV_BYTES*CONV_BYTES;
+      nmax    = temp*conv;                  
+      flag[2] = true;
+      i++;
+      printf("Memoria principal: %d MBytes\n"
+            ,(int)(nmax/conv));
+    }
     else
-      i+=1;
+      i++;
+/*...................................................................*/
   }
   
   for(j=0;j<NCONFIG;j++){
     if(!flag[j]){
-      fprintf(stderr,"config: %s faltando.\n"
-             "fonte: %s \n",config[j],__FILE__);
+      fprintf(stderr,"%s: %s faltando.\n"
+             "fonte: %s \n",__func__,config[j],__FILE__);
       exit(EXIT_FAILURE);
     }
   }

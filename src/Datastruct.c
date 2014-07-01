@@ -44,29 +44,37 @@ void dataStruct(Memoria *m ,long *id   ,long *num   ,long *nelcon
 /*...................................................................*/
 
 /*...*/ 
-      Myalloc(long,m,sistEqX->ia     ,sistEqX->neq+1 ,strIa   ,_AD_);
-      sistEqX->nad = csrIa(sistEqX->ia ,id ,num    ,nelcon,nViz
-                          ,numel       ,sistEqX->neq, maxViz, upper
-                          ,diag       ,lower);
+       Myalloc(long,m,sistEqX->ia     ,sistEqX->neq+1 ,strIa   ,_AD_);
+       sistEqX->nad = csrIa(sistEqX->ia ,id ,num    ,nelcon,nViz
+                           ,numel       ,sistEqX->neq, maxViz,ndf
+                           ,upper       ,diag        ,lower);
 /*...................................................................*/
 
 /*...*/
-      Myalloc(long,m,sistEqX->ja     ,sistEqX->nad ,strJa   ,_AD_);
-      csrJa(sistEqX->ia ,sistEqX->ja ,id ,num    
-           ,nelcon,nViz ,numel       ,sistEqX->neq, maxViz
-           , upper,diag ,lower);
+       Myalloc(long,m,sistEqX->ja     ,sistEqX->nad ,strJa   ,_AD_);
+       csrJa(sistEqX->ia ,sistEqX->ja ,id ,num    
+            ,nelcon,nViz ,numel       ,sistEqX->neq, maxViz,ndf
+            ,upper,diag ,lower);
 /*...................................................................*/
 
 /*... reordenando o grafo*/
-     sortGraphCsr(sistEqX->ia,sistEqX->ja,sistEqX->neq);
+       sortGraphCsr(sistEqX->ia,sistEqX->ja,sistEqX->neq);
 /*...................................................................*/
 
 /*...*/
-     Myalloc(double,m,sistEqX->ad     ,sistEqX->neq ,strAd   ,_AD_);
-     Myalloc(double,m,sistEqX->a      ,sistEqX->nad ,strA    ,_AD_);
-     zero(sistEqX->ad,sistEqX->neq,"double");
-     zero(sistEqX->a ,sistEqX->nad,"double");
-
+       Myalloc(double,m,sistEqX->ad     ,sistEqX->neq ,strAd   ,_AD_);
+       Myalloc(double,m,sistEqX->a      ,sistEqX->nad ,strA    ,_AD_);
+       zero(sistEqX->ad,sistEqX->neq,"double");
+       zero(sistEqX->a ,sistEqX->nad,"double");
+/*...................................................................*/
+     
+/*... banda da matriz*/
+       printf("band Maxima: %ld\n"
+            ,bandCsr(sistEqX->ia,sistEqX->ja,sistEqX->neq,1));
+       printf("band Minima: %ld\n"
+            ,bandCsr(sistEqX->ia,sistEqX->ja,sistEqX->neq,3));
+       printf("band Media : %ld\n"
+            ,bandCsr(sistEqX->ia,sistEqX->ja,sistEqX->neq,2));
 /*...................................................................*/
      break;
 /*...................................................................*/

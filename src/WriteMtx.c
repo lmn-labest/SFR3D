@@ -22,12 +22,11 @@
 void writeCoo(Memoria *m,long *ia   ,long *ja,long neq
              ,long nad  ,short type
              ,bool unsym,char *name){
-  
+#ifdef _MMIO_  
   MM_typecode matcode;
   int  *lin,*col;
   double *val;
   long nTotal; 
-  int i;
 
 /*...*/    
   mm_initialize_typecode(&matcode);
@@ -38,7 +37,6 @@ void writeCoo(Memoria *m,long *ia   ,long *ja,long neq
     mm_set_general(&matcode);
   else
     mm_set_symmetric(&matcode);
-  printf("%s %ld %ld\n",name,neq,nad);
 /*...................................................................*/
 
 /*...*/
@@ -55,8 +53,6 @@ void writeCoo(Memoria *m,long *ia   ,long *ja,long neq
 /*... CSR/CSRC*/
     case 1:
       csrToCoo(lin,col,val,ia,ja,neq,nad);
-      for(i=0;i<nTotal;i++)
-        printf("%d %d %d %lf\n",i,lin[i],col[i],val[i]);
       mm_write_mtx_crd(name,neq,neq,nTotal,lin,col,val,matcode);
     break;
 /*...................................................................*/
@@ -72,7 +68,11 @@ void writeCoo(Memoria *m,long *ia   ,long *ja,long neq
     Mydealloc(m,col,"col",false);
     Mydealloc(m,lin,"lin",false);
   }
-
+#else
+      printf("\nEscrita da matriz no formato MM não disponivel.\n"
+           "funcao %s\narquivo = %s\n",__func__,__FILE__);
+      exit(EXIT_FAILURE);
+#endif
 }
 /*********************************************************************/ 
 

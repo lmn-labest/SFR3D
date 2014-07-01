@@ -70,8 +70,8 @@ void fName(char *name,long num,int cod ,char **out ){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
 		       "Name maximo : %d\n"
-		       "Funcao fname, arquivo fonte \"%s\"\n" 
-		       ,name,SIZEMAX,__FILE__);
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
 	exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
@@ -91,8 +91,8 @@ void fName(char *name,long num,int cod ,char **out ){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
 		       "Name maximo : %d\n"
-		       "Funcao fname, arquivo fonte \"%s\"\n" 
-		       ,name,SIZEMAX,__FILE__);
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
 	exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
@@ -112,8 +112,8 @@ void fName(char *name,long num,int cod ,char **out ){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
 		       "Name maximo : %d\n"
-		       "Funcao fname, arquivo fonte \"%s\"\n" 
-		       ,name,SIZEMAX,__FILE__);
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
 	exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
@@ -133,8 +133,8 @@ void fName(char *name,long num,int cod ,char **out ){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
 		       "Name maximo : %d\n"
-		       "Funcao fname, arquivo fonte \"%s\"\n" 
-		       ,name,SIZEMAX,__FILE__);
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
 	exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
@@ -151,8 +151,8 @@ void fName(char *name,long num,int cod ,char **out ){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
 		       "Name maximo : %d\n"
-		       "Funcao fname, arquivo fonte \"%s\"\n" 
-		       ,name,SIZEMAX,__FILE__);
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
 	exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
@@ -169,8 +169,8 @@ void fName(char *name,long num,int cod ,char **out ){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
 		       "Name maximo : %d\n"
-		       "Funcao fname, arquivo fonte \"%s\"\n" 
-		       ,name,SIZEMAX,__FILE__);
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
 	exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
@@ -190,8 +190,8 @@ void fName(char *name,long num,int cod ,char **out ){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
 		       "Name maximo : %d\n"
-		       "Funcao fname, arquivo fonte \"%s\"\n" 
-		       ,name,SIZEMAX,__FILE__);
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
 	exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
@@ -211,8 +211,8 @@ void fName(char *name,long num,int cod ,char **out ){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
 		       "Name maximo : %d\n"
-		       "Funcao fname, arquivo fonte \"%s\"\n" 
-		       ,name,SIZEMAX,__FILE__);
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
 	exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
@@ -232,8 +232,8 @@ void fName(char *name,long num,int cod ,char **out ){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
 		       "Name maximo : %d\n"
-		       "Funcao fname, arquivo fonte \"%s\"\n" 
-		       ,name,SIZEMAX,__FILE__);
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
 	exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
@@ -250,8 +250,8 @@ void fName(char *name,long num,int cod ,char **out ){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
 		       "Name maximo : %d\n"
-		       "Funcao fname, arquivo fonte \"%s\"\n" 
-		       ,name,SIZEMAX,__FILE__);
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
 	exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
@@ -268,8 +268,8 @@ void fName(char *name,long num,int cod ,char **out ){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
 		       "Name maximo : %d\n"
-		       "Funcao fname, arquivo fonte \"%s\"\n" 
-		       ,name,SIZEMAX,__FILE__);
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
 	exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
@@ -280,7 +280,7 @@ void fName(char *name,long num,int cod ,char **out ){
 /*...*/
     default:
         printf("\n opcao invalida\n"
-             "funcao fname(*,*,*)\narquivo = %s\n",__FILE__);
+             "funcao %s(*,*,*)\narquivo = %s\n",__func__,__FILE__);
         exit(EXIT_FAILURE);
       break;
 /*...................................................................*/

@@ -14,12 +14,60 @@
  *-------------------------------------------------------------------* 
  * OBS:                                                              * 
  *********************************************************************/
-void reord( long *num,long *graph,long numel, bool flag){
+void reord(Memoria *m,long *num,long const *adj ,short const*nViz
+          ,short const maxViz  ,long numel, bool flag){
 
-  long i;
+  long *xAdj=NULL,*adjncy=NULL,*perm=NULL;
+  long i,nDeg;
 
 /*...*/  
-  if(flag); 
+  if(flag){
+/*...*/
+/*...................................................................*/
+
+/*... armazena a malha no formato CSR*/
+/*... calculo do vetor xAdj*/    
+    Myalloc(long,m,xAdj  ,numel+1      ,"xAdj"  ,_AD_);
+    convGraph(xAdj,adjncy,adj,nViz,maxViz,numel,true,false);
+/*... calculo do vetor adjncy*/    
+    nDeg = xAdj[numel] -xAdj[0];
+    Myalloc(long,m,adjncy,nDeg,"adjncy",_AD_);
+    convGraph(xAdj,adjncy,adj,nViz,maxViz,numel,false,true);
+/*... ordena o grafo CSR em ordem crescente*/
+    sortGraphCsr(xAdj,adjncy,numel);
+/*... soma + 1 em todas as posicoes dos vetores*/    
+    vectorPlusOne(xAdj,numel+1,i);
+    vectorPlusOne(adjncy,nDeg,i);
+/*...................................................................*/
+//  for(i=0;i<numel+1;i++)
+//    printf("%3ld %3ld\n",i+1,xAdj[i]); 
+//  for(i=0;i<nDeg;i++)
+//    printf("%3ld %3ld\n",i+1,adjncy[i]); 
+/*...................................................................*/
+
+/*...*/    
+    Myalloc(long,m,perm  ,numel        ,"perm"  ,_AD_);
+/*...................................................................*/
+
+/*...*/    
+    genrcm (numel,xAdj,adjncy,perm);
+/*...................................................................*/
+ 
+    
+    for(i=0;i<numel;i++){
+      num[i] = perm[i];
+    }
+    
+/*...................................................................*/
+//  for(i=0;i<numel;i++)
+//    printf("%3ld %3ld %3ld\n",i+1,perm[i],num[i]); 
+/*...................................................................*/
+
+    Mydealloc(m,perm  ,"perm"  ,false);
+    Mydealloc(m,adjncy,"adjncy",false);
+    Mydealloc(m,adjncy,"xAdj"  ,false);
+    
+  } 
 /*....................................................................*/  
 
 /*... numeracao inicial*/  
@@ -29,41 +77,6 @@ void reord( long *num,long *graph,long numel, bool flag){
     }
   
 /*....................................................................*/  
-
-}
-/*********************************************************************/ 
-
-/********************************************************************* 
- * BUBBLESORT :  ordena o arranjo em ordem crescente                 * 
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
- * ja     -> arranjo                                                 * 
- * n      -> dimensao do arranjo                                     * 
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
- *-------------------------------------------------------------------* 
- * ja     -> arranjo ordenado                                        * 
- *-------------------------------------------------------------------* 
- * OBS:                                                              * 
- *-------------------------------------------------------------------* 
- *********************************************************************/ 
-void bubblesort(long *ja,long n){
-  
-  long i,j;
-  bool itroca;
-  
-  do{
-    itroca=false;
-    for(i=1;i<n;i++){
-      if(ja[i]   < ja[i-1]){
-         j       = ja[i-1];
-         ja[i-1] = ja[i];
-         ja[i]   = j;
-         itroca  = true;
-      }
-    }
-  }while(itroca);
 
 }
 /*********************************************************************/ 

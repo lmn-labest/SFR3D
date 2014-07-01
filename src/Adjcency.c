@@ -74,7 +74,7 @@ void adj2d(long *el  ,long *nodcon,long *nelcon,short *nen
   
   for(nel1=0;nel1<numel;nel1++)
     for(j=0;j<maxViz;j++) 
-      NELCON(nel1,j,nelcon,maxViz) = -1;
+      VET(nel1,j,nelcon,maxViz) = -1;
  
   for(i = 0;i < nnode;i++)
     nodcon[i] = -1; 
@@ -85,18 +85,18 @@ void adj2d(long *el  ,long *nodcon,long *nelcon,short *nen
     for(nel1=0;nel1 < numel;nel1++){ 
       is1 = nen[nel1];
       for(j=0;j<is1;j++){
-        if(NELCON(nel1,j,nelcon,maxViz) == -1){
+        if(VET(nel1,j,nelcon,maxViz) == -1){
 /*... triangulo*/
           if(is1 == 3) {
-            no1 = ELM(nel1,isnod3[j][0],el,maxNo)-1; 
-            no2 = ELM(nel1,isnod3[j][1],el,maxNo)-1; 
+            no1 = VET(nel1,isnod3[j][0],el,maxNo)-1; 
+            no2 = VET(nel1,isnod3[j][1],el,maxNo)-1; 
           }
 /*...................................................................*/
 
 /*... quadrilatero*/
           else if(is1 == 4){
-            no1 = ELM(nel1,isnod4[j][0],el,maxNo)-1; 
-            no2 = ELM(nel1,isnod4[j][1],el,maxNo)-1; 
+            no1 = VET(nel1,isnod4[j][0],el,maxNo)-1; 
+            no2 = VET(nel1,isnod4[j][1],el,maxNo)-1; 
           }
 /*...................................................................*/
           if( nodcon[no1] == -1 || nodcon[no2] == -1){
@@ -111,18 +111,18 @@ void adj2d(long *el  ,long *nodcon,long *nelcon,short *nen
     for(nel1=0;nel1 < numel;nel1++){ 
       is1 = nen[nel1];
       for(j=0;j<is1;j++){
-        if(NELCON(nel1,j,nelcon,maxViz) == -1){
+        if(VET(nel1,j,nelcon,maxViz) == -1){
 /*... triangulo*/
           if(is1 == 3){
-           no1  = ELM(nel1,isnod3[j][0],el,maxNo)-1; 
-           no2  = ELM(nel1,isnod3[j][1],el,maxNo)-1;
+           no1  = VET(nel1,isnod3[j][0],el,maxNo)-1; 
+           no2  = VET(nel1,isnod3[j][1],el,maxNo)-1;
           }
 /*...................................................................*/ 
 
 /*... quadrilateros*/
           else if(is1 == 4){
-           no1  = ELM(nel1,isnod4[j][0],el,maxNo)-1; 
-           no2  = ELM(nel1,isnod4[j][1],el,maxNo)-1;
+           no1  = VET(nel1,isnod4[j][0],el,maxNo)-1; 
+           no2  = VET(nel1,isnod4[j][1],el,maxNo)-1;
           }
 /*...................................................................*/ 
           nel2 = nodcon[no1];
@@ -133,20 +133,20 @@ void adj2d(long *el  ,long *nodcon,long *nelcon,short *nen
               for(k=0;k<is2;k++){
 /*... triangulo*/
                 if(is2 == 3){
-                  no21  = ELM(nel2,isnod3[k][0],el,maxNo)-1; 
-                  no22  = ELM(nel2,isnod3[k][1],el,maxNo)-1;
+                  no21  = VET(nel2,isnod3[k][0],el,maxNo)-1; 
+                  no22  = VET(nel2,isnod3[k][1],el,maxNo)-1;
                 }
 /*...................................................................*/
 
 /*... tquadrilateros*/
                 else if(is2 == 4){
-                  no21  = ELM(nel2,isnod4[k][0],el,maxNo)-1; 
-                  no22  = ELM(nel2,isnod4[k][1],el,maxNo)-1;
+                  no21  = VET(nel2,isnod4[k][0],el,maxNo)-1; 
+                  no22  = VET(nel2,isnod4[k][1],el,maxNo)-1;
                 }
 /*...................................................................*/
                 if( (no21 == no2) && (no22 == no1)){
-                      NELCON(nel1,j,nelcon,maxViz) = nel2;
-                      NELCON(nel2,k,nelcon,maxViz) = nel1;
+                      VET(nel1,j,nelcon,maxViz) = nel2;
+                      VET(nel2,k,nelcon,maxViz) = nel1;
                       nodcon[no1] = nodcon[no2] = -1;
                       imiss       = true; 
                       (*nEdge)++;
@@ -164,22 +164,22 @@ void adj2d(long *el  ,long *nodcon,long *nelcon,short *nen
     for(nel1=0;nel1 < numel;nel1++){ 
       is1 = nen[nel1];
       for(j=0;j<is1;j++){
-        if(NELCON(nel1,j,nelcon,maxViz) == -1){
+        if(VET(nel1,j,nelcon,maxViz) == -1){
 /*... triangulo*/
           if( is1 == 3){
-            no1  = ELM(nel1,isnod3[j][0],el,maxNo)-1; 
-            no2  = ELM(nel1,isnod3[j][1],el,maxNo)-1;
+            no1  = VET(nel1,isnod3[j][0],el,maxNo)-1; 
+            no2  = VET(nel1,isnod3[j][1],el,maxNo)-1;
           }
 /*...................................................................*/
 
 /*... quadrilateros*/
           if( is1 == 4){
-            no1  = ELM(nel1,isnod4[j][0],el,maxNo)-1; 
-            no2  = ELM(nel1,isnod4[j][1],el,maxNo)-1;
+            no1  = VET(nel1,isnod4[j][0],el,maxNo)-1; 
+            no2  = VET(nel1,isnod4[j][1],el,maxNo)-1;
           }
 /*...................................................................*/
           if(nodcon[no1] == nodcon[no2] && nodcon[no1] == nel1){
-            NELCON(nel1,j,nelcon,maxViz) = -2;
+            VET(nel1,j,nelcon,maxViz) = -2;
             nodcon[no1] = nodcon[no2]   =  -1;
             imiss       = true;
             (*nEdge)++;
@@ -194,7 +194,7 @@ void adj2d(long *el  ,long *nodcon,long *nelcon,short *nen
 /*...*/  
   for(nel1=0;nel1<numel;nel1++)
     for(j=0;j<maxViz;j++)
-      NELCON(nel1,j,nelcon,maxViz) += 1;
+      VET(nel1,j,nelcon,maxViz) += 1;
 /*...................................................................*/
  
 }

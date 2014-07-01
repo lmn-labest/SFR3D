@@ -5,15 +5,17 @@
   #endif  
   #define _AD_ false
   #include<Mystdbool.h>
+  #include<Memoria.h>
+  #include<Graph.h>
+  #include<Rcm.h>
 
   typedef struct Reord{
     long *num;
     long flag;
   }Reord;
   
-  void reord(long *num  ,long *graph, long numel, bool flag);
+  void reord(Memoria *m  ,long *num  ,long const *adj, short const *nViz
+            ,short const maxViz,long numel , bool flag);
 
-/*...*/
-  void bubblesort(long *ja,long n);
 
 #endif/*_REORD_H*/

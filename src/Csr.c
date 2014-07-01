@@ -11,6 +11,7 @@
  * nViz   -> numero de vizinhos por elemento                         * 
  * numel  -> numero de elementos                                     * 
  * neq    -> numero de equacoes                                      * 
+ * ndf    -> numero de graus de liberade                             * 
  * maxViz -> numero maximo de vizinho da malha                       * 
  * upper  -> armazenamento da parte superior da matriz (CSR/CSRC)    * 
  * diag   -> armazenamento da diagonal (CSR/CSRC)                    * 
@@ -24,41 +25,61 @@
  *-------------------------------------------------------------------* 
  *********************************************************************/
 long csrIa(long *ia  ,long *id    ,long *num   ,long  *adj, short *nViz
-          ,long numel,long neq    ,short maxViz, bool upper
+          ,long numel,long neq    ,short maxViz,short  ndf, bool upper
           ,bool diag , bool lower){
   
-  long  i,nel1,neq1,viz1,col,aux;
-  short j;
+  long  i,nel1,neq1,neq2,viz1,col,aux;
+  short jNdf,kNdf,j;
 /*... gerando arranjo ia*/  
   ia[0] = 0;
   for(i=0;i<numel;i++){
     nel1= num[i]-1;
-    aux = 0;
-    neq1= id[nel1]-1;
-    if(neq1 != -2){
-/*...*/
-      for(j=0;j<nViz[nel1];j++){
-        viz1 = NELCON(nel1,j,adj,maxViz) - 1;
-        if( viz1 != -2) {
-          col   = id[viz1]-1;
-          if( col != -2){
+    for(jNdf=0;jNdf<ndf;jNdf++){
+      aux = 0;
+      neq1 = VET(nel1,jNdf,id,ndf)-1;
+      if(neq1 != -2){
+/*... conectividade no proprio elemento*/
+        for(kNdf=0;kNdf<ndf;kNdf++){
+          neq2 = VET(nel1,kNdf,id,ndf)-1;
+          if(neq2 != -2){
 /*... parte superior*/
-            if(lower && col < neq1) 
+            if(lower && neq1 > neq2) 
               aux++;
+/*... parte inferior*/            
+            else if(upper && neq1 < neq2)
+              aux++;
+/*... diagonal princial*/      
+            else if(diag && neq1 == neq2 ) 
+              aux++;
+          }
+        }
+/*...................................................................*/
+  
+/*... conecitivada nos vizinhos*/
+        for(j=0;j<nViz[nel1];j++){
+          viz1 = VET(nel1,j,adj,maxViz) - 1;
+          if( viz1 != -2) {
+            for(kNdf=0;kNdf<ndf;kNdf++){
+              col   = VET(viz1,kNdf,id,ndf)-1;
+              if( col != -2){
+/*... parte superior*/
+                if(lower && col < neq1) 
+                  aux++;
 /*...................................................................*/
 
 /*... parte inferior*/            
-            else if(upper && col > neq1)
-              aux++;
-          }    
+                else if(upper && col > neq1)
+                  aux++;
+              }
+/*...................................................................*/
+            }    
+/*...................................................................*/
+          }
 /*...................................................................*/
         }
-      }
 /*...................................................................*/
-
-/*... diagonal princial*/      
-      if(diag) aux++;
-      ia[neq1+1] = ia[neq1] + aux;
+        ia[neq1+1] = ia[neq1] + aux;
+      }
 /*...................................................................*/
     }
   }
@@ -82,6 +103,7 @@ long csrIa(long *ia  ,long *id    ,long *num   ,long  *adj, short *nViz
  * numel  -> numero de elementos                                     * 
  * neq    -> numero de equacoes                                      * 
  * maxViz -> numero maximo de vizinho da malha                       * 
+ * ndf    -> numero de graus de liberade                             * 
  * upper  -> armazenamento da parte superior da matriz (CSR/CSRC)    * 
  * diag   -> armazenamento da diagonal (CSR/CSRC)                    * 
  * lower  -> armazenamenro da parte inferior (CSR/CSRC)              * 
@@ -94,51 +116,77 @@ long csrIa(long *ia  ,long *id    ,long *num   ,long  *adj, short *nViz
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void csrJa(long *ia    ,long *ja 
-          ,long *id    ,long *num   ,long  *adj, short *nViz
-          ,long numel,long neq    ,short maxViz, bool upper
-          ,bool diag , bool lower){
+          ,long *id    ,long *num   ,long  *adj  ,short *nViz
+          ,long numel,long neq      ,short maxViz,short ndf
+          ,bool upper,bool diag     ,bool lower){
   
-  long  i,nel1,neq1,viz1,col,aux,ipont;
-  short j;
+  long  i,nel1,neq1,neq2,viz1,col,aux,ipont;
+  short j,jNdf,kNdf;
 
-/*... gerando arranjo ia*/  
+/*... gerando arranjo ja*/  
   for(i=0;i<numel;i++){
     nel1= num[i]-1;
-    aux = 0;
-    neq1= id[nel1]-1;
-    ipont = ia[neq1];
-    if(neq1 != -2){
-/*...*/
-      for(j=0;j<nViz[nel1];j++){
-        viz1 = NELCON(nel1,j,adj,maxViz) - 1;
-        if( viz1 != -2) {
-          col   = id[viz1]-1;
-          if( col != -2){
+    for(jNdf=0;jNdf<ndf;jNdf++){
+      aux = 0;
+      neq1= VET(nel1,jNdf,id,ndf)-1;
+      ipont = ia[neq1];
+      if(neq1 != -2){
+/*... conectividade no proprio elemento*/
+        for(kNdf=0;kNdf<ndf;kNdf++){
+          neq2 = VET(nel1,kNdf,id,ndf)-1;
+          if(neq2 != -2){
 /*... parte superior*/
-            if(lower && col < neq1){
-              ja[ipont+aux] = col; 
+            if(lower && neq1 > neq2){ 
+              ja[ipont+aux] = neq2; 
               aux++;
             }
+/*... parte inferior*/            
+            else if(upper && neq1 < neq2){
+              ja[ipont+aux] = neq2; 
+              aux++;
+            }
+/*... diagonal princial*/      
+            else if(diag && neq1 == neq2 ){ 
+              ja[ipont+aux] = neq1;  
+              aux++;
+            }
+/*...................................................................*/
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
+/*...*/
+        for(j=0;j<nViz[nel1];j++){
+          viz1 = VET(nel1,j,adj,maxViz) - 1;
+          if( viz1 != -2) {
+            for(kNdf=0;kNdf<ndf;kNdf++){
+              col= VET(viz1,kNdf,id,ndf)-1;
+              if( col != -2){
+/*... parte superior*/
+                if(lower && col < neq1){
+                  ja[ipont+aux] = col; 
+                  aux++;
+                }
 /*...................................................................*/
 
 /*... parte inferior*/            
-            else if(upper && col > neq1){
-              ja[ipont+aux] = col; 
-              aux++;
+                else if(upper && col > neq1){
+                  ja[ipont+aux] = col; 
+                  aux++;
+                }
+/*...................................................................*/
+              }
+/*...................................................................*/
             }
 /*...................................................................*/
           }    
-        }
-      }
 /*...................................................................*/
-
-/*... diagonal princial*/      
-      if(diag) {
-        ja[ipont+aux] = neq1;  
-        aux++;
+        }
+/*...................................................................*/
       }
 /*...................................................................*/
     }
+/*...................................................................*/
   }
 /*...................................................................*/
 }
@@ -146,28 +194,65 @@ void csrJa(long *ia    ,long *ja
 
 
 /********************************************************************* 
- * SORTGRAPHCSR: ordena o gafo no formato CSR                        * 
+ * BANDCSR: banda da matriz no formato CSR                           * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
- * ia     -> arranjo CSR/CSRC                                        * 
- * ja     -> indefinido                                              * 
- * n      -> numera de linhas                                        * 
+ * ia  - ponteiro CSR                                                * 
+ * ja  - ponteiro CSR                                                * 
+ * neq - numero de equacoes                                          * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
- * ja     -> ponteiro do CSR                                         * 
+ *                                                                   * 
  *-------------------------------------------------------------------* 
- * OBS:                                                              * 
+ * OBS: retorna a banda da matrix                                    * 
  *-------------------------------------------------------------------* 
- *********************************************************************/ 
-void sortGraphCsr(long *ia,long *ja,long n){
+ *********************************************************************/
 
-  long i,nl;
+long bandCsr(long *ia,long *ja,long  neq,short type){
+
+  long i,j,bandL,aux;
   
-  for(i=0;i<n;i++){
-    nl = ia[i+1] - ia[i];
-    if(nl!=0) bubblesort(&ja[ia[i]],nl);
+  switch(type){
+/*... banda maxima da matriz*/
+    case 1:
+      bandL = 0;
+      for(i=0;i<neq;i++){
+        for(j=ia[i];j<ia[i+1];j++){
+          bandL = max(bandL,abs(i-ja[j]));
+        }
+      }
+    break;
+/*...................................................................*/ 
+
+/*... banda media da matriz*/
+    case 2: 
+      bandL = 0;
+      for(i=0;i<neq;i++){
+        aux = 0;
+        for(j=ia[i];j<ia[i+1];j++){
+          aux = max(aux,abs(i-ja[j]));
+        }
+        bandL += aux;
+      }
+      bandL = bandL/neq;
+    break;
+/*...................................................................*/ 
+
+/*... banda minima da matriz*/
+    case 3: 
+      bandL = 0;
+      for(i=0;i<neq;i++){
+        for(j=ia[i];j<ia[i+1];j++){
+          bandL = min(bandL,abs(i-ja[j]));
+        }
+      }
+    break;
+/*...................................................................*/ 
   }
+  return bandL;
+
 }
+/*********************************************************************/ 
 

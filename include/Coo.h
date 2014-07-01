@@ -4,7 +4,9 @@
     #undef  _AD_
   #endif  
   #define _AD_ false
-  #include<mmio/mmio.h>
+  #ifdef _MMIO_
+    #include<mmio/mmio.h>
+  #endif
   #include<Memoria.h>
   #include<stdio.h>
   #include<stdlib.h>

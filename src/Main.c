@@ -16,6 +16,7 @@
 /*********************************************************************/
 
 
+
 int main(int argc,char**argv){
 
 /*...Memoria principal*/  
@@ -27,7 +28,7 @@ int main(int argc,char**argv){
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
 /*...*/
-  long i;
+  long i,j;
 /*Estrutura de dados*/
   char strIa[MNOMEPONTEIRO],strJa[MNOMEPONTEIRO];
   char strA[MNOMEPONTEIRO],strAd[MNOMEPONTEIRO];
@@ -45,13 +46,17 @@ int main(int argc,char**argv){
                             }; 
 /* ..................................................................*/
 
+/*... Memoria principal*/
+  nmax = 10000;
+/* ..................................................................*/
+
 /*... abrindo ar quivo de entrada*/ 
   reordMesh = (Reord*) malloc(sizeof(Reord));
   if(reordMesh == NULL){
     printf("Erro ponteiro reord\n");
     exit(EXIT_FAILURE);
   }
-  reordMesh->flag = false;  
+  reordMesh->flag = false; 
 /* ..................................................................*/
 
 /*... abrindo ar quivo de entrada*/ 
@@ -110,9 +115,9 @@ int main(int argc,char**argv){
     printf("%s\n",word); 
     printf("%s\n",DIF);
 /*... sistema de memoria*/
-    initMem(&m,true);
+    initMem(&m,nmax,true);
 /*... leitura da malha*/
-    readFileFv(&m,mesh,fileIn);
+    readFileFvMesh(&m,mesh,fileIn);
 /*...................................................................*/
 
 /*... calcula a vizinhaca do elementos*/
@@ -128,22 +133,33 @@ int main(int argc,char**argv){
       exit(EXIT_FAILURE);
     }
     sistEqT1->storage = 1;
-    sistEqT1->unsym   = false;    
+    sistEqT1->unsym   = true;    
 /*...................................................................*/
 
 /*... reodenando as celulas para dimuincao da banda*/
     Myalloc(long,&m,reordMesh->num,mesh->numel,"rNum" ,_AD_);
-    reord(reordMesh->num,mesh->adj.nelcon,mesh->numel,reordMesh->flag);
+    reord(&m            ,reordMesh->num,mesh->adj.nelcon,mesh->adj.nViz
+         ,mesh->maxViz  ,mesh->numel   ,reordMesh->flag);
 /*...................................................................*/
 
 /*... numeracao das equacoes*/
-    Myalloc(long,&m,sistEqT1->id,mesh->numel,"sistT1id",_AD_);
+    Myalloc(long,&m,sistEqT1->id
+           ,mesh->numel*mesh->ndfT[0]
+           ,"sistT1id",_AD_);
     sistEqT1->neq = numeq(&m,sistEqT1->id  ,reordMesh->num
                          ,mesh->elm.faceRt1,mesh->elm.nen
                          ,mesh->numel      ,mesh->maxViz
-                         ,str);
-    for(i=0;i<mesh->numel;i++)
-      printf("%3ld %3ld %3ld\n",i+1,sistEqT1->id[i],reordMesh->num[i]); 
+                         ,mesh->ndfT[0]);
+    
+//    printf("A\n"); 
+//    printf("nel num ndf\n"); 
+//    for(i=0;i<mesh->numel;i++){
+//      printf("\n%3ld %3ld ",i+1,reordMesh->num[i]); 
+//      for(j=0;j<mesh->ndfT[0];j++)
+//        printf(" %3ld ",VET(i,j,sistEqT1->id,mesh->ndfT[0]));
+//    
+//    } 
+//    printf("\n"); 
 /*...................................................................*/
 
 /*...*/
@@ -155,15 +171,17 @@ int main(int argc,char**argv){
               ,mesh->adj.nViz,mesh->numel,mesh->maxViz,mesh->ndfT[0]
               ,strIa,strJa,strAd,strA
               ,sistEqT1);
-    for(i=0;i<=sistEqT1->neq;i++)
-      printf("%3ld %3ld\n",i+1,sistEqT1->ia[i]); 
-    for(i=0;i<sistEqT1->nad;i++)
-      printf("%3ld %3ld\n",i+1,sistEqT1->ja[i]); 
+//  printf("ia\n"); 
+//  for(i=0;i<=sistEqT1->neq;i++)
+//    printf("%3ld %3ld\n",i+1,sistEqT1->ia[i]); 
+//    printf("ja\n"); 
+//    for(i=0;i<sistEqT1->nad;i++)
+//      printf("%3ld %3ld\n",i+1,sistEqT1->ja[i]); 
 /*...................................................................*/  
-    strcpy(str,"B");
+    strcpy(str,"KB");
     memoriaTotal(str);
     usoMemoria(&m,str);
-    mapVector(&m);
+//    mapVector(&m);
   }   
 /*===================================================================*/
 
@@ -185,7 +203,7 @@ int main(int argc,char**argv){
   else if((!strcmp(word,macro[2]))){
     printf("%s\n",DIF);
     printf("%s\n",word);
-    config(&bvtk,fileIn);
+    config(&bvtk,reordMesh,fileIn);
     printf("%s\n\n",DIF);
   }   
 /*===================================================================*/

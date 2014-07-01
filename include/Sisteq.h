@@ -11,9 +11,7 @@
   #include<Mesh.h>
   #include<Csr.h>
 
-  #define min(a, b)  (((a) < (b)) ? (a) : (b))
-  #define max(a, b)  (((a) > (b)) ? (a) : (b))
-
+  
   typedef struct SistEq{
     long *ja,*ia;
     double *a,*ad,*b,*x,*y;
@@ -26,7 +24,7 @@
   }SistEq;
   
   long numeq(Memoria *m ,long *id  ,long *num, short *rt
-            , short *nen,long numel,short nViz, char *str);
+            , short *nen,long numel,short nViz,short ndf);
 
   void dataStruct(Memoria *m  ,long *id  ,long *num   ,long *nelcon
                  ,short *nViz ,long numel,short maxViz,short ndf

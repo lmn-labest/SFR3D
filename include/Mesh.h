@@ -2,6 +2,7 @@
   #define _MESH_
   #include<time.h>
   #include<Adjcency.h>
+  #include<Reord.h>
   #include<Mystdbool.h>
 /*numero maximo de propriedade*/
   #define MAXPROP      15 
@@ -14,10 +15,12 @@
   #define VTK_HEXA  12
   #define MAX_TRANS_EQ 3 
 /*...................................................................*/
-  #define    ELM(nel,no,vector,maxNo)   vector[nel*maxNo+no]
-  #define NELCON(nel,viz,vector,maxViz) vector[nel*maxViz+viz]
-  #define   COOR(no,j,vector,ndm)       vector[no*ndm+j]
   #define    VET(i,j,vector,col)        vector[i*col+j]
+/*...................................................................*/
+  #define min(a, b)  (((a) < (b)) ? (a) : (b))
+  #define max(a, b)  (((a) > (b)) ? (a) : (b))
+/*...................................................................*/
+
 /*... Material*/
   typedef struct Material{
     double *prop;      /*valores numericos da propriedade*/
@@ -61,7 +64,7 @@
     short ndfT[MAX_TRANS_EQ];   /*graus de liberdade para o problema*/
     short numat;   /*numero maximo de materias no dominio*/
     short maxNo;   /*numero maximo de nos por elemento*/
-    short maxViz;  /*numero maximo de vizinhos que um elemento posui*/
+    short maxViz;  /*numero maximo de vizinhos que um elemento possui*/
     Elmt elm;     
     Node node;
     Material material;
