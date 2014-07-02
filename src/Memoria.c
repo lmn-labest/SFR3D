@@ -25,7 +25,7 @@ void initMem(Memoria *m,long nmax, bool iws)
    m->tempmem = time(NULL);
    
    if(iws)
-     fprintf(stderr,"inicializando a memoria...\n");
+     printf("inicializando a memoria...\n");
    
    
    m->ia = (char *) malloc(nmax*sizeof(char));
@@ -45,7 +45,7 @@ void initMem(Memoria *m,long nmax, bool iws)
    }
    
    if(iws)
-     fprintf(stderr,"Memoria inicializada.\n");
+     printf("Memoria inicializada.\n");
    
    m->tempmem = time(NULL) - m->tempmem;
      
@@ -64,7 +64,7 @@ void initMem(Memoria *m,long nmax, bool iws)
 void finalizeMem(Memoria *m, bool iws)
 {
   if(iws)
-    fprintf(stderr,"liberando memoria ...\n");
+    printf("liberando memoria ...\n");
   free(m->ia);
 }
 /*********************************************************************/
@@ -265,7 +265,7 @@ void* dalloc(Memoria* m,char *s,bool iws)
 /*...................................................................*/	
       m->npont -= 1;
       if(iws)
-        fprintf(stderr,"Memoria liberada %s %ld bytes.\n",s,nec);
+        printf("Memoria liberada %s %ld bytes.\n",s,nec);
       
       return NULL;
     }  
@@ -457,18 +457,18 @@ long usoMemoria(Memoria *m,char *s){
   double conv;
   
   if(!strcmp(s,"B"))
-   fprintf(stderr,"Total de memoria usada: %ld bytes\n",m->iespont);
+   printf("Total de memoria usada: %ld bytes\n",m->iespont);
   else if(!strcmp(s,"KB")){
    conv = CONV_BYTES; 
-   fprintf(stderr,"Total de memoria usada: %lf KB\n",m->iespont/conv);
+   printf("Total de memoria usada: %lf KB\n",m->iespont/conv);
   }  
   else if(!strcmp(s,"MB")){
    conv = CONV_BYTES*CONV_BYTES;
-   fprintf(stderr,"Total de memoria usada: %lf MB\n",m->iespont/conv);
+   printf("Total de memoria usada: %lf MB\n",m->iespont/conv);
   } 
   else if(!strcmp(s,"GB")){
    conv = CONV_BYTES*CONV_BYTES*CONV_BYTES;
-   fprintf(stderr,"Total de memoria usada: %lf GB\n",m->iespont/conv);
+   printf("Total de memoria usada: %lf GB\n",m->iespont/conv);
   }
   return m->iespont;
 }
@@ -492,22 +492,22 @@ double memoriaTotal(char *s)
 {
    double conv;
    if(!strcmp(s,"B")){
-     fprintf(stderr,"Total disponivel :%20.4lf bytes\n",(double) nmax);
+     printf("Total disponivel :%20.4lf bytes\n",(double) nmax);
      return (double)nmax;
    } 
    else if(!strcmp(s,"KB")){
      conv = CONV_BYTES; 
-     fprintf(stderr,"Total disponivel : %20.4lf KB\n",nmax/conv);
+     printf("Total disponivel : %20.4lf KB\n",nmax/conv);
      return nmax/conv;
    }  
    else if(!strcmp(s,"MB")){
      conv = CONV_BYTES*CONV_BYTES;
-     fprintf(stderr,"Total disponivel : %20.4lf MB\n",nmax/conv);
+     printf("Total disponivel : %20.4lf MB\n",nmax/conv);
      return nmax/conv;
    } 
    else if(!strcmp(s,"GB")){
      conv = CONV_BYTES*CONV_BYTES*CONV_BYTES;
-     fprintf(stderr,"Total disponivel : %20.4lf GB\n",nmax/conv);
+     printf("Total disponivel : %20.4lf GB\n",nmax/conv);
      return nmax/conv;
    }
    return -1.0;
@@ -537,25 +537,25 @@ double memoriaVector(Memoria *m,char* s,char*npont,bool iws){
     exit(0);
   np =(double) (m->pont[tp][1]- m->pont[tp][0]) + 1.0;  
   if(!strcmp(s,"B")){
-    fprintf(stderr,"memoria usada pelo vetor \"%s\" :%20.4lf bytes\n"
+    printf("memoria usada pelo vetor \"%s\" :%20.4lf bytes\n"
                   ,npont,(double) np);
     return (double)np;
    } 
    else if(!strcmp(s,"KB")){
      conv = CONV_BYTES; 
-     fprintf(stderr,"memoria usada pelo vetor \"%s\": %20.4lf KB\n"
+     printf("memoria usada pelo vetor \"%s\": %20.4lf KB\n"
                    ,npont,np/conv);
      return np/conv;
    }  
    else if(!strcmp(s,"MB")){
      conv = CONV_BYTES*CONV_BYTES;
-     fprintf(stderr,"memoria usada pelo vetor \"%s\": %20.4lf MB\n"
+     printf("memoria usada pelo vetor \"%s\": %20.4lf MB\n"
                    ,npont,np/conv);
      return np/conv;
    } 
    else if(!strcmp(s,"GB")){
      conv = CONV_BYTES*CONV_BYTES*CONV_BYTES;
-     fprintf(stderr,"memoria usada pelo vetor \"%s\": %20.4lf GB\n"
+     printf("memoria usada pelo vetor \"%s\": %20.4lf GB\n"
                    ,npont,np/conv);
      return np/conv;
    }
