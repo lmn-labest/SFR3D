@@ -18,7 +18,7 @@
                  ,short *numat,short  *ndf,FILE  *file);
   void readFileFvMesh(Memoria *m,Mesh *mesh, FILE *file);
   void readVfCoor(double *x,INT nn, short ndm,FILE *file);
-  void readVfElmt(INT *el    ,short *mat ,short *nen
+  void readVfElmt(INT *el    ,short *mat ,short *nen,short *nFace
                  ,short *ty  ,INT  nel   ,short maxno
                  ,FILE *file);
   void readVfRes(short *id,INT numel,short maxno,char *str,FILE *file);

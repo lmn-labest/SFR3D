@@ -13,9 +13,14 @@
 #include<WriteVtk.h>
 #include<Sisteq.h>
 #include<Reord.h>
+#include<CellLoop.h>
 /*********************************************************************/
 
-
+/*********************************************************************/
+#ifdef _DEBUG_GEOM_
+  #include<Debug.h>
+#endif
+/*********************************************************************/
 
 int main(int argc,char**argv){
 
@@ -37,6 +42,10 @@ int main(int argc,char**argv){
   char *nameIn=NULL,*nameOut=NULL,*preName=NULL;
   FILE *fileIn=NULL,*fileOut=NULL;
   bool bvtk=true;
+
+/*... loop nas celulas*/
+  Lib lib;
+
 
 /* ... macro camandos de leitura*/
   bool macroFlag; 
@@ -150,19 +159,9 @@ int main(int argc,char**argv){
                          ,mesh->elm.faceRt1,mesh->elm.nen
                          ,mesh->numel      ,mesh->maxViz
                          ,mesh->ndfT[0]);
-    
-//    printf("A\n"); 
-//    printf("nel num ndf\n"); 
-//    for(i=0;i<mesh->numel;i++){
-//      printf("\n%3ld %3ld ",i+1,reordMesh->num[i]); 
-//      for(j=0;j<mesh->ndfT[0];j++)
-//        printf(" %3ld ",VET(i,j,sistEqT1->id,mesh->ndfT[0]));
-//    
-//    } 
-//    printf("\n"); 
 /*...................................................................*/
 
-/*...*/
+/*... Estrutura de Dados*/
     strcpy(strIa,"iaT1");
     strcpy(strJa,"JaT1");
     strcpy(strAd,"aDT1");
@@ -171,13 +170,32 @@ int main(int argc,char**argv){
               ,mesh->adj.nViz,mesh->numel,mesh->maxViz,mesh->ndfT[0]
               ,strIa,strJa,strAd,strA
               ,sistEqT1);
-//  printf("ia\n"); 
-//  for(i=0;i<=sistEqT1->neq;i++)
-//    printf("%3ld %3ld\n",i+1,sistEqT1->ia[i]); 
-//    printf("ja\n"); 
-//    for(i=0;i<sistEqT1->nad;i++)
-//      printf("%3ld %3ld\n",i+1,sistEqT1->ja[i]); 
-/*...................................................................*/  
+/*...................................................................*/
+
+/*... calculo de propriedades geometricas recorrentes*/
+    lib = geometria;
+    pGeomForm(mesh->node.x         ,mesh->elm.node
+             ,mesh->adj.nelcon     ,mesh->elm.nen 
+             ,mesh->adj.nViz       ,mesh->elm.geomType
+             ,mesh->elm.geom.cc                         
+             ,mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
+             ,mesh->elm.geom.eta   ,mesh->elm.geom.meta
+             ,mesh->elm.geom.normal,mesh->elm.geom.volume
+             ,mesh->elm.geom.xm    ,mesh->elm.geom.xmcc  
+             ,mesh->elm.geom.mkm   ,mesh->elm.geom.dcca
+             ,mesh->maxNo          ,mesh->maxViz
+             ,mesh->ndm            ,mesh->numel);
+#ifdef _DEBUG_GEOM_
+    testeGeom(mesh->elm.geom.cc  
+             ,mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
+             ,mesh->elm.geom.eta   ,mesh->elm.geom.meta
+             ,mesh->elm.geom.normal,mesh->elm.geom.volume
+             ,mesh->elm.geom.xm    ,mesh->elm.geom.xmcc  
+             ,mesh->elm.geom.mkm   ,mesh->elm.geom.dcca
+             ,mesh->numel          ,mesh->ndm
+             ,mesh->maxViz);
+#endif
+/*...................................................................*/
     strcpy(str,"KB");
     memoriaTotal(str);
     usoMemoria(&m,str);

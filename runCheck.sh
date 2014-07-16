@@ -9,3 +9,5 @@ mv bin/$NAMEBIN test/binTest
 cp test/input/*.dat test/binTest
 #rodando os teste
 test/binTest/run.sh "$INPUT" "$NAMEBIN"
+
+exit 1

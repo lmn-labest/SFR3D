@@ -6,6 +6,12 @@
   #define MAX_TRANS_EQ 3 /*numero maximo de equacoes de transporte*/ 
 /*...................................................................*/
 
+/*...cellLoop*/
+  #define  MAX_NUM_RES   28
+  #define  MAX_NUM_PONT  168
+  #define  MAX_NUM_FACE  6
+  #define  MAX_SN        24 
+/*...................................................................*/
 /*... vtk elmentos*/
   #define VTK_TRIA      5
   #define VTK_QUAD      9
@@ -19,7 +25,8 @@
 /*...................................................................*/
 
 /*... macro para acesso matricial em vetores*/
-  #define    VET(i,j,vector,col)        vector[i*col+j]
+  #define   MAT2D(i,j,vector,col)           vector[i*col+j]
+  #define   MAT3D(i,j,k,vector,col1,col2)   vector[i*col1*col2+col2*j+k]
 /*...................................................................*/
 
 /*... definicao de funcoes*/

@@ -36,11 +36,11 @@ INT csrIa(INT *ia  ,INT *id    ,INT *num   ,INT  *adj, short *nViz
     nel1= num[i]-1;
     for(jNdf=0;jNdf<ndf;jNdf++){
       aux = 0;
-      neq1 = VET(nel1,jNdf,id,ndf)-1;
+      neq1 = MAT2D(nel1,jNdf,id,ndf)-1;
       if(neq1 != -2){
 /*... conectividade no proprio elemento*/
         for(kNdf=0;kNdf<ndf;kNdf++){
-          neq2 = VET(nel1,kNdf,id,ndf)-1;
+          neq2 = MAT2D(nel1,kNdf,id,ndf)-1;
           if(neq2 != -2){
 /*... parte superior*/
             if(lower && neq1 > neq2) 
@@ -57,10 +57,10 @@ INT csrIa(INT *ia  ,INT *id    ,INT *num   ,INT  *adj, short *nViz
   
 /*... conecitivada nos vizinhos*/
         for(j=0;j<nViz[nel1];j++){
-          viz1 = VET(nel1,j,adj,maxViz) - 1;
+          viz1 = MAT2D(nel1,j,adj,maxViz) - 1;
           if( viz1 != -2) {
             for(kNdf=0;kNdf<ndf;kNdf++){
-              col   = VET(viz1,kNdf,id,ndf)-1;
+              col   = MAT2D(viz1,kNdf,id,ndf)-1;
               if( col != -2){
 /*... parte superior*/
                 if(lower && col < neq1) 
@@ -128,12 +128,12 @@ void csrJa(INT *ia    ,INT *ja
     nel1= num[i]-1;
     for(jNdf=0;jNdf<ndf;jNdf++){
       aux = 0;
-      neq1= VET(nel1,jNdf,id,ndf)-1;
+      neq1= MAT2D(nel1,jNdf,id,ndf)-1;
       ipont = ia[neq1];
       if(neq1 != -2){
 /*... conectividade no proprio elemento*/
         for(kNdf=0;kNdf<ndf;kNdf++){
-          neq2 = VET(nel1,kNdf,id,ndf)-1;
+          neq2 = MAT2D(nel1,kNdf,id,ndf)-1;
           if(neq2 != -2){
 /*... parte superior*/
             if(lower && neq1 > neq2){ 
@@ -157,10 +157,10 @@ void csrJa(INT *ia    ,INT *ja
 /*...................................................................*/
 /*...*/
         for(j=0;j<nViz[nel1];j++){
-          viz1 = VET(nel1,j,adj,maxViz) - 1;
+          viz1 = MAT2D(nel1,j,adj,maxViz) - 1;
           if( viz1 != -2) {
             for(kNdf=0;kNdf<ndf;kNdf++){
-              col= VET(viz1,kNdf,id,ndf)-1;
+              col= MAT2D(viz1,kNdf,id,ndf)-1;
               if( col != -2){
 /*... parte superior*/
                 if(lower && col < neq1){

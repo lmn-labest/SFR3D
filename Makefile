@@ -28,10 +28,14 @@ NAME+=$(PRENAME)_$(COMPILER_NAME)
 #-------------------Fontes--------------------------------
 fontes = \
 src/Adjcency.c\
+src/CellLoop.c\
+src/CellLib.c\
 src/Csr.c\
 src/Datastruct.c\
+src/Debug.c\
 src/File.c\
 src/Graph.c\
+src/HccaBlas.c\
 src/Main.c\
 src/Memoria.c\
 src/Numeq.c\
@@ -42,7 +46,7 @@ src/Vtk.c\
 src/WriteVtk.c\
 src/WriteMtx.c
 #-------------------Flags necessarios--------------------------------
-NFLAGS=-I$(PATH_INCLUDE) -L$(PATH_LIB) -D_MMIO_  
+NFLAGS=-I$(PATH_INCLUDE) -L$(PATH_LIB) -D_MMIO_  -D_DEBUG_GEOM
 LDFLAGS=-lmmio -lmetis-x86_64 
 #--------------------compiladores------------------------------------
 # intel ifort

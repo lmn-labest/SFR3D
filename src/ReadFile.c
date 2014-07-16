@@ -22,7 +22,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 	   };                                             
   bool rflag[NMACROS],macroFlag;
   INT nn,nel;
-  short maxno,ndm,numat,ndf;
+  short maxno,ndm,numat,maxViz,ndf;
   int i;
 
 /* leitura dos parametros principais da malha*/
@@ -30,26 +30,71 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
   mesh->nnode  = nn;
   mesh->numel  = nel;
   mesh->maxNo  = maxno;
-  mesh->maxViz = maxno;
+  mesh->maxViz = maxViz = maxno;
   mesh->ndm    = ndm;
   mesh->numat  = numat;
   mesh->ndfT[0] = ndf;
 
 /*... alocando variavies de elementos*/
 /*... conectividade*/ 
-  Myalloc(INT,m,mesh->elm.node     ,nel*maxno ,"elnode",_AD_);
+  Myalloc(INT,m,mesh->elm.node       ,nel*maxno        ,"elnode",_AD_);
 /*... materiais*/ 
-  Myalloc(short,m,mesh->elm.mat     ,nel       ,"elmat" ,_AD_);
+  Myalloc(short,m,mesh->elm.mat      ,nel              ,"elmat" ,_AD_);
 /*... nos por elementos*/
-  Myalloc(short,m,mesh->elm.nen     ,nel       ,"elnen" ,_AD_);
+  Myalloc(short,m,mesh->elm.nen      ,nel              ,"elnen" ,_AD_);
 /*... tipo geometrico */
-  Myalloc(short,m,mesh->elm.geomType,nel       ,"elgT"  ,_AD_);
+  Myalloc(short,m,mesh->elm.geomType ,nel              ,"elgT"  ,_AD_);
+/*... centroide */
+  Myalloc(double,m,mesh->elm.geom.cc ,nel*ndm          ,"elCc"  ,_AD_);
+/*... vetor que une os centroides dos elementos */
+  Myalloc(double               ,m       ,mesh->elm.geom.ksi
+         ,nel*ndm*maxViz,"elksi"  ,_AD_);
+/*... modulo do vetor que une os centroides dos elementos */
+  Myalloc(double               ,m       ,mesh->elm.geom.mksi
+        ,nel*maxViz     ,"elmksi",_AD_);
+/*... vetor paralelo a face da celula */
+  Myalloc(double               ,m       ,mesh->elm.geom.eta
+         ,nel*ndm*maxViz,"eleta"  ,_AD_);
+/*... modulo do vetor paralelo a face da celula */
+  Myalloc(double               ,m       ,mesh->elm.geom.meta
+        ,nel*maxViz     ,"elmeta",_AD_);
+/*... volume da celula*/                           
+  Myalloc(double               ,m       ,mesh->elm.geom.volume
+        ,nel            ,"elVol",_AD_);
+/*... vetor normal a face da celula*/                           
+  Myalloc(double               ,m       ,mesh->elm.geom.normal
+         ,nel*maxViz*ndm       ,"elnorm",_AD_);
+/*... ponto medio da face*/                           
+  Myalloc(double               ,m       ,mesh->elm.geom.xm
+         ,nel*maxViz*ndm       ,"elxm",_AD_);
+/*... vetor que une o centroide ao ponto medio*/                           
+  Myalloc(double               ,m       ,mesh->elm.geom.xmcc
+         ,nel*maxViz*ndm       ,"elxmcc",_AD_);
+/*... distancia entro o ponto medio da face e ponto de intercao 
+      entre a linha entre os centroides e a face*/         
+  Myalloc(double               ,m       ,mesh->elm.geom.mkm  
+         ,nel*maxViz           ,"elmkm" ,_AD_);
+/*... distancia entro o ponto medio da face e ponto de intercao 
+      entre a linha entre os centroides e a face*/         
+  Myalloc(double               ,m       ,mesh->elm.geom.dcca 
+         ,nel*maxViz           ,"eldcca",_AD_);
 
 /*... zerando os variavies*/
-  zero(mesh->elm.node     ,nel*maxno    ,INTC);
-  zero(mesh->elm.mat      ,nel          ,"short" );
-  zero(mesh->elm.nen      ,nel          ,"short" );
-  zero(mesh->elm.geomType ,nel          ,"short" );
+  zero(mesh->elm.node         ,nel*maxno     ,INTC);
+  zero(mesh->elm.mat          ,nel           ,"short"  );
+  zero(mesh->elm.nen          ,nel           ,"short"  );
+  zero(mesh->elm.geomType     ,nel           ,"short"  );
+  zero(mesh->elm.geom.cc      ,nel*ndm       ,"double" );
+  zero(mesh->elm.geom.ksi     ,nel*ndm*maxViz,"double" );
+  zero(mesh->elm.geom.mksi    ,nel*maxViz    ,"double" );
+  zero(mesh->elm.geom.eta     ,nel*ndm*maxViz,"double" );
+  zero(mesh->elm.geom.meta    ,nel*maxViz    ,"double" );
+  zero(mesh->elm.geom.volume  ,nel           ,"double" );
+  zero(mesh->elm.geom.normal  ,nel*ndm*maxViz,"double" );
+  zero(mesh->elm.geom.xm      ,nel*ndm*maxViz,"double" );
+  zero(mesh->elm.geom.xmcc    ,nel*ndm*maxViz,"double" );
+  zero(mesh->elm.geom.mkm     ,nel*maxViz    ,"double" );
+  zero(mesh->elm.geom.dcca    ,nel*maxViz    ,"double" );
 /*...................................................................*/
 
 
@@ -140,7 +185,8 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       strcpy(macros[nmacro++],word);
       rflag[4] = true;
       printf("loading cells ...\n");
-      readVfElmt(mesh->elm.node    ,mesh->elm.mat,mesh->elm.nen 
+      readVfElmt(mesh->elm.node    ,mesh->elm.mat
+                ,mesh->elm.nen     ,mesh->adj.nViz
                 ,mesh->elm.geomType,mesh->numel
                 ,mesh->maxNo       ,file);
       printf("load.\n");
@@ -324,7 +370,7 @@ void readVfCoor(double *x,INT nn, short ndm,FILE *file){
     fscanf(file,"%ld",&idum);
     k = (INT) idum -1;
     for(j=0;j<ndm;j++){
-      fscanf(file,"%lf",&VET(k,j,x,ndm));
+      fscanf(file,"%lf",&MAT2D(k,j,x,ndm));
     }
   }
 #ifdef _DEBUG_MESH_ 
@@ -341,7 +387,7 @@ void readVfCoor(double *x,INT nn, short ndm,FILE *file){
 /*********************************************************************/
 
 /*********************************************************************
- * READVFVETT: leitura das elementos                                 *
+ * READVFMAT2DT: leitura das elementos                                 *
  *********************************************************************
  * ------------------------------------------------------------------*
  * Parametros de entrada:                                            *
@@ -349,6 +395,7 @@ void readVfCoor(double *x,INT nn, short ndm,FILE *file){
  * el   -> nao definido                                              * 
  * mat  -> nao definido                                              *
  * nen  -> nao definido                                              *
+ * nFace-> nao definido                                              *
  * ty   -> nao definido                                              *
  * nel  -> numero de elementos                                       *
  * maxno-> numero maximo de nos por elemento                         *
@@ -359,15 +406,16 @@ void readVfCoor(double *x,INT nn, short ndm,FILE *file){
  * el   -> conectividade                                             *
  * mat  -> material                                                  *
  * nen  -> numero de conectividade por elemento                      *
+ * nFace-> numero de face de um elemento                             *
  * ty   -> numero do tipo geometrico do elemento                     *
  * ------------------------------------------------------------------*
  *********************************************************************/
-void readVfElmt(INT *el   ,short *mat ,short *nen 
+void readVfElmt(INT *el   ,short *mat ,short *nen,short *nFace 
                ,short *ty ,INT nel    ,short maxno
                ,FILE *file){
   INT i;
   long idum,aux;
-  short nenl;
+  short nenl,face;
   int j;
  
   for(i=0;i<nel;i++){
@@ -377,9 +425,11 @@ void readVfElmt(INT *el   ,short *mat ,short *nen
     fscanf(file,"%hd",&ty[idum]);
     fscanf(file,"%hd",&nenl);
     nen[idum] = nenl;
+    fscanf(file,"%hd",&face);
+    nFace[idum] = face;
     for(j=0;j<nenl;j++){
       fscanf(file,"%ld",&aux);
-      VET(idum,j,el,maxno) = (INT) aux;
+      MAT2D(idum,j,el,maxno) = (INT) aux;
     }
   }
 }

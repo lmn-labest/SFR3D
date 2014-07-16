@@ -19,15 +19,33 @@
     short *nViz;
   }Adjacency;
 /*...................................................................*/  
+
+/*...*/
+  typedef struct Geom{
+    double *cc;    /*centroide da celulas*/
+    double *ksi;   /*vetor que une os centroides da celulas*/
+    double *mksi;  /*modulo do vetor que une os centroides da celulas*/
+    double *eta;   /*vetor paralelo a aresta*/
+    double *meta;  /*area da face compartilhada*/
+    double *normal;/*vetor normal a face*/       
+    double *volume;/*volume da celula*/
+    double *xm;    /*ponto medio da face*/
+    double *xmcc;  /*vetor entre o centroide a ponto médio da aresta*/
+    double *dcca;  /*menor distancia entre o centroide a aresta*/
+    double *mkm;   /*modulo do km*/                               
+  }Geom;
+/*...................................................................*/  
+
 /*... Elementos*/
   typedef struct Elmt{
-    INT   *node;      /*conectividades*/
+    INT    *node;       /*conectividades*/
     short  *mat;       /*materiais do elementos*/   
     short  *nen;       /*numero de no por elemento*/
     short  *geomType;  /*tipo geometrio do elemento*/
     short  *faceRt1;   /*tipo de condicao de contorno na face*/
-    short  *rNum;       /*renumeracao dos elementos*/                
+    short  *rNum;      /*renumeracao dos elementos*/                
     double *faceSt1;   /*valor da condicao de contorno na face*/
+    Geom   geom;       
   }Elmt;
 /*...................................................................*/
   

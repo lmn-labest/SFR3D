@@ -31,10 +31,10 @@ INT numeq(Memoria *m , INT *id   ,INT *num, short *rt
     nel = num[i] -1;
     for(j=0;j<ndf;j++){
       aux = nen[nel]*ndf+j;
-      if( VET(nel,aux,rt,maxRes) )
-        VET(nel,j,id,ndf) = -1; 
+      if( MAT2D(nel,aux,rt,maxRes) )
+        MAT2D(nel,j,id,ndf) = -1; 
       else
-        VET(nel,j,id,ndf) = ++neq;
+        MAT2D(nel,j,id,ndf) = ++neq;
     } 
   }
 /*...................................................................*/

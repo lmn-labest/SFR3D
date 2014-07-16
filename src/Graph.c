@@ -26,7 +26,7 @@ void convGraph(INT *xAdj       ,INT *adjncy ,INT const *adj
   if(xAdj) xAdj[0] = 0;
   for(nel=0;nel<numel;nel++){
     for(viz=0;viz<nViz[nel];viz++){
-      n = VET(nel,viz,adj,maxViz);
+      n = MAT2D(nel,viz,adj,maxViz);
       if( n != -1){
         aux++;
         if(adjFlag) 

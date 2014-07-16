@@ -11,8 +11,8 @@
  * nen   -> numero de nos por elemento                               *
  * nnode -> numero de nos da malha                                   *
  * numel -> numero de elmentos                                       *
- * maxNo -> numero maximo nos por elemento                           * 
- * maxViz-> numero maximo nos de vizinhos                            * 
+ * maxNo -> numero de nos por elementos maximo da malha              * 
+ * maxViz-> numero vizinhos por elementos maximo da malha            * 
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
  * ------------------------------------------------------------------*
@@ -24,14 +24,14 @@ void viz(Memoria *m ,INT *el    ,INT *nelcon
         ,short *nViz,short *nen ,INT nnode
         ,INT numel ,short maxNo ,short maxViz){
   
-  INT *nodcon,nEdge,i;
+  INT *nodcon,nEdge;
   
   Myalloc(INT,m,nodcon      ,nnode ,"nodcon",_AD_);
   
   adj2d(el,nodcon,nelcon,nen,numel,nnode,maxNo,maxViz,&nEdge);
   
-  for(i=0;i<numel;i++)
-    nViz[i] = nen[i];
+//for(i=0;i<numel;i++)
+//  nViz[i] = nen[i];
   
   Mydealloc(m,nodcon,"nodcon",_AD_);
 
@@ -50,8 +50,8 @@ void viz(Memoria *m ,INT *el    ,INT *nelcon
  * nen   -> numero de nos por elemento                               *
  * numel -> numero de elmentos                                       *
  * nnode -> numero de nos da malha                                   *
- * maxNo -> numero maximo nos por elemento                           * 
- * maxViz-> numero maximo nos de vizinhos                            * 
+ * maxNo -> numero de nos por elementos maximo da malha              * 
+ * maxViz-> numero vizinhos por elementos maximo da malha            * 
  * nEdge -> indefinifo                                               * 
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
@@ -74,7 +74,7 @@ void adj2d(INT *el  ,INT *nodcon,INT *nelcon,short *nen
   
   for(nel1=0;nel1<numel;nel1++)
     for(j=0;j<maxViz;j++) 
-      VET(nel1,j,nelcon,maxViz) = -1;
+      MAT2D(nel1,j,nelcon,maxViz) = -1;
  
   for(i = 0;i < nnode;i++)
     nodcon[i] = -1; 
@@ -85,18 +85,18 @@ void adj2d(INT *el  ,INT *nodcon,INT *nelcon,short *nen
     for(nel1=0;nel1 < numel;nel1++){ 
       is1 = nen[nel1];
       for(j=0;j<is1;j++){
-        if(VET(nel1,j,nelcon,maxViz) == -1){
+        if(MAT2D(nel1,j,nelcon,maxViz) == -1){
 /*... triangulo*/
           if(is1 == 3) {
-            no1 = VET(nel1,isnod3[j][0],el,maxNo)-1; 
-            no2 = VET(nel1,isnod3[j][1],el,maxNo)-1; 
+            no1 = MAT2D(nel1,isnod3[j][0],el,maxNo)-1; 
+            no2 = MAT2D(nel1,isnod3[j][1],el,maxNo)-1; 
           }
 /*...................................................................*/
 
 /*... quadrilatero*/
           else if(is1 == 4){
-            no1 = VET(nel1,isnod4[j][0],el,maxNo)-1; 
-            no2 = VET(nel1,isnod4[j][1],el,maxNo)-1; 
+            no1 = MAT2D(nel1,isnod4[j][0],el,maxNo)-1; 
+            no2 = MAT2D(nel1,isnod4[j][1],el,maxNo)-1; 
           }
 /*...................................................................*/
           if( nodcon[no1] == -1 || nodcon[no2] == -1){
@@ -111,18 +111,18 @@ void adj2d(INT *el  ,INT *nodcon,INT *nelcon,short *nen
     for(nel1=0;nel1 < numel;nel1++){ 
       is1 = nen[nel1];
       for(j=0;j<is1;j++){
-        if(VET(nel1,j,nelcon,maxViz) == -1){
+        if(MAT2D(nel1,j,nelcon,maxViz) == -1){
 /*... triangulo*/
           if(is1 == 3){
-           no1  = VET(nel1,isnod3[j][0],el,maxNo)-1; 
-           no2  = VET(nel1,isnod3[j][1],el,maxNo)-1;
+           no1  = MAT2D(nel1,isnod3[j][0],el,maxNo)-1; 
+           no2  = MAT2D(nel1,isnod3[j][1],el,maxNo)-1;
           }
 /*...................................................................*/ 
 
 /*... quadrilateros*/
           else if(is1 == 4){
-           no1  = VET(nel1,isnod4[j][0],el,maxNo)-1; 
-           no2  = VET(nel1,isnod4[j][1],el,maxNo)-1;
+           no1  = MAT2D(nel1,isnod4[j][0],el,maxNo)-1; 
+           no2  = MAT2D(nel1,isnod4[j][1],el,maxNo)-1;
           }
 /*...................................................................*/ 
           nel2 = nodcon[no1];
@@ -133,20 +133,20 @@ void adj2d(INT *el  ,INT *nodcon,INT *nelcon,short *nen
               for(k=0;k<is2;k++){
 /*... triangulo*/
                 if(is2 == 3){
-                  no21  = VET(nel2,isnod3[k][0],el,maxNo)-1; 
-                  no22  = VET(nel2,isnod3[k][1],el,maxNo)-1;
+                  no21  = MAT2D(nel2,isnod3[k][0],el,maxNo)-1; 
+                  no22  = MAT2D(nel2,isnod3[k][1],el,maxNo)-1;
                 }
 /*...................................................................*/
 
 /*... tquadrilateros*/
                 else if(is2 == 4){
-                  no21  = VET(nel2,isnod4[k][0],el,maxNo)-1; 
-                  no22  = VET(nel2,isnod4[k][1],el,maxNo)-1;
+                  no21  = MAT2D(nel2,isnod4[k][0],el,maxNo)-1; 
+                  no22  = MAT2D(nel2,isnod4[k][1],el,maxNo)-1;
                 }
 /*...................................................................*/
                 if( (no21 == no2) && (no22 == no1)){
-                      VET(nel1,j,nelcon,maxViz) = nel2;
-                      VET(nel2,k,nelcon,maxViz) = nel1;
+                      MAT2D(nel1,j,nelcon,maxViz) = nel2;
+                      MAT2D(nel2,k,nelcon,maxViz) = nel1;
                       nodcon[no1] = nodcon[no2] = -1;
                       imiss       = true; 
                       (*nEdge)++;
@@ -164,22 +164,22 @@ void adj2d(INT *el  ,INT *nodcon,INT *nelcon,short *nen
     for(nel1=0;nel1 < numel;nel1++){ 
       is1 = nen[nel1];
       for(j=0;j<is1;j++){
-        if(VET(nel1,j,nelcon,maxViz) == -1){
+        if(MAT2D(nel1,j,nelcon,maxViz) == -1){
 /*... triangulo*/
           if( is1 == 3){
-            no1  = VET(nel1,isnod3[j][0],el,maxNo)-1; 
-            no2  = VET(nel1,isnod3[j][1],el,maxNo)-1;
+            no1  = MAT2D(nel1,isnod3[j][0],el,maxNo)-1; 
+            no2  = MAT2D(nel1,isnod3[j][1],el,maxNo)-1;
           }
 /*...................................................................*/
 
 /*... quadrilateros*/
           if( is1 == 4){
-            no1  = VET(nel1,isnod4[j][0],el,maxNo)-1; 
-            no2  = VET(nel1,isnod4[j][1],el,maxNo)-1;
+            no1  = MAT2D(nel1,isnod4[j][0],el,maxNo)-1; 
+            no2  = MAT2D(nel1,isnod4[j][1],el,maxNo)-1;
           }
 /*...................................................................*/
           if(nodcon[no1] == nodcon[no2] && nodcon[no1] == nel1){
-            VET(nel1,j,nelcon,maxViz) = -2;
+            MAT2D(nel1,j,nelcon,maxViz) = -2;
             nodcon[no1] = nodcon[no2]   =  -1;
             imiss       = true;
             (*nEdge)++;
@@ -194,7 +194,7 @@ void adj2d(INT *el  ,INT *nodcon,INT *nelcon,short *nen
 /*...*/  
   for(nel1=0;nel1<numel;nel1++)
     for(j=0;j<maxViz;j++)
-      VET(nel1,j,nelcon,maxViz) += 1;
+      MAT2D(nel1,j,nelcon,maxViz) += 1;
 /*...................................................................*/
  
 }
