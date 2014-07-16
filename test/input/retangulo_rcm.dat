@@ -2,7 +2,7 @@ config
 reord 1 bvtk 0 mem 1
 endConfig
 mesh
-nnode  231 numel 200 ndm 2 maxno 4 numat 1 ndf 1 
+nnode  231 numel 200 ndm 2 maxno 4 maxviz 4 numat 1 ndf 1 
 coordinates
 1      0.00000000      0.00000000      
 2      0.00000000      0.10000000      
