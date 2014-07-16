@@ -130,9 +130,9 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... calcula a vizinhaca do elementos*/
-    viz(&m             ,mesh->elm.node ,mesh->adj.nelcon
-       ,mesh->adj.nViz ,mesh->elm.nen  ,mesh->nnode
-       ,mesh->numel    ,mesh->maxNo    ,mesh->maxViz);
+    viz(&m                 ,mesh->elm.node ,mesh->elm.adj.nelcon
+       ,mesh->elm.adj.nViz ,mesh->elm.nen  ,mesh->nnode
+       ,mesh->numel        ,mesh->maxNo    ,mesh->maxViz);
 /*...................................................................*/
 
 /*...*/
@@ -147,8 +147,9 @@ int main(int argc,char**argv){
 
 /*... reodenando as celulas para dimuincao da banda*/
     Myalloc(INT,&m,reordMesh->num,mesh->numel,"rNum" ,_AD_);
-    reord(&m            ,reordMesh->num,mesh->adj.nelcon,mesh->adj.nViz
-         ,mesh->maxViz  ,mesh->numel   ,reordMesh->flag);
+    reord(&m                ,reordMesh->num,mesh->elm.adj.nelcon
+         ,mesh->elm.adj.nViz,mesh->maxViz  ,mesh->numel   
+         ,reordMesh->flag);
 /*...................................................................*/
 
 /*... numeracao das equacoes*/
@@ -166,17 +167,17 @@ int main(int argc,char**argv){
     strcpy(strJa,"JaT1");
     strcpy(strAd,"aDT1");
     strcpy(strA ,"aT1");
-    dataStruct(&m,sistEqT1->id,reordMesh->num,mesh->adj.nelcon
-              ,mesh->adj.nViz,mesh->numel,mesh->maxViz,mesh->ndfT[0]
-              ,strIa,strJa,strAd,strA
-              ,sistEqT1);
+    dataStruct(&m,sistEqT1->id   ,reordMesh->num,mesh->elm.adj.nelcon
+              ,mesh->elm.adj.nViz,mesh->numel   ,mesh->maxViz
+              ,mesh->ndfT[0]     ,strIa         ,strJa
+              ,strAd             ,strA          ,sistEqT1);
 /*...................................................................*/
 
 /*... calculo de propriedades geometricas recorrentes*/
     lib = geometria;
     pGeomForm(mesh->node.x         ,mesh->elm.node
-             ,mesh->adj.nelcon     ,mesh->elm.nen 
-             ,mesh->adj.nViz       ,mesh->elm.geomType
+             ,mesh->elm.adj.nelcon ,mesh->elm.nen 
+             ,mesh->elm.adj.nViz   ,mesh->elm.geomType
              ,mesh->elm.geom.cc                         
              ,mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
              ,mesh->elm.geom.eta   ,mesh->elm.geom.meta
@@ -233,11 +234,15 @@ int main(int argc,char**argv){
     printf("%s\n",DIF);
     printf("%s\n",word);
     fName(preName,0,6,&nameOut);
-    wGeoVtk(&m               ,mesh->node.x     ,mesh->elm.node 
-           ,mesh->elm.mat    ,mesh->elm.nen    ,mesh->elm.geomType
-           ,mesh->elm.faceRt1,mesh->elm.faceSt1,mesh->nnode   
-           ,mesh->numel      ,mesh->ndm        ,mesh->maxNo  
-           ,mesh->ndfT       ,nameOut          ,bvtk             
+    wGeoVtk(&m                      ,mesh->node.x   
+           ,mesh->elm.node          ,mesh->elm.mat    
+           ,mesh->elm.nen           ,mesh->elm.geomType
+           ,mesh->elm.material.prop ,mesh->elm.material.type 
+           ,mesh->elm.faceRt1       ,mesh->elm.faceSt1
+           ,mesh->nnode             ,mesh->numel    
+           ,mesh->ndm               ,mesh->maxNo
+           ,mesh->numat             ,mesh->ndfT    
+           ,nameOut                 ,bvtk             
            ,fileOut);
     printf("%s\n\n",DIF);
   }   

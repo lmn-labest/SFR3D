@@ -171,13 +171,13 @@ void writeVtkCell(int *el       ,short *nen ,short *type
 /*********************************************************************/
 
 /**********************************************************************
- * writeVtkCellProp :  escreve propriedades por celulas               *
+ * writeVtkCellProp :  escreve propriedades                           *
  * -------------------------------------------------------------------*
  * Parametro de entrada :                                             *
  * -------------------------------------------------------------------*
  * iprop -> propriedades (int)                                        *
- * dprop -> propriedades (int)                                        *
- * numel -> numero de elementos                                       *
+ * dprop -> propriedades (double)                                     *
+ * n     -> numero de linhas                                          *
  * gdl   -> graus de liberdade                                        *
  * s     -> nome do campo                                             *
  * cod1  -> true BINARY vtk false ACISS vtk                           *
@@ -187,8 +187,8 @@ void writeVtkCell(int *el       ,short *nen ,short *type
  * Parametro de saida :                                               *
  * -------------------------------------------------------------------*
  *********************************************************************/
-void writeVtkCellProp(int *iprop,double *dprop,INT numel,int gdl
-                     ,char *s   ,bool cod1    ,short cod2,FILE *f)
+void writeVtkProp(int *iprop,double *dprop,INT n     ,int gdl
+                 ,char *s   ,bool cod1    ,short cod2,FILE *f)
 {
 /*===*/
    INT i;
@@ -201,7 +201,7 @@ void writeVtkCellProp(int *iprop,double *dprop,INT numel,int gdl
      case 1:   
        fprintf(f,"SCALARS %s int %d\n",s,gdl); 
        fprintf(f,"LOOKUP_TABLE default\n"); 
-       for(i=0;i<numel;i++){
+       for(i=0;i<n;i++){
          for(j=0;j<gdl;j++)
            write_int(iprop[i*gdl+j],cod1,f);
          new_section(cod1,f); 
@@ -214,7 +214,7 @@ void writeVtkCellProp(int *iprop,double *dprop,INT numel,int gdl
      case 2:   
        fprintf(f,"SCALARS %s double %d\n",s,gdl); 
        fprintf(f,"LOOKUP_TABLE default\n"); 
-       for(i=0;i<numel;i++){
+       for(i=0;i<n;i++){
          for(j=0;j<gdl;j++)
            write_double(dprop[i*gdl+j],cod1,f);
          new_section(cod1,f); 

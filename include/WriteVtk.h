@@ -9,11 +9,15 @@
   #include<Mesh.h>
   #include<Memoria.h>
   #include<File.h>
-  void wGeoVtk(Memoria *m    ,double *x      ,INT *el 
-              ,short *mat    ,short int *nen ,short *type
-              ,short *faceRt1,double *faceSt1,INT nnode 
-              ,INT numel     ,INT ndm        ,short maxno
-              ,short *ndfT   ,char *nameOut  ,bool iws      
+  void wGeoVtk(Memoria *m     ,double *x      
+              ,INT *el        ,short *mat    
+              ,short *nen     ,short *typeGeom
+              ,double *prop   ,short *typeCal
+              ,short *faceRt1 ,double *faceSt1
+              ,INT nnode      ,INT numel    
+              ,short ndm        ,short maxno
+              ,short numat    ,short *ndfT   
+              ,char *nameOut  ,bool iws      
               ,FILE *f); 
   
 #endif/*_WRITE_VTK_H*/

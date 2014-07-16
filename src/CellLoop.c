@@ -74,6 +74,7 @@ void pGeomForm(double *restrict x      ,INT    *restrict el
 /*...................................................................*/
   
 /*... loop nas celulas*/
+  
   for(nel=0;nel<numel;nel++){
 
 /*... zerando vetores*/

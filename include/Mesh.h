@@ -9,7 +9,7 @@
 /*... Material*/
   typedef struct Material{
     double *prop;      /*valores numericos da propriedade*/
-    short  *type;      /*tipo da celula*/ 
+    short  *type;      /*tipo de calculo da celula*/ 
   } Material;
 /*...................................................................*/
 
@@ -46,6 +46,8 @@
     short  *rNum;      /*renumeracao dos elementos*/                
     double *faceSt1;   /*valor da condicao de contorno na face*/
     Geom   geom;       
+    Material material;
+    Adjacency adj;
   }Elmt;
 /*...................................................................*/
   
@@ -70,8 +72,6 @@
     short maxViz;  /*numero maximo de vizinhos que um elemento possui*/
     Elmt elm;     
     Node node;
-    Material material;
-    Adjacency adj;
   }Mesh;
 /*...................................................................*/
 

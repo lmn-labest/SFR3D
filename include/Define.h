@@ -12,6 +12,7 @@
   #define  MAX_NUM_FACE  6
   #define  MAX_SN        24 
 /*...................................................................*/
+
 /*... vtk elmentos*/
   #define VTK_TRIA      5
   #define VTK_QUAD      9

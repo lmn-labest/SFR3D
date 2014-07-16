@@ -1,4 +1,10 @@
 #include<ReadFile.h>
+
+/*...funcao de apoio*/
+  static void getword(char *line, char*word);
+  static int getnumprop2(char *line);
+/*..................................................................*/
+
 /*********************************************************************
  * readFileFc : leitura de arquivo de dados em volume finitos        *
  * ------------------------------------------------------------------*
@@ -16,9 +22,14 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 {
   char word[WORD_SIZE],str[WORD_SIZE];
   char macro[NMACROS][WORD_SIZE]={
-            "coordinates","endMesh"  ,"insert"            /*0,1,2*/
-           ,"return"     ,"cells"    ,"faceRt1"           /*3,4,5*/
-           ,"faceSt1"    
+            "coordinates","endMesh"  ,"insert"            /* 0, 1, 2*/
+           ,"return"     ,"cells"    ,"faceRt1"           /* 3, 4, 5*/
+           ,"faceSt1"    ,""         ,""                  /* 6, 7, 8*/ 
+           ,""           ,""         ,""                  /* 9,10,11*/ 
+           ,""           ,""         ,""                  /*12,13,14*/ 
+           ,""           ,""         ,""                  /*15,16,17*/ 
+           ,""           ,""         ,""                  /*18,19,20*/ 
+           ,"materials"  ,""         ,""                  /*21,22,23*/ 
 	   };                                             
   bool rflag[NMACROS],macroFlag;
   INT nn,nel;
@@ -26,11 +37,11 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
   int i;
 
 /* leitura dos parametros principais da malha*/
-  parametros(&nn,&nel,&maxno,&ndm,&numat,&ndf,file);
+  parametros(&nn,&nel,&maxno,&maxViz,&ndm,&numat,&ndf,file);
   mesh->nnode  = nn;
   mesh->numel  = nel;
   mesh->maxNo  = maxno;
-  mesh->maxViz = maxViz = maxno;
+  mesh->maxViz = maxViz; 
   mesh->ndm    = ndm;
   mesh->numat  = numat;
   mesh->ndfT[0] = ndf;
@@ -100,24 +111,24 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 
 /*... alocando materiais*/
 /*... Prop*/ 
-  Myalloc(double,m,mesh->material.prop,MAXPROP*numat     
+  Myalloc(double,m,mesh->elm.material.prop,MAXPROP*numat     
          ,"prop" ,_AD_);
 /*... type*/ 
-  Myalloc(short,m,mesh->material.type,numat     
+  Myalloc(short,m,mesh->elm.material.type,numat     
          ,"type" ,_AD_);
 /*... zerando os variavies*/
-  zero(mesh->material.prop,MAXPROP*numat,"double");
-  zero(mesh->material.type,numat,"short");
+  zero(mesh->elm.material.prop,MAXPROP*numat,"double");
+  zero(mesh->elm.material.type,numat,"short");
 /*...................................................................*/
 
 /*... alocando estruturas para vizinhos*/
 /*... nelcon*/ 
-  Myalloc(INT,m,mesh->adj.nelcon,nel*maxno,"adj" ,_AD_);
+  Myalloc(INT,m,mesh->elm.adj.nelcon,nel*maxno,"adj" ,_AD_);
 /*... type*/ 
-  Myalloc(short,m,mesh->adj.nViz,nel       ,"nViz" ,_AD_);
+  Myalloc(short,m,mesh->elm.adj.nViz,nel       ,"nViz" ,_AD_);
 /*... zerando os variavies*/
-  zero(mesh->adj.nelcon,nel*maxno,INTC);
-  zero(mesh->adj.nViz  ,nel      ,"short");
+  zero(mesh->elm.adj.nelcon,nel*maxno,INTC);
+  zero(mesh->elm.adj.nViz  ,nel      ,"short");
 /*...................................................................*/
 
 /*---alocando variaveis nodais */      
@@ -186,7 +197,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       rflag[4] = true;
       printf("loading cells ...\n");
       readVfElmt(mesh->elm.node    ,mesh->elm.mat
-                ,mesh->elm.nen     ,mesh->adj.nViz
+                ,mesh->elm.nen     ,mesh->elm.adj.nViz
                 ,mesh->elm.geomType,mesh->numel
                 ,mesh->maxNo       ,file);
       printf("load.\n");
@@ -223,6 +234,21 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
+
+/*... faceSt1 */
+    else if((!strcmp(word,macro[21])) && (!rflag[21])){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      strcpy(macros[nmacro++],word);
+      rflag[21] = true;
+      strcpy(str,"endMaterials");
+      printf("loading materials ...\n");
+      readVfMat(mesh->elm.material.prop,mesh->elm.material.type
+               ,numat,file);
+      printf("load.\n");
+      printf("%s\n\n",DIF);
+    }
+/*...................................................................*/
   }while(macroFlag && (!feof(file)));
 
 }
@@ -234,18 +260,20 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
  * ----------------------------------------------------------------- *
  * nn    - numero de nos                                             *
  * nel   - numero de elementos                                       *
- * nen   - numero maximo de nos por elemento                         *
- * numat - numero de materias                                        *
+ * maxNo   -> numero de nos por celula maximo da malha               * 
+ * maxViz  -> numero vizinhos por celula maximo da malha             * 
  * ndf   - graus de liberdade (onda)                                 *
  * file  - ponteiro para o arquivo de dados                          *
  * ----------------------------------------------------------------- *
  *********************************************************************/
-void parametros(INT  *nn   ,INT *nel  ,short *maxno
+void parametros(INT  *nn   ,INT *nel  ,short *maxNo, short *maxViz
                ,short *ndm  ,short *numat,short *ndf
                ,FILE* file)
 {
   char parameter[][WORD_SIZE]={"nnode","numel","numat"
-                              ,"maxno","ndf"  ,"ndm"};
+                              ,"maxno","ndf"  ,"ndm"
+                              ,"maxviz"
+                              };
   
   char word[WORD_SIZE];
   bool flag[NPARAMETROS];
@@ -256,7 +284,8 @@ void parametros(INT  *nn   ,INT *nel  ,short *maxno
   *nn    = 0;
   *nel   = 0;
   *numat = 0;
-  *maxno = 0;
+  *maxNo = 0;
+  *maxViz= 0;
   *ndf   = 0;
   *ndm   = 0;
 
@@ -300,9 +329,9 @@ void parametros(INT  *nn   ,INT *nel  ,short *maxno
 
 /*... macro maxno*/   
     else if(!strcmp(word,parameter[3])){
-      fscanf(file,"%hd",maxno);
+      fscanf(file,"%hd",maxNo);
 #ifdef _DEBUG_MESH_ 
-      printf("maxno %hd\n",*maxno);
+      printf("maxno %hd\n",*maxNo);
 #endif      
       flag[3] = true;
       i++;
@@ -327,6 +356,17 @@ void parametros(INT  *nn   ,INT *nel  ,short *maxno
       printf("ndm %hd\n",*ndm);
 #endif      
       flag[5] = true;
+      i++;
+    }
+/*...................................................................*/
+
+/*... macro maxViz*/  
+    else if(!strcmp(word,parameter[6])){
+      fscanf(file,"%hd",maxViz);
+#ifdef _DEBUG_MESH_ 
+      printf("maxno %hd\n",*maxViz);
+#endif      
+      flag[6] = true;
       i++;
     }
 /*...................................................................*/
@@ -604,3 +644,116 @@ void config(bool *bvtk,Reord *reordMesh,FILE* file)
   }
 }
 /*********************************************************************/
+
+/*********************************************************************/
+/* Leitura dos materiais                                             */
+/*********************************************************************/
+void readVfMat(double *prop,short *type,short numat,FILE* file)
+{
+  
+    short i;
+    int k,dum;
+    int nprop;
+    char word[WORD_SIZE];
+    int j;  
+    char line[WORD_SIZE];
+    
+    
+    
+    for(i=0;i<numat;i++){
+      fscanf(file,"%d",&k);
+      fscanf(file,"%d",&dum);
+      --k ;
+      type[k] = dum;
+      readMacro(file,line,true);
+      nprop = getnumprop2(line);
+      if( nprop > MAXPROP){
+        printf("%s\n"
+	       "*** Numero maximo de prorpiedades excedidos\n"
+	       "MAXPROPMAX:                 %d\n"
+	       "numero de propiedades lidas:%d\n"
+	       "Nome do arquivo fonte %s.\n"
+	       "Funcao %s.\n"
+	       "%s\n"
+	       ,DIF,MAXPROP,nprop,__FILE__,__func__,DIF);
+	       exit(EXIT_FAILURE);       
+      }
+  
+     for(j=0;j<nprop;j++){
+       getword(line,word);
+/*       printf("mat = %d prop = %d word = %s\n",k,j,word);*/
+       prop[MAXPROP*k+j]=atof(word);
+     }
+      
+   }
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * GETNUMPROP2: contar o numero de propriedades em um linha          * 
+ * ----------------------------------------------------------------- * 
+ * Parametros de entrada:                                            * 
+ * line - string de caracter                                         * 
+ * ----------------------------------------------------------------- * 
+ * Parametros de saida:                                              * 
+ *      - numero de valores na linha                                 * 
+ * ----------------------------------------------------------------- * 
+ *********************************************************************/
+static int getnumprop2(char *line){
+
+  int n,i;
+  bool cont;
+  char c;   
+  
+  n = 0;
+  i = 0;
+  cont = true;
+  while( (c=line[i++]) != '\0'){
+    
+    if( c != ' ' && cont ){
+      cont =false;
+      n++;
+    }  
+    else if( c == ' ' )
+      cont = true;
+  }
+  
+  return n;
+
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * GETWORD: obtem o numero de um linha separado por espaco           * 
+ * ----------------------------------------------------------------- * 
+ * Parametros de entrada:                                            * 
+ * line - string de caracter                                         * 
+ * ----------------------------------------------------------------- * 
+ * Parametros de saida:                                              * 
+ * word - com o valor numerico                                       * 
+ * ----------------------------------------------------------------- * 
+ *********************************************************************/
+static void getword(char *line, char*word){
+
+    int n,i;
+    char c;   
+    bool flag;
+    
+    n = 0;
+    i = 0;
+    flag =false;
+    while( (c=line[i]) != '\0'){
+/*primeiro diferente de espaco*/      
+      if(c != ' ')
+        flag = true;
+      if(c == ' ' && flag)
+        break;
+      word[n++]=c;
+      line[i++]  =' ';  
+    }
+    word[n]='\0';  
+    
+}
+/*********************************************************************/
+
+
