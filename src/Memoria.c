@@ -22,7 +22,7 @@ void initMem(Memoria *m,long nmax, bool iws)
 {
    long int i;
    
-   m->tempmem = time(NULL);
+// m->tempmem = getTimeC() - m->tempmem  ;
    
    if(iws)
      printf("inicializando a memoria...\n");
@@ -47,7 +47,7 @@ void initMem(Memoria *m,long nmax, bool iws)
    if(iws)
      printf("Memoria inicializada.\n");
    
-   m->tempmem = time(NULL) - m->tempmem;
+// m->tempmem = getTimeC() - m->tempmem;
      
 }
 /*********************************************************************/
@@ -93,14 +93,15 @@ void finalizeMem(Memoria *m, bool iws)
  *********************************************************************/
 void* alloc(Memoria *m,long **end,int comp,char *s,int size,bool iws)
 {
-  long int livre,nec,nv;
+  long int livre,nec,necA,nv;
+  int resto;
 
 /*se o tamanho do vetor for zero transforma em 1 para nao haver
  problemas*/
   if(comp == 0)
     comp = 1;
-  
-  m->tempmem = time(NULL) - m->tempmem;
+
+//m->tempmem = getTimeC() - m->tempmem;
 
 /*numero maximo de ponteiros*/  
   if( m->npont == NPONTEIRO){
@@ -113,18 +114,35 @@ void* alloc(Memoria *m,long **end,int comp,char *s,int size,bool iws)
   }
 /*... espaco q sera alocado*/
   nec = comp * size;
+
+/*... alinhamento como potencia de 64(cache-line)*/
+  necA = nec;
+#if ALIGN == 64     
+  resto = nec%64;
+  if(resto) 
+    necA = (1 + (int) nec/64) * 64;
+#elif ALIGN == 16     
+  resto = nec%16;
+  if(resto) 
+    necA = (1 + (int) nec/16) * 16;
+/*... alinhamento como potencia de 8*/
+#elif ALIGN ==  8
+  resto = nec%8 ;
+  if(resto) 
+    necA = (1 + (int) nec/8) * 8;
+#endif
 /*...espaco livre*/
   livre = nmax - m->iespont; 
 /*...*/
-  if(livre > nec){
+  if(livre > necA){
 /*...Set name pont*/  
     setNamePoint(m,s,iws);
 /*...*/    
     m->pont[m->npont][0] = m->iespont; 
-    m->pont[m->npont][1] = m->iespont + nec -1 ;
+    m->pont[m->npont][1] = m->iespont + necA -1 ;
 /*...................................................................*/
     nv                   = m->iespont;
-    m->iespont           = nec + m->iespont;
+    m->iespont           = necA + m->iespont;
 /*... guardando endereco do panteiro*/    
     m->end[m->npont]     = end;
 /*...................................................................*/
@@ -134,9 +152,9 @@ void* alloc(Memoria *m,long **end,int comp,char *s,int size,bool iws)
     if(iws)
       fprintf(stderr,"Memoria allocada %s %ld bytes\n"
               "Ponteiro retornado %p.\n"
-	       ,s,nec,m->ia + nv);
+	       ,s,necA,m->ia + nv);
 
-    m->tempmem = time(NULL) - m->tempmem;
+//  m->tempmem = getTimeC() - m->tempmem  ;
     return (m->ia + nv);
   }
 /*...................................................................*/  
@@ -146,7 +164,7 @@ void* alloc(Memoria *m,long **end,int comp,char *s,int size,bool iws)
    fprintf(stderr,"Memoria insuficiente %s\n"
                   "Disponivel %ld bytes\n"
                   "necessario %ld bytes\n"
-		   ,s,livre,nec);
+		   ,s,livre,necA);
    exit(EXIT_FAILURE); 
    return NULL;
   } 
@@ -241,8 +259,7 @@ void* dalloc(Memoria* m,char *s,bool iws)
   long nec;
   int  pt;
    
-  m->tempmem = time(NULL) - m->tempmem;
-
+//m->tempmem = getTimeC() - m->tempmem;
 /*localizar vetor*/
   if((pt=locateNamePoint(m,s,iws))<0)
     exit(EXIT_FAILURE);
@@ -276,7 +293,7 @@ void* dalloc(Memoria* m,char *s,bool iws)
     exit(0);
   }  
   
-  m->tempmem = time(NULL) - m->tempmem;
+//m->tempmem = getTimeC() - m->tempmem;
 }
 /*********************************************************************/
 

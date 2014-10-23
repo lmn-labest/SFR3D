@@ -4,13 +4,14 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<Mystdbool.h>
-#include<time.h>
+#include<Mytime.h>
 /*...*/
 #ifdef _AD_
   #undef  _AD_
 #endif  
 #define _AD_ false
 /*.....................................................................*/
+#define ALIGN         64
 #define CONV_BYTES    1024.0
 #define NPONTEIRO     50/*Numero de ponteiros maximo allocados*/
 #define MNOMEPONTEIRO 20/*Tamanho maximo do nome do vetor*/
@@ -25,7 +26,7 @@ typedef struct Memoria{
   unsigned int npont;/*numero de ponteiros alocados*/
   long int **end[NPONTEIRO];/*endereco dos ponterios allocados*/
   long int iespont;/*localizacao do ultimo paonteiro allocado no ia*/
-  time_t tempmem;/*tempo total de excucao das funcoes*/
+  double   tempmem;/*tempo total de excucao das funcoes*/
 }Memoria;
 /******************************prototipo******************************/
 void   initMem        (Memoria*,long,bool ); 

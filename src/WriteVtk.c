@@ -139,12 +139,12 @@ void wGeoVtk(Memoria *m     ,double *x
     exit(EXIT_FAILURE);
   }
   for(i=0;i<numel;i++){
-    for(j=0;j<numat;j++){
+    for(j=0;j<MAXPROP;j++){
       idum = mat[i]-1;
-      MAT2D(i,j,aux,numat) = MAT2D(idum,j,prop,MAXPROP);
+      MAT2D(i,j,aux,MAXPROP) = MAT2D(idum,j,prop,MAXPROP);
     }
   } 
-  writeVtkProp(&idum,aux,numel,numat,"elProp",iws,DOUBLE,f);
+  writeVtkProp(&idum,aux,numel,MAXPROP,"elProp",iws,DOUBLE,f);
   Mydealloc(m,aux,"el",_AD_);
 /*...................................................................*/
 
