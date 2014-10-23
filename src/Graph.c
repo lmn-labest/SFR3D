@@ -1,7 +1,7 @@
 #include<Graph.h>
 
 /********************************************************************* 
- * SORTGRAPHCSR: ordena o gafo no formato CSR                        * 
+ * CONVGRAPHCSR: ordena o gafo no formato CSR                        * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 

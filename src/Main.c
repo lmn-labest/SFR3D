@@ -32,8 +32,7 @@ int main(int argc,char**argv){
   SistEq *sistEqT1=NULL;
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
-/*...*/
-  INT i,j;
+
 /*Estrutura de dados*/
   char strIa[MNOMEPONTEIRO],strJa[MNOMEPONTEIRO];
   char strA[MNOMEPONTEIRO],strAd[MNOMEPONTEIRO];
@@ -44,7 +43,7 @@ int main(int argc,char**argv){
   bool bvtk=true;
 
 /*... loop nas celulas*/
-  Lib lib;
+/*Lib lib;*/
 
 
 /* ... macro camandos de leitura*/
@@ -131,7 +130,7 @@ int main(int argc,char**argv){
 
 /*... calcula a vizinhaca do elementos*/
     viz(&m                 ,mesh->elm.node ,mesh->elm.adj.nelcon
-       ,mesh->elm.adj.nViz ,mesh->elm.nen  ,mesh->nnode
+       ,mesh->elm.nen      ,mesh->nnode
        ,mesh->numel        ,mesh->maxNo    ,mesh->maxViz);
 /*...................................................................*/
 
@@ -147,19 +146,27 @@ int main(int argc,char**argv){
 
 /*... reodenando as celulas para dimuincao da banda*/
     Myalloc(INT,&m,reordMesh->num,mesh->numel,"rNum" ,_AD_);
+    printf("%s\n",DIF);
+    printf("Reordenando a malha.\n");
     reord(&m                ,reordMesh->num,mesh->elm.adj.nelcon
          ,mesh->elm.adj.nViz,mesh->maxViz  ,mesh->numel   
          ,reordMesh->flag);
+    printf("Malha reordenada.\n");
+    printf("%s\n",DIF);
 /*...................................................................*/
 
 /*... numeracao das equacoes*/
     Myalloc(INT,&m,sistEqT1->id
            ,mesh->numel*mesh->ndfT[0]
            ,"sistT1id",_AD_);
+    printf("%s\n",DIF);
+    printf("Numerando as equacoes.\n");
     sistEqT1->neq = numeq(&m,sistEqT1->id  ,reordMesh->num
                          ,mesh->elm.faceRt1,mesh->elm.nen
                          ,mesh->numel      ,mesh->maxViz
                          ,mesh->ndfT[0]);
+    printf("Equacoes numeradas.\n");
+    printf("%s\n",DIF);
 /*...................................................................*/
 
 /*... Estrutura de Dados*/
@@ -174,7 +181,6 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... calculo de propriedades geometricas recorrentes*/
-    lib = geometria;
     pGeomForm(mesh->node.x         ,mesh->elm.node
              ,mesh->elm.adj.nelcon ,mesh->elm.nen 
              ,mesh->elm.adj.nViz   ,mesh->elm.geomType

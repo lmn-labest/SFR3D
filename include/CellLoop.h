@@ -5,11 +5,11 @@
   #include<stdlib.h>
   #include<math.h>
   #include<HccaBlas.h>
-  typedef enum Lib{geometria  = 1
+/*  typedef enum Lib{geometria  = 1
                   ,gradiente
                   ,matriz
                   }Lib; 
-
+*/
   void pGeomForm(double *restrict x      ,INT    *restrict el
               ,INT    *restrict nelcon ,short  *restrict nen    
               ,short  *restrict nFace  ,short  *restrict geomType

@@ -7,7 +7,6 @@
  * m     -> memoria principal                                        *
  * el    -> conectividade nodal                                      *
  * nelcon-> indefinido                                               *
- * nViz  -> indefinido                                               *
  * nen   -> numero de nos por elemento                               *
  * nnode -> numero de nos da malha                                   *
  * numel -> numero de elmentos                                       *
@@ -16,19 +15,19 @@
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
  * ------------------------------------------------------------------*
- * nelcon-> vizinhas dos elementos                                   *
- * nViz  -> numero de vizinhos por elemento                          *
+ * nelcon-> vizinhos dos elementos                                   *
  * ------------------------------------------------------------------*
  * *******************************************************************/
 void viz(Memoria *m ,INT *el    ,INT *nelcon
-        ,short *nViz,short *nen ,INT nnode
-        ,INT numel ,short maxNo ,short maxViz){
+        ,short *nen ,INT nnode
+        ,INT numel  ,short maxNo ,short maxViz){
   
   INT *nodcon,nEdge;
   
   Myalloc(INT,m,nodcon      ,nnode ,"nodcon",_AD_);
   
   adj2d(el,nodcon,nelcon,nen,numel,nnode,maxNo,maxViz,&nEdge);
+  
   
 //for(i=0;i<numel;i++)
 //  nViz[i] = nen[i];
@@ -65,7 +64,7 @@ void adj2d(INT *el  ,INT *nodcon,INT *nelcon,short *nen
           ,INT *nEdge){
  
  
-  INT  i,nel1,nel2,no1,no2,no21,no22;
+  INT  i,nel1,nel2,no1=0,no2=0,no21=0,no22=0;
   int   j,k;
   short is1,is2; 
   bool imiss;

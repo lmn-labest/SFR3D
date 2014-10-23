@@ -4,8 +4,8 @@ PATH_LIB="lib"
 PRENAME=mfvCell
 CC=gcc
 OPENMP=no
-OT=O0
-DEBUG=yes
+OT=O3
+DEBUG=no
 
 #------------------gerando o nome do excutavel-------------
 ifeq ($(CC),icc)
@@ -46,7 +46,8 @@ src/Vtk.c\
 src/WriteVtk.c\
 src/WriteMtx.c
 #-------------------Flags necessarios--------------------------------
-NFLAGS=-I$(PATH_INCLUDE) -L$(PATH_LIB) -D_MMIO_  -D_DEBUG_GEOM
+NFLAGS=-I$(PATH_INCLUDE) -L$(PATH_LIB) -D_MMIO_  -D_DEBUG_GEOM \
+        -fopt-info-optimized-missed=logOpt.txt 
 LDFLAGS=-lmmio -lmetis-x86_64 
 #--------------------compiladores------------------------------------
 # intel ifort
@@ -60,7 +61,7 @@ endif
 # gnu gcc
 ifeq ($(CC),gcc)
   LDFLAGS +=  -lm 
-  OFLAGS  +=  -Wall -ansi -std=c99 -pedantic-errors
+  OFLAGS  +=  -Wall -ansi -std=c99 -pedantic-errors 
   ifeq ($(OPENMP),yes)
     OFLAGS  += -fopenmp
   endif

@@ -21,8 +21,8 @@
 /*...................................................................*/
 
 /*... definicao do tipo de inteiros usados*/
-  #define INT   long
-  #define INTC "long"
+  #define INT   int 
+  #define INTC "int"
 /*...................................................................*/
 
 /*... macro para acesso matricial em vetores*/
@@ -33,8 +33,8 @@
 /*... definicao de funcoes*/
   #define min(a, b)  (((a) < (b)) ? (a) : (b))
   #define max(a, b)  (((a) > (b)) ? (a) : (b))
-  #define vectorPlusOne(v,n,i)  for(i=0;i<n;i++) v[i] = v[i] + 1; 
-  #define vectorMinusOne(v,n,i) for(i=0;i<n;i++) v[i] = v[i] - 1; 
+  #define vectorPlusOne(v,n,i)  for(i=0;i<n;i++) v[i]++ 
+  #define vectorMinusOne(v,n,i) for(i=0;i<n;i++) v[i]--  
 /*...................................................................*/
 
 /*... Saida de Erro*/                                                  

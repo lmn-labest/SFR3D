@@ -212,12 +212,11 @@ void csrJa(INT *ia    ,INT *ja
 
 INT bandCsr(INT *ia,INT *ja,INT  neq,short type){
 
-  INT i,j,bandL,aux;
+  INT i,j,bandL=0,aux;
   
   switch(type){
 /*... banda maxima da matriz*/
     case 1:
-      bandL = 0;
       for(i=0;i<neq;i++){
         for(j=ia[i];j<ia[i+1];j++){
           bandL = max(bandL,abs(i-ja[j]));
@@ -228,7 +227,6 @@ INT bandCsr(INT *ia,INT *ja,INT  neq,short type){
 
 /*... banda media da matriz*/
     case 2: 
-      bandL = 0;
       for(i=0;i<neq;i++){
         aux = 0;
         for(j=ia[i];j<ia[i+1];j++){
@@ -242,7 +240,6 @@ INT bandCsr(INT *ia,INT *ja,INT  neq,short type){
 
 /*... banda minima da matriz*/
     case 3: 
-      bandL = 0;
       for(i=0;i<neq;i++){
         for(j=ia[i];j<ia[i+1];j++){
           bandL = min(bandL,abs(i-ja[j]));

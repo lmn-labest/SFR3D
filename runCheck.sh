@@ -1,6 +1,6 @@
 #!/bin/sh
 INPUT='retangulo.dat retangulo_rcm.dat'
-NAMEBIN=mfvCell_gnu_O0
+NAMEBIN=mfvCell_gnu_O3
 
 #gerando o executavel
 echo `make clean` > /dev/null 

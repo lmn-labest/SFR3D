@@ -123,7 +123,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 
 /*... alocando estruturas para vizinhos*/
 /*... nelcon*/ 
-  Myalloc(INT,m,mesh->elm.adj.nelcon,nel*maxno,"adj" ,_AD_);
+  Myalloc(INT,m,mesh->elm.adj.nelcon,nel*maxno  ,"adj" ,_AD_);
 /*... type*/ 
   Myalloc(short,m,mesh->elm.adj.nViz,nel       ,"nViz" ,_AD_);
 /*... zerando os variavies*/
@@ -427,7 +427,7 @@ void readVfCoor(double *x,INT nn, short ndm,FILE *file){
 /*********************************************************************/
 
 /*********************************************************************
- * READVFMAT2DT: leitura das elementos                                 *
+ * READVFELMT: leitura das elementos                                 *
  *********************************************************************
  * ------------------------------------------------------------------*
  * Parametros de entrada:                                            *

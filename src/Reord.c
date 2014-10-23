@@ -17,7 +17,7 @@
 void reord(Memoria *m,INT *num,INT const *adj ,short const*nViz
           ,short const maxViz  ,INT numel, bool flag){
 
-  INT *xAdj=NULL,*adjncy=NULL,*perm=NULL;
+  INT *xAdj=NULL,*adjncy=NULL,*restrict perm=NULL;
   INT i,nDeg;
 
 /*...*/  
@@ -27,7 +27,7 @@ void reord(Memoria *m,INT *num,INT const *adj ,short const*nViz
 
 /*... armazena a malha no formato CSR*/
 /*... calculo do vetor xAdj*/    
-    Myalloc(INT,m,xAdj  ,numel+1      ,"xAdj"  ,_AD_);
+    Myalloc(INT,m,xAdj  ,(numel+1)      ,"xAdj"  ,_AD_);
     convGraph(xAdj,adjncy,adj,nViz,maxViz,numel,true,false);
 /*... calculo do vetor adjncy*/    
     nDeg = xAdj[numel] -xAdj[0];
@@ -35,14 +35,9 @@ void reord(Memoria *m,INT *num,INT const *adj ,short const*nViz
     convGraph(xAdj,adjncy,adj,nViz,maxViz,numel,false,true);
 /*... ordena o grafo CSR em ordem crescente*/
     sortGraphCsr(xAdj,adjncy,numel);
-/*... soma + 1 em todas as posicoes dos vetores*/    
-    vectorPlusOne(xAdj,numel+1,i);
-    vectorPlusOne(adjncy,nDeg,i);
-/*...................................................................*/
-//  for(i=0;i<numel+1;i++)
-//    printf("%3ld %3ld\n",i+1,xAdj[i]); 
-//  for(i=0;i<nDeg;i++)
-//    printf("%3ld %3ld\n",i+1,adjncy[i]); 
+/*... soma + 1 em todas as posicoes dos vetores*/
+     vectorPlusOne(xAdj,(numel+1),i);
+     vectorPlusOne(adjncy,nDeg,i);  
 /*...................................................................*/
 
 /*...*/    
@@ -65,7 +60,7 @@ void reord(Memoria *m,INT *num,INT const *adj ,short const*nViz
 
     Mydealloc(m,perm  ,"perm"  ,false);
     Mydealloc(m,adjncy,"adjncy",false);
-    Mydealloc(m,adjncy,"xAdj"  ,false);
+    Mydealloc(m,xAdj  ,"xAdj"  ,false);
     
   } 
 /*....................................................................*/  

@@ -9,9 +9,9 @@ void testeGeom(double *cc
               ,INT numel     ,short ndm
               ,short maxViz)
 {
+#ifdef _DEBUG_GEOM_
   INT i;
   short j,k;
-  
   
   fprintf(stderr,"Centroide.\n");
   for(i=0;i<numel;i++){
@@ -105,7 +105,7 @@ void testeGeom(double *cc
       fprintf(stderr,"%8.4lf ",MAT2D(i,j,mkm,maxViz));
     fprintf(stderr,"\n");
   }
-
+#endif
 }
 /*********************************************************************/
 

@@ -4,9 +4,9 @@
     #undef  _AD_
   #endif  
   #define _AD_ false
+  #include<stdlib.h>
   #include<Mystdbool.h>
-  #include<Reord.h>
-  #include<Mesh.h>
+  #include<Define.h>
 /*...*/
   INT csrIa(INT *ia  ,INT *id    ,INT *num   ,INT  *adj ,short *nViz
             ,INT numel,INT neq    ,short maxViz,short ndf  ,bool upper
