@@ -48,46 +48,46 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 
 /*... alocando variavies de elementos*/
 /*... conectividade*/ 
-  Myalloc(INT,m,mesh->elm.node       ,nel*maxno        ,"elnode",_AD_);
+  HccaAlloc(INT,m,mesh->elm.node       ,nel*maxno        ,"elnode",_AD_);
 /*... materiais*/ 
-  Myalloc(short,m,mesh->elm.mat      ,nel              ,"elmat" ,_AD_);
+  HccaAlloc(short,m,mesh->elm.mat      ,nel              ,"elmat" ,_AD_);
 /*... nos por elementos*/
-  Myalloc(short,m,mesh->elm.nen      ,nel              ,"elnen" ,_AD_);
+  HccaAlloc(short,m,mesh->elm.nen      ,nel              ,"elnen" ,_AD_);
 /*... tipo geometrico */
-  Myalloc(short,m,mesh->elm.geomType ,nel              ,"elgT"  ,_AD_);
+  HccaAlloc(short,m,mesh->elm.geomType ,nel              ,"elgT"  ,_AD_);
 /*... centroide */
-  Myalloc(double,m,mesh->elm.geom.cc ,nel*ndm          ,"elCc"  ,_AD_);
+  HccaAlloc(double,m,mesh->elm.geom.cc ,nel*ndm          ,"elCc"  ,_AD_);
 /*... vetor que une os centroides dos elementos */
-  Myalloc(double               ,m       ,mesh->elm.geom.ksi
+  HccaAlloc(double               ,m       ,mesh->elm.geom.ksi
          ,nel*ndm*maxViz,"elksi"  ,_AD_);
 /*... modulo do vetor que une os centroides dos elementos */
-  Myalloc(double               ,m       ,mesh->elm.geom.mksi
+  HccaAlloc(double               ,m       ,mesh->elm.geom.mksi
         ,nel*maxViz     ,"elmksi",_AD_);
 /*... vetor paralelo a face da celula */
-  Myalloc(double               ,m       ,mesh->elm.geom.eta
+  HccaAlloc(double               ,m       ,mesh->elm.geom.eta
          ,nel*ndm*maxViz,"eleta"  ,_AD_);
 /*... modulo do vetor paralelo a face da celula */
-  Myalloc(double               ,m       ,mesh->elm.geom.meta
+  HccaAlloc(double               ,m       ,mesh->elm.geom.meta
         ,nel*maxViz     ,"elmeta",_AD_);
 /*... volume da celula*/                           
-  Myalloc(double               ,m       ,mesh->elm.geom.volume
+  HccaAlloc(double               ,m       ,mesh->elm.geom.volume
         ,nel            ,"elVol",_AD_);
 /*... vetor normal a face da celula*/                           
-  Myalloc(double               ,m       ,mesh->elm.geom.normal
+  HccaAlloc(double               ,m       ,mesh->elm.geom.normal
          ,nel*maxViz*ndm       ,"elnorm",_AD_);
 /*... ponto medio da face*/                           
-  Myalloc(double               ,m       ,mesh->elm.geom.xm
+  HccaAlloc(double               ,m       ,mesh->elm.geom.xm
          ,nel*maxViz*ndm       ,"elxm",_AD_);
 /*... vetor que une o centroide ao ponto medio*/                           
-  Myalloc(double               ,m       ,mesh->elm.geom.xmcc
+  HccaAlloc(double               ,m       ,mesh->elm.geom.xmcc
          ,nel*maxViz*ndm       ,"elxmcc",_AD_);
 /*... distancia entro o ponto medio da face e ponto de intercao 
       entre a linha entre os centroides e a face*/         
-  Myalloc(double               ,m       ,mesh->elm.geom.mkm  
+  HccaAlloc(double               ,m       ,mesh->elm.geom.mkm  
          ,nel*maxViz           ,"elmkm" ,_AD_);
 /*... distancia entro o ponto medio da face e ponto de intercao 
       entre a linha entre os centroides e a face*/         
-  Myalloc(double               ,m       ,mesh->elm.geom.dcca 
+  HccaAlloc(double               ,m       ,mesh->elm.geom.dcca 
          ,nel*maxViz           ,"eldcca",_AD_);
 
 /*... zerando os variavies*/
@@ -111,10 +111,10 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 
 /*... alocando materiais*/
 /*... Prop*/ 
-  Myalloc(double,m,mesh->elm.material.prop,MAXPROP*numat     
+  HccaAlloc(double,m,mesh->elm.material.prop,MAXPROP*numat     
          ,"prop" ,_AD_);
 /*... type*/ 
-  Myalloc(short,m,mesh->elm.material.type,numat     
+  HccaAlloc(short,m,mesh->elm.material.type,numat     
          ,"type" ,_AD_);
 /*... zerando os variavies*/
   zero(mesh->elm.material.prop,MAXPROP*numat,"double");
@@ -123,9 +123,9 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 
 /*... alocando estruturas para vizinhos*/
 /*... nelcon*/ 
-  Myalloc(INT,m,mesh->elm.adj.nelcon,nel*maxno  ,"adj" ,_AD_);
+  HccaAlloc(INT,m,mesh->elm.adj.nelcon,nel*maxno  ,"adj" ,_AD_);
 /*... type*/ 
-  Myalloc(short,m,mesh->elm.adj.nViz,nel       ,"nViz" ,_AD_);
+  HccaAlloc(short,m,mesh->elm.adj.nViz,nel       ,"nViz" ,_AD_);
 /*... zerando os variavies*/
   zero(mesh->elm.adj.nelcon,nel*maxno,INTC);
   zero(mesh->elm.adj.nViz  ,nel      ,"short");
@@ -133,16 +133,16 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 
 /*---alocando variaveis nodais */      
 /*---alocando coordenadas      */      
-  Myalloc(double,m,mesh->node.x,ndm*nn ,"xnode",_AD_);   
+  HccaAlloc(double,m,mesh->node.x,ndm*nn ,"xnode",_AD_);   
      
 /*... zerando os variavies*/
   zero(mesh->node.x,ndm*nn,"double" );
 /*...................................................................*/
    if(mesh->ndfT[0] > 0) {   
 /*... alocando memoria*/
-     Myalloc(short,m,mesh->elm.faceRt1
+     HccaAlloc(short,m,mesh->elm.faceRt1
             ,nel*(maxno+1)*mesh->ndfT[0],"faceRt1"  ,_AD_);
-     Myalloc(double,m,mesh->elm.faceSt1
+     HccaAlloc(double,m,mesh->elm.faceSt1
             ,nel*(maxno+1)*ndf,"faceSt1"  ,_AD_);
      zero(mesh->elm.faceRt1  ,nel*(maxno+1)*mesh->ndfT[0],"short"  );
      zero(mesh->elm.faceSt1  ,nel*(maxno+1)*mesh->ndfT[0],"double" );

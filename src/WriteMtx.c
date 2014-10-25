@@ -41,9 +41,9 @@ void writeCoo(Memoria *m,INT *ia   ,INT *ja,INT neq
 
 /*...*/
   nTotal = neq + nad;
-  Myalloc(int   ,m,lin,nTotal,"lin",_AD_);
-  Myalloc(int   ,m,col,nTotal,"col",_AD_);
-  Myalloc(double,m,val,nTotal,"val",_AD_);
+  HccaAlloc(int   ,m,lin,nTotal,"lin",_AD_);
+  HccaAlloc(int   ,m,col,nTotal,"col",_AD_);
+  HccaAlloc(double,m,val,nTotal,"val",_AD_);
   zero(lin,nTotal,"int");
   zero(col,nTotal,"int");
   zero(val,nTotal,"double");
@@ -64,9 +64,9 @@ void writeCoo(Memoria *m,INT *ia   ,INT *ja,INT neq
       exit(EXIT_FAILURE);
     break;
 /*...................................................................*/
-    Mydealloc(m,val,"val",false);
-    Mydealloc(m,col,"col",false);
-    Mydealloc(m,lin,"lin",false);
+    HccaDealloc(m,val,"val",false);
+    HccaDealloc(m,col,"col",false);
+    HccaDealloc(m,lin,"lin",false);
   }
 #else
       printf("\nEscrita da matriz no formato MM não disponivel.\n"

@@ -54,8 +54,8 @@ void   vzero(char*,long,char*);
 /*   n - numero de poiscoes                            */
 /*name - nome do vetor                                 */
 /*  ad - mode verdose das funcoes de alocacao de meoria*/
-#define Myalloc(type,m,x,n,name,ad) x=(type*)alloc(m,(TYPEADRESS**)&x,n,name,sizeof(type),ad);
-#define Mydealloc(m,x,name,ad) x=dalloc(m,name,ad);
+#define HccaAlloc(type,m,x,n,name,ad) x=(type*)alloc(m,(TYPEADRESS**)&x,n,name,sizeof(type),ad);
+#define HccaDealloc(m,x,name,ad) x=dalloc(m,name,ad);
 #define zero(v,n,type) vzero((char*)v,n,type);
 /*..................................................................*/
 #endif

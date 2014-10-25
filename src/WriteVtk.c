@@ -61,7 +61,7 @@ void wGeoVtk(Memoria *m     ,double *x
 /*...................................................................*/
   
 /*... conectividades*/
-  Myalloc(int,m,lel,numel*maxno,"el",_AD_);
+  HccaAlloc(int,m,lel,numel*maxno,"el",_AD_);
   if( lel == NULL){
     fprintf(stderr,"Erro na alocação de lel.\n"
                    "Nome do arquivo: %s.\n"
@@ -75,7 +75,7 @@ void wGeoVtk(Memoria *m     ,double *x
     }
   }  
   writeVtkCell(lel,nen,typeGeom,numel,maxno,iws,f);
-  Mydealloc(m,lel,"el",_AD_);
+  HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
 
 /*... campo por elemento*/
@@ -83,7 +83,7 @@ void wGeoVtk(Memoria *m     ,double *x
 /*...................................................................*/
 
 /*... material*/
-  Myalloc(int,m,lel,numel*maxno,"el",_AD_);
+  HccaAlloc(int,m,lel,numel*maxno,"el",_AD_);
   if( lel == NULL){
     fprintf(stderr,"Erro na alocação de lel.\n"
                    "Nome do arquivo: %s.\n"
@@ -94,11 +94,11 @@ void wGeoVtk(Memoria *m     ,double *x
     lel[i]=(int) mat[i];
    
   writeVtkProp(lel,&ddum,numel,1,"mat",iws,INTEGER,f);
-  Mydealloc(m,lel,"el",_AD_);
+  HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
 
 /*... numero do elemento*/
-  Myalloc(int,m,lel,numel*maxno,"el",_AD_);
+  HccaAlloc(int,m,lel,numel*maxno,"el",_AD_);
   if( lel == NULL){
     fprintf(stderr,"Erro na alocação de lel.\n"
                    "Nome do arquivo: %s.\n"
@@ -109,11 +109,11 @@ void wGeoVtk(Memoria *m     ,double *x
     lel[i]= i+1;
    
   writeVtkProp(lel,&ddum,numel,1,"elGlobal",iws,INTEGER,f);
-  Mydealloc(m,lel,"el",_AD_);
+  HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
 
 /*... tipo celula para o calculo*/
-  Myalloc(int,m,lel,numel*maxno,"el",_AD_);
+  HccaAlloc(int,m,lel,numel*maxno,"el",_AD_);
   if( lel == NULL){
     fprintf(stderr,"Erro na alocação de lel.\n"
                    "Nome do arquivo: %s.\n"
@@ -127,11 +127,11 @@ void wGeoVtk(Memoria *m     ,double *x
   }
    
   writeVtkProp(lel,&ddum,numel,1,"elTyCal",iws,INTEGER,f);
-  Mydealloc(m,lel,"el",_AD_);
+  HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
 
 /*... propriedades dos elementos*/
-  Myalloc(double,m,aux,numel*numat,"el",_AD_);
+  HccaAlloc(double,m,aux,numel*numat,"el",_AD_);
   if( aux == NULL){
     fprintf(stderr,"Erro na alocação de aux.\n"
                    "Nome do arquivo: %s.\n"
@@ -145,13 +145,13 @@ void wGeoVtk(Memoria *m     ,double *x
     }
   } 
   writeVtkProp(&idum,aux,numel,MAXPROP,"elProp",iws,DOUBLE,f);
-  Mydealloc(m,aux,"el",_AD_);
+  HccaDealloc(m,aux,"el",_AD_);
 /*...................................................................*/
 
 /*...*/
   if(ndfT[0] > 0 ){
 /*... faceRt1*/
-    Myalloc(int,m,lel,numel*(maxno+1),"el",_AD_);
+    HccaAlloc(int,m,lel,numel*(maxno+1),"el",_AD_);
     if( lel == NULL){
       fprintf(stderr,"Erro na alocação de lel.\n"
                      "Nome do arquivo: %s.\n"
@@ -162,7 +162,7 @@ void wGeoVtk(Memoria *m     ,double *x
       lel[i]=(int) faceRt1[i];
    
     writeVtkProp(lel,&ddum,numel,maxno+1,"faceRt1",iws,INTEGER,f);
-    Mydealloc(m,lel,"el",_AD_);
+    HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
 
 /*... faceSt1*/
@@ -177,7 +177,7 @@ void wGeoVtk(Memoria *m     ,double *x
 /*...................................................................*/
 
 /*... numero do elemento*/
-  Myalloc(int,m,lel,nnode,"el",_AD_);
+  HccaAlloc(int,m,lel,nnode,"el",_AD_);
   if( lel == NULL){
     fprintf(stderr,"Erro na alocação de lel.\n"
                    "Nome do arquivo: %s.\n"
@@ -188,7 +188,7 @@ void wGeoVtk(Memoria *m     ,double *x
     lel[i]=i+1;
    
   writeVtkProp(lel,&ddum,nnode,1,"pNode",iws,INTEGER,f);
-  Mydealloc(m,lel,"el",_AD_);
+  HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
   fclose(f);
 }

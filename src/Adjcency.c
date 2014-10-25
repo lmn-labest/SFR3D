@@ -24,7 +24,7 @@ void viz(Memoria *m ,INT *el    ,INT *nelcon
   
   INT *nodcon,nEdge;
   
-  Myalloc(INT,m,nodcon      ,nnode ,"nodcon",_AD_);
+  HccaAlloc(INT,m,nodcon      ,nnode ,"nodcon",_AD_);
   
   adj2d(el,nodcon,nelcon,nen,numel,nnode,maxNo,maxViz,&nEdge);
   
@@ -32,7 +32,7 @@ void viz(Memoria *m ,INT *el    ,INT *nelcon
 //for(i=0;i<numel;i++)
 //  nViz[i] = nen[i];
   
-  Mydealloc(m,nodcon,"nodcon",_AD_);
+  HccaDealloc(m,nodcon,"nodcon",_AD_);
 
 
 }

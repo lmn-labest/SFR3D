@@ -23,6 +23,8 @@
 /*... definicao do tipo de inteiros usados*/
   #define INT   int 
   #define INTC "int"
+  #define DOUBLE   double
+  #define DOUBLEC "double"
 /*...................................................................*/
 
 /*... macro para acesso matricial em vetores*/

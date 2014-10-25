@@ -44,14 +44,14 @@ void dataStruct(Memoria *m ,INT *id   ,INT *num   ,INT *nelcon
 /*...................................................................*/
 
 /*...*/ 
-       Myalloc(INT,m,sistEqX->ia     ,sistEqX->neq+1 ,strIa   ,_AD_);
+       HccaAlloc(INT,m,sistEqX->ia     ,sistEqX->neq+1 ,strIa   ,_AD_);
        sistEqX->nad = csrIa(sistEqX->ia ,id ,num    ,nelcon,nViz
                            ,numel       ,sistEqX->neq, maxViz,ndf
                            ,upper       ,diag        ,lower);
 /*...................................................................*/
 
 /*...*/
-       Myalloc(INT,m,sistEqX->ja     ,sistEqX->nad ,strJa   ,_AD_);
+       HccaAlloc(INT,m,sistEqX->ja     ,sistEqX->nad ,strJa   ,_AD_);
        csrJa(sistEqX->ia ,sistEqX->ja ,id ,num    
             ,nelcon,nViz ,numel       ,sistEqX->neq, maxViz,ndf
             ,upper,diag ,lower);
@@ -62,8 +62,8 @@ void dataStruct(Memoria *m ,INT *id   ,INT *num   ,INT *nelcon
 /*...................................................................*/
 
 /*...*/
-       Myalloc(double,m,sistEqX->ad     ,sistEqX->neq ,strAd   ,_AD_);
-       Myalloc(double,m,sistEqX->a      ,sistEqX->nad ,strA    ,_AD_);
+       HccaAlloc(double,m,sistEqX->ad     ,sistEqX->neq ,strAd   ,_AD_);
+       HccaAlloc(double,m,sistEqX->a      ,sistEqX->nad ,strA    ,_AD_);
        zero(sistEqX->ad,sistEqX->neq,"double");
        zero(sistEqX->a ,sistEqX->nad,"double");
 /*...................................................................*/

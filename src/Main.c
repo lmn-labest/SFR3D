@@ -145,7 +145,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... reodenando as celulas para dimuincao da banda*/
-    Myalloc(INT,&m,reordMesh->num,mesh->numel,"rNum" ,_AD_);
+    HccaAlloc(INT,&m,reordMesh->num,mesh->numel,"rNum" ,_AD_);
     printf("%s\n",DIF);
     printf("Reordenando a malha.\n");
     reord(&m                ,reordMesh->num,mesh->elm.adj.nelcon
@@ -156,7 +156,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... numeracao das equacoes*/
-    Myalloc(INT,&m,sistEqT1->id
+    HccaAlloc(INT,&m,sistEqT1->id
            ,mesh->numel*mesh->ndfT[0]
            ,"sistT1id",_AD_);
     printf("%s\n",DIF);

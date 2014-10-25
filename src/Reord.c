@@ -27,11 +27,11 @@ void reord(Memoria *m,INT *num,INT const *adj ,short const*nViz
 
 /*... armazena a malha no formato CSR*/
 /*... calculo do vetor xAdj*/    
-    Myalloc(INT,m,xAdj  ,(numel+1)      ,"xAdj"  ,_AD_);
+    HccaAlloc(INT,m,xAdj  ,(numel+1)      ,"xAdj"  ,_AD_);
     convGraph(xAdj,adjncy,adj,nViz,maxViz,numel,true,false);
 /*... calculo do vetor adjncy*/    
     nDeg = xAdj[numel] -xAdj[0];
-    Myalloc(INT,m,adjncy,nDeg,"adjncy",_AD_);
+    HccaAlloc(INT,m,adjncy,nDeg,"adjncy",_AD_);
     convGraph(xAdj,adjncy,adj,nViz,maxViz,numel,false,true);
 /*... ordena o grafo CSR em ordem crescente*/
     sortGraphCsr(xAdj,adjncy,numel);
@@ -41,7 +41,7 @@ void reord(Memoria *m,INT *num,INT const *adj ,short const*nViz
 /*...................................................................*/
 
 /*...*/    
-    Myalloc(INT,m,perm  ,numel        ,"perm"  ,_AD_);
+    HccaAlloc(INT,m,perm  ,numel        ,"perm"  ,_AD_);
 /*...................................................................*/
 
 /*...*/    
@@ -58,9 +58,9 @@ void reord(Memoria *m,INT *num,INT const *adj ,short const*nViz
 //    printf("%3ld %3ld %3ld\n",i+1,perm[i],num[i]); 
 /*...................................................................*/
 
-    Mydealloc(m,perm  ,"perm"  ,false);
-    Mydealloc(m,adjncy,"adjncy",false);
-    Mydealloc(m,xAdj  ,"xAdj"  ,false);
+    HccaDealloc(m,perm  ,"perm"  ,false);
+    HccaDealloc(m,adjncy,"adjncy",false);
+    HccaDealloc(m,xAdj  ,"xAdj"  ,false);
     
   } 
 /*....................................................................*/  
