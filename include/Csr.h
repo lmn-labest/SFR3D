@@ -5,7 +5,7 @@
   #endif  
   #define _AD_ false
   #include<stdlib.h>
-  #include<Mystdbool.h>
+  #include<HccaStdBool.h>
   #include<Define.h>
 /*...*/
   INT csrIa(INT *ia  ,INT *id    ,INT *num   ,INT  *adj ,short *nViz

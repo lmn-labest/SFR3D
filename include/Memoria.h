@@ -3,8 +3,8 @@
 #include<string.h>
 #include<stdio.h>
 #include<stdlib.h>
-#include<Mystdbool.h>
-#include<Mytime.h>
+#include<HccaStdBool.h>
+#include<HccaTime.h>
 /*...*/
 #ifdef _AD_
   #undef  _AD_

@@ -42,6 +42,7 @@ src/Numeq.c\
 src/Rcm.c\
 src/ReadFile.c\
 src/Reord.c\
+src/Time.c\
 src/Vtk.c\
 src/WriteVtk.c\
 src/WriteMtx.c

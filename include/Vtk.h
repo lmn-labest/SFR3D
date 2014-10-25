@@ -2,7 +2,7 @@
   #define _VTK_
   #include<stdio.h>
   #include<stdlib.h>
-  #include<Mystdbool.h>
+  #include<HccaStdBool.h>
   #include<Mesh.h>
   void headVtk(char *,bool, FILE *);
   void writeVtkCoor(double *x,INT nnode   ,int ndm,bool cod, FILE *f);

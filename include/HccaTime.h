@@ -2,9 +2,12 @@
   #define _MYTIME_H_
   #if _OPENMP
     #include<Openmp.h>
+  #elif _WIN32 
+    #include<time.h>  
   #else  
-    #include <time.h>
-  #endif  
+    #include<sys/time.h>
+  #endif
+  #include<stdio.h>
   typedef struct Time{
     double solv  ;
     double dot   ;
@@ -15,5 +18,5 @@
     double total;
   }Time;
   Time tm;
-  double gettimec(void);
+  double getTimeC(void);
 #endif/*_MYTIME_H_*/

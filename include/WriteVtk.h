@@ -4,7 +4,7 @@
   #define DOUBLE  2
   #include<stdio.h>
   #include<stdlib.h>
-  #include<Mystdbool.h>
+  #include<HccaStdBool.h>
   #include<Vtk.h>
   #include<Mesh.h>
   #include<Memoria.h>

@@ -4,7 +4,7 @@
     #undef  _AD_
   #endif  
   #define _AD_ false
-  #include<Mystdbool.h>
+  #include<HccaStdBool.h>
   #include<Memoria.h>
   #include<Graph.h>
   #include<Rcm.h>

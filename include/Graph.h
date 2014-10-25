@@ -4,7 +4,7 @@
     #undef  _AD_
   #endif  
   #define _AD_ false
-  #include<Mystdbool.h>
+  #include<HccaStdBool.h>
   #include<Mesh.h>
 /*...*/
   void sortGraphCsr(INT *ia,INT *ja,INT n);

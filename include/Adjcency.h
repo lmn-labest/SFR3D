@@ -1,7 +1,7 @@
 #ifndef _ADJCENCY_H
   #define _ADJCENCY_H_
   #include<Memoria.h>
-  #include<Mystdbool.h>
+  #include<HccaStdBool.h>
   #include<Mesh.h>
   #include<Define.h>
   void viz(Memoria *m ,INT *el   ,INT *nelcon
