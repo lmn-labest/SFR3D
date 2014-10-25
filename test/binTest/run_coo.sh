@@ -4,7 +4,7 @@ NAMEBIN=$2
 
 usage(){
   if [ "$1" -lt 2 ]; then
-    echo "Usage $0: [exc name] [input]"
+    echo "Usage $0: [exc name] [input] [clean true|false]"
     exit 0
   fi
 }
@@ -30,4 +30,3 @@ for name in $INPUT; do
 done
 #----------------------------------------------------------------------
 
-rm $DIR/*.mtx $DIR/*.dat $DIR/*.vtk $DIR/$NAMEBIN
