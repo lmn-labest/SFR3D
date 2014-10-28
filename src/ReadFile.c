@@ -26,7 +26,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
            ,"return"     ,"cells"    ,"faceRt1"           /* 3, 4, 5*/
            ,"faceSt1"    ,""         ,""                  /* 6, 7, 8*/ 
            ,""           ,""         ,""                  /* 9,10,11*/ 
-           ,""           ,""         ,""                  /*12,13,14*/ 
+           ,"faceRd1"    ,"faceSd1"   ,""                 /*12,13,14*/ 
            ,""           ,""         ,""                  /*15,16,17*/ 
            ,""           ,""         ,""                  /*18,19,20*/ 
            ,"materials"  ,""         ,""                  /*21,22,23*/ 
@@ -44,7 +44,8 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
   mesh->maxViz = maxViz; 
   mesh->ndm    = ndm;
   mesh->numat  = numat;
-  mesh->ndfT[0] = ndf;
+/*mesh->ndfT[0] = ndf;*/
+  mesh->ndfD[0] = ndf;
 
 /*... alocando variavies de elementos*/
 /*... conectividade*/ 
@@ -138,14 +139,32 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 /*... zerando os variavies*/
   zero(mesh->node.x,ndm*nn,"double" );
 /*...................................................................*/
-   if(mesh->ndfT[0] > 0) {   
+
+/*... problema de transporte*/   
+  if(mesh->ndfT[0] > 0) {   
 /*... alocando memoria*/
      HccaAlloc(short,m,mesh->elm.faceRt1
-            ,nel*(maxno+1)*mesh->ndfT[0],"faceRt1"  ,_AD_);
+            ,nel*(maxViz+1)*mesh->ndfT[0],"faceRt1"  ,_AD_);
      HccaAlloc(double,m,mesh->elm.faceSt1
-            ,nel*(maxno+1)*ndf,"faceSt1"  ,_AD_);
-     zero(mesh->elm.faceRt1  ,nel*(maxno+1)*mesh->ndfT[0],"short"  );
-     zero(mesh->elm.faceSt1  ,nel*(maxno+1)*mesh->ndfT[0],"double" );
+            ,nel*(maxViz+1)*mesh->ndfT[0],"faceSt1"  ,_AD_);
+     zero(mesh->elm.faceRt1  ,nel*(maxViz+1)*mesh->ndfT[0],"short"  );
+     zero(mesh->elm.faceSt1  ,nel*(maxViz+1)*mesh->ndfT[0],"double" );
+/*...................................................................*/
+   }
+/*...................................................................*/
+   
+/*... problema de difusa pura*/   
+  if(mesh->ndfD[0] > 0) {   
+/*... alocando memoria*/
+     HccaAlloc(short,m,mesh->elm.faceRd1
+            ,nel*(maxViz+1)*mesh->ndfD[0],"faceRd1"  ,_AD_);
+     HccaAlloc(double,m,mesh->elm.faceSd1
+            ,nel*(maxViz+1)*mesh->ndfD[0],"faceSd1"  ,_AD_);
+     HccaAlloc(double,m,mesh->node.temp
+            ,nel*mesh->ndfD[0],"temp"     ,_AD_);
+     zero(mesh->elm.faceRd1  ,nel*(maxViz+1)*mesh->ndfD[0],"short"  );
+     zero(mesh->elm.faceSd1  ,nel*(maxViz+1)*mesh->ndfD[0],"double" );
+     zero(mesh->node.temp    ,nel*mesh->ndfD[0]           ,"double" );
 /*...................................................................*/
    }
 /*...................................................................*/
@@ -205,7 +224,6 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
     }
 /*...................................................................*/
 
-
 /*... faceRt1 */
     else if((!strcmp(word,macro[5])) && (!rflag[5])){
       printf("%s\n",DIF);
@@ -235,7 +253,37 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
     }
 /*...................................................................*/
 
-/*... faceSt1 */
+/*... faceRd1- condicao de contorno para problemas de difusa pura */
+    else if((!strcmp(word,macro[12])) && (!rflag[12])){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      strcpy(macros[nmacro++],word);
+      rflag[12] = true;
+      strcpy(str,"endFaceRd1");
+      printf("loading faceRd1 ...\n");
+      readVfRes(mesh->elm.faceRd1,mesh->numel,mesh->maxViz+1,str,file);
+      printf("load.\n");
+      printf("%s\n\n",DIF);
+    }
+/*...................................................................*/
+
+/*... faceSd - condicao de contorno para problemas de difusa pura */
+    else if((!strcmp(word,macro[13])) && (!rflag[13])){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      strcpy(macros[nmacro++],word);
+      rflag[13] = true;
+      strcpy(str,"endFaceSd1");
+      printf("loading faceSd1 ...\n");
+      readVfSource(mesh->elm.faceSd1,mesh->numel
+                  ,(mesh->maxViz+1)*(mesh->ndfD[0])
+                  ,str,file);  
+      printf("load.\n");
+      printf("%s\n\n",DIF);
+    }
+/*...................................................................*/
+
+/*... materiais */
     else if((!strcmp(word,macro[21])) && (!rflag[21])){
       printf("%s\n",DIF);
       printf("%s\n",word);
@@ -482,7 +530,7 @@ void readVfElmt(INT *el   ,short *mat ,short *nen,short *nFace
  * ----------------------------------------------------------------- *
  * id    - indefinido                                                *
  * numel - numero de elementos                                       *
- * maxno - numero maximo de no por elementos                         *
+ * maxRes- numero maximo de restricoes por elemento                  *
  * str   - macro de terminada o fim da secao                         *
  * file  - ponteiro para o arquivo de dados                          *
  * ----------------------------------------------------------------- *
@@ -490,29 +538,50 @@ void readVfElmt(INT *el   ,short *mat ,short *nen,short *nFace
  * ----------------------------------------------------------------- *
  * id    - tipos de restricoes                                       *
  *********************************************************************/
-void readVfRes(short *id,INT numel,short maxno
+void readVfRes(short *id,INT numel,short maxRes
               ,char *str    ,FILE* file){
   
   char word[WORD_SIZE];
-  int  j,k,kk,nTerm;
-  INT nel;
-  long aux;  
+  int   j,kk;
+  int   nTerm;
+  short res;
+  INT   nel;
+  long  aux; 
+  int error=0; 
 
   readMacro(file,word,false);
   do{
     nel = atol(word);  
-    fscanf(file,"%d",&nTerm);
-    kk = (nel-1)*nTerm;
+    aux = (long) nel;
+    error = fscanf(file,"%d",&nTerm);
+    if( error != 1) {
+      printf("erro: leitura do numero de termos de restricao. "
+             "nel = %ld.\n"
+             "arquivo fonte:  \"%s\".\n"
+             "nome da funcao: \"%s\".\n"
+             ,aux,__FILE__,__func__);
+      exit(EXIT_FAILURE);
+
+    }
     for(j = 0;j < nTerm;j++){
-      k = kk + j;
       if ( nel > 0 && nel <= numel){ 
-        fscanf(file,"%hd",&id[k]);
+        error = fscanf(file,"%hd",&res);
+        if( error != 1) {
+          printf("erro: leitura da restricao. "
+                 "nel = %ld.\n"
+                 "res = %hd.\n"
+                 "arquivo fonte:  \"%s\".\n"
+                 "nome da funcao: \"%s\".\n"
+                 ,aux,j,__FILE__,__func__);
+          exit(EXIT_FAILURE);
+        }
+        kk = nel-1;
+        MAT2D(kk,j,id,maxRes) = res;   
       } 
       else{
-        aux = (long) nel;
-        printf("Erro: numero do elemento nao exitentes. Nel = %ld.\n"
-               "Arquivo fonte:  \"%s\".\n"
-               "Nome da funcao: \"%s\".\n"
+        printf("erro: numero do elemento nao exitentes. nel = %ld.\n"
+               "arquivo fonte:  \"%s\".\n"
+               "nome da funcao: \"%s\".\n"
                ,aux,__FILE__,__func__);
         exit(EXIT_FAILURE);
       }
@@ -529,7 +598,7 @@ void readVfRes(short *id,INT numel,short maxno
  * ----------------------------------------------------------------- *
  * f     - indefinido                                                *
  * numel - numero de elementos                                       *
- * maxno - numero maximo de no por elementos                         *
+ * maxRes- numero maximo de carga por elemento                       *
  * str   - macro de terminada o fim da secao                         *
  * file  - ponteiro para o arquivo de dados                          *
  * ----------------------------------------------------------------- *
@@ -537,24 +606,46 @@ void readVfRes(short *id,INT numel,short maxno
  * ----------------------------------------------------------------- *
  * f     - valores das restricoes                                    *
  *********************************************************************/
-void readVfSource(double *f,INT numel, short int maxno,char *str
+void readVfSource(double *f          ,INT numel
+                 ,short int maxCarga,char *str
                  ,FILE* file){
   
   char word[WORD_SIZE];
-  int  j,k,kk,nTerm;
+  int  j,kk,nTerm;
+  double carga;
   INT nel;
   long aux;  
+  int error=0; 
 
   readMacro(file,word,false);
   do{
     nel = atol(word);  
-    fscanf(file,"%d",&nTerm);
-    kk = (nel-1)*nTerm;
+    aux = (long) nel;
+    error = fscanf(file,"%d",&nTerm);
+    if( error != 1) {
+      printf("erro: leitura do numero de termos de cargas. "
+             "nel = %ld.\n"
+             "arquivo fonte:  \"%s\".\n"
+             "nome da funcao: \"%s\".\n"
+             ,aux,__FILE__,__func__);
+      exit(EXIT_FAILURE);
+
+    }
     for(j = 0;j < nTerm;j++){
-      k = kk + j;
       if ( nel > 0 && nel <= numel){ 
-        fscanf(file,"%lf",&f[k]);
-      }  
+        error = fscanf(file,"%lf",&carga);
+        if( error != 1) {
+          printf("erro: leitura da carg. "
+                 "nel   = %ld.\n"
+                 "carga = %hd.\n"
+                 "arquivo fonte:  \"%s\".\n"
+                 "nome da funcao: \"%s\".\n"
+                 ,aux,j,__FILE__,__func__);
+          exit(EXIT_FAILURE);
+        }
+        kk = nel-1;
+        MAT2D(kk,j,f,maxCarga) = carga;   
+      } 
       else{
         aux = (long) nel;
         printf("Erro: numero do elemento nao exitentes. Nel = %ld.\n"

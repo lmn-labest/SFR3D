@@ -144,7 +144,7 @@ void wGeoVtk(Memoria *m     ,double *x
       MAT2D(i,j,aux,MAXPROP) = MAT2D(idum,j,prop,MAXPROP);
     }
   } 
-  writeVtkProp(&idum,aux,numel,MAXPROP,"elProp",iws,DOUBLE,f);
+  writeVtkProp(&idum,aux,numel,MAXPROP,"elProp",iws,DOUBLEV,f);
   HccaDealloc(m,aux,"el",_AD_);
 /*...................................................................*/
 
@@ -167,7 +167,7 @@ void wGeoVtk(Memoria *m     ,double *x
 
 /*... faceSt1*/
     writeVtkProp(&idum,faceSt1,numel,maxno+1,"faceSt1",iws
-                    ,DOUBLE,f);
+                    ,DOUBLEV,f);
 /*...................................................................*/
   }
 /*...................................................................*/

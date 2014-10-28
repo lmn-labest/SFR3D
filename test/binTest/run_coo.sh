@@ -17,7 +17,7 @@ for name in $INPUT; do
   echo --------------------------------------------------------------
   OUT=`echo $name | sed -e "s/.dat//"`
   echo  teste: $NAMEBIN $name $OUT
-  echo `$DIR/$NAMEBIN $DIR/$name $DIR/$OUT` >/dev/null
+  echo `$DIR/$NAMEBIN $DIR/$name $DIR/$OUT` > log 
   echo --------------------------------------------------------------
   OUT2=`echo $name | sed -e "s/.dat/.mtx/"`
   diff -q $DIR/$OUT2 test/coo/$OUT2

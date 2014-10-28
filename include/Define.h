@@ -1,9 +1,10 @@
 #ifndef _DEFINE_
   #define _DEFINE_
 /*numero maximo de propriedade*/
-  #define MAXPROP      15 /*numero maximo de propriedades*/
+  #define MAXPROP      5  /*numero maximo de propriedades*/
   #define MAXMAT      200 /*numero maximo de materias*/
   #define MAX_TRANS_EQ 3 /*numero maximo de equacoes de transporte*/ 
+  #define MAX_DIF_EQ   3 /*numero maximo de equacoes de difusa*/ 
 /*...................................................................*/
 
 /*...cellLoop*/
@@ -11,6 +12,16 @@
   #define  MAX_NUM_PONT  168
   #define  MAX_NUM_FACE  6
   #define  MAX_SN        24 
+/*...................................................................*/
+
+/*...*/
+  #define MAX_NDF 5
+/*...................................................................*/
+
+/*... CSR*/
+  #define CSR  1
+  #define CSRD 2
+  #define CSRC 3
 /*...................................................................*/
 
 /*... vtk elmentos*/
@@ -21,8 +32,8 @@
 /*...................................................................*/
 
 /*... definicao do tipo de inteiros usados*/
-  #define INT   int 
-  #define INTC "int"
+  #define INT        int 
+  #define INTC      "int"
   #define DOUBLE   double
   #define DOUBLEC "double"
 /*...................................................................*/

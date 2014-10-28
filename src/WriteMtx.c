@@ -8,9 +8,13 @@
  * ia    -> vetor da matrix                                          * 
  * ja    -> vetor da matrix                                          * 
  * neq   -> numero de equacoes                                       * 
+ * au    -> matrix de coeficientes                                   * 
+ * ad    -> matrix de coeficientes                                   * 
+ * al    -> matrix de coeficientes                                   * 
  * nad   -> numero de termos nao nulos fora da diagonal principal    * 
  * type  -> tipo de armazenamento ( 1 - CSR/CSRC)                    * 
  * unsym -> simetria da matrix                                       * 
+ * bin   -> matriz binaria                                           * 
  * name  -> nume do arquivo de saida                                 * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -20,8 +24,9 @@
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void writeCoo(Memoria *m,INT *ia   ,INT *ja,INT neq
+             ,double *au,double *ad,double *al
              ,INT nad  ,short type
-             ,bool unsym,char *name){
+             ,bool unsym,bool bin, char *name){
 #ifdef _MMIO_  
   MM_typecode matcode;
   int  *lin,*col;
@@ -51,8 +56,11 @@ void writeCoo(Memoria *m,INT *ia   ,INT *ja,INT neq
   
   switch(type){
 /*... CSR/CSRC*/
-    case 1:
-      csrToCoo(lin,col,val,ia,ja,neq,nad);
+    case CSRD:
+      csrToCoo(lin,col  ,val
+              ,ia ,ja   ,au
+              ,ad ,al   ,neq
+              ,nad,unsym,bin);
       mm_write_mtx_crd(name,neq,neq,nTotal,lin,col,val,matcode);
     break;
 /*...................................................................*/
@@ -64,10 +72,10 @@ void writeCoo(Memoria *m,INT *ia   ,INT *ja,INT neq
       exit(EXIT_FAILURE);
     break;
 /*...................................................................*/
+  }
     HccaDealloc(m,val,"val",false);
     HccaDealloc(m,col,"col",false);
     HccaDealloc(m,lin,"lin",false);
-  }
 #else
       printf("\nEscrita da matriz no formato MM não disponivel.\n"
            "funcao %s\narquivo = %s\n",__func__,__FILE__);
@@ -86,7 +94,11 @@ void writeCoo(Memoria *m,INT *ia   ,INT *ja,INT neq
  * val -> indefinido                                                 * 
  * ia  -> vetor CSR                                                  * 
  * ja  -> vetor CSR                                                  * 
+ * au  -> matrix de coeficientes                                     * 
+ * ad  -> matrix de coeficientes                                     * 
+ * al  -> matrix de coeficientes                                     * 
  * neq -> numero de equacoes                                         * 
+ * bin -> matriz binaria                                             * 
  * nad -> numero de termos nao nulos                                 * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -98,8 +110,10 @@ void writeCoo(Memoria *m,INT *ia   ,INT *ja,INT neq
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void csrToCoo(int *lin, int *col,double *val,INT *ia,INT *ja
-             ,INT neq,INT nad){
+void csrToCoo(int *lin   ,int *col  ,double *val
+             ,INT *ia    ,INT *ja   ,double *au
+             ,double *ad ,double *al,INT neq   
+             ,INT nad    ,bool unsym,bool bin){
   
   INT i,j,kk,nl1,n,ipoint;
 
@@ -108,7 +122,10 @@ void csrToCoo(int *lin, int *col,double *val,INT *ia,INT *ja
 /*... diagonal principal*/
     nl1     = i + 1; 
     lin[kk] = col[kk] = nl1;
-    val[kk] = 1.0;
+    if(bin) 
+      val[kk] = 1.0;
+    else
+      val[kk] = ad[i];
     kk++;
 /*...................................................................*/
     n  = ia[i+1] - ia[i];
@@ -116,7 +133,14 @@ void csrToCoo(int *lin, int *col,double *val,INT *ia,INT *ja
     for(j=0;j<n ;j++){
       lin[kk] = nl1;
       col[kk]  = ja[ipoint+j]+1;
-      val[kk]  = 1.0;
+      if(bin)
+        val[kk]  = 1.0;
+      else{
+        if( col[kk] < nl1 ) 
+          val[kk] = al[ja[ipoint+j]];
+        if( col[kk] > nl1 && unsym )
+          val[kk]  = au[ja[ipoint+j]];
+      }
       kk++;
     }
   }

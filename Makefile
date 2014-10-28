@@ -27,9 +27,11 @@ endif
 NAME+=$(PRENAME)_$(COMPILER_NAME)
 #-------------------Fontes--------------------------------
 fontes = \
+src/Assbly.c\
 src/Adjcency.c\
 src/CellLoop.c\
 src/CellLib.c\
+src/CellDif.c\
 src/Csr.c\
 src/Datastruct.c\
 src/Debug.c\
@@ -47,7 +49,7 @@ src/Vtk.c\
 src/WriteVtk.c\
 src/WriteMtx.c
 #-------------------Flags necessarios--------------------------------
-NFLAGS=-I$(PATH_INCLUDE) -L$(PATH_LIB) -D_MMIO_  -D_DEBUG_GEOM \
+NFLAGS=-I$(PATH_INCLUDE) -L$(PATH_LIB) -D_MMIO_  -D_DEBUG \
         -fopt-info-optimized-missed=logOpt.txt 
 LDFLAGS=-lmmio -lmetis-x86_64 
 #--------------------compiladores------------------------------------

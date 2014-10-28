@@ -14,7 +14,8 @@
   
   typedef struct SistEq{
     INT *ja,*ia;
-    double *a,*ad,*b,*x,*y;
+    double *al,*ad,*au;
+    double  *b,*b0,*x;
     INT *id;  /*numeracao da esquacoes por celula*/
     bool unsym;/*matriz nao simetrica*/
     INT neq; /*numero de eq*/

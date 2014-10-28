@@ -72,7 +72,7 @@ void fName(char *name,INT num,int cod ,char **out ){
 		       "Name maximo : %d\n"
 		       "Funcao %s, arquivo fonte \"%s\"\n" 
 		       ,name,SIZEMAX,__func__,__FILE__);
-	exit(EXIT_FAILURE);      
+	      exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
       strcat(*out,ext);
@@ -93,7 +93,7 @@ void fName(char *name,INT num,int cod ,char **out ){
 		       "Name maximo : %d\n"
 		       "Funcao %s, arquivo fonte \"%s\"\n" 
 		       ,name,SIZEMAX,__func__,__FILE__);
-	exit(EXIT_FAILURE);      
+        exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
       strcat(*out,ext);
@@ -114,7 +114,7 @@ void fName(char *name,INT num,int cod ,char **out ){
 		       "Name maximo : %d\n"
 		       "Funcao %s, arquivo fonte \"%s\"\n" 
 		       ,name,SIZEMAX,__func__,__FILE__);
-	exit(EXIT_FAILURE);      
+	       exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
       strcat(*out,ext);
@@ -135,7 +135,7 @@ void fName(char *name,INT num,int cod ,char **out ){
 		       "Name maximo : %d\n"
 		       "Funcao %s, arquivo fonte \"%s\"\n" 
 		       ,name,SIZEMAX,__func__,__FILE__);
-	exit(EXIT_FAILURE);      
+        exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
       strcat(*out,ext);
@@ -153,7 +153,7 @@ void fName(char *name,INT num,int cod ,char **out ){
 		       "Name maximo : %d\n"
 		       "Funcao %s, arquivo fonte \"%s\"\n" 
 		       ,name,SIZEMAX,__func__,__FILE__);
-	exit(EXIT_FAILURE);      
+        exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
       strcat(*out,ext);
@@ -171,7 +171,7 @@ void fName(char *name,INT num,int cod ,char **out ){
 		       "Name maximo : %d\n"
 		       "Funcao %s, arquivo fonte \"%s\"\n" 
 		       ,name,SIZEMAX,__func__,__FILE__);
-	exit(EXIT_FAILURE);      
+        exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
       strcat(*out,ext);
@@ -192,7 +192,7 @@ void fName(char *name,INT num,int cod ,char **out ){
 		       "Name maximo : %d\n"
 		       "Funcao %s, arquivo fonte \"%s\"\n" 
 		       ,name,SIZEMAX,__func__,__FILE__);
-	exit(EXIT_FAILURE);      
+        exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
       strcat(*out,ext);
@@ -213,7 +213,7 @@ void fName(char *name,INT num,int cod ,char **out ){
 		       "Name maximo : %d\n"
 		       "Funcao %s, arquivo fonte \"%s\"\n" 
 		       ,name,SIZEMAX,__func__,__FILE__);
-	exit(EXIT_FAILURE);      
+        exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
       strcat(*out,ext);
@@ -234,7 +234,7 @@ void fName(char *name,INT num,int cod ,char **out ){
 		       "Name maximo : %d\n"
 		       "Funcao %s, arquivo fonte \"%s\"\n" 
 		       ,name,SIZEMAX,__func__,__FILE__);
-	exit(EXIT_FAILURE);      
+        exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
       strcat(*out,ext);
@@ -252,14 +252,14 @@ void fName(char *name,INT num,int cod ,char **out ){
 		       "Name maximo : %d\n"
 		       "Funcao %s, arquivo fonte \"%s\"\n" 
 		       ,name,SIZEMAX,__func__,__FILE__);
-	exit(EXIT_FAILURE);      
+        exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
       strcat(*out,ext);
       break;
 /*...................................................................*/
 
-/*... arquivo com o log do solv*/
+/*... arquivo da matriz no formato coo*/
     case 12:
       strcat(ext,".mtx");
       size1 = strlen(name);
@@ -270,7 +270,25 @@ void fName(char *name,INT num,int cod ,char **out ){
 		       "Name maximo : %d\n"
 		       "Funcao %s, arquivo fonte \"%s\"\n" 
 		       ,name,SIZEMAX,__func__,__FILE__);
-	exit(EXIT_FAILURE);      
+        exit(EXIT_FAILURE);      
+      }
+      strcpy(*out,name);
+      strcat(*out,ext);
+      break;
+/*...................................................................*/
+
+/*... arquivo da matriz no formato coo binario*/
+    case 13:
+      strcat(ext,"_bin.mtx");
+      size1 = strlen(name);
+      size2 = strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+        exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
       strcat(*out,ext);
@@ -348,7 +366,7 @@ void readMacro(FILE* file,char *mc,bool allline)
  char c;
  int z;
 
-#ifdef _DEBUG_ 
+#ifdef _DEBUG_READ 
  printf("DEGUB INFO: Antes funcao readmacro.\n"
         "linha  : \"%s\"\n",line);
 #endif
@@ -370,7 +388,7 @@ void readMacro(FILE* file,char *mc,bool allline)
    sscanf(word,"%s",mc);
  }   
 
-#ifdef _DEBUG_ 
+#ifdef _DEBUG_READ 
  printf("DEGUB INFO: Depois funcao readmacro.\n"
         "linha  : \"%s\"\n"
         "palavra: \"%s\"\n",line,mc);
@@ -387,14 +405,14 @@ int rl(FILE *f,char *st){
   clearLine(s);
   readMacro(f,s,false);
 
-#ifdef _DEBUG_ 
+#ifdef _DEBUG_READ 
    fprintf(stderr,"\nLinha lida\nlinha=!%s!",s);
    fprintf(stderr,"\nMACRO procurada   !%s!",st);
 #endif
 /*...*/  
   if(!strcmp(s,st)){
 /*-------------------------------------------------------------------*/
-#ifdef _DEBUG_ 
+#ifdef _DEBUG_READ 
       fprintf(stderr,"\nMacro !%s! achada\n",st); 
 #endif
 /*-------------------------------------------------------------------*/
@@ -404,13 +422,13 @@ int rl(FILE *f,char *st){
  /*...*/ 
   else{
 /*-------------------------------------------------------------------*/
-#ifdef _DEBUG_ 
+#ifdef _DEBUG_READ 
      fprintf(stderr,"\nRetonando linha");
 #endif
 /*-------------------------------------------------------------------*/
      fseek(f,posicao,0);
 /*-------------------------------------------------------------------*/
-#ifdef _DEBUG_ 
+#ifdef _DEBUG_READ 
      fprintf(stderr,"\nLinha retrocedida");
 #endif
 /*-------------------------------------------------------------------*/
@@ -423,7 +441,7 @@ void clearLine(char *s){
    unsigned int i;
    i=0;
 /*-------------------------------------------------------------------*/
-#ifdef _DEBUG_ 
+#ifdef _DEBUG_READ 
            fprintf(stderr,"Funcao clear_line\n");
 #endif
 /*-------------------------------------------------------------------*/

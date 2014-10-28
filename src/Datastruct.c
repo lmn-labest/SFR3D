@@ -30,8 +30,13 @@ void dataStruct(Memoria *m ,INT *id   ,INT *num   ,INT *nelcon
    bool lower,diag,upper;
    
    switch(type){
-/*... armazenamento CSR/CSRC(a,ad)*/
-     case 1:
+/*... armazenamento CSR(a)*/
+     case CSR:
+     break;
+/*...................................................................*/
+
+/*... armazenamento CSRD(a,ad)*/
+     case CSRD:
        lower = true;
 /*...*/
        if(sistEqX->unsym) 
@@ -63,9 +68,9 @@ void dataStruct(Memoria *m ,INT *id   ,INT *num   ,INT *nelcon
 
 /*...*/
        HccaAlloc(double,m,sistEqX->ad     ,sistEqX->neq ,strAd   ,_AD_);
-       HccaAlloc(double,m,sistEqX->a      ,sistEqX->nad ,strA    ,_AD_);
+       HccaAlloc(double,m,sistEqX->al     ,sistEqX->nad ,strA    ,_AD_);
        zero(sistEqX->ad,sistEqX->neq,"double");
-       zero(sistEqX->a ,sistEqX->nad,"double");
+       zero(sistEqX->al,sistEqX->nad,"double");
 /*...................................................................*/
      
 /*... banda da matriz*/
@@ -79,8 +84,8 @@ void dataStruct(Memoria *m ,INT *id   ,INT *num   ,INT *nelcon
      break;
 /*...................................................................*/
 
-/*...*/
-     case 2:
+/*... armazenamento CSRC(ad,au,al)*/
+     case CSRC:
      break;
 /*...................................................................*/
 

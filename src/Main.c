@@ -17,7 +17,7 @@
 /*********************************************************************/
 
 /*********************************************************************/
-#ifdef _DEBUG_GEOM_
+#ifdef _DEBUG_ 
   #include<Debug.h>
 #endif
 /*********************************************************************/
@@ -30,6 +30,7 @@ int main(int argc,char**argv){
   Mesh *mesh=NULL;
 /*... Sistema de equacao*/
   SistEq *sistEqT1=NULL;
+  SistEq *sistEqD1=NULL;
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
 
@@ -49,16 +50,25 @@ int main(int argc,char**argv){
 /* ... macro camandos de leitura*/
   bool macroFlag; 
   char word[WORD_SIZE],str[WORD_SIZE];
-  char macro[][WORD_SIZE] = {"mesh","stop","config"
-                            ,"pgeo","pcoo"
-                            }; 
+  char macro[][WORD_SIZE] = {"mesh" ,"stop","config"
+                            ,"pgeo" ,"pcoob","presolvd"
+                            ,"solvd","pcoo" ,""}; 
 /* ..................................................................*/
 
-/*... Memoria principal*/
+/*... Memoria principal(valor padrao - bytes)*/
   nmax = 10000;
 /* ..................................................................*/
 
-/*... abrindo ar quivo de entrada*/ 
+
+/*... estrutura de dados para malha*/
+  mesh = (Mesh*) malloc(sizeof(Mesh));
+  if(mesh == NULL){
+    printf("Erro ponteiro mesh\n");
+    exit(EXIT_FAILURE);
+  }
+/* ..................................................................*/
+
+/*...*/  
   reordMesh = (Reord*) malloc(sizeof(Reord));
   if(reordMesh == NULL){
     printf("Erro ponteiro reord\n");
@@ -66,14 +76,8 @@ int main(int argc,char**argv){
   }
   reordMesh->flag = false; 
 /* ..................................................................*/
-
-/*... abrindo ar quivo de entrada*/ 
-  mesh = (Mesh*) malloc(sizeof(Mesh));
-  if(mesh == NULL){
-    printf("Erro ponteiro mesh\n");
-    exit(EXIT_FAILURE);
-  }  
     
+/*... abrindo ar quivo de entrada*/ 
   nameIn = (char *) malloc(sizeof(char)*MAX_STR_LEN_IN);
     
   if( argc > 1)
@@ -112,162 +116,264 @@ int main(int argc,char**argv){
   macroFlag = true;
   do{
 /*... leitura da macro*/
-  readMacro(fileIn,word,false);
+    readMacro(fileIn,word,false);
 /*...................................................................*/
 
 /*===================================================================*
- * macro: mesh
+ * macro: mesh - leitura da malha e inicializa das estruturas        *
+ * de resolucao do problema                                          * 
  *===================================================================*/
-  if((!strcmp(word,macro[0]))){
-    printf("%s\n",DIF);
-    printf("%s\n",word); 
-    printf("%s\n",DIF);
+    if((!strcmp(word,macro[0]))){
+      printf("%s\n",DIF);
+      printf("%s\n",word); 
+      printf("%s\n",DIF);
 /*... sistema de memoria*/
-    initMem(&m,nmax,true);
+      initMem(&m,nmax,true);
 /*... leitura da malha*/
-    readFileFvMesh(&m,mesh,fileIn);
+      readFileFvMesh(&m,mesh,fileIn);
 /*...................................................................*/
 
 /*... calcula a vizinhaca do elementos*/
-    viz(&m                 ,mesh->elm.node ,mesh->elm.adj.nelcon
-       ,mesh->elm.nen      ,mesh->nnode
-       ,mesh->numel        ,mesh->maxNo    ,mesh->maxViz);
+      viz(&m                 ,mesh->elm.node ,mesh->elm.adj.nelcon
+         ,mesh->elm.nen      ,mesh->nnode
+         ,mesh->numel        ,mesh->maxNo    ,mesh->maxViz);
 /*...................................................................*/
 
-/*...*/
-    sistEqT1 = (SistEq*) malloc(sizeof(SistEq));
-    if(sistEqT1 == NULL){
-      printf("Erro ponteiro sistEqT1\n");
-      exit(EXIT_FAILURE);
-    }
-    sistEqT1->storage = 1;
-    sistEqT1->unsym   = true;    
-/*...................................................................*/
 
 /*... reodenando as celulas para dimuincao da banda*/
-    HccaAlloc(INT,&m,reordMesh->num,mesh->numel,"rNum" ,_AD_);
-    printf("%s\n",DIF);
-    printf("Reordenando a malha.\n");
-    reord(&m                ,reordMesh->num,mesh->elm.adj.nelcon
-         ,mesh->elm.adj.nViz,mesh->maxViz  ,mesh->numel   
-         ,reordMesh->flag);
-    printf("Malha reordenada.\n");
-    printf("%s\n",DIF);
+/* ..................................................................*/
+
+/*...*/
+      HccaAlloc(INT,&m,reordMesh->num,mesh->numel,"rNum" ,_AD_);
+      printf("%s\n",DIF);
+      printf("Reordenando a malha.\n");
+      reord(&m                ,reordMesh->num,mesh->elm.adj.nelcon
+           ,mesh->elm.adj.nViz,mesh->maxViz  ,mesh->numel   
+           ,reordMesh->flag);
+      printf("Malha reordenada.\n");
+      printf("%s\n",DIF);
 /*...................................................................*/
 
-/*... numeracao das equacoes*/
-    HccaAlloc(INT,&m,sistEqT1->id
-           ,mesh->numel*mesh->ndfT[0]
-           ,"sistT1id",_AD_);
-    printf("%s\n",DIF);
-    printf("Numerando as equacoes.\n");
-    sistEqT1->neq = numeq(&m,sistEqT1->id  ,reordMesh->num
-                         ,mesh->elm.faceRt1,mesh->elm.nen
-                         ,mesh->numel      ,mesh->maxViz
-                         ,mesh->ndfT[0]);
-    printf("Equacoes numeradas.\n");
-    printf("%s\n",DIF);
-/*...................................................................*/
-
-/*... Estrutura de Dados*/
-    strcpy(strIa,"iaT1");
-    strcpy(strJa,"JaT1");
-    strcpy(strAd,"aDT1");
-    strcpy(strA ,"aT1");
-    dataStruct(&m,sistEqT1->id   ,reordMesh->num,mesh->elm.adj.nelcon
-              ,mesh->elm.adj.nViz,mesh->numel   ,mesh->maxViz
-              ,mesh->ndfT[0]     ,strIa         ,strJa
-              ,strAd             ,strA          ,sistEqT1);
-/*...................................................................*/
 
 /*... calculo de propriedades geometricas recorrentes*/
-    pGeomForm(mesh->node.x         ,mesh->elm.node
-             ,mesh->elm.adj.nelcon ,mesh->elm.nen 
-             ,mesh->elm.adj.nViz   ,mesh->elm.geomType
-             ,mesh->elm.geom.cc                         
-             ,mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
-             ,mesh->elm.geom.eta   ,mesh->elm.geom.meta
-             ,mesh->elm.geom.normal,mesh->elm.geom.volume
-             ,mesh->elm.geom.xm    ,mesh->elm.geom.xmcc  
-             ,mesh->elm.geom.mkm   ,mesh->elm.geom.dcca
-             ,mesh->maxNo          ,mesh->maxViz
-             ,mesh->ndm            ,mesh->numel);
-#ifdef _DEBUG_GEOM_
-    testeGeom(mesh->elm.geom.cc  
-             ,mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
-             ,mesh->elm.geom.eta   ,mesh->elm.geom.meta
-             ,mesh->elm.geom.normal,mesh->elm.geom.volume
-             ,mesh->elm.geom.xm    ,mesh->elm.geom.xmcc  
-             ,mesh->elm.geom.mkm   ,mesh->elm.geom.dcca
-             ,mesh->numel          ,mesh->ndm
-             ,mesh->maxViz);
+      pGeomForm(mesh->node.x         ,mesh->elm.node
+               ,mesh->elm.adj.nelcon ,mesh->elm.nen 
+               ,mesh->elm.adj.nViz   ,mesh->elm.geomType
+               ,mesh->elm.geom.cc    ,mesh->elm.geom.ksi 
+               ,mesh->elm.geom.mksi  ,mesh->elm.geom.eta   
+               ,mesh->elm.geom.meta  ,mesh->elm.geom.normal
+               ,mesh->elm.geom.volume,mesh->elm.geom.xm   
+               ,mesh->elm.geom.xmcc  ,mesh->elm.geom.mkm 
+               ,mesh->elm.geom.dcca
+               ,mesh->maxNo          ,mesh->maxViz
+               ,mesh->ndm            ,mesh->numel);
+#ifdef _DEBUG_GEOM
+      testeGeom(mesh->elm.geom.cc  
+               ,mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
+               ,mesh->elm.geom.eta   ,mesh->elm.geom.meta
+               ,mesh->elm.geom.normal,mesh->elm.geom.volume
+               ,mesh->elm.geom.xm    ,mesh->elm.geom.xmcc  
+               ,mesh->elm.geom.mkm   ,mesh->elm.geom.dcca
+               ,mesh->numel          ,mesh->ndm
+               ,mesh->maxViz);
 #endif
 /*...................................................................*/
-    strcpy(str,"KB");
-    memoriaTotal(str);
-    usoMemoria(&m,str);
+      strcpy(str,"KB");
+      memoriaTotal(str);
+      usoMemoria(&m,str);
 //    mapVector(&m);
-  }   
+    }   
 /*===================================================================*/
 
 /*===================================================================*
- * macro: stop
+ * macro: stop - finalizacao do programa
  *===================================================================*/
-  else if((!strcmp(word,macro[1]))){
-    printf("%s\n",DIF);
-    printf("%s\n",word); 
-    printf("%s\n\n",DIF);
-    finalizeMem(&m,true);
-    macroFlag = false;
-  }   
+    else if((!strcmp(word,macro[1]))){
+      printf("%s\n",DIF);
+      printf("%s\n",word); 
+      printf("%s\n\n",DIF);
+      finalizeMem(&m,true);
+      macroFlag = false;
+    }    
 /*===================================================================*/
 
 /*===================================================================*
- * macro: config
+ * macro: config - configuracao basica de excucao
  *===================================================================*/
-  else if((!strcmp(word,macro[2]))){
-    printf("%s\n",DIF);
-    printf("%s\n",word);
-    config(&bvtk,reordMesh,fileIn);
-    printf("%s\n\n",DIF);
-  }   
+    else if((!strcmp(word,macro[2]))){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      config(&bvtk,reordMesh,fileIn);
+      printf("%s\n\n",DIF);
+    }   
 /*===================================================================*/
 
 /*===================================================================*
- * macro: pgeo
+ * macro: pgeo - escreve a geometria com os carregamentos
  *===================================================================*/
-  else if((!strcmp(word,macro[3]))){
-    printf("%s\n",DIF);
-    printf("%s\n",word);
-    fName(preName,0,6,&nameOut);
-    wGeoVtk(&m                      ,mesh->node.x   
-           ,mesh->elm.node          ,mesh->elm.mat    
-           ,mesh->elm.nen           ,mesh->elm.geomType
-           ,mesh->elm.material.prop ,mesh->elm.material.type 
-           ,mesh->elm.faceRt1       ,mesh->elm.faceSt1
-           ,mesh->nnode             ,mesh->numel    
-           ,mesh->ndm               ,mesh->maxNo
-           ,mesh->numat             ,mesh->ndfT    
-           ,nameOut                 ,bvtk             
-           ,fileOut);
-    printf("%s\n\n",DIF);
-  }   
+    else if((!strcmp(word,macro[3]))){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      fName(preName,0,6,&nameOut);
+      wGeoVtk(&m                      ,mesh->node.x   
+             ,mesh->elm.node          ,mesh->elm.mat    
+             ,mesh->elm.nen           ,mesh->elm.geomType
+             ,mesh->elm.material.prop ,mesh->elm.material.type 
+             ,mesh->elm.faceRd1       ,mesh->elm.faceSd1
+             ,mesh->nnode             ,mesh->numel    
+             ,mesh->ndm               ,mesh->maxNo
+             ,mesh->numat             ,mesh->ndfD    
+             ,nameOut                 ,bvtk             
+             ,fileOut);
+      printf("%s\n\n",DIF);
+    }   
 /*===================================================================*/
    
 /*===================================================================*
- * macro: pcoo
+ * macro: pcoob- escreve a matriz de coeficientes no formato COO
  *===================================================================*/
-  else if((!strcmp(word,macro[4]))){
-    printf("%s\n",DIF);
-    printf("%s\n",word);
-    fName(preName,0,12,&nameOut);
+    else if((!strcmp(word,macro[4]))){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      fName(preName,0,13,&nameOut);
 /*...*/
-    writeCoo(&m,sistEqT1->ia,sistEqT1->ja,sistEqT1->neq
-            ,sistEqT1->nad  ,sistEqT1->storage
-            ,sistEqT1->unsym,nameOut);
+      writeCoo(&m,sistEqD1->ia,sistEqD1->ja,sistEqD1->neq
+              ,sistEqD1->au   ,sistEqD1->ad,sistEqD1->al        
+              ,sistEqD1->nad  ,sistEqD1->storage
+              ,sistEqD1->unsym,true
+              ,nameOut);
 /*...................................................................*/
-    printf("%s\n\n",DIF);
-  }   
+      printf("%s\n\n",DIF);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: presolvd - problema de difusao pura
+ *===================================================================*/
+    else if((!strcmp(word,macro[5]))){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+/*... inicializando a estrutuda de equacoes do problema*/
+      sistEqD1 = (SistEq*) malloc(sizeof(SistEq));
+      if(sistEqD1 == NULL){
+        printf("Erro ponteiro sistEqD1\n");
+        exit(EXIT_FAILURE);
+      }
+      sistEqD1->storage = CSRD;
+      sistEqD1->unsym   = false;    
+/*...................................................................*/
+
+/*... numeracao das equacoes*/
+      HccaAlloc(INT,&m,sistEqD1->id
+               ,mesh->numel*mesh->ndfD[0]
+               ,"sistD1id",_AD_);
+      printf("%s\n",DIF);
+      printf("Numerando as equacoes.\n");
+      sistEqD1->neq = numeq(&m,sistEqD1->id  ,reordMesh->num
+                           ,mesh->elm.faceRd1  ,mesh->elm.nen
+                           ,mesh->numel        ,mesh->maxViz
+                           ,mesh->ndfD[0]);
+      printf("Equacoes numeradas.\n");
+      printf("%s\n",DIF);
+/*...................................................................*/
+
+/*...*/
+      HccaAlloc(double                   ,&m        ,sistEqD1->b0
+               ,sistEqD1->neq            ,"sistD1b0",_AD_);
+      HccaAlloc(double                   ,&m        ,sistEqD1->b 
+               ,sistEqD1->neq            ,"sistD1b ",_AD_);
+      HccaAlloc(double                   ,&m        ,sistEqD1->x 
+               ,sistEqD1->neq            ,"sistD1x ",_AD_);
+      zero(sistEqD1->b0,sistEqD1->neq,"double");
+      zero(sistEqD1->b ,sistEqD1->neq,"double");
+      zero(sistEqD1->x ,sistEqD1->neq,"double");
+/*...................................................................*/
+
+/*... Estrutura de Dados*/
+      strcpy(strIa,"iaD1");
+      strcpy(strJa,"JaD1");
+      strcpy(strAd,"aDD1");
+      strcpy(strA ,"aD1");
+      printf("Montagem da estrura de dados esparsa.\n");
+      dataStruct(&m,sistEqD1->id   ,reordMesh->num,mesh->elm.adj.nelcon
+                ,mesh->elm.adj.nViz,mesh->numel   ,mesh->maxViz
+                ,mesh->ndfD[0]     ,strIa         ,strJa
+                ,strAd             ,strA          ,sistEqD1);
+      printf("Estrutuda montada.\n");
+/*...................................................................*/
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: solvd - problema de difusao pura
+ *===================================================================*/
+    else if((!strcmp(word,macro[6]))){
+/*... restricoes por centro de celula u0 e cargas por volume b0*/
+      cellPload(mesh->elm.faceRd1    ,mesh->elm.faceSd1
+               ,mesh->elm.geom.volume
+               ,mesh->node.temp      ,sistEqD1->b0
+               ,mesh->numel          ,mesh->ndfD[0]
+               ,mesh->maxViz);
+/*...................................................................*/
+
+/*... calculo de: A(i),b(i)
+                  R(i) = b(i) - A(i)x(i)*/
+      systForm(mesh->node.x         ,mesh->elm.node       
+             ,mesh->elm.adj.nelcon    ,mesh->elm.nen           
+             ,mesh->elm.adj.nViz      ,mesh->elm.geomType          
+             ,mesh->elm.material.prop ,mesh->elm.material.type 
+             ,mesh->elm.mat           ,mesh->elm.geom.cc 
+             ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
+             ,mesh->elm.geom.eta      ,mesh->elm.geom.meta    
+             ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
+             ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
+             ,mesh->elm.geom.mkm      ,mesh->elm.geom.dcca
+             ,sistEqD1->ia            ,sistEqD1->ja      
+             ,sistEqD1->ad            ,sistEqD1->al       
+             ,sistEqD1->b             ,sistEqD1->id       
+             ,mesh->elm.faceRd1       ,mesh->elm.faceSd1       
+             ,mesh->node.temp                                               
+             ,mesh->maxNo             ,mesh->maxViz
+             ,mesh->ndm               ,mesh->numel
+             ,mesh->ndfD[0]           ,sistEqD1->storage
+             ,true                    ,true   
+             ,sistEqD1->unsym);   
+/*...................................................................*/
+
+/*... soma o vetor b = b + b0*/
+      addVector(1.0e0        ,sistEqD1->b
+               ,1.0e0        ,sistEqD1->b0
+               ,sistEqD1->neq,sistEqD1->b);   
+/*...................................................................*/
+
+/*...*/
+#ifdef _DEBUG_
+      testeSist(sistEqD1->ia       ,sistEqD1->ja
+               ,sistEqD1->au       ,sistEqD1->ad
+               ,sistEqD1->al       ,sistEqD1->b
+               ,sistEqD1->neq      ,sistEqD1->unsym);
+#endif
+/*...................................................................*/
+
+    }
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: pcoo - escreve a matriz de coeficientes no formato COO
+ *===================================================================*/
+    else if((!strcmp(word,macro[7]))){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      fName(preName,0,12,&nameOut);
+/*...*/
+      writeCoo(&m,sistEqD1->ia,sistEqD1->ja,sistEqD1->neq
+              ,sistEqD1->au   ,sistEqD1->ad,sistEqD1->al        
+              ,sistEqD1->nad  ,sistEqD1->storage
+              ,sistEqD1->unsym,false 
+              ,nameOut);
+/*...................................................................*/
+      printf("%s\n\n",DIF);
+    }   
 /*===================================================================*/
   }while(macroFlag && (!feof(fileIn)));
 

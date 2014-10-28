@@ -1,7 +1,7 @@
 #ifndef _WRITE_VTK_H
   #define _WRITE_VTK_H
   #define INTEGER 1
-  #define DOUBLE  2
+  #define DOUBLEV 2
   #include<stdio.h>
   #include<stdlib.h>
   #include<HccaStdBool.h>
@@ -9,6 +9,7 @@
   #include<Mesh.h>
   #include<Memoria.h>
   #include<File.h>
+  
   void wGeoVtk(Memoria *m     ,double *x      
               ,INT *el        ,short *mat    
               ,short *nen     ,short *typeGeom

@@ -192,7 +192,6 @@ void csrJa(INT *ia    ,INT *ja
 }
 /*********************************************************************/ 
 
-
 /********************************************************************* 
  * BANDCSR: banda da matriz no formato CSR                           * 
  *-------------------------------------------------------------------* 
@@ -253,3 +252,114 @@ INT bandCsr(INT *ia,INT *ja,INT  neq,short type){
 }
 /*********************************************************************/ 
 
+/********************************************************************* 
+ * CSR : Montagem do sistema global do CSR                           * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------*
+ * ia      -> ponteiro para as linhas da matriz esparsa              * 
+ * ja      -> ponteiro para as colunas da matriz esparsa             * 
+ * au      -> matriz de coeficientes esparsa                         * 
+ *            ( CSR - nao utiliza                            )       *
+ *            ( CSRD/CSRC- triangular superior               )       *
+ * ad      -> matrix de coeficientes esparsa                         *
+ *            ( CSR - matriz completa                        )       *
+ *            ( CSRD/CSRC- diagonal principal                )       *
+ * al      -> matriz de coeficientes esparsa                         * 
+ *            ( CSR - nao utiliza                            )       *
+ *            ( CSRD/CSRC- triangular inferior               )       *
+ * b       -> vetor de forcas                                        *
+ * lA      -> coficientes da celula                                  *
+ * lB      -> vetor de forca da celula                               *
+ * lId     -> numeracao das equacoes dessa celula                    *
+ * nFace   -> numero de faces da celula                              *
+ * ndf     -> graus de liberdade                                     *
+ * storage -> tecnica de armazenamento da matriz esparsa             * 
+ * forces  -> mantagem no vetor de forcas                            * 
+ * matrix  -> mantagem da matriz de coeficientes                     * 
+ * unsym   -> matiz nao simetrica                                    * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * au,a,al   -> coeficiente da linha i     (matriz = true)           *
+ * b         -> vetor de forca da linha i  (forces = true)           *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ * lA | AP1X AP1Y AP1XY AP1YX|                                       * 
+ *    | AP2X AP2Y AP2XY AP2YX|                                       * 
+ *    | AP3X AP3Y AP3XY AP3YX|                                       * 
+ *    |          ...         |                                       * 
+ *    | APX  APY  APXY  APYX |                                       * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void csr(INT    *restrict  ia,INT *restrict ja 
+        ,double *restrict au ,double *restrict ad
+        ,double *restrict al ,double *restrict b
+        ,INT *restrict lId                       
+        ,double *restrict lA ,double *restrict lB 
+        ,short const nFace   ,short const ndf  
+        ,short const storage ,bool  const forces
+        ,bool const matrix   ,bool  const  unsym)
+{
+  INT lNeq,lCol=0,iak,jak,iPont,iaKneq;
+  unsigned short i,j,k,jLa,nst;
+  switch (storage){
+/*... estrutura CSR(ia,ja,a,b)*/
+    case CSR:
+    break;
+/*...................................................................*/
+
+/*... estrutura CSR(ia,ja,a,al,b)*/
+    case CSRD:
+      nst  = (nFace+1)*ndf;
+/*... vetor de forcas*/
+      if(forces) 
+        for(j=0;j<ndf;j++){
+          lNeq = MAT2D(nFace,j,lId,ndf);
+          b[lNeq] = lB[j];
+        }
+/*...................................................................*/
+
+/*... matriz de coefiencientes*/
+      if(matrix) 
+        for(i=0;i<ndf;i++){
+          jLa      = nFace*ndf + i;
+          lNeq     = MAT2D(nFace,i,lId,ndf);
+          ad[lNeq] = MAT2D(i,jLa,lA,nst);
+          iPont    = ia[lNeq];
+          iaKneq   = ia[lNeq+1];
+          for(k=0;k<nFace;k++){
+            lCol     = MAT2D(k,i,lId,ndf);
+            if(lCol > -1)
+              for(iak = iPont; iak < iaKneq;iak++){
+                jak = ja[iak];
+                if( lCol == jak ) 
+                  for(j=0;j<ndf;j++){
+                    jLa = k*ndf+j;
+                    al[iak+j] = -MAT2D(j,jLa,lA,nst);  
+                  }     
+              }
+          }  
+        }
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
+/*... estrutura CSR(ia,ja,au,a,al,b)*/
+    case CSRC:
+    break;
+/*...................................................................*/
+
+/*...*/
+     default:
+       printf("\n opcao invalida\n"
+           "funcao fname(*,*,*)\narquivo = %s\n",__FILE__);
+       exit(EXIT_FAILURE);
+     break;
+/*...................................................................*/
+
+
+ }
+
+}
+/*********************************************************************/ 

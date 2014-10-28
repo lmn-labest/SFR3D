@@ -42,9 +42,15 @@
     short  *mat;       /*materiais do elementos*/   
     short  *nen;       /*numero de no por elemento*/
     short  *geomType;  /*tipo geometrio do elemento*/
-    short  *faceRt1;   /*tipo de condicao de contorno na face*/
+    short  *faceRt1;   /*tipo de condicao de 
+                        contorno na face (transporte)*/
+    short  *faceRd1;   /*tipo de condicao de 
+                        contorno na face (difusa pura)*/
     short  *rNum;      /*renumeracao dos elementos*/                
-    double *faceSt1;   /*valor da condicao de contorno na face*/
+    double *faceSt1;   /*valor da condicao de 
+                        contorno na face (transporte)*/
+    double *faceSd1;   /*valor da condicao de 
+                        contorno na face (difusa pura)*/
     Geom   geom;       
     Material material;
     Adjacency adj;
@@ -66,7 +72,10 @@
     INT nnode;/*numero de nos*/
     INT numel;/*numero de elementos*/
     short ndm;     /*dimensao*/
-    short ndfT[MAX_TRANS_EQ];   /*graus de liberdade para o problema*/
+    short ndfT[MAX_TRANS_EQ];   /*graus de liberdade 
+                                  para o problema de transporte*/
+    short ndfD[MAX_DIF_EQ];   /*graus de liberdade 
+                                  para o problema de difusa pura*/
     short numat;   /*numero maximo de materias no dominio*/
     short maxNo;   /*numero maximo de nos por elemento*/
     short maxViz;  /*numero maximo de vizinhos que um elemento possui*/

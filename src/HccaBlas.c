@@ -23,3 +23,34 @@ void prodVet(double *restrict a,double *restrict b, double *restrict c)
 }
 /*********************************************************************/ 
 
+/********************************************************************* 
+ * ADDVECTOR : adicao de vetores                                     * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * alpha -> escalar que multiplica o vetor a                         * 
+ * a     -> vetor a                                                  * 
+ * beto  -> escalar que multiplica o vetor b                         * 
+ * b     -> vetor b                                                  * 
+ * nDim  -> dimensao dos vetores                                     * 
+ * c  - indefinido                                                   * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * c  - produto vetoria entre alpha*a e beta*b                       * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void addVector(double const alpha,double *restrict a
+              ,double const beta ,double *restrict b
+              ,INT const nDim    ,double *restrict c) 
+
+{
+  INT i;
+ 
+  for(i=0;i<nDim;i++)
+    c[i] = alpha*a[i] + beta*b[i];
+
+}
+/*********************************************************************/ 

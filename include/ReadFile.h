@@ -23,8 +23,8 @@
                  ,short *ty  ,INT  nel   ,short maxno
                  ,FILE *file);
   void readVfRes(short *id,INT numel,short maxno,char *str,FILE *file);
-  void readVfSource(double *f ,INT numel,short maxno
-                   ,char *str ,FILE *file);
+  void readVfSource(double *f    ,INT numel,short maxno
+                   ,char *str,FILE *file);
   void config(bool *bvtk,Reord *reord,FILE* f);
 
 #endif

@@ -4,29 +4,81 @@
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
- *                                                                   * 
+ * lx        -> coordenadas dos nos da celula central e seus viznhos * 
+ * lnFace    -> numero da faces da celula central e seus vizinhos    * 
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
+ * lprop     -> propriedade fisicas das celulas                      *
+ * lViz      -> viznhos da celula central                            * 
+ * xc        -> centroides das celulas                               * 
+ * lId       -> equa da celula                                       * 
+ * Ksi       -> vetores que unem centroide da celula central aos     *
+ *            vizinhos destas                                        * 
+ * mKsi      -> modulo do vetor ksi                                  * 
+ * eta       -> vetores paralelos as faces das celulas               * 
+ * meta      -> modulo do vetor eta                                  * 
+ * normal    -> vetores normais as faces das celulas                 * 
+ * area      -> area da celula central                               * 
+ * xm        -> pontos medios das faces da celula cenral             * 
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
+ *            faces da celula central                                * 
+ * mkm       -> distacia entre o ponto medio a intersecao que une os * 
+ *            centrois compartilhado nessa face da celula central    * 
+ * dcca      -> menor distacia do centroide central a faces desta    *
+ *              celula                                               * 
+ * lA        -> nao definido                                         *
+ * lB        -> nao definido                                         *
+ * u0        -> solucao conhecida                                    * 
+ * faceR     -> restricoes por elmento                               * 
+ * faceS     -> carga por elemento                                   * 
+ * maxNo     -> numero de nos por celula maximo da malha             * 
+ * maxViz    -> numero vizinhos por celula maximo da malha           * 
+ * ndm       -> numero de dimensoes                                  * 
+ * lib       -> numero da biblioteca                                 * 
+ * nel       -> numero da celula                                     * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
- *                                                                   * 
+ * lA        -> coeficiente da linha i                               *
+ * lB        -> vetor de forca da linha i                            *
  *-------------------------------------------------------------------* 
- * OBS:                                                              * 
+ * OBS: xc | x1 x2 x3 | -> celula vizinha da aresta 1                * 
+ *         | x1 x2 x3 | -> celula vizinha da aresta 2                * 
+ *         | x1 x2 x3 | -> celula vizinha da aresta 3                * 
+ *         |   ...    | ->   ...                                     * 
+ *         | x1 x2 x3 | -> celula central                            * 
+ *     lx(vizinho,numero do no do vizinho, dimensao)                 * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellLib(double *lx ,short *lnFace,short *lGeomType
-            ,double *xc
-            ,short maxNo,short maxViz ,short ndm
-            ,short lib  ,INT nel 
-){
-  short ty = lGeomType[maxViz];
+void cellLib(double *restrict lx                                
+            ,short *restrict lGeomType,double *restrict lprop
+            ,INT   *restrict lViz     ,double *restrict xc 
+            ,double *restrict ksi     ,double *restrict mksi
+            ,double *restrict eta     ,double *restrict meta
+            ,double *restrict normal  ,double *restrict volume
+            ,double *restrict xm      ,double *restrict xmcc
+            ,double *restrict dcca    ,double *restrict mkm
+            ,double *restrict lA      ,double *restrict lB
+            ,short  *restrict lFaceR  ,double *restrict lFaceS
+            ,double *restrict u0      ,short const maxNo   
+            ,short  const maxViz      ,short const ndm
+            ,short const lib          ,INT const nel)
+{
 
 /*quadrilateros ou triangulos*/
-  if( ty == 2 || ty == 3){
-    if(lib == 1){
-//    cellGeom2D(lx,lnFace,lGeomType
-//              ,xc,sn
-//              ,maxNo,maxViz,ndm,nel);
-    }
+  if(lib == 1){
+    cellDif2D(lx                  
+              ,lGeomType,lprop
+              ,lViz     ,xc       
+              ,ksi      ,mksi
+              ,eta      ,meta
+              ,normal   ,volume
+              ,xm       ,xmcc
+              ,dcca     ,mkm
+              ,lA       ,lB
+              ,lFaceR   ,lFaceS
+              ,u0       ,maxNo
+              ,maxViz   ,ndm
+              ,nel);  
   }
 }
 /*********************************************************************/
@@ -98,25 +150,25 @@ void cellGeom2D(double *restrict lx       ,short *restrict lnFace
   double x1,x2;
 
   for(i=0;i<lnFace[cCell];i++){
-    mksi[i]  = 0.0;
-    meta[i]  = 0.0;
-    dcca[i]  = 0.0;
-    MAT2D(i,0,ksi,ndm)= 0.0; 
-    MAT2D(i,1,ksi,ndm)= 0.0; 
-    MAT2D(i,0,eta,ndm)= 0.0; 
-    MAT2D(i,1,eta,ndm)= 0.0; 
+    mksi[i]  = 0.0e0;
+    meta[i]  = 0.0e0;
+    dcca[i]  = 0.0e0;
+    MAT2D(i,0,ksi,ndm)= 0.0e0; 
+    MAT2D(i,1,ksi,ndm)= 0.0e0; 
+    MAT2D(i,0,eta,ndm)= 0.0e0; 
+    MAT2D(i,1,eta,ndm)= 0.0e0; 
   }
   
 /*... calculo do centro geometrico das celulas*/      
   for(i=0;i<=maxViz;i++){
     for(j=0;j<ndm;j++){
-      MAT2D(i,j,xc,ndm) = 0.0;
+      MAT2D(i,j,xc,ndm) = 0.0e0;
       if(lnFace[i]){
         for(k=0;k<lnFace[i];k++){
           MAT2D(i,j,xc,ndm) = MAT2D(i,j,xc,ndm) 
                             + MAT3D(i,k,j,lx,maxNo,ndm);
         }
-        MAT2D(i,j,xc,ndm)=(1.0/((double)lnFace[i]))*MAT2D(i,j,xc,ndm);
+        MAT2D(i,j,xc,ndm)=(1.0e0/((double)lnFace[i]))*MAT2D(i,j,xc,ndm);
       }
     }
   }
@@ -150,7 +202,7 @@ void cellGeom2D(double *restrict lx       ,short *restrict lnFace
   }
 /*...................................................................*/
 
-/*... normalizando o vetor paralelo as arestas (eta)*/
+/*... modulo do vetor das arestas arestas (eta)*/
   for(i=0;i<lnFace[cCell];i++){
     for(j=0;j<ndm;j++){
       meta[i] += MAT2D(i,j,eta,ndm)*MAT2D(i,j,eta,ndm); 
@@ -169,7 +221,7 @@ void cellGeom2D(double *restrict lx       ,short *restrict lnFace
   }
 /*...................................................................*/
 
-/*... calculo do vetor normal*/
+/*... calculo do vetor normal unitario*/
   for(i=0;i<lnFace[cCell];i++){
     MAT2D(i,0,normal,ndm) =  MAT2D(i,1,eta,ndm);
     MAT2D(i,1,normal,ndm) = -MAT2D(i,0,eta,ndm);
@@ -185,7 +237,7 @@ void cellGeom2D(double *restrict lx       ,short *restrict lnFace
       x2 = MAT3D(cCell,no2,j,lx,maxNo,ndm);
       x1 = MAT3D(cCell,no1,j,lx,maxNo,ndm);
 /*...*/
-      MAT2D(i,j,xm  ,ndm) = 0.5*(x1+x2);
+      MAT2D(i,j,xm  ,ndm) = 0.5e0*(x1+x2);
 /*...................................................................*/  
 
 /*...*/
@@ -198,13 +250,13 @@ void cellGeom2D(double *restrict lx       ,short *restrict lnFace
     }
   }
 /*...................................................................*/  
-  
+
 /*... calculo do centro da celula fantasma*/      
   for(i=0;i<=maxViz;i++){
     for(j=0;j<ndm;j++){
       if(!lnFace[i]){
         MAT2D(i,j,xc,ndm) = MAT2D(cCell,j,xc,ndm) 
-                          + 2.0*dcca[i]*MAT2D(i,j,normal,ndm);
+                          + 2.0e0*dcca[i]*MAT2D(i,j,normal,ndm);
       }
     }
   }
@@ -349,7 +401,7 @@ inline double areaTriaCell(double *restrict eta, short ndm)
   v1[0] = MAT2D(0,0,eta,ndm);
   v1[1] = MAT2D(0,1,eta,ndm);
   if( ndm == 2)
-    v1[2] = 0.0;               
+    v1[2] = 0.0e0;               
   else
     v1[2] = MAT2D(0,2,eta,ndm);
   
@@ -358,14 +410,14 @@ inline double areaTriaCell(double *restrict eta, short ndm)
   v2[0] = MAT2D(1,0,eta,ndm);
   v2[1] = MAT2D(1,1,eta,ndm);
   if( ndm == 2)
-    v2[2] = 0.0;               
+    v2[2] = 0.0e0;               
   else
     v2[2] = MAT2D(1,2,eta,ndm);
 
 /*...*/
   prodVet(v1,v2,v3);
   dot = v3[0]*v3[0] + v3[1]*v3[1] + v3[2]*v3[2];
-  a = 0.5*sqrt(dot); 
+  a = 0.5e0*sqrt(dot); 
   return a;
 }
 /*********************************************************************/ 
@@ -395,27 +447,27 @@ inline double areaQuadCell(double *restrict eta,short ndm)
   v1[0] = MAT2D(0,0,eta,ndm);
   v1[1] = MAT2D(0,1,eta,ndm);
   if(ndm == 2) 
-    v1[2] = 0.0;
+    v1[2] = 0.0e0;
   else
     v1[2] = MAT2D(0,2,eta,ndm);
     
   v2[0] = MAT2D(1,0,eta,ndm);
   v2[1] = MAT2D(1,1,eta,ndm);
   if(ndm == 2) 
-    v2[2] = 0.0;
+    v2[2] = 0.0e0;
   else
     v2[2] = MAT2D(1,2,eta,ndm);
   
   prodVet(v1,v2,c);
   dot = c[0]*c[0] + c[1]*c[1] + c[2]*c[2];
-  a = 0.5*sqrt(dot);
+  a = 0.5e0*sqrt(dot);
 /*...................................................................*/
 
 /*...*/
   v1[0] = MAT2D(2,0,eta,ndm);
   v1[1] = MAT2D(2,1,eta,ndm);
   if(ndm == 2) 
-    v1[2] = 0.0;
+    v1[2] = 0.0e0;
   else
     v1[2] = MAT2D(2,2,eta,ndm);
   
@@ -423,13 +475,13 @@ inline double areaQuadCell(double *restrict eta,short ndm)
   v2[0] = MAT2D(3,0,eta,ndm);
   v2[1] = MAT2D(3,1,eta,ndm);
   if(ndm == 2) 
-    v2[2] = 0.0;
+    v2[2] = 0.0e0;
   else
     v2[2] = MAT2D(3,2,eta,ndm);
   
   prodVet(v1,v2,c);
   dot = c[0]*c[0] + c[1]*c[1] + c[2]*c[2];
-  a += 0.5*sqrt(dot);
+  a += 0.5e0*sqrt(dot);
 /*...................................................................*/
 
 
@@ -437,20 +489,20 @@ inline double areaQuadCell(double *restrict eta,short ndm)
   v1[0] = MAT2D(0,0,eta,ndm);
   v1[1] = MAT2D(0,1,eta,ndm);
   if(ndm == 2) 
-    v1[2] = 0.0;
+    v1[2] = 0.0e0;
   else
     v1[2] = MAT2D(0,2,eta,ndm);
   
   v2[0] = MAT2D(3,0,eta,ndm);
   v2[1] = MAT2D(3,1,eta,ndm);
   if(ndm == 2) 
-    v2[2] = 0.0;
+    v2[2] = 0.0e0;
   else
     v2[2] = MAT2D(3,2,eta,ndm);
   
   prodVet(v1,v2,c);
   dot = c[0]*c[0] + c[1]*c[1] + c[2]*c[2];
-  a += 0.5*sqrt(dot);
+  a += 0.5e0*sqrt(dot);
 /*...................................................................*/
 
 
@@ -458,22 +510,22 @@ inline double areaQuadCell(double *restrict eta,short ndm)
   v1[0] = MAT2D(1,0,eta,ndm);
   v1[1] = MAT2D(1,1,eta,ndm);
   if(ndm == 2) 
-    v1[2] = 0.0;
+    v1[2] = 0.0e0;
   else
     v1[2] = MAT2D(1,2,eta,ndm);
   
   v2[0] = MAT2D(2,0,eta,ndm);
   v2[1] = MAT2D(2,1,eta,ndm);
   if(ndm == 2) 
-    v2[2] = 0.0;
+    v2[2] = 0.0e0;
   else
     v2[2] = MAT2D(2,2,eta,ndm);
   
   prodVet(v1,v2,c);
   dot = c[0]*c[0] + c[1]*c[1] + c[2]*c[2];
-  a += 0.5*sqrt(dot);
+  a += 0.5e0*sqrt(dot);
 /*...................................................................*/
-  return 0.5*a;
+  return 0.5e0*a;
 }
 /*********************************************************************/ 
 

@@ -28,7 +28,8 @@ void initMem(Memoria *m,long nmax, bool iws)
      printf("inicializando a memoria...\n");
    
    
-   m->ia = (char *) malloc(nmax*sizeof(char));
+/* m->ia = (char *) malloc(nmax*sizeof(char));*/
+   m->ia = (char *) calloc(nmax,sizeof(char));
    if(!m->ia){
      fprintf(stderr,"Erro memoria Insuficiente:\n"
                    "Memoria solicitada: %ld\n"
