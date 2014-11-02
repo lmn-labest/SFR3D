@@ -19,7 +19,7 @@ for name in $INPUT; do
   echo  teste: $NAMEBIN $name $OUT
   echo `$DIR/$NAMEBIN $DIR/$name $DIR/$OUT` > log 
   echo --------------------------------------------------------------
-  OUT2=`echo $name | sed -e "s/.dat/.mtx/"`
+  OUT2=`echo $name | sed -e "s/.dat/_bin.mtx/"`
   diff -q $DIR/$OUT2 test/coo/$OUT2
   if [ $? == 1 ]; then
     echo --------------------------------------------------------------

@@ -15,6 +15,6 @@ test/binTest/run_coo.sh "$INPUTRCM" "$NAMEBIN"
 test/binTest/run_vtk.sh "$INPUTVTK" "$NAMEBIN" 
 
 DIR="test/binTest"
-#rm $DIR/*.mtx $DIR/*.dat $DIR/*.vtk $DIR/$NAMEBIN
+rm $DIR/*.mtx $DIR/*.dat $DIR/*.vtk $DIR/$NAMEBIN
 
 exit 1
