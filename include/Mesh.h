@@ -22,17 +22,17 @@
 
 /*...*/
   typedef struct Geom{
-    double *cc;    /*centroide da celulas*/
-    double *ksi;   /*vetor que une os centroides da celulas*/
-    double *mksi;  /*modulo do vetor que une os centroides da celulas*/
-    double *eta;   /*vetor paralelo a aresta*/
-    double *meta;  /*area da face compartilhada*/
-    double *normal;/*vetor normal a face*/       
-    double *volume;/*volume da celula*/
-    double *xm;    /*ponto medio da face*/
-    double *xmcc;  /*vetor entre o centroide a ponto médio da aresta*/
-    double *dcca;  /*menor distancia entre o centroide a aresta*/
-    double *mkm;   /*modulo do km*/                               
+    DOUBLE *cc;    /*centroide da celulas*/
+    DOUBLE *ksi;   /*vetor que une os centroides da celulas*/
+    DOUBLE *mksi;  /*modulo do vetor que une os centroides da celulas*/
+    DOUBLE *eta;   /*vetor paralelo a aresta*/
+    DOUBLE *meta;  /*area da face compartilhada*/
+    DOUBLE *normal;/*vetor normal a face*/       
+    DOUBLE *volume;/*volume da celula*/
+    DOUBLE *xm;    /*ponto medio da face*/
+    DOUBLE *xmcc;  /*vetor entre o centroide a ponto médio da aresta*/
+    DOUBLE *dcca;  /*menor distancia entre o centroide a aresta*/
+    DOUBLE *mkm;   /*modulo do km*/                               
   }Geom;
 /*...................................................................*/  
 
@@ -47,11 +47,13 @@
     short  *faceRd1;   /*tipo de condicao de 
                         contorno na face (difusa pura)*/
     short  *rNum;      /*renumeracao dos elementos*/                
-    double *faceSt1;   /*valor da condicao de 
+    DOUBLE *faceSt1;   /*valor da condicao de 
                         contorno na face (transporte)*/
-    double *faceSd1;   /*valor da condicao de 
+    DOUBLE *faceSd1;   /*valor da condicao de 
                         contorno na face (difusa pura)*/
     Geom   geom;       
+    DOUBLE *pressure;
+    DOUBLE *temp;
     Material material;
     Adjacency adj;
   }Elmt;
@@ -59,10 +61,10 @@
   
 /*... nos*/
   typedef struct Node{
-    double *x;      /*coordenadas*/
-    double *w;
-    double *pressure;
-    double *temp;
+    DOUBLE *x;      /*coordenadas*/
+    DOUBLE *w;
+    DOUBLE *pressure;
+    DOUBLE *temp;
     INT   *nno; 
   }Node;
 /*...................................................................*/

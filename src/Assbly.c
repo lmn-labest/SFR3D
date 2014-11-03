@@ -60,11 +60,9 @@ void assbly(INT    *restrict  ia,INT *restrict ja
 /*...................................................................*/
 
 /*...*/
-     default:
-       printf("\n opcao invalida\n"
-           "funcao fname(*,*,*)\narquivo = %s\n",__FILE__);
-       exit(EXIT_FAILURE);
-     break;
+    default:
+      ERRO_OP(__FILE__,__func__,storage);
+    break;
 /*...................................................................*/
   }
 /*...................................................................*/

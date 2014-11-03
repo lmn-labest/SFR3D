@@ -84,7 +84,7 @@ void fName(char *name,INT num,int cod ,char **out ){
       iota(num,st);
       strcpy(ext,"_n_");
       strcat(ext,st);
-      strcat(ext,".part.dat");
+      strcat(ext,"_part.dat");
       size1 = strlen(name);
       size2 = strlen(ext);
       if( (size1+size2)  > SIZEMAX){
@@ -105,7 +105,7 @@ void fName(char *name,INT num,int cod ,char **out ){
       iota(num,st);
       strcpy(ext,"_n_");
       strcat(ext,st);
-      strcat(ext,".part.vtk");
+      strcat(ext,"_part.vtk");
       size1 = strlen(name);
       size2 = strlen(ext);
       if( (size1+size2)  > SIZEMAX){
@@ -126,7 +126,7 @@ void fName(char *name,INT num,int cod ,char **out ){
       iota(num,st);
       strcpy(ext,"_step_");
       strcat(ext,st);
-      strcat(ext,".wave.vtk");
+      strcat(ext,"_wave.vtk");
       size1 = strlen(name);
       size2 = strlen(ext);
       if( (size1+size2)  > SIZEMAX){
@@ -183,7 +183,7 @@ void fName(char *name,INT num,int cod ,char **out ){
       iota(num,st);
       strcpy(ext,"_step_");
       strcat(ext,st);
-      strcat(ext,".temp.vtk");
+      strcat(ext,"_temp.vtk");
       size1 = strlen(name);
       size2 = strlen(ext);
       if( (size1+size2)  > SIZEMAX){
@@ -204,7 +204,7 @@ void fName(char *name,INT num,int cod ,char **out ){
       iota(num,st);
       strcpy(ext,"_step_");
       strcat(ext,st);
-      strcat(ext,".flux.vtk");
+      strcat(ext,"_flux.vtk");
       size1 = strlen(name);
       size2 = strlen(ext);
       if( (size1+size2)  > SIZEMAX){
@@ -225,7 +225,7 @@ void fName(char *name,INT num,int cod ,char **out ){
       iota(num,st);
       strcpy(ext,"_step_");
       strcat(ext,st);
-      strcat(ext,".conc.vtk");
+      strcat(ext,"_conc.vtk");
       size1 = strlen(name);
       size2 = strlen(ext);
       if( (size1+size2)  > SIZEMAX){
@@ -297,10 +297,8 @@ void fName(char *name,INT num,int cod ,char **out ){
 
 /*...*/
     default:
-        printf("\n opcao invalida\n"
-             "funcao %s(*,*,*)\narquivo = %s\n",__func__,__FILE__);
-        exit(EXIT_FAILURE);
-      break;
+      ERRO_OP(__FILE__,__func__,cod);
+    break;
 /*...................................................................*/
   }
 /*===================================================================*/

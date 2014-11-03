@@ -46,29 +46,29 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void pGeomForm(double *restrict x      ,INT    *restrict el
+void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
               ,INT    *restrict nelcon ,short  *restrict nen    
               ,short  *restrict nFace  ,short  *restrict geomType
-              ,double *restrict gCc    ,double *restrict gKsi   
-              ,double *restrict gmKsi  ,double *restrict gEta   
-              ,double *restrict gmEta  ,double *restrict gNormal
-              ,double *restrict gVolume,double *restrict gXm   
-              ,double *restrict gXmcc  ,double *restrict gmKm 
-              ,double *restrict gDcca                 
+              ,DOUBLE *restrict gCc    ,DOUBLE *restrict gKsi   
+              ,DOUBLE *restrict gmKsi  ,DOUBLE *restrict gEta   
+              ,DOUBLE *restrict gmEta  ,DOUBLE *restrict gNormal
+              ,DOUBLE *restrict gVolume,DOUBLE *restrict gXm   
+              ,DOUBLE *restrict gXmcc  ,DOUBLE *restrict gmKm 
+              ,DOUBLE *restrict gDcca                 
               ,short maxNo             ,short maxViz
               ,short ndm               ,INT numel)
 {
   INT nel,no,vizNel;
   short i,j,k;
 /*... variavel local */
-  double lx[MAX_NUM_PONT];
-  double lCc[(MAX_NUM_FACE+1)*3];
-  double lKsi[MAX_NUM_FACE*3],lmKsi[MAX_NUM_FACE];
-  double lEta[MAX_NUM_FACE*3],lmEta[MAX_NUM_FACE];
-  double lNormal[MAX_NUM_FACE*3],lVolume;
-  double lXm[MAX_NUM_FACE*3],lXmcc[MAX_NUM_FACE*3];
-  double lDcca[MAX_NUM_FACE];
-  double lmKm[MAX_NUM_FACE];  
+  DOUBLE lx[MAX_NUM_PONT];
+  DOUBLE lCc[(MAX_NUM_FACE+1)*3];
+  DOUBLE lKsi[MAX_NUM_FACE*3],lmKsi[MAX_NUM_FACE];
+  DOUBLE lEta[MAX_NUM_FACE*3],lmEta[MAX_NUM_FACE];
+  DOUBLE lNormal[MAX_NUM_FACE*3],lVolume;
+  DOUBLE lXm[MAX_NUM_FACE*3],lXmcc[MAX_NUM_FACE*3];
+  DOUBLE lDcca[MAX_NUM_FACE];
+  DOUBLE lmKm[MAX_NUM_FACE];  
   short  lnFace[MAX_NUM_FACE+1],lGeomType[MAX_NUM_FACE+1],ty;
   short  isnod[MAX_SN];
 /*...................................................................*/
@@ -217,21 +217,21 @@ void pGeomForm(double *restrict x      ,INT    *restrict el
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void systForm(double *restrict x      ,INT    *restrict el
+void systForm(DOUBLE *restrict x      ,INT    *restrict el
              ,INT    *restrict nelcon ,short  *restrict nen    
              ,short  *restrict nFace  ,short  *restrict geomType
-             ,double *restrict prop   ,short  *restrict calType
-             ,short  *restrict mat    ,double *restrict gCc 
-             ,double *restrict gKsi   ,double *restrict gmKsi 
-             ,double *restrict gEta   ,double *restrict gmEta 
-             ,double *restrict gNormal,double *restrict gVolume
-             ,double *restrict gXm    ,double *restrict gXmcc 
-             ,double *restrict gmKm   ,double *restrict gDcca 
+             ,DOUBLE *restrict prop   ,short  *restrict calType
+             ,short  *restrict mat    ,DOUBLE *restrict gCc 
+             ,DOUBLE *restrict gKsi   ,DOUBLE *restrict gmKsi 
+             ,DOUBLE *restrict gEta   ,DOUBLE *restrict gmEta 
+             ,DOUBLE *restrict gNormal,DOUBLE *restrict gVolume
+             ,DOUBLE *restrict gXm    ,DOUBLE *restrict gXmcc 
+             ,DOUBLE *restrict gmKm   ,DOUBLE *restrict gDcca 
              ,INT    *restrict ia     ,INT    *restrict ja   
-             ,double *restrict ad     ,double *restrict al
-             ,double *restrict b      ,INT    *restrict id
-             ,short  *restrict faceR  ,double *restrict faceS  
-             ,double *restrict u0                                           
+             ,DOUBLE *restrict ad     ,DOUBLE *restrict al
+             ,DOUBLE *restrict b      ,INT    *restrict id
+             ,short  *restrict faceR  ,DOUBLE *restrict faceS  
+             ,DOUBLE *restrict u0                                           
              ,short const maxNo       ,short const maxViz
              ,short const ndm         ,INT const numel
              ,short const ndf         ,short const storage
@@ -241,22 +241,22 @@ void systForm(double *restrict x      ,INT    *restrict el
   INT nel,no,vizNel;
   short i,j,k;
 /*... variavel local */
-  double lx[MAX_NUM_PONT];
-  double lCc[(MAX_NUM_FACE+1)*3];
-  double lKsi[MAX_NUM_FACE*3],lmKsi[MAX_NUM_FACE];
-  double lEta[MAX_NUM_FACE*3],lmEta[MAX_NUM_FACE];
-  double lNormal[MAX_NUM_FACE*3],lVolume[MAX_NUM_FACE+1];
-  double lXm[MAX_NUM_FACE*3],lXmcc[MAX_NUM_FACE*3];
-  double lDcca[MAX_NUM_FACE];
-  double lmKm[MAX_NUM_FACE];
-  double dum;  
+  DOUBLE lx[MAX_NUM_PONT];
+  DOUBLE lCc[(MAX_NUM_FACE+1)*3];
+  DOUBLE lKsi[MAX_NUM_FACE*3],lmKsi[MAX_NUM_FACE];
+  DOUBLE lEta[MAX_NUM_FACE*3],lmEta[MAX_NUM_FACE];
+  DOUBLE lNormal[MAX_NUM_FACE*3],lVolume[MAX_NUM_FACE+1];
+  DOUBLE lXm[MAX_NUM_FACE*3],lXmcc[MAX_NUM_FACE*3];
+  DOUBLE lDcca[MAX_NUM_FACE];
+  DOUBLE lmKm[MAX_NUM_FACE];
+  DOUBLE dum;  
   short  lGeomType[MAX_NUM_FACE+1];
   short  lib;
   short  lFaceR[MAX_NUM_FACE+1];
-  double lFaceS[(MAX_NUM_FACE+1)*MAX_NDF];
-  double lA[(MAX_NUM_FACE+1)*MAX_NDF],lB[MAX_NDF];
-  double lProp[(MAX_NUM_FACE+1)*MAXPROP];
-  double lu0[(MAX_NUM_FACE+1)*MAX_NDF];
+  DOUBLE lFaceS[(MAX_NUM_FACE+1)*MAX_NDF];
+  DOUBLE lA[(MAX_NUM_FACE+1)*MAX_NDF],lB[MAX_NDF];
+  DOUBLE lProp[(MAX_NUM_FACE+1)*MAXPROP];
+  DOUBLE lu0[(MAX_NUM_FACE+1)*MAX_NDF];
   INT    lId[(MAX_NUM_FACE+1)*MAX_NDF],lViz[MAX_NUM_FACE];
   short  aux1,aux2,lMat;
 /*... loop nas celulas*/
@@ -412,9 +412,9 @@ void systForm(double *restrict x      ,INT    *restrict el
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellPload(short  *restrict faceR ,double *restrict faceS
-              ,double *restrict volume
-              ,double *restrict u     ,double *restrict f
+void cellPload(short  *restrict faceR ,DOUBLE *restrict faceS
+              ,DOUBLE *restrict volume
+              ,DOUBLE *restrict u     ,DOUBLE *restrict f
               ,INT const numel        ,short const ndf
               ,short const maxViz)
 {
@@ -441,5 +441,121 @@ void cellPload(short  *restrict faceR ,double *restrict faceS
 /*...................................................................*/
   }
 /*...................................................................*/
-
 }  
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * UPDATECELLU : atualizacao dos valores das variaveis das celulas   *
+ * com os valores das respectivas equacoes                           *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * u       -> variavel nas celulas                                   * 
+ * x       -> carga por elemento                                     * 
+ * id      -> numera das equacoes                                    * 
+ * numel   -> numero de elementos                                    * 
+ * ndf     -> graus de liberdade                                     * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * u      -> atualizado                                              * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+ void updateCellU(DOUBLE *restrict u,DOUBLE *restrict x
+                 ,INT *restrict id 
+                 ,INT const numel   ,short const ndf)
+{
+  INT nel,lNeq;
+  short jNdf;
+  for(nel=0;nel<numel;nel++){
+     for(jNdf = 0;jNdf<ndf;jNdf++){ 
+       lNeq = MAT2D(nel,jNdf,id,ndf) - 1;
+       if( lNeq > -1)   
+         MAT2D(nel,jNdf,u,ndf) = MAT2D(lNeq,jNdf,x,ndf);
+     }
+  }
+}
+/*********************************************************************/
+ 
+/********************************************************************* 
+ * INTERCELLNODE: interpolacao dos valores das celulas para o no da  *
+ * malha                                                             *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * m       -> variavel nas celulas                                   * 
+ * noU     -> nao definido                                           * 
+ * elU     -> valores nas celulas                                    * 
+ * el      -> conectividades das celulas                             * 
+ * nen     -> numero de nos por celulas                              * 
+ * numel   -> numero de elementos                                    * 
+ * nnode   -> numero de nos                                          * 
+ * maxNo   -> numero de nos por celula maximo da malha               * 
+ * ndf     -> graus de liberdade                                     * 
+ * type    -> tipo de interpolacao                                   * 
+ *            1 - media simples                                      * 
+ *            2 - media ponderada                                    * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * u      -> atualizado                                              * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+ void interCellNode(Memoria *m
+                   ,DOUBLE *restrict noU,DOUBLE *restrict elU
+                   ,INT *restrict el                 
+                   ,short *restrict nen
+                   ,INT const numel      ,INT const nnode
+                   ,short const maxNo    ,short const ndf
+                   ,short const type)
+
+{
+  int *md=NULL;
+  short j,k;
+  INT nel,no;
+  
+  switch(type){
+/*... media simple*/
+    case 1:
+/*...*/
+      HccaAlloc(int,m,md,nnode,"md",false);
+      zero(md,nnode,"int");
+      zero(noU,ndf*nnode,DOUBLEC);
+/*...................................................................*/
+
+/*...*/
+      for(nel = 0; nel < numel; nel++)
+        for(j = 0; j   < nen[nel];j++){
+          no = MAT2D(nel,j,el,maxNo) - 1;
+          if( no > -1){
+            for(k = 0; k   < ndf;k++)
+              MAT2D(no,k,noU,ndf) += MAT2D(nel,k,elU,ndf);
+            md[no]++;
+          }
+        }
+/*...................................................................*/
+
+/*...*/
+      for(no = 0; no < nnode; no++)
+        for(k = 0; k < ndf; k++)
+          MAT2D(no,k,noU,ndf) = MAT2D(no,k,noU,ndf)/md[no];
+/*...................................................................*/
+          
+/*...*/
+      HccaDealloc(m,md,"md",false);
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
+/*... media simple*/
+    default:
+      ERRO_OP(__FILE__,__func__,type);
+    break;
+  }
+/*...................................................................*/
+}
+/*********************************************************************/

@@ -8,9 +8,10 @@
 
 /*...*/
   #include<Assbly.h>
+  #include<Define.h>
   #include<HccaBlas.h>
   #include<HccaStdBool.h>
-  #include<Define.h>
+  #include<Memoria.h>
 /*...................................................................*/
 
 /* ... calculo das propriedade geometicas*/
@@ -25,6 +26,16 @@
               ,double *restrict gDcca               
               ,short maxNo             ,short maxViz
               ,short ndm               ,INT numel);
+/*...................................................................*/
+
+/*... */
+  void interCellNode(Memoria *m
+                   ,DOUBLE *restrict noU,DOUBLE *restrict elU
+                   ,INT *restrict el                 
+                   ,short *restrict nen
+                   ,INT const numel      ,INT const nnode
+                   ,short const maxNo    ,short const ndf
+                   ,short const type);
 /*...................................................................*/
 
 /* ... montagem do sistemas de equacoes*/
@@ -72,6 +83,12 @@
                 ,double *restrict u     ,double *restrict f
                 ,INT const numel        ,short const ndf
                 ,short const maxViz);
+/*...................................................................*/
+
+/*... */
+  void updateCellU(DOUBLE *restrict u,DOUBLE *restrict x
+                  ,INT *restrict id 
+                  ,INT const numel   ,short const ndf);
 /*...................................................................*/
 
 /*... funcoes geometricas*/

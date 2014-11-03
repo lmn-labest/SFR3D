@@ -5,15 +5,16 @@
 /*********************************************************************/
 
 /*********************************************************************/
+#include<CellLoop.h>
 #include<Coo.h>
 #include<File.h>
 #include<Memoria.h>
 #include<Mesh.h>
-#include<ReadFile.h>
 #include<WriteVtk.h>
 #include<Sisteq.h>
+#include<Solv.h>
+#include<ReadFile.h>
 #include<Reord.h>
-#include<CellLoop.h>
 /*********************************************************************/
 
 /*********************************************************************/
@@ -31,6 +32,8 @@ int main(int argc,char**argv){
 /*... Sistema de equacao*/
   SistEq *sistEqT1=NULL;
   SistEq *sistEqD1=NULL;
+/*... solver*/
+  Solv *solvD1=NULL;
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
 
@@ -52,7 +55,7 @@ int main(int argc,char**argv){
   char word[WORD_SIZE],str[WORD_SIZE];
   char macro[][WORD_SIZE] = {"mesh" ,"stop","config"
                             ,"pgeo" ,"pcoob","presolvd"
-                            ,"solvd","pcoo" ,""}; 
+                            ,"solvd","pcoo" ,"ptemp"}; 
 /* ..................................................................*/
 
 /*... Memoria principal(valor padrao - bytes)*/
@@ -88,7 +91,6 @@ int main(int argc,char**argv){
   }
 
   fileIn = openFile(nameIn,"r");
- 
 /*...................................................................*/
 
 /*... arquivos de saida*/
@@ -253,7 +255,29 @@ int main(int argc,char**argv){
     else if((!strcmp(word,macro[5]))){
       printf("%s\n",DIF);
       printf("%s\n",word);
-/*... inicializando a estrutuda de equacoes do problema*/
+/*... inicializando a estrutura de equacoes do problema*/
+      solvD1 = (Solv*) malloc(sizeof(Solv));
+      if(solvD1 == NULL){
+        printf("Erro ponteiro solvD1\n");
+        exit(EXIT_FAILURE);
+      }
+      solvD1->solver   = PCG;
+      solvD1->tol      = 1.0e-12;
+      solvD1->maxIt    = 5000;    
+      solvD1->fileSolv = NULL;
+      solvD1->log      = true;
+/*..*/
+      if(solvD1->log){  
+        strcpy(nameOut,preName);
+        strcat(nameOut,"_pcg");
+        fName(preName,0,11,&nameOut);
+        solvD1->fileSolv = openFile(nameOut,"w");
+      }
+/*...................................................................*/
+
+/*...................................................................*/
+
+/*... inicializa a estrutura do solver*/
       sistEqD1 = (SistEq*) malloc(sizeof(SistEq));
       if(sistEqD1 == NULL){
         printf("Erro ponteiro sistEqD1\n");
@@ -301,6 +325,7 @@ int main(int argc,char**argv){
                 ,strAd             ,strA          ,sistEqD1);
       printf("Estrutuda montada.\n");
 /*...................................................................*/
+      printf("%s\n\n",DIF);
     }   
 /*===================================================================*/
 
@@ -308,17 +333,22 @@ int main(int argc,char**argv){
  * macro: solvd - problema de difusao pura
  *===================================================================*/
     else if((!strcmp(word,macro[6]))){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      printf("%s\n",DIF);
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
       cellPload(mesh->elm.faceRd1    ,mesh->elm.faceSd1
                ,mesh->elm.geom.volume
-               ,mesh->node.temp      ,sistEqD1->b0
+               ,mesh->elm.temp       ,sistEqD1->b0
                ,mesh->numel          ,mesh->ndfD[0]
                ,mesh->maxViz);
 /*...................................................................*/
 
 /*... calculo de: A(i),b(i)
                   R(i) = b(i) - A(i)x(i)*/
-      systForm(mesh->node.x         ,mesh->elm.node       
+      printf("%s\n",DIF);
+      printf("Montagem do sistema de equacoes.\n");
+      systForm(mesh->node.x           ,mesh->elm.node       
              ,mesh->elm.adj.nelcon    ,mesh->elm.nen           
              ,mesh->elm.adj.nViz      ,mesh->elm.geomType          
              ,mesh->elm.material.prop ,mesh->elm.material.type 
@@ -332,18 +362,36 @@ int main(int argc,char**argv){
              ,sistEqD1->ad            ,sistEqD1->al       
              ,sistEqD1->b             ,sistEqD1->id       
              ,mesh->elm.faceRd1       ,mesh->elm.faceSd1       
-             ,mesh->node.temp                                               
+             ,mesh->elm.temp                                               
              ,mesh->maxNo             ,mesh->maxViz
              ,mesh->ndm               ,mesh->numel
              ,mesh->ndfD[0]           ,sistEqD1->storage
              ,true                    ,true   
              ,sistEqD1->unsym);   
+      printf("Sistema montado.\n");
+      printf("%s\n",DIF);
 /*...................................................................*/
 
 /*... soma o vetor b = b + b0*/
       addVector(1.0e0        ,sistEqD1->b
                ,1.0e0        ,sistEqD1->b0
                ,sistEqD1->neq,sistEqD1->b);   
+/*...................................................................*/
+
+/*...*/
+      printf("%s\n",DIF);
+      printf("Resolucao do sistema de equacoes.\n");
+      solverC(&m               ,sistEqD1->neq ,sistEqD1->nad
+             ,sistEqD1->ia     ,sistEqD1->ja  
+             ,sistEqD1->al     ,sistEqD1->ad,sistEqD1->au
+             ,sistEqD1->b      ,sistEqD1->x
+             ,solvD1->tol      ,solvD1->maxIt     
+             ,sistEqD1->storage,solvD1->solver
+             ,solvD1->fileSolv ,solvD1->log  
+             ,false            ,false
+             ,sistEqD1->unsym  ,false);
+      printf("Sistema resolvido.\n");
+      printf("%s\n",DIF);
 /*...................................................................*/
 
 /*...*/
@@ -355,6 +403,22 @@ int main(int argc,char**argv){
 #endif
 /*...................................................................*/
 
+/*... x -> temp*/
+      updateCellU(mesh->elm.temp,sistEqD1->x
+            ,sistEqD1->id  
+            ,mesh->numel   , mesh->ndfD[0]);
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos*/
+     interCellNode(&m
+                  ,mesh->node.temp,mesh->elm.temp
+                  ,mesh->elm.node                 
+                  ,mesh->elm.nen
+                  ,mesh->numel    ,mesh->nnode    
+                  ,mesh->maxNo    ,mesh->ndfD[0]   
+                  ,1);
+/*...................................................................*/
+      printf("%s\n\n",DIF);
     }
 /*===================================================================*/
 
@@ -371,6 +435,28 @@ int main(int argc,char**argv){
               ,sistEqD1->nad  ,sistEqD1->storage
               ,sistEqD1->unsym,false 
               ,nameOut);
+/*...................................................................*/
+      printf("%s\n\n",DIF);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: ptemp - escreve os arquivos dos resultados da temperatura
+ *===================================================================*/
+    else if((!strcmp(word,macro[8]))){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      fName(preName,0,8,&nameOut);
+/*...*/
+      wResVtk(&m             ,mesh->node.x      
+             ,mesh->elm.node ,mesh->elm.mat    
+             ,mesh->elm.nen  ,mesh->elm.geomType
+             ,mesh->elm.temp ,mesh->node.temp
+             ,mesh->nnode    ,mesh->numel  
+             ,mesh->ndm      ,mesh->maxNo 
+             ,mesh->numat    ,mesh->ndfD    
+             ,nameOut        ,bvtk    
+             ,fileOut);
 /*...................................................................*/
       printf("%s\n\n",DIF);
     }   

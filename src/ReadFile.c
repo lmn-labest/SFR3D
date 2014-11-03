@@ -57,38 +57,38 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 /*... tipo geometrico */
   HccaAlloc(short,m,mesh->elm.geomType ,nel              ,"elgT"  ,_AD_);
 /*... centroide */
-  HccaAlloc(double,m,mesh->elm.geom.cc ,nel*ndm          ,"elCc"  ,_AD_);
+  HccaAlloc(DOUBLE,m,mesh->elm.geom.cc ,nel*ndm          ,"elCc"  ,_AD_);
 /*... vetor que une os centroides dos elementos */
-  HccaAlloc(double               ,m       ,mesh->elm.geom.ksi
+  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.ksi
          ,nel*ndm*maxViz,"elksi"  ,_AD_);
 /*... modulo do vetor que une os centroides dos elementos */
-  HccaAlloc(double               ,m       ,mesh->elm.geom.mksi
+  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.mksi
         ,nel*maxViz     ,"elmksi",_AD_);
 /*... vetor paralelo a face da celula */
-  HccaAlloc(double               ,m       ,mesh->elm.geom.eta
+  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.eta
          ,nel*ndm*maxViz,"eleta"  ,_AD_);
 /*... modulo do vetor paralelo a face da celula */
-  HccaAlloc(double               ,m       ,mesh->elm.geom.meta
+  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.meta
         ,nel*maxViz     ,"elmeta",_AD_);
 /*... volume da celula*/                           
-  HccaAlloc(double               ,m       ,mesh->elm.geom.volume
+  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.volume
         ,nel            ,"elVol",_AD_);
 /*... vetor normal a face da celula*/                           
-  HccaAlloc(double               ,m       ,mesh->elm.geom.normal
+  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.normal
          ,nel*maxViz*ndm       ,"elnorm",_AD_);
 /*... ponto medio da face*/                           
-  HccaAlloc(double               ,m       ,mesh->elm.geom.xm
+  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.xm
          ,nel*maxViz*ndm       ,"elxm",_AD_);
 /*... vetor que une o centroide ao ponto medio*/                           
-  HccaAlloc(double               ,m       ,mesh->elm.geom.xmcc
+  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.xmcc
          ,nel*maxViz*ndm       ,"elxmcc",_AD_);
 /*... distancia entro o ponto medio da face e ponto de intercao 
       entre a linha entre os centroides e a face*/         
-  HccaAlloc(double               ,m       ,mesh->elm.geom.mkm  
+  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.mkm  
          ,nel*maxViz           ,"elmkm" ,_AD_);
 /*... distancia entro o ponto medio da face e ponto de intercao 
       entre a linha entre os centroides e a face*/         
-  HccaAlloc(double               ,m       ,mesh->elm.geom.dcca 
+  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.dcca 
          ,nel*maxViz           ,"eldcca",_AD_);
 
 /*... zerando os variavies*/
@@ -96,29 +96,29 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
   zero(mesh->elm.mat          ,nel           ,"short"  );
   zero(mesh->elm.nen          ,nel           ,"short"  );
   zero(mesh->elm.geomType     ,nel           ,"short"  );
-  zero(mesh->elm.geom.cc      ,nel*ndm       ,"double" );
-  zero(mesh->elm.geom.ksi     ,nel*ndm*maxViz,"double" );
-  zero(mesh->elm.geom.mksi    ,nel*maxViz    ,"double" );
-  zero(mesh->elm.geom.eta     ,nel*ndm*maxViz,"double" );
-  zero(mesh->elm.geom.meta    ,nel*maxViz    ,"double" );
-  zero(mesh->elm.geom.volume  ,nel           ,"double" );
-  zero(mesh->elm.geom.normal  ,nel*ndm*maxViz,"double" );
-  zero(mesh->elm.geom.xm      ,nel*ndm*maxViz,"double" );
-  zero(mesh->elm.geom.xmcc    ,nel*ndm*maxViz,"double" );
-  zero(mesh->elm.geom.mkm     ,nel*maxViz    ,"double" );
-  zero(mesh->elm.geom.dcca    ,nel*maxViz    ,"double" );
+  zero(mesh->elm.geom.cc      ,nel*ndm       ,DOUBLEC);
+  zero(mesh->elm.geom.ksi     ,nel*ndm*maxViz,DOUBLEC);
+  zero(mesh->elm.geom.mksi    ,nel*maxViz    ,DOUBLEC);
+  zero(mesh->elm.geom.eta     ,nel*ndm*maxViz,DOUBLEC);
+  zero(mesh->elm.geom.meta    ,nel*maxViz    ,DOUBLEC);
+  zero(mesh->elm.geom.volume  ,nel           ,DOUBLEC);
+  zero(mesh->elm.geom.normal  ,nel*ndm*maxViz,DOUBLEC);
+  zero(mesh->elm.geom.xm      ,nel*ndm*maxViz,DOUBLEC);
+  zero(mesh->elm.geom.xmcc    ,nel*ndm*maxViz,DOUBLEC);
+  zero(mesh->elm.geom.mkm     ,nel*maxViz    ,DOUBLEC);
+  zero(mesh->elm.geom.dcca    ,nel*maxViz    ,DOUBLEC);
 /*...................................................................*/
 
 
 /*... alocando materiais*/
 /*... Prop*/ 
-  HccaAlloc(double,m,mesh->elm.material.prop,MAXPROP*numat     
+  HccaAlloc(DOUBLE,m,mesh->elm.material.prop,MAXPROP*numat     
          ,"prop" ,_AD_);
 /*... type*/ 
   HccaAlloc(short,m,mesh->elm.material.type,numat     
          ,"type" ,_AD_);
 /*... zerando os variavies*/
-  zero(mesh->elm.material.prop,MAXPROP*numat,"double");
+  zero(mesh->elm.material.prop,MAXPROP*numat,DOUBLEC);
   zero(mesh->elm.material.type,numat,"short");
 /*...................................................................*/
 
@@ -134,10 +134,10 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 
 /*---alocando variaveis nodais */      
 /*---alocando coordenadas      */      
-  HccaAlloc(double,m,mesh->node.x,ndm*nn ,"xnode",_AD_);   
+  HccaAlloc(DOUBLE,m,mesh->node.x,ndm*nn ,"xnode",_AD_);   
      
 /*... zerando os variavies*/
-  zero(mesh->node.x,ndm*nn,"double" );
+  zero(mesh->node.x,ndm*nn,DOUBLEC);
 /*...................................................................*/
 
 /*... problema de transporte*/   
@@ -145,10 +145,10 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 /*... alocando memoria*/
      HccaAlloc(short,m,mesh->elm.faceRt1
             ,nel*(maxViz+1)*mesh->ndfT[0],"faceRt1"  ,_AD_);
-     HccaAlloc(double,m,mesh->elm.faceSt1
+     HccaAlloc(DOUBLE,m,mesh->elm.faceSt1
             ,nel*(maxViz+1)*mesh->ndfT[0],"faceSt1"  ,_AD_);
      zero(mesh->elm.faceRt1  ,nel*(maxViz+1)*mesh->ndfT[0],"short"  );
-     zero(mesh->elm.faceSt1  ,nel*(maxViz+1)*mesh->ndfT[0],"double" );
+     zero(mesh->elm.faceSt1  ,nel*(maxViz+1)*mesh->ndfT[0],DOUBLEC);
 /*...................................................................*/
    }
 /*...................................................................*/
@@ -158,13 +158,16 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 /*... alocando memoria*/
      HccaAlloc(short,m,mesh->elm.faceRd1
             ,nel*(maxViz+1)*mesh->ndfD[0],"faceRd1"  ,_AD_);
-     HccaAlloc(double,m,mesh->elm.faceSd1
+     HccaAlloc(DOUBLE,m,mesh->elm.faceSd1
             ,nel*(maxViz+1)*mesh->ndfD[0],"faceSd1"  ,_AD_);
-     HccaAlloc(double,m,mesh->node.temp
-            ,nel*mesh->ndfD[0],"temp"     ,_AD_);
+     HccaAlloc(DOUBLE,m,mesh->node.temp
+            ,nn*mesh->ndfD[0] ,"nTemp"             ,_AD_);
+     HccaAlloc(DOUBLE,m,mesh->elm.temp
+            ,nel*mesh->ndfD[0],"eTemp"             ,_AD_);
      zero(mesh->elm.faceRd1  ,nel*(maxViz+1)*mesh->ndfD[0],"short"  );
-     zero(mesh->elm.faceSd1  ,nel*(maxViz+1)*mesh->ndfD[0],"double" );
-     zero(mesh->node.temp    ,nel*mesh->ndfD[0]           ,"double" );
+     zero(mesh->elm.faceSd1  ,nel*(maxViz+1)*mesh->ndfD[0],DOUBLEC);
+     zero(mesh->node.temp    ,nn*mesh->ndfD[0]            ,DOUBLEC);
+     zero(mesh->elm.temp     ,nel*mesh->ndfD[0]           ,DOUBLEC);
 /*...................................................................*/
    }
 /*...................................................................*/
@@ -449,7 +452,7 @@ void parametros(INT  *nn   ,INT *nel  ,short *maxNo, short *maxViz
  * x    -> coordenada                                                *
  * ------------------------------------------------------------------*
  *********************************************************************/
-void readVfCoor(double *x,INT nn, short ndm,FILE *file){
+void readVfCoor(DOUBLE *x,INT nn, short ndm,FILE *file){
   INT i,k;
   long idum;
   int j;
@@ -606,13 +609,13 @@ void readVfRes(short *id,INT numel,short maxRes
  * ----------------------------------------------------------------- *
  * f     - valores das restricoes                                    *
  *********************************************************************/
-void readVfSource(double *f          ,INT numel
+void readVfSource(DOUBLE *f          ,INT numel
                  ,short int maxCarga,char *str
                  ,FILE* file){
   
   char word[WORD_SIZE];
   int  j,kk,nTerm;
-  double carga;
+  DOUBLE carga;
   INT nel;
   long aux;  
   int error=0; 
@@ -678,7 +681,7 @@ void config(bool *bvtk,Reord *reordMesh,FILE* file)
   char word[WORD_SIZE];
   bool flag[NCONFIG];
   int i=0,j,temp;
-  double conv;
+  DOUBLE conv;
 
 
   *bvtk            = false;
@@ -739,7 +742,7 @@ void config(bool *bvtk,Reord *reordMesh,FILE* file)
 /*********************************************************************/
 /* Leitura dos materiais                                             */
 /*********************************************************************/
-void readVfMat(double *prop,short *type,short numat,FILE* file)
+void readVfMat(DOUBLE *prop,short *type,short numat,FILE* file)
 {
   
     short i;
@@ -846,5 +849,3 @@ static void getword(char *line, char*word){
     
 }
 /*********************************************************************/
-
-

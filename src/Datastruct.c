@@ -15,9 +15,12 @@
  *-------------------------------------------------------------------* 
  * Parametros saida:                                                 * 
  *-------------------------------------------------------------------* 
- *                                                                   * 
+ * sistEqX -> estrutura de matriz atualizado ia e ja. 
  *-------------------------------------------------------------------* 
  * OBS:                                                              * 
+ * ad -> alocados                                                    * 
+ * al -> alocados                                                    * 
+ * au -> alocados                                                    * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void dataStruct(Memoria *m ,INT *id   ,INT *num   ,INT *nelcon
@@ -91,9 +94,7 @@ void dataStruct(Memoria *m ,INT *id   ,INT *num   ,INT *nelcon
 
 /*...*/
      default:
-       printf("\n opcao invalida\n"
-           "funcao fname(*,*,*)\narquivo = %s\n",__FILE__);
-       exit(EXIT_FAILURE);
+       ERRO_OP(__FILE__,__func__,type);
      break;
 /*...................................................................*/
   }

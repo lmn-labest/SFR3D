@@ -1,5 +1,10 @@
 #ifndef _DEFINE_
   #define _DEFINE_
+/*...*/
+  #include<stdlib.h>
+  #include<stdio.h>
+/*...................................................................*/
+
 /*numero maximo de propriedade*/
   #define MAXPROP      5  /*numero maximo de propriedades*/
   #define MAXMAT      200 /*numero maximo de materias*/
@@ -18,6 +23,11 @@
   #define MAX_NDF 5
 /*...................................................................*/
 
+/*... solver*/
+  #define PCG        1
+  #define PBICGSTAB  2
+/*...................................................................*/
+
 /*... CSR*/
   #define CSR  1
   #define CSRD 2
@@ -32,10 +42,10 @@
 /*...................................................................*/
 
 /*... definicao do tipo de inteiros usados*/
-  #define INT        int 
-  #define INTC      "int"
-  #define DOUBLE   double
-  #define DOUBLEC "double"
+  #define INT         int 
+  #define INTC       "int"
+  #define DOUBLE    double
+  #define DOUBLEC  "double"
 /*...................................................................*/
 
 /*... macro para acesso matricial em vetores*/
@@ -52,5 +62,16 @@
 
 /*... Saida de Erro*/                                                  
   #define ERRO_RCM fprintf(stderr,"\nrcm - fatal error!\n")
+
+  #define ERRO_OP(file,func,op)\
+    fprintf(stderr,"Opecao %d e invalida!!\n",op);\
+    fprintf(stderr,"Arquivo:%s\nFonte:  %s\n",file,func);\
+    exit(EXIT_FAILURE);
+ 
+  #define ERRO_GERAL(file,func,str)\
+    fprintf(stderr,"Erro: %s!!\n",str);\
+    fprintf(stderr,"Arquivo:%s\nFonte:  %s\n",file,func);\
+    exit(EXIT_FAILURE);
+
 /*...................................................................*/
 #endif/*_DEFINE_*/
