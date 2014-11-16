@@ -295,6 +295,24 @@ void fName(char *name,INT num,int cod ,char **out ){
       break;
 /*...................................................................*/
 
+/*... arquivo da matriz no formato coo*/
+    case 14:
+      strcat(ext,"_b.mtx");
+      size1 = strlen(name);
+      size2 = strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+        exit(EXIT_FAILURE);      
+      }
+      strcpy(*out,name);
+      strcat(*out,ext);
+      break;
+/*...................................................................*/
+
 /*...*/
     default:
       ERRO_OP(__FILE__,__func__,cod);

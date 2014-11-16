@@ -125,25 +125,55 @@ void csrToCoo(int *lin   ,int *col  ,double *val
     if(bin) 
       val[kk] = 1.0;
     else
-      val[kk] = ad[i];
+      val[kk] = ad[i];      
     kk++;
 /*...................................................................*/
     n  = ia[i+1] - ia[i];
     ipoint = ia[i];
     for(j=0;j<n ;j++){
-      lin[kk] = nl1;
+      lin[kk]  = nl1;
       col[kk]  = ja[ipoint+j]+1;
       if(bin)
         val[kk]  = 1.0;
       else{
         if( col[kk] < nl1 ) 
-          val[kk] = al[ja[ipoint+j]];
+          val[kk] = al[ipoint+j];      
         if( col[kk] > nl1 && unsym )
-          val[kk]  = au[ja[ipoint+j]];
+          val[kk]  = au[ipoint+j];
       }
       kk++;
     }
   }
+}
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * WRITECOOB: escreve o vetor de forcao no formato COO               * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * b   -> vetor de forcas                                            * 
+ * neq -> numero de equacoes                                         * 
+ * name-> nome do arquivo de saida                                   * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+  void writeCooB(double *b,INT const neq,char *name){
+ 
+  FILE *fileOut;
+  int i;
+   
+  fileOut = openFile(name,"w");
+
+  fprintf(fileOut,"%%MatrixMarket matrix array real general\n");
+  fprintf(fileOut,"%d %d\n",neq,1);
+  for(i=0;i<neq;i++)
+    fprintf(fileOut,"%.14e\n",b[i]);
+
 }
 /*********************************************************************/ 
 

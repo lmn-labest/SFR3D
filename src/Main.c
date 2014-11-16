@@ -262,7 +262,7 @@ int main(int argc,char**argv){
         exit(EXIT_FAILURE);
       }
       solvD1->solver   = PCG;
-      solvD1->tol      = 1.0e-12;
+      solvD1->tol      = 1.0e-14;
       solvD1->maxIt    = 5000;    
       solvD1->fileSolv = NULL;
       solvD1->log      = true;
@@ -375,21 +375,21 @@ int main(int argc,char**argv){
 /*... soma o vetor b = b + b0*/
       addVector(1.0e0        ,sistEqD1->b
                ,1.0e0        ,sistEqD1->b0
-               ,sistEqD1->neq,sistEqD1->b);   
+               ,sistEqD1->neq,sistEqD1->b);
 /*...................................................................*/
 
 /*...*/
       printf("%s\n",DIF);
       printf("Resolucao do sistema de equacoes.\n");
-      solverC(&m               ,sistEqD1->neq ,sistEqD1->nad
-             ,sistEqD1->ia     ,sistEqD1->ja  
-             ,sistEqD1->al     ,sistEqD1->ad,sistEqD1->au
-             ,sistEqD1->b      ,sistEqD1->x
-             ,solvD1->tol      ,solvD1->maxIt     
-             ,sistEqD1->storage,solvD1->solver
-             ,solvD1->fileSolv ,solvD1->log  
-             ,false            ,false
-             ,sistEqD1->unsym  ,false);
+//    solverC(&m               ,sistEqD1->neq ,sistEqD1->nad
+//           ,sistEqD1->ia     ,sistEqD1->ja  
+//           ,sistEqD1->al     ,sistEqD1->ad,sistEqD1->au
+//           ,sistEqD1->b      ,sistEqD1->x
+//           ,solvD1->tol      ,solvD1->maxIt     
+//           ,sistEqD1->storage,solvD1->solver
+//           ,solvD1->fileSolv ,solvD1->log  
+//           ,false            ,false
+//           ,sistEqD1->unsym  ,false);
       printf("Sistema resolvido.\n");
       printf("%s\n",DIF);
 /*...................................................................*/
@@ -429,12 +429,20 @@ int main(int argc,char**argv){
       printf("%s\n",DIF);
       printf("%s\n",word);
       fName(preName,0,12,&nameOut);
-/*...*/
+/*... matriz A*/
       writeCoo(&m,sistEqD1->ia,sistEqD1->ja,sistEqD1->neq
               ,sistEqD1->au   ,sistEqD1->ad,sistEqD1->al        
               ,sistEqD1->nad  ,sistEqD1->storage
               ,sistEqD1->unsym,false 
               ,nameOut);
+/*...................................................................*/
+
+/*... vetor de forcas b*/      
+      fName(preName,0,14,&nameOut);
+      for(int i=0;i<sistEqD1->neq;i++)
+        sistEqD1->b[i] /= sistEqD1->ad[i];
+
+      writeCooB(sistEqD1->b,sistEqD1->neq,nameOut);
 /*...................................................................*/
       printf("%s\n\n",DIF);
     }   

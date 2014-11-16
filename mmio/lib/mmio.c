@@ -422,7 +422,7 @@ int mm_write_mtx_crd(char fname[], int M, int N, int nz, int I[], int J[],
     else
     if (mm_is_real(matcode))
         for (i=0; i<nz; i++)
-            fprintf(f, "%d %d %20.10e\n", I[i], J[i], val[i]);
+            fprintf(f, "%d %d %30.14e\n", I[i], J[i], val[i]);
     else
     if (mm_is_complex(matcode))
         for (i=0; i<nz; i++)

@@ -14,6 +14,7 @@
   #include<Define.h>
   #include<Graph.h>
   #include<HccaStdBool.h>
+  #include<File.h>
   #ifdef _MMIO_
     #include<mmio/mmio.h>
   #endif
@@ -25,6 +26,7 @@
                ,INT nad   ,short type
                ,bool unsym,bool bin
                ,char* name);
+  void writeCooB(double *b,INT const neq,char *name);
 /*...................................................................*/ 
 
 /*...*/

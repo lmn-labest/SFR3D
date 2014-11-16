@@ -47,7 +47,8 @@ void pcg(INT const neq      ,INT const nad
 /* chute inicial*/
   if(newX)  
     for(i = 0; i < neq; i++)  
-      x[i] = 0.e0;
+      x[i] = 0.l;
+  
       
   matvec(neq,ia,ja,al,ad,x,z);
   
@@ -66,7 +67,7 @@ void pcg(INT const neq      ,INT const nad
     for(i = 0; i < neq; i++)   {
       x[i] +=  alpha * b[i];
       r[i] -=  alpha * z[i];
-      z[i] = r[i] / m[i];
+      z[i]  = r[i] / m[i];
     }
     beta = dot(r,z,neq)/d;
     for(i = 0; i < neq; i++)   {
@@ -77,7 +78,7 @@ void pcg(INT const neq      ,INT const nad
   }
 /* -------------------------------------------------------*/
   matvec(neq,ia,ja,al,ad,x,z);
-/*norma de energia = x*b */
+/*norma de energia = xT*A*x */
   energy = dot(x,z,neq);
 /* -------------------------------------------------------*/
   timef = getTimeC() - timei;   
