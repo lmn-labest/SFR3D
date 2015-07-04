@@ -12,7 +12,7 @@
   #include<Csr.h>
 
   
-  typedef struct SistEq{
+  typedef struct{
     INT *ja,*ia;
     double *al,*ad,*au;
     double  *b,*b0,*x;

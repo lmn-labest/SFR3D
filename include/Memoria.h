@@ -19,7 +19,7 @@
 
 long nmax;
 
-typedef struct Memoria{
+typedef struct{
   char *ia;/*arroanjo principal*/
   char nome_ponteiro[NPONTEIRO][MNOMEPONTEIRO+1];/*nome dos ponterios alocados*/
   long int pont[NPONTEIRO][2];/*localizacao do ponteiro no ia*/                  

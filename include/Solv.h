@@ -12,7 +12,7 @@
 /*...................................................................*/
   
 /*....*/
-  typedef struct Solv{
+  typedef struct{
     DOUBLE            tol;
     unsigned int    maxIt;
     short          solver;

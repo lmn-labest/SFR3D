@@ -8,7 +8,7 @@
     #include<sys/time.h>
   #endif
   #include<stdio.h>
-  typedef struct Time{
+  typedef struct{
     double solv  ;
     double dot   ;
     double matvec;

@@ -7,21 +7,21 @@
   #include<Define.h>
 
 /*... Material*/
-  typedef struct Material{
+  typedef struct{
     double *prop;      /*valores numericos da propriedade*/
     short  *type;      /*tipo de calculo da celula*/ 
   } Material;
 /*...................................................................*/
 
 /*...*/
-  typedef struct Adjacency{
+  typedef struct{
     INT  *nelcon;
     short *nViz;
   }Adjacency;
 /*...................................................................*/  
 
 /*...*/
-  typedef struct Geom{
+  typedef struct{
     DOUBLE *cc;    /*centroide da celulas*/
     DOUBLE *ksi;   /*vetor que une os centroides da celulas*/
     DOUBLE *mksi;  /*modulo do vetor que une os centroides da celulas*/
@@ -37,7 +37,7 @@
 /*...................................................................*/  
 
 /*... Elementos*/
-  typedef struct Elmt{
+  typedef struct{
     INT    *node;       /*conectividades*/
     short  *mat;       /*materiais do elementos*/   
     short  *nen;       /*numero de no por elemento*/
@@ -60,7 +60,7 @@
 /*...................................................................*/
   
 /*... nos*/
-  typedef struct Node{
+  typedef struct{
     DOUBLE *x;      /*coordenadas*/
     DOUBLE *w;
     DOUBLE *pressure;
@@ -70,7 +70,7 @@
 /*...................................................................*/
   
 /*... Malha*/
-  typedef struct Mesh{
+  typedef struct{
     INT nnode;/*numero de nos*/
     INT numel;/*numero de elementos*/
     short ndm;     /*dimensao*/
@@ -87,7 +87,7 @@
 /*...................................................................*/
 
 /* variaveis do preparticionador*/
-  typedef struct PartMesh{
+  typedef struct{
     time_t tmetis;
     int *np;
     int *ep;

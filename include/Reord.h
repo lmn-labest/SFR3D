@@ -13,7 +13,7 @@
 /*...................................................................*/
 
 /*...*/
-  typedef struct Reord{
+  typedef struct{
     INT *num;
     INT flag;
   }Reord;
