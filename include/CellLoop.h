@@ -14,121 +14,199 @@
   #include<Memoria.h>
 /*...................................................................*/
 
+/*...*/
+  void convTempForKelvin(DOUBLE *restrict uC,INT const n
+                        ,bool const fKelvin);
+/*...................................................................*/
+
 /* ... calculo das propriedade geometicas*/
-  void pGeomForm(double *restrict x    ,INT    *restrict el
+  void pGeomForm(DOUBLE *restrict x    ,INT    *restrict el
               ,INT    *restrict nelcon ,short  *restrict nen    
               ,short  *restrict nFace  ,short  *restrict geomType
-              ,double *restrict gCc    ,double *restrict gKsi  
-              ,double *restrict gmKsi  ,double *restrict gEta 
-              ,double *restrict gmEta  ,double *restrict gNormal
-              ,double *restrict gVolume,double *restrict gXm    
-              ,double *restrict gXmcc  ,double *restrict gmKm   
-              ,double *restrict gDcca               
+              ,DOUBLE *restrict gCc    ,DOUBLE *restrict gKsi  
+              ,DOUBLE *restrict gmKsi  ,DOUBLE *restrict gEta 
+              ,DOUBLE *restrict gmEta  ,DOUBLE *restrict gNormal
+              ,DOUBLE *restrict gVolume,DOUBLE *restrict gXm    
+              ,DOUBLE *restrict gXmcc  ,DOUBLE *restrict gmKm   
+              ,DOUBLE *restrict gDcca               
               ,short maxNo             ,short maxViz
               ,short ndm               ,INT numel);
 /*...................................................................*/
 
+/*.. reconstrucao de gradiente*/
+  void rcGradU(Memoria *m
+            ,INT    *restrict el      ,INT    *restrict nelcon
+             ,DOUBLE *restrict cc     ,DOUBLE *restrict x     
+            ,short  *restrict nen     ,short  *restrict nFace
+            ,short  *restrict geomType,DOUBLE *restrict leastSquare  
+            ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi 
+            ,DOUBLE *restrict gEta    ,DOUBLE *restrict gmEta 
+            ,DOUBLE *restrict gNormal ,DOUBLE *restrict gVolume
+            ,DOUBLE *restrict gXmcc   ,DOUBLE *restrict gmKm    
+            ,short  *restrict faceR   ,DOUBLE *restrict faceS  
+            ,DOUBLE *restrict u       ,DOUBLE *restrict gradU               
+            ,DOUBLE *restrict nU      ,short const lib
+            ,short const maxNo        ,short const maxViz
+            ,short const ndf          ,short const ndm         
+            ,INT const numel          ,INT const nNode); 
+/*...................................................................*/
+
 /*... */
   void interCellNode(Memoria *m
-                   ,DOUBLE *restrict noU,DOUBLE *restrict elU
-                   ,INT *restrict el                 
-                   ,short *restrict nen
-                   ,INT const numel      ,INT const nnode
-                   ,short const maxNo    ,short const ndf
-                   ,short const type);
+                   ,DOUBLE *restrict noU  ,DOUBLE *restrict elU
+                   ,INT *restrict el      ,short  *restrict geomType 
+                   ,DOUBLE *restrict cc   ,DOUBLE *restrict x   
+                   ,short *restrict nen   ,short *restrict nFace
+                   ,short  *restrict faceR,DOUBLE *restrict faceS  
+                   ,INT const numel       ,INT const nnode
+                   ,short const maxNo     ,short const maxViz    
+                   ,short const ndf       ,short const ndm
+                   ,bool const fBc        ,short const type);
 /*...................................................................*/
 
 /* ... montagem do sistemas de equacoes*/
- void systForm(double *restrict x      ,INT    *restrict el
-             ,INT    *restrict nelcon ,short  *restrict nen    
-             ,short  *restrict nFace  ,short  *restrict geomType
-             ,double *restrict prop   ,short  *restrict calType
-             ,short  *restrict mat    ,double *restrict gCc
-             ,double *restrict gKsi   ,double *restrict gmKsi
-             ,double *restrict gEta   ,double *restrict gmEta
-             ,double *restrict gNormal,double *restrict gVolume
-             ,double *restrict gXm    ,double *restrict gXmcc   
-             ,double *restrict gmKm   ,double *restrict gDcca                 
-             ,INT    *restrict ia     ,INT    *restrict ja                    
-             ,double *restrict ad     ,double *restrict al                    
-             ,double *restrict b      ,INT    *restrict id 
-             ,short  *restrict faceR  ,double *restrict faceS 
-             ,double *restrict u0                                  
+ void systFormDif(INT    *restrict el  ,INT    *restrict nelcon 
+             ,short  *restrict nen     ,short  *restrict nFace
+             ,short  *restrict geomType,DOUBLE *restrict prop 
+             ,short  *restrict calType ,short  *restrict mat  
+             ,DOUBLE *restrict gKsi   ,DOUBLE *restrict gmKsi
+             ,DOUBLE *restrict gEta   ,DOUBLE *restrict gmEta
+             ,DOUBLE *restrict gNormal,DOUBLE *restrict gVolume
+             ,DOUBLE *restrict gXm    ,DOUBLE *restrict gXmcc   
+             ,DOUBLE *restrict gmKm   ,DOUBLE *restrict gDcca               
+             ,INT    *restrict ia     ,INT    *restrict ja                  
+             ,DOUBLE *restrict ad     ,DOUBLE *restrict al                  
+             ,DOUBLE *restrict b      ,INT    *restrict id 
+             ,short  *restrict faceR  ,DOUBLE *restrict faceS 
+             ,DOUBLE *restrict u0     ,DOUBLE *restrict gradU0             
+             ,DOUBLE *restrict rCell                                  
              ,short const maxNo       ,short const maxViz
              ,short const ndm         ,INT const numel
              ,short const ndf         ,short const storage
              ,bool const forces       ,bool const matrix 
-             ,bool const unsym); 
+             ,bool const calRcell     ,bool const unsym); 
 /*...................................................................*/
 
 /*... chamada da biblioteca de elementos*/
-  void cellLib(double *restrict lx                     
-              ,short *restrict lGeomType,double *restrict lprop
-              ,INT   *restrict lViz     ,double *restrict xc                             
-              ,double *restrict ksi     ,double *restrict mksi
-              ,double *restrict eta     ,double *restrict meta
-              ,double *restrict normal  ,double *restrict volume
-              ,double *restrict xm      ,double *restrict xmcc
-              ,double *restrict dcca    ,double *restrict mkm
-              ,double *restrict lA      ,double *restrict lB
-              ,short  *restrict lFaceR  ,double *restrict lFaceS
-              ,double *restrict u0      ,short const nen     
-              ,short const nFace        ,short const ndm
-              ,short const lib          ,INT const nel);
+  void cellLibDif(short *restrict lGeomType,DOUBLE *restrict lprop
+                 ,INT   *restrict lViz     ,INT    *restrict lId
+                 ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi    
+                 ,DOUBLE *restrict eta     ,DOUBLE *restrict meta  
+                 ,DOUBLE *restrict normal  ,DOUBLE *restrict volume 
+                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc    
+                 ,DOUBLE *restrict dcca    ,DOUBLE *restrict mkm     
+                 ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
+                 ,DOUBLE *restrict lRcell           
+                 ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+                 ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0 
+                 ,short const nEn          ,short const nFace        
+                 ,short const ndm          ,short const lib 
+                 ,INT const nel);
 /*...................................................................*/
 
 /*... carga por elmento e condicoes pescritas por celula*/
-  void cellPload(short  *restrict faceR ,double *restrict faceS
-                ,double *restrict volume
-                ,double *restrict u     ,double *restrict f
+  void cellPload(short  *restrict faceR ,DOUBLE *restrict faceS
+                ,DOUBLE *restrict volume
+                ,DOUBLE *restrict u     ,DOUBLE *restrict f
                 ,INT const numel        ,short const ndf
                 ,short const maxViz);
 /*...................................................................*/
 
 /*... */
-  void updateCellU(DOUBLE *restrict u,DOUBLE *restrict x
-                  ,INT *restrict id 
-                  ,INT const numel   ,short const ndf);
+  void updateCellValue(DOUBLE *restrict u,DOUBLE *restrict x
+                      ,INT *restrict id 
+                      ,INT const numel   ,short const ndf
+                      ,bool const fAdd);
 /*...................................................................*/
 
 /*... funcoes geometricas*/
-  void cellGeom2D(double *restrict lx       ,short *restrict lnFace
-                 ,short  *restrict lGeomType,double *restrict xc
-                 ,double *restrict ksi      ,double *restrict mksi
-                 ,double *restrict eta      ,double *restrict meta
-                 ,double *restrict normal   ,double *restrict volume
-                 ,double *restrict xm       ,double *restrict xmcc
-                 ,double *restrict dcca     ,double *restrict mkm
+  void cellGeom2D(DOUBLE *restrict lx       ,short *restrict lnFace
+                 ,short  *restrict lGeomType,DOUBLE *restrict xc
+                 ,DOUBLE *restrict ksi      ,DOUBLE *restrict mksi
+                 ,DOUBLE *restrict eta      ,DOUBLE *restrict meta
+                 ,DOUBLE *restrict normal   ,DOUBLE *restrict volume
+                 ,DOUBLE *restrict xm       ,DOUBLE *restrict xmcc
+                 ,DOUBLE *restrict dcca     ,DOUBLE *restrict mkm
                  ,short  *restrict sn       ,short maxNo   
                  ,short maxViz              ,short ndm
                  ,INT nel);
 /*...................................................................*/
 
-/*biblioteca de celulas*/
-  void cellDif2D(double *restrict lx      
-                ,short *restrict lGeomType,double *restrict lprop
-                ,INT   *restrict lViz     
-                ,double *restrict xc                             
-                ,double *restrict ksi     ,double *restrict mksi
-                ,double *restrict eta     ,double *restrict meta
-                ,double *restrict normal  ,double *restrict volume
-                ,double *restrict xm      ,double *restrict xmcc
-                ,double *restrict dcca    ,double *restrict mkm
-                ,double *restrict lA      ,double *restrict lB
-                ,short  *restrict lFaceR  ,double *restrict lFaceS
-                ,double *restrict u0      ,short const nen     
-                ,short const nFace        ,short const ndm
-                ,INT const nel);
+/*... biblioteca de celulas*/
+  void cellDif2D(short *restrict lGeomType,DOUBLE *restrict lprop
+                ,INT   *restrict lViz     ,INT *restrict lId               
+                ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi
+                ,DOUBLE *restrict eta     ,DOUBLE *restrict meta
+                ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
+                ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
+                ,DOUBLE *restrict dcca    ,DOUBLE *restrict mkm
+                ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
+                ,DOUBLE *restrict lRcell                       
+                ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+                ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0
+                ,short const nen          ,short const nFace    
+                ,short const ndm          ,INT const nel);
 /*...................................................................*/
+
+/*... biblioteca de reconstrucao de gradiente*/
+  void cellLibRcGrad(INT   *restrict lViz      ,DOUBLE *restrict leastSquare
+                 ,DOUBLE *restrict ksi         ,DOUBLE *restrict mKsi
+                 ,DOUBLE *restrict eta         ,DOUBLE *restrict mEta
+                 ,DOUBLE *restrict normal      ,DOUBLE *restrict volume
+                 ,DOUBLE *restrict xmcc        ,DOUBLE *restrict mkm
+                 ,short  *restrict lFaceR      ,DOUBLE *restrict lFaceS
+                 ,DOUBLE *restrict u           ,DOUBLE *restrict gradU 
+                 ,DOUBLE *restrict nU          ,short const ty 
+                 ,short const nFace            ,short const ndm  
+                 ,short const lib              ,short const ndf  
+                 ,short *restrict  isNodIN    ,INT const nel);
+
+  void rcLeastSquare(DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi
+                  ,DOUBLE *restrict lSquare ,short *restrict nFace       
+                  ,INT const numel          ,short const maxViz
+                  ,INT const ndm);
+/*...................................................................*/
+
+/*... least square*/
+  void leastSquareMatrix(DOUBLE *restrict lKsi    ,DOUBLE *restrict lmKsi
+                        ,DOUBLE *restrict lLsquare        
+                        ,short const lnFace       ,short const ndm);
+
+
+  void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz 
+                 ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
+                 ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+                 ,short const nFace        ,short const ndf
+                 ,short const ndm);
+/*...................................................................*/
+
+  
+/*... green-gauss*/
+  void greenGaussCell(INT *restrict lViz ,DOUBLE *restrict mKsi
+               ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
+               ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
+               ,DOUBLE *restrict xmcc    ,DOUBLE *restrict mkm
+               ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+               ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
+               ,short const nFace        ,short const ndm   
+               ,short const ndf);
+  void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict mEta
+               ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
+               ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
+               ,short *restrict isNod       
+               ,short const nFace        ,short const ndm   
+               ,short const ndf          ,short const ty);
+/*...................................................................*/
+
 
 
 /*... funcoes de apoio*/  
   void sn(short *s,short ty, INT nel);
-  double areaQuadCell(double *restrict eta,short ndm);
-  double areaTriaCell(double *restrict eta,short ndm);
-  double volumeCell(double *eta,short ty,short ndm,INT nel);
-  void vectorKm2d(double *restrict x ,double *restrict xc
-                 ,double *restrict xm,double *restrict mkm
+  DOUBLE areaQuadCell(DOUBLE *restrict eta,short ndm);
+  DOUBLE areaTriaCell(DOUBLE *restrict eta,short ndm);
+  DOUBLE volumeCell(DOUBLE *eta,short ty,short ndm,INT nel);
+  void vectorKm2d(DOUBLE *restrict x ,DOUBLE *restrict xc
+                 ,DOUBLE *restrict xm,DOUBLE *restrict mkm
                  ,short  *restrict sn,short nFace
                  ,short maxViz       ,short  maxNo       
                  ,short ndm          ,INT nel);

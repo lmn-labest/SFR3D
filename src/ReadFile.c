@@ -141,7 +141,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 /*...................................................................*/
 
 /*... problema de transporte*/   
-  if(mesh->ndfT[0] > 0) {   
+  if(mesh->ndfT[0] > 0) {     
 /*... alocando memoria*/
      HccaAlloc(short,m,mesh->elm.faceRt1
             ,nel*(maxViz+1)*mesh->ndfT[0],"faceRt1"  ,_AD_);
@@ -160,14 +160,26 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
             ,nel*(maxViz+1)*mesh->ndfD[0],"faceRd1"  ,_AD_);
      HccaAlloc(DOUBLE,m,mesh->elm.faceSd1
             ,nel*(maxViz+1)*mesh->ndfD[0],"faceSd1"  ,_AD_);
-     HccaAlloc(DOUBLE,m,mesh->node.temp
-            ,nn*mesh->ndfD[0] ,"nTemp"             ,_AD_);
-     HccaAlloc(DOUBLE,m,mesh->elm.temp
-            ,nel*mesh->ndfD[0],"eTemp"             ,_AD_);
+/*... uD1*/
+     HccaAlloc(DOUBLE,m,mesh->node.uD1 
+            ,nn*mesh->ndfD[0] ,"nUd1"              ,_AD_);
+     HccaAlloc(DOUBLE,m,mesh->elm.uD1 
+            ,nel*mesh->ndfD[0],"eUd1"              ,_AD_);
+/*... gradTemp*/
+     HccaAlloc(DOUBLE,m,mesh->node.gradUd1  
+            ,nn*ndm*mesh->ndfD[0] ,"nGradUd1"      ,_AD_);
+     HccaAlloc(DOUBLE,m,mesh->elm.gradUd1 
+            ,nel*ndm*mesh->ndfD[0],"eTGradUd1"     ,_AD_);
+/*... rCell*/
+     HccaAlloc(DOUBLE,m,mesh->elm.rCellUd1  
+            ,nel*ndm*mesh->ndfD[0],"rCellUd1"      ,_AD_);
+/*...*/
      zero(mesh->elm.faceRd1  ,nel*(maxViz+1)*mesh->ndfD[0],"short"  );
      zero(mesh->elm.faceSd1  ,nel*(maxViz+1)*mesh->ndfD[0],DOUBLEC);
-     zero(mesh->node.temp    ,nn*mesh->ndfD[0]            ,DOUBLEC);
-     zero(mesh->elm.temp     ,nel*mesh->ndfD[0]           ,DOUBLEC);
+     zero(mesh->node.uD1     ,nn*mesh->ndfD[0]            ,DOUBLEC);
+     zero(mesh->elm.uD1      ,nel*mesh->ndfD[0]           ,DOUBLEC);
+     zero(mesh->node.gradUd1 ,nn*ndm*mesh->ndfD[0]        ,DOUBLEC);
+     zero(mesh->elm.gradUd1  ,nel*ndm*mesh->ndfD[0]       ,DOUBLEC);
 /*...................................................................*/
    }
 /*...................................................................*/
@@ -668,24 +680,26 @@ void readVfSource(DOUBLE *f          ,INT numel
  *********************************************************************
  * Parametro de entrada:                                             *
  * ----------------------------------------------------------------- *
- * bvtk      - arquivo binario para o vtk                            *
+ * fileOpt   - opcoes de arquivo                                     *
  * reordMesh - reordenacao do malha                                  *
+ * rcGrad    - tipo de tecnica de rescontrucao de gradiente          *
  * m         - memoria principal                                     *
  * file  - ponteiro para o arquivo de dados                          *
  * ----------------------------------------------------------------- *
  *********************************************************************/
-void config(bool *bvtk,Reord *reordMesh,FILE* file)
+void config(FileOpt *opt,Reord *reordMesh
+           ,short *rcGrad
+           ,FILE* file)
 {
-  char config[][WORD_SIZE]={"bvtk","reord","mem"};
+  char config[][WORD_SIZE]={"bvtk"  ,"reord"     ,"mem" 
+                           ,"rcGrad","fItPlotRes","fItPlot"};
   
   char word[WORD_SIZE];
+  char s[WORD_SIZE];
   bool flag[NCONFIG];
   int i=0,j,temp;
   DOUBLE conv;
 
-
-  *bvtk            = false;
-  reordMesh -> flag= false;
 
   for(j=0;j<NCONFIG;j++)
     flag[j] = false;
@@ -694,19 +708,26 @@ void config(bool *bvtk,Reord *reordMesh,FILE* file)
     readMacro(file,word,false);
 /*... bvtk*/   
     if(!strcmp(word,config[0])){
-      fscanf(file,"%d",&temp);
-      *bvtk = (bool) temp;
+      fscanf(file,"%s",s);
+      if(!strcmp(s,"true"))
+        opt->bVtk = true;
+      else
+        opt->bVtk = false;
       flag[0] = true;
       i++;
-      if(*bvtk)
-        printf("bvtk: true\n");
+      if(opt->bVtk)
+        printf("bVtk: true\n");
       else
-        printf("bvtk: false\n");
+        printf("bVtk: false\n");
     }
 /*... reord*/   
     else if(!strcmp(word,config[1])){
-      fscanf(file,"%d",&temp);
-      reordMesh -> flag= (bool) temp;
+      fscanf(file,"%s",s);
+      if(!strcmp(s,"true"))
+        reordMesh -> flag= true;
+      else
+        reordMesh -> flag= false;
+          
       flag[1] = true;
       i++;
       if(reordMesh->flag)
@@ -723,6 +744,53 @@ void config(bool *bvtk,Reord *reordMesh,FILE* file)
       i++;
       printf("Memoria principal: %d MBytes\n"
             ,(int)(nmax/conv));
+    }
+/*... rcGrad*/   
+    else if(!strcmp(word,config[3])){
+      fscanf(file,"%s",s);
+      if(!strcmp(s,"gglc")){
+        *rcGrad = RCGRADGAUSSC;
+        printf("GreenGaussCell\n");
+      }
+      else if(!strcmp(s,"ggln")){
+        *rcGrad = RCGRADGAUSSN;
+        printf("GreenGaussNode\n");
+      }
+      else if(!strcmp(s,"lSquare")){
+        *rcGrad = RCLSQUARE;
+        printf("LeastSquare\n");
+      }
+
+      flag[3] = true;
+      i++;
+    }
+/*... fItPlotRes*/   
+    else if(!strcmp(word,config[4])){
+      fscanf(file,"%s",s);
+      if(!strcmp(s,"true")){
+        opt->fItPlotRes = true;
+        printf("fItPlotRes: true\n");
+      }
+      else{
+        opt->fItPlotRes = false;
+        printf("fItPlotRes: false\n");
+      }
+      flag[4] = true;
+      i++;
+    }
+/*... fItPlot*/   
+    else if(!strcmp(word,config[5])){
+      fscanf(file,"%s",s);
+      if(!strcmp(s,"true")){
+        opt->fItPlot = true;
+        printf("fItPlot: true\n");
+      }
+      else{
+        opt->fItPlot = false;
+        printf("fItPlot: false\n");
+      }
+      flag[5] = true;
+      i++;
     }
     else
       i++;

@@ -14,11 +14,24 @@
   #define WORD_SIZE         120
   #define LINE_SIZE         120
   #define MAX_LINE          200
-/*... uso na depuração de erros*/
+
+  #define FITPLOTD1           1
+  #define FITPLOTD2           2
+  #define FITPLOTT1           3
+  #define FITPLOTT2           4
+  #define FITPLOTTEMP         5
+   
 /*...................................................................*/  
+  typedef struct{
+    bool  bVtk;
+    bool  fItPlotRes;
+    bool  fItPlot;
+    FILE *fileItPlot[6];
+  }FileOpt;
+
   void  iota(INT,char*);
   FILE* openFile(char *,char *);
-  void  fName(char*,INT,int,char**);
+  void  fName(char*,INT,int,int,char**);
   void  readMacro(FILE*,char*,bool);
   void  clearLine(char *);
   int   rl(FILE *,char *);

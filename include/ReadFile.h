@@ -1,7 +1,7 @@
 #ifndef _READ_FILE_
   #define _READ_FILE_
   #define NPARAMETROS   7
-  #define NCONFIG       3
+  #define NCONFIG       6
   #ifdef NMACROS 
     #undef NMACROS
   #endif  
@@ -25,6 +25,8 @@
   void readVfRes(short *id,INT numel,short maxno,char *str,FILE *file);
   void readVfSource(double *f    ,INT numel,short maxno
                    ,char *str,FILE *file);
-  void config(bool *bvtk,Reord *reord,FILE* f);
+  void config(FileOpt *opt ,Reord *reord
+             ,short *rcGrad
+             ,FILE* f);
 
 #endif

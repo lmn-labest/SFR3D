@@ -28,25 +28,30 @@ FILE *aux;
  * Parametros de entrada:                                            *
  * ------------------------------------------------------------------* 
  * out   -> nome do arquivo de saida                                 * 
- * num   -> passo no tempo                                           *
+ * num1  -> numeracao 1                                              *
+ * num2  -> numeracao 2                                              *
  * cod   -> codigo                                                   *
  *          1 -> particianomento vtk novlp                           *
  *          2 -> particianomento vtk  ovlp                           *
  *          3 -> malha por paricao vtk                               *
  *          4 -> arquivo de dados mefpar                             *      
- *          5 -> resultados do mefc      formato vtk (wave)          *      
  *          6 -> carrgamentos formato vtk                            *      
  *          7 -> arquivo de log de excucao                           *      
- *          8 -> resultados do mefc      formato vtk (temp)          *      
- *          9 -> derivdas  formato vtk (tflux)                       *      
- *         10 -> resultados do mefc vtk(concentracoes)               *      
+ *          8 -> resultados da temperatura formato vtk               *      
+ *         10 -> log da iteracao nao linear                          *      
+ *         11 -> log do solv                                         *      
+ *         12 -> matrix de coeficientes no formato .mtx              *      
+ *         13 -> matrix de coeficientes no formato .mtx  (0;1)       *      
+ *         14 -> vetor de forcas no formato .mtx                     *      
+ *         15 -> resultados da temperatura por iteracao formato vtk  *      
+ *         16 -> resultados no formato .csv                          *      
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
  * ------------------------------------------------------------------*
  * out -> aruivo de saida com a extencao                             * 
  * ------------------------------------------------------------------*
  * *******************************************************************/
-void fName(char *name,INT num,int cod ,char **out ){
+void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 /*===*/
   char st[MAX_STR_NUMBER];
   char ext[MAX_EXT];
@@ -60,7 +65,7 @@ void fName(char *name,INT num,int cod ,char **out ){
 /*.... vtk no-overlanping*/
     case 1:
       
-      iota(num,st);
+      iota(num1,st);
       strcpy(ext,"_n_");
       strcat(ext,st);
       strcat(ext,".vtk");
@@ -81,7 +86,7 @@ void fName(char *name,INT num,int cod ,char **out ){
 
 /*...*/
     case 3:
-      iota(num,st);
+      iota(num1,st);
       strcpy(ext,"_n_");
       strcat(ext,st);
       strcat(ext,"_part.dat");
@@ -102,7 +107,7 @@ void fName(char *name,INT num,int cod ,char **out ){
 
 /*...*/
     case 4:
-      iota(num,st);
+      iota(num1,st);
       strcpy(ext,"_n_");
       strcat(ext,st);
       strcat(ext,"_part.vtk");
@@ -115,27 +120,6 @@ void fName(char *name,INT num,int cod ,char **out ){
 		       "Funcao %s, arquivo fonte \"%s\"\n" 
 		       ,name,SIZEMAX,__func__,__FILE__);
 	       exit(EXIT_FAILURE);      
-      }
-      strcpy(*out,name);
-      strcat(*out,ext);
-      break;
-/*...................................................................*/
-
-/*...*/
-    case 5:
-      iota(num,st);
-      strcpy(ext,"_step_");
-      strcat(ext,st);
-      strcat(ext,"_wave.vtk");
-      size1 = strlen(name);
-      size2 = strlen(ext);
-      if( (size1+size2)  > SIZEMAX){
-        fprintf(stderr,"Nome do arquivo muito extenso.\n"
-	               "name : \"%s\"\n"
-		       "Name maximo : %d\n"
-		       "Funcao %s, arquivo fonte \"%s\"\n" 
-		       ,name,SIZEMAX,__func__,__FILE__);
-        exit(EXIT_FAILURE);      
       }
       strcpy(*out,name);
       strcat(*out,ext);
@@ -178,12 +162,12 @@ void fName(char *name,INT num,int cod ,char **out ){
       break;
 /*...................................................................*/
 
-/*...*/
+/*... resultados da temperatura*/
     case 8:
-      iota(num,st);
-      strcpy(ext,"_step_");
+      iota(num1,st);
+      strcpy(ext,"_D1_step_");
       strcat(ext,st);
-      strcat(ext,"_temp.vtk");
+      strcat(ext,".vtk");
       size1 = strlen(name);
       size2 = strlen(ext);
       if( (size1+size2)  > SIZEMAX){
@@ -199,33 +183,9 @@ void fName(char *name,INT num,int cod ,char **out ){
       break;
 /*...................................................................*/
 
-/*...*/
-    case 9:
-      iota(num,st);
-      strcpy(ext,"_step_");
-      strcat(ext,st);
-      strcat(ext,"_flux.vtk");
-      size1 = strlen(name);
-      size2 = strlen(ext);
-      if( (size1+size2)  > SIZEMAX){
-        fprintf(stderr,"Nome do arquivo muito extenso.\n"
-	               "name : \"%s\"\n"
-		       "Name maximo : %d\n"
-		       "Funcao %s, arquivo fonte \"%s\"\n" 
-		       ,name,SIZEMAX,__func__,__FILE__);
-        exit(EXIT_FAILURE);      
-      }
-      strcpy(*out,name);
-      strcat(*out,ext);
-      break;
-/*...................................................................*/
-
-/*...*/
+/*... arquivo com o log do solv*/
     case 10:
-      iota(num,st);
-      strcpy(ext,"_step_");
-      strcat(ext,st);
-      strcat(ext,"_conc.vtk");
+      strcat(ext,"_it_log.txt");
       size1 = strlen(name);
       size2 = strlen(ext);
       if( (size1+size2)  > SIZEMAX){
@@ -298,6 +258,50 @@ void fName(char *name,INT num,int cod ,char **out ){
 /*... arquivo da matriz no formato coo*/
     case 14:
       strcat(ext,"_b.mtx");
+      size1 = strlen(name);
+      size2 = strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+        exit(EXIT_FAILURE);      
+      }
+      strcpy(*out,name);
+      strcat(*out,ext);
+      break;
+/*...................................................................*/
+
+/*... arquivo do vtk com iteraçoes intenas*/
+    case 15:
+      iota(num2,st);
+      strcpy(ext,"_it_");
+      strcat(ext,st);
+      strcat(ext,"_D1_step_");
+      iota(num1,st);
+      strcat(ext,st);
+      strcat(ext,".vtk");
+      size1 = strlen(name);
+      size2 = strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+        exit(EXIT_FAILURE);      
+      }
+      strcpy(*out,name);
+      strcat(*out,ext);
+      break;
+/*...................................................................*/
+
+/*... arquivo csv */                        
+    case 16:
+      iota(num1,st);
+      strcat(ext,st);
+      strcat(ext,".csv");
       size1 = strlen(name);
       size2 = strlen(ext);
       if( (size1+size2)  > SIZEMAX){

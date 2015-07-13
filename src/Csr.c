@@ -336,7 +336,7 @@ void csr(INT    *restrict  ia,INT *restrict ja
                 if( lCol == jak ) 
                   for(j=0;j<ndf;j++){
                     jLa = k*ndf+j;
-                    al[iak+j] = -MAT2D(j,jLa,lA,nst);  
+                    al[iak+j] = MAT2D(j,jLa,lA,nst);  
                   }     
               }
           }  

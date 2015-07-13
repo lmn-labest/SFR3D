@@ -36,6 +36,13 @@
   }Geom;
 /*...................................................................*/  
 
+/*...*/
+  typedef struct{
+    int maxIt;
+    DOUBLE tol;                               
+  }NonLinear;
+/*...................................................................*/  
+
 /*... Elementos*/
   typedef struct{
     INT    *node;       /*conectividades*/
@@ -53,7 +60,13 @@
                         contorno na face (difusa pura)*/
     Geom   geom;       
     DOUBLE *pressure;
-    DOUBLE *temp;
+    DOUBLE *temp;       /*temperatura*/
+    DOUBLE *gradTemp;   /*gradiente da temperatura*/
+    DOUBLE *rCellTemp;  /*residuo da celula*/
+    DOUBLE *uD1 ;       /*difusao pura uD1*/
+    DOUBLE *gradUd1;    /*gradiente da difusao pura uD1*/
+    DOUBLE *rCellUd1;   /*residuo da celula*/
+    DOUBLE *leastSquare;/*matriz de aproxima leastSquare*/
     Material material;
     Adjacency adj;
   }Elmt;
@@ -64,13 +77,17 @@
     DOUBLE *x;      /*coordenadas*/
     DOUBLE *w;
     DOUBLE *pressure;
-    DOUBLE *temp;
+    DOUBLE *temp;      /*temperatura*/
+    DOUBLE *uD1;       /*difusao pura uD1*/
+    DOUBLE *gradTemp;  /*gradiente da temperatura*/
+    DOUBLE *gradUd1 ;  /*gradiente da difusao pura uD1*/
     INT   *nno; 
   }Node;
 /*...................................................................*/
   
 /*... Malha*/
   typedef struct{
+    short rcGrad; /*tipo de rescontrucao de gradiente*/                     
     INT nnode;/*numero de nos*/
     INT numel;/*numero de elementos*/
     short ndm;     /*dimensao*/
@@ -83,6 +100,8 @@
     short maxViz;  /*numero maximo de vizinhos que um elemento possui*/
     Elmt elm;     
     Node node;
+    NonLinear nlTemp;
+    NonLinear nlD1;
   }Mesh;
 /*...................................................................*/
 

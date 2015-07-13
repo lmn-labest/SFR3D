@@ -21,7 +21,10 @@
  * fLog -> arquivo de log do solver                                   *
  * log  -> log de arquivo (true|false)                                *
  * tol  -> tolerancia do solver                                       *
- *maxIt -> numero maximo de iteracoes                                 *
+ * maxIt-> numero maximo de iteracoes                                 *
+ *  newX-> true zero o vetor inicial                                  *
+ *  log -> escreve o log do solver                                    *
+ *fPrint-> saida de informacao na tela                                *
  * -------------------------------------------------------------------*
  * Parametros de Saida:                                               *
  * -------------------------------------------------------------------*
@@ -35,8 +38,9 @@ void pcg(INT const neq      ,INT const nad
         ,DOUBLE *restrict al,DOUBLE *restrict ad,DOUBLE *restrict au
         ,DOUBLE *restrict m ,DOUBLE *restrict b ,DOUBLE *restrict x
         ,DOUBLE *restrict z ,DOUBLE *restrict r ,DOUBLE const tol
-        ,unsigned int maxIt ,bool newX          
-        ,FILE* fLog         ,bool log
+        ,unsigned int maxIt ,bool const newX          
+        ,FILE* fLog         ,bool const log
+        ,bool const fPrint
         ,void(*matvec)()    ,DOUBLE(*dot)())
 {
   INT i,j;
@@ -81,15 +85,19 @@ void pcg(INT const neq      ,INT const nad
 /*norma de energia = xT*A*x */
   energy = dot(x,z,neq);
 /* -------------------------------------------------------*/
-  timef = getTimeC() - timei;   
-  printf("\tnad         :      %20d\n"  ,nad);
-  printf("\tSolver tol  :      %20.2e\n",tol);
-  printf(" (PCG) solver:\n"
-         "\tEquations   =      %20d\n"
-         "\tIterarions  =      %20d\n"
-	 "\tEnergy norm =      %20.12e\n"
-	 "\tCPU time(s) =      %20.5lf\n" 
-	 ,neq,j+1,energy,timef);
+  timef = getTimeC() - timei;
+
+  if(fPrint){ 
+    printf("\tnad         :      %20d\n"  ,nad);
+    printf("\tSolver tol  :      %20.2e\n",tol);
+    printf(" (PCG) solver:\n"
+           "\tEquations   =      %20d\n"
+           "\tIterarions  =      %20d\n"
+	         "\tEnergy norm =      %20.12e\n"
+	         "\tCPU time(s) =      %20.5lf\n" 
+	         ,neq,j+1,energy,timef);
+  }
+  
   if(j == maxIt){ 
     printf(" *** WARNING: no convergende reached !\n");
     printf("MAXIT = %d \n",maxIt);

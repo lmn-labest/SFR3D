@@ -20,7 +20,7 @@ for name in $INPUT; do
   echo `$DIR/$NAMEBIN $DIR/$name $DIR/$OUT` >/dev/null
   echo --------------------------------------------------------------
   OUT2=`echo $name | sed -e "s/.dat/_pgeo.vtk/"`
-  diff -q $DIR/$OUT2 test/vtk/$OUT2
+  diff -q $DIR/$OUT2 test/output/vtk/$OUT2
   if [ $? == 1 ]; then
     echo --------------------------------------------------------------
     echo teste falhou !!! : $OUT2 

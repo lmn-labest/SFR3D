@@ -10,8 +10,8 @@
                    ,INT numel ,short maxno,bool cod
                    ,FILE *f);
   void writeVtkProp(int *iprop,double *dprop,INT  n     
-                   ,int gdl   ,char *s      ,bool cod1 
-                   ,short cod2,FILE *f);
+                   ,int gdl   ,char *s     ,bool cod1 
+                   ,short cod2,short cod3  ,FILE *f);
   void writeVtkNodeProp(int *iprop,double *dprop,short cod1,short cod2
                        ,int nnode ,short ndf    ,char *s   ,bool cod
                        ,FILE *f);

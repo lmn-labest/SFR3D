@@ -590,9 +590,9 @@ double memoriaVector(Memoria *m,char* s,char*npont,bool iws){
  * n    - compromento do vetor                                       * 
  * type - tipo de dados do vetor                                     * 
  *       short                                                       * 
- *	 int                                                         * 
- *	 long                                                        * 
- *	 double                                                      * 
+ *	 int                                                             * 
+ *	 long                                                            * 
+ *	 double                                                          * 
  * ------------------------------------------------------------------* 
  * Parametros de saida :                                             * 
  * ------------------------------------------------------------------* 
@@ -604,6 +604,16 @@ void vzero(char *v,long n,char* type){
  /* fprintf(stderr,"endereco=%p tamanho=%ld\n",v,n);*/
   if(!strcmp(type,"int")){
     nby = sizeof(int);
+    for(i=0;i<n*nby;i++)
+      v[i] = 0;
+  }
+  else if(!strcmp(type,"char")){
+    nby = sizeof(char);
+    for(i=0;i<n*nby;i++)
+      v[i] = 0;
+  }
+  else if(!strcmp(type,"bool")){
+    nby = sizeof(bool);
     for(i=0;i<n*nby;i++)
       v[i] = 0;
   }

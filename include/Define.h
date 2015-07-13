@@ -5,6 +5,10 @@
   #include<stdio.h>
 /*...................................................................*/
 
+/*... */
+  #define KELVINCONV 273.15e0
+/*...................................................................*/
+
 /*numero maximo de propriedade*/
   #define MAXPROP      5  /*numero maximo de propriedades*/
   #define MAXMAT      200 /*numero maximo de materias*/
@@ -12,12 +16,26 @@
   #define MAX_DIF_EQ   3 /*numero maximo de equacoes de difusa*/ 
 /*...................................................................*/
 
+/*... Tipo geometrica da celula*/
+  #define TRIACELL  2
+  #define QUADCELL  3  
+/*...................................................................*/
+
 /*...cellLoop*/
   #define  MAX_NUM_RES   28
+  #define  MAX_NUM_NODE   8
   #define  MAX_NUM_PONT  168
   #define  MAX_NUM_FACE  6
   #define  MAX_SN        24 
+  #define  MAX_NDM        3 
 /*...................................................................*/
+
+/*... reconstrucao de gradiente*/
+  #define  RCGRADGAUSSC 1 
+  #define  RCGRADGAUSSN 2 
+  #define  RCLSQUARE    3 
+/*...................................................................*/
+
 
 /*...*/
   #define MAX_NDF 5

@@ -171,7 +171,7 @@ void writeVtkCell(int *el       ,short *nen ,short *type
 /*********************************************************************/
 
 /**********************************************************************
- * writeVtkCellProp :  escreve propriedades                           *
+ * writeVtkProp :  escreve propriedades                           *
  * -------------------------------------------------------------------*
  * Parametro de entrada :                                             *
  * -------------------------------------------------------------------*
@@ -180,15 +180,17 @@ void writeVtkCell(int *el       ,short *nen ,short *type
  * n     -> numero de linhas                                          *
  * gdl   -> graus de liberdade                                        *
  * s     -> nome do campo                                             *
- * cod1  -> true BINARY vtk false ACISS vtk                           *
+ * cod1  -> true BINARY vtk false ASCII vtk                           *
  * cod2  -> 1 int; 2 double                                           *
+ * cod3  -> 1 SCALAR ; 2 VECTORS                                      *
  *  f    -> ponteiro para o arquivo de saida                          *
  * -------------------------------------------------------------------*
  * Parametro de saida :                                               *
  * -------------------------------------------------------------------*
  *********************************************************************/
 void writeVtkProp(int *iprop,double *dprop,INT n     ,int gdl
-                 ,char *s   ,bool cod1    ,short cod2,FILE *f)
+                 ,char *s   ,bool cod1    ,short cod2,short cod3
+                 ,FILE *f)
 {
 /*===*/
    INT i;
@@ -211,15 +213,39 @@ void writeVtkProp(int *iprop,double *dprop,INT n     ,int gdl
 /*...................................................................*/
 
 /*... double*/
-     case 2:   
-       fprintf(f,"SCALARS %s double %d\n",s,gdl); 
-       fprintf(f,"LOOKUP_TABLE default\n"); 
-       for(i=0;i<n;i++){
-         for(j=0;j<gdl;j++)
-           write_double(dprop[i*gdl+j],cod1,f);
-         new_section(cod1,f); 
-       }  
-       new_section(cod1,f);
+     case 2:
+/*...escalar*/
+       if(cod3 == 1){     
+         fprintf(f,"SCALARS %s double %d\n",s,gdl); 
+         fprintf(f,"LOOKUP_TABLE default\n"); 
+         for(i=0;i<n;i++){
+           for(j=0;j<gdl;j++)
+             write_double(dprop[i*gdl+j],cod1,f);
+           new_section(cod1,f); 
+         }  
+         new_section(cod1,f);
+       }
+/*... vetorial*/
+       if(cod3 == 2){     
+         fprintf(f,"VECTORS %s double\n",s); 
+         for(i=0;i<n;i++){
+/*...*/
+           if(gdl == 2){ 
+             for(j=0;j<gdl;j++)
+               write_double(dprop[i*gdl+j],cod1,f);
+             write_double(0.0e0,cod1,f);
+            }
+/*...................................................................*/
+
+/*...*/
+           else
+             for(j=0;j<gdl;j++)
+               write_double(dprop[i*gdl+j],cod1,f);
+/*...................................................................*/
+           new_section(cod1,f); 
+         }  
+         new_section(cod1,f);
+       }
        break;
 /*...................................................................*/
    } 
@@ -290,17 +316,18 @@ void writeVtkNodeProp(int *iprop,double *dprop,short cod1,short cod2
        fprintf(f,"VECTORS %s double \n",s); 
        for(i=0;i<nnode;i++){
          if(ndf == 2){
-	  j=i*ndf;
-          write_double(dprop[j],cod,f);
-          write_double(dprop[j+1],cod,f);
-          write_double(ddum,cod,f);
-	 }
-	 else if(ndf ==3)
-           for(j=0;j<ndf;j++)
-             write_double(dprop[i*ndf+j],cod,f);
+	         j=i*ndf;
+           write_double(dprop[j],cod,f);
+           write_double(dprop[j+1],cod,f);
+           write_double(ddum,cod,f);
+	      }
+	      else if(ndf ==3){
+          for(j=0;j<ndf;j++)
+            write_double(dprop[i*ndf+j],cod,f);
+          new_section(cod,f);
+        }  
         new_section(cod,f);
-       }  
-       new_section(cod,f);
+       }
      }
    }
 /*...................................................................*/

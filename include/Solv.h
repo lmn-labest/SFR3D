@@ -40,8 +40,9 @@
           ,DOUBLE *restrict al,DOUBLE *restrict ad,DOUBLE *restrict au
           ,DOUBLE *restrict m ,DOUBLE *restrict b ,DOUBLE *restrict x
           ,DOUBLE *restrict z ,DOUBLE *restrict r ,DOUBLE const tol
-          ,unsigned int maxit ,bool newX          
-          ,FILE* fileSolvLog  ,bool log
+          ,unsigned int maxit ,bool const newX          
+          ,FILE* fileSolvLog  ,bool const log
+          ,bool const fPrint
           ,void(*matvec)()    ,DOUBLE(*dot)());
 /*...................................................................*/
 /*===================================================================*/
