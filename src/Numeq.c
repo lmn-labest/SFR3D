@@ -31,7 +31,7 @@ INT numeq(Memoria *m , INT *id   ,INT *num, short *rt
     nel = num[i] -1;
     for(j=0;j<ndf;j++){
       aux = nen[nel]*ndf+j;
-      if( MAT2D(nel,aux,rt,maxRes) )
+      if( MAT2D(nel,aux,rt,maxRes) == 1)
         MAT2D(nel,j,id,ndf) = -1; 
       else
         MAT2D(nel,j,id,ndf) = ++neq;

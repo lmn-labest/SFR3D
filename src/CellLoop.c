@@ -203,6 +203,7 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
  * maxViz  -> numero vizinhos por celula maximo da malha             * 
  * ndm     -> numero de dimensoes                                    * 
  * numel   -> numero de toral de celulas                             * 
+  for i in range(0,nh-1):
  * ndf     -> graus de liberdade                                     * 
  * storage -> tecnica de armazenamento da matriz esparsa             * 
  * forces  -> mantagem no vetor de forcas                            * 
@@ -422,14 +423,14 @@ void cellPload(short  *restrict faceR ,DOUBLE *restrict faceS
 /*...*/  
   for(nel = 0; nel < numel;nel++){
     carg = MAT2D(nel,maxViz,faceR,col);
-/*... carga constante*/
+/*... variavel prescrita no dominio*/
     if( carg == 1){
       for(j = 0; j< ndf;j++)
         MAT2D(nel,j,u,ndf) = MAT3D(nel,maxViz,j,faceS,col,ndf);
     }
 /*...................................................................*/
 
-/*...*/
+/*... carga */
     else if( carg == 2){
       for(j = 0; j< ndf;j++)
         MAT2D(nel,j,f,ndf) 
