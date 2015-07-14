@@ -356,7 +356,7 @@ void cellLibRcGrad(INT   *restrict lViz    ,DOUBLE *restrict lLsquare
    
 /*... minimo quadrados*/  
     case RCLSQUARE:
-      leastSquare(lLsquare,lViz 
+      leastSquare(lLsquare,lViz
                  ,u       ,gradU
                  ,lFaceR  ,lFaceS
                  ,nFace   ,ndf
@@ -407,13 +407,16 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
                  ,short const nFace        ,short const ndf
                  ,short const ndm){
 
-  DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF];
+  DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF],gr[MAX_NDF*MAX_NDM];
   INT vizNel;
   short idCell = nFace;
   short i,j;
 
-  for(i=0;i<ndf*ndm;i++)
+
+  for(i=0;i<ndf*ndm;i++){
+    gr[i]     = gradU[i];
     gradU[i]  = 0.e0;
+  }
 
 /*... um grau de liberdade*/  
   if(ndf == 1){
@@ -434,8 +437,9 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
           du[i] = lFaceS[idCell] -uC[0]; 
       
 /*... fluxo prescrito*/
-        else 
-          du[i] = 0.e0; 
+        else {
+          du[i] = lFaceS[i];
+        }
       }
 /*...................................................................*/
     }
@@ -619,7 +623,7 @@ void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict mEta
                ,short const nFace        ,short const ndm   
                ,short const ndf          ,short const ty)
 {
-  DOUBLE lNormal[3],aux1;
+  DOUBLE lNormal[MAX_NDM],aux1;
   DOUBLE uf[MAX_NDF];
   DOUBLE invVol;
   INT no1,no2;
@@ -707,11 +711,8 @@ void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict mEta
 
   
   for(nf=0;nf<lnFace;nf++){
-    }
-
-
-  for(nf=0;nf<lnFace;nf++){
     w[nf] = 1.e0/lmKsi[nf];
+//    w[nf] = 1.e0;
 /*... dimensao 2*/
     if(ndm == 2){
        MAT2D(nf,0,dx,ndm) = MAT2D(nf,0,lKsi,ndm)*lmKsi[nf];

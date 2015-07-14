@@ -257,7 +257,7 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
   DOUBLE lA[(MAX_NUM_FACE+1)*MAX_NDF],lB[MAX_NDF];
   DOUBLE lProp[(MAX_NUM_FACE+1)*MAXPROP];
   DOUBLE lu0[(MAX_NUM_FACE+1)*MAX_NDF];
-  DOUBLE lGradU0[(MAX_NUM_FACE+1)*3];
+  DOUBLE lGradU0[(MAX_NUM_FACE+1)*MAX_NDM];
   DOUBLE lRcell[MAX_NDF];
   INT    lId[(MAX_NUM_FACE+1)*MAX_NDF],lViz[MAX_NUM_FACE];
   short  aux1,aux2,lMat;
@@ -341,7 +341,7 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
             MAT2D(i,j,lId ,ndf)   = MAT2D(vizNel,j,id   ,ndf) - 1;
           }
           for(j=0;j<ndm;j++)
-            MAT2D(i,j,lGradU0,ndm) = MAT2D(nel,j,gradU0,ndm);
+            MAT2D(i,j,lGradU0,ndm)   = MAT2D(vizNel,j,gradU0,ndm);
           for(j=0;j<MAXPROP;j++)
             MAT2D(i,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);
           }
@@ -590,9 +590,9 @@ void cellPload(short  *restrict faceR ,DOUBLE *restrict faceS
             dx = MAT2D(no1,k,x,ndm) - MAT2D(nel,k,cc,ndm);
             dist += dx*dx;
           }
-          dist = sqrt(dist);
+          dist = 1.e0/sqrt(dist);
           for(k = 0; k   < ndf;k++)
-            MAT2D(no1,k,noU,ndf) += dist*MAT2D(nel,k,elU,ndf);
+            MAT2D(no1,k,noU,ndf) += MAT2D(nel,k,elU,ndf)*dist;
           mdf[no1]+=dist;
         }
       }
@@ -745,7 +745,7 @@ void rcGradU(Memoria *m
   DOUBLE lFaceS[(MAX_NUM_FACE+1)*MAX_NDF];
   DOUBLE lu[(MAX_NUM_FACE+1)*MAX_NDF];
   DOUBLE lnU[(MAX_NUM_NODE)*MAX_NDF];
-  DOUBLE lGradU[3];
+  DOUBLE lGradU[MAX_NDM*MAX_NDF];
   DOUBLE lLsquare[MAX_NUM_FACE*MAX_NDM];
   INT    lViz[MAX_NUM_FACE];
   short  aux1,aux2;
@@ -796,8 +796,14 @@ void rcGradU(Memoria *m
         for(j=0;j<aux1;j++)
           MAT2D(i,j,lLsquare,aux1) 
           = MAT3D(nel,i,j,lSquare,ndm,maxViz); 
-      
 /*...................................................................*/
+
+/*...*/
+    for(i=0;i<ndf;i++)
+      for(j=0;j<ndm;j++)
+        MAT2D(i,j,lGradU   ,ndf) =  MAT3D(nel,i,j,gradU,ndf,ndm);
+/*...................................................................*/
+      
 
 /*...*/      
     for(i=0;i<aux1;i++){
@@ -856,6 +862,26 @@ void rcGradU(Memoria *m
 }
 /*********************************************************************/
 
+/********************************************************************* 
+ * RCLEASTSQUARE : calcula o gradiente a matriz dos minimos quadrados*
+ * para reconstrucao de gradiente
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------*
+ * gKsi    -> vetores que unem centroide da celula central aos       *
+ *            vizinhos destas                                        * 
+ * gmKsi   -> modulo do vetor ksi                                    * 
+ * lSquare   -> nao definido                                         * 
+ * numel     -> numero de elementos                                  * 
+ * maxViz    -> numero maximo de vizinhos                            * 
+ * nFace     -> numero vizinhos por celula maximo da malha           * 
+ * ndm       -> numero de dimensoes                                  * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * lSquare   -> matriz para a reconstrucao least Square              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
 void rcLeastSquare(DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi
                   ,DOUBLE *restrict lSquare ,short *restrict nFace       
                   ,INT const numel          ,short const maxViz

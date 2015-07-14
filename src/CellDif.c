@@ -162,7 +162,7 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
     else{
       lA[nAresta] = 0.0e0;
 /*... fluxo prescrito*/
-      if(lFaceR[nAresta] == 0){ 
+      if(!lFaceR[nAresta]){ 
         p +=  mEta[nAresta]*lFaceS[nAresta];
       }
 /*... temperatura prescrita*/

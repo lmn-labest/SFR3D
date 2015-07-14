@@ -54,7 +54,7 @@ int main(int argc,char**argv){
 /*...*/
   DOUBLE rCell,rCell0,conv;
 /*...*/
-  int i;  
+  int i,j,k;  
 
 /* ... macro camandos de leitura*/
   bool macroFlag; 
@@ -485,7 +485,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... reconstruindo do gradiente*/
-        rcGradU(&m
+       rcGradU(&m
                ,mesh->elm.node          ,mesh->elm.adj.nelcon
                ,mesh->elm.geom.cc       ,mesh->node.x   
                ,mesh->elm.nen           ,mesh->elm.adj.nViz 
@@ -499,7 +499,7 @@ int main(int argc,char**argv){
                ,mesh->node.uD1          ,mesh->rcGrad
                ,mesh->maxNo             ,mesh->maxViz
                ,mesh->ndfD[0]           ,mesh->ndm         
-               ,mesh->numel             ,mesh->nnode);
+               ,mesh->numel             ,mesh->nnode);  
 /*...................................................................*/
 
        if(opt.fItPlotRes){  
