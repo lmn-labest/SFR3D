@@ -111,13 +111,13 @@ def main(argv):
   print "x: erro Maximo     er[%d]=%e " %(nx+1,gxerMax) 
   print "y: erro Maximo     er[%d]=%e " %(ny+1,gyerMax) 
   
-  if erC  > 1.e-6 :
+  if erC  > 1.e-5 :
     return 1 
   
-  if gxerC  > 1.e-6 :
+  if gxerC  > 1.e-1 :
     return 1 
   
-  if gyerC  > 1.e-6 :
+  if gyerC  > 5.e-2 :
     return 1 
 
 if __name__ == '__main__':

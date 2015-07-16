@@ -1,9 +1,11 @@
 #ifndef _ADJCENCY_H
   #define _ADJCENCY_H_
+/*...*/
   #include<Memoria.h>
   #include<HccaStdBool.h>
   #include<Mesh.h>
   #include<Define.h>
+/*...................................................................*/
   void viz(Memoria *m ,INT *el   ,INT *nelcon
           ,short *nen ,INT nnode
           ,INT numel  ,short maxNo,short maxViz);

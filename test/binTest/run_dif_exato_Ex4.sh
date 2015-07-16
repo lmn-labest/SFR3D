@@ -5,7 +5,7 @@ NAMEBIN=$2
 usage(){
   if [ "$1" -lt 2 ]; then
     echo "Usage $0: [exc name] [input] [clean true|false]"
-    exit 0
+    exit 1
   fi
 }
 
@@ -20,12 +20,12 @@ for name in $INPUT; do
   echo `$DIR/$NAMEBIN $DIR/$name $DIR/$OUT` >/dev/null
   echo --------------------------------------------------------------
   OUT2=`echo $name | sed -e "s/.dat/_D1_cell_0.csv/"`
-  $DIR/comp_ex4.py $DIR/$OUT2 >/dev/null
+  $DIR/comp_ex4.py $DIR/$OUT2 
   if [ $? == 1 ]; then
     echo --------------------------------------------------------------
     echo teste falhou !!! : $OUT2 
     echo --------------------------------------------------------------
-    exit 0
+    exit 1
   fi 
 done
 #----------------------------------------------------------------------

@@ -6,6 +6,7 @@
 /*...................................................................*/
 
 /*...*/
+  #include<preCond.h>
   #include<HccaBlas.h>
   #include<Define.h>
   #include<Memoria.h>

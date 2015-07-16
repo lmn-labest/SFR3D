@@ -31,24 +31,39 @@ cp test/input/*.dat test/binTest
 #rodando os teste VTK
 cp test/input/vtk/*.dat test/binTest
 test/binTest/run_vtk.sh "$INPUTVTK" "$NAMEBIN" 
+if [ $? == 1 ];then
+  exit 1
+fi
 
 #rodando os teste difusao
-cp test/input/dif/non_orthogonal/2D/60/gaussGreenCell/*.dat test/binTest
-cp test/input/dif/non_orthogonal/2D/60/gaussGreenNode/*.dat test/binTest
-cp test/input/dif/non_orthogonal/2D/60/LeastSquare/*.dat test/binTest
-test/binTest/run_dif.sh "$INPUTDIF1" "$NAMEBIN" 
+#cp test/input/dif/non_orthogonal/2D/60/gaussGreenCell/*.dat test/binTest
+#cp test/input/dif/non_orthogonal/2D/60/gaussGreenNode/*.dat test/binTest
+#cp test/input/dif/non_orthogonal/2D/60/LeastSquare/*.dat test/binTest
+#test/binTest/run_dif.sh "$INPUTDIF1" "$NAMEBIN" 
+
+#if [ $? == 1 ];then
+#  exit 1
+#fi
 
 cp test/input/dif/orthogonal/2D/gaussGreenCell/*.dat test/binTest
 cp test/input/dif/orthogonal/2D/gaussGreenNode/*.dat test/binTest
 cp test/input/dif/orthogonal/2D/LeastSquare/*.dat test/binTest
 #
 test/binTest/run_dif_exato.sh "$INPUTDIF2" "$NAMEBIN" 
+if [ $? == 1 ]; then
+  exit 1
+fi
+
 #
 test/binTest/run_dif_exato_Ex5.sh "$INPUTDIF3" "$NAMEBIN" 
-
+if [ $? == 1 ];then
+  exit 1
+fi
 test/binTest/run_dif_exato_Ex4.sh "$INPUTDIF4" "$NAMEBIN" 
-
+if [ $? == 1 ];then
+  exit 1
+fi
 DIR="test/binTest"
 rm  $DIR/*.dat $DIR/*.vtk  $DIR/*.txt   $DIR/*.csv $DIR/$NAMEBIN $DIR/*.mtx
 
-exit 1
+exit 0

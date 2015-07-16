@@ -307,7 +307,7 @@ int main(int argc,char**argv){
       }
       solvD1->solver   = PCG;
       solvD1->tol      = 1.2e-16;
-      solvD1->maxIt    = 10000;    
+      solvD1->maxIt    = 50000;    
       solvD1->fileSolv = NULL;
       solvD1->log      = true;
 /*...*/

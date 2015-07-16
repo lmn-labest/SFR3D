@@ -51,14 +51,14 @@ void pcg(INT const neq      ,INT const nad
 /* chute inicial*/
   if(newX)  
     for(i = 0; i < neq; i++)  
-      x[i] = 0.l;
+      x[i] = 0.e0;
   
       
   matvec(neq,ia,ja,al,ad,x,z);
   
   for(i = 0; i < neq; i++)   {
     r[i] = b[i] - z[i];
-    z[i] = r[i] / m[i];
+    z[i] = r[i] * m[i];
     b[i] = z[i];
   }
   
@@ -71,7 +71,7 @@ void pcg(INT const neq      ,INT const nad
     for(i = 0; i < neq; i++)   {
       x[i] +=  alpha * b[i];
       r[i] -=  alpha * z[i];
-      z[i]  = r[i] / m[i];
+      z[i]  = r[i] * m[i];
     }
     beta = dot(r,z,neq)/d;
     for(i = 0; i < neq; i++)   {

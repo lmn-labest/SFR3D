@@ -50,7 +50,7 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
     case PCG:
 /*... precondiconador diagonal*/
       HccaAlloc(DOUBLE,m,pc,neq,"pc",false);
-      alphaProdVector(1.e0,ad,neq,pc);
+      preCondDiag(pc,ad,neq);
 /*...................................................................*/
 
 /*... arranjos auxiliares do pcg*/
@@ -96,7 +96,7 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
          ,al      ,ad   ,au
          ,pc      ,b    ,x
          ,z       ,r    ,tol
-         ,maxIt   ,false
+         ,maxIt   ,true 
          ,fSolvLog,fLog
          ,false 
          ,matVecC ,dotC);  

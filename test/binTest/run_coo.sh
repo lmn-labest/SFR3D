@@ -5,7 +5,7 @@ NAMEBIN=$2
 usage(){
   if [ "$1" -lt 2 ]; then
     echo "Usage $0: [exc name] [input] [clean true|false]"
-    exit 0
+    exit 1
   fi
 }
 
@@ -25,7 +25,7 @@ for name in $INPUT; do
     echo --------------------------------------------------------------
     echo teste falhou !!! : $OUT2 
     echo --------------------------------------------------------------
-    exit 0
+    exit 1
   fi 
 done
 #----------------------------------------------------------------------
