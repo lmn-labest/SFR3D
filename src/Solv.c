@@ -98,7 +98,7 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
          ,z       ,r    ,tol
          ,maxIt   ,false
          ,fSolvLog,fLog
-         ,false  
+         ,false 
          ,matVecC ,dotC);  
 /*...................................................................*/
       

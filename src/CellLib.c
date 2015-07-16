@@ -407,14 +407,13 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
                  ,short const nFace        ,short const ndf
                  ,short const ndm){
 
-  DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF],gr[MAX_NDF*MAX_NDM];
+  DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF];
   INT vizNel;
   short idCell = nFace;
   short i,j;
 
 
   for(i=0;i<ndf*ndm;i++){
-    gr[i]     = gradU[i];
     gradU[i]  = 0.e0;
   }
 
@@ -433,8 +432,8 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
           du[i] = 2.0*(lFaceS[i] - uC[0]); 
 
 /*... temperatura prescrita na celula*/
-        else if(lFaceR[nFace])
-          du[i] = lFaceS[idCell] -uC[0]; 
+        else if(lFaceR[nFace]==VPES)
+          du[i] = lFaceS[idCell] - uC[0]; 
       
 /*... fluxo prescrito*/
         else {
@@ -557,7 +556,7 @@ void greenGaussCell(INT *restrict lViz   ,DOUBLE *restrict mKsi
           uf[j] = MAT2D(i,j,lFaceS,ndf); 
 
 /*... temperatura prescrita na celula*/
-      else if(lFaceR[nFace])
+      else if(lFaceR[nFace]==VPES)
         for(j=0;j<ndf;j++)
           uf[j] = MAT2D(idCell,j,lFaceS,ndf); 
       

@@ -54,7 +54,7 @@ int main(int argc,char**argv){
 /*...*/
   DOUBLE rCell,rCell0,conv;
 /*...*/
-  int i,j,k;  
+  int i;  
 
 /* ... macro camandos de leitura*/
   bool macroFlag; 
@@ -307,7 +307,7 @@ int main(int argc,char**argv){
       }
       solvD1->solver   = PCG;
       solvD1->tol      = 1.2e-16;
-      solvD1->maxIt    = 5000;    
+      solvD1->maxIt    = 10000;    
       solvD1->fileSolv = NULL;
       solvD1->log      = true;
 /*...*/
@@ -391,9 +391,16 @@ int main(int argc,char**argv){
       printf("%s\n",DIF);
       printf("%s\n",word);
       printf("%s\n",DIF);
+/*...*/
+      if(solvD1 == NULL){
+        printf("Estrutara de dados nao montada para o solvD1!!!\n");
+        exit(EXIT_FAILURE);
+      }
+/*...................................................................*/
+
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
       cellPload(mesh->elm.faceRd1    ,mesh->elm.faceSd1
-               ,mesh->elm.geom.volume
+               ,mesh->elm.geom.volume,sistEqD1->id 
                ,mesh->elm.uD1        ,sistEqD1->b0
                ,mesh->numel          ,mesh->ndfD[0]
                ,mesh->maxViz);

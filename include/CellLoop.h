@@ -106,7 +106,7 @@
 
 /*... carga por elmento e condicoes pescritas por celula*/
   void cellPload(short  *restrict faceR ,DOUBLE *restrict faceS
-                ,DOUBLE *restrict volume
+                ,DOUBLE *restrict volume,INT *restrict id 
                 ,DOUBLE *restrict u     ,DOUBLE *restrict f
                 ,INT const numel        ,short const ndf
                 ,short const maxViz);

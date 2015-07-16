@@ -9,6 +9,12 @@
   #define KELVINCONV 273.15e0
 /*...................................................................*/
 
+/*... tipos de carga*/
+  #define VPES         1
+  #define CARGCONST    2
+/*...................................................................*/
+
+
 /*numero maximo de propriedade*/
   #define MAXPROP      5  /*numero maximo de propriedades*/
   #define MAXMAT      200 /*numero maximo de materias*/

@@ -396,7 +396,9 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
  *-------------------------------------------------------------------* 
  * faceR     -> restricoes por elmento                               * 
  * faceS     -> carga por elemento                                   * 
- * u0        -> solucao                                              * 
+ * volume    -> volume das celulas                                   * 
+ * id        -> numera das equacoes                                  * 
+ * u         -> solucao                                              * 
  * f         -> vetor de forcas                                      * 
  * numel     -> numero de elementos                                  * 
  * ndf       -> graus de liberade                                    * 
@@ -411,12 +413,12 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void cellPload(short  *restrict faceR ,DOUBLE *restrict faceS
-              ,DOUBLE *restrict volume
+              ,DOUBLE *restrict volume,INT *restrict id 
               ,DOUBLE *restrict u     ,DOUBLE *restrict f
               ,INT const numel        ,short const ndf
               ,short const maxViz)
 {
-  INT nel;
+  INT nel,lNeq;
   short carg,j;
   short col = maxViz + 1;
 
@@ -424,17 +426,20 @@ void cellPload(short  *restrict faceR ,DOUBLE *restrict faceS
   for(nel = 0; nel < numel;nel++){
     carg = MAT2D(nel,maxViz,faceR,col);
 /*... variavel prescrita no dominio*/
-    if( carg == 1){
+    if( carg == VPES){
       for(j = 0; j< ndf;j++)
         MAT2D(nel,j,u,ndf) = MAT3D(nel,maxViz,j,faceS,col,ndf);
     }
 /*...................................................................*/
 
 /*... carga */
-    else if( carg == 2){
-      for(j = 0; j< ndf;j++)
-        MAT2D(nel,j,f,ndf) 
-        = volume[nel]*MAT3D(nel,maxViz,j,faceS,col,ndf);
+    else if( carg ==  CARGCONST){
+      for(j = 0; j< ndf;j++){
+        lNeq = MAT2D(nel,j,id,ndf) - 1;
+        if( lNeq > -1)
+          MAT2D(lNeq,j,f,ndf) 
+          = volume[nel]*MAT3D(nel,maxViz,j,faceS,col,ndf);
+      }
     }
 /*...................................................................*/
   }
@@ -473,16 +478,16 @@ void cellPload(short  *restrict faceR ,DOUBLE *restrict faceS
     for(nel=0;nel<numel;nel++){
       for(jNdf = 0;jNdf<ndf;jNdf++){ 
         lNeq = MAT2D(nel,jNdf,id,ndf) - 1;
-          if( lNeq > -1)
-            MAT2D(nel,jNdf,u,ndf) += MAT2D(lNeq,jNdf,x,ndf);
+        if( lNeq > -1)
+          MAT2D(nel,jNdf,u,ndf) += MAT2D(lNeq,jNdf,x,ndf);
       }
     }
   else
     for(nel=0;nel<numel;nel++){
       for(jNdf = 0;jNdf<ndf;jNdf++){ 
         lNeq = MAT2D(nel,jNdf,id,ndf) - 1;
-          if( lNeq > -1)
-            MAT2D(nel,jNdf,u,ndf) = MAT2D(lNeq,jNdf,x,ndf);
+        if( lNeq > -1)
+          MAT2D(nel,jNdf,u,ndf) = MAT2D(lNeq,jNdf,x,ndf);
       }
     }
 }
