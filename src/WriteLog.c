@@ -1,5 +1,16 @@
 #include<WriteLog.h>
-
+/********************************************************************* 
+ * WRITELOG : escrita do arquivo log de execuao                      * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
 void writeLog(Mesh mesh    
              ,Solv solvD1 ,SistEq sistEqD1
              ,Time t
@@ -35,6 +46,11 @@ void writeLog(Mesh mesh
   fprintf(file,"\nMalha:\n");
   fprintf(file,"nnode        : %d\n",mesh.nnode);
   fprintf(file,"nCell        : %d\n",mesh.numel);
+  fprintf(file,"volume       : %lf\n",mesh.mQuality.volume);
+  fprintf(file,"non-OrthMed  : %.2lf°\n",mesh.mQuality.nonOrthMed);
+  fprintf(file,"non-OtthMax  : %.2lf°\n",mesh.mQuality.nonOrthMax);
+  fprintf(file,"skewMed      : %lf\n",mesh.mQuality.skewMed);
+  fprintf(file,"skewMax      : %lf\n",mesh.mQuality.skewMax);
 /*...*/
   if(solvD1.flag){
     fprintf(file,"\nSitema D1:\n");

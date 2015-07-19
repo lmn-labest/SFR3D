@@ -258,6 +258,16 @@ int main(int argc,char**argv){
         printf("%s\n",DIF);
       }
 /*...................................................................*/
+
+/*... qualidade da malha*/
+      meshQuality(&mesh->mQuality
+                 ,mesh->elm.adj.nViz     ,mesh->elm.geom.volume
+                 ,mesh->elm.geom.ksi     ,mesh->elm.geom.normal
+                 ,mesh->elm.geom.mvSkew 
+                 ,mesh->maxViz           ,mesh->ndm
+                 ,mesh->numel);         
+/*...................................................................*/
+
       strcpy(str,"MB");
       memoriaTotal(str);
       usoMemoria(&m,str);

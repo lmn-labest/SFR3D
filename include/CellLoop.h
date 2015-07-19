@@ -12,6 +12,7 @@
   #include<HccaBlas.h>
   #include<HccaStdBool.h>
   #include<Memoria.h>
+  #include<Mesh.h>
 /*...................................................................*/
 
 /*...*/
@@ -231,7 +232,14 @@
                ,short const ndf          ,short const ty);
 /*...................................................................*/
 
-
+/*....*/
+  void meshQuality(MeshQuality *mq
+                ,short  *restrict nFace   ,DOUBLE *restrict volume
+                ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gNormal
+                ,DOUBLE *restrict gmvSkew
+                ,short const maxViz      ,short const ndm
+                ,INT const numel); 
+/*...................................................................*/
 
 /*... funcoes de apoio*/  
   short sn(short *s,short ty, INT nel);

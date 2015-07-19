@@ -971,3 +971,82 @@ void rcLeastSquare(DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi
     
   }
 /*********************************************************************/
+
+/********************************************************************* 
+ * MESHQUALITY: calulo das propriedades da malha                     * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * gVolume -> volumes das celulas                                    * 
+ * gKsi    -> vetores que unem centroide da celula central aos       *
+ *            vizinhos destas                                        * 
+ * gNormal -> vetores normais as faces das celulas                   * 
+ * gmvSkew -> distacia entre o ponto medio a intersecao que une os   * 
+ *            centrois compartilhado nessa face da celula central    * 
+ * maxViz  -> numero vizinhos por celula maximo da malha             * 
+ * ndm     -> numero de dimensoes                                    * 
+ * numel   -> numero de toral de celulas                             * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * volume total                                                      *
+ * volar maximo da nao-ortogonalidade em graus                       *
+ * volar medio da nao-ortogonalidade em graus                        *
+ * skewness medio                                                    *
+ * skewness maximo                                                   *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void meshQuality(MeshQuality *mq
+                ,short  *restrict nFace   ,DOUBLE *restrict volume
+                ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gNormal
+                ,DOUBLE *restrict gmvSkew
+                ,short const maxViz      ,short const ndm
+                ,INT const numel)        
+{
+  INT nEl,k=0;
+  DOUBLE volumeTotal = 0.e0,nk,nkMin=1.e0,nkMed=0.e0;
+  DOUBLE skewMax=0.0e0, skewMed=0.0e0,teta;
+  short nf,j;
+
+  for(nEl=0;nEl<numel;nEl++){
+/*... Volume total da malha*/
+    volumeTotal += volume[nEl];
+/*... nao-ortoganilidade*/
+    for(nf=0;nf<nFace[nEl];nf++){
+      nk = 0.e0;
+/*... k * normal*/
+      for(j=0;j<ndm;j++)
+        nk += MAT3D(nEl,nf,j,gKsi   ,maxViz,ndm)
+             *MAT3D(nEl,nf,j,gNormal,maxViz,ndm);
+/*...................................................................*/ 
+      
+      nkMed += nk;
+      nkMin = min(nkMin,nk); 
+      k++;    
+    }
+/*...................................................................*/ 
+
+/*... sKew*/  
+    skewMed += gmvSkew[nEl];
+    skewMax  = max(skewMax,gmvSkew[nEl]);
+  }
+
+  skewMed    /= numel;
+  nkMed      /= k;
+
+  teta           = acos(nkMed);
+  teta           = radToDeg(teta);
+  mq->nonOrthMed = teta; 
+
+  teta           = acos(nkMin);
+  teta           = radToDeg(teta);
+  mq->nonOrthMax = teta; 
+  
+  mq->volume  = volumeTotal; 
+  mq->skewMed = skewMed; 
+  mq->skewMax = skewMax; 
+
+
+}

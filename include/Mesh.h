@@ -85,6 +85,16 @@
     INT   *nno; 
   }Node;
 /*...................................................................*/
+
+/*... meshQuality*/
+  typedef struct{
+    DOUBLE volume;
+    DOUBLE nonOrthMed;
+    DOUBLE nonOrthMax;
+    DOUBLE skewMed;
+    DOUBLE skewMax;
+  }MeshQuality;
+/*...................................................................*/
   
 /*... Malha*/
   typedef struct{
@@ -103,6 +113,7 @@
     Node node;
     NonLinear nlTemp;
     NonLinear nlD1;
+    MeshQuality mQuality;
   }Mesh;
 /*...................................................................*/
 
