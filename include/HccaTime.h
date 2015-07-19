@@ -9,12 +9,26 @@
   #endif
   #include<stdio.h>
   typedef struct{
-    double solv  ;
-    double dot   ;
-    double matvec;
-    double pform;
-    double tform;
-    double color;
+    double adjcency;
+    double geom;
+    double leastSquareMatrix;
+    double reord;
+/*... D1*/
+    double solvD1;
+    double numeqD1;
+    double dataStructD1;
+    double CellPloadD1;
+    double systFormD1;
+    double rcGradD1;
+/*... blas*/
+    double matVecSparse;
+    double dot;
+/*... iterativos*/
+    double pcg;
+/*... precondicionador*/
+    double precondDiag;
+
+/*...*/
     double total;
   }Time;
   Time tm;

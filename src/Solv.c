@@ -50,7 +50,9 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
     case PCG:
 /*... precondiconador diagonal*/
       HccaAlloc(DOUBLE,m,pc,neq,"pc",false);
+      tm.precondDiag = getTimeC() - tm.precondDiag;
       preCondDiag(pc,ad,neq);
+      tm.precondDiag = getTimeC() - tm.precondDiag;
 /*...................................................................*/
 
 /*... arranjos auxiliares do pcg*/
@@ -91,6 +93,7 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
 /*...................................................................*/
 
 /*... gradientes conjugados*/
+      tm.pcg = getTimeC() - tm.pcg;
       pcg(neq     ,nad
          ,ia      ,ja
          ,al      ,ad   ,au
@@ -100,6 +103,7 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
          ,fSolvLog,fLog
          ,false 
          ,matVecC ,dotC);  
+      tm.pcg = getTimeC() - tm.pcg;
 /*...................................................................*/
       
 /*... liberando arranjos auxiliares do pcg*/

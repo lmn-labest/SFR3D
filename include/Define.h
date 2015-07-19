@@ -99,9 +99,10 @@
     fprintf(stderr,"Arquivo:%s\nFonte:  %s\n",file,func);\
     exit(EXIT_FAILURE);
  
-  #define ERRO_GERAL(file,func,str)\
+  #define ERRO_GERAL(file,func,line,str)\
     fprintf(stderr,"Erro: %s!!\n",str);\
-    fprintf(stderr,"Arquivo:%s\nFonte:  %s\n",file,func);\
+    fprintf(stderr,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"\
+           ,file,func,line);\
     exit(EXIT_FAILURE);
 
 /*...................................................................*/

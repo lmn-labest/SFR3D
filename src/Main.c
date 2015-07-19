@@ -12,6 +12,7 @@
 #include<Mesh.h>
 #include<WriteVtk.h>
 #include<WriteCsv.h>
+#include<WriteLog.h>
 #include<Sisteq.h>
 #include<Solv.h>
 #include<ReadFile.h>
@@ -49,7 +50,7 @@ int main(int argc,char**argv){
 
 /*... arquivo*/
   char *nameIn=NULL,*nameOut=NULL,*preName=NULL,*auxName=NULL;
-  FILE *fileIn=NULL,*fileOut=NULL;
+  FILE *fileIn=NULL,*fileOut=NULL,*fileLog=NULL;
   char str1[100],str2[100],str3[100],str4[100];
   FileOpt opt;
 
@@ -84,6 +85,27 @@ int main(int argc,char**argv){
   opt.fItPlot    = false;
 /* ..................................................................*/
 
+/*... Time*/
+  tm.adjcency          = 0.e0;
+  tm.geom              = 0.e0;
+  tm.leastSquareMatrix = 0.e0;
+  tm.reord             = 0.e0;
+/*...*/
+  tm.solvD1            = 0.e0;
+  tm.numeqD1           = 0.e0;
+  tm.dataStructD1      = 0.e0;
+  tm.CellPloadD1       = 0.e0;
+  tm.systFormD1        = 0.e0;
+  tm.rcGradD1          = 0.e0;
+/*... Blas*/
+  tm.matVecSparse      = 0.e0;
+  tm.dot               = 0.e0;
+/*... Iterativos  */
+  tm.pcg               = 0.e0;
+/*... precondicionador*/
+  tm.precondDiag       = 0.e0;
+  tm.total             = getTimeC();
+/*...................................................................*/
 
 /*... estrutura de dados para malha*/
   mesh = (Mesh*) malloc(sizeof(Mesh));
@@ -170,9 +192,11 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... calcula a vizinhaca do elementos*/
+      tm.adjcency = getTimeC();
       viz(&m                 ,mesh->elm.node ,mesh->elm.adj.nelcon
          ,mesh->elm.nen      ,mesh->nnode    ,mesh->numel     
          ,mesh->maxNo        ,mesh->maxViz   ,mesh->ndm);
+      tm.adjcency = getTimeC() - tm.adjcency;
 /*...................................................................*/
 
 
@@ -180,15 +204,18 @@ int main(int argc,char**argv){
       HccaAlloc(INT,&m,reordMesh->num,mesh->numel,"rNum" ,_AD_);
       printf("%s\n",DIF);
       printf("Reordenando a malha ...\n");
+      tm.reord = getTimeC() - tm.reord;
       reord(&m                ,reordMesh->num,mesh->elm.adj.nelcon
            ,mesh->elm.adj.nViz,mesh->maxViz  ,mesh->numel   
            ,reordMesh->flag);
+      tm.reord = getTimeC() - tm.reord;
       printf("Malha reordenada.\n");
       printf("%s\n",DIF);
 /*...................................................................*/
 
 
 /*... calculo de propriedades geometricas recorrentes*/
+      tm.geom = getTimeC() - tm.geom;
       pGeomForm(mesh->node.x         ,mesh->elm.node
                ,mesh->elm.adj.nelcon ,mesh->elm.nen 
                ,mesh->elm.adj.nViz   ,mesh->elm.geomType
@@ -201,6 +228,7 @@ int main(int argc,char**argv){
                ,mesh->elm.geom.dcca
                ,mesh->maxNo          ,mesh->maxViz
                ,mesh->ndm            ,mesh->numel);
+      tm.geom = getTimeC() - tm.geom;
 #ifdef _DEBUG_
       testeGeom(mesh->elm.geom.cc  
                ,mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
@@ -220,10 +248,12 @@ int main(int argc,char**argv){
         printf("Least Square ...\n");
         HccaAlloc(DOUBLE,&m,mesh->elm.leastSquare
                  ,mesh->numel*mesh->maxViz*mesh->ndm,"leastSquare" ,_AD_);
+        tm.leastSquareMatrix = getTimeC() - tm.leastSquareMatrix;
         rcLeastSquare(mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
                      ,mesh->elm.leastSquare,mesh->elm.adj.nViz       
                      ,mesh->numel          ,mesh->maxViz
                      ,mesh->ndm);
+        tm.leastSquareMatrix = getTimeC() - tm.leastSquareMatrix;
         printf("Least Square.\n");
         printf("%s\n",DIF);
       }
@@ -242,6 +272,17 @@ int main(int argc,char**argv){
       printf("%s\n",DIF);
       printf("%s\n",word); 
       printf("%s\n\n",DIF);
+      tm.total = getTimeC() - getTimeC();
+/*... */
+      fName(preName,0,0,7,&nameOut);
+      fileLog = openFile(nameOut,"w");
+      writeLog(*mesh
+              ,*solvD1   ,*sistEqD1
+              ,tm                
+              ,nameIn   ,fileLog);
+      fclose(fileLog);
+/*...................................................................*/
+
 /*... fechando o arquivo log pcg D1*/
       if(fSolvD1 && solvD1->log)  
         fclose(solvD1->fileSolv);
@@ -316,12 +357,13 @@ int main(int argc,char**argv){
         printf("Erro ponteiro solvD1\n");
         exit(EXIT_FAILURE);
       }
-      fSolvD1          = false;
+      fSolvD1          = true;
       solvD1->solver   = PCG;
       solvD1->tol      = 1.2e-16;
       solvD1->maxIt    = 50000;    
       solvD1->fileSolv = NULL;
       solvD1->log      = true;
+      solvD1->flag     = true;
 /*...*/
       if(solvD1->log){  
         strcpy(auxName,preName);
@@ -360,10 +402,12 @@ int main(int argc,char**argv){
                ,"sistD1id",_AD_);
       printf("%s\n",DIF);
       printf("Numerando as equacoes.\n");
+      tm.numeqD1 = getTimeC() - tm.numeqD1;
       sistEqD1->neq = numeq(sistEqD1->id    ,reordMesh->num
                            ,mesh->elm.faceRd1  ,mesh->elm.adj.nViz
                            ,mesh->numel        ,mesh->maxViz
                            ,mesh->ndfD[0]);
+      tm.numeqD1 = getTimeC() - tm.numeqD1;
       printf("Equacoes numeradas.\n");
       printf("%s\n",DIF);
 /*...................................................................*/
@@ -386,10 +430,12 @@ int main(int argc,char**argv){
       strcpy(strAd,"aDD1");
       strcpy(strA ,"aD1");
       printf("Montagem da estrura de dados esparsa.\n");
+      tm.dataStructD1 = getTimeC() - tm.dataStructD1 ;
       dataStruct(&m,sistEqD1->id   ,reordMesh->num,mesh->elm.adj.nelcon
                 ,mesh->elm.adj.nViz,mesh->numel   ,mesh->maxViz
                 ,mesh->ndfD[0]     ,strIa         ,strJa
                 ,strAd             ,strA          ,sistEqD1);
+      tm.dataStructD1 = getTimeC() - tm.dataStructD1 ;
       printf("Estrutuda montada.\n");
 /*...................................................................*/
       printf("%s\n\n",DIF);
@@ -411,17 +457,20 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
+      tm.CellPloadD1 = getTimeC() - tm.CellPloadD1;
       cellPload(mesh->elm.faceRd1    ,mesh->elm.faceSd1
                ,mesh->elm.geom.volume,sistEqD1->id 
                ,mesh->elm.uD1        ,sistEqD1->b0
                ,mesh->numel          ,mesh->ndfD[0]
                ,mesh->maxViz);
+      tm.CellPloadD1 = getTimeC() - tm.CellPloadD1;
 /*...................................................................*/
 
 /*... correcao nao ortoganal*/      
       for(i=0;i<mesh->nlD1.maxIt;i++){
 
 /*... calculo de: A(i),b(i)*/
+        tm.systFormD1 = getTimeC() - tm.systFormD1;
         systFormDif(mesh->elm.node          ,mesh->elm.adj.nelcon  
                    ,mesh->elm.nen           ,mesh->elm.adj.nViz   
                    ,mesh->elm.geomType      ,mesh->elm.material.prop 
@@ -443,6 +492,7 @@ int main(int argc,char**argv){
                    ,mesh->ndfD[0]           ,sistEqD1->storage
                    ,true                    ,true   
                    ,true                    ,sistEqD1->unsym);   
+        tm.systFormD1 = getTimeC() - tm.systFormD1;
 /*...................................................................*/
 
 /*... soma o vetor b(i) = b(i) + b0(i)*/
@@ -486,6 +536,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
+        tm.solvD1 = getTimeC() - tm.solvD1;
         solverC(&m               ,sistEqD1->neq ,sistEqD1->nad
                ,sistEqD1->ia     ,sistEqD1->ja  
                ,sistEqD1->al     ,sistEqD1->ad,sistEqD1->au
@@ -495,6 +546,7 @@ int main(int argc,char**argv){
                ,solvD1->fileSolv ,solvD1->log  
                ,false            ,false
                ,sistEqD1->unsym  ,false);
+        tm.solvD1 = getTimeC() - tm.solvD1;
 /*...................................................................*/
 
 
@@ -506,6 +558,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... reconstruindo do gradiente*/
+       tm.rcGradD1 = getTimeC() - tm.rcGradD1;
        rcGradU(&m
                ,mesh->elm.node          ,mesh->elm.adj.nelcon
                ,mesh->elm.geom.cc       ,mesh->node.x   
@@ -521,6 +574,7 @@ int main(int argc,char**argv){
                ,mesh->maxNo             ,mesh->maxViz
                ,mesh->ndfD[0]           ,mesh->ndm         
                ,mesh->numel             ,mesh->nnode);  
+       tm.rcGradD1 = getTimeC() - tm.rcGradD1;
 /*...................................................................*/
 
        if(opt.fItPlotRes){  

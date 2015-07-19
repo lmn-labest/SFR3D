@@ -4,6 +4,7 @@
 /*...*/  
   #include<HccaStdBool.h>
   #include<Define.h>
+  #include<HccaTime.h>
 /*...................................................................*/
 
 /*...*/

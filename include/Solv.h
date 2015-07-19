@@ -19,6 +19,7 @@
     short          solver;
     FILE        *fileSolv;
     bool              log;
+    bool             flag;
   }Solv;
 /*...................................................................*/
 

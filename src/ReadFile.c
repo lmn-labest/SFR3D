@@ -34,6 +34,8 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
   bool rflag[NMACROS],macroFlag;
   INT nn,nel;
   short maxno,ndm,numat,maxViz,ndf;
+  char nameAux[MAX_STR_LEN_IN];
+  FILE *fileAux=NULL;
   int i;
 
 /* leitura dos parametros principais da malha*/
@@ -227,6 +229,32 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
     }
 /*...................................................................*/
 
+/*... insert*/
+    else if((!strcmp(word,macro[2])) && (!rflag[2])){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      printf("%s\n\n",DIF);
+      fscanf(file,"%s",nameAux);
+      fileAux = file;
+      file    = openFile(nameAux,"r");
+      rflag[2] = true;
+    }
+/*...................................................................*/
+
+/*... return*/
+    else if((!strcmp(word,macro[3]))){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      printf("%s\n\n",DIF);
+      if(!rflag[2]){
+        ERRO_GERAL(__FILE__,__func__,__LINE__
+                  ,"Erro: macro return sem um insert associado!!");
+      }
+      fclose(file);
+      file = fileAux;
+      rflag[2] = false;
+    }
+/*...................................................................*/
 
 /*... cells  */
     else if((!strcmp(word,macro[4])) && (!rflag[4])){

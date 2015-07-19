@@ -171,8 +171,18 @@ DOUBLE dot(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 {
   INT i;
   DOUBLE tmp=0.e0;
+
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+
   for(i=0;i<n;i++)
     tmp += x1[i]*x2[i];
+
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+
   return tmp;
 } 
 /*********************************************************************/ 
@@ -198,6 +208,10 @@ DOUBLE dotO2L2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0;
   
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+
   resto = n%4;
   if(resto == 1)
      tmp1 = x1[0]*x2[0]; 
@@ -210,6 +224,10 @@ DOUBLE dotO2L2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
     tmp1 += x1[i  ]*x2[i  ] + x1[i+1]*x2[i+1]; 
     tmp2 += x1[i+2]*x2[i+2] + x1[i+3]*x2[i+3]; 
   }
+
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
   return (tmp1+tmp2);
 } 
 /*********************************************************************/ 
@@ -235,7 +253,11 @@ DOUBLE dotL2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0;
   resto = n%2;
-  
+
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+
   if(resto)
     tmp1 = x1[0]*x2[0];
     
@@ -243,6 +265,11 @@ DOUBLE dotL2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
     tmp1 += x1[i  ]*x2[i  ]; 
     tmp2 += x1[i+1]*x2[i+1];
   }
+
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+
   return (tmp1+tmp2);
 } 
 /*********************************************************************/ 
@@ -268,6 +295,9 @@ DOUBLE dotL4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0,tmp3=0.e0,tmp4=0.e0;
   
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
   
   resto = n%4;
   if(resto == 1)
@@ -284,6 +314,11 @@ DOUBLE dotL4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
     tmp3 += x1[i+2]*x2[i+2];
     tmp4 += x1[i+3]*x2[i+3];
   }
+
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+
   return (tmp1+tmp2+tmp3+tmp4);
 } 
 /*********************************************************************/ 
@@ -309,7 +344,11 @@ DOUBLE dotL6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0,tmp3=0.e0,tmp4=0.e0;
   DOUBLE tmp5=0.e0,tmp6=0.e0;
+
   
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
   
   resto = n%6;
   if(resto == 1)
@@ -335,6 +374,11 @@ DOUBLE dotL6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
     tmp5 += x1[i+4]*x2[i+4];
     tmp6 += x1[i+5]*x2[i+5];
   }
+
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+
   return (tmp1+tmp2+tmp3+tmp4+tmp5+tmp6);
 } 
 /*********************************************************************/ 
@@ -360,7 +404,11 @@ DOUBLE dotL8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0,tmp3=0.e0,tmp4=0.e0;
   DOUBLE tmp5=0.e0,tmp6=0.e0,tmp7=0.e0,tmp8=0.e0;
+
   
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
   
   resto = n%8;
   if(resto == 1)
@@ -397,6 +445,11 @@ DOUBLE dotL8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
     tmp7 += x1[i+6]*x2[i+6];
     tmp8 += x1[i+7]*x2[i+7];
   }
+
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+
   return (tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7+tmp8);
 } 
 /*********************************************************************/ 
@@ -422,12 +475,22 @@ DOUBLE dotO2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
   INT i,resto;
   DOUBLE tmp=0.e0;
   resto = n%2;
+
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
   
   if(resto)
     tmp = x1[0]*x2[0];
     
   for(i=resto;i<n;i+=2)
     tmp += x1[i]*x2[i] + x1[i+1]*x2[i+1];
+
+
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+
   return tmp;
 } 
 /*********************************************************************/ 
@@ -452,7 +515,11 @@ DOUBLE dotO4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp=0.e0;
-  
+ 
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+ 
   resto = n%4;
   if(resto == 1)
      tmp = x1[0]*x2[0]; 
@@ -465,6 +532,11 @@ DOUBLE dotO4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
   for(i=resto;i<n;i+=4)
     tmp += x1[i  ]*x2[i  ] + x1[i+1]*x2[i+1] 
          + x1[i+2]*x2[i+2] + x1[i+3]*x2[i+3];
+
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+
   return tmp;
 } 
 /*********************************************************************/ 
@@ -489,6 +561,11 @@ DOUBLE dotO6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp=0.e0;
+
+
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
   
   resto = n%6;
   if(resto == 1)
@@ -508,6 +585,12 @@ DOUBLE dotO6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
     tmp += x1[i  ]*x2[i  ] + x1[i+1]*x2[i+1] 
          + x1[i+2]*x2[i+2] + x1[i+3]*x2[i+3] 
          + x1[i+4]*x2[i+4] + x1[i+5]*x2[i+5];
+  
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+
+
   return tmp;
 } 
 /*********************************************************************/ 
@@ -532,6 +615,10 @@ DOUBLE dotO8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp=0.e0;
+
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
   
   resto = n%8;
   if(resto == 1)
@@ -563,6 +650,11 @@ DOUBLE dotO8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
          + x1[i+2]*x2[i+2] + x1[i+3]*x2[i+3]
          + x1[i+4]*x2[i+4] + x1[i+5]*x2[i+5]
          + x1[i+6]*x2[i+6] + x1[i+7]*x2[i+7];
+ 
+/*...*/ 
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+
   return tmp;
 } 
 /*********************************************************************/ 
@@ -599,7 +691,11 @@ void matVecCsrDSym(INT const neq
 {
   INT    i,k,jak;
   DOUBLE xi,tmp,sAu;
-  
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+ 
   y[0] = ad[0]*x[0]; 
   for(i=1;i<neq;i++){
     xi  = x[i];
@@ -616,6 +712,10 @@ void matVecCsrDSym(INT const neq
 /*... armazena o resultado em y(i) */
     y[i] = tmp;
   }
+  
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
 } 
 /*********************************************************************/ 
 /*==================================================================*/
