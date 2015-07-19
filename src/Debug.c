@@ -5,7 +5,8 @@ void testeGeom(double *cc
               ,double *eta   ,double *meta 
               ,double *normal,double *volume
               ,double *xm    ,double *xmcc   
-              ,double *mkm   ,double *dcca                 
+              ,double *vSkew ,double *mvSkew   
+              ,double *dcca                 
               ,INT numel     ,short ndm
               ,short maxViz)
 {
@@ -13,97 +14,108 @@ void testeGeom(double *cc
   INT i;
   short j,k;
   
-  fprintf(stderr,"Centroide.\n");
+  printf("Centroide.\n");
   for(i=0;i<numel;i++){
-    fprintf(stderr,"nel = %d ",i+1);
+    printf("nel = %d ",i+1);
     for(j=0;j<ndm;j++)
-      fprintf(stderr,"%8.4lf ",MAT2D(i,j,cc,ndm));
-    fprintf(stderr,"\n");
+      printf("%8.4lf ",MAT2D(i,j,cc,ndm));
+    printf("\n");
   }
 
-  fprintf(stderr,"\nVetor entre os centroides.\n");
+  printf("\nVetor entre os centroides.\n");
   for(i=0;i<numel;i++){
-    fprintf(stderr,"nel = %d ",i+1);
+    printf("nel = %d ",i+1);
     for(j=0;j<maxViz;j++)
       for(k=0;k<ndm;k++)
-        fprintf(stderr,"%8.4lf ",MAT3D(i,j,k,ksi,maxViz,ndm));
-    fprintf(stderr,"\n");
+        printf("%8.4lf ",MAT3D(i,j,k,ksi,maxViz,ndm));
+    printf("\n");
   }
 
-  fprintf(stderr,"\nDistancia entre os centroides.\n");
+  printf("\nDistancia entre os centroides.\n");
   for(i=0;i<numel;i++){
-    fprintf(stderr,"nel = %d ",i+1);
+    printf("nel = %d ",i+1);
     for(j=0;j<maxViz;j++)
-      fprintf(stderr,"%8.4lf ",MAT2D(i,j,mksi,maxViz));
-    fprintf(stderr,"\n");
+      printf("%8.4lf ",MAT2D(i,j,mksi,maxViz));
+    printf("\n");
   }
   
-  fprintf(stderr,"\nVetor paralelo a face.\n");
+  printf("\nVetor paralelo a face.\n");
   for(i=0;i<numel;i++){
-    fprintf(stderr,"nel = %d ",i+1);
-    for(j=0;j<maxViz;j++)
-      for(k=0;k<ndm;k++)
-        fprintf(stderr,"%8.4lf ",MAT3D(i,j,k,eta,maxViz,ndm));
-    fprintf(stderr,"\n");
-  }
-  
-  fprintf(stderr,"\narea da face.\n");
-  for(i=0;i<numel;i++){
-    fprintf(stderr,"nel = %d ",i+1);
-    for(j=0;j<maxViz;j++)
-      fprintf(stderr,"%8.4lf ",MAT2D(i,j,meta,maxViz));
-    fprintf(stderr,"\n");
-  }
-  
-  
-  fprintf(stderr,"\nVetor normal a face.\n");
-  for(i=0;i<numel;i++){
-    fprintf(stderr,"nel = %d ",i+1);
+    printf("nel = %d ",i+1);
     for(j=0;j<maxViz;j++)
       for(k=0;k<ndm;k++)
-        fprintf(stderr,"%8.4lf ",MAT3D(i,j,k,normal,maxViz,ndm));
-    fprintf(stderr,"\n");
+        printf("%8.4lf ",MAT3D(i,j,k,eta,maxViz,ndm));
+    printf("\n");
   }
   
-  fprintf(stderr,"\nVolume da celula.\n");
+  printf("\narea da face.\n");
   for(i=0;i<numel;i++){
-    fprintf(stderr,"nel = %d ",i+1);
-    fprintf(stderr,"%8.4lf ",volume[i]);
-    fprintf(stderr,"\n");
+    printf("nel = %d ",i+1);
+    for(j=0;j<maxViz;j++)
+      printf("%8.4lf ",MAT2D(i,j,meta,maxViz));
+    printf("\n");
   }
   
-  fprintf(stderr,"\nPonto medio\n");
+  
+  printf("\nVetor normal a face.\n");
   for(i=0;i<numel;i++){
-    fprintf(stderr,"nel = %d ",i+1);
+    printf("nel = %d ",i+1);
     for(j=0;j<maxViz;j++)
       for(k=0;k<ndm;k++)
-        fprintf(stderr,"%8.4lf ",MAT3D(i,j,k,xm,maxViz,ndm));
-    fprintf(stderr,"\n");
+        printf("%8.4lf ",MAT3D(i,j,k,normal,maxViz,ndm));
+    printf("\n");
   }
   
-  fprintf(stderr,"\nVetor ponto medio centroide\n");
+  printf("\nVolume da celula.\n");
   for(i=0;i<numel;i++){
-    fprintf(stderr,"nel = %d ",i+1);
+    printf("nel = %d ",i+1);
+    printf("%8.4lf ",volume[i]);
+    printf("\n");
+  }
+  
+  printf("\nPonto medio\n");
+  for(i=0;i<numel;i++){
+    printf("nel = %d ",i+1);
     for(j=0;j<maxViz;j++)
       for(k=0;k<ndm;k++)
-        fprintf(stderr,"%8.4lf ",MAT3D(i,j,k,xmcc,maxViz,ndm));
-    fprintf(stderr,"\n");
+        printf("%8.4lf ",MAT3D(i,j,k,xm,maxViz,ndm));
+    printf("\n");
   }
   
-  fprintf(stderr,"\nMenor distancia do centroide a Face.\n");
+  
+  printf("\nVetor que une o centroide ao ponto medio\n");
   for(i=0;i<numel;i++){
-    fprintf(stderr,"nel = %d ",i+1);
+    printf("nel = %d ",i+1);
     for(j=0;j<maxViz;j++)
-      fprintf(stderr,"%8.4lf ",MAT2D(i,j,dcca,maxViz));
-    fprintf(stderr,"\n");
+      for(k=0;k<ndm;k++)
+        printf("%8.4lf ",MAT3D(i,j,k,xmcc,maxViz,ndm));
+    printf("\n");
+  }
+
+  
+  printf("\nMenor distancia do centroide a Face.\n");
+  for(i=0;i<numel;i++){
+    printf("nel = %d ",i+1);
+    for(j=0;j<maxViz;j++)
+      printf("%8.4lf ",MAT2D(i,j,dcca,maxViz));
+    printf("\n");
   }
   
-  fprintf(stderr,"\nDistancia entre o ponto medio da face e ponto.\n");
+  printf("\nVetor entre o ponto medio da face e ponto de intersecao.\n");
   for(i=0;i<numel;i++){
-    fprintf(stderr,"nel = %d ",i+1);
+    printf("nel = %d ",i+1);
     for(j=0;j<maxViz;j++)
-      fprintf(stderr,"%8.4lf ",MAT2D(i,j,mkm,maxViz));
-    fprintf(stderr,"\n");
+      for(k=0;k<ndm;k++)
+        printf("%8.4lf ",MAT3D(i,j,k,vSkew,maxViz,ndm));
+    printf("\n");
+  }
+  
+  printf("\nDistancia entre o ponto medio da face e ponto de intersecao.\n");
+  for(i=0;i<numel;i++){
+    printf("nel = %d ",i+1);
+    for(j=0;j<maxViz;j++)
+      printf("%8.4lf ",MAT2D(i,j,mvSkew,maxViz));
+    printf("\n");
   }
 #endif
 }

@@ -211,8 +211,9 @@ void csrJa(INT *ia    ,INT *ja
 
 INT bandCsr(INT *ia,INT *ja,INT  neq,short type){
 
-  INT i,j,bandL=0,aux;
-  
+  INT i,j,aux;
+  long bandL=0;  
+
   switch(type){
 /*... banda maxima da matriz*/
     case 1:

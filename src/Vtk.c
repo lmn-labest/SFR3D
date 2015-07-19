@@ -88,11 +88,15 @@ void writeVtkCoor(double *x,INT nnode,int ndm,bool cod,FILE *f)
    }  
 /*... 3D(x1,y1,z1,x2,y2,z2,...)*/  
    else{
-     for(i=0;i<nnode*3;i++)
-       write_double(x[i],cod,f);
-     new_section(cod,f); 
-    }
-    new_section(cod,f); 
+     j = 0; 
+     for(i=0;i<nnode;i++){
+       write_double(x[j++],cod,f);
+       write_double(x[j++],cod,f);
+       write_double(x[j++],cod,f);
+       new_section(cod,f);
+     } 
+   }
+   new_section(cod,f); 
 /*===================================================================*/
 }
 /**********************************************************************/

@@ -24,8 +24,10 @@
                   /*1 - csr*/
   }SistEq;
   
-  INT numeq(Memoria *m ,INT *id  ,INT *num, short *rt
-            , short *nen,INT numel,short nViz,short ndf);
+  INT numeq(INT  *restrict id  ,INT *restrict num
+          ,short *restrict rt  ,short *restrict nen
+          ,INT const numel     ,short const nViz
+          ,short const ndf);
 
   void dataStruct(Memoria *m  ,INT *id  ,INT *num   ,INT *nelcon
                  ,short *nViz ,INT numel,short maxViz,short ndf

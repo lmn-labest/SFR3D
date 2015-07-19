@@ -11,20 +11,21 @@
 /*...................................................................*/
 
 /*...*/
-   void testeGeom(double *cc
-                 ,double *ksi   ,double *mksi 
-                 ,double *eta   ,double *meta 
-                 ,double *normal,double *volume
-                 ,double *xm    ,double *xmcc   
-                 ,double *mkm   ,double *dcca                 
+   void testeGeom(DOUBLE *cc
+                 ,DOUBLE *ksi   ,DOUBLE *mksi 
+                 ,DOUBLE *eta   ,DOUBLE *meta 
+                 ,DOUBLE *normal,DOUBLE *volume
+                 ,DOUBLE *xm    ,DOUBLE *xmcc   
+                 ,DOUBLE *vSkew ,DOUBLE *mvSkew   
+                 ,DOUBLE *dcca                 
                  ,INT numel     ,short ndm
                  ,short maxViz);
 /*...................................................................*/
 
 /*...*/
    void testeSist(INT *ia      ,INT *ja
-              ,double *au   ,double *ad
-              ,double *al   ,double *b
-              ,INT const neq,bool const unsym);
+                 ,DOUBLE *au   ,DOUBLE *ad
+                 ,DOUBLE *al   ,DOUBLE *b
+                 ,INT const neq,bool const unsym);
 /*...................................................................*/
 #endif

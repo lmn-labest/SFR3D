@@ -24,6 +24,10 @@
 #endif
 /*********************************************************************/
 
+/***/
+/*********************************************************************/
+
+
 int main(int argc,char**argv){
 
 /*...Memoria principal*/  
@@ -35,6 +39,7 @@ int main(int argc,char**argv){
   SistEq *sistEqD1=NULL;
 /*... solver*/
   Solv *solvD1=NULL;
+  bool fSolvD1 = false;
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
 
@@ -54,7 +59,7 @@ int main(int argc,char**argv){
 /*...*/
   DOUBLE rCell,rCell0,conv;
 /*...*/
-  int i;  
+  int i; 
 
 /* ... macro camandos de leitura*/
   bool macroFlag; 
@@ -67,6 +72,10 @@ int main(int argc,char**argv){
 
 /*... Memoria principal(valor padrao - bytes)*/
   nmax = 200000;
+/* ..................................................................*/
+
+/*... definicao de variaveis globais*/
+  oneDivTree = 1.e0/3.e0;
 /* ..................................................................*/
 
 /* ... opcoes de arquivos */                                           
@@ -162,8 +171,8 @@ int main(int argc,char**argv){
 
 /*... calcula a vizinhaca do elementos*/
       viz(&m                 ,mesh->elm.node ,mesh->elm.adj.nelcon
-         ,mesh->elm.nen      ,mesh->nnode
-         ,mesh->numel        ,mesh->maxNo    ,mesh->maxViz);
+         ,mesh->elm.nen      ,mesh->nnode    ,mesh->numel     
+         ,mesh->maxNo        ,mesh->maxViz   ,mesh->ndm);
 /*...................................................................*/
 
 
@@ -187,17 +196,19 @@ int main(int argc,char**argv){
                ,mesh->elm.geom.mksi  ,mesh->elm.geom.eta   
                ,mesh->elm.geom.meta  ,mesh->elm.geom.normal
                ,mesh->elm.geom.volume,mesh->elm.geom.xm   
-               ,mesh->elm.geom.xmcc  ,mesh->elm.geom.mkm 
+               ,mesh->elm.geom.xmcc  
+               ,mesh->elm.geom.vSkew ,mesh->elm.geom.mvSkew  
                ,mesh->elm.geom.dcca
                ,mesh->maxNo          ,mesh->maxViz
                ,mesh->ndm            ,mesh->numel);
-#ifdef _DEBUG_GEOM
+#ifdef _DEBUG_
       testeGeom(mesh->elm.geom.cc  
                ,mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
                ,mesh->elm.geom.eta   ,mesh->elm.geom.meta
                ,mesh->elm.geom.normal,mesh->elm.geom.volume
                ,mesh->elm.geom.xm    ,mesh->elm.geom.xmcc  
-               ,mesh->elm.geom.mkm   ,mesh->elm.geom.dcca
+               ,mesh->elm.geom.vSkew ,mesh->elm.geom.mvSkew
+               ,mesh->elm.geom.dcca
                ,mesh->numel          ,mesh->ndm
                ,mesh->maxViz);
 #endif
@@ -232,7 +243,7 @@ int main(int argc,char**argv){
       printf("%s\n",word); 
       printf("%s\n\n",DIF);
 /*... fechando o arquivo log pcg D1*/
-      if(solvD1->log)  
+      if(fSolvD1 && solvD1->log)  
         fclose(solvD1->fileSolv);
 /*... fechando o arquivo log nao linear D1*/      
       if(opt.fItPlot)  
@@ -305,6 +316,7 @@ int main(int argc,char**argv){
         printf("Erro ponteiro solvD1\n");
         exit(EXIT_FAILURE);
       }
+      fSolvD1          = false;
       solvD1->solver   = PCG;
       solvD1->tol      = 1.2e-16;
       solvD1->maxIt    = 50000;    
@@ -348,8 +360,8 @@ int main(int argc,char**argv){
                ,"sistD1id",_AD_);
       printf("%s\n",DIF);
       printf("Numerando as equacoes.\n");
-      sistEqD1->neq = numeq(&m,sistEqD1->id    ,reordMesh->num
-                           ,mesh->elm.faceRd1  ,mesh->elm.nen
+      sistEqD1->neq = numeq(sistEqD1->id    ,reordMesh->num
+                           ,mesh->elm.faceRd1  ,mesh->elm.adj.nViz
                            ,mesh->numel        ,mesh->maxViz
                            ,mesh->ndfD[0]);
       printf("Equacoes numeradas.\n");
@@ -418,7 +430,8 @@ int main(int argc,char**argv){
                    ,mesh->elm.geom.eta      ,mesh->elm.geom.meta    
                    ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
                    ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
-                   ,mesh->elm.geom.mkm      ,mesh->elm.geom.dcca
+                   ,mesh->elm.geom.vSkew    ,mesh->elm.geom.mvSkew   
+                   ,mesh->elm.geom.dcca
                    ,sistEqD1->ia            ,sistEqD1->ja      
                    ,sistEqD1->ad            ,sistEqD1->al       
                    ,sistEqD1->b             ,sistEqD1->id       
@@ -464,6 +477,15 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
+#ifdef _DEBUG_
+        testeSist(sistEqD1->ia       ,sistEqD1->ja
+                ,sistEqD1->au       ,sistEqD1->ad
+                 ,sistEqD1->al       ,sistEqD1->b
+                 ,sistEqD1->neq      ,sistEqD1->unsym);
+#endif
+/*...................................................................*/
+
+/*...*/
         solverC(&m               ,sistEqD1->neq ,sistEqD1->nad
                ,sistEqD1->ia     ,sistEqD1->ja  
                ,sistEqD1->al     ,sistEqD1->ad,sistEqD1->au
@@ -475,14 +497,6 @@ int main(int argc,char**argv){
                ,sistEqD1->unsym  ,false);
 /*...................................................................*/
 
-/*...*/
-#ifdef _DEBUG_
-        testeSist(sistEqD1->ia       ,sistEqD1->ja
-                 ,sistEqD1->au       ,sistEqD1->ad
-                 ,sistEqD1->al       ,sistEqD1->b
-                 ,sistEqD1->neq      ,sistEqD1->unsym);
-#endif
-/*...................................................................*/
 
 /*... x -> uD1*/
         updateCellValue(mesh->elm.uD1 ,sistEqD1->x
@@ -500,7 +514,7 @@ int main(int argc,char**argv){
                ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
                ,mesh->elm.geom.eta      ,mesh->elm.geom.meta    
                ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-               ,mesh->elm.geom.xmcc     ,mesh->elm.geom.mkm 
+               ,mesh->elm.geom.xmcc     ,mesh->elm.geom.mvSkew 
                ,mesh->elm.faceRd1       ,mesh->elm.faceSd1       
                ,mesh->elm.uD1           ,mesh->elm.gradUd1                 
                ,mesh->node.uD1          ,mesh->rcGrad
@@ -607,7 +621,7 @@ int main(int argc,char**argv){
              ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
              ,mesh->elm.geom.eta      ,mesh->elm.geom.meta    
              ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-             ,mesh->elm.geom.xmcc     ,mesh->elm.geom.mkm 
+             ,mesh->elm.geom.xmcc     ,mesh->elm.geom.mvSkew 
              ,mesh->elm.faceRd1       ,mesh->elm.faceSd1       
              ,mesh->elm.uD1           ,mesh->elm.gradUd1                 
              ,mesh->node.uD1          ,mesh->rcGrad

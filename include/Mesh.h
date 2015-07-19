@@ -32,7 +32,8 @@
     DOUBLE *xm;    /*ponto medio da face*/
     DOUBLE *xmcc;  /*vetor entre o centroide a ponto médio da aresta*/
     DOUBLE *dcca;  /*menor distancia entre o centroide a aresta*/
-    DOUBLE *mkm;   /*modulo do km*/                               
+    DOUBLE *vSkew; /*vetor vSkew*/                               
+    DOUBLE *mvSkew;/*modulo do vSkew*/                               
   }Geom;
 /*...................................................................*/  
 

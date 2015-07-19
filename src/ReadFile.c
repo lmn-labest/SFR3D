@@ -82,10 +82,14 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 /*... vetor que une o centroide ao ponto medio*/                           
   HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.xmcc
          ,nel*maxViz*ndm       ,"elxmcc",_AD_);
+/*... vetor entre o ponto medio da face e ponto de intercao 
+      entre a linha entre os centroides e a face*/         
+  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.vSkew  
+         ,nel*ndm*maxViz         ,"elvSkew" ,_AD_);
 /*... distancia entro o ponto medio da face e ponto de intercao 
       entre a linha entre os centroides e a face*/         
-  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.mkm  
-         ,nel*maxViz           ,"elmkm" ,_AD_);
+  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.mvSkew  
+         ,nel*maxViz           ,"elmvSkew" ,_AD_);
 /*... distancia entro o ponto medio da face e ponto de intercao 
       entre a linha entre os centroides e a face*/         
   HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.dcca 
@@ -105,7 +109,8 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
   zero(mesh->elm.geom.normal  ,nel*ndm*maxViz,DOUBLEC);
   zero(mesh->elm.geom.xm      ,nel*ndm*maxViz,DOUBLEC);
   zero(mesh->elm.geom.xmcc    ,nel*ndm*maxViz,DOUBLEC);
-  zero(mesh->elm.geom.mkm     ,nel*maxViz    ,DOUBLEC);
+  zero(mesh->elm.geom.mvSkew  ,nel*maxViz    ,DOUBLEC);
+  zero(mesh->elm.geom.mvSkew  ,nel*ndm*maxViz,DOUBLEC);
   zero(mesh->elm.geom.dcca    ,nel*maxViz    ,DOUBLEC);
 /*...................................................................*/
 

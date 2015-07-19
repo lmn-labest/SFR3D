@@ -14,12 +14,13 @@
  * gKsi    -> indefinido                                             * 
  * gmKsi   -> indefinido                                             * 
  * gEta    -> indefinido                                             * 
- * gmEta   -> indefinido                                             * 
+ * gfArea  -> indefinido                                             * 
  * gNormal -> indefinido                                             * 
  * gVolume -> indefinido                                             * 
  * gXm     -> indefinido                                             * 
  * gXmcc   -> indefinido                                             * 
- * gmkm    -> indefinido                                             * 
+ * vSkew   -> indefinido                                             * 
+ * mvSkew  -> indefinifo                                             * 
  * gDcca   -> indefinido                                             * 
  * maxNo   -> numero de nos por celula maximo da malha               * 
  * maxViz  -> numero vizinhos por celula maximo da malha             * 
@@ -33,14 +34,16 @@
  *            vizinhos destas                                        * 
  * gmKsi   -> modulo do vetor ksi                                    * 
  * gEta    -> vetores paralelos as faces das celulas                 * 
- * gmEta   -> modulo do vetor eta                                    * 
+ * gfArea  -> area da face                                           * 
  * gNormal -> vetores normais as faces das celulas                   * 
  * gVolume -> volumes das celulas                                    * 
  * gXm     -> pontos medios das faces das celulas                    * 
  * gXmcc   -> vetores que unem o centroide aos pontos medios das     * 
- *            faces                                                  * 
- * gmkm    -> distacia entre o ponto medio a intersecao que une os   * 
- *            centrois compartilhado nessa face                      * 
+ *            faces 
+ * vSkew     -> vetor entre o ponto medio a intersecao que une os    * 
+ *            centrois compartilhado nessa face da celula central    * 
+ * mvSkew    -> distacia entre o ponto medio a intersecao que une os * 
+ *            centrois compartilhado nessa face da celula central    * 
  * gDcca   -> menor distancia do centroide a faces desta celula      * 
  *-------------------------------------------------------------------* 
  * OBS:                                                              * 
@@ -51,9 +54,10 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
               ,short  *restrict nFace  ,short  *restrict geomType
               ,DOUBLE *restrict gCc    ,DOUBLE *restrict gKsi   
               ,DOUBLE *restrict gmKsi  ,DOUBLE *restrict gEta   
-              ,DOUBLE *restrict gmEta  ,DOUBLE *restrict gNormal
+              ,DOUBLE *restrict gfArea ,DOUBLE *restrict gNormal
               ,DOUBLE *restrict gVolume,DOUBLE *restrict gXm   
-              ,DOUBLE *restrict gXmcc  ,DOUBLE *restrict gmKm 
+              ,DOUBLE *restrict gXmcc  
+              ,DOUBLE *restrict gvSkew ,DOUBLE *restrict gmvSkew
               ,DOUBLE *restrict gDcca                 
               ,short maxNo             ,short maxViz
               ,short ndm               ,INT numel)
@@ -62,14 +66,15 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
   short i,j,k;
 /*... variavel local */
   DOUBLE lx[MAX_NUM_PONT];
-  DOUBLE lCc[(MAX_NUM_FACE+1)*3];
-  DOUBLE lKsi[MAX_NUM_FACE*3],lmKsi[MAX_NUM_FACE];
-  DOUBLE lEta[MAX_NUM_FACE*3],lmEta[MAX_NUM_FACE];
-  DOUBLE lNormal[MAX_NUM_FACE*3],lVolume;
-  DOUBLE lXm[MAX_NUM_FACE*3],lXmcc[MAX_NUM_FACE*3];
+  DOUBLE lCc[(MAX_NUM_FACE+1)*MAX_NDM];
+  DOUBLE lKsi[MAX_NUM_FACE*MAX_NDM],lmKsi[MAX_NUM_FACE];
+  DOUBLE lEta[MAX_NUM_FACE*MAX_NDM],lfArea[MAX_NUM_FACE];
+  DOUBLE lNormal[MAX_NUM_FACE*MAX_NDM],lVolume;
+  DOUBLE lXm[MAX_NUM_FACE*MAX_NDM],lXmcc[MAX_NUM_FACE*MAX_NDM];
   DOUBLE lDcca[MAX_NUM_FACE];
-  DOUBLE lmKm[MAX_NUM_FACE];  
+  DOUBLE lmvSkew[MAX_NUM_FACE],lvSkew[MAX_NUM_FACE*MAX_NDM];  
   short  lnFace[MAX_NUM_FACE+1],lGeomType[MAX_NUM_FACE+1],ty;
+  short  lnEn[MAX_NUM_FACE+1];
   short  isnod[MAX_SN];
 /*...................................................................*/
   
@@ -88,11 +93,13 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
 
     for(i=0;i<MAX_NUM_FACE+1;i++){
       lnFace[i]    = 0;
+      lnEn[i]      = 0;
       lGeomType[i] = 0;     
     }
 
 /*... loop na celula central*/    
     lnFace[maxViz]    = nFace[nel];
+    lnEn[maxViz]      = nen[nel];
     lGeomType[maxViz] = geomType[nel];
     for(j=0;j<nen[nel];j++){
 /*...*/
@@ -107,6 +114,7 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
         vizNel = MAT2D(nel,i,nelcon,maxViz) - 1;
         if( vizNel != -2) {
           lnFace[i]    = nFace[vizNel];
+          lnEn[i]      = nen[vizNel];
           lGeomType[i] = geomType[vizNel];
           for(j=0;j<nen[vizNel];j++){
             no = MAT2D(vizNel,j,el,maxNo) - 1;
@@ -121,15 +129,35 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
 
 /*... chamando a biblioteca de celulas*/
     ty = geomType[nel];
+/*... triangulos e quadrilateros*/
     if(ty == TRIACELL || ty == QUADCELL){
       sn(isnod,ty,nel); 
       cellGeom2D(lx       ,lnFace
                 ,lGeomType,lCc
                 ,lKsi     ,lmKsi 
-                ,lEta     ,lmEta 
+                ,lEta     ,lfArea
                 ,lNormal  ,&lVolume
                 ,lXm      ,lXmcc
-                ,lDcca    ,lmKm 
+                ,lDcca    
+                ,lvSkew   ,lmvSkew 
+                ,isnod
+                ,maxNo    ,maxViz
+                ,ndm      ,nel);
+    }
+/*...................................................................*/
+
+/*... tetraedros e hexaedros*/
+    else if(ty == HEXACELL){
+      sn(isnod,ty,nel); 
+      cellGeom3D(lx       ,lGeomType
+                ,lnFace   ,lnEn
+                ,lCc
+                ,lKsi     ,lmKsi 
+                ,lEta     ,lfArea
+                ,lNormal  ,&lVolume
+                ,lXm      ,lXmcc
+                ,lDcca    
+                ,lvSkew   ,lmvSkew 
                 ,isnod
                 ,maxNo    ,maxViz
                 ,ndm      ,nel);
@@ -142,16 +170,17 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
       MAT2D(nel,i,gCc ,ndm) = MAT2D(maxViz,i,lCc  ,ndm);
     }
     for(i=0;i<nFace[nel];i++) {
-      MAT2D(nel,i,gmKsi,maxViz)        = lmKsi[i];
-      MAT2D(nel,i,gmEta,maxViz)        = lmEta[i];
-      MAT2D(nel,i,gDcca,maxViz)        = lDcca[i];
-      MAT2D(nel,i,gmKm ,maxViz)        = lmKm[i];
+      MAT2D(nel,i,gmKsi   ,maxViz)        = lmKsi[i];
+      MAT2D(nel,i,gfArea  ,maxViz)        = lfArea[i];
+      MAT2D(nel,i,gDcca   ,maxViz)        = lDcca[i];
+      MAT2D(nel,i,gmvSkew ,maxViz)        = lmvSkew[i];
       for(j=0;j<ndm;j++){
         MAT3D(nel,i,j,gKsi   ,maxViz,ndm) = MAT2D(i,j,lKsi   ,ndm);
         MAT3D(nel,i,j,gEta,maxViz,ndm)    = MAT2D(i,j,lEta   ,ndm);
         MAT3D(nel,i,j,gNormal,maxViz,ndm) = MAT2D(i,j,lNormal,ndm);
         MAT3D(nel,i,j,gXm    ,maxViz,ndm) = MAT2D(i,j,lXm    ,ndm);
         MAT3D(nel,i,j,gXmcc  ,maxViz,ndm) = MAT2D(i,j,lXmcc  ,ndm);
+        MAT3D(nel,i,j,gvSkew ,maxViz,ndm) = MAT2D(i,j,lvSkew ,ndm);
       }
     }
 /*...................................................................*/
@@ -176,13 +205,15 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
  *            vizinhos destas                                        * 
  * gmKsi   -> modulo do vetor ksi                                    * 
  * gEta    -> vetores paralelos as faces das celulas                 * 
- * gmEta   -> modulo do vetor eta                                    * 
+ * gfArea   -> modulo do vetor eta                                    * 
  * gNormal -> vetores normais as faces das celulas                   * 
  * gVolume -> volumes das celulas                                    * 
  * gXm     -> pontos medios das faces das celulas                    * 
  * gXmcc   -> vetores que unem o centroide aos pontos medios das     * 
  *            faces                                                  * 
- * gmkm    -> distacia entre o ponto medio a intersecao que une os   * 
+ * gmvSkew -> distacia entre o ponto medio a intersecao que une os   * 
+ *            centrois compartilhado nessa face                      * 
+ * gmvSkew -> distacia entre o ponto medio a intersecao que une os   * 
  *            centrois compartilhado nessa face                      * 
  * gDcca   -> menor distancia do centroide a faces desta celula      * 
  * ia      -> ponteiro para as linhas da matriz esparsa              * 
@@ -203,7 +234,6 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
  * maxViz  -> numero vizinhos por celula maximo da malha             * 
  * ndm     -> numero de dimensoes                                    * 
  * numel   -> numero de toral de celulas                             * 
-  for i in range(0,nh-1):
  * ndf     -> graus de liberdade                                     * 
  * storage -> tecnica de armazenamento da matriz esparsa             * 
  * forces  -> mantagem no vetor de forcas                            * 
@@ -225,10 +255,11 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
                ,short  *restrict geomType,DOUBLE *restrict prop 
                ,short  *restrict calType ,short  *restrict mat     
                ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi 
-               ,DOUBLE *restrict gEta    ,DOUBLE *restrict gmEta 
+               ,DOUBLE *restrict gEta    ,DOUBLE *restrict gfArea 
                ,DOUBLE *restrict gNormal ,DOUBLE *restrict gVolume
                ,DOUBLE *restrict gXm     ,DOUBLE *restrict gXmcc 
-               ,DOUBLE *restrict gmKm    ,DOUBLE *restrict gDcca 
+               ,DOUBLE *restrict gvSkew  ,DOUBLE *restrict gmvSkew 
+               ,DOUBLE *restrict gDcca 
                ,INT    *restrict ia      ,INT    *restrict ja   
                ,DOUBLE *restrict ad      ,DOUBLE *restrict al
                ,DOUBLE *restrict b       ,INT    *restrict id
@@ -244,12 +275,12 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
   INT nel,vizNel;
   short i,j;
 /*... variavel local */
-  DOUBLE lKsi[MAX_NUM_FACE*3],lmKsi[MAX_NUM_FACE];
-  DOUBLE lEta[MAX_NUM_FACE*3],lmEta[MAX_NUM_FACE];
-  DOUBLE lNormal[MAX_NUM_FACE*3],lVolume[MAX_NUM_FACE+1];
-  DOUBLE lXm[MAX_NUM_FACE*3],lXmcc[MAX_NUM_FACE*3];
+  DOUBLE lKsi[MAX_NUM_FACE*MAX_NDM],lmKsi[MAX_NUM_FACE];
+  DOUBLE lEta[MAX_NUM_FACE*MAX_NDM],lfArea[MAX_NUM_FACE];
+  DOUBLE lNormal[MAX_NUM_FACE*MAX_NDM],lVolume[MAX_NUM_FACE+1];
+  DOUBLE lXm[MAX_NUM_FACE*MAX_NDM],lXmcc[MAX_NUM_FACE*MAX_NDM];
   DOUBLE lDcca[MAX_NUM_FACE];
-  DOUBLE lmKm[MAX_NUM_FACE];
+  DOUBLE lmvSkew[MAX_NUM_FACE],lvSkew[MAX_NUM_FACE*MAX_NDM];
   DOUBLE dum;  
   short  lGeomType[MAX_NUM_FACE+1];
   short  lib;
@@ -310,12 +341,12 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
        
 
       for(i=0;i<aux1;i++){
-        lmKsi[i] = MAT2D(nel,i,gmKsi ,maxViz);
-        lmEta[i] = MAT2D(nel,i,gmEta ,maxViz);
-        lDcca[i] = MAT2D(nel,i,gDcca ,maxViz);
-        lmKm[i]  = MAT2D(nel,i,gmKm  ,maxViz);
-        aux2     = (maxViz+1);
-        lFaceR[i] = MAT2D(nel,i,faceR ,aux2);
+        lmKsi[i]   = MAT2D(nel,i,gmKsi   ,maxViz);
+        lfArea[i]   = MAT2D(nel,i,gfArea   ,maxViz);
+        lDcca[i]   = MAT2D(nel,i,gDcca   ,maxViz);
+        lmvSkew[i] = MAT2D(nel,i,gmvSkew ,maxViz);
+        aux2       = (maxViz+1);
+        lFaceR[i]  = MAT2D(nel,i,faceR ,aux2);
         for(j=0;j<ndf;j++){
           MAT2D(i,j,lFaceS,ndf) = MAT3D(nel,i,j,faceS ,aux2,ndf);
         }
@@ -325,6 +356,7 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
           MAT2D(i,j,lNormal,ndm) = MAT3D(nel,i,j,gNormal,maxViz,ndm);
           MAT2D(i,j,lXm    ,ndm) = MAT3D(nel,i,j,gXm    ,maxViz,ndm); 
           MAT2D(i,j,lXmcc  ,ndm) = MAT3D(nel,i,j,gXmcc  ,maxViz,ndm);
+          MAT2D(i,j,lvSkew ,ndm) = MAT3D(nel,i,j,gvSkew ,maxViz,ndm);
         }
       }
 
@@ -353,10 +385,11 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
       cellLibDif(lGeomType ,lProp 
                 ,lViz      ,lId           
                 ,lKsi      ,lmKsi
-                ,lEta      ,lmEta 
+                ,lEta      ,lfArea 
                 ,lNormal   ,lVolume
                 ,lXm       ,lXmcc
-                ,lDcca     ,lmKm
+                ,lDcca     
+                ,lvSkew    ,lmvSkew
                 ,lA        ,lB
                 ,lRcell
                 ,lFaceR    ,lFaceS
@@ -543,8 +576,8 @@ void cellPload(short  *restrict faceR ,DOUBLE *restrict faceS
   DOUBLE *mdf=NULL;
   bool *flag=NULL;
   DOUBLE dist,dx;
-  short i,j,k,aux=maxViz+1;
-  INT nel,no1,no2;
+  short i,j,k,n,nodeFace,aux=maxViz+1;
+  INT nel,no1,no[4];
   short  isNod[MAX_SN],ty;
   
   switch(type){
@@ -632,34 +665,20 @@ void cellPload(short  *restrict faceR ,DOUBLE *restrict faceS
     for(nel = 0; nel < numel; nel++)
       for(i = 0; i < nFace[nel]; i++)
         if(MAT2D(nel,i,faceR,aux)){
-/*... triangulos e quadrilateros*/    
           ty = geomType[nel];
-          if(ty == TRIACELL || ty == QUADCELL){
-            sn(isNod,ty,nel); 
-            no1 = MAT2D(i,0,isNod,2);
-            no2 = MAT2D(i,1,isNod,2);
-            no1 = MAT2D(nel,no1,el,maxNo) - 1;
-            no2 = MAT2D(nel,no2,el,maxNo) - 1;
-            
-            if(flag[no1] == false){
-              flag[no1] = true;
+          nodeFace =  sn(isNod,ty,nel); 
+          for(n=0;n<nodeFace ;n++){
+            no[n] = MAT2D(i,n,isNod,nodeFace );
+            no[n] = MAT2D(nel,no[n],el,maxNo) - 1;
+            if(flag[no[n]] == false){
+              flag[no[n]] = true;
               for(k = 0; k   < ndf;k++)
-                MAT2D(no1,k,noU,ndf) = 0.e0;
+                MAT2D(no[n],k,noU,ndf) = 0.e0;
             }
-            if(flag[no2] == false){
-              flag[no2] = true;
-              for(k = 0; k   < ndf;k++)
-                MAT2D(no2,k,noU,ndf) = 0.e0;
-            }
-            for(k = 0; k   < ndf;k++){
-              MAT2D(no1,k,noU,ndf) += MAT3D(nel,i,k,faceS,aux,ndf);
-              MAT2D(no2,k,noU,ndf) += MAT3D(nel,i,k,faceS,aux,ndf);
-            }  
-            md[no1]++;
-            md[no2]++;
-/*...................................................................*/
+            for(k = 0; k   < ndf;k++) 
+              MAT2D(no[n],k,noU,ndf) += MAT3D(nel,i,k,faceS,aux,ndf);
+            md[no[n]]++;
           }
-/*...................................................................*/
         }
 /*...................................................................*/
 
@@ -695,7 +714,7 @@ void cellPload(short  *restrict faceR ,DOUBLE *restrict faceS
  *            vizinhos destas                                        * 
  * gmKsi   -> modulo do vetor ksi                                    * 
  * gEta    -> vetores paralelos as faces das celulas                 * 
- * gmEta   -> modulo do vetor eta                                    * 
+ * gfArea  -> areas das faces                                        * 
  * gNormal -> vetores normais as faces das celulas                   * 
  * gVolume -> volumes das celulas                                    * 
  * gXmcc   -> vetores que unem o centroide aos pontos medios das     * 
@@ -729,7 +748,7 @@ void rcGradU(Memoria *m
             ,short  *restrict nen     ,short  *restrict nFace
             ,short  *restrict geomType,DOUBLE *restrict lSquare            
             ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi 
-            ,DOUBLE *restrict gEta    ,DOUBLE *restrict gmEta 
+            ,DOUBLE *restrict gEta    ,DOUBLE *restrict gfArea 
             ,DOUBLE *restrict gNormal ,DOUBLE *restrict gVolume
             ,DOUBLE *restrict gXmcc   ,DOUBLE *restrict gmKm   
             ,short  *restrict faceR   ,DOUBLE *restrict faceS  
@@ -743,7 +762,7 @@ void rcGradU(Memoria *m
   short i,j;
 /*... variavel local */
   DOUBLE lKsi[MAX_NUM_FACE*3],lmKsi[MAX_NUM_FACE];
-  DOUBLE lEta[MAX_NUM_FACE*3],lmEta[MAX_NUM_FACE];
+  DOUBLE lEta[MAX_NUM_FACE*3],lfArea[MAX_NUM_FACE];
   DOUBLE lNormal[MAX_NUM_FACE*3],lVolume[MAX_NUM_FACE+1];
   DOUBLE lXmcc[MAX_NUM_FACE*3];
   DOUBLE lmKm[MAX_NUM_FACE];
@@ -813,9 +832,9 @@ void rcGradU(Memoria *m
 
 /*...*/      
     for(i=0;i<aux1;i++){
-      lmKsi[i] = MAT2D(nel,i,gmKsi ,maxViz);
-      lmEta[i] = MAT2D(nel,i,gmEta ,maxViz);
-      lmKm[i]  = MAT2D(nel,i,gmKm  ,maxViz);
+      lmKsi[i]  = MAT2D(nel,i,gmKsi ,maxViz);
+      lfArea[i] = MAT2D(nel,i,gfArea ,maxViz);
+      lmKm[i]   = MAT2D(nel,i,gmKm  ,maxViz);
       lFaceR[i] = MAT2D(nel,i,faceR ,aux2);
       for(j=0;j<ndf;j++){
         MAT2D(i,j,lFaceS,ndf) = MAT3D(nel,i,j,faceS ,aux2,ndf);
@@ -841,14 +860,13 @@ void rcGradU(Memoria *m
 
 /*... chamando a biblioteca de celulas*/
     ty = geomType[nel];
-    if(ty == TRIACELL || ty == QUADCELL)
-      sn(isNod,ty,nel); 
+    sn(isNod,ty,nel); 
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
     cellLibRcGrad(lViz      ,lLsquare
                  ,lKsi      ,lmKsi
-                 ,lEta      ,lmEta 
+                 ,lEta      ,lfArea 
                  ,lNormal   ,lVolume
                  ,lXmcc     ,lmKm
                  ,lFaceR    ,lFaceS
@@ -869,8 +887,8 @@ void rcGradU(Memoria *m
 /*********************************************************************/
 
 /********************************************************************* 
- * RCLEASTSQUARE : calcula o gradiente a matriz dos minimos quadrados*
- * para reconstrucao de gradiente
+ * RCLEASTSQUARE : calcula a matriz dos minimos quadrados            *
+ * para reconstrucao de gradiente                                    *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------*
@@ -898,6 +916,7 @@ void rcLeastSquare(DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi
   DOUBLE lKsi[MAX_NUM_FACE*3],lmKsi[MAX_NUM_FACE];
   short lnFace,i,j;
 
+  
   for(nEl=0;nEl<numel;nEl++){
     lnFace  = nFace[nEl];
 

@@ -1,5 +1,5 @@
-#ifndef _DEFINE_
-  #define _DEFINE_
+#ifndef _DEFINE_H_
+  #define _DEFINE_H_
 /*...*/
   #include<stdlib.h>
   #include<stdio.h>
@@ -15,6 +15,7 @@
 /*...................................................................*/
 
 
+
 /*numero maximo de propriedade*/
   #define MAXPROP      5  /*numero maximo de propriedades*/
   #define MAXMAT      200 /*numero maximo de materias*/
@@ -25,6 +26,8 @@
 /*... Tipo geometrica da celula*/
   #define TRIACELL  2
   #define QUADCELL  3  
+  #define TETRCELL  4  
+  #define HEXACELL  5  
 /*...................................................................*/
 
 /*...cellLoop*/
@@ -72,6 +75,10 @@
   #define DOUBLEC  "double"
 /*...................................................................*/
 
+/*...*/
+  DOUBLE oneDivTree;
+/*...................................................................*/
+
 /*... macro para acesso matricial em vetores*/
   #define   MAT2D(i,j,vector,col)           vector[i*col+j]
   #define   MAT3D(i,j,k,vector,col1,col2)   vector[i*col1*col2+col2*j+k]
@@ -98,4 +105,4 @@
     exit(EXIT_FAILURE);
 
 /*...................................................................*/
-#endif/*_DEFINE_*/
+#endif/*_DEFINE_H_*/

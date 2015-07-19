@@ -1,5 +1,5 @@
-#ifndef _CELLLOOP_H
-  #define _CELLLOOP_H
+#ifndef _CELLLOOP_H_
+  #define _CELLLOOP_H_
 /*...*/
   #include<stdio.h>
   #include<stdlib.h>
@@ -27,7 +27,8 @@
               ,DOUBLE *restrict gmKsi  ,DOUBLE *restrict gEta 
               ,DOUBLE *restrict gmEta  ,DOUBLE *restrict gNormal
               ,DOUBLE *restrict gVolume,DOUBLE *restrict gXm    
-              ,DOUBLE *restrict gXmcc  ,DOUBLE *restrict gmKm   
+              ,DOUBLE *restrict gXmcc  
+              ,DOUBLE *restrict gvSkew ,DOUBLE *restrict gmSkew
               ,DOUBLE *restrict gDcca               
               ,short maxNo             ,short maxViz
               ,short ndm               ,INT numel);
@@ -73,7 +74,8 @@
              ,DOUBLE *restrict gEta   ,DOUBLE *restrict gmEta
              ,DOUBLE *restrict gNormal,DOUBLE *restrict gVolume
              ,DOUBLE *restrict gXm    ,DOUBLE *restrict gXmcc   
-             ,DOUBLE *restrict gmKm   ,DOUBLE *restrict gDcca               
+             ,DOUBLE *restrict gvSkew ,DOUBLE *restrict gmvSkew   
+             ,DOUBLE *restrict gDcca               
              ,INT    *restrict ia     ,INT    *restrict ja                  
              ,DOUBLE *restrict ad     ,DOUBLE *restrict al                  
              ,DOUBLE *restrict b      ,INT    *restrict id 
@@ -94,7 +96,8 @@
                  ,DOUBLE *restrict eta     ,DOUBLE *restrict meta  
                  ,DOUBLE *restrict normal  ,DOUBLE *restrict volume 
                  ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc    
-                 ,DOUBLE *restrict dcca    ,DOUBLE *restrict mkm     
+                 ,DOUBLE *restrict dcca    
+                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew     
                  ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
                  ,DOUBLE *restrict lRcell           
                  ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
@@ -126,10 +129,24 @@
                  ,DOUBLE *restrict eta      ,DOUBLE *restrict meta
                  ,DOUBLE *restrict normal   ,DOUBLE *restrict volume
                  ,DOUBLE *restrict xm       ,DOUBLE *restrict xmcc
-                 ,DOUBLE *restrict dcca     ,DOUBLE *restrict mkm
-                 ,short  *restrict sn       ,short maxNo   
-                 ,short maxViz              ,short ndm
-                 ,INT nel);
+                 ,DOUBLE *restrict dcca     
+                 ,DOUBLE *restrict vSkew    ,DOUBLE *restrict mvSkew
+                 ,short  *restrict sn       ,short const maxNo   
+                 ,short const maxViz        ,short const ndm
+                 ,INT const nel);
+
+   void cellGeom3D(DOUBLE *restrict lx      ,short *restrict lGeomType
+                 ,short *restrict lnFac     ,short *restrict lnEn
+                 ,DOUBLE *restrict xc
+                 ,DOUBLE *restrict ksi      ,DOUBLE *restrict mksi
+                 ,DOUBLE *restrict eta      ,DOUBLE *restrict fArea
+                 ,DOUBLE *restrict normal   ,DOUBLE *restrict volume
+                 ,DOUBLE *restrict xm       ,DOUBLE *restrict xmcc
+                 ,DOUBLE *restrict dcca     
+                 ,DOUBLE *restrict vSkew    ,DOUBLE *restrict mvSkew
+                 ,short  *restrict sn
+                 ,short const maxNo         ,short const maxViz
+                 ,short const ndm           ,INT const nel);
 /*...................................................................*/
 
 /*... biblioteca de celulas*/
@@ -139,13 +156,29 @@
                 ,DOUBLE *restrict eta     ,DOUBLE *restrict meta
                 ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-                ,DOUBLE *restrict dcca    ,DOUBLE *restrict mkm
+                ,DOUBLE *restrict dcca   
+                ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
                 ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
                 ,DOUBLE *restrict lRcell                       
                 ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
                 ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0
                 ,short const nen          ,short const nFace    
                 ,short const ndm          ,INT const nel);
+  
+  void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
+                ,INT *restrict lViz       ,INT *restrict lId  
+                ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
+                ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
+                ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
+                ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
+                ,DOUBLE *restrict dcca                              
+                ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
+                ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
+                ,DOUBLE *restrict lRcell                        
+                ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+                ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
+                ,const short nEn          ,short const nFace    
+                ,const short ndm          ,INT const nel);
 /*...................................................................*/
 
 /*... biblioteca de reconstrucao de gradiente*/
@@ -153,7 +186,7 @@
                  ,DOUBLE *restrict ksi         ,DOUBLE *restrict mKsi
                  ,DOUBLE *restrict eta         ,DOUBLE *restrict mEta
                  ,DOUBLE *restrict normal      ,DOUBLE *restrict volume
-                 ,DOUBLE *restrict xmcc        ,DOUBLE *restrict mkm
+                 ,DOUBLE *restrict xmcc        ,DOUBLE *restrict mvSkew
                  ,short  *restrict lFaceR      ,DOUBLE *restrict lFaceS
                  ,DOUBLE *restrict u           ,DOUBLE *restrict gradU 
                  ,DOUBLE *restrict nU          ,short const ty 
@@ -185,7 +218,7 @@
   void greenGaussCell(INT *restrict lViz ,DOUBLE *restrict mKsi
                ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
                ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-               ,DOUBLE *restrict xmcc    ,DOUBLE *restrict mkm
+               ,DOUBLE *restrict xmcc    ,DOUBLE *restrict mvSkew
                ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
                ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
                ,short const nFace        ,short const ndm   
@@ -201,15 +234,25 @@
 
 
 /*... funcoes de apoio*/  
-  void sn(short *s,short ty, INT nel);
+  short sn(short *s,short ty, INT nel);
   DOUBLE areaQuadCell(DOUBLE *restrict eta,short ndm);
   DOUBLE areaTriaCell(DOUBLE *restrict eta,short ndm);
-  DOUBLE volumeCell(DOUBLE *eta,short ty,short ndm,INT nel);
-  void vectorKm2d(DOUBLE *restrict x ,DOUBLE *restrict xc
-                 ,DOUBLE *restrict xm,DOUBLE *restrict mkm
-                 ,short  *restrict sn,short nFace
-                 ,short maxViz       ,short  maxNo       
-                 ,short ndm          ,INT nel);
+  DOUBLE areaCell(DOUBLE *eta,short ty,short ndm,INT nel);
+  DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
+                         ,DOUBLE *restrict fArea
+                         ,short const nFace);
+  void vectorKm2d(DOUBLE *restrict x      ,DOUBLE *restrict xc
+                 ,DOUBLE *restrict xm
+                  ,DOUBLE *restrict vSkew ,DOUBLE *restrict mvSkew
+                 ,short  *restrict sn     ,short const nFace
+                 ,short const maxViz      ,short const maxNo       
+                 ,short const ndm         ,INT const nel);
+
+  void vectorKm3d(DOUBLE *restrict xc     ,DOUBLE *restrict xm
+                 ,DOUBLE *restrict ksi    ,DOUBLE *restrict normal
+                 ,DOUBLE *restrict vSkew ,DOUBLE *restrict mvSkew
+                 ,short const nFace      ,short const ndm
+                 ,short const maxViz     ,INT nel);
 /*...................................................................*/
 
-#endif
+#endif/*_CELLLOOP_H_*/

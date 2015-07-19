@@ -1,6 +1,6 @@
 #include<Sisteq.h>
 /*********************************************************************
- * numEq : numeracao da equacoes                                     *
+ * numEq : numeracao das equacoes                                    *
  * ------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  * ------------------------------------------------------------------* 
@@ -8,7 +8,7 @@
  * id    -> indefinido                                               *
  * num   -> renumeracao dos elementos                                *
  * rt    -> restricoes                                               * 
- * nen   -> numero de aresta por elemento                            * 
+ * nFace -> numero de faces por elemento                             * 
  * numel -> numero de elementos                                      * 
  * maxViz-> numero maximo de vizinhos                                * 
  * str   -> nome do vetor                                            * 
@@ -18,8 +18,10 @@
  * id    -> numerocao das equacoes por celula                        *
  * ------------------------------------------------------------------*
  * *******************************************************************/
-INT numeq(Memoria *m , INT *id   ,INT *num, short *rt
-          , short *nen,INT numel  ,short maxViz, short ndf){
+INT numeq(INT *restrict id       ,INT *restrict num
+         ,short *restrict rt     ,short *restrict nFace 
+         ,INT const numel        ,short const maxViz  
+         ,short const ndf){
 
   INT i,neq,nel;
   short maxRes = (maxViz + 1)*ndf;
@@ -30,7 +32,7 @@ INT numeq(Memoria *m , INT *id   ,INT *num, short *rt
   for(i=0;i<numel;i++){
     nel = num[i] -1;
     for(j=0;j<ndf;j++){
-      aux = nen[nel]*ndf+j;
+      aux = nFace[nel]*ndf+j;
       if( MAT2D(nel,aux,rt,maxRes) == 1)
         MAT2D(nel,j,id,ndf) = -1; 
       else
