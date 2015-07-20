@@ -205,13 +205,13 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
  *            vizinhos destas                                        * 
  * gmKsi   -> modulo do vetor ksi                                    * 
  * gEta    -> vetores paralelos as faces das celulas                 * 
- * gfArea   -> modulo do vetor eta                                    * 
+ * gfArea   -> modulo do vetor eta                                   * 
  * gNormal -> vetores normais as faces das celulas                   * 
  * gVolume -> volumes das celulas                                    * 
  * gXm     -> pontos medios das faces das celulas                    * 
  * gXmcc   -> vetores que unem o centroide aos pontos medios das     * 
  *            faces                                                  * 
- * gmvSkew -> distacia entre o ponto medio a intersecao que une os   * 
+ * gvSkew  -> vetor entre o ponto medio a intersecao que une os      * 
  *            centrois compartilhado nessa face                      * 
  * gmvSkew -> distacia entre o ponto medio a intersecao que une os   * 
  *            centrois compartilhado nessa face                      * 
@@ -717,10 +717,10 @@ void cellPload(short  *restrict faceR ,DOUBLE *restrict faceS
  * gfArea  -> areas das faces                                        * 
  * gNormal -> vetores normais as faces das celulas                   * 
  * gVolume -> volumes das celulas                                    * 
- * gXmcc   -> vetores que unem o centroide aos pontos medios das     * 
- *            faces                                                  * 
- * gmkm    -> distacia entre o ponto medio a intersecao que une os   * 
+ * gvSkew  -> vetor entre o ponto medio a intersecao que une os      * 
  *            centrois compartilhado nessa face                      * 
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
+ *            faces da celula central                                * 
  * faceR   -> restricoes por elmento                                 * 
  * faceS   -> carga por elemento                                     * 
  * u       -> solucao conhecida por celula (atualizado)              * 
@@ -750,7 +750,7 @@ void rcGradU(Memoria *m
             ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi 
             ,DOUBLE *restrict gEta    ,DOUBLE *restrict gfArea 
             ,DOUBLE *restrict gNormal ,DOUBLE *restrict gVolume
-            ,DOUBLE *restrict gXmcc   ,DOUBLE *restrict gmKm   
+            ,DOUBLE *restrict gvSkew  ,DOUBLE *restrict gXmcc  
             ,short  *restrict faceR   ,DOUBLE *restrict faceS  
             ,DOUBLE *restrict u       ,DOUBLE *restrict gradU              
             ,DOUBLE *restrict nU      ,short const lib 
@@ -764,8 +764,8 @@ void rcGradU(Memoria *m
   DOUBLE lKsi[MAX_NUM_FACE*3],lmKsi[MAX_NUM_FACE];
   DOUBLE lEta[MAX_NUM_FACE*3],lfArea[MAX_NUM_FACE];
   DOUBLE lNormal[MAX_NUM_FACE*3],lVolume[MAX_NUM_FACE+1];
+  DOUBLE lvSkew[MAX_NUM_FACE*3];
   DOUBLE lXmcc[MAX_NUM_FACE*3];
-  DOUBLE lmKm[MAX_NUM_FACE];
   short  lFaceR[MAX_NUM_FACE+1];
   DOUBLE lFaceS[(MAX_NUM_FACE+1)*MAX_NDF];
   DOUBLE lu[(MAX_NUM_FACE+1)*MAX_NDF];
@@ -832,10 +832,9 @@ void rcGradU(Memoria *m
 
 /*...*/      
     for(i=0;i<aux1;i++){
-      lmKsi[i]  = MAT2D(nel,i,gmKsi ,maxViz);
+      lmKsi[i]  = MAT2D(nel,i,gmKsi  ,maxViz);
       lfArea[i] = MAT2D(nel,i,gfArea ,maxViz);
-      lmKm[i]   = MAT2D(nel,i,gmKm  ,maxViz);
-      lFaceR[i] = MAT2D(nel,i,faceR ,aux2);
+      lFaceR[i] = MAT2D(nel,i,faceR  ,aux2);
       for(j=0;j<ndf;j++){
         MAT2D(i,j,lFaceS,ndf) = MAT3D(nel,i,j,faceS ,aux2,ndf);
       }
@@ -843,6 +842,7 @@ void rcGradU(Memoria *m
         MAT2D(i,j,lKsi   ,ndm) = MAT3D(nel,i,j,gKsi   ,maxViz,ndm);
         MAT2D(i,j,lEta   ,ndm) = MAT3D(nel,i,j,gEta   ,maxViz,ndm);
         MAT2D(i,j,lNormal,ndm) = MAT3D(nel,i,j,gNormal,maxViz,ndm);
+        MAT2D(i,j,lvSkew ,ndm) = MAT3D(nel,i,j,gvSkew ,maxViz,ndm);
         MAT2D(i,j,lXmcc  ,ndm) = MAT3D(nel,i,j,gXmcc  ,maxViz,ndm);
       }
 /*... loop na celulas vizinhas*/    
@@ -868,7 +868,7 @@ void rcGradU(Memoria *m
                  ,lKsi      ,lmKsi
                  ,lEta      ,lfArea 
                  ,lNormal   ,lVolume
-                 ,lXmcc     ,lmKm
+                 ,lvSkew    ,lXmcc 
                  ,lFaceR    ,lFaceS
                  ,lu        ,lGradU
                  ,lnU       ,ty     

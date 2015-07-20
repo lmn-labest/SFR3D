@@ -545,10 +545,10 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
  * meta      -> modulo do vetor eta                                  * 
  * normal    -> vetores normais as faces das celulas                 * 
  * area      -> area da celula central                               * 
+ * vSkew      -> vetor entre o ponto medio a intersecao que une os   * 
+ *            centrois compartilhado nessa face                      * 
  * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
  *            faces da celula central                                * 
- * mvSkew       -> distacia entre o ponto medio a intersecao que une os * 
- *            centrois compartilhado nessa face da celula central    * 
  * u         -> solucao conhecida na celula                          * 
  * gradU     -> gradiente rescontruido da solucao conhecida          * 
  * nU        -> solucao conhecida no no                              * 
@@ -570,7 +570,7 @@ void cellLibRcGrad(INT   *restrict lViz    ,DOUBLE *restrict lLsquare
                  ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
                  ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
                  ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-                 ,DOUBLE *restrict xmcc    ,DOUBLE *restrict mvSkew
+                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict xmcc 
                  ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
                  ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
                  ,DOUBLE *restrict lnU     ,short const ty                
@@ -585,7 +585,7 @@ void cellLibRcGrad(INT   *restrict lViz    ,DOUBLE *restrict lLsquare
       greenGaussCell(lViz    ,mKsi
                     ,eta     ,mEta
                     ,normal  ,volume
-                    ,xmcc    ,mvSkew
+                    ,vSkew   ,xmcc
                     ,lFaceR  ,lFaceS
                     ,u       ,gradU 
                     ,nFace   ,ndm   
@@ -630,8 +630,6 @@ void cellLibRcGrad(INT   *restrict lViz    ,DOUBLE *restrict lLsquare
 }
 /*********************************************************************/ 
 
-
-
 /********************************************************************* 
  * GRREENGAUSSCELL: reconstrucao de gradiente green-gauss linear por * 
  * celula                                                            *
@@ -644,10 +642,10 @@ void cellLibRcGrad(INT   *restrict lViz    ,DOUBLE *restrict lLsquare
  * meta      -> modulo do vetor eta                                  * 
  * normal    -> vetores normais as faces das celulas                 * 
  * volume    -> area da celula central                               * 
+ * vSkew      -> vetor entre o ponto medio a intersecao que une os   * 
+ *            centrois compartilhado nessa face                      * 
  * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
  *            faces da celula central                                * 
- * mvSkew       -> distacia entre o ponto medio a intersecao que une os * 
- *            centrois compartilhado nessa face da celula central    * 
  * lFaceR    -> restricoes por elmento                               * 
  * lFaceS    -> carga por elemento                                   * 
  * u         -> solucao conhecida                                    * 
@@ -664,15 +662,15 @@ void cellLibRcGrad(INT   *restrict lViz    ,DOUBLE *restrict lLsquare
 void greenGaussCell(INT *restrict lViz   ,DOUBLE *restrict mKsi
                ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
                ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-               ,DOUBLE *restrict xmcc    ,DOUBLE *restrict mvSkew
+               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict xmcc 
                ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
                ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
                ,short const nFace        ,short const ndm   
                ,short const ndf)
 {
-  DOUBLE lEta[3],lNormal[3],v[3],dPviz,aux1;
+  DOUBLE lNormal[3],v,dPviz,aux1;
   DOUBLE uf[MAX_NDF],uC[MAX_NDF];
-  DOUBLE lModKsi,alpha,alphaMenosUm,lmvSkew,invVol;
+  DOUBLE lModKsi,alpha,alphaMenosUm,invVol;
   INT vizNel;
   short idCell = nFace;
   short i,j,k;
@@ -693,14 +691,12 @@ void greenGaussCell(INT *restrict lViz   ,DOUBLE *restrict mKsi
       lNormal[j] = MAT2D(i,j,normal,ndm);
 /*... dominio*/
     if(vizNel > -1){
-      lmvSkew    = mvSkew[i];
-      lModKsi = mKsi[i];
+      lModKsi    = mKsi[i];
 /*...*/
       dPviz = 0.e0;
       for(j=0;j<ndm;j++){
-        lEta[j]    = MAT2D(i,j,eta,ndm);
-        v[j]       = lmvSkew*lEta[j] + MAT2D(i,j,xmcc,ndm);
-        dPviz     += v[j]*v[j];
+        v          = MAT2D(i,j,vSkew,ndm) + MAT2D(i,j,xmcc,ndm);
+        dPviz     += v*v;
       }
 /*...................................................................*/
 
@@ -712,7 +708,7 @@ void greenGaussCell(INT *restrict lViz   ,DOUBLE *restrict mKsi
 
 /*...*/
       for(j=0;j<ndf;j++)
-        uf[j] = alpha*uC[j] + alphaMenosUm*MAT2D(i,j,u,ndf);
+        uf[j] = alphaMenosUm*uC[j] + alpha*MAT2D(i,j,u,ndf);
 /*...................................................................*/
     }
 /*...................................................................*/
@@ -1443,8 +1439,8 @@ void vectorKm2d(DOUBLE *restrict x     ,DOUBLE *restrict xc
     xi[0] = a[0][0]*f[0] + a[0][1]*f[1];
     xi[1] = a[1][0]*f[0] + a[1][1]*f[1];
 /*...vertor vSkew*/
-    lvSkew[0] = MAT2D(i,0,xm,ndm) - xi[0];
-    lvSkew[1] = MAT2D(i,1,xm,ndm) - xi[1];
+    lvSkew[0] = xi[0] - MAT2D(i,0,xm,ndm);
+    lvSkew[1] = xi[1] - MAT2D(i,1,xm,ndm);
 /*...................................................................*/
     mvSkew[i] = sqrt(lvSkew[0]*lvSkew[0] + lvSkew[1]*lvSkew[1]);
 /*...*/
@@ -1541,9 +1537,9 @@ void vectorKm3d(DOUBLE *restrict xc   ,DOUBLE *restrict xm
     xi[2] = xR[2] + t*lKsi[2];
 
 /*...vertor vSkew*/
-    lvSkew[0] = MAT2D(i,0,xm,ndm) - xi[0];
-    lvSkew[1] = MAT2D(i,1,xm,ndm) - xi[1];
-    lvSkew[2] = MAT2D(i,2,xm,ndm) - xi[2];
+    lvSkew[0] = xi[0] - MAT2D(i,0,xm,ndm);
+    lvSkew[1] = xi[1] - MAT2D(i,1,xm,ndm);
+    lvSkew[2] = xi[2] - MAT2D(i,2,xm,ndm);
 /*...................................................................*/
     mvSkew[i] = 
      sqrt(lvSkew[0]*lvSkew[0]

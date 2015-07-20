@@ -1,0 +1,16 @@
+config
+reord true bvtk false mem 200 rcGrad gglc fItPlotRes true fItPlot true
+endConfig
+mesh
+nnode 117243 numel 108880 ndm 3 maxno 8 numat 1 ndf 1 maxviz 6 
+materials
+1 1 1.0 
+endMaterials
+insert test/binTest/ex3_3d_hexa_1_ccr.dat
+endMesh
+pgeo
+presolvd
+solvd
+pD1
+pD1CsvCell
+stop

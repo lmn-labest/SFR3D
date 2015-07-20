@@ -116,9 +116,9 @@ int main(int argc,char**argv){
 /*... tecnica padrao de resconstrucao de gradiente*/
   mesh->rcGrad = RCGRADGAUSSC; 
   mesh->nlTemp.maxIt = 100; 
-  mesh->nlTemp.tol   = 1.e-5; 
+  mesh->nlTemp.tol   = 1.e-4; 
   mesh->nlD1.maxIt  = 100; 
-  mesh->nlD1.tol    = 1.e-5; 
+  mesh->nlD1.tol    = 1.e-4; 
 /* ..................................................................*/
 
 /*...*/  
@@ -577,7 +577,7 @@ int main(int argc,char**argv){
                ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
                ,mesh->elm.geom.eta      ,mesh->elm.geom.meta    
                ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-               ,mesh->elm.geom.xmcc     ,mesh->elm.geom.mvSkew 
+               ,mesh->elm.geom.vSkew ,mesh->elm.geom.xmcc    
                ,mesh->elm.faceRd1       ,mesh->elm.faceSd1       
                ,mesh->elm.uD1           ,mesh->elm.gradUd1                 
                ,mesh->node.uD1          ,mesh->rcGrad
@@ -685,7 +685,7 @@ int main(int argc,char**argv){
              ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
              ,mesh->elm.geom.eta      ,mesh->elm.geom.meta    
              ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-             ,mesh->elm.geom.xmcc     ,mesh->elm.geom.mvSkew 
+             ,mesh->elm.geom.vSkew    ,mesh->elm.geom.xmcc  
              ,mesh->elm.faceRd1       ,mesh->elm.faceSd1       
              ,mesh->elm.uD1           ,mesh->elm.gradUd1                 
              ,mesh->node.uD1          ,mesh->rcGrad
