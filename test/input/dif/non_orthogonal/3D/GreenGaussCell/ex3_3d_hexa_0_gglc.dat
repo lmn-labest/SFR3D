@@ -9,8 +9,8 @@ endMaterials
 insert test/binTest/ex3_3d_hexa_0_ccr.dat
 endMesh
 pgeo
-presolvd
-solvd
+presolvD1 noConfig:
+solvD1
 pD1
 pD1CsvCell
 stop

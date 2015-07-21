@@ -40,11 +40,44 @@
 /*==================================================================*/
 
 /*======================== level 2 =================================*/
-/*CSRC*/
+/*... CsrDSym*/
   void matVecCsrDSym(INT const neq           
                     ,INT *restrict ia   ,INT *restrict ja
                     ,DOUBLE *restrict al,DOUBLE *restrict ad
                     ,DOUBLE *restrict x ,DOUBLE *restrict y);
+/*... CsrD*/ 
+  void     matVecCsrD(INT const neq           
+                     ,INT *restrict ia  ,INT *restrict ja
+                     ,DOUBLE *restrict a,DOUBLE *restrict ad
+                     ,DOUBLE *restrict x,DOUBLE *restrict y);
+  void   matVecCsrDI2(INT const neq           
+                     ,INT *restrict ia  ,INT *restrict ja
+                     ,DOUBLE *restrict a,DOUBLE *restrict ad
+                     ,DOUBLE *restrict x,DOUBLE *restrict y);
+  void   matVecCsrDI4(INT const neq           
+                     ,INT *restrict ia  ,INT *restrict ja
+                     ,DOUBLE *restrict a,DOUBLE *restrict ad
+                     ,DOUBLE *restrict x,DOUBLE *restrict y);
+  void   matVecCsrDI6(INT const neq           
+                     ,INT *restrict ia  ,INT *restrict ja
+                     ,DOUBLE *restrict a,DOUBLE *restrict ad
+                     ,DOUBLE *restrict x,DOUBLE *restrict y);
+  void   matVecCsrDO2(INT const neq           
+                     ,INT *restrict ia  ,INT *restrict ja
+                     ,DOUBLE *restrict a,DOUBLE *restrict ad
+                     ,DOUBLE *restrict x,DOUBLE *restrict y);
+  void   matVecCsrDO4(INT const neq           
+                     ,INT *restrict ia  ,INT *restrict ja
+                     ,DOUBLE *restrict a,DOUBLE *restrict ad
+                     ,DOUBLE *restrict x,DOUBLE *restrict y);
+  void   matVecCsrDO6(INT const neq           
+                     ,INT *restrict ia  ,INT *restrict ja
+                     ,DOUBLE *restrict a,DOUBLE *restrict ad
+                     ,DOUBLE *restrict x,DOUBLE *restrict y);
+  void matVecCsrDO2I2(INT const neq           
+                     ,INT *restrict ia  ,INT *restrict ja
+                     ,DOUBLE *restrict a,DOUBLE *restrict ad
+                     ,DOUBLE *restrict x,DOUBLE *restrict y);
 /*==================================================================*/
 
 /*======================== level 3 =================================*/

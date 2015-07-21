@@ -58,3 +58,63 @@ void writeCsvCell(DOUBLE *u      ,DOUBLE *gradU
 
 }
 /*********************************************************************/
+
+/********************************************************************* 
+ * WRITECSVNODE: escreve os resultados por no no formato csv         *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------*
+ * u         -> solucao conhecida                                    * 
+ * gradU     -> gradiente rescontruido da solucao conhecida          * 
+ * cc        -> centroide da celula                                  * 
+ * nNode     -> numero de nod   s                                    * 
+ * ndm       -> numero de dimensoes                                  * 
+ * ndf       -> grauss de liberdade                                  * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * lSquare   -> matriz para a reconstrucao least Square              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void writeCsvNode(DOUBLE *u      ,DOUBLE *gradU
+                 ,DOUBLE *x  
+                 ,INT const nNode,short const ndf
+                 ,short const ndm,FILE *file){
+  INT i;
+  short j,k;
+
+
+  fprintf(file,"#nNode");
+  for(j=0;j<ndm;j++)
+    fprintf(file,",xcc(x%d)",j+1);
+  
+  for(j=0;j<ndf;j++)
+    fprintf(file,",u%d",j+1);
+  
+  for(j=0;j<ndf;j++)
+    for(k=0;k<ndm;k++)
+      fprintf(file,",gradU(u%d)(x%d)",j+1,k+1);
+  
+  fprintf(file,"\n");
+  for(i=0;i<nNode;i++){
+    fprintf(file,"%9d",i+1);
+
+/*... centroide*/    
+    for(j=0;j<ndm;j++)
+      fprintf(file,",%e",MAT2D(i,j,x,ndm));
+
+/*... valores de u1*/    
+    for(j=0;j<ndf;j++)
+      fprintf(file,",%e",MAT2D(i,j,u,ndf));
+
+/*... valores de gradU1*/    
+    for(j=0;j<ndf;j++)
+      for(k=0;k<ndm;k++)
+      fprintf(file,",%e",MAT3D(i,j,k,gradU,ndf,ndm));
+
+    fprintf(file,"\n");
+    
+  }
+
+}
+/*********************************************************************/

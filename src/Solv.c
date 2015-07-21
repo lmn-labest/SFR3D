@@ -39,7 +39,7 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
             ,short const storage ,short const solver
             ,FILE* fSolvLog      ,bool const fLog
             ,bool const newX     ,bool const openMp   
-            ,bool const unsym    ,bool const loopWise)
+            ,bool const unSym    ,bool const loopWise)
 {
   DOUBLE *z=NULL,*r=NULL,*pc=NULL;
   void   (*matVecC)();
@@ -57,26 +57,31 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
 
 /*... arranjos auxiliares do pcg*/
       HccaAlloc(DOUBLE,m,z,neq,"z",false);
-      zero(z,neq,"double");
+      zero(z,neq,DOUBLEC);
       HccaAlloc(DOUBLE,m,r,neq,"r",false);
-      zero(r,neq,"double");
+      zero(r,neq,DOUBLEC);
 /*...................................................................*/
       
 /*... estrutura de dados de armazenamentos da matriz esparcas*/
       switch(storage){
 /*... armazenamento CSR(a)*/
         case CSR:
+            matVecC = NULL;
         break;
 /*...................................................................*/
 
 /*... armazenamento CSRD(a,ad)*/
         case CSRD:
-          matVecC = matVecCsrDSym;
+          if(unSym)
+            matVecC = matVecCsrD;
+          else
+            matVecC = matVecCsrDSym;
         break;
 /*...................................................................*/
 
 /*... armazenamento CSRC(ad,au,al)*/
         case CSRC:
+            matVecC = NULL;
         break;
 /*...................................................................*/
 
@@ -126,4 +131,32 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
   }
 /*...................................................................*/
 }
+/*********************************************************************/      
+
+/**********************************************************************
+ *SETSOLVER : escolhe o solver                                        *
+ **********************************************************************/
+void setSolver(char *word,short *solver)
+{
+
+  if(!strcmp(word,"PCG"));
+   *solver = PCG;
+
+} 
+/*********************************************************************/      
+
+
+/**********************************************************************
+ *SMACHN: calcula a precisao da maquina para double                   *
+ **********************************************************************/
+DOUBLE smachn(){
+  
+  DOUBLE mq = 1.e0;
+
+  while(mq+1.e0 != 1.e0)
+    mq/=2.e0;
+
+  return mq;
+}
+/*********************************************************************/      
 

@@ -65,10 +65,10 @@ int main(int argc,char**argv){
 /* ... macro camandos de leitura*/
   bool macroFlag; 
   char word[WORD_SIZE],str[WORD_SIZE];
-  char macro[][WORD_SIZE] = {"mesh"     ,"stop"     ,"config"
-                            ,"pgeo"     ,"pcoob"    ,"presolvd"
-                            ,"solvd"    ,"pcoo"     ,"pD1"
-                            ,"nlItD1"   ,"pD1CsvCell"   }; 
+  char macro[][WORD_SIZE] = {"mesh"      ,"stop"      ,"config"
+                            ,"pgeo"      ,"pcoob"     ,"presolvD1"
+                            ,"solvD1"    ,"pcoo"      ,"pD1"
+                            ,"nlItD1"    ,"pD1CsvCell","pD1CsvNode"}; 
 /* ..................................................................*/
 
 /*... Memoria principal(valor padrao - bytes)*/
@@ -369,11 +369,13 @@ int main(int argc,char**argv){
       }
       fSolvD1          = true;
       solvD1->solver   = PCG;
-      solvD1->tol      = 1.2e-16;
+      solvD1->tol      = smachn();
       solvD1->maxIt    = 50000;    
       solvD1->fileSolv = NULL;
       solvD1->log      = true;
       solvD1->flag     = true;
+/*...................................................................*/
+
 /*...*/
       if(solvD1->log){  
         strcpy(auxName,preName);
@@ -394,8 +396,6 @@ int main(int argc,char**argv){
       }
 /*...................................................................*/
 
-/*...................................................................*/
-
 /*... inicializa a estrutura do solver*/
       sistEqD1 = (SistEq*) malloc(sizeof(SistEq));
       if(sistEqD1 == NULL){
@@ -403,7 +403,40 @@ int main(int argc,char**argv){
         exit(EXIT_FAILURE);
       }
       sistEqD1->storage = CSRD;
-      sistEqD1->unsym   = false;    
+      sistEqD1->unsym   = true;    
+/*...................................................................*/
+
+/*... config*/
+      readMacro(fileIn,word,false);
+      if(!strcmp(word,"config:")){
+        readMacro(fileIn,word,false);
+        setSolver(word,&solvD1->solver); 
+        readMacro(fileIn,word,false);
+        
+        if(!strcmp(word,"sym"))
+          sistEqD1->unsym   = false;    
+        else if(!strcmp("unSym",word))
+          sistEqD1->unsym   = true;    
+        
+        fscanf(fileIn,"%u" ,&solvD1->maxIt);
+        fscanf(fileIn,"%lf",&solvD1->tol);
+
+        if( solvD1->tol == 0.e0) 
+          solvD1->tol = smachn();
+
+        printf("MaxIt: %d\n",solvD1->maxIt);
+        printf("Tol  : %e\n",solvD1->tol);
+      
+        if(solvD1->solver == PCG)     
+          printf("PCG\n");
+
+
+        if(sistEqD1->unsym)
+          printf("unsymetric\n");
+        else
+          printf("symetric\n");
+
+      }
 /*...................................................................*/
 
 /*... numeracao das equacoes*/
@@ -775,6 +808,29 @@ int main(int argc,char**argv){
       writeCsvCell(mesh->elm.uD1    ,mesh->elm.gradUd1
                   ,mesh->elm.geom.cc                  
                   ,mesh->numel      ,mesh->ndfD[0]
+                  ,mesh->ndm        ,fileOut);
+/*...*/
+      fclose(fileOut);
+/*...................................................................*/
+      printf("%s\n\n",DIF);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: pD1CsvNode imprime os resultados no formato csv                  
+ *===================================================================*/
+    else if((!strcmp(word,macro[11]))){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+/*...*/
+      strcpy(auxName,preName);
+      strcat(auxName,"_D1_node_");
+      fName(auxName,0,0,16,&nameOut);
+      fileOut = openFile(nameOut,"w");
+/*...*/
+      writeCsvNode(mesh->node.uD1    ,mesh->node.gradUd1
+                  ,mesh->node.x                  
+                  ,mesh->nnode      ,mesh->ndfD[0]
                   ,mesh->ndm        ,fileOut);
 /*...*/
       fclose(fileOut);

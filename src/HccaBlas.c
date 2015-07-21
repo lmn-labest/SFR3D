@@ -1,4 +1,37 @@
 #include<HccaBlas.h>
+/********************************************************************** 
+ * HCCABLAS : biblioteca de algebra linear                            * 
+ *------------------------------------------------------------------- * 
+ * nome das funcoes                                                   * 
+ *------------------------------------------------------------------- * 
+ * flopMatVecCsr  -> FLOP para operacao matriz*vector, onde a matriz  *
+ * esta armazenada em um formato da familia CSR                       *
+ * flopDot        -> FLOP para operacao produto interno               *
+ * pordVet        -> produto vetorial                                 * 
+ * ------------------------- VECTOR --------------------------------- * 
+ * alphaProdVector-> produto de vetor por um escalar                  *
+ * addVector      -> adicao de vetores                                *
+ * ------------------------- DOT ------------------------------------ * 
+ * dot            -> produto interno entre dois vetores               * 
+ * dotO2L2        -> produto interno entre dois vetores               * 
+ * dotL2          -> produto interno entre dois vetores               * 
+ * dotL4          -> produto interno entre dois vetores               * 
+ * dotL6          -> produto interno entre dois vetores               * 
+ * dotL8          -> produto interno entre dois vetores               * 
+ * dotO2          -> produto interno entre dois vetores               * 
+ * dotO4          -> produto interno entre dois vetores               * 
+ * dotO6          -> produto interno entre dois vetores               * 
+ * dotO8          -> produto interno entre dois vetores               * 
+ * -------------------------- CSRD ---------------------------------- * 
+ * matVecCsrD     -> matriz vetor para matriz geral no formato CSRD   * 
+ * matVecCsrDI2   -> matriz vetor para matriz geral no formato CSRD   * 
+ * matVecCsrDI4   -> matriz vetor para matriz geral no formato CSRD   * 
+ * matVecCsrDI6   -> matriz vetor para matriz geral no formato CSRD   * 
+ * matVecCsrDO2   -> matriz vetor para matriz geral no formato CSRD   * 
+ * matVecCsrDO4   -> matriz vetor para matriz geral no formato CSRD   * 
+ * matVecCsrDO6   -> matriz vetor para matriz geral no formato CSRD   * 
+ * matVecCsrDO2I2 -> matriz vetor para matriz geral no formato CSRD   * 
+ *********************************************************************/
 
 /********************************************************************* 
  * FLOPDOT: Calculo do numero de flops do produto interno            * 
@@ -143,9 +176,18 @@ void addVector(DOUBLE const alpha,DOUBLE *restrict a
 
 {
   INT i;
- 
-  for(i=0;i<nDim;i++)
-    c[i] = alpha*a[i] + beta*b[i];
+   
+  if(alpha == 1.e0)
+    for(i=0;i<nDim;i++)
+      c[i] = a[i] + beta*b[i];
+
+  else if(beta == 1.e0)
+    for(i=0;i<nDim;i++)
+      c[i] = alpha*a[i] + b[i];
+
+  else
+    for(i=0;i<nDim;i++)
+      c[i] = alpha*a[i] + beta*b[i];
 
 }
 /*********************************************************************/ 
@@ -718,6 +760,681 @@ void matVecCsrDSym(INT const neq
 /*...................................................................*/
 } 
 /*********************************************************************/ 
+
+/********************************************************************* 
+ * MATVECCSRD :produto matriz vetor para uma matriz no formato CSRD  * 
+ * (y=Ax, A uma matriz nao simentrica)                               * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * a   -> vetor com os valores da matriz fora diagonal               * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecCsrD(INT const neq
+               ,INT *restrict ia  ,INT *restrict ja
+               ,DOUBLE *restrict a,DOUBLE *restrict ad
+               ,DOUBLE *restrict x,DOUBLE *restrict y)
+{
+
+  INT i,j;
+  DOUBLE tmp;
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+
+  for(i=0;i<neq;i++){
+    tmp = ad[i]*x[i];
+    for(j=ia[i];j<ia[i+1];j++)
+      tmp += a[j]*x[ja[j]];
+    y[i] = tmp;
+  }
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+}
+/*********************************************************************/
+/********************************************************************* 
+ * MATVECCSRDI2:  produto matriz vetor para uma matriz generica no   *
+ * formato csr com a diagonal principal retirada                     *
+ * (y=Ax, A uma matriz geral)                                        * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * a   -> vetor com os valores da matriz                             * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecCsrDI2(INT const neq           
+                 ,INT *restrict ia  ,INT *restrict ja
+                 ,DOUBLE *restrict a,DOUBLE *restrict ad
+                 ,DOUBLE *restrict x,DOUBLE *restrict y)
+{
+  INT i;
+  INT ia1,ia2,ja1;
+  int resto,n;
+  DOUBLE tmp;
+
+  for(i=0;i<neq;i++){
+    tmp   = ad[i]*x[i];
+    ia1   = ia[i  ];
+    ia2   = ia[i+1];
+    
+    n     = ia2 - ia1;
+    resto = n%2;
+    
+    if(resto)
+      tmp += a[ia1]*x[ja[ia1]];
+
+    for(ja1=ia1+resto;ja1<ia2;ja1+=2)
+      tmp += a[  ja1]*x[ja[  ja1]]
+           + a[ja1+1]*x[ja[ja1+1]];
+
+    y[i] = tmp;
+  }
+} 
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * MATVECCSRDI4:  produto matriz vetor para uma matriz generica no   *
+ * formato csr com a diagonal principal retirada                     *
+ * (y=Ax, A uma matriz geral)                                        * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * a   -> vetor com os valores da matriz                             * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecCsrDI4(INT const neq           
+                 ,INT *restrict ia  ,INT *restrict ja
+                 ,DOUBLE *restrict a,DOUBLE *restrict ad
+                 ,DOUBLE *restrict x,DOUBLE *restrict y)
+{
+  INT i;
+  INT ia1,ia2,ja1;
+  int resto,n;
+  DOUBLE tmp;
+
+  for(i=0;i<neq;i++){
+    tmp   = ad[i]*x[i];
+    ia1   = ia[i  ];
+    ia2   = ia[i+1];
+    
+    n     = ia2 - ia1;
+    resto = n%4;
+    
+    if(resto == 3)
+      tmp +=   a[ia1]*x[  ja[ia1]] 
+           + a[ia1+1]*x[ja[ia1+1]] 
+           + a[ia1+2]*x[ja[ia1+2]]; 
+    else if(resto == 2)
+      tmp +=   a[ia1]*x[  ja[ia1]] 
+           + a[ia1+1]*x[ja[ia1+1]];
+    else if(resto == 1)
+      tmp += a[ia1]*x[ja[ia1]]; 
+
+    for(ja1=ia1+resto;ja1<ia2;ja1+=4)
+      tmp += a[  ja1]*x[ja[  ja1]]
+           + a[ja1+1]*x[ja[ja1+1]] 
+           + a[ja1+2]*x[ja[ja1+2]] 
+           + a[ja1+3]*x[ja[ja1+3]];
+
+    y[i] = tmp;
+  }
+} 
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * MATVECCSRDI6:  produto matriz vetor para uma matriz generica no   *
+ * formato csr com a diagonal principal retirada                     *
+ * (y=Ax, A uma matriz geral)                                        * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * a   -> vetor com os valores da matriz                             * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecCsrDI6(INT const neq           
+                 ,INT *restrict ia  ,INT *restrict ja
+                 ,DOUBLE *restrict a,DOUBLE *restrict ad
+                 ,DOUBLE *restrict x,DOUBLE *restrict y)
+{
+  INT i;
+  INT ia1,ia2,ja1;
+  int resto,n;
+  DOUBLE tmp;
+
+  for(i=0;i<neq;i++){
+    tmp   = ad[i]*x[i];
+    ia1   = ia[  i];
+    ia2   = ia[i+1];
+    
+    n     = ia2 - ia1;
+    resto = n%6;
+    
+    if(resto == 5)
+      tmp +=   a[ia1]*x[  ja[ia1]] 
+           + a[ia1+1]*x[ja[ia1+1]] 
+           + a[ia1+2]*x[ja[ia1+2]]  
+           + a[ia1+3]*x[ja[ia1+3]]  
+           + a[ia1+4]*x[ja[ia1+4]]; 
+    else if(resto == 4)
+      tmp +=   a[ia1]*x[  ja[ia1]] 
+           + a[ia1+1]*x[ja[ia1+1]] 
+           + a[ia1+2]*x[ja[ia1+2]]  
+           + a[ia1+3]*x[ja[ia1+3]]; 
+    else if(resto == 3)
+      tmp +=   a[ia1]*x[  ja[ia1]] 
+           + a[ia1+1]*x[ja[ia1+1]] 
+           + a[ia1+2]*x[ja[ia1+2]]; 
+    else if(resto == 2)
+      tmp +=   a[ia1]*x[  ja[ia1]] 
+           + a[ia1+1]*x[ja[ia1+1]];
+    else if(resto == 1)
+      tmp += a[ia1]*x[ja[ia1]]; 
+
+    for(ja1=ia1+resto;ja1<ia2;ja1+=6)
+      tmp += a[  ja1]*x[ja[  ja1]]
+           + a[ja1+1]*x[ja[ja1+1]] 
+           + a[ja1+2]*x[ja[ja1+2]] 
+           + a[ja1+3]*x[ja[ja1+3]] 
+           + a[ja1+4]*x[ja[ja1+4]] 
+           + a[ja1+5]*x[ja[ja1+5]];
+
+    y[i] = tmp;
+  }
+} 
+/*********************************************************************/ 
+ 
+/********************************************************************* 
+ * MATVECCSRDO2:  produto matriz vetor para uma matriz generica no   *
+ * formato csr com a diagonal principal retirada                     *
+ * (y=Ax, A uma matriz geral)                                        * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * a   -> vetor com os valores da matriz                             * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecCsrDO2(INT const neq           
+                 ,INT *restrict ia  ,INT *restrict ja
+                 ,DOUBLE *restrict a,DOUBLE *restrict ad
+                 ,DOUBLE *restrict x,DOUBLE *restrict y)
+{
+  INT i;
+  INT ia1,ia2,ia3,ja1;
+  int resto;
+  DOUBLE tmp1,tmp2;
+
+  resto = neq%2;
+  
+  if(resto){
+    tmp1  = ad[0]*x[0];
+    for(ja1=0;ja1<ia[1];ja1++)
+      tmp1 += a[ja1]*x[ja[ja1]];
+    y[0] = tmp1;
+  }
+  
+  for(i=resto;i<neq;i+=2){
+    tmp1  = ad[i  ]*x[  i];
+    tmp2  = ad[i+1]*x[i+1];
+    ia1   = ia[i  ];
+    ia2   = ia[i+1];
+    ia3   = ia[i+2];
+    if(ia1 == ia2) goto linhai1;
+
+/*linha i*/
+    for(ja1=ia1;ja1<ia2;ja1++)
+      tmp1 += a[ja1]*x[ja[ja1]];
+/*...................................................................*/
+
+/*linha i+1*/
+linhai1:
+    y[i] = tmp1;
+    if(ia2 == ia3) goto linhai2;
+
+    for(ja1=ia2;ja1<ia3;ja1++)
+      tmp2 += a[ja1]*x[ja[ja1]];
+/*...................................................................*/
+linhai2:
+    y[i+1] = tmp2;
+  }
+} 
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * MATVECCRSDO4:  produto matriz vetor para uma matriz generica no   *
+ * formato csr com a diagonal principal retirada                     *
+ * (y=Ax, A uma matriz geral)                                        * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * a   -> vetor com os valores da matriz                             * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecCsrDO4(INT const neq           
+                 ,INT *restrict ia  ,INT *restrict ja
+                 ,DOUBLE *restrict a,DOUBLE *restrict ad
+                 ,DOUBLE *restrict x,DOUBLE *restrict y)
+{
+  INT i,j;
+  INT ia1,ia2,ia3,ia4,ia5;
+  int resto;
+  DOUBLE tmp1,tmp2,tmp3,tmp4;
+
+  resto = neq %4;
+  
+  if(resto == 3){
+    tmp1  = ad[0]*x[0];
+    tmp2  = ad[1]*x[1];
+    tmp3  = ad[2]*x[2];
+    for(j=ia[0];j<ia[1];j++)
+      tmp1 += a[j]*x[ja[j]];
+    for(j=ia[1];j<ia[2];j++)
+      tmp2 += a[j]*x[ja[j]];
+    for(j=ia[2];j<ia[3];j++)
+      tmp3 += a[j]*x[ja[j]];
+    y[0] = tmp1;
+    y[1] = tmp2;
+    y[2] = tmp3;
+  }
+
+  else if(resto == 2){
+    tmp1  = ad[0]*x[0];
+    tmp2  = ad[1]*x[1];
+    for(j=ia[0];j<ia[1];j++)
+      tmp1 += a[j]*x[ja[j]];
+    for(j=ia[1];j<ia[2];j++)
+      tmp2 += a[j]*x[ja[j]];
+    y[0] = tmp1;
+    y[1] = tmp2;
+  }
+  
+  else if(resto == 1){
+    tmp1  = ad[0]*x[0];
+    for(j=ia[0];j<ia[1];j++)
+      tmp1 += a[j]*x[ja[j]];
+    y[0] = tmp1;
+  }
+  
+  for(i=resto;i<neq;i+=4){
+    tmp1  = ad[i  ]*x[  i];
+    tmp2  = ad[i+1]*x[i+1];
+    tmp3  = ad[i+2]*x[i+2];
+    tmp4  = ad[i+3]*x[i+3];
+    ia1   = ia[i  ];
+    ia2   = ia[i+1];
+    ia3   = ia[i+2];
+    ia4   = ia[i+3];
+    ia5   = ia[i+4];
+    if(ia1 == ia2) goto linhai1;
+
+/*linha i*/
+    for(j=ia1;j<ia2;j++)
+      tmp1 += a[j]*x[ja[j]];
+/*...................................................................*/
+
+/*linha i+1*/
+linhai1:
+    y[i] = tmp1;
+    if(ia2 == ia3) goto linhai2;
+
+    for(j=ia2;j<ia3;j++)
+      tmp2 += a[j]*x[ja[j]];
+/*...................................................................*/
+
+/*linha i+2*/
+linhai2:
+    y[i+1] = tmp2;
+    if(ia4 == ia3) goto linhai3;
+
+    for(j=ia3;j<ia4;j++)
+      tmp3 += a[j]*x[ja[j]];
+/*...................................................................*/
+
+/*linha i+3*/
+linhai3:
+    y[i+2] = tmp3;
+    if(ia5 == ia4) goto linhai4;
+
+    for(j=ia4;j<ia5;j++)
+      tmp4 += a[j]*x[ja[j]];
+/*...................................................................*/
+linhai4:
+    y[i+3] = tmp4;
+  }
+} 
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * MATVECCRSDO6:  produto matriz vetor para uma matriz generica no   *
+ * formato csr com a diagonal principal retirada                     *
+ * (y=Ax, A uma matriz geral)                                        * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * a   -> vetor com os valores da matriz                             * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecCsrDO6(INT const neq           
+                 ,INT *restrict ia  ,INT *restrict ja
+                 ,DOUBLE *restrict a,DOUBLE *restrict ad
+                 ,DOUBLE *restrict x,DOUBLE *restrict y)
+{
+  INT i,j;
+  INT ia1,ia2,ia3,ia4,ia5,ia6,ia7;
+  int resto;
+  DOUBLE tmp1,tmp2,tmp3,tmp4,tmp5,tmp6;
+
+  resto = neq%6;
+  
+  if(resto == 5){
+    tmp1  = ad[0]*x[0];
+    tmp2  = ad[1]*x[1];
+    tmp3  = ad[2]*x[2];
+    tmp4  = ad[3]*x[3];
+    tmp5  = ad[4]*x[4];
+    for(j=ia[0];j<ia[1];j++)
+      tmp1 += a[j]*x[ja[j]];
+    for(j=ia[1];j<ia[2];j++)
+      tmp2 += a[j]*x[ja[j]];
+    for(j=ia[2];j<ia[3];j++)
+      tmp3 += a[j]*x[ja[j]];
+    for(j=ia[3];j<ia[4];j++)
+      tmp4 += a[j]*x[ja[j]];
+    for(j=ia[4];j<ia[5];j++)
+      tmp5 += a[j]*x[ja[j]];
+    y[0] = tmp1;
+    y[1] = tmp2;
+    y[2] = tmp3;
+    y[3] = tmp4;
+    y[4] = tmp5;
+  }
+  if(resto == 4){
+    tmp1  = ad[0]*x[0];
+    tmp2  = ad[1]*x[1];
+    tmp3  = ad[2]*x[2];
+    tmp4  = ad[3]*x[3];
+    for(j=ia[0];j<ia[1];j++)
+      tmp1 += a[j]*x[ja[j]];
+    for(j=ia[1];j<ia[2];j++)
+      tmp2 += a[j]*x[ja[j]];
+    for(j=ia[2];j<ia[3];j++)
+      tmp3 += a[j]*x[ja[j]];
+    for(j=ia[3];j<ia[4];j++)
+      tmp4 += a[j]*x[ja[j]];
+    y[0] = tmp1;
+    y[1] = tmp2;
+    y[2] = tmp3;
+    y[3] = tmp4;
+  }
+  if(resto == 3){
+    tmp1  = ad[0]*x[0];
+    tmp2  = ad[1]*x[1];
+    tmp3  = ad[2]*x[2];
+    for(j=ia[0];j<ia[1];j++)
+      tmp1 += a[j]*x[ja[j]];
+    for(j=ia[1];j<ia[2];j++)
+      tmp2 += a[j]*x[ja[j]];
+    for(j=ia[2];j<ia[3];j++)
+      tmp3 += a[j]*x[ja[j]];
+    y[0] = tmp1;
+    y[1] = tmp2;
+    y[2] = tmp3;
+  }
+  
+  else if(resto == 2){
+    tmp1  = ad[0]*x[0];
+    tmp2  = ad[1]*x[1];
+    for(j=ia[0];j<ia[1];j++)
+      tmp1 += a[j]*x[ja[j]];
+    for(j=ia[1];j<ia[2];j++)
+      tmp2 += a[j]*x[ja[j]];
+    y[0] = tmp1;
+    y[1] = tmp2;
+  }
+  
+  else if(resto == 1){
+    tmp1  = ad[0]*x[0];
+    for(j=ia[0];j<ia[1];j++)
+      tmp1 += a[j]*x[ja[j]];
+    y[0] = tmp1;
+  }
+  
+for(i=resto;i<neq;i+=6){
+    tmp1  = ad[i  ]*x[  i];
+    tmp2  = ad[i+1]*x[i+1];
+    tmp3  = ad[i+2]*x[i+2];
+    tmp4  = ad[i+3]*x[i+3];
+    tmp5  = ad[i+4]*x[i+4];
+    tmp6  = ad[i+5]*x[i+5];
+    ia1   = ia[i  ];
+    ia2   = ia[i+1];
+    ia3   = ia[i+2];
+    ia4   = ia[i+3];
+    ia5   = ia[i+4];
+    ia6   = ia[i+5];
+    ia7   = ia[i+6];
+    if(ia1 == ia2) goto linhai1;
+
+/*linha i*/
+    for(j=ia1;j<ia2;j++)
+      tmp1 += a[j]*x[ja[j]];
+/*...................................................................*/
+
+linhai1:
+    y[i] = tmp1;
+
+/*linha i+1*/
+    if(ia2 == ia3) goto linhai2;
+
+    for(j=ia2;j<ia3;j++)
+      tmp2 += a[j]*x[ja[j]];
+/*...................................................................*/
+
+linhai2:
+    y[i+1] = tmp2;
+/*linha i+2*/
+    if(ia4 == ia3) goto linhai3;
+
+    for(j=ia3;j<ia4;j++)
+      tmp3 += a[j]*x[ja[j]];
+/*...................................................................*/
+
+linhai3:
+    y[i+2] = tmp3;
+/*linha i+3*/
+    if(ia5 == ia4) goto linhai4;
+
+    for(j=ia4;j<ia5;j++)
+      tmp4 += a[j]*x[ja[j]];
+/*...................................................................*/
+
+linhai4:
+    y[i+3] = tmp4;
+/*linha i+4*/
+    if(ia6 == ia5) goto linhai5;
+
+    for(j=ia5;j<ia6;j++)
+      tmp5 += a[j]*x[ja[j]];
+/*...................................................................*/
+
+linhai5:
+    y[i+4] = tmp5;
+/*linha i+5*/
+    if(ia7 == ia6) goto linhai6;
+
+    for(j=ia6;j<ia7;j++)
+      tmp6 += a[j]*x[ja[j]];
+/*...................................................................*/
+linhai6:
+    y[i+5] = tmp6;
+  }
+} 
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * MATVECCRSDO2I2: produto matriz vetor para uma matriz generica no  *
+ * formato csr com a diagonal principal retirada                     *
+ * (y=Ax, A uma matriz geral)                                        * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * a   -> vetor com os valores da matriz                             * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecCsrDO2I2(INT const neq           
+                   ,INT *restrict ia  ,INT *restrict ja
+                   ,DOUBLE *restrict a,DOUBLE *restrict ad
+                   ,DOUBLE *restrict x,DOUBLE *restrict y)
+{
+  INT i,j;
+  INT ia1,ia2,ia3;
+  int resto1,resto2,n;
+  DOUBLE tmp1,tmp2;
+  
+  resto1 = neq % 2;
+  
+  if(resto1){
+    tmp1  = ad[0]*x[0];
+    for(j=ia[0];j<ia[1];j++)
+      tmp1 += a[j]*x[ja[j]];
+    y[0] = tmp1;
+  }
+  
+  for(i=resto1;i<neq;i+=2){
+    tmp1  = ad[i  ]*x[  i];
+    tmp2  = ad[i+1]*x[i+1];
+    ia1   = ia[i  ];
+    ia2   = ia[i+1];
+    ia3   = ia[i+2];
+    if(ia1 == ia2) goto linhai1;
+    n      = ia2 - ia1;
+    resto2 = n%2;
+    if(resto2)
+      tmp1 += a[ia1]*x[ja[ia1]];
+
+/*linha i*/
+    for(j=ia1+resto2;j<ia2;j+=2)
+      tmp1 +=a[  j]*x[ja[  j]] 
+           + a[j+1]*x[ja[j+1]];
+/*...................................................................*/
+
+linhai1:
+    y[i] = tmp1;
+/*linha i+1*/
+    if(ia2 == ia3) goto linhai2;
+    n      = ia3 - ia2;
+    resto2 = n%2;
+    if(resto2)
+      tmp2 += a[ia2]*x[ja[ia2]];
+
+    for(j=ia2+resto2;j<ia3;j+=2)
+      tmp2 += a[  j]*x[  ja[j]]
+            + a[j+1]*x[ja[j+1]];
+/*...................................................................*/
+linhai2:
+    y[i+1] = tmp2;
+  }
+} 
+/*********************************************************************/ 
+ 
 /*==================================================================*/
 
 /*======================== level 3 =================================*/

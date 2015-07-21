@@ -108,8 +108,6 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
       
 /*... correcao sobre-relaxada*/
       modE       = 1.0e0/nk;
-/*... correcao residuo minimo*/
-//    modE       = nk;
 /*...................................................................*/
 
 /*...*/
@@ -327,8 +325,6 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
       
 /*... correcao sobre-relaxada*/
       modE       = 1.0e0/nk;
-/*... correcao residuo minimo*/
-//    modE       = nk;
 /*...................................................................*/
 
 /*...*/
@@ -437,4 +433,5 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
 /*...................................................................*/
 }
 /*********************************************************************/
+
 

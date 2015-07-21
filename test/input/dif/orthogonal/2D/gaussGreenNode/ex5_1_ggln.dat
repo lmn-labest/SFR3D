@@ -4126,8 +4126,8 @@ faceSd1
      1000  5  0  0  0  0  1
 endFaceSd1
 endMesh
-presolvd
-solvd
+presolvD1 noConfig:
+solvD1
 pD1
 pD1CsvCell
 stop
