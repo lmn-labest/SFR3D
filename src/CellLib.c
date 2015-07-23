@@ -1177,6 +1177,7 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
 /*... dimensao 2*/
     if(ndm == 2){
       detA   = MAT2D(0,0,r,ndm)*MAT2D(1,1,r,ndm);
+      detA   = 1.e0/detA;
       inv[0] = MAT2D(1,1,r,ndm)*detA;
       inv[2] = MAT2D(0,0,r,ndm)*detA;
     }
@@ -1197,13 +1198,11 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
     }
 /*...................................................................*/
 
-//    printf("%lf %lf %lf %lf %lf %lf\n", inv[0], inv[1]
-//                          , inv[2], inv[3], inv[4], inv[5]);
     for(nf=0;nf<lnFace;nf++){
 /*... dimensao 2*/
       if(ndm == 2){
-        MAT2D(0,nf,lLsquare,lnFace) = inv[0]*MAT2D(0,nf,dx,ndm);
-        MAT2D(1,nf,lLsquare,lnFace) = inv[2]*MAT2D(1,nf,dx,ndm);
+        MAT2D(0,nf,lLsquare,lnFace) = inv[0]*MAT2D(nf,0,dx,ndm);
+        MAT2D(1,nf,lLsquare,lnFace) = inv[2]*MAT2D(nf,1,dx,ndm);
       }
 /*...................................................................*/
 

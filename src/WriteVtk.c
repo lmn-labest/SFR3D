@@ -167,7 +167,7 @@ void wGeoVtk(Memoria *m     ,double *x
 /*...................................................................*/
 
 /*... faceSt1*/
-    writeVtkProp(&idum,faceSd1,numel,,maxViz+1,"faceSd1",iws
+    writeVtkProp(&idum,faceSd1,numel,maxViz+1,"faceSd1",iws
                     ,DOUBLEV,1,f);
 /*...................................................................*/
   }

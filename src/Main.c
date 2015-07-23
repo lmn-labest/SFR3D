@@ -247,7 +247,7 @@ int main(int argc,char**argv){
         printf("%s\n",DIF);
         printf("Least Square ...\n");
         HccaAlloc(DOUBLE,&m,mesh->elm.leastSquare
-                 ,mesh->numel*mesh->maxViz*mesh->ndm,"leastSquare" ,_AD_);
+              ,mesh->numel*mesh->maxViz*mesh->ndm,"leastSquare",_AD_);
         tm.leastSquareMatrix = getTimeC() - tm.leastSquareMatrix;
         rcLeastSquare(mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
                      ,mesh->elm.leastSquare,mesh->elm.adj.nViz       
@@ -282,7 +282,7 @@ int main(int argc,char**argv){
       printf("%s\n",DIF);
       printf("%s\n",word); 
       printf("%s\n\n",DIF);
-      tm.total = getTimeC() - getTimeC();
+      tm.total = getTimeC() - tm.total;
 /*... */
       fName(preName,0,0,7,&nameOut);
       fileLog = openFile(nameOut,"w");
