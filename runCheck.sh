@@ -38,11 +38,11 @@ cp test/input/*.dat test/binTest
 #test/binTest/run_coo.sh "$INPUTRCM" "$NAMEBIN" 
 
 #rodando os teste VTK
-cp test/input/vtk/*.dat test/binTest
-test/binTest/run_vtk.sh "$INPUTVTK" "$NAMEBIN" 
-if [ $? == 1 ];then
-  exit 1
-fi
+#cp test/input/vtk/*.dat test/binTest
+#test/binTest/run_vtk.sh "$INPUTVTK" "$NAMEBIN" 
+#if [ $? == 1 ];then
+#  exit 1
+#fi
 
 #rodando os teste difusao
 #cp test/input/dif/non_orthogonal/2D/60/gaussGreenCell/*.dat test/binTest

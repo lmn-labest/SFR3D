@@ -33,7 +33,7 @@ FILE *aux;
  * cod   -> codigo                                                   *
  *          1 -> particianomento vtk novlp                           *
  *          2 -> particianomento vtk  ovlp                           *
- *          3 -> malha por paricao vtk                               *
+ *          3 -> malha por particao vtk                              *
  *          4 -> arquivo de dados mefpar                             *      
  *          6 -> carrgamentos formato vtk                            *      
  *          7 -> arquivo de log de excucao                           *      
@@ -45,6 +45,7 @@ FILE *aux;
  *         14 -> vetor de forcas no formato .mtx                     *      
  *         15 -> resultados da temperatura por iteracao formato vtk  *      
  *         16 -> resultados no formato .csv                          *      
+ *         17 -> caregamento nas faces no formato vtk                *      
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
  * ------------------------------------------------------------------*
@@ -302,6 +303,24 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       iota(num1,st);
       strcat(ext,st);
       strcat(ext,".csv");
+      size1 = strlen(name);
+      size2 = strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+        exit(EXIT_FAILURE);      
+      }
+      strcpy(*out,name);
+      strcat(*out,ext);
+      break;
+/*...................................................................*/
+
+/*... arquivo vtk */                        
+    case 17:
+      strcat(ext,"_face.vtk");
       size1 = strlen(name);
       size2 = strlen(ext);
       if( (size1+size2)  > SIZEMAX){

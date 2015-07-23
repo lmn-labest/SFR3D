@@ -152,14 +152,18 @@ void writeVtkCell(int *el       ,short *nen ,short *type
   new_section(cod,f); 
   fprintf(f,"CELL_TYPES %ld\n",(long) numel);
   for(i=0;i<numel;i++){
-    if(type[i] == 2) 
+    if(type[i] == LINECELL) 
+      dum = VTK_LINE;
+    else if(type[i] == TRIACELL) 
       dum = VTK_TRIA;
-    else if(type[i] == 3)
+    else if(type[i] == QUADCELL)
       dum = VTK_QUAD;
-    else if(type[i] == 4)
+    else if(type[i] == TETRCELL)
       dum = VTK_TETR;
-    else if(type[i] == 5)
+    else if(type[i] == HEXACELL)
       dum = VTK_HEXA;
+    else
+      dum = 0;
     write_int(dum,cod,f);
     new_section(cod,f); 
   }	

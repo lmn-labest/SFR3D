@@ -461,6 +461,36 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
   }
 /*...................................................................*/
 
+/*... calculo do vetor normal e da area da face*/
+  else if( lGeomType[cCell] == TETRCELL ){
+    for(i=0;i<lnFace[cCell];i++){
+      no1 = MAT2D(i,0,sn,nenFaces);
+      no2 = MAT2D(i,1,sn,nenFaces);
+      no3 = MAT2D(i,2,sn,nenFaces);
+      for(j=0;j<ndm;j++){
+        x1 = MAT3D(cCell,no1,j,lx,maxNo,ndm);
+        x2 = MAT3D(cCell,no2,j,lx,maxNo,ndm);
+        x3 = MAT3D(cCell,no3,j,lx,maxNo,ndm);
+        v1[j] = MAT2D(0,j,eta,ndm) = x2 - x1;
+        v2[j] = MAT2D(1,j,eta,ndm) = x3 - x1;
+      }
+/*... area da face*/
+      fArea[i] = areaCell(eta,TRIACELL,ndm,nel);
+/*... normal a face*/
+      prodVet(v1,v2,n);
+/*... normal do vetor normal*/
+      dot = 0.e0;
+      for(j=0;j<ndm;j++){
+        dot += n[j]*n[j];                             
+      }
+      dot = sqrt(dot);
+/*... vetor unitario normal*/
+      for(j=0;j<ndm;j++)
+        MAT2D(i,j,normal,ndm) =  n[j]/dot;
+    }
+  }
+/*...................................................................*/
+
 
 /*... ponto medio da aresta(xm) e vetor que une este ponto ao 
       centroide(mxcc) */
@@ -477,6 +507,32 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
         x4 = MAT3D(cCell,no4,j,lx,maxNo,ndm);
 /*...*/
         MAT2D(i,j,xm  ,ndm) = 0.25e0*(x1+x2+x3+x4);
+/*...................................................................*/  
+
+/*...*/
+        MAT2D(i,j,xmcc,ndm) = MAT2D(i,j,xm,ndm) - MAT2D(cCell,j,xc,ndm);   
+/*...................................................................*/  
+
+/*...*/
+        dcca[i] += MAT2D(i,j,xmcc,ndm)*MAT2D(i,j,normal,ndm); 
+/*...................................................................*/  
+      }
+    }
+/*...................................................................*/  
+  }
+/*...................................................................*/  
+  
+  else if( lGeomType[cCell] == TETRCELL ){
+    for(i=0;i<lnFace[cCell];i++){
+      no1 = MAT2D(i,0,sn,nenFaces);
+      no2 = MAT2D(i,1,sn,nenFaces);
+      no3 = MAT2D(i,2,sn,nenFaces);
+      for(j=0;j<ndm;j++){
+        x1 = MAT3D(cCell,no1,j,lx,maxNo,ndm);
+        x2 = MAT3D(cCell,no2,j,lx,maxNo,ndm);
+        x3 = MAT3D(cCell,no3,j,lx,maxNo,ndm);
+/*...*/
+        MAT2D(i,j,xm  ,ndm) =  oneDivTree*(x1+x2+x3);
 /*...................................................................*/  
 
 /*...*/
@@ -604,8 +660,9 @@ void cellLibRcGrad(INT   *restrict lViz    ,DOUBLE *restrict lLsquare
     break;
 /*...................................................................*/ 
    
-/*... minimo quadrados*/  
+/*... minimos quadrados*/  
     case RCLSQUARE:
+    case RCLSQUAREQR:
       leastSquare(lLsquare,lViz
                  ,u       ,gradU
                  ,lFaceR  ,lFaceS
@@ -889,7 +946,6 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
   short idCell = nFace;
   short i,j;
 
-
   for(i=0;i<ndf*ndm;i++){
     gradU[i]  = 0.e0;
   }
@@ -950,6 +1006,7 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
  * lKsi      -> vetores que unem centroide da celula central aos     *
  * mKsi      -> modulo do vetor ksi                                  * 
  * lSquare   -> nao definido                                         * 
+ * type      -> tecnica de resolucao                                 * 
  * lnFace    -> numero vizinhos da celula                            * 
  * ndm       -> numero de dimensoes                                  * 
  *-------------------------------------------------------------------* 
@@ -959,13 +1016,14 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
  *-------------------------------------------------------------------* 
  *********************************************************************/
  void leastSquareMatrix(DOUBLE *restrict lKsi    ,DOUBLE *restrict lmKsi
-                       ,DOUBLE *restrict lLsquare        
+                       ,DOUBLE *restrict lLsquare,short const type        
                        ,short const lnFace       ,short const ndm){
 
   DOUBLE dx[MAX_NUM_FACE*MAX_NDM],w[MAX_NUM_FACE*MAX_NDM];
   DOUBLE aTwA[2*MAX_NDM],inv[2*MAX_NDM];
+  DOUBLE r[MAX_NDM*MAX_NDM];
   DOUBLE aux1,detA;
-  short nf;
+  short i,j,k,nf;
  
   if(ndm == 2){
     aTwA[0] = 0.e0;
@@ -979,90 +1037,195 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
     aTwA[3] = 0.e0;
     aTwA[4] = 0.e0;
     aTwA[5] = 0.e0;
-  } 
-
+  }
   
-  for(nf=0;nf<lnFace;nf++){
-    w[nf] = 1.e0/lmKsi[nf];
+  for(i=0;i<2*MAX_NDM;i++){
+    inv[i] = 0.e0;
+    r[i]   = 0.e0;
+  }
+   
+
+/*...G=inv(aTwA)wAt */
+  if(type == RCLSQUARE){
+    for(nf=0;nf<lnFace;nf++){
+      w[nf]  = 1.e0/lmKsi[nf];
+      w[nf] *= w[nf];
 /*... dimensao 2*/
-    if(ndm == 2){
-       MAT2D(nf,0,dx,ndm) = MAT2D(nf,0,lKsi,ndm)*lmKsi[nf];
-       MAT2D(nf,1,dx,ndm) = MAT2D(nf,1,lKsi,ndm)*lmKsi[nf];
+      if(ndm == 2){
+        MAT2D(nf,0,dx,ndm) = MAT2D(nf,0,lKsi,ndm)*lmKsi[nf];
+        MAT2D(nf,1,dx,ndm) = MAT2D(nf,1,lKsi,ndm)*lmKsi[nf];
 /*atTwa(0,0)*/
-       aTwA[0] +=  w[nf]*MAT2D(nf,1,dx,ndm)*MAT2D(nf,1,dx,ndm);
+        aTwA[0] +=  w[nf]*MAT2D(nf,1,dx,ndm)*MAT2D(nf,1,dx,ndm);
 /*atTwa(0,1)*/
-       aTwA[1] +=  w[nf]*MAT2D(nf,0,dx,ndm)*MAT2D(nf,1,dx,ndm);
+        aTwA[1] +=  w[nf]*MAT2D(nf,0,dx,ndm)*MAT2D(nf,1,dx,ndm);
 /*atTwa(1,1)*/
-       aTwA[2] +=  w[nf]*MAT2D(nf,0,dx,ndm)*MAT2D(nf,0,dx,ndm);
-    }
+        aTwA[2] +=  w[nf]*MAT2D(nf,0,dx,ndm)*MAT2D(nf,0,dx,ndm);
+      }
 /*...................................................................*/
 
 /*... dimensao 3*/
-    else if(ndm == 3){
-       MAT2D(nf,0,dx,ndm) = MAT2D(nf,0,lKsi,ndm)*lmKsi[nf];
-       MAT2D(nf,1,dx,ndm) = MAT2D(nf,1,lKsi,ndm)*lmKsi[nf];
-       MAT2D(nf,2,dx,ndm) = MAT2D(nf,2,lKsi,ndm)*lmKsi[nf];
+      else if(ndm == 3){
+        MAT2D(nf,0,dx,ndm) = MAT2D(nf,0,lKsi,ndm)*lmKsi[nf];
+        MAT2D(nf,1,dx,ndm) = MAT2D(nf,1,lKsi,ndm)*lmKsi[nf];
+        MAT2D(nf,2,dx,ndm) = MAT2D(nf,2,lKsi,ndm)*lmKsi[nf];
 /*atTwa(0,0)*/
-       aTwA[0] +=  w[nf]*MAT2D(nf,0,dx,ndm)*MAT2D(nf,0,dx,ndm);
+        aTwA[0] +=  w[nf]*MAT2D(nf,0,dx,ndm)*MAT2D(nf,0,dx,ndm);
 /*atTwa(0,1)*/
-       aTwA[1] +=  w[nf]*MAT2D(nf,0,dx,ndm)*MAT2D(nf,1,dx,ndm);
+        aTwA[1] +=  w[nf]*MAT2D(nf,0,dx,ndm)*MAT2D(nf,1,dx,ndm);
 /*atTwa(0,2)*/
-       aTwA[2] +=  w[nf]*MAT2D(nf,0,dx,ndm)*MAT2D(nf,2,dx,ndm);
+        aTwA[2] +=  w[nf]*MAT2D(nf,0,dx,ndm)*MAT2D(nf,2,dx,ndm);
 /*atTwa(1,1)*/
-       aTwA[3] +=  w[nf]*MAT2D(nf,1,dx,ndm)*MAT2D(nf,1,dx,ndm);
+        aTwA[3] +=  w[nf]*MAT2D(nf,1,dx,ndm)*MAT2D(nf,1,dx,ndm);
 /*atTwa(1,2)*/
-       aTwA[4] +=  w[nf]*MAT2D(nf,1,dx,ndm)*MAT2D(nf,2,dx,ndm);
+        aTwA[4] +=  w[nf]*MAT2D(nf,1,dx,ndm)*MAT2D(nf,2,dx,ndm);
 /*atTwa(2,2)*/
-       aTwA[5] +=  w[nf]*MAT2D(nf,2,dx,ndm)*MAT2D(nf,2,dx,ndm);
-    }
+        aTwA[5] +=  w[nf]*MAT2D(nf,2,dx,ndm)*MAT2D(nf,2,dx,ndm);
+      }
 /*...................................................................*/
-  } 
+    } 
 
-  for(nf=0;nf<lnFace;nf++){
+    for(nf=0;nf<lnFace;nf++){
 /*... dimensao 2*/
-    if(ndm == 2){
+      if(ndm == 2){
  
-      aux1 = 1.e0/(aTwA[2]*aTwA[0] - aTwA[1]*aTwA[1]);
-      aux1 = w[nf]*aux1;
-      MAT2D(0,nf,lLsquare,lnFace) = aux1*(MAT2D(nf,0,dx,ndm)*aTwA[0] 
-                                 - MAT2D(nf,1,dx,ndm)*aTwA[1]);
-      MAT2D(1,nf,lLsquare,lnFace) = aux1*(MAT2D(nf,1,dx,ndm)*aTwA[2] 
-                                 - MAT2D(nf,0,dx,ndm)*aTwA[1]);
-    }
+        aux1 = 1.e0/(aTwA[2]*aTwA[0] - aTwA[1]*aTwA[1]);
+        aux1 = w[nf]*aux1;
+        MAT2D(0,nf,lLsquare,lnFace) = aux1*(MAT2D(nf,0,dx,ndm)*aTwA[0] 
+                                   - MAT2D(nf,1,dx,ndm)*aTwA[1]);
+        MAT2D(1,nf,lLsquare,lnFace) = aux1*(MAT2D(nf,1,dx,ndm)*aTwA[2] 
+                                   - MAT2D(nf,0,dx,ndm)*aTwA[1]);
+      }
 /*...................................................................*/
 
 /*... dimensao 3*/
-    else if(ndm == 3){
-      detA = aTwA[0]*aTwA[3]*aTwA[5] + 2.e0*aTwA[1]*aTwA[4]*aTwA[2] 
-           -( aTwA[2]*aTwA[3]*aTwA[3] 
-            + aTwA[0]*aTwA[4]*aTwA[4]    
-            + aTwA[5]*aTwA[1]*aTwA[1]); 
-      detA = 1.e0/detA;
+      else if(ndm == 3){
+        detA = aTwA[0]*aTwA[3]*aTwA[5] + 2.e0*aTwA[1]*aTwA[4]*aTwA[2] 
+             -( aTwA[2]*aTwA[3]*aTwA[3] 
+              + aTwA[0]*aTwA[4]*aTwA[4]    
+              + aTwA[5]*aTwA[1]*aTwA[1]); 
+        detA = 1.e0/detA;
 /*... inversao com cofatores*/
-      inv[0] = (aTwA[3]*aTwA[5] - aTwA[4]*aTwA[4])*detA;
-      inv[1] =-(aTwA[1]*aTwA[5] - aTwA[4]*aTwA[2])*detA;
-      inv[2] = (aTwA[1]*aTwA[4] - aTwA[2]*aTwA[3])*detA;
+        inv[0] = (aTwA[3]*aTwA[5] - aTwA[4]*aTwA[4])*detA;
+        inv[1] =-(aTwA[1]*aTwA[5] - aTwA[4]*aTwA[2])*detA;
+        inv[2] = (aTwA[1]*aTwA[4] - aTwA[2]*aTwA[3])*detA;
 
-      inv[3] = (aTwA[0]*aTwA[5] - aTwA[2]*aTwA[2])*detA;
-      inv[4] =-(aTwA[0]*aTwA[4] - aTwA[1]*aTwA[2])*detA;
+        inv[3] = (aTwA[0]*aTwA[5] - aTwA[2]*aTwA[2])*detA;
+        inv[4] =-(aTwA[0]*aTwA[4] - aTwA[1]*aTwA[2])*detA;
 
-      inv[5] = (aTwA[0]*aTwA[3] - aTwA[1]*aTwA[1])*detA;
+        inv[5] = (aTwA[0]*aTwA[3] - aTwA[1]*aTwA[1])*detA;
 
-      aux1 = w[nf];
-      MAT2D(0,nf,lLsquare,lnFace) = aux1*(MAT2D(nf,0,dx,ndm)*inv[0] 
+        aux1 = w[nf];
+        MAT2D(0,nf,lLsquare,lnFace) = aux1*(MAT2D(nf,0,dx,ndm)*inv[0] 
                                         + MAT2D(nf,1,dx,ndm)*inv[1]
                                         + MAT2D(nf,2,dx,ndm)*inv[2]);
-      MAT2D(1,nf,lLsquare,lnFace) = aux1*(MAT2D(nf,0,dx,ndm)*inv[1] 
+        MAT2D(1,nf,lLsquare,lnFace) = aux1*(MAT2D(nf,0,dx,ndm)*inv[1] 
                                         + MAT2D(nf,1,dx,ndm)*inv[3]
                                         + MAT2D(nf,2,dx,ndm)*inv[4]);
-      MAT2D(2,nf,lLsquare,lnFace) = aux1*(MAT2D(nf,0,dx,ndm)*inv[2] 
+        MAT2D(2,nf,lLsquare,lnFace) = aux1*(MAT2D(nf,0,dx,ndm)*inv[2] 
                                         + MAT2D(nf,1,dx,ndm)*inv[4]
                                         + MAT2D(nf,2,dx,ndm)*inv[5]);
 
+      }
+/*...................................................................*/
+    }
+  }
+/*...................................................................*/
+
+/*... fatoracao QR-MGS*/
+  else if(type == RCLSQUAREQR){
+    for(nf=0;nf<lnFace;nf++){
+/*... dimensao 2*/
+      if(ndm == 2){
+        MAT2D(nf,0,dx,ndm) = MAT2D(nf,0,lKsi,ndm)*lmKsi[nf];
+        MAT2D(nf,1,dx,ndm) = MAT2D(nf,1,lKsi,ndm)*lmKsi[nf];
+      }
+/*...................................................................*/
+
+/*... dimensao 3*/
+      else if(ndm == 3){
+        MAT2D(nf,0,dx,ndm) = MAT2D(nf,0,lKsi,ndm)*lmKsi[nf];
+        MAT2D(nf,1,dx,ndm) = MAT2D(nf,1,lKsi,ndm)*lmKsi[nf];
+        MAT2D(nf,2,dx,ndm) = MAT2D(nf,2,lKsi,ndm)*lmKsi[nf];
+      }
+/*...................................................................*/
+    }
+
+/*... MGS*/
+    for(k=0;k<ndm;k++){
+      aux1 = 0.e0;
+      for(i=0;i<lnFace;i++)
+        aux1 += MAT2D(i,k,dx,ndm)* MAT2D(i,k,dx,ndm);
+      
+      MAT2D(k,k,r,ndm) = sqrt(aux1);
+      
+      for(i=0;i<lnFace;i++)
+        MAT2D(i,k,dx,ndm) /= MAT2D(k,k,r,ndm); 
+      
+      for(j=k+1;j<ndm;j++){
+        aux1 = 0.e0;
+        for(i=0;i<lnFace;i++)
+          aux1 += MAT2D(i,k,dx,ndm)*MAT2D(i,j,dx,ndm);
+        
+        MAT2D(k,j,r,ndm) = aux1; 
+        
+        for(i=0;i<lnFace;i++)
+          MAT2D(i,j,dx,ndm) -=  MAT2D(i,k,dx,ndm)*MAT2D(k,j,r,ndm); 
+      }
+/*...................................................................*/
+    }
+/*...G=inv(R)Qt*/
+/*... dimensao 2*/
+    if(ndm == 2){
+      detA   = MAT2D(0,0,r,ndm)*MAT2D(1,1,r,ndm);
+      inv[0] = MAT2D(1,1,r,ndm)*detA;
+      inv[2] = MAT2D(0,0,r,ndm)*detA;
     }
 /*...................................................................*/
+
+/*... dimensao 3*/
+    else if(ndm == 3){
+      detA   = MAT2D(0,0,r,ndm)*MAT2D(1,1,r,ndm)*MAT2D(2,2,r,ndm);
+      detA   = 1.e0/detA;
+/*... inversao com cofatores*/
+      inv[0] =  (MAT2D(1,1,r,ndm)*MAT2D(2,2,r,ndm))*detA;
+      inv[1] = -(MAT2D(0,1,r,ndm)*MAT2D(2,2,r,ndm))*detA;
+      inv[2] =  (MAT2D(0,1,r,ndm)*MAT2D(1,2,r,ndm) -
+                 MAT2D(0,2,r,ndm)*MAT2D(1,1,r,ndm))*detA;
+      inv[3] =  (MAT2D(0,0,r,ndm)*MAT2D(2,2,r,ndm))*detA;
+      inv[4] = -(MAT2D(0,0,r,ndm)*MAT2D(1,2,r,ndm))*detA;
+      inv[5] =  (MAT2D(0,0,r,ndm)*MAT2D(1,1,r,ndm))*detA;
+    }
+/*...................................................................*/
+
+//    printf("%lf %lf %lf %lf %lf %lf\n", inv[0], inv[1]
+//                          , inv[2], inv[3], inv[4], inv[5]);
+    for(nf=0;nf<lnFace;nf++){
+/*... dimensao 2*/
+      if(ndm == 2){
+        MAT2D(0,nf,lLsquare,lnFace) = inv[0]*MAT2D(0,nf,dx,ndm);
+        MAT2D(1,nf,lLsquare,lnFace) = inv[2]*MAT2D(1,nf,dx,ndm);
+      }
+/*...................................................................*/
+
+/*... dimensao 3*/
+      else if(ndm == 3){
+        MAT2D(0,nf,lLsquare,lnFace) = inv[0]*MAT2D(nf,0,dx,ndm)
+                                    + inv[1]*MAT2D(nf,1,dx,ndm)
+                                    + inv[2]*MAT2D(nf,2,dx,ndm);
+        MAT2D(1,nf,lLsquare,lnFace) = inv[1]*MAT2D(nf,0,dx,ndm)
+                                    + inv[3]*MAT2D(nf,1,dx,ndm)
+                                    + inv[4]*MAT2D(nf,2,dx,ndm);
+        MAT2D(2,nf,lLsquare,lnFace) = inv[2]*MAT2D(nf,0,dx,ndm)
+                                    + inv[4]*MAT2D(nf,1,dx,ndm)
+                                    + inv[5]*MAT2D(nf,2,dx,ndm);
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+  } 
+/*...................................................................*/
+   
   }
-}
 /*********************************************************************/
 
 /********************************************************************* 
@@ -1093,6 +1256,10 @@ inline short sn(short *s,short ty,INT nel)
                        ,1,2
                        ,2,3
                        ,3,0};
+  short isNodTetr[12] = {1,2,3
+                        ,0,3,2
+                        ,0,1,3
+                        ,0,2,1};
   short isNodHex[24] = {0,3,2,1
                        ,4,5,6,7
                        ,0,1,5,4
@@ -1115,6 +1282,14 @@ inline short sn(short *s,short ty,INT nel)
       for(i=0;i< 8;i++)
         s[i] = isNodQuad[i];
       return 2;
+    break;
+/*...................................................................*/
+
+/* ... tetraedros*/  
+    case TETRCELL:
+      for(i=0;i< 12;i++)
+        s[i] = isNodTetr[i];
+      return 3;
     break;
 /*...................................................................*/
 
@@ -1554,7 +1729,6 @@ void vectorKm3d(DOUBLE *restrict xc   ,DOUBLE *restrict xm
 }
 /*********************************************************************/
   
-
 /********************************************************************* 
  * VOLUME3DGREENGAUSS : volume calculado pelo teoreima do divergente *
  *-------------------------------------------------------------------* 

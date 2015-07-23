@@ -147,7 +147,7 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
 /*...................................................................*/
 
 /*... tetraedros e hexaedros*/
-    else if(ty == HEXACELL){
+    else if(ty == TETRCELL || ty == HEXACELL){
       sn(isnod,ty,nel); 
       cellGeom3D(lx       ,lGeomType
                 ,lnFace   ,lnEn
@@ -816,7 +816,7 @@ void rcGradU(Memoria *m
     }
 
 /*... leastSquare*/
-    if(lib ==  RCLSQUARE)
+    if(lib ==  RCLSQUARE || lib ==  RCLSQUAREQR)
       for(i=0;i<ndm;i++)
         for(j=0;j<aux1;j++)
           MAT2D(i,j,lLsquare,aux1) 
@@ -899,6 +899,7 @@ void rcGradU(Memoria *m
  * numel     -> numero de elementos                                  * 
  * maxViz    -> numero maximo de vizinhos                            * 
  * nFace     -> numero vizinhos por celula maximo da malha           * 
+ * type      -> tecnica de resolucao                                 * 
  * ndm       -> numero de dimensoes                                  * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -909,7 +910,7 @@ void rcGradU(Memoria *m
 void rcLeastSquare(DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi
                   ,DOUBLE *restrict lSquare ,short *restrict nFace       
                   ,INT const numel          ,short const maxViz
-                  ,INT const ndm){
+                  ,short const type         ,short const ndm){
 
   INT nEl;
   DOUBLE lLsquare[MAX_NUM_FACE*MAX_NDM];
@@ -929,7 +930,7 @@ void rcLeastSquare(DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi
     }
     
     leastSquareMatrix(lKsi    ,lmKsi
-                     ,lLsquare    
+                     ,lLsquare,type
                      ,lnFace  ,ndm);
 
     for(i=0;i<ndm;i++)
@@ -1048,5 +1049,5 @@ void meshQuality(MeshQuality *mq
   mq->skewMed = skewMed; 
   mq->skewMax = skewMax; 
 
-
 }
+/*********************************************************************/

@@ -198,12 +198,12 @@
   void rcLeastSquare(DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi
                   ,DOUBLE *restrict lSquare ,short *restrict nFace       
                   ,INT const numel          ,short const maxViz
-                  ,INT const ndm);
+                  ,short const type         ,short const ndm);
 /*...................................................................*/
 
 /*... least square*/
   void leastSquareMatrix(DOUBLE *restrict lKsi    ,DOUBLE *restrict lmKsi
-                        ,DOUBLE *restrict lLsquare        
+                        ,DOUBLE *restrict lLsquare,short const type         
                         ,short const lnFace       ,short const ndm);
 
 

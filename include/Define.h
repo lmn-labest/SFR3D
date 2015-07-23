@@ -30,6 +30,7 @@
 /*...................................................................*/
 
 /*... Tipo geometrica da celula*/
+  #define LINECELL  1
   #define TRIACELL  2
   #define QUADCELL  3  
   #define TETRCELL  4  
@@ -49,7 +50,9 @@
   #define  RCGRADGAUSSC 1 
   #define  RCGRADGAUSSN 2 
   #define  RCLSQUARE    3 
+  #define  RCLSQUAREQR  4    
 /*...................................................................*/
+
 
 
 /*...*/
@@ -68,6 +71,7 @@
 /*...................................................................*/
 
 /*... vtk elmentos*/
+  #define VTK_LINE      3
   #define VTK_TRIA      5
   #define VTK_QUAD      9
   #define VTK_TETR     10

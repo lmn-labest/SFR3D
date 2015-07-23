@@ -10,8 +10,9 @@
   #include<stdio.h>
 
   void writeLog(Mesh mesh    
-             ,Solv SolvD1 ,SistEq sistEqD1
+             ,Solv *SolvD1 ,SistEq *sistEqD1
              ,Time t
+             ,bool const fSolvD1
              ,char *nameIn,FILE *file);
 
 

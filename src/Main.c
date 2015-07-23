@@ -243,7 +243,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... reconstrucao de gradiente least square*/
-      if(mesh->rcGrad ==  RCLSQUARE ){
+      if(mesh->rcGrad ==  RCLSQUARE || mesh->rcGrad ==  RCLSQUAREQR){
         printf("%s\n",DIF);
         printf("Least Square ...\n");
         HccaAlloc(DOUBLE,&m,mesh->elm.leastSquare
@@ -252,7 +252,7 @@ int main(int argc,char**argv){
         rcLeastSquare(mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
                      ,mesh->elm.leastSquare,mesh->elm.adj.nViz       
                      ,mesh->numel          ,mesh->maxViz
-                     ,mesh->ndm);
+                     ,mesh->rcGrad         ,mesh->ndm);
         tm.leastSquareMatrix = getTimeC() - tm.leastSquareMatrix;
         printf("Least Square.\n");
         printf("%s\n",DIF);
@@ -287,8 +287,9 @@ int main(int argc,char**argv){
       fName(preName,0,0,7,&nameOut);
       fileLog = openFile(nameOut,"w");
       writeLog(*mesh
-              ,*solvD1   ,*sistEqD1
-              ,tm                
+              ,solvD1    ,sistEqD1
+              ,tm       
+              ,solvD1         
               ,nameIn   ,fileLog);
       fclose(fileLog);
 /*...................................................................*/
@@ -297,7 +298,7 @@ int main(int argc,char**argv){
       if(fSolvD1 && solvD1->log)  
         fclose(solvD1->fileSolv);
 /*... fechando o arquivo log nao linear D1*/      
-      if(opt.fItPlot)  
+      if(fSolvD1 && opt.fItPlot)  
         fclose(opt.fileItPlot[FITPLOTD1]);
       finalizeMem(&m,true);
       macroFlag = false;
@@ -322,6 +323,7 @@ int main(int argc,char**argv){
     else if((!strcmp(word,macro[3]))){
       printf("%s\n",DIF);
       printf("%s\n",word);
+/*... geometrica completa*/
       fName(preName,0,0,6,&nameOut);
       wGeoVtk(&m                      ,mesh->node.x   
              ,mesh->elm.node          ,mesh->elm.mat    
@@ -329,8 +331,20 @@ int main(int argc,char**argv){
              ,mesh->elm.material.prop ,mesh->elm.material.type 
              ,mesh->elm.faceRd1       ,mesh->elm.faceSd1
              ,mesh->nnode             ,mesh->numel    
-             ,mesh->ndm               ,mesh->maxNo
+             ,mesh->ndm               
+             ,mesh->maxNo             ,mesh->maxViz
              ,mesh->numat             ,mesh->ndfD    
+             ,nameOut                 ,opt.bVtk             
+             ,fileOut);
+/*... face com cargas*/
+     fName(preName,0,0,17,&nameOut);
+     wGeoFaceVtk(&m                   ,mesh->node.x        
+             ,mesh->elm.node          ,mesh->elm.nen      
+             ,mesh->elm.geomType
+             ,mesh->elm.faceRd1       ,mesh->elm.faceSd1
+             ,mesh->nnode             ,mesh->numel    
+             ,mesh->ndm               ,mesh->ndfD[0]
+             ,mesh->maxViz            ,mesh->maxNo
              ,nameOut                 ,opt.bVtk             
              ,fileOut);
       printf("%s\n\n",DIF);

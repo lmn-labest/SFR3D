@@ -793,6 +793,11 @@ void config(FileOpt *opt,Reord *reordMesh
         *rcGrad = RCLSQUARE;
         printf("LeastSquare\n");
       }
+      
+      else if(!strcmp(s,"lSquareQR")){
+        *rcGrad = RCLSQUAREQR;
+        printf("LeastSquareQR\n");
+      }
 
       flag[3] = true;
       i++;
