@@ -475,18 +475,19 @@ long usoMemoria(Memoria *m,char *s){
   double conv;
   
   if(!strcmp(s,"B"))
-   printf("Total de memoria usada: %ld bytes\n",m->iespont);
+   printf("Total de memoria usada: %20.4lf bytes\n"
+         ,(double) m->iespont);
   else if(!strcmp(s,"KB")){
    conv = CONV_BYTES; 
-   printf("Total de memoria usada: %lf KB\n",m->iespont/conv);
+   printf("Total de memoria usada: %20.4lf KB\n",m->iespont/conv);
   }  
   else if(!strcmp(s,"MB")){
    conv = CONV_BYTES*CONV_BYTES;
-   printf("Total de memoria usada: %lf MB\n",m->iespont/conv);
+   printf("Total de memoria usada: %20.4lf MB\n",m->iespont/conv);
   } 
   else if(!strcmp(s,"GB")){
    conv = CONV_BYTES*CONV_BYTES*CONV_BYTES;
-   printf("Total de memoria usada: %lf GB\n",m->iespont/conv);
+   printf("Total de memoria usada: %20.4lf GB\n",m->iespont/conv);
   }
   return m->iespont;
 }
@@ -510,22 +511,22 @@ double memoriaTotal(char *s)
 {
    double conv;
    if(!strcmp(s,"B")){
-     printf("Total disponivel :%20.4lf bytes\n",(double) nmax);
+     printf("Total disponivel : %25.4lf bytes\n",(double) nmax);
      return (double)nmax;
    } 
    else if(!strcmp(s,"KB")){
      conv = CONV_BYTES; 
-     printf("Total disponivel : %20.4lf KB\n",nmax/conv);
+     printf("Total disponivel : %25.4lf KB\n",nmax/conv);
      return nmax/conv;
    }  
    else if(!strcmp(s,"MB")){
      conv = CONV_BYTES*CONV_BYTES;
-     printf("Total disponivel : %20.4lf MB\n",nmax/conv);
+     printf("Total disponivel : %25.4lf MB\n",nmax/conv);
      return nmax/conv;
    } 
    else if(!strcmp(s,"GB")){
      conv = CONV_BYTES*CONV_BYTES*CONV_BYTES;
-     printf("Total disponivel : %20.4lf GB\n",nmax/conv);
+     printf("Total disponivel : %25.4lf GB\n",nmax/conv);
      return nmax/conv;
    }
    return -1.0;

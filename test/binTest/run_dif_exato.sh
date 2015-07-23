@@ -17,10 +17,10 @@ for name in $INPUT; do
   echo --------------------------------------------------------------
   OUT=`echo $name | sed -e "s/.dat//"`
   echo  teste: $NAMEBIN $name $OUT
-  echo `$DIR/$NAMEBIN $DIR/$name $DIR/$OUT` >/dev/null
+  echo `$DIR/$NAMEBIN $DIR/$name $DIR/$OUT`>/dev/null 
   echo --------------------------------------------------------------
   OUT2=`echo $name | sed -e "s/.dat/_D1_cell_0.csv/"`
-  $DIR/comp_ex2.py $DIR/$OUT2 >/dev/null
+  $DIR/comp_ex2.py $DIR/$OUT2 
   if [ $? == 1 ]; then
     echo --------------------------------------------------------------
     echo teste falhou !!! : $OUT2 

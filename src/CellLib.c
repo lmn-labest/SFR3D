@@ -388,8 +388,10 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
     dcca[i]  = 0.0e0;
     MAT2D(i,0,ksi,ndm)= 0.0e0; 
     MAT2D(i,1,ksi,ndm)= 0.0e0; 
+    MAT2D(i,2,ksi,ndm)= 0.0e0; 
     MAT2D(i,0,eta,ndm)= 0.0e0; 
     MAT2D(i,1,eta,ndm)= 0.0e0; 
+    MAT2D(i,2,eta,ndm)= 0.0e0; 
   }
  
   if( lGeomType[cCell] == HEXACELL )
@@ -1082,38 +1084,49 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
         aTwA[5] +=  w[nf]*MAT2D(nf,2,dx,ndm)*MAT2D(nf,2,dx,ndm);
       }
 /*...................................................................*/
-    } 
+    }
+
+/*... dimensao 2*/
+    if(ndm == 2){
+      detA   = 1.e0/(aTwA[2]*aTwA[0] - aTwA[1]*aTwA[1]);
+      inv[0] =  aTwA[2]*detA;
+      inv[1] = -aTwA[1]*detA;
+      inv[2] =  aTwA[0]*detA;
+    }
+/*...................................................................*/
+ 
+/*... dimensao 3*/
+    else if(ndm == 3){
+      detA = aTwA[0]*aTwA[3]*aTwA[5] + 2.e0*aTwA[1]*aTwA[4]*aTwA[2] 
+             -( aTwA[2]*aTwA[3]*aTwA[3] 
+              + aTwA[0]*aTwA[4]*aTwA[4]    
+              + aTwA[5]*aTwA[1]*aTwA[1]); 
+      detA = 1.e0/detA;
+/*... inversao com cofatores*/
+      inv[0] = (aTwA[3]*aTwA[5] - aTwA[4]*aTwA[4])*detA;
+      inv[1] =-(aTwA[1]*aTwA[5] - aTwA[4]*aTwA[2])*detA;
+      inv[2] = (aTwA[1]*aTwA[4] - aTwA[2]*aTwA[3])*detA;
+
+      inv[3] = (aTwA[0]*aTwA[5] - aTwA[2]*aTwA[2])*detA;
+      inv[4] =-(aTwA[0]*aTwA[4] - aTwA[1]*aTwA[2])*detA;
+
+      inv[5] = (aTwA[0]*aTwA[3] - aTwA[1]*aTwA[1])*detA;
+    }
 
     for(nf=0;nf<lnFace;nf++){
 /*... dimensao 2*/
       if(ndm == 2){
- 
-        aux1 = 1.e0/(aTwA[2]*aTwA[0] - aTwA[1]*aTwA[1]);
-        aux1 = w[nf]*aux1;
-        MAT2D(0,nf,lLsquare,lnFace) = aux1*(MAT2D(nf,0,dx,ndm)*aTwA[0] 
-                                   - MAT2D(nf,1,dx,ndm)*aTwA[1]);
-        MAT2D(1,nf,lLsquare,lnFace) = aux1*(MAT2D(nf,1,dx,ndm)*aTwA[2] 
-                                   - MAT2D(nf,0,dx,ndm)*aTwA[1]);
+        aux1 = w[nf];
+        MAT2D(0,nf,lLsquare,lnFace) = aux1*(MAT2D(nf,0,dx,ndm)*inv[0] 
+                                          + MAT2D(nf,1,dx,ndm)*inv[1]);
+        MAT2D(1,nf,lLsquare,lnFace) = aux1*(MAT2D(nf,0,dx,ndm)*inv[1] 
+                                          + MAT2D(nf,1,dx,ndm)*inv[2]);
       }
 /*...................................................................*/
 
 /*... dimensao 3*/
+
       else if(ndm == 3){
-        detA = aTwA[0]*aTwA[3]*aTwA[5] + 2.e0*aTwA[1]*aTwA[4]*aTwA[2] 
-             -( aTwA[2]*aTwA[3]*aTwA[3] 
-              + aTwA[0]*aTwA[4]*aTwA[4]    
-              + aTwA[5]*aTwA[1]*aTwA[1]); 
-        detA = 1.e0/detA;
-/*... inversao com cofatores*/
-        inv[0] = (aTwA[3]*aTwA[5] - aTwA[4]*aTwA[4])*detA;
-        inv[1] =-(aTwA[1]*aTwA[5] - aTwA[4]*aTwA[2])*detA;
-        inv[2] = (aTwA[1]*aTwA[4] - aTwA[2]*aTwA[3])*detA;
-
-        inv[3] = (aTwA[0]*aTwA[5] - aTwA[2]*aTwA[2])*detA;
-        inv[4] =-(aTwA[0]*aTwA[4] - aTwA[1]*aTwA[2])*detA;
-
-        inv[5] = (aTwA[0]*aTwA[3] - aTwA[1]*aTwA[1])*detA;
-
         aux1 = w[nf];
         MAT2D(0,nf,lLsquare,lnFace) = aux1*(MAT2D(nf,0,dx,ndm)*inv[0] 
                                         + MAT2D(nf,1,dx,ndm)*inv[1]
@@ -1124,7 +1137,6 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
         MAT2D(2,nf,lLsquare,lnFace) = aux1*(MAT2D(nf,0,dx,ndm)*inv[2] 
                                         + MAT2D(nf,1,dx,ndm)*inv[4]
                                         + MAT2D(nf,2,dx,ndm)*inv[5]);
-
       }
 /*...................................................................*/
     }

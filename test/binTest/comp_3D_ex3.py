@@ -124,7 +124,7 @@ def main(argv):
   erC   = erC/exatoMax**2 
   gxerC = gxerC/(gxexatoMax**2+gyexatoMax**2+gzexatoMax**2)
   gyerC = gyerC/(gxexatoMax**2+gyexatoMax**2+gzexatoMax**2)
-  gzerC = gyerC/(gxexatoMax**2+gyexatoMax**2+gzexatoMax**2)
+  gzerC = gzerC/(gxexatoMax**2+gyexatoMax**2+gzexatoMax**2)
 
 
   print "Solucao:"
@@ -138,7 +138,7 @@ def main(argv):
   print "y: erro Maximo     er[%d]=%e " %(ny+1,gyerMax) 
   print "z: erro Maximo     er[%d]=%e " %(nz+1,gzerMax) 
   
-  if erC    > 5.e-1 :
+  if erC    > 1.e2 :
     return 1 
   
   if gxerC  > 1.e2 :
@@ -147,7 +147,7 @@ def main(argv):
   if gyerC  > 1.e2 :
     return 1 
   
-  if gzerC  > 5.e-1 :
+  if gzerC  > 1.e2 :
     return 1 
 
 if __name__ == '__main__':

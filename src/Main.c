@@ -116,9 +116,9 @@ int main(int argc,char**argv){
 /*... tecnica padrao de resconstrucao de gradiente*/
   mesh->rcGrad = RCGRADGAUSSC; 
   mesh->nlTemp.maxIt = 100; 
-  mesh->nlTemp.tol   = 1.e-4; 
+  mesh->nlTemp.tol   = 1.e-6; 
   mesh->nlD1.maxIt  = 100; 
-  mesh->nlD1.tol    = 1.e-4; 
+  mesh->nlD1.tol    = 1.e-6; 
 /* ..................................................................*/
 
 /*...*/  
@@ -417,7 +417,7 @@ int main(int argc,char**argv){
         exit(EXIT_FAILURE);
       }
       sistEqD1->storage = CSRD;
-      sistEqD1->unsym   = true;    
+      sistEqD1->unsym   = false;    
 /*...................................................................*/
 
 /*... config*/

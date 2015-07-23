@@ -38,12 +38,13 @@
 /*...................................................................*/
 
 /*...cellLoop*/
-  #define  MAX_NUM_RES   28
-  #define  MAX_NUM_NODE   8
-  #define  MAX_NUM_PONT  168
-  #define  MAX_NUM_FACE  6
-  #define  MAX_SN        24 
-  #define  MAX_NDM        3 
+  #define  MAX_NUM_RES       28
+  #define  MAX_NUM_NODE       8
+  #define  MAX_NUM_PONT     168
+  #define  MAX_NUM_FACE       6
+  #define  MAX_NUM_NODE_FACE  4
+  #define  MAX_SN            24 
+  #define  MAX_NDM            3 
 /*...................................................................*/
 
 /*... reconstrucao de gradiente*/

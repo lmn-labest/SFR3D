@@ -243,11 +243,11 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
   int *aux=NULL;
   double ddum;
 
-  
-  HccaAlloc(INT   ,m,face        ,numel*MAX_NUM_FACE,"lFace"   ,_AD_);
+  HccaAlloc(INT   ,m,face ,numel*MAX_NUM_FACE*MAX_NUM_NODE_FACE
+           ,"lFace"   ,_AD_);
   HccaAlloc(INT   ,m,idFace      ,numel*MAX_NUM_FACE,"iDFace"  ,_AD_);
-  HccaAlloc(short ,m,typeGeomFace,numel       ,"ltGface" ,_AD_);
-  HccaAlloc(short ,m,nenFace     ,numel       ,"lnenFace",_AD_);
+  HccaAlloc(short ,m,typeGeomFace,numel*MAX_NUM_FACE,"ltGface" ,_AD_);
+  HccaAlloc(short ,m,nenFace     ,numel*MAX_NUM_FACE,"lnenFace",_AD_);
   HccaAlloc(DOUBLE,m,lfaceSd1    ,numel*MAX_NUM_FACE*ndf 
                                  ,"lfaceSd1",_AD_);
   
@@ -258,7 +258,6 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
           ,maxViz      ,maxNo
           ,ndf         
           ,numel       ,&nFace);
-
 /*...*/
   if(nFace)
     if(iws)
@@ -281,7 +280,7 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
 /*...................................................................*/
   
 /*... faces*/
-  writeVtkCell(face,nenFace,typeGeomFace,nFace,4,iws,f);
+  writeVtkCell(face,nenFace,typeGeomFace,nFace,MAX_NUM_NODE_FACE,iws,f);
 /*...................................................................*/
 
 /*... campo por elemento*/
@@ -659,19 +658,22 @@ void wResVtkDif(Memoria *m        ,double *x
  **********************************************************************/
 void makeFace(INT *el            ,short *faceR       ,DOUBLE *faceS 
              ,short *typeGeom
-             ,INT *face          ,DOUBLE *lFaceS        ,INT *idFace
+             ,INT *face          ,DOUBLE *lFaceS     ,INT *idFace
              ,short *typeGeomFace,short *nenFace
              ,short const maxViz ,short const maxNo
              ,short const ndf     
              ,INT const numel    ,INT *nFace){
 
-  short  isnod[MAX_SN];
-  short i,j,k,ty,tmp,nf=0;
+  short  isnod[MAX_SN],nenFaceMax=MAX_NUM_NODE_FACE;
+  short i,j,k,ty,tmp;
+  unsigned INT nf = 0;
   short cCell = maxViz + 1;
   int no,nel;
   
   for(nel=0;nel<numel;nel++){
     ty = typeGeom[nel];
+
+/*... triangulos*/
     if( ty == TRIACELL){
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
@@ -691,7 +693,7 @@ void makeFace(INT *el            ,short *faceR       ,DOUBLE *faceS
 /*... loop nos nos da face*/
             for(k=0;k<nenFace[nf];k++){
               no  = MAT2D(j,k,isnod,nenFace[nf]);
-              MAT2D(nf,k,face,4) = MAT2D(nel,no,el,maxNo)-1;
+              MAT2D(nf,k,face,nenFaceMax) = MAT2D(nel,no,el,maxNo)-1;
             }    
             nf++;
           } 
@@ -701,6 +703,8 @@ void makeFace(INT *el            ,short *faceR       ,DOUBLE *faceS
 /*...................................................................*/
     }
 /*...................................................................*/
+
+/*... quadrilatero*/
     else if( ty == QUADCELL){
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
@@ -721,7 +725,7 @@ void makeFace(INT *el            ,short *faceR       ,DOUBLE *faceS
 /*... loop nos nos da face*/
             for(k=0;k<nenFace[nf];k++){
               no  = MAT2D(j,k,isnod,nenFace[nf]);
-              MAT2D(nf,k,face,4) = MAT2D(nel,no,el,maxNo)-1;
+              MAT2D(nf,k,face,nenFaceMax) = MAT2D(nel,no,el,maxNo)-1;
             }    
             nf++;
           } 
@@ -731,6 +735,7 @@ void makeFace(INT *el            ,short *faceR       ,DOUBLE *faceS
 /*...................................................................*/
     }
 /*...................................................................*/
+
 /*... tetraedro*/
     else if( ty == TETRCELL){
       tmp = 0;
@@ -752,7 +757,7 @@ void makeFace(INT *el            ,short *faceR       ,DOUBLE *faceS
 /*... loop nos nos da face*/
             for(k=0;k<nenFace[nf];k++){
               no  = MAT2D(j,k,isnod,nenFace[nf]);
-              MAT2D(nf,k,face,4) = MAT2D(nel,no,el,maxNo)-1;
+              MAT2D(nf,k,face,nenFaceMax) = MAT2D(nel,no,el,maxNo)-1;
             }    
             nf++;
           } 
@@ -782,9 +787,9 @@ void makeFace(INT *el            ,short *faceR       ,DOUBLE *faceS
             for(i=0;i<ndf;i++)
               MAT2D(nf,i,lFaceS,ndf) = MAT3D(nel,j,i,faceS,cCell,ndf); 
 /*... loop nos nos da face*/
-            for(k=0;k<nenFace[nf];k++){
+            for(k=0;k<1;k++){
               no  = MAT2D(j,k,isnod,nenFace[nf]);
-              MAT2D(nf,k,face,4) = MAT2D(nel,no,el,maxNo)-1;
+              MAT2D(nf,k,face,nenFaceMax) = MAT2D(nel,no,el,maxNo)-1;
             }    
             nf++;
           } 
@@ -799,3 +804,4 @@ void makeFace(INT *el            ,short *faceR       ,DOUBLE *faceS
   *nFace = nf;
 
 }
+/*********************************************************************/ 

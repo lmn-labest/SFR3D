@@ -22,9 +22,12 @@ INPUTDIF3DEX2='ex2_3D_0_ls.dat    ex2_3D_1_ls.dat
                ex2_3D_0_ggln.dat  ex2_3D_1_ggln.dat  
                ex2_3D_0_gglc.dat  ex2_3D_1_gglc.dat' 
 
-INPUTDIF3DEX3='  ex3_3d_hexa_0_ls.dat   ex3_3d_hexa_1_ls.dat ex3_3d_hexa_2_ls.dat  
-               ex3_3d_hexa_0_ggln.dat ex3_3d_hexa_1_ggln.dat ex3_3d_hexa_2_ggln.dat 
-               ex3_3d_hexa_0_gglc.dat ex3_3d_hexa_1_gglc.dat ex3_3d_hexa_2_gglc.dat'  
+INPUTDIF3DEX3='ex3_3d_hexa_0_ggln.dat  ex3_3d_hexa_1_ggln.dat 
+               ex3_3d_hexa_0_gglc.dat  ex3_3d_hexa_1_gglc.dat
+               ex3_3d_hexa_0_ls.dat    ex3_3d_hexa_1_ls.dat'
+#               ex3_3d_tetra_0_ggln.dat ex3_3d_tetra_1_ggln.dat 
+#               ex3_3d_tetra_0_gglc.dat ex3_3d_tetra_1_gglc.dat 
+#               ex3_3d_tetra_0_ls.dat   ex3_3d_tetra_1_ls.dat'  
 
 
 NAMEBIN=mfvCell_gnu_O3
@@ -85,7 +88,7 @@ if [ $? == 1 ];then
 fi
 
 # difusao 3D
-tar -xvzf test/input/dif/non_orthogonal/3D/*.tar.gz -C test/binTest
+for f in test/input/dif/non_orthogonal/3D/*.tar.gz ; do tar -xvzf $f -C test/binTest ; done
 cp test/input/dif/non_orthogonal/3D/GreenGaussCell/*.dat test/binTest
 cp test/input/dif/non_orthogonal/3D/GreenGaussNode/*.dat test/binTest
 cp test/input/dif/non_orthogonal/3D/LeastSquare/*.dat test/binTest
