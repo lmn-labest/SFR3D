@@ -67,7 +67,8 @@
     DOUBLE *uD1 ;       /*difusao pura uD1*/
     DOUBLE *gradUd1;    /*gradiente da difusao pura uD1*/
     DOUBLE *rCellUd1;   /*residuo da celula*/
-    DOUBLE *leastSquare;/*matriz de aproxima leastSquare*/
+    DOUBLE *leastSquare; /*matriz de aproxima leastSquare*/
+    DOUBLE *leastSquareR;/*fatoracao QR*/
     Material material;
     Adjacency adj;
   }Elmt;

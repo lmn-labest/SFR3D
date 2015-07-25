@@ -246,14 +246,32 @@ int main(int argc,char**argv){
       if(mesh->rcGrad ==  RCLSQUARE || mesh->rcGrad ==  RCLSQUAREQR){
         printf("%s\n",DIF);
         printf("Least Square ...\n");
+/*... wleastSqaure*/
         HccaAlloc(DOUBLE,&m,mesh->elm.leastSquare
-              ,mesh->numel*mesh->maxViz*mesh->ndm,"leastSquare",_AD_);
+                 ,mesh->numel*mesh->maxViz*mesh->ndm
+                 ,"leastSquare",_AD_);
+/*... leastSqaure QR*/
+        if(mesh->rcGrad ==  RCLSQUAREQR){
+          if(mesh->ndm == 2){ 
+            HccaAlloc(DOUBLE,&m,mesh->elm.leastSquareR            
+                     ,mesh->numel*3
+                     ,"lSquareR   ",_AD_);
+          }
+          else if(mesh->ndm == 3){ 
+            HccaAlloc(DOUBLE,&m,mesh->elm.leastSquareR            
+                     ,mesh->numel*6
+                     ,"lSquareR   ",_AD_);
+          }
+        }
+/*...*/
         tm.leastSquareMatrix = getTimeC() - tm.leastSquareMatrix;
         rcLeastSquare(mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
-                     ,mesh->elm.leastSquare,mesh->elm.adj.nViz       
+                     ,mesh->elm.leastSquare,mesh->elm.leastSquareR
+                     ,mesh->elm.adj.nViz       
                      ,mesh->numel          ,mesh->maxViz
                      ,mesh->rcGrad         ,mesh->ndm);
         tm.leastSquareMatrix = getTimeC() - tm.leastSquareMatrix;
+/*...................................................................*/
         printf("Least Square.\n");
         printf("%s\n",DIF);
       }
@@ -620,11 +638,12 @@ int main(int argc,char**argv){
                ,mesh->elm.node          ,mesh->elm.adj.nelcon
                ,mesh->elm.geom.cc       ,mesh->node.x   
                ,mesh->elm.nen           ,mesh->elm.adj.nViz 
-               ,mesh->elm.geomType      ,mesh->elm.leastSquare
+               ,mesh->elm.geomType      
+               ,mesh->elm.leastSquare   ,mesh->elm.leastSquareR
                ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
                ,mesh->elm.geom.eta      ,mesh->elm.geom.meta    
                ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-               ,mesh->elm.geom.vSkew ,mesh->elm.geom.xmcc    
+               ,mesh->elm.geom.vSkew    ,mesh->elm.geom.xmcc    
                ,mesh->elm.faceRd1       ,mesh->elm.faceSd1       
                ,mesh->elm.uD1           ,mesh->elm.gradUd1                 
                ,mesh->node.uD1          ,mesh->rcGrad
@@ -728,7 +747,8 @@ int main(int argc,char**argv){
              ,mesh->elm.node          ,mesh->elm.adj.nelcon
              ,mesh->elm.geom.cc       ,mesh->node.x   
              ,mesh->elm.nen           ,mesh->elm.adj.nViz 
-             ,mesh->elm.geomType      ,mesh->elm.leastSquare
+             ,mesh->elm.geomType                             
+             ,mesh->elm.leastSquare   ,mesh->elm.leastSquareR
              ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
              ,mesh->elm.geom.eta      ,mesh->elm.geom.meta    
              ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   

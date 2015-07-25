@@ -37,20 +37,21 @@
 
 /*.. reconstrucao de gradiente*/
   void rcGradU(Memoria *m
-            ,INT    *restrict el      ,INT    *restrict nelcon
-             ,DOUBLE *restrict cc     ,DOUBLE *restrict x     
-            ,short  *restrict nen     ,short  *restrict nFace
-            ,short  *restrict geomType,DOUBLE *restrict leastSquare  
-            ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi 
-            ,DOUBLE *restrict gEta    ,DOUBLE *restrict gmEta 
-            ,DOUBLE *restrict gNormal ,DOUBLE *restrict gVolume
-            ,DOUBLE *restrict gXmcc   ,DOUBLE *restrict gmKm    
-            ,short  *restrict faceR   ,DOUBLE *restrict faceS  
-            ,DOUBLE *restrict u       ,DOUBLE *restrict gradU               
-            ,DOUBLE *restrict nU      ,short const lib
-            ,short const maxNo        ,short const maxViz
-            ,short const ndf          ,short const ndm         
-            ,INT const numel          ,INT const nNode); 
+         ,INT    *restrict el         ,INT    *restrict nelcon
+         ,DOUBLE *restrict cc         ,DOUBLE *restrict x     
+         ,short  *restrict nen        ,short  *restrict nFace
+         ,short  *restrict geomType
+         ,DOUBLE *restrict leastSquare,DOUBLE *restrict leastSquareR   
+         ,DOUBLE *restrict gKsi       ,DOUBLE *restrict gmKsi 
+         ,DOUBLE *restrict gEta       ,DOUBLE *restrict gmEta 
+         ,DOUBLE *restrict gNormal    ,DOUBLE *restrict gVolume
+         ,DOUBLE *restrict gXmcc      ,DOUBLE *restrict gmKm    
+         ,short  *restrict faceR      ,DOUBLE *restrict faceS  
+         ,DOUBLE *restrict u          ,DOUBLE *restrict gradU               
+         ,DOUBLE *restrict nU         ,short const lib
+         ,short const maxNo           ,short const maxViz
+         ,short const ndf             ,short const ndm         
+         ,INT const numel             ,INT const nNode); 
 /*...................................................................*/
 
 /*... */
@@ -183,35 +184,47 @@
 /*...................................................................*/
 
 /*... biblioteca de reconstrucao de gradiente*/
-  void cellLibRcGrad(INT   *restrict lViz      ,DOUBLE *restrict leastSquare
-                 ,DOUBLE *restrict ksi         ,DOUBLE *restrict mKsi
-                 ,DOUBLE *restrict eta         ,DOUBLE *restrict mEta
-                 ,DOUBLE *restrict normal      ,DOUBLE *restrict volume
-                 ,DOUBLE *restrict xmcc        ,DOUBLE *restrict mvSkew
-                 ,short  *restrict lFaceR      ,DOUBLE *restrict lFaceS
-                 ,DOUBLE *restrict u           ,DOUBLE *restrict gradU 
-                 ,DOUBLE *restrict nU          ,short const ty 
-                 ,short const nFace            ,short const ndm  
-                 ,short const lib              ,short const ndf  
-                 ,short *restrict  isNodIN    ,INT const nel);
+  void cellLibRcGrad(INT   *restrict lViz      
+           ,DOUBLE *restrict leastSquare ,DOUBLE *restrict leastSquareR
+           ,DOUBLE *restrict ksi         ,DOUBLE *restrict mKsi
+           ,DOUBLE *restrict eta         ,DOUBLE *restrict mEta
+           ,DOUBLE *restrict normal      ,DOUBLE *restrict volume
+           ,DOUBLE *restrict xmcc        ,DOUBLE *restrict mvSkew
+           ,short  *restrict lFaceR      ,DOUBLE *restrict lFaceS
+           ,DOUBLE *restrict u           ,DOUBLE *restrict gradU 
+           ,DOUBLE *restrict nU          ,short const ty 
+           ,short const nFace            ,short const ndm  
+           ,short const lib              ,short const ndf  
+           ,short *restrict  isNodIN    ,INT const nel);
 
   void rcLeastSquare(DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi
-                  ,DOUBLE *restrict lSquare ,short *restrict nFace       
+                  ,DOUBLE *restrict lSquare   ,DOUBLE *restrict lSquareR
+                  ,short *restrict nFace       
                   ,INT const numel          ,short const maxViz
                   ,short const type         ,short const ndm);
 /*...................................................................*/
 
 /*... least square*/
   void leastSquareMatrix(DOUBLE *restrict lKsi    ,DOUBLE *restrict lmKsi
-                        ,DOUBLE *restrict lLsquare,short const type         
-                        ,short const lnFace       ,short const ndm);
+                    ,DOUBLE *restrict lLsquare,DOUBLE *restrict lSquareR
+                    ,short const type         
+                    ,short const lnFace       ,short const ndm);
 
 
-  void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz 
+  void leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz 
                  ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
                  ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
                  ,short const nFace        ,short const ndf
                  ,short const ndm);
+
+  void leastSquareQR(DOUBLE *restrict lLsquare
+                 ,DOUBLE *restrict lLsquareR
+                 ,INT *restrict lViz 
+                 ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
+                 ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+                 ,short const nFace        ,short const ndf
+                 ,short const ndm);
+
 /*...................................................................*/
 
   

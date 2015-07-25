@@ -596,6 +596,7 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
  *-------------------------------------------------------------------* 
  * lViz      -> viznhos da celula central                            *
  * lSquare -> matriz para a reconstrucao least Square                * 
+ * lSquareR-> fatoracao R (RCLSQUAREQR)                              * 
  * Ksi       -> vetores que unem centroide da celula central aos     *
  *            vizinhos destas                                        * 
  * mKsi      -> modulo do vetor ksi                                  * 
@@ -624,7 +625,8 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
  * gradU     -> gradiente calculodo                                  *
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellLibRcGrad(INT   *restrict lViz    ,DOUBLE *restrict lLsquare 
+void cellLibRcGrad(INT   *restrict lViz    
+                 ,DOUBLE *restrict lLsquare,DOUBLE *restrict lLsquareR
                  ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
                  ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
                  ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
@@ -664,12 +666,22 @@ void cellLibRcGrad(INT   *restrict lViz    ,DOUBLE *restrict lLsquare
    
 /*... minimos quadrados*/  
     case RCLSQUARE:
-    case RCLSQUAREQR:
       leastSquare(lLsquare,lViz
                  ,u       ,gradU
                  ,lFaceR  ,lFaceS
                  ,nFace   ,ndf
                  ,ndm);
+    break;
+/*...................................................................*/ 
+
+/*... minimos quadrados QR*/  
+    case RCLSQUAREQR:
+      leastSquareQR(lLsquare,lLsquareR
+                  ,lViz
+                  ,u       ,gradU
+                  ,lFaceR  ,lFaceS
+                  ,nFace   ,ndf
+                  ,ndm);
     break;
 /*...................................................................*/ 
 
@@ -997,6 +1009,108 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
 /*...................................................................*/
 
 } 
+/********************************************************************* 
+ * LEASTSQUAREQR: calcula o gradiente por minimos quadrados           *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------*
+ * lLsquareQt-> matriz para a reconstrucao least Square              * 
+ * lLsquareR -> fatoracao R (RCLSQUAREQR)                            * 
+ * lViz      -> viznhos da celula central                            * 
+ * u         -> solucao conhecida                                    * 
+ * gradU     -> gradiente rescontruido da solucao conhecida          * 
+ * lFaceR    -> restricoes por elmento                               * 
+ * lFaceS    -> carga por elemento                                   * 
+ * nFace     -> numero vizinhos por celula maximo da malha           * 
+ * ndm       -> numero de dimensoes                                  * 
+ * ndf       -> grauss de liberdade                                  * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * lSquare   -> matriz para a reconstrucao least Square              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void  leastSquareQR(DOUBLE *restrict lLsquareQt
+                   ,DOUBLE *restrict lLsquareR
+                   ,INT *restrict lViz 
+                   ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
+                   ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+                   ,short const nFace        ,short const ndf
+                   ,short const ndm){
+
+  DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF];
+  DOUBLE  b[MAX_NUM_FACE*MAX_NDF];
+  INT vizNel;
+  short idCell = nFace;
+  short i,j;
+
+  for(i=0;i<ndf*ndm;i++){
+    gradU[i]  = 0.e0;
+    b[i]      = 0.e0;
+  }
+
+/*... um grau de liberdade*/  
+  if(ndf == 1){
+    uC[0] = u[idCell];  
+    for(i=0;i<nFace;i++){
+      vizNel = lViz[i];
+/*... dominio*/
+      if(vizNel > -1)
+        du[i] = u[i] - uC[0];
+/*... contorno*/
+      else{
+/*... temperatura prescrita na face(extrapolacao linear)*/
+        if(lFaceR[i])
+          du[i] = lFaceS[i] - uC[0]; 
+
+/*... temperatura prescrita na celula*/
+        else if(lFaceR[nFace]==VPES)
+          du[i] = lFaceS[idCell] - uC[0]; 
+      
+/*... fluxo prescrito*/
+        else {
+          du[i] = lFaceS[i];
+        }
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*... b = Qtdu*/
+    for(i=0;i<ndm;i++)
+      for(j=0;j<nFace;j++){
+        b[i] += MAT2D(i,j,lLsquareQt,nFace)*du[j]; 
+      } 
+/*...................................................................*/
+    
+/*... R grad = Qtdu*/
+    if(ndm == 2){
+/*... retrosubstituicao*/
+      gradU[1] = b[1]/lLsquareR[2];
+      gradU[0] = (b[0] - lLsquareR[1]*gradU[1])/lLsquareR[0];
+    }
+    else if(ndm == 3){
+/*... retrosubstituicao*/
+      gradU[2] = b[2]/lLsquareR[5];
+      gradU[1] = (b[1] - lLsquareR[4]*gradU[2])/lLsquareR[3];
+      gradU[0] = (b[0] 
+               - lLsquareR[1]*gradU[1] 
+               - lLsquareR[2]*gradU[2])/lLsquareR[0];
+    }
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... */  
+//else
+//  for(k=0;k<ndf;k++)
+//    for(i=0;i<ndm;i++)
+//      for(j=0;j<nFace;i++)
+//        MAT2D(k,i,grad,ndf) 
+//        += MAT2D(i,j,lLsquare,nFace)*MAT2D(k,j,du,nFace);  
+/*...................................................................*/
+
+} 
 
 
 /********************************************************************* 
@@ -1008,6 +1122,7 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
  * lKsi      -> vetores que unem centroide da celula central aos     *
  * mKsi      -> modulo do vetor ksi                                  * 
  * lSquare   -> nao definido                                         * 
+ * lSquareR  -> nao definido                                         * 
  * type      -> tecnica de resolucao                                 * 
  * lnFace    -> numero vizinhos da celula                            * 
  * ndm       -> numero de dimensoes                                  * 
@@ -1015,11 +1130,13 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
  * lSquare   -> matriz para a reconstrucao least Square              * 
+ * lSquareR  -> fatoracao R (RCLSQUAREQR)                            * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
  void leastSquareMatrix(DOUBLE *restrict lKsi    ,DOUBLE *restrict lmKsi
-                       ,DOUBLE *restrict lLsquare,short const type        
-                       ,short const lnFace       ,short const ndm){
+                  ,DOUBLE *restrict lLsquare,DOUBLE *restrict lLsquareR
+                  ,short const type        
+                  ,short const lnFace       ,short const ndm){
 
   DOUBLE dx[MAX_NUM_FACE*MAX_NDM],w[MAX_NUM_FACE*MAX_NDM];
   DOUBLE aTwA[2*MAX_NDM],inv[2*MAX_NDM];
@@ -1098,13 +1215,13 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
 /*... dimensao 3*/
     else if(ndm == 3){
       detA = aTwA[0]*aTwA[3]*aTwA[5] + 2.e0*aTwA[1]*aTwA[4]*aTwA[2] 
-             -( aTwA[2]*aTwA[3]*aTwA[3] 
-              + aTwA[0]*aTwA[4]*aTwA[4]    
-              + aTwA[5]*aTwA[1]*aTwA[1]); 
+             -( aTwA[2]*aTwA[2]*aTwA[3] 
+              + aTwA[4]*aTwA[4]*aTwA[0]    
+              + aTwA[1]*aTwA[1]*aTwA[5]); 
       detA = 1.e0/detA;
 /*... inversao com cofatores*/
       inv[0] = (aTwA[3]*aTwA[5] - aTwA[4]*aTwA[4])*detA;
-      inv[1] =-(aTwA[1]*aTwA[5] - aTwA[4]*aTwA[2])*detA;
+      inv[1] =-(aTwA[1]*aTwA[5] - aTwA[2]*aTwA[4])*detA;
       inv[2] = (aTwA[1]*aTwA[4] - aTwA[2]*aTwA[3])*detA;
 
       inv[3] = (aTwA[0]*aTwA[5] - aTwA[2]*aTwA[2])*detA;
@@ -1185,28 +1302,23 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
       }
 /*...................................................................*/
     }
-/*...G=inv(R)Qt*/
+
 /*... dimensao 2*/
     if(ndm == 2){
-      detA   = MAT2D(0,0,r,ndm)*MAT2D(1,1,r,ndm);
-      detA   = 1.e0/detA;
-      inv[0] = MAT2D(1,1,r,ndm)*detA;
-      inv[2] = MAT2D(0,0,r,ndm)*detA;
+        lLsquareR[0] = MAT2D(0,0,r,ndm);
+        lLsquareR[1] = MAT2D(0,1,r,ndm);
+        lLsquareR[2] = MAT2D(1,1,r,ndm);
     }
 /*...................................................................*/
 
-/*... dimensao 3*/
+/*... R dimensao 3*/
     else if(ndm == 3){
-      detA   = MAT2D(0,0,r,ndm)*MAT2D(1,1,r,ndm)*MAT2D(2,2,r,ndm);
-      detA   = 1.e0/detA;
-/*... inversao com cofatores*/
-      inv[0] =  (MAT2D(1,1,r,ndm)*MAT2D(2,2,r,ndm))*detA;
-      inv[1] = -(MAT2D(0,1,r,ndm)*MAT2D(2,2,r,ndm))*detA;
-      inv[2] =  (MAT2D(0,1,r,ndm)*MAT2D(1,2,r,ndm) -
-                 MAT2D(0,2,r,ndm)*MAT2D(1,1,r,ndm))*detA;
-      inv[3] =  (MAT2D(0,0,r,ndm)*MAT2D(2,2,r,ndm))*detA;
-      inv[4] = -(MAT2D(0,0,r,ndm)*MAT2D(1,2,r,ndm))*detA;
-      inv[5] =  (MAT2D(0,0,r,ndm)*MAT2D(1,1,r,ndm))*detA;
+        lLsquareR[0] = MAT2D(0,0,r,ndm);
+        lLsquareR[1] = MAT2D(0,1,r,ndm);
+        lLsquareR[2] = MAT2D(0,2,r,ndm);
+        lLsquareR[3] = MAT2D(1,1,r,ndm);
+        lLsquareR[4] = MAT2D(1,2,r,ndm);
+        lLsquareR[5] = MAT2D(2,2,r,ndm);
     }
 /*...................................................................*/
 
@@ -1218,17 +1330,11 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
       }
 /*...................................................................*/
 
-/*... dimensao 3*/
+/*... Qt - dimensao 3*/
       else if(ndm == 3){
-        MAT2D(0,nf,lLsquare,lnFace) = inv[0]*MAT2D(nf,0,dx,ndm)
-                                    + inv[1]*MAT2D(nf,1,dx,ndm)
-                                    + inv[2]*MAT2D(nf,2,dx,ndm);
-        MAT2D(1,nf,lLsquare,lnFace) = inv[1]*MAT2D(nf,0,dx,ndm)
-                                    + inv[3]*MAT2D(nf,1,dx,ndm)
-                                    + inv[4]*MAT2D(nf,2,dx,ndm);
-        MAT2D(2,nf,lLsquare,lnFace) = inv[2]*MAT2D(nf,0,dx,ndm)
-                                    + inv[4]*MAT2D(nf,1,dx,ndm)
-                                    + inv[5]*MAT2D(nf,2,dx,ndm);
+        MAT2D(0,nf,lLsquare,lnFace) = MAT2D(nf,0,dx,ndm);
+        MAT2D(1,nf,lLsquare,lnFace) = MAT2D(nf,1,dx,ndm);
+        MAT2D(2,nf,lLsquare,lnFace) = MAT2D(nf,2,dx,ndm);
       }
 /*...................................................................*/
     }

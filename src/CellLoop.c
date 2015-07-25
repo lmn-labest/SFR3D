@@ -710,6 +710,7 @@ void cellPload(short  *restrict faceR ,DOUBLE *restrict faceS
  * nFace   -> numero de faces por celulas                            * 
  * geomType-> tipo geometrico das celulas                            * 
  * lSquare -> matriz para a reconstrucao least Square                * 
+ * lSquareR-> fatoracao R (RCLSQUAREQR)                              * 
  * gKsi    -> vetores que unem centroide da celula central aos       *
  *            vizinhos destas                                        * 
  * gmKsi   -> modulo do vetor ksi                                    * 
@@ -746,7 +747,8 @@ void rcGradU(Memoria *m
             ,INT    *restrict el      ,INT    *restrict nelcon 
             ,DOUBLE *restrict cc      ,DOUBLE *restrict x     
             ,short  *restrict nen     ,short  *restrict nFace
-            ,short  *restrict geomType,DOUBLE *restrict lSquare            
+            ,short  *restrict geomType
+            ,DOUBLE *restrict lSquare ,DOUBLE *restrict lSquareR            
             ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi 
             ,DOUBLE *restrict gEta    ,DOUBLE *restrict gfArea 
             ,DOUBLE *restrict gNormal ,DOUBLE *restrict gVolume
@@ -772,6 +774,7 @@ void rcGradU(Memoria *m
   DOUBLE lnU[(MAX_NUM_NODE)*MAX_NDF];
   DOUBLE lGradU[MAX_NDM*MAX_NDF];
   DOUBLE lLsquare[MAX_NUM_FACE*MAX_NDM];
+  DOUBLE lLsquareR[2*MAX_NDM];
   INT    lViz[MAX_NUM_FACE];
   short  aux1,aux2;
   short  isNod[MAX_SN],ty;
@@ -816,12 +819,37 @@ void rcGradU(Memoria *m
     }
 
 /*... leastSquare*/
-    if(lib ==  RCLSQUARE || lib ==  RCLSQUAREQR)
+    if(lib ==  RCLSQUARE)
       for(i=0;i<ndm;i++)
         for(j=0;j<aux1;j++)
           MAT2D(i,j,lLsquare,aux1) 
           = MAT3D(nel,i,j,lSquare,ndm,maxViz); 
 /*...................................................................*/
+
+/*... leastSquare-QR*/
+    if(lib ==  RCLSQUAREQR){
+      for(i=0;i<ndm;i++)
+        for(j=0;j<aux1;j++)
+          MAT2D(i,j,lLsquare,aux1) 
+          = MAT3D(nel,i,j,lSquare,ndm,maxViz);
+/*... R*/
+       if(ndm == 2){ 
+         lLsquareR[0] = MAT2D(nel,0,lSquareR,3); 
+         lLsquareR[1] = MAT2D(nel,1,lSquareR,3); 
+         lLsquareR[2] = MAT2D(nel,2,lSquareR,3); 
+       }
+       else if(ndm == 3){ 
+         lLsquareR[0] = MAT2D(nel,0,lSquareR,6); 
+         lLsquareR[1] = MAT2D(nel,1,lSquareR,6); 
+         lLsquareR[2] = MAT2D(nel,2,lSquareR,6); 
+         lLsquareR[3] = MAT2D(nel,3,lSquareR,6); 
+         lLsquareR[4] = MAT2D(nel,4,lSquareR,6); 
+         lLsquareR[5] = MAT2D(nel,5,lSquareR,6); 
+       }
+    }
+/*...................................................................*/
+
+
 
 /*...*/
     for(i=0;i<ndf;i++)
@@ -864,7 +892,8 @@ void rcGradU(Memoria *m
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
-    cellLibRcGrad(lViz      ,lLsquare
+    cellLibRcGrad(lViz      
+                 ,lLsquare  ,lLsquareR
                  ,lKsi      ,lmKsi
                  ,lEta      ,lfArea 
                  ,lNormal   ,lVolume
@@ -896,6 +925,7 @@ void rcGradU(Memoria *m
  *            vizinhos destas                                        * 
  * gmKsi   -> modulo do vetor ksi                                    * 
  * lSquare   -> nao definido                                         * 
+ * lSquareR  -> nao definido                                         * 
  * numel     -> numero de elementos                                  * 
  * maxViz    -> numero maximo de vizinhos                            * 
  * nFace     -> numero vizinhos por celula maximo da malha           * 
@@ -904,16 +934,19 @@ void rcGradU(Memoria *m
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
- * lSquare   -> matriz para a reconstrucao least Square              * 
+ * lSquare   -> matriz para a reconstrucao least Square              *
+ * lSquareR  -> fatoracao R (RCLSQUAREQR)                            * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void rcLeastSquare(DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi
-                  ,DOUBLE *restrict lSquare ,short *restrict nFace       
+                  ,DOUBLE *restrict lSquare ,DOUBLE *restrict lSquareR
+                  ,short *restrict nFace       
                   ,INT const numel          ,short const maxViz
                   ,short const type         ,short const ndm){
 
   INT nEl;
   DOUBLE lLsquare[MAX_NUM_FACE*MAX_NDM];
+  DOUBLE lLsquareR[2*MAX_NDM];
   DOUBLE lKsi[MAX_NUM_FACE*3],lmKsi[MAX_NUM_FACE];
   short lnFace,i,j;
 
@@ -930,7 +963,8 @@ void rcLeastSquare(DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi
     }
     
     leastSquareMatrix(lKsi    ,lmKsi
-                     ,lLsquare,type
+                     ,lLsquare,lLsquareR
+                     ,type
                      ,lnFace  ,ndm);
 
     for(i=0;i<ndm;i++)
@@ -938,6 +972,22 @@ void rcLeastSquare(DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi
         MAT3D(nEl,i,j,lSquare,ndm,maxViz) 
          = MAT2D(i,j,lLsquare,lnFace);
       }
+
+    if(type == RCLSQUAREQR){
+      if(ndm == 2){
+        MAT2D(nEl,0,lSquareR,3) = lLsquareR[0];
+        MAT2D(nEl,1,lSquareR,3) = lLsquareR[1];
+        MAT2D(nEl,2,lSquareR,3) = lLsquareR[2];
+      }
+      else if(ndm == 3){
+        MAT2D(nEl,0,lSquareR,6) = lLsquareR[0];
+        MAT2D(nEl,1,lSquareR,6) = lLsquareR[1];
+        MAT2D(nEl,2,lSquareR,6) = lLsquareR[2];
+        MAT2D(nEl,3,lSquareR,6) = lLsquareR[3];
+        MAT2D(nEl,4,lSquareR,6) = lLsquareR[4];
+        MAT2D(nEl,5,lSquareR,6) = lLsquareR[5];
+      }
+    } 
   }
 /*...................................................................*/
 }

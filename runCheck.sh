@@ -20,17 +20,33 @@ INPUTDIF5='ex5_1_ls.dat    ex5_2_ls.dat
 
 INPUTDIF3DEX2='ex2_3D_0_ls.dat    ex2_3D_1_ls.dat  
                ex2_3D_0_ggln.dat  ex2_3D_1_ggln.dat  
-               ex2_3D_0_gglc.dat  ex2_3D_1_gglc.dat' 
+               ex2_3D_0_gglc.dat  ex2_3D_1_gglc.dat 
+               ex2_3D_0_lsqr.dat  ex2_3D_1_lsqr.dat'
+
+INPUTDIF3DEX2NONORT='ex2_3d_tetra_0_ggln.dat  ex2_3d_tetra_1_ggln.dat
+                     ex2_3d_tetra_0_gglc.dat  ex2_3d_tetra_1_gglc.dat 
+                     ex2_3d_tetra_0_ls.dat    ex2_3d_tetra_1_ls.dat 
+                     ex2_3d_tetra_0_lsqr.dat  ex2_3d_tetra_1_lsqr.dat' 
 
 INPUTDIF3DEX3='ex3_3d_hexa_0_ggln.dat  ex3_3d_hexa_1_ggln.dat 
                ex3_3d_hexa_0_gglc.dat  ex3_3d_hexa_1_gglc.dat
-               ex3_3d_hexa_0_ls.dat    ex3_3d_hexa_1_ls.dat'
-#               ex3_3d_tetra_0_ggln.dat ex3_3d_tetra_1_ggln.dat 
-#               ex3_3d_tetra_0_gglc.dat ex3_3d_tetra_1_gglc.dat 
-#               ex3_3d_tetra_0_ls.dat   ex3_3d_tetra_1_ls.dat'  
+               ex3_3d_hexa_0_ls.dat    ex3_3d_hexa_1_ls.dat
+               ex3_3d_hexa_0_lsqr.dat    ex3_3d_hexa_1_lsqr.dat
+               ex3_3d_tetra_0_ggln.dat ex3_3d_tetra_1_ggln.dat 
+               ex3_3d_tetra_0_gglc.dat ex3_3d_tetra_1_gglc.dat 
+               ex3_3d_tetra_0_ls.dat   ex3_3d_tetra_1_ls.dat   
+               ex3_3d_tetra_0_lsqr.dat   ex3_3d_tetra_1_lsqr.dat'  
 
 
 NAMEBIN=mfvCell_gnu_O3
+
+ex1=false
+ex4=false
+ex5=false
+ex2_3D=true 
+ex3_3D=true 
+ex3_3D=true
+ex2_3D_NONORT=true
 
 #gerando o executavel
 echo `make clean` > /dev/null 
@@ -57,44 +73,69 @@ cp test/input/*.dat test/binTest
 #  exit 1
 #fi
 
-cp test/input/dif/orthogonal/2D/gaussGreenCell/*.dat test/binTest
-cp test/input/dif/orthogonal/2D/gaussGreenNode/*.dat test/binTest
-cp test/input/dif/orthogonal/2D/LeastSquare/*.dat test/binTest
+if  $ex1 ; then
+  cp test/input/dif/orthogonal/2D/gaussGreenCell/*.dat test/binTest
+  cp test/input/dif/orthogonal/2D/gaussGreenNode/*.dat test/binTest
+  cp test/input/dif/orthogonal/2D/LeastSquare/*.dat test/binTest
 #
-test/binTest/run_dif_exato.sh "$INPUTDIF2" "$NAMEBIN" 
-if [ $? == 1 ]; then
-  exit 1
+  test/binTest/run_dif_exato.sh "$INPUTDIF2" "$NAMEBIN" 
+  if [ $? == 1 ]; then
+    exit 1
+  fi
 fi
 
 
-test/binTest/run_dif_exato_Ex4.sh "$INPUTDIF4" "$NAMEBIN" 
-if [ $? == 1 ];then
-  exit 1
+if $ex4 ; then
+  test/binTest/run_dif_exato_Ex4.sh "$INPUTDIF4" "$NAMEBIN" 
+  if [ $? == 1 ];then
+    exit 1
+  fi
 fi
 
 #
-test/binTest/run_dif_exato_Ex5.sh "$INPUTDIF5" "$NAMEBIN" 
-if [ $? == 1 ];then
-  exit 1
+if $ex5 ; then
+  test/binTest/run_dif_exato_Ex5.sh "$INPUTDIF5" "$NAMEBIN" 
+  if [ $? == 1 ];then
+    exit 1
+  fi
 fi
 
 # difusao 3D
-cp test/input/dif/orthogonal/3D/GreenGaussCell/*.dat test/binTest
-cp test/input/dif/orthogonal/3D/GreenGaussNode/*.dat test/binTest
-cp test/input/dif/orthogonal/3D/LeastSquare/*.dat test/binTest
-test/binTest/run_dif_exato_3D_Ex2.sh "$INPUTDIF3DEX2" "$NAMEBIN" 
-if [ $? == 1 ];then
-  exit 1
+if  $ex2_3D ; then
+  cp test/input/dif/orthogonal/3D/GreenGaussCell/*.dat test/binTest
+  cp test/input/dif/orthogonal/3D/GreenGaussNode/*.dat test/binTest
+  cp test/input/dif/orthogonal/3D/LeastSquare/*.dat test/binTest
+  cp test/input/dif/orthogonal/3D/LeastSquareQR/*.dat test/binTest
+  test/binTest/run_dif_exato_3D_Ex2.sh "$INPUTDIF3DEX2" "$NAMEBIN" 
+  if [ $? == 1 ];then
+    exit 1
+  fi
 fi
 
 # difusao 3D
-for f in test/input/dif/non_orthogonal/3D/*.tar.gz ; do tar -xvzf $f -C test/binTest ; done
-cp test/input/dif/non_orthogonal/3D/GreenGaussCell/*.dat test/binTest
-cp test/input/dif/non_orthogonal/3D/GreenGaussNode/*.dat test/binTest
-cp test/input/dif/non_orthogonal/3D/LeastSquare/*.dat test/binTest
-test/binTest/run_dif_exato_3D_Ex3.sh "$INPUTDIF3DEX3" "$NAMEBIN" 
-if [ $? == 1 ];then
-  exit 1
+if  $ex3_3D ; then 
+  for f in test/input/dif/non_orthogonal/3D/*.tar.gz ; do tar -xvzf $f -C test/binTest ; done
+  cp test/input/dif/non_orthogonal/3D/GreenGaussCell/*.dat test/binTest
+  cp test/input/dif/non_orthogonal/3D/GreenGaussNode/*.dat test/binTest
+  cp test/input/dif/non_orthogonal/3D/LeastSquare/*.dat test/binTest
+  cp test/input/dif/non_orthogonal/3D/LeastSquareQR/*.dat test/binTest
+  test/binTest/run_dif_exato_3D_Ex3.sh "$INPUTDIF3DEX3" "$NAMEBIN" 
+  if [ $? == 1 ];then
+    exit 1
+  fi
+fi
+
+# difusao 3D
+if  $ex2_3D_NONORT ; then 
+  for f in test/input/dif/non_orthogonal/3D/*.tar.gz ; do tar -xvzf $f -C test/binTest ; done
+  cp test/input/dif/non_orthogonal/3D/GreenGaussCell/*.dat test/binTest
+  cp test/input/dif/non_orthogonal/3D/GreenGaussNode/*.dat test/binTest
+  cp test/input/dif/non_orthogonal/3D/LeastSquare/*.dat test/binTest
+  cp test/input/dif/non_orthogonal/3D/LeastSquareQR/*.dat test/binTest
+  test/binTest/run_dif_exato_3D_Ex2.sh "$INPUTDIF3DEX2NONORT" "$NAMEBIN" 
+  if [ $? == 1 ];then
+    exit 1
+  fi
 fi
 
 DIR="test/binTest"
