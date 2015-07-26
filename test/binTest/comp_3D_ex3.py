@@ -141,13 +141,13 @@ def main(argv):
   if erC    > 1.e2 :
     return 1 
   
-  if gxerC  > 1.e2 :
+  if gxerC  > 3.e2 :
     return 1 
   
-  if gyerC  > 1.e2 :
+  if gyerC  > 3.e2 :
     return 1 
   
-  if gzerC  > 1.e2 :
+  if gzerC  > 3.e2 :
     return 1 
 
 if __name__ == '__main__':

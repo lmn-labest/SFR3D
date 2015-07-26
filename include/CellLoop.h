@@ -40,12 +40,14 @@
          ,INT    *restrict el         ,INT    *restrict nelcon
          ,DOUBLE *restrict cc         ,DOUBLE *restrict x     
          ,short  *restrict nen        ,short  *restrict nFace
-         ,short  *restrict geomType
+         ,short  *restrict geomType   ,DOUBLE *restrict prop 
+         ,short  *restrict mat 
          ,DOUBLE *restrict leastSquare,DOUBLE *restrict leastSquareR   
          ,DOUBLE *restrict gKsi       ,DOUBLE *restrict gmKsi 
          ,DOUBLE *restrict gEta       ,DOUBLE *restrict gmEta 
          ,DOUBLE *restrict gNormal    ,DOUBLE *restrict gVolume
-         ,DOUBLE *restrict gXmcc      ,DOUBLE *restrict gmKm    
+         ,DOUBLE *restrict gvSkew     ,DOUBLE *restrict gXmcc
+         ,DOUBLE *restrict gDcca 
          ,short  *restrict faceR      ,DOUBLE *restrict faceS  
          ,DOUBLE *restrict u          ,DOUBLE *restrict gradU               
          ,DOUBLE *restrict nU         ,short const lib
@@ -73,7 +75,7 @@
              ,short  *restrict geomType,DOUBLE *restrict prop 
              ,short  *restrict calType ,short  *restrict mat  
              ,DOUBLE *restrict gKsi   ,DOUBLE *restrict gmKsi
-             ,DOUBLE *restrict gEta   ,DOUBLE *restrict gmEta
+             ,DOUBLE *restrict gEta   ,DOUBLE *restrict gfArea
              ,DOUBLE *restrict gNormal,DOUBLE *restrict gVolume
              ,DOUBLE *restrict gXm    ,DOUBLE *restrict gXmcc   
              ,DOUBLE *restrict gvSkew ,DOUBLE *restrict gmvSkew   
@@ -95,7 +97,7 @@
   void cellLibDif(short *restrict lGeomType,DOUBLE *restrict lprop
                  ,INT   *restrict lViz     ,INT    *restrict lId
                  ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi    
-                 ,DOUBLE *restrict eta     ,DOUBLE *restrict meta  
+                 ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea 
                  ,DOUBLE *restrict normal  ,DOUBLE *restrict volume 
                  ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc    
                  ,DOUBLE *restrict dcca    
@@ -128,7 +130,7 @@
   void cellGeom2D(DOUBLE *restrict lx       ,short *restrict lnFace
                  ,short  *restrict lGeomType,DOUBLE *restrict xc
                  ,DOUBLE *restrict ksi      ,DOUBLE *restrict mksi
-                 ,DOUBLE *restrict eta      ,DOUBLE *restrict meta
+                 ,DOUBLE *restrict eta      ,DOUBLE *restrict mEta
                  ,DOUBLE *restrict normal   ,DOUBLE *restrict volume
                  ,DOUBLE *restrict xm       ,DOUBLE *restrict xmcc
                  ,DOUBLE *restrict dcca     
@@ -155,7 +157,7 @@
   void cellDif2D(short *restrict lGeomType,DOUBLE *restrict lprop
                 ,INT   *restrict lViz     ,INT *restrict lId               
                 ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi
-                ,DOUBLE *restrict eta     ,DOUBLE *restrict meta
+                ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
                 ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
                 ,DOUBLE *restrict dcca   
@@ -184,12 +186,13 @@
 /*...................................................................*/
 
 /*... biblioteca de reconstrucao de gradiente*/
-  void cellLibRcGrad(INT   *restrict lViz      
+  void cellLibRcGrad(INT   *restrict lViz,DOUBLE *restrict lProp
            ,DOUBLE *restrict leastSquare ,DOUBLE *restrict leastSquareR
            ,DOUBLE *restrict ksi         ,DOUBLE *restrict mKsi
-           ,DOUBLE *restrict eta         ,DOUBLE *restrict mEta
+           ,DOUBLE *restrict eta         ,DOUBLE *restrict fArea
            ,DOUBLE *restrict normal      ,DOUBLE *restrict volume
-           ,DOUBLE *restrict xmcc        ,DOUBLE *restrict mvSkew
+           ,DOUBLE *restrict vSkew       ,DOUBLE *restrict xmcc 
+           ,DOUBLE *restrict lDcca  
            ,short  *restrict lFaceR      ,DOUBLE *restrict lFaceS
            ,DOUBLE *restrict u           ,DOUBLE *restrict gradU 
            ,DOUBLE *restrict nU          ,short const ty 
@@ -212,14 +215,16 @@
 
 
   void leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz 
+                 ,DOUBLE *restrict xmcc 
+                 ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca
                  ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
                  ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
                  ,short const nFace        ,short const ndf
-                 ,short const ndm);
+                 ,short const ndm          ,INT const nel);
 
-  void leastSquareQR(DOUBLE *restrict lLsquare
-                 ,DOUBLE *restrict lLsquareR
-                 ,INT *restrict lViz 
+  void leastSquareQR(DOUBLE *restrict lLs  ,DOUBLE *restrict lLsR
+                 ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca
+                 ,INT *restrict lViz       ,DOUBLE *restrict xmcc  
                  ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
                  ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
                  ,short const nFace        ,short const ndf
@@ -230,7 +235,8 @@
   
 /*... green-gauss*/
   void greenGaussCell(INT *restrict lViz ,DOUBLE *restrict mKsi
-               ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
+               ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca
+               ,DOUBLE *restrict eta     ,DOUBLE *restrict mfArea
                ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
                ,DOUBLE *restrict xmcc    ,DOUBLE *restrict mvSkew
                ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS

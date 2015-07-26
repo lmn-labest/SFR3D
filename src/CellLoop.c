@@ -201,6 +201,8 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
  * nFace   -> numero de faces por celulas                            * 
  * calType -> tipo de calculo das celulas                            * 
  * geomType-> tipo geometrico das celulas                            * 
+ * prop    -> propriedades dos material                              * 
+ * mat     -> material por celula                                    * 
  * gKsi    -> vetores que unem centroide da celula central aos       *
  *            vizinhos destas                                        * 
  * gmKsi   -> modulo do vetor ksi                                    * 
@@ -709,6 +711,8 @@ void cellPload(short  *restrict faceR ,DOUBLE *restrict faceS
  * nen     -> numero de nos por celulas                              * 
  * nFace   -> numero de faces por celulas                            * 
  * geomType-> tipo geometrico das celulas                            * 
+ * prop    -> propriedades dos material                              * 
+ * mat     -> material por celula                                    * 
  * lSquare -> matriz para a reconstrucao least Square                * 
  * lSquareR-> fatoracao R (RCLSQUAREQR)                              * 
  * gKsi    -> vetores que unem centroide da celula central aos       *
@@ -720,8 +724,9 @@ void cellPload(short  *restrict faceR ,DOUBLE *restrict faceS
  * gVolume -> volumes das celulas                                    * 
  * gvSkew  -> vetor entre o ponto medio a intersecao que une os      * 
  *            centrois compartilhado nessa face                      * 
- * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
+ * gXmcc     -> vetores que unem o centroides aos pontos medios das  * 
  *            faces da celula central                                * 
+ * gDcca   -> menor distancia do centroide a faces desta celula      * 
  * faceR   -> restricoes por elmento                                 * 
  * faceS   -> carga por elemento                                     * 
  * u       -> solucao conhecida por celula (atualizado)              * 
@@ -747,12 +752,14 @@ void rcGradU(Memoria *m
             ,INT    *restrict el      ,INT    *restrict nelcon 
             ,DOUBLE *restrict cc      ,DOUBLE *restrict x     
             ,short  *restrict nen     ,short  *restrict nFace
-            ,short  *restrict geomType
+            ,short  *restrict geomType,DOUBLE *restrict prop 
+            ,short  *restrict mat 
             ,DOUBLE *restrict lSquare ,DOUBLE *restrict lSquareR            
             ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi 
             ,DOUBLE *restrict gEta    ,DOUBLE *restrict gfArea 
             ,DOUBLE *restrict gNormal ,DOUBLE *restrict gVolume
             ,DOUBLE *restrict gvSkew  ,DOUBLE *restrict gXmcc  
+            ,DOUBLE *restrict gDcca 
             ,short  *restrict faceR   ,DOUBLE *restrict faceS  
             ,DOUBLE *restrict u       ,DOUBLE *restrict gradU              
             ,DOUBLE *restrict nU      ,short const lib 
@@ -775,8 +782,9 @@ void rcGradU(Memoria *m
   DOUBLE lGradU[MAX_NDM*MAX_NDF];
   DOUBLE lLsquare[MAX_NUM_FACE*MAX_NDM];
   DOUBLE lLsquareR[2*MAX_NDM];
+  DOUBLE lProp[MAXPROP],lDcca[MAX_NUM_FACE];
   INT    lViz[MAX_NUM_FACE];
-  short  aux1,aux2;
+  short  aux1,aux2,lMat;
   short  isNod[MAX_SN],ty;
 
 /*... reconstrucao de gradiente Green-Gauss nodal*/
@@ -801,6 +809,7 @@ void rcGradU(Memoria *m
     aux1    = nFace[nel];
 
 /*... loop na celula central*/    
+    lMat            = mat[nel]-1;
     lVolume[aux1]   = gVolume[nel]; 
     lFaceR[aux1]    = MAT2D(nel,aux1,faceR ,aux2);
       
@@ -808,6 +817,9 @@ void rcGradU(Memoria *m
       MAT2D(aux1,i,lu    ,ndf) = MAT2D(nel,i,u    ,ndf);
       MAT2D(aux1,i,lFaceS,ndf) = MAT3D(nel,aux1,i,faceS ,aux2,ndf);
     }
+    
+    for(j=0;j<MAXPROP;j++)
+      lProp[j]= MAT2D(lMat,j,prop,MAXPROP);
 
 /*... valor da funcao nodal nodias*/    
     if(lib ==  RCGRADGAUSSN){
@@ -860,6 +872,7 @@ void rcGradU(Memoria *m
 
 /*...*/      
     for(i=0;i<aux1;i++){
+      lDcca[i]  = MAT2D(nel,i,gDcca   ,maxViz);
       lmKsi[i]  = MAT2D(nel,i,gmKsi  ,maxViz);
       lfArea[i] = MAT2D(nel,i,gfArea ,maxViz);
       lFaceR[i] = MAT2D(nel,i,faceR  ,aux2);
@@ -892,12 +905,13 @@ void rcGradU(Memoria *m
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
-    cellLibRcGrad(lViz      
+    cellLibRcGrad(lViz      ,lProp
                  ,lLsquare  ,lLsquareR
                  ,lKsi      ,lmKsi
                  ,lEta      ,lfArea 
                  ,lNormal   ,lVolume
                  ,lvSkew    ,lXmcc 
+                 ,lDcca
                  ,lFaceR    ,lFaceS
                  ,lu        ,lGradU
                  ,lnU       ,ty     
@@ -1075,16 +1089,17 @@ void meshQuality(MeshQuality *mq
       
       nkMed += nk;
       nkMin = min(nkMin,nk); 
-      k++;    
+      k++;   
+      nk       = MAT2D(nEl,nf,gmvSkew,maxViz);
+      skewMed += nk;
+      skewMax  = max(skewMax,nk);
     }
 /*...................................................................*/ 
 
 /*... sKew*/  
-    skewMed += gmvSkew[nEl];
-    skewMax  = max(skewMax,gmvSkew[nEl]);
   }
 
-  skewMed    /= numel;
+  skewMed    /= k;
   nkMed      /= k;
 
   teta           = acos(nkMed);

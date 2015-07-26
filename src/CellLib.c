@@ -137,7 +137,7 @@ void cellLibDif(short *restrict lGeomType,DOUBLE *restrict lprop
  *            vizinhos destas                                        * 
  * mKsi   -> modulo do vetor ksi                                     * 
  * eta    -> vetores paralelos as faces das celulas                  * 
- * meta   -> modulo do vetor eta                                     * 
+ * fArea  -> modulo do vetor eta                                     * 
  * normal -> vetores normais as faces das celulas                    * 
  * area   -> area da celula central                                  * 
  * xm     -> pontos medios das faces da celula cenral                * 
@@ -367,7 +367,7 @@ void cellGeom2D(DOUBLE *restrict lx       ,short *restrict lnFace
  *********************************************************************/
 void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
                ,short *restrict lnFace    ,short *restrict lnEn      
-               ,DOUBLE *restrict xc     
+               ,DOUBLE *restrict xc        
                ,DOUBLE *restrict ksi      ,DOUBLE *restrict mksi
                ,DOUBLE *restrict eta      ,DOUBLE *restrict fArea
                ,DOUBLE *restrict normal   ,DOUBLE *restrict volume
@@ -429,7 +429,7 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
   }
 /*...................................................................*/
 
-/*... calculo do vetor normal e da area da face*/
+/*... calculo do vetor normal e area da face*/
   if( lGeomType[cCell] == HEXACELL ){
     for(i=0;i<lnFace[cCell];i++){
       no1 = MAT2D(i,0,sn,nenFaces);
@@ -463,7 +463,7 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
   }
 /*...................................................................*/
 
-/*... calculo do vetor normal e da area da face*/
+/*... calculo do vetor normal e area da face*/
   else if( lGeomType[cCell] == TETRCELL ){
     for(i=0;i<lnFace[cCell];i++){
       no1 = MAT2D(i,0,sn,nenFaces);
@@ -523,6 +523,7 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
 /*...................................................................*/  
   }
 /*...................................................................*/  
+
   
   else if( lGeomType[cCell] == TETRCELL ){
     for(i=0;i<lnFace[cCell];i++){
@@ -549,7 +550,7 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
 /*...................................................................*/  
   }
 /*...................................................................*/  
-
+    
 /*... calculo do centro da celula fantasma*/      
 /*  for(i=0;i<=maxViz;i++){
     for(j=0;j<ndm;j++){
@@ -564,6 +565,7 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
 /*... vetor que une o centroide da celula ao vizinho fantasma(ksi)*/
   for(i=0;i<lnFace[cCell];i++){
     if(!lnFace[i]){
+      mksi[i] = 0.e0;
       for(j=0;j<ndm;j++){
         MAT2D(i,j,ksi,ndm) = MAT2D(i,j,xmcc,ndm);
         mksi[i] += MAT2D(i,j,ksi,ndm)*MAT2D(i,j,ksi,ndm); 
@@ -594,6 +596,7 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
+ * lprop     -> propriedade fisicas das celulas                      *
  * lViz      -> viznhos da celula central                            *
  * lSquare -> matriz para a reconstrucao least Square                * 
  * lSquareR-> fatoracao R (RCLSQUAREQR)                              * 
@@ -601,13 +604,15 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
  *            vizinhos destas                                        * 
  * mKsi      -> modulo do vetor ksi                                  * 
  * eta       -> vetores paralelos as faces das celulas               * 
- * meta      -> modulo do vetor eta                                  * 
+ * fArea     -> area da face                                         * 
  * normal    -> vetores normais as faces das celulas                 * 
  * area      -> area da celula central                               * 
  * vSkew      -> vetor entre o ponto medio a intersecao que une os   * 
  *            centrois compartilhado nessa face                      * 
  * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
  *            faces da celula central                                * 
+ * dcca      -> menor distacia do centroide central a faces desta    *
+ *              celula                                               * 
  * u         -> solucao conhecida na celula                          * 
  * gradU     -> gradiente rescontruido da solucao conhecida          * 
  * nU        -> solucao conhecida no no                              * 
@@ -625,12 +630,13 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
  * gradU     -> gradiente calculodo                                  *
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellLibRcGrad(INT   *restrict lViz    
+void cellLibRcGrad(INT   *restrict lViz    ,DOUBLE *restrict lProp    
                  ,DOUBLE *restrict lLsquare,DOUBLE *restrict lLsquareR
                  ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
-                 ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
+                 ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
                  ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict xmcc 
+                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict xmcc
+                 ,DOUBLE *restrict lDcca 
                  ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
                  ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
                  ,DOUBLE *restrict lnU     ,short const ty                
@@ -643,7 +649,8 @@ void cellLibRcGrad(INT   *restrict lViz
 /*... green-Gauss linear baseado na celula*/  
     case RCGRADGAUSSC:
       greenGaussCell(lViz    ,mKsi
-                    ,eta     ,mEta
+                    ,lProp   ,lDcca
+                    ,eta     ,fArea
                     ,normal  ,volume
                     ,vSkew   ,xmcc
                     ,lFaceR  ,lFaceS
@@ -655,7 +662,7 @@ void cellLibRcGrad(INT   *restrict lViz
     
 /*... green-Gauss linear baseado no no*/  
     case RCGRADGAUSSN:
-       greenGaussNode(lViz    ,mEta
+       greenGaussNode(lViz    ,fArea
                      ,normal  ,volume
                      ,lnU     ,gradU 
                      ,isNod   
@@ -667,21 +674,24 @@ void cellLibRcGrad(INT   *restrict lViz
 /*... minimos quadrados*/  
     case RCLSQUARE:
       leastSquare(lLsquare,lViz
+                 ,xmcc
+                 ,lProp   ,lDcca
                  ,u       ,gradU
                  ,lFaceR  ,lFaceS
                  ,nFace   ,ndf
-                 ,ndm);
+                 ,ndm     ,nel);
     break;
 /*...................................................................*/ 
 
 /*... minimos quadrados QR*/  
     case RCLSQUAREQR:
       leastSquareQR(lLsquare,lLsquareR
-                  ,lViz
-                  ,u       ,gradU
-                  ,lFaceR  ,lFaceS
-                  ,nFace   ,ndf
-                  ,ndm);
+                   ,lProp   ,lDcca
+                   ,lViz    ,xmcc
+                   ,u       ,gradU
+                   ,lFaceR  ,lFaceS
+                   ,nFace   ,ndf
+                   ,ndm);
     break;
 /*...................................................................*/ 
 
@@ -708,9 +718,11 @@ void cellLibRcGrad(INT   *restrict lViz
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * lViz      -> viznhos da celula central                            * 
+ * lProp     -> propriedades dos material                            *
+ * lDcca     -> menor distancia do centroide a faces desta celula    * 
  * mKsi      -> modulo do vetor ksi                                  * 
  * eta       -> vetores paralelos as faces das celulas               * 
- * meta      -> modulo do vetor eta                                  * 
+ * fArea     -> area da face                                         * 
  * normal    -> vetores normais as faces das celulas                 * 
  * volume    -> area da celula central                               * 
  * vSkew      -> vetor entre o ponto medio a intersecao que une os   * 
@@ -731,7 +743,8 @@ void cellLibRcGrad(INT   *restrict lViz
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void greenGaussCell(INT *restrict lViz   ,DOUBLE *restrict mKsi
-               ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
+               ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca 
+               ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
                ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
                ,DOUBLE *restrict vSkew   ,DOUBLE *restrict xmcc 
                ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
@@ -739,8 +752,8 @@ void greenGaussCell(INT *restrict lViz   ,DOUBLE *restrict mKsi
                ,short const nFace        ,short const ndm   
                ,short const ndf)
 {
-  DOUBLE lNormal[3],v,dPviz,aux1;
-  DOUBLE uf[MAX_NDF],uC[MAX_NDF];
+  DOUBLE v,dPviz,coefDif,tmp;
+  DOUBLE uf[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF];
   DOUBLE lModKsi,alpha,alphaMenosUm,invVol;
   INT vizNel;
   short idCell = nFace;
@@ -750,72 +763,72 @@ void greenGaussCell(INT *restrict lViz   ,DOUBLE *restrict mKsi
 /*...*/
 
   for(i=0;i<ndf;i++)
-    uC[i] = MAT2D(idCell,i,u,ndf);
    
-  for(i=0;i<ndf*ndm;i++)
-    gradU[i]  = 0.e0;
+//for(i=0;i<ndf*ndm;i++)
+//  gradU[i]  = 0.e0;
       
 /*... */
-  for(i=0;i<nFace;i++){
-    vizNel = lViz[i];
-    for(j=0;j<ndm;j++)
-      lNormal[j] = MAT2D(i,j,normal,ndm);
+  if(ndf == 1){
+    uC[0] = u[idCell];
+    for(i=0;i<nFace;i++){
+      vizNel = lViz[i];
 /*... dominio*/
-    if(vizNel > -1){
-      lModKsi    = mKsi[i];
+      if(vizNel > -1){
+        lModKsi    = mKsi[i];
 /*...*/
-      dPviz = 0.e0;
-      for(j=0;j<ndm;j++){
-        v          = MAT2D(i,j,vSkew,ndm) + MAT2D(i,j,xmcc,ndm);
-        dPviz     += v*v;
+        dPviz = 0.e0;
+        for(j=0;j<ndm;j++){
+          v          = MAT2D(i,j,vSkew,ndm) + MAT2D(i,j,xmcc,ndm);
+          dPviz     += v*v;
+        }
+/*...................................................................*/
+
+/*...*/
+        dPviz = sqrt(dPviz);
+        alpha        = dPviz/lModKsi;
+        alphaMenosUm = 1.0 - alpha;
+/*...................................................................*/
+
+/*...*/
+        uf[i] = alphaMenosUm*uC[0] + alpha*u[i];
+/*...................................................................*/
       }
 /*...................................................................*/
 
-/*...*/
-      dPviz = sqrt(dPviz);
-      alpha        = dPviz/lModKsi;
-      alphaMenosUm = 1.0 - alpha;
-/*...................................................................*/
-
-/*...*/
-      for(j=0;j<ndf;j++)
-        uf[j] = alphaMenosUm*uC[j] + alpha*MAT2D(i,j,u,ndf);
-/*...................................................................*/
-    }
-/*...................................................................*/
-
 /*... contorno*/
-    else{
+      else{
 /*... temperatura prescrita na face*/
-      if(lFaceR[i])
-        for(j=0;j<ndf;j++)
-          uf[j] = MAT2D(i,j,lFaceS,ndf); 
+        if(lFaceR[i])
+          uf[i] = lFaceS[i]; 
 
 /*... temperatura prescrita na celula*/
-      else if(lFaceR[nFace]==VPES)
-        for(j=0;j<ndf;j++)
-          uf[j] = MAT2D(idCell,j,lFaceS,ndf); 
+        else if(lFaceR[nFace]==VPES)
+          uf[i] = lFaceS[idCell];
       
 /*... fluxo prescrito*/
-      else 
-        for(j=0;j<ndf;j++)
-          uf[j] = MAT2D(idCell,j,u,ndf); 
+        else {
+          uf[i] =uC[0];
+          coefDif = lProp[COEFDIF];
+          if(lFaceS[i] != 0.e0 && coefDif != 0.e0  )
+            uf[i] += (lFaceS[i]/coefDif)*lDcca[i];
+          else
+            for(j=0;j<ndm;j++)
+              uf[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
+        }
+      }
+/*...................................................................*/
     }
 /*...................................................................*/
-    
-/*...*/
-    for(j=0;j<ndf;j++){
-      aux1 = uf[j]*mEta[i]; 
-      for(k=0;k<ndm;k++)
-        MAT2D(j,k,gradU,ndm) += aux1*lNormal[k]; 
+    for(k=0;k<ndm;k++){
+      tmp = 0.e0;
+      for(i=0;i<nFace;i++){
+        tmp += uf[i]*fArea[i]*MAT2D(i,k,normal,ndm);; 
+      gradU[k] = tmp*invVol; 
+      }
     }
 /*...................................................................*/
-  }
+  } 
 /*...................................................................*/
- 
-  for(i=0;i<ndf;i++)
-    for(j=0;j<ndm;j++)
-      MAT2D(i,j,gradU,ndm) *= invVol; 
 }
 /*********************************************************************/
 
@@ -826,15 +839,9 @@ void greenGaussCell(INT *restrict lViz   ,DOUBLE *restrict mKsi
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * lViz      -> viznhos da celula central                            * 
- * mKsi      -> modulo do vetor ksi                                  * 
- * eta       -> vetores paralelos as faces das celulas               * 
- * meta      -> modulo do vetor eta                                  * 
+ * fArea     -> area do face                                         * 
  * normal    -> vetores normais as faces das celulas                 * 
  * volume    -> area da celula central                               * 
- * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
- *            faces da celula central                                * 
- * mvSkew       -> distacia entre o ponto medio a intersecao que une os * 
- *            centrois compartilhado nessa face da celula central    * 
  * lFaceR    -> restricoes por elmento                               * 
  * lFaceS    -> carga por elemento                                   * 
  * u         -> solucao conhecida nodal                              * 
@@ -851,7 +858,7 @@ void greenGaussCell(INT *restrict lViz   ,DOUBLE *restrict mKsi
  * gradU     -> gradiente calculado                                  *
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict mEta
+void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict fArea
                ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
                ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
                ,short *restrict isNod       
@@ -912,7 +919,7 @@ void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict mEta
 
 /*...*/
     for(j=0;j<ndf;j++){
-      aux1 = uf[j]*mEta[i]; 
+      aux1 = uf[j]*fArea[i]; 
       for(k=0;k<ndm;k++)
         MAT2D(j,k,gradU,ndm) += aux1*lNormal[k]; 
     }
@@ -935,6 +942,10 @@ void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict mEta
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------*
  * lLsquare  -> matriz para a reconstrucao least Square              * 
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
+ *            faces da celula central                                * 
+ * lProp     -> propriedades dos material                            *
+ * lDcca     -> menor distancia do centroide a faces desta celula    * 
  * lViz      -> viznhos da celula central                            * 
  * u         -> solucao conhecida                                    * 
  * gradU     -> gradiente rescontruido da solucao conhecida          * 
@@ -949,56 +960,65 @@ void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict mEta
  * lSquare   -> matriz para a reconstrucao least Square              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz 
+void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
+                 ,DOUBLE *restrict xmcc
+                 ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca 
                  ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
                  ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
                  ,short const nFace        ,short const ndf
-                 ,short const ndm){
+                 ,short const ndm          ,INT const nel){
 
-  DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF];
+  DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF],tmp,coefDif;
   INT vizNel;
   short idCell = nFace;
-  short i,j;
+  short i,j,k;
 
-  for(i=0;i<ndf*ndm;i++){
-    gradU[i]  = 0.e0;
-  }
-
+  for(k=0;k<5;k++){
 /*... um grau de liberdade*/  
-  if(ndf == 1){
-    uC[0] = u[idCell];  
-    for(i=0;i<nFace;i++){
-      vizNel = lViz[i];
+    if(ndf == 1){
+      uC[0] = u[idCell];  
+      for(i=0;i<nFace;i++){
+        vizNel = lViz[i];
 /*... dominio*/
-      if(vizNel > -1)
-        du[i] = u[i] - uC[0];
+        if(vizNel > -1)
+          du[i] = u[i] - uC[0];
 /*... contorno*/
-      else{
+        else{
 /*... temperatura prescrita na face(extrapolacao linear)*/
-        if(lFaceR[i])
-          du[i] = lFaceS[i] - uC[0]; 
+          if(lFaceR[i])
+           du[i] = (lFaceS[i] - uC[0]); 
 
 /*... temperatura prescrita na celula*/
-        else if(lFaceR[nFace]==VPES)
-          du[i] = lFaceS[idCell] - uC[0]; 
+          else if(lFaceR[nFace]==VPES)
+            du[i] = lFaceS[idCell] - uC[0]; 
       
 /*... fluxo prescrito*/
-        else {
-          du[i] = lFaceS[i];
+          else {
+            coefDif = lProp[COEFDIF];
+            if(lFaceS[i] != 0.e0 && coefDif != 0.e0  )
+              du[i] = (lFaceS[i]/coefDif)*lDcca[i];
+            else{
+              du[i] =0.e0;
+              for(j=0;j<ndm;j++)
+                du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
+            }
+          }
         }
-      }
 /*...................................................................*/
-    }
+      }
 /*...................................................................*/
 
 /*... gradU = G du*/
-    for(i=0;i<ndm;i++)
-      for(j=0;j<nFace;j++){
-        gradU[i] += MAT2D(i,j,lLsquare,nFace)*du[j]; 
-      } 
-  }
+      for(i=0;i<ndm;i++){
+        tmp = 0.e0;
+        for(j=0;j<nFace;j++){
+          tmp += MAT2D(i,j,lLsquare,nFace)*du[j]; 
+        } 
+        gradU[i] = tmp;
+      }
+    }
 /*...................................................................*/
-
+  }
 /*... */  
 //else
 //  for(k=0;k<ndf;k++)
@@ -1014,8 +1034,12 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------*
- * lLsquareQt-> matriz para a reconstrucao least Square              * 
- * lLsquareR -> fatoracao R (RCLSQUAREQR)                            * 
+ * lLsQt     -> matriz para a reconstrucao least Square              * 
+ * lLsR      -> fatoracao R (RCLSQUAREQR)                            * 
+ * lProp     -> propriedades dos material                            *
+ * lDcca     -> menor distancia do centroide a faces desta celula    * 
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
+ *            faces da celula central                                * 
  * lViz      -> viznhos da celula central                            * 
  * u         -> solucao conhecida                                    * 
  * gradU     -> gradiente rescontruido da solucao conhecida          * 
@@ -1030,77 +1054,83 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
  * lSquare   -> matriz para a reconstrucao least Square              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void  leastSquareQR(DOUBLE *restrict lLsquareQt
-                   ,DOUBLE *restrict lLsquareR
-                   ,INT *restrict lViz 
+void  leastSquareQR(DOUBLE *restrict lLsQt   ,DOUBLE *restrict lLsR
+                   ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca 
+                   ,INT *restrict lViz       ,DOUBLE *restrict xmcc
                    ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
                    ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
                    ,short const nFace        ,short const ndf
                    ,short const ndm){
 
-  DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF];
+  DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF],coefDif;
   DOUBLE  b[MAX_NUM_FACE*MAX_NDF];
   INT vizNel;
   short idCell = nFace;
-  short i,j;
+  short i,j,k;
 
-  for(i=0;i<ndf*ndm;i++){
-    gradU[i]  = 0.e0;
-    b[i]      = 0.e0;
-  }
-
+  for(k=0;k<5;k++){
 /*... um grau de liberdade*/  
-  if(ndf == 1){
-    uC[0] = u[idCell];  
-    for(i=0;i<nFace;i++){
-      vizNel = lViz[i];
+    if(ndf == 1){
+      uC[0] = u[idCell];  
+      for(i=0;i<nFace;i++){
+        vizNel = lViz[i];
 /*... dominio*/
-      if(vizNel > -1)
-        du[i] = u[i] - uC[0];
+        if(vizNel > -1)
+          du[i] = u[i] - uC[0];
 /*... contorno*/
-      else{
+        else{
 /*... temperatura prescrita na face(extrapolacao linear)*/
-        if(lFaceR[i])
-          du[i] = lFaceS[i] - uC[0]; 
+          if(lFaceR[i])
+//          du[i] = 2.e0*(lFaceS[i] - uC[0]); 
+            du[i] = lFaceS[i] - uC[0]; 
 
 /*... temperatura prescrita na celula*/
-        else if(lFaceR[nFace]==VPES)
-          du[i] = lFaceS[idCell] - uC[0]; 
+          else if(lFaceR[nFace]==VPES)
+            du[i] = lFaceS[idCell] - uC[0]; 
       
 /*... fluxo prescrito*/
-        else {
-          du[i] = lFaceS[i];
+          else {
+            coefDif = lProp[COEFDIF];
+            if(lFaceS[i] != 0.e0 && coefDif != 0.e0  )
+              du[i] = (lFaceS[i]/coefDif)*lDcca[i];
+            else{
+              du[i] = 0.e0;
+              for(j=0;j<ndm;j++)
+                du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
+            }
+          }
         }
+/*...................................................................*/
+      }
+/*...................................................................*/
+
+/*... b = Qtdu*/
+      for(i=0;i<ndm;i++){
+        b[i]      = 0.e0;
+        for(j=0;j<nFace;j++){
+          b[i] += MAT2D(i,j,lLsQt,nFace)*du[j]; 
+        } 
+      }
+/*...................................................................*/
+    
+/*... R grad = Qtdu*/
+      if(ndm == 2){
+/*... retrosubstituicao*/
+        gradU[1] = b[1]/lLsR[2];
+        gradU[0] = (b[0] - lLsR[1]*gradU[1])/lLsR[0];
+      }
+      else if(ndm == 3){
+/*... retrosubstituicao*/
+        gradU[2] = b[2]/lLsR[5];
+        gradU[1] = (b[1] - lLsR[4]*gradU[2])/lLsR[3];
+        gradU[0] = (b[0] 
+                 - lLsR[1]*gradU[1] 
+                 - lLsR[2]*gradU[2])/lLsR[0];
       }
 /*...................................................................*/
     }
 /*...................................................................*/
-
-/*... b = Qtdu*/
-    for(i=0;i<ndm;i++)
-      for(j=0;j<nFace;j++){
-        b[i] += MAT2D(i,j,lLsquareQt,nFace)*du[j]; 
-      } 
-/*...................................................................*/
-    
-/*... R grad = Qtdu*/
-    if(ndm == 2){
-/*... retrosubstituicao*/
-      gradU[1] = b[1]/lLsquareR[2];
-      gradU[0] = (b[0] - lLsquareR[1]*gradU[1])/lLsquareR[0];
-    }
-    else if(ndm == 3){
-/*... retrosubstituicao*/
-      gradU[2] = b[2]/lLsquareR[5];
-      gradU[1] = (b[1] - lLsquareR[4]*gradU[2])/lLsquareR[3];
-      gradU[0] = (b[0] 
-               - lLsquareR[1]*gradU[1] 
-               - lLsquareR[2]*gradU[2])/lLsquareR[0];
-    }
-/*...................................................................*/
-  }
-/*...................................................................*/
-
+  
 /*... */  
 //else
 //  for(k=0;k<ndf;k++)
@@ -1109,7 +1139,7 @@ void  leastSquareQR(DOUBLE *restrict lLsquareQt
 //        MAT2D(k,i,grad,ndf) 
 //        += MAT2D(i,j,lLsquare,nFace)*MAT2D(k,j,du,nFace);  
 /*...................................................................*/
-
+  }
 } 
 
 
@@ -1263,6 +1293,8 @@ void  leastSquareQR(DOUBLE *restrict lLsquareQt
 /*... fatoracao QR-MGS*/
   else if(type == RCLSQUAREQR){
     for(nf=0;nf<lnFace;nf++){
+//    w[nf]  = 1.e0;
+      w[nf] *= w[nf];
 /*... dimensao 2*/
       if(ndm == 2){
         MAT2D(nf,0,dx,ndm) = MAT2D(nf,0,lKsi,ndm)*lmKsi[nf];
@@ -1272,9 +1304,9 @@ void  leastSquareQR(DOUBLE *restrict lLsquareQt
 
 /*... dimensao 3*/
       else if(ndm == 3){
-        MAT2D(nf,0,dx,ndm) = MAT2D(nf,0,lKsi,ndm)*lmKsi[nf];
-        MAT2D(nf,1,dx,ndm) = MAT2D(nf,1,lKsi,ndm)*lmKsi[nf];
-        MAT2D(nf,2,dx,ndm) = MAT2D(nf,2,lKsi,ndm)*lmKsi[nf];
+        MAT2D(nf,0,dx,ndm) = w[nf]*MAT2D(nf,0,lKsi,ndm)*lmKsi[nf];
+        MAT2D(nf,1,dx,ndm) = w[nf]*MAT2D(nf,1,lKsi,ndm)*lmKsi[nf];
+        MAT2D(nf,2,dx,ndm) = w[nf]*MAT2D(nf,2,lKsi,ndm)*lmKsi[nf];
       }
 /*...................................................................*/
     }
@@ -1300,8 +1332,8 @@ void  leastSquareQR(DOUBLE *restrict lLsquareQt
         for(i=0;i<lnFace;i++)
           MAT2D(i,j,dx,ndm) -=  MAT2D(i,k,dx,ndm)*MAT2D(k,j,r,ndm); 
       }
-/*...................................................................*/
     }
+/*...................................................................*/
 
 /*... dimensao 2*/
     if(ndm == 2){
@@ -1325,16 +1357,16 @@ void  leastSquareQR(DOUBLE *restrict lLsquareQt
     for(nf=0;nf<lnFace;nf++){
 /*... dimensao 2*/
       if(ndm == 2){
-        MAT2D(0,nf,lLsquare,lnFace) = inv[0]*MAT2D(nf,0,dx,ndm);
-        MAT2D(1,nf,lLsquare,lnFace) = inv[2]*MAT2D(nf,1,dx,ndm);
+        MAT2D(0,nf,lLsquare,lnFace) = MAT2D(nf,0,dx,ndm);
+        MAT2D(1,nf,lLsquare,lnFace) = MAT2D(nf,1,dx,ndm);
       }
 /*...................................................................*/
 
 /*... Qt - dimensao 3*/
       else if(ndm == 3){
-        MAT2D(0,nf,lLsquare,lnFace) = MAT2D(nf,0,dx,ndm);
-        MAT2D(1,nf,lLsquare,lnFace) = MAT2D(nf,1,dx,ndm);
-        MAT2D(2,nf,lLsquare,lnFace) = MAT2D(nf,2,dx,ndm);
+        MAT2D(0,nf,lLsquare,lnFace) = w[nf]*MAT2D(nf,0,dx,ndm);
+        MAT2D(1,nf,lLsquare,lnFace) = w[nf]*MAT2D(nf,1,dx,ndm);
+        MAT2D(2,nf,lLsquare,lnFace) = w[nf]*MAT2D(nf,2,dx,ndm);
       }
 /*...................................................................*/
     }

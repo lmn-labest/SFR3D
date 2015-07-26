@@ -26,7 +26,7 @@
     DOUBLE *ksi;   /*vetor que une os centroides da celulas*/
     DOUBLE *mksi;  /*modulo do vetor que une os centroides da celulas*/
     DOUBLE *eta;   /*vetor paralelo a aresta*/
-    DOUBLE *meta;  /*area da face compartilhada*/
+    DOUBLE *fArea; /*area da face compartilhada*/
     DOUBLE *normal;/*vetor normal a face*/       
     DOUBLE *volume;/*volume da celula*/
     DOUBLE *xm;    /*ponto medio da face*/

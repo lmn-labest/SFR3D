@@ -114,7 +114,7 @@ int main(int argc,char**argv){
     exit(EXIT_FAILURE);
   }
 /*... tecnica padrao de resconstrucao de gradiente*/
-  mesh->rcGrad = RCGRADGAUSSC; 
+  mesh->rcGrad = RCGRADGAUSSN; 
   mesh->nlTemp.maxIt = 100; 
   mesh->nlTemp.tol   = 1.e-6; 
   mesh->nlD1.maxIt  = 100; 
@@ -221,9 +221,9 @@ int main(int argc,char**argv){
                ,mesh->elm.adj.nViz   ,mesh->elm.geomType
                ,mesh->elm.geom.cc    ,mesh->elm.geom.ksi 
                ,mesh->elm.geom.mksi  ,mesh->elm.geom.eta   
-               ,mesh->elm.geom.meta  ,mesh->elm.geom.normal
+               ,mesh->elm.geom.fArea ,mesh->elm.geom.normal
                ,mesh->elm.geom.volume,mesh->elm.geom.xm   
-               ,mesh->elm.geom.xmcc  
+               ,mesh->elm.geom.xmcc                 
                ,mesh->elm.geom.vSkew ,mesh->elm.geom.mvSkew  
                ,mesh->elm.geom.dcca
                ,mesh->maxNo          ,mesh->maxViz
@@ -232,7 +232,7 @@ int main(int argc,char**argv){
 #ifdef _DEBUG_
       testeGeom(mesh->elm.geom.cc  
                ,mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
-               ,mesh->elm.geom.eta   ,mesh->elm.geom.meta
+               ,mesh->elm.geom.eta   ,mesh->elm.geom.fArea
                ,mesh->elm.geom.normal,mesh->elm.geom.volume
                ,mesh->elm.geom.xm    ,mesh->elm.geom.xmcc  
                ,mesh->elm.geom.vSkew ,mesh->elm.geom.mvSkew
@@ -551,7 +551,7 @@ int main(int argc,char**argv){
                    ,mesh->elm.geomType      ,mesh->elm.material.prop 
                    ,mesh->elm.material.type ,mesh->elm.mat   
                    ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
-                   ,mesh->elm.geom.eta      ,mesh->elm.geom.meta    
+                   ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
                    ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
                    ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
                    ,mesh->elm.geom.vSkew    ,mesh->elm.geom.mvSkew   
@@ -638,12 +638,14 @@ int main(int argc,char**argv){
                ,mesh->elm.node          ,mesh->elm.adj.nelcon
                ,mesh->elm.geom.cc       ,mesh->node.x   
                ,mesh->elm.nen           ,mesh->elm.adj.nViz 
-               ,mesh->elm.geomType      
+               ,mesh->elm.geomType      ,mesh->elm.material.prop 
+               ,mesh->elm.mat 
                ,mesh->elm.leastSquare   ,mesh->elm.leastSquareR
                ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
-               ,mesh->elm.geom.eta      ,mesh->elm.geom.meta    
+               ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
                ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-               ,mesh->elm.geom.vSkew    ,mesh->elm.geom.xmcc    
+               ,mesh->elm.geom.vSkew    ,mesh->elm.geom.xmcc  
+               ,mesh->elm.geom.dcca
                ,mesh->elm.faceRd1       ,mesh->elm.faceSd1       
                ,mesh->elm.uD1           ,mesh->elm.gradUd1                 
                ,mesh->node.uD1          ,mesh->rcGrad
@@ -747,12 +749,14 @@ int main(int argc,char**argv){
              ,mesh->elm.node          ,mesh->elm.adj.nelcon
              ,mesh->elm.geom.cc       ,mesh->node.x   
              ,mesh->elm.nen           ,mesh->elm.adj.nViz 
-             ,mesh->elm.geomType                             
+             ,mesh->elm.geomType      ,mesh->elm.material.prop 
+             ,mesh->elm.mat 
              ,mesh->elm.leastSquare   ,mesh->elm.leastSquareR
              ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
-             ,mesh->elm.geom.eta      ,mesh->elm.geom.meta    
+             ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
              ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-             ,mesh->elm.geom.vSkew    ,mesh->elm.geom.xmcc  
+             ,mesh->elm.geom.vSkew    ,mesh->elm.geom.xmcc 
+             ,mesh->elm.geom.dcca
              ,mesh->elm.faceRd1       ,mesh->elm.faceSd1       
              ,mesh->elm.uD1           ,mesh->elm.gradUd1                 
              ,mesh->node.uD1          ,mesh->rcGrad

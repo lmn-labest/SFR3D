@@ -73,7 +73,7 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
   INT vizNel;
 
 /*... propriedades da celula*/
-  coefDifC = MAT2D(idCell,0,prop,MAXPROP);
+  coefDifC = MAT2D(idCell,COEFDIF,prop,MAXPROP);
 /*...................................................................*/
 
 /*...*/
@@ -119,7 +119,7 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
 /*...................................................................*/
 
 /*... media harmonica*/
-      coefDifV = MAT2D(nAresta,0,prop,MAXPROP); 
+      coefDifV = MAT2D(nAresta,COEFDIF,prop,MAXPROP); 
       coefDif  = alpha/coefDifC + alphaMenosUm/coefDifV;
       coefDif  = 1.0e0/coefDif;
 /*...................................................................*/
@@ -283,7 +283,7 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
   INT vizNel;
 
 /*... propriedades da celula*/
-  coefDifC = MAT2D(idCell,0,prop,MAXPROP);
+  coefDifC = MAT2D(idCell,COEFDIF,prop,MAXPROP);
 /*...................................................................*/
 
 /*...*/
@@ -337,7 +337,7 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
 /*...................................................................*/
 
 /*... media harmonica*/
-      coefDifV = MAT2D(nAresta,0,prop,MAXPROP); 
+      coefDifV = MAT2D(nAresta,COEFDIF,prop,MAXPROP); 
       coefDif  = alpha/coefDifC + alphaMenosUm/coefDifV;
       coefDif  = 1.0e0/coefDif;
 /*...................................................................*/

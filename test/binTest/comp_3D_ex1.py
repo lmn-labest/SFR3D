@@ -55,13 +55,13 @@ def main(argv):
     x2 = x[i][1]
     x3 = x[i][2]
 # ... solucao
-    t = -20.0*x1
+    t = 5.0*(x3+0.5) + 100
     exato.append(t)
 
 # ... derivada
-    gx =-20.0
+    gx =0.0
     gy =0.0
-    gz =0.0
+    gz =5.0
 
     gxexato.append(gx)
     gyexato.append(gy)
@@ -92,7 +92,7 @@ def main(argv):
   gyexatoMax = max(gyexato)     
   gzexatoMax = max(gzexato)     
 
-  erMax = er[0]
+  erMax   = er[0]
   gxerMax = gxer[0]
   gyerMax = gyer[0]
   gzerMax = gzer[0]
@@ -115,9 +115,9 @@ def main(argv):
       nz = i 
 
   erC   = erC/exatoMax**2 
-  gxerC = gxerC/gxexatoMax**2
-  gyerC = gyerC/gxexatoMax**2
-  gzerC = gyerC/gxexatoMax**2
+  gxerC = gxerC/(gxexatoMax**2 + gyexatoMax**2 + gzexatoMax**2)
+  gyerC = gyerC/(gxexatoMax**2 + gyexatoMax**2 + gzexatoMax**2)
+  gzerC = gzerC/(gxexatoMax**2 + gyexatoMax**2 + gzexatoMax**2)
   print "Solucao:"
   print "erro acumulado normalizado %e" %(erC)  
   print "erro Maximo     er[%d]=%e " %(n+1,erMax) 
@@ -130,16 +130,16 @@ def main(argv):
   print "y: erro Maximo     er[%d]=%e " %(ny+1,gyerMax) 
   print "z: erro Maximo     er[%d]=%e " %(nz+1,gzerMax) 
   
-  if erC  > 2.0e0 :
+  if erC  > 1.50e-1 :
     return 1 
   
-# if gxerC  > 5.0e+2 :
+# if gxerC  > 1.e-2 :
+#   return 1 
+ 
+# if gyerC  > 1.e-2 :
 #   return 1 
   
-# if gyerC  > 5.0e+2 :
-#   return 1 
-  
-# if gzerC  > 5.0e+2 :
+# if gzerC  > 3.0e+1 :
 #   return 1 
 
 if __name__ == '__main__':

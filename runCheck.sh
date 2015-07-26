@@ -18,6 +18,15 @@ INPUTDIF5='ex5_1_ls.dat    ex5_2_ls.dat
            ex5_1_ggln.dat  ex5_2_ggln.dat  
            ex5_1_gglc.dat  ex5_2_gglc.dat' 
 
+INPUTDIF3DEX1='ex1_3d_hexa_0_lsqr.dat ex1_3d_hexa_1_lsqr.dat  
+               ex1_3d_hexa_0_ls.dat   ex1_3d_hexa_1_ls.dat    
+               ex1_3d_hexa_0_ggln.dat ex1_3d_hexa_1_ggln.dat  
+               ex1_3d_hexa_0_gglc.dat ex1_3d_hexa_1_gglc.dat  
+               ex1_3d_tetra_0_ls.dat ex1_3d_tetra_1_ls.dat  
+               ex1_3d_tetra_0_lsqr.dat ex1_3d_tetra_1_lsqr.dat   
+               ex1_3d_tetra_0_ggln.dat ex1_3d_tetra_1_ggln.dat   
+               ex1_3d_tetra_0_gglc.dat ex1_3d_tetra_1_gglc.dat'  
+
 INPUTDIF3DEX2='ex2_3D_0_ls.dat    ex2_3D_1_ls.dat  
                ex2_3D_0_ggln.dat  ex2_3D_1_ggln.dat  
                ex2_3D_0_gglc.dat  ex2_3D_1_gglc.dat 
@@ -43,10 +52,11 @@ NAMEBIN=mfvCell_gnu_O3
 ex1=false
 ex4=false
 ex5=false
-ex2_3D=true 
-ex3_3D=true 
-ex3_3D=true
-ex2_3D_NONORT=true
+ex1_3D=true 
+ex2_3D=false
+ex3_3D=false
+ex3_3D=false
+ex2_3D_NONORT=false
 
 #gerando o executavel
 echo `make clean` > /dev/null 
@@ -133,6 +143,24 @@ if  $ex2_3D_NONORT ; then
   cp test/input/dif/non_orthogonal/3D/LeastSquare/*.dat test/binTest
   cp test/input/dif/non_orthogonal/3D/LeastSquareQR/*.dat test/binTest
   test/binTest/run_dif_exato_3D_Ex2.sh "$INPUTDIF3DEX2NONORT" "$NAMEBIN" 
+  if [ $? == 1 ];then
+    exit 1
+  fi
+fi
+
+# difusao 3D
+if  $ex1_3D ; then 
+  for f in test/input/dif/orthogonal/3D/*.tar.gz ; do tar -xvzf $f -C test/binTest ; done
+  for f in test/input/dif/non_orthogonal/3D/*.tar.gz ; do tar -xvzf $f -C test/binTest ; done
+  cp test/input/dif/orthogonal/3D/GreenGaussCell/*.dat test/binTest
+  cp test/input/dif/orthogonal/3D/GreenGaussNode/*.dat test/binTest
+  cp test/input/dif/orthogonal/3D/LeastSquare/*.dat test/binTest
+  cp test/input/dif/orthogonal/3D/LeastSquareQR/*.dat test/binTest
+  cp test/input/dif/non_orthogonal/3D/GreenGaussCell/*.dat test/binTest
+  cp test/input/dif/non_orthogonal/3D/GreenGaussNode/*.dat test/binTest
+  cp test/input/dif/non_orthogonal/3D/LeastSquare/*.dat test/binTest
+  cp test/input/dif/non_orthogonal/3D/LeastSquareQR/*.dat test/binTest
+  test/binTest/run_dif_exato_3D_Ex1.sh "$INPUTDIF3DEX1" "$NAMEBIN" 
   if [ $? == 1 ];then
     exit 1
   fi
