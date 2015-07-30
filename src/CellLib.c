@@ -30,8 +30,8 @@
  * lRcell    -> nao definido                                         *
  * u0        -> solucao conhecida                                    * 
  * gradU0    -> gradiente rescontruido da solucao conhecida          * 
- * faceR     -> restricoes por elmento                               * 
- * faceS     -> carga por elemento                                   * 
+ * faceR     -> restricoes por elemento                              * 
+ * faceLd1   -> carga por elemento                                   * 
  * nEn       -> numero de nos da celula central                      * 
  * nFace     -> numero de faces da celula central                    * 
  * ndm       -> numero de dimensoes                                  * 
@@ -54,7 +54,7 @@ void cellLibDif(short *restrict lGeomType,DOUBLE *restrict lprop
                ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
                ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
                ,DOUBLE *restrict lRcell 
-               ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+               ,short  *restrict lFaceR  ,short  *restrict lFaceL                           
                ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
                ,short const nEn          ,short  const nFace     
                ,short const ndm          ,short const lib    
@@ -64,7 +64,7 @@ void cellLibDif(short *restrict lGeomType,DOUBLE *restrict lprop
 /*... difusao pura */
   if(lib == 1){
 /*... 2D*/
-    if(ndm == 2)
+    if(ndm == 2){
       cellDif2D(lGeomType,lprop
                ,lViz     ,lId
                ,ksi      ,mKsi
@@ -75,10 +75,11 @@ void cellLibDif(short *restrict lGeomType,DOUBLE *restrict lprop
                ,vSkew    ,mvSkew
                ,lA       ,lB
                ,lRcell 
-               ,lFaceR   ,lFaceS
+               ,lFaceR   ,lFaceL
                ,u0       ,gradU0      
                ,nEn      ,nFace 
                ,ndm      ,nel);
+    }
 /*..................................................................*/   
 
 /*... 3D*/
@@ -93,7 +94,7 @@ void cellLibDif(short *restrict lGeomType,DOUBLE *restrict lprop
                ,vSkew    ,mvSkew
                ,lA       ,lB
                ,lRcell 
-               ,lFaceR   ,lFaceS
+               ,lFaceR   ,lFaceL 
                ,u0       ,gradU0      
                ,nEn      ,nFace 
                ,ndm      ,nel);
@@ -596,6 +597,7 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
+ * loads     -> definicoes de cargas                                 * 
  * lprop     -> propriedade fisicas das celulas                      *
  * lViz      -> viznhos da celula central                            *
  * lSquare -> matriz para a reconstrucao least Square                * 
@@ -617,8 +619,8 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
  * gradU     -> gradiente rescontruido da solucao conhecida          * 
  * nU        -> solucao conhecida no no                              * 
  * faceR     -> restricoes por elmento                               * 
- * faceS     -> carga por elemento                                   * 
- * nFace     -> carga por elemento                                   * 
+ * faceL     -> carga por elemento                                   * 
+ * nFace     -> numero de faces                                      * 
  * ndm       -> numero de dimensoes                                  * 
  * lib       -> tipo de reconstrucao de gradiente                    * 
  * ndf       -> grauss de liberdade                                  * 
@@ -630,14 +632,15 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
  * gradU     -> gradiente calculodo                                  *
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellLibRcGrad(INT   *restrict lViz    ,DOUBLE *restrict lProp    
+void cellLibRcGrad(Loads *loads
+                 ,INT   *restrict lViz    ,DOUBLE *restrict lProp    
                  ,DOUBLE *restrict lLsquare,DOUBLE *restrict lLsquareR
                  ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
                  ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
                  ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
                  ,DOUBLE *restrict vSkew   ,DOUBLE *restrict xmcc
                  ,DOUBLE *restrict lDcca 
-                 ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+                 ,short  *restrict lFaceR  ,short *restrict lFaceL
                  ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
                  ,DOUBLE *restrict lnU     ,short const ty                
                  ,short const nFace        ,short const ndm      
@@ -648,12 +651,13 @@ void cellLibRcGrad(INT   *restrict lViz    ,DOUBLE *restrict lProp
   switch(lib){
 /*... green-Gauss linear baseado na celula*/  
     case RCGRADGAUSSC:
-      greenGaussCell(lViz    ,mKsi
+      greenGaussCell(loads
+                    ,lViz    ,mKsi
                     ,lProp   ,lDcca
                     ,eta     ,fArea
                     ,normal  ,volume
                     ,vSkew   ,xmcc
-                    ,lFaceR  ,lFaceS
+                    ,lFaceR  ,lFaceL
                     ,u       ,gradU 
                     ,nFace   ,ndm   
                     ,ndf);
@@ -673,11 +677,12 @@ void cellLibRcGrad(INT   *restrict lViz    ,DOUBLE *restrict lProp
    
 /*... minimos quadrados*/  
     case RCLSQUARE:
-      leastSquare(lLsquare,lViz
+      leastSquare(loads
+                 ,lLsquare,lViz
                  ,xmcc
                  ,lProp   ,lDcca
                  ,u       ,gradU
-                 ,lFaceR  ,lFaceS
+                 ,lFaceR  ,lFaceL
                  ,nFace   ,ndf
                  ,ndm     ,nel);
     break;
@@ -685,11 +690,12 @@ void cellLibRcGrad(INT   *restrict lViz    ,DOUBLE *restrict lProp
 
 /*... minimos quadrados QR*/  
     case RCLSQUAREQR:
-      leastSquareQR(lLsquare,lLsquareR
+      leastSquareQR(loads
+                   ,lLsquare,lLsquareR
                    ,lProp   ,lDcca
                    ,lViz    ,xmcc
                    ,u       ,gradU
-                   ,lFaceR  ,lFaceS
+                   ,lFaceR  ,lFaceL
                    ,nFace   ,ndf
                    ,ndm);
     break;
@@ -717,6 +723,7 @@ void cellLibRcGrad(INT   *restrict lViz    ,DOUBLE *restrict lProp
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
+ * loads     -> definicoes de cargas                                 * 
  * lViz      -> viznhos da celula central                            * 
  * lProp     -> propriedades dos material                            *
  * lDcca     -> menor distancia do centroide a faces desta celula    * 
@@ -742,12 +749,13 @@ void cellLibRcGrad(INT   *restrict lViz    ,DOUBLE *restrict lProp
  * gradU     -> gradiente calculado                                  *
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void greenGaussCell(INT *restrict lViz   ,DOUBLE *restrict mKsi
+void greenGaussCell(Loads *loads
+               ,INT *restrict lViz   ,DOUBLE *restrict mKsi
                ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca 
                ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
                ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
                ,DOUBLE *restrict vSkew   ,DOUBLE *restrict xmcc 
-               ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+               ,short  *restrict lFaceR  ,short *restrict lFaceL
                ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
                ,short const nFace        ,short const ndm   
                ,short const ndf)
@@ -756,17 +764,12 @@ void greenGaussCell(INT *restrict lViz   ,DOUBLE *restrict mKsi
   DOUBLE uf[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF];
   DOUBLE lModKsi,alpha,alphaMenosUm,invVol;
   INT vizNel;
-  short idCell = nFace;
+  short idCell = nFace,nCarg;
   short i,j,k;
 
   invVol = 1.e0/volume[idCell];
 /*...*/
 
-  for(i=0;i<ndf;i++)
-   
-//for(i=0;i<ndf*ndm;i++)
-//  gradU[i]  = 0.e0;
-      
 /*... */
   if(ndf == 1){
     uC[0] = u[idCell];
@@ -797,24 +800,40 @@ void greenGaussCell(INT *restrict lViz   ,DOUBLE *restrict mKsi
 
 /*... contorno*/
       else{
-/*... temperatura prescrita na face*/
-        if(lFaceR[i])
-          uf[i] = lFaceS[i]; 
+/*... temperatura prescrita na face(extrapolacao linear)*/
+        if(lFaceR[i]){
+          nCarg=lFaceL[i]-1;
+/*... valor prescrito*/
+          if( loads[nCarg].type == DIRICHLETBC){
+            uf[i] = loads[nCarg].par[0];
+          }
+/*...................................................................*/
 
-/*... temperatura prescrita na celula*/
-        else if(lFaceR[nFace]==VPES)
-          uf[i] = lFaceS[idCell];
-      
 /*... fluxo prescrito*/
-        else {
-          uf[i] =uC[0];
-          coefDif = lProp[COEFDIF];
-          if(lFaceS[i] != 0.e0 && coefDif != 0.e0  )
-            uf[i] += (lFaceS[i]/coefDif)*lDcca[i];
-          else
+          else if (loads[nCarg].type == NEUMANNBC){
+            coefDif = lProp[COEFDIF];
+            if(coefDif != 0.e0  )
+              uf[i] = uC[0] - (loads[nCarg].par[0]/coefDif)*lDcca[i];
+          }
+/*...................................................................*/
+
+/*... condicao de robin*/
+          else if( loads[nCarg].type == ROBINBC ){
+            uf[i] =uC[0];
             for(j=0;j<ndm;j++)
               uf[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
+          }
+/*...................................................................*/
+        } 
+/*...................................................................*/
+
+/*... fluxo nulo*/
+        else{
+          uf[i] =uC[0];
+          for(j=0;j<ndm;j++)
+            uf[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
         }
+/*...................................................................*/
       }
 /*...................................................................*/
     }
@@ -941,6 +960,7 @@ void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict fArea
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------*
+ * loads     -> definicoes de cargas                                 * 
  * lLsquare  -> matriz para a reconstrucao least Square              * 
  * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
  *            faces da celula central                                * 
@@ -960,20 +980,21 @@ void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict fArea
  * lSquare   -> matriz para a reconstrucao least Square              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
+void  leastSquare(Loads *loads
+                 ,DOUBLE *restrict lLsquare,INT *restrict lViz
                  ,DOUBLE *restrict xmcc
                  ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca 
                  ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
-                 ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+                 ,short  *restrict lFaceR  ,short *restrict lFaceL
                  ,short const nFace        ,short const ndf
                  ,short const ndm          ,INT const nel){
 
   DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF],tmp,coefDif;
   INT vizNel;
-  short idCell = nFace;
+  short idCell = nFace,nCarg;
   short i,j,k;
 
-  for(k=0;k<5;k++){
+  for(k=0;k<2;k++){
 /*... um grau de liberdade*/  
     if(ndf == 1){
       uC[0] = u[idCell];  
@@ -985,24 +1006,39 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
 /*... contorno*/
         else{
 /*... temperatura prescrita na face(extrapolacao linear)*/
-          if(lFaceR[i])
-           du[i] = (lFaceS[i] - uC[0]); 
+          if(lFaceR[i]){
+            nCarg=lFaceL[i]-1;
+/*... valor prescrito*/
+            if( loads[nCarg].type == DIRICHLETBC){
+              du[i] = loads[nCarg].par[0] - uC[0];
+             }
+/*...................................................................*/
 
-/*... temperatura prescrita na celula*/
-          else if(lFaceR[nFace]==VPES)
-            du[i] = lFaceS[idCell] - uC[0]; 
-      
 /*... fluxo prescrito*/
-          else {
-            coefDif = lProp[COEFDIF];
-            if(lFaceS[i] != 0.e0 && coefDif != 0.e0  )
-              du[i] = (lFaceS[i]/coefDif)*lDcca[i];
-            else{
+            else if (loads[nCarg].type == NEUMANNBC){
+              coefDif = lProp[COEFDIF];
+              if(coefDif != 0.e0  )
+                du[i] = (loads[nCarg].par[0]/coefDif)*lDcca[i];
+            }
+/*...................................................................*/
+
+/*... condicao de robin*/
+            else if( loads[nCarg].type == ROBINBC ){
               du[i] =0.e0;
               for(j=0;j<ndm;j++)
                 du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
             }
+/*...................................................................*/
+          } 
+/*...................................................................*/
+
+/*... fluxo nulo*/
+          else{
+            du[i] =0.e0;
+            for(j=0;j<ndm;j++)
+              du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
           }
+/*...................................................................*/
         }
 /*...................................................................*/
       }
@@ -1034,6 +1070,7 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------*
+ * loads     -> definicoes de cargas                                 * 
  * lLsQt     -> matriz para a reconstrucao least Square              * 
  * lLsR      -> fatoracao R (RCLSQUAREQR)                            * 
  * lProp     -> propriedades dos material                            *
@@ -1054,11 +1091,12 @@ void  leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz
  * lSquare   -> matriz para a reconstrucao least Square              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void  leastSquareQR(DOUBLE *restrict lLsQt   ,DOUBLE *restrict lLsR
+void  leastSquareQR(Loads *loads
+                   ,DOUBLE *restrict lLsQt   ,DOUBLE *restrict lLsR
                    ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca 
                    ,INT *restrict lViz       ,DOUBLE *restrict xmcc
                    ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
-                   ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+                   ,short  *restrict lFaceR  ,short *restrict lFaceL
                    ,short const nFace        ,short const ndf
                    ,short const ndm){
 
@@ -1066,9 +1104,9 @@ void  leastSquareQR(DOUBLE *restrict lLsQt   ,DOUBLE *restrict lLsR
   DOUBLE  b[MAX_NUM_FACE*MAX_NDF];
   INT vizNel;
   short idCell = nFace;
-  short i,j,k;
+  short i,j,k,nCarg;
 
-  for(k=0;k<5;k++){
+  for(k=0;k<2;k++){
 /*... um grau de liberdade*/  
     if(ndf == 1){
       uC[0] = u[idCell];  
@@ -1080,25 +1118,39 @@ void  leastSquareQR(DOUBLE *restrict lLsQt   ,DOUBLE *restrict lLsR
 /*... contorno*/
         else{
 /*... temperatura prescrita na face(extrapolacao linear)*/
-          if(lFaceR[i])
-//          du[i] = 2.e0*(lFaceS[i] - uC[0]); 
-            du[i] = lFaceS[i] - uC[0]; 
+          if(lFaceR[i]){
+            nCarg=lFaceL[i]-1;
+/*... valor prescrito*/
+            if( loads[nCarg].type == DIRICHLETBC){
+              du[i] = loads[nCarg].par[0] - uC[0];
+             }
+/*...................................................................*/
 
-/*... temperatura prescrita na celula*/
-          else if(lFaceR[nFace]==VPES)
-            du[i] = lFaceS[idCell] - uC[0]; 
-      
 /*... fluxo prescrito*/
-          else {
-            coefDif = lProp[COEFDIF];
-            if(lFaceS[i] != 0.e0 && coefDif != 0.e0  )
-              du[i] = (lFaceS[i]/coefDif)*lDcca[i];
-            else{
-              du[i] = 0.e0;
+            else if (loads[nCarg].type == NEUMANNBC){
+              coefDif = lProp[COEFDIF];
+              if(coefDif != 0.e0  )
+                du[i] = (loads[nCarg].par[0]/coefDif)*lDcca[i];
+            }
+/*...................................................................*/
+
+/*... condicao de robin*/
+            else if( loads[nCarg].type == ROBINBC ){
+              du[i] =0.e0;
               for(j=0;j<ndm;j++)
                 du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
             }
+/*...................................................................*/
+          } 
+/*...................................................................*/
+
+/*... fluxo nulo*/
+          else{
+            du[i] =0.e0;
+            for(j=0;j<ndm;j++)
+              du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
           }
+/*...................................................................*/
         }
 /*...................................................................*/
       }
@@ -1293,7 +1345,7 @@ void  leastSquareQR(DOUBLE *restrict lLsQt   ,DOUBLE *restrict lLsR
 /*... fatoracao QR-MGS*/
   else if(type == RCLSQUAREQR){
     for(nf=0;nf<lnFace;nf++){
-//    w[nf]  = 1.e0;
+      w[nf]  = 1.e0/lmKsi[nf];
       w[nf] *= w[nf];
 /*... dimensao 2*/
       if(ndm == 2){
@@ -1913,3 +1965,4 @@ DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
 
 }
 /*********************************************************************/
+

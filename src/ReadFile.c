@@ -26,8 +26,8 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
            ,"return"     ,"cells"    ,"faceRt1"           /* 3, 4, 5*/
            ,"faceSt1"    ,""         ,""                  /* 6, 7, 8*/ 
            ,""           ,""         ,""                  /* 9,10,11*/ 
-           ,"faceRd1"    ,"faceSd1"   ,""                 /*12,13,14*/ 
-           ,""           ,""         ,""                  /*15,16,17*/ 
+           ,"faceRd1"    ,""         ,"loadsD1"           /*12,13,14*/ 
+           ,"faceLoadD1" ,""         ,""                  /*15,16,17*/ 
            ,""           ,""         ,""                  /*18,19,20*/ 
            ,"materials"  ,""         ,""                  /*21,22,23*/ 
 	   };                                             
@@ -165,8 +165,8 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 /*... alocando memoria*/
      HccaAlloc(short,m,mesh->elm.faceRd1
             ,nel*(maxViz+1)*mesh->ndfD[0],"faceRd1"  ,_AD_);
-     HccaAlloc(DOUBLE,m,mesh->elm.faceSd1
-            ,nel*(maxViz+1)*mesh->ndfD[0],"faceSd1"  ,_AD_);
+     HccaAlloc(short,m,mesh->elm.faceLoadD1
+            ,nel*(maxViz+1)*mesh->ndfD[0],"faceLd1"  ,_AD_);
 /*... uD1*/
      HccaAlloc(DOUBLE,m,mesh->node.uD1 
             ,nn*mesh->ndfD[0] ,"nUd1"              ,_AD_);
@@ -182,7 +182,6 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
             ,nel*ndm*mesh->ndfD[0],"rCellUd1"      ,_AD_);
 /*...*/
      zero(mesh->elm.faceRd1  ,nel*(maxViz+1)*mesh->ndfD[0],"short"  );
-     zero(mesh->elm.faceSd1  ,nel*(maxViz+1)*mesh->ndfD[0],DOUBLEC);
      zero(mesh->node.uD1     ,nn*mesh->ndfD[0]            ,DOUBLEC);
      zero(mesh->elm.uD1      ,nel*mesh->ndfD[0]           ,DOUBLEC);
      zero(mesh->node.gradUd1 ,nn*ndm*mesh->ndfD[0]        ,DOUBLEC);
@@ -315,17 +314,30 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
     }
 /*...................................................................*/
 
-/*... faceSd - condicao de contorno para problemas de difusa pura */
-    else if((!strcmp(word,macro[13])) && (!rflag[13])){
+/*... loadD1 - definicao de cargar difusao pura */
+    else if((!strcmp(word,macro[14])) && (!rflag[14])){
       printf("%s\n",DIF);
       printf("%s\n",word);
       strcpy(macros[nmacro++],word);
-      rflag[13] = true;
-      strcpy(str,"endFaceSd1");
-      printf("loading faceSd1 ...\n");
-      readVfSource(mesh->elm.faceSd1,mesh->numel
-                  ,(mesh->maxViz+1)*(mesh->ndfD[0])
-                  ,str,file);  
+      rflag[14] = true;
+      strcpy(str,"endLoadsD1");
+      printf("loading loadsD1 ...\n");
+      readVfLoads(loadsD1,str       ,file);
+      printf("load.\n");
+      printf("%s\n\n",DIF);
+    }
+/*...................................................................*/
+
+/*... faceLoadD1 - cargas nas faces difusao pura */
+    else if((!strcmp(word,macro[15])) && (!rflag[15])){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      strcpy(macros[nmacro++],word);
+      rflag[15] = true;
+      strcpy(str,"endFaceLoadD1");
+      printf("loading faceLoadD1 ...\n");
+      readVfRes(mesh->elm.faceLoadD1,mesh->numel
+               ,mesh->maxViz+1       ,str       ,file);
       printf("load.\n");
       printf("%s\n\n",DIF);
     }
@@ -706,6 +718,86 @@ void readVfSource(DOUBLE *f          ,INT numel
   readMacro(file,word,false);
   }while(strcmp(word,str));
 }
+/*********************************************************************/
+
+/*********************************************************************
+ * READVFLOADS : leitura da definicoes das cargas                    *
+ *********************************************************************
+ * Parametro de entrada:                                             *
+ * ----------------------------------------------------------------- *
+ * load  - indefinido                                                *
+ * str   - macro de terminada o fim da secao                         *
+ * file  - ponteiro para o arquivo de dados                          *
+ * ----------------------------------------------------------------- *
+ * Parametro de entrada:                                             *
+ * ----------------------------------------------------------------- *
+ * f     - valores das restricoes                                    *
+ *********************************************************************/
+void readVfLoads(Loads *loads,char *str,FILE* file){
+  
+  char word[WORD_SIZE];
+  int  j,nTerm,nLoad,type;
+  DOUBLE par;
+  int error=0; 
+
+  readMacro(file,word,false);
+  do{
+    nLoad = atol(word);  
+/*...*/
+    error = fscanf(file,"%d",&type);
+    if( error != 1) {
+      printf("erro: leitura do tipo da carga. "
+             "nLoad = %d.\n"
+             "arquivo fonte:  \"%s\".\n"
+             "nome da funcao: \"%s\".\n"
+             ,nLoad,__FILE__,__func__);
+      exit(EXIT_FAILURE);
+
+    }
+    loads[nLoad-1].type = type;
+
+/*...*/
+    error = fscanf(file,"%d",&nTerm);
+    if( error != 1) {
+      printf("erro: leitura do numero de termos de cargas. "
+             "nLoad = %d.\n"
+             "arquivo fonte:  \"%s\".\n"
+             "nome da funcao: \"%s\".\n"
+             ,nLoad,__FILE__,__func__);
+      exit(EXIT_FAILURE);
+
+    }
+    loads[nLoad-1].np = nTerm;
+
+    if(MAXLOADPARAMETER < nTerm){
+      printf("erro: Numeroa de parametros excediso. "
+             "MAX  = %d.\n"
+             "nPar = %d.\n"
+             "arquivo fonte:  \"%s\".\n"
+             "nome da funcao: \"%s\".\n"
+             ,MAXLOADPARAMETER,nTerm
+             ,__FILE__        ,__func__);
+      exit(EXIT_FAILURE);
+    }
+
+/*...*/
+    for(j = 0;j < nTerm;j++){
+      error = fscanf(file,"%lf",&par);
+      if( error != 1) {
+        printf("erro: leitura da carga. "
+               "nLoad = %d.\n"
+               "nTerm = %d.\n"
+               "arquivo fonte:  \"%s\".\n"
+               "nome da funcao: \"%s\".\n"
+               ,nLoad,j,__FILE__,__func__);
+          exit(EXIT_FAILURE);
+      }
+      loads[nLoad-1].par[j] = par;
+    } 
+    readMacro(file,word,false);
+  }while(strcmp(word,str));
+}
+/*********************************************************************/
 
 
 /*********************************************************************

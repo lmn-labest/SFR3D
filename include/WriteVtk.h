@@ -18,7 +18,7 @@
               ,INT *el        ,short *mat    
               ,short *nen     ,short *typeGeom
               ,double *prop   ,short *typeCal
-              ,short *faceRt1 ,double *faceSt1
+              ,short *faceRt1 ,short *faceSt1
               ,INT nnode      ,INT numel    
               ,short ndm      
               ,short maxno    ,short maxIt 
@@ -29,7 +29,7 @@
   void wGeoFaceVtk(Memoria *m     ,DOUBLE *x      
             ,INT *el              ,short *nen     
             ,short *typeGeom
-            ,short *faceRd1       ,double *faceSd1
+            ,short *faceRd1       ,short *faceSd1
             ,INT const nnode      ,INT const numel    
             ,short const ndm      ,short const ndf
             ,short const maxViz   ,short const maxNo
@@ -63,9 +63,9 @@
 /*...................................................................*/
 
 /*...*/
-void makeFace(INT *el           ,short *faceR       ,DOUBLE *faceS     
+void makeFace(INT *el            ,short *faceR       ,short *faceL     
              ,short *typeGeom
-             ,INT *face          ,DOUBLE *lFaceS    ,INT *idFace
+             ,INT *face          ,INT *lFaceS    ,INT *idFace
              ,short *typeGeomFace,short *nenFace
              ,short const maxViz ,short const maxNo
              ,short const ndf 

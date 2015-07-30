@@ -347,24 +347,24 @@ int main(int argc,char**argv){
              ,mesh->elm.node          ,mesh->elm.mat    
              ,mesh->elm.nen           ,mesh->elm.geomType
              ,mesh->elm.material.prop ,mesh->elm.material.type 
-             ,mesh->elm.faceRd1       ,mesh->elm.faceSd1
+             ,mesh->elm.faceRd1       ,mesh->elm.faceLoadD1
              ,mesh->nnode             ,mesh->numel    
              ,mesh->ndm               
              ,mesh->maxNo             ,mesh->maxViz
              ,mesh->numat             ,mesh->ndfD    
              ,nameOut                 ,opt.bVtk             
-             ,fileOut);
+             ,fileOut);  
 /*... face com cargas*/
      fName(preName,0,0,17,&nameOut);
      wGeoFaceVtk(&m                   ,mesh->node.x        
              ,mesh->elm.node          ,mesh->elm.nen      
              ,mesh->elm.geomType
-             ,mesh->elm.faceRd1       ,mesh->elm.faceSd1
+             ,mesh->elm.faceRd1       ,mesh->elm.faceLoadD1
              ,mesh->nnode             ,mesh->numel    
              ,mesh->ndm               ,mesh->ndfD[0]
              ,mesh->maxViz            ,mesh->maxNo
              ,nameOut                 ,opt.bVtk             
-             ,fileOut);
+             ,fileOut);  
       printf("%s\n\n",DIF);
     }   
 /*===================================================================*/
@@ -533,7 +533,8 @@ int main(int argc,char**argv){
 
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
       tm.CellPloadD1 = getTimeC() - tm.CellPloadD1;
-      cellPload(mesh->elm.faceRd1    ,mesh->elm.faceSd1
+      cellPload(loadsD1
+               ,mesh->elm.faceRd1    ,mesh->elm.faceLoadD1
                ,mesh->elm.geom.volume,sistEqD1->id 
                ,mesh->elm.uD1        ,sistEqD1->b0
                ,mesh->numel          ,mesh->ndfD[0]
@@ -559,7 +560,7 @@ int main(int argc,char**argv){
                    ,sistEqD1->ia            ,sistEqD1->ja      
                    ,sistEqD1->ad            ,sistEqD1->al       
                    ,sistEqD1->b             ,sistEqD1->id       
-                   ,mesh->elm.faceRd1       ,mesh->elm.faceSd1       
+                   ,mesh->elm.faceRd1       ,mesh->elm.faceLoadD1             
                    ,mesh->elm.uD1           ,mesh->elm.gradUd1             
                    ,mesh->elm.rCellUd1                          
                    ,mesh->maxNo             ,mesh->maxViz
@@ -604,7 +605,7 @@ int main(int argc,char**argv){
 /*...*/
 #ifdef _DEBUG_
         testeSist(sistEqD1->ia       ,sistEqD1->ja
-                ,sistEqD1->au       ,sistEqD1->ad
+                ,sistEqD1->au        ,sistEqD1->ad
                  ,sistEqD1->al       ,sistEqD1->b
                  ,sistEqD1->neq      ,sistEqD1->unsym);
 #endif
@@ -634,7 +635,7 @@ int main(int argc,char**argv){
 
 /*... reconstruindo do gradiente*/
        tm.rcGradD1 = getTimeC() - tm.rcGradD1;
-       rcGradU(&m
+       rcGradU(&m                       ,loadsD1
                ,mesh->elm.node          ,mesh->elm.adj.nelcon
                ,mesh->elm.geom.cc       ,mesh->node.x   
                ,mesh->elm.nen           ,mesh->elm.adj.nViz 
@@ -646,7 +647,7 @@ int main(int argc,char**argv){
                ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
                ,mesh->elm.geom.vSkew    ,mesh->elm.geom.xmcc  
                ,mesh->elm.geom.dcca
-               ,mesh->elm.faceRd1       ,mesh->elm.faceSd1       
+               ,mesh->elm.faceRd1       ,mesh->elm.faceLoadD1    
                ,mesh->elm.uD1           ,mesh->elm.gradUd1                 
                ,mesh->node.uD1          ,mesh->rcGrad
                ,mesh->maxNo             ,mesh->maxViz
@@ -659,12 +660,12 @@ int main(int argc,char**argv){
          fName(preName,i,0,15,&nameOut);
 
 /*... interpolacao das variaveis da celulas para pos nos (Grad)*/
-         interCellNode(&m
+         interCellNode(&m                 ,loadsD1
                       ,mesh->node.gradUd1 ,mesh->elm.gradUd1 
                       ,mesh->elm.node     ,mesh->elm.geomType            
                       ,mesh->elm.geom.cc  ,mesh->node.x                  
                       ,mesh->elm.nen      ,mesh->elm.adj.nViz
-                      ,mesh->elm.faceRd1  ,mesh->elm.faceSd1
+                      ,mesh->elm.faceRd1  ,mesh->elm.faceLoadD1    
                       ,mesh->numel        ,mesh->nnode    
                       ,mesh->maxNo        ,mesh->maxViz   
                       ,mesh->ndm          ,mesh->ndm
@@ -672,12 +673,12 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (uD1)*/
-        interCellNode(&m
+        interCellNode(&m               ,loadsD1
                      ,mesh->node.uD1   ,mesh->elm.uD1 
                      ,mesh->elm.node   ,mesh->elm.geomType
                      ,mesh->elm.geom.cc,mesh->node.x                  
                      ,mesh->elm.nen    ,mesh->elm.adj.nViz
-                     ,mesh->elm.faceRd1,mesh->elm.faceSd1
+                     ,mesh->elm.faceRd1,mesh->elm.faceLoadD1    
                      ,mesh->numel      ,mesh->nnode    
                      ,mesh->maxNo      ,mesh->maxViz 
                      ,mesh->ndfD[0]    ,mesh->ndm
@@ -745,7 +746,7 @@ int main(int argc,char**argv){
       fName(preName,0,0,8,&nameOut);
 /*... reconstruindo do gradiente*/
       printf("Calculo do gradiente.\n");
-      rcGradU(&m
+      rcGradU(&m                      ,loadsD1
              ,mesh->elm.node          ,mesh->elm.adj.nelcon
              ,mesh->elm.geom.cc       ,mesh->node.x   
              ,mesh->elm.nen           ,mesh->elm.adj.nViz 
@@ -757,7 +758,7 @@ int main(int argc,char**argv){
              ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
              ,mesh->elm.geom.vSkew    ,mesh->elm.geom.xmcc 
              ,mesh->elm.geom.dcca
-             ,mesh->elm.faceRd1       ,mesh->elm.faceSd1       
+             ,mesh->elm.faceRd1       ,mesh->elm.faceLoadD1    
              ,mesh->elm.uD1           ,mesh->elm.gradUd1                 
              ,mesh->node.uD1          ,mesh->rcGrad
              ,mesh->maxNo             ,mesh->maxViz
@@ -767,12 +768,12 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (Grad)*/
-     interCellNode(&m
+     interCellNode(&m                 ,loadsD1
                   ,mesh->node.gradUd1 ,mesh->elm.gradUd1 
                   ,mesh->elm.node     ,mesh->elm.geomType            
                   ,mesh->elm.geom.cc  ,mesh->node.x                  
                   ,mesh->elm.nen      ,mesh->elm.adj.nViz
-                  ,mesh->elm.faceRd1  ,mesh->elm.faceSd1
+                  ,mesh->elm.faceRd1  ,mesh->elm.faceLoadD1    
                   ,mesh->numel        ,mesh->nnode    
                   ,mesh->maxNo        ,mesh->maxViz   
                   ,mesh->ndm          ,mesh->ndm      
@@ -780,12 +781,12 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (uD1)*/
-     interCellNode(&m
+     interCellNode(&m                ,loadsD1
                   ,mesh->node.uD1    ,mesh->elm.uD1 
                   ,mesh->elm.node    ,mesh->elm.geomType
                   ,mesh->elm.geom.cc ,mesh->node.x                  
                   ,mesh->elm.nen     ,mesh->elm.adj.nViz
-                  ,mesh->elm.faceRd1 ,mesh->elm.faceSd1
+                  ,mesh->elm.faceRd1  ,mesh->elm.faceLoadD1    
                   ,mesh->numel       ,mesh->nnode    
                   ,mesh->maxNo       ,mesh->maxViz 
                   ,mesh->ndfD[0]     ,mesh->ndm

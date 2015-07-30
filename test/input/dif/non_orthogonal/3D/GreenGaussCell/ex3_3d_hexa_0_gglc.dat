@@ -7,6 +7,10 @@ materials
 1 1 1.0 
 endMaterials
 insert test/binTest/ex3_3d_hexa_0_ccr.dat
+loadsD1
+1 1 1 100.0
+2 1 1 600.0
+endLoadsD1
 endMesh
 pgeo
 presolvD1 noConfig:

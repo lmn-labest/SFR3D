@@ -25,6 +25,8 @@
   void readVfRes(short *id,INT numel,short maxno,char *str,FILE *file);
   void readVfSource(double *f    ,INT numel,short maxno
                    ,char *str,FILE *file);
+  void readVfLoads(Loads *loads,char *str,FILE* file);
+
   void config(FileOpt *opt ,Reord *reord
              ,short *rcGrad
              ,FILE* f);

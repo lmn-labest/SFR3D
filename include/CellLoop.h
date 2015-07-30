@@ -36,7 +36,7 @@
 /*...................................................................*/
 
 /*.. reconstrucao de gradiente*/
-  void rcGradU(Memoria *m
+  void rcGradU(Memoria *m             ,Loads *loads
          ,INT    *restrict el         ,INT    *restrict nelcon
          ,DOUBLE *restrict cc         ,DOUBLE *restrict x     
          ,short  *restrict nen        ,short  *restrict nFace
@@ -48,7 +48,7 @@
          ,DOUBLE *restrict gNormal    ,DOUBLE *restrict gVolume
          ,DOUBLE *restrict gvSkew     ,DOUBLE *restrict gXmcc
          ,DOUBLE *restrict gDcca 
-         ,short  *restrict faceR      ,DOUBLE *restrict faceS  
+         ,short  *restrict faceR      ,short *restrict faceL  
          ,DOUBLE *restrict u          ,DOUBLE *restrict gradU               
          ,DOUBLE *restrict nU         ,short const lib
          ,short const maxNo           ,short const maxViz
@@ -57,12 +57,12 @@
 /*...................................................................*/
 
 /*... */
-  void interCellNode(Memoria *m
+  void interCellNode(Memoria *m           ,Loads *loads
                    ,DOUBLE *restrict noU  ,DOUBLE *restrict elU
                    ,INT *restrict el      ,short  *restrict geomType 
                    ,DOUBLE *restrict cc   ,DOUBLE *restrict x   
                    ,short *restrict nen   ,short *restrict nFace
-                   ,short  *restrict faceR,DOUBLE *restrict faceS  
+                   ,short  *restrict faceR,short *restrict faceL  
                    ,INT const numel       ,INT const nnode
                    ,short const maxNo     ,short const maxViz    
                    ,short const ndf       ,short const ndm
@@ -83,7 +83,7 @@
              ,INT    *restrict ia     ,INT    *restrict ja                  
              ,DOUBLE *restrict ad     ,DOUBLE *restrict al                  
              ,DOUBLE *restrict b      ,INT    *restrict id 
-             ,short  *restrict faceR  ,DOUBLE *restrict faceS 
+             ,short  *restrict faceR  ,short  *restrict faceL              
              ,DOUBLE *restrict u0     ,DOUBLE *restrict gradU0             
              ,DOUBLE *restrict rCell                                  
              ,short const maxNo       ,short const maxViz
@@ -104,7 +104,7 @@
                  ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew     
                  ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
                  ,DOUBLE *restrict lRcell           
-                 ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+                 ,short  *restrict lFaceR  ,short  *restrict lFaceL        
                  ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0 
                  ,short const nEn          ,short const nFace        
                  ,short const ndm          ,short const lib 
@@ -112,7 +112,8 @@
 /*...................................................................*/
 
 /*... carga por elmento e condicoes pescritas por celula*/
-  void cellPload(short  *restrict faceR ,DOUBLE *restrict faceS
+  void cellPload(Loads *loads
+                ,short  *restrict faceR ,short *restrict faceS
                 ,DOUBLE *restrict volume,INT *restrict id 
                 ,DOUBLE *restrict u     ,DOUBLE *restrict f
                 ,INT const numel        ,short const ndf
@@ -164,7 +165,7 @@
                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
                 ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
                 ,DOUBLE *restrict lRcell                       
-                ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+                ,short  *restrict lFaceR  ,short *restrict lFaceL
                 ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0
                 ,short const nen          ,short const nFace    
                 ,short const ndm          ,INT const nel);
@@ -179,21 +180,22 @@
                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
                 ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
                 ,DOUBLE *restrict lRcell                        
-                ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+                ,short  *restrict lFaceR  ,short  *restrict lFaceL
                 ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
                 ,const short nEn          ,short const nFace    
                 ,const short ndm          ,INT const nel);
 /*...................................................................*/
 
 /*... biblioteca de reconstrucao de gradiente*/
-  void cellLibRcGrad(INT   *restrict lViz,DOUBLE *restrict lProp
+  void cellLibRcGrad(Loads *loads
+           ,INT   *restrict lViz,DOUBLE *restrict lProp
            ,DOUBLE *restrict leastSquare ,DOUBLE *restrict leastSquareR
            ,DOUBLE *restrict ksi         ,DOUBLE *restrict mKsi
            ,DOUBLE *restrict eta         ,DOUBLE *restrict fArea
            ,DOUBLE *restrict normal      ,DOUBLE *restrict volume
            ,DOUBLE *restrict vSkew       ,DOUBLE *restrict xmcc 
            ,DOUBLE *restrict lDcca  
-           ,short  *restrict lFaceR      ,DOUBLE *restrict lFaceS
+           ,short  *restrict lFaceR      ,short *restrict lFaceL
            ,DOUBLE *restrict u           ,DOUBLE *restrict gradU 
            ,DOUBLE *restrict nU          ,short const ty 
            ,short const nFace            ,short const ndm  
@@ -214,19 +216,21 @@
                     ,short const lnFace       ,short const ndm);
 
 
-  void leastSquare(DOUBLE *restrict lLsquare,INT *restrict lViz 
+  void leastSquare(Loads *loads
+                 ,DOUBLE *restrict lLsquare,INT *restrict lViz 
                  ,DOUBLE *restrict xmcc 
                  ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca
                  ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
-                 ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+                 ,short  *restrict lFaceR  ,short *restrict lFaceL
                  ,short const nFace        ,short const ndf
                  ,short const ndm          ,INT const nel);
 
-  void leastSquareQR(DOUBLE *restrict lLs  ,DOUBLE *restrict lLsR
+  void leastSquareQR(Loads *loads
+                 ,DOUBLE *restrict lLs  ,DOUBLE *restrict lLsR
                  ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca
                  ,INT *restrict lViz       ,DOUBLE *restrict xmcc  
                  ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
-                 ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+                 ,short  *restrict lFaceR  ,short *restrict lFaceL
                  ,short const nFace        ,short const ndf
                  ,short const ndm);
 
@@ -234,12 +238,13 @@
 
   
 /*... green-gauss*/
-  void greenGaussCell(INT *restrict lViz ,DOUBLE *restrict mKsi
+  void greenGaussCell(Loads *loads
+               ,INT *restrict lViz ,DOUBLE *restrict mKsi
                ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca
                ,DOUBLE *restrict eta     ,DOUBLE *restrict mfArea
                ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
                ,DOUBLE *restrict xmcc    ,DOUBLE *restrict mvSkew
-               ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+               ,short  *restrict lFaceR  ,short  *restrict lFaceS
                ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
                ,short const nFace        ,short const ndm   
                ,short const ndf);

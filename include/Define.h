@@ -21,9 +21,17 @@
   #define radToDeg(teta) 180.e0*teta/PI
 /*...................................................................*/
 
-/*... tipos de carga*/
-  #define VPES         1
-  #define CARGCONST    2
+/*... tipos de CC*/
+  #define DIRICHLETBC  1
+  #define NEUMANNBC    2
+  #define ROBINBC      3
+  #define PCCELL      10
+  #define SCCELL      11
+/*...................................................................*/
+
+/*...*/
+  #define MAXLOADPARAMETER 10
+  #define MAXLOAD1         200
 /*...................................................................*/
 
 /*numero maximo de propriedade*/

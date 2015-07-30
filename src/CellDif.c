@@ -31,7 +31,7 @@
  * u0        -> solucao conhecida                                    * 
  * gradU0    -> gradiente rescontruido da solucao conhecida          * 
  * faceR     -> restricoes por elmento                               * 
- * faceS     -> carga por elemento                                   * 
+ * faceL     -> carga por elemento                                   * 
  * nEn       -> numero de nos da celula central                      * 
  * nFace     -> numero de faces da celula central                    * 
  * ndm       -> numero de dimensoes                                  * 
@@ -56,20 +56,20 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
               ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
               ,DOUBLE *restrict lRcell                        
-              ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+              ,short  *restrict lFaceR  ,short *restrict lFaceL
               ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
               ,const short nEn          ,short const nFace    
               ,const short ndm          ,INT const nel)
 { 
 
-  DOUBLE coefDifC,coefDif,coefDifV,rCell;
+  DOUBLE coefDifC,coefDif,coefDifV,rCell,h,tA;
   DOUBLE p,aP,sP,nk,dfd,dfdc,gfKsi,modE,lvSkew[2];
   DOUBLE v[2],gradUcomp[2],lKsi[2],lNormal[2],gf[2];
   DOUBLE dPviz,lModKsi,lModEta,du,duDksi;
   DOUBLE gradUp[2],gradUv[2],nMinusKsi[2];
   DOUBLE alpha,alphaMenosUm;
   short idCell = nFace;
-  short nAresta;
+  short nAresta,nCarg;
   INT vizNel;
 
 /*... propriedades da celula*/
@@ -161,16 +161,36 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
 /*... contorno*/
     else{
       lA[nAresta] = 0.0e0;
-/*... fluxo prescrito*/
-      if(!lFaceR[nAresta]){ 
-        p +=  mEta[nAresta]*lFaceS[nAresta];
+      if(lFaceR[nAresta]){
+/*...cargas*/
+        nCarg=lFaceL[nAresta]-1;
+/*... potencial prescrito*/
+        if( loadsD1[nCarg].type == DIRICHLETBC){
+          tA  = loadsD1[nCarg].par[0];
+          aP  = coefDifC*mEta[nAresta]/dcca[nAresta];
+          sP += aP;
+          p  += aP*tA; 
+        }
+/*...................................................................*/
+
+/*... lei de resfriamento de newton*/
+        else if( loadsD1[nCarg].type == ROBINBC){
+          h   = loadsD1[nCarg].par[0];
+          tA  = loadsD1[nCarg].par[1];
+          aP  = (coefDifC*h)/(coefDifC+h*dcca[nAresta])
+                *mEta[nAresta];
+          sP += aP;
+          p  += aP*tA; 
+        }
+/*...................................................................*/
+
+/*... fluxo prestrito diferente de zero*/
+        else if( loadsD1[nCarg].type == NEUMANNBC){
+          tA  = loadsD1[nCarg].par[0];
+           p +=  mEta[nAresta]*tA;
+        }
       }
-/*... temperatura prescrita*/
-      else{
-        aP  = coefDifC*mEta[nAresta]/dcca[nAresta];
-        sP += aP;
-        p  += aP*lFaceS[nAresta]; 
-      }
+/*...................................................................*/
     }
 /*...................................................................*/
   }
@@ -240,8 +260,8 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
  * lRcell    -> nao definido                                         *
  * u0        -> solucao conhecida                                    * 
  * gradU0    -> gradiente rescontruido da solucao conhecida          * 
- * faceR     -> restricoes por elmento                               * 
- * faceS     -> carga por elemento                                   * 
+ * faceR     -> restricoes por elemento                              * 
+ * faceL     -> carga por elemento                                   * 
  * nEn       -> numero de nos da celula central                      * 
  * nFace     -> numero de faces da celula central                    * 
  * ndm       -> numero de dimensoes                                  * 
@@ -266,20 +286,20 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
               ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
               ,DOUBLE *restrict lRcell                        
-              ,short  *restrict lFaceR  ,DOUBLE *restrict lFaceS
+              ,short  *restrict lFaceR  ,short  *restrict lFaceL  
               ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
               ,const short nEn          ,short const nFace    
               ,const short ndm          ,INT const nel)
 { 
 
-  DOUBLE coefDifC,coefDif,coefDifV,rCell;
+  DOUBLE coefDifC,coefDif,coefDifV,rCell,h,tA;
   DOUBLE p,aP,sP,nk,dfd,dfdc,gfKsi,modE,lvSkew[3];
   DOUBLE v[3],gradUcomp[3],lKsi[3],lNormal[3],gf[3];
   DOUBLE dPviz,lModKsi,lfArea,du,duDksi;
   DOUBLE gradUp[3],gradUv[3],nMinusKsi[3];
   DOUBLE alpha,alphaMenosUm;
   short idCell = nFace;
-  short nAresta;
+  short nAresta,nCarg;
   INT vizNel;
 
 /*... propriedades da celula*/
@@ -386,16 +406,36 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
 /*... contorno*/
     else{
       lA[nAresta] = 0.0e0;
-/*... fluxo prescrito*/
-      if(!lFaceR[nAresta]){ 
-        p +=  fArea[nAresta]*lFaceS[nAresta];
+      if(lFaceR[nAresta]){
+/*...cargas*/
+        nCarg=lFaceL[nAresta]-1;
+/*... potencial prescrito*/
+        if( loadsD1[nCarg].type == DIRICHLETBC){
+          tA  = loadsD1[nCarg].par[0];
+          aP  = coefDifC*fArea[nAresta]/dcca[nAresta];
+          sP += aP;
+          p  += aP*tA; 
+        }
+/*...................................................................*/
+
+/*... lei de resfriamento de newton*/
+        else if( loadsD1[nCarg].type == ROBINBC){
+          h   = loadsD1[nCarg].par[0];
+          tA  = loadsD1[nCarg].par[1];
+          aP  = (coefDifC*h)/(coefDifC+h*dcca[nAresta])
+                *fArea[nAresta];
+          sP += aP;
+          p  += aP*tA;
+        }
+/*...................................................................*/
+
+/*... fluxo prestrito diferente de zero*/
+        else if( loadsD1[nCarg].type == NEUMANNBC){
+          tA  = loadsD1[nCarg].par[0];
+           p +=  fArea[nAresta]*tA;
+        }
       }
-/*... temperatura prescrita*/
-      else{
-        aP  = coefDifC*fArea[nAresta]/dcca[nAresta];
-        sP += aP;
-        p  += aP*lFaceS[nAresta]; 
-      }
+/*...................................................................*/
     }
 /*...................................................................*/
   }

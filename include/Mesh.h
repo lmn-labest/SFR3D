@@ -37,6 +37,15 @@
   }Geom;
 /*...................................................................*/  
 
+/*... loads*/
+  typedef struct{
+    short type;                     /*tipo*/
+    short np;                       /*numero de particoes*/  
+    DOUBLE par[MAXLOADPARAMETER];
+  }Loads;
+  Loads  loadsD1[MAXLOAD1]; /*tipo de cargas (difusa pura)*/
+/*...................................................................*/
+
 /*...*/
   typedef struct{
     int maxIt;
@@ -50,15 +59,15 @@
     short  *mat;       /*materiais do elementos*/   
     short  *nen;       /*numero de no por elemento*/
     short  *geomType;  /*tipo geometrio do elemento*/
-    short  *faceRt1;   /*tipo de condicao de 
-                        contorno na face (transporte)*/
-    short  *faceRd1;   /*tipo de condicao de 
-                        contorno na face (difusa pura)*/
-    short  *rNum;      /*renumeracao dos elementos*/                
+    short  *rNum;      /*renumeracao dos elementos*/ 
+/*... */               
+    short  *faceRt1;   /*condicao de contorno na face (transporte)*/
     DOUBLE *faceSt1;   /*valor da condicao de 
                         contorno na face (transporte)*/
-    DOUBLE *faceSd1;   /*valor da condicao de 
-                        contorno na face (difusa pura)*/
+/*...*/
+    short  *faceRd1;  /*condicao  contorno na face (difusa pura)*/
+    short *faceLoadD1; /*tipo de carga contorno na face (difusa pura)*/
+/*...................................................................*/
     Geom   geom;       
     DOUBLE *pressure;
     DOUBLE *temp;       /*temperatura*/
@@ -74,6 +83,7 @@
   }Elmt;
 /*...................................................................*/
   
+
 /*... nos*/
   typedef struct{
     DOUBLE *x;      /*coordenadas*/

@@ -13,8 +13,8 @@
  * typeGeom-> tipo geometrico do elemento                             *
  * typeCal -> tipo calculo do elemento                                *
  * nel     -> numeracao do elemento                                   *
- * faceRd1 -> tipo de condicao de contorno D1                         * 
- * faceSd1 -> valor de condicao de contorno D1                        * 
+ * faceRd1 -> condicao de contorno D1                                 * 
+ * faceL1  -> tipo da condicao de contorno D1                         * 
  * nnode   -> numero de nos                                           *  
  * numel   -> numero de elementos                                     *
  * ndm     -> numero de dimensao                                      *
@@ -33,7 +33,7 @@ void wGeoVtk(Memoria *m     ,double *x
             ,INT *el        ,short *mat    
             ,short *nen     ,short *typeGeom
             ,double *prop   ,short *typeCal
-            ,short *faceRd1 ,double *faceSd1
+            ,short *faceRd1 ,short *faceLd1
             ,INT nnode      ,INT numel    
             ,short ndm      
             ,short maxNo    ,short maxViz  
@@ -167,8 +167,18 @@ void wGeoVtk(Memoria *m     ,double *x
 /*...................................................................*/
 
 /*... faceSt1*/
-    writeVtkProp(&idum,faceSd1,numel,maxViz+1,"faceSd1",iws
-                    ,DOUBLEV,1,f);
+    HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
+    if( lel == NULL){
+      fprintf(stderr,"Erro na alocação de lel.\n"
+                     "Nome do arquivo: %s.\n"
+                    ,__FILE__);
+      exit(EXIT_FAILURE);
+    }
+    for(i=0;i<numel*(maxNo+1);i++)
+      lel[i]=(int) faceLd1[i];
+    writeVtkProp(lel,&ddum,numel,maxViz+1,"faceLd1",iws
+                    ,INTEGER,1,f);
+    HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
   }
 /*...................................................................*/
@@ -208,9 +218,9 @@ void wGeoVtk(Memoria *m     ,double *x
  * mat     -> material por elemento                                   *
  * typeGeom-> tipo geometrico do elemento                             *
  * typeCal -> tipo calculo do elemento                                *
+ * faceRd1 -> condicao de contorno D1                                 * 
+ * faceL1  -> tipo da condicao de contorno D1                         * 
  * nel     -> numeracao do elemento                                   *
- * faceRd1 -> tipo de condicao de contorno T1                         * 
- * faceSd1 -> valor de condicao de contorno T1                        * 
  * nnode   -> numero de nos                                           *  
  * numel   -> numero de elementos                                     *
  * ndm     -> numero de dimensao                                      *
@@ -227,7 +237,7 @@ void wGeoVtk(Memoria *m     ,double *x
 void wGeoFaceVtk(Memoria *m       ,DOUBLE *x      
             ,INT *el              ,short *nen     
             ,short *typeGeom
-            ,short *faceRd1       ,DOUBLE *faceSd1
+            ,short *faceRd1       ,short *faceLd1
             ,INT const nnode      ,INT const numel    
             ,short const ndm      ,short const ndf
             ,short const maxViz   ,short const maxNo
@@ -237,9 +247,9 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
   char head[]={"FACE_VOLUME_FINITO"};
   int nFace=0;
   int *face = NULL,*idFace=NULL;
-  double *lfaceSd1 = NULL;
+  int *lfaceLd1 = NULL;
   short *typeGeomFace = NULL,*nenFace=NULL;
-  int i,idum;  
+  int i;  
   int *aux=NULL;
   double ddum;
 
@@ -248,12 +258,11 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
   HccaAlloc(INT   ,m,idFace      ,numel*MAX_NUM_FACE,"iDFace"  ,_AD_);
   HccaAlloc(short ,m,typeGeomFace,numel*MAX_NUM_FACE,"ltGface" ,_AD_);
   HccaAlloc(short ,m,nenFace     ,numel*MAX_NUM_FACE,"lnenFace",_AD_);
-  HccaAlloc(DOUBLE,m,lfaceSd1    ,numel*MAX_NUM_FACE*ndf 
-                                 ,"lfaceSd1",_AD_);
+  HccaAlloc(int   ,m,lfaceLd1    ,numel*MAX_NUM_FACE,"lfaceSd1",_AD_);
   
-  makeFace(el          ,faceRd1   ,faceSd1  
+  makeFace(el          ,faceRd1   ,faceLd1  
           ,typeGeom    
-          ,face        ,lfaceSd1  ,idFace
+          ,face        ,lfaceLd1  ,idFace
           ,typeGeomFace,nenFace
           ,maxViz      ,maxNo
           ,ndf         
@@ -292,7 +301,7 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
 /*...................................................................*/
   
 /*... valores das cargas por celula*/
-  writeVtkProp(&idum,lfaceSd1,nFace,ndf,"lFaceS1",iws,DOUBLEV,1,f);
+  writeVtkProp(lfaceLd1,&ddum,nFace,ndf,"lFaceLd1",iws,INTEGER,1,f);
 /*...................................................................*/
 
 /*.... campo por no*/
@@ -315,7 +324,7 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
 /*...................................................................*/
 
 /*... dealloc*/
-  HccaDealloc(m,lfaceSd1    ,"lfaceSd1",_AD_);
+  HccaDealloc(m,lfaceLd1    ,"lfaceSd1",_AD_);
   HccaDealloc(m,nenFace     ,"lnenFace",_AD_);
   HccaDealloc(m,typeGeomFace,"ltGface" ,_AD_);
   HccaDealloc(m,idFace      ,"iDFace"  ,_AD_);
@@ -639,7 +648,7 @@ void wResVtkDif(Memoria *m        ,double *x
  * faceS   -> valor de condicao de contorno                           * 
  * typeGeom-> tipo geometrico do elemento                             *
  * face    -> indefinido                                              *
- * lfaceS  -> indefinido                                              *
+ * lfaceL  -> indefinido                                              *
  * idFace  -> indefinido                                              *
  * tyGeomF -> indefinido                                              *
  * nenFace -> indefinido                                              *
@@ -650,23 +659,22 @@ void wResVtkDif(Memoria *m        ,double *x
  * ------------------------------------------------------------------ *
  * parametros de saida  :                                             * 
  * face    -> faces onde ha condicao de contorno                      *
- * lFaceS  -> valor de contorno por face                              *
+ * lFaceL  -> tipo de condico de contorno na face                     *
  * tyGeomF -> tipo geometrico da face                                 *
  * nenFace -> numero de nos por face                                  *
  * nFace   -> numero total de faces                                   *
  * ------------------------------------------------------------------ *
  **********************************************************************/
-void makeFace(INT *el            ,short *faceR       ,DOUBLE *faceS 
+void makeFace(INT *el            ,short *faceR       ,short *faceL 
              ,short *typeGeom
-             ,INT *face          ,DOUBLE *lFaceS     ,INT *idFace
+             ,INT *face          ,int    *lFaceL     ,INT *idFace
              ,short *typeGeomFace,short *nenFace
              ,short const maxViz ,short const maxNo
              ,short const ndf     
              ,INT const numel    ,INT *nFace){
 
   short  isnod[MAX_SN],nenFaceMax=MAX_NUM_NODE_FACE;
-  short i,j,k,ty,tmp;
-  DOUBLE dTmp;
+  short j,k,ty,tmp;
   unsigned INT nf = 0;
   short cCell = maxViz + 1;
   int no,nel;
@@ -689,8 +697,6 @@ void makeFace(INT *el            ,short *faceR       ,DOUBLE *faceS
             idFace[nf]       = nel + 1;
             typeGeomFace[nf] = LINECELL;
             nenFace[nf]      = sn(isnod,ty,nel);
-            for(i=0;i<ndf;i++)
-              MAT2D(nf,i,lFaceS,ndf) = MAT3D(nel,j,i,faceS,cCell,ndf); 
 /*... loop nos nos da face*/
             for(k=0;k<nenFace[nf];k++){
               no  = MAT2D(j,k,isnod,nenFace[nf]);
@@ -708,31 +714,21 @@ void makeFace(INT *el            ,short *faceR       ,DOUBLE *faceS
 /*... quadrilatero*/
     else if( ty == QUADCELL){
 /*...*/
-      dTmp = 0.0e0;
-      for(j=0;j<maxViz;j++)
-        for(i=0;i<ndf;i++)
-          dTmp += fabs(MAT3D(nel,j,i,faceS,cCell,ndf)); 
-/*...*/
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
       for(j=0;j<maxViz;j++)
         tmp += MAT2D(nel,j,faceR,cCell);
 /*...*/
-      if(tmp || dTmp > 0.0e0){
+      if(tmp){
 /*... loop nas arestas*/
         for(j=0;j<4;j++){
           tmp = MAT2D(nel,j,faceR,cCell);
 /*...*/
-          dTmp = 0.0e0;
-          for(i=0;i<ndf;i++)
-            dTmp  += fabs(MAT3D(nel,j,i,faceS,cCell,ndf)); 
-/*...*/
-          if(tmp || dTmp > 0.e0){
+          if(tmp){
             idFace[nf]       = nel + 1;
             typeGeomFace[nf] = LINECELL;
             nenFace[nf]      = sn(isnod,ty,nel);
-            for(i=0;i<ndf;i++)
-              MAT2D(nf,i,lFaceS,ndf) = MAT3D(nel,j,i,faceS,cCell,ndf); 
+            lFaceL[nf]       = MAT2D(nel,j,faceL,cCell); 
 /*... loop nos nos da face*/
             for(k=0;k<nenFace[nf];k++){
               no  = MAT2D(j,k,isnod,nenFace[nf]);
@@ -750,31 +746,21 @@ void makeFace(INT *el            ,short *faceR       ,DOUBLE *faceS
 /*... tetraedro*/
     else if( ty == TETRCELL){
 /*...*/
-      dTmp = 0.0e0;
-      for(j=0;j<maxViz;j++)
-        for(i=0;i<ndf;i++)
-          dTmp += fabs(MAT3D(nel,j,i,faceS,cCell,ndf)); 
-/*...*/
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
       for(j=0;j<maxViz;j++)
         tmp += MAT2D(nel,j,faceR,cCell);
 /*...*/
-      if(tmp || dTmp > 0.0e0){
+      if(tmp){
 /*... loop nas faces*/
         for(j=0;j<4;j++){
           tmp = MAT2D(nel,j,faceR,cCell);
 /*...*/
-          dTmp = 0.0e0;
-          for(i=0;i<ndf;i++)
-            dTmp  += fabs(MAT3D(nel,j,i,faceS,cCell,ndf)); 
-/*...*/
-          if(tmp || dTmp > 0.e0){
+          if(tmp){
             idFace[nf]       = nel + 1;
             typeGeomFace[nf] = TRIACELL;
             nenFace[nf]      = sn(isnod,ty,nel);
-            for(i=0;i<ndf;i++)
-              MAT2D(nf,i,lFaceS,ndf) = MAT3D(nel,j,i,faceS,cCell,ndf); 
+            lFaceL[nf]       = MAT2D(nel,j,faceL,cCell); 
 /*... loop nos nos da face*/
             for(k=0;k<nenFace[nf];k++){
               no  = MAT2D(j,k,isnod,nenFace[nf]);
@@ -792,31 +778,21 @@ void makeFace(INT *el            ,short *faceR       ,DOUBLE *faceS
 /*... hexaedro*/
     else if( ty == HEXACELL){
 /*...*/
-      dTmp = 0.0e0;
-      for(j=0;j<maxViz;j++)
-        for(i=0;i<ndf;i++)
-          dTmp += fabs(MAT3D(nel,j,i,faceS,cCell,ndf)); 
-/*...*/
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
       for(j=0;j<maxViz;j++)
         tmp += MAT2D(nel,j,faceR,cCell);
 /*...*/
-      if(tmp || dTmp > 0.0e0){
+      if(tmp){
 /*... loop nas faces*/
         for(j=0;j<6;j++){
           tmp = MAT2D(nel,j,faceR,cCell);
 /*...*/
-          dTmp = 0.0e0;
-          for(i=0;i<ndf;i++)
-            dTmp  += fabs(MAT3D(nel,j,i,faceS,cCell,ndf)); 
-/*...*/
-          if(tmp || dTmp > 0.e0){
+          if(tmp){
             idFace[nf]       = nel + 1;
             typeGeomFace[nf] = QUADCELL;
             nenFace[nf]      = sn(isnod,ty,nel); 
-            for(i=0;i<ndf;i++)
-              MAT2D(nf,i,lFaceS,ndf) = MAT3D(nel,j,i,faceS,cCell,ndf); 
+            lFaceL[nf]       = MAT2D(nel,j,faceL,cCell); 
 /*... loop nos nos da face*/
             for(k=0;k<nenFace[nf];k++){
               no  = MAT2D(j,k,isnod,nenFace[nf]);
