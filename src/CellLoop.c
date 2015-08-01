@@ -313,14 +313,14 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
         lId[j] = -1;
         lu0[j] = 0.e0;    
       }
-      
+/*      
       for(j=0;j<(MAX_NUM_FACE+1)*MAXPROP;j++)
         lProp[j] = 0.0e0;    
       
       for(j=0;j<MAX_NUM_FACE+1;j++){
         lGeomType[j] = 0;     
       }
-      
+*/      
 
 /*... loop na celula central*/    
       lMat            = mat[nel]-1;

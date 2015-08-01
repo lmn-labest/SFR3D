@@ -59,6 +59,19 @@ void assbly(INT    *restrict  ia,INT *restrict ja
     break;
 /*...................................................................*/
 
+/*... ellPack*/
+    case ELLPACK:
+      ellPack(ia     
+             ,ad     ,al   
+             ,b
+             ,lId
+             ,lA     ,lB
+             ,nFace  ,ndf
+             ,storage,forces
+             ,matrix);
+    break;
+/*...................................................................*/
+
 /*...*/
     default:
       ERRO_OP(__FILE__,__func__,storage);

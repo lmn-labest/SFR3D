@@ -45,6 +45,8 @@
                     ,INT *restrict ia   ,INT *restrict ja
                     ,DOUBLE *restrict al,DOUBLE *restrict ad
                     ,DOUBLE *restrict x ,DOUBLE *restrict y);
+/*...................................................................*/
+
 /*... CsrD*/ 
   void     matVecCsrD(INT const neq           
                      ,INT *restrict ia  ,INT *restrict ja
@@ -78,6 +80,23 @@
                      ,INT *restrict ia  ,INT *restrict ja
                      ,DOUBLE *restrict a,DOUBLE *restrict ad
                      ,DOUBLE *restrict x,DOUBLE *restrict y);
+/*...................................................................*/
+
+/*... EllPack*/ 
+  void matVecEllPack(INT const nEq           
+                  ,INT *restrict ia  ,INT *restrict ja
+                  ,DOUBLE *restrict a,DOUBLE *restrict ad
+                  ,DOUBLE *restrict x,DOUBLE *restrict y);
+  void matVecEllPackO2(INT const nEq           
+                      ,INT *restrict ia  ,INT *restrict ja
+                      ,DOUBLE *restrict a,DOUBLE *restrict ad
+                      ,DOUBLE *restrict x,DOUBLE *restrict y);
+  void matVecEllPackO4(INT const nEq           
+                      ,INT *restrict ia  ,INT *restrict ja
+                      ,DOUBLE *restrict a,DOUBLE *restrict ad
+                      ,DOUBLE *restrict x,DOUBLE *restrict y);
+/*...................................................................*/
+
 /*==================================================================*/
 
 /*======================== level 3 =================================*/

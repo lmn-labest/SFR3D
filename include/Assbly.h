@@ -7,6 +7,7 @@
 
 /*...*/
   #include<Csr.h>
+  #include<EllPack.h>
   #include<HccaStdBool.h>
   #include<Define.h>
 /*...................................................................*/

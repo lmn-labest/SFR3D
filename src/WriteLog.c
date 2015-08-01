@@ -55,7 +55,12 @@ void writeLog(Mesh mesh
   if(fSolvD1){
     fprintf(file,"\nSitema D1:\n");
     fprintf(file,"nEq          : %d\n",sistEqD1->neq);
-    fprintf(file,"nad          : %d\n",sistEqD1->nad);
+    if(sistEqD1->storage == ELLPACK){
+      fprintf(file,"nAd          : %d\n",sistEqD1->nad);
+      fprintf(file,"nAd Overhead : %d\n",sistEqD1->neq*mesh.maxViz);
+    }
+    else
+      fprintf(file,"nAd          : %d\n",sistEqD1->nad);
     fprintf(file,"tol          : %e\n",solvD1->tol);
 /*... tenica de armazenamento*/
     if(sistEqD1->storage == CSR)
@@ -64,6 +69,8 @@ void writeLog(Mesh mesh
       fprintf(file,"Armazenamento: CSRD\n");
     else if(sistEqD1->storage == CSRC)
       fprintf(file,"Armazenamento: CSRC\n");
+    else if(sistEqD1->storage == ELLPACK)
+      fprintf(file,"Armazenamento: ELLPACK\n");
 /*... tenica de armazenamento*/
     if(solvD1->solver == PCG)
       fprintf(file,"Iterativo    : PCG\n");

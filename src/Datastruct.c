@@ -23,10 +23,13 @@
  * au -> alocados                                                    * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void dataStruct(Memoria *m ,INT *id   ,INT *num   ,INT *nelcon
-               ,short *nViz,INT numel ,short maxViz
-               ,short ndf 
-               ,char  *strIa,char *strJa,char *strAd,char *strA  
+void dataStruct(Memoria *m      ,INT *id   
+               ,INT *num        ,INT *nelcon
+               ,short *nViz
+               ,INT const numel ,short const maxViz
+               ,short const ndf 
+               ,char  *strIa    ,char *strJa
+               ,char *strAd     ,char *strA  
                ,SistEq *sistEqX)
 {
    short type = sistEqX->storage;
@@ -69,11 +72,11 @@ void dataStruct(Memoria *m ,INT *id   ,INT *num   ,INT *nelcon
        sortGraphCsr(sistEqX->ia,sistEqX->ja,sistEqX->neq);
 /*...................................................................*/
 
-/*...*/
-       HccaAlloc(double,m,sistEqX->ad     ,sistEqX->neq ,strAd   ,_AD_);
-       HccaAlloc(double,m,sistEqX->al     ,sistEqX->nad ,strA    ,_AD_);
-       zero(sistEqX->ad,sistEqX->neq,"double");
-       zero(sistEqX->al,sistEqX->nad,"double");
+/*... alocacao da matriz*/
+       HccaAlloc(DOUBLE,m,sistEqX->ad     ,sistEqX->neq ,strAd   ,_AD_);
+       HccaAlloc(DOUBLE,m,sistEqX->al     ,sistEqX->nad ,strA    ,_AD_);
+       zero(sistEqX->ad,sistEqX->neq,DOUBLEC);
+       zero(sistEqX->al,sistEqX->nad,DOUBLEC);
 /*...................................................................*/
      
 /*... banda da matriz*/
@@ -92,10 +95,57 @@ void dataStruct(Memoria *m ,INT *id   ,INT *num   ,INT *nelcon
      break;
 /*...................................................................*/
 
+/*... armazenamento ELLPACK(ad,d)*/
+     case ELLPACK:
 /*...*/
+       HccaAlloc(INT,m,sistEqX->ia,2             ,strIa   ,_AD_);
+       HccaAlloc(INT,m,sistEqX->ja,sistEqX->neq*maxViz ,strJa   ,_AD_);
+       zero(sistEqX->ja,sistEqX->neq*maxViz,INTC);
+/*...................................................................*/
+
+/*...*/
+       sistEqX->nad = ellPackJa(sistEqX->ia     ,sistEqX->ja 
+                              ,id               ,num
+                              ,nelcon           ,nViz
+                              ,numel            ,sistEqX->neq
+                              ,maxViz           ,ndf);
+/*...................................................................*/
+
+/*... alocacao da matriz*/
+       HccaAlloc(DOUBLE,m,sistEqX->ad,sistEqX->neq ,strAd   ,_AD_);
+       HccaAlloc(DOUBLE,m,sistEqX->al
+                ,sistEqX->neq*maxViz ,strA    ,_AD_);
+       zero(sistEqX->ad,sistEqX->neq,DOUBLEC);
+       zero(sistEqX->al,sistEqX->neq*maxViz,DOUBLEC);
+/*...................................................................*/
+
+/*... banda da matriz*/
+       printf("band Maxima: %ld\n"
+            ,(long) bandEllPack(sistEqX->ia,sistEqX->ja,sistEqX->neq,1));
+       printf("band Minima: %ld\n"
+            ,(long) bandEllPack(sistEqX->ia,sistEqX->ja,sistEqX->neq,3));
+       printf("band Media : %ld\n"
+            ,(long) bandEllPack(sistEqX->ia,sistEqX->ja,sistEqX->neq,2));
+/*...................................................................*/
+     break;
+/*...................................................................*/
+     
      default:
        ERRO_OP(__FILE__,__func__,type);
      break;
 /*...................................................................*/
   }
 }
+/**********************************************************************
+ *SETDATASTRUCT : escolhe a estruturade dados                         *
+ **********************************************************************/
+void setDataStruct(char *word,short *data)
+{
+
+  if(!strcmp(word,"CSRD"))
+   *data = CSRD;
+  else if(!strcmp(word,"ELLPACK"))
+   *data = ELLPACK;
+
+} 
+/*********************************************************************/      

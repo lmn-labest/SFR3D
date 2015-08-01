@@ -435,38 +435,50 @@ int main(int argc,char**argv){
         exit(EXIT_FAILURE);
       }
       sistEqD1->storage = CSRD;
+//    sistEqD1->storage = ELLPACK;
       sistEqD1->unsym   = false;    
 /*...................................................................*/
 
 /*... config*/
       readMacro(fileIn,word,false);
       if(!strcmp(word,"config:")){
+/*... solver*/        
         readMacro(fileIn,word,false);
         setSolver(word,&solvD1->solver); 
-        readMacro(fileIn,word,false);
         
+/*... DataStruct*/    
+        readMacro(fileIn,word,false);
+        setDataStruct(word,&sistEqD1->storage); 
+
+/*... simetria*/        
+        readMacro(fileIn,word,false);
         if(!strcmp(word,"sym"))
           sistEqD1->unsym   = false;    
         else if(!strcmp("unSym",word))
           sistEqD1->unsym   = true;    
         
+/*... */        
         fscanf(fileIn,"%u" ,&solvD1->maxIt);
         fscanf(fileIn,"%lf",&solvD1->tol);
 
         if( solvD1->tol == 0.e0) 
           solvD1->tol = smachn();
 
-        printf("MaxIt: %d\n",solvD1->maxIt);
-        printf("Tol  : %e\n",solvD1->tol);
+        printf("MaxIt     : %d\n",solvD1->maxIt);
+        printf("Tol       : %e\n",solvD1->tol);
       
         if(solvD1->solver == PCG)     
-          printf("PCG\n");
-
+          printf("Solver    : PCG\n");
+        
+        if(sistEqD1->storage == CSRD)     
+          printf("DataStruct: CSRD\n");
+        else if(sistEqD1->storage == ELLPACK)     
+          printf("DataStruct: ELLPACK\n");
 
         if(sistEqD1->unsym)
-          printf("unsymetric\n");
+          printf("Matrix    : unsymetric\n");
         else
-          printf("symetric\n");
+          printf("Matrix    : symetric\n");
 
       }
 /*...................................................................*/
@@ -560,7 +572,7 @@ int main(int argc,char**argv){
                    ,sistEqD1->ia            ,sistEqD1->ja      
                    ,sistEqD1->ad            ,sistEqD1->al       
                    ,sistEqD1->b             ,sistEqD1->id       
-                   ,mesh->elm.faceRd1       ,mesh->elm.faceLoadD1             
+                   ,mesh->elm.faceRd1       ,mesh->elm.faceLoadD1  
                    ,mesh->elm.uD1           ,mesh->elm.gradUd1             
                    ,mesh->elm.rCellUd1                          
                    ,mesh->maxNo             ,mesh->maxViz

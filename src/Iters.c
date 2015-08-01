@@ -53,7 +53,6 @@ void pcg(INT const neq      ,INT const nad
     for(i = 0; i < neq; i++)  
       x[i] = 0.e0;
   
-      
   matvec(neq,ia,ja,al,ad,x,z);
   
   for(i = 0; i < neq; i++)   {

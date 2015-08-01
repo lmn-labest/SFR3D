@@ -299,7 +299,7 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
   DOUBLE gradUp[3],gradUv[3],nMinusKsi[3];
   DOUBLE alpha,alphaMenosUm;
   short idCell = nFace;
-  short nAresta,nCarg;
+  short nf,nCarg;
   INT vizNel;
 
 /*... propriedades da celula*/
@@ -315,26 +315,26 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
   p  = 0.0e0;
   aP = 0.0e0;
   sP = 0.0e0;
-  for(nAresta=0;nAresta<nFace;nAresta++){
-    vizNel = lViz[nAresta];
+  for(nf=0;nf<nFace;nf++){
+    vizNel = lViz[nf];
 /*... dominio*/
     if( vizNel  > -1 ){
 /*...*/
-      lKsi[0]    = MAT2D(nAresta,0,ksi,ndm);
-      lKsi[1]    = MAT2D(nAresta,1,ksi,ndm);
-      lKsi[2]    = MAT2D(nAresta,2,ksi,ndm);
-      lNormal[0] = MAT2D(nAresta,0,normal,ndm);
-      lNormal[1] = MAT2D(nAresta,1,normal,ndm);
-      lNormal[2] = MAT2D(nAresta,2,normal,ndm);
-      lModKsi    = mKsi[nAresta];
-      lfArea     = fArea[nAresta];
-      lvSkew[0]  = MAT2D(nAresta,0,vSkew,ndm);
-      lvSkew[1]  = MAT2D(nAresta,1,vSkew,ndm);
-      lvSkew[2]  = MAT2D(nAresta,2,vSkew,ndm);
-      duDksi     = (u0[nAresta] - u0[idCell]) / lModKsi;
-      gradUv[0]  = MAT2D(nAresta,0,gradU0,ndm);
-      gradUv[1]  = MAT2D(nAresta,1,gradU0,ndm);
-      gradUv[2]  = MAT2D(nAresta,2,gradU0,ndm);
+      lKsi[0]    = MAT2D(nf,0,ksi,ndm);
+      lKsi[1]    = MAT2D(nf,1,ksi,ndm);
+      lKsi[2]    = MAT2D(nf,2,ksi,ndm);
+      lNormal[0] = MAT2D(nf,0,normal,ndm);
+      lNormal[1] = MAT2D(nf,1,normal,ndm);
+      lNormal[2] = MAT2D(nf,2,normal,ndm);
+      lModKsi    = mKsi[nf];
+      lfArea     = fArea[nf];
+      lvSkew[0]  = MAT2D(nf,0,vSkew,ndm);
+      lvSkew[1]  = MAT2D(nf,1,vSkew,ndm);
+      lvSkew[2]  = MAT2D(nf,2,vSkew,ndm);
+      duDksi     = (u0[nf] - u0[idCell]) / lModKsi;
+      gradUv[0]  = MAT2D(nf,0,gradU0,ndm);
+      gradUv[1]  = MAT2D(nf,1,gradU0,ndm);
+      gradUv[2]  = MAT2D(nf,2,gradU0,ndm);
 /*...................................................................*/
 
 /*... produtos internos*/
@@ -348,16 +348,16 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
 /*...................................................................*/
 
 /*...*/
-      v[0]  = lvSkew[0] + MAT2D(nAresta,0,xmcc,ndm);
-      v[1]  = lvSkew[1] + MAT2D(nAresta,1,xmcc,ndm);
-      v[2]  = lvSkew[2] + MAT2D(nAresta,2,xmcc,ndm);
+      v[0]  = lvSkew[0] + MAT2D(nf,0,xmcc,ndm);
+      v[1]  = lvSkew[1] + MAT2D(nf,1,xmcc,ndm);
+      v[2]  = lvSkew[2] + MAT2D(nf,2,xmcc,ndm);
       dPviz = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
       alpha        = dPviz/lModKsi;
       alphaMenosUm = 1.0e0 - alpha; 
 /*...................................................................*/
 
 /*... media harmonica*/
-      coefDifV = MAT2D(nAresta,COEFDIF,prop,MAXPROP); 
+      coefDifV = MAT2D(nf,COEFDIF,prop,MAXPROP); 
       coefDif  = alpha/coefDifC + alphaMenosUm/coefDifV;
       coefDif  = 1.0e0/coefDif;
 /*...................................................................*/
@@ -399,20 +399,20 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
 /*...................................................................*/
 
 /*...*/
-      lA[nAresta] = dfd;
-      p          += dfdc;
+      lA[nf] = dfd;
+      p     += dfdc;
 /*...................................................................*/
     }
 /*... contorno*/
     else{
-      lA[nAresta] = 0.0e0;
-      if(lFaceR[nAresta]){
+      lA[nf] = 0.0e0;
+      if(lFaceR[nf]){
 /*...cargas*/
-        nCarg=lFaceL[nAresta]-1;
+        nCarg=lFaceL[nf]-1;
 /*... potencial prescrito*/
         if( loadsD1[nCarg].type == DIRICHLETBC){
           tA  = loadsD1[nCarg].par[0];
-          aP  = coefDifC*fArea[nAresta]/dcca[nAresta];
+          aP  = coefDifC*fArea[nf]/dcca[nf];
           sP += aP;
           p  += aP*tA; 
         }
@@ -422,8 +422,8 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
         else if( loadsD1[nCarg].type == ROBINBC){
           h   = loadsD1[nCarg].par[0];
           tA  = loadsD1[nCarg].par[1];
-          aP  = (coefDifC*h)/(coefDifC+h*dcca[nAresta])
-                *fArea[nAresta];
+          aP  = (coefDifC*h)/(coefDifC+h*dcca[nf])
+                *fArea[nf];
           sP += aP;
           p  += aP*tA;
         }
@@ -432,7 +432,7 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
 /*... fluxo prestrito diferente de zero*/
         else if( loadsD1[nCarg].type == NEUMANNBC){
           tA  = loadsD1[nCarg].par[0];
-           p +=  fArea[nAresta]*tA;
+           p +=  fArea[nf]*tA;
         }
       }
 /*...................................................................*/
@@ -440,32 +440,59 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
 /*...................................................................*/
   }
 
-/*...*/
-  lA[idCell] = sP;
-  for(nAresta=0;nAresta<nFace;nAresta++){
-    lA[idCell] += lA[nAresta];
+/*...*/ 
+  if(nf == 4){
+    lA[idCell] = sP + lA[0] + lA[1] + lA[2] + lA[3];
   }
+  else if(nf == 6){
+    lA[idCell] = sP + lA[0] + lA[1] + lA[2] + lA[3] + lA[4] + lA[5];
+  }
+
+/*
+  lA[idCell] = sP;
+  for(nf=0;nf<nFace;nf++){
+    lA[idCell] += lA[nf];
+  }
+*/
 /*...................................................................*/
 
 /*...*/
   rCell = 0.0e0;
-  for(nAresta=0;nAresta<nFace;nAresta++){
-    if( lViz[nAresta] > -1){
+  for(nf=0;nf<nFace;nf++){
+    if( lViz[nf] > -1){
 /*... pasando os valoeres conhecidos para o lado direito*/
-      if(lId[nAresta] == -2)
-        p += lA[nAresta]*u0[nAresta]; 
+      if(lId[nf] == -2)
+        p += lA[nf]*u0[nf]; 
       else
 /*residuo (R = F-KvizUviz ) e valores prescritos por elemento*/
-        rCell += lA[nAresta]*u0[nAresta]; 
+        rCell += lA[nf]*u0[nf]; 
     }
   }
 /*... residuo: R = F - KpUp*/ 
   rCell += p -lA[idCell]*u0[idCell];   
 /*...................................................................*/
-  
-  for(nAresta=0;nAresta<nFace;nAresta++){
-   lA[nAresta] *= -1.e0;
+
+/*...*/  
+/*
+  for(nf=0;nf<nFace;nf++){
+   lA[nf] *= -1.e0;
   }
+*/
+  if(nf == 4){
+    lA[0] *= -1.e0;
+    lA[1] *= -1.e0;
+    lA[2] *= -1.e0;
+    lA[3] *= -1.e0;
+  }
+  else if(nf == 6){
+    lA[0] *= -1.e0;
+    lA[1] *= -1.e0;
+    lA[2] *= -1.e0;
+    lA[3] *= -1.e0;
+    lA[4] *= -1.e0;
+    lA[5] *= -1.e0;
+  }
+/*...................................................................*/
 
 /*...*/
   lB[0]     = p;

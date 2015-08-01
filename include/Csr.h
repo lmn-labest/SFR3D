@@ -26,10 +26,10 @@
 
 /*...*/  
   void csr(INT    *restrict  ia,INT *restrict ja 
-          ,double *restrict au ,double *restrict ad
-          ,double *restrict al ,double *restrict b
+          ,DOUBLE *restrict au ,DOUBLE *restrict ad
+          ,DOUBLE *restrict al ,DOUBLE *restrict b
           ,INT *restrict lId                       
-          ,double *restrict lA ,double *restrict lB 
+          ,DOUBLE *restrict lA ,DOUBLE *restrict lB 
           ,short const nFace   ,short const ndf  
           ,short const storade ,bool  const forces
           ,bool const matrix   ,bool  const  unsym);

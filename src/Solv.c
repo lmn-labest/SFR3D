@@ -66,7 +66,7 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
       switch(storage){
 /*... armazenamento CSR(a)*/
         case CSR:
-            matVecC = NULL;
+          matVecC = NULL;
         break;
 /*...................................................................*/
 
@@ -81,7 +81,15 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
 
 /*... armazenamento CSRC(ad,au,al)*/
         case CSRC:
-            matVecC = NULL;
+          matVecC = NULL;
+        break;
+/*...................................................................*/
+
+/*... armazenamento ELLPACK(ad,a)*/
+        case ELLPACK:
+//        matVecC = matVecEllPack;
+          matVecC = matVecEllPackO2;
+//        matVecC = matVecEllPackO4;
         break;
 /*...................................................................*/
 
@@ -94,7 +102,16 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
 /*...................................................................*/
       
 /*...*/
-      dotC    = dot;
+//    dotC    = dot;
+//    dotC    = dotL2;
+//    dotC    = dotL4;
+//    dotC    = dotL6;
+//    dotC    = dotL8;
+//    dotC    = dotO2;
+//    dotC    = dotO4;
+//    dotC    = dotO6;
+//    dotC    = dotO8;
+      dotC    = dotO2L2;
 /*...................................................................*/
 
 /*... gradientes conjugados*/

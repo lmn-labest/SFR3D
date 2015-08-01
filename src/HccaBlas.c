@@ -31,6 +31,10 @@
  * matVecCsrDO4   -> matriz vetor para matriz geral no formato CSRD   * 
  * matVecCsrDO6   -> matriz vetor para matriz geral no formato CSRD   * 
  * matVecCsrDO2I2 -> matriz vetor para matriz geral no formato CSRD   * 
+ * ------------------------ ELLPACK --------------------------------- * 
+ * matVecEllPack  -> matriz vetor para matriz geral no formato EllPack* 
+ * matVecEllPackO2-> matriz vetor para matriz geral no formato EllPack* 
+ * matVecEllPackO4-> matriz vetor para matriz geral no formato EllPack* 
  *********************************************************************/
 
 /********************************************************************* 
@@ -839,6 +843,10 @@ void matVecCsrDI2(INT const neq
   int resto,n;
   DOUBLE tmp;
 
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+
   for(i=0;i<neq;i++){
     tmp   = ad[i]*x[i];
     ia1   = ia[i  ];
@@ -856,6 +864,11 @@ void matVecCsrDI2(INT const neq
 
     y[i] = tmp;
   }
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+  
 } 
 /*********************************************************************/ 
 
@@ -891,6 +904,10 @@ void matVecCsrDI4(INT const neq
   int resto,n;
   DOUBLE tmp;
 
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+
   for(i=0;i<neq;i++){
     tmp   = ad[i]*x[i];
     ia1   = ia[i  ];
@@ -917,6 +934,11 @@ void matVecCsrDI4(INT const neq
 
     y[i] = tmp;
   }
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+  
 } 
 /*********************************************************************/ 
 
@@ -952,6 +974,9 @@ void matVecCsrDI6(INT const neq
   int resto,n;
   DOUBLE tmp;
 
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
   for(i=0;i<neq;i++){
     tmp   = ad[i]*x[i];
     ia1   = ia[  i];
@@ -991,6 +1016,11 @@ void matVecCsrDI6(INT const neq
 
     y[i] = tmp;
   }
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+  
 } 
 /*********************************************************************/ 
  
@@ -1026,6 +1056,9 @@ void matVecCsrDO2(INT const neq
   int resto;
   DOUBLE tmp1,tmp2;
 
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
   resto = neq%2;
   
   if(resto){
@@ -1059,6 +1092,11 @@ linhai1:
 linhai2:
     y[i+1] = tmp2;
   }
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+  
 } 
 /*********************************************************************/ 
 
@@ -1094,6 +1132,9 @@ void matVecCsrDO4(INT const neq
   int resto;
   DOUBLE tmp1,tmp2,tmp3,tmp4;
 
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
   resto = neq %4;
   
   if(resto == 3){
@@ -1175,6 +1216,11 @@ linhai3:
 linhai4:
     y[i+3] = tmp4;
   }
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+  
 } 
 /*********************************************************************/ 
 
@@ -1210,6 +1256,9 @@ void matVecCsrDO6(INT const neq
   int resto;
   DOUBLE tmp1,tmp2,tmp3,tmp4,tmp5,tmp6;
 
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
   resto = neq%6;
   
   if(resto == 5){
@@ -1354,6 +1403,11 @@ linhai5:
 linhai6:
     y[i+5] = tmp6;
   }
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+  
 } 
 /*********************************************************************/ 
 
@@ -1389,6 +1443,9 @@ void matVecCsrDO2I2(INT const neq
   int resto1,resto2,n;
   DOUBLE tmp1,tmp2;
   
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
   resto1 = neq % 2;
   
   if(resto1){
@@ -1432,6 +1489,398 @@ linhai1:
 linhai2:
     y[i+1] = tmp2;
   }
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+  
+} 
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * MATVECELLPACK : produto matriz vetor para uma matriz generica no  *
+ * formato ELLPACK                                                   *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * a   -> vetor com os valores da matriz                             * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecEllPack(INT const nEq           
+                  ,INT *restrict ia  ,INT *restrict ja
+                  ,DOUBLE *restrict a,DOUBLE *restrict ad
+                  ,DOUBLE *restrict x,DOUBLE *restrict y)
+{
+ 
+  INT i,maxLineNzr=ia[0];
+  DOUBLE ti;
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+ 
+  if( maxLineNzr == 6){
+    for(i = 0;i<nEq;i++){
+      ti   = ad[i]*x[i]; 
+      ti  += MAT2D(i,0,a,maxLineNzr)*x[MAT2D(i,0,ja,maxLineNzr)];
+      ti  += MAT2D(i,1,a,maxLineNzr)*x[MAT2D(i,1,ja,maxLineNzr)];
+      ti  += MAT2D(i,2,a,maxLineNzr)*x[MAT2D(i,2,ja,maxLineNzr)];
+      ti  += MAT2D(i,3,a,maxLineNzr)*x[MAT2D(i,3,ja,maxLineNzr)];
+      ti  += MAT2D(i,4,a,maxLineNzr)*x[MAT2D(i,4,ja,maxLineNzr)];
+      ti  += MAT2D(i,5,a,maxLineNzr)*x[MAT2D(i,5,ja,maxLineNzr)];
+      y[i] = ti;   
+    }
+  }
+  
+  else if( maxLineNzr == 4){
+    for(i = 0;i<nEq;i++){
+      ti    = ad[i]*x[i]; 
+      ti   += MAT2D(i,0,a,maxLineNzr)*x[MAT2D(i,0,ja,maxLineNzr)];
+      ti   += MAT2D(i,1,a,maxLineNzr)*x[MAT2D(i,1,ja,maxLineNzr)];
+      ti   += MAT2D(i,2,a,maxLineNzr)*x[MAT2D(i,2,ja,maxLineNzr)];
+      ti   += MAT2D(i,3,a,maxLineNzr)*x[MAT2D(i,3,ja,maxLineNzr)];
+      y[i] = ti;                 
+    }
+  }
+  
+  else if( maxLineNzr == 3){
+    for(i = 0;i<nEq;i++){
+      ti   = ad[i]*x[i]; 
+      ti  += MAT2D(i,0,a,maxLineNzr)*x[MAT2D(i,0,ja,maxLineNzr)];
+      ti  += MAT2D(i,1,a,maxLineNzr)*x[MAT2D(i,1,ja,maxLineNzr)];
+      ti  += MAT2D(i,2,a,maxLineNzr)*x[MAT2D(i,2,ja,maxLineNzr)];
+      y[i] = ti;                 
+    }
+  
+  }
+  
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+  
+} 
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * MATVECELLPACKO2 : produto matriz vetor para uma matriz generica no*
+ * formato ELLPACK                                                   *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * a   -> vetor com os valores da matriz                             * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecEllPackO2(INT const nEq           
+                    ,INT *restrict ia  ,INT *restrict ja
+                    ,DOUBLE *restrict a,DOUBLE *restrict ad
+                    ,DOUBLE *restrict x,DOUBLE *restrict y)
+{
+ 
+  INT i,ii,maxLineNzr=ia[0];
+  int resto;
+  DOUBLE ti,tii;
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+   
+  if( maxLineNzr == 6){
+    resto = nEq%2;
+    if(resto){
+      ti   = ad[0]*x[0]; 
+      ti  += MAT2D(0,0,a,maxLineNzr)*x[MAT2D(0,0,ja,maxLineNzr)];
+      ti  += MAT2D(0,1,a,maxLineNzr)*x[MAT2D(0,1,ja,maxLineNzr)];
+      ti  += MAT2D(0,2,a,maxLineNzr)*x[MAT2D(0,2,ja,maxLineNzr)];
+      ti  += MAT2D(0,3,a,maxLineNzr)*x[MAT2D(0,3,ja,maxLineNzr)];
+      ti  += MAT2D(0,4,a,maxLineNzr)*x[MAT2D(0,4,ja,maxLineNzr)];
+      ti  += MAT2D(0,5,a,maxLineNzr)*x[MAT2D(0,5,ja,maxLineNzr)];
+      y[0] = ti;                                        
+    }
+    for(i = resto;i<nEq;i+=2){
+      ii   = i + 1;
+/*...*/
+      ti   = ad[i]*x[i]; 
+      ti  += MAT2D(i,0,a,maxLineNzr)*x[MAT2D(i,0,ja,maxLineNzr)];
+      ti  += MAT2D(i,1,a,maxLineNzr)*x[MAT2D(i,1,ja,maxLineNzr)];
+      ti  += MAT2D(i,2,a,maxLineNzr)*x[MAT2D(i,2,ja,maxLineNzr)];
+      ti  += MAT2D(i,3,a,maxLineNzr)*x[MAT2D(i,3,ja,maxLineNzr)];
+      ti  += MAT2D(i,4,a,maxLineNzr)*x[MAT2D(i,4,ja,maxLineNzr)];
+      ti  += MAT2D(i,5,a,maxLineNzr)*x[MAT2D(i,5,ja,maxLineNzr)];
+      y[i] = ti;                                        
+/*...*/
+      tii   = ad[ii]*x[ii]; 
+      tii  += MAT2D(ii,0,a,maxLineNzr)*x[MAT2D(ii,0,ja,maxLineNzr)];
+      tii  += MAT2D(ii,1,a,maxLineNzr)*x[MAT2D(ii,1,ja,maxLineNzr)];
+      tii  += MAT2D(ii,2,a,maxLineNzr)*x[MAT2D(ii,2,ja,maxLineNzr)];
+      tii  += MAT2D(ii,3,a,maxLineNzr)*x[MAT2D(ii,3,ja,maxLineNzr)];
+      tii  += MAT2D(ii,4,a,maxLineNzr)*x[MAT2D(ii,4,ja,maxLineNzr)];
+      tii  += MAT2D(ii,5,a,maxLineNzr)*x[MAT2D(ii,5,ja,maxLineNzr)];
+      y[ii] = tii;                                        
+    }
+  }
+  else if( maxLineNzr == 4){
+    resto = nEq%2;
+    if(resto){
+      ti   = ad[0]*x[0]; 
+      ti  += MAT2D(0,0,a,maxLineNzr)*x[MAT2D(0,0,ja,maxLineNzr)];
+      ti  += MAT2D(0,1,a,maxLineNzr)*x[MAT2D(0,1,ja,maxLineNzr)];
+      ti  += MAT2D(0,2,a,maxLineNzr)*x[MAT2D(0,2,ja,maxLineNzr)];
+      ti  += MAT2D(0,3,a,maxLineNzr)*x[MAT2D(0,3,ja,maxLineNzr)];
+      y[0] = ti;                                        
+    }
+    for(i = resto;i<nEq;i+=2){
+      ii   = i + 1;
+/*...*/
+      ti   = ad[i]*x[i]; 
+      ti  += MAT2D(i,0,a,maxLineNzr)*x[MAT2D(i,0,ja,maxLineNzr)];
+      ti  += MAT2D(i,1,a,maxLineNzr)*x[MAT2D(i,1,ja,maxLineNzr)];
+      ti  += MAT2D(i,2,a,maxLineNzr)*x[MAT2D(i,2,ja,maxLineNzr)];
+      ti  += MAT2D(i,3,a,maxLineNzr)*x[MAT2D(i,3,ja,maxLineNzr)];
+      y[i] = ti;                                        
+/*...*/
+      tii   = ad[ii]*x[ii]; 
+      tii  += MAT2D(ii,0,a,maxLineNzr)*x[MAT2D(ii,0,ja,maxLineNzr)];
+      tii  += MAT2D(ii,1,a,maxLineNzr)*x[MAT2D(ii,1,ja,maxLineNzr)];
+      tii  += MAT2D(ii,2,a,maxLineNzr)*x[MAT2D(ii,2,ja,maxLineNzr)];
+      tii  += MAT2D(ii,3,a,maxLineNzr)*x[MAT2D(ii,3,ja,maxLineNzr)];
+      y[ii] = tii;                                        
+    }
+  }
+  
+  else if( maxLineNzr == 3){
+    resto = nEq%2;
+    if(resto){
+      ti   = ad[0]*x[0]; 
+      ti  += MAT2D(0,0,a,maxLineNzr)*x[MAT2D(0,0,ja,maxLineNzr)];
+      ti  += MAT2D(0,1,a,maxLineNzr)*x[MAT2D(0,1,ja,maxLineNzr)];
+      ti  += MAT2D(0,2,a,maxLineNzr)*x[MAT2D(0,2,ja,maxLineNzr)];
+      y[0] = ti;                                        
+    }
+    for(i = resto;i<nEq;i+=2){
+      ii   = i + 1;
+/*...*/
+      ti   = ad[i]*x[i]; 
+      ti  += MAT2D(i,0,a,maxLineNzr)*x[MAT2D(i,0,ja,maxLineNzr)];
+      ti  += MAT2D(i,1,a,maxLineNzr)*x[MAT2D(i,1,ja,maxLineNzr)];
+      ti  += MAT2D(i,2,a,maxLineNzr)*x[MAT2D(i,2,ja,maxLineNzr)];
+      y[i] = ti;                                        
+/*...*/
+      tii   = ad[ii]*x[ii]; 
+      tii  += MAT2D(ii,0,a,maxLineNzr)*x[MAT2D(ii,0,ja,maxLineNzr)];
+      tii  += MAT2D(ii,1,a,maxLineNzr)*x[MAT2D(ii,1,ja,maxLineNzr)];
+      tii  += MAT2D(ii,2,a,maxLineNzr)*x[MAT2D(ii,2,ja,maxLineNzr)];
+      y[ii] = tii;                                        
+    }
+  }
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+  
+} 
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * MATVECELLPACKO4 : produto matriz vetor para uma matriz generica no*
+ * formato ELLPACK                                                   *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * a   -> vetor com os valores da matriz                             * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecEllPackO4(INT const nEq           
+                    ,INT *restrict ia  ,INT *restrict ja
+                    ,DOUBLE *restrict a,DOUBLE *restrict ad
+                    ,DOUBLE *restrict x,DOUBLE *restrict y)
+{
+ 
+  INT i,ii,iii,iv,maxLineNzr=ia[0];
+  int resto;
+  DOUBLE ti,tii,tiii,tiv;
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+   
+  if( maxLineNzr == 6){
+    resto = nEq%4;
+    for(i = 0;i<resto;i++){
+      ti   = ad[i]*x[i]; 
+      ti  += MAT2D(i,0,a,maxLineNzr)*x[MAT2D(i,0,ja,maxLineNzr)];
+      ti  += MAT2D(i,1,a,maxLineNzr)*x[MAT2D(i,1,ja,maxLineNzr)];
+      ti  += MAT2D(i,2,a,maxLineNzr)*x[MAT2D(i,2,ja,maxLineNzr)];
+      ti  += MAT2D(i,3,a,maxLineNzr)*x[MAT2D(i,3,ja,maxLineNzr)];
+      ti  += MAT2D(i,4,a,maxLineNzr)*x[MAT2D(i,4,ja,maxLineNzr)];
+      ti  += MAT2D(i,5,a,maxLineNzr)*x[MAT2D(i,5,ja,maxLineNzr)];
+      y[i] = ti;                                        
+    }
+    for(i = resto;i<nEq;i+=4){
+      ii   = i + 1;
+      iii  = i + 2;
+      iv   = i + 3;
+/*...*/
+      ti   = ad[i]*x[i]; 
+      ti  += MAT2D(i,0,a,maxLineNzr)*x[MAT2D(i,0,ja,maxLineNzr)];
+      ti  += MAT2D(i,1,a,maxLineNzr)*x[MAT2D(i,1,ja,maxLineNzr)];
+      ti  += MAT2D(i,2,a,maxLineNzr)*x[MAT2D(i,2,ja,maxLineNzr)];
+      ti  += MAT2D(i,3,a,maxLineNzr)*x[MAT2D(i,3,ja,maxLineNzr)];
+      ti  += MAT2D(i,4,a,maxLineNzr)*x[MAT2D(i,4,ja,maxLineNzr)];
+      ti  += MAT2D(i,5,a,maxLineNzr)*x[MAT2D(i,5,ja,maxLineNzr)];
+      y[i] = ti;                                        
+/*...*/
+      tii   = ad[ii]*x[ii]; 
+      tii  += MAT2D(ii,0,a,maxLineNzr)*x[MAT2D(ii,0,ja,maxLineNzr)];
+      tii  += MAT2D(ii,1,a,maxLineNzr)*x[MAT2D(ii,1,ja,maxLineNzr)];
+      tii  += MAT2D(ii,2,a,maxLineNzr)*x[MAT2D(ii,2,ja,maxLineNzr)];
+      tii  += MAT2D(ii,3,a,maxLineNzr)*x[MAT2D(ii,3,ja,maxLineNzr)];
+      tii  += MAT2D(ii,4,a,maxLineNzr)*x[MAT2D(ii,4,ja,maxLineNzr)];
+      tii  += MAT2D(ii,5,a,maxLineNzr)*x[MAT2D(ii,5,ja,maxLineNzr)];
+      y[ii] = tii;                                        
+/*...*/
+      tiii  = ad[iii]*x[iii]; 
+      tiii += MAT2D(iii,0,a,maxLineNzr)*x[MAT2D(iii,0,ja,maxLineNzr)];
+      tiii += MAT2D(iii,1,a,maxLineNzr)*x[MAT2D(iii,1,ja,maxLineNzr)];
+      tiii += MAT2D(iii,2,a,maxLineNzr)*x[MAT2D(iii,2,ja,maxLineNzr)];
+      tiii += MAT2D(iii,3,a,maxLineNzr)*x[MAT2D(iii,3,ja,maxLineNzr)];
+      tiii += MAT2D(iii,4,a,maxLineNzr)*x[MAT2D(iii,4,ja,maxLineNzr)];
+      tiii += MAT2D(iii,5,a,maxLineNzr)*x[MAT2D(iii,5,ja,maxLineNzr)];
+      y[iii] = tiii;                                        
+/*...*/
+      tiv   = ad[iv]*x[iv]; 
+      tiv  += MAT2D(iv,0,a,maxLineNzr)*x[MAT2D(iv,0,ja,maxLineNzr)];
+      tiv  += MAT2D(iv,1,a,maxLineNzr)*x[MAT2D(iv,1,ja,maxLineNzr)];
+      tiv  += MAT2D(iv,2,a,maxLineNzr)*x[MAT2D(iv,2,ja,maxLineNzr)];
+      tiv  += MAT2D(iv,3,a,maxLineNzr)*x[MAT2D(iv,3,ja,maxLineNzr)];
+      tiv  += MAT2D(iv,4,a,maxLineNzr)*x[MAT2D(iv,4,ja,maxLineNzr)];
+      tiv  += MAT2D(iv,5,a,maxLineNzr)*x[MAT2D(iv,5,ja,maxLineNzr)];
+      y[iv] = tiv;                                        
+    }
+  }
+/*... */
+  else if( maxLineNzr == 4){
+    resto = nEq%4;
+    for(i = 0;i<resto;i++){
+      ti   = ad[i]*x[i]; 
+      ti  += MAT2D(i,0,a,maxLineNzr)*x[MAT2D(i,0,ja,maxLineNzr)];
+      ti  += MAT2D(i,1,a,maxLineNzr)*x[MAT2D(i,1,ja,maxLineNzr)];
+      ti  += MAT2D(i,2,a,maxLineNzr)*x[MAT2D(i,2,ja,maxLineNzr)];
+      ti  += MAT2D(i,3,a,maxLineNzr)*x[MAT2D(i,3,ja,maxLineNzr)];
+      y[i] = ti;                                        
+    }
+    for(i = resto;i<nEq;i+=4){
+      ii   = i + 1;
+      iii  = i + 2;
+      iv   = i + 3;
+/*...*/
+      ti   = ad[i]*x[i]; 
+      ti  += MAT2D(i,0,a,maxLineNzr)*x[MAT2D(i,0,ja,maxLineNzr)];
+      ti  += MAT2D(i,1,a,maxLineNzr)*x[MAT2D(i,1,ja,maxLineNzr)];
+      ti  += MAT2D(i,2,a,maxLineNzr)*x[MAT2D(i,2,ja,maxLineNzr)];
+      ti  += MAT2D(i,3,a,maxLineNzr)*x[MAT2D(i,3,ja,maxLineNzr)];
+      y[i] = ti;                                        
+/*...*/
+      tii   = ad[ii]*x[ii]; 
+      tii  += MAT2D(ii,0,a,maxLineNzr)*x[MAT2D(ii,0,ja,maxLineNzr)];
+      tii  += MAT2D(ii,1,a,maxLineNzr)*x[MAT2D(ii,1,ja,maxLineNzr)];
+      tii  += MAT2D(ii,2,a,maxLineNzr)*x[MAT2D(ii,2,ja,maxLineNzr)];
+      tii  += MAT2D(ii,3,a,maxLineNzr)*x[MAT2D(ii,3,ja,maxLineNzr)];
+      y[ii] = tii;                                        
+/*...*/
+      tiii  = ad[iii]*x[iii]; 
+      tiii += MAT2D(iii,0,a,maxLineNzr)*x[MAT2D(iii,0,ja,maxLineNzr)];
+      tiii += MAT2D(iii,1,a,maxLineNzr)*x[MAT2D(iii,1,ja,maxLineNzr)];
+      tiii += MAT2D(iii,2,a,maxLineNzr)*x[MAT2D(iii,2,ja,maxLineNzr)];
+      tiii += MAT2D(iii,3,a,maxLineNzr)*x[MAT2D(iii,3,ja,maxLineNzr)];
+      y[iii] = tiii;                                        
+/*...*/
+      tiv   = ad[iv]*x[iv]; 
+      tiv  += MAT2D(iv,0,a,maxLineNzr)*x[MAT2D(iv,0,ja,maxLineNzr)];
+      tiv  += MAT2D(iv,1,a,maxLineNzr)*x[MAT2D(iv,1,ja,maxLineNzr)];
+      tiv  += MAT2D(iv,2,a,maxLineNzr)*x[MAT2D(iv,2,ja,maxLineNzr)];
+      tiv  += MAT2D(iv,3,a,maxLineNzr)*x[MAT2D(iv,3,ja,maxLineNzr)];
+      y[iv] = tiv;                                        
+    }
+  }
+/*... */
+  else if( maxLineNzr == 3){
+    resto = nEq%4;
+    for(i = 0;i<resto;i++){
+      ti   = ad[i]*x[i]; 
+      ti  += MAT2D(i,0,a,maxLineNzr)*x[MAT2D(i,0,ja,maxLineNzr)];
+      ti  += MAT2D(i,1,a,maxLineNzr)*x[MAT2D(i,1,ja,maxLineNzr)];
+      ti  += MAT2D(i,2,a,maxLineNzr)*x[MAT2D(i,2,ja,maxLineNzr)];
+      y[i] = ti;                                        
+    }
+    for(i = resto;i<nEq;i+=4){
+      ii   = i + 1;
+      iii  = i + 2;
+      iv   = i + 3;
+/*...*/
+      ti   = ad[i]*x[i]; 
+      ti  += MAT2D(i,0,a,maxLineNzr)*x[MAT2D(i,0,ja,maxLineNzr)];
+      ti  += MAT2D(i,1,a,maxLineNzr)*x[MAT2D(i,1,ja,maxLineNzr)];
+      ti  += MAT2D(i,2,a,maxLineNzr)*x[MAT2D(i,2,ja,maxLineNzr)];
+      y[i] = ti;                                        
+/*...*/
+      tii   = ad[ii]*x[ii]; 
+      tii  += MAT2D(ii,0,a,maxLineNzr)*x[MAT2D(ii,0,ja,maxLineNzr)];
+      tii  += MAT2D(ii,1,a,maxLineNzr)*x[MAT2D(ii,1,ja,maxLineNzr)];
+      tii  += MAT2D(ii,2,a,maxLineNzr)*x[MAT2D(ii,2,ja,maxLineNzr)];
+      y[ii] = tii;                                        
+/*...*/
+      tiii  = ad[iii]*x[iii]; 
+      tiii += MAT2D(iii,0,a,maxLineNzr)*x[MAT2D(iii,0,ja,maxLineNzr)];
+      tiii += MAT2D(iii,1,a,maxLineNzr)*x[MAT2D(iii,1,ja,maxLineNzr)];
+      tiii += MAT2D(iii,2,a,maxLineNzr)*x[MAT2D(iii,2,ja,maxLineNzr)];
+      y[iii] = tiii;                                        
+/*...*/
+      tiv   = ad[iv]*x[iv]; 
+      tiv  += MAT2D(iv,0,a,maxLineNzr)*x[MAT2D(iv,0,ja,maxLineNzr)];
+      tiv  += MAT2D(iv,1,a,maxLineNzr)*x[MAT2D(iv,1,ja,maxLineNzr)];
+      tiv  += MAT2D(iv,2,a,maxLineNzr)*x[MAT2D(iv,2,ja,maxLineNzr)];
+      y[iv] = tiv;                                        
+    }
+  }
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+  
 } 
 /*********************************************************************/ 
  

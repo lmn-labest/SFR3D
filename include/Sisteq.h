@@ -4,12 +4,15 @@
     #undef  _AD_
   #endif  
   #define _AD_ false
+/*...*/
   #include<stdio.h>
   #include<stdlib.h>
+/*...*/
+  #include<Csr.h>
+  #include<EllPack.h>
   #include<HccaStdBool.h>
   #include<Memoria.h>
   #include<Mesh.h>
-  #include<Csr.h>
 
   
   typedef struct{
@@ -21,7 +24,10 @@
     INT neq; /*numero de eq*/
     INT nad;
     short storage; /*tecnica de armazenamenro*/
-                  /*1 - csr*/
+                   /*1 - csr*/
+                   /*2 - csrd*/
+                   /*3 - csrc*/
+                   /*4 - ellpack*/
   }SistEq;
   
   INT numeq(INT  *restrict id  ,INT *restrict num
@@ -29,10 +35,16 @@
           ,INT const numel     ,short const nViz
           ,short const ndf);
 
-  void dataStruct(Memoria *m  ,INT *id  ,INT *num   ,INT *nelcon
-                 ,short *nViz ,INT numel,short maxViz,short ndf
-                 ,char  *strIa,char *strJa,char *strAd ,char *strA  
+  void dataStruct(Memoria *m      ,INT *id  
+                 ,INT *num        ,INT *nelcon
+                 ,short *nViz 
+                 ,INT const numel ,short const maxViz
+                 ,short const ndf
+                 ,char  *strIa    ,char *strJa
+                 ,char *strAd     ,char *strA  
                  ,SistEq *SistEqX);
+  
+  void setDataStruct(char *word,short *data);
 
 /*  void datastruct(Memoria *,int *,INT *,INT,INT,short,short
                  ,Sisteq*);*/

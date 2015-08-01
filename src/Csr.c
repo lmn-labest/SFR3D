@@ -103,7 +103,7 @@ INT csrIa(INT *ia  ,INT *id    ,INT *num   ,INT  *adj, short *nViz
  * numel  -> numero de elementos                                     * 
  * neq    -> numero de equacoes                                      * 
  * maxViz -> numero maximo de vizinho da malha                       * 
- * ndf    -> numero de graus de liberade                             * 
+ * ndf    -> numero de graus de liberdade                            * 
  * upper  -> armazenamento da parte superior da matriz (CSR/CSRC)    * 
  * diag   -> armazenamento da diagonal (CSR/CSRC)                    * 
  * lower  -> armazenamenro da parte inferior (CSR/CSRC)              * 
@@ -118,7 +118,7 @@ INT csrIa(INT *ia  ,INT *id    ,INT *num   ,INT  *adj, short *nViz
 void csrJa(INT *ia    ,INT *ja 
           ,INT *id    ,INT *num   ,INT  *adj  ,short *nViz
           ,INT numel,INT neq      ,short maxViz,short ndf
-          ,bool upper,bool diag     ,bool lower){
+          ,bool upper,bool diag   ,bool lower){
   
   INT  i,nel1,neq1,neq2,viz1,col,aux,ipont;
   short j,jNdf,kNdf;
@@ -155,6 +155,7 @@ void csrJa(INT *ia    ,INT *ja
 /*...................................................................*/
         }
 /*...................................................................*/
+
 /*...*/
         for(j=0;j<nViz[nel1];j++){
           viz1 = MAT2D(nel1,j,adj,maxViz) - 1;
@@ -208,7 +209,6 @@ void csrJa(INT *ia    ,INT *ja
  * OBS: retorna a banda da matrix                                    * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-
 INT bandCsr(INT *ia,INT *ja,INT  neq,short type){
 
   INT i,j,aux;
@@ -239,7 +239,8 @@ INT bandCsr(INT *ia,INT *ja,INT  neq,short type){
 /*...................................................................*/ 
 
 /*... banda minima da matriz*/
-    case 3: 
+    case 3:   
+      bandL = neq;
       for(i=0;i<neq;i++){
         for(j=ia[i];j<ia[i+1];j++){
           bandL = min(bandL,abs(i-ja[j]));
@@ -294,10 +295,10 @@ INT bandCsr(INT *ia,INT *ja,INT  neq,short type){
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void csr(INT    *restrict  ia,INT *restrict ja 
-        ,double *restrict au ,double *restrict ad
-        ,double *restrict al ,double *restrict b
+        ,DOUBLE *restrict au ,DOUBLE *restrict ad
+        ,DOUBLE *restrict al ,DOUBLE *restrict b
         ,INT *restrict lId                       
-        ,double *restrict lA ,double *restrict lB 
+        ,DOUBLE *restrict lA ,DOUBLE *restrict lB 
         ,short const nFace   ,short const ndf  
         ,short const storage ,bool  const forces
         ,bool const matrix   ,bool  const  unsym)
@@ -312,36 +313,65 @@ void csr(INT    *restrict  ia,INT *restrict ja
 
 /*... estrutura CSR(ia,ja,a,al,b)*/
     case CSRD:
-      nst  = (nFace+1)*ndf;
+      if(ndf == 1) {
+        lNeq = lId[nFace];
 /*... vetor de forcas*/
-      if(forces) 
-        for(j=0;j<ndf;j++){
-          lNeq = MAT2D(nFace,j,lId,ndf);
-          b[lNeq] = lB[j];
-        }
+        if(forces) 
+          b[lNeq] = lB[0];
 /*...................................................................*/
 
 /*... matriz de coefiencientes*/
-      if(matrix) 
-        for(i=0;i<ndf;i++){
-          jLa      = nFace*ndf + i;
-          lNeq     = MAT2D(nFace,i,lId,ndf);
-          ad[lNeq] = MAT2D(i,jLa,lA,nst);
+        if(matrix){ 
+          lNeq     = lId[nFace];
+          ad[lNeq] = lA[nFace];
           iPont    = ia[lNeq];
           iaKneq   = ia[lNeq+1];
           for(k=0;k<nFace;k++){
-            lCol     = MAT2D(k,i,lId,ndf);
+            lCol     = lId[k];
             if(lCol > -1)
               for(iak = iPont; iak < iaKneq;iak++){
                 jak = ja[iak];
                 if( lCol == jak ) 
-                  for(j=0;j<ndf;j++){
-                    jLa = k*ndf+j;
-                    al[iak+j] = MAT2D(j,jLa,lA,nst);  
-                  }     
-              }
-          }  
+                  al[iak] = lA[k];  
+              }      
+          }   
         }
+      }
+/*...................................................................*/
+
+/*...*/
+      else{
+        nst  = (nFace+1)*ndf;
+/*... vetor de forcas*/
+        if(forces) 
+          for(j=0;j<ndf;j++){
+            lNeq = MAT2D(nFace,j,lId,ndf);
+            b[lNeq] = lB[j];
+          }
+/*...................................................................*/
+
+/*... matriz de coefiencientes*/
+        if(matrix) 
+          for(i=0;i<ndf;i++){
+            jLa      = nFace*ndf + i;
+            lNeq     = MAT2D(nFace,i,lId,ndf);
+            ad[lNeq] = MAT2D(i,jLa,lA,nst);
+            iPont    = ia[lNeq];
+            iaKneq   = ia[lNeq+1];
+            for(k=0;k<nFace;k++){
+              lCol     = MAT2D(k,i,lId,ndf);
+              if(lCol > -1)
+                for(iak = iPont; iak < iaKneq;iak++){
+                  jak = ja[iak];
+                  if( lCol == jak ) 
+                    for(j=0;j<ndf;j++){
+                      jLa = k*ndf+j;
+                      al[iak+j] = MAT2D(j,jLa,lA,nst);  
+                    }      
+                }
+            }   
+          }
+      }
 /*...................................................................*/
     break;
 /*...................................................................*/
