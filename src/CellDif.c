@@ -25,6 +25,7 @@
  *            centrois compartilhado nessa face da celula central    * 
  * dcca      -> menor distancia do centroide central a faces desta   *
  *              celula                                               * 
+ * lDensity  -> massa especifica com variacao temporal               * 
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
@@ -52,7 +53,7 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
               ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
               ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
               ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-              ,DOUBLE *restrict dcca    
+              ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
               ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
               ,DOUBLE *restrict lRcell                        
@@ -255,9 +256,11 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
  *            centrois compartilhado nessa face da celula central    * 
  * dcca      -> menor distancia do centroide central a faces desta   *
  *              celula                                               * 
+ * lDensity  -> massa especifica com variacao temporal               * 
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
+ * ddt       -> discretizacao temporal                               *
  * u0        -> solucao conhecida                                    * 
  * gradU0    -> gradiente rescontruido da solucao conhecida          * 
  * faceR     -> restricoes por elemento                              * 
@@ -282,26 +285,35 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
               ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
               ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
               ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-              ,DOUBLE *restrict dcca                             
+              ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
               ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-              ,DOUBLE *restrict lRcell                        
+              ,DOUBLE *restrict lRcell  ,Temporal const ddt             
               ,short  *restrict lFaceR  ,short  *restrict lFaceL  
               ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
               ,const short nEn          ,short const nFace    
               ,const short ndm          ,INT const nel)
 { 
 
-  DOUBLE coefDifC,coefDif,coefDifV,rCell,h,tA;
+  DOUBLE coefDifC,coefDif,coefDifV,rCell,h,tA,dt;
+  DOUBLE densityC;
   DOUBLE p,aP,sP,nk,dfd,dfdc,gfKsi,modE,lvSkew[3];
   DOUBLE v[3],gradUcomp[3],lKsi[3],lNormal[3],gf[3];
   DOUBLE dPviz,lModKsi,lfArea,du,duDksi;
   DOUBLE gradUp[3],gradUv[3],nMinusKsi[3];
   DOUBLE alpha,alphaMenosUm;
   short idCell = nFace;
-  short nf,nCarg;
+  short nf,nCarg,typeTime;
   INT vizNel;
+  bool fTime;
 
+/*...*/
+  dt       = ddt.dt;
+  typeTime = ddt.type;
+  fTime    = ddt.flag;
+  densityC = *lDensity;
+/*...................................................................*/
+  
 /*... propriedades da celula*/
   coefDifC = MAT2D(idCell,COEFDIF,prop,MAXPROP);
 /*...................................................................*/
@@ -439,6 +451,35 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
     }
 /*...................................................................*/
   }
+
+/*... distretização temporal*/
+  if(fTime){
+/*...*/
+    if(nf == 4){
+      lA[0] *= dt;
+      lA[1] *= dt;
+      lA[2] *= dt;
+      lA[3] *= dt;
+    }  
+/*...*/
+    else if(nf == 6){
+      lA[0] *= dt;
+      lA[1] *= dt;
+      lA[2] *= dt;
+      lA[3] *= dt;
+      lA[4] *= dt;
+      lA[5] *= dt;
+    }
+/*...*/
+    p *= dt;
+/*... EULER*/
+    if(typeTime == EULER) 
+      sP     = sP*dt + densityC*volume[idCell];
+/*...BACKWARD*/
+    else if(typeTime == BACKWARD) 
+      sP     = sP*dt + 1.5e0*densityC*volume[idCell];
+  }
+/*...................................................................*/
 
 /*...*/ 
   if(nf == 4){

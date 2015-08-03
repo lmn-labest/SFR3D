@@ -17,6 +17,7 @@
 #include<Solv.h>
 #include<ReadFile.h>
 #include<Reord.h>
+#include<Transient.h>
 /*********************************************************************/
 
 /*********************************************************************/
@@ -44,6 +45,11 @@ int main(int argc,char**argv){
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
 
+/*...*/
+  char loopWord[100][MAX_LINE];
+  unsigned short kLoop,jLoop;
+  bool flWord=false;
+
 /*Estrutura de dados*/
   char strIa[MNOMEPONTEIRO],strJa[MNOMEPONTEIRO];
   char strA[MNOMEPONTEIRO],strAd[MNOMEPONTEIRO];
@@ -68,7 +74,8 @@ int main(int argc,char**argv){
   char macro[][WORD_SIZE] = {"mesh"      ,"stop"      ,"config"
                             ,"pgeo"      ,"pcoob"     ,"presolvD1"
                             ,"solvD1"    ,"pcoo"      ,"pD1"
-                            ,"nlItD1"    ,"pD1CsvCell","pD1CsvNode"}; 
+                            ,"nlItD1"    ,"pD1CsvCell","pD1CsvNode"
+                            ,"transient" ,"timeUpdate"}; 
 /* ..................................................................*/
 
 /*... Memoria principal(valor padrao - bytes)*/
@@ -85,6 +92,7 @@ int main(int argc,char**argv){
   opt.fItPlot    = false;
 /* ..................................................................*/
 
+
 /*... Time*/
   tm.adjcency          = 0.e0;
   tm.geom              = 0.e0;
@@ -95,8 +103,10 @@ int main(int argc,char**argv){
   tm.numeqD1           = 0.e0;
   tm.dataStructD1      = 0.e0;
   tm.CellPloadD1       = 0.e0;
+  tm.CellTransientD1   = 0.e0;
   tm.systFormD1        = 0.e0;
   tm.rcGradD1          = 0.e0;
+  tm.solvEdoD1         = 0.e0;
 /*... Blas*/
   tm.matVecSparse      = 0.e0;
   tm.dot               = 0.e0;
@@ -119,6 +129,13 @@ int main(int argc,char**argv){
   mesh->nlTemp.tol   = 1.e-6; 
   mesh->nlD1.maxIt  = 100; 
   mesh->nlD1.tol    = 1.e-6; 
+/* ..................................................................*/
+
+/*...*/  
+  mesh->ddt.flag     = false;
+  mesh->ddt.dt       = 1.e0;
+  mesh->ddt.total    = 1.e0;
+  mesh->ddt.timeStep = 1;
 /* ..................................................................*/
 
 /*...*/  
@@ -173,10 +190,19 @@ int main(int argc,char**argv){
 /*loop de execucao*/
   macroFlag = true;
   do{
+/*... macros na marcro trasient*/
+    if(flWord){
+      if( jLoop > kLoop) { 
+        ERRO_GERAL(__FILE__,__func__,__LINE__,
+                   "Numero de comandos na string trasient execedido"); 
+      }
+      strcpy(word,loopWord[jLoop]);
+      jLoop++;
+    }
 /*... leitura da macro*/
-    readMacro(fileIn,word,false);
+    else 
+      readMacro(fileIn,word,false);
 /*...................................................................*/
-
 /*===================================================================*
  * macro: mesh - leitura da malha e inicializa das estruturas        *
  * de resolucao do problema                                          * 
@@ -285,7 +311,6 @@ int main(int argc,char**argv){
                  ,mesh->maxViz           ,mesh->ndm
                  ,mesh->numel);         
 /*...................................................................*/
-
       strcpy(str,"MB");
       memoriaTotal(str);
       usoMemoria(&m,str);
@@ -294,7 +319,7 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: stop - finalizacao do programa
+ * macro: stop : finalizacao do programa
  *===================================================================*/
     else if((!strcmp(word,macro[1]))){
       printf("%s\n",DIF);
@@ -324,7 +349,7 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: config - configuracao basica de excucao
+ * macro: config : configuracao basica de excucao
  *===================================================================*/
     else if((!strcmp(word,macro[2]))){
       printf("%s\n",DIF);
@@ -336,7 +361,7 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: pgeo - escreve a geometria com os carregamentos
+ * macro: pgeo : escreve a geometria com os carregamentos
  *===================================================================*/
     else if((!strcmp(word,macro[3]))){
       printf("%s\n",DIF);
@@ -370,7 +395,7 @@ int main(int argc,char**argv){
 /*===================================================================*/
    
 /*===================================================================*
- * macro: pcoob- escreve a matriz de coeficientes no formato COO
+ * macro: pcoob : escreve a matriz de coeficientes no formato COO
  *===================================================================*/
     else if((!strcmp(word,macro[4]))){
       printf("%s\n",DIF);
@@ -388,7 +413,7 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: presolvd - problema de difusao pura
+ * macro: presolvd : problema de difusao pura
  *===================================================================*/
     else if((!strcmp(word,macro[5]))){
       printf("%s\n",DIF);
@@ -500,15 +525,15 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-      HccaAlloc(double                   ,&m        ,sistEqD1->b0
+      HccaAlloc(DOUBLE                   ,&m        ,sistEqD1->b0
                ,sistEqD1->neq            ,"sistD1b0",_AD_);
-      HccaAlloc(double                   ,&m        ,sistEqD1->b 
+      HccaAlloc(DOUBLE                   ,&m        ,sistEqD1->b 
                ,sistEqD1->neq            ,"sistD1b ",_AD_);
-      HccaAlloc(double                   ,&m        ,sistEqD1->x 
+      HccaAlloc(DOUBLE                   ,&m        ,sistEqD1->x 
                ,sistEqD1->neq            ,"sistD1x ",_AD_);
-      zero(sistEqD1->b0,sistEqD1->neq,"double");
-      zero(sistEqD1->b ,sistEqD1->neq,"double");
-      zero(sistEqD1->x ,sistEqD1->neq,"double");
+      zero(sistEqD1->b0,sistEqD1->neq,DOUBLEC);
+      zero(sistEqD1->b ,sistEqD1->neq,DOUBLEC);
+      zero(sistEqD1->x ,sistEqD1->neq,DOUBLEC);
 /*...................................................................*/
 
 /*... Estrutura de Dados*/
@@ -525,24 +550,30 @@ int main(int argc,char**argv){
       tm.dataStructD1 = getTimeC() - tm.dataStructD1 ;
       printf("Estrutuda montada.\n");
 /*...................................................................*/
+      strcpy(str,"MB");
+      memoriaTotal(str);
+      usoMemoria(&m,str);
+/*...................................................................*/
       printf("%s\n\n",DIF);
     }   
 /*===================================================================*/
 
 /*===================================================================*
- * macro: solvd - problema de difusao pura
+ * macro: solvd : problema de difusao pura
  *===================================================================*/
     else if((!strcmp(word,macro[6]))){
       printf("%s\n",DIF);
       printf("%s\n",word);
       printf("%s\n",DIF);
+      tm.solvEdoD1    = getTimeC() - tm.solvEdoD1;
 /*...*/
       if(solvD1 == NULL){
         printf("Estrutara de dados nao montada para o solvD1!!!\n");
         exit(EXIT_FAILURE);
       }
 /*...................................................................*/
-
+      
+      zero(sistEqD1->b0,sistEqD1->neq,DOUBLEC);
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
       tm.CellPloadD1 = getTimeC() - tm.CellPloadD1;
       cellPload(loadsD1
@@ -550,8 +581,25 @@ int main(int argc,char**argv){
                ,mesh->elm.geom.volume,sistEqD1->id 
                ,mesh->elm.uD1        ,sistEqD1->b0
                ,mesh->numel          ,mesh->ndfD[0]
-               ,mesh->maxViz);
+              ,mesh->maxViz);
       tm.CellPloadD1 = getTimeC() - tm.CellPloadD1;
+/*...................................................................*/
+
+/*... discretizacao temporal*/
+      if(mesh->ddt.flag){
+        tm.CellTransientD1 = getTimeC() - tm.CellTransientD1;
+        cellTransient(mesh->elm.geom.volume   ,sistEqD1->id     
+                     ,mesh->elm.u0D1          ,mesh->elm.uD1
+                     ,mesh->elm.densityUd1        
+                     ,sistEqD1->b0
+                     ,mesh->numel              ,mesh->ndfD[0]
+                     ,mesh->ddt.type           ,true);
+/*... u(n-1) = u(n)*/
+        alphaProdVector(1.e0,mesh->elm.uD1
+                       ,mesh->numel       ,mesh->elm.u0D1); 
+/*...................................................................*/
+        tm.CellTransientD1 = getTimeC() - tm.CellTransientD1;
+      }
 /*...................................................................*/
 
 /*... correcao nao ortoganal*/      
@@ -568,13 +616,13 @@ int main(int argc,char**argv){
                    ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
                    ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
                    ,mesh->elm.geom.vSkew    ,mesh->elm.geom.mvSkew   
-                   ,mesh->elm.geom.dcca
+                   ,mesh->elm.geom.dcca     ,mesh->elm.densityUd1
                    ,sistEqD1->ia            ,sistEqD1->ja      
                    ,sistEqD1->ad            ,sistEqD1->al       
                    ,sistEqD1->b             ,sistEqD1->id       
                    ,mesh->elm.faceRd1       ,mesh->elm.faceLoadD1  
-                   ,mesh->elm.uD1           ,mesh->elm.gradUd1             
-                   ,mesh->elm.rCellUd1                          
+                   ,mesh->elm.uD1           ,mesh->elm.gradUd1           
+                   ,mesh->elm.rCellUd1      ,mesh->ddt          
                    ,mesh->maxNo             ,mesh->maxViz
                    ,mesh->ndm               ,mesh->numel
                    ,mesh->ndfD[0]           ,sistEqD1->storage
@@ -617,7 +665,7 @@ int main(int argc,char**argv){
 /*...*/
 #ifdef _DEBUG_
         testeSist(sistEqD1->ia       ,sistEqD1->ja
-                ,sistEqD1->au        ,sistEqD1->ad
+                 ,sistEqD1->au        ,sistEqD1->ad
                  ,sistEqD1->al       ,sistEqD1->b
                  ,sistEqD1->neq      ,sistEqD1->unsym);
 #endif
@@ -669,7 +717,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
        if(opt.fItPlotRes){  
-         fName(preName,i,0,15,&nameOut);
+         fName(preName,mesh->ddt.timeStep,i,15,&nameOut);
 
 /*... interpolacao das variaveis da celulas para pos nos (Grad)*/
          interCellNode(&m                 ,loadsD1
@@ -714,17 +762,20 @@ int main(int argc,char**argv){
                   ,str1               ,str2         
                   ,str3               ,str4         
                   ,nameOut            ,opt.bVtk    
-                  ,fileOut);
+                  ,mesh->ddt          ,fileOut);
 /*...................................................................*/
-       
        }
 /*...................................................................*/
-     }
-   }
+      }
+/*...*/
+      tm.solvEdoD1    = getTimeC() - tm.solvEdoD1;
+/*...................................................................*/
+      printf("%s\n\n",DIF);
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: pcoo - escreve a matriz de coeficientes no formato COO
+ * macro: pcoo : escreve a matriz de coeficientes no formato COO
  *===================================================================*/
     else if((!strcmp(word,macro[7]))){
       printf("%s\n",DIF);
@@ -750,12 +801,12 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: puD1  - escreve os arquivos dos resultados da uD1          
+ * macro: puD1 : escreve os arquivos dos resultados da uD1          
  *===================================================================*/
     else if((!strcmp(word,macro[8]))){
       printf("%s\n",DIF);
       printf("%s\n",word);
-      fName(preName,0,0,8,&nameOut);
+      fName(preName,mesh->ddt.timeStep,0,8,&nameOut);
 /*... reconstruindo do gradiente*/
       printf("Calculo do gradiente.\n");
       rcGradU(&m                      ,loadsD1
@@ -822,14 +873,14 @@ int main(int argc,char**argv){
                 ,str1               ,str2         
                 ,str3               ,str4         
                 ,nameOut            ,opt.bVtk    
-                ,fileOut);
+                ,mesh->ddt          ,fileOut);
 /*...................................................................*/
       printf("%s\n\n",DIF);
     }   
 /*===================================================================*/
 
 /*===================================================================*
- * macro: nlItD1   configura das iteracoes nao lineares             
+ * macro: nlItD1: configura das iteracoes nao lineares             
  *===================================================================*/
     else if((!strcmp(word,macro[9]))){
       printf("%s\n",DIF);
@@ -845,7 +896,7 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: pD1CellCsv imprime os resultados no formato csv                  
+ * macro: pD1CellCsv:imprime os resultados no formato csv                  
  *===================================================================*/
     else if((!strcmp(word,macro[10]))){
       printf("%s\n",DIF);
@@ -853,7 +904,7 @@ int main(int argc,char**argv){
 /*...*/
       strcpy(auxName,preName);
       strcat(auxName,"_D1_cell_");
-      fName(auxName,0,0,16,&nameOut);
+      fName(auxName,mesh->ddt.timeStep,0,16,&nameOut);
       fileOut = openFile(nameOut,"w");
 /*...*/
       writeCsvCell(mesh->elm.uD1    ,mesh->elm.gradUd1
@@ -868,7 +919,7 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: pD1CsvNode imprime os resultados no formato csv                  
+ * macro: pD1CsvNode:imprime os resultados no formato csv                  
  *===================================================================*/
     else if((!strcmp(word,macro[11]))){
       printf("%s\n",DIF);
@@ -876,7 +927,7 @@ int main(int argc,char**argv){
 /*...*/
       strcpy(auxName,preName);
       strcat(auxName,"_D1_node_");
-      fName(auxName,0,0,16,&nameOut);
+      fName(auxName,mesh->ddt.timeStep,0,16,&nameOut);
       fileOut = openFile(nameOut,"w");
 /*...*/
       writeCsvNode(mesh->node.uD1    ,mesh->node.gradUd1
@@ -885,6 +936,81 @@ int main(int argc,char**argv){
                   ,mesh->ndm        ,fileOut);
 /*...*/
       fclose(fileOut);
+/*...................................................................*/
+      printf("%s\n\n",DIF);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: transient:configuracao da discretizacao temporal                 
+ *===================================================================*/
+    else if((!strcmp(word,macro[12]))){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+/*...*/
+      mesh->ddt.flag = true;
+      readMacro(fileIn,word,false);
+      if(!strcmp(word,"config:")){
+/*... timer*/        
+        readMacro(fileIn,word,false);
+        setTransientScheme(word,&mesh->ddt.type);
+/*...*/ 
+        fscanf(fileIn,"%lf",&mesh->ddt.dt);
+        fscanf(fileIn,"%lf",&mesh->ddt.total);
+/*...*/        
+        printf("dt(s)     : %lf\n",mesh->ddt.dt);
+        printf("Total(s)  : %lf\n",mesh->ddt.total);
+      
+        if(mesh->ddt.type == EULER)     
+          printf("ddtScheme : EULER\n");
+        else if(mesh->ddt.type == BACKWARD  )     
+          printf("ddtScheme : BACKWARD\n");
+
+        mesh->ddt.t        = 0.e0;
+        mesh->ddt.timeStep =    0;
+      }
+/*...................................................................*/
+
+/*...*/
+      flWord = true;
+      kLoop  = 0;
+      jLoop  = 0;
+      do{
+        readMacro(fileIn,word,false);
+        strcpy(loopWord[kLoop],word);
+        kLoop++;
+        if(kLoop > 100){
+          ERRO_GERAL(__FILE__,__func__,__LINE__,
+                   "Numero de comandos na macro trasient execedido"); 
+        }
+      }while(strcmp(word,"endTransient"));
+/*...................................................................*/
+      printf("%s\n\n",DIF);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: dt+t:macro de atualizaco do tempo                                
+ *===================================================================*/
+    else if((!strcmp(word,macro[13]))){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+/*...*/
+      jLoop               = 0;
+      mesh->ddt.t        += mesh->ddt.dt;
+      mesh->ddt.timeStep ++;
+/*...................................................................*/
+      
+/*...*/
+      if(mesh->ddt.t >= mesh->ddt.total)
+        flWord = false;
+/*...................................................................*/
+      
+/*...*/
+      else{
+        printf("t(s) = %lf\n",mesh->ddt.t);
+        printf("step = %d\n" ,mesh->ddt.timeStep);
+      }
 /*...................................................................*/
       printf("%s\n\n",DIF);
     }   

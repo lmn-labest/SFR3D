@@ -1,27 +1,28 @@
-#include<PreCond.h>
-
+#include<Transient.h>  
 /********************************************************************* 
- * PRECONDDIAD : precondicionador diagonal                           * 
+ * SETTRANSIENTSCHEME : set a discretizacao temporal                 * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
- * pc  - nao definido                                                * 
- * ad  - diagonal principal                                          * 
+ * word -> str com a discretizacao                                   * 
+ * type -> nao definido                                              * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
- * pc  - precodicianor diagonal                                      * 
+ * type -> tipo de discretizacao                                     * 
  *-------------------------------------------------------------------* 
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void preCondDiag(DOUBLE *restrict pc,DOUBLE *restrict ad,INT const nEq){
+void setTransientScheme(char *word,short *type){
 
-  INT i;
-
-  for(i=0;i<nEq;i++)
-    pc[i] = 1.e0/ad[i];
-
+  if(!strcmp(word,"EULER"))
+   *type = EULER;
+  else if(!strcmp(word,"BACKWARD"))
+   *type =  BACKWARD;
 
 }
 /*********************************************************************/
+
+
+

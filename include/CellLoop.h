@@ -79,13 +79,13 @@
              ,DOUBLE *restrict gNormal,DOUBLE *restrict gVolume
              ,DOUBLE *restrict gXm    ,DOUBLE *restrict gXmcc   
              ,DOUBLE *restrict gvSkew ,DOUBLE *restrict gmvSkew   
-             ,DOUBLE *restrict gDcca               
+             ,DOUBLE *restrict gDcca  ,DOUBLE *restrict density             
              ,INT    *restrict ia     ,INT    *restrict ja                  
              ,DOUBLE *restrict ad     ,DOUBLE *restrict al                  
              ,DOUBLE *restrict b      ,INT    *restrict id 
              ,short  *restrict faceR  ,short  *restrict faceL              
              ,DOUBLE *restrict u0     ,DOUBLE *restrict gradU0             
-             ,DOUBLE *restrict rCell                                  
+             ,DOUBLE *restrict rCell  ,Temporal const ddt             
              ,short const maxNo       ,short const maxViz
              ,short const ndm         ,INT const numel
              ,short const ndf         ,short const storage
@@ -100,10 +100,10 @@
                  ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea 
                  ,DOUBLE *restrict normal  ,DOUBLE *restrict volume 
                  ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc    
-                 ,DOUBLE *restrict dcca    
+                 ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity 
                  ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew     
                  ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-                 ,DOUBLE *restrict lRcell           
+                 ,DOUBLE *restrict lRcell  ,Temporal const ddt
                  ,short  *restrict lFaceR  ,short  *restrict lFaceL        
                  ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0 
                  ,short const nEn          ,short const nFace        
@@ -161,7 +161,7 @@
                 ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
                 ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-                ,DOUBLE *restrict dcca   
+                ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity   
                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
                 ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
                 ,DOUBLE *restrict lRcell                       
@@ -176,14 +176,23 @@
                 ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
                 ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-                ,DOUBLE *restrict dcca                              
+                ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity                          
                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
                 ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-                ,DOUBLE *restrict lRcell                        
+                ,DOUBLE *restrict lRcell  ,Temporal const ddt   
                 ,short  *restrict lFaceR  ,short  *restrict lFaceL
                 ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
                 ,const short nEn          ,short const nFace    
                 ,const short ndm          ,INT const nel);
+/*...................................................................*/
+
+/*...*/
+  void cellTransient(DOUBLE *restrict volume  ,INT *restrict id 
+                   ,DOUBLE *restrict u0      ,DOUBLE *restrict u
+                   ,DOUBLE *restrict density
+                   ,DOUBLE *restrict f
+                   ,INT const numel          ,short const ndf
+                   ,short const type         ,bool const fAdd);
 /*...................................................................*/
 
 /*... biblioteca de reconstrucao de gradiente*/

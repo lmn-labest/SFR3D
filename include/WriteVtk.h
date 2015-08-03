@@ -59,7 +59,7 @@
                ,char *uResEl      ,char *uResNo 
                ,char *gradResEl   ,char *gradResNo 
                ,char *nameOut     ,bool iws
-               ,FILE *f);
+               ,Temporal ddt      ,FILE *f);
 /*...................................................................*/
 
 /*...*/

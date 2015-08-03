@@ -51,15 +51,15 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 
 /*... alocando variavies de elementos*/
 /*... conectividade*/ 
-  HccaAlloc(INT,m,mesh->elm.node       ,nel*maxno        ,"elnode",_AD_);
+  HccaAlloc(INT,m,mesh->elm.node       ,nel*maxno        ,"elnode"  ,_AD_);
 /*... materiais*/ 
-  HccaAlloc(short,m,mesh->elm.mat      ,nel              ,"elmat" ,_AD_);
+  HccaAlloc(short,m,mesh->elm.mat      ,nel              ,"elmat"   ,_AD_);
 /*... nos por elementos*/
-  HccaAlloc(short,m,mesh->elm.nen      ,nel              ,"elnen" ,_AD_);
+  HccaAlloc(short,m,mesh->elm.nen      ,nel              ,"elnen"   ,_AD_);
 /*... tipo geometrico */
-  HccaAlloc(short,m,mesh->elm.geomType ,nel              ,"elgT"  ,_AD_);
+  HccaAlloc(short,m,mesh->elm.geomType ,nel              ,"elgT"    ,_AD_);
 /*... centroide */
-  HccaAlloc(DOUBLE,m,mesh->elm.geom.cc ,nel*ndm          ,"elCc"  ,_AD_);
+  HccaAlloc(DOUBLE,m,mesh->elm.geom.cc ,nel*ndm          ,"elCc"    ,_AD_);
 /*... vetor que une os centroides dos elementos */
   HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.ksi
          ,nel*ndm*maxViz,"elksi"  ,_AD_);
@@ -172,6 +172,11 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
             ,nn*mesh->ndfD[0] ,"nUd1"              ,_AD_);
      HccaAlloc(DOUBLE,m,mesh->elm.uD1 
             ,nel*mesh->ndfD[0],"eUd1"              ,_AD_);
+     HccaAlloc(DOUBLE,m,mesh->elm.u0D1
+            ,nel*mesh->ndfD[0],"eUd10"             ,_AD_);
+/*... density*/ 
+     HccaAlloc(DOUBLE,m,mesh->elm.densityUd1
+              ,nel*2            ,"density" ,_AD_);
 /*... gradTemp*/
      HccaAlloc(DOUBLE,m,mesh->node.gradUd1  
             ,nn*ndm*mesh->ndfD[0] ,"nGradUd1"      ,_AD_);
@@ -358,6 +363,14 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
     }
 /*...................................................................*/
   }while(macroFlag && (!feof(file)));
+  
+/*... iniciacao de propriedades do material varaivel com o tempo*/
+  if(mesh->ndfD[0] > 0) {   
+    initProp(mesh->elm.densityUd1
+            ,mesh->elm.material.prop,mesh->elm.mat
+            ,2                      ,mesh->numel
+            ,DENSITY);         
+  }
 
 }
 
@@ -1045,5 +1058,40 @@ static void getword(char *line, char*word){
     }
     word[n]='\0';  
     
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * INITPROP: inicializao de propriedades com variacao temporal       * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * prop    -> nao definido                                           * 
+ * propMat -> propriedade de referencia por material                 * 
+ * mat     -> material por celula                                    * 
+ * np      -> numero de propriedades                                 * 
+ * nCell   -> numero de celulas                                      * 
+ * iProp   -> numero da propriedade                                  * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * prop    -> propriedade iniciacializada                            * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void initProp(DOUBLE *restrict prop 
+             ,DOUBLE *restrict propMat,short *restrict mat
+             ,short const np          ,INT    const nCell 
+             ,short const iProp)
+{    
+  INT i;
+  unsigned short j,lMat;         
+  for(i=0;i<nCell;i++){    
+    lMat               = mat[i]-1;
+    for(j=0;j<np;j++){
+      MAT2D(i,j,prop,np) = MAT2D(lMat,iProp,propMat,MAXPROP);
+    }
+  }
 }
 /*********************************************************************/

@@ -526,7 +526,7 @@ void wResVtkDif(Memoria *m        ,double *x
                ,char *uResEl      ,char *uResNo 
                ,char *gradResEl   ,char *gradResNo 
                ,char *nameOut     ,bool iws
-               ,FILE *f)
+               ,Temporal ddt      ,FILE *f)
 {
   int    *lel=NULL;
   INT i;
@@ -542,6 +542,11 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /* ...*/
   headVtk(head,iws,f);
+/* ..................................................................*/
+
+/* ...*/
+  if(ddt.flag)
+    timeVtk(ddt.t,ddt.timeStep,f);
 /* ..................................................................*/
 
 /*... coordenadas*/

@@ -102,7 +102,7 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
 /*...................................................................*/
       
 /*...*/
-//    dotC    = dot;
+      dotC    = dot;
 //    dotC    = dotL2;
 //    dotC    = dotL4;
 //    dotC    = dotL6;
@@ -111,7 +111,7 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
 //    dotC    = dotO4;
 //    dotC    = dotO6;
 //    dotC    = dotO8;
-      dotC    = dotO2L2;
+//    dotC    = dotO2L2;
 /*...................................................................*/
 
 /*... gradientes conjugados*/
@@ -156,7 +156,7 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
 void setSolver(char *word,short *solver)
 {
 
-  if(!strcmp(word,"PCG"));
+  if(!strcmp(word,"PCG"))
    *solver = PCG;
 
 } 

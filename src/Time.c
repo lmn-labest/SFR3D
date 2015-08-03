@@ -30,7 +30,7 @@ double getTimeC(void){
   struct timeval start;
 
   gettimeofday(&start,NULL);
-  t = (double) (start.tv_sec + start.tv_usec/1000000.0);
+  t = (double) (start.tv_sec + start.tv_usec/1000000.e0);
   
   return t;
 #endif

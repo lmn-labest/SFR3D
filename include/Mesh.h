@@ -22,6 +22,17 @@
 
 /*...*/
   typedef struct{
+    DOUBLE    dt;
+    DOUBLE     t;
+    short   type;
+    bool    flag;
+    DOUBLE total;
+    INT timeStep;
+  }Temporal;
+/*...................................................................*/  
+
+/*...*/
+  typedef struct{
     DOUBLE *cc;    /*centroide da celulas*/
     DOUBLE *ksi;   /*vetor que une os centroides da celulas*/
     DOUBLE *mksi;  /*modulo do vetor que une os centroides da celulas*/
@@ -70,12 +81,18 @@
 /*...................................................................*/
     Geom   geom;       
     DOUBLE *pressure;
+/*...*/
+/*...*/
     DOUBLE *temp;       /*temperatura*/
     DOUBLE *gradTemp;   /*gradiente da temperatura*/
     DOUBLE *rCellTemp;  /*residuo da celula*/
+/*...*/
+    DOUBLE *densityUd1; /*massa especifica do metrial uD1*/
     DOUBLE *uD1 ;       /*difusao pura uD1*/
+    DOUBLE *u0D1;       /*difusao pura uD1*/
     DOUBLE *gradUd1;    /*gradiente da difusao pura uD1*/
     DOUBLE *rCellUd1;   /*residuo da celula*/
+/*...*/
     DOUBLE *leastSquare; /*matriz de aproxima leastSquare*/
     DOUBLE *leastSquareR;/*fatoracao QR*/
     Material material;
@@ -120,10 +137,15 @@
     short numat;   /*numero maximo de materias no dominio*/
     short maxNo;   /*numero maximo de nos por elemento*/
     short maxViz;  /*numero maximo de vizinhos que um elemento possui*/
+/*...*/
+    Temporal ddt;
+/*...*/    
     Elmt elm;     
     Node node;
+/*...*/
     NonLinear nlTemp;
     NonLinear nlD1;
+/*...*/
     MeshQuality mQuality;
   }Mesh;
 /*...................................................................*/

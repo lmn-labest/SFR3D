@@ -15,9 +15,11 @@
     double reord;
 /*... D1*/
     double solvD1;
+    double solvEdoD1;
     double numeqD1;
     double dataStructD1;
     double CellPloadD1;
+    double CellTransientD1;
     double systFormD1;
     double rcGradD1;
 /*... blas*/

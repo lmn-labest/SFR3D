@@ -148,9 +148,14 @@ void alphaProdVector(DOUBLE const alpha,DOUBLE *restrict a
 
 {
   INT i;
- 
-  for(i=0;i<nDim;i++)
-    c[i] = alpha*a[i];
+
+  if(alpha == 1.0e0){
+    for(i=0;i<nDim;i++)
+      c[i] = a[i];
+  }
+  else 
+    for(i=0;i<nDim;i++)
+      c[i] = alpha*a[i];
 
 }
 /*********************************************************************/ 

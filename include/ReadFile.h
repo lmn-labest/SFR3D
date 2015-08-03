@@ -31,4 +31,10 @@
              ,short *rcGrad
              ,FILE* f);
 
+  void initProp(DOUBLE *restrict prop 
+             ,DOUBLE *restrict propMat,short *restrict mat
+             ,short const np          ,INT const nCell 
+             ,short const iProp);
+  
+
 #endif

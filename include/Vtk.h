@@ -15,5 +15,7 @@
   void writeVtkNodeProp(int *iprop,double *dprop,short cod1,short cod2
                        ,int nnode ,short ndf    ,char *s   ,bool cod
                        ,FILE *f);
+ 
+  void timeVtk(double t,int iStep,FILE *f);
 
 #endif

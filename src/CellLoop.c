@@ -218,6 +218,7 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
  * gmvSkew -> distacia entre o ponto medio a intersecao que une os   * 
  *            centrois compartilhado nessa face                      * 
  * gDcca   -> menor distancia do centroide a faces desta celula      * 
+ * density -> massa especifica com variacao temporal                 * 
  * ia      -> ponteiro para as linhas da matriz esparsa              * 
  * ja      -> ponteiro para as colunas da matriz esparsa             * 
  * ad      -> matrix de coeficientes esparsa                         *
@@ -230,6 +231,7 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
  * id      -> numera das equacoes                                    * 
  * u0      -> solucao conhecida                                      * 
  * rCell   -> nao definido                                           * 
+ * ddt     -> discretizacao temporal                                 *
  * faceR   -> restricoes por elemento                                * 
  * faceLd1 -> carga por elemento                                     * 
  * maxNo   -> numero de nos por celula maximo da malha               * 
@@ -261,13 +263,13 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
                ,DOUBLE *restrict gNormal ,DOUBLE *restrict gVolume
                ,DOUBLE *restrict gXm     ,DOUBLE *restrict gXmcc 
                ,DOUBLE *restrict gvSkew  ,DOUBLE *restrict gmvSkew 
-               ,DOUBLE *restrict gDcca 
+               ,DOUBLE *restrict gDcca   ,DOUBLE *restrict density
                ,INT    *restrict ia      ,INT    *restrict ja   
                ,DOUBLE *restrict ad      ,DOUBLE *restrict al
                ,DOUBLE *restrict b       ,INT    *restrict id
-               ,short  *restrict faceR   ,short  *restrict faceLd1                  
+               ,short  *restrict faceR   ,short  *restrict faceLd1        
                ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0 
-               ,DOUBLE *restrict rCell                                   
+               ,DOUBLE *restrict rCell   ,Temporal ddt                    
                ,short const maxNo        ,short const maxViz
                ,short const ndm          ,INT const numel
                ,short const ndf          ,short const storage
@@ -288,6 +290,7 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
   short  lib;
   short  lFaceR[MAX_NUM_FACE+1];
   short  lFaceL[MAX_NUM_FACE+1];
+  DOUBLE lDensity;
   DOUBLE lA[(MAX_NUM_FACE+1)*MAX_NDF],lB[MAX_NDF];
   DOUBLE lProp[(MAX_NUM_FACE+1)*MAXPROP];
   DOUBLE lu0[(MAX_NUM_FACE+1)*MAX_NDF];
@@ -329,6 +332,7 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
       lGeomType[aux1] = geomType[nel];
       lFaceR[aux1]    = MAT2D(nel,aux1,faceR   ,aux2);
       lFaceL[aux1]    = MAT2D(nel,aux1,faceLd1 ,aux2);
+      lDensity        = MAT2D(nel,0   ,density ,DENSITY_LEVEL);
       
       for(j=0;j<ndf;j++){
         MAT2D(aux1,j,lu0   ,ndf) = MAT2D(nel,j,u0   ,ndf);
@@ -375,7 +379,7 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
           }
           for(j=0;j<ndm;j++)
             MAT2D(i,j,lGradU0,ndm)   = MAT2D(vizNel,j,gradU0,ndm);
-          for(j=0;j<MAXPROP;j++)
+          for(j=0;j<DIFPROP;j++)
             MAT2D(i,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);
           }
         }
@@ -388,10 +392,10 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
                 ,lEta      ,lfArea 
                 ,lNormal   ,lVolume
                 ,lXm       ,lXmcc
-                ,lDcca     
+                ,lDcca     ,&lDensity
                 ,lvSkew    ,lmvSkew
                 ,lA        ,lB
-                ,lRcell
+                ,lRcell    ,ddt
                 ,lFaceR    ,lFaceL            
                 ,lu0       ,lGradU0     
                 ,nen[nel]  ,nFace[nel] 
@@ -483,6 +487,175 @@ void cellPload(Loads *loads
 /*...................................................................*/
   }
 /*...................................................................*/
+}  
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * CELLTRANSIENT : discretizacao temporal                            * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * volume    -> volume das celulas                                   * 
+ * id        -> numera das equacoes                                  * 
+ * u0        -> solucao (n-1)                                        * 
+ * u         -> solucao (n)                                          * 
+ * density0  -> massa especifica no tempo (n-1)                      * 
+ * density   -> massa especifica no tempo   (n)                      * 
+ * f         -> vetor de forcas                                      * 
+ * numel     -> numero de elementos                                  * 
+ * ndf       -> graus de liberade                                    * 
+ * type      -> tipo de discretizacao temporal                       * 
+ * fAdd      -> acumula o valor em f                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * f -> atualizado com a discreticao temporal ( fAdd = true)         * 
+ *      sobreescreve com a discreticao temporal (fAdd = false)       * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void cellTransient(DOUBLE *restrict volume  ,INT *restrict id 
+                  ,DOUBLE *restrict u0      ,DOUBLE *restrict u
+                  ,DOUBLE *restrict density 
+                  ,DOUBLE *restrict f
+                  ,INT const numel          ,short const ndf
+                  ,short const type         ,bool const fAdd)
+{
+  INT nel,lNeq;
+  DOUBLE t1,t2;
+  short j,nD=DENSITY_LEVEL;
+
+/*...*/
+  switch(type){
+/*... EULER de primeira ordem*/
+    case EULER:
+/*... acumula em f*/
+      if(fAdd){
+/*... ndf = 1*/
+        if( ndf == 1){
+          for(nel = 0; nel < numel;nel++){
+            lNeq = id[nel] - 1;
+            if( lNeq > -1){
+              f[lNeq] += volume[nel]*MAT2D(nel,0,density,nD)*u[nel];
+            }  
+          } 
+        }
+/*...................................................................*/
+
+/*... ndf > 1*/
+        else{  
+          for(nel = 0; nel < numel;nel++){
+            for(j = 0; j< ndf;j++){
+              lNeq = MAT2D(nel,j,id,ndf) - 1;
+              if( lNeq > -1){
+                t1 = MAT2D(nel,0,density,nD) * MAT2D(nel,j,u,ndf);
+                MAT2D(lNeq,j,f,ndf) = volume[nel]*t1;
+              }
+            } 
+          }
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+
+/*... sobrecreve f*/
+      else{
+/*... ndf = 1*/
+        if( ndf == 1){
+          for(nel = 0; nel < numel;nel++){
+            lNeq = id[nel] - 1;
+            if( lNeq > -1)
+              f[lNeq] = volume[nel]*MAT2D(nel,0,density,nD)*u[nel];
+          } 
+        }
+/*...................................................................*/
+
+/*... ndf > 1*/
+        else{  
+          for(nel = 0; nel < numel;nel++){
+            for(j = 0; j< ndf;j++){
+              lNeq = MAT2D(nel,j,id,ndf) - 1;
+              if( lNeq > -1){
+                t1 = MAT2D(nel,0,density,nD) * MAT2D(nel,j,u,ndf);
+                MAT2D(lNeq,j,f,ndf) = volume[nel]*t1;
+              }
+            }
+          }
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
+/*... BACKWARD de segunda ordem*/
+    case BACKWARD:
+/*... acumula em f*/
+      if(fAdd){
+/*... ndf = 1*/
+        if( ndf == 1){
+          for(nel = 0; nel < numel;nel++){
+            lNeq = id[nel] - 1;
+            if( lNeq > -1){
+              t1      =  2.0e0*MAT2D(nel,0,density,nD)*u[nel];
+              t2      =  0.5e0*MAT2D(nel,1,density,nD)*u0[nel];
+              f[lNeq] += volume[nel]*(t1-t2);
+            }  
+          } 
+        }
+/*...................................................................*/
+
+/*... ndf > 1*/
+        else{  
+          for(nel = 0; nel < numel;nel++){
+            for(j = 0; j< ndf;j++){
+              lNeq = MAT2D(nel,j,id,ndf) - 1;
+              if( lNeq > -1){
+                t1 = 2.0e0*MAT2D(nel,0,density,nD)*MAT2D(nel,j,u,ndf);
+                t2 = 0.5e0*MAT2D(nel,1,density,nD)*MAT2D(nel,j,u0,ndf);
+                MAT2D(lNeq,j,f,ndf) += volume[nel]*(t1-t2);
+              }
+            } 
+          }
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+
+/*... sobrecreve f*/
+      else{
+/*... ndf = 1*/
+        if( ndf == 1){
+          for(nel = 0; nel < numel;nel++){
+            lNeq = id[nel] - 1;
+            if( lNeq > -1){
+              t1      =  2.0e0*MAT2D(nel,0,density,nD)*u[nel];
+              t2      =  0.5e0*MAT2D(nel,1,density,nD)*u0[nel];
+              f[lNeq] = volume[nel]*(t1-t2);
+            }  
+          } 
+        }
+/*...................................................................*/
+
+/*... ndf > 1*/
+        else{  
+          for(nel = 0; nel < numel;nel++){
+            for(j = 0; j< ndf;j++){
+              lNeq = MAT2D(nel,j,id,ndf) - 1;
+              if( lNeq > -1){
+                t1 = 2.0e0*MAT2D(nel,0,density,nD)*MAT2D(nel,j,u,ndf);
+                t2 = 0.5e0*MAT2D(nel,1,density,nD)*MAT2D(nel,j,u0,ndf);
+                MAT2D(lNeq,j,f,ndf) = volume[nel]*(t1-t2);
+              }
+            } 
+          }
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+    break;
+  }
 }  
 /*********************************************************************/ 
 

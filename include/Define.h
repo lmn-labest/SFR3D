@@ -9,12 +9,22 @@
   #define PI 3.14159265358979323846
 /*...................................................................*/
 
+/*... trasiente*/
+  #define EULER    0
+  #define BACKWARD 1
+/*...................................................................*/
+
 /*...*/
   #define COEFDIF 0
+  #define DENSITY 1
 /*...................................................................*/
 
 /*... */
   #define KELVINCONV 273.15e0
+/*...................................................................*/
+
+/*...*/
+  #define DENSITY_LEVEL 2
 /*...................................................................*/
 
 /*... conv radianos para graus*/
@@ -34,7 +44,9 @@
   #define MAXLOAD1         200
 /*...................................................................*/
 
-/*numero maximo de propriedade*/
+/*...*/
+  #define DIFPROP      5  /*numero de propriedade de 
+                            problemas difusao pura*/
   #define MAXPROP      5  /*numero maximo de propriedades*/
   #define MAXMAT      200 /*numero maximo de materias*/
   #define MAX_TRANS_EQ 3 /*numero maximo de equacoes de transporte*/ 

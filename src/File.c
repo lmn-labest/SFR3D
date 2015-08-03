@@ -426,6 +426,13 @@ void readMacro(FILE* file,char *mc,bool allline)
    fscanf(file,"%s",word);
    sscanf(word,"%s",mc);
  }   
+ 
+/*... se encontrado '//' discarta a linha lida*/
+ if(mc[0] =='/' && mc[1] == '/'){
+   mc[0] = '\0'; 
+   while((c=getc(file))!='\n'&& c!=EOF);
+//   printf("linha discartada\n");
+ } 
 
 #ifdef _DEBUG_READ 
  printf("DEGUB INFO: Depois funcao readmacro.\n"

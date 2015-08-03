@@ -25,9 +25,11 @@
  *            centrois compartilhado nessa face da celula central    * 
  * dcca      -> menor distacia do centroide central a faces desta    *
  *              celula                                               * 
+ * lDensity  -> massa especifica com variacao temporal               * 
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
+ * ddt       -> discretizacao temporal                               *
  * u0        -> solucao conhecida                                    * 
  * gradU0    -> gradiente rescontruido da solucao conhecida          * 
  * faceR     -> restricoes por elemento                              * 
@@ -50,11 +52,11 @@ void cellLibDif(short *restrict lGeomType,DOUBLE *restrict lprop
                ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
                ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
                ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-               ,DOUBLE *restrict dcca    
+               ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
                ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
                ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-               ,DOUBLE *restrict lRcell 
-               ,short  *restrict lFaceR  ,short  *restrict lFaceL                           
+               ,DOUBLE *restrict lRcell  ,Temporal const ddt
+               ,short  *restrict lFaceR  ,short  *restrict lFaceL       
                ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
                ,short const nEn          ,short  const nFace     
                ,short const ndm          ,short const lib    
@@ -71,7 +73,7 @@ void cellLibDif(short *restrict lGeomType,DOUBLE *restrict lprop
                ,eta      ,fArea
                ,normal   ,volume
                ,xm       ,xmcc
-               ,dcca     
+               ,dcca     ,lDensity 
                ,vSkew    ,mvSkew
                ,lA       ,lB
                ,lRcell 
@@ -90,10 +92,10 @@ void cellLibDif(short *restrict lGeomType,DOUBLE *restrict lprop
                ,eta      ,fArea
                ,normal   ,volume
                ,xm       ,xmcc
-               ,dcca     
+               ,dcca     ,lDensity
                ,vSkew    ,mvSkew
                ,lA       ,lB
-               ,lRcell 
+               ,lRcell   ,ddt
                ,lFaceR   ,lFaceL 
                ,u0       ,gradU0      
                ,nEn      ,nFace 
