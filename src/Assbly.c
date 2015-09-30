@@ -19,6 +19,8 @@
  * lId     -> numeracao das equacoes dessa celula                    *
  * lA      -> coficientes da celula                                  *
  * lB      -> vetor de forca da celula                               *
+ * nEq     -> numero de equacoes                                     *
+ * nAd     -> numero de termos nao nulos                             *
  * nFace   -> numero de faces da celula                              *
  * ndf     -> graus de liberdade                                     *
  * storage -> tecnica de armazenamento da matriz esparsa             * 
@@ -39,6 +41,7 @@ void assbly(INT    *restrict  ia,INT *restrict ja
            ,double *restrict al ,double *restrict b
            ,INT *restrict lId
            ,double *restrict lA ,double *restrict lB
+           ,INT const nEq       ,INT const nAd 
            ,short const nFace   ,short const ndf 
            ,short const storage ,bool  const forces  
            ,bool const matrix   ,bool  const  unsym)
@@ -53,6 +56,7 @@ void assbly(INT    *restrict  ia,INT *restrict ja
          ,al     ,b
          ,lId
          ,lA     ,lB
+         ,nEq    ,nAd 
          ,nFace  ,ndf
          ,storage,forces
          ,matrix ,unsym);

@@ -1,7 +1,11 @@
 #ifndef _HCCABLAS_H
   #define _HCCABLAS_H
 
-/*...*/  
+/*...*/
+  #include<Mesh.h>
+  #include<ParallelMpi.h>
+  #include<Erro.h>  
+  #include<Sisteq.h>
   #include<HccaStdBool.h>
   #include<Define.h>
   #include<HccaTime.h>
@@ -95,6 +99,14 @@
                       ,INT *restrict ia  ,INT *restrict ja
                       ,DOUBLE *restrict a,DOUBLE *restrict ad
                       ,DOUBLE *restrict x,DOUBLE *restrict y);
+/*...................................................................*/
+
+/*... MPI - CsrD */ 
+  void mpiMatVecCsrDSym(INT const neq           
+                     ,INT *restrict ia   ,INT *restrict ja
+                     ,DOUBLE *restrict al,DOUBLE *restrict ad
+                     ,DOUBLE *restrict x ,DOUBLE *restrict y
+                     ,Interface *iNeq);
 /*...................................................................*/
 
 /*==================================================================*/

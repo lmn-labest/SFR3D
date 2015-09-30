@@ -1,6 +1,5 @@
 #ifndef _MESH_
   #define _MESH_
-  #include<time.h>
   #include<Adjcency.h>
   #include<Reord.h>
   #include<HccaStdBool.h>
@@ -54,7 +53,7 @@
     short np;                       /*numero de particoes*/  
     DOUBLE par[MAXLOADPARAMETER];
   }Loads;
-  Loads  loadsD1[MAXLOAD1]; /*tipo de cargas (difusa pura)*/
+  Loads  loadsD1[MAXLOAD1]; /*tipo de cargas (difusao pura)*/
 /*...................................................................*/
 
 /*...*/
@@ -76,18 +75,17 @@
     DOUBLE *faceSt1;   /*valor da condicao de 
                         contorno na face (transporte)*/
 /*...*/
-    short  *faceRd1;  /*condicao  contorno na face (difusa pura)*/
+    short *faceRd1;    /*condicao  contorno na face (difusa pura)*/
     short *faceLoadD1; /*tipo de carga contorno na face (difusa pura)*/
 /*...................................................................*/
     Geom   geom;       
     DOUBLE *pressure;
 /*...*/
-/*...*/
     DOUBLE *temp;       /*temperatura*/
     DOUBLE *gradTemp;   /*gradiente da temperatura*/
     DOUBLE *rCellTemp;  /*residuo da celula*/
 /*...*/
-    DOUBLE *densityUd1; /*massa especifica do metrial uD1*/
+    DOUBLE *densityUd1; /*massa especifica do material uD1*/
     DOUBLE *uD1 ;       /*difusao pura uD1*/
     DOUBLE *u0D1;       /*difusao pura uD1*/
     DOUBLE *gradUd1;    /*gradiente da difusao pura uD1*/
@@ -110,7 +108,7 @@
     DOUBLE *uD1;       /*difusao pura uD1*/
     DOUBLE *gradTemp;  /*gradiente da temperatura*/
     DOUBLE *gradUd1 ;  /*gradiente da difusao pura uD1*/
-    INT   *nno; 
+    INT    *nno; 
   }Node;
 /*...................................................................*/
 
@@ -123,12 +121,22 @@
     DOUBLE skewMax;
   }MeshQuality;
 /*...................................................................*/
-  
+ 
+/*...*/
+  typedef struct{
+    INT *nincid;
+    INT *incid;
+  }Pnode;
+ 
+/*...................................................................*/
+ 
 /*... Malha*/
   typedef struct{
-    short rcGrad; /*tipo de rescontrucao de gradiente*/                     
-    INT nnode;/*numero de nos*/
-    INT numel;/*numero de elementos*/
+    INT nnode;     /*numero de nos*/
+    INT numel;     /*numero de elementos*/
+    INT numelNov;  /*numero de elementos sobrepostos*/
+    INT nnodeOv;   /*numero de nos em elementos sobrepostos*/
+    INT nnodeNov;  /*numero de nos em elementos nao sobrepostos*/
     short ndm;     /*dimensao*/
     short ndfT[MAX_TRANS_EQ];   /*graus de liberdade 
                                   para o problema de transporte*/
@@ -137,45 +145,63 @@
     short numat;   /*numero maximo de materias no dominio*/
     short maxNo;   /*numero maximo de nos por elemento*/
     short maxViz;  /*numero maximo de vizinhos que um elemento possui*/
-/*...*/
-    Temporal ddt;
 /*...*/    
     Elmt elm;     
     Node node;
-/*...*/
-    NonLinear nlTemp;
-    NonLinear nlD1;
+    Pnode noIncid;
 /*...*/
     MeshQuality mQuality;
   }Mesh;
 /*...................................................................*/
 
+/*...*/
+  typedef struct{
+    short rcGrad; /*tipo de rescontrucao de gradiente*/                     
+/*...*/
+    Temporal ddt;
+/*...*/
+    NonLinear nlTemp;
+    NonLinear nlD1;
+  }Scheme;
+/*...................................................................*/
+
+ typedef struct{
+    INT  nRcvs;   /*numero de valores a serem recebidos*/
+    INT  nSends;  /*numero de valores a serem enviados */
+    INT *iaSends; /*ponteiros para o arranjo no buffer de envio*/
+    INT *iaRcvs;  /*ponteiros para o arranjo buffer de recebimento*/                        
+    INT *fMap;    /*numeracao do buffer de comunicacao*/    
+    DOUBLE *xb;   /*valores no buffer de comunicacao*/
+    unsigned short nVizPart;
+    short *vizPart;
+    
+  }Interface;
+ 
+  typedef struct{
+    INT  nCom;     /*numero de valores a serem comunicados*/
+    INT  *iaComNo; /*ponteiros para o arranjo buffer de comunicacao*/                        
+    INT   *fMap;  /*numeracao do buffer de comunicacao*/    
+    DOUBLE  *xb;    /*valores no buffer de comunicacao(DOUBLE)*/
+    INT     *xi;    /*valores no buffer de comunicacao(INT)*/
+    unsigned short nVizPart;
+    short *vizPart;
+    
+  }InterfaceNo;
+
 /* variaveis do preparticionador*/
   typedef struct{
-    time_t tmetis;
-    int *np;
-    int *ep;
-    int *noGL;
-    int *noLG;
-    int *elGL;
-    int *elLG;
-    int *ranks;
-    int *fmap;
-    int  nnof[2];
-    int *rcvs;
-    int *dspl;
-    int  my_nnode;
-    int  my_nno1;
-    int  my_nno2;
-    int  my_nno3;
-    int  my_nno4;
-    int  my_nno1a;
-    int  my_numel;
-    int  my_numel_nov;
-    int  my_numel_ov;
-    int  sizes;
-    int  nprcs;
-    bool ovlp;
+    bool fPartMesh;
+    bool fPrintMesh;
+    bool fPrintMeshPart;
+    Interface   iEl;
+    InterfaceNo iNo;
+    INT nno1;      /*numero de nos apenas da particao local*/
+    INT nnG ;      /*numero de nos total da malha global*/
+    INT elG ;      /*numero de elementos total da malha global*/
+    INT *elLG;     /*mapa de local-> global de celulas*/
+    INT *noLG;     /*mapa de local-> global de nos*/
+    INT *np;       /*master apenas*/
+    INT *ep;       /*master apenas*/
   }PartMesh;
 /*...................................................................*/
 #endif/*_MESH_*/

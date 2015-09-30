@@ -9,8 +9,10 @@
 /*...*/
   #include<PreCond.h>
   #include<HccaBlas.h>
+  #include<Sisteq.h>
   #include<Define.h>
   #include<Memoria.h>
+  #include<Mesh.h>
 /*...................................................................*/
   
 /*....*/
@@ -30,20 +32,24 @@
 /*...................................................................*/
 
 /*....*/
-  void solverC(Memoria *m          ,INT const neq     ,INT const nad
+  void solverC(Memoria *m     
+              ,INT const nEq       ,INT const nEqNov
+              ,INT const nAd
               ,INT *ia             ,INT *ja   
               ,DOUBLE *al          ,DOUBLE *ad        ,DOUBLE *au
               ,DOUBLE *b           ,DOUBLE *x
+              ,Interface *iNeq
               ,DOUBLE tol          ,unsigned int maxit
               ,short const storage ,short const solver
               ,FILE* fileSolvLog   ,bool const fLog
-              ,bool const newX     ,bool const openmp  
+              ,bool const newX     ,bool const openmp
               ,bool const unsym    ,bool const loopwise);
 /*...................................................................*/
 
 /*========================= Iterativos ==============================*/
 /*... gradiente conjugado precondicionado*/
-  void pcg(INT const neq      ,INT const nad  
+  void pcg(INT const nEq        
+          ,INT const nad  
           ,INT *restrict ia   ,INT *restrict ja
           ,DOUBLE *restrict al,DOUBLE *restrict ad,DOUBLE *restrict au
           ,DOUBLE *restrict m ,DOUBLE *restrict b ,DOUBLE *restrict x
@@ -51,6 +57,18 @@
           ,unsigned int maxit ,bool const newX          
           ,FILE* fileSolvLog  ,bool const log
           ,bool const fPrint
+          ,void(*matvec)()    ,DOUBLE(*dot)());
+  
+   void mpiPcg(INT const nEq  ,INT const nEqNov  
+          ,INT const nad  
+          ,INT *restrict ia   ,INT *restrict ja
+          ,DOUBLE *restrict al,DOUBLE *restrict ad,DOUBLE *restrict au
+          ,DOUBLE *restrict m ,DOUBLE *restrict b ,DOUBLE *restrict x
+          ,DOUBLE *restrict z ,DOUBLE *restrict r ,DOUBLE const tol
+          ,unsigned int maxit ,bool const newX          
+          ,FILE* fileSolvLog  ,bool const log
+          ,bool const fPrint
+          ,Interface *iNeq
           ,void(*matvec)()    ,DOUBLE(*dot)());
 /*...................................................................*/
 /*===================================================================*/

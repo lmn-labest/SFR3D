@@ -13,6 +13,7 @@
   #include<HccaStdBool.h>
   #include<Memoria.h>
   #include<Mesh.h>
+  #include<ParallelMpi.h>
 /*...................................................................*/
 
 /*...*/
@@ -52,8 +53,10 @@
          ,DOUBLE *restrict u          ,DOUBLE *restrict gradU               
          ,DOUBLE *restrict nU         ,short const lib
          ,short const maxNo           ,short const maxViz
-         ,short const ndf             ,short const ndm         
-         ,INT const numel             ,INT const nNode); 
+         ,short const ndf             ,short const ndm
+         ,InterfaceNo *iNo            ,Interface *iCel 
+         ,INT const numelNov          ,INT const numel 
+         ,INT const nNodeNov          ,INT const nNode);
 /*...................................................................*/
 
 /*... */
@@ -63,9 +66,12 @@
                    ,DOUBLE *restrict cc   ,DOUBLE *restrict x   
                    ,short *restrict nen   ,short *restrict nFace
                    ,short  *restrict faceR,short *restrict faceL  
-                   ,INT const numel       ,INT const nnode
+                   ,InterfaceNo *iNo        
+                   ,INT const numelNov    ,INT const numel       
+                   ,INT const nNodeNov    ,INT const nNode 
                    ,short const maxNo     ,short const maxViz    
-                   ,short const ndf       ,short const ndm
+                   ,short const ndf1      ,short const ndf2  
+                   ,short const ndm
                    ,bool const fBc        ,short const type);
 /*...................................................................*/
 
@@ -85,7 +91,8 @@
              ,DOUBLE *restrict b      ,INT    *restrict id 
              ,short  *restrict faceR  ,short  *restrict faceL              
              ,DOUBLE *restrict u0     ,DOUBLE *restrict gradU0             
-             ,DOUBLE *restrict rCell  ,Temporal const ddt             
+             ,DOUBLE *restrict rCell  ,Temporal const ddt
+             ,INT const nEq           ,INT const nAd               
              ,short const maxNo       ,short const maxViz
              ,short const ndm         ,INT const numel
              ,short const ndf         ,short const storage
@@ -122,9 +129,9 @@
 
 /*... */
   void updateCellValue(DOUBLE *restrict u,DOUBLE *restrict x
-                      ,INT *restrict id 
+                      ,INT *restrict id  ,Interface *iNeq
                       ,INT const numel   ,short const ndf
-                      ,bool const fAdd);
+                      ,bool const fAdd   ,short const fCom);
 /*...................................................................*/
 
 /*... funcoes geometricas*/

@@ -13,7 +13,7 @@
 /*.....................................................................*/
 #define ALIGN         64
 #define CONV_BYTES    1024.0
-#define NPONTEIRO     50/*Numero de ponteiros maximo allocados*/
+#define NPONTEIRO    100/*Numero de ponteiros maximo allocados*/
 #define MNOMEPONTEIRO 20/*Tamanho maximo do nome do vetor*/
 #define DIF   "***************************************************************"
 

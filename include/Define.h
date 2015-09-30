@@ -1,5 +1,6 @@
 #ifndef _DEFINE_H_
   #define _DEFINE_H_
+
 /*...*/
   #include<stdlib.h>
   #include<stdio.h>
@@ -17,6 +18,10 @@
 /*...*/
   #define COEFDIF 0
   #define DENSITY 1
+/*...................................................................*/
+
+/*...*/
+  #define MAX_MPI_PROCESS 2048
 /*...................................................................*/
 
 /*... */
@@ -87,7 +92,13 @@
   #define PBICGSTAB  2
 /*...................................................................*/
 
-/*... CSR*/
+/*... STORAGE*/
+  #define BANDCSRMAX     0
+  #define BANDCSRMED     1
+  #define BANDCSRMIN     2
+/*...................................................................*/
+
+/*... STORAGE*/
   #define CSR     1
   #define CSRD    2
   #define CSRC    3
@@ -125,19 +136,4 @@
   #define vectorMinusOne(v,n,i) for(i=0;i<n;i++) v[i]--  
 /*...................................................................*/
 
-/*... Saida de Erro*/                                                  
-  #define ERRO_RCM fprintf(stderr,"\nrcm - fatal error!\n")
-
-  #define ERRO_OP(file,func,op)\
-    fprintf(stderr,"Opecao %d e invalida!!\n",op);\
-    fprintf(stderr,"Arquivo:%s\nFonte:  %s\n",file,func);\
-    exit(EXIT_FAILURE);
- 
-  #define ERRO_GERAL(file,func,line,str)\
-    fprintf(stderr,"Erro: %s!!\n",str);\
-    fprintf(stderr,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"\
-           ,file,func,line);\
-    exit(EXIT_FAILURE);
-
-/*...................................................................*/
 #endif/*_DEFINE_H_*/

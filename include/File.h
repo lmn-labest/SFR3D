@@ -1,11 +1,15 @@
 #ifndef _FILE_
   #define _FILE_
+/*...*/
+  #include<math.h>
   #include<stdio.h>
   #include<stdlib.h>
+/*...*/
+  #include<Erro.h>
   #include<HccaStdBool.h>
-  #include<math.h>
   #include<string.h>
   #include<Define.h>
+/*...*/
   #define MAX_STR_LEN_IN    129 /*tamanho do arquivo de entrada maximo*/
   #define MAX_STR_LEN_SUFIXO 80  /*tamanho do arquivo de entrada maximo*/
   #define SIZEMAX           200 /*tamanho do arquivo de saida maximo*/

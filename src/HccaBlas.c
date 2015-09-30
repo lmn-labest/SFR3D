@@ -22,7 +22,14 @@
  * dotO4          -> produto interno entre dois vetores               * 
  * dotO6          -> produto interno entre dois vetores               * 
  * dotO8          -> produto interno entre dois vetores               * 
- * -------------------------- CSRD ---------------------------------- * 
+ * -------------------------- CSRD ---------------------------------- *
+ * ....................... SIMETRICA ................................ *
+ * mpiMatVecCsrDSym -> matizt vetor para matriz simetrica no formato  *           
+ * CSRD                                                               *
+ * ................... SIMETRICA - MPI .............................. *
+ * mpiMatVecCsrDSym -> matizt vetor para matriz simetrica no formato  *           
+ * CSRD                                                               *           
+ * ...........................GERAL ................................. *
  * matVecCsrD     -> matriz vetor para matriz geral no formato CSRD   * 
  * matVecCsrDI2   -> matriz vetor para matriz geral no formato CSRD   * 
  * matVecCsrDI4   -> matriz vetor para matriz geral no formato CSRD   * 
@@ -32,6 +39,7 @@
  * matVecCsrDO6   -> matriz vetor para matriz geral no formato CSRD   * 
  * matVecCsrDO2I2 -> matriz vetor para matriz geral no formato CSRD   * 
  * ------------------------ ELLPACK --------------------------------- * 
+ * ...........................GERAL ................................. *
  * matVecEllPack  -> matriz vetor para matriz geral no formato EllPack* 
  * matVecEllPackO2-> matriz vetor para matriz geral no formato EllPack* 
  * matVecEllPackO4-> matriz vetor para matriz geral no formato EllPack* 
@@ -221,20 +229,37 @@ void addVector(DOUBLE const alpha,DOUBLE *restrict a
 DOUBLE dot(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 {
   INT i;
-  DOUBLE tmp=0.e0;
+  DOUBLE tmp=0.e0,dot=0.e0;
 
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
 
-  for(i=0;i<n;i++)
+/*...*/
+  for(i=0;i<n;i++){
     tmp += x1[i]*x2[i];
+  }
+/*...................................................................*/
+
+/*...*/
+#ifdef _MPICH_
+  if(mpiVar.nPrcs>1){ 
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  }
+  else  
+    dot = tmp;
+#else
+    dot = tmp;
+#endif
+/*...................................................................*/
 
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
 
-  return tmp;
+  return dot;
 } 
 /*********************************************************************/ 
 
@@ -258,11 +283,13 @@ DOUBLE dotO2L2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0;
+  DOUBLE tmp,dot=0.e0;
   
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
 
+/*...*/ 
   resto = n%4;
   if(resto == 1)
      tmp1 = x1[0]*x2[0]; 
@@ -275,11 +302,28 @@ DOUBLE dotO2L2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
     tmp1 += x1[i  ]*x2[i  ] + x1[i+1]*x2[i+1]; 
     tmp2 += x1[i+2]*x2[i+2] + x1[i+3]*x2[i+3]; 
   }
+  tmp = tmp1 + tmp2;
+/*...................................................................*/
+
+  
+/*...*/
+#ifdef _MPICH_
+  if(mpiVar.nPrcs>1){ 
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  }
+  else  
+    dot = tmp;
+#else
+    dot = tmp;
+#endif
+/*...................................................................*/
 
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
-  return (tmp1+tmp2);
+  return dot;
 } 
 /*********************************************************************/ 
 
@@ -303,12 +347,14 @@ DOUBLE dotL2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0;
+  DOUBLE tmp,dot=0.e0;
   resto = n%2;
 
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
 
+/*...*/ 
   if(resto)
     tmp1 = x1[0]*x2[0];
     
@@ -316,12 +362,28 @@ DOUBLE dotL2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
     tmp1 += x1[i  ]*x2[i  ]; 
     tmp2 += x1[i+1]*x2[i+1];
   }
+  tmp = tmp1 + tmp2;
+/*...................................................................*/
+
+/*...*/
+#ifdef _MPICH_
+  if(mpiVar.nPrcs>1){ 
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  }
+  else  
+    dot = tmp;
+#else
+    dot = tmp;
+#endif
+/*...................................................................*/
 
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
 
-  return (tmp1+tmp2);
+  return dot;
 } 
 /*********************************************************************/ 
 
@@ -345,11 +407,13 @@ DOUBLE dotL4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0,tmp3=0.e0,tmp4=0.e0;
+  DOUBLE tmp,dot=0.e0;
   
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
   
+/*...*/ 
   resto = n%4;
   if(resto == 1)
      tmp1 = x1[0]*x2[0]; 
@@ -365,12 +429,28 @@ DOUBLE dotL4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
     tmp3 += x1[i+2]*x2[i+2];
     tmp4 += x1[i+3]*x2[i+3];
   }
+  tmp = tmp1 + tmp2 + tmp3 + tmp4;
+/*...................................................................*/
+
+/*...*/
+#ifdef _MPICH_
+  if(mpiVar.nPrcs>1){ 
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  }
+  else  
+    dot = tmp;
+#else
+    dot = tmp;
+#endif
+/*...................................................................*/
 
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
 
-  return (tmp1+tmp2+tmp3+tmp4);
+  return dot;
 } 
 /*********************************************************************/ 
 
@@ -395,12 +475,14 @@ DOUBLE dotL6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0,tmp3=0.e0,tmp4=0.e0;
   DOUBLE tmp5=0.e0,tmp6=0.e0;
+  DOUBLE tmp,dot=0.e0;
 
   
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
   
+/*...*/ 
   resto = n%6;
   if(resto == 1)
      tmp1= x1[0]*x2[0]; 
@@ -425,12 +507,28 @@ DOUBLE dotL6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
     tmp5 += x1[i+4]*x2[i+4];
     tmp6 += x1[i+5]*x2[i+5];
   }
+  tmp = tmp1+tmp2+tmp3+tmp4+tmp5+tmp6;
+/*...................................................................*/
+
+/*...*/
+#ifdef _MPICH_
+  if(mpiVar.nPrcs>1){ 
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  }
+  else  
+    dot = tmp;
+#else
+    dot = tmp;
+#endif
+/*...................................................................*/
 
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
 
-  return (tmp1+tmp2+tmp3+tmp4+tmp5+tmp6);
+  return dot;
 } 
 /*********************************************************************/ 
 
@@ -455,12 +553,14 @@ DOUBLE dotL8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0,tmp3=0.e0,tmp4=0.e0;
   DOUBLE tmp5=0.e0,tmp6=0.e0,tmp7=0.e0,tmp8=0.e0;
+  DOUBLE tmp,dot=0.e0;
 
   
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
   
+/*...*/ 
   resto = n%8;
   if(resto == 1)
      tmp1= x1[0]*x2[0]; 
@@ -496,12 +596,28 @@ DOUBLE dotL8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
     tmp7 += x1[i+6]*x2[i+6];
     tmp8 += x1[i+7]*x2[i+7];
   }
+  dot = tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7+tmp8;
+/*...................................................................*/
+
+/*...*/
+#ifdef _MPICH_
+  if(mpiVar.nPrcs>1){ 
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  }
+  else  
+    dot = tmp;
+#else
+    dot = tmp;
+#endif
+/*...................................................................*/
 
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
 
-  return (tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7+tmp8);
+  return dot;
 } 
 /*********************************************************************/ 
 
@@ -526,23 +642,39 @@ DOUBLE dotO2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
   INT i,resto;
   DOUBLE tmp=0.e0;
   resto = n%2;
+  DOUBLE dot=0.e0;
 
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
   
+/*...*/ 
   if(resto)
     tmp = x1[0]*x2[0];
     
   for(i=resto;i<n;i+=2)
     tmp += x1[i]*x2[i] + x1[i+1]*x2[i+1];
+/*...................................................................*/
 
+/*...*/
+#ifdef _MPICH_
+  if(mpiVar.nPrcs>1){ 
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  }
+  else  
+    dot = tmp;
+#else
+    dot = tmp;
+#endif
+/*...................................................................*/
 
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
 
-  return tmp;
+  return dot;
 } 
 /*********************************************************************/ 
 
@@ -566,11 +698,13 @@ DOUBLE dotO4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp=0.e0;
+  DOUBLE dot=0.e0;
  
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
  
+/*...*/ 
   resto = n%4;
   if(resto == 1)
      tmp = x1[0]*x2[0]; 
@@ -583,12 +717,27 @@ DOUBLE dotO4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
   for(i=resto;i<n;i+=4)
     tmp += x1[i  ]*x2[i  ] + x1[i+1]*x2[i+1] 
          + x1[i+2]*x2[i+2] + x1[i+3]*x2[i+3];
+/*...................................................................*/
+
+/*...*/
+#ifdef _MPICH_
+  if(mpiVar.nPrcs>1){ 
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  }
+  else  
+    dot = tmp;
+#else
+    dot = tmp;
+#endif
+/*...................................................................*/
 
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
 
-  return tmp;
+  return dot;
 } 
 /*********************************************************************/ 
 
@@ -612,12 +761,14 @@ DOUBLE dotO6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp=0.e0;
+  DOUBLE dot=0.e0;
 
 
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
   
+/*...*/ 
   resto = n%6;
   if(resto == 1)
      tmp = x1[0]*x2[0]; 
@@ -636,13 +787,28 @@ DOUBLE dotO6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
     tmp += x1[i  ]*x2[i  ] + x1[i+1]*x2[i+1] 
          + x1[i+2]*x2[i+2] + x1[i+3]*x2[i+3] 
          + x1[i+4]*x2[i+4] + x1[i+5]*x2[i+5];
+/*...................................................................*/
   
+/*...*/
+#ifdef _MPICH_
+  if(mpiVar.nPrcs>1){ 
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  }
+  else  
+    dot = tmp;
+#else
+    dot = tmp;
+#endif
+/*...................................................................*/
+
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
 
 
-  return tmp;
+  return dot;
 } 
 /*********************************************************************/ 
 
@@ -666,11 +832,13 @@ DOUBLE dotO8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp=0.e0;
+  DOUBLE dot=0.e0;
 
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
   
+/*...*/ 
   resto = n%8;
   if(resto == 1)
      tmp = x1[0]*x2[0]; 
@@ -701,18 +869,35 @@ DOUBLE dotO8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
          + x1[i+2]*x2[i+2] + x1[i+3]*x2[i+3]
          + x1[i+4]*x2[i+4] + x1[i+5]*x2[i+5]
          + x1[i+6]*x2[i+6] + x1[i+7]*x2[i+7];
+/*...................................................................*/
  
+/*...*/
+#ifdef _MPICH_
+  if(mpiVar.nPrcs>1){ 
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  }
+  else  
+    dot = tmp;
+#else
+    dot = tmp;
+#endif
+/*...................................................................*/
+
 /*...*/ 
   tm.dot = getTimeC() - tm.dot;
 /*...................................................................*/
 
-  return tmp;
+  return dot;
 } 
 /*********************************************************************/ 
 
 /*==================================================================*/
 
 /*======================== level 2 =================================*/
+
+/*********************** CSRD SIMETRICO *****************************/
 
 /********************************************************************* 
  * MATVECCSRDSYM:produto matriz vetor para uma matriz no formato CSRD* 
@@ -758,7 +943,6 @@ void matVecCsrDSym(INT const neq
       tmp    += sAu*x[jak];
 /*... produto dos coef. da parte superior da matriz por x(i)*/
       y[jak] += sAu*xi;
-       
     }
 /*... armazena o resultado em y(i) */
     y[i] = tmp;
@@ -769,6 +953,86 @@ void matVecCsrDSym(INT const neq
 /*...................................................................*/
 } 
 /*********************************************************************/ 
+
+/********************************************************************* 
+ * MPIMATVECCSRDSYM:produto matriz vetor para uma matriz no formato  *
+ * CSRD+CSR (y=Ax, A uma matriz simentrica)                          * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * al  -> vetor com os valores inferiores da matriz                  * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS: ja guarda os indiceis da para inferior da matriz             * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void mpiMatVecCsrDSym(INT const nEq           
+                     ,INT *restrict ia   ,INT *restrict ja
+                     ,DOUBLE *restrict al,DOUBLE *restrict ad
+                     ,DOUBLE *restrict x ,DOUBLE *restrict y
+                     ,Interface *iNeq)
+{
+#ifdef _MPICH_
+  INT    i,k,jak,nAd;
+  DOUBLE xi,tmp,sAu;
+  INT *iar,*jar;
+  DOUBLE *ar;
+
+  nAd = ia[nEq] - ia[0];
+  iar = &ia[nEq+1];
+  jar = &ja[nAd];
+  ar  = &al[nAd];
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+  
+/*...*/
+  tm.matVecOverHeadMpi        = getTimeC() - tm.matVecOverHeadMpi;
+  comunicateNeq(iNeq,x);
+  tm.matVecOverHeadMpi        = getTimeC() - tm.matVecOverHeadMpi;
+/*...................................................................*/
+      
+/*...*/
+  for(i=0;i<nEq;i++){
+    xi  = x[i];
+    tmp = ad[i]*xi;
+    for(k=ia[i];k<ia[i+1];k++){
+      jak = ja[k];
+      sAu = al[k];
+/*... produto da linha i pelo vetor x*/
+      tmp    += sAu*x[jak];
+/*... produto dos coef. da parte superior da matriz por x(i)*/
+      y[jak] += sAu*xi;
+    }
+    
+/*... parte retangular*/
+    for(k=iar[i];k<iar[i+1];k++){
+      jak  = jar[k];
+      tmp += ar[k]*x[jak];
+    } 
+/*... armazena o resultado em y(i) */
+    y[i] = tmp;
+  }
+/*...................................................................*/
+ 
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+#endif
+} 
+/*********************************************************************/ 
+
+/*********************** CSRD GERAL **********************************/
 
 /********************************************************************* 
  * MATVECCSRD :produto matriz vetor para uma matriz no formato CSRD  * 
@@ -816,6 +1080,7 @@ void matVecCsrD(INT const neq
 /*...................................................................*/
 }
 /*********************************************************************/
+
 /********************************************************************* 
  * MATVECCSRDI2:  produto matriz vetor para uma matriz generica no   *
  * formato csr com a diagonal principal retirada                     *
@@ -1502,6 +1767,8 @@ linhai2:
 } 
 /*********************************************************************/ 
 
+/************************ ELLPACK GERAL ******************************/
+
 /********************************************************************* 
  * MATVECELLPACK : produto matriz vetor para uma matriz generica no  *
  * formato ELLPACK                                                   *
@@ -1888,6 +2155,7 @@ void matVecEllPackO4(INT const nEq
   
 } 
 /*********************************************************************/ 
+
  
 /*==================================================================*/
 

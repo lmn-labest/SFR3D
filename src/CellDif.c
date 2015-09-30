@@ -510,7 +510,7 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
     }
   }
 /*... residuo: R = F - KpUp*/ 
-  rCell += p -lA[idCell]*u0[idCell];   
+  rCell += p -lA[idCell]*u0[idCell]; 
 /*...................................................................*/
 
 /*...*/  

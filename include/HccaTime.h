@@ -3,7 +3,9 @@
   #if _OPENMP
     #include<Openmp.h>
   #elif _WIN32 
-    #include<time.h>  
+    #include<time.h> 
+  #elif _MPICH_ 
+    #include<mpi.h>
   #else  
     #include<sys/time.h>
   #endif
@@ -23,12 +25,24 @@
     double systFormD1;
     double rcGradD1;
 /*... blas*/
+    double matVecOverHeadMpi;
     double matVecSparse;
     double dot;
+    double dotOverHeadMpi;
 /*... iterativos*/
     double pcg;
 /*... precondicionador*/
     double precondDiag;
+/*... particionamento*/
+    double partdMesh;
+    double partdMeshCom;
+/*... comunicacao entre as particoes*/
+    double overHeadCelMpi;
+    double overHeadNodMpi;
+    double overHeadNeqMpi;
+    double overHeadGNodMpi;
+    double overHeadGCelMpi;
+    double overHeadTotalMpi;
 
 /*...*/
     double total;

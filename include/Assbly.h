@@ -8,16 +8,18 @@
 /*...*/
   #include<Csr.h>
   #include<EllPack.h>
+  #include<Erro.h>
   #include<HccaStdBool.h>
   #include<Define.h>
 /*...................................................................*/
 
 /*...*/
   void assbly(INT    *restrict  ia,INT *restrict ja 
-             ,double *restrict au ,double *restrict ad
-             ,double *restrict al ,double *restrict b
+             ,DOUBLE *restrict au ,DOUBLE *restrict ad
+             ,DOUBLE *restrict al ,DOUBLE *restrict b
              ,INT *restrict lId
-             ,double *restrict lA ,double *restrict lB
+             ,DOUBLE *restrict lA ,DOUBLE *restrict lB
+             ,INT const nEq       ,INT const nAd  
              ,short const nFace   ,short const ndf 
              ,short const storage ,bool  const forces  
              ,bool const matrix   ,bool  const  unsym);

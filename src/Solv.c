@@ -6,6 +6,7 @@
  * -------------------------------------------------------------------*
  * m       -> vetor de memoria                                        *
  * neq     -> numero de equacoes                                      *
+ * neqNov  -> numero de equacoes nao sobrepostas                      *
  * nad     -> numero de elemetos nao nulos fora da diagonal principal *
  * ia      -> vetor das linhas da estrutura de dados                  *
  * ja      -> vetor das colunas da estrutura de dados                 *
@@ -13,6 +14,7 @@
  * ad      -> diagonal principal da matriz a                          *
  * au      -> parte superior da matriz a                              *
  *  b      -> vetor de forcas                                         *
+ * iNeq    -> mapa de interface de equacoes                           *
  *  x      -> vetor da solucao                                        *
  * tol     -> tolerancia do solver                                    *
  * maxit   -> numero maximo de iteracao do solver iterativo           *
@@ -31,11 +33,14 @@
  * b      - modificado                                                *
  * -------------------------------------------------------------------*
 **********************************************************************/
-void solverC(Memoria *m    ,INT neq   ,INT nad
-            ,INT *ia       ,INT *ja   
-            ,DOUBLE *al    ,DOUBLE *ad,DOUBLE *au
-            ,DOUBLE *b     ,DOUBLE *x
-            ,DOUBLE tol    ,unsigned int maxIt
+void solverC(Memoria *m    
+            ,INT const nEq       ,INT const nEqNov  
+            ,INT const nAd
+            ,INT *ia             ,INT *ja   
+            ,DOUBLE *al          ,DOUBLE *ad,DOUBLE *au
+            ,DOUBLE *b           ,DOUBLE *x
+            ,Interface *iNeq       
+            ,DOUBLE const tol    ,unsigned int maxIt
             ,short const storage ,short const solver
             ,FILE* fSolvLog      ,bool const fLog
             ,bool const newX     ,bool const openMp   
@@ -49,17 +54,18 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
 /*gradientes conjugados com precondicionador diagonal*/
     case PCG:
 /*... precondiconador diagonal*/
-      HccaAlloc(DOUBLE,m,pc,neq,"pc",false);
+      HccaAlloc(DOUBLE,m,pc,nEqNov,"pc",false);
+      zero(pc,nEqNov,DOUBLEC);
       tm.precondDiag = getTimeC() - tm.precondDiag;
-      preCondDiag(pc,ad,neq);
+      preCondDiag(pc,ad,nEqNov);
       tm.precondDiag = getTimeC() - tm.precondDiag;
 /*...................................................................*/
 
 /*... arranjos auxiliares do pcg*/
-      HccaAlloc(DOUBLE,m,z,neq,"z",false);
-      zero(z,neq,DOUBLEC);
-      HccaAlloc(DOUBLE,m,r,neq,"r",false);
-      zero(r,neq,DOUBLEC);
+      HccaAlloc(DOUBLE,m,z,nEq,"z",false);
+      zero(z,nEq,DOUBLEC);
+      HccaAlloc(DOUBLE,m,r,nEq,"r",false);
+      zero(r,nEq,DOUBLEC);
 /*...................................................................*/
       
 /*... estrutura de dados de armazenamentos da matriz esparcas*/
@@ -75,7 +81,10 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
           if(unSym)
             matVecC = matVecCsrD;
           else
-            matVecC = matVecCsrDSym;
+            if( mpiVar.nPrcs > 1)
+              matVecC = mpiMatVecCsrDSym;
+            else
+              matVecC = matVecCsrDSym;
         break;
 /*...................................................................*/
 
@@ -116,15 +125,34 @@ void solverC(Memoria *m    ,INT neq   ,INT nad
 
 /*... gradientes conjugados*/
       tm.pcg = getTimeC() - tm.pcg;
-      pcg(neq     ,nad
-         ,ia      ,ja
-         ,al      ,ad   ,au
-         ,pc      ,b    ,x
-         ,z       ,r    ,tol
-         ,maxIt   ,true 
-         ,fSolvLog,fLog
-         ,false 
-         ,matVecC ,dotC);  
+/*... PCG-MPI*/
+      if( mpiVar.nPrcs > 1)
+        mpiPcg(nEq      ,nEqNov    
+              ,nAd
+              ,ia      ,ja
+              ,al      ,ad   ,au
+              ,pc      ,b    ,x
+              ,z       ,r    ,tol
+              ,maxIt   ,true 
+              ,fSolvLog,fLog
+              ,false 
+              ,iNeq           
+              ,matVecC ,dotC);   
+/*...................................................................*/
+      
+/*... PCG*/
+      else
+        pcg(nEq         
+           ,nAd
+           ,ia      ,ja
+           ,al      ,ad   ,au
+           ,pc      ,b    ,x
+           ,z       ,r    ,tol
+           ,maxIt   ,true 
+           ,fSolvLog,fLog
+           ,false 
+           ,matVecC ,dotC);   
+/*...................................................................*/
       tm.pcg = getTimeC() - tm.pcg;
 /*...................................................................*/
       

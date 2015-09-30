@@ -126,7 +126,7 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
         }
       }
 /*...................................................................*/
-
+    
 /*... chamando a biblioteca de celulas*/
     ty = geomType[nel];
 /*... triangulos e quadrilateros*/
@@ -230,10 +230,12 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
  * b       -> vetor de forcas                                        * 
  * id      -> numera das equacoes                                    * 
  * u0      -> solucao conhecida                                      * 
- * rCell   -> nao definido                                           * 
- * ddt     -> discretizacao temporal                                 *
  * faceR   -> restricoes por elemento                                * 
  * faceLd1 -> carga por elemento                                     * 
+ * rCell   -> nao definido                                           * 
+ * ddt     -> discretizacao temporal                                 *
+ * nEq     -> numero de equacoes                                     *
+ * nAd     -> numero de termos nao nulos                             *
  * maxNo   -> numero de nos por celula maximo da malha               * 
  * maxViz  -> numero vizinhos por celula maximo da malha             * 
  * ndm     -> numero de dimensoes                                    * 
@@ -269,7 +271,8 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
                ,DOUBLE *restrict b       ,INT    *restrict id
                ,short  *restrict faceR   ,short  *restrict faceLd1        
                ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0 
-               ,DOUBLE *restrict rCell   ,Temporal ddt                    
+               ,DOUBLE *restrict rCell   ,Temporal ddt 
+               ,INT const nEq            ,INT const nAd                    
                ,short const maxNo        ,short const maxViz
                ,short const ndm          ,INT const numel
                ,short const ndf          ,short const storage
@@ -363,7 +366,7 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
           MAT2D(i,j,lvSkew ,ndm) = MAT3D(nel,i,j,gvSkew ,maxViz,ndm);
         }
       }
-
+  
 
 /*... loop na celulas vizinhas*/    
       for(i=0;i<aux1;i++){
@@ -382,7 +385,7 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
           for(j=0;j<DIFPROP;j++)
             MAT2D(i,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);
           }
-        }
+        }  
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
@@ -400,7 +403,7 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
                 ,lu0       ,lGradU0     
                 ,nen[nel]  ,nFace[nel] 
                 ,ndm       ,lib   
-                ,nel);
+                ,nel);  
 /*...................................................................*/
 
 /*... residuo da celula*/
@@ -414,7 +417,8 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
             ,&dum        ,ad 
             ,al          ,b  
             ,lId 
-            ,lA          ,lB 
+            ,lA          ,lB
+            ,nEq         ,nAd 
             ,nFace[nel]  ,ndf 
             ,storage     ,forces
             ,matrix      ,unsym); 
@@ -668,9 +672,11 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
  * u       -> variavel nas celulas                                   * 
  * x       -> solucao do sistema                                     * 
  * id      -> numera das equacoes                                    * 
+ * iNeq    -> mapa de equacoes de interface                          *
  * numel   -> numero de elementos                                    * 
  * ndf     -> graus de liberdade                                     * 
  * fAdd    -> true add false sobreescreve                            * 
+ * fCom    -> comunica os valores x entre as particoes               * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
@@ -680,12 +686,21 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
  *-------------------------------------------------------------------* 
  *********************************************************************/
  void updateCellValue(DOUBLE *restrict u,DOUBLE *restrict x
-                 ,INT *restrict id 
-                 ,INT const numel   ,short const ndf
-                 ,bool const fAdd)
+                 ,INT *restrict id      ,Interface *iNeq
+                 ,INT const numel       ,short const ndf
+                 ,bool const fAdd       ,short const fCom)
 {
   INT nel,lNeq;
   short jNdf;
+
+/*... obtem os valores de x das equacoes em overlaping*/  
+  if(fCom){
+    tm.overHeadCelMpi = getTimeC() - tm.overHeadCelMpi;
+    comunicateNeq(iNeq,x);
+    tm.overHeadCelMpi = getTimeC() - tm.overHeadCelMpi;
+  }
+/*.................................................................*/  
+
   if(fAdd)    
     for(nel=0;nel<numel;nel++){
       for(jNdf = 0;jNdf<ndf;jNdf++){ 
@@ -705,7 +720,6 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
 }
 /*********************************************************************/
 
- 
 /********************************************************************* 
  * INTERCELLNODE: interpolacao dos valores das celulas para o no da  *
  * malha                                                             *
@@ -723,19 +737,25 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
  * nen     -> numero de nos por celulas                              * 
  * faceR   -> restricoes por elmento                                 * 
  * faceL   -> carga por elemento                                     * 
+ * iNo     -> mapa de nos de interface                               *
+ * numelNov-> numero de elementos sem sobreposicoes                  * 
  * numel   -> numero de elementos                                    * 
- * nnode   -> numero de nos                                          * 
+ * nNodeNov-> numero de nos sem sobreposicoes                        * 
+ * nNode   -> numero de nos                                          * 
  * maxNo   -> numero de nos por celula maximo da malha               * 
- * ndf     -> graus de liberdade                                     * 
+ * ndf1    -> graus de liberdade linha  (tensor)                     * 
+ * ndf2    -> graus de liberdade coluna (tensor)                     * 
  * ndm     -> numero de dimensao                                     * 
+ * fBc     -> forca condicao de controno conhecida                   * 
  * type    -> tipo de interpolacao                                   * 
  *            1 - media simples                                      * 
  *            2 - media ponderada                                    * 
- * fBc     -> forca condicao de controno conhecida                   * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
- * u      -> atualizado                                              * 
+ * u      -> atualizado | u1 u2 u3 |                                 * 
+ *                      | v1 v2 v3 |                                 *
+ *                      | w1 w2 w3 |                                 *
  *-------------------------------------------------------------------* 
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
@@ -745,10 +765,13 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
                    ,INT *restrict el       ,short  *restrict geomType 
                    ,DOUBLE *restrict cc    ,DOUBLE *restrict x 
                    ,short *restrict nen    ,short *restrict nFace
-                   ,short  *restrict faceR ,short *restrict faceL  
-                   ,INT const numel        ,INT const nnode
+                   ,short  *restrict faceR ,short *restrict faceL 
+                   ,InterfaceNo *iNo 
+                   ,INT const numelNov     ,INT const numel        
+                   ,INT const nNodeNov     ,INT const nNode
                    ,short const maxNo      ,short const maxViz     
-                   ,short const ndf        ,short const ndm
+                   ,short const ndf1       ,short const ndf2
+                   ,short const ndm
                    ,bool const fBc         ,short const type)
 
 {
@@ -759,31 +782,59 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
   short i,j,k,n,nodeFace,aux=maxViz+1;
   INT nel,no1,no[4];
   short  isNod[MAX_SN],nCarg,ty;
-  
+
+
   switch(type){
 /*... media simple*/
     case 1:
 /*...*/
-      HccaAlloc(int,m,md,nnode,"md",false);
-      zero(md,nnode,"int");
-      zero(noU,ndf*nnode,DOUBLEC);
+      HccaAlloc(int,m,md,nNodeNov,"md",false);
+      zero(md,nNodeNov,"int");
+      zero(noU,ndf1*nNodeNov,DOUBLEC);
 /*...................................................................*/
 
 /*...*/
-      for(nel = 0; nel < numel; nel++){
-        for(j = 0; j < nen[nel];j++){
-          no1 = MAT2D(nel,j,el,maxNo) - 1;
-          for(k = 0; k   < ndf;k++)
-            MAT2D(no1,k,noU,ndf) += MAT2D(nel,k,elU,ndf);
-          md[no1]++;
+      if( ndf1 == 1 )
+        for(nel = 0; nel < numelNov; nel++){
+          for(j = 0; j < nen[nel];j++){
+            no1 = MAT2D(nel,j,el,maxNo) - 1;
+            noU[no1] += elU[nel];
+            md[no1]++;
+          }
         }
+/*...................................................................*/
+
+/*...*/
+      else
+        for(nel = 0; nel < numelNov; nel++){
+          for(j = 0; j < nen[nel];j++){
+            no1 = MAT2D(nel,j,el,maxNo) - 1;
+            for(k = 0; k   < ndf1;k++)
+              MAT2D(no1,k,noU,ndf1) += MAT2D(nel,k,elU,ndf1);
+            md[no1]++;
+          }
+        }
+/*...................................................................*/
+
+/*... comunicacao*/
+      if(mpiVar.nPrcs > 1) {
+        dComunicateNod(iNo,noU,ndf1,ndf2);
+        iComunicateNod(iNo,md ,1   ,1);
       }
 /*...................................................................*/
 
 /*...*/
-      for(no1 = 0; no1 < nnode; no1++)
-        for(k = 0; k < ndf; k++)
-          MAT2D(no1,k,noU,ndf) /= md[no1];
+      if( ndf1 == 1 )
+        for(no1 = 0; no1 < nNodeNov; no1++)
+         noU[no1] /= md[no1];
+/*...................................................................*/
+
+/*...*/
+      else
+        for(no1 = 0; no1 < nNodeNov; no1++){
+          for(k = 0; k < ndf1; k++)
+            MAT2D(no1,k,noU,ndf1) /= md[no1];
+        }
 /*...................................................................*/
           
 /*...*/
@@ -795,32 +846,65 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
 /*... media ponderada*/
     case 2:
 /*...*/
-      HccaAlloc(DOUBLE,m,mdf,nnode,"mdf",false);
-      zero(mdf,nnode,"double");
-      zero(noU,ndf*nnode,DOUBLEC);
+      HccaAlloc(DOUBLE,m,mdf,nNodeNov,"mdf",false);
+      zero(mdf,nNodeNov,"double");
+      zero(noU,ndf1*nNodeNov,DOUBLEC);
 /*...................................................................*/
 
 /*...*/
-      for(nel = 0; nel < numel; nel++){
-        for(j = 0; j < nen[nel];j++){
-          no1 = MAT2D(nel,j,el,maxNo) - 1;
-          dist = 0.e0;
-          for(k = 0; k   < ndm;k++){
-            dx = MAT2D(no1,k,x,ndm) - MAT2D(nel,k,cc,ndm);
-            dist += dx*dx;
+      if( ndf1 == 1 )
+/*...*/
+        for(nel = 0; nel < numelNov; nel++){
+          for(j = 0; j < nen[nel];j++){
+            no1 = MAT2D(nel,j,el,maxNo) - 1;
+            dist = 0.e0;
+            for(k = 0; k   < ndm;k++){
+              dx = MAT2D(no1,k,x,ndm) - MAT2D(nel,k,cc,ndm);
+              dist += dx*dx;
+            }
+            dist = 1.e0/sqrt(dist);
+            noU[no1]+= elU[nel]*dist;
+            mdf[no1]+= dist;
           }
-          dist = 1.e0/sqrt(dist);
-          for(k = 0; k   < ndf;k++)
-            MAT2D(no1,k,noU,ndf) += MAT2D(nel,k,elU,ndf)*dist;
-          mdf[no1]+=dist;
         }
+/*...................................................................*/
+
+/*...*/
+      else
+        for(nel = 0; nel < numelNov; nel++){
+          for(j = 0; j < nen[nel];j++){
+            no1 = MAT2D(nel,j,el,maxNo) - 1;
+            dist = 0.e0;
+            for(k = 0; k   < ndm;k++){
+              dx = MAT2D(no1,k,x,ndm) - MAT2D(nel,k,cc,ndm);
+              dist += dx*dx;
+            }
+            dist = 1.e0/sqrt(dist);
+            for(k = 0; k < ndf1;k++)
+              MAT2D(no1,k,noU,ndf1) += MAT2D(nel,k,elU,ndf1)*dist;
+            mdf[no1]+=dist;
+          }
+        }
+/*...................................................................*/
+
+/*... comunicacao*/
+      if(mpiVar.nPrcs > 1) {
+        dComunicateNod(iNo,noU,ndf1,ndf2);
+        dComunicateNod(iNo,mdf,1  ,1);
       }
 /*...................................................................*/
 
 /*...*/
-      for(no1 = 0; no1 < nnode; no1++)
-        for(k = 0; k < ndf; k++)
-          MAT2D(no1,k,noU,ndf) /= mdf[no1];
+      if( ndf1 == 1 )
+        for(no1 = 0; no1 < nNodeNov; no1++)
+         noU[no1] /= mdf[no1];
+/*...................................................................*/
+
+/*...*/
+      else
+        for(no1 = 0; no1 < nNodeNov; no1++)
+          for(k = 0; k < ndf1; k++)
+            MAT2D(no1,k,noU,ndf1) /= mdf[no1];
 /*...................................................................*/
           
 /*...*/
@@ -838,10 +922,10 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
 
 /*...*/
   if(fBc){
-    HccaAlloc(int ,m,md  ,nnode,"md",false);
-    HccaAlloc(bool,m,flag,nnode,"flag",false);
-    zero(md  ,nnode,"int");
-    zero(flag,nnode,"char");
+    HccaAlloc(int ,m,md  ,nNode,"md",false);
+    HccaAlloc(bool,m,flag,nNode,"flag",false);
+    zero(md  ,nNode,"int");
+    zero(flag,nNode,"char");
     for(nel = 0; nel < numel; nel++)
       for(i = 0; i < nFace[nel]; i++)
         if(MAT2D(nel,i,faceR,aux)){
@@ -855,11 +939,11 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
               no[n] = MAT2D(nel,no[n],el,maxNo) - 1;
               if(flag[no[n]] == false){
                 flag[no[n]] = true;
-                for(k = 0; k   < ndf;k++)
-                  MAT2D(no[n],k,noU,ndf) = 0.e0;
+                for(k = 0; k   < ndf1;k++)
+                  MAT2D(no[n],k,noU,ndf1) = 0.e0;
               }
-              for(k = 0; k   < ndf;k++) 
-                MAT2D(no[n],k,noU,ndf) += loads[nCarg].par[k];
+              for(k = 0; k   < ndf1;k++) 
+                MAT2D(no[n],k,noU,ndf1) += loads[nCarg].par[k];
               md[no[n]]++;
             }
 /*...................................................................*/
@@ -869,10 +953,14 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
 /*...................................................................*/
 
 /*...*/
-    for(no1 = 0; no1 < nnode; no1++)
+    for(no1 = 0; no1 < nNodeNov; no1++)
       if(flag[no1])
-        for(k = 0; k < ndf; k++)
-          MAT2D(no1,k,noU,ndf) /= md[no1];
+        for(k = 0; k < ndf1; k++)
+          MAT2D(no1,k,noU,ndf1) /= md[no1];
+/*...................................................................*/
+
+/*...*/
+    
 /*...................................................................*/
     HccaDealloc(m,flag,"flag",false);
     HccaDealloc(m,md  ,"md"  ,false);
@@ -921,8 +1009,13 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
  * maxNo   -> numero de nos por celula maximo da malha               * 
  * maxViz  -> numero vizinhos por celula maximo da malha             * 
  * ndm     -> numero de dimensoes                                    * 
- * numel   -> numero de toral de celulas                             * 
  * ndf     -> graus de liberdade                                     * 
+ * iNo     -> interface de nos                                       * 
+ * iCel    -> interface de elementos                                 * 
+ * numel   -> numero de total de celulas                             * 
+ * numelNov-> numero de total de celulas sem sobreposicao            * 
+ * nNode   -> numero de total de nos                                 * 
+ * nNodeNov-> numero de total nos em celulas sem sobreposicao        * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------*
@@ -939,7 +1032,7 @@ void rcGradU(Memoria *m               ,Loads *loads
             ,short  *restrict nen     ,short  *restrict nFace
             ,short  *restrict geomType,DOUBLE *restrict prop 
             ,short  *restrict mat 
-            ,DOUBLE *restrict lSquare ,DOUBLE *restrict lSquareR            
+            ,DOUBLE *restrict lSquare ,DOUBLE *restrict lSquareR
             ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi 
             ,DOUBLE *restrict gEta    ,DOUBLE *restrict gfArea 
             ,DOUBLE *restrict gNormal ,DOUBLE *restrict gVolume
@@ -950,7 +1043,9 @@ void rcGradU(Memoria *m               ,Loads *loads
             ,DOUBLE *restrict nU      ,short const lib 
             ,short const maxNo        ,short const maxViz
             ,short const ndf          ,short const ndm
-            ,INT const numel          ,INT const nNode)
+            ,InterfaceNo *iNo         ,Interface *iCel
+            ,INT const numelNov       ,INT const numel 
+            ,INT const nNodeNov       ,INT const nNode)
 {
   INT nel,no,vizNel;
   short i,j;
@@ -979,18 +1074,21 @@ void rcGradU(Memoria *m               ,Loads *loads
                  ,el        ,geomType
                  ,cc        ,x
                  ,nen       ,nFace
-                 ,faceR     ,faceL   
-                 ,numel     ,nNode    
+                 ,faceR     ,faceL
+                 ,iNo       
+                 ,numelNov  ,numel     
+                 ,nNodeNov  ,nNode  
                  ,maxNo     ,maxViz
-                 ,ndf       ,ndm   
-                 ,true      ,2);
+                 ,ndf       ,1  
+                 ,ndm    
+                 ,true      ,2);                
   }
 /*.....................................................................*/
 
 
 /*... */
   aux2    = maxViz+1;
-  for(nel=0;nel<numel;nel++){
+  for(nel=0;nel<numelNov;nel++){
     aux1    = nFace[nel];
 
 /*... loop na celula central*/    
@@ -1112,6 +1210,9 @@ void rcGradU(Memoria *m               ,Loads *loads
         MAT3D(nel,i,j,gradU,ndf,ndm)  = MAT2D(i,j,lGradU   ,ndf);
 /*...................................................................*/
   }
+
+  if(mpiVar.nPrcs > 1 ) comunicateCel(iCel,gradU,ndm ,ndf);
+
 }
 /*********************************************************************/
 
@@ -1296,9 +1397,9 @@ void meshQuality(MeshQuality *mq
   teta           = radToDeg(teta);
   mq->nonOrthMax = teta; 
   
-  mq->volume  = volumeTotal; 
-  mq->skewMed = skewMed; 
-  mq->skewMax = skewMax; 
+  mq->volume     = volumeTotal; 
+  mq->skewMed    = skewMed; 
+  mq->skewMax    = skewMax; 
 
 }
 /*********************************************************************/

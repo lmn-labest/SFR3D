@@ -40,82 +40,91 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 
 /* leitura dos parametros principais da malha*/
   parametros(&nn,&nel,&maxno,&maxViz,&ndm,&numat,&ndf,file);
-  mesh->nnode  = nn;
-  mesh->numel  = nel;
-  mesh->maxNo  = maxno;
-  mesh->maxViz = maxViz; 
-  mesh->ndm    = ndm;
-  mesh->numat  = numat;
+  mesh->nnode    = nn;
+  mesh->nnodeNov = nn;
+  mesh->nnodeOv  =  0;
+  mesh->numel    = nel;
+  mesh->numelNov = nel;
+  mesh->maxNo    = maxno;
+  mesh->maxViz   = maxViz; 
+  mesh->ndm      = ndm;
+  mesh->numat    = numat;
 /*mesh->ndfT[0] = ndf;*/
-  mesh->ndfD[0] = ndf;
+  mesh->ndfD[0]  = ndf;
 
 /*... alocando variavies de elementos*/
 /*... conectividade*/ 
-  HccaAlloc(INT,m,mesh->elm.node       ,nel*maxno        ,"elnode"  ,_AD_);
+  HccaAlloc(INT,m,mesh->elm.node       ,nel*maxno,"elnode"  ,_AD_);
 /*... materiais*/ 
-  HccaAlloc(short,m,mesh->elm.mat      ,nel              ,"elmat"   ,_AD_);
+  HccaAlloc(short,m,mesh->elm.mat      ,nel      ,"elmat"   ,_AD_);
 /*... nos por elementos*/
-  HccaAlloc(short,m,mesh->elm.nen      ,nel              ,"elnen"   ,_AD_);
+  HccaAlloc(short,m,mesh->elm.nen      ,nel      ,"elnen"   ,_AD_);
 /*... tipo geometrico */
-  HccaAlloc(short,m,mesh->elm.geomType ,nel              ,"elgT"    ,_AD_);
+  HccaAlloc(short,m,mesh->elm.geomType ,nel      ,"elgT"    ,_AD_);
+
+
 /*... centroide */
   HccaAlloc(DOUBLE,m,mesh->elm.geom.cc ,nel*ndm          ,"elCc"    ,_AD_);
+
+  if( mpiVar.nPrcs < 2){
+
 /*... vetor que une os centroides dos elementos */
-  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.ksi
-         ,nel*ndm*maxViz,"elksi"  ,_AD_);
+    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.ksi
+             ,nel*ndm*maxViz,"elksi"  ,_AD_);
 /*... modulo do vetor que une os centroides dos elementos */
-  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.mksi
-        ,nel*maxViz     ,"elmksi",_AD_);
+    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.mksi
+              ,nel*maxViz     ,"elmksi",_AD_);
 /*... vetor paralelo a face da celula */
-  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.eta
-         ,nel*ndm*maxViz,"eleta"  ,_AD_);
+    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.eta
+             ,nel*ndm*maxViz,"eleta"  ,_AD_);
 /*... modulo do vetor paralelo a face da celula */
-  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.fArea
-        ,nel*maxViz     ,"elfArea",_AD_);
+    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.fArea
+            ,nel*maxViz     ,"elfArea",_AD_);
 /*... volume da celula*/                           
-  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.volume
-        ,nel            ,"elVol",_AD_);
+    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.volume
+            ,nel            ,"elVol",_AD_);
 /*... vetor normal a face da celula*/                           
-  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.normal
-         ,nel*maxViz*ndm       ,"elnorm",_AD_);
+    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.normal
+             ,nel*maxViz*ndm       ,"elnorm",_AD_);
 /*... ponto medio da face*/                           
-  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.xm
-         ,nel*maxViz*ndm       ,"elxm",_AD_);
+    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.xm
+             ,nel*maxViz*ndm       ,"elxm",_AD_);
 /*... vetor que une o centroide ao ponto medio*/                           
-  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.xmcc
-         ,nel*maxViz*ndm       ,"elxmcc",_AD_);
+    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.xmcc
+             ,nel*maxViz*ndm       ,"elxmcc",_AD_);
 /*... vetor entre o ponto medio da face e ponto de intercao 
       entre a linha entre os centroides e a face*/         
-  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.vSkew  
-         ,nel*ndm*maxViz         ,"elvSkew" ,_AD_);
+    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.vSkew  
+             ,nel*ndm*maxViz         ,"elvSkew" ,_AD_);
 /*... distancia entro o ponto medio da face e ponto de intercao 
       entre a linha entre os centroides e a face*/         
-  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.mvSkew  
-         ,nel*maxViz           ,"elmvSkew" ,_AD_);
+    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.mvSkew  
+             ,nel*maxViz           ,"elmvSkew" ,_AD_);
 /*... distancia entro o ponto medio da face e ponto de intercao 
       entre a linha entre os centroides e a face*/         
-  HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.dcca 
-         ,nel*maxViz           ,"eldcca",_AD_);
+    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.dcca 
+             ,nel*maxViz           ,"eldcca",_AD_);
 
 /*... zerando os variavies*/
-  zero(mesh->elm.node         ,nel*maxno     ,INTC);
-  zero(mesh->elm.mat          ,nel           ,"short"  );
-  zero(mesh->elm.nen          ,nel           ,"short"  );
-  zero(mesh->elm.geomType     ,nel           ,"short"  );
-  zero(mesh->elm.geom.cc      ,nel*ndm       ,DOUBLEC);
-  zero(mesh->elm.geom.ksi     ,nel*ndm*maxViz,DOUBLEC);
-  zero(mesh->elm.geom.mksi    ,nel*maxViz    ,DOUBLEC);
-  zero(mesh->elm.geom.eta     ,nel*ndm*maxViz,DOUBLEC);
-  zero(mesh->elm.geom.fArea   ,nel*maxViz    ,DOUBLEC);
-  zero(mesh->elm.geom.volume  ,nel           ,DOUBLEC);
-  zero(mesh->elm.geom.normal  ,nel*ndm*maxViz,DOUBLEC);
-  zero(mesh->elm.geom.xm      ,nel*ndm*maxViz,DOUBLEC);
-  zero(mesh->elm.geom.xmcc    ,nel*ndm*maxViz,DOUBLEC);
-  zero(mesh->elm.geom.mvSkew  ,nel*maxViz    ,DOUBLEC);
-  zero(mesh->elm.geom.mvSkew  ,nel*ndm*maxViz,DOUBLEC);
-  zero(mesh->elm.geom.dcca    ,nel*maxViz    ,DOUBLEC);
+    zero(mesh->elm.node         ,nel*maxno     ,INTC);
+    zero(mesh->elm.mat          ,nel           ,"short"  );
+    zero(mesh->elm.nen          ,nel           ,"short"  );
+    zero(mesh->elm.geomType     ,nel           ,"short"  );
+    zero(mesh->elm.geom.cc      ,nel*ndm       ,DOUBLEC);
+    zero(mesh->elm.geom.ksi     ,nel*ndm*maxViz,DOUBLEC);
+    zero(mesh->elm.geom.mksi    ,nel*maxViz    ,DOUBLEC);
+    zero(mesh->elm.geom.eta     ,nel*ndm*maxViz,DOUBLEC);
+    zero(mesh->elm.geom.fArea   ,nel*maxViz    ,DOUBLEC);
+    zero(mesh->elm.geom.volume  ,nel           ,DOUBLEC);
+    zero(mesh->elm.geom.normal  ,nel*ndm*maxViz,DOUBLEC);
+    zero(mesh->elm.geom.xm      ,nel*ndm*maxViz,DOUBLEC);
+    zero(mesh->elm.geom.xmcc    ,nel*ndm*maxViz,DOUBLEC);
+    zero(mesh->elm.geom.mvSkew  ,nel*maxViz    ,DOUBLEC);
+    zero(mesh->elm.geom.mvSkew  ,nel*ndm*maxViz,DOUBLEC);
+    zero(mesh->elm.geom.dcca    ,nel*maxViz    ,DOUBLEC);
 /*...................................................................*/
-
+  }
+/*...................................................................*/
 
 /*... alocando materiais*/
 /*... Prop*/ 
@@ -131,12 +140,12 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 
 /*... alocando estruturas para vizinhos*/
 /*... nelcon*/ 
-  HccaAlloc(INT,m,mesh->elm.adj.nelcon,nel*maxno  ,"adj" ,_AD_);
+  HccaAlloc(INT,m,mesh->elm.adj.nelcon,nel*maxViz ,"adj" ,_AD_);
 /*... type*/ 
   HccaAlloc(short,m,mesh->elm.adj.nViz,nel       ,"nViz" ,_AD_);
 /*... zerando os variavies*/
-  zero(mesh->elm.adj.nelcon,nel*maxno,INTC);
-  zero(mesh->elm.adj.nViz  ,nel      ,"short");
+  zero(mesh->elm.adj.nelcon,nel*maxViz,INTC);
+  zero(mesh->elm.adj.nViz  ,nel       ,"short");
 /*...................................................................*/
 
 /*---alocando variaveis nodais */      
@@ -160,37 +169,55 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
    }
 /*...................................................................*/
    
-/*... problema de difusa pura*/   
+/*... problema de difusao pura*/   
   if(mesh->ndfD[0] > 0) {   
 /*... alocando memoria*/
      HccaAlloc(short,m,mesh->elm.faceRd1
             ,nel*(maxViz+1)*mesh->ndfD[0],"faceRd1"  ,_AD_);
-     HccaAlloc(short,m,mesh->elm.faceLoadD1
+     zero(mesh->elm.faceRd1   ,nel*(maxViz+1)*mesh->ndfD[0],"short"  );
+     
+      HccaAlloc(short,m,mesh->elm.faceLoadD1
             ,nel*(maxViz+1)*mesh->ndfD[0],"faceLd1"  ,_AD_);
-/*... uD1*/
-     HccaAlloc(DOUBLE,m,mesh->node.uD1 
-            ,nn*mesh->ndfD[0] ,"nUd1"              ,_AD_);
+     zero(mesh->elm.faceLoadD1,nel*(maxViz+1)*mesh->ndfD[0],"short"  );
+
+     
+/*... eUd1*/
      HccaAlloc(DOUBLE,m,mesh->elm.uD1 
             ,nel*mesh->ndfD[0],"eUd1"              ,_AD_);
+     zero(mesh->elm.uD1       ,nel*mesh->ndfD[0]           ,DOUBLEC);
+     
+/*... eU0d1*/
      HccaAlloc(DOUBLE,m,mesh->elm.u0D1
-            ,nel*mesh->ndfD[0],"eUd10"             ,_AD_);
+              ,nel*mesh->ndfD[0],"eU0d1"             ,_AD_);
+     zero(mesh->elm.u0D1        ,nel*mesh->ndfD[0]           ,DOUBLEC);
+
 /*... density*/ 
      HccaAlloc(DOUBLE,m,mesh->elm.densityUd1
               ,nel*2            ,"density" ,_AD_);
-/*... gradTemp*/
+     zero(mesh->elm.densityUd1  ,nel*2                       ,DOUBLEC);
+
+/*... uD1*/
+     HccaAlloc(DOUBLE,m,mesh->node.uD1 
+              ,nn*mesh->ndfD[0] ,"nUd1"              ,_AD_);
+     zero(mesh->node.uD1      ,nn*mesh->ndfD[0]            ,DOUBLEC);
+
+/*... nGradU1*/
      HccaAlloc(DOUBLE,m,mesh->node.gradUd1  
-            ,nn*ndm*mesh->ndfD[0] ,"nGradUd1"      ,_AD_);
+              ,nn*ndm*mesh->ndfD[0] ,"nGradUd1"     ,_AD_);
+     zero(mesh->node.gradUd1  ,nn*ndm*mesh->ndfD[0]        ,DOUBLEC);
+     
+/*... eGradU1*/
      HccaAlloc(DOUBLE,m,mesh->elm.gradUd1 
-            ,nel*ndm*mesh->ndfD[0],"eTGradUd1"     ,_AD_);
+              ,nel*ndm*mesh->ndfD[0],"eGradUd1"     ,_AD_);
+     zero(mesh->elm.gradUd1   ,nel*ndm*mesh->ndfD[0]       ,DOUBLEC);
+      
+     if( mpiVar.nPrcs < 2){
 /*... rCell*/
-     HccaAlloc(DOUBLE,m,mesh->elm.rCellUd1  
-            ,nel*ndm*mesh->ndfD[0],"rCellUd1"      ,_AD_);
+       HccaAlloc(DOUBLE,m,mesh->elm.rCellUd1  
+                ,nel*ndm*mesh->ndfD[0],"rCellUd1"     ,_AD_);
+       zero(mesh->elm.rCellUd1  ,nel*ndm*mesh->ndfD[0]       ,DOUBLEC);
+     }
 /*...*/
-     zero(mesh->elm.faceRd1  ,nel*(maxViz+1)*mesh->ndfD[0],"short"  );
-     zero(mesh->node.uD1     ,nn*mesh->ndfD[0]            ,DOUBLEC);
-     zero(mesh->elm.uD1      ,nel*mesh->ndfD[0]           ,DOUBLEC);
-     zero(mesh->node.gradUd1 ,nn*ndm*mesh->ndfD[0]        ,DOUBLEC);
-     zero(mesh->elm.gradUd1  ,nel*ndm*mesh->ndfD[0]       ,DOUBLEC);
 /*...................................................................*/
    }
 /*...................................................................*/
@@ -853,10 +880,12 @@ void config(FileOpt *opt,Reord *reordMesh
         opt->bVtk = false;
       flag[0] = true;
       i++;
-      if(opt->bVtk)
-        printf("bVtk: true\n");
-      else
-        printf("bVtk: false\n");
+      if(!mpiVar.myId){
+        if(opt->bVtk)
+          printf("bVtk: true\n");
+        else
+          printf("bVtk: false\n");
+      }
     }
 /*... reord*/   
     else if(!strcmp(word,config[1])){
@@ -868,10 +897,12 @@ void config(FileOpt *opt,Reord *reordMesh
           
       flag[1] = true;
       i++;
-      if(reordMesh->flag)
-        printf("Reord: true\n");
-      else
-        printf("Reod: false\n");
+      if(!mpiVar.myId){
+        if(reordMesh->flag)
+          printf("Reord: true\n");
+        else
+          printf("Reod: false\n");
+      }
     }
 /*... mem*/   
     else if(!strcmp(word,config[2])){
@@ -880,28 +911,34 @@ void config(FileOpt *opt,Reord *reordMesh
       nmax    = temp*conv;                  
       flag[2] = true;
       i++;
-      printf("Memoria principal: %d MBytes\n"
-            ,(int)(nmax/conv));
+      
+      if(!mpiVar.myId)
+        printf("Memoria principal: %d MBytes\n"
+              ,(int)(nmax/conv));
     }
 /*... rcGrad*/   
     else if(!strcmp(word,config[3])){
       fscanf(file,"%s",s);
       if(!strcmp(s,"gglc")){
         *rcGrad = RCGRADGAUSSC;
-        printf("GreenGaussCell\n");
+        if(!mpiVar.myId)
+          printf("rcGrad: GreenGaussCell\n");
       }
       else if(!strcmp(s,"ggln")){
         *rcGrad = RCGRADGAUSSN;
-        printf("GreenGaussNode\n");
+        if(!mpiVar.myId)
+          printf("rcGrad: GreenGaussNode\n");
       }
       else if(!strcmp(s,"lSquare")){
         *rcGrad = RCLSQUARE;
-        printf("LeastSquare\n");
+        if(!mpiVar.myId)
+          printf("rcGrad: LeastSquare\n");
       }
       
       else if(!strcmp(s,"lSquareQR")){
         *rcGrad = RCLSQUAREQR;
-        printf("LeastSquareQR\n");
+        if(!mpiVar.myId)
+          printf("rcGrad: LeastSquareQR\n");
       }
 
       flag[3] = true;
@@ -912,11 +949,13 @@ void config(FileOpt *opt,Reord *reordMesh
       fscanf(file,"%s",s);
       if(!strcmp(s,"true")){
         opt->fItPlotRes = true;
-        printf("fItPlotRes: true\n");
+        if(!mpiVar.myId)
+          printf("fItPlotRes: true\n");
       }
       else{
         opt->fItPlotRes = false;
-        printf("fItPlotRes: false\n");
+        if(!mpiVar.myId)
+          printf("fItPlotRes: false\n");
       }
       flag[4] = true;
       i++;
@@ -926,11 +965,13 @@ void config(FileOpt *opt,Reord *reordMesh
       fscanf(file,"%s",s);
       if(!strcmp(s,"true")){
         opt->fItPlot = true;
-        printf("fItPlot: true\n");
+        if(!mpiVar.myId)
+          printf("fItPlot: true\n");
       }
       else{
         opt->fItPlot = false;
-        printf("fItPlot: false\n");
+        if(!mpiVar.myId)
+          printf("fItPlot: false\n");
       }
       flag[5] = true;
       i++;

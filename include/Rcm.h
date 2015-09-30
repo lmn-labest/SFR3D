@@ -1,8 +1,11 @@
 #ifndef _RCM_H  
   #define _RCM_H
+/*...*/
   #include<stdio.h>
   #include<stdlib.h>
+/*...*/
   #include<Define.h>
+  #include<Erro.h>
 /*...*/
   void genrcm(INT node_num, INT *adj_row, INT *adj
              ,INT *perm);

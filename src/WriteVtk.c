@@ -1,5 +1,237 @@
 #include<WriteVtk.h>
 /********************************************************************** 
+ * WMESHPARTVTK: escreve a malha divida em particoes                  *  
+ * ------------------------------------------------------------------ *
+ * parametros de entrada:                                             * 
+ * ------------------------------------------------------------------ *
+ * m       -> arranjo da menoria principal                            *  
+ * x       -> coordenadas                                             * 
+ * el      -> conectividade                                           * 
+ * mat     -> materias                                                *  
+ * nen     -> conectividades por elemento                             *  
+ * mat     -> material por elemento                                   *
+ * typeGeom-> tipo geometrico do elemento                             *
+ * nel     -> numeracao do elemento                                   *
+ * nnode   -> numero de nos                                           *  
+ * numel   -> numero de elementos                                     *
+ * ndm     -> numero de dimensao                                      *
+ * maxNo   -> numero maximo de nos por elemento                       *
+ * maxNo   -> numero maximo de vizinhos por elemento                  *
+ * numat   -> numero de materias                                      *
+ * nameOut -> nome de arquivo de saida                                *
+ * iws     -> vtk binario                                             *
+ * f       -> arquivlo                                                *
+ * ------------------------------------------------------------------ *
+ * parametros de saida  :                                             * 
+ * ------------------------------------------------------------------ *
+ **********************************************************************/
+void wMeshPartVtk(Memoria *m     
+            ,double *x      ,INT *el            
+            ,short *nen     ,short *typeGeom
+            ,INT nnode      ,INT numel    
+            ,short ndm      
+            ,short maxNo    ,short maxViz  
+            ,char *nameOut  ,bool iws
+            ,FILE *f)
+{
+  int    *lel=NULL;
+  INT i;
+  short j;
+  char head[]={"GEOM_VOLUME_FINITO"};
+  double ddum;
+
+  if(iws)
+    f = openFile(nameOut,"wb");
+  else
+    f = openFile(nameOut,"w");
+
+/* ...*/
+  headVtk(head,iws,f);
+/* ..................................................................*/
+
+/*... coordenadas*/
+  writeVtkCoor(x,nnode,ndm,iws,f);
+/*...................................................................*/
+  
+/*... conectividades*/
+  HccaAlloc(int,m,lel,numel*maxNo,"el",_AD_);
+  if( lel == NULL){
+    fprintf(stderr,"Erro na alocação de lel.\n"
+                   "Nome do arquivo: %s.\n"
+                  ,__FILE__);
+    exit(EXIT_FAILURE);
+  }
+  for(i=0;i<numel;i++){
+    for(j=0;j<maxNo;j++){
+      MAT2D(i,j,lel,maxNo) = MAT2D(i,j,el,maxNo)-1;
+    }
+  }  
+  writeVtkCell(lel,nen,typeGeom,numel,maxNo,iws,f);
+  HccaDealloc(m,lel,"el",_AD_);
+/*...................................................................*/
+
+/*... campo por elemento*/
+  fprintf(f,"CELL_DATA %ld\n",(long) numel);
+/*...................................................................*/
+
+/*... numero do elemento*/
+  HccaAlloc(int,m,lel,numel*maxNo,"el",_AD_);
+  if( lel == NULL){
+    fprintf(stderr,"Erro na alocação de lel.\n"
+                   "Nome do arquivo: %s.\n"
+                  ,__FILE__);
+    exit(EXIT_FAILURE);
+  }
+  for(i=0;i<numel;i++)
+    lel[i]= i+1;
+   
+  writeVtkProp(lel,&ddum,numel,1,"elGlobal",iws,INTEGER,1,f);
+  HccaDealloc(m,lel,"el",_AD_);
+/*...................................................................*/
+
+/*.... campo por no*/
+  fprintf(f,"POINT_DATA %ld\n",(long) nnode);
+/*...................................................................*/
+
+/*... numero do no*/
+  HccaAlloc(int,m,lel,nnode,"el",_AD_);
+  if( lel == NULL){
+    fprintf(stderr,"Erro na alocação de lel.\n"
+                   "Nome do arquivo: %s.\n"
+                  ,__FILE__);
+    exit(EXIT_FAILURE);
+  }
+  for(i=0;i<nnode;i++)
+    lel[i]=i+1;
+   
+  writeVtkProp(lel,&ddum,nnode,1,"pNode",iws,INTEGER,1,f);
+  HccaDealloc(m,lel,"el",_AD_);
+/*...................................................................*/
+  fclose(f);
+}
+/*********************************************************************/ 
+
+/********************************************************************** 
+ * WPARTVTK: escreve a malha particionda                              *  
+ * ------------------------------------------------------------------ *
+ * parametros de entrada:                                             * 
+ * ------------------------------------------------------------------ *
+ * m       -> arranjo da menoria principal                            *  
+ * x       -> coordenadas                                             * 
+ * el      -> conectividade                                           * 
+ * mat     -> materias                                                *  
+ * nen     -> conectividades por elemento                             *  
+ * typeGeom-> tipo geometrico do elemento                             *
+ * nel     -> numeracao do elemento                                   *
+ * np      -> no por particao                                         * 
+ * ep      -> elementos por particao                                  * 
+ * nnode   -> numero de nos                                           *  
+ * numel   -> numero de elementos                                     *
+ * ndm     -> numero de dimensao                                      *
+ * maxNo   -> numero maximo de nos por elemento                       *
+ * maxNo   -> numero maximo de vizinhos por elemento                  *
+ * numat   -> numero de materias                                      *
+ * nameOut -> nome de arquivo de saida                                *
+ * iws     -> vtk binario                                             *
+ * f       -> arquivlo                                                *
+ * ------------------------------------------------------------------ *
+ * parametros de saida  :                                             * 
+ * ------------------------------------------------------------------ *
+ **********************************************************************/
+void wPartVtk(Memoria *m     
+            ,double *x      ,INT *el            
+            ,short *nen     ,short *typeGeom
+            ,INT *np        ,INT *ep
+            ,INT nnode      ,INT numel    
+            ,short ndm      
+            ,short maxNo    ,short maxViz  
+            ,char *nameOut  ,bool iws
+            ,FILE *f)
+{
+  int    *lel=NULL;
+  INT i;
+  short j;
+  char head[]={"GEOM_VOLUME_FINITO"};
+  double ddum;
+
+  if(iws)
+    f = openFile(nameOut,"wb");
+  else
+    f = openFile(nameOut,"w");
+
+/* ...*/
+  headVtk(head,iws,f);
+/* ..................................................................*/
+
+/*... coordenadas*/
+  writeVtkCoor(x,nnode,ndm,iws,f);
+/*...................................................................*/
+  
+/*... conectividades*/
+  HccaAlloc(int,m,lel,numel*maxNo,"el",_AD_);
+  if( lel == NULL){
+    fprintf(stderr,"Erro na alocação de lel.\n"
+                   "Nome do arquivo: %s.\n"
+                  ,__FILE__);
+    exit(EXIT_FAILURE);
+  }
+  for(i=0;i<numel;i++){
+    for(j=0;j<maxNo;j++){
+      MAT2D(i,j,lel,maxNo) = MAT2D(i,j,el,maxNo)-1;
+    }
+  }  
+  writeVtkCell(lel,nen,typeGeom,numel,maxNo,iws,f);
+  HccaDealloc(m,lel,"el",_AD_);
+/*...................................................................*/
+
+/*... campo por elemento*/
+  fprintf(f,"CELL_DATA %ld\n",(long) numel);
+/*...................................................................*/
+
+/*... numero do elemento*/
+  HccaAlloc(int,m,lel,numel*maxNo,"el",_AD_);
+  if( lel == NULL){
+    fprintf(stderr,"Erro na alocação de lel.\n"
+                   "Nome do arquivo: %s.\n"
+                  ,__FILE__);
+    exit(EXIT_FAILURE);
+  }
+  for(i=0;i<numel;i++)
+    lel[i]= i+1;
+   
+  writeVtkProp(lel,&ddum,numel,1,"elGlobal",iws,INTEGER,1,f);
+  HccaDealloc(m,lel,"el",_AD_);
+/*...................................................................*/
+
+  writeVtkProp(ep,&ddum,numel,1,"elPart"  ,iws,INTEGER,1,f);
+
+/*.... campo por no*/
+  fprintf(f,"POINT_DATA %ld\n",(long) nnode);
+/*...................................................................*/
+
+/*... numero do no*/
+  HccaAlloc(int,m,lel,nnode,"el",_AD_);
+  if( lel == NULL){
+    fprintf(stderr,"Erro na alocação de lel.\n"
+                   "Nome do arquivo: %s.\n"
+                  ,__FILE__);
+    exit(EXIT_FAILURE);
+  }
+  for(i=0;i<nnode;i++)
+    lel[i]=i+1;
+   
+  writeVtkProp(lel,&ddum,nnode,1,"pNode",iws,INTEGER,1,f);
+  HccaDealloc(m,lel,"el",_AD_);
+/*...................................................................*/
+
+/*... numero do no*/
+  writeVtkProp(np,&ddum,nnode,1,"noPart",iws,INTEGER,1,f);
+/*...................................................................*/
+  fclose(f);
+}
+/*********************************************************************/ 
+
+/********************************************************************** 
  * WGEOVTK : escreve a malha com os resultados e condicao             *  
  * ------------------------------------------------------------------ *
  * parametros de entrada:                                             * 
@@ -603,7 +835,7 @@ void wResVtkDif(Memoria *m        ,double *x
   writeVtkProp(lel,&ddum,numel,1,"elGlobal",iws,INTEGER,1,f);
   HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
-
+  
 /*... escrever resultados por celula*/  
   writeVtkProp(&idum,elU,numel,ndf,uResEl,iws,DOUBLEV,1,f);
 /*...................................................................*/

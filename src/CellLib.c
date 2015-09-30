@@ -1843,7 +1843,7 @@ void vectorKm2d(DOUBLE *restrict x     ,DOUBLE *restrict xc
  *           vizinhos destas                                         * 
  * vSkew  -> indefinido                                              * 
  * mvSkew -> indefinido                                              * 
- * nFace  -> numero de face da celula                                * 
+ * nFace  -> numero de faces da celula                               * 
  * ndm    -> numero de dimensoes                                     * 
  * maxViz -> numero vizinhos por celula maximo da malha              * 
  * nel    -> numero da celula                                        * 
@@ -1893,7 +1893,6 @@ void vectorKm3d(DOUBLE *restrict xc   ,DOUBLE *restrict xm
     lKsi[2] = MAT2D(i,2,ksi,ndm);
 /*... */
     dot2 = n[0]*(xP[0]-xR[0]) +  n[1]*(xP[1]-xR[1]) + n[2]*(xP[2]-xR[2]);
-
 
 /*... verifica se ha intersecao entre duas retas*/
     dot1 = n[0]*lKsi[0] + n[1]*lKsi[1] + n[2]*lKsi[2];

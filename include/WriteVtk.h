@@ -12,6 +12,27 @@
   #include<Mesh.h>
   #include<Memoria.h>
   #include<File.h>
+  
+/*... particionamento*/
+  void wPartVtk(Memoria *m   ,double *x      
+               ,INT *el            
+               ,short *nen   ,short *typeGeom
+               ,INT   *np    ,INT   *ep      
+               ,INT nnode    ,INT numel    
+               ,short ndm      
+               ,short maxNo  ,short maxViz  
+               ,char *nameOut,bool iws
+               ,FILE *f);
+
+   void wMeshPartVtk(Memoria *m     
+            ,double *x      ,INT *el            
+            ,short *nen     ,short *typeGeom
+            ,INT nnode      ,INT numel    
+            ,short ndm      
+            ,short maxNo    ,short maxViz  
+            ,char *nameOut  ,bool iws
+            ,FILE *f);
+/*...................................................................*/
 
 /*... geom*/  
   void wGeoVtk(Memoria *m     ,double *x      

@@ -15,13 +15,33 @@
 /*...................................................................*/
 
 /*...*/
-  INT csrIa(INT *ia  ,INT *id    ,INT *num   ,INT  *adj ,short *nViz
-            ,INT numel,INT neq    ,short maxViz,short ndf  ,bool upper
-            ,bool diag , bool lower);
-  void csrJa(INT *ia     ,INT *ja 
-           ,INT *id  ,INT *num ,INT  *adj, short *nViz
-           ,INT numel,INT neq ,short maxViz,short ndf
-           ,bool upper,bool diag,bool lower);
+  INT csrIa(INT *restrict ia     ,INT *restrict id 
+           ,INT *restrict num    ,INT *restrict adj
+           ,short *restrict nViz
+           ,INT const numel      ,INT const neq  
+           ,short const maxViz   ,short const ndf 
+           ,bool const upper     ,bool const diag 
+           ,bool const lower     );
+
+  INT csrIaR(INT *restrict ia     ,INT *restrict id   
+            ,INT *restrict num    ,INT *restrict adj
+            ,short *restrict nViz
+            ,INT const numel      ,INT const neq
+            ,short const maxViz   ,short  const ndf);
+
+  void csrJa(INT *restrict ia   ,INT *restrict ja 
+           ,INT *restrict id    ,INT *restrict num
+           ,INT *restrict adj   ,short *restrict nViz
+           ,INT const numel     ,INT const neq 
+           ,short const maxViz  ,short const ndf
+           ,bool const upper    ,bool const diag
+           ,bool const lower);
+  
+  void csrJaR(INT *restrict ia   ,INT *restrict ja 
+             ,INT *restrict id    ,INT *restrict num
+             ,INT *restrict adj   ,short *restrict nViz
+             ,INT const numel     ,INT const neq 
+             ,short const maxViz  ,short const ndf);
 /*...................................................................*/
 
 /*...*/  
@@ -30,6 +50,7 @@
           ,DOUBLE *restrict al ,DOUBLE *restrict b
           ,INT *restrict lId                       
           ,DOUBLE *restrict lA ,DOUBLE *restrict lB 
+          ,INT const nEq       ,INT const nAd 
           ,short const nFace   ,short const ndf  
           ,short const storade ,bool  const forces
           ,bool const matrix   ,bool  const  unsym);

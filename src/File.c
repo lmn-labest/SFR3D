@@ -46,6 +46,7 @@ FILE *aux;
  *         15 -> resultados da temperatura por iteracao formato vtk  *      
  *         16 -> resultados no formato .csv                          *      
  *         17 -> caregamento nas faces no formato vtk                *      
+ *         18 -> caregamento nas faces no formato vtk                *      
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
  * ------------------------------------------------------------------*
@@ -68,6 +69,30 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       
       iota(num1,st);
       strcpy(ext,"_n_");
+      strcat(ext,st);
+      strcat(ext,".vtk");
+      size1 = strlen(name);
+      size2 = strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+	      exit(EXIT_FAILURE);      
+      }
+      strcpy(*out,name);
+      strcat(*out,ext);
+      break;     
+/*...................................................................*/
+
+/*.... vtk no-overlanping*/
+    case 2:
+      iota(num2,st);
+      strcpy(ext,"_n_");
+      strcat(ext,st);
+      strcat(ext,"_part_");
+      iota(num1,st);
       strcat(ext,st);
       strcat(ext,".vtk");
       size1 = strlen(name);
@@ -147,7 +172,13 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 
 /*... arquivo com o log de excucao*/
     case 7:
-      strcat(ext,"_log.txt");
+      iota(num1,st);
+      strcpy(ext,"_n_");
+      strcat(ext,st);
+      strcat(ext,"_log_");
+      iota(num2,st);
+      strcat(ext,st);
+      strcat(ext,".txt");
       size1 = strlen(name);
       size2 = strlen(ext);
       if( (size1+size2)  > SIZEMAX){
@@ -186,6 +217,9 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 
 /*... arquivo com o log do solv*/
     case 10:
+      iota(num1,st);
+      strcpy(ext,"_n_");
+      strcat(ext,st);
       strcat(ext,"_it_log.txt");
       size1 = strlen(name);
       size2 = strlen(ext);
@@ -204,6 +238,9 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 
 /*... arquivo com o log do solv*/
     case 11:
+      iota(num1,st);
+      strcpy(ext,"_n_");
+      strcat(ext,st);
       strcat(ext,"_solv_log.txt");
       size1 = strlen(name);
       size2 = strlen(ext);
@@ -321,6 +358,27 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 /*... arquivo vtk */                        
     case 17:
       strcat(ext,"_face.vtk");
+      size1 = strlen(name);
+      size2 = strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+        exit(EXIT_FAILURE);      
+      }
+      strcpy(*out,name);
+      strcat(*out,ext);
+      break;
+/*...................................................................*/
+
+/*... arquivo map */                        
+    case 18:
+      iota(num2,st);
+      strcat(ext,"_map_");
+      strcat(ext,st);
+      strcat(ext,".dat");
       size1 = strlen(name);
       size2 = strlen(ext);
       if( (size1+size2)  > SIZEMAX){

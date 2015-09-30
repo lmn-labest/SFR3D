@@ -20,8 +20,10 @@
 /*...................................................................*/
   
 /*...*/
-  void reord(Memoria *m  ,INT *num  ,INT const *adj, short const *nViz
-            ,short const maxViz,INT numel , bool flag);
+  void reord(Memoria *m         ,INT *num          ,INT const *adj
+            ,short const *nViz  ,short const maxViz
+            ,INT const numel    ,INT const numelNov
+            ,bool const flag    ,unsigned  short const nPrcs);
 /*...................................................................*/
 
 

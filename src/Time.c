@@ -12,11 +12,22 @@ double getTimeC(void){
  * -------------------------------------------------------------------*
 *********************************************************************/
 
-/*funcao do openmp*/
-#if _OPENMP
+/*funcao MPI */
+#if _MPICH_
   double t=0.0;
-  t = omp_get_wtime();
+  t = MPI_Wtime();
   return t;
+/*funcao do openmp*/
+#elif _OPENMP 
+  #if _MPICH_
+    double t=0.0;
+    t = MPI_Wtime();
+    return t;
+  #else
+    double t=0.0;
+    t = omp_get_wtime();
+    return t;
+  #endif
 /*funcao do nativa do C (baixa precisao)*/
 #elif _WIN32
    clock_t start;

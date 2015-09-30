@@ -9,11 +9,14 @@
 /*...................................................................*/  
   #include<stdio.h>
   #include<stdlib.h>
+/*...*/
   #include<Mesh.h>
   #include<string.h>
   #include<File.h>
   #include<HccaStdBool.h>
   #include<Memoria.h>
+  #include<ParallelMpi.h>
+
   void parametros(INT   *nnode,INT *nel    ,short *maxNo,short *maxViz
                  ,short *ndm  ,short *numat,short  *ndf ,FILE  *file);
   void readFileFvMesh(Memoria *m,Mesh *mesh, FILE *file);
