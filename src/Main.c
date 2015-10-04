@@ -622,6 +622,10 @@ int main(int argc,char**argv){
           printf("DataStruct: ELLPACK\n");
         }
         
+        else if(sistEqD1->storage == CSRDCOO && !mpiVar.myId ){     
+          printf("DataStruct: CSRDCOO\n");
+        }
+        
         if(sistEqD1->unsym && !mpiVar.myId ){
           printf("Matrix    : unsymetric\n");
         } 
@@ -778,7 +782,8 @@ int main(int argc,char**argv){
                    ,mesh->elm.faceRd1       ,mesh->elm.faceLoadD1  
                    ,mesh->elm.uD1           ,mesh->elm.gradUd1           
                    ,mesh->elm.rCellUd1      ,sc.ddt
-                   ,sistEqD1->neqNov        ,sistEqD1->nad 
+                   ,sistEqD1->neqNov        ,sistEqD1->nad
+                   ,sistEqD1->nadr      
                    ,mesh->maxNo             ,mesh->maxViz
                    ,mesh->ndm               ,mesh->numelNov
                    ,mesh->ndfD[0]           ,sistEqD1->storage
@@ -834,7 +839,7 @@ int main(int argc,char**argv){
         tm.solvD1 = getTimeC() - tm.solvD1;
         solverC(&m               
                ,sistEqD1->neq       ,sistEqD1->neqNov  
-               ,sistEqD1->nad
+               ,sistEqD1->nad       ,sistEqD1->nadr
                ,sistEqD1->ia        ,sistEqD1->ja  
                ,sistEqD1->al        ,sistEqD1->ad,sistEqD1->au
                ,sistEqD1->b         ,sistEqD1->x

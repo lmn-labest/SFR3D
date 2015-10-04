@@ -20,6 +20,19 @@
   #endif
 /*...................................................................*/ 
 
+  void cooIaJaR(INT *restrict ia     ,INT *restrict ja
+           ,INT *restrict id     ,INT *restrict num   
+           ,INT *restrict adj    ,short *restrict nViz
+           ,INT const numel      ,INT const nEq
+           ,short const maxViz   ,short  const ndf);
+
+  INT cooNnzR(INT *restrict id   
+            ,INT *restrict num    ,INT *restrict adj
+            ,short *restrict nViz
+            ,INT const numel      ,INT const nEq
+            ,short const maxViz   ,short  const ndf);
+
+
 /*...*/
   void writeCoo(Memoria *m,INT *ia   ,INT *ja,INT neq
                ,double *au,double*ad ,double *al 

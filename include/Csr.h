@@ -10,8 +10,9 @@
 /*...................................................................*/
 
 /*...*/
-  #include<HccaStdBool.h>
   #include<Define.h>
+  #include<HccaStdBool.h>
+  #include<ParallelMpi.h>
 /*...................................................................*/
 
 /*...*/
@@ -50,7 +51,8 @@
           ,DOUBLE *restrict al ,DOUBLE *restrict b
           ,INT *restrict lId                       
           ,DOUBLE *restrict lA ,DOUBLE *restrict lB 
-          ,INT const nEq       ,INT const nAd 
+          ,INT const nEq       ,INT const nAd
+          ,INT const nAdR 
           ,short const nFace   ,short const ndf  
           ,short const storade ,bool  const forces
           ,bool const matrix   ,bool  const  unsym);

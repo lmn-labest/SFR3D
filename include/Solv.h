@@ -34,7 +34,7 @@
 /*....*/
   void solverC(Memoria *m     
               ,INT const nEq       ,INT const nEqNov
-              ,INT const nAd
+              ,INT const nAd       ,INT const nAdR
               ,INT *ia             ,INT *ja   
               ,DOUBLE *al          ,DOUBLE *ad        ,DOUBLE *au
               ,DOUBLE *b           ,DOUBLE *x
@@ -60,7 +60,7 @@
           ,void(*matvec)()    ,DOUBLE(*dot)());
   
    void mpiPcg(INT const nEq  ,INT const nEqNov  
-          ,INT const nad  
+          ,INT const nAd      ,INT const nAdr 
           ,INT *restrict ia   ,INT *restrict ja
           ,DOUBLE *restrict al,DOUBLE *restrict ad,DOUBLE *restrict au
           ,DOUBLE *restrict m ,DOUBLE *restrict b ,DOUBLE *restrict x

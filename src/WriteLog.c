@@ -96,6 +96,8 @@ void writeLog(Mesh mesh    ,Scheme sc
       fprintf(file,"Armazenamento   : CSRC\n");
     else if(sistEqD1->storage == ELLPACK)
       fprintf(file,"Armazenamento   : ELLPACK\n");
+    else if(sistEqD1->storage == CSRDCOO)
+      fprintf(file,"Armazenamento   : CSRDCOO\n");
     fprintf(file,"nEq             : %d\n",sistEqD1->neq);
     if(mpiVar.nPrcs > 1)
       fprintf(file,"nEqNov          : %d\n",sistEqD1->neqNov);

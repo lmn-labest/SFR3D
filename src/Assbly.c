@@ -21,6 +21,7 @@
  * lB      -> vetor de forca da celula                               *
  * nEq     -> numero de equacoes                                     *
  * nAd     -> numero de termos nao nulos                             *
+ * nAdR    -> numero de termos nao nulos na parte retangular         *
  * nFace   -> numero de faces da celula                              *
  * ndf     -> graus de liberdade                                     *
  * storage -> tecnica de armazenamento da matriz esparsa             * 
@@ -41,25 +42,30 @@ void assbly(INT    *restrict  ia,INT *restrict ja
            ,double *restrict al ,double *restrict b
            ,INT *restrict lId
            ,double *restrict lA ,double *restrict lB
-           ,INT const nEq       ,INT const nAd 
+           ,INT const nEq       ,INT const nAd
+           ,INT const nAdR  
            ,short const nFace   ,short const ndf 
            ,short const storage ,bool  const forces  
            ,bool const matrix   ,bool  const  unsym)
 {
+  
+
   switch (storage){
-/*... estrutura CSR/CSRD/CSRC*/
+/*... estrutura CSR/CSRD/CSRDCOO/CSRC*/
     case CSR:
     case CSRD:
     case CSRC:
-      csr(ia     ,ja
-         ,au     ,ad
-         ,al     ,b
-         ,lId
-         ,lA     ,lB
-         ,nEq    ,nAd 
-         ,nFace  ,ndf
-         ,storage,forces
-         ,matrix ,unsym);
+    case CSRDCOO:
+        csr(ia     ,ja
+           ,au     ,ad
+           ,al     ,b
+           ,lId
+           ,lA     ,lB
+           ,nEq    ,nAd
+           ,nAdR  
+           ,nFace  ,ndf
+           ,storage,forces
+           ,matrix ,unsym);
     break;
 /*...................................................................*/
 

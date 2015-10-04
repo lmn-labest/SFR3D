@@ -236,6 +236,7 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
  * ddt     -> discretizacao temporal                                 *
  * nEq     -> numero de equacoes                                     *
  * nAd     -> numero de termos nao nulos                             *
+ * nAdR    -> numero de termos nao nulos na parte retangular         *
  * maxNo   -> numero de nos por celula maximo da malha               * 
  * maxViz  -> numero vizinhos por celula maximo da malha             * 
  * ndm     -> numero de dimensoes                                    * 
@@ -272,7 +273,8 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
                ,short  *restrict faceR   ,short  *restrict faceLd1        
                ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0 
                ,DOUBLE *restrict rCell   ,Temporal ddt 
-               ,INT const nEq            ,INT const nAd                    
+               ,INT const nEq            ,INT const nAd
+               ,INT const nAdR                     
                ,short const maxNo        ,short const maxViz
                ,short const ndm          ,INT const numel
                ,short const ndf          ,short const storage
@@ -418,7 +420,8 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
             ,al          ,b  
             ,lId 
             ,lA          ,lB
-            ,nEq         ,nAd 
+            ,nEq         ,nAd
+            ,nAdR     
             ,nFace[nel]  ,ndf 
             ,storage     ,forces
             ,matrix      ,unsym); 

@@ -9,6 +9,7 @@
   #include<stdlib.h>
 /*...*/
   #include<Csr.h>
+  #include<Coo.h>
   #include<EllPack.h>
   #include<Erro.h>
   #include<HccaStdBool.h>

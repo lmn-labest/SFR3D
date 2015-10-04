@@ -8,6 +8,7 @@
  * neq     -> numero de equacoes                                      *
  * neqNov  -> numero de equacoes nao sobrepostas                      *
  * nad     -> numero de elemetos nao nulos fora da diagonal principal *
+ * nAdR    -> numero de termos nao nulos na parte retangular         *
  * ia      -> vetor das linhas da estrutura de dados                  *
  * ja      -> vetor das colunas da estrutura de dados                 *
  * al      -> parte inferior da matriz a                              *
@@ -35,7 +36,7 @@
 **********************************************************************/
 void solverC(Memoria *m    
             ,INT const nEq       ,INT const nEqNov  
-            ,INT const nAd
+            ,INT const nAd       ,INT const nAdR
             ,INT *ia             ,INT *ja   
             ,DOUBLE *al          ,DOUBLE *ad,DOUBLE *au
             ,DOUBLE *b           ,DOUBLE *x
@@ -47,6 +48,7 @@ void solverC(Memoria *m
             ,bool const unSym    ,bool const loopWise)
 {
   DOUBLE *z=NULL,*r=NULL,*pc=NULL;
+  bool fCoo=false;
   void   (*matVecC)();
   DOUBLE (*dotC)();
 
@@ -77,14 +79,30 @@ void solverC(Memoria *m
 /*...................................................................*/
 
 /*... armazenamento CSRD(a,ad)*/
+/*...CSRD+COO(symetric)*/
+        case CSRDCOO:
+          fCoo = true;
         case CSRD:
+/*... nao - simetrica*/
           if(unSym)
             matVecC = matVecCsrD;
+/*... simetrica*/
           else
-            if( mpiVar.nPrcs > 1)
-              matVecC = mpiMatVecCsrDSym;
+/*... mpi*/
+            if( mpiVar.nPrcs > 1){
+/*... CSRD+COO*/
+              if(fCoo) 
+                matVecC = mpiMatVecCsrDcooSym;
+/*... CSRD+CSR*/
+              else 
+                matVecC = mpiMatVecCsrDSym;
+            }
+/*..................................................................*/
+
+/*...*/
             else
               matVecC = matVecCsrDSym;
+/*..................................................................*/
         break;
 /*...................................................................*/
 
@@ -128,13 +146,13 @@ void solverC(Memoria *m
 /*... PCG-MPI*/
       if( mpiVar.nPrcs > 1)
         mpiPcg(nEq      ,nEqNov    
-              ,nAd
-              ,ia      ,ja
-              ,al      ,ad   ,au
-              ,pc      ,b    ,x
-              ,z       ,r    ,tol
-              ,maxIt   ,true 
-              ,fSolvLog,fLog
+              ,nAd      ,nAdR
+              ,ia       ,ja
+              ,al       ,ad   ,au
+              ,pc       ,b    ,x
+              ,z        ,r    ,tol
+              ,maxIt    ,true 
+              ,fSolvLog ,fLog
               ,false 
               ,iNeq           
               ,matVecC ,dotC);   

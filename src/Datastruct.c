@@ -43,6 +43,9 @@ void dataStruct(Memoria *m      ,INT *id
 /*...................................................................*/
 
 /*... armazenamento CSRD(a,ad)*/
+/*...CSRD+COO(simetrico)*/
+     case CSRDCOO:
+       fCoo = true; 
      case CSRD:
        lower = true;
 /*...*/
@@ -56,7 +59,7 @@ void dataStruct(Memoria *m      ,INT *id
 /*...................................................................*/
 
 /*... paralelo (CSRD + CSR - simetrico)*/
-       if( mpiVar.nPrcs > 1 && !sistEqX->unsym ) { 
+       if( mpiVar.nPrcs > 1 && !sistEqX->unsym && !fCoo) { 
          n1 = sistEqX->neqNov + 1; 
          n2 = 2*n1; 
          HccaAlloc(INT,m,sistEqX->ia      ,n2  ,strIa   ,_AD_);
@@ -71,20 +74,12 @@ void dataStruct(Memoria *m      ,INT *id
 /*...................................................................*/
 
 /*... parte retangular*/
-/* ... COO*/
-         if(fCoo) 
-           nadr = sistEqX->nadr = csrIaR(&sistEqX->ia[n1],id 
-                                   ,num             ,nelcon 
-                                   ,nViz
-                                   ,numel           ,sistEqX->neqNov
-                                   ,maxViz          ,ndf);
 /* ... CSR*/
-         else 
-           nadr = sistEqX->nadr = csrIaR(&sistEqX->ia[n1],id 
-                                   ,num             ,nelcon 
-                                   ,nViz
-                                   ,numel           ,sistEqX->neqNov
-                                   ,maxViz          ,ndf);
+         nadr = sistEqX->nadr = csrIaR(&sistEqX->ia[n1],id 
+                                      ,num             ,nelcon 
+                                      ,nViz
+                                      ,numel           ,sistEqX->neqNov
+                                      ,maxViz          ,ndf);
 /*...................................................................*/
 
 /*...*/
@@ -100,20 +95,12 @@ void dataStruct(Memoria *m      ,INT *id
 /*...................................................................*/
 
 /*... parte retangular*/
-/* ... COO*/
-         if(fCoo) 
-           csrJaR(&sistEqX->ia[n1] ,&sistEqX->ja[nad] 
-                 ,id               ,num     
-                 ,nelcon           ,nViz 
-                 ,numel            ,sistEqX->neqNov
-                 ,maxViz           ,ndf);
 /* ... CSR*/
-         else
-           csrJaR(&sistEqX->ia[n1] ,&sistEqX->ja[nad] 
-                 ,id               ,num     
-                 ,nelcon           ,nViz 
-                 ,numel            ,sistEqX->neqNov
-                 ,maxViz           ,ndf);
+         csrJaR(&sistEqX->ia[n1] ,&sistEqX->ja[nad] 
+               ,id               ,num     
+               ,nelcon           ,nViz 
+               ,numel            ,sistEqX->neqNov
+               ,maxViz           ,ndf);
 /*...................................................................*/
 
 /*... reordenando o grafo*/
@@ -133,9 +120,69 @@ void dataStruct(Memoria *m      ,INT *id
          zero(sistEqX->ad,sistEqX->neqNov,DOUBLEC);
          zero(sistEqX->al,nadT,DOUBLEC);
 /*...................................................................*/
+
        }
 /*...................................................................*/
 
+/*... paralelo (CSRD + COO - simetrico)*/
+      else if(mpiVar.nPrcs > 1 && !sistEqX->unsym && fCoo) {
+/*... obtendo o numero de termos nao nulos na parte retangular*/ 
+        nadr = sistEqX->nadr = cooNnzR(id     ,num   
+                                      ,nelcon ,nViz 
+                                      ,numel  ,sistEqX->neqNov
+                                      ,maxViz ,ndf);
+/*...................................................................*/
+
+/*... alocando o vetor ia(neq+1+nadr)*/
+        n1 = sistEqX->neqNov + 1; 
+        n2 = n1+nadr; 
+        HccaAlloc(INT,m,sistEqX->ia      ,n2  ,strIa   ,_AD_);
+/*... vetor ia do CSRD*/
+        nad = sistEqX->nad = csrIa(sistEqX->ia ,id 
+                                  ,num         ,nelcon 
+                                  ,nViz
+                                  ,numel       ,sistEqX->neqNov
+                                  ,maxViz      ,ndf
+                                  ,upper       ,diag         
+                                  ,lower);
+/*...................................................................*/
+
+/*... vetor ja do CSRD*/
+         nadT = nad + nadr; 
+         HccaAlloc(INT,m,sistEqX->ja     ,nadT ,strJa   ,_AD_);
+         csrJa(sistEqX->ia ,sistEqX->ja 
+              ,id          ,num     
+              ,nelcon      ,nViz 
+              ,numel       ,sistEqX->neqNov
+              ,maxViz      ,ndf
+              ,upper       ,diag 
+              ,lower);
+/*...................................................................*/
+
+/*... vetor ia e ja do COO*/
+         cooIaJaR(&sistEqX->ia[n1]     ,&sistEqX->ja[nad]          
+                 ,id                   ,num
+                 ,nelcon               ,nViz
+                 ,numel                ,sistEqX->neqNov
+                 ,maxViz               ,ndf);
+/*...................................................................*/
+
+/*... reordenando o grafo ja(nad)*/
+         sortGraphCsr(sistEqX->ia,sistEqX->ja,sistEqX->neqNov);
+/*...................................................................*/
+
+/*... alocacao da matriz*/
+         HccaAlloc(DOUBLE         ,m    ,sistEqX->ad
+                  ,sistEqX->neqNov,strAd,false);
+         HccaAlloc(DOUBLE         ,m    ,sistEqX->al
+                  ,nadT           ,strA ,false);
+         zero(sistEqX->ad,sistEqX->neqNov,DOUBLEC);
+         zero(sistEqX->al,nadT,DOUBLEC);
+/*...................................................................*/
+
+      }
+/*...................................................................*/
+  
 /*... sequencial (CSRD - simetrico e nao simetrico)*/
 /*... paralelo   (CSRD - nao simetrico)*/
        else{ 
@@ -170,44 +217,10 @@ void dataStruct(Memoria *m      ,INT *id
          zero(sistEqX->ad,sistEqX->neqNov,DOUBLEC);
          zero(sistEqX->al,nad,DOUBLEC);
 /*...................................................................*/
+
        }
 /*...................................................................*/
 
-/*      
-      if(mpiVar.myId == 0){
-        printf("ia\n");
-        for(int i = 0; i < n1; i++)
-          printf("%d ",sistEqX->ia[i]);
-        printf("\nja\n");
-        for(int i = 0; i < nad; i++)
-          printf("%d ",sistEqX->ja[i]+1);
-        printf("\niar\n");
-        for(int i = n1; i < n2; i++)
-          printf("%d ",sistEqX->ia[i]);
-        printf("\njar\n");
-        for(int i = nad; i < nadT; i++)
-          printf("%d ",sistEqX->ja[i]+1);
-        printf("\n");
-      }
-      mpiWait();
-      if(mpiVar.myId == 1){
-        printf("ia\n");
-        for(int i = 0; i < n1; i++)
-          printf("%d ",sistEqX->ia[i]);
-        printf("\nja\n");
-        for(int i = 0; i < nad; i++)
-          printf("%d ",sistEqX->ja[i]+1);
-        printf("\niar\n");
-        for(int i = n1; i < n2; i++)
-          printf("%d ",sistEqX->ia[i]);
-        printf("\njar\n");
-        for(int i = nad; i < nadT; i++)
-          printf("%d ",sistEqX->ja[i]+1);
-        printf("\n");
-      }
-      mpiWait();
-*/
-     
 /*... banda da matriz*/
        sistEqX->bandCsr[BANDCSRMAX] 
        =  bandCsr(sistEqX->ia
@@ -276,7 +289,7 @@ void dataStruct(Memoria *m      ,INT *id
 /*...................................................................*/
      break;
 /*...................................................................*/
-     
+
      default:
        ERRO_OP(__FILE__,__func__,type);
      break;
@@ -291,10 +304,15 @@ void dataStruct(Memoria *m      ,INT *id
 void setDataStruct(char *word,short *data)
 {
 
+/*... CSRD*/
   if(!strcmp(word,"CSRD"))
    *data = CSRD;
+/*... ELLPACK*/
   else if(!strcmp(word,"ELLPACK"))
    *data = ELLPACK;
+/*... CSRDCOO*/
+  else if(!strcmp(word,"CSRDCOO"))
+   *data = CSRDCOO;
 
 } 
 /*********************************************************************/      

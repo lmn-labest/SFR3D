@@ -42,7 +42,7 @@ INT csrIa(INT *restrict ia     ,INT *restrict id
       aux = 0;
       neq1 = MAT2D(nel1,jNdf,id,ndf)-1;
       if(neq1 != -2){
-/*... conectividade no proprio elemento
+/*... equacoes ligadas ao proprio elemento
         (mais de um grau de liberdade por celula)*/
         for(kNdf=0;kNdf<ndf;kNdf++){
           neq2 = MAT2D(nel1,kNdf,id,ndf)-1;
@@ -60,7 +60,7 @@ INT csrIa(INT *restrict ia     ,INT *restrict id
         }
 /*...................................................................*/
   
-/*... conecitivada nos vizinhos*/
+/*... equacoes ligadas as celulas vizinhas*/
         for(j=0;j<nViz[nel1];j++){
           viz1 = MAT2D(nel1,j,adj,maxViz) - 1;
           if( viz1 != -2) {
@@ -122,7 +122,7 @@ INT csrIaR(INT *restrict ia     ,INT *restrict id
           ,INT const numel      ,INT const nEq
           ,short const maxViz   ,short  const ndf){
   
-  INT  i,nel1,neq,neq1,neq2,viz1,col,aux,nad=0;
+  INT  i,nel1,neq,neq1,viz1,col,aux,nad=0;
   short jNdf,kNdf,j;
 /*... gerando arranjo ia*/  
   ia[0] = 0;
@@ -133,20 +133,7 @@ INT csrIaR(INT *restrict ia     ,INT *restrict id
       aux = 0;
       neq1 = MAT2D(nel1,jNdf,id,ndf)-1;
       if(neq1 != -2){
-/*... conectividade no proprio elemento
-        (mais de um grau de liberdade por celula)*/
-        for(kNdf=0;kNdf<ndf;kNdf++){
-          neq2 = MAT2D(nel1,kNdf,id,ndf)-1;
-          if(neq2 != -2){
-            if(neq < neq2){ 
-              aux++;
-              nad++;
-            }
-          }
-        }
-/*...................................................................*/
-  
-/*... conecitivada nos vizinhos*/
+/*... equacoes ligadas as celulas vizinhas*/
         for(j=0;j<nViz[nel1];j++){
           viz1 = MAT2D(nel1,j,adj,maxViz) - 1;
           if( viz1 != -2) {
@@ -222,7 +209,8 @@ void csrJa(INT *restrict ia    ,INT *restrict ja
       neq1= MAT2D(nel1,jNdf,id,ndf)-1;
       ipont = ia[neq1];
       if(neq1 != -2){
-/*... conectividade no proprio elemento*/
+/*... equacoes ligadas ao proprio elemento
+        (mais de um grau de liberdade por celula)*/
         for(kNdf=0;kNdf<ndf;kNdf++){
           neq2 = MAT2D(nel1,kNdf,id,ndf)-1;
           if(neq2 != -2){
@@ -247,7 +235,7 @@ void csrJa(INT *restrict ia    ,INT *restrict ja
         }
 /*...................................................................*/
 
-/*...*/
+/*... equacoes ligadas as celulas vizinhas*/
         for(j=0;j<nViz[nel1];j++){
           viz1 = MAT2D(nel1,j,adj,maxViz) - 1;
           if( viz1 != -2) {
@@ -313,7 +301,7 @@ void csrJaR(INT *restrict ia    ,INT *restrict ja
            ,INT const numel     ,INT const nEq 
            ,short const maxViz  ,short const ndf){
   
-  INT  i,nel1,neq,neq1,neq2,viz1,col,aux,ipont;
+  INT  i,nel1,neq,neq1,viz1,col,aux,ipont;
   short j,jNdf,kNdf;
 
   neq = nEq-1;
@@ -323,24 +311,9 @@ void csrJaR(INT *restrict ia    ,INT *restrict ja
     for(jNdf=0;jNdf<ndf;jNdf++){
       aux = 0;
       neq1= MAT2D(nel1,jNdf,id,ndf)-1;
-      ipont = ia[neq1];
       if(neq1 != -2){
-/*... conectividade no proprio elemento*/
-        for(kNdf=0;kNdf<ndf;kNdf++){
-          neq2 = MAT2D(nel1,kNdf,id,ndf)-1;
-          if(neq2 != -2){
-/*... parte inferior*/
-            if(neq < neq2){ 
-              ja[ipont+aux] = neq2; 
-              aux++;
-            }
-/*...................................................................*/
-          }
-/*...................................................................*/
-        }
-/*...................................................................*/
-
-/*...*/
+        ipont = ia[neq1];
+/*... equacoes ligadas as celulas vizinhas*/
         for(j=0;j<nViz[nel1];j++){
           viz1 = MAT2D(nel1,j,adj,maxViz) - 1;
           if( viz1 != -2) {
@@ -370,6 +343,7 @@ void csrJaR(INT *restrict ia    ,INT *restrict ja
 /*...................................................................*/
 }
 /*********************************************************************/ 
+
 
 /********************************************************************* 
  * BANDCSR: banda da matriz no formato CSR                           * 
@@ -454,6 +428,7 @@ INT bandCsr(INT *ia,INT *ja,INT  neq,short type){
  * lB      -> vetor de forca da celula                               *
  * nEq     -> numero de equacoes                                     *
  * nAd     -> numero de termos nao nulos                             *
+ * nAdR    -> numero de termos nao nulos na parte retangular         *
  * nFace   -> numero de faces da celula                              *
  * ndf     -> graus de liberdade                                     *
  * storage -> tecnica de armazenamento da matriz esparsa             * 
@@ -480,21 +455,29 @@ void csr(INT    *restrict  ia,INT *restrict ja
         ,INT *restrict lId                       
         ,DOUBLE *restrict lA ,DOUBLE *restrict lB
         ,INT const nEq       ,INT const nAd 
+        ,INT const nAdR                        
         ,short const nFace   ,short const ndf  
         ,short const storage ,bool  const forces
         ,bool const matrix   ,bool  const  unsym)
 {
-  INT lNeq,lCol=0,iak,jak,iPont,iaKneq;
+  INT lNeq,lCol=0,iak,jak,iPont,iaKneq,neqS;
   INT *iar,*jar;
   DOUBLE *ar;
   unsigned short i,j,k,jLa,nst;
+  bool fCoo = false;
+
+  neqS = nEq - 1;
+
   switch (storage){
 /*... estrutura CSR(ia,ja,a,b)*/
     case CSR:
     break;
 /*...................................................................*/
 
-/*... estrutura CSR(ia,ja,a,al,b)*/
+/*... estrutura CSRD(ia,ja,a,al,b)*/
+/*...CSRD+COO(symetric)*/
+    case CSRDCOO:
+      fCoo = true;
     case CSRD:
       if(ndf == 1) {
         lNeq = lId[nFace];
@@ -519,24 +502,45 @@ void csr(INT    *restrict  ia,INT *restrict ja
               }
             }      
           }
-/*... parte retagunlar para matrizes simetricas*/
-          if(unsym == false){
-            iar = &ia[nEq+1];
-            jar = &ja[nAd];
-            ar  = &al[nAd];
-            iPont    = iar[lNeq];
-            iaKneq   = iar[lNeq+1];
-            for(k=0;k<nFace;k++){
-              lCol     = lId[k];
-              if(lCol > -1 && (lCol > nEq - 1)){
-                for(iak = iPont; iak < iaKneq;iak++){
-                  jak = jar[iak];
-                  if( lCol == jak ){ 
-                    ar[iak] = lA[k];
-                  }  
-                }
-              }      
+/*...................................................................*/
+
+/*... parte retagunlar para matrizes simetricas (MPI)*/
+          if(unsym == false && mpiVar.nPrcs > 1){
+/*... parte retangular em COO*/
+            if(fCoo){
+              iar = &ia[nEq+1];
+              jar = &ja[nAd];
+              ar  = &al[nAd];
+              for(k=0;k<nFace;k++){
+                lCol     = lId[k];
+                if(lCol > -1 && (lCol > neqS))
+                  for(iak = 0; iak < nAdR;iak++)
+                    if(iar[iak] == lNeq && jar[iak] == lCol)
+                      ar[iak] = lA[k];     
+              }
+            }   
+/*...................................................................*/
+
+/*... parte retangular em CSR*/
+            else{
+              iar = &ia[nEq+1];
+              jar = &ja[nAd];
+              ar  = &al[nAd];
+              iPont    = iar[lNeq];
+              iaKneq   = iar[lNeq+1];
+              for(k=0;k<nFace;k++){
+                lCol     = lId[k];
+                if(lCol > -1 && (lCol > neqS)){
+                  for(iak = iPont; iak < iaKneq;iak++){
+                    jak = jar[iak];
+                    if( lCol == jak ){ 
+                      ar[iak] = lA[k];
+                    }  
+                  }
+                }       
+              }
             }
+/*...................................................................*/
           }  
 /*...................................................................*/
         }

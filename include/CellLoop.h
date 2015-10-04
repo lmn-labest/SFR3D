@@ -93,6 +93,7 @@
              ,DOUBLE *restrict u0     ,DOUBLE *restrict gradU0             
              ,DOUBLE *restrict rCell  ,Temporal const ddt
              ,INT const nEq           ,INT const nAd               
+             ,INT const nAdR                                       
              ,short const maxNo       ,short const maxViz
              ,short const ndm         ,INT const numel
              ,short const ndf         ,short const storage

@@ -102,11 +102,16 @@
 /*...................................................................*/
 
 /*... MPI - CsrD */ 
-  void mpiMatVecCsrDSym(INT const neq           
+  void mpiMatVecCsrDSym(INT const nEq    ,INT const nAdR 
                      ,INT *restrict ia   ,INT *restrict ja
                      ,DOUBLE *restrict al,DOUBLE *restrict ad
                      ,DOUBLE *restrict x ,DOUBLE *restrict y
                      ,Interface *iNeq);
+  void mpiMatVecCsrDcooSym(INT const nEq    ,INT const nAdR       
+                          ,INT *restrict ia   ,INT *restrict ja
+                          ,DOUBLE *restrict al,DOUBLE *restrict ad
+                          ,DOUBLE *restrict x ,DOUBLE *restrict y
+                          ,Interface *iNeq);
 /*...................................................................*/
 
 /*==================================================================*/

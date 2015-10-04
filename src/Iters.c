@@ -121,6 +121,7 @@ void pcg(INT const nEq      ,INT const nAd
  *  neq -> numero de equacoes                                         *
  *neqNov-> numero de equacoes nao sobrepostas                         *
  *  nad -> numero de elementos nao nulos fora da diagonal             *
+ *  nadR-> numero de elementos nao nulos na parte retangular          *
  *  ia  -> estrutura de dados para matriz esparsa A                   *
  *  ja  -> estrutura de dados para matriz esparsa A                   *
  *  al  -> parte inferior da matriz A                                 *
@@ -149,7 +150,7 @@ void pcg(INT const nEq      ,INT const nAd
  * -------------------------------------------------------------------*
 *********************************************************************/
 void mpiPcg(INT const nEq   ,INT const nEqNov
-        ,INT const nAd  
+        ,INT const nAd      ,INT const nAdR  
         ,INT *restrict ia   ,INT *restrict ja
         ,DOUBLE *restrict al,DOUBLE *restrict ad,DOUBLE *restrict au
         ,DOUBLE *restrict m ,DOUBLE *restrict b ,DOUBLE *restrict x
@@ -172,7 +173,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
     for(i = 0; i < nEq; i++)  
       x[i] = 0.e0;
   
-  matvec(nEqNov,ia,ja,al,ad,x,z,iNeq);
+  matvec(nEqNov,nAdR,ia,ja,al,ad,x,z,iNeq);
   
   for(i = 0; i < nEqNov; i++)   {
     r[i] = b[i] - z[i];
@@ -184,7 +185,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
   conv = tol * sqrt(fabs(d));
 /*--------------------------------------------------------*/   
   for(j = 0; j < maxIt; j++)   {
-    matvec(nEqNov,ia,ja,al,ad,b,z,iNeq);
+    matvec(nEqNov,nAdR,ia,ja,al,ad,b,z,iNeq);
     
     alpha = d / dot(b,z,nEqNov);
     for(i = 0; i < nEqNov; i++)   {
@@ -200,7 +201,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
     if (sqrt(fabs(d)) < conv) break;
   }
 /* -------------------------------------------------------*/
-  matvec(nEqNov,ia,ja,al,ad,x,z,iNeq);
+  matvec(nEqNov,nAdR,ia,ja,al,ad,x,z,iNeq);
 /*norma de energia = xT*A*x */
   energy = dot(x,z,nEqNov);
 /* -------------------------------------------------------*/
