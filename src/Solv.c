@@ -84,24 +84,45 @@ void solverC(Memoria *m
           fCoo = true;
         case CSRD:
 /*... nao - simetrica*/
-          if(unSym)
-            matVecC = matVecCsrD;
+          if(unSym){
+/*... mpi*/
+            if( mpiVar.nPrcs > 1){
+              matVecC = mpiMatVecCsrD;
+            }
+/*...................................................................*/
+
+/*... sequencial*/
+            else{
+              matVecC = matVecCsrD;
+            }
+/*...................................................................*/
+          }
+/*...................................................................*/
+
 /*... simetrica*/
-          else
+          else{
 /*... mpi*/
             if( mpiVar.nPrcs > 1){
 /*... CSRD+COO*/
-              if(fCoo) 
+              if(fCoo){ 
                 matVecC = mpiMatVecCsrDcooSym;
+              }
+/*...................................................................*/
+
 /*... CSRD+CSR*/
-              else 
+              else{ 
                 matVecC = mpiMatVecCsrDSym;
+/*...................................................................*/
+              }
             }
 /*..................................................................*/
 
-/*...*/
-            else
+/*... sequencial*/
+            else{
               matVecC = matVecCsrDSym;
+            }
+/*..................................................................*/
+          }
 /*..................................................................*/
         break;
 /*...................................................................*/
@@ -114,9 +135,19 @@ void solverC(Memoria *m
 
 /*... armazenamento ELLPACK(ad,a)*/
         case ELLPACK:
-//        matVecC = matVecEllPack;
-          matVecC = matVecEllPackO2;
-//        matVecC = matVecEllPackO4;
+/*... mpil*/
+          if( mpiVar.nPrcs > 1){
+            matVecC = mpiMatVecEllPack;
+          }
+/*...................................................................*/
+
+/*... sequencial*/
+          else{
+            matVecC = matVecEllPack;
+//          matVecC = matVecEllPackO2;
+//          matVecC = matVecEllPackO4;
+          }
+/*...................................................................*/
         break;
 /*...................................................................*/
 

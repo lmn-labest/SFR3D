@@ -86,6 +86,30 @@
                      ,DOUBLE *restrict x,DOUBLE *restrict y);
 /*...................................................................*/
 
+/*... MPI - CsrD */ 
+/*... Simetrico*/
+/*... CSRD+CSR*/
+  void mpiMatVecCsrDSym(INT const nEq    ,INT const *nAd 
+                     ,INT *restrict ia   ,INT *restrict ja
+                     ,DOUBLE *restrict al,DOUBLE *restrict ad
+                     ,DOUBLE *restrict x ,DOUBLE *restrict y
+                     ,Interface *iNeq);
+/*... CSRD+COO*/
+  void mpiMatVecCsrDcooSym(INT const nEq      ,INT const *nAd       
+                          ,INT *restrict ia   ,INT *restrict ja
+                          ,DOUBLE *restrict al,DOUBLE *restrict ad
+                          ,DOUBLE *restrict x ,DOUBLE *restrict y
+                          ,Interface *iNeq);
+/*... Geral*/
+  void mpiMatVecCsrD(INT const neq     ,INT const *nAd 
+                  ,INT *restrict ia  ,INT *restrict ja
+                  ,DOUBLE *restrict a,DOUBLE *restrict ad
+                  ,DOUBLE *restrict x,DOUBLE *restrict y
+                  ,Interface *iNeq);
+  
+  
+/*...................................................................*/
+
 /*... EllPack*/ 
   void matVecEllPack(INT const nEq           
                   ,INT *restrict ia  ,INT *restrict ja
@@ -99,20 +123,14 @@
                       ,INT *restrict ia  ,INT *restrict ja
                       ,DOUBLE *restrict a,DOUBLE *restrict ad
                       ,DOUBLE *restrict x,DOUBLE *restrict y);
+/*... MPI*/
+  void mpiMatVecEllPack(INT const nEq  ,INT const *nAd 
+                      ,INT *restrict ia  ,INT *restrict ja
+                      ,DOUBLE *restrict a,DOUBLE *restrict ad
+                      ,DOUBLE *restrict x,DOUBLE *restrict y
+                      ,Interface *iNeq);
 /*...................................................................*/
 
-/*... MPI - CsrD */ 
-  void mpiMatVecCsrDSym(INT const nEq    ,INT const nAdR 
-                     ,INT *restrict ia   ,INT *restrict ja
-                     ,DOUBLE *restrict al,DOUBLE *restrict ad
-                     ,DOUBLE *restrict x ,DOUBLE *restrict y
-                     ,Interface *iNeq);
-  void mpiMatVecCsrDcooSym(INT const nEq    ,INT const nAdR       
-                          ,INT *restrict ia   ,INT *restrict ja
-                          ,DOUBLE *restrict al,DOUBLE *restrict ad
-                          ,DOUBLE *restrict x ,DOUBLE *restrict y
-                          ,Interface *iNeq);
-/*...................................................................*/
 
 /*==================================================================*/
 

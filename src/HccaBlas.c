@@ -29,7 +29,7 @@
  * ................... SIMETRICA - MPI (CSRD+CSR) ................... *
  * mpiMatVecCsrDSym -> matizt vetor para matriz simetrica no formato  *           
  * CSRD+CSR                                                           *           
- * ................... SIMETRICA - MPI (CSRD+COO)                     *
+ * ................... SIMETRICA - MPI (CSRD+COO) ................... *
  * mpiMatVecCsrDcooSym -> matizt vetor para matriz simetrica no       *
  * formato CSRD+COO                                                   *           
  * ...........................GERAL ................................. *
@@ -41,11 +41,16 @@
  * matVecCsrDO4   -> matriz vetor para matriz geral no formato CSRD   * 
  * matVecCsrDO6   -> matriz vetor para matriz geral no formato CSRD   * 
  * matVecCsrDO2I2 -> matriz vetor para matriz geral no formato CSRD   * 
+ * ...................... GERAL (CSRD) - MPI ........................ *
+ * mpiMatVecCsrD  -> matizt vetor para matriz simetrica no formato    * 
  * ------------------------ ELLPACK --------------------------------- * 
  * ...........................GERAL ................................. *
  * matVecEllPack  -> matriz vetor para matriz geral no formato EllPack* 
  * matVecEllPackO2-> matriz vetor para matriz geral no formato EllPack* 
  * matVecEllPackO4-> matriz vetor para matriz geral no formato EllPack* 
+ * ..................... GERAL (ELLPACK) MPI ........................ *
+ * mpiMatVecEllPack -> matriz vetor para matriz geral no formato      *
+ * EllPack                                                            *           
  *********************************************************************/
 
 /********************************************************************* 
@@ -964,36 +969,40 @@ void matVecCsrDSym(INT const neq
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * neq -> numero de equacoes                                         * 
+ * nAd -> numero de elementos nao nulos                              * 
+ *        nAd[0] - CSRD                                              *
+ *        nAd[1] - CSR                                               *
  * ia  -> vetor csr                                                  * 
  * ja  -> vetor csr                                                  * 
  * al  -> vetor com os valores inferiores da matriz                  * 
  * ad  -> vetor com os valores da diagonal principal da matriz       * 
  * x   -> vetor a ser multiplicado                                   * 
  * y   -> indefinido                                                 * 
+ * iNeq-> equacoes de interface                                      * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
  * y   -> vetor com o resultado da multiplicacao                     * 
  *-------------------------------------------------------------------* 
- * OBS: ja guarda os indiceis da para inferior da matriz             * 
+ * OBS: ja guarda os indiceis da para inferior da matriz CSRD e a    * 
+ * parte retangular em COO                                           * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void mpiMatVecCsrDSym(INT const nEq      ,INT const nAdR      
+void mpiMatVecCsrDSym(INT const nEq      ,INT const *nAd      
                      ,INT *restrict ia   ,INT *restrict ja
                      ,DOUBLE *restrict al,DOUBLE *restrict ad
                      ,DOUBLE *restrict x ,DOUBLE *restrict y
                      ,Interface *iNeq)
 {
 #ifdef _MPICH_
-  INT    i,k,jak,nAd;
+  INT    i,k,jak;
   DOUBLE xi,tmp,sAu;
   INT *iar,*jar;
   DOUBLE *ar;
 
-  nAd = ia[nEq] - ia[0];
   iar = &ia[nEq+1];
-  jar = &ja[nAd];
-  ar  = &al[nAd];
+  jar = &ja[nAd[0]];
+  ar  = &al[nAd[0]];
 
 /*...*/ 
   tm.matVecSparse             = getTimeC() - tm.matVecSparse;
@@ -1036,43 +1045,46 @@ void mpiMatVecCsrDSym(INT const nEq      ,INT const nAdR
 /*********************************************************************/ 
 
 /********************************************************************* 
- *MPIMATVECCSRDCOOSYM:produto matriz vetor para uma matriz no formato*
- *CSRD+COO (y=Ax, A uma matriz simentrica)                          * 
+ * MPIMATVECCSRDCOOSYM: produto matriz vetor para uma matriz no      *
+ * formato CSRD+COO (y=Ax, A uma matriz simentrica)                  * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * neq -> numero de equacoes                                         * 
- * nnz -> numero de termos no coo                                    * 
+ * nAd -> numero de elementos nao nulos                              * 
+ *        nAd[0] - CSRD                                              *
+ *        nAd[1] - COO                                               *
  * ia  -> vetor csr+coo                                              * 
  * ja  -> vetor csr+coo                                              * 
  * al  -> vetor com os valores inferiores da matriz                  * 
  * ad  -> vetor com os valores da diagonal principal da matriz       * 
  * x   -> vetor a ser multiplicado                                   * 
  * y   -> indefinido                                                 * 
+ * iNeq-> equacoes de interface                                      * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
  * y   -> vetor com o resultado da multiplicacao                     * 
  *-------------------------------------------------------------------* 
- * OBS: ja guarda os indiceis da para inferior da matriz             * 
+ * OBS: ja guarda os indiceis da para inferior da matriz CSRD e a    * 
+ * parte retangular em COO                                           * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void mpiMatVecCsrDcooSym(INT const nEq      ,INT const nnz      
+void mpiMatVecCsrDcooSym(INT const nEq      ,INT const *nAd      
                         ,INT *restrict ia   ,INT *restrict ja
                         ,DOUBLE *restrict al,DOUBLE *restrict ad
                         ,DOUBLE *restrict x ,DOUBLE *restrict y
                         ,Interface *iNeq)
 {
 #ifdef _MPICH_
-  INT    i,j,k,jak,nAd;
+  INT    i,j,k,jak;
   DOUBLE xi,tmp,sAu;
   INT *iar,*jar;
   DOUBLE *ar;
 
-  nAd = ia[nEq] - ia[0];
   iar = &ia[nEq+1];
-  jar = &ja[nAd];
-  ar  = &al[nAd];
+  jar = &ja[nAd[0]];
+  ar  = &al[nAd[0]];
 
 /*...*/ 
   tm.matVecSparse             = getTimeC() - tm.matVecSparse;
@@ -1103,7 +1115,7 @@ void mpiMatVecCsrDcooSym(INT const nEq      ,INT const nnz
 /*...................................................................*/
 
 /*... parte retangular em COO*/
-  for(k=0;k<nnz;k++){
+  for(k=0;k<nAd[1];k++){
     i     = iar[k];
     j     = jar[k];
     y[i] += ar[k]*x[j];
@@ -1852,6 +1864,67 @@ linhai2:
 } 
 /*********************************************************************/ 
 
+/********************************************************************* 
+ * MPIMATVECCSRD :produto matriz vetor para uma matriz no formato    *
+ * CSRD (y=Ax, A uma matriz nao simentrica)                          * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * nAd -> numero de elementos nao nulos                              * 
+ *        nAd[0] - CSRD                                              *
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * a   -> vetor com os valores da matriz fora diagonal               * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ * iNeq-> equacoes de interface                                      * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void mpiMatVecCsrD(INT const neq     ,INT const *nAd 
+                  ,INT *restrict ia  ,INT *restrict ja
+                  ,DOUBLE *restrict a,DOUBLE *restrict ad
+                  ,DOUBLE *restrict x,DOUBLE *restrict y
+                  ,Interface *iNeq)
+{
+
+#ifdef _MPICH_
+  INT i,j;
+  DOUBLE tmp;
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+
+/*...*/
+  tm.matVecOverHeadMpi        = getTimeC() - tm.matVecOverHeadMpi;
+  comunicateNeq(iNeq,x);
+  tm.matVecOverHeadMpi        = getTimeC() - tm.matVecOverHeadMpi;
+/*...................................................................*/
+
+/*...*/
+  for(i=0;i<neq;i++){
+    tmp = ad[i]*x[i];
+    for(j=ia[i];j<ia[i+1];j++)
+      tmp += a[j]*x[ja[j]];
+    y[i] = tmp;
+  }
+/*...................................................................*/
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+#endif
+}
+/*********************************************************************/
+
 /************************ ELLPACK GERAL ******************************/
 
 /********************************************************************* 
@@ -1861,8 +1934,10 @@ linhai2:
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * neq -> numero de equacoes                                         * 
- * ia  -> vetor csr                                                  * 
- * ja  -> vetor csr                                                  * 
+ * nAd -> numero de elementos nao nulos                              * 
+ *        nAd[0] - CSRD                                              *
+ * ia  -> numero maximo de termos nao nulos por linha                * 
+ * ja  -> vetor ellpack                                              * 
  * a   -> vetor com os valores da matriz                             * 
  * ad  -> vetor com os valores da diagonal principal da matriz       * 
  * x   -> vetor a ser multiplicado                                   * 
@@ -1937,8 +2012,10 @@ void matVecEllPack(INT const nEq
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * neq -> numero de equacoes                                         * 
- * ia  -> vetor csr                                                  * 
- * ja  -> vetor csr                                                  * 
+ * nAd -> numero de elementos nao nulos                              * 
+ *        nAd[0] - CSRD                                              *
+ * ia  -> numero maximo de termos nao nulos por linha                * 
+ * ja  -> vetor ellpack                                              * 
  * a   -> vetor com os valores da matriz                             * 
  * ad  -> vetor com os valores da diagonal principal da matriz       * 
  * x   -> vetor a ser multiplicado                                   * 
@@ -2067,8 +2144,10 @@ void matVecEllPackO2(INT const nEq
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * neq -> numero de equacoes                                         * 
- * ia  -> vetor csr                                                  * 
- * ja  -> vetor csr                                                  * 
+ * nAd -> numero de elementos nao nulos                              * 
+ *        nAd[0] - CSRD                                              *
+ * ia  -> numero maximo de termos nao nulos por linha                * 
+ * ja  -> vetor ellpack                                              * 
  * a   -> vetor com os valores da matriz                             * 
  * ad  -> vetor com os valores da diagonal principal da matriz       * 
  * x   -> vetor a ser multiplicado                                   * 
@@ -2237,6 +2316,99 @@ void matVecEllPackO4(INT const nEq
 /*...*/ 
   tm.matVecSparse             = getTimeC() - tm.matVecSparse;
 /*...................................................................*/
+  
+} 
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * MPIMATVECELLPACK : produto matriz vetor para uma matriz generica  *
+ * no formato ELLPACK                                                *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * nAd -> numero de elementos nao nulos                              * 
+ *        nAd[0] - CSRD                                              *
+ * ia  -> numero maximo de termos nao nulos por linha                * 
+ * ja  -> vetor ellpack                                              * 
+ * a   -> vetor com os valores da matriz                             * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ * iNeq-> equacoes de interface                                      * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void mpiMatVecEllPack(INT const nEq  ,INT const *nAd 
+                  ,INT *restrict ia  ,INT *restrict ja
+                  ,DOUBLE *restrict a,DOUBLE *restrict ad
+                  ,DOUBLE *restrict x,DOUBLE *restrict y
+                  ,Interface *iNeq)
+{
+ 
+#ifdef _MPICH_
+  INT i,maxLineNzr=ia[0];
+  DOUBLE ti;
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+
+/*...*/
+  tm.matVecOverHeadMpi        = getTimeC() - tm.matVecOverHeadMpi;
+  comunicateNeq(iNeq,x);
+  tm.matVecOverHeadMpi        = getTimeC() - tm.matVecOverHeadMpi;
+/*...................................................................*/
+
+/*...*/ 
+  if( maxLineNzr == 6){
+    for(i = 0;i<nEq;i++){
+      ti   = ad[i]*x[i]; 
+      ti  += MAT2D(i,0,a,maxLineNzr)*x[MAT2D(i,0,ja,maxLineNzr)];
+      ti  += MAT2D(i,1,a,maxLineNzr)*x[MAT2D(i,1,ja,maxLineNzr)];
+      ti  += MAT2D(i,2,a,maxLineNzr)*x[MAT2D(i,2,ja,maxLineNzr)];
+      ti  += MAT2D(i,3,a,maxLineNzr)*x[MAT2D(i,3,ja,maxLineNzr)];
+      ti  += MAT2D(i,4,a,maxLineNzr)*x[MAT2D(i,4,ja,maxLineNzr)];
+      ti  += MAT2D(i,5,a,maxLineNzr)*x[MAT2D(i,5,ja,maxLineNzr)];
+      y[i] = ti;   
+    }
+  }
+/*...................................................................*/
+  
+/*...*/ 
+  else if( maxLineNzr == 4){
+    for(i = 0;i<nEq;i++){
+      ti    = ad[i]*x[i]; 
+      ti   += MAT2D(i,0,a,maxLineNzr)*x[MAT2D(i,0,ja,maxLineNzr)];
+      ti   += MAT2D(i,1,a,maxLineNzr)*x[MAT2D(i,1,ja,maxLineNzr)];
+      ti   += MAT2D(i,2,a,maxLineNzr)*x[MAT2D(i,2,ja,maxLineNzr)];
+      ti   += MAT2D(i,3,a,maxLineNzr)*x[MAT2D(i,3,ja,maxLineNzr)];
+      y[i] = ti;                 
+    }
+  }
+/*...................................................................*/
+  
+/*...*/ 
+  else if( maxLineNzr == 3){
+    for(i = 0;i<nEq;i++){
+      ti   = ad[i]*x[i]; 
+      ti  += MAT2D(i,0,a,maxLineNzr)*x[MAT2D(i,0,ja,maxLineNzr)];
+      ti  += MAT2D(i,1,a,maxLineNzr)*x[MAT2D(i,1,ja,maxLineNzr)];
+      ti  += MAT2D(i,2,a,maxLineNzr)*x[MAT2D(i,2,ja,maxLineNzr)];
+      y[i] = ti;                 
+    }
+  }
+/*...................................................................*/
+  
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+#endif
   
 } 
 /*********************************************************************/ 

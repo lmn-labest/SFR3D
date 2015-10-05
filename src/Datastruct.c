@@ -256,35 +256,35 @@ void dataStruct(Memoria *m      ,INT *id
 /*... armazenamento ELLPACK(ad,d)*/
      case ELLPACK:
 /*...*/
-       HccaAlloc(INT,m,sistEqX->ia,2             ,strIa   ,_AD_);
-       HccaAlloc(INT,m,sistEqX->ja,sistEqX->neq*maxViz ,strJa   ,_AD_);
-       zero(sistEqX->ja,sistEqX->neq*maxViz,INTC);
+       n1 = sistEqX->neqNov + 1; 
+       HccaAlloc(INT,m,sistEqX->ia,2         ,strIa,_AD_);
+       HccaAlloc(INT,m,sistEqX->ja,n1*maxViz ,strJa,_AD_);
+       zero(sistEqX->ja,n1*maxViz,INTC);
 /*...................................................................*/
 
 /*...*/
        sistEqX->nad = ellPackJa(sistEqX->ia     ,sistEqX->ja 
-                              ,id               ,num
-                              ,nelcon           ,nViz
-                              ,numel            ,sistEqX->neq
-                              ,maxViz           ,ndf);
+                               ,id              ,num
+                               ,nelcon          ,nViz
+                               ,numel           ,n1
+                               ,maxViz          ,ndf);
 /*...................................................................*/
 
 /*... alocacao da matriz*/
-       HccaAlloc(DOUBLE,m,sistEqX->ad,sistEqX->neq ,strAd   ,_AD_);
-       HccaAlloc(DOUBLE,m,sistEqX->al
-                ,sistEqX->neq*maxViz ,strA    ,_AD_);
-       zero(sistEqX->ad,sistEqX->neq,DOUBLEC);
-       zero(sistEqX->al,sistEqX->neq*maxViz,DOUBLEC);
+       HccaAlloc(DOUBLE,m,sistEqX->ad,n1        ,strAd,_AD_);
+       HccaAlloc(DOUBLE,m,sistEqX->al,n1*maxViz ,strA ,_AD_);
+       zero(sistEqX->ad,n1,DOUBLEC);
+       zero(sistEqX->al,n1*maxViz,DOUBLEC);
 /*...................................................................*/
 
 /*... banda da matriz*/
        if(!mpiVar.myId) {
          printf("band Maxima: %ld\n"
-         ,(long) bandEllPack(sistEqX->ia,sistEqX->ja,sistEqX->neq,1));
+         ,(long) bandEllPack(sistEqX->ia,sistEqX->ja,n1,1));
          printf("band Minima: %ld\n"
-         ,(long) bandEllPack(sistEqX->ia,sistEqX->ja,sistEqX->neq,3));
+         ,(long) bandEllPack(sistEqX->ia,sistEqX->ja,n1,3));
          printf("band Media : %ld\n"
-         ,(long) bandEllPack(sistEqX->ia,sistEqX->ja,sistEqX->neq,2));
+         ,(long) bandEllPack(sistEqX->ia,sistEqX->ja,n1,2));
        }
 /*...................................................................*/
      break;

@@ -164,16 +164,20 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
   INT i,j;
   DOUBLE alpha,beta,d,conv,energy;
   DOUBLE timei,timef;
+  INT param[2];
   short st=0;
 
   timei = getTimeC();
+
+  param[0] = nAd;
+  param[1] = nAdR;
 
 /* chute inicial*/
   if(newX)  
     for(i = 0; i < nEq; i++)  
       x[i] = 0.e0;
   
-  matvec(nEqNov,nAdR,ia,ja,al,ad,x,z,iNeq);
+  matvec(nEqNov,param,ia,ja,al,ad,x,z,iNeq);
   
   for(i = 0; i < nEqNov; i++)   {
     r[i] = b[i] - z[i];
@@ -185,7 +189,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
   conv = tol * sqrt(fabs(d));
 /*--------------------------------------------------------*/   
   for(j = 0; j < maxIt; j++)   {
-    matvec(nEqNov,nAdR,ia,ja,al,ad,b,z,iNeq);
+    matvec(nEqNov,param,ia,ja,al,ad,b,z,iNeq);
     
     alpha = d / dot(b,z,nEqNov);
     for(i = 0; i < nEqNov; i++)   {
@@ -201,7 +205,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
     if (sqrt(fabs(d)) < conv) break;
   }
 /* -------------------------------------------------------*/
-  matvec(nEqNov,nAdR,ia,ja,al,ad,x,z,iNeq);
+  matvec(nEqNov,param,ia,ja,al,ad,x,z,iNeq);
 /*norma de energia = xT*A*x */
   energy = dot(x,z,nEqNov);
 /* -------------------------------------------------------*/
