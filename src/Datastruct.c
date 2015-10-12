@@ -34,7 +34,7 @@ void dataStruct(Memoria *m      ,INT *id
 {
    short type = sistEqX->storage;
    bool lower,diag,upper,fCoo=false;
-   INT n1,n2,nad,nadr,nadT=0;
+   INT n0,n1,n2,nad,nadr,nadT=0;
    
    switch(type){
 /*... armazenamento CSR(a)*/
@@ -63,6 +63,7 @@ void dataStruct(Memoria *m      ,INT *id
          n1 = sistEqX->neqNov + 1; 
          n2 = 2*n1; 
          HccaAlloc(INT,m,sistEqX->ia      ,n2  ,strIa   ,_AD_);
+         zero(sistEqX->ia,n2    ,INTC);
 /*... */
          nad = sistEqX->nad = csrIa(sistEqX->ia ,id 
                                    ,num       ,nelcon 
@@ -85,6 +86,7 @@ void dataStruct(Memoria *m      ,INT *id
 /*...*/
          nadT = nad + nadr; 
          HccaAlloc(INT,m,sistEqX->ja     ,nadT ,strJa   ,_AD_);
+         zero(sistEqX->ja,nadT  ,INTC);
          csrJa(sistEqX->ia ,sistEqX->ja 
               ,id          ,num     
               ,nelcon      ,nViz 
@@ -133,10 +135,12 @@ void dataStruct(Memoria *m      ,INT *id
                                       ,maxViz ,ndf);
 /*...................................................................*/
 
-/*... alocando o vetor ia(neq+1+nadr)*/
-        n1 = sistEqX->neqNov + 1; 
+/*... alocando o vetor ia(2*neq+1+nadr)*/
+        n0 = sistEqX->neqNov + 1; 
+        n1 = n0 + sistEqX->neqNov + 1; 
         n2 = n1+nadr; 
         HccaAlloc(INT,m,sistEqX->ia      ,n2  ,strIa   ,_AD_);
+        zero(sistEqX->ia,n2    ,INTC);
 /*... vetor ia do CSRD*/
         nad = sistEqX->nad = csrIa(sistEqX->ia ,id 
                                   ,num         ,nelcon 
@@ -150,6 +154,7 @@ void dataStruct(Memoria *m      ,INT *id
 /*... vetor ja do CSRD*/
          nadT = nad + nadr; 
          HccaAlloc(INT,m,sistEqX->ja     ,nadT ,strJa   ,_AD_);
+         zero(sistEqX->ja,nadT  ,INTC);
          csrJa(sistEqX->ia ,sistEqX->ja 
               ,id          ,num     
               ,nelcon      ,nViz 
@@ -160,15 +165,21 @@ void dataStruct(Memoria *m      ,INT *id
 /*...................................................................*/
 
 /*... vetor ia e ja do COO*/
-         cooIaJaR(&sistEqX->ia[n1]     ,&sistEqX->ja[nad]          
+         cooIaJaR(&sistEqX->ia[n0]
+                 ,&sistEqX->ia[n1]     ,&sistEqX->ja[nad]          
                  ,id                   ,num
                  ,nelcon               ,nViz
                  ,numel                ,sistEqX->neqNov
                  ,maxViz               ,ndf);
 /*...................................................................*/
 
-/*... reordenando o grafo ja(nad)*/
+/*... reordenando o grafo csrd ja(nad)*/
          sortGraphCsr(sistEqX->ia,sistEqX->ja,sistEqX->neqNov);
+/*...................................................................*/
+
+/*... reordenando o grafo Coo ja(nadr)*/
+         sortGraphCsr(&sistEqX->ia[n0],&sistEqX->ja[nad]
+                     ,sistEqX->neqNov);
 /*...................................................................*/
 
 /*... alocacao da matriz*/

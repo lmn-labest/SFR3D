@@ -460,8 +460,8 @@ void csr(INT    *restrict  ia,INT *restrict ja
         ,short const storage ,bool  const forces
         ,bool const matrix   ,bool  const  unsym)
 {
-  INT lNeq,lCol=0,iak,jak,iPont,iaKneq,neqS;
-  INT *iar,*jar;
+  INT lNeq,lCol=0,iak,jak,iPont,iaKneq,neqS,n0;
+  INT *ia0,*iar,*jar;
   DOUBLE *ar;
   unsigned short i,j,k,jLa,nst;
   bool fCoo = false;
@@ -508,14 +508,17 @@ void csr(INT    *restrict  ia,INT *restrict ja
           if(unsym == false && mpiVar.nPrcs > 1){
 /*... parte retangular em COO*/
             if(fCoo){
-              iar = &ia[nEq+1];
-              jar = &ja[nAd];
-              ar  = &al[nAd];
+              n0     = (nEq+1);
+              ia0    = &ia[n0];
+              jar    = &ja[nAd];
+              ar     = &al[nAd];
+              iPont  = ia0[lNeq];
+              iaKneq = ia0[lNeq+1];
               for(k=0;k<nFace;k++){
                 lCol     = lId[k];
                 if(lCol > -1 && (lCol > neqS))
-                  for(iak = 0; iak < nAdR;iak++)
-                    if(iar[iak] == lNeq && jar[iak] == lCol)
+                  for(iak = iPont; iak < iaKneq;iak++)
+                    if(jar[iak] == lCol)
                       ar[iak] = lA[k];     
               }
             }   

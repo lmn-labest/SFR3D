@@ -100,13 +100,13 @@ void convGraphPart(INT *restrict xAdj     ,INT *restrict adjncy
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
- * ia     -> arranjo CSR/CSRC                                        * 
- * ja     -> indefinido                                              * 
+ * ia     -> arranjo CSR/CSRC/CSRD                                   * 
+ * ja     -> colunas do CSR/CSRC/CSRD                                * 
  * n      -> numera de linhas                                        * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
- * ja     -> ponteiro do CSR                                         * 
+ * ja     -> colunas do CSR                                          * 
  *-------------------------------------------------------------------* 
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
@@ -117,7 +117,7 @@ void sortGraphCsr(INT *restrict ia,INT *restrict ja,INT const n){
   
   for(i=0;i<n;i++){
     nl = ia[i+1] - ia[i];
-    if(nl!=0) bubblesort(&ja[ia[i]],nl);
+    if(nl>1) bubblesort(&ja[ia[i]],nl);
   }
 }
 /*********************************************************************/ 

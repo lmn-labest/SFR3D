@@ -63,10 +63,12 @@ INT cooNnzR(INT *restrict id
 
 /********************************************************************* 
  * COOIAJAR: gera os vetores ia e ja da parte retangular da matriz no* 
- * formato COO                                                       * 
+ * formato COO e um vertor auxiliar ia0 semelhante au vetor ia do    *
+ * CSRD                                                              *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
+ * ia0    -> nao definido                                            * 
  * ia     -> nao definido                                            * 
  * ja     -> nao definido                                            * 
  * id     -> numeracao das equacoes por elemento                     * 
@@ -80,26 +82,32 @@ INT cooNnzR(INT *restrict id
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
- * ia     -> ponteiro das linhas  COO                                * 
- * ja     -> ponteiro das colunas COO                                * 
+ * ia0    -> ponteiro para linas do COO no formato CSRD              * 
+ * ia     -> linhas  COO                                             * 
+ * ja     -> colunas COO                                             * 
  *-------------------------------------------------------------------* 
- * OBS:                                                              * 
+ * OBS: ia0 e usado apenas para auxiliar a montagem da matriz global * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cooIaJaR(INT *restrict ia     ,INT *restrict ja
+void cooIaJaR(INT *restrict ia0
+             ,INT *restrict ia     ,INT *restrict ja
              ,INT *restrict id     ,INT *restrict num   
              ,INT *restrict adj    ,short *restrict nViz
              ,INT const numel      ,INT const nEq
              ,short const maxViz   ,short  const ndf){
   
-  INT  i,nel1,neq,viz1,neqi,neqj,aux=0;
+  INT  i,nel1,neq,viz1,neqi,neqj,aux=0,aux1=0;
   short jNdf,kNdf,j;
+
+  for(i=0;i<nEq+1;i++)
+    ia0[i] = 0;
+ 
 /*... gerando arranjo ia*/  
-  
   neq = nEq-1;
   for(i=0;i<numel;i++){
     nel1= num[i]-1;
     for(jNdf=0;jNdf<ndf;jNdf++){
+      aux1 = 0;
       neqi= MAT2D(nel1,jNdf,id,ndf)-1;
       if(neqi != -2){
 /*... equacoes ligadas ao proprio elemento
@@ -110,6 +118,7 @@ void cooIaJaR(INT *restrict ia     ,INT *restrict ja
             ia[aux] = neqi;
             ja[aux] = neqj;
             aux++;
+            aux1++;
           }
         }
 /*...................................................................*/
@@ -124,6 +133,7 @@ void cooIaJaR(INT *restrict ia     ,INT *restrict ja
                 ia[aux] = neqi;
                 ja[aux] = neqj;
                 aux++;
+                aux1++;
               }  
             }
 /*...................................................................*/
@@ -131,6 +141,7 @@ void cooIaJaR(INT *restrict ia     ,INT *restrict ja
 /*...................................................................*/
         }
 /*...................................................................*/
+        ia0[neqi+1]=ia0[neqi] + aux1;
       }
 /*...................................................................*/
     }
@@ -138,5 +149,5 @@ void cooIaJaR(INT *restrict ia     ,INT *restrict ja
   }
 /*...................................................................*/
 }
-/*********************************************************************/ 
+/*********************************************************************/
 

@@ -19,8 +19,12 @@
     #include<mmio/mmio.h>
   #endif
 /*...................................................................*/ 
+  void sortCoo(INT *restrict ia0
+              ,INT *restrict ia ,INT *restrict ja
+              ,INT const nnz    ,INT const nEq);
 
-  void cooIaJaR(INT *restrict ia     ,INT *restrict ja
+  void cooIaJaR(INT *restrict ia0
+           ,INT *restrict ia     ,INT *restrict ja
            ,INT *restrict id     ,INT *restrict num   
            ,INT *restrict adj    ,short *restrict nViz
            ,INT const numel      ,INT const nEq

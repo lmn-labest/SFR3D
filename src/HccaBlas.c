@@ -1082,7 +1082,7 @@ void mpiMatVecCsrDcooSym(INT const nEq      ,INT const *nAd
   INT *iar,*jar;
   DOUBLE *ar;
 
-  iar = &ia[nEq+1];
+  iar = &ia[2*(nEq+1)];
   jar = &ja[nAd[0]];
   ar  = &al[nAd[0]];
 

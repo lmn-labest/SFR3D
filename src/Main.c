@@ -238,6 +238,14 @@ int main(int argc,char**argv){
       if(!mpiVar.myId) printf("%s\n",DIF);
       if(!mpiVar.myId) printf("%s\n",word); 
       if(!mpiVar.myId) printf("%s\n",DIF);
+/*...*/
+      if(mpiVar.nPrcs>1 && !pMesh->fPartMesh){
+        printf("Erro: Falta a macro partd!!\n");
+        mpiStop();
+        exit(EXIT_FAILURE);
+      }
+/*...................................................................*/
+
 /*... sistema de memoria*/
       initMem(&m,nmax,false);
 /*... leitura da malha*/
