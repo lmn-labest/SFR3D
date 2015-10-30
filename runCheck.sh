@@ -1,13 +1,18 @@
 #!/bin/sh
 INPUTRCM='retangulo.dat retangulo_rcm.dat'
 INPUTVTK='retangulo.dat'
+
 INPUTDIF1='ex3_60_0_gglc.dat    ex3_60_3_gglc.dat
-          ex3_60_0_ggln.dat    ex3_60_3_ggln.dat
-          ex3_60_0_lSquare.dat ex3_60_3_lSquare.dat'
+           ex3_60_0_ggln.dat    ex3_60_3_ggln.dat
+           ex3_60_0_lSquare.dat ex3_60_3_lSquare.dat'
 
 INPUTDIF2='ex2_1_gglc.dat       ex2_2_gglc.dat
            ex2_1_ggln.dat       ex2_2_ggln.dat
            ex2_1_lSquare.dat    ex2_2_lSquare.dat' 
+
+INPUTDIF3='ex3_60_0_gglc.dat    ex3_60_3_gglc.dat
+           ex3_60_0_ggln.dat    ex3_60_3_ggln.dat
+           ex3_60_0_lSquare.dat ex3_60_3_lSquare.dat'
 
 
 INPUTDIF4='ex4_1_ls.dat    ex4_2_ls.dat 
@@ -37,8 +42,7 @@ INPUTDIF3DEX2NONORT='ex2_3d_tetra_0_ggln.dat
                      ex2_3d_tetra_0_ls.dat   
                      ex2_3d_tetra_0_lsqr.dat' 
 
-INPUTDIF3DEX3='
-               ex3_3d_hexa_0_ls.dat    ex3_3d_hexa_1_ls.dat
+INPUTDIF3DEX3='ex3_3d_hexa_0_ls.dat    ex3_3d_hexa_1_ls.dat
                ex3_3d_hexa_0_ggln.dat  ex3_3d_hexa_1_ggln.dat 
                ex3_3d_hexa_0_gglc.dat  ex3_3d_hexa_1_gglc.dat
                ex3_3d_hexa_0_lsqr.dat    ex3_3d_hexa_1_lsqr.dat
@@ -47,27 +51,27 @@ INPUTDIF3DEX3='
                ex3_3d_tetra_0_ls.dat   ex3_3d_tetra_1_ls.dat   
                ex3_3d_tetra_0_lsqr.dat   ex3_3d_tetra_1_lsqr.dat'  
 
-INPUTDIF3DEX4='
-               ex4_3d_tetra_0_gglc.dat   ex4_3d_tetra_1_gglc.dat
+INPUTDIF3DEX4='ex4_3d_tetra_0_gglc.dat   ex4_3d_tetra_1_gglc.dat
                ex4_3d_tetra_0_ggln.dat   ex4_3d_tetra_1_ggln.dat
                ex4_3d_tetra_0_lsqr.dat   ex4_3d_tetra_1_lsqr.dat
                ex4_3d_tetra_0_ls.dat     ex4_3d_tetra_1_ls.dat
                ex4_3d_hexa_0_ls.dat      ex4_3d_hexa_1_ls.dat
                ex4_3d_hexa_0_lsqr.dat    ex4_3d_hexa_1_lsqr.dat
                ex4_3d_hexa_0_ggln.dat    ex4_3d_hexa_1_ggln.dat
-               ex4_3d_hexa_0_gglc.dat    ex4_3d_hexa_1_gglc.dat
-              '     
+               ex4_3d_hexa_0_gglc.dat    ex4_3d_hexa_1_gglc.dat'     
 
-NAMEBIN=mfvCell_gnu_O3
+NAMEBIN=mfvCell_gnu_mpi_O3
 
-ex1=false
-ex4=false
-ex5=false
+ex1=false 
+ex2=true  
+ex3=false 
+ex4=true 
+ex5=true
 ex1_3D=false
 ex2_3D=false
 ex2_3D_NONORT=false
 ex3_3D=false
-ex4_3D=true
+ex4_3D=false
 
 #gerando o executavel
 echo `make clean` > /dev/null 
@@ -84,17 +88,8 @@ cp test/input/*.dat test/binTest
 #  exit 1
 #fi
 
-#rodando os teste difusao
-#cp test/input/dif/non_orthogonal/2D/60/gaussGreenCell/*.dat test/binTest
-#cp test/input/dif/non_orthogonal/2D/60/gaussGreenNode/*.dat test/binTest
-#cp test/input/dif/non_orthogonal/2D/60/LeastSquare/*.dat test/binTest
-#test/binTest/run_dif.sh "$INPUTDIF1" "$NAMEBIN" 
 
-#if [ $? == 1 ];then
-#  exit 1
-#fi
-
-if  $ex1 ; then
+if  $ex2 ; then
   cp test/input/dif/orthogonal/2D/gaussGreenCell/*.dat test/binTest
   cp test/input/dif/orthogonal/2D/gaussGreenNode/*.dat test/binTest
   cp test/input/dif/orthogonal/2D/LeastSquare/*.dat test/binTest
@@ -105,8 +100,22 @@ if  $ex1 ; then
   fi
 fi
 
+#rodando os teste difusao
+if  $ex3 ; then
+  cp test/input/dif/non_orthogonal/2D/60/gaussGreenCell/*.dat test/binTest
+  cp test/input/dif/non_orthogonal/2D/60/gaussGreenNode/*.dat test/binTest
+  cp test/input/dif/non_orthogonal/2D/60/LeastSquare/*.dat test/binTest
+  test/binTest/run_dif.sh "$INPUTDIF3" "$NAMEBIN" 
+
+  if [ $? == 1 ];then
+    exit 1
+  fi
+fi
 
 if $ex4 ; then
+  cp test/input/dif/orthogonal/2D/gaussGreenCell/*.dat test/binTest
+  cp test/input/dif/orthogonal/2D/gaussGreenNode/*.dat test/binTest
+  cp test/input/dif/orthogonal/2D/LeastSquare/*.dat test/binTest
   test/binTest/run_dif_exato_Ex4.sh "$INPUTDIF4" "$NAMEBIN" 
   if [ $? == 1 ];then
     exit 1
@@ -115,6 +124,9 @@ fi
 
 #
 if $ex5 ; then
+  cp test/input/dif/orthogonal/2D/gaussGreenCell/*.dat test/binTest
+  cp test/input/dif/orthogonal/2D/gaussGreenNode/*.dat test/binTest
+  cp test/input/dif/orthogonal/2D/LeastSquare/*.dat test/binTest
   test/binTest/run_dif_exato_Ex5.sh "$INPUTDIF5" "$NAMEBIN" 
   if [ $? == 1 ];then
     exit 1
@@ -178,7 +190,7 @@ if  $ex1_3D ; then
 fi
 
 # difusao 3D
-if  $ex1_4D ; then 
+if  $ex1_3D ; then 
   for f in test/input/dif/orthogonal/3D/*.tar.gz ; do tar -xvzf $f -C test/binTest ; done
   for f in test/input/dif/non_orthogonal/3D/*.tar.gz ; do tar -xvzf $f -C test/binTest ; done
   cp test/input/dif/orthogonal/3D/GreenGaussCell/*.dat test/binTest
@@ -196,6 +208,7 @@ if  $ex1_4D ; then
 fi
 
 DIR="test/binTest"
-rm  $DIR/*.dat $DIR/*.vtk  $DIR/*.txt   $DIR/*.csv $DIR/$NAMEBIN $DIR/*.mtx 
+rm  $DIR/*.dat $DIR/*.vtk  $DIR/*.txt   $DIR/*.csv $DIR/$NAMEBIN 
+#rm  $DIR/*.mtx 
 
 exit 0

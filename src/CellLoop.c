@@ -39,7 +39,7 @@
  * gVolume -> volumes das celulas                                    * 
  * gXm     -> pontos medios das faces das celulas                    * 
  * gXmcc   -> vetores que unem o centroide aos pontos medios das     * 
- *            faces 
+ *            faces                                                  *
  * vSkew     -> vetor entre o ponto medio a intersecao que une os    * 
  *            centrois compartilhado nessa face da celula central    * 
  * mvSkew    -> distacia entre o ponto medio a intersecao que une os * 
@@ -207,7 +207,7 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
  *            vizinhos destas                                        * 
  * gmKsi   -> modulo do vetor ksi                                    * 
  * gEta    -> vetores paralelos as faces das celulas                 * 
- * gfArea   -> modulo do vetor eta                                   * 
+ * gfArea  -> modulo do vetor eta                                    * 
  * gNormal -> vetores normais as faces das celulas                   * 
  * gVolume -> volumes das celulas                                    * 
  * gXm     -> pontos medios das faces das celulas                    * 
@@ -314,7 +314,7 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
 /*...*/
     aux1    = nFace[nel];
 /*... elementos com equacoes*/
-    if(MAT2D(nel,aux1,faceR ,aux2) != 1){
+    if(MAT2D(nel,aux1,faceR ,aux2) != PCCELL){
 
 /*... zerando vetores*/
       for(j=0;j<(MAX_NUM_FACE+1)*MAX_NDF;j++){
@@ -439,6 +439,7 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * loads     -> definicoes de cargas                                 * 
+ * cc        -> centroide das celulas                                * 
  * faceR     -> restricoes por elmento                               * 
  * faceL     -> carga por elemento                                   * 
  * volume    -> volume das celulas                                   * 
@@ -447,6 +448,7 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
  * f         -> vetor de forcas                                      * 
  * numel     -> numero de elementos                                  * 
  * ndf       -> graus de liberade                                    * 
+ * ndm       -> numero de dimensao                                   * 
  * maxViz    -> numero maximo de vizinhos                            * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -457,14 +459,15 @@ void systFormDif(INT    *restrict el     ,INT    *restrict nelcon
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellPload(Loads *loads
+void cellPload(Loads *loads           ,DOUBLE *restrict cc 
               ,short  *restrict faceR ,short *restrict faceL
               ,DOUBLE *restrict volume,INT *restrict id 
               ,DOUBLE *restrict u     ,DOUBLE *restrict f
               ,INT const numel        ,short const ndf
-              ,short const maxViz)
+              ,short const ndm        ,short const maxViz)
 {
   INT nel,lNeq;
+  DOUBLE xx[3],uT[MAX_NDF];
   short carg,j;
   short col = maxViz + 1;
 
@@ -472,23 +475,51 @@ void cellPload(Loads *loads
   for(nel = 0; nel < numel;nel++){
     carg = MAT2D(nel,maxViz,faceR,col);
 /*... variavel prescrita no dominio*/
-    if(carg){
-/*...cargas*/
-        carg= MAT2D(nel,maxViz,faceL,col)-1;
-/*... valor prescrito na celula*/
-        if( loads[carg].type == PCCELL)
-          for(j = 0; j< ndf;j++)
-            MAT2D(nel,j,u,ndf) = loads[carg].par[j];
+    if(carg == PCCELL){
+      carg= MAT2D(nel,maxViz,faceL,col)-1;
+/*... valor prescrito na celula constante*/
+      if( loads[carg].type == CONST)
+        for(j = 0; j< ndf;j++)
+          MAT2D(nel,j,u,ndf) = loads[carg].par[j];
 /*...................................................................*/
+    }
 
 /*... carga na celula*/
-        else if( loads[carg].type == SCCELL)
-          for(j = 0; j< ndf;j++){
-            lNeq = MAT2D(nel,j,id,ndf) - 1;
-            if( lNeq > -1)
-              MAT2D(lNeq,j,f,ndf) 
-              = volume[nel]*loads[carg].par[j];;
+    else if( carg == SCCELL){
+      carg= MAT2D(nel,maxViz,faceL,col)-1;
+/*... carga constante*/
+      if( loads[carg].type == CONST)
+        for(j = 0; j< ndf;j++){
+          lNeq = MAT2D(nel,j,id,ndf) - 1;
+          if( lNeq > -1)
+            MAT2D(lNeq,j,f,ndf) 
+            = volume[nel]*loads[carg].par[j];
+        }
+/*...................................................................*/
+
+/*... carga senoidal*/
+      else if( loads[carg].type == SINBC){
+/*...*/
+        if(ndm == 2){
+          xx[0] = MAT2D(nel,0,cc ,ndm); 
+          xx[1] = MAT2D(nel,1,cc ,ndm); 
+          xx[2] = 0.0e0;                             
+        }
+        else{              
+          xx[0] = MAT2D(nel,0,cc ,ndm); 
+          xx[1] = MAT2D(nel,1,cc ,ndm); 
+          xx[2] = MAT2D(nel,2,cc ,ndm); 
+        }
+        loadSenProd(uT,loads[carg].par,xx);
+/*...................................................................*/
+        for(j = 0; j< ndf;j++){
+          lNeq = MAT2D(nel,j,id,ndf) - 1;
+          if( lNeq > -1){
+            MAT2D(lNeq,j,f,ndf) = volume[nel]*uT[j];
           }
+        }
+/*...................................................................*/
+      }
 /*...................................................................*/
      }
 /*...................................................................*/
@@ -737,6 +768,7 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
  * geomType-> tipo geometrico das celulas                            * 
  * cc      -> centroide das celulas                                  * 
  * x       -> coordenadas                                            * 
+ * xm      -> pontos medios das faces das celulas                    * 
  * nen     -> numero de nos por celulas                              * 
  * faceR   -> restricoes por elmento                                 * 
  * faceL   -> carga por elemento                                     * 
@@ -766,7 +798,8 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
  void interCellNode(Memoria *m             ,Loads *loads 
                    ,DOUBLE *restrict noU   ,DOUBLE *restrict elU
                    ,INT *restrict el       ,short  *restrict geomType 
-                   ,DOUBLE *restrict cc    ,DOUBLE *restrict x 
+                   ,DOUBLE *restrict cc    ,DOUBLE *restrict x
+                   ,DOUBLE *restrict xm  
                    ,short *restrict nen    ,short *restrict nFace
                    ,short  *restrict faceR ,short *restrict faceL 
                    ,InterfaceNo *iNo 
@@ -782,6 +815,7 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
   DOUBLE *mdf=NULL;
   bool *flag=NULL;
   DOUBLE dist,dx;
+  DOUBLE uT[MAX_NDF],xx[3];
   short i,j,k,n,nodeFace,aux=maxViz+1;
   INT nel,no1,no[4];
   short  isNod[MAX_SN],nCarg,ty;
@@ -949,6 +983,38 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
                 MAT2D(no[n],k,noU,ndf1) += loads[nCarg].par[k];
               md[no[n]]++;
             }
+          }
+/*...................................................................*/
+
+/*... valor pescrito  senoidal*/
+          else if( loads[nCarg].type == SINBC){
+            ty = geomType[nel];
+            nodeFace =  sn(isNod,ty,nel); 
+            for(n=0;n<nodeFace ;n++){
+              no[n] = MAT2D(i,n,isNod,nodeFace );
+              no[n] = MAT2D(nel,no[n],el,maxNo) - 1;
+              if(flag[no[n]] == false){
+                flag[no[n]] = true;
+                for(k = 0; k   < ndf1;k++)
+                  MAT2D(no[n],k,noU,ndf1) = 0.e0;
+              }
+/*...*/
+              if(ndm == 2){
+                xx[0] = MAT3D(nel,i,0,xm     ,maxViz,ndm); 
+                xx[1] = MAT3D(nel,i,1,xm     ,maxViz,ndm); 
+                xx[2] = 0.0e0;                             
+              }
+              else{              
+                xx[0] = MAT3D(nel,i,0,xm     ,maxViz,ndm); 
+                xx[1] = MAT3D(nel,i,1,xm     ,maxViz,ndm); 
+                xx[2] = MAT3D(nel,i,2,xm     ,maxViz,ndm); 
+              }
+/*...................................................................*/
+              loadSenProd(uT,loads[nCarg].par,xx);
+              for(k = 0; k   < ndf1;k++) 
+                MAT2D(no[n],k,noU,ndf1) += uT[k];
+              md[no[n]]++;
+            }
 /*...................................................................*/
           }
 /*...................................................................*/
@@ -1000,6 +1066,7 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
  * gVolume -> volumes das celulas                                    * 
  * gvSkew  -> vetor entre o ponto medio a intersecao que une os      * 
  *            centrois compartilhado nessa face                      * 
+ * gXm     -> pontos medios das faces das celulas                    * 
  * gXmcc     -> vetores que unem o centroides aos pontos medios das  * 
  *            faces da celula central                                * 
  * gDcca   -> menor distancia do centroide a faces desta celula      * 
@@ -1039,7 +1106,8 @@ void rcGradU(Memoria *m               ,Loads *loads
             ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi 
             ,DOUBLE *restrict gEta    ,DOUBLE *restrict gfArea 
             ,DOUBLE *restrict gNormal ,DOUBLE *restrict gVolume
-            ,DOUBLE *restrict gvSkew  ,DOUBLE *restrict gXmcc  
+            ,DOUBLE *restrict gvSkew  
+            ,DOUBLE *restrict gXm     ,DOUBLE *restrict gXmcc 
             ,DOUBLE *restrict gDcca 
             ,short  *restrict faceR   ,short *restrict faceL  
             ,DOUBLE *restrict u       ,DOUBLE *restrict gradU              
@@ -1057,7 +1125,7 @@ void rcGradU(Memoria *m               ,Loads *loads
   DOUBLE lEta[MAX_NUM_FACE*3],lfArea[MAX_NUM_FACE];
   DOUBLE lNormal[MAX_NUM_FACE*3],lVolume[MAX_NUM_FACE+1];
   DOUBLE lvSkew[MAX_NUM_FACE*3];
-  DOUBLE lXmcc[MAX_NUM_FACE*3];
+  DOUBLE lXm[MAX_NUM_FACE*MAX_NDM],lXmcc[MAX_NUM_FACE*3];
   short  lFaceR[MAX_NUM_FACE+1];
   short  lFaceL[MAX_NUM_FACE+1];
   DOUBLE lu[(MAX_NUM_FACE+1)*MAX_NDF];
@@ -1076,6 +1144,7 @@ void rcGradU(Memoria *m               ,Loads *loads
                  ,nU        ,u
                  ,el        ,geomType
                  ,cc        ,x
+                 ,gXm
                  ,nen       ,nFace
                  ,faceR     ,faceL
                  ,iNo       
@@ -1170,6 +1239,7 @@ void rcGradU(Memoria *m               ,Loads *loads
         MAT2D(i,j,lEta   ,ndm) = MAT3D(nel,i,j,gEta   ,maxViz,ndm);
         MAT2D(i,j,lNormal,ndm) = MAT3D(nel,i,j,gNormal,maxViz,ndm);
         MAT2D(i,j,lvSkew ,ndm) = MAT3D(nel,i,j,gvSkew ,maxViz,ndm);
+        MAT2D(i,j,lXm    ,ndm) = MAT3D(nel,i,j,gXm    ,maxViz,ndm); 
         MAT2D(i,j,lXmcc  ,ndm) = MAT3D(nel,i,j,gXmcc  ,maxViz,ndm);
       }
 /*... loop na celulas vizinhas*/    
@@ -1197,7 +1267,8 @@ void rcGradU(Memoria *m               ,Loads *loads
                  ,lKsi      ,lmKsi
                  ,lEta      ,lfArea 
                  ,lNormal   ,lVolume
-                 ,lvSkew    ,lXmcc 
+                 ,lvSkew    
+                 ,lXm       ,lXmcc 
                  ,lDcca
                  ,lFaceR    ,lFaceL
                  ,lu        ,lGradU

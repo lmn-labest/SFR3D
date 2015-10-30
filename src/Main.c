@@ -743,12 +743,12 @@ int main(int argc,char**argv){
       zero(sistEqD1->b0,sistEqD1->neqNov,DOUBLEC);
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
       tm.CellPloadD1 = getTimeC() - tm.CellPloadD1;
-      cellPload(loadsD1
+      cellPload(loadsD1              ,mesh->elm.geom.cc 
                ,mesh->elm.faceRd1    ,mesh->elm.faceLoadD1
                ,mesh->elm.geom.volume,sistEqD1->id 
                ,mesh->elm.uD1        ,sistEqD1->b0
                ,mesh->numelNov       ,mesh->ndfD[0]
-               ,mesh->maxViz);
+               ,mesh->ndm            ,mesh->maxViz);
       tm.CellPloadD1 = getTimeC() - tm.CellPloadD1;
 /*...................................................................*/
 
@@ -880,7 +880,8 @@ int main(int argc,char**argv){
                ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
                ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
                ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-               ,mesh->elm.geom.vSkew    ,mesh->elm.geom.xmcc  
+               ,mesh->elm.geom.vSkew      
+               ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
                ,mesh->elm.geom.dcca
                ,mesh->elm.faceRd1       ,mesh->elm.faceLoadD1    
                ,mesh->elm.uD1           ,mesh->elm.gradUd1                 
@@ -899,7 +900,8 @@ int main(int argc,char**argv){
          interCellNode(&m                 ,loadsD1
                       ,mesh->node.gradUd1 ,mesh->elm.gradUd1 
                       ,mesh->elm.node     ,mesh->elm.geomType            
-                      ,mesh->elm.geom.cc  ,mesh->node.x                  
+                      ,mesh->elm.geom.cc  ,mesh->node.x   
+                      ,mesh->elm.geom.xm               
                       ,mesh->elm.nen      ,mesh->elm.adj.nViz
                       ,mesh->elm.faceRd1  ,mesh->elm.faceLoadD1    
                       ,&pMesh->iNo          
@@ -915,7 +917,8 @@ int main(int argc,char**argv){
          interCellNode(&m               ,loadsD1
                       ,mesh->node.uD1   ,mesh->elm.uD1 
                       ,mesh->elm.node   ,mesh->elm.geomType
-                      ,mesh->elm.geom.cc,mesh->node.x                  
+                      ,mesh->elm.geom.cc,mesh->node.x    
+                      ,mesh->elm.geom.xm              
                       ,mesh->elm.nen    ,mesh->elm.adj.nViz
                       ,mesh->elm.faceRd1,mesh->elm.faceLoadD1    
                       ,&pMesh->iNo             
@@ -1026,7 +1029,8 @@ int main(int argc,char**argv){
              ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
              ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
              ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-             ,mesh->elm.geom.vSkew    ,mesh->elm.geom.xmcc 
+             ,mesh->elm.geom.vSkew     
+             ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
              ,mesh->elm.geom.dcca
              ,mesh->elm.faceRd1       ,mesh->elm.faceLoadD1    
              ,mesh->elm.uD1           ,mesh->elm.gradUd1                 
@@ -1043,7 +1047,8 @@ int main(int argc,char**argv){
       interCellNode(&m                 ,loadsD1
                      ,mesh->node.gradUd1 ,mesh->elm.gradUd1 
                      ,mesh->elm.node     ,mesh->elm.geomType            
-                     ,mesh->elm.geom.cc  ,mesh->node.x                  
+                     ,mesh->elm.geom.cc  ,mesh->node.x  
+                     ,mesh->elm.geom.xm
                      ,mesh->elm.nen      ,mesh->elm.adj.nViz
                      ,mesh->elm.faceRd1  ,mesh->elm.faceLoadD1  
                      ,&pMesh->iNo          
@@ -1059,7 +1064,8 @@ int main(int argc,char**argv){
       interCellNode(&m               ,loadsD1
                     ,mesh->node.uD1    ,mesh->elm.uD1 
                     ,mesh->elm.node    ,mesh->elm.geomType
-                    ,mesh->elm.geom.cc ,mesh->node.x                  
+                    ,mesh->elm.geom.cc ,mesh->node.x
+                    ,mesh->elm.geom.xm                  
                     ,mesh->elm.nen     ,mesh->elm.adj.nViz
                     ,mesh->elm.faceRd1 ,mesh->elm.faceLoadD1   
                     ,&pMesh->iNo          

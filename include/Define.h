@@ -36,12 +36,17 @@
   #define radToDeg(teta) 180.e0*teta/PI
 /*...................................................................*/
 
-/*... tipos de CC*/
+/*... tipo de cargr no volume*/
+  #define PCCELL       1 /*valor pescrito*/
+  #define SCCELL       2 /*fonte*/
+/*...................................................................*/
+
+/*... tipos de CC (faces)*/
   #define DIRICHLETBC  1
   #define NEUMANNBC    2
   #define ROBINBC      3
-  #define PCCELL      10
-  #define SCCELL      11
+  #define SINBC        4
+  #define CONST        5
 /*...................................................................*/
 
 /*...*/

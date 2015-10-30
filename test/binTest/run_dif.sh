@@ -19,7 +19,7 @@ for name in $INPUT; do
   echo  teste: $NAMEBIN $name $OUT
   echo `$DIR/$NAMEBIN $DIR/$name $DIR/$OUT` >/dev/null
   echo --------------------------------------------------------------
-  OUT2=`echo $name | sed -e "s/.dat/_D1_step_0.vtk/"`
+  OUT2=`echo $name | sed -e "s/.dat/_D1_step_1.vtk/"`
   diff -q $DIR/$OUT2 test/output/dif/non_orthogonal/$OUT2
   if [ $? == 1 ]; then
     echo --------------------------------------------------------------

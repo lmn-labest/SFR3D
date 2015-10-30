@@ -33,7 +33,7 @@ INT numeq(INT *restrict id       ,INT *restrict num
     nel = num[i] -1;
     for(j=0;j<ndf;j++){
       aux = nFace[nel]*ndf+j;
-      if( MAT2D(nel,aux,rt,maxRes) == 1)
+      if( MAT2D(nel,aux,rt,maxRes) == PCCELL)
         MAT2D(nel,j,id,ndf) = -1; 
       else
         MAT2D(nel,j,id,ndf) = ++neq;

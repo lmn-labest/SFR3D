@@ -611,8 +611,9 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
  * fArea     -> area da face                                         * 
  * normal    -> vetores normais as faces das celulas                 * 
  * area      -> area da celula central                               * 
- * vSkew      -> vetor entre o ponto medio a intersecao que une os   * 
+ * vSkew     -> vetor entre o ponto medio a intersecao que une os    * 
  *            centrois compartilhado nessa face                      * 
+ * xm        -> pontos medios das faces das celulas                  * 
  * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
  *            faces da celula central                                * 
  * dcca      -> menor distacia do centroide central a faces desta    *
@@ -640,7 +641,8 @@ void cellLibRcGrad(Loads *loads
                  ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
                  ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
                  ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict xmcc
+                 ,DOUBLE *restrict vSkew   
+                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
                  ,DOUBLE *restrict lDcca 
                  ,short  *restrict lFaceR  ,short *restrict lFaceL
                  ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
@@ -658,11 +660,12 @@ void cellLibRcGrad(Loads *loads
                     ,lProp   ,lDcca
                     ,eta     ,fArea
                     ,normal  ,volume
-                    ,vSkew   ,xmcc
+                    ,vSkew   
+                    ,xm      ,xmcc
                     ,lFaceR  ,lFaceL
                     ,u       ,gradU 
                     ,nFace   ,ndm   
-                    ,ndf);
+                    ,ndf     ,nel);
     break;
 /*...................................................................*/ 
     
@@ -681,7 +684,7 @@ void cellLibRcGrad(Loads *loads
     case RCLSQUARE:
       leastSquare(loads
                  ,lLsquare,lViz
-                 ,xmcc
+                 ,xm      ,xmcc
                  ,lProp   ,lDcca
                  ,u       ,gradU
                  ,lFaceR  ,lFaceL
@@ -695,7 +698,8 @@ void cellLibRcGrad(Loads *loads
       leastSquareQR(loads
                    ,lLsquare,lLsquareR
                    ,lProp   ,lDcca
-                   ,lViz    ,xmcc
+                   ,lViz    
+                   ,xm      ,xmcc
                    ,u       ,gradU
                    ,lFaceR  ,lFaceL
                    ,nFace   ,ndf
@@ -736,6 +740,7 @@ void cellLibRcGrad(Loads *loads
  * volume    -> area da celula central                               * 
  * vSkew      -> vetor entre o ponto medio a intersecao que une os   * 
  *            centrois compartilhado nessa face                      * 
+ * xm        -> pontos medios das faces das celulas                  * 
  * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
  *            faces da celula central                                * 
  * lFaceR    -> restricoes por elmento                               * 
@@ -743,8 +748,9 @@ void cellLibRcGrad(Loads *loads
  * u         -> solucao conhecida                                    * 
  * gradU     -> gradiente rescontruido da solucao conhecida          * 
  * nFace     -> numero vizinhos por celula maximo da malha           * 
- * ndm       -> numero de dimensoes                                  * 
  * ndf       -> grauss de liberdade                                  * 
+ * ndm       -> numero de dimensoes                                  * 
+ * nel       -> numero da celula                                     * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
@@ -756,15 +762,16 @@ void greenGaussCell(Loads *loads
                ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca 
                ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
                ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict xmcc 
+               ,DOUBLE *restrict vSkew   
+               ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc 
                ,short  *restrict lFaceR  ,short *restrict lFaceL
                ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
                ,short const nFace        ,short const ndm   
-               ,short const ndf)
+               ,short const ndf          ,INT const nel)
 {
   DOUBLE v,dPviz,coefDif,tmp;
   DOUBLE uf[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF];
-  DOUBLE lModKsi,alpha,alphaMenosUm,invVol;
+  DOUBLE lModKsi,alpha,alphaMenosUm,invVol,xx[3];
   INT vizNel;
   short idCell = nFace,nCarg;
   short i,j,k;
@@ -824,6 +831,23 @@ void greenGaussCell(Loads *loads
             uf[i] =uC[0];
             for(j=0;j<ndm;j++)
               uf[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
+          }
+/*...................................................................*/
+
+/*... potencial senoidal prescrito 
+      ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
+          else if( loads[nCarg].type == SINBC ){
+            if(ndm == 2){
+              xx[0] = MAT2D(i,0,xm,ndm);
+              xx[1] = MAT2D(i,1,xm,ndm);
+              xx[2] = 0.e0;
+            }
+            else{              
+              xx[0] = MAT2D(i,0,xm,ndm);
+              xx[1] = MAT2D(i,1,xm,ndm);
+              xx[2] = MAT2D(i,2,xm,ndm);
+             }
+            loadSenProd(&uf[i],loads[nCarg].par,xx);
           }
 /*...................................................................*/
         } 
@@ -964,6 +988,7 @@ void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict fArea
  *-------------------------------------------------------------------*
  * loads     -> definicoes de cargas                                 * 
  * lLsquare  -> matriz para a reconstrucao least Square              * 
+ * xm        -> pontos medios das faces das celulas                  * 
  * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
  *            faces da celula central                                * 
  * lProp     -> propriedades dos material                            *
@@ -974,8 +999,9 @@ void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict fArea
  * lFaceR    -> restricoes por elmento                               * 
  * lFaceS    -> carga por elemento                                   * 
  * nFace     -> numero vizinhos por celula maximo da malha           * 
- * ndm       -> numero de dimensoes                                  * 
  * ndf       -> grauss de liberdade                                  * 
+ * ndm       -> numero de dimensoes                                  * 
+ * nel       -> numero do elemento                                   * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
@@ -984,14 +1010,16 @@ void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict fArea
  *********************************************************************/
 void  leastSquare(Loads *loads
                  ,DOUBLE *restrict lLsquare,INT *restrict lViz
-                 ,DOUBLE *restrict xmcc
+                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc 
                  ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca 
                  ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
                  ,short  *restrict lFaceR  ,short *restrict lFaceL
                  ,short const nFace        ,short const ndf
                  ,short const ndm          ,INT const nel){
 
-  DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF],tmp,coefDif;
+  DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF];
+  DOUBLE uT[MAX_NDF],xx[3];
+  DOUBLE tmp,coefDif;
   INT vizNel;
   short idCell = nFace,nCarg;
   short i,j,k;
@@ -1029,6 +1057,24 @@ void  leastSquare(Loads *loads
               du[i] =0.e0;
               for(j=0;j<ndm;j++)
                 du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
+            }
+/*...................................................................*/
+
+/*... potencial senoidal prescrito 
+      ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
+            else if( loads[nCarg].type == SINBC ){
+              if(ndm == 2){
+                xx[0] = MAT2D(i,0,xm,ndm);
+                xx[1] = MAT2D(i,1,xm,ndm);
+                xx[2] = 0.e0;
+              }
+              else{              
+                xx[0] = MAT2D(i,0,xm,ndm);
+                xx[1] = MAT2D(i,1,xm,ndm);
+                xx[2] = MAT2D(i,2,xm,ndm);
+              }
+              loadSenProd(uT,loads[nCarg].par,xx);
+              du[i] = uT[0] - uC[0];
             }
 /*...................................................................*/
           } 
@@ -1077,6 +1123,7 @@ void  leastSquare(Loads *loads
  * lLsR      -> fatoracao R (RCLSQUAREQR)                            * 
  * lProp     -> propriedades dos material                            *
  * lDcca     -> menor distancia do centroide a faces desta celula    * 
+ * xm        -> pontos medios das faces das celulas                  * 
  * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
  *            faces da celula central                                * 
  * lViz      -> viznhos da celula central                            * 
@@ -1096,14 +1143,16 @@ void  leastSquare(Loads *loads
 void  leastSquareQR(Loads *loads
                    ,DOUBLE *restrict lLsQt   ,DOUBLE *restrict lLsR
                    ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca 
-                   ,INT *restrict lViz       ,DOUBLE *restrict xmcc
+                   ,INT *restrict lViz       
+                   ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
                    ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
                    ,short  *restrict lFaceR  ,short *restrict lFaceL
                    ,short const nFace        ,short const ndf
                    ,short const ndm){
 
   DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF],coefDif;
-  DOUBLE  b[MAX_NUM_FACE*MAX_NDF];
+  DOUBLE uT[MAX_NDF],xx[3];
+  DOUBLE b[MAX_NUM_FACE*MAX_NDF];
   INT vizNel;
   short idCell = nFace;
   short i,j,k,nCarg;
@@ -1141,6 +1190,24 @@ void  leastSquareQR(Loads *loads
               du[i] =0.e0;
               for(j=0;j<ndm;j++)
                 du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
+            }
+/*...................................................................*/
+
+/*... potencial senoidal prescrito 
+      ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
+            else if( loads[nCarg].type == SINBC ){
+              if(ndm == 2){
+                xx[0] = MAT2D(i,0,xm,ndm);
+                xx[1] = MAT2D(i,1,xm,ndm);
+                xx[2] = 0.e0;
+              }
+              else{              
+                xx[0] = MAT2D(i,0,xm,ndm);
+                xx[1] = MAT2D(i,1,xm,ndm);
+                xx[2] = MAT2D(i,2,xm,ndm);
+              }
+              loadSenProd(uT,loads[nCarg].par,xx);
+              du[i] = uT[0] - uC[0];
             }
 /*...................................................................*/
           } 
@@ -1966,4 +2033,95 @@ DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
 
 }
 /*********************************************************************/
+
+/********************************************************************* 
+ * pLoad : cargas                                                    *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * sP      -> termo da diagonal                                      * 
+ * p       -> forca local                                            * 
+ * tA      -> nao definido                                           * 
+ * coefDifC-> coeficiente de difusao                                 * 
+ * xm      -> coordenada do ponto medio da face                      * 
+ * fArea   -> area da face                                           * 
+ * dcca    -> menor distancia do centroide central a face desta      *
+ *            celula                                                 * 
+ * ld      -> definicao da carga                                     * 
+ * fCal    -> true - atualizada sP e p                               * 
+ *            false- atualizada sP e p                               * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * sP      -> termo da diagonal atualizado                           * 
+ * p       -> forcas locais atualizada                               * 
+ * tA      -> valor pescrito na face                                 * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void pLoad(DOUBLE *restrict sP  ,DOUBLE *restrict p
+          ,DOUBLE *restrict tA
+          ,DOUBLE const coefDifC,DOUBLE *restrict xm                   
+          ,DOUBLE const fArea   ,DOUBLE const dcca
+          ,Loads ld             ,bool const fCal){
+
+  DOUBLE aP,h;
+
+
+/*... potencial prescrito*/
+  if( ld.type == DIRICHLETBC){
+    tA[0]   = ld.par[0];
+/*...*/
+    if(fCal){
+      aP   = coefDifC*fArea/dcca;
+      *sP += aP;
+      *p  += aP*tA[0];
+    } 
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... lei de resfriamento de newton*/
+  else if( ld.type == ROBINBC){
+    h     = ld.par[0];
+    tA[0] = ld.par[1];
+/*...*/
+    if(fCal){
+      aP  = ((coefDifC*h)/(coefDifC+h*dcca))*fArea;
+      *sP += aP;
+      *p  += aP*tA[0];
+    }    
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... fluxo prestrito diferente de zero*/
+   else if( ld.type == NEUMANNBC){
+     tA[0]   = ld.par[0];
+/*...*/
+     if(fCal)
+       *p += fArea*tA[0];
+/*...................................................................*/
+   }
+/*...................................................................*/
+
+/*... potencial senoidal prescrito 
+      ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
+   else if( ld.type == SINBC){
+     loadSenProd(tA,ld.par,xm); 
+/*...*/
+     if(fCal){ 
+       aP   = coefDifC*fArea/dcca;
+       *sP += aP;
+       *p  += aP*tA[0];
+     }  
+/*...................................................................*/
+   }
+/*...................................................................*/
+
+
+}
+/*********************************************************************/
+     
 

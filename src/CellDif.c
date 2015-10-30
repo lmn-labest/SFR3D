@@ -63,12 +63,15 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
               ,const short ndm          ,INT const nel)
 { 
 
-  DOUBLE coefDifC,coefDif,coefDifV,rCell,h,tA;
-  DOUBLE p,aP,sP,nk,dfd,dfdc,gfKsi,modE,lvSkew[2];
+  DOUBLE coefDifC,coefDif,coefDifV,rCell;
+  DOUBLE p,sP,nk,dfd,dfdc,gfKsi,modE,lvSkew[2];
   DOUBLE v[2],gradUcomp[2],lKsi[2],lNormal[2],gf[2];
   DOUBLE dPviz,lModKsi,lModEta,du,duDksi;
   DOUBLE gradUp[2],gradUv[2],nMinusKsi[2];
   DOUBLE alpha,alphaMenosUm;
+//DOUBLE aP,h
+  DOUBLE tA;
+  DOUBLE xx[3];
   short idCell = nFace;
   short nAresta,nCarg;
   INT vizNel;
@@ -83,7 +86,6 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
 /*...................................................................*/
 
   p  = 0.0e0;
-  aP = 0.0e0;
   sP = 0.0e0;
   for(nAresta=0;nAresta<nFace;nAresta++){
     vizNel = lViz[nAresta];
@@ -165,31 +167,15 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
       if(lFaceR[nAresta]){
 /*...cargas*/
         nCarg=lFaceL[nAresta]-1;
-/*... potencial prescrito*/
-        if( loadsD1[nCarg].type == DIRICHLETBC){
-          tA  = loadsD1[nCarg].par[0];
-          aP  = coefDifC*mEta[nAresta]/dcca[nAresta];
-          sP += aP;
-          p  += aP*tA; 
-        }
+        xx[0] = MAT2D(nAresta,0,xm,2);
+        xx[1] = MAT2D(nAresta,1,xm,2);
+        xx[2] = 0.e0;                    
+        pLoad(&sP           ,&p
+             ,&tA
+             ,coefDifC      ,xx 
+             ,mEta[nAresta] ,dcca[nAresta]
+             ,loadsD1[nCarg],true);
 /*...................................................................*/
-
-/*... lei de resfriamento de newton*/
-        else if( loadsD1[nCarg].type == ROBINBC){
-          h   = loadsD1[nCarg].par[0];
-          tA  = loadsD1[nCarg].par[1];
-          aP  = (coefDifC*h)/(coefDifC+h*dcca[nAresta])
-                *mEta[nAresta];
-          sP += aP;
-          p  += aP*tA; 
-        }
-/*...................................................................*/
-
-/*... fluxo prestrito diferente de zero*/
-        else if( loadsD1[nCarg].type == NEUMANNBC){
-          tA  = loadsD1[nCarg].par[0];
-           p +=  mEta[nAresta]*tA;
-        }
       }
 /*...................................................................*/
     }
@@ -197,10 +183,18 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
   }
 
 /*...*/
+  if(nFace == 3){
+    lA[idCell] = sP + lA[0] + lA[1] + lA[2];
+  }
+  else if(nFace == 4){
+    lA[idCell] = sP + lA[0] + lA[1] + lA[2] + lA[3];
+  }
+/*
   lA[idCell] = sP;
   for(nAresta=0;nAresta<nFace;nAresta++){
     lA[idCell] += lA[nAresta];
   }
+*/
 /*...................................................................*/
 
 /*...*/
@@ -218,10 +212,25 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
 /*... residuo: R = F - KpUp*/ 
   rCell += p -lA[idCell]*u0[idCell];   
 /*...................................................................*/
-  
+
+/*  
   for(nAresta=0;nAresta<nFace;nAresta++){
    lA[nAresta] *= -1.e0;
   }
+*/
+/*...*/
+  if(nFace == 3){
+    lA[0] *= -1.e0;
+    lA[1] *= -1.e0;
+    lA[2] *= -1.e0;
+  }
+  else if(nFace == 4){
+    lA[0] *= -1.e0;
+    lA[1] *= -1.e0;
+    lA[2] *= -1.e0;
+    lA[3] *= -1.e0;
+  }
+/*...................................................................*/
 
 /*...*/
   lB[0]     = p;

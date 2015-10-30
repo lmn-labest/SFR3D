@@ -14,6 +14,7 @@
   #include<Memoria.h>
   #include<Mesh.h>
   #include<ParallelMpi.h>
+  #include<Loads.h>
 /*...................................................................*/
 
 /*...*/
@@ -47,7 +48,8 @@
          ,DOUBLE *restrict gKsi       ,DOUBLE *restrict gmKsi 
          ,DOUBLE *restrict gEta       ,DOUBLE *restrict gmEta 
          ,DOUBLE *restrict gNormal    ,DOUBLE *restrict gVolume
-         ,DOUBLE *restrict gvSkew     ,DOUBLE *restrict gXmcc
+         ,DOUBLE *restrict gvSkew     
+         ,DOUBLE *restrict gXm        ,DOUBLE *restrict gXmcc
          ,DOUBLE *restrict gDcca 
          ,short  *restrict faceR      ,short *restrict faceL  
          ,DOUBLE *restrict u          ,DOUBLE *restrict gradU               
@@ -63,7 +65,8 @@
   void interCellNode(Memoria *m           ,Loads *loads
                    ,DOUBLE *restrict noU  ,DOUBLE *restrict elU
                    ,INT *restrict el      ,short  *restrict geomType 
-                   ,DOUBLE *restrict cc   ,DOUBLE *restrict x   
+                   ,DOUBLE *restrict cc   ,DOUBLE *restrict x
+                   ,DOUBLE *restrict xm   
                    ,short *restrict nen   ,short *restrict nFace
                    ,short  *restrict faceR,short *restrict faceL  
                    ,InterfaceNo *iNo        
@@ -120,12 +123,12 @@
 /*...................................................................*/
 
 /*... carga por elmento e condicoes pescritas por celula*/
-  void cellPload(Loads *loads
+  void cellPload(Loads *loads           ,DOUBLE *restrict gCc
                 ,short  *restrict faceR ,short *restrict faceS
                 ,DOUBLE *restrict volume,INT *restrict id 
                 ,DOUBLE *restrict u     ,DOUBLE *restrict f
                 ,INT const numel        ,short const ndf
-                ,short const maxViz);
+                ,short const ndm        ,short const maxViz);
 /*...................................................................*/
 
 /*... */
@@ -210,7 +213,8 @@
            ,DOUBLE *restrict ksi         ,DOUBLE *restrict mKsi
            ,DOUBLE *restrict eta         ,DOUBLE *restrict fArea
            ,DOUBLE *restrict normal      ,DOUBLE *restrict volume
-           ,DOUBLE *restrict vSkew       ,DOUBLE *restrict xmcc 
+           ,DOUBLE *restrict vSkew       
+           ,DOUBLE *restrict xm          ,DOUBLE *restrict xmcc 
            ,DOUBLE *restrict lDcca  
            ,short  *restrict lFaceR      ,short *restrict lFaceL
            ,DOUBLE *restrict u           ,DOUBLE *restrict gradU 
@@ -235,7 +239,7 @@
 
   void leastSquare(Loads *loads
                  ,DOUBLE *restrict lLsquare,INT *restrict lViz 
-                 ,DOUBLE *restrict xmcc 
+                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc 
                  ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca
                  ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
                  ,short  *restrict lFaceR  ,short *restrict lFaceL
@@ -243,9 +247,10 @@
                  ,short const ndm          ,INT const nel);
 
   void leastSquareQR(Loads *loads
-                 ,DOUBLE *restrict lLs  ,DOUBLE *restrict lLsR
+                 ,DOUBLE *restrict lLs     ,DOUBLE *restrict lLsR
                  ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca
-                 ,INT *restrict lViz       ,DOUBLE *restrict xmcc  
+                 ,INT *restrict lViz       
+                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc  
                  ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
                  ,short  *restrict lFaceR  ,short *restrict lFaceL
                  ,short const nFace        ,short const ndf
@@ -260,11 +265,12 @@
                ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca
                ,DOUBLE *restrict eta     ,DOUBLE *restrict mfArea
                ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-               ,DOUBLE *restrict xmcc    ,DOUBLE *restrict mvSkew
+               ,DOUBLE *restrict mvSkew
+               ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc    
                ,short  *restrict lFaceR  ,short  *restrict lFaceS
                ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
                ,short const nFace        ,short const ndm   
-               ,short const ndf);
+               ,short const ndf          ,INT const nel);
   void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict mEta
                ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
                ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
@@ -302,6 +308,12 @@
                  ,DOUBLE *restrict vSkew ,DOUBLE *restrict mvSkew
                  ,short const nFace      ,short const ndm
                  ,short const maxViz     ,INT nel);
+  
+  void pLoad(DOUBLE *restrict sP  ,DOUBLE *restrict p
+            ,DOUBLE *restrict tA
+            ,DOUBLE const coefDifC,DOUBLE *restrict xm                   
+            ,DOUBLE const fArea   ,DOUBLE const dcca
+            ,Loads ld             ,bool const fCal);
 /*...................................................................*/
 
 #endif/*_CELLLOOP_H_*/
