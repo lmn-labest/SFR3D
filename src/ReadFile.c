@@ -176,7 +176,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
             ,nel*(maxViz+1)*mesh->ndfD[0],"faceRd1"  ,_AD_);
      zero(mesh->elm.faceRd1   ,nel*(maxViz+1)*mesh->ndfD[0],"short"  );
      
-      HccaAlloc(short,m,mesh->elm.faceLoadD1
+     HccaAlloc(short,m,mesh->elm.faceLoadD1
             ,nel*(maxViz+1)*mesh->ndfD[0],"faceLd1"  ,_AD_);
      zero(mesh->elm.faceLoadD1,nel*(maxViz+1)*mesh->ndfD[0],"short"  );
 

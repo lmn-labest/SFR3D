@@ -76,7 +76,7 @@ void cellLibDif(short *restrict lGeomType,DOUBLE *restrict lprop
                ,dcca     ,lDensity 
                ,vSkew    ,mvSkew
                ,lA       ,lB
-               ,lRcell 
+               ,lRcell   ,ddt 
                ,lFaceR   ,lFaceL
                ,u0       ,gradU0      
                ,nEn      ,nFace 

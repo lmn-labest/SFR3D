@@ -2,6 +2,7 @@
 INPUTRCM='retangulo.dat retangulo_rcm.dat'
 INPUTVTK='retangulo.dat'
 
+#regime estacionario
 INPUTDIF1='ex3_60_0_gglc.dat    ex3_60_3_gglc.dat
            ex3_60_0_ggln.dat    ex3_60_3_ggln.dat
            ex3_60_0_lSquare.dat ex3_60_3_lSquare.dat'
@@ -9,6 +10,7 @@ INPUTDIF1='ex3_60_0_gglc.dat    ex3_60_3_gglc.dat
 INPUTDIF2='ex2_1_gglc.dat       ex2_2_gglc.dat
            ex2_1_ggln.dat       ex2_2_ggln.dat
            ex2_1_lSquare.dat    ex2_2_lSquare.dat' 
+
 
 INPUTDIF3='ex3_60_0_gglc.dat    ex3_60_3_gglc.dat
            ex3_60_0_ggln.dat    ex3_60_3_ggln.dat
@@ -60,6 +62,15 @@ INPUTDIF3DEX4='ex4_3d_tetra_0_gglc.dat   ex4_3d_tetra_1_gglc.dat
                ex4_3d_hexa_0_ggln.dat    ex4_3d_hexa_1_ggln.dat
                ex4_3d_hexa_0_gglc.dat    ex4_3d_hexa_1_gglc.dat'     
 
+# transiente
+INPUTDIF2TEMP='ex2_1_gglc.dat ex2_1_gglc_e.dat'
+
+INPUTDIF4TEMP='ex4_1_gglc.dat ex4_1_gglc_e.dat' 
+
+INPUTDIF5TEMP='ex5_1_gglc.dat  ex5_1_gglc_e.dat' 
+
+INPUTDIF3DEX2TEMP='ex2_3D_1_gglc.dat ex2_3D_1_gglc_e.dat'
+
 NAMEBIN=mfvCell_gnu_mpi_O3
 
 ex1=false 
@@ -67,11 +78,17 @@ ex2=true
 ex3=false 
 ex4=true 
 ex5=true
-ex1_3D=false
-ex2_3D=false
-ex2_3D_NONORT=false
-ex3_3D=false
-ex4_3D=false
+ex1_3D=true
+ex2_3D=true
+ex2_3D_NONORT=true
+ex3_3D=true
+ex4_3D=true
+
+# dinamico
+ex2t=true 
+ex4t=true 
+ex5t=true
+ex2_3Dt=true 
 
 #gerando o executavel
 echo `make clean` > /dev/null 
@@ -206,6 +223,49 @@ if  $ex1_3D ; then
     exit 1
   fi
 fi
+
+if  $ex2t ; then
+  cp test/input/dif/orthogonal/2D_temp/gaussGreenCell/*.dat test/binTest
+# cp test/input/dif/orthogonal/2D/gaussGreenNode/*.dat test/binTest
+# cp test/input/dif/orthogonal/2D/LeastSquare/*.dat test/binTest
+#
+  test/binTest/run_dif_exato_temp.sh "$INPUTDIF2TEMP" "$NAMEBIN" 
+  if [ $? == 1 ]; then
+    exit 1
+  fi
+fi
+
+if  $ex4t ; then
+  cp test/input/dif/orthogonal/2D_temp/gaussGreenCell/*.dat test/binTest
+# cp test/input/dif/orthogonal/2D/gaussGreenNode/*.dat test/binTest
+# cp test/input/dif/orthogonal/2D/LeastSquare/*.dat test/binTest
+#
+  test/binTest/run_dif_exato_Ex4_temp.sh "$INPUTDIF4TEMP" "$NAMEBIN" 
+  if [ $? == 1 ]; then
+    exit 1
+  fi
+fi
+
+if  $ex5t ; then
+  cp test/input/dif/orthogonal/2D_temp/gaussGreenCell/*.dat test/binTest
+# cp test/input/dif/orthogonal/2D/gaussGreenNode/*.dat test/binTest
+# cp test/input/dif/orthogonal/2D/LeastSquare/*.dat test/binTest
+#
+  test/binTest/run_dif_exato_Ex5_temp.sh "$INPUTDIF5TEMP" "$NAMEBIN" 
+  if [ $? == 1 ]; then
+    exit 1
+  fi
+fi
+
+# difusao 3D
+if  $ex2_3Dt ; then
+  cp test/input/dif/orthogonal/3D_temp/GreenGaussCell/*.dat test/binTest
+  test/binTest/run_dif_exato_3D_Ex2_temp.sh "$INPUTDIF3DEX2TEMP" "$NAMEBIN" 
+  if [ $? == 1 ];then
+    exit 1
+  fi
+fi
+
 
 DIR="test/binTest"
 rm  $DIR/*.dat $DIR/*.vtk  $DIR/*.txt   $DIR/*.csv $DIR/$NAMEBIN 

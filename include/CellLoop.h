@@ -175,7 +175,7 @@
                 ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity   
                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
                 ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-                ,DOUBLE *restrict lRcell                       
+                ,DOUBLE *restrict lRcell  ,Temporal const ddt                     
                 ,short  *restrict lFaceR  ,short *restrict lFaceL
                 ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0
                 ,short const nen          ,short const nFace    
@@ -187,7 +187,7 @@
                 ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
                 ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-                ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity                          
+                ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity 
                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
                 ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
                 ,DOUBLE *restrict lRcell  ,Temporal const ddt   
@@ -200,8 +200,8 @@
 /*...*/
   void cellTransient(DOUBLE *restrict volume  ,INT *restrict id 
                    ,DOUBLE *restrict u0      ,DOUBLE *restrict u
-                   ,DOUBLE *restrict density
-                   ,DOUBLE *restrict f
+                   ,DOUBLE *restrict density ,DOUBLE *restrict f
+                   ,DOUBLE const dt
                    ,INT const numel          ,short const ndf
                    ,short const type         ,bool const fAdd);
 /*...................................................................*/

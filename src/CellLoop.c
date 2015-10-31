@@ -537,9 +537,9 @@ void cellPload(Loads *loads           ,DOUBLE *restrict cc
  * id        -> numera das equacoes                                  * 
  * u0        -> solucao (n-1)                                        * 
  * u         -> solucao (n)                                          * 
- * density0  -> massa especifica no tempo (n-1)                      * 
  * density   -> massa especifica no tempo   (n)                      * 
  * f         -> vetor de forcas                                      * 
+ * dt        -> delta t                                              * 
  * numel     -> numero de elementos                                  * 
  * ndf       -> graus de liberade                                    * 
  * type      -> tipo de discretizacao temporal                       * 
@@ -555,8 +555,8 @@ void cellPload(Loads *loads           ,DOUBLE *restrict cc
  *********************************************************************/
 void cellTransient(DOUBLE *restrict volume  ,INT *restrict id 
                   ,DOUBLE *restrict u0      ,DOUBLE *restrict u
-                  ,DOUBLE *restrict density 
-                  ,DOUBLE *restrict f
+                  ,DOUBLE *restrict density ,DOUBLE *restrict f
+                  ,DOUBLE const dt      
                   ,INT const numel          ,short const ndf
                   ,short const type         ,bool const fAdd)
 {
@@ -575,7 +575,7 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
           for(nel = 0; nel < numel;nel++){
             lNeq = id[nel] - 1;
             if( lNeq > -1){
-              f[lNeq] += volume[nel]*MAT2D(nel,0,density,nD)*u[nel];
+              f[lNeq] += volume[nel]*MAT2D(nel,0,density,nD)*u[nel]/dt;
             }  
           } 
         }
@@ -588,7 +588,7 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
               lNeq = MAT2D(nel,j,id,ndf) - 1;
               if( lNeq > -1){
                 t1 = MAT2D(nel,0,density,nD) * MAT2D(nel,j,u,ndf);
-                MAT2D(lNeq,j,f,ndf) = volume[nel]*t1;
+                MAT2D(lNeq,j,f,ndf) = volume[nel]*t1/dt;
               }
             } 
           }
@@ -604,7 +604,7 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
           for(nel = 0; nel < numel;nel++){
             lNeq = id[nel] - 1;
             if( lNeq > -1)
-              f[lNeq] = volume[nel]*MAT2D(nel,0,density,nD)*u[nel];
+              f[lNeq] = volume[nel]*MAT2D(nel,0,density,nD)*u[nel]/dt;
           } 
         }
 /*...................................................................*/
@@ -616,7 +616,7 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
               lNeq = MAT2D(nel,j,id,ndf) - 1;
               if( lNeq > -1){
                 t1 = MAT2D(nel,0,density,nD) * MAT2D(nel,j,u,ndf);
-                MAT2D(lNeq,j,f,ndf) = volume[nel]*t1;
+                MAT2D(lNeq,j,f,ndf) = volume[nel]*t1/dt;
               }
             }
           }
@@ -638,7 +638,7 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
             if( lNeq > -1){
               t1      =  2.0e0*MAT2D(nel,0,density,nD)*u[nel];
               t2      =  0.5e0*MAT2D(nel,1,density,nD)*u0[nel];
-              f[lNeq] += volume[nel]*(t1-t2);
+              f[lNeq] += volume[nel]*(t1-t2)/dt;
             }  
           } 
         }
@@ -652,7 +652,7 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
               if( lNeq > -1){
                 t1 = 2.0e0*MAT2D(nel,0,density,nD)*MAT2D(nel,j,u,ndf);
                 t2 = 0.5e0*MAT2D(nel,1,density,nD)*MAT2D(nel,j,u0,ndf);
-                MAT2D(lNeq,j,f,ndf) += volume[nel]*(t1-t2);
+                MAT2D(lNeq,j,f,ndf) += volume[nel]*(t1-t2)/dt;
               }
             } 
           }
@@ -670,7 +670,7 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
             if( lNeq > -1){
               t1      =  2.0e0*MAT2D(nel,0,density,nD)*u[nel];
               t2      =  0.5e0*MAT2D(nel,1,density,nD)*u0[nel];
-              f[lNeq] = volume[nel]*(t1-t2);
+              f[lNeq] = volume[nel]*(t1-t2)/dt;
             }  
           } 
         }
@@ -684,7 +684,7 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
               if( lNeq > -1){
                 t1 = 2.0e0*MAT2D(nel,0,density,nD)*MAT2D(nel,j,u,ndf);
                 t2 = 0.5e0*MAT2D(nel,1,density,nD)*MAT2D(nel,j,u0,ndf);
-                MAT2D(lNeq,j,f,ndf) = volume[nel]*(t1-t2);
+                MAT2D(lNeq,j,f,ndf) = volume[nel]*(t1-t2)/dt;
               }
             } 
           }

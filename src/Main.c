@@ -757,10 +757,10 @@ int main(int argc,char**argv){
         tm.CellTransientD1 = getTimeC() - tm.CellTransientD1;
         cellTransient(mesh->elm.geom.volume   ,sistEqD1->id     
                      ,mesh->elm.u0D1          ,mesh->elm.uD1
-                     ,mesh->elm.densityUd1        
-                     ,sistEqD1->b0
-                     ,mesh->numelNov           ,mesh->ndfD[0]
-                     ,sc.ddt.type              ,true);
+                     ,mesh->elm.densityUd1    ,sistEqD1->b0
+                     ,sc.ddt.dt     
+                     ,mesh->numelNov          ,mesh->ndfD[0]
+                     ,sc.ddt.type             ,true);
 /*... u(n-1) = u(n)*/
         alphaProdVector(1.e0,mesh->elm.uD1
                        ,mesh->numel       ,mesh->elm.u0D1); 
@@ -832,15 +832,6 @@ int main(int argc,char**argv){
             fprintf(opt.fileItPlot[FITPLOTD1]
                    ,"%9d %.6e %0.6e\n",i,rCell/rCell0,rCell);
         }
-/*...................................................................*/
-
-/*...*/
-#ifdef _DEBUG_
-        testeSist(sistEqD1->ia       ,sistEqD1->ja
-                 ,sistEqD1->au       ,sistEqD1->ad
-                 ,sistEqD1->al       ,sistEqD1->b
-                 ,sistEqD1->neq      ,sistEqD1->unsym);
-#endif
 /*...................................................................*/
 
 /*...*/

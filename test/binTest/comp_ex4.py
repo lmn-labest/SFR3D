@@ -121,7 +121,7 @@ def main(argv):
   print "x: erro Maximo     er[%d]=%e " %(nx+1,gxerMax) 
   print "y: erro Maximo     er[%d]=%e " %(ny+1,gyerMax) 
   
-  if erC  > 1.e-5 :
+  if erC  > 1.e-4 :
     return 1 
   
   if gxerC  > 2.e-2 :

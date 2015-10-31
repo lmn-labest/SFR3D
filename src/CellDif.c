@@ -29,6 +29,7 @@
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
+ * ddt       -> discretizacao temporal                               *
  * u0        -> solucao conhecida                                    * 
  * gradU0    -> gradiente rescontruido da solucao conhecida          * 
  * faceR     -> restricoes por elmento                               * 
@@ -56,7 +57,7 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
               ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
               ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-              ,DOUBLE *restrict lRcell                        
+              ,DOUBLE *restrict lRcell  ,Temporal const ddt                        
               ,short  *restrict lFaceR  ,short *restrict lFaceL
               ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
               ,const short nEn          ,short const nFace    
@@ -64,6 +65,7 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
 { 
 
   DOUBLE coefDifC,coefDif,coefDifV,rCell;
+  DOUBLE densityC,dt;
   DOUBLE p,sP,nk,dfd,dfdc,gfKsi,modE,lvSkew[2];
   DOUBLE v[2],gradUcomp[2],lKsi[2],lNormal[2],gf[2];
   DOUBLE dPviz,lModKsi,lModEta,du,duDksi;
@@ -73,8 +75,16 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
   DOUBLE tA;
   DOUBLE xx[3];
   short idCell = nFace;
-  short nAresta,nCarg;
+  short nAresta,nCarg,typeTime;
   INT vizNel;
+  bool fTime;
+
+/*...*/
+  dt       = ddt.dt;
+  typeTime = ddt.type;
+  fTime    = ddt.flag;
+  densityC = *lDensity;
+/*...................................................................*/
 
 /*... propriedades da celula*/
   coefDifC = MAT2D(idCell,COEFDIF,prop,MAXPROP);
@@ -181,6 +191,19 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
     }
 /*...................................................................*/
   }
+/*...................................................................*/
+
+/*... distretização temporal*/
+  if(fTime){
+/*... EULER*/
+    if(typeTime == EULER) 
+      sP     = sP + densityC*volume[idCell]/dt;
+/*...BACKWARD*/
+    else if(typeTime == BACKWARD) 
+      sP     = sP + 1.5e0*densityC*volume[idCell]/dt;
+  }
+/*...................................................................*/
+
 
 /*...*/
   if(nFace == 3){
@@ -463,30 +486,12 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
 
 /*... distretização temporal*/
   if(fTime){
-/*...*/
-    if(nf == 4){
-      lA[0] *= dt;
-      lA[1] *= dt;
-      lA[2] *= dt;
-      lA[3] *= dt;
-    }  
-/*...*/
-    else if(nf == 6){
-      lA[0] *= dt;
-      lA[1] *= dt;
-      lA[2] *= dt;
-      lA[3] *= dt;
-      lA[4] *= dt;
-      lA[5] *= dt;
-    }
-/*...*/
-    p *= dt;
 /*... EULER*/
     if(typeTime == EULER) 
-      sP     = sP*dt + densityC*volume[idCell];
+      sP     = sP + densityC*volume[idCell]/dt;
 /*...BACKWARD*/
     else if(typeTime == BACKWARD) 
-      sP     = sP*dt + 1.5e0*densityC*volume[idCell];
+      sP     = sP + 1.5e0*densityC*volume[idCell]/dt;
   }
 /*...................................................................*/
 
