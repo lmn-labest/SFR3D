@@ -47,13 +47,13 @@ void solverC(Memoria *m
             ,bool const newX     ,bool const openMp   
             ,bool const unSym    ,bool const loopWise)
 {
-  DOUBLE *z=NULL,*r=NULL,*pc=NULL;
+  DOUBLE *z=NULL,*r=NULL,*pc=NULL,*t=NULL,*v=NULL,*p=NULL;
   bool fCoo=false;
   void   (*matVecC)();
   DOUBLE (*dotC)();
 
   switch(solver){
-/*gradientes conjugados com precondicionador diagonal*/
+/*... gradientes conjugados com precondicionador diagonal*/
     case PCG:
 /*... precondiconador diagonal*/
       HccaAlloc(DOUBLE,m,pc,nEqNov,"pc",false);
@@ -65,8 +65,8 @@ void solverC(Memoria *m
 
 /*... arranjos auxiliares do pcg*/
       HccaAlloc(DOUBLE,m,z,nEq,"z",false);
-      zero(z,nEq,DOUBLEC);
       HccaAlloc(DOUBLE,m,r,nEq,"r",false);
+      zero(z,nEq,DOUBLEC);
       zero(r,nEq,DOUBLEC);
 /*...................................................................*/
       
@@ -216,6 +216,147 @@ void solverC(Memoria *m
     break;
 /*...................................................................*/
 
+/*... gradientes conjugados bi-ortoganilizado com precondicionador
+     diagonal*/
+    case PBICGSTAB:
+/*... precondiconador diagonal*/
+      HccaAlloc(DOUBLE,m,pc,nEqNov,"pc",false);
+      zero(pc,nEqNov,DOUBLEC);
+      tm.precondDiag = getTimeC() - tm.precondDiag;
+      preCondDiag(pc,ad,nEqNov);
+      tm.precondDiag = getTimeC() - tm.precondDiag;
+/*...................................................................*/
+
+/*... arranjos auxiliares do pbicgstab*/
+      HccaAlloc(DOUBLE,m,z,nEq,"z",false);
+      HccaAlloc(DOUBLE,m,r,nEq,"r",false);
+      HccaAlloc(DOUBLE,m,t,nEq,"tt",false);
+      HccaAlloc(DOUBLE,m,v,nEq,"vv",false);
+      HccaAlloc(DOUBLE,m,p,nEq,"pp",false);
+      zero(z,nEq,DOUBLEC);
+      zero(r,nEq,DOUBLEC);
+      zero(t,nEq,DOUBLEC);
+      zero(v,nEq,DOUBLEC);
+      zero(p,nEq,DOUBLEC);
+/*...................................................................*/
+      
+/*... estrutura de dados de armazenamentos da matriz esparcas*/
+      switch(storage){
+/*... armazenamento CSR(a)*/
+        case CSR:
+          matVecC = NULL;
+        break;
+/*...................................................................*/
+
+/*... armazenamento CSRD(a,ad)*/
+        case CSRD:
+/*... mpi*/
+          if( mpiVar.nPrcs > 1){
+            matVecC = mpiMatVecCsrD;
+          }
+/*...................................................................*/
+
+/*... sequencial*/
+          else{
+            matVecC = matVecCsrD;
+          }
+/*...................................................................*/
+        break;
+/*...................................................................*/
+
+/*... armazenamento CSRC(ad,au,al)*/
+        case CSRC:
+          matVecC = NULL;
+        break;
+/*...................................................................*/
+
+/*... armazenamento ELLPACK(ad,a)*/
+        case ELLPACK:
+/*... mpil*/
+          if( mpiVar.nPrcs > 1){
+            matVecC = mpiMatVecEllPack;
+          }
+/*...................................................................*/
+
+/*... sequencial*/
+          else{
+            matVecC = matVecEllPack;
+//          matVecC = matVecEllPackO2;
+//          matVecC = matVecEllPackO4;
+          }
+/*...................................................................*/
+        break;
+/*...................................................................*/
+
+/*...*/
+        default:
+          ERRO_OP(__FILE__,__func__,storage);
+        break;
+/*...................................................................*/
+      }
+/*...................................................................*/
+      
+/*...*/
+      dotC    = dot;
+//    dotC    = dotL2;
+//    dotC    = dotL4;
+//    dotC    = dotL6;
+//    dotC    = dotL8;
+//    dotC    = dotO2;
+//    dotC    = dotO4;
+//    dotC    = dotO6;
+//    dotC    = dotO8;
+//    dotC    = dotO2L2;
+/*...................................................................*/
+
+/*... gradientes conjugados bi-ortoganilizado*/
+      tm.pbicgstab = getTimeC() - tm.pbicgstab;
+/*... PBICGSTAB-MPI*/
+      if( mpiVar.nPrcs > 1)  
+        mpiPbicgstab(nEq   ,nEqNov
+                 ,nAd      ,nAdR
+                 ,ia       ,ja
+                 ,al       ,ad    ,au
+                 ,pc       ,b     ,x
+                 ,t        ,v     ,r
+                 ,p        ,z     ,tol
+                 ,maxIt    ,true          
+                 ,fSolvLog ,fLog
+                 ,false
+                 ,iNeq           
+                 ,matVecC  ,dotC);  
+/*...................................................................*/
+      
+/*... PBICGSTAB*/
+      else
+        pbicgstab(nEq      ,nAd
+                 ,ia       ,ja
+                 ,al       ,ad    ,au
+                 ,pc       ,b     ,x
+                 ,t        ,v     ,r
+                 ,p        ,z     ,tol
+                 ,maxIt    ,true          
+                 ,fSolvLog ,fLog
+                 ,false
+                 ,matVecC  ,dotC);
+/*...................................................................*/
+      tm.pbicgstab = getTimeC() - tm.pbicgstab;
+/*...................................................................*/
+      
+/*... liberando arranjos auxiliares do pbicgstab*/
+      HccaDealloc(m,p,"pp",false);
+      HccaDealloc(m,v,"vv",false);
+      HccaDealloc(m,t,"tt",false);
+      HccaDealloc(m,r,"r" ,false);
+      HccaDealloc(m,z,"z" ,false);
+/*...................................................................*/
+
+/*... liberando arranjos do precondicionador*/
+      HccaDealloc(m,pc,"pc",false);
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
 /*...*/
     default:
       ERRO_OP(__FILE__,__func__,solver);
@@ -235,6 +376,8 @@ void setSolver(char *word,short *solver)
 
   if(!strcmp(word,"PCG"))
    *solver = PCG;
+  else if(!strcmp(word,"PBICGSTAB"))
+   *solver = PBICGSTAB;
 
 } 
 /*********************************************************************/      

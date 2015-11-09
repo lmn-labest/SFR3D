@@ -41,26 +41,45 @@
   #define SCCELL       2 /*fonte*/
 /*...................................................................*/
 
+/*... ADVECTION*/
+  #define FOUP          1
+/*... ADVECTION - TVD EDGEBASE*/
+  #define VANLEERFACE   3
+  #define VANALBADAFACE 4
+  #define MIDMODFACE    5
+  #define OSHERFACE     6
+  #define SUPERBEEFACE  7
+  #define SPLITUPCFACE  8
+/*...................................................................*/
+
+/*... ADVECTION*/
+  #define FBASE 1
+  #define VBASE 1
+/*...................................................................*/
+
 /*... tipos de CC (faces)*/
-  #define DIRICHLETBC  1
-  #define NEUMANNBC    2
-  #define ROBINBC      3
-  #define SINBC        4
-  #define CONST        5
+  #define DIRICHLETBC      1
+  #define NEUMANNBC        2
+  #define ROBINBC          3
+  #define SINBC            4
+  #define CONST            5
+  #define INLET            6
+  #define OUTLET           7
 /*...................................................................*/
 
 /*...*/
   #define MAXLOADPARAMETER 10
-  #define MAXLOAD1         200
+  #define MAXLOADD1        200
+  #define MAXLOADT1        200
 /*...................................................................*/
 
 /*...*/
-  #define DIFPROP      5  /*numero de propriedade de 
+  #define DIFPROP        5  /*numero de propriedade de 
                             problemas difusao pura*/
-  #define MAXPROP      5  /*numero maximo de propriedades*/
-  #define MAXMAT      200 /*numero maximo de materias*/
-  #define MAX_TRANS_EQ 3 /*numero maximo de equacoes de transporte*/ 
-  #define MAX_DIF_EQ   3 /*numero maximo de equacoes de difusa*/ 
+  #define MAXPROP        5  /*numero maximo de propriedades*/
+  #define MAXMAT       200 /*numero maximo de materias*/
+  #define MAX_TRANS_EQ   3 /*numero maximo de equacoes de transporte*/ 
+  #define MAX_DIF_EQ     3 /*numero maximo de equacoes de difusa*/ 
 /*...................................................................*/
 
 /*... Tipo geometrica da celula*/

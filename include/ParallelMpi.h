@@ -21,7 +21,7 @@
   void comunicateMesh(Memoria *m
                    ,Mesh *mesh0     ,Mesh *mesh
                    ,PartMesh *pMesh
-                   ,Loads *loadsD1);
+                   ,Loads *loadsD1  ,Loads *loadsT1);
 /*... equacoes nas interfaces*/  
   void getBuffer(DOUBLE *restrict x    ,DOUBLE *restrict xb
               ,INT *restrict fMap    ,INT const nRcvs);

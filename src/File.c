@@ -313,11 +313,11 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 
 /*... arquivo do vtk com iteraçoes intenas*/
     case 15:
-      iota(num2,st);
-      strcpy(ext,"_it_");
-      strcat(ext,st);
-      strcat(ext,"_D1_step_");
+      strcpy(ext,"_D1_step_");
       iota(num1,st);
+      strcat(ext,st);
+      strcat(ext,"_it_");
+      iota(num2,st);
       strcat(ext,st);
       strcat(ext,".vtk");
       size1 = strlen(name);
@@ -379,6 +379,51 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       strcat(ext,"_map_");
       strcat(ext,st);
       strcat(ext,".dat");
+      size1 = strlen(name);
+      size2 = strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+        exit(EXIT_FAILURE);      
+      }
+      strcpy(*out,name);
+      strcat(*out,ext);
+      break;
+/*...................................................................*/
+
+/*... arquivo do vtk com iteraçoes intenas*/
+    case 19:
+      strcpy(ext,"_T1_step_");
+      iota(num1,st);
+      strcat(ext,st);
+      strcat(ext,"_it_");
+      iota(num2,st);
+      strcat(ext,st);
+      strcat(ext,".vtk");
+      size1 = strlen(name);
+      size2 = strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+        exit(EXIT_FAILURE);      
+      }
+      strcpy(*out,name);
+      strcat(*out,ext);
+      break;
+/*...................................................................*/
+
+/*... resultados Transporte 1*/
+    case 20:
+      iota(num1,st);
+      strcpy(ext,"_T1_step_");
+      strcat(ext,st);
+      strcat(ext,".vtk");
       size1 = strlen(name);
       size2 = strlen(ext);
       if( (size1+size2)  > SIZEMAX){

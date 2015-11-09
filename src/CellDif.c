@@ -4,6 +4,7 @@
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
+ * loads     -> definicoes de cargas                                 * 
  * lnFace    -> numero de faces da celula central e seus vizinhos    * 
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
  * lprop     -> propriedade fisicas das celulas                      * 
@@ -48,7 +49,8 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
+void cellDif2D(Loads *loads
+              ,short *restrict lGeomType,DOUBLE *restrict prop
               ,INT *restrict lViz       ,INT *restrict lId  
               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
               ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
@@ -182,9 +184,10 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
         xx[2] = 0.e0;                    
         pLoad(&sP           ,&p
              ,&tA
-             ,coefDifC      ,xx 
+             ,coefDifC      ,0.e0
+             ,0.0e0         ,xx 
              ,mEta[nAresta] ,dcca[nAresta]
-             ,loadsD1[nCarg],true);
+             ,loads[nCarg]  ,true);
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -267,6 +270,7 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
+ * loads     -> definicoes de cargas                                 * 
  * lnFace    -> numero de faces da celula central e seus vizinhos    * 
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
  * lprop     -> propriedade fisicas das celulas                      * 
@@ -311,7 +315,8 @@ void cellDif2D(short *restrict lGeomType,DOUBLE *restrict prop
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
+void cellDif3D(Loads *loads
+              ,short *restrict lGeomType,DOUBLE *restrict prop
               ,INT *restrict lViz       ,INT *restrict lId  
               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
               ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
@@ -454,8 +459,8 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
 /*...cargas*/
         nCarg=lFaceL[nf]-1;
 /*... potencial prescrito*/
-        if( loadsD1[nCarg].type == DIRICHLETBC){
-          tA  = loadsD1[nCarg].par[0];
+        if( loads[nCarg].type == DIRICHLETBC){
+          tA  = loads[nCarg].par[0];
           aP  = coefDifC*fArea[nf]/dcca[nf];
           sP += aP;
           p  += aP*tA; 
@@ -463,9 +468,9 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
 /*...................................................................*/
 
 /*... lei de resfriamento de newton*/
-        else if( loadsD1[nCarg].type == ROBINBC){
-          h   = loadsD1[nCarg].par[0];
-          tA  = loadsD1[nCarg].par[1];
+        else if( loads[nCarg].type == ROBINBC){
+          h   = loads[nCarg].par[0];
+          tA  = loads[nCarg].par[1];
           aP  = (coefDifC*h)/(coefDifC+h*dcca[nf])
                 *fArea[nf];
           sP += aP;
@@ -474,8 +479,8 @@ void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
 /*...................................................................*/
 
 /*... fluxo prestrito diferente de zero*/
-        else if( loadsD1[nCarg].type == NEUMANNBC){
-          tA  = loadsD1[nCarg].par[0];
+        else if( loads[nCarg].type == NEUMANNBC){
+          tA  = loads[nCarg].par[0];
            p +=  fArea[nf]*tA;
         }
       }

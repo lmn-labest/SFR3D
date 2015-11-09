@@ -59,7 +59,7 @@
           ,bool const fPrint
           ,void(*matvec)()    ,DOUBLE(*dot)());
   
-   void mpiPcg(INT const nEq  ,INT const nEqNov  
+  void mpiPcg(INT const nEq  ,INT const nEqNov  
           ,INT const nAd      ,INT const nAdr 
           ,INT *restrict ia   ,INT *restrict ja
           ,DOUBLE *restrict al,DOUBLE *restrict ad,DOUBLE *restrict au
@@ -71,6 +71,33 @@
           ,Interface *iNeq
           ,void(*matvec)()    ,DOUBLE(*dot)());
 /*...................................................................*/
+
+/*... gradiente conjugado bi-ortoganilizados precondicionado*/
+  void pbicgstab(INT const nEq    ,INT const nAd
+       ,INT *restrict ia   ,INT *restrict ja
+       ,DOUBLE *restrict al,DOUBLE *restrict ad,DOUBLE *restrict au
+       ,DOUBLE *restrict m ,DOUBLE *restrict b ,DOUBLE *restrict x
+       ,DOUBLE *restrict t ,DOUBLE *restrict v ,DOUBLE *restrict r
+       ,DOUBLE *restrict p ,DOUBLE *restrict z ,DOUBLE const tol
+       ,unsigned int maxIt ,bool const newX          
+       ,FILE* fLog         ,bool const log
+       ,bool const fPrint
+       ,void(*matvec)()    ,DOUBLE(*dot)());
+ 
+  void mpiPbicgstab(INT const nEq,INT const nEqNov      
+      ,INT const nAd         ,INT const nAdR
+      ,INT *restrict ia      ,INT *restrict ja
+      ,DOUBLE *restrict al   ,DOUBLE *restrict ad,DOUBLE *restrict au
+      ,DOUBLE *restrict m    ,DOUBLE *restrict b ,DOUBLE *restrict x
+      ,DOUBLE *restrict t    ,DOUBLE *restrict v ,DOUBLE *restrict r
+      ,DOUBLE *restrict p    ,DOUBLE *restrict z ,DOUBLE const tol
+      ,unsigned int maxIt    ,bool const newX          
+      ,FILE* fLog            ,bool const log
+      ,bool const fPrint
+      ,Interface *iNeq    
+      ,void(*matvec)()     ,DOUBLE(*dot)());
+/*...................................................................*/
+
 /*===================================================================*/
 
 #endif/*_SOLV_H*/

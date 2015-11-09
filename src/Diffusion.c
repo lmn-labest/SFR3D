@@ -70,7 +70,8 @@ void diffusion(Memoria *m   ,Loads *loadsDif
 
 /*... calculo de: A(i),b(i)*/
     tm.systFormD1 = getTimeC() - tm.systFormD1;
-    systFormDif(mesh->elm.node          ,mesh->elm.adj.nelcon  
+    systFormDif(loadsDif
+               ,mesh->elm.node          ,mesh->elm.adj.nelcon  
                ,mesh->elm.nen           ,mesh->elm.adj.nViz   
                ,mesh->elm.geomType      ,mesh->elm.material.prop 
                ,mesh->elm.material.type ,mesh->elm.mat   
@@ -120,14 +121,13 @@ void diffusion(Memoria *m   ,Loads *loadsDif
       rCell  = sqrt(dot(mesh->elm.rCellUd1 
                    ,mesh->elm.rCellUd1 
                    ,mesh->numelNov));
-        
-    if(rCell < conv) break;
     if(!mpiVar.myId ){
       printf("it: %8d %.6e\n",i,rCell/rCell0);  
       if(opt.fItPlot)  
         fprintf(opt.fileItPlot[FITPLOTD1]
                ,"%9d %.6e %0.6e\n",i,rCell/rCell0,rCell);
     }
+    if(rCell < conv) break;
 /*...................................................................*/
 
 /*...*/
@@ -157,7 +157,7 @@ void diffusion(Memoria *m   ,Loads *loadsDif
 
 /*... reconstruindo do gradiente*/
     tm.rcGradD1 = getTimeC() - tm.rcGradD1;
-    rcGradU(m                        ,loadsDif
+    rcGradU(m                       ,loadsDif
            ,mesh->elm.node          ,mesh->elm.adj.nelcon
            ,mesh->elm.geom.cc       ,mesh->node.x   
            ,mesh->elm.nen           ,mesh->elm.adj.nViz 
@@ -260,9 +260,10 @@ void diffusion(Memoria *m   ,Loads *loadsDif
                    ,nameOut             ,opt.bVtk    
                    ,sc.ddt              ,fileOut);
       }
-/*....................................................................*/
+/*...................................................................*/
     }
 /*...................................................................*/
   } 
 /*...................................................................*/
 }
+/*********************************************************************/

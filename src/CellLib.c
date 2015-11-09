@@ -1,10 +1,126 @@
 #include<CellLoop.h>
 /********************************************************************* 
+ * CELLLIBTRANS : chamada de bibliotecas de celulas para o problema  *
+ * de transporte.                                                    * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * loads     -> definicoes de cargas                                 * 
+ * advT      -> tecnica da discretizacao do termo advecao            * 
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
+ * lprop     -> propriedade fisicas das celulas                      *
+ * lViz      -> viznhos da celula central                            * 
+ * lId       -> equa da celula                                       * 
+ * Ksi       -> vetores que unem centroide da celula central aos     *
+ *            vizinhos destas                                        * 
+ * mKsi      -> modulo do vetor ksi                                  * 
+ * eta       -> vetores paralelos as faces das celulas               * 
+ * fArea     -> area das faces                                       * 
+ * normal    -> vetores normais as faces das celulas                 * 
+ * volume    -> volume celula central                                * 
+ * xm        -> pontos medios das faces da celula central            * 
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
+ *            faces da celula central                                * 
+ * vSkew     -> vetor entre o ponto medio a intersecao que une os    * 
+ *            centrois compartilhado nessa face da celula central    * 
+ * mvSkew    -> distacia entre o ponto medio a intersecao que une os * 
+ *            centrois compartilhado nessa face da celula central    * 
+ * dcca      -> menor distacia do centroide central a faces desta    *
+ *              celula                                               * 
+ * lDensity  -> massa especifica com variacao temporal               * 
+ * lA        -> nao definido                                         *
+ * lB        -> nao definido                                         *
+ * lRcell    -> nao definido                                         *
+ * ddt       -> discretizacao temporal                               *
+ * faceR     -> restricoes por elemento                              * 
+ * faceL     -> carga por elemento                                   * 
+ * u0        -> solucao conhecida                                    * 
+ * gradU0    -> gradiente rescontruido da solucao conhecida          * 
+ * vel       -> campo de velocidade conhecido                        * 
+ * nEn       -> numero de nos da celula central                      * 
+ * nFace     -> numero de faces da celula central                    * 
+ * ndm       -> numero de dimensoes                                  * 
+ * lib       -> numero da biblioteca                                 * 
+ * nel       -> numero da celula                                     * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * lA        -> coeficiente da linha i                               *
+ * lB        -> vetor de forca da linha i                            *
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void cellLibTrans(Loads *loads           ,Advection advT 
+               ,short *restrict lGeomType,DOUBLE *restrict lprop
+               ,INT   *restrict lViz     ,INT *restrict lId  
+               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
+               ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
+               ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
+               ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
+               ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
+               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
+               ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
+               ,DOUBLE *restrict lRcell  ,Temporal const ddt
+               ,short  *restrict lFaceR  ,short  *restrict lFaceL       
+               ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
+               ,DOUBLE *restrict vel                                 
+               ,short const nEn          ,short  const nFace     
+               ,short const ndm          ,short const lib    
+               ,INT const nel)
+{
+
+/*... */
+  if(lib == 1){
+/*... 2D*/
+    if(ndm == 2){
+      cellTrans2D(loads    ,advT
+                 ,lGeomType,lprop
+                 ,lViz     ,lId
+                 ,ksi      ,mKsi
+                 ,eta      ,fArea
+                 ,normal   ,volume
+                 ,xm       ,xmcc
+                 ,dcca     ,lDensity 
+                 ,vSkew    ,mvSkew
+                 ,lA       ,lB
+                 ,lRcell   ,ddt 
+                 ,lFaceR   ,lFaceL
+                 ,u0       ,gradU0      
+                 ,vel                   
+                 ,nEn      ,nFace 
+                 ,ndm      ,nel);
+    }
+/*..................................................................*/   
+
+/*... 3D*/
+    else if(ndm == 3){
+/*      cellDif3D(lGeomType,lprop
+               ,lViz     ,lId
+               ,ksi      ,mKsi
+               ,eta      ,fArea
+               ,normal   ,volume
+               ,xm       ,xmcc
+               ,dcca     ,lDensity
+               ,vSkew    ,mvSkew
+               ,lA       ,lB
+               ,lRcell   ,ddt
+               ,lFaceR   ,lFaceL 
+               ,u0       ,gradU0      
+               ,nEn      ,nFace 
+               ,ndm      ,nel);*/
+    } 
+/*..................................................................*/   
+  }
+
+}
+/*********************************************************************/
+
+/********************************************************************* 
  * CELLLIBDIF : chamada de bibliotecas de celulas para o problema    *
  * de difusao.                                                       * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
+ * loads     -> definicoes de cargas                                 * 
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
  * lprop     -> propriedade fisicas das celulas                      *
  * lViz      -> viznhos da celula central                            * 
@@ -46,7 +162,8 @@
  * lB        -> vetor de forca da linha i                            *
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellLibDif(short *restrict lGeomType,DOUBLE *restrict lprop
+void cellLibDif(Loads *loads
+               ,short *restrict lGeomType,DOUBLE *restrict lprop
                ,INT   *restrict lViz     ,INT *restrict lId  
                ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
                ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
@@ -67,7 +184,8 @@ void cellLibDif(short *restrict lGeomType,DOUBLE *restrict lprop
   if(lib == 1){
 /*... 2D*/
     if(ndm == 2){
-      cellDif2D(lGeomType,lprop
+      cellDif2D(loads
+               ,lGeomType,lprop
                ,lViz     ,lId
                ,ksi      ,mKsi
                ,eta      ,fArea
@@ -86,7 +204,8 @@ void cellLibDif(short *restrict lGeomType,DOUBLE *restrict lprop
 
 /*... 3D*/
     else if(ndm == 3){
-      cellDif3D(lGeomType,lprop
+      cellDif3D(loads     
+               ,lGeomType,lprop
                ,lViz     ,lId
                ,ksi      ,mKsi
                ,eta      ,fArea
@@ -773,7 +892,7 @@ void greenGaussCell(Loads *loads
   DOUBLE uf[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF];
   DOUBLE lModKsi,alpha,alphaMenosUm,invVol,xx[3];
   INT vizNel;
-  short idCell = nFace,nCarg;
+  short idCell = nFace,nCarg,type;
   short i,j,k;
 
   invVol = 1.e0/volume[idCell];
@@ -812,14 +931,15 @@ void greenGaussCell(Loads *loads
 /*... temperatura prescrita na face(extrapolacao linear)*/
         if(lFaceR[i]){
           nCarg=lFaceL[i]-1;
+          type = loads[nCarg].type;
 /*... valor prescrito*/
-          if( loads[nCarg].type == DIRICHLETBC){
+          if( type == DIRICHLETBC || type == INLET){
             uf[i] = loads[nCarg].par[0];
           }
 /*...................................................................*/
 
 /*... fluxo prescrito*/
-          else if (loads[nCarg].type == NEUMANNBC){
+          else if (type == NEUMANNBC ){
             coefDif = lProp[COEFDIF];
             if(coefDif != 0.e0  )
               uf[i] = uC[0] - (loads[nCarg].par[0]/coefDif)*lDcca[i];
@@ -827,16 +947,22 @@ void greenGaussCell(Loads *loads
 /*...................................................................*/
 
 /*... condicao de robin*/
-          else if( loads[nCarg].type == ROBINBC ){
+          else if(type == ROBINBC){
             uf[i] =uC[0];
             for(j=0;j<ndm;j++)
               uf[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
           }
 /*...................................................................*/
 
+/*... derivada nula (condicao localmente parabolica saida)*/
+          else if (type == OUTLET){
+            uf[i] = uC[0];
+          }
+/*...................................................................*/
+
 /*... potencial senoidal prescrito 
       ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
-          else if( loads[nCarg].type == SINBC ){
+          else if(type == SINBC){
             if(ndm == 2){
               xx[0] = MAT2D(i,0,xm,ndm);
               xx[1] = MAT2D(i,1,xm,ndm);
@@ -1021,7 +1147,7 @@ void  leastSquare(Loads *loads
   DOUBLE uT[MAX_NDF],xx[3];
   DOUBLE tmp,coefDif;
   INT vizNel;
-  short idCell = nFace,nCarg;
+  short idCell = nFace,nCarg,type;
   short i,j,k;
 
   for(k=0;k<2;k++){
@@ -1038,14 +1164,15 @@ void  leastSquare(Loads *loads
 /*... temperatura prescrita na face(extrapolacao linear)*/
           if(lFaceR[i]){
             nCarg=lFaceL[i]-1;
+            type = loads[nCarg].type;
 /*... valor prescrito*/
-            if( loads[nCarg].type == DIRICHLETBC){
+            if( type == DIRICHLETBC || type == INLET){
               du[i] = loads[nCarg].par[0] - uC[0];
              }
 /*...................................................................*/
 
 /*... fluxo prescrito*/
-            else if (loads[nCarg].type == NEUMANNBC){
+            else if (type == NEUMANNBC){
               coefDif = lProp[COEFDIF];
               if(coefDif != 0.e0  )
                 du[i] = (loads[nCarg].par[0]/coefDif)*lDcca[i];
@@ -1053,16 +1180,22 @@ void  leastSquare(Loads *loads
 /*...................................................................*/
 
 /*... condicao de robin*/
-            else if( loads[nCarg].type == ROBINBC ){
+            else if( type == ROBINBC ){
               du[i] =0.e0;
               for(j=0;j<ndm;j++)
                 du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
             }
 /*...................................................................*/
 
+/*... derivada nula (condicao localmente parabolica saida)*/
+            else if (type == OUTLET){
+              du[i] = 0.e0;
+            }
+/*...................................................................*/
+
 /*... potencial senoidal prescrito 
       ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
-            else if( loads[nCarg].type == SINBC ){
+            else if( type == SINBC ){
               if(ndm == 2){
                 xx[0] = MAT2D(i,0,xm,ndm);
                 xx[1] = MAT2D(i,1,xm,ndm);
@@ -1154,7 +1287,7 @@ void  leastSquareQR(Loads *loads
   DOUBLE uT[MAX_NDF],xx[3];
   DOUBLE b[MAX_NUM_FACE*MAX_NDF];
   INT vizNel;
-  short idCell = nFace;
+  short idCell = nFace,type;
   short i,j,k,nCarg;
 
   for(k=0;k<2;k++){
@@ -1171,14 +1304,15 @@ void  leastSquareQR(Loads *loads
 /*... temperatura prescrita na face(extrapolacao linear)*/
           if(lFaceR[i]){
             nCarg=lFaceL[i]-1;
+            type = loads[nCarg].type;
 /*... valor prescrito*/
-            if( loads[nCarg].type == DIRICHLETBC){
+            if( type == DIRICHLETBC || type == INLET ){
               du[i] = loads[nCarg].par[0] - uC[0];
              }
 /*...................................................................*/
 
 /*... fluxo prescrito*/
-            else if (loads[nCarg].type == NEUMANNBC){
+            else if (type == NEUMANNBC){
               coefDif = lProp[COEFDIF];
               if(coefDif != 0.e0  )
                 du[i] = (loads[nCarg].par[0]/coefDif)*lDcca[i];
@@ -1186,16 +1320,22 @@ void  leastSquareQR(Loads *loads
 /*...................................................................*/
 
 /*... condicao de robin*/
-            else if( loads[nCarg].type == ROBINBC ){
+            else if( type == ROBINBC ){
               du[i] =0.e0;
               for(j=0;j<ndm;j++)
                 du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
             }
 /*...................................................................*/
 
+/*... derivada nula (condicao localmente parabolica saida)*/
+            else if (type == OUTLET){
+              du[i] = 0.e0;
+            }
+/*...................................................................*/
+
 /*... potencial senoidal prescrito 
       ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
-            else if( loads[nCarg].type == SINBC ){
+            else if( type == SINBC ){
               if(ndm == 2){
                 xx[0] = MAT2D(i,0,xm,ndm);
                 xx[1] = MAT2D(i,1,xm,ndm);
@@ -2043,6 +2183,8 @@ DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
  * p       -> forca local                                            * 
  * tA      -> nao definido                                           * 
  * coefDifC-> coeficiente de difusao                                 * 
+ * densityC-> densidade                                              * 
+ * wfn     -> velocidade normal a face                               * 
  * xm      -> coordenada do ponto medio da face                      * 
  * fArea   -> area da face                                           * 
  * dcca    -> menor distancia do centroide central a face desta      *
@@ -2062,7 +2204,8 @@ DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
  *********************************************************************/
 void pLoad(DOUBLE *restrict sP  ,DOUBLE *restrict p
           ,DOUBLE *restrict tA
-          ,DOUBLE const coefDifC,DOUBLE *restrict xm                   
+          ,DOUBLE const coefDifC,DOUBLE const densityC
+          ,DOUBLE const wfn     ,DOUBLE *restrict xm                   
           ,DOUBLE const fArea   ,DOUBLE const dcca
           ,Loads ld             ,bool const fCal){
 
@@ -2120,8 +2263,195 @@ void pLoad(DOUBLE *restrict sP  ,DOUBLE *restrict p
    }
 /*...................................................................*/
 
+/*... potencial prescrito (entra)*/
+   else if( ld.type == INLET){
+     tA[0]   = ld.par[0];
+/*...*/
+     if(fCal)
+       *p -= wfn*densityC*fArea*tA[0];
+   }
+/*...................................................................*/
+
+/*... derivada nula (condicao localmente parabolica saida)*/
+   else if( ld.type == OUTLET){
+/*...*/
+     if(fCal)
+       *sP += wfn*densityC*fArea;
+/*...................................................................*/
+   }
+/*...................................................................*/
+
 
 }
 /*********************************************************************/
      
+/********************************************************************* 
+ * LIMITFACEBASE : funcao limitadora de fluxo baseado na face        *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * r       -> parametro utilizado                                    * 
+ * iCod    -> tipo de funcao limitadora                              * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+DOUBLE limitFaceBase(DOUBLE const r,short const iCod)
+{
+  #define NFUNCLIMTEB 5
+  DOUBLE a,b,c;
+  short i;
+  char word[][WORD_SIZE]=
+       {"VanLeer","VanAlbada"
+       ,"MidMod ","Osher"   ,"SuperBee"};
 
+  switch(iCod){
+
+/*... Van Leer - TVD*/
+    case VANLEERFACE: 
+      a   = fabs(r);
+      return (r + a ) / (1.0e0 + a);
+    break;
+/*...................................................................*/
+
+/*... Van Albada  - TVD*/
+    case VANALBADAFACE:
+      if( r > 0.e0){ 
+        a = r*r;
+        return (r + a ) / (1.0e0 + a);
+      }
+      else 
+        return 0.e0;
+    break;
+/*...................................................................*/
+
+/*... Mid-Mod - TVD*/
+    case MIDMODFACE:
+      return max(0.e0,min(r,1.e0));
+    break;
+/*...................................................................*/
+
+/*... OSHER - TVD*/
+    case OSHERFACE:
+      return  max(0.e0,min(r,2.e0));
+    break;
+/*...................................................................*/
+
+/*... SUPERBEE - TVD*/
+    case SUPERBEEFACE:
+      a   = min(2.e0*r,1.e0);
+      b   = min(r,2.e0);
+      c   = max(a,b);
+      return max(0.e0,c);
+    break;
+/*...................................................................*/
+
+/*...*/
+    default:
+      printf("Erro: tipo de funcao limiradora fluxo invalida.\n"
+             "Arquivo fonte:  \"%s\".\n"
+             "Nome da funcao: \"%s\".\n"
+             "Linha         : \"%d\".\n"
+             ,__FILE__,__func__,__LINE__);
+      printf("Funcoes disponiveis:\n");
+      for(i=0;i<NFUNCLIMTEB;i++)
+        printf("%s\n",word[i]);
+      exit(EXIT_FAILURE);
+/*...................................................................*/
+  }
+  return 0.e0;
+}
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * NOME:                                                             * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ *                                                                   * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *                                                                   * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+DOUBLE faceBaseTvd(short const nAresta    ,short const idCell
+                 ,DOUBLE *restrict u0
+                 ,DOUBLE *restrict gradUv,DOUBLE *restrict gradUp
+                 ,DOUBLE *restrict lKsi  ,DOUBLE const lModKsi 
+                 ,DOUBLE const cv
+                 ,short const iCod       ,short const ndm)
+{                    
+  
+  DOUBLE du,r,cvc=0.0e0,gf;
+  DOUBLE eps=1.e-14;
+ 
+  if(ndm == 2)
+    if( cv < 0.0e0) {
+      du    = u0[idCell] - u0[nAresta] + eps;
+      gf    = -(gradUv[0]*lKsi[0] + gradUv[1]*lKsi[1])*lModKsi;
+      r     = 2.0e0*gf/du - 1.0e0;
+      cvc   = 0.5e0*limitFaceBase(r ,iCod)*du;
+    }
+    else{
+      du    = u0[nAresta] - u0[idCell] + eps;
+      gf    = (gradUp[0]*lKsi[0] + gradUp[1]*lKsi[1])*lModKsi;
+      r     = 2.0e0*gf/du - 1.0e0;
+      cvc   = 0.5e0*limitFaceBase(r,iCod)*du;
+    }
+  else if(ndm ==3);
+ 
+  return cvc;
+} 
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * SETFACEBASE :                                                     * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * word ->                                                           * 
+ * iCod -> nao definido                                              * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * iCod -> codigo da tecnica do termo advectivo                      * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void setFaceBase(char *word,short *iCod)
+{
+  if(!strcmp(word,"FoUp")){
+    *iCod = FOUP; 
+    if(!mpiVar.myId ) printf("iCod : FOUP\n");
+  }
+  else if(!strcmp(word,"VanLeer")){
+    *iCod = VANLEERFACE; 
+    if(!mpiVar.myId ) printf("iCod : VanLeer\n");
+  }
+  else if(!strcmp(word,"VanAlbada")){
+    *iCod =  VANALBADAFACE; 
+    if(!mpiVar.myId ) printf("iCod : VanAlbade\n");
+  }
+  else if(!strcmp(word,"MidMod")){
+    *iCod =  MIDMODFACE; 
+    if(!mpiVar.myId ) printf("iCod : MidMod\n");
+  }
+  else if(!strcmp(word,"Osher")){
+    *iCod =  OSHERFACE; 
+    if(!mpiVar.myId ) printf("iCod : Osher\n");
+  }
+  else if(!strcmp(word,"SuperBee")){
+    *iCod =  SUPERBEEFACE; 
+    if(!mpiVar.myId ) printf("iCod : SuperBee\n");
+  }
+}
+/*********************************************************************/ 
+
+       

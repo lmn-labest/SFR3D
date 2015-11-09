@@ -39,11 +39,13 @@
               ,INT *el        ,short *mat    
               ,short *nen     ,short *typeGeom
               ,double *prop   ,short *typeCal
+              ,short *faceRd1 ,short *faceSd1
               ,short *faceRt1 ,short *faceSt1
               ,INT nnode      ,INT numel    
               ,short ndm      
               ,short maxno    ,short maxIt 
-              ,short numat    ,short *ndfT   
+              ,short numat    
+              ,short *ndfD    ,short *ndfT   
               ,char *nameOut  ,bool iws      
               ,FILE *f);
 
@@ -51,8 +53,10 @@
             ,INT *el              ,short *nen     
             ,short *typeGeom
             ,short *faceRd1       ,short *faceSd1
+            ,short *faceRt1       ,short *faceSt1
             ,INT const nnode      ,INT const numel    
-            ,short const ndm      ,short const ndf
+            ,short const ndm      
+            ,short const ndfD     ,short const ndfT 
             ,short const maxViz   ,short const maxNo
             ,char *nameOut        ,bool iws
             ,FILE *f);
@@ -79,6 +83,21 @@
                ,short numat       ,short ndf   
                ,char *uResEl      ,char *uResNo 
                ,char *gradResEl   ,char *gradResNo 
+               ,char *nameOut     ,bool iws
+               ,Temporal ddt      ,FILE *f);
+  
+  void wResVtkTrans(Memoria *m        ,double *x      
+               ,INT *el           ,short *mat    
+               ,short *nen        ,short *typeGeom
+               ,DOUBLE *elU       ,DOUBLE *nU
+               ,DOUBLE *elGradU   ,DOUBLE *nGradU
+               ,DOUBLE *elVel     ,DOUBLE *nVel  
+               ,INT nnode         ,INT numel    
+               ,short ndm         ,short maxNo 
+               ,short numat       ,short ndf   
+               ,char *uResEl      ,char *uResNo 
+               ,char *gradResEl   ,char *gradResNo 
+               ,char *velEl       ,char *velNo     
                ,char *nameOut     ,bool iws
                ,Temporal ddt      ,FILE *f);
 /*...................................................................*/

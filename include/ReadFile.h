@@ -1,6 +1,6 @@
 #ifndef _READ_FILE_
   #define _READ_FILE_
-  #define NPARAMETROS   7
+  #define NPARAMETROS   6
   #define NCONFIG       6
   #ifdef NMACROS 
     #undef NMACROS
@@ -17,8 +17,10 @@
   #include<Memoria.h>
   #include<ParallelMpi.h>
 
-  void parametros(INT   *nnode,INT *nel    ,short *maxNo,short *maxViz
-                 ,short *ndm  ,short *numat,short  *ndf ,FILE  *file);
+  void parametros(INT   *nnode,INT *nel    
+                 ,short *maxNo,short *maxViz
+                 ,short *ndm  ,short *numat
+                 ,FILE  *file);
   void readFileFvMesh(Memoria *m,Mesh *mesh, FILE *file);
   void readVfMat(double *prop,short *type,short numat,FILE *file);
   void readVfCoor(double *x,INT nn, short ndm,FILE *file);
@@ -26,13 +28,16 @@
                  ,short *ty  ,INT  nel   ,short maxno
                  ,FILE *file);
   void readVfRes(short *id,INT numel,short maxno,char *str,FILE *file);
-  void readVfSource(double *f    ,INT numel,short maxno
+  void readVfSource(double *f    ,INT numel,short const maxCarg
                    ,char *str,FILE *file);
+  void readVfInitial(double *f    ,INT numel,short const ndf
+                    ,char *str,FILE *file);
   void readVfLoads(Loads *loads,char *str,FILE* file);
 
   void config(FileOpt *opt ,Reord *reord
              ,short *rcGrad
              ,FILE* f);
+  void readEdo(Mesh *mesh,FILE *file);
 
   void initProp(DOUBLE *restrict prop 
              ,DOUBLE *restrict propMat,short *restrict mat

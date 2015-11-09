@@ -32,6 +32,13 @@
 
 /*...*/
   typedef struct{
+    short  base;
+    short  iCod;
+  }Advection;
+/*...................................................................*/  
+
+/*...*/
+  typedef struct{
     DOUBLE *cc;    /*centroide da celulas*/
     DOUBLE *ksi;   /*vetor que une os centroides da celulas*/
     DOUBLE *mksi;  /*modulo do vetor que une os centroides da celulas*/
@@ -53,7 +60,8 @@
     short np;                       /*numero de particoes*/  
     DOUBLE par[MAXLOADPARAMETER];
   }Loads;
-  Loads  loadsD1[MAXLOAD1]; /*tipo de cargas (difusao pura)*/
+  Loads  loadsD1[MAXLOADD1]  /*tipo de cargas (difusao pura)*/
+        ,loadsT1[MAXLOADT1]; /*tipo de cargas (difusao transporte)*/
 /*...................................................................*/
 
 /*...*/
@@ -71,15 +79,16 @@
     short  *geomType;  /*tipo geometrio do elemento*/
     short  *rNum;      /*renumeracao dos elementos*/ 
 /*... */               
-    short  *faceRt1;   /*condicao de contorno na face (transporte)*/
-    DOUBLE *faceSt1;   /*valor da condicao de 
-                        contorno na face (transporte)*/
+    short *faceRt1;    /*condicao  contorno na face (transporte)*/
+    short *faceLoadT1; /*tipo de carga contorno na face (transporte)*/
 /*...*/
     short *faceRd1;    /*condicao  contorno na face (difusa pura)*/
     short *faceLoadD1; /*tipo de carga contorno na face (difusa pura)*/
 /*...................................................................*/
     Geom   geom;       
+/*...*/
     DOUBLE *pressure;
+    DOUBLE *vel;
 /*...*/
     DOUBLE *temp;       /*temperatura*/
     DOUBLE *gradTemp;   /*gradiente da temperatura*/
@@ -91,6 +100,12 @@
     DOUBLE *gradUd1;    /*gradiente da difusao pura uD1*/
     DOUBLE *rCellUd1;   /*residuo da celula*/
 /*...*/
+    DOUBLE *densityUt1; /*massa especifica do material uT1*/
+    DOUBLE *uT1 ;       /*difusao pura uT1*/
+    DOUBLE *u0T1;       /*difusao pura uT1*/
+    DOUBLE *gradUt1;    /*gradiente da difusao pura uT1*/
+    DOUBLE *rCellUt1;   /*residuo da celula*/
+/*...*/
     DOUBLE *leastSquare; /*matriz de aproxima leastSquare*/
     DOUBLE *leastSquareR;/*fatoracao QR*/
     Material material;
@@ -101,13 +116,15 @@
 
 /*... nos*/
   typedef struct{
-    DOUBLE *x;      /*coordenadas*/
-    DOUBLE *w;
-    DOUBLE *pressure;
+    DOUBLE *x;         /*coordenadas*/
+    DOUBLE *vel;         /*velocidades*/
+    DOUBLE *pressure;  /*pressao*/
     DOUBLE *temp;      /*temperatura*/
     DOUBLE *uD1;       /*difusao pura uD1*/
+    DOUBLE *uT1;       /*difusao pura uT1*/
     DOUBLE *gradTemp;  /*gradiente da temperatura*/
     DOUBLE *gradUd1 ;  /*gradiente da difusao pura uD1*/
+    DOUBLE *gradUt1 ;  /*gradiente da difusao pura uT1*/
     INT    *nno; 
   }Node;
 /*...................................................................*/
@@ -138,6 +155,7 @@
     INT nnodeOv;   /*numero de nos em elementos sobrepostos*/
     INT nnodeNov;  /*numero de nos em elementos nao sobrepostos*/
     short ndm;     /*dimensao*/
+    short ndfF;     
     short ndfT[MAX_TRANS_EQ];   /*graus de liberdade 
                                   para o problema de transporte*/
     short ndfD[MAX_DIF_EQ];   /*graus de liberdade 
@@ -162,6 +180,9 @@
 /*...*/
     NonLinear nlTemp;
     NonLinear nlD1;
+    NonLinear nlT1;
+/*...*/
+    Advection  advT1;
   }Scheme;
 /*...................................................................*/
 

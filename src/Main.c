@@ -21,6 +21,7 @@
 #include<ReadFile.h>
 #include<Reord.h>
 #include<Transient.h>
+#include<Transport.h>
 /*********************************************************************/
 
 /*********************************************************************/
@@ -39,11 +40,10 @@ int main(int argc,char**argv){
 /*... estrutura da dados para a malha*/
   Mesh *mesh=NULL,*mesh0=NULL;
 /*... Sistema de equacao*/
-//SistEq *sistEqT1=NULL;
-  SistEq *sistEqD1=NULL;
+  SistEq *sistEqD1=NULL, *sistEqT1=NULL;
 /*... solver*/
-  Solv *solvD1=NULL;
-  bool fSolvD1 = false;
+  Solv *solvD1=NULL,*solvT1=NULL;
+  bool fSolvD1 = false, fSolvT1 = false;
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
 
@@ -62,7 +62,7 @@ int main(int argc,char**argv){
 /*... arquivo*/
   char *nameIn=NULL,*nameOut=NULL,*preName=NULL,*auxName=NULL;
   FILE *fileIn=NULL,*fileOut=NULL,*fileLog=NULL;
-  char str1[100],str2[100],str3[100],str4[100];
+  char str1[100],str2[100],str3[100],str4[100],str5[100],str6[100];
   FileOpt opt;
 
 /*...*/
@@ -75,11 +75,16 @@ int main(int argc,char**argv){
 /* ... macro camandos de leitura*/
   bool macroFlag; 
   char word[WORD_SIZE],str[WORD_SIZE];
-  char macro[][WORD_SIZE] = {"mesh"      ,"stop"      ,"config"
-                            ,"pgeo"      ,"pcoob"     ,"presolvD1"
-                            ,"solvD1"    ,"pcoo"      ,"pD1"
-                            ,"nlItD1"    ,"pD1CsvCell","pD1CsvNode"
-                            ,"transient" ,"timeUpdate","partd"}; 
+  char macro[][WORD_SIZE] = 
+  {"mesh"      ,"stop"      ,"config"          /* 0, 1, 2*/
+  ,"pgeo"      ,"pcoob"     ,"pcoo"            /* 3, 4, 5*/ 
+  ,"presolvD1" ,"presolvT1" ,""                /* 6, 7, 8*/
+  ,"solvD1"    ,""          ,"pD1"             /* 9,10,11*/
+  ,"nlItD1"    ,"pD1CsvCell","pD1CsvNode"      /*12,13,14*/
+  ,"solvT1"    ,""          ,"pT1"             /*15,16,17*/
+  ,"nlItT1"    ,"pT1CsvCell","pT1CsvNode"      /*18,19,20*/
+  ,"transient" ,"timeUpdate","partd"           /*21,22,23*/
+  ,"advection" ,"edp"       ,""     };         /*24,25,26*/
 /* ..................................................................*/
 
 /*... Memoria principal(valor padrao - bytes)*/
@@ -113,7 +118,16 @@ int main(int argc,char**argv){
   tm.CellTransientD1   = 0.e0;
   tm.systFormD1        = 0.e0;
   tm.rcGradD1          = 0.e0;
-  tm.solvEdoD1         = 0.e0;
+  tm.solvEdpD1         = 0.e0;
+/*...*/
+  tm.solvT1            = 0.e0;
+  tm.numeqT1           = 0.e0;
+  tm.dataStructT1      = 0.e0;
+  tm.CellPloadT1       = 0.e0;
+  tm.CellTransientT1   = 0.e0;
+  tm.systFormT1        = 0.e0;
+  tm.rcGradT1          = 0.e0;
+  tm.solvEdpT1         = 0.e0;
 /*... Blas*/
   tm.matVecOverHeadMpi = 0.e0;
   tm.matVecSparse      = 0.e0;
@@ -121,6 +135,7 @@ int main(int argc,char**argv){
   tm.dotOverHeadMpi    = 0.e0;
 /*... Iterativos  */
   tm.pcg               = 0.e0;
+  tm.pbicgstab         = 0.e0;
 /*... particionamento*/
   tm.partdMesh         = 0.e0;
   tm.partdMeshCom      = 0.e0;
@@ -151,17 +166,23 @@ int main(int argc,char**argv){
   ERRO_MALLOC(mesh0,"mesh0",__LINE__,__FILE__,__func__);
 
 /*... tecnica padrao de resconstrucao de gradiente*/
-  sc.rcGrad = RCGRADGAUSSN; 
-  sc.nlD1.maxIt   = 100; 
-  sc.nlD1.tol     = 1.e-6; 
-/* ..................................................................*/
+  sc.rcGrad = RCGRADGAUSSN;
+/*... D1,T1 */ 
+  sc.nlD1.maxIt   = sc.nlT1.maxIt =   100; 
+  sc.nlD1.tol     = sc.nlT1.tol   = 1.e-6; 
+/*...................................................................*/
+
+/*...*/
+  sc.advT1.base = FBASE;
+  sc.advT1.iCod = VANLEERFACE;
+/*...................................................................*/
 
 /*...*/  
   sc.ddt.flag     = false;
   sc.ddt.dt       = 1.e0;
   sc.ddt.total    = 1.e0;
   sc.ddt.timeStep = 1;
-/* ..................................................................*/
+/*...................................................................*/
 
 /*...*/  
   reordMesh = (Reord*) malloc(sizeof(Reord));
@@ -293,7 +314,7 @@ int main(int argc,char**argv){
         comunicateMesh(&m
                       ,mesh0     ,mesh
                       ,pMesh
-                      ,loadsD1);
+                      ,loadsD1   ,loadsT1);
         tm.partdMeshCom = getTimeC() - tm.partdMeshCom;
 /*...................................................................*/
 
@@ -442,18 +463,25 @@ int main(int argc,char**argv){
       fileLog = openFile(nameOut,"w");
       writeLog(*mesh     ,sc
               ,solvD1    ,sistEqD1
+              ,solvT1    ,sistEqT1
               ,tm       
-              ,solvD1         
-              ,nameIn   ,fileLog);
+              ,fSolvD1   ,fSolvT1     
+              ,nameIn    ,fileLog);
       fclose(fileLog);
 /*...................................................................*/
 
 /*... fechando o arquivo log pcg D1*/
       if(fSolvD1 && solvD1->log && !mpiVar.myId)  
         fclose(solvD1->fileSolv);
+/*... fechando o arquivo log pcg T1*/
+      if(fSolvT1 && solvT1->log && !mpiVar.myId)  
+        fclose(solvT1->fileSolv);
 /*... fechando o arquivo log nao linear D1*/      
       if(fSolvD1 && opt.fItPlot && !mpiVar.myId)  
         fclose(opt.fileItPlot[FITPLOTD1]);
+/*... fechando o arquivo log nao linear T1*/      
+      if(fSolvT1 && opt.fItPlot && !mpiVar.myId)  
+        fclose(opt.fileItPlot[FITPLOTT1]);
       finalizeMem(&m,false);
       macroFlag = false;
     }    
@@ -489,10 +517,12 @@ int main(int argc,char**argv){
                ,mesh0->elm.nen           ,mesh0->elm.geomType
                ,mesh0->elm.material.prop ,mesh0->elm.material.type 
                ,mesh0->elm.faceRd1       ,mesh0->elm.faceLoadD1
+               ,mesh0->elm.faceRt1       ,mesh0->elm.faceLoadT1
                ,mesh0->nnode             ,mesh0->numel    
                ,mesh0->ndm               
                ,mesh0->maxNo             ,mesh0->maxViz
-               ,mesh0->numat             ,mesh0->ndfD    
+               ,mesh0->numat             
+               ,mesh0->ndfD              ,mesh0->ndfT 
                ,nameOut                  ,opt.bVtk             
                ,fileOut);  
 /*... face com cargas*/
@@ -501,8 +531,10 @@ int main(int argc,char**argv){
              ,mesh0->elm.node          ,mesh0->elm.nen      
              ,mesh0->elm.geomType
              ,mesh0->elm.faceRd1       ,mesh0->elm.faceLoadD1
+             ,mesh0->elm.faceRt1       ,mesh0->elm.faceLoadT1
              ,mesh0->nnode             ,mesh0->numel    
-             ,mesh0->ndm               ,mesh0->ndfD[0]
+             ,mesh0->ndm               
+             ,mesh0->ndfD[0]           ,mesh0->ndfT[0]
              ,mesh0->maxViz            ,mesh0->maxNo
              ,nameOut                  ,opt.bVtk             
              ,fileOut);  
@@ -532,9 +564,39 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: presolvd : problema de difusao pura
+ * macro: pcoo : escreve a matriz de coeficientes no formato COO
  *===================================================================*/
     else if((!strcmp(word,macro[5]))){
+      if( mpiVar.nPrcs == 1 ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+      
+        fName(preName,0,0,12,&nameOut);
+/*... matriz A*/
+        writeCoo(&m,sistEqD1->ia,sistEqD1->ja,sistEqD1->neq
+                ,sistEqD1->au   ,sistEqD1->ad,sistEqD1->al        
+                ,sistEqD1->nad  ,sistEqD1->storage
+                ,sistEqD1->unsym,false 
+                ,nameOut);
+/*...................................................................*/
+
+/*... vetor de forcas b*/      
+        fName(preName,0,0,14,&nameOut);
+        for(int i=0;i<sistEqD1->neq;i++)
+          sistEqD1->b[i] /= sistEqD1->ad[i];
+
+        writeCooB(sistEqD1->b,sistEqD1->neq,nameOut);
+/*...................................................................*/
+        printf("%s\n\n",DIF);
+      }
+    }   
+/*===================================================================*/
+
+
+/*===================================================================*
+ * macro: presolvd1 : problema de difusao pura
+ *===================================================================*/
+    else if((!strcmp(word,macro[6]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -719,16 +781,189 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: solvd : problema de difusao pura
+ * macro: presolvt1 : problema de transporte  
  *===================================================================*/
-    else if((!strcmp(word,macro[6]))){
+    else if((!strcmp(word,macro[7]))){
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+      }
+      
+
+/*... inicializando a estrutura de equacoes do problema*/
+      solvT1 = (Solv*) malloc(sizeof(Solv));
+      if(solvT1 == NULL){
+        printf("Erro ponteiro solvT1\n");
+        exit(EXIT_FAILURE);
+      }
+      fSolvT1          = true;
+      solvT1->solver   = PBICGSTAB;
+      solvT1->tol      = smachn();
+      solvT1->maxIt    = 50000;    
+      solvT1->fileSolv = NULL;
+      solvT1->log      = true;
+      solvT1->flag     = true;
+/*...................................................................*/
+
+/*...*/
+      if(solvT1->log && !mpiVar.myId){  
+        strcpy(auxName,preName);
+        strcat(auxName,"_pcg_T1");
+        fName(auxName,mpiVar.nPrcs,0,11,&nameOut);
+        solvT1->fileSolv = openFile(nameOut,"w");
+      }
+/*...................................................................*/
+
+/*...*/
+      if(opt.fItPlot && !mpiVar.myId){  
+        strcpy(auxName,preName);
+        strcat(auxName,"_T1");
+        fName(auxName,mpiVar.nPrcs,0,10,&nameOut);
+        opt.fileItPlot[FITPLOTT1] = openFile(nameOut,"w");
+        fprintf(opt.fileItPlot[FITPLOTT1]
+               ,"#T1\n#it ||b||/||b0|| ||b||\n");
+      }
+/*...................................................................*/
+
+/*... inicializa a estrutura do solver*/
+      sistEqT1 = (SistEq*) malloc(sizeof(SistEq));
+      if(sistEqT1 == NULL){
+        printf("Erro ponteiro sistEqT1\n");
+        exit(EXIT_FAILURE);
+      }
+      sistEqT1->storage = CSRD;
+      sistEqT1->unsym   = true; 
+/*...................................................................*/
+
+/*... config*/
+      readMacro(fileIn,word,false);
+      if(!strcmp(word,"config:")){
+/*... solver*/        
+        readMacro(fileIn,word,false);
+        setSolver(word,&solvT1->solver); 
+        
+/*... DataStruct*/    
+        readMacro(fileIn,word,false);
+        setDataStruct(word,&sistEqT1->storage); 
+
+/*... */        
+        fscanf(fileIn,"%u" ,&solvT1->maxIt);
+        fscanf(fileIn,"%lf",&solvT1->tol);
+
+        if( solvT1->tol == 0.e0) 
+          solvT1->tol = smachn();
+
+        if(!mpiVar.myId ) printf("MaxIt     : %d\n",solvT1->maxIt);
+        if(!mpiVar.myId ) printf("Tol       : %e\n",solvT1->tol);
+      
+        if(solvT1->solver == PBICGSTAB && !mpiVar.myId ){     
+          printf("Solver    : PBICGSTAB\n");
+        }
+
+        if(sistEqT1->storage == CSRD && !mpiVar.myId ){     
+          printf("DataStruct: CSRD\n");
+        }
+        else if(sistEqT1->storage == ELLPACK && !mpiVar.myId ){     
+          printf("DataStruct: ELLPACK\n");
+        }
+        
+        else if(sistEqT1->storage == CSRDCOO && !mpiVar.myId ){     
+          printf("DataStruct: CSRDCOO\n");
+        }
+        
+      }
+/*...................................................................*/
+
+/*... numeracao das equacoes*/
+      HccaAlloc(INT,&m,sistEqT1->id
+               ,mesh->numel*mesh->ndfT[0]
+               ,"sistT1id",_AD_);
+      if(!mpiVar.myId){
+        printf("%s\n",DIF);
+        printf("Numerando as equacoes.\n");
+      }
+      tm.numeqT1 = getTimeC() - tm.numeqT1;
+      sistEqT1->neq = numeq(sistEqT1->id       ,reordMesh->num
+                           ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
+                           ,mesh->numel        ,mesh->maxViz
+                           ,mesh->ndfT[0]);
+      tm.numeqT1 = getTimeC() - tm.numeqT1;
+      if(!mpiVar.myId){
+        printf("Equacoes numeradas.\n");
+        printf("%s\n",DIF);
+      }
+/*...................................................................*/
+
+/*...*/
+      if( mpiVar.nPrcs > 1) {      
+        tm.numeqT1 = getTimeC() - tm.numeqT1;
+        sistEqT1->neqNov = countEq(reordMesh->num
+                            ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
+                            ,mesh->numelNov     ,mesh->maxViz
+                            ,mesh->ndfT[0]);
+        tm.numeqT1 = getTimeC() - tm.numeqT1;
+      }
+      else{
+        sistEqT1->neqNov = sistEqT1->neq;
+      }
+/*...................................................................*/
+
+/*...*/
+      HccaAlloc(DOUBLE                   ,&m        ,sistEqT1->b0
+               ,sistEqT1->neq                  ,"sistT1b0",_AD_);
+      HccaAlloc(DOUBLE                   ,&m        ,sistEqT1->b 
+               ,sistEqT1->neq                 ,"sistT1b ",_AD_);
+      HccaAlloc(DOUBLE                   ,&m        ,sistEqT1->x 
+               ,sistEqT1->neq            ,"sistT1x ",_AD_);
+      zero(sistEqT1->b0,sistEqT1->neq    ,DOUBLEC);
+      zero(sistEqT1->b ,sistEqT1->neq    ,DOUBLEC);
+      zero(sistEqT1->x ,sistEqT1->neq    ,DOUBLEC);
+/*...................................................................*/
+
+/*... Estrutura de Dados*/
+      strcpy(strIa,"iaT1");
+      strcpy(strJa,"jaT1");
+      strcpy(strAd,"adT1");
+      strcpy(strA ,"aT1");
+      if(!mpiVar.myId) printf("Montagem da estrura de dados esparsa.\n");
+      tm.dataStructT1 = getTimeC() - tm.dataStructT1 ;
+      dataStruct(&m,sistEqT1->id   ,reordMesh->num,mesh->elm.adj.nelcon
+                ,mesh->elm.adj.nViz,mesh->numelNov,mesh->maxViz
+                ,mesh->ndfT[0]     ,strIa         ,strJa
+                ,strAd             ,strA          ,sistEqT1);
+      tm.dataStructT1 = getTimeC() - tm.dataStructT1 ;
+      if(!mpiVar.myId) printf("Estrutuda montada.\n");
+/*...................................................................*/
+
+
+/*... mapa de equacoes para comunicacao*/
+      if( mpiVar.nPrcs > 1) {    
+        front(&m,pMesh,sistEqT1,mesh->ndfT[0]);  
+      } 
+/*...................................................................*/
+
+/*... informacao da memoria total usada*/
+      if(!mpiVar.myId  ) {
+        strcpy(str,"MB");
+        memoriaTotal(str);
+        usoMemoria(&m,str);
+      }
+/*...................................................................*/
+      if(!mpiVar.myId  ) printf("%s\n\n",DIF);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: solvd1: problema de difusao pura
+ *===================================================================*/
+    else if((!strcmp(word,macro[9]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
         printf("%s\n",DIF);
       }
       mpiWait();
-      tm.solvEdoD1    = getTimeC() - tm.solvEdoD1;
+      tm.solvEdpD1    = getTimeC() - tm.solvEdpD1;
 /*...*/
       if(solvD1 == NULL){
         printf("Estrutara de dados nao montada para o solvD1!!!\n");
@@ -745,45 +980,16 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-     tm.solvEdoD1    = getTimeC() - tm.solvEdoD1;
+     tm.solvEdpD1    = getTimeC() - tm.solvEdpD1;
 /*...................................................................*/
      if(!mpiVar.myId ) printf("%s\n\n",DIF);
     }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: pcoo : escreve a matriz de coeficientes no formato COO
- *===================================================================*/
-    else if((!strcmp(word,macro[7]))){
-      if( mpiVar.nPrcs == 1 ){
-        printf("%s\n",DIF);
-        printf("%s\n",word);
-      
-        fName(preName,0,0,12,&nameOut);
-/*... matriz A*/
-        writeCoo(&m,sistEqD1->ia,sistEqD1->ja,sistEqD1->neq
-                ,sistEqD1->au   ,sistEqD1->ad,sistEqD1->al        
-                ,sistEqD1->nad  ,sistEqD1->storage
-                ,sistEqD1->unsym,false 
-                ,nameOut);
-/*...................................................................*/
-
-/*... vetor de forcas b*/      
-        fName(preName,0,0,14,&nameOut);
-        for(int i=0;i<sistEqD1->neq;i++)
-          sistEqD1->b[i] /= sistEqD1->ad[i];
-
-        writeCooB(sistEqD1->b,sistEqD1->neq,nameOut);
-/*...................................................................*/
-        printf("%s\n\n",DIF);
-      }
-    }   
-/*===================================================================*/
-
-/*===================================================================*
  * macro: puD1 : escreve os arquivos dos resultados da uD1          
  *===================================================================*/
-    else if((!strcmp(word,macro[8]))){
+    else if((!strcmp(word,macro[11]))){
 /*... reconstruindo do gradiente*/
       tm.rcGradD1 = getTimeC() - tm.rcGradD1;
       rcGradU(&m                      ,loadsD1
@@ -898,7 +1104,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: nlItD1: configura das iteracoes nao lineares             
  *===================================================================*/
-    else if((!strcmp(word,macro[9]))){
+    else if((!strcmp(word,macro[12]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -918,7 +1124,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: pD1CellCsv:imprime os resultados no formato csv                  
  *===================================================================*/
-    else if((!strcmp(word,macro[10]))){
+    else if((!strcmp(word,macro[13]))){
 /*... globalizacao das variaveis*/
 /*... uD1(Cel)*/
       dGlobalCel(&m                  ,pMesh
@@ -957,7 +1163,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: pD1CsvNode:imprime os resultados no formato csv                  
  *===================================================================*/
-    else if((!strcmp(word,macro[11]))){
+    else if((!strcmp(word,macro[14]))){
 /*... globalizacao das variaveis*/
 /*... uD1(Node)*/
       dGlobalNode(&m                 ,pMesh
@@ -994,9 +1200,285 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
+ * macro: solvt1: problema de transporte  
+ *===================================================================*/
+    else if((!strcmp(word,macro[15]))){
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+        printf("%s\n",DIF);
+      }
+      mpiWait();
+      tm.solvEdpT1    = getTimeC() - tm.solvEdpT1;
+/*...*/
+      if(solvT1 == NULL){
+        printf("Estrutara de dados nao montada para o solvT1!!!\n");
+        exit(EXIT_FAILURE);
+      }
+/*...................................................................*/
+     
+/*...*/
+      transport(&m         ,loadsT1
+               ,mesh0      ,mesh           ,sistEqT1
+               ,solvT1     ,sc             ,pMesh
+               ,opt        ,preName        ,nameOut
+               ,fileOut);
+/*...................................................................*/
+
+/*...*/
+     tm.solvEdpT1    = getTimeC() - tm.solvEdpT1;
+/*...................................................................*/
+     if(!mpiVar.myId ) printf("%s\n\n",DIF);
+    }
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: puT1 : escreve os arquivos dos resultados da uT1          
+ *===================================================================*/
+    else if((!strcmp(word,macro[17]))){
+/*... reconstruindo do gradiente*/
+      tm.rcGradT1 = getTimeC() - tm.rcGradT1;
+      rcGradU(&m                      ,loadsT1
+             ,mesh->elm.node          ,mesh->elm.adj.nelcon
+             ,mesh->elm.geom.cc       ,mesh->node.x   
+             ,mesh->elm.nen           ,mesh->elm.adj.nViz 
+             ,mesh->elm.geomType      ,mesh->elm.material.prop 
+             ,mesh->elm.mat 
+             ,mesh->elm.leastSquare   ,mesh->elm.leastSquareR
+             ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
+             ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
+             ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
+             ,mesh->elm.geom.vSkew     
+             ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
+             ,mesh->elm.geom.dcca
+             ,mesh->elm.faceRt1       ,mesh->elm.faceLoadT1    
+             ,mesh->elm.uT1           ,mesh->elm.gradUt1                 
+             ,mesh->node.uT1          ,sc.rcGrad
+             ,mesh->maxNo             ,mesh->maxViz
+             ,mesh->ndfT[0]           ,mesh->ndm       
+             ,&pMesh->iNo             ,&pMesh->iEl  
+             ,mesh->numelNov          ,mesh->numel        
+             ,mesh->nnodeNov          ,mesh->nnode);  
+      tm.rcGradT1 = getTimeC() - tm.rcGradT1;
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (Grad)*/
+      interCellNode(&m                   ,loadsT1
+                     ,mesh->node.gradUt1 ,mesh->elm.gradUt1 
+                     ,mesh->elm.node     ,mesh->elm.geomType            
+                     ,mesh->elm.geom.cc  ,mesh->node.x  
+                     ,mesh->elm.geom.xm
+                     ,mesh->elm.nen      ,mesh->elm.adj.nViz
+                     ,mesh->elm.faceRt1  ,mesh->elm.faceLoadT1  
+                     ,&pMesh->iNo          
+                     ,mesh->numelNov     ,mesh->numel        
+                     ,mesh->nnodeNov     ,mesh->nnode 
+                     ,mesh->maxNo        ,mesh->maxViz   
+                     ,mesh->ndm          ,1
+                     ,mesh->ndm      
+                     ,false              ,2);
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (vel)*/
+      interCellNode(&m                   ,loadsT1
+                   ,mesh->node.vel     ,mesh->elm.vel        
+                   ,mesh->elm.node     ,mesh->elm.geomType            
+                   ,mesh->elm.geom.cc  ,mesh->node.x  
+                   ,mesh->elm.geom.xm
+                   ,mesh->elm.nen      ,mesh->elm.adj.nViz
+                   ,mesh->elm.faceRt1  ,mesh->elm.faceLoadT1  
+                   ,&pMesh->iNo          
+                   ,mesh->numelNov     ,mesh->numel        
+                   ,mesh->nnodeNov     ,mesh->nnode 
+                   ,mesh->maxNo        ,mesh->maxViz   
+                   ,mesh->ndm          ,1
+                   ,mesh->ndm      
+                   ,false              ,2);
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (uT1)*/
+      interCellNode(&m                 ,loadsT1
+                    ,mesh->node.uT1    ,mesh->elm.uT1 
+                    ,mesh->elm.node    ,mesh->elm.geomType
+                    ,mesh->elm.geom.cc ,mesh->node.x
+                    ,mesh->elm.geom.xm                  
+                    ,mesh->elm.nen     ,mesh->elm.adj.nViz
+                    ,mesh->elm.faceRt1 ,mesh->elm.faceLoadT1   
+                    ,&pMesh->iNo          
+                    ,mesh->numelNov    ,mesh->numel        
+                    ,mesh->nnodeNov    ,mesh->nnode 
+                    ,mesh->maxNo       ,mesh->maxViz 
+                    ,mesh->ndfT[0]     ,1 
+                    ,mesh->ndm
+                    ,true              ,2);
+/*...................................................................*/
+
+/*... globalizacao das variaveis*/
+/*... uT1(Node)*/
+      dGlobalNode(&m                 ,pMesh
+                 ,mesh0->node.uT1    ,mesh->node.uT1     
+                 ,mesh->ndfT[0]      ,1               );
+          
+/*... gradUt1(Node)*/
+      dGlobalNode(&m                 ,pMesh
+                 ,mesh0->node.gradUt1,mesh->node.gradUt1     
+                 ,mesh->ndm          ,1               );
+/*... vel(Node)*/
+      dGlobalNode(&m                 ,pMesh
+                 ,mesh0->node.vel    ,mesh->node.vel         
+                 ,mesh->ndm          ,1               );
+/*... uT1(Cel)*/
+      dGlobalCel(&m                  ,pMesh
+                ,mesh0->elm.uT1      ,mesh->elm.uT1
+                ,mesh->numelNov 
+                ,mesh->ndfT[0]      ,1);
+/*... gradUt1(Cel)*/
+      dGlobalCel(&m                  ,pMesh
+                ,mesh0->elm.gradUt1  ,mesh->elm.gradUt1
+                ,mesh->numelNov 
+                ,mesh->ndm           ,1);
+/*... vel(Cel)*/
+      dGlobalCel(&m                  ,pMesh
+                ,mesh0->elm.vel      ,mesh->elm.vel       
+                ,mesh->numelNov 
+                ,mesh->ndm           ,1);
+/*...................................................................*/
+
+/*...*/
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+        fName(preName,sc.ddt.timeStep,0,20,&nameOut);
+
+        strcpy(str1,"elT1");
+        strcpy(str2,"noT1");
+        strcpy(str3,"elGradT1");
+        strcpy(str4,"noGradT1");
+        strcpy(str5,"elVel");
+        strcpy(str6,"noVel");
+/*...*/
+        wResVtkTrans(&m                 ,mesh0->node.x      
+                    ,mesh0->elm.node    ,mesh0->elm.mat    
+                    ,mesh0->elm.nen     ,mesh0->elm.geomType
+                    ,mesh0->elm.uT1     ,mesh0->node.uT1 
+                    ,mesh0->elm.gradUt1 ,mesh0->node.gradUt1  
+                    ,mesh0->elm.vel     ,mesh0->node.vel      
+                    ,mesh0->nnode       ,mesh0->numel  
+                    ,mesh0->ndm         ,mesh0->maxNo 
+                    ,mesh0->numat       ,mesh0->ndfT[0]
+                    ,str1               ,str2         
+                    ,str3               ,str4         
+                    ,str5               ,str6         
+                    ,nameOut            ,opt.bVtk    
+                    ,sc.ddt             ,fileOut);
+/*...................................................................*/
+        printf("%s\n\n",DIF);
+      }
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: nlItT1: configura das iteracoes nao lineares             
+ *===================================================================*/
+    else if((!strcmp(word,macro[18]))){
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+      }
+      fscanf(fileIn,"%d",&sc.nlT1.maxIt);
+      fscanf(fileIn,"%lf",&sc.nlT1.tol);
+      if(!mpiVar.myId ){
+        printf("MaxIt: %d\n",sc.nlT1.maxIt);
+        printf("Tol  : %e\n",sc.nlT1.tol);
+      }
+      readMacro(fileIn,word,false);
+/*...................................................................*/
+      if(!mpiVar.myId ) printf("%s\n\n",DIF);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: pT1CellCsv:imprime os resultados no formato csv                  
+ *===================================================================*/
+    else if((!strcmp(word,macro[19]))){
+/*... globalizacao das variaveis*/
+/*... uT1(Cel)*/
+      dGlobalCel(&m                  ,pMesh
+                ,mesh0->elm.uT1      ,mesh->elm.uT1
+                ,mesh->numelNov 
+                ,mesh->ndfT[0]      ,1);
+/*... gradUt1(Cel)*/
+      dGlobalCel(&m                  ,pMesh
+                ,mesh0->elm.gradUt1  ,mesh->elm.gradUt1
+                ,mesh->numelNov 
+                ,mesh->ndm           ,1);
+        
+/*...*/
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+      
+/*...*/
+        strcpy(auxName,preName);
+        strcat(auxName,"_T1_cell_");
+        fName(auxName,sc.ddt.timeStep,0,16,&nameOut);
+        fileOut = openFile(nameOut,"w");
+/*...*/
+        writeCsvCell(mesh0->elm.uT1    ,mesh0->elm.gradUt1
+                    ,mesh0->elm.geom.cc                  
+                    ,mesh0->numel      ,mesh0->ndfT[0]
+                    ,mesh0->ndm        ,fileOut);
+/*...*/
+        fclose(fileOut);
+/*...................................................................*/
+        printf("%s\n\n",DIF);
+      }
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: pT1CsvNode:imprime os resultados no formato csv                  
+ *===================================================================*/
+    else if((!strcmp(word,macro[14]))){
+/*... globalizacao das variaveis*/
+/*... uT1(Node)*/
+      dGlobalNode(&m                 ,pMesh
+                 ,mesh0->node.uT1    ,mesh->node.uT1     
+                 ,mesh->ndfT[0]      ,1               );
+          
+/*... gradUd1(Node)*/
+      dGlobalNode(&m                 ,pMesh
+                 ,mesh0->node.gradUd1,mesh->node.gradUd1     
+                 ,mesh->ndm          ,1               );
+
+/*...................................................................*/
+
+/*...*/
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+/*...*/
+        strcpy(auxName,preName);
+        strcat(auxName,"_T1_node_");
+        fName(auxName,sc.ddt.timeStep,0,16,&nameOut);
+        fileOut = openFile(nameOut,"w");
+/*...*/
+        writeCsvNode(mesh0->node.uT1    ,mesh0->node.gradUt1
+                  ,mesh0->node.x                  
+                  ,mesh0->nnode         ,mesh0->ndfT[0]
+                  ,mesh0->ndm           ,fileOut);
+/*...*/
+        fclose(fileOut);
+/*...................................................................*/
+        printf("%s\n\n",DIF);
+      }
+    }   
+/*===================================================================*/
+
+/*===================================================================*
  * macro: transient:configuracao da discretizacao temporal                 
  *===================================================================*/
-    else if((!strcmp(word,macro[12]))){
+    else if((!strcmp(word,macro[21]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -1046,7 +1528,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: timeUpdate : macro de atualizaco do tempo                       
  *===================================================================*/
-    else if((!strcmp(word,macro[13]))){
+    else if((!strcmp(word,macro[22]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -1058,7 +1540,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
       
 /*...*/
-      if(sc.ddt.t > sc.ddt.total)
+      if(sc.ddt.t > sc.ddt.total+ 0.5e0*sc.ddt.dt)
         flWord = false;
 /*...................................................................*/
       
@@ -1075,7 +1557,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: partd particionamento da malha                                   
  *===================================================================*/
-    else if((!strcmp(word,macro[14]))){
+    else if((!strcmp(word,macro[23]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -1099,8 +1581,45 @@ int main(int argc,char**argv){
         }
       }
 /*...................................................................*/
-/*...................................................................*/
        if(!mpiVar.myId ) printf("%s\n",DIF);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: advection tecnica aplicada no termo advectivo          
+ *===================================================================*/
+    else if((!strcmp(word,macro[24]))){
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+      }
+/*... base na limataca de fluxo*/        
+      readMacro(fileIn,word,false);
+/*... limiado por face*/
+      if(!strcmp(word,"fBase")){ 
+        sc.advT1.base = FBASE;
+        if(!mpiVar.myId ) printf("advT1 : fBase\n");
+      }
+
+/*... codigo da da funcao limitadora de fluxo*/        
+      readMacro(fileIn,word,false);
+      setFaceBase(word,&sc.advT1.iCod);
+/*...................................................................*/
+      if(!mpiVar.myId ) printf("%s\n",DIF);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: edo equacoes diferencias resolvidas                    
+ *===================================================================*/
+    else if((!strcmp(word,macro[25]))){
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+      }
+      readEdo(mesh0,fileIn);
+/*...................................................................*/
+      if(!mpiVar.myId ) printf("%s\n",DIF);
     }   
 /*===================================================================*/
   }while(macroFlag && (!feof(fileIn)));

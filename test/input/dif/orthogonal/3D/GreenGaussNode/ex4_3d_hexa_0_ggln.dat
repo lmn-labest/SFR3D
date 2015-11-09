@@ -1,8 +1,11 @@
 config
 reord true bvtk false mem 400 rcGrad ggln fItPlotRes true fItPlot true
 endConfig
+edp
+diffusion1 1
+endEdp
 mesh
-nnode 1331 numel  1000  ndm 3 maxno 8 numat 1 ndf 1 maxviz 6 
+nnode 1331 numel  1000  ndm 3 maxno 8 numat 1 maxviz 6 
 materials
 1 1 2.0 
 endMaterials

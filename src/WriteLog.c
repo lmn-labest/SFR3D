@@ -11,11 +11,12 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void writeLog(Mesh mesh    ,Scheme sc
-             ,Solv *solvD1 ,SistEq *sistEqD1
+void writeLog(Mesh mesh         ,Scheme sc
+             ,Solv *solvD1      ,SistEq *sistEqD1
+             ,Solv *solvT1      ,SistEq *sistEqT1
              ,Time t
-             ,bool const fSolvD1
-             ,char *nameIn,FILE *file){
+             ,bool const fSolvD1,bool const fSolvT1
+             ,char *nameIn      ,FILE *file){
 
   
   fprintf(file,"Log do execucao : %s\n\n",nameIn); 
@@ -43,6 +44,7 @@ void writeLog(Mesh mesh    ,Scheme sc
 
 /*... Solver*/
   fprintf(file,"Pcg             : %lf\n",t.pcg);
+  fprintf(file,"Pbicgstab       : %lf\n",t.pbicgstab);
   fprintf(file,"precondDiag     : %lf\n",t.precondDiag);
 
 /*... particionamento*/
@@ -69,7 +71,20 @@ void writeLog(Mesh mesh    ,Scheme sc
     fprintf(file,"CellTransientD1 : %lf\n",t.CellTransientD1);
     fprintf(file,"systFormD1      : %lf\n",t.systFormD1);
     fprintf(file,"rcGradD1        : %lf\n",t.rcGradD1);
-    fprintf(file,"solvEdoD1       : %lf\n",t.solvEdoD1);
+    fprintf(file,"solvEdpD1       : %lf\n",t.solvEdpD1);
+  }
+/*...................................................................*/
+
+/*... solvT1*/
+  if(fSolvT1){
+    fprintf(file,"SolvT1          : %lf\n",t.solvT1);
+    fprintf(file,"numeqT1         : %lf\n",t.numeqT1);
+    fprintf(file,"dataStructT1    : %lf\n",t.dataStructT1);
+    fprintf(file,"CellPloadT1     : %lf\n",t.CellPloadT1);
+    fprintf(file,"CellTransientT1 : %lf\n",t.CellTransientT1);
+    fprintf(file,"systFormT1      : %lf\n",t.systFormT1);
+    fprintf(file,"rcGradT1        : %lf\n",t.rcGradT1);
+    fprintf(file,"solvEdpT1       : %lf\n",t.solvEdpT1);
   }
 /*...................................................................*/
   
@@ -123,6 +138,46 @@ void writeLog(Mesh mesh    ,Scheme sc
     else if(solvD1->solver == PBICGSTAB )
       fprintf(file,"Iterativo       : PBICGSTAB\n");
   }
+/*...................................................................*/
+
+/*...*/
+  if(fSolvT1){
+    fprintf(file,"\nSistema T1:\n");
+/*... tecnica de armazenamento*/
+    if(sistEqT1->storage == CSR)
+      fprintf(file,"Armazenamento   : CSR\n");
+    else if(sistEqT1->storage == CSRD)
+      fprintf(file,"Armazenamento   : CSRD\n");
+    else if(sistEqT1->storage == CSRC)
+      fprintf(file,"Armazenamento   : CSRC\n");
+    else if(sistEqT1->storage == ELLPACK)
+      fprintf(file,"Armazenamento   : ELLPACK\n");
+    else if(sistEqT1->storage == CSRDCOO)
+      fprintf(file,"Armazenamento   : CSRDCOO\n");
+    fprintf(file,"nEq             : %d\n",sistEqT1->neq);
+    if(mpiVar.nPrcs > 1)
+      fprintf(file,"nEqNov          : %d\n",sistEqT1->neqNov);
+/*... ELLPACK*/
+    if(sistEqT1->storage == ELLPACK){
+      fprintf(file,"nAd             : %d\n",sistEqT1->nad);
+      fprintf(file,"nAd Overhead    : %d\n",sistEqT1->neq*mesh.maxViz);
+    }
+/*... CSRD*/
+    else{
+      fprintf(file,"band Min        : %d\n",sistEqT1->bandCsr[BANDCSRMIN]);
+      fprintf(file,"band Max        : %d\n",sistEqT1->bandCsr[BANDCSRMAX]);
+      fprintf(file,"band Med        : %d\n",sistEqT1->bandCsr[BANDCSRMED]);
+      fprintf(file,"nAd             : %d\n",sistEqT1->nad);
+      if(mpiVar.nPrcs > 1)
+        fprintf(file,"nAdR            : %d\n",sistEqT1->nadr);
+    }
+/*...................................................................*/
+    fprintf(file,"tol             : %e\n",solvT1->tol);
+/*... tenica de armazenamento*/
+    if(solvT1->solver == PBICGSTAB )
+      fprintf(file,"Iterativo       : PBICGSTAB\n");
+  }
+/*...................................................................*/
 
 }
 /*********************************************************************/ 

@@ -1106,6 +1106,7 @@ void iMakeBufferNod(INT *restrict x       ,INT *restrict xb
  * mesh    -> nao definido                                           *
  * pMesh   -> particionamento                                        *
  * loadsD1 -> cargas nas faces (D1)                                  *
+ * loadsT1 -> cargas nas faces (T1)                                  *
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
@@ -1118,7 +1119,7 @@ void iMakeBufferNod(INT *restrict x       ,INT *restrict xb
 void comunicateMesh(Memoria *m
                    ,Mesh *mesh0     ,Mesh *mesh
                    ,PartMesh *pMesh 
-                   ,Loads *loadsD1) 
+                   ,Loads *loadsD1  ,Loads *loadsT1) 
 {
 
 #ifdef _MPICH_
@@ -1138,8 +1139,18 @@ void comunicateMesh(Memoria *m
   unsigned short nPart,nVizPart,nVizPartNo;
   unsigned nPrcs=mpiVar.nPrcs,myId=mpiVar.myId; 
   short st=0;
-  short ndm,maxViz,maxNo,numat,ndfD[MAX_DIF_EQ];
+  short ndm,maxViz,maxNo,numat;
+  short ndfD[MAX_DIF_EQ],ndfT[MAX_TRANS_EQ],ndfF;
+  short maxNdf;
 
+/*...*/
+  ndfF = 0;
+  for(i=0;i<MAX_TRANS_EQ;i++)
+    ndfT[i]  = 0;
+  for(i=0;i<MAX_DIF_EQ;i++)
+    ndfD[i]  = 0;
+/*...................................................................*/
+  
 /*... alocando varaivel auxiliar*/  
   if(!myId){
 
@@ -1233,10 +1244,19 @@ void comunicateMesh(Memoria *m
   MPI_Bcast(&mesh->ndfD  ,MAX_DIF_EQ  ,MPI_SHORT,0,mpiVar.comm);
   MPI_Bcast(&mesh->ndfD  ,MAX_DIF_EQ  ,MPI_SHORT,0,mpiVar.comm);
 /*... loadsD1*/
-  for(i=0;i<MAXLOAD1;i++){
+  for(i=0;i<MAXLOADD1;i++){
     MPI_Bcast(&loadsD1[i].type  ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&loadsD1[i].np    ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&loadsD1[i].par   ,MAXLOADPARAMETER ,MPI_DOUBLE
+              ,0,mpiVar.comm);
+  }
+/*...................................................................*/
+
+/*... loadsT1*/
+  for(i=0;i<MAXLOADT1;i++){
+    MPI_Bcast(&loadsT1[i].type  ,1 ,MPI_SHORT,0,mpiVar.comm);
+    MPI_Bcast(&loadsT1[i].np    ,1 ,MPI_SHORT,0,mpiVar.comm);
+    MPI_Bcast(&loadsT1[i].par   ,MAXLOADPARAMETER ,MPI_DOUBLE
               ,0,mpiVar.comm);
   }
 /*...................................................................*/
@@ -1246,6 +1266,8 @@ void comunicateMesh(Memoria *m
   maxViz = mesh->maxViz;
   maxNo  = mesh->maxNo;
   numat  = mesh->numat;
+  for(i=0;i<MAX_TRANS_EQ;i++)
+    ndfT[i]  = mesh->ndfT[i];
   for(i=0;i<MAX_DIF_EQ;i++)
     ndfD[i]  = mesh->ndfD[i];
 /*...................................................................*/
@@ -1275,7 +1297,6 @@ void comunicateMesh(Memoria *m
            ,MPI_DOUBLE,0,mpiVar.comm);
   MPI_Bcast(mesh->elm.material.type ,numat        
            ,MPI_SHORT,0,mpiVar.comm);
-  
 
 /*... dividindo a malha*/
   for(nPart=0;nPart<nPrcs;nPart++){
@@ -1559,6 +1580,30 @@ void comunicateMesh(Memoria *m
         free(nS);  
 /*...................................................................*/
 
+/*... transporte e fluido*/
+        if(ndfT[0] > 0 || ndfF > 0) {     
+/*... eVel*/
+          size = lNel*ndm;
+          nD   = (DOUBLE *) malloc(size*dSize); 
+          ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
+
+          HccaAlloc(DOUBLE,m,mesh->elm.vel      ,size        
+                   ,"eVelP"         ,_AD_);
+          zero(mesh->elm.vel       ,size,DOUBLEC);
+
+          dGetLocalV(mesh0->elm.vel    ,nD
+                    ,elLG
+                    ,lNel              ,ndm); 
+        
+          for(i=0;i<size;i++){
+            mesh->elm.vel[i] = nD[i];
+          }
+
+          free(nD);  
+/*...................................................................*/
+        }
+/*...................................................................*/
+
 /*... faceRd1 locais*/
         if(ndfD[0] > 0){ 
           size = lNel*(maxViz+1)*ndfD[0];
@@ -1653,6 +1698,104 @@ void comunicateMesh(Memoria *m
           for(i=0;i<size;i++)
             mesh->elm.densityUd1[i] = nD[i];
 
+          free(nD);
+/*...................................................................*/
+        }  
+
+/*... faceRt1 locais*/
+        if(ndfT[0] > 0){ 
+          size = lNel*(maxViz+1)*ndfT[0];
+          nS   = (short *) malloc(size*sSize); 
+          ERRO_MALLOC(nS,"nS"   ,__LINE__,__FILE__,__func__);
+
+          HccaAlloc(short,m,mesh->elm.faceRt1  ,size        
+                   ,"faceRt1P"      ,_AD_);
+          zero(mesh->elm.faceRt1   ,size,"short"  );
+
+          sGetLocalV(mesh0->elm.faceRt1,nS
+                    ,elLG
+                    ,lNel              ,(maxViz+1)*ndfT[0]); 
+        
+          for(i=0;i<size;i++){
+            mesh->elm.faceRt1[i] = nS[i];
+          }
+
+          free(nS);  
+/*...................................................................*/
+
+/*... faceLoadsT1 locais*/
+          size = lNel*(maxViz+1)*ndfT[0];
+          nS   = (short *) malloc(size*sSize); 
+          ERRO_MALLOC(nS,"nS"   ,__LINE__,__FILE__,__func__);
+   
+          HccaAlloc(short,m,mesh->elm.faceLoadT1  ,size        
+                   ,"faceLoadsT1P"      ,_AD_);
+          zero(mesh->elm.faceLoadT1   ,size,"short"  );
+  
+          sGetLocalV(mesh0->elm.faceLoadT1,nS
+                    ,elLG
+                    ,lNel              ,(maxViz+1)*ndfT[0]); 
+        
+          for(i=0;i<size;i++)
+            mesh->elm.faceLoadT1[i] = nS[i];
+  
+          free(nS);
+/*...................................................................*/
+
+/*... eU0t1 locais*/
+          size = lNel*ndfT[0];
+          nD   = (DOUBLE *) malloc(size*dSize); 
+          ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
+  
+          HccaAlloc(DOUBLE,m,mesh->elm.u0T1  ,size        
+                   ,"eU0t1P"             ,_AD_);
+          zero(mesh->elm.u0T1            ,size,DOUBLEC);
+   
+          dGetLocalV(mesh0->elm.u0T1   ,nD
+                    ,elLG
+                    ,lNel              ,ndfT[0]); 
+        
+          for(i=0;i<size;i++)
+            mesh->elm.u0T1[i] = nD[i];
+   
+          free(nD);
+/*...................................................................*/
+
+/*... eUt1 locais*/
+          size = lNel*ndfT[0];
+          nD   = (DOUBLE *) malloc(size*dSize); 
+          ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
+  
+          HccaAlloc(DOUBLE,m,mesh->elm.uT1  ,size        
+                   ,"eUt1P"             ,_AD_);
+          zero(mesh->elm.uT1            ,size,DOUBLEC);
+  
+          dGetLocalV(mesh0->elm.uT1    ,nD
+                    ,elLG
+                    ,lNel              ,ndfT[0]); 
+        
+          for(i=0;i<size;i++)
+            mesh->elm.uT1[i] = nD[i];
+  
+          free(nD);
+/*...................................................................*/
+
+/*... density locais*/
+          size = lNel*2;
+          nD   = (DOUBLE *) malloc(size*dSize); 
+          ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
+  
+          HccaAlloc(DOUBLE,m,mesh->elm.densityUt1  ,size        
+                   ,"densityT1P"          ,_AD_);
+          zero(mesh->elm.densityUt1,size,DOUBLEC);
+  
+          dGetLocalV(mesh0->elm.densityUt1   ,nD
+                    ,elLG
+                    ,lNel                    ,2); 
+        
+          for(i=0;i<size;i++)
+            mesh->elm.densityUt1[i] = nD[i];
+  
           free(nD);
 /*...................................................................*/
         }  
@@ -1849,6 +1992,25 @@ void comunicateMesh(Memoria *m
         free(nS);
 /*...................................................................*/
 
+/*... transporte e fluido*/
+        if(ndfT[0] > 0 || ndfF > 0) {     
+/*... eVel*/
+          size = lNel*ndm;
+          nD   = (DOUBLE *) malloc(size*dSize); 
+          ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
+
+          dGetLocalV(mesh0->elm.vel    ,nD
+                    ,elLG
+                    ,lNel              ,ndm); 
+          
+          MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,5    
+                  ,mpiVar.comm);
+        
+          free(nD);  
+/*...................................................................*/
+        }
+/*...................................................................*/
+
 /*... faceRd1 locais*/
         if( ndfD[0] > 0){
           size = lNel*(maxViz+1)*ndfD[0];
@@ -1916,6 +2078,84 @@ void comunicateMesh(Memoria *m
           ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
 
           dGetLocalV(mesh0->elm.densityUd1,nD
+                    ,elLG
+                    ,lNel                 ,2); 
+        
+          MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,9    
+                  ,mpiVar.comm);
+        
+          free(nD);  
+/*...................................................................*/
+        }
+/*...................................................................*/
+
+/*... faceRt1 locais*/
+        if( ndfT[0] > 0){
+          size = lNel*(maxViz+1)*ndfT[0];
+          nS   = (short *) malloc(size*sSize); 
+          ERRO_MALLOC(nS,"nS"   ,__LINE__,__FILE__,__func__);
+
+          sGetLocalV(mesh0->elm.faceRt1,nS
+                    ,elLG
+                    ,lNel               ,(maxViz+1)*ndfT[0]); 
+        
+          MPI_Send(nS    ,       size, MPI_SHORT,nPart,5    
+                  ,mpiVar.comm);
+        
+          free(nS);  
+/*...................................................................*/
+
+/*... faceLoadT1 locais*/
+          size = lNel*(maxViz+1)*ndfT[0];
+          nS   = (short *) malloc(size*sSize); 
+          ERRO_MALLOC(nS,"nS"   ,__LINE__,__FILE__,__func__);
+  
+          sGetLocalV(mesh0->elm.faceLoadT1,nS
+                    ,elLG
+                    ,lNel                ,(maxViz+1)*ndfT[0]); 
+        
+          MPI_Send(nS    ,       size, MPI_SHORT,nPart,6    
+                  ,mpiVar.comm);
+        
+          free(nS);  
+/*...................................................................*/
+
+/*... eU0t1 locais*/
+          size = lNel*ndfT[0];
+          nD   = (DOUBLE *) malloc(size*dSize); 
+          ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
+   
+          dGetLocalV(mesh0->elm.u0T1     ,nD
+                    ,elLG
+                    ,lNel                ,ndfT[0]); 
+        
+          MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,7    
+                  ,mpiVar.comm);
+        
+          free(nD);  
+/*...................................................................*/
+
+/*... eUt1 locais*/
+          size = lNel*ndfT[0];
+          nD   = (DOUBLE *) malloc(size*dSize); 
+          ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
+  
+          dGetLocalV(mesh0->elm.uT1      ,nD
+                    ,elLG
+                    ,lNel                ,ndfT[0]); 
+        
+          MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,8    
+                  ,mpiVar.comm);
+        
+          free(nD);  
+/*...................................................................*/
+
+/*... densityT1 locais*/
+          size = lNel*2;
+          nD   = (DOUBLE *) malloc(size*dSize); 
+          ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
+  
+          dGetLocalV(mesh0->elm.densityUt1,nD
                     ,elLG
                     ,lNel                 ,2); 
         
@@ -2152,6 +2392,24 @@ void comunicateMesh(Memoria *m
       
 /*...................................................................*/
 
+/*... transporte e fluido*/
+        if(ndfT[0] > 0 || ndfF > 0) {     
+/*... eVel*/
+          size = lNel*ndm;
+          
+          HccaAlloc(DOUBLE,m,mesh->elm.vel      ,size        
+               ,"evelP"   ,_AD_);
+          zero(mesh->elm.vel       ,size,DOUBLEC);
+
+          
+          MPI_Recv(mesh->elm.vel,       size, MPI_DOUBLE,0,5    
+                  ,mpiVar.comm,MPI_STATUS_IGNORE);
+        
+          free(nD);  
+/*...................................................................*/
+        }
+/*...................................................................*/
+
 /*... faceRd1 locais*/
       if(ndfD[0] > 0) {
         size = lNel*(maxViz+1)*ndfD[0];
@@ -2209,6 +2467,68 @@ void comunicateMesh(Memoria *m
         zero(mesh->elm.densityUd1,size,DOUBLEC);
       
         MPI_Recv(mesh->elm.densityUd1,size, MPI_DOUBLE,0,9    
+                ,mpiVar.comm,MPI_STATUS_IGNORE);
+      
+/*...................................................................*/
+      }
+/*...................................................................*/
+
+/*... faceRt1 locais*/
+      if(ndfT[0] > 0) {
+        size = lNel*(maxViz+1)*ndfT[0];
+
+        HccaAlloc(short,m,mesh->elm.faceRt1  ,size        
+               ,"faceRt1P"  ,_AD_);
+        zero(mesh->elm.faceRt1   ,size,"short"  );
+     
+        MPI_Recv(mesh->elm.faceRt1,size, MPI_SHORT,0,5    
+                ,mpiVar.comm,MPI_STATUS_IGNORE);
+/*...................................................................*/
+
+/*... faceLoadsT1 locais*/ 
+        size = lNel*(maxViz+1)*ndfT[0];
+  
+        HccaAlloc(short,m,mesh->elm.faceLoadT1 ,size        
+                 ,"faceLoadsT1P"  ,_AD_);
+        zero(mesh->elm.faceLoadT1   ,size,"short"  );
+      
+        MPI_Recv(mesh->elm.faceLoadT1,size, MPI_SHORT,0,6    
+                ,mpiVar.comm,MPI_STATUS_IGNORE);
+      
+/*...................................................................*/
+
+/*... eU0t1 locais*/
+        size = lNel*ndfT[0];
+  
+        HccaAlloc(DOUBLE,m,mesh->elm.u0T1        ,size        
+                 ,"eU0t1P"         ,_AD_);
+        zero(mesh->elm.u0T1          ,size,DOUBLEC);;
+      
+        MPI_Recv(mesh->elm.u0T1,size, MPI_DOUBLE,0,7    
+                ,mpiVar.comm,MPI_STATUS_IGNORE);
+      
+/*...................................................................*/
+
+/*... eUt1 locais*/
+        size = lNel*ndfT[0];
+  
+        HccaAlloc(DOUBLE,m,mesh->elm.uT1        ,size        
+                 ,"eUt1P"         ,_AD_);
+        zero(mesh->elm.uT1          ,size,DOUBLEC);;
+      
+        MPI_Recv( mesh->elm.uT1,size, MPI_DOUBLE,0,8    
+                ,mpiVar.comm,MPI_STATUS_IGNORE);
+  
+/*...................................................................*/
+
+/*... densityt1 locais*/
+        size = lNel*2;
+  
+        HccaAlloc(DOUBLE,m,mesh->elm.densityUt1  ,size        
+                 ,"densityT1P"            ,_AD_);
+        zero(mesh->elm.densityUt1,size,DOUBLEC);
+      
+        MPI_Recv(mesh->elm.densityUt1,size, MPI_DOUBLE,0,9    
                 ,mpiVar.comm,MPI_STATUS_IGNORE);
       
 /*...................................................................*/
@@ -2332,6 +2652,16 @@ void comunicateMesh(Memoria *m
   zero(mesh->elm.geom.dcca    ,lNel*maxViz    ,DOUBLEC);
 /*...................................................................*/
 
+/*... transporte e fluido*/
+  if(mesh->ndfT[0] > 0 || mesh->ndfF > 0) {     
+/*... nVel*/
+     HccaAlloc(DOUBLE,m,mesh->node.vel 
+              ,lNnode*ndm    ,"nVelP"             ,_AD_);
+     zero(mesh->node.vel     ,lNnode*ndm          ,DOUBLEC);
+/*...................................................................*/
+  }
+/*...................................................................*/
+
 /*... problema de difusao pura*/
   if(ndfD[0] > 0){
 /*... uD1*/
@@ -2353,12 +2683,44 @@ void comunicateMesh(Memoria *m
   }
 /*...................................................................*/
 
+/*... problema de transporte*/
+  if(ndfT[0] > 0){
+/*... uD1*/
+    HccaAlloc(DOUBLE,m,mesh->node.uT1 
+              ,lNnode*ndfT[0] ,"nUt1P"              ,_AD_);
+/*... gradU1*/
+    HccaAlloc(DOUBLE,m,mesh->node.gradUt1  
+              ,lNnode*ndfT[0]*ndm ,"nGradUt1P"      ,_AD_);
+    HccaAlloc(DOUBLE,m,mesh->elm.gradUt1 
+              ,lNel*ndm*ndfT[0],"eTGradUt1P"     ,_AD_);
+/*... rCell*/
+    HccaAlloc(DOUBLE,m,mesh->elm.rCellUt1  
+             ,lNel*ndm*ndfT[0],"rCellUt1P"      ,_AD_);
+/*...................................................................*/
+    zero(mesh->node.uT1      ,lNnode*ndfT[0]       ,DOUBLEC);
+    zero(mesh->node.gradUt1  ,lNnode*ndm*ndfT[0]   ,DOUBLEC);
+    zero(mesh->elm.gradUt1   ,lNel*ndm*ndfT[0]     ,DOUBLEC);
+    zero(mesh->elm.rCellUt1  ,lNel*ndm*ndfT[0]     ,DOUBLEC);
+  }
+/*...................................................................*/
+
+/*...*/
+  maxNdf = 0;
+  maxNdf = max(ndm    ,maxNdf);
+  maxNdf = max(ndfD[0],maxNdf);
+  maxNdf = max(ndfD[1],maxNdf);
+  maxNdf = max(ndfD[2],maxNdf);
+  maxNdf = max(ndfT[0],maxNdf);
+  maxNdf = max(ndfT[1],maxNdf);
+  maxNdf = max(ndfT[2],maxNdf);
+/*...................................................................*/
+
 /*... buffer de comunicacao para variaveis de elementos*/
-  size = (pMesh->iEl.nRcvs+pMesh->iEl.nSends)*ndm*ndfD[0];
+  size = (pMesh->iEl.nRcvs+pMesh->iEl.nSends)*ndm*maxNdf;
   HccaAlloc(DOUBLE,m,pMesh->iEl.xb 
            ,size ,"xBufferMpi"              ,false);
 /*... buffer de comunicacao para variaveis de nos*/
-  size = 2.0e0*pMesh->iNo.nCom*ndm*ndfD[0];
+  size = 2.0e0*pMesh->iNo.nCom*ndm*maxNdf;
   HccaAlloc(DOUBLE,m,pMesh->iNo.xb 
            ,size ,"xBufferMpiNo"            ,false);
   HccaAlloc(INT   ,m,pMesh->iNo.xi 

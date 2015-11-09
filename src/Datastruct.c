@@ -197,6 +197,7 @@ void dataStruct(Memoria *m      ,INT *id
 /*... sequencial (CSRD - simetrico e nao simetrico)*/
 /*... paralelo   (CSRD - nao simetrico)*/
        else{ 
+         sistEqX->nadr = 0;
          n1 = sistEqX->neq + 1; 
          HccaAlloc(INT,m,sistEqX->ia,n1,strIa,_AD_);
 /*... */

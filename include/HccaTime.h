@@ -17,13 +17,22 @@
     double reord;
 /*... D1*/
     double solvD1;
-    double solvEdoD1;
+    double solvEdpD1;
     double numeqD1;
     double dataStructD1;
     double CellPloadD1;
     double CellTransientD1;
     double systFormD1;
     double rcGradD1;
+/*... T1*/
+    double solvT1;
+    double solvEdpT1;
+    double numeqT1;
+    double dataStructT1;
+    double CellPloadT1;
+    double CellTransientT1;
+    double systFormT1;
+    double rcGradT1;
 /*... blas*/
     double matVecOverHeadMpi;
     double matVecSparse;
@@ -31,6 +40,7 @@
     double dotOverHeadMpi;
 /*... iterativos*/
     double pcg;
+    double pbicgstab;
 /*... precondicionador*/
     double precondDiag;
 /*... particionamento*/

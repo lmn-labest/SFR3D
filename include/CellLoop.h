@@ -78,8 +78,9 @@
                    ,bool const fBc        ,short const type);
 /*...................................................................*/
 
-/* ... montagem do sistemas de equacoes*/
- void systFormDif(INT    *restrict el  ,INT    *restrict nelcon 
+/* ... montagem do sistemas de equacoes (difusao)*/
+ void systFormDif(Loads *loads
+             ,INT    *restrict el  ,INT    *restrict nelcon 
              ,short  *restrict nen     ,short  *restrict nFace
              ,short  *restrict geomType,DOUBLE *restrict prop 
              ,short  *restrict calType ,short  *restrict mat  
@@ -103,9 +104,38 @@
              ,bool const forces       ,bool const matrix 
              ,bool const calRcell     ,bool const unsym); 
 /*...................................................................*/
+ 
+/* ... montagem do sistemas de equacoes (Transporte)*/
+  void systFormTrans(Loads *loads      ,Advection advT 
+             ,INT    *restrict el      ,INT    *restrict nelcon 
+             ,short  *restrict nen     ,short  *restrict nFace
+             ,short  *restrict geomType,DOUBLE *restrict prop 
+             ,short  *restrict calType ,short  *restrict mat  
+             ,DOUBLE *restrict gKsi   ,DOUBLE *restrict gmKsi
+             ,DOUBLE *restrict gEta   ,DOUBLE *restrict gfArea
+             ,DOUBLE *restrict gNormal,DOUBLE *restrict gVolume
+             ,DOUBLE *restrict gXm    ,DOUBLE *restrict gXmcc   
+             ,DOUBLE *restrict gvSkew ,DOUBLE *restrict gmvSkew   
+             ,DOUBLE *restrict gDcca  ,DOUBLE *restrict density             
+             ,INT    *restrict ia     ,INT    *restrict ja                  
+             ,DOUBLE *restrict ad     ,DOUBLE *restrict al                  
+             ,DOUBLE *restrict b      ,INT    *restrict id 
+             ,short  *restrict faceR  ,short  *restrict faceL              
+             ,DOUBLE *restrict u0     ,DOUBLE *restrict gradU0 
+             ,DOUBLE *restrict vel            
+             ,DOUBLE *restrict rCell  ,Temporal const ddt
+             ,INT const nEq           ,INT const nAd               
+             ,INT const nAdR                                       
+             ,short const maxNo       ,short const maxViz
+             ,short const ndm         ,INT const numel
+             ,short const ndf         ,short const storage
+             ,bool const forces       ,bool const matrix 
+             ,bool const calRcell     ,bool const unsym); 
+/*...................................................................*/
 
-/*... chamada da biblioteca de elementos*/
-  void cellLibDif(short *restrict lGeomType,DOUBLE *restrict lprop
+/*... chamada da biblioteca de elementos (difusao)*/
+  void cellLibDif(Loads *loads
+                 ,short *restrict lGeomType,DOUBLE *restrict lprop
                  ,INT   *restrict lViz     ,INT    *restrict lId
                  ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi    
                  ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea 
@@ -117,6 +147,26 @@
                  ,DOUBLE *restrict lRcell  ,Temporal const ddt
                  ,short  *restrict lFaceR  ,short  *restrict lFaceL        
                  ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0 
+                 ,short const nEn          ,short const nFace        
+                 ,short const ndm          ,short const lib 
+                 ,INT const nel);
+/*...................................................................*/
+
+/*... chamada da biblioteca de elementos (transporte)*/
+  void cellLibTrans(Loads *loads           ,Advection advT 
+                 ,short *restrict lGeomType,DOUBLE *restrict lprop
+                 ,INT   *restrict lViz     ,INT    *restrict lId
+                 ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi    
+                 ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea 
+                 ,DOUBLE *restrict normal  ,DOUBLE *restrict volume 
+                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc    
+                 ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity 
+                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew     
+                 ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
+                 ,DOUBLE *restrict lRcell  ,Temporal const ddt
+                 ,short  *restrict lFaceR  ,short  *restrict lFaceL        
+                 ,DOUBLE *restrict lu0     ,DOUBLE *restrict lGradU0 
+                 ,DOUBLE *restrict lVel                                
                  ,short const nEn          ,short const nFace        
                  ,short const ndm          ,short const lib 
                  ,INT const nel);
@@ -165,8 +215,9 @@
                  ,short const ndm           ,INT const nel);
 /*...................................................................*/
 
-/*... biblioteca de celulas*/
-  void cellDif2D(short *restrict lGeomType,DOUBLE *restrict lprop
+/*... biblioteca de celulas (difusao)*/
+  void cellDif2D(Loads *loads
+                ,short *restrict lGeomType,DOUBLE *restrict lprop
                 ,INT   *restrict lViz     ,INT *restrict lId               
                 ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi
                 ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
@@ -181,7 +232,8 @@
                 ,short const nen          ,short const nFace    
                 ,short const ndm          ,INT const nel);
   
-  void cellDif3D(short *restrict lGeomType,DOUBLE *restrict prop
+  void cellDif3D(Loads *loads
+                ,short *restrict lGeomType,DOUBLE *restrict prop
                 ,INT *restrict lViz       ,INT *restrict lId  
                 ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
                 ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
@@ -195,6 +247,25 @@
                 ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
                 ,const short nEn          ,short const nFace    
                 ,const short ndm          ,INT const nel);
+/*...................................................................*/
+
+/*... biblioteca de celulas (transporte)*/
+  void cellTrans2D(Loads *loads           ,Advection advT
+                ,short *restrict lGeomType,DOUBLE *restrict lprop
+                ,INT   *restrict lViz     ,INT *restrict lId               
+                ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi
+                ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
+                ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
+                ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
+                ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity   
+                ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
+                ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
+                ,DOUBLE *restrict lRcell  ,Temporal const ddt                     
+                ,short  *restrict lFaceR  ,short *restrict lFaceL
+                ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0
+                ,DOUBLE *restrict vel                                
+                ,short const nen          ,short const nFace    
+                ,short const ndm          ,INT const nel);
 /*...................................................................*/
 
 /*...*/
@@ -288,6 +359,16 @@
                 ,INT const numel); 
 /*...................................................................*/
 
+/*... funcoes limitadoras de fluxo*/
+  DOUBLE limitFaceBase(DOUBLE const rr,short const iCod);
+  DOUBLE faceBaseTvd(short const nAresta    ,short const idCell
+                 ,DOUBLE *restrict u0
+                 ,DOUBLE *restrict gradUv,DOUBLE *restrict gradUp
+                 ,DOUBLE *restrict lKsi  ,DOUBLE const lModKsi 
+                 ,DOUBLE const cv
+                 ,short const iCod       ,short const ndm);
+/*...................................................................*/
+
 /*... funcoes de apoio*/  
   short sn(short *s,short ty, INT nel);
   DOUBLE areaQuadCell(DOUBLE *restrict eta,short ndm);
@@ -311,9 +392,12 @@
   
   void pLoad(DOUBLE *restrict sP  ,DOUBLE *restrict p
             ,DOUBLE *restrict tA
-            ,DOUBLE const coefDifC,DOUBLE *restrict xm                   
+            ,DOUBLE const coefDifC,DOUBLE const densityC
+            ,DOUBLE const wfn     ,DOUBLE *restrict xm                   
             ,DOUBLE const fArea   ,DOUBLE const dcca
             ,Loads ld             ,bool const fCal);
+  void setFaceBase(char *word,short *iCod);
+
 /*...................................................................*/
 
 #endif/*_CELLLOOP_H_*/
