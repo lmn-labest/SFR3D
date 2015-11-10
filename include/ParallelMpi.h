@@ -89,6 +89,17 @@
   void globalMeshQuality(MeshQuality *mQl);
 /*...................................................................*/
 
+/*...*/
+  void comunicate2(short *m0faceR     ,short *faceR
+                ,short *m0faceL     ,short *faceL
+                ,DOUBLE *m0u0       ,DOUBLE *u0 
+                ,DOUBLE *m0u        ,DOUBLE *u  
+                ,DOUBLE *m0density  ,DOUBLE *density  
+                ,INT const lNel     ,INT *elLG
+                ,short const maxViz ,short const ndf
+                ,short const npart  ,short const iCod);
+/*...................................................................*/
+
 /*... do Mpi*/
   typedef struct{
     unsigned short nPrcs;
