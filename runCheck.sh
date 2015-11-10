@@ -82,11 +82,11 @@ ex2=false
 ex3=false 
 ex4=false
 ex5=false
-ex1_3D=false
-ex2_3D=false
-ex2_3D_NONORT=false
-ex3_3D=false
-ex4_3D=false 
+ex1_3D=true 
+ex2_3D=true
+ex2_3D_NONORT=true
+ex3_3D=true
+ex4_3D=true  
 
 # dinamico
 ex2t=false

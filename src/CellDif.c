@@ -332,13 +332,15 @@ void cellDif3D(Loads *loads
               ,const short ndm          ,INT const nel)
 { 
 
-  DOUBLE coefDifC,coefDif,coefDifV,rCell,h,tA,dt;
+  DOUBLE coefDifC,coefDif,coefDifV,rCell,dt;
   DOUBLE densityC;
-  DOUBLE p,aP,sP,nk,dfd,dfdc,gfKsi,modE,lvSkew[3];
+  DOUBLE p,sP,nk,dfd,dfdc,gfKsi,modE,lvSkew[3];
   DOUBLE v[3],gradUcomp[3],lKsi[3],lNormal[3],gf[3];
   DOUBLE dPviz,lModKsi,lfArea,du,duDksi;
   DOUBLE gradUp[3],gradUv[3],nMinusKsi[3];
   DOUBLE alpha,alphaMenosUm;
+  DOUBLE xx[3];
+  DOUBLE tA;
   short idCell = nFace;
   short nf,nCarg,typeTime;
   INT vizNel;
@@ -362,7 +364,6 @@ void cellDif3D(Loads *loads
 /*...................................................................*/
 
   p  = 0.0e0;
-  aP = 0.0e0;
   sP = 0.0e0;
   for(nf=0;nf<nFace;nf++){
     vizNel = lViz[nf];
@@ -458,31 +459,15 @@ void cellDif3D(Loads *loads
       if(lFaceR[nf]){
 /*...cargas*/
         nCarg=lFaceL[nf]-1;
-/*... potencial prescrito*/
-        if( loads[nCarg].type == DIRICHLETBC){
-          tA  = loads[nCarg].par[0];
-          aP  = coefDifC*fArea[nf]/dcca[nf];
-          sP += aP;
-          p  += aP*tA; 
-        }
-/*...................................................................*/
-
-/*... lei de resfriamento de newton*/
-        else if( loads[nCarg].type == ROBINBC){
-          h   = loads[nCarg].par[0];
-          tA  = loads[nCarg].par[1];
-          aP  = (coefDifC*h)/(coefDifC+h*dcca[nf])
-                *fArea[nf];
-          sP += aP;
-          p  += aP*tA;
-        }
-/*...................................................................*/
-
-/*... fluxo prestrito diferente de zero*/
-        else if( loads[nCarg].type == NEUMANNBC){
-          tA  = loads[nCarg].par[0];
-           p +=  fArea[nf]*tA;
-        }
+        xx[0] = MAT2D(nf,0,xm,2);
+        xx[1] = MAT2D(nf,1,xm,2);
+        xx[2] = MAT2D(nf,2,xm,3);        
+        pLoad(&sP           ,&p
+             ,&tA
+             ,coefDifC      ,0.e0
+             ,0.0e0         ,xx 
+             ,fArea[nf]     ,dcca[nf]
+             ,loads[nCarg]  ,true);
       }
 /*...................................................................*/
     }
