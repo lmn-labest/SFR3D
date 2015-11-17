@@ -381,8 +381,6 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
                ,mesh->maxViz+1       ,str       ,file);
       printf("load.\n");
       printf("%s\n\n",DIF);
-      printf("%s\n",DIF);
-      printf("%s\n",word);
     }
 /*...................................................................*/
 
