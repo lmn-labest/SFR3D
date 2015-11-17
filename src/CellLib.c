@@ -93,20 +93,22 @@ void cellLibTrans(Loads *loads           ,Advection advT
 
 /*... 3D*/
     else if(ndm == 3){
-/*      cellDif3D(lGeomType,lprop
-               ,lViz     ,lId
-               ,ksi      ,mKsi
-               ,eta      ,fArea
-               ,normal   ,volume
-               ,xm       ,xmcc
-               ,dcca     ,lDensity
-               ,vSkew    ,mvSkew
-               ,lA       ,lB
-               ,lRcell   ,ddt
-               ,lFaceR   ,lFaceL 
-               ,u0       ,gradU0      
-               ,nEn      ,nFace 
-               ,ndm      ,nel);*/
+      cellTrans3D(loads    ,advT
+                 ,lGeomType,lprop
+                 ,lViz     ,lId
+                 ,ksi      ,mKsi
+                 ,eta      ,fArea
+                 ,normal   ,volume
+                 ,xm       ,xmcc
+                 ,dcca     ,lDensity 
+                 ,vSkew    ,mvSkew
+                 ,lA       ,lB
+                 ,lRcell   ,ddt 
+                 ,lFaceR   ,lFaceL
+                 ,u0       ,gradU0      
+                 ,vel                   
+                 ,nEn      ,nFace 
+                 ,ndm      ,nel);
     } 
 /*..................................................................*/   
   }
@@ -2404,7 +2406,24 @@ DOUBLE faceBaseTvd(short const nAresta    ,short const idCell
       r     = 2.0e0*gf/du - 1.0e0;
       cvc   = 0.5e0*limitFaceBase(r,iCod)*du;
     }
-  else if(ndm ==3);
+  else if(ndm ==3){
+    if( cv < 0.0e0) {
+      du    = u0[idCell] - u0[nAresta] + eps;
+      gf    = -( gradUv[0]*lKsi[0] 
+               + gradUv[1]*lKsi[1]
+               + gradUv[2]*lKsi[2])*lModKsi;
+      r     = 2.0e0*gf/du - 1.0e0;
+      cvc   = 0.5e0*limitFaceBase(r ,iCod)*du;
+    }
+    else{
+      du    = u0[nAresta] - u0[idCell] + eps;
+      gf    = (gradUp[0]*lKsi[0] 
+             + gradUp[1]*lKsi[1]
+             + gradUp[2]*lKsi[2])*lModKsi;
+      r     = 2.0e0*gf/du - 1.0e0;
+      cvc   = 0.5e0*limitFaceBase(r,iCod)*du;
+    }
+  }
  
   return cvc;
 } 
@@ -2427,30 +2446,66 @@ DOUBLE faceBaseTvd(short const nAresta    ,short const idCell
  *********************************************************************/
 void setFaceBase(char *word,short *iCod)
 {
+  #define NFUNCLIMTFACE 6
+  short i;
+  char fBase[][WORD_SIZE]=
+       {"FoUp"   ,"VanLeer" ,"VanAlbada"
+       ,"MidMod ","Osher"   ,"SuperBee"};
+/*...*/  
   if(!strcmp(word,"FoUp")){
     *iCod = FOUP; 
-    if(!mpiVar.myId ) printf("iCod : FOUP\n");
+    if(!mpiVar.myId ) printf("iCod  : FOUP\n");
   }
+/*...................................................................*/
+
+/*...*/
   else if(!strcmp(word,"VanLeer")){
     *iCod = VANLEERFACE; 
-    if(!mpiVar.myId ) printf("iCod : VanLeer\n");
+    if(!mpiVar.myId ) printf("iCod  : VanLeer\n");
   }
+/*...................................................................*/
+
+/*...*/
   else if(!strcmp(word,"VanAlbada")){
     *iCod =  VANALBADAFACE; 
-    if(!mpiVar.myId ) printf("iCod : VanAlbade\n");
+    if(!mpiVar.myId ) printf("iCod  : VanAlbade\n");
   }
+/*...................................................................*/
+
+/*...*/
   else if(!strcmp(word,"MidMod")){
     *iCod =  MIDMODFACE; 
-    if(!mpiVar.myId ) printf("iCod : MidMod\n");
+    if(!mpiVar.myId ) printf("iCod  : MidMod\n");
   }
+/*...................................................................*/
+
+/*...*/
   else if(!strcmp(word,"Osher")){
     *iCod =  OSHERFACE; 
-    if(!mpiVar.myId ) printf("iCod : Osher\n");
+    if(!mpiVar.myId ) printf("iCod  : Osher\n");
   }
+/*...................................................................*/
+
+/*...*/
   else if(!strcmp(word,"SuperBee")){
     *iCod =  SUPERBEEFACE; 
-    if(!mpiVar.myId ) printf("iCod : SuperBee\n");
+    if(!mpiVar.myId ) printf("iCod  : SuperBee\n");
   }
+/*...................................................................*/
+
+/*...*/
+  else{
+    printf("Erro: tipo de funcao limiradora fluxo invalida.\n"
+           "Arquivo fonte:  \"%s\".\n"
+           "Nome da funcao: \"%s\".\n"
+           "Linha         : \"%d\".\n"
+           ,__FILE__,__func__,__LINE__);
+    printf("Funcoes disponiveis:\n");
+    for(i=0;i<NFUNCLIMTFACE;i++)
+      printf("%s\n",fBase[i]);
+    exit(EXIT_FAILURE);
+  }
+/*...................................................................*/
 }
 /*********************************************************************/ 
 

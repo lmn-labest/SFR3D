@@ -260,7 +260,24 @@
                 ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity   
                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
                 ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-                ,DOUBLE *restrict lRcell  ,Temporal const ddt                     
+                ,DOUBLE *restrict lRcell  ,Temporal const ddt
+                ,short  *restrict lFaceR  ,short *restrict lFaceL
+                ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0
+                ,DOUBLE *restrict vel                                
+                ,short const nen          ,short const nFace    
+                ,short const ndm          ,INT const nel);
+  
+  void cellTrans3D(Loads *loads           ,Advection advT
+                ,short *restrict lGeomType,DOUBLE *restrict lprop
+                ,INT   *restrict lViz     ,INT *restrict lId               
+                ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi
+                ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
+                ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
+                ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
+                ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity   
+                ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
+                ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
+                ,DOUBLE *restrict lRcell  ,Temporal const ddt
                 ,short  *restrict lFaceR  ,short *restrict lFaceL
                 ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0
                 ,DOUBLE *restrict vel                                
