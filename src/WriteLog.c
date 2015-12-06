@@ -181,3 +181,228 @@ void writeLog(Mesh mesh         ,Scheme sc
 
 }
 /*********************************************************************/ 
+
+/********************************************************************* 
+ * WRITELOGMEANTIME: escrita do arquivo log de execuao com os tempos * 
+ * medios dp MPI                                                     * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void writeLogMeanTime(Mesh mesh         ,Scheme sc
+             ,Solv *solvD1      ,SistEq *sistEqD1
+             ,Solv *solvT1      ,SistEq *sistEqT1
+             ,Time t
+             ,bool const fSolvD1,bool const fSolvT1
+             ,char *nameIn      ,FILE *file){
+
+  DOUBLE mTime;   
+  DOUBLE  nPrcs= (DOUBLE) mpiVar.nPrcs;
+
+
+#ifdef _MPICH_
+  
+  if(!mpiVar.myId){
+    fprintf(file,"Log do execucao : %s\n\n",nameIn); 
+    fprintf(file,"nPrcs           :%2d\n\n",mpiVar.nPrcs); 
+    fprintf(file,"Time:\n");
+  }
+
+/*...*/
+  MPI_Reduce(&t.leastSquareMatrix, &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM              , 0     , mpiVar.comm);
+  if( sc.rcGrad == RCLSQUARE ) 
+    if(!mpiVar.myId)
+      fprintf(file,"lSquareMatrix   : %lf\n",mTime/nPrcs);
+
+  MPI_Reduce(&t.reord, &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM ,0       , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"reord           : %lf\n",mTime/nPrcs);
+
+/*... Blas*/
+  MPI_Reduce(&t.matVecSparse, &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM       , 0       , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"matVecSparse    : %lf\n",mTime/nPrcs);
+  
+  MPI_Reduce(&t.dot         , &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM       , 0       , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"dot             : %lf\n",mTime/nPrcs); 
+
+/*... Blas overHead do mpi */
+  MPI_Reduce(&t.matVecOverHeadMpi    , &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM        , 0      , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"matVecOverHead  : %lf\n",mTime/nPrcs);
+  
+  MPI_Reduce(&t.dotOverHeadMpi, &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM          , 0      , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"dotOverHead     : %lf\n",mTime/nPrcs);
+
+/*... Solver*/
+  MPI_Reduce(&t.pcg           , &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM          , 0      , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"Pcg             : %lf\n",mTime/nPrcs);
+
+  MPI_Reduce(&t.pbicgstab   , &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM          , 0      , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"Pbicgstab       : %lf\n",mTime/nPrcs);
+
+  MPI_Reduce(&t.precondDiag   , &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM          , 0      , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"precondDiag     : %lf\n",mTime/nPrcs);
+
+
+/*... comunicacao entre as particoes*/
+  MPI_Reduce(&t.overHeadCelMpi, &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM          , 0      , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"overHeadCelMpi  : %lf\n",mTime/nPrcs);
+  
+  MPI_Reduce(&t.overHeadNodMpi, &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM          , 0      , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"overHeadNodMpi  : %lf\n",mTime/nPrcs);
+  
+  MPI_Reduce(&t.overHeadNeqMpi, &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM          , 0      , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"overHeadNeqMpi  : %lf\n",mTime/nPrcs);
+  
+  MPI_Reduce(&t.overHeadGCelMpi, &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM          , 0      , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"overHeadGCelMpi : %lf\n",mTime/nPrcs);
+
+  MPI_Reduce(&t.overHeadGNodMpi, &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM           , 0      , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"overHeadGNodMpi : %lf\n",mTime/nPrcs);
+  
+  MPI_Reduce(&t.overHeadTotalMpi, &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM            , 0      , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"overHeadTotalMpi: %lf\n",mTime/nPrcs);
+
+/*... solvD1*/
+  if(fSolvD1){
+    MPI_Reduce(&t.solvD1          , &mTime , 1, MPI_DOUBLE
+              ,MPI_SUM            , 0      , mpiVar.comm);
+    if(!mpiVar.myId)
+      fprintf(file,"SolvD1          : %lf\n",mTime/nPrcs);
+    
+    MPI_Reduce(&t.numeqD1          , &mTime , 1, MPI_DOUBLE
+              ,MPI_SUM            , 0      , mpiVar.comm);
+    if(!mpiVar.myId)
+      fprintf(file,"numeqD1         : %lf\n",mTime/nPrcs);
+  
+    MPI_Reduce(&t.dataStructD1    , &mTime , 1, MPI_DOUBLE
+              ,MPI_SUM            , 0      , mpiVar.comm);
+    if(!mpiVar.myId)
+      fprintf(file,"dataStructD1    : %lf\n",mTime/nPrcs);
+    
+    MPI_Reduce(&t.CellPloadD1     , &mTime , 1, MPI_DOUBLE
+              ,MPI_SUM            , 0      , mpiVar.comm);
+    if(!mpiVar.myId)
+      fprintf(file,"CellPloadD1     : %lf\n",mTime/nPrcs);
+    
+    MPI_Reduce(&t.CellTransientD1 , &mTime , 1, MPI_DOUBLE
+              ,MPI_SUM            , 0      , mpiVar.comm);
+    if(!mpiVar.myId)
+      fprintf(file,"CellTransientD1 : %lf\n",mTime/nPrcs);
+    
+    MPI_Reduce(&t.systFormD1      , &mTime , 1, MPI_DOUBLE
+              ,MPI_SUM            , 0      , mpiVar.comm);
+    if(!mpiVar.myId)
+      fprintf(file,"systFormD1      : %lf\n",mTime/nPrcs);
+    
+    MPI_Reduce(&t.rcGradD1        , &mTime , 1, MPI_DOUBLE
+              ,MPI_SUM            , 0      , mpiVar.comm);
+    if(!mpiVar.myId)
+      fprintf(file,"rcGradD1        : %lf\n",mTime/nPrcs);
+    
+    MPI_Reduce(&t.solvEdpD1       , &mTime , 1, MPI_DOUBLE
+              ,MPI_SUM            , 0      , mpiVar.comm);
+    if(!mpiVar.myId)
+      fprintf(file,"solvEdpD1       : %lf\n",mTime/nPrcs);
+  }
+/*...................................................................*/
+
+/*... solvT1*/
+  if(fSolvT1){
+    MPI_Reduce(&t.solvT1          , &mTime , 1, MPI_DOUBLE
+              ,MPI_SUM            , 0      , mpiVar.comm);
+    if(!mpiVar.myId)
+      fprintf(file,"SolvT1          : %lf\n",mTime/nPrcs);
+    
+    MPI_Reduce(&t.numeqT1          , &mTime , 1, MPI_DOUBLE
+              ,MPI_SUM            , 0      , mpiVar.comm);
+    if(!mpiVar.myId)
+      fprintf(file,"numeqT1         : %lf\n",mTime/nPrcs);
+  
+    MPI_Reduce(&t.dataStructT1    , &mTime , 1, MPI_DOUBLE
+              ,MPI_SUM            , 0      , mpiVar.comm);
+    if(!mpiVar.myId)
+      fprintf(file,"dataStructT1    : %lf\n",mTime/nPrcs);
+    
+    MPI_Reduce(&t.CellPloadT1     , &mTime , 1, MPI_DOUBLE
+              ,MPI_SUM            , 0      , mpiVar.comm);
+    if(!mpiVar.myId)
+      fprintf(file,"CellPloadT1     : %lf\n",mTime/nPrcs);
+    
+    MPI_Reduce(&t.CellTransientT1 , &mTime , 1, MPI_DOUBLE
+              ,MPI_SUM            , 0      , mpiVar.comm);
+    if(!mpiVar.myId)
+      fprintf(file,"CellTransientT1 : %lf\n",mTime/nPrcs);
+    
+    MPI_Reduce(&t.systFormT1      , &mTime , 1, MPI_DOUBLE
+              ,MPI_SUM            , 0      , mpiVar.comm);
+    if(!mpiVar.myId)
+      fprintf(file,"systFormT1      : %lf\n",mTime/nPrcs);
+    
+    MPI_Reduce(&t.rcGradT1        , &mTime , 1, MPI_DOUBLE
+              ,MPI_SUM            , 0      , mpiVar.comm);
+    if(!mpiVar.myId)
+      fprintf(file,"rcGradT1        : %lf\n",mTime/nPrcs);
+    
+    MPI_Reduce(&t.solvEdpT1       , &mTime , 1, MPI_DOUBLE
+              ,MPI_SUM            , 0      , mpiVar.comm);
+    if(!mpiVar.myId)
+      fprintf(file,"solvEdpT1       : %lf\n",mTime/nPrcs);
+  }
+/*...................................................................*/
+  
+  MPI_Reduce(&t.total           , &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM            , 0      , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"Total           : %lf\n",mTime/nPrcs);
+
+
+/*...*/
+  if(!mpiVar.myId){
+    fprintf(file,"\nMalha:\n");
+    fprintf(file,"nnode           : %d\n",mesh.nnode);
+    fprintf(file,"nCell           : %d\n",mesh.numel);
+    fprintf(file,"volume          : %lf\n",mesh.mQuality.volume);
+    fprintf(file,"non-OrthMed     : %.2lf°\n",mesh.mQuality.nonOrthMed);
+    fprintf(file,"non-OtthMax     : %.2lf°\n",mesh.mQuality.nonOrthMax);
+    fprintf(file,"skewMed         : %lf\n",mesh.mQuality.skewMed);
+    fprintf(file,"skewMax         : %lf\n",mesh.mQuality.skewMax);
+  }
+/*...................................................................*/
+#endif
+
+}
+/*********************************************************************/ 

@@ -417,7 +417,7 @@ int main(int argc,char**argv){
                  ,mesh->numelNov);
 /*... qualidade da malha global*/
       if(mpiVar.nPrcs > 1){
-        globalMeshQuality(&mesh->mQuality);
+        globalMeshQuality(&mesh->mQuality,&mesh0->mQuality);
       }  
 /*...................................................................*/
          
@@ -468,6 +468,23 @@ int main(int argc,char**argv){
               ,fSolvD1   ,fSolvT1     
               ,nameIn    ,fileLog);
       fclose(fileLog);
+/*...................................................................*/
+
+/*... medias do tempo dos processos Mpi*/
+      if(mpiVar.nPrcs > 1) {
+        if(!mpiVar.myId){
+          fName(preName,mpiVar.nPrcs,mpiVar.myId,60,&nameOut);
+          fileLog = openFile(nameOut,"w");
+        }
+        writeLogMeanTime(*mesh0    ,sc
+                        ,solvD1    ,sistEqD1
+                        ,solvT1    ,sistEqT1
+                        ,tm       
+                        ,fSolvD1   ,fSolvT1     
+                        ,nameIn    ,fileLog);
+        
+        if(!mpiVar.myId) fclose(fileLog);
+      } 
 /*...................................................................*/
 
 /*... fechando o arquivo log pcg D1*/

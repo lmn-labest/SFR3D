@@ -83,16 +83,17 @@ void mpiWait(void){
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
- * mQl     -> estatisticas da malha                                  *
+ * mQl     -> estatisticas da malha particionada                     *
+ * mQl0    -> estatisticas da malha global                           *
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
- * mQl     -> estatisticas da malha atualizada                       *
+ * mQl0    -> estatisticas da malha global atualizada                *
  *-------------------------------------------------------------------* 
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void globalMeshQuality(MeshQuality *mQl){
+void globalMeshQuality(MeshQuality *mQl,MeshQuality *mQl0){
 
 #ifdef _MPICH_
   DOUBLE v;
@@ -101,7 +102,7 @@ void globalMeshQuality(MeshQuality *mQl){
   MPI_Allreduce(&mQl->volume,&v ,1           ,MPI_DOUBLE
                ,MPI_SUM     ,mpiVar.comm);
   tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
-  mQl->volume = v;
+  mQl0->volume = v;
 /*...................................................................*/
 
 /*... nonOrthMed */
@@ -109,7 +110,7 @@ void globalMeshQuality(MeshQuality *mQl){
   MPI_Allreduce(&mQl->nonOrthMed,&v      ,1          , MPI_DOUBLE
                ,MPI_SUM         , mpiVar.comm);
   tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
-  mQl->nonOrthMed = v/(DOUBLE) mpiVar.nPrcs;  
+  mQl0->nonOrthMed = v/(DOUBLE) mpiVar.nPrcs;  
 /*...................................................................*/
 
 /*... nonOrthMAX */
@@ -117,7 +118,7 @@ void globalMeshQuality(MeshQuality *mQl){
   MPI_Allreduce(&mQl->nonOrthMax,&v      , 1          , MPI_DOUBLE
             ,MPI_MAX            , mpiVar.comm);
   tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
-  mQl->nonOrthMax = v;  
+  mQl0->nonOrthMax = v;  
 /*...................................................................*/
 
 /*... skewMed*/
@@ -125,7 +126,7 @@ void globalMeshQuality(MeshQuality *mQl){
   MPI_Allreduce(&mQl->skewMed   ,&v      ,1          , MPI_DOUBLE
             ,MPI_SUM            , mpiVar.comm);
   tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
-  mQl->skewMed = v/(DOUBLE) mpiVar.nPrcs;  
+  mQl0->skewMed = v/(DOUBLE) mpiVar.nPrcs;  
 /*...................................................................*/
 
 /*... skewMax */
@@ -133,7 +134,7 @@ void globalMeshQuality(MeshQuality *mQl){
   MPI_Allreduce(&mQl->skewMax   ,&v      ,1          , MPI_DOUBLE
             ,MPI_MAX            , mpiVar.comm);
   tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
-  mQl->skewMax = v;  
+  mQl0->skewMax = v;  
 /*...................................................................*/
 #endif
 

@@ -16,5 +16,11 @@
              ,bool const fSolvD1,bool const fSolvT1
              ,char *nameIn      ,FILE *file);
 
+  void writeLogMeanTime(Mesh mesh         ,Scheme sc
+             ,Solv *solvD1      ,SistEq *sistEqD1
+             ,Solv *solvT1      ,SistEq *sistEqT1
+             ,Time t
+             ,bool const fSolvD1,bool const fSolvT1
+             ,char *nameIn      ,FILE *file);
 
 #endif/*_WRITELOG_H_*/

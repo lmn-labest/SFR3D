@@ -47,6 +47,7 @@ FILE *aux;
  *         16 -> resultados no formato .csv                          *      
  *         17 -> caregamento nas faces no formato vtk                *      
  *         18 -> caregamento nas faces no formato vtk                *      
+ *         60 -> media dos tempos (MPI)                              *      
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
  * ------------------------------------------------------------------*
@@ -424,6 +425,27 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       strcpy(ext,"_T1_step_");
       strcat(ext,st);
       strcat(ext,".vtk");
+      size1 = strlen(name);
+      size2 = strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+        exit(EXIT_FAILURE);      
+      }
+      strcpy(*out,name);
+      strcat(*out,ext);
+      break;
+/*...................................................................*/
+
+/*... medias do tempos MPI*/
+    case 60:
+      strcpy(ext,"_mTime_");
+      iota(num1,st);
+      strcat(ext,st);
+      strcat(ext,".txt");
       size1 = strlen(name);
       size2 = strlen(ext);
       if( (size1+size2)  > SIZEMAX){

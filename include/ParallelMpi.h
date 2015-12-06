@@ -86,7 +86,7 @@
                ,short const ndf1   ,short const ndf2);
 /*...................................................................*/
 
-  void globalMeshQuality(MeshQuality *mQl);
+  void globalMeshQuality(MeshQuality *mQl,MeshQuality *mQl0);
 /*...................................................................*/
 
 /*...*/
