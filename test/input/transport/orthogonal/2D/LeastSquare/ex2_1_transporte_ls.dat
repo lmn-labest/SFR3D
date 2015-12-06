@@ -1,12 +1,11 @@
 config
-reord true bvtk false mem 10 rcGrad gglc fItPlotRes false fItPlot true
+reord true bvtk false mem 10 rcGrad lsSquare fItPlotRes false fItPlot true
 endConfig
 partd config: false false
 nlItT1   
 50  1.0e-3 
 endNlItT1 
-//advection fBase SuperBee
-advection fBase MidMod
+advection fBase SuperBee
 edp
 transport1 1
 endEdp

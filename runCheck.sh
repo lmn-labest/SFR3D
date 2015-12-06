@@ -62,40 +62,43 @@ INPUTDIF3DEX4='ex4_3d_tetra_0_gglc.dat   ex4_3d_tetra_1_gglc.dat
                ex4_3d_hexa_0_gglc.dat    ex4_3d_hexa_1_gglc.dat'     
 
 # transiente difusao
-INPUTDIF2TEMP='ex2_1_gglc.dat ex2_1_gglc_e.dat'
+INPUTDIF2TIME='ex2_1_gglc.dat ex2_1_gglc_e.dat'
 
-INPUTDIF4TEMP='ex4_1_gglc.dat ex4_1_gglc_e.dat' 
+INPUTDIF4TIME='ex4_1_gglc.dat ex4_1_gglc_e.dat' 
 
-INPUTDIF5TEMP='ex5_1_gglc.dat  ex5_1_gglc_e.dat' 
+INPUTDIF5TIME='ex5_1_gglc.dat  ex5_1_gglc_e.dat' 
 
-INPUTDIF3DEX2TEMP='ex2_3D_1_gglc.dat ex2_3D_1_gglc_e.dat'
+INPUTDIF3DEX2TIME='ex2_3D_1_gglc.dat ex2_3D_1_gglc_e.dat'
 
 # transporte estacionario
-INPUTTRANS2='ex2_1_transporte_gglc.dat' 
+INPUTTRANS2D='ex2_1_transporte_gglc.dat ex2_1_transporte_ggln.dat ex2_1_transporte_ls.dat' 
+
+INPUTTRANS3D='ex3_3D_1_transporte.dat ex3_3D_1_transporte_tetra.dat' 
 
 
 NAMEBIN=mfvCell_gnu_mpi_O3
 
 #difusao
-ex1=false 
-ex2=false 
-ex3=false 
-ex4=false
-ex5=false
+ex1=true 
+ex2=true 
+ex3=false
+ex4=true
+ex5=true
 ex1_3D=true 
 ex2_3D=true
-ex2_3D_NONORT=true
-ex3_3D=true
+ex2_3D_NONORT=true 
+ex3_3D=true 
 ex4_3D=true  
 
 # dinamico
-ex2t=false
-ex4t=false
-ex5t=false
-ex2_3Dt=false
+ex2t=true
+ex4t=true
+ex5t=true
+ex2_3Dt=true
 
 #transporte
-ex2Transporte=true
+ex2Transporte2D=true
+ex3Transporte3D=true
 
 #gerando o executavel
 echo `make clean` > /dev/null 
@@ -113,10 +116,22 @@ cp test/input/*.dat test/binTest
 #fi
 
 #rodando os teste de transporte
-if  $ex2Transporte ; then
+if  $ex2Transporte2D ; then
   cp test/input/transport/orthogonal/2D/gaussGreenCell/*.dat test/binTest
+  cp test/input/transport/orthogonal/2D/gaussGreenNode/*.dat test/binTest
+  cp test/input/transport/orthogonal/2D/LeastSquare/*.dat test/binTest
 #
-  test/binTest/run_trans_ex2.sh "$INPUTTRANS2" "$NAMEBIN" 
+  test/binTest/run_trans_ex2_2D.sh "$INPUTTRANS2D" "$NAMEBIN" 
+  if [ $? == 1 ]; then
+    exit 1
+  fi
+fi
+
+if  $ex3Transporte3D ; then
+  cp test/input/transport/orthogonal/3D/gaussGreenCell/*.dat test/binTest
+  cp test/input/transport/non_orthogonal/3D/gaussGreenCell/*.dat test/binTest
+#
+  test/binTest/run_trans_ex3_3D.sh "$INPUTTRANS3D" "$NAMEBIN" 
   if [ $? == 1 ]; then
     exit 1
   fi
@@ -245,7 +260,7 @@ if  $ex2t ; then
 # cp test/input/dif/orthogonal/2D/gaussGreenNode/*.dat test/binTest
 # cp test/input/dif/orthogonal/2D/LeastSquare/*.dat test/binTest
 #
-  test/binTest/run_dif_exato_temp.sh "$INPUTDIF2TEMP" "$NAMEBIN" 
+  test/binTest/run_dif_exato_temp.sh "$INPUTDIF2TIME" "$NAMEBIN" 
   if [ $? == 1 ]; then
     exit 1
   fi
@@ -256,7 +271,7 @@ if  $ex4t ; then
 # cp test/input/dif/orthogonal/2D/gaussGreenNode/*.dat test/binTest
 # cp test/input/dif/orthogonal/2D/LeastSquare/*.dat test/binTest
 #
-  test/binTest/run_dif_exato_Ex4_temp.sh "$INPUTDIF4TEMP" "$NAMEBIN" 
+  test/binTest/run_dif_exato_Ex4_temp.sh "$INPUTDIF4TIME" "$NAMEBIN" 
   if [ $? == 1 ]; then
     exit 1
   fi
@@ -267,7 +282,7 @@ if  $ex5t ; then
 # cp test/input/dif/orthogonal/2D/gaussGreenNode/*.dat test/binTest
 # cp test/input/dif/orthogonal/2D/LeastSquare/*.dat test/binTest
 #
-  test/binTest/run_dif_exato_Ex5_temp.sh "$INPUTDIF5TEMP" "$NAMEBIN" 
+  test/binTest/run_dif_exato_Ex5_temp.sh "$INPUTDIF5TIME" "$NAMEBIN" 
   if [ $? == 1 ]; then
     exit 1
   fi
@@ -276,7 +291,7 @@ fi
 # difusao 3D
 if  $ex2_3Dt ; then
   cp test/input/dif/orthogonal/3D_temp/GreenGaussCell/*.dat test/binTest
-  test/binTest/run_dif_exato_3D_Ex2_temp.sh "$INPUTDIF3DEX2TEMP" "$NAMEBIN" 
+  test/binTest/run_dif_exato_3D_Ex2_temp.sh "$INPUTDIF3DEX2TIME" "$NAMEBIN" 
   if [ $? == 1 ];then
     exit 1
   fi

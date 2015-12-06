@@ -2495,7 +2495,7 @@ void setFaceBase(char *word,short *iCod)
 
 /*...*/
   else{
-    printf("Erro: tipo de funcao limiradora fluxo invalida.\n"
+    printf("Erro: tipo de funcao limitadora fluxo invalida.\n"
            "Arquivo fonte:  \"%s\".\n"
            "Nome da funcao: \"%s\".\n"
            "Linha         : \"%d\".\n"
