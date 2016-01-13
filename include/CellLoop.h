@@ -91,13 +91,13 @@
              ,DOUBLE *restrict gvSkew ,DOUBLE *restrict gmvSkew   
              ,DOUBLE *restrict gDcca  ,DOUBLE *restrict density             
              ,INT    *restrict ia     ,INT    *restrict ja                  
-             ,DOUBLE *restrict ad     ,DOUBLE *restrict al                  
+             ,DOUBLE *restrict al     ,DOUBLE *restrict ad                  
              ,DOUBLE *restrict b      ,INT    *restrict id 
              ,short  *restrict faceR  ,short  *restrict faceL              
              ,DOUBLE *restrict u0     ,DOUBLE *restrict gradU0             
              ,DOUBLE *restrict rCell  ,Temporal const ddt
-             ,INT const nEq           ,INT const nAd               
-             ,INT const nAdR                                       
+             ,INT const nEq           ,INT const nEqNov
+             ,INT const nAd           ,INT const nAdR                                       
              ,short const maxNo       ,short const maxViz
              ,short const ndm         ,INT const numel
              ,short const ndf         ,short const storage
@@ -118,14 +118,14 @@
              ,DOUBLE *restrict gvSkew ,DOUBLE *restrict gmvSkew   
              ,DOUBLE *restrict gDcca  ,DOUBLE *restrict density             
              ,INT    *restrict ia     ,INT    *restrict ja                  
-             ,DOUBLE *restrict ad     ,DOUBLE *restrict al                  
+             ,DOUBLE *restrict al     ,DOUBLE *restrict ad                  
              ,DOUBLE *restrict b      ,INT    *restrict id 
              ,short  *restrict faceR  ,short  *restrict faceL              
              ,DOUBLE *restrict u0     ,DOUBLE *restrict gradU0 
              ,DOUBLE *restrict vel            
              ,DOUBLE *restrict rCell  ,Temporal const ddt
-             ,INT const nEq           ,INT const nAd               
-             ,INT const nAdR                                       
+             ,INT const nEq           ,INT const nEqNov
+             ,INT const nAd           ,INT const nAdR                                       
              ,short const maxNo       ,short const maxViz
              ,short const ndm         ,INT const numel
              ,short const ndf         ,short const storage

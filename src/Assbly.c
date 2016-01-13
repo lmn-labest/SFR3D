@@ -6,20 +6,18 @@
  *-------------------------------------------------------------------*
  * ia      -> ponteiro para as linhas da matriz esparsa              * 
  * ja      -> ponteiro para as colunas da matriz esparsa             * 
- * au      -> matriz de coeficientes esparsa                         * 
+ * a       -> matriz de coeficientes esparsa                         * 
  *            ( CSR - nao utiliza                            )       *
- *            ( CSRD/CSRC- triangular superior               )       *
+ *            ( CSRD/CSRC- fora da diagonal principal        )       *
  * ad      -> matrix de coeficientes esparsa                         *
  *            ( CSR - matriz completa                        )       *
  *            ( CSRD/CSRC- diagonal principal                )       *
- * al      -> matriz de coeficientes esparsa                         * 
- *            ( CSR - nao utiliza                            )       *
- *            ( CSRD/CSRC- triangular inferior               )       *
  * b       -> vetor de forcas                                        *
  * lId     -> numeracao das equacoes dessa celula                    *
  * lA      -> coficientes da celula                                  *
  * lB      -> vetor de forca da celula                               *
  * nEq     -> numero de equacoes                                     *
+ * neqNov  -> numero de equacoes nao sobrepostas                      *
  * nAd     -> numero de termos nao nulos                             *
  * nAdR    -> numero de termos nao nulos na parte retangular         *
  * nFace   -> numero de faces da celula                              *
@@ -38,12 +36,12 @@
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void assbly(INT    *restrict  ia,INT *restrict ja 
-           ,double *restrict au ,double *restrict ad
-           ,double *restrict al ,double *restrict b
+           ,double *restrict a  ,double *restrict ad
+           ,double *restrict b
            ,INT *restrict lId
            ,double *restrict lA ,double *restrict lB
-           ,INT const nEq       ,INT const nAd
-           ,INT const nAdR  
+           ,INT const nEq       ,INT const nEqNov
+           ,INT const nAd       ,INT const nAdR  
            ,short const nFace   ,short const ndf 
            ,short const storage ,bool  const forces  
            ,bool const matrix   ,bool  const  unsym)
@@ -56,23 +54,23 @@ void assbly(INT    *restrict  ia,INT *restrict ja
     case CSRD:
     case CSRC:
     case CSRDCOO:
-        csr(ia     ,ja
-           ,au     ,ad
-           ,al     ,b
-           ,lId
-           ,lA     ,lB
-           ,nEq    ,nAd
-           ,nAdR  
-           ,nFace  ,ndf
-           ,storage,forces
-           ,matrix ,unsym);
+    case CSRCCOO:
+      csr(ia     ,ja
+         ,a      ,ad
+         ,b      ,lId
+         ,lA     ,lB
+         ,nEq    ,nEqNov   
+         ,nAd    ,nAdR  
+         ,nFace  ,ndf
+         ,storage,forces
+         ,matrix ,unsym);
     break;
 /*...................................................................*/
 
 /*... ellPack*/
     case ELLPACK:
       ellPack(ia     
-             ,ad     ,al   
+             ,ad     ,a    
              ,b
              ,lId
              ,lA     ,lB

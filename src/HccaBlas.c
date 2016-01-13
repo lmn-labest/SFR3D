@@ -32,7 +32,7 @@
  * ................... SIMETRICA - MPI (CSRD+COO) ................... *
  * mpiMatVecCsrDcooSym -> matizt vetor para matriz simetrica no       *
  * formato CSRD+COO                                                   *           
- * ...........................GERAL ................................. *
+ * .......................... GERAL ................................. *
  * matVecCsrD     -> matriz vetor para matriz geral no formato CSRD   * 
  * matVecCsrDI2   -> matriz vetor para matriz geral no formato CSRD   * 
  * matVecCsrDI4   -> matriz vetor para matriz geral no formato CSRD   * 
@@ -43,6 +43,15 @@
  * matVecCsrDO2I2 -> matriz vetor para matriz geral no formato CSRD   * 
  * ...................... GERAL (CSRD) - MPI ........................ *
  * mpiMatVecCsrD  -> matizt vetor para matriz simetrica no formato    * 
+ * .......................... CSRC .................................. *
+ * ................. ESTRUTURALMENTE SIMETRICA .......................*
+ * matVecCsrC     -> matriz vetor para matriz estruturalmente         *
+ * simetrica no formato CSRC                                          * 
+ * .......................... MPI ....................................*
+ * mpiMatVecCsrC  -> matriz vetor para matriz estruturalmente         *
+ * simetrica no formato CSRC+CSR                                      * 
+ * mpiMatVecCsrCcoo> matriz vetor para matriz estruturalmente         *
+ * simetrica no formato CSRC+COO                                      * 
  * ------------------------ ELLPACK --------------------------------- * 
  * ...........................GERAL ................................. *
  * matVecEllPack  -> matriz vetor para matriz geral no formato EllPack* 
@@ -925,7 +934,7 @@ DOUBLE dotO8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
  *-------------------------------------------------------------------* 
  * y   -> vetor com o resultado da multiplicacao                     * 
  *-------------------------------------------------------------------* 
- * OBS: ja guarda os indiceis da para inferior da matriz             * 
+ * OBS: ja guarda os indiceis da parte inferior da matriz            * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void matVecCsrDSym(INT const neq           
@@ -984,8 +993,8 @@ void matVecCsrDSym(INT const neq
  *-------------------------------------------------------------------* 
  * y   -> vetor com o resultado da multiplicacao                     * 
  *-------------------------------------------------------------------* 
- * OBS: ja guarda os indiceis da para inferior da matriz CSRD e a    * 
- * parte retangular em COO                                           * 
+ * OBS: ja guarda os indiceis da parte inferior da matriz CSRD e a   * 
+ * parte retangular em CSR                                           * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void mpiMatVecCsrDSym(INT const nEq      ,INT const *nAd      
@@ -1066,7 +1075,7 @@ void mpiMatVecCsrDSym(INT const nEq      ,INT const *nAd
  *-------------------------------------------------------------------* 
  * y   -> vetor com o resultado da multiplicacao                     * 
  *-------------------------------------------------------------------* 
- * OBS: ja guarda os indiceis da para inferior da matriz CSRD e a    * 
+ * OBS: ja guarda os indiceis da parte inferior da matriz CSRD e a   * 
  * parte retangular em COO                                           * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
@@ -1912,18 +1921,259 @@ void mpiMatVecCsrD(INT const neq     ,INT const *nAd
 /*...*/
   for(i=0;i<neq;i++){
     tmp = ad[i]*x[i];
-    for(j=ia[i];j<ia[i+1];j++)
+    for(j=ia[i];j<ia[i+1];j++){
       tmp += a[j]*x[ja[j]];
+    }
     y[i] = tmp;
   }
 /*...................................................................*/
-
+ 
 /*...*/ 
   tm.matVecSparse             = getTimeC() - tm.matVecSparse;
 /*...................................................................*/
 #endif
 }
 /*********************************************************************/
+
+/***************** CSRC ESTRUTURALMENTE SIMETRICA ********************/
+
+/********************************************************************* 
+ * MATVECCSRDSYM:produto matriz vetor para uma matriz no formato CSRD* 
+ * (y=Ax, A uma matriz estruturalmente simentrica)                   * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * al  -> vetor com os valores fora da diagonal principal            * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS: ja guarda os indiceis da parte inferior da matriz            * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecCsrC(INT const neq                              
+               ,INT *restrict ia   ,INT *restrict ja
+               ,DOUBLE *restrict a ,DOUBLE *restrict ad
+               ,DOUBLE *restrict x ,DOUBLE *restrict y)
+{
+  INT    i,k,jak,nAd;
+  DOUBLE xi,tmp;
+  DOUBLE *restrict au=NULL;
+  DOUBLE *restrict al=NULL;
+
+  nAd = ia[neq] - ia[0]; 
+
+  au = &a[nAd];
+  al = &a[0];
+  
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+  
+  y[0] = ad[0]*x[0]; 
+  for(i=1;i<neq;i++){
+    xi  = x[i];
+    tmp = ad[i]*xi;
+    for(k=ia[i];k<ia[i+1];k++){
+      jak = ja[k];
+/*... produto da linha i pelo vetor x*/
+      tmp    += al[k]*x[jak];
+/*... produto dos coef. da parte superior da matriz por x(i)*/
+      y[jak] += au[k]*xi;
+    }
+/*... armazena o resultado em y(i) */
+    y[i] = tmp;
+  }
+  
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+} 
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * MPIMATVECCSRC :produto matriz vetor para uma matriz no formato    *
+ * CSRC+CSR (y=Ax, A uma matriz estruturalmente simentrica)          * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * nAd -> numero de elementos nao nulos                              * 
+ *        nAd[0] - CSRD                                              *
+ *        nAd[1] - CSR                                               *
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * al  -> vetor com os valores inferiores da matriz                  * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ * iNeq-> equacoes de interface                                      * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS: ja guarda os indiceis da parte inferior da matriz CSRD e a   * 
+ * parte retangular em CSR                                           * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void mpiMatVecCsrC(INT const nEq      ,INT const *nAd      
+                  ,INT *restrict ia   ,INT *restrict ja
+                  ,DOUBLE *restrict a ,DOUBLE *restrict ad
+                  ,DOUBLE *restrict x ,DOUBLE *restrict y
+                  ,Interface *iNeq)
+{
+#ifdef _MPICH_
+  INT    i,k,jak;
+  DOUBLE xi,tmp;
+  INT *restrict iar=NULL;
+  INT *restrict jar=NULL;
+  DOUBLE *restrict ar=NULL;
+  DOUBLE *restrict au=NULL;
+  DOUBLE *restrict al=NULL;
+
+  au = &a[nAd[0]];
+  al = &a[0];
+
+  iar = &ia[nEq+1];
+  jar = &ja[nAd[0]];
+  ar  = &a[2*nAd[0]];
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+  
+/*...*/
+  tm.matVecOverHeadMpi        = getTimeC() - tm.matVecOverHeadMpi;
+  comunicateNeq(iNeq,x);
+  tm.matVecOverHeadMpi        = getTimeC() - tm.matVecOverHeadMpi;
+/*...................................................................*/
+      
+/*...*/
+  for(i=0;i<nEq;i++){
+    xi  = x[i];
+    tmp = ad[i]*xi;
+    for(k=ia[i];k<ia[i+1];k++){
+      jak = ja[k];
+/*... produto da linha i pelo vetor x*/
+      tmp    += al[k]*x[jak];
+/*... produto dos coef. da parte superior da matriz por x(i)*/
+      y[jak] += au[k]*xi;
+    }
+    
+/*... parte retangular*/
+    for(k=iar[i];k<iar[i+1];k++){
+      jak  = jar[k];
+      tmp += ar[k]*x[jak];
+    } 
+/*... armazena o resultado em y(i) */
+    y[i] = tmp;
+  }
+/*...................................................................*/
+    
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+#endif
+} 
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * MPIMATVECCSRCCOO :produto matriz vetor para uma matriz no formato *
+ * CSRC+CSR (y=Ax, A uma matriz estruturalmente simentrica)          * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * nAd -> numero de elementos nao nulos                              * 
+ *        nAd[0] - CSRD                                              *
+ *        nAd[1] - CSR                                               *
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * al  -> vetor com os valores inferiores da matriz                  * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ * iNeq-> equacoes de interface                                      * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS: ja guarda os indiceis da parte inferior da matriz CSRD e a   * 
+ * parte retangular em COO                                           * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void mpiMatVecCsrCcoo(INT const nEq      ,INT const *nAd      
+                     ,INT *restrict ia   ,INT *restrict ja
+                     ,DOUBLE *restrict a ,DOUBLE *restrict ad
+                     ,DOUBLE *restrict x ,DOUBLE *restrict y
+                     ,Interface *iNeq)
+{
+#ifdef _MPICH_
+  INT    i,j,k,jak;
+  DOUBLE xi,tmp;
+  INT *restrict iar=NULL;
+  INT *restrict jar=NULL;
+  DOUBLE *restrict ar=NULL;
+  DOUBLE *restrict au=NULL;
+  DOUBLE *restrict al=NULL;
+
+  au = &a[nAd[0]];
+  al = &a[0];
+
+  iar = &ia[2*(nEq+1)];
+  jar = &ja[nAd[0]];
+  ar  = &al[2*nAd[0]];
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+  
+/*...*/
+  tm.matVecOverHeadMpi        = getTimeC() - tm.matVecOverHeadMpi;
+  comunicateNeq(iNeq,x);
+  tm.matVecOverHeadMpi        = getTimeC() - tm.matVecOverHeadMpi;
+/*...................................................................*/
+      
+/*...*/
+  for(i=0;i<nEq;i++){
+    xi  = x[i];
+    tmp = ad[i]*xi;
+    for(k=ia[i];k<ia[i+1];k++){
+      jak = ja[k];
+/*... produto da linha i pelo vetor x*/
+      tmp    += al[k]*x[jak];
+/*... produto dos coef. da parte superior da matriz por x(i)*/
+      y[jak] += au[k]*xi;
+    }
+    
+/*... armazena o resultado em y(i) */
+    y[i] = tmp;
+  }
+/*...................................................................*/
+
+/*... parte retangular em COO*/
+  for(k=0;k<nAd[1];k++){
+    i     = iar[k];
+    j     = jar[k];
+    y[i] += ar[k]*x[j];
+  }
+/*...................................................................*/
+    
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+#endif
+} 
+/*********************************************************************/ 
 
 /************************ ELLPACK GERAL ******************************/
 

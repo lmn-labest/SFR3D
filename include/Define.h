@@ -128,6 +128,7 @@
   #define CSRC    3
   #define ELLPACK 4
   #define CSRDCOO 5
+  #define CSRCCOO 6
 /*...................................................................*/
 
 /*... vtk elmentos*/

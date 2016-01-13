@@ -15,12 +15,11 @@
 
 /*...*/
   void assbly(INT    *restrict  ia,INT *restrict ja 
-             ,DOUBLE *restrict au ,DOUBLE *restrict ad
-             ,DOUBLE *restrict al ,DOUBLE *restrict b
-             ,INT *restrict lId
+             ,DOUBLE *restrict al ,DOUBLE *restrict ad
+             ,DOUBLE *restrict b  ,INT *restrict lId
              ,DOUBLE *restrict lA ,DOUBLE *restrict lB
-             ,INT const nEq       ,INT const nAd
-             ,INT const nAdr  
+             ,INT const nEq       ,INT const nEqNov 
+             ,INT const nAd       ,INT const nAdr  
              ,short const nFace   ,short const ndf 
              ,short const storage ,bool  const forces  
              ,bool const matrix   ,bool  const  unsym);

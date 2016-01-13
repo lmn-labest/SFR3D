@@ -82,13 +82,13 @@ void diffusion(Memoria *m   ,Loads *loadsDif
                ,mesh->elm.geom.vSkew    ,mesh->elm.geom.mvSkew   
                ,mesh->elm.geom.dcca     ,mesh->elm.densityUd1
                ,sistEqD->ia            ,sistEqD->ja      
-               ,sistEqD->ad            ,sistEqD->al       
+               ,sistEqD->al            ,sistEqD->ad       
                ,sistEqD->b             ,sistEqD->id       
                ,mesh->elm.faceRd1       ,mesh->elm.faceLoadD1  
                ,mesh->elm.uD1           ,mesh->elm.gradUd1           
                ,mesh->elm.rCellUd1      ,sc.ddt
-               ,sistEqD->neqNov        ,sistEqD->nad
-               ,sistEqD->nadr      
+               ,sistEqD->neq            ,sistEqD->neqNov        
+               ,sistEqD->nad            ,sistEqD->nadr      
                ,mesh->maxNo             ,mesh->maxViz
                ,mesh->ndm               ,mesh->numelNov
                ,mesh->ndfD[0]           ,sistEqD->storage

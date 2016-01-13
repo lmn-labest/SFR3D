@@ -82,14 +82,14 @@ void transport(Memoria *m   ,Loads *loadsTrans
                ,mesh->elm.geom.vSkew    ,mesh->elm.geom.mvSkew   
                ,mesh->elm.geom.dcca     ,mesh->elm.densityUt1
                ,sistEqT->ia             ,sistEqT->ja      
-               ,sistEqT->ad             ,sistEqT->al       
+               ,sistEqT->al             ,sistEqT->ad       
                ,sistEqT->b              ,sistEqT->id       
                ,mesh->elm.faceRt1       ,mesh->elm.faceLoadT1  
                ,mesh->elm.uT1           ,mesh->elm.gradUt1           
                ,mesh->elm.vel                                        
                ,mesh->elm.rCellUt1      ,sc.ddt
-               ,sistEqT->neqNov         ,sistEqT->nad
-               ,sistEqT->nadr      
+               ,sistEqT->neq            ,sistEqT->neqNov      
+               ,sistEqT->nad            ,sistEqT->nadr      
                ,mesh->maxNo             ,mesh->maxViz
                ,mesh->ndm               ,mesh->numelNov
                ,mesh->ndfT[0]           ,sistEqT->storage

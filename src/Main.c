@@ -423,7 +423,7 @@ int main(int argc,char**argv){
          
 /*... reodenando as celulas para dimuincao da banda*/
       HccaAlloc(INT,&m,reordMesh->num,mesh->numel,"rNum" ,_AD_);
-      printf("%s\n",DIF);
+      if(!mpiVar.myId ) printf("%s\n",DIF);
       if(!mpiVar.myId ) printf("Reordenando a malha ...\n");
         tm.reord = getTimeC() - tm.reord;
         reord(&m                ,reordMesh->num,mesh->elm.adj.nelcon
@@ -709,6 +709,10 @@ int main(int argc,char**argv){
           printf("DataStruct: CSRDCOO\n");
         }
         
+        else if(sistEqD1->storage == CSRC && !mpiVar.myId ){     
+          printf("DataStruct: CSRC\n");
+        }
+        
         if(sistEqD1->unsym && !mpiVar.myId ){
           printf("Matrix    : unsymetric\n");
         } 
@@ -880,12 +884,21 @@ int main(int argc,char**argv){
         if(sistEqT1->storage == CSRD && !mpiVar.myId ){     
           printf("DataStruct: CSRD\n");
         }
+
         else if(sistEqT1->storage == ELLPACK && !mpiVar.myId ){     
           printf("DataStruct: ELLPACK\n");
         }
         
         else if(sistEqT1->storage == CSRDCOO && !mpiVar.myId ){     
           printf("DataStruct: CSRDCOO\n");
+        }
+        
+        else if(sistEqT1->storage == CSRC && !mpiVar.myId ){     
+          printf("DataStruct: CSRC\n");
+        }
+        
+        else if(sistEqT1->storage == CSRCCOO && !mpiVar.myId ){     
+          printf("DataStruct: CSRCCOO\n");
         }
         
       }

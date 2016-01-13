@@ -101,7 +101,7 @@
                           ,DOUBLE *restrict x ,DOUBLE *restrict y
                           ,Interface *iNeq);
 /*... Geral*/
-  void mpiMatVecCsrD(INT const neq     ,INT const *nAd 
+  void mpiMatVecCsrD(INT const neq   ,INT const *nAd 
                   ,INT *restrict ia  ,INT *restrict ja
                   ,DOUBLE *restrict a,DOUBLE *restrict ad
                   ,DOUBLE *restrict x,DOUBLE *restrict y
@@ -109,6 +109,31 @@
   
   
 /*...................................................................*/
+
+/*... CsrC */ 
+/*... Simetrico*/
+/*... ESTRUTURALMENTE SIMETRICA*/
+  void matVecCsrC(INT const neq                       
+                 ,INT *restrict ia  ,INT *restrict ja
+                 ,DOUBLE *restrict a,DOUBLE *restrict ad
+                 ,DOUBLE *restrict x,DOUBLE *restrict y);
+
+/*... CSRD+CSR*/
+  void mpiMatVecCsrC(INT const nEq      ,INT const *nAd      
+                    ,INT *restrict ia   ,INT *restrict ja
+                    ,DOUBLE *restrict a ,DOUBLE *restrict ad
+                    ,DOUBLE *restrict x ,DOUBLE *restrict y
+                    ,Interface *iNeq);
+
+/*... CSRC+COO*/
+  void mpiMatVecCsrCcoo(INT const nEq      ,INT const *nAd      
+                       ,INT *restrict ia   ,INT *restrict ja
+                       ,DOUBLE *restrict a ,DOUBLE *restrict ad
+                       ,DOUBLE *restrict x ,DOUBLE *restrict y
+                       ,Interface *iNeq);
+  
+/*...................................................................*/
+
 
 /*... EllPack*/ 
   void matVecEllPack(INT const nEq           

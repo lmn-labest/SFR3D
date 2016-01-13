@@ -222,12 +222,12 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
  * density -> massa especifica com variacao temporal                 * 
  * ia      -> ponteiro para as linhas da matriz esparsa              * 
  * ja      -> ponteiro para as colunas da matriz esparsa             * 
+ * a       -> matriz de coeficientes esparsa                         * 
+ *            ( CSR - nao utiliza                            )       *
+ *            ( CSRD/CSRC- fora da diagonal principal        )       *
  * ad      -> matrix de coeficientes esparsa                         *
  *            ( CSR - matriz completa                        )       *
  *            ( CSRD/CSRC- diagonal principal                )       *
- * al      -> matriz de coeficientes esparsa                         * 
- *            ( CSR - nao utiliza                            )       *
- *            ( CSRD/CSRC- triangular inferior               )       *
  * b       -> vetor de forcas                                        * 
  * id      -> numera das equacoes                                    * 
  * faceR   -> restricoes por elemento                                * 
@@ -237,6 +237,7 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
  * rCell   -> nao definido                                           * 
  * ddt     -> discretizacao temporal                                 *
  * nEq     -> numero de equacoes                                     *
+ * neqNov  -> numero de equacoes nao sobrepostas                     *
  * nAd     -> numero de termos nao nulos                             *
  * nAdR    -> numero de termos nao nulos na parte retangular         *
  * maxNo   -> numero de nos por celula maximo da malha               * 
@@ -271,13 +272,13 @@ void systFormDif(Loads *loads
                ,DOUBLE *restrict gvSkew  ,DOUBLE *restrict gmvSkew 
                ,DOUBLE *restrict gDcca   ,DOUBLE *restrict density
                ,INT    *restrict ia      ,INT    *restrict ja   
-               ,DOUBLE *restrict ad      ,DOUBLE *restrict al
+               ,DOUBLE *restrict a       ,DOUBLE *restrict ad
                ,DOUBLE *restrict b       ,INT    *restrict id
                ,short  *restrict faceR   ,short  *restrict faceLd1        
                ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0 
                ,DOUBLE *restrict rCell   ,Temporal ddt 
-               ,INT const nEq            ,INT const nAd
-               ,INT const nAdR                     
+               ,INT const nEq            ,INT const nEqNov     
+               ,INT const nAd            ,INT const nAdR                     
                ,short const maxNo        ,short const maxViz
                ,short const ndm          ,INT const numel
                ,short const ndf          ,short const storage
@@ -293,7 +294,6 @@ void systFormDif(Loads *loads
   DOUBLE lXm[MAX_NUM_FACE*MAX_NDM],lXmcc[MAX_NUM_FACE*MAX_NDM];
   DOUBLE lDcca[MAX_NUM_FACE];
   DOUBLE lmvSkew[MAX_NUM_FACE],lvSkew[MAX_NUM_FACE*MAX_NDM];
-  DOUBLE dum;  
   short  lGeomType[MAX_NUM_FACE+1];
   short  lib;
   short  lFaceR[MAX_NUM_FACE+1];
@@ -420,12 +420,12 @@ void systFormDif(Loads *loads
       
 /*...*/
       assbly(ia          ,ja
-            ,&dum        ,ad 
-            ,al          ,b  
+            ,a           ,ad         
+            ,b  
             ,lId 
             ,lA          ,lB
-            ,nEq         ,nAd
-            ,nAdR     
+            ,nEq         ,nEqNov 
+            ,nAd         ,nAdR     
             ,nFace[nel]  ,ndf 
             ,storage     ,forces
             ,matrix      ,unsym); 
@@ -467,16 +467,19 @@ void systFormDif(Loads *loads
  *            centrois compartilhado nessa face                      * 
  * gmvSkew -> distacia entre o ponto medio a intersecao que une os   * 
  *            centrois compartilhado nessa face                      * 
+ * au      -> matriz de coeficientes esparsa                         * 
+ *            ( CSR - nao utiliza                            )       *
+ *            ( CSRD/CSRC- triangular superior               )       *
  * gDcca   -> menor distancia do centroide a faces desta celula      * 
  * density -> massa especifica com variacao temporal                 * 
  * ia      -> ponteiro para as linhas da matriz esparsa              * 
  * ja      -> ponteiro para as colunas da matriz esparsa             * 
+ * a       -> matriz de coeficientes esparsa                         * 
+ *            ( CSR - nao utiliza                            )       *
+ *            ( CSRD/CSRC- fora da diagonal principal        )       *
  * ad      -> matrix de coeficientes esparsa                         *
  *            ( CSR - matriz completa                        )       *
  *            ( CSRD/CSRC- diagonal principal                )       *
- * al      -> matriz de coeficientes esparsa                         * 
- *            ( CSR - nao utiliza                            )       *
- *            ( CSRD/CSRC- triangular inferior               )       *
  * b       -> vetor de forcas                                        * 
  * id      -> numera das equacoes                                    * 
  * faceR   -> restricoes por elemento                                * 
@@ -487,6 +490,7 @@ void systFormDif(Loads *loads
  * rCell   -> nao definido                                           * 
  * ddt     -> discretizacao temporal                                 *
  * nEq     -> numero de equacoes                                     *
+ * neqNov  -> numero de equacoes nao sobrepostas                     *
  * nAd     -> numero de termos nao nulos                             *
  * nAdR    -> numero de termos nao nulos na parte retangular         *
  * maxNo   -> numero de nos por celula maximo da malha               * 
@@ -520,15 +524,15 @@ void systFormTrans(Loads *loads          ,Advection advT
                ,DOUBLE *restrict gXm     ,DOUBLE *restrict gXmcc 
                ,DOUBLE *restrict gvSkew  ,DOUBLE *restrict gmvSkew 
                ,DOUBLE *restrict gDcca   ,DOUBLE *restrict density
-               ,INT    *restrict ia      ,INT    *restrict ja   
-               ,DOUBLE *restrict ad      ,DOUBLE *restrict al
+               ,INT    *restrict ia      ,INT    *restrict ja
+               ,DOUBLE *restrict a       ,DOUBLE *restrict ad 
                ,DOUBLE *restrict b       ,INT    *restrict id
                ,short  *restrict faceR   ,short  *restrict faceLd1        
                ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0 
                ,DOUBLE *restrict vel                               
                ,DOUBLE *restrict rCell   ,Temporal ddt 
-               ,INT const nEq            ,INT const nAd
-               ,INT const nAdR                     
+               ,INT const nEq            ,INT const nEqNov
+               ,INT const nAd            ,INT const nAdR                     
                ,short const maxNo        ,short const maxViz
                ,short const ndm          ,INT const numel
                ,short const ndf          ,short const storage
@@ -544,7 +548,6 @@ void systFormTrans(Loads *loads          ,Advection advT
   DOUBLE lXm[MAX_NUM_FACE*MAX_NDM],lXmcc[MAX_NUM_FACE*MAX_NDM];
   DOUBLE lDcca[MAX_NUM_FACE];
   DOUBLE lmvSkew[MAX_NUM_FACE],lvSkew[MAX_NUM_FACE*MAX_NDM];
-  DOUBLE dum;  
   short  lGeomType[MAX_NUM_FACE+1];
   short  lib;
   short  lFaceR[MAX_NUM_FACE+1];
@@ -677,12 +680,12 @@ void systFormTrans(Loads *loads          ,Advection advT
       
 /*...*/
       assbly(ia          ,ja
-            ,&dum        ,ad 
-            ,al          ,b  
+            ,a           ,ad              
+            ,b  
             ,lId 
             ,lA          ,lB
-            ,nEq         ,nAd
-            ,nAdR     
+            ,nEq         ,nEqNov
+            ,nAd         ,nAdR     
             ,nFace[nel]  ,ndf 
             ,storage     ,forces
             ,matrix      ,unsym); 

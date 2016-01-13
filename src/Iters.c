@@ -281,7 +281,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
  * ad,al,au-> inalterado                                              *
  * -------------------------------------------------------------------*
 *********************************************************************/
-void pbicgstab(INT const nEq      ,INT const nAd
+void pbicgstab(INT const nEq  ,INT const nAd
           ,INT *restrict ia   ,INT *restrict ja
           ,DOUBLE *restrict al,DOUBLE *restrict ad,DOUBLE *restrict au
           ,DOUBLE *restrict m ,DOUBLE *restrict b ,DOUBLE *restrict x
@@ -456,6 +456,7 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
 /*--------------------------------------------------------*/   
   for(j = 0; j < maxIt; j++)   {
     matvec(nEqNov,param,ia,ja,al,ad,z,v,iNeq);
+
     rr0   = dot(b,r,nEqNov);
     alpha = rr0/dot(v,r,nEqNov);
     for(i = 0; i < nEqNov; i++)   {

@@ -20,7 +20,6 @@
  * OBS:                                                              * 
  * ad -> alocados                                                    * 
  * al -> alocados                                                    * 
- * au -> alocados                                                    * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void dataStruct(Memoria *m      ,INT *id   
@@ -66,11 +65,11 @@ void dataStruct(Memoria *m      ,INT *id
          zero(sistEqX->ia,n2    ,INTC);
 /*... */
          nad = sistEqX->nad = csrIa(sistEqX->ia ,id 
-                                   ,num       ,nelcon 
+                                   ,num         ,nelcon 
                                    ,nViz
-                                   ,numel     ,sistEqX->neqNov
-                                   ,maxViz    ,ndf
-                                   ,upper     ,diag         
+                                   ,numel       ,sistEqX->neqNov
+                                   ,maxViz      ,ndf
+                                   ,upper       ,diag         
                                    ,lower     );
 /*...................................................................*/
 
@@ -138,7 +137,7 @@ void dataStruct(Memoria *m      ,INT *id
 /*... alocando o vetor ia(2*neq+1+nadr)*/
         n0 = sistEqX->neqNov + 1; 
         n1 = n0 + sistEqX->neqNov + 1; 
-        n2 = n1+nadr; 
+        n2 = n1 + nadr; 
         HccaAlloc(INT,m,sistEqX->ia      ,n2  ,strIa   ,_AD_);
         zero(sistEqX->ia,n2    ,INTC);
 /*... vetor ia do CSRD*/
@@ -164,7 +163,9 @@ void dataStruct(Memoria *m      ,INT *id
               ,lower);
 /*...................................................................*/
 
-/*... vetor ia e ja do COO*/
+/*... vetor ia[n0] parte retangular no formato CSR 
+      (para a montagem da matriz global) 
+      ia[n1] e ja da parte retangular no formato COO*/
          cooIaJaR(&sistEqX->ia[n0]
                  ,&sistEqX->ia[n1]     ,&sistEqX->ja[nad]          
                  ,id                   ,num
@@ -261,11 +262,219 @@ void dataStruct(Memoria *m      ,INT *id
 /*...................................................................*/
 
 /*... armazenamento CSRC(ad,au,al)*/
+/*...CSRC+COO*/
+     case CSRCCOO:
+       fCoo = true; 
      case CSRC:
+/*...*/
+       lower = true;
+/*...*/
+       upper = false;
+/*...*/
+       diag  = false;
+/*...................................................................*/
+
+/*... paralelo (CSRC + CSR)*/
+       if(mpiVar.nPrcs > 1 && !fCoo){
+         n1 = sistEqX->neqNov + 1; 
+         n2 = 2*n1; 
+         HccaAlloc(INT,m,sistEqX->ia      ,n2  ,strIa   ,_AD_);
+         zero(sistEqX->ia,n2    ,INTC);
+
+/*... */
+         nad = sistEqX->nad = csrIa(sistEqX->ia ,id 
+                                   ,num         ,nelcon 
+                                   ,nViz
+                                   ,numel       ,sistEqX->neqNov
+                                   ,maxViz      ,ndf
+                                   ,upper       ,diag         
+                                   ,lower       );
+/*...................................................................*/
+
+/*... parte retangular*/
+/* ... CSR*/
+         nadr = sistEqX->nadr = csrIaR(&sistEqX->ia[n1],id 
+                                      ,num             ,nelcon 
+                                      ,nViz
+                                      ,numel           ,sistEqX->neqNov
+                                      ,maxViz          ,ndf);
+/*...................................................................*/
+
+/*...*/
+         nadT = nad + nadr;
+         HccaAlloc(INT,m,sistEqX->ja     ,nadT ,strJa   ,_AD_);
+         zero(sistEqX->ja,nadT  ,INTC);
+         csrJa(sistEqX->ia ,sistEqX->ja 
+              ,id          ,num     
+              ,nelcon      ,nViz 
+              ,numel       ,sistEqX->neqNov
+              ,maxViz      ,ndf
+              ,upper       ,diag 
+              ,lower);
+/*...................................................................*/
+
+/*... parte retangular*/
+/* ... CSR*/
+         csrJaR(&sistEqX->ia[n1] ,&sistEqX->ja[nad] 
+               ,id               ,num     
+               ,nelcon           ,nViz 
+               ,numel            ,sistEqX->neqNov
+               ,maxViz           ,ndf);
+/*...................................................................*/
+
+/*... reordenando o grafo*/
+         sortGraphCsr(sistEqX->ia,sistEqX->ja,sistEqX->neqNov);
+/*...................................................................*/
+
+/*... reordenando o grafo*/
+         sortGraphCsr(&sistEqX->ia[n1],&sistEqX->ja[nad]
+                     ,sistEqX->neqNov);
+/*...................................................................*/
+
+/*...*/
+         if(sistEqX->unsym) 
+           nadT = 2*nad + nadr;
+         else
+           nadT = nad + nadr;
+/*...................................................................*/
+
+/*... alocacao da matriz*/
+         HccaAlloc(DOUBLE         ,m    ,sistEqX->ad
+                  ,sistEqX->neqNov,strAd,false);
+         HccaAlloc(DOUBLE         ,m    ,sistEqX->al
+                  ,nadT           ,strA ,false);
+         zero(sistEqX->ad,sistEqX->neqNov,DOUBLEC);
+         zero(sistEqX->al,nadT           ,DOUBLEC);
+/*...................................................................*/
+       }
+/*...................................................................*/
+
+/*... paralelo (CSRC + COO)*/
+       else if (mpiVar.nPrcs > 1 && fCoo){
+/*... obtendo o numero de termos nao nulos na parte retangular*/ 
+        nadr = sistEqX->nadr = cooNnzR(id     ,num   
+                                      ,nelcon ,nViz 
+                                      ,numel  ,sistEqX->neqNov
+                                      ,maxViz ,ndf);
+/*...................................................................*/
+
+/*... alocando o vetor ia(2*neq+1+nadr)*/
+        n0 = sistEqX->neqNov + 1; 
+        n1 = n0 + sistEqX->neqNov + 1; 
+        n2 = n1 + nadr; 
+        HccaAlloc(INT,m,sistEqX->ia      ,n2  ,strIa   ,_AD_);
+        zero(sistEqX->ia,n2    ,INTC);
+/*... vetor ia do CSRC*/
+        nad = sistEqX->nad = csrIa(sistEqX->ia ,id 
+                                  ,num         ,nelcon 
+                                  ,nViz
+                                  ,numel       ,sistEqX->neqNov
+                                  ,maxViz      ,ndf
+                                  ,upper       ,diag         
+                                  ,lower);
+/*...................................................................*/
+
+/*... vetor ja do CSRC*/
+         nadT = nad + nadr; 
+         HccaAlloc(INT,m,sistEqX->ja     ,nadT ,strJa   ,_AD_);
+         zero(sistEqX->ja,nadT  ,INTC);
+         csrJa(sistEqX->ia ,sistEqX->ja 
+              ,id          ,num     
+              ,nelcon      ,nViz 
+              ,numel       ,sistEqX->neqNov
+              ,maxViz      ,ndf
+              ,upper       ,diag 
+              ,lower);
+/*...................................................................*/
+
+/*... vetor ia[n0] parte retangular no formato CSR 
+      (para a montagem da matriz global) 
+      ia[n1] e ja da parte retangular no formato COO*/
+         cooIaJaR(&sistEqX->ia[n0]
+                 ,&sistEqX->ia[n1]     ,&sistEqX->ja[nad]          
+                 ,id                   ,num
+                 ,nelcon               ,nViz
+                 ,numel                ,sistEqX->neqNov
+                 ,maxViz               ,ndf);
+/*...................................................................*/
+
+/*... reordenando o grafo csrd ja(nad)*/
+         sortGraphCsr(sistEqX->ia,sistEqX->ja,sistEqX->neqNov);
+/*...................................................................*/
+
+/*... reordenando o grafo Coo ja(nadr)*/
+         sortGraphCsr(&sistEqX->ia[n0],&sistEqX->ja[nad]
+                     ,sistEqX->neqNov);
+/*...................................................................*/
+
+/*...*/
+         if(sistEqX->unsym) 
+           nadT = 2*nad + nadr;
+         else
+           nadT = nad;
+/*...................................................................*/
+
+/*... alocacao da matriz*/
+         HccaAlloc(DOUBLE         ,m    ,sistEqX->ad
+                  ,sistEqX->neqNov,strAd,false);
+         HccaAlloc(DOUBLE         ,m    ,sistEqX->al
+                  ,nadT           ,strA ,false);
+         zero(sistEqX->ad,sistEqX->neqNov,DOUBLEC);
+         zero(sistEqX->al,nadT,DOUBLEC);
+/*...................................................................*/
+
+       }
+/*...................................................................*/
+
+/*... sequencial (CSRC - simetrico e nao simetrico)*/
+       else{
+/*...*/
+         sistEqX->nadr = 0;
+         n1 = sistEqX->neq + 1; 
+         HccaAlloc(INT,m,sistEqX->ia,n1,strIa,_AD_);
+/*... */
+         nad = sistEqX->nad = csrIa(sistEqX->ia ,id 
+                                   ,num         ,nelcon 
+                                   ,nViz
+                                   ,numel       ,sistEqX->neqNov
+                                   ,maxViz      ,ndf
+                                   ,upper       ,diag         
+                                   ,lower       );
+/*...................................................................*/
+
+/*...*/
+         HccaAlloc(INT,m,sistEqX->ja   ,nad ,strJa   ,_AD_);
+         zero(sistEqX->ja,nadT  ,INTC);
+         csrJa(sistEqX->ia ,sistEqX->ja,id ,num    
+              ,nelcon,nViz ,numel      ,sistEqX->neqNov, maxViz,ndf
+              ,upper,diag ,lower);
+/*...................................................................*/
+
+/*... reordenando o grafo*/
+         sortGraphCsr(sistEqX->ia,sistEqX->ja,sistEqX->neqNov);
+/*...................................................................*/
+
+/*...*/
+         if(sistEqX->unsym) 
+           nadT = 2*nad;
+         else
+           nadT = nad;
+/*...................................................................*/
+ 
+/*... alocacao da matriz*/
+         HccaAlloc(DOUBLE         ,m    ,sistEqX->ad
+                  ,sistEqX->neqNov,strAd,false);
+         HccaAlloc(DOUBLE         ,m    ,sistEqX->al
+                  ,nadT           ,strA ,false);
+         zero(sistEqX->ad,sistEqX->neqNov,DOUBLEC);
+         zero(sistEqX->al,nadT           ,DOUBLEC);
+/*...................................................................*/
+       }
+/*...................................................................*/
      break;
 /*...................................................................*/
 
-/*... armazenamento ELLPACK(ad,d)*/
+/*... armazenamento ELLPACK(ad,a)*/
      case ELLPACK:
 /*...*/
        n1 = sistEqX->neqNov + 1; 
@@ -325,6 +534,12 @@ void setDataStruct(char *word,short *data)
 /*... CSRDCOO*/
   else if(!strcmp(word,"CSRDCOO"))
    *data = CSRDCOO;
+/*... CSRC*/
+  else if(!strcmp(word,"CSRC"))
+   *data = CSRC;
+/*... CSRCCOO*/
+  else if(!strcmp(word,"CSRCCOO"))
+   *data = CSRCCOO;
 
 } 
 /*********************************************************************/      

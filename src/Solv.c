@@ -33,6 +33,7 @@
  * x      - atualizado                                                *
  * b      - modificado                                                *
  * -------------------------------------------------------------------*
+ * OBS: csrD e csrC são iguais para matrizes simetricas               *
 **********************************************************************/
 void solverC(Memoria *m    
             ,INT const nEq       ,INT const nEqNov  
@@ -128,8 +129,30 @@ void solverC(Memoria *m
 /*...................................................................*/
 
 /*... armazenamento CSRC(ad,au,al)*/
+/*...CSRC+COO*/
+        case CSRCCOO:
+          fCoo = true;
         case CSRC:
-          matVecC = NULL;
+/*... mpi*/
+            if( mpiVar.nPrcs > 1){
+/*... CSRC+COO*/
+              if(fCoo){ 
+                matVecC = mpiMatVecCsrDcooSym;
+              }
+/*...................................................................*/
+
+/*... CSRC+CSR*/
+              else{ 
+                matVecC = mpiMatVecCsrDSym;
+/*...................................................................*/
+              }
+            }
+/*..................................................................*/
+
+/*... sequencial*/
+            else{
+              matVecC = matVecCsrDSym;
+            }
         break;
 /*...................................................................*/
 
@@ -265,8 +288,29 @@ void solverC(Memoria *m
 /*...................................................................*/
 
 /*... armazenamento CSRC(ad,au,al)*/
+        case CSRCCOO:
+          fCoo = true;
         case CSRC:
-          matVecC = NULL;
+            if( mpiVar.nPrcs > 1){
+/*... CSRC+COO*/
+              if(fCoo){ 
+                matVecC = mpiMatVecCsrCcoo;
+              }
+/*...................................................................*/
+
+/*... CSRC+CSR*/
+              else{ 
+                matVecC = mpiMatVecCsrC;
+/*...................................................................*/
+              }
+            }
+/*..................................................................*/
+
+/*... sequencial*/
+          else{
+            matVecC = matVecCsrC;
+          }
+/*..................................................................*/
         break;
 /*...................................................................*/
 
