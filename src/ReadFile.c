@@ -22,14 +22,14 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 {
   char word[WORD_SIZE],str[WORD_SIZE];
   char macro[NMACROS][WORD_SIZE]={
-            "coordinates","endMesh"  ,"insert"            /* 0, 1, 2*/
-           ,"return"     ,"cells"    ,"faceRt1"           /* 3, 4, 5*/
-           ,"faceLoadT1" ,"loadsT1"  ,""                  /* 6, 7, 8*/ 
-           ,""           ,""         ,""                  /* 9,10,11*/ 
-           ,"faceRd1"    ,""         ,"loadsD1"           /*12,13,14*/ 
-           ,"faceLoadD1" ,""         ,""                  /*15,16,17*/ 
-           ,""           ,""         ,""                  /*18,19,20*/ 
-           ,"materials"  ,""         ,"initialVel"        /*21,22,23*/ 
+            "coordinates","endMesh"   ,"insert"       /* 0, 1, 2*/
+           ,"return"     ,"cells"     ,"faceRt1"      /* 3, 4, 5*/
+           ,"faceLoadT1" ,"loadsT1"   ,""             /* 6, 7, 8*/ 
+           ,""           ,""          ,""             /* 9,10,11*/ 
+           ,"faceRd1"    ,""          ,"loadsD1"      /*12,13,14*/ 
+           ,"faceLoadD1" ,""          ,""             /*15,16,17*/ 
+           ,"faceRfluid" ,"loadsFluid","faceLoadFluid"/*18,19,20*/ 
+           ,"materials"  ,""          ,"initialVel"   /*21,22,23*/ 
 	   };                                             
   bool rflag[NMACROS],macroFlag;
   INT nn,nel;
@@ -172,16 +172,30 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
   }
 /*...................................................................*/
 
+/*... fluido*/
+  if(mesh->ndfF > 0) {     
+/*... alocando memoria*/
+     HccaAlloc(short,m,mesh->elm.faceRfluid
+            ,nel*(maxViz+1),"faceRdluid"  ,_AD_);
+     zero(mesh->elm.faceRfluid,nel*(maxViz+1),"short"  );
+     
+     HccaAlloc(short,m,mesh->elm.faceLoadFluid
+            ,nel*(maxViz+1),"faceLFluid"  ,_AD_);
+     zero(mesh->elm.faceLoadFluid,nel*(maxViz+1),"short"  );
+/*...................................................................*/
+  }
+/*...................................................................*/
+
 /*... problema de transporte*/   
   if(mesh->ndfT[0] > 0) {     
 /*... alocando memoria*/
      HccaAlloc(short,m,mesh->elm.faceRt1
-            ,nel*(maxViz+1)*mesh->ndfT[0],"faceRt1"  ,_AD_);
-     zero(mesh->elm.faceRt1   ,nel*(maxViz+1)*mesh->ndfT[0],"short"  );
+            ,nel*(maxViz+1),"faceRt1"  ,_AD_);
+     zero(mesh->elm.faceRt1   ,nel*(maxViz+1),"short"  );
      
      HccaAlloc(short,m,mesh->elm.faceLoadT1
-            ,nel*(maxViz+1)*mesh->ndfT[0],"faceLt1"  ,_AD_);
-     zero(mesh->elm.faceLoadT1,nel*(maxViz+1)*mesh->ndfT[0],"short"  );
+            ,nel*(maxViz+1),"faceLt1"  ,_AD_);
+     zero(mesh->elm.faceLoadT1,nel*(maxViz+1),"short"  );
 /*...................................................................*/
 
 /*... eUt1*/
@@ -227,12 +241,12 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
   if(mesh->ndfD[0] > 0) {   
 /*... alocando memoria*/
      HccaAlloc(short,m,mesh->elm.faceRd1
-            ,nel*(maxViz+1)*mesh->ndfD[0],"faceRd1"  ,_AD_);
-     zero(mesh->elm.faceRd1   ,nel*(maxViz+1)*mesh->ndfD[0],"short"  );
+            ,nel*(maxViz+1),"faceRd1"  ,_AD_);
+     zero(mesh->elm.faceRd1   ,nel*(maxViz+1),"short"  );
      
      HccaAlloc(short,m,mesh->elm.faceLoadD1
-            ,nel*(maxViz+1)*mesh->ndfD[0],"faceLd1"  ,_AD_);
-     zero(mesh->elm.faceLoadD1,nel*(maxViz+1)*mesh->ndfD[0],"short"  );
+            ,nel*(maxViz+1),"faceLd1"  ,_AD_);
+     zero(mesh->elm.faceLoadD1,nel*(maxViz+1),"short"  );
      
 /*... eUd1*/
      HccaAlloc(DOUBLE,m,mesh->elm.uD1 
@@ -436,6 +450,49 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       printf("loading faceLoadD1 ...\n");
       readVfRes(mesh->elm.faceLoadD1,mesh->numel
                ,mesh->maxViz+1       ,str       ,file);
+      printf("load.\n");
+      printf("%s\n\n",DIF);
+    }
+/*...................................................................*/
+
+/*... faceRfluid- condicao de contorno para problemas fluidos */
+    else if((!strcmp(word,macro[18])) && (!rflag[18])){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      strcpy(macros[nmacro++],word);
+      rflag[18] = true;
+      strcpy(str,"endFaceRfluid");
+      printf("loading faceRfluid ...\n");
+      readVfRes(mesh->elm.faceRfluid,mesh->numel,mesh->maxViz+1,str,file);
+      printf("load.\n");
+      printf("%s\n\n",DIF);
+    }
+/*...................................................................*/
+
+/*... loadFluid - definicao de cargar fluidos */
+    else if((!strcmp(word,macro[19])) && (!rflag[19])){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      strcpy(macros[nmacro++],word);
+      rflag[19] = true;
+      strcpy(str,"endLoadsFluid");
+      printf("loading loadsFluid ...\n");
+      readVfLoads(loadsFluid,str       ,file);
+      printf("load.\n");
+      printf("%s\n\n",DIF);
+    }
+/*...................................................................*/
+
+/*... faceLoadFluid - cargas nas faces fluido */
+    else if((!strcmp(word,macro[20])) && (!rflag[20])){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      strcpy(macros[nmacro++],word);
+      rflag[20] = true;
+      strcpy(str,"endFaceLoadFluid");
+      printf("loading faceLoadFluid ...\n");
+      readVfRes(mesh->elm.faceLoadFluid,mesh->numel
+               ,mesh->maxViz+1         ,str       ,file);
       printf("load.\n");
       printf("%s\n\n",DIF);
     }
@@ -1345,6 +1402,24 @@ void readEdo(Mesh *mesh,FILE *file){
       mesh->ndfD[2]=atol(word);
       if(!mpiVar.myId ) printf("diffusion3 ndf %d\n"
                               ,mesh->ndfD[2]);
+    }
+/*...................................................................*/
+
+/*... fluido*/
+    else if(!strcmp(word,"fluid")){
+      readMacro(file,word,false);
+      mesh->ndfF=atol(word);
+      if(!mpiVar.myId ) printf("fluid ndf %d\n"
+                              ,mesh->ndfF);
+    }
+/*...................................................................*/
+
+/*... fluido-termo ativado*/
+    else if(!strcmp(word,"fluidt")){
+      readMacro(file,word,false);
+      mesh->ndfFt=atol(word);
+      if(!mpiVar.myId ) printf("fluidt ndf %d\n"
+                              ,mesh->ndfFt);
     }
 /*...................................................................*/
     

@@ -65,12 +65,14 @@
   #define CONST            5
   #define INLET            6
   #define OUTLET           7
+  #define MOVEWALL         8
 /*...................................................................*/
 
 /*...*/
   #define MAXLOADPARAMETER 10
   #define MAXLOADD1        200
   #define MAXLOADT1        200
+  #define MAXLOADFLUID     200
 /*...................................................................*/
 
 /*...*/

@@ -43,6 +43,13 @@
           ,INT const numel     ,short const nViz
           ,short const ndf);
   
+  INT numEqV1(INT  *restrict id  ,INT *restrict num
+             ,INT const numel);                       
+  
+  INT numEqV2(INT  *restrict id  ,INT *restrict num
+             ,short *restrict rt  ,short *restrict nen
+             ,INT const numel     ,short const nViz);
+  
   INT countEq(INT *restrict num
            ,short *restrict rt     ,short *restrict nFace 
            ,INT const numel        ,short const maxViz  

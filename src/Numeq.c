@@ -46,6 +46,85 @@ INT numeq(INT *restrict id       ,INT *restrict num
 /*********************************************************************/ 
 
 /*********************************************************************
+ * numEqV1: numeracao das equacoes para as velocidade descopladas    *
+ * do metodo simple                                                  *
+ * ------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ * ------------------------------------------------------------------* 
+ * m     -> memoria principal                                        * 
+ * id    -> indefinido                                               *
+ * num   -> renumeracao dos elementos                                *
+ * numel -> numero de elementos                                      * 
+ * str   -> nome do vetor                                            * 
+ * ------------------------------------------------------------------*
+ * Paramanetros de saida:                                            *
+ * ------------------------------------------------------------------*
+ * id    -> numerocao das equacoes por celula                        *
+ * ------------------------------------------------------------------*
+ * OBS: a numera das equações u, v, e w são iguais e todas as celulas*
+ * tem sempre um equacao.                                            *
+ * *******************************************************************/
+INT numEqV1(INT *restrict id       ,INT *restrict num
+           ,INT const numel        ){
+
+  INT i,neq,nel;
+
+/*...*/  
+  neq = 0;
+  for(i=0;i<numel;i++){
+    nel = num[i] -1;
+    id[nel] = ++neq;
+  }
+/*...................................................................*/
+
+  return neq;
+}
+/*********************************************************************/ 
+
+/*********************************************************************
+ * numEqV2: numeracao das equacoes das pressoes do metodo simple     *
+ * ------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ * ------------------------------------------------------------------* 
+ * m     -> memoria principal                                        * 
+ * id    -> indefinido                                               *
+ * num   -> renumeracao dos elementos                                *
+ * rt    -> restricoes                                               * 
+ * nFace -> numero de faces por elemento                             * 
+ * numel -> numero de elementos                                      * 
+ * maxViz-> numero maximo de vizinhos                                * 
+ * str   -> nome do vetor                                            * 
+ * ------------------------------------------------------------------*
+ * Paramanetros de saida:                                            *
+ * ------------------------------------------------------------------*
+ * id    -> numerocao das equacoes por celula                        *
+ * ------------------------------------------------------------------*
+ * *******************************************************************/
+INT numEqV2(INT *restrict id       ,INT *restrict num
+           ,short *restrict rt     ,short *restrict nFace 
+           ,INT const numel        ,short const maxViz){
+
+  INT i,neq,nel;
+  short maxRes = (maxViz + 1);
+  short aux;
+
+/*...*/  
+  neq = 0;
+  for(i=0;i<numel;i++){
+    nel = num[i] -1;
+    aux = nFace[nel];
+    if( MAT2D(nel,aux,rt,maxRes) == PCCELL)
+      id[nel] = -1; 
+    else
+      id[nel] = ++neq;
+  }
+/*...................................................................*/
+
+  return neq;
+}
+/*********************************************************************/ 
+
+/*********************************************************************
  * NUMEQNOV : conta as equacoes sem sobre posicao                    *
  * ------------------------------------------------------------------*
  * Parametros de entrada:                                            *

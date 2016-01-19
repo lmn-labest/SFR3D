@@ -236,46 +236,51 @@ void wPartVtk(Memoria *m
  * ------------------------------------------------------------------ *
  * parametros de entrada:                                             * 
  * ------------------------------------------------------------------ *
- * m       -> arranjo da menoria principal                            *  
- * x       -> coordenadas                                             * 
- * el      -> conectividade                                           * 
- * mat     -> materias                                                *  
- * nen     -> conectividades por elemento                             *  
- * mat     -> material por elemento                                   *
- * typeGeom-> tipo geometrico do elemento                             *
- * typeCal -> tipo calculo do elemento                                *
- * nel     -> numeracao do elemento                                   *
- * faceRd1 -> condicao de contorno D1                                 * 
- * faceLd1 -> tipo da condicao de contorno D1                         * 
- * faceRt1 -> condicao de contorno T1                                 * 
- * faceLt1 -> tipo da condicao de contorno T1                         * 
- * nnode   -> numero de nos                                           *  
- * numel   -> numero de elementos                                     *
- * ndm     -> numero de dimensao                                      *
- * maxNo   -> numero maximo de nos por elemento                       *
- * maxNo   -> numero maximo de vizinhos por elemento                  *
- * numat   -> numero de materias                                      *
- * ndfD    -> graus de liberdade das equacoes de difusao D1           *
- * ndfT    -> graus de liberdade das equacoes de tranporte T1         *
- * nameOut -> nome de arquivo de saida                                *
- * iws     -> vtk binario                                             *
- * f       -> arquivlo                                                *
+ * m          -> arranjo da menoria principal                         *  
+ * x          -> coordenadas                                          * 
+ * el         -> conectividade                                        * 
+ * mat        -> materias                                             *  
+ * nen        -> conectividades por elemento                          *  
+ * mat        -> material por elemento                                *
+ * typeGeom   -> tipo geometrico do elemento                          *
+ * typeCal    -> tipo calculo do elemento                             *
+ * nel        -> numeracao do elemento                                *
+ * faceRd1    -> condicao de contorno D1                              * 
+ * faceLd1    -> tipo da condicao de contorno D1                      * 
+ * faceRt1    -> condicao de contorno T1                              * 
+ * faceLt1    -> tipo da condicao de contorno T1                      * 
+ * faceRfluid -> condicao de contorno fluido                          * 
+ * faceLfluid -> tipo da condicao de contorno fluido                  * 
+ * nnode      -> numero de nos                                        *  
+ * numel      -> numero de elementos                                  *
+ * ndm        -> numero de dimensao                                   *
+ * maxNo      -> numero maximo de nos por elemento                    *
+ * maxNo      -> numero maximo de vizinhos por elemento               *
+ * numat      -> numero de materias                                   *
+ * ndfD       -> graus de liberdade das equacoes de difusao D1        *
+ * ndfT       -> graus de liberdade das equacoes de tranporte T1      *
+ * ndfF       -> graus de liberdade das equacoes de fluidos           *
+ * nameOut    -> nome de arquivo de saida                             *
+ * iws        -> vtk binario                                          *
+ * f          -> arquivlo                                             *
  * ------------------------------------------------------------------ *
  * parametros de saida  :                                             * 
  * ------------------------------------------------------------------ *
  **********************************************************************/
-void wGeoVtk(Memoria *m     ,double *x      
-            ,INT *el        ,short *mat    
-            ,short *nen     ,short *typeGeom
-            ,double *prop   ,short *typeCal
-            ,short *faceRd1 ,short *faceLd1
-            ,short *faceRt1 ,short *faceLt1
-            ,INT nnode      ,INT numel    
+void wGeoVtk(Memoria *m        ,double *x      
+            ,INT *el           ,short *mat    
+            ,short *nen        ,short *typeGeom
+            ,double *prop      ,short *typeCal
+            ,short *faceRd1    ,short *faceLd1
+            ,short *faceRt1    ,short *faceLt1
+            ,short *faceRfluid ,short *faceLfluid
+            ,INT nnode         ,INT numel    
             ,short ndm      
-            ,short maxNo    ,short maxViz  
+            ,short maxNo       ,short maxViz  
             ,short numat    
-            ,short *ndfD    ,short *ndfT
-            ,char *nameOut  ,bool iws
+            ,short *ndfD       ,short *ndfT
+            ,short const ndfF                         
+            ,char *nameOut     ,bool iws
             ,FILE *f)
 {
   int    *lel=NULL;
@@ -454,6 +459,40 @@ void wGeoVtk(Memoria *m     ,double *x
   }
 /*...................................................................*/
 
+/*...*/
+  if(ndfF > 0 ){
+/*... faceRfluid*/
+    HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
+    if( lel == NULL){
+      fprintf(stderr,"Erro na alocação de lel.\n"
+                     "Nome do arquivo: %s.\n"
+                    ,__FILE__);
+      exit(EXIT_FAILURE);
+    }
+    for(i=0;i<numel*(maxNo+1);i++)
+      lel[i]=(int) faceRfluid[i];
+   
+    writeVtkProp(lel,&ddum,numel,maxViz+1,"faceRfuild",iws,INTEGER,1,f);
+    HccaDealloc(m,lel,"el",_AD_);
+/*...................................................................*/
+
+/*... faceLoadFluid*/
+    HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
+    if( lel == NULL){
+      fprintf(stderr,"Erro na alocação de lel.\n"
+                     "Nome do arquivo: %s.\n"
+                    ,__FILE__);
+      exit(EXIT_FAILURE);
+    }
+    for(i=0;i<numel*(maxNo+1);i++)
+      lel[i]=(int) faceLfluid[i];
+    writeVtkProp(lel,&ddum,numel,maxViz+1,"faceLfluid",iws
+                    ,INTEGER,1,f);
+    HccaDealloc(m,lel,"el",_AD_);
+/*...................................................................*/
+  }
+/*...................................................................*/
+
 /*.... campo por no*/
   fprintf(f,"POINT_DATA %ld\n",(long) nnode);
 /*...................................................................*/
@@ -481,29 +520,32 @@ void wGeoVtk(Memoria *m     ,double *x
  * ------------------------------------------------------------------ *
  * parametros de entrada:                                             * 
  * ------------------------------------------------------------------ *
- * m       -> arranjo da menoria principal                            *  
- * x       -> coordenadas                                             * 
- * el      -> conectividade                                           * 
- * mat     -> materias                                                *  
- * nen     -> conectividades por elemento                             *  
- * mat     -> material por elemento                                   *
- * typeGeom-> tipo geometrico do elemento                             *
- * typeCal -> tipo calculo do elemento                                *
- * faceRd1 -> condicao de contorno D1                                 * 
- * faceLd1 -> tipo da condicao de contorno D1                         * 
- * faceRt1 -> condicao de contorno T1                                 * 
- * faceLt1 -> tipo da condicao de contorno T1                         * 
- * nel     -> numeracao do elemento                                   *
- * nnode   -> numero de nos                                           *  
- * numel   -> numero de elementos                                     *
- * ndm     -> numero de dimensao                                      *
- * maxNo   -> numero maximo de nos por elemento                       *
- * numat   -> numero maximo de nos por elemento                       *
- * ndfD1   -> graus de liberdade das equacoes difusao pura D1         *
- * ndfT1   -> graus de liberdade das equacoes de transporte T1        *
- * nameOut -> nome de arquivo de saida                                *
- * iws     -> vtk binario                                             *
- * f       -> arquivlo                                                *
+ * m          -> arranjo da menoria principal                         *  
+ * x          -> coordenadas                                          * 
+ * el         -> conectividade                                        * 
+ * mat        -> materias                                             *  
+ * nen        -> conectividades por elemento                          *  
+ * mat        -> material por elemento                                *
+ * typeGeom   -> tipo geometrico do elemento                          *
+ * typeCal    -> tipo calculo do elemento                             *
+ * faceRd1    -> condicao de contorno D1                              * 
+ * faceLd1    -> tipo da condicao de contorno D1                      * 
+ * faceRt1    -> condicao de contorno T1                              * 
+ * faceLt1    -> tipo da condicao de contorno T1                      * 
+ * faceRfluid -> condicao de contorno fluido                          * 
+ * faceLfluid -> tipo da condicao de contorno fluido                  * 
+ * nel        -> numeracao do elemento                                *
+ * nnode      -> numero de nos                                        *  
+ * numel      -> numero de elementos                                  *
+ * ndm        -> numero de dimensao                                   *
+ * maxNo      -> numero maximo de nos por elemento                    *
+ * numat      -> numero maximo de nos por elemento                    *
+ * ndfD1      -> graus de liberdade das equacoes difusao pura D1      *
+ * ndfT1      -> graus de liberdade das equacoes de transporte T1     *
+ * ndfF       -> graus de liberdade das equacoes de fluidos           *
+ * nameOut    -> nome de arquivo de saida                             *
+ * iws        -> vtk binario                                          *
+ * f          -> arquivlo                                             *
  * ------------------------------------------------------------------ *
  * parametros de saida  :                                             * 
  * ------------------------------------------------------------------ *
@@ -513,9 +555,11 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
             ,short *typeGeom
             ,short *faceRd1       ,short *faceLd1
             ,short *faceRt1       ,short *faceLt1
+            ,short *faceRfluid    ,short *faceLfluid
             ,INT const nnode      ,INT const numel    
             ,short const ndm      
             ,short const ndfD1    ,short const ndfT1
+            ,short const ndfF                        
             ,short const maxViz   ,short const maxNo
             ,char *nameOut        ,bool iws
             ,FILE *f)
@@ -523,7 +567,7 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
   char head[]={"FACE_VOLUME_FINITO"};
   int nFace=0;
   int *face = NULL,*idFace=NULL;
-  int *lfaceLd1 = NULL,*lfaceLt1=NULL;
+  int *lfaceLd1 = NULL,*lfaceLt1=NULL,*lfaceLfluid=NULL;
   short *typeGeomFace = NULL,*nenFace=NULL;
   int i;  
   int *aux=NULL;
@@ -554,6 +598,19 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
     makeFace(el          ,faceRt1   ,faceLt1  
             ,typeGeom    
             ,face        ,lfaceLt1  ,idFace
+            ,typeGeomFace,nenFace
+            ,maxViz      ,maxNo
+            ,ndfT1       
+            ,numel       ,&nFace);
+  }
+/*...................................................................*/
+
+/*... ndfF*/
+  if(ndfF > 0){
+    HccaAlloc(int   ,m,lfaceLfluid     ,numel*MAX_NUM_FACE,"lfaceSfluid",_AD_);
+    makeFace(el          ,faceRfluid   ,faceLfluid
+            ,typeGeom    
+            ,face        ,lfaceLfluid  ,idFace
             ,typeGeomFace,nenFace
             ,maxViz      ,maxNo
             ,ndfT1       
@@ -596,9 +653,12 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
   
 /*... valores das cargas por celula*/
   if(ndfD1 > 0) 
-    writeVtkProp(lfaceLd1,&ddum,nFace,ndfD1,"lFaceLd1",iws,INTEGER,1,f);
+    writeVtkProp(lfaceLd1,&ddum,nFace,1    ,"lFaceLd1",iws,INTEGER,1,f);
   if(ndfT1 > 0) 
-    writeVtkProp(lfaceLt1,&ddum,nFace,ndfT1,"lFaceLt1",iws,INTEGER,1,f);
+    writeVtkProp(lfaceLt1,&ddum,nFace,1    ,"lFaceLt1",iws,INTEGER,1,f);
+  if(ndfF  > 0) 
+    writeVtkProp(lfaceLfluid  ,&ddum,nFace  ,1   
+                ,"lFaceLfluid",iws  ,INTEGER,1   ,f);
 /*...................................................................*/
 
 /*.... campo por no*/
@@ -625,6 +685,9 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
     HccaDealloc(m,lfaceLt1    ,"lfaceSt1",_AD_);
   if(ndfD1 > 0) 
     HccaDealloc(m,lfaceLd1    ,"lfaceSd1",_AD_);
+  if(ndfF  > 0) 
+    HccaDealloc(m,lfaceLfluid ,"lfaceSfluid",_AD_);
+
   HccaDealloc(m,nenFace     ,"lnenFace",_AD_);
   HccaDealloc(m,typeGeomFace,"ltGface" ,_AD_);
   HccaDealloc(m,idFace      ,"iDFace"  ,_AD_);

@@ -35,18 +35,20 @@
 /*...................................................................*/
 
 /*... geom*/  
-  void wGeoVtk(Memoria *m     ,double *x      
-              ,INT *el        ,short *mat    
-              ,short *nen     ,short *typeGeom
-              ,double *prop   ,short *typeCal
-              ,short *faceRd1 ,short *faceSd1
-              ,short *faceRt1 ,short *faceSt1
-              ,INT nnode      ,INT numel    
+  void wGeoVtk(Memoria *m        ,double *x      
+              ,INT *el           ,short *mat    
+              ,short *nen        ,short *typeGeom
+              ,double *prop      ,short *typeCal
+              ,short *faceRd1    ,short *faceSd1
+              ,short *faceRt1    ,short *faceSt1
+              ,short *faceRfluid ,short *faceSfluid
+              ,INT nnode         ,INT numel    
               ,short ndm      
-              ,short maxno    ,short maxIt 
+              ,short maxno       ,short maxIt 
               ,short numat    
-              ,short *ndfD    ,short *ndfT   
-              ,char *nameOut  ,bool iws      
+              ,short *ndfD       ,short *ndfT   
+              ,short const ndfF   
+              ,char *nameOut     ,bool iws      
               ,FILE *f);
 
   void wGeoFaceVtk(Memoria *m     ,DOUBLE *x      
@@ -54,9 +56,11 @@
             ,short *typeGeom
             ,short *faceRd1       ,short *faceSd1
             ,short *faceRt1       ,short *faceSt1
+            ,short *faceRfluid    ,short *faceSfluid
             ,INT const nnode      ,INT const numel    
             ,short const ndm      
             ,short const ndfD     ,short const ndfT 
+            ,short const ndfF   
             ,short const maxViz   ,short const maxNo
             ,char *nameOut        ,bool iws
             ,FILE *f);

@@ -60,8 +60,9 @@
     short np;                       /*numero de particoes*/  
     DOUBLE par[MAXLOADPARAMETER];
   }Loads;
-  Loads  loadsD1[MAXLOADD1]  /*tipo de cargas (difusao pura)*/
-        ,loadsT1[MAXLOADT1]; /*tipo de cargas (difusao transporte)*/
+  Loads  loadsD1[MAXLOADD1]     /*tipo de cargas (difusao pura)*/
+        ,loadsT1[MAXLOADT1]     /*tipo de cargas (difusao-transporte)*/
+        ,loadsFluid[MAXLOADFLUID]; /*tipo de cargas (fluid)*/
 /*...................................................................*/
 
 /*...*/
@@ -78,6 +79,9 @@
     short  *nen;       /*numero de no por elemento*/
     short  *geomType;  /*tipo geometrio do elemento*/
     short  *rNum;      /*renumeracao dos elementos*/ 
+/*... */               
+    short *faceRfluid;    /*condicao  contorno na face (fluido)*/
+    short *faceLoadFluid; /*tipo de carga contorno na face (fluido)*/
 /*... */               
     short *faceRt1;    /*condicao  contorno na face (transporte)*/
     short *faceLoadT1; /*tipo de carga contorno na face (transporte)*/
@@ -155,7 +159,8 @@
     INT nnodeOv;   /*numero de nos em elementos sobrepostos*/
     INT nnodeNov;  /*numero de nos em elementos nao sobrepostos*/
     short ndm;     /*dimensao*/
-    short ndfF;     
+    short ndfF;    /*fluido*/    
+    short ndfFt;   /*fluido termo ativado*/  
     short ndfT[MAX_TRANS_EQ];   /*graus de liberdade 
                                   para o problema de transporte*/
     short ndfD[MAX_DIF_EQ];   /*graus de liberdade 
