@@ -5,7 +5,7 @@ partd config: true true
 nlItT1   
 50  1.0e-4 
 endNlItT1 
-advection fBase SuperBee 
+advection T1 fBase SuperBee 
 edp
 transport1 1
 endEdp
