@@ -34,11 +34,19 @@
     double systFormT1;
     double rcGradT1;
 /*... fluid*/
+    double solvPres;
+    double solvVel;
     double numeqPres;
     double numeqVel;
     double dataStructVel;
     double dataStructPres;
     double solvEdpFluid;
+    double cellPloadSimple;
+    double cellTransientSimple;
+    double systFormPres;                                 
+    double systFormVel;
+    double rcGradPres;
+    double rcGradVel;
 /*... blas*/
     double matVecOverHeadMpi;
     double matVecSparse;
