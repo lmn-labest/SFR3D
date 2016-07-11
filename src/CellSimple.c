@@ -337,12 +337,29 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
       pf[1]+= pFace*lModEta*lNormal[1];
 /*...................................................................*/
 
+/*... termos viscosos explicitos*/
+      aP    = viscosityC*lModEta;
+      p[0] += aP*( gradVelV[0][0]*lNormal[0] 
+                 + gradVelV[0][1]*lNormal[1]);
+      p[1] += aP*( gradVelV[1][0]*lNormal[0] 
+                 + gradVelV[1][1]*lNormal[1]);
+/*...................................................................*/
+
       
     }
 /*... contorno*/
     else{
       lA[nAresta] = 0.0e0;
       wfn = velC[0]*lNormal[0] + velC[1]*lNormal[1];
+
+/*... termos viscosos explicitos*/
+      aP    = viscosityC*lModEta;
+      p[0] += aP*( gradVelC[0][0]*lNormal[0] 
+                 + gradVelC[0][1]*lNormal[1]);
+      p[1] += aP*( gradVelC[1][0]*lNormal[0] 
+                 + gradVelC[1][1]*lNormal[1]);
+/*...................................................................*/
+
 /*...*/
       pFace = presC;
 /*... pressao prescrita*/
@@ -368,12 +385,11 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 
 /*... velocidades*/
       if(lFaceVelR[nAresta] > 0){
-        tA[0] = velC[0];
-        tA[1] = velC[1];
 /*...cargas*/
         nCarg = lFaceVelL[nAresta]-1;
         pLoadSimple(&sP            ,p
-                   ,tA             ,lNormal  
+                   ,tA             ,velC  
+                   ,lNormal  
                    ,viscosityC     ,densityC
                    ,lModEta        ,dcca[nAresta]
                    ,loadsVel[nCarg]
@@ -385,6 +401,10 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
       else if(lFaceVelR[nAresta] == STATICWALL){
         aP   = viscosityC*lModEta/dcca[nAresta];
         sP  += aP;
+        p[0]+= aP*(velC[0]*lNormal[0]*lNormal[0] + 
+                   velC[1]*lNormal[0]*lNormal[1] );           
+        p[1]+= aP*(velC[0]*lNormal[0]*lNormal[1] + 
+                   velC[1]*lNormal[1]*lNormal[1] ); 
       }
 /*...................................................................*/
     }
@@ -692,7 +712,8 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
       if(lFaceVelR[nAresta] > 0){
         nCarg = lFaceVelL[nAresta]-1;
         pLoadSimple(&sP            ,&p
-                   ,&tA            ,lNormal
+                   ,&tA            ,velC          
+                   ,lNormal
                    ,dFieldV        ,densityC
                    ,lModEta        ,dcca[nAresta]
                    ,loadsVel[nCarg]

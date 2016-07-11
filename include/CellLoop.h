@@ -293,7 +293,8 @@
 /*... carga por elmento e condicoes pescritas por celula no 
       metodo simple*/
   void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
-          ,DOUBLE *restrict tA          ,DOUBLE *restrict n
+          ,DOUBLE *restrict tA          ,DOUBLE *restrict velC
+          ,DOUBLE *restrict n
           ,DOUBLE const viscosityC      ,DOUBLE const densityC
           ,DOUBLE const fArea           ,DOUBLE const dcca
           ,Loads ld                     

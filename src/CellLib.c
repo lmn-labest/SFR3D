@@ -2779,7 +2779,7 @@ DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
 
 /********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 09/07/2016                                   * 
+ * Data de modificaco : 11/07/2016                                   * 
  *-------------------------------------------------------------------* 
  * pLoadSimple : condicao de contorno para velocidades               *
  *-------------------------------------------------------------------* 
@@ -2788,6 +2788,7 @@ DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
  * sP         -> termo da diagonal                                   * 
  * p          -> forca local                                         * 
  * tA         -> velocidade na face                                  * 
+ * VelC       -> velocidade na centro do elemento no passo (n-1)     * 
  * n          -> normal                                              * 
  * viscosityC -> coeficiente de viscosidade dinamica                 * 
  * densityC   -> massa especifica                                    * 
@@ -2810,7 +2811,8 @@ DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
-          ,DOUBLE *restrict tA        ,DOUBLE *restrict n 
+          ,DOUBLE *restrict tA        ,DOUBLE *restrict velC
+          ,DOUBLE *restrict n 
           ,DOUBLE const viscosityC    ,DOUBLE const densityC
           ,DOUBLE const fArea         ,DOUBLE const dcca
           ,Loads ld                   
@@ -2826,8 +2828,14 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
     if(fCal1){
       aP   = viscosityC*fArea/dcca;
       *sP += aP;
-      p[0]  += aP*tA[0];
-      p[1]  += aP*tA[1];
+/*... x*/
+      p[0]  += aP*(tA[0]*(1.0-n[0]*n[0]) 
+            + (velC[1]-tA[1])*n[1]*n[0]
+            + velC[0]*n[0]*n[0]);
+/*... y*/
+      p[1]  += aP*(tA[1]*(1.0-n[1]*n[1]) 
+            + (velC[0]-tA[0])*n[0]*n[1]
+            + velC[1]*n[1]*n[1]);
     } 
 /*...................................................................*/
   }
@@ -2852,7 +2860,7 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
 
 /*... saida (derivada nula)*/
   else if( ld.type ==  OUTLET){
-    wfn     = tA[0]*n[0] + tA[1]*n[1];
+    wfn     = velC[0]*n[0] + velC[1]*n[1];
 /*...*/
     if(fCal1){
       aP   = densityC*wfn*fArea;
