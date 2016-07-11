@@ -28,21 +28,24 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
            ,""           ,""          ,""             /* 9,10,11*/ 
            ,"faceRd1"    ,""          ,"loadsD1"      /*12,13,14*/ 
            ,"faceLoadD1" ,""          ,""             /*15,16,17*/ 
-           ,"faceRfluid" ,"loadsFluid","faceLoadFluid"/*18,19,20*/ 
-           ,"materials"  ,""          ,"initialVel"   /*21,22,23*/ 
+           ,"faceRvel"   ,"loadsVel"  ,"faceLoadVel"  /*18,19,20*/ 
+           ,"faceRpres"  ,"loadsPres" ,"faceLoadPres" /*21,22,23*/ 
+           ,"materials"  ,""          ,"initialVel"   /*24,25,26*/ 
 	   };                                             
   bool rflag[NMACROS],macroFlag;
   INT nn,nel;
-  short maxno,ndm,numat,maxViz;
+  short maxno,ndm,numat,maxViz,ndfVel;
   char nameAux[MAX_STR_LEN_IN];
   FILE *fileAux=NULL;
   int i;
 
-/* leitura dos parametros principais da malha*/
+/*... leitura dos parametros principais da malha*/
   parametros(&nn   ,&nel
             ,&maxno,&maxViz
             ,&ndm  ,&numat
             ,file);
+
+/*...*/
   mesh->nnode    = nn;
   mesh->nnodeNov = nn;
   mesh->nnodeOv  =  0;
@@ -164,24 +167,87 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
     zero(mesh->elm.vel       ,nel*mesh->ndm         ,DOUBLEC);
 /*...................................................................*/
 
+/*... eVel0*/
+    HccaAlloc(DOUBLE,m,mesh->elm.vel0 
+             ,nel*mesh->ndm    ,"eVel0"             ,_AD_);
+    zero(mesh->elm.vel0      ,nel*mesh->ndm         ,DOUBLEC);
+/*...................................................................*/
+
 /*... nVel*/
      HccaAlloc(DOUBLE,m,mesh->node.vel 
               ,nn*mesh->ndm     ,"nVel"              ,_AD_);
      zero(mesh->node.vel      ,nn*mesh->ndm          ,DOUBLEC);
 /*...................................................................*/
+
   }
 /*...................................................................*/
 
 /*... fluido*/
   if(mesh->ndfF > 0) {     
 /*... alocando memoria*/
-     HccaAlloc(short,m,mesh->elm.faceRfluid
-            ,nel*(maxViz+1),"faceRdluid"  ,_AD_);
-     zero(mesh->elm.faceRfluid,nel*(maxViz+1),"short"  );
+     HccaAlloc(short,m,mesh->elm.faceRvel  
+            ,nel*(maxViz+1),"faceRvel"    ,_AD_);
+     zero(mesh->elm.faceRvel  ,nel*(maxViz+1),"short"  );
      
-     HccaAlloc(short,m,mesh->elm.faceLoadFluid
-            ,nel*(maxViz+1),"faceLFluid"  ,_AD_);
-     zero(mesh->elm.faceLoadFluid,nel*(maxViz+1),"short"  );
+     HccaAlloc(short,m,mesh->elm.faceLoadVel  
+            ,nel*(maxViz+1),"faceLVel"    ,_AD_);
+     zero(mesh->elm.faceLoadVel  ,nel*(maxViz+1),"short"  );
+     
+     HccaAlloc(short,m,mesh->elm.faceRpres 
+            ,nel*(maxViz+1),"faceRpres"   ,_AD_);
+     zero(mesh->elm.faceRpres ,nel*(maxViz+1),"short"  );
+     
+     HccaAlloc(short,m,mesh->elm.faceLoadPres 
+            ,nel*(maxViz+1),"faceLPres"   ,_AD_);
+     zero(mesh->elm.faceLoadPres ,nel*(maxViz+1),"short"  );
+
+/*... ePres*/
+     HccaAlloc(DOUBLE,m,mesh->elm.pressure 
+            ,nel              ,"pressure"          ,_AD_);
+     zero(mesh->elm.pressure  ,nel                         ,DOUBLEC);
+     
+/*... densityFluid*/ 
+     HccaAlloc(DOUBLE,m,mesh->elm.densityFluid
+              ,nel*2            ,"denFluid" ,_AD_);
+     zero(mesh->elm.densityFluid ,nel*2                       ,DOUBLEC);
+
+/*... pres*/
+     HccaAlloc(DOUBLE,m,mesh->node.pressure
+              ,nn    ,"npressure",_AD_);
+     zero(mesh->node.pressure     ,nn                         ,DOUBLEC);
+
+/*... nGradVel*/
+     ndfVel = mesh->ndfF-1;
+     HccaAlloc(DOUBLE,m,mesh->node.gradVel  
+              ,nn*ndm*ndfVel ,"nGradVel"     ,_AD_);
+     zero(mesh->node.gradVel  ,nn*ndm*ndfVel        ,DOUBLEC);
+     
+/*... eGradVel*/
+     HccaAlloc(DOUBLE,m,mesh->elm.gradVel 
+              ,nel*ndm*ndfVel ,"eGradVel"     ,_AD_);
+     zero(mesh->elm.gradVel   ,nel*ndm*ndfVel       ,DOUBLEC);
+
+/*... nGradPres*/
+     HccaAlloc(DOUBLE,m,mesh->node.gradPres 
+              ,nn*ndm        ,"nGradPres"    ,_AD_);
+     zero(mesh->node.gradPres ,nn*ndm               ,DOUBLEC);
+     
+/*... eGradPresl*/
+     HccaAlloc(DOUBLE,m,mesh->elm.gradPres
+              ,nel*ndm        ,"eGradPres"     ,_AD_);
+     zero(mesh->elm.gradPres  ,nel*ndm              ,DOUBLEC);
+
+     if( mpiVar.nPrcs < 2){
+       ndfVel = mesh->ndfF-1;
+/*... rCellVel*/
+       HccaAlloc(DOUBLE,m,mesh->elm.rCellVel  
+                ,nel*ndm*ndfVel       ,"rCellVel"     ,_AD_);
+       zero(mesh->elm.rCellVel  ,nel*ndm*ndfVel   ,DOUBLEC);
+/*... rCellPres*/
+       HccaAlloc(DOUBLE,m,mesh->elm.rCellPres 
+                ,nel*ndm             ,"rCellPres"    ,_AD_);
+       zero(mesh->elm.rCellPres ,nel*ndm          ,DOUBLEC);
+     }
 /*...................................................................*/
   }
 /*...................................................................*/
@@ -300,6 +366,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
   do{
 /*...*/
     readMacro(file,word,false);
+/*  printf("%s\n",word);*/
 /*...................................................................*/
 
 /*... coordinates*/
@@ -455,43 +522,87 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
     }
 /*...................................................................*/
 
-/*... faceRfluid- condicao de contorno para problemas fluidos */
+/*... faceRvel- condicao de contorno para problemas fluidos (Vel) */
     else if((!strcmp(word,macro[18])) && (!rflag[18])){
       printf("%s\n",DIF);
       printf("%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[18] = true;
-      strcpy(str,"endFaceRfluid");
-      printf("loading faceRfluid ...\n");
-      readVfRes(mesh->elm.faceRfluid,mesh->numel,mesh->maxViz+1,str,file);
+      strcpy(str,"endFaceRvel");
+      printf("loading faceRvel ...\n");
+      readVfRes(mesh->elm.faceRvel,mesh->numel,mesh->maxViz+1,str,file);
       printf("load.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
 
-/*... loadFluid - definicao de cargar fluidos */
+/*... loadVel - definicao de cargar fluidos (Vel)*/
     else if((!strcmp(word,macro[19])) && (!rflag[19])){
       printf("%s\n",DIF);
       printf("%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[19] = true;
-      strcpy(str,"endLoadsFluid");
-      printf("loading loadsFluid ...\n");
-      readVfLoads(loadsFluid,str       ,file);
+      strcpy(str,"endLoadsVel");
+      printf("loading loadsVel ...\n");
+      readVfLoads(loadsVel,str       ,file);
       printf("load.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
 
-/*... faceLoadFluid - cargas nas faces fluido */
+/*... faceLoadVel - cargas nas faces fluido (Vel)*/
     else if((!strcmp(word,macro[20])) && (!rflag[20])){
       printf("%s\n",DIF);
       printf("%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[20] = true;
-      strcpy(str,"endFaceLoadFluid");
-      printf("loading faceLoadFluid ...\n");
-      readVfRes(mesh->elm.faceLoadFluid,mesh->numel
+      strcpy(str,"endFaceLoadVel");
+      printf("loading faceLoadVel ...\n");
+      readVfRes(mesh->elm.faceLoadVel  ,mesh->numel
+               ,mesh->maxViz+1         ,str        ,file);
+      printf("load.\n");
+      printf("%s\n\n",DIF);
+    }
+/*...................................................................*/
+
+/*... faceRpres - condicao de contorno para problemas fluidos (Pres)*/
+    else if((!strcmp(word,macro[21])) && (!rflag[21])){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      strcpy(macros[nmacro++],word);
+      rflag[21] = true;
+      strcpy(str,"endFaceRpres");
+      printf("loading faceRpres ...\n");
+      readVfRes(mesh->elm.faceRpres,mesh->numel
+               ,mesh->maxViz+1     ,str        ,file);
+      printf("load.\n");
+      printf("%s\n\n",DIF);
+    }
+/*...................................................................*/
+
+/*... loadPres - definicao de cargar fluidos (Pres)*/
+    else if((!strcmp(word,macro[22])) && (!rflag[22])){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      strcpy(macros[nmacro++],word);
+      rflag[22] = true;
+      strcpy(str,"endLoadsPres");
+      printf("loading loadsPres ...\n");
+      readVfLoads(loadsPres,str       ,file);
+      printf("load.\n");
+      printf("%s\n\n",DIF);
+    }
+/*...................................................................*/
+
+/*... faceLoadPres - cargas nas faces fluido (Pres)*/
+    else if((!strcmp(word,macro[23])) && (!rflag[23])){
+      printf("%s\n",DIF);
+      printf("%s\n",word);
+      strcpy(macros[nmacro++],word);
+      rflag[23] = true;
+      strcpy(str,"endFaceLoadPres");
+      printf("loading faceLoadPres ...\n");
+      readVfRes(mesh->elm.faceLoadPres ,mesh->numel
                ,mesh->maxViz+1         ,str       ,file);
       printf("load.\n");
       printf("%s\n\n",DIF);
@@ -499,11 +610,11 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 /*...................................................................*/
 
 /*... materiais */
-    else if((!strcmp(word,macro[21])) && (!rflag[21])){
+    else if((!strcmp(word,macro[24])) && (!rflag[24])){
       printf("%s\n",DIF);
       printf("%s\n",word);
       strcpy(macros[nmacro++],word);
-      rflag[21] = true;
+      rflag[24] = true;
       strcpy(str,"endMaterials");
       printf("loading materials ...\n");
       readVfMat(mesh->elm.material.prop,mesh->elm.material.type
@@ -514,11 +625,11 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 /*...................................................................*/
 
 /*... initialVel */
-    else if((!strcmp(word,macro[23])) && (!rflag[23])){
+    else if((!strcmp(word,macro[26])) && (!rflag[26])){
       printf("%s\n",DIF);
-      printf("%s\n",word);
+      printf("!%s!\n",word);
       strcpy(macros[nmacro++],word);
-      rflag[23] = true;
+      rflag[25] = true;
       strcpy(str,"endInitialVel");
       printf("loading initialVel ...\n");
       readVfInitial(mesh->elm.vel,mesh->numel,mesh->ndm,str,file);
@@ -546,7 +657,18 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
   }
 /*...................................................................*/
 
+/*...*/
+  if(mesh->ndfF > 0) {   
+    initProp(mesh->elm.densityFluid
+            ,mesh->elm.material.prop,mesh->elm.mat
+            ,2                      ,mesh->numel
+            ,DENSITY);         
+  }
+/*...................................................................*/
+
+
 }
+/*********************************************************************/
 
 /*********************************************************************
  * PARAMETROS: leitura dos parametros do problema                    *

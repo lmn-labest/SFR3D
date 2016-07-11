@@ -1,5 +1,270 @@
 #include<CellLoop.h>
 /********************************************************************* 
+ * Data de criacao    : 30/06/2016                                   *
+ * Data de modificaco : 05/07/2016                                   * 
+ *-------------------------------------------------------------------* 
+ * CELLLIBSIMPLEVEl: chamada de bibliotecas de celulas para          *
+ * problema de escoamento de fluidos (VEL)                           * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * loadsVel  -> definicoes de cargas de velocidades                  * 
+ * loadsPres -> definicoes de cargas de pressao                      * 
+ * advVel    -> tecnica da discretizacao do termo advecao            * 
+ * typeSimple-> tipo do metodo simple                                *
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
+ * lprop     -> propriedade fisicas das celulas                      *
+ * lViz      -> viznhos da celula central                            * 
+ * lId       -> equa da celula                                       * 
+ * Ksi       -> vetores que unem centroide da celula central aos     *
+ *            vizinhos destas                                        * 
+ * mKsi      -> modulo do vetor ksi                                  * 
+ * eta       -> vetores paralelos as faces das celulas               * 
+ * fArea     -> area das faces                                       * 
+ * normal    -> vetores normais as faces das celulas                 * 
+ * volume    -> volume celula central                                * 
+ * xm        -> pontos medios das faces da celula central            * 
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
+ *            faces da celula central                                * 
+ * vSkew     -> vetor entre o ponto medio a intersecao que une os    * 
+ *            centrois compartilhado nessa face da celula central    * 
+ * mvSkew    -> distacia entre o ponto medio a intersecao que une os * 
+ *            centrois compartilhado nessa face da celula central    * 
+ * dcca      -> menor distacia do centroide central a faces desta    *
+ *              celula                                               * 
+ * lDensity  -> massa especifica com variacao temporal               * 
+ * lA        -> nao definido                                         *
+ * lB        -> nao definido                                         *
+ * lRcell    -> nao definido                                         *
+ * ddt       -> discretizacao temporal                               *
+ * faceVelR  -> restricoes por elemento de velocidades               * 
+ * faceVelL  -> carga por elemento de velocidades                    * 
+ * facePresR -> restricoes por elemento de pressao                   * 
+ * facePresL -> carga por elemento de pressao                        * 
+ * pres      -> campo de pressao conhecido                           * 
+ * gradPes   -> gradiente reconstruido da pressao                    * 
+ * vel       -> campo de velocidade conhecido                        * 
+ * dField    -> matriz D do metodo simple                            * 
+ * cc        -> centroides da celula centra e seus vizinhos          *
+ * underU    -> fator underrelaxtion sinple                          * 
+ * sPressure -> reconstrucao de segunda ordem para pressoes nas      *
+ *              faces                                                *
+ * nEn       -> numero de nos da celula central                      * 
+ * nFace     -> numero de faces da celula central                    * 
+ * ndm       -> numero de dimensoes                                  * 
+ * lib       -> numero da biblioteca                                 * 
+ * nel       -> numero da celula                                     * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * lA        -> coeficiente da linha i                               *
+ * lB        -> vetor de forca da linha i                            *
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres        
+             ,Advection  advVel          ,short const typeSimple 
+             ,short *restrict lGeomType  ,DOUBLE *restrict lprop
+             ,INT   *restrict lViz       ,INT *restrict lId  
+             ,DOUBLE *restrict ksi       ,DOUBLE *restrict mKsi
+             ,DOUBLE *restrict eta       ,DOUBLE *restrict fArea
+             ,DOUBLE *restrict normal    ,DOUBLE *restrict volume
+             ,DOUBLE *restrict xm        ,DOUBLE *restrict xmcc
+             ,DOUBLE *restrict dcca      ,DOUBLE *restrict lDensity
+             ,DOUBLE *restrict vSkew     ,DOUBLE *restrict mvSkew
+             ,DOUBLE *restrict lA        ,DOUBLE *restrict lB
+             ,DOUBLE *restrict lRcell    ,Temporal const ddt
+             ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL       
+             ,short  *restrict lFacePresR,short  *restrict lFacePresL             
+             ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres 
+             ,DOUBLE *restrict vel       ,DOUBLE *restrict gradVel
+             ,DOUBLE *restrict dField    ,DOUBLE *restrict cc
+             ,DOUBLE const underU        ,const bool sPressure
+             ,short const nEn            ,short  const nFace     
+             ,short const ndm            ,short const lib    
+             ,INT const nel)
+{
+
+/*... */
+  if(lib == 1){
+/*... 2D*/
+    if(ndm == 2){
+      cellSimpleVel2D(loadsVel,loadsPres   
+                 ,advVel      ,typeSimple
+                 ,lGeomType   ,lprop
+                 ,lViz        ,lId
+                 ,ksi         ,mKsi
+                 ,eta         ,fArea
+                 ,normal      ,volume
+                 ,xm          ,xmcc
+                 ,dcca        ,lDensity 
+                 ,vSkew       ,mvSkew
+                 ,lA          ,lB
+                 ,lRcell      ,ddt 
+                 ,lFaceVelR   ,lFaceVelL
+                 ,lFacePresR  ,lFacePresL
+                 ,pres        ,gradPres 
+                 ,vel         ,gradVel
+                 ,dField      ,cc
+                 ,underU      ,sPressure                         
+                 ,nEn         ,nFace 
+                 ,ndm         ,nel);  
+    }
+/*..................................................................*/   
+
+/*... 3D*/
+//  else if(ndm == 3){
+//    cellTrans3D(loads    ,advT
+//               ,lGeomType,lprop
+//               ,lViz     ,lId
+//               ,ksi      ,mKsi
+//               ,eta      ,fArea
+//               ,normal   ,volume
+//               ,xm       ,xmcc
+//               ,dcca     ,lDensity 
+//               ,vSkew    ,mvSkew
+//               ,lA       ,lB
+ //              ,lRcell   ,ddt 
+ //              ,lFaceR   ,lFaceL
+ //              ,u0       ,gradU0      
+ //              ,vel                   
+ //              ,nEn      ,nFace 
+ //              ,ndm      ,nel);
+//  } 
+/*..................................................................*/   
+  }
+
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 01/07/2016                                   *
+ * Data de modificaco : 09/07/2016                                   * 
+ *-------------------------------------------------------------------* 
+ * CELLLIBSIMPLEPRES : chamada de bibliotecas de celulas para        *
+ * problema de escoamento de fluidos (PRES)                          * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * loadsVel  -> definicoes de cargas de velocidades                  * 
+ * loadsPres -> definicoes de cargas de pressao                      * 
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
+ * lprop     -> propriedade fisicas das celulas                      *
+ * lViz      -> viznhos da celula central                            * 
+ * lId       -> equa da celula                                       * 
+ * Ksi       -> vetores que unem centroide da celula central aos     *
+ *            vizinhos destas                                        * 
+ * mKsi      -> modulo do vetor ksi                                  * 
+ * eta       -> vetores paralelos as faces das celulas               * 
+ * fArea     -> area das faces                                       * 
+ * normal    -> vetores normais as faces das celulas                 * 
+ * volume    -> volume celula central                                * 
+ * xm        -> pontos medios das faces da celula central            * 
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
+ *            faces da celula central                                * 
+ * vSkew     -> vetor entre o ponto medio a intersecao que une os    * 
+ *            centrois compartilhado nessa face da celula central    * 
+ * mvSkew    -> distacia entre o ponto medio a intersecao que une os * 
+ *            centrois compartilhado nessa face da celula central    * 
+ * dcca      -> menor distacia do centroide central a faces desta    *
+ *              celula                                               * 
+ * lDensity  -> massa especifica com variacao temporal               * 
+ * lA        -> nao definido                                         *
+ * lB        -> nao definido                                         *
+ * lRcell    -> nao definido                                         *
+ * ddt       -> discretizacao temporal                               *
+ * faceVelR  -> restricoes por elemento de velocidades               * 
+ * faceVelL  -> carga por elemento de velocidades                    * 
+ * facePresR -> restricoes por elemento de pressao                   * 
+ * facePresL -> carga por elemento de pressao                        * 
+ * pres      -> campo de pressao conhecido                           * 
+ * gradPes   -> gradiente reconstruido da pressao                    * 
+ * vel       -> campo de velocidade conhecido                        * 
+ * dField    -> matriz D do metodo simple                            * 
+ * nEn       -> numero de nos da celula central                      * 
+ * nFace     -> numero de faces da celula central                    * 
+ * ndm       -> numero de dimensoes                                  * 
+ * lib       -> numero da biblioteca                                 * 
+ * nel       -> numero da celula                                     * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * lA        -> coeficiente da linha i                               *
+ * lB        -> vetor de forca da linha i                            *
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres          
+               ,short *restrict lGeomType,DOUBLE *restrict lprop
+               ,INT   *restrict lViz     ,INT *restrict lId  
+               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
+               ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
+               ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
+               ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
+               ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
+               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
+               ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
+               ,DOUBLE *restrict lRcell  ,Temporal const ddt
+               ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL       
+               ,short  *restrict lFacePresR,short  *restrict lFacePresL             
+               ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres 
+               ,DOUBLE *restrict vel     ,DOUBLE *restrict dField 
+               ,short const nEn          ,short  const nFace     
+               ,short const ndm          ,short const lib    
+               ,INT const nel)
+{
+
+/*... */
+  if(lib == 1){
+/*... 2D*/
+    if(ndm == 2){
+      cellSimplePres2D(loadsVel,loadsPres
+                 ,lGeomType,lprop
+                 ,lViz     ,lId
+                 ,ksi      ,mKsi
+                 ,eta      ,fArea
+                 ,normal   ,volume
+                 ,xm       ,xmcc
+                 ,dcca     ,lDensity 
+                 ,vSkew    ,mvSkew
+                 ,lA       ,lB
+                 ,lRcell    
+                 ,lFaceVelR   ,lFaceVelL
+                 ,lFacePresR  ,lFacePresL
+                 ,pres     ,gradPres 
+                 ,vel      ,dField                                     
+                 ,nEn      ,nFace  
+                 ,ndm      ,nel);  
+    }
+/*..................................................................*/   
+
+/*... 3D*/
+//  else if(ndm == 3){
+//    cellTrans3D(loads    ,advT
+//               ,lGeomType,lprop
+//               ,lViz     ,lId
+//               ,ksi      ,mKsi
+//               ,eta      ,fArea
+//               ,normal   ,volume
+//               ,xm       ,xmcc
+//               ,dcca     ,lDensity 
+//               ,vSkew    ,mvSkew
+//               ,lA       ,lB
+ //              ,lRcell   ,ddt 
+ //              ,lFaceR   ,lFaceL
+ //              ,u0       ,gradU0      
+ //              ,vel                   
+ //              ,nEn      ,nFace 
+ //              ,ndm      ,nel);
+//  } 
+/*..................................................................*/   
+  }
+
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * CELLLIBTRANS : chamada de bibliotecas de celulas para o problema  *
  * de transporte.                                                    * 
  *-------------------------------------------------------------------* 
@@ -117,6 +382,9 @@ void cellLibTrans(Loads *loads           ,Advection advT
 /*********************************************************************/
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * CELLLIBDIF : chamada de bibliotecas de celulas para o problema    *
  * de difusao.                                                       * 
  *-------------------------------------------------------------------* 
@@ -229,6 +497,9 @@ void cellLibDif(Loads *loads
 /*********************************************************************/
  
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * CELLGEOM2D : calculo geometrico de propriedade de celula 2D       * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -436,6 +707,9 @@ void cellGeom2D(DOUBLE *restrict lx       ,short *restrict lnFace
 /*********************************************************************/ 
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * CELLGEOM3D : calculo geometrico de propriedade de celula 3D       * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -715,6 +989,9 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
 /*********************************************************************/ 
     
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * CELLRCGRAD : chamada de bibliotecas de celulas para a reconstrucao*
  * de gradiente.                                                     * 
  *-------------------------------------------------------------------* 
@@ -845,6 +1122,9 @@ void cellLibRcGrad(Loads *loads
 /*********************************************************************/ 
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * GRREENGAUSSCELL: reconstrucao de gradiente green-gauss linear por * 
  * celula                                                            *
  *-------------------------------------------------------------------* 
@@ -917,9 +1197,9 @@ void greenGaussCell(Loads *loads
 /*...................................................................*/
 
 /*...*/
-        dPviz = sqrt(dPviz);
+        dPviz        = sqrt(dPviz);
         alpha        = dPviz/lModKsi;
-        alphaMenosUm = 1.0 - alpha;
+        alphaMenosUm = 1.e0 - alpha;
 /*...................................................................*/
 
 /*...*/
@@ -1002,10 +1282,130 @@ void greenGaussCell(Loads *loads
 /*...................................................................*/
   } 
 /*...................................................................*/
+
+/*... graus de liberdade maior que 1*/
+  else{
+/*...*/
+    for(k=0;k<ndf;k++)
+      uC[k] = MAT2D(idCell,k,u,ndf);
+/*...................................................................*/
+    for(i=0;i<nFace;i++){
+      vizNel = lViz[i];
+/*... dominio*/
+      if(vizNel > -1){
+        lModKsi    = mKsi[i];
+/*...*/
+        dPviz = 0.e0;
+        for(j=0;j<ndm;j++){
+          v          = MAT2D(i,j,vSkew,ndm) + MAT2D(i,j,xmcc,ndm);
+          dPviz     += v*v;
+        }
+/*...................................................................*/
+
+/*...*/
+        dPviz        = sqrt(dPviz);
+        alpha        = dPviz/lModKsi;
+        alphaMenosUm = 1.e0 - alpha;
+/*...................................................................*/
+
+/*...*/
+        for(k=0;k<ndf;k++)
+          MAT2D(i,k,uf,ndf) = alphaMenosUm*uC[k] 
+                            + alpha*MAT2D(i,k,u,ndf);
+/*...................................................................*/
+      }
+/*...................................................................*/
+
+/*... contorno*/
+      else{
+/*... temperatura prescrita na face(extrapolacao linear)*/
+        if(lFaceR[i] > 0){
+          nCarg= lFaceL[i]-1;
+          type = loads[nCarg].type;
+/*... valor prescrito*/
+          if( type == DIRICHLETBC || type == INLET || type == MOVEWALL){
+            for(k=0;k<ndf;k++)
+              MAT2D(i,k,uf,ndf) = loads[nCarg].par[k];
+            
+          }
+/*...................................................................*/
+
+/*... fluxo prescrito*/
+          else if (type == NEUMANNBC ){
+            coefDif = lProp[COEFDIF];
+            if(coefDif != 0.e0  )
+              for(k=0;k<ndf;k++)
+                MAT2D(i,k,uf,ndf) = uC[k] 
+                             - (loads[nCarg].par[k]/coefDif)*lDcca[i];
+          }
+/*...................................................................*/
+
+/*... condicao de robin*/
+          else if(type == ROBINBC){
+            ERRO_GERAL(__FILE__,__func__,__LINE__
+            ,"Condicao de robin na implementada");
+          }
+/*...................................................................*/
+
+/*... derivada nula (condicao localmente parabolica saida)*/
+          else if (type == OUTLET){
+            for(k=0;k<ndf;k++)
+              MAT2D(i,k,uf,ndf) = uC[k];
+          }
+/*...................................................................*/
+
+/*... potencial senoidal prescrito 
+      ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
+          else if(type == SINBC){
+            ERRO_GERAL(__FILE__,__func__,__LINE__
+            ,"Condicao SINBC robin nao implementada");
+          }
+/*...................................................................*/
+        } 
+/*...................................................................*/
+
+/*... parede static impermeavel*/
+        else if(lFaceR[i]==STATICWALL){
+          for(k=0;k<ndf;k++)
+            MAT2D(i,k,uf,ndf) = 0.e0;
+        }
+/*...................................................................*/
+
+/*... fluxo nulo*/
+        else{
+          for(k=0;k<ndf;k++){
+            MAT2D(i,k,uf,ndf) = uC[k];
+            for(j=0;j<ndm;j++)
+              MAT2D(i,k,uf,ndf) += 
+              MAT2D(k,j,gradU,ndm)*MAT2D(i,j,xmcc,ndm);
+          }
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*...*/    
+    for(k=0;k<ndf;k++){
+      for(j=0;j<ndm;j++){
+        tmp = 0.e0;
+        for(i=0;i<nFace;i++)
+          tmp += MAT2D(i,k,uf,ndf)*fArea[i]*MAT2D(i,j,normal,ndm); 
+        MAT2D(k,j,gradU,ndm) = tmp*invVol; 
+      }
+    }
+/*...................................................................*/
+  }
+/*...................................................................*/
+
 }
 /*********************************************************************/
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * GRREENGAUSSNODE: reconstrucao de gradiente green-gauss linear por * 
  * celula                                                            *
  *-------------------------------------------------------------------* 
@@ -1110,6 +1510,9 @@ void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict fArea
 /*********************************************************************/
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 09/07/2016                                   * 
+ *-------------------------------------------------------------------* 
  * LEASTSQUARE : calcula o gradiente por minimos quadrados           *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -1150,9 +1553,9 @@ void  leastSquare(Loads *loads
   DOUBLE tmp,coefDif;
   INT vizNel;
   short idCell = nFace,nCarg,type;
-  short i,j,k;
+  short i,j,k,l;
 
-  for(k=0;k<2;k++){
+  for(l=0;l<2;l++){
 /*... um grau de liberdade*/  
     if(ndf == 1){
       uC[0] = u[idCell];  
@@ -1230,25 +1633,102 @@ void  leastSquare(Loads *loads
 /*... gradU = G du*/
       for(i=0;i<ndm;i++){
         tmp = 0.e0;
-        for(j=0;j<nFace;j++){
+        for(j=0;j<nFace;j++)
           tmp += MAT2D(i,j,lLsquare,nFace)*du[j]; 
-        } 
         gradU[i] = tmp;
       }
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*... graus de liberdade maior que 1 */
+    else{
+      for(k=0;k<ndf;k++)
+        uC[k] = MAT2D(idCell,k,u,ndf);
+/*... loop nas faces*/
+      for(i=0;i<nFace;i++){
+        vizNel = lViz[i];
+/*... dominio*/
+        if(vizNel > -1)
+          for(k=0;k<ndf;k++)
+            MAT2D(i,k,du,ndf) =  MAT2D(i,k,u,ndf) - uC[k];
+/*... contorno*/
+        else{
+/*... potencial prescrito na face(extrapolacao linear)*/
+          if(lFaceR[i] > 0){
+            nCarg= lFaceL[i]-1;
+            type = loads[nCarg].type;
+/*... valor prescrito*/
+            if( type == DIRICHLETBC || type == INLET 
+             || type == MOVEWALL){
+              for(k=0;k<ndf;k++)
+                MAT2D(i,k,du,ndf) = loads[nCarg].par[k] - uC[k];
+            }
+/*...................................................................*/
+
+/*... condicao de robin*/
+            else if(type == ROBINBC){
+              ERRO_GERAL(__FILE__,__func__,__LINE__
+              ,"Condicao de robin na implementada");
+            }
+/*...................................................................*/
+
+/*... potencial senoidal prescrito 
+      ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
+            else if(type == SINBC){
+              ERRO_GERAL(__FILE__,__func__,__LINE__
+              ,"Condicao SINBC robin nao implementada");
+            }
+/*...................................................................*/
+         
+/*... derivada nula (condicao localmente parabolica saida)*/
+            else if (type == OUTLET)
+              for(k=0;k<ndf;k++)
+                MAT2D(i,k,du,ndf) = 0.e0;                          
+/*...................................................................*/
+          } 
+/*...................................................................*/
+
+/*... parede static impermeavel*/
+          else if(lFaceR[i]==STATICWALL){
+            for(k=0;k<ndf;k++)
+              MAT2D(i,k,du,ndf) = - uC[k];
+           }
+/*...................................................................*/
+
+/*... fluxo nulo*/
+          else{
+            for(k=0;k<ndf;k++){
+              MAT2D(i,k,du,ndf) = 0.e0;
+              for(j=0;j<ndm;j++)
+                MAT2D(i,k,du,ndf) += 
+                MAT2D(k,j,gradU,ndm)*MAT2D(i,j,xmcc,ndm);
+            }
+          }
+/*...................................................................*/
+        } 
+/*...................................................................*/
+      }
+/*...................................................................*/
+
+/*... gradU = G du*/
+      for(k=0;k<ndf;k++)
+        for(i=0;i<ndm;i++){
+          tmp = 0.e0;
+          for(j=0;j<nFace;j++)
+            tmp += MAT2D(i,j,lLsquare,nFace)*MAT2D(j,k,du,ndf); 
+          MAT2D(k,i,gradU,ndm) = tmp;
+        }
+/*...................................................................*/
     }
 /*...................................................................*/
   }
-/*... */  
-//else
-//  for(k=0;k<ndf;k++)
-//    for(i=0;i<ndm;i++)
-//      for(j=0;j<nFace;i++)
-//        MAT2D(k,i,grad,ndf) 
-//        += MAT2D(i,j,lLsquare,nFace)*MAT2D(k,j,du,nFace);  
 /*...................................................................*/
-
 } 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 09/07/2016                                   * 
+ *-------------------------------------------------------------------* 
  * LEASTSQUAREQR: calcula o gradiente por minimos quadrados           *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -1287,12 +1767,12 @@ void  leastSquareQR(Loads *loads
 
   DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF],coefDif;
   DOUBLE uT[MAX_NDF],xx[3];
-  DOUBLE b[MAX_NUM_FACE*MAX_NDF];
+  DOUBLE b[MAX_NUM_FACE*MAX_NDF],b0,b1,b2;
   INT vizNel;
   short idCell = nFace,type;
-  short i,j,k,nCarg;
+  short i,j,k,l,nCarg;
 
-  for(k=0;k<2;k++){
+  for(l=0;l<1;l++){
 /*... um grau de liberdade*/  
     if(ndf == 1){
       uC[0] = u[idCell];  
@@ -1394,19 +1874,119 @@ void  leastSquareQR(Loads *loads
     }
 /*...................................................................*/
   
-/*... */  
-//else
-//  for(k=0;k<ndf;k++)
-//    for(i=0;i<ndm;i++)
-//      for(j=0;j<nFace;i++)
-//        MAT2D(k,i,grad,ndf) 
-//        += MAT2D(i,j,lLsquare,nFace)*MAT2D(k,j,du,nFace);  
+/*... graus de liberdade maior que 1 */
+    else{
+      for(k=0;k<ndf;k++)
+        uC[k] = MAT2D(idCell,k,u,ndf);
+/*... loop nas faces*/
+      for(i=0;i<nFace;i++){
+        vizNel = lViz[i];
+/*... dominio*/
+        if(vizNel > -1)
+          for(k=0;k<ndf;k++)
+            MAT2D(i,k,du,ndf) =  MAT2D(i,k,u,ndf) - uC[k];
+/*... contorno*/
+        else{
+/*... potencial prescrito na face(extrapolacao linear)*/
+          if(lFaceR[i] > 0){
+            nCarg= lFaceL[i]-1;
+            type = loads[nCarg].type;
+/*... valor prescrito*/
+            if( type == DIRICHLETBC || type == INLET 
+             || type == MOVEWALL){
+              for(k=0;k<ndf;k++)
+                MAT2D(i,k,du,ndf) = loads[nCarg].par[k] - uC[k];
+            }
+/*...................................................................*/
+
+/*... condicao de robin*/
+            else if(type == ROBINBC){
+              ERRO_GERAL(__FILE__,__func__,__LINE__
+              ,"Condicao de robin na implementada");
+            }
+/*...................................................................*/
+
+/*... potencial senoidal prescrito 
+      ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
+            else if(type == SINBC){
+              ERRO_GERAL(__FILE__,__func__,__LINE__
+              ,"Condicao SINBC robin nao implementada");
+            }
+/*...................................................................*/
+         
+/*... derivada nula (condicao localmente parabolica saida)*/
+            else if (type == OUTLET)
+              for(k=0;k<ndf;k++)
+                MAT2D(i,k,du,ndf) = 0.e0;                          
+/*...................................................................*/
+          } 
+/*...................................................................*/
+
+/*... parede static impermeavel*/
+          else if(lFaceR[i]==STATICWALL){
+            for(k=0;k<ndf;k++)
+              MAT2D(i,k,du,ndf) = - uC[k];
+           }
+/*...................................................................*/
+
+/*... fluxo nulo*/
+          else{
+            for(k=0;k<ndf;k++){
+              MAT2D(i,k,du,ndf) = 0.e0;
+              for(j=0;j<ndm;j++)
+                MAT2D(i,k,du,ndf) += 
+                MAT2D(k,j,gradU,ndm)*MAT2D(i,j,xmcc,ndm);
+            }
+          }
+/*...................................................................*/
+        } 
+/*...................................................................*/
+      }
+/*... b = Qtdu*/
+      for(k=0;k<ndf;k++)
+        for(i=0;i<ndm;i++){
+          MAT2D(k,i,b,ndf) = 0.e0;
+          for(j=0;j<nFace;j++)
+            MAT2D(k,i,b,ndf) += MAT2D(i,j,lLsQt,nFace)*MAT2D(j,k,du,ndf); 
+        }
+/*...................................................................*/
+    
+/*... R grad = Qtdu*/
+      for(k=0;k<ndf;k++){
+        if(ndm == 2){
+          b0 =  MAT2D(k,0,b,ndf);
+          b1 =  MAT2D(k,1,b,ndf);
+/*... retrosubstituicao*/
+          MAT2D(k,1,gradU,ndf) = b1/lLsR[2];
+          MAT2D(k,0,gradU,ndf) = 
+                           (b0  -lLsR[1]*MAT2D(k,1,gradU,ndf))/lLsR[0];
+        }
+        else if(ndm == 3){
+          b0 =  MAT2D(k,0,b,ndf);
+          b1 =  MAT2D(k,1,b,ndf);
+          b2 =  MAT2D(k,2,b,ndf);
+/*... retrosubstituicao*/
+          MAT2D(k,2,gradU,ndf) = b2/lLsR[5];
+          MAT2D(k,1,gradU,ndf)= (b1 
+                   - lLsR[4]* MAT2D(k,2,gradU,ndf))/lLsR[3];
+          MAT2D(k,0,gradU,ndf) = (b0 
+                   - lLsR[1]* MAT2D(k,1,gradU,ndf) 
+                   - lLsR[2]* MAT2D(k,2,gradU,ndf))/lLsR[0];
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+    } 
 /*...................................................................*/
   }
+/*...................................................................*/
 } 
 
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * LEASTSQUAREMATRIX : calcula a matriz de minimos quadrados para a  * 
  * rescontrucao de gradiente                                         *
  *-------------------------------------------------------------------* 
@@ -1641,6 +2221,9 @@ void  leastSquareQR(Loads *loads
 /*********************************************************************/
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * SN: numera dos nos das faces das celulas                          * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -1729,6 +2312,9 @@ inline short sn(short *s,short ty,INT nel)
 /*********************************************************************/ 
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * VOLUMECELL : volume(area) da celula                               * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -1780,6 +2366,9 @@ inline double areaCell(double *eta,short ty,short ndm,INT nel)
 
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * AREATRIACELL: calculo da area da celula triangular                * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -1824,6 +2413,9 @@ inline double areaTriaCell(double *restrict eta, short ndm)
 /*********************************************************************/ 
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * AREAQUADCELL: calculo da area da celula quadrangular              * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -1931,6 +2523,9 @@ inline double areaQuadCell(double *restrict eta,short ndm)
 /*********************************************************************/ 
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * VECTORKM2D : calculo da distancia entre a intersecao entre a reta *
  * que une o centroide da celulas e a face compartilhada             *  
  *-------------------------------------------------------------------* 
@@ -2039,6 +2634,9 @@ void vectorKm2d(DOUBLE *restrict x     ,DOUBLE *restrict xc
 /*********************************************************************/
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * VECTORKM3D : calculo da distancia entre a intersecao entre a reta *
  * que une o centroide da celulas e a face compartilhada             *  
  *-------------------------------------------------------------------* 
@@ -2141,6 +2739,9 @@ void vectorKm3d(DOUBLE *restrict xc   ,DOUBLE *restrict xm
 /*********************************************************************/
   
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * VOLUME3DGREENGAUSS : volume calculado pelo teoreima do divergente *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -2177,6 +2778,149 @@ DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
 /*********************************************************************/
 
 /********************************************************************* 
+ * Data de criacao    : 30/06/2016                                   *
+ * Data de modificaco : 09/07/2016                                   * 
+ *-------------------------------------------------------------------* 
+ * pLoadSimple : condicao de contorno para velocidades               *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * sP         -> termo da diagonal                                   * 
+ * p          -> forca local                                         * 
+ * tA         -> velocidade na face                                  * 
+ * n          -> normal                                              * 
+ * viscosityC -> coeficiente de viscosidade dinamica                 * 
+ * densityC   -> massa especifica                                    * 
+ * fArea      -> area da face                                        * 
+ * dcca       -> menor distancia do centroide central a face desta   *
+ *               celula                                              * 
+ * ld         -> definicao da carga                                  * 
+ * fCal1      -> true - atualizada sP e p                            * 
+ *               false- nao atualizada sP e p                        * 
+ * fCal2      -> true - atualizada sP e p pela pressao               * 
+ *               false- nao atualizada sP e p                        * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * sP      -> termo da diagonal atualizado                           * 
+ * p       -> forcas locais atualizada                               * 
+ * tA      -> valor pescrito na face                                 * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
+          ,DOUBLE *restrict tA        ,DOUBLE *restrict n 
+          ,DOUBLE const viscosityC    ,DOUBLE const densityC
+          ,DOUBLE const fArea         ,DOUBLE const dcca
+          ,Loads ld                   
+          ,bool const fCal1           ,bool const fCal2){
+
+  DOUBLE aP,wfn;
+
+/*... parade impermeavel movel*/
+  if( ld.type == MOVEWALL){
+    tA[0]   = ld.par[0];
+    tA[1]   = ld.par[1];
+/*...*/
+    if(fCal1){
+      aP   = viscosityC*fArea/dcca;
+      *sP += aP;
+      p[0]  += aP*tA[0];
+      p[1]  += aP*tA[1];
+    } 
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... entrada de massa*/
+  else if( ld.type ==  INLET){
+    tA[0]   = ld.par[0];
+    tA[1]   = ld.par[1];
+    wfn     = tA[0]*n[0] + tA[1]*n[1];
+/*...*/
+    if(fCal1){
+      aP     = densityC*wfn*fArea;
+      p[0]  -= aP*tA[0];
+      p[1]  -= aP*tA[1];
+    }
+    if(fCal2){
+      p[0]  -= densityC*wfn*fArea;
+    }
+  } 
+/*...................................................................*/
+
+/*... saida (derivada nula)*/
+  else if( ld.type ==  OUTLET){
+    wfn     = tA[0]*n[0] + tA[1]*n[1];
+/*...*/
+    if(fCal1){
+      aP   = densityC*wfn*fArea;
+      *sP += aP;
+    } 
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 01/07/2016                                   *
+ * Data de modificaco : 09/07/2016                                   * 
+ *-------------------------------------------------------------------* 
+ * pLoadSimplePres : condicao de contorno para pressao               *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * sP         -> termo da diagonal                                   * 
+ * p          -> forca local                                         * 
+ * tA         -> nao definido                                        * 
+ * dField     -> coeficiente de D na face                            * 
+ * densityC   -> massa especifica                                    * 
+ * wfn        -> velocidade normal a face                            * 
+ * xm         -> coordenada do ponto medio da face                   * 
+ * fArea      -> area da face                                        * 
+ * dcca       -> menor distancia do centroide central a face desta   *
+ *               celula                                              * 
+ * ld         -> definicao da carga                                  * 
+ * fCal       -> true - atualizada sP e p                            * 
+ *               false- atualizada sP e p                            * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * sP      -> termo da diagonal atualizado                           * 
+ * p       -> forcas locais atualizada                               * 
+ * tA      -> valor pescrito na face                                 * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void pLoadSimplePres(DOUBLE *restrict sP  ,DOUBLE *restrict p
+          ,DOUBLE *restrict tA
+          ,DOUBLE const dField    ,DOUBLE const densityC
+          ,DOUBLE const wfn                                              
+          ,DOUBLE const fArea     ,DOUBLE const dcca
+          ,Loads ld               ,bool const fCal){
+
+/*... pressao prescrita*/
+  if( ld.type == DIRICHLETBC){
+    tA[0]   = ld.par[0];
+    if(fCal){
+      *sP += densityC*fArea*dField/dcca;
+/*...*/
+      *p  -=  densityC*fArea*wfn;
+    }
+  }
+/*...................................................................*/
+
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * pLoad : cargas                                                    *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -2286,8 +3030,12 @@ void pLoad(DOUBLE *restrict sP  ,DOUBLE *restrict p
 
 }
 /*********************************************************************/
+
      
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * LIMITFACEBASE : funcao limitadora de fluxo baseado na face        *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -2369,7 +3117,10 @@ DOUBLE limitFaceBase(DOUBLE const r,short const iCod)
 /*********************************************************************/ 
 
 /********************************************************************* 
- * NOME:                                                             * 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * FACEBASETVD : metodo TVD baseado na face                          * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -2430,6 +3181,80 @@ DOUBLE faceBaseTvd(short const nAresta    ,short const idCell
 /*********************************************************************/ 
 
 /********************************************************************* 
+ * Data de criacao    : 04/07/2016                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * FACEBASETVDV1 : metodo TVD baseado na face                        * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * uC     -> valor central                                           * 
+ * uV     -> valor do vizinho                                        * 
+ * gradUc -> gradiente central                                       * 
+ * gradUv -> gradiente do vizinho                                    * 
+ * lKsi   -> vetor unitario entre os centroides                      * 
+ * lModKsi-> distancia entre os centroides                           * 
+ * cv     ->                                                         * 
+ * iCod   -> tecnica TVD                                             * 
+ * ndm    -> numero de dimensoes                                     * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *                                                                   * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+DOUBLE faceBaseTvdV1(DOUBLE const uC        ,DOUBLE const uV
+                 ,DOUBLE *restrict gradUc,DOUBLE *restrict gradUv
+                 ,DOUBLE *restrict lKsi  ,DOUBLE const lModKsi 
+                 ,DOUBLE const cv
+                 ,short const iCod       ,short const ndm)
+{                    
+  
+  DOUBLE du,r,cvc=0.0e0,gf;
+  DOUBLE eps=1.e-14;
+ 
+  if(ndm == 2)
+    if( cv < 0.0e0) {
+      du    = uC - uV + eps;
+      gf    = -(gradUv[0]*lKsi[0] + gradUv[1]*lKsi[1])*lModKsi;
+      r     = 2.0e0*gf/du - 1.0e0;
+      cvc   = 0.5e0*limitFaceBase(r ,iCod)*du;
+    }
+    else{
+      du    = uV - uC + eps;
+      gf    = (gradUc[0]*lKsi[0] + gradUc[1]*lKsi[1])*lModKsi;
+      r     = 2.0e0*gf/du - 1.0e0;
+      cvc   = 0.5e0*limitFaceBase(r,iCod)*du;
+    }
+  else if(ndm ==3){
+    if( cv < 0.0e0) {
+      du    = uC - uV + eps;
+      gf    = -( gradUv[0]*lKsi[0] 
+               + gradUv[1]*lKsi[1]
+               + gradUv[2]*lKsi[2])*lModKsi;
+      r     = 2.0e0*gf/du - 1.0e0;
+      cvc   = 0.5e0*limitFaceBase(r ,iCod)*du;
+    }
+    else{
+      du    = uV - uC + eps;
+      gf    = (gradUc[0]*lKsi[0] 
+             + gradUc[1]*lKsi[1]
+             + gradUc[2]*lKsi[2])*lModKsi;
+      r     = 2.0e0*gf/du - 1.0e0;
+      cvc   = 0.5e0*limitFaceBase(r,iCod)*du;
+    }
+  }
+ 
+  return cvc;
+} 
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * SETFACEBASE :                                                     * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 

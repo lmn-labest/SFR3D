@@ -24,7 +24,7 @@
                ,char *nameOut,bool iws
                ,FILE *f);
 
-   void wMeshPartVtk(Memoria *m     
+  void wMeshPartVtk(Memoria *m     
             ,double *x      ,INT *el            
             ,short *nen     ,short *typeGeom
             ,INT nnode      ,INT numel    
@@ -104,10 +104,29 @@
                ,char *velEl       ,char *velNo     
                ,char *nameOut     ,bool iws
                ,Temporal ddt      ,FILE *f);
+
+  void wResVtkFluid(Memoria *m       ,DOUBLE *x      
+                 ,INT *el            ,short *mat    
+                 ,short *nen         ,short *typeGeom
+                 ,DOUBLE *elPres     ,DOUBLE *nPres
+                 ,DOUBLE *elGradPres ,DOUBLE *nGradPres
+                 ,DOUBLE *elVel      ,DOUBLE *nVel      
+                 ,DOUBLE *elGradVel  ,DOUBLE *nGradVel 
+                 ,INT nnode          ,INT numel    
+                 ,short const ndm    ,short const maxNo 
+                 ,short const numat  ,short const ndf   
+                 ,char *presResEl    ,char *presResNo 
+                 ,char *gradPresResEl,char *gradPresResNo 
+                 ,char *velEl        ,char *velNo       
+                 ,char *gradVelResEl ,char *gradVelResNo 
+                 ,char *nameOut      ,bool iws
+                 ,Temporal ddt       ,FILE *f);
+
+
 /*...................................................................*/
 
 /*...*/
-void makeFace(INT *el            ,short *faceR       ,short *faceL     
+ void makeFace(INT *el            ,short *faceR       ,short *faceL     
              ,short *typeGeom
              ,INT *face          ,INT *lFaceS    ,INT *idFace
              ,short *typeGeomFace,short *nenFace

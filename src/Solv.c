@@ -222,7 +222,7 @@ void solverC(Memoria *m
            ,z       ,r    ,tol
            ,maxIt   ,true 
            ,fSolvLog,fLog
-           ,false 
+           ,false
            ,matVecC ,dotC);   
 /*...................................................................*/
       tm.pcg = getTimeC() - tm.pcg;

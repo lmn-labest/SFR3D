@@ -17,4 +17,4 @@
                 ,Solv *solvT,Scheme sc        ,PartMesh *pMesh
                 ,FileOpt opt,char *preName    ,char *nameOut
                 ,FILE *fileOut);
-#endif/*_DIFFUSION*/
+#endif/*_TRANSPORT_H*/

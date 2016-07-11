@@ -17,6 +17,7 @@ void simpleSolver(Memoria *m
   short unsigned kZeroPres = sp->kZeroPres;
   INT nEl = mesh->numel,i;
   INT jj = 1;
+  DOUBLE time;
   DOUBLE *b1,*b2,*bPc,*xu1,*xu2,*xp;
   DOUBLE *rCellU1,*rCellU2,*rCellPc;
 /*...*/
@@ -26,6 +27,7 @@ void simpleSolver(Memoria *m
 /*...*/
   bool xMomentum,yMomentum,pCor,fPrint=false;
 
+  time = getTimeC();
 /*...*/
   b1       =  sistEqVel->b; 
   b2       = &sistEqVel->b[sistEqVel->neq]; 
@@ -53,7 +55,7 @@ void simpleSolver(Memoria *m
 
 /*...*/
   zero(sistEqVel->b0 ,sistEqVel->neqNov*ndfVel,DOUBLEC);
-  zero(sistEqPres->b0,sistEqPres->neqNov   ,DOUBLEC);
+  zero(sistEqPres->b0,sistEqPres->neqNov      ,DOUBLEC);
 /*...................................................................*/
 
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
@@ -80,7 +82,7 @@ void simpleSolver(Memoria *m
                        ,sc.ddt.type             ,true);
 /*... vel(n-1) = vel(n)*/
     alphaProdVector(1.e0,mesh->elm.vel
-                   ,mesh->numel*ndfVel ,mesh->elm.vel); 
+                   ,mesh->numel*ndfVel ,mesh->elm.vel0); 
 /*...................................................................*/
     tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;
   }
@@ -177,8 +179,20 @@ void simpleSolver(Memoria *m
                     ,true                    ,sistEqVel->unsym
                     ,sp->sPressure);   
      tm.systFormVel = getTimeC() - tm.systFormVel;
-//     for(i=0;i<nEl;i++)
-//       printf("%d %e %e\n",i+1,sistEqVel->ad[i],b1[i]);    
+/*...................................................................*/
+
+/*... soma o vetor b(i) = b(i) + b0(i)*/
+     addVector(1.0e0                    ,sistEqVel->b
+              ,1.0e0                    ,sistEqVel->b0
+              ,sistEqVel->neqNov*ndfVel ,sistEqVel->b);
+/*...................................................................*/
+
+/*... soma o vetor R(i) = R(i) + b0(i)*/ 
+     updateCellValueSimple(mesh->elm.rCellVel ,sistEqVel->b0
+                   ,sistEqVel->id      ,&sistEqVel->iNeq
+                   ,mesh->numelNov     ,sistEqVel->neqNov
+                   ,ndfVel
+                   ,true               ,false);
 /*...................................................................*/
 
 /*...*/
@@ -345,7 +359,6 @@ void simpleSolver(Memoria *m
                 ,sp->d       
                 ,mesh->numel,mesh->ndm
                 ,sp->alphaPres);
-
 /*...................................................................*/
 
 /*...*/
@@ -359,7 +372,7 @@ void simpleSolver(Memoria *m
 /*...................................................................*/
 
 /*...*/
-     if( jj == 1 ) { 
+     if( jj == 50) { 
        jj = 0; 
        printf("It simple: %d \n",itSimple+1);
        printf("Residuo:\n");
@@ -371,9 +384,11 @@ void simpleSolver(Memoria *m
 /*...................................................................*/
   }
 /*...................................................................*/
+  time = getTimeC() -time;
 
 /*...*/
   printf("It simple: %d \n",itSimple+1);
+  printf("Time(s)  : %lf \n",time);
   printf("Residuo:\n");
   printf("conservacao da massa: %20.8e\n",rPc);
   printf("momentum x1         : %20.8e\n",rU1);

@@ -602,7 +602,7 @@ void csr(INT    *restrict  ia,INT *restrict ja
 /*...................................................................*/
 
 /*... estrutura CSRC(ia,ja,au,a,al,b)*/
-/*...CSRD+COO*/
+/*...CSRC+COO*/
     case CSRCCOO:
       fCoo = true;
     case CSRC:
@@ -830,6 +830,373 @@ void csr(INT    *restrict  ia,INT *restrict ja
 /*...................................................................*/
       }
 /*...................................................................*/
+    break;
+/*...................................................................*/
+
+/*...*/
+     default:
+       printf("\n opcao invalida\n"
+           "funcao fname(*,*,*)\narquivo = %s\n",__FILE__);
+       exit(EXIT_FAILURE);
+     break;
+/*...................................................................*/
+
+
+ }
+
+}
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * Data de criacao    : 30/06/2016                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * CSRSIMPLE : Montagem do sistema global do CSR   para sistems      *
+ * de velocidades do metodo simple                                   * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------*
+ * ia      -> ponteiro para as linhas da matriz esparsa              * 
+ * ja      -> ponteiro para as colunas da matriz esparsa             * 
+ * a       -> matriz de coeficientes esparsa                         * 
+ *            ( CSR - nao utiliza                            )       *
+ *            ( CSRD/CSRC- triangular inferior/triangular superior ) *
+ * ad      -> matrix de coeficientes esparsa                         *
+ *            ( CSR - matriz completa                        )       *
+ *            ( CSRD/CSRC- diagonal principal                )       *
+ * b       -> vetor de forcas                                        *
+ * lId     -> numeracao das equacoes dessa celula                    *
+ * lA      -> coficientes da celula                                  *
+ * lB      -> vetor de forca da celula                               *
+ * nEq     -> numero de equacoes                                     *
+ * neqNov  -> numero de equacoes nao sobrepostas                     *
+ * nAd     -> numero de termos nao nulos                             *
+ * nAdR    -> numero de termos nao nulos na parte retangular         *
+ * nFace   -> numero de faces da celula                              *
+ * ndf     -> graus de liberdade                                     *
+ * storage -> tecnica de armazenamento da matriz esparsa             * 
+ * forces  -> mantagem no vetor de forcas                            * 
+ * matrix  -> mantagem da matriz de coeficientes                     * 
+ * unsym   -> matiz nao simetrica                                    * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * au,a,al   -> coeficiente da linha i     (matriz = true)           *
+ * b         -> vetor de forca da linha i  (forces = true)           *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ * lA | AP1X AP1Y AP1XY AP1YX|                                       * 
+ *    | AP2X AP2Y AP2XY AP2YX|                                       * 
+ *    | AP3X AP3Y AP3XY AP3YX|                                       * 
+ *    |          ...         |                                       * 
+ *    | APX  APY  APXY  APYX |                                       * 
+ c b = | b1x b2x ... b(neq)x b1y b2y ... b(neq)y b1z b2z ... b(neq)z * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void csrSimple(INT    *restrict  ia,INT *restrict ja 
+        ,DOUBLE *restrict a  ,DOUBLE *restrict ad
+        ,DOUBLE *restrict b
+        ,INT *restrict lId                       
+        ,DOUBLE *restrict lA ,DOUBLE *restrict lB
+        ,INT const nEq       ,INT const nEqNov 
+        ,INT const nAd       ,INT const nAdR                        
+        ,short const nFace   ,short const ndf  
+        ,short const storage ,bool  const forces
+        ,bool const matrix   ,bool  const  unsym)
+{
+  INT lNeq,lCol=0,iak,jak,iPoint,iaKneq,jPoint,iaJneq,neqS,n0;
+  INT *iar,*jar;
+  DOUBLE *restrict ar=NULL;
+  DOUBLE *restrict au=NULL;
+  DOUBLE *restrict al=NULL;
+  unsigned short k;
+  bool fCoo = false;
+
+  neqS = nEqNov - 1;
+
+  switch (storage){
+/*... estrutura CSR(ia,ja,a,b)*/
+    case CSR:
+    break;
+/*...................................................................*/
+
+/*... estrutura CSRD(ia,ja,a,al,b)*/
+/*...CSRD+COO(symetric)*/
+    case CSRDCOO:
+      fCoo = true;
+    case CSRD:
+      lNeq = lId[nFace];
+/*... vetor de forcas*/
+      if(forces){
+        b[lNeq]     = lB[0];
+        b[nEq+lNeq] = lB[1];
+        if( ndf == 3) b[2*nEq+lNeq] = lB[2];
+      }
+/*...................................................................*/
+
+/*... matriz de coefiencientes*/
+      if(matrix){ 
+        al       = a;
+        lNeq     = lId[nFace];
+        ad[lNeq] = lA[nFace];
+        iPoint    = ia[lNeq];
+        iaKneq   = ia[lNeq+1];
+        for(k=0;k<nFace;k++){
+          lCol     = lId[k];
+          if(lCol > -1){
+            for(iak = iPoint; iak < iaKneq;iak++){
+              jak = ja[iak];
+              if( lCol == jak ) 
+                al[iak] = lA[k];  
+            }
+/*...................................................................*/
+          }      
+/*...................................................................*/
+        }
+/*...................................................................*/
+
+/*... parte retagunlar para matrizes simetricas (MPI)*/
+        if(unsym == false && mpiVar.nPrcs > 1){
+/*... parte retangular em COO*/
+          if(fCoo){
+            n0     = nEqNov+1;
+            iar    = &ia[n0];
+            jar    = &ja[nAd];
+            ar     = &a[nAd];
+            iPoint = iar[lNeq];
+            iaKneq = iar[lNeq+1];
+            for(k=0;k<nFace;k++){
+              lCol     = lId[k];
+              if(lCol > -1 && lCol > neqS)
+                for(iak = iPoint; iak < iaKneq;iak++)
+                  if(jar[iak] == lCol)
+                    ar[iak] = lA[k];     
+            }
+/*...................................................................*/
+          }   
+/*...................................................................*/
+
+/*... parte retangular em CSR*/
+          else{
+            iar    = &ia[nEqNov+1];
+            jar    = &ja[nAd];
+            ar     = &a[nAd];
+            iPoint = iar[lNeq];
+            iaKneq = iar[lNeq+1];
+            for(k=0;k<nFace;k++){
+              lCol     = lId[k];
+              if(lCol > -1 && lCol > neqS){
+                for(iak = iPoint; iak < iaKneq;iak++){
+                  jak = jar[iak];
+                  if( lCol == jak ) 
+                    ar[iak] = lA[k];
+/*...................................................................*/
+                }
+/*...................................................................*/
+              }       
+/*...................................................................*/
+            }
+/*...................................................................*/
+          }
+/*...................................................................*/
+        }  
+/*...................................................................*/
+      }  
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
+/*... estrutura CSRC(ia,ja,au,a,al,b)*/
+/*...CSRC+COO*/
+    case CSRCCOO:
+      fCoo = true;
+    case CSRC:
+/*...*/
+      lNeq = lId[nFace];
+/*... vetor de forcas*/
+      if(forces){ 
+        b[lNeq]     = lB[0];
+        b[nEq+lNeq] = lB[1];
+        if( ndf == 3){ 
+          b[2*nEq+lNeq] = lB[2];
+        }
+      }
+/*...................................................................*/
+
+/*... matriz de coefiencientes*/
+      if(matrix){ 
+        al       = a;
+        lNeq     = lId[nFace];
+        ad[lNeq] = lA[nFace];
+        iPoint   = ia[lNeq];
+        iaKneq   = ia[lNeq+1];
+/*... paralelo MPI*/                                                        
+        if(mpiVar.nPrcs > 1){
+/*... nao simetrico*/
+          if(unsym){
+            au = &a[nAd];
+            for(k=0;k<nFace;k++){
+              lCol     = lId[k];
+              if(lCol > -1){
+/*... parte inferior*/
+                if( lCol < lNeq)
+                  for(iak = iPoint; iak < iaKneq;iak++){
+                    jak = ja[iak];
+                    if( lCol == jak ) 
+                      al[iak] = lA[k];
+                  }
+/*... parte superior*/
+                else if( lCol > lNeq && lCol <= neqS){
+                  jPoint   = ia[lCol];
+                  iaJneq   = ia[lCol+1];
+                  for(iak = jPoint; iak < iaJneq;iak++){
+                    jak = ja[iak];
+                    if( lNeq == jak )
+                      au[iak] = lA[k];
+/*...................................................................*/
+                  }
+/*...................................................................*/
+                }
+/*...................................................................*/
+              }
+/*...................................................................*/
+            }
+/*...................................................................*/
+          }
+/*...................................................................*/
+
+/*... simetrico*/
+          else{
+            for(k=0;k<nFace;k++){
+              lCol     = lId[k];
+              if(lCol > -1){
+                for(iak = iPoint; iak < iaKneq;iak++){
+                  jak = ja[iak];
+                  if( lCol == jak ) 
+                    al[iak] = lA[k];  
+                }
+/*...................................................................*/
+              }      
+/*...................................................................*/
+            }
+/*...................................................................*/
+          }
+/*...................................................................*/
+
+/*... parte retangular em COO*/
+          if(fCoo){
+            n0     = nEqNov+1;
+            iar    = &ia[n0];
+            jar    = &ja[nAd];
+/*...*/
+            if(unsym)
+              ar     = &a[2*nAd];
+            else
+              ar     = &a[nAd];
+/*...................................................................*/
+            iPoint = iar[lNeq];
+            iaKneq = iar[lNeq+1];
+            for(k=0;k<nFace;k++){
+              lCol     = lId[k];
+              if(lCol > -1 && lCol > neqS)
+                for(iak = iPoint; iak < iaKneq;iak++)
+                  if(jar[iak] == lCol) 
+                    ar[iak] = lA[k]; 
+            }
+/*...................................................................*/
+          }   
+/*...................................................................*/
+
+/*... parte retangular em CSR*/
+          else{
+            n0     = nEqNov+1;
+            iar    = &ia[n0];
+            jar    = &ja[nAd];
+/*...*/
+            if(unsym)
+              ar     = &a[2*nAd];
+            else
+              ar     = &a[nAd];
+/*...................................................................*/
+            iPoint = iar[lNeq];
+            iaKneq = iar[lNeq+1];
+            for(k=0;k<nFace;k++){
+              lCol     = lId[k];
+              if(lCol > -1 && lCol > neqS){
+                for(iak = iPoint; iak < iaKneq;iak++){
+                  jak = jar[iak];
+                  if( lCol == jak ) 
+                    ar[iak] = lA[k];
+/*...................................................................*/
+                }
+/*...................................................................*/
+              }       
+/*...................................................................*/
+            }
+/*...................................................................*/
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
+
+/*... sequencial */                                                        
+        else{
+/*... nao simetrico*/
+          if(unsym){
+            au = &a[nAd];
+            for(k=0;k<nFace;k++){
+              lCol     = lId[k];
+              if(lCol > -1){
+/*... parte inferior*/
+                if( lCol < lNeq)
+                  for(iak = iPoint; iak < iaKneq;iak++){
+                    jak = ja[iak];
+                    if( lCol == jak ) 
+                      al[iak] = lA[k];
+                  }
+/*... parte superior*/
+                else if( lCol > lNeq){
+                  jPoint   = ia[lCol];
+                  iaJneq   = ia[lCol+1];
+                  for(iak = jPoint; iak < iaJneq;iak++){
+                    jak = ja[iak];
+                    if( lNeq == jak ) {
+                      au[iak] = lA[k];
+                    }
+/*...................................................................*/
+                  }
+/*...................................................................*/
+                }
+/*...................................................................*/
+              }
+/*...................................................................*/
+            }
+/*...................................................................*/
+          }  
+/*...................................................................*/
+
+/*... simetrico*/
+          else{
+            for(k=0;k<nFace;k++){
+              lCol     = lId[k];
+              if(lCol > -1){
+                for(iak = iPoint; iak < iaKneq;iak++){
+                  jak = ja[iak];
+                  if( lCol == jak ) 
+                    al[iak] = lA[k];  
+                }
+/*...................................................................*/
+              }      
+/*...................................................................*/
+            }
+/*...................................................................*/
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+
     break;
 /*...................................................................*/
 

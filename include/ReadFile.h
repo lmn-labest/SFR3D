@@ -5,7 +5,7 @@
   #ifdef NMACROS 
     #undef NMACROS
   #endif  
-  #define NMACROS       24
+  #define NMACROS       27
 /*...................................................................*/  
   #include<stdio.h>
   #include<stdlib.h>

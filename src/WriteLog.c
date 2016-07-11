@@ -11,132 +11,164 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void writeLog(Mesh mesh         ,Scheme sc
-             ,Solv *solvD1      ,SistEq *sistEqD1
-             ,Solv *solvT1      ,SistEq *sistEqT1
+void writeLog(Mesh mesh          ,Scheme sc
+             ,Solv *solvD1       ,SistEq *sistEqD1
+             ,Solv *solvT1       ,SistEq *sistEqT1
+             ,Solv *solvVel      ,SistEq *sistEqVel
+             ,Solv *solvPres     ,SistEq *sistEqPres
              ,Time t
-             ,bool const fSolvD1,bool const fSolvT1
-             ,char *nameIn      ,FILE *file){
+             ,bool const fSolvD1 ,bool const fSolvT1
+             ,bool const fSolvVel,bool const fSolvPres
+             ,char *nameIn       ,FILE *file){
 
   
-  fprintf(file,"Log do execucao : %s\n\n",nameIn); 
+  fprintf(file,"Log do execucao    : %s\n\n",nameIn); 
   
   if(mpiVar.nPrcs > 1){
-    fprintf(file,"myId            :%2d\n",mpiVar.myId); 
-    fprintf(file,"nPrcs           :%2d\n\n",mpiVar.nPrcs); 
+    fprintf(file,"myId               :%2d\n",mpiVar.myId); 
+    fprintf(file,"nPrcs              :%2d\n\n",mpiVar.nPrcs); 
   } 
   
   fprintf(file,"Time:\n");
-  fprintf(file,"adjcency        : %lf\n",t.adjcency);
-  fprintf(file,"geom            : %lf\n",t.geom);
+  fprintf(file,"adjcency           : %lf\n",t.adjcency);
+  fprintf(file,"geom               : %lf\n",t.geom);
   if( sc.rcGrad == RCLSQUARE )
-    fprintf(file,"lSquareMatrix   : %lf\n",t.leastSquareMatrix);
-  fprintf(file,"reord           : %lf\n",t.reord);
+    fprintf(file,"lSquareMatrix      : %lf\n",t.leastSquareMatrix);
+  fprintf(file,"reord              : %lf\n",t.reord);
 
 /*... Blas*/
-  fprintf(file,"matVecSparse    : %lf\n",t.matVecSparse);
-  fprintf(file,"dot             : %lf\n",t.dot); 
+  fprintf(file,"matVecSparse       : %lf\n",t.matVecSparse);
+  fprintf(file,"dot                : %lf\n",t.dot); 
 /*... Blas overHead do mpi */
   if(mpiVar.nPrcs > 1){
-    fprintf(file,"matVecOverHead  : %lf\n",t.matVecOverHeadMpi);
-    fprintf(file,"dotOverHead     : %lf\n",t.dotOverHeadMpi);
+    fprintf(file,"matVecOverHead     : %lf\n",t.matVecOverHeadMpi);
+    fprintf(file,"dotOverHead        : %lf\n",t.dotOverHeadMpi);
   }
 
 /*... Solver*/
-  fprintf(file,"Pcg             : %lf\n",t.pcg);
-  fprintf(file,"Pbicgstab       : %lf\n",t.pbicgstab);
-  fprintf(file,"precondDiag     : %lf\n",t.precondDiag);
+  fprintf(file,"Pcg                : %lf\n",t.pcg);
+  fprintf(file,"Pbicgstab          : %lf\n",t.pbicgstab);
+  fprintf(file,"precondDiag        : %lf\n",t.precondDiag);
 
 /*... particionamento*/
   if(mpiVar.nPrcs > 1){
-    fprintf(file,"partdMesh       : %lf\n",t.partdMesh);
-    fprintf(file,"partdMeshComm   : %lf\n",t.partdMeshCom);
+    fprintf(file,"partdMesh          : %lf\n",t.partdMesh);
+    fprintf(file,"partdMeshComm      : %lf\n",t.partdMeshCom);
   }
 /*... comunicacao entre as particoes*/
   if(mpiVar.nPrcs > 1){
-    fprintf(file,"overHeadCelMpi  : %lf\n",t.overHeadCelMpi);
-    fprintf(file,"overHeadNodMpi  : %lf\n",t.overHeadNodMpi);
-    fprintf(file,"overHeadNeqMpi  : %lf\n",t.overHeadNeqMpi);
-    fprintf(file,"overHeadGCelMpi : %lf\n",t.overHeadGCelMpi);
-    fprintf(file,"overHeadGNodMpi : %lf\n",t.overHeadGNodMpi);
-    fprintf(file,"overHeadTotalMpi: %lf\n",t.overHeadTotalMpi);
+    fprintf(file,"overHeadCelMpi     : %lf\n",t.overHeadCelMpi);
+    fprintf(file,"overHeadNodMpi     : %lf\n",t.overHeadNodMpi);
+    fprintf(file,"overHeadNeqMpi     : %lf\n",t.overHeadNeqMpi);
+    fprintf(file,"overHeadGCelMpi    : %lf\n",t.overHeadGCelMpi);
+    fprintf(file,"overHeadGNodMpi    : %lf\n",t.overHeadGNodMpi);
+    fprintf(file,"overHeadTotalMpi   : %lf\n",t.overHeadTotalMpi);
   }
+
 
 /*... solvD1*/
   if(fSolvD1){
-    fprintf(file,"SolvD1          : %lf\n",t.solvD1);
-    fprintf(file,"numeqD1         : %lf\n",t.numeqD1);
-    fprintf(file,"dataStructD1    : %lf\n",t.dataStructD1);
-    fprintf(file,"CellPloadD1     : %lf\n",t.CellPloadD1);
-    fprintf(file,"CellTransientD1 : %lf\n",t.CellTransientD1);
-    fprintf(file,"systFormD1      : %lf\n",t.systFormD1);
-    fprintf(file,"rcGradD1        : %lf\n",t.rcGradD1);
-    fprintf(file,"solvEdpD1       : %lf\n",t.solvEdpD1);
+    fprintf(file,"SolvD1             : %lf\n",t.solvD1);
+    fprintf(file,"numeqD1            : %lf\n",t.numeqD1);
+    fprintf(file,"dataStructD1       : %lf\n",t.dataStructD1);
+    fprintf(file,"CellPloadD1        : %lf\n",t.CellPloadD1);
+    fprintf(file,"CellTransientD1    : %lf\n",t.CellTransientD1);
+    fprintf(file,"systFormD1         : %lf\n",t.systFormD1);
+    fprintf(file,"rcGradD1           : %lf\n",t.rcGradD1);
+    fprintf(file,"solvEdpD1          : %lf\n",t.solvEdpD1);
   }
 /*...................................................................*/
 
 /*... solvT1*/
   if(fSolvT1){
-    fprintf(file,"SolvT1          : %lf\n",t.solvT1);
-    fprintf(file,"numeqT1         : %lf\n",t.numeqT1);
-    fprintf(file,"dataStructT1    : %lf\n",t.dataStructT1);
-    fprintf(file,"CellPloadT1     : %lf\n",t.CellPloadT1);
-    fprintf(file,"CellTransientT1 : %lf\n",t.CellTransientT1);
-    fprintf(file,"systFormT1      : %lf\n",t.systFormT1);
-    fprintf(file,"rcGradT1        : %lf\n",t.rcGradT1);
-    fprintf(file,"solvEdpT1       : %lf\n",t.solvEdpT1);
+    fprintf(file,"SolvT1             : %lf\n",t.solvT1);
+    fprintf(file,"numeqT1            : %lf\n",t.numeqT1);
+    fprintf(file,"dataStructT1       : %lf\n",t.dataStructT1);
+    fprintf(file,"CellPloadT1        : %lf\n",t.CellPloadT1);
+    fprintf(file,"CellTransientT1    : %lf\n",t.CellTransientT1);
+    fprintf(file,"systFormT1         : %lf\n",t.systFormT1);
+    fprintf(file,"rcGradT1           : %lf\n",t.rcGradT1);
+    fprintf(file,"solvEdpT1          : %lf\n",t.solvEdpT1);
+  }
+/*...................................................................*/
+
+/*... solvPres*/
+  if(fSolvPres){
+    fprintf(file,"SolvPres           : %lf\n",t.solvPres);
+    fprintf(file,"numeqPres          : %lf\n",t.numeqPres);
+    fprintf(file,"dataStructPres     : %lf\n",t.dataStructPres);
+    fprintf(file,"systFormPres       : %lf\n",t.systFormPres);
+    fprintf(file,"rcGradPres         : %lf\n",t.rcGradPres);
+  }
+/*...................................................................*/
+
+/*... solvVel*/
+  if(fSolvVel){
+    fprintf(file,"SolvVel            : %lf\n",t.solvVel);
+    fprintf(file,"numeqVel           : %lf\n",t.numeqVel);
+    fprintf(file,"dataStructVel      : %lf\n",t.dataStructVel);
+    fprintf(file,"CellPloadSimple    : %lf\n",t.cellPloadSimple);
+    fprintf(file,"CellTransientSimple: %lf\n",t.cellTransientSimple);
+    fprintf(file,"systFormVel        : %lf\n",t.systFormVel);
+    fprintf(file,"rcGradVel          : %lf\n",t.rcGradVel);
+    fprintf(file,"solvEdpFuild       : %lf\n",t.solvEdpFluid);
   }
 /*...................................................................*/
   
-  fprintf(file,"Total           : %lf\n",t.total);
+  fprintf(file,"Total              : %lf\n",t.total);
 /*...*/
   fprintf(file,"\nMalha:\n");
-  fprintf(file,"nnode           : %d\n",mesh.nnode);
-  fprintf(file,"nCell           : %d\n",mesh.numel);
-  fprintf(file,"volume          : %lf\n",mesh.mQuality.volume);
-  fprintf(file,"non-OrthMed     : %.2lf°\n",mesh.mQuality.nonOrthMed);
-  fprintf(file,"non-OtthMax     : %.2lf°\n",mesh.mQuality.nonOrthMax);
-  fprintf(file,"skewMed         : %lf\n",mesh.mQuality.skewMed);
-  fprintf(file,"skewMax         : %lf\n",mesh.mQuality.skewMax);
-  
+  fprintf(file,"nnode              : %d\n",mesh.nnode);
+  fprintf(file,"nCell              : %d\n",mesh.numel);
+  fprintf(file,"volume             : %lf\n",mesh.mQuality.volume);
+  fprintf(file,"non-OrthMed        : %.2lf°\n",mesh.mQuality.nonOrthMed);
+  fprintf(file,"non-OtthMax        : %.2lf°\n",mesh.mQuality.nonOrthMax);
+  fprintf(file,"skewMed            : %lf\n",mesh.mQuality.skewMed);
+  fprintf(file,"skewMax            : %lf\n",mesh.mQuality.skewMax);
+
 /*...*/
   if(fSolvD1){
     fprintf(file,"\nSistema D1:\n");
 /*... tecnica de armazenamento*/
     if(sistEqD1->storage == CSR)
-      fprintf(file,"Armazenamento   : CSR\n");
+      fprintf(file,"Armazenamento      : CSR\n");
     else if(sistEqD1->storage == CSRD)
-      fprintf(file,"Armazenamento   : CSRD\n");
+      fprintf(file,"Armazenamento      : CSRD\n");
     else if(sistEqD1->storage == CSRC)
-      fprintf(file,"Armazenamento   : CSRC\n");
+      fprintf(file,"Armazenamento      : CSRC\n");
     else if(sistEqD1->storage == ELLPACK)
-      fprintf(file,"Armazenamento   : ELLPACK\n");
+      fprintf(file,"Armazenamento      : ELLPACK\n");
     else if(sistEqD1->storage == CSRDCOO)
-      fprintf(file,"Armazenamento   : CSRDCOO\n");
-    fprintf(file,"nEq             : %d\n",sistEqD1->neq);
+      fprintf(file,"Armazenamento      : CSRDCOO\n");
+    else if(sistEqT1->storage == CSRCCOO)
+      fprintf(file,"Armazenamento      : CSRCCOO\n");
+    fprintf(file,"nEq               : %d\n",sistEqD1->neq);
     if(mpiVar.nPrcs > 1)
-      fprintf(file,"nEqNov          : %d\n",sistEqD1->neqNov);
+      fprintf(file,"nEqNov            : %d\n",sistEqD1->neqNov);
 /*... ELLPACK*/
     if(sistEqD1->storage == ELLPACK){
-      fprintf(file,"nAd             : %d\n",sistEqD1->nad);
-      fprintf(file,"nAd Overhead    : %d\n",sistEqD1->neq*mesh.maxViz);
+      fprintf(file,"nAd               : %d\n",sistEqD1->nad);
+      fprintf(file,"nAd Overhead      : %d\n",sistEqD1->neq*mesh.maxViz);
     }
 /*... CSRD*/
     else{
-      fprintf(file,"band Min        : %d\n",sistEqD1->bandCsr[BANDCSRMIN]);
-      fprintf(file,"band Max        : %d\n",sistEqD1->bandCsr[BANDCSRMAX]);
-      fprintf(file,"band Med        : %d\n",sistEqD1->bandCsr[BANDCSRMED]);
-      fprintf(file,"nAd             : %d\n",sistEqD1->nad);
+      fprintf(file,"band Min          : %d\n"
+             ,sistEqD1->bandCsr[BANDCSRMIN]);
+      fprintf(file,"band Max          : %d\n"
+             ,sistEqD1->bandCsr[BANDCSRMAX]);
+      fprintf(file,"band Med          : %d\n"
+             ,sistEqD1->bandCsr[BANDCSRMED]);
+      fprintf(file,"nAd               : %d\n",sistEqD1->nad);
       if(mpiVar.nPrcs > 1)
-        fprintf(file,"nAdR            : %d\n",sistEqD1->nadr);
+        fprintf(file,"nAdR              : %d\n",sistEqD1->nadr);
     }
 /*...................................................................*/
-    fprintf(file,"tol             : %e\n",solvD1->tol);
-/*... tenica de armazenamento*/
+    fprintf(file,"tol               : %e\n",solvD1->tol);
+/*... solver */
     if(solvD1->solver == PCG)
-      fprintf(file,"Iterativo       : PCG\n");
+      fprintf(file,"Iterativo         : PCG\n");
     else if(solvD1->solver == PBICGSTAB )
-      fprintf(file,"Iterativo       : PBICGSTAB\n");
+      fprintf(file,"Iterativo         : PBICGSTAB\n");
   }
 /*...................................................................*/
 
@@ -145,37 +177,137 @@ void writeLog(Mesh mesh         ,Scheme sc
     fprintf(file,"\nSistema T1:\n");
 /*... tecnica de armazenamento*/
     if(sistEqT1->storage == CSR)
-      fprintf(file,"Armazenamento   : CSR\n");
+      fprintf(file,"Armazenamento      : CSR\n");
     else if(sistEqT1->storage == CSRD)
-      fprintf(file,"Armazenamento   : CSRD\n");
+      fprintf(file,"Armazenamento      : CSRD\n");
     else if(sistEqT1->storage == CSRC)
-      fprintf(file,"Armazenamento   : CSRC\n");
+      fprintf(file,"Armazenamento      : CSRC\n");
     else if(sistEqT1->storage == ELLPACK)
-      fprintf(file,"Armazenamento   : ELLPACK\n");
+      fprintf(file,"Armazenamento      : ELLPACK\n");
     else if(sistEqT1->storage == CSRDCOO)
-      fprintf(file,"Armazenamento   : CSRDCOO\n");
-    fprintf(file,"nEq             : %d\n",sistEqT1->neq);
+      fprintf(file,"Armazenamento      : CSRDCOO\n");
+    else if(sistEqT1->storage == CSRCCOO)
+      fprintf(file,"Armazenamento      : CSRCCOO\n");
+    fprintf(file,"nEq                : %d\n",sistEqT1->neq);
     if(mpiVar.nPrcs > 1)
-      fprintf(file,"nEqNov          : %d\n",sistEqT1->neqNov);
+      fprintf(file,"nEqNov             : %d\n",sistEqT1->neqNov);
 /*... ELLPACK*/
     if(sistEqT1->storage == ELLPACK){
-      fprintf(file,"nAd             : %d\n",sistEqT1->nad);
-      fprintf(file,"nAd Overhead    : %d\n",sistEqT1->neq*mesh.maxViz);
+      fprintf(file,"nAd                : %d\n",sistEqT1->nad);
+      fprintf(file,"nAd Overhead       : %d\n",sistEqT1->neq*mesh.maxViz);
     }
 /*... CSRD*/
     else{
-      fprintf(file,"band Min        : %d\n",sistEqT1->bandCsr[BANDCSRMIN]);
-      fprintf(file,"band Max        : %d\n",sistEqT1->bandCsr[BANDCSRMAX]);
-      fprintf(file,"band Med        : %d\n",sistEqT1->bandCsr[BANDCSRMED]);
-      fprintf(file,"nAd             : %d\n",sistEqT1->nad);
+      fprintf(file,"band Min           : %d\n"
+             ,sistEqT1->bandCsr[BANDCSRMIN]);
+      fprintf(file,"band Max           : %d\n"
+             ,sistEqT1->bandCsr[BANDCSRMAX]);
+      fprintf(file,"band Med           : %d\n"
+             ,sistEqT1->bandCsr[BANDCSRMED]);
+      fprintf(file,"nAd                : %d\n"
+             ,sistEqT1->nad);
       if(mpiVar.nPrcs > 1)
-        fprintf(file,"nAdR            : %d\n",sistEqT1->nadr);
+        fprintf(file,"nAdR              : %d\n",sistEqT1->nadr);
     }
 /*...................................................................*/
-    fprintf(file,"tol             : %e\n",solvT1->tol);
-/*... tenica de armazenamento*/
+    fprintf(file,"tol                : %e\n",solvT1->tol);
+/*... solver */
     if(solvT1->solver == PBICGSTAB )
-      fprintf(file,"Iterativo       : PBICGSTAB\n");
+      fprintf(file,"Iterativo          : PBICGSTAB\n");
+  }
+/*...................................................................*/
+
+/*... solvVel*/
+  if(fSolvVel){
+    fprintf(file,"\nSistema Vel:\n");
+/*... tecnica de armazenamento*/
+    if(sistEqVel->storage == CSR)
+      fprintf(file,"Armazenamento      : CSR\n");
+    else if(sistEqVel->storage == CSRD)
+      fprintf(file,"Armazenamento      : CSRD\n");
+    else if(sistEqVel->storage == CSRC)
+      fprintf(file,"Armazenamento      : CSRC\n");
+    else if(sistEqVel->storage == ELLPACK)
+      fprintf(file,"Armazenamento      : ELLPACK\n");
+    else if(sistEqVel->storage == CSRDCOO)
+      fprintf(file,"Armazenamento      : CSRDCOO\n");
+    else if(sistEqVel->storage == CSRCCOO)
+      fprintf(file,"Armazenamento      : CSRCCOO\n");
+    fprintf(file,"nEq                : %d\n",sistEqVel->neq);
+    if(mpiVar.nPrcs > 1)
+      fprintf(file,"nEqNov             : %d\n",sistEqVel->neqNov);
+/*... ELLPACK*/
+    if(sistEqVel->storage == ELLPACK){
+      fprintf(file,"nAd                : %d\n",sistEqVel->nad);
+      fprintf(file,"nAd Overhead       : %d\n"
+             ,sistEqVel->neq*mesh.maxViz);
+    }
+/*... CSRD*/
+    else{
+      fprintf(file,"band Min           : %d\n"
+             ,sistEqVel->bandCsr[BANDCSRMIN]);
+      fprintf(file,"band Max           : %d\n"
+             ,sistEqVel->bandCsr[BANDCSRMAX]);
+      fprintf(file,"band Med           : %d\n"
+             ,sistEqVel->bandCsr[BANDCSRMED]);
+      fprintf(file,"nAd                : %d\n"
+             ,sistEqVel->nad);
+      if(mpiVar.nPrcs > 1)
+        fprintf(file,"nAdR              : %d\n",sistEqVel->nadr);
+    }
+/*...................................................................*/
+    fprintf(file,"tol                : %e\n",solvVel->tol);
+/*... solver */
+    if(solvVel->solver == PBICGSTAB )
+      fprintf(file,"Iterativo          : PBICGSTAB\n");
+  }
+/*...................................................................*/
+
+/*... solvPres*/
+  if(fSolvPres){
+    fprintf(file,"\nSistema Pres:\n");
+/*... tecnica de armazenamento*/
+    if(sistEqPres->storage == CSR)
+      fprintf(file,"Armazenamento      : CSR\n");
+    else if(sistEqPres->storage == CSRD)
+      fprintf(file,"Armazenamento      : CSRD\n");
+    else if(sistEqPres->storage == CSRC)
+      fprintf(file,"Armazenamento      : CSRC\n");
+    else if(sistEqPres->storage == ELLPACK)
+      fprintf(file,"Armazenamento      : ELLPACK\n");
+    else if(sistEqPres->storage == CSRDCOO)
+      fprintf(file,"Armazenamento      : CSRDCOO\n");
+    else if(sistEqPres->storage == CSRCCOO)
+      fprintf(file,"Armazenamento      : CSRCCOO\n");
+    fprintf(file,"nEq                : %d\n",sistEqPres->neq);
+    if(mpiVar.nPrcs > 1)
+      fprintf(file,"nEqNov             : %d\n",sistEqPres->neqNov);
+/*... ELLPACK*/
+    if(sistEqPres->storage == ELLPACK){
+      fprintf(file,"nAd                : %d\n",sistEqPres->nad);
+      fprintf(file,"nAd Overhead       : %d\n"
+             ,sistEqPres->neq*mesh.maxViz);
+    }
+/*... CSRD*/
+    else{
+      fprintf(file,"band Min           : %d\n"
+             ,sistEqPres->bandCsr[BANDCSRMIN]);
+      fprintf(file,"band Max           : %d\n"
+             ,sistEqPres->bandCsr[BANDCSRMAX]);
+      fprintf(file,"band Med           : %d\n"
+             ,sistEqPres->bandCsr[BANDCSRMED]);
+      fprintf(file,"nAd                : %d\n"
+             ,sistEqPres->nad);
+      if(mpiVar.nPrcs > 1)
+        fprintf(file,"nAdR              : %d\n",sistEqPres->nadr);
+    }
+/*...................................................................*/
+    fprintf(file,"tol                : %e\n",solvPres->tol);
+/*... solver */
+    if(solvPres->solver == PCG)
+      fprintf(file,"Iterativo          : PCG\n");
+    else if(solvPres->solver == PBICGSTAB )
+      fprintf(file,"Iterativo          : PBICGSTAB\n");
   }
 /*...................................................................*/
 

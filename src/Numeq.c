@@ -59,7 +59,7 @@ INT numeq(INT *restrict id       ,INT *restrict num
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
  * ------------------------------------------------------------------*
- * id    -> numerocao das equacoes por celula                        *
+ * id    -> numeracao das equacoes por celula                        *
  * ------------------------------------------------------------------*
  * OBS: a numera das equações u, v, e w são iguais e todas as celulas*
  * tem sempre um equacao.                                            *
@@ -97,7 +97,7 @@ INT numEqV1(INT *restrict id       ,INT *restrict num
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
  * ------------------------------------------------------------------*
- * id    -> numerocao das equacoes por celula                        *
+ * id    -> numeracao das equacoes por celula                        *
  * ------------------------------------------------------------------*
  * *******************************************************************/
 INT numEqV2(INT *restrict id       ,INT *restrict num

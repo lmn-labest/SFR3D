@@ -37,7 +37,8 @@ FILE *aux;
  *          4 -> arquivo de dados mefpar                             *      
  *          6 -> carrgamentos formato vtk                            *      
  *          7 -> arquivo de log de excucao                           *      
- *          8 -> resultados da temperatura formato vtk               *      
+ *          8 -> resultados do problema de difusao vtk               *      
+ *          9 -> livre                                               *      
  *         10 -> log da iteracao nao linear                          *      
  *         11 -> log do solv                                         *      
  *         12 -> matrix de coeficientes no formato .mtx              *      
@@ -47,6 +48,9 @@ FILE *aux;
  *         16 -> resultados no formato .csv                          *      
  *         17 -> caregamento nas faces no formato vtk                *      
  *         18 -> caregamento nas faces no formato vtk                *      
+ *         19 ->  resultados do problema de transporte por it vtk    *      
+ *         20 -> resultados do problema de transporte vtk            *      
+ *         21 -> resultados do problema de escoamente imconpressivel *       
  *         60 -> media dos tempos (MPI)                              *      
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
@@ -440,6 +444,27 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       break;
 /*...................................................................*/
 
+/*... resultados fluido imcompressivel*/
+    case 21:
+      iota(num1,st);
+      strcpy(ext,"_fluid_step_");
+      strcat(ext,st);
+      strcat(ext,".vtk");
+      size1 = strlen(name);
+      size2 = strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+        exit(EXIT_FAILURE);      
+      }
+      strcpy(*out,name);
+      strcat(*out,ext);
+      break;
+/*...................................................................*/
+
 /*... medias do tempos MPI*/
     case 60:
       strcpy(ext,"_mTime_");
@@ -554,9 +579,9 @@ void readMacro(FILE* file,char *mc,bool allline)
  
 /*... se encontrado '//' discarta a linha lida*/
  if(mc[0] =='/' && mc[1] == '/'){
-   mc[0] = '\0'; 
+// mc[0] = '\0'; 
    while((c=getc(file))!='\n'&& c!=EOF);
-//   printf("linha discartada\n");
+// printf("linha discartada\n");
  } 
 
 #ifdef _DEBUG_READ 

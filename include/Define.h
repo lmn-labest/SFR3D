@@ -16,8 +16,16 @@
 /*...................................................................*/
 
 /*...*/
-  #define COEFDIF 0
-  #define DENSITY 1
+  #define COEFDIF    0
+  #define DENSITY    1
+  #define VISCOSITY  0
+/*...................................................................*/
+
+/*...*/
+  #define SIMPLE  1
+  #define SIMPLEC 2
+  #define SIMPLER 3
+  #define PISO    4
 /*...................................................................*/
 
 /*...*/
@@ -59,13 +67,14 @@
 
 /*... tipos de CC (faces)*/
   #define DIRICHLETBC      1
-  #define NEUMANNBC        2
+  #define NEUMANNBC        2  /*para caso de fluxo nao nulo*/
   #define ROBINBC          3
   #define SINBC            4
   #define CONST            5
   #define INLET            6
   #define OUTLET           7
   #define MOVEWALL         8
+  #define STATICWALL      -1  /*parede impermevel para escoamento*/
 /*...................................................................*/
 
 /*...*/

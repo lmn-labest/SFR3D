@@ -607,14 +607,14 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
 
 /*... ndfF*/
   if(ndfF > 0){
-    HccaAlloc(int   ,m,lfaceLfluid     ,numel*MAX_NUM_FACE,"lfaceSfluid",_AD_);
-    makeFace(el          ,faceRfluid   ,faceLfluid
+    HccaAlloc(int,m,lfaceLfluid,numel*MAX_NUM_FACE,"lfaceSfluid",_AD_);
+/*  makeFace(el          ,faceRfluid   ,faceLfluid
             ,typeGeom    
             ,face        ,lfaceLfluid  ,idFace
             ,typeGeomFace,nenFace
             ,maxViz      ,maxNo
             ,ndfT1       
-            ,numel       ,&nFace);
+            ,numel       ,&nFace);*/
   }
 /*...................................................................*/
 
@@ -1007,6 +1007,211 @@ void wResVtkDif(Memoria *m        ,double *x
 /*********************************************************************/
 
 /********************************************************************** 
+ * Data de criacao    : 30/06/2016                                   *
+ * Data de modificaco : 03/07/2016                                   * 
+ *-------------------------------------------------------------------* 
+ * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
+ * de escomentos de fluidos imcompressivel                            *  
+ * ------------------------------------------------------------------ *
+ * parametros de entrada:                                             * 
+ * ------------------------------------------------------------------ *
+ * m            -> arranjo da menoria principal                       *  
+ * x            -> coordenadas                                        * 
+ * el           -> conectividade                                      * 
+ * mat          -> materias                                           *  
+ * nen          -> conectividades por elemento                        *  
+ * mat          -> material por elemento                              *
+ * typeGeom     -> tipo geometrico do elemento                        *
+ * elPres       -> resultados por elementos                           *
+ * nPres        -> resultados por nos                                 *
+ * elGradPres   -> gradientes dos resultados por elementos            *
+ * nGradPres    -> gradientes dos resultados por nos                  *
+ * elVel        -> campo de velocidade por elementos                  *
+ * nVel         -> campo de velocidade por nos                        *
+ * elGradVel    -> gradientes dos resultados por elementos            *
+ * nGradVel     -> gradientes dos resultados por nos                  *
+ * nel          -> numeracao do elemento                              *
+ * nnode        -> numero de nos                                      *  
+ * numel        -> numero de elementos                                *
+ * ndm          -> numero de dimensao                                 *
+ * maxNo        -> numero maximo de nos por elemento                  *
+ * numat        -> numero maximo de nos por elemento                  *
+ * ndf          -> graus de liberdade das equacoes                    *
+ * nameOut      -> nome de arquivo de saida                           *
+ * presResEl    -> nome dos resultados                                *
+ * presResNo    -> nome dos resultados                                *
+ * presgradResEl-> nome dos resultados                                *
+ * presgradResNo-> nome dos resultados                                *
+ * nameOut      -> nome de arquivo de saida                           *
+ * iws          -> vtk binario                                        *
+ * f            -> arquivlo                                           *
+ * ------------------------------------------------------------------ *
+ * parametros de saida  :                                             * 
+ * ------------------------------------------------------------------ *
+ * OBS:                                                               * 
+ *------------------------------------------------------------------- * 
+ *                                                                    *
+ *           | du1dx1 du1dx2 du1dx3 |                                 *
+ * gradVel = | du2dx1 du2dx2 du2dx3 |                                 * 
+ *           | du3dx1 du3dx2 du3dx3 |                                 *
+ *                                                                    *
+ **********************************************************************/
+void wResVtkFluid(Memoria *m         ,DOUBLE *x      
+                 ,INT *el            ,short *mat    
+                 ,short *nen         ,short *typeGeom
+                 ,DOUBLE *elPres     ,DOUBLE *nPres
+                 ,DOUBLE *elGradPres ,DOUBLE *nGradPres
+                 ,DOUBLE *elVel      ,DOUBLE *nVel      
+                 ,DOUBLE *elGradVel  ,DOUBLE *nGradVel 
+                 ,INT nnode          ,INT numel    
+                 ,short const ndm    ,short const maxNo 
+                 ,short const numat  ,short const ndf   
+                 ,char *presResEl    ,char *presResNo 
+                 ,char *gradPresResEl,char *gradPresResNo 
+                 ,char *velEl        ,char *velNo       
+                 ,char *gradVelResEl ,char *gradVelResNo 
+                 ,char *nameOut      ,bool iws
+                 ,Temporal ddt       ,FILE *f)
+{
+  int    *lel=NULL;
+  INT i;
+  short j;
+  char head[]={"DIF_VOLUME_FINITO"};
+  double ddum;
+  int    idum;
+
+  if(iws)
+    f = openFile(nameOut,"wb");
+  else
+    f = openFile(nameOut,"w");
+
+/* ...*/
+  headVtk(head,iws,f);
+/* ..................................................................*/
+
+/* ...*/
+  if(ddt.flag)
+    timeVtk(ddt.t,ddt.timeStep,f);
+/* ..................................................................*/
+
+/*... coordenadas*/
+  writeVtkCoor(x,nnode,ndm,iws,f);
+/*...................................................................*/
+  
+/*... conectividades*/
+  HccaAlloc(int,m,lel,numel*maxNo,"el",_AD_);
+  if( lel == NULL){
+    fprintf(stderr,"Erro na alocação de lel.\n"
+                   "Nome do arquivo: %s.\n"
+                  ,__FILE__);
+    exit(EXIT_FAILURE);
+  }
+  for(i=0;i<numel;i++){
+    for(j=0;j<maxNo;j++){
+      MAT2D(i,j,lel,maxNo) = MAT2D(i,j,el,maxNo)-1;
+    }
+  }  
+  writeVtkCell(lel,nen,typeGeom,numel,maxNo,iws,f);
+  HccaDealloc(m,lel,"el",_AD_);
+/*...................................................................*/
+
+/*... campo por elemento*/
+  fprintf(f,"CELL_DATA %ld\n",(long) numel);
+/*...................................................................*/
+
+/*... material*/
+  HccaAlloc(int,m,lel,numel,"el",_AD_);
+  if( lel == NULL){
+    fprintf(stderr,"Erro na alocação de lel.\n"
+                   "Nome do arquivo: %s.\n"
+                  ,__FILE__);
+    exit(EXIT_FAILURE);
+  }
+  for(i=0;i<numel;i++)
+    lel[i]=(int) mat[i];
+   
+  writeVtkProp(lel,&ddum,numel,1,"mat",iws,INTEGER,1,f);
+  HccaDealloc(m,lel,"el",_AD_);
+/*...................................................................*/
+
+/*... numero do elemento*/
+  HccaAlloc(int,m,lel,numel*maxNo,"el",_AD_);
+  if( lel == NULL){
+    fprintf(stderr,"Erro na alocação de lel.\n"
+                   "Nome do arquivo: %s.\n"
+                  ,__FILE__);
+    exit(EXIT_FAILURE);
+  }
+  for(i=0;i<numel;i++)
+    lel[i]= i+1;
+   
+  writeVtkProp(lel,&ddum,numel,1,"elGlobal",iws,INTEGER,1,f);
+  HccaDealloc(m,lel,"el",_AD_);
+/*...................................................................*/
+  
+/*... escrever resultados de pressao por celula*/  
+  writeVtkProp(&idum,elPres,numel,1,presResEl,iws,DOUBLEV,1,f);
+/*...................................................................*/
+
+/*... escrever gradiente da pressao por celula*/  
+  writeVtkProp(&idum,elGradPres,numel,ndm,gradPresResEl
+              ,iws,DOUBLEV,2,f);
+/*...................................................................*/
+
+
+/*... escrever campo de velociade por celula*/  
+  writeVtkProp(&idum,elVel,numel,ndm,velEl,iws,DOUBLEV,2,f);
+/*...................................................................*/
+
+/*... escrever gradiente de velocidade por celula*/  
+  if( ndm == 2) 
+    writeVtkProp(&idum,elGradVel,numel,2*ndm,gradVelResEl
+                ,iws,DOUBLEV,1,f);
+/*...................................................................*/
+
+/*.... campo por no*/
+  fprintf(f,"POINT_DATA %ld\n",(long) nnode);
+/*...................................................................*/
+
+/*... numero do no*/
+  HccaAlloc(int,m,lel,nnode,"el",_AD_);
+  if( lel == NULL){
+    fprintf(stderr,"Erro na alocação de lel.\n"
+                   "Nome do arquivo: %s.\n"
+                  ,__FILE__);
+    exit(EXIT_FAILURE);
+  }
+  for(i=0;i<nnode;i++)
+    lel[i]=i+1;
+   
+  writeVtkProp(lel,&ddum,nnode,1,"pNode",iws,INTEGER,1,f);
+  HccaDealloc(m,lel,"el",_AD_);
+/*...................................................................*/
+
+/*... escrever resultados de pressao por nos*/  
+  writeVtkProp(&idum,nPres ,nnode,1,presResNo,iws,DOUBLEV,1,f);
+/*...................................................................*/
+  
+/*... escrever os gradiente de pressao por nos*/  
+  writeVtkProp(&idum,nGradPres,nnode,ndm,gradPresResNo
+              ,iws,DOUBLEV,2,f);
+/*...................................................................*/
+
+/*... escrever as velocidade por nos*/  
+  writeVtkProp(&idum,nVel,nnode,ndm,velNo,iws,DOUBLEV,2,f);
+/*...................................................................*/
+
+/*... escrever as gradiente de velocidade por nos*/ 
+  if( ndm == 2) 
+    writeVtkProp(&idum,nGradVel,nnode,2*ndm,gradVelResNo
+                ,iws,DOUBLEV,1,f);
+/*...................................................................*/
+
+  fclose(f);
+}
+/*********************************************************************/
+
+/********************************************************************** 
  * WRESVTKTRANS:escreve a malha com os resultados para problemas de   *  
  * transporte                                                         *  
  * ------------------------------------------------------------------ *
@@ -1231,7 +1436,7 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
       for(j=0;j<maxViz;j++)
-        tmp += MAT2D(nel,j,faceR,cCell);
+        tmp += abs(MAT2D(nel,j,faceR,cCell));
       if(tmp){
 /*... loop nas arestas*/
         for(j=0;j<3;j++){
@@ -1262,7 +1467,7 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
       for(j=0;j<maxViz;j++)
-        tmp += MAT2D(nel,j,faceR,cCell);
+        tmp += abs(MAT2D(nel,j,faceR,cCell));
 /*...*/
       if(tmp){
 /*... loop nas arestas*/
@@ -1294,7 +1499,7 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
       for(j=0;j<maxViz;j++)
-        tmp += MAT2D(nel,j,faceR,cCell);
+        tmp += abs(MAT2D(nel,j,faceR,cCell));
 /*...*/
       if(tmp){
 /*... loop nas faces*/
@@ -1326,7 +1531,7 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
       for(j=0;j<maxViz;j++)
-        tmp += MAT2D(nel,j,faceR,cCell);
+        tmp += abs(MAT2D(nel,j,faceR,cCell));
 /*...*/
       if(tmp){
 /*... loop nas faces*/

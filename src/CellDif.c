@@ -59,7 +59,7 @@ void cellDif2D(Loads *loads
               ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
               ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-              ,DOUBLE *restrict lRcell  ,Temporal const ddt                        
+              ,DOUBLE *restrict lRcell  ,Temporal const ddt                
               ,short  *restrict lFaceR  ,short *restrict lFaceL
               ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
               ,const short nEn          ,short const nFace    

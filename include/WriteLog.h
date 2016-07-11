@@ -12,9 +12,12 @@
   void writeLog(Mesh mesh       ,Scheme sc  
              ,Solv *SolvD1      ,SistEq *sistEqD1
              ,Solv *SolvT1      ,SistEq *sistEqT1
+             ,Solv *SolvVel     ,SistEq *sistEqVel 
+             ,Solv *SolvPres    ,SistEq *sistEqPres
              ,Time t
-             ,bool const fSolvD1,bool const fSolvT1
-             ,char *nameIn      ,FILE *file);
+             ,bool const fSolvD1 ,bool const fSolvT1
+             ,bool const fSolvVel,bool const fSolvPres
+             ,char *nameIn       ,FILE *file);
 
   void writeLogMeanTime(Mesh mesh         ,Scheme sc
              ,Solv *solvD1      ,SistEq *sistEqD1

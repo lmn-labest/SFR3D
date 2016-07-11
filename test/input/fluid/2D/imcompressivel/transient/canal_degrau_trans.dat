@@ -1,0 +1,137 @@
+config 
+reord true bvtk false mem 100 rcGrad lSquareQR fItPlotRes false fItPlot true
+endConfig
+partd config: false false
+advection Vel fBase SuperBee   
+//advection Vel fBase FoUp    
+edp
+fluid 3
+endEdp
+mesh
+nnode  7139 numel 6720 ndm 2 maxno 4 numat 1 maxviz 4 
+materials
+1 1 1.0e-3 1.0 
+endMaterials
+insert canal_degrau_mesh.dat
+insert canl_degrau_cell.dat
+faceRvel
+1     5 0 0 0 1 0    
+2     5 0 0 0 1 0
+3     5 0 0 0 1 0
+4     5 0 0 0 1 0
+5     5 0 0 0 1 0
+6     5 0 0 0 1 0
+7     5 0 0 0 1 0
+8     5 0 0 0 1 0
+9     5 0 0 0 1 0
+10    5 0 0 0 1 0
+11    5 0 0 0 1 0
+12    5 0 0 0 1 0
+1280  5 1 0 0 0 0
+1600  5 1 0 0 0 0
+1920  5 1 0 0 0 0
+2240  5 1 0 0 0 0
+2560  5 1 0 0 0 0
+2880  5 1 0 0 0 0
+3200  5 1 0 0 0 0
+3520  5 1 0 0 0 0
+3840  5 1 0 0 0 0
+4160  5 1 0 0 0 0
+4480  5 1 0 0 0 0
+4800  5 1 0 0 0 0
+5120  5 1 0 0 0 0
+5440  5 1 0 0 0 0
+5760  5 1 0 0 0 0 
+6080  5 1 0 0 0 0
+6400  5 1 0 0 0 0
+6720  5 1 0 0 0 0
+endFaceRvel   
+faceLoadVel  
+1    5 0 0 0 1 0    
+2    5 0 0 0 1 0
+3    5 0 0 0 1 0
+4    5 0 0 0 1 0
+5    5 0 0 0 1 0
+6    5 0 0 0 1 0
+7    5 0 0 0 1 0
+8    5 0 0 0 1 0
+9    5 0 0 0 1 0
+10   5 0 0 0 1 0
+11   5 0 0 0 1 0
+12   5 0 0 0 1 0
+1280 5 2 0 0 0 0
+1600 5 2 0 0 0 0
+1920 5 2 0 0 0 0
+2240 5 2 0 0 0 0
+2560 5 2 0 0 0 0
+2880 5 2 0 0 0 0
+3200 5 2 0 0 0 0
+3520 5 2 0 0 0 0
+3840 5 2 0 0 0 0
+4160 5 2 0 0 0 0
+4480 5 2 0 0 0 0
+4800 5 2 0 0 0 0
+5120 5 2 0 0 0 0
+5440 5 2 0 0 0 0
+5760 5 2 0 0 0 0 
+6080 5 2 0 0 0 0
+6400 5 2 0 0 0 0
+6720 5 2 0 0 0 0
+endFaceLoadVel  
+faceRpres
+1280 5 1 0 0 0 0
+1600 5 1 0 0 0 0
+1920 5 1 0 0 0 0
+2240 5 1 0 0 0 0
+2560 5 1 0 0 0 0
+2880 5 1 0 0 0 0
+3200 5 1 0 0 0 0
+3520 5 1 0 0 0 0
+3840 5 1 0 0 0 0
+4160 5 1 0 0 0 0
+4480 5 1 0 0 0 0
+4800 5 1 0 0 0 0
+5120 5 1 0 0 0 0
+5440 5 1 0 0 0 0
+5760 5 1 0 0 0 0 
+6080 5 1 0 0 0 0
+6400 5 1 0 0 0 0
+6720 5 1 0 0 0 0
+endFaceRpres
+faceLoadPres
+1280 5 1 0 0 0 0
+1600 5 1 0 0 0 0
+1920 5 1 0 0 0 0
+2240 5 1 0 0 0 0
+2560 5 1 0 0 0 0
+2880 5 1 0 0 0 0
+3200 5 1 0 0 0 0
+3520 5 1 0 0 0 0
+3840 5 1 0 0 0 0
+4160 5 1 0 0 0 0
+4480 5 1 0 0 0 0
+4800 5 1 0 0 0 0
+5120 5 1 0 0 0 0
+5440 5 1 0 0 0 0
+5760 5 1 0 0 0 0 
+6080 5 1 0 0 0 0
+6400 5 1 0 0 0 0
+6720 5 1 0 0 0 0
+endFaceLoadPres
+loadsVel  
+1 6 2 1.0 0.0
+2 7 1 0.0 
+endLoadsVel  
+loadsPres 
+1 1 1  0.0
+endLoadsPres 
+endMesh
+pgeo
+presolvFluid config: BICGSTAB CSRC 10000 1.e-10 PCG CSRC 10000 1.e-10
+preSimple config: SIMPLEC 500 0.8e0 0.8e0 1.e-03 1.e-03
+transient config: EULER 1.00e-1   3.e0
+simple
+pFluid                                             
+timeUpdate
+endTransient  
+stop

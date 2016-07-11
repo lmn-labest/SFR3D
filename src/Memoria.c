@@ -465,8 +465,8 @@ void cleanNamePoint(Memoria *m,int pont){
  * m    - estrutura de dados da memoria                              * 
  * s    - B BYTES                                                    * 
  *       KB KILOBYTES                                                * 
- *	 MB MEGA                                                     * 
- *	 GB GIGA                                                     * 
+ *	 MB MEGA                                                         * 
+ *	 GB GIGA                                                         * 
  * ------------------------------------------------------------------* 
  * Parametros de saida :                                             * 
  * ------------------------------------------------------------------* 
@@ -501,8 +501,8 @@ long usoMemoria(Memoria *m,char *s){
  * m    - estrutura de dados da memoria                              * 
  * s    - B BYTES                                                    * 
  *       KB KILOBYTES                                                * 
- *	 MB MEGA                                                     * 
- *	 GB GIGA                                                     * 
+ *	 MB MEGA                                                         * 
+ *	 GB GIGA                                                         * 
  * ------------------------------------------------------------------* 
  * Parametros de saida :                                             * 
  * ------------------------------------------------------------------* 
@@ -542,8 +542,8 @@ double memoriaTotal(char *s)
  * npont- nome do vetor                                              * 
  * s    - B BYTES                                                    * 
  *       KB KILOBYTES                                                * 
- *	 MB MEGA                                                     * 
- *	 GB GIGA                                                     * 
+ *	 MB MEGA                                                         * 
+ *	 GB GIGA                                                         * 
  * ------------------------------------------------------------------* 
  * Parametros de saida :                                             * 
  * ------------------------------------------------------------------* 

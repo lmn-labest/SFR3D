@@ -60,9 +60,10 @@
     short np;                       /*numero de particoes*/  
     DOUBLE par[MAXLOADPARAMETER];
   }Loads;
-  Loads  loadsD1[MAXLOADD1]     /*tipo de cargas (difusao pura)*/
-        ,loadsT1[MAXLOADT1]     /*tipo de cargas (difusao-transporte)*/
-        ,loadsFluid[MAXLOADFLUID]; /*tipo de cargas (fluid)*/
+  Loads  loadsD1[MAXLOADD1]       /*tipo de cargas (difusao pura)*/
+        ,loadsT1[MAXLOADT1]       /*tipo de cargas (difusao-transporte)*/
+        ,loadsVel[MAXLOADFLUID]   /*tipo de cargas (fluid-Vel)*/
+        ,loadsPres[MAXLOADFLUID]; /*tipo de cargas (fluid-Pres)*/
 /*...................................................................*/
 
 /*...*/
@@ -80,8 +81,10 @@
     short  *geomType;  /*tipo geometrio do elemento*/
     short  *rNum;      /*renumeracao dos elementos*/ 
 /*... */               
-    short *faceRfluid;    /*condicao  contorno na face (fluido)*/
-    short *faceLoadFluid; /*tipo de carga contorno na face (fluido)*/
+    short *faceRvel;      /*condicao  contorno na face (fluido)*/
+    short *faceLoadVel;   /*tipo de carga contorno na face (fluido)*/
+    short *faceRpres;     /*condicao  contorno na face (fluido)*/
+    short *faceLoadPres;  /*tipo de carga contorno na face (fluido)*/
 /*... */               
     short *faceRt1;    /*condicao  contorno na face (transporte)*/
     short *faceLoadT1; /*tipo de carga contorno na face (transporte)*/
@@ -91,8 +94,14 @@
 /*...................................................................*/
     Geom   geom;       
 /*...*/
-    DOUBLE *pressure;
-    DOUBLE *vel;
+    DOUBLE *pressure;   /*pressao*/
+    DOUBLE *vel;        /*velocidade do fluido*/
+    DOUBLE *vel0;       /*velocidade do fluido*/
+    DOUBLE *densityFluid;/*massa especifica do fluido*/
+    DOUBLE *gradVel;    /*gradiente do campo de velocidade*/
+    DOUBLE *rCellVel;   /*residuo da celula*/
+    DOUBLE *gradPres;   /*gradiente do campo de pressao*/
+    DOUBLE *rCellPres;  /*residuo da celula*/
 /*...*/
     DOUBLE *temp;       /*temperatura*/
     DOUBLE *gradTemp;   /*gradiente da temperatura*/
@@ -121,7 +130,7 @@
 /*... nos*/
   typedef struct{
     DOUBLE *x;         /*coordenadas*/
-    DOUBLE *vel;         /*velocidades*/
+    DOUBLE *vel;       /*velocidades*/
     DOUBLE *pressure;  /*pressao*/
     DOUBLE *temp;      /*temperatura*/
     DOUBLE *uD1;       /*difusao pura uD1*/
@@ -129,6 +138,12 @@
     DOUBLE *gradTemp;  /*gradiente da temperatura*/
     DOUBLE *gradUd1 ;  /*gradiente da difusao pura uD1*/
     DOUBLE *gradUt1 ;  /*gradiente da difusao pura uT1*/
+    DOUBLE *gradVel ;  /*gradiente da da velocidad ( Matriz Jacobiana) 
+                            | du1dx1 du1dx2 du1dx3 |   
+                            | du2dx1 du2dx2 du2dx3 |   
+                            | du3dx1 du3dx2 du3dx3 |   
+                        */                             
+    DOUBLE *gradPres;  /*gradiente da Pressao*/
     INT    *nno; 
   }Node;
 /*...................................................................*/
@@ -142,6 +157,27 @@
     DOUBLE skewMax;
   }MeshQuality;
 /*...................................................................*/
+
+/*... Simple*/
+  typedef struct{
+    DOUBLE alphaPres,alphaVel;          /*under-relaxation*/
+    DOUBLE *ePresC,*nPresC,*eGradPresC; /*Pressao de correcao*/
+    DOUBLE *d;                         
+    DOUBLE tolPres,tolVel;                         
+    INT    maxIt;
+    bool   sPressure;
+    unsigned short faceInterpolVel;   /*tecnica de interpolacao
+                                        das velocidades nas faces para
+                                        evitar o priblema checkboard        
+                                       */
+    short  type;
+    unsigned short kZeroVel;          /*iteracao com o qual o residuo
+                                        e normalizado*/
+    unsigned short kZeroPres;         /*iteracao com o qual o residuo
+                                        e normalizado*/
+  }Simple;
+/*...................................................................*/
+
  
 /*...*/
   typedef struct{
@@ -186,8 +222,10 @@
     NonLinear nlTemp;
     NonLinear nlD1;
     NonLinear nlT1;
-/*...*/
+/*... equacao de transporte*/
     Advection  advT1;
+/*... equacao de velocidade*/
+    Advection  advVel;
   }Scheme;
 /*...................................................................*/
 
@@ -195,7 +233,7 @@
     INT  nRcvs;   /*numero de valores a serem recebidos*/
     INT  nSends;  /*numero de valores a serem enviados */
     INT *iaSends; /*ponteiros para o arranjo no buffer de envio*/
-    INT *iaRcvs;  /*ponteiros para o arranjo buffer de recebimento*/                        
+    INT *iaRcvs;  /*ponteiros para o arranjo buffer de recebimento*/              
     INT *fMap;    /*numeracao do buffer de comunicacao*/    
     DOUBLE *xb;   /*valores no buffer de comunicacao*/
     unsigned short nVizPart;
@@ -205,10 +243,10 @@
  
   typedef struct{
     INT  nCom;     /*numero de valores a serem comunicados*/
-    INT  *iaComNo; /*ponteiros para o arranjo buffer de comunicacao*/                        
-    INT   *fMap;  /*numeracao do buffer de comunicacao*/    
-    DOUBLE  *xb;    /*valores no buffer de comunicacao(DOUBLE)*/
-    INT     *xi;    /*valores no buffer de comunicacao(INT)*/
+    INT  *iaComNo; /*ponteiros para o arranjo buffer de comunicacao*/              
+    INT   *fMap;   /*numeracao do buffer de comunicacao*/    
+    DOUBLE  *xb;   /*valores no buffer de comunicacao(DOUBLE)*/
+    INT     *xi;   /*valores no buffer de comunicacao(INT)*/
     unsigned short nVizPart;
     short *vizPart;
     

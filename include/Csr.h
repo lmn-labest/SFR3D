@@ -57,6 +57,18 @@
           ,bool const matrix   ,bool  const  unsym);
 /*...................................................................*/
 
+/*...*/  
+  void csrSimple(INT    *restrict  ia,INT *restrict ja 
+          ,DOUBLE *restrict a  ,DOUBLE *restrict ad
+          ,DOUBLE *restrict b  ,INT *restrict lId                       
+          ,DOUBLE *restrict lA ,DOUBLE *restrict lB 
+          ,INT const nEq       ,INT const nEqNov 
+          ,INT const nAd       ,INT const nAdR 
+          ,short const nFace   ,short const ndf  
+          ,short const storade ,bool  const forces
+          ,bool const matrix   ,bool  const  unsym);
+/*...................................................................*/
+
 
 /*...*/
   INT bandCsr(INT *ia,INT *ja,INT  neq,short type);

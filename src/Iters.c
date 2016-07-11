@@ -92,8 +92,8 @@ void pcg(INT const nEq      ,INT const nAd
     printf(" (PCG) solver:\n"
            "\tEquations   =      %20d\n"
            "\tIterarions  =      %20d\n"
-	         "\tEnergy norm =      %20.12e\n"
-	         "\tCPU time(s) =      %20.5lf\n" 
+	         "\tEnergy norm =      %20.9e\n"
+	         "\tCPU time(s) =      %20.2lf\n" 
 	         ,nEq,j+1,energy,timef);
   }
   
@@ -220,7 +220,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
            "\tEquations   =      %20d\n"
            "\tIterarions  =      %20d\n"
 	         "\tEnergy norm =      %20.12e\n"
-	         "\tCPU time(s) =      %20.5lf\n" 
+	         "\tCPU time(s) =      %20.2lf\n" 
 	         ,nEqNov,nEq,j+1,energy,timef);
   }
   
@@ -302,7 +302,6 @@ void pbicgstab(INT const nEq  ,INT const nAd
   if(newX)  
     for (i = 0; i < nEq; i++)  
       x[i] = 0.e0;
-      
 /* Residuo inicial*/  
   matvec(nEq,ia,ja,al,ad,x,z);
   
@@ -326,6 +325,8 @@ void pbicgstab(INT const nEq  ,INT const nAd
     }
     matvec(nEq,ia,ja,al,ad,z,t);
     w = dot(t,b,nEq)/ dot(t,t,nEq);
+
+
     for(i = 0; i < nEq; i++)   {
       x[i] += w*z[i];
       b[i] -= w*t[i];
@@ -353,8 +354,8 @@ void pbicgstab(INT const nEq  ,INT const nAd
     printf(" (PBICGSTAB) solver :\n"
            "\tEquations   =      %20d\n"
            "\tIterarions  =      %20d\n"
-	         "\tEnergy norm =      %20.12e\n"
-	         "\tCPU time(s) =      %20.5lf\n" 
+	         "\tEnergy norm =      %20.9e\n"
+	         "\tCPU time(s) =      %20.2lf\n" 
 	         ,nEq,j+1,energy,timef);
   }
   
@@ -496,7 +497,7 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
            "\tEquations   =      %20d\n"
            "\tIterarions  =      %20d\n"
 	         "\tEnergy norm =      %20.12e\n"
-	         "\tCPU time(s) =      %20.5lf\n" 
+	         "\tCPU time(s) =      %20.2lf\n" 
 	         ,nEqNov,nEq,j+1,energy,timef);
   }
   

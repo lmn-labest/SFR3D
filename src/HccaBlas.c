@@ -1176,8 +1176,9 @@ void matVecCsrD(INT const neq
 
   for(i=0;i<neq;i++){
     tmp = ad[i]*x[i];
-    for(j=ia[i];j<ia[i+1];j++)
+    for(j=ia[i];j<ia[i+1];j++){
       tmp += a[j]*x[ja[j]];
+    }
     y[i] = tmp;
   }
 

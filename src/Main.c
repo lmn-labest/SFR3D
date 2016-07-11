@@ -18,6 +18,7 @@
 #include<ParallelMpi.h>
 #include<Sisteq.h>
 #include<Solv.h>
+#include<Simple.h>
 #include<ReadFile.h>
 #include<Reord.h>
 #include<Transient.h>
@@ -42,6 +43,9 @@ int main(int argc,char**argv){
 /*... Sistema de equacao*/
   SistEq *sistEqD1 =NULL, *sistEqT1=NULL;
   SistEq *sistEqVel=NULL, *sistEqPres=NULL;
+/*... metodo simple*/
+  Simple *simple;
+
 /*... solver*/
   Solv *solvD1=NULL,*solvT1=NULL,*solvVel=NULL,*solvPres=NULL;
   bool fSolvD1 = false, fSolvT1 = false;
@@ -54,8 +58,8 @@ int main(int argc,char**argv){
 
 /*...*/
   char loopWord[100][MAX_LINE];
-  unsigned short kLoop,jLoop;
-  bool flWord=false;
+  unsigned short kLoop,jLoop,ndf;
+  bool flWord=false,fAdv;
 
 /*... Estrutura de dados*/
   char strIa[MNOMEPONTEIRO],strJa[MNOMEPONTEIRO];
@@ -64,7 +68,8 @@ int main(int argc,char**argv){
 /*... arquivo*/
   char *nameIn=NULL,*nameOut=NULL,*preName=NULL,*auxName=NULL;
   FILE *fileIn=NULL,*fileOut=NULL,*fileLog=NULL;
-  char str1[100],str2[100],str3[100],str4[100],str5[100],str6[100];
+  char str1[100],str2[100],str3[100],str4[100],str5[100],str6[100]
+      ,str7[100],str8[100];
   FileOpt opt;
 
 /*...*/
@@ -85,9 +90,10 @@ int main(int argc,char**argv){
   ,"nlItD1"      ,"pD1CsvCell","pD1CsvNode"    /*12,13,14*/
   ,"solvT1"      ,""          ,"pT1"           /*15,16,17*/
   ,"nlItT1"      ,"pT1CsvCell","pT1CsvNode"    /*18,19,20*/
-  ,"presolvFluid","simple"    ,""              /*21,22,23*/
+  ,"presolvFluid","simple"    ,"preSimple"     /*21,22,23*/
   ,"transient"   ,"timeUpdate","partd"         /*24,25,26*/
-  ,"advection"   ,"edp"       ,""     };       /*27,28,29*/
+  ,"advection"   ,"edp"       ,""              /*27,28,29*/
+  ,"pFluid"      ,""          ,""     };       /*30,31,32*/
 /* ..................................................................*/
 
 /*... Memoria principal(valor padrao - bytes)*/
@@ -113,7 +119,7 @@ int main(int argc,char**argv){
   tm.geom              = 0.e0;
   tm.leastSquareMatrix = 0.e0;
   tm.reord             = 0.e0;
-/*...*/
+/*... D1*/
   tm.solvD1            = 0.e0;
   tm.numeqD1           = 0.e0;
   tm.dataStructD1      = 0.e0;
@@ -122,7 +128,7 @@ int main(int argc,char**argv){
   tm.systFormD1        = 0.e0;
   tm.rcGradD1          = 0.e0;
   tm.solvEdpD1         = 0.e0;
-/*...*/
+/*... T1*/
   tm.solvT1            = 0.e0;
   tm.numeqT1           = 0.e0;
   tm.dataStructT1      = 0.e0;
@@ -131,10 +137,20 @@ int main(int argc,char**argv){
   tm.systFormT1        = 0.e0;
   tm.rcGradT1          = 0.e0;
   tm.solvEdpT1         = 0.e0;
-/*...*/
-  tm.numeqPres         = 0.e0;
-  tm.numeqVel          = 0.e0;
-  tm.solvEdpFluid      = 0.e0;
+/*... fluid*/
+  tm.solvPres           = 0.e0;
+  tm.solvVel            = 0.e0;
+  tm.numeqPres          = 0.e0;
+  tm.numeqVel           = 0.e0;
+  tm.dataStructVel      = 0.e0;
+  tm.dataStructPres     = 0.e0;
+  tm.solvEdpFluid       = 0.e0;
+  tm.cellPloadSimple    = 0.e0;
+  tm.cellTransientSimple= 0.e0;
+  tm.systFormPres       = 0.e0;
+  tm.systFormVel        = 0.e0;
+  tm.rcGradPres         = 0.e0;
+  tm.rcGradVel          = 0.e0;
 
 /*... Blas*/
   tm.matVecOverHeadMpi = 0.e0;
@@ -174,7 +190,7 @@ int main(int argc,char**argv){
   ERRO_MALLOC(mesh0,"mesh0",__LINE__,__FILE__,__func__);
 
 /*... tecnica padrao de resconstrucao de gradiente*/
-  sc.rcGrad = RCGRADGAUSSN;
+  sc.rcGrad       = RCGRADGAUSSN;
 /*... D1,T1 */ 
   sc.nlD1.maxIt   = sc.nlT1.maxIt =   100; 
   sc.nlD1.tol     = sc.nlT1.tol   = 1.e-6; 
@@ -185,11 +201,20 @@ int main(int argc,char**argv){
   sc.advT1.iCod = VANLEERFACE;
 /*...................................................................*/
 
+/*...*/
+  sc.advVel.base = FBASE;
+  sc.advVel.iCod = FOUP;
+/*...................................................................*/
+
 /*...*/  
   sc.ddt.flag     = false;
   sc.ddt.dt       = 1.e0;
   sc.ddt.total    = 1.e0;
   sc.ddt.timeStep = 1;
+/*...................................................................*/
+
+/*...*/
+  simple = NULL;
 /*...................................................................*/
 
 /*...*/  
@@ -288,6 +313,14 @@ int main(int argc,char**argv){
         tm.adjcency = getTimeC() - tm.adjcency;
       }
 /*...................................................................*/
+
+/*...*/
+      if(mesh0->ndfF > 0)
+        wallFluid(mesh0->elm.faceRvel,mesh0->elm.adj.nelcon
+                 ,mesh0->elm.adj.nViz   
+                 ,mesh0->numel       ,mesh0->maxViz);         
+/*...................................................................*/
+
 /*... particionamento da malha*/
       if(pMesh->fPartMesh && mpiVar.nPrcs > 1){
         tm.partdMesh = getTimeC() - tm.partdMesh;
@@ -472,8 +505,11 @@ int main(int argc,char**argv){
       writeLog(*mesh     ,sc
               ,solvD1    ,sistEqD1
               ,solvT1    ,sistEqT1
+              ,solvVel   ,sistEqVel
+              ,solvPres  ,sistEqPres
               ,tm       
               ,fSolvD1   ,fSolvT1     
+              ,fSolvVel  ,fSolvPres   
               ,nameIn    ,fileLog);
       fclose(fileLog);
 /*...................................................................*/
@@ -495,10 +531,16 @@ int main(int argc,char**argv){
       } 
 /*...................................................................*/
 
-/*... fechando o arquivo log pcg D1*/
+/*... fechando o arquivo log linear solver Pres*/
+      if(fSolvPres && solvPres->log && !mpiVar.myId)  
+        fclose(solvPres->fileSolv);
+/*... fechando o arquivo log linear solver Vel*/
+      if(fSolvVel && solvVel->log && !mpiVar.myId)  
+        fclose(solvVel->fileSolv);
+/*... fechando o arquivo log linear solver D1*/
       if(fSolvD1 && solvD1->log && !mpiVar.myId)  
         fclose(solvD1->fileSolv);
-/*... fechando o arquivo log pcg T1*/
+/*... fechando o arquivo log linear solver T1*/
       if(fSolvT1 && solvT1->log && !mpiVar.myId)  
         fclose(solvT1->fileSolv);
 /*... fechando o arquivo log nao linear D1*/      
@@ -543,7 +585,7 @@ int main(int argc,char**argv){
                ,mesh0->elm.material.prop ,mesh0->elm.material.type 
                ,mesh0->elm.faceRd1       ,mesh0->elm.faceLoadD1
                ,mesh0->elm.faceRt1       ,mesh0->elm.faceLoadT1
-               ,mesh0->elm.faceRfluid    ,mesh0->elm.faceLoadFluid
+               ,mesh0->elm.faceRvel      ,mesh0->elm.faceLoadVel   
                ,mesh0->nnode             ,mesh0->numel    
                ,mesh0->ndm               
                ,mesh0->maxNo             ,mesh0->maxViz
@@ -559,7 +601,7 @@ int main(int argc,char**argv){
              ,mesh0->elm.geomType
              ,mesh0->elm.faceRd1       ,mesh0->elm.faceLoadD1
              ,mesh0->elm.faceRt1       ,mesh0->elm.faceLoadT1
-             ,mesh0->elm.faceRfluid    ,mesh0->elm.faceLoadFluid
+             ,mesh0->elm.faceRvel      ,mesh0->elm.faceLoadVel  
              ,mesh0->nnode             ,mesh0->numel    
              ,mesh0->ndm               
              ,mesh0->ndfD[0]           ,mesh0->ndfT[0]
@@ -770,9 +812,9 @@ int main(int argc,char**argv){
 
 /*...*/
       HccaAlloc(DOUBLE                   ,&m        ,sistEqD1->b0
-               ,sistEqD1->neq                  ,"sistD1b0",_AD_);
+               ,sistEqD1->neq            ,"sistD1b0",_AD_);
       HccaAlloc(DOUBLE                   ,&m        ,sistEqD1->b 
-               ,sistEqD1->neq                 ,"sistD1b ",_AD_);
+               ,sistEqD1->neq            ,"sistD1b ",_AD_);
       HccaAlloc(DOUBLE                   ,&m        ,sistEqD1->x 
                ,sistEqD1->neq            ,"sistD1x ",_AD_);
       zero(sistEqD1->b0,sistEqD1->neq    ,DOUBLEC);
@@ -952,9 +994,9 @@ int main(int argc,char**argv){
 
 /*...*/
       HccaAlloc(DOUBLE                   ,&m        ,sistEqT1->b0
-               ,sistEqT1->neq                  ,"sistT1b0",_AD_);
+               ,sistEqT1->neq            ,"sistT1b0",_AD_);
       HccaAlloc(DOUBLE                   ,&m        ,sistEqT1->b 
-               ,sistEqT1->neq                 ,"sistT1b ",_AD_);
+               ,sistEqT1->neq            ,"sistT1b ",_AD_);
       HccaAlloc(DOUBLE                   ,&m        ,sistEqT1->x 
                ,sistEqT1->neq            ,"sistT1x ",_AD_);
       zero(sistEqT1->b0,sistEqT1->neq    ,DOUBLEC);
@@ -1328,7 +1370,7 @@ int main(int argc,char**argv){
                    ,mesh->elm.geom.cc  ,mesh->node.x  
                    ,mesh->elm.geom.xm
                    ,mesh->elm.nen      ,mesh->elm.adj.nViz
-                   ,mesh->elm.faceRt1  ,mesh->elm.faceLoadT1  
+                   ,mesh->elm.faceRvel ,mesh->elm.faceLoadVel  
                    ,&pMesh->iNo          
                    ,mesh->numelNov     ,mesh->numel        
                    ,mesh->nnodeNov     ,mesh->nnode 
@@ -1544,7 +1586,7 @@ int main(int argc,char**argv){
 
 /*... inicializando a estrutura de equacoes do problema (PRESSAO)*/
       solvPres = (Solv*) malloc(sizeof(Solv));
-      if(solvVel == NULL){
+      if(solvPres == NULL){
         printf("Erro ponteiro solvPres\n");
         exit(EXIT_FAILURE);
       }
@@ -1705,6 +1747,7 @@ int main(int argc,char**argv){
         
       }
 /*...................................................................*/
+
 /*... numeracao das equacoes das velocidades*/
       HccaAlloc(INT,&m,sistEqVel->id
                ,mesh->numel              
@@ -1747,7 +1790,7 @@ int main(int argc,char**argv){
       }
       tm.numeqPres = getTimeC() - tm.numeqPres;
       sistEqPres->neq = numEqV2(sistEqPres->id       ,reordMesh->num
-                               ,mesh->elm.faceRfluid ,mesh->elm.adj.nViz
+                               ,mesh->elm.faceRpres  ,mesh->elm.adj.nViz
                                ,mesh->numel          ,mesh->maxViz);
       tm.numeqPres = getTimeC() - tm.numeqPres;
       if(!mpiVar.myId){
@@ -1771,15 +1814,16 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... velovidades*/
+      ndf = mesh->ndfF-1;
       HccaAlloc(DOUBLE                      ,&m      ,sistEqVel->b0
-               ,sistEqVel->neq*(mesh->ndfF-1)       ,"sistVelb0",_AD_);
+               ,sistEqVel->neq*ndf                  ,"sistVelb0",_AD_);
       HccaAlloc(DOUBLE                      ,&m     ,sistEqVel->b 
-               ,sistEqVel->neq*(mesh->ndfF-1)       ,"sistVelb ",_AD_);
+               ,sistEqVel->neq*ndf                  ,"sistVelb ",_AD_);
       HccaAlloc(DOUBLE                      ,&m     ,sistEqVel->x 
-               ,sistEqVel->neq           ,"sistVelx ",_AD_);
-      zero(sistEqVel->b0,sistEqVel->neq*(mesh->ndfF-1),DOUBLEC);
-      zero(sistEqVel->b ,sistEqVel->neq*(mesh->ndfF-1),DOUBLEC);
-      zero(sistEqVel->x ,sistEqVel->neq               ,DOUBLEC);
+               ,sistEqVel->neq*ndf           ,"sistVelx ",_AD_);
+      zero(sistEqVel->b0,sistEqVel->neq*ndf           ,DOUBLEC);
+      zero(sistEqVel->b ,sistEqVel->neq*ndf           ,DOUBLEC);
+      zero(sistEqVel->x ,sistEqVel->neq*ndf           ,DOUBLEC);  
 /*...................................................................*/
 
 /*... pressoes*/
@@ -1794,7 +1838,7 @@ int main(int argc,char**argv){
       zero(sistEqPres->x ,sistEqPres->neq    ,DOUBLEC);
 /*...................................................................*/
 
-/*... Estrutura de dados velocdades*/
+/*... Estrutura de dados velocidades*/
       strcpy(strIa,"iaVel");
       strcpy(strJa,"jaVel");
       strcpy(strAd,"adVel");
@@ -1810,7 +1854,7 @@ int main(int argc,char**argv){
       if(!mpiVar.myId) printf("Estrutuda montada.\n");
 /*...................................................................*/
 
-/*... Estrutura de dados velocdades*/
+/*... Estrutura de dados pressoes*/
       strcpy(strIa,"iaPres");
       strcpy(strJa,"japres");
       strcpy(strAd,"adPres");
@@ -1821,7 +1865,7 @@ int main(int argc,char**argv){
       dataStruct(&m,sistEqPres->id ,reordMesh->num,mesh->elm.adj.nelcon
                 ,mesh->elm.adj.nViz,mesh->numelNov,mesh->maxViz
                 ,1                 ,strIa         ,strJa
-                ,strAd             ,strA          ,sistEqVel);
+                ,strAd             ,strA          ,sistEqPres);
       tm.dataStructPres = getTimeC() - tm.dataStructPres;
       if(!mpiVar.myId) printf("Estrutuda montada.\n");
 /*...................................................................*/
@@ -1848,7 +1892,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: simple: escoamento de fluidos (SIMPLE)
  *===================================================================*/
-    else if((!strcmp(word,macro[15]))){
+    else if((!strcmp(word,macro[22]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -1864,19 +1908,93 @@ int main(int argc,char**argv){
 /*...................................................................*/
      
 /*...*/
-      simple(&m         ,loadsFluid
-            ,mesh0      ,mesh           
-            ,sistEqVel  ,sistEqPres
-            ,solvVel    ,solvPres
-            ,sc         ,pMesh
-            ,opt        ,preName        ,nameOut
-            ,fileOut);
+      simpleSolver(&m         
+                  ,loadsVel   ,loadsPres 
+                  ,mesh0      ,mesh           
+                  ,sistEqVel  ,sistEqPres
+                  ,solvVel    ,solvPres
+                  ,simple
+                  ,sc         ,pMesh
+                  ,opt        ,preName        ,nameOut
+                  ,fileOut);
 /*...................................................................*/
 
 /*...*/
      tm.solvEdpFluid    = getTimeC() - tm.solvEdpFluid;
 /*...................................................................*/
      if(!mpiVar.myId ) printf("%s\n\n",DIF);
+    }
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: preSimple: configuracoe do metodo simple
+ *===================================================================*/
+    else if((!strcmp(word,macro[23]))){
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+        printf("%s\n",DIF);
+      }
+/*...*/
+      simple = (Simple*) malloc(sizeof(Simple));
+      if(simple == NULL){
+        printf("Erro ponteiro simple\n");
+        exit(EXIT_FAILURE);
+      }
+      simple->maxIt           = 1000;
+      simple->alphaPres       = 0.3e0; 
+      simple->alphaVel        = 0.8e0; 
+      simple->type            = SIMPLE;
+      simple->kZeroVel        = 0;
+      simple->kZeroPres       = 0;
+      simple->sPressure       = true;
+      simple->faceInterpolVel = 1;
+      simple->tolPres         = 1.e-06;
+      simple->tolVel          = 1.e-06;
+/*...................................................................*/
+      
+/*...*/
+      readMacro(fileIn,word,false);
+      if(!strcmp(word,"config:")){
+/*... timer*/        
+        readMacro(fileIn,word,false);
+        setSimpleScheme(word,simple,fileIn);
+        
+/*...*/        
+        if(simple->type == SIMPLE && !mpiVar.myId)     
+          printf("PRES-VEL  : SIMPLE\n");
+        else if(simple->type == SIMPLEC && !mpiVar.myId )     
+          printf("PRES-VEL  : SIMPLEC\n");
+
+/*...*/        
+        if(!mpiVar.myId ){ 
+          printf("Maxit     : %d\n",simple->maxIt);
+          printf("alphaPres : %lf\n",simple->alphaPres);
+          printf("alphaVel  : %lf\n",simple->alphaVel);
+          printf("tolPres   : %e\n",simple->tolPres);
+          printf("tolVel    : %e\n",simple->tolVel);
+        }
+      }
+/*...................................................................*/
+
+/*...*/
+      HccaAlloc(DOUBLE     ,&m       ,simple->d
+               ,mesh->numel,"dField" ,false);
+      zero(simple->d    ,mesh->numel  ,DOUBLEC);
+
+      HccaAlloc(DOUBLE     ,&m       ,simple->ePresC
+               ,mesh->numel,"ePresC" ,false);
+      zero(simple->ePresC,mesh->numel  ,DOUBLEC);
+
+      HccaAlloc(DOUBLE     ,&m       ,simple->nPresC
+               ,mesh->nnode,"nPresC" ,false);
+      zero(simple->nPresC    ,mesh->numel  ,DOUBLEC);
+
+      HccaAlloc(DOUBLE     ,&m      ,simple->eGradPresC
+               ,mesh->numel*mesh->ndm,"eGradPresC",false);
+      zero(simple->eGradPresC,mesh->numel*mesh->ndm  ,DOUBLEC);
+/*...................................................................*/
+      if(!mpiVar.myId ) printf("%s\n\n",DIF);
     }
 /*===================================================================*/
 
@@ -1935,7 +2053,7 @@ int main(int argc,char**argv){
  *===================================================================*/
     else if((!strcmp(word,macro[25]))){
       if(!mpiVar.myId ){
-        printf("%s\n",DIF);
+        printf("\n%s\n",DIF);
         printf("%s\n",word);
       }
 /*...*/
@@ -1945,7 +2063,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
       
 /*...*/
-      if(sc.ddt.t > sc.ddt.total+ 0.5e0*sc.ddt.dt)
+      if(sc.ddt.t > sc.ddt.total + 0.5e0*sc.ddt.dt)
         flWord = false;
 /*...................................................................*/
       
@@ -1998,17 +2116,45 @@ int main(int argc,char**argv){
         printf("%s\n",DIF);
         printf("%s\n",word);
       }
-/*... base na limataca de fluxo*/        
-      readMacro(fileIn,word,false);
-/*... limiado por face*/
-      if(!strcmp(word,"fBase")){ 
-        sc.advT1.base = FBASE;
-        if(!mpiVar.myId ) printf("advT1 : fBase\n");
-      }
-
+      fAdv = true;
+/*... base na limitacao de fluxo*/
+      if(fAdv){        
+        readMacro(fileIn,word,false);
+/*... velocidade*/
+        if(!strcmp(word,"Vel")){ 
+          readMacro(fileIn,word,false);
+/*... limitado por face*/
+          if(!strcmp(word,"fBase")){ 
+            sc.advVel.base = FBASE;
+            if(!mpiVar.myId ) printf("advVel: fBase\n"); 
+          }
 /*... codigo da da funcao limitadora de fluxo*/        
-      readMacro(fileIn,word,false);
-      setFaceBase(word,&sc.advT1.iCod);
+          readMacro(fileIn,word,false);
+          setFaceBase(word,&sc.advVel.iCod);
+          fAdv = false;
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+
+/*... base na limitacao de fluxo*/        
+      if(fAdv){        
+        readMacro(fileIn,word,false);
+/*... velocidade*/
+        if(!strcmp(word,"T1")){ 
+          readMacro(fileIn,word,false);
+/*... limitado por face*/
+          if(!strcmp(word,"fBase")){ 
+            sc.advT1.base = FBASE;
+            if(!mpiVar.myId ) printf("advT1: fBase\n");
+          }
+/*... codigo da da funcao limitadora de fluxo*/        
+          readMacro(fileIn,word,false);
+          setFaceBase(word,&sc.advT1.iCod);
+          fAdv = false;
+        }
+/*...................................................................*/
+      }
 /*...................................................................*/
       if(!mpiVar.myId ) printf("%s\n",DIF);
     }   
@@ -2023,6 +2169,179 @@ int main(int argc,char**argv){
         printf("%s\n",word);
       }
       readEdo(mesh0,fileIn);
+/*...................................................................*/
+      if(!mpiVar.myId ) printf("%s\n",DIF);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: pFluid : escreve os arquivos dos resultados do escoamente
+ * imcompressivel                    
+ *===================================================================*/
+    else if((!strcmp(word,macro[30]))){
+/*...*/
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+      }
+/*...................................................................*/
+
+/*... reconstruindo do gradiente (Pres)*/
+//    tm.rcGradT1 = getTimeC() - tm.rcGradT1;
+      rcGradU(&m                      ,loadsPres
+             ,mesh->elm.node          ,mesh->elm.adj.nelcon
+             ,mesh->elm.geom.cc       ,mesh->node.x   
+             ,mesh->elm.nen           ,mesh->elm.adj.nViz 
+             ,mesh->elm.geomType      ,mesh->elm.material.prop 
+             ,mesh->elm.mat 
+             ,mesh->elm.leastSquare   ,mesh->elm.leastSquareR
+             ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
+             ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
+             ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
+             ,mesh->elm.geom.vSkew     
+             ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
+             ,mesh->elm.geom.dcca
+             ,mesh->elm.faceRpres     ,mesh->elm.faceLoadPres  
+             ,mesh->elm.pressure      ,mesh->elm.gradPres                
+             ,mesh->node.pressure     ,sc.rcGrad
+             ,mesh->maxNo             ,mesh->maxViz
+             ,1                       ,mesh->ndm       
+             ,&pMesh->iNo             ,&pMesh->iEl  
+             ,mesh->numelNov          ,mesh->numel        
+             ,mesh->nnodeNov          ,mesh->nnode);  
+//    tm.rcGradT1 = getTimeC() - tm.rcGradT1;
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (GradPres)*/
+      interCellNode(&m                   ,loadsPres
+                   ,mesh->node.gradPres,mesh->elm.gradPres
+                   ,mesh->elm.node     ,mesh->elm.geomType            
+                   ,mesh->elm.geom.cc  ,mesh->node.x  
+                   ,mesh->elm.geom.xm
+                   ,mesh->elm.nen      ,mesh->elm.adj.nViz
+                   ,mesh->elm.faceRpres,mesh->elm.faceLoadPres
+                   ,&pMesh->iNo          
+                   ,mesh->numelNov     ,mesh->numel        
+                   ,mesh->nnodeNov     ,mesh->nnode 
+                   ,mesh->maxNo        ,mesh->maxViz   
+                   ,mesh->ndm          ,1
+                   ,mesh->ndm      
+                   ,false              ,2);
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (pres)*/
+      interCellNode(&m                 ,loadsPres
+                   ,mesh->node.pressure,mesh->elm.pressure   
+                   ,mesh->elm.node     ,mesh->elm.geomType            
+                   ,mesh->elm.geom.cc  ,mesh->node.x  
+                   ,mesh->elm.geom.xm
+                   ,mesh->elm.nen      ,mesh->elm.adj.nViz
+                   ,mesh->elm.faceRpres,mesh->elm.faceLoadPres  
+                   ,&pMesh->iNo          
+                   ,mesh->numelNov     ,mesh->numel        
+                   ,mesh->nnodeNov     ,mesh->nnode 
+                   ,mesh->maxNo        ,mesh->maxViz   
+                   ,1                  ,1
+                   ,mesh->ndm      
+                   ,true               ,2);
+/*...................................................................*/
+
+/*... calculo da matrix jacobiana das velocidades
+                            | du1dx1 du1dx2 du1dx3 |   
+                            | du2dx1 du2dx2 du2dx3 |   
+                            | du3dx1 du3dx2 du3dx3 |
+*/   
+     ndf = mesh->ndfF-1;
+     tm.rcGradVel  = getTimeC() - tm.rcGradVel;
+     rcGradU(&m                     ,loadsVel
+           ,mesh->elm.node          ,mesh->elm.adj.nelcon
+           ,mesh->elm.geom.cc       ,mesh->node.x   
+           ,mesh->elm.nen           ,mesh->elm.adj.nViz 
+           ,mesh->elm.geomType      ,mesh->elm.material.prop 
+           ,mesh->elm.mat 
+           ,mesh->elm.leastSquare   ,mesh->elm.leastSquareR
+           ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
+           ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
+           ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
+           ,mesh->elm.geom.vSkew      
+           ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
+           ,mesh->elm.geom.dcca
+           ,mesh->elm.faceRvel      ,mesh->elm.faceLoadVel   
+           ,mesh->elm.vel           ,mesh->elm.gradVel                           
+           ,mesh->node.vel          ,sc.rcGrad
+           ,mesh->maxNo             ,mesh->maxViz
+           ,ndf                     ,mesh->ndm
+           ,&pMesh->iNo             ,&pMesh->iEl  
+           ,mesh->numelNov          ,mesh->numel        
+           ,mesh->nnodeNov          ,mesh->nnode); 
+     tm.rcGradVel = getTimeC() - tm.rcGradVel;  
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (vel)*/
+      interCellNode(&m                 ,loadsVel
+                   ,mesh->node.gradVel ,mesh->elm.gradVel    
+                   ,mesh->elm.node     ,mesh->elm.geomType            
+                   ,mesh->elm.geom.cc  ,mesh->node.x  
+                   ,mesh->elm.geom.xm
+                   ,mesh->elm.nen      ,mesh->elm.adj.nViz
+                   ,mesh->elm.faceRvel ,mesh->elm.faceLoadVel 
+                   ,&pMesh->iNo          
+                   ,mesh->numelNov     ,mesh->numel        
+                   ,mesh->nnodeNov     ,mesh->nnode 
+                   ,mesh->maxNo        ,mesh->maxViz   
+                   ,ndf                ,mesh->ndm
+                   ,mesh->ndm      
+                   ,false              ,2);
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (vel)*/
+      interCellNode(&m                 ,loadsVel
+                   ,mesh->node.vel     ,mesh->elm.vel        
+                   ,mesh->elm.node     ,mesh->elm.geomType            
+                   ,mesh->elm.geom.cc  ,mesh->node.x  
+                   ,mesh->elm.geom.xm
+                   ,mesh->elm.nen      ,mesh->elm.adj.nViz
+                   ,mesh->elm.faceRvel ,mesh->elm.faceLoadVel 
+                   ,&pMesh->iNo          
+                   ,mesh->numelNov     ,mesh->numel        
+                   ,mesh->nnodeNov     ,mesh->nnode 
+                   ,mesh->maxNo        ,mesh->maxViz   
+                   ,mesh->ndm          ,1
+                   ,mesh->ndm      
+                   ,true               ,2);
+/*...................................................................*/
+
+/*...*/
+      if(!mpiVar.myId ){
+        fName(preName,sc.ddt.timeStep,0,21,&nameOut);
+
+        strcpy(str1,"elPres");
+        strcpy(str2,"noPres");
+        strcpy(str3,"elGradPres");
+        strcpy(str4,"noGradPres");
+        strcpy(str5,"elVel");
+        strcpy(str6,"noVel");
+        strcpy(str7,"elGradVel");
+        strcpy(str8,"noGradVel");
+/*...*/
+        wResVtkFluid(&m                 ,mesh0->node.x      
+                    ,mesh0->elm.node    ,mesh0->elm.mat    
+                    ,mesh0->elm.nen     ,mesh0->elm.geomType
+                    ,mesh0->elm.pressure,mesh0->node.pressure
+                    ,mesh0->elm.gradPres,mesh0->node.gradPres  
+                    ,mesh0->elm.vel     ,mesh0->node.vel      
+                    ,mesh0->elm.gradVel ,mesh0->node.gradVel   
+                    ,mesh0->nnode       ,mesh0->numel  
+                    ,mesh0->ndm         ,mesh0->maxNo 
+                    ,mesh0->numat       ,mesh0->ndfF
+                    ,str1               ,str2         
+                    ,str3               ,str4         
+                    ,str5               ,str6         
+                    ,str7               ,str8         
+                    ,nameOut            ,opt.bVtk    
+                    ,sc.ddt             ,fileOut);
+/*...................................................................*/
+      }
 /*...................................................................*/
       if(!mpiVar.myId ) printf("%s\n",DIF);
     }   
