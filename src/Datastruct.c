@@ -471,6 +471,31 @@ void dataStruct(Memoria *m      ,INT *id
 /*...................................................................*/
        }
 /*...................................................................*/
+
+/*... banda da matriz*/
+/*     sistEqX->bandCsr[BANDCSRMAX] 
+       =  bandCsrC(sistEqX->ia
+                        ,sistEqX->ja
+                        ,sistEqX->neqNov
+                        ,BANDCSRMAX);
+       sistEqX->bandCsrC[BANDCSRMED] 
+       =  bandCsrC(sistEqX->ia
+                        ,sistEqX->ja
+                        ,sistEqX->neqNov
+                        ,BANDCSRMED);
+       
+      sistEqX->bandCsrC[BANDCSRMIN] 
+      =  bandCsrC(sistEqX->ia
+                        ,sistEqX->ja
+                        ,sistEqX->neqNov
+                        ,BANDCSRMIN);
+
+       if(!mpiVar.myId  ) {
+         printf("band Maxima: %d\n",sistEqX->bandCsr[BANDCSRMAX]);
+         printf("band Media : %d\n",sistEqX->bandCsr[BANDCSRMED]);
+         printf("band Minima: %d\n",sistEqX->bandCsr[BANDCSRMIN]);
+       }*/
+/*...................................................................*/
      break;
 /*...................................................................*/
 

@@ -112,24 +112,28 @@ void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
 /*..................................................................*/   
 
 /*... 3D*/
-//  else if(ndm == 3){
-//    cellTrans3D(loads    ,advT
-//               ,lGeomType,lprop
-//               ,lViz     ,lId
-//               ,ksi      ,mKsi
-//               ,eta      ,fArea
-//               ,normal   ,volume
-//               ,xm       ,xmcc
-//               ,dcca     ,lDensity 
-//               ,vSkew    ,mvSkew
-//               ,lA       ,lB
- //              ,lRcell   ,ddt 
- //              ,lFaceR   ,lFaceL
- //              ,u0       ,gradU0      
- //              ,vel                   
- //              ,nEn      ,nFace 
- //              ,ndm      ,nel);
-//  } 
+    else if(ndm == 3){
+      cellSimpleVel3D(loadsVel,loadsPres   
+                 ,advVel      ,typeSimple
+                 ,lGeomType   ,lprop
+                 ,lViz        ,lId
+                 ,ksi         ,mKsi
+                 ,eta         ,fArea
+                 ,normal      ,volume
+                 ,xm          ,xmcc
+                 ,dcca        ,lDensity 
+                 ,vSkew       ,mvSkew
+                 ,lA          ,lB
+                 ,lRcell      ,ddt 
+                 ,lFaceVelR   ,lFaceVelL
+                 ,lFacePresR  ,lFacePresL
+                 ,pres        ,gradPres 
+                 ,vel         ,gradVel
+                 ,dField      ,cc
+                 ,underU      ,sPressure                         
+                 ,nEn         ,nFace 
+                 ,ndm         ,nel);  
+    } 
 /*..................................................................*/   
   }
 
@@ -237,24 +241,25 @@ void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres
 /*..................................................................*/   
 
 /*... 3D*/
-//  else if(ndm == 3){
-//    cellTrans3D(loads    ,advT
-//               ,lGeomType,lprop
-//               ,lViz     ,lId
-//               ,ksi      ,mKsi
-//               ,eta      ,fArea
-//               ,normal   ,volume
-//               ,xm       ,xmcc
-//               ,dcca     ,lDensity 
-//               ,vSkew    ,mvSkew
-//               ,lA       ,lB
- //              ,lRcell   ,ddt 
- //              ,lFaceR   ,lFaceL
- //              ,u0       ,gradU0      
- //              ,vel                   
- //              ,nEn      ,nFace 
- //              ,ndm      ,nel);
-//  } 
+    else if(ndm == 3){
+      cellSimplePres3D(loadsVel,loadsPres
+                 ,lGeomType,lprop
+                 ,lViz     ,lId
+                 ,ksi      ,mKsi
+                 ,eta      ,fArea
+                 ,normal   ,volume
+                 ,xm       ,xmcc
+                 ,dcca     ,lDensity 
+                 ,vSkew    ,mvSkew
+                 ,lA       ,lB
+                 ,lRcell    
+                 ,lFaceVelR   ,lFaceVelL
+                 ,lFacePresR  ,lFacePresL
+                 ,pres     ,gradPres 
+                 ,vel      ,dField                                     
+                 ,nEn      ,nFace  
+                 ,ndm      ,nel);  
+    } 
 /*..................................................................*/   
   }
 
@@ -2796,6 +2801,7 @@ DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
  * dcca       -> menor distancia do centroide central a face desta   *
  *               celula                                              * 
  * ld         -> definicao da carga                                  * 
+ * ndm        -> numero de dimensoes                                 * 
  * fCal1      -> true - atualizada sP e p                            * 
  *               false- nao atualizada sP e p                        * 
  * fCal2      -> true - atualizada sP e p pela pressao               * 
@@ -2815,7 +2821,7 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
           ,DOUBLE *restrict n 
           ,DOUBLE const viscosityC    ,DOUBLE const densityC
           ,DOUBLE const fArea         ,DOUBLE const dcca
-          ,Loads ld                   
+          ,Loads ld                   ,short  const ndm 
           ,bool const fCal1           ,bool const fCal2){
 
   DOUBLE aP,wfn;
@@ -2824,18 +2830,42 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
   if( ld.type == MOVEWALL){
     tA[0]   = ld.par[0];
     tA[1]   = ld.par[1];
+    if( ndm == 3 )  tA[2]   = ld.par[2];
 /*...*/
     if(fCal1){
       aP   = viscosityC*fArea/dcca;
       *sP += aP;
+      if( ndm == 2) {
 /*... x*/
-      p[0]  += aP*(tA[0]*(1.0-n[0]*n[0]) 
-            + (velC[1]-tA[1])*n[1]*n[0]
-            + velC[0]*n[0]*n[0]);
+        p[0]  += aP*(tA[0]*(1.0-n[0]*n[0]) 
+              + (velC[1]-tA[1])*n[1]*n[0]
+              + velC[0]*n[0]*n[0]);
 /*... y*/
-      p[1]  += aP*(tA[1]*(1.0-n[1]*n[1]) 
-            + (velC[0]-tA[0])*n[0]*n[1]
-            + velC[1]*n[1]*n[1]);
+        p[1]  += aP*(tA[1]*(1.0-n[1]*n[1]) 
+              + (velC[0]-tA[0])*n[0]*n[1]
+              + velC[1]*n[1]*n[1]);
+      }
+/*...................................................................*/
+
+/*...*/
+      else if( ndm == 3 ){
+/*... x*/
+        p[0]  += aP*(tA[0]*(1.0-n[0]*n[0]) 
+              + (velC[1]-tA[1])*n[1]*n[0]
+              + (velC[2]-tA[2])*n[2]*n[0]
+              + velC[0]*n[0]*n[0]);
+/*... y*/
+        p[1]  += aP*(tA[1]*(1.0-n[1]*n[1]) 
+              + (velC[0]-tA[0])*n[0]*n[1]
+              + (velC[2]-tA[2])*n[2]*n[1]
+              + velC[1]*n[1]*n[1]);
+/*... z*/
+        p[2]  += aP*(tA[2]*(1.0-n[2]*n[2]) 
+              + (velC[0]-tA[0])*n[0]*n[2]
+              + (velC[1]-tA[1])*n[1]*n[2]
+              + velC[2]*n[2]*n[2]);
+      }
+/*...................................................................*/
     } 
 /*...................................................................*/
   }
@@ -2843,14 +2873,23 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
 
 /*... entrada de massa*/
   else if( ld.type ==  INLET){
-    tA[0]   = ld.par[0];
-    tA[1]   = ld.par[1];
-    wfn     = tA[0]*n[0] + tA[1]*n[1];
+    if( ndm == 2) {
+      tA[0]   = ld.par[0];
+      tA[1]   = ld.par[1];
+      wfn     = tA[0]*n[0] + tA[1]*n[1];
+    }
+    else{
+      tA[0]   = ld.par[0];
+      tA[1]   = ld.par[1];
+      tA[2]   = ld.par[2];
+      wfn     = tA[0]*n[0] + tA[1]*n[1]  + tA[2]*n[2] ;
+    }
 /*...*/
     if(fCal1){
       aP     = densityC*wfn*fArea;
       p[0]  -= aP*tA[0];
       p[1]  -= aP*tA[1];
+      if(ndm == 3) p[2] -= aP*tA[2];
     }
     if(fCal2){
       p[0]  -= densityC*wfn*fArea;
@@ -2860,7 +2899,10 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
 
 /*... saida (derivada nula)*/
   else if( ld.type ==  OUTLET){
-    wfn     = velC[0]*n[0] + velC[1]*n[1];
+    if ( ndm == 2 ) 
+      wfn = velC[0]*n[0] + velC[1]*n[1];
+    else 
+      wfn = velC[0]*n[0] + velC[1]*n[1] + velC[2]*n[2];
 /*...*/
     if(fCal1){
       aP   = densityC*wfn*fArea;
@@ -3213,7 +3255,7 @@ DOUBLE faceBaseTvd(short const nAresta    ,short const idCell
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE faceBaseTvdV1(DOUBLE const uC        ,DOUBLE const uV
+DOUBLE faceBaseTvdV1(DOUBLE const uC     ,DOUBLE const uV
                  ,DOUBLE *restrict gradUc,DOUBLE *restrict gradUv
                  ,DOUBLE *restrict lKsi  ,DOUBLE const lModKsi 
                  ,DOUBLE const cv
@@ -3260,6 +3302,92 @@ DOUBLE faceBaseTvdV1(DOUBLE const uC        ,DOUBLE const uV
 /*********************************************************************/ 
 
 /********************************************************************* 
+ * Data de criacao    : 16/07/2016                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * UPWINDLINEARV1: upwind linear com resconstrucao linear            * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * uC     -> valor central                                           * 
+ * uV     -> valor do vizinho                                        * 
+ * gradUc -> gradiente central                                       * 
+ * gradUv -> gradiente do vizinho                                    * 
+ * r      -> distancia ate o ponto central da face                   * 
+ * wfn    -> velocidade normal                                       * 
+ * iCod   -> tecnica TVD                                             * 
+ * ndm    -> numero de dimensoes                                     * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *                                                                   * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ * Tface = TfaceUp + grad(T)*r                                       *   
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+DOUBLE upwindLinearV1(DOUBLE const uC     ,DOUBLE const uV
+                 ,DOUBLE *restrict gradUc,DOUBLE *restrict gradUv
+                 ,DOUBLE *restrict r     ,DOUBLE const wfn
+                 ,short const iCod       ,short const ndm)
+{                    
+  
+  DOUBLE cvc=0.0e0;
+ 
+  if(ndm == 2){
+    if( wfn < 0.0e0) 
+      cvc = gradUv[0]*r[0] +gradUv[1]*r[1];
+    else 
+      cvc = gradUc[0]*r[0] +gradUc[1]*r[1];
+  }
+  else if(ndm ==3){
+    if( wfn < 0.0e0) 
+      cvc = gradUv[0]*r[0] +gradUv[1]*r[1] + gradUv[2]*r[2] ;
+    else 
+      cvc = gradUc[0]*r[0] +gradUc[1]*r[1] + gradUc[2]*r[2] ;
+  }
+ 
+  return cvc;
+} 
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * Data de criacao    : 16/07/2016                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * DEFERREDCD : Diferencao central com correcao atrasada             * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * uC     -> valor central                                           * 
+ * uV     -> valor do vizinho                                        * 
+ * wfn    -> velocidade normal                                       * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *                                                                   * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------*
+ * valor na face = (Upwind)implicito + (Central - Upwind)explicito   * 
+ *********************************************************************/
+DOUBLE deferredCd(DOUBLE const uC,DOUBLE const uV,DOUBLE const wfn)
+{                    
+  
+  DOUBLE cvc=0.0e0;
+ 
+  if(wfn < 0.0e0) {
+    cvc   = 0.5e0*(uC+uV) - uV;
+  }
+  else{
+    cvc   = 0.5e0*(uC+uV) - uC;
+  }
+ 
+  return cvc;
+} 
+/*********************************************************************/ 
+
+/********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
  * Data de modificaco : 00/00/0000                                   * 
  *-------------------------------------------------------------------* 
@@ -3279,15 +3407,23 @@ DOUBLE faceBaseTvdV1(DOUBLE const uC        ,DOUBLE const uV
  *********************************************************************/
 void setFaceBase(char *word,short *iCod)
 {
-  #define NFUNCLIMTFACE 6
+  #define NFUNCLIMTFACE 7
   short i;
   char fBase[][WORD_SIZE]=
        {"FoUp"   ,"VanLeer" ,"VanAlbada"
-       ,"MidMod ","Osher"   ,"SuperBee"};
+       ,"MidMod ","Osher"   ,"SuperBee"
+       ,"CD"     ,"SoUp" };
 /*...*/  
   if(!strcmp(word,"FoUp")){
     *iCod = FOUP; 
     if(!mpiVar.myId ) printf("iCod  : FOUP\n");
+  }
+/*...................................................................*/
+  
+/*...*/
+  else if(!strcmp(word,"CD")){
+    *iCod = CD; 
+    if(!mpiVar.myId ) printf("iCod  : CD\n");
   }
 /*...................................................................*/
 
@@ -3323,6 +3459,20 @@ void setFaceBase(char *word,short *iCod)
   else if(!strcmp(word,"SuperBee")){
     *iCod =  SUPERBEEFACE; 
     if(!mpiVar.myId ) printf("iCod  : SuperBee\n");
+  }
+/*...................................................................*/
+
+/*...*/
+  else if(!strcmp(word,"SuperBee")){
+    *iCod =  SUPERBEEFACE; 
+    if(!mpiVar.myId ) printf("iCod  : SuperBee\n");
+  }
+/*...................................................................*/
+
+/*...*/
+  else if(!strcmp(word,"SoUp")){
+    *iCod =  SOUP; 
+    if(!mpiVar.myId ) printf("iCod  : SoUp\n");
   }
 /*...................................................................*/
 

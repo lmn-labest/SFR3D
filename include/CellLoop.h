@@ -297,7 +297,7 @@
           ,DOUBLE *restrict n
           ,DOUBLE const viscosityC      ,DOUBLE const densityC
           ,DOUBLE const fArea           ,DOUBLE const dcca
-          ,Loads ld                     
+          ,Loads ld                     ,short const ndm
           ,bool const fCal1             ,bool const fCal2);
 
   void pLoadSimplePres(DOUBLE *restrict sP  ,DOUBLE *restrict p
@@ -431,8 +431,31 @@
 /*...................................................................*/
 
 /*.......................... SIMPLE .................................*/
+
 /*... biblioteca de celulas (simple - vel)*/
   void cellSimpleVel2D(Loads *loadsVel    ,Loads *loadsPres        
+              ,Advection  advVel          ,short const typeSimple 
+              ,short *restrict lGeomType  ,DOUBLE *restrict lprop
+              ,INT   *restrict lViz       ,INT *restrict lId               
+              ,DOUBLE *restrict ksi       ,DOUBLE *restrict mksi
+              ,DOUBLE *restrict eta       ,DOUBLE *restrict mEta
+              ,DOUBLE *restrict normal    ,DOUBLE *restrict volume
+              ,DOUBLE *restrict xm        ,DOUBLE *restrict xmcc
+              ,DOUBLE *restrict dcca      ,DOUBLE *restrict lDensity   
+              ,DOUBLE *restrict vSkew     ,DOUBLE *restrict mvSkew
+              ,DOUBLE *restrict lA        ,DOUBLE *restrict lB
+              ,DOUBLE *restrict lRcell    ,Temporal const ddt
+              ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL       
+              ,short  *restrict lFacePresR,short  *restrict lFacePresL     
+              ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres 
+              ,DOUBLE *restrict vel       ,DOUBLE *restrict gradVel 
+              ,DOUBLE *restrict dField    ,DOUBLE *restrict cc     
+              ,DOUBLE const underU        ,bool const sPressure
+              ,short const nen            ,short const nFace    
+              ,short const ndm            ,INT const nel);
+
+/*... biblioteca de celulas (simple - vel)*/
+  void cellSimpleVel3D(Loads *loadsVel    ,Loads *loadsPres        
               ,Advection  advVel          ,short const typeSimple 
               ,short *restrict lGeomType  ,DOUBLE *restrict lprop
               ,INT   *restrict lViz       ,INT *restrict lId               
@@ -456,6 +479,25 @@
 
 /*... biblioteca de celulas (simple - pres)*/
   void cellSimplePres2D(Loads *loadsVel    ,Loads *loadsPres           
+              ,short *restrict lGeomType,DOUBLE *restrict prop
+              ,INT *restrict lViz       ,INT *restrict lId  
+              ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
+              ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
+              ,DOUBLE *restrict normal  ,DOUBLE *restrict area   
+              ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
+              ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
+              ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
+              ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
+              ,DOUBLE *restrict lRcell  
+              ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL       
+              ,short  *restrict lFacePresR,short  *restrict lFacePresL     
+              ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres 
+              ,DOUBLE *restrict vel     ,DOUBLE *restrict dField  
+              ,const short nEn          ,short const nFace    
+              ,const short ndm          ,INT const nel);
+  
+/*... biblioteca de celulas (simple - pres)*/
+  void cellSimplePres3D(Loads *loadsVel    ,Loads *loadsPres           
               ,short *restrict lGeomType,DOUBLE *restrict prop
               ,INT *restrict lViz       ,INT *restrict lId  
               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
@@ -598,6 +640,17 @@
                  ,DOUBLE const cv
                  ,short const iCod       ,short const ndm);
 
+/*...................................................................*/
+  
+
+/*... funcoes de correcao atrasada*/
+  DOUBLE deferredCd(DOUBLE const velC,DOUBLE const velV
+                   ,DOUBLE const wfn);
+
+  DOUBLE upwindLinearV1(DOUBLE const uC     ,DOUBLE const uV
+                 ,DOUBLE *restrict gradUc,DOUBLE *restrict gradUv
+                 ,DOUBLE *restrict r     ,DOUBLE const wfn
+                 ,short const iCod       ,short const ndm);
 /*...................................................................*/
 
 /*... funcoes de apoio*/  

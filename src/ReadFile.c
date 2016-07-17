@@ -245,8 +245,8 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
        zero(mesh->elm.rCellVel  ,nel*ndm*ndfVel   ,DOUBLEC);
 /*... rCellPres*/
        HccaAlloc(DOUBLE,m,mesh->elm.rCellPres 
-                ,nel*ndm             ,"rCellPres"    ,_AD_);
-       zero(mesh->elm.rCellPres ,nel*ndm          ,DOUBLEC);
+                ,nel                 ,"rCellPres"    ,_AD_);
+       zero(mesh->elm.rCellPres ,nel              ,DOUBLEC);
      }
 /*...................................................................*/
   }
@@ -297,7 +297,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 /*... rCell*/
        HccaAlloc(DOUBLE,m,mesh->elm.rCellUt1  
                 ,nel*ndm*mesh->ndfT[0],"rCellUt1"     ,_AD_);
-       zero(mesh->elm.rCellUt1  ,nel*ndm*mesh->ndfT[0]       ,DOUBLEC);
+       zero(mesh->elm.rCellUt1  ,nel*mesh->ndfT[0]       ,DOUBLEC);
      }
 /*...................................................................*/
    }
@@ -348,7 +348,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 /*... rCell*/
        HccaAlloc(DOUBLE,m,mesh->elm.rCellUd1  
                 ,nel*ndm*mesh->ndfD[0],"rCellUd1"     ,_AD_);
-       zero(mesh->elm.rCellUd1  ,nel*ndm*mesh->ndfD[0]       ,DOUBLEC);
+       zero(mesh->elm.rCellUd1  ,nel*mesh->ndfD[0]       ,DOUBLEC);
      }
 /*...................................................................*/
    }

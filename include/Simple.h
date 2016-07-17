@@ -11,7 +11,17 @@
   #include<Solv.h>
   #include<Transient.h>
 
-  void simpleSolver(Memoria *m        
+  void simpleSolver2D(Memoria *m        
+                   ,Loads *loadsVel   ,Loads *loadsPres 
+                   ,Mesh *mesh0       ,Mesh *mesh       
+                   ,SistEq *sistEqVel ,SistEq *sistEqPres
+                   ,Solv *solvVel     ,Solv *solvPres 
+                   ,Simple *sp
+                   ,Scheme sc         ,PartMesh *pMesh 
+                   ,FileOpt opt       ,char *preName  
+                   ,char *nameOut     ,FILE *fileOut);
+  
+  void simpleSolver3D(Memoria *m        
                    ,Loads *loadsVel   ,Loads *loadsPres 
                    ,Mesh *mesh0       ,Mesh *mesh       
                    ,SistEq *sistEqVel ,SistEq *sistEqPres
@@ -24,6 +34,12 @@
 /*...*/
   void updateCellSimpleVel(DOUBLE *restrict w
                 ,DOUBLE *restrict u1 ,DOUBLE *restrict u2
+                ,INT *restrict id    ,INT const nEl
+                ,short const ndm);
+  
+  void updateCellSimpleVel3D(DOUBLE *restrict w
+                ,DOUBLE *restrict u1 ,DOUBLE *restrict u2
+                ,DOUBLE *restrict u3     
                 ,INT *restrict id    ,INT const nEl
                 ,short const ndm);
 

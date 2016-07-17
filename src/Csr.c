@@ -1,5 +1,8 @@
 #include<Csr.h>
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * CSRIA: Geracao do vetor ia do CSR/CSRC                            * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -94,6 +97,9 @@ INT csrIa(INT *restrict ia     ,INT *restrict id
 /*********************************************************************/ 
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * CSRIAR: geracao do vetor ia da parte retangular CSRC-MPI          * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -165,6 +171,9 @@ INT csrIaR(INT *restrict ia     ,INT *restrict id
 /*********************************************************************/ 
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * CSRJA:                                                            * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -273,6 +282,9 @@ void csrJa(INT *restrict ia    ,INT *restrict ja
 /*********************************************************************/ 
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * CSRJAR: geracao do vetor ja da parte retangular CSRC-MPI          * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -346,6 +358,9 @@ void csrJaR(INT *restrict ia    ,INT *restrict ja
 
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * BANDCSR: banda da matriz no formato CSR                           * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -407,6 +422,89 @@ INT bandCsr(INT *ia,INT *ja,INT  neq,short type){
 /*********************************************************************/ 
 
 /********************************************************************* 
+ * Data de criacao    : 16/07/2016                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * BANDCSRC: banda da matriz no formato CSRC                         * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * ia  - ponteiro CSR                                                * 
+ * ja  - ponteiro CSR                                                * 
+ * neq - numero de equacoes                                          * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *                                                                   * 
+ *-------------------------------------------------------------------* 
+ * OBS: retorna a banda da matrix                                    * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+INT bandCsrC(INT *ia,INT *ja,INT  neq,short type){
+
+  INT i,j,aux;
+  unsigned long bandL=0;  
+
+  switch(type){
+/*... banda maxima da matriz*/
+    case BANDCSRMAX:
+/*... loop nas linhas(parte inferior)*/
+      for(i=0;i<neq;i++){
+        for(j=ia[i];j<ia[i+1];j++){
+          bandL = max(bandL,abs(i-ja[j]));
+        }
+      }
+/*... loop nas colunas(parte superior)*/
+      for(i=0;i<neq;i++){
+        for(j=ia[i];j<ia[i+1];j++){
+          if( ja[j] == i)
+            bandL = max(bandL,abs(i-ja[j]));
+        }
+      }
+    break;
+/*...................................................................*/ 
+
+/*... banda media da matriz*/
+    case BANDCSRMED:
+      for(i=0;i<neq;i++){
+        aux = 0;
+        for(j=ia[i];j<ia[i+1];j++){
+          aux = max(aux,abs(i-ja[j]));
+        }
+        bandL += aux;
+      }
+      bandL = bandL/neq;
+    break;
+/*...................................................................*/ 
+
+/*... banda minima da matriz*/
+    case BANDCSRMIN:
+      bandL = neq;
+/*... loop nas linhas(parte inferior)*/
+      for(i=0;i<neq;i++){
+        for(j=ia[i];j<ia[i+1];j++){
+          bandL = min(bandL,abs(i-ja[j]));
+        }
+      }
+/*... loop nas colunas(parte superior)*/
+      for(i=0;i<neq;i++){
+        for(j=ia[i];j<ia[i+1];j++){
+          if( ja[j] == i)
+            bandL = min(bandL,abs(i-ja[j]));
+        }
+      }
+    break;
+/*...................................................................*/ 
+  }
+  return bandL;
+
+}
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * CSR : Montagem do sistema global do CSR                           * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 

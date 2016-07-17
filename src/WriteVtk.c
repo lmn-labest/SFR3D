@@ -1079,6 +1079,7 @@ void wResVtkFluid(Memoria *m         ,DOUBLE *x
   char head[]={"DIF_VOLUME_FINITO"};
   double ddum;
   int    idum;
+  bool fGradPres=false,fGradVel=false;
 
   if(iws)
     f = openFile(nameOut,"wb");
@@ -1153,9 +1154,10 @@ void wResVtkFluid(Memoria *m         ,DOUBLE *x
   writeVtkProp(&idum,elPres,numel,1,presResEl,iws,DOUBLEV,1,f);
 /*...................................................................*/
 
-/*... escrever gradiente da pressao por celula*/  
-  writeVtkProp(&idum,elGradPres,numel,ndm,gradPresResEl
-              ,iws,DOUBLEV,2,f);
+/*... escrever gradiente da pressao por celula*/
+  if(fGradPres)  
+    writeVtkProp(&idum,elGradPres,numel,ndm,gradPresResEl
+                ,iws,DOUBLEV,2,f);
 /*...................................................................*/
 
 
@@ -1164,9 +1166,14 @@ void wResVtkFluid(Memoria *m         ,DOUBLE *x
 /*...................................................................*/
 
 /*... escrever gradiente de velocidade por celula*/  
-  if( ndm == 2) 
-    writeVtkProp(&idum,elGradVel,numel,2*ndm,gradVelResEl
-                ,iws,DOUBLEV,1,f);
+  if(fGradVel){  
+    if( ndm == 2) 
+      writeVtkProp(&idum,elGradVel,numel,2*ndm,gradVelResEl
+                  ,iws,DOUBLEV,1,f);
+    else if( ndm ==3 )
+      writeVtkProp(&idum,elGradVel,numel,3*ndm,gradVelResEl
+                  ,iws,DOUBLEV,1,f);
+  }
 /*...................................................................*/
 
 /*.... campo por no*/
@@ -1193,8 +1200,9 @@ void wResVtkFluid(Memoria *m         ,DOUBLE *x
 /*...................................................................*/
   
 /*... escrever os gradiente de pressao por nos*/  
-  writeVtkProp(&idum,nGradPres,nnode,ndm,gradPresResNo
-              ,iws,DOUBLEV,2,f);
+  if(fGradPres)  
+    writeVtkProp(&idum,nGradPres,nnode,ndm,gradPresResNo
+                ,iws,DOUBLEV,2,f);
 /*...................................................................*/
 
 /*... escrever as velocidade por nos*/  
@@ -1202,9 +1210,14 @@ void wResVtkFluid(Memoria *m         ,DOUBLE *x
 /*...................................................................*/
 
 /*... escrever as gradiente de velocidade por nos*/ 
-  if( ndm == 2) 
-    writeVtkProp(&idum,nGradVel,nnode,2*ndm,gradVelResNo
-                ,iws,DOUBLEV,1,f);
+  if(fGradVel){  
+    if( ndm == 2) 
+      writeVtkProp(&idum,nGradVel,nnode,2*ndm,gradVelResNo
+                  ,iws,DOUBLEV,1,f);
+    else if( ndm == 3) 
+      writeVtkProp(&idum,nGradVel,nnode,3*ndm,gradVelResNo
+                  ,iws,DOUBLEV,1,f);
+  }
 /*...................................................................*/
 
   fclose(f);

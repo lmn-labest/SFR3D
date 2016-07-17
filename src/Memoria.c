@@ -432,7 +432,7 @@ void mapVector(Memoria *m){
   fprintf(stderr,"|none        |posicao incial |posicao final  "
          "|endereco do ponteiros|ponteiro           |\n"  );
   for(i=0;i<m->npont;i++){
-    fprintf(stderr," \"%10s\"|%15ld|%15ld|pp = %16p|p = %16p|\n"
+    fprintf(stderr," \"%15s\"|%15ld|%15ld|pp = %16p|p = %16p|\n"
                   ,m->nome_ponteiro[i],m->pont[i][0],m->pont[i][1]
 		  ,(void*)m->end[i],(void*)*(m->end[i]));
   }

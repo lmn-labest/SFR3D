@@ -98,7 +98,7 @@ void pcg(INT const nEq      ,INT const nAd
   }
   
   if(j == maxIt){ 
-    printf(" *** WARNING: no convergende reached !\n");
+    printf("PCG: *** WARNING: no convergende reached !\n");
     printf("MAXIT = %d \n",maxIt);
     exit(EXIT_FAILURE);
   }
@@ -360,7 +360,7 @@ void pbicgstab(INT const nEq  ,INT const nAd
   }
   
   if(j == maxIt){ 
-    printf(" *** WARNING: no convergende reached !\n");
+    printf(" PBICGSTAB *** WARNING: no convergende reached !\n");
     printf("MAXIT = %d \n",maxIt);
     exit(EXIT_FAILURE);
   }

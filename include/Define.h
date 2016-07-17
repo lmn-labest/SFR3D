@@ -51,18 +51,22 @@
 
 /*... ADVECTION*/
   #define FOUP          1
-/*... ADVECTION - TVD EDGEBASE*/
+/*...*/
+  #define CD            2
+/*... ADVECTION - TVD EDGEBASE LIMIT*/
   #define VANLEERFACE   3
   #define VANALBADAFACE 4
   #define MIDMODFACE    5
   #define OSHERFACE     6
   #define SUPERBEEFACE  7
   #define SPLITUPCFACE  8
+/*...*/
+  #define SOUP          2
 /*...................................................................*/
 
 /*... ADVECTION*/
-  #define FBASE 1
-  #define VBASE 1
+  #define FBASE 1 /*limitacao por face*/
+  #define VBASE 2 /*limitacao por volume*/
 /*...................................................................*/
 
 /*... tipos de CC (faces)*/
@@ -116,6 +120,10 @@
   #define  RCGRADGAUSSN 2 
   #define  RCLSQUARE    3 
   #define  RCLSQUAREQR  4    
+/*...................................................................*/
+
+/*... simple*/
+  #define SZERO 1.e-16
 /*...................................................................*/
 
 /*...*/

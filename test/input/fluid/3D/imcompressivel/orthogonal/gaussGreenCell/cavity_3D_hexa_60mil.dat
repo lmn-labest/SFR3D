@@ -1,0 +1,40 @@
+config
+reord false bvtk false mem 2000 rcGrad ggln fItPlotRes false fItPlot false
+endConfig
+partd config: false false
+advection fBase SuperBee
+//advection Vel fBase FoUp    
+//advection Vel None CD    
+//advection Vel None SoUp  
+edp
+fluid 4
+endEdp
+mesh
+nnode 68921 numel 64000 ndm 3 numat 1 maxno 8 maxviz 6
+materials
+1 1 1.e-3 1.0
+end materials
+insert cavity_3D_hexa_60mil_mesh.dat
+faceRpres 
+1  7  0 0 0 0 0 0  1
+endFaceRpres  
+faceLoadPres 
+1  7  0 0 0 0 0 0  1
+endFaceLoadPres  
+loadsVel  
+1 8 3 1.0 0.0 0.0
+endLoadsVel  
+loadsPres 
+1 5 1  0.0
+endLoadsPres 
+endMesh
+pgeo
+presolvFluid config: BICGSTAB CSRC 1000 1.e-11 PCG CSRC 5000 1.e-11
+preSimple config: SIMPLE  500 0.3e0 0.7e0 1.e-03 1.e-03
+//transient config: BACKWARD 0.1e0 10.e0
+//transient config: EULER 0.2e0  40.e0
+simple
+pFluid                                             
+//timeUpdate
+//endTransient  
+stop

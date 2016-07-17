@@ -304,6 +304,14 @@ int main(int argc,char**argv){
       mpiWait();
 /*...................................................................*/
 
+/*...*/
+      if(!mpiVar.myId){
+        printf("%s\n",DIF);
+        usoMemoria(&m,"GB");
+        printf("%s\n",DIF);
+      }
+/*...................................................................*/
+
 /*... calcula a vizinhaca do elementos*/
       if(!mpiVar.myId){
         tm.adjcency = getTimeC();
@@ -480,7 +488,7 @@ int main(int argc,char**argv){
       
 /*...*/
       if(!mpiVar.myId ){
-        strcpy(str,"MB");
+        strcpy(str,"GB");
         memoriaTotal(str);
         usoMemoria(&m,str);
       }
@@ -846,7 +854,7 @@ int main(int argc,char**argv){
 
 /*... informacao da memoria total usada*/
       if(!mpiVar.myId  ) {
-        strcpy(str,"MB");
+        strcpy(str,"GB");
         memoriaTotal(str);
         usoMemoria(&m,str);
       }
@@ -1028,7 +1036,7 @@ int main(int argc,char**argv){
 
 /*... informacao da memoria total usada*/
       if(!mpiVar.myId  ) {
-        strcpy(str,"MB");
+        strcpy(str,"GB");
         memoriaTotal(str);
         usoMemoria(&m,str);
       }
@@ -1364,7 +1372,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
-      interCellNode(&m                   ,loadsT1
+      interCellNode(&m                 ,loadsT1
                    ,mesh->node.vel     ,mesh->elm.vel        
                    ,mesh->elm.node     ,mesh->elm.geomType            
                    ,mesh->elm.geom.cc  ,mesh->node.x  
@@ -1620,11 +1628,15 @@ int main(int argc,char**argv){
 /*...*/
 /*    if(opt.fItPlot && !mpiVar.myId){  
         strcpy(auxName,preName);
-        strcat(auxName,"_T1");
+        strcat(auxName,"_fluid");
         fName(auxName,mpiVar.nPrcs,0,10,&nameOut);
         opt.fileItPlot[FITPLOTT1] = openFile(nameOut,"w");
-        fprintf(opt.fileItPlot[FITPLOTT1]
-               ,"#T1\n#it ||b||/||b0|| ||b||\n");
+        if(mesh->ndfF == 3)
+          fprintf(opt.fileItPlot[FITPLOTT1]
+          ,"#VelPres\n#it ||rU1||| ||rU2|| ||rMass||\n");
+        else if(mesh->ndfF == 4)
+          fprintf(opt.fileItPlot[FITPLOTT1]
+          ,"#VelPres\n#it ||rU1|| ||rU2|| ||rU3|| ||rMass||\n");
       }
 */
 /*...................................................................*/
@@ -1908,7 +1920,9 @@ int main(int argc,char**argv){
 /*...................................................................*/
      
 /*...*/
-      simpleSolver(&m         
+      ndf = mesh->ndfF-1;
+      if(ndf == 2) 
+        simpleSolver2D(&m         
                   ,loadsVel   ,loadsPres 
                   ,mesh0      ,mesh           
                   ,sistEqVel  ,sistEqPres
@@ -1917,6 +1931,16 @@ int main(int argc,char**argv){
                   ,sc         ,pMesh
                   ,opt        ,preName        ,nameOut
                   ,fileOut);
+      else if(ndf == 3) 
+        simpleSolver3D(&m         
+                  ,loadsVel   ,loadsPres 
+                  ,mesh0      ,mesh           
+                  ,sistEqVel  ,sistEqPres
+                  ,solvVel    ,solvPres
+                  ,simple
+                  ,sc         ,pMesh
+                  ,opt        ,preName        ,nameOut
+                  ,fileOut);  
 /*...................................................................*/
 
 /*...*/
@@ -2117,7 +2141,7 @@ int main(int argc,char**argv){
         printf("%s\n",word);
       }
       fAdv = true;
-/*... base na limitacao de fluxo*/
+/*... tecnica de adveccao*/
       if(fAdv){        
         readMacro(fileIn,word,false);
 /*... velocidade*/
@@ -2128,6 +2152,16 @@ int main(int argc,char**argv){
             sc.advVel.base = FBASE;
             if(!mpiVar.myId ) printf("advVel: fBase\n"); 
           }
+/*... limitado por volume*/
+          else if(!strcmp(word,"vBase")){ 
+            sc.advVel.base = VBASE;
+            if(!mpiVar.myId ) printf("advVel: VBase\n"); 
+          }
+/*... sem limiete*/
+          else if(!strcmp(word,"vBase")){ 
+            sc.advVel.base = 0;
+            if(!mpiVar.myId ) printf("advVel: NONE\n"); 
+          }
 /*... codigo da da funcao limitadora de fluxo*/        
           readMacro(fileIn,word,false);
           setFaceBase(word,&sc.advVel.iCod);
@@ -2137,7 +2171,7 @@ int main(int argc,char**argv){
       }
 /*...................................................................*/
 
-/*... base na limitacao de fluxo*/        
+/*... tecnica de adveccao*/
       if(fAdv){        
         readMacro(fileIn,word,false);
 /*... velocidade*/
