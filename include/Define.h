@@ -61,7 +61,7 @@
   #define SUPERBEEFACE  7
   #define SPLITUPCFACE  8
 /*...*/
-  #define SOUP          2
+  #define SOUP          9
 /*...................................................................*/
 
 /*... ADVECTION*/

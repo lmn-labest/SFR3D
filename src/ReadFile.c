@@ -1452,16 +1452,16 @@ void initProp(DOUBLE *restrict prop
 /*********************************************************************/
       
 /********************************************************************* 
- * READEDP : leitura das equacoes edades com variacao temporal       * 
+ * READEDP : graus de liberdade das equacoes diferencias             * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
- * mesh    -> nao definido                                           * 
- * file    -> propriedade de referencia por material                 * 
+ * mesh    ->                                                        * 
+ * file    -> arquivo de arquivo                                     * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
- * mesh    -> graus de liberdade inicializados                       * 
+ * mesh    ->                                                        * 
  *-------------------------------------------------------------------* 
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
@@ -1552,3 +1552,62 @@ void readEdo(Mesh *mesh,FILE *file){
 }
 /*********************************************************************/ 
 
+/********************************************************************* 
+ * Data de criacao    : 17/07/2016                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * SETPPRINTFLUID : Seleciona as veriaves que serao impressas na     *
+ * macro pFluid                                                      *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * opt     -> opcoes de arquivos de saida                            * 
+ * file    -> arquivo de entrada                                     * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * opt     -> opcoes de arquivos de saida atualizados                * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void setPrintFluid(FileOpt *opt,FILE *file){
+
+  char str[]={"end"};
+  char word[WORD_SIZE];
+  
+  readMacro(file,word,false);
+  while(strcmp(word,str)){
+/*... fPrintMesh*/        
+    if(!strcmp(word,"vel")){ 
+      opt->vel = true;
+      if(!mpiVar.myId ) printf("print : vel\n");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if(!strcmp(word,"pres")){ 
+      opt->pres = true;
+      if(!mpiVar.myId ) printf("print : pres\n");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if(!strcmp(word,"gradVel")){ 
+      opt->gradVel = true;
+      if(!mpiVar.myId ) printf("print : gradVel\n");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if(!strcmp(word,"gradPres")){ 
+      opt->gradPres = true;
+      if(!mpiVar.myId ) printf("print : gradPres\n");
+    }
+/*.....................................................................*/
+    readMacro(file,word,false);
+  }
+/*.....................................................................*/
+
+} 
+/*********************************************************************/ 

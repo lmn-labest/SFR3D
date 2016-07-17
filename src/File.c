@@ -51,6 +51,7 @@ FILE *aux;
  *         19 ->  resultados do problema de transporte por it vtk    *      
  *         20 -> resultados do problema de transporte vtk            *      
  *         21 -> resultados do problema de escoamente imconpressivel *       
+ *         22 -> log de residuo do simple                            *       
  *         60 -> media dos tempos (MPI)                              *      
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
@@ -450,6 +451,27 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       strcpy(ext,"_fluid_step_");
       strcat(ext,st);
       strcat(ext,".vtk");
+      size1 = strlen(name);
+      size2 = strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+        exit(EXIT_FAILURE);      
+      }
+      strcpy(*out,name);
+      strcat(*out,ext);
+      break;
+/*...................................................................*/
+
+/*... arquivo com o log do solv*/
+    case 22:
+      iota(num1,st);
+      strcpy(ext,"_n_");
+      strcat(ext,st);
+      strcat(ext,"_it_simple.txt");
       size1 = strlen(name);
       size2 = strlen(ext);
       if( (size1+size2)  > SIZEMAX){

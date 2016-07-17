@@ -1,5 +1,19 @@
 #include<Simple.h>
 
+/********************************************************************* 
+ * Data de criacao    : 01/07/2016                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * SIMPLESOLVER2D: metodo simple e simpleC para escoamentos 2D       * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
 void simpleSolver2D(Memoria *m        
                    ,Loads *loadsVel   ,Loads *loadsPres 
                    ,Mesh *mesh0       ,Mesh *mesh       
@@ -12,9 +26,9 @@ void simpleSolver2D(Memoria *m
 
   short unsigned ndfVel = mesh->ndfF-1;
   short unsigned itSimple,conv;
-  short unsigned kZeroVel  = sp->kZeroVel;
+//short unsigned kZeroVel  = sp->kZeroVel;
   short unsigned kZeroPres = sp->kZeroPres;
-  INT nEl = mesh->numel,i;
+  INT nEl = mesh->numel;
   INT jj = 1;
   DOUBLE time,timei;
   DOUBLE *b1,*b2,*bPc,*xu1,*xu2,*xp;
@@ -410,7 +424,20 @@ void simpleSolver2D(Memoria *m
 } 
 /*********************************************************************/ 
 
-/*********************************************************************/ 
+/********************************************************************* 
+ * Data de criacao    : 17/07/2016                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * SIMPLESOLVER3D: metodo simple e simpleC para escoamentos 3D       * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
 void simpleSolver3D(Memoria *m        
                    ,Loads *loadsVel   ,Loads *loadsPres 
                    ,Mesh *mesh0       ,Mesh *mesh       
@@ -423,9 +450,9 @@ void simpleSolver3D(Memoria *m
 
   short unsigned ndfVel = mesh->ndfF-1;
   short unsigned itSimple,conv;
-  short unsigned kZeroVel  = sp->kZeroVel;
+//short unsigned kZeroVel  = sp->kZeroVel;
   short unsigned kZeroPres = sp->kZeroPres;
-  INT nEl = mesh->numel,i;
+  INT nEl = mesh->numel;
   INT jj = 1;
   DOUBLE time,timei;
   DOUBLE *b1,*b2,*b3,*bPc,*xu1,*xu2,*xu3,*xp;
@@ -831,7 +858,15 @@ void simpleSolver3D(Memoria *m
 
 /*...*/
      timei = getTimeC() -time;
-     if( jj ==  1) { 
+/*... arquivo de log*/
+     if(opt.fItPlot)
+       fprintf(opt.fileItPlot[FITPLOTSIMPLE]
+              ,"%d %20.8e %20.8e %20.8e %20.8e\n"
+              ,itSimple+1,rU1,rU2,rU3,rPc);
+/*...................................................................*/
+
+/*...*/
+     if( jj ==  10) { 
        jj = 0; 
        printf("It simple: %d \n",itSimple+1);
        printf("Time(s)  : %lf \n",timei);

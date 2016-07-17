@@ -1008,7 +1008,7 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 03/07/2016                                   * 
+ * Data de modificaco : 17/07/2016                                   * 
  *-------------------------------------------------------------------* 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1044,6 +1044,10 @@ void wResVtkDif(Memoria *m        ,double *x
  * presgradResNo-> nome dos resultados                                *
  * nameOut      -> nome de arquivo de saida                           *
  * iws          -> vtk binario                                        *
+ * fVel         -> escreve as velocidades                             *
+ * fGradVel     -> escreve os gradientes da velocidades               *
+ * fPres        -> escreve as pressoes                                *
+ * fGradPes     -> escrever os gradientes da pressoes                 *
  * f            -> arquivlo                                           *
  * ------------------------------------------------------------------ *
  * parametros de saida  :                                             * 
@@ -1071,6 +1075,8 @@ void wResVtkFluid(Memoria *m         ,DOUBLE *x
                  ,char *velEl        ,char *velNo       
                  ,char *gradVelResEl ,char *gradVelResNo 
                  ,char *nameOut      ,bool iws
+                 ,bool fVel          ,bool fGradVel 
+                 ,bool fPres         ,bool fGradPres
                  ,Temporal ddt       ,FILE *f)
 {
   int    *lel=NULL;
@@ -1079,7 +1085,6 @@ void wResVtkFluid(Memoria *m         ,DOUBLE *x
   char head[]={"DIF_VOLUME_FINITO"};
   double ddum;
   int    idum;
-  bool fGradPres=false,fGradVel=false;
 
   if(iws)
     f = openFile(nameOut,"wb");
@@ -1150,8 +1155,9 @@ void wResVtkFluid(Memoria *m         ,DOUBLE *x
   HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
   
-/*... escrever resultados de pressao por celula*/  
-  writeVtkProp(&idum,elPres,numel,1,presResEl,iws,DOUBLEV,1,f);
+/*... escrever resultados de pressao por celula*/ 
+  if(fPres) 
+    writeVtkProp(&idum,elPres,numel,1,presResEl,iws,DOUBLEV,1,f);
 /*...................................................................*/
 
 /*... escrever gradiente da pressao por celula*/
@@ -1162,7 +1168,8 @@ void wResVtkFluid(Memoria *m         ,DOUBLE *x
 
 
 /*... escrever campo de velociade por celula*/  
-  writeVtkProp(&idum,elVel,numel,ndm,velEl,iws,DOUBLEV,2,f);
+  if(fVel)
+    writeVtkProp(&idum,elVel,numel,ndm,velEl,iws,DOUBLEV,2,f);
 /*...................................................................*/
 
 /*... escrever gradiente de velocidade por celula*/  
@@ -1196,7 +1203,8 @@ void wResVtkFluid(Memoria *m         ,DOUBLE *x
 /*...................................................................*/
 
 /*... escrever resultados de pressao por nos*/  
-  writeVtkProp(&idum,nPres ,nnode,1,presResNo,iws,DOUBLEV,1,f);
+  if(fPres)
+    writeVtkProp(&idum,nPres ,nnode,1,presResNo,iws,DOUBLEV,1,f);
 /*...................................................................*/
   
 /*... escrever os gradiente de pressao por nos*/  
@@ -1206,7 +1214,8 @@ void wResVtkFluid(Memoria *m         ,DOUBLE *x
 /*...................................................................*/
 
 /*... escrever as velocidade por nos*/  
-  writeVtkProp(&idum,nVel,nnode,ndm,velNo,iws,DOUBLEV,2,f);
+  if(fVel)
+    writeVtkProp(&idum,nVel,nnode,ndm,velNo,iws,DOUBLEV,2,f);
 /*...................................................................*/
 
 /*... escrever as gradiente de velocidade por nos*/ 

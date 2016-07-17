@@ -120,6 +120,8 @@
                  ,char *velEl        ,char *velNo       
                  ,char *gradVelResEl ,char *gradVelResNo 
                  ,char *nameOut      ,bool iws
+                 ,bool fVel          ,bool fGradVel
+                 ,bool fPres         ,bool fGradPres
                  ,Temporal ddt       ,FILE *f);
 
 

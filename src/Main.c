@@ -49,7 +49,7 @@ int main(int argc,char**argv){
 /*... solver*/
   Solv *solvD1=NULL,*solvT1=NULL,*solvVel=NULL,*solvPres=NULL;
   bool fSolvD1 = false, fSolvT1 = false;
-  bool fSolvVel = false,fSolvPres = false;
+  bool fSolvVel = false,fSolvPres = false,fSolvSimple = false;
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
 
@@ -83,17 +83,17 @@ int main(int argc,char**argv){
   bool macroFlag; 
   char word[WORD_SIZE],str[WORD_SIZE];
   char macro[][WORD_SIZE] = 
-  {"mesh"        ,"stop"      ,"config"        /* 0, 1, 2*/
-  ,"pgeo"        ,"pcoob"     ,"pcoo"          /* 3, 4, 5*/ 
-  ,"presolvD1"   ,"presolvT1" ,""              /* 6, 7, 8*/
-  ,"solvD1"      ,""          ,"pD1"           /* 9,10,11*/
-  ,"nlItD1"      ,"pD1CsvCell","pD1CsvNode"    /*12,13,14*/
-  ,"solvT1"      ,""          ,"pT1"           /*15,16,17*/
-  ,"nlItT1"      ,"pT1CsvCell","pT1CsvNode"    /*18,19,20*/
-  ,"presolvFluid","simple"    ,"preSimple"     /*21,22,23*/
-  ,"transient"   ,"timeUpdate","partd"         /*24,25,26*/
-  ,"advection"   ,"edp"       ,""              /*27,28,29*/
-  ,"pFluid"      ,""          ,""     };       /*30,31,32*/
+  {"mesh"        ,"stop"         ,"config"        /* 0, 1, 2*/
+  ,"pgeo"        ,"pcoob"        ,"pcoo"          /* 3, 4, 5*/ 
+  ,"presolvD1"   ,"presolvT1"    ,""              /* 6, 7, 8*/
+  ,"solvD1"      ,""             , "pD1"           /* 9,10,11*/
+  ,"nlItD1"      ,"pD1CsvCell"   ,"pD1CsvNode"    /*12,13,14*/
+  ,"solvT1"      ,""             ,"pT1"           /*15,16,17*/
+  ,"nlItT1"      ,"pT1CsvCell"   ,"pT1CsvNode"    /*18,19,20*/
+  ,"presolvFluid","simple"       ,"preSimple"     /*21,22,23*/
+  ,"transient"   ,"timeUpdate"   ,"partd"         /*24,25,26*/
+  ,"advection"   ,"edp"          ,""              /*27,28,29*/
+  ,"pFluid"      ,"setPrintFluid" ,""     };       /*30,31,32*/
 /* ..................................................................*/
 
 /*... Memoria principal(valor padrao - bytes)*/
@@ -108,6 +108,8 @@ int main(int argc,char**argv){
   opt.bVtk       = false;
   opt.fItPlotRes = false;
   opt.fItPlot    = false;
+  opt.vel        = true;
+  opt.pres       = true;
 /* ..................................................................*/
 
 /*... Mpi*/
@@ -539,24 +541,30 @@ int main(int argc,char**argv){
       } 
 /*...................................................................*/
 
-/*... fechando o arquivo log linear solver Pres*/
+/*... fechando o arquivo do log do solver linear Pres*/
       if(fSolvPres && solvPres->log && !mpiVar.myId)  
         fclose(solvPres->fileSolv);
-/*... fechando o arquivo log linear solver Vel*/
+/*... fechando o arquivo do log do solver linear Vel*/
       if(fSolvVel && solvVel->log && !mpiVar.myId)  
         fclose(solvVel->fileSolv);
-/*... fechando o arquivo log linear solver D1*/
+/*... fechando o arquivo do log do solver linear T1*/
       if(fSolvD1 && solvD1->log && !mpiVar.myId)  
         fclose(solvD1->fileSolv);
-/*... fechando o arquivo log linear solver T1*/
+/*... fechando o arquivo do log do solver linear T1*/
       if(fSolvT1 && solvT1->log && !mpiVar.myId)  
         fclose(solvT1->fileSolv);
-/*... fechando o arquivo log nao linear D1*/      
+/*...................................................................*/
+
+/*... fechando o arquivo do log nao linear D1*/      
       if(fSolvD1 && opt.fItPlot && !mpiVar.myId)  
         fclose(opt.fileItPlot[FITPLOTD1]);
-/*... fechando o arquivo log nao linear T1*/      
+/*... fechando o arquivo do log nao linear T1*/      
       if(fSolvT1 && opt.fItPlot && !mpiVar.myId)  
         fclose(opt.fileItPlot[FITPLOTT1]);
+/*... fechando o arquivo do log nao linear do simple */      
+      if(fSolvSimple && opt.fItPlot && !mpiVar.myId)  
+        fclose(opt.fileItPlot[FITPLOTSIMPLE]);
+/*...................................................................*/
       finalizeMem(&m,false);
       macroFlag = false;
     }    
@@ -1626,19 +1634,17 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-/*    if(opt.fItPlot && !mpiVar.myId){  
+      if(opt.fItPlot && !mpiVar.myId){  
         strcpy(auxName,preName);
-        strcat(auxName,"_fluid");
-        fName(auxName,mpiVar.nPrcs,0,10,&nameOut);
-        opt.fileItPlot[FITPLOTT1] = openFile(nameOut,"w");
+        fName(auxName,mpiVar.nPrcs,0,22,&nameOut);
+        opt.fileItPlot[FITPLOTSIMPLE] = openFile(nameOut,"w");
         if(mesh->ndfF == 3)
-          fprintf(opt.fileItPlot[FITPLOTT1]
+          fprintf(opt.fileItPlot[FITPLOTSIMPLE]
           ,"#VelPres\n#it ||rU1||| ||rU2|| ||rMass||\n");
         else if(mesh->ndfF == 4)
-          fprintf(opt.fileItPlot[FITPLOTT1]
+          fprintf(opt.fileItPlot[FITPLOTSIMPLE]
           ,"#VelPres\n#it ||rU1|| ||rU2|| ||rU3|| ||rMass||\n");
       }
-*/
 /*...................................................................*/
 
 /*... inicializa a estrutura do solver(VELOCIDADES)*/
@@ -1931,6 +1937,9 @@ int main(int argc,char**argv){
                   ,sc         ,pMesh
                   ,opt        ,preName        ,nameOut
                   ,fileOut);
+/*...................................................................*/
+     
+/*...*/
       else if(ndf == 3) 
         simpleSolver3D(&m         
                   ,loadsVel   ,loadsPres 
@@ -1965,6 +1974,7 @@ int main(int argc,char**argv){
         printf("Erro ponteiro simple\n");
         exit(EXIT_FAILURE);
       }
+      fSolvSimple             = true;  
       simple->maxIt           = 1000;
       simple->alphaPres       = 0.3e0; 
       simple->alphaVel        = 0.8e0; 
@@ -2372,13 +2382,36 @@ int main(int argc,char**argv){
                     ,str3               ,str4         
                     ,str5               ,str6         
                     ,str7               ,str8         
-                    ,nameOut            ,opt.bVtk    
+                    ,nameOut            ,opt.bVtk 
+                    ,opt.vel            ,opt.gradVel 
+                    ,opt.pres           ,opt.gradPres
                     ,sc.ddt             ,fileOut);
 /*...................................................................*/
       }
 /*...................................................................*/
       if(!mpiVar.myId ) printf("%s\n",DIF);
     }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: setPrintFluid                                    
+ *===================================================================*/
+    else if((!strcmp(word,macro[31]))){
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+      }
+      opt.vel      = false;
+      opt.pres     = false;
+      opt.gradVel  = false;
+      opt.gradPres = false;
+/*...*/
+       setPrintFluid(&opt,fileIn);
+/*...................................................................*/
+       if(!mpiVar.myId ) printf("%s\n",DIF);
+    }   
+/*===================================================================*/
+
 /*===================================================================*/
   }while(macroFlag && (!feof(fileIn)));
 

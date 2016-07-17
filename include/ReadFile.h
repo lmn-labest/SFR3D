@@ -38,6 +38,8 @@
              ,short *rcGrad
              ,FILE* f);
   void readEdo(Mesh *mesh,FILE *file);
+  
+  void setPrintFluid(FileOpt *opt,FILE *file);
 
   void initProp(DOUBLE *restrict prop 
              ,DOUBLE *restrict propMat,short *restrict mat

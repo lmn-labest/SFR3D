@@ -24,13 +24,18 @@
   #define FITPLOTT1           3
   #define FITPLOTT2           4
   #define FITPLOTTEMP         5
+  #define FITPLOTSIMPLE       6
    
 /*...................................................................*/  
   typedef struct{
     bool  bVtk;
     bool  fItPlotRes;
     bool  fItPlot;
-    FILE *fileItPlot[6];
+    FILE *fileItPlot[7];
+    bool gradPres;
+    bool gradVel;
+    bool vel;
+    bool pres;
   }FileOpt;
 
   void  iota(INT,char*);
