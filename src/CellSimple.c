@@ -290,17 +290,10 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
       }
 /*...................................................................*/
 
-/*... metodo upwind linear =  up(implicito) + gradU*r*/
-      else if( SOUP == iCod){
-        cvc[0] = upwindLinearV1(velC[0]    ,velV[0]
-                            ,gradVelC[0],gradVelV[0]
-                            ,lXmcc      ,wfn
-                            ,iCod       ,ndm);
-/*...*/ 
-        cvc[1] = upwindLinearV1(velC[1]    ,velV[1]
-                            ,gradVelC[1],gradVelV[1]
-                            ,lXmcc      ,wfn
-                            ,iCod       ,ndm);
+/*... metodo centrado  atraso( up(implicito) + (ucd - up)explicito) */
+      else if( CD == iCod){
+        cvc[0] = deferredCd(velC[0],velV[0],wfn);
+        cvc[1] = deferredCd(velC[1],velV[1],wfn);
       }
 /*...................................................................*/
 

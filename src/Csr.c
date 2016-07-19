@@ -443,7 +443,7 @@ INT bandCsr(INT *ia,INT *ja,INT  neq,short type){
 INT bandCsrC(INT *ia,INT *ja,INT  neq,short type){
 
   INT i,j,aux;
-  unsigned long bandL=0;  
+  unsigned long bandL=0,col=0;  
 
   switch(type){
 /*... banda maxima da matriz*/
@@ -480,18 +480,18 @@ INT bandCsrC(INT *ia,INT *ja,INT  neq,short type){
 /*... banda minima da matriz*/
     case BANDCSRMIN:
       bandL = neq;
+      col   = neq;
 /*... loop nas linhas(parte inferior)*/
       for(i=0;i<neq;i++){
         for(j=ia[i];j<ia[i+1];j++){
-          bandL = min(bandL,abs(i-ja[j]));
+          col = min(col,ja[j]);
         }
-      }
 /*... loop nas colunas(parte superior)*/
-      for(i=0;i<neq;i++){
         for(j=ia[i];j<ia[i+1];j++){
           if( ja[j] == i)
-            bandL = min(bandL,abs(i-ja[j]));
+            col = min(col,ja[j]);
         }
+        bandL = min(bandL,abs(i-col));
       }
     break;
 /*...................................................................*/ 

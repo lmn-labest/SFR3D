@@ -1,8 +1,9 @@
 #include<Simple.h>
 
+
 /********************************************************************* 
  * Data de criacao    : 01/07/2016                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 18/07/2016                                   * 
  *-------------------------------------------------------------------* 
  * SIMPLESOLVER2D: metodo simple e simpleC para escoamentos 2D       * 
  *-------------------------------------------------------------------* 
@@ -26,20 +27,20 @@ void simpleSolver2D(Memoria *m
 
   short unsigned ndfVel = mesh->ndfF-1;
   short unsigned itSimple,conv;
-//short unsigned kZeroVel  = sp->kZeroVel;
+  short unsigned kZeroVel  = sp->kZeroVel;
   short unsigned kZeroPres = sp->kZeroPres;
-  INT nEl = mesh->numel;
   INT jj = 1;
   DOUBLE time,timei;
   DOUBLE *b1,*b2,*bPc,*xu1,*xu2,*xp;
-  DOUBLE *rCellU1,*rCellU2,*rCellPc;
+  DOUBLE *rCellPc;
 /*...*/
-  DOUBLE rU1,rU2,rU10,rU20,rPc,rPc0;
+  DOUBLE rU[2],rU0[2],tmp,tb[2],rMass0,rMass;
 /*...*/
   DOUBLE tolSimpleU1,tolSimpleU2,tolSimpleMass;
 /*...*/
-  bool xMomentum,yMomentum,xMomentum0,yMomentum0;
-  bool pCor,fPrint=false;
+  bool xMomentum,yMomentum,pCor;
+  bool relRes = true;
+  bool fPrint=false;
 
   time = getTimeC();
 /*...*/
@@ -51,12 +52,7 @@ void simpleSolver2D(Memoria *m
   xu2      = &sistEqVel->x[sistEqVel->neq];
   xp       = sistEqVel->x;
 
-  rCellU1  = mesh->elm.rCellVel;
-  rCellU2  = &mesh->elm.rCellVel[nEl];
   rCellPc  = mesh->elm.rCellPres;
-  
-  xMomentum0 = true;
-  yMomentum0 = true;
 /*...................................................................*/
 
 /*...*/
@@ -65,8 +61,10 @@ void simpleSolver2D(Memoria *m
 /*...................................................................*/
 
 /*...*/
-  rU10 = rU20 = rPc0 = 1.e0;
-  rU1  = rU2  = rPc  = 0.e0;
+  rMass0 = 1.e0;
+  rMass  = 0.e0;
+  rU[0]  = rU[1]  = 0.e0;
+  rU0[0] = rU0[1] = 1.e0;
   conv = 0;
 /*...................................................................*/
 
@@ -213,27 +211,17 @@ void simpleSolver2D(Memoria *m
 /*...................................................................*/
 
 /*...*/
-     rU1 = sqrt(dot(b1,b1,sistEqVel->neqNov));
+     tb[0] = sqrt(dot(b1,b1,sistEqVel->neqNov));
+     tb[1] = sqrt(dot(b2,b2,sistEqVel->neqNov));
+     tmp   = max(tb[0],tb[1]);      
+/*...*/ 
      xMomentum = true;
-     if( rU1 < SZERO ) xMomentum = false;
-//   if( itSimple == kZeroVel && xMomentum){
-     if(xMomentum && xMomentum0){
-       xMomentum0 = false; 
-       rU1  = sqrt(dot(rCellU1,rCellU1,mesh->numelNov));
-       rU10 = rU1;
-     }
+     if( tb[0] < tmp*SZERO ) xMomentum = false;
 /*...................................................................*/
 
 /*...*/
-     rU2 = sqrt(dot(b2,b2,sistEqVel->neqNov));
      yMomentum = true;
-     if( rU2 < SZERO ) yMomentum = false;
-//   if( itSimple == kZeroVel && yMomentum){
-     if(yMomentum && yMomentum0){
-       yMomentum0 = false; 
-       rU2  = sqrt(dot(rCellU2,rCellU2,mesh->numelNov));
-       rU20 = rU2;
-     }
+     if( tb[1] < tmp*SZERO ) yMomentum = false;
 /*...................................................................*/
 
 /*... solver Au = bu (velocidade estimadas)*/
@@ -315,13 +303,23 @@ void simpleSolver2D(Memoria *m
      tm.systFormPres = getTimeC() - tm.systFormPres;
 /*...................................................................*/
       
+/*... residual*/
+     residualSimple(mesh->elm.vel 
+             ,mesh->elm.rCellVel,rCellPc  
+             ,sistEqVel->ad           
+             ,rU                ,&rMass
+             ,sistEqVel->id     ,mesh->numelNov
+             ,mesh->ndm         ,3    );  
+/*...................................................................*/
+
 /*...*/
-     rPc = sqrt(dot(rCellPc,rCellPc,sistEqPres->neqNov));
      pCor = true;
-     if( rPc < SZERO ) pCor = false;
-     if( itSimple == kZeroPres) rPc0 = rPc;
-     rU1  = sqrt(dot(rCellU1,rCellU1,mesh->numelNov));
-     rU2  = sqrt(dot(rCellU2,rCellU2,mesh->numelNov));
+     if( rMass < tmp*SZERO ) pCor = false;
+     if( itSimple == kZeroPres && relRes) rMass0 = rMass;
+     if( itSimple == kZeroVel && relRes ){
+       rU0[0] = rU[0]; 
+       rU0[1] = rU[1]; 
+     } 
      conv = 0;
 /*...................................................................*/
 
@@ -383,11 +381,11 @@ void simpleSolver2D(Memoria *m
 /*...................................................................*/
 
 /*...*/
-     if( rPc/rPc0 < tolSimpleMass || rPc < SZERO) conv++;
+     if( rMass/rMass0 < tolSimpleMass || rMass < tmp*SZERO) conv++;
 /*..*/
-     if( rU1/rU10 < tolSimpleU1   || rU1 < SZERO) conv++;
-/*..*/
-     if( rU2/rU20 < tolSimpleU2   || rU2 < SZERO) conv++;
+     if( rU[0]/rU0[0] < tolSimpleU1   || rU[0] < tmp*SZERO) conv++;
+/*...*/
+     if( rU[1]/rU0[1] < tolSimpleU2   || rU[1] < tmp*SZERO) conv++;
 /*..*/
      if( conv == 3) break;
 /*...................................................................*/
@@ -398,10 +396,10 @@ void simpleSolver2D(Memoria *m
        jj = 0; 
        printf("It simple: %d \n",itSimple+1);
        printf("Time(s)  : %lf \n",timei);
+       printf("conservacao da massa: %20.8e\n",rMass/rMass0);
+       printf("momentum x1         : %20.8e\n",rU[0]/rU0[0]);
+       printf("momentum x2         : %20.8e\n",rU[1]/rU0[1]);
        printf("Residuo:\n");
-       printf("conservacao da massa: %20.8e\n",rPc/rPc0);
-       printf("momentum x1         : %20.8e\n",rU1/rU10);
-       printf("momentum x2         : %20.8e\n",rU2/rU20);
      } 
      jj++; 
 /*...................................................................*/
@@ -410,15 +408,24 @@ void simpleSolver2D(Memoria *m
   time = getTimeC() -time;
 
 /*...*/
+     timei = getTimeC() -time;
+/*... arquivo de log*/
+     if(opt.fItPlot)
+       fprintf(opt.fileItPlot[FITPLOTSIMPLE]
+              ,"%d %20.8e %20.8e %20.8e\n"
+              ,itSimple+1,rU[0],rU[1],rMass);
+/*...................................................................*/
+
+/*...*/
   printf("It simple: %d \n",itSimple+1);
   printf("Time(s)  : %lf \n",time);
   printf("Residuo:\n");
   printf("conservacao da massa (init,final): %20.8e %20.8e \n"
-        ,rPc0,rPc);
+        ,rMass0,rMass);
   printf("momentum x1          (init,final): %20.8e %20.8e\n"
-        ,rU10,rU1);
+        ,rU0[0],rU[0]);
   printf("momentum x2          (init,final): %20.8e %20.8e\n"
-        ,rU20,rU2);
+        ,rU0[1],rU[1]);
 /*...................................................................*/
 
 } 
@@ -450,21 +457,20 @@ void simpleSolver3D(Memoria *m
 
   short unsigned ndfVel = mesh->ndfF-1;
   short unsigned itSimple,conv;
-//short unsigned kZeroVel  = sp->kZeroVel;
+  short unsigned kZeroVel  = sp->kZeroVel;
   short unsigned kZeroPres = sp->kZeroPres;
-  INT nEl = mesh->numel;
   INT jj = 1;
   DOUBLE time,timei;
   DOUBLE *b1,*b2,*b3,*bPc,*xu1,*xu2,*xu3,*xp;
-  DOUBLE *rCellU1,*rCellU2,*rCellU3,*rCellPc;
+  DOUBLE *rCellPc;
 /*...*/
-  DOUBLE rU1,rU2,rU3,rU10,rU20,rU30,rPc,rPc0;
+  DOUBLE rU[3],rU0[3],tmp,tb[3],rMass0,rMass;
 /*...*/
   DOUBLE tolSimpleU1,tolSimpleU2,tolSimpleU3,tolSimpleMass;
 /*...*/
   bool xMomentum ,yMomentum ,zMomentum ,pCor;
-  bool xMomentum0,yMomentum0,zMomentum0;
-  bool fPrint=false;
+  bool relRes = false;
+  bool fPrint = false;
 
   time = getTimeC();
 /*...*/
@@ -478,14 +484,7 @@ void simpleSolver3D(Memoria *m
   xu3      = &sistEqVel->x[2*sistEqVel->neq];
   xp       = sistEqVel->x;
 
-  rCellU1  = mesh->elm.rCellVel;
-  rCellU2  = &mesh->elm.rCellVel[nEl];
-  rCellU3  = &mesh->elm.rCellVel[2*nEl];
   rCellPc  = mesh->elm.rCellPres;
-
-  xMomentum0 = true;
-  yMomentum0 = true;
-  zMomentum0 = true;
 /*...................................................................*/
 
 /*...*/
@@ -494,8 +493,10 @@ void simpleSolver3D(Memoria *m
 /*...................................................................*/
 
 /*...*/
-  rU10 = rU20 = rU30 = rPc0 = 1.e0;
-  rU1  = rU2  = rU3  = rPc  = 0.e0;
+  rMass0 = 1.e0;
+  rMass  = 0.e0;
+  rU[0]  = rU[1]  = rU[2]  = 0.e0;
+  rU0[0] = rU0[1] = rU0[2] = 1.e0;
   conv = 0;
 /*...................................................................*/
 
@@ -642,39 +643,24 @@ void simpleSolver3D(Memoria *m
 /*...................................................................*/
 
 /*...*/
-     rU1 = sqrt(dot(b1,b1,sistEqVel->neqNov));
+     tb[0] = sqrt(dot(b1,b1,sistEqVel->neqNov));
+     tb[1] = sqrt(dot(b2,b2,sistEqVel->neqNov));
+     tb[2] = sqrt(dot(b3,b3,sistEqVel->neqNov));
+     tmp   = max(tb[0],tb[1]);      
+     tmp   = max(tmp,tb[2]);      
+/*...*/ 
      xMomentum = true;
-     if( rU1 < SZERO ) xMomentum = false;
-//   if( itSimple == kZeroVel && xMomentum){
-     if(xMomentum && xMomentum0){
-       xMomentum0 = false; 
-       rU1  = sqrt(dot(rCellU1,rCellU1,mesh->numelNov));
-       rU10 = rU1;
-     }
+     if( tb[0] < tmp*SZERO ) xMomentum = false;
 /*...................................................................*/
 
 /*...*/
-     rU2 = sqrt(dot(b2,b2,sistEqVel->neqNov));
      yMomentum = true;
-     if( rU2 < SZERO ) yMomentum = false;
-//   if( itSimple == kZeroVel && yMomentum){
-     if(yMomentum && yMomentum0){
-       yMomentum0 = false; 
-       rU2  = sqrt(dot(rCellU2,rCellU2,mesh->numelNov));
-       rU20 = rU2;
-     }
+     if( tb[1] < tmp*SZERO ) yMomentum = false;
 /*...................................................................*/
 
 /*...*/
-     rU3 = sqrt(dot(b3,b3,sistEqVel->neqNov));
      zMomentum = true;
-     if( rU3 < SZERO ) zMomentum = false;
-//   if( itSimple == kZeroVel && zMomentum){
-     if(zMomentum && zMomentum0){
-       zMomentum0 = false; 
-       rU3  = sqrt(dot(rCellU3,rCellU3,mesh->numelNov));
-       rU30 = rU3;
-     }
+     if( tb[2] < tmp*SZERO ) zMomentum = false;
 /*...................................................................*/
 
 /*... solver Au = bu (velocidade estimadas)*/
@@ -776,14 +762,25 @@ void simpleSolver3D(Memoria *m
      tm.systFormPres = getTimeC() - tm.systFormPres;
 /*...................................................................*/
       
+/*... residual*/
+     residualSimple(mesh->elm.vel 
+             ,mesh->elm.rCellVel,rCellPc  
+             ,sistEqVel->ad           
+             ,rU                ,&rMass
+             ,sistEqVel->id     ,mesh->numelNov
+             ,mesh->ndm         ,3    );  
+/*...................................................................*/
+
 /*...*/
-     rPc = sqrt(dot(rCellPc,rCellPc,sistEqPres->neqNov));
+//   rPc = sqrt(dot(rCellPc,rCellPc,sistEqPres->neqNov));
      pCor = true;
-     if( rPc < SZERO ) pCor = false;
-     if( itSimple == kZeroPres) rPc0 = rPc;
-     rU1  = sqrt(dot(rCellU1,rCellU1,mesh->numelNov));
-     rU2  = sqrt(dot(rCellU2,rCellU2,mesh->numelNov));
-     rU3  = sqrt(dot(rCellU3,rCellU3,mesh->numelNov));
+     if( rMass < tmp*SZERO ) pCor = false;
+     if( itSimple == kZeroPres && relRes) rMass0 = rMass;
+     if( itSimple == kZeroVel && relRes ){
+       rU0[0] = rU[0]; 
+       rU0[1] = rU[1]; 
+       rU0[2] = rU[2]; 
+     } 
      conv = 0;
 /*...................................................................*/
 
@@ -845,13 +842,13 @@ void simpleSolver3D(Memoria *m
 /*...................................................................*/
 
 /*...*/
-     if( rPc/rPc0 < tolSimpleMass || rPc < SZERO) conv++;
+     if( rMass/rMass0 < tolSimpleMass || rMass < tmp*SZERO) conv++;
 /*..*/
-     if( rU1/rU10 < tolSimpleU1   || rU1 < SZERO) conv++;
+     if( rU[0]/rU0[0] < tolSimpleU1   || rU[0] < tmp*SZERO) conv++;
 /*...*/
-     if( rU2/rU20 < tolSimpleU2   || rU2 < SZERO) conv++;
+     if( rU[1]/rU0[1] < tolSimpleU2   || rU[1] < tmp*SZERO) conv++;
 /*...*/
-     if( rU3/rU30 < tolSimpleU3   || rU3 < SZERO) conv++;
+     if( rU[2]/rU0[2] < tolSimpleU3   || rU[2] < tmp*SZERO) conv++;
 /*..*/
      if( conv == 4) break;
 /*...................................................................*/
@@ -862,19 +859,19 @@ void simpleSolver3D(Memoria *m
      if(opt.fItPlot)
        fprintf(opt.fileItPlot[FITPLOTSIMPLE]
               ,"%d %20.8e %20.8e %20.8e %20.8e\n"
-              ,itSimple+1,rU1,rU2,rU3,rPc);
+              ,itSimple+1,rU[0],rU[1],rU[2],rMass);
 /*...................................................................*/
 
 /*...*/
-     if( jj ==  10) { 
+     if( jj ==  1) { 
        jj = 0; 
        printf("It simple: %d \n",itSimple+1);
        printf("Time(s)  : %lf \n",timei);
        printf("Residuo:\n");
-       printf("conservacao da massa: %20.8e\n",rPc/rPc0);
-       printf("momentum x1         : %20.8e\n",rU1/rU10);
-       printf("momentum x2         : %20.8e\n",rU2/rU20);
-       printf("momentum x3         : %20.8e\n",rU3/rU30);
+       printf("conservacao da massa: %20.8e\n",rMass/rMass0);
+       printf("momentum x1         : %20.8e\n",rU[0]/rU0[0]);
+       printf("momentum x2         : %20.8e\n",rU[1]/rU0[1]);
+       printf("momentum x3         : %20.8e\n",rU[2]/rU0[2]);
      } 
      jj++; 
 /*...................................................................*/
@@ -887,13 +884,13 @@ void simpleSolver3D(Memoria *m
   printf("Time(s)  : %lf \n",timei);
   printf("Residuo:\n");
   printf("conservacao da massa (init,final): %20.8e %20.8e \n"
-        ,rPc0,rPc);
+        ,rMass0,rMass);
   printf("momentum x1          (init,final): %20.8e %20.8e\n"
-        ,rU10,rU1);
+        ,rU0[0],rU[0]);
   printf("momentum x2          (init,final): %20.8e %20.8e\n"
-        ,rU20,rU2);
+        ,rU0[1],rU[1]);
   printf("momentum x3          (init,final): %20.8e %20.8e\n"
-        ,rU30,rU3);
+        ,rU0[2],rU[2]);
 /*...................................................................*/
 
 } 
@@ -1124,7 +1121,156 @@ void setSimpleScheme(char *word,Simple *sp,FILE *fileIn){
 }
 /*********************************************************************/
 
+/********************************************************************* 
+ * Data de criacao    : 18/07/2016                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * RESIDUALSIMPLE : calculo dos residuos no metodo simple            *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * vel      -> campo de velocidade                                   * 
+ * rCellVel -> residuo das equacoes das velocidade por celulas       * 
+ * rCellMass-> residuo de massa da equacoes de pressao por celulas   * 
+ * adVel    -> diagonal da equacoes de velocidades                   * 
+ * rU       -> nao definido                                          * 
+ * rMass    -> nao definido                                          * 
+ * idVel    -> numero da equacao da celula i                         * 
+ * nEl      -> numero de elementos                                   * 
+ * ndm      -> numero de dimensoes                                   * 
+ * iCod     -> tipo de residuo                                       * 
+ *          RSCALED - residuo com escala de grandeza                 * 
+ *          RSQRT   - norma p-2 ( norma euclidiana)                  * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * rU       -> residuo das velocidades                               * 
+ * rMass    -> residuo de mass                                       * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void residualSimple(DOUBLE *restrict vel
+                 ,DOUBLE *restrict rCellVel,DOUBLE *restrict rCellMass
+                 ,DOUBLE *restrict adVel
+                 ,DOUBLE *restrict rU      ,DOUBLE *restrict rMass
+                 ,INT  *restrict idVel     ,INT const nEl
+                 ,short const ndm          ,short iCod)
+{
 
+  DOUBLE maxV[3],sum[3],mod,tmp,v,rScale;
+  DOUBLE *p;
+  INT i,j,lNeq;
+  
+/*...*/
+  maxV[0] = maxV[1] = maxV[2] = 0.e0; 
+  sum [0] = sum[1]  = sum[2] = 0.e0; 
+  for(j=0;j<ndm;j++){
+    rU[j]   = 0.e0;
+  }
+/*...................................................................*/
 
+/*...*/
+  switch(iCod){
+
+/*... scaled*/
+    case RSCALED:
+/*... max(Ap*velP) */
+      for(i=0;i<nEl;i++){
+        lNeq = idVel[i] - 1;
+        if(lNeq > -1){ 
+          for(j=0;j<ndm;j++){
+            v       = MAT2D(i,j,vel,ndm);
+            mod     = fabs(adVel[lNeq]*v);
+            maxV[j] = max(maxV[j],mod);
+          }
+        }
+      }
+/*...................................................................*/
+      
+/*... max ( | F - Ax |P / max(Ap*velP) )*/
+      for(j=0;j<ndm;j++){
+        for(i=0;i<nEl;i++){
+          mod    = fabs(MAT2D(j,i,rCellVel,nEl));
+          if(maxV[j] != 0.e0)
+            rScale = mod/maxV[j];
+          else
+            rScale = 0.e0;
+          rU[j]  = max(rU[j],rScale);
+        }
+      }  
+/*...................................................................*/
+
+/*...*/
+      tmp = 0.e0;
+      for(i=0;i<nEl;i++){
+        v    = fabs(rCellMass[i]);
+        tmp += v;
+      } 
+      *rMass = tmp; 
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
+/*... norma euclidiana*/
+    case RSQRT:
+/*...*/
+      for(j=0;j<ndm;j++){
+        p     = &rCellVel[j*nEl]; 
+        rU[j] = sqrt(dot(p,p,nEl));
+      }
+/*...................................................................*/
+
+/*...*/
+      *rMass = sqrt(dot(rCellMass,rCellMass,nEl));
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
+/*... scaled*/
+    case RSCALEDSUM:
+/*... max(Ap*velP) */
+      for(i=0;i<nEl;i++){
+        lNeq = idVel[i] - 1;
+        if(lNeq > -1){ 
+          for(j=0;j<ndm;j++){
+            v       = MAT2D(i,j,vel,ndm);
+            mod     = fabs(adVel[lNeq]*v);
+            sum[j] += mod;
+          }
+        }
+      }
+/*...................................................................*/
+      
+/*... max ( | F - Ax |P / max(Ap*velP) )*/
+      for(j=0;j<ndm;j++){
+        for(i=0;i<nEl;i++){
+          mod    = fabs(MAT2D(j,i,rCellVel,nEl));
+          rU[j] += mod;
+        }
+        if( sum[j] > rU[j]*SZERO)
+          rU[j]  /=  sum[j];
+      }  
+/*...................................................................*/
+
+/*...*/
+      tmp = 0.e0;
+      for(i=0;i<nEl;i++){
+        v    = fabs(rCellMass[i]);
+        tmp += v;
+      } 
+      *rMass = tmp; 
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
+/*... */
+     default:
+       ERRO_OP(__FILE__,__func__,iCod);
+     break;
+/*...................................................................*/
+  }
+
+}     
 
  

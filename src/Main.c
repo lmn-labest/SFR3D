@@ -1979,7 +1979,7 @@ int main(int argc,char**argv){
       simple->alphaPres       = 0.3e0; 
       simple->alphaVel        = 0.8e0; 
       simple->type            = SIMPLE;
-      simple->kZeroVel        = 0;
+      simple->kZeroVel        = 1;
       simple->kZeroPres       = 0;
       simple->sPressure       = true;
       simple->faceInterpolVel = 1;
@@ -2406,9 +2406,9 @@ int main(int argc,char**argv){
       opt.gradVel  = false;
       opt.gradPres = false;
 /*...*/
-       setPrintFluid(&opt,fileIn);
+      setPrintFluid(&opt,fileIn);
 /*...................................................................*/
-       if(!mpiVar.myId ) printf("%s\n",DIF);
+      if(!mpiVar.myId ) printf("%s\n",DIF);
     }   
 /*===================================================================*/
 

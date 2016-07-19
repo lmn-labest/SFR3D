@@ -51,6 +51,13 @@
                  ,DOUBLE *restrict dField         
                  ,INT const nEl          ,short const ndm
                  ,DOUBLE const alphaPres);
+  
+  void residualSimple(DOUBLE *restrict vel
+                 ,DOUBLE *restrict rCellVel,DOUBLE *restrict rCellMass
+                 ,DOUBLE *restrict adVel
+                 ,DOUBLE *restrict rU      ,DOUBLE *restrict rPc
+                 ,INT  *restrict idVel     ,INT const nEl
+                 ,short const ndm          ,short iCod);
 /*...................................................................*/
 
 /*...*/

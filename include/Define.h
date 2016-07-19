@@ -10,6 +10,11 @@
   #define PI 3.14159265358979323846
 /*...................................................................*/
 
+/*... residuos*/
+  #define RSCALED    1
+  #define RSQRT      2 
+  #define RSCALEDSUM 3
+
 /*... trasiente*/
   #define EULER    0
   #define BACKWARD 1

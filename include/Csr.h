@@ -72,6 +72,7 @@
 
 /*...*/
   INT bandCsr(INT *ia,INT *ja,INT  neq,short type);
+  INT bandCsrC(INT *ia,INT *ja,INT  neq,short type);
 /*...................................................................*/
 
 /*...*/
