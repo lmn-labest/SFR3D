@@ -2707,3 +2707,77 @@ void wallFluid(short *restrict faceR ,INT *restrict nelcon
     }
 }   
 /*********************************************************************/
+
+/*********************************************************************/ 
+void parameterCell(DOUBLE *restrict vel  ,DOUBLE *restrict prop
+                ,DOUBLE *restrict density,DOUBLE *restrict volume
+                ,short  *restrict mat 
+                ,DOUBLE *cfl             ,DOUBLE *reynolds
+                ,bool *fParameter        ,DOUBLE const dt
+                ,INT const nEl           ,short const ndm)
+
+{
+
+  DOUBLE modVel,lc,den,viscosity,tmp;
+  DOUBLE cflMax=0.0e0,reynoldsMax=0.e0;
+  INT i;
+  short lMat;
+
+  for(i=0;i<nEl;i++){
+
+/*... numero de Courant–Friedrichs–Lewy*/
+    if(fParameter[0]){
+/*... modulo das velocidades*/
+      if(ndm == 2)
+        modVel = MAT2D(i,0,vel,ndm) + MAT2D(i,1,vel,ndm);
+      else
+        modVel = MAT2D(i,0,vel,ndm) 
+               + MAT2D(i,1,vel,ndm)
+               + MAT2D(i,2,vel,ndm);
+/*..................................................................*/
+
+/*... tamanho caracteristico*/
+      lc = sizeCar(volume[i],ndm);
+/*..................................................................*/
+
+/*...*/
+      cflMax = max(modVel*dt/lc,cflMax);  
+/*..................................................................*/
+    }
+/*..................................................................*/  
+
+/*... numero de Reynolds*/
+    if(fParameter[1]){
+/*... modulo das velocidades*/
+      if(ndm == 2)
+        modVel = MAT2D(i,0,vel,ndm) + MAT2D(i,1,vel,ndm);
+      else
+        modVel = MAT2D(i,0,vel,ndm) 
+               + MAT2D(i,1,vel,ndm)
+               + MAT2D(i,2,vel,ndm);
+/*..................................................................*/
+
+/*... tamanho caracteristico*/
+      lc = sizeCar(volume[i],ndm);
+/*..................................................................*/
+
+/*...*/
+      lMat      = mat[i]-1;
+      den       = MAT2D(i,0 ,density ,DENSITY_LEVEL);
+      viscosity = MAT2D(lMat,VISCOSITY,prop,MAXPROP);
+/*..................................................................*/
+
+
+/*...*/
+      tmp         = den*modVel*lc/viscosity;
+      reynoldsMax = max(tmp,reynoldsMax);  
+/*..................................................................*/
+    }
+/*..................................................................*/  
+  }
+/*..................................................................*/  
+
+  *cfl      = cflMax;
+  *reynolds = reynoldsMax;
+}
+/*********************************************************************/ 

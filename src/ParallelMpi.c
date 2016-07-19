@@ -16,16 +16,15 @@
  *********************************************************************/
 void mpiStart(int *argc,char **argv){
 
- int np=1,id=0;
+  int np=1,id=0;
  
- mpiVar.comm  = 0;
   
 #ifdef _MPICH_
+  mpiVar.comm  = 0;
   MPI_Init(argc, &argv);
-  MPI_Comm_dup(MPI_COMM_WORLD, &mpiVar.comm);
+  PI_Comm_dup(MPI_COMM_WORLD, &mpiVar.comm);
   MPI_Comm_size(mpiVar.comm, &np);
   MPI_Comm_rank(mpiVar.comm, &id);
-  
 #endif
 
   mpiVar.nPrcs = np;
@@ -2491,6 +2490,7 @@ void comunicate2(short *m0faceR     ,short *faceR
                 ,short const maxViz ,short const ndf
                 ,short const nPart  ,short const iCod)
 {
+#ifdef _MPICH_
   INT i,size;
   DOUBLE *nD=NULL;
   short  *nS=NULL;
@@ -2694,7 +2694,7 @@ void comunicate2(short *m0faceR     ,short *faceR
 
   }
 /*...................................................................*/
-
+#endif
 }
 /*********************************************************************/ 
 

@@ -641,7 +641,15 @@
                  ,short const iCod       ,short const ndm);
 
 /*...................................................................*/
-  
+
+/*... parametro fisicos do escoamento*/  
+void parameterCell(DOUBLE *restrict vel  ,DOUBLE *restrict prop
+                ,DOUBLE *restrict density,DOUBLE *restrict volume
+                ,short  *restrict mat 
+                ,DOUBLE *cfl             ,DOUBLE *reynolds
+                ,bool *fParameter        ,DOUBLE const dt
+                ,INT const nEl           ,short const ndm);
+/*...................................................................*/
 
 /*... funcoes de correcao atrasada*/
   DOUBLE deferredCd(DOUBLE const velC,DOUBLE const velV
@@ -681,7 +689,7 @@
             ,DOUBLE const fArea   ,DOUBLE const dcca
             ,Loads ld             ,bool const fCal);
   void setFaceBase(char *word,short *iCod);
-
+  DOUBLE sizeCar(DOUBLE const volume,short const ndm);
 /*...................................................................*/
 
 #endif/*_CELLLOOP_H_*/

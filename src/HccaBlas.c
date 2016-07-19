@@ -613,7 +613,7 @@ DOUBLE dotL8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
     tmp7 += x1[i+6]*x2[i+6];
     tmp8 += x1[i+7]*x2[i+7];
   }
-  dot = tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7+tmp8;
+  tmp = tmp1+tmp2+tmp3+tmp4+tmp5+tmp6+tmp7+tmp8;
 /*...................................................................*/
 
 /*...*/

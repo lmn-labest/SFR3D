@@ -161,6 +161,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
         ,Interface *iNeq                      
         ,void(*matvec)()    ,DOUBLE(*dot)())
 {
+#ifdef _MPICH_
   INT i,j;
   DOUBLE alpha,beta,d,conv,energy;
   DOUBLE timei,timef;
@@ -241,6 +242,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
 		        "norma %20.12e "
 		        "time %20.5lf\n"
            ,tol,j+1,energy,timef);
+#endif
 }
 /**********************************************************************/
 

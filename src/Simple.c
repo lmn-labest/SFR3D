@@ -39,8 +39,10 @@ void simpleSolver2D(Memoria *m
   DOUBLE tolSimpleU1,tolSimpleU2,tolSimpleMass;
 /*...*/
   bool xMomentum,yMomentum,pCor;
-  bool relRes = true;
+  bool relRes = false;
   bool fPrint=false;
+  DOUBLE cfl,reynolds;
+  bool fParameter[2];
 
   time = getTimeC();
 /*...*/
@@ -392,23 +394,6 @@ void simpleSolver2D(Memoria *m
 
 /*...*/
      timei = getTimeC() -time;
-     if( jj == 50) { 
-       jj = 0; 
-       printf("It simple: %d \n",itSimple+1);
-       printf("Time(s)  : %lf \n",timei);
-       printf("conservacao da massa: %20.8e\n",rMass/rMass0);
-       printf("momentum x1         : %20.8e\n",rU[0]/rU0[0]);
-       printf("momentum x2         : %20.8e\n",rU[1]/rU0[1]);
-       printf("Residuo:\n");
-     } 
-     jj++; 
-/*...................................................................*/
-  }
-/*...................................................................*/
-  time = getTimeC() -time;
-
-/*...*/
-     timei = getTimeC() -time;
 /*... arquivo de log*/
      if(opt.fItPlot)
        fprintf(opt.fileItPlot[FITPLOTSIMPLE]
@@ -417,8 +402,40 @@ void simpleSolver2D(Memoria *m
 /*...................................................................*/
 
 /*...*/
+     timei = getTimeC() -time;
+     if( jj == 50) { 
+       jj = 0; 
+       printf("It simple: %d \n",itSimple+1);
+       printf("Time(s)  : %lf \n",timei);
+       printf("Residuo:\n");
+       printf("conservacao da massa: %20.8e\n",rMass/rMass0);
+       printf("momentum x1         : %20.8e\n",rU[0]/rU0[0]);
+       printf("momentum x2         : %20.8e\n",rU[1]/rU0[1]);
+     } 
+     jj++; 
+/*...................................................................*/
+
+  }
+/*...................................................................*/
+  time = getTimeC() -time;
+
+/*...*/  
+  fParameter[0] = true;
+  fParameter[1] = true;
+  parameterCell(mesh->elm.vel           ,mesh->elm.material.prop
+               ,mesh->elm.densityFluid  ,mesh->elm.geom.volume 
+               ,mesh->elm.mat  
+               ,&cfl                    ,&reynolds
+               ,fParameter              ,sc.ddt.dt
+               ,mesh->numelNov          ,mesh->ndm);
+/*...................................................................*/
+
+/*...*/
   printf("It simple: %d \n",itSimple+1);
   printf("Time(s)  : %lf \n",time);
+  printf("Reynolds: %lf\n",reynolds);
+  if(sc.ddt.flag)
+    printf("CFL     : %lf\n",cfl);
   printf("Residuo:\n");
   printf("conservacao da massa (init,final): %20.8e %20.8e \n"
         ,rMass0,rMass);
@@ -471,6 +488,8 @@ void simpleSolver3D(Memoria *m
   bool xMomentum ,yMomentum ,zMomentum ,pCor;
   bool relRes = false;
   bool fPrint = false;
+  DOUBLE cfl,reynolds;
+  bool fParameter[2];
 
   time = getTimeC();
 /*...*/
@@ -879,6 +898,21 @@ void simpleSolver3D(Memoria *m
 /*...................................................................*/
   timei = getTimeC() -time;
 
+/*...*/  
+  fParameter[0] = true;
+  fParameter[1] = true;
+  parameterCell(mesh->elm.vel           ,mesh->elm.material.prop
+               ,mesh->elm.densityFluid  ,mesh->elm.geom.volume 
+               ,mesh->elm.mat  
+               ,&cfl                    ,&reynolds
+               ,fParameter              ,sc.ddt.dt
+               ,mesh->numelNov          ,mesh->ndm);
+
+  printf("\nReynolds: %f\n",reynolds);
+  if(sc.ddt.flag)
+    printf("\nCFL:      %f\n",cfl);
+/*...................................................................*/
+
 /*...*/
   printf("It simple: %d \n",itSimple+1);
   printf("Time(s)  : %lf \n",timei);
@@ -1148,6 +1182,9 @@ void setSimpleScheme(char *word,Simple *sp,FILE *fileIn){
  * rMass    -> residuo de mass                                       * 
  *-------------------------------------------------------------------* 
  * OBS:                                                              * 
+ * rCellVel = | rvx1 rvx2 ... rvxn |                                 *
+ *            | rvy1 rvy2 ... rvyn |                                 * 
+ *            | rvz1 rvz2 ... rvzn |                                 * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void residualSimple(DOUBLE *restrict vel
