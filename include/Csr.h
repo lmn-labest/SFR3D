@@ -76,7 +76,7 @@
 /*...................................................................*/
 
 /*...*/
-  void sortGraphCsr(INT *ia,INT *ja,INT n);
+  void sortGraphCsr(INT *restrict ia,INT *restrict ja,INT const n);
 /*...................................................................*/
 
 #endif/*_CSR_H*/

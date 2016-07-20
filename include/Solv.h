@@ -39,7 +39,7 @@
               ,DOUBLE *al          ,DOUBLE *ad        ,DOUBLE *au
               ,DOUBLE *b           ,DOUBLE *x
               ,Interface *iNeq
-              ,DOUBLE tol          ,unsigned int maxit
+              ,DOUBLE const tol    ,unsigned int maxit
               ,short const storage ,short const solver
               ,FILE* fileSolvLog   ,bool const fLog
               ,bool const newX     ,bool const openmp

@@ -44,6 +44,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
             ,&maxno,&maxViz
             ,&ndm  ,&numat
             ,file);
+/*...................................................................*/
 
 /*...*/
   mesh->nnode    = nn;
@@ -963,7 +964,7 @@ void readVfRes(short *id,INT numel,short maxRes
  * f     - valores das restricoes                                    *
  *********************************************************************/
 void readVfSource(DOUBLE *f          ,INT numel
-                 ,short int maxCarga,char *str
+                 ,short const maxCarga,char *str
                  ,FILE* file){
   
   char word[WORD_SIZE];
@@ -1032,7 +1033,7 @@ void readVfSource(DOUBLE *f          ,INT numel
  * f     - valores iniciais                                          *
  *********************************************************************/
 void readVfInitial(DOUBLE *f          ,INT numel
-                  ,short int ndf     ,char *str
+                  ,short const ndf     ,char *str
                   ,FILE* file){
   
   char word[WORD_SIZE];
@@ -1177,7 +1178,7 @@ void config(FileOpt *opt,Reord *reordMesh
   char s[WORD_SIZE];
   bool flag[NCONFIG];
   int i=0,j,temp;
-  DOUBLE conv;
+  int conv;
 
 
   for(j=0;j<NCONFIG;j++)
@@ -1221,8 +1222,10 @@ void config(FileOpt *opt,Reord *reordMesh
 /*... mem*/   
     else if(!strcmp(word,config[2])){
       fscanf(file,"%d",&temp);
-      conv    = CONV_BYTES*CONV_BYTES;
-      nmax    = temp*conv;                  
+//    conv    = CONV_BYTES*CONV_BYTES;
+      conv    = 1024*1024;
+ 			nmax    = (iptx) temp;
+			nmax    =  nmax*conv;
       flag[2] = true;
       i++;
       
@@ -1470,13 +1473,23 @@ void readEdo(Mesh *mesh,FILE *file){
 
   char *str={"endEdp"};
   char word[WORD_SIZE];
+	short i;
+
+/*...*/
+	for (i = 0; i < MAX_TRANS_EQ; i++)
+		mesh->ndfT[i] = 0;
+	for (i = 0; i < MAX_DIF_EQ; i++)
+		mesh->ndfD[i] = 0;
+	mesh->ndfF = 0;
+	mesh->ndfFt = 0;
+/*...................................................................*/
 
   readMacro(file,word,false);
   do{
 /*... transport1*/
     if(!strcmp(word,"transport1")){
       readMacro(file,word,false);
-      mesh->ndfT[0]=atol(word);
+      mesh->ndfT[0]=(short) atol(word);
       if(!mpiVar.myId ) printf("transport1 ndf %d\n"
                               ,mesh->ndfT[0]);
     }
@@ -1485,7 +1498,7 @@ void readEdo(Mesh *mesh,FILE *file){
 /*... transport2*/
     else if(!strcmp(word,"transport2")){
       readMacro(file,word,false);
-      mesh->ndfT[1]=atol(word);
+      mesh->ndfT[1]= (short) atol(word);
       if(!mpiVar.myId ) printf("transport2 ndf %d\n"
                                ,mesh->ndfT[1]);
     }
@@ -1494,7 +1507,7 @@ void readEdo(Mesh *mesh,FILE *file){
 /*... transport3*/
     else if(!strcmp(word,"transport3")){
       readMacro(file,word,false);
-      mesh->ndfT[2]=atol(word);
+      mesh->ndfT[2]= (short) atol(word);
       if(!mpiVar.myId ) printf("transport3 ndf %d\n"
                                ,mesh->ndfT[2]);
     }
@@ -1503,7 +1516,7 @@ void readEdo(Mesh *mesh,FILE *file){
 /*... diffusion1*/
     else if(!strcmp(word,"diffusion1")){
       readMacro(file,word,false);
-      mesh->ndfD[0]=atol(word);
+      mesh->ndfD[0]= (short) atol(word);
       if(!mpiVar.myId ) printf("diffusion1 ndf %d\n"
                               ,mesh->ndfD[0]);
     }
@@ -1512,7 +1525,7 @@ void readEdo(Mesh *mesh,FILE *file){
 /*... diffusion2*/
     else if(!strcmp(word,"diffusion2")){
       readMacro(file,word,false);
-      mesh->ndfD[1]=atol(word);
+      mesh->ndfD[1]= (short) atol(word);
       if(!mpiVar.myId ) printf("diffusion2 ndf %d\n"
                               ,mesh->ndfD[1]);
     }
@@ -1521,7 +1534,7 @@ void readEdo(Mesh *mesh,FILE *file){
 /*... diffusion3*/
     else if(!strcmp(word,"diffusion3")){
       readMacro(file,word,false);
-      mesh->ndfD[2]=atol(word);
+      mesh->ndfD[2]= (short) atol(word);
       if(!mpiVar.myId ) printf("diffusion3 ndf %d\n"
                               ,mesh->ndfD[2]);
     }
@@ -1530,7 +1543,7 @@ void readEdo(Mesh *mesh,FILE *file){
 /*... fluido*/
     else if(!strcmp(word,"fluid")){
       readMacro(file,word,false);
-      mesh->ndfF=atol(word);
+      mesh->ndfF= (short) atol(word);
       if(!mpiVar.myId ) printf("fluid ndf %d\n"
                               ,mesh->ndfF);
     }
@@ -1539,7 +1552,7 @@ void readEdo(Mesh *mesh,FILE *file){
 /*... fluido-termo ativado*/
     else if(!strcmp(word,"fluidt")){
       readMacro(file,word,false);
-      mesh->ndfFt=atol(word);
+      mesh->ndfFt= (short) atol(word);
       if(!mpiVar.myId ) printf("fluidt ndf %d\n"
                               ,mesh->ndfFt);
     }

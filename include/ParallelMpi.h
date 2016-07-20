@@ -1,12 +1,11 @@
 #ifndef _PARALLELMPI_H_
   #define _PARALLELMPI_H_
 /*...*/
-#ifdef _MPICH_
-  #include<mpi.h>
-#endif
+  #ifdef _MPICH_
+    #include<mpi.h>
+  #endif
   #include<stdio.h>
   #include<stdlib.h>
-
 /*...*/
   #include<Erro.h>
   #include<Define.h>
@@ -107,15 +106,16 @@
   typedef struct{
     unsigned short nPrcs;
     unsigned short myId;
-    int lString;
-    int ierr;
+	int lString;
+	int ierr;
 #ifdef _MPICH_
     MPI_Comm comm;
-    char errBuffer[MPI_MAX_ERROR_STRING];
+	char errBuffer[MPI_MAX_ERROR_STRING];
     MPI_Request sendRequest[MAX_MPI_PROCESS];
     MPI_Request recvRequest[MAX_MPI_PROCESS];
     MPI_Status  status[MAX_MPI_PROCESS];
 #endif
+
   }Mpi;
 
   Mpi mpiVar;

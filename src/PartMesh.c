@@ -201,8 +201,8 @@ void divCoorXY(DOUBLE *restrict coor,INT *restrict el
     y  = MAT2D(i,1,coor,ndm);
     dx = (x - xMin)/lx;
     dy = (y - yMin)/ly;
-    hx = (INT) ((DOUBLE) nx)*dx; 
-    hy = (INT) ((DOUBLE) ny)*dy;
+    hx = (INT) (((DOUBLE) nx)*dx); 
+    hy = (INT) (((DOUBLE) ny)*dy);
     hx = min(hx+1,nx); 
     hy = min(hy+1,ny); 
     np[i] = (hy - 1)*nx+hx;

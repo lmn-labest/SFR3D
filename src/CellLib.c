@@ -778,8 +778,8 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
                ,DOUBLE *restrict dcca     
                ,DOUBLE *restrict vSkew    ,DOUBLE *restrict mvSkew
                ,short  *restrict sn                         
-               ,short maxNo               ,short maxViz
-               ,short ndm                 ,INT nel)
+               ,short const maxNo         ,short const maxViz
+               ,short const ndm           ,INT const nel)
 {
   short i,j,k,cCell = maxViz;
   short no1,no2,no3,no4,nenFaces=0;
@@ -1182,7 +1182,7 @@ void greenGaussCell(Loads *loads
   short idCell = nFace,nCarg,type;
   short i,j,k;
 
-  invVol = 1.e0/volume[idCell];
+	invVol = 1.e0/volume[idCell];
 /*...*/
 
 /*... */
@@ -1217,7 +1217,7 @@ void greenGaussCell(Loads *loads
       else{
 /*... temperatura prescrita na face(extrapolacao linear)*/
         if(lFaceR[i]){
-          nCarg=lFaceL[i]-1;
+          nCarg= lFaceL[i]-1;
           type = loads[nCarg].type;
 /*... valor prescrito*/
           if( type == DIRICHLETBC || type == INLET){
@@ -2244,7 +2244,7 @@ void  leastSquareQR(Loads *loads
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-inline short sn(short *s,short ty,INT nel)
+short sn(short *s,short ty,INT nel)
 {
     
   long aux;
@@ -2336,7 +2336,7 @@ inline short sn(short *s,short ty,INT nel)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-inline double areaCell(double *eta,short ty,short ndm,INT nel)
+DOUBLE areaCell(DOUBLE *eta,short ty,short ndm,INT nel)
 {
   
   long aux;
@@ -2358,10 +2358,10 @@ inline double areaCell(double *eta,short ty,short ndm,INT nel)
 /*...*/    
     default: 
       aux = (long) nel;
-      printf("Erro: tipo de celula nao exitentes. Nel = %ld.\n"
-               "Arquivo fonte:  \"%s\".\n"
-               "Nome da funcao: \"%s\".\n"
-               ,aux,__FILE__,__func__);
+			printf("Erro: tipo de celula nao exitentes. Nel = %ld.\n"
+				"Arquivo fonte:  \"%s\".\n"
+				"Nome da funcao: \"%s\".\n"
+				, aux, __FILE__, __func__);
       exit(EXIT_FAILURE);
     break; 
 /*...................................................................*/
@@ -2388,7 +2388,7 @@ inline double areaCell(double *eta,short ty,short ndm,INT nel)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-inline double areaTriaCell(double *restrict eta, short ndm)
+DOUBLE areaTriaCell(DOUBLE *restrict eta, short ndm)
 {
   double v1[3],v2[3],v3[3],a,dot;
 
@@ -2435,7 +2435,7 @@ inline double areaTriaCell(double *restrict eta, short ndm)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-inline double areaQuadCell(double *restrict eta,short ndm)
+DOUBLE areaQuadCell(DOUBLE *restrict eta,short ndm)
 {
 
   double v1[3],v2[3],c[3];

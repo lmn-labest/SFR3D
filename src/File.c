@@ -77,8 +77,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       strcpy(ext,"_n_");
       strcat(ext,st);
       strcat(ext,".vtk");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -101,8 +101,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       iota(num1,st);
       strcat(ext,st);
       strcat(ext,".vtk");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -122,8 +122,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       strcpy(ext,"_n_");
       strcat(ext,st);
       strcat(ext,"_part.dat");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -143,8 +143,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       strcpy(ext,"_n_");
       strcat(ext,st);
       strcat(ext,"_part.vtk");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -161,8 +161,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 /*...*/
     case 6:
       strcat(ext,"_pgeo.vtk");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -185,8 +185,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       iota(num2,st);
       strcat(ext,st);
       strcat(ext,".txt");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -206,8 +206,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       strcpy(ext,"_D1_step_");
       strcat(ext,st);
       strcat(ext,".vtk");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -227,8 +227,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       strcpy(ext,"_n_");
       strcat(ext,st);
       strcat(ext,"_it_log.txt");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -248,8 +248,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       strcpy(ext,"_n_");
       strcat(ext,st);
       strcat(ext,"_solv_log.txt");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -266,8 +266,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 /*... arquivo da matriz no formato coo*/
     case 12:
       strcat(ext,".mtx");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -284,8 +284,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 /*... arquivo da matriz no formato coo binario*/
     case 13:
       strcat(ext,"_bin.mtx");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -302,8 +302,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 /*... arquivo da matriz no formato coo*/
     case 14:
       strcat(ext,"_b.mtx");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -326,8 +326,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       iota(num2,st);
       strcat(ext,st);
       strcat(ext,".vtk");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -346,8 +346,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       iota(num1,st);
       strcat(ext,st);
       strcat(ext,".csv");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -364,8 +364,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 /*... arquivo vtk */                        
     case 17:
       strcat(ext,"_face.vtk");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -385,8 +385,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       strcat(ext,"_map_");
       strcat(ext,st);
       strcat(ext,".dat");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -409,8 +409,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       iota(num2,st);
       strcat(ext,st);
       strcat(ext,".vtk");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -430,8 +430,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       strcpy(ext,"_T1_step_");
       strcat(ext,st);
       strcat(ext,".vtk");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -451,8 +451,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       strcpy(ext,"_fluid_step_");
       strcat(ext,st);
       strcat(ext,".vtk");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -472,8 +472,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       strcpy(ext,"_n_");
       strcat(ext,st);
       strcat(ext,"_it_simple.txt");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"
@@ -493,8 +493,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
       iota(num1,st);
       strcat(ext,st);
       strcat(ext,".txt");
-      size1 = strlen(name);
-      size2 = strlen(ext);
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){
         fprintf(stderr,"Nome do arquivo muito extenso.\n"
 	               "name : \"%s\"\n"

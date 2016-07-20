@@ -17,7 +17,8 @@
 /*...................................................................*/
   
 /*... malha de tetraedros*/
-  void adjTetra4(INT *el         ,INT *nodcon         ,INT *nelcon
+  void adjTetra4(INT *restrict el         ,INT *restrict nodcon
+	        ,INT *restrict nelcon
             ,INT const nnode    , INT const numel 
             ,short const maxNo,short const maxViz);
 

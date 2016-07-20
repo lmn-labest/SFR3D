@@ -334,12 +334,10 @@ void writeLogMeanTime(Mesh mesh         ,Scheme sc
              ,bool const fSolvD1,bool const fSolvT1
              ,char *nameIn      ,FILE *file){
 
+#ifdef _MPICH_
   DOUBLE mTime;   
   DOUBLE  nPrcs= (DOUBLE) mpiVar.nPrcs;
 
-
-#ifdef _MPICH_
-  
   if(!mpiVar.myId){
     fprintf(file,"Log do execucao : %s\n\n",nameIn); 
     fprintf(file,"nPrcs           :%2d\n\n",mpiVar.nPrcs); 

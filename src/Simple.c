@@ -39,8 +39,8 @@ void simpleSolver2D(Memoria *m
   DOUBLE tolSimpleU1,tolSimpleU2,tolSimpleMass;
 /*...*/
   bool xMomentum,yMomentum,pCor;
-  bool relRes = false;
-  bool fPrint=false;
+  bool relRes = true;
+  bool fPrint = false;
   DOUBLE cfl,reynolds;
   bool fParameter[2];
 

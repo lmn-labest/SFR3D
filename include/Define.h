@@ -1,6 +1,7 @@
 #ifndef _DEFINE_H_
   #define _DEFINE_H_
-
+	
+#define restrict __restrict
 /*...*/
   #include<stdlib.h>
   #include<stdio.h>

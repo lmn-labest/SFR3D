@@ -7,8 +7,6 @@ void mpiInit(int *argc,char **argv){
   MPI_Comm_dup(MPI_COMM_WORLD, comm);
   MPI_Comm_size(*comm, nPrcs);
   MPI_Comm_rank(*comm, myId);
-#endif
-
 /*... sem mpi*/
 #else
   *comm = 0;

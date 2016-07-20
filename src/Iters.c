@@ -43,7 +43,8 @@ void pcg(INT const nEq      ,INT const nAd
         ,bool const fPrint
         ,void(*matvec)()    ,DOUBLE(*dot)())
 {
-  INT i,j;
+  unsigned int j;
+  INT i;
   DOUBLE alpha,beta,d,conv,energy;
   DOUBLE timei,timef;
   timei = getTimeC();
@@ -162,7 +163,8 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
         ,void(*matvec)()    ,DOUBLE(*dot)())
 {
 #ifdef _MPICH_
-  INT i,j;
+  unsigned int j;
+  INT i;
   DOUBLE alpha,beta,d,conv,energy;
   DOUBLE timei,timef;
   INT param[2];
@@ -294,7 +296,8 @@ void pbicgstab(INT const nEq  ,INT const nAd
           ,bool const fPrint
           ,void(*matvec)()    ,DOUBLE(*dot)())
 {
-  INT i,j;
+  unsigned int j;
+  INT i;
   DOUBLE alpha,beta,d,conv,energy,w,rr0;
   DOUBLE timei,timef;
 
@@ -431,7 +434,8 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
           ,Interface *iNeq    
           ,void(*matvec)()     ,DOUBLE(*dot)())
 {
-  INT i,j;
+	unsigned int j;
+	INT i;
   DOUBLE alpha,beta,d,conv,energy,w,rr0;
   DOUBLE timei,timef;
   INT param[2];

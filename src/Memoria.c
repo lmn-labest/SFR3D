@@ -18,7 +18,7 @@
  * m->tempmem  - tempo  em s                                        * 
  * ---------------------------------------------------------------- * 
  ********************************************************************/
-void initMem(Memoria *m,long nmax, bool iws)
+void initMem(Memoria *m, iptx nmax, bool iws)
 {
    long int i;
    
@@ -26,8 +26,7 @@ void initMem(Memoria *m,long nmax, bool iws)
    
    if(iws)
      printf("inicializando a memoria...\n");
-   
-   
+ 
 /* m->ia = (char *) malloc(nmax*sizeof(char));*/
    m->ia = (char *) calloc(nmax,sizeof(char));
    if(!m->ia){
@@ -76,7 +75,7 @@ void finalizeMem(Memoria *m, bool iws)
  * Parametro de entrada:                                             * 
  * ----------------------------------------------------------------- * 
  * m     -> estrutura de dados da memoria                            * 
- * **end -> enderesso do ponteiro allocado                           * 
+ * **end -> endereco do ponteiro allocado                            * 
  * comp  -> numero de posicoes                                       * 
  * *s    -> nome do vetor                                            * 
  * size  -> tamanho em bytes do tipo alocado                         * 
@@ -92,9 +91,10 @@ void finalizeMem(Memoria *m, bool iws)
  * m->tempmem  - acumulado tempo  em s                               * 
  * ----------------------------------------------------------------- * 
  *********************************************************************/
-void* alloc(Memoria *m,long **end,int comp,char *s,int size,bool iws)
+void* alloc(Memoria *m, TYPEADRESS **end
+	         ,int comp,char *s,int size,bool iws)
 {
-  long int livre,nec,necA,nv;
+	iptx livre,nec,necA,nv;
   int resto;
 
 /*se o tamanho do vetor for zero transforma em 1 para nao haver
@@ -144,14 +144,14 @@ void* alloc(Memoria *m,long **end,int comp,char *s,int size,bool iws)
 /*...................................................................*/
     nv                   = m->iespont;
     m->iespont           = necA + m->iespont;
-/*... guardando endereco do panteiro*/    
+/*... guardando endereco do ponteiro*/    
     m->end[m->npont]     = end;
 /*...................................................................*/
 /*...*/
     m->npont             = m->npont + 1;
 /*...................................................................*/
     if(iws)
-      fprintf(stderr,"Memoria allocada %s %ld bytes\n"
+      fprintf(stderr,"Memoria allocada %s %lld bytes\n"
               "Ponteiro retornado %p.\n"
 	       ,s,necA,m->ia + nv);
 
@@ -163,8 +163,8 @@ void* alloc(Memoria *m,long **end,int comp,char *s,int size,bool iws)
 /*...*/  
   else{
    fprintf(stderr,"Memoria insuficiente %s\n"
-                  "Disponivel %ld bytes\n"
-                  "necessario %ld bytes\n"
+                  "Disponivel %lld bytes\n"
+                  "necessario %lld bytes\n"
 		   ,s,livre,necA);
    exit(EXIT_FAILURE); 
    return NULL;
@@ -190,7 +190,7 @@ void* alloc(Memoria *m,long **end,int comp,char *s,int size,bool iws)
  *********************************************************************/
 void setNamePoint(Memoria *m,char *s,bool iws){
   int i;
-  i=strlen(s);
+  i= (int) strlen(s);
   if(i>MNOMEPONTEIRO){
    fprintf(stderr,"Nome do arranjo \"%s\" maior que %d caracter.\n"
 		 ,s,MNOMEPONTEIRO); 
@@ -257,7 +257,7 @@ int locateNamePoint(Memoria *m,char *s,bool iws){
  *********************************************************************/
 void* dalloc(Memoria* m,char *s,bool iws)
 {
-  long nec;
+	iptx nec;
   int  pt;
    
 //m->tempmem = getTimeC() - m->tempmem;
@@ -283,12 +283,12 @@ void* dalloc(Memoria* m,char *s,bool iws)
 /*...................................................................*/	
       m->npont -= 1;
       if(iws)
-        printf("Memoria liberada %s %ld bytes.\n",s,nec);
+        printf("Memoria liberada %s %lld bytes.\n",s,nec);
       
       return NULL;
     }  
   else{
-    fprintf(stderr,"Erro liberacao da memoria %s %ld bytes\n"
+    fprintf(stderr,"Erro liberacao da memoria %s %lld bytes\n"
 	           "possivel invazao de espaco de outra variavel.\n"
 		  ,s,nec);
     exit(0);
@@ -315,7 +315,7 @@ void* dalloc(Memoria* m,char *s,bool iws)
  *********************************************************************/
 void relloc(Memoria *m,int pt,bool iws){
   unsigned int i;
-  long nec;
+	iptx nec;
 
   for(i=pt;i<m->npont-1;i++){
     strcpy(m->nome_ponteiro[i],m->nome_ponteiro[i+1]);
@@ -336,7 +336,7 @@ void relloc(Memoria *m,int pt,bool iws){
 /*...Endereco do ponteiro*/
     m->end[i] = m->end[i+1];
 /*...Ponterio a potando para a novo lugar da memoria*/    
-    *(m->end[i]) =(long int*) &m->ia[m->pont[i][0]]; 
+    *(m->end[i]) =(TYPEADRESS*) &m->ia[m->pont[i][0]];
 /*...................................................................*/  
   }
   cleanNamePoint(m,i);
@@ -345,7 +345,7 @@ void relloc(Memoria *m,int pt,bool iws){
 /*********************************************************************/
 
 /********************************************************************* 
- * MOVEVECTOR : move um vetor na memoria princiapal                  * 
+ * MOVEVECTOR : move um vetor na memoria principal                   * 
  * ------------------------------------------------------------------* 
  * Parametro de entrada:                                             * 
  * ------------------------------------------------------------------* 
@@ -358,9 +358,9 @@ void relloc(Memoria *m,int pt,bool iws){
  * ------------------------------------------------------------------* 
  *********************************************************************/
 void moveVector(Memoria *m, int v1 , int v2){
-  long sizev2;
-  long iniv1,iniv2;
-  long i,j;
+	iptx sizev2;
+	iptx iniv1,iniv2;
+	iptx i,j;
 /*... Tamanho do vetores em bytes*/
 /*... caso de ser o primeiro vetor*/
   if(v1 == 0)
@@ -399,7 +399,7 @@ void moveVector(Memoria *m, int v1 , int v2){
  * ------------------------------------------------------------------* 
  *********************************************************************/
 void* locate(Memoria *m,char *name,bool iws){
-  long ipont;
+	iptx ipont;
   int pt;
 
 /*... lacalizando vetor*/
@@ -432,7 +432,7 @@ void mapVector(Memoria *m){
   fprintf(stderr,"|none        |posicao incial |posicao final  "
          "|endereco do ponteiros|ponteiro           |\n"  );
   for(i=0;i<m->npont;i++){
-    fprintf(stderr," \"%15s\"|%15ld|%15ld|pp = %16p|p = %16p|\n"
+    fprintf(stderr," \"%15s\"|%15lld|%15lld|pp = %16p|p = %16p|\n"
                   ,m->nome_ponteiro[i],m->pont[i][0],m->pont[i][1]
 		  ,(void*)m->end[i],(void*)*(m->end[i]));
   }
@@ -471,7 +471,7 @@ void cleanNamePoint(Memoria *m,int pont){
  * Parametros de saida :                                             * 
  * ------------------------------------------------------------------* 
  *===================================================================*/
-long usoMemoria(Memoria *m,char *s){
+iptx usoMemoria(Memoria *m,char *s){
   double conv;
   
   if(!strcmp(s,"B"))
@@ -600,7 +600,7 @@ double memoriaVector(Memoria *m,char* s,char*npont,bool iws){
  *********************************************************************/
 void vzero(char *v,long n,char* type){
 
-  int i,nby;
+	iptx i,nby;
  
  /* fprintf(stderr,"endereco=%p tamanho=%ld\n",v,n);*/
   if(!strcmp(type,"int")){

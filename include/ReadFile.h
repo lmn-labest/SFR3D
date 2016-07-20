@@ -22,15 +22,15 @@
                  ,short *ndm  ,short *numat
                  ,FILE  *file);
   void readFileFvMesh(Memoria *m,Mesh *mesh, FILE *file);
-  void readVfMat(double *prop,short *type,short numat,FILE *file);
-  void readVfCoor(double *x,INT nn, short ndm,FILE *file);
+  void readVfMat(DOUBLE *prop,short *type,short numat,FILE *file);
+  void readVfCoor(DOUBLE *x,INT nn, short ndm,FILE *file);
   void readVfElmt(INT *el    ,short *mat ,short *nen,short *nFace
                  ,short *ty  ,INT  nel   ,short maxno
                  ,FILE *file);
   void readVfRes(short *id,INT numel,short maxno,char *str,FILE *file);
-  void readVfSource(double *f    ,INT numel,short const maxCarg
+  void readVfSource(DOUBLE *f    ,INT numel,short const maxCarg
                    ,char *str,FILE *file);
-  void readVfInitial(double *f    ,INT numel,short const ndf
+  void readVfInitial(DOUBLE *f    ,INT numel,short const ndf
                     ,char *str,FILE *file);
   void readVfLoads(Loads *loads,char *str,FILE* file);
 

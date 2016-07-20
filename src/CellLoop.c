@@ -88,7 +88,7 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
     }
     
     for(i=0;i<MAX_SN;i++){
-      isnod[i] = 0.0;
+      isnod[i] = 0;
     }
 
     for(i=0;i<MAX_NUM_FACE+1;i++){
@@ -276,7 +276,7 @@ void systFormDif(Loads *loads
                ,DOUBLE *restrict b       ,INT    *restrict id
                ,short  *restrict faceR   ,short  *restrict faceLd1        
                ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0 
-               ,DOUBLE *restrict rCell   ,Temporal ddt 
+               ,DOUBLE *restrict rCell   ,Temporal const ddt 
                ,INT const nEq            ,INT const nEqNov     
                ,INT const nAd            ,INT const nAdR                     
                ,short const maxNo        ,short const maxViz
@@ -530,7 +530,7 @@ void systFormTrans(Loads *loads          ,Advection advT
                ,short  *restrict faceR   ,short  *restrict faceLd1        
                ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0 
                ,DOUBLE *restrict vel                               
-               ,DOUBLE *restrict rCell   ,Temporal ddt 
+               ,DOUBLE *restrict rCell   ,Temporal const ddt 
                ,INT const nEq            ,INT const nEqNov
                ,INT const nAd            ,INT const nAdR                     
                ,short const maxNo        ,short const maxViz
@@ -805,7 +805,7 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
              ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres
              ,DOUBLE *restrict vel       ,DOUBLE *restrict gradVel
              ,DOUBLE *restrict dField    ,DOUBLE const underU  
-             ,DOUBLE *restrict rCell     ,Temporal ddt 
+             ,DOUBLE *restrict rCell     ,Temporal const ddt 
              ,INT const nEq              ,INT const nEqNov
              ,INT const nAd              ,INT const nAdR                     
              ,short const maxNo          ,short const maxViz
@@ -1105,7 +1105,7 @@ void systFormSimplePres(Loads *loadsVel  ,Loads *loadsPres
                ,short  *restrict facePresR,short  *restrict facePresL           
                ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres
                ,DOUBLE *restrict vel     ,DOUBLE *restrict dField    
-               ,DOUBLE *restrict rCell   ,Temporal ddt 
+               ,DOUBLE *restrict rCell   ,Temporal const ddt 
                ,INT const nEq            ,INT const nEqNov
                ,INT const nAd            ,INT const nAdR                     
                ,short const maxNo        ,short const maxViz
@@ -2345,11 +2345,9 @@ void rcGradU(Memoria *m               ,Loads *loads
     lFaceR[aux1]    = MAT2D(nel,aux1,faceR ,aux2);
     lFaceL[aux1]    = MAT2D(nel,aux1,faceL ,aux2);
       
-    for(i=0;i<ndf;i++){
+    for(i=0;i<ndf;i++)
       MAT2D(aux1,i,lu    ,ndf) = MAT2D(nel,i,u    ,ndf);
-      MAT2D(aux1,i,lFaceL,ndf) = MAT3D(nel,aux1,i,faceL ,aux2,ndf);
-    }
-    
+     
     for(j=0;j<MAXPROP;j++)
       lProp[j]= MAT2D(lMat,j,prop,MAXPROP);
 

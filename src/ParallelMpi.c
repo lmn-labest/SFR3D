@@ -18,13 +18,15 @@ void mpiStart(int *argc,char **argv){
 
   int np=1,id=0;
  
+ 
   
 #ifdef _MPICH_
-  mpiVar.comm  = 0;
+  mpiVar.comm = 0;
   MPI_Init(argc, &argv);
   PI_Comm_dup(MPI_COMM_WORLD, &mpiVar.comm);
   MPI_Comm_size(mpiVar.comm, &np);
   MPI_Comm_rank(mpiVar.comm, &id);
+  
 #endif
 
   mpiVar.nPrcs = np;
@@ -2497,7 +2499,6 @@ void comunicate2(short *m0faceR     ,short *faceR
   short sSize=sizeof(short); 
 //  short iSize=sizeof(INT); 
   short dSize=sizeof(DOUBLE); 
-
   switch(iCod){
     case 1: 
 /*... faceR locais*/

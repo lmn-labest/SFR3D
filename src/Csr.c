@@ -379,7 +379,7 @@ void csrJaR(INT *restrict ia    ,INT *restrict ja
 INT bandCsr(INT *ia,INT *ja,INT  neq,short type){
 
   INT i,j,aux;
-  unsigned long bandL=0;  
+  INT bandL=0;  
 
   switch(type){
 /*... banda maxima da matriz*/
@@ -443,7 +443,7 @@ INT bandCsr(INT *ia,INT *ja,INT  neq,short type){
 INT bandCsrC(INT *ia,INT *ja,INT  neq,short type){
 
   INT i,j,aux;
-  unsigned long bandL=0,col=0;  
+  INT bandL=0,col=0;
 
   switch(type){
 /*... banda maxima da matriz*/
@@ -504,7 +504,7 @@ INT bandCsrC(INT *ia,INT *ja,INT  neq,short type){
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
  * Data de modificaco : 00/00/0000                                   * 
- *-------------------------------------------------------------------* 
+*-------------------------------------------------------------------* 
  * CSR : Montagem do sistema global do CSR                           * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
