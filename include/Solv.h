@@ -29,6 +29,9 @@
 /*... funcao de apoio*/
   void setSolver(char * word,short *solver);
   DOUBLE smachn();
+	void setDot(DOUBLE(**dotC)(), short const iCod);
+	void setMatVec(void(**matVecC)(), short const storage
+                ,bool const unSym);
 /*...................................................................*/
 
 /*....*/
@@ -48,16 +51,16 @@
 
 /*========================= Iterativos ==============================*/
 /*... gradiente conjugado precondicionado*/
-  void pcg(INT const nEq        
-          ,INT const nad  
-          ,INT *restrict ia   ,INT *restrict ja
-          ,DOUBLE *restrict al,DOUBLE *restrict ad,DOUBLE *restrict au
-          ,DOUBLE *restrict m ,DOUBLE *restrict b ,DOUBLE *restrict x
-          ,DOUBLE *restrict z ,DOUBLE *restrict r ,DOUBLE const tol
-          ,unsigned int maxit ,bool const newX          
-          ,FILE* fileSolvLog  ,bool const log
-          ,bool const fPrint
-          ,void(*matvec)()    ,DOUBLE(*dot)());
+	void pcg(INT const nEq, INT const nAd
+		, INT *restrict ia, INT *restrict ja
+		, DOUBLE *restrict al, DOUBLE *restrict ad, DOUBLE *restrict au
+		, DOUBLE *restrict m, DOUBLE *restrict b, DOUBLE *restrict x
+		, DOUBLE *restrict z, DOUBLE *restrict r, DOUBLE *restrict p
+		, DOUBLE const tol
+		, unsigned int maxIt, bool const newX
+		, FILE* fLog, FILE *fileHistLog
+		, bool const log , bool const fHistLog	, bool const fPrint
+		, void(*matvec)(), DOUBLE(*dot)());
   
   void mpiPcg(INT const nEq  ,INT const nEqNov  
           ,INT const nAd      ,INT const nAdr 
@@ -78,10 +81,11 @@
        ,DOUBLE *restrict al,DOUBLE *restrict ad,DOUBLE *restrict au
        ,DOUBLE *restrict m ,DOUBLE *restrict b ,DOUBLE *restrict x
        ,DOUBLE *restrict t ,DOUBLE *restrict v ,DOUBLE *restrict r
-       ,DOUBLE *restrict p ,DOUBLE *restrict z ,DOUBLE const tol
+       ,DOUBLE *restrict p ,DOUBLE *restrict z ,DOUBLE *restrict r0
+			 ,DOUBLE const tol
        ,unsigned int maxIt ,bool const newX          
-       ,FILE* fLog         ,bool const log
-       ,bool const fPrint
+	     ,FILE* fLog    , FILE *fileHistLog
+	     ,bool const log, bool const fHistLog, bool const fPrint
        ,void(*matvec)()    ,DOUBLE(*dot)());
  
   void mpiPbicgstab(INT const nEq,INT const nEqNov      
@@ -97,7 +101,6 @@
       ,Interface *iNeq    
       ,void(*matvec)()     ,DOUBLE(*dot)());
 /*...................................................................*/
-
 /*===================================================================*/
 
 #endif/*_SOLV_H*/

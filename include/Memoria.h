@@ -5,6 +5,11 @@
 #include<stdlib.h>
 #include<HccaStdBool.h>
 #include<HccaTime.h>
+#ifdef _MSC_VER
+	typedef __int64 iptx;
+#else
+	typedef long iptx; 
+#endif
 /*...*/
 #ifdef _AD_
   #undef  _AD_
@@ -17,21 +22,24 @@
 #define MNOMEPONTEIRO 20/*Tamanho maximo do nome do vetor*/
 #define DIF   "***************************************************************"
 
-long nmax;
+/*...Tipo de variavel usado no enderessamento de vetores*/
+#define TYPEADRESS void
+
+iptx nmax;
 
 typedef struct{
   char *ia;/*arroanjo principal*/
   char nome_ponteiro[NPONTEIRO][MNOMEPONTEIRO+1];/*nome dos ponterios alocados*/
-  long int pont[NPONTEIRO][2];/*localizacao do ponteiro no ia*/                  
+	iptx pont[NPONTEIRO][2];/*localizacao do ponteiro no ia*/
   unsigned int npont;/*numero de ponteiros alocados*/
-  long int **end[NPONTEIRO];/*endereco dos ponterios allocados*/
-  long int iespont;/*localizacao do ultimo paonteiro allocado no ia*/
+	TYPEADRESS **end[NPONTEIRO];/*endereco dos ponterios allocados*/
+	iptx iespont;/*localizacao do ultimo ponteiro allocado no ia*/
   double   tempmem;/*tempo total de excucao das funcoes*/
 }Memoria;
 /******************************prototipo******************************/
-void   initMem        (Memoria*,long,bool ); 
+void   initMem        (Memoria*, iptx,bool );
 void   finalizeMem    (Memoria*,bool );
-void*  alloc          (Memoria*,long**,int,char*,int,bool);
+void*  alloc          (Memoria*, TYPEADRESS**,int,char*,int,bool);
 void   setNamePoint   (Memoria*,char*,bool);
 int    locateNamePoint(Memoria*,char*,bool);
 void*  locate          (Memoria*,char*,bool);
@@ -39,15 +47,13 @@ void   relloc          (Memoria*,int,bool);
 void   moveVector      (Memoria*,int,int);
 void   cleanNamePoint  (Memoria*,int);
 void*  dalloc          (Memoria*, char *,bool);
-long   usoMemoria      (Memoria* ,char*);
+iptx   usoMemoria      (Memoria* ,char*);
 void   mapVector       (Memoria*);
 double memoriaTotal    (char *);
 double memoriaVector   (Memoria*,char*,char*,bool);
 void   vzero(char*,long,char*);
 /*********************************************************************/
 /*...*/
-/*...Tipo de variavel usado no enderessamento de vetores*/
-#define TYPEADRESS long int
 /*Type - tipo alocado( ex int,double ...)              */
 /*   m - vetor de memoria                              */
 /*   x - ponterio alocado                              */

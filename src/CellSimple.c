@@ -612,7 +612,7 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE nk,dfd,lvSkew[2];
 /*... interpolacao linear*/
   DOUBLE alpha,alphaMenosUm;
-  DOUBLE tA;
+  DOUBLE tA[2];
 /*... */
   DOUBLE wfn,velC[2],velF[2],presC,presV;
 /*...*/
@@ -723,7 +723,7 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
 /*...cargas*/
         nCarg = lFacePresL[nAresta]-1;
         pLoadSimplePres(&sP             ,&p
-                       ,&tA   
+                       ,tA   
                        ,dFieldV         ,densityC
                        ,wfn                      
                        ,lModEta         ,dcca[nAresta]
@@ -733,7 +733,7 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
       if(lFaceVelR[nAresta] > 0){
         nCarg = lFaceVelL[nAresta]-1;
         pLoadSimple(&sP            ,&p
-                   ,&tA            ,velC          
+                   ,tA             ,velC          
                    ,lNormal
                    ,dFieldV        ,densityC
                    ,lModEta        ,dcca[nAresta]

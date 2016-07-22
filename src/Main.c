@@ -86,14 +86,14 @@ int main(int argc,char**argv){
   {"mesh"        ,"stop"         ,"config"        /* 0, 1, 2*/
   ,"pgeo"        ,"pcoob"        ,"pcoo"          /* 3, 4, 5*/ 
   ,"presolvD1"   ,"presolvT1"    ,""              /* 6, 7, 8*/
-  ,"solvD1"      ,""             , "pD1"           /* 9,10,11*/
+  ,"solvD1"      ,""             ,"pD1"           /* 9,10,11*/
   ,"nlItD1"      ,"pD1CsvCell"   ,"pD1CsvNode"    /*12,13,14*/
   ,"solvT1"      ,""             ,"pT1"           /*15,16,17*/
   ,"nlItT1"      ,"pT1CsvCell"   ,"pT1CsvNode"    /*18,19,20*/
   ,"presolvFluid","simple"       ,"preSimple"     /*21,22,23*/
   ,"transient"   ,"timeUpdate"   ,"partd"         /*24,25,26*/
   ,"advection"   ,"edp"          ,""              /*27,28,29*/
-  ,"pFluid"      ,"setPrintFluid" ,""     };       /*30,31,32*/
+  ,"pFluid"      ,"setPrintFluid" ,""     };      /*30,31,32*/
 /* ..................................................................*/
 
 /*... Memoria principal(valor padrao - bytes)*/

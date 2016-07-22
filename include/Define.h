@@ -156,6 +156,18 @@
   #define CSRCCOO 6
 /*...................................................................*/
 
+/*... produto interno*/
+  #define DOT      1
+	#define DOTL2    2
+	#define DOTL4    3
+	#define DOTL6    4
+	#define DOTL8    5
+	#define DOTO2    6
+	#define DOTO4    7
+	#define DOTO6    8
+	#define DOTO8    9
+	#define DOTO2L2 10
+/*...................................................................*/
 /*... vtk elmentos*/
   #define VTK_LINE      3
   #define VTK_TRIA      5
