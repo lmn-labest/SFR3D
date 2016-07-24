@@ -39,7 +39,7 @@ void simpleSolver2D(Memoria *m
   DOUBLE tolSimpleU1,tolSimpleU2,tolSimpleMass;
 /*...*/
   bool xMomentum,yMomentum,pCor;
-  bool relRes = true;
+  bool relRes = false;
   bool fPrint = false;
   DOUBLE cfl,reynolds;
   bool fParameter[2];
@@ -907,15 +907,14 @@ void simpleSolver3D(Memoria *m
                ,&cfl                    ,&reynolds
                ,fParameter              ,sc.ddt.dt
                ,mesh->numelNov          ,mesh->ndm);
-
-  printf("\nReynolds: %f\n",reynolds);
-  if(sc.ddt.flag)
-    printf("\nCFL:      %f\n",cfl);
 /*...................................................................*/
 
 /*...*/
   printf("It simple: %d \n",itSimple+1);
   printf("Time(s)  : %lf \n",timei);
+  printf("Reynolds: %lf\n",reynolds);
+  if(sc.ddt.flag)
+    printf("CFL     : %lf\n",cfl);
   printf("Residuo:\n");
   printf("conservacao da massa (init,final): %20.8e %20.8e \n"
         ,rMass0,rMass);

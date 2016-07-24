@@ -377,7 +377,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
       aP    = viscosityC*lModEta;
       p[0] += aP*( gradVelC[0][0]*lNormal[0] 
                  + gradVelC[1][0]*lNormal[1]);
-      p[1] += aP*( gradVelC[1][1]*lNormal[0] 
+      p[1] += aP*( gradVelC[0][1]*lNormal[0] 
                  + gradVelC[1][1]*lNormal[1]);
 /*...................................................................*/
 
@@ -409,8 +409,9 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 /*...cargas*/
         nCarg = lFaceVelL[nAresta]-1;
         pLoadSimple(&sP            ,p
-                   ,tA             ,velC  
+                   ,tA            ,velC  
                    ,lNormal  
+                   ,gradVelC[0]    ,lXmcc 
                    ,viscosityC     ,densityC
                    ,lModEta        ,dcca[nAresta]
                    ,loadsVel[nCarg],ndm
@@ -463,8 +464,8 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
 
 /*... GradP*/
-    p[0] -= pf[0];
-    p[1] -= pf[1];
+  p[0] -= pf[0];
+  p[1] -= pf[1];
 /*...................................................................*/
 
 /*...*/
@@ -612,7 +613,7 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE nk,dfd,lvSkew[2];
 /*... interpolacao linear*/
   DOUBLE alpha,alphaMenosUm;
-  DOUBLE tA[2];
+  DOUBLE tA[2],dum;
 /*... */
   DOUBLE wfn,velC[2],velF[2],presC,presV;
 /*...*/
@@ -735,6 +736,7 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
         pLoadSimple(&sP            ,&p
                    ,tA             ,velC          
                    ,lNormal
+                   ,&dum           ,&dum   
                    ,dFieldV        ,densityC
                    ,lModEta        ,dcca[nAresta]
                    ,loadsVel[nCarg],ndm
@@ -1301,6 +1303,7 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
         pLoadSimple(&sP            ,p
                    ,tA             ,velC  
                    ,lNormal  
+                   ,gradVelC[0]    ,lXmcc 
                    ,viscosityC     ,densityC
                    ,lModEta        ,dcca[nAresta]
                    ,loadsVel[nCarg],ndm
@@ -1521,7 +1524,7 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE nk,dfd,lvSkew[3];
 /*... interpolacao linear*/
   DOUBLE alpha,alphaMenosUm;
-  DOUBLE tA;
+  DOUBLE tA[3],dum;
 /*... */
   DOUBLE wfn,velC[3],velF[3],presC,presV;
 /*...*/
@@ -1653,7 +1656,7 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
 /*...cargas*/
         nCarg = lFacePresL[nAresta]-1;
         pLoadSimplePres(&sP             ,&p
-                       ,&tA   
+                       ,tA   
                        ,dFieldV         ,densityC
                        ,wfn                      
                        ,lModEta         ,dcca[nAresta]
@@ -1663,8 +1666,9 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
       if(lFaceVelR[nAresta] > 0){
         nCarg = lFaceVelL[nAresta]-1;
         pLoadSimple(&sP            ,&p
-                   ,&tA            ,velC          
+                   ,tA             ,velC          
                    ,lNormal
+                   ,&dum           ,&dum 
                    ,dFieldV        ,densityC
                    ,lModEta        ,dcca[nAresta]
                    ,loadsVel[nCarg],ndm

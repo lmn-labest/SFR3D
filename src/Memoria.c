@@ -151,7 +151,7 @@ void* alloc(Memoria *m, TYPEADRESS **end
     m->npont             = m->npont + 1;
 /*...................................................................*/
     if(iws)
-      fprintf(stderr,"Memoria allocada %s %lld bytes\n"
+      fprintf(stderr,"Memoria allocada %s %ld bytes\n"
               "Ponteiro retornado %p.\n"
 	       ,s,necA,m->ia + nv);
 
@@ -163,8 +163,8 @@ void* alloc(Memoria *m, TYPEADRESS **end
 /*...*/  
   else{
    fprintf(stderr,"Memoria insuficiente %s\n"
-                  "Disponivel %lld bytes\n"
-                  "necessario %lld bytes\n"
+                  "Disponivel %ld bytes\n"
+                  "necessario %ld bytes\n"
 		   ,s,livre,necA);
    exit(EXIT_FAILURE); 
    return NULL;
@@ -283,12 +283,12 @@ void* dalloc(Memoria* m,char *s,bool iws)
 /*...................................................................*/	
       m->npont -= 1;
       if(iws)
-        printf("Memoria liberada %s %lld bytes.\n",s,nec);
+        printf("Memoria liberada %s %ld bytes.\n",s,nec);
       
       return NULL;
     }  
   else{
-    fprintf(stderr,"Erro liberacao da memoria %s %lld bytes\n"
+    fprintf(stderr,"Erro liberacao da memoria %s %ld bytes\n"
 	           "possivel invazao de espaco de outra variavel.\n"
 		  ,s,nec);
     exit(0);
@@ -432,7 +432,7 @@ void mapVector(Memoria *m){
   fprintf(stderr,"|none        |posicao incial |posicao final  "
          "|endereco do ponteiros|ponteiro           |\n"  );
   for(i=0;i<m->npont;i++){
-    fprintf(stderr," \"%15s\"|%15lld|%15lld|pp = %16p|p = %16p|\n"
+    fprintf(stderr," \"%15s\"|%15ld|%15ld|pp = %16p|p = %16p|\n"
                   ,m->nome_ponteiro[i],m->pont[i][0],m->pont[i][1]
 		  ,(void*)m->end[i],(void*)*(m->end[i]));
   }

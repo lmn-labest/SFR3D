@@ -52,7 +52,6 @@ void solverC(Memoria *m
             ,bool const unSym    ,bool const loopWise)
 {
   DOUBLE *z=NULL,*r=NULL,*pc=NULL,*t=NULL,*v=NULL,*p=NULL,*h=NULL;
-  bool fCoo=false;
   void   (*matVecC)();
   DOUBLE (*dotC)();
 /*...*/

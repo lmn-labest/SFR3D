@@ -295,6 +295,7 @@
   void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
           ,DOUBLE *restrict tA          ,DOUBLE *restrict velC
           ,DOUBLE *restrict n
+          ,DOUBLE *restrict gradVel     ,DOUBLE *restrict xmcc
           ,DOUBLE const viscosityC      ,DOUBLE const densityC
           ,DOUBLE const fArea           ,DOUBLE const dcca
           ,Loads ld                     ,short const ndm
@@ -639,7 +640,6 @@
                  ,DOUBLE *restrict lKsi  ,DOUBLE const lModKsi 
                  ,DOUBLE const cv
                  ,short const iCod       ,short const ndm);
-
 /*...................................................................*/
 
 /*... parametro fisicos do escoamento*/  
@@ -661,7 +661,11 @@ void parameterCell(DOUBLE *restrict vel  ,DOUBLE *restrict prop
                  ,short const iCod       ,short const ndm);
 /*...................................................................*/
 
-/*... funcoes de apoio*/  
+/*... funcoes de apoio*/ 
+  void gradFaceNull(DOUBLE *restrict gradVelFace
+                   ,DOUBLE *restrict gradVelCell
+                   ,DOUBLE *restrict xmcc       ,short const ndm);
+
   short sn(short *s,short ty, INT nel);
   DOUBLE areaQuadCell(DOUBLE *restrict eta,short ndm);
   DOUBLE areaTriaCell(DOUBLE *restrict eta,short ndm);

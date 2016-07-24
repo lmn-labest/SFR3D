@@ -2795,6 +2795,9 @@ DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
  * tA         -> velocidade na face                                  * 
  * VelC       -> velocidade na centro do elemento no passo (n-1)     * 
  * n          -> normal                                              * 
+ * gradVel    -> dradiente da velocidade                             * 
+ * xmcc       -> vetores que unem o centroide aos pontos medios das  * 
+ *              faces da celula central                              * 
  * viscosityC -> coeficiente de viscosidade dinamica                 * 
  * densityC   -> massa especifica                                    * 
  * fArea      -> area da face                                        * 
@@ -2802,9 +2805,9 @@ DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
  *               celula                                              * 
  * ld         -> definicao da carga                                  * 
  * ndm        -> numero de dimensoes                                 * 
- * fCal1      -> true - atualizada sP e p                            * 
+ * fCalVel    -> true - atualizada sP e p pela equacao de velocidades* 
  *               false- nao atualizada sP e p                        * 
- * fCal2      -> true - atualizada sP e p pela pressao               * 
+ * fCalPres   -> true - atualizada sP e p pela da pressao            * 
  *               false- nao atualizada sP e p                        * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -2818,13 +2821,17 @@ DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
  *********************************************************************/
 void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
           ,DOUBLE *restrict tA        ,DOUBLE *restrict velC
-          ,DOUBLE *restrict n 
+          ,DOUBLE *restrict n       
+          ,DOUBLE *restrict gradVel   ,DOUBLE *restrict xmcc
           ,DOUBLE const viscosityC    ,DOUBLE const densityC
           ,DOUBLE const fArea         ,DOUBLE const dcca
           ,Loads ld                   ,short  const ndm 
-          ,bool const fCal1           ,bool const fCal2){
+          ,bool const fCalVel         ,bool const fCalPres){
 
-  DOUBLE aP,wfn;
+  DOUBLE aP,wfn,m,tmp[3],gradVelFace[9];
+
+
+  
 
 /*... parade impermeavel movel*/
   if( ld.type == MOVEWALL){
@@ -2832,7 +2839,7 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
     tA[1]   = ld.par[1];
     if( ndm == 3 )  tA[2]   = ld.par[2];
 /*...*/
-    if(fCal1){
+    if(fCalVel){
       aP   = viscosityC*fArea/dcca;
       *sP += aP;
       if( ndm == 2) {
@@ -2868,6 +2875,7 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
 /*...................................................................*/
     } 
 /*...................................................................*/
+
   }
 /*...................................................................*/
 
@@ -2885,13 +2893,13 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
       wfn     = tA[0]*n[0] + tA[1]*n[1]  + tA[2]*n[2] ;
     }
 /*...*/
-    if(fCal1){
+    if(fCalVel){
       aP     = densityC*wfn*fArea;
       p[0]  -= aP*tA[0];
       p[1]  -= aP*tA[1];
       if(ndm == 3) p[2] -= aP*tA[2];
     }
-    if(fCal2){
+    if(fCalPres){
       p[0]  -= densityC*wfn*fArea;
     }
   } 
@@ -2903,11 +2911,57 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
       wfn = velC[0]*n[0] + velC[1]*n[1];
     else 
       wfn = velC[0]*n[0] + velC[1]*n[1] + velC[2]*n[2];
+
+    m    = densityC*wfn*fArea;
+/*... vb = vc + Grad(Vc)*r*/
+    if(fCalVel){
 /*...*/
-    if(fCal1){
-      aP   = densityC*wfn*fArea;
+      if( ndm == 2){
+        gradVelFace[0] = 0.0e0;
+        gradVelFace[1] = 0.0e0;
+        gradVelFace[2] = 0.0e0;
+        gradVelFace[3] = 0.0e0;
+        
+        gradFaceNull(gradVelFace,gradVel,xmcc,ndm);
+        
+        tmp[0] = MAT2D(0,0,gradVelFace,2)*xmcc[0] 
+               + MAT2D(0,1,gradVelFace,2)*xmcc[1];      
+         
+        tmp[1] = MAT2D(1,0,gradVelFace,2)*xmcc[0] 
+               + MAT2D(1,1,gradVelFace,2)*xmcc[1];      
+
+        p[0] -= m*tmp[0];
+        p[1] -= m*tmp[1];
+      }
+/*...................................................................*/
+
+/*...*/
+      else{
+        tmp[0] = MAT2D(0,0,gradVel,ndm)*xmcc[0] 
+               + MAT2D(0,1,gradVel,ndm)*xmcc[1]       
+               + MAT2D(0,2,gradVel,ndm)*xmcc[2];      
+        
+        tmp[1] = MAT2D(1,0,gradVel,ndm)*xmcc[0] 
+               + MAT2D(1,1,gradVel,ndm)*xmcc[1]       
+               + MAT2D(1,2,gradVel,ndm)*xmcc[2];      
+        
+        tmp[2] = MAT2D(2,0,gradVel,ndm)*xmcc[0] 
+               + MAT2D(2,1,gradVel,ndm)*xmcc[1]       
+               + MAT2D(2,2,gradVel,ndm)*xmcc[2]; 
+     
+        p[0] -= m*tmp[0];
+        p[1] -= m*tmp[1];
+        p[2] -= m*tmp[2];
+      }
+/*...................................................................*/
+      aP   = m;
       *sP += aP;
     } 
+/*...*/
+    if(fCalPres){
+      m     = densityC*wfn*fArea;
+      p[0] -=  m;
+    }
 /*...................................................................*/
   }
 /*...................................................................*/
@@ -2958,8 +3012,6 @@ void pLoadSimplePres(DOUBLE *restrict sP  ,DOUBLE *restrict p
     tA[0]   = ld.par[0];
     if(fCal){
       *sP += densityC*fArea*dField/dcca;
-/*...*/
-      *p  -=  densityC*fArea*wfn;
     }
   }
 /*...................................................................*/
@@ -3517,5 +3569,73 @@ DOUBLE sizeCar(DOUBLE const volume,short const ndm)
   else if(ndm == 3) return pow(volume,oneDivTree);
 
   return 0.0;
+}
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * Data de criacao    : 22/07/2016                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * GRADFACENULL :  garante o gradiente nulo da face usando uma extra * 
+ * polacao no centroide                                              * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void gradFaceNull(DOUBLE *restrict gradVelFace
+                 ,DOUBLE *restrict gradVelCell
+                 ,DOUBLE *restrict xmcc       ,short const ndm)
+{
+
+  DOUBLE prod[3],tensor[3][3],eFace[3],mod;
+
+  if(ndm == 2){
+/*... vetor unitario na direcao do centroide ate o ponto medio da face
+      eFace */
+    mod      = sqrt(xmcc[0]*xmcc[0] + xmcc[1]*xmcc[1]);
+    eFace[0] = xmcc[0]/mod;
+    eFace[1] = xmcc[1]/mod;
+/*...................................................................*/
+
+/*... (Grad(VelP),eFace)*/
+    prod[0] = MAT2D(0,0,gradVelCell,2)*eFace[0]
+            + MAT2D(0,1,gradVelCell,2)*eFace[1];
+
+    prod[1] = MAT2D(1,0,gradVelCell,2)*eFace[0]
+            + MAT2D(1,1,gradVelCell,2)*eFace[1];
+/*...................................................................*/
+
+/*... produto tensorial entre dois vetores*/
+    tensor[0][0] = prod[0]*eFace[0];
+    tensor[0][1] = prod[0]*eFace[1];
+    
+    tensor[1][0] = prod[1]*eFace[0];
+    tensor[1][1] = prod[1]*eFace[1];
+
+/*...................................................................*/
+
+/*... Grad(VelFace) = Grad(VelP) - (Grad(VelP),eFace)eFace*/
+     MAT2D(0,0,gradVelFace,2) =  MAT2D(0,0,gradVelCell,2)
+                              -  tensor[0][0];        
+
+     MAT2D(0,1,gradVelFace,2) =  MAT2D(0,1,gradVelCell,2)
+                              -  tensor[0][1];        
+
+     MAT2D(1,0,gradVelFace,2) =  MAT2D(1,0,gradVelCell,2)
+                              -  tensor[1][0];        
+
+     MAT2D(1,1,gradVelFace,2) =  MAT2D(1,1,gradVelCell,2)
+                              -  tensor[1][1];        
+/*...................................................................*/
+
+  }
+
+
 }
 /*********************************************************************/ 

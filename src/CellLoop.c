@@ -807,7 +807,7 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
              ,DOUBLE *restrict dField    ,DOUBLE const underU  
              ,DOUBLE *restrict rCell     ,Temporal const ddt 
              ,INT const nEq              ,INT const nEqNov
-             ,INT const nAd              ,INT const nAdR                     
+             ,INT const nAd              ,INT const nAdR                  
              ,short const maxNo          ,short const maxViz
              ,short const ndm            ,INT const numel
              ,short const ndf            ,short const storage
@@ -985,9 +985,6 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
 /*...*/
       dField[nel] = lDfield;
 /*...................................................................*/
-//    if(matrix)
-//      printf("%d %13.5e %13.5e %13.5e %13.5e %13.5e %13.5e %13.5e \n"
-//            ,nel+1,lA[0],lA[1],lA[2],lA[3],lA[4],lB[0],lB[1]);  
       
 /*...*/
       assblySimple(ia    ,ja
@@ -1936,13 +1933,13 @@ void cellTransientSimple(DOUBLE *restrict volume  ,INT *restrict id
   INT nel,no1,no[4];
   short  isNod[MAX_SN],nCarg,ty,typed;
 
-
   switch(type){
 /*... media simple*/
     case 1:
-      if(ndf2 != 1)
+      if(ndf2 != 1){
         ERRO_GERAL(__FILE__,__func__,__LINE__
                   ,"Opcao nao implementada");
+      }
 /*...*/
       HccaAlloc(int,m,md,nNodeNov,"md",false);
       zero(md,nNodeNov,"int");
@@ -2119,7 +2116,7 @@ void cellTransientSimple(DOUBLE *restrict volume  ,INT *restrict id
     HccaAlloc(int ,m,md  ,nNode,"md",false);
     HccaAlloc(bool,m,flag,nNode,"flag",false);
     zero(md  ,nNode,"int");
-    zero(flag,nNode,"char");
+    zero(flag,nNode,"bool");
     for(nel = 0; nel < numel; nel++)
       for(i = 0; i < nFace[nel]; i++){
         if(MAT2D(nel,i,faceR,aux)>0){
