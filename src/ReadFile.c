@@ -628,7 +628,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 /*... initialVel */
     else if((!strcmp(word,macro[26])) && (!rflag[26])){
       printf("%s\n",DIF);
-      printf("!%s!\n",word);
+      printf("%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[25] = true;
       strcpy(str,"endInitialVel");

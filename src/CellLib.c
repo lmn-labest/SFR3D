@@ -2784,7 +2784,7 @@ DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
 
 /********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 11/07/2016                                   * 
+ * Data de modificaco : 24/07/2016                                   * 
  *-------------------------------------------------------------------* 
  * pLoadSimple : condicao de contorno para velocidades               *
  *-------------------------------------------------------------------* 
@@ -2829,9 +2829,6 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
           ,bool const fCalVel         ,bool const fCalPres){
 
   DOUBLE aP,wfn,m,tmp[3],gradVelFace[9];
-
-
-  
 
 /*... parade impermeavel movel*/
   if( ld.type == MOVEWALL){
@@ -2882,25 +2879,25 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
 /*... entrada de massa*/
   else if( ld.type ==  INLET){
     if( ndm == 2) {
-      tA[0]   = ld.par[0];
-      tA[1]   = ld.par[1];
-      wfn     = tA[0]*n[0] + tA[1]*n[1];
+      tA[0] = ld.par[0];
+      tA[1] = ld.par[1];
+      wfn   = tA[0]*n[0] + tA[1]*n[1];
     }
     else{
-      tA[0]   = ld.par[0];
-      tA[1]   = ld.par[1];
-      tA[2]   = ld.par[2];
-      wfn     = tA[0]*n[0] + tA[1]*n[1]  + tA[2]*n[2] ;
+      tA[0] = ld.par[0];
+      tA[1] = ld.par[1];
+      tA[2] = ld.par[2];
+      wfn   = tA[0]*n[0] + tA[1]*n[1] + tA[2]*n[2] ;
     }
 /*...*/
+    m  = densityC*wfn*fArea;
     if(fCalVel){
-      aP     = densityC*wfn*fArea;
-      p[0]  -= aP*tA[0];
-      p[1]  -= aP*tA[1];
-      if(ndm == 3) p[2] -= aP*tA[2];
+      p[0] -= m*tA[0];
+      p[1] -= m*tA[1];
+      if(ndm == 3) p[2] -= m*tA[2];
     }
     if(fCalPres){
-      p[0]  -= densityC*wfn*fArea;
+      p[0] -= m;
     }
   } 
 /*...................................................................*/
@@ -2937,25 +2934,36 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
 
 /*...*/
       else{
-        tmp[0] = MAT2D(0,0,gradVel,ndm)*xmcc[0] 
-               + MAT2D(0,1,gradVel,ndm)*xmcc[1]       
-               + MAT2D(0,2,gradVel,ndm)*xmcc[2];      
+        gradVelFace[0] = 0.0e0;
+        gradVelFace[1] = 0.0e0;
+        gradVelFace[2] = 0.0e0;
+        gradVelFace[3] = 0.0e0;
+        gradVelFace[4] = 0.0e0;
+        gradVelFace[5] = 0.0e0;
+        gradVelFace[6] = 0.0e0;
+        gradVelFace[7] = 0.0e0;
+        gradVelFace[8] = 0.0e0;
         
-        tmp[1] = MAT2D(1,0,gradVel,ndm)*xmcc[0] 
-               + MAT2D(1,1,gradVel,ndm)*xmcc[1]       
-               + MAT2D(1,2,gradVel,ndm)*xmcc[2];      
+        gradFaceNull(gradVelFace,gradVel,xmcc,ndm);
         
-        tmp[2] = MAT2D(2,0,gradVel,ndm)*xmcc[0] 
-               + MAT2D(2,1,gradVel,ndm)*xmcc[1]       
-               + MAT2D(2,2,gradVel,ndm)*xmcc[2]; 
+        tmp[0] = MAT2D(0,0,gradVelFace,3)*xmcc[0] 
+               + MAT2D(0,1,gradVelFace,3)*xmcc[1]       
+               + MAT2D(0,2,gradVelFace,3)*xmcc[2];      
+        
+        tmp[1] = MAT2D(1,0,gradVelFace,3)*xmcc[0] 
+               + MAT2D(1,1,gradVelFace,3)*xmcc[1]       
+               + MAT2D(1,2,gradVelFace,3)*xmcc[2];      
+        
+        tmp[2] = MAT2D(2,0,gradVelFace,3)*xmcc[0] 
+               + MAT2D(2,1,gradVelFace,3)*xmcc[1]       
+               + MAT2D(2,2,gradVelFace,3)*xmcc[2]; 
      
         p[0] -= m*tmp[0];
         p[1] -= m*tmp[1];
         p[2] -= m*tmp[2];
       }
 /*...................................................................*/
-      aP   = m;
-      *sP += aP;
+      *sP += m;
     } 
 /*...*/
     if(fCalPres){
@@ -3595,6 +3603,7 @@ void gradFaceNull(DOUBLE *restrict gradVelFace
 
   DOUBLE prod[3],tensor[3][3],eFace[3],mod;
 
+/*...................................................................*/
   if(ndm == 2){
 /*... vetor unitario na direcao do centroide ate o ponto medio da face
       eFace */
@@ -3632,6 +3641,73 @@ void gradFaceNull(DOUBLE *restrict gradVelFace
 
      MAT2D(1,1,gradVelFace,2) =  MAT2D(1,1,gradVelCell,2)
                               -  tensor[1][1];        
+/*...................................................................*/
+
+  }
+/*...................................................................*/
+
+/*...*/  
+  else if(ndm == 3){
+/*... vetor unitario na direcao do centroide ate o ponto medio da face
+      eFace */
+    mod      = sqrt(xmcc[0]*xmcc[0] 
+                  + xmcc[1]*xmcc[1] 
+                  + xmcc[2]*xmcc[2]);
+    eFace[0] = xmcc[0]/mod;
+    eFace[1] = xmcc[1]/mod;
+    eFace[2] = xmcc[2]/mod;
+/*...................................................................*/
+
+/*... (Grad(VelP),eFace)*/
+    prod[0] = MAT2D(0,0,gradVelCell,3)*eFace[0]
+            + MAT2D(0,1,gradVelCell,3)*eFace[1] 
+            + MAT2D(0,2,gradVelCell,3)*eFace[2];
+
+    prod[1] = MAT2D(1,0,gradVelCell,3)*eFace[0]
+            + MAT2D(1,1,gradVelCell,3)*eFace[1] 
+            + MAT2D(1,2,gradVelCell,3)*eFace[2];
+    
+    prod[2] = MAT2D(2,0,gradVelCell,3)*eFace[0]
+            + MAT2D(2,1,gradVelCell,3)*eFace[1] 
+            + MAT2D(2,2,gradVelCell,3)*eFace[2];
+/*...................................................................*/
+
+/*... produto tensorial entre dois vetores*/
+    tensor[0][0] = prod[0]*eFace[0];
+    tensor[0][1] = prod[0]*eFace[1];
+    tensor[0][2] = prod[0]*eFace[2];
+    
+    tensor[1][0] = prod[1]*eFace[0];
+    tensor[1][1] = prod[1]*eFace[1];
+    tensor[1][2] = prod[1]*eFace[2];
+    
+    tensor[2][0] = prod[2]*eFace[0];
+    tensor[2][1] = prod[2]*eFace[1];
+    tensor[2][2] = prod[2]*eFace[2];
+
+/*...................................................................*/
+
+/*... Grad(VelFace) = Grad(VelP) - (Grad(VelP),eFace)eFace*/
+     MAT2D(0,0,gradVelFace,3) =  MAT2D(0,0,gradVelCell,3)
+                              -  tensor[0][0];        
+     MAT2D(0,1,gradVelFace,3) =  MAT2D(0,1,gradVelCell,3)
+                              -  tensor[0][1];        
+     MAT2D(0,2,gradVelFace,3) =  MAT2D(0,2,gradVelCell,3)
+                              -  tensor[0][2];        
+
+     MAT2D(1,0,gradVelFace,3) =  MAT2D(1,0,gradVelCell,3)
+                              -  tensor[1][0];        
+     MAT2D(1,1,gradVelFace,3) =  MAT2D(1,1,gradVelCell,3)
+                              -  tensor[1][1];        
+     MAT2D(1,2,gradVelFace,3) =  MAT2D(1,2,gradVelCell,3)
+                              -  tensor[1][2];        
+     
+     MAT2D(2,0,gradVelFace,3) =  MAT2D(2,0,gradVelCell,3)
+                              -  tensor[2][0];        
+     MAT2D(2,1,gradVelFace,3) =  MAT2D(2,1,gradVelCell,3)
+                              -  tensor[2][1];        
+     MAT2D(2,2,gradVelFace,3) =  MAT2D(2,2,gradVelCell,3)
+                              -  tensor[2][2];        
 /*...................................................................*/
 
   }

@@ -1260,7 +1260,7 @@ void systFormSimplePres(Loads *loadsVel  ,Loads *loadsPres
         rCell[nel] = lRcell;
 /*...................................................................*/
 
-//    if(matrix && (nel == 0 ||  nel == 1 ) )
+//    if(matrix)
 //      printf("%d %e %e %e %e %e %e\n",nel+1,lA[0],lA[1],lA[2],lA[3]
 //                                               ,lA[4],lB[0]);
       

@@ -54,6 +54,7 @@ void solverC(Memoria *m
   DOUBLE *z=NULL,*r=NULL,*pc=NULL,*t=NULL,*v=NULL,*p=NULL,*h=NULL;
   void   (*matVecC)();
   DOUBLE (*dotC)();
+  bool fPrint = false;
 /*...*/
 	dotC    = NULL;
 	matVecC = NULL;
@@ -114,7 +115,7 @@ void solverC(Memoria *m
            ,tol
            ,maxIt   ,newX 
            ,fSolvLog,NULL
-           ,fLog    ,false   ,false
+           ,fLog    ,false   ,fPrint
            ,matVecC ,dotC);   
 /*...................................................................*/
       tm.pcg = getTimeC() - tm.pcg;
@@ -195,7 +196,7 @@ void solverC(Memoria *m
                  ,tol
                  ,maxIt    ,newX          
                  ,fSolvLog ,NULL
-                 ,fLog     ,false,false    
+                 ,fLog     ,false,fPrint    
                  ,matVecC  ,dotC);
 /*...................................................................*/
       tm.pbicgstab = getTimeC() - tm.pbicgstab;

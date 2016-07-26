@@ -1537,7 +1537,6 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
 
 /*...*/
-
   velC[0]      = MAT2D(idCell,0,vel,ndm);
   velC[1]      = MAT2D(idCell,1,vel,ndm);
   velC[2]      = MAT2D(idCell,2,vel,ndm);
@@ -1549,7 +1548,6 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
   presC     = pres[idCell];
 
   dFieldC   = dField[idCell]; 
-  
 /*...................................................................*/
 
   p          = 0.0e0;
@@ -1642,7 +1640,7 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
 
 /*...*/
       lA[nAresta] = dfd; 
-      p          -=   density*wfn;
+      p          -= density*wfn;
 /*...................................................................*/
 
     }
@@ -1669,7 +1667,7 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
                    ,tA             ,velC          
                    ,lNormal
                    ,&dum           ,&dum 
-                   ,dFieldV        ,densityC
+                   ,dum            ,densityC
                    ,lModEta        ,dcca[nAresta]
                    ,loadsVel[nCarg],ndm
                    ,false          ,true);   

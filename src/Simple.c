@@ -215,7 +215,7 @@ void simpleSolver2D(Memoria *m
 /*...*/
      tb[0] = sqrt(dot(b1,b1,sistEqVel->neqNov));
      tb[1] = sqrt(dot(b2,b2,sistEqVel->neqNov));
-     tmp   = max(tb[0],tb[1]);      
+     if(itSimple == 0 ) tmp   = max(tb[0],tb[1]);      
 /*...*/ 
      xMomentum = true;
      if( tb[0] < tmp*SZERO ) xMomentum = false;
@@ -665,8 +665,10 @@ void simpleSolver3D(Memoria *m
      tb[0] = sqrt(dot(b1,b1,sistEqVel->neqNov));
      tb[1] = sqrt(dot(b2,b2,sistEqVel->neqNov));
      tb[2] = sqrt(dot(b3,b3,sistEqVel->neqNov));
-     tmp   = max(tb[0],tb[1]);      
-     tmp   = max(tmp,tb[2]);      
+     if(itSimple == 0){ 
+       tmp   = max(tb[0],tb[1]);      
+       tmp   = max(tmp,tb[2]);
+     }       
 /*...*/ 
      xMomentum = true;
      if( tb[0] < tmp*SZERO ) xMomentum = false;
