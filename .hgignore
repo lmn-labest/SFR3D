@@ -4,6 +4,6 @@ src/*.o
 lib/*.a
 bin/*.txt
 bin/*.dat
-bin/*.txt
+bin/*.png
 *~
 *.swp
