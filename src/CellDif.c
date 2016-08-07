@@ -126,9 +126,9 @@ void cellDif2D(Loads *loads
 /*...................................................................*/
 
 /*...*/
-      v[0]  = lvSkew[0] + MAT2D(nAresta,0,xmcc,ndm);
-      v[1]  = lvSkew[1] + MAT2D(nAresta,1,xmcc,ndm);
-      dPviz = sqrt(v[0]*v[0] + v[1]*v[1]);
+      v[0]         = lvSkew[0] + MAT2D(nAresta,0,xmcc,ndm);
+      v[1]         = lvSkew[1] + MAT2D(nAresta,1,xmcc,ndm);
+      dPviz        = sqrt(v[0]*v[0] + v[1]*v[1]);
       alpha        = dPviz/lModKsi;
       alphaMenosUm = 1.0e0 - alpha; 
 /*...................................................................*/
@@ -149,7 +149,7 @@ void cellDif2D(Loads *loads
 /*...................................................................*/
 
 /*... derivadas direcionais*/
-      gfKsi        = gf[0] *lKsi[0]    + gf[1] *lKsi[1];
+      gfKsi        = gf[0] *lKsi[0] + gf[1] *lKsi[1];
 /*...................................................................*/
 
 /*... gradiente compacto (Darwish e Moukalled)*/

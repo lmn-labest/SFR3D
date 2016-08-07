@@ -1,67 +1,67 @@
 #include<CellLoop.h>
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 05/07/2016                                   * 
- *-------------------------------------------------------------------* 
+ * Data de modificaco : 05/07/2016                                   *
+ *-------------------------------------------------------------------*
  * CELLLIBSIMPLEVEl: chamada de bibliotecas de celulas para          *
- * problema de escoamento de fluidos (VEL)                           * 
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
- * loadsVel  -> definicoes de cargas de velocidades                  * 
- * loadsPres -> definicoes de cargas de pressao                      * 
- * advVel    -> tecnica da discretizacao do termo advecao            * 
+ * problema de escoamento de fluidos (VEL)                           *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * loadsVel  -> definicoes de cargas de velocidades                  *
+ * loadsPres -> definicoes de cargas de pressao                      *
+ * advVel    -> tecnica da discretizacao do termo advecao            *
  * typeSimple-> tipo do metodo simple                                *
- * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
  * lprop     -> propriedade fisicas das celulas                      *
- * lViz      -> viznhos da celula central                            * 
- * lId       -> equa da celula                                       * 
+ * lViz      -> viznhos da celula central                            *
+ * lId       -> equa da celula                                       *
  * Ksi       -> vetores que unem centroide da celula central aos     *
- *            vizinhos destas                                        * 
- * mKsi      -> modulo do vetor ksi                                  * 
- * eta       -> vetores paralelos as faces das celulas               * 
- * fArea     -> area das faces                                       * 
- * normal    -> vetores normais as faces das celulas                 * 
- * volume    -> volume celula central                                * 
- * xm        -> pontos medios das faces da celula central            * 
- * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
- *            faces da celula central                                * 
- * vSkew     -> vetor entre o ponto medio a intersecao que une os    * 
- *            centrois compartilhado nessa face da celula central    * 
- * mvSkew    -> distacia entre o ponto medio a intersecao que une os * 
- *            centrois compartilhado nessa face da celula central    * 
+ *            vizinhos destas                                        *
+ * mKsi      -> modulo do vetor ksi                                  *
+ * eta       -> vetores paralelos as faces das celulas               *
+ * fArea     -> area das faces                                       *
+ * normal    -> vetores normais as faces das celulas                 *
+ * volume    -> volume celula central                                *
+ * xm        -> pontos medios das faces da celula central            *
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   *
+ *            faces da celula central                                *
+ * vSkew     -> vetor entre o ponto medio a intersecao que une os    *
+ *            centrois compartilhado nessa face da celula central    *
+ * mvSkew    -> distacia entre o ponto medio a intersecao que une os *
+ *            centrois compartilhado nessa face da celula central    *
  * dcca      -> menor distacia do centroide central a faces desta    *
- *              celula                                               * 
- * lDensity  -> massa especifica com variacao temporal               * 
+ *              celula                                               *
+ * lDensity  -> massa especifica com variacao temporal               *
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
  * ddt       -> discretizacao temporal                               *
- * faceVelR  -> restricoes por elemento de velocidades               * 
- * faceVelL  -> carga por elemento de velocidades                    * 
- * facePresR -> restricoes por elemento de pressao                   * 
- * facePresL -> carga por elemento de pressao                        * 
- * pres      -> campo de pressao conhecido                           * 
- * gradPes   -> gradiente reconstruido da pressao                    * 
- * vel       -> campo de velocidade conhecido                        * 
- * dField    -> matriz D do metodo simple                            * 
+ * faceVelR  -> restricoes por elemento de velocidades               *
+ * faceVelL  -> carga por elemento de velocidades                    *
+ * facePresR -> restricoes por elemento de pressao                   *
+ * facePresL -> carga por elemento de pressao                        *
+ * pres      -> campo de pressao conhecido                           *
+ * gradPes   -> gradiente reconstruido da pressao                    *
+ * vel       -> campo de velocidade conhecido                        *
+ * dField    -> matriz D do metodo simple                            *
  * cc        -> centroides da celula centra e seus vizinhos          *
- * underU    -> fator underrelaxtion sinple                          * 
+ * underU    -> fator underrelaxtion sinple                          *
  * sPressure -> reconstrucao de segunda ordem para pressoes nas      *
  *              faces                                                *
- * nEn       -> numero de nos da celula central                      * 
- * nFace     -> numero de faces da celula central                    * 
- * ndm       -> numero de dimensoes                                  * 
- * lib       -> numero da biblioteca                                 * 
- * nel       -> numero da celula                                     * 
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
- *-------------------------------------------------------------------* 
+ * nEn       -> numero de nos da celula central                      *
+ * nFace     -> numero de faces da celula central                    *
+ * ndm       -> numero de dimensoes                                  *
+ * lib       -> numero da biblioteca                                 *
+ * nel       -> numero da celula                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
  * lA        -> coeficiente da linha i                               *
  * lB        -> vetor de forca da linha i                            *
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
  *********************************************************************/
-void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres        
+void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
              ,Advection  advVel          ,short const typeSimple 
              ,short *restrict lGeomType  ,DOUBLE *restrict lprop
              ,INT   *restrict lViz       ,INT *restrict lId  
@@ -73,14 +73,14 @@ void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
              ,DOUBLE *restrict vSkew     ,DOUBLE *restrict mvSkew
              ,DOUBLE *restrict lA        ,DOUBLE *restrict lB
              ,DOUBLE *restrict lRcell    ,Temporal const ddt
-             ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL       
-             ,short  *restrict lFacePresR,short  *restrict lFacePresL             
+             ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL
+             ,short  *restrict lFacePresR,short  *restrict lFacePresL
              ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres 
              ,DOUBLE *restrict vel       ,DOUBLE *restrict gradVel
              ,DOUBLE *restrict dField    ,DOUBLE *restrict cc
              ,DOUBLE const underU        ,const bool sPressure
-             ,short const nEn            ,short  const nFace     
-             ,short const ndm            ,short const lib    
+             ,short const nEn            ,short  const nFace
+             ,short const ndm            ,short const lib
              ,INT const nel)
 {
 
@@ -105,11 +105,11 @@ void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
                  ,pres        ,gradPres 
                  ,vel         ,gradVel
                  ,dField      ,cc
-                 ,underU      ,sPressure                         
+                 ,underU      ,sPressure
                  ,nEn         ,nFace 
                  ,ndm         ,nel);  
     }
-/*..................................................................*/   
+/*..................................................................*/
 
 /*... 3D*/
     else if(ndm == 3){
@@ -130,73 +130,73 @@ void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
                  ,pres        ,gradPres 
                  ,vel         ,gradVel
                  ,dField      ,cc
-                 ,underU      ,sPressure                         
+                 ,underU      ,sPressure
                  ,nEn         ,nFace 
                  ,ndm         ,nel);  
     } 
-/*..................................................................*/   
+/*..................................................................*/
   }
 
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 01/07/2016                                   *
- * Data de modificaco : 09/07/2016                                   * 
- *-------------------------------------------------------------------* 
+ * Data de modificaco : 09/07/2016                                   *
+ *-------------------------------------------------------------------*
  * CELLLIBSIMPLEPRES : chamada de bibliotecas de celulas para        *
- * problema de escoamento de fluidos (PRES)                          * 
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
- * loadsVel  -> definicoes de cargas de velocidades                  * 
- * loadsPres -> definicoes de cargas de pressao                      * 
- * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
+ * problema de escoamento de fluidos (PRES)                          *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * loadsVel  -> definicoes de cargas de velocidades                  *
+ * loadsPres -> definicoes de cargas de pressao                      *
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
  * lprop     -> propriedade fisicas das celulas                      *
- * lViz      -> viznhos da celula central                            * 
- * lId       -> equa da celula                                       * 
+ * lViz      -> viznhos da celula central                            *
+ * lId       -> equa da celula                                       *
  * Ksi       -> vetores que unem centroide da celula central aos     *
- *            vizinhos destas                                        * 
- * mKsi      -> modulo do vetor ksi                                  * 
- * eta       -> vetores paralelos as faces das celulas               * 
- * fArea     -> area das faces                                       * 
- * normal    -> vetores normais as faces das celulas                 * 
- * volume    -> volume celula central                                * 
- * xm        -> pontos medios das faces da celula central            * 
- * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
- *            faces da celula central                                * 
- * vSkew     -> vetor entre o ponto medio a intersecao que une os    * 
- *            centrois compartilhado nessa face da celula central    * 
- * mvSkew    -> distacia entre o ponto medio a intersecao que une os * 
- *            centrois compartilhado nessa face da celula central    * 
+ *            vizinhos destas                                        *
+ * mKsi      -> modulo do vetor ksi                                  *
+ * eta       -> vetores paralelos as faces das celulas               *
+ * fArea     -> area das faces                                       *
+ * normal    -> vetores normais as faces das celulas                 *
+ * volume    -> volume celula central                                *
+ * xm        -> pontos medios das faces da celula central            *
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   *
+ *            faces da celula central                                *
+ * vSkew     -> vetor entre o ponto medio a intersecao que une os    *
+ *            centrois compartilhado nessa face da celula central    *
+ * mvSkew    -> distacia entre o ponto medio a intersecao que une os *
+ *            centrois compartilhado nessa face da celula central    *
  * dcca      -> menor distacia do centroide central a faces desta    *
- *              celula                                               * 
- * lDensity  -> massa especifica com variacao temporal               * 
+ *              celula                                               *
+ * lDensity  -> massa especifica com variacao temporal               *
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
  * ddt       -> discretizacao temporal                               *
- * faceVelR  -> restricoes por elemento de velocidades               * 
- * faceVelL  -> carga por elemento de velocidades                    * 
- * facePresR -> restricoes por elemento de pressao                   * 
- * facePresL -> carga por elemento de pressao                        * 
- * pres      -> campo de pressao conhecido                           * 
- * gradPes   -> gradiente reconstruido da pressao                    * 
- * vel       -> campo de velocidade conhecido                        * 
- * dField    -> matriz D do metodo simple                            * 
- * nEn       -> numero de nos da celula central                      * 
- * nFace     -> numero de faces da celula central                    * 
- * ndm       -> numero de dimensoes                                  * 
- * lib       -> numero da biblioteca                                 * 
- * nel       -> numero da celula                                     * 
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
- *-------------------------------------------------------------------* 
+ * faceVelR  -> restricoes por elemento de velocidades               *
+ * faceVelL  -> carga por elemento de velocidades                    *
+ * facePresR -> restricoes por elemento de pressao                   *
+ * facePresL -> carga por elemento de pressao                        *
+ * pres      -> campo de pressao conhecido                           *
+ * gradPes   -> gradiente reconstruido da pressao                    *
+ * vel       -> campo de velocidade conhecido                        *
+ * dField    -> matriz D do metodo simple                            *
+ * nEn       -> numero de nos da celula central                      *
+ * nFace     -> numero de faces da celula central                    *
+ * ndm       -> numero de dimensoes                                  *
+ * lib       -> numero da biblioteca                                 *
+ * nel       -> numero da celula                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
  * lA        -> coeficiente da linha i                               *
  * lB        -> vetor de forca da linha i                            *
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
  *********************************************************************/
-void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres          
+void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres
                ,short *restrict lGeomType,DOUBLE *restrict lprop
                ,INT   *restrict lViz     ,INT *restrict lId  
                ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
@@ -207,8 +207,8 @@ void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres
                ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
                ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
                ,DOUBLE *restrict lRcell  ,Temporal const ddt
-               ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL       
-               ,short  *restrict lFacePresR,short  *restrict lFacePresL             
+               ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL
+               ,short  *restrict lFacePresR,short  *restrict lFacePresL
                ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres 
                ,DOUBLE *restrict vel     ,DOUBLE *restrict dField 
                ,short const nEn          ,short  const nFace     
@@ -234,11 +234,11 @@ void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres
                  ,lFaceVelR   ,lFaceVelL
                  ,lFacePresR  ,lFacePresL
                  ,pres     ,gradPres 
-                 ,vel      ,dField                                     
+                 ,vel      ,dField
                  ,nEn      ,nFace  
                  ,ndm      ,nel);  
     }
-/*..................................................................*/   
+/*..................................................................*/
 
 /*... 3D*/
     else if(ndm == 3){
@@ -255,13 +255,111 @@ void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres
                  ,lRcell    
                  ,lFaceVelR   ,lFaceVelL
                  ,lFacePresR  ,lFacePresL
+                 ,pres     ,gradPres
+                 ,vel      ,dField
+                 ,nEn      ,nFace
+                 ,ndm      ,nel);
+    } 
+/*..................................................................*/
+  }
+
+}
+/*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 02/08/2016                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * CELLLIBSIMPLENONORTHPRES : chamada de bibliotecas de celulas para *
+ * correcao nao ortogonal do problema de escoamento de fluidos (PRES)*
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
+ * lprop     -> propriedade fisicas das celulas                      *
+ * lViz      -> viznhos da celula central                            *
+ * lId       -> equa da celula                                       *
+ * Ksi       -> vetores que unem centroide da celula central aos     *
+ *            vizinhos destas                                        *
+ * mKsi      -> modulo do vetor ksi                                  *
+ * eta       -> vetores paralelos as faces das celulas               *
+ * fArea     -> area das faces                                       *
+ * normal    -> vetores normais as faces das celulas                 *
+ * volume    -> volume celula central                                *
+ * xm        -> pontos medios das faces da celula central            *
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   *
+ *            faces da celula central                                *
+ * vSkew     -> vetor entre o ponto medio a intersecao que une os    *
+ *            centrois compartilhado nessa face da celula central    *
+ * mvSkew    -> distacia entre o ponto medio a intersecao que une os *
+ *            centrois compartilhado nessa face da celula central    *
+ * dcca      -> menor distacia do centroide central a faces desta    *
+ *              celula                                               *
+ * lDensity  -> massa especifica com variacao temporal               *
+ * lB        -> nao definido                                         *
+ * gradPes   -> gradiente reconstruido da pressao                    *
+ * dField    -> matriz D do metodo simple                            *
+ * cc        -> centroides da celula centra e seus vizinhos          *
+ * nEn       -> numero de nos da celula central                      *
+ * nFace     -> numero de faces da celula central                    *
+ * ndm       -> numero de dimensoes                                  *
+ * nel       -> numero da celula                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * lB        -> vetor de forca da linha i                            *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void cellLibSimpleNonOrthPres(short *restrict lGeomType
+               ,DOUBLE *restrict lprop   ,INT   *restrict lViz
+               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
+               ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
+               ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
+               ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
+               ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
+               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
+               ,DOUBLE *restrict lB      
+               ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres
+               ,DOUBLE *restrict dField  ,DOUBLE *restrict cc
+               ,short const nEn          ,short  const nFace     
+               ,short const ndm          ,INT const nel)
+{
+
+/*... 2D*/
+  if(ndm == 2){
+    cellSimpleNonOrthPres2D(lGeomType
+                 ,lprop    ,lViz     
+                 ,ksi      ,mKsi
+                 ,eta      ,fArea
+                 ,normal   ,volume
+                 ,xm       ,xmcc
+                 ,dcca     ,lDensity 
+                 ,vSkew    ,mvSkew
+                 ,lB       
                  ,pres     ,gradPres 
-                 ,vel      ,dField                                     
+                 ,dField   ,cc
                  ,nEn      ,nFace  
                  ,ndm      ,nel);  
-    } 
-/*..................................................................*/   
   }
+/*..................................................................*/   
+
+/*... 3D*/
+  else if(ndm == 3){
+    cellSimpleNonOrthPres3D(lGeomType
+                 ,lprop    ,lViz     
+                 ,ksi      ,mKsi
+                 ,eta      ,fArea
+                 ,normal   ,volume
+                 ,xm       ,xmcc
+                 ,dcca     ,lDensity 
+                 ,vSkew    ,mvSkew
+                 ,lB       
+                 ,pres     ,gradPres 
+                 ,dField   ,cc
+                 ,nEn      ,nFace  
+                 ,ndm      ,nel);  
+  } 
+/*..................................................................*/   
 
 }
 /*********************************************************************/
@@ -3314,6 +3412,8 @@ DOUBLE faceBaseTvd(short const nAresta    ,short const idCell
  *-------------------------------------------------------------------* 
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ * Tface = (TfaceUp)Imp + limte*(TfaceDown - TfaceUp)Exp            *   
  *********************************************************************/
 DOUBLE faceBaseTvdV1(DOUBLE const uC     ,DOUBLE const uV
                  ,DOUBLE *restrict gradUc,DOUBLE *restrict gradUv
@@ -3338,7 +3438,7 @@ DOUBLE faceBaseTvdV1(DOUBLE const uC     ,DOUBLE const uV
       r     = 2.0e0*gf/du - 1.0e0;
       cvc   = 0.5e0*limitFaceBase(r,iCod)*du;
     }
-  else if(ndm ==3){
+  else if(ndm == 3){
     if( cv < 0.0e0) {
       du    = uC - uV + eps;
       gf    = -( gradUv[0]*lKsi[0] 
@@ -3383,7 +3483,8 @@ DOUBLE faceBaseTvdV1(DOUBLE const uC     ,DOUBLE const uV
  *                                                                   * 
  *-------------------------------------------------------------------* 
  * OBS:                                                              *
- * Tface = TfaceUp + grad(T)*r                                       *   
+ * Tface = (TfaceUp)Imp + (TfaceUp + grad(T)*r - TFaceUp)Exp         *   
+ *       = (TfaceUp)Imp + (grad(T)*r)Exp                             *   
  *-------------------------------------------------------------------* 
  *********************************************************************/
 DOUBLE upwindLinearV1(DOUBLE const uC     ,DOUBLE const uV

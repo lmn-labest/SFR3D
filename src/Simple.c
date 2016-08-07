@@ -26,7 +26,8 @@ void simpleSolver2D(Memoria *m
                    ,char *nameOut     ,FILE *fileOut){
 
   short unsigned ndfVel = mesh->ndfF-1;
-  short unsigned itSimple,conv;
+  short unsigned conv;
+  int itSimple,nonOrth;
   short unsigned kZeroVel  = sp->kZeroVel;
   short unsigned kZeroPres = sp->kZeroPres;
   INT jj = 1;
@@ -347,32 +348,119 @@ void simpleSolver2D(Memoria *m
        updateCellSimplePres(sp->ePresC,xp,sistEqPres->id,mesh->numelNov); 
 /*...................................................................*/
 
+/*...*/
+       alphaProdVector(1.e0,sp->ePresC,mesh->numel,sp->ePresC1); 
+/*...................................................................*/
+
+/*... correcao nao ortoganal da pressao de correcao*/
+       for(nonOrth=0;nonOrth < sp->nNonOrth;nonOrth++){
+
 /*... reconstruindo do gradiente da pressao correcao*/
-       tm.rcGradPres = getTimeC() - tm.rcGradPres;
-       rcGradU(m                    ,loadsPres
+         tm.rcGradPres = getTimeC() - tm.rcGradPres;
+         rcGradU(m                  ,loadsPres
            ,mesh->elm.node          ,mesh->elm.adj.nelcon
            ,mesh->elm.geom.cc       ,mesh->node.x   
            ,mesh->elm.nen           ,mesh->elm.adj.nViz 
            ,mesh->elm.geomType      ,mesh->elm.material.prop 
            ,mesh->elm.mat 
            ,mesh->elm.leastSquare   ,mesh->elm.leastSquareR
-           ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
-           ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
-           ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-           ,mesh->elm.geom.vSkew      
-           ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
+           ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi
+           ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea
+           ,mesh->elm.geom.normal   ,mesh->elm.geom.volume
+           ,mesh->elm.geom.vSkew
+           ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc
            ,mesh->elm.geom.dcca
-           ,mesh->elm.faceRpres     ,mesh->elm.faceLoadPres  
-           ,sp->ePresC              ,sp->eGradPresC                         
+           ,mesh->elm.faceRpres     ,mesh->elm.faceLoadPres
+           ,sp->ePresC1             ,sp->eGradPresC
            ,sp->nPresC              ,sc.rcGrad
            ,mesh->maxNo             ,mesh->maxViz
            ,1                       ,mesh->ndm
-           ,&pMesh->iNo             ,&pMesh->iEl  
-           ,mesh->numelNov          ,mesh->numel        
-           ,mesh->nnodeNov          ,mesh->nnode); 
-       tm.rcGradPres = getTimeC() - tm.rcGradPres;
+           ,&pMesh->iNo             ,&pMesh->iEl
+           ,mesh->numelNov          ,mesh->numel
+           ,mesh->nnodeNov          ,mesh->nnode);
+         tm.rcGradPres = getTimeC() - tm.rcGradPres;
+/*...................................................................*/
+
+/*...*/
+         tm.systFormPres = getTimeC() - tm.systFormPres;
+         simpleNonOrthPres( mesh->elm.node    ,mesh->elm.adj.nelcon
+                    ,mesh->elm.nen           ,mesh->elm.adj.nViz
+                    ,mesh->elm.geomType      ,mesh->elm.material.prop
+                    ,mesh->elm.material.type ,mesh->elm.mat
+                    ,mesh->elm.geom.cc 
+                    ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi
+                    ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea
+                    ,mesh->elm.geom.normal   ,mesh->elm.geom.volume
+                    ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc
+                    ,mesh->elm.geom.vSkew    ,mesh->elm.geom.mvSkew
+                    ,mesh->elm.geom.dcca     ,mesh->elm.densityFluid
+                    ,bPc                     ,sistEqPres->id
+                    ,mesh->elm.faceRpres     ,sp->ePresC1     
+                    ,sp->eGradPresC          ,sp->d
+                    ,mesh->maxNo             ,mesh->maxViz
+                    ,mesh->ndm               ,mesh->numelNov);
+         tm.systFormPres = getTimeC() - tm.systFormPres;
+/*...................................................................*/
+
+/*...*/
+         tm.solvPres = getTimeC() - tm.solvPres;
+         solverC(m
+            ,sistEqPres->neq    ,sistEqPres->neqNov
+            ,sistEqPres->nad    ,sistEqPres->nadr
+            ,sistEqPres->ia     ,sistEqPres->ja
+            ,sistEqPres->al     ,sistEqPres->ad,sistEqPres->au
+            ,bPc                ,xp
+            ,&sistEqPres->iNeq
+            ,solvPres->tol      ,solvPres->maxIt
+            ,sistEqPres->storage,solvPres->solver
+            ,solvPres->fileSolv ,solvPres->log
+            ,true               ,false
+            ,sistEqPres->unsym  ,false);
+         tm.solvPres = getTimeC() - tm.solvPres;  
+/*...................................................................*/
+
+/*... atualizando da pressao de correcao*/
+         updateCellSimplePres(sp->ePresC1,xp,sistEqPres->id
+                             ,mesh->numelNov);  
+/*...................................................................*/
+
+/*... soma o vetor presC(i) = presC + presC1*/
+         addVector(1.0e0           ,sp->ePresC
+                  ,1.0e0           ,sp->ePresC1
+                  ,mesh->numel     ,sp->ePresC);
+/*...................................................................*/
+       }
+/*...................................................................*/
      }
 /*...................................................................*/
+
+/*... reconstruindo do gradiente da pressao correcao*/
+     tm.rcGradPres = getTimeC() - tm.rcGradPres;
+     rcGradU(m                      ,loadsPres
+           ,mesh->elm.node          ,mesh->elm.adj.nelcon
+           ,mesh->elm.geom.cc       ,mesh->node.x   
+           ,mesh->elm.nen           ,mesh->elm.adj.nViz 
+           ,mesh->elm.geomType      ,mesh->elm.material.prop 
+           ,mesh->elm.mat 
+           ,mesh->elm.leastSquare   ,mesh->elm.leastSquareR
+           ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi
+           ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea
+           ,mesh->elm.geom.normal   ,mesh->elm.geom.volume
+           ,mesh->elm.geom.vSkew
+           ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc
+           ,mesh->elm.geom.dcca
+           ,mesh->elm.faceRpres     ,mesh->elm.faceLoadPres
+           ,sp->ePresC              ,sp->eGradPresC
+           ,sp->nPresC              ,sc.rcGrad
+           ,mesh->maxNo             ,mesh->maxViz
+           ,1                       ,mesh->ndm
+           ,&pMesh->iNo             ,&pMesh->iEl
+           ,mesh->numelNov          ,mesh->numel
+           ,mesh->nnodeNov          ,mesh->nnode); 
+     tm.rcGradPres = getTimeC() - tm.rcGradPres;
+/*...................................................................*/
+
+
 
 /*... atualizacao de u, v, w e p*/
      simpleUpdate(mesh->elm.vel,mesh->elm.pressure
@@ -403,7 +491,7 @@ void simpleSolver2D(Memoria *m
 
 /*...*/
      timei = getTimeC() -time;
-     if( jj == 50) { 
+     if( jj == 1) { 
        jj = 0; 
        printf("It simple: %d \n",itSimple+1);
        printf("Time(s)  : %lf \n",timei);
@@ -450,7 +538,7 @@ void simpleSolver2D(Memoria *m
 
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 02/08/2016                                   * 
  *-------------------------------------------------------------------* 
  * SIMPLESOLVER3D: metodo simple e simpleC para escoamentos 3D       * 
  *-------------------------------------------------------------------* 
@@ -471,9 +559,10 @@ void simpleSolver3D(Memoria *m
                    ,Scheme sc         ,PartMesh *pMesh 
                    ,FileOpt opt       ,char *preName  
                    ,char *nameOut     ,FILE *fileOut){
-
   short unsigned ndfVel = mesh->ndfF-1;
-  short unsigned itSimple,conv;
+  short unsigned conv;
+  int itSimple;
+  int nonOrth;
   short unsigned kZeroVel  = sp->kZeroVel;
   short unsigned kZeroPres = sp->kZeroPres;
   INT jj = 1;
@@ -486,8 +575,8 @@ void simpleSolver3D(Memoria *m
   DOUBLE tolSimpleU1,tolSimpleU2,tolSimpleU3,tolSimpleMass;
 /*...*/
   bool xMomentum ,yMomentum ,zMomentum ,pCor;
-  bool relRes = false;
-  bool fPrint = false;
+  bool relRes  = false;
+  bool fPrint  = false;
   DOUBLE cfl,reynolds;
   bool fParameter[2];
 
@@ -556,6 +645,11 @@ void simpleSolver3D(Memoria *m
 
 /*...*/
   for(itSimple=0;itSimple<sp->maxIt;itSimple++){
+/*...*/
+     if (fopen("stopSimple.mvf","r") !=NULL) break; 
+/*...................................................................*/
+
+
 /*... calculo da matrix jacobiana das velocidades
                             | du1dx1 du1dx2 du1dx3 |   
                             | du2dx1 du2dx2 du2dx3 |   
@@ -698,7 +792,7 @@ void simpleSolver3D(Memoria *m
            ,solvVel->tol       ,solvVel->maxIt     
            ,sistEqVel->storage ,solvVel->solver
            ,solvVel->fileSolv  ,solvVel->log  
-           ,false              ,false
+           ,true               ,false
            ,sistEqVel->unsym   ,false);   
        tm.solvVel = getTimeC() - tm.solvVel;
      }
@@ -718,7 +812,7 @@ void simpleSolver3D(Memoria *m
            ,solvVel->tol       ,solvVel->maxIt     
            ,sistEqVel->storage ,solvVel->solver
            ,solvVel->fileSolv  ,solvVel->log  
-           ,false              ,false
+           ,true               ,false
            ,sistEqVel->unsym   ,false);  
        tm.solvVel = getTimeC() - tm.solvVel;
      }
@@ -738,7 +832,7 @@ void simpleSolver3D(Memoria *m
            ,solvVel->tol       ,solvVel->maxIt     
            ,sistEqVel->storage ,solvVel->solver
            ,solvVel->fileSolv  ,solvVel->log  
-           ,false              ,false
+           ,true               ,false
            ,sistEqVel->unsym   ,false);  
        tm.solvVel = getTimeC() - tm.solvVel;
      }
@@ -793,7 +887,6 @@ void simpleSolver3D(Memoria *m
 /*...................................................................*/
 
 /*...*/
-//   rPc = sqrt(dot(rCellPc,rCellPc,sistEqPres->neqNov));
      pCor = true;
      if( rMass < tmp*SZERO ) pCor = false;
      if( itSimple == kZeroPres && relRes) rMass0 = rMass;
@@ -807,6 +900,12 @@ void simpleSolver3D(Memoria *m
 
 /*... solver ApPc = bpC (velocidade estimadas)*/
      if(pCor){
+/*...*/
+       zero(sp->ePresC ,mesh->numel  ,DOUBLEC);
+       zero(sp->ePresC1,mesh->numel  ,DOUBLEC);
+/*...................................................................*/
+
+/*...*/
        tm.solvPres = getTimeC() - tm.solvPres;
        solverC(m               
            ,sistEqPres->neq    ,sistEqPres->neqNov  
@@ -818,7 +917,7 @@ void simpleSolver3D(Memoria *m
            ,solvPres->tol      ,solvPres->maxIt     
            ,sistEqPres->storage,solvPres->solver
            ,solvPres->fileSolv ,solvPres->log  
-           ,false              ,false
+           ,true               ,false
            ,sistEqPres->unsym  ,false);   
        tm.solvPres = getTimeC() - tm.solvPres;
 /*...................................................................*/
@@ -827,32 +926,117 @@ void simpleSolver3D(Memoria *m
        updateCellSimplePres(sp->ePresC,xp,sistEqPres->id,mesh->numelNov); 
 /*...................................................................*/
 
+/*...*/
+       alphaProdVector(1.e0,sp->ePresC,mesh->numel,sp->ePresC1); 
+/*...................................................................*/
+
+/*... correcao nao ortoganal da pressao de correcao*/
+       for(nonOrth=0;nonOrth < sp->nNonOrth;nonOrth++){
 /*... reconstruindo do gradiente da pressao correcao*/
-       tm.rcGradPres = getTimeC() - tm.rcGradPres;
-       rcGradU(m                    ,loadsPres
+         tm.rcGradPres = getTimeC() - tm.rcGradPres;
+         rcGradU(m                  ,loadsPres
            ,mesh->elm.node          ,mesh->elm.adj.nelcon
            ,mesh->elm.geom.cc       ,mesh->node.x   
            ,mesh->elm.nen           ,mesh->elm.adj.nViz 
            ,mesh->elm.geomType      ,mesh->elm.material.prop 
            ,mesh->elm.mat 
            ,mesh->elm.leastSquare   ,mesh->elm.leastSquareR
-           ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
-           ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
-           ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-           ,mesh->elm.geom.vSkew      
-           ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
+           ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi
+           ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea
+           ,mesh->elm.geom.normal   ,mesh->elm.geom.volume
+           ,mesh->elm.geom.vSkew
+           ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc
            ,mesh->elm.geom.dcca
-           ,mesh->elm.faceRpres     ,mesh->elm.faceLoadPres  
-           ,sp->ePresC              ,sp->eGradPresC                         
+           ,mesh->elm.faceRpres     ,mesh->elm.faceLoadPres
+           ,sp->ePresC1             ,sp->eGradPresC
            ,sp->nPresC              ,sc.rcGrad
            ,mesh->maxNo             ,mesh->maxViz
            ,1                       ,mesh->ndm
-           ,&pMesh->iNo             ,&pMesh->iEl  
-           ,mesh->numelNov          ,mesh->numel        
-           ,mesh->nnodeNov          ,mesh->nnode); 
-       tm.rcGradPres = getTimeC() - tm.rcGradPres;
+           ,&pMesh->iNo             ,&pMesh->iEl
+           ,mesh->numelNov          ,mesh->numel
+           ,mesh->nnodeNov          ,mesh->nnode);
+         tm.rcGradPres = getTimeC() - tm.rcGradPres;
+/*...................................................................*/
+
+/*...*/
+         tm.systFormPres = getTimeC() - tm.systFormPres;
+         simpleNonOrthPres( mesh->elm.node    ,mesh->elm.adj.nelcon
+                    ,mesh->elm.nen           ,mesh->elm.adj.nViz
+                    ,mesh->elm.geomType      ,mesh->elm.material.prop
+                    ,mesh->elm.material.type ,mesh->elm.mat
+                    ,mesh->elm.geom.cc 
+                    ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi
+                    ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea
+                    ,mesh->elm.geom.normal   ,mesh->elm.geom.volume
+                    ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc
+                    ,mesh->elm.geom.vSkew    ,mesh->elm.geom.mvSkew
+                    ,mesh->elm.geom.dcca     ,mesh->elm.densityFluid
+                    ,bPc                     ,sistEqPres->id
+                    ,mesh->elm.faceRpres     ,sp->ePresC1     
+                    ,sp->eGradPresC          ,sp->d
+                    ,mesh->maxNo             ,mesh->maxViz
+                    ,mesh->ndm               ,mesh->numelNov);
+         tm.systFormPres = getTimeC() - tm.systFormPres;
+/*...................................................................*/
+
+/*...*/
+         tm.solvPres = getTimeC() - tm.solvPres;
+         solverC(m
+            ,sistEqPres->neq    ,sistEqPres->neqNov
+            ,sistEqPres->nad    ,sistEqPres->nadr
+            ,sistEqPres->ia     ,sistEqPres->ja
+            ,sistEqPres->al     ,sistEqPres->ad,sistEqPres->au
+            ,bPc                ,xp
+            ,&sistEqPres->iNeq
+            ,solvPres->tol      ,solvPres->maxIt
+            ,sistEqPres->storage,solvPres->solver
+            ,solvPres->fileSolv ,solvPres->log
+            ,true               ,false
+            ,sistEqPres->unsym  ,false);
+         tm.solvPres = getTimeC() - tm.solvPres;  
+/*...................................................................*/
+
+/*... atualizando da pressao de correcao*/
+         updateCellSimplePres(sp->ePresC1,xp,sistEqPres->id
+                             ,mesh->numelNov);  
+/*...................................................................*/
+
+/*... soma o vetor presC(i) = presC + presC1*/
+         addVector(1.0e0           ,sp->ePresC
+                  ,1.0e0           ,sp->ePresC1
+                  ,mesh->numel     ,sp->ePresC);
+/*...................................................................*/
+       }
+/*...................................................................*/
      }
 /*...................................................................*/
+
+/*... reconstruindo do gradiente da pressao correcao*/
+     tm.rcGradPres = getTimeC() - tm.rcGradPres;
+     rcGradU(m                      ,loadsPres
+           ,mesh->elm.node          ,mesh->elm.adj.nelcon
+           ,mesh->elm.geom.cc       ,mesh->node.x   
+           ,mesh->elm.nen           ,mesh->elm.adj.nViz 
+           ,mesh->elm.geomType      ,mesh->elm.material.prop 
+           ,mesh->elm.mat 
+           ,mesh->elm.leastSquare   ,mesh->elm.leastSquareR
+           ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi
+           ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea
+           ,mesh->elm.geom.normal   ,mesh->elm.geom.volume
+           ,mesh->elm.geom.vSkew
+           ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc
+           ,mesh->elm.geom.dcca
+           ,mesh->elm.faceRpres     ,mesh->elm.faceLoadPres
+           ,sp->ePresC              ,sp->eGradPresC
+           ,sp->nPresC              ,sc.rcGrad
+           ,mesh->maxNo             ,mesh->maxViz
+           ,1                       ,mesh->ndm
+           ,&pMesh->iNo             ,&pMesh->iEl
+           ,mesh->numelNov          ,mesh->numel
+           ,mesh->nnodeNov          ,mesh->nnode); 
+     tm.rcGradPres = getTimeC() - tm.rcGradPres;
+/*...................................................................*/
+
 
 /*... atualizacao de u, v, w e p*/
      simpleUpdate(mesh->elm.vel,mesh->elm.pressure
@@ -1147,11 +1331,13 @@ void setSimpleScheme(char *word,Simple *sp,FILE *fileIn){
    sp->type =  SIMPLEC;
 
   fscanf(fileIn,"%d",&sp->maxIt); 
- 
+  
   fscanf(fileIn,"%lf",&sp->alphaPres); 
   fscanf(fileIn,"%lf",&sp->alphaVel); 
   fscanf(fileIn,"%lf",&sp->tolPres); 
   fscanf(fileIn,"%lf",&sp->tolVel); 
+  
+  fscanf(fileIn,"%d",&sp->nNonOrth); 
 
 }
 /*********************************************************************/

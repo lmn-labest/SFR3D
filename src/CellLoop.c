@@ -1099,12 +1099,12 @@ void systFormSimplePres(Loads *loadsVel  ,Loads *loadsPres
                ,DOUBLE *restrict a       ,DOUBLE *restrict ad 
                ,DOUBLE *restrict b       ,INT    *restrict id
                ,short  *restrict faceVelR ,short  *restrict faceVelL       
-               ,short  *restrict facePresR,short  *restrict facePresL           
+               ,short  *restrict facePresR,short  *restrict facePresL      
                ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres
                ,DOUBLE *restrict vel     ,DOUBLE *restrict dField    
                ,DOUBLE *restrict rCell   ,Temporal const ddt 
                ,INT const nEq            ,INT const nEqNov
-               ,INT const nAd            ,INT const nAdR                     
+               ,INT const nAd            ,INT const nAdR                  
                ,short const maxNo        ,short const maxViz
                ,short const ndm          ,INT const numel
                ,short const ndf          ,short const storage
@@ -1275,6 +1275,199 @@ void systFormSimplePres(Loads *loadsVel  ,Loads *loadsPres
             ,nFace[nel]  ,1 
             ,storage     ,forces
             ,matrix      ,unsym); 
+/*...................................................................*/
+    }
+/*...................................................................*/
+  }
+/*...................................................................*/
+}
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * Data de criacao    : 02/08/2016                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * SIMPLENONORTHPRES: correcao nao ortogonal para as pressoes        *
+ * de correcao                                                       * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * el        -> conetividade dos celulas                             * 
+ * nelcon    -> vizinhos dos elementos                               * 
+ * nen       -> numero de nos por celulas                            * 
+ * nFace     -> numero de faces por celulas                          * 
+ * calType   -> tipo de calculo das celulas                          * 
+ * geomType  -> tipo geometrico das celulas                          * 
+ * prop      -> propriedades dos material                            * 
+ * mat       -> material por celula                                  * 
+ * cc        -> centroide das celulas                                * 
+ * gKsi      -> vetores que unem centroide da celula central aos     *
+ *              vizinhos destas                                      * 
+ * gmKsi     -> modulo do vetor ksi                                  * 
+ * gEta      -> vetores paralelos as faces das celulas               * 
+ * gfArea    -> modulo do vetor eta                                  * 
+ * gNormal   -> vetores normais as faces das celulas                 * 
+ * gVolume   -> volumes das celulas                                  * 
+ * gXm       -> pontos medios das faces das celulas                  * 
+ * gXmcc     -> vetores que unem o centroide aos pontos medios das   * 
+ *              faces                                                * 
+ * gvSkew    -> vetor entre o ponto medio a intersecao que une os    * 
+ *              centrois compartilhado nessa face                    * 
+ * gmvSkew   -> distacia entre o ponto medio a intersecao que une os * 
+ *              centrois compartilhado nessa face                    * 
+ * gDcca     -> menor distancia do centroide a faces desta celula    * 
+ * density   -> massa especifica com variacao temporal               * 
+ * b         -> vetor de forcas                                      * 
+ * id        -> numera das equacoes                                  * 
+ * facePresR -> restricoes por elemento de pressao                   * 
+ * pres      -> campo de pressao conhecido                           * 
+ * gradPres  -> gradiente da pressao de correcao conhecido           * 
+ * dField    -> matriz D do metodo simple ( volume/A(i,i) )          * 
+ * maxNo     -> numero de nos por celula maximo da malha             * 
+ * maxViz    -> numero vizinhos por celula maximo da malha           * 
+ * ndm       -> numero de dimensoes                                  * 
+ * ndf       -> graus de liberdade                                   * 
+ * numel     -> numero de total de celulas                           * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * b         -> vetor de forca da linha i                            *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void simpleNonOrthPres(INT    *restrict el ,INT *restrict nelcon 
+               ,short  *restrict nen       ,short  *restrict nFace
+               ,short  *restrict geomType  ,DOUBLE *restrict prop 
+               ,short  *restrict calType   ,short  *restrict mat     
+               ,DOUBLE *restrict cc           
+               ,DOUBLE *restrict gKsi      ,DOUBLE *restrict gmKsi 
+               ,DOUBLE *restrict gEta      ,DOUBLE *restrict gfArea 
+               ,DOUBLE *restrict gNormal   ,DOUBLE *restrict gVolume
+               ,DOUBLE *restrict gXm       ,DOUBLE *restrict gXmcc 
+               ,DOUBLE *restrict gvSkew    ,DOUBLE *restrict gmvSkew 
+               ,DOUBLE *restrict gDcca     ,DOUBLE *restrict density
+               ,DOUBLE *restrict b         ,INT    *restrict id
+               ,short  *restrict facePresR ,DOUBLE *restrict pres      
+               ,DOUBLE *restrict gradPres  ,DOUBLE *restrict dField 
+               ,short const maxNo          ,short const maxViz
+               ,short const ndm            ,INT const numel)
+{ 
+  INT nel,vizNel;
+  short i,j;
+/*... variavel local */
+  DOUBLE lKsi[MAX_NUM_FACE*MAX_NDM],lmKsi[MAX_NUM_FACE];
+  DOUBLE lEta[MAX_NUM_FACE*MAX_NDM],lfArea[MAX_NUM_FACE];
+  DOUBLE lNormal[MAX_NUM_FACE*MAX_NDM],lVolume[MAX_NUM_FACE+1];
+  DOUBLE lXm[MAX_NUM_FACE*MAX_NDM],lXmcc[MAX_NUM_FACE*MAX_NDM];
+  DOUBLE lDcca[MAX_NUM_FACE];
+  DOUBLE lmvSkew[MAX_NUM_FACE],lvSkew[MAX_NUM_FACE*MAX_NDM];
+  short  lGeomType[MAX_NUM_FACE+1];
+  DOUBLE lDensity[(MAX_NUM_FACE+1)];
+  DOUBLE lB;
+  DOUBLE lPres[MAX_NUM_FACE+1];
+  DOUBLE lProp[(MAX_NUM_FACE+1)*MAXPROP];
+  DOUBLE lGradPres[(MAX_NUM_FACE+1)*MAX_NDM];
+  DOUBLE lDfield[MAX_NUM_FACE+1];
+  DOUBLE lCc[(MAX_NUM_FACE+1)*MAX_NDM];
+  INT    lViz[MAX_NUM_FACE],lNeq;
+  short  aux1,aux2,lMat;
+
+/*... loop nas celulas*/
+  aux2    = maxViz+1;
+  for(nel=0;nel<numel;nel++){
+/*...*/
+    aux1    = nFace[nel];
+/*... elementos com equacoes*/
+    if(MAT2D(nel,aux1,facePresR ,aux2) != PCCELL){
+
+/*... loop na celula central*/    
+      lMat            = mat[nel]-1;
+      lVolume[aux1]   = gVolume[nel]; 
+      lGeomType[aux1] = geomType[nel];
+      lDensity[aux1]  = MAT2D(nel,0   ,density ,DENSITY_LEVEL);
+ 
+      lPres[aux1]     = pres[nel];
+      lDfield[aux1]   = dField[nel];
+/*...................................................................*/
+      
+/*...*/
+      for(j=0;j<MAXPROP;j++)
+        MAT2D(aux1,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);
+/*...................................................................*/
+      
+/*...*/
+      for(j=0;j<ndm;j++){
+        MAT2D(aux1,j,lGradPres,ndm) = MAT2D(nel,j,gradPres,ndm);
+        MAT2D(aux1,j,lCc      ,ndm) = MAT2D(nel,j,cc      ,ndm);
+      }
+/*...................................................................*/
+
+/*...*/
+      for(i=0;i<aux1;i++){
+        lmKsi[i]      = MAT2D(nel,i,gmKsi   ,maxViz);
+        lfArea[i]     = MAT2D(nel,i,gfArea  ,maxViz);
+        lDcca[i]      = MAT2D(nel,i,gDcca   ,maxViz);
+        lmvSkew[i]    = MAT2D(nel,i,gmvSkew ,maxViz);
+        aux2          = (maxViz+1);
+        for(j=0;j<ndm;j++){
+          MAT2D(i,j,lKsi   ,ndm) = MAT3D(nel,i,j,gKsi   ,maxViz,ndm);
+          MAT2D(i,j,lEta   ,ndm) = MAT3D(nel,i,j,gEta   ,maxViz,ndm);
+          MAT2D(i,j,lNormal,ndm) = MAT3D(nel,i,j,gNormal,maxViz,ndm);
+          MAT2D(i,j,lXm    ,ndm) = MAT3D(nel,i,j,gXm    ,maxViz,ndm); 
+          MAT2D(i,j,lXmcc  ,ndm) = MAT3D(nel,i,j,gXmcc  ,maxViz,ndm);
+          MAT2D(i,j,lvSkew ,ndm) = MAT3D(nel,i,j,gvSkew ,maxViz,ndm);
+        }
+      }
+/*...................................................................*/
+
+/*... loop na celulas vizinhas*/    
+      for(i=0;i<aux1;i++){
+        vizNel  = MAT2D(nel,i,nelcon,maxViz) - 1;
+        lViz[i] = vizNel;
+        if( vizNel != -2) {
+          lVolume[i]    = gVolume[vizNel]; 
+          lGeomType[i]  = geomType[vizNel];
+          lDensity[i]   = MAT2D(vizNel,0   ,density ,DENSITY_LEVEL);
+          lMat          = mat[vizNel]-1;
+          lPres[i]      = pres[vizNel];
+          lDfield[i]    = dField[vizNel];
+
+          for(j=0;j<ndm;j++){
+            MAT2D(i,j,lGradPres,ndm)   = MAT2D(vizNel,j,gradPres,ndm);
+            MAT2D(i,j,lCc      ,ndm)   = MAT2D(vizNel,j,cc      ,ndm);
+          }
+  
+          for(j=0;j<DIFPROP;j++)
+            MAT2D(i,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);
+          
+        }
+      }  
+/*...................................................................*/
+
+/*... chamando a biblioteca de celulas*/
+        cellLibSimpleNonOrthPres(lGeomType 
+                         ,lProp      ,lViz                  
+                         ,lKsi       ,lmKsi
+                         ,lEta       ,lfArea 
+                         ,lNormal    ,lVolume
+                         ,lXm        ,lXmcc
+                         ,lDcca      ,lDensity
+                         ,lvSkew     ,lmvSkew
+                         ,&lB        
+                         ,lPres      ,lGradPres 
+                         ,lDfield    ,lCc
+                         ,nen[nel]   ,nFace[nel] 
+                         ,ndm        ,nel);    
+/*...................................................................*/
+
+/*...*/
+//    if( fabs(lB) > 1.e-5) printf("%d %e\n",nel+1,lB);
+/*...................................................................*/
+
+/*...*/
+      lNeq    = id[nel] - 1;
+      b[lNeq] = lB;
 /*...................................................................*/
     }
 /*...................................................................*/
@@ -2455,14 +2648,6 @@ void rcGradU(Memoria *m               ,Loads *loads
         MAT3D(nel,i,j,gradU,ndf,ndm)  = MAT2D(i,j,lGradU   ,ndf);
 /*...................................................................*/
     
-/*  if(ndf == 2){
-    printf("%5d x %10.3e %10.3e\n",nel+1
-                          ,MAT3D(nel,0,0,gradU,ndf,ndm)
-                          ,MAT3D(nel,0,1,gradU,ndf,ndm));  
-    printf("      y %10.3e %10.3e\n"
-                          ,MAT3D(nel,1,0,gradU,ndf,ndm)
-                          ,MAT3D(nel,1,1,gradU,ndf,ndm)); 
-    }*/
   }  
 
   if(mpiVar.nPrcs > 1 ) comunicateCel(iCel,gradU,ndm ,ndf);

@@ -2007,6 +2007,7 @@ int main(int argc,char**argv){
           printf("alphaVel  : %lf\n",simple->alphaVel);
           printf("tolPres   : %e\n",simple->tolPres);
           printf("tolVel    : %e\n",simple->tolVel);
+          printf("nNonOrth  : %d\n",simple->nNonOrth);
         }
       }
 /*...................................................................*/
@@ -2027,6 +2028,10 @@ int main(int argc,char**argv){
       HccaAlloc(DOUBLE     ,&m      ,simple->eGradPresC
                ,mesh->numel*mesh->ndm,"eGradPresC",false);
       zero(simple->eGradPresC,mesh->numel*mesh->ndm  ,DOUBLEC);
+      
+      HccaAlloc(DOUBLE     ,&m       ,simple->ePresC1
+               ,mesh->numel,"ePresC1",false);
+      zero(simple->ePresC,mesh->numel  ,DOUBLEC);
 /*...................................................................*/
       if(!mpiVar.myId ) printf("%s\n\n",DIF);
     }

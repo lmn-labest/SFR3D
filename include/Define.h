@@ -181,6 +181,11 @@
   #define INTC       "int"
   #define DOUBLE    double
   #define DOUBLEC  "double"
+  #ifdef _MSC_VER
+    #define LONG_INT __int64
+  #else
+    #define LONG_INT long
+  #endif
 /*...................................................................*/
 
 /*...*/

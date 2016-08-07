@@ -1,0 +1,36 @@
+config 
+reord true bvtk false mem 1500 rcGrad lSquare fItPlotRes false fItPlot false 
+endConfig
+partd config: false false
+//advection Vel fBase SuperBee   
+//advection Vel fBase FoUp    
+//advection Vel none SoUp    
+advection Vel none CD    
+edp
+fluid 4
+endEdp
+mesh
+nnode  129525  numel 121856 ndm 3 numat 1 maxno 8 maxviz 6 
+materials
+1 1 1.0e-3 1.0 
+endMaterials
+insert cilindro3D_hexa_mesh.dat 
+loadsVel  
+1 6 3 0.0 0.0 -1.0
+2 7 1 0.0 
+endLoadsVel  
+loadsPres 
+1 1 1  0.0
+endLoadsPres 
+endMesh
+pgeo
+setPrintFluid gradPres gradVel vel pres end
+presolvFluid config: BICGSTAB CSRC 10000 1.e-8 PCG CSRC 20000 1.e-8
+preSimple config: SIMPLE  5000 0.3e0 0.7e0 1.e-03 1.e-03 1
+//transient config: BACKWARD 1.00e-2   2.0e0
+//pFluid                                             
+simple
+//timeUpdate
+//endTransient  
+pFluid                                             
+stop  

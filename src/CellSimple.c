@@ -1,81 +1,81 @@
 #include<CellLoop.h>
 /*********************************************************************
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 03/07/2016                                   * 
- *-------------------------------------------------------------------* 
- * CELLSIMPLEVELINC2D: Celula 2D para velocidade do metodo simple    * 
- * em escoamento imcompressivel                                      * 
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
- * loadsVel  -> definicoes de cargas de velocidades                  * 
- * loadsPres -> definicoes de cargas de pressao                      * 
- * advVel    -> tecnica da discretizacao do termo advecao            * 
+ * Data de modificaco : 03/07/2016                                   *
+ *-------------------------------------------------------------------*
+ * CELLSIMPLEVELINC2D: Celula 2D para velocidade do metodo simple    *
+ * em escoamento imcompressivel                                      *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * loadsVel  -> definicoes de cargas de velocidades                  *
+ * loadsPres -> definicoes de cargas de pressao                      *
+ * advVel    -> tecnica da discretizacao do termo advecao            *
  * typeSimple-> tipo do metodo simple                                *
- * lnFace    -> numero de faces da celula central e seus vizinhos    * 
- * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
- * lprop     -> propriedade fisicas das celulas                      * 
- * lViz      -> viznhos da celula central                            * 
- * lId       -> numeracoes das equacoes das celulas                  * 
+ * lnFace    -> numero de faces da celula central e seus vizinhos    *
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
+ * lprop     -> propriedade fisicas das celulas                      *
+ * lViz      -> viznhos da celula central                            *
+ * lId       -> numeracoes das equacoes das celulas                  *
  * Ksi       -> vetores que unem centroide da celula central aos     *
- *              vizinhos desta                                       * 
- * mKsi      -> modulo do vetor ksi                                  * 
- * eta       -> vetores paralelos as faces das celulas               * 
- * mEta      -> modulo do vetor eta                                  * 
- * normal    -> vetores normais as faces das celulas                 * 
- * area      -> area da celula central                               * 
- * xm        -> pontos medios das faces da celula central            * 
- * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
- *              faces da celula central                              * 
- * vSkew     -> vetor entre o ponto medio a intersecao que une os    * 
- *            centrois compartilhado nessa face da celula central    * 
- * mvSkew    -> distacia entre o ponto medio a intersecao que une os * 
- *              centrois compartilhado nessa face da celula central  * 
+ *              vizinhos desta                                       *
+ * mKsi      -> modulo do vetor ksi                                  *
+ * eta       -> vetores paralelos as faces das celulas               *
+ * mEta      -> modulo do vetor eta                                  *
+ * normal    -> vetores normais as faces das celulas                 *
+ * area      -> area da celula central                               *
+ * xm        -> pontos medios das faces da celula central            *
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   *
+ *              faces da celula central                              *
+ * vSkew     -> vetor entre o ponto medio a intersecao que une os    *
+ *            centrois compartilhado nessa face da celula central    *
+ * mvSkew    -> distacia entre o ponto medio a intersecao que une os *
+ *              centrois compartilhado nessa face da celula central  *
  * dcca      -> menor distancia do centroide central a faces desta   *
- *              celula                                               * 
- * lDensity  -> massa especifica sem variacao temporal               * 
+ *              celula                                               *
+ * lDensity  -> massa especifica sem variacao temporal               *
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
  * ddt       -> discretizacao temporal                               *
- * faceVelR  -> restricoes por elemento de velocidades               * 
- * faceVelL  -> carga por elemento de velocidades                    * 
- * facePresR -> restricoes por elemento de pressao                   * 
- * facePresL -> carga por elemento de pressao                        * 
- * pres      -> campo de pressao conhecido                           * 
- * gradPes   -> gradiente reconstruido da pressao                    * 
- * vel       -> campo de velocidade conhecido                        * 
- * gradVel   -> gradiente rescontruido das velocidades               * 
- * dField    -> matriz D do metodo simple                            * 
+ * faceVelR  -> restricoes por elemento de velocidades               *
+ * faceVelL  -> carga por elemento de velocidades                    *
+ * facePresR -> restricoes por elemento de pressao                   *
+ * facePresL -> carga por elemento de pressao                        *
+ * pres      -> campo de pressao conhecido                           *
+ * gradPes   -> gradiente reconstruido da pressao                    *
+ * vel       -> campo de velocidade conhecido                        *
+ * gradVel   -> gradiente rescontruido das velocidades               *
+ * dField    -> matriz D do metodo simple                            *
+ * cc        -> centroides da celula centra e seus vizinhos          *
  * nEn       -> numero de nos da celula central                      *
- * cc        -> centroides da celula centra e seus vizinhos          * 
- * underU    -> parametro de sobre relaxamento                       * 
+ * underU    -> parametro de sobre relaxamento                       *
  * sPressure -> reconstrucao de segunda ordem para pressoes nas      *
  *              faces                                                *
- * nEn       -> numero de nos da celula central                      * 
- * nFace     -> numero de faces da celula central                    * 
- * ndm       -> numero de dimensoes                                  * 
- * nel       -> numero da celula                                     * 
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
- *-------------------------------------------------------------------* 
+ * nEn       -> numero de nos da celula central                      *
+ * nFace     -> numero de faces da celula central                    *
+ * ndm       -> numero de dimensoes                                  *
+ * nel       -> numero da celula                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
  * lA        -> coeficiente da linha i                               *
  * lB        -> vetor de forca da linha i                            *
  * lRcell    -> residuo por celula                                   *
- *-------------------------------------------------------------------* 
- * OBS:                                                              * 
  *-------------------------------------------------------------------*
- *                                                                   *  
- * gradVel(nFace+1,ndf,ndm) -> gradVel(nFace+1,2,2)                  * 
- *                                                                   *  
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *                                                                   *
+ * gradVel(nFace+1,ndf,ndm) -> gradVel(nFace+1,2,2)                  *
+ *                                                                   *
  *                  | du1dx1 du1dx2 |                                *
  * grad(viz1,*,*) = |               |                                *
  *                  | du2dx1 du2dx2 |                                *
- *                                                                   *  
+ *                                                                   *
  *                  | du1dx1 du1dx2 |                                *
  * grad(viz2,*,*) = |               |                                *
  *                  | du2dx1 du2dx2 |                                *
- *                                                                   *  
+ *                                                                   *
  *                  | du1dx1 du1dx2 |                                *
  * grad(P   ,*,*) = |               |                                *
  *                  | du2dx1 du2dx2 |                                *
@@ -275,8 +275,8 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
 
 /*... correcao nao-ortogonal*/
-      dfdc[0] = coef*gfKsi[0];    
-      dfdc[1] = coef*gfKsi[1];    
+      dfdc[0] = coef*gfKsi[0];
+      dfdc[1] = coef*gfKsi[1];
 /*...................................................................*/
 
 /*... fluxo convectivo upwind de primeira ordem*/
@@ -308,6 +308,13 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
                             ,gradVelC[1],gradVelV[1]
                             ,lXmcc      ,wfn
                             ,iCod       ,ndm);
+/*... interpolacao undirecional*/
+        cvc[0] -= gradVelComp[0][0]*lvSkew[0] 
+                + gradVelComp[0][1]*lvSkew[1];
+      
+        cvc[1] -= gradVelComp[1][0]*lvSkew[0] 
+                + gradVelComp[1][1]*lvSkew[1];
+/*...................................................................*/
       }
 /*...................................................................*/
 
@@ -324,6 +331,13 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
                               ,lKsi       ,lModKsi   
                               ,cv
                               ,iCod       ,ndm);
+/*... interpolacao undirecional*/
+        cvc[0] -= gradVelComp[0][0]*lvSkew[0] 
+                + gradVelComp[0][1]*lvSkew[1];
+      
+        cvc[1] -= gradVelComp[1][0]*lvSkew[0] 
+                + gradVelComp[1][1]*lvSkew[1];
+/*...................................................................*/
      }
 /*...................................................................*/
 
@@ -618,7 +632,7 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE wfn,velC[2],velF[2],presC,presV;
 /*...*/
   short idCell = nFace;
-  short nAresta,nCarg;
+  short nAresta,nCarg,iCod=2;
   INT vizNel;
 
 /*...*/
@@ -685,7 +699,11 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
       dfd = (density*lModEta*dFieldF)/(nk*lModKsi);
 /*...................................................................*/
 
-/*... Ferziger-Precic*/
+/*...*/
+      lA[nAresta] = dfd;
+/*...................................................................*/
+
+/*...*/                 
       wf[0]    =   alphaMenosUm*velC[0] + alpha*velF[0];
       wf[1]    =   alphaMenosUm*velC[1] + alpha*velF[1];
 /*...................................................................*/
@@ -694,27 +712,47 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
       wfn = wf[0]*lNormal[0] + wf[1]*lNormal[1];
 /*...................................................................*/
       
+/*... Ferziger-Precic*/
+      if(iCod == 1){
 /*... interpolacao linear dos gradientes das pressoes*/
-      gf[0]    = alphaMenosUm*gradPresC[0] + alpha*gradPresV[0];
-      gf[1]    = alphaMenosUm*gradPresC[1] + alpha*gradPresV[1];
-      gfp[0]   = presV - presC;
+        gf[0]    = alphaMenosUm*gradPresC[0] + alpha*gradPresV[0];
+        gf[1]    = alphaMenosUm*gradPresC[1] + alpha*gradPresV[1];
+        gfp[0]   = presV - presC;
 /*...................................................................*/
 
 /*...*/
-      gfp[1] = (gf[0]*lKsi[0] + gf[1]*lKsi[1])*lModKsi;  
-      gfp[1] = (gfp[1] - gfp[0])/(nk*lModKsi);  
+        gfp[1] = (gf[0]*lKsi[0] + gf[1]*lKsi[1])*lModKsi;
+        gfp[1] = (gfp[1] - gfp[0])/(nk*lModKsi);
 /*...................................................................*/
 
 /*...*/
-      wfn += dFieldF*gfp[1];
-      wfn *= lModEta;  
+        wfn += dFieldF*gfp[1];
 /*...................................................................*/
 
 /*...*/
-      lA[nAresta] = dfd; 
-      p          -=   density*wfn;
+        p -= density*wfn*lModEta;
+/*...................................................................*/
+      } 
 /*...................................................................*/
 
+/*... 2016 - Darwish-Moukalled*/
+      else if(iCod == 2){
+/*... interpolacao linear dos gradientes das pressoes*/
+        gf[0]  = alphaMenosUm*gradPresC[0] + alpha*gradPresV[0];
+        gf[1]  = alphaMenosUm*gradPresC[1] + alpha*gradPresV[1];
+        gfp[0] = presV - presC;
+/*...................................................................*/
+
+/*...*/
+        gfp[1] = gf[0]*lKsi[0] + gf[1]*lKsi[1];
+        gfp[1] = (lModKsi*lModKsi*gfp[1] - gfp[0])*nk;
+/*...................................................................*/
+
+/*...*/
+        wfn += dFieldF*gfp[1];
+        p   -= density*wfn*lModEta;
+      } 
+/*...................................................................*/
     }
 /*... contorno*/
     else{
@@ -787,6 +825,241 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
 /*********************************************************************/
 
 /*********************************************************************
+ * Data de criacao    : 07/08/2016                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * CELLSIMPLENONORTHPRES2D: correcao nao ortogonal da Celula 2D      *
+ * para equacao de correcao de pressao                               *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * lnFace    -> numero de faces da celula central e seus vizinhos    *
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
+ * lprop     -> propriedade fisicas das celulas                      *
+ * lViz      -> viznhos da celula central                            *
+ * lId       -> numeracoes das equacoes das celulas                  *
+ * Ksi       -> vetores que unem centroide da celula central aos     *
+ *            vizinhos destas                                        *
+ * mKsi      -> modulo do vetor ksi                                  *
+ * eta       -> vetores paralelos as faces das celulas               *
+ * mEta      -> modulo do vetor eta                                  *
+ * normal    -> vetores normais as faces das celulas                 *
+ * area      -> area da celula central                               *
+ * xm        -> pontos medios das faces da celula central            *
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   *
+ *            faces da celula central                                *
+ * vSkew  -> vetor entre o ponto medio a intersecao que une os       *
+ *            centrois compartilhado nessa face da celula central    *
+ * mvSkew -> distacia entre o ponto medio a intersecao que une os    *
+ *            centrois compartilhado nessa face da celula central    *
+ * dcca      -> menor distancia do centroide central a faces desta   *
+ *              celula                                               *
+ * lDensity  -> massa especifica sem variacao temporal               *
+ * lB        -> nao definido                                         *
+ * pres      -> campo de pressao conhecido                           *
+ * gradPes   -> gradiente reconstruido da pressao                    *
+ * dField    -> matriz D do metodo simple                            *
+ * cc        -> centroides da celula centra e seus vizinhos          *
+ * nEn       -> numero de nos da celula central                      *
+ * nFace     -> numero de faces da celula central                    *
+ * ndm       -> numero de dimensoes                                  *
+ * nel       -> numero da celula                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * lB        -> vetor de forca da linha i                            *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ * Fonte: Ferziger-Precic                                            *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void cellSimpleNonOrthPres2D(short *restrict lGeomType
+              ,DOUBLE *restrict prop    ,INT *restrict lViz
+              ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
+              ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
+              ,DOUBLE *restrict normal  ,DOUBLE *restrict area
+              ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
+              ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
+              ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
+              ,DOUBLE *restrict lB      
+              ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres
+              ,DOUBLE *restrict dField  ,DOUBLE *restrict cc
+              ,const short nEn          ,short const nFace
+              ,const short ndm          ,INT const nel)
+{ 
+
+  DOUBLE densityC,densityV ,density;
+  DOUBLE dFieldC ,dFieldV  ,dFieldF;
+/*...*/
+  DOUBLE p,tmp,coef;
+/*...*/
+  DOUBLE v[2],lKsi[2],lNormal[2],presC,presV;
+  DOUBLE gfp[2],dVirtual[2],ccV[2],ccC[2],lXm[2],lXmcc[2];
+  DOUBLE dPviz,lModKsi,lModEta,modE,du,duDksi,nMinusKsi[2];
+/*...*/
+  DOUBLE gradPresC[2],gradPresV[2],gradPresComp[2],gf[2],gfKsi;
+/*...*/
+  DOUBLE nk,lvSkew[2];
+/*... interpolacao linear*/
+  DOUBLE alpha,alphaMenosUm;
+/*...*/
+  short idCell = nFace,iCod=2;
+  short nAresta;
+  INT vizNel;
+
+/*...*/
+  densityC = lDensity[idCell];
+/*...................................................................*/
+
+/*...*/
+  
+  gradPresC[0] = MAT2D(idCell,0,gradPres,ndm);
+  gradPresC[1] = MAT2D(idCell,1,gradPres,ndm);
+      
+  ccC[0]     =  MAT2D(idCell,0,cc,ndm);
+  ccC[1]     =  MAT2D(idCell,1,cc,ndm);
+
+  presC      =  pres[idCell];
+
+  dFieldC    = dField[idCell]; 
+/*...................................................................*/
+
+  p          = 0.0e0;
+  for(nAresta=0;nAresta<nFace;nAresta++){
+    vizNel     = lViz[nAresta];
+/*... dominio*/
+    if( vizNel  > -1 ){
+/*...*/
+      presV      = pres[nAresta];
+/*...*/
+      lNormal[0] = MAT2D(nAresta,0,normal,ndm);
+      lNormal[1] = MAT2D(nAresta,1,normal,ndm);
+      
+      lModEta    = mEta[nAresta];
+      
+      dFieldV    = dField[nAresta];
+      
+      lKsi[0]    = MAT2D(nAresta,0,ksi,ndm);
+      lKsi[1]    = MAT2D(nAresta,1,ksi,ndm);
+
+      lModKsi    = mKsi[nAresta];
+
+      lvSkew[0]  = MAT2D(nAresta,0,vSkew,ndm);
+      lvSkew[1]  = MAT2D(nAresta,1,vSkew,ndm);
+
+      duDksi     = (presV - presC) / lModKsi;
+
+      densityV   = lDensity[nAresta];
+
+      ccV[0]     =  MAT2D(nAresta,0,cc,ndm);
+      ccV[1]     =  MAT2D(nAresta,1,cc,ndm);
+
+      lXm[0]     =  MAT2D(nAresta,0,xm,ndm);
+      lXm[1]     =  MAT2D(nAresta,1,xm,ndm);
+
+      lXmcc[0]   = MAT2D(nAresta,0,xmcc,ndm);
+      lXmcc[1]   = MAT2D(nAresta,1,xmcc,ndm);
+      
+      gradPresV[0] =  MAT2D(nAresta,0,gradPres,ndm);
+      gradPresV[1] =  MAT2D(nAresta,1,gradPres,ndm);
+/*...................................................................*/
+
+/*...*/
+      v[0]         = lvSkew[0] + MAT2D(nAresta,0,xmcc,ndm);
+      v[1]         = lvSkew[1] + MAT2D(nAresta,1,xmcc,ndm);
+      dPviz        = sqrt(v[0]*v[0] + v[1]*v[1]);
+      alpha        = dPviz/lModKsi;
+      alphaMenosUm = 1.0e0 - alpha; 
+/*...................................................................*/
+
+/*... interpolacao das propriedades*/
+      density  = alphaMenosUm*densityC  + alpha*densityV;
+      dFieldF  = alphaMenosUm*dFieldC   + alpha*dFieldV;
+/*...................................................................*/
+
+/*... difusao direta*/
+      coef = density*lModEta*dFieldF;
+/*...................................................................*/
+
+/*... produtos interno*/
+      nk  = lKsi[0]*lNormal[0] 
+          + lKsi[1]*lNormal[1]; 
+/*...................................................................*/
+
+/*... Ferziger-Precic*/
+      if(iCod == 1){
+/*... celula central*/
+        tmp = lXmcc[0]*lNormal[0] 
+            + lXmcc[1]*lNormal[1];
+
+        dVirtual[0] = lXm[0] - tmp*lNormal[0] - ccC[0];
+        dVirtual[1] = lXm[1] - tmp*lNormal[1] - ccC[1];
+        gfp[0]      = gradPresC[0]*dVirtual[0] 
+                    + gradPresC[1]*dVirtual[1];
+/*...................................................................*/
+
+/*... celula vizinho*/
+        tmp = (lXm[0]-ccV[0])*lNormal[0] 
+            + (lXm[1]-ccV[1])*lNormal[1];
+
+        dVirtual[0] = lXm[0] - tmp*lNormal[0] - ccV[0];
+        dVirtual[1] = lXm[1] - tmp*lNormal[1] - ccV[1];
+        gfp[1]      = gradPresV[0]*dVirtual[0]
+                    + gradPresV[1]*dVirtual[1];
+/*...................................................................*/
+        tmp = gfp[1]-gfp[0];
+        p += coef*tmp/(nk*lModKsi);
+/*...................................................................*/
+      }
+/*...................................................................*/
+
+/*... 2016 - Darwish-Moukalled*/
+      else if(iCod == 2){
+/*... correcao sobre-relaxada*/
+        modE       = 1.0e0/nk;
+/*...................................................................*/
+
+/*...*/
+        gf[0] = alphaMenosUm*gradPresC[0] + alpha*gradPresV[0];
+        gf[1] = alphaMenosUm*gradPresC[1] + alpha*gradPresV[1];
+/*...................................................................*/
+
+/*... derivadas direcionais*/
+        gfKsi = gf[0]*lKsi[0] + gf[1]*lKsi[1];
+/*...................................................................*/
+
+/*... gradiente compacto (Darwish e Moukalled)*/
+        du              = duDksi  - gfKsi;
+        gradPresComp[0] = gf[0] + du*lKsi[0];
+        gradPresComp[1] = gf[1] + du*lKsi[1];
+/*...................................................................*/
+
+
+/*... derivadas direcionais*/
+        nMinusKsi[0] = lNormal[0] - modE*lKsi[0];
+        nMinusKsi[1] = lNormal[1] - modE*lKsi[1];
+/*...*/
+        gfKsi = gradPresComp[0]*nMinusKsi[0]
+              + gradPresComp[1]*nMinusKsi[1];
+/*...................................................................*/
+
+/*...*/
+        p += coef*gfKsi;
+/*...................................................................*/
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*...*/
+  *lB = p;
+/*...................................................................*/
+}
+/*********************************************************************/
+
+/*********************************************************************
  * Data de criacao    : 11/07/2016                                   *
  * Data de modificaco : 00/00/0000                                   * 
  *-------------------------------------------------------------------* 
@@ -834,8 +1107,8 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
  * vel       -> campo de velocidade conhecido                        * 
  * gradVel   -> gradiente rescontruido das velocidades               * 
  * dField    -> matriz D do metodo simple                            * 
- * nEn       -> numero de nos da celula central                      *
  * cc        -> centroides da celula centra e seus vizinhos          * 
+ * nEn       -> numero de nos da celula central                      *
  * underU    -> parametro de sobre relaxamento                       * 
  * sPressure -> reconstrucao de segunda ordem para pressoes nas      *
  *              faces                                                *
@@ -1007,9 +1280,11 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
       gradPresV[0] =  MAT2D(nAresta,0,gradPres,ndm);
       gradPresV[1] =  MAT2D(nAresta,1,gradPres,ndm);
       gradPresV[2] =  MAT2D(nAresta,2,gradPres,ndm);
+ 
       ccV[0]       =  MAT2D(nAresta,0,cc,ndm);
       ccV[1]       =  MAT2D(nAresta,1,cc,ndm);
       ccV[2]       =  MAT2D(nAresta,2,cc,ndm);
+ 
       lXm[0]       =  MAT2D(nAresta,0,xm,ndm);
       lXm[1]       =  MAT2D(nAresta,1,xm,ndm);
       lXm[2]       =  MAT2D(nAresta,2,xm,ndm);
@@ -1045,7 +1320,6 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
       dfd  =  coef*modE/lModKsi;
 /*...................................................................*/
       
-/*...*/
 /*...*/
       gf[0][0] = alphaMenosUm*gradVelC[0][0] + alpha*gradVelV[0][0];
       gf[0][1] = alphaMenosUm*gradVelC[0][1] + alpha*gradVelV[0][1];
@@ -1086,9 +1360,9 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
 
 /*... gradiente compacto (Darwish e Moukalled)*/
-      du[0]             = duDksi[0]  - gfKsi[0];
-      du[1]             = duDksi[1]  - gfKsi[1];
-      du[2]             = duDksi[2]  - gfKsi[2];
+      du[0]             = duDksi[0] - gfKsi[0];
+      du[1]             = duDksi[1] - gfKsi[1];
+      du[2]             = duDksi[2] - gfKsi[2];
 /*...*/
       gradVelComp[0][0] = gf[0][0] + du[0]*lKsi[0];
       gradVelComp[0][1] = gf[0][1] + du[0]*lKsi[1];
@@ -1122,9 +1396,9 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
 
 /*... correcao nao-ortogonal*/
-      dfdc[0] = coef*gfKsi[0];    
-      dfdc[1] = coef*gfKsi[1];    
-      dfdc[2] = coef*gfKsi[2];    
+      dfdc[0] = coef*gfKsi[0];
+      dfdc[1] = coef*gfKsi[1];
+      dfdc[2] = coef*gfKsi[2];
 /*...................................................................*/
 
 /*... fluxo convectivo upwind de primeira ordem*/
@@ -1146,6 +1420,21 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
         cvc[0] = deferredCd(velC[0],velV[0],wfn);
         cvc[1] = deferredCd(velC[1],velV[1],wfn);
         cvc[2] = deferredCd(velC[2],velV[2],wfn);
+
+/*... interpolacao undirecional*/
+        cvc[0] -= gradVelComp[0][0]*lvSkew[0] 
+                + gradVelComp[0][1]*lvSkew[1] 
+                + gradVelComp[0][2]*lvSkew[2];
+      
+        cvc[1] -= gradVelComp[1][0]*lvSkew[0] 
+                + gradVelComp[1][1]*lvSkew[1] 
+                + gradVelComp[1][2]*lvSkew[2];
+      
+        cvc[2] -= gradVelComp[2][0]*lvSkew[0] 
+                + gradVelComp[2][1]*lvSkew[1] 
+                + gradVelComp[2][2]*lvSkew[2];
+/*...................................................................*/
+
       }
 /*...................................................................*/
 
@@ -1169,7 +1458,7 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
 
 
-/*... upwind + termo de anti-difusivos*/
+/*... upwind + termo anti-difusivos*/
       else{
         cvc[0] = faceBaseTvdV1(velC[0]    ,velV[0]
                               ,gradVelC[0],gradVelV[0]
@@ -1188,13 +1477,25 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
                               ,lKsi       ,lModKsi   
                               ,cv
                               ,iCod       ,ndm);
+/*... interpolacao undirecional*/
+        cvc[0] -= gradVelComp[0][0]*lvSkew[0] 
+                + gradVelComp[0][1]*lvSkew[1] 
+                + gradVelComp[0][2]*lvSkew[2];
+      
+        cvc[1] -= gradVelComp[1][0]*lvSkew[0] 
+                + gradVelComp[1][1]*lvSkew[1] 
+                + gradVelComp[1][2]*lvSkew[2];
+      
+        cvc[2] -= gradVelComp[2][0]*lvSkew[0] 
+                + gradVelComp[2][1]*lvSkew[1] 
+                + gradVelComp[2][2]*lvSkew[2];
      }
 /*...................................................................*/
 
 /*...*/
       lA[nAresta] = dfd - min(cv,0.0e0);
-      sP         += cv;    
-/*... correcao nao ortogonal e do fluxo advectivo*/        
+      sP         += cv;
+/*... correcao nao ortogonal e do fluxo advectivo*/
       p[0]       += dfdc[0] - cv*cvc[0];
       p[1]       += dfdc[1] - cv*cvc[1];
       p[2]       += dfdc[2] - cv*cvc[2];
@@ -1316,17 +1617,17 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
         aP   = viscosityC*lModEta/dcca[nAresta];
         sP  += aP;
 /*... x*/
-        p[0]+= aP*(velC[0]*lNormal[0]*lNormal[0]   
-                  +velC[1]*lNormal[0]*lNormal[1] 
-                  +velC[2]*lNormal[0]*lNormal[2]);           
+        p[0]+= aP*(velC[0]*lNormal[0]*lNormal[0]
+                  +velC[1]*lNormal[0]*lNormal[1]
+                  +velC[2]*lNormal[0]*lNormal[2]);
 /*... y*/
-        p[1]+= aP*(velC[0]*lNormal[0]*lNormal[1]   
-                  +velC[1]*lNormal[1]*lNormal[1] 
-                  +velC[2]*lNormal[1]*lNormal[2]); 
+        p[1]+= aP*(velC[0]*lNormal[0]*lNormal[1]
+                  +velC[1]*lNormal[1]*lNormal[1]
+                  +velC[2]*lNormal[1]*lNormal[2]);
 /*... z*/
-        p[2]+= aP*(velC[0]*lNormal[0]*lNormal[2]   
-                  +velC[1]*lNormal[1]*lNormal[2] 
-                  +velC[2]*lNormal[2]*lNormal[2]); 
+        p[2]+= aP*(velC[0]*lNormal[0]*lNormal[2]
+                  +velC[1]*lNormal[1]*lNormal[2]
+                  +velC[2]*lNormal[2]*lNormal[2]);
       }
 /*...................................................................*/
     }
@@ -1354,7 +1655,7 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
   else if(nFace == 6){
     lAn = lA[0] + lA[1] + lA[2] + lA[3] + lA[4] + lA[5];
   }
-  lA[idCell] = sP + lAn;                   
+  lA[idCell] = sP + lAn;
 /*...................................................................*/
 
 /*... under-relaxation(simple)*/
@@ -1391,9 +1692,9 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
     }
   }
 /*... residuo: R = F - KpUp*/ 
-   rCell[0] += p[0] -lA[idCell]*velC[0];   
-   rCell[1] += p[1] -lA[idCell]*velC[1];   
-   rCell[2] += p[2] -lA[idCell]*velC[2];   
+   rCell[0] += p[0] -lA[idCell]*velC[0];
+   rCell[1] += p[1] -lA[idCell]*velC[1];
+   rCell[2] += p[2] -lA[idCell]*velC[2];
 /*...................................................................*/
 
 /*...*/
@@ -1434,79 +1735,80 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 
 /*********************************************************************
  * Data de criacao    : 11/07/2016                                   *
- * Data de modificaco : 00/00/0000                                   * 
- *-------------------------------------------------------------------* 
- * CELLSIMPLEPRES3D: Celula 3D para equacao de correcao de pressoa   *
- * metodo simple em escoamento imcompressivel                        * 
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
+ * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
- * loadsVel  -> definicoes de cargas de velocidades                  * 
- * loadsPres -> definicoes de cargas de pressao                      *  
- * lnFace    -> numero de faces da celula central e seus vizinhos    * 
- * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
- * lprop     -> propriedade fisicas das celulas                      * 
- * lViz      -> viznhos da celula central                            * 
- * lId       -> numeracoes das equacoes das celulas                  * 
+ * CELLSIMPLEPRES3D: Celula 3D para equacao de correcao de pressao   *
+ * metodo simple em escoamento imcompressivel                        *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * loadsVel  -> definicoes de cargas de velocidades                  *
+ * loadsPres -> definicoes de cargas de pressao                      *
+ * lnFace    -> numero de faces da celula central e seus vizinhos    *
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
+ * lprop     -> propriedade fisicas das celulas                      *
+ * lViz      -> viznhos da celula central                            *
+ * lId       -> numeracoes das equacoes das celulas                  *
  * Ksi       -> vetores que unem centroide da celula central aos     *
- *            vizinhos destas                                        * 
- * mKsi      -> modulo do vetor ksi                                  * 
- * eta       -> vetores paralelos as faces das celulas               * 
- * mEta      -> modulo do vetor eta                                  * 
- * normal    -> vetores normais as faces das celulas                 * 
- * area      -> area da celula central                               * 
- * xm        -> pontos medios das faces da celula central            * 
- * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
- *            faces da celula central                                * 
- * vSkew  -> vetor entre o ponto medio a intersecao que une os       * 
- *            centrois compartilhado nessa face da celula central    * 
- * mvSkew -> distacia entre o ponto medio a intersecao que une os    * 
- *            centrois compartilhado nessa face da celula central    * 
+ *            vizinhos destas                                        *
+ * mKsi      -> modulo do vetor ksi                                  *
+ * eta       -> vetores paralelos as faces das celulas               *
+ * mEta      -> modulo do vetor eta                                  *
+ * normal    -> vetores normais as faces das celulas                 *
+ * area      -> area da celula central                               *
+ * xm        -> pontos medios das faces da celula central            *
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   *
+ *            faces da celula central                                *
+ * vSkew  -> vetor entre o ponto medio a intersecao que une os       *
+ *            centrois compartilhado nessa face da celula central    *
+ * mvSkew -> distacia entre o ponto medio a intersecao que une os    *
+ *            centrois compartilhado nessa face da celula central    *
  * dcca      -> menor distancia do centroide central a faces desta   *
- *              celula                                               * 
- * lDensity  -> massa especifica sem variacao temporal               * 
+ *              celula                                               *
+ * lDensity  -> massa especifica sem variacao temporal               *
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
- * faceVelR  -> restricoes por elemento de velocidades               * 
- * faceVelL  -> carga por elemento de velocidades                    * 
- * facePresR -> restricoes por elemento de pressao                   * 
- * facePresL -> carga por elemento de pressao                        * 
- * pres      -> campo de pressao conhecido                           * 
- * gradPes   -> gradiente reconstruido da pressao                    * 
- * vel       -> campo de velocidade conhecido                        * 
- * gradVel   -> gradiente rescontruido das velocidades               * 
- * dField    -> matriz D do metodo simple                            * 
- * nEn       -> numero de nos da celula central                      * 
- * nFace     -> numero de faces da celula central                    * 
- * ndm       -> numero de dimensoes                                  * 
- * nel       -> numero da celula                                     * 
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
- *-------------------------------------------------------------------* 
+ * faceVelR  -> restricoes por elemento de velocidades               *
+ * faceVelL  -> carga por elemento de velocidades                    *
+ * facePresR -> restricoes por elemento de pressao                   *
+ * facePresL -> carga por elemento de pressao                        *
+ * pres      -> campo de pressao conhecido                           *
+ * gradPes   -> gradiente reconstruido da pressao                    *
+ * vel       -> campo de velocidade conhecido                        *
+ * gradVel   -> gradiente rescontruido das velocidades               *
+ * dField    -> matriz D do metodo simple                            *
+ * nEn       -> numero de nos da celula central                      *
+ * nFace     -> numero de faces da celula central                    *
+ * ndm       -> numero de dimensoes                                  *
+ * nel       -> numero da celula                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
  * lA        -> coeficiente da linha i                               *
  * lB        -> vetor de forca da linha i                            *
  * lRcell    -> residuo por celula                                   *
- *-------------------------------------------------------------------* 
- * OBS:                                                              * 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ * Fonte: Ferziger-Precic                                            *
+ *-------------------------------------------------------------------*
  *********************************************************************/
 void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres 
               ,short *restrict lGeomType,DOUBLE *restrict prop
               ,INT *restrict lViz       ,INT *restrict lId  
               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
               ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
-              ,DOUBLE *restrict normal  ,DOUBLE *restrict area   
+              ,DOUBLE *restrict normal  ,DOUBLE *restrict area
               ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
               ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
               ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-              ,DOUBLE *restrict lRcell  
+              ,DOUBLE *restrict lRcell
               ,short  *restrict lFaceVelR  ,short *restrict lFaceVelL
               ,short  *restrict lFacePresR ,short *restrict lFacePresL
-              ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres 
-              ,DOUBLE *restrict vel     ,DOUBLE *restrict dField  
-              ,const short nEn          ,short const nFace    
+              ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres
+              ,DOUBLE *restrict vel     ,DOUBLE *restrict dField
+              ,const short nEn          ,short const nFace
               ,const short ndm          ,INT const nel)
 { 
 
@@ -1529,7 +1831,7 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE wfn,velC[3],velF[3],presC,presV;
 /*...*/
   short idCell = nFace;
-  short nAresta,nCarg;
+  short nAresta,nCarg,iCod=2;
   INT vizNel;
 
 /*...*/
@@ -1609,7 +1911,11 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
       dfd = (density*lModEta*dFieldF)/(nk*lModKsi);
 /*...................................................................*/
 
-/*... Ferziger-Precic*/
+/*...*/
+      lA[nAresta] = dfd;
+/*...................................................................*/
+
+/*...*/
       wf[0]    =   alphaMenosUm*velC[0] + alpha*velF[0];
       wf[1]    =   alphaMenosUm*velC[1] + alpha*velF[1];
       wf[2]    =   alphaMenosUm*velC[2] + alpha*velF[2];
@@ -1621,29 +1927,52 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
           + wf[2]*lNormal[2];
 /*...................................................................*/
       
+/*... Ferziger-Precic*/
+      if(iCod == 1){
 /*... interpolacao linear dos gradientes das pressoes*/
-      gf[0]    = alphaMenosUm*gradPresC[0] + alpha*gradPresV[0];
-      gf[1]    = alphaMenosUm*gradPresC[1] + alpha*gradPresV[1];
-      gf[2]    = alphaMenosUm*gradPresC[2] + alpha*gradPresV[2];
-      gfp[0]   = presV - presC;
+        gf[0]    = alphaMenosUm*gradPresC[0] + alpha*gradPresV[0];
+        gf[1]    = alphaMenosUm*gradPresC[1] + alpha*gradPresV[1];
+        gf[2]    = alphaMenosUm*gradPresC[2] + alpha*gradPresV[2];
+        gfp[0]   = presV - presC;
 /*...................................................................*/
 
 /*...*/
-      gfp[1] = (gf[0]*lKsi[0] + gf[1]*lKsi[1] + gf[2]*lKsi[2])*lModKsi;  
-      gfp[1] = (gfp[1] - gfp[0])/(nk*lModKsi);  
+        gfp[1] = (gf[0]*lKsi[0] + gf[1]*lKsi[1] + gf[2]*lKsi[2])*lModKsi;
+        gfp[1] = (gfp[1] - gfp[0])/(nk*lModKsi);
 /*...................................................................*/
 
 /*...*/
-      wfn += dFieldF*gfp[1];
-      wfn *= lModEta;  
+        wfn += dFieldF*gfp[1];
 /*...................................................................*/
 
 /*...*/
-      lA[nAresta] = dfd; 
-      p          -= density*wfn;
+        p -= density*wfn*lModEta;
+/*...................................................................*/
+      } 
 /*...................................................................*/
 
+/*... 2016 - Darwish-Moukalled*/
+      else if(iCod == 2){
+/*... interpolacao linear dos gradientes das pressoes*/
+        gf[0]  = alphaMenosUm*gradPresC[0] + alpha*gradPresV[0];
+        gf[1]  = alphaMenosUm*gradPresC[1] + alpha*gradPresV[1];
+        gf[2]  = alphaMenosUm*gradPresC[2] + alpha*gradPresV[2];
+        gfp[0] = presV - presC;
+/*...................................................................*/
+
+/*...*/
+        gfp[1] = gf[0]*lKsi[0] + gf[1]*lKsi[1] + gf[2]*lKsi[2];
+        gfp[1] = (lModKsi*lModKsi*gfp[1] - gfp[0])*nk;
+/*...................................................................*/
+
+/*...*/
+        wfn += dFieldF*gfp[1];
+        p   -= density*wfn*lModEta;
+      } 
+/*...................................................................*/
     }
+/*...................................................................*/
+
 /*... contorno*/
     else{
       lA[nAresta] = 0.0e0;
@@ -1679,10 +2008,6 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
 
 /*...*/
-//if( nel == 0 ) sP += 1.0e60;
-/*...................................................................*/
-
-/*...*/
   if(nFace == 4){
     lA[idCell] = sP + lA[0] + lA[1] + lA[2] +lA[3];
   }
@@ -1715,6 +2040,262 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
 /*...*/
   lB[0]     = p;
   lRcell[0] = rCell;
+/*...................................................................*/
+}
+/*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 02/08/2016                                   *
+ * Data de modificaco : 05/08/2016                                   *
+ *-------------------------------------------------------------------*
+ * CELLSIMPLENONORTHPRES3D: correcao nao ortogonal da Celula 3D      *
+ * para equacao de correcao de pressao                               *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * lnFace    -> numero de faces da celula central e seus vizinhos    *
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
+ * lprop     -> propriedade fisicas das celulas                      *
+ * lViz      -> viznhos da celula central                            *
+ * lId       -> numeracoes das equacoes das celulas                  *
+ * Ksi       -> vetores que unem centroide da celula central aos     *
+ *            vizinhos destas                                        *
+ * mKsi      -> modulo do vetor ksi                                  *
+ * eta       -> vetores paralelos as faces das celulas               *
+ * mEta      -> modulo do vetor eta                                  *
+ * normal    -> vetores normais as faces das celulas                 *
+ * area      -> area da celula central                               *
+ * xm        -> pontos medios das faces da celula central            *
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   *
+ *            faces da celula central                                *
+ * vSkew  -> vetor entre o ponto medio a intersecao que une os       *
+ *            centrois compartilhado nessa face da celula central    *
+ * mvSkew -> distacia entre o ponto medio a intersecao que une os    *
+ *            centrois compartilhado nessa face da celula central    *
+ * dcca      -> menor distancia do centroide central a faces desta   *
+ *              celula                                               *
+ * lDensity  -> massa especifica sem variacao temporal               *
+ * lB        -> nao definido                                         *
+ * pres      -> campo de pressao conhecido                           *
+ * gradPes   -> gradiente reconstruido da pressao                    *
+ * dField    -> matriz D do metodo simple                            *
+ * cc        -> centroides da celula centra e seus vizinhos          *
+ * nEn       -> numero de nos da celula central                      *
+ * nFace     -> numero de faces da celula central                    *
+ * ndm       -> numero de dimensoes                                  *
+ * nel       -> numero da celula                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * lB        -> vetor de forca da linha i                            *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ * Fonte: Ferziger-Precic                                            *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void cellSimpleNonOrthPres3D(short *restrict lGeomType
+              ,DOUBLE *restrict prop    ,INT *restrict lViz
+              ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
+              ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
+              ,DOUBLE *restrict normal  ,DOUBLE *restrict area
+              ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
+              ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
+              ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
+              ,DOUBLE *restrict lB      
+              ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres
+              ,DOUBLE *restrict dField  ,DOUBLE *restrict cc
+              ,const short nEn          ,short const nFace
+              ,const short ndm          ,INT const nel)
+{ 
+
+  DOUBLE densityC,densityV ,density;
+  DOUBLE dFieldC ,dFieldV  ,dFieldF;
+/*...*/
+  DOUBLE p,tmp,coef;
+/*...*/
+  DOUBLE v[3],lKsi[3],lNormal[3],presC,presV;
+  DOUBLE gfp[2],dVirtual[3],ccV[3],ccC[3],lXm[3],lXmcc[3];
+  DOUBLE dPviz,lModKsi,lModEta,modE,du,duDksi,nMinusKsi[3];
+/*...*/
+  DOUBLE gradPresC[3],gradPresV[3],gradPresComp[3],gf[3],gfKsi;
+/*...*/
+  DOUBLE nk,lvSkew[3];
+/*... interpolacao linear*/
+  DOUBLE alpha,alphaMenosUm;
+/*...*/
+  short idCell = nFace,iCod=2;
+  short nAresta;
+  INT vizNel;
+
+/*...*/
+  densityC = lDensity[idCell];
+/*...................................................................*/
+
+/*...*/
+  
+  gradPresC[0] = MAT2D(idCell,0,gradPres,ndm);
+  gradPresC[1] = MAT2D(idCell,1,gradPres,ndm);
+  gradPresC[2] = MAT2D(idCell,2,gradPres,ndm);
+      
+  ccC[0]     =  MAT2D(idCell,0,cc,ndm);
+  ccC[1]     =  MAT2D(idCell,1,cc,ndm);
+  ccC[2]     =  MAT2D(idCell,2,cc,ndm);
+
+  presC      =  pres[idCell];
+
+  dFieldC    = dField[idCell]; 
+/*...................................................................*/
+
+  p          = 0.0e0;
+  for(nAresta=0;nAresta<nFace;nAresta++){
+    vizNel     = lViz[nAresta];
+/*... dominio*/
+    if( vizNel  > -1 ){
+/*...*/
+      presV      = pres[nAresta];
+/*...*/
+      lNormal[0] = MAT2D(nAresta,0,normal,ndm);
+      lNormal[1] = MAT2D(nAresta,1,normal,ndm);
+      lNormal[2] = MAT2D(nAresta,2,normal,ndm);
+      
+      lModEta    = mEta[nAresta];
+      
+      dFieldV    = dField[nAresta];
+      
+      lKsi[0]    = MAT2D(nAresta,0,ksi,ndm);
+      lKsi[1]    = MAT2D(nAresta,1,ksi,ndm);
+      lKsi[2]    = MAT2D(nAresta,2,ksi,ndm);
+
+      lModKsi    = mKsi[nAresta];
+
+      lvSkew[0]  = MAT2D(nAresta,0,vSkew,ndm);
+      lvSkew[1]  = MAT2D(nAresta,1,vSkew,ndm);
+      lvSkew[2]  = MAT2D(nAresta,2,vSkew,ndm);
+
+      duDksi     = (presV - presC) / lModKsi;
+
+      densityV   = lDensity[nAresta];
+
+      ccV[0]     =  MAT2D(nAresta,0,cc,ndm);
+      ccV[1]     =  MAT2D(nAresta,1,cc,ndm);
+      ccV[2]     =  MAT2D(nAresta,2,cc,ndm);
+
+      lXm[0]     =  MAT2D(nAresta,0,xm,ndm);
+      lXm[1]     =  MAT2D(nAresta,1,xm,ndm);
+      lXm[2]     =  MAT2D(nAresta,2,xm,ndm);
+
+      lXmcc[0]   = MAT2D(nAresta,0,xmcc,ndm);
+      lXmcc[1]   = MAT2D(nAresta,1,xmcc,ndm);
+      lXmcc[2]   = MAT2D(nAresta,2,xmcc,ndm);
+      
+      gradPresV[0] =  MAT2D(nAresta,0,gradPres,ndm);
+      gradPresV[1] =  MAT2D(nAresta,1,gradPres,ndm);
+      gradPresV[2] =  MAT2D(nAresta,2,gradPres,ndm);
+/*...................................................................*/
+
+/*...*/
+      v[0]         = lvSkew[0] + MAT2D(nAresta,0,xmcc,ndm);
+      v[1]         = lvSkew[1] + MAT2D(nAresta,1,xmcc,ndm);
+      v[2]         = lvSkew[2] + MAT2D(nAresta,2,xmcc,ndm);
+      dPviz        = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+      alpha        = dPviz/lModKsi;
+      alphaMenosUm = 1.0e0 - alpha; 
+/*...................................................................*/
+
+/*... interpolacao das propriedades*/
+      density  = alphaMenosUm*densityC  + alpha*densityV;
+      dFieldF  = alphaMenosUm*dFieldC   + alpha*dFieldV;
+/*...................................................................*/
+
+/*... difusao direta*/
+      coef = density*lModEta*dFieldF;
+/*...................................................................*/
+
+/*... produtos interno*/
+      nk  = lKsi[0]*lNormal[0] 
+          + lKsi[1]*lNormal[1] 
+          + lKsi[2]*lNormal[2];
+/*...................................................................*/
+
+/*... Ferziger-Precic*/
+      if(iCod == 1){
+/*... celula central*/
+        tmp = lXmcc[0]*lNormal[0] 
+            + lXmcc[1]*lNormal[1] 
+            + lXmcc[2]*lNormal[2];
+
+        dVirtual[0] = lXm[0] - tmp*lNormal[0] - ccC[0];
+        dVirtual[1] = lXm[1] - tmp*lNormal[1] - ccC[1];
+        dVirtual[2] = lXm[2] - tmp*lNormal[2] - ccC[2];
+        gfp[0]      = gradPresC[0]*dVirtual[0] 
+                    + gradPresC[1]*dVirtual[1] 
+                    + gradPresC[2]*dVirtual[2];
+/*...................................................................*/
+
+/*... celula vizinho*/
+        tmp = (lXm[0]-ccV[0])*lNormal[0] 
+            + (lXm[1]-ccV[1])*lNormal[1] 
+            + (lXm[2]-ccV[2])*lNormal[2];
+
+        dVirtual[0] = lXm[0] - tmp*lNormal[0] - ccV[0];
+        dVirtual[1] = lXm[1] - tmp*lNormal[1] - ccV[1];
+        dVirtual[2] = lXm[2] - tmp*lNormal[2] - ccV[2];
+        gfp[1]      = gradPresV[0]*dVirtual[0]
+                    + gradPresV[1]*dVirtual[1]
+                    + gradPresV[2]*dVirtual[2];
+/*...................................................................*/
+        tmp = gfp[1]-gfp[0];
+        p += coef*tmp/(nk*lModKsi);
+/*...................................................................*/
+      }
+/*...................................................................*/
+
+/*... 2016 - Darwish-Moukalled*/
+      else if(iCod == 2){
+/*... correcao sobre-relaxada*/
+        modE       = 1.0e0/nk;
+/*...................................................................*/
+
+/*...*/
+        gf[0] = alphaMenosUm*gradPresC[0] + alpha*gradPresV[0];
+        gf[1] = alphaMenosUm*gradPresC[1] + alpha*gradPresV[1];
+        gf[2] = alphaMenosUm*gradPresC[2] + alpha*gradPresV[2];
+/*...................................................................*/
+
+/*... derivadas direcionais*/
+        gfKsi = gf[0]*lKsi[0] + gf[1]*lKsi[1] + gf[2]*lKsi[2];
+/*...................................................................*/
+
+/*... gradiente compacto (Darwish e Moukalled)*/
+        du              = duDksi  - gfKsi;
+        gradPresComp[0] = gf[0] + du*lKsi[0];
+        gradPresComp[1] = gf[1] + du*lKsi[1];
+        gradPresComp[2] = gf[2] + du*lKsi[2];
+/*...................................................................*/
+
+
+/*... derivadas direcionais*/
+        nMinusKsi[0] = lNormal[0] - modE*lKsi[0];
+        nMinusKsi[1] = lNormal[1] - modE*lKsi[1];
+        nMinusKsi[2] = lNormal[2] - modE*lKsi[2];
+/*...*/
+        gfKsi = gradPresComp[0]*nMinusKsi[0]
+              + gradPresComp[1]*nMinusKsi[1]
+              + gradPresComp[2]*nMinusKsi[2];
+/*...................................................................*/
+
+/*...*/
+        p += coef*gfKsi;
+/*...................................................................*/
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*...*/
+  *lB = p;
 /*...................................................................*/
 }
 /*********************************************************************/

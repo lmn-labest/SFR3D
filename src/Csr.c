@@ -444,6 +444,7 @@ INT bandCsrC(INT *ia,INT *ja,INT  neq,short type){
 
   INT i,j,aux;
   INT bandL=0,col=0;
+  LONG_INT bandLong=0;
 
   switch(type){
 /*... banda maxima da matriz*/
@@ -471,9 +472,9 @@ INT bandCsrC(INT *ia,INT *ja,INT  neq,short type){
         for(j=ia[i];j<ia[i+1];j++){
           aux = max(aux,abs(i-ja[j]));
         }
-        bandL += aux;
+        bandLong += aux;
       }
-      bandL = bandL/neq;
+      bandL = bandLong/neq;
     break;
 /*...................................................................*/ 
 

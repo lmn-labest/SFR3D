@@ -160,17 +160,19 @@
 
 /*... Simple*/
   typedef struct{
-    DOUBLE alphaPres,alphaVel;          /*under-relaxation*/
-    DOUBLE *ePresC,*nPresC,*eGradPresC; /*Pressao de correcao*/
-    DOUBLE *d;                         
-    DOUBLE tolPres,tolVel;                         
-    INT    maxIt;
+    DOUBLE alphaPres,alphaVel;           /*under-relaxation*/
+    DOUBLE *ePresC,*nPresC  ,*eGradPresC;/*Pressao de correcao*/
+    DOUBLE *ePresC1;                     /*Pressao de correcao 1*/
+    DOUBLE *d;
+    DOUBLE tolPres,tolVel;
+    int    maxIt;
     bool   sPressure;
     unsigned short faceInterpolVel;   /*tecnica de interpolacao
                                         das velocidades nas faces para
-                                        evitar o priblema checkboard        
+                                        evitar o problema checkboard
                                        */
     short  type;
+    int nNonOrth;
     unsigned short kZeroVel;          /*iteracao com o qual o residuo
                                         e normalizado*/
     unsigned short kZeroPres;         /*iteracao com o qual o residuo

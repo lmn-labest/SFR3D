@@ -87,17 +87,17 @@
              ,DOUBLE *restrict gKsi   ,DOUBLE *restrict gmKsi
              ,DOUBLE *restrict gEta   ,DOUBLE *restrict gfArea
              ,DOUBLE *restrict gNormal,DOUBLE *restrict gVolume
-             ,DOUBLE *restrict gXm    ,DOUBLE *restrict gXmcc   
-             ,DOUBLE *restrict gvSkew ,DOUBLE *restrict gmvSkew   
-             ,DOUBLE *restrict gDcca  ,DOUBLE *restrict density             
-             ,INT    *restrict ia     ,INT    *restrict ja                  
-             ,DOUBLE *restrict al     ,DOUBLE *restrict ad                  
-             ,DOUBLE *restrict b      ,INT    *restrict id 
-             ,short  *restrict faceR  ,short  *restrict faceL              
-             ,DOUBLE *restrict u0     ,DOUBLE *restrict gradU0             
+             ,DOUBLE *restrict gXm    ,DOUBLE *restrict gXmcc
+             ,DOUBLE *restrict gvSkew ,DOUBLE *restrict gmvSkew
+             ,DOUBLE *restrict gDcca  ,DOUBLE *restrict density 
+             ,INT    *restrict ia     ,INT    *restrict ja
+             ,DOUBLE *restrict al     ,DOUBLE *restrict ad
+             ,DOUBLE *restrict b      ,INT    *restrict id
+             ,short  *restrict faceR  ,short  *restrict faceL
+             ,DOUBLE *restrict u0     ,DOUBLE *restrict gradU0
              ,DOUBLE *restrict rCell  ,Temporal const ddt
              ,INT const nEq           ,INT const nEqNov
-             ,INT const nAd           ,INT const nAdR                                       
+             ,INT const nAd           ,INT const nAdR
              ,short const maxNo       ,short const maxViz
              ,short const ndm         ,INT const numel
              ,short const ndf         ,short const storage
@@ -116,13 +116,13 @@
              ,DOUBLE *restrict gNormal,DOUBLE *restrict gVolume
              ,DOUBLE *restrict gXm    ,DOUBLE *restrict gXmcc   
              ,DOUBLE *restrict gvSkew ,DOUBLE *restrict gmvSkew   
-             ,DOUBLE *restrict gDcca  ,DOUBLE *restrict density             
-             ,INT    *restrict ia     ,INT    *restrict ja                  
-             ,DOUBLE *restrict al     ,DOUBLE *restrict ad                  
+             ,DOUBLE *restrict gDcca  ,DOUBLE *restrict density
+             ,INT    *restrict ia     ,INT    *restrict ja
+             ,DOUBLE *restrict al     ,DOUBLE *restrict ad 
              ,DOUBLE *restrict b      ,INT    *restrict id 
-             ,short  *restrict faceR  ,short  *restrict faceL              
+             ,short  *restrict faceR  ,short  *restrict faceL
              ,DOUBLE *restrict u0     ,DOUBLE *restrict gradU0 
-             ,DOUBLE *restrict vel            
+             ,DOUBLE *restrict vel 
              ,DOUBLE *restrict rCell  ,Temporal const ddt
              ,INT const nEq           ,INT const nEqNov
              ,INT const nAd           ,INT const nAdR          
@@ -140,24 +140,24 @@
              ,short  *restrict nen      ,short  *restrict nFace
              ,short  *restrict geomType ,DOUBLE *restrict prop 
              ,short  *restrict calType  ,short  *restrict mat  
-             ,DOUBLE *restrict gCc                             
+             ,DOUBLE *restrict gCc
              ,DOUBLE *restrict gKsi     ,DOUBLE *restrict gmKsi
              ,DOUBLE *restrict gEta     ,DOUBLE *restrict gfArea
              ,DOUBLE *restrict gNormal  ,DOUBLE *restrict gVolume
-             ,DOUBLE *restrict gXm      ,DOUBLE *restrict gXmcc   
-             ,DOUBLE *restrict gvSkew   ,DOUBLE *restrict gmvSkew   
-             ,DOUBLE *restrict gDcca    ,DOUBLE *restrict density             
-             ,INT    *restrict ia       ,INT    *restrict ja                  
-             ,DOUBLE *restrict al       ,DOUBLE *restrict ad                  
+             ,DOUBLE *restrict gXm      ,DOUBLE *restrict gXmcc
+             ,DOUBLE *restrict gvSkew   ,DOUBLE *restrict gmvSkew 
+             ,DOUBLE *restrict gDcca    ,DOUBLE *restrict density
+             ,INT    *restrict ia       ,INT    *restrict ja
+             ,DOUBLE *restrict al       ,DOUBLE *restrict ad
              ,DOUBLE *restrict b        ,INT    *restrict id 
-             ,short  *restrict faceVelR ,short  *restrict faceVelL              
-             ,short  *restrict facePresR,short  *restrict facePresL              
+             ,short  *restrict faceVelR ,short  *restrict faceVelL 
+             ,short  *restrict facePresR,short  *restrict facePresL 
              ,DOUBLE *restrict pres     ,DOUBLE *restrict gradPres
              ,DOUBLE *restrict vel      ,DOUBLE *restrict gradVel
-             ,DOUBLE *restrict dField   ,DOUBLE const underU      
+             ,DOUBLE *restrict dField   ,DOUBLE const underU
              ,DOUBLE *restrict rCell    ,Temporal const ddt
              ,INT const nEq             ,INT const nEqNov
-             ,INT const nAd             ,INT const nAdR                      
+             ,INT const nAd             ,INT const nAdR 
              ,short const maxNo         ,short const maxViz
              ,short const ndm           ,INT const numel
              ,short const ndf           ,short const storage
@@ -177,22 +177,41 @@
              ,DOUBLE *restrict gNormal,DOUBLE *restrict gVolume
              ,DOUBLE *restrict gXm    ,DOUBLE *restrict gXmcc   
              ,DOUBLE *restrict gvSkew ,DOUBLE *restrict gmvSkew   
-             ,DOUBLE *restrict gDcca  ,DOUBLE *restrict density             
-             ,INT    *restrict ia     ,INT    *restrict ja                  
-             ,DOUBLE *restrict al     ,DOUBLE *restrict ad                  
-             ,DOUBLE *restrict b      ,INT    *restrict id 
-             ,short  *restrict faceVelR ,short  *restrict faceVelL              
-             ,short  *restrict facePresR,short  *restrict facePresL              
+             ,DOUBLE *restrict gDcca  ,DOUBLE *restrict density
+             ,INT    *restrict ia     ,INT    *restrict ja
+             ,DOUBLE *restrict al     ,DOUBLE *restrict ad
+             ,DOUBLE *restrict b      ,INT    *restrict id
+             ,short  *restrict faceVelR ,short  *restrict faceVelL
+             ,short  *restrict facePresR,short  *restrict facePresL
              ,DOUBLE *restrict pres   ,DOUBLE *restrict gradPres
              ,DOUBLE *restrict vel    ,DOUBLE *restrict dField 
              ,DOUBLE *restrict rCell  ,Temporal const ddt
              ,INT const nEq           ,INT const nEqNov
-             ,INT const nAd           ,INT const nAdR                      
+             ,INT const nAd           ,INT const nAdR
              ,short const maxNo       ,short const maxViz
              ,short const ndm         ,INT const numel
              ,short const ndf         ,short const storage
              ,bool const forces       ,bool const matrix 
              ,bool const calRcell     ,bool const unsym); 
+/*...................................................................*/
+
+/*... correcao nao ortogonal para correcao de pressao*/
+  void simpleNonOrthPres(INT *restrict el ,INT *restrict nelcon 
+               ,short  *restrict nen      ,short  *restrict nFace
+               ,short  *restrict geomType ,DOUBLE *restrict prop 
+               ,short  *restrict calType  ,short  *restrict mat
+               ,DOUBLE *restrict cc
+               ,DOUBLE *restrict gKsi      ,DOUBLE *restrict gmKsi 
+               ,DOUBLE *restrict gEta      ,DOUBLE *restrict gfArea 
+               ,DOUBLE *restrict gNormal   ,DOUBLE *restrict gVolume
+               ,DOUBLE *restrict gXm       ,DOUBLE *restrict gXmcc 
+               ,DOUBLE *restrict gvSkew    ,DOUBLE *restrict gmvSkew 
+               ,DOUBLE *restrict gDcca     ,DOUBLE *restrict density
+               ,DOUBLE *restrict b         ,INT    *restrict id
+               ,short  *restrict facePresR ,DOUBLE *restrict pres 
+               ,DOUBLE *restrict gradPres  ,DOUBLE *restrict dField 
+               ,short const maxNo          ,short const maxViz
+               ,short const ndm            ,INT const numel);
 /*...................................................................*/
 
 /*... chamada da biblioteca de elementos (difusao)*/
@@ -202,14 +221,14 @@
                  ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi    
                  ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea 
                  ,DOUBLE *restrict normal  ,DOUBLE *restrict volume 
-                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc    
+                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
                  ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity 
-                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew     
+                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
                  ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
                  ,DOUBLE *restrict lRcell  ,Temporal const ddt
-                 ,short  *restrict lFaceR  ,short  *restrict lFaceL        
+                 ,short  *restrict lFaceR  ,short  *restrict lFaceL
                  ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0 
-                 ,short const nEn          ,short const nFace        
+                 ,short const nEn          ,short const nFace
                  ,short const ndm          ,short const lib 
                  ,INT const nel);
 /*...................................................................*/
@@ -218,18 +237,18 @@
   void cellLibTrans(Loads *loads           ,Advection advT 
                  ,short *restrict lGeomType,DOUBLE *restrict lprop
                  ,INT   *restrict lViz     ,INT    *restrict lId
-                 ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi    
+                 ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi
                  ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea 
                  ,DOUBLE *restrict normal  ,DOUBLE *restrict volume 
-                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc    
+                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
                  ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity 
-                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew     
+                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
                  ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
                  ,DOUBLE *restrict lRcell  ,Temporal const ddt
-                 ,short  *restrict lFaceR  ,short  *restrict lFaceL        
+                 ,short  *restrict lFaceR  ,short  *restrict lFaceL
                  ,DOUBLE *restrict lu0     ,DOUBLE *restrict lGradU0 
-                 ,DOUBLE *restrict lVel                                
-                 ,short const nEn          ,short const nFace        
+                 ,DOUBLE *restrict lVel
+                 ,short const nEn          ,short const nFace
                  ,short const ndm          ,short const lib 
                  ,INT const nel);
 /*...................................................................*/
@@ -249,8 +268,8 @@
           ,DOUBLE *restrict vSkew     ,DOUBLE *restrict mvSkew
           ,DOUBLE *restrict lA        ,DOUBLE *restrict lB
           ,DOUBLE *restrict lRcell    ,Temporal const ddt
-          ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL       
-          ,short  *restrict lFacePresR,short  *restrict lFacePresL       
+          ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL
+          ,short  *restrict lFacePresR,short  *restrict lFacePresL
           ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres 
           ,DOUBLE *restrict vel       ,DOUBLE *restrict gradVel 
           ,DOUBLE *restrict dField    ,DOUBLE *restrict cc 
@@ -260,7 +279,7 @@
           ,INT const nel);
 
 /*... chamada da biblioteca de elementos (escoamento-pres)*/
-  void cellLibSimplePres(Loads *loadsVel     ,Loads *loadsPres            
+  void cellLibSimplePres(Loads *loadsVel     ,Loads *loadsPres
                ,short *restrict lGeomType,DOUBLE *restrict lprop
                ,INT   *restrict lViz     ,INT *restrict lId  
                ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
@@ -271,13 +290,30 @@
                ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
                ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
                ,DOUBLE *restrict lRcell  ,Temporal const ddt
-               ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL       
-               ,short  *restrict lFacePresR,short  *restrict lFacePresL       
+               ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL
+               ,short  *restrict lFacePresR,short  *restrict lFacePresL
                ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres 
                ,DOUBLE *restrict vel     ,DOUBLE *restrict dField 
                ,short const nEn          ,short  const nFace     
                ,short const ndm          ,short const lib    
                ,INT const nel);
+/*...................................................................*/
+
+/*... chamada da biblioteca de correcao nao ortogonal para correcao 
+      de pressao*/
+  void cellLibSimpleNonOrthPres(short *restrict lGeomType
+               ,DOUBLE *restrict lprop   ,INT   *restrict lViz
+               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
+               ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
+               ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
+               ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
+               ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
+               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
+               ,DOUBLE *restrict lB      
+               ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres 
+               ,DOUBLE *restrict dField  ,DOUBLE *restrict cc
+               ,short const nEn          ,short  const nFace     
+               ,short const ndm          ,INT const nel);
 /*...................................................................*/
 
 /*...................................................................*/
@@ -304,7 +340,7 @@
   void pLoadSimplePres(DOUBLE *restrict sP  ,DOUBLE *restrict p
           ,DOUBLE *restrict tA
           ,DOUBLE const viscosityC,DOUBLE const densityC
-          ,DOUBLE const wfn                                              
+          ,DOUBLE const wfn
           ,DOUBLE const fArea     ,DOUBLE const dcca 
           ,Loads ld               ,bool const fCal);
 /*...................................................................*/
@@ -341,7 +377,7 @@
                  ,DOUBLE *restrict eta      ,DOUBLE *restrict mEta
                  ,DOUBLE *restrict normal   ,DOUBLE *restrict volume
                  ,DOUBLE *restrict xm       ,DOUBLE *restrict xmcc
-                 ,DOUBLE *restrict dcca     
+                 ,DOUBLE *restrict dcca
                  ,DOUBLE *restrict vSkew    ,DOUBLE *restrict mvSkew
                  ,short  *restrict sn       ,short const maxNo   
                  ,short const maxViz        ,short const ndm
@@ -364,18 +400,18 @@
 /*... biblioteca de celulas (difusao)*/
   void cellDif2D(Loads *loads
                 ,short *restrict lGeomType,DOUBLE *restrict lprop
-                ,INT   *restrict lViz     ,INT *restrict lId               
+                ,INT   *restrict lViz     ,INT *restrict lId
                 ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi
                 ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
                 ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-                ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity   
+                ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
                 ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-                ,DOUBLE *restrict lRcell  ,Temporal const ddt                 
+                ,DOUBLE *restrict lRcell  ,Temporal const ddt
                 ,short  *restrict lFaceR  ,short *restrict lFaceL
                 ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0
-                ,short const nen          ,short const nFace    
+                ,short const nen          ,short const nFace
                 ,short const ndm          ,INT const nel);
   
   void cellDif3D(Loads *loads
@@ -398,7 +434,7 @@
 /*... biblioteca de celulas (transporte)*/
   void cellTrans2D(Loads *loads           ,Advection advT
                 ,short *restrict lGeomType,DOUBLE *restrict lprop
-                ,INT   *restrict lViz     ,INT *restrict lId               
+                ,INT   *restrict lViz     ,INT *restrict lId
                 ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi
                 ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
                 ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
@@ -409,24 +445,24 @@
                 ,DOUBLE *restrict lRcell  ,Temporal const ddt
                 ,short  *restrict lFaceR  ,short *restrict lFaceL
                 ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0
-                ,DOUBLE *restrict vel                                
-                ,short const nen          ,short const nFace    
+                ,DOUBLE *restrict vel
+                ,short const nen          ,short const nFace
                 ,short const ndm          ,INT const nel);
   
   void cellTrans3D(Loads *loads           ,Advection advT
                 ,short *restrict lGeomType,DOUBLE *restrict lprop
-                ,INT   *restrict lViz     ,INT *restrict lId               
+                ,INT   *restrict lViz     ,INT *restrict lId
                 ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi
                 ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
                 ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-                ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity   
+                ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
                 ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
                 ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
                 ,DOUBLE *restrict lRcell  ,Temporal const ddt
                 ,short  *restrict lFaceR  ,short *restrict lFaceL
                 ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0
-                ,DOUBLE *restrict vel                                
+                ,DOUBLE *restrict vel
                 ,short const nen          ,short const nFace    
                 ,short const ndm          ,INT const nel);
 /*...................................................................*/
@@ -434,47 +470,47 @@
 /*.......................... SIMPLE .................................*/
 
 /*... biblioteca de celulas (simple - vel)*/
-  void cellSimpleVel2D(Loads *loadsVel    ,Loads *loadsPres        
+  void cellSimpleVel2D(Loads *loadsVel    ,Loads *loadsPres 
               ,Advection  advVel          ,short const typeSimple 
               ,short *restrict lGeomType  ,DOUBLE *restrict lprop
-              ,INT   *restrict lViz       ,INT *restrict lId               
+              ,INT   *restrict lViz       ,INT *restrict lId
               ,DOUBLE *restrict ksi       ,DOUBLE *restrict mksi
               ,DOUBLE *restrict eta       ,DOUBLE *restrict mEta
               ,DOUBLE *restrict normal    ,DOUBLE *restrict volume
               ,DOUBLE *restrict xm        ,DOUBLE *restrict xmcc
-              ,DOUBLE *restrict dcca      ,DOUBLE *restrict lDensity   
+              ,DOUBLE *restrict dcca      ,DOUBLE *restrict lDensity
               ,DOUBLE *restrict vSkew     ,DOUBLE *restrict mvSkew
               ,DOUBLE *restrict lA        ,DOUBLE *restrict lB
               ,DOUBLE *restrict lRcell    ,Temporal const ddt
-              ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL       
-              ,short  *restrict lFacePresR,short  *restrict lFacePresL     
+              ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL
+              ,short  *restrict lFacePresR,short  *restrict lFacePresL
               ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres 
-              ,DOUBLE *restrict vel       ,DOUBLE *restrict gradVel 
-              ,DOUBLE *restrict dField    ,DOUBLE *restrict cc     
+              ,DOUBLE *restrict vel       ,DOUBLE *restrict gradVel
+              ,DOUBLE *restrict dField    ,DOUBLE *restrict cc
               ,DOUBLE const underU        ,bool const sPressure
-              ,short const nen            ,short const nFace    
+              ,short const nen            ,short const nFace
               ,short const ndm            ,INT const nel);
 
 /*... biblioteca de celulas (simple - vel)*/
-  void cellSimpleVel3D(Loads *loadsVel    ,Loads *loadsPres        
+  void cellSimpleVel3D(Loads *loadsVel    ,Loads *loadsPres
               ,Advection  advVel          ,short const typeSimple 
               ,short *restrict lGeomType  ,DOUBLE *restrict lprop
-              ,INT   *restrict lViz       ,INT *restrict lId               
+              ,INT   *restrict lViz       ,INT *restrict lId
               ,DOUBLE *restrict ksi       ,DOUBLE *restrict mksi
               ,DOUBLE *restrict eta       ,DOUBLE *restrict mEta
               ,DOUBLE *restrict normal    ,DOUBLE *restrict volume
               ,DOUBLE *restrict xm        ,DOUBLE *restrict xmcc
-              ,DOUBLE *restrict dcca      ,DOUBLE *restrict lDensity   
+              ,DOUBLE *restrict dcca      ,DOUBLE *restrict lDensity
               ,DOUBLE *restrict vSkew     ,DOUBLE *restrict mvSkew
               ,DOUBLE *restrict lA        ,DOUBLE *restrict lB
               ,DOUBLE *restrict lRcell    ,Temporal const ddt
-              ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL       
-              ,short  *restrict lFacePresR,short  *restrict lFacePresL     
+              ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL
+              ,short  *restrict lFacePresR,short  *restrict lFacePresL
               ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres 
               ,DOUBLE *restrict vel       ,DOUBLE *restrict gradVel 
-              ,DOUBLE *restrict dField    ,DOUBLE *restrict cc     
+              ,DOUBLE *restrict dField    ,DOUBLE *restrict cc 
               ,DOUBLE const underU        ,bool const sPressure
-              ,short const nen            ,short const nFace    
+              ,short const nen            ,short const nFace
               ,short const ndm            ,INT const nel);
 /*...................................................................*/
 
@@ -490,15 +526,15 @@
               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
               ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
               ,DOUBLE *restrict lRcell  
-              ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL       
-              ,short  *restrict lFacePresR,short  *restrict lFacePresL     
+              ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL
+              ,short  *restrict lFacePresR,short  *restrict lFacePresL
               ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres 
               ,DOUBLE *restrict vel     ,DOUBLE *restrict dField  
               ,const short nEn          ,short const nFace    
               ,const short ndm          ,INT const nel);
   
 /*... biblioteca de celulas (simple - pres)*/
-  void cellSimplePres3D(Loads *loadsVel    ,Loads *loadsPres           
+  void cellSimplePres3D(Loads *loadsVel    ,Loads *loadsPres
               ,short *restrict lGeomType,DOUBLE *restrict prop
               ,INT *restrict lViz       ,INT *restrict lId  
               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
@@ -509,14 +545,46 @@
               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
               ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
               ,DOUBLE *restrict lRcell  
-              ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL       
-              ,short  *restrict lFacePresR,short  *restrict lFacePresL     
+              ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL
+              ,short  *restrict lFacePresR,short  *restrict lFacePresL
               ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres 
               ,DOUBLE *restrict vel     ,DOUBLE *restrict dField  
               ,const short nEn          ,short const nFace    
               ,const short ndm          ,INT const nel);
 /*...................................................................*/
-  
+
+/*... biblioteca de celulas (simple - pres-correcao non-ortogonal)*/
+  void cellSimpleNonOrthPres2D(short *restrict lGeomType
+              ,DOUBLE *restrict prop    ,INT *restrict lViz
+              ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
+              ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
+              ,DOUBLE *restrict normal  ,DOUBLE *restrict area   
+              ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
+              ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
+              ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
+              ,DOUBLE *restrict lB      
+              ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres 
+              ,DOUBLE *restrict dField  ,DOUBLE *restrict cc
+              ,const short nEn          ,short const nFace
+              ,const short ndm          ,INT const nel);
+/*...................................................................*/
+
+/*... biblioteca de celulas (simple - pres-correcao non-ortogonal)*/
+  void cellSimpleNonOrthPres3D(short *restrict lGeomType
+              ,DOUBLE *restrict prop    ,INT *restrict lViz
+              ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
+              ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
+              ,DOUBLE *restrict normal  ,DOUBLE *restrict area   
+              ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
+              ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
+              ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
+              ,DOUBLE *restrict lB      
+              ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres 
+              ,DOUBLE *restrict dField  ,DOUBLE *restrict cc
+              ,const short nEn          ,short const nFace
+              ,const short ndm          ,INT const nel);
+/*...................................................................*/
+
 /*...................................................................*/
 
 /*...*/
