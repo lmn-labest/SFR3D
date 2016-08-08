@@ -167,7 +167,8 @@ void simpleSolver2D(Memoria *m
 /*... montagem do sistema u, v e w*/
      tm.systFormVel = getTimeC() - tm.systFormVel;
      systFormSimpleVel(loadsVel              ,loadsPres
-                    ,sc.advVel               ,sp->type
+                    ,sc.advVel               ,sc.diffVel           
+                    ,sp->type
                     ,mesh->elm.node          ,mesh->elm.adj.nelcon  
                     ,mesh->elm.nen           ,mesh->elm.adj.nViz   
                     ,mesh->elm.geomType      ,mesh->elm.material.prop 
@@ -709,7 +710,8 @@ void simpleSolver3D(Memoria *m
 /*... montagem do sistema u, v e w*/
      tm.systFormVel = getTimeC() - tm.systFormVel;
      systFormSimpleVel(loadsVel              ,loadsPres
-                    ,sc.advVel               ,sp->type
+                    ,sc.advVel               ,sc.diffVel                
+                    ,sp->type
                     ,mesh->elm.node          ,mesh->elm.adj.nelcon  
                     ,mesh->elm.nen           ,mesh->elm.adj.nViz   
                     ,mesh->elm.geomType      ,mesh->elm.material.prop 

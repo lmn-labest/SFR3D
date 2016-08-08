@@ -1,0 +1,54 @@
+Log do execucao    : ex2_1_fluid_gglc.dat
+
+Time:
+adjcency           : 0.046170
+geom               : 0.009294
+reord              : 0.000960
+matVecSparse       : 59.317226
+dot                : 28.744937
+Pcg                : 92.289993
+Pbicgstab          : 20.543576
+precondDiag        : 0.069874
+SolvPres           : 92.339568
+numeqPres          : 0.000113
+dataStructPres     : 0.000820
+systFormPres       : 6.109425
+rcGradPres         : 6.882778
+SolvVel            : 20.674331
+numeqVel           : 0.000028
+dataStructVel      : 0.000803
+CellPloadSimple    : 0.000011
+CellTransientSimple: 0.000000
+systFormVel        : 13.130834
+rcGradVel          : 3.666906
+solvEdpFuild       : 143.179090
+Total              : 143.380581
+
+Malha:
+nnode              : 10201
+nCell              : 10000
+volume             : 1.000000
+non-OrthMed        : 0.00°
+non-OtthMax        : 0.00°
+skewMed            : 0.000000
+skewMax            : 0.000000
+
+Sistema Vel:
+Armazenamento      : CSRC
+nEq                : 10000
+band Min           : 1
+band Max           : 100
+band Med           : 67
+nAd                : 19800
+tol                : 1.110223e-16
+Iterativo          : PBICGSTAB
+
+Sistema Pres:
+Armazenamento      : CSRC
+nEq                : 9999
+band Min           : 2
+band Max           : 100
+band Med           : 67
+nAd                : 19798
+tol                : 1.110223e-16
+Iterativo          : PCG

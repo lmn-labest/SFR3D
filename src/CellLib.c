@@ -1,7 +1,7 @@
 #include<CellLoop.h>
 /*********************************************************************
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 05/07/2016                                   *
+ * Data de modificaco : 08/08/2016                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEVEl: chamada de bibliotecas de celulas para          *
  * problema de escoamento de fluidos (VEL)                           *
@@ -11,6 +11,7 @@
  * loadsVel  -> definicoes de cargas de velocidades                  *
  * loadsPres -> definicoes de cargas de pressao                      *
  * advVel    -> tecnica da discretizacao do termo advecao            *
+ * diffVel   -> tecnica da discretizacao do termo difusivo           *
  * typeSimple-> tipo do metodo simple                                *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
  * lprop     -> propriedade fisicas das celulas                      *
@@ -62,7 +63,8 @@
  *-------------------------------------------------------------------*
  *********************************************************************/
 void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
-             ,Advection  advVel          ,short const typeSimple 
+             ,Advection  advVel          ,Diffusion diffVel    
+             ,short const typeSimple 
              ,short *restrict lGeomType  ,DOUBLE *restrict lprop
              ,INT   *restrict lViz       ,INT *restrict lId  
              ,DOUBLE *restrict ksi       ,DOUBLE *restrict mKsi
@@ -89,7 +91,8 @@ void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
 /*... 2D*/
     if(ndm == 2){
       cellSimpleVel2D(loadsVel,loadsPres   
-                 ,advVel      ,typeSimple
+                 ,advVel      ,diffVel
+                 ,typeSimple
                  ,lGeomType   ,lprop
                  ,lViz        ,lId
                  ,ksi         ,mKsi
@@ -3309,7 +3312,7 @@ DOUBLE limitFaceBase(DOUBLE const r,short const iCod)
 
 /*...*/
     default:
-      printf("Erro: tipo de funcao limiradora fluxo invalida.\n"
+      printf("Erro: tipo de funcao limitadora de fluxo invalida.\n"
              "Arquivo fonte:  \"%s\".\n"
              "Nome da funcao: \"%s\".\n"
              "Linha         : \"%d\".\n"
@@ -3568,7 +3571,6 @@ DOUBLE deferredCd(DOUBLE const uC,DOUBLE const uV,DOUBLE const wfn)
  *********************************************************************/
 void setFaceBase(char *word,short *iCod)
 {
-  #define NFUNCLIMTFACE 7
   short i;
   char fBase[][WORD_SIZE]=
        {"FoUp"   ,"VanLeer" ,"VanAlbada"
@@ -3653,6 +3655,74 @@ void setFaceBase(char *word,short *iCod)
 }
 /*********************************************************************/ 
 
+/********************************************************************* 
+ * Data de criacao    : 08/08/2016                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * SETDIFFUSIONSCHME;                                                * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * word ->                                                           * 
+ * iCod -> nao definido                                              * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * iCod -> codigo da tecnica do termo difusivo                       * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void  setDiffusionScheme(char *word,short *iCod)
+{
+  short i;
+  char fDif[][WORD_SIZE]=
+       {"Orthogonal"  ,"Minimal"
+       ,"OrthogonalC" ,"OverRelaxed"};
+/*...*/  
+  if(!strcmp(word,fDif[0])){
+    *iCod = ORTHOGONAL; 
+    if(!mpiVar.myId ) printf("iCod  : %s\n",fDif[0]);
+  }
+/*...................................................................*/
+  
+/*...*/
+  else if(!strcmp(word,fDif[1])){
+    *iCod = MINIMAL; 
+    if(!mpiVar.myId ) printf("iCod  : %s\n",fDif[1]);
+  }
+/*...................................................................*/
+
+/*...*/
+  else if(!strcmp(word,fDif[2])){
+    *iCod = ORTHOGONALC; 
+    if(!mpiVar.myId ) printf("iCod  : %s\n",fDif[2]);
+  }
+/*...................................................................*/
+
+/*...*/
+  else if(!strcmp(word,fDif[3])){
+    *iCod = OVERRELAXED; 
+    if(!mpiVar.myId ) printf("iCod  : %s\n",fDif[3]);
+  }
+/*...................................................................*/
+
+
+/*...*/
+  else{
+    printf("Erro: tipo de correcao nao ortogonal invalida.\n"
+           "Arquivo fonte:  \"%s\".\n"
+           "Nome da funcao: \"%s\".\n"
+           "Linha         : \"%d\".\n"
+           ,__FILE__,__func__,__LINE__);
+    printf("Funcoes disponiveis:\n");
+    for(i=0;i<4;i++)
+      printf("%s\n",fDif[i]);
+    exit(EXIT_FAILURE);
+  }
+/*...................................................................*/
+}
+/*********************************************************************/ 
        
 /********************************************************************* 
  * Data de criacao    : 18/07/2016                                   *
@@ -3814,5 +3884,210 @@ void gradFaceNull(DOUBLE *restrict gradVelFace
   }
 
 
+}
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * Data de criacao    : 08/07/2016                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * difusionNonOrthScheme :  correcao nao ortogonal do termo difusivo * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------*
+ * n       -> vetor normal unitarios                                 *
+ * ksi     -> vetor que une os centroide central e o vizinho         *   
+ * lArea   -> area da face                                           *   
+ * modKsi  -> distancia entre o centroide central e o vizinho        *   
+ * e       -> nao definido                                           *   
+ * t       -> nao definido                                           *   
+ * ndm     -> dimensao                                               *   
+ * iCodDif -> codigo da tecnica nao ortogonal                        *   
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * e       -> parcela implicita                                      *   
+ * t       -> parcela explicita                                      *   
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ * grad(phi)*S = grad(phi)*E + grad(phi)*T                           * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+ void difusionScheme(DOUBLE *restrict n ,DOUBLE *restrict ksi 
+                    ,DOUBLE const fArea ,DOUBLE const lModKsi  
+                    ,DOUBLE *restrict e ,DOUBLE *restrict t   
+                    ,short const ndm    ,short const iCod){
+
+  DOUBLE nk,tmp;
+  short i;
+  char word[][WORD_SIZE]=
+       {"Orthogonal"  ,"Minimal"
+       ,"OrthogonalC" ,"OverRelaxed"};
+
+  switch(iCod){
+
+/*... Minimal*/
+    case ORTHOGONAL:
+      if(ndm == 2){
+/*... vetor E*/
+        e[0] = fArea*ksi[0];        
+        e[1] = fArea*ksi[1];
+/*...................................................................*/
+
+/*... vetor T*/
+        t[0] = 0.e0;        
+        t[1] = 0.e0;        
+/*...................................................................*/
+      }        
+/*...................................................................*/
+
+/*...*/
+      else if(ndm == 3){
+/*... vetor E*/
+        e[0] = fArea*ksi[0];        
+        e[1] = fArea*ksi[1];
+        e[2] = fArea*ksi[2];
+/*...................................................................*/
+
+/*... vetor T*/
+        t[0] = 0.e0;        
+        t[1] = 0.e0;        
+        t[2] = 0.e0;        
+/*...................................................................*/
+      }        
+    break;
+/*...................................................................*/
+
+/*... Minimal*/
+    case MINIMAL: 
+      if(ndm == 2){
+/*...*/
+        nk = n[0]*ksi[0] + n[1]*ksi[1];
+/*...................................................................*/
+
+/*... vetor E*/
+        tmp  = fArea*nk;
+        e[0] = tmp*ksi[0];        
+        e[1] = tmp*ksi[1];
+/*...................................................................*/
+
+/*... vetor T*/
+        t[0] = fArea*n[0] - e[0];        
+        t[1] = fArea*n[1] - e[1];        
+/*...................................................................*/
+      }        
+/*...................................................................*/
+
+/*...*/
+      else if(ndm == 3){
+/*...*/
+        nk = n[0]*ksi[0] + n[1]*ksi[1] +  n[2]*ksi[2];
+/*...................................................................*/
+
+/*... vetor E*/
+        tmp  = fArea*nk;
+        e[0] = tmp*ksi[0];        
+        e[1] = tmp*ksi[1];
+        e[2] = tmp*ksi[2];
+/*...................................................................*/
+
+/*... vetor T*/
+        t[0] = fArea*n[0] - e[0];        
+        t[1] = fArea*n[1] - e[1];        
+        t[2] = fArea*n[2] - e[2];        
+/*...................................................................*/
+      }        
+    break;
+/*...................................................................*/
+
+/*... Orthogonal*/
+    case ORTHOGONALC:
+      if(ndm == 2){
+/*... vetor E*/
+        e[0] = fArea*ksi[0];        
+        e[1] = fArea*ksi[1];
+/*...................................................................*/
+
+/*... vetor T*/
+        t[0] = fArea*n[0] - e[0];        
+        t[1] = fArea*n[1] - e[1];        
+/*...................................................................*/
+      }        
+/*...................................................................*/
+
+/*...*/
+      else if(ndm == 3){
+/*... vetor E*/
+        e[0] = fArea*ksi[0];        
+        e[1] = fArea*ksi[1];
+        e[2] = fArea*ksi[2];
+/*...................................................................*/
+
+/*... vetor T*/
+        t[0] = fArea*n[0] - e[0];        
+        t[1] = fArea*n[1] - e[1];        
+        t[2] = fArea*n[2] - e[2];        
+/*...................................................................*/
+      }        
+    break;
+/*...................................................................*/
+
+/*... OverRelaxed*/
+    case OVERRELAXED:
+      if(ndm == 2){
+/*...*/
+        nk = n[0]*ksi[0] + n[1]*ksi[1];
+        nk = 1.e0/nk;
+/*...................................................................*/
+
+/*... vetor E*/
+        tmp  = fArea*nk;
+        e[0] = tmp*ksi[0];        
+        e[1] = tmp*ksi[1];        
+/*...................................................................*/
+
+/*... vetor T*/
+        t[0] = fArea*n[0] - e[0];        
+        t[1] = fArea*n[1] - e[1];        
+/*...................................................................*/
+      }
+/*...................................................................*/
+
+/*...*/
+      else if(ndm == 3){
+/*...*/
+        nk = n[0]*ksi[0] + n[1]*ksi[1]  + n[2]*ksi[2];
+        nk = 1.e0/nk;
+/*...................................................................*/
+
+/*... vetor E*/
+        tmp  = fArea*nk;
+        e[0] = tmp*ksi[0];        
+        e[1] = tmp*ksi[1];        
+        e[2] = tmp*ksi[2];        
+/*...................................................................*/
+
+/*... vetor T*/
+        t[0] = fArea*n[0] - e[0];        
+        t[1] = fArea*n[1] - e[1];        
+        t[2] = fArea*n[2] - e[2];        
+/*...................................................................*/
+      }
+    break;
+/*...................................................................*/
+
+/*...*/
+    default:
+      printf("Erro: tipo de correcao nao ortogonal invalida.\n"
+             "Arquivo fonte:  \"%s\".\n"
+             "Nome da funcao: \"%s\".\n"
+             "Linha         : \"%d\".\n"
+             ,__FILE__,__func__,__LINE__);
+      printf("Funcoes disponiveis:\n");
+      for(i=0;i<4;i++)
+        printf("%s\n",word[i]);
+      exit(EXIT_FAILURE);
+/*...................................................................*/
+  }
 }
 /*********************************************************************/ 

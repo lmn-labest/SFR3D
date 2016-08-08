@@ -60,6 +60,7 @@ int main(int argc,char**argv){
   char loopWord[100][MAX_LINE];
   unsigned short kLoop,jLoop,ndf;
   bool flWord=false,fAdv;
+  unsigned short nScheme; 
 
 /*... Estrutura de dados*/
   char strIa[MNOMEPONTEIRO],strJa[MNOMEPONTEIRO];
@@ -92,7 +93,7 @@ int main(int argc,char**argv){
   ,"nlItT1"      ,"pT1CsvCell"   ,"pT1CsvNode"    /*18,19,20*/
   ,"presolvFluid","simple"       ,"preSimple"     /*21,22,23*/
   ,"transient"   ,"timeUpdate"   ,"partd"         /*24,25,26*/
-  ,"advection"   ,"edp"          ,""              /*27,28,29*/
+  ,"advection"   ,"edp"          ,"diffusion"      /*27,28,29*/
   ,"pFluid"      ,"setPrintFluid" ,""     };      /*30,31,32*/
 /* ..................................................................*/
 
@@ -206,6 +207,11 @@ int main(int argc,char**argv){
 /*...*/
   sc.advVel.base = FBASE;
   sc.advVel.iCod = FOUP;
+/*...................................................................*/
+
+/*...*/
+  sc.diffVel.iCod  = OVERRELAXED;
+  sc.diffPres.iCod = OVERRELAXED;
 /*...................................................................*/
 
 /*...*/  
@@ -2218,6 +2224,41 @@ int main(int argc,char**argv){
         printf("%s\n",word);
       }
       readEdo(mesh0,fileIn);
+/*...................................................................*/
+      if(!mpiVar.myId ) printf("%s\n",DIF);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: diffusion tecnica aplicada no termo difusivo           
+ *===================================================================*/
+    else if((!strcmp(word,macro[29]))){
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+      }
+/*... tecnica de adveccao*/
+      readMacro(fileIn,word,false);
+      nScheme = atol(word);
+      do{ 
+        readMacro(fileIn,word,false);
+/*... velocidade*/
+        if(!strcmp(word,"Vel")){ 
+          printf("%s:\n",word);
+          readMacro(fileIn,word,false);
+/*... codigo da da funcao limitadora de fluxo*/        
+          setDiffusionScheme(word,&sc.diffVel.iCod);
+          nScheme--;
+        }
+/*... Pressao*/
+        else if(!strcmp(word,"Pres")){ 
+          printf("%s:\n",word);
+          readMacro(fileIn,word,false);
+/*... codigo da da funcao limitadora de fluxo*/        
+          setDiffusionScheme(word,&sc.diffPres.iCod);
+          nScheme--;
+        }
+      }while(nScheme);
 /*...................................................................*/
       if(!mpiVar.myId ) printf("%s\n",DIF);
     }   

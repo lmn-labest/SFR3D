@@ -11,6 +11,7 @@
  * loadsVel  -> definicoes de cargas de velocidades                  *
  * loadsPres -> definicoes de cargas de pressao                      *
  * advVel    -> tecnica da discretizacao do termo advecao            *
+ * diffVel   -> tecnica da discretizacao do termo difusivo           *
  * typeSimple-> tipo do metodo simple                                *
  * lnFace    -> numero de faces da celula central e seus vizinhos    *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
@@ -81,7 +82,8 @@
  *                  | du2dx1 du2dx2 |                                *
  *********************************************************************/
 void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres 
-            ,Advection advVel            ,short const typeSimple 
+            ,Advection advVel            ,Diffusion diffVel 
+            ,short const typeSimple 
             ,short *restrict lGeomType   ,DOUBLE *restrict prop
             ,INT *restrict lViz          ,INT *restrict lId  
             ,DOUBLE *restrict ksi        ,DOUBLE *restrict mKsi
@@ -111,7 +113,9 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE dPviz,lModKsi,lModEta,du[2],duDksi[2],lXm[2];
   DOUBLE coef,lAn;
 /*...*/
-  DOUBLE nk,dfd,dfdc[2],cv,cvc[2],modE,lvSkew[2],nMinusKsi[2];
+  DOUBLE dfd,cv,cvc[2],lvSkew[2];
+/*... nonOrtogonal*/
+  DOUBLE e[2],t[2],modE,dfdc[2];
 /*... interpolacao linear*/
   DOUBLE alpha,alphaMenosUm;
   DOUBLE aP,tA[2];
@@ -124,6 +128,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE gradVelComp[2][2];
 /*...*/
   short iCod=advVel.iCod;
+  short iCodDif=diffVel.iCod;
 /*...*/
   short idCell = nFace;
   short nAresta,nCarg,typeTime;
@@ -202,12 +207,12 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
       lXm[1]       =  MAT2D(nAresta,1,xm,ndm);
 /*...................................................................*/
 
-/*... produtos interno*/
-      nk  =    lKsi[0]*lNormal[0] + lKsi[1]*lNormal[1];
-/*...................................................................*/
-      
-/*... correcao sobre-relaxada*/
-      modE       = 1.0e0/nk;
+/*... termo difusivo                
+      grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/ 
+      difusionScheme(lNormal ,lKsi 
+                    ,lModEta ,lModKsi  
+                    ,e       ,t   
+                    ,ndm     ,iCodDif);
 /*...................................................................*/
 
 /*...*/
@@ -225,8 +230,9 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
 
 /*... difusao direta*/
-      coef = viscosity*lModEta;
-      dfd  =  coef*modE/lModKsi;
+      coef = viscosity;
+      modE = sqrt(e[0]*e[0] + e[1]*e[1]);
+      dfd  = coef*modE/lModKsi;
 /*...................................................................*/
       
 /*...*/
@@ -263,15 +269,12 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
       gradVelComp[1][1] = gf[1][1] + du[1]*lKsi[1];
 /*...................................................................*/
 
-/*... derivadas direcionais*/
-      nMinusKsi[0] = lNormal[0] - modE*lKsi[0];
-      nMinusKsi[1] = lNormal[1] - modE*lKsi[1];
 /*...*/
-      gfKsi[0] = gradVelComp[0][0]*nMinusKsi[0] 
-               + gradVelComp[0][1]*nMinusKsi[1];
+      gfKsi[0] = gradVelComp[0][0]*t[0] 
+               + gradVelComp[0][1]*t[1];
 /*...*/
-      gfKsi[1] = gradVelComp[1][0]*nMinusKsi[0] 
-               + gradVelComp[1][1]*nMinusKsi[1];
+      gfKsi[1] = gradVelComp[1][0]*t[0] 
+               + gradVelComp[1][1]*t[1];
 /*...................................................................*/
 
 /*... correcao nao-ortogonal*/
@@ -1063,7 +1066,7 @@ void cellSimpleNonOrthPres2D(short *restrict lGeomType
  * Data de criacao    : 11/07/2016                                   *
  * Data de modificaco : 00/00/0000                                   * 
  *-------------------------------------------------------------------* 
- * CELLSIMPLEVELINC3D: Celula 3D para velocidade do metodo simple    * 
+ * CELLSIMPLEVE3D: Celula 3D para velocidade do metodo simple        * 
  * em escoamento imcompressivel                                      * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 

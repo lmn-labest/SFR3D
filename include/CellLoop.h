@@ -135,7 +135,8 @@
 
 /* ... montagem do sistemas de equacoes (Simple - VEl)*/
   void systFormSimpleVel(Loads *loadsVel,Loads *loadsPres 
-             ,Advection advVel          ,short const typeSimple 
+             ,Advection advVel          ,Diffusion diffVel      
+             ,short const typeSimple 
              ,INT    *restrict el       ,INT    *restrict nelcon 
              ,short  *restrict nen      ,short  *restrict nFace
              ,short  *restrict geomType ,DOUBLE *restrict prop 
@@ -257,7 +258,8 @@
 /*.......................... SIMPLE .................................*/
 /*... chamada da biblioteca de elementos (escoamento-vel)*/
   void cellLibSimpleVel(Loads *loadsVel     ,Loads *loadsPres 
-          ,Advection advVel           ,short const typeSimple 
+          ,Advection advVel           ,Diffusion diffVel
+          ,short const typeSimple 
           ,short *restrict lGeomType  ,DOUBLE *restrict lprop
           ,INT   *restrict lViz       ,INT *restrict lId  
           ,DOUBLE *restrict ksi       ,DOUBLE *restrict mKsi
@@ -471,7 +473,8 @@
 
 /*... biblioteca de celulas (simple - vel)*/
   void cellSimpleVel2D(Loads *loadsVel    ,Loads *loadsPres 
-              ,Advection  advVel          ,short const typeSimple 
+              ,Advection  advVel          ,Diffusion diffVel
+              ,short const typeSimple 
               ,short *restrict lGeomType  ,DOUBLE *restrict lprop
               ,INT   *restrict lViz       ,INT *restrict lId
               ,DOUBLE *restrict ksi       ,DOUBLE *restrict mksi
@@ -720,6 +723,11 @@ void parameterCell(DOUBLE *restrict vel  ,DOUBLE *restrict prop
 /*...................................................................*/
 
 /*... funcoes de correcao atrasada*/
+  void difusionScheme(DOUBLE *restrict n ,DOUBLE *restrict ksi 
+                    ,DOUBLE const fArea ,DOUBLE const lModKsi  
+                    ,DOUBLE *restrict e ,DOUBLE *restrict t   
+                    ,short const ndm    ,short const iCod);
+
   DOUBLE deferredCd(DOUBLE const velC,DOUBLE const velV
                    ,DOUBLE const wfn);
 
@@ -761,6 +769,7 @@ void parameterCell(DOUBLE *restrict vel  ,DOUBLE *restrict prop
             ,DOUBLE const fArea   ,DOUBLE const dcca
             ,Loads ld             ,bool const fCal);
   void setFaceBase(char *word,short *iCod);
+  void  setDiffusionScheme(char *word,short *iCod);
   DOUBLE sizeCar(DOUBLE const volume,short const ndm);
 /*...................................................................*/
 

@@ -54,6 +54,10 @@
   #define PCCELL       1 /*valor pescrito*/
   #define SCCELL       2 /*fonte*/
 /*...................................................................*/
+  
+/*... ADVECTION*/
+  #define NFUNCLIMTFACE 7
+/*...................................................................*/
 
 /*... ADVECTION*/
   #define FOUP          1
@@ -73,6 +77,13 @@
 /*... ADVECTION*/
   #define FBASE 1 /*limitacao por face*/
   #define VBASE 2 /*limitacao por volume*/
+/*...................................................................*/
+
+/*... DIFUSSION*/
+  #define ORTHOGONAL  1
+  #define MINIMAL     2
+  #define ORTHOGONALC 3
+  #define OVERRELAXED 4
 /*...................................................................*/
 
 /*... tipos de CC (faces)*/

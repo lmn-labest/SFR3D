@@ -709,6 +709,7 @@ void systFormTrans(Loads *loads          ,Advection advT
  * loadsVel  -> definicoes de cargas de velocidades                  * 
  * loadsPres -> definicoes de cargas de pressao                      * 
  * advVel    -> tecnica da discretizacao do termo advecao            *
+ * diffVel   -> tecnica da discretizacao do termo difusivo           *
  * typeSimple-> tipo do metodo simple                                *
  * el        -> conetividade dos celulas                             * 
  * nelcon    -> vizinhos dos elementos                               * 
@@ -785,7 +786,8 @@ void systFormTrans(Loads *loads          ,Advection advT
  * rCell = | rx1 rx2 ... rxn ry1 ry2 ... ryn rz1 rz2 ... rzn |       * 
  *********************************************************************/
 void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres    
-             ,Advection advVel           ,short const typeSimple 
+             ,Advection advVel           ,Diffusion diffVel
+             ,short const typeSimple 
              ,INT    *restrict el        ,INT    *restrict nelcon 
              ,short  *restrict nen       ,short  *restrict nFace
              ,short  *restrict geomType  ,DOUBLE *restrict prop 
@@ -952,7 +954,8 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
 
 /*... chamando a biblioteca de celulas*/
         cellLibSimpleVel(loadsVel ,loadsPres   
-                      ,advVel     ,typeSimple
+                      ,advVel     ,diffVel   
+                      ,typeSimple
                       ,lGeomType  ,lProp 
                       ,lViz       ,lId           
                       ,lKsi       ,lmKsi

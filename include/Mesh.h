@@ -39,6 +39,12 @@
 
 /*...*/
   typedef struct{
+    short  iCod;
+  }Diffusion;
+/*...................................................................*/  
+
+/*...*/
+  typedef struct{
     DOUBLE *cc;    /*centroide da celulas*/
     DOUBLE *ksi;   /*vetor que une os centroides da celulas*/
     DOUBLE *mksi;  /*modulo do vetor que une os centroides da celulas*/
@@ -228,6 +234,10 @@
     Advection  advT1;
 /*... equacao de velocidade*/
     Advection  advVel;
+/*... equacao de velocidade*/
+    Diffusion diffVel;
+/*... equacao de pressao*/
+    Diffusion diffPres;
   }Scheme;
 /*...................................................................*/
 
