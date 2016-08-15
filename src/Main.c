@@ -2243,7 +2243,7 @@ int main(int argc,char**argv){
       do{ 
         readMacro(fileIn,word,false);
 /*... velocidade*/
-        if(!strcmp(word,"Vel")){ 
+        if(!strcmp(word,"Vel") || !strcmp(word, "vel")){
           printf("%s:\n",word);
           readMacro(fileIn,word,false);
 /*... codigo da da funcao limitadora de fluxo*/        
@@ -2251,7 +2251,7 @@ int main(int argc,char**argv){
           nScheme--;
         }
 /*... Pressao*/
-        else if(!strcmp(word,"Pres")){ 
+        else if(!strcmp(word,"Pres") || !strcmp(word, "pres")){
           printf("%s:\n",word);
           readMacro(fileIn,word,false);
 /*... codigo da da funcao limitadora de fluxo*/        

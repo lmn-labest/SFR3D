@@ -117,7 +117,8 @@ void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
 /*... 3D*/
     else if(ndm == 3){
       cellSimpleVel3D(loadsVel,loadsPres   
-                 ,advVel      ,typeSimple
+                 ,advVel      ,diffVel     
+                 ,typeSimple
                  ,lGeomType   ,lprop
                  ,lViz        ,lId
                  ,ksi         ,mKsi
@@ -154,6 +155,7 @@ void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
  *-------------------------------------------------------------------*
  * loadsVel  -> definicoes de cargas de velocidades                  *
  * loadsPres -> definicoes de cargas de pressao                      *
+ * diffPres  -> tecnica da discretizacao do termo difusivo           *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
  * lprop     -> propriedade fisicas das celulas                      *
  * lViz      -> viznhos da celula central                            *
@@ -200,6 +202,7 @@ void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
  *-------------------------------------------------------------------*
  *********************************************************************/
 void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres
+	             ,Diffusion diffPres
                ,short *restrict lGeomType,DOUBLE *restrict lprop
                ,INT   *restrict lViz     ,INT *restrict lId  
                ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
@@ -224,6 +227,7 @@ void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres
 /*... 2D*/
     if(ndm == 2){
       cellSimplePres2D(loadsVel,loadsPres
+								 ,diffPres	
                  ,lGeomType,lprop
                  ,lViz     ,lId
                  ,ksi      ,mKsi
@@ -246,6 +250,7 @@ void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres
 /*... 3D*/
     else if(ndm == 3){
       cellSimplePres3D(loadsVel,loadsPres
+								 ,diffPres
                  ,lGeomType,lprop
                  ,lViz     ,lId
                  ,ksi      ,mKsi
@@ -271,13 +276,15 @@ void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres
 
 /*********************************************************************
  * Data de criacao    : 02/08/2016                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 09/08/2016                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLENONORTHPRES : chamada de bibliotecas de celulas para *
  * correcao nao ortogonal do problema de escoamento de fluidos (PRES)*
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
+ * diffPres  -> tecnica da discretizacao do termo difusivo           *
+ * loadsPres -> definicoes de cargas de pressao                      *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
  * lprop     -> propriedade fisicas das celulas                      *
  * lViz      -> viznhos da celula central                            *
@@ -313,7 +320,8 @@ void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres
  * lB        -> vetor de forca da linha i                            *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void cellLibSimpleNonOrthPres(short *restrict lGeomType
+void cellLibSimpleNonOrthPres(Diffusion diffPres
+               ,short *restrict lGeomType
                ,DOUBLE *restrict lprop   ,INT   *restrict lViz
                ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
                ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
@@ -330,7 +338,8 @@ void cellLibSimpleNonOrthPres(short *restrict lGeomType
 
 /*... 2D*/
   if(ndm == 2){
-    cellSimpleNonOrthPres2D(lGeomType
+    cellSimpleNonOrthPres2D(diffPres
+                 ,lGeomType
                  ,lprop    ,lViz     
                  ,ksi      ,mKsi
                  ,eta      ,fArea
@@ -348,7 +357,8 @@ void cellLibSimpleNonOrthPres(short *restrict lGeomType
 
 /*... 3D*/
   else if(ndm == 3){
-    cellSimpleNonOrthPres3D(lGeomType
+    cellSimpleNonOrthPres3D(diffPres
+                 ,lGeomType
                  ,lprop    ,lViz     
                  ,ksi      ,mKsi
                  ,eta      ,fArea
@@ -3882,8 +3892,6 @@ void gradFaceNull(DOUBLE *restrict gradVelFace
 /*...................................................................*/
 
   }
-
-
 }
 /*********************************************************************/ 
 
@@ -3902,7 +3910,7 @@ void gradFaceNull(DOUBLE *restrict gradVelFace
  * e       -> nao definido                                           *   
  * t       -> nao definido                                           *   
  * ndm     -> dimensao                                               *   
- * iCodDif -> codigo da tecnica nao ortogonal                        *   
+ * iCodDif -> codigo da tecnica nao ortogonal                        * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
@@ -3935,8 +3943,8 @@ void gradFaceNull(DOUBLE *restrict gradVelFace
 /*...................................................................*/
 
 /*... vetor T*/
-        t[0] = 0.e0;        
-        t[1] = 0.e0;        
+				t[0] = 0.e0;        
+				t[1] = 0.e0;
 /*...................................................................*/
       }        
 /*...................................................................*/
@@ -3950,9 +3958,9 @@ void gradFaceNull(DOUBLE *restrict gradVelFace
 /*...................................................................*/
 
 /*... vetor T*/
-        t[0] = 0.e0;        
-        t[1] = 0.e0;        
-        t[2] = 0.e0;        
+				t[0] = 0.e0;        
+				t[1] = 0.e0;        
+				t[2] = 0.e0;
 /*...................................................................*/
       }        
     break;

@@ -1019,6 +1019,7 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
  *-------------------------------------------------------------------* 
  * loadsVel  -> definicoes de cargas de velocidades                  * 
  * loadsPres -> definicoes de cargas de pressao                      * 
+ * diffVel   -> tecnica da discretizacao do termo difusivo           *
  * el      -> conetividade dos celulas                               * 
  * nelcon  -> vizinhos dos elementos                                 * 
  * nen     -> numero de nos por celulas                              * 
@@ -1088,6 +1089,7 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void systFormSimplePres(Loads *loadsVel  ,Loads *loadsPres 
+							 ,Diffusion diffPres
                ,INT    *restrict el      ,INT    *restrict nelcon 
                ,short  *restrict nen     ,short  *restrict nFace
                ,short  *restrict geomType,DOUBLE *restrict prop 
@@ -1238,7 +1240,8 @@ void systFormSimplePres(Loads *loadsVel  ,Loads *loadsPres
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
-        cellLibSimplePres(loadsVel,loadsPres    
+        cellLibSimplePres(loadsVel,loadsPres 
+											,diffPres   
                       ,lGeomType  ,lProp 
                       ,lViz       ,lId           
                       ,lKsi       ,lmKsi
@@ -1295,6 +1298,7 @@ void systFormSimplePres(Loads *loadsVel  ,Loads *loadsPres
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
+ * diffVel   -> tecnica da discretizacao do termo difusivo           *
  * el        -> conetividade dos celulas                             * 
  * nelcon    -> vizinhos dos elementos                               * 
  * nen       -> numero de nos por celulas                            * 
@@ -1339,7 +1343,8 @@ void systFormSimplePres(Loads *loadsVel  ,Loads *loadsPres
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void simpleNonOrthPres(INT    *restrict el ,INT *restrict nelcon 
+void simpleNonOrthPres(Diffusion diffPres
+               ,INT    *restrict el ,INT *restrict nelcon 
                ,short  *restrict nen       ,short  *restrict nFace
                ,short  *restrict geomType  ,DOUBLE *restrict prop 
                ,short  *restrict calType   ,short  *restrict mat     
@@ -1449,7 +1454,8 @@ void simpleNonOrthPres(INT    *restrict el ,INT *restrict nelcon
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
-        cellLibSimpleNonOrthPres(lGeomType 
+        cellLibSimpleNonOrthPres(diffPres
+											   ,lGeomType 
                          ,lProp      ,lViz                  
                          ,lKsi       ,lmKsi
                          ,lEta       ,lfArea 

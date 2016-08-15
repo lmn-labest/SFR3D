@@ -24,7 +24,7 @@ void simpleSolver2D(Memoria *m
                    ,Scheme sc         ,PartMesh *pMesh 
                    ,FileOpt opt       ,char *preName  
                    ,char *nameOut     ,FILE *fileOut){
-
+	FILE *fStop = NULL;
   short unsigned ndfVel = mesh->ndfF-1;
   short unsigned conv;
   int itSimple,nonOrth;
@@ -108,6 +108,13 @@ void simpleSolver2D(Memoria *m
 
 /*...*/
   for(itSimple=0;itSimple<sp->maxIt;itSimple++){
+/*...*/
+		if ((fStop = fopen("stopSimple.mvf", "r")) != NULL) {
+			fclose(fStop);
+			break;
+		}
+/*...................................................................*/
+
 /*... calculo da matrix jacobiana das velocidades
                             | du1dx1 du1dx2 du1dx3 |   
                             | du2dx1 du2dx2 du2dx3 |   
@@ -278,7 +285,8 @@ void simpleSolver2D(Memoria *m
 
 /*... montagem do sistema  da pressao de correca*/
      tm.systFormPres = getTimeC() - tm.systFormPres;
-     systFormSimplePres(loadsVel              ,loadsPres
+     systFormSimplePres(loadsVel             ,loadsPres
+			              ,sc.diffPres
                     ,mesh->elm.node          ,mesh->elm.adj.nelcon  
                     ,mesh->elm.nen           ,mesh->elm.adj.nViz   
                     ,mesh->elm.geomType      ,mesh->elm.material.prop 
@@ -384,7 +392,8 @@ void simpleSolver2D(Memoria *m
 
 /*...*/
          tm.systFormPres = getTimeC() - tm.systFormPres;
-         simpleNonOrthPres( mesh->elm.node    ,mesh->elm.adj.nelcon
+         simpleNonOrthPres(sc.diffPres
+					          ,mesh->elm.node          ,mesh->elm.adj.nelcon
                     ,mesh->elm.nen           ,mesh->elm.adj.nViz
                     ,mesh->elm.geomType      ,mesh->elm.material.prop
                     ,mesh->elm.material.type ,mesh->elm.mat
@@ -560,7 +569,8 @@ void simpleSolver3D(Memoria *m
                    ,Scheme sc         ,PartMesh *pMesh 
                    ,FileOpt opt       ,char *preName  
                    ,char *nameOut     ,FILE *fileOut){
-  short unsigned ndfVel = mesh->ndfF-1;
+  FILE *fStop=NULL;
+	short unsigned ndfVel = mesh->ndfF-1;
   short unsigned conv;
   int itSimple;
   int nonOrth;
@@ -647,9 +657,11 @@ void simpleSolver3D(Memoria *m
 /*...*/
   for(itSimple=0;itSimple<sp->maxIt;itSimple++){
 /*...*/
-     if (fopen("stopSimple.mvf","r") !=NULL) break; 
+     if ( (fStop=fopen("stopSimple.mvf","r")) !=NULL){
+		   fclose(fStop);			
+       break;
+     } 
 /*...................................................................*/
-
 
 /*... calculo da matrix jacobiana das velocidades
                             | du1dx1 du1dx2 du1dx3 |   
@@ -851,6 +863,7 @@ void simpleSolver3D(Memoria *m
 /*... montagem do sistema  da pressao de correca*/
      tm.systFormPres = getTimeC() - tm.systFormPres;
      systFormSimplePres(loadsVel              ,loadsPres
+										,sc.diffPres
                     ,mesh->elm.node          ,mesh->elm.adj.nelcon  
                     ,mesh->elm.nen           ,mesh->elm.adj.nViz   
                     ,mesh->elm.geomType      ,mesh->elm.material.prop 
@@ -962,8 +975,9 @@ void simpleSolver3D(Memoria *m
 
 /*...*/
          tm.systFormPres = getTimeC() - tm.systFormPres;
-         simpleNonOrthPres( mesh->elm.node    ,mesh->elm.adj.nelcon
-                    ,mesh->elm.nen           ,mesh->elm.adj.nViz
+         simpleNonOrthPres(sc.diffPres
+                    ,mesh->elm.node    ,mesh->elm.adj.nelcon
+					          ,mesh->elm.nen           ,mesh->elm.adj.nViz
                     ,mesh->elm.geomType      ,mesh->elm.material.prop
                     ,mesh->elm.material.type ,mesh->elm.mat
                     ,mesh->elm.geom.cc 

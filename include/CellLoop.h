@@ -169,6 +169,7 @@
 
 /* ... montagem do sistemas de equacoes (Simple - Pres)*/
   void systFormSimplePres(Loads *loadsVel,Loads *loadsPres 
+						 ,Diffusion diffPres
              ,INT    *restrict el      ,INT    *restrict nelcon 
              ,short  *restrict nen     ,short  *restrict nFace
              ,short  *restrict geomType,DOUBLE *restrict prop 
@@ -197,10 +198,11 @@
 /*...................................................................*/
 
 /*... correcao nao ortogonal para correcao de pressao*/
-  void simpleNonOrthPres(INT *restrict el ,INT *restrict nelcon 
-               ,short  *restrict nen      ,short  *restrict nFace
-               ,short  *restrict geomType ,DOUBLE *restrict prop 
-               ,short  *restrict calType  ,short  *restrict mat
+  void simpleNonOrthPres(Diffusion diffPres
+               ,INT *restrict el           ,INT *restrict nelcon
+							 ,short  *restrict nen       ,short  *restrict nFace
+               ,short  *restrict geomType  ,DOUBLE *restrict prop 
+               ,short  *restrict calType   ,short  *restrict mat
                ,DOUBLE *restrict cc
                ,DOUBLE *restrict gKsi      ,DOUBLE *restrict gmKsi 
                ,DOUBLE *restrict gEta      ,DOUBLE *restrict gfArea 
@@ -282,6 +284,7 @@
 
 /*... chamada da biblioteca de elementos (escoamento-pres)*/
   void cellLibSimplePres(Loads *loadsVel     ,Loads *loadsPres
+	           	 ,Diffusion diffPres
                ,short *restrict lGeomType,DOUBLE *restrict lprop
                ,INT   *restrict lViz     ,INT *restrict lId  
                ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
@@ -303,7 +306,8 @@
 
 /*... chamada da biblioteca de correcao nao ortogonal para correcao 
       de pressao*/
-  void cellLibSimpleNonOrthPres(short *restrict lGeomType
+  void cellLibSimpleNonOrthPres(Diffusion diffPres
+               ,short *restrict lGeomType
                ,DOUBLE *restrict lprop   ,INT   *restrict lViz
                ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
                ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
@@ -496,7 +500,8 @@
 
 /*... biblioteca de celulas (simple - vel)*/
   void cellSimpleVel3D(Loads *loadsVel    ,Loads *loadsPres
-              ,Advection  advVel          ,short const typeSimple 
+              ,Advection  advVel          ,Diffusion  diffVel
+							,short const typeSimple 
               ,short *restrict lGeomType  ,DOUBLE *restrict lprop
               ,INT   *restrict lViz       ,INT *restrict lId
               ,DOUBLE *restrict ksi       ,DOUBLE *restrict mksi
@@ -518,7 +523,8 @@
 /*...................................................................*/
 
 /*... biblioteca de celulas (simple - pres)*/
-  void cellSimplePres2D(Loads *loadsVel    ,Loads *loadsPres           
+  void cellSimplePres2D(Loads *loadsVel    ,Loads *loadsPres   
+							,Diffusion diffPres        
               ,short *restrict lGeomType,DOUBLE *restrict prop
               ,INT *restrict lViz       ,INT *restrict lId  
               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
@@ -538,7 +544,8 @@
   
 /*... biblioteca de celulas (simple - pres)*/
   void cellSimplePres3D(Loads *loadsVel    ,Loads *loadsPres
-              ,short *restrict lGeomType,DOUBLE *restrict prop
+							,Diffusion diffPres
+		          ,short *restrict lGeomType,DOUBLE *restrict prop
               ,INT *restrict lViz       ,INT *restrict lId  
               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
               ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
@@ -557,7 +564,8 @@
 /*...................................................................*/
 
 /*... biblioteca de celulas (simple - pres-correcao non-ortogonal)*/
-  void cellSimpleNonOrthPres2D(short *restrict lGeomType
+  void cellSimpleNonOrthPres2D(Diffusion diffPres
+              ,short *restrict lGeomType
               ,DOUBLE *restrict prop    ,INT *restrict lViz
               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
               ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
@@ -573,7 +581,8 @@
 /*...................................................................*/
 
 /*... biblioteca de celulas (simple - pres-correcao non-ortogonal)*/
-  void cellSimpleNonOrthPres3D(short *restrict lGeomType
+  void cellSimpleNonOrthPres3D(Diffusion diffPres
+              ,short *restrict lGeomType
               ,DOUBLE *restrict prop    ,INT *restrict lViz
               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
               ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
