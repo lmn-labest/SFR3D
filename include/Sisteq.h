@@ -63,6 +63,15 @@
                  ,char  *strIa    ,char *strJa
                  ,char *strAd     ,char *strA  
                  ,SistEq *SistEqX);
+
+  void dataStructSimple(Memoria *m     ,INT *id
+                       ,INT *num       ,INT *nelcon
+                       ,short *nViz
+                       ,INT const numel,short const maxViz
+                       ,short const ndf
+                       ,char  *strIa   ,char *strJa
+                       ,char *strAd    ,char *strA
+                       ,SistEq *sistEqX);
   
   void setDataStruct(char *word,short *data);
 

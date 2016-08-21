@@ -32,7 +32,7 @@ void simpleSolver2D(Memoria *m
   short unsigned kZeroPres = sp->kZeroPres;
   INT jj = 1;
   DOUBLE time,timei;
-  DOUBLE *b1,*b2,*bPc,*xu1,*xu2,*xp;
+  DOUBLE *b1,*b2,*bPc,*xu1,*xu2,*xp,*adU1,*adU2;
   DOUBLE *rCellPc;
 /*...*/
   DOUBLE rU[2],rU0[2],tmp,tb[2],rMass0,rMass;
@@ -54,6 +54,9 @@ void simpleSolver2D(Memoria *m
   xu1      = sistEqVel->x;
   xu2      = &sistEqVel->x[sistEqVel->neq];
   xp       = sistEqVel->x;
+
+  adU1     = sistEqVel->ad;
+  adU2     = &sistEqVel->ad[sistEqVel->neq];
 
   rCellPc  = mesh->elm.rCellPres;
 /*...................................................................*/
@@ -243,7 +246,7 @@ void simpleSolver2D(Memoria *m
            ,sistEqVel->neq     ,sistEqVel->neqNov  
            ,sistEqVel->nad     ,sistEqVel->nadr
            ,sistEqVel->ia      ,sistEqVel->ja  
-           ,sistEqVel->al      ,sistEqVel->ad,sistEqVel->au
+           ,sistEqVel->al      ,adU1         ,sistEqVel->au
            ,b1                 ,xu1          
            ,&sistEqVel->iNeq
            ,solvVel->tol       ,solvVel->maxIt     
@@ -263,7 +266,7 @@ void simpleSolver2D(Memoria *m
            ,sistEqVel->neq     ,sistEqVel->neqNov  
            ,sistEqVel->nad     ,sistEqVel->nadr
            ,sistEqVel->ia      ,sistEqVel->ja  
-           ,sistEqVel->al      ,sistEqVel->ad,sistEqVel->au
+           ,sistEqVel->al      ,adU2       ,sistEqVel->au
            ,b2                 ,xu2
            ,&sistEqVel->iNeq
            ,solvVel->tol       ,solvVel->maxIt     
@@ -578,7 +581,7 @@ void simpleSolver3D(Memoria *m
   short unsigned kZeroPres = sp->kZeroPres;
   INT jj = 1;
   DOUBLE time,timei;
-  DOUBLE *b1,*b2,*b3,*bPc,*xu1,*xu2,*xu3,*xp;
+  DOUBLE *b1,*b2,*b3,*bPc,*xu1,*xu2,*xu3,*xp,*adU1,*adU2,*adU3;
   DOUBLE *rCellPc;
 /*...*/
   DOUBLE rU[3],rU0[3],tmp,tb[3],rMass0,rMass;
@@ -602,6 +605,10 @@ void simpleSolver3D(Memoria *m
   xu2      = &sistEqVel->x[sistEqVel->neq];
   xu3      = &sistEqVel->x[2*sistEqVel->neq];
   xp       = sistEqVel->x;
+
+  adU1 = sistEqVel->ad;
+  adU2 = &sistEqVel->ad[sistEqVel->neq];
+  adU3 = &sistEqVel->ad[2*sistEqVel->neq];
 
   rCellPc  = mesh->elm.rCellPres;
 /*...................................................................*/
@@ -800,7 +807,7 @@ void simpleSolver3D(Memoria *m
            ,sistEqVel->neq     ,sistEqVel->neqNov  
            ,sistEqVel->nad     ,sistEqVel->nadr
            ,sistEqVel->ia      ,sistEqVel->ja  
-           ,sistEqVel->al      ,sistEqVel->ad,sistEqVel->au
+           ,sistEqVel->al      ,adU1          ,sistEqVel->au
            ,b1                 ,xu1          
            ,&sistEqVel->iNeq
            ,solvVel->tol       ,solvVel->maxIt     
@@ -820,7 +827,7 @@ void simpleSolver3D(Memoria *m
            ,sistEqVel->neq     ,sistEqVel->neqNov  
            ,sistEqVel->nad     ,sistEqVel->nadr
            ,sistEqVel->ia      ,sistEqVel->ja  
-           ,sistEqVel->al      ,sistEqVel->ad,sistEqVel->au
+           ,sistEqVel->al      ,adU2         ,sistEqVel->au
            ,b2                 ,xu2
            ,&sistEqVel->iNeq
            ,solvVel->tol       ,solvVel->maxIt     
@@ -840,7 +847,7 @@ void simpleSolver3D(Memoria *m
            ,sistEqVel->neq     ,sistEqVel->neqNov  
            ,sistEqVel->nad     ,sistEqVel->nadr
            ,sistEqVel->ia      ,sistEqVel->ja  
-           ,sistEqVel->al      ,sistEqVel->ad,sistEqVel->au
+           ,sistEqVel->al      ,adU3           ,sistEqVel->au
            ,b3                 ,xu3
            ,&sistEqVel->iNeq
            ,solvVel->tol       ,solvVel->maxIt     
@@ -1164,12 +1171,10 @@ void updateCellSimpleVel(DOUBLE  *restrict w
   for(i=0;i<nEl;i++){
     lNeq             = id[i] - 1;
     if(lNeq > -1){  
-      MAT2D(i,0,w,ndm) = u1[lNeq];
-      MAT2D(i,1,w,ndm) = u2[lNeq];
+      MAT2D(i,0,w,2) = u1[lNeq];
+      MAT2D(i,1,w,2) = u2[lNeq];
     }
   }
-
-
 }
 /*********************************************************************/ 
 
@@ -1209,13 +1214,11 @@ void updateCellSimpleVel3D(DOUBLE  *restrict w
   for(i=0;i<nEl;i++){
     lNeq             = id[i] - 1;
     if(lNeq > -1){  
-      MAT2D(i,0,w,ndm) = u1[lNeq];
-      MAT2D(i,1,w,ndm) = u2[lNeq];
-      MAT2D(i,2,w,ndm) = u3[lNeq];
+      MAT2D(i,0,w,3) = u1[lNeq];
+      MAT2D(i,1,w,3) = u2[lNeq];
+      MAT2D(i,2,w,3) = u3[lNeq];
     }
   }
-
-
 }
 /*********************************************************************/ 
 
@@ -1258,7 +1261,7 @@ void updateCellSimplePres(DOUBLE  *restrict presC,DOUBLE  *restrict xp
 
 /********************************************************************* 
  * Data de criacao    : 02/07/2016                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 15/08/2016                                   * 
  *-------------------------------------------------------------------* 
  * SIMPLEUPDATE : atualizacao das variasveis do metodo simple        *
  *-------------------------------------------------------------------* 
@@ -1292,8 +1295,11 @@ void simpleUpdate(DOUBLE *restrict w     ,DOUBLE *restrict pressure
   if( ndm == 2){
     for(i=0;i<nEl;i++){
 /*... atualizacoes da velocidades*/
-      MAT2D(i,0,w,ndm) -= dField[i]*MAT2D(i,0, gradPresC,ndm);
-      MAT2D(i,1,w,ndm) -= dField[i]*MAT2D(i,1, gradPresC,ndm);
+      MAT2D(i,0,w,2) -= 
+      MAT2D(i,0,dField,2)*MAT2D(i,0,gradPresC,2);
+      
+      MAT2D(i,1,w,2) -=
+      MAT2D(i,1,dField,2)*MAT2D(i,1,gradPresC,2);
 /*...................................................................*/
 
 /*... atualizacoes da velocidades*/
@@ -1307,9 +1313,14 @@ void simpleUpdate(DOUBLE *restrict w     ,DOUBLE *restrict pressure
   else if( ndm == 3){
     for(i=0;i<nEl;i++){
 /*... atualizacoes da velocidades*/
-      MAT2D(i,0,w,ndm) -= dField[i]*MAT2D(i,0, gradPresC,ndm);
-      MAT2D(i,1,w,ndm) -= dField[i]*MAT2D(i,1, gradPresC,ndm);
-      MAT2D(i,2,w,ndm) -= dField[i]*MAT2D(i,2, gradPresC,ndm);
+      MAT2D(i,0,w,3) -=
+      MAT2D(i,0,dField,3)*MAT2D(i,0,gradPresC,3);
+
+      MAT2D(i,1,w,3) -=
+      MAT2D(i,1,dField,3)*MAT2D(i,1,gradPresC,3);
+
+      MAT2D(i,2,w,3) -=
+      MAT2D(i,2,dField,3)*MAT2D(i,2,gradPresC,3);
 /*...................................................................*/
 
 /*... atualizacoes da velocidades*/

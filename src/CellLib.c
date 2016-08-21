@@ -787,14 +787,14 @@ void cellGeom2D(DOUBLE *restrict lx       ,short *restrict lnFace
 /*...................................................................*/  
 
 /*... calculo do centro da celula fantasma*/      
-  for(i=0;i<=maxViz;i++){
+/*  for(i=0;i<=maxViz;i++){
     for(j=0;j<ndm;j++){
       if(!lnFace[i]){
         MAT2D(i,j,xc,ndm) = MAT2D(cCell,j,xc,ndm) 
                           + 2.0e0*dcca[i]*MAT2D(i,j,normal,ndm);
       }
     }
-  }
+  }*/
 /*...................................................................*/
 
 /*... vetor que une o centroide da celula ao vizinho fantasma(ksi)*/
@@ -2948,37 +2948,42 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
     if( ndm == 3 )  tA[2]   = ld.par[2];
 /*...*/
     if(fCalVel){
-      aP   = viscosityC*fArea/dcca;
-      *sP += aP;
+      aP     = viscosityC*fArea/dcca;
       if( ndm == 2) {
+/*...*/
+        sP[0] += aP*(1.e0 - n[0]*n[0]);
+        sP[1] += aP*(1.e0 - n[1]*n[1]);
+/*...................................................................*/
+
 /*... x*/
         p[0]  += aP*(tA[0]*(1.0-n[0]*n[0]) 
-              + (velC[1]-tA[1])*n[1]*n[0]
-              + velC[0]*n[0]*n[0]);
+              + (velC[1]-tA[1])*n[1]*n[0]);
 /*... y*/
         p[1]  += aP*(tA[1]*(1.0-n[1]*n[1]) 
-              + (velC[0]-tA[0])*n[0]*n[1]
-              + velC[1]*n[1]*n[1]);
+              + (velC[0]-tA[0])*n[0]*n[1]);
       }
 /*...................................................................*/
 
 /*...*/
       else if( ndm == 3 ){
+/*...*/
+        sP[0] += aP*(1.e0 - n[0] * n[0]);
+        sP[1] += aP*(1.e0 - n[1] * n[1]);
+        sP[2] += aP*(1.e0 - n[2] * n[2]);
+/*...................................................................*/
+
 /*... x*/
         p[0]  += aP*(tA[0]*(1.0-n[0]*n[0]) 
               + (velC[1]-tA[1])*n[1]*n[0]
-              + (velC[2]-tA[2])*n[2]*n[0]
-              + velC[0]*n[0]*n[0]);
+              + (velC[2]-tA[2])*n[2]*n[0]);
 /*... y*/
         p[1]  += aP*(tA[1]*(1.0-n[1]*n[1]) 
               + (velC[0]-tA[0])*n[0]*n[1]
-              + (velC[2]-tA[2])*n[2]*n[1]
-              + velC[1]*n[1]*n[1]);
+              + (velC[2]-tA[2])*n[2]*n[1]);
 /*... z*/
         p[2]  += aP*(tA[2]*(1.0-n[2]*n[2]) 
               + (velC[0]-tA[0])*n[0]*n[2]
-              + (velC[1]-tA[1])*n[1]*n[2]
-              + velC[2]*n[2]*n[2]);
+              + (velC[1]-tA[1])*n[1]*n[2]);
       }
 /*...................................................................*/
     } 
@@ -3040,6 +3045,12 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
 
         p[0] -= m*tmp[0];
         p[1] -= m*tmp[1];
+/*...................................................................*/
+
+/*...*/
+        sP[0] += m;
+        sP[1] += m;
+/*...................................................................*/
       }
 /*...................................................................*/
 
@@ -3072,9 +3083,15 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
         p[0] -= m*tmp[0];
         p[1] -= m*tmp[1];
         p[2] -= m*tmp[2];
+/*...................................................................*/
+
+/*...*/
+        sP[0] += m;
+        sP[1] += m;
+        sP[2] += m;
+/*...................................................................*/
       }
 /*...................................................................*/
-      *sP += m;
     } 
 /*...*/
     if(fCalPres){
@@ -3090,7 +3107,7 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
 
 /********************************************************************* 
  * Data de criacao    : 01/07/2016                                   *
- * Data de modificaco : 09/07/2016                                   * 
+ * Data de modificaco : 20/08/2016                                   * 
  *-------------------------------------------------------------------* 
  * pLoadSimplePres : condicao de contorno para pressao               *
  *-------------------------------------------------------------------* 
@@ -3104,8 +3121,7 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
  * wfn        -> velocidade normal a face                            * 
  * xm         -> coordenada do ponto medio da face                   * 
  * fArea      -> area da face                                        * 
- * dcca       -> menor distancia do centroide central a face desta   *
- *               celula                                              * 
+ * dd         -> distancia ate o ponto medio da face                 * 
  * ld         -> definicao da carga                                  * 
  * fCal       -> true - atualizada sP e p                            * 
  *               false- atualizada sP e p                            * 
@@ -3119,18 +3135,17 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void pLoadSimplePres(DOUBLE *restrict sP  ,DOUBLE *restrict p
-          ,DOUBLE *restrict tA
-          ,DOUBLE const dField    ,DOUBLE const densityC
-          ,DOUBLE const wfn                                              
-          ,DOUBLE const fArea     ,DOUBLE const dcca
-          ,Loads ld               ,bool const fCal){
+void pLoadSimplePres(DOUBLE *restrict sP,DOUBLE *restrict p
+          ,DOUBLE *restrict tA          ,DOUBLE const df         
+          ,DOUBLE const densityC        ,DOUBLE const wfn                                              
+          ,DOUBLE const fArea           ,DOUBLE const dd
+          ,Loads ld                     ,bool const fCal){
 
 /*... pressao prescrita*/
   if( ld.type == DIRICHLETBC){
     tA[0]   = ld.par[0];
     if(fCal){
-      *sP += densityC*fArea*dField/dcca;
+      *sP += densityC*df/dd;
     }
   }
 /*...................................................................*/
@@ -3247,11 +3262,8 @@ void pLoad(DOUBLE *restrict sP  ,DOUBLE *restrict p
 /*...................................................................*/
    }
 /*...................................................................*/
-
-
 }
 /*********************************************************************/
-
      
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
@@ -3426,7 +3438,7 @@ DOUBLE faceBaseTvd(short const nAresta    ,short const idCell
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  * OBS:                                                              *
- * Tface = (TfaceUp)Imp + limte*(TfaceDown - TfaceUp)Exp            *   
+ * Tface = (TfaceUp)Imp + limte*(TfaceDown - TfaceUp)Exp             *   
  *********************************************************************/
 DOUBLE faceBaseTvdV1(DOUBLE const uC     ,DOUBLE const uV
                  ,DOUBLE *restrict gradUc,DOUBLE *restrict gradUv
@@ -3733,7 +3745,8 @@ void  setDiffusionScheme(char *word,short *iCod)
 /*...................................................................*/
 }
 /*********************************************************************/ 
-       
+ 
+      
 /********************************************************************* 
  * Data de criacao    : 18/07/2016                                   *
  * Data de modificaco : 00/00/0000                                   * 
@@ -3899,7 +3912,7 @@ void gradFaceNull(DOUBLE *restrict gradVelFace
  * Data de criacao    : 08/07/2016                                   *
  * Data de modificaco : 00/00/0000                                   * 
  *-------------------------------------------------------------------* 
- * difusionNonOrthScheme :  correcao nao ortogonal do termo difusivo * 
+ * difusionScheme :  correcao nao ortogonal do termo difusivo        * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------*
@@ -4099,3 +4112,161 @@ void gradFaceNull(DOUBLE *restrict gradVelFace
   }
 }
 /*********************************************************************/ 
+
+/*********************************************************************
+* Data de criacao    : 15/08/2016                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* difusionSchemeAnisotropic : correcao nao ortogonal do termo       * 
+* difusivo anisotropico                                             *                                                      *  
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* s       -> vetor de area modificado                               *
+* ksi     -> vetor que une os centroide central e o vizinho         *
+* e       -> nao definido                                           *
+* t       -> nao definido                                           *
+* ndm     -> dimensao                                               *
+* iCodDif -> codigo da tecnica nao ortogonal                        *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* e       -> parcela implicita                                      *
+* t       -> parcela explicita                                      *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+* grad(phi)*Sl = grad(phi)*E + grad(phi)*T                          *
+*             | k11 k21 k31 | | S1 |   | k11S1 + k21S2 + k31S3 |    *
+* Sl = kt*S = | k12 k22 k32 | | S2 | = | k12S1 + k22S2 + k32S3 |    *
+*             | k13 k23 k33 | | S3 |   | k13S1 + k23S2 + k33S3 |    *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void difusionSchemeAnisotropic(DOUBLE *restrict s,DOUBLE *restrict ksi
+                              ,DOUBLE *restrict e,DOUBLE *restrict t
+                              ,short const ndm   ,short const iCod) {
+
+  DOUBLE nk, tmp,ss;
+  short i;
+  char word[][WORD_SIZE] =
+  { "Orthogonal"  ,"Minimal"
+    ,"OrthogonalC" ,"OverRelaxed" };
+
+  switch (iCod) {
+
+/*... Minimal*/
+  case ORTHOGONAL:
+    if (ndm == 2) {
+/*...*/
+      ss = sqrt(s[0]*s[0]+s[1]*s[1]);
+/*...................................................................*/
+
+/*... vetor E*/
+      e[0] = ss*ksi[0];
+      e[1] = ss*ksi[1];
+/*...................................................................*/
+
+/*... vetor T*/
+      t[0] = 0.e0;
+      t[1] = 0.e0;
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*...*/
+    else if (ndm == 3) {
+/*...*/
+      ss = sqrt(s[0]*s[0] + s[1]*s[1] + s[2]*s[2]);
+/*...................................................................*/
+
+/*... vetor E*/
+      e[0] = ss*ksi[0];
+      e[1] = ss*ksi[1];
+      e[2] = ss*ksi[2];
+/*...................................................................*/
+
+/*... vetor T*/
+      t[0] = 0.e0;
+      t[1] = 0.e0;
+      t[2] = 0.e0;
+/*...................................................................*/
+    }
+/*...................................................................*/
+  break;
+/*...................................................................*/
+
+/*... Minimal*/
+  case MINIMAL:
+  break;
+/*...................................................................*/
+
+/*... Orthogonal*/
+  case ORTHOGONALC:
+  break;
+/*...................................................................*/
+
+/*... OverRelaxed*/
+  case OVERRELAXED:
+    if (ndm == 2) {
+/*...*/
+      ss = s[0]*s[0] + s[1]*s[1];
+/*...................................................................*/
+
+/*...*/
+      nk = s[0]*ksi[0] + s[1]*ksi[1];
+/*...................................................................*/
+
+/*... vetor E*/
+      tmp  = ss/nk;
+      e[0] = tmp*ksi[0];
+      e[1] = tmp*ksi[1];
+/*...................................................................*/
+
+/*... vetor T*/
+      t[0] = s[0] - e[0];
+      t[1] = s[1] - e[1];
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*...*/
+    else if(ndm == 3) {
+/*...*/
+      ss = s[0]*s[0] + s[1]*s[1] + s[2]*s[2];
+/*...................................................................*/
+
+/*...*/
+      nk = s[0]*ksi[0] + s[1]*ksi[1] + s[2]*ksi[2];
+/*...................................................................*/
+
+/*... vetor E*/
+      tmp = ss / nk;
+      e[0] = tmp*ksi[0];
+      e[1] = tmp*ksi[1];
+      e[2] = tmp*ksi[2];
+/*...................................................................*/
+
+/*... vetor T*/
+      t[0] = s[0] - e[0];
+      t[1] = s[1] - e[1];
+      t[2] = s[2] - e[2];
+/*...................................................................*/
+    }
+/*...................................................................*/
+  break;
+/*...................................................................*/
+
+/*...*/
+  default:
+  printf("Erro: tipo de correcao nao ortogonal invalida.\n"
+         "Arquivo fonte:  \"%s\".\n"
+         "Nome da funcao: \"%s\".\n"
+         "Linha         : \"%d\".\n"
+         , __FILE__, __func__, __LINE__);
+  printf("Funcoes disponiveis:\n");
+  for (i = 0; i<4; i++)
+    printf("%s\n", word[i]);
+  exit(EXIT_FAILURE);
+/*...................................................................*/
+  }
+}
+/*********************************************************************/

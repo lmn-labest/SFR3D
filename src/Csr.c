@@ -590,7 +590,7 @@ void csr(INT    *restrict  ia,INT *restrict ja
           al       = a;
           lNeq     = lId[nFace];
           ad[lNeq] = lA[nFace];
-          iPoint    = ia[lNeq];
+          iPoint   = ia[lNeq];
           iaKneq   = ia[lNeq+1];
           for(k=0;k<nFace;k++){
             lCol     = lId[k];
@@ -717,7 +717,7 @@ void csr(INT    *restrict  ia,INT *restrict ja
         if(matrix){ 
           al       = a;
           lNeq     = lId[nFace];
-          ad[lNeq] = lA[nFace];
+		      ad[lNeq] = lA[nFace];
           iPoint   = ia[lNeq];
           iaKneq   = ia[lNeq+1];
 /*... paralelo MPI*/                                                        
@@ -1037,8 +1037,12 @@ void csrSimple(INT    *restrict  ia,INT *restrict ja
       if(matrix){ 
         al       = a;
         lNeq     = lId[nFace];
-        ad[lNeq] = lA[nFace];
-        iPoint    = ia[lNeq];
+/*...*/
+        ad[lNeq]       = lA[nFace];
+     		ad[nEq+lNeq]   = lA[nFace+1];
+    	  if( ndf == 3) ad[2*nEq+lNeq] = lA[nFace+2];
+/*...................................................................*/
+        iPoint   = ia[lNeq];
         iaKneq   = ia[lNeq+1];
         for(k=0;k<nFace;k++){
           lCol     = lId[k];
@@ -1126,7 +1130,11 @@ void csrSimple(INT    *restrict  ia,INT *restrict ja
       if(matrix){ 
         al       = a;
         lNeq     = lId[nFace];
-        ad[lNeq] = lA[nFace];
+/*...*/
+				ad[lNeq]     = lA[nFace];
+  		  ad[nEq+lNeq] = lA[nFace+1];
+  		  if (ndf == 3) ad[2*nEq+lNeq] = lA[nFace+2];
+/*...................................................................*/
         iPoint   = ia[lNeq];
         iaKneq   = ia[lNeq+1];
 /*... paralelo MPI*/                                                        

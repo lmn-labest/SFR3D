@@ -737,6 +737,10 @@ void parameterCell(DOUBLE *restrict vel  ,DOUBLE *restrict prop
                     ,DOUBLE *restrict e ,DOUBLE *restrict t   
                     ,short const ndm    ,short const iCod);
 
+  void difusionSchemeAnisotropic(DOUBLE *restrict s,DOUBLE *restrict ksi
+                                ,DOUBLE *restrict e,DOUBLE *restrict t
+                                ,short const ndm   ,short const iCod);
+
   DOUBLE deferredCd(DOUBLE const velC,DOUBLE const velV
                    ,DOUBLE const wfn);
 

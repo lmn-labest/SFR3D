@@ -699,7 +699,7 @@ void systFormTrans(Loads *loads          ,Advection advT
 
 /********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 04/07/2016                                   * 
+ * Data de modificaco : 15/08/2016                                   * 
  *-------------------------------------------------------------------* 
  * SYSTFOMSIMPLEVEL: calculo do sistema de equacoes para problemas   * 
  * de escomaneto de fluidos ( Vel )                                  * 
@@ -831,7 +831,7 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
   short  lFaceVelR[MAX_NUM_FACE+1],lFacePresR[MAX_NUM_FACE+1];
   short  lFaceVelL[MAX_NUM_FACE+1],lFacePresL[MAX_NUM_FACE+1];
   DOUBLE lDensity[(MAX_NUM_FACE+1)];
-  DOUBLE lA[(MAX_NUM_FACE+1)*MAX_NDF],lB[MAX_NDF];
+  DOUBLE lA[MAX_NUM_FACE+ MAX_NDM],lB[MAX_NDF];
   DOUBLE lProp[(MAX_NUM_FACE+1)*MAXPROP];
   DOUBLE lPres[(MAX_NUM_FACE+1)];
   DOUBLE lGradVel[(MAX_NUM_FACE+1)*MAX_NDM*MAX_NDF];
@@ -839,7 +839,7 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
   DOUBLE lVel[(MAX_NUM_FACE+1)*MAX_NDM];
   DOUBLE lCc[(MAX_NUM_FACE+1)*MAX_NDM];
   DOUBLE lRcell[MAX_NDF];
-  DOUBLE lDfield;
+  DOUBLE lDfield[MAX_NDM];
   INT    lId[(MAX_NUM_FACE+1)*MAX_NDF],lViz[MAX_NUM_FACE];
   short  aux1,aux2,lMat;
 
@@ -852,6 +852,8 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
       rCell[numel+nel] = 0.e0;  
       if(ndf == 3 ) rCell[2*numel+nel] = 0.e0; 
     } 
+/*...................................................................*/
+
 /*...*/
     aux1    = nFace[nel];
 /*... elementos com equacoes*/
@@ -886,7 +888,6 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
       lPres[aux1]       = pres[nel];
       lId[aux1]         = id[nel] - 1;
       
-      
       for(j=0;j<MAXPROP;j++)
         MAT2D(aux1,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);
       
@@ -920,7 +921,6 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
           MAT2D(i,j,lvSkew ,ndm) = MAT3D(nel,i,j,gvSkew ,maxViz,ndm);
         }
       }
-  
 
 /*... loop na celulas vizinhas*/    
       for(i=0;i<aux1;i++){
@@ -970,7 +970,7 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
                       ,lFacePresR ,lFacePresL            
                       ,lPres      ,lGradPres    
                       ,lVel       ,lGradVel
-                      ,&lDfield   ,lCc
+                      ,lDfield    ,lCc
                       ,underU     ,sPressure
                       ,nen[nel]   ,nFace[nel] 
                       ,ndm        ,lib   
@@ -986,7 +986,8 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
 /*...................................................................*/
 
 /*...*/
-      dField[nel] = lDfield;
+     for(j=0;j<ndm;j++)
+   	    MAT2D(nel,j,dField,ndm) = lDfield[j];
 /*...................................................................*/
       
 /*...*/
@@ -1134,7 +1135,8 @@ void systFormSimplePres(Loads *loadsVel  ,Loads *loadsPres
   DOUBLE lProp[(MAX_NUM_FACE+1)*MAXPROP];
   DOUBLE lPres[(MAX_NUM_FACE+1)];
   DOUBLE lGradPres[(MAX_NUM_FACE+1)*MAX_NDM];
-  DOUBLE lVel[(MAX_NUM_FACE+1)*MAX_NDM], lDfield[MAX_NUM_FACE+1];
+  DOUBLE lVel[(MAX_NUM_FACE+1)*MAX_NDM];
+  DOUBLE lDfield[(MAX_NUM_FACE+1)*MAX_NDM];
   DOUBLE lRcell;
   INT    lId[(MAX_NUM_FACE+1)*MAX_NDF],lViz[MAX_NUM_FACE];
   short  aux1,aux2,lMat;
@@ -1170,15 +1172,14 @@ void systFormSimplePres(Loads *loadsVel  ,Loads *loadsPres
       lib             = calType[lMat];
       lVolume[aux1]   = gVolume[nel]; 
       lGeomType[aux1] = geomType[nel];
-      lFaceVelR[aux1]   = MAT2D(nel,aux1,faceVelR ,aux2);
-      lFaceVelL[aux1]   = MAT2D(nel,aux1,faceVelL ,aux2);
-      lFacePresR[aux1]  = MAT2D(nel,aux1,facePresR ,aux2);
-      lFacePresL[aux1]  = MAT2D(nel,aux1,facePresL ,aux2);
+      lFaceVelR[aux1] = MAT2D(nel,aux1,faceVelR ,aux2);
+      lFaceVelL[aux1] = MAT2D(nel,aux1,faceVelL ,aux2);
+      lFacePresR[aux1]= MAT2D(nel,aux1,facePresR ,aux2);
+      lFacePresL[aux1]= MAT2D(nel,aux1,facePresL ,aux2);
       lDensity[aux1]  = MAT2D(nel,0   ,density ,DENSITY_LEVEL);
  
       lPres[aux1]     = pres[nel];
       lId[aux1]       = id[nel] - 1;
-      lDfield[aux1]   = dField[nel];
 /*...................................................................*/
       
 /*...*/
@@ -1187,9 +1188,11 @@ void systFormSimplePres(Loads *loadsVel  ,Loads *loadsPres
 /*...................................................................*/
       
 /*...*/
+      lDfield[aux1] = dField[nel];
       for(j=0;j<ndm;j++){
         MAT2D(aux1,j,lGradPres,ndm) = MAT2D(nel,j,gradPres,ndm);
         MAT2D(aux1,j,lVel     ,ndm) = MAT2D(nel,j,vel     ,ndm);
+        MAT2D(aux1,j,lDfield  ,ndm) = MAT2D(nel,j,dField  ,ndm);
       }
 /*...................................................................*/
 
@@ -1199,7 +1202,6 @@ void systFormSimplePres(Loads *loadsVel  ,Loads *loadsPres
         lfArea[i]     = MAT2D(nel,i,gfArea  ,maxViz);
         lDcca[i]      = MAT2D(nel,i,gDcca   ,maxViz);
         lmvSkew[i]    = MAT2D(nel,i,gmvSkew ,maxViz);
-        aux2          = (maxViz+1);
         lFaceVelR[i]  = MAT2D(nel,i,faceVelR ,aux2);
         lFaceVelL[i]  = MAT2D(nel,i,faceVelL ,aux2);
         lFacePresR[i] = MAT2D(nel,i,facePresR ,aux2);
@@ -1226,11 +1228,11 @@ void systFormSimplePres(Loads *loadsVel  ,Loads *loadsPres
           lMat          = mat[vizNel]-1;
           lPres[i]      = pres[vizNel];
           lId[i]        = id[vizNel] - 1;
-          lDfield[i]    = dField[vizNel];
 
           for(j=0;j<ndm;j++){
-            MAT2D(i,j,lGradPres,ndm)   = MAT2D(vizNel,j,gradPres,ndm);
-            MAT2D(i,j,lVel     ,ndm)   = MAT2D(vizNel,j,vel     ,ndm);
+            MAT2D(i,j,lGradPres,ndm) = MAT2D(vizNel,j,gradPres,ndm);
+            MAT2D(i,j,lVel     ,ndm) = MAT2D(vizNel,j,vel     ,ndm);
+            MAT2D(i,j,lDfield  ,ndm) = MAT2D(vizNel,j,dField  ,ndm);
           }
 
           for(j=0;j<DIFPROP;j++)
@@ -1266,10 +1268,6 @@ void systFormSimplePres(Loads *loadsVel  ,Loads *loadsPres
         rCell[nel] = lRcell;
 /*...................................................................*/
 
-//    if(matrix)
-//      printf("%d %e %e %e %e %e %e\n",nel+1,lA[0],lA[1],lA[2],lA[3]
-//                                               ,lA[4],lB[0]);
-      
 /*...*/
       assbly(ia    ,ja
             ,a           ,ad              
@@ -1376,7 +1374,7 @@ void simpleNonOrthPres(Diffusion diffPres
   DOUBLE lPres[MAX_NUM_FACE+1];
   DOUBLE lProp[(MAX_NUM_FACE+1)*MAXPROP];
   DOUBLE lGradPres[(MAX_NUM_FACE+1)*MAX_NDM];
-  DOUBLE lDfield[MAX_NUM_FACE+1];
+  DOUBLE lDfield[(MAX_NUM_FACE+1)*MAX_NDM];
   DOUBLE lCc[(MAX_NUM_FACE+1)*MAX_NDM];
   INT    lViz[MAX_NUM_FACE],lNeq;
   short  aux1,aux2,lMat;
@@ -1396,7 +1394,6 @@ void simpleNonOrthPres(Diffusion diffPres
       lDensity[aux1]  = MAT2D(nel,0   ,density ,DENSITY_LEVEL);
  
       lPres[aux1]     = pres[nel];
-      lDfield[aux1]   = dField[nel];
 /*...................................................................*/
       
 /*...*/
@@ -1408,6 +1405,7 @@ void simpleNonOrthPres(Diffusion diffPres
       for(j=0;j<ndm;j++){
         MAT2D(aux1,j,lGradPres,ndm) = MAT2D(nel,j,gradPres,ndm);
         MAT2D(aux1,j,lCc      ,ndm) = MAT2D(nel,j,cc      ,ndm);
+        MAT2D(aux1,j,lDfield  ,ndm) = MAT2D(nel,j,dField  ,ndm);
       }
 /*...................................................................*/
 
@@ -1439,11 +1437,11 @@ void simpleNonOrthPres(Diffusion diffPres
           lDensity[i]   = MAT2D(vizNel,0   ,density ,DENSITY_LEVEL);
           lMat          = mat[vizNel]-1;
           lPres[i]      = pres[vizNel];
-          lDfield[i]    = dField[vizNel];
 
           for(j=0;j<ndm;j++){
-            MAT2D(i,j,lGradPres,ndm)   = MAT2D(vizNel,j,gradPres,ndm);
-            MAT2D(i,j,lCc      ,ndm)   = MAT2D(vizNel,j,cc      ,ndm);
+            MAT2D(i,j,lGradPres,ndm) = MAT2D(vizNel,j,gradPres,ndm);
+            MAT2D(i,j,lCc      ,ndm) = MAT2D(vizNel,j,cc      ,ndm);
+            MAT2D(i,j,lDfield  ,ndm) = MAT2D(vizNel,j,dField  ,ndm);
           }
   
           for(j=0;j<DIFPROP;j++)
@@ -1468,10 +1466,6 @@ void simpleNonOrthPres(Diffusion diffPres
                          ,lDfield    ,lCc
                          ,nen[nel]   ,nFace[nel] 
                          ,ndm        ,nel);    
-/*...................................................................*/
-
-/*...*/
-//    if( fabs(lB) > 1.e-5) printf("%d %e\n",nel+1,lB);
 /*...................................................................*/
 
 /*...*/

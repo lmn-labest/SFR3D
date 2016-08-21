@@ -1863,6 +1863,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... Estrutura de dados velocidades*/
+      ndf = mesh->ndfF - 1;
       strcpy(strIa,"iaVel");
       strcpy(strJa,"jaVel");
       strcpy(strAd,"adVel");
@@ -1870,9 +1871,9 @@ int main(int argc,char**argv){
       if(!mpiVar.myId ) printf("Vel:\n");
       if(!mpiVar.myId) printf("Montagem da estrura de dados esparsa.\n");
       tm.dataStructVel = getTimeC() - tm.dataStructVel;
-      dataStruct(&m,sistEqVel->id  ,reordMesh->num,mesh->elm.adj.nelcon
+      dataStructSimple(&m,sistEqVel->id  ,reordMesh->num,mesh->elm.adj.nelcon
                 ,mesh->elm.adj.nViz,mesh->numelNov,mesh->maxViz
-                ,1                 ,strIa         ,strJa
+                ,ndf               ,strIa         ,strJa
                 ,strAd             ,strA          ,sistEqVel);
       tm.dataStructVel = getTimeC() - tm.dataStructVel;
       if(!mpiVar.myId) printf("Estrutuda montada.\n");
@@ -1989,6 +1990,7 @@ int main(int argc,char**argv){
       simple->kZeroPres       = 0;
       simple->sPressure       = true;
       simple->faceInterpolVel = 1;
+      simple->nNonOrth        = 0;
       simple->tolPres         = 1.e-06;
       simple->tolVel          = 1.e-06;
 /*...................................................................*/
@@ -2020,8 +2022,8 @@ int main(int argc,char**argv){
 
 /*...*/
       HccaAlloc(DOUBLE     ,&m       ,simple->d
-               ,mesh->numel,"dField" ,false);
-      zero(simple->d    ,mesh->numel  ,DOUBLEC);
+               ,mesh->numel*mesh->ndm,"dField" ,false);
+      zero(simple->d    ,mesh->numel*mesh->ndm,DOUBLEC);
 
       HccaAlloc(DOUBLE     ,&m       ,simple->ePresC
                ,mesh->numel,"ePresC" ,false);
