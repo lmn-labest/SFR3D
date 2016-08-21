@@ -127,7 +127,8 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE gradVelC[2][2],gradVelV[2][2],gf[2][2],gfKsi[2];
   DOUBLE gradVelComp[2][2];
 /*...*/
-  short iCodAdv=advVel.iCod;
+  short iCodAdv1 = advVel.iCod1;
+  short iCodAdv2 = advVel.iCod2;
   short iCodDif=diffVel.iCod;
 /*...*/
   short idCell = nFace;
@@ -291,61 +292,14 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
 
 /*... correcao do fluxo advectivo*/
-      if(FOUP == iCodAdv){
-        cvc[0] = 0.e0;
-        cvc[1] = 0.e0;
-      }
-/*...................................................................*/
-
-/*... metodo centrado  atraso( up(implicito) + (ucd - up)explicito) */
-      else if( CD == iCodAdv){
-        cvc[0] = deferredCd(velC[0],velV[0],wfn);
-        cvc[1] = deferredCd(velC[1],velV[1],wfn);
-      }
-/*...................................................................*/
-
-/*... metodo upwind linear =  up(implicito) + gradU*r*/
-      else if( SOUP == iCodAdv){
-        cvc[0] = upwindLinearV1(velC[0]    ,velV[0]
-                            ,gradVelC[0],gradVelV[0]
-                            ,lXmcc      ,wfn
-                            ,iCodAdv    ,ndm);
-/*...*/ 
-        cvc[1] = upwindLinearV1(velC[1]    ,velV[1]
-                            ,gradVelC[1],gradVelV[1]
-                            ,lXmcc      ,wfn
-                            ,iCodAdv    ,ndm);
-/*... interpolacao undirecional*/
-        cvc[0] -= gradVelComp[0][0]*lvSkew[0] 
-                + gradVelComp[0][1]*lvSkew[1];
-      
-        cvc[1] -= gradVelComp[1][0]*lvSkew[0] 
-                + gradVelComp[1][1]*lvSkew[1];
-/*...................................................................*/
-      }
-/*...................................................................*/
-
-/*...*/
-      else{
-        cvc[0] = faceBaseTvdV1(velC[0]    ,velV[0]
-                              ,gradVelC[0],gradVelV[0]
-                              ,lKsi       ,lModKsi   
-                              ,cv
-                              , iCodAdv   ,ndm);
-/*...*/
-        cvc[1] = faceBaseTvdV1(velC[1]    ,velV[1]
-                              ,gradVelC[1],gradVelV[1]
-                              ,lKsi       ,lModKsi   
-                              ,cv
-                              ,iCodAdv    ,ndm);
-/*... interpolacao undirecional*/
-        cvc[0] -= gradVelComp[0][0]*lvSkew[0] 
-                + gradVelComp[0][1]*lvSkew[1];
-      
-        cvc[1] -= gradVelComp[1][0]*lvSkew[0] 
-                + gradVelComp[1][1]*lvSkew[1];
-/*...................................................................*/
-     }
+      advectiveScheme(velC          ,velV
+                     ,gradVelC[0]   ,gradVelV[0]
+                     ,gradVelComp[0],vSkew
+                     ,lXmcc         ,wfn
+                     ,lKsi          ,lModKsi
+                     ,cv            ,cvc
+                     ,ndm
+                     ,iCodAdv1, iCodAdv2);
 /*...................................................................*/
 
 /*...*/
@@ -1083,9 +1037,9 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  *              vizinhos desta                                       * 
  * mKsi      -> modulo do vetor ksi                                  * 
  * eta       -> vetores paralelos as faces das celulas               * 
- * mEta      -> modulo do vetor eta                                  * 
+ * fArea     -> area da face                                         * 
  * normal    -> vetores normais as faces das celulas                 * 
- * area      -> area da celula central                               * 
+ * volume    -> volume da celula central                             * 
  * xm        -> pontos medios das faces da celula central            * 
  * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
  *              faces da celula central                              * 
@@ -1149,8 +1103,8 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
             ,short *restrict lGeomType   ,DOUBLE *restrict prop
             ,INT *restrict lViz          ,INT *restrict lId  
             ,DOUBLE *restrict ksi        ,DOUBLE *restrict mKsi
-            ,DOUBLE *restrict eta        ,DOUBLE *restrict mEta
-            ,DOUBLE *restrict normal     ,DOUBLE *restrict area   
+            ,DOUBLE *restrict eta        ,DOUBLE *restrict fArea
+            ,DOUBLE *restrict normal     ,DOUBLE *restrict volume 
             ,DOUBLE *restrict xm         ,DOUBLE *restrict xmcc
             ,DOUBLE *restrict dcca       ,DOUBLE *restrict lDensity
             ,DOUBLE *restrict vSkew      ,DOUBLE *restrict mvSkew
@@ -1172,8 +1126,8 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE p[3],sP,sPc[3];
 /*...*/
   DOUBLE v[3],lKsi[3],lNormal[3],lXmcc[3],wf[3],ccV[3];
-  DOUBLE dPviz,lModKsi,lModEta,du[3],duDksi[3],lXm[3];
-  DOUBLE coef,lAn;
+  DOUBLE dPviz,lModKsi,lFarea,du[3],duDksi[3],lXm[3];
+  DOUBLE coef,lAn,tmp;
 /*...*/
   DOUBLE nk,dfd,cv,cvc[3],lvSkew[3];
 /*... nonOrtogonal*/
@@ -1189,7 +1143,8 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE gradVelC[3][3],gradVelV[3][3],gf[3][3],gfKsi[3];
   DOUBLE gradVelComp[3][3];
 /*...*/
-  short iCodAdv = advVel.iCod;
+  short iCodAdv1= advVel.iCod1;
+  short iCodAdv2= advVel.iCod2;
 	short iCodDif = diffVel.iCod;
 /*...*/
   short idCell = nFace;
@@ -1247,7 +1202,7 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
     lNormal[0] = MAT2D(nAresta,0,normal,ndm);
     lNormal[1] = MAT2D(nAresta,1,normal,ndm);
     lNormal[2] = MAT2D(nAresta,2,normal,ndm);
-    lModEta    = mEta[nAresta];
+    lFarea     = fArea[nAresta];
     lXmcc[0]   = MAT2D(nAresta,0,xmcc,ndm);
     lXmcc[1]   = MAT2D(nAresta,1,xmcc,ndm);
     lXmcc[2]   = MAT2D(nAresta,2,xmcc,ndm);
@@ -1301,7 +1256,7 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 /*... termo difusivo
 grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 			difusionScheme(lNormal,lKsi
-			            	,lModEta,lModKsi
+			            	,lFarea ,lModKsi
 				            ,e      ,t
 				            ,ndm    ,iCodDif);
 /*...................................................................*/
@@ -1404,94 +1359,18 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*... fluxo convectivo upwind de primeira ordem*/
-      cv   = density*wfn*lModEta;
+      cv   = density*wfn*lFarea;
 /*...................................................................*/
 
 /*... correcao do fluxo advectivo*/
-
-/*... upwind*/
-      if(FOUP == iCodAdv){
-        cvc[0] = 0.e0;
-        cvc[1] = 0.e0;
-        cvc[2] = 0.e0;
-      }
-/*...................................................................*/
-
-/*... metodo centrado  atraso( up(implicito) + (ucd - up)explicito) */
-      else if( CD == iCodAdv){
-        cvc[0] = deferredCd(velC[0],velV[0],wfn);
-        cvc[1] = deferredCd(velC[1],velV[1],wfn);
-        cvc[2] = deferredCd(velC[2],velV[2],wfn);
-
-/*... interpolacao undirecional*/
-        cvc[0] -= gradVelComp[0][0]*lvSkew[0] 
-                + gradVelComp[0][1]*lvSkew[1] 
-                + gradVelComp[0][2]*lvSkew[2];
-      
-        cvc[1] -= gradVelComp[1][0]*lvSkew[0] 
-                + gradVelComp[1][1]*lvSkew[1] 
-                + gradVelComp[1][2]*lvSkew[2];
-      
-        cvc[2] -= gradVelComp[2][0]*lvSkew[0] 
-                + gradVelComp[2][1]*lvSkew[1] 
-                + gradVelComp[2][2]*lvSkew[2];
-/*...................................................................*/
-
-      }
-/*...................................................................*/
-
-/*... metodo upwind linear =  up(implicito) + gradU*r*/
-      else if( SOUP == iCodAdv){
-        cvc[0] = upwindLinearV1(velC[0]    ,velV[0]
-                            ,gradVelC[0],gradVelV[0]
-                            ,lXmcc      ,wfn
-                            ,iCodAdv    ,ndm);
-/*...*/ 
-        cvc[1] = upwindLinearV1(velC[1]    ,velV[1]
-                            ,gradVelC[1],gradVelV[1]
-                            ,lXmcc      ,wfn
-                            , iCodAdv   ,ndm);
-/*...*/ 
-        cvc[2] = upwindLinearV1(velC[2]    ,velV[2]
-                            ,gradVelC[2],gradVelV[2]
-                            ,lXmcc      ,wfn
-                            , iCodAdv   ,ndm);
-      }
-/*...................................................................*/
-
-
-/*... upwind + termo anti-difusivos*/
-      else{
-        cvc[0] = faceBaseTvdV1(velC[0]    ,velV[0]
-                              ,gradVelC[0],gradVelV[0]
-                              ,lKsi       ,lModKsi   
-                              ,cv
-                              ,iCodAdv    ,ndm);
-/*...*/ 
-        cvc[1] = faceBaseTvdV1(velC[1]    ,velV[1]
-                              ,gradVelC[1],gradVelV[1]
-                              ,lKsi       ,lModKsi   
-                              ,cv
-                              ,iCodAdv    ,ndm);
-/*...*/ 
-        cvc[2] = faceBaseTvdV1(velC[2]    ,velV[2]
-                              ,gradVelC[2],gradVelV[2]
-                              ,lKsi       ,lModKsi   
-                              ,cv
-                              ,iCodAdv    ,ndm);
-/*... interpolacao undirecional*/
-        cvc[0] -= gradVelComp[0][0]*lvSkew[0] 
-                + gradVelComp[0][1]*lvSkew[1] 
-                + gradVelComp[0][2]*lvSkew[2];
-      
-        cvc[1] -= gradVelComp[1][0]*lvSkew[0] 
-                + gradVelComp[1][1]*lvSkew[1] 
-                + gradVelComp[1][2]*lvSkew[2];
-      
-        cvc[2] -= gradVelComp[2][0]*lvSkew[0] 
-                + gradVelComp[2][1]*lvSkew[1] 
-                + gradVelComp[2][2]*lvSkew[2];
-     }
+      advectiveScheme(velC           ,velV
+                     ,gradVelC[0]   ,gradVelV[0]
+                     ,gradVelComp[0],vSkew
+                     ,lXmcc         ,wfn
+                     ,lKsi          ,lModKsi
+                     ,cv            ,cvc
+                     ,ndm
+                     ,iCodAdv1      ,iCodAdv2);
 /*...................................................................*/
 
 /*...*/
@@ -1528,13 +1407,14 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       else
         pFace = alphaMenosUm*presC + alpha*presF;
 /*...................................................................*/
-      pf[0]+= pFace*lModEta*lNormal[0];
-      pf[1]+= pFace*lModEta*lNormal[1];
-      pf[2]+= pFace*lModEta*lNormal[2];
+      tmp   = pFace*lFarea;
+      pf[0]+= tmp*lNormal[0];
+      pf[1]+= tmp*lNormal[1];
+      pf[2]+= tmp*lNormal[2];
 /*...................................................................*/
 
 /*... termos viscosos explicitos*/
-      aP    = viscosity*lModEta;
+      aP    = viscosity*lFarea;
       p[0] += aP*( gradVelV[0][0]*lNormal[0] 
                  + gradVelV[1][0]*lNormal[1]  
                  + gradVelV[2][0]*lNormal[2]);
@@ -1556,7 +1436,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
           + velC[2]*lNormal[2];
 
 /*... termos viscosos explicitos*/
-      aP    = viscosityC*lModEta;
+      aP    = viscosityC*lFarea;
       p[0] += aP*( gradVelC[0][0]*lNormal[0] 
                  + gradVelC[1][0]*lNormal[1]  
                  + gradVelC[2][0]*lNormal[2]);
@@ -1580,7 +1460,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                        ,&pFace
                        ,viscosityC      ,densityC
                        ,wfn                 
-                       ,lModEta         ,dcca[nAresta]
+                       ,lFarea          ,dcca[nAresta]
                        ,loadsPres[nCarg],false); 
       } 
 /*...................................................................*/
@@ -1591,9 +1471,9 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                + gradPresC[1]*lXmcc[1]
                + gradPresC[2]*lXmcc[2];
 
-      pf[0]+= pFace*lModEta*lNormal[0];
-      pf[1]+= pFace*lModEta*lNormal[1];
-      pf[2]+= pFace*lModEta*lNormal[2];
+      pf[0]+= pFace*lFarea*lNormal[0];
+      pf[1]+= pFace*lFarea*lNormal[1];
+      pf[2]+= pFace*lFarea*lNormal[2];
 /*...................................................................*/
 
 
@@ -1606,7 +1486,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                    ,lNormal  
                    ,gradVelC[0]    ,lXmcc 
                    ,viscosityC     ,densityC
-                   ,lModEta        ,dcca[nAresta]
+                   ,lFarea         ,dcca[nAresta]
                    ,loadsVel[nCarg],ndm
                    ,true           ,false);
       }  
@@ -1614,7 +1494,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*... parede impermevavel*/
       else if(lFaceVelR[nAresta] == STATICWALL){
-        aP   = viscosityC*lModEta/dcca[nAresta];
+        aP   = viscosityC*lFarea /dcca[nAresta];
 /*...*/
         sPc[0] += aP*(1.e0 - lNormal[0]*lNormal[0]);
         sPc[1] += aP*(1.e0 - lNormal[1]*lNormal[1]);
@@ -1641,10 +1521,10 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
   if(fTime){
 /*... EULER*/
     if(typeTime == EULER) 
-      sP     += densityC*area[idCell]/dt;
+      sP     += densityC*volume[idCell]/dt;
 /*...BACKWARD*/
     else if(typeTime == BACKWARD) 
-      sP     += 1.5e0*densityC*area[idCell]/dt;
+      sP     += 1.5e0*densityC*volume[idCell]/dt;
   }
 /*...................................................................*/
 
@@ -1705,14 +1585,14 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*...*/
    if(typeSimple == SIMPLEC){ 
-    dField[0] = area[idCell]/(lA[idCell  ] - lAn);
-    dField[1] = area[idCell]/(lA[idCell+1] - lAn);
-    dField[2] = area[idCell]/(lA[idCell+2] - lAn);
+    dField[0] = volume[idCell]/(lA[idCell  ] - lAn);
+    dField[1] = volume[idCell]/(lA[idCell+1] - lAn);
+    dField[2] = volume[idCell]/(lA[idCell+2] - lAn);
   }
   else if(typeSimple == SIMPLE){ 
-    dField[0] = area[idCell]/lA[idCell];
-    dField[1] = area[idCell]/lA[idCell+1];
-    dField[2] = area[idCell]/lA[idCell+2];
+    dField[0] = volume[idCell]/lA[idCell];
+    dField[1] = volume[idCell]/lA[idCell+1];
+    dField[2] = volume[idCell]/lA[idCell+2];
   } 
 /*...................................................................*/
 
@@ -1766,9 +1646,9 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  *            vizinhos destas                                        *
  * mKsi      -> modulo do vetor ksi                                  *
  * eta       -> vetores paralelos as faces das celulas               *
- * mEta      -> modulo do vetor eta                                  *
+ * fArea     -> area das faces                                       *
  * normal    -> vetores normais as faces das celulas                 *
- * area      -> area da celula central                               *
+ * volume    -> volume da celula central                             *
  * xm        -> pontos medios das faces da celula central            *
  * xmcc      -> vetores que unem o centroide aos pontos medios das   *
  *            faces da celula central                                *
@@ -1811,8 +1691,8 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
               ,short *restrict lGeomType,DOUBLE *restrict prop
               ,INT *restrict lViz       ,INT *restrict lId  
               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
-              ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
-              ,DOUBLE *restrict normal  ,DOUBLE *restrict area
+              ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
+              ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
               ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
               ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
@@ -1833,7 +1713,7 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE p,sP;
 /*...*/
   DOUBLE v[3],lKsi[3],lNormal[3],gf[3],wf[3],gfp[2];
-  DOUBLE dPviz,lModKsi,lModEta;
+  DOUBLE dPviz,lModKsi,lFarea;
 /*...*/
   DOUBLE gradPresC[3],gradPresV[3];
 /*...*/
@@ -1881,7 +1761,7 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
     lNormal[1] = MAT2D(nAresta,1,normal,ndm);
     lNormal[2] = MAT2D(nAresta,2,normal,ndm);
     
-    lModEta    = mEta[nAresta];
+    lFarea     = fArea[nAresta];
 
     lKsi[0] = MAT2D(nAresta, 0, ksi, ndm);
     lKsi[1] = MAT2D(nAresta, 1, ksi, ndm);
@@ -1929,9 +1809,9 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
  
 /*... termo difusivo
         grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
-      s[0] = dFieldF[0]*lModEta*lNormal[0];
-      s[1] = dFieldF[1]*lModEta*lNormal[1];
-      s[2] = dFieldF[2]*lModEta*lNormal[2];
+      s[0] = dFieldF[0]*lFarea*lNormal[0];
+      s[1] = dFieldF[1]*lFarea*lNormal[1];
+      s[2] = dFieldF[2]*lFarea*lNormal[2];
       difusionSchemeAnisotropic(s,lKsi,e,t,ndm,iCodDif);
 /*...................................................................*/
 
@@ -1979,7 +1859,7 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
 
 /*...*/
       wfn += gfp[1];
-      p   -= density*wfn*lModEta;
+      p   -= density*wfn*lFarea;
 /*...................................................................*/
     }
 /*...................................................................*/
@@ -1993,9 +1873,9 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
       if(lFacePresR[nAresta]){
 /*... termo difusivo
       grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
-        s[0] = dFieldC[0]*lModEta*lNormal[0];
-        s[1] = dFieldC[1]*lModEta*lNormal[1];
-        s[2] = dFieldC[2]*lModEta*lNormal[2];
+        s[0] = dFieldC[0]*lFarea*lNormal[0];
+        s[1] = dFieldC[1]*lFarea*lNormal[1];
+        s[2] = dFieldC[2]*lFarea*lNormal[2];
 /*...*/
         difusionSchemeAnisotropic(s, lKsi, e, t, ndm, iCodDif);
 /*...................................................................*/
@@ -2009,7 +1889,7 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
         pLoadSimplePres(&sP             ,&p
                        ,tA              ,modE
                        ,densityC        ,wfn
-                       ,lModEta         ,lModKsi
+                       ,lFarea          ,lModKsi
                        ,loadsPres[nCarg],true);
 /*...................................................................*/
       }
@@ -2023,7 +1903,7 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
                    ,lNormal
                    ,&ddum          ,&ddum 
                    ,ddum           ,densityC
-                   ,lModEta        ,dcca[nAresta]
+                   ,lFarea         ,dcca[nAresta]
                    ,loadsVel[nCarg],ndm
                    ,false          ,true);   
       } 
@@ -2089,9 +1969,9 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
  *            vizinhos destas                                        *
  * mKsi      -> modulo do vetor ksi                                  *
  * eta       -> vetores paralelos as faces das celulas               *
- * mEta      -> modulo do vetor eta                                  *
+ * mEta      -> area das faces                                       *
  * normal    -> vetores normais as faces das celulas                 *
- * area      -> area da celula central                               *
+ * volume    -> volume da celula central                             *
  * xm        -> pontos medios das faces da celula central            *
  * xmcc      -> vetores que unem o centroide aos pontos medios das   *
  *            faces da celula central                                *
@@ -2124,8 +2004,8 @@ void cellSimpleNonOrthPres3D(Diffusion diffPres
               ,short *restrict lGeomType
               ,DOUBLE *restrict prop    ,INT *restrict lViz
               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
-              ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
-              ,DOUBLE *restrict normal  ,DOUBLE *restrict area
+              ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
+              ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
               ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
               ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
@@ -2143,7 +2023,7 @@ void cellSimpleNonOrthPres3D(Diffusion diffPres
 /*...*/
   DOUBLE v[3],lKsi[3],lNormal[3],presC,presV;
   DOUBLE gfp[2],dVirtual[3],ccV[3],ccC[3],lXm[3],lXmcc[3];
-  DOUBLE dPviz,lModKsi,lModEta,du,duDksi;
+  DOUBLE dPviz,lModKsi,lFarea,du,duDksi;
 /*...*/
   DOUBLE gradPresC[3],gradPresV[3],gradPresComp[3],gf[3],gfKsi;
 /*... nonOrtogonal*/
@@ -2193,7 +2073,7 @@ void cellSimpleNonOrthPres3D(Diffusion diffPres
       lNormal[1] = MAT2D(nAresta,1,normal,ndm);
       lNormal[2] = MAT2D(nAresta,2,normal,ndm);
       
-      lModEta    = mEta[nAresta];
+      lFarea     = fArea[nAresta];
       
       dFieldV[0] = MAT2D(nAresta, 0, dField, 3);
       dFieldV[1] = MAT2D(nAresta, 1, dField, 3);
@@ -2248,9 +2128,9 @@ void cellSimpleNonOrthPres3D(Diffusion diffPres
 
 /*... termo difusivo
       grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
-      s[0] = dFieldF[0]*lModEta*lNormal[0];
-      s[1] = dFieldF[1]*lModEta*lNormal[1];
-      s[2] = dFieldF[2]*lModEta*lNormal[2];
+      s[0] = dFieldF[0]*lFarea*lNormal[0];
+      s[1] = dFieldF[1]*lFarea*lNormal[1];
+      s[2] = dFieldF[2]*lFarea*lNormal[2];
       difusionSchemeAnisotropic(s, lKsi, e, t, ndm, iCodDif);
 /*...................................................................*/
 

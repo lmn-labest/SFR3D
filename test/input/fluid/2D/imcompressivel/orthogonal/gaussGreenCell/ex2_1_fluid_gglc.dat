@@ -2,8 +2,7 @@ config
 reord true bvtk false mem 100 rcGrad gglc fItPlotRes false fItPlot true
 endConfig
 partd config: false false
-//advection Vel fBase SuperBee
-advection Vel fBase SuperBee
+advection 1 Vel TVD SuperBee
 edp
 fluid 3
 endEdp

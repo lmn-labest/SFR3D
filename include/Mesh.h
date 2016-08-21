@@ -32,8 +32,8 @@
 
 /*...*/
   typedef struct{
-    short  base;
-    short  iCod;
+    short  iCod1;
+    short  iCod2;
   }Advection;
 /*...................................................................*/  
 

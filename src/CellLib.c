@@ -3488,7 +3488,7 @@ DOUBLE faceBaseTvdV1(DOUBLE const uC     ,DOUBLE const uV
 
 /********************************************************************* 
  * Data de criacao    : 16/07/2016                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 12/08/2016                                   * 
  *-------------------------------------------------------------------* 
  * UPWINDLINEARV1: upwind linear com resconstrucao linear            * 
  *-------------------------------------------------------------------* 
@@ -3500,7 +3500,6 @@ DOUBLE faceBaseTvdV1(DOUBLE const uC     ,DOUBLE const uV
  * gradUv -> gradiente do vizinho                                    * 
  * r      -> distancia ate o ponto central da face                   * 
  * wfn    -> velocidade normal                                       * 
- * iCod   -> tecnica TVD                                             * 
  * ndm    -> numero de dimensoes                                     * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -3515,7 +3514,7 @@ DOUBLE faceBaseTvdV1(DOUBLE const uC     ,DOUBLE const uV
 DOUBLE upwindLinearV1(DOUBLE const uC     ,DOUBLE const uV
                  ,DOUBLE *restrict gradUc,DOUBLE *restrict gradUv
                  ,DOUBLE *restrict r     ,DOUBLE const wfn
-                 ,short const iCod       ,short const ndm)
+                 ,short const ndm)
 {                    
   
   DOUBLE cvc=0.0e0;
@@ -3575,9 +3574,9 @@ DOUBLE deferredCd(DOUBLE const uC,DOUBLE const uV,DOUBLE const wfn)
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 21/08/2016                                   * 
  *-------------------------------------------------------------------* 
- * SETFACEBASE :                                                     * 
+ * SETTVD :                                                          * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -3591,7 +3590,7 @@ DOUBLE deferredCd(DOUBLE const uC,DOUBLE const uV,DOUBLE const wfn)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void setFaceBase(char *word,short *iCod)
+void setTvd(char *word,short *iCod)
 {
   short i;
   char fBase[][WORD_SIZE]=
@@ -3745,7 +3744,78 @@ void  setDiffusionScheme(char *word,short *iCod)
 /*...................................................................*/
 }
 /*********************************************************************/ 
- 
+
+/*********************************************************************
+* Data de criacao    : 08/08/2016                                    *
+* Data de modificaco : 21/08/2016                                    *
+*------------------------------------------------------------------- *
+* SETADVECTIONSCHEME :                                               *
+*------------------------------------------------------------------- *
+* Parametros de entrada:                                             *
+*------------------------------------------------------------------- *
+* word   ->                                                          *
+* iCod   -> nao definido                                             *
+* FileIn -> arquivo                                                  *
+*------------------------------------------------------------------- *
+* Parametros de saida:                                               *
+*------------------------------------------------------------------- *
+* adv -> codigo da tecnica do termo advectivo                        *
+*------------------------------------------------------------------- *
+* OBS:                                                               *
+*------------------------------------------------------------------- *
+*********************************************************************/
+void  setAdvectionScheme(char *word, Advection *adv,FILE *fileIn)
+{
+  short i;
+  char fAdv[][WORD_SIZE] =
+  { "FoUp","CD"
+   ,"SoUp" ,"TVD" };
+  /*...*/
+  if (!strcmp(word, fAdv[0])) {
+    adv->iCod1 = FOUP;
+    if (!mpiVar.myId) printf("iCod  : %s\n", fAdv[0]);
+  }
+  /*...................................................................*/
+
+  /*...*/
+  else if (!strcmp(word, fAdv[1])) {
+    adv->iCod1 = CD;
+    if (!mpiVar.myId) printf("iCod  : %s\n", fAdv[1]);
+  }
+  /*...................................................................*/
+
+  /*...*/
+  else if (!strcmp(word, fAdv[2])) {
+    adv->iCod1 = SOUP;
+    if (!mpiVar.myId) printf("iCod  : %s\n", fAdv[2]);
+  }
+  /*...................................................................*/
+
+  /*...*/
+  else if (!strcmp(word, fAdv[3])) {
+    adv->iCod1 = TVD;
+    if (!mpiVar.myId) printf("iCod  : %s\n", fAdv[3]);
+    readMacro(fileIn, word, false);
+    setTvd(word, &adv->iCod2);
+  }
+  /*...................................................................*/
+
+
+  /*...*/
+  else {
+    printf("Erro: tipo de correcao nao ortogonal invalida.\n"
+           "Arquivo fonte:  \"%s\".\n"
+           "Nome da funcao: \"%s\".\n"
+           "Linha         : \"%d\".\n"
+           , __FILE__, __func__, __LINE__);
+    printf("Funcoes disponiveis:\n");
+    for (i = 0; i<4; i++)
+      printf("%s\n", fAdv[i]);
+    exit(EXIT_FAILURE);
+  }
+  /*...................................................................*/
+}
+/*********************************************************************/
       
 /********************************************************************* 
  * Data de criacao    : 18/07/2016                                   *
@@ -4258,6 +4328,209 @@ void difusionSchemeAnisotropic(DOUBLE *restrict s,DOUBLE *restrict ksi
 /*...*/
   default:
   printf("Erro: tipo de correcao nao ortogonal invalida.\n"
+         "Arquivo fonte:  \"%s\".\n"
+         "Nome da funcao: \"%s\".\n"
+         "Linha         : \"%d\".\n"
+         , __FILE__, __func__, __LINE__);
+  printf("Funcoes disponiveis:\n");
+  for (i = 0; i<4; i++)
+    printf("%s\n", word[i]);
+  exit(EXIT_FAILURE);
+/*...................................................................*/
+  }
+}
+/*********************************************************************/
+
+/*********************************************************************
+* Data de criacao    : 08/07/2016                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* difusionScheme :  correcao nao ortogonal do termo difusivo        *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* n       -> vetor normal unitarios                                 *
+* ksi     -> vetor que une os centroide central e o vizinho         *
+* lArea   -> area da face                                           *
+* modKsi  -> distancia entre o centroide central e o vizinho        *
+* e       -> nao definido                                           *
+* t       -> nao definido                                           *
+* ndm     -> dimensao                                               *
+* iCodDif -> codigo da tecnica nao ortogonal                        *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* e       -> parcela implicita                                      *
+* t       -> parcela explicita                                      *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+* grad(phi)*S = grad(phi)*E + grad(phi)*T                           *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void advectiveScheme(DOUBLE *restrict velC    ,DOUBLE *restrict velV
+                ,DOUBLE *restrict gradVelC   ,DOUBLE *restrict gradVelV
+                ,DOUBLE *restrict gradVelComp,DOUBLE *restrict vSkew
+                ,DOUBLE *restrict xmcc       ,DOUBLE const wfn
+                ,DOUBLE *restrict ksi        ,DOUBLE const modKsi
+                ,DOUBLE const m              ,DOUBLE *restrict cvc 
+                ,short const ndm             
+                ,short const iCod1           ,short const iCod2) {
+
+  DOUBLE nk, tmp;
+  short i;
+  char word[][WORD_SIZE] =
+  { "FoUp","Cd"
+   ,"SoUp","Tvd" };
+
+  switch(iCod1){
+/*... Upwind de primeira ordem*/
+    case FOUP:
+      cvc[0] = 0.e0;
+      cvc[1] = 0.e0;
+      if (ndm == 3) cvc[0] = 0.e0;
+    break;
+/*...................................................................*/
+
+/*... metodo centrado  atraso( up(implicito) + (ucd - up)explicito) */
+  case CD:
+/*...*/
+    if (ndm == 2) {
+      cvc[0] = deferredCd(velC[0], velV[0], wfn);
+      cvc[1] = deferredCd(velC[1], velV[1], wfn);
+/*... interpolacao undirecional*/
+      cvc[0] -= MAT2D(0,0,gradVelComp,2)*vSkew[0]
+              + MAT2D(0,1,gradVelComp,2)*vSkew[1];
+
+      cvc[1] -= MAT2D(1,0,gradVelComp,2)*vSkew[0]
+              + MAT2D(1,1,gradVelComp,2)*vSkew[1];
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*...*/
+    else if (ndm == 3) {
+      cvc[0] = deferredCd(velC[0], velV[0], wfn);
+      cvc[1] = deferredCd(velC[1], velV[1], wfn);
+      cvc[2] = deferredCd(velC[2], velV[2], wfn);
+/*... interpolacao undirecional*/
+      cvc[0] -= MAT2D(0,0,gradVelComp,3)*vSkew[0]
+              + MAT2D(0,1,gradVelComp,3)*vSkew[1] 
+              + MAT2D(0,2,gradVelComp,3)*vSkew[2];
+
+      cvc[1] -= MAT2D(1,0,gradVelComp,3)*vSkew[0]
+              + MAT2D(1,1,gradVelComp,3)*vSkew[1]
+              + MAT2D(1,2,gradVelComp,3)*vSkew[2];
+      
+      cvc[2] -= MAT2D(2,0,gradVelComp,3)*vSkew[0]
+              + MAT2D(2,1,gradVelComp,3)*vSkew[1]
+              + MAT2D(2,2,gradVelComp,3)*vSkew[2];
+/*...................................................................*/
+    }
+/*...................................................................*/
+ 
+  break;
+/*...................................................................*/
+
+/*... metodo upwind linear =  up(implicito) + gradU*r*/
+  case SOUP:
+/*...*/
+    if (ndm == 2) {
+      cvc[0] = upwindLinearV1(velC[0]    ,velV[0]
+                             ,gradVelC   ,gradVelV
+                             ,xmcc       ,wfn
+                             ,ndm);
+/*...*/
+      cvc[1] = upwindLinearV1(velC[1]      ,velV[1]
+                             ,&gradVelC[2],&gradVelV[2]
+                             ,xmcc        ,wfn
+                             ,ndm);
+    }
+/*...................................................................*/
+
+/*...*/
+    else if (ndm == 3) {
+      cvc[0] = upwindLinearV1(velC[0]    ,velV[0]
+                             ,gradVelC   ,gradVelV
+                             ,xmcc       ,wfn
+                             ,ndm);
+/*...*/
+      cvc[1] = upwindLinearV1(velC[1]     ,velV[1]
+                             ,&gradVelC[3],&gradVelV[3]
+                             ,xmcc        ,wfn
+                             ,ndm);
+/*...*/
+      cvc[2] = upwindLinearV1(velC[2]     ,velV[2]
+                             ,&gradVelC[6], &gradVelV[6]
+                             ,xmcc        ,wfn
+                             ,ndm);
+  }
+/*...................................................................*/
+  break;
+/*...................................................................*/
+
+/*... upwind + termo anti-difusivos*/
+  case TVD:
+/*...*/
+    if (ndm == 2) {
+      cvc[0] = faceBaseTvdV1(velC[0]     ,velV[0]
+                            ,&gradVelC[0],&gradVelV[0]
+                            ,ksi         ,modKsi
+                            ,m 
+                            ,iCod2       ,ndm);
+      cvc[1] = faceBaseTvdV1(velC[1]     ,velV[1]
+                            ,&gradVelC[2],&gradVelV[2]
+                            ,ksi         ,modKsi
+                            ,m 
+                            ,iCod2       ,ndm);
+
+/*... interpolacao undirecional*/
+      cvc[0] -= MAT2D(0, 0, gradVelComp, 2)*vSkew[0]
+              + MAT2D(0, 1, gradVelComp, 2)*vSkew[1];
+
+      cvc[1] -= MAT2D(1, 0, gradVelComp, 2)*vSkew[0]
+              + MAT2D(1, 1, gradVelComp, 2)*vSkew[1];
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*...*/
+    else if (ndm == 3) {
+      cvc[0] = faceBaseTvdV1(velC[0]      ,velV[0]
+                            ,&gradVelC[0] ,&gradVelV[0]
+                            ,ksi          ,modKsi
+                            ,m 
+                            ,iCod2        ,ndm);
+      cvc[1] = faceBaseTvdV1(velC[1]     ,velV[1]
+                            ,&gradVelC[3],&gradVelV[3]
+                            ,ksi         ,modKsi
+                            ,m  
+                            ,iCod2      ,ndm);
+      cvc[2] = faceBaseTvdV1(velC[2]     ,velV[2]
+                            ,&gradVelC[6],&gradVelV[6]
+                            ,ksi         ,modKsi
+                            ,m 
+                            ,iCod2       ,ndm);
+/*... interpolacao undirecional*/
+      cvc[0] -= MAT2D(0,0,gradVelComp,3)*vSkew[0]
+              + MAT2D(0,1,gradVelComp,3)*vSkew[1]
+              + MAT2D(0,2,gradVelComp,3)*vSkew[2];
+
+      cvc[1] -= MAT2D(1,0,gradVelComp,3)*vSkew[0]
+              + MAT2D(1,1,gradVelComp,3)*vSkew[1]
+              + MAT2D(1,2,gradVelComp,3)*vSkew[2];
+
+      cvc[2] -= MAT2D(2,0,gradVelComp,3)*vSkew[0]
+              + MAT2D(2,1,gradVelComp,3)*vSkew[1]
+              + MAT2D(2,2,gradVelComp,3)*vSkew[2];
+/*...................................................................*/
+    }
+/*...................................................................*/
+  break;
+/*...................................................................*/
+
+/*...*/
+  default:
+  printf("Erro: tipo de tecnica de adveccao nap existente.\n"
          "Arquivo fonte:  \"%s\".\n"
          "Nome da funcao: \"%s\".\n"
          "Linha         : \"%d\".\n"

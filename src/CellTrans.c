@@ -80,7 +80,7 @@ void cellTrans2D(Loads *loads           ,Advection advT
   DOUBLE xx[3];
 /*... */
   DOUBLE wfn,wf[2],velC[2],velF[2],cv,cvc;
-  short iCod=advT.iCod;
+  short iCod=advT.iCod1;
 /*...*/
   short idCell = nFace;
   short nAresta,nCarg,typeTime;
@@ -384,7 +384,7 @@ void cellTrans3D(Loads *loads           ,Advection advT
   DOUBLE xx[3];
 /*...*/
   DOUBLE wfn,wf[3],velC[3],velF[3],cv,cvc;
-  short iCod=advT.iCod;
+  short iCod=advT.iCod1;
 /*...*/
   short idCell = nFace;
   short nf,nCarg,typeTime;

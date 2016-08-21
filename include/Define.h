@@ -63,15 +63,17 @@
   #define FOUP          1
 /*...*/
   #define CD            2
-/*... ADVECTION - TVD EDGEBASE LIMIT*/
-  #define VANLEERFACE   3
-  #define VANALBADAFACE 4
-  #define MIDMODFACE    5
-  #define OSHERFACE     6
-  #define SUPERBEEFACE  7
-  #define SPLITUPCFACE  8
 /*...*/
-  #define SOUP          9
+  #define SOUP          3
+/*...*/
+  #define TVD           4
+/*... ADVECTION - TVD EDGEBASE LIMIT*/
+  #define VANLEERFACE   1
+  #define VANALBADAFACE 2
+  #define MIDMODFACE    3
+  #define OSHERFACE     4
+  #define SUPERBEEFACE  5
+  #define SPLITUPCFACE  6
 /*...................................................................*/
 
 /*... ADVECTION*/

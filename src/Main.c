@@ -200,13 +200,13 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-  sc.advT1.base = FBASE;
-  sc.advT1.iCod = VANLEERFACE;
+  sc.advT1.iCod1 = TVD;
+  sc.advT1.iCod2 = VANLEERFACE;
 /*...................................................................*/
 
 /*...*/
-  sc.advVel.base = FBASE;
-  sc.advVel.iCod = FOUP;
+  sc.advVel.iCod1 = TVD;
+  sc.advVel.iCod2 = VANLEERFACE;
 /*...................................................................*/
 
 /*...*/
@@ -2163,57 +2163,30 @@ int main(int argc,char**argv){
         printf("%s\n",DIF);
         printf("%s\n",word);
       }
-      fAdv = true;
-/*... tecnica de adveccao*/
-      if(fAdv){        
-        readMacro(fileIn,word,false);
-/*... velocidade*/
-        if(!strcmp(word,"Vel")){ 
-          readMacro(fileIn,word,false);
-/*... limitado por face*/
-          if(!strcmp(word,"fBase")){ 
-            sc.advVel.base = FBASE;
-            if(!mpiVar.myId ) printf("advVel: fBase\n"); 
-          }
-/*... limitado por volume*/
-          else if(!strcmp(word,"vBase")){ 
-            sc.advVel.base = VBASE;
-            if(!mpiVar.myId ) printf("advVel: VBase\n"); 
-          }
-/*... sem limiete*/
-          else if(!strcmp(word,"vBase")){ 
-            sc.advVel.base = 0;
-            if(!mpiVar.myId ) printf("advVel: NONE\n"); 
-          }
-/*... codigo da da funcao limitadora de fluxo*/        
-          readMacro(fileIn,word,false);
-          setFaceBase(word,&sc.advVel.iCod);
-          fAdv = false;
+ /*... tecnica de adveccao*/
+      readMacro(fileIn, word, false);
+      nScheme = atol(word);
+      do {
+        readMacro(fileIn, word, false);
+ /*... velocidade*/
+        if (!strcmp(word, "Vel") || !strcmp(word, "vel")) {
+          printf("%s:\n", word);
+          readMacro(fileIn, word, false);
+ /*... codigo da da funcao limitadora de fluxo*/
+          setAdvectionScheme(word, &sc.advVel,fileIn);
+          nScheme--;
         }
-/*...................................................................*/
-      }
-/*...................................................................*/
-
-/*... tecnica de adveccao*/
-      if(fAdv){        
-        readMacro(fileIn,word,false);
-/*... velocidade*/
-        if(!strcmp(word,"T1")){ 
-          readMacro(fileIn,word,false);
-/*... limitado por face*/
-          if(!strcmp(word,"fBase")){ 
-            sc.advT1.base = FBASE;
-            if(!mpiVar.myId ) printf("advT1: fBase\n");
-          }
-/*... codigo da da funcao limitadora de fluxo*/        
-          readMacro(fileIn,word,false);
-          setFaceBase(word,&sc.advT1.iCod);
-          fAdv = false;
+ /*... T1*/
+        else if (!strcmp(word, "T1") || !strcmp(word, "t1")) {
+          printf("%s:\n", word);
+          readMacro(fileIn, word, false);
+ /*... codigo da da funcao limitadora de fluxo*/
+          setAdvectionScheme(word, &sc.advT1,fileIn);
+          nScheme--;
         }
+      } while (nScheme);
 /*...................................................................*/
-      }
-/*...................................................................*/
-      if(!mpiVar.myId ) printf("%s\n",DIF);
+      if (!mpiVar.myId) printf("%s\n", DIF);
     }   
 /*===================================================================*/
 

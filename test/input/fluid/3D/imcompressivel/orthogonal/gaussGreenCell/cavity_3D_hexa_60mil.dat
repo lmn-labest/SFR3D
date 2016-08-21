@@ -2,10 +2,10 @@ config
 reord false bvtk false mem 2000 rcGrad ggln fItPlotRes false fItPlot false
 endConfig
 partd config: false false
-advection fBase SuperBee
-//advection Vel fBase FoUp    
-//advection Vel None CD    
-//advection Vel None SoUp  
+advection 1 Vel TVD SuperBee
+//advection 1 Vel FoUp    
+//advection 1 Vel CD    
+//advection 1 Vel SoUp  
 edp
 fluid 4
 endEdp

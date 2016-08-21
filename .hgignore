@@ -7,3 +7,4 @@ bin/*.dat
 bin/*.png
 *~
 *.swp
+include/ParallelMpi.h.orig

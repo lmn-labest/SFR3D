@@ -740,6 +740,15 @@ void parameterCell(DOUBLE *restrict vel  ,DOUBLE *restrict prop
   void difusionSchemeAnisotropic(DOUBLE *restrict s,DOUBLE *restrict ksi
                                 ,DOUBLE *restrict e,DOUBLE *restrict t
                                 ,short const ndm   ,short const iCod);
+  void advectiveScheme(DOUBLE *restrict velC       ,DOUBLE *restrict velV
+                     ,DOUBLE *restrict gradVelC   ,DOUBLE *restrict gradVelV
+                     ,DOUBLE *restrict gradVelComp,DOUBLE *restrict vSkew
+                     ,DOUBLE *restrict xmcc       ,DOUBLE const wfn
+                     ,DOUBLE *restrict ksi        ,DOUBLE const modKsi
+                     ,DOUBLE const m              ,DOUBLE *restrict cvc
+                     ,short const ndm
+                     ,short const iCod1, short const iCod2);
+
 
   DOUBLE deferredCd(DOUBLE const velC,DOUBLE const velV
                    ,DOUBLE const wfn);
@@ -747,7 +756,7 @@ void parameterCell(DOUBLE *restrict vel  ,DOUBLE *restrict prop
   DOUBLE upwindLinearV1(DOUBLE const uC     ,DOUBLE const uV
                  ,DOUBLE *restrict gradUc,DOUBLE *restrict gradUv
                  ,DOUBLE *restrict r     ,DOUBLE const wfn
-                 ,short const iCod       ,short const ndm);
+                 ,short const ndm);
 /*...................................................................*/
 
 /*... funcoes de apoio*/ 
@@ -781,8 +790,9 @@ void parameterCell(DOUBLE *restrict vel  ,DOUBLE *restrict prop
             ,DOUBLE const wfn     ,DOUBLE *restrict xm                   
             ,DOUBLE const fArea   ,DOUBLE const dcca
             ,Loads ld             ,bool const fCal);
-  void setFaceBase(char *word,short *iCod);
+  void setTvd(char *word,short *iCod);
   void  setDiffusionScheme(char *word,short *iCod);
+  void  setAdvectionScheme(char *word, Advection *adv,FILE *fileIn);
   DOUBLE sizeCar(DOUBLE const volume,short const ndm);
 /*...................................................................*/
 
