@@ -588,9 +588,9 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE dFieldC[2],dFieldV[2],dFieldF[2];
 /*...*/
   DOUBLE rCell;
-  DOUBLE ceof,p,sP;
+  DOUBLE p,sP;
 /*...*/
-  DOUBLE v[2],lKsi[2],lNormal[2],lXmcc[2],gf[2],wf[2],gfp[2];
+  DOUBLE v[2],lKsi[2],lNormal[2],gf[2],wf[2],gfp[2];
   DOUBLE dPviz,lModKsi,lModEta;
 /*...*/
   DOUBLE gradPresC[2],gradPresV[2];
@@ -876,11 +876,11 @@ void cellSimpleNonOrthPres2D(Diffusion diffPres
   DOUBLE densityC,densityV ,density;
   DOUBLE dFieldC[2],dFieldV[2],dFieldF[2];
 /*...*/
-  DOUBLE p,tmp,coef;
+  DOUBLE p,coef;
 /*...*/
   DOUBLE v[2],lKsi[2],lNormal[2],presC,presV;
-  DOUBLE gfp[2],dVirtual[2],ccV[2],ccC[2],lXm[2],lXmcc[2];
-  DOUBLE dPviz,lModKsi,lModEta,modE,du,duDksi;
+  DOUBLE ccV[2],ccC[2],lXm[2],lXmcc[2];
+  DOUBLE dPviz,lModKsi,lModEta,du,duDksi;
 /*...*/
   DOUBLE gradPresC[2],gradPresV[2],gradPresComp[2],gf[2],gfKsi;
 /*...*/
@@ -1129,7 +1129,7 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE dPviz,lModKsi,lFarea,du[3],duDksi[3],lXm[3];
   DOUBLE coef,lAn,tmp;
 /*...*/
-  DOUBLE nk,dfd,cv,cvc[3],lvSkew[3];
+  DOUBLE dfd,cv,cvc[3],lvSkew[3];
 /*... nonOrtogonal*/
 	DOUBLE e[3], t[3], modE, dfdc[3];
 /*... interpolacao linear*/
@@ -2019,17 +2019,17 @@ void cellSimpleNonOrthPres3D(Diffusion diffPres
   DOUBLE densityC,densityV ,density;
   DOUBLE dFieldC[3],dFieldV[3],dFieldF[3];
 /*...*/
-  DOUBLE p,tmp,coef;
+  DOUBLE p,coef;
 /*...*/
   DOUBLE v[3],lKsi[3],lNormal[3],presC,presV;
-  DOUBLE gfp[2],dVirtual[3],ccV[3],ccC[3],lXm[3],lXmcc[3];
+  DOUBLE ccV[3],ccC[3],lXm[3],lXmcc[3];
   DOUBLE dPviz,lModKsi,lFarea,du,duDksi;
 /*...*/
   DOUBLE gradPresC[3],gradPresV[3],gradPresComp[3],gf[3],gfKsi;
 /*... nonOrtogonal*/
-	DOUBLE e[3], t[3],s[4],modE;
+	DOUBLE e[3], t[3],s[4];
 /*...*/
-  DOUBLE nk,lvSkew[3];
+  DOUBLE lvSkew[3];
 /*... interpolacao linear*/
   DOUBLE alpha,alphaMenosUm;
 /*...*/

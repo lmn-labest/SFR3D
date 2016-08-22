@@ -15,13 +15,12 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void preCondDiag(DOUBLE *restrict pc,DOUBLE *restrict ad,INT const nEq){
+void preCondDiag(DOUBLE *restrict pc,DOUBLE *restrict ad
+                ,INT const nEq){
 
   INT i;
 
   for(i=0;i<nEq;i++)
     pc[i] = 1.e0/ad[i];
-
-
 }
 /*********************************************************************/

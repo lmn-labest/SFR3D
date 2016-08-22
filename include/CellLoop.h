@@ -106,11 +106,13 @@
 /*...................................................................*/
  
 /* ... montagem do sistemas de equacoes (Transporte)*/
-  void systFormTrans(Loads *loads      ,Advection advT 
+  void systFormTrans(Loads *loads      
+             ,Advection advT           ,Diffusion diffT
              ,INT    *restrict el      ,INT    *restrict nelcon 
              ,short  *restrict nen     ,short  *restrict nFace
              ,short  *restrict geomType,DOUBLE *restrict prop 
              ,short  *restrict calType ,short  *restrict mat  
+             ,DOUBLE *restrict gCc
              ,DOUBLE *restrict gKsi   ,DOUBLE *restrict gmKsi
              ,DOUBLE *restrict gEta   ,DOUBLE *restrict gfArea
              ,DOUBLE *restrict gNormal,DOUBLE *restrict gVolume
@@ -237,7 +239,8 @@
 /*...................................................................*/
 
 /*... chamada da biblioteca de elementos (transporte)*/
-  void cellLibTrans(Loads *loads           ,Advection advT 
+  void cellLibTrans(Loads *loads           
+                 ,Advection advT           ,Diffusion diffT
                  ,short *restrict lGeomType,DOUBLE *restrict lprop
                  ,INT   *restrict lViz     ,INT    *restrict lId
                  ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi
@@ -250,7 +253,7 @@
                  ,DOUBLE *restrict lRcell  ,Temporal const ddt
                  ,short  *restrict lFaceR  ,short  *restrict lFaceL
                  ,DOUBLE *restrict lu0     ,DOUBLE *restrict lGradU0 
-                 ,DOUBLE *restrict lVel
+                 ,DOUBLE *restrict lVel    ,DOUBLE *restrict cc
                  ,short const nEn          ,short const nFace
                  ,short const ndm          ,short const lib 
                  ,INT const nel);
@@ -438,7 +441,8 @@
 /*...................................................................*/
 
 /*... biblioteca de celulas (transporte)*/
-  void cellTrans2D(Loads *loads           ,Advection advT
+  void cellTrans2D(Loads *loads           
+                ,Advection advT           ,Diffusion diffT
                 ,short *restrict lGeomType,DOUBLE *restrict lprop
                 ,INT   *restrict lViz     ,INT *restrict lId
                 ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi
@@ -451,11 +455,12 @@
                 ,DOUBLE *restrict lRcell  ,Temporal const ddt
                 ,short  *restrict lFaceR  ,short *restrict lFaceL
                 ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0
-                ,DOUBLE *restrict vel
+                ,DOUBLE *restrict vel     ,DOUBLE *restrict cc
                 ,short const nen          ,short const nFace
                 ,short const ndm          ,INT const nel);
   
-  void cellTrans3D(Loads *loads           ,Advection advT
+  void cellTrans3D(Loads *loads           
+                ,Advection advT           , Diffusion diffT
                 ,short *restrict lGeomType,DOUBLE *restrict lprop
                 ,INT   *restrict lViz     ,INT *restrict lId
                 ,DOUBLE *restrict ksi     ,DOUBLE *restrict mksi
@@ -468,7 +473,7 @@
                 ,DOUBLE *restrict lRcell  ,Temporal const ddt
                 ,short  *restrict lFaceR  ,short *restrict lFaceL
                 ,DOUBLE *restrict u0      ,DOUBLE *restrict lGradU0
-                ,DOUBLE *restrict vel
+                ,DOUBLE *restrict vel     ,DOUBLE *restrict cc
                 ,short const nen          ,short const nFace    
                 ,short const ndm          ,INT const nel);
 /*...................................................................*/
@@ -723,7 +728,7 @@
 /*...................................................................*/
 
 /*... parametro fisicos do escoamento*/  
-void parameterCell(DOUBLE *restrict vel  ,DOUBLE *restrict prop
+  void parameterCell(DOUBLE *restrict vel  ,DOUBLE *restrict prop
                 ,DOUBLE *restrict density,DOUBLE *restrict volume
                 ,short  *restrict mat 
                 ,DOUBLE *cfl             ,DOUBLE *reynolds
@@ -748,15 +753,23 @@ void parameterCell(DOUBLE *restrict vel  ,DOUBLE *restrict prop
                      ,DOUBLE const m              ,DOUBLE *restrict cvc
                      ,short const ndm
                      ,short const iCod1, short const iCod2);
-
+   
+  void advectiveSchemeScalar(DOUBLE const uC     ,DOUBLE const uV
+                     ,DOUBLE *restrict gradUc   ,DOUBLE *restrict gradUv
+                     ,DOUBLE *restrict gradUcomp,DOUBLE *restrict vSkew
+                     ,DOUBLE *restrict rC       ,DOUBLE *restrict rV
+                     ,DOUBLE *restrict ksi      ,DOUBLE const modKsi
+                     ,DOUBLE const m            ,DOUBLE *cvc
+                     ,short const ndm
+                     ,short const iCod1, short const iCod2);
 
   DOUBLE deferredCd(DOUBLE const velC,DOUBLE const velV
                    ,DOUBLE const wfn);
 
-  DOUBLE upwindLinearV1(DOUBLE const uC     ,DOUBLE const uV
+  DOUBLE upwindLinearV1(DOUBLE const uC  ,DOUBLE const uV
                  ,DOUBLE *restrict gradUc,DOUBLE *restrict gradUv
-                 ,DOUBLE *restrict r     ,DOUBLE const wfn
-                 ,short const ndm);
+                 ,DOUBLE *restrict rC    ,DOUBLE *restrict rV
+                 ,DOUBLE const m         ,short const ndm);
 /*...................................................................*/
 
 /*... funcoes de apoio*/ 

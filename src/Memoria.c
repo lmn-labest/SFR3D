@@ -162,12 +162,12 @@ void* alloc(Memoria *m, TYPEADRESS **end
 
 /*...*/  
   else{
-   fprintf(stderr,"Memoria insuficiente %s\n"
+    fprintf(stderr,"Memoria insuficiente %s\n"
                   "Disponivel %ld bytes\n"
                   "necessario %ld bytes\n"
-		   ,s,livre,necA);
-   exit(EXIT_FAILURE); 
-   return NULL;
+		              ,s,livre,necA);
+     exit(EXIT_FAILURE); 
+     return NULL;
   } 
 /*...................................................................*/
 }  

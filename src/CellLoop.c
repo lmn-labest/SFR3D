@@ -437,14 +437,18 @@ void systFormDif(Loads *loads
 }
 /*********************************************************************/ 
 
-/********************************************************************* 
+/*********************************************************************
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 22/08/2016                                   *
+ *-------------------------------------------------------------------* 
  * SYSTFOMTRANS : calculo do sistema de equacoes para problemas      * 
  * transporte (Ax=b)                                                 * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * loads   -> definicoes de cargas                                   * 
- * advT    -> tecnica da discretizacao do termo advecao              * 
+ * advT    -> tecnica da discretizacao do termo advecao              *
+ * diffT   -> tecnica da discretizacao do termo difusivo             *
  * el      -> conetividade dos celulas                               * 
  * nelcon  -> vizinhos dos elementos                                 * 
  * nen     -> numero de nos por celulas                              * 
@@ -453,6 +457,7 @@ void systFormDif(Loads *loads
  * geomType-> tipo geometrico das celulas                            * 
  * prop    -> propriedades dos material                              * 
  * mat     -> material por celula                                    * 
+ * gCc     -> centroide das celulas                                  *
  * gKsi    -> vetores que unem centroide da celula central aos       *
  *            vizinhos destas                                        * 
  * gmKsi   -> modulo do vetor ksi                                    * 
@@ -513,11 +518,13 @@ void systFormDif(Loads *loads
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void systFormTrans(Loads *loads          ,Advection advT
+void systFormTrans(Loads *loads          
+               ,Advection advT           ,Diffusion diffT
                ,INT    *restrict el      ,INT    *restrict nelcon 
                ,short  *restrict nen     ,short  *restrict nFace
                ,short  *restrict geomType,DOUBLE *restrict prop 
-               ,short  *restrict calType ,short  *restrict mat     
+               ,short  *restrict calType ,short  *restrict mat
+               ,DOUBLE *restrict gCc
                ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi 
                ,DOUBLE *restrict gEta    ,DOUBLE *restrict gfArea 
                ,DOUBLE *restrict gNormal ,DOUBLE *restrict gVolume
@@ -558,6 +565,7 @@ void systFormTrans(Loads *loads          ,Advection advT
   DOUBLE lu0[(MAX_NUM_FACE+1)*MAX_NDF];
   DOUBLE lGradU0[(MAX_NUM_FACE+1)*MAX_NDM];
   DOUBLE lVel[(MAX_NUM_FACE+1)*MAX_NDM];
+  DOUBLE lCc[(MAX_NUM_FACE + 1)*MAX_NDM];
   DOUBLE lRcell[MAX_NDF];
   INT    lId[(MAX_NUM_FACE+1)*MAX_NDF],lViz[MAX_NUM_FACE];
   short  aux1,aux2,lMat;
@@ -579,15 +587,6 @@ void systFormTrans(Loads *loads          ,Advection advT
         lId[j] = -1;
         lu0[j] = 0.e0;    
       }
-/*      
-      for(j=0;j<(MAX_NUM_FACE+1)*MAXPROP;j++)
-        lProp[j] = 0.0e0;    
-      
-      for(j=0;j<MAX_NUM_FACE+1;j++){
-        lGeomType[j] = 0;     
-      }
-*/      
-
 /*... loop na celula central*/    
       lMat            = mat[nel]-1;
       lib             = calType[lMat];
@@ -608,11 +607,12 @@ void systFormTrans(Loads *loads          ,Advection advT
       for(j=0;j<ndm;j++){
         MAT2D(aux1,j,lGradU0,ndm) = MAT2D(nel,j,gradU0,ndm);
         MAT2D(aux1,j,lVel   ,ndm) = MAT2D(nel,j,vel   ,ndm);
+        MAT2D(aux1,j,lCc    ,ndm) = MAT2D(nel,j,gCc   ,ndm);
       }
 
       for(i=0;i<aux1;i++){
         lmKsi[i]   = MAT2D(nel,i,gmKsi   ,maxViz);
-        lfArea[i]  = MAT2D(nel,i,gfArea   ,maxViz);
+        lfArea[i]  = MAT2D(nel,i,gfArea  ,maxViz);
         lDcca[i]   = MAT2D(nel,i,gDcca   ,maxViz);
         lmvSkew[i] = MAT2D(nel,i,gmvSkew ,maxViz);
         aux2       = (maxViz+1);
@@ -637,14 +637,15 @@ void systFormTrans(Loads *loads          ,Advection advT
           lVolume[i]   = gVolume[vizNel]; 
           lGeomType[i] = geomType[vizNel];
           lDensity[i]  = MAT2D(vizNel,0   ,density ,DENSITY_LEVEL);
-          lMat = mat[vizNel]-1;
+          lMat         = mat[vizNel]-1;
           for(j=0;j<ndf;j++){
             MAT2D(i,j,lu0 ,ndf)   = MAT2D(vizNel,j,u0   ,ndf);
             MAT2D(i,j,lId ,ndf)   = MAT2D(vizNel,j,id   ,ndf) - 1;
           }
           for(j=0;j<ndm;j++){
-            MAT2D(i,j,lGradU0,ndm)   = MAT2D(vizNel,j,gradU0,ndm);
-            MAT2D(i,j,lVel   ,ndm)   = MAT2D(vizNel,j,vel   ,ndm);
+            MAT2D(i,j,lGradU0,ndm) = MAT2D(vizNel,j,gradU0,ndm);
+            MAT2D(i,j,lVel   ,ndm) = MAT2D(vizNel,j,vel   ,ndm);
+            MAT2D(i,j,lCc    ,ndm) = MAT2D(vizNel,j,gCc    ,ndm);
           }
           for(j=0;j<DIFPROP;j++)
             MAT2D(i,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);
@@ -653,7 +654,8 @@ void systFormTrans(Loads *loads          ,Advection advT
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
-      cellLibTrans(loads     ,advT
+      cellLibTrans(loads     
+                  ,advT      ,diffT
                   ,lGeomType ,lProp 
                   ,lViz      ,lId           
                   ,lKsi      ,lmKsi
@@ -666,7 +668,7 @@ void systFormTrans(Loads *loads          ,Advection advT
                   ,lRcell    ,ddt
                   ,lFaceR    ,lFaceL            
                   ,lu0       ,lGradU0     
-                  ,lVel
+                  ,lVel      ,lCc
                   ,nen[nel]  ,nFace[nel] 
                   ,ndm       ,lib   
                   ,nel);  
@@ -679,11 +681,11 @@ void systFormTrans(Loads *loads          ,Advection advT
 /*...................................................................*/
       
 /*...*/
-      assblySimple(ia    ,ja
-            ,a     ,ad              
+      assbly(ia          ,ja
+            ,a           ,ad              
             ,b  
             ,lId 
-            ,lA    ,lB
+            ,lA          ,lB
             ,nEq         ,nEqNov
             ,nAd         ,nAdR     
             ,nFace[nel]  ,ndf 

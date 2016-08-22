@@ -232,9 +232,9 @@
     NonLinear nlT1;
 /*... equacao de transporte*/
     Advection  advT1;
+    Diffusion diffT1;
 /*... equacao de velocidade*/
     Advection  advVel;
-/*... equacao de velocidade*/
     Diffusion diffVel;
 /*... equacao de pressao*/
     Diffusion diffPres;

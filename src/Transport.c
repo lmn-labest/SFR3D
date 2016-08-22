@@ -66,15 +66,18 @@ void transport(Memoria *m   ,Loads *loadsTrans
 /*...................................................................*/
   
 /*... correcao nao ortoganal*/ 
+  
   for(i=0;i<sc.nlT1.maxIt;i++){
-
+ 
 /*... calculo de: A(i),b(i)*/
     tm.systFormT1 = getTimeC() - tm.systFormT1;
-    systFormTrans(loadsTrans            ,sc.advT1
+    systFormTrans(loadsTrans            
+               ,sc.advT1                ,sc.diffT1
                ,mesh->elm.node          ,mesh->elm.adj.nelcon  
                ,mesh->elm.nen           ,mesh->elm.adj.nViz   
                ,mesh->elm.geomType      ,mesh->elm.material.prop 
-               ,mesh->elm.material.type ,mesh->elm.mat   
+               ,mesh->elm.material.type ,mesh->elm.mat
+               ,mesh->elm.geom.cc    
                ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
                ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
                ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
@@ -237,11 +240,11 @@ void transport(Memoria *m   ,Loads *loadsTrans
 
 /*... globalizacao das variaveis*/
 /*... uT1(Node)*/
-       dGlobalNode(m                  ,pMesh
+      dGlobalNode(m                  ,pMesh
                   ,mesh0->node.uT1    ,mesh->node.uT1     
                   ,mesh->ndfT[0]      ,1               );
 /*... gradUt1(Node)*/
-       dGlobalNode(m                  ,pMesh
+      dGlobalNode(m                  ,pMesh
                   ,mesh0->node.gradUt1,mesh->node.gradUt1     
                   ,mesh->ndm          ,1               );
 /*... vel(Node)*/
@@ -249,15 +252,15 @@ void transport(Memoria *m   ,Loads *loadsTrans
                  ,mesh0->node.vel    ,mesh->node.vel         
                  ,mesh->ndm          ,1               );
 /*... uT1(Cel)*/
-       dGlobalCel(m                   ,pMesh
-                 ,mesh0->elm.uT1      ,mesh->elm.uT1
-                 ,mesh->numelNov 
-                 ,mesh->ndfT[0]      ,1);
+      dGlobalCel(m                   ,pMesh
+                ,mesh0->elm.uT1      ,mesh->elm.uT1
+                ,mesh->numelNov 
+                ,mesh->ndfT[0]      ,1);
 /*... gradUt1(Cel)*/
-       dGlobalCel(m                   ,pMesh
-                 ,mesh0->elm.gradUt1  ,mesh->elm.gradUt1
-                 ,mesh->numelNov 
-                 ,mesh->ndm           ,1);
+      dGlobalCel(m                   ,pMesh
+                ,mesh0->elm.gradUt1  ,mesh->elm.gradUt1
+                ,mesh->numelNov 
+                ,mesh->ndm           ,1);
 /*... vel(Cel)*/
       dGlobalCel(m                   ,pMesh
                 ,mesh0->elm.vel      ,mesh->elm.vel       
@@ -266,16 +269,16 @@ void transport(Memoria *m   ,Loads *loadsTrans
 /*...................................................................*/
 
 /*...*/
-       if(!mpiVar.myId){
-         fName(preName,sc.ddt.timeStep,i,19,&nameOut);
-         strcpy(str1,"elT1");
-         strcpy(str2,"noT1");
-         strcpy(str3,"elGradT1");
-         strcpy(str4,"noGradT1");
-         strcpy(str5,"elVel");
-         strcpy(str6,"noVel");
+      if(!mpiVar.myId){
+        fName(preName,sc.ddt.timeStep,i,19,&nameOut);
+        strcpy(str1,"elT1");
+        strcpy(str2,"noT1");
+        strcpy(str3,"elGradT1");
+        strcpy(str4,"noGradT1");
+        strcpy(str5,"elVel");
+        strcpy(str6,"noVel");
 /*...*/
-         wResVtkTrans(m                 ,mesh0->node.x      
+        wResVtkTrans(m                 ,mesh0->node.x      
                     ,mesh0->elm.node    ,mesh0->elm.mat    
                     ,mesh0->elm.nen     ,mesh0->elm.geomType
                     ,mesh0->elm.uT1     ,mesh0->node.uT1 

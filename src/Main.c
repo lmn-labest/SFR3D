@@ -59,7 +59,7 @@ int main(int argc,char**argv){
 /*...*/
   char loopWord[100][MAX_LINE];
   unsigned short kLoop,jLoop,ndf;
-  bool flWord=false,fAdv;
+  bool flWord=false;
   unsigned short nScheme; 
 
 /*... Estrutura de dados*/
@@ -202,6 +202,7 @@ int main(int argc,char**argv){
 /*...*/
   sc.advT1.iCod1 = TVD;
   sc.advT1.iCod2 = VANLEERFACE;
+  sc.diffT1.iCod = OVERRELAXED;
 /*...................................................................*/
 
 /*...*/
@@ -219,6 +220,7 @@ int main(int argc,char**argv){
   sc.ddt.dt       = 1.e0;
   sc.ddt.total    = 1.e0;
   sc.ddt.timeStep = 1;
+  sc.ddt.type     = BACKWARD;
 /*...................................................................*/
 
 /*...*/
@@ -2165,7 +2167,7 @@ int main(int argc,char**argv){
       }
  /*... tecnica de adveccao*/
       readMacro(fileIn, word, false);
-      nScheme = atol(word);
+      nScheme = (short) atol(word);
       do {
         readMacro(fileIn, word, false);
  /*... velocidade*/
@@ -2214,7 +2216,7 @@ int main(int argc,char**argv){
       }
 /*... tecnica de adveccao*/
       readMacro(fileIn,word,false);
-      nScheme = atol(word);
+      nScheme = (short) atol(word);
       do{ 
         readMacro(fileIn,word,false);
 /*... velocidade*/
@@ -2231,6 +2233,14 @@ int main(int argc,char**argv){
           readMacro(fileIn,word,false);
 /*... codigo da da funcao limitadora de fluxo*/        
           setDiffusionScheme(word,&sc.diffPres.iCod);
+          nScheme--;
+        }
+ /*... transporte T1*/
+        else if (!strcmp(word,"T1") || !strcmp(word, "t1")){
+          printf("%s:\n", word);
+          readMacro(fileIn, word, false);
+ /*... codigo da da funcao limitadora de fluxo*/
+          setDiffusionScheme(word, &sc.diffT1.iCod);
           nScheme--;
         }
       }while(nScheme);

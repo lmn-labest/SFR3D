@@ -421,7 +421,7 @@ void pbicgstab(INT const nEq  ,INT const nAd
   DOUBLE timei,timef;
 
   timei = getTimeC();
-
+  
 /*... chute inicial*/
   if(newX)  
     for (i = 0; i < nEq; i++)  
@@ -429,7 +429,7 @@ void pbicgstab(INT const nEq  ,INT const nAd
 /*...................................................................*/
 
 /*... conv = tol * |b|*/	
-  d        = dot(b, b, nEq);
+  d        = dot(b,b,nEq);
 	norm_b   = sqrt(d);
 	conv     = tol*norm_b;
 //breaktol = btol*sqrt(d);

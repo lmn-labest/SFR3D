@@ -1,19 +1,21 @@
 config
-reord true bvtk false mem 10 rcGrad gglc fItPlotRes false fItPlot true
+reord true bvtk false mem 10 rcGrad gglc fItPlotRes false fItPlot false
 endConfig
 partd config: false false
 nlItT1   
-50  1.0e-3 
+1000 1.0e-4
 endNlItT1 
-//advection fBase SuperBee
-advection T1 fBase MidMod
+//advection 1 T1 TVD SuperBee
+//advection 1 T1 FoUp
+//advection 1 T1 CD
+advection 1 T1 SoUp
 edp
 transport1 1
 endEdp
 mesh
 nnode 10201 numel 10000 ndm 2 maxno 4 numat 1 maxviz 4 
 materials
-1 1 0.0 1.0 
+1 1 0.e0 1.e0 
 endMaterials
 coordinates
         1         0.000000         0.000000
@@ -31021,16 +31023,16 @@ endInitialVel
 loadsT1
 1 6 1 1.0
 2 7 1 0.0 
-3 6 1 2.0 
+3 6 1 0.0 
 endLoadsT1
 endMesh
 pgeo
 //presolvT1 config: BICGSTAB ELLPACK 1000 0.e0
-presolvT1 config: BICGSTAB CSRD 1000 0.e0
+presolvT1 config: BICGSTAB CSRC 2000 0.e0
 //transient config: BACKWARD 0.1e0 0.5e0
 solvT1
 pT1
-pT1CsvCell
+//pT1CsvCell
 //timeUpdate
 //endTransient  
 stop

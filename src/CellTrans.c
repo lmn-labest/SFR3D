@@ -1,11 +1,15 @@
 #include<CellLoop.h>
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 22/08/2016                                   *
+ *-------------------------------------------------------------------*
  * CELLTRANS2D: Celula 2D para transporte                            * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * loads     -> definicoes de cargas                                 * 
  * advT      -> tecnica da discretizacao do termo advecao            * 
+ * diffT     -> tecnica da discretizacao do termo difusivo           *
  * lnFace    -> numero de faces da celula central e seus vizinhos    * 
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
  * lprop     -> propriedade fisicas das celulas                      * 
@@ -37,6 +41,7 @@
  * u0        -> solucao conhecida                                    * 
  * gradU0    -> gradiente rescontruido da solucao conhecida          * 
  * vel       -> campo de velocidade conhecido                        * 
+ * cc        -> centroides da celula centra e seus vizinhos          *
  * nEn       -> numero de nos da celula central                      * 
  * nFace     -> numero de faces da celula central                    * 
  * ndm       -> numero de dimensoes                                  * 
@@ -51,7 +56,8 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellTrans2D(Loads *loads           ,Advection advT
+void cellTrans2D(Loads *loads           
+              ,Advection advT           ,Diffusion diffT
               ,short *restrict lGeomType,DOUBLE *restrict prop
               ,INT *restrict lViz       ,INT *restrict lId  
               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
@@ -64,23 +70,27 @@ void cellTrans2D(Loads *loads           ,Advection advT
               ,DOUBLE *restrict lRcell  ,Temporal const ddt
               ,short  *restrict lFaceR  ,short *restrict lFaceL
               ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
-              ,DOUBLE *restrict vel                                
+              ,DOUBLE *restrict vel     ,DOUBLE *restrict cc
               ,const short nEn          ,short const nFace    
               ,const short ndm          ,INT const nel)
 { 
 
   DOUBLE coefDifC,coefDif,coefDifV,rCell,dt;
   DOUBLE densityC,densityF,densityM;
-  DOUBLE p,sP,nk,dfd,dfdc,gfKsi,modE,lvSkew[2];
+  DOUBLE p,sP,nk,dfd,gfKsi,lvSkew[2];
   DOUBLE v[2],gradUcomp[2],lKsi[2],lNormal[2],gf[2];
-  DOUBLE dPviz,lModKsi,lModEta,du,duDksi;
-  DOUBLE gradUp[2],gradUv[2],nMinusKsi[2];
+  DOUBLE dPviz,lModKsi,lModEta,du,duDksi,lXmcc[2],lXm[2];
+  DOUBLE gradUp[2],gradUv[2],ccV[2];
   DOUBLE alpha,alphaMenosUm;
-  DOUBLE tA;
+  DOUBLE tA,coef;
+/*... nonOrtogonal*/
+  DOUBLE e[2], t[2], modE, dfdc;
   DOUBLE xx[3];
 /*... */
   DOUBLE wfn,wf[2],velC[2],velF[2],cv,cvc;
-  short iCod=advT.iCod1;
+  short iCodAdv1 = advT.iCod1;
+  short iCodAdv2 = advT.iCod2;
+  short iCodDif  = diffT.iCod;
 /*...*/
   short idCell = nFace;
   short nAresta,nCarg,typeTime;
@@ -107,40 +117,51 @@ void cellTrans2D(Loads *loads           ,Advection advT
 
   p          = 0.0e0;
   sP         = 0.0e0;
-  lA[idCell] = 0.0e0;
   for(nAresta=0;nAresta<nFace;nAresta++){
     vizNel     = lViz[nAresta];
     lNormal[0] = MAT2D(nAresta,0,normal,ndm);
     lNormal[1] = MAT2D(nAresta,1,normal,ndm);
     lModEta    = mEta[nAresta];
+    lXmcc[0]   = MAT2D(nAresta,0,xmcc,ndm);
+    lXmcc[1]   = MAT2D(nAresta,1,xmcc,ndm);
 /*... dominio*/
     if( vizNel  > -1 ){
+/*...*/
+      velF[0] = MAT2D(nAresta, 0, vel, ndm);
+      velF[1] = MAT2D(nAresta, 1, vel, ndm);
+      densityF = lDensity[nAresta];
 /*...*/
       lKsi[0]    = MAT2D(nAresta,0,ksi,ndm);
       lKsi[1]    = MAT2D(nAresta,1,ksi,ndm);
       lModKsi    = mKsi[nAresta];
+ /*...*/
       lvSkew[0]  = MAT2D(nAresta,0,vSkew,ndm);
       lvSkew[1]  = MAT2D(nAresta,1,vSkew,ndm);
+ /*...*/
       duDksi     = (u0[nAresta] - u0[idCell]) / lModKsi;
+ /*...*/
       gradUv[0]  = MAT2D(nAresta,0,gradU0,ndm);
       gradUv[1]  = MAT2D(nAresta,1,gradU0,ndm);
-      velF  [0]  = MAT2D(nAresta,0,vel,ndm);
-      velF  [1]  = MAT2D(nAresta,1,vel,ndm);
-      densityF   = lDensity[nAresta];
+
+      ccV[0] = MAT2D(nAresta, 0, cc, ndm);
+      ccV[1] = MAT2D(nAresta, 1, cc, ndm);
+    
+      lXm[0] = MAT2D(nAresta,0,xm,ndm);
+      lXm[1] = MAT2D(nAresta,1,xm,ndm);
 /*...................................................................*/
 
-/*... produtos interno*/
-      nk  =    lKsi[0]*lNormal[0] + lKsi[1]*lNormal[1];
-/*...................................................................*/
-      
-/*... correcao sobre-relaxada*/
-      modE       = 1.0e0/nk;
+/*... termo difusivo
+grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
+      difusionScheme(lNormal,lKsi
+                    ,lModEta,lModKsi
+                    ,e      ,t
+                    ,ndm    ,iCodDif);
 /*...................................................................*/
 
 /*...*/
-      v[0]  = lvSkew[0] + MAT2D(nAresta,0,xmcc,ndm);
-      v[1]  = lvSkew[1] + MAT2D(nAresta,1,xmcc,ndm);
-      dPviz = sqrt(v[0]*v[0] + v[1]*v[1]);
+      v[0]         = lvSkew[0] + lXmcc[0];
+      v[1]         = lvSkew[1] + lXmcc[1];
+      dPviz        = sqrt(v[0]*v[0] + v[1]*v[1]);
       alpha        = dPviz/lModKsi;
       alphaMenosUm = 1.0e0 - alpha; 
 /*...................................................................*/
@@ -152,7 +173,9 @@ void cellTrans2D(Loads *loads           ,Advection advT
 /*...................................................................*/
 
 /*... difusao direta*/
-      dfd = (coefDif*lModEta*modE)/lModKsi;
+      coef = coefDif;
+      modE = sqrt(e[0]*e[0] + e[1]*e[1]);
+      dfd = coef*modE / lModKsi;
 /*...................................................................*/
       
 /*...*/
@@ -168,7 +191,7 @@ void cellTrans2D(Loads *loads           ,Advection advT
 /*...................................................................*/
 
 /*... derivadas direcionais*/
-      gfKsi        = gf[0] *lKsi[0]    + gf[1] *lKsi[1];
+      gfKsi = gf[0] *lKsi[0]    + gf[1] *lKsi[1];
 /*...................................................................*/
 
 /*... gradiente compacto (Darwish e Moukalled)*/
@@ -178,33 +201,32 @@ void cellTrans2D(Loads *loads           ,Advection advT
 /*...................................................................*/
 
 /*... derivadas direcionais*/
-      nMinusKsi[0] = lNormal[0] - modE*lKsi[0];
-      nMinusKsi[1] = lNormal[1] - modE*lKsi[1];
-      gfKsi = gradUcomp[0]*nMinusKsi[0] + gradUcomp[1]*nMinusKsi[1];
+      gfKsi = gradUcomp[0]*t[0] + gradUcomp[1]*t[1];
 /*...................................................................*/
 
 /*... correcao nao-ortogonal*/
-      dfdc = coefDif*lModEta*gfKsi;    
+      dfdc = coefDif*gfKsi;    
 /*...................................................................*/
 
 /*... fluxo convectivo upwind de primeira ordem*/
       cv   = densityM*wfn*lModEta;
 /*...................................................................*/
 
-/*... correcao do fluxo advectivo*/
-      if(FOUP == iCod)
-        cvc = 0.e0;
-      else
-        cvc = faceBaseTvd(nAresta    ,idCell
-                         ,u0
-                         ,gradUv     ,gradUp
-                         ,lKsi       ,lModKsi   
-                         ,cv
-                         ,iCod       ,ndm);
+/*...*/
+      v[0] = lXm[0] - ccV[0];
+      v[1] = lXm[1] - ccV[1];
+      advectiveSchemeScalar(u0[idCell],u0[nAresta]
+                           ,gradUp    ,gradUv
+                           ,gradUcomp ,lvSkew
+                           ,lXmcc     ,v    
+                           ,lKsi      ,lModKsi
+                           ,cv        ,&cvc
+                           ,ndm
+                           ,iCodAdv1  ,iCodAdv2);
 /*...................................................................*/
 
 /*...*/
-      lA[nAresta] = dfd - min(cv,0.0e0);
+      lA[nAresta] = dfd - min(cv,0e0);
       sP         += cv;    
 /*... correcao nao ortogonal e do fluxo advectivo*/        
       p          += dfdc - cv*cvc;
@@ -212,7 +234,7 @@ void cellTrans2D(Loads *loads           ,Advection advT
     }
 /*... contorno*/
     else{
-      lA[nAresta] = 0.0e0;
+      lA[nAresta] = 0.e0;
       if(lFaceR[nAresta]){
         wfn = velC[0]*lNormal[0] + velC[1]*lNormal[1];
 /*...cargas*/
@@ -225,7 +247,7 @@ void cellTrans2D(Loads *loads           ,Advection advT
              ,coefDifC      ,densityC
              ,wfn           ,xx 
              ,lModEta       ,dcca[nAresta]
-             ,loads[nCarg],true);
+             ,loads[nCarg]  ,true);
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -234,7 +256,7 @@ void cellTrans2D(Loads *loads           ,Advection advT
   }
 /*...................................................................*/
 
-/*... distretização temporal*/
+/*... discretizacao temporal*/
   if(fTime){
 /*... EULER*/
     if(typeTime == EULER) 
@@ -245,7 +267,6 @@ void cellTrans2D(Loads *loads           ,Advection advT
   }
 /*...................................................................*/
 
-
 /*...*/
   if(nFace == 3){
     lA[idCell] = sP + lA[0] + lA[1] + lA[2];
@@ -253,12 +274,6 @@ void cellTrans2D(Loads *loads           ,Advection advT
   else if(nFace == 4){
     lA[idCell] = sP + lA[0] + lA[1] + lA[2] + lA[3];
   }
-/*
-  lA[idCell] = sP;
-  for(nAresta=0;nAresta<nFace;nAresta++){
-    lA[idCell] += lA[nAresta];
-  }
-*/
 /*...................................................................*/
 
 /*...*/
@@ -277,11 +292,6 @@ void cellTrans2D(Loads *loads           ,Advection advT
   rCell += p -lA[idCell]*u0[idCell];   
 /*...................................................................*/
 
-/*  
-  for(nAresta=0;nAresta<nFace;nAresta++){
-   lA[nAresta] *= -1.e0;
-  }
-*/
 /*...*/
   if(nFace == 3){
     lA[0] *= -1.e0;
@@ -304,12 +314,16 @@ void cellTrans2D(Loads *loads           ,Advection advT
 /*********************************************************************/
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 22/08/2016                                   *
+ *-------------------------------------------------------------------*
  * CELLTRANS3D: Celula 3D para transporte                            * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * loads     -> definicoes de cargas                                 * 
- * advT      -> tecnica da discretizacao do termo advecao            * 
+ * advT      -> tecnica da discretizacao do termo advecao            *
+ * diffT   -> tecnica da discretizacao do termo difusivo             *
  * lnFace    -> numero de faces da celula central e seus vizinhos    * 
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
  * lprop     -> propriedade fisicas das celulas                      * 
@@ -338,9 +352,10 @@ void cellTrans2D(Loads *loads           ,Advection advT
  * ddt       -> discretizacao temporal                               *
  * faceR     -> restricoes por elemento                              * 
  * faceL     -> carga por elemento                                   * 
- * u0        -> solucao conhecida                                    * 
+ * u0        -> fsolucao conhecida                                   * 
  * gradU0    -> gradiente rescontruido da solucao conhecida          * 
  * vel       -> campo de velocidade conhecido                        * 
+ * cc        -> centroides da celula centra e seus vizinhos          *
  * nEn       -> numero de nos da celula central                      * 
  * nFace     -> numero de faces da celula central                    * 
  * ndm       -> numero de dimensoes                                  * 
@@ -355,7 +370,8 @@ void cellTrans2D(Loads *loads           ,Advection advT
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellTrans3D(Loads *loads           ,Advection advT
+void cellTrans3D(Loads *loads           
+              ,Advection advT           ,Diffusion diffT
               ,short *restrict lGeomType,DOUBLE *restrict prop
               ,INT *restrict lViz       ,INT *restrict lId  
               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
@@ -368,23 +384,27 @@ void cellTrans3D(Loads *loads           ,Advection advT
               ,DOUBLE *restrict lRcell  ,Temporal const ddt             
               ,short  *restrict lFaceR  ,short  *restrict lFaceL  
               ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
-              ,DOUBLE *restrict vel                                
+              ,DOUBLE *restrict vel     ,DOUBLE *restrict cc
               ,const short nEn          ,short const nFace    
               ,const short ndm          ,INT const nel)
 { 
 
   DOUBLE coefDifC,coefDif,coefDifV,rCell,dt;
   DOUBLE densityC,densityF,densityM;
-  DOUBLE p,sP,nk,dfd,dfdc,gfKsi,modE,lvSkew[3];
+  DOUBLE p,sP,nk,dfd,gfKsi,lvSkew[3];
   DOUBLE v[3],gradUcomp[3],lKsi[3],lNormal[3],gf[3];
-  DOUBLE dPviz,lModKsi,lfArea,du,duDksi;
-  DOUBLE gradUp[3],gradUv[3],nMinusKsi[3];
+  DOUBLE dPviz,lModKsi,lfArea,du,duDksi,lXmcc[3], lXm[3];
+  DOUBLE gradUp[3],gradUv[3],ccV[3];
   DOUBLE alpha,alphaMenosUm;
-  DOUBLE tA;
+  DOUBLE tA,coef;
+/*... nonOrtogonal*/
+  DOUBLE e[3], t[3], modE, dfdc;
   DOUBLE xx[3];
 /*...*/
   DOUBLE wfn,wf[3],velC[3],velF[3],cv,cvc;
-  short iCod=advT.iCod1;
+  short iCodAdv1=advT.iCod1;
+  short iCodAdv2=advT.iCod2;
+  short iCodDif = diffT.iCod;
 /*...*/
   short idCell = nFace;
   short nf,nCarg,typeTime;
@@ -413,47 +433,59 @@ void cellTrans3D(Loads *loads           ,Advection advT
       
   p          = 0.0e0;
   sP         = 0.0e0;
-  lA[idCell] = 0.0e0;
   for(nf=0;nf<nFace;nf++){
     vizNel     = lViz[nf];
     lNormal[0] = MAT2D(nf,0,normal,ndm);
     lNormal[1] = MAT2D(nf,1,normal,ndm);
     lNormal[2] = MAT2D(nf,2,normal,ndm);
     lfArea     = fArea[nf];
+    lXmcc[0] = MAT2D(nf,0,xmcc,ndm);
+    lXmcc[1] = MAT2D(nf,1,xmcc,ndm);
+    lXmcc[2] = MAT2D(nf,2,xmcc,ndm);
 /*... dominio*/
     if( vizNel  > -1 ){
 /*...*/
+      velF[0] = MAT2D(nf, 0, vel, ndm);
+      velF[1] = MAT2D(nf, 1, vel, ndm);
+      velF[2] = MAT2D(nf, 2, vel, ndm);
+      densityF = lDensity[nf];
+ /*...*/
       lKsi[0]    = MAT2D(nf,0,ksi,ndm);
       lKsi[1]    = MAT2D(nf,1,ksi,ndm);
       lKsi[2]    = MAT2D(nf,2,ksi,ndm);
       lModKsi    = mKsi[nf];
+ /*...*/
       lvSkew[0]  = MAT2D(nf,0,vSkew,ndm);
       lvSkew[1]  = MAT2D(nf,1,vSkew,ndm);
       lvSkew[2]  = MAT2D(nf,2,vSkew,ndm);
+ /*...*/
       duDksi     = (u0[nf] - u0[idCell]) / lModKsi;
+ /*...*/   
       gradUv[0]  = MAT2D(nf,0,gradU0,ndm);
       gradUv[1]  = MAT2D(nf,1,gradU0,ndm);
       gradUv[2]  = MAT2D(nf,2,gradU0,ndm);
-      velF[0]    = MAT2D(nf,0,vel,ndm);
-      velF[1]    = MAT2D(nf,1,vel,ndm);
-      velF[2]    = MAT2D(nf,2,vel,ndm);
-      densityF   = lDensity[nf];
+
+      ccV[0] = MAT2D(nf,0,cc,ndm);
+      ccV[1] = MAT2D(nf,1,cc,ndm);
+      ccV[2] = MAT2D(nf,2,cc,ndm);
+
+      lXm[0] = MAT2D(nf,0,xm,ndm);
+      lXm[1] = MAT2D(nf,1,xm,ndm);
+      lXm[2] = MAT2D(nf,2,xm,ndm);
 /*...................................................................*/
 
-/*... produtos internos*/
-      nk = lNormal[0] * lKsi[0] 
-         + lNormal[1] * lKsi[1] 
-         + lNormal[2] * lKsi[2];
-/*...................................................................*/
-      
-/*... correcao sobre-relaxada*/
-      modE       = 1.0e0/nk;
+/*... termo difusivo
+grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
+      difusionScheme(lNormal,lKsi
+                    ,lfArea ,lModKsi
+                    ,e      ,t
+                    ,ndm    ,iCodDif);
 /*...................................................................*/
 
 /*...*/
-      v[0]  = lvSkew[0] + MAT2D(nf,0,xmcc,ndm);
-      v[1]  = lvSkew[1] + MAT2D(nf,1,xmcc,ndm);
-      v[2]  = lvSkew[2] + MAT2D(nf,2,xmcc,ndm);
+      v[0]  = lvSkew[0] + lXmcc[0];
+      v[1]  = lvSkew[1] + lXmcc[1];
+      v[2]  = lvSkew[2] + lXmcc[2];
       dPviz = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
       alpha        = dPviz/lModKsi;
       alphaMenosUm = 1.0e0 - alpha; 
@@ -466,7 +498,9 @@ void cellTrans3D(Loads *loads           ,Advection advT
 /*...................................................................*/
 
 /*... difusao direta*/
-      dfd = (coefDif*lfArea*modE)/lModKsi;
+      coef = coefDif;
+      modE = sqrt(e[0]*e[0] + e[1]*e[1] + e[2]*e[2]);
+      dfd = coef*modE / lModKsi;
 /*...................................................................*/
       
 /*...*/
@@ -497,32 +531,31 @@ void cellTrans3D(Loads *loads           ,Advection advT
 /*...................................................................*/
 
 /*... derivadas direcionais*/
-      nMinusKsi[0] = lNormal[0] - modE*lKsi[0];
-      nMinusKsi[1] = lNormal[1] - modE*lKsi[1];
-      nMinusKsi[2] = lNormal[2] - modE*lKsi[2];
-      gfKsi = gradUcomp[0]*nMinusKsi[0] 
-            + gradUcomp[1]*nMinusKsi[1] 
-            + gradUcomp[2]*nMinusKsi[2];
+      gfKsi = gradUcomp[0]*t[0] 
+            + gradUcomp[1]*t[1] 
+            + gradUcomp[2]*t[2];
 /*...................................................................*/
 
 /*... correcao nao-ortogonal*/
-      dfdc = coefDif*lfArea*gfKsi;    
+      dfdc = coefDif*gfKsi;    
 /*...................................................................*/
 
 /*... fluxo convectivo upwind de primeira ordem*/
       cv   = densityM*wfn*lfArea;
 /*...................................................................*/
 
-/*... correcao do fluxo advectivo*/
-      if(FOUP == iCod)
-        cvc = 0.e0;
-      else
-        cvc = faceBaseTvd(nf         ,idCell
-                         ,u0
-                         ,gradUv     ,gradUp
-                         ,lKsi       ,lModKsi   
-                         ,cv
-                         ,iCod       ,ndm);
+/*...*/
+      v[0] = lXm[0] - ccV[0];
+      v[1] = lXm[1] - ccV[1];
+      v[2] = lXm[2] - ccV[2];
+      advectiveSchemeScalar(u0[idCell],u0[nf]
+                           ,gradUp    ,gradUv
+                           ,gradUcomp ,lvSkew
+                           ,lXmcc     ,v
+                           ,lKsi      ,lModKsi
+                           ,cv        ,&cvc
+                           ,ndm
+                           ,iCodAdv1, iCodAdv2);
 /*...................................................................*/
 
 /*...*/

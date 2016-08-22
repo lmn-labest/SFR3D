@@ -379,7 +379,7 @@ void cellLibSimpleNonOrthPres(Diffusion diffPres
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 22/08/2016                                   * 
  *-------------------------------------------------------------------* 
  * CELLLIBTRANS : chamada de bibliotecas de celulas para o problema  *
  * de transporte.                                                    * 
@@ -387,7 +387,8 @@ void cellLibSimpleNonOrthPres(Diffusion diffPres
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * loads     -> definicoes de cargas                                 * 
- * advT      -> tecnica da discretizacao do termo advecao            * 
+ * advT      -> tecnica da discretizacao do termo advecao            *
+ * diffT   -> tecnica da discretizacao do termo difusivo             *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
  * lprop     -> propriedade fisicas das celulas                      *
  * lViz      -> viznhos da celula central                            * 
@@ -417,7 +418,8 @@ void cellLibSimpleNonOrthPres(Diffusion diffPres
  * faceL     -> carga por elemento                                   * 
  * u0        -> solucao conhecida                                    * 
  * gradU0    -> gradiente rescontruido da solucao conhecida          * 
- * vel       -> campo de velocidade conhecido                        * 
+ * vel       -> campo de velocidade conhecido                        *
+ * cc        -> centroides da celula centra e seus vizinhos          *
  * nEn       -> numero de nos da celula central                      * 
  * nFace     -> numero de faces da celula central                    * 
  * ndm       -> numero de dimensoes                                  * 
@@ -430,7 +432,8 @@ void cellLibSimpleNonOrthPres(Diffusion diffPres
  * lB        -> vetor de forca da linha i                            *
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellLibTrans(Loads *loads           ,Advection advT 
+void cellLibTrans(Loads *loads           
+               ,Advection advT           ,Diffusion diffT
                ,short *restrict lGeomType,DOUBLE *restrict lprop
                ,INT   *restrict lViz     ,INT *restrict lId  
                ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
@@ -443,7 +446,7 @@ void cellLibTrans(Loads *loads           ,Advection advT
                ,DOUBLE *restrict lRcell  ,Temporal const ddt
                ,short  *restrict lFaceR  ,short  *restrict lFaceL       
                ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
-               ,DOUBLE *restrict vel                                 
+               ,DOUBLE *restrict vel     ,DOUBLE *restrict cc
                ,short const nEn          ,short  const nFace     
                ,short const ndm          ,short const lib    
                ,INT const nel)
@@ -453,7 +456,8 @@ void cellLibTrans(Loads *loads           ,Advection advT
   if(lib == 1){
 /*... 2D*/
     if(ndm == 2){
-      cellTrans2D(loads    ,advT
+      cellTrans2D(loads    
+                 ,advT     ,diffT
                  ,lGeomType,lprop
                  ,lViz     ,lId
                  ,ksi      ,mKsi
@@ -466,7 +470,7 @@ void cellLibTrans(Loads *loads           ,Advection advT
                  ,lRcell   ,ddt 
                  ,lFaceR   ,lFaceL
                  ,u0       ,gradU0      
-                 ,vel                   
+                 ,vel      ,cc             
                  ,nEn      ,nFace 
                  ,ndm      ,nel);
     }
@@ -474,7 +478,8 @@ void cellLibTrans(Loads *loads           ,Advection advT
 
 /*... 3D*/
     else if(ndm == 3){
-      cellTrans3D(loads    ,advT
+      cellTrans3D(loads    
+                 ,advT     ,diffT
                  ,lGeomType,lprop
                  ,lViz     ,lId
                  ,ksi      ,mKsi
@@ -487,7 +492,7 @@ void cellLibTrans(Loads *loads           ,Advection advT
                  ,lRcell   ,ddt 
                  ,lFaceR   ,lFaceL
                  ,u0       ,gradU0      
-                 ,vel                   
+                 ,vel      ,cc             
                  ,nEn      ,nFace 
                  ,ndm      ,nel);
     } 
@@ -3488,7 +3493,7 @@ DOUBLE faceBaseTvdV1(DOUBLE const uC     ,DOUBLE const uV
 
 /********************************************************************* 
  * Data de criacao    : 16/07/2016                                   *
- * Data de modificaco : 12/08/2016                                   * 
+ * Data de modificaco : 22/08/2016                                   * 
  *-------------------------------------------------------------------* 
  * UPWINDLINEARV1: upwind linear com resconstrucao linear            * 
  *-------------------------------------------------------------------* 
@@ -3499,7 +3504,7 @@ DOUBLE faceBaseTvdV1(DOUBLE const uC     ,DOUBLE const uV
  * gradUc -> gradiente central                                       * 
  * gradUv -> gradiente do vizinho                                    * 
  * r      -> distancia ate o ponto central da face                   * 
- * wfn    -> velocidade normal                                       * 
+ * wfn    -> fluxo de massa                                          * 
  * ndm    -> numero de dimensoes                                     * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -3512,24 +3517,24 @@ DOUBLE faceBaseTvdV1(DOUBLE const uC     ,DOUBLE const uV
  *-------------------------------------------------------------------* 
  *********************************************************************/
 DOUBLE upwindLinearV1(DOUBLE const uC     ,DOUBLE const uV
-                 ,DOUBLE *restrict gradUc,DOUBLE *restrict gradUv
-                 ,DOUBLE *restrict r     ,DOUBLE const wfn
-                 ,short const ndm)
+                 ,DOUBLE *restrict gradUc ,DOUBLE *restrict gradUv
+                 ,DOUBLE *restrict rC     ,DOUBLE *restrict rV
+                 ,DOUBLE const m          ,short const ndm)
 {                    
   
-  DOUBLE cvc=0.0e0;
+  DOUBLE cvc=0.e0;
  
   if(ndm == 2){
-    if( wfn < 0.0e0) 
-      cvc = gradUv[0]*r[0] +gradUv[1]*r[1];
+    if( m< 0.0e0) 
+      cvc = gradUv[0]*rV[0] + gradUv[1]*rV[1];
     else 
-      cvc = gradUc[0]*r[0] +gradUc[1]*r[1];
+      cvc = gradUc[0]*rC[0] + gradUc[1]*rC[1];
   }
   else if(ndm ==3){
-    if( wfn < 0.0e0) 
-      cvc = gradUv[0]*r[0] +gradUv[1]*r[1] + gradUv[2]*r[2] ;
+    if( m < 0.0e0) 
+      cvc = gradUv[0]*rV[0] + gradUv[1]*rV[1] + gradUv[2]*rV[2];
     else 
-      cvc = gradUc[0]*r[0] +gradUc[1]*r[1] + gradUc[2]*r[2] ;
+      cvc = gradUc[0]*rC[0] + gradUc[1]*rC[1] + gradUc[2]*rC[2];
   }
  
   return cvc;
@@ -4345,26 +4350,15 @@ void difusionSchemeAnisotropic(DOUBLE *restrict s,DOUBLE *restrict ksi
 * Data de criacao    : 08/07/2016                                   *
 * Data de modificaco : 00/00/0000                                   *
 *-------------------------------------------------------------------*
-* difusionScheme :  correcao nao ortogonal do termo difusivo        *
+* advecticeShceme: discretizacao do termo advectivo                 *
 *-------------------------------------------------------------------*
 * Parametros de entrada:                                            *
 *-------------------------------------------------------------------*
-* n       -> vetor normal unitarios                                 *
-* ksi     -> vetor que une os centroide central e o vizinho         *
-* lArea   -> area da face                                           *
-* modKsi  -> distancia entre o centroide central e o vizinho        *
-* e       -> nao definido                                           *
-* t       -> nao definido                                           *
-* ndm     -> dimensao                                               *
-* iCodDif -> codigo da tecnica nao ortogonal                        *
 *-------------------------------------------------------------------*
 * Parametros de saida:                                              *
 *-------------------------------------------------------------------*
-* e       -> parcela implicita                                      *
-* t       -> parcela explicita                                      *
 *-------------------------------------------------------------------*
 * OBS:                                                              *
-* grad(phi)*S = grad(phi)*E + grad(phi)*T                           *
 *-------------------------------------------------------------------*
 *********************************************************************/
 void advectiveScheme(DOUBLE *restrict velC    ,DOUBLE *restrict velV
@@ -4435,34 +4429,34 @@ void advectiveScheme(DOUBLE *restrict velC    ,DOUBLE *restrict velV
   case SOUP:
 /*...*/
     if (ndm == 2) {
-      cvc[0] = upwindLinearV1(velC[0]    ,velV[0]
-                             ,gradVelC   ,gradVelV
-                             ,xmcc       ,wfn
-                             ,ndm);
+//    cvc[0] = upwindLinearV1(velC[0]    ,velV[0]
+//                           ,gradVelC   ,gradVelV
+//                           ,xmcc       ,wfn
+//                           ,ndm);
 /*...*/
-      cvc[1] = upwindLinearV1(velC[1]      ,velV[1]
-                             ,&gradVelC[2],&gradVelV[2]
-                             ,xmcc        ,wfn
-                             ,ndm);
+//    cvc[1] = upwindLinearV1(velC[1]      ,velV[1]
+//                           ,&gradVelC[2],&gradVelV[2]
+//                           ,xmcc        ,wfn
+//                           ,ndm);
     }
 /*...................................................................*/
 
 /*...*/
     else if (ndm == 3) {
-      cvc[0] = upwindLinearV1(velC[0]    ,velV[0]
-                             ,gradVelC   ,gradVelV
-                             ,xmcc       ,wfn
-                             ,ndm);
+//    cvc[0] = upwindLinearV1(velC[0]    ,velV[0]
+//                           ,gradVelC   ,gradVelV
+//                           ,xmcc       ,wfn
+//                           ,ndm);
 /*...*/
-      cvc[1] = upwindLinearV1(velC[1]     ,velV[1]
-                             ,&gradVelC[3],&gradVelV[3]
-                             ,xmcc        ,wfn
-                             ,ndm);
+//    cvc[1] = upwindLinearV1(velC[1]     ,velV[1]
+//                           ,&gradVelC[3],&gradVelV[3]
+//                           ,xmcc        ,wfn
+//                           ,ndm);
 /*...*/
-      cvc[2] = upwindLinearV1(velC[2]     ,velV[2]
-                             ,&gradVelC[6], &gradVelV[6]
-                             ,xmcc        ,wfn
-                             ,ndm);
+//    cvc[2] = upwindLinearV1(velC[2]     ,velV[2]
+//                           ,&gradVelC[6], &gradVelV[6]
+//                           ,xmcc        ,wfn
+//                           ,ndm);
   }
 /*...................................................................*/
   break;
@@ -4530,7 +4524,7 @@ void advectiveScheme(DOUBLE *restrict velC    ,DOUBLE *restrict velV
 
 /*...*/
   default:
-  printf("Erro: tipo de tecnica de adveccao nap existente.\n"
+  printf("Erro: tipo de tecnica de adveccao nao existente.\n"
          "Arquivo fonte:  \"%s\".\n"
          "Nome da funcao: \"%s\".\n"
          "Linha         : \"%d\".\n"
@@ -4540,6 +4534,106 @@ void advectiveScheme(DOUBLE *restrict velC    ,DOUBLE *restrict velV
     printf("%s\n", word[i]);
   exit(EXIT_FAILURE);
 /*...................................................................*/
+  }
+}
+/*********************************************************************/
+
+/*********************************************************************
+* Data de criacao    : 22/08/2016                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* advecticeShcemeScalar: discretizacao do termo advectivo           *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void advectiveSchemeScalar(DOUBLE const uC, DOUBLE const uV
+              ,DOUBLE *restrict gradUc    ,DOUBLE *restrict gradUv
+              ,DOUBLE *restrict gradUcomp ,DOUBLE *restrict vSkew
+              ,DOUBLE *restrict rC        ,DOUBLE *restrict rV
+              ,DOUBLE *restrict ksi       ,DOUBLE const modKsi
+              ,DOUBLE const m             ,DOUBLE *cvc
+              ,short const ndm
+              ,short const iCod1          ,short const iCod2) {
+
+  DOUBLE nk, tmp;
+  short i;
+  char word[][WORD_SIZE] =
+  { "FoUp","Cd"
+    ,"SoUp","Tvd" };
+
+  switch (iCod1) {
+/*... Upwind de primeira ordem*/
+    case FOUP:
+      *cvc = 0.e0;
+  break;
+/*...................................................................*/
+
+/*... metodo centrado  atraso( up(implicito) + (ucd - up)explicito) */
+  case CD:
+/*...*/
+    *cvc = deferredCd(uC,uV, m);
+/*...................................................................*/
+
+/*... interpolacao undirecional*/
+    if(ndm == 2)
+      *cvc -= gradUcomp[0]*vSkew[0] + gradUcomp[1]*vSkew[1];
+    else if(ndm == 3)
+      *cvc -= gradUcomp[0]*vSkew[0]   
+            + gradUcomp[1]*vSkew[1] 
+            + gradUcomp[2]*vSkew[2];
+/*...................................................................*/
+  break;
+/*...................................................................*/
+
+/*... metodo upwind linear =  up(implicito) + gradU*r*/
+  case SOUP:
+    *cvc = upwindLinearV1(uC       ,uV
+                        ,gradUc    ,gradUv
+                        ,rC        ,rV       
+                        ,m         ,ndm);
+  break;
+/*...................................................................*/
+
+/*... upwind + termo anti-difusivos*/
+  case TVD:
+/*...*/
+    *cvc = faceBaseTvdV1(uC     ,uV
+                       ,gradUc ,gradUv
+                       ,ksi    ,modKsi
+                       ,m
+                       ,iCod2  ,ndm);
+/*...................................................................*/
+
+/*... interpolacao undirecional*/
+    if (ndm == 2)
+      *cvc -= gradUcomp[0]*vSkew[0] + gradUcomp[1]*vSkew[1];
+    else if (ndm == 3)
+      *cvc -= gradUcomp[0]*vSkew[0]
+           + gradUcomp[1]*vSkew[1]
+           + gradUcomp[2]*vSkew[2];
+/*...................................................................*/
+  break;
+/*...................................................................*/
+
+  /*...*/
+  default:
+  printf("Erro: tipo de tecnica de adveccao nao existente.\n"
+         "Arquivo fonte:  \"%s\".\n"
+         "Nome da funcao: \"%s\".\n"
+         "Linha         : \"%d\".\n"
+         , __FILE__, __func__, __LINE__);
+  printf("Funcoes disponiveis:\n");
+  for (i = 0; i<4; i++)
+    printf("%s\n", word[i]);
+  exit(EXIT_FAILURE);
+  /*...................................................................*/
   }
 }
 /*********************************************************************/
