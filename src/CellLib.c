@@ -3354,6 +3354,153 @@ DOUBLE limitFaceBase(DOUBLE const r,short const iCod)
 }
 /*********************************************************************/ 
 
+/*********************************************************************
+* Data de criacao    : 22/08/2016                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* NVD :                                                             *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* phiTil  -> parametro utilizado                                    *
+* iCod    -> tipo de funcao limitadora                              *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+DOUBLE nvd(DOUBLE const phiTil, short const iCod)
+{
+
+  DOUBLE a, b, c;
+  short i;
+  char word[][WORD_SIZE] =
+  {"BCD"        ,"MUSCL" 
+  ,"Smart"      ,"ModSmart"
+  ,"SuperBee"   ,"ModSuperBee"
+  ,"Stoic" };
+
+  switch (iCod) {
+
+/*... Bounded CD - NVD*/
+  case BCD_NVD:
+/*...*/
+    if( phiTil >= 0 && phiTil <= 1.e0)
+      a = 5.e-1*(phiTil + 1.e0);
+    else
+      a = phiTil;
+    return a;
+  break;
+/*...................................................................*/
+
+/*... MUSCL - NVD*/
+  case MUSCL_NVD:
+/*...*/
+    if (phiTil >= 0 && phiTil <= 0.25e0)
+      a = 2.e0*phiTil;
+    else if (phiTil > 0.25e0 && phiTil <= 0.75e0)
+      a = phiTil + 2.5e-1;
+    else if (phiTil > 0.75e0 && phiTil <= 1.e0)
+      a = 1.e0;
+    else
+      a = phiTil;
+    return a;
+  break;
+/*...................................................................*/
+
+/*... SMART - NVD*/
+  case SMART_NVD:
+/*...*/
+    if (phiTil >= 0 && phiTil <= D5DIV6 )
+      a = 7.5e-1*phiTil + 3.75e-1;
+    else if (phiTil > D5DIV6 && phiTil <= 1.e0)
+      a = 1.e0;
+    else
+      a = phiTil;
+    return a;
+  break;
+/*...................................................................*/
+
+/*... SMART - NVD*/
+  case MSMART_NVD:
+/*...*/
+    if (phiTil >= 0 && phiTil <= D1DIV6)
+      a = 3.e0*phiTil;
+    else if (phiTil > D1DIV6 && phiTil <= 7.e-1)
+      a = 7.5e-1*phiTil + 3.75e-1;
+    else if (phiTil > 7e-1 && phiTil <= 1.e0)
+      a = D1DIV3*phiTil + D2DIV3;
+    else
+      a = phiTil;
+    return a;
+  break;
+/*...................................................................*/
+
+/*... SUPERBBE - NVD*/
+  case SUPERBEE_NVD:
+/*...*/
+    if (phiTil >= 0 && phiTil <= 5.e-1)
+      a = 5.0e-1*(phiTil + 1.e0);
+    else if (phiTil > 5e-1 && phiTil <= D2DIV3)
+      a = 1.5e0*phiTil;
+    else if (phiTil > D2DIV3 && phiTil <= 1.e0)
+      a = 1.e0;
+    else
+      a = phiTil;
+    return a;
+  break;
+/*..................................................................*/
+
+/*... MSUPERBBE - NVD*/
+  case MSUPERBEE_NVD:
+/*...*/
+    if (phiTil >= 0 && phiTil <= D1DIV3)
+      a = 2.e0*phiTil;
+    else if (phiTil > D1DIV3 && phiTil <= 5.e-1)
+      a = 5.e-1*(phiTil + 1.e0);
+    else if (phiTil > 5e-1 && phiTil <= D2DIV3)
+      a = 1.5e0*phiTil;
+    else if (phiTil > D2DIV3 && phiTil <= 1.e0)
+      a = 1.e0;
+    else
+      a = phiTil;
+    return a;
+  break;
+/*..................................................................*/
+
+/*...STOIC - NVD*/
+  case STOIC_NVD:
+/*...*/
+    if (phiTil > 0.e0 && phiTil <= 5.e-1)
+      a = 5.e-1*(phiTil + 1.e0);
+    else if (phiTil > 5e-1 && phiTil <= D5DIV6)
+      a = 7.5e-1*phiTil + 3.75e-1;
+    else if (phiTil > D5DIV6 && phiTil <= 1.e0)
+      a = 1.e0;
+    else
+      a = phiTil;
+    return a;
+  break;
+/*..................................................................*/
+
+  default:
+    printf("Erro: tipo de funcao NVD invalida.\n"
+           "Arquivo fonte:  \"%s\".\n"
+           "Nome da funcao: \"%s\".\n"
+           "Linha         : \"%d\".\n"
+          , __FILE__, __func__, __LINE__);
+    printf("Funcoes disponiveis:\n");
+    for (i = 0; i<NFUNCNVD; i++)
+      printf("%s\n", word[i]);
+    exit(EXIT_FAILURE);
+/*...................................................................*/
+  }
+  return 0.e0;
+}
+/*********************************************************************/
+
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
  * Data de modificaco : 00/00/0000                                   * 
@@ -3491,6 +3638,180 @@ DOUBLE faceBaseTvdV1(DOUBLE const uC     ,DOUBLE const uV
 } 
 /*********************************************************************/ 
 
+/*********************************************************************
+* Data de criacao    : 22/08/2016                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* FACEBANVD :                                                       *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* uP     -> valor central                                           *
+* uV     -> valor do vizinho                                        *
+* gradUc -> gradiente central                                       *
+* gradUv -> gradiente do vizinho                                    *
+* lKsi   -> vetor unitario entre os centroides                      *
+* lModKsi-> distancia entre os centroides                           *
+* m      -> fluxo de massa                                          *
+* iCod   -> tecnica TVD                                             *
+* ndm    -> numero de dimensoes                                     *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+DOUBLE faceBaseNvd(DOUBLE const uP        ,DOUBLE const uV
+                  ,DOUBLE *restrict gradUp,DOUBLE *restrict gradUv
+                  ,DOUBLE *restrict lKsi  ,DOUBLE const lModKsi
+                  ,DOUBLE const m
+                  ,short const iCod       ,short const ndm)
+{
+
+  DOUBLE phiCtil, du, cvc = 0.0e0, gf,phiFtil;
+  DOUBLE eps = 1.e-32;
+
+  if (ndm == 2){
+/*... phiC = uV phiD = uP*/
+    if (m < 0.0e0) {
+      gf      =-2.e0*(gradUv[0]*lKsi[0] + gradUv[1]*lKsi[1])*lModKsi;
+      if ( gf == 0.e0) gf += eps;
+      du      = uV - uP;
+      phiCtil = du/gf + 1.e0;
+      phiFtil = nvd(phiCtil,iCod);
+      cvc     = uP + (phiFtil - 1.e0)*gf - uV;
+    }
+/*... phiC = uP phiD = uV*/
+    else {
+      gf      = 2.e0*(gradUp[0]*lKsi[0] + gradUp[1]*lKsi[1])*lModKsi;
+      if (gf == 0.e0) gf += eps;
+      du      = uP - uV;
+      phiCtil = du/gf + 1.e0;
+      phiFtil = nvd(phiCtil, iCod);
+      cvc     = uV + (phiFtil - 1.e0)*gf - uP;
+    }
+  }
+  else if (ndm == 3) {
+    if (m < 0.0e0) {
+      gf = -2.e0*(gradUv[0]*lKsi[0] 
+         + gradUv[1]*lKsi[1]
+         + gradUv[2]*lKsi[2])*lModKsi;
+      if (gf == 0.e0) gf += eps;
+      du = uV - uP;
+      phiCtil = du / gf + 1.e0;
+      phiFtil = nvd(phiCtil, iCod);
+      cvc = uP + (phiFtil - 1.e0)*gf - uV;
+    }
+    /*... phiC = uP phiD = uV*/
+    else {
+      gf = 2.e0*(gradUp[0]*lKsi[0]
+         + gradUp[1]*lKsi[1]
+         + gradUp[2]*lKsi[2])*lModKsi;
+      if (gf == 0.e0) gf += eps;
+      du = uP - uV;
+      phiCtil = du / gf + 1.e0;
+      phiFtil = nvd(phiCtil, iCod);
+      cvc = uV + (phiFtil - 1.e0)*gf - uP;
+    }
+ }
+
+  return cvc;
+}
+/*********************************************************************/
+
+/*********************************************************************
+* Data de criacao    : 22/08/2016                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* SETNVD :                                                          *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* word ->                                                           *
+* iCod -> nao definido                                              *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* iCod -> codigo da tecnica do termo advectivo                      *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void setNvd(char *word, short *iCod)
+{
+  short i;
+  char fNvd[][WORD_SIZE] =
+  { "BCD"    ,"Muscl"
+  ,"Smart"   ,"ModSmart"
+  ,"SuperBee","ModSuperBee"
+  ,"Stoic" };
+
+/*...*/
+  if (!strcmp(word,fNvd[0])) {
+    *iCod = BCD_NVD;
+    if (!mpiVar.myId) printf("iCod  : BCD\n");
+  }
+/*...................................................................*/
+
+/*...*/
+  else if (!strcmp(word, fNvd[1])) {
+    *iCod = MUSCL_NVD;
+    if (!mpiVar.myId) printf("iCod  : Muscl\n");
+  }
+/*...................................................................*/
+
+/*...*/
+  else if (!strcmp(word, fNvd[2])) {
+    *iCod = SMART_NVD;
+    if (!mpiVar.myId) printf("iCod  : Smart\n");
+  }
+/*...................................................................*/
+
+/*...*/
+  else if (!strcmp(word, fNvd[3])) {
+    *iCod = MSMART_NVD;
+    if (!mpiVar.myId) printf("iCod  : ModSmart\n");
+  }
+/*...................................................................*/
+
+/*...*/
+  else if (!strcmp(word, fNvd[4])) {
+    *iCod = SUPERBEE_NVD;
+    if (!mpiVar.myId) printf("iCod  : SuperBee\n");
+  }
+/*...................................................................*/
+
+/*...*/
+  else if (!strcmp(word, fNvd[5])) {
+    *iCod = MSUPERBEE_NVD;
+    if (!mpiVar.myId) printf("iCod  : ModSuperBee\n");
+  }
+/*...................................................................*/
+
+/*...*/
+  else if (!strcmp(word, fNvd[6])) {
+    *iCod = STOIC_NVD;
+    if (!mpiVar.myId) printf("iCod  : Stoic\n");
+  }
+/*...................................................................*/
+
+/*...*/
+  else {
+    printf("Erro: tipo de funcao limitadora fluxo invalida.\n"
+           "Arquivo fonte:  \"%s\".\n"
+           "Nome da funcao: \"%s\".\n"
+           "Linha         : \"%d\".\n"
+           , __FILE__, __func__, __LINE__);
+    printf("Funcoes disponiveis:\n");
+    for (i = 0; i< NFUNCNVD; i++)
+      printf("%s\n", fNvd[i]);
+    exit(EXIT_FAILURE);
+  }
+  /*...................................................................*/
+}
+/*********************************************************************/
+
 /********************************************************************* 
  * Data de criacao    : 16/07/2016                                   *
  * Data de modificaco : 22/08/2016                                   * 
@@ -3599,25 +3920,10 @@ void setTvd(char *word,short *iCod)
 {
   short i;
   char fBase[][WORD_SIZE]=
-       {"FoUp"   ,"VanLeer" ,"VanAlbada"
-       ,"MidMod ","Osher"   ,"SuperBee"
-       ,"CD"     ,"SoUp" };
-/*...*/  
-  if(!strcmp(word,"FoUp")){
-    *iCod = FOUP; 
-    if(!mpiVar.myId ) printf("iCod  : FOUP\n");
-  }
-/*...................................................................*/
-  
+       {"VanLeer" ,"VanAlbada"
+       ,"MidMod ","Osher"   ,"SuperBee"};
 /*...*/
-  else if(!strcmp(word,"CD")){
-    *iCod = CD; 
-    if(!mpiVar.myId ) printf("iCod  : CD\n");
-  }
-/*...................................................................*/
-
-/*...*/
-  else if(!strcmp(word,"VanLeer")){
+  if(!strcmp(word,"VanLeer")){
     *iCod = VANLEERFACE; 
     if(!mpiVar.myId ) printf("iCod  : VanLeer\n");
   }
@@ -3655,13 +3961,6 @@ void setTvd(char *word,short *iCod)
   else if(!strcmp(word,"SuperBee")){
     *iCod =  SUPERBEEFACE; 
     if(!mpiVar.myId ) printf("iCod  : SuperBee\n");
-  }
-/*...................................................................*/
-
-/*...*/
-  else if(!strcmp(word,"SoUp")){
-    *iCod =  SOUP; 
-    if(!mpiVar.myId ) printf("iCod  : SoUp\n");
   }
 /*...................................................................*/
 
@@ -3733,7 +4032,6 @@ void  setDiffusionScheme(char *word,short *iCod)
   }
 /*...................................................................*/
 
-
 /*...*/
   else{
     printf("Erro: tipo de correcao nao ortogonal invalida.\n"
@@ -3774,7 +4072,8 @@ void  setAdvectionScheme(char *word, Advection *adv,FILE *fileIn)
   short i;
   char fAdv[][WORD_SIZE] =
   { "FoUp","CD"
-   ,"SoUp" ,"TVD" };
+   ,"SoUp" ,"TVD"
+   ,"NVD"};
   /*...*/
   if (!strcmp(word, fAdv[0])) {
     adv->iCod1 = FOUP;
@@ -3789,24 +4088,32 @@ void  setAdvectionScheme(char *word, Advection *adv,FILE *fileIn)
   }
   /*...................................................................*/
 
-  /*...*/
+/*...*/
   else if (!strcmp(word, fAdv[2])) {
     adv->iCod1 = SOUP;
     if (!mpiVar.myId) printf("iCod  : %s\n", fAdv[2]);
   }
-  /*...................................................................*/
+/*...................................................................*/
 
-  /*...*/
+/*...*/
   else if (!strcmp(word, fAdv[3])) {
     adv->iCod1 = TVD;
     if (!mpiVar.myId) printf("iCod  : %s\n", fAdv[3]);
     readMacro(fileIn, word, false);
     setTvd(word, &adv->iCod2);
   }
-  /*...................................................................*/
+/*...................................................................*/
 
+/*...*/
+  else if (!strcmp(word, fAdv[4])) {
+    adv->iCod1 = NVD;
+    if (!mpiVar.myId) printf("iCod  : %s\n", fAdv[4]);
+    readMacro(fileIn, word, false);
+    setNvd(word, &adv->iCod2);
+  }
+/*...................................................................*/
 
-  /*...*/
+/*...*/
   else {
     printf("Erro: tipo de correcao nao ortogonal invalida.\n"
            "Arquivo fonte:  \"%s\".\n"
@@ -3814,7 +4121,7 @@ void  setAdvectionScheme(char *word, Advection *adv,FILE *fileIn)
            "Linha         : \"%d\".\n"
            , __FILE__, __func__, __LINE__);
     printf("Funcoes disponiveis:\n");
-    for (i = 0; i<4; i++)
+    for (i = 0; i<5; i++)
       printf("%s\n", fAdv[i]);
     exit(EXIT_FAILURE);
   }
@@ -4524,15 +4831,15 @@ void advectiveScheme(DOUBLE *restrict velC    ,DOUBLE *restrict velV
 
 /*...*/
   default:
-  printf("Erro: tipo de tecnica de adveccao nao existente.\n"
+    printf("Erro: tipo de tecnica de adveccao nao existente.\n"
          "Arquivo fonte:  \"%s\".\n"
          "Nome da funcao: \"%s\".\n"
          "Linha         : \"%d\".\n"
          , __FILE__, __func__, __LINE__);
-  printf("Funcoes disponiveis:\n");
-  for (i = 0; i<4; i++)
-    printf("%s\n", word[i]);
-  exit(EXIT_FAILURE);
+    printf("Funcoes disponiveis:\n");
+    for (i = 0; i<4; i++)
+      printf("%s\n", word[i]);
+    exit(EXIT_FAILURE);
 /*...................................................................*/
   }
 }
@@ -4566,8 +4873,10 @@ void advectiveSchemeScalar(DOUBLE const uC, DOUBLE const uV
   short i;
   char word[][WORD_SIZE] =
   { "FoUp","Cd"
-    ,"SoUp","Tvd" };
+    ,"SoUp","Tvd" 
+    ,"Nvd"};
 
+  *cvc = 0.e0;
   switch (iCod1) {
 /*... Upwind de primeira ordem*/
     case FOUP:
@@ -4616,24 +4925,45 @@ void advectiveSchemeScalar(DOUBLE const uC, DOUBLE const uV
       *cvc -= gradUcomp[0]*vSkew[0] + gradUcomp[1]*vSkew[1];
     else if (ndm == 3)
       *cvc -= gradUcomp[0]*vSkew[0]
-           + gradUcomp[1]*vSkew[1]
-           + gradUcomp[2]*vSkew[2];
+            + gradUcomp[1]*vSkew[1]
+            + gradUcomp[2]*vSkew[2];
 /*...................................................................*/
   break;
 /*...................................................................*/
 
-  /*...*/
+/*... upwind + termo anti-difusivos*/
+  case NVD:
+/*...*/
+    *cvc = faceBaseNvd(uC    ,uV
+                      ,gradUc,gradUv
+                      ,ksi   ,modKsi
+                      ,m
+                      ,iCod2 ,ndm);
+/*...................................................................*/
+
+/*... interpolacao undirecional*/
+    if (ndm == 2)
+      *cvc -= gradUcomp[0]*vSkew[0] + gradUcomp[1]*vSkew[1];
+    else if (ndm == 3)
+      *cvc -= gradUcomp[0]*vSkew[0]
+            + gradUcomp[1]*vSkew[1]
+            + gradUcomp[2]*vSkew[2];
+/*...................................................................*/
+  break;
+/*...................................................................*/
+
+/*...*/
   default:
-  printf("Erro: tipo de tecnica de adveccao nao existente.\n"
+    printf("Erro: tipo de tecnica de adveccao nao existente.\n"
          "Arquivo fonte:  \"%s\".\n"
          "Nome da funcao: \"%s\".\n"
          "Linha         : \"%d\".\n"
          , __FILE__, __func__, __LINE__);
-  printf("Funcoes disponiveis:\n");
-  for (i = 0; i<4; i++)
-    printf("%s\n", word[i]);
-  exit(EXIT_FAILURE);
-  /*...................................................................*/
+    printf("Funcoes disponiveis:\n");
+    for (i = 0; i<4; i++)
+      printf("%s\n", word[i]);
+    exit(EXIT_FAILURE);
+/*...................................................................*/
   }
 }
 /*********************************************************************/

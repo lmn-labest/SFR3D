@@ -727,6 +727,15 @@
                  ,short const iCod       ,short const ndm);
 /*...................................................................*/
 
+/*... NVD-HR-CDC*/
+  DOUBLE faceBaseNvd(DOUBLE const uP, DOUBLE const uV
+                     , DOUBLE *restrict gradUp, DOUBLE *restrict gradUv
+                     , DOUBLE *restrict lKsi, DOUBLE const lModKsi
+                     , DOUBLE const m
+                     , short const iCod, short const ndm);
+  DOUBLE nvd(DOUBLE const phiTil, short const iCod);
+/*...................................................................*/
+
 /*... parametro fisicos do escoamento*/  
   void parameterCell(DOUBLE *restrict vel  ,DOUBLE *restrict prop
                 ,DOUBLE *restrict density,DOUBLE *restrict volume
@@ -803,6 +812,7 @@
             ,DOUBLE const wfn     ,DOUBLE *restrict xm                   
             ,DOUBLE const fArea   ,DOUBLE const dcca
             ,Loads ld             ,bool const fCal);
+  void setNvd(char *word,short *iCod);
   void setTvd(char *word,short *iCod);
   void  setDiffusionScheme(char *word,short *iCod);
   void  setAdvectionScheme(char *word, Advection *adv,FILE *fileIn);

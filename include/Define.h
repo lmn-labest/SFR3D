@@ -1,14 +1,18 @@
 #ifndef _DEFINE_H_
   #define _DEFINE_H_
 	
-#define restrict __restrict
+//#define restrict __restrict
 /*...*/
   #include<stdlib.h>
   #include<stdio.h>
 /*...................................................................*/
 
 /*...*/
-  #define PI 3.14159265358979323846
+  #define PI     3.14159265358979323846e0
+  #define D5DIV6 8.33333333333333333333e-1
+  #define D1DIV6 1.66666666666666666666e-1
+  #define D1DIV3 3.33333333333333333333e-1
+  #define D2DIV3 6.66666666666666666666e-1
 /*...................................................................*/
 
 /*... residuos*/
@@ -56,7 +60,8 @@
 /*...................................................................*/
   
 /*... ADVECTION*/
-  #define NFUNCLIMTFACE 7
+  #define NFUNCLIMTFACE 6
+  #define NFUNCNVD      7
 /*...................................................................*/
 
 /*... ADVECTION*/
@@ -67,6 +72,9 @@
   #define SOUP          3
 /*...*/
   #define TVD           4
+/*...*/
+  #define NVD           5
+
 /*... ADVECTION - TVD EDGEBASE LIMIT*/
   #define VANLEERFACE   1
   #define VANALBADAFACE 2
@@ -74,6 +82,16 @@
   #define OSHERFACE     4
   #define SUPERBEEFACE  5
   #define SPLITUPCFACE  6
+/*...................................................................*/
+
+/*... ADVECTION - NVD EDGEBASE LIMIT*/
+  #define BCD_NVD       1
+  #define MUSCL_NVD     2
+  #define SMART_NVD     3
+  #define MSMART_NVD    4
+  #define SUPERBEE_NVD  5    
+  #define MSUPERBEE_NVD 6
+  #define STOIC_NVD     7    
 /*...................................................................*/
 
 /*... ADVECTION*/
