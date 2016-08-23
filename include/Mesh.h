@@ -171,6 +171,7 @@
     DOUBLE *ePresC1;                     /*Pressao de correcao 1*/
     DOUBLE *d;
     DOUBLE tolPres,tolVel;
+    int    pSimple;
     int    maxIt;
     bool   sPressure;
     unsigned short faceInterpolVel;   /*tecnica de interpolacao

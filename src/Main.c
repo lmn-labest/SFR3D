@@ -1995,6 +1995,7 @@ int main(int argc,char**argv){
       simple->nNonOrth        = 0;
       simple->tolPres         = 1.e-06;
       simple->tolVel          = 1.e-06;
+      simple->pSimple         = 500;
 /*...................................................................*/
       
 /*...*/
@@ -2018,6 +2019,7 @@ int main(int argc,char**argv){
           printf("tolPres   : %e\n",simple->tolPres);
           printf("tolVel    : %e\n",simple->tolVel);
           printf("nNonOrth  : %d\n",simple->nNonOrth);
+          printf("pSimple   : %d\n",simple->pSimple);
         }
       }
 /*...................................................................*/

@@ -4720,11 +4720,11 @@ void advectiveScheme(DOUBLE *restrict velC   ,DOUBLE *restrict velV
       cvc[0] = deferredCd(velC[0], velV[0], m);
       cvc[1] = deferredCd(velC[1], velV[1], m);
 /*... interpolacao undirecional*/
-//    cvc[0] -= MAT2D(0,0,gradVelComp,2)*vSkew[0]
-//            + MAT2D(0,1,gradVelComp,2)*vSkew[1];
-//
-//    cvc[1] -= MAT2D(1,0,gradVelComp,2)*vSkew[0]
-//            + MAT2D(1,1,gradVelComp,2)*vSkew[1];
+      cvc[0] -= MAT2D(0,0,gradVelComp,2)*vSkew[0]
+              + MAT2D(0,1,gradVelComp,2)*vSkew[1];
+   
+      cvc[1] -= MAT2D(1,0,gradVelComp,2)*vSkew[0]
+              + MAT2D(1,1,gradVelComp,2)*vSkew[1];
 /*...................................................................*/
   }
 /*...................................................................*/

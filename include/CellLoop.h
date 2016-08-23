@@ -604,24 +604,6 @@
 
 /*...................................................................*/
 
-/*...*/
-  void cellTransient(DOUBLE *restrict volume  ,INT *restrict id 
-                   ,DOUBLE *restrict u0      ,DOUBLE *restrict u
-                   ,DOUBLE *restrict density ,DOUBLE *restrict f
-                   ,DOUBLE const dt
-                   ,INT const numel          ,short const ndf
-                   ,short const type         ,bool const fAdd);
-/*...................................................................*/
-
-/*...*/
-  void cellTransientSimple(DOUBLE *restrict volume  ,INT *restrict id 
-                        ,DOUBLE *restrict u0      ,DOUBLE *restrict u
-                        ,DOUBLE *restrict density ,DOUBLE *restrict f
-                        ,DOUBLE const dt          ,INT const nEq
-                        ,INT const numel          ,short const ndf
-                        ,short const type         ,bool const fAdd);
-/*...................................................................*/
-
 /*... biblioteca de reconstrucao de gradiente*/
   void cellLibRcGrad(Loads *loads
            ,INT   *restrict lViz,DOUBLE *restrict lProp

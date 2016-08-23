@@ -504,7 +504,7 @@ void simpleSolver2D(Memoria *m
 
 /*...*/
      timei = getTimeC() -time;
-     if( jj == 1) { 
+     if( jj == sp->pSimple) { 
        jj = 0; 
        printf("It simple: %d \n",itSimple+1);
        printf("Time(s)  : %lf \n",timei);
@@ -1091,7 +1091,7 @@ void simpleSolver3D(Memoria *m
 /*...................................................................*/
 
 /*...*/
-     if( jj ==  1) { 
+     if( jj == sp->pSimple) {
        jj = 0; 
        printf("It simple: %d \n",itSimple+1);
        printf("Time(s)  : %lf \n",timei);
@@ -1365,6 +1365,8 @@ void setSimpleScheme(char *word,Simple *sp,FILE *fileIn){
   fscanf(fileIn,"%lf",&sp->tolVel); 
   
   fscanf(fileIn,"%d",&sp->nNonOrth); 
+
+  fscanf(fileIn, "%d", &sp->pSimple);
 
 }
 /*********************************************************************/
