@@ -757,7 +757,7 @@
   void advectiveScheme(DOUBLE *restrict velC       ,DOUBLE *restrict velV
                      ,DOUBLE *restrict gradVelC   ,DOUBLE *restrict gradVelV
                      ,DOUBLE *restrict gradVelComp,DOUBLE *restrict vSkew
-                     ,DOUBLE *restrict xmcc       ,DOUBLE const wfn
+                     ,DOUBLE *restrict rC         ,DOUBLE *restrict rV
                      ,DOUBLE *restrict ksi        ,DOUBLE const modKsi
                      ,DOUBLE const m              ,DOUBLE *restrict cvc
                      ,short const ndm

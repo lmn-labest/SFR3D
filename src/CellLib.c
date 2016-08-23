@@ -3579,7 +3579,7 @@ DOUBLE faceBaseTvd(short const nAresta    ,short const idCell
  * gradUv -> gradiente do vizinho                                    * 
  * lKsi   -> vetor unitario entre os centroides                      * 
  * lModKsi-> distancia entre os centroides                           * 
- * cv     ->                                                         * 
+ * cv     -> fluxo de massa                                          * 
  * iCod   -> tecnica TVD                                             * 
  * ndm    -> numero de dimensoes                                     * 
  *-------------------------------------------------------------------* 
@@ -4655,23 +4655,43 @@ void difusionSchemeAnisotropic(DOUBLE *restrict s,DOUBLE *restrict ksi
 
 /*********************************************************************
 * Data de criacao    : 08/07/2016                                   *
-* Data de modificaco : 00/00/0000                                   *
+* Data de modificaco : 23/08/2016                                   *
 *-------------------------------------------------------------------*
 * advecticeShceme: discretizacao do termo advectivo                 *
 *-------------------------------------------------------------------*
 * Parametros de entrada:                                            *
 *-------------------------------------------------------------------*
+* velC        -> velocidade da celula central                       *
+* velF        -> velocidade da celula vizinha                       *
+* gradVelC    -> gradiente da velocidade da celula central          *             *
+* gradVelV    -> gradiente da velocidade da celula vizinha          *
+* gradVelComp -> gradiente de velocidade compacto na face           *
+* vSkew       -> vetor entre o ponto medio a intersecao que une os  *
+*                centrois compartilhado nessa face da celula central*
+* rC          -> distancia do centroide central ate o ponto medio da*
+*                face                                               * 
+* rV          -> distancia do centroide vizinho ate o ponto medio da*
+*                face                                               *
+* Ksi         -> vetores que unem centroide da celula central aos   *
+*                vizinhos destas                                    *
+* mKsi        -> modulo do vetor ksi                                *
+* m           -> fluxo de massa                                     *
+* cvc         -> nao definido                                       *
+* ndm         -> dimensao                                           *
+* iCod1       -> tipo de tecnica                                    *
+* iCod2       -> funcoes NVD ou TVD                                 *
 *-------------------------------------------------------------------*
 * Parametros de saida:                                              *
 *-------------------------------------------------------------------*
+* cvc         -> inteporlacao                                       *
 *-------------------------------------------------------------------*
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void advectiveScheme(DOUBLE *restrict velC    ,DOUBLE *restrict velV
+void advectiveScheme(DOUBLE *restrict velC   ,DOUBLE *restrict velV
                 ,DOUBLE *restrict gradVelC   ,DOUBLE *restrict gradVelV
                 ,DOUBLE *restrict gradVelComp,DOUBLE *restrict vSkew
-                ,DOUBLE *restrict xmcc       ,DOUBLE const wfn
+                ,DOUBLE *restrict rC         ,DOUBLE *restrict rV
                 ,DOUBLE *restrict ksi        ,DOUBLE const modKsi
                 ,DOUBLE const m              ,DOUBLE *restrict cvc 
                 ,short const ndm             
@@ -4681,7 +4701,8 @@ void advectiveScheme(DOUBLE *restrict velC    ,DOUBLE *restrict velV
   short i;
   char word[][WORD_SIZE] =
   { "FoUp","Cd"
-   ,"SoUp","Tvd" };
+   ,"SoUp","Tvd"
+   ,"Nvd" };
 
   switch(iCod1){
 /*... Upwind de primeira ordem*/
@@ -4696,23 +4717,23 @@ void advectiveScheme(DOUBLE *restrict velC    ,DOUBLE *restrict velV
   case CD:
 /*...*/
     if (ndm == 2) {
-      cvc[0] = deferredCd(velC[0], velV[0], wfn);
-      cvc[1] = deferredCd(velC[1], velV[1], wfn);
+      cvc[0] = deferredCd(velC[0], velV[0], m);
+      cvc[1] = deferredCd(velC[1], velV[1], m);
 /*... interpolacao undirecional*/
-      cvc[0] -= MAT2D(0,0,gradVelComp,2)*vSkew[0]
-              + MAT2D(0,1,gradVelComp,2)*vSkew[1];
-
-      cvc[1] -= MAT2D(1,0,gradVelComp,2)*vSkew[0]
-              + MAT2D(1,1,gradVelComp,2)*vSkew[1];
+//    cvc[0] -= MAT2D(0,0,gradVelComp,2)*vSkew[0]
+//            + MAT2D(0,1,gradVelComp,2)*vSkew[1];
+//
+//    cvc[1] -= MAT2D(1,0,gradVelComp,2)*vSkew[0]
+//            + MAT2D(1,1,gradVelComp,2)*vSkew[1];
 /*...................................................................*/
   }
 /*...................................................................*/
 
 /*...*/
     else if (ndm == 3) {
-      cvc[0] = deferredCd(velC[0], velV[0], wfn);
-      cvc[1] = deferredCd(velC[1], velV[1], wfn);
-      cvc[2] = deferredCd(velC[2], velV[2], wfn);
+      cvc[0] = deferredCd(velC[0], velV[0], m);
+      cvc[1] = deferredCd(velC[1], velV[1], m);
+      cvc[2] = deferredCd(velC[2], velV[2], m);
 /*... interpolacao undirecional*/
       cvc[0] -= MAT2D(0,0,gradVelComp,3)*vSkew[0]
               + MAT2D(0,1,gradVelComp,3)*vSkew[1] 
@@ -4736,34 +4757,34 @@ void advectiveScheme(DOUBLE *restrict velC    ,DOUBLE *restrict velV
   case SOUP:
 /*...*/
     if (ndm == 2) {
-//    cvc[0] = upwindLinearV1(velC[0]    ,velV[0]
-//                           ,gradVelC   ,gradVelV
-//                           ,xmcc       ,wfn
-//                           ,ndm);
+      cvc[0] = upwindLinearV1(velC[0]    ,velV[0]
+                             ,gradVelC   ,gradVelV
+                             ,rC         ,rV 
+                             ,m          ,ndm);
 /*...*/
-//    cvc[1] = upwindLinearV1(velC[1]      ,velV[1]
-//                           ,&gradVelC[2],&gradVelV[2]
-//                           ,xmcc        ,wfn
-//                           ,ndm);
+      cvc[1] = upwindLinearV1(velC[1]      ,velV[1]
+                             ,&gradVelC[2],&gradVelV[2]
+                             ,rC          ,rV 
+                             ,m           ,ndm);
     }
 /*...................................................................*/
 
 /*...*/
     else if (ndm == 3) {
-//    cvc[0] = upwindLinearV1(velC[0]    ,velV[0]
-//                           ,gradVelC   ,gradVelV
-//                           ,xmcc       ,wfn
-//                           ,ndm);
+      cvc[0] = upwindLinearV1(velC[0]    ,velV[0]
+                             ,gradVelC   ,gradVelV
+                             ,rC         ,rV 
+                             ,m          ,ndm);
 /*...*/
-//    cvc[1] = upwindLinearV1(velC[1]     ,velV[1]
-//                           ,&gradVelC[3],&gradVelV[3]
-//                           ,xmcc        ,wfn
-//                           ,ndm);
+      cvc[1] = upwindLinearV1(velC[1]     ,velV[1]
+                             ,&gradVelC[3],&gradVelV[3]
+                             ,rC          ,rV 
+                             ,m           ,ndm);
 /*...*/
-//    cvc[2] = upwindLinearV1(velC[2]     ,velV[2]
-//                           ,&gradVelC[6], &gradVelV[6]
-//                           ,xmcc        ,wfn
-//                           ,ndm);
+      cvc[2] = upwindLinearV1(velC[2]     ,velV[2]
+                             ,&gradVelC[6],&gradVelV[6]
+                             ,rC          ,rV  
+                             ,m           ,ndm);
   }
 /*...................................................................*/
   break;
@@ -4778,6 +4799,7 @@ void advectiveScheme(DOUBLE *restrict velC    ,DOUBLE *restrict velV
                             ,ksi         ,modKsi
                             ,m 
                             ,iCod2       ,ndm);
+ 
       cvc[1] = faceBaseTvdV1(velC[1]     ,velV[1]
                             ,&gradVelC[2],&gradVelV[2]
                             ,ksi         ,modKsi
@@ -4785,11 +4807,11 @@ void advectiveScheme(DOUBLE *restrict velC    ,DOUBLE *restrict velV
                             ,iCod2       ,ndm);
 
 /*... interpolacao undirecional*/
-      cvc[0] -= MAT2D(0, 0, gradVelComp, 2)*vSkew[0]
-              + MAT2D(0, 1, gradVelComp, 2)*vSkew[1];
-
-      cvc[1] -= MAT2D(1, 0, gradVelComp, 2)*vSkew[0]
-              + MAT2D(1, 1, gradVelComp, 2)*vSkew[1];
+      cvc[0] -= MAT2D(0,0,gradVelComp,2)*vSkew[0]
+              + MAT2D(0,1,gradVelComp,2)*vSkew[1];
+   
+      cvc[1] -= MAT2D(1,0,gradVelComp,2)*vSkew[0]
+              + MAT2D(1,1,gradVelComp,2)*vSkew[1];
 /*...................................................................*/
     }
 /*...................................................................*/
@@ -4829,6 +4851,66 @@ void advectiveScheme(DOUBLE *restrict velC    ,DOUBLE *restrict velV
   break;
 /*...................................................................*/
 
+/*... NVD*/
+  case NVD:
+/*...*/
+    if (ndm == 2) {
+      cvc[0] = faceBaseNvd(velC[0], velV[0]
+                          ,&gradVelC[0], &gradVelV[0]
+                          ,ksi, modKsi
+                          ,m
+                          ,iCod2, ndm);
+      cvc[1] = faceBaseNvd(velC[1], velV[1]
+                           , &gradVelC[2], &gradVelV[2]
+                           , ksi, modKsi
+                           , m
+                           , iCod2, ndm);
+
+/*... interpolacao undirecional*/
+      cvc[0] -= MAT2D(0, 0, gradVelComp, 2)*vSkew[0]
+              + MAT2D(0, 1, gradVelComp, 2)*vSkew[1];
+
+      cvc[1] -= MAT2D(1, 0, gradVelComp, 2)*vSkew[0]
+              + MAT2D(1, 1, gradVelComp, 2)*vSkew[1];
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*...*/
+    else if (ndm == 3) {
+      cvc[0] = faceBaseNvd(velC[0]     ,velV[0]
+                          ,&gradVelC[0],&gradVelV[0]
+                          ,ksi         ,modKsi
+                          ,m
+                          ,iCod2       ,ndm);
+      cvc[1] = faceBaseNvd(velC[1]     ,velV[1]
+                          ,&gradVelC[3],&gradVelV[3]
+                          ,ksi         ,modKsi
+                          ,m
+                          ,iCod2       ,ndm);
+      cvc[2] = faceBaseNvd(velC[2]     ,velV[2]
+                          ,&gradVelC[6],&gradVelV[6]
+                          ,ksi         ,modKsi
+                          ,m
+                          ,iCod2       ,ndm);
+    /*... interpolacao undirecional*/
+      cvc[0] -= MAT2D(0, 0, gradVelComp, 3)*vSkew[0]
+              + MAT2D(0, 1, gradVelComp, 3)*vSkew[1]
+              + MAT2D(0, 2, gradVelComp, 3)*vSkew[2];
+
+      cvc[1] -= MAT2D(1, 0, gradVelComp, 3)*vSkew[0]
+              + MAT2D(1, 1, gradVelComp, 3)*vSkew[1]
+              + MAT2D(1, 2, gradVelComp, 3)*vSkew[2];
+
+      cvc[2] -= MAT2D(2, 0, gradVelComp, 3)*vSkew[0]
+              + MAT2D(2, 1, gradVelComp, 3)*vSkew[1]
+              + MAT2D(2, 2, gradVelComp, 3)*vSkew[2];
+/*...................................................................*/
+    }
+/*...................................................................*/
+  break;
+/*...................................................................*/
+
 /*...*/
   default:
     printf("Erro: tipo de tecnica de adveccao nao existente.\n"
@@ -4851,15 +4933,32 @@ void advectiveScheme(DOUBLE *restrict velC    ,DOUBLE *restrict velV
 *-------------------------------------------------------------------*
 * advecticeShcemeScalar: discretizacao do termo advectivo           *
 *-------------------------------------------------------------------*
-* Parametros de entrada:                                            *
-*-------------------------------------------------------------------*
+* uC        -> valor da celula central                              *
+* UF        -> valor da celula vizinha                              *
+* gradUc    -> gradiente da celula central                          *
+* gradUf    -> gradiente da celula vizinha                          *
+* gradUcomp -> gradiente compacto na face                           *
+* vSkew     -> vetor entre o ponto medio a intersecao que une os    *
+*              centrois compartilhado nessa face da celula central  *
+* rC        -> distancia do centroide central ate o ponto medio da  *
+*              face                                                 *
+* rV        -> distancia do centroide vizinho ate o ponto medio da  *
+*              face                                                 *
+* Ksi       -> vetores que unem centroide da celula central aos     *
+*              vizinhos destas                                      *
+* mKsi      -> modulo do vetor ksi                                  *
+* m         -> fluxo de massa                                       *
+* cvc       -> nao definido                                         *
+* ndm       -> dimensao                                             *
+* iCod1     -> tipo de tecnica                                      *
+* iCod2     -> funcoes NVD ou TVD                                   *
 *-------------------------------------------------------------------*
 * Parametros de saida:                                              *
 *-------------------------------------------------------------------*
+* cvc         -> inteporlacao                                       *
 *-------------------------------------------------------------------*
 * OBS:                                                              *
-*-------------------------------------------------------------------*
-*********************************************************************/
+*-------------------------------------------------------------------**********************************************************************/
 void advectiveSchemeScalar(DOUBLE const uC, DOUBLE const uV
               ,DOUBLE *restrict gradUc    ,DOUBLE *restrict gradUv
               ,DOUBLE *restrict gradUcomp ,DOUBLE *restrict vSkew
@@ -4931,7 +5030,7 @@ void advectiveSchemeScalar(DOUBLE const uC, DOUBLE const uV
   break;
 /*...................................................................*/
 
-/*... upwind + termo anti-difusivos*/
+/*... NVD*/
   case NVD:
 /*...*/
     *cvc = faceBaseNvd(uC    ,uV

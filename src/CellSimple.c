@@ -292,10 +292,12 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
 
 /*... correcao do fluxo advectivo*/
+      v[0] = lXm[0] - ccV[0];
+      v[1] = lXm[1] - ccV[1];
       advectiveScheme(velC          ,velV
                      ,gradVelC[0]   ,gradVelV[0]
-                     ,gradVelComp[0],vSkew
-                     ,lXmcc         ,wfn
+                     ,gradVelComp[0],lvSkew
+                     ,lXmcc         ,v  
                      ,lKsi          ,lModKsi
                      ,cv            ,cvc
                      ,ndm
@@ -1363,10 +1365,13 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*... correcao do fluxo advectivo*/
-      advectiveScheme(velC           ,velV
+      v[0] = lXm[0] - ccV[0];
+      v[1] = lXm[1] - ccV[1];
+      v[2] = lXm[2] - ccV[2];
+      advectiveScheme(velC          ,velV
                      ,gradVelC[0]   ,gradVelV[0]
-                     ,gradVelComp[0],vSkew
-                     ,lXmcc         ,wfn
+                     ,gradVelComp[0],lvSkew
+                     ,lXmcc         ,v  
                      ,lKsi          ,lModKsi
                      ,cv            ,cvc
                      ,ndm
