@@ -75,14 +75,14 @@ void cellTrans2D(Loads *loads
               ,const short ndm          ,INT const nel)
 { 
 
-  DOUBLE coefDifC,coefDif,coefDifV,rCell,dt;
+  DOUBLE coefDifC,coefDif,coefDifV,rCell,dt,dt0;
   DOUBLE densityC,densityF,densityM;
   DOUBLE p,sP,nk,dfd,gfKsi,lvSkew[2];
   DOUBLE v[2],gradUcomp[2],lKsi[2],lNormal[2],gf[2];
   DOUBLE dPviz,lModKsi,lModEta,du,duDksi,lXmcc[2],lXm[2];
   DOUBLE gradUp[2],gradUv[2],ccV[2];
   DOUBLE alpha,alphaMenosUm;
-  DOUBLE tA,coef;
+  DOUBLE tA,coef,tmp;
 /*... nonOrtogonal*/
   DOUBLE e[2], t[2], modE, dfdc;
   DOUBLE xx[3];
@@ -98,7 +98,8 @@ void cellTrans2D(Loads *loads
   bool fTime;
 
 /*...*/
-  dt       = ddt.dt;
+  dt       = ddt.dt[0];
+  dt0      = ddt.dt[1];
   typeTime = ddt.type;
   fTime    = ddt.flag;
   densityC = lDensity[idCell];
@@ -256,14 +257,16 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
   }
 /*...................................................................*/
 
-/*... discretizacao temporal*/
-  if(fTime){
-/*... EULER*/
-    if(typeTime == EULER) 
-      sP     += densityC*volume[idCell]/dt;
-/*...BACKWARD*/
-    else if(typeTime == BACKWARD) 
-      sP     += 1.5e0*densityC*volume[idCell]/dt;
+/*... distretizacao temporal*/
+  if (fTime) {
+    /*... EULER*/
+    if (typeTime == EULER)
+      sP += densityC*volume[idCell] / dt;
+    /*...BACKWARD*/
+    else if (typeTime == BACKWARD) {
+      tmp = 1.e0 / dt + 1.e0 / (dt + dt0);
+      sP += tmp*densityC*volume[idCell];
+    }
   }
 /*...................................................................*/
 
@@ -389,14 +392,14 @@ void cellTrans3D(Loads *loads
               ,const short ndm          ,INT const nel)
 { 
 
-  DOUBLE coefDifC,coefDif,coefDifV,rCell,dt;
+  DOUBLE coefDifC,coefDif,coefDifV,rCell,dt,dt0;
   DOUBLE densityC,densityF,densityM;
   DOUBLE p,sP,nk,dfd,gfKsi,lvSkew[3];
   DOUBLE v[3],gradUcomp[3],lKsi[3],lNormal[3],gf[3];
-  DOUBLE dPviz,lModKsi,lfArea,du,duDksi,lXmcc[3], lXm[3];
+  DOUBLE dPviz,lModKsi,lfArea,du,duDksi,lXmcc[3],lXm[3];
   DOUBLE gradUp[3],gradUv[3],ccV[3];
   DOUBLE alpha,alphaMenosUm;
-  DOUBLE tA,coef;
+  DOUBLE tA,coef,tmp;
 /*... nonOrtogonal*/
   DOUBLE e[3], t[3], modE, dfdc;
   DOUBLE xx[3];
@@ -412,7 +415,8 @@ void cellTrans3D(Loads *loads
   bool fTime;
 
 /*...*/
-  dt       = ddt.dt;
+  dt       = ddt.dt[0];
+  dt0      = ddt.dt[1];
   typeTime = ddt.type;
   fTime    = ddt.flag;
   densityC = lDensity[idCell];
@@ -588,14 +592,17 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
     }
 /*...................................................................*/
   }
-/*... distretização temporal*/
-  if(fTime){
-/*... EULER*/
-    if(typeTime == EULER) 
-      sP     = sP + densityC*volume[idCell]/dt;
-/*...BACKWARD*/
-    else if(typeTime == BACKWARD) 
-      sP     = sP + 1.5e0*densityC*volume[idCell]/dt;
+
+/*... distretizacao temporal*/
+  if (fTime) {
+    /*... EULER*/
+    if (typeTime == EULER)
+      sP += densityC*volume[idCell] / dt;
+    /*...BACKWARD*/
+    else if (typeTime == BACKWARD) {
+      tmp = 1.e0 / dt + 1.e0 / (dt + dt0);
+      sP += tmp*densityC*volume[idCell];
+    }
   }
 /*...................................................................*/
 

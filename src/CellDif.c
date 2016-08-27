@@ -67,14 +67,13 @@ void cellDif2D(Loads *loads
 { 
 
   DOUBLE coefDifC,coefDif,coefDifV,rCell;
-  DOUBLE densityC,dt;
+  DOUBLE densityC,dt,dt0;
   DOUBLE p,sP,nk,dfd,dfdc,gfKsi,modE,lvSkew[2];
   DOUBLE v[2],gradUcomp[2],lKsi[2],lNormal[2],gf[2];
   DOUBLE dPviz,lModKsi,lModEta,du,duDksi;
   DOUBLE gradUp[2],gradUv[2],nMinusKsi[2];
   DOUBLE alpha,alphaMenosUm;
-//DOUBLE aP,h
-  DOUBLE tA;
+  DOUBLE tA,tmp;
   DOUBLE xx[3];
   short idCell = nFace;
   short nAresta,nCarg,typeTime;
@@ -82,7 +81,8 @@ void cellDif2D(Loads *loads
   bool fTime;
 
 /*...*/
-  dt       = ddt.dt;
+  dt       = ddt.dt[0];
+  dt0      = ddt.dt[1];
   typeTime = ddt.type;
   fTime    = ddt.flag;
   densityC = *lDensity;
@@ -196,17 +196,18 @@ void cellDif2D(Loads *loads
   }
 /*...................................................................*/
 
-/*... distretização temporal*/
-  if(fTime){
-/*... EULER*/
-    if(typeTime == EULER) 
-      sP     = sP + densityC*volume[idCell]/dt;
-/*...BACKWARD*/
-    else if(typeTime == BACKWARD) 
-      sP     = sP + 1.5e0*densityC*volume[idCell]/dt;
+/*... distretizacao temporal*/
+  if (fTime) {
+    /*... EULER*/
+    if (typeTime == EULER)
+      sP += densityC*volume[idCell] / dt;
+    /*...BACKWARD*/
+    else if (typeTime == BACKWARD) {
+      tmp = 1.e0 / dt + 1.e0 / (dt + dt0);
+      sP += tmp*densityC*volume[idCell];
+    }
   }
 /*...................................................................*/
-
 
 /*...*/
   if(nFace == 3){
@@ -215,12 +216,6 @@ void cellDif2D(Loads *loads
   else if(nFace == 4){
     lA[idCell] = sP + lA[0] + lA[1] + lA[2] + lA[3];
   }
-/*
-  lA[idCell] = sP;
-  for(nAresta=0;nAresta<nFace;nAresta++){
-    lA[idCell] += lA[nAresta];
-  }
-*/
 /*...................................................................*/
 
 /*...*/
@@ -239,11 +234,6 @@ void cellDif2D(Loads *loads
   rCell += p -lA[idCell]*u0[idCell];   
 /*...................................................................*/
 
-/*  
-  for(nAresta=0;nAresta<nFace;nAresta++){
-   lA[nAresta] *= -1.e0;
-  }
-*/
 /*...*/
   if(nFace == 3){
     lA[0] *= -1.e0;
@@ -332,7 +322,7 @@ void cellDif3D(Loads *loads
               ,const short ndm          ,INT const nel)
 { 
 
-  DOUBLE coefDifC,coefDif,coefDifV,rCell,dt;
+  DOUBLE coefDifC,coefDif,coefDifV,rCell,dt,dt0;
   DOUBLE densityC;
   DOUBLE p,sP,nk,dfd,dfdc,gfKsi,modE,lvSkew[3];
   DOUBLE v[3],gradUcomp[3],lKsi[3],lNormal[3],gf[3];
@@ -340,14 +330,15 @@ void cellDif3D(Loads *loads
   DOUBLE gradUp[3],gradUv[3],nMinusKsi[3];
   DOUBLE alpha,alphaMenosUm;
   DOUBLE xx[3];
-  DOUBLE tA;
+  DOUBLE tA,tmp;
   short idCell = nFace;
   short nf,nCarg,typeTime;
   INT vizNel;
   bool fTime;
 
 /*...*/
-  dt       = ddt.dt;
+  dt       = ddt.dt[0];
+  dt0      = ddt.dt[1];
   typeTime = ddt.type;
   fTime    = ddt.flag;
   densityC = *lDensity;
@@ -474,14 +465,16 @@ void cellDif3D(Loads *loads
 /*...................................................................*/
   }
 
-/*... distretização temporal*/
-  if(fTime){
+/*... distretizacao temporal*/
+  if (fTime) {
 /*... EULER*/
-    if(typeTime == EULER) 
-      sP     = sP + densityC*volume[idCell]/dt;
+    if (typeTime == EULER)
+      sP += densityC*volume[idCell] / dt;
 /*...BACKWARD*/
-    else if(typeTime == BACKWARD) 
-      sP     = sP + 1.5e0*densityC*volume[idCell]/dt;
+    else if (typeTime == BACKWARD) {
+      tmp = 1.e0 / dt + 1.e0 / (dt + dt0);
+      sP += tmp*densityC*volume[idCell];
+    }
   }
 /*...................................................................*/
 

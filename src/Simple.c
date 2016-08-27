@@ -98,9 +98,9 @@ void simpleSolver2D(Memoria *m
     cellTransientSimple(mesh->elm.geom.volume   ,sistEqVel->id     
                        ,mesh->elm.vel0          ,mesh->elm.vel 
                        ,mesh->elm.densityFluid  ,sistEqVel->b0
-                       ,sc.ddt.dt               ,sistEqVel->neqNov
-                       ,mesh->numelNov          ,ndfVel     
-                       ,sc.ddt.type             ,true);
+                       ,sc.ddt                  ,sistEqVel->neqNov
+                       ,mesh->numelNov          ,ndfVel          
+                       ,true);
 /*... vel(n-1) = vel(n)*/
     alphaProdVector(1.e0,mesh->elm.vel
                    ,mesh->numel*ndfVel ,mesh->elm.vel0); 
@@ -527,7 +527,7 @@ void simpleSolver2D(Memoria *m
                ,mesh->elm.densityFluid  ,mesh->elm.geom.volume 
                ,mesh->elm.mat  
                ,&cfl                    ,&reynolds
-               ,fParameter              ,sc.ddt.dt
+               ,fParameter              ,sc.ddt.dt[0]
                ,mesh->numelNov          ,mesh->ndm);
 /*...................................................................*/
 
@@ -650,9 +650,9 @@ void simpleSolver3D(Memoria *m
     cellTransientSimple(mesh->elm.geom.volume   ,sistEqVel->id     
                        ,mesh->elm.vel0          ,mesh->elm.vel 
                        ,mesh->elm.densityFluid  ,sistEqVel->b0
-                       ,sc.ddt.dt               ,sistEqVel->neqNov
-                       ,mesh->numelNov          ,ndfVel     
-                       ,sc.ddt.type             ,true);
+                       ,sc.ddt                  ,sistEqVel->neqNov
+                       ,mesh->numelNov          ,ndfVel        
+                       ,true);
 /*... vel(n-1) = vel(n)*/
     alphaProdVector(1.e0,mesh->elm.vel
                    ,mesh->numel*ndfVel ,mesh->elm.vel0); 
@@ -1114,7 +1114,7 @@ void simpleSolver3D(Memoria *m
                ,mesh->elm.densityFluid  ,mesh->elm.geom.volume 
                ,mesh->elm.mat  
                ,&cfl                    ,&reynolds
-               ,fParameter              ,sc.ddt.dt
+               ,fParameter              ,sc.ddt.dt[0]
                ,mesh->numelNov          ,mesh->ndm);
 /*...................................................................*/
 

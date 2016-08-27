@@ -217,10 +217,13 @@ int main(int argc,char**argv){
 
 /*...*/  
   sc.ddt.flag     = false;
-  sc.ddt.dt       = 1.e0;
+  sc.ddt.dt[0]    = 1.e0;
+  sc.ddt.dt[1]    = 1.e0;
+  sc.ddt.dt[2]    = 1.e0;
   sc.ddt.total    = 1.e0;
   sc.ddt.timeStep = 1;
   sc.ddt.type     = BACKWARD;
+  sc.ddt.iCod     = TDF;
 /*...................................................................*/
 
 /*...*/
@@ -2065,10 +2068,10 @@ int main(int argc,char**argv){
         readMacro(fileIn,word,false);
         setTransientScheme(word,&sc.ddt.type);
 /*...*/ 
-        fscanf(fileIn,"%lf",&sc.ddt.dt);
+        fscanf(fileIn,"%lf",&sc.ddt.dt[0]);
         fscanf(fileIn,"%lf",&sc.ddt.total);
 /*...*/        
-        if(!mpiVar.myId ) printf("dt(s)     : %lf\n",sc.ddt.dt);
+        if(!mpiVar.myId ) printf("dt(s)     : %lf\n",sc.ddt.dt[0]);
         if(!mpiVar.myId ) printf("Total(s)  : %lf\n",sc.ddt.total);
       
         if(sc.ddt.type == EULER && !mpiVar.myId)     
@@ -2077,6 +2080,8 @@ int main(int argc,char**argv){
           printf("ddtScheme : BACKWARD\n");
 
         sc.ddt.t        = 0.e0;
+        sc.ddt.dt[1]    = sc.ddt.dt[0];
+        sc.ddt.dt[2]    = sc.ddt.dt[0];
         sc.ddt.timeStep =    0;
       }
 /*...................................................................*/
@@ -2109,12 +2114,12 @@ int main(int argc,char**argv){
       }
 /*...*/
       jLoop            = 0;
-      sc.ddt.t        += sc.ddt.dt;
+      sc.ddt.t        += sc.ddt.dt[0];
       sc.ddt.timeStep ++;
 /*...................................................................*/
       
 /*...*/
-      if(sc.ddt.t > sc.ddt.total + 0.5e0*sc.ddt.dt)
+      if(sc.ddt.t > sc.ddt.total + 0.5e0*sc.ddt.dt[0])
         flWord = false;
 /*...................................................................*/
       

@@ -21,8 +21,9 @@
 
 /*...*/
   typedef struct{
-    DOUBLE    dt;
+    DOUBLE    dt[3];
     DOUBLE     t;
+    short   iCod;            
     short   type;
     bool    flag;
     DOUBLE total;

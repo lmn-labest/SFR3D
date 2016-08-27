@@ -54,9 +54,8 @@ void diffusion(Memoria *m   ,Loads *loadsDif
     cellTransient(mesh->elm.geom.volume   ,sistEqD->id     
                  ,mesh->elm.u0D1          ,mesh->elm.uD1
                  ,mesh->elm.densityUd1    ,sistEqD->b0
-                 ,sc.ddt.dt     
-                 ,mesh->numelNov          ,mesh->ndfD[0]
-                 ,sc.ddt.type             ,true);
+                 ,sc.ddt                  ,mesh->numelNov 
+                 ,mesh->ndfD[0]           ,true);
 /*... u(n-1) = u(n)*/
     alphaProdVector(1.e0,mesh->elm.uD1
                    ,mesh->numel       ,mesh->elm.u0D1); 

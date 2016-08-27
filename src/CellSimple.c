@@ -106,12 +106,12 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE viscosityC ,viscosityV,viscosity;
   DOUBLE densityC   ,densityV  ,density;
 /*...*/
-  DOUBLE rCell[2],dt;
+  DOUBLE rCell[2],dt,dt0;
   DOUBLE p[2],sP,sPc[2];
 /*...*/
   DOUBLE v[2],lKsi[2],lNormal[2],lXmcc[2],wf[2],ccV[2];
   DOUBLE dPviz,lModKsi,lModEta,du[2],duDksi[2],lXm[2];
-  DOUBLE coef,lAn;
+  DOUBLE coef,lAn,tmp;
 /*...*/
   DOUBLE dfd,cv,cvc[2],lvSkew[2];
 /*... nonOrtogonal*/
@@ -129,7 +129,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 /*...*/
   short iCodAdv1 = advVel.iCod1;
   short iCodAdv2 = advVel.iCod2;
-  short iCodDif=diffVel.iCod;
+  short iCodDif  = diffVel.iCod;
 /*...*/
   short idCell = nFace;
   short nAresta,nCarg,typeTime;
@@ -137,7 +137,8 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
   bool fTime;
 
 /*...*/
-  dt       = ddt.dt;
+  dt       = ddt.dt[0];
+  dt0      = ddt.dt[1];
   typeTime = ddt.type;
   fTime    = ddt.flag;
   densityC = lDensity[idCell];
@@ -413,14 +414,16 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
   }
 /*...................................................................*/
   
-/*... distretização temporal*/
+/*... distretizacao temporal*/
   if(fTime){
 /*... EULER*/
     if(typeTime == EULER) 
       sP += densityC*area[idCell]/dt;
 /*...BACKWARD*/
-    else if(typeTime == BACKWARD) 
-      sP += 1.5e0*densityC*area[idCell]/dt;
+    else if(typeTime == BACKWARD){ 
+      tmp = 1.e0 / dt + 1.e0 / (dt + dt0);
+      sP += tmp*densityC*area[idCell];
+    } 
   }
 /*...................................................................*/
 
@@ -1124,7 +1127,7 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE viscosityC ,viscosityV,viscosity;
   DOUBLE densityC   ,densityV  ,density;
 /*...*/
-  DOUBLE rCell[3],dt;
+  DOUBLE rCell[3],dt,dt0;
   DOUBLE p[3],sP,sPc[3];
 /*...*/
   DOUBLE v[3],lKsi[3],lNormal[3],lXmcc[3],wf[3],ccV[3];
@@ -1155,7 +1158,8 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
   bool fTime;
 
 /*...*/
-  dt       = ddt.dt;
+  dt       = ddt.dt[0];
+  dt0      = ddt.dt[1];
   typeTime = ddt.type;
   fTime    = ddt.flag;
   densityC = lDensity[idCell];
@@ -1528,8 +1532,10 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
     if(typeTime == EULER) 
       sP     += densityC*volume[idCell]/dt;
 /*...BACKWARD*/
-    else if(typeTime == BACKWARD) 
-      sP     += 1.5e0*densityC*volume[idCell]/dt;
+    else if(typeTime == BACKWARD){
+      tmp = 1.e0/dt + 1.e0/(dt+dt0);
+      sP += tmp*densityC*volume[idCell];
+    }
   }
 /*...................................................................*/
 

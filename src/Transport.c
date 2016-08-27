@@ -54,9 +54,8 @@ void transport(Memoria *m   ,Loads *loadsTrans
     cellTransient(mesh->elm.geom.volume   ,sistEqT->id     
                  ,mesh->elm.u0T1          ,mesh->elm.uT1
                  ,mesh->elm.densityUt1    ,sistEqT->b0
-                 ,sc.ddt.dt     
-                 ,mesh->numelNov          ,mesh->ndfT[0]
-                 ,sc.ddt.type             ,true);
+                 ,sc.ddt                  ,mesh->numelNov   
+                 ,mesh->ndfT[0]           ,true);
 /*... u(n-1) = u(n)*/
     alphaProdVector(1.e0,mesh->elm.uT1
                    ,mesh->numel       ,mesh->elm.u0T1); 
