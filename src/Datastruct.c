@@ -761,7 +761,7 @@ void dataStructSimple(Memoria *m      ,INT *id
 /*...*/
       HccaAlloc(INT, m, sistEqX->ja, nad, strJa, _AD_);
       csrJa(sistEqX->ia, sistEqX->ja, id, num
-        , nelcon, nViz, numel, sistEqX->neqNov, maxViz, ndf
+        , nelcon, nViz, numel, sistEqX->neqNov, maxViz, 1
         , upper, diag, lower);
 /*...................................................................*/
 

@@ -79,4 +79,16 @@
   void sortGraphCsr(INT *restrict ia,INT *restrict ja,INT const n);
 /*...................................................................*/
 
+/*... divisao da matriz para o openmp*/
+  void partitionCsrByNonzeros(INT *restrict ia      ,INT *restrictja
+                 ,INT const nEq
+                 ,int nThreads          ,INT *restrict thBegin
+                 ,INT *restrict thEnd   ,INT *restrict thSize
+                 ,INT *restrict thHeight,short type);
+  void computeEffectiveWork(INT *restrict ia        ,INT *restrict ja
+                 ,INT const nEq
+                 ,INT *restrict thBegin,INT *restrict thEnd
+                 ,INT *restrict thSize ,INT *restrict thHeight);
+/*...................................................................*/
+
 #endif/*_CSR_H*/

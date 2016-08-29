@@ -1,6 +1,6 @@
 #ifndef _MESH_
   #define _MESH_
-  #include<Adjcency.h>
+//  #include<Adjcency.h>
   #include<Reord.h>
   #include<HccaStdBool.h>
   #include<Define.h>

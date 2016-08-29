@@ -19,6 +19,7 @@ void writeLog(Mesh mesh          ,Scheme sc
              ,Time t
              ,bool const fSolvD1 ,bool const fSolvT1
              ,bool const fSolvVel,bool const fSolvPres
+             ,Omp omp
              ,char *nameIn       ,FILE *file){
 
   
@@ -121,8 +122,8 @@ void writeLog(Mesh mesh          ,Scheme sc
   fprintf(file,"nnode              : %d\n",mesh.nnode);
   fprintf(file,"nCell              : %d\n",mesh.numel);
   fprintf(file,"volume             : %lf\n",mesh.mQuality.volume);
-  fprintf(file,"non-OrthMed        : %.2lfÂ°\n",mesh.mQuality.nonOrthMed);
-  fprintf(file,"non-OtthMax        : %.2lfÂ°\n",mesh.mQuality.nonOrthMax);
+  fprintf(file,"non-OrthMed        : %.1lf°\n",mesh.mQuality.nonOrthMed);
+  fprintf(file,"non-OtthMax        : %.1lf°\n",mesh.mQuality.nonOrthMax);
   fprintf(file,"skewMed            : %lf\n",mesh.mQuality.skewMed);
   fprintf(file,"skewMax            : %lf\n",mesh.mQuality.skewMax);
 
@@ -310,6 +311,19 @@ void writeLog(Mesh mesh          ,Scheme sc
       fprintf(file,"Iterativo          : PBICGSTAB\n");
   }
 /*...................................................................*/
+
+/*... OpenMp*/    
+  fprintf(file, "\nOpenMp             :\n");
+  fprintf(file,   "Solver             :\n");
+  if(omp.fSolver)
+    fprintf(file, "nThreads           : %d\n",omp.nThreadsSolver);
+  else
+    fprintf(file, "Disable\n");
+  fprintf(file,   "Cell               :\n");
+  if (omp.fCell)
+    fprintf(file, "nThreads           : %d\n",omp.nThreadsCell);
+  else
+    fprintf(file, "Disable\n");
 
 }
 /*********************************************************************/ 

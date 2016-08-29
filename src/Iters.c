@@ -33,7 +33,6 @@ c *********************************************************************/
  *  ja				-> estrutura de dados para matriz esparsa A             *
  *  al				-> parte inferior da matriz A                           *
  *  ad				-> diagnal da matriz A                                  *
- *  au				-> parte superior da matriz A                           *
  *   p				-> precondiconador diagonal                             *
  *   b				-> vetor b (Ax=b)                                       *
  *   x				-> vetor de solucao                                     *
@@ -57,21 +56,22 @@ c *********************************************************************/
  * -------------------------------------------------------------------*
  * x[]-> atualizado                                                   *  
  * b[]-> inalterado                                                   *
- * ad,al,au-> inalterado                                              *
+ * ad,al-> inalterado                                                 *
  * ------------------------------------------------------------------ *
  * OBS:                                                               *
  * ------------------------------------------------------------------ *
 *********************************************************************/
-void pcg(INT const nEq, INT const nAd
-	, INT *restrict ia, INT *restrict ja
-	, DOUBLE *restrict al, DOUBLE *restrict ad, DOUBLE *restrict au
-	, DOUBLE *restrict m, DOUBLE *restrict b, DOUBLE *restrict x
-	, DOUBLE *restrict z, DOUBLE *restrict r, DOUBLE *restrict p
-	, DOUBLE const tol
-	, unsigned int maxIt,bool const newX
-	, FILE* fLog        ,FILE *fileHistLog
-	, bool const log    ,bool const fHistLog, bool const fPrint
-	, void(*matvec)(), DOUBLE(*dot)())
+void pcg(INT const nEq,INT const nAd
+	,INT *restrict ia   ,INT *restrict ja
+	,DOUBLE *restrict al,DOUBLE *restrict ad
+	,DOUBLE *restrict m ,DOUBLE *restrict b
+  ,DOUBLE *restrict x ,DOUBLE *restrict z
+  ,DOUBLE *restrict r ,DOUBLE *restrict p
+	,DOUBLE const tol   ,unsigned int maxIt
+  ,bool const newX    ,FILE* fLog   
+  ,FILE *fileHistLog	,bool const log 
+  ,bool const fHistLog,bool const fPrint
+	,void(*matvec)()    ,DOUBLE(*dot)())
 {
 	unsigned int j, jj;
 	INT i;
@@ -222,6 +222,9 @@ void pcg(INT const nEq, INT const nAd
 /**********************************************************************/
 
 /**********************************************************************
+ * Data de criacao    : 28 / 08 / 2016                                *
+ * Data de modificaco : 00 / 00 / 0000                                *
+ * ------------------------------------------------------------------ *
  * MPIPCG : metodo do gradiente conjugado com precondiconador diagonal*
  * (M-1Ax=M-1b) (matriz simentrica)                                   *
  * -------------------------------------------------------------------*
@@ -235,7 +238,6 @@ void pcg(INT const nEq, INT const nAd
  *  ja  -> estrutura de dados para matriz esparsa A                   *
  *  al  -> parte inferior da matriz A                                 *
  *  ad  -> diagnal da matriz A                                        *
- *  au  -> parte superior da matriz A                                 *
  *   p  -> precondiconador diagonal                                   *
  *   b  -> vetor b (Ax=b)                                             *
  *   x  -> vetor de solucao                                           *
@@ -255,18 +257,19 @@ void pcg(INT const nEq, INT const nAd
  * -------------------------------------------------------------------*
  * x[]-> atualizado                                                   *  
  * b[]-> alterado                                                     *
- * ad,al,au-> inalterado                                              *
+ * ad,al-> inalterado                                                 *
  * -------------------------------------------------------------------*
 *********************************************************************/
 void mpiPcg(INT const nEq   ,INT const nEqNov
         ,INT const nAd      ,INT const nAdR  
         ,INT *restrict ia   ,INT *restrict ja
-        ,DOUBLE *restrict al,DOUBLE *restrict ad,DOUBLE *restrict au
-        ,DOUBLE *restrict m ,DOUBLE *restrict b ,DOUBLE *restrict x
-        ,DOUBLE *restrict z ,DOUBLE *restrict r ,DOUBLE const tol
-        ,unsigned int maxIt ,bool const newX          
-        ,FILE* fLog         ,bool const log
-        ,bool const fPrint
+        ,DOUBLE *restrict al,DOUBLE *restrict ad
+        ,DOUBLE *restrict m ,DOUBLE *restrict b 
+        ,DOUBLE *restrict x ,DOUBLE *restrict z 
+        ,DOUBLE *restrict r 
+        ,DOUBLE const tol   ,unsigned int maxIt
+        ,bool const newX    ,FILE* fLog  
+        ,bool const log     ,bool const fPrint
         ,Interface *iNeq                      
         ,void(*matvec)()    ,DOUBLE(*dot)())
 {
@@ -357,6 +360,255 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
 /**********************************************************************/
 
 /**********************************************************************
+* Data de criacao    : 28/08/2016                                    *
+* Data de modificaco : 00/00/0000                                    *
+* -------------------------------------------------------------------*
+* PCGOMP: metodo do gradiente conjugado com precondiconador diagonal *
+* (M-1Ax=M-1b) (matriz simentrica)                                   *
+* -------------------------------------------------------------------*
+* Parametros de Entrada:                                             *
+* -------------------------------------------------------------------*
+*  neq			  -> numero de equacoes                                  *
+*  nad			  -> numero de elementos nao nulos fora da diagonal      *
+*  ia				  -> estrutura de dados para matriz esparsa A            *
+*  ja				  -> estrutura de dados para matriz esparsa A            *
+*  a				  -> parte inferior da matriz A                          *
+*  ad				  -> diagnal da matriz A                                 *
+*   p				  -> precondiconador diagonal                            *
+*   b				  -> vetor b (Ax=b)                                      *
+*   x				  -> vetor de solucao                                    *
+*   z				  -> vetor auxiliar                                      *
+*   r				  -> vetor auxiliar                                      *
+*   p				  -> vetor auxiliar                                      *
+* tol				  -> tolerancia de convergencia                          *
+* newX			  -> vetor inicial iniciado com zero                     *
+* fLog			  -> arquivo de log do solver                            *
+* log				  -> log de arquivo (true|false)                         *
+* tol				  -> tolerancia do solver                                *
+* maxIt			  -> numero maximo de iteracoes                          *
+*  newX			  -> true zero o vetor inicial                           *
+* fLog				-> arquivo de saida do log                             *
+* fileHistLog -> arquivo de log da iteracoes                         *
+*  log        -> escreve o log do solver                             *
+* fPrint			-> saida de informacao na tela                         *
+* fHistLog		-> log das iteracoes                                   *
+* bOmp        -> Openmp                                              *
+* -------------------------------------------------------------------*
+* Parametros de Saida:                                               *
+* -------------------------------------------------------------------*
+* x[]-> atualizado                                                   *
+* b[]-> inalterado                                                   *
+* ad,al-> inalterado                                                 *
+* ------------------------------------------------------------------ *
+* OBS:                                                               *
+* ------------------------------------------------------------------ *
+*********************************************************************/
+void pcgOmp(INT const nEq, INT const nAd
+            , INT *restrict ia, INT *restrict ja
+            , DOUBLE *restrict a, DOUBLE *restrict ad
+            , DOUBLE *restrict m, DOUBLE *restrict b
+            , DOUBLE *restrict x, DOUBLE *restrict z
+            , DOUBLE *restrict r, DOUBLE *restrict p
+            , DOUBLE const tol, unsigned int maxIt
+            , bool const newX, FILE* fLog
+            , FILE *fileHistLog, bool const log
+            , bool const fHistLog, bool const fPrint
+            , BufferOmp *bOmp
+            , void(*matvec)(), DOUBLE(*dot)())
+{
+  short nThreads = ompVar.nThreadsSolver;
+  unsigned int j, jj;
+  INT i;
+  DOUBLE alpha, beta, d, conv, xKx, norm_b, norm, norm_r_m, norm_r, di,tmp;
+  DOUBLE timei, timef;
+  timei = getTimeC();
+
+#pragma omp parallel default(none) num_threads(nThreads)\
+   private(i,j,jj,conv,norm_b,tmp,norm,d,di,alpha,beta)\
+   shared(ia,ja,a,ad,m,b,x,z,r,p,tol,maxIt,newX,fLog,xKx,norm_r_m,norm_r\
+         ,fileHistLog,log,fHistLog,fPrint,matvec,dot,bOmp,nThreads)
+  {
+    /*... chute inicial*/
+    if (newX)
+#pragma omp for
+      for (i = 0; i < nEq; i++)
+        x[i] = 0.e0;
+    /*...................................................................*/
+
+    /*... conv = tol * |(M-1)b|m = tol(b,M(-1)b) */
+#pragma omp for
+    for (i = 0; i < nEq; i++)
+      z[i] = b[i] * m[i];
+
+    d = dot(b, z, nEq);
+    norm_b = sqrt(fabs(d));
+    conv = tol * norm_b;
+    /*...................................................................*/
+
+    /*... Ax0*/
+    matvec(nEq
+           , ia, ja
+           , a, ad
+           , x, z
+           , bOmp->thBegin, bOmp->thEnd
+           , bOmp->thHeight, bOmp->thY
+           , nThreads);
+    /*...................................................................*/
+
+    /*...*/
+#pragma omp for
+    for (i = 0; i < nEq; i++) {
+      /* ... r0 = b - Ax0*/
+      r[i] = b[i] - z[i];
+      /* ... z0 = (M-1)r0*/
+      z[i] = r[i] * m[i];
+      /* ... p0 = r0*/
+      p[i] = z[i];
+    }
+    /*...................................................................*/
+
+    /*... (r(0), z(0)) = (r(0), (M-1)r0)*/
+    d = dot(r, z, nEq);
+    /*...................................................................*/
+
+    /*...*/
+    jj = 1;
+    for (j = 0; j < maxIt; j++) {
+      /*... z = Ap(j)*/
+      matvec(nEq
+             , ia, ja
+             , a, ad
+             , p, z
+             , bOmp->thBegin, bOmp->thEnd
+             , bOmp->thHeight, bOmp->thY
+             , nThreads);
+      /*...................................................................*/
+
+      /*... alpha = ( r(j),z(j) ) / ( Ap(j), p(j) ))*/
+      alpha = d / dot(z, p, nEq);
+      /*...................................................................*/
+
+      /*...*/
+#pragma omp for
+      for (i = 0; i < nEq; i++) {
+        /*... x(j + 1) = x(j) + alpha*p*/
+        x[i] += alpha * p[i];
+        /*... r(j + 1) = r(j) - alpha*Ap*/
+        r[i] -= alpha * z[i];
+        /*... z = (M-1)r0*/
+        z[i] = r[i] * m[i];
+      }
+      /*...................................................................*/
+
+      /* ... (r(j + 1), (M - 1)r(j + 1)) = (r(j + 1), z)*/
+      di = dot(r, z, nEq);
+      /*... beta = ( r(j+1),(M-1)r(j+1) ) / ( r(j),r(j) ) */
+      beta = di / d;
+      /*...................................................................*/
+
+      /* ... p(j + 1) = (M - 1)r(j + 1) + beta*p(j) = z + beta*p(j)*/
+#pragma omp for
+      for (i = 0; i < nEq; i++)
+        p[i] = z[i] + beta * p[i];
+      /*...................................................................*/
+
+      /*...*/
+#pragma omp master
+      if (fHistLog)
+        fprintf(fileHistLog, "%d %20.9e\n", j, sqrt(fabs(d)) / norm_b);
+      /*...................................................................*/
+
+      /*...*/
+      d = di;
+      if (sqrt(fabs(d)) < conv) break;
+      /*...................................................................*/
+
+      /*...*/
+      if (jj == 2000) {
+        jj = 0;
+#pragma omp master
+        printf("PCGOMP: %d %20.9e %20.9e\n", j + 1, sqrt(fabs(d)), conv);
+      }
+      jj++;
+      /*...................................................................*/
+    }
+    /*...................................................................*/
+
+    /*... Energy norm:  x*Kx*/
+    matvec(nEq
+           , ia, ja
+           , a, ad
+           , x, z
+           , bOmp->thBegin, bOmp->thEnd
+           , bOmp->thHeight, bOmp->thY
+           , nThreads);
+    /*norma de energia = xT*A*x */
+    tmp = dot(x, z, nEq);
+#pragma omp single
+    xKx = tmp;
+    /*...................................................................*/
+
+    /*... norm - 2 = || x ||*/
+    tmp  = sqrt(dot(x, x, nEq));
+#pragma omp single
+    norm = tmp;
+    /*...................................................................*/
+
+    /*... r = M(-1)(b - Ax) (calculo do residuo explicito)*/
+#pragma omp for
+    for (i = 0; i < nEq; i++) {
+      r[i] = b[i] - z[i];
+      z[i] = r[i] * m[i];
+    }
+
+    tmp = dot(r, z, nEq);
+#pragma omp single
+    norm_r_m = sqrt(fabs(tmp));
+    
+    tmp = dot(r, r, nEq);
+#pragma omp single
+    norm_r = sqrt(tmp);
+
+#pragma omp single
+    if (fPrint && norm_r_m > 3.16e0*conv)
+      printf("PCGOMP: %20.9e > %20.9e!!\n", norm_r_m, conv);
+    /*...................................................................*/
+  }
+  /*...................................................................*/
+
+  timef = getTimeC() - timei;
+
+  if (fPrint) {
+    printf(" (PCGOMP) solver:\n"
+           "\tEquations      = %20d\n"
+           "\tnad            = %20d\n"
+           "\tSolver tol     = %20.2e\n"
+           "\tIterarions     = %20d\n"
+           "\tx * Kx         = %20.2e\n"
+           "\t|| x ||        = %20.2e\n"
+           "\t|| b - Ax ||   = %20.2e\n"
+           "\t|| b - Ax || m = %20.2e\n"
+           "\tCPU time(s)    = %20.2lf\n"
+           , nEq, nAd, tol, j + 1, xKx, norm, norm_r, norm_r_m, timef);
+  }
+
+  if (j == maxIt) {
+    printf("PCGOMP: *** WARNING: no convergende reached !\n");
+    printf("MAXIT = %d \n", maxIt);
+    exit(EXIT_FAILURE);
+  }
+  if (log)
+    fprintf(fLog
+            , "PCGOMP: tol %20.2e "
+            "iteration %d "
+            "xKx %20.12e "
+            "norma(x*x) %20.12e "
+            "time %20.5lf\n"
+            , tol, j + 1, xKx, norm, timef);
+}
+/**********************************************************************/
+
+/**********************************************************************
  * Data de criacao    : 00/00/0000                                    *
  * Data de modificaco : 19/07/2016                                    *
  * -------------------------------------------------------------------*
@@ -369,9 +621,8 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
  *  nad       -> numero de elementos nao nulos fora da diagonal       *
  *  ia        -> estrutura de dados para matriz esparsa A             *
  *  ja        -> estrutura de dados para matriz esparsa A             *
- *  al        -> parte inferior da matriz A                           *
+ *  a         -> coef fora da diagonal principal                      *
  *  ad        -> diagnal da matriz A                                  *
- *  au        -> parte superior da matriz A                           *
  *   p        -> precondiconador diagonal                             *
  *   b        -> vetor b (Ax=b)                                       *
  *   x        -> vetor de solucao                                     *
@@ -397,7 +648,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
  * -------------------------------------------------------------------*
  * x[]-> atualizado                                                   *  
  * b[]-> inalterado                                                   *
- * ad,al,au-> inalterado                                              *
+ * ad,a-> inalterado                                                  *
  * -------------------------------------------------------------------*
  * OBS:                                                               *
  * A(M-1)y=b precondicionador a direita                               *
@@ -405,14 +656,16 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
 ***********************************************************************/
 void pbicgstab(INT const nEq  ,INT const nAd
           ,INT *restrict ia   ,INT *restrict ja
-          ,DOUBLE *restrict al,DOUBLE *restrict ad,DOUBLE *restrict au
-          ,DOUBLE *restrict m ,DOUBLE *restrict b ,DOUBLE *restrict x
-          ,DOUBLE *restrict t ,DOUBLE *restrict v ,DOUBLE *restrict r
-          ,DOUBLE *restrict p ,DOUBLE *restrict z ,DOUBLE *restrict r0
-					,DOUBLE const tol
-          ,unsigned int maxIt ,bool const newX          
-          ,FILE* fLog         ,FILE *fileHistLog
-          ,bool const log     ,bool const fHistLog, bool const fPrint
+          ,DOUBLE *restrict al,DOUBLE *restrict ad
+          ,DOUBLE *restrict m ,DOUBLE *restrict b 
+          ,DOUBLE *restrict x ,DOUBLE *restrict t
+          ,DOUBLE *restrict v ,DOUBLE *restrict r
+          ,DOUBLE *restrict p ,DOUBLE *restrict z
+          ,DOUBLE *restrict r0
+					,DOUBLE const tol   ,unsigned int maxIt
+          ,bool const newX    ,FILE* fLog 
+          ,FILE *fileHistLog  ,bool const log     
+          ,bool const fHistLog,bool const fPrint
           ,void(*matvec)()    ,DOUBLE(*dot)())
 {
   unsigned int j,jj;
@@ -585,6 +838,9 @@ void pbicgstab(INT const nEq  ,INT const nAd
 /**********************************************************************/
 
 /**********************************************************************
+ * Data de criacao    : 28 / 08 / 2016                                *
+ * Data de modificaco : 00 / 00 / 0000                                *
+ * ------------------------------------------------------------------ *
  * MPIPBICGSTAB : metodo do gradiente conjugado bi-ortaganalizado     *
  * com precondiconador diagonal (M-1Ax=M-1b) (matriz geral)           *
  * -------------------------------------------------------------------*
@@ -596,9 +852,8 @@ void pbicgstab(INT const nEq  ,INT const nAd
  *  nadR-> numero de elementos nao nulos na parte retangular          *
  *  ia  -> estrutura de dados para matriz esparsa A                   *
  *  ja  -> estrutura de dados para matriz esparsa A                   *
- *  al  -> parte inferior da matriz A                                 *
+ *  a         -> coef fora da diagonal principal                      *
  *  ad  -> diagnal da matriz A                                        *
- *  au  -> parte superior da matriz A                                 *
  *   p  -> precondiconador diagonal                                   *
  *   b  -> vetor b (Ax=b)                                             *
  *   x  -> vetor de solucao                                           *
@@ -627,14 +882,15 @@ void pbicgstab(INT const nEq  ,INT const nAd
 void mpiPbicgstab(INT const nEq,INT const nEqNov      
           ,INT const nAd       ,INT const nAdR
           ,INT *restrict ia    ,INT *restrict ja
-          ,DOUBLE *restrict al ,DOUBLE *restrict ad,DOUBLE *restrict au
-          ,DOUBLE *restrict m  ,DOUBLE *restrict b ,DOUBLE *restrict x
-          ,DOUBLE *restrict t  ,DOUBLE *restrict v ,DOUBLE *restrict r
-          ,DOUBLE *restrict p  ,DOUBLE *restrict z ,DOUBLE const tol
+          ,DOUBLE *restrict al ,DOUBLE *restrict ad
+          ,DOUBLE *restrict m  ,DOUBLE *restrict b 
+          ,DOUBLE *restrict x  ,DOUBLE *restrict t
+          ,DOUBLE *restrict v  ,DOUBLE *restrict r
+          ,DOUBLE *restrict p  ,DOUBLE *restrict z 
+          ,DOUBLE const tol
           ,unsigned int maxIt  ,bool const newX          
           ,FILE* fLog          ,bool const log
-          ,bool const fPrint
-          ,Interface *iNeq    
+          ,bool const fPrint   ,Interface *iNeq    
           ,void(*matvec)()     ,DOUBLE(*dot)())
 {
 	unsigned int j;
@@ -727,5 +983,285 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
 }
 /**********************************************************************/
 
+/**********************************************************************
+* Data de criacao    : 28 / 08 / 2016                                 *
+* Data de modificaco : 00 / 00 / 0000                                 *
+* ------------------------------------------------------------------- *
+* PBICGSTABOMP : metodo do gradiente conjugado bi - ortaganalizado    *
+* com precondiconador diagonal(matriz geral)                          *
+* ------------------------------------------------------------------- *
+* Parametros de Entrada :                                             *
+* ------------------------------------------------------------------- *
+* neq         ->numero de equacoes                                    *
+* nad         ->numero de elementos nao nulos fora da diagonal        *
+* ia          ->estrutura de dados para matriz esparsa A              *
+* ja          ->estrutura de dados para matriz esparsa A              *
+* a           ->parte fora da diagonal principal                      *
+* ad          ->diagnal da matriz A                                   *
+* p           ->precondiconador diagonal                              *
+* b           ->vetor b(Ax = b)                                       *
+* x           ->vetor de solucao                                      *
+* t           ->vetor auxiliar                                        *
+* v           ->vetor auxiliar                                        *
+* r           ->vetor auxiliar                                        *
+* p           ->vetor auxiliar                                        *
+* z           ->vetor auxiliar                                        *
+* r0          ->vetor auxiliar                                        *
+* newX        ->vetor inicial iniciado com zero                       *
+* fLog        ->arquivo de log do solver                              *
+* log         ->log de arquivo(true | false)                          *
+* tol         ->tolerancia do solver                                  *
+* maxIt       ->numero maximo de iteracoes                            *
+* newX			  -> true zero o vetor inicial                            *
+* fLog        ->arquivo de saida do log                               *
+* fileHistLog ->arquivo de log da iteracoes                           *
+* log         ->escreve o log do solver                               *
+* fPrint      ->saida de informacao na tela                           *
+* fHistLog    ->log das iteracoes                                     *
+* bOmp        -> Openmp                                               *
+* ------------------------------------------------------------------- *
+* Parametros de Saida :                                               *
+* ------------------------------------------------------------------- *
+* x[]->atualizado                                                     *
+* b[]->inalterado                                                     *
+* ad, a->inalterado                                                   *
+* ------------------------------------------------------------------- *
+* OBS:                                                                *
+* A(M - 1)y = b precondicionador a direita                            *
+* ------------------------------------------------------------------- *
+***********************************************************************/
+void pbicgstabOmp(INT const nEq    ,INT const nAd
+               ,INT *restrict ia   ,INT *restrict ja
+               ,DOUBLE *restrict a ,DOUBLE *restrict ad
+               ,DOUBLE *restrict m ,DOUBLE *restrict b
+               ,DOUBLE *restrict x ,DOUBLE *restrict t
+               ,DOUBLE *restrict v ,DOUBLE *restrict r
+               ,DOUBLE *restrict p ,DOUBLE *restrict z
+               ,DOUBLE *restrict r0
+               ,DOUBLE const tol   ,unsigned int maxIt
+               ,bool const newX    ,FILE* fLog
+               ,FILE *fileHistLog  ,bool const log
+               ,bool const fHistLog,bool const fPrint
+               ,BufferOmp *bOmp
+               ,void(*matvec)()    ,DOUBLE(*dot)())
+{
+  short nThreads = ompVar.nThreadsSolver;
+  unsigned int j, jj;
+  INT i;
+  DOUBLE alpha,beta,d,conv,xKx,norm_r,norm,norm_b,w,rr0,tmp;
+  DOUBLE timei, timef;
 
+  timei = getTimeC();
+
+#pragma omp parallel default(none) num_threads(nThreads)\
+   private(i,j,jj,conv,norm_b,tmp,d,alpha,beta,rr0,w)\
+   shared(ia,ja,a,ad,m,b,x,z,r,p,r0,v,t,tol,maxIt,newX,fLog\
+         ,xKx,norm,norm_r\
+         ,fileHistLog,log,fHistLog,fPrint,matvec,dot,bOmp,nThreads)
+  {
+/*... chute inicial*/
+    if (newX)
+#pragma omp for
+      for (i = 0; i < nEq; i++)
+        x[i] = 0.e0;
+/*...................................................................*/
+
+/*... conv = tol * |b|*/
+    d      = dot(b, b, nEq);
+    norm_b = sqrt(d);
+    conv   = tol*norm_b;
+  //breaktol = btol*sqrt(d);
+/*...................................................................*/
+
+/*... Ax0*/
+    matvec(nEq
+          ,ia            ,ja 
+          ,a             ,a
+          ,x             ,z
+          ,bOmp->thBegin ,bOmp->thEnd
+          ,bOmp->thHeight,bOmp->thY
+          ,nThreads);
+/*...................................................................*/
+
+/*...*/
+#pragma omp for
+    for (i = 0; i < nEq; i++) {
+/*... r0 = b - Ax0*/
+      r0[i] = b[i] - z[i];
+/*... p = r0*/
+      p[i] = r0[i];
+/*... r = r0*/
+      r[i] = r0[i];
+/*... z = M(-1)p*/
+      z[i] = p[i]*m[i];
+    }
+/*...................................................................*/
+
+/*...*/
+    jj = 1;
+    for (j = 0; j < maxIt; j++) {
+/* ... v = Az(j) = AM(-1)p(j)*/
+      matvec(nEq
+            ,ia            ,ja
+            ,a             ,ad
+            ,z             ,v
+            ,bOmp->thBegin ,bOmp->thEnd
+            ,bOmp->thHeight,bOmp->thY
+            ,nThreads);
+/*...................................................................*/
+
+/*... alpha = (r(j), r0) / (AM(-1)p(j), r0))*/
+      rr0 = dot(r, r0, nEq);
+      alpha = rr0 / dot(v, r0, nEq);
+/*...................................................................*/
+
+/*...*/
+#pragma omp for
+      for (i = 0; i < nEq; i++) {
+/*... x(j + 1) = x(j) + alpha*M(-1)p*/
+        x[i] += alpha * z[i];
+/*... s(j) = r(j) - alpha*AM(-1)p(j)*/
+        r[i] -= alpha * v[i];
+/*... z = M(-1)s*/
+        z[i] = r[i] * m[i];
+      }
+/*...................................................................*/
+
+/*... (s, s)*/
+      d = dot(r, r, nEq);
+/*...*/
+      if (sqrt(d) < conv) break;
+/*...................................................................*/
+
+/*... t = Az = AM(-1)s(j)*/
+      matvec(nEq
+            ,ia            ,ja
+            ,a             ,ad
+            ,z             ,t
+            ,bOmp->thBegin ,bOmp->thEnd
+            ,bOmp->thHeight,bOmp->thY
+            ,nThreads);
+/*...................................................................*/
+
+/*... w = (AM(-1)s(j), s(j)) / (AM(-1)s(j), AM(-1)s(j))*/
+      w = dot(t,r,nEq)/dot(t,t,nEq);
+/*...................................................................*/
+
+/*...*/
+#pragma omp for
+      for (i = 0; i < nEq; i++) {
+/* ... x(j + 1) = x(j) + w*M(-1)s*/
+        x[i] += w*z[i];
+/* ... r(j + 1) = s(j) - w*AM(-1)s*/
+        r[i] -= w*t[i];
+      }
+/*...................................................................*/
+
+/*... (r, r)*/
+      d = dot(r,r,nEq);
+      if (sqrt(d) < conv) break;
+/*...................................................................*/
+
+/*...*/
+#pragma omp master
+      if (fHistLog)
+        fprintf(fileHistLog, "%d %20.9e\n", j, sqrt(fabs(d)) / norm_b);
+/*...................................................................*/
+
+/*... beta = (r(j + 1), r0) / (r(j), r0)) * (alpha / w)*/
+      beta = (dot(r,r0,nEq)/rr0)*(alpha/w);
+/*...................................................................*/
+
+/*...*/
+#pragma omp for
+      for (i = 0; i < nEq; i++) {
+/*... p(j + 1) = r(i) + beta*(p(j) - w*v(i))*/
+        p[i] = r[i] + beta*(p[i] - w*v[i]);
+/*... z = M(-1)p*/
+        z[i] = p[i] * m[i];
+      }
+/*...................................................................*/
+
+/*...*/
+      if (jj == 2000) {
+        jj = 0;
+#pragma omp master
+        printf("BICGSATBOMP: %d %20.9e %20.9e\n"
+               , j + 1, sqrt(fabs(d)), conv);
+      }
+      jj++;
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*... Energy norm:  x*Kx*/
+    matvec(nEq
+          ,ia            ,ja
+          ,a             ,ad
+          ,x             ,z
+          ,bOmp->thBegin ,bOmp->thEnd
+          ,bOmp->thHeight,bOmp->thY
+          ,nThreads);
+/*norma de energia = xT*A*x */
+    tmp = dot(x, z, nEq);
+#pragma omp master
+    xKx = tmp; 
+/*...................................................................*/
+
+/*... norm - 2 = || x ||*/
+    tmp = sqrt(dot(x, x, nEq));
+#pragma omp master
+    norm = tmp;
+/*...................................................................*/
+
+/*... r = (b - Ax) (calculo do residuo explicito)*/
+#pragma omp for
+    for (i = 0; i < nEq; i++) {
+      r[i] = b[i] - z[i];
+    }
+
+    tmp = dot(r, r, nEq);
+
+#pragma omp single
+    {
+      norm_r = sqrt(tmp);
+      if(fPrint && norm_r > 3.16e0*conv)
+      printf("BICGSATB: %20.9e > %20.9e!!\n", norm_r, conv);
+    }
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+  timef = getTimeC() - timei;
+
+  if (fPrint) {
+    printf(" (BICGSATBOMP) solver:\n"
+           "\tEquations      = %20d\n"
+           "\tnad            = %20d\n"
+           "\tSolver tol     = %20.2e\n"
+           "\tIterarions     = %20d\n"
+           "\tx * Kx         = %20.2e\n"
+           "\t|| x ||        = %20.2e\n"
+           "\t|| b - Ax ||   = %20.2e\n"
+           "\tCPU time(s)    = %20.2lf\n"
+           , nEq, nAd, tol, j + 1, xKx, norm, norm_r, timef);
+  }
+
+  if (j == maxIt) {
+    printf(" PBICGSTABOMP *** WARNING: no convergende reached !\n");
+    printf("MAXIT = %d \n", maxIt);
+    exit(EXIT_FAILURE);
+  }
+  if (log)
+    fprintf(fLog
+            , "PBICGSTABOMP: tol %20.2e "
+            "iteration %d "
+            "xKx %20.12e "
+            "norma(x*x) %20.12e "
+            "time %20.5lf\n"
+            , tol, j + 1, xKx, norm, timef);
+
+
+}
+/**********************************************************************/
 

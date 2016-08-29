@@ -136,7 +136,7 @@ void transport(Memoria *m   ,Loads *loadsTrans
 
 /*...*/
     tm.solvT1 = getTimeC() - tm.solvT1;
-    solverC(m               
+/*  solverC(m               
            ,sistEqT->neq       ,sistEqT->neqNov  
            ,sistEqT->nad       ,sistEqT->nadr
            ,sistEqT->ia        ,sistEqT->ja  
@@ -146,8 +146,7 @@ void transport(Memoria *m   ,Loads *loadsTrans
            ,solvT->tol         ,solvT->maxIt     
            ,sistEqT->storage   ,solvT->solver
            ,solvT->fileSolv    ,solvT->log  
-           ,false              ,false
-           ,sistEqT->unsym     ,false);  
+           ,false              ,sistEqT->unsym);*/
     tm.solvT1 = getTimeC() - tm.solvT1;
 /*...................................................................*/
 

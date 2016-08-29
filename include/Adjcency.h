@@ -3,7 +3,6 @@
 /*...*/
   #include<Memoria.h>
   #include<HccaStdBool.h>
-  #include<Mesh.h>
   #include<Define.h>
 /*...................................................................*/
   void viz(Memoria *m       ,INT *el           ,INT *nelcon

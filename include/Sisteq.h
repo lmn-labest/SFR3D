@@ -1,5 +1,5 @@
-#ifndef _SISTEQ_H
-  #define _SISTEQ_H
+#ifndef _SISTEQ_H_
+  #define _SISTEQ_H_
    #ifdef _AD_
     #undef  _AD_
   #endif  
@@ -17,7 +17,12 @@
   #include<Mesh.h>
   #include<ParallelMpi.h>
 
-  
+/*... bufferEq*/
+  typedef struct {
+    INT *thBegin, *thEnd, *thHeight, *thSize;
+    DOUBLE *thY;
+  }BufferOmp;
+/*...................................................................*/
    
   typedef struct{
     INT *ja,*ia;
@@ -35,7 +40,8 @@
                    /*2 - csrd*/
                    /*3 - csrc*/
                    /*4 - ellpack*/
-    Interface iNeq;
+    Interface iNeq;/*comunicao MPI*/
+    BufferOmp omp; /*OPenMp*/
   }SistEq;
   
   INT numeq(INT  *restrict id  ,INT *restrict num

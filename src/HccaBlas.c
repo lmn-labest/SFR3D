@@ -3,36 +3,72 @@
  * HCCABLAS : biblioteca de algebra linear                            * 
  *------------------------------------------------------------------- * 
  * nome das funcoes                                                   * 
- *------------------------------------------------------------------- * 
+ *------------------------------------------------------------------- *
+ *                                                                    *
  * flopMatVecCsr  -> FLOP para operacao matriz*vector, onde a matriz  *
  * esta armazenada em um formato da familia CSR                       *
  * flopDot        -> FLOP para operacao produto interno               *
- * pordVet        -> produto vetorial                                 * 
- * ------------------------- VECTOR --------------------------------- * 
+ * pordVet        -> produto vetorial                                 *
+ *                                                                    *
+ * ------------------------- VECTOR --------------------------------- *
+ *                                                                    *
  * alphaProdVector-> produto de vetor por um escalar                  *
  * addVector      -> adicao de vetores                                *
- * ------------------------- DOT ------------------------------------ * 
- * dot            -> produto interno entre dois vetores               * 
- * dotO2L2        -> produto interno entre dois vetores               * 
- * dotL2          -> produto interno entre dois vetores               * 
- * dotL4          -> produto interno entre dois vetores               * 
- * dotL6          -> produto interno entre dois vetores               * 
- * dotL8          -> produto interno entre dois vetores               * 
- * dotO2          -> produto interno entre dois vetores               * 
- * dotO4          -> produto interno entre dois vetores               * 
- * dotO6          -> produto interno entre dois vetores               * 
- * dotO8          -> produto interno entre dois vetores               * 
+ *                                                                    *
+ * ------------------------- DOT ------------------------------------ *
+ *                                                                    *
+ * dot            -> produto interno entre dois vetores (MPI)         * 
+ * dotO2I2        -> produto interno entre dois vetores (MPI)         * 
+ * dotI2          -> produto interno entre dois vetores (MPI)         * 
+ * dotI4          -> produto interno entre dois vetores (MPI)         * 
+ * dotI6          -> produto interno entre dois vetores (MPI)         * 
+ * dotI8          -> produto interno entre dois vetores (MPI)         * 
+ * dotO2          -> produto interno entre dois vetores (MPI)         * 
+ * dotO4          -> produto interno entre dois vetores (MPI)         * 
+ * dotO6          -> produto interno entre dois vetores (MPI)         * 
+ * dotO8          -> produto interno entre dois vetores (MPI)         *
+ *                                                                    *
+ * ========================= OPENMP ================================= *
+ *                                                                    *
+ * ------------------------- DOT ------------------------------------ *
+ * dotOmp         -> produto interno entre dois vetores (OMP)         *
+ * dotOmpO2I2     -> produto interno entre dois vetores (OMP)         *
+ * dotOmpO2I4     -> produto interno entre dois vetores (OMP)         *
+ * dotOmpI2       -> produto interno entre dois vetores (OMP)         *
+ * dotOmpI4       -> produto interno entre dois vetores (OMP)         *
+ * dotOmpI6       -> produto interno entre dois vetores (OMP)         *
+ * dotOmpI8       -> produto interno entre dois vetores (OMP)         *
+ * dotOmpO2       -> produto interno entre dois vetores (OMP)         *
+ * dotOmpO4       -> produto interno entre dois vetores (OMP)         *
+ * dotOmpO6       -> produto interno entre dois vetores (OMP)         *
+ * dotOmpO8       -> produto interno entre dois vetores (OMP)         *
+ *                                                                    *
  * -------------------------- CSRD ---------------------------------- *
+ *                                                                    *
  * ....................... SIMETRICA ................................ *
+ *                                                                    *
  * mpiMatVecCsrDSym -> matizt vetor para matriz simetrica no formato  *           
- * CSRD                                                               *
+ * CSRD (MPI)                                                         *
+ *                                                                    *
+ * =========================== MPI ================================== *
+ *                                                                    *                                                                    *
  * ................... SIMETRICA - MPI (CSRD+CSR) ................... *
+ *                                                                    *
  * mpiMatVecCsrDSym -> matizt vetor para matriz simetrica no formato  *           
- * CSRD+CSR                                                           *           
+ * CSRD+CSR (MPI)                                                     *
+ *                                                                    *
  * ................... SIMETRICA - MPI (CSRD+COO) ................... *
+ *                                                                    *
  * mpiMatVecCsrDcooSym -> matizt vetor para matriz simetrica no       *
- * formato CSRD+COO                                                   *           
+ * formato CSRD+COO (MPI)                                             *
+ *                                                                    *
+ * ========================= OPENMP ================================= *
+ *                                                                    *
+ * mpiMatVecCsrDsymOmp -> matizt vetor para matriz simetrica no       *
+ * formato CSRD (OMP)                                                 *
+ *                                                                    *
  * .......................... GERAL ................................. *
+ *                                                                    *
  * matVecCsrD     -> matriz vetor para matriz geral no formato CSRD   * 
  * matVecCsrDI2   -> matriz vetor para matriz geral no formato CSRD   * 
  * matVecCsrDI4   -> matriz vetor para matriz geral no formato CSRD   * 
@@ -40,27 +76,49 @@
  * matVecCsrDO2   -> matriz vetor para matriz geral no formato CSRD   * 
  * matVecCsrDO4   -> matriz vetor para matriz geral no formato CSRD   * 
  * matVecCsrDO6   -> matriz vetor para matriz geral no formato CSRD   * 
- * matVecCsrDO2I2 -> matriz vetor para matriz geral no formato CSRD   * 
+ * matVecCsrDO2I2 -> matriz vetor para matriz geral no formato CSRD   *
+ *                                                                    *
+ * =========================== MPI ================================== *
+ *                                                                    *
  * ...................... GERAL (CSRD) - MPI ........................ *
- * mpiMatVecCsrD  -> matizt vetor para matriz simetrica no formato    * 
- * .......................... CSRC .................................. *
- * ................. ESTRUTURALMENTE SIMETRICA .......................*
+ *                                                                    *
+ * mpiMatVecCsrD ->matizt vetor para matriz simetrica no formato (MPI)*
+ *                                                                    *
+ * -------------------------- CSRC ---------------------------------- *
+ *                                                                    *
+ * ................. ESTRUTURALMENTE SIMETRICA ...................... *
+ *                                                                    *
  * matVecCsrC     -> matriz vetor para matriz estruturalmente         *
- * simetrica no formato CSRC                                          * 
- * .......................... MPI ....................................*
+ * simetrica no formato CSRC                                          *
+ *                                                                    *
+ * ========================== MPI =================================== *
+ *                                                                    *
  * mpiMatVecCsrC  -> matriz vetor para matriz estruturalmente         *
- * simetrica no formato CSRC+CSR                                      * 
- * mpiMatVecCsrCcoo> matriz vetor para matriz estruturalmente         *
- * simetrica no formato CSRC+COO                                      * 
- * ------------------------ ELLPACK --------------------------------- * 
+ * simetrica no formato CSRC+CSR (MPI)                                * 
+ * mpiMatVecCsrCcoo -> matriz vetor para matriz estruturalmente       *
+ * simetrica no formato CSRC+COO (MPI)                                *
+ *                                                                    *
+ * ========================= OPENMP ================================= *
+ *                                                                    *
+ * mpiMatVecCsrComp -> matizt vetor para matriz simetrica no          *
+ * formato CSRC (OMP)                                                 *
+ *                                                                    *
+ * ------------------------ ELLPACK --------------------------------- *
+ *                                                                    *
  * ...........................GERAL ................................. *
+ *                                                                    *
  * matVecEllPack  -> matriz vetor para matriz geral no formato EllPack* 
  * matVecEllPackO2-> matriz vetor para matriz geral no formato EllPack* 
- * matVecEllPackO4-> matriz vetor para matriz geral no formato EllPack* 
+ * matVecEllPackO4-> matriz vetor para matriz geral no formato EllPack*
+ *                                                                    *
+ * =========================== MPI ================================== *
+ *                                                                    *
  * ..................... GERAL (ELLPACK) MPI ........................ *
+ *                                                                    *
  * mpiMatVecEllPack -> matriz vetor para matriz geral no formato      *
- * EllPack                                                            *           
- *********************************************************************/
+ * EllPack (MPI)                                                      *
+ *                                                                    *
+ ***********************************************************************/
 
 /********************************************************************* 
  * FLOPDOT: Calculo do numero de flops do produto interno            * 
@@ -123,7 +181,6 @@ INT flopMatVecCsr(INT neq,INT nad,short ty){
   return flop;
 }
 /*********************************************************************/ 
-
 
 /********************************************************************* 
  * PRODVET: produto vetorial                                         * 
@@ -226,7 +283,6 @@ void addVector(DOUBLE const alpha,DOUBLE *restrict a
 }
 /*********************************************************************/ 
 
-
 /********************************************************************* 
  * DOT: produto interno entre dois vetores                           * 
  *-------------------------------------------------------------------* 
@@ -281,7 +337,7 @@ DOUBLE dot(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 /*********************************************************************/ 
 
 /********************************************************************* 
- * DOTO2L2: produto interno entre dois vetores                       * 
+ * DOTO2I2: produto interno entre dois vetores                       * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -296,7 +352,7 @@ DOUBLE dot(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE dotO2L2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
+DOUBLE dotO2I2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0;
@@ -345,7 +401,7 @@ DOUBLE dotO2L2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 /*********************************************************************/ 
 
 /********************************************************************* 
- * DOTL2: produto interno entre dois vetores                         * 
+ * DOTI2: produto interno entre dois vetores                         * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -360,7 +416,7 @@ DOUBLE dotO2L2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE dotL2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
+DOUBLE dotI2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0;
@@ -405,7 +461,7 @@ DOUBLE dotL2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 /*********************************************************************/ 
 
 /********************************************************************* 
- * DOTL4: produto interno entre dois vetores                         * 
+ * DOTI4: produto interno entre dois vetores                         * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -420,7 +476,7 @@ DOUBLE dotL2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE dotL4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
+DOUBLE dotI4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0,tmp3=0.e0,tmp4=0.e0;
@@ -472,7 +528,7 @@ DOUBLE dotL4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 /*********************************************************************/ 
 
 /********************************************************************* 
- * DOTL6: produto interno entre dois vetores                         * 
+ * DOTI6: produto interno entre dois vetores                         * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -487,7 +543,7 @@ DOUBLE dotL4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE dotL6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
+DOUBLE dotI6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0,tmp3=0.e0,tmp4=0.e0;
@@ -550,7 +606,7 @@ DOUBLE dotL6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 /*********************************************************************/ 
 
 /********************************************************************* 
- * DOTL8: produto interno entre dois vetores                         * 
+ * DOTI8: produto interno entre dois vetores                         * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -565,7 +621,7 @@ DOUBLE dotL6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE dotL8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
+DOUBLE dotI8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0,tmp3=0.e0,tmp4=0.e0;
@@ -910,6 +966,665 @@ DOUBLE dotO8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 } 
 /*********************************************************************/ 
 
+/*********************************************************************
+* DOTOMP: produto interno entre dois vetores                        *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* x1 - vetor x1                                                     *
+* x2 - vetor x2                                                     *
+* n  - numero de dimensoes                                          *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*                                                                   *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+DOUBLE dotOmp(DOUBLE *restrict x1, DOUBLE *restrict x2, INT const n)
+{
+  INT i;
+
+/*...*/
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+
+#pragma omp single
+  tmpDotOmp = 0.0e0;
+
+#pragma omp for private(i) reduction(+:tmpDotOmp)
+  for (i = 0; i<n; i++) {
+    tmpDotOmp += x1[i]*x2[i];
+  }
+
+/*...*/
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+
+  return tmpDotOmp;
+}
+/*********************************************************************/
+
+/*********************************************************************
+* DOTOMPO2I2: produto interno entre dois vetores                    *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* x1 - vetor x1                                                     *
+* x2 - vetor x2                                                     *
+* n  - numero de dimensoes                                          *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*                                                                   *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+double dotOmpO2I2(double *restrict x1, double *restrict x2, INT n)
+{
+  INT i;
+  int resto = n % 4;
+
+/*...*/
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+
+#pragma omp single
+  {
+    tmpDotOmp1 = 0.0e0;
+    tmpDotOmp2 = 0.0e0;
+    if (resto == 1)
+      tmpDotOmp1 = x1[0] * x2[0];
+    if (resto == 2)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1];
+    if (resto == 3)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2];
+  }
+
+#pragma omp for private(i) reduction(+:tmpDotOmp1,tmpDotOmp2)
+  for (i = resto; i<n; i += 4) {
+    tmpDotOmp1 += x1[i] * x2[i] + x1[i + 1] * x2[i + 1];
+    tmpDotOmp2 += x1[i + 2] * x2[i + 2] + x1[i + 3] * x2[i + 3];
+  }
+
+#pragma omp single
+  {
+    tmpDotOmp = tmpDotOmp1 + tmpDotOmp2;
+  }
+
+/*...*/
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+/*...................................................................*/
+
+  return tmpDotOmp;
+}
+/*********************************************************************/
+
+/*********************************************************************
+* DOTOMPO2I4: produto interno entre dois vetores                    *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* x1 - vetor x1                                                     *
+* x2 - vetor x2                                                     *
+* n  - numero de dimensoes                                          *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*                                                                   *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+double dotOmpO2I4(double *restrict x1, double *restrict x2, INT n)
+{
+  INT i;
+  int resto = n % 8;
+
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+#pragma omp single
+  {
+    tmpDotOmp1 = 0.0e0;
+    tmpDotOmp2 = 0.0e0;
+    tmpDotOmp3 = 0.0e0;
+    tmpDotOmp4 = 0.0e0;
+    tmpDotOmp5 = 0.0e0;
+    tmpDotOmp6 = 0.0e0;
+    tmpDotOmp7 = 0.0e0;
+    tmpDotOmp8 = 0.0e0;
+    if (resto == 1)
+      tmpDotOmp1 = x1[0] * x2[0];
+    else if (resto == 2)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1];
+    else if (resto == 3)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2];
+    else if (resto == 4)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2]
+      + x1[3] * x2[3];
+    else if (resto == 5)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2]
+      + x1[3] * x2[3] + x1[4] * x2[4];
+    else if (resto == 6)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2]
+      + x1[3] * x2[3] + x1[4] * x2[4] + x1[5] * x2[5];
+    else if (resto == 7)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2]
+      + x1[3] * x2[3] + x1[4] * x2[4] + x1[5] * x2[5]
+      + x1[6] * x2[6];
+  }
+
+#pragma omp for private(i)\
+  reduction(+:tmpDotOmp1,tmpDotOmp2\
+             ,tmpDotOmp3,tmpDotOmp4)
+  for (i = resto; i<n; i += 8) {
+    tmpDotOmp1 += x1[i] * x2[i] + x1[i + 1] * x2[i + 1];
+    tmpDotOmp2 += x1[i + 2] * x2[i + 2] + x1[i + 3] * x2[i + 3];
+    tmpDotOmp3 += x1[i + 4] * x2[i + 4] + x1[i + 5] * x2[i + 5];
+    tmpDotOmp4 += x1[i + 6] * x2[i + 6] + x1[i + 7] * x2[i + 7];
+  }
+
+#pragma omp single
+  {
+    tmpDotOmp = tmpDotOmp1 + tmpDotOmp2
+      + tmpDotOmp3 + tmpDotOmp4;
+  }
+
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+  return tmpDotOmp;
+}
+/*********************************************************************/
+
+/*********************************************************************
+* DOTOMPI2: produto interno entre dois vetores                      *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* x1 - vetor x1                                                     *
+* x2 - vetor x2                                                     *
+* n  - numero de dimensoes                                          *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*                                                                   *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+double dotOmpI2(double *restrict x1, double *restrict x2, INT n)
+{
+  INT i;
+  int resto = n % 2;
+
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+#pragma omp single
+  {
+    tmpDotOmp1 = 0.0e0;
+    tmpDotOmp2 = 0.0e0;
+    if (resto)
+      tmpDotOmp1 = x1[0] * x2[0];
+  }
+
+#pragma omp for private(i) reduction(+:tmpDotOmp1,tmpDotOmp2)
+  for (i = resto; i<n; i += 2) {
+    tmpDotOmp1 += x1[i] * x2[i];
+    tmpDotOmp2 += x1[i + 1] * x2[i + 1];
+  }
+
+#pragma omp single
+  {
+    tmpDotOmp = tmpDotOmp1 + tmpDotOmp2;
+  }
+
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+  
+  return tmpDotOmp;
+}
+/*********************************************************************/
+
+/*********************************************************************
+* DOTOMPI4: produto interno entre dois vetores                      *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* x1 - vetor x1                                                     *
+* x2 - vetor x2                                                     *
+* n  - numero de dimensoes                                          *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*                                                                   *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+double dotOmpI4(double *restrict x1, double *restrict x2, INT n)
+{
+  INT i;
+  int resto = n % 4;
+
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+#pragma omp single
+  {
+    tmpDotOmp1 = 0.0e0;
+    tmpDotOmp2 = 0.0e0;
+    tmpDotOmp3 = 0.0e0;
+    tmpDotOmp4 = 0.0e0;
+    if (resto == 1)
+      tmpDotOmp1 = x1[0] * x2[0];
+    else if (resto == 2)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1];
+    else if (resto == 3)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2];
+  }
+
+#pragma omp for private(i)\
+   reduction(+:tmpDotOmp1,tmpDotOmp2,tmpDotOmp3,tmpDotOmp4)
+  for (i = resto; i<n; i += 4) {
+    tmpDotOmp1 += x1[i] * x2[i];
+    tmpDotOmp2 += x1[i + 1] * x2[i + 1];
+    tmpDotOmp3 += x1[i + 2] * x2[i + 2];
+    tmpDotOmp4 += x1[i + 3] * x2[i + 3];
+  }
+
+#pragma omp single
+  {
+    tmpDotOmp = tmpDotOmp1 + tmpDotOmp2 + tmpDotOmp3 + tmpDotOmp4;
+  }
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+  return tmpDotOmp;
+}
+/*********************************************************************/
+
+/*********************************************************************
+* DOTOMPI6: produto interno entre dois vetores                      *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* x1 - vetor x1                                                     *
+* x2 - vetor x2                                                     *
+* n  - numero de dimensoes                                          *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*                                                                   *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+double dotOmpI6(double *restrict x1, double *restrict x2, INT n)
+{
+  INT i;
+  int resto = n % 6;
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+#pragma omp single
+  {
+    tmpDotOmp1 = 0.0e0;
+    tmpDotOmp2 = 0.0e0;
+    tmpDotOmp3 = 0.0e0;
+    tmpDotOmp4 = 0.0e0;
+    tmpDotOmp5 = 0.0e0;
+    tmpDotOmp6 = 0.0e0;
+    if (resto == 1)
+      tmpDotOmp1 = x1[0] * x2[0];
+    else if (resto == 2)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1];
+    else if (resto == 3)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2];
+    else if (resto == 4)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2]
+      + x1[3] * x2[3];
+    else if (resto == 5)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2]
+      + x1[3] * x2[3] + x1[4] * x2[4];
+  }
+
+#pragma omp for private(i)\
+  reduction(+:tmpDotOmp1,tmpDotOmp2,tmpDotOmp3\
+             ,tmpDotOmp4,tmpDotOmp5,tmpDotOmp6)
+  for (i = resto; i<n; i += 6) {
+    tmpDotOmp1 += x1[i] * x2[i];
+    tmpDotOmp2 += x1[i + 1] * x2[i + 1];
+    tmpDotOmp3 += x1[i + 2] * x2[i + 2];
+    tmpDotOmp4 += x1[i + 3] * x2[i + 3];
+    tmpDotOmp5 += x1[i + 4] * x2[i + 4];
+    tmpDotOmp6 += x1[i + 5] * x2[i + 5];
+  }
+
+#pragma omp single
+  {
+    tmpDotOmp = tmpDotOmp1 + tmpDotOmp2
+      + tmpDotOmp3 + tmpDotOmp4
+      + tmpDotOmp5 + tmpDotOmp6;
+  }
+
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+  return tmpDotOmp;
+}
+/*********************************************************************/
+
+/*********************************************************************
+* DOTOMPI8: produto interno entre dois vetores                      *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* x1 - vetor x1                                                     *
+* x2 - vetor x2                                                     *
+* n  - numero de dimensoes                                          *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*                                                                   *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+double dotOmpI8(double *restrict x1, double *restrict x2, INT n)
+{
+  INT i;
+  int resto = n % 8;
+
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+#pragma omp single
+  {
+    tmpDotOmp1 = 0.0e0;
+    tmpDotOmp2 = 0.0e0;
+    tmpDotOmp3 = 0.0e0;
+    tmpDotOmp4 = 0.0e0;
+    tmpDotOmp5 = 0.0e0;
+    tmpDotOmp6 = 0.0e0;
+    tmpDotOmp7 = 0.0e0;
+    tmpDotOmp8 = 0.0e0;
+    if (resto == 1)
+      tmpDotOmp1 = x1[0] * x2[0];
+    else if (resto == 2)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1];
+    else if (resto == 3)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2];
+    else if (resto == 4)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2]
+      + x1[3] * x2[3];
+    else if (resto == 5)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2]
+      + x1[3] * x2[3] + x1[4] * x2[4];
+    else if (resto == 6)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2]
+      + x1[3] * x2[3] + x1[4] * x2[4] + x1[5] * x2[5];
+    else if (resto == 7)
+      tmpDotOmp1 = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2]
+      + x1[3] * x2[3] + x1[4] * x2[4] + x1[5] * x2[5]
+      + x1[6] * x2[6];
+  }
+
+#pragma omp for private(i)\
+   reduction(+:tmpDotOmp1,tmpDotOmp2,tmpDotOmp3\
+              ,tmpDotOmp4,tmpDotOmp5,tmpDotOmp6\
+              ,tmpDotOmp7,tmpDotOmp8)
+  for (i = resto; i<n; i += 8) {
+    tmpDotOmp1 += x1[i] * x2[i];
+    tmpDotOmp2 += x1[i + 1] * x2[i + 1];
+    tmpDotOmp3 += x1[i + 2] * x2[i + 2];
+    tmpDotOmp4 += x1[i + 3] * x2[i + 3];
+    tmpDotOmp5 += x1[i + 4] * x2[i + 4];
+    tmpDotOmp6 += x1[i + 5] * x2[i + 5];
+    tmpDotOmp7 += x1[i + 6] * x2[i + 6];
+    tmpDotOmp8 += x1[i + 7] * x2[i + 7];
+  }
+
+#pragma omp single
+  {
+    tmpDotOmp = tmpDotOmp1 + tmpDotOmp2
+      + tmpDotOmp3 + tmpDotOmp4
+      + tmpDotOmp5 + tmpDotOmp6
+      + tmpDotOmp7 + tmpDotOmp8;
+  }
+
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+  return tmpDotOmp;
+}
+/*********************************************************************/
+
+/*********************************************************************
+* DOTOMPO2: produto interno entre dois vetores                      *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* x1 - vetor x1                                                     *
+* x2 - vetor x2                                                     *
+* n  - numero de dimensoes                                          *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*                                                                   *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+double dotOmpO2(double *restrict x1, double *restrict x2, INT n)
+{
+  INT i;
+  int resto = n % 2;
+
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+#pragma omp single
+  {
+    tmpDotOmp = 0.0e0;
+    if (resto)
+      tmpDotOmp = x1[0] * x2[0];
+  }
+
+#pragma omp for private(i) reduction(+:tmpDotOmp)
+  for (i = resto; i<n; i += 2) {
+    tmpDotOmp += x1[i] * x2[i] + x1[i + 1] * x2[i + 1];
+  }
+
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+  return tmpDotOmp;
+}
+/*********************************************************************/
+
+/*********************************************************************
+* DOTOMPO4: produto interno entre dois vetores                      *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* x1 - vetor x1                                                     *
+* x2 - vetor x2                                                     *
+* n  - numero de dimensoes                                          *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*                                                                   *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+double dotOmpO4(double *restrict x1, double *restrict x2, INT n)
+{
+  INT i;
+  int resto = n % 4;
+
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+#pragma omp single
+  {
+    tmpDotOmp = 0.0e0;
+    if (resto == 1)
+      tmpDotOmp = x1[0] * x2[0];
+    else if (resto == 2)
+      tmpDotOmp = x1[0] * x2[0] + x1[1] * x2[1];
+    else if (resto == 3)
+      tmpDotOmp = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2];
+  }
+
+#pragma omp for private(i) reduction(+:tmpDotOmp)
+  for (i = resto; i<n; i += 4) {
+    tmpDotOmp += x1[i] * x2[i]
+      + x1[i + 1] * x2[i + 1]
+      + x1[i + 2] * x2[i + 2]
+      + x1[i + 3] * x2[i + 3];
+  }
+
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+  return tmpDotOmp;
+}
+/*********************************************************************/
+
+/*********************************************************************
+* DOTOMPO6: produto interno entre dois vetores                      *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* x1 - vetor x1                                                     *
+* x2 - vetor x2                                                     *
+* n  - numero de dimensoes                                          *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*                                                                   *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+double dotOmpO6(double *restrict x1, double *restrict x2, INT n)
+{
+  INT i;
+  int resto = n % 6;
+
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+#pragma omp single
+  {
+    tmpDotOmp = 0.0e0;
+    if (resto == 1)
+      tmpDotOmp = x1[0] * x2[0];
+    else if (resto == 2)
+      tmpDotOmp = x1[0] * x2[0] + x1[1] * x2[1];
+    else if (resto == 3)
+      tmpDotOmp = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2];
+    else if (resto == 4)
+      tmpDotOmp = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2]
+      + x1[3] * x2[3];
+    else if (resto == 5)
+      tmpDotOmp = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2]
+      + x1[3] * x2[3] + x1[4] * x2[4];
+  }
+
+#pragma omp for private(i) reduction(+:tmpDotOmp)
+  for (i = resto; i<n; i += 6) {
+    tmpDotOmp += x1[i] * x2[i]
+      + x1[i + 1] * x2[i + 1]
+      + x1[i + 2] * x2[i + 2]
+      + x1[i + 3] * x2[i + 3]
+      + x1[i + 4] * x2[i + 4]
+      + x1[i + 5] * x2[i + 5];
+  }
+
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+  return tmpDotOmp;
+}
+/*********************************************************************/
+
+/*********************************************************************
+* DOTOMPO8: produto interno entre dois vetores                      *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* x1 - vetor x1                                                     *
+* x2 - vetor x2                                                     *
+* n  - numero de dimensoes                                          *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*                                                                   *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+double dotOmpO8(double *restrict x1, double *restrict x2, INT n)
+{
+  INT i;
+  int resto = n % 8;
+
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+#pragma omp single
+  {
+    tmpDotOmp = 0.0e0;
+    if (resto == 1)
+      tmpDotOmp = x1[0] * x2[0];
+    else if (resto == 2)
+      tmpDotOmp = x1[0] * x2[0] + x1[1] * x2[1];
+    else if (resto == 3)
+      tmpDotOmp = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2];
+    else if (resto == 4)
+      tmpDotOmp = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2]
+      + x1[3] * x2[3];
+    else if (resto == 5)
+      tmpDotOmp = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2]
+      + x1[3] * x2[3] + x1[4] * x2[4];
+    else if (resto == 6)
+      tmpDotOmp = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2]
+      + x1[3] * x2[3] + x1[4] * x2[4] + x1[5] * x2[5];
+    else if (resto == 7)
+      tmpDotOmp = x1[0] * x2[0] + x1[1] * x2[1] + x1[2] * x2[2]
+      + x1[3] * x2[3] + x1[4] * x2[4] + x1[5] * x2[5]
+      + x1[6] * x2[6];
+  }
+
+#pragma omp for 
+  for (i = resto; i<n; i += 8) {
+    tmpDotOmp += x1[i] * x2[i]
+      + x1[i + 1] * x2[i + 1]
+      + x1[i + 2] * x2[i + 2]
+      + x1[i + 3] * x2[i + 3]
+      + x1[i + 4] * x2[i + 4]
+      + x1[i + 5] * x2[i + 5]
+      + x1[i + 6] * x2[i + 6]
+      + x1[i + 7] * x2[i + 7];
+  }
+
+#pragma omp single
+  tm.dot = getTimeC() - tm.dot;
+
+  return tmpDotOmp;
+}
+/*********************************************************************/
 /*==================================================================*/
 
 /*======================== level 2 =================================*/
@@ -1137,6 +1852,100 @@ void mpiMatVecCsrDcooSym(INT const nEq      ,INT const *nAd
 #endif
 } 
 /*********************************************************************/ 
+
+/********************************************************************
+* Data de criacao    : 28/08/2016                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* MATVECCSRDSYMOMP:produto matriz vetor para uma matriz no formato  *
+* CSRD (y=Ax, A uma matriz simentrica) (OMP)                        *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* neq     -> numero de equacoes                                     *
+* ia      -> vetor csr                                              *
+* ja      -> vetor csr                                              *
+* al      -> vetor com os valores inferiores da matriz              *
+* ad      -> vetor com os valores da diagonal principal da matriz   *
+* x       -> vetor a ser multiplicado                               *
+* y       -> indefinido                                             *
+* thBegin -> linha inicial do thread i                              *
+* thEnd   -> linha final do thread i                                *                       *
+* thHeight-> menor linha que o thread i acessa no vertor y          *
+* thY     -> buffer Y                                               *
+* tThreads-> numero de threads                                      *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* y   -> vetor com o resultado da multiplicacao                     *
+*-------------------------------------------------------------------*
+* OBS: ja guarda os indiceis da parte inferior da matriz            *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void matVecCsrDsymOmp(INT const nEq
+                     ,INT *restrict ia       ,INT *restrict ja
+                     ,DOUBLE *restrict al    ,DOUBLE *restrict ad
+                     ,DOUBLE *restrict x     ,DOUBLE *restrict y
+                     ,INT  *restrict thBegin ,INT *restrict thEnd
+                     ,INT  *restrict thHeight
+                     ,DOUBLE *restrict thY   ,int const nThreads)
+{
+  INT    i, k, jak,inc,id=0;
+  DOUBLE xi, tmp, sAu;
+
+/*...*/
+#pragma omp single 
+  tm.matVecSparse = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+
+  id = omp_get_thread_num();
+
+/*... inicializacao do buffer*/
+  for (i = 0; i<nThreads; i++) {
+    inc = i*nEq;
+#pragma omp for 
+    for (k = thHeight[i] + inc; k<thBegin[i] + inc; k++)
+      thY[k] = 0.e0; 
+  }
+/*...................................................................*/
+
+  inc = id*nEq;
+
+/*...*/
+  for(i=thBegin[id];i<thEnd[id];i++) {
+    y[i] = 0.e0;
+    xi   = x[i];
+    tmp  = ad[i]*xi;
+    for(k=ia[i];k<ia[i+1];k++) {
+      jak = ja[k];
+      sAu = al[k];
+/*... produto da linha i pelo vetor x*/
+      tmp     += sAu*x[jak];
+/*... produto dos coef. da parte superior da matriz por x(i)*/
+      jak       = jak + inc;
+      thY[jak] += sAu*xi;
+    }
+/*... armazena o resultado em y(i) */
+    thY[i+inc] = tmp;
+  }
+/*...................................................................*/
+
+#pragma omp barrier
+/*... y <- bufferY*/
+  for(i=0;i<nThreads;i++) {
+    inc = i*nEq;
+#pragma omp for 
+    for(k=thHeight[i]; k<thEnd[i]; k++)
+      y[k] += thY[k+inc];
+  }
+/*...................................................................*/
+
+/*...*/
+#pragma omp single 
+  tm.matVecSparse = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+}
+/*********************************************************************/
 
 /*********************** CSRD GERAL **********************************/
 
@@ -1936,6 +2745,72 @@ void mpiMatVecCsrD(INT const neq     ,INT const *nAd
 }
 /*********************************************************************/
 
+/*********************************************************************
+* Data de criacao    : 28/08/2016                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* MATVECCSRD :produto matriz vetor para uma matriz no formato CSRD  *
+* (y=Ax, A uma matriz nao simentrica)                               *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* neq -> numero de equacoes                                         *
+* ia  -> vetor csr                                                  *
+* ja  -> vetor csr                                                  *
+* a   -> vetor com os valores da matriz fora diagonal               *
+* ad  -> vetor com os valores da diagonal principal da matriz       *
+* x   -> vetor a ser multiplicado                                   *
+* y   -> indefinido                                                 *
+* thBegin -> linha inicial do thread i                              *
+* thEnd   -> linha final do thread i                                *
+* thHeight-> menor linha que o thread i acessa no vertor y          *
+* thY     -> buffer Y                                               *
+* ddum    -> indefinido                                             *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* y   -> vetor com o resultado da multiplicacao                     *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void matVecCsrDomp(INT const nEq
+                ,INT *restrict ia, INT *restrict ja
+                ,DOUBLE *restrict a, DOUBLE *restrict ad
+                ,DOUBLE *restrict x, DOUBLE *restrict y
+                ,INT  *restrict thBegin, INT *restrict thEnd
+                ,INT  *restrict thHeight
+                ,DOUBLE *ddum           , int const nThreads)
+{
+
+  INT i, j,id=0;
+  DOUBLE tmp;
+ 
+/*...*/
+#pragma omp single
+  tm.matVecSparse = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+
+  id = omp_get_thread_num();
+
+/*...*/
+  for(i=thBegin[id];i<thEnd[id];i++) {
+    tmp = ad[i]*x[i];
+    for (j=ia[i];j<ia[i+1];j++) {
+      tmp += a[j]*x[ja[j]];
+    }
+    y[i] = tmp;
+  }
+}
+/*...................................................................*/
+
+/*...*/
+#pragma omp single
+  tm.matVecSparse = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+}
+/*********************************************************************/
+
 /***************** CSRC ESTRUTURALMENTE SIMETRICA ********************/
 
 /********************************************************************* 
@@ -1998,6 +2873,106 @@ void matVecCsrC(INT const neq
 /*...................................................................*/
 } 
 /*********************************************************************/ 
+
+/********************************************************************
+* Data de criacao    : 28/08/2016                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* MATVECCSRCOMP:produto matriz vetor para uma matriz no formato CSRC*
+* (y=Ax, A uma matriz estruturalmente simentrica) (OMP)             *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* neq     -> numero de equacoes                                     *
+* ia      -> vetor csr                                              *
+* ja      -> vetor csr                                              *
+* a       -> vetor com os valores fora da diagonal principal        *
+* ad      -> vetor com os valores da diagonal principal da matriz   *
+* x       -> vetor a ser multiplicado                               *
+* y       -> indefinido                                             *
+* thBegin -> linha inicial do thread i                              *
+* thEnd   -> linha final do thread i                                *
+* thHeight-> menor linha que o thread i acessa no vertor y          *
+* thY     -> buffer Y                                               *
+* tThreads-> numero de threads                                      *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* y   -> vetor com o resultado da multiplicacao                     *
+*-------------------------------------------------------------------*
+* OBS: ja guarda os indiceis da parte inferior da matriz            *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void matVecCsrComp(INT const nEq
+                ,INT *restrict ia       ,INT *restrict ja
+                ,DOUBLE *restrict a     ,DOUBLE *restrict ad
+                ,DOUBLE *restrict x     ,DOUBLE *restrict y
+                ,INT  *restrict thBegin ,INT *restrict thEnd
+                ,INT  *restrict thHeight
+                ,DOUBLE *restrict thY   ,int const nThreads) 
+{
+  INT    i, k, jak, nAd,inc,id=0;
+  DOUBLE xi, tmp;
+  DOUBLE *restrict au = NULL;
+  DOUBLE *restrict al = NULL;
+
+  nAd = ia[nEq] - ia[0];
+
+  au = &a[nAd];
+  al = &a[0];
+
+/*...*/
+#pragma omp single
+  tm.matVecSparse = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+
+  id = omp_get_thread_num();
+
+/*... inicializacao do buffer*/
+  for (i = 0; i<nThreads; i++) {
+    inc = i*nEq;
+#pragma omp for 
+    for (k=thHeight[i]+inc;k<thBegin[i]+inc;k++)
+      thY[k] = 0.e0;
+  }
+/*...................................................................*/
+
+  inc = id*nEq;
+
+/*...*/
+  for(i=thBegin[id];i<thEnd[id];i++) {
+    y[i] = 0.e0;
+    xi   = x[i];
+    tmp  = ad[i]*xi;
+    for(k=ia[i];k<ia[i+1];k++) {
+      jak       = ja[k];
+/*... produto da linha i pelo vetor x*/
+      tmp      += al[k]*x[jak];
+/*... produto dos coef. da parte superior da matriz por x(i)*/
+      jak       = jak + inc;
+      thY[jak] += au[k]*xi;
+    }
+/*... armazena o resultado em y(i) */
+    thY[i+inc] = tmp;
+  }
+/*...................................................................*/
+
+#pragma omp barrier
+/*... y <- bufferY*/
+  for(i=0;i<nThreads;i++) {
+    inc = i*nEq;
+#pragma omp for 
+    for(k=thHeight[i];k<thEnd[i];k++)
+      y[k] += thY[k+inc];
+  }
+/*...................................................................*/
+
+/*...*/
+#pragma omp single
+  tm.matVecSparse = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+}
+/*********************************************************************/
 
 /********************************************************************* 
  * MPIMATVECCSRC :produto matriz vetor para uma matriz no formato    *

@@ -5,10 +5,10 @@
   #include<Mesh.h>
   #include<ParallelMpi.h>
   #include<Erro.h>  
-  #include<Sisteq.h>
   #include<HccaStdBool.h>
   #include<Define.h>
   #include<HccaTime.h>
+  #include<OpenMp.h>
 /*...................................................................*/
 
 /*...*/
@@ -29,17 +29,33 @@
                        ,INT const nDim    ,DOUBLE *restrict c);
 /*...................................................................*/
 
-/*... produto enterno*/
+/*... produto enterno (MPI)*/
   DOUBLE dot(DOUBLE *restrict a,DOUBLE *restrict b,INT const nDim);
-  DOUBLE dotO2L2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
-  DOUBLE dotL2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
-  DOUBLE dotL4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
-  DOUBLE dotL6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
-  DOUBLE dotL8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
+  DOUBLE dotO2I2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
+  DOUBLE dotI2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
+  DOUBLE dotI4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
+  DOUBLE dotI6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
+  DOUBLE dotI8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
   DOUBLE dotO2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
   DOUBLE dotO4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
   DOUBLE dotO6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
   DOUBLE dotO8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
+/*...................................................................*/
+
+/*... produto enterno (OPENMP)*/
+  DOUBLE dotOmp(DOUBLE *restrict a,DOUBLE *restrict b,INT const nDim);
+  DOUBLE dotOmpO2I2(DOUBLE *restrict x1,DOUBLE *restrict x2
+                   ,INT const n);
+  DOUBLE dotOmpO2I4(DOUBLE *restrict x1,DOUBLE *restrict x2
+                   ,INT const n);
+  DOUBLE dotOmpI2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
+  DOUBLE dotOmpI4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
+  DOUBLE dotOmpI6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
+  DOUBLE dotOmpI8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
+  DOUBLE dotOmpO2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
+  DOUBLE dotOmpO4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
+  DOUBLE dotOmpO6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
+  DOUBLE dotOmpO8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n);
 /*...................................................................*/
 /*==================================================================*/
 
@@ -49,6 +65,16 @@
                     ,INT *restrict ia   ,INT *restrict ja
                     ,DOUBLE *restrict al,DOUBLE *restrict ad
                     ,DOUBLE *restrict x ,DOUBLE *restrict y);
+/*...................................................................*/
+
+/*... CsrDSymOmp*/
+  void matVecCsrDsymOmp(INT const nEq
+                       ,INT *restrict ia, INT *restrict ja
+                       ,DOUBLE *restrict al, DOUBLE *restrict ad
+                       ,DOUBLE *restrict x, DOUBLE *restrict y
+                       ,INT  *restrict thBegin, INT *restrict thEnd
+                       ,INT  *restrict thHeight
+                       ,DOUBLE *restrict thY, int const nThreads);
 /*...................................................................*/
 
 /*... CsrD*/ 
@@ -86,6 +112,16 @@
                      ,DOUBLE *restrict x,DOUBLE *restrict y);
 /*...................................................................*/
 
+/*... OPENMP - CsrD*/
+  void matVecCsrDomp(INT const neq
+                    ,INT *restrict ia      ,INT *restrict ja
+                    ,DOUBLE *restrict a    ,DOUBLE *restrict ad
+                    ,DOUBLE *restrict x    ,DOUBLE *restrict y
+                    ,INT  *restrict thBegin,INT *restrict thEnd
+                    ,INT  *restrict thHeight
+                    ,DOUBLE *ddum          ,int const nThreads);
+/*...................................................................*/
+
 /*... MPI - CsrD */ 
 /*... Simetrico*/
 /*... CSRD+CSR*/
@@ -117,6 +153,16 @@
                  ,INT *restrict ia  ,INT *restrict ja
                  ,DOUBLE *restrict a,DOUBLE *restrict ad
                  ,DOUBLE *restrict x,DOUBLE *restrict y);
+
+/*... CsrCsymOmp*/
+  void matVecCsrComp(INT const nEq
+                    ,INT *restrict ia      ,INT *restrict ja
+                    ,DOUBLE *restrict a    ,DOUBLE *restrict ad
+                    ,DOUBLE *restrict x    ,DOUBLE *restrict y
+                    ,INT  *restrict thBegin,INT *restrict thEnd
+                    ,INT  *restrict thHeight
+                    ,DOUBLE *restrict thY, int const nThreads);
+/*...................................................................*/
 
 /*... CSRD+CSR*/
   void mpiMatVecCsrC(INT const nEq      ,INT const *nAd      

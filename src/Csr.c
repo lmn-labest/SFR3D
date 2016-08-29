@@ -1320,3 +1320,199 @@ void csrSimple(INT    *restrict  ia,INT *restrict ja
 
 }
 /*********************************************************************/ 
+
+//#ifdef _OPENMP
+/*********************************************************************
+* Data de criacao    : 27/07/2016                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* PARTITIOBCSRBYNOZEROS: divisa do trabalho por threads para matriz *
+* no formato CSR                                                    *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* ia       -> ponteiro CSR                                          *
+* ja       -> ponteiro CSR                                          *
+* neq      -> numero de equacoes                                    *
+* thBegin  -> nao definido                                          *
+* thEnd    -> nao definido                                          *
+* thSize   -> nao definido                                          *
+* thHeigth -> nao definido                                          *
+* type     -> CSR,CSRD,CSRC                                         *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* thBegin  -> primeira linha do sistema do thread i                 *
+* thEnd    -> ultima linha do sistema do thread i                   *
+* thSize   -> numero de termo nao nulos no thread i                 *
+* thHeight -> altura efetiva do thread                              *
+*-------------------------------------------------------------------*
+* OBS: retorna o numero de elmentos nao nulos                       *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void partitionCsrByNonzeros(INT *restrict ia      ,INT *restrict ja
+                           ,INT const neq
+                           ,int nThreads          ,INT *restrict thBegin
+                           ,INT *restrict thEnd   ,INT *restrict thSize
+                           ,INT *restrict thHeight,short type) {
+
+  INT nad, meanVariables, line;
+  INT tam;
+  int i, nTh;
+
+  for (i = 0; i<nThreads; i++) {
+    thBegin[i] = 0;
+    thEnd[i] = 0;
+    thSize[i] = 0;
+    thHeight[i] = 0;
+  }
+/*se o numero de threads for maior que o numero de equacoes*/
+  if (neq < nThreads)
+    nThreads = neq;
+  
+  nad = ia[neq];
+  switch (type) {
+/*... CSR padrao*/
+    case CSR:
+      meanVariables = nad / nThreads;
+      line = 1;
+      thBegin[0] = 0;
+      for(i = 0; i<nThreads - 1; i++) {
+        thSize[i] = 0;
+        tam = 0;
+        for (;;) {
+          tam = ia[line] - ia[line - 1];
+          thSize[i] += tam;
+          thEnd[i] = line - 1;
+          thBegin[i + 1] = line;
+          line++;
+          if ((thSize[i] + tam) > meanVariables) break;
+          if (line > neq) {
+            ERRO_GERAL(__FILE__, __func__,__LINE__
+                      ,"numero de linhas excedido");
+          }
+        }
+      }
+      nTh = nThreads - 1;
+      thSize[nTh] = ia[neq] - ia[thBegin[nTh]];
+      thEnd[nTh] = neq - 1;
+    break;
+/*...................................................................*/
+
+/*... CSRD - csr sem a diagonal principal*/
+    case CSRD:
+      meanVariables = (nad + neq) / nThreads;
+      line = 1;
+      thBegin[0] = 0;
+      for (i = 0; i<nThreads - 1; i++) {
+        thSize[i] = 0;
+        tam = 0;
+        for (;;) {
+          tam = ia[line] - ia[line - 1] + 1;
+          thSize[i] += tam;
+          thEnd[i] = line;
+          thBegin[i + 1] = line;
+          line++;
+          if ((thSize[i] + tam) > meanVariables) break;
+          if (line > neq) {
+            ERRO_GERAL(__FILE__, __func__, __LINE__
+                       , "numero de linhas excedido");
+          }
+        }
+      }
+      nTh = nThreads - 1;
+      thEnd[nTh] = neq;
+      thSize[nTh] = ia[neq] - ia[thBegin[nTh]] +
+                   (thEnd[nTh] - thBegin[nTh] + 1);
+    break;
+/*...................................................................*/
+
+/*... CSRC*/
+    case CSRC:
+      meanVariables = (2 * nad + neq) / nThreads;
+      line = 1;
+      thBegin[0] = 0;
+      for (i = 0; i<nThreads - 1; i++) {
+        thSize[i] = 0;
+        tam = 0;
+        for (;;) {
+          tam = 2 * (ia[line] - ia[line - 1]) + 1;
+          thSize[i] += tam;
+          thEnd[i] = line;
+          thBegin[i + 1] = line;
+          line++;
+          if ((thSize[i] + tam) > meanVariables) break;
+          if (line > neq) {
+            ERRO_GERAL(__FILE__, __func__, __LINE__
+                      , "numero de linhas excedido");
+          }
+        }
+      }
+      nTh = nThreads - 1;
+      thEnd[nTh] = neq;
+      thSize[nTh] = 2 * (ia[neq] - ia[thBegin[nTh]]) + 1;
+
+/*... calcula o tamanho efetivo do buffer*/
+      computeEffectiveWork(ia     ,ja
+                          ,neq
+                          ,thBegin,thEnd
+                          ,thSize ,thHeight);
+
+    break;
+/*...................................................................*/
+
+/*...*/
+    default:
+      ERRO_OP(__FILE__, __func__, type);
+    break;
+  }
+/*...................................................................*/
+
+}
+/*********************************************************************/
+
+/*********************************************************************
+* Data de criacao    : 27/07/2016                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* COMPUTEEFFECTIVEWORK: calcula o trabalho efetivo por thread       *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* ia      -> ponteiro CSR                                           *
+* ja      -> ponteiro CSR                                           *
+* neq     -> numero de equacoes                                     *
+* thBegin -> nao definido                                           *
+* thEnd   -> nao definido                                           *
+* thSize  -> nao definido                                           *
+* thHeight-> nao definido                                           *
+* type    -> CSR,CSRD,CSRC                                          *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* thBegin  -> primeira linha do sistema do thread i                 *
+* thEnd    -> ultima linha do sistema do thread i                   *
+* thSize   -> numero de termo nao nulos no thread i                 *
+* thHeight -> altura efetiva do thread                              *
+*-------------------------------------------------------------------*
+* OBS: retorna o numero de elmentos nao nulos                       *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void computeEffectiveWork(INT *restrict ia, INT *restrict ja
+                    ,INT const nEq
+                    ,INT *restrict thBegin,INT *restrict thEnd
+                    ,INT *restrict thSize ,INT *restrict thHeight) {
+  int i, id = 0, h = 0;
+
+#pragma omp parallel private(id,h)
+  {
+    id = omp_get_thread_num();
+    h = thBegin[id];
+    for (i = thBegin[id]; i<thEnd[id]; i++)
+      h = min(h, ja[ia[i]]);
+    thHeight[id] = h;
+  }
+
+}
+/*********************************************************************/
+//#endif

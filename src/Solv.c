@@ -1,7 +1,7 @@
 #include<Solv.h>
 /**********************************************************************
  * Data de criacao    : 00/00/0000                                    *
- * Data de modificaco : 22/07/2016                                    *
+ * Data de modificaco : 27/08/2016                                    *
  * -------------------------------------------------------------------*
  * SOLVERC: resolucao do sistema linear(Ax=b)                         *
  * -------------------------------------------------------------------*
@@ -19,6 +19,7 @@
  * au      -> parte superior da matriz a                              *
  *  b      -> vetor de forcas                                         *
  * iNeq    -> mapa de interface de equacoes                           *
+ * bOmp    -> Openmp                                                  *
  *  x      -> vetor da solucao                                        *
  * tol     -> tolerancia do solver                                    *
  * maxit   -> numero maximo de iteracao do solver iterativo           *
@@ -27,16 +28,14 @@
  * fSolvLog-> arquivo de log para solver                              *
  * fLog    -> log de arquivo (true|false)                             *
  * newX    -> vetor inicial iniciado com zero                         *
- * openmp  -> flag do openmp true|false                               *
  * unsym   -> matriz nao simetrica                                    *
- * loopwise-                                                          *
  * -------------------------------------------------------------------*
  * Parametro de saida :                                               * 
  * -------------------------------------------------------------------*
  * x      - atualizado                                                *
  * b      - modificado                                                *
  * -------------------------------------------------------------------*
- * OBS: csrD e csrC são iguais para matrizes simetricas               *
+ * OBS: csrD e csrC sao iguais para matrizes simetricas               *
 **********************************************************************/
 void solverC(Memoria *m    
             ,INT const nEq       ,INT const nEqNov  
@@ -44,17 +43,16 @@ void solverC(Memoria *m
             ,INT *ia             ,INT *ja   
             ,DOUBLE *al          ,DOUBLE *ad,DOUBLE *au
             ,DOUBLE *b           ,DOUBLE *x
-            ,Interface *iNeq       
+            ,Interface *iNeq     ,BufferOmp *bOmp
             ,DOUBLE const tol    ,unsigned int maxIt
             ,short const storage ,short const solver
             ,FILE* fSolvLog      ,bool const fLog
-            ,bool const newX     ,bool const openMp   
-            ,bool const unSym    ,bool const loopWise)
+            ,bool const newX     ,bool const unSym    )
 {
   DOUBLE *z=NULL,*r=NULL,*pc=NULL,*t=NULL,*v=NULL,*p=NULL,*h=NULL;
   void   (*matVecC)();
   DOUBLE (*dotC)();
-  bool fPrint = false;
+  bool fPrint = false,openMp = ompVar.fSolver;
 /*...*/
 	dotC    = NULL;
 	matVecC = NULL;
@@ -81,7 +79,7 @@ void solverC(Memoria *m
 /*...................................................................*/
       
 /*...*/
-			setMatVec(&matVecC,storage,unSym);
+			setMatVec(&matVecC,storage,unSym,openMp);
 /*...................................................................*/
 
 /*...*/
@@ -90,33 +88,19 @@ void solverC(Memoria *m
 
 /*... gradientes conjugados*/
       tm.pcg = getTimeC() - tm.pcg;
-/*... PCG-MPI*/
-      if( mpiVar.nPrcs > 1)
-        mpiPcg(nEq      ,nEqNov    
-              ,nAd      ,nAdR
-              ,ia       ,ja
-              ,al       ,ad   ,au
-              ,pc       ,b    ,x
-              ,z        ,r    ,tol
-              ,maxIt    ,true 
-              ,fSolvLog ,fLog
-              ,false 
-              ,iNeq           
-              ,matVecC ,dotC);   
-/*...................................................................*/
-      
-/*... PCG*/
-      else
-        pcg(nEq     ,nAd
-           ,ia      ,ja
-           ,al      ,ad   ,au
-           ,pc      ,b    ,x
-           ,z       ,r    ,p
-           ,tol
-           ,maxIt   ,newX 
-           ,fSolvLog,NULL
-           ,fLog    ,false   ,fPrint
-           ,matVecC ,dotC);   
+      callCg(nEq        ,nEqNov
+             ,nAd        ,nAdR
+             ,ia         ,ja
+             ,al         ,ad
+             ,pc         ,b   
+             ,x          ,z      
+             ,r          ,p
+             ,tol
+             ,maxIt      ,newX
+             ,fSolvLog   ,fLog
+             ,fPrint     
+             ,iNeq       ,bOmp
+             ,matVecC    ,dotC);
 /*...................................................................*/
       tm.pcg = getTimeC() - tm.pcg;
 /*...................................................................*/
@@ -160,7 +144,7 @@ void solverC(Memoria *m
 /*...................................................................*/
 
 /*...*/
-			setMatVec(&matVecC, storage, unSym);
+			setMatVec(&matVecC, storage, unSym,openMp);
 /*...................................................................*/
       
 /*...*/
@@ -169,36 +153,24 @@ void solverC(Memoria *m
 
 /*... gradientes conjugados bi-ortoganilizado*/
       tm.pbicgstab = getTimeC() - tm.pbicgstab;
-/*... PBICGSTAB-MPI*/
-      if( mpiVar.nPrcs > 1)  
-        mpiPbicgstab(nEq   ,nEqNov
-                 ,nAd      ,nAdR
-                 ,ia       ,ja
-                 ,al       ,ad    ,au
-                 ,pc       ,b     ,x
-                 ,t        ,v     ,r
-                 ,p        ,z     ,tol
-                 ,maxIt    ,true          
-                 ,fSolvLog ,fLog
-                 ,false
-                 ,iNeq           
-                 ,matVecC  ,dotC);  
+/*...*/
+      callBicgStab(nEq   ,nEqNov
+                 ,nAd    ,nAdR
+                 ,ia     ,ja
+                 ,al     ,ad    
+                 ,pc     ,b     
+                 ,x      ,t  
+                 ,v      ,r
+                 ,p      ,z
+                 ,h 
+                 ,tol    ,maxIt 
+                 ,true   ,fSolvLog 
+                 ,fLog   ,false
+                 ,iNeq   ,bOmp           
+                 ,matVecC,dotC);  
 /*...................................................................*/
-      
-/*... PBICGSTAB*/
-      else
-        pbicgstab(nEq      ,nAd
-                 ,ia       ,ja
-                 ,al       ,ad    ,au
-                 ,pc       ,b     ,x
-                 ,t        ,v     ,r
-                 ,p        ,z     ,h
-                 ,tol
-                 ,maxIt    ,newX          
-                 ,fSolvLog ,NULL
-                 ,fLog     ,false,fPrint    
-                 ,matVecC  ,dotC);
-/*...................................................................*/
+
+/*...*/
       tm.pbicgstab = getTimeC() - tm.pbicgstab;
 /*...................................................................*/
       
@@ -279,35 +251,65 @@ void setDot(DOUBLE(**dotC)(),short const iCod) {
 /*...*/
 	switch(iCod){
 		case DOT:
-			*dotC = dot;
+      if(ompVar.fSolver)
+        *dotC = dotOmp;
+      else
+			  *dotC = dot;
 			break;
-		case DOTL2:
-	    *dotC    = dotL2;
+		case DOTI2:
+      if (ompVar.fSolver)
+        *dotC = dotOmpI2;
+      else
+	      *dotC = dotI2;
 			break;
-		case DOTL4:
-	    *dotC    = dotL4;
+		case DOTI4:
+      if (ompVar.fSolver)
+        *dotC = dotOmpI4;
+      else
+	      *dotC = dotI4;
 			break;
-		case DOTL6:
-	    *dotC    = dotL6;
+		case DOTI6:
+      if (ompVar.fSolver)
+        *dotC = dotOmpI6;
+      else
+	      *dotC = dotI6;
 			break;
-		case DOTL8:
-	    *dotC    = dotL8;
+		case DOTI8:
+      if (ompVar.fSolver)
+        *dotC = dotOmpI8;
+      else
+	      *dotC = dotI8;
 			break;
 		case DOTO2:
-	    *dotC    = dotO2;
+      if (ompVar.fSolver)
+        *dotC = dotOmpO2;
+      else
+	      *dotC = dotO2;
 			break;
 		case DOTO4:
-	    *dotC    = dotO4;
+      if (ompVar.fSolver)
+        *dotC = dotOmpO4;
+      else
+	      *dotC = dotO4;
 			break;
 		case  DOTO6:
-	    *dotC    = dotO6;
+      if (ompVar.fSolver)
+        *dotC = dotOmpO6;
+      else
+	      *dotC = dotO6;
 			break;
 		case  DOTO8:
-	    *dotC    = dotO8;
+      if (ompVar.fSolver)
+        *dotC = dotOmpO8;
+      else
+	      *dotC = dotO8;
 			break;
-		case  DOTO2L2:
-	    *dotC    = dotO2L2;
-		break;
+		case  DOTO2I2:
+      if (ompVar.fSolver)
+        *dotC = dotOmpO2I2;
+      else
+	      *dotC = dotO2I2;
+		  break;
     default:
 			ERRO_OP(__FILE__, __func__, iCod);
 		break;	
@@ -318,7 +320,7 @@ void setDot(DOUBLE(**dotC)(),short const iCod) {
 
 /**********************************************************************
 * Data de criacao :    22 / 07 / 2016                                 *
-* Data de modificaco : 00 / 00 / 0000  															  *
+* Data de modificaco : 27 / 08 / 2016  															  *
 * ------------------------------------------------------------------- *
 * SETMATVEC: escolhe o produto matriz vetor desejado                  *
 * ------------------------------------------------------------------- *
@@ -334,8 +336,8 @@ void setDot(DOUBLE(**dotC)(),short const iCod) {
 * ------------------------------------------------------------------- *
 * OBS :                                                               *
 **********************************************************************/
-void setMatVec(void (**matVecC)(), short const storage
-              ,bool const unSym) {
+void setMatVec(void (**matVecC)(),short const storage
+              ,bool const unSym  ,bool const openMp) {
 	
 	bool fCoo = false;
 /*... estrutura de dados de armazenamentos da matriz esparcas*/
@@ -361,7 +363,12 @@ void setMatVec(void (**matVecC)(), short const storage
 
 /*... sequencial*/
 			else {
-				*matVecC = matVecCsrD;
+/*... Omp*/
+        if (ompVar.fSolver)
+          *matVecC = matVecCsrDomp;
+/*... sequencial*/
+        else
+          *matVecC = matVecCsrD;
 			}
 /*...................................................................*/
 		}
@@ -387,7 +394,12 @@ void setMatVec(void (**matVecC)(), short const storage
 
 /*... sequencial*/
 			else {
-				*matVecC = matVecCsrDSym;
+/*... Omp*/
+        if (ompVar.fSolver)
+          *matVecC = matVecCsrDsymOmp;
+/*... sequencial*/
+        else
+  				*matVecC = matVecCsrDSym;
 			}
 /*..................................................................*/
 		}
@@ -418,9 +430,14 @@ void setMatVec(void (**matVecC)(), short const storage
 			}
 /*..................................................................*/
 		
-/*... sequencial*/
+/*... sem MPI*/
 			else {
-				*matVecC = matVecCsrC;
+/*... Omp*/
+        if (ompVar.fSolver)
+          *matVecC = matVecCsrComp;
+/*... sequencial*/
+        else
+				  *matVecC = matVecCsrC;
 			}
 /*..................................................................*/
     }		
@@ -446,7 +463,10 @@ void setMatVec(void (**matVecC)(), short const storage
 
 /*... sequencial*/
 			else {
-				*matVecC = matVecCsrDSym;
+        if(ompVar.fSolver)
+          *matVecC = matVecCsrDsymOmp;
+        else
+				  *matVecC = matVecCsrDSym;
 			}
 /*..................................................................*/
 		}
@@ -480,5 +500,178 @@ void setMatVec(void (**matVecC)(), short const storage
 	}
 /*...................................................................*/
 
+}
+/*********************************************************************/
+
+/**********************************************************************
+* Data de criacao    : 27/08/2016                                    *
+* Data de modificaco : 00/00/0000                                    *
+* -------------------------------------------------------------------*
+* CALLCG : chama o gradiente conjugados escolhido                    *
+* -------------------------------------------------------------------*
+* Parametro de entrada                                               *
+* -------------------------------------------------------------------*
+* -------------------------------------------------------------------*
+* Parametro de saida :                                               *
+* -------------------------------------------------------------------*
+* -------------------------------------------------------------------*
+* OBS:                                                               *
+**********************************************************************/
+void callCg(INT const nEq      ,INT const nEqNov
+            ,INT const nAd      ,INT const nAdR
+            ,INT *restrict ia   ,INT *restrict ja
+            ,DOUBLE *restrict al,DOUBLE *restrict ad
+            ,DOUBLE *restrict m ,DOUBLE *restrict b 
+            ,DOUBLE *restrict x ,DOUBLE *restrict z
+            ,DOUBLE *restrict r ,DOUBLE *restrict p
+            ,DOUBLE const tol   ,unsigned int maxIt 
+            ,bool const newX    ,FILE* fSolvLog     
+            ,bool const fLog    ,bool const fPrint  
+            ,Interface *iNeq    ,BufferOmp *bOmp
+            ,void(*matVec)()    ,DOUBLE(*dot)())
+{
+
+/*... PCG-MPI*/
+  if (mpiVar.nPrcs > 1)
+    mpiPcg(nEq     ,nEqNov
+          ,nAd     ,nAdR
+          ,ia      ,ja
+          ,al      ,ad 
+          ,m       ,b  
+          ,x       ,z
+          ,r 
+          ,tol     ,maxIt
+          ,newX    ,fSolvLog
+          ,fLog    ,fPrint
+          ,iNeq
+          ,matVec  ,dot);
+/*...................................................................*/
+
+/*... PCG*/
+  else{
+/*... OpenMp*/
+    if(ompVar.fSolver){
+      pcgOmp(nEq     ,nAd
+            ,ia      ,ja
+            ,al      ,ad
+            ,m       ,b
+            ,x       ,z
+            ,r       ,p
+            ,tol     ,maxIt 
+            ,newX    ,fSolvLog
+            ,NULL    ,fLog    
+            ,false   ,fPrint
+            ,bOmp
+            ,matVec  ,dot);
+    }
+/*...................................................................*/
+
+/*... sequencial*/
+    else{  
+      pcg(nEq     ,nAd
+         ,ia      ,ja
+         ,al      ,ad  
+         ,m       ,b    
+         ,x       ,z   
+         ,r       ,p
+         ,tol     ,maxIt  
+         ,newX    ,fSolvLog
+         ,NULL    ,fLog 
+         ,false   ,fPrint
+         ,matVec  ,dot);
+    }  
+/*...................................................................*/
+  }
+/*...................................................................*/
+}
+/*********************************************************************/
+
+/**********************************************************************
+* Data de criacao    : 27/08/2016                                    *
+* Data de modificaco : 00/00/0000                                    *
+* -------------------------------------------------------------------*
+* CALLBICGCSTAB : chama o gradiente biconjugados estabilizados       *                   *
+* -------------------------------------------------------------------*
+* Parametro de entrada                                               *
+* -------------------------------------------------------------------*
+* -------------------------------------------------------------------*
+* Parametro de saida :                                               *
+* -------------------------------------------------------------------*
+* -------------------------------------------------------------------*
+* OBS:                                                               *
+**********************************************************************/
+void callBicgStab(INT const nEq     ,INT const nEqNov
+                 ,INT const nAd     ,INT const nAdR
+                 ,INT *restrict ia  ,INT *restrict ja
+                 ,DOUBLE *restrict a,DOUBLE *restrict ad
+                 ,DOUBLE *restrict m,DOUBLE *restrict b
+                 ,DOUBLE *restrict x,DOUBLE *restrict t
+                 ,DOUBLE *restrict v,DOUBLE *restrict r
+                 ,DOUBLE *restrict p,DOUBLE *restrict z
+                 ,DOUBLE *restrict h
+                 ,DOUBLE const tol  ,unsigned int maxIt
+                 ,bool const newX   ,FILE* fSolvLog
+                 ,bool const fLog   ,bool const fPrint
+                 ,Interface *iNeq   ,BufferOmp *bOmp
+                 ,void(*matVec)()   ,DOUBLE(*dot)())
+{
+
+/*... PCG-MPI*/
+  if (mpiVar.nPrcs > 1)
+    mpiPbicgstab(nEq     ,nEqNov
+                ,nAd     ,nAdR
+                ,ia      ,ja
+                ,a       ,ad  
+                ,m       ,b   
+                ,x       ,t   
+                ,v       ,r
+                ,p       ,z  
+                ,tol
+                ,maxIt   ,newX
+                ,fSolvLog,fLog
+                ,fPrint  ,iNeq
+                ,matVec  ,dot);
+/*...................................................................*/
+
+/*... PCG*/
+  else {
+/*... OpenMp*/
+    if (ompVar.fSolver) {
+      pbicgstabOmp(nEq   ,nAd
+                  ,ia    ,ja
+                  ,a     ,ad
+                  ,m     ,b
+                  ,x     ,t
+                  ,v     ,r
+                  ,p     ,z
+                  ,h
+                  ,tol   ,maxIt
+                  ,newX  ,fSolvLog
+                  ,NULL  ,fLog
+                  ,false ,fPrint
+                  ,bOmp
+                  ,matVec,dot);
+    }
+/*...................................................................*/
+
+/*... sequencial*/
+    else {
+      pbicgstab(nEq   ,nAd
+               ,ia    ,ja
+               ,a     ,ad
+               ,m     ,b 
+               ,x     ,t   
+               ,v     ,r
+               ,p     ,z 
+               ,h
+               ,tol   ,maxIt  
+               ,newX  ,fSolvLog
+               ,NULL  ,fLog  
+               ,false ,fPrint
+               ,matVec,dot);
+    }
+/*...................................................................*/
+  }
+/*...................................................................*/
 }
 /*********************************************************************/

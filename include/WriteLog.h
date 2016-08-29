@@ -17,6 +17,7 @@
              ,Time t
              ,bool const fSolvD1 ,bool const fSolvT1
              ,bool const fSolvVel,bool const fSolvPres
+             ,Omp omp
              ,char *nameIn       ,FILE *file);
 
   void writeLogMeanTime(Mesh mesh         ,Scheme sc

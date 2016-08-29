@@ -248,12 +248,11 @@ void simpleSolver2D(Memoria *m
            ,sistEqVel->ia      ,sistEqVel->ja  
            ,sistEqVel->al      ,adU1         ,sistEqVel->au
            ,b1                 ,xu1          
-           ,&sistEqVel->iNeq
+           ,&sistEqVel->iNeq   ,&sistEqVel->omp
            ,solvVel->tol       ,solvVel->maxIt     
            ,sistEqVel->storage ,solvVel->solver
            ,solvVel->fileSolv  ,solvVel->log  
-           ,false              ,false
-           ,sistEqVel->unsym   ,false);   
+           ,false              ,sistEqVel->unsym   );   
        tm.solvVel = getTimeC() - tm.solvVel;
      }
 /*...................................................................*/
@@ -268,12 +267,11 @@ void simpleSolver2D(Memoria *m
            ,sistEqVel->ia      ,sistEqVel->ja  
            ,sistEqVel->al      ,adU2       ,sistEqVel->au
            ,b2                 ,xu2
-           ,&sistEqVel->iNeq
+           ,&sistEqVel->iNeq   ,&sistEqVel->omp
            ,solvVel->tol       ,solvVel->maxIt     
            ,sistEqVel->storage ,solvVel->solver
            ,solvVel->fileSolv  ,solvVel->log  
-				   ,false              ,false
-           ,sistEqVel->unsym   ,false);  
+				   ,false              ,sistEqVel->unsym   );  
        tm.solvVel = getTimeC() - tm.solvVel;
      }
 /*...................................................................*/
@@ -347,12 +345,11 @@ void simpleSolver2D(Memoria *m
            ,sistEqPres->ia     ,sistEqPres->ja  
            ,sistEqPres->al     ,sistEqPres->ad,sistEqPres->au
            ,bPc                ,xp
-           ,&sistEqPres->iNeq
+           ,&sistEqPres->iNeq, &sistEqPres->omp
            ,solvPres->tol      ,solvPres->maxIt     
            ,sistEqPres->storage,solvPres->solver
            ,solvPres->fileSolv ,solvPres->log  
-           ,false              ,false
-           ,sistEqPres->unsym  ,false);   
+           ,false              ,sistEqPres->unsym  );   
        tm.solvPres = getTimeC() - tm.solvPres;
 /*...................................................................*/
 
@@ -423,12 +420,11 @@ void simpleSolver2D(Memoria *m
             ,sistEqPres->ia     ,sistEqPres->ja
             ,sistEqPres->al     ,sistEqPres->ad,sistEqPres->au
             ,bPc                ,xp
-            ,&sistEqPres->iNeq
+            ,&sistEqPres->iNeq  ,&sistEqPres->omp
             ,solvPres->tol      ,solvPres->maxIt
             ,sistEqPres->storage,solvPres->solver
             ,solvPres->fileSolv ,solvPres->log
-            ,true               ,false
-            ,sistEqPres->unsym  ,false);
+            ,true               ,sistEqPres->unsym  );
          tm.solvPres = getTimeC() - tm.solvPres;  
 /*...................................................................*/
 
@@ -809,12 +805,11 @@ void simpleSolver3D(Memoria *m
            ,sistEqVel->ia      ,sistEqVel->ja  
            ,sistEqVel->al      ,adU1          ,sistEqVel->au
            ,b1                 ,xu1          
-           ,&sistEqVel->iNeq
+           ,&sistEqVel->iNeq   ,&sistEqVel->omp
            ,solvVel->tol       ,solvVel->maxIt     
            ,sistEqVel->storage ,solvVel->solver
            ,solvVel->fileSolv  ,solvVel->log  
-           ,true               ,false
-           ,sistEqVel->unsym   ,false);   
+           ,true               ,sistEqVel->unsym   );   
        tm.solvVel = getTimeC() - tm.solvVel;
      }
 /*...................................................................*/
@@ -829,12 +824,11 @@ void simpleSolver3D(Memoria *m
            ,sistEqVel->ia      ,sistEqVel->ja  
            ,sistEqVel->al      ,adU2         ,sistEqVel->au
            ,b2                 ,xu2
-           ,&sistEqVel->iNeq
+           ,&sistEqVel->iNeq   ,&sistEqVel->omp
            ,solvVel->tol       ,solvVel->maxIt     
            ,sistEqVel->storage ,solvVel->solver
            ,solvVel->fileSolv  ,solvVel->log  
-           ,true               ,false
-           ,sistEqVel->unsym   ,false);  
+           ,true               ,sistEqVel->unsym   );  
        tm.solvVel = getTimeC() - tm.solvVel;
      }
 /*...................................................................*/
@@ -849,12 +843,11 @@ void simpleSolver3D(Memoria *m
            ,sistEqVel->ia      ,sistEqVel->ja  
            ,sistEqVel->al      ,adU3           ,sistEqVel->au
            ,b3                 ,xu3
-           ,&sistEqVel->iNeq
+           ,&sistEqVel->iNeq   ,&sistEqVel->omp
            ,solvVel->tol       ,solvVel->maxIt     
            ,sistEqVel->storage ,solvVel->solver
            ,solvVel->fileSolv  ,solvVel->log  
-           ,true               ,false
-           ,sistEqVel->unsym   ,false);  
+           ,true               ,sistEqVel->unsym   );  
        tm.solvVel = getTimeC() - tm.solvVel;
      }
 /*...................................................................*/
@@ -935,12 +928,11 @@ void simpleSolver3D(Memoria *m
            ,sistEqPres->ia     ,sistEqPres->ja  
            ,sistEqPres->al     ,sistEqPres->ad,sistEqPres->au
            ,bPc                ,xp
-           ,&sistEqPres->iNeq
+           ,&sistEqPres->iNeq  ,&sistEqPres->omp
            ,solvPres->tol      ,solvPres->maxIt     
            ,sistEqPres->storage,solvPres->solver
            ,solvPres->fileSolv ,solvPres->log  
-           ,true               ,false
-           ,sistEqPres->unsym  ,false);   
+           ,true               ,sistEqPres->unsym  );   
        tm.solvPres = getTimeC() - tm.solvPres;
 /*...................................................................*/
 
@@ -1010,12 +1002,11 @@ void simpleSolver3D(Memoria *m
             ,sistEqPres->ia     ,sistEqPres->ja
             ,sistEqPres->al     ,sistEqPres->ad,sistEqPres->au
             ,bPc                ,xp
-            ,&sistEqPres->iNeq
+            ,&sistEqPres->iNeq  ,&sistEqPres->omp
             ,solvPres->tol      ,solvPres->maxIt
             ,sistEqPres->storage,solvPres->solver
             ,solvPres->fileSolv ,solvPres->log
-            ,true               ,false
-            ,sistEqPres->unsym  ,false);
+            ,true               ,sistEqPres->unsym  );
          tm.solvPres = getTimeC() - tm.solvPres;  
 /*...................................................................*/
 

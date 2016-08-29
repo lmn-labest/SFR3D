@@ -1,7 +1,7 @@
 #ifndef _MYTIME_H_
   #define _MYTIME_H_
   #if _OPENMP
-    #include<Openmp.h>
+    #include<omp.h>
   #elif _WIN32 
     #include<time.h> 
   #elif _MPICH_ 

@@ -194,15 +194,15 @@
 
 /*... produto interno*/
   #define DOT      1
-	#define DOTL2    2
-	#define DOTL4    3
-	#define DOTL6    4
-	#define DOTL8    5
+	#define DOTI2    2
+	#define DOTI4    3
+	#define DOTI6    4
+	#define DOTI8    5
 	#define DOTO2    6
 	#define DOTO4    7
 	#define DOTO6    8
 	#define DOTO8    9
-	#define DOTO2L2 10
+	#define DOTO2I2 10
 /*...................................................................*/
 /*... vtk elmentos*/
   #define VTK_LINE      3
@@ -222,10 +222,6 @@
   #else
     #define LONG_INT long
   #endif
-/*...................................................................*/
-
-/*...*/
-  DOUBLE oneDivTree;
 /*...................................................................*/
 
 /*... macro para acesso matricial em vetores*/

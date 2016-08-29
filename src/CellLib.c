@@ -1054,7 +1054,7 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
         x2 = MAT3D(cCell,no2,j,lx,maxNo,ndm);
         x3 = MAT3D(cCell,no3,j,lx,maxNo,ndm);
 /*...*/
-        MAT2D(i,j,xm  ,ndm) =  oneDivTree*(x1+x2+x3);
+        MAT2D(i,j,xm  ,ndm) =  D1DIV3*(x1+x2+x3);
 /*...................................................................*/  
 
 /*...*/
@@ -1591,7 +1591,7 @@ void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict fArea
       no[1] = MAT2D(i,1,isNod,3);
       no[2] = MAT2D(i,2,isNod,3);
       for(j=0;j<ndf;j++)
-        uf[j] = oneDivTree*(MAT2D(no[0],j,u,ndf) 
+        uf[j] = D1DIV3*(MAT2D(no[0],j,u,ndf) 
                            +MAT2D(no[1],j,u,ndf)
                            +MAT2D(no[2],j,u,ndf));
     }
@@ -2893,7 +2893,7 @@ DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
          +  MAT2D(i,2,xm,3)*MAT2D(i,2,normal,3)); 
   }   
   
-  return dot*oneDivTree;
+  return dot*D1DIV3;
 
 }
 /*********************************************************************/
@@ -4150,7 +4150,7 @@ DOUBLE sizeCar(DOUBLE const volume,short const ndm)
 {
 
   if(ndm == 2)      return sqrt(volume);
-  else if(ndm == 3) return pow(volume,oneDivTree);
+  else if(ndm == 3) return pow(volume,D1DIV3);
 
   return 0.0;
 }

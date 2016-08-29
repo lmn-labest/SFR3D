@@ -5,6 +5,7 @@
 /*********************************************************************/
 
 /*********************************************************************/
+#include<Adjcency.h>
 #include<CellLoop.h>
 #include<Coo.h>
 #include<Diffusion.h>
@@ -23,6 +24,7 @@
 #include<Reord.h>
 #include<Transient.h>
 #include<Transport.h>
+#include<OpenMp.h>
 /*********************************************************************/
 
 /*********************************************************************/
@@ -47,6 +49,7 @@ int main(int argc,char**argv){
   Simple *simple;
 
 /*... solver*/
+  INT nEqMax;
   Solv *solvD1=NULL,*solvT1=NULL,*solvVel=NULL,*solvPres=NULL;
   bool fSolvD1 = false, fSolvT1 = false;
   bool fSolvVel = false,fSolvPres = false,fSolvSimple = false;
@@ -60,7 +63,7 @@ int main(int argc,char**argv){
   char loopWord[100][MAX_LINE];
   unsigned short kLoop,jLoop,ndf;
   bool flWord=false;
-  unsigned short nScheme; 
+  unsigned short nScheme,nOmp; 
 
 /*... Estrutura de dados*/
   char strIa[MNOMEPONTEIRO],strJa[MNOMEPONTEIRO];
@@ -86,7 +89,7 @@ int main(int argc,char**argv){
   char macro[][WORD_SIZE] = 
   {"mesh"        ,"stop"         ,"config"        /* 0, 1, 2*/
   ,"pgeo"        ,"pcoob"        ,"pcoo"          /* 3, 4, 5*/ 
-  ,"presolvD1"   ,"presolvT1"    ,""              /* 6, 7, 8*/
+  ,"presolvD1"   ,"presolvT1"    ,"openmp"        /* 6, 7, 8*/
   ,"solvD1"      ,""             ,"pD1"           /* 9,10,11*/
   ,"nlItD1"      ,"pD1CsvCell"   ,"pD1CsvNode"    /*12,13,14*/
   ,"solvT1"      ,""             ,"pT1"           /*15,16,17*/
@@ -101,8 +104,12 @@ int main(int argc,char**argv){
   nmax = 200000;
 /* ..................................................................*/
 
-/*... definicao de variaveis globais*/
-  oneDivTree = 1.e0/3.e0;
+/*... OpenMP*/
+  ompVar.nThreadsSolver = 1;
+  ompVar.fSolver        = false;
+
+  ompVar.nThreadsCell   = 1;
+  ompVar.fCell          = false;
 /* ..................................................................*/
 
 /* ... opcoes de arquivos */                                           
@@ -531,6 +538,7 @@ int main(int argc,char**argv){
               ,tm       
               ,fSolvD1   ,fSolvT1     
               ,fSolvVel  ,fSolvPres   
+              ,ompVar
               ,nameIn    ,fileLog);
       fclose(fileLog);
 /*...................................................................*/
@@ -1062,6 +1070,49 @@ int main(int argc,char**argv){
 /*...................................................................*/
       if(!mpiVar.myId  ) printf("%s\n\n",DIF);
     }   
+/*===================================================================*/
+
+/*===================================================================*
+* macro: openmp: configuracao do openmp  
+*===================================================================*/
+    else if ((!strcmp(word, macro[8]))) {
+/*... tecnica de adveccao*/
+      readMacro(fileIn, word, false);
+      printf("OpenMp:\n");
+      nOmp = (short)atol(word);
+      do {
+        readMacro(fileIn, word, false);
+/*... solver*/
+        if (!strcmp(word, "solver") || !strcmp(word, "Solver")) {
+          readMacro(fileIn, word, false);
+/*... codigo da da funcao limitadora de fluxo*/
+          ompVar.nThreadsSolver = (short)atol(word);
+          ompVar.fSolver        = true;
+/*...................................................................*/
+
+/*...*/    
+          printf("Solver nThreads: %d\n", ompVar.nThreadsSolver);
+/*...................................................................*/
+          nOmp--;
+        }
+/*...................................................................*/
+
+/*... cell*/
+        else if (!strcmp(word, "Cell") || !strcmp(word, "cell")) {
+          readMacro(fileIn, word, false);
+/*...*/
+          ompVar.nThreadsCell = (short)atol(word);
+          ompVar.fCell = true;
+/*...................................................................*/
+
+/*...*/       
+          printf("Cell nThreads: %d\n", ompVar.nThreadsCell);
+/*...................................................................*/
+          nOmp--;
+        }
+/*...................................................................*/
+      } while (nOmp);
+    }
 /*===================================================================*/
 
 /*===================================================================*
@@ -1901,6 +1952,35 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 
+
+/*... Openmp(Vel,Pres)*/
+      if(ompVar.fSolver){
+/*... dividindo a matriz*/
+        strcpy(str1,"thBeginPres");
+        strcpy(str2,"thEndPres");
+        strcpy(str3,"thSizePres");
+        strcpy(str4,"thHeightPres");
+        pMatrixSolverOmp(&m,sistEqPres,str1,str2,str3,str4);
+/*...................................................................*/
+
+/*... dividindo a matriz*/
+        strcpy(str1,"thBeginVel");
+        strcpy(str2,"thEndVel");
+        strcpy(str3,"thSizeVel");
+        strcpy(str4,"thHeightVel");
+        pMatrixSolverOmp(&m,sistEqVel,str1,str2,str3,str4);
+/*...................................................................*/
+
+
+/*alocando o buffer*/
+        nEqMax = max(sistEqPres->neq,sistEqVel->neq);
+        HccaAlloc(DOUBLE, &m, ompVar.buffer
+                 ,nEqMax*ompVar.nThreadsSolver,"bufferOmp",false);
+        zero(ompVar.buffer,nEqMax*ompVar.nThreadsSolver,DOUBLEC);
+        sistEqPres->omp.thY = ompVar.buffer;
+        sistEqVel ->omp.thY = ompVar.buffer;
+      }
+/*...................................................................*/
 
 /*... mapa de equacoes para comunicacao*/
 //    if( mpiVar.nPrcs > 1) {    
