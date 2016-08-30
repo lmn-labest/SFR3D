@@ -2796,12 +2796,10 @@ void matVecCsrDomp(INT const nEq
 /*...*/
   for(i=thBegin[id];i<thEnd[id];i++) {
     tmp = ad[i]*x[i];
-    for (j=ia[i];j<ia[i+1];j++) {
+    for (j=ia[i];j<ia[i+1];j++)
       tmp += a[j]*x[ja[j]];
-    }
     y[i] = tmp;
   }
-}
 /*...................................................................*/
 
 /*...*/
