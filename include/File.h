@@ -14,7 +14,7 @@
   #define MAX_STR_LEN_SUFIXO 80  /*tamanho do arquivo de entrada maximo*/
   #define SIZEMAX           200 /*tamanho do arquivo de saida maximo*/
   #define MAX_STR_NUMBER     65 /*INT integer*/
-  #define MAX_EXT            20 /*numero maximo da extencao*/ 
+  #define MAX_EXT            50 /*numero maximo da extencao*/ 
   #define WORD_SIZE         120
   #define LINE_SIZE         120
   #define MAX_LINE          200

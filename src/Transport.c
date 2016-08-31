@@ -37,6 +37,7 @@ void transport(Memoria *m   ,Loads *loadsTrans
   DOUBLE rCell,rCell0,conv;
 
   zero(sistEqT->b0,sistEqT->neqNov,DOUBLEC);
+  zero(sistEqT->x ,sistEqT->neq   ,DOUBLEC);
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
   tm.CellPloadT1 = getTimeC() - tm.CellPloadT1;
   cellPload(loadsTrans            ,mesh->elm.geom.cc 
@@ -136,17 +137,17 @@ void transport(Memoria *m   ,Loads *loadsTrans
 
 /*...*/
     tm.solvT1 = getTimeC() - tm.solvT1;
-/*  solverC(m               
+    solverC(m               
            ,sistEqT->neq       ,sistEqT->neqNov  
            ,sistEqT->nad       ,sistEqT->nadr
            ,sistEqT->ia        ,sistEqT->ja  
            ,sistEqT->al        ,sistEqT->ad,sistEqT->au
            ,sistEqT->b         ,sistEqT->x
-           ,&sistEqT->iNeq
+           ,&sistEqT->iNeq     ,&sistEqT->omp 
            ,solvT->tol         ,solvT->maxIt     
            ,sistEqT->storage   ,solvT->solver
            ,solvT->fileSolv    ,solvT->log  
-           ,false              ,sistEqT->unsym);*/
+           ,true               ,sistEqT->unsym);  
     tm.solvT1 = getTimeC() - tm.solvT1;
 /*...................................................................*/
 

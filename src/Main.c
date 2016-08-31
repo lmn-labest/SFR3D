@@ -1054,11 +1054,29 @@ int main(int argc,char**argv){
       if(!mpiVar.myId) printf("Estrutuda montada.\n");
 /*...................................................................*/
 
+/*... Openmp(T1)*/
+      if (ompVar.fSolver) {
+/*... dividindo a matriz*/
+        strcpy(str1,"thBeginT1");
+        strcpy(str2,"thEndT1");
+        strcpy(str3,"thSizeT1");
+        strcpy(str4,"thHeightT1");
+        pMatrixSolverOmp(&m,sistEqT1,str1,str2,str3,str4);
+/*...................................................................*/
+
+/*alocando o buffer*/
+        nEqMax = sistEqT1->neq;
+        HccaAlloc(DOUBLE, &m, ompVar.buffer
+                 ,nEqMax*ompVar.nThreadsSolver,"bufferOmp", false);
+        zero(ompVar.buffer, nEqMax*ompVar.nThreadsSolver, DOUBLEC);
+        sistEqT1->omp.thY = ompVar.buffer;
+      }
+/*...................................................................*/
 
 /*... mapa de equacoes para comunicacao*/
-      if( mpiVar.nPrcs > 1) {    
-        front(&m,pMesh,sistEqT1,mesh->ndfT[0]);  
-      } 
+//    if( mpiVar.nPrcs > 1) {    
+//      front(&m,pMesh,sistEqT1,mesh->ndfT[0]);  
+//    } 
 /*...................................................................*/
 
 /*... informacao da memoria total usada*/
@@ -1950,8 +1968,6 @@ int main(int argc,char**argv){
       tm.dataStructPres = getTimeC() - tm.dataStructPres;
       if(!mpiVar.myId) printf("Estrutuda montada.\n");
 /*...................................................................*/
-
-
 
 /*... Openmp(Vel,Pres)*/
       if(ompVar.fSolver){

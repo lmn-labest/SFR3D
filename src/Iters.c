@@ -1046,7 +1046,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
                ,void(*matvec)()    ,DOUBLE(*dot)())
 {
   short nThreads = ompVar.nThreadsSolver;
-  unsigned int j, jj;
+  unsigned int j, jj,js;
   INT i;
   DOUBLE alpha,beta,d,conv,xKx,norm_r,norm,norm_b,w,rr0,tmp;
   DOUBLE timei, timef;
@@ -1055,7 +1055,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
 
 #pragma omp parallel default(none) num_threads(nThreads)\
    private(i,j,jj,conv,norm_b,tmp,d,alpha,beta,rr0,w)\
-   shared(ia,ja,a,ad,m,b,x,z,r,p,r0,v,t,tol,maxIt,newX,fLog\
+   shared(js,ia,ja,a,ad,m,b,x,z,r,p,r0,v,t,tol,maxIt,newX,fLog\
          ,xKx,norm,norm_r\
          ,fileHistLog,log,fHistLog,fPrint,matvec,dot,bOmp,nThreads)
   {
@@ -1111,8 +1111,8 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
 /*...................................................................*/
 
 /*... alpha = (r(j), r0) / (AM(-1)p(j), r0))*/
-      rr0 = dot(r, r0, nEq);
-      alpha = rr0 / dot(v, r0, nEq);
+      rr0   = dot(r, r0, nEq);
+      alpha = rr0/ dot(v, r0, nEq);
 /*...................................................................*/
 
 /*...*/
@@ -1123,7 +1123,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
 /*... s(j) = r(j) - alpha*AM(-1)p(j)*/
         r[i] -= alpha * v[i];
 /*... z = M(-1)s*/
-        z[i] = r[i] * m[i];
+        z[i] = r[i]*m[i];
       }
 /*...................................................................*/
 
@@ -1178,7 +1178,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
 /*... p(j + 1) = r(i) + beta*(p(j) - w*v(i))*/
         p[i] = r[i] + beta*(p[i] - w*v[i]);
 /*... z = M(-1)p*/
-        z[i] = p[i] * m[i];
+        z[i] = p[i]*m[i];
       }
 /*...................................................................*/
 
@@ -1193,6 +1193,9 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
 /*...................................................................*/
     }
 /*...................................................................*/
+
+#pragma omp single
+    js = j;
 
 /*... Energy norm:  x*Kx*/
     matvec(nEq
@@ -1244,10 +1247,10 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
            "\t|| x ||        = %20.2e\n"
            "\t|| b - Ax ||   = %20.2e\n"
            "\tCPU time(s)    = %20.2lf\n"
-           , nEq, nAd, tol, j + 1, xKx, norm, norm_r, timef);
+           , nEq, nAd, tol, js + 1, xKx, norm, norm_r, timef);
   }
 
-  if (j == maxIt) {
+  if (js == maxIt ) {
     printf(" PBICGSTABOMP *** WARNING: no convergende reached !\n");
     printf("MAXIT = %d \n", maxIt);
     exit(EXIT_FAILURE);

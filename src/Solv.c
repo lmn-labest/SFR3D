@@ -164,8 +164,8 @@ void solverC(Memoria *m
                  ,p      ,z
                  ,h 
                  ,tol    ,maxIt 
-                 ,true   ,fSolvLog 
-                 ,fLog   ,false
+                 ,newX   ,fSolvLog
+                 ,fLog   ,false 
                  ,iNeq   ,bOmp           
                  ,matVecC,dotC);  
 /*...................................................................*/
