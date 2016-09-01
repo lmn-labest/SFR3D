@@ -136,6 +136,7 @@
 	     ,bool const log     , bool const fHistLog
        ,bool const fPrint
        ,void(*matvec)()    ,DOUBLE(*dot)());
+/*...................................................................*/
 
 /*... gradiente conjugado bi-ortoganilizados precondicionado (OMP)*/
   void pbicgstabOmp(INT const nEq, INT const nAd
@@ -152,6 +153,7 @@
                    ,bool const fHistLog, bool const fPrint
                    ,BufferOmp *bOmp
                    ,void(*matvec)(), DOUBLE(*dot)());
+/*...................................................................*/
 
 /*... gradiente conjugado bi-ortoganilizados precondicionado (MPI)*/
   void mpiPbicgstab(INT const nEq,INT const nEqNov      
@@ -168,6 +170,79 @@
       ,bool const fPrint     ,Interface *iNeq    
       ,void(*matvec)()       ,DOUBLE(*dot)());
 /*...................................................................*/
+
+/*...*/
+  void callBicgStabl2(INT const nEq, INT const nEqNov
+                      , INT const nAd, INT const nAdR
+                      , INT *restrict ia, INT *restrict ja
+                      , DOUBLE *restrict a, DOUBLE *restrict ad
+                      , DOUBLE *restrict m, DOUBLE *restrict b
+                      , DOUBLE *restrict x, DOUBLE *restrict t
+                      , DOUBLE *restrict v, DOUBLE *restrict r
+                      , DOUBLE *restrict u, DOUBLE *restrict r0
+                      , DOUBLE *restrict w, DOUBLE *restrict s
+                      , DOUBLE *restrict p, DOUBLE *restrict h
+                      , DOUBLE *restrict z
+                      , DOUBLE const tol, unsigned int maxIt
+                      , bool const newX, FILE* fSolvLog
+                      , bool const fLog, bool const fPrint
+                      , Interface *iNeq, BufferOmp *bOmp
+                      , void(*matVec)(), DOUBLE(*dot)());
+/*...................................................................*/
+
+/*... gradiente conjugado bi-ortoganilizados precondicionado l=2*/
+  void pbicgstabl2(INT const nEq, INT const nAd
+                   , INT *restrict ia, INT *restrict ja
+                   , DOUBLE *restrict a, DOUBLE *restrict ad
+                   , DOUBLE *restrict m, DOUBLE *restrict b
+                   , DOUBLE *restrict x, DOUBLE *restrict t
+                   , DOUBLE *restrict v, DOUBLE *restrict r
+                   , DOUBLE *restrict u, DOUBLE *restrict r0
+                   , DOUBLE *restrict w, DOUBLE *restrict s
+                   , DOUBLE *restrict p, DOUBLE *restrict h
+                   , DOUBLE *restrict z
+                   , DOUBLE const tol, unsigned int maxIt
+                   , bool const newX, FILE* fLog
+                   , FILE *fileHistLog, bool const log
+                   , bool const fHistLog, bool const fPrint
+                   , void(*matvec)(), DOUBLE(*dot)());
+/*...................................................................*/
+
+/*... gradiente conjugado bi-ortoganilizados precondicionado (OMP)*/
+  void pbicgstabl2Omp(INT const nEq, INT const nAd
+                      , INT *restrict ia, INT *restrict ja
+                      , DOUBLE *restrict a, DOUBLE *restrict ad
+                      , DOUBLE *restrict m, DOUBLE *restrict b
+                      , DOUBLE *restrict x, DOUBLE *restrict t
+                      , DOUBLE *restrict v, DOUBLE *restrict r
+                      , DOUBLE *restrict u, DOUBLE *restrict r0
+                      , DOUBLE *restrict w, DOUBLE *restrict s
+                      , DOUBLE *restrict p, DOUBLE *restrict h
+                      , DOUBLE *restrict z
+                      , DOUBLE const tol, unsigned int maxIt
+                      , bool const newX, FILE* fLog
+                      , FILE *fileHistLog, bool const log
+                      , bool const fHistLog, bool const fPrint
+                      , BufferOmp *bOmp
+                      , void(*matvec)(), DOUBLE(*dot)());
+/*...................................................................*/
+
+/*... gradiente conjugado bi-ortoganilizados precondicionado (MPI)*/
+/*void mpiPbicgstab(INT const nEq, INT const nEqNov
+                    , INT const nAd, INT const nAdR
+                    , INT *restrict ia, INT *restrict ja
+                    , DOUBLE *restrict al, DOUBLE *restrict ad
+                    , DOUBLE *restrict m, DOUBLE *restrict b
+                    , DOUBLE *restrict x, DOUBLE *restrict t
+                    , DOUBLE *restrict v, DOUBLE *restrict r
+                    , DOUBLE *restrict p, DOUBLE *restrict z
+                    , DOUBLE const tol
+                    , unsigned int maxIt, bool const newX
+                    , FILE* fLog, bool const log
+                    , bool const fPrint, Interface *iNeq
+                    , void(*matvec)(), DOUBLE(*dot)());*/
+/*...................................................................*/
+
 /*===================================================================*/
 
 #endif/*_SOLV_H*/

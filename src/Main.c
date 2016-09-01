@@ -727,7 +727,7 @@ int main(int argc,char**argv){
 /*...*/
       if(solvD1->log && !mpiVar.myId){  
         strcpy(auxName,preName);
-        strcat(auxName,"_pcg_D1");
+        strcat(auxName,"_D1");
         fName(auxName,mpiVar.nPrcs,0,11,&nameOut);
         solvD1->fileSolv = openFile(nameOut,"w");
       }
@@ -918,7 +918,7 @@ int main(int argc,char**argv){
 /*...*/
       if(solvT1->log && !mpiVar.myId){  
         strcpy(auxName,preName);
-        strcat(auxName,"_pcg_T1");
+        strcat(auxName,"_T1");
         fName(auxName,mpiVar.nPrcs,0,11,&nameOut);
         solvT1->fileSolv = openFile(nameOut,"w");
       }

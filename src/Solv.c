@@ -49,7 +49,8 @@ void solverC(Memoria *m
             ,FILE* fSolvLog      ,bool const fLog
             ,bool const newX     ,bool const unSym    )
 {
-  DOUBLE *z=NULL,*r=NULL,*pc=NULL,*t=NULL,*v=NULL,*p=NULL,*h=NULL;
+  DOUBLE *z=NULL,*r=NULL,*pc=NULL,*t=NULL,*v=NULL,*p=NULL,*h=NULL
+        ,*i=NULL,*o=NULL,*s=NULL,*d=NULL;
   void   (*matVecC)();
   DOUBLE (*dotC)();
   bool fPrint = false,openMp = ompVar.fSolver;
@@ -189,6 +190,92 @@ void solverC(Memoria *m
     break;
 /*...................................................................*/
 
+/*... gradientes conjugados bi-ortoganilizado com precondicionador
+diagonal*/
+    case PBICGSTABL2:
+/*... precondiconador diagonal*/
+      HccaAlloc(DOUBLE, m, pc, nEqNov, "pc", false);
+      zero(pc, nEqNov, DOUBLEC);
+      tm.precondDiag = getTimeC() - tm.precondDiag;
+      preCondDiag(pc, ad, nEqNov);
+      tm.precondDiag = getTimeC() - tm.precondDiag;
+/*...................................................................*/
+
+/*... arranjos auxiliares do pbicgstab*/
+      HccaAlloc(DOUBLE, m, z, nEq, "z", false);
+      HccaAlloc(DOUBLE, m, r, nEq, "r", false);
+      HccaAlloc(DOUBLE, m, t, nEq, "tt", false);
+      HccaAlloc(DOUBLE, m, v, nEq, "vv", false);
+      HccaAlloc(DOUBLE, m, p, nEq, "pp", false);
+      HccaAlloc(DOUBLE, m, h, nEq, "hh", false);
+      HccaAlloc(DOUBLE, m, i, nEq, "ii", false);
+      HccaAlloc(DOUBLE, m, o, nEq, "oo", false);
+      HccaAlloc(DOUBLE, m, s, nEq, "ss", false);
+      HccaAlloc(DOUBLE, m, d, nEq, "dd", false);
+      zero(z, nEq, DOUBLEC);
+      zero(r, nEq, DOUBLEC);
+      zero(t, nEq, DOUBLEC);
+      zero(v, nEq, DOUBLEC);
+      zero(p, nEq, DOUBLEC);
+      zero(h, nEq, DOUBLEC);
+      zero(i, nEq, DOUBLEC);
+      zero(o, nEq, DOUBLEC);
+      zero(s, nEq, DOUBLEC);
+      zero(d, nEq, DOUBLEC);
+/*...................................................................*/
+
+/*...*/
+      setMatVec(&matVecC, storage, unSym, openMp);
+/*...................................................................*/
+
+/*...*/
+      setDot(&dotC, DOT);
+/*...................................................................*/
+
+/*... gradientes conjugados bi-ortoganilizado*/
+      tm.pbicgstab = getTimeC() - tm.pbicgstab;
+/*...*/
+      callBicgStabl2(nEq  , nEqNov
+                    ,nAd ,nAdR
+                    ,ia  ,ja
+                    ,al  ,ad
+                    ,pc  ,b
+                    ,x   ,t
+                    ,v   ,r
+                    ,p   ,z
+                    ,h   ,i
+                    ,o   ,s
+                    ,d     
+                    ,tol , maxIt
+                    ,newX, fSolvLog
+                    ,fLog, false
+                    ,iNeq, bOmp
+                    ,matVecC, dotC);
+/*...................................................................*/
+
+/*...*/
+      tm.pbicgstab = getTimeC() - tm.pbicgstab;
+/*...................................................................*/
+
+/*... liberando arranjos auxiliares do pbicgstab*/
+      HccaDealloc(m, d, "dd", false);
+      HccaDealloc(m, s, "ss", false);
+      HccaDealloc(m, o, "oo", false);
+      HccaDealloc(m, i, "ii", false);
+      HccaDealloc(m, h, "hh", false);
+      HccaDealloc(m, p, "pp", false);
+      HccaDealloc(m, v, "vv", false);
+      HccaDealloc(m, t, "tt", false);
+      HccaDealloc(m, r, "r", false);
+      HccaDealloc(m, z, "z", false);
+/*...................................................................*/
+
+/*... liberando arranjos do precondicionador*/
+      HccaDealloc(m, pc, "pc", false);
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
 /*...*/
     default:
       ERRO_OP(__FILE__,__func__,solver);
@@ -207,9 +294,11 @@ void setSolver(char *word,short *solver)
 {
 
   if(!strcmp(word,"PCG"))
-   *solver = PCG;
+    *solver = PCG;
   else if(!strcmp(word,"PBICGSTAB"))
-   *solver = PBICGSTAB;
+    *solver = PBICGSTAB;
+  else if (!strcmp(word, "PBICGSTABL2"))
+    *solver = PBICGSTABL2;
 
 } 
 /*********************************************************************/      
@@ -616,7 +705,7 @@ void callBicgStab(INT const nEq     ,INT const nEqNov
                  ,void(*matVec)()   ,DOUBLE(*dot)())
 {
 
-/*... PCG-MPI*/
+/*... MPI*/
   if (mpiVar.nPrcs > 1)
     mpiPbicgstab(nEq     ,nEqNov
                 ,nAd     ,nAdR
@@ -633,7 +722,7 @@ void callBicgStab(INT const nEq     ,INT const nEqNov
                 ,matVec  ,dot);
 /*...................................................................*/
 
-/*... PCG*/
+/*... */
   else {
 /*... OpenMp*/
     if (ompVar.fSolver) {
@@ -667,6 +756,102 @@ void callBicgStab(INT const nEq     ,INT const nEqNov
                ,tol   ,maxIt  
                ,newX  ,fSolvLog
                ,NULL  ,fLog  
+               ,false ,fPrint
+               ,matVec,dot);
+    }
+/*...................................................................*/
+  }
+/*...................................................................*/
+}
+/*********************************************************************/
+
+/**********************************************************************
+* Data de criacao    : 01/09/2016                                    *
+* Data de modificaco : 00/00/0000                                    *
+* -------------------------------------------------------------------*
+* CALLBICGCSTAB(2) : chama o gradiente biconjugados estabilizados    *                   
+* -------------------------------------------------------------------*
+* Parametro de entrada                                               *
+* -------------------------------------------------------------------*
+* -------------------------------------------------------------------*
+* Parametro de saida :                                               *
+* -------------------------------------------------------------------*
+* -------------------------------------------------------------------*
+* OBS:                                                               *
+**********************************************************************/
+void callBicgStabl2(INT const nEq     ,INT const nEqNov
+                   ,INT const nAd     ,INT const nAdR
+                   ,INT *restrict ia  ,INT *restrict ja
+                   ,DOUBLE *restrict a,DOUBLE *restrict ad
+                   ,DOUBLE *restrict m,DOUBLE *restrict b
+                   ,DOUBLE *restrict x,DOUBLE *restrict t
+                   ,DOUBLE *restrict v,DOUBLE *restrict r
+                   ,DOUBLE *restrict u,DOUBLE *restrict r0
+                   ,DOUBLE *restrict w,DOUBLE *restrict s
+                   ,DOUBLE *restrict p,DOUBLE *restrict h
+                   ,DOUBLE *restrict z
+                   ,DOUBLE const tol  ,unsigned int maxIt
+                   ,bool const newX   ,FILE* fSolvLog
+                   ,bool const fLog   ,bool const fPrint
+                   ,Interface *iNeq   ,BufferOmp *bOmp
+                   ,void(*matVec)()   ,DOUBLE(*dot)())
+{
+
+  /*... MPI*/
+  if (mpiVar.nPrcs > 1)
+    mpiPbicgstab(nEq, nEqNov
+                 , nAd, nAdR
+                 , ia, ja
+                 , a, ad
+                 , m, b
+                 , x, t
+                 , v, r
+                 , p, z
+                 , tol
+                 , maxIt, newX
+                 , fSolvLog, fLog
+                 , fPrint, iNeq
+                 , matVec, dot);  
+/*...................................................................*/
+
+/*... */
+  else {
+/*... OpenMp*/
+    if (ompVar.fSolver) {
+      pbicgstabl2Omp(nEq   ,nAd
+                    ,ia    ,ja
+                    ,a     ,ad
+                    ,m     ,b
+                    ,x     ,t
+                    ,v     ,r
+                    ,u     ,r0
+                    ,w     ,s
+                    ,p     ,h
+                    ,z
+                    ,tol   ,maxIt
+                    ,newX  ,fSolvLog
+                    ,NULL  ,fLog
+                    ,false ,fPrint
+                    ,bOmp 
+                    ,matVec,dot);
+    }
+/*...................................................................*/
+
+/*... sequencial*/
+    else {
+      pbicgstabl2(nEq   ,nAd
+               ,ia    ,ja
+               ,a     ,ad
+               ,m     ,b
+               ,x     ,t
+               ,v     ,r
+               ,u     ,r0
+               ,w     ,s
+               ,p     ,h
+               ,z
+               ,tol   ,maxIt
+               ,newX  ,fSolvLog
+               ,NULL  ,fLog
                ,false ,fPrint
                ,matVec,dot);
     }

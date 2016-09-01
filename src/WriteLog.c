@@ -215,6 +215,8 @@ void writeLog(Mesh mesh          ,Scheme sc
 /*... solver */
     if(solvT1->solver == PBICGSTAB )
       fprintf(file,"Iterativo          : PBICGSTAB\n");
+    else if (solvT1->solver == PBICGSTABL2)
+      fprintf(file, "Iterativo          : PBICGSTAB(2)\n");
   }
 /*...................................................................*/
 
@@ -261,6 +263,8 @@ void writeLog(Mesh mesh          ,Scheme sc
 /*... solver */
     if(solvVel->solver == PBICGSTAB )
       fprintf(file,"Iterativo          : PBICGSTAB\n");
+    else if (solvVel->solver == PBICGSTABL2)
+      fprintf(file, "Iterativo          : PBICGSTAB(2)\n");
   }
 /*...................................................................*/
 
@@ -309,6 +313,8 @@ void writeLog(Mesh mesh          ,Scheme sc
       fprintf(file,"Iterativo          : PCG\n");
     else if(solvPres->solver == PBICGSTAB )
       fprintf(file,"Iterativo          : PBICGSTAB\n");
+    else if (solvPres->solver == PBICGSTABL2)
+      fprintf(file, "Iterativo          : PBICGSTAB(2)\n");
   }
 /*...................................................................*/
 
