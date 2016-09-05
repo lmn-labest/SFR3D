@@ -120,6 +120,8 @@
   #define INLET            6
   #define OUTLET           7
   #define MOVEWALL         8
+  #define INLETSTAICTPRES  9
+  #define OPEN            10 
   #define STATICWALL      -1  /*parede impermevel para escoamento*/
 /*...................................................................*/
 

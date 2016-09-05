@@ -286,7 +286,7 @@ void simpleSolver2D(Memoria *m
 
 /*... montagem do sistema  da pressao de correca*/
      tm.systFormPres = getTimeC() - tm.systFormPres;
-     systFormSimplePres(loadsVel             ,loadsPres
+     systFormSimplePres(loadsVel             ,loadsPresC
 			              ,sc.diffPres
                     ,mesh->elm.node          ,mesh->elm.adj.nelcon  
                     ,mesh->elm.nen           ,mesh->elm.adj.nViz   
@@ -366,7 +366,7 @@ void simpleSolver2D(Memoria *m
 
 /*... reconstruindo do gradiente da pressao correcao*/
          tm.rcGradPres = getTimeC() - tm.rcGradPres;
-         rcGradU(m                  ,loadsPres
+         rcGradU(m                  ,loadsPresC
            ,mesh->elm.node          ,mesh->elm.adj.nelcon
            ,mesh->elm.geom.cc       ,mesh->node.x   
            ,mesh->elm.nen           ,mesh->elm.adj.nViz 
@@ -445,7 +445,7 @@ void simpleSolver2D(Memoria *m
 
 /*... reconstruindo do gradiente da pressao correcao*/
      tm.rcGradPres = getTimeC() - tm.rcGradPres;
-     rcGradU(m                      ,loadsPres
+     rcGradU(m                      ,loadsPresC
            ,mesh->elm.node          ,mesh->elm.adj.nelcon
            ,mesh->elm.geom.cc       ,mesh->node.x   
            ,mesh->elm.nen           ,mesh->elm.adj.nViz 
@@ -862,7 +862,7 @@ void simpleSolver3D(Memoria *m
 
 /*... montagem do sistema  da pressao de correca*/
      tm.systFormPres = getTimeC() - tm.systFormPres;
-     systFormSimplePres(loadsVel              ,loadsPres
+     systFormSimplePres(loadsVel             ,loadsPresC
 										,sc.diffPres
                     ,mesh->elm.node          ,mesh->elm.adj.nelcon  
                     ,mesh->elm.nen           ,mesh->elm.adj.nViz   
@@ -948,7 +948,7 @@ void simpleSolver3D(Memoria *m
        for(nonOrth=0;nonOrth < sp->nNonOrth;nonOrth++){
 /*... reconstruindo do gradiente da pressao correcao*/
          tm.rcGradPres = getTimeC() - tm.rcGradPres;
-         rcGradU(m                  ,loadsPres
+         rcGradU(m                  ,loadsPresC
            ,mesh->elm.node          ,mesh->elm.adj.nelcon
            ,mesh->elm.geom.cc       ,mesh->node.x   
            ,mesh->elm.nen           ,mesh->elm.adj.nViz 
@@ -1027,7 +1027,7 @@ void simpleSolver3D(Memoria *m
 
 /*... reconstruindo do gradiente da pressao correcao*/
      tm.rcGradPres = getTimeC() - tm.rcGradPres;
-     rcGradU(m                      ,loadsPres
+     rcGradU(m                      ,loadsPresC
            ,mesh->elm.node          ,mesh->elm.adj.nelcon
            ,mesh->elm.geom.cc       ,mesh->node.x   
            ,mesh->elm.nen           ,mesh->elm.adj.nViz 

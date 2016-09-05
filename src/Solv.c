@@ -55,7 +55,7 @@ void solverC(Memoria *m
   DOUBLE (*dotC)();
   INT nn;
   unsigned short nKrylov=15;
-  bool fPrint = false,openMp = ompVar.fSolver;
+  bool fPrint =false,openMp = ompVar.fSolver;
 /*...*/
 	dotC    = NULL;
 	matVecC = NULL;
@@ -168,7 +168,7 @@ void solverC(Memoria *m
                  ,h 
                  ,tol    ,maxIt 
                  ,newX   ,fSolvLog
-                 ,fLog   ,false 
+                 ,fLog   ,fPrint
                  ,iNeq   ,bOmp           
                  ,matVecC,dotC);  
 /*...................................................................*/
@@ -250,7 +250,7 @@ void solverC(Memoria *m
                     ,d     
                     ,tol , maxIt
                     ,newX, fSolvLog
-                    ,fLog, false
+                    ,fLog, fPrint
                     ,iNeq, bOmp
                     ,matVecC, dotC);
 /*...................................................................*/
@@ -333,7 +333,7 @@ void solverC(Memoria *m
                ,p      ,nKrylov
                ,tol    ,maxIt
                ,newX   ,fSolvLog
-               ,fLog   ,false
+               ,fLog   ,fPrint
                ,iNeq   ,bOmp
                ,matVecC,dotC);
 /*...................................................................*/

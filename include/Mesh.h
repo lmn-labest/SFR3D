@@ -70,7 +70,8 @@
   Loads  loadsD1[MAXLOADD1]       /*tipo de cargas (difusao pura)*/
         ,loadsT1[MAXLOADT1]       /*tipo de cargas (difusao-transporte)*/
         ,loadsVel[MAXLOADFLUID]   /*tipo de cargas (fluid-Vel)*/
-        ,loadsPres[MAXLOADFLUID]; /*tipo de cargas (fluid-Pres)*/
+        ,loadsPres[MAXLOADFLUID]  /*tipo de cargas (fluid-Pres)*/
+        ,loadsPresC[MAXLOADFLUID]; /*tipo de cargas (fluid-Pres)*/
 /*...................................................................*/
 
 /*...*/

@@ -22,15 +22,15 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 {
   char word[WORD_SIZE],str[WORD_SIZE];
   char macro[NMACROS][WORD_SIZE]={
-            "coordinates","endMesh"   ,"insert"       /* 0, 1, 2*/
-           ,"return"     ,"cells"     ,"faceRt1"      /* 3, 4, 5*/
-           ,"faceLoadT1" ,"loadsT1"   ,""             /* 6, 7, 8*/ 
-           ,""           ,""          ,""             /* 9,10,11*/ 
-           ,"faceRd1"    ,""          ,"loadsD1"      /*12,13,14*/ 
-           ,"faceLoadD1" ,""          ,""             /*15,16,17*/ 
-           ,"faceRvel"   ,"loadsVel"  ,"faceLoadVel"  /*18,19,20*/ 
-           ,"faceRpres"  ,"loadsPres" ,"faceLoadPres" /*21,22,23*/ 
-           ,"materials"  ,""          ,"initialVel"   /*24,25,26*/ 
+            "coordinates","endMesh"    ,"insert"       /* 0, 1, 2*/
+           ,"return"     ,"cells"      ,"faceRt1"      /* 3, 4, 5*/
+           ,"faceLoadT1" ,"loadsT1"    ,""             /* 6, 7, 8*/ 
+           ,""           ,""           ,""             /* 9,10,11*/ 
+           ,"faceRd1"    ,""           ,"loadsD1"      /*12,13,14*/ 
+           ,"faceLoadD1" ,""           ,""             /*15,16,17*/ 
+           ,"faceRvel"   ,"loadsVel"   ,"faceLoadVel"  /*18,19,20*/ 
+           ,"faceRpres"  ,"loadsPres"  ,"faceLoadPres" /*21,22,23*/ 
+           ,"materials"  ,"uniformPres","initialVel"   /*24,25,26*/ 
 	   };                                             
   bool rflag[NMACROS],macroFlag;
   INT nn,nel;
@@ -591,6 +591,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       printf("loading loadsPres ...\n");
       readVfLoads(loadsPres,str       ,file);
       printf("load.\n");
+      convLoadsPresC(loadsPres, loadsPresC);
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -622,6 +623,18 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
                ,numat,file);
       printf("load.\n");
       printf("%s\n\n",DIF);
+    }
+/*...................................................................*/
+
+/*... uniformPres */
+    else if ((!strcmp(word, macro[25])) && (!rflag[25])) {
+      printf("%s\n", DIF);
+      printf("%s\n", word);
+      strcpy(macros[nmacro++], word);
+      rflag[25] = true;
+      uniformField(mesh->elm.pressure, mesh->numel,1, file);
+      printf("load.\n");
+      printf("%s\n\n", DIF);
     }
 /*...................................................................*/
 
@@ -1624,3 +1637,40 @@ void setPrintFluid(FileOpt *opt,FILE *file){
 
 } 
 /*********************************************************************/ 
+
+/*********************************************************************/
+/* Leitura dos materiais                                             */
+/*********************************************************************/
+void uniformField(DOUBLE *field, INT const n, short const ndf
+                ,FILE* file)
+{
+
+  DOUBLE value[4];
+  INT i;
+  short j;
+  
+  for (j=0;j<ndf;j++)
+    fscanf(file, "%lf", value+j);
+
+  for (i = 0; i<n; i++) 
+    for (j = 0; j<ndf; j++)
+      MAT2D(i,j,field,ndf) = value[j];   
+  
+}
+/*********************************************************************/
+
+/*********************************************************************/
+/*Converte condicoes de contorno da pressao para presssao de correcao*/
+/*********************************************************************/
+void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC){
+
+  short i,j;
+
+  for(i=0;i<MAXLOADFLUID;i++){
+    loadsPresC[i].type = loadsPres[i].type;
+    loadsPresC[i].np   = loadsPres[i].np;
+    for(j=0;j<MAXLOADPARAMETER;j++){
+      loadsPresC[i].par[j] = 0.e0;
+    }
+  }
+}

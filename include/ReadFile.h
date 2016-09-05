@@ -45,6 +45,11 @@
              ,DOUBLE *restrict propMat,short *restrict mat
              ,short const np          ,INT const nCell 
              ,short const iProp);
+
+  void uniformField(DOUBLE *field, INT const n, short const ndf
+                    , FILE* file);
+
+  void convLoadsPresC(Loads *loadsPres, Loads *loadsPresC);
   
 
 #endif

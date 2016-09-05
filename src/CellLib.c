@@ -1244,7 +1244,7 @@ void cellLibRcGrad(Loads *loads
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 05/09/2016                                   * 
  *-------------------------------------------------------------------* 
  * GRREENGAUSSCELL: reconstrucao de gradiente green-gauss linear por * 
  * celula                                                            *
@@ -1382,7 +1382,7 @@ void greenGaussCell(Loads *loads
         } 
 /*...................................................................*/
 
-/*... fluxo nulo*/
+/*...*/
         else{
           uf[i] =uC[0];
           for(j=0;j<ndm;j++)
@@ -1469,7 +1469,8 @@ void greenGaussCell(Loads *loads
 /*...................................................................*/
 
 /*... derivada nula (condicao localmente parabolica saida)*/
-          else if (type == OUTLET){
+          else if (type == OUTLET || type == INLETSTAICTPRES 
+                || type == OPEN){
             for(k=0;k<ndf;k++)
               MAT2D(i,k,uf,ndf) = uC[k];
           }
@@ -1492,7 +1493,7 @@ void greenGaussCell(Loads *loads
         }
 /*...................................................................*/
 
-/*... fluxo nulo*/
+/*... fluxo*/
         else{
           for(k=0;k<ndf;k++){
             MAT2D(i,k,uf,ndf) = uC[k];
@@ -1632,7 +1633,7 @@ void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict fArea
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 09/07/2016                                   * 
+ * Data de modificaco : 05/09/2016                                   * 
  *-------------------------------------------------------------------* 
  * LEASTSQUARE : calcula o gradiente por minimos quadrados           *
  *-------------------------------------------------------------------* 
@@ -1803,7 +1804,8 @@ void  leastSquare(Loads *loads
 /*...................................................................*/
          
 /*... derivada nula (condicao localmente parabolica saida)*/
-            else if (type == OUTLET)
+            else if (type == OUTLET || type == INLETSTAICTPRES
+                    || type == OPEN)
               for(k=0;k<ndf;k++)
                 MAT2D(i,k,du,ndf) = 0.e0;                          
 /*...................................................................*/
@@ -1848,7 +1850,7 @@ void  leastSquare(Loads *loads
 } 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 09/07/2016                                   * 
+ * Data de modificaco : 05/09/2016                                   * 
  *-------------------------------------------------------------------* 
  * LEASTSQUAREQR: calcula o gradiente por minimos quadrados           *
  *-------------------------------------------------------------------* 
@@ -2036,7 +2038,8 @@ void  leastSquareQR(Loads *loads
 /*...................................................................*/
          
 /*... derivada nula (condicao localmente parabolica saida)*/
-            else if (type == OUTLET)
+            else if (type == OUTLET || type == INLETSTAICTPRES 
+                  || type == OPEN)
               for(k=0;k<ndf;k++)
                 MAT2D(i,k,du,ndf) = 0.e0;                          
 /*...................................................................*/
@@ -2050,7 +2053,7 @@ void  leastSquareQR(Loads *loads
            }
 /*...................................................................*/
 
-/*... fluxo nulo*/
+/*... fluxo*/
           else{
             for(k=0;k<ndf;k++){
               MAT2D(i,k,du,ndf) = 0.e0;
@@ -2102,7 +2105,7 @@ void  leastSquareQR(Loads *loads
   }
 /*...................................................................*/
 } 
-
+/*********************************************************************/
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
@@ -2900,7 +2903,7 @@ DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
 
 /********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 24/07/2016                                   * 
+ * Data de modificaco : 04/04/2016                                   * 
  *-------------------------------------------------------------------* 
  * pLoadSimple : condicao de contorno para velocidades               *
  *-------------------------------------------------------------------* 
@@ -2944,7 +2947,7 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
           ,Loads ld                   ,short  const ndm 
           ,bool const fCalVel         ,bool const fCalPres){
 
-  DOUBLE aP,wfn,m,tmp[3],gradVelFace[9];
+  DOUBLE aP,wfn,m,tmp[4],gradVelFace[9],modVel;
 
 /*... parade impermeavel movel*/
   if( ld.type == MOVEWALL){
@@ -2997,7 +3000,40 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
   }
 /*...................................................................*/
 
-/*... entrada de massa*/
+/*... entrada de massa(Pressao estatica*/
+  else if (ld.type == INLETSTAICTPRES) {
+    if (ndm == 2) {
+/*... direcao*/
+      tmp[0] = ld.par[0];
+      tmp[1] = ld.par[1];
+/*... velocidade normal*/
+      wfn    = velC[0]*n[0] + velC[1]*n[1];
+      tmp[3] = wfn/(tmp[0]*n[0] + tmp[1]*n[1]);
+    }
+    else {
+/*... direcao*/
+      tmp[0] = ld.par[0];
+      tmp[1] = ld.par[1];
+      tmp[2] = ld.par[2];
+/*... velocidade normal*/
+      wfn = velC[0]*n[0] + velC[1]*n[1] + velC[2]*n[2];
+      tmp[3] = wfn / (tmp[0]*n[0] + tmp[1]*n[1] + tmp[2]*n[2]);
+    }
+/*...*/
+    m = densityC*wfn*fArea;
+/*... eq momentum*/
+    if (fCalVel) {
+      p[0] -= m*tmp[0]*tmp[3];
+      p[1] -= m*tmp[1]*tmp[3];
+      if (ndm == 3) p[2] -= m*tmp[2]*tmp[3];
+    }
+
+/*... eq pressao*/
+    if (fCalPres) p[0] -= m;
+  }
+/*...................................................................*/
+
+/*... entrada de massa ( Velocidade)*/
   else if( ld.type ==  INLET){
     if( ndm == 2) {
       tA[0] = ld.par[0];
@@ -3010,20 +3046,19 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
       tA[2] = ld.par[2];
       wfn   = tA[0]*n[0] + tA[1]*n[1] + tA[2]*n[2] ;
     }
-/*...*/
+ /*... eq momentum*/
     m  = densityC*wfn*fArea;
     if(fCalVel){
       p[0] -= m*tA[0];
       p[1] -= m*tA[1];
       if(ndm == 3) p[2] -= m*tA[2];
     }
-    if(fCalPres){
-      p[0] -= m;
-    }
+/*... eq pressao*/
+    if(fCalPres) p[0] -= m;
   } 
 /*...................................................................*/
 
-/*... saida (derivada nula)*/
+/*... saida (derivada nula, pressa estatica)*/
   else if( ld.type ==  OUTLET){
     if ( ndm == 2 ) 
       wfn = velC[0]*n[0] + velC[1]*n[1];
@@ -3097,12 +3132,66 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
 /*...................................................................*/
       }
 /*...................................................................*/
-    } 
-/*...*/
-    if(fCalPres){
-      m     = densityC*wfn*fArea;
-      p[0] -=  m;
     }
+/*...*/
+    if(fCalPres) p[0] -=  m;
+/*...................................................................*/
+  }   
+/*... fronteira aberta(Pressao estatica)*/
+  else if (ld.type == OPEN) {
+
+/*...*/
+    if (ndm == 2){  
+      wfn = velC[0]*n[0] + velC[1]*n[1];
+      modVel = 1.e0/sqrt(velC[0]*velC[0] + velC[1]*velC[1]);
+    }
+    else{
+      wfn = velC[0]*n[0] + velC[1]*n[1] + velC[2]*n[2];
+      modVel = 1.e0/sqrt(velC[0]*velC[0]
+                       + velC[1]*velC[1] 
+                       + velC[2]*velC[2]);
+    }
+/*...................................................................*/
+    
+    m = densityC*wfn*fArea;
+/*... saida de massa*/
+    if(wfn >= 0.e0){
+/*... vb = vc + Grad(Vc)*r*/
+      if (fCalVel) {
+        if(ndm == 2) {
+/*...*/
+          sP[0] += m;
+          sP[1] += m;
+/*...................................................................*/
+        }
+/*...................................................................*/
+
+/*...*/
+        else {
+ /*...*/
+          sP[0] += m;
+          sP[1] += m;
+          sP[2] += m;
+/*...................................................................*/
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+    }
+/*...*/
+    else{
+/*... eq momentum*/
+      if (fCalVel) {
+        p[0] -= m*wfn*velC[0]*modVel;
+        p[1] -= m*wfn*velC[1]*modVel;
+        if (ndm == 3) p[2] -= m*wfn*velC[2]*modVel;
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*... eq pressao*/
+    if (fCalPres) p[0] -= m;
 /*...................................................................*/
   }
 /*...................................................................*/
