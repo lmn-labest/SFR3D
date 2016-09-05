@@ -55,6 +55,7 @@
 /*... iterativos*/
     double pcg;
     double pbicgstab;
+    double gmres;
 /*... precondicionador*/
     double precondDiag;
 /*... particionamento*/

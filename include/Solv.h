@@ -243,6 +243,56 @@
                     , void(*matvec)(), DOUBLE(*dot)());*/
 /*...................................................................*/
 
+/*...*/
+  void callGmres(INT const nEq, INT const nEqNov
+                 , INT const nAd, INT const nAdR
+                 , INT *restrict ia, INT *restrict ja
+                 , DOUBLE *restrict a, DOUBLE *restrict ad
+                 , DOUBLE *restrict m, DOUBLE *restrict b
+                 , DOUBLE *restrict x, DOUBLE *restrict g
+                 , DOUBLE *restrict h, DOUBLE *restrict y
+                 , DOUBLE *restrict c, DOUBLE *restrict s
+                 , DOUBLE *restrict e, short const nKrylov
+                 , DOUBLE const tol  , unsigned int maxIt
+                 , bool const newX   , FILE* fSolvLog
+                 , bool const fLog   , bool const fPrint
+                 , Interface *iNeq  , BufferOmp *bOmp
+                 , void(*matVec)()  , DOUBLE(*dot)());
+/*...................................................................*/
+
+/*... GMRES*/
+  void gmres(INT const nEq       ,INT const nAd
+            ,INT *restrict ia    ,INT *restrict ja
+            ,DOUBLE *restrict a  ,DOUBLE *restrict ad
+            ,DOUBLE *restrict m  ,DOUBLE *restrict b
+            ,DOUBLE *restrict x  ,DOUBLE *restrict g
+            ,DOUBLE *restrict h  ,DOUBLE *restrict y
+            ,DOUBLE *restrict c  ,DOUBLE *restrict s
+            ,DOUBLE *restrict e
+            ,short const nKrylov
+            ,DOUBLE const tol    ,unsigned int nCycles
+            ,bool const newX     ,FILE* fLog
+            ,FILE *fileHistLog   ,bool const log
+            ,bool const fHistLog ,bool const fPrint
+            ,void(*matvec)()     ,DOUBLE(*dot)());
+/*...................................................................*/
+
+/*... Omp*/
+  void gmresOmp(INT const nEq, INT const nAd
+                , INT *restrict ia, INT *restrict ja
+                , DOUBLE *restrict a, DOUBLE *restrict ad
+                , DOUBLE *restrict m, DOUBLE *restrict b
+                , DOUBLE *restrict x, DOUBLE *restrict g
+                , DOUBLE *restrict h, DOUBLE *restrict y
+                , DOUBLE *restrict c, DOUBLE *restrict s
+                , DOUBLE *restrict e, short const nKrylov
+                , DOUBLE const tol, unsigned int nCycles
+                , bool const newX, FILE* fLog
+                , FILE *fileHistLog, bool const log
+                , bool const fHistLog, bool const fPrint
+                , BufferOmp *bOmp
+                , void(*matvec)(), DOUBLE(*dot)());
+/*...................................................................*/
 /*===================================================================*/
 
 #endif/*_SOLV_H*/

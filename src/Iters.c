@@ -42,12 +42,12 @@ c *********************************************************************/
  *   p				-> vetor auxiliar                                       *
  * tol				-> tolerancia de convergencia                           *
  * newX				-> vetor inicial iniciado com zero                      *
- * fLog				-> arquivo de log do solver                             *
+ * fileLog				-> arquivo de log do solver                         *
  * log				-> log de arquivo (true|false)                          *
  * tol				-> tolerancia do solver                                 *
  * maxIt			-> numero maximo de iteracoes                           *
  *  newX			-> true zero o vetor inicial                            *
- * fLog				-> arquivo de saida do log                              *
+ * fileLog				-> arquivo de saida do log                          *
  * fileHistLog-> arquivo de log da iteracoes                          *
  *  log       -> escreve o log do solver                              *
  * fPrint			-> saida de informacao na tela                          *
@@ -69,7 +69,7 @@ void pcg(INT const nEq,INT const nAd
   ,DOUBLE *restrict x ,DOUBLE *restrict z
   ,DOUBLE *restrict r ,DOUBLE *restrict p
 	,DOUBLE const tol   ,unsigned int maxIt
-  ,bool const newX    ,FILE* fLog   
+  ,bool const newX    ,FILE* fileLog   
   ,FILE *fileHistLog	,bool const log 
   ,bool const fHistLog,bool const fPrint
 	,void(*matvec)()    ,DOUBLE(*dot)())
@@ -212,7 +212,7 @@ void pcg(INT const nEq,INT const nAd
     exit(EXIT_FAILURE);
   }
   if(log)
-    fprintf(fLog          
+    fprintf(fileLog          
            ,"PCG: tol %20.2e " 
             "iteration %d " 
 						"xKx %20.12e "
@@ -245,7 +245,7 @@ void pcg(INT const nEq,INT const nAd
  *   z  -> vetor auxiliar                                             *
  *   r  -> vetor auxiliar                                             *
  * newX -> vetor inicial iniciado com zero                            *
- * fLog -> arquivo de log do solver                                   *
+ * fileLog -> arquivo de log do solver                                *
  * log  -> log de arquivo (true|false)                                *
  * tol  -> tolerancia do solver                                       *
  * maxIt-> numero maximo de iteracoes                                 *
@@ -269,7 +269,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
         ,DOUBLE *restrict x ,DOUBLE *restrict z 
         ,DOUBLE *restrict r 
         ,DOUBLE const tol   ,unsigned int maxIt
-        ,bool const newX    ,FILE* fLog  
+        ,bool const newX    ,FILE* fileLog  
         ,bool const log     ,bool const fPrint
         ,Interface *iNeq                      
         ,void(*matvec)()    ,DOUBLE(*dot)())
@@ -350,7 +350,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
   }
 
   if(!mpiVar.myId && log)
-    fprintf(fLog          
+    fprintf(fileLog          
            ,"MPIPCG: tol %20.2e " 
             "iteration %d " 
 		        "norma %20.12e "
@@ -383,12 +383,12 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
 *   p				  -> vetor auxiliar                                      *
 * tol				  -> tolerancia de convergencia                          *
 * newX			  -> vetor inicial iniciado com zero                     *
-* fLog			  -> arquivo de log do solver                            *
+* fileLog			  -> arquivo de log do solver                          *
 * log				  -> log de arquivo (true|false)                         *
 * tol				  -> tolerancia do solver                                *
 * maxIt			  -> numero maximo de iteracoes                          *
 *  newX			  -> true zero o vetor inicial                           *
-* fLog				-> arquivo de saida do log                             *
+* fileLog				-> arquivo de saida do log                           *
 * fileHistLog -> arquivo de log da iteracoes                         *
 *  log        -> escreve o log do solver                             *
 * fPrint			-> saida de informacao na tela                         *
@@ -411,7 +411,7 @@ void pcgOmp(INT const nEq, INT const nAd
             , DOUBLE *restrict x, DOUBLE *restrict z
             , DOUBLE *restrict r, DOUBLE *restrict p
             , DOUBLE const tol, unsigned int maxIt
-            , bool const newX, FILE* fLog
+            , bool const newX, FILE* fileLog
             , FILE *fileHistLog, bool const log
             , bool const fHistLog, bool const fPrint
             , BufferOmp *bOmp
@@ -426,17 +426,17 @@ void pcgOmp(INT const nEq, INT const nAd
 
 #pragma omp parallel default(none) num_threads(nThreads)\
    private(i,j,jj,conv,norm_b,tmp,norm,d,di,alpha,beta)\
-   shared(ia,ja,a,ad,m,b,x,z,r,p,tol,maxIt,newX,fLog,xKx,norm_r_m,norm_r\
+   shared(ia,ja,a,ad,m,b,x,z,r,p,tol,maxIt,newX,fileLog,xKx,norm_r_m,norm_r\
          ,fileHistLog,log,fHistLog,fPrint,matvec,dot,bOmp,nThreads)
   {
-    /*... chute inicial*/
+/*... chute inicial*/
     if (newX)
 #pragma omp for
       for (i = 0; i < nEq; i++)
         x[i] = 0.e0;
-    /*...................................................................*/
+/*...................................................................*/
 
-    /*... conv = tol * |(M-1)b|m = tol(b,M(-1)b) */
+/*... conv = tol * |(M-1)b|m = tol(b,M(-1)b) */
 #pragma omp for
     for (i = 0; i < nEq; i++)
       z[i] = b[i] * m[i];
@@ -444,9 +444,9 @@ void pcgOmp(INT const nEq, INT const nAd
     d = dot(b, z, nEq);
     norm_b = sqrt(fabs(d));
     conv = tol * norm_b;
-    /*...................................................................*/
+/*...................................................................*/
 
-    /*... Ax0*/
+/*... Ax0*/
     matvec(nEq
            , ia, ja
            , a, ad
@@ -454,28 +454,28 @@ void pcgOmp(INT const nEq, INT const nAd
            , bOmp->thBegin, bOmp->thEnd
            , bOmp->thHeight, bOmp->thY
            , nThreads);
-    /*...................................................................*/
+/*...................................................................*/
 
-    /*...*/
+/*...*/
 #pragma omp for
     for (i = 0; i < nEq; i++) {
-      /* ... r0 = b - Ax0*/
+/* ... r0 = b - Ax0*/
       r[i] = b[i] - z[i];
-      /* ... z0 = (M-1)r0*/
+/* ... z0 = (M-1)r0*/
       z[i] = r[i] * m[i];
-      /* ... p0 = r0*/
+/* ... p0 = r0*/
       p[i] = z[i];
     }
-    /*...................................................................*/
+/*...................................................................*/
 
-    /*... (r(0), z(0)) = (r(0), (M-1)r0)*/
+/*... (r(0), z(0)) = (r(0), (M-1)r0)*/
     d = dot(r, z, nEq);
-    /*...................................................................*/
+/*...................................................................*/
 
-    /*...*/
+/*...*/
     jj = 1;
     for (j = 0; j < maxIt; j++) {
-      /*... z = Ap(j)*/
+/*... z = Ap(j)*/
       matvec(nEq
              , ia, ja
              , a, ad
@@ -483,59 +483,59 @@ void pcgOmp(INT const nEq, INT const nAd
              , bOmp->thBegin, bOmp->thEnd
              , bOmp->thHeight, bOmp->thY
              , nThreads);
-      /*...................................................................*/
+/*...................................................................*/
 
-      /*... alpha = ( r(j),z(j) ) / ( Ap(j), p(j) ))*/
+/*... alpha = ( r(j),z(j) ) / ( Ap(j), p(j) ))*/
       alpha = d / dot(z, p, nEq);
-      /*...................................................................*/
+/*...................................................................*/
 
-      /*...*/
+/*...*/
 #pragma omp for
       for (i = 0; i < nEq; i++) {
-        /*... x(j + 1) = x(j) + alpha*p*/
+/*... x(j + 1) = x(j) + alpha*p*/
         x[i] += alpha * p[i];
-        /*... r(j + 1) = r(j) - alpha*Ap*/
+/*... r(j + 1) = r(j) - alpha*Ap*/
         r[i] -= alpha * z[i];
-        /*... z = (M-1)r0*/
+/*... z = (M-1)r0*/
         z[i] = r[i] * m[i];
       }
-      /*...................................................................*/
+/*...................................................................*/
 
-      /* ... (r(j + 1), (M - 1)r(j + 1)) = (r(j + 1), z)*/
+/* ... (r(j + 1), (M - 1)r(j + 1)) = (r(j + 1), z)*/
       di = dot(r, z, nEq);
-      /*... beta = ( r(j+1),(M-1)r(j+1) ) / ( r(j),r(j) ) */
+/*... beta = ( r(j+1),(M-1)r(j+1) ) / ( r(j),r(j) ) */
       beta = di / d;
-      /*...................................................................*/
+/*...................................................................*/
 
-      /* ... p(j + 1) = (M - 1)r(j + 1) + beta*p(j) = z + beta*p(j)*/
+/* ... p(j + 1) = (M - 1)r(j + 1) + beta*p(j) = z + beta*p(j)*/
 #pragma omp for
       for (i = 0; i < nEq; i++)
         p[i] = z[i] + beta * p[i];
-      /*...................................................................*/
+/*...................................................................*/
 
-      /*...*/
+/*...*/
 #pragma omp master
       if (fHistLog)
         fprintf(fileHistLog, "%d %20.9e\n", j, sqrt(fabs(d)) / norm_b);
-      /*...................................................................*/
+/*...................................................................*/
 
-      /*...*/
+/*...*/
       d = di;
       if (sqrt(fabs(d)) < conv) break;
-      /*...................................................................*/
+/*...................................................................*/
 
-      /*...*/
+/*...*/
       if (jj == 2000) {
         jj = 0;
 #pragma omp master
         printf("PCGOMP: %d %20.9e %20.9e\n", j + 1, sqrt(fabs(d)), conv);
       }
       jj++;
-      /*...................................................................*/
+/*...................................................................*/
     }
-    /*...................................................................*/
+/*...................................................................*/
 
-    /*... Energy norm:  x*Kx*/
+/*... Energy norm:  x*Kx*/
     matvec(nEq
            , ia, ja
            , a, ad
@@ -543,19 +543,19 @@ void pcgOmp(INT const nEq, INT const nAd
            , bOmp->thBegin, bOmp->thEnd
            , bOmp->thHeight, bOmp->thY
            , nThreads);
-    /*norma de energia = xT*A*x */
+/*norma de energia = xT*A*x */
     tmp = dot(x, z, nEq);
 #pragma omp single
     xKx = tmp;
-    /*...................................................................*/
+/*...................................................................*/
 
-    /*... norm - 2 = || x ||*/
+/*... norm - 2 = || x ||*/
     tmp  = sqrt(dot(x, x, nEq));
 #pragma omp single
     norm = tmp;
-    /*...................................................................*/
+/*...................................................................*/
 
-    /*... r = M(-1)(b - Ax) (calculo do residuo explicito)*/
+/*... r = M(-1)(b - Ax) (calculo do residuo explicito)*/
 #pragma omp for
     for (i = 0; i < nEq; i++) {
       r[i] = b[i] - z[i];
@@ -573,9 +573,9 @@ void pcgOmp(INT const nEq, INT const nAd
 #pragma omp single
     if (fPrint && norm_r_m > 3.16e0*conv)
       printf("PCGOMP: %20.9e > %20.9e!!\n", norm_r_m, conv);
-    /*...................................................................*/
+/*...................................................................*/
   }
-  /*...................................................................*/
+/*...................................................................*/
 
   timef = getTimeC() - timei;
 
@@ -599,7 +599,7 @@ void pcgOmp(INT const nEq, INT const nAd
     exit(EXIT_FAILURE);
   }
   if (log)
-    fprintf(fLog
+    fprintf(fileLog
             , "PCGOMP: tol %20.2e "
             "iteration %d "
             "xKx %20.12e "
@@ -634,12 +634,12 @@ void pcgOmp(INT const nEq, INT const nAd
  *   z        -> vetor auxiliar                                       *
  * r0          > vetor auxiliar                                       *
  * newX       -> vetor inicial iniciado com zero                      *
- * fLog       -> arquivo de log do solver                             *
+ * fileLog       -> arquivo de log do solver                          *
  * log        -> log de arquivo (true|false)                          *
  * tol        -> tolerancia do solver                                 *
  * maxIt			-> numero maximo de iteracoes                           *
  *  newX			-> true zero o vetor inicial                            *
- * fLog				-> arquivo de saida do log                              *
+ * fileLog				-> arquivo de saida do log                          *
  * fileHistLog-> arquivo de log da iteracoes                          *
  *  log       -> escreve o log do solver                              *
  * fPrint			-> saida de informacao na tela                          *
@@ -664,7 +664,7 @@ void pbicgstab(INT const nEq  ,INT const nAd
           ,DOUBLE *restrict p ,DOUBLE *restrict z
           ,DOUBLE *restrict r0
 					,DOUBLE const tol   ,unsigned int maxIt
-          ,bool const newX    ,FILE* fLog 
+          ,bool const newX    ,FILE* fileLog 
           ,FILE *fileHistLog  ,bool const log     
           ,bool const fHistLog,bool const fPrint
           ,void(*matvec)()    ,DOUBLE(*dot)())
@@ -826,7 +826,7 @@ void pbicgstab(INT const nEq  ,INT const nAd
     exit(EXIT_FAILURE);
   }
   if(log)
-    fprintf(fLog          
+    fprintf(fileLog          
            ,"PBICGSTAB: tol %20.2e " 
 						"iteration %d "
 						"xKx %20.12e "
@@ -864,7 +864,7 @@ void pbicgstab(INT const nEq  ,INT const nAd
  *   p  -> vetor auxiliar                                             *
  *   z  -> vetor auxiliar                                             *
  * newX -> vetor inicial iniciado com zero                            *
- * fLog -> arquivo de log do solver                                   *
+ * fileLog -> arquivo de log do solver                                *
  * log  -> log de arquivo (true|false)                                *
  * tol  -> tolerancia do solver                                       *
  * maxIt-> numero maximo de iteracoes                                 *
@@ -890,7 +890,7 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
           ,DOUBLE *restrict p  ,DOUBLE *restrict z 
           ,DOUBLE const tol
           ,unsigned int maxIt  ,bool const newX          
-          ,FILE* fLog          ,bool const log
+          ,FILE* fileLog          ,bool const log
           ,bool const fPrint   ,Interface *iNeq    
           ,void(*matvec)()     ,DOUBLE(*dot)())
 {
@@ -974,7 +974,7 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
   }
   
   if(!mpiVar.myId && log)
-    fprintf(fLog          
+    fprintf(fileLog          
            ,"MPIPBICGSTAB: tol %20.2e " 
             "iteration %d " 
 		        "norma %20.12e "
@@ -1009,12 +1009,12 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
 * z           ->vetor auxiliar                                        *
 * r0          ->vetor auxiliar                                        *
 * newX        ->vetor inicial iniciado com zero                       *
-* fLog        ->arquivo de log do solver                              *
+* fileLog        ->arquivo de log do solver                           *
 * log         ->log de arquivo(true | false)                          *
 * tol         ->tolerancia do solver                                  *
 * maxIt       ->numero maximo de iteracoes                            *
 * newX			  -> true zero o vetor inicial                            *
-* fLog        ->arquivo de saida do log                               *
+* fileLog        ->arquivo de saida do log                            *
 * fileHistLog ->arquivo de log da iteracoes                           *
 * log         ->escreve o log do solver                               *
 * fPrint      ->saida de informacao na tela                           *
@@ -1040,7 +1040,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
                ,DOUBLE *restrict p ,DOUBLE *restrict z
                ,DOUBLE *restrict r0
                ,DOUBLE const tol   ,unsigned int maxIt
-               ,bool const newX    ,FILE* fLog
+               ,bool const newX    ,FILE* fileLog
                ,FILE *fileHistLog  ,bool const log
                ,bool const fHistLog,bool const fPrint
                ,BufferOmp *bOmp
@@ -1056,7 +1056,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
 
 #pragma omp parallel default(none) num_threads(nThreads)\
    private(i,j,jj,conv,norm_b,tmp,d,alpha,beta,rr0,w)\
-   shared(js,ia,ja,a,ad,m,b,x,z,r,p,r0,v,t,tol,maxIt,newX,fLog\
+   shared(js,ia,ja,a,ad,m,b,x,z,r,p,r0,v,t,tol,maxIt,newX,fileLog\
          ,xKx,norm,norm_r\
          ,fileHistLog,log,fHistLog,fPrint,matvec,dot,bOmp,nThreads)
   {
@@ -1257,7 +1257,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
     exit(EXIT_FAILURE);
   }
   if (log)
-    fprintf(fLog
+    fprintf(fileLog
             , "PBICGSTABOMP: tol %20.2e "
             "iteration %d "
             "xKx %20.12e "
@@ -1298,12 +1298,12 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
 *   h        -> vetor auxiliar                                       *
 *  z          > vetor auxiliar                                       *
 * newX       -> vetor inicial iniciado com zero                      *
-* fLog       -> arquivo de log do solver                             *
+* fileLog       -> arquivo de log do solver                          *
 * log        -> log de arquivo (true|false)                          *
 * tol        -> tolerancia do solver                                 *
 * maxIt			-> numero maximo de iteracoes                            *
 *  newX			-> true zero o vetor inicial                             *
-* fLog				-> arquivo de saida do log                             *
+* fileLog				-> arquivo de saida do log                           *
 * fileHistLog-> arquivo de log da iteracoes                          *
 *  log       -> escreve o log do solver                              *
 * fPrint			-> saida de informacao na tela                         *
@@ -1331,7 +1331,7 @@ void pbicgstabl2(INT const nEq      ,INT const nAd
                ,DOUBLE *restrict p ,DOUBLE *restrict h
                ,DOUBLE *restrict z 
                ,DOUBLE const tol   ,unsigned int maxIt
-               ,bool const newX    ,FILE* fLog
+               ,bool const newX    ,FILE* fileLog
                ,FILE *fileHistLog  ,bool const log
                ,bool const fHistLog,bool const fPrint
                ,void(*matvec)()    ,DOUBLE(*dot)())
@@ -1581,7 +1581,7 @@ void pbicgstabl2(INT const nEq      ,INT const nAd
     exit(EXIT_FAILURE);
   }
   if (log)
-    fprintf(fLog
+    fprintf(fileLog
             , "PBICGSTAB(2): tol %20.2e "
             "iteration %d "
             "xKx %20.12e "
@@ -1622,12 +1622,12 @@ void pbicgstabl2(INT const nEq      ,INT const nAd
 *   h        -> vetor auxiliar                                       *
 *  z          > vetor auxiliar                                       *
 * newX       -> vetor inicial iniciado com zero                      *
-* fLog       -> arquivo de log do solver                             *
+* fileLog       -> arquivo de log do solver                          *
 * log        -> log de arquivo (true|false)                          *
 * tol        -> tolerancia do solver                                 *
 * maxIt			-> numero maximo de iteracoes                            *
 *  newX			-> true zero o vetor inicial                             *
-* fLog				-> arquivo de saida do log                             *
+* fileLog				-> arquivo de saida do log                           *
 * fileHistLog-> arquivo de log da iteracoes                          *
 *  log       -> escreve o log do solver                              *
 * fPrint			-> saida de informacao na tela                         *
@@ -1655,7 +1655,7 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
                  , DOUBLE *restrict p, DOUBLE *restrict h
                  , DOUBLE *restrict z
                  , DOUBLE const tol, unsigned int maxIt
-                 , bool const newX, FILE* fLog
+                 , bool const newX, FILE* fileLog
                  , FILE *fileHistLog, bool const log
                  , bool const fHistLog, bool const fPrint
                  , BufferOmp *bOmp
@@ -1673,7 +1673,7 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
 #pragma omp parallel default(none) num_threads(nThreads)\
    private(i,j,jj,conv,norm_b,tmp,d,alpha,beta,rr0,rr1,omega1,omega2\
           ,gamma,mi,ni,tau)\
-   shared(js,ia,ja,a,ad,m,b,x,t,v,r,u,r0,w,s,p,h,z,tol,maxIt,newX,fLog\
+   shared(js,ia,ja,a,ad,m,b,x,t,v,r,u,r0,w,s,p,h,z,tol,maxIt,newX,fileLog\
          ,xKx,norm,norm_r\
          ,fileHistLog,log,fHistLog,fPrint,matvec,dot,bOmp,nThreads)
   {
@@ -1968,7 +1968,7 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
     exit(EXIT_FAILURE);
   }
   if (log)
-    fprintf(fLog
+    fprintf(fileLog
             , "PBICGSTABOMP(2): tol %20.2e "
             "iteration %d "
             "xKx %20.12e "
@@ -1980,3 +1980,601 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
 }
 /**********************************************************************/
 
+/**********************************************************************
+ * Data de criacao    : 04/09/2016                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ * -------------------------------------------------------------------*
+ * GMRES: Solucao iterativa de sistemas simetricos e nao-simetricos   *
+ *        pelo metodo GMRES com precondicionador diagonal.            *
+ * -------------------------------------------------------------------*
+ * Parametros de Entrada:                                             *
+ * -------------------------------------------------------------------*
+ *  neq       -> numero de equacoes                                   *
+ *  nad       -> numero de elementos nao nulos fora da diagonal       *
+ *  ia        -> estrutura de dados para matriz esparsa A             *
+ *  ja        -> estrutura de dados para matriz esparsa A             *
+ *  a         -> coef fora da diagonal principal                      *
+ *  ad        -> diagnal da matriz A                                  *
+ *   p        -> precondiconador diagonal                             *
+ *   b        -> vetor b (Ax=b)                                       *
+ *   x        -> vetor de solucao                                     *
+ *   g        -> vetor auxiliar                                       *
+ *   h        -> vetor auxiliar                                       *
+ *   y        -> vetor auxiliar                                       *
+ *   c        -> vetor auxiliar                                       *
+ *   s        -> vetor auxiliar                                       *
+ *   e        -> vetor auxiliar                                       *
+ * newX       -> vetor inicial iniciado com zero                      *
+ * fileLog       -> arquivo de log do solver                          *
+ * log        -> log de arquivo (true|false)                          *
+ * tol        -> tolerancia do solver                                 *
+ * maxIt			-> numero maximo de iteracoes                           *
+ *  newX			-> true zero o vetor inicial                            *
+ * fileLog				-> arquivo de saida do log                          *
+ * fileHistLog-> arquivo de log da iteracoes                          *
+ *  log       -> escreve o log do solver                              *
+ * fPrint			-> saida de informacao na tela                          *
+ * fHistLog		-> log das iteracoes                                    *
+ * -------------------------------------------------------------------*
+ * Parametros de Saida:                                               *
+ * -------------------------------------------------------------------*
+ * x[]-> atualizado                                                   *
+ * b[]-> inalterado                                                   *
+ * ad,a-> inalterado                                                  *
+ * -------------------------------------------------------------------*
+ * OBS:                                                               *
+ * Versão do livro Iterative krylov Method for large linear Systems   *
+ *                                                                    *
+ * g(nKrylov+1,neq)                                                   *
+ * h(nKrylov+1,nKrylov)                                               *
+ * y(nKrylov)                                                         *
+ * c(nKrylov)                                                         *
+ * s(nKrylov)                                                         *
+ * e(nKrylov+1)                                                       *
+ **********************************************************************/
+void gmres(INT const nEq       ,INT const nAd
+          ,INT *restrict ia    ,INT *restrict ja
+          ,DOUBLE *restrict a  ,DOUBLE *restrict ad
+          ,DOUBLE *restrict m  ,DOUBLE *restrict b
+          ,DOUBLE *restrict x  ,DOUBLE *restrict g
+          ,DOUBLE *restrict h  ,DOUBLE *restrict y
+          ,DOUBLE *restrict c  ,DOUBLE *restrict s 
+          ,DOUBLE *restrict e  ,short const nKrylov
+          ,DOUBLE const tol    ,unsigned int nCycles
+          ,bool const newX     ,FILE* fileLog
+          ,FILE *fileHistLog   ,bool const log
+          ,bool const fHistLog ,bool const fPrint
+          ,void(*matvec)()     ,DOUBLE(*dot)())
+{
+  int i,j,l,jj,ni,nIt;
+  unsigned short nCol = nKrylov;
+  DOUBLE *g1,*g2;
+  DOUBLE tmp,norm,norm_r,eConv,beta,h1,h2,aux1,aux2,r,xKx;
+  INT iLong;
+  DOUBLE timei, timef;
+
+  timei = getTimeC();
+
+/*... chute inicial*/
+  if (newX)
+    for (i = 0; i < nEq; i++)
+      x[i] = 0.e0;
+/*...................................................................*/
+
+/*...g(1,i) = (M-1)*b*/
+  for (iLong = 0; iLong < nEq; iLong++)
+    g[iLong] = b[iLong] * m[iLong];
+/*...................................................................*/
+
+/*... Limite de convergencia*/
+  norm = dot(g, g, nEq);
+  norm = sqrt(norm);
+  eConv = tol*norm;
+/*...................................................................*/
+
+/*... Ciclos Gmres*/
+  nIt = 0;
+  jj = 0;
+  for (l = 0; l < nCycles; l++) {
+/*... Residuo g1 = b - Ax*/
+    matvec(nEq, ia, ja, a, ad, x, g);
+/*...................................................................*/
+
+/*...g1 = (M-1)*r*/
+    for (iLong = 0; iLong < nEq; iLong++)
+      g[iLong] = (b[iLong] - g[iLong]) * m[iLong];
+/*...................................................................*/
+
+/*... Norma do residuo*/
+    e[0] = sqrt(dot(g, g, nEq));
+    tmp = 1.e0 / e[0];
+/*...................................................................*/
+
+/*...g(1,i) = g(1,i)/|g(1,i)|*/
+    for (iLong = 0; iLong < nEq; iLong++)
+      g[iLong] *= tmp;
+/*...................................................................*/
+
+/*... Iteracoe Gmres*/
+     for (ni = 0; ni < nKrylov; ni++, nIt++) {
+/*... g1 = g(ni)*/
+      g1 = &g[ni*nEq];
+/*... g2 = g(ni+1)*/
+      g2 = &g[(ni+1)*nEq];
+/*... Residuo  g(ni+1) = A*g(ni)*/
+      matvec(nEq, ia, ja, a, ad, g1, g2);
+/*...................................................................*/
+
+/*... g2 = (M-1)g2*/
+      for (iLong = 0; iLong < nEq; iLong++)
+        g2[iLong] *= m[iLong];
+/*...................................................................*/
+
+/*... Ortogonalizacao (Gram-Schmidt modificado)*/
+      for (j = 0; j<=ni; j++) {
+/*... g1 = g(j)*/
+//      g1 = &MAT2D(j, 0, g, nEq);
+        g1   = &g[j*nEq];
+        beta = dot(g2, g1, nEq);
+        for (iLong = 0; iLong < nEq; iLong++)
+          g2[iLong] -= beta*g1[iLong];
+        MAT2D(j, ni, h, nCol) = beta;
+      }
+/*...................................................................*/
+
+/*... g(i+1) = |g(i+1)|*/
+      norm = sqrt(dot(g2, g2, nEq));
+      MAT2D(ni+1,ni,h,nCol) = norm;
+/*...................................................................*/
+
+/*...g(1,i+1) = g(1,i+1)/|g(1,i+1)|*/
+      tmp = 1.e0 / norm;
+      for (iLong = 0; iLong < nEq; iLong++)
+        g2[iLong] *= tmp;
+/*...................................................................*/
+     
+/*...*/
+      for(j=0; j<ni ; j++) {
+        h1                   = MAT2D(j  ,ni,h,nCol);
+        h2                   = MAT2D(j+1,ni,h,nCol);
+        aux1                 =  c[j]*h1 + s[j]*h2;
+        aux2                 = -s[j]*h1 + c[j]*h2;
+        MAT2D(j  ,ni,h,nCol) = aux1;
+        MAT2D(j+1,ni,h,nCol) = aux2;
+      }
+      h1                    = MAT2D(ni  ,ni,h,nCol);
+      h2                    = MAT2D(ni+1,ni,h,nCol);
+      r                     = sqrt(h1*h1 + h2*h2);
+      tmp                   = 1.e0 / r;
+      c[ni]                 = h1*tmp;
+      s[ni]                 = h2*tmp;
+      MAT2D(ni  ,ni,h,nCol) = r;
+      MAT2D(ni+1,ni,h,nCol) = 0.e0;
+      e[ni+1]               = -s[ni]*e[ni];
+      e[ni]                 =  c[ni]*e[ni];
+      if (fabs(e[ni+1]) <= eConv);
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*...*/
+    if( ni == nKrylov) ni--;
+/*.....................................................................*/
+
+/*... h y = e*/
+     y[ni] = e[ni] / MAT2D(ni, ni, h, nCol);
+     for (i = ni - 1; i>=0; i--) {
+       y[i] = 0.e0;
+       for (j = i + 1; j<ni; j++)
+         y[i] -= MAT2D(i, j, h, nCol)*y[j];
+       y[i] = (y[i] + e[i]) / MAT2D(i, i, h, nCol);
+     }
+/*...................................................................*/
+
+/*... x = Vy = (Vt)y*/
+     for (j = 0; j<ni; j++){
+        tmp = y[j];
+        for (iLong = 0; iLong<nEq; iLong++)    
+          x[iLong] += MAT2D(j, iLong, g, nEq)*tmp;
+     }
+/*...................................................................*/
+
+/*... Verifica a convergencia:*/
+    if (fabs(e[ni+1]) <= eConv) break;
+/*...................................................................*/
+  }
+
+/*... Energy norm:  x*Kx*/
+  matvec(nEq, ia, ja, a, ad, x, g);
+/*norma de energia = xT*A*x */
+  xKx = dot(x, g, nEq);
+/*...................................................................*/
+
+/*... norm - 2 = || x ||*/
+  norm = sqrt(dot(x, x, nEq));
+/*...................................................................*/
+
+/*... r = (b - Ax) (calculo do residuo explicito)*/
+  g1 = g;
+  g2 = &g[nEq];
+  for (iLong = 0; iLong < nEq; iLong++)
+    g2[iLong] = b[iLong] - g1[iLong];
+  norm_r = dot(g2,g2,nEq);
+  norm_r = sqrt(norm_r);
+  if (fPrint && norm_r > 3.16e0*eConv)
+    printf("GMRES: %20.9e > %20.9e!!\n", norm_r, eConv);
+/*...................................................................*/
+  timef = getTimeC() - timei;
+
+  if (fPrint) {
+    printf(" (GMRES) solver:\n"
+           "\tEquations      = %20d\n"
+           "\tnad            = %20d\n"
+           "\tnKrylov        = %20d\n"
+           "\tSolver tol     = %20.2e\n"
+           "\tCycles         = %20d\n"
+           "\tIterarions     = %20d\n"
+           "\tx * Kx         = %20.2e\n"
+           "\t|| x ||        = %20.2e\n"
+           "\t|| b - Ax ||   = %20.2e\n"
+           "\tCPU time(s)    = %20.2lf\n"
+           , nEq, nAd, nKrylov,tol,l+1,nIt+1,xKx, norm, norm_r, timef);
+  }
+
+  if (l == nCycles) {
+    printf(" GMRES *** WARNING: no convergende reached !\n");
+    printf("MAXIT = %d \n", nCycles);
+    exit(EXIT_FAILURE);
+  }
+
+  if (log)
+    fprintf(fileLog
+            , "GMRES: tol %20.2e "
+            " Cycles %d"
+            " iteration %d "
+            " nKrylov %d "
+            " xKx %20.12e "
+            " norma(x*x) %20.12e "
+            " time %20.5lf\n"
+            , tol,l+1,nIt+1,nKrylov,xKx,norm,timef);
+
+}
+/**********************************************************************/
+
+/**********************************************************************
+* Data de criacao    : 04/09/2016                                    *
+* Data de modificaco : 00/00/0000                                    *
+* -------------------------------------------------------------------*
+* GMRESOMP: Solucao iterativa de sistemas simetricos e nao-simetricos*
+*        pelo metodo GMRES com precondicionador diagonal.            *
+* -------------------------------------------------------------------*
+* Parametros de Entrada:                                             *
+* -------------------------------------------------------------------*
+*  neq       -> numero de equacoes                                   *
+*  nad       -> numero de elementos nao nulos fora da diagonal       *
+*  ia        -> estrutura de dados para matriz esparsa A             *
+*  ja        -> estrutura de dados para matriz esparsa A             *
+*  a         -> coef fora da diagonal principal                      *
+*  ad        -> diagnal da matriz A                                  *
+*   p        -> precondiconador diagonal                             *
+*   b        -> vetor b (Ax=b)                                       *
+*   x        -> vetor de solucao                                     *
+*   g        -> vetor auxiliar                                       *
+*   h        -> vetor auxiliar                                       *
+*   y        -> vetor auxiliar                                       *
+*   c        -> vetor auxiliar                                       *
+*   s        -> vetor auxiliar                                       *
+*   e        -> vetor auxiliar                                       *
+* newX       -> vetor inicial iniciado com zero                      *
+* fileLog       -> arquivo de log do solver                          *
+* log        -> log de arquivo (true|false)                          *
+* tol        -> tolerancia do solver                                 *
+* maxIt			-> numero maximo de iteracoes                            *
+*  newX			-> true zero o vetor inicial                             *
+* fileLog				-> arquivo de saida do log                           *
+* fileHistLog-> arquivo de log da iteracoes                          *
+*  log       -> escreve o log do solver                              *
+* fPrint			-> saida de informacao na tela                         *
+* fHistLog		-> log das iteracoes                                   *
+* -------------------------------------------------------------------*
+* Parametros de Saida:                                               *
+* -------------------------------------------------------------------*
+* x[]-> atualizado                                                   *
+* b[]-> inalterado                                                   *
+* ad,a-> inalterado                                                  *
+* -------------------------------------------------------------------*
+* OBS:                                                               *
+* Versão do livro Iterative krylov Method for large linear Systems   *
+*                                                                    *
+* g(nKrylov+1,neq)                                                   *
+* h(nKrylov+1,nKrylov)                                               *
+* y(nKrylov)                                                         *
+* c(nKrylov)                                                         *
+* s(nKrylov)                                                         *
+* e(nKrylov+1)                                                       *
+**********************************************************************/
+void gmresOmp(INT const nEq      ,INT const nAd
+             ,INT *restrict ia   ,INT *restrict ja
+             ,DOUBLE *restrict a ,DOUBLE *restrict ad
+             ,DOUBLE *restrict m ,DOUBLE *restrict b
+             ,DOUBLE *restrict x ,DOUBLE *restrict g
+             ,DOUBLE *restrict h ,DOUBLE *restrict y
+             ,DOUBLE *restrict c ,DOUBLE *restrict s
+             ,DOUBLE *restrict e ,short const nKrylov
+             ,DOUBLE const tol   ,unsigned int nCycles
+             ,bool const newX    ,FILE* fileLog
+             ,FILE *fileHistLog  ,bool const log
+             ,bool const fHistLog,bool const fPrint
+             ,BufferOmp *bOmp
+             ,void(*matvec)()    ,DOUBLE(*dot)())
+{
+  short nThreads = ompVar.nThreadsSolver;
+  int i, j, l, jj, ni, nIt;
+  unsigned short nCol = nKrylov;
+  DOUBLE *g1, *g2;
+  DOUBLE tmp, norm, norm_r, eConv, beta, h1, h2, aux1, aux2, r, xKx;
+  INT iLong;
+  DOUBLE timei, timef;
+
+  timei = getTimeC();
+
+  omp_set_num_threads(nThreads);
+
+/*... chute inicial*/
+  if (newX)
+    for (i = 0; i < nEq; i++)
+      x[i] = 0.e0;
+/*...................................................................*/
+
+/*...g(1,i) = (M-1)*b*/
+#pragma omp parallel default(none) private(tmp,iLong)\
+        shared(nEq,g,b,m,norm,dot)
+  {
+  #pragma omp for
+    for (iLong = 0; iLong < nEq; iLong++)
+      g[iLong] = b[iLong] * m[iLong];
+/*...................................................................*/
+
+/*... Limite de convergencia*/
+    tmp = dot(g, g, nEq);
+  #pragma omp single
+    norm = tmp;
+  }
+/*...................................................................*/
+
+  norm = sqrt(norm);
+  eConv = tol*norm;
+/*...................................................................*/
+
+/*... Ciclos Gmres*/
+  nIt = 0;
+  jj = 0;
+  for (l = 0; l < nCycles; l++) {
+/*... Residuo g1 = b - Ax*/
+#pragma omp parallel default(none) private(tmp)\
+        shared(nEq,ia,ja,a,ad,x,g,b,m,e,bOmp,nThreads,matvec,dot)
+  {
+    matvec(nEq
+          ,ia            ,ja
+          ,a             ,ad
+          ,x             ,g
+          ,bOmp->thBegin ,bOmp->thEnd
+          ,bOmp->thHeight,bOmp->thY
+          ,nThreads);
+/*...................................................................*/
+
+/*...g1 = (M-1)*r*/
+  #pragma omp for
+    for (iLong = 0; iLong < nEq; iLong++)
+      g[iLong] = (b[iLong] - g[iLong]) * m[iLong];
+/*...................................................................*/
+
+/*... Norma do residuo*/
+    tmp  = sqrt(dot(g, g, nEq));
+  #pragma omp single
+    e[0] = tmp;
+    tmp = 1.e0/tmp;
+/*...................................................................*/
+
+/*...g(1,i) = g(1,i)/|g(1,i)|*/
+  #pragma omp for
+    for (iLong = 0; iLong < nEq; iLong++)
+      g[iLong] *= tmp;
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... Iteracoe Gmres*/
+    for (ni = 0; ni < nKrylov; ni++, nIt++) {
+/*... g1 = g(ni)*/
+      g1 = &g[ni*nEq];
+/*... g2 = g(ni+1)*/
+      g2 = &g[(ni + 1)*nEq];
+#pragma omp parallel default(none) private(tmp)\
+        shared(nEq,ia,ja,a,ad,g1,g2,m,bOmp,nThreads,matvec,dot)
+  {
+/*... Residuo  g(ni+1) = A*g(ni)*/
+      matvec(nEq
+            ,ia            ,ja
+            ,a             ,ad
+            ,g1            ,g2
+            ,bOmp->thBegin ,bOmp->thEnd
+            ,bOmp->thHeight,bOmp->thY
+            ,nThreads);
+/*...................................................................*/
+
+/*... g2 = (M-1)g2*/
+    #pragma omp for
+      for (iLong = 0; iLong < nEq; iLong++)
+        g2[iLong] *= m[iLong];
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... Ortogonalizacao (Gram-Schmidt modificado)*/
+      for (j = 0; j <= ni; j++) {
+/*... g1 = g(j)*/
+        g1   = &g[j*nEq];
+#pragma omp  parallel default(none) private(tmp,iLong)\
+       shared(nEq,g1,g2,beta,dot) 
+  {
+        tmp = dot(g2, g1, nEq);
+    #pragma omp single
+        beta = tmp;  
+/*...................................................................*/
+
+/*...*/
+    #pragma omp for
+        for (iLong = 0; iLong < nEq; iLong++)
+          g2[iLong] -= beta*g1[iLong];
+  }
+/*...................................................................*/
+        MAT2D(j, ni, h, nCol) = beta;
+      }
+/*...................................................................*/
+
+#pragma omp parallel default(none) private(tmp,iLong)\
+      shared(nEq,norm,h,g1,g2,beta,dot,ni,nCol)
+  { 
+/*... g(i+1) = |g(i+1)|*/
+      tmp  = sqrt(dot(g2, g2, nEq));
+    #pragma omp single
+    {
+      norm = tmp;
+      MAT2D(ni + 1, ni, h, nCol) = norm;
+    }
+/*...................................................................*/
+
+/*...g(1,i+1) = g(1,i+1)/|g(1,i+1)|*/
+      tmp = 1.e0 / tmp;
+#pragma omp for
+      for (iLong = 0; iLong < nEq; iLong++)
+        g2[iLong] *= tmp;
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*...*/
+      for (j = 0; j<ni; j++) {
+        h1 = MAT2D(j, ni, h, nCol);
+        h2 = MAT2D(j + 1, ni, h, nCol);
+        aux1 = c[j] * h1 + s[j] * h2;
+        aux2 = -s[j] * h1 + c[j] * h2;
+        MAT2D(j, ni, h, nCol) = aux1;
+        MAT2D(j + 1, ni, h, nCol) = aux2;
+      }
+      h1 = MAT2D(ni, ni, h, nCol);
+      h2 = MAT2D(ni + 1, ni, h, nCol);
+      r = sqrt(h1*h1 + h2*h2);
+      tmp = 1.e0 / r;
+      c[ni] = h1*tmp;
+      s[ni] = h2*tmp;
+      MAT2D(ni, ni, h, nCol) = r;
+      MAT2D(ni + 1, ni, h, nCol) = 0.e0;
+      e[ni + 1] = -s[ni] * e[ni];
+      e[ni] = c[ni] * e[ni];
+      if (fabs(e[ni + 1]) <= eConv);
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*...*/
+    if (ni == nKrylov) ni--;
+/*.....................................................................*/
+
+/*... h y = e*/
+    y[ni] = e[ni] / MAT2D(ni, ni, h, nCol);
+    for (i = ni - 1; i >= 0; i--) {
+      tmp = 0.e0;
+#pragma omp parallel for reduction(-:tmp)
+      for (j = i + 1; j<ni; j++)
+        tmp -= MAT2D(i, j, h, nCol)*y[j];
+      y[i] = (tmp + e[i]) / MAT2D(i, i, h, nCol);
+    }
+/*...................................................................*/
+
+/*... x = Vy = (Vt)y*/
+    for (j = 0; j<ni; j++) {
+      tmp = y[j];
+#pragma omp parallel for default (none) private(iLong) shared(tmp,x,g,j,nEq)
+      for (iLong = 0; iLong<nEq; iLong++)
+        x[iLong] += MAT2D(j, iLong, g, nEq)*tmp;
+    }
+/*...................................................................*/
+
+/*... Verifica a convergencia:*/
+    if (fabs(e[ni+1]) <= eConv) break;
+/*...................................................................*/
+  }
+
+/*... Energy norm:  x*Kx*/
+#pragma omp parallel default(none) private(tmp)\
+        shared(nEq,ia,ja,a,ad,x,g,bOmp,nThreads,xKx,norm,matvec,dot)
+  {
+    matvec(nEq
+          ,ia            ,ja
+          ,a             ,ad
+          ,x             ,g
+          ,bOmp->thBegin ,bOmp->thEnd
+          ,bOmp->thHeight,bOmp->thY
+          ,nThreads);
+/*norma de energia = xT*A*x */
+    tmp = dot(x, g, nEq);
+  #pragma omp single
+    xKx = tmp;
+/*...................................................................*/
+
+/*... norm - 2 = || x ||*/
+    tmp = sqrt(dot(x, x, nEq));
+#pragma omp single
+    norm = tmp;
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... r = (b - Ax) (calculo do residuo explicito)*/
+  g1 = g;
+  g2 = &g[nEq];
+  for (iLong = 0; iLong < nEq; iLong++)
+    g2[iLong] = b[iLong] - g1[iLong];
+  norm_r = dot(g2, g2, nEq);
+  norm_r = sqrt(norm_r);
+  if (fPrint && norm_r > 3.16e0*eConv)
+    printf("GMRES: %20.9e > %20.9e!!\n", norm_r, eConv);
+/*...................................................................*/
+  timef = getTimeC() - timei;
+
+  if (fPrint) {
+    printf(" (GMRESOMP) solver:\n"
+           "\tEquations      = %20d\n"
+           "\tnad            = %20d\n"
+           "\tnKrylov        = %20d\n"
+           "\tSolver tol     = %20.2e\n"
+           "\tCycles         = %20d\n"
+           "\tIterarions     = %20d\n"
+           "\tx * Kx         = %20.2e\n"
+           "\t|| x ||        = %20.2e\n"
+           "\t|| b - Ax ||   = %20.2e\n"
+           "\tCPU time(s)    = %20.2lf\n"
+           , nEq, nAd, nKrylov, tol, l + 1, nIt + 1, xKx, norm, norm_r, timef);
+  }
+
+  if (l == nCycles) {
+    printf(" GMRESOMP *** WARNING: no convergende reached !\n");
+    printf("MAXIT = %d \n", nCycles);
+    exit(EXIT_FAILURE);
+  }
+
+  if (log)
+    fprintf(fileLog
+            , "GMRESOMP: tol %20.2e "
+            " Cycles %d"
+            " iteration %d "
+            " nKrylov %d "
+            " xKx %20.12e "
+            " norma(x*x) %20.12e "
+            " time %20.5lf\n"
+            , tol, l + 1, nIt + 1, nKrylov, xKx, norm, timef);
+
+}
+/**********************************************************************/

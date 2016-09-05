@@ -49,6 +49,7 @@ void writeLog(Mesh mesh          ,Scheme sc
 /*... Solver*/
   fprintf(file,"Pcg                : %lf\n",t.pcg);
   fprintf(file,"Pbicgstab          : %lf\n",t.pbicgstab);
+  fprintf(file,"Gmres              : %lf\n",t.gmres);
   fprintf(file,"precondDiag        : %lf\n",t.precondDiag);
 
 /*... particionamento*/

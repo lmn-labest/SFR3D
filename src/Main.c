@@ -170,6 +170,7 @@ int main(int argc,char**argv){
 /*... Iterativos  */
   tm.pcg               = 0.e0;
   tm.pbicgstab         = 0.e0;
+  tm.gmres             = 0.e0;
 /*... particionamento*/
   tm.partdMesh         = 0.e0;
   tm.partdMeshCom      = 0.e0;

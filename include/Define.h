@@ -176,6 +176,7 @@
   #define PCG          1
   #define PBICGSTAB    2
   #define PBICGSTABL2  3
+  #define GMRES        4
 /*...................................................................*/
 
 /*... STORAGE*/
@@ -226,8 +227,8 @@
 /*...................................................................*/
 
 /*... macro para acesso matricial em vetores*/
-  #define   MAT2D(i,j,vector,col)           vector[i*col+j]
-  #define   MAT3D(i,j,k,vector,col1,col2)   vector[i*col1*col2+col2*j+k]
+  #define   MAT2D(i,j,vector,col)           vector[(i)*(col)+(j)]
+  #define   MAT3D(i,j,k,vector,col1,col2)   vector[(i)*(col1)*(col2)+(col2)*(j)+(k)]
 /*...................................................................*/
 
 /*... definicao de funcoes*/

@@ -53,6 +53,8 @@ void solverC(Memoria *m
         ,*i=NULL,*o=NULL,*s=NULL,*d=NULL;
   void   (*matVecC)();
   DOUBLE (*dotC)();
+  INT nn;
+  unsigned short nKrylov=15;
   bool fPrint = false,openMp = ompVar.fSolver;
 /*...*/
 	dotC    = NULL;
@@ -191,7 +193,7 @@ void solverC(Memoria *m
 /*...................................................................*/
 
 /*... gradientes conjugados bi-ortoganilizado com precondicionador
-diagonal*/
+      diagonal*/
     case PBICGSTABL2:
 /*... precondiconador diagonal*/
       HccaAlloc(DOUBLE, m, pc, nEqNov, "pc", false);
@@ -276,12 +278,90 @@ diagonal*/
     break;
 /*...................................................................*/
 
+/*... GMRES*/
+    case GMRES:
+/*... precondiconador diagonal*/
+      HccaAlloc(DOUBLE, m, pc, nEqNov, "pc", false);
+      zero(pc, nEqNov, DOUBLEC);
+/*...*/
+      tm.precondDiag = getTimeC() - tm.precondDiag;
+      preCondDiag(pc, ad, nEqNov);
+      tm.precondDiag = getTimeC() - tm.precondDiag;
+/*...................................................................*/
+
+/*... arranjos auxiliares do pbicgstab*/
+      nn = nEq*(nKrylov+1);
+      HccaAlloc(DOUBLE, m, z, nn, "gg", false);
+      zero(z, nn, DOUBLEC);
+      
+      nn = nKrylov*(nKrylov + 1);
+      HccaAlloc(DOUBLE, m, h, nn,"hh", false);
+      zero(h, nn, DOUBLEC);
+      
+      nn = nKrylov+1;
+      HccaAlloc(DOUBLE, m, p, nn, "ee", false);
+      zero(p, nn, DOUBLEC);
+      
+      nn = nKrylov;
+      HccaAlloc(DOUBLE,m,t,nn,"cc", false);
+      HccaAlloc(DOUBLE,m,v,nn,"ss", false);
+      HccaAlloc(DOUBLE,m,d,nn,"yy", false);
+      zero(t,nn,DOUBLEC);
+      zero(v,nn,DOUBLEC);
+      zero(d,nn,DOUBLEC);
+/*...................................................................*/
+
+/*...*/
+      setMatVec(&matVecC, storage, unSym, openMp);
+/*...................................................................*/
+
+/*...*/
+      setDot(&dotC, DOT);
+/*...................................................................*/
+
+/*... Gmres*/
+      tm.gmres = getTimeC() - tm.gmres;
+/*...*/
+      callGmres(nEq    ,nEqNov
+               ,nAd    ,nAdR
+               ,ia     ,ja
+               ,al     ,ad
+               ,pc     ,b
+               ,x      ,z
+               ,h      ,d
+               ,t      ,v
+               ,p      ,nKrylov
+               ,tol    ,maxIt
+               ,newX   ,fSolvLog
+               ,fLog   ,false
+               ,iNeq   ,bOmp
+               ,matVecC,dotC);
+/*...................................................................*/
+
+/*...*/
+      tm.gmres = getTimeC() - tm.gmres;
+/*...................................................................*/
+
+/*... liberando arranjos auxiliares do pbicgstab*/
+       HccaDealloc(m, d, "yy", false);
+       HccaDealloc(m, v, "ss", false);
+       HccaDealloc(m, t, "cc", false);
+       HccaDealloc(m, p, "ee", false);
+       HccaDealloc(m, h, "hh", false);
+       HccaDealloc(m, z, "gg", false);
+/*...................................................................*/
+
+/*... liberando arranjos do precondicionador*/
+      HccaDealloc(m, pc, "pc", false);
+/*...................................................................*/
+    break;
+/*...................................................................*/ 
+
 /*...*/
     default:
       ERRO_OP(__FILE__,__func__,solver);
     break;
 /*...................................................................*/
- 
   }
 /*...................................................................*/
 }
@@ -299,6 +379,8 @@ void setSolver(char *word,short *solver)
     *solver = PBICGSTAB;
   else if (!strcmp(word, "PBICGSTABL2"))
     *solver = PBICGSTABL2;
+  else if (!strcmp(word, "GMRES"))
+    *solver = GMRES;
 
 } 
 /*********************************************************************/      
@@ -797,7 +879,7 @@ void callBicgStabl2(INT const nEq     ,INT const nEqNov
                    ,void(*matVec)()   ,DOUBLE(*dot)())
 {
 
-  /*... MPI*/
+/*... MPI*/
   if (mpiVar.nPrcs > 1)
     mpiPbicgstab(nEq, nEqNov
                  , nAd, nAdR
@@ -858,5 +940,82 @@ void callBicgStabl2(INT const nEq     ,INT const nEqNov
 /*...................................................................*/
   }
 /*...................................................................*/
+}
+/*********************************************************************/
+
+/**********************************************************************
+* Data de criacao    : 04/09/2016                                    *
+* Data de modificaco : 00/00/0000                                    *
+* -------------------------------------------------------------------*
+* CALLGMRES : chama o GMRES                                          *
+* -------------------------------------------------------------------*
+* Parametro de entrada                                               *
+* -------------------------------------------------------------------*
+* -------------------------------------------------------------------*
+* Parametro de saida :                                               *
+* -------------------------------------------------------------------*
+* -------------------------------------------------------------------*
+* OBS:                                                               *
+**********************************************************************/
+void callGmres(INT const nEq     ,INT const nEqNov
+              ,INT const nAd     ,INT const nAdR
+              ,INT *restrict ia  ,INT *restrict ja
+              ,DOUBLE *restrict a,DOUBLE *restrict ad
+              ,DOUBLE *restrict m,DOUBLE *restrict b
+              ,DOUBLE *restrict x,DOUBLE *restrict g
+              ,DOUBLE *restrict h,DOUBLE *restrict y
+              ,DOUBLE *restrict c,DOUBLE *restrict s
+              ,DOUBLE *restrict e,short const nKrylov
+              ,DOUBLE const tol  ,unsigned int maxIt
+              ,bool const newX   ,FILE* fSolvLog
+              ,bool const fLog   ,bool const fPrint
+              ,Interface *iNeq   ,BufferOmp *bOmp
+              ,void(*matVec)()   ,DOUBLE(*dot)())
+{
+
+/*... MPI*/
+  if (mpiVar.nPrcs > 1);
+/*...................................................................*/
+
+/*... */
+  else {
+/*... OpenMp*/
+    if (ompVar.fSolver)
+      gmresOmp(nEq  ,nAd
+                   ,ia   ,ja
+                   ,a    ,ad
+                   ,m    ,b
+                   ,x    ,g
+                   ,h    ,y
+                   ,c    ,s
+                   ,e    ,nKrylov
+                   ,tol  ,maxIt
+                   ,newX ,fSolvLog
+                   ,NULL ,fLog
+                   ,false,false
+                   ,bOmp
+                   ,matVec,dot);
+/*...................................................................*/
+
+/*... sequencial*/
+    else {
+      gmres(nEq    ,nAd
+           ,ia     ,ja
+           ,a      ,ad
+           ,m      ,b
+           ,x      ,g
+           ,h      ,y
+           ,c      ,s
+           ,e      ,nKrylov
+           ,tol    ,maxIt
+           ,newX   ,fSolvLog
+           ,NULL   ,fLog
+           ,false  ,false
+           ,matVec ,dot);
+    }
+/*...................................................................*/
+  }
+/*...................................................................*/
+
 }
 /*********************************************************************/
