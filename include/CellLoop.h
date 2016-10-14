@@ -169,6 +169,60 @@
              ,const bool sPressure);  
 /*...................................................................*/
 
+/*... */
+   void velExp(Loads *loadsVel           ,Loads *loadsPres
+              ,Advection advVel          ,Diffusion diffVel
+              ,INT    *restrict el       ,INT    *restrict nelcon
+              ,short  *restrict nen      ,short  *restrict nFace
+              ,short  *restrict geomType ,DOUBLE *restrict prop
+              ,short  *restrict calType  ,short  *restrict mat
+              ,DOUBLE *restrict cc
+              ,DOUBLE *restrict gKsi     ,DOUBLE *restrict gmKsi
+              ,DOUBLE *restrict gEta     ,DOUBLE *restrict gfArea
+              ,DOUBLE *restrict gNormal  ,DOUBLE *restrict gVolume
+              ,DOUBLE *restrict gXm      ,DOUBLE *restrict gXmcc
+              ,DOUBLE *restrict gvSkew   ,DOUBLE *restrict gmvSkew
+              ,DOUBLE *restrict gDcca    ,DOUBLE *restrict density
+              ,short  *restrict faceVelR ,short  *restrict faceVelL
+              ,short  *restrict facePresR,short  *restrict facePresL
+              ,DOUBLE *restrict pres     ,DOUBLE *restrict gradPres
+              ,DOUBLE *restrict vel      ,DOUBLE *restrict velUp
+              ,DOUBLE *restrict gradVel  ,DOUBLE *restrict bT
+              ,DOUBLE *restrict dField
+              ,DOUBLE const underU       ,Temporal const ddt
+              ,short const maxNo         ,short const maxViz
+              ,short const ndm           ,INT const numel
+              ,short const ndf           ,bool const sPressure
+              ,bool const fResidual);
+/*.....................................................................*/
+
+/*...*/
+   void velResidual(Loads *loadsVel      ,Loads *loadsPres
+              ,Advection advVel          ,Diffusion diffVel
+              ,INT    *restrict el       ,INT    *restrict nelcon
+              ,short  *restrict nen      ,short  *restrict nFace
+              ,short  *restrict geomType ,DOUBLE *restrict prop
+              ,short  *restrict calType  ,short  *restrict mat
+              ,DOUBLE *restrict cc       ,DOUBLE *restrict ad
+              ,DOUBLE *restrict gKsi     ,DOUBLE *restrict gmKsi
+              ,DOUBLE *restrict gEta     ,DOUBLE *restrict gfArea
+              ,DOUBLE *restrict gNormal  ,DOUBLE *restrict gVolume
+              ,DOUBLE *restrict gXm      ,DOUBLE *restrict gXmcc
+              ,DOUBLE *restrict gvSkew   ,DOUBLE *restrict gmvSkew
+              ,DOUBLE *restrict gDcca    ,DOUBLE *restrict density
+              ,short  *restrict faceVelR ,short  *restrict faceVelL
+              ,short  *restrict facePresR,short  *restrict facePresL
+              ,DOUBLE *restrict pres     ,DOUBLE *restrict gradPres
+              ,DOUBLE *restrict vel      ,DOUBLE *restrict res
+              ,DOUBLE *restrict gradVel  ,DOUBLE *restrict bT
+              ,DOUBLE *restrict dField   ,DOUBLE const underU
+              ,Temporal const ddt
+              ,short const maxNo         ,short const maxViz
+              ,short const ndm           ,INT const numel
+              ,short const ndf           ,bool const sPressure
+              ,bool const fResidual);
+/*.....................................................................*/
+
 /* ... montagem do sistemas de equacoes (Simple - Pres)*/
   void systFormSimplePres(Loads *loadsVel,Loads *loadsPres 
 						 ,Diffusion diffPres
@@ -259,6 +313,29 @@
                  ,INT const nel);
 /*...................................................................*/
 
+/*.......................... PRIME ..................................*/
+/*...*/
+  void cellLibVelExp(Loads *loadsVel, Loads *loadsPres
+        ,Advection advVel           ,Diffusion diffVel
+        ,short *restrict lGeomType  ,DOUBLE *restrict lprop
+        ,INT   *restrict lViz
+        ,DOUBLE *restrict ksi       ,DOUBLE *restrict mKsi
+        ,DOUBLE *restrict eta       ,DOUBLE *restrict fArea
+        ,DOUBLE *restrict normal    ,DOUBLE *restrict volume
+        ,DOUBLE *restrict xm        ,DOUBLE *restrict xmcc
+        ,DOUBLE *restrict dcca      ,DOUBLE *restrict lDensity
+        ,DOUBLE *restrict vSkew     ,DOUBLE *restrict mvSkew
+        ,DOUBLE *restrict lB        ,Temporal const ddt
+        ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL
+        ,short  *restrict lFacePresR,short  *restrict lFacePresL
+        ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres
+        ,DOUBLE *restrict vel       ,DOUBLE *restrict gradVel
+        ,DOUBLE *restrict dField    ,DOUBLE *restrict cc
+        ,DOUBLE *restrict bT        ,DOUBLE const underU
+        ,const bool sPressure       ,const bool fResidual
+        ,const short nEn            ,short const nFace
+        ,const short ndm            ,INT const nel);
+/*...................................................................*/
 
 /*.......................... SIMPLE .................................*/
 /*... chamada da biblioteca de elementos (escoamento-vel)*/
@@ -476,6 +553,54 @@
                 ,DOUBLE *restrict vel     ,DOUBLE *restrict cc
                 ,short const nen          ,short const nFace    
                 ,short const ndm          ,INT const nel);
+/*...................................................................*/
+
+/*.......................... PRIME .................................*/
+
+/*... biblioteca de celulas (simple - vel - Explicito)*/
+  void cellVelExp2D(Loads *loadsVel ,Loads *loadsPres
+              ,Advection advVel           ,Diffusion diffVel
+              ,short *restrict lGeomType  ,DOUBLE *restrict prop
+              ,INT *restrict lViz
+              ,DOUBLE *restrict ksi       ,DOUBLE *restrict mKsi
+              ,DOUBLE *restrict eta       ,DOUBLE *restrict mEta
+              ,DOUBLE *restrict normal    ,DOUBLE *restrict area
+              ,DOUBLE *restrict xm        ,DOUBLE *restrict xmcc
+              ,DOUBLE *restrict dcca      ,DOUBLE *restrict lDensity
+              ,DOUBLE *restrict vSkew     ,DOUBLE *restrict mvSkew
+              ,DOUBLE *restrict vC        ,Temporal const ddt
+              ,short  *restrict lFaceVelR ,short *restrict lFaceVelL
+              ,short  *restrict lFacePresR,short *restrict lFacePresL
+              ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres
+              ,DOUBLE *restrict vel       ,DOUBLE *restrict gradVel
+              ,DOUBLE *restrict dField    ,DOUBLE *restrict cc
+              ,DOUBLE *restrict bT        ,DOUBLE const underU
+              ,const bool sPressure       ,const bool fResidual
+              ,const short nEn            ,short const nFace
+              ,const short ndm            ,INT const nel);
+/*...................................................................*/
+
+/*... biblioteca de celulas (simple - vel - Explicito)*/
+  void cellVelExp3D(Loads *loadsVel      ,Loads *loadsPres
+             ,Advection advVel           ,Diffusion diffVel
+             ,short *restrict lGeomType  ,DOUBLE *restrict prop
+             ,INT *restrict lViz
+             ,DOUBLE *restrict ksi       ,DOUBLE *restrict mKsi
+             ,DOUBLE *restrict eta       ,DOUBLE *restrict mEta
+             ,DOUBLE *restrict normal    ,DOUBLE *restrict area
+             ,DOUBLE *restrict xm        ,DOUBLE *restrict xmcc
+             ,DOUBLE *restrict dcca      ,DOUBLE *restrict lDensity
+             ,DOUBLE *restrict vSkew     ,DOUBLE *restrict mvSkew
+             ,DOUBLE *restrict vC        ,Temporal const ddt
+             ,short  *restrict lFaceVelR ,short *restrict lFaceVelL
+             ,short  *restrict lFacePresR,short *restrict lFacePresL
+             ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres
+             ,DOUBLE *restrict vel       ,DOUBLE *restrict gradVel
+             ,DOUBLE *restrict dField    ,DOUBLE *restrict cc
+             ,DOUBLE *restrict bT        ,DOUBLE const underU
+             ,const bool sPressure       ,const bool fResidual
+             ,const short nEn            ,short const nFace
+             ,const short ndm            ,INT const nel);
 /*...................................................................*/
 
 /*.......................... SIMPLE .................................*/

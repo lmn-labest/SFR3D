@@ -1098,20 +1098,39 @@ void setDataStruct(char *word,short *data)
 {
 
 /*... CSRD*/
-  if(!strcmp(word,"CSRD"))
-   *data = CSRD;
+  if(!strcmp(word,"CSRD")){
+    printf("Solver    : PCG\n");
+    *data = CSRD;
+  }
+/*...................................................................*/
+
 /*... ELLPACK*/
-  else if(!strcmp(word,"ELLPACK"))
-   *data = ELLPACK;
+  else if(!strcmp(word,"ELLPACK")){
+    printf("DataStruct: ELLPACK\n");
+    *data = ELLPACK;
+  }
+/*...................................................................*/
+
 /*... CSRDCOO*/
-  else if(!strcmp(word,"CSRDCOO"))
-   *data = CSRDCOO;
+  else if(!strcmp(word,"CSRDCOO")){
+    printf("DataStruct: CSRDCOO\n");
+    *data = CSRDCOO;
+  }
+/*...................................................................*/
+
 /*... CSRC*/
-  else if(!strcmp(word,"CSRC"))
-   *data = CSRC;
+  else if(!strcmp(word,"CSRC")){
+    printf("DataStruct: CSRC\n");
+    *data = CSRC;
+  }
+/*...................................................................*/
+
 /*... CSRCCOO*/
-  else if(!strcmp(word,"CSRCCOO"))
-   *data = CSRCCOO;
+  else if(!strcmp(word,"CSRCCOO")){
+    printf("DataStruct: CSRCCOO\n");
+    *data = CSRCCOO;
+  }
+/*...................................................................*/
 
 } 
 /*********************************************************************/      

@@ -1504,7 +1504,7 @@ void computeEffectiveWork(INT *restrict ia, INT *restrict ja
                     ,INT *restrict thSize ,INT *restrict thHeight) {
   int i, id = 0, h = 0;
 
-#pragma omp parallel private(id,h)
+#pragma omp parallel private(id,h) 
   {
     id = omp_get_thread_num();
     h = thBegin[id];

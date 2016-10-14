@@ -1,6 +1,4 @@
 #include<Simple.h>
-
-
 /********************************************************************* 
  * Data de criacao    : 01/07/2016                                   *
  * Data de modificaco : 18/07/2016                                   * 
@@ -53,7 +51,7 @@ void simpleSolver2D(Memoria *m
 
   xu1      = sistEqVel->x;
   xu2      = &sistEqVel->x[sistEqVel->neq];
-  xp       = sistEqVel->x;
+  xp       = sistEqPres->x;
 
   adU1     = sistEqVel->ad;
   adU2     = &sistEqVel->ad[sistEqVel->neq];
@@ -600,7 +598,7 @@ void simpleSolver3D(Memoria *m
   xu1      = sistEqVel->x;
   xu2      = &sistEqVel->x[sistEqVel->neq];
   xu3      = &sistEqVel->x[2*sistEqVel->neq];
-  xp       = sistEqVel->x;
+  xp       = sistEqPres->x;
 
   adU1 = sistEqVel->ad;
   adU2 = &sistEqVel->ad[sistEqVel->neq];

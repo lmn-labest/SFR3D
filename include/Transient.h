@@ -25,4 +25,13 @@
                           ,bool const fAdd);
 /*...................................................................*/
 
+/*...*/
+  void cellTransientPrime(DOUBLE *restrict volume 
+                         ,DOUBLE *restrict u0     ,DOUBLE *restrict u
+                         ,DOUBLE *restrict density,DOUBLE *restrict f
+                         ,Temporal const ddt      
+                         ,INT const numel         ,short const ndf
+                         ,bool const fAdd); 
+/*...................................................................*/
+
 #endif /*_TRANSIENT_H_*/

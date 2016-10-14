@@ -112,6 +112,7 @@ void writeLog(Mesh mesh          ,Scheme sc
     fprintf(file,"CellPloadSimple    : %lf\n",t.cellPloadSimple);
     fprintf(file,"CellTransientSimple: %lf\n",t.cellTransientSimple);
     fprintf(file,"systFormVel        : %lf\n",t.systFormVel);
+    fprintf(file,"velExp             : %lf\n",t.velExp);
     fprintf(file,"rcGradVel          : %lf\n",t.rcGradVel);
     fprintf(file,"solvEdpFuild       : %lf\n",t.solvEdpFluid);
   }

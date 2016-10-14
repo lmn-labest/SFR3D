@@ -45,6 +45,7 @@
     double cellTransientSimple;
     double systFormPres;                                 
     double systFormVel;
+    double velExp;
     double rcGradPres;
     double rcGradVel;
 /*... blas*/

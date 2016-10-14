@@ -29,6 +29,7 @@
 
 /*... funcao de apoio*/
   void setSolver(char * word,short *solver);
+  void setSolverConfig(char *word,Solv *solv,FILE *fileIn);
   DOUBLE smachn();
 	void setDot(DOUBLE(**dotC)(), short const iCod);
 	void setMatVec(void(**matVecC)(),short const storage

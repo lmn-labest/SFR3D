@@ -17,6 +17,7 @@
 #include<WriteLog.h>
 #include<PartMesh.h>
 #include<ParallelMpi.h>
+#include<Prime.h>
 #include<Sisteq.h>
 #include<Solv.h>
 #include<Simple.h>
@@ -45,14 +46,15 @@ int main(int argc,char**argv){
 /*... Sistema de equacao*/
   SistEq *sistEqD1 =NULL, *sistEqT1=NULL;
   SistEq *sistEqVel=NULL, *sistEqPres=NULL;
-/*... metodo simple*/
+/*... metodo de acoplamento pressao-velocidade*/
   Simple *simple;
+  Prime  *prime;
 
 /*... solver*/
   INT nEqMax;
   Solv *solvD1=NULL,*solvT1=NULL,*solvVel=NULL,*solvPres=NULL;
   bool fSolvD1 = false, fSolvT1 = false;
-  bool fSolvVel = false,fSolvPres = false,fSolvSimple = false;
+  bool fSolvVel = false,fSolvPres = false,fSolvSimple = false,fSolvPrime;
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
 
@@ -63,7 +65,7 @@ int main(int argc,char**argv){
   char loopWord[100][MAX_LINE];
   unsigned short kLoop,jLoop,ndf;
   bool flWord=false;
-  unsigned short nScheme,nOmp; 
+  unsigned short nScheme,nOmp,nSistEq; 
 
 /*... Estrutura de dados*/
   char strIa[MNOMEPONTEIRO],strJa[MNOMEPONTEIRO];
@@ -94,10 +96,11 @@ int main(int argc,char**argv){
   ,"nlItD1"      ,"pD1CsvCell"   ,"pD1CsvNode"    /*12,13,14*/
   ,"solvT1"      ,""             ,"pT1"           /*15,16,17*/
   ,"nlItT1"      ,"pT1CsvCell"   ,"pT1CsvNode"    /*18,19,20*/
-  ,"presolvFluid","simple"       ,"preSimple"     /*21,22,23*/
+  ,"setSolv"     ,"simple"       ,"setSimple"     /*21,22,23*/
   ,"transient"   ,"timeUpdate"   ,"partd"         /*24,25,26*/
-  ,"advection"   ,"edp"          ,"diffusion"      /*27,28,29*/
-  ,"pFluid"      ,"setPrintFluid" ,""     };      /*30,31,32*/
+  ,"advection"   ,"edp"          ,"diffusion"     /*27,28,29*/
+  ,"pFluid"      ,"setPrintFluid" ,""             /*30,31,32*/
+  ,"setPrime"    ,"prime"         ,""        };   /*33,34,35*/
 /* ..................................................................*/
 
 /*... Memoria principal(valor padrao - bytes)*/
@@ -159,6 +162,7 @@ int main(int argc,char**argv){
   tm.cellTransientSimple= 0.e0;
   tm.systFormPres       = 0.e0;
   tm.systFormVel        = 0.e0;
+  tm.velExp             = 0.e0;
   tm.rcGradPres         = 0.e0;
   tm.rcGradVel          = 0.e0;
 
@@ -782,34 +786,8 @@ int main(int argc,char**argv){
           solvD1->tol = smachn();
 
         if(!mpiVar.myId ) printf("MaxIt     : %d\n",solvD1->maxIt);
-        if(!mpiVar.myId ) printf("Tol       : %e\n",solvD1->tol);
-      
-        if(solvD1->solver == PCG && !mpiVar.myId ){     
-          printf("Solver    : PCG\n");
-        }
-
-        if(sistEqD1->storage == CSRD && !mpiVar.myId ){     
-          printf("DataStruct: CSRD\n");
-        }
-        else if(sistEqD1->storage == ELLPACK && !mpiVar.myId ){     
-          printf("DataStruct: ELLPACK\n");
-        }
-        
-        else if(sistEqD1->storage == CSRDCOO && !mpiVar.myId ){     
-          printf("DataStruct: CSRDCOO\n");
-        }
-        
-        else if(sistEqD1->storage == CSRC && !mpiVar.myId ){     
-          printf("DataStruct: CSRC\n");
-        }
-        
-        if(sistEqD1->unsym && !mpiVar.myId ){
-          printf("Matrix    : unsymetric\n");
-        } 
-        else if (!mpiVar.myId){
-          printf("Matrix    : symetric\n");
-        } 
-      }
+        if(!mpiVar.myId ) printf("Tol       : %e\n",solvD1->tol); 
+      } 
 /*...................................................................*/
 
 /*... numeracao das equacoes*/
@@ -966,31 +944,6 @@ int main(int argc,char**argv){
 
         if(!mpiVar.myId ) printf("MaxIt     : %d\n",solvT1->maxIt);
         if(!mpiVar.myId ) printf("Tol       : %e\n",solvT1->tol);
-      
-        if(solvT1->solver == PBICGSTAB && !mpiVar.myId ){     
-          printf("Solver    : PBICGSTAB\n");
-        }
-
-        if(sistEqT1->storage == CSRD && !mpiVar.myId ){     
-          printf("DataStruct: CSRD\n");
-        }
-
-        else if(sistEqT1->storage == ELLPACK && !mpiVar.myId ){     
-          printf("DataStruct: ELLPACK\n");
-        }
-        
-        else if(sistEqT1->storage == CSRDCOO && !mpiVar.myId ){     
-          printf("DataStruct: CSRDCOO\n");
-        }
-        
-        else if(sistEqT1->storage == CSRC && !mpiVar.myId ){     
-          printf("DataStruct: CSRC\n");
-        }
-        
-        else if(sistEqT1->storage == CSRCCOO && !mpiVar.myId ){     
-          printf("DataStruct: CSRCCOO\n");
-        }
-        
       }
 /*...................................................................*/
 
@@ -1664,55 +1617,259 @@ int main(int argc,char**argv){
         printf("%s\n",DIF);
         printf("%s\n",word);
       }
-      
-
+/*... tecnica de adveccao*/
+      readMacro(fileIn,word,false);
+      nSistEq = (short) atol(word);
+      do{   
+        readMacro(fileIn,word,false);
+/*... velocidade*/
+        if(!strcmp(word,"Vel") || !strcmp(word, "vel")){
+          nSistEq--;
 /*... inicializando a estrutura de equacoes do problema (VELOCIDADE)*/
-      solvVel = (Solv*) malloc(sizeof(Solv));
-      if(solvVel == NULL){
-        printf("Erro ponteiro solvVel\n");
-        exit(EXIT_FAILURE);
-      }
-      fSolvVel          = true;
-      solvVel->solver   = PBICGSTAB;
-      solvVel->tol      = smachn();
-      solvVel->maxIt    = 50000;    
-      solvVel->fileSolv = NULL;
-      solvVel->log      = true;
-      solvVel->flag     = true;
+          solvVel = (Solv*) malloc(sizeof(Solv));
+          if(solvVel == NULL){
+            printf("Erro ponteiro solvVel\n");
+            exit(EXIT_FAILURE);
+          }
+          fSolvVel          = true;
+          solvVel->solver   = PBICGSTAB;
+          solvVel->tol      = smachn();
+          solvVel->maxIt    = 50000;    
+          solvVel->fileSolv = NULL;
+          solvVel->log      = true;
+          solvVel->flag     = true;  
 /*...................................................................*/
 
+/*...*/
+          if(solvVel->log && !mpiVar.myId){  
+            strcpy(auxName,preName);
+            strcat(auxName,"_fluid_vel");
+            fName(auxName,mpiVar.nPrcs,0,11,&nameOut);
+            solvVel->fileSolv = openFile(nameOut,"w");
+          }  
+/*...................................................................*/
+
+/*... inicializa a estrutura do solver(VELOCIDADES)*/
+          sistEqVel = (SistEq*) malloc(sizeof(SistEq));
+          if(sistEqVel == NULL){
+            printf("Erro ponteiro sistEqVel\n");
+            exit(EXIT_FAILURE);
+          }
+          sistEqVel->unsym   = true;   
+/*...................................................................*/
+
+/*... solver*/        
+          readMacro(fileIn,word,false);
+          setSolverConfig(word,solvVel,fileIn);
+/*...................................................................*/ 
+        
+/*... DataStruct*/    
+          readMacro(fileIn,word,false);
+          setDataStruct(word,&sistEqVel->storage);    
+/*...................................................................*/
+
+/*... numeracao das equacoes das velocidades*/
+          HccaAlloc(INT,&m,sistEqVel->id
+                   ,mesh->numel              
+                   ,"sistVelid",_AD_);
+          if(!mpiVar.myId){
+            printf("%s\n",DIF);
+            printf("Numerando as equacoes.\n");
+          }
+          tm.numeqVel = getTimeC() - tm.numeqVel;
+          sistEqVel->neq = numEqV1(sistEqVel->id,reordMesh->num
+                                  ,mesh->numel);
+          tm.numeqVel = getTimeC() - tm.numeqVel;
+          
+          if(!mpiVar.myId){
+            printf("Equacoes numeradas.\n");
+            printf("%s\n",DIF);  
+          }
+/*...................................................................*/
+
+/*...*/
+          if( mpiVar.nPrcs > 1) {      
+//          tm.numeqPres = getTimeC() - tm.numeqPres;
+//      sistEqT1->neqNov = countEq(reordMesh->num
+//                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
+//                          ,mesh->numelNov     ,mesh->maxViz
+//                          ,mesh->ndfT[0]);
+//          tm.numeqPres = getTimeC() - tm.numeqPres;
+          }
+          else
+            sistEqVel->neqNov = sistEqVel->neq;          
+/*...................................................................*/
+
+/*... velovidades*/
+          ndf = mesh->ndfF-1;
+          HccaAlloc(DOUBLE        ,&m      ,sistEqVel->b0
+               ,sistEqVel->neq*ndf,"sistVelb0",_AD_);
+          HccaAlloc(DOUBLE        ,&m     ,sistEqVel->b 
+               ,sistEqVel->neq*ndf,"sistVelb ",_AD_);
+          HccaAlloc(DOUBLE        ,&m     ,sistEqVel->x 
+               ,sistEqVel->neq*ndf,"sistVelx ",_AD_);
+          zero(sistEqVel->b0,sistEqVel->neq*ndf,DOUBLEC);
+          zero(sistEqVel->b ,sistEqVel->neq*ndf,DOUBLEC);
+          zero(sistEqVel->x ,sistEqVel->neq*ndf,DOUBLEC);    
+/*...................................................................*/
+
+/*... Estrutura de dados velocidades*/
+          strcpy(strIa,"iaVel");
+          strcpy(strJa,"jaVel");
+          strcpy(strAd,"adVel");
+          strcpy(strA ,"aVel");
+          
+          if(!mpiVar.myId ) printf("Vel:\n");
+          if(!mpiVar.myId)
+            printf("Montagem da estrura de dados esparsa.\n");
+          
+          tm.dataStructVel = getTimeC() - tm.dataStructVel;
+          dataStructSimple(&m,sistEqVel->id,reordMesh->num
+                ,mesh->elm.adj.nelcon
+                ,mesh->elm.adj.nViz,mesh->numelNov,mesh->maxViz
+                ,ndf               ,strIa         ,strJa
+                ,strAd             ,strA          ,sistEqVel);
+          tm.dataStructVel = getTimeC() - tm.dataStructVel;
+
+          if(!mpiVar.myId) printf("Estrutuda montada.\n");  
+/*...................................................................*/
+
+/*... dividindo a matriz*/
+/*... Openmp(Vel,Pres)*/
+          if(ompVar.fSolver){
+            strcpy(str1,"thBeginVel");
+            strcpy(str2,"thEndVel");
+            strcpy(str3,"thSizeVel");
+            strcpy(str4,"thHeightVel");
+            pMatrixSolverOmp(&m,sistEqVel,str1,str2,str3,str4);
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
+
+/*...*/
+        else if(!strcmp(word,"Pres") || !strcmp(word, "pres")){ 
+          nSistEq--;
 /*... inicializando a estrutura de equacoes do problema (PRESSAO)*/
-      solvPres = (Solv*) malloc(sizeof(Solv));
-      if(solvPres == NULL){
-        printf("Erro ponteiro solvPres\n");
-        exit(EXIT_FAILURE);
-      }
-      fSolvPres          = true;
-      solvPres->solver   = PCG;
-      solvPres->tol      = smachn();
-      solvPres->maxIt    = 50000;    
-      solvPres->fileSolv = NULL;
-      solvPres->log      = true;
-      solvPres->flag     = true;
+          solvPres = (Solv*) malloc(sizeof(Solv));
+          if(solvPres == NULL){
+            printf("Erro ponteiro solvPres\n");
+            exit(EXIT_FAILURE);
+          }
+          fSolvPres          = true;
+          solvPres->solver   = PCG;
+          solvPres->tol      = smachn();
+          solvPres->maxIt    = 50000;    
+          solvPres->fileSolv = NULL;
+          solvPres->log      = true;
+          solvPres->flag     = true;  
 /*...................................................................*/
 
 /*...*/
-      if(solvVel->log && !mpiVar.myId){  
-        strcpy(auxName,preName);
-        strcat(auxName,"_fluid_vel");
-        fName(auxName,mpiVar.nPrcs,0,11,&nameOut);
-        solvVel->fileSolv = openFile(nameOut,"w");
-      }
+          if(solvPres->log && !mpiVar.myId){  
+            strcpy(auxName,preName);
+            strcat(auxName,"_fluid_pres");
+            fName(auxName,mpiVar.nPrcs,0,11,&nameOut);
+            solvPres->fileSolv = openFile(nameOut,"w");
+          }  
+/*...................................................................*/
+
+/*... inicializa a estrutura do solver(PRESSAO)*/
+          sistEqPres = (SistEq*) malloc(sizeof(SistEq));
+          if(sistEqPres == NULL){
+            printf("Erro ponteiro sistEqPres\n");
+            exit(EXIT_FAILURE);
+          }
+          sistEqPres->unsym   = false;   
+/*...................................................................*/
+
+/*... solver*/        
+          readMacro(fileIn,word,false);
+          setSolverConfig(word,solvPres,fileIn); 
+/*...................................................................*/
+        
+/*... DataStruct*/    
+          readMacro(fileIn,word,false);
+          setDataStruct(word,&sistEqPres->storage);    
+/*...................................................................*/
+
+/*... numeracao das equacoes das pressoes*/
+          HccaAlloc(INT,&m,sistEqPres->id
+                   ,mesh->numel              
+                   ,"sistPresid",_AD_);
+          if(!mpiVar.myId){
+            printf("%s\n",DIF);
+            printf("Numerando as equacoes.\n");
+          }
+          tm.numeqPres = getTimeC() - tm.numeqPres;
+          sistEqPres->neq = numEqV2(sistEqPres->id ,reordMesh->num
+                               ,mesh->elm.faceRpres,mesh->elm.adj.nViz
+                               ,mesh->numel        ,mesh->maxViz);
+          tm.numeqPres = getTimeC() - tm.numeqPres;
+          if(!mpiVar.myId){
+            printf("Equacoes numeradas.\n");
+            printf("%s\n",DIF);
+          }  
 /*...................................................................*/
 
 /*...*/
-      if(solvPres->log && !mpiVar.myId){  
-        strcpy(auxName,preName);
-        strcat(auxName,"_fluid_pres");
-        fName(auxName,mpiVar.nPrcs,0,11,&nameOut);
-        solvPres->fileSolv = openFile(nameOut,"w");
-      }
+          if( mpiVar.nPrcs > 1) {      
+//          tm.numeqPres = getTimeC() - tm.numeqPres;
+//      sistEqT1->neqNov = countEq(reordMesh->num
+//                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
+//                          ,mesh->numelNov     ,mesh->maxViz
+//                          ,mesh->ndfT[0]);
+//          tm.numeqPres = getTimeC() - tm.numeqPres;
+          }
+          else
+            sistEqPres->neqNov = sistEqPres->neq;          
 /*...................................................................*/
+
+/*... pressoes*/
+          HccaAlloc(DOUBLE     ,&m        ,sistEqPres->b0
+               ,sistEqPres->neq,"sistPresb0",_AD_);
+          HccaAlloc(DOUBLE     ,&m        ,sistEqPres->b 
+               ,sistEqPres->neq,"sistPresb ",_AD_);
+          HccaAlloc(DOUBLE     ,&m        ,sistEqPres->x 
+               ,sistEqPres->neq,"sistPresx ",_AD_);
+          zero(sistEqPres->b0,sistEqPres->neq    ,DOUBLEC);
+          zero(sistEqPres->b ,sistEqPres->neq    ,DOUBLEC);
+          zero(sistEqPres->x ,sistEqPres->neq    ,DOUBLEC);
+/*...................................................................*/
+
+/*... Estrutura de dados pressoes*/
+          strcpy(strIa,"iaPres");
+          strcpy(strJa,"japres");
+          strcpy(strAd,"adPres");
+          strcpy(strA ,"aPres");
+          
+          if(!mpiVar.myId ) printf("Pres:\n");
+          if(!mpiVar.myId) 
+            printf("Montagem da estrura de dados esparsa.\n");
+          
+          tm.dataStructPres = getTimeC() - tm.dataStructPres;
+          dataStruct(&m,sistEqPres->id ,reordMesh->num,mesh->elm.adj.nelcon
+                ,mesh->elm.adj.nViz,mesh->numelNov,mesh->maxViz
+                ,1                 ,strIa         ,strJa
+                ,strAd             ,strA          ,sistEqPres);
+          tm.dataStructPres = getTimeC() - tm.dataStructPres;
+          if(!mpiVar.myId) printf("Estrutuda montada.\n");
+/*...................................................................*/
+
+/*... Openmp(Vel,Pres)*/
+          if(ompVar.fSolver){
+/*... dividindo a matriz*/
+            strcpy(str1,"thBeginPres");
+            strcpy(str2,"thEndPres");
+            strcpy(str3,"thSizePres");
+            strcpy(str4,"thHeightPres");
+            pMatrixSolverOmp(&m,sistEqPres,str1,str2,str3,str4);
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
+
+      }while(nSistEq);    
 
 /*...*/
       if(opt.fItPlot && !mpiVar.myId){  
@@ -1728,274 +1885,24 @@ int main(int argc,char**argv){
       }
 /*...................................................................*/
 
-/*... inicializa a estrutura do solver(VELOCIDADES)*/
-      sistEqVel = (SistEq*) malloc(sizeof(SistEq));
-      if(sistEqVel == NULL){
-        printf("Erro ponteiro sistEqVel\n");
-        exit(EXIT_FAILURE);
-      }
-      sistEqVel->storage = CSRD;
-      sistEqVel->unsym   = true; 
-/*...................................................................*/
-
-/*... inicializa a estrutura do solver(PRESSAO)*/
-      sistEqPres = (SistEq*) malloc(sizeof(SistEq));
-      if(sistEqPres == NULL){
-        printf("Erro ponteiro sistEqPres\n");
-        exit(EXIT_FAILURE);
-      }
-      sistEqPres->storage = CSRD;
-      sistEqPres->unsym   = false; 
-/*...................................................................*/
-
-/*... config*/
-      readMacro(fileIn,word,false);
-      if(!strcmp(word,"config:")){
-/*... velocidades*/
-        
-        if(!mpiVar.myId ) printf("Vel:\n");
-
-/*... solver*/        
-        readMacro(fileIn,word,false);
-        setSolver(word,&solvVel->solver); 
-        
-/*... DataStruct*/    
-        readMacro(fileIn,word,false);
-        setDataStruct(word,&sistEqVel->storage); 
-
-/*... */        
-        fscanf(fileIn,"%u" ,&solvVel->maxIt);
-        fscanf(fileIn,"%lf",&solvVel->tol);
-
-        if( solvVel->tol == 0.e0) 
-          solvVel->tol = smachn();
-
-        if(!mpiVar.myId ) printf("MaxIt     : %d\n",solvVel->maxIt);
-        if(!mpiVar.myId ) printf("Tol       : %e\n",solvVel->tol);
-      
-        if(solvVel->solver == PBICGSTAB && !mpiVar.myId ){     
-          printf("Solver    : PBICGSTAB\n");
-        }
-
-        if(sistEqVel->storage == CSRD && !mpiVar.myId ){     
-          printf("DataStruct: CSRD\n");
-        }
-
-        else if(sistEqVel->storage == ELLPACK && !mpiVar.myId ){     
-          printf("DataStruct: ELLPACK\n");
-        }
-        
-        else if(sistEqVel->storage == CSRDCOO && !mpiVar.myId ){     
-          printf("DataStruct: CSRDCOO\n");
-        }
-        
-        else if(sistEqVel->storage == CSRC && !mpiVar.myId ){     
-          printf("DataStruct: CSRC\n");
-        }
-        
-        else if(sistEqVel->storage == CSRCCOO && !mpiVar.myId ){     
-          printf("DataStruct: CSRCCOO\n");
-        }
-/*...................................................................*/
-
-/*... pressao*/
-
-        if(!mpiVar.myId ) printf("Pres:\n");
-/*... solver*/        
-        readMacro(fileIn,word,false);
-        setSolver(word,&solvPres->solver); 
-        
-/*... DataStruct*/    
-        readMacro(fileIn,word,false);
-        setDataStruct(word,&sistEqPres->storage); 
-
-/*... */        
-        fscanf(fileIn,"%u" ,&solvPres->maxIt);
-        fscanf(fileIn,"%lf",&solvPres->tol);
-
-        if( solvPres->tol == 0.e0) 
-          solvPres->tol = smachn();
-
-        if(!mpiVar.myId ) printf("MaxIt     : %d\n",solvPres->maxIt);
-        if(!mpiVar.myId ) printf("Tol       : %e\n",solvPres->tol);
-      
-        if(solvPres->solver == PCG && !mpiVar.myId ){     
-          printf("Solver    : PCG\n");
-        }
-
-        if(sistEqPres->storage == CSRD && !mpiVar.myId ){     
-          printf("DataStruct: CSRD\n");
-        }
-
-        else if(sistEqPres->storage == ELLPACK && !mpiVar.myId ){     
-          printf("DataStruct: ELLPACK\n");
-        }
-        
-        else if(sistEqPres->storage == CSRDCOO && !mpiVar.myId ){     
-          printf("DataStruct: CSRDCOO\n");
-        }
-        
-        else if(sistEqPres->storage == CSRC && !mpiVar.myId ){     
-          printf("DataStruct: CSRC\n");
-        }
-        
-        else if(sistEqPres->storage == CSRCCOO && !mpiVar.myId ){     
-          printf("DataStruct: CSRCCOO\n");
-        }
-/*...................................................................*/
-        
-      }
-/*...................................................................*/
-
-/*... numeracao das equacoes das velocidades*/
-      HccaAlloc(INT,&m,sistEqVel->id
-               ,mesh->numel              
-               ,"sistVelid",_AD_);
-      if(!mpiVar.myId){
-        printf("%s\n",DIF);
-        printf("Numerando as equacoes.\n");
-      }
-      tm.numeqVel = getTimeC() - tm.numeqVel;
-      sistEqVel->neq = numEqV1(sistEqVel->id       ,reordMesh->num
-                              ,mesh->numel        );
-      tm.numeqVel = getTimeC() - tm.numeqVel;
-      if(!mpiVar.myId){
-        printf("Equacoes numeradas.\n");
-        printf("%s\n",DIF);
-      }
-/*...................................................................*/
-
-/*...*/
-      if( mpiVar.nPrcs > 1) {      
-        tm.numeqVel = getTimeC() - tm.numeqVel;
-//      sistEqT1->neqNov = countEq(reordMesh->num
-//                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
-//                          ,mesh->numelNov     ,mesh->maxViz
-//                          ,mesh->ndfT[0]);
-        tm.numeqVel = getTimeC() - tm.numeqVel;
-      }
-      else{
-        sistEqVel->neqNov = sistEqVel->neq;
-      }
-/*...................................................................*/
-
-/*... numeracao das equacoes das pressoes*/
-      HccaAlloc(INT,&m,sistEqPres->id
-               ,mesh->numel              
-               ,"sistPresid",_AD_);
-      if(!mpiVar.myId){
-        printf("%s\n",DIF);
-        printf("Numerando as equacoes.\n");
-      }
-      tm.numeqPres = getTimeC() - tm.numeqPres;
-      sistEqPres->neq = numEqV2(sistEqPres->id       ,reordMesh->num
-                               ,mesh->elm.faceRpres  ,mesh->elm.adj.nViz
-                               ,mesh->numel          ,mesh->maxViz);
-      tm.numeqPres = getTimeC() - tm.numeqPres;
-      if(!mpiVar.myId){
-        printf("Equacoes numeradas.\n");
-        printf("%s\n",DIF);
-      }
-/*...................................................................*/
-
-/*...*/
-      if( mpiVar.nPrcs > 1) {      
-        tm.numeqPres = getTimeC() - tm.numeqPres;
-//      sistEqT1->neqNov = countEq(reordMesh->num
-//                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
-//                          ,mesh->numelNov     ,mesh->maxViz
-//                          ,mesh->ndfT[0]);
-        tm.numeqPres = getTimeC() - tm.numeqPres;
-      }
-      else{
-        sistEqPres->neqNov = sistEqPres->neq;
-      }
-/*...................................................................*/
-
-/*... velovidades*/
-      ndf = mesh->ndfF-1;
-      HccaAlloc(DOUBLE                      ,&m      ,sistEqVel->b0
-               ,sistEqVel->neq*ndf                  ,"sistVelb0",_AD_);
-      HccaAlloc(DOUBLE                      ,&m     ,sistEqVel->b 
-               ,sistEqVel->neq*ndf                  ,"sistVelb ",_AD_);
-      HccaAlloc(DOUBLE                      ,&m     ,sistEqVel->x 
-               ,sistEqVel->neq*ndf           ,"sistVelx ",_AD_);
-      zero(sistEqVel->b0,sistEqVel->neq*ndf           ,DOUBLEC);
-      zero(sistEqVel->b ,sistEqVel->neq*ndf           ,DOUBLEC);
-      zero(sistEqVel->x ,sistEqVel->neq*ndf           ,DOUBLEC);  
-/*...................................................................*/
-
-/*... pressoes*/
-      HccaAlloc(DOUBLE                   ,&m        ,sistEqPres->b0
-               ,sistEqPres->neq                     ,"sistPresb0",_AD_);
-      HccaAlloc(DOUBLE                   ,&m        ,sistEqPres->b 
-               ,sistEqPres->neq                     ,"sistPresb ",_AD_);
-      HccaAlloc(DOUBLE                   ,&m        ,sistEqPres->x 
-               ,sistEqPres->neq          ,"sistPresx ",_AD_);
-      zero(sistEqPres->b0,sistEqPres->neq    ,DOUBLEC);
-      zero(sistEqPres->b ,sistEqPres->neq    ,DOUBLEC);
-      zero(sistEqPres->x ,sistEqPres->neq    ,DOUBLEC);
-/*...................................................................*/
-
-/*... Estrutura de dados velocidades*/
-      ndf = mesh->ndfF - 1;
-      strcpy(strIa,"iaVel");
-      strcpy(strJa,"jaVel");
-      strcpy(strAd,"adVel");
-      strcpy(strA ,"aVel");
-      if(!mpiVar.myId ) printf("Vel:\n");
-      if(!mpiVar.myId) printf("Montagem da estrura de dados esparsa.\n");
-      tm.dataStructVel = getTimeC() - tm.dataStructVel;
-      dataStructSimple(&m,sistEqVel->id  ,reordMesh->num,mesh->elm.adj.nelcon
-                ,mesh->elm.adj.nViz,mesh->numelNov,mesh->maxViz
-                ,ndf               ,strIa         ,strJa
-                ,strAd             ,strA          ,sistEqVel);
-      tm.dataStructVel = getTimeC() - tm.dataStructVel;
-      if(!mpiVar.myId) printf("Estrutuda montada.\n");
-/*...................................................................*/
-
-/*... Estrutura de dados pressoes*/
-      strcpy(strIa,"iaPres");
-      strcpy(strJa,"japres");
-      strcpy(strAd,"adPres");
-      strcpy(strA ,"aPres");
-      if(!mpiVar.myId ) printf("Pres:\n");
-      if(!mpiVar.myId) printf("Montagem da estrura de dados esparsa.\n");
-      tm.dataStructPres = getTimeC() - tm.dataStructPres;
-      dataStruct(&m,sistEqPres->id ,reordMesh->num,mesh->elm.adj.nelcon
-                ,mesh->elm.adj.nViz,mesh->numelNov,mesh->maxViz
-                ,1                 ,strIa         ,strJa
-                ,strAd             ,strA          ,sistEqPres);
-      tm.dataStructPres = getTimeC() - tm.dataStructPres;
-      if(!mpiVar.myId) printf("Estrutuda montada.\n");
-/*...................................................................*/
-
 /*... Openmp(Vel,Pres)*/
       if(ompVar.fSolver){
-/*... dividindo a matriz*/
-        strcpy(str1,"thBeginPres");
-        strcpy(str2,"thEndPres");
-        strcpy(str3,"thSizePres");
-        strcpy(str4,"thHeightPres");
-        pMatrixSolverOmp(&m,sistEqPres,str1,str2,str3,str4);
-/*...................................................................*/
-
-/*... dividindo a matriz*/
-        strcpy(str1,"thBeginVel");
-        strcpy(str2,"thEndVel");
-        strcpy(str3,"thSizeVel");
-        strcpy(str4,"thHeightVel");
-        pMatrixSolverOmp(&m,sistEqVel,str1,str2,str3,str4);
-/*...................................................................*/
-
-
-/*alocando o buffer*/
-        nEqMax = max(sistEqPres->neq,sistEqVel->neq);
-        HccaAlloc(DOUBLE, &m, ompVar.buffer
-                 ,nEqMax*ompVar.nThreadsSolver,"bufferOmp",false);
-        zero(ompVar.buffer,nEqMax*ompVar.nThreadsSolver,DOUBLEC);
-        sistEqPres->omp.thY = ompVar.buffer;
-        sistEqVel ->omp.thY = ompVar.buffer;
+/*... alocando o buffer*/
+        if(fSolvPres && fSolvVel){
+          nEqMax = max(sistEqPres->neqNov,sistEqVel->neqNov);
+          HccaAlloc(DOUBLE, &m, ompVar.buffer
+                   ,nEqMax*ompVar.nThreadsSolver,"bufferOmp",false);
+          zero(ompVar.buffer,nEqMax*ompVar.nThreadsSolver,DOUBLEC);
+          sistEqPres->omp.thY = ompVar.buffer;
+          sistEqVel ->omp.thY = ompVar.buffer;
+        }
+        else if(fSolvPres){
+          nEqMax = sistEqPres->neqNov;
+          HccaAlloc(DOUBLE, &m, ompVar.buffer
+                   ,nEqMax*ompVar.nThreadsSolver,"bufferOmp",false);
+          zero(ompVar.buffer,nEqMax*ompVar.nThreadsSolver,DOUBLEC);
+          sistEqPres->omp.thY = ompVar.buffer;
+        }
       }
 /*...................................................................*/
 
@@ -2366,7 +2273,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (Pres)*/
-//    tm.rcGradT1 = getTimeC() - tm.rcGradT1;
+      tm.rcGradPres = getTimeC() - tm.rcGradPres;
       rcGradU(&m                      ,loadsPres
              ,mesh->elm.node          ,mesh->elm.adj.nelcon
              ,mesh->elm.geom.cc       ,mesh->node.x   
@@ -2388,7 +2295,7 @@ int main(int argc,char**argv){
              ,&pMesh->iNo             ,&pMesh->iEl  
              ,mesh->numelNov          ,mesh->numel        
              ,mesh->nnodeNov          ,mesh->nnode);  
-//    tm.rcGradT1 = getTimeC() - tm.rcGradT1;
+      tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (GradPres)*/
@@ -2545,6 +2452,115 @@ int main(int argc,char**argv){
 /*...................................................................*/
       if(!mpiVar.myId ) printf("%s\n",DIF);
     }   
+/*===================================================================*/
+
+/*===================================================================*
+* macro: setPrime
+*===================================================================*/
+    else if ((!strcmp(word, macro[33]))) {
+      if (!mpiVar.myId) {
+        printf("%s\n", DIF);
+        printf("%s\n", word);
+        printf("%s\n", DIF);
+      }
+/*...*/
+      prime = (Prime*)malloc(sizeof(Prime));
+      if (prime == NULL) {
+        printf("Erro ponteiro Prime\n");
+        exit(EXIT_FAILURE);
+      }
+      fSolvPrime       = true;
+      prime->maxIt     = 2000;
+      prime->alphaPres = 1.0e0;
+      prime->alphaVel  = 0.9e0;
+      prime->kZeroVel  = 1;
+      prime->kZeroPres = 0;
+      prime->sPressure = true;
+      prime->nNonOrth  = 0;
+      prime->tolPres   = 1.e-04;
+      prime->tolVel    = 1.e-04;
+      prime->pPrime    = 10;
+/*...................................................................*/
+
+/*...*/
+      readMacro(fileIn, word, false);
+      if (!strcmp(word, "config:")) 
+        setPrimeScheme(word, prime, fileIn);
+/*...................................................................*/
+
+/*...*/
+      HccaAlloc(DOUBLE, &m, prime->d
+               ,mesh->numel*mesh->ndm, "dField", false);
+      zero(prime->d, mesh->numel*mesh->ndm, DOUBLEC);
+
+      HccaAlloc(DOUBLE, &m, prime->velUp
+               ,mesh->numel*mesh->ndm, "velUp", false);
+      zero(prime->d, mesh->numel*mesh->ndm, DOUBLEC);
+
+      HccaAlloc(DOUBLE, &m, prime->ePresC
+               ,mesh->numel, "ePresC", false);
+      zero(prime->ePresC, mesh->numel, DOUBLEC);
+
+      HccaAlloc(DOUBLE, &m, prime->nPresC
+               ,mesh->nnode, "nPresC", false);
+      zero(prime->nPresC, mesh->numel, DOUBLEC);
+
+      HccaAlloc(DOUBLE, &m, prime->eGradPresC
+                , mesh->numel*mesh->ndm, "eGradPresC", false);
+      zero(prime->eGradPresC, mesh->numel*mesh->ndm, DOUBLEC);
+
+      HccaAlloc(DOUBLE, &m, prime->ePresC1
+                , mesh->numel, "ePresC1", false);
+      zero(prime->ePresC, mesh->numel, DOUBLEC);
+
+      HccaAlloc(DOUBLE, &m, prime->aD
+               ,mesh->numel*mesh->ndm, "aD", false);
+      zero(prime->aD, mesh->numel*mesh->ndm, DOUBLEC);
+
+      HccaAlloc(DOUBLE, &m, prime->bTemporal
+               ,mesh->numel*mesh->ndm, "bT", false);
+      zero(prime->bTemporal, mesh->numel*mesh->ndm, DOUBLEC);
+/*...................................................................*/
+
+      if (!mpiVar.myId) printf("%s\n", DIF);
+    }
+/*===================================================================*/
+
+/*===================================================================*
+* macro: prime
+*===================================================================*/
+    else if ((!strcmp(word, macro[34]))) {
+      if (!mpiVar.myId) {
+        printf("%s\n", DIF);
+        printf("%s\n", word);
+        printf("%s\n", DIF);
+      }
+      mpiWait();
+      tm.solvEdpFluid = getTimeC() - tm.solvEdpFluid;
+/*...*/
+      if (solvPres == NULL) {
+        printf("Estrutara de dados nao montada para o solvFluid!!!\n");
+        exit(EXIT_FAILURE);
+      }
+/*...................................................................*/
+
+/*...*/
+      ndf = mesh->ndfF - 1;
+      primeSolver(&m
+                 ,loadsVel  ,loadsPres
+                 ,mesh0     ,mesh
+                 ,sistEqPres,solvPres
+                 ,prime     ,sc 
+                 ,pMesh     ,opt
+                 ,preName   ,nameOut
+                 ,fileOut   ,ndf);
+/*...................................................................*/
+
+/*...*/
+      tm.solvEdpFluid = getTimeC() - tm.solvEdpFluid;
+/*...................................................................*/
+      if (!mpiVar.myId) printf("%s\n\n", DIF);
+    }
 /*===================================================================*/
 
 /*===================================================================*/

@@ -385,6 +385,71 @@ void setSolver(char *word,short *solver)
 } 
 /*********************************************************************/      
 
+/**********************************************************************
+ *SETSOLVER : escolhe o solver                                        *
+ **********************************************************************/
+void setSolverConfig(char *word,Solv *solv,FILE *fileIn)
+{
+
+  if(!strcmp(word,"PCG")){
+    fscanf(fileIn,"%u" ,&solv->maxIt);
+    fscanf(fileIn,"%lf",&solv->tol);
+    solv->solver = PCG;   
+
+    if(solv->tol == 0.e0) 
+      solv->tol = smachn();
+
+    if(!mpiVar.myId ) {
+      printf("Solver    : PCG\n");
+      printf("MaxIt     : %d\n",solv->maxIt);
+      printf("Tol       : %e\n",solv->tol);
+    }
+  }
+  else if(!strcmp(word,"PBICGSTAB")){
+    fscanf(fileIn,"%u" ,&solv->maxIt);
+    fscanf(fileIn,"%lf",&solv->tol);
+    solv->solver = PBICGSTAB; 
+
+    if(solv->tol == 0.e0) 
+      solv->tol = smachn(); 
+
+    if(!mpiVar.myId ) {
+      printf("Solver    : PBICGSTAB\n");
+      printf("MaxIt     : %d\n",solv->maxIt);
+      printf("Tol       : %e\n",solv->tol);
+    }
+  }
+  else if (!strcmp(word, "PBICGSTABL2")){
+    fscanf(fileIn,"%u" ,&solv->maxIt);
+    fscanf(fileIn,"%lf",&solv->tol);
+    solv->solver = PBICGSTABL2; 
+ 
+    if(solv->tol == 0.e0) 
+      solv->tol = smachn();
+
+    if(!mpiVar.myId ) {
+      printf("Solver    : PBICGSTABL2\n");
+      printf("MaxIt     : %d\n",solv->maxIt);
+      printf("Tol       : %e\n",solv->tol);
+    }
+  }
+  else if (!strcmp(word, "GMRES")){
+    fscanf(fileIn,"%u" ,&solv->maxIt);
+    fscanf(fileIn,"%lf",&solv->tol);
+    solv->solver = GMRES;  
+ 
+    if(solv->tol == 0.e0) 
+      solv->tol = smachn();
+
+    if(!mpiVar.myId ) {
+      printf("Solver    : GMRES\n");
+      printf("MaxIt     : %d\n",solv->maxIt);
+      printf("Tol       : %e\n",solv->tol);
+    }
+  }  
+
+} 
+/*********************************************************************/      
 
 /**********************************************************************
  *SMACHN: calcula a precisao da maquina para double                   *
