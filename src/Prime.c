@@ -14,15 +14,15 @@
 *-------------------------------------------------------------------*
 *********************************************************************/
 void primeSolver(Memoria *m
-                  ,Loads *loadsVel, Loads *loadsPres
-                  ,Mesh *mesh0, Mesh *mesh
-                  ,SistEq *sistEqPres
-                  ,Solv *solvPres
-                  ,Prime *pr
-                  ,Scheme sc, PartMesh *pMesh
-                  ,FileOpt opt, char *preName
-                  ,char *nameOut, FILE *fileOut
-                  ,short const ndf) {
+                ,Loads *loadsVel, Loads *loadsPres
+                ,Mesh *mesh0, Mesh *mesh
+                ,SistEq *sistEqPres
+                ,Solv *solvPres
+                ,Prime *pr
+                ,Scheme sc, PartMesh *pMesh
+                ,FileOpt opt, char *preName
+                ,char *nameOut, FILE *fileOut
+                ,short const ndf) {
   FILE *fStop = NULL;
   short unsigned ndfVel = mesh->ndfF - 1;
   short unsigned conv;
@@ -587,6 +587,7 @@ void primeUpdate(DOUBLE *restrict w        ,DOUBLE *restrict wUp
 * iCod     -> tipo de residuo                                       *
 *          RSCALED - residuo com escala de grandeza                 *
 *          RSQRT   - norma p-2 ( norma euclidiana)                  *
+*          RSCALEDM- residuo com escala de grandeza                 * 
 *-------------------------------------------------------------------*
 * Parametros de saida:                                              *
 *-------------------------------------------------------------------*
@@ -643,7 +644,7 @@ void residualPrime(DOUBLE *restrict vel     ,DOUBLE *restrict adVel
 
 /*... scaled*/
     case RSCALEDSUM:
-/*... max(Ap*velP) */
+/*... sum(Ap*velP) */
       for (i = 0; i<nEl; i++) {
         for (j = 0; j<ndm; j++) {
           v  = MAT2D(i,j,vel  ,ndm);
@@ -654,7 +655,7 @@ void residualPrime(DOUBLE *restrict vel     ,DOUBLE *restrict adVel
       }
 /*...................................................................*/
 
-/*... max ( | F - Ax |P / max(Ap*velP) )*/
+/*... max ( | F - Ax |P / sum(Ap*velP) )*/
       for (j = 0; j<ndm; j++) {
         for (i = 0; i<nEl; i++) {
           mod = fabs(MAT2D(j, i, rCellVel, nEl));

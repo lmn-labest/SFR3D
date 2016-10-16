@@ -1,0 +1,45 @@
+config
+reord true bvtk false mem 150 rcGrad lSquareQR fItPlotRes false fItPlot false
+endConfig
+partd config: false false
+//advection 1 Vel TVD SuperBee
+//advection 1 Vel FoUp    
+advection 1 Vel CD    
+//advection 1 Vel SoUp
+openmp 2 solver 2 cell 2
+edp
+fluid 4
+endEdp
+mesh
+nnode 68921 numel 64000 ndm 3 numat 1 maxno 8 maxviz 6
+materials
+1 1 1.e-3 1.0
+end materials
+insert cavity_3D_hexa_60mil_mesh.dat
+faceRpres 
+1  7  0 0 0 0 0 0  1
+endFaceRpres  
+faceLoadPres 
+1  7  0 0 0 0 0 0  1
+endFaceLoadPres  
+loadsVel  
+1 8 3 0.0 0.0 1.0
+endLoadsVel  
+loadsPres 
+1 5 1  0.0
+endLoadsPres 
+endMesh
+pgeo
+setPrintFluid pres vel gradVel gradPres end
+setSolv 2 Pres PCG 10000 1.e-06 CSRC Vel PBICGSTABL2 10000 1.e-06 CSRC
+//setSolv 1 Pres PCG 10000 1.e-06 CSRC
+//setSimple config: SIMPLE 1000 0.3e0 0.7e0 1.e-04 1.e-04 0 10
+setPrime config: 2000 0.5e0 0.5e0 1.e-4 1.e-4 0 1
+//transient config: BACKWARD 0.2e0 40.e0
+//transient config: EULER 0.2e0  40.e0
+//simple
+prime
+pFluid                                             
+//timeUpdate
+//endTransient  
+stop

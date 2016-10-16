@@ -1380,6 +1380,7 @@ void setSimpleScheme(char *word,Simple *sp,FILE *fileIn){
  * iCod     -> tipo de residuo                                       * 
  *          RSCALED - residuo com escala de grandeza                 * 
  *          RSQRT   - norma p-2 ( norma euclidiana)                  * 
+ *          RSCALEDM- residuo com escala de grandeza                 * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
@@ -1471,7 +1472,7 @@ void residualSimple(DOUBLE *restrict vel
 
 /*... scaled*/
     case RSCALEDSUM:
-/*... max(Ap*velP) */
+/*... sum(Ap*velP) */
       for(i=0;i<nEl;i++){
         lNeq = idVel[i] - 1;
         if(lNeq > -1){ 
@@ -1484,7 +1485,7 @@ void residualSimple(DOUBLE *restrict vel
       }
 /*...................................................................*/
       
-/*... max ( | F - Ax |P / max(Ap*velP) )*/
+/*... max ( | F - Ax |P / sum(Ap*velP) )*/
       for(j=0;j<ndm;j++){
         for(i=0;i<nEl;i++){
           mod    = fabs(MAT2D(j,i,rCellVel,nEl));
