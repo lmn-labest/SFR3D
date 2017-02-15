@@ -843,6 +843,9 @@ void wResVtk(Memoria *m     ,double *x
 /*********************************************************************/
 
 /********************************************************************** 
+ * Data de criacao    : 00/00/0000                                    *
+ * Data de modificaco : 15/02/2017                                    * 
+ * -------------------------------------------------------------------* 
  * WRESVTKDIF : escreve a malha com os resultados para problemas de   *  
  * difusao pura                                                       *  
  * ------------------------------------------------------------------ *
@@ -877,6 +880,9 @@ void wResVtk(Memoria *m     ,double *x
  * ------------------------------------------------------------------ *
  * parametros de saida  :                                             * 
  * ------------------------------------------------------------------ *
+ * -------------------------------------------------------------------*
+ * OBS:                                                               *
+ * -------------------------------------------------------------------*
  **********************************************************************/
 void wResVtkDif(Memoria *m        ,double *x      
                ,INT *el           ,short *mat    
@@ -909,7 +915,7 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /* ...*/
   if(ddt.flag)
-    timeVtk(ddt.t,ddt.timeStep,f);
+    timeVtk(ddt.t,ddt.timeStep,iws,f);
 /* ..................................................................*/
 
 /*... coordenadas*/
@@ -1097,7 +1103,7 @@ void wResVtkFluid(Memoria *m         ,DOUBLE *x
 
 /* ...*/
   if(ddt.flag)
-    timeVtk(ddt.t,ddt.timeStep,f);
+    timeVtk(ddt.t,ddt.timeStep,iws,f);
 /* ..................................................................*/
 
 /*... coordenadas*/
@@ -1304,7 +1310,7 @@ void wResVtkTrans(Memoria *m        ,double *x
 
 /* ...*/
   if(ddt.flag)
-    timeVtk(ddt.t,ddt.timeStep,f);
+    timeVtk(ddt.t,ddt.timeStep,iws,f);
 /* ..................................................................*/
 
 /*... coordenadas*/

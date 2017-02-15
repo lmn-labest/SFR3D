@@ -16,6 +16,6 @@
                        ,int nnode ,short ndf    ,char *s   ,bool cod
                        ,FILE *f);
  
-  void timeVtk(double t,int iStep,FILE *f);
+  void timeVtk(double t,int iStep,bool cod,FILE *f);
 
 #endif

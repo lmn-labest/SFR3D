@@ -131,17 +131,17 @@ void diffusion(Memoria *m   ,Loads *loadsDif
 
 /*...*/
     tm.solvD1 = getTimeC() - tm.solvD1;
-/*  solverC(m               
+    solverC(m               
            ,sistEqD->neq       ,sistEqD->neqNov  
            ,sistEqD->nad       ,sistEqD->nadr
            ,sistEqD->ia        ,sistEqD->ja  
            ,sistEqD->al        ,sistEqD->ad,sistEqD->au
            ,sistEqD->b         ,sistEqD->x
-           ,&sistEqD->iNeq
+           ,&sistEqD->iNeq     ,&sistEqD->omp
            ,solvD->tol         ,solvD->maxIt     
            ,sistEqD->storage   ,solvD->solver
            ,solvD->fileSolv    ,solvD->log  
-           ,false              ,sistEqD->unsym     );*/
+           ,false              ,sistEqD->unsym);
     tm.solvD1 = getTimeC() - tm.solvD1;
 /*...................................................................*/
 

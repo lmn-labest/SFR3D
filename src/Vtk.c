@@ -45,6 +45,9 @@ void headVtk(char *s,bool cod,FILE *f)
 /*********************************************************************/
 
 /**********************************************************************
+ * Data de criacao    : 00/00/0000                                    *
+ * Data de modificaco : 15/02/2017                                    * 
+ * -------------------------------------------------------------------*
  * timeVtk : informacao temporal do arquivo vtk                       *
  * -------------------------------------------------------------------*
  * Parametro de entrada :                                             *
@@ -56,15 +59,28 @@ void headVtk(char *s,bool cod,FILE *f)
  * Parametro de saida :                                               *
  * -------------------------------------------------------------------*
  * -------------------------------------------------------------------*
+ * OBS:                                                               *
+ * -------------------------------------------------------------------*
  *********************************************************************/
-void timeVtk(double t,int iStep,FILE *f){
+void timeVtk(double t,int iStep,bool cod,FILE *f){
+
+   new_section(cod,f);
    fprintf(f,"FIELD FieldData 3\n");
-   fprintf(f,"TIME(s) 1 1 double\n");
-   fprintf(f,"%lf\n",t);
-   fprintf(f,"TIME(h) 1 1 double\n");
-   fprintf(f,"%lf\n",t/3600.e0);
+
+/*... passo de tempo*/
    fprintf(f,"CYCLE 1 1 int\n");
-   fprintf(f,"%d\n",iStep);
+   write_int(iStep,cod,f);
+   new_section(cod,f);
+
+/*... tempo em segundos*/   
+   fprintf(f,"TIME_S 1 1 double\n");
+   write_double(t,cod,f);
+   new_section(cod,f);
+/*... tempo em horas*/ 
+   fprintf(f,"TIME_H 1 1 double\n");
+   write_double(t/3600.e0,cod,f);
+   new_section(cod,f);
+   
 } 
 /*********************************************************************/
 
@@ -205,7 +221,7 @@ void writeVtkCell(int *el       ,short *nen ,short *type
 /*********************************************************************/
 
 /**********************************************************************
- * writeVtkProp :  escreve propriedades                           *
+ * writeVtkProp :  escreve propriedades                               *
  * -------------------------------------------------------------------*
  * Parametro de entrada :                                             *
  * -------------------------------------------------------------------*

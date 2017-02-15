@@ -604,7 +604,7 @@ int main(int argc,char**argv){
       }
       
       config(&opt          ,reordMesh
-            ,&sc.rcGrad ,fileIn);
+            ,&sc.rcGrad    ,fileIn);
       
       if(!mpiVar.myId ) printf("%s\n\n",DIF);
     }   
