@@ -1,7 +1,7 @@
 #include<CellLoop.h>
 /*********************************************************************
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 03/07/2016                                   *
+ * Data de modificaco : 15/02/2017                                   *
  *-------------------------------------------------------------------*
  * CELLSIMPLEVEL2D: Celula 2D para velocidade do metodo simple       *
  * em escoamento imcompressivel                                      *
@@ -332,8 +332,9 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
       else
         pFace = alphaMenosUm*presC + alpha*presF;
 /*...................................................................*/
-      pf[0]+= pFace*lModEta*lNormal[0];
-      pf[1]+= pFace*lModEta*lNormal[1];
+      tmp   = pFace*lModEta;
+      pf[0]+= tmp*lNormal[0];
+      pf[1]+= tmp*lNormal[1];
 /*...................................................................*/
 
 /*... termos viscosos explicitos*/
@@ -375,8 +376,10 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 /*... gradiente da pressao com resconstrucao de segunda ordem*/
       if(sPressure)  
         pFace += gradPresC[0]*lXmcc[0] + gradPresC[1]*lXmcc[1];
-      pf[0]+= pFace*lModEta*lNormal[0];
-      pf[1]+= pFace*lModEta*lNormal[1];
+
+      tmp   = pFace*lModEta;
+      pf[0]+= tmp*lNormal[0];
+      pf[1]+= tmp*lNormal[1];
 /*...................................................................*/
 
 
@@ -1975,9 +1978,10 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                + gradPresC[1]*lXmcc[1]
                + gradPresC[2]*lXmcc[2];
 
-      pf[0]+= pFace*lFarea*lNormal[0];
-      pf[1]+= pFace*lFarea*lNormal[1];
-      pf[2]+= pFace*lFarea*lNormal[2];
+      tmp   = pFace*lFarea;
+      pf[0]+= tmp*lNormal[0];
+      pf[1]+= tmp*lNormal[1];
+      pf[2]+= tmp*lNormal[2];
 /*...................................................................*/
 
 
@@ -2460,8 +2464,8 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
  * Data de criacao    : 11/07/2016                                   *
  * Data de modificaco : 15/08/2016                                   *
  *-------------------------------------------------------------------*
- * CELLSIMPLEVE3D: Celula 3D para velocidade do metodo simple        *
- * em escoamento imcompressivel                                      *
+ * CELLSIMPLEPRES3D: Celula 3D para equacao de correcao de pressoa   *
+ * metodo simple em escoamento imcompressivel                        * 
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*

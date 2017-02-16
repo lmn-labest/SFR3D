@@ -47,14 +47,14 @@ int main(int argc,char**argv){
   SistEq *sistEqD1 =NULL, *sistEqT1=NULL;
   SistEq *sistEqVel=NULL, *sistEqPres=NULL;
 /*... metodo de acoplamento pressao-velocidade*/
-  Simple *simple;
-  Prime  *prime;
+  Simple *simple = NULL;
+  Prime  *prime  = NULL;
 
 /*... solver*/
   INT nEqMax;
   Solv *solvD1=NULL,*solvT1=NULL,*solvVel=NULL,*solvPres=NULL;
   bool fSolvD1 = false, fSolvT1 = false;
-  bool fSolvVel = false,fSolvPres = false,fSolvSimple = false,fSolvPrime;
+  bool fSolvVel = false,fSolvPres = false,fSolvSimple = false,fSolvPrime = false;
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
 
@@ -1610,7 +1610,7 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: presolvfluid : escoamento de fluidos  
+ * macro: setSolv : escoamento de fluidos  
  *===================================================================*/
     else if((!strcmp(word,macro[21]))){
       if(!mpiVar.myId ){
@@ -1939,6 +1939,13 @@ int main(int argc,char**argv){
         printf("Estrutara de dados nao montada para o solvFluid!!!\n");
         exit(EXIT_FAILURE);
       }
+/*...................................................................*/
+
+/*...*/
+     if(!fSolvSimple) {
+        printf("Simple nao configurado ainda!!!\n");
+        exit(EXIT_FAILURE);
+     }  
 /*...................................................................*/
      
 /*...*/
@@ -2542,6 +2549,13 @@ int main(int argc,char**argv){
         printf("Estrutara de dados nao montada para o solvFluid!!!\n");
         exit(EXIT_FAILURE);
       }
+/*...................................................................*/
+
+/*...*/
+     if(!fSolvPrime) {
+        printf("Prime nao configurado ainda!!!\n");
+        exit(EXIT_FAILURE);
+     }  
 /*...................................................................*/
 
 /*...*/
