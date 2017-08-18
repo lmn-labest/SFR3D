@@ -82,7 +82,7 @@ void viz(Memoria *m        ,INT *el           ,INT *nelcon
  * ------------------------------------------------------------------*
  * *******************************************************************/
 void adj2d(INT *el         ,INT *nodcon       ,INT *nelcon
-          ,short *nen      ,INT const nnode   , INT const numel 
+          ,short *nen      ,INT const nnode   ,INT const numel 
          ,short const maxNo,short const maxViz,INT *nEdge){
  
  
@@ -240,8 +240,8 @@ void adj2d(INT *el         ,INT *nodcon       ,INT *nelcon
  * nelcon-> vizinhas dos elementos                                   *
  * ------------------------------------------------------------------*
  * *******************************************************************/
-void adjHex8(INT *el         ,INT *nodcon         ,INT *nelcon
-            ,INT const nnode    , INT const numel 
+void adjHex8(INT *el          ,INT *nodcon         ,INT *nelcon
+            ,INT const nnode  ,INT const numel 
             ,short const maxNo,short const maxViz){
   
   INT nel1,nel2,node[4];
@@ -372,8 +372,8 @@ void adjHex8(INT *el         ,INT *nodcon         ,INT *nelcon
  * nelcon-> vizinhas dos elementos                                   *
  * ------------------------------------------------------------------*
  * *******************************************************************/
-void adjTetra4(INT *restrict el    ,INT *restrict nodcon 
-              ,INT *restrict nelcon
+void adjTetra4(INT *RESTRICT el    ,INT *RESTRICT nodcon 
+              ,INT *RESTRICT nelcon
               ,INT const nnode     ,INT const numel 
               ,short const maxNo   ,short const maxViz){
 
@@ -498,7 +498,7 @@ void adjTetra4(INT *restrict el    ,INT *restrict nodcon
  * nodeFace -> nos da face j (numeracao local)                         * 
  **********************************************************************/
 void tetra4fNod(INT const nEl     ,short const face
-               ,INT *restrict el   ,INT *restrict nodeFace
+               ,INT *RESTRICT el   ,INT *RESTRICT nodeFace
                ,short const maxNo)                       
 {
   short isNod[][3] = {{1,2,3}
@@ -529,8 +529,8 @@ void tetra4fNod(INT const nEl     ,short const face
  * Parametros de saida:                                                * 
  * ------------------------------------------------------------------- * 
  **********************************************************************/
-short tetra4face(INT const nEl         ,INT *restrict el
-                ,INT *restrict nodeFace,short const maxNo )
+short tetra4face(INT const nEl         ,INT *RESTRICT el
+                ,INT *RESTRICT nodeFace,short const maxNo )
 {
   INT no[3];
   short nFace,j;
@@ -567,7 +567,7 @@ short tetra4face(INT const nEl         ,INT *restrict el
  * nodeFace -> nos da face j (numeracao local)                         * 
  **********************************************************************/
 void hexa8fNod(INT const nEl     ,short const face
-             ,INT *restrict el   ,INT *restrict nodeFace
+             ,INT *RESTRICT el   ,INT *RESTRICT nodeFace
              ,short const maxNo)                       
 {
   short isNodHex[][4] = {{0,3,2,1}
@@ -600,8 +600,8 @@ void hexa8fNod(INT const nEl     ,short const face
  * Parametros de saida:                                                * 
  * ------------------------------------------------------------------- * 
  **********************************************************************/
-short hexa8face(INT const nEl         ,INT *restrict el
-               ,INT *restrict nodeFace,short const maxNo )
+short hexa8face(INT const nEl         ,INT *RESTRICT el
+               ,INT *RESTRICT nodeFace,short const maxNo )
 {
   INT no[4];
   short nFace,j;

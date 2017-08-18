@@ -27,9 +27,9 @@
  * OBS: a funcao retorna o numero do termos nao nulor no CSR/CSRC    * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-INT csrIa(INT *restrict ia     ,INT *restrict id   
-         ,INT *restrict num    ,INT *restrict adj
-         ,short *restrict nViz
+INT csrIa(INT *RESTRICT ia     ,INT *RESTRICT id   
+         ,INT *RESTRICT num    ,INT *RESTRICT adj
+         ,short *RESTRICT nViz
          ,INT const numel      ,INT const neq
          ,short const maxViz   ,short  const ndf
          ,bool const upper     ,bool const diag   
@@ -122,9 +122,9 @@ INT csrIa(INT *restrict ia     ,INT *restrict id
  * retangular                                                        * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-INT csrIaR(INT *restrict ia     ,INT *restrict id   
-          ,INT *restrict num    ,INT *restrict adj
-          ,short *restrict nViz
+INT csrIaR(INT *RESTRICT ia     ,INT *RESTRICT id   
+          ,INT *RESTRICT num    ,INT *RESTRICT adj
+          ,short *RESTRICT nViz
           ,INT const numel      ,INT const nEq
           ,short const maxViz   ,short  const ndf){
   
@@ -199,9 +199,9 @@ INT csrIaR(INT *restrict ia     ,INT *restrict id
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void csrJa(INT *restrict ia    ,INT *restrict ja 
-          ,INT *restrict id    ,INT *restrict num 
-          ,INT *restrict adj   ,short *restrict nViz
+void csrJa(INT *RESTRICT ia    ,INT *RESTRICT ja 
+          ,INT *RESTRICT id    ,INT *RESTRICT num 
+          ,INT *RESTRICT adj   ,short *RESTRICT nViz
           ,INT const numel     ,INT const neq 
           ,short const maxViz  ,short const ndf
           ,bool const upper    ,bool const diag 
@@ -307,9 +307,9 @@ void csrJa(INT *restrict ia    ,INT *restrict ja
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void csrJaR(INT *restrict ia    ,INT *restrict ja 
-           ,INT *restrict id    ,INT *restrict num 
-           ,INT *restrict adj   ,short *restrict nViz
+void csrJaR(INT *RESTRICT ia    ,INT *RESTRICT ja 
+           ,INT *RESTRICT id    ,INT *RESTRICT num 
+           ,INT *RESTRICT adj   ,short *RESTRICT nViz
            ,INT const numel     ,INT const nEq 
            ,short const maxViz  ,short const ndf){
   
@@ -474,7 +474,7 @@ INT bandCsrC(INT *ia,INT *ja,INT  neq,short type){
         }
         bandLong += aux;
       }
-      bandL = bandLong/neq;
+      bandL = (INT) (bandLong/neq);
     break;
 /*...................................................................*/ 
 
@@ -546,11 +546,11 @@ INT bandCsrC(INT *ia,INT *ja,INT  neq,short type){
  *    | APX  APY  APXY  APYX |                                       * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void csr(INT    *restrict  ia,INT *restrict ja 
-        ,DOUBLE *restrict a  ,DOUBLE *restrict ad
-        ,DOUBLE *restrict b
-        ,INT *restrict lId                       
-        ,DOUBLE *restrict lA ,DOUBLE *restrict lB
+void csr(INT    *RESTRICT  ia,INT *RESTRICT ja 
+        ,DOUBLE *RESTRICT a  ,DOUBLE *RESTRICT ad
+        ,DOUBLE *RESTRICT b
+        ,INT *RESTRICT lId                       
+        ,DOUBLE *RESTRICT lA ,DOUBLE *RESTRICT lB
         ,INT const nEq       ,INT const nEqNov 
         ,INT const nAd       ,INT const nAdR                        
         ,short const nFace   ,short const ndf  
@@ -559,9 +559,9 @@ void csr(INT    *restrict  ia,INT *restrict ja
 {
   INT lNeq,lCol=0,iak,jak,iPoint,iaKneq,jPoint,iaJneq,neqS,n0;
   INT *iar,*jar;
-  DOUBLE *restrict ar=NULL;
-  DOUBLE *restrict au=NULL;
-  DOUBLE *restrict al=NULL;
+  DOUBLE *RESTRICT ar=NULL;
+  DOUBLE *RESTRICT au=NULL;
+  DOUBLE *RESTRICT al=NULL;
   unsigned short i,j,k,jLa,nst;
   bool fCoo = false;
 
@@ -992,11 +992,11 @@ void csr(INT    *restrict  ia,INT *restrict ja
  c b = | b1x b2x ... b(neq)x b1y b2y ... b(neq)y b1z b2z ... b(neq)z * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void csrSimple(INT    *restrict  ia,INT *restrict ja 
-        ,DOUBLE *restrict a  ,DOUBLE *restrict ad
-        ,DOUBLE *restrict b
-        ,INT *restrict lId                       
-        ,DOUBLE *restrict lA ,DOUBLE *restrict lB
+void csrSimple(INT    *RESTRICT  ia,INT *RESTRICT ja 
+        ,DOUBLE *RESTRICT a  ,DOUBLE *RESTRICT ad
+        ,DOUBLE *RESTRICT b
+        ,INT *RESTRICT lId                       
+        ,DOUBLE *RESTRICT lA ,DOUBLE *RESTRICT lB
         ,INT const nEq       ,INT const nEqNov 
         ,INT const nAd       ,INT const nAdR                        
         ,short const nFace   ,short const ndf  
@@ -1005,9 +1005,9 @@ void csrSimple(INT    *restrict  ia,INT *restrict ja
 {
   INT lNeq,lCol=0,iak,jak,iPoint,iaKneq,jPoint,iaJneq,neqS,n0;
   INT *iar,*jar;
-  DOUBLE *restrict ar=NULL;
-  DOUBLE *restrict au=NULL;
-  DOUBLE *restrict al=NULL;
+  DOUBLE *RESTRICT ar=NULL;
+  DOUBLE *RESTRICT au=NULL;
+  DOUBLE *RESTRICT al=NULL;
   unsigned short k;
   bool fCoo = false;
 
@@ -1321,8 +1321,8 @@ void csrSimple(INT    *restrict  ia,INT *restrict ja
 }
 /*********************************************************************/ 
 
-//#ifdef _OPENMP
-/*********************************************************************
+#ifdef _OPENMP
+/********************************************************************
 * Data de criacao    : 27/07/2016                                   *
 * Data de modificaco : 00/00/0000                                   *
 *-------------------------------------------------------------------*
@@ -1350,11 +1350,11 @@ void csrSimple(INT    *restrict  ia,INT *restrict ja
 * OBS: retorna o numero de elmentos nao nulos                       *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void partitionCsrByNonzeros(INT *restrict ia      ,INT *restrict ja
+void partitionCsrByNonzeros(INT *RESTRICT ia      ,INT *RESTRICT ja
                            ,INT const neq
-                           ,int nThreads          ,INT *restrict thBegin
-                           ,INT *restrict thEnd   ,INT *restrict thSize
-                           ,INT *restrict thHeight,short type) {
+                           ,int nThreads          ,INT *RESTRICT thBegin
+                           ,INT *RESTRICT thEnd   ,INT *RESTRICT thSize
+                           ,INT *RESTRICT thHeight,short type) {
 
   INT nad, meanVariables, line;
   INT tam;
@@ -1498,12 +1498,12 @@ void partitionCsrByNonzeros(INT *restrict ia      ,INT *restrict ja
 * OBS: retorna o numero de elmentos nao nulos                       *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void computeEffectiveWork(INT *restrict ia, INT *restrict ja
+void computeEffectiveWork(INT *RESTRICT ia, INT *RESTRICT ja
                     ,INT const nEq
-                    ,INT *restrict thBegin,INT *restrict thEnd
-                    ,INT *restrict thSize ,INT *restrict thHeight) {
+                    ,INT *RESTRICT thBegin,INT *RESTRICT thEnd
+                    ,INT *RESTRICT thSize ,INT *RESTRICT thHeight) {
   int i, id = 0, h = 0;
-
+//#if OPENMP
 #pragma omp parallel private(id,h) 
   {
     id = omp_get_thread_num();
@@ -1515,4 +1515,4 @@ void computeEffectiveWork(INT *restrict ia, INT *restrict ja
 
 }
 /*********************************************************************/
-//#endif
+#endif

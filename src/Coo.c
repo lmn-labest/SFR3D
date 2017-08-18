@@ -22,9 +22,9 @@
  *                                                                   * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-INT cooNnzR(INT *restrict id   
-           ,INT *restrict num    ,INT *restrict adj
-           ,short *restrict nViz
+INT cooNnzR(INT *RESTRICT id   
+           ,INT *RESTRICT num    ,INT *RESTRICT adj
+           ,short *RESTRICT nViz
            ,INT const numel      ,INT const nEq
            ,short const maxViz   ,short  const ndf){
   
@@ -89,10 +89,10 @@ INT cooNnzR(INT *restrict id
  * OBS: ia0 e usado apenas para auxiliar a montagem da matriz global * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cooIaJaR(INT *restrict ia0
-             ,INT *restrict ia     ,INT *restrict ja
-             ,INT *restrict id     ,INT *restrict num   
-             ,INT *restrict adj    ,short *restrict nViz
+void cooIaJaR(INT *RESTRICT ia0
+             ,INT *RESTRICT ia     ,INT *RESTRICT ja
+             ,INT *RESTRICT id     ,INT *RESTRICT num   
+             ,INT *RESTRICT adj    ,short *RESTRICT nViz
              ,INT const numel      ,INT const nEq
              ,short const maxViz   ,short  const ndf){
   

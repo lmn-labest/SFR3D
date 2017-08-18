@@ -55,9 +55,9 @@ void setTransientScheme(char *word,short *type){
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
-                  ,DOUBLE *restrict u0     ,DOUBLE *restrict u
-                  ,DOUBLE *restrict density,DOUBLE *restrict f
+void cellTransient(DOUBLE *RESTRICT volume  ,INT *RESTRICT id
+                  ,DOUBLE *RESTRICT u0     ,DOUBLE *RESTRICT u
+                  ,DOUBLE *RESTRICT density,DOUBLE *RESTRICT f
                   ,Temporal const ddt      ,INT const numel
                   ,short const ndf         ,bool const fAdd)
 {
@@ -187,6 +187,7 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
         for (nel = 0; nel < numel; nel++) {
           lNeq = id[nel] - 1;
           if (lNeq > -1) {
+            tmp1 = dt + dt0;
 /*...*/
             t1 = MAT2D(nel, 0, density, nD)*u[nel];
             t1 *= (tmp1 / (dt*dt0));
@@ -261,9 +262,9 @@ void cellTransient(DOUBLE *restrict volume  ,INT *restrict id
 *        | bw(1) bw(2) ... bw(neq) |                                *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void cellTransientSimple(DOUBLE *restrict volume ,INT *restrict id
-                        ,DOUBLE *restrict u0     ,DOUBLE *restrict u
-                        ,DOUBLE *restrict density,DOUBLE *restrict f
+void cellTransientSimple(DOUBLE *RESTRICT volume ,INT *RESTRICT id
+                        ,DOUBLE *RESTRICT u0     ,DOUBLE *RESTRICT u
+                        ,DOUBLE *RESTRICT density,DOUBLE *RESTRICT f
                         ,Temporal const ddt      ,INT const nEq
                         ,INT const numel         ,short const ndf
                         ,bool const fAdd)
@@ -391,9 +392,9 @@ void cellTransientSimple(DOUBLE *restrict volume ,INT *restrict id
  *        | bu(n) bv(n) bw(n) |                                      *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void cellTransientPrime(DOUBLE *restrict volume 
-                       ,DOUBLE *restrict u0     ,DOUBLE *restrict u
-                       ,DOUBLE *restrict density,DOUBLE *restrict f
+void cellTransientPrime(DOUBLE *RESTRICT volume 
+                       ,DOUBLE *RESTRICT u0     ,DOUBLE *RESTRICT u
+                       ,DOUBLE *RESTRICT density,DOUBLE *RESTRICT f
                        ,Temporal const ddt      
                        ,INT const numel         ,short const ndf
                        ,bool const fAdd) 

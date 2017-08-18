@@ -50,18 +50,18 @@
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void cellDif2D(Loads *loads
-              ,short *restrict lGeomType,DOUBLE *restrict prop
-              ,INT *restrict lViz       ,INT *restrict lId  
-              ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
-              ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
-              ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-              ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-              ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
-              ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
-              ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-              ,DOUBLE *restrict lRcell  ,Temporal const ddt                
-              ,short  *restrict lFaceR  ,short *restrict lFaceL
-              ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
+              ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
+              ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
+              ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
+              ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT mEta
+              ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
+              ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+              ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
+              ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
+              ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
+              ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt                
+              ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
+              ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
               ,const short nEn          ,short const nFace    
               ,const short ndm          ,INT const nel)
 { 
@@ -306,18 +306,18 @@ void cellDif2D(Loads *loads
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void cellDif3D(Loads *loads
-              ,short *restrict lGeomType,DOUBLE *restrict prop
-              ,INT *restrict lViz       ,INT *restrict lId  
-              ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
-              ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
-              ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-              ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-              ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
-              ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
-              ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-              ,DOUBLE *restrict lRcell  ,Temporal const ddt             
-              ,short  *restrict lFaceR  ,short  *restrict lFaceL  
-              ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
+              ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
+              ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
+              ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
+              ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
+              ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
+              ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+              ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
+              ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
+              ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
+              ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt             
+              ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL  
+              ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
               ,const short nEn          ,short const nFace    
               ,const short ndm          ,INT const nel)
 { 

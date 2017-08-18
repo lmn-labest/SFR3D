@@ -44,20 +44,20 @@
     BufferOmp omp; /*OPenMp*/
   }SistEq;
   
-  INT numeq(INT  *restrict id  ,INT *restrict num
-          ,short *restrict rt  ,short *restrict nen
+  INT numeq(INT  *RESTRICT id  ,INT *RESTRICT num
+          ,short *RESTRICT rt  ,short *RESTRICT nen
           ,INT const numel     ,short const nViz
           ,short const ndf);
   
-  INT numEqV1(INT  *restrict id  ,INT *restrict num
+  INT numEqV1(INT  *RESTRICT id  ,INT *RESTRICT num
              ,INT const numel);                       
   
-  INT numEqV2(INT  *restrict id  ,INT *restrict num
-             ,short *restrict rt  ,short *restrict nen
+  INT numEqV2(INT  *RESTRICT id  ,INT *RESTRICT num
+             ,short *RESTRICT rt  ,short *RESTRICT nen
              ,INT const numel     ,short const nViz);
   
-  INT countEq(INT *restrict num
-           ,short *restrict rt     ,short *restrict nFace 
+  INT countEq(INT *RESTRICT num
+           ,short *RESTRICT rt     ,short *RESTRICT nFace 
            ,INT const numel        ,short const maxViz  
            ,short const ndf);
 

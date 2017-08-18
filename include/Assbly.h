@@ -14,10 +14,10 @@
 /*...................................................................*/
 
 /*...*/
-  void assbly(INT    *restrict  ia,INT *restrict ja 
-             ,DOUBLE *restrict al ,DOUBLE *restrict ad
-             ,DOUBLE *restrict b  ,INT *restrict lId
-             ,DOUBLE *restrict lA ,DOUBLE *restrict lB
+  void assbly(INT    *RESTRICT  ia,INT *RESTRICT ja 
+             ,DOUBLE *RESTRICT al ,DOUBLE *RESTRICT ad
+             ,DOUBLE *RESTRICT b  ,INT *RESTRICT lId
+             ,DOUBLE *RESTRICT lA ,DOUBLE *RESTRICT lB
              ,INT const nEq       ,INT const nEqNov 
              ,INT const nAd       ,INT const nAdr  
              ,short const nFace   ,short const ndf 
@@ -26,10 +26,10 @@
 /*...................................................................*/
 
 /*...*/
-  void assblySimple(INT    *restrict  ia,INT *restrict ja 
-             ,DOUBLE *restrict al ,DOUBLE *restrict ad
-             ,DOUBLE *restrict b  ,INT *restrict lId
-             ,DOUBLE *restrict lA ,DOUBLE *restrict lB
+  void assblySimple(INT    *RESTRICT  ia,INT *RESTRICT ja 
+             ,DOUBLE *RESTRICT al ,DOUBLE *RESTRICT ad
+             ,DOUBLE *RESTRICT b  ,INT *RESTRICT lId
+             ,DOUBLE *RESTRICT lA ,DOUBLE *RESTRICT lB
              ,INT const nEq       ,INT const nEqNov 
              ,INT const nAd       ,INT const nAdr  
              ,short const nFace   ,short const ndf 

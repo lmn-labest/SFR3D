@@ -20,7 +20,7 @@ void reord(Memoria *m            ,INT *num           ,INT const *adj
           ,INT const numel       ,INT const numelNov            
           ,bool const flag       ,unsigned  short const nPrcs){
 
-  INT *xAdj=NULL,*adjncy=NULL,*restrict perm=NULL;
+  INT *xAdj=NULL,*adjncy=NULL,*RESTRICT perm=NULL;
   INT i,nDeg;
 
 /*...*/  

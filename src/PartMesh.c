@@ -23,8 +23,8 @@
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void partMesh(Memoria *m      
-             ,DOUBLE *restrict x   ,INT *restrict el
-             ,short  *restrict nen
+             ,DOUBLE *RESTRICT x   ,INT *RESTRICT el
+             ,short  *RESTRICT nen
              ,INT const nNode      ,INT const nEl   
              ,PartMesh *pMesh  
              ,short const ndm      ,short const maxNo     
@@ -131,10 +131,10 @@ void partMesh(Memoria *m
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void divCoorXY(DOUBLE *restrict coor,INT *restrict el
-              ,short  *restrict nen                          
+void divCoorXY(DOUBLE *RESTRICT coor,INT *RESTRICT el
+              ,short  *RESTRICT nen                          
               ,INT const nNode      ,INT const nEl   
-              ,INT *restrict np     ,INT *restrict ep   
+              ,INT *RESTRICT np     ,INT *RESTRICT ep   
               ,short const ndm      ,short const maxNo
               ,short const nDiv     ,bool const fC){
 
@@ -285,10 +285,10 @@ void divCoorXY(DOUBLE *restrict coor,INT *restrict el
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void getNumberLocalMesh(INT *restrict ep        ,INT *restrict np                     
-                       ,bool *restrict fNode    ,bool *restrict fEp
-                       ,INT *restrict el        ,INT *restrict nelcon 
-                       ,short *restrict nen     ,short *restrict nFace
+void getNumberLocalMesh(INT *RESTRICT ep        ,INT *RESTRICT np                     
+                       ,bool *RESTRICT fNode    ,bool *RESTRICT fEp
+                       ,INT *RESTRICT el        ,INT *RESTRICT nelcon 
+                       ,short *RESTRICT nen     ,short *RESTRICT nFace
                        ,INT const nNode         ,INT const nEl   
                        ,short const maxNo       ,short const maxViz
                        ,INT *numelNov           ,INT *numelOv       
@@ -400,8 +400,8 @@ void getNumberLocalMesh(INT *restrict ep        ,INT *restrict np
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
- unsigned short getMapViz(INT *restrict ep,INT *restrict  elLG
-                ,short *restrict vizPart  
+ unsigned short getMapViz(INT *RESTRICT ep,INT *RESTRICT  elLG
+                ,short *RESTRICT vizPart  
                 ,INT const  lNel          ,INT const numelNov
                 ,short const rank         ,short const nPrcs)
 {
@@ -453,9 +453,9 @@ void getNumberLocalMesh(INT *restrict ep        ,INT *restrict np
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
- unsigned short getMapVizNo(INT *restrict ep,INT *restrict  noLG
-                  ,short *restrict vizPart  ,bool *restrict contViz
-                  ,INT *restrict nincid     ,INT *restrict incid 
+ unsigned short getMapVizNo(INT *RESTRICT ep,INT *RESTRICT  noLG
+                  ,short *RESTRICT vizPart  ,bool *RESTRICT contViz
+                  ,INT *RESTRICT nincid     ,INT *RESTRICT incid 
                   ,INT const  nNodeNov      ,INT const maxGrade              
                   ,short const rank         ,short const nPrcs)
 {
@@ -519,12 +519,12 @@ void getNumberLocalMesh(INT *restrict ep        ,INT *restrict np
  * ordenado primeiro por vizinho e depois numeracao global           * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void  getMapInterfaceEl(INT *restrict ep
-                       ,INT *restrict nelcon    ,short *restrict nFace
-                       ,INT *restrict elLG      ,bool *restrict fEl
+void  getMapInterfaceEl(INT *RESTRICT ep
+                       ,INT *RESTRICT nelcon    ,short *RESTRICT nFace
+                       ,INT *RESTRICT elLG      ,bool *RESTRICT fEl
                        ,INT *nRcvs              ,INT *nSends
-                       ,INT *restrict iaRcvs    ,INT *restrict iaSends
-                       ,short *restrict vizPart ,INT *restrict fMap 
+                       ,INT *RESTRICT iaRcvs    ,INT *RESTRICT iaSends
+                       ,short *RESTRICT vizPart ,INT *RESTRICT fMap 
                        ,INT const lNel          ,INT const numelNov
                        ,short const rank        ,short const nPrcs
                        ,short const nVizPart    ,short const maxViz)
@@ -614,11 +614,11 @@ void  getMapInterfaceEl(INT *restrict ep
  * e depois por numeracao global                                     * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void  getMapInterfaceNo(INT *restrict ep
-                       ,INT *restrict noLG      ,bool *restrict fNod
-                       ,INT *nComNo             ,INT *restrict iaComNo
-                       ,INT *restrict nincid    ,INT *restrict incid      
-                       ,short *restrict vizPart ,INT *restrict fMap 
+void  getMapInterfaceNo(INT *RESTRICT ep
+                       ,INT *RESTRICT noLG      ,bool *RESTRICT fNod
+                       ,INT *nComNo             ,INT *RESTRICT iaComNo
+                       ,INT *RESTRICT nincid    ,INT *RESTRICT incid      
+                       ,short *RESTRICT vizPart ,INT *RESTRICT fMap 
                        ,INT const nNodeNov       
                        ,short const rank        ,short const nPrcs
                        ,short const nVizPart    ,short const maxGrade)
@@ -683,11 +683,11 @@ void  getMapInterfaceNo(INT *restrict ep
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void getMapElm(INT *restrict ep
-              ,INT *restrict elLG      ,INT *restrict elGL
-              ,bool *restrict fEp
-              ,INT *restrict el        ,INT *restrict nelcon 
-              ,short *restrict nFace
+void getMapElm(INT *RESTRICT ep
+              ,INT *RESTRICT elLG      ,INT *RESTRICT elGL
+              ,bool *RESTRICT fEp
+              ,INT *RESTRICT el        ,INT *RESTRICT nelcon 
+              ,short *RESTRICT nFace
               ,INT const nEl           ,INT const lNel
               ,short const maxViz      ,short const rank )
 {
@@ -761,11 +761,11 @@ void getMapElm(INT *restrict ep
  * de outras particoes e nos em elemento em sobreposicao             * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void getMapNode(INT *restrict ep        ,INT *restrict np                     
-               ,INT *restrict noLG      ,INT *restrict noGL
-               ,bool *restrict fNode
-               ,INT *restrict el        ,INT *restrict nelcon 
-               ,short *restrict nen     ,short *restrict nFace
+void getMapNode(INT *RESTRICT ep        ,INT *RESTRICT np                     
+               ,INT *RESTRICT noLG      ,INT *RESTRICT noGL
+               ,bool *RESTRICT fNode
+               ,INT *RESTRICT el        ,INT *RESTRICT nelcon 
+               ,short *RESTRICT nen     ,short *RESTRICT nFace
                ,INT const nNode         ,INT const nEl           
                ,short const maxNo       ,short const maxViz
                ,INT  const lNode        ,short const rank )
@@ -851,9 +851,9 @@ void getMapNode(INT *restrict ep        ,INT *restrict np
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void getLocalEl(INT *restrict el   ,INT *restrict lEl
-               ,INT *restrict elLG ,INT *restrict noGL
-               ,short *restrict nen   
+void getLocalEl(INT *RESTRICT el   ,INT *RESTRICT lEl
+               ,INT *RESTRICT elLG ,INT *RESTRICT noGL
+               ,short *RESTRICT nen   
                ,INT const nLel     ,short const maxNo)
 {
   INT i,elG,noG;
@@ -890,9 +890,9 @@ void getLocalEl(INT *restrict el   ,INT *restrict lEl
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void getLocalAdj(INT *restrict adj  ,INT *restrict lAdj
-               ,INT *restrict elLG  ,INT *restrict elGL
-               ,short *restrict nViz  
+void getLocalAdj(INT *RESTRICT adj  ,INT *RESTRICT lAdj
+               ,INT *RESTRICT elLG  ,INT *RESTRICT elGL
+               ,short *RESTRICT nViz  
                ,INT const nLel     ,short const maxViz)
 {
   INT i,elG,adjG;
@@ -931,8 +931,8 @@ void getLocalAdj(INT *restrict adj  ,INT *restrict lAdj
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void dGetLocalV(DOUBLE *restrict vG  ,DOUBLE *restrict vL
-               ,INT *restrict mapLG
+void dGetLocalV(DOUBLE *RESTRICT vG  ,DOUBLE *RESTRICT vL
+               ,INT *RESTRICT mapLG
                ,INT const nLin     ,INT const nCol)
 {
   INT i,j,nG;
@@ -973,8 +973,8 @@ void dGetLocalV(DOUBLE *restrict vG  ,DOUBLE *restrict vL
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void sGetLocalV(short *restrict vG  ,short *restrict vL
-               ,INT *restrict mapLG
+void sGetLocalV(short *RESTRICT vG  ,short *RESTRICT vL
+               ,INT *RESTRICT mapLG
                ,INT const nLin      ,INT const nCol)
 {
   INT i,j,nG;
@@ -1010,7 +1010,7 @@ void sGetLocalV(short *restrict vG  ,short *restrict vL
  * eptr  - malha no formato CSR ( ponteiro )                         *     
  * esize - numero total de elementos no CSR                          *     
  *********************************************************************/    
-INT meshToCsrIa(short *restrict nen,INT *restrict eptr
+INT meshToCsrIa(short *RESTRICT nen,INT *RESTRICT eptr
                 ,INT const numel   ){
   INT i,eSize;
 /*...*/
@@ -1041,8 +1041,8 @@ INT meshToCsrIa(short *restrict nen,INT *restrict eptr
  * ----------------------------------------------------------------- *     
  * eind  - malha no formato CSR ( conectividade)                     *     
  *********************************************************************/     
-void meshToCsrJa(INT *restrict el  ,short *restrict nen
-                ,INT *restrict eptr,INT *restrict eind
+void meshToCsrJa(INT *RESTRICT el  ,short *RESTRICT nen
+                ,INT *RESTRICT eptr,INT *RESTRICT eind
                 ,INT const numel   ,short const maxNo){
       INT i,iPoint;
       short j;

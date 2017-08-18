@@ -7,16 +7,16 @@
   #include<Define.h>
   #include<HccaStdBool.h>
   #include<HccaSort.h>
-  #include<Mesh.h>
+//  #include<Mesh.h>
 /*...*/
-  void sortGraphCsr(INT *restrict ia,INT *restrict ja,INT const n);
+  void sortGraphCsr(INT *RESTRICT ia,INT *RESTRICT ja,INT const n);
 /*...*/  
-  void convGraph(INT *restrict xAdj    ,INT *restrict adjncy
+  void convGraph(INT *RESTRICT xAdj    ,INT *RESTRICT adjncy
                 ,INT const *adj        ,short const *nViz
                 ,short const maxViz    ,INT const numel 
                 ,bool const xAdjFlag   ,bool const adjFlag );
 
-  void convGraphPart(INT *restrict xAdj,INT *restrict adjncy 
+  void convGraphPart(INT *RESTRICT xAdj,INT *RESTRICT adjncy 
                   ,INT const *adj      ,short const *nViz     
                   ,short const maxViz  ,INT const numelNov
                   ,bool const xAdjFlag ,bool const adjFlag);

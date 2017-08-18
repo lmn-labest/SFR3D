@@ -63,11 +63,11 @@ c *********************************************************************/
  * ------------------------------------------------------------------ *
 *********************************************************************/
 void pcg(INT const nEq,INT const nAd
-	,INT *restrict ia   ,INT *restrict ja
-	,DOUBLE *restrict al,DOUBLE *restrict ad
-	,DOUBLE *restrict m ,DOUBLE *restrict b
-  ,DOUBLE *restrict x ,DOUBLE *restrict z
-  ,DOUBLE *restrict r ,DOUBLE *restrict p
+	,INT *RESTRICT ia   ,INT *RESTRICT ja
+	,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
+	,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b
+  ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z
+  ,DOUBLE *RESTRICT r ,DOUBLE *RESTRICT p
 	,DOUBLE const tol   ,unsigned int maxIt
   ,bool const newX    ,FILE* fileLog   
   ,FILE *fileHistLog	,bool const log 
@@ -263,11 +263,11 @@ void pcg(INT const nEq,INT const nAd
 *********************************************************************/
 void mpiPcg(INT const nEq   ,INT const nEqNov
         ,INT const nAd      ,INT const nAdR  
-        ,INT *restrict ia   ,INT *restrict ja
-        ,DOUBLE *restrict al,DOUBLE *restrict ad
-        ,DOUBLE *restrict m ,DOUBLE *restrict b 
-        ,DOUBLE *restrict x ,DOUBLE *restrict z 
-        ,DOUBLE *restrict r 
+        ,INT *RESTRICT ia   ,INT *RESTRICT ja
+        ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
+        ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b 
+        ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z 
+        ,DOUBLE *RESTRICT r 
         ,DOUBLE const tol   ,unsigned int maxIt
         ,bool const newX    ,FILE* fileLog  
         ,bool const log     ,bool const fPrint
@@ -405,11 +405,11 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
 * ------------------------------------------------------------------ *
 *********************************************************************/
 void pcgOmp(INT const nEq, INT const nAd
-            , INT *restrict ia, INT *restrict ja
-            , DOUBLE *restrict a, DOUBLE *restrict ad
-            , DOUBLE *restrict m, DOUBLE *restrict b
-            , DOUBLE *restrict x, DOUBLE *restrict z
-            , DOUBLE *restrict r, DOUBLE *restrict p
+            , INT *RESTRICT ia, INT *RESTRICT ja
+            , DOUBLE *RESTRICT a, DOUBLE *RESTRICT ad
+            , DOUBLE *RESTRICT m, DOUBLE *RESTRICT b
+            , DOUBLE *RESTRICT x, DOUBLE *RESTRICT z
+            , DOUBLE *RESTRICT r, DOUBLE *RESTRICT p
             , DOUBLE const tol, unsigned int maxIt
             , bool const newX, FILE* fileLog
             , FILE *fileHistLog, bool const log
@@ -656,13 +656,13 @@ void pcgOmp(INT const nEq, INT const nAd
  * -------------------------------------------------------------------*
 ***********************************************************************/
 void pbicgstab(INT const nEq  ,INT const nAd
-          ,INT *restrict ia   ,INT *restrict ja
-          ,DOUBLE *restrict al,DOUBLE *restrict ad
-          ,DOUBLE *restrict m ,DOUBLE *restrict b 
-          ,DOUBLE *restrict x ,DOUBLE *restrict t
-          ,DOUBLE *restrict v ,DOUBLE *restrict r
-          ,DOUBLE *restrict p ,DOUBLE *restrict z
-          ,DOUBLE *restrict r0
+          ,INT *RESTRICT ia   ,INT *RESTRICT ja
+          ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
+          ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b 
+          ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT t
+          ,DOUBLE *RESTRICT v ,DOUBLE *RESTRICT r
+          ,DOUBLE *RESTRICT p ,DOUBLE *RESTRICT z
+          ,DOUBLE *RESTRICT r0
 					,DOUBLE const tol   ,unsigned int maxIt
           ,bool const newX    ,FILE* fileLog 
           ,FILE *fileHistLog  ,bool const log     
@@ -882,12 +882,12 @@ void pbicgstab(INT const nEq  ,INT const nAd
 *********************************************************************/
 void mpiPbicgstab(INT const nEq,INT const nEqNov      
           ,INT const nAd       ,INT const nAdR
-          ,INT *restrict ia    ,INT *restrict ja
-          ,DOUBLE *restrict al ,DOUBLE *restrict ad
-          ,DOUBLE *restrict m  ,DOUBLE *restrict b 
-          ,DOUBLE *restrict x  ,DOUBLE *restrict t
-          ,DOUBLE *restrict v  ,DOUBLE *restrict r
-          ,DOUBLE *restrict p  ,DOUBLE *restrict z 
+          ,INT *RESTRICT ia    ,INT *RESTRICT ja
+          ,DOUBLE *RESTRICT al ,DOUBLE *RESTRICT ad
+          ,DOUBLE *RESTRICT m  ,DOUBLE *RESTRICT b 
+          ,DOUBLE *RESTRICT x  ,DOUBLE *RESTRICT t
+          ,DOUBLE *RESTRICT v  ,DOUBLE *RESTRICT r
+          ,DOUBLE *RESTRICT p  ,DOUBLE *RESTRICT z 
           ,DOUBLE const tol
           ,unsigned int maxIt  ,bool const newX          
           ,FILE* fileLog          ,bool const log
@@ -1032,13 +1032,13 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
 * ------------------------------------------------------------------- *
 ***********************************************************************/
 void pbicgstabOmp(INT const nEq    ,INT const nAd
-               ,INT *restrict ia   ,INT *restrict ja
-               ,DOUBLE *restrict a ,DOUBLE *restrict ad
-               ,DOUBLE *restrict m ,DOUBLE *restrict b
-               ,DOUBLE *restrict x ,DOUBLE *restrict t
-               ,DOUBLE *restrict v ,DOUBLE *restrict r
-               ,DOUBLE *restrict p ,DOUBLE *restrict z
-               ,DOUBLE *restrict r0
+               ,INT *RESTRICT ia   ,INT *RESTRICT ja
+               ,DOUBLE *RESTRICT a ,DOUBLE *RESTRICT ad
+               ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b
+               ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT t
+               ,DOUBLE *RESTRICT v ,DOUBLE *RESTRICT r
+               ,DOUBLE *RESTRICT p ,DOUBLE *RESTRICT z
+               ,DOUBLE *RESTRICT r0
                ,DOUBLE const tol   ,unsigned int maxIt
                ,bool const newX    ,FILE* fileLog
                ,FILE *fileHistLog  ,bool const log
@@ -1321,15 +1321,15 @@ c * A(M-1)y=b precondicionador a direita                             *
 * -------------------------------------------------------------------*
 ***********************************************************************/
 void pbicgstabl2(INT const nEq      ,INT const nAd
-               ,INT *restrict ia   ,INT *restrict ja
-               ,DOUBLE *restrict a ,DOUBLE *restrict ad
-               ,DOUBLE *restrict m ,DOUBLE *restrict b
-               ,DOUBLE *restrict x ,DOUBLE *restrict t
-               ,DOUBLE *restrict v ,DOUBLE *restrict r
-               ,DOUBLE *restrict u ,DOUBLE *restrict r0
-               ,DOUBLE *restrict w ,DOUBLE *restrict s
-               ,DOUBLE *restrict p ,DOUBLE *restrict h
-               ,DOUBLE *restrict z 
+               ,INT *RESTRICT ia   ,INT *RESTRICT ja
+               ,DOUBLE *RESTRICT a ,DOUBLE *RESTRICT ad
+               ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b
+               ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT t
+               ,DOUBLE *RESTRICT v ,DOUBLE *RESTRICT r
+               ,DOUBLE *RESTRICT u ,DOUBLE *RESTRICT r0
+               ,DOUBLE *RESTRICT w ,DOUBLE *RESTRICT s
+               ,DOUBLE *RESTRICT p ,DOUBLE *RESTRICT h
+               ,DOUBLE *RESTRICT z 
                ,DOUBLE const tol   ,unsigned int maxIt
                ,bool const newX    ,FILE* fileLog
                ,FILE *fileHistLog  ,bool const log
@@ -1645,15 +1645,15 @@ c * A(M-1)y=b precondicionador a direita                             *
 * -------------------------------------------------------------------*
 ***********************************************************************/
 void pbicgstabl2Omp(INT const nEq, INT const nAd
-                 , INT *restrict ia, INT *restrict ja
-                 , DOUBLE *restrict a, DOUBLE *restrict ad
-                 , DOUBLE *restrict m, DOUBLE *restrict b
-                 , DOUBLE *restrict x, DOUBLE *restrict t
-                 , DOUBLE *restrict v, DOUBLE *restrict r
-                 , DOUBLE *restrict u, DOUBLE *restrict r0
-                 , DOUBLE *restrict w, DOUBLE *restrict s
-                 , DOUBLE *restrict p, DOUBLE *restrict h
-                 , DOUBLE *restrict z
+                 , INT *RESTRICT ia, INT *RESTRICT ja
+                 , DOUBLE *RESTRICT a, DOUBLE *RESTRICT ad
+                 , DOUBLE *RESTRICT m, DOUBLE *RESTRICT b
+                 , DOUBLE *RESTRICT x, DOUBLE *RESTRICT t
+                 , DOUBLE *RESTRICT v, DOUBLE *RESTRICT r
+                 , DOUBLE *RESTRICT u, DOUBLE *RESTRICT r0
+                 , DOUBLE *RESTRICT w, DOUBLE *RESTRICT s
+                 , DOUBLE *RESTRICT p, DOUBLE *RESTRICT h
+                 , DOUBLE *RESTRICT z
                  , DOUBLE const tol, unsigned int maxIt
                  , bool const newX, FILE* fileLog
                  , FILE *fileHistLog, bool const log
@@ -2033,21 +2033,21 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
  * e(nKrylov+1)                                                       *
  **********************************************************************/
 void gmres(INT const nEq       ,INT const nAd
-          ,INT *restrict ia    ,INT *restrict ja
-          ,DOUBLE *restrict a  ,DOUBLE *restrict ad
-          ,DOUBLE *restrict m  ,DOUBLE *restrict b
-          ,DOUBLE *restrict x  ,DOUBLE *restrict g
-          ,DOUBLE *restrict h  ,DOUBLE *restrict y
-          ,DOUBLE *restrict c  ,DOUBLE *restrict s 
-          ,DOUBLE *restrict e  ,short const nKrylov
+          ,INT *RESTRICT ia    ,INT *RESTRICT ja
+          ,DOUBLE *RESTRICT a  ,DOUBLE *RESTRICT ad
+          ,DOUBLE *RESTRICT m  ,DOUBLE *RESTRICT b
+          ,DOUBLE *RESTRICT x  ,DOUBLE *RESTRICT g
+          ,DOUBLE *RESTRICT h  ,DOUBLE *RESTRICT y
+          ,DOUBLE *RESTRICT c  ,DOUBLE *RESTRICT s 
+          ,DOUBLE *RESTRICT e  ,short const nKrylov
           ,DOUBLE const tol    ,unsigned int nCycles
           ,bool const newX     ,FILE* fileLog
           ,FILE *fileHistLog   ,bool const log
           ,bool const fHistLog ,bool const fPrint
           ,void(*matvec)()     ,DOUBLE(*dot)())
 {
-  int i,j,l,jj,ni,nIt;
-  unsigned short nCol = nKrylov;
+  int i,j,jj,ni,nIt;
+  unsigned short l,nCol = nKrylov;
   DOUBLE *g1,*g2;
   DOUBLE tmp,norm,norm_r,eConv,beta,h1,h2,aux1,aux2,r,xKx;
   INT iLong;
@@ -2294,13 +2294,13 @@ void gmres(INT const nEq       ,INT const nAd
 * e(nKrylov+1)                                                       *
 **********************************************************************/
 void gmresOmp(INT const nEq      ,INT const nAd
-             ,INT *restrict ia   ,INT *restrict ja
-             ,DOUBLE *restrict a ,DOUBLE *restrict ad
-             ,DOUBLE *restrict m ,DOUBLE *restrict b
-             ,DOUBLE *restrict x ,DOUBLE *restrict g
-             ,DOUBLE *restrict h ,DOUBLE *restrict y
-             ,DOUBLE *restrict c ,DOUBLE *restrict s
-             ,DOUBLE *restrict e ,short const nKrylov
+             ,INT *RESTRICT ia   ,INT *RESTRICT ja
+             ,DOUBLE *RESTRICT a ,DOUBLE *RESTRICT ad
+             ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b
+             ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT g
+             ,DOUBLE *RESTRICT h ,DOUBLE *RESTRICT y
+             ,DOUBLE *RESTRICT c ,DOUBLE *RESTRICT s
+             ,DOUBLE *RESTRICT e ,short const nKrylov
              ,DOUBLE const tol   ,unsigned int nCycles
              ,bool const newX    ,FILE* fileLog
              ,FILE *fileHistLog  ,bool const log
@@ -2309,8 +2309,8 @@ void gmresOmp(INT const nEq      ,INT const nAd
              ,void(*matvec)()    ,DOUBLE(*dot)())
 {
   short nThreads = ompVar.nThreadsSolver;
-  int i, j, l, jj, ni, nIt;
-  unsigned short nCol = nKrylov;
+  int i, j, jj, ni, nIt;
+  unsigned short l,nCol = nKrylov;
   DOUBLE *g1, *g2;
   DOUBLE tmp, norm, norm_r, eConv, beta, h1, h2, aux1, aux2, r, xKx;
   INT iLong;

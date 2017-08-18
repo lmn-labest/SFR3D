@@ -38,7 +38,7 @@ void primeSolver(Memoria *m
 /*...*/
   DOUBLE tolPrimeU1,tolPrimeU2,tolPrimeU3,tolPrimeMass;
 /*...*/
-  bool xMomentum, yMomentum, pCor;
+  bool pCor;
   bool relRes = false;
   bool fPrint = false;
   DOUBLE cfl, reynolds;
@@ -477,8 +477,8 @@ void primeSolver(Memoria *m
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateCellPrimePres(DOUBLE  *restrict presC, DOUBLE  *restrict xp
-                          , INT  *restrict id, INT const nEl)
+void updateCellPrimePres(DOUBLE  *RESTRICT presC, DOUBLE  *RESTRICT xp
+                          , INT  *RESTRICT id, INT const nEl)
 {
   INT i, lNeq;
 
@@ -519,9 +519,9 @@ void updateCellPrimePres(DOUBLE  *restrict presC, DOUBLE  *restrict xp
  * OBS:                                                              *
  *-------------------------------------------------------------------*
 *********************************************************************/
-void primeUpdate(DOUBLE *restrict w        ,DOUBLE *restrict wUp
-                ,DOUBLE *restrict pressure ,DOUBLE *restrict presC 
-                ,DOUBLE *restrict gradPresC,DOUBLE *restrict dField
+void primeUpdate(DOUBLE *RESTRICT w        ,DOUBLE *RESTRICT wUp
+                ,DOUBLE *RESTRICT pressure ,DOUBLE *RESTRICT presC 
+                ,DOUBLE *RESTRICT gradPresC,DOUBLE *RESTRICT dField
                 ,INT const nEl             ,short const ndm
                 ,DOUBLE const alphaPres) {
   INT i;
@@ -605,16 +605,16 @@ void primeUpdate(DOUBLE *restrict w        ,DOUBLE *restrict wUp
              | adnx adny adnz |                                     *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void residualPrime(DOUBLE *restrict vel     ,DOUBLE *restrict adVel
-                  ,DOUBLE *restrict rCellVel,DOUBLE *restrict rCellMass
-                  ,DOUBLE *restrict rU      ,DOUBLE *restrict rMass
+void residualPrime(DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT adVel
+                  ,DOUBLE *RESTRICT rCellVel,DOUBLE *RESTRICT rCellMass
+                  ,DOUBLE *RESTRICT rU      ,DOUBLE *RESTRICT rMass
                   ,INT const nEl            ,short const ndm
                   ,short const iCod)
 {
 
-  DOUBLE maxV[3], sum[3], mod, tmp, v, rScale,ad;
+  DOUBLE maxV[3], sum[3], mod, tmp, v, ad;
   DOUBLE *p;
-  INT i, j, lNeq;
+  INT i, j;
 
 /*...*/
   maxV[0] = maxV[1] = maxV[2] = 0.e0;

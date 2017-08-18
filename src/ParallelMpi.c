@@ -164,7 +164,7 @@ void globalMeshQuality(MeshQuality *mQl,MeshQuality *mQl0){
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void dGlobalCel(Memoria *m         ,PartMesh *pMesh
-               ,DOUBLE *restrict uG,DOUBLE *restrict uL
+               ,DOUBLE *RESTRICT uG,DOUBLE *RESTRICT uL
                ,INT const numelNov 
                ,short const ndf1   ,short const ndf2)
             
@@ -259,7 +259,7 @@ void dGlobalCel(Memoria *m         ,PartMesh *pMesh
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void dGlobalNode(Memoria *m         ,PartMesh *pMesh
-                ,DOUBLE *restrict uG,DOUBLE *restrict uL
+                ,DOUBLE *RESTRICT uG,DOUBLE *RESTRICT uL
                 ,short const ndf1   ,short const ndf2)
             
 {           
@@ -351,8 +351,8 @@ void dGlobalNode(Memoria *m         ,PartMesh *pMesh
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void getBuffer(DOUBLE *restrict x    ,DOUBLE *restrict xb
-              ,INT *restrict fMap    ,INT const nRcvs){
+void getBuffer(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
+              ,INT *RESTRICT fMap    ,INT const nRcvs){
   
   INT i,lNeq;
 
@@ -381,8 +381,8 @@ void getBuffer(DOUBLE *restrict x    ,DOUBLE *restrict xb
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void makeBuffer(DOUBLE *restrict x    ,DOUBLE *restrict xb
-               ,INT *restrict fMap    ,INT const nSends){
+void makeBuffer(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
+               ,INT *RESTRICT fMap    ,INT const nSends){
     
   INT i,lNeq;
 
@@ -414,8 +414,8 @@ void makeBuffer(DOUBLE *restrict x    ,DOUBLE *restrict xb
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void getBufferCel(DOUBLE *restrict x    ,DOUBLE *restrict xb
-              ,INT *restrict fMap       ,INT const nRcvs
+void getBufferCel(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
+              ,INT *RESTRICT fMap       ,INT const nRcvs
               ,short const ndf1         ,short const ndf2){
 
   INT i,lCel;
@@ -467,8 +467,8 @@ void getBufferCel(DOUBLE *restrict x    ,DOUBLE *restrict xb
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void makeBufferCel(DOUBLE *restrict x    ,DOUBLE *restrict xb
-                  ,INT *restrict fMap    ,INT const nSends
+void makeBufferCel(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
+                  ,INT *RESTRICT fMap    ,INT const nSends
                   ,short const ndf1          ,short const ndf2){
     
   INT i,lCel;
@@ -521,8 +521,8 @@ void makeBufferCel(DOUBLE *restrict x    ,DOUBLE *restrict xb
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void dGetBufferNod(DOUBLE *restrict x    ,DOUBLE *restrict xb
-              ,INT *restrict fMap        ,INT const nRcvs
+void dGetBufferNod(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
+              ,INT *RESTRICT fMap        ,INT const nRcvs
               ,short const ndf1          ,short const ndf2){
 
   INT i,lNod;
@@ -574,8 +574,8 @@ void dGetBufferNod(DOUBLE *restrict x    ,DOUBLE *restrict xb
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void dMakeBufferNod(DOUBLE *restrict x    ,DOUBLE *restrict xb
-                  ,INT *restrict fMap    ,INT const nSends
+void dMakeBufferNod(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
+                  ,INT *RESTRICT fMap    ,INT const nSends
                   ,short const ndf1          ,short const ndf2){
     
   INT i,lNo;
@@ -628,8 +628,8 @@ void dMakeBufferNod(DOUBLE *restrict x    ,DOUBLE *restrict xb
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void iGetBufferNod(INT *restrict x     ,INT *restrict xb
-                 ,INT *restrict fMap  ,INT const nRcvs
+void iGetBufferNod(INT *RESTRICT x     ,INT *RESTRICT xb
+                 ,INT *RESTRICT fMap  ,INT const nRcvs
                  ,short const ndf1    ,short const ndf2){
 
   INT i,lNod;
@@ -681,8 +681,8 @@ void iGetBufferNod(INT *restrict x     ,INT *restrict xb
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void iMakeBufferNod(INT *restrict x       ,INT *restrict xb
-                   ,INT *restrict fMap    ,INT const nSends
+void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
+                   ,INT *RESTRICT fMap    ,INT const nSends
                    ,short const ndf1      ,short const ndf2){
     
   INT i,lNo;
@@ -731,7 +731,7 @@ void iMakeBufferNod(INT *restrict x       ,INT *restrict xb
  * numeracao global                                                  * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-  void comunicateNeq(Interface *iNeq,DOUBLE *restrict x){
+  void comunicateNeq(Interface *iNeq,DOUBLE *RESTRICT x){
 
 #ifdef _MPICH_
   INT nRcvs  = iNeq->nRcvs;
@@ -823,7 +823,7 @@ void iMakeBufferNod(INT *restrict x       ,INT *restrict xb
  * global                                                            * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-  void comunicateCel(Interface *iCel ,DOUBLE *restrict x
+  void comunicateCel(Interface *iCel ,DOUBLE *RESTRICT x
                     ,short const ndf1,short const ndf2){
 
 #ifdef _MPICH_
@@ -924,7 +924,7 @@ void iMakeBufferNod(INT *restrict x       ,INT *restrict xb
  * global                                                            * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-  void dComunicateNod(InterfaceNo *iNo ,DOUBLE *restrict x
+  void dComunicateNod(InterfaceNo *iNo ,DOUBLE *RESTRICT x
                      ,short const ndf1 ,short const ndf2){
 
 #ifdef _MPICH_
@@ -1019,7 +1019,7 @@ void iMakeBufferNod(INT *restrict x       ,INT *restrict xb
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-  void iComunicateNod(InterfaceNo *iNo ,INT *restrict x
+  void iComunicateNod(InterfaceNo *iNo ,INT *RESTRICT x
                      ,short const ndf1,short const ndf2){
 
 #ifdef _MPICH_

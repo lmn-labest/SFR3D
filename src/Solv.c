@@ -755,11 +755,11 @@ void setMatVec(void (**matVecC)(),short const storage
 **********************************************************************/
 void callCg(INT const nEq      ,INT const nEqNov
             ,INT const nAd      ,INT const nAdR
-            ,INT *restrict ia   ,INT *restrict ja
-            ,DOUBLE *restrict al,DOUBLE *restrict ad
-            ,DOUBLE *restrict m ,DOUBLE *restrict b 
-            ,DOUBLE *restrict x ,DOUBLE *restrict z
-            ,DOUBLE *restrict r ,DOUBLE *restrict p
+            ,INT *RESTRICT ia   ,INT *RESTRICT ja
+            ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
+            ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b 
+            ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z
+            ,DOUBLE *RESTRICT r ,DOUBLE *RESTRICT p
             ,DOUBLE const tol   ,unsigned int maxIt 
             ,bool const newX    ,FILE* fSolvLog     
             ,bool const fLog    ,bool const fPrint  
@@ -838,13 +838,13 @@ void callCg(INT const nEq      ,INT const nEqNov
 **********************************************************************/
 void callBicgStab(INT const nEq     ,INT const nEqNov
                  ,INT const nAd     ,INT const nAdR
-                 ,INT *restrict ia  ,INT *restrict ja
-                 ,DOUBLE *restrict a,DOUBLE *restrict ad
-                 ,DOUBLE *restrict m,DOUBLE *restrict b
-                 ,DOUBLE *restrict x,DOUBLE *restrict t
-                 ,DOUBLE *restrict v,DOUBLE *restrict r
-                 ,DOUBLE *restrict p,DOUBLE *restrict z
-                 ,DOUBLE *restrict h
+                 ,INT *RESTRICT ia  ,INT *RESTRICT ja
+                 ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+                 ,DOUBLE *RESTRICT m,DOUBLE *RESTRICT b
+                 ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT t
+                 ,DOUBLE *RESTRICT v,DOUBLE *RESTRICT r
+                 ,DOUBLE *RESTRICT p,DOUBLE *RESTRICT z
+                 ,DOUBLE *RESTRICT h
                  ,DOUBLE const tol  ,unsigned int maxIt
                  ,bool const newX   ,FILE* fSolvLog
                  ,bool const fLog   ,bool const fPrint
@@ -928,15 +928,15 @@ void callBicgStab(INT const nEq     ,INT const nEqNov
 **********************************************************************/
 void callBicgStabl2(INT const nEq     ,INT const nEqNov
                    ,INT const nAd     ,INT const nAdR
-                   ,INT *restrict ia  ,INT *restrict ja
-                   ,DOUBLE *restrict a,DOUBLE *restrict ad
-                   ,DOUBLE *restrict m,DOUBLE *restrict b
-                   ,DOUBLE *restrict x,DOUBLE *restrict t
-                   ,DOUBLE *restrict v,DOUBLE *restrict r
-                   ,DOUBLE *restrict u,DOUBLE *restrict r0
-                   ,DOUBLE *restrict w,DOUBLE *restrict s
-                   ,DOUBLE *restrict p,DOUBLE *restrict h
-                   ,DOUBLE *restrict z
+                   ,INT *RESTRICT ia  ,INT *RESTRICT ja
+                   ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+                   ,DOUBLE *RESTRICT m,DOUBLE *RESTRICT b
+                   ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT t
+                   ,DOUBLE *RESTRICT v,DOUBLE *RESTRICT r
+                   ,DOUBLE *RESTRICT u,DOUBLE *RESTRICT r0
+                   ,DOUBLE *RESTRICT w,DOUBLE *RESTRICT s
+                   ,DOUBLE *RESTRICT p,DOUBLE *RESTRICT h
+                   ,DOUBLE *RESTRICT z
                    ,DOUBLE const tol  ,unsigned int maxIt
                    ,bool const newX   ,FILE* fSolvLog
                    ,bool const fLog   ,bool const fPrint
@@ -1024,13 +1024,13 @@ void callBicgStabl2(INT const nEq     ,INT const nEqNov
 **********************************************************************/
 void callGmres(INT const nEq     ,INT const nEqNov
               ,INT const nAd     ,INT const nAdR
-              ,INT *restrict ia  ,INT *restrict ja
-              ,DOUBLE *restrict a,DOUBLE *restrict ad
-              ,DOUBLE *restrict m,DOUBLE *restrict b
-              ,DOUBLE *restrict x,DOUBLE *restrict g
-              ,DOUBLE *restrict h,DOUBLE *restrict y
-              ,DOUBLE *restrict c,DOUBLE *restrict s
-              ,DOUBLE *restrict e,short const nKrylov
+              ,INT *RESTRICT ia  ,INT *RESTRICT ja
+              ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+              ,DOUBLE *RESTRICT m,DOUBLE *RESTRICT b
+              ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT g
+              ,DOUBLE *RESTRICT h,DOUBLE *RESTRICT y
+              ,DOUBLE *RESTRICT c,DOUBLE *RESTRICT s
+              ,DOUBLE *RESTRICT e,short const nKrylov
               ,DOUBLE const tol  ,unsigned int maxIt
               ,bool const newX   ,FILE* fSolvLog
               ,bool const fLog   ,bool const fPrint

@@ -21,7 +21,7 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/ 
-void convGraph(INT *restrict xAdj     ,INT *restrict adjncy 
+void convGraph(INT *RESTRICT xAdj     ,INT *RESTRICT adjncy 
               ,INT const *adj         ,short const *nViz     
               ,short const maxViz     ,INT const numel
               ,bool const xAdjFlag    ,bool const adjFlag){
@@ -68,7 +68,7 @@ void convGraph(INT *restrict xAdj     ,INT *restrict adjncy
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/ 
-void convGraphPart(INT *restrict xAdj     ,INT *restrict adjncy 
+void convGraphPart(INT *RESTRICT xAdj     ,INT *RESTRICT adjncy 
                   ,INT const *adj         ,short const *nViz     
                   ,short const maxViz   
                   ,INT const numelNov
@@ -111,7 +111,7 @@ void convGraphPart(INT *restrict xAdj     ,INT *restrict adjncy
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/ 
-void sortGraphCsr(INT *restrict ia,INT *restrict ja,INT const n){
+void sortGraphCsr(INT *RESTRICT ia,INT *RESTRICT ja,INT const n){
 
   INT i,nl;
   

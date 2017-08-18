@@ -15,7 +15,7 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void preCondDiag(DOUBLE *restrict pc,DOUBLE *restrict ad
+void preCondDiag(DOUBLE *RESTRICT pc,DOUBLE *RESTRICT ad
                 ,INT const nEq){
 
   INT i;

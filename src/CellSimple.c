@@ -84,21 +84,21 @@
 void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres 
             ,Advection advVel            ,Diffusion diffVel 
             ,short const typeSimple 
-            ,short *restrict lGeomType   ,DOUBLE *restrict prop
-            ,INT *restrict lViz          ,INT *restrict lId  
-            ,DOUBLE *restrict ksi        ,DOUBLE *restrict mKsi
-            ,DOUBLE *restrict eta        ,DOUBLE *restrict mEta
-            ,DOUBLE *restrict normal     ,DOUBLE *restrict area   
-            ,DOUBLE *restrict xm         ,DOUBLE *restrict xmcc
-            ,DOUBLE *restrict dcca       ,DOUBLE *restrict lDensity
-            ,DOUBLE *restrict vSkew      ,DOUBLE *restrict mvSkew
-            ,DOUBLE *restrict lA         ,DOUBLE *restrict lB
-            ,DOUBLE *restrict lRcell     ,Temporal const ddt
-            ,short  *restrict lFaceVelR  ,short *restrict lFaceVelL
-            ,short  *restrict lFacePresR ,short *restrict lFacePresL
-            ,DOUBLE *restrict pres       ,DOUBLE *restrict gradPres 
-            ,DOUBLE *restrict vel        ,DOUBLE *restrict gradVel
-            ,DOUBLE *restrict dField     ,DOUBLE *restrict cc
+            ,short *RESTRICT lGeomType   ,DOUBLE *RESTRICT prop
+            ,INT *RESTRICT lViz          ,INT *RESTRICT lId  
+            ,DOUBLE *RESTRICT ksi        ,DOUBLE *RESTRICT mKsi
+            ,DOUBLE *RESTRICT eta        ,DOUBLE *RESTRICT mEta
+            ,DOUBLE *RESTRICT normal     ,DOUBLE *RESTRICT area   
+            ,DOUBLE *RESTRICT xm         ,DOUBLE *RESTRICT xmcc
+            ,DOUBLE *RESTRICT dcca       ,DOUBLE *RESTRICT lDensity
+            ,DOUBLE *RESTRICT vSkew      ,DOUBLE *RESTRICT mvSkew
+            ,DOUBLE *RESTRICT lA         ,DOUBLE *RESTRICT lB
+            ,DOUBLE *RESTRICT lRcell     ,Temporal const ddt
+            ,short  *RESTRICT lFaceVelR  ,short *RESTRICT lFaceVelL
+            ,short  *RESTRICT lFacePresR ,short *RESTRICT lFacePresL
+            ,DOUBLE *RESTRICT pres       ,DOUBLE *RESTRICT gradPres 
+            ,DOUBLE *RESTRICT vel        ,DOUBLE *RESTRICT gradVel
+            ,DOUBLE *RESTRICT dField     ,DOUBLE *RESTRICT cc
             ,DOUBLE const underU         ,const bool sPressure
             ,const short nEn             ,short const nFace    
             ,const short ndm             ,INT const nel)
@@ -594,21 +594,21 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 *********************************************************************/
 void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
                ,Advection advVel           ,Diffusion diffVel
-               ,short *restrict lGeomType  ,DOUBLE *restrict prop
-               ,INT *restrict lViz         
-               ,DOUBLE *restrict ksi       ,DOUBLE *restrict mKsi
-               ,DOUBLE *restrict eta       ,DOUBLE *restrict mEta
-               ,DOUBLE *restrict normal    ,DOUBLE *restrict area
-               ,DOUBLE *restrict xm        ,DOUBLE *restrict xmcc
-               ,DOUBLE *restrict dcca      ,DOUBLE *restrict lDensity
-               ,DOUBLE *restrict vSkew     ,DOUBLE *restrict mvSkew
-               ,DOUBLE *restrict lB        ,Temporal const ddt
-               ,short  *restrict lFaceVelR ,short *restrict lFaceVelL
-               ,short  *restrict lFacePresR,short *restrict lFacePresL
-               ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres
-               ,DOUBLE *restrict vel       ,DOUBLE *restrict gradVel
-               ,DOUBLE *restrict dField    ,DOUBLE *restrict cc
-               ,DOUBLE *restrict bT        ,DOUBLE const underU
+               ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT prop
+               ,INT *RESTRICT lViz         
+               ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
+               ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT mEta
+               ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT area
+               ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
+               ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT lDensity
+               ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
+               ,DOUBLE *RESTRICT lB        ,Temporal const ddt
+               ,short  *RESTRICT lFaceVelR ,short *RESTRICT lFaceVelL
+               ,short  *RESTRICT lFacePresR,short *RESTRICT lFacePresL
+               ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres
+               ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
+               ,DOUBLE *RESTRICT dField    ,DOUBLE *RESTRICT cc
+               ,DOUBLE *RESTRICT bT        ,DOUBLE const underU
                ,const bool sPressure       ,const bool fResidual
                ,const short nEn            ,short const nFace
                ,const short ndm            ,INT const nel)
@@ -1069,20 +1069,20 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
  *********************************************************************/
 void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres 
 							,Diffusion diffPres	
-              ,short *restrict lGeomType,DOUBLE *restrict prop
-              ,INT *restrict lViz       ,INT *restrict lId  
-              ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
-              ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
-              ,DOUBLE *restrict normal  ,DOUBLE *restrict area   
-              ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-              ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
-              ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
-              ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-              ,DOUBLE *restrict lRcell  
-              ,short  *restrict lFaceVelR  ,short *restrict lFaceVelL
-              ,short  *restrict lFacePresR ,short *restrict lFacePresL
-              ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres 
-              ,DOUBLE *restrict vel     ,DOUBLE *restrict dField  
+              ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
+              ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
+              ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
+              ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT mEta
+              ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT area   
+              ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+              ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
+              ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
+              ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
+              ,DOUBLE *RESTRICT lRcell  
+              ,short  *RESTRICT lFaceVelR  ,short *RESTRICT lFaceVelL
+              ,short  *RESTRICT lFacePresR ,short *RESTRICT lFacePresL
+              ,DOUBLE *RESTRICT pres    ,DOUBLE *RESTRICT gradPres 
+              ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT dField  
               ,const short nEn          ,short const nFace    
               ,const short ndm          ,INT const nel)
 { 
@@ -1361,17 +1361,17 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  *-------------------------------------------------------------------*
  *********************************************************************/
 void cellSimpleNonOrthPres2D(Diffusion diffPres
-              ,short *restrict lGeomType
-              ,DOUBLE *restrict prop    ,INT *restrict lViz
-              ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
-              ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
-              ,DOUBLE *restrict normal  ,DOUBLE *restrict area
-              ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-              ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
-              ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
-              ,DOUBLE *restrict lB      
-              ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres
-              ,DOUBLE *restrict dField  ,DOUBLE *restrict cc
+              ,short *RESTRICT lGeomType
+              ,DOUBLE *RESTRICT prop    ,INT *RESTRICT lViz
+              ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
+              ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT mEta
+              ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT area
+              ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+              ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
+              ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
+              ,DOUBLE *RESTRICT lB      
+              ,DOUBLE *RESTRICT pres    ,DOUBLE *RESTRICT gradPres
+              ,DOUBLE *RESTRICT dField  ,DOUBLE *RESTRICT cc
               ,const short nEn          ,short const nFace
               ,const short ndm          ,INT const nel)
 { 
@@ -1603,21 +1603,21 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres 
             ,Advection advVel            ,Diffusion diffVel
             ,short const typeSimple 
-            ,short *restrict lGeomType   ,DOUBLE *restrict prop
-            ,INT *restrict lViz          ,INT *restrict lId  
-            ,DOUBLE *restrict ksi        ,DOUBLE *restrict mKsi
-            ,DOUBLE *restrict eta        ,DOUBLE *restrict fArea
-            ,DOUBLE *restrict normal     ,DOUBLE *restrict volume 
-            ,DOUBLE *restrict xm         ,DOUBLE *restrict xmcc
-            ,DOUBLE *restrict dcca       ,DOUBLE *restrict lDensity
-            ,DOUBLE *restrict vSkew      ,DOUBLE *restrict mvSkew
-            ,DOUBLE *restrict lA         ,DOUBLE *restrict lB
-            ,DOUBLE *restrict lRcell     ,Temporal const ddt
-            ,short  *restrict lFaceVelR  ,short *restrict lFaceVelL
-            ,short  *restrict lFacePresR ,short *restrict lFacePresL
-            ,DOUBLE *restrict pres       ,DOUBLE *restrict gradPres 
-            ,DOUBLE *restrict vel        ,DOUBLE *restrict gradVel
-            ,DOUBLE *restrict dField     ,DOUBLE *restrict cc
+            ,short *RESTRICT lGeomType   ,DOUBLE *RESTRICT prop
+            ,INT *RESTRICT lViz          ,INT *RESTRICT lId  
+            ,DOUBLE *RESTRICT ksi        ,DOUBLE *RESTRICT mKsi
+            ,DOUBLE *RESTRICT eta        ,DOUBLE *RESTRICT fArea
+            ,DOUBLE *RESTRICT normal     ,DOUBLE *RESTRICT volume 
+            ,DOUBLE *RESTRICT xm         ,DOUBLE *RESTRICT xmcc
+            ,DOUBLE *RESTRICT dcca       ,DOUBLE *RESTRICT lDensity
+            ,DOUBLE *RESTRICT vSkew      ,DOUBLE *RESTRICT mvSkew
+            ,DOUBLE *RESTRICT lA         ,DOUBLE *RESTRICT lB
+            ,DOUBLE *RESTRICT lRcell     ,Temporal const ddt
+            ,short  *RESTRICT lFaceVelR  ,short *RESTRICT lFaceVelL
+            ,short  *RESTRICT lFacePresR ,short *RESTRICT lFacePresL
+            ,DOUBLE *RESTRICT pres       ,DOUBLE *RESTRICT gradPres 
+            ,DOUBLE *RESTRICT vel        ,DOUBLE *RESTRICT gradVel
+            ,DOUBLE *RESTRICT dField     ,DOUBLE *RESTRICT cc
             ,DOUBLE const underU         ,const bool sPressure
             ,const short nEn             ,short const nFace    
             ,const short ndm             ,INT const nel)
@@ -2198,20 +2198,20 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  *********************************************************************/
 void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres 
 							,Diffusion diffPres
-              ,short *restrict lGeomType,DOUBLE *restrict prop
-              ,INT *restrict lViz       ,INT *restrict lId  
-              ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
-              ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
-              ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-              ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-              ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
-              ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
-              ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-              ,DOUBLE *restrict lRcell
-              ,short  *restrict lFaceVelR  ,short *restrict lFaceVelL
-              ,short  *restrict lFacePresR ,short *restrict lFacePresL
-              ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres
-              ,DOUBLE *restrict vel     ,DOUBLE *restrict dField
+              ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
+              ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
+              ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
+              ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
+              ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
+              ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+              ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
+              ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
+              ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
+              ,DOUBLE *RESTRICT lRcell
+              ,short  *RESTRICT lFaceVelR  ,short *RESTRICT lFaceVelL
+              ,short  *RESTRICT lFacePresR ,short *RESTRICT lFacePresL
+              ,DOUBLE *RESTRICT pres    ,DOUBLE *RESTRICT gradPres
+              ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT dField
               ,const short nEn          ,short const nFace
               ,const short ndm          ,INT const nel)
 { 
@@ -2543,21 +2543,21 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
  *********************************************************************/
 void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
                  ,Advection advVel           ,Diffusion diffVel
-                 ,short *restrict lGeomType  ,DOUBLE *restrict prop
-                 ,INT *restrict lViz         
-                 ,DOUBLE *restrict ksi       ,DOUBLE *restrict mKsi
-                 ,DOUBLE *restrict eta       ,DOUBLE *restrict fArea
-                 ,DOUBLE *restrict normal    ,DOUBLE *restrict volume
-                 ,DOUBLE *restrict xm        ,DOUBLE *restrict xmcc
-                 ,DOUBLE *restrict dcca      ,DOUBLE *restrict lDensity
-                 ,DOUBLE *restrict vSkew     ,DOUBLE *restrict mvSkew
-                 ,DOUBLE *restrict lB        ,Temporal const ddt
-                 ,short  *restrict lFaceVelR , short *restrict lFaceVelL
-                 ,short  *restrict lFacePresR, short *restrict lFacePresL
-                 ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres
-                 ,DOUBLE *restrict vel       ,DOUBLE *restrict gradVel
-                 ,DOUBLE *restrict dField    ,DOUBLE *restrict cc
-                 ,DOUBLE *restrict bT        ,DOUBLE const underU        
+                 ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT prop
+                 ,INT *RESTRICT lViz         
+                 ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
+                 ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea
+                 ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT volume
+                 ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
+                 ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT lDensity
+                 ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
+                 ,DOUBLE *RESTRICT lB        ,Temporal const ddt
+                 ,short  *RESTRICT lFaceVelR , short *RESTRICT lFaceVelL
+                 ,short  *RESTRICT lFacePresR, short *RESTRICT lFacePresL
+                 ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres
+                 ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
+                 ,DOUBLE *RESTRICT dField    ,DOUBLE *RESTRICT cc
+                 ,DOUBLE *RESTRICT bT        ,DOUBLE const underU        
                  ,const bool sPressure       ,const bool fResidual
                  ,const short nEn            ,short const nFace
                  ,const short ndm            ,INT const nel)
@@ -2565,7 +2565,7 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
   DOUBLE viscosityC, viscosityV, viscosity;
   DOUBLE densityC, densityV, density;
 /*...*/
-  DOUBLE rCell[3], dt, dt0;
+  DOUBLE dt, dt0;
   DOUBLE p[3],sP,sPc[3],lA[(MAX_NUM_FACE+1)*MAX_NDF],velExp[3];
 /*...*/
   DOUBLE v[3], lKsi[3], lNormal[3], lXmcc[3], wf[3], ccV[3];
@@ -3104,17 +3104,17 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
  *-------------------------------------------------------------------*
  *********************************************************************/
 void cellSimpleNonOrthPres3D(Diffusion diffPres
-              ,short *restrict lGeomType
-              ,DOUBLE *restrict prop    ,INT *restrict lViz
-              ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
-              ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
-              ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-              ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-              ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
-              ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
-              ,DOUBLE *restrict lB      
-              ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres
-              ,DOUBLE *restrict dField  ,DOUBLE *restrict cc
+              ,short *RESTRICT lGeomType
+              ,DOUBLE *RESTRICT prop    ,INT *RESTRICT lViz
+              ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
+              ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
+              ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
+              ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+              ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
+              ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
+              ,DOUBLE *RESTRICT lB      
+              ,DOUBLE *RESTRICT pres    ,DOUBLE *RESTRICT gradPres
+              ,DOUBLE *RESTRICT dField  ,DOUBLE *RESTRICT cc
               ,const short nEn          ,short const nFace
               ,const short ndm          ,INT const nel)
 { 

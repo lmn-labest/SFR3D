@@ -1150,9 +1150,9 @@ void simpleSolver3D(Memoria *m
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void updateCellSimpleVel(DOUBLE  *restrict w
-                        ,DOUBLE  *restrict u1 ,DOUBLE  *restrict u2
-                        ,INT  *restrict id    ,INT const nEl
+void updateCellSimpleVel(DOUBLE  *RESTRICT w
+                        ,DOUBLE  *RESTRICT u1 ,DOUBLE  *RESTRICT u2
+                        ,INT  *RESTRICT id    ,INT const nEl
                         ,short const ndm)
 {
   INT i,lNeq;
@@ -1191,11 +1191,11 @@ void updateCellSimpleVel(DOUBLE  *restrict w
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void updateCellSimpleVel3D(DOUBLE  *restrict w
-                          ,DOUBLE  *restrict u1 
-                          ,DOUBLE  *restrict u2
-                          ,DOUBLE  *restrict u3
-                          ,INT  *restrict id    ,INT const nEl
+void updateCellSimpleVel3D(DOUBLE  *RESTRICT w
+                          ,DOUBLE  *RESTRICT u1 
+                          ,DOUBLE  *RESTRICT u2
+                          ,DOUBLE  *RESTRICT u3
+                          ,INT  *RESTRICT id    ,INT const nEl
                           ,short const ndm)
 {
   INT i,lNeq;
@@ -1232,8 +1232,8 @@ void updateCellSimpleVel3D(DOUBLE  *restrict w
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void updateCellSimplePres(DOUBLE  *restrict presC,DOUBLE  *restrict xp   
-                          ,INT  *restrict id      ,INT const nEl)
+void updateCellSimplePres(DOUBLE  *RESTRICT presC,DOUBLE  *RESTRICT xp   
+                          ,INT  *RESTRICT id      ,INT const nEl)
 {
   INT i,lNeq;
 
@@ -1273,9 +1273,9 @@ void updateCellSimplePres(DOUBLE  *restrict presC,DOUBLE  *restrict xp
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void simpleUpdate(DOUBLE *restrict w     ,DOUBLE *restrict pressure
-                 ,DOUBLE *restrict presC ,DOUBLE *restrict gradPresC
-                 ,DOUBLE *restrict dField         
+void simpleUpdate(DOUBLE *RESTRICT w     ,DOUBLE *RESTRICT pressure
+                 ,DOUBLE *RESTRICT presC ,DOUBLE *RESTRICT gradPresC
+                 ,DOUBLE *RESTRICT dField         
                  ,INT const nEl          ,short const ndm
                  ,DOUBLE const alphaPres){
   INT i; 
@@ -1393,11 +1393,11 @@ void setSimpleScheme(char *word,Simple *sp,FILE *fileIn){
  *            | rvz1 rvz2 ... rvzn |                                 * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void residualSimple(DOUBLE *restrict vel
-                 ,DOUBLE *restrict rCellVel,DOUBLE *restrict rCellMass
-                 ,DOUBLE *restrict adVel
-                 ,DOUBLE *restrict rU      ,DOUBLE *restrict rMass
-                 ,INT  *restrict idVel     ,INT const nEl
+void residualSimple(DOUBLE *RESTRICT vel
+                 ,DOUBLE *RESTRICT rCellVel,DOUBLE *RESTRICT rCellMass
+                 ,DOUBLE *RESTRICT adVel
+                 ,DOUBLE *RESTRICT rU      ,DOUBLE *RESTRICT rMass
+                 ,INT  *RESTRICT idVel     ,INT const nEl
                  ,short const ndm          ,short iCod)
 {
 

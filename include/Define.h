@@ -1,7 +1,6 @@
 #ifndef _DEFINE_H_
   #define _DEFINE_H_
 	
-//#define restrict __restrict
 /*...*/
   #include<stdlib.h>
   #include<stdio.h>
@@ -217,14 +216,21 @@
 /*...................................................................*/
 
 /*... definicao do tipo de inteiros usados*/
-  #define INT         int 
+  #define INT         int   
+//typedef int INT;
   #define INTC       "int"
   #define DOUBLE    double
+//typedef double DOUBLE;
   #define DOUBLEC  "double"
+  
   #ifdef _MSC_VER
-    #define LONG_INT __int64
+/*  #define LONG_INT __int64*/
+    typedef __int64 LONG_INT;
+    #define RESTRICT __restrict
   #else
-    #define LONG_INT long
+/*  #define LONG_INT long*/
+    typedef __int64 LONG_INT;
+    #define RESTRICT restrict
   #endif
 /*...................................................................*/
 

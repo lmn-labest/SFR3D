@@ -2,7 +2,7 @@
   #define _PRECOND_H_
   #include<Memoria.h>
   #include<Define.h>
-  void preCondDiag(DOUBLE *restrict pc,DOUBLE *restrict ad,INT const nEq);
+  void preCondDiag(DOUBLE *RESTRICT pc,DOUBLE *RESTRICT ad,INT const nEq);
 
 #endif/*_PRECOND_*/
 

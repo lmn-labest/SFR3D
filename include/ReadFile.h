@@ -41,8 +41,8 @@
   
   void setPrintFluid(FileOpt *opt,FILE *file);
 
-  void initProp(DOUBLE *restrict prop 
-             ,DOUBLE *restrict propMat,short *restrict mat
+  void initProp(DOUBLE *RESTRICT prop 
+             ,DOUBLE *RESTRICT propMat,short *RESTRICT mat
              ,short const np          ,INT const nCell 
              ,short const iProp);
 

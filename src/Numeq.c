@@ -18,8 +18,8 @@
  * id    -> numerocao das equacoes por celula                        *
  * ------------------------------------------------------------------*
  * *******************************************************************/
-INT numeq(INT *restrict id       ,INT *restrict num
-         ,short *restrict rt     ,short *restrict nFace 
+INT numeq(INT *RESTRICT id       ,INT *RESTRICT num
+         ,short *RESTRICT rt     ,short *RESTRICT nFace 
          ,INT const numel        ,short const maxViz  
          ,short const ndf){
 
@@ -64,7 +64,7 @@ INT numeq(INT *restrict id       ,INT *restrict num
  * OBS: a numera das equações u, v, e w são iguais e todas as celulas*
  * tem sempre um equacao.                                            *
  * *******************************************************************/
-INT numEqV1(INT *restrict id       ,INT *restrict num
+INT numEqV1(INT *RESTRICT id       ,INT *RESTRICT num
            ,INT const numel        ){
 
   INT i,neq,nel;
@@ -100,8 +100,8 @@ INT numEqV1(INT *restrict id       ,INT *restrict num
  * id    -> numeracao das equacoes por celula                        *
  * ------------------------------------------------------------------*
  * *******************************************************************/
-INT numEqV2(INT *restrict id       ,INT *restrict num
-           ,short *restrict rt     ,short *restrict nFace 
+INT numEqV2(INT *RESTRICT id       ,INT *RESTRICT num
+           ,short *RESTRICT rt     ,short *RESTRICT nFace 
            ,INT const numel        ,short const maxViz){
 
   INT i,neq,nel;
@@ -141,8 +141,8 @@ INT numEqV2(INT *restrict id       ,INT *restrict num
  * ------------------------------------------------------------------*
  * ------------------------------------------------------------------*
  * *******************************************************************/
-INT countEq(INT *restrict num
-           ,short *restrict rt     ,short *restrict nFace 
+INT countEq(INT *RESTRICT num
+           ,short *RESTRICT rt     ,short *RESTRICT nFace 
            ,INT const numel        ,short const maxViz  
            ,short const ndf){
 

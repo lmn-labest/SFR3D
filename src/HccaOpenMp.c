@@ -24,7 +24,7 @@
 void pMatrixSolverOmp(Memoria *m,SistEq *eq
                      ,char *s1  ,char *s2
                      ,char *s3  ,char *s4){
-
+#if _OPENMP
   short nth = ompVar.nThreadsSolver;
 
   HccaAlloc(INT, m, eq->omp.thBegin , nth, s1, false);
@@ -37,6 +37,6 @@ void pMatrixSolverOmp(Memoria *m,SistEq *eq
                         ,nth             ,eq->omp.thBegin
                         ,eq->omp.thEnd   ,eq->omp.thSize
                         ,eq->omp.thHeight,eq->storage);
-
-}  
+#endif
+}
 /*********************************************************************/

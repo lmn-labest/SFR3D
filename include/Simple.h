@@ -32,31 +32,31 @@
                    ,char *nameOut     ,FILE *fileOut);
 
 /*...*/
-  void updateCellSimpleVel(DOUBLE *restrict w
-                ,DOUBLE *restrict u1 ,DOUBLE *restrict u2
-                ,INT *restrict id    ,INT const nEl
+  void updateCellSimpleVel(DOUBLE *RESTRICT w
+                ,DOUBLE *RESTRICT u1 ,DOUBLE *RESTRICT u2
+                ,INT *RESTRICT id    ,INT const nEl
                 ,short const ndm);
   
-  void updateCellSimpleVel3D(DOUBLE *restrict w
-                ,DOUBLE *restrict u1 ,DOUBLE *restrict u2
-                ,DOUBLE *restrict u3     
-                ,INT *restrict id    ,INT const nEl
+  void updateCellSimpleVel3D(DOUBLE *RESTRICT w
+                ,DOUBLE *RESTRICT u1 ,DOUBLE *RESTRICT u2
+                ,DOUBLE *RESTRICT u3     
+                ,INT *RESTRICT id    ,INT const nEl
                 ,short const ndm);
 
-  void updateCellSimplePres(DOUBLE *restrict presC,DOUBLE *restrict xp
-                           ,INT *restrict id,INT const nEl);
+  void updateCellSimplePres(DOUBLE *RESTRICT presC,DOUBLE *RESTRICT xp
+                           ,INT *RESTRICT id,INT const nEl);
 
-  void simpleUpdate(DOUBLE *restrict w     ,DOUBLE *restrict pressure
-                 ,DOUBLE *restrict PresC ,DOUBLE *restrict GradPresC
-                 ,DOUBLE *restrict dField         
+  void simpleUpdate(DOUBLE *RESTRICT w     ,DOUBLE *RESTRICT pressure
+                 ,DOUBLE *RESTRICT PresC ,DOUBLE *RESTRICT GradPresC
+                 ,DOUBLE *RESTRICT dField         
                  ,INT const nEl          ,short const ndm
                  ,DOUBLE const alphaPres);
   
-  void residualSimple(DOUBLE *restrict vel
-                 ,DOUBLE *restrict rCellVel,DOUBLE *restrict rCellMass
-                 ,DOUBLE *restrict adVel
-                 ,DOUBLE *restrict rU      ,DOUBLE *restrict rPc
-                 ,INT  *restrict idVel     ,INT const nEl
+  void residualSimple(DOUBLE *RESTRICT vel
+                 ,DOUBLE *RESTRICT rCellVel,DOUBLE *RESTRICT rCellMass
+                 ,DOUBLE *RESTRICT adVel
+                 ,DOUBLE *RESTRICT rU      ,DOUBLE *RESTRICT rPc
+                 ,INT  *RESTRICT idVel     ,INT const nEl
                  ,short const ndm          ,short iCod);
 /*...................................................................*/
 

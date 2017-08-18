@@ -58,26 +58,26 @@
  *********************************************************************/
 void cellTrans2D(Loads *loads           
               ,Advection advT           ,Diffusion diffT
-              ,short *restrict lGeomType,DOUBLE *restrict prop
-              ,INT *restrict lViz       ,INT *restrict lId  
-              ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
-              ,DOUBLE *restrict eta     ,DOUBLE *restrict mEta
-              ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-              ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-              ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
-              ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
-              ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-              ,DOUBLE *restrict lRcell  ,Temporal const ddt
-              ,short  *restrict lFaceR  ,short *restrict lFaceL
-              ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
-              ,DOUBLE *restrict vel     ,DOUBLE *restrict cc
+              ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
+              ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
+              ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
+              ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT mEta
+              ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
+              ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+              ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
+              ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
+              ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
+              ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt
+              ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
+              ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
+              ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT cc
               ,const short nEn          ,short const nFace    
               ,const short ndm          ,INT const nel)
 { 
 
   DOUBLE coefDifC,coefDif,coefDifV,rCell,dt,dt0;
   DOUBLE densityC,densityF,densityM;
-  DOUBLE p,sP,nk,dfd,gfKsi,lvSkew[2];
+  DOUBLE p,sP,dfd,gfKsi,lvSkew[2];
   DOUBLE v[2],gradUcomp[2],lKsi[2],lNormal[2],gf[2];
   DOUBLE dPviz,lModKsi,lModEta,du,duDksi,lXmcc[2],lXm[2];
   DOUBLE gradUp[2],gradUv[2],ccV[2];
@@ -375,26 +375,26 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  *********************************************************************/
 void cellTrans3D(Loads *loads           
               ,Advection advT           ,Diffusion diffT
-              ,short *restrict lGeomType,DOUBLE *restrict prop
-              ,INT *restrict lViz       ,INT *restrict lId  
-              ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
-              ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
-              ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-              ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-              ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
-              ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
-              ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-              ,DOUBLE *restrict lRcell  ,Temporal const ddt             
-              ,short  *restrict lFaceR  ,short  *restrict lFaceL  
-              ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
-              ,DOUBLE *restrict vel     ,DOUBLE *restrict cc
+              ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
+              ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
+              ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
+              ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
+              ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
+              ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+              ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
+              ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
+              ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
+              ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt             
+              ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL  
+              ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
+              ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT cc
               ,const short nEn          ,short const nFace    
               ,const short ndm          ,INT const nel)
 { 
 
   DOUBLE coefDifC,coefDif,coefDifV,rCell,dt,dt0;
   DOUBLE densityC,densityF,densityM;
-  DOUBLE p,sP,nk,dfd,gfKsi,lvSkew[3];
+  DOUBLE p,sP,dfd,gfKsi,lvSkew[3];
   DOUBLE v[3],gradUcomp[3],lKsi[3],lNormal[3],gf[3];
   DOUBLE dPviz,lModKsi,lfArea,du,duDksi,lXmcc[3],lXm[3];
   DOUBLE gradUp[3],gradUv[3],ccV[3];

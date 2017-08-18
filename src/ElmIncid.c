@@ -60,8 +60,8 @@ void mkElIncid(Memoria *m,Pnode *pn,Mesh *mesh){
  * nincid   - numero de incidencias por nos                          *
  * maxgrade - numero de incidencias maximo na malha                  *
  *********************************************************************/
-void nodeGrade(INT *restrict el       ,INT *restrict nincid
-              ,short *restrict nen    ,INT *maxGrade
+void nodeGrade(INT *RESTRICT el       ,INT *RESTRICT nincid
+              ,short *RESTRICT nen    ,INT *maxGrade
               ,INT const nNode        ,INT const numel
               ,short const maxNo){
   INT i,j;
@@ -109,8 +109,8 @@ void nodeGrade(INT *restrict el       ,INT *restrict nincid
  * nincid   - numero de incidencias por nos                          *
  * incid    - incidencia dos elementos por no                        *
  *********************************************************************/
-void elmIncid(INT *restrict el    ,INT *restrict incid
-               ,INT *restrict nincid,short *restrict nen  
+void elmIncid(INT *RESTRICT el    ,INT *RESTRICT incid
+               ,INT *RESTRICT nincid,short *RESTRICT nen  
                ,INT const nnode     ,INT const numel
                ,INT const maxGrade  ,short const maxNo){
   INT node,i,j;

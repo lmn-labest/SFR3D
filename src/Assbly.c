@@ -40,11 +40,11 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void assbly(INT    *restrict  ia,INT *restrict ja 
-           ,double *restrict a  ,double *restrict ad
-           ,double *restrict b
-           ,INT *restrict lId
-           ,double *restrict lA ,double *restrict lB
+void assbly(INT    *RESTRICT  ia,INT *RESTRICT ja 
+           ,double *RESTRICT a  ,double *RESTRICT ad
+           ,double *RESTRICT b
+           ,INT *RESTRICT lId
+           ,double *RESTRICT lA ,double *RESTRICT lB
            ,INT const nEq       ,INT const nEqNov
            ,INT const nAd       ,INT const nAdR  
            ,short const nFace   ,short const ndf 
@@ -141,11 +141,11 @@ void assbly(INT    *restrict  ia,INT *restrict ja
  * componentes de velocidades (u1,u2,u3), porém o vetor de forcas e  *
  * diferente                                                         * 
  *********************************************************************/
-void assblySimple(INT    *restrict  ia,INT *restrict ja 
-           ,DOUBLE *restrict a  ,DOUBLE *restrict ad
-           ,DOUBLE *restrict b
-           ,INT *restrict lId
-           ,DOUBLE *restrict lA ,DOUBLE *restrict lB
+void assblySimple(INT    *RESTRICT  ia,INT *RESTRICT ja 
+           ,DOUBLE *RESTRICT a  ,DOUBLE *RESTRICT ad
+           ,DOUBLE *RESTRICT b
+           ,INT *RESTRICT lId
+           ,DOUBLE *RESTRICT lA ,DOUBLE *RESTRICT lB
            ,INT const nEq       ,INT const nEqNov
            ,INT const nAd       ,INT const nAdR  
            ,short const nFace   ,short const ndf 

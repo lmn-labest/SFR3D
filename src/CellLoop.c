@@ -49,16 +49,16 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
-              ,INT    *restrict nelcon ,short  *restrict nen    
-              ,short  *restrict nFace  ,short  *restrict geomType
-              ,DOUBLE *restrict gCc    ,DOUBLE *restrict gKsi   
-              ,DOUBLE *restrict gmKsi  ,DOUBLE *restrict gEta   
-              ,DOUBLE *restrict gfArea ,DOUBLE *restrict gNormal
-              ,DOUBLE *restrict gVolume,DOUBLE *restrict gXm   
-              ,DOUBLE *restrict gXmcc  
-              ,DOUBLE *restrict gvSkew ,DOUBLE *restrict gmvSkew
-              ,DOUBLE *restrict gDcca                 
+void pGeomForm(DOUBLE *RESTRICT x      ,INT    *RESTRICT el
+              ,INT    *RESTRICT nelcon ,short  *RESTRICT nen    
+              ,short  *RESTRICT nFace  ,short  *RESTRICT geomType
+              ,DOUBLE *RESTRICT gCc    ,DOUBLE *RESTRICT gKsi   
+              ,DOUBLE *RESTRICT gmKsi  ,DOUBLE *RESTRICT gEta   
+              ,DOUBLE *RESTRICT gfArea ,DOUBLE *RESTRICT gNormal
+              ,DOUBLE *RESTRICT gVolume,DOUBLE *RESTRICT gXm   
+              ,DOUBLE *RESTRICT gXmcc  
+              ,DOUBLE *RESTRICT gvSkew ,DOUBLE *RESTRICT gmvSkew
+              ,DOUBLE *RESTRICT gDcca                 
               ,short maxNo             ,short maxViz
               ,short ndm               ,INT numel)
 {
@@ -261,22 +261,22 @@ void pGeomForm(DOUBLE *restrict x      ,INT    *restrict el
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void systFormDif(Loads *loads
-               ,INT    *restrict el     ,INT    *restrict nelcon 
-               ,short  *restrict nen     ,short  *restrict nFace
-               ,short  *restrict geomType,DOUBLE *restrict prop 
-               ,short  *restrict calType ,short  *restrict mat     
-               ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi 
-               ,DOUBLE *restrict gEta    ,DOUBLE *restrict gfArea 
-               ,DOUBLE *restrict gNormal ,DOUBLE *restrict gVolume
-               ,DOUBLE *restrict gXm     ,DOUBLE *restrict gXmcc 
-               ,DOUBLE *restrict gvSkew  ,DOUBLE *restrict gmvSkew 
-               ,DOUBLE *restrict gDcca   ,DOUBLE *restrict density
-               ,INT    *restrict ia      ,INT    *restrict ja   
-               ,DOUBLE *restrict a       ,DOUBLE *restrict ad
-               ,DOUBLE *restrict b       ,INT    *restrict id
-               ,short  *restrict faceR   ,short  *restrict faceLd1        
-               ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0 
-               ,DOUBLE *restrict rCell   ,Temporal const ddt 
+               ,INT    *RESTRICT el     ,INT    *RESTRICT nelcon 
+               ,short  *RESTRICT nen     ,short  *RESTRICT nFace
+               ,short  *RESTRICT geomType,DOUBLE *RESTRICT prop 
+               ,short  *RESTRICT calType ,short  *RESTRICT mat     
+               ,DOUBLE *RESTRICT gKsi    ,DOUBLE *RESTRICT gmKsi 
+               ,DOUBLE *RESTRICT gEta    ,DOUBLE *RESTRICT gfArea 
+               ,DOUBLE *RESTRICT gNormal ,DOUBLE *RESTRICT gVolume
+               ,DOUBLE *RESTRICT gXm     ,DOUBLE *RESTRICT gXmcc 
+               ,DOUBLE *RESTRICT gvSkew  ,DOUBLE *RESTRICT gmvSkew 
+               ,DOUBLE *RESTRICT gDcca   ,DOUBLE *RESTRICT density
+               ,INT    *RESTRICT ia      ,INT    *RESTRICT ja   
+               ,DOUBLE *RESTRICT a       ,DOUBLE *RESTRICT ad
+               ,DOUBLE *RESTRICT b       ,INT    *RESTRICT id
+               ,short  *RESTRICT faceR   ,short  *RESTRICT faceLd1        
+               ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0 
+               ,DOUBLE *RESTRICT rCell   ,Temporal const ddt 
                ,INT const nEq            ,INT const nEqNov     
                ,INT const nAd            ,INT const nAdR                     
                ,short const maxNo        ,short const maxViz
@@ -520,24 +520,24 @@ void systFormDif(Loads *loads
  *********************************************************************/
 void systFormTrans(Loads *loads          
                ,Advection advT           ,Diffusion diffT
-               ,INT    *restrict el      ,INT    *restrict nelcon 
-               ,short  *restrict nen     ,short  *restrict nFace
-               ,short  *restrict geomType,DOUBLE *restrict prop 
-               ,short  *restrict calType ,short  *restrict mat
-               ,DOUBLE *restrict gCc
-               ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi 
-               ,DOUBLE *restrict gEta    ,DOUBLE *restrict gfArea 
-               ,DOUBLE *restrict gNormal ,DOUBLE *restrict gVolume
-               ,DOUBLE *restrict gXm     ,DOUBLE *restrict gXmcc 
-               ,DOUBLE *restrict gvSkew  ,DOUBLE *restrict gmvSkew 
-               ,DOUBLE *restrict gDcca   ,DOUBLE *restrict density
-               ,INT    *restrict ia      ,INT    *restrict ja
-               ,DOUBLE *restrict a       ,DOUBLE *restrict ad 
-               ,DOUBLE *restrict b       ,INT    *restrict id
-               ,short  *restrict faceR   ,short  *restrict faceL        
-               ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0 
-               ,DOUBLE *restrict vel                               
-               ,DOUBLE *restrict rCell   ,Temporal const ddt 
+               ,INT    *RESTRICT el      ,INT    *RESTRICT nelcon 
+               ,short  *RESTRICT nen     ,short  *RESTRICT nFace
+               ,short  *RESTRICT geomType,DOUBLE *RESTRICT prop 
+               ,short  *RESTRICT calType ,short  *RESTRICT mat
+               ,DOUBLE *RESTRICT gCc
+               ,DOUBLE *RESTRICT gKsi    ,DOUBLE *RESTRICT gmKsi 
+               ,DOUBLE *RESTRICT gEta    ,DOUBLE *RESTRICT gfArea 
+               ,DOUBLE *RESTRICT gNormal ,DOUBLE *RESTRICT gVolume
+               ,DOUBLE *RESTRICT gXm     ,DOUBLE *RESTRICT gXmcc 
+               ,DOUBLE *RESTRICT gvSkew  ,DOUBLE *RESTRICT gmvSkew 
+               ,DOUBLE *RESTRICT gDcca   ,DOUBLE *RESTRICT density
+               ,INT    *RESTRICT ia      ,INT    *RESTRICT ja
+               ,DOUBLE *RESTRICT a       ,DOUBLE *RESTRICT ad 
+               ,DOUBLE *RESTRICT b       ,INT    *RESTRICT id
+               ,short  *RESTRICT faceR   ,short  *RESTRICT faceL        
+               ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0 
+               ,DOUBLE *RESTRICT vel                               
+               ,DOUBLE *RESTRICT rCell   ,Temporal const ddt 
                ,INT const nEq            ,INT const nEqNov
                ,INT const nAd            ,INT const nAdR                     
                ,short const maxNo        ,short const maxViz
@@ -935,26 +935,26 @@ void systFormTrans(Loads *loads
 void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres    
              ,Advection advVel           ,Diffusion diffVel
              ,short const typeSimple 
-             ,INT    *restrict el        ,INT    *restrict nelcon 
-             ,short  *restrict nen       ,short  *restrict nFace
-             ,short  *restrict geomType  ,DOUBLE *restrict prop 
-             ,short  *restrict calType   ,short  *restrict mat     
-             ,DOUBLE *restrict cc           
-             ,DOUBLE *restrict gKsi      ,DOUBLE *restrict gmKsi 
-             ,DOUBLE *restrict gEta      ,DOUBLE *restrict gfArea 
-             ,DOUBLE *restrict gNormal   ,DOUBLE *restrict gVolume
-             ,DOUBLE *restrict gXm       ,DOUBLE *restrict gXmcc 
-             ,DOUBLE *restrict gvSkew    ,DOUBLE *restrict gmvSkew 
-             ,DOUBLE *restrict gDcca     ,DOUBLE *restrict density
-             ,INT    *restrict ia        ,INT    *restrict ja
-             ,DOUBLE *restrict a         ,DOUBLE *restrict ad 
-             ,DOUBLE *restrict b         ,INT    *restrict id
-             ,short  *restrict faceVelR ,short  *restrict faceVelL       
-             ,short  *restrict facePresR,short  *restrict facePresL             
-             ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres
-             ,DOUBLE *restrict vel       ,DOUBLE *restrict gradVel
-             ,DOUBLE *restrict dField    ,DOUBLE const underU  
-             ,DOUBLE *restrict rCell     ,Temporal const ddt 
+             ,INT    *RESTRICT el        ,INT    *RESTRICT nelcon 
+             ,short  *RESTRICT nen       ,short  *RESTRICT nFace
+             ,short  *RESTRICT geomType  ,DOUBLE *RESTRICT prop 
+             ,short  *RESTRICT calType   ,short  *RESTRICT mat     
+             ,DOUBLE *RESTRICT cc           
+             ,DOUBLE *RESTRICT gKsi      ,DOUBLE *RESTRICT gmKsi 
+             ,DOUBLE *RESTRICT gEta      ,DOUBLE *RESTRICT gfArea 
+             ,DOUBLE *RESTRICT gNormal   ,DOUBLE *RESTRICT gVolume
+             ,DOUBLE *RESTRICT gXm       ,DOUBLE *RESTRICT gXmcc 
+             ,DOUBLE *RESTRICT gvSkew    ,DOUBLE *RESTRICT gmvSkew 
+             ,DOUBLE *RESTRICT gDcca     ,DOUBLE *RESTRICT density
+             ,INT    *RESTRICT ia        ,INT    *RESTRICT ja
+             ,DOUBLE *RESTRICT a         ,DOUBLE *RESTRICT ad 
+             ,DOUBLE *RESTRICT b         ,INT    *RESTRICT id
+             ,short  *RESTRICT faceVelR ,short  *RESTRICT faceVelL       
+             ,short  *RESTRICT facePresR,short  *RESTRICT facePresL             
+             ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres
+             ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
+             ,DOUBLE *RESTRICT dField    ,DOUBLE const underU  
+             ,DOUBLE *RESTRICT rCell     ,Temporal const ddt 
              ,INT const nEq              ,INT const nEqNov
              ,INT const nAd              ,INT const nAdR                  
              ,short const maxNo          ,short const maxViz
@@ -1392,23 +1392,23 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
 *********************************************************************/
 void velExp(Loads *loadsVel        ,Loads *loadsPres
              ,Advection advVel           ,Diffusion diffVel
-             ,INT    *restrict el        ,INT    *restrict nelcon
-             ,short  *restrict nen       ,short  *restrict nFace
-             ,short  *restrict geomType  ,DOUBLE *restrict prop
-             ,short  *restrict calType   ,short  *restrict mat
-             ,DOUBLE *restrict cc        
-             ,DOUBLE *restrict gKsi      ,DOUBLE *restrict gmKsi
-             ,DOUBLE *restrict gEta      ,DOUBLE *restrict gfArea
-             ,DOUBLE *restrict gNormal   ,DOUBLE *restrict gVolume
-             ,DOUBLE *restrict gXm       ,DOUBLE *restrict gXmcc
-             ,DOUBLE *restrict gvSkew    ,DOUBLE *restrict gmvSkew
-             ,DOUBLE *restrict gDcca     ,DOUBLE *restrict density
-             ,short  *restrict faceVelR  ,short  *restrict faceVelL
-             ,short  *restrict facePresR ,short  *restrict facePresL
-             ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres
-             ,DOUBLE *restrict vel       ,DOUBLE *restrict velUp
-             ,DOUBLE *restrict gradVel   ,DOUBLE *restrict bT
-             ,DOUBLE *restrict dField    ,DOUBLE const underU
+             ,INT    *RESTRICT el        ,INT    *RESTRICT nelcon
+             ,short  *RESTRICT nen       ,short  *RESTRICT nFace
+             ,short  *RESTRICT geomType  ,DOUBLE *RESTRICT prop
+             ,short  *RESTRICT calType   ,short  *RESTRICT mat
+             ,DOUBLE *RESTRICT cc        
+             ,DOUBLE *RESTRICT gKsi      ,DOUBLE *RESTRICT gmKsi
+             ,DOUBLE *RESTRICT gEta      ,DOUBLE *RESTRICT gfArea
+             ,DOUBLE *RESTRICT gNormal   ,DOUBLE *RESTRICT gVolume
+             ,DOUBLE *RESTRICT gXm       ,DOUBLE *RESTRICT gXmcc
+             ,DOUBLE *RESTRICT gvSkew    ,DOUBLE *RESTRICT gmvSkew
+             ,DOUBLE *RESTRICT gDcca     ,DOUBLE *RESTRICT density
+             ,short  *RESTRICT faceVelR  ,short  *RESTRICT faceVelL
+             ,short  *RESTRICT facePresR ,short  *RESTRICT facePresL
+             ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres
+             ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT velUp
+             ,DOUBLE *RESTRICT gradVel   ,DOUBLE *RESTRICT bT
+             ,DOUBLE *RESTRICT dField    ,DOUBLE const underU
              ,Temporal const ddt
              ,short const maxNo          ,short const maxViz
              ,short const ndm            ,INT const numel
@@ -1772,23 +1772,23 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
 *********************************************************************/
 void velResidual(Loads *loadsVel            ,Loads *loadsPres
                 ,Advection advVel           ,Diffusion diffVel
-                ,INT    *restrict el        ,INT    *restrict nelcon
-                ,short  *restrict nen       ,short  *restrict nFace
-                ,short  *restrict geomType  ,DOUBLE *restrict prop
-                ,short  *restrict calType   ,short  *restrict mat
-                ,DOUBLE *restrict cc        ,DOUBLE *restrict ad
-                ,DOUBLE *restrict gKsi      ,DOUBLE *restrict gmKsi
-                ,DOUBLE *restrict gEta      ,DOUBLE *restrict gfArea
-                ,DOUBLE *restrict gNormal   ,DOUBLE *restrict gVolume
-                ,DOUBLE *restrict gXm       ,DOUBLE *restrict gXmcc
-                ,DOUBLE *restrict gvSkew    ,DOUBLE *restrict gmvSkew
-                ,DOUBLE *restrict gDcca     ,DOUBLE *restrict density
-                ,short  *restrict faceVelR  ,short  *restrict faceVelL
-                ,short  *restrict facePresR ,short  *restrict facePresL
-                ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres
-                ,DOUBLE *restrict vel       ,DOUBLE *restrict res  
-                ,DOUBLE *restrict gradVel   ,DOUBLE *restrict bT
-                ,DOUBLE *restrict dField    ,DOUBLE const underU
+                ,INT    *RESTRICT el        ,INT    *RESTRICT nelcon
+                ,short  *RESTRICT nen       ,short  *RESTRICT nFace
+                ,short  *RESTRICT geomType  ,DOUBLE *RESTRICT prop
+                ,short  *RESTRICT calType   ,short  *RESTRICT mat
+                ,DOUBLE *RESTRICT cc        ,DOUBLE *RESTRICT ad
+                ,DOUBLE *RESTRICT gKsi      ,DOUBLE *RESTRICT gmKsi
+                ,DOUBLE *RESTRICT gEta      ,DOUBLE *RESTRICT gfArea
+                ,DOUBLE *RESTRICT gNormal   ,DOUBLE *RESTRICT gVolume
+                ,DOUBLE *RESTRICT gXm       ,DOUBLE *RESTRICT gXmcc
+                ,DOUBLE *RESTRICT gvSkew    ,DOUBLE *RESTRICT gmvSkew
+                ,DOUBLE *RESTRICT gDcca     ,DOUBLE *RESTRICT density
+                ,short  *RESTRICT faceVelR  ,short  *RESTRICT faceVelL
+                ,short  *RESTRICT facePresR ,short  *RESTRICT facePresL
+                ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres
+                ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT res  
+                ,DOUBLE *RESTRICT gradVel   ,DOUBLE *RESTRICT bT
+                ,DOUBLE *RESTRICT dField    ,DOUBLE const underU
                 ,Temporal const ddt
                 ,short const maxNo          ,short const maxViz
                 ,short const ndm            ,INT const numel
@@ -2186,24 +2186,24 @@ void velResidual(Loads *loadsVel            ,Loads *loadsPres
  *********************************************************************/
 void systFormSimplePres(Loads *loadsVel  ,Loads *loadsPres 
 							 ,Diffusion diffPres
-               ,INT    *restrict el      ,INT    *restrict nelcon 
-               ,short  *restrict nen     ,short  *restrict nFace
-               ,short  *restrict geomType,DOUBLE *restrict prop 
-               ,short  *restrict calType ,short  *restrict mat     
-               ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi 
-               ,DOUBLE *restrict gEta    ,DOUBLE *restrict gfArea 
-               ,DOUBLE *restrict gNormal ,DOUBLE *restrict gVolume
-               ,DOUBLE *restrict gXm     ,DOUBLE *restrict gXmcc 
-               ,DOUBLE *restrict gvSkew  ,DOUBLE *restrict gmvSkew 
-               ,DOUBLE *restrict gDcca   ,DOUBLE *restrict density
-               ,INT    *restrict ia      ,INT    *restrict ja
-               ,DOUBLE *restrict a       ,DOUBLE *restrict ad 
-               ,DOUBLE *restrict b       ,INT    *restrict id
-               ,short  *restrict faceVelR ,short  *restrict faceVelL       
-               ,short  *restrict facePresR,short  *restrict facePresL      
-               ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres
-               ,DOUBLE *restrict vel     ,DOUBLE *restrict dField    
-               ,DOUBLE *restrict rCell   ,Temporal const ddt 
+               ,INT    *RESTRICT el      ,INT    *RESTRICT nelcon 
+               ,short  *RESTRICT nen     ,short  *RESTRICT nFace
+               ,short  *RESTRICT geomType,DOUBLE *RESTRICT prop 
+               ,short  *RESTRICT calType ,short  *RESTRICT mat     
+               ,DOUBLE *RESTRICT gKsi    ,DOUBLE *RESTRICT gmKsi 
+               ,DOUBLE *RESTRICT gEta    ,DOUBLE *RESTRICT gfArea 
+               ,DOUBLE *RESTRICT gNormal ,DOUBLE *RESTRICT gVolume
+               ,DOUBLE *RESTRICT gXm     ,DOUBLE *RESTRICT gXmcc 
+               ,DOUBLE *RESTRICT gvSkew  ,DOUBLE *RESTRICT gmvSkew 
+               ,DOUBLE *RESTRICT gDcca   ,DOUBLE *RESTRICT density
+               ,INT    *RESTRICT ia      ,INT    *RESTRICT ja
+               ,DOUBLE *RESTRICT a       ,DOUBLE *RESTRICT ad 
+               ,DOUBLE *RESTRICT b       ,INT    *RESTRICT id
+               ,short  *RESTRICT faceVelR ,short  *RESTRICT faceVelL       
+               ,short  *RESTRICT facePresR,short  *RESTRICT facePresL      
+               ,DOUBLE *RESTRICT pres    ,DOUBLE *RESTRICT gradPres
+               ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT dField    
+               ,DOUBLE *RESTRICT rCell   ,Temporal const ddt 
                ,INT const nEq            ,INT const nEqNov
                ,INT const nAd            ,INT const nAdR                  
                ,short const maxNo        ,short const maxViz
@@ -2587,20 +2587,20 @@ void systFormSimplePres(Loads *loadsVel  ,Loads *loadsPres
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void simpleNonOrthPres(Diffusion diffPres
-               ,INT    *restrict el ,INT *restrict nelcon 
-               ,short  *restrict nen       ,short  *restrict nFace
-               ,short  *restrict geomType  ,DOUBLE *restrict prop 
-               ,short  *restrict calType   ,short  *restrict mat     
-               ,DOUBLE *restrict cc           
-               ,DOUBLE *restrict gKsi      ,DOUBLE *restrict gmKsi 
-               ,DOUBLE *restrict gEta      ,DOUBLE *restrict gfArea 
-               ,DOUBLE *restrict gNormal   ,DOUBLE *restrict gVolume
-               ,DOUBLE *restrict gXm       ,DOUBLE *restrict gXmcc 
-               ,DOUBLE *restrict gvSkew    ,DOUBLE *restrict gmvSkew 
-               ,DOUBLE *restrict gDcca     ,DOUBLE *restrict density
-               ,DOUBLE *restrict b         ,INT    *restrict id
-               ,short  *restrict facePresR ,DOUBLE *restrict pres      
-               ,DOUBLE *restrict gradPres  ,DOUBLE *restrict dField 
+               ,INT    *RESTRICT el ,INT *RESTRICT nelcon 
+               ,short  *RESTRICT nen       ,short  *RESTRICT nFace
+               ,short  *RESTRICT geomType  ,DOUBLE *RESTRICT prop 
+               ,short  *RESTRICT calType   ,short  *RESTRICT mat     
+               ,DOUBLE *RESTRICT cc           
+               ,DOUBLE *RESTRICT gKsi      ,DOUBLE *RESTRICT gmKsi 
+               ,DOUBLE *RESTRICT gEta      ,DOUBLE *RESTRICT gfArea 
+               ,DOUBLE *RESTRICT gNormal   ,DOUBLE *RESTRICT gVolume
+               ,DOUBLE *RESTRICT gXm       ,DOUBLE *RESTRICT gXmcc 
+               ,DOUBLE *RESTRICT gvSkew    ,DOUBLE *RESTRICT gmvSkew 
+               ,DOUBLE *RESTRICT gDcca     ,DOUBLE *RESTRICT density
+               ,DOUBLE *RESTRICT b         ,INT    *RESTRICT id
+               ,short  *RESTRICT facePresR ,DOUBLE *RESTRICT pres      
+               ,DOUBLE *RESTRICT gradPres  ,DOUBLE *RESTRICT dField 
                ,short const maxNo          ,short const maxViz
                ,short const ndm            ,INT const numel)
 { 
@@ -2750,10 +2750,10 @@ void simpleNonOrthPres(Diffusion diffPres
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellPload(Loads *loads           ,DOUBLE *restrict cc 
-              ,short  *restrict faceR ,short *restrict faceL
-              ,DOUBLE *restrict volume,INT *restrict id 
-              ,DOUBLE *restrict u     ,DOUBLE *restrict f
+void cellPload(Loads *loads           ,DOUBLE *RESTRICT cc 
+              ,short  *RESTRICT faceR ,short *RESTRICT faceL
+              ,DOUBLE *RESTRICT volume,INT *RESTRICT id 
+              ,DOUBLE *RESTRICT u     ,DOUBLE *RESTRICT f
               ,INT const numel        ,short const ndf
               ,short const ndm        ,short const maxViz)
 {
@@ -2852,12 +2852,12 @@ void cellPload(Loads *loads           ,DOUBLE *restrict cc
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellPloadSimple(Loads *loadsPres       ,DOUBLE *restrict cc 
-                ,short  *restrict faceRpres ,short *restrict faceLpres
-                ,DOUBLE *restrict volume
-                ,INT *restrict idVel    ,INT *restrict idPres
-                ,DOUBLE *restrict vel   ,DOUBLE *restrict pres
-                ,DOUBLE *restrict fVel  ,DOUBLE *restrict fPres
+void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc 
+                ,short  *RESTRICT faceRpres ,short *RESTRICT faceLpres
+                ,DOUBLE *RESTRICT volume
+                ,INT *RESTRICT idVel    ,INT *RESTRICT idPres
+                ,DOUBLE *RESTRICT vel   ,DOUBLE *RESTRICT pres
+                ,DOUBLE *RESTRICT fVel  ,DOUBLE *RESTRICT fPres
                 ,INT const numel        ,short const ndf
                 ,short const ndm        ,short const maxViz)
 {
@@ -2904,8 +2904,8 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *restrict cc
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
- void updateCellValue(DOUBLE *restrict u,DOUBLE *restrict x
-                 ,INT *restrict id      ,Interface *iNeq
+ void updateCellValue(DOUBLE *RESTRICT u,DOUBLE *RESTRICT x
+                 ,INT *RESTRICT id      ,Interface *iNeq
                  ,INT const numel       ,short const ndf
                  ,bool const fAdd       ,short const fCom)
 {
@@ -2973,8 +2973,8 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *restrict cc
  *        | rw(1) rw(2) ... bw(neq) |                                * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
- void updateCellValueSimple(DOUBLE *restrict u,DOUBLE *restrict x
-                           ,INT *restrict id      ,Interface *iNeq
+ void updateCellValueSimple(DOUBLE *RESTRICT u,DOUBLE *RESTRICT x
+                           ,INT *RESTRICT id      ,Interface *iNeq
                            ,INT const numel       ,INT const nEq   
                            ,short const ndf
                            ,bool const fAdd       ,short const fCom)
@@ -3060,12 +3060,12 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *restrict cc
  *-------------------------------------------------------------------* 
  *********************************************************************/
  void interCellNode(Memoria *m             ,Loads *loads 
-                   ,DOUBLE *restrict noU   ,DOUBLE *restrict elU
-                   ,INT *restrict el       ,short  *restrict geomType 
-                   ,DOUBLE *restrict cc    ,DOUBLE *restrict x
-                   ,DOUBLE *restrict xm  
-                   ,short *restrict nen    ,short *restrict nFace
-                   ,short  *restrict faceR ,short *restrict faceL 
+                   ,DOUBLE *RESTRICT noU   ,DOUBLE *RESTRICT elU
+                   ,INT *RESTRICT el       ,short  *RESTRICT geomType 
+                   ,DOUBLE *RESTRICT cc    ,DOUBLE *RESTRICT x
+                   ,DOUBLE *RESTRICT xm  
+                   ,short *RESTRICT nen    ,short *RESTRICT nFace
+                   ,short  *RESTRICT faceR ,short *RESTRICT faceL 
                    ,InterfaceNo *iNo 
                    ,INT const numelNov     ,INT const numel        
                    ,INT const nNodeNov     ,INT const nNode
@@ -3421,21 +3421,21 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *restrict cc
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void rcGradU(Memoria *m               ,Loads *loads
-            ,INT    *restrict el      ,INT    *restrict nelcon 
-            ,DOUBLE *restrict cc      ,DOUBLE *restrict x     
-            ,short  *restrict nen     ,short  *restrict nFace
-            ,short  *restrict geomType,DOUBLE *restrict prop 
-            ,short  *restrict mat 
-            ,DOUBLE *restrict lSquare ,DOUBLE *restrict lSquareR
-            ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi 
-            ,DOUBLE *restrict gEta    ,DOUBLE *restrict gfArea 
-            ,DOUBLE *restrict gNormal ,DOUBLE *restrict gVolume
-            ,DOUBLE *restrict gvSkew  
-            ,DOUBLE *restrict gXm     ,DOUBLE *restrict gXmcc 
-            ,DOUBLE *restrict gDcca 
-            ,short  *restrict faceR   ,short *restrict faceL  
-            ,DOUBLE *restrict u       ,DOUBLE *restrict gradU              
-            ,DOUBLE *restrict nU      ,short const lib 
+            ,INT    *RESTRICT el      ,INT    *RESTRICT nelcon 
+            ,DOUBLE *RESTRICT cc      ,DOUBLE *RESTRICT x     
+            ,short  *RESTRICT nen     ,short  *RESTRICT nFace
+            ,short  *RESTRICT geomType,DOUBLE *RESTRICT prop 
+            ,short  *RESTRICT mat 
+            ,DOUBLE *RESTRICT lSquare ,DOUBLE *RESTRICT lSquareR
+            ,DOUBLE *RESTRICT gKsi    ,DOUBLE *RESTRICT gmKsi 
+            ,DOUBLE *RESTRICT gEta    ,DOUBLE *RESTRICT gfArea 
+            ,DOUBLE *RESTRICT gNormal ,DOUBLE *RESTRICT gVolume
+            ,DOUBLE *RESTRICT gvSkew  
+            ,DOUBLE *RESTRICT gXm     ,DOUBLE *RESTRICT gXmcc 
+            ,DOUBLE *RESTRICT gDcca 
+            ,short  *RESTRICT faceR   ,short *RESTRICT faceL  
+            ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU              
+            ,DOUBLE *RESTRICT nU      ,short const lib 
             ,short const maxNo        ,short const maxViz
             ,short const ndf          ,short const ndm
             ,InterfaceNo *iNo         ,Interface *iCel
@@ -3769,9 +3769,9 @@ void rcGradU(Memoria *m               ,Loads *loads
  * lSquareR  -> fatoracao R (RCLSQUAREQR)                            * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void rcLeastSquare(DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi
-                  ,DOUBLE *restrict lSquare ,DOUBLE *restrict lSquareR
-                  ,short *restrict nFace       
+void rcLeastSquare(DOUBLE *RESTRICT gKsi    ,DOUBLE *RESTRICT gmKsi
+                  ,DOUBLE *RESTRICT lSquare ,DOUBLE *RESTRICT lSquareR
+                  ,short *RESTRICT nFace       
                   ,INT const numel          ,short const maxViz
                   ,short const type         ,short const ndm){
 
@@ -3841,7 +3841,7 @@ void rcLeastSquare(DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-  void convTempForKelvin(DOUBLE *restrict u,INT const n
+  void convTempForKelvin(DOUBLE *RESTRICT u,INT const n
                         ,bool const fKelvin){
     int i;
     if(fKelvin)
@@ -3881,9 +3881,9 @@ void rcLeastSquare(DOUBLE *restrict gKsi    ,DOUBLE *restrict gmKsi
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void meshQuality(MeshQuality *mq
-                ,short  *restrict nFace   ,DOUBLE *restrict volume
-                ,DOUBLE *restrict gKsi    ,DOUBLE *restrict gNormal
-                ,DOUBLE *restrict gmvSkew
+                ,short  *RESTRICT nFace   ,DOUBLE *RESTRICT volume
+                ,DOUBLE *RESTRICT gKsi    ,DOUBLE *RESTRICT gNormal
+                ,DOUBLE *RESTRICT gmvSkew
                 ,short const maxViz      ,short const ndm
                 ,INT const numel)        
 {
@@ -3954,8 +3954,8 @@ void meshQuality(MeshQuality *mq
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void wallFluid(short *restrict faceR ,INT *restrict nelcon
-              ,short *restrict nFace     
+void wallFluid(short *RESTRICT faceR ,INT *RESTRICT nelcon
+              ,short *RESTRICT nFace     
               ,INT const nEl         ,short const maxViz){
   
   INT i,j,vizNel,aux2;                   
@@ -3979,9 +3979,9 @@ void wallFluid(short *restrict faceR ,INT *restrict nelcon
 /*********************************************************************/
 
 /*********************************************************************/ 
-void parameterCell(DOUBLE *restrict vel  ,DOUBLE *restrict prop
-                ,DOUBLE *restrict density,DOUBLE *restrict volume
-                ,short  *restrict mat 
+void parameterCell(DOUBLE *RESTRICT vel  ,DOUBLE *RESTRICT prop
+                ,DOUBLE *RESTRICT density,DOUBLE *RESTRICT volume
+                ,short  *RESTRICT mat 
                 ,DOUBLE *cfl             ,DOUBLE *reynolds
                 ,bool *fParameter        ,DOUBLE const dt
                 ,INT const nEl           ,short const ndm)

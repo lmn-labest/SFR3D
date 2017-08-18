@@ -25,65 +25,65 @@
                    ,PartMesh *pMesh
                    ,Loads *loadsD1  ,Loads *loadsT1);
 /*... equacoes nas interfaces*/  
-  void getBuffer(DOUBLE *restrict x    ,DOUBLE *restrict xb
-              ,INT *restrict fMap    ,INT const nRcvs);
+  void getBuffer(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
+              ,INT *RESTRICT fMap    ,INT const nRcvs);
   
-  void makeBuffer(DOUBLE *restrict x    ,DOUBLE *restrict xb
-               ,INT *restrict fMap    ,INT const nSends);
+  void makeBuffer(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
+               ,INT *RESTRICT fMap    ,INT const nSends);
   
-  void comunicateNeq(Interface *iNeq,DOUBLE *restrict x);
+  void comunicateNeq(Interface *iNeq,DOUBLE *RESTRICT x);
 /*...................................................................*/
 
 /*... celulas nas interfaces*/  
-  void makeBufferCel(DOUBLE *restrict x    ,DOUBLE *restrict xb
-                  ,INT *restrict fMap    ,INT const nSends
+  void makeBufferCel(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
+                  ,INT *RESTRICT fMap    ,INT const nSends
                   ,short const ndf       ,short const ndm);
   
-  void getBufferCel(DOUBLE *restrict x    ,DOUBLE *restrict xb
-              ,INT *restrict fMap       ,INT const nRcvs
+  void getBufferCel(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
+              ,INT *RESTRICT fMap       ,INT const nRcvs
               ,short const ndf          ,short const ndm);
   
-  void comunicateCel(Interface *iCel,DOUBLE *restrict x
+  void comunicateCel(Interface *iCel,DOUBLE *RESTRICT x
                     ,short const ndf,short const ndm);
 /*...................................................................*/
 
 
 /*... nos nas interfaces*/  
-  void dGetBufferNod(DOUBLE *restrict x    ,DOUBLE *restrict xb
-                    ,INT *restrict fMap       ,INT const nRcvs
+  void dGetBufferNod(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
+                    ,INT *RESTRICT fMap       ,INT const nRcvs
                     ,short const ndf          ,short const ndm);
 
-  void dMakeBufferNod(DOUBLE *restrict x    ,DOUBLE *restrict xb
-                  ,INT *restrict fMap    ,INT const nSends
+  void dMakeBufferNod(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
+                  ,INT *RESTRICT fMap    ,INT const nSends
                   ,short const ndf       ,short const ndm);
 
 
-  void dComunicateNod(InterfaceNo *iNo ,DOUBLE *restrict x
+  void dComunicateNod(InterfaceNo *iNo ,DOUBLE *RESTRICT x
                      ,short const ndf,short const ndm);
 
 
-  void iGetBufferNod(INT *restrict x    ,INT *restrict xb
-                    ,INT *restrict fMap ,INT const nRcvs
+  void iGetBufferNod(INT *RESTRICT x    ,INT *RESTRICT xb
+                    ,INT *RESTRICT fMap ,INT const nRcvs
                     ,short const ndf    ,short const ndm);
 
-  void iMakeBufferNod(INT *restrict x    ,INT *restrict xb
-                     ,INT *restrict fMap ,INT const nSends
+  void iMakeBufferNod(INT *RESTRICT x    ,INT *RESTRICT xb
+                     ,INT *RESTRICT fMap ,INT const nSends
                      ,short const ndf    ,short const ndm);
 
 
-  void iComunicateNod(InterfaceNo *iNo ,INT *restrict x
+  void iComunicateNod(InterfaceNo *iNo ,INT *RESTRICT x
                      ,short const ndf,short const ndm);
 /*...................................................................*/
 
 /*... globaliza os valores nodas no processo master(0)*/
   void dGlobalNode(Memoria *m         ,PartMesh *pMesh
-                  ,DOUBLE *restrict uG,DOUBLE *restrict uL
+                  ,DOUBLE *RESTRICT uG,DOUBLE *RESTRICT uL
                   ,short const ndf1   ,short const ndf2);
 /*...................................................................*/
 
 /*... globaliza os valores das celulas no processo master(0)*/
   void dGlobalCel(Memoria *m         ,PartMesh *pMesh
-               ,DOUBLE *restrict uG,DOUBLE *restrict uL
+               ,DOUBLE *RESTRICT uG,DOUBLE *RESTRICT uL
                ,INT const numelNov 
                ,short const ndf1   ,short const ndf2);
 /*...................................................................*/

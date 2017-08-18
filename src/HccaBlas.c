@@ -198,7 +198,7 @@ INT flopMatVecCsr(INT neq,INT nad,short ty){
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void prodVet(DOUBLE *restrict a,DOUBLE *restrict b, DOUBLE *restrict c)
+void prodVet(DOUBLE *RESTRICT a,DOUBLE *RESTRICT b, DOUBLE *RESTRICT c)
 {
   c[0] = a[1]*b[2] - a[2]*b[1];
   c[1] = a[2]*b[0] - a[0]*b[2];
@@ -225,8 +225,8 @@ void prodVet(DOUBLE *restrict a,DOUBLE *restrict b, DOUBLE *restrict c)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void alphaProdVector(DOUBLE const alpha,DOUBLE *restrict a
-                    ,INT const nDim    ,DOUBLE *restrict c) 
+void alphaProdVector(DOUBLE const alpha,DOUBLE *RESTRICT a
+                    ,INT const nDim    ,DOUBLE *RESTRICT c) 
 
 {
   INT i;
@@ -261,9 +261,9 @@ void alphaProdVector(DOUBLE const alpha,DOUBLE *restrict a
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void addVector(DOUBLE const alpha,DOUBLE *restrict a
-              ,DOUBLE const beta ,DOUBLE *restrict b
-              ,INT const nDim    ,DOUBLE *restrict c) 
+void addVector(DOUBLE const alpha,DOUBLE *RESTRICT a
+              ,DOUBLE const beta ,DOUBLE *RESTRICT b
+              ,INT const nDim    ,DOUBLE *RESTRICT c) 
 
 {
   INT i;
@@ -298,7 +298,7 @@ void addVector(DOUBLE const alpha,DOUBLE *restrict a
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE dot(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
+DOUBLE dot(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 {
   INT i;
   DOUBLE tmp=0.e0,dot=0.e0;
@@ -351,7 +351,7 @@ DOUBLE dot(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE dotO2I2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
+DOUBLE dotO2I2(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0;
@@ -415,7 +415,7 @@ DOUBLE dotO2I2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE dotI2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
+DOUBLE dotI2(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0;
@@ -475,7 +475,7 @@ DOUBLE dotI2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE dotI4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
+DOUBLE dotI4(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0,tmp3=0.e0,tmp4=0.e0;
@@ -542,7 +542,7 @@ DOUBLE dotI4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE dotI6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
+DOUBLE dotI6(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0,tmp3=0.e0,tmp4=0.e0;
@@ -620,7 +620,7 @@ DOUBLE dotI6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE dotI8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
+DOUBLE dotI8(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp1=0.e0,tmp2=0.e0,tmp3=0.e0,tmp4=0.e0;
@@ -709,7 +709,7 @@ DOUBLE dotI8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE dotO2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
+DOUBLE dotO2(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp=0.e0;
@@ -766,7 +766,7 @@ DOUBLE dotO2(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE dotO4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
+DOUBLE dotO4(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp=0.e0;
@@ -829,7 +829,7 @@ DOUBLE dotO4(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE dotO6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
+DOUBLE dotO6(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp=0.e0;
@@ -900,7 +900,7 @@ DOUBLE dotO6(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE dotO8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
+DOUBLE dotO8(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 {
   INT i,resto;
   DOUBLE tmp=0.e0;
@@ -981,7 +981,7 @@ DOUBLE dotO8(DOUBLE *restrict x1,DOUBLE *restrict x2,INT const n)
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-DOUBLE dotOmp(DOUBLE *restrict x1, DOUBLE *restrict x2, INT const n)
+DOUBLE dotOmp(DOUBLE *RESTRICT x1, DOUBLE *RESTRICT x2, INT const n)
 {
   INT i;
 
@@ -1023,7 +1023,7 @@ DOUBLE dotOmp(DOUBLE *restrict x1, DOUBLE *restrict x2, INT const n)
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-double dotOmpO2I2(double *restrict x1, double *restrict x2, INT n)
+double dotOmpO2I2(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 {
   INT i;
   int resto = n % 4;
@@ -1081,7 +1081,7 @@ double dotOmpO2I2(double *restrict x1, double *restrict x2, INT n)
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-double dotOmpO2I4(double *restrict x1, double *restrict x2, INT n)
+double dotOmpO2I4(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 {
   INT i;
   int resto = n % 8;
@@ -1159,7 +1159,7 @@ double dotOmpO2I4(double *restrict x1, double *restrict x2, INT n)
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-double dotOmpI2(double *restrict x1, double *restrict x2, INT n)
+double dotOmpI2(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 {
   INT i;
   int resto = n % 2;
@@ -1209,7 +1209,7 @@ double dotOmpI2(double *restrict x1, double *restrict x2, INT n)
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-double dotOmpI4(double *restrict x1, double *restrict x2, INT n)
+double dotOmpI4(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 {
   INT i;
   int resto = n % 4;
@@ -1267,7 +1267,7 @@ double dotOmpI4(double *restrict x1, double *restrict x2, INT n)
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-double dotOmpI6(double *restrict x1, double *restrict x2, INT n)
+double dotOmpI6(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 {
   INT i;
   int resto = n % 6;
@@ -1338,7 +1338,7 @@ double dotOmpI6(double *restrict x1, double *restrict x2, INT n)
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-double dotOmpI8(double *restrict x1, double *restrict x2, INT n)
+double dotOmpI8(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 {
   INT i;
   int resto = n % 8;
@@ -1423,7 +1423,7 @@ double dotOmpI8(double *restrict x1, double *restrict x2, INT n)
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-double dotOmpO2(double *restrict x1, double *restrict x2, INT n)
+double dotOmpO2(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 {
   INT i;
   int resto = n % 2;
@@ -1466,7 +1466,7 @@ double dotOmpO2(double *restrict x1, double *restrict x2, INT n)
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-double dotOmpO4(double *restrict x1, double *restrict x2, INT n)
+double dotOmpO4(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 {
   INT i;
   int resto = n % 4;
@@ -1516,7 +1516,7 @@ double dotOmpO4(double *restrict x1, double *restrict x2, INT n)
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-double dotOmpO6(double *restrict x1, double *restrict x2, INT n)
+double dotOmpO6(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 {
   INT i;
   int resto = n % 6;
@@ -1574,7 +1574,7 @@ double dotOmpO6(double *restrict x1, double *restrict x2, INT n)
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-double dotOmpO8(double *restrict x1, double *restrict x2, INT n)
+double dotOmpO8(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 {
   INT i;
   int resto = n % 8;
@@ -1652,9 +1652,9 @@ double dotOmpO8(double *restrict x1, double *restrict x2, INT n)
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void matVecCsrDSym(INT const neq           
-                  ,INT *restrict ia   ,INT *restrict ja
-                  ,DOUBLE *restrict al,DOUBLE *restrict ad
-                  ,DOUBLE *restrict x ,DOUBLE *restrict y)
+                  ,INT *RESTRICT ia   ,INT *RESTRICT ja
+                  ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
+                  ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y)
 {
   INT    i,k,jak;
   DOUBLE xi,tmp,sAu;
@@ -1712,9 +1712,9 @@ void matVecCsrDSym(INT const neq
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void mpiMatVecCsrDSym(INT const nEq      ,INT const *nAd      
-                     ,INT *restrict ia   ,INT *restrict ja
-                     ,DOUBLE *restrict al,DOUBLE *restrict ad
-                     ,DOUBLE *restrict x ,DOUBLE *restrict y
+                     ,INT *RESTRICT ia   ,INT *RESTRICT ja
+                     ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
+                     ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y
                      ,Interface *iNeq)
 {
 #ifdef _MPICH_
@@ -1794,9 +1794,9 @@ void mpiMatVecCsrDSym(INT const nEq      ,INT const *nAd
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void mpiMatVecCsrDcooSym(INT const nEq      ,INT const *nAd      
-                        ,INT *restrict ia   ,INT *restrict ja
-                        ,DOUBLE *restrict al,DOUBLE *restrict ad
-                        ,DOUBLE *restrict x ,DOUBLE *restrict y
+                        ,INT *RESTRICT ia   ,INT *RESTRICT ja
+                        ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
+                        ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y
                         ,Interface *iNeq)
 {
 #ifdef _MPICH_
@@ -1882,12 +1882,12 @@ void mpiMatVecCsrDcooSym(INT const nEq      ,INT const *nAd
 *-------------------------------------------------------------------*
 *********************************************************************/
 void matVecCsrDsymOmp(INT const nEq
-                     ,INT *restrict ia       ,INT *restrict ja
-                     ,DOUBLE *restrict al    ,DOUBLE *restrict ad
-                     ,DOUBLE *restrict x     ,DOUBLE *restrict y
-                     ,INT  *restrict thBegin ,INT *restrict thEnd
-                     ,INT  *restrict thHeight
-                     ,DOUBLE *restrict thY   ,int const nThreads)
+                     ,INT *RESTRICT ia       ,INT *RESTRICT ja
+                     ,DOUBLE *RESTRICT al    ,DOUBLE *RESTRICT ad
+                     ,DOUBLE *RESTRICT x     ,DOUBLE *RESTRICT y
+                     ,INT  *RESTRICT thBegin ,INT *RESTRICT thEnd
+                     ,INT  *RESTRICT thHeight
+                     ,DOUBLE *RESTRICT thY   ,int const nThreads)
 {
   INT    i, k, jak,inc,id=0;
   DOUBLE xi, tmp, sAu;
@@ -1970,9 +1970,9 @@ void matVecCsrDsymOmp(INT const nEq
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void matVecCsrD(INT const neq
-               ,INT *restrict ia  ,INT *restrict ja
-               ,DOUBLE *restrict a,DOUBLE *restrict ad
-               ,DOUBLE *restrict x,DOUBLE *restrict y)
+               ,INT *RESTRICT ia  ,INT *RESTRICT ja
+               ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+               ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y)
 {
 
   INT i,j;
@@ -2019,9 +2019,9 @@ void matVecCsrD(INT const neq
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void matVecCsrDI2(INT const neq           
-                 ,INT *restrict ia  ,INT *restrict ja
-                 ,DOUBLE *restrict a,DOUBLE *restrict ad
-                 ,DOUBLE *restrict x,DOUBLE *restrict y)
+                 ,INT *RESTRICT ia  ,INT *RESTRICT ja
+                 ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+                 ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y)
 {
   INT i;
   INT ia1,ia2,ja1;
@@ -2080,9 +2080,9 @@ void matVecCsrDI2(INT const neq
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void matVecCsrDI4(INT const neq           
-                 ,INT *restrict ia  ,INT *restrict ja
-                 ,DOUBLE *restrict a,DOUBLE *restrict ad
-                 ,DOUBLE *restrict x,DOUBLE *restrict y)
+                 ,INT *RESTRICT ia  ,INT *RESTRICT ja
+                 ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+                 ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y)
 {
   INT i;
   INT ia1,ia2,ja1;
@@ -2150,9 +2150,9 @@ void matVecCsrDI4(INT const neq
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void matVecCsrDI6(INT const neq           
-                 ,INT *restrict ia  ,INT *restrict ja
-                 ,DOUBLE *restrict a,DOUBLE *restrict ad
-                 ,DOUBLE *restrict x,DOUBLE *restrict y)
+                 ,INT *RESTRICT ia  ,INT *RESTRICT ja
+                 ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+                 ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y)
 {
   INT i;
   INT ia1,ia2,ja1;
@@ -2232,9 +2232,9 @@ void matVecCsrDI6(INT const neq
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void matVecCsrDO2(INT const neq           
-                 ,INT *restrict ia  ,INT *restrict ja
-                 ,DOUBLE *restrict a,DOUBLE *restrict ad
-                 ,DOUBLE *restrict x,DOUBLE *restrict y)
+                 ,INT *RESTRICT ia  ,INT *RESTRICT ja
+                 ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+                 ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y)
 {
   INT i;
   INT ia1,ia2,ia3,ja1;
@@ -2308,9 +2308,9 @@ linhai2:
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void matVecCsrDO4(INT const neq           
-                 ,INT *restrict ia  ,INT *restrict ja
-                 ,DOUBLE *restrict a,DOUBLE *restrict ad
-                 ,DOUBLE *restrict x,DOUBLE *restrict y)
+                 ,INT *RESTRICT ia  ,INT *RESTRICT ja
+                 ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+                 ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y)
 {
   INT i,j;
   INT ia1,ia2,ia3,ia4,ia5;
@@ -2432,9 +2432,9 @@ linhai4:
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void matVecCsrDO6(INT const neq           
-                 ,INT *restrict ia  ,INT *restrict ja
-                 ,DOUBLE *restrict a,DOUBLE *restrict ad
-                 ,DOUBLE *restrict x,DOUBLE *restrict y)
+                 ,INT *RESTRICT ia  ,INT *RESTRICT ja
+                 ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+                 ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y)
 {
   INT i,j;
   INT ia1,ia2,ia3,ia4,ia5,ia6,ia7;
@@ -2619,9 +2619,9 @@ linhai6:
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void matVecCsrDO2I2(INT const neq           
-                   ,INT *restrict ia  ,INT *restrict ja
-                   ,DOUBLE *restrict a,DOUBLE *restrict ad
-                   ,DOUBLE *restrict x,DOUBLE *restrict y)
+                   ,INT *RESTRICT ia  ,INT *RESTRICT ja
+                   ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+                   ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y)
 {
   INT i,j;
   INT ia1,ia2,ia3;
@@ -2707,9 +2707,9 @@ linhai2:
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void mpiMatVecCsrD(INT const neq     ,INT const *nAd 
-                  ,INT *restrict ia  ,INT *restrict ja
-                  ,DOUBLE *restrict a,DOUBLE *restrict ad
-                  ,DOUBLE *restrict x,DOUBLE *restrict y
+                  ,INT *RESTRICT ia  ,INT *RESTRICT ja
+                  ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+                  ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y
                   ,Interface *iNeq)
 {
 
@@ -2774,11 +2774,11 @@ void mpiMatVecCsrD(INT const neq     ,INT const *nAd
 *-------------------------------------------------------------------*
 *********************************************************************/
 void matVecCsrDomp(INT const nEq
-                ,INT *restrict ia, INT *restrict ja
-                ,DOUBLE *restrict a, DOUBLE *restrict ad
-                ,DOUBLE *restrict x, DOUBLE *restrict y
-                ,INT  *restrict thBegin, INT *restrict thEnd
-                ,INT  *restrict thHeight
+                ,INT *RESTRICT ia, INT *RESTRICT ja
+                ,DOUBLE *RESTRICT a, DOUBLE *RESTRICT ad
+                ,DOUBLE *RESTRICT x, DOUBLE *RESTRICT y
+                ,INT  *RESTRICT thBegin, INT *RESTRICT thEnd
+                ,INT  *RESTRICT thHeight
                 ,DOUBLE *ddum           , int const nThreads)
 {
 
@@ -2832,14 +2832,14 @@ void matVecCsrDomp(INT const nEq
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void matVecCsrC(INT const neq                              
-               ,INT *restrict ia   ,INT *restrict ja
-               ,DOUBLE *restrict a ,DOUBLE *restrict ad
-               ,DOUBLE *restrict x ,DOUBLE *restrict y)
+               ,INT *RESTRICT ia   ,INT *RESTRICT ja
+               ,DOUBLE *RESTRICT a ,DOUBLE *RESTRICT ad
+               ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y)
 {
   INT    i,k,jak,nAd;
   DOUBLE xi,tmp;
-  DOUBLE *restrict au=NULL;
-  DOUBLE *restrict al=NULL;
+  DOUBLE *RESTRICT au=NULL;
+  DOUBLE *RESTRICT al=NULL;
 
   nAd = ia[neq] - ia[0]; 
 
@@ -2901,17 +2901,17 @@ void matVecCsrC(INT const neq
 *-------------------------------------------------------------------*
 *********************************************************************/
 void matVecCsrComp(INT const nEq
-                ,INT *restrict ia       ,INT *restrict ja
-                ,DOUBLE *restrict a     ,DOUBLE *restrict ad
-                ,DOUBLE *restrict x     ,DOUBLE *restrict y
-                ,INT  *restrict thBegin ,INT *restrict thEnd
-                ,INT  *restrict thHeight
-                ,DOUBLE *restrict thY   ,int const nThreads) 
+                ,INT *RESTRICT ia       ,INT *RESTRICT ja
+                ,DOUBLE *RESTRICT a     ,DOUBLE *RESTRICT ad
+                ,DOUBLE *RESTRICT x     ,DOUBLE *RESTRICT y
+                ,INT  *RESTRICT thBegin ,INT *RESTRICT thEnd
+                ,INT  *RESTRICT thHeight
+                ,DOUBLE *RESTRICT thY   ,int const nThreads) 
 {
   INT    i, k, jak, nAd,inc,id=0;
   DOUBLE xi, tmp;
-  DOUBLE *restrict au = NULL;
-  DOUBLE *restrict al = NULL;
+  DOUBLE *RESTRICT au = NULL;
+  DOUBLE *RESTRICT al = NULL;
 
   nAd = ia[nEq] - ia[0];
 
@@ -2998,19 +2998,19 @@ void matVecCsrComp(INT const nEq
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void mpiMatVecCsrC(INT const nEq      ,INT const *nAd      
-                  ,INT *restrict ia   ,INT *restrict ja
-                  ,DOUBLE *restrict a ,DOUBLE *restrict ad
-                  ,DOUBLE *restrict x ,DOUBLE *restrict y
+                  ,INT *RESTRICT ia   ,INT *RESTRICT ja
+                  ,DOUBLE *RESTRICT a ,DOUBLE *RESTRICT ad
+                  ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y
                   ,Interface *iNeq)
 {
 #ifdef _MPICH_
   INT    i,k,jak;
   DOUBLE xi,tmp;
-  INT *restrict iar=NULL;
-  INT *restrict jar=NULL;
-  DOUBLE *restrict ar=NULL;
-  DOUBLE *restrict au=NULL;
-  DOUBLE *restrict al=NULL;
+  INT *RESTRICT iar=NULL;
+  INT *RESTRICT jar=NULL;
+  DOUBLE *RESTRICT ar=NULL;
+  DOUBLE *RESTRICT au=NULL;
+  DOUBLE *RESTRICT al=NULL;
 
   au = &a[nAd[0]];
   al = &a[0];
@@ -3085,19 +3085,19 @@ void mpiMatVecCsrC(INT const nEq      ,INT const *nAd
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void mpiMatVecCsrCcoo(INT const nEq      ,INT const *nAd      
-                     ,INT *restrict ia   ,INT *restrict ja
-                     ,DOUBLE *restrict a ,DOUBLE *restrict ad
-                     ,DOUBLE *restrict x ,DOUBLE *restrict y
+                     ,INT *RESTRICT ia   ,INT *RESTRICT ja
+                     ,DOUBLE *RESTRICT a ,DOUBLE *RESTRICT ad
+                     ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y
                      ,Interface *iNeq)
 {
 #ifdef _MPICH_
   INT    i,j,k,jak;
   DOUBLE xi,tmp;
-  INT *restrict iar=NULL;
-  INT *restrict jar=NULL;
-  DOUBLE *restrict ar=NULL;
-  DOUBLE *restrict au=NULL;
-  DOUBLE *restrict al=NULL;
+  INT *RESTRICT iar=NULL;
+  INT *RESTRICT jar=NULL;
+  DOUBLE *RESTRICT ar=NULL;
+  DOUBLE *RESTRICT au=NULL;
+  DOUBLE *RESTRICT al=NULL;
 
   au = &a[nAd[0]];
   al = &a[0];
@@ -3174,9 +3174,9 @@ void mpiMatVecCsrCcoo(INT const nEq      ,INT const *nAd
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void matVecEllPack(INT const nEq           
-                  ,INT *restrict ia  ,INT *restrict ja
-                  ,DOUBLE *restrict a,DOUBLE *restrict ad
-                  ,DOUBLE *restrict x,DOUBLE *restrict y)
+                  ,INT *RESTRICT ia  ,INT *RESTRICT ja
+                  ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+                  ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y)
 {
  
   INT i,maxLineNzr=ia[0];
@@ -3252,9 +3252,9 @@ void matVecEllPack(INT const nEq
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void matVecEllPackO2(INT const nEq           
-                    ,INT *restrict ia  ,INT *restrict ja
-                    ,DOUBLE *restrict a,DOUBLE *restrict ad
-                    ,DOUBLE *restrict x,DOUBLE *restrict y)
+                    ,INT *RESTRICT ia  ,INT *RESTRICT ja
+                    ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+                    ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y)
 {
  
   INT i,ii,maxLineNzr=ia[0];
@@ -3384,9 +3384,9 @@ void matVecEllPackO2(INT const nEq
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void matVecEllPackO4(INT const nEq           
-                    ,INT *restrict ia  ,INT *restrict ja
-                    ,DOUBLE *restrict a,DOUBLE *restrict ad
-                    ,DOUBLE *restrict x,DOUBLE *restrict y)
+                    ,INT *RESTRICT ia  ,INT *RESTRICT ja
+                    ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+                    ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y)
 {
  
   INT i,ii,iii,iv,maxLineNzr=ia[0];
@@ -3568,9 +3568,9 @@ void matVecEllPackO4(INT const nEq
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void mpiMatVecEllPack(INT const nEq  ,INT const *nAd 
-                  ,INT *restrict ia  ,INT *restrict ja
-                  ,DOUBLE *restrict a,DOUBLE *restrict ad
-                  ,DOUBLE *restrict x,DOUBLE *restrict y
+                  ,INT *RESTRICT ia  ,INT *RESTRICT ja
+                  ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+                  ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y
                   ,Interface *iNeq)
 {
  

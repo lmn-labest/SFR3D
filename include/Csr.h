@@ -16,40 +16,40 @@
 /*...................................................................*/
 
 /*...*/
-  INT csrIa(INT *restrict ia     ,INT *restrict id 
-           ,INT *restrict num    ,INT *restrict adj
-           ,short *restrict nViz
+  INT csrIa(INT *RESTRICT ia     ,INT *RESTRICT id 
+           ,INT *RESTRICT num    ,INT *RESTRICT adj
+           ,short *RESTRICT nViz
            ,INT const numel      ,INT const neq  
            ,short const maxViz   ,short const ndf 
            ,bool const upper     ,bool const diag 
            ,bool const lower     );
 
-  INT csrIaR(INT *restrict ia     ,INT *restrict id   
-            ,INT *restrict num    ,INT *restrict adj
-            ,short *restrict nViz
+  INT csrIaR(INT *RESTRICT ia     ,INT *RESTRICT id   
+            ,INT *RESTRICT num    ,INT *RESTRICT adj
+            ,short *RESTRICT nViz
             ,INT const numel      ,INT const neq
             ,short const maxViz   ,short  const ndf);
 
-  void csrJa(INT *restrict ia   ,INT *restrict ja 
-           ,INT *restrict id    ,INT *restrict num
-           ,INT *restrict adj   ,short *restrict nViz
+  void csrJa(INT *RESTRICT ia   ,INT *RESTRICT ja 
+           ,INT *RESTRICT id    ,INT *RESTRICT num
+           ,INT *RESTRICT adj   ,short *RESTRICT nViz
            ,INT const numel     ,INT const neq 
            ,short const maxViz  ,short const ndf
            ,bool const upper    ,bool const diag
            ,bool const lower);
   
-  void csrJaR(INT *restrict ia   ,INT *restrict ja 
-             ,INT *restrict id    ,INT *restrict num
-             ,INT *restrict adj   ,short *restrict nViz
+  void csrJaR(INT *RESTRICT ia   ,INT *RESTRICT ja 
+             ,INT *RESTRICT id    ,INT *RESTRICT num
+             ,INT *RESTRICT adj   ,short *RESTRICT nViz
              ,INT const numel     ,INT const neq 
              ,short const maxViz  ,short const ndf);
 /*...................................................................*/
 
 /*...*/  
-  void csr(INT    *restrict  ia,INT *restrict ja 
-          ,DOUBLE *restrict a  ,DOUBLE *restrict ad
-          ,DOUBLE *restrict b  ,INT *restrict lId                       
-          ,DOUBLE *restrict lA ,DOUBLE *restrict lB 
+  void csr(INT    *RESTRICT  ia,INT *RESTRICT ja 
+          ,DOUBLE *RESTRICT a  ,DOUBLE *RESTRICT ad
+          ,DOUBLE *RESTRICT b  ,INT *RESTRICT lId                       
+          ,DOUBLE *RESTRICT lA ,DOUBLE *RESTRICT lB 
           ,INT const nEq       ,INT const nEqNov 
           ,INT const nAd       ,INT const nAdR 
           ,short const nFace   ,short const ndf  
@@ -58,10 +58,10 @@
 /*...................................................................*/
 
 /*...*/  
-  void csrSimple(INT    *restrict  ia,INT *restrict ja 
-          ,DOUBLE *restrict a  ,DOUBLE *restrict ad
-          ,DOUBLE *restrict b  ,INT *restrict lId                       
-          ,DOUBLE *restrict lA ,DOUBLE *restrict lB 
+  void csrSimple(INT    *RESTRICT  ia,INT *RESTRICT ja 
+          ,DOUBLE *RESTRICT a  ,DOUBLE *RESTRICT ad
+          ,DOUBLE *RESTRICT b  ,INT *RESTRICT lId                       
+          ,DOUBLE *RESTRICT lA ,DOUBLE *RESTRICT lB 
           ,INT const nEq       ,INT const nEqNov 
           ,INT const nAd       ,INT const nAdR 
           ,short const nFace   ,short const ndf  
@@ -76,19 +76,19 @@
 /*...................................................................*/
 
 /*...*/
-  void sortGraphCsr(INT *restrict ia,INT *restrict ja,INT const n);
+  void sortGraphCsr(INT *RESTRICT ia,INT *RESTRICT ja,INT const n);
 /*...................................................................*/
 
 /*... divisao da matriz para o openmp*/
-  void partitionCsrByNonzeros(INT *restrict ia      ,INT *restrictja
+  void partitionCsrByNonzeros(INT *RESTRICT ia      ,INT *RESTRICT ja
                  ,INT const nEq
-                 ,int nThreads          ,INT *restrict thBegin
-                 ,INT *restrict thEnd   ,INT *restrict thSize
-                 ,INT *restrict thHeight,short type);
-  void computeEffectiveWork(INT *restrict ia        ,INT *restrict ja
+                 ,int nThreads          ,INT *RESTRICT thBegin
+                 ,INT *RESTRICT thEnd   ,INT *RESTRICT thSize
+                 ,INT *RESTRICT thHeight,short type);
+  void computeEffectiveWork(INT *RESTRICT ia        ,INT *RESTRICT ja
                  ,INT const nEq
-                 ,INT *restrict thBegin,INT *restrict thEnd
-                 ,INT *restrict thSize ,INT *restrict thHeight);
+                 ,INT *RESTRICT thBegin,INT *RESTRICT thEnd
+                 ,INT *RESTRICT thSize ,INT *RESTRICT thHeight);
 /*...................................................................*/
 
 #endif/*_CSR_H*/

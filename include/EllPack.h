@@ -17,19 +17,19 @@
 /*...................................................................*/
 
 /*...*/
-  INT ellPackJa(INT *restrict ifEllPack,INT *restrict ja
-               ,INT *restrict id       ,INT *restrict num
-               ,INT *restrict adj      ,short *restrict nViz
+  INT ellPackJa(INT *RESTRICT ifEllPack,INT *RESTRICT ja
+               ,INT *RESTRICT id       ,INT *RESTRICT num
+               ,INT *RESTRICT adj      ,short *RESTRICT nViz
                ,INT const numel        ,INT const nEq    
                ,short const maxLineNzr ,const short ndf);
 /*...................................................................*/
 
 /*...*/
- void ellPack(INT    *restrict  ifEllPack
-        ,DOUBLE *restrict ad            ,DOUBLE *restrict a
-        ,DOUBLE *restrict b
-        ,INT *restrict lId                       
-        ,DOUBLE *restrict lA            ,DOUBLE *restrict lB 
+ void ellPack(INT    *RESTRICT  ifEllPack
+        ,DOUBLE *RESTRICT ad            ,DOUBLE *RESTRICT a
+        ,DOUBLE *RESTRICT b
+        ,INT *RESTRICT lId                       
+        ,DOUBLE *RESTRICT lA            ,DOUBLE *RESTRICT lB 
         ,short const nFace              ,short const ndf  
         ,short const storage            ,bool  const forces
         ,bool const matrix              );

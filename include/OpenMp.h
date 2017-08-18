@@ -12,7 +12,6 @@
     #include<Sisteq.h>
 /*...................................................................*/
   
-  #ifdef _OPENMP
     DOUBLE tmpDotOmp;
     DOUBLE tmpDotOmp1;
     DOUBLE tmpDotOmp2;
@@ -22,7 +21,6 @@
     DOUBLE tmpDotOmp6;
     DOUBLE tmpDotOmp7;
     DOUBLE tmpDotOmp8;
-  #endif
   
 /*... OPENMP*/
   typedef struct {

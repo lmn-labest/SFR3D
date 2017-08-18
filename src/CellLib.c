@@ -65,21 +65,21 @@
 void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
              ,Advection  advVel          ,Diffusion diffVel    
              ,short const typeSimple 
-             ,short *restrict lGeomType  ,DOUBLE *restrict lprop
-             ,INT   *restrict lViz       ,INT *restrict lId  
-             ,DOUBLE *restrict ksi       ,DOUBLE *restrict mKsi
-             ,DOUBLE *restrict eta       ,DOUBLE *restrict fArea
-             ,DOUBLE *restrict normal    ,DOUBLE *restrict volume
-             ,DOUBLE *restrict xm        ,DOUBLE *restrict xmcc
-             ,DOUBLE *restrict dcca      ,DOUBLE *restrict lDensity
-             ,DOUBLE *restrict vSkew     ,DOUBLE *restrict mvSkew
-             ,DOUBLE *restrict lA        ,DOUBLE *restrict lB
-             ,DOUBLE *restrict lRcell    ,Temporal const ddt
-             ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL
-             ,short  *restrict lFacePresR,short  *restrict lFacePresL
-             ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres 
-             ,DOUBLE *restrict vel       ,DOUBLE *restrict gradVel
-             ,DOUBLE *restrict dField    ,DOUBLE *restrict cc
+             ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
+             ,INT   *RESTRICT lViz       ,INT *RESTRICT lId  
+             ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
+             ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea
+             ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT volume
+             ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
+             ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT lDensity
+             ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
+             ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
+             ,DOUBLE *RESTRICT lRcell    ,Temporal const ddt
+             ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
+             ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
+             ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres 
+             ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
+             ,DOUBLE *RESTRICT dField    ,DOUBLE *RESTRICT cc
              ,DOUBLE const underU        ,const bool sPressure
              ,short const nEn            ,short  const nFace
              ,short const ndm            ,short const lib
@@ -203,20 +203,20 @@ void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
  *********************************************************************/
 void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres
 	             ,Diffusion diffPres
-               ,short *restrict lGeomType,DOUBLE *restrict lprop
-               ,INT   *restrict lViz     ,INT *restrict lId  
-               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
-               ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
-               ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-               ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-               ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
-               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
-               ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-               ,DOUBLE *restrict lRcell  ,Temporal const ddt
-               ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL
-               ,short  *restrict lFacePresR,short  *restrict lFacePresL
-               ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres 
-               ,DOUBLE *restrict vel     ,DOUBLE *restrict dField 
+               ,short *RESTRICT lGeomType,DOUBLE *RESTRICT lprop
+               ,INT   *RESTRICT lViz     ,INT *RESTRICT lId  
+               ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
+               ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
+               ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
+               ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+               ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
+               ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
+               ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
+               ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt
+               ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
+               ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
+               ,DOUBLE *RESTRICT pres    ,DOUBLE *RESTRICT gradPres 
+               ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT dField 
                ,short const nEn          ,short  const nFace     
                ,short const ndm          ,short const lib    
                ,INT const nel)
@@ -339,21 +339,21 @@ void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres
  *********************************************************************/
 void cellLibVelExp(Loads *loadsVel, Loads *loadsPres
          ,Advection advVel           ,Diffusion diffVel
-         ,short *restrict lGeomType  ,DOUBLE *restrict lprop
-         ,INT   *restrict lViz      
-         ,DOUBLE *restrict ksi       ,DOUBLE *restrict mKsi
-         ,DOUBLE *restrict eta       ,DOUBLE *restrict fArea
-         ,DOUBLE *restrict normal    ,DOUBLE *restrict volume
-         ,DOUBLE *restrict xm        ,DOUBLE *restrict xmcc
-         ,DOUBLE *restrict dcca      ,DOUBLE *restrict lDensity
-         ,DOUBLE *restrict vSkew     ,DOUBLE *restrict mvSkew
-         ,DOUBLE *restrict lB        ,Temporal const ddt
-         ,short  *restrict lFaceVelR ,short  *restrict lFaceVelL
-         ,short  *restrict lFacePresR,short  *restrict lFacePresL
-         ,DOUBLE *restrict pres      ,DOUBLE *restrict gradPres
-         ,DOUBLE *restrict vel       ,DOUBLE *restrict gradVel
-         ,DOUBLE *restrict dField    ,DOUBLE *restrict cc
-         ,DOUBLE *restrict lBt       ,DOUBLE const underU
+         ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
+         ,INT   *RESTRICT lViz      
+         ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
+         ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea
+         ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT volume
+         ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
+         ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT lDensity
+         ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
+         ,DOUBLE *RESTRICT lB        ,Temporal const ddt
+         ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
+         ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
+         ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres
+         ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
+         ,DOUBLE *RESTRICT dField    ,DOUBLE *RESTRICT cc
+         ,DOUBLE *RESTRICT lBt       ,DOUBLE const underU
          ,const bool sPressure       ,const bool fResidual
          ,const short nEn            ,short const nFace
          ,const short ndm            ,INT const nel)
@@ -458,17 +458,17 @@ void cellLibVelExp(Loads *loadsVel, Loads *loadsPres
  *-------------------------------------------------------------------*
  *********************************************************************/
 void cellLibSimpleNonOrthPres(Diffusion diffPres
-               ,short *restrict lGeomType
-               ,DOUBLE *restrict lprop   ,INT   *restrict lViz
-               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
-               ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
-               ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-               ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-               ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
-               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
-               ,DOUBLE *restrict lB      
-               ,DOUBLE *restrict pres    ,DOUBLE *restrict gradPres
-               ,DOUBLE *restrict dField  ,DOUBLE *restrict cc
+               ,short *RESTRICT lGeomType
+               ,DOUBLE *RESTRICT lprop   ,INT   *RESTRICT lViz
+               ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
+               ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
+               ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
+               ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+               ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
+               ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
+               ,DOUBLE *RESTRICT lB      
+               ,DOUBLE *RESTRICT pres    ,DOUBLE *RESTRICT gradPres
+               ,DOUBLE *RESTRICT dField  ,DOUBLE *RESTRICT cc
                ,short const nEn          ,short  const nFace     
                ,short const ndm          ,INT const nel)
 {
@@ -571,19 +571,19 @@ void cellLibSimpleNonOrthPres(Diffusion diffPres
  *********************************************************************/
 void cellLibTrans(Loads *loads           
                ,Advection advT           ,Diffusion diffT
-               ,short *restrict lGeomType,DOUBLE *restrict lprop
-               ,INT   *restrict lViz     ,INT *restrict lId  
-               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
-               ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
-               ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-               ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-               ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
-               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
-               ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-               ,DOUBLE *restrict lRcell  ,Temporal const ddt
-               ,short  *restrict lFaceR  ,short  *restrict lFaceL       
-               ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
-               ,DOUBLE *restrict vel     ,DOUBLE *restrict cc
+               ,short *RESTRICT lGeomType,DOUBLE *RESTRICT lprop
+               ,INT   *RESTRICT lViz     ,INT *RESTRICT lId  
+               ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
+               ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
+               ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
+               ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+               ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
+               ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
+               ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
+               ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt
+               ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL       
+               ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
+               ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT cc
                ,short const nEn          ,short  const nFace     
                ,short const ndm          ,short const lib    
                ,INT const nel)
@@ -691,18 +691,18 @@ void cellLibTrans(Loads *loads
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void cellLibDif(Loads *loads
-               ,short *restrict lGeomType,DOUBLE *restrict lprop
-               ,INT   *restrict lViz     ,INT *restrict lId  
-               ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
-               ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
-               ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-               ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-               ,DOUBLE *restrict dcca    ,DOUBLE *restrict lDensity
-               ,DOUBLE *restrict vSkew   ,DOUBLE *restrict mvSkew
-               ,DOUBLE *restrict lA      ,DOUBLE *restrict lB
-               ,DOUBLE *restrict lRcell  ,Temporal const ddt
-               ,short  *restrict lFaceR  ,short  *restrict lFaceL       
-               ,DOUBLE *restrict u0      ,DOUBLE *restrict gradU0
+               ,short *RESTRICT lGeomType,DOUBLE *RESTRICT lprop
+               ,INT   *RESTRICT lViz     ,INT *RESTRICT lId  
+               ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
+               ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
+               ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
+               ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+               ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
+               ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
+               ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
+               ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt
+               ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL       
+               ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
                ,short const nEn          ,short  const nFace     
                ,short const ndm          ,short const lib    
                ,INT const nel)
@@ -811,15 +811,15 @@ void cellLibDif(Loads *loads
  *     lx(vizinho,numero do no do vizinho, dimensao)                 * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellGeom2D(DOUBLE *restrict lx       ,short *restrict lnFace
-               ,short  *restrict lGeomType,DOUBLE *restrict xc
-               ,DOUBLE *restrict ksi      ,DOUBLE *restrict mksi
-               ,DOUBLE *restrict eta      ,DOUBLE *restrict meta
-               ,DOUBLE *restrict normal   ,DOUBLE *restrict area
-               ,DOUBLE *restrict xm       ,DOUBLE *restrict xmcc
-               ,DOUBLE *restrict dcca     
-               ,DOUBLE *restrict vSkew    ,DOUBLE *restrict mvSkew
-               ,short  *restrict sn
+void cellGeom2D(DOUBLE *RESTRICT lx       ,short *RESTRICT lnFace
+               ,short  *RESTRICT lGeomType,DOUBLE *RESTRICT xc
+               ,DOUBLE *RESTRICT ksi      ,DOUBLE *RESTRICT mksi
+               ,DOUBLE *RESTRICT eta      ,DOUBLE *RESTRICT meta
+               ,DOUBLE *RESTRICT normal   ,DOUBLE *RESTRICT area
+               ,DOUBLE *RESTRICT xm       ,DOUBLE *RESTRICT xmcc
+               ,DOUBLE *RESTRICT dcca     
+               ,DOUBLE *RESTRICT vSkew    ,DOUBLE *RESTRICT mvSkew
+               ,short  *RESTRICT sn
                ,short const maxNo         ,short const maxViz
                ,short const ndm           ,INT const nel)
 {
@@ -1021,16 +1021,16 @@ void cellGeom2D(DOUBLE *restrict lx       ,short *restrict lnFace
  *     lx(vizinho,numero do no do vizinho, dimensao)                 * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
-               ,short *restrict lnFace    ,short *restrict lnEn      
-               ,DOUBLE *restrict xc        
-               ,DOUBLE *restrict ksi      ,DOUBLE *restrict mksi
-               ,DOUBLE *restrict eta      ,DOUBLE *restrict fArea
-               ,DOUBLE *restrict normal   ,DOUBLE *restrict volume
-               ,DOUBLE *restrict xm       ,DOUBLE *restrict xmcc
-               ,DOUBLE *restrict dcca     
-               ,DOUBLE *restrict vSkew    ,DOUBLE *restrict mvSkew
-               ,short  *restrict sn                         
+void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
+               ,short *RESTRICT lnFace    ,short *RESTRICT lnEn      
+               ,DOUBLE *RESTRICT xc        
+               ,DOUBLE *RESTRICT ksi      ,DOUBLE *RESTRICT mksi
+               ,DOUBLE *RESTRICT eta      ,DOUBLE *RESTRICT fArea
+               ,DOUBLE *RESTRICT normal   ,DOUBLE *RESTRICT volume
+               ,DOUBLE *RESTRICT xm       ,DOUBLE *RESTRICT xmcc
+               ,DOUBLE *RESTRICT dcca     
+               ,DOUBLE *RESTRICT vSkew    ,DOUBLE *RESTRICT mvSkew
+               ,short  *RESTRICT sn                         
                ,short const maxNo         ,short const maxViz
                ,short const ndm           ,INT const nel)
 {
@@ -1292,20 +1292,20 @@ void cellGeom3D(DOUBLE *restrict lx       ,short  *restrict lGeomType
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void cellLibRcGrad(Loads *loads
-                 ,INT   *restrict lViz    ,DOUBLE *restrict lProp    
-                 ,DOUBLE *restrict lLsquare,DOUBLE *restrict lLsquareR
-                 ,DOUBLE *restrict ksi     ,DOUBLE *restrict mKsi
-                 ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
-                 ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-                 ,DOUBLE *restrict vSkew   
-                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-                 ,DOUBLE *restrict lDcca 
-                 ,short  *restrict lFaceR  ,short *restrict lFaceL
-                 ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
-                 ,DOUBLE *restrict lnU     ,short const ty                
+                 ,INT   *RESTRICT lViz    ,DOUBLE *RESTRICT lProp    
+                 ,DOUBLE *RESTRICT lLsquare,DOUBLE *RESTRICT lLsquareR
+                 ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
+                 ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
+                 ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
+                 ,DOUBLE *RESTRICT vSkew   
+                 ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+                 ,DOUBLE *RESTRICT lDcca 
+                 ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
+                 ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU 
+                 ,DOUBLE *RESTRICT lnU     ,short const ty                
                  ,short const nFace        ,short const ndm      
                  ,short const lib          ,short const ndf
-                 ,short *restrict  isNod   ,INT const nel){
+                 ,short *RESTRICT  isNod   ,INT const nel){
   long aux;
     
   switch(lib){
@@ -1417,14 +1417,14 @@ void cellLibRcGrad(Loads *loads
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void greenGaussCell(Loads *loads
-               ,INT *restrict lViz   ,DOUBLE *restrict mKsi
-               ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca 
-               ,DOUBLE *restrict eta     ,DOUBLE *restrict fArea
-               ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-               ,DOUBLE *restrict vSkew   
-               ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc 
-               ,short  *restrict lFaceR  ,short *restrict lFaceL
-               ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
+               ,INT *RESTRICT lViz   ,DOUBLE *RESTRICT mKsi
+               ,DOUBLE *RESTRICT lProp   ,DOUBLE *RESTRICT lDcca 
+               ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
+               ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
+               ,DOUBLE *RESTRICT vSkew   
+               ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc 
+               ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
+               ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU 
                ,short const nFace        ,short const ndm   
                ,short const ndf          ,INT const nel)
 {
@@ -1690,10 +1690,10 @@ void greenGaussCell(Loads *loads
  * gradU     -> gradiente calculado                                  *
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict fArea
-               ,DOUBLE *restrict normal  ,DOUBLE *restrict volume
-               ,DOUBLE *restrict u       ,DOUBLE *restrict gradU 
-               ,short *restrict isNod       
+void greenGaussNode(INT *RESTRICT lViz   ,DOUBLE *RESTRICT fArea
+               ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
+               ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU 
+               ,short *RESTRICT isNod       
                ,short const nFace        ,short const ndm   
                ,short const ndf          ,short const ty)
 {
@@ -1799,11 +1799,11 @@ void greenGaussNode(INT *restrict lViz   ,DOUBLE *restrict fArea
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void  leastSquare(Loads *loads
-                 ,DOUBLE *restrict lLsquare,INT *restrict lViz
-                 ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc 
-                 ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca 
-                 ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
-                 ,short  *restrict lFaceR  ,short *restrict lFaceL
+                 ,DOUBLE *RESTRICT lLsquare,INT *RESTRICT lViz
+                 ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc 
+                 ,DOUBLE *RESTRICT lProp   ,DOUBLE *RESTRICT lDcca 
+                 ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU
+                 ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
                  ,short const nFace        ,short const ndf
                  ,short const ndm          ,INT const nel){
 
@@ -2016,12 +2016,12 @@ void  leastSquare(Loads *loads
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void  leastSquareQR(Loads *loads
-                   ,DOUBLE *restrict lLsQt   ,DOUBLE *restrict lLsR
-                   ,DOUBLE *restrict lProp   ,DOUBLE *restrict lDcca 
-                   ,INT *restrict lViz       
-                   ,DOUBLE *restrict xm      ,DOUBLE *restrict xmcc
-                   ,DOUBLE *restrict u       ,DOUBLE *restrict gradU
-                   ,short  *restrict lFaceR  ,short *restrict lFaceL
+                   ,DOUBLE *RESTRICT lLsQt   ,DOUBLE *RESTRICT lLsR
+                   ,DOUBLE *RESTRICT lProp   ,DOUBLE *RESTRICT lDcca 
+                   ,INT *RESTRICT lViz       
+                   ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+                   ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU
+                   ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
                    ,short const nFace        ,short const ndf
                    ,short const ndm){
 
@@ -2267,8 +2267,8 @@ void  leastSquareQR(Loads *loads
  * lSquareR  -> fatoracao R (RCLSQUAREQR)                            * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
- void leastSquareMatrix(DOUBLE *restrict lKsi    ,DOUBLE *restrict lmKsi
-                  ,DOUBLE *restrict lLsquare,DOUBLE *restrict lLsquareR
+ void leastSquareMatrix(DOUBLE *RESTRICT lKsi    ,DOUBLE *RESTRICT lmKsi
+                  ,DOUBLE *RESTRICT lLsquare,DOUBLE *RESTRICT lLsquareR
                   ,short const type        
                   ,short const lnFace       ,short const ndm){
 
@@ -2644,7 +2644,7 @@ DOUBLE areaCell(DOUBLE *eta,short ty,short ndm,INT nel)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE areaTriaCell(DOUBLE *restrict eta, short ndm)
+DOUBLE areaTriaCell(DOUBLE *RESTRICT eta, short ndm)
 {
   double v1[3],v2[3],v3[3],a,dot;
 
@@ -2691,7 +2691,7 @@ DOUBLE areaTriaCell(DOUBLE *restrict eta, short ndm)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE areaQuadCell(DOUBLE *restrict eta,short ndm)
+DOUBLE areaQuadCell(DOUBLE *RESTRICT eta,short ndm)
 {
 
   double v1[3],v2[3],c[3];
@@ -2815,10 +2815,10 @@ DOUBLE areaQuadCell(DOUBLE *restrict eta,short ndm)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void vectorKm2d(DOUBLE *restrict x     ,DOUBLE *restrict xc
-               ,DOUBLE *restrict xm
-               ,DOUBLE *restrict vSkew ,DOUBLE *restrict mvSkew
-               ,short  *restrict sn    ,short const nFace
+void vectorKm2d(DOUBLE *RESTRICT x     ,DOUBLE *RESTRICT xc
+               ,DOUBLE *RESTRICT xm
+               ,DOUBLE *RESTRICT vSkew ,DOUBLE *RESTRICT mvSkew
+               ,short  *RESTRICT sn    ,short const nFace
                ,short const maxViz     ,short const maxNo       
                ,short const ndm        ,INT const nel)
 {
@@ -2926,9 +2926,9 @@ void vectorKm2d(DOUBLE *restrict x     ,DOUBLE *restrict xc
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void vectorKm3d(DOUBLE *restrict xc   ,DOUBLE *restrict xm
-               ,DOUBLE *restrict ksi  ,DOUBLE *restrict normal
-               ,DOUBLE *restrict vSkew,DOUBLE *restrict mvSkew
+void vectorKm3d(DOUBLE *RESTRICT xc   ,DOUBLE *RESTRICT xm
+               ,DOUBLE *RESTRICT ksi  ,DOUBLE *RESTRICT normal
+               ,DOUBLE *RESTRICT vSkew,DOUBLE *RESTRICT mvSkew
                ,short const nFace     ,short const ndm
                ,short const maxViz    ,INT nel)
 {
@@ -3018,8 +3018,8 @@ void vectorKm3d(DOUBLE *restrict xc   ,DOUBLE *restrict xm
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
-                         ,DOUBLE *restrict fArea
+DOUBLE volume3DGreenGauss(DOUBLE *RESTRICT xm,DOUBLE *RESTRICT normal
+                         ,DOUBLE *RESTRICT fArea
                          ,short const nFace)
 {
   
@@ -3075,10 +3075,10 @@ DOUBLE volume3DGreenGauss(DOUBLE *restrict xm,DOUBLE *restrict normal
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
-          ,DOUBLE *restrict tA        ,DOUBLE *restrict velC
-          ,DOUBLE *restrict n       
-          ,DOUBLE *restrict gradVel   ,DOUBLE *restrict xmcc
+void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
+          ,DOUBLE *RESTRICT tA        ,DOUBLE *RESTRICT velC
+          ,DOUBLE *RESTRICT n       
+          ,DOUBLE *RESTRICT gradVel   ,DOUBLE *RESTRICT xmcc
           ,DOUBLE const viscosityC    ,DOUBLE const densityC
           ,DOUBLE const fArea         ,DOUBLE const dcca
           ,Loads ld                   ,short  const ndm 
@@ -3366,8 +3366,8 @@ void pLoadSimple(DOUBLE *restrict sP  ,DOUBLE *restrict p
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void pLoadSimplePres(DOUBLE *restrict sP,DOUBLE *restrict p
-          ,DOUBLE *restrict tA          ,DOUBLE const df         
+void pLoadSimplePres(DOUBLE *RESTRICT sP,DOUBLE *RESTRICT p
+          ,DOUBLE *RESTRICT tA          ,DOUBLE const df         
           ,DOUBLE const densityC        ,DOUBLE const wfn                                              
           ,DOUBLE const fArea           ,DOUBLE const dd
           ,Loads ld                     ,bool const fCal){
@@ -3415,10 +3415,10 @@ void pLoadSimplePres(DOUBLE *restrict sP,DOUBLE *restrict p
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void pLoad(DOUBLE *restrict sP  ,DOUBLE *restrict p
-          ,DOUBLE *restrict tA
+void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
+          ,DOUBLE *RESTRICT tA
           ,DOUBLE const coefDifC,DOUBLE const densityC
-          ,DOUBLE const wfn     ,DOUBLE *restrict xm                   
+          ,DOUBLE const wfn     ,DOUBLE *RESTRICT xm                   
           ,DOUBLE const fArea   ,DOUBLE const dcca
           ,Loads ld             ,bool const fCal){
 
@@ -3600,7 +3600,7 @@ DOUBLE limitFaceBase(DOUBLE const r,short const iCod)
 DOUBLE nvd(DOUBLE const phiTil, short const iCod)
 {
 
-  DOUBLE a, b, c;
+  DOUBLE a;
   short i;
   char word[][WORD_SIZE] =
   {"BCD"        ,"MUSCL" 
@@ -3745,9 +3745,9 @@ DOUBLE nvd(DOUBLE const phiTil, short const iCod)
  *-------------------------------------------------------------------* 
  *********************************************************************/
 DOUBLE faceBaseTvd(short const nAresta    ,short const idCell
-                 ,DOUBLE *restrict u0
-                 ,DOUBLE *restrict gradUv,DOUBLE *restrict gradUp
-                 ,DOUBLE *restrict lKsi  ,DOUBLE const lModKsi 
+                 ,DOUBLE *RESTRICT u0
+                 ,DOUBLE *RESTRICT gradUv,DOUBLE *RESTRICT gradUp
+                 ,DOUBLE *RESTRICT lKsi  ,DOUBLE const lModKsi 
                  ,DOUBLE const cv
                  ,short const iCod       ,short const ndm)
 {                    
@@ -3819,8 +3819,8 @@ DOUBLE faceBaseTvd(short const nAresta    ,short const idCell
  * Tface = (TfaceUp)Imp + limte*(TfaceDown - TfaceUp)Exp             *   
  *********************************************************************/
 DOUBLE faceBaseTvdV1(DOUBLE const uC     ,DOUBLE const uV
-                 ,DOUBLE *restrict gradUc,DOUBLE *restrict gradUv
-                 ,DOUBLE *restrict lKsi  ,DOUBLE const lModKsi 
+                 ,DOUBLE *RESTRICT gradUc,DOUBLE *RESTRICT gradUv
+                 ,DOUBLE *RESTRICT lKsi  ,DOUBLE const lModKsi 
                  ,DOUBLE const cv
                  ,short const iCod       ,short const ndm)
 {                    
@@ -3889,8 +3889,8 @@ DOUBLE faceBaseTvdV1(DOUBLE const uC     ,DOUBLE const uV
 *-------------------------------------------------------------------*
 *********************************************************************/
 DOUBLE faceBaseNvd(DOUBLE const uP        ,DOUBLE const uV
-                  ,DOUBLE *restrict gradUp,DOUBLE *restrict gradUv
-                  ,DOUBLE *restrict lKsi  ,DOUBLE const lModKsi
+                  ,DOUBLE *RESTRICT gradUp,DOUBLE *RESTRICT gradUv
+                  ,DOUBLE *RESTRICT lKsi  ,DOUBLE const lModKsi
                   ,DOUBLE const m
                   ,short const iCod       ,short const ndm)
 {
@@ -4064,8 +4064,8 @@ void setNvd(char *word, short *iCod)
  *-------------------------------------------------------------------* 
  *********************************************************************/
 DOUBLE upwindLinearV1(DOUBLE const uC     ,DOUBLE const uV
-                 ,DOUBLE *restrict gradUc ,DOUBLE *restrict gradUv
-                 ,DOUBLE *restrict rC     ,DOUBLE *restrict rV
+                 ,DOUBLE *RESTRICT gradUc ,DOUBLE *RESTRICT gradUv
+                 ,DOUBLE *RESTRICT rC     ,DOUBLE *RESTRICT rV
                  ,DOUBLE const m          ,short const ndm)
 {                    
   
@@ -4398,9 +4398,9 @@ DOUBLE sizeCar(DOUBLE const volume,short const ndm)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void gradFaceNull(DOUBLE *restrict gradVelFace
-                 ,DOUBLE *restrict gradVelCell
-                 ,DOUBLE *restrict xmcc       ,short const ndm)
+void gradFaceNull(DOUBLE *RESTRICT gradVelFace
+                 ,DOUBLE *RESTRICT gradVelCell
+                 ,DOUBLE *RESTRICT xmcc       ,short const ndm)
 {
 
   DOUBLE prod[3],tensor[3][3],eFace[3],mod;
@@ -4542,9 +4542,9 @@ void gradFaceNull(DOUBLE *restrict gradVelFace
  * grad(phi)*S = grad(phi)*E + grad(phi)*T                           * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
- void difusionScheme(DOUBLE *restrict n ,DOUBLE *restrict ksi 
+ void difusionScheme(DOUBLE *RESTRICT n ,DOUBLE *RESTRICT ksi 
                     ,DOUBLE const fArea ,DOUBLE const lModKsi  
-                    ,DOUBLE *restrict e ,DOUBLE *restrict t   
+                    ,DOUBLE *RESTRICT e ,DOUBLE *RESTRICT t   
                     ,short const ndm    ,short const iCod){
 
   DOUBLE nk,tmp;
@@ -4749,8 +4749,8 @@ void gradFaceNull(DOUBLE *restrict gradVelFace
 *             | k13 k23 k33 | | S3 |   | k13S1 + k23S2 + k33S3 |    *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void difusionSchemeAnisotropic(DOUBLE *restrict s,DOUBLE *restrict ksi
-                              ,DOUBLE *restrict e,DOUBLE *restrict t
+void difusionSchemeAnisotropic(DOUBLE *RESTRICT s,DOUBLE *RESTRICT ksi
+                              ,DOUBLE *RESTRICT e,DOUBLE *RESTRICT t
                               ,short const ndm   ,short const iCod) {
 
   DOUBLE nk, tmp,ss;
@@ -4914,16 +4914,15 @@ void difusionSchemeAnisotropic(DOUBLE *restrict s,DOUBLE *restrict ksi
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void advectiveScheme(DOUBLE *restrict velC   ,DOUBLE *restrict velV
-                ,DOUBLE *restrict gradVelC   ,DOUBLE *restrict gradVelV
-                ,DOUBLE *restrict gradVelComp,DOUBLE *restrict vSkew
-                ,DOUBLE *restrict rC         ,DOUBLE *restrict rV
-                ,DOUBLE *restrict ksi        ,DOUBLE const modKsi
-                ,DOUBLE const m              ,DOUBLE *restrict cvc 
+void advectiveScheme(DOUBLE *RESTRICT velC   ,DOUBLE *RESTRICT velV
+                ,DOUBLE *RESTRICT gradVelC   ,DOUBLE *RESTRICT gradVelV
+                ,DOUBLE *RESTRICT gradVelComp,DOUBLE *RESTRICT vSkew
+                ,DOUBLE *RESTRICT rC         ,DOUBLE *RESTRICT rV
+                ,DOUBLE *RESTRICT ksi        ,DOUBLE const modKsi
+                ,DOUBLE const m              ,DOUBLE *RESTRICT cvc 
                 ,short const ndm             
                 ,short const iCod1           ,short const iCod2) {
 
-  DOUBLE nk, tmp;
   short i;
   char word[][WORD_SIZE] =
   { "FoUp","Cd"
@@ -5184,17 +5183,17 @@ void advectiveScheme(DOUBLE *restrict velC   ,DOUBLE *restrict velV
 * cvc         -> inteporlacao                                       *
 *-------------------------------------------------------------------*
 * OBS:                                                              *
-*-------------------------------------------------------------------**********************************************************************/
+*-------------------------------------------------------------------*
+*********************************************************************/
 void advectiveSchemeScalar(DOUBLE const uC, DOUBLE const uV
-              ,DOUBLE *restrict gradUc    ,DOUBLE *restrict gradUv
-              ,DOUBLE *restrict gradUcomp ,DOUBLE *restrict vSkew
-              ,DOUBLE *restrict rC        ,DOUBLE *restrict rV
-              ,DOUBLE *restrict ksi       ,DOUBLE const modKsi
+              ,DOUBLE *RESTRICT gradUc    ,DOUBLE *RESTRICT gradUv
+              ,DOUBLE *RESTRICT gradUcomp ,DOUBLE *RESTRICT vSkew
+              ,DOUBLE *RESTRICT rC        ,DOUBLE *RESTRICT rV
+              ,DOUBLE *RESTRICT ksi       ,DOUBLE const modKsi
               ,DOUBLE const m             ,DOUBLE *cvc
               ,short const ndm
               ,short const iCod1          ,short const iCod2) {
 
-  DOUBLE nk, tmp;
   short i;
   char word[][WORD_SIZE] =
   { "FoUp","Cd"

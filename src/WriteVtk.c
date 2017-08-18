@@ -1452,7 +1452,7 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
 
   short  isnod[MAX_SN],nenFaceMax=MAX_NUM_NODE_FACE;
   short j,k,ty,tmp;
-  unsigned INT nf = 0;
+  unsigned int nf = 0;
   short cCell = maxViz + 1;
   int no,nel;
   
