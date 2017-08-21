@@ -1,7 +1,7 @@
 ﻿#include<Prime.h>
 /*********************************************************************
 * Data de criacao    : 05/09/2016                                   *
-* Data de modificaco : 00/00/0000                                   *
+* Data de modificaco : 20/08/2017                                   *
 *-------------------------------------------------------------------*
 * PRIME: metodo prime ▓                                             *
 *-------------------------------------------------------------------*
@@ -14,15 +14,13 @@
 *-------------------------------------------------------------------*
 *********************************************************************/
 void primeSolver(Memoria *m
-                ,Loads *loadsVel, Loads *loadsPres
-                ,Mesh *mesh0, Mesh *mesh
-                ,SistEq *sistEqPres
-                ,Solv *solvPres
-                ,Prime *pr
-                ,Scheme sc, PartMesh *pMesh
-                ,FileOpt opt, char *preName
-                ,char *nameOut, FILE *fileOut
-                ,short const ndf) {
+                ,Loads *loadsVel   ,Loads *loadsPres
+                ,Mesh *mesh0       ,Mesh *mesh
+                ,SistEq *sistEqPres,Solv *solvPres
+                ,Prime *pr         ,Scheme sc
+                ,PartMesh *pMesh   ,FileOpt opt
+                ,char *preName     ,char *nameOut
+                ,FILE *fileOut) {
   FILE *fStop = NULL;
   short unsigned ndfVel = mesh->ndfF - 1;
   short unsigned conv;
@@ -230,11 +228,11 @@ void primeSolver(Memoria *m
 /*...*/
      tb[0] = sqrt(dot(v1,v1,mesh->numelNov));
      tb[1] = sqrt(dot(v2,v2,mesh->numelNov));
-     if(ndf == 3) tb[2] = sqrt(dot(v3,v3,mesh->numelNov));
+     if(ndfVel == 3) tb[2] = sqrt(dot(v3,v3,mesh->numelNov));
 //     printf("%lf %lf\n",tb[0],tb[1]);
      if (itPrime == 0){
        tmp = max(tb[0], tb[1]);
-       if(ndf == 3) tmp = max(tmp, tb[2]);
+       if(ndfVel == 3) tmp = max(tmp, tb[2]);
      }
 /*...................................................................*/
 
@@ -288,7 +286,7 @@ void primeSolver(Memoria *m
     if (itPrime == kZeroVel && relRes) {
       rU0[0] = rU[0];
       rU0[1] = rU[1];
-      if (ndf == 3)  rU0[2] = rU[2];
+      if (ndfVel == 3)  rU0[2] = rU[2];
     }
     conv = 0;
 /*...................................................................*/
@@ -351,7 +349,7 @@ void primeSolver(Memoria *m
 /*...................................................................*/
 
 /*...*/
-    if( ndf == 2) {
+    if( ndfVel == 2) {
       if (rMass / rMass0 < tolPrimeMass || rMass < tmp*SZERO) conv++;
 /*..*/
       if (rU[0] / rU0[0] < tolPrimeU1 || rU[0] < tmp*SZERO) conv++;
@@ -363,7 +361,7 @@ void primeSolver(Memoria *m
 /*...................................................................*/
 
 /*...*/
-    else if (ndf == 3) {
+    else if (ndfVel == 3) {
       if (rMass / rMass0 < tolPrimeMass || rMass < tmp*SZERO) conv++;
 /*...*/
       if (rU[0] / rU0[0] < tolPrimeU1 || rU[0] < tmp*SZERO) conv++;
@@ -380,11 +378,11 @@ void primeSolver(Memoria *m
     timei = getTimeC() - time;
 /*... arquivo de log*/
     if (opt.fItPlot){
-      if(ndf == 2)
+      if(ndfVel == 2)
         fprintf(opt.fileItPlot[FITPLOTSIMPLE]
                , "%d %20.8e %20.8e %20.8e\n"
                , itPrime+1, rU[0], rU[1], rMass);
-      else if (ndf == 3)
+      else if (ndfVel == 3)
         fprintf(opt.fileItPlot[FITPLOTSIMPLE]
                , "%d %20.8e %20.8e %20.8e %20.8e\n"
                ,itPrime+1,rU[0],rU[1],rU[2],rMass);
@@ -401,7 +399,7 @@ void primeSolver(Memoria *m
       printf("conservacao da massa: %20.8e\n", rMass/rMass0);
       printf("momentum x1         : %20.8e\n", rU[0]/rU0[0]);
       printf("momentum x2         : %20.8e\n", rU[1]/rU0[1]);
-      if (ndf == 3) 
+      if (ndfVel == 3)
         printf("momentum x3         : %20.8e\n", rU[2]/rU0[2]);
     }
     jj++;
@@ -437,7 +435,7 @@ void primeSolver(Memoria *m
          , rU0[0], rU[0]);
     printf("momentum x2          (init,final): %20.8e %20.8e\n"
          , rU0[1], rU[1]);
-    if(ndf == 3)
+    if(ndfVel == 3)
       printf("momentum x3          (init,final): %20.8e %20.8e\n"
              , rU0[2], rU[2]);
   }
@@ -448,7 +446,7 @@ void primeSolver(Memoria *m
     printf("conservacao da massa (final): %20.8e \n",rMass);
     printf("momentum x1          (final): %20.8e\n",rU[0]);
     printf("momentum x2          (final): %20.8e\n",rU[1]);
-    if(ndf == 3)
+    if(ndfVel == 3)
       printf("momentum x3          (final): %20.8e\n",rU[2]);
   }
 /*...................................................................*/
@@ -683,7 +681,7 @@ void residualPrime(DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT adVel
 
 /*********************************************************************
 * Data de criacao    : 11/08/2016                                   *
-* Data de modificaco : 00/00/0000                                   *
+* Data de modificaco : 20/08/2017                                   *
 *-------------------------------------------------------------------*
 * SETPRIMESCHEME : set o metodo prime                               *
 *-------------------------------------------------------------------*
@@ -691,7 +689,7 @@ void residualPrime(DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT adVel
 *-------------------------------------------------------------------*
 * word -> str com a discretizacao                                   *
 * sp   -> estrutura simple                                          *
-* fieIn-> arquivo de entrada                                        *
+* fileIn-> arquivo de entrada                                       *
 *-------------------------------------------------------------------*
 * Parametros de saida:                                              *
 *-------------------------------------------------------------------*
@@ -707,9 +705,9 @@ void setPrimeScheme(char *word, Prime *pr, FILE *fileIn) {
   fscanf(fileIn, "%lf", &pr->alphaVel);
   fscanf(fileIn, "%lf", &pr->tolPres);
   fscanf(fileIn, "%lf", &pr->tolVel);
-
+/*... numero de correcoes de nao-ortogonalidade (NAO IMPLEMENTADO NO PRIME)*/
   fscanf(fileIn, "%d", &pr->nNonOrth);
-
+/*.. iteracao que serao imprisas na tela*/
   fscanf(fileIn, "%d", &pr->pPrime);
 
 /*...*/

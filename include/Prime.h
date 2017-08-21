@@ -19,7 +19,7 @@
                   ,Prime *pr         ,Scheme sc    
                   ,PartMesh *pMesh   ,FileOpt opt      
                   ,char *preName     ,char *nameOut   
-                  ,FILE *fileOut     ,short const ndf);
+                  ,FILE *fileOut     );
 /*...................................................................*/
 
 /*...*/  

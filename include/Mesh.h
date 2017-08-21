@@ -196,7 +196,7 @@
     DOUBLE *ePresC1;                     /*Pressao de correcao 1*/
     DOUBLE *d,*velUp,*aD,*bTemporal;
     DOUBLE tolPres, tolVel;
-    int    pPrime;
+    int    pPrime;          /*iteracao que serao imprisas na tela*/ 
     int    maxIt;
     bool   sPressure;
     unsigned short faceInterpolVel;   /*tecnica de interpolacao

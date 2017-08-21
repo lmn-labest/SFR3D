@@ -1949,22 +1949,8 @@ int main(int argc,char**argv){
 /*...................................................................*/
      
 /*...*/
-      ndf = mesh->ndfF-1;
-      if(ndf == 2) 
-        simpleSolver2D(&m         
-                  ,loadsVel   ,loadsPres 
-                  ,mesh0      ,mesh           
-                  ,sistEqVel  ,sistEqPres
-                  ,solvVel    ,solvPres
-                  ,simple
-                  ,sc         ,pMesh
-                  ,opt        ,preName        ,nameOut
-                  ,fileOut);
-/*...................................................................*/
-     
-/*...*/
-      else if(ndf == 3) 
-        simpleSolver3D(&m         
+
+      simpleSolver3D(&m         
                   ,loadsVel   ,loadsPres 
                   ,mesh0      ,mesh           
                   ,sistEqVel  ,sistEqPres
@@ -2559,7 +2545,6 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-      ndf = mesh->ndfF - 1;
       primeSolver(&m
                  ,loadsVel  ,loadsPres
                  ,mesh0     ,mesh
@@ -2567,7 +2552,7 @@ int main(int argc,char**argv){
                  ,prime     ,sc 
                  ,pMesh     ,opt
                  ,preName   ,nameOut
-                 ,fileOut   ,ndf);
+                 ,fileOut   );
 /*...................................................................*/
 
 /*...*/

@@ -545,7 +545,7 @@ void simpleSolver2D(Memoria *m
 
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
- * Data de modificaco : 02/08/2016                                   * 
+ * Data de modificaco : 20/08/2017                                   * 
  *-------------------------------------------------------------------* 
  * SIMPLESOLVER3D: metodo simple e simpleC para escoamentos 3D       * 
  *-------------------------------------------------------------------* 
@@ -564,7 +564,7 @@ void simpleSolver3D(Memoria *m
                    ,Solv *solvVel     ,Solv *solvPres 
                    ,Simple *sp
                    ,Scheme sc         ,PartMesh *pMesh 
-                   ,FileOpt opt       ,char *preName  
+                   ,FileOpt opt       ,char *preName 
                    ,char *nameOut     ,FILE *fileOut){
   FILE *fStop=NULL;
 	short unsigned ndfVel = mesh->ndfF-1;
@@ -590,19 +590,23 @@ void simpleSolver3D(Memoria *m
 
   time = getTimeC();
 /*...*/
+  b1 = b2 = b3 = bPc = NULL;
+  xu1= xu2 = xu3 = NULL;
+  adU1 = adU2 = adU3 = NULL;
+
   b1       =  sistEqVel->b; 
   b2       = &sistEqVel->b[sistEqVel->neq]; 
-  b3       = &sistEqVel->b[2*sistEqVel->neq]; 
+  if(ndfVel == 3) b3 = &sistEqVel->b[2*sistEqVel->neq];
   bPc      = sistEqPres->b; 
 
   xu1      = sistEqVel->x;
   xu2      = &sistEqVel->x[sistEqVel->neq];
-  xu3      = &sistEqVel->x[2*sistEqVel->neq];
+  if (ndfVel == 3) xu3 = &sistEqVel->x[2*sistEqVel->neq];
   xp       = sistEqPres->x;
 
   adU1 = sistEqVel->ad;
   adU2 = &sistEqVel->ad[sistEqVel->neq];
-  adU3 = &sistEqVel->ad[2*sistEqVel->neq];
+  if (ndfVel == 3) adU3 = &sistEqVel->ad[2*sistEqVel->neq];
 
   rCellPc  = mesh->elm.rCellPres;
 /*...................................................................*/
@@ -618,6 +622,7 @@ void simpleSolver3D(Memoria *m
   rU[0]  = rU[1]  = rU[2]  = 0.e0;
   rU0[0] = rU0[1] = rU0[2] = 1.e0;
   conv = 0;
+  xMomentum = yMomentum = zMomentum = true;
 /*...................................................................*/
 
 /*...*/
@@ -773,10 +778,10 @@ void simpleSolver3D(Memoria *m
 /*...*/
      tb[0] = sqrt(dot(b1,b1,sistEqVel->neqNov));
      tb[1] = sqrt(dot(b2,b2,sistEqVel->neqNov));
-     tb[2] = sqrt(dot(b3,b3,sistEqVel->neqNov));
+     if (ndfVel == 3) tb[2] = sqrt(dot(b3,b3,sistEqVel->neqNov));
      if(itSimple == 0){ 
        tmp   = max(tb[0],tb[1]);      
-       tmp   = max(tmp,tb[2]);
+       if (ndfVel == 3) tmp   = max(tmp,tb[2]);
      }       
 /*...*/ 
      xMomentum = true;
@@ -789,8 +794,10 @@ void simpleSolver3D(Memoria *m
 /*...................................................................*/
 
 /*...*/
-     zMomentum = true;
-     if( tb[2] < tmp*SZERO ) zMomentum = false;
+     if (ndfVel == 3) {
+       zMomentum = true;
+       if (tb[2] < tmp*SZERO) zMomentum = false;
+     }
 /*...................................................................*/
 
 /*... solver Au = bu (velocidade estimadas)*/
@@ -832,7 +839,7 @@ void simpleSolver3D(Memoria *m
 /*...................................................................*/
 
 /*... solver Aw = bw (velocidade estimadas)*/
-     if(zMomentum){
+     if(zMomentum && ndfVel == 3){
        if(fPrint) printf("Quantidade de movimento u3:\n");
        tm.solvVel = getTimeC() - tm.solvVel;
        solverC(m               
@@ -851,8 +858,14 @@ void simpleSolver3D(Memoria *m
 /*...................................................................*/
 
 /*... atualizando o campo de velociade estimadas*/
-     updateCellSimpleVel3D(mesh->elm.vel,xu1,xu2,xu3,sistEqVel->id
-                       ,mesh->numelNov,mesh->ndm); 
+     if (ndfVel == 3) {
+       updateCellSimpleVel3D(mesh->elm.vel, xu1, xu2, xu3, sistEqVel->id
+         , mesh->numelNov, mesh->ndm);
+     }
+     else {
+       updateCellSimpleVel(mesh->elm.vel, xu1, xu2, sistEqVel->id
+         , mesh->numelNov, mesh->ndm);
+     }
 /*...................................................................*/
 
 /*...*/
@@ -906,7 +919,7 @@ void simpleSolver3D(Memoria *m
      if( itSimple == kZeroVel && relRes ){
        rU0[0] = rU[0]; 
        rU0[1] = rU[1]; 
-       rU0[2] = rU[2]; 
+       if (ndfVel == 3) rU0[2] = rU[2];
      } 
      conv = 0;
 /*...................................................................*/
@@ -1058,25 +1071,47 @@ void simpleSolver3D(Memoria *m
                 ,sp->alphaPres);
 /*...................................................................*/
 
-/*...*/
-     if( rMass/rMass0 < tolSimpleMass || rMass < tmp*SZERO) conv++;
+/*... 3D*/
+     if (ndfVel == 3) {
+       if (rMass / rMass0 < tolSimpleMass || rMass < tmp*SZERO) conv++;
 /*..*/
-     if( rU[0]/rU0[0] < tolSimpleU1   || rU[0] < tmp*SZERO) conv++;
+       if (rU[0] / rU0[0] < tolSimpleU1 || rU[0] < tmp*SZERO) conv++;
 /*...*/
-     if( rU[1]/rU0[1] < tolSimpleU2   || rU[1] < tmp*SZERO) conv++;
+       if (rU[1] / rU0[1] < tolSimpleU2 || rU[1] < tmp*SZERO) conv++;
 /*...*/
-     if( rU[2]/rU0[2] < tolSimpleU3   || rU[2] < tmp*SZERO) conv++;
+       if (rU[2] / rU0[2] < tolSimpleU3 || rU[2] < tmp*SZERO) conv++;
 /*..*/
-     if( conv == 4) break;
+       if (conv == 4) break;
+     }
+/*...................................................................*/
+
+/*... 2D*/
+     else {
+/*...*/
+         if (rMass / rMass0 < tolSimpleMass || rMass < tmp*SZERO) conv++;
+/*..*/
+       if (rU[0] / rU0[0] < tolSimpleU1 || rU[0] < tmp*SZERO) conv++;
+/*...*/
+       if (rU[1] / rU0[1] < tolSimpleU2 || rU[1] < tmp*SZERO) conv++;
+/*..*/
+       if (conv == 3) break;
+/*...................................................................*/
+     }
 /*...................................................................*/
 
 /*...*/
      timei = getTimeC() -time;
 /*... arquivo de log*/
-     if(opt.fItPlot)
-       fprintf(opt.fileItPlot[FITPLOTSIMPLE]
-              ,"%d %20.8e %20.8e %20.8e %20.8e\n"
-              ,itSimple+1,rU[0],rU[1],rU[2],rMass);
+     if(opt.fItPlot){
+       if (ndfVel == 3)
+         fprintf(opt.fileItPlot[FITPLOTSIMPLE]
+                , "%d %20.8e %20.8e %20.8e %20.8e\n"
+                ,itSimple + 1, rU[0], rU[1], rU[2], rMass);
+       else
+         fprintf(opt.fileItPlot[FITPLOTSIMPLE]
+                ,"%d %20.8e %20.8e %20.8e\n"
+                ,itSimple+1,rU[0],rU[1],rMass);
+     }
 /*...................................................................*/
 
 /*...*/
@@ -1088,7 +1123,8 @@ void simpleSolver3D(Memoria *m
        printf("conservacao da massa: %20.8e\n",rMass/rMass0);
        printf("momentum x1         : %20.8e\n",rU[0]/rU0[0]);
        printf("momentum x2         : %20.8e\n",rU[1]/rU0[1]);
-       printf("momentum x3         : %20.8e\n",rU[2]/rU0[2]);
+       if (ndfVel == 3)
+         printf("momentum x3         : %20.8e\n",rU[2]/rU0[2]);
      } 
      jj++; 
 /*...................................................................*/
