@@ -993,15 +993,15 @@ void csr(INT    *RESTRICT  ia,INT *RESTRICT ja
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void csrSimple(INT    *RESTRICT  ia,INT *RESTRICT ja 
-        ,DOUBLE *RESTRICT a  ,DOUBLE *RESTRICT ad
-        ,DOUBLE *RESTRICT b
-        ,INT *RESTRICT lId                       
-        ,DOUBLE *RESTRICT lA ,DOUBLE *RESTRICT lB
-        ,INT const nEq       ,INT const nEqNov 
-        ,INT const nAd       ,INT const nAdR                        
-        ,short const nFace   ,short const ndf  
-        ,short const storage ,bool  const forces
-        ,bool const matrix   ,bool  const  unsym)
+              ,DOUBLE *RESTRICT a  ,DOUBLE *RESTRICT ad
+              ,DOUBLE *RESTRICT b
+              ,INT *RESTRICT lId                       
+              ,DOUBLE *RESTRICT lA ,DOUBLE *RESTRICT lB
+              ,INT const nEq       ,INT const nEqNov 
+              ,INT const nAd       ,INT const nAdR                        
+              ,short const nFace   ,short const ndf  
+              ,short const storage ,bool  const forces
+              ,bool const matrix   ,bool  const  unsym)
 {
   INT lNeq,lCol=0,iak,jak,iPoint,iaKneq,jPoint,iaJneq,neqS,n0;
   INT *iar,*jar;

@@ -11,16 +11,6 @@
   #include<Solv.h>
   #include<Transient.h>
 
-  void simpleSolver2D(Memoria *m        
-                   ,Loads *loadsVel   ,Loads *loadsPres 
-                   ,Mesh *mesh0       ,Mesh *mesh       
-                   ,SistEq *sistEqVel ,SistEq *sistEqPres
-                   ,Solv *solvVel     ,Solv *solvPres 
-                   ,Simple *sp
-                   ,Scheme sc         ,PartMesh *pMesh 
-                   ,FileOpt opt       ,char *preName  
-                   ,char *nameOut     ,FILE *fileOut);
-  
   void simpleSolver3D(Memoria *m        
                    ,Loads *loadsVel   ,Loads *loadsPres 
                    ,Mesh *mesh0       ,Mesh *mesh       
@@ -30,6 +20,19 @@
                    ,Scheme sc         ,PartMesh *pMesh 
                    ,FileOpt opt       ,char *preName  
                    ,char *nameOut     ,FILE *fileOut);
+  
+  void simpleSolverLm(Memoria *m
+                      ,Loads *loadsVel     ,Loads *loadsPres 
+                      ,Loads *loadsEnergy
+                      ,Mesh *mesh0         ,Mesh *mesh
+                      ,SistEq *sistEqVel   ,SistEq *sistEqPres
+                      ,SistEq *sistEqEnergy
+                      ,Solv *solvVel       ,Solv *solvPres 
+                      ,Solv *solvEnergy
+                      ,Simple *sp  
+                      ,Scheme sc           ,PartMesh *pMesh
+                      ,FileOpt opt         ,char *preName
+                      ,char *nameOut       ,FILE *fileOut);
 
 /*...*/
   void updateCellSimpleVel(DOUBLE *RESTRICT w
@@ -55,13 +58,26 @@
   void residualSimple(DOUBLE *RESTRICT vel
                  ,DOUBLE *RESTRICT rCellVel,DOUBLE *RESTRICT rCellMass
                  ,DOUBLE *RESTRICT adVel
-                 ,DOUBLE *RESTRICT rU      ,DOUBLE *RESTRICT rPc
-                 ,INT  *RESTRICT idVel     ,INT const nEl
+                 ,DOUBLE *RESTRICT rU      ,DOUBLE * rMass
+                 ,INT  *RESTRICT idVel     
+                 ,INT const nEl            ,INT const nEqVel
                  ,short const ndm          ,short iCod);
+  
+  void residualSimpleLm(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
+            ,DOUBLE *RESTRICT rCellVel   ,DOUBLE *RESTRICT rCellMass
+            ,DOUBLE *RESTRICT rCellEnergy
+            ,DOUBLE *RESTRICT adVel       ,DOUBLE *RESTRICT adEnergy 
+            ,DOUBLE *RESTRICT rU          ,DOUBLE *rMass
+            ,DOUBLE *rEnergy 
+            ,INT  *RESTRICT idVel         ,INT  *RESTRICT idEnergy 
+            ,INT const nEl                ,INT const nEqVel
+            ,short const ndm              ,short iCod);
+
 /*...................................................................*/
 
 /*...*/
   void setSimpleScheme(char *word,Simple *sp,FILE *fileIn);
+  void setSimpleLmScheme(char *word, Simple *sp, FILE *fileIn);
 /*...................................................................*/
 
 #endif/*_SIMPLE_H*/

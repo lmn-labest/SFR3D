@@ -30,9 +30,11 @@
 /*...................................................................*/
 
 /*...*/
-  #define COEFDIF    0
-  #define VISCOSITY  0
-  #define DENSITY    1
+  #define COEFDIF                    0
+  #define DINAMICVISCOSITY           0
+  #define DENSITY                    1
+  #define COEFDIFFFLUID              2
+  #define SPECIFICHEATCAPACITYFLUID  3
 /*...................................................................*/
 
 /*...*/
@@ -51,7 +53,8 @@
 /*...................................................................*/
 
 /*...*/
-  #define DENSITY_LEVEL 2
+  #define DENSITY_LEVEL 3
+  #define SHEAT_LEVEL   3
 /*...................................................................*/
 
 /*... conv radianos para graus*/
@@ -245,5 +248,10 @@
   #define vectorPlusOne(v,n,i)  for(i=0;i<n;i++) v[i]++ 
   #define vectorMinusOne(v,n,i) for(i=0;i<n;i++) v[i]--  
 /*...................................................................*/
+
+/*...*/
+  DOUBLE gravity[3];
+/*...................................................................*/
+
 
 #endif/*_DEFINE_H_*/

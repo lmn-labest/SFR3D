@@ -34,8 +34,10 @@
     FILE *fileItPlot[7];
     bool gradPres;
     bool gradVel;
+    bool gradEnergy;
     bool vel;
     bool pres;
+    bool energy;
   }FileOpt;
 
   void  iota(INT,char*);

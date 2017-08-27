@@ -45,16 +45,17 @@ int main(int argc,char**argv){
   Mesh *mesh=NULL,*mesh0=NULL;
 /*... Sistema de equacao*/
   SistEq *sistEqD1 =NULL, *sistEqT1=NULL;
-  SistEq *sistEqVel=NULL, *sistEqPres=NULL;
+  SistEq *sistEqVel=NULL, *sistEqPres=NULL, *sistEqEnergy = NULL;
 /*... metodo de acoplamento pressao-velocidade*/
   Simple *simple = NULL;
   Prime  *prime  = NULL;
 
 /*... solver*/
   INT nEqMax;
-  Solv *solvD1=NULL,*solvT1=NULL,*solvVel=NULL,*solvPres=NULL;
+  Solv *solvD1=NULL,*solvT1=NULL,*solvVel=NULL,*solvPres=NULL,*solvEnergy=NULL;
   bool fSolvD1 = false, fSolvT1 = false;
-  bool fSolvVel = false,fSolvPres = false,fSolvSimple = false,fSolvPrime = false;
+  bool fSolvVel = false,fSolvPres = false, fSolvEnergy = false;
+  bool fSolvSimple = false,fSolvPrime = false;
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
 
@@ -63,7 +64,7 @@ int main(int argc,char**argv){
 
 /*...*/
   char loopWord[100][MAX_LINE];
-  unsigned short kLoop,jLoop,ndf;
+  unsigned short kLoop,jLoop,ndfVel;
   bool flWord=false;
   unsigned short nScheme,nOmp,nSistEq; 
 
@@ -74,8 +75,8 @@ int main(int argc,char**argv){
 /*... arquivo*/
   char *nameIn=NULL,*nameOut=NULL,*preName=NULL,*auxName=NULL;
   FILE *fileIn=NULL,*fileOut=NULL,*fileLog=NULL;
-  char str1[100],str2[100],str3[100],str4[100],str5[100],str6[100]
-      ,str7[100],str8[100];
+  char str1[100],str2[100],str3[100],str4[100],str5[100],str6[100];
+  char strRes[100][100];
   FileOpt opt;
 
 /*...*/
@@ -119,8 +120,12 @@ int main(int argc,char**argv){
   opt.bVtk       = false;
   opt.fItPlotRes = false;
   opt.fItPlot    = false;
-  opt.vel        = true;
-  opt.pres       = true;
+  opt.vel        = false;
+  opt.pres       = false;
+  opt.energy     = false;
+  opt.gradVel    = false;
+  opt.gradPres   = false;
+  opt.gradEnergy = false;
 /* ..................................................................*/
 
 /*... Mpi*/
@@ -220,11 +225,14 @@ int main(int argc,char**argv){
 /*...*/
   sc.advVel.iCod1 = TVD;
   sc.advVel.iCod2 = VANLEERFACE;
+  sc.advEnergy.iCod1 = TVD;
+  sc.advEnergy.iCod2 = VANLEERFACE;
 /*...................................................................*/
 
-/*...*/
+/*...*/  
   sc.diffVel.iCod  = OVERRELAXED;
   sc.diffPres.iCod = OVERRELAXED;
+  sc.diffEnergy.iCod = OVERRELAXED;
 /*...................................................................*/
 
 /*...*/  
@@ -233,7 +241,7 @@ int main(int argc,char**argv){
   sc.ddt.dt[1]    = 1.e0;
   sc.ddt.dt[2]    = 1.e0;
   sc.ddt.total    = 1.e0;
-  sc.ddt.timeStep = 1;
+  sc.ddt.timeStep = 0;
   sc.ddt.type     = BACKWARD;
   sc.ddt.iCod     = TDF;
 /*...................................................................*/
@@ -328,7 +336,7 @@ int main(int argc,char**argv){
         readFileFvMesh(&m,mesh0,fileIn);
       mpiWait();
 /*...................................................................*/
-
+ 
 /*...*/
       if(!mpiVar.myId){
         printf("%s\n",DIF);
@@ -347,8 +355,8 @@ int main(int argc,char**argv){
       }
 /*...................................................................*/
 
-/*...*/
-      if(mesh0->ndfF > 0)
+/*... identifica parede impermevais*/
+      if(mesh0->ndfF > 0 || mesh0->ndfFt > 0)
         wallFluid(mesh0->elm.faceRvel,mesh0->elm.adj.nelcon
                  ,mesh0->elm.adj.nViz   
                  ,mesh0->numel       ,mesh0->maxViz);         
@@ -510,7 +518,7 @@ int main(int argc,char**argv){
         printf("%s\n",DIF);
       }
 /*...................................................................*/
-      
+
 /*...*/
       if(!mpiVar.myId ){
         strcpy(str,"GB");
@@ -631,7 +639,7 @@ int main(int argc,char**argv){
                ,mesh0->maxNo             ,mesh0->maxViz
                ,mesh0->numat             
                ,mesh0->ndfD              ,mesh0->ndfT 
-               ,mesh0->ndfF                           
+               ,mesh0->ndfF              ,mesh0->ndfFt
                ,nameOut                  ,opt.bVtk             
                ,fileOut);  
 /*... face com cargas*/
@@ -645,7 +653,7 @@ int main(int argc,char**argv){
              ,mesh0->nnode             ,mesh0->numel    
              ,mesh0->ndm               
              ,mesh0->ndfD[0]           ,mesh0->ndfT[0]
-             ,mesh0->ndfF                           
+             ,mesh0->ndfF              ,mesh0->ndfFt
              ,mesh0->maxViz            ,mesh0->maxNo
              ,nameOut                  ,opt.bVtk             
              ,fileOut);  
@@ -712,7 +720,6 @@ int main(int argc,char**argv){
         printf("%s\n",DIF);
         printf("%s\n",word);
       }
-      
 
 /*... inicializando a estrutura de equacoes do problema*/
       solvD1 = (Solv*) malloc(sizeof(Solv));
@@ -1321,10 +1328,10 @@ int main(int argc,char**argv){
         fName(auxName,sc.ddt.timeStep,0,16,&nameOut);
         fileOut = openFile(nameOut,"w");
 /*...*/
-        writeCsvNode(mesh0->node.uD1    ,mesh0->node.gradUd1
-                  ,mesh0->node.x                  
-                  ,mesh0->nnode         ,mesh0->ndfD[0]
-                  ,mesh0->ndm           ,fileOut);
+        writeCsvNode(mesh0->node.uD1,mesh0->node.gradUd1
+                    ,mesh0->node.x                  
+                    ,mesh0->nnode   ,mesh0->ndfD[0]
+                    ,mesh0->ndm     ,fileOut);
 /*...*/
         fclose(fileOut);
 /*...................................................................*/
@@ -1701,16 +1708,17 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... velovidades*/
-          ndf = mesh->ndfF-1;
+          ndfVel = max(mesh->ndfF - 1, mesh->ndfFt - 2);
+/*...................................................................*/
           HccaAlloc(DOUBLE        ,&m      ,sistEqVel->b0
-               ,sistEqVel->neq*ndf,"sistVelb0",_AD_);
+               ,sistEqVel->neq*ndfVel,"sistVelb0",_AD_);
           HccaAlloc(DOUBLE        ,&m     ,sistEqVel->b 
-               ,sistEqVel->neq*ndf,"sistVelb ",_AD_);
+               ,sistEqVel->neq*ndfVel,"sistVelb ",_AD_);
           HccaAlloc(DOUBLE        ,&m     ,sistEqVel->x 
-               ,sistEqVel->neq*ndf,"sistVelx ",_AD_);
-          zero(sistEqVel->b0,sistEqVel->neq*ndf,DOUBLEC);
-          zero(sistEqVel->b ,sistEqVel->neq*ndf,DOUBLEC);
-          zero(sistEqVel->x ,sistEqVel->neq*ndf,DOUBLEC);    
+               ,sistEqVel->neq*ndfVel,"sistVelx ",_AD_);
+          zero(sistEqVel->b0,sistEqVel->neq*ndfVel,DOUBLEC);
+          zero(sistEqVel->b ,sistEqVel->neq*ndfVel,DOUBLEC);
+          zero(sistEqVel->x ,sistEqVel->neq*ndfVel,DOUBLEC);    
 /*...................................................................*/
 
 /*... Estrutura de dados velocidades*/
@@ -1727,7 +1735,7 @@ int main(int argc,char**argv){
           dataStructSimple(&m,sistEqVel->id,reordMesh->num
                 ,mesh->elm.adj.nelcon
                 ,mesh->elm.adj.nViz,mesh->numelNov,mesh->maxViz
-                ,ndf               ,strIa         ,strJa
+                ,ndfVel            ,strIa         ,strJa
                 ,strAd             ,strA          ,sistEqVel);
           tm.dataStructVel = getTimeC() - tm.dataStructVel;
 
@@ -1869,6 +1877,131 @@ int main(int argc,char**argv){
         }
 /*...................................................................*/
 
+/*... velocidade*/
+        else if (!strcmp(word, "Energy") || !strcmp(word, "energy")) {
+          nSistEq--;
+/*... inicializando a estrutura de equacoes do problema (VELOCIDADE)*/
+          solvEnergy = (Solv*)malloc(sizeof(Solv));
+          if (solvEnergy == NULL) {
+            printf("Erro ponteiro solvEnergy\n");
+            exit(EXIT_FAILURE);
+          }
+          fSolvEnergy = true;
+          solvEnergy->solver = PBICGSTAB;
+          solvEnergy->tol = smachn();
+          solvEnergy->maxIt = 50000;
+          solvEnergy->fileSolv = NULL;
+          solvEnergy->log = true;
+          solvEnergy->flag = true;
+/*...................................................................*/
+
+/*...*/
+          if (solvEnergy->log && !mpiVar.myId) {
+            strcpy(auxName, preName);
+            strcat(auxName, "_fluid_energy");
+            fName(auxName, mpiVar.nPrcs, 0, 11, &nameOut);
+            solvEnergy->fileSolv = openFile(nameOut, "w");
+          }
+/*...................................................................*/
+
+/*... inicializa a estrutura do solver(Energia)*/
+          sistEqEnergy = (SistEq*)malloc(sizeof(SistEq));
+          if (sistEqEnergy == NULL) {
+            printf("Erro ponteiro sistEqEnergia\n");
+            exit(EXIT_FAILURE);
+          }
+          sistEqEnergy->unsym = true;
+/*...................................................................*/
+
+/*... solver*/
+          readMacro(fileIn, word, false);
+          setSolverConfig(word, solvEnergy, fileIn);
+/*...................................................................*/
+
+/*... DataStruct*/
+          readMacro(fileIn, word, false);
+          setDataStruct(word, &sistEqEnergy->storage);
+/*...................................................................*/
+
+/*... numeracao das equacoes das Energy*/
+          HccaAlloc(INT           ,&m  ,sistEqEnergy->id
+                   ,mesh->numel
+                   ,"sistEnergyId",_AD_);
+          if (!mpiVar.myId) { 
+            printf("%s\n", DIF);
+            printf("Numerando as equacoes.\n");
+          }
+          tm.numeqEnergy = getTimeC() - tm.numeqEnergy;
+          sistEqEnergy->neq = numEqV1(sistEqEnergy->id, reordMesh->num
+                                     ,mesh->numel);
+          tm.numeqEnergy = getTimeC() - tm.numeqEnergy;
+
+          if (!mpiVar.myId) {
+            printf("Equacoes numeradas.\n");
+            printf("%s\n", DIF);
+          }
+/*...................................................................*/
+
+/*...*/
+          if (mpiVar.nPrcs > 1) {
+            //          tm.numeqPres = getTimeC() - tm.numeqPres;
+            //      sistEqT1->neqNov = countEq(reordMesh->num
+            //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
+            //                          ,mesh->numelNov     ,mesh->maxViz
+            //                          ,mesh->ndfT[0]);
+            //          tm.numeqPres = getTimeC() - tm.numeqPres;
+          }
+          else
+            sistEqEnergy->neqNov = sistEqEnergy->neq;
+/*...................................................................*/
+
+/*... energia*/
+          HccaAlloc(DOUBLE           ,&m           ,sistEqEnergy->b0
+                   ,sistEqEnergy->neq,"sistEnergy0",_AD_);
+          HccaAlloc(DOUBLE             , &m        ,sistEqEnergy->b
+                   ,sistEqEnergy->neq  , "sistEnergyb ", _AD_);
+          HccaAlloc(DOUBLE           ,&m            ,sistEqEnergy->x
+                   ,sistEqEnergy->neq,"sistEnergyx ",_AD_);  
+          zero(sistEqEnergy->b0,sistEqEnergy->neq, DOUBLEC);
+          zero(sistEqEnergy->b ,sistEqEnergy->neq, DOUBLEC);
+          zero(sistEqEnergy->x ,sistEqEnergy->neq, DOUBLEC);
+/*...................................................................*/
+
+/*... Estrutura de dados energia*/
+          strcpy(strIa, "iaEnergy");
+          strcpy(strJa, "jaEnergy");
+          strcpy(strAd, "adEnergy");
+          strcpy(strA , "aEnergy");
+
+          if (!mpiVar.myId) { 
+            printf("Energy:\n");
+            printf("Montagem da estrura de dados esparsa.\n");
+          }
+
+          tm.dataStructEnergy = getTimeC() - tm.dataStructEnergy;
+          dataStructSimple(&m,sistEqEnergy->id ,reordMesh->num
+                          ,mesh->elm.adj.nelcon
+                          ,mesh->elm.adj.nViz  ,mesh->numelNov,mesh->maxViz  
+                          ,1                   ,strIa         ,strJa
+                          ,strAd               ,strA          ,sistEqEnergy);
+          tm.dataStructEnergy = getTimeC() - tm.dataStructEnergy;
+
+          if (!mpiVar.myId) printf("Estrutuda montada.\n");
+/*...................................................................*/
+
+/*... dividindo a matriz*/
+/*... Openmp(energy)*/
+          if (ompVar.fSolver) {
+            strcpy(str1, "thBeginEnergy");
+            strcpy(str2, "thEndEnergy");
+            strcpy(str3, "thSizeEnergy");
+            strcpy(str4, "thHeightEnergy");
+            pMatrixSolverOmp(&m,sistEqEnergy,str1,str2,str3,str4);
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
+
       }while(nSistEq);    
 
 /*...*/
@@ -1882,6 +2015,12 @@ int main(int argc,char**argv){
         else if(mesh->ndfF == 4)
           fprintf(opt.fileItPlot[FITPLOTSIMPLE]
           ,"#VelPres\n#it ||rU1|| ||rU2|| ||rU3|| ||rMass||\n");
+        else if (mesh->ndfFt == 4)
+          fprintf(opt.fileItPlot[FITPLOTSIMPLE]
+            , "#VelPres\n#it ||rU1|| ||rU2|| ||rEnergy|| ||rMass||\n");
+        else if (mesh->ndfFt == 5)
+          fprintf(opt.fileItPlot[FITPLOTSIMPLE]
+            , "#VelPres\n#it ||rU1|| ||rU2|| ||rU3|| ||rEnergy|| ||rMass||\n");
       }
 /*...................................................................*/
 
@@ -1949,16 +2088,32 @@ int main(int argc,char**argv){
 /*...................................................................*/
      
 /*...*/
+      if(mesh->ndfF)
+        simpleSolver3D(&m         
+                      ,loadsVel   ,loadsPres 
+                      ,mesh0      ,mesh           
+                      ,sistEqVel  ,sistEqPres
+                      ,solvVel    ,solvPres
+                      ,simple
+                      ,sc         ,pMesh
+                      ,opt        ,preName        
+                      ,nameOut    ,fileOut);
+/*...................................................................*/
 
-      simpleSolver3D(&m         
-                  ,loadsVel   ,loadsPres 
-                  ,mesh0      ,mesh           
-                  ,sistEqVel  ,sistEqPres
-                  ,solvVel    ,solvPres
-                  ,simple
-                  ,sc         ,pMesh
-                  ,opt        ,preName        ,nameOut
-                  ,fileOut);  
+/*...*/
+      else if(mesh->ndfFt)
+        simpleSolverLm(&m
+                      ,loadsVel    ,loadsPres 
+                      ,loadsEnergy         
+                      ,mesh0       ,mesh
+                      ,sistEqVel   ,sistEqPres
+                      ,sistEqEnergy
+                      ,solvVel     ,solvPres
+                      ,solvEnergy  
+                      ,simple
+                      ,sc          ,pMesh
+                      ,opt         ,preName
+                      ,nameOut     ,fileOut);  
 /*...................................................................*/
 
 /*...*/
@@ -1995,6 +2150,10 @@ int main(int argc,char**argv){
       simple->nNonOrth        = 0;
       simple->tolPres         = 1.e-06;
       simple->tolVel          = 1.e-06;
+      if (mesh->ndfFt){
+        simple->kZeroEnergy = 0;
+        simple->tolEnergy   = 1.e-06;
+      }
       simple->pSimple         = 500;
 /*...................................................................*/
       
@@ -2003,8 +2162,12 @@ int main(int argc,char**argv){
       if(!strcmp(word,"config:")){
 /*... timer*/        
         readMacro(fileIn,word,false);
-        setSimpleScheme(word,simple,fileIn);
-        
+/*... levemente compressivel*/       
+        if (mesh->ndfFt)
+          setSimpleLmScheme(word,simple,fileIn);
+/*... imcompressivel*/
+        else
+          setSimpleScheme(word, simple, fileIn);
 /*...*/        
         if(simple->type == SIMPLE && !mpiVar.myId)     
           printf("PRES-VEL  : SIMPLE\n");
@@ -2018,6 +2181,8 @@ int main(int argc,char**argv){
           printf("alphaVel  : %lf\n",simple->alphaVel);
           printf("tolPres   : %e\n",simple->tolPres);
           printf("tolVel    : %e\n",simple->tolVel);
+          if(mesh->ndfFt)
+            printf("tolEnergy : %e\n", simple->tolEnergy);
           printf("nNonOrth  : %d\n",simple->nNonOrth);
           printf("pSimple   : %d\n",simple->pSimple);
         }
@@ -2190,6 +2355,14 @@ int main(int argc,char**argv){
           setAdvectionScheme(word, &sc.advT1,fileIn);
           nScheme--;
         }
+ /*... Energy*/
+        else if (!strcmp(word, "Energy") || !strcmp(word, "energy")) {
+          printf("%s:\n", word);
+          readMacro(fileIn, word, false);
+/*... codigo da da funcao limitadora de fluxo*/
+          setAdvectionScheme(word, &sc.advEnergy, fileIn);
+          nScheme--;
+        }
       } while (nScheme);
 /*...................................................................*/
       if (!mpiVar.myId) printf("%s\n", DIF);
@@ -2247,6 +2420,14 @@ int main(int argc,char**argv){
           setDiffusionScheme(word, &sc.diffT1.iCod);
           nScheme--;
         }
+ /*... Energy*/
+        else if (!strcmp(word, "Energy") || !strcmp(word, "energy")) {
+          printf("%s:\n", word);
+          readMacro(fileIn, word, false);
+ /*... codigo da da funcao limitadora de fluxo*/
+          setDiffusionScheme(word, &sc.diffEnergy.iCod);
+          nScheme--;
+        }
       }while(nScheme);
 /*...................................................................*/
       if(!mpiVar.myId ) printf("%s\n",DIF);
@@ -2263,6 +2444,10 @@ int main(int argc,char**argv){
         printf("%s\n",DIF);
         printf("%s\n",word);
       }
+/*...................................................................*/
+
+/*...*/
+      ndfVel = max(mesh->ndfF - 1, mesh->ndfFt - 2);
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (Pres)*/
@@ -2329,8 +2514,7 @@ int main(int argc,char**argv){
                             | du1dx1 du1dx2 du1dx3 |   
                             | du2dx1 du2dx2 du2dx3 |   
                             | du3dx1 du3dx2 du3dx3 |
-*/   
-     ndf = mesh->ndfF-1;
+*/        
      tm.rcGradVel  = getTimeC() - tm.rcGradVel;
      rcGradU(&m                     ,loadsVel
            ,mesh->elm.node          ,mesh->elm.adj.nelcon
@@ -2349,7 +2533,7 @@ int main(int argc,char**argv){
            ,mesh->elm.vel           ,mesh->elm.gradVel                           
            ,mesh->node.vel          ,sc.rcGrad
            ,mesh->maxNo             ,mesh->maxViz
-           ,ndf                     ,mesh->ndm
+           ,ndfVel                  ,mesh->ndm
            ,&pMesh->iNo             ,&pMesh->iEl  
            ,mesh->numelNov          ,mesh->numel        
            ,mesh->nnodeNov          ,mesh->nnode); 
@@ -2368,7 +2552,7 @@ int main(int argc,char**argv){
                    ,mesh->numelNov     ,mesh->numel        
                    ,mesh->nnodeNov     ,mesh->nnode 
                    ,mesh->maxNo        ,mesh->maxViz   
-                   ,ndf                ,mesh->ndm
+                   ,ndfVel             ,mesh->ndm
                    ,mesh->ndm      
                    ,false              ,2);
 /*...................................................................*/
@@ -2390,37 +2574,110 @@ int main(int argc,char**argv){
                    ,true               ,2);
 /*...................................................................*/
 
+/*... reconstruindo do gradiente (Energia)*/
+      if(mesh->ndfFt){
+         rcGradU(&m                 ,loadsEnergy
+              ,mesh->elm.node       ,mesh->elm.adj.nelcon
+              ,mesh->elm.geom.cc    ,mesh->node.x
+              ,mesh->elm.nen        ,mesh->elm.adj.nViz
+              ,mesh->elm.geomType   ,mesh->elm.material.prop
+              ,mesh->elm.mat
+              ,mesh->elm.leastSquare,mesh->elm.leastSquareR
+              ,mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
+              ,mesh->elm.geom.eta   ,mesh->elm.geom.fArea
+              ,mesh->elm.geom.normal,mesh->elm.geom.volume
+              ,mesh->elm.geom.vSkew
+              ,mesh->elm.geom.xm    ,mesh->elm.geom.xmcc
+              ,mesh->elm.geom.dcca
+              ,mesh->elm.faceRenergy,mesh->elm.faceLoadEnergy
+              ,mesh->elm.energy     ,mesh->elm.gradEnergy
+              ,mesh->node.energy    ,sc.rcGrad
+              ,mesh->maxNo          ,mesh->maxViz
+              ,1, mesh->ndm
+              ,&pMesh->iNo          ,&pMesh->iEl
+              ,mesh->numelNov       ,mesh->numel
+              ,mesh->nnodeNov       ,mesh->nnode); 
+/*.................................................................. */
+
+
+/*... interpolacao das variaveis da celulas para pos nos (GradEnergy)*/
+        interCellNode(&m         ,loadsEnergy
+              ,mesh->node.gradEnergy,mesh->elm.gradEnergy
+              ,mesh->elm.node       ,mesh->elm.geomType
+              ,mesh->elm.geom.cc    ,mesh->node.x
+              ,mesh->elm.geom.xm
+              ,mesh->elm.nen        ,mesh->elm.adj.nViz
+              ,mesh->elm.faceRenergy,mesh->elm.faceLoadEnergy
+              ,&pMesh->iNo
+              ,mesh->numelNov       ,mesh->numel
+              ,mesh->nnodeNov       ,mesh->nnode
+              ,mesh->maxNo          ,mesh->maxViz
+              ,mesh->ndm            ,1
+              ,mesh->ndm
+              ,false                ,2);
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (energy)*/
+        interCellNode(&m, loadsEnergy
+             ,mesh->node.energy    ,mesh->elm.energy
+             ,mesh->elm.node       ,mesh->elm.geomType
+             ,mesh->elm.geom.cc    ,mesh->node.x
+             ,mesh->elm.geom.xm
+             ,mesh->elm.nen        ,mesh->elm.adj.nViz
+             ,mesh->elm.faceRenergy,mesh->elm.faceLoadEnergy
+             ,&pMesh->iNo
+             ,mesh->numelNov       ,mesh->numel
+             ,mesh->nnodeNov       ,mesh->nnode
+             ,mesh->maxNo          ,mesh->maxViz
+             ,1                    ,1
+             ,mesh->ndm
+             ,true                 ,2);
+      }
+/*...................................................................*/
+
 /*...*/
       if(!mpiVar.myId ){
         fName(preName,sc.ddt.timeStep,0,21,&nameOut);
-
-        strcpy(str1,"elPres");
-        strcpy(str2,"noPres");
-        strcpy(str3,"elGradPres");
-        strcpy(str4,"noGradPres");
-        strcpy(str5,"elVel");
-        strcpy(str6,"noVel");
-        strcpy(str7,"elGradVel");
-        strcpy(str8,"noGradVel");
 /*...*/
-        wResVtkFluid(&m                 ,mesh0->node.x      
-                    ,mesh0->elm.node    ,mesh0->elm.mat    
-                    ,mesh0->elm.nen     ,mesh0->elm.geomType
-                    ,mesh0->elm.pressure,mesh0->node.pressure
-                    ,mesh0->elm.gradPres,mesh0->node.gradPres  
-                    ,mesh0->elm.vel     ,mesh0->node.vel      
-                    ,mesh0->elm.gradVel ,mesh0->node.gradVel   
-                    ,mesh0->nnode       ,mesh0->numel  
-                    ,mesh0->ndm         ,mesh0->maxNo 
-                    ,mesh0->numat       ,mesh0->ndfF
-                    ,str1               ,str2         
-                    ,str3               ,str4         
-                    ,str5               ,str6         
-                    ,str7               ,str8         
-                    ,nameOut            ,opt.bVtk 
-                    ,opt.vel            ,opt.gradVel 
-                    ,opt.pres           ,opt.gradPres
-                    ,sc.ddt             ,fileOut);
+        strcpy(strRes[0],"elPres");
+        strcpy(strRes[1],"noPres");
+        strcpy(strRes[2],"elGradPres");
+        strcpy(strRes[3],"noGradPres");
+/*...*/
+        strcpy(strRes[4],"elVel");
+        strcpy(strRes[5],"noVel");
+        strcpy(strRes[6],"elGradVel");
+        strcpy(strRes[7],"noGradVel");
+/*...*/
+        strcpy(strRes[8] ,"elTemp");
+        strcpy(strRes[9] ,"noTemp");
+        strcpy(strRes[10],"elGradTemp");
+        strcpy(strRes[11],"noGradTemp");
+
+/*...*/
+        wResVtkFluid(&m              ,mesh0->node.x      
+               ,mesh0->elm.node      ,mesh0->elm.mat    
+               ,mesh0->elm.nen       ,mesh0->elm.geomType
+               ,mesh0->elm.pressure  ,mesh0->node.pressure
+               ,mesh0->elm.gradPres  ,mesh0->node.gradPres  
+               ,mesh0->elm.vel       ,mesh0->node.vel      
+               ,mesh0->elm.gradVel   ,mesh0->node.gradVel 
+               ,mesh0->elm.energy    ,mesh0->node.energy
+               ,mesh0->elm.gradEnergy,mesh0->node.gradEnergy
+               ,mesh0->nnode         ,mesh0->numel  
+               ,mesh0->ndm           ,mesh0->maxNo 
+               ,mesh0->numat         ,ndfVel
+               ,strRes[0]            ,strRes[1]
+               ,strRes[2]            ,strRes[3]
+               ,strRes[4]            ,strRes[5]
+               ,strRes[6]            ,strRes[7]
+               ,strRes[8]            ,strRes[9]
+               ,strRes[10]           ,strRes[11]
+               ,nameOut              ,opt.bVtk      
+               ,opt.vel              ,opt.gradVel 
+               ,opt.pres             ,opt.gradPres
+               ,opt.energy           ,opt.gradEnergy
+               ,sc.ddt               ,fileOut);  
 /*...................................................................*/
       }
 /*...................................................................*/

@@ -67,11 +67,12 @@
     short np;                       /*numero de particoes*/  
     DOUBLE par[MAXLOADPARAMETER];
   }Loads;
-  Loads  loadsD1[MAXLOADD1]       /*tipo de cargas (difusao pura)*/
-        ,loadsT1[MAXLOADT1]       /*tipo de cargas (difusao-transporte)*/
-        ,loadsVel[MAXLOADFLUID]   /*tipo de cargas (fluid-Vel)*/
-        ,loadsPres[MAXLOADFLUID]  /*tipo de cargas (fluid-Pres)*/
-        ,loadsPresC[MAXLOADFLUID]; /*tipo de cargas (fluid-Pres)*/
+  Loads  loadsD1[MAXLOADD1]         /*tipo de cargas (difusao pura)*/
+        ,loadsT1[MAXLOADT1]         /*tipo de cargas (difusao-transporte)*/
+        ,loadsVel[MAXLOADFLUID]     /*tipo de cargas (fluid-Vel)*/
+        ,loadsPres[MAXLOADFLUID]    /*tipo de cargas (fluid-Pres)*/
+        ,loadsPresC[MAXLOADFLUID]   /*tipo de cargas (fluid-Pres)*/
+        ,loadsEnergy[MAXLOADFLUID]; /*tipo de cargas (fluid-Pres)*/
 /*...................................................................*/
 
 /*...*/
@@ -89,10 +90,12 @@
     short  *geomType;  /*tipo geometrio do elemento*/
     short  *rNum;      /*renumeracao dos elementos*/ 
 /*... */               
-    short *faceRvel;      /*condicao  contorno na face (fluido)*/
-    short *faceLoadVel;   /*tipo de carga contorno na face (fluido)*/
-    short *faceRpres;     /*condicao  contorno na face (fluido)*/
-    short *faceLoadPres;  /*tipo de carga contorno na face (fluido)*/
+    short *faceRvel;       /*condicao  contorno na face (fluido)*/
+    short *faceLoadVel;    /*tipo de carga contorno na face (fluido)*/
+    short *faceRpres;      /*condicao  contorno na face (fluido)*/
+    short *faceLoadPres;   /*tipo de carga contorno na face (fluido)*/
+    short *faceRenergy;    /*condicao  contorno na face (fluido)*/
+    short *faceLoadEnergy; /*tipo de carga contorno na face (fluido)*/
 /*... */               
     short *faceRt1;    /*condicao  contorno na face (transporte)*/
     short *faceLoadT1; /*tipo de carga contorno na face (transporte)*/
@@ -102,14 +105,21 @@
 /*...................................................................*/
     Geom   geom;       
 /*...*/
-    DOUBLE *pressure;   /*pressao*/
-    DOUBLE *vel;        /*velocidade do fluido*/
-    DOUBLE *vel0;       /*velocidade do fluido*/
+    DOUBLE *energy;      /*energia*/
+    DOUBLE *energy0;     /*energia*/
+    DOUBLE *pressure;    /*pressao*/
+    DOUBLE *vel;         /*velocidade do fluido*/
+    DOUBLE *vel0;        /*velocidade do fluido*/
     DOUBLE *densityFluid;/*massa especifica do fluido*/
-    DOUBLE *gradVel;    /*gradiente do campo de velocidade*/
+    DOUBLE *specificHeat;/*calor especifico*/
+/*...*/
+    DOUBLE *gradVel;    /*gradiente do campo de velocidade*/    
+    DOUBLE *gradPres;   /*gradiente do campo de pressao*/    
+    DOUBLE *gradEnergy; /*gradiente do campo de energia*/
+/*...*/
     DOUBLE *rCellVel;   /*residuo da celula*/
-    DOUBLE *gradPres;   /*gradiente do campo de pressao*/
     DOUBLE *rCellPres;  /*residuo da celula*/
+    DOUBLE *rCellEnergy;/*residuo da celula*/
 /*...*/
     DOUBLE *temp;       /*temperatura*/
     DOUBLE *gradTemp;   /*gradiente da temperatura*/
@@ -139,6 +149,7 @@
   typedef struct{
     DOUBLE *x;         /*coordenadas*/
     DOUBLE *vel;       /*velocidades*/
+    DOUBLE *energy;    /*velocidades*/
     DOUBLE *pressure;  /*pressao*/
     DOUBLE *temp;      /*temperatura*/
     DOUBLE *uD1;       /*difusao pura uD1*/
@@ -152,6 +163,7 @@
                             | du3dx1 du3dx2 du3dx3 |   
                         */                             
     DOUBLE *gradPres;  /*gradiente da Pressao*/
+    DOUBLE *gradEnergy;/*gradiente da Energia*/
     INT    *nno; 
   }Node;
 /*...................................................................*/
@@ -168,11 +180,11 @@
 
 /*... Simple*/
   typedef struct{
-    DOUBLE alphaPres,alphaVel;           /*under-relaxation*/
+    DOUBLE alphaPres,alphaVel,alphaEnergy;           /*under-relaxation*/
     DOUBLE *ePresC,*nPresC  ,*eGradPresC;/*Pressao de correcao*/
     DOUBLE *ePresC1;                     /*Pressao de correcao 1*/
     DOUBLE *d;
-    DOUBLE tolPres,tolVel;
+    DOUBLE tolPres,tolVel,tolEnergy;
     int    pSimple;
     int    maxIt;
     bool   sPressure;
@@ -186,6 +198,8 @@
                                         e normalizado*/
     unsigned short kZeroPres;         /*iteracao com o qual o residuo
                                         e normalizado*/
+    unsigned short kZeroEnergy;       /*iteracao com o qual o residuo
+                                      e normalizado*/
   }Simple;
 /*...................................................................*/
 
@@ -262,6 +276,9 @@
 /*... equacao de velocidade*/
     Advection  advVel;
     Diffusion diffVel;
+/*... equacao de energia*/
+    Advection  advEnergy;
+    Diffusion diffEnergy;
 /*... equacao de pressao*/
     Diffusion diffPres;
   }Scheme;

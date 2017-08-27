@@ -199,7 +199,7 @@ void setNamePoint(Memoria *m,char *s,bool iws){
   if(locateNamePoint(m,s,iws)<0)
     strcpy(m->nome_ponteiro[m->npont],s);
   else{
-   fprintf(stderr,"Já há um vetor chamado  \"%s\".\n"
+   fprintf(stderr,"Ja ha um vetor chamado  \"%s\".\n"
 		 ,s); 
    exit(0);
   }
@@ -231,7 +231,7 @@ int locateNamePoint(Memoria *m,char *s,bool iws){
     }  
   }
   if(iws)  
-    fprintf(stderr,"Vetor \"%s\" não localizado.\n",s);
+    fprintf(stderr,"Vetor \"%s\" nao localizado.\n",s);
   return -1;
 }
 /*********************************************************************/

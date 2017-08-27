@@ -5,7 +5,7 @@
   #ifdef NMACROS 
     #undef NMACROS
   #endif  
-  #define NMACROS       27
+  #define NMACROS       39
 /*...................................................................*/  
   #include<stdio.h>
   #include<stdlib.h>
@@ -14,6 +14,7 @@
   #include<string.h>
   #include<File.h>
   #include<HccaStdBool.h>
+  #include<HccaBlas.h>
   #include<Memoria.h>
   #include<ParallelMpi.h>
 

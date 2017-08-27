@@ -26,13 +26,13 @@
  * ------------------------------------------------------------------ *
  **********************************************************************/
 void wMeshPartVtk(Memoria *m     
-            ,double *x      ,INT *el            
-            ,short *nen     ,short *typeGeom
-            ,INT nnode      ,INT numel    
-            ,short ndm      
-            ,short maxNo    ,short maxViz  
-            ,char *nameOut  ,bool iws
-            ,FILE *f)
+                  ,double *x      ,INT *el            
+                  ,short *nen     ,short *typeGeom
+                  ,INT nnode      ,INT numel    
+                  ,short ndm      
+                  ,short maxNo    ,short maxViz  
+                  ,char *nameOut  ,bool iws
+                  ,FILE *f)
 {
   int    *lel=NULL;
   INT i;
@@ -232,6 +232,9 @@ void wPartVtk(Memoria *m
 /*********************************************************************/ 
 
 /********************************************************************** 
+ * Data de criacao    : 00/00/0000                                    *
+ * Data de modificaco : 22/08/2017                                    *
+ *------------------------------------------------------------------- *
  * WGEOVTK : escreve a malha com os resultados e condicao             *  
  * ------------------------------------------------------------------ *
  * parametros de entrada:                                             * 
@@ -260,6 +263,7 @@ void wPartVtk(Memoria *m
  * ndfD       -> graus de liberdade das equacoes de difusao D1        *
  * ndfT       -> graus de liberdade das equacoes de tranporte T1      *
  * ndfF       -> graus de liberdade das equacoes de fluidos           *
+ * ndfFt      -> graus de liberdade das equacoes de fluidos           *
  * nameOut    -> nome de arquivo de saida                             *
  * iws        -> vtk binario                                          *
  * f          -> arquivlo                                             *
@@ -279,7 +283,7 @@ void wGeoVtk(Memoria *m        ,double *x
             ,short maxNo       ,short maxViz  
             ,short numat    
             ,short *ndfD       ,short *ndfT
-            ,short const ndfF                         
+            ,short const ndfF  ,short const ndfFt
             ,char *nameOut     ,bool iws
             ,FILE *f)
 {
@@ -460,7 +464,7 @@ void wGeoVtk(Memoria *m        ,double *x
 /*...................................................................*/
 
 /*...*/
-  if(ndfF > 0 ){
+  if(ndfF > 0 || ndfFt > 0){
 /*... faceRfluid*/
     HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
     if( lel == NULL){
@@ -515,7 +519,10 @@ void wGeoVtk(Memoria *m        ,double *x
 }
 /*********************************************************************/ 
 
-/********************************************************************** 
+/**********************************************************************
+ * Data de criacao    : 00/00/0000                                    *
+ * Data de modificaco : 22/08/2017                                    *
+ *------------------------------------------------------------------- *
  * WGEOFACEVTK : escreve a malha apenas com os faces com condicao     *  
  * ------------------------------------------------------------------ *
  * parametros de entrada:                                             * 
@@ -543,6 +550,7 @@ void wGeoVtk(Memoria *m        ,double *x
  * ndfD1      -> graus de liberdade das equacoes difusao pura D1      *
  * ndfT1      -> graus de liberdade das equacoes de transporte T1     *
  * ndfF       -> graus de liberdade das equacoes de fluidos           *
+ * ndfFt      -> graus de liberdade das equacoes de fluidos           *
  * nameOut    -> nome de arquivo de saida                             *
  * iws        -> vtk binario                                          *
  * f          -> arquivlo                                             *
@@ -559,7 +567,7 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
             ,INT const nnode      ,INT const numel    
             ,short const ndm      
             ,short const ndfD1    ,short const ndfT1
-            ,short const ndfF                        
+            ,short const ndfF     ,short const ndfFt
             ,short const maxViz   ,short const maxNo
             ,char *nameOut        ,bool iws
             ,FILE *f)
@@ -606,7 +614,7 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
 /*...................................................................*/
 
 /*... ndfF*/
-  if(ndfF > 0){
+  if(ndfF > 0 || ndfFt > 0){
     HccaAlloc(int,m,lfaceLfluid,numel*MAX_NUM_FACE,"lfaceSfluid",_AD_);
 /*  makeFace(el          ,faceRfluid   ,faceLfluid
             ,typeGeom    
@@ -656,7 +664,7 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
     writeVtkProp(lfaceLd1,&ddum,nFace,1    ,"lFaceLd1",iws,INTEGER,1,f);
   if(ndfT1 > 0) 
     writeVtkProp(lfaceLt1,&ddum,nFace,1    ,"lFaceLt1",iws,INTEGER,1,f);
-  if(ndfF  > 0) 
+  if(ndfF  > 0 || ndfFt > 0) 
     writeVtkProp(lfaceLfluid  ,&ddum,nFace  ,1   
                 ,"lFaceLfluid",iws  ,INTEGER,1   ,f);
 /*...................................................................*/
@@ -1066,24 +1074,29 @@ void wResVtkDif(Memoria *m        ,double *x
  *           | du3dx1 du3dx2 du3dx3 |                                 *
  *                                                                    *
  **********************************************************************/
-void wResVtkFluid(Memoria *m         ,DOUBLE *x      
-                 ,INT *el            ,short *mat    
-                 ,short *nen         ,short *typeGeom
-                 ,DOUBLE *elPres     ,DOUBLE *nPres
-                 ,DOUBLE *elGradPres ,DOUBLE *nGradPres
-                 ,DOUBLE *elVel      ,DOUBLE *nVel      
-                 ,DOUBLE *elGradVel  ,DOUBLE *nGradVel 
-                 ,INT nnode          ,INT numel    
-                 ,short const ndm    ,short const maxNo 
-                 ,short const numat  ,short const ndf   
-                 ,char *presResEl    ,char *presResNo 
-                 ,char *gradPresResEl,char *gradPresResNo 
-                 ,char *velEl        ,char *velNo       
-                 ,char *gradVelResEl ,char *gradVelResNo 
-                 ,char *nameOut      ,bool iws
-                 ,bool fVel          ,bool fGradVel 
-                 ,bool fPres         ,bool fGradPres
-                 ,Temporal ddt       ,FILE *f)
+void wResVtkFluid(Memoria *m    ,DOUBLE *x      
+          ,INT *el              ,short *mat    
+          ,short *nen           ,short *typeGeom
+          ,DOUBLE *elPres       ,DOUBLE *nPres
+          ,DOUBLE *elGradPres   ,DOUBLE *nGradPres
+          ,DOUBLE *elVel        ,DOUBLE *nVel      
+          ,DOUBLE *elGradVel    ,DOUBLE *nGradVel 
+          ,DOUBLE *elEnergy     ,DOUBLE *nEnergy
+          ,DOUBLE *elGradEnergy ,DOUBLE *nGradEnergy
+          ,INT nnode            ,INT numel    
+          ,short const ndm      ,short const maxNo 
+          ,short const numat    ,short const ndf   
+          ,char *presResEl      ,char *presResNo 
+          ,char *gradPresResEl  ,char *gradPresResNo 
+          ,char *velEl          ,char *velNo       
+          ,char *gradVelResEl   ,char *gradVelResNo 
+          ,char *energyResEl    ,char *energyResNo
+          ,char *gradEnergyResEl,char *gradEnergyResNo
+          ,char *nameOut        ,bool iws
+          ,bool fVel            ,bool fGradVel 
+          ,bool fPres           ,bool fGradPres
+          ,bool fEnergy         ,bool fGradEnergy
+          ,Temporal ddt         ,FILE *f)
 {
   int    *lel=NULL;
   INT i;
@@ -1189,6 +1202,20 @@ void wResVtkFluid(Memoria *m         ,DOUBLE *x
   }
 /*...................................................................*/
 
+/*... escrever campo de energia por celula*/
+   if (fEnergy)
+     writeVtkProp(&idum, elEnergy, numel,   1, energyResEl, iws
+                  , DOUBLEV, 1, f);
+/*...................................................................*/
+
+/*... escrever gradiente de velocidade por celula*/
+  if (fGradEnergy) {
+    if (ndm == 2)
+      writeVtkProp(&idum, elGradEnergy, numel,ndm, gradEnergyResEl
+                   ,iws, DOUBLEV, 2, f);
+  }
+/*...................................................................*/
+
 /*.... campo por no*/
   fprintf(f,"POINT_DATA %ld\n",(long) nnode);
 /*...................................................................*/
@@ -1233,6 +1260,18 @@ void wResVtkFluid(Memoria *m         ,DOUBLE *x
       writeVtkProp(&idum,nGradVel,nnode,3*ndm,gradVelResNo
                   ,iws,DOUBLEV,1,f);
   }
+/*...................................................................*/
+
+/*... escrever resultados de energia por nos*/
+  if (fEnergy)
+    writeVtkProp(&idum, nEnergy, nnode, 1, energyResNo, iws
+                , DOUBLEV, 1, f);
+/*...................................................................*/
+
+/*... escrever os gradiente de pressao por nos*/
+  if (fGradEnergy)
+    writeVtkProp(&idum, nGradEnergy, nnode, ndm, gradEnergyResNo
+                 ,iws, DOUBLEV, 2, f);
 /*...................................................................*/
 
   fclose(f);

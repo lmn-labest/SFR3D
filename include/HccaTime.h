@@ -36,18 +36,23 @@
 /*... fluid*/
     double solvPres;
     double solvVel;
+    double solvEnergy;
     double numeqPres;
     double numeqVel;
+    double numeqEnergy;
     double dataStructVel;
     double dataStructPres;
+    double dataStructEnergy;
     double solvEdpFluid;
     double cellPloadSimple;
     double cellTransientSimple;
     double systFormPres;                                 
     double systFormVel;
+    double systFormEnergy;
     double velExp;
     double rcGradPres;
     double rcGradVel;
+    double rcGradEnergy;
 /*... blas*/
     double matVecOverHeadMpi;
     double matVecSparse;

@@ -34,4 +34,13 @@
                          ,bool const fAdd); 
 /*...................................................................*/
 
+/*...*/
+  void cellTransientEnergy(DOUBLE *RESTRICT volume ,INT *RESTRICT id
+                          ,DOUBLE *RESTRICT u0     ,DOUBLE *RESTRICT u
+                          ,DOUBLE *RESTRICT density, DOUBLE *RESTRICT sHeat
+                          ,DOUBLE *RESTRICT f
+                          ,Temporal const ddt      ,INT const numel
+                          ,bool const fAdd);
+/*...................................................................*/
+
 #endif /*_TRANSIENT_H_*/

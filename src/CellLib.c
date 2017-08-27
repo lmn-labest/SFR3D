@@ -1,5 +1,141 @@
 #include<CellLoop.h>
 /*********************************************************************
+* Data de criacao    : 22/08/2017                                   *
+* Data de modificaco : 25/08/2017                                   *
+*-------------------------------------------------------------------*
+* CELLLIBENERGY: chamada de bibliotecas de celulas para             *
+* problema de escoamento de fluidos (Energy)                        *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* loadsVel  -> definicoes de cargas de velocidades                  *
+* loadsPres -> definicoes de cargas de pressao                      *
+* advVel    -> tecnica da discretizacao do termo advecao            *
+* diffVel   -> tecnica da discretizacao do termo difusivo           *
+* typeSimple-> tipo do metodo simple                                *
+* lGeomType -> tipo geometrico da celula central e seus vizinhos    *
+* lprop     -> propriedade fisicas das celulas                      *
+* lViz      -> viznhos da celula central                            *
+* lId       -> equa da celula                                       *
+* Ksi       -> vetores que unem centroide da celula central aos     *
+*            vizinhos destas                                        *
+* mKsi      -> modulo do vetor ksi                                  *
+* eta       -> vetores paralelos as faces das celulas               *
+* fArea     -> area das faces                                       *
+* normal    -> vetores normais as faces das celulas                 *
+* volume    -> volume celula central                                *
+* xm        -> pontos medios das faces da celula central            *
+* xmcc      -> vetores que unem o centroide aos pontos medios das   *
+*            faces da celula central                                *
+* vSkew     -> vetor entre o ponto medio a intersecao que une os    *
+*            centrois compartilhado nessa face da celula central    *
+* mvSkew    -> distacia entre o ponto medio a intersecao que une os *
+*            centrois compartilhado nessa face da celula central    *
+* dcca      -> menor distacia do centroide central a faces desta    *
+*              celula                                               *
+* lDensity  -> massa especifica com variacao temporal               *
+* lA        -> nao definido                                         *
+* lB        -> nao definido                                         *
+* lRcell    -> nao definido                                         *
+* ddt       -> discretizacao temporal                               *
+* faceVelR  -> restricoes por elemento de velocidades               *
+* faceVelL  -> carga por elemento de velocidades                    *
+* facePresR -> restricoes por elemento de pressao                   *
+* facePresL -> carga por elemento de pressao                        *
+* vel       -> campo de velocidade conhecido                        *
+* dField    -> matriz D do metodo simple                            *
+* cc        -> centroides da celula centra e seus vizinhos          *
+* underU    -> fator underrelaxtion sinple                          *
+* nEn       -> numero de nos da celula central                      *
+* nFace     -> numero de faces da celula central                    *
+* ndm       -> numero de dimensoes                                  *
+* lib       -> numero da biblioteca                                 *
+* nel       -> numero da celula                                     *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* lA        -> coeficiente da linha i                               *
+* lB        -> vetor de forca da linha i                            *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void cellLibEnergy(Loads *loads                        
+                  ,Advection  adv             ,Diffusion diff   
+                  ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
+                  ,INT   *RESTRICT lViz       ,INT *RESTRICT lId
+                  ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
+                  ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea
+                  ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT volume
+                  ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
+                  ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT lDensity
+                  ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
+                  ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
+                  ,DOUBLE *RESTRICT lRcell    ,Temporal const ddt
+                  ,short  *RESTRICT lFaceR    , short  *RESTRICT lFaceL    
+                  ,DOUBLE *RESTRICT u         ,DOUBLE *RESTRICT gradU
+                  ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
+                  ,DOUBLE *RESTRICT cc
+                  ,DOUBLE const underU
+                  ,short const nEn            ,short  const nFace
+                  ,short const ndm            ,short const lib
+                  ,INT const nel)
+{
+
+/*... */
+  if (lib == 1) {
+/*... 2D*/
+    if (ndm == 2)  
+      cellEnergy2D(loads
+                  ,adv      ,diff
+                  ,lGeomType,lprop
+                  ,lViz     ,lId
+                  ,ksi      ,mKsi
+                  ,eta      ,fArea
+                  ,normal   ,volume
+                  ,xm       ,xmcc
+                  ,dcca     ,lDensity
+                  ,vSkew    ,mvSkew
+                  ,lA       ,lB
+                  ,lRcell  ,ddt
+                  ,lFaceR  ,lFaceL
+                  ,u       ,gradU    
+                  ,vel     ,gradVel
+                  ,cc
+                  ,underU
+                  ,nEn     ,nFace
+                  ,ndm     ,nel);    
+/*..................................................................*/
+
+/*... 3D*/
+/*    else if (ndm == 3) {
+      cellSimpleVel3D(loadsVel, loadsPres
+        , advVel, diffVel
+        , typeSimple
+        , lGeomType, lprop
+        , lViz, lId
+        , ksi, mKsi
+        , eta, fArea
+        , normal, volume
+        , xm, xmcc
+        , dcca, lDensity
+        , vSkew, mvSkew
+        , lA, lB
+        , lRcell, ddt
+        , lFaceVelR, lFaceVelL
+        , lFacePresR, lFacePresL
+        , pres, gradPres
+        , vel, gradVel
+        , dField, cc
+        , underU, sPressure
+        , nEn, nFace
+        , ndm, nel);
+    }*/
+/*..................................................................*/
+  }
+
+}
+/*********************************************************************/
+
+/*********************************************************************
  * Data de criacao    : 30/06/2016                                   *
  * Data de modificaco : 08/08/2016                                   *
  *-------------------------------------------------------------------*
@@ -5291,3 +5427,81 @@ void advectiveSchemeScalar(DOUBLE const uC, DOUBLE const uV
   }
 }
 /*********************************************************************/
+
+/*********************************************************************
+* Data de criacao    : 25/08/2017                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* INTERPOLFACEVEL : interpolacao das velocidae na faces             *
+*-------------------------------------------------------------------*
+* velC      -> velocidade da celula central                         *
+* velV      -> velocidade celula vizinha                            *
+* presC     -> pressao da celula central                            *
+* presV     -> pressao da celula vizinha                            *
+* gradPesC  -> gradiente reconstruido da pressao da celula central  *
+* gradPesV  -> gradiente reconstruido da pressao da celula vizinha  *
+* vKsi      -> vetores que unem centroide da celula central aos     *
+*              vizinhos destas                                      *
+* mKsi      -> modulo do vetor ksi                                  *
+* dField    -> matriz D do metodo simple                            *
+* alphaMenosUm -> interpolacao linear                               *
+* alpha        -> interpolacao linear                               *
+
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* wfn -> velocidade normal a face                                   *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+* 2016 - Darwish-Moukalled  
+*-------------------------------------------------------------------*
+*********************************************************************/
+DOUBLE interpolFaceVel(DOUBLE *RESTRICT velC,DOUBLE *RESTRICT velV
+              ,DOUBLE const presC            ,DOUBLE const presV
+              ,DOUBLE *RESTRICT gradPresC    ,DOUBLE *RESTRICT gradPresV
+              ,DOUBLE *RESTRICT lNormal      ,DOUBLE *RESTRICT vKsi
+              ,DOUBLE const mKsi             ,DOUBLE *RESTRICT dFieldF
+              ,DOUBLE const alphaMenosUm     ,DOUBLE const alpha
+              ,short const ndm)
+{
+
+  DOUBLE wfn,nk,wf[2],gf[2],gfp[2];
+
+  if( ndm == 2 ){
+/*...*/
+    wf[0] = alphaMenosUm*velC[0] + alpha*velV[0];
+    wf[1] = alphaMenosUm*velC[1] + alpha*velV[1]; 
+/*...................................................................*/
+
+/*...................................................................*/
+    wfn = wf[0] * lNormal[0] + wf[1] * lNormal[1];
+/*...................................................................*/
+
+/*... 2016 - Darwish-Moukalled*/
+/*... interpolacao linear dos gradientes das pressoes*/
+    gf[0] = alphaMenosUm*gradPresC[0] + alpha*gradPresV[0];
+    gf[1] = alphaMenosUm*gradPresC[1] + alpha*gradPresV[1];
+/*...................................................................*/
+
+/*...*/
+    gfp[0] = (presV - presC) / mKsi;
+/*...................................................................*/
+
+/*... produtos interno*/
+    nk = dFieldF[0] * vKsi[0] * lNormal[0]
+       + dFieldF[1] * vKsi[1] * lNormal[1];
+    gfp[1] = gf[0] * vKsi[0] + gf[1] * vKsi[1];
+/*...................................................................*/
+
+/*...*/
+    gfp[1] = (gfp[1] - gfp[0])*nk;
+/*...................................................................*/
+  }
+/*...*/ 
+  wfn += gfp[1];
+/*...................................................................*/
+
+/*...*/
+  return wfn;
+/*...................................................................*/
+}

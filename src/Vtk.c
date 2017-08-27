@@ -282,7 +282,7 @@ void writeVtkProp(int *iprop,double *dprop,INT n     ,int gdl
 /*...*/
            if(gdl == 2){ 
              for(j=0;j<gdl;j++)
-               write_double(dprop[i*gdl+j],cod1,f);
+               write_double(dprop[i*gdl+j],cod1,f);            
              write_double(0.0e0,cod1,f);
             }
 /*...................................................................*/
