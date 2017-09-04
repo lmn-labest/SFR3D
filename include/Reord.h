@@ -1,5 +1,5 @@
-#ifndef _REORD_H  
-  #define _REORD_H
+#ifndef _REORD_H_  
+  #define _REORD_H_
    #ifdef _AD_
     #undef  _AD_
   #endif  
@@ -27,4 +27,4 @@
 /*...................................................................*/
 
 
-#endif/*_REORD_H*/
+#endif/*_REORD_H_*/

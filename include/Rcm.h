@@ -1,5 +1,5 @@
-#ifndef _RCM_H  
-  #define _RCM_H
+#ifndef _RCM_H_  
+  #define _RCM_H_
 /*...*/
   #include<stdio.h>
   #include<stdlib.h>
@@ -28,4 +28,4 @@
  
 
 
-#endif/*_RCM_H*/
+#endif/*_RCM_H_*/

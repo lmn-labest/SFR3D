@@ -31,9 +31,9 @@
 
 /*...*/
   #define COEFDIF                    0
-  #define DINAMICVISCOSITY           0
+  #define DYNAMICVISCOSITY           0
   #define DENSITY                    1
-  #define COEFDIFFFLUID              2
+  #define THERMALCONDUCTIVITY        2
   #define SPECIFICHEATCAPACITYFLUID  3
 /*...................................................................*/
 
@@ -48,17 +48,21 @@
   #define MAX_MPI_PROCESS 2048
 /*...................................................................*/
 
-/*... */
-  #define KELVINCONV 273.15e0
+/*... */            
+  #define KELVINCONV 273.15e+00
+  #define CELSIUS_FOR_KELVIN(t) (t+KELVINCONV) 
+  #define KELVIN_FOR_CELSIUS(t) (t-KELVINCONV) 
 /*...................................................................*/
 
 /*...*/
-  #define DENSITY_LEVEL 3
-  #define SHEAT_LEVEL   3
+  #define DVISCOSITY_LEVEL    1
+  #define DENSITY_LEVEL       3
+  #define SHEAT_LEVEL         3
+  #define TCONDUCTIVITY_LEVEL 1
 /*...................................................................*/
 
 /*... conv radianos para graus*/
-  #define radToDeg(teta) 180.e0*teta/PI
+  #define radToDeg(teta) (180.e0*teta/PI)
 /*...................................................................*/
 
 /*... tipo de cargr no volume*/

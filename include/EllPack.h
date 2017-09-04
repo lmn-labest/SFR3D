@@ -1,5 +1,5 @@
-#ifndef _ELLPACK_H  
-  #define _ELLPACK_H
+#ifndef _ELLPACK_H_  
+  #define _ELLPACK_H_
    #ifdef _AD_
     #undef  _AD_
   #endif  
@@ -40,4 +40,4 @@
 /*...................................................................*/
 
 
-#endif/*_ELLPACK_H*/
+#endif/*_ELLPACK_H_*/

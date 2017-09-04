@@ -1,4 +1,4 @@
-#ifndef _ADJCENCY_H
+#ifndef _ADJCENCY_H_
   #define _ADJCENCY_H_
 /*...*/
   #include<Memoria.h>
@@ -43,5 +43,5 @@
 /*...................................................................*/
 
 
-#endif/*_MESH_*/
+#endif/*_ADJCENCY_H_*/
 

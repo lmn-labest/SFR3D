@@ -1,5 +1,5 @@
-#ifndef _WRITE_VTK_H
-  #define _WRITE_VTK_H
+#ifndef _WRITE_VTK_H_
+  #define _WRITE_VTK_H_
   #define INTEGER 1
   #define DOUBLEV 2
 /*...*/
@@ -12,6 +12,7 @@
   #include<Mesh.h>
   #include<Memoria.h>
   #include<File.h>
+  #include<Properties.h>
   
 /*... particionamento*/
   void wPartVtk(Memoria *m   ,double *x      
@@ -140,4 +141,4 @@
              ,int   const numel  ,int *nFace);
 /*...................................................................*/
 
-#endif/*_WRITE_VTK_H*/
+#endif/*_WRITE_VTK_H_*/

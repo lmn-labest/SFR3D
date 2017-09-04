@@ -1,5 +1,5 @@
-#ifndef _HCCABLAS_H
-  #define _HCCABLAS_H
+#ifndef _HCCABLAS_H_
+  #define _HCCABLAS_H_
 
 /*...*/
   #include<Mesh.h>
@@ -208,4 +208,4 @@
 /*======================== level 3 =================================*/
 /*==================================================================*/
 
-#endif
+#endif /*_HCCABLAS_H_*/

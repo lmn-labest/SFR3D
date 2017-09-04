@@ -5,7 +5,7 @@
  * Celulas 2D                                                        *
  *-------------------------------------------------------------------*
  * cellTrans2D - Celula de transporte geral                          *
- * cellTrans2D - Celula de transporte da equacao de energia          *
+ * cellEnergy2D- Celula de transporte da equacao de energia          *
  *-------------------------------------------------------------------*
  * Celulas 3D                                                        *
  *-------------------------------------------------------------------*
@@ -331,7 +331,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*********************************************************************
 * Data de criacao    : 20/08/2017                                   *
-* Data de modificaco : 00/00/0000                                   *
+* Data de modificaco : 01/09/2017                                   *
 *-------------------------------------------------------------------*
 * CELLENERGY2D: Celula 2D para transporte                           *
 *-------------------------------------------------------------------*
@@ -362,6 +362,9 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 * dcca      -> menor distancia do centroide central a faces desta   *
 *              celula                                               *
 * lDensity  -> massa especifica com variacao temporal               *
+* lSheat    -> calor especifico com variacao temporal               *
+* lDviscosity-> viscosidade dinamica com variacao temporal          *
+* lTconductivity-> condutividade termica com variacao temporal      *
 * lA        -> nao definido                                         *
 * lB        -> nao definido                                         *
 * lRcell    -> nao definido                                         *
@@ -389,24 +392,25 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 *-------------------------------------------------------------------*
 *********************************************************************/
 void cellEnergy2D(Loads *loads
-                 ,Advection advT           ,Diffusion diffT
-                 ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
-                 ,INT *RESTRICT lViz       ,INT *RESTRICT lId
-                 ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
-                 ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT mEta
-                 ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
-                 ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
-                 ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
-                 ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
-                 ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-                 ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt
-                 ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
-                 ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
-                 ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT gradVel
-                 ,DOUBLE *RESTRICT cc
-                 ,DOUBLE const underU
-                 ,const short nEn          ,short const nFace
-                 ,const short ndm          ,INT const nel)
+            ,Advection advT              ,Diffusion diffT
+            ,short *RESTRICT lGeomType   ,DOUBLE *RESTRICT prop
+            ,INT *RESTRICT lViz          ,INT *RESTRICT lId
+            ,DOUBLE *RESTRICT ksi        ,DOUBLE *RESTRICT mKsi
+            ,DOUBLE *RESTRICT eta        ,DOUBLE *RESTRICT mEta
+            ,DOUBLE *RESTRICT normal     ,DOUBLE *RESTRICT volume
+            ,DOUBLE *RESTRICT xm         ,DOUBLE *RESTRICT xmcc
+            ,DOUBLE *RESTRICT dcca        ,DOUBLE *RESTRICT cc
+            ,DOUBLE *RESTRICT vSkew      ,DOUBLE *RESTRICT mvSkew
+            ,DOUBLE *RESTRICT lA         ,DOUBLE *RESTRICT lB
+            ,DOUBLE *RESTRICT lRcell     ,Temporal const ddt
+            ,short  *RESTRICT lFaceR     ,short *RESTRICT lFaceL
+            ,DOUBLE *RESTRICT u0         ,DOUBLE *RESTRICT gradU0
+            ,DOUBLE *RESTRICT vel        ,DOUBLE *RESTRICT gradVel
+            ,DOUBLE *RESTRICT lDensity   ,DOUBLE *RESTRICT lSheat
+            ,DOUBLE *RESTRICT lDviscosity,DOUBLE *RESTRICT lTconductivity
+            ,DOUBLE const underU
+            ,const short nEn             ,short const nFace
+            ,const short ndm             ,INT const nel)
 {
 
   DOUBLE coefDifC, coefDif, coefDifV, rCell, dt, dt0;
@@ -432,22 +436,23 @@ void cellEnergy2D(Loads *loads
   short idCell = nFace;
   short nAresta, nCarg, typeTime;
   INT vizNel;
-  bool fTime,fDisp;
+  bool fTime,fDisp,fRes;
 
 /*...*/
   dt       = ddt.dt[0];
   dt0      = ddt.dt[1];
   typeTime = ddt.type;
-  fTime    = ddt.flag;
-  densityC = lDensity[idCell];
-  fDisp    = true;
+  fTime    = ddt.flag;  
+  fDisp    = false;
+  fRes     = true;
 /*...................................................................*/
 
 /*... propriedades da celula*/
-  coefDifC= MAT2D(idCell,COEFDIFFFLUID            ,prop,MAXPROP);
-  miC     = MAT2D(idCell,DINAMICVISCOSITY         ,prop,MAXPROP);
-  sHeatC  = MAT2D(idCell,SPECIFICHEATCAPACITYFLUID,prop,MAXPROP);
-  lambda  = -D2DIV3*miC;
+  densityC = lDensity[idCell];
+  sHeatC   = lSheat[idCell];
+  coefDifC = lTconductivity[idCell];  
+  miC      = lDviscosity[idCell]; 
+  lambda  = -D2DIV3*miC;  
 /*...................................................................*/
 
 /*...*/
@@ -469,11 +474,12 @@ void cellEnergy2D(Loads *loads
 /*... dominio*/
     if (vizNel  > -1) {
 /*...*/
-      sHeatF = MAT2D(nAresta,SPECIFICHEATCAPACITYFLUID,prop,MAXPROP);
+      densityF = lDensity[nAresta]; 
+      sHeatF   = lSheat[nAresta];    
+      coefDifV = lTconductivity[nAresta];  
 /*...*/
       velF[0] = MAT2D(nAresta, 0, vel, ndm);
-      velF[1] = MAT2D(nAresta, 1, vel, ndm);
-      densityF = lDensity[nAresta];
+      velF[1] = MAT2D(nAresta, 1, vel, ndm);      
 /*...*/
       lKsi[0] = MAT2D(nAresta, 0, ksi, ndm);
       lKsi[1] = MAT2D(nAresta, 1, ksi, ndm);
@@ -510,8 +516,7 @@ void cellEnergy2D(Loads *loads
       alphaMenosUm = 1.0e0 - alpha;
 /*...................................................................*/
 
-/*... media harmonica*/
-      coefDifV = MAT2D(nAresta, COEFDIF, prop, MAXPROP);
+/*... media harmonica*/      
       coefDif = alpha / coefDifC + alphaMenosUm / coefDifV;
       coefDif = 1.0e0 / coefDif;
 /*...................................................................*/
@@ -637,7 +642,7 @@ void cellEnergy2D(Loads *loads
   if (fTime) {
 /*... EULER*/
     if (typeTime == EULER)
-      sP += densityC*sHeatC*volume[idCell] / dt;
+      sP += sHeatC*densityC*volume[idCell] / dt;
 /*...BACKWARD*/
     else if (typeTime == BACKWARD) {
       tmp = 1.e0 / dt + 1.e0 / (dt + dt0);
@@ -655,17 +660,12 @@ void cellEnergy2D(Loads *loads
   }
 /*...................................................................*/
 
-/*... under-relaxation(simple)*/
-  lA[idCell] = lA[idCell] / underU;
-  p += (1.e0 - underU)*lA[idCell] * velC[0];
-/*...................................................................*/
-
 /*...*/
   rCell = 0.0e0;
   for (nAresta = 0; nAresta<nFace; nAresta++) {
     if (lViz[nAresta] > -1) {
 /*... pasando os valoeres conhecidos para o lado direito*/
-      if (lId[nAresta] == -2)
+      if (lId[nAresta] == -2) 
         p += lA[nAresta] * u0[nAresta];
       else
 /*residuo (R = F-KvizUviz ) e valores prescritos por elemento*/
@@ -674,6 +674,12 @@ void cellEnergy2D(Loads *loads
   }
 /*... residuo: R = F - KpUp*/
   rCell += p - lA[idCell] * u0[idCell];
+/*...................................................................*/
+
+/*... under-relaxation(simple)*/
+  lA[idCell] = lA[idCell] / underU;
+  if(!fRes)
+    p += (1.e0 - underU)*lA[idCell] * u0[idCell];
 /*...................................................................*/
 
 /*...*/
@@ -691,7 +697,11 @@ void cellEnergy2D(Loads *loads
 /*...................................................................*/
 
 /*...*/
-  lB[0]     = p;
+  if(fRes)
+    lB[0]     = rCell;
+  else
+    lB[0]     = p;
+/*...*/
   lRcell[0] = rCell;
 /*...................................................................*/
 }

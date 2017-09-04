@@ -1,5 +1,5 @@
-#ifndef _FILE_
-  #define _FILE_
+#ifndef _FILE_H_
+  #define _FILE_H_
 /*...*/
   #include<math.h>
   #include<stdio.h>
@@ -51,4 +51,4 @@
   char macros[MAX_LINE][WORD_SIZE];/*todas as macros lidas no arquivo*/
   int  nmacro;
 /*....................................................................*/  
-#endif
+#endif /*_FILE_H*/

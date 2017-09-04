@@ -1,7 +1,7 @@
 #include<CellLoop.h>
 /*********************************************************************
 * Data de criacao    : 22/08/2017                                   *
-* Data de modificaco : 25/08/2017                                   *
+* Data de modificaco : 01/08/2017                                   *
 *-------------------------------------------------------------------*
 * CELLLIBENERGY: chamada de bibliotecas de celulas para             *
 * problema de escoamento de fluidos (Energy)                        *
@@ -33,7 +33,7 @@
 *            centrois compartilhado nessa face da celula central    *
 * dcca      -> menor distacia do centroide central a faces desta    *
 *              celula                                               *
-* lDensity  -> massa especifica com variacao temporal               *
+* cc        -> centroides da celula centra e seus vizinhos          *
 * lA        -> nao definido                                         *
 * lB        -> nao definido                                         *
 * lRcell    -> nao definido                                         *
@@ -44,7 +44,10 @@
 * facePresL -> carga por elemento de pressao                        *
 * vel       -> campo de velocidade conhecido                        *
 * dField    -> matriz D do metodo simple                            *
-* cc        -> centroides da celula centra e seus vizinhos          *
+* lDensity  -> massa especifica com variacao temporal               *
+* lSheat    -> calor especifico com variacao temporal               *
+* lDviscosity-> viscosidade dinamica com variacao temporal          *
+* ltConductvity -> condutividade termica com variacao temporal      *
 * underU    -> fator underrelaxtion sinple                          *
 * nEn       -> numero de nos da celula central                      *
 * nFace     -> numero de faces da celula central                    *
@@ -59,25 +62,26 @@
 *-------------------------------------------------------------------*
 *********************************************************************/
 void cellLibEnergy(Loads *loads                        
-                  ,Advection  adv             ,Diffusion diff   
-                  ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
-                  ,INT   *RESTRICT lViz       ,INT *RESTRICT lId
-                  ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
-                  ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea
-                  ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT volume
-                  ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
-                  ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT lDensity
-                  ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
-                  ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
-                  ,DOUBLE *RESTRICT lRcell    ,Temporal const ddt
-                  ,short  *RESTRICT lFaceR    , short  *RESTRICT lFaceL    
-                  ,DOUBLE *RESTRICT u         ,DOUBLE *RESTRICT gradU
-                  ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
-                  ,DOUBLE *RESTRICT cc
-                  ,DOUBLE const underU
-                  ,short const nEn            ,short  const nFace
-                  ,short const ndm            ,short const lib
-                  ,INT const nel)
+     ,Advection  adv              ,Diffusion diff   
+     ,short *RESTRICT lGeomType   ,DOUBLE *RESTRICT lprop
+     ,INT   *RESTRICT lViz        ,INT *RESTRICT lId
+     ,DOUBLE *RESTRICT ksi        ,DOUBLE *RESTRICT mKsi
+     ,DOUBLE *RESTRICT eta        ,DOUBLE *RESTRICT fArea
+     ,DOUBLE *RESTRICT normal     ,DOUBLE *RESTRICT volume
+     ,DOUBLE *RESTRICT xm         ,DOUBLE *RESTRICT xmcc
+     ,DOUBLE *RESTRICT dcca       ,DOUBLE *RESTRICT cc
+     ,DOUBLE *RESTRICT vSkew      ,DOUBLE *RESTRICT mvSkew
+     ,DOUBLE *RESTRICT lA         ,DOUBLE *RESTRICT lB
+     ,DOUBLE *RESTRICT lRcell     ,Temporal const ddt
+     ,short  *RESTRICT lFaceR     , short  *RESTRICT lFaceL    
+     ,DOUBLE *RESTRICT u          ,DOUBLE *RESTRICT gradU
+     ,DOUBLE *RESTRICT vel        ,DOUBLE *RESTRICT gradVel
+     ,DOUBLE *RESTRICT lDensity   ,DOUBLE *RESTRICT lSheat
+     ,DOUBLE *RESTRICT lDviscosity,DOUBLE *RESTRICT lTconductvity
+     ,DOUBLE const underU
+     ,short const nEn             ,short  const nFace
+     ,short const ndm             ,short const lib
+     ,INT const nel)
 {
 
 /*... */
@@ -85,24 +89,25 @@ void cellLibEnergy(Loads *loads
 /*... 2D*/
     if (ndm == 2)  
       cellEnergy2D(loads
-                  ,adv      ,diff
-                  ,lGeomType,lprop
-                  ,lViz     ,lId
-                  ,ksi      ,mKsi
-                  ,eta      ,fArea
-                  ,normal   ,volume
-                  ,xm       ,xmcc
-                  ,dcca     ,lDensity
-                  ,vSkew    ,mvSkew
-                  ,lA       ,lB
-                  ,lRcell  ,ddt
-                  ,lFaceR  ,lFaceL
-                  ,u       ,gradU    
-                  ,vel     ,gradVel
-                  ,cc
+                  ,adv       ,diff
+                  ,lGeomType ,lprop
+                  ,lViz      ,lId
+                  ,ksi       ,mKsi
+                  ,eta       ,fArea
+                  ,normal    ,volume
+                  ,xm        ,xmcc
+                  ,dcca      ,cc
+                  ,vSkew     ,mvSkew 
+                  ,lA        ,lB
+                  ,lRcell    ,ddt
+                  ,lFaceR    ,lFaceL
+                  ,u         ,gradU    
+                  ,vel       ,gradVel
+                  ,lDensity  ,lSheat
+                  ,lDviscosity,lTconductvity
                   ,underU
-                  ,nEn     ,nFace
-                  ,ndm     ,nel);    
+                  ,nEn       ,nFace
+                  ,ndm       ,nel);    
 /*..................................................................*/
 
 /*... 3D*/
@@ -277,8 +282,161 @@ void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
 /*..................................................................*/
   }
 
+
+
 }
 /*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 27/08/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * CELLLIBSIMPLEVEl: chamada de bibliotecas de celulas para          *
+ * problema de escoamento de fluidos (VEL -low mach)                 *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * loadsVel  -> definicoes de cargas de velocidades                  *
+ * loadsPres -> definicoes de cargas de pressao                      *
+ * advVel    -> tecnica da discretizacao do termo advecao            *
+ * diffVel   -> tecnica da discretizacao do termo difusivo           *
+ * typeSimple-> tipo do metodo simple                                *
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
+ * lprop     -> propriedade fisicas das celulas                      *
+ * lViz      -> viznhos da celula central                            *
+ * lId       -> equa da celula                                       *
+ * Ksi       -> vetores que unem centroide da celula central aos     *
+ *            vizinhos destas                                        *
+ * mKsi      -> modulo do vetor ksi                                  *
+ * eta       -> vetores paralelos as faces das celulas               *
+ * fArea     -> area das faces                                       *
+ * normal    -> vetores normais as faces das celulas                 *
+ * volume    -> volume celula central                                *
+ * xm        -> pontos medios das faces da celula central            *
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   *
+ *            faces da celula central                                *
+ * vSkew     -> vetor entre o ponto medio a intersecao que une os    *
+ *            centrois compartilhado nessa face da celula central    *
+ * mvSkew    -> distacia entre o ponto medio a intersecao que une os *
+ *            centrois compartilhado nessa face da celula central    *
+ * dcca      -> menor distacia do centroide central a faces desta    *
+ *              celula                                               *
+ * cc        -> centroides da celula centra e seus vizinhos          *
+ * lA        -> nao definido                                         *
+ * lB        -> nao definido                                         *
+ * lRcell    -> nao definido                                         *
+ * ddt       -> discretizacao temporal                               *
+ * faceVelR  -> restricoes por elemento de velocidades               *
+ * faceVelL  -> carga por elemento de velocidades                    *
+ * facePresR -> restricoes por elemento de pressao                   *
+ * facePresL -> carga por elemento de pressao                        *
+ * pres      -> campo de pressao conhecido                           *
+ * gradPes   -> gradiente reconstruido da pressao                    *
+ * vel       -> campo de velocidade conhecido                        *
+ * lDensity  -> massa especifica com variacao temporal               *
+ * lDviscosity-> viscosidade dinamica com variacao temporal          *
+ * dField    -> matriz D do metodo simple                            *
+ * underU    -> fator underrelaxtion sinple                          *
+ * sPressure -> reconstrucao de segunda ordem para pressoes nas      *
+ *              faces                                                *
+ * nEn       -> numero de nos da celula central                      *
+ * nFace     -> numero de faces da celula central                    *
+ * ndm       -> numero de dimensoes                                  *
+ * lib       -> numero da biblioteca                                 *
+ * nel       -> numero da celula                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * lA        -> coeficiente da linha i                               *
+ * lB        -> vetor de forca da linha i                            *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void cellLibSimpleVelLw(Loads *loadsVel    ,Loads *loadsPres
+             ,Advection  advVel          ,Diffusion diffVel    
+             ,short const typeSimple 
+             ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
+             ,INT   *RESTRICT lViz       ,INT *RESTRICT lId  
+             ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
+             ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea
+             ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT volume
+             ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
+             ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT cc
+             ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
+             ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
+             ,DOUBLE *RESTRICT lRcell    ,Temporal const ddt
+             ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
+             ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
+             ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres 
+             ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
+             ,DOUBLE *RESTRICT lDensity  ,DOUBLE *RESTRICT lDviscosity
+             ,DOUBLE *RESTRICT dField    
+             ,DOUBLE const underU        ,const bool sPressure
+             ,short const nEn            ,short  const nFace
+             ,short const ndm            ,short const lib
+             ,INT const nel)
+{
+
+/*... */
+  if(lib == 1){
+/*... 2D*/
+    if(ndm == 2){
+      cellSimpleVelLw2D(loadsVel  ,loadsPres   
+                       ,advVel    ,diffVel
+                       ,typeSimple
+                       ,lGeomType ,lprop
+                       ,lViz      ,lId
+                       ,ksi       ,mKsi
+                       ,eta       ,fArea
+                       ,normal    ,volume
+                       ,xm        ,xmcc
+                       ,dcca      ,cc
+                       ,vSkew     ,mvSkew
+                       ,lA        ,lB
+                       ,lRcell    ,ddt 
+                       ,lFaceVelR ,lFaceVelL
+                       ,lFacePresR,lFacePresL
+                       ,pres      ,gradPres 
+                       ,vel       ,gradVel
+                       ,lDensity  ,lDviscosity
+                       ,dField    
+                       ,underU    ,sPressure
+                       ,nEn       ,nFace 
+                       ,ndm       ,nel);  
+    }
+/*..................................................................*/
+
+/*... 3D*/
+/*  else if(ndm == 3){
+      cellSimpleVel3D(loadsVel,loadsPres   
+                 ,advVel      ,diffVel     
+                 ,typeSimple
+                 ,lGeomType   ,lprop
+                 ,lViz        ,lId
+                 ,ksi         ,mKsi
+                 ,eta         ,fArea
+                 ,normal      ,volume
+                 ,xm          ,xmcc
+                 ,dcca        ,lDensity 
+                 ,vSkew       ,mvSkew
+                 ,lA          ,lB
+                 ,lRcell      ,ddt 
+                 ,lFaceVelR   ,lFaceVelL
+                 ,lFacePresR  ,lFacePresL
+                 ,pres        ,gradPres 
+                 ,vel         ,gradVel
+                 ,dField      ,cc
+                 ,underU      ,sPressure
+                 ,nEn         ,nFace 
+                 ,ndm         ,nel);  
+    }*/
+/*..................................................................*/
+  }
+
+}
+/*********************************************************************/
+
+
+
 
 /*********************************************************************
  * Data de criacao    : 01/07/2016                                   *
@@ -4309,13 +4467,6 @@ void setTvd(char *word,short *iCod)
   else if(!strcmp(word,"Osher")){
     *iCod =  OSHERFACE; 
     if(!mpiVar.myId ) printf("iCod  : Osher\n");
-  }
-/*...................................................................*/
-
-/*...*/
-  else if(!strcmp(word,"SuperBee")){
-    *iCod =  SUPERBEEFACE; 
-    if(!mpiVar.myId ) printf("iCod  : SuperBee\n");
   }
 /*...................................................................*/
 

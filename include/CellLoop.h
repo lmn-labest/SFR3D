@@ -169,35 +169,73 @@
              ,const bool sPressure);  
 /*...................................................................*/
 
+/* ... montagem do sistemas de equacoes (Simple - VEl - low mach)*/
+  void systFormSimpleVelLw(Loads *loadsVel,Loads *loadsPres 
+             ,Advection advVel          ,Diffusion diffVel      
+             ,short const typeSimple 
+             ,INT    *RESTRICT el       ,INT    *RESTRICT nelcon 
+             ,short  *RESTRICT nen      ,short  *RESTRICT nFace
+             ,short  *RESTRICT geomType ,DOUBLE *RESTRICT prop 
+             ,short  *RESTRICT calType  ,short  *RESTRICT mat  
+             ,DOUBLE *RESTRICT gCc      ,DOUBLE *RESTRICT gKsi     
+             ,DOUBLE *RESTRICT gmKsi    ,DOUBLE *RESTRICT gEta     
+             ,DOUBLE *RESTRICT gfArea   ,DOUBLE *RESTRICT gNormal 
+             ,DOUBLE *RESTRICT gVolume  ,DOUBLE *RESTRICT gXm      
+             ,DOUBLE *RESTRICT gXmcc    ,DOUBLE *RESTRICT gvSkew   
+             ,DOUBLE *RESTRICT gmvSkew  ,DOUBLE *RESTRICT gDcca    
+             ,INT    *RESTRICT ia       ,INT    *RESTRICT ja
+             ,DOUBLE *RESTRICT al       ,DOUBLE *RESTRICT ad
+             ,DOUBLE *RESTRICT b        ,INT    *RESTRICT id 
+             ,short  *RESTRICT faceVelR ,short  *RESTRICT faceVelL 
+             ,short  *RESTRICT facePresR,short  *RESTRICT facePresL 
+             ,DOUBLE *RESTRICT pres     ,DOUBLE *RESTRICT gradPres
+             ,DOUBLE *RESTRICT vel      ,DOUBLE *RESTRICT gradVel
+             ,DOUBLE *RESTRICT dField   ,DOUBLE const underU
+             ,DOUBLE *RESTRICT rCell  
+             ,DOUBLE *RESTRICT density  ,DOUBLE *RESTRICT dViscosity   
+             ,Temporal const ddt
+             ,INT const nEq             ,INT const nEqNov
+             ,INT const nAd             ,INT const nAdR 
+             ,short const maxNo         ,short const maxViz
+             ,short const ndm           ,INT const numel
+             ,short const ndf           ,short const storage
+             ,bool const forces         ,bool const matrix 
+             ,bool const calRcell       ,bool const unsym
+             ,const bool sPressure);  
+/*...................................................................*/
+
+
 /*...*/
   void systFormEnergy(Loads *loads
-               ,Advection advT           ,Diffusion diffT
-               ,INT    *RESTRICT el      ,INT    *RESTRICT nelcon
-               ,short  *RESTRICT nen     ,short  *RESTRICT nFace
-               ,short  *RESTRICT geomType,DOUBLE *RESTRICT prop
-               ,short  *RESTRICT calType ,short  *RESTRICT mat
-               ,DOUBLE *RESTRICT gCc
-               ,DOUBLE *RESTRICT gKsi    ,DOUBLE *RESTRICT gmKsi
-               ,DOUBLE *RESTRICT gEta    ,DOUBLE *RESTRICT gfArea
-               ,DOUBLE *RESTRICT gNormal ,DOUBLE *RESTRICT gVolume
-               ,DOUBLE *RESTRICT gXm     ,DOUBLE *RESTRICT gXmcc
-               ,DOUBLE *RESTRICT gvSkew  ,DOUBLE *RESTRICT gmvSkew
-               ,DOUBLE *RESTRICT gDcca   ,DOUBLE *RESTRICT density
-               ,INT    *RESTRICT ia      ,INT    *RESTRICT ja
-               ,DOUBLE *RESTRICT a       ,DOUBLE *RESTRICT ad
-               ,DOUBLE *RESTRICT b       ,INT    *RESTRICT id
-               ,short  *RESTRICT faceR   ,short  *RESTRICT faceL
-               ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
-               ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT gradVel
-               ,DOUBLE *RESTRICT rCell   ,Temporal const ddt
-               ,DOUBLE const underU
-               ,INT const nEq            ,INT const nEqNov
-               ,INT const nAd            ,INT const nAdR
-               ,short const maxNo        ,short const maxViz
-               ,short const ndm          ,INT const numel
-               ,short const ndf          ,short const storage
-               ,bool  const forces       ,bool const matrix
-               ,bool const calRcell      ,bool  const  unsym);
+               ,Advection advE             ,Diffusion diffE
+               ,INT    *RESTRICT el        ,INT    *RESTRICT nelcon
+               ,short  *RESTRICT nen       ,short  *RESTRICT nFace
+               ,short  *RESTRICT geomType  ,DOUBLE *RESTRICT prop
+               ,short  *RESTRICT calType   ,short  *RESTRICT mat
+               ,DOUBLE *RESTRICT gCc       
+               ,DOUBLE *RESTRICT gKsi      ,DOUBLE *RESTRICT gmKsi
+               ,DOUBLE *RESTRICT gEta      ,DOUBLE *RESTRICT gfArea
+               ,DOUBLE *RESTRICT gNormal   ,DOUBLE *RESTRICT gVolume
+               ,DOUBLE *RESTRICT gXm       ,DOUBLE *RESTRICT gXmcc
+               ,DOUBLE *RESTRICT gvSkew    ,DOUBLE *RESTRICT gmvSkew
+               ,DOUBLE *RESTRICT gDcca     
+               ,INT    *RESTRICT ia        ,INT    *RESTRICT ja
+               ,DOUBLE *RESTRICT a         ,DOUBLE *RESTRICT ad
+               ,DOUBLE *RESTRICT b         ,INT    *RESTRICT id
+               ,short  *RESTRICT faceR     ,short  *RESTRICT faceL
+               ,DOUBLE *RESTRICT u0        ,DOUBLE *RESTRICT gradU0
+               ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
+               ,DOUBLE *RESTRICT rCell     
+               ,DOUBLE *RESTRICT density   ,DOUBLE *RESTRICT sHeat
+               ,DOUBLE *RESTRICT dViscosity,DOUBLE *RESTRICT tConductvity
+               ,Temporal const ddt         ,DOUBLE const underU
+               ,INT const nEq              ,INT const nEqNov
+               ,INT const nAd              ,INT const nAdR
+               ,short const maxNo          ,short const maxViz
+               ,short const ndm            ,INT const numel
+               ,short const ndf            ,short const storage
+               ,bool  const forces         ,bool const matrix
+               ,bool const calRcell        ,bool  const  unsym);
 /*...................................................................*/
 
 /*... */
@@ -346,25 +384,26 @@
 
 /*... chamada da biblioteca de elementos (transporte)*/
   void cellLibEnergy(Loads *loads
-          ,Advection  adv           ,Diffusion diff
-          ,short *RESTRICT lGeomType,DOUBLE *RESTRICT lprop
-          ,INT   *RESTRICT lViz     ,INT *RESTRICT lId
-          ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
-          ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
-          ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
-          ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
-          ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
-          ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
-          ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-          ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt
-          ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL
-          ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU
-          ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT gradVel
-          ,DOUBLE *RESTRICT cc
-          ,DOUBLE const underU
-          ,short const nEn          ,short  const nFace
-          ,short const ndm          ,short const lib
-          ,INT const nel);
+     ,Advection  adv              ,Diffusion diff
+     ,short *RESTRICT lGeomType   ,DOUBLE *RESTRICT lprop
+     ,INT   *RESTRICT lViz        ,INT *RESTRICT lId
+     ,DOUBLE *RESTRICT ksi        ,DOUBLE *RESTRICT mKsi
+     ,DOUBLE *RESTRICT eta        ,DOUBLE *RESTRICT fArea
+     ,DOUBLE *RESTRICT normal     ,DOUBLE *RESTRICT volume
+     ,DOUBLE *RESTRICT xm         ,DOUBLE *RESTRICT xmcc
+     ,DOUBLE *RESTRICT dcca       ,DOUBLE *RESTRICT cc
+     ,DOUBLE *RESTRICT vSkew      ,DOUBLE *RESTRICT mvSkew
+     ,DOUBLE *RESTRICT lA         ,DOUBLE *RESTRICT lB
+     ,DOUBLE *RESTRICT lRcell     ,Temporal const ddt
+     ,short  *RESTRICT lFaceR     ,short  *RESTRICT lFaceL
+     ,DOUBLE *RESTRICT u          ,DOUBLE *RESTRICT gradU
+     ,DOUBLE *RESTRICT vel        ,DOUBLE *RESTRICT gradVel
+     ,DOUBLE *RESTRICT lDensity   ,DOUBLE *RESTRICT lSheat
+     ,DOUBLE *RESTRICT lDviscosity,DOUBLE *RESTRICT ltConductvity
+     ,DOUBLE const underU
+     ,short const nEn              ,short  const nFace
+     ,short const ndm              ,short const lib
+     ,INT const nel);
 /*...................................................................*/
 
 /*.......................... PRIME ..................................*/
@@ -415,6 +454,31 @@
           ,short const nEn            ,short  const nFace     
           ,short const ndm            ,short const lib    
           ,INT const nel);
+
+/*... chamada da biblioteca de elementos (escoamento-vel-lw)*/
+  void cellLibSimpleVelLw(Loads *loadsVel    ,Loads *loadsPres
+             ,Advection  advVel          ,Diffusion diffVel    
+             ,short const typeSimple 
+             ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
+             ,INT   *RESTRICT lViz       ,INT *RESTRICT lId  
+             ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
+             ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea
+             ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT volume
+             ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
+             ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT cc
+             ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
+             ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
+             ,DOUBLE *RESTRICT lRcell    ,Temporal const ddt
+             ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
+             ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
+             ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres 
+             ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
+             ,DOUBLE *RESTRICT lDensity  ,DOUBLE *RESTRICT lDviscosity
+             ,DOUBLE *RESTRICT dField    
+             ,DOUBLE const underU        ,const bool sPressure
+             ,short const nEn            ,short  const nFace
+             ,short const ndm            ,short const lib
+             ,INT const nel);
 
 /*... chamada da biblioteca de elementos (escoamento-pres)*/
   void cellLibSimplePres(Loads *loadsVel     ,Loads *loadsPres
@@ -659,24 +723,25 @@
 
 /*.......................... ENRGIA .................................*/
   void cellEnergy2D(Loads *loads
-            ,Advection adv            ,Diffusion diff
-            ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
-            ,INT *RESTRICT lViz       ,INT *RESTRICT lId
-            ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
-            ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT mEta
-            ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
-            ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
-            ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
-            ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
-            ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-            ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt
-            ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
-            ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
-            ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT gradVel
-            ,DOUBLE *RESTRICT cc
+            ,Advection adv                ,Diffusion diff
+            ,short *RESTRICT lGeomType    ,DOUBLE *RESTRICT prop
+            ,INT *RESTRICT lViz           ,INT *RESTRICT lId
+            ,DOUBLE *RESTRICT ksi         ,DOUBLE *RESTRICT mKsi
+            ,DOUBLE *RESTRICT eta         ,DOUBLE *RESTRICT mEta
+            ,DOUBLE *RESTRICT normal      ,DOUBLE *RESTRICT volume
+            ,DOUBLE *RESTRICT xm          ,DOUBLE *RESTRICT xmcc
+            ,DOUBLE *RESTRICT dcca        ,DOUBLE *RESTRICT cc
+            ,DOUBLE *RESTRICT vSkew       ,DOUBLE *RESTRICT mvSkew
+            ,DOUBLE *RESTRICT lA          ,DOUBLE *RESTRICT lB
+            ,DOUBLE *RESTRICT lRcell      ,Temporal const ddt
+            ,short  *RESTRICT lFaceR      ,short *RESTRICT lFaceL
+            ,DOUBLE *RESTRICT u0          ,DOUBLE *RESTRICT gradU0
+            ,DOUBLE *RESTRICT vel         ,DOUBLE *RESTRICT gradVel           
+            ,DOUBLE *RESTRICT lDensity    ,DOUBLE *RESTRICT lSheat
+            ,DOUBLE *RESTRICT lDviscosity ,DOUBLE *RESTRICT ltConductvity
             ,DOUBLE const underU
-            ,const short nEn          ,short const nFace
-            ,const short ndm          ,INT const nel);
+            ,const short nEn              ,short const nFace
+            ,const short ndm              ,INT const nel);
 /*...................................................................*/
 
 /*.......................... SIMPLE .................................*/
@@ -703,6 +768,30 @@
               ,DOUBLE const underU        ,bool const sPressure
               ,short const nen            ,short const nFace
               ,short const ndm            ,INT const nel);
+
+/*... biblioteca de celulas (simple - vel - low mach)*/
+  void cellSimpleVelLw2D(Loads *loadsVel ,Loads *loadsPres
+             ,Advection advVel           ,Diffusion diffVel
+             ,short const typeSimple     
+             ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT prop
+             ,INT *RESTRICT lViz         ,INT *RESTRICT lId
+             ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
+             ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT mEta
+             ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT area
+             ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
+             ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT cc
+             ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
+             ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
+             ,DOUBLE *RESTRICT lRcell    ,Temporal const ddt
+             ,short  *RESTRICT lFaceVelR ,short *RESTRICT lFaceVelL
+             ,short  *RESTRICT lFacePresR,short *RESTRICT lFacePresL
+             ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres
+             ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
+             ,DOUBLE *RESTRICT lDensity  ,DOUBLE *RESTRICT lDviscosity
+             ,DOUBLE *RESTRICT dField    
+             ,DOUBLE const underU        ,const bool sPressure
+             ,const short nEn            ,short const nFace
+             ,const short ndm            ,INT const nel);
 
 /*... biblioteca de celulas (simple - vel)*/
   void cellSimpleVel3D(Loads *loadsVel    ,Loads *loadsPres

@@ -50,6 +50,9 @@ int main(int argc,char**argv){
   Simple *simple = NULL;
   Prime  *prime  = NULL;
 
+/*... propriedade variaveis*/
+  PropVar propVarFluid;
+
 /*... solver*/
   INT nEqMax;
   Solv *solvD1=NULL,*solvT1=NULL,*solvVel=NULL,*solvPres=NULL,*solvEnergy=NULL;
@@ -101,11 +104,16 @@ int main(int argc,char**argv){
   ,"transient"   ,"timeUpdate"   ,"partd"         /*24,25,26*/
   ,"advection"   ,"edp"          ,"diffusion"     /*27,28,29*/
   ,"pFluid"      ,"setPrintFluid" ,""             /*30,31,32*/
-  ,"setPrime"    ,"prime"         ,""        };   /*33,34,35*/
+  ,"setPrime"    ,"prime"         ,"propVar"      /*33,34,35*/
+  ,"gravity"     ,""              ,""        };   /*36,37,38*/
 /* ..................................................................*/
 
 /*... Memoria principal(valor padrao - bytes)*/
   nmax = 200000;
+/* ..................................................................*/
+
+/*... temperatura interna em kelvin*/
+  iKelvin = false;
 /* ..................................................................*/
 
 /*... OpenMP*/
@@ -127,6 +135,13 @@ int main(int argc,char**argv){
   opt.gradPres   = false;
   opt.gradEnergy = false;
 /* ..................................................................*/
+
+/*... propriedades variaveis*/
+  propVarFluid.fDensity           = false;
+  propVarFluid.fSpecificHeat      = false;
+  propVarFluid.fDynamicViscosity  = false;
+  propVarFluid.fThermalCondutivty = false;
+/*...................................................................*/
 
 /*... Mpi*/
   mpiStart(&argc,argv);
@@ -333,7 +348,7 @@ int main(int argc,char**argv){
       initMem(&m,nmax,false);
 /*... leitura da malha*/
       if(!mpiVar.myId)
-        readFileFvMesh(&m,mesh0,fileIn);
+        readFileFvMesh(&m,mesh0,propVarFluid,fileIn);
       mpiWait();
 /*...................................................................*/
  
@@ -2102,7 +2117,7 @@ int main(int argc,char**argv){
 
 /*...*/
       else if(mesh->ndfFt)
-        simpleSolverLm(&m
+        simpleSolverLm(&m          ,propVarFluid
                       ,loadsVel    ,loadsPres 
                       ,loadsEnergy         
                       ,mesh0       ,mesh
@@ -2141,9 +2156,9 @@ int main(int argc,char**argv){
       fSolvSimple             = true;  
       simple->maxIt           = 1000;
       simple->alphaPres       = 0.3e0; 
-      simple->alphaVel        = 0.8e0; 
+      simple->alphaVel        = 0.7e0; 
       simple->type            = SIMPLE;
-      simple->kZeroVel        = 1;
+      simple->kZeroVel        = 4;
       simple->kZeroPres       = 0;
       simple->sPressure       = true;
       simple->faceInterpolVel = 1;
@@ -2244,7 +2259,7 @@ int main(int argc,char**argv){
         sc.ddt.t        = 0.e0;
         sc.ddt.dt[1]    = sc.ddt.dt[0];
         sc.ddt.dt[2]    = sc.ddt.dt[0];
-        sc.ddt.timeStep =    0;
+        sc.ddt.timeStep =    1;
       }
 /*...................................................................*/
 
@@ -2281,8 +2296,10 @@ int main(int argc,char**argv){
 /*...................................................................*/
       
 /*...*/
-      if(sc.ddt.t > sc.ddt.total + 0.5e0*sc.ddt.dt[0])
-        flWord = false;
+      if(sc.ddt.t > sc.ddt.total + 0.1e0*sc.ddt.dt[0])
+        flWord = false;  
+/*    if(sc.ddt.t > sc.ddt.total)
+        flWord = false;  */
 /*...................................................................*/
       
 /*...*/
@@ -2817,6 +2834,34 @@ int main(int argc,char**argv){
 /*...................................................................*/
       if (!mpiVar.myId) printf("%s\n\n", DIF);
     }
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: vprop propriedades variaveis                             
+ *===================================================================*/
+    else if((!strcmp(word,macro[35]))){
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+      }
+      readPropVar(&propVarFluid,fileIn);
+/*...................................................................*/
+      if(!mpiVar.myId ) printf("%s\n",DIF);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: gravity                                                  
+ *===================================================================*/
+    else if((!strcmp(word,macro[36]))){
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+      }   
+      readGravity(gravity,fileIn);
+/*...................................................................*/
+      if(!mpiVar.myId ) printf("%s\n",DIF);
+    }   
 /*===================================================================*/
 
 /*===================================================================*/

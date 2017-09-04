@@ -3,6 +3,8 @@
 /*...funcao de apoio*/
   static void getword(char *line, char*word);
   static int getnumprop2(char *line);
+  static void convLoadsEnergy(Loads *loadsEnergy);
+  static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC);
 /*..................................................................*/
 
 /*********************************************************************
@@ -18,7 +20,7 @@
  * ------------------------------------------------------------------*
  * ------------------------------------------------------------------*
  * *******************************************************************/
-void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
+void readFileFvMesh(Memoria *m,Mesh *mesh, PropVar prop, FILE* file)
 {
   char word[WORD_SIZE],str[WORD_SIZE];
   char macro[NMACROS][WORD_SIZE]={
@@ -226,6 +228,16 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
         HccaAlloc(DOUBLE, m, mesh->elm.specificHeat
                  , nel * SHEAT_LEVEL, "sHeat", _AD_);
         zero(mesh->elm.specificHeat, nel * SHEAT_LEVEL, DOUBLEC);
+
+/*... viscosidade dinamica*/
+        HccaAlloc(DOUBLE, m, mesh->elm.dViscosity
+                 , nel  , "dVis", _AD_);
+        zero(mesh->elm.dViscosity, nel, DOUBLEC);
+
+/*... condutividade termica*/
+        HccaAlloc(DOUBLE, m, mesh->elm.tConductivity
+                 , nel  , "tCon", _AD_);
+        zero(mesh->elm.tConductivity, nel, DOUBLEC);
 
      }
 
@@ -437,7 +449,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       rflag[0] = true;
       printf("loading coordinates...\n");
       readVfCoor(mesh->node.x,mesh->nnode,mesh->ndm,file);
-      printf("load.\n");
+      printf("done.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -491,7 +503,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
                 ,mesh->elm.nen     ,mesh->elm.adj.nViz
                 ,mesh->elm.geomType,mesh->numel
                 ,mesh->maxNo       ,file);
-      printf("load.\n");
+      printf("done.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -505,7 +517,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       strcpy(str,"endFaceRt1");
       printf("loading faceRt1 ...\n");
       readVfRes(mesh->elm.faceRt1,mesh->numel,mesh->maxViz+1,str,file);
-      printf("load.\n");
+      printf("done.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -520,7 +532,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       printf("loading faceLoadT1 ...\n");
       readVfRes(mesh->elm.faceLoadT1,mesh->numel
                ,mesh->maxViz+1       ,str       ,file);
-      printf("load.\n");
+      printf("done.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -534,7 +546,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       strcpy(str,"endLoadsT1");
       printf("loading loadsT1 ...\n");
       readVfLoads(loadsT1,str       ,file);
-      printf("load.\n");
+      printf("done.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -548,7 +560,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       strcpy(str,"endFaceRd1");
       printf("loading faceRd1 ...\n");
       readVfRes(mesh->elm.faceRd1,mesh->numel,mesh->maxViz+1,str,file);
-      printf("load.\n");
+      printf("done.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -562,7 +574,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       strcpy(str,"endLoadsD1");
       printf("loading loadsD1 ...\n");
       readVfLoads(loadsD1,str       ,file);
-      printf("load.\n");
+      printf("done.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -577,7 +589,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       printf("loading faceLoadD1 ...\n");
       readVfRes(mesh->elm.faceLoadD1,mesh->numel
                ,mesh->maxViz+1       ,str       ,file);
-      printf("load.\n");
+      printf("done.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -591,7 +603,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       strcpy(str,"endFaceRvel");
       printf("loading faceRvel ...\n");
       readVfRes(mesh->elm.faceRvel,mesh->numel,mesh->maxViz+1,str,file);
-      printf("load.\n");
+      printf("done.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -605,7 +617,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       strcpy(str,"endLoadsVel");
       printf("loading loadsVel ...\n");
       readVfLoads(loadsVel,str       ,file);
-      printf("load.\n");
+      printf("done.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -620,7 +632,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       printf("loading faceLoadVel ...\n");
       readVfRes(mesh->elm.faceLoadVel  ,mesh->numel
                ,mesh->maxViz+1         ,str        ,file);
-      printf("load.\n");
+      printf("done.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -635,7 +647,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       printf("loading faceRpres ...\n");
       readVfRes(mesh->elm.faceRpres,mesh->numel
                ,mesh->maxViz+1     ,str        ,file);
-      printf("load.\n");
+      printf("done.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -649,8 +661,8 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       strcpy(str,"endLoadsPres");
       printf("loading loadsPres ...\n");
       readVfLoads(loadsPres,str       ,file);
-      printf("load.\n");
-      convLoadsPresC(loadsPres, loadsPresC);
+      printf("done.\n");
+       convLoadsPresC(loadsPres, loadsPresC);
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -665,7 +677,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       printf("loading faceLoadPres ...\n");
       readVfRes(mesh->elm.faceLoadPres ,mesh->numel
                ,mesh->maxViz+1         ,str        ,file);
-      printf("load.\n");
+      printf("done.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -695,6 +707,8 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       printf("loading loadsTemp ...\n");
       readVfLoads(loadsEnergy, str, file);
       printf("done.\n");
+      if(iKelvin) 
+        convLoadsEnergy(loadsEnergy);  
       printf("%s\n\n", DIF);
     }
 /*...................................................................*/
@@ -724,7 +738,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       printf("loading materials ...\n");
       readVfMat(mesh->elm.material.prop,mesh->elm.material.type
                ,numat,file);
-      printf("load.\n");
+      printf("done.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -736,7 +750,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       strcpy(macros[nmacro++], word);
       rflag[28] = true;
       uniformField(mesh->elm.pressure, mesh->numel,1, file);
-      printf("load.\n");
+      printf("done.\n");
       printf("%s\n\n", DIF);
     }
 /*...................................................................*/
@@ -750,7 +764,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
       strcpy(str,"endInitialVel");
       printf("loading initialVel ...\n");
       readVfInitial(mesh->elm.vel,mesh->numel,mesh->ndm,str,file);
-      printf("load.\n");
+      printf("done.\n");
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -798,22 +812,69 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, FILE* file)
 
 /*...*/
   if (mesh->ndfFt > 0) {
+/*... convertendo temperatura para kelvin*/
+    if(iKelvin)
+      convTempForKelvin(mesh->elm.energy0,mesh->numel,true); 
 /*...*/
     alphaProdVector(1.e0              ,mesh->elm.vel0
                    ,mesh->numel*ndfVel,mesh->elm.vel);
 /*...*/
     alphaProdVector(1.e0        ,mesh->elm.energy0
                    ,mesh->numel ,mesh->elm.energy);
-/*...*/
-    initProp(mesh->elm.densityFluid
-            ,mesh->elm.material.prop,mesh->elm.mat
-            ,DENSITY_LEVEL          ,mesh->numel
-            ,DENSITY);
-/*...*/
-    initProp(mesh->elm.specificHeat
-            ,mesh->elm.material.prop  ,mesh->elm.mat
-            ,SHEAT_LEVEL              ,mesh->numel
-            ,SPECIFICHEATCAPACITYFLUID);
+  
+/*... inicializando a densidade*/
+    if(prop.fDensity)
+      initPropTemp(mesh->elm.densityFluid ,mesh->elm.energy0 
+                  ,mesh->elm.material.prop,mesh->elm.mat
+                  ,DENSITY_LEVEL          ,mesh->numel
+                  ,DENSITY);
+    else
+      initProp(mesh->elm.densityFluid 
+              ,mesh->elm.material.prop,mesh->elm.mat
+              ,DENSITY_LEVEL          ,mesh->numel
+              ,DENSITY);
+/*...................................................................*/
+
+/*... inicializando o calor especifico*/
+    if(prop.fSpecificHeat)
+      initPropTemp(mesh->elm.specificHeat   ,mesh->elm.energy0 
+                  ,mesh->elm.material.prop  ,mesh->elm.mat
+                  ,SHEAT_LEVEL              ,mesh->numel
+                  ,SPECIFICHEATCAPACITYFLUID);
+    else
+      initProp(mesh->elm.specificHeat  
+             ,mesh->elm.material.prop,mesh->elm.mat
+             ,SHEAT_LEVEL              ,mesh->numel
+             ,SPECIFICHEATCAPACITYFLUID);
+/*...................................................................*/
+
+/*... inicializando a viscosidade dinamica*/
+    if(prop.fDynamicViscosity)
+      initPropTemp(mesh->elm.dViscosity     ,mesh->elm.energy0 
+                ,mesh->elm.material.prop  ,mesh->elm.mat
+                ,DVISCOSITY_LEVEL         ,mesh->numel
+                ,DYNAMICVISCOSITY);
+   else
+      initProp(mesh->elm.dViscosity 
+              ,mesh->elm.material.prop  ,mesh->elm.mat
+              ,DVISCOSITY_LEVEL         ,mesh->numel
+              ,DYNAMICVISCOSITY);
+/*...................................................................*/
+
+/*... inicializando a condutividade termica*/
+    if(prop.fThermalCondutivty)
+      initPropTemp(mesh->elm.tConductivity ,mesh->elm.energy0 
+                ,mesh->elm.material.prop   ,mesh->elm.mat
+                ,TCONDUCTIVITY_LEVEL       ,mesh->numel
+                ,THERMALCONDUCTIVITY);
+   else
+      initProp(mesh->elm.tConductivity 
+              ,mesh->elm.material.prop  ,mesh->elm.mat
+              ,TCONDUCTIVITY_LEVEL         ,mesh->numel
+              ,THERMALCONDUCTIVITY);
+/*...................................................................*/
+
+
   }
 /*...................................................................*/
 
@@ -969,7 +1030,7 @@ void readVfCoor(DOUBLE *x,INT nn, short ndm,FILE *file){
     }
   }
 
-//alphaProdVector(0.1,x,nn*ndm,x);
+  alphaProdVector(0.1,x,nn*ndm,x);
   
 #ifdef _DEBUG_MESH_ 
   for(i=0;i<nn;i++){
@@ -1572,7 +1633,10 @@ static void getword(char *line, char*word){
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------*
  * INITPROP: inicializao de propriedades com variacao temporal       * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -1580,7 +1644,7 @@ static void getword(char *line, char*word){
  * prop    -> nao definido                                           * 
  * propMat -> propriedade de referencia por material                 * 
  * mat     -> material por celula                                    * 
- * np      -> numero de propriedades                                 * 
+ * np      -> numero niveis de tempos                                * 
  * nCell   -> numero de celulas                                      * 
  * iProp   -> numero da propriedade                                  * 
  *-------------------------------------------------------------------* 
@@ -1606,7 +1670,7 @@ void initProp(DOUBLE *RESTRICT prop
   }
 }
 /*********************************************************************/
-      
+
 /********************************************************************* 
  * READEDP : graus de liberdade das equacoes diferencias             * 
  *-------------------------------------------------------------------* 
@@ -1717,6 +1781,115 @@ void readEdo(Mesh *mesh,FILE *file){
 }
 /*********************************************************************/ 
 
+/*********************************************************************
+ * Data de criacao    : 29/08/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------* 
+ * READPROPVAR : propriedades variaveis                              * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * p       ->                                                        * 
+ * file    -> arquivo de arquivo                                     * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * p       ->                                                        * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void readPropVar(PropVar *p,FILE *file){
+
+  char *str={"endPropVar"};
+  char word[WORD_SIZE];
+
+/*...*/
+  p->fDensity           = false;
+  p->fSpecificHeat      = false;
+  p->fDynamicViscosity  = false;
+  p->fThermalCondutivty = false;
+/*...................................................................*/
+
+  readMacro(file,word,false);
+  do{
+/*... specific heat*/
+    if(!strcmp(word,"sHeat")){
+      readMacro(file,word,false);
+      p->fSpecificHeat = true;
+      if(!mpiVar.myId && p->fSpecificHeat) 
+        printf("sHeat variation        : Enable\n");
+    }
+/*...................................................................*/
+
+/*... densidade*/
+    else if(!strcmp(word,"density")){
+      readMacro(file,word,false);
+      p->fDensity = true;
+      if(!mpiVar.myId && p->fDensity) 
+        printf("Density variation      : Enable\n");                           
+    }
+/*...................................................................*/
+
+/*... specific heat*/
+    else if(!strcmp(word,"dViscosity")){
+      readMacro(file,word,false);
+      p->fDynamicViscosity = true;
+      if(!mpiVar.myId && p->fDynamicViscosity)
+        printf("dViscosity variation   : Enable\n");;
+    }
+/*...................................................................*/
+
+/*... specific heat*/
+    else if(!strcmp(word,"tCondutivity")){
+      readMacro(file,word,false);
+      p->fThermalCondutivty = true;
+      if(!mpiVar.myId && p->fThermalCondutivty)
+        printf("tCondutivity variation : Enable\n");                          
+    }
+/*...................................................................*/
+    
+    readMacro(file,word,false);
+  }while(strcmp(word,str));
+
+
+}
+/*********************************************************************/ 
+
+/*********************************************************************
+ * Data de criacao    : 30/08/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------* 
+ * READPROPVAR : propriedades variaveis                              * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * p       ->                                                        * 
+ * file    -> arquivo de arquivo                                     * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * p       ->                                                        * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void readGravity(DOUBLE *gravity,FILE *file){
+
+  short i,n;
+  char word[WORD_SIZE];
+
+  readMacro(file,word,false);
+  n = (short)atol(word);
+  for(i=0;i<n;i++)
+    fscanf(file,"%lf",gravity+i);
+
+  if(!mpiVar.myId ) 
+    printf("g = (%lf,%lf,%lf)\n",gravity[0],gravity[1],gravity[2]);
+
+}
+/*********************************************************************/ 
+
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
  * Data de modificaco : 24/08/2017                                   * 
@@ -1815,7 +1988,7 @@ void uniformField(DOUBLE *field, INT const n, short const ndf
 /*********************************************************************/
 /*Converte condicoes de contorno da pressao para presssao de correcao*/
 /*********************************************************************/
-void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC){
+static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC){
 
   short i,j;
 
@@ -1824,6 +1997,21 @@ void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC){
     loadsPresC[i].np   = loadsPres[i].np;
     for(j=0;j<MAXLOADPARAMETER;j++){
       loadsPresC[i].par[j] = 0.e0;
+    }
+  }
+}
+
+/*********************************************************************/
+/*Converte condicoes de contorno da Temperatura de C para kelvin
+/*********************************************************************/
+static void convLoadsEnergy(Loads *loadsEnergy){
+
+  short i,type;
+
+  for(i=0;i<MAXLOADFLUID;i++){
+    type = loadsEnergy[i].type;
+    if( type == DIRICHLETBC ||  type == INLET ){
+      loadsEnergy[i].par[0] = CELSIUS_FOR_KELVIN(loadsEnergy[i].par[0]);
     }
   }
 }

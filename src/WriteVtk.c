@@ -1099,9 +1099,10 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
           ,Temporal ddt         ,FILE *f)
 {
   int    *lel=NULL;
+  DOUBLE *p=NULL;
   INT i;
   short j;
-  char head[]={"DIF_VOLUME_FINITO"};
+  char head[]={"FLUID_VOLUME_FINITO"};
   double ddum;
   int    idum;
 
@@ -1125,12 +1126,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
   
 /*... conectividades*/
   HccaAlloc(int,m,lel,numel*maxNo,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
+  ERRO_MALLOC(lel,"el",__LINE__,__FILE__,__func__)
   for(i=0;i<numel;i++){
     for(j=0;j<maxNo;j++){
       MAT2D(i,j,lel,maxNo) = MAT2D(i,j,el,maxNo)-1;
@@ -1146,12 +1142,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 
 /*... material*/
   HccaAlloc(int,m,lel,numel,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
+  ERRO_MALLOC(lel,"el",__LINE__,__FILE__,__func__)
   for(i=0;i<numel;i++)
     lel[i]=(int) mat[i];
    
@@ -1161,12 +1152,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 
 /*... numero do elemento*/
   HccaAlloc(int,m,lel,numel*maxNo,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
+  ERRO_MALLOC(lel,"el",__LINE__,__FILE__,__func__)
   for(i=0;i<numel;i++)
     lel[i]= i+1;
    
@@ -1175,7 +1161,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*...................................................................*/
   
 /*... escrever resultados de pressao por celula*/ 
-  if(fPres) 
+  if(fPres)
     writeVtkProp(&idum,elPres,numel,1,presResEl,iws,DOUBLEV,1,f);
 /*...................................................................*/
 
@@ -1203,9 +1189,20 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*...................................................................*/
 
 /*... escrever campo de energia por celula*/
-   if (fEnergy)
-     writeVtkProp(&idum, elEnergy, numel,   1, energyResEl, iws
-                  , DOUBLEV, 1, f);
+  if (fEnergy){
+    if(iKelvin){
+      HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
+      ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__)
+      alphaProdVector(1.e0,elEnergy,numel,p);
+      convTempForKelvin(p, numel,false);
+      writeVtkProp(&idum, p, numel,   1, energyResEl, iws
+                   , DOUBLEV, 1, f);
+      HccaDealloc(m,p,"p",_AD_);
+    }
+    else
+      writeVtkProp(&idum, elEnergy, numel,   1, energyResEl, iws
+                   , DOUBLEV, 1, f);
+   }
 /*...................................................................*/
 
 /*... escrever gradiente de velocidade por celula*/
@@ -1222,12 +1219,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 
 /*... numero do no*/
   HccaAlloc(int,m,lel,nnode,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
+  ERRO_MALLOC(lel,"el",__LINE__,__FILE__,__func__)
   for(i=0;i<nnode;i++)
     lel[i]=i+1;
    
@@ -1263,9 +1255,20 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*...................................................................*/
 
 /*... escrever resultados de energia por nos*/
-  if (fEnergy)
-    writeVtkProp(&idum, nEnergy, nnode, 1, energyResNo, iws
+  if (fEnergy){
+    if(iKelvin){
+      HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
+      ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__)
+      alphaProdVector(1.e0,nEnergy,nnode,p);
+      convTempForKelvin(p, nnode,false);
+      writeVtkProp(&idum, p, nnode, 1, energyResNo, iws
                 , DOUBLEV, 1, f);
+      HccaDealloc(m,p,"p",_AD_);
+    }
+    else
+      writeVtkProp(&idum, nEnergy, nnode, 1, energyResNo, iws
+                  , DOUBLEV, 1, f);     
+  }
 /*...................................................................*/
 
 /*... escrever os gradiente de pressao por nos*/

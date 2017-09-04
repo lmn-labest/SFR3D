@@ -1,4 +1,4 @@
-#ifndef _MYSTDBOOL_H
+#ifndef _MYSTDBOOL_H_
   #ifdef _MSC_VER  
     #if (_MSC_VER < 1800)
       #define bool short
@@ -10,4 +10,4 @@
   #else
     #include<stdbool.h>
   #endif
-#endif
+#endif  /*_MYSTDBOOL_H_*/

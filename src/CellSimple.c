@@ -195,7 +195,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
 
 /*... propriedades da celula*/
-  viscosityC = MAT2D(idCell, DINAMICVISCOSITY,prop,MAXPROP);
+  viscosityC = MAT2D(idCell, DYNAMICVISCOSITY,prop,MAXPROP);
 /*...................................................................*/
 
 /*... | du1/dx1 du1/dx2*/
@@ -280,7 +280,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
 
 /*... media harmonica*/
-      viscosityV = MAT2D(nAresta, DINAMICVISCOSITY,prop,MAXPROP);
+      viscosityV = MAT2D(nAresta, DYNAMICVISCOSITY,prop,MAXPROP);
       viscosity  = alpha/viscosityC + alphaMenosUm/viscosityV;
       viscosity  = 1.0e0/viscosity;
 /*...................................................................*/
@@ -493,13 +493,6 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 	lA[idCell+1] = sP + sPc[1] + lAn;
 /*...................................................................*/
 
-/*... under-relaxation(simple)*/
-  lA[idCell]   = lA[idCell  ]/underU;
-	lA[idCell+1] = lA[idCell+1]/underU;
-  p[0]        += (1-underU)*lA[idCell  ]*velC[0];
-  p[1]        += (1-underU)*lA[idCell+1]*velC[1];
-/*...................................................................*/
-
 /*... GradP*/
   p[0] -= pf[0];
   p[1] -= pf[1];
@@ -525,6 +518,13 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 /*... residuo: R = F - KpUp*/ 
    rCell[0] += p[0] -lA[idCell  ]*velC[0];   
    rCell[1] += p[1] -lA[idCell+1]*velC[1];   
+/*...................................................................*/
+
+/*... under-relaxation(simple)*/
+  lA[idCell]   = lA[idCell  ]/underU;
+	lA[idCell+1] = lA[idCell+1]/underU;
+  p[0]        += (1-underU)*lA[idCell  ]*velC[0];
+  p[1]        += (1-underU)*lA[idCell+1]*velC[1];
 /*...................................................................*/
 
 /*...*/
@@ -564,7 +564,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 
 /*********************************************************************
 * Data de criacao    : 20/08/2017                                   *
-* Data de modificaco : 00/00/0000                                   *
+* Data de modificaco : 28/08/2017                                   *
 *-------------------------------------------------------------------*
 * CELLSIMPLEVELLC2D: Celula 2D para velocidade do metodo simple     *
 * em escoamento levemento compressivel                              *
@@ -610,6 +610,8 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 * gradPes   -> gradiente reconstruido da pressao                    *
 * vel       -> campo de velocidade conhecido                        *
 * gradVel   -> gradiente rescontruido das velocidades               *
+* lDensity  -> massa especifica sem variacao temporal               *
+* lDviscosity-> viscosidade dinamica com variacao temporal          *
 * dField    -> matriz D do metodo simple                            *
 * cc        -> centroides da celula centra e seus vizinhos          *
 * underU    -> parametro de sobre relaxamento                       *
@@ -644,27 +646,28 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 * grad(P   ,*,*) = |               |                                *
 *                  | du2dx1 du2dx2 |                                *
 *********************************************************************/
-void cellSimpleVelLc2D(Loads *loadsVel, Loads *loadsPres
-                      ,Advection advVel, Diffusion diffVel
-                      ,short const typeSimple
-                      ,short *RESTRICT lGeomType, DOUBLE *RESTRICT prop
-                      ,INT *RESTRICT lViz, INT *RESTRICT lId
-                      ,DOUBLE *RESTRICT ksi, DOUBLE *RESTRICT mKsi
-                      ,DOUBLE *RESTRICT eta, DOUBLE *RESTRICT mEta
-                      ,DOUBLE *RESTRICT normal, DOUBLE *RESTRICT area
-                      ,DOUBLE *RESTRICT xm, DOUBLE *RESTRICT xmcc
-                      ,DOUBLE *RESTRICT dcca, DOUBLE *RESTRICT lDensity
-                      ,DOUBLE *RESTRICT vSkew, DOUBLE *RESTRICT mvSkew
-                      ,DOUBLE *RESTRICT lA, DOUBLE *RESTRICT lB
-                      ,DOUBLE *RESTRICT lRcell, Temporal const ddt
-                      ,short  *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL
-                      ,short  *RESTRICT lFacePresR, short *RESTRICT lFacePresL
-                      ,DOUBLE *RESTRICT pres, DOUBLE *RESTRICT gradPres
-                      ,DOUBLE *RESTRICT vel, DOUBLE *RESTRICT gradVel
-                      ,DOUBLE *RESTRICT dField, DOUBLE *RESTRICT cc
-                      ,DOUBLE const underU, const bool sPressure
-                      ,const short nEn, short const nFace
-                      ,const short ndm, INT const nel)
+void cellSimpleVelLw2D(Loads *loadsVel   ,Loads *loadsPres
+             ,Advection advVel           ,Diffusion diffVel
+             ,short const typeSimple     
+             ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT prop
+             ,INT *RESTRICT lViz         ,INT *RESTRICT lId
+             ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
+             ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT mEta
+             ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT area
+             ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
+             ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT cc
+             ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
+             ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
+             ,DOUBLE *RESTRICT lRcell    ,Temporal const ddt
+             ,short  *RESTRICT lFaceVelR ,short *RESTRICT lFaceVelL
+             ,short  *RESTRICT lFacePresR,short *RESTRICT lFacePresL
+             ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres
+             ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
+             ,DOUBLE *RESTRICT lDensity  ,DOUBLE *RESTRICT lDviscosity
+             ,DOUBLE *RESTRICT dField    
+             ,DOUBLE const underU        ,const bool sPressure
+             ,const short nEn            ,short const nFace
+             ,const short ndm            ,INT const nel)
 {
   DOUBLE viscosityC, viscosityV, viscosity;
   DOUBLE densityC, densityV, density, densityRef;
@@ -698,20 +701,20 @@ void cellSimpleVelLc2D(Loads *loadsVel, Loads *loadsPres
   short idCell = nFace;
   short nAresta, nCarg, typeTime;
   INT vizNel;
-  bool fTime, fAbsultePressure = false;
+  bool fTime, fAbsultePressure = false,fRes = true;
 
 /*...*/
-  dt = ddt.dt[0];
-  dt0 = ddt.dt[1];
-  typeTime = ddt.type;
-  fTime = ddt.flag;
-  densityC = lDensity[idCell];
-  g[0] = gravity[0];
-  g[1] = gravity[1];
+  dt        = ddt.dt[0];
+  dt0       = ddt.dt[1];
+  typeTime  = ddt.type;
+  fTime     = ddt.flag;  
+  g[0]      = gravity[0];
+  g[1]      = gravity[1];
 /*...................................................................*/
 
 /*... propriedades da celula*/
-  viscosityC = MAT2D(idCell, DINAMICVISCOSITY, prop, MAXPROP);
+  densityC  = lDensity[idCell];
+  viscosityC= lDviscosity[idCell]; 
   densityRef = MAT2D(idCell, DENSITY, prop, MAXPROP);
 /*...................................................................*/
 
@@ -748,10 +751,12 @@ void cellSimpleVelLc2D(Loads *loadsVel, Loads *loadsPres
 /*... dominio*/
     if (vizNel  > -1) {
 /*...*/
+      densityV  = lDensity[nAresta];
+      viscosityV= lDviscosity[nAresta]; 
+/*...*/
       velV[0] = MAT2D(nAresta, 0, vel, ndm);
       velV[1] = MAT2D(nAresta, 1, vel, ndm);
-      presF = pres[nAresta];
-      densityV = lDensity[nAresta];
+      presF = pres[nAresta]; 
 /*...*/
       lKsi[0] = MAT2D(nAresta, 0, ksi, ndm);
       lKsi[1] = MAT2D(nAresta, 1, ksi, ndm);
@@ -796,7 +801,6 @@ void cellSimpleVelLc2D(Loads *loadsVel, Loads *loadsPres
 /*...................................................................*/
 
 /*... media harmonica*/
-      viscosityV = MAT2D(nAresta, DINAMICVISCOSITY, prop, MAXPROP);
       viscosity = alpha / viscosityC + alphaMenosUm / viscosityV;
       viscosity = 1.0e0 / viscosity;
 /*...................................................................*/
@@ -911,7 +915,7 @@ void cellSimpleVelLc2D(Loads *loadsVel, Loads *loadsPres
       p[1] += aP*(gradVelV[0][1] * lNormal[0]
                 + gradVelV[1][1] * lNormal[1]);
 /*... divergente*/
-      tmp = D2DIV3*aP*gradVelV[0][0] + gradVelV[1][1];
+      tmp = D2DIV3*aP*(gradVelV[0][0] + gradVelV[1][1]);
       p[0] -= tmp*lNormal[0];
       p[1] -= tmp*lNormal[1];
 /*...................................................................*/
@@ -928,7 +932,7 @@ void cellSimpleVelLc2D(Loads *loadsVel, Loads *loadsPres
       p[1] += aP*(gradVelC[0][1] * lNormal[0]
                 + gradVelC[1][1] * lNormal[1]);
 /*... divergente*/
-      tmp = D2DIV3*aP*gradVelC[0][0] + gradVelC[1][1];
+      tmp = D2DIV3*aP*(gradVelC[0][0] + gradVelC[1][1]);
       p[0] -= tmp*lNormal[0];
       p[1] -= tmp*lNormal[1];
 /*...................................................................*/
@@ -940,11 +944,11 @@ void cellSimpleVelLc2D(Loads *loadsVel, Loads *loadsPres
 /*...cargas*/
         nCarg = lFacePresL[nAresta] - 1;
         pLoadSimplePres(&sP, p
-          , &pFace
-          , viscosityC, densityC
-          , wfn
-          , lModEta, dcca[nAresta]
-          , loadsPres[nCarg], false);
+                        ,&pFace
+                        ,viscosityC, densityC
+                        ,wfn
+                        ,lModEta, dcca[nAresta]
+                        ,loadsPres[nCarg], false);
       }
  /*...................................................................*/
 
@@ -993,12 +997,14 @@ void cellSimpleVelLc2D(Loads *loadsVel, Loads *loadsPres
 
 /*...*/
   if(fAbsultePressure){
-    p[0] -= densityC*g[0];
-    p[1] -= densityC*g[1];
+    tmp   = densityC*area[idCell];
+    p[0] += tmp*g[0];
+    p[1] += tmp*g[1];
   }
   else {
-    p[0] -= (densityRef-densityC)*g[0];
-    p[1] -= (densityRef-densityC)*g[1];
+    tmp   = (densityC-densityRef)*area[idCell];  
+    p[0] += tmp*g[0];
+    p[1] += tmp*g[1];
   }
 /*...................................................................*/
 
@@ -1025,13 +1031,6 @@ void cellSimpleVelLc2D(Loads *loadsVel, Loads *loadsPres
   }
   lA[idCell] = sP + sPc[0] + lAn;
   lA[idCell + 1] = sP + sPc[1] + lAn;
-/*...................................................................*/
-
-/*... under-relaxation(simple)*/
-  lA[idCell] = lA[idCell] / underU;
-  lA[idCell + 1] = lA[idCell + 1] / underU;
-  p[0] += (1 - underU)*lA[idCell] * velC[0];
-  p[1] += (1 - underU)*lA[idCell + 1] * velC[1];
 /*...................................................................*/
 
 /*... GradP*/
@@ -1061,6 +1060,15 @@ void cellSimpleVelLc2D(Loads *loadsVel, Loads *loadsPres
   rCell[1] += p[1] - lA[idCell + 1] * velC[1];
 /*...................................................................*/
 
+/*... under-relaxation(simple)*/
+  lA[idCell] = lA[idCell] / underU;
+  lA[idCell + 1] = lA[idCell + 1] / underU;
+  if(!fRes){
+    p[0] += (1 - underU)*lA[idCell] * velC[0];
+    p[1] += (1 - underU)*lA[idCell + 1] * velC[1];
+  }
+/*...................................................................*/
+
 /*...*/
   if (typeSimple == SIMPLEC) {
     dField[0] = area[idCell] / (lA[idCell] - lAn);
@@ -1087,8 +1095,14 @@ void cellSimpleVelLc2D(Loads *loadsVel, Loads *loadsPres
 /*...................................................................*/
 
 /*...*/
-  lB[0] = p[0];
-  lB[1] = p[1];
+  if(fRes){
+    lB[0]      = rCell[0];
+    lB[1]      = rCell[1];
+  }
+  else{
+    lB[0]      = p[1];
+    lB[1]      = p[1];
+  }
   lRcell[0] = rCell[0];
   lRcell[1] = rCell[1];
 /*...................................................................*/
@@ -1238,7 +1252,7 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
 /*...................................................................*/
 
 /*... propriedades da celula*/
-  viscosityC = MAT2D(idCell, DINAMICVISCOSITY, prop, MAXPROP);
+  viscosityC = MAT2D(idCell, DYNAMICVISCOSITY, prop, MAXPROP);
 /*...................................................................*/
 
 /*... | du1/dx1 du1/dx2*/
@@ -1322,7 +1336,7 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
 /*...................................................................*/
 
 /*... media harmonica*/
-      viscosityV = MAT2D(nAresta, DINAMICVISCOSITY, prop, MAXPROP);
+      viscosityV = MAT2D(nAresta, DYNAMICVISCOSITY, prop, MAXPROP);
       viscosity = alpha / viscosityC + alphaMenosUm / viscosityV;
       viscosity = 1.0e0 / viscosity;
 /*...................................................................*/
@@ -1701,7 +1715,6 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
 
 /*...*/
-
   velC[0]      = MAT2D(idCell,0,vel,ndm);
   velC[1]      = MAT2D(idCell,1,vel,ndm);
   
@@ -1712,7 +1725,6 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
 
   dFieldC[0] = MAT2D(idCell,0,dField,2); 
   dFieldC[1] = MAT2D(idCell,1,dField,2);
- 
 /*...................................................................*/
 
   p          = 0.0e0;
@@ -1720,31 +1732,23 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
   rCell      = 0.0e0;
   for(nAresta=0;nAresta<nFace;nAresta++){
     vizNel     = lViz[nAresta];
-
     lNormal[0] = MAT2D(nAresta,0,normal,ndm);
     lNormal[1] = MAT2D(nAresta,1,normal,ndm);
-
     lModEta    = mEta[nAresta];
-
     lKsi[0] = MAT2D(nAresta, 0, ksi, ndm);
     lKsi[1] = MAT2D(nAresta, 1, ksi, ndm);
-
     lModKsi = mKsi[nAresta];
 /*... dominio*/
     if( vizNel  > -1 ){
 /*...*/
       velF[0]       = MAT2D(nAresta,0,vel,ndm);
       velF[1]       = MAT2D(nAresta,1,vel,ndm);
-
       lvSkew[0]     = MAT2D(nAresta,0,vSkew,ndm);
       lvSkew[1]     = MAT2D(nAresta,1,vSkew,ndm);
-
       presV         = pres[nAresta];
       densityV      = lDensity[nAresta];
-
-      dFieldV[0] = MAT2D(nAresta, 0, dField, 2);
-      dFieldV[1] = MAT2D(nAresta, 1, dField, 2);
-
+      dFieldV[0]    = MAT2D(nAresta,0,dField,2);
+      dFieldV[1]    = MAT2D(nAresta,1,dField,2);
       gradPresV[0]  = MAT2D(nAresta,0,gradPres,ndm);
       gradPresV[1]  = MAT2D(nAresta,1,gradPres,ndm);
 /*...................................................................*/
@@ -2226,7 +2230,7 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
 
 /*... propriedades da celula*/
-  viscosityC = MAT2D(idCell, DINAMICVISCOSITY,prop,MAXPROP);
+  viscosityC = MAT2D(idCell, DYNAMICVISCOSITY,prop,MAXPROP);
 /*...................................................................*/
 
 /*... | du1/dx1 du1/dx2 du1/dx3*/
@@ -2337,7 +2341,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*... media harmonica*/
-      viscosityV = MAT2D(nAresta, DINAMICVISCOSITY,prop,MAXPROP);
+      viscosityV = MAT2D(nAresta, DYNAMICVISCOSITY,prop,MAXPROP);
       viscosity  = alpha/viscosityC + alphaMenosUm/viscosityV;
       viscosity  = 1.0e0/viscosity;
 /*...................................................................*/
@@ -3166,7 +3170,7 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
 /*...................................................................*/
 
 /*... propriedades da celula*/
-  viscosityC = MAT2D(idCell, DINAMICVISCOSITY, prop, MAXPROP);
+  viscosityC = MAT2D(idCell, DYNAMICVISCOSITY, prop, MAXPROP);
 /*...................................................................*/
 
 /*... | du1/dx1 du1/dx2 du1/dx3*/
@@ -3277,7 +3281,7 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
 /*...................................................................*/
 
 /*... media harmonica*/
-      viscosityV = MAT2D(nAresta, DINAMICVISCOSITY, prop, MAXPROP);
+      viscosityV = MAT2D(nAresta, DYNAMICVISCOSITY, prop, MAXPROP);
       viscosity = alpha / viscosityC + alphaMenosUm / viscosityV;
       viscosity = 1.0e0 / viscosity;
 /*...................................................................*/

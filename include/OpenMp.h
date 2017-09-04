@@ -38,4 +38,4 @@
                        ,char *s3  ,char *s4);
     
 
-#endif /*... _OPENMP_H_*/
+#endif /*_OPENMP_H_*/

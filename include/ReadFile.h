@@ -11,18 +11,21 @@
   #include<stdlib.h>
 /*...*/
   #include<Mesh.h>
+  #include<CellLoop.h>
   #include<string.h>
   #include<File.h>
   #include<HccaStdBool.h>
   #include<HccaBlas.h>
   #include<Memoria.h>
   #include<ParallelMpi.h>
+  #include<Properties.h>
+/*...................................................................*/  
 
   void parametros(INT   *nnode,INT *nel    
                  ,short *maxNo,short *maxViz
                  ,short *ndm  ,short *numat
                  ,FILE  *file);
-  void readFileFvMesh(Memoria *m,Mesh *mesh, FILE *file);
+  void readFileFvMesh(Memoria *m,Mesh *mesh, PropVar prop, FILE *file);
   void readVfMat(DOUBLE *prop,short *type,short numat,FILE *file);
   void readVfCoor(DOUBLE *x,INT nn, short ndm,FILE *file);
   void readVfElmt(INT *el    ,short *mat ,short *nen,short *nFace
@@ -38,19 +41,20 @@
   void config(FileOpt *opt ,Reord *reord
              ,short *rcGrad
              ,FILE* f);
-  void readEdo(Mesh *mesh,FILE *file);
   
+  void readEdo(Mesh *mesh,FILE *file);
+  void readPropVar(PropVar *p,FILE *file);
+  void readGravity(DOUBLE *gravity,FILE *file);
+
   void setPrintFluid(FileOpt *opt,FILE *file);
 
   void initProp(DOUBLE *RESTRICT prop 
              ,DOUBLE *RESTRICT propMat,short *RESTRICT mat
              ,short const np          ,INT const nCell 
              ,short const iProp);
-
-  void uniformField(DOUBLE *field, INT const n, short const ndf
-                    , FILE* file);
-
-  void convLoadsPresC(Loads *loadsPres, Loads *loadsPresC);
   
+   void uniformField(DOUBLE *field, INT const n, short const ndf
+                    , FILE* file);
+ 
 
-#endif
+#endif  /*_READ_FILE_*/

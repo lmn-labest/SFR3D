@@ -1,5 +1,5 @@
-#ifndef _COO_H  
-  #define _COO_H
+#ifndef _COO_H_  
+  #define _COO_H_
    #ifdef _AD_
     #undef  _AD_
   #endif  

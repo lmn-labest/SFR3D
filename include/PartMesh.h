@@ -1,5 +1,5 @@
-#ifndef _PARTMESH_
-  #define _PARTMESH_
+#ifndef _PARTMESH_H_
+  #define _PARTMESH_H_
 /*...*/
   #include<Mesh.h>
   #include<Memoria.h>
@@ -125,4 +125,4 @@
 /*...................................................................*/
 
 
-#endif/*_PARTMESH_*/
+#endif/*_PARTMESH_H_*/

@@ -64,4 +64,4 @@
   #define HccaDealloc(m,x,name,ad) x=dalloc(m,name,ad);
   #define zero(v,n,type) vzero((char*)v,n,type);
 /*..................................................................*/
-#endif
+#endif /*_MEM_H_*/

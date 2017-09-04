@@ -1,5 +1,5 @@
-#ifndef _DEBUG_H
-   #define _DEBUG_H
+#ifndef _DEBUG_H_
+   #define _DEBUG_H_
 
 /*...*/
    #include<stdio.h>
@@ -28,4 +28,4 @@
                  ,DOUBLE *al   ,DOUBLE *b
                  ,INT const neq,bool const unsym);
 /*...................................................................*/
-#endif
+#endif /*_DEBUG_H_*/

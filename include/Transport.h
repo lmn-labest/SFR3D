@@ -1,5 +1,5 @@
-#ifndef _TRANSPORT_H
-  #define _TRANSPORT_H
+#ifndef _TRANSPORT_H_
+  #define _TRANSPORT_H_
   
   #include<File.h>
   #include<Memoria.h>
@@ -17,4 +17,4 @@
                 ,Solv *solvT,Scheme sc        ,PartMesh *pMesh
                 ,FileOpt opt,char *preName    ,char *nameOut
                 ,FILE *fileOut);
-#endif/*_TRANSPORT_H*/
+#endif/*_TRANSPORT_H_*/

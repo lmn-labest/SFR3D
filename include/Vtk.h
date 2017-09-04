@@ -18,4 +18,4 @@
  
   void timeVtk(double t,int iStep,bool cod,FILE *f);
 
-#endif
+#endif /*_VTK_*/

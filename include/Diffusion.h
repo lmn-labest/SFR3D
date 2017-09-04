@@ -1,5 +1,5 @@
-#ifndef _DIFFUSION_H
-  #define _DIFFUSION_H
+#ifndef _DIFFUSION_H_
+  #define _DIFFUSION_H_
   
   #include<File.h>
   #include<Memoria.h>
@@ -17,4 +17,4 @@
                 ,Solv *solvD,Scheme sc      ,PartMesh *pMesh
                 ,FileOpt opt,char *preName  ,char *nameOut
                 ,FILE *fileOut);
-#endif/*_DIFFUSION_H*/
+#endif/*_DIFFUSION_H_*/

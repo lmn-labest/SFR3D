@@ -55,7 +55,7 @@ void solverC(Memoria *m
   DOUBLE (*dotC)();
   INT nn;
   unsigned short nKrylov=15;
-  bool fPrint =false,openMp = ompVar.fSolver;
+  bool fPrint = false,openMp = ompVar.fSolver;
 /*...*/
 	dotC    = NULL;
 	matVecC = NULL;
@@ -75,7 +75,7 @@ void solverC(Memoria *m
 /*... arranjos auxiliares do pcg*/
       HccaAlloc(DOUBLE,m,z,nEq,"z",false);
       HccaAlloc(DOUBLE,m,r,nEq,"r",false);
-			HccaAlloc(DOUBLE,m,p,nEq,"p", false);
+			HccaAlloc(DOUBLE,m,p,nEq,"p",false);
       zero(z,nEq,DOUBLEC);
       zero(r,nEq,DOUBLEC);
 			zero(p,nEq, DOUBLEC);

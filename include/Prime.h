@@ -1,5 +1,5 @@
-#ifndef _PRIME_H
-  #define _PRIME_H
+#ifndef _PRIME_H_
+  #define _PRIME_H_
 
   #include<File.h>
   #include<Memoria.h>
@@ -44,4 +44,4 @@
   void setPrimeScheme(char *word, Prime *sp, FILE *fileIn);
 /*...................................................................*/
 
-#endif/*_PRIME_H*/
+#endif/*_PRIME_H_*/

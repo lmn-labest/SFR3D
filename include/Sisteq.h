@@ -91,4 +91,4 @@
 /*  void profil(int*,INT*,int*,INT,INT,short,short,INT
              ,INT*);*/
 
-#endif/*_SISTEQ_H*/
+#endif/*_SISTEQ_H_*/

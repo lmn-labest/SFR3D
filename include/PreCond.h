@@ -4,5 +4,5 @@
   #include<Define.h>
   void preCondDiag(DOUBLE *RESTRICT pc,DOUBLE *RESTRICT ad,INT const nEq);
 
-#endif/*_PRECOND_*/
+#endif/*_PRECOND_H_*/
 

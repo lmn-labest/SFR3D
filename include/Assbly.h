@@ -1,5 +1,5 @@
-#ifndef _ASSBLY_H
-  #define _ASSBLY_H
+#ifndef _ASSBLY_H_
+  #define _ASSBLY_H_
 /*...*/
   #include<stdio.h>
   #include<stdlib.h>
@@ -37,4 +37,4 @@
              ,bool const matrix   ,bool  const  unsym);
 /*...................................................................*/
 
-#endif/*_CSR_H*/
+#endif/*_ASSBLY_H_*/

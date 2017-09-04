@@ -1,5 +1,5 @@
-#ifndef _GRAPH_H  
-  #define _GRAPH_H
+#ifndef _GRAPH_H_  
+  #define _GRAPH_H_
    #ifdef _AD_
     #undef  _AD_
   #endif  
@@ -22,4 +22,4 @@
                   ,bool const xAdjFlag ,bool const adjFlag);
 /*...................................................................*/
 
-#endif/*_CSR_H*/
+#endif/* _GRAPH_H_*/

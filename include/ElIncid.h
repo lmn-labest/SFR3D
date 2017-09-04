@@ -1,5 +1,5 @@
-#ifndef _ELINCIDH_
-  #define _ELINCIDH_
+#ifndef _ELINCID_H_
+  #define _ELINCID_H_
 /*...*/
   #include<Define.h>
   #include<Mesh.h>
@@ -18,4 +18,4 @@
                ,INT const maxGrade  ,short const maxNo);
 
 
-#endif/*_ELINCIDH_*/
+#endif/*_ELINCID_H_*/

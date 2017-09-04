@@ -7,4 +7,4 @@
   void bubblesort(INT *ja   ,INT n);
   void v2Bubblesort(INT *sja,INT *dja,INT n);
 
-#endif /*... _HCCASORT_H*/
+#endif /*_HCCASORT_H_*/

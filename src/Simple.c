@@ -635,7 +635,7 @@ void simpleSolver3D(Memoria *m
 *-------------------------------------------------------------------*
 *-------------------------------------------------------------------*
 *********************************************************************/
-void simpleSolverLm(Memoria *m
+void simpleSolverLm(Memoria *m          ,PropVar prop     
                    ,Loads *loadsVel     ,Loads *loadsPres
                    ,Loads *loadsEnergy
                    ,Mesh *mesh0         ,Mesh *mesh
@@ -665,8 +665,12 @@ void simpleSolverLm(Memoria *m
   DOUBLE tolSimpleU1, tolSimpleU2, tolSimpleU3, tolSimpleMass, tolSimpleEnergy;
 /*...*/
   bool xMomentum, yMomentum, zMomentum, pCor, fEnergy;
-  bool relRes = true;
+  bool relRes = false;
   bool fPrint = false;
+  bool fDensity = prop.fDensity,
+       fSheat   = prop.fSpecificHeat,
+       fDvisc   = prop.fDynamicViscosity,
+       fTcond   = prop.fThermalCondutivty;
   DOUBLE cfl, reynolds, peclet;
   bool fParameter[3];
 
@@ -837,20 +841,19 @@ void simpleSolverLm(Memoria *m
 
 /*... montagem do sistema u, v e w*/
     tm.systFormVel = getTimeC() - tm.systFormVel;
-    systFormSimpleVel(loadsVel               ,loadsPres
+    systFormSimpleVelLw(loadsVel               ,loadsPres
                      ,sc.advVel              ,sc.diffVel
                      ,sp->type
                      ,mesh->elm.node         ,mesh->elm.adj.nelcon
                      ,mesh->elm.nen          ,mesh->elm.adj.nViz
                      ,mesh->elm.geomType     ,mesh->elm.material.prop
                      ,mesh->elm.material.type,mesh->elm.mat
-                     ,mesh->elm.geom.cc
-                     ,mesh->elm.geom.ksi     ,mesh->elm.geom.mksi
-                     ,mesh->elm.geom.eta     ,mesh->elm.geom.fArea
-                     ,mesh->elm.geom.normal  ,mesh->elm.geom.volume
-                     ,mesh->elm.geom.xm      ,mesh->elm.geom.xmcc
-                     ,mesh->elm.geom.vSkew   ,mesh->elm.geom.mvSkew
-                     ,mesh->elm.geom.dcca    ,mesh->elm.densityFluid
+                     ,mesh->elm.geom.cc      ,mesh->elm.geom.ksi
+                     ,mesh->elm.geom.mksi    ,mesh->elm.geom.eta     
+                     ,mesh->elm.geom.fArea   ,mesh->elm.geom.normal  
+                     ,mesh->elm.geom.volume  ,mesh->elm.geom.xm    
+                     ,mesh->elm.geom.xmcc    ,mesh->elm.geom.vSkew   
+                     ,mesh->elm.geom.mvSkew  ,mesh->elm.geom.dcca    
                      ,sistEqVel->ia          ,sistEqVel->ja
                      ,sistEqVel->al          ,sistEqVel->ad
                      ,sistEqVel->b           ,sistEqVel->id
@@ -859,7 +862,9 @@ void simpleSolverLm(Memoria *m
                      ,mesh->elm.pressure     ,mesh->elm.gradPres
                      ,mesh->elm.vel          ,mesh->elm.gradVel
                      ,sp->d                  ,sp->alphaVel
-                     ,mesh->elm.rCellVel     ,sc.ddt
+                     ,mesh->elm.rCellVel
+                     ,mesh->elm.densityFluid ,mesh->elm.dViscosity    
+                     ,sc.ddt
                      ,sistEqVel->neq         ,sistEqVel->neqNov
                      ,sistEqVel->nad         ,sistEqVel->nadr
                      ,mesh->maxNo            ,mesh->maxViz
@@ -914,7 +919,7 @@ void simpleSolverLm(Memoria *m
     if (xMomentum) {
       if (fPrint) printf("Quantidade de movimento u1:\n");
       tm.solvVel = getTimeC() - tm.solvVel;
-        solverC(m
+      solverC(m
              ,sistEqVel->neq    ,sistEqVel->neqNov
              ,sistEqVel->nad    ,sistEqVel->nadr
              ,sistEqVel->ia     ,sistEqVel->ja
@@ -968,14 +973,18 @@ void simpleSolverLm(Memoria *m
 /*...................................................................*/
 
 /*... atualizando o campo de velociade estimadas*/
-    if (ndfVel == 3) {
-      updateCellSimpleVel3D(mesh->elm.vel, xu1, xu2, xu3, sistEqVel->id
-        , mesh->numelNov, mesh->ndm);
-    }
-    else {
-      updateCellSimpleVel(mesh->elm.vel, xu1, xu2, sistEqVel->id
-        , mesh->numelNov, mesh->ndm);
-    }
+//  if (ndfVel == 3) {
+//    updateCellSimpleVel3D(mesh->elm.vel, xu1, xu2, xu3, sistEqVel->id
+//      , mesh->numelNov, mesh->ndm);
+//  }
+//  else {
+//    updateCellSimpleVelR(mesh->elm.vel ,xu1, xu2, sistEqVel->id
+//                        ,mesh->numelNov,mesh->ndm);
+//  }
+    updateCellSimpleVelR(mesh->elm.vel ,xu1
+                        ,xu2           ,xu3
+                        ,sistEqVel->id ,mesh->numelNov
+                        ,mesh->ndm);
 /*...................................................................*/
 
 /*...*/
@@ -1266,15 +1275,17 @@ void simpleSolverLm(Memoria *m
              ,mesh->elm.geom.normal  ,mesh->elm.geom.volume
              ,mesh->elm.geom.xm      ,mesh->elm.geom.xmcc
              ,mesh->elm.geom.vSkew   ,mesh->elm.geom.mvSkew
-             ,mesh->elm.geom.dcca    ,mesh->elm.densityFluid
+             ,mesh->elm.geom.dcca    
              ,sistEqEnergy->ia       ,sistEqEnergy->ja
              ,sistEqEnergy->al       ,sistEqEnergy->ad
              ,sistEqEnergy->b        ,sistEqEnergy->id
              ,mesh->elm.faceRenergy  ,mesh->elm.faceLoadEnergy
              ,mesh->elm.energy       ,mesh->elm.gradEnergy
              ,mesh->elm.vel          ,mesh->elm.gradVel
-             ,mesh->elm.rCellEnergy  ,sc.ddt
-             ,sp->alphaEnergy
+             ,mesh->elm.rCellEnergy 
+             ,mesh->elm.densityFluid ,mesh->elm.specificHeat
+             ,mesh->elm.dViscosity   ,mesh->elm.tConductivity
+             ,sc.ddt                 ,sp->alphaEnergy
              ,sistEqEnergy->neq      ,sistEqEnergy->neqNov
              ,sistEqEnergy->nad      ,sistEqEnergy->nadr
              ,mesh->maxNo            ,mesh->maxViz
@@ -1302,7 +1313,7 @@ void simpleSolverLm(Memoria *m
     tmp = sqrt(dot(sistEqEnergy->b,sistEqEnergy->b
                   ,sistEqEnergy->neqNov));
     fEnergy = true;
-    if (tmp <= SZERO || tmp == 0.e0) fEnergy = false;  
+    if (tmp == 0.e0) fEnergy = false;  
 /*...................................................................*/
 
 /*...Ae=bE*/
@@ -1327,7 +1338,7 @@ void simpleSolverLm(Memoria *m
     updateCellValue(mesh->elm.energy,sistEqEnergy->x
                    ,sistEqEnergy->id,&sistEqEnergy->iNeq
                    ,mesh->numel     ,1
-                   ,false           ,true);
+                   ,true            ,true);
 /*...................................................................*/
 
 /*... residual*/
@@ -1339,7 +1350,22 @@ void simpleSolverLm(Memoria *m
                  ,&rEnergy          
                  ,sistEqVel->id        ,sistEqEnergy->id
                  ,mesh->numelNov       ,sistEqVel->neqNov
-                 ,mesh->ndm            ,3);  
+                 ,mesh->ndm            ,RSCALEDSUM);  
+/*...................................................................*/
+
+/*...*/
+    if(fDensity)
+      updateDensity(mesh->elm.energy,mesh->elm.densityFluid
+                   ,mesh->numel      ,PROP_UPDATE_SIMPLE_LOOP);
+    if(fSheat)
+      updateSpecificHeat(mesh->elm.energy,mesh->elm.specificHeat
+                       ,mesh->numel     ,PROP_UPDATE_SIMPLE_LOOP);
+    if(fDvisc)
+     updateDynamicViscosity(mesh->elm.energy,mesh->elm.dViscosity
+                           ,mesh->numel);
+    if(fTcond)
+      updateDynamicViscosity(mesh->elm.energy,mesh->elm.tConductivity
+                            ,mesh->numel);
 /*...................................................................*/
 
 /*...*/
@@ -1351,37 +1377,6 @@ void simpleSolverLm(Memoria *m
       if (zMomentum && ndfVel == 3) rU0[2] = rU[2];
     }
     conv = 0;
-/*...................................................................*/
-
-/*... 3D*/
-    if (ndfVel == 3) {
-      if(rEnergy/rEnergy0<tolSimpleEnergy || rEnergy<SZERO) conv++;
-/*...*/
-      if(rMass/rMass0<tolSimpleMass || rMass<SZERO) conv++;
-/*...*/
-      if(rU[0]/rU0[0]<tolSimpleU1 || rU[0]<tmp*SZERO) conv++;
-/*...*/
-      if(rU[1]/rU0[1]<tolSimpleU2 || rU[1]<tmp*SZERO) conv++;
-/*...*/
-      if(rU[2]/rU0[2]<tolSimpleU3 || rU[2]<tmp*SZERO) conv++;
-/*..*/
-      if(conv == 5) break;
-    }
-/*...................................................................*/
-
-/*... 2D*/
-    else {
-      if(rEnergy/rEnergy0<tolSimpleEnergy || rEnergy<SZERO) conv++;
-/*...*/
-      if(rMass/rMass0<tolSimpleMass || rMass<SZERO) conv++;
-/*..*/
-      if(rU[0]/rU0[0]<tolSimpleU1 || rU[0]<=tmp*SZERO) conv++;
-/*...*/
-      if(rU[1]/rU0[1]<tolSimpleU2 || rU[1]<=tmp*SZERO) conv++;
-/*..*/
-      if(conv == 4) break;
-/*...................................................................*/
-    }
 /*...................................................................*/
 
 /*...*/
@@ -1412,8 +1407,42 @@ void simpleSolverLm(Memoria *m
         printf("momentum x3           : %20.8e\n", rU[2] / rU0[2]);
       printf("conservacao da energia : %20.8e\n",rEnergy/rEnergy0);
     }
-    jj++;
+   
 /*...................................................................*/
+
+/*... 3D*/
+    if (ndfVel == 3) {
+      if(rEnergy/rEnergy0<tolSimpleEnergy || rEnergy<SZERO) conv++;
+/*...*/
+      if(rMass/rMass0<tolSimpleMass || rMass<SZERO) conv++;
+/*...*/
+      if(rU[0]/rU0[0]<tolSimpleU1 || rU[0]<tmp*SZERO) conv++;
+/*...*/
+      if(rU[1]/rU0[1]<tolSimpleU2 || rU[1]<tmp*SZERO) conv++;
+/*...*/
+      if(rU[2]/rU0[2]<tolSimpleU3 || rU[2]<tmp*SZERO) conv++;
+/*..*/
+      if(conv == 5) break;
+    }
+/*...................................................................*/
+
+/*... 2D*/
+    else {
+      if(rEnergy/rEnergy0<tolSimpleEnergy || rEnergy<SZERO) conv++;
+/*...*/
+      if(rMass/rMass0<tolSimpleMass || rMass<SZERO) conv++;
+/*..*/
+      if(rU[0]/rU0[0]<tolSimpleU1 || rU[0]<=tmp*SZERO) conv++;
+/*...*/
+      if(rU[1]/rU0[1]<tolSimpleU2 || rU[1]<=tmp*SZERO) conv++;
+/*..*/
+      if(conv == 4) break;
+/*...................................................................*/
+      jj++;
+    }
+/*...................................................................*/
+
+
   }
 /*...................................................................*/
   timei = getTimeC() - time;
@@ -1429,6 +1458,13 @@ void simpleSolverLm(Memoria *m
                  ,&peclet
                  ,fParameter            ,sc.ddt.dt[0]
                  ,mesh->numelNov        ,mesh->ndm);
+/*...................................................................*/
+
+/*... guardando as propriedades para o proximo passo*/
+  if(fDensity) updateDensity(mesh->elm.energy,mesh->elm.densityFluid
+              ,mesh->numel     ,PROP_UPDATE_OLD_TIME   );
+  if(fSheat) updateSpecificHeat(mesh->elm.energy,mesh->elm.specificHeat
+                         ,mesh->numel   ,PROP_UPDATE_OLD_TIME);
 /*...................................................................*/
 
 /*...*/
@@ -1494,6 +1530,59 @@ void updateCellSimpleVel(DOUBLE  *RESTRICT w
   }
 }
 /*********************************************************************/ 
+
+/********************************************************************* 
+ * Data de criacao    : 30/08/2017                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * UPDATECELLSIMPLEVELR: atualizacao dos valores das velocidades     *
+ * estimadas com os valores das respectivas equacoes                 *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * w       -> variavel nas celulas                                   * 
+ * u1      -> solucao do sistema                                     * 
+ * u2      -> solucao do sistema                                     *
+ * u2      -> solucao do sistema                                     *  
+ * id      -> numeracao das equacoes                                 * 
+ * numel   -> numero de elementos                                    * 
+ * ndm     -> numero de dimensoes                                    * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * w      -> atualizado                                              * 
+ *-------------------------------------------------------------------* 
+ * OBS: Versao residual  v*(n) = v(n) + dv(n+1)                      * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void updateCellSimpleVelR(DOUBLE  *RESTRICT w  ,DOUBLE  *RESTRICT u1
+                         ,DOUBLE  *RESTRICT u2 ,DOUBLE  *RESTRICT u3
+                         ,INT  *RESTRICT id    ,INT const nEl
+                         ,short const ndm)
+{
+  INT i,lNeq;
+
+  if(ndm == 3)
+    for(i=0;i<nEl;i++){
+      lNeq             = id[i] - 1;
+      if(lNeq > -1){  
+        MAT2D(i,0,w,2) += u1[lNeq];
+        MAT2D(i,1,w,2) += u2[lNeq];
+        MAT2D(i,1,w,3) += u3[lNeq];
+      }
+    }
+  else
+    for(i=0;i<nEl;i++){
+      lNeq             = id[i] - 1;
+      if(lNeq > -1){  
+        MAT2D(i,0,w,2) += u1[lNeq];
+        MAT2D(i,1,w,2) += u2[lNeq];
+      }
+    }
+}
+/*********************************************************************/ 
+
+
 
 /********************************************************************* 
  * Data de criacao    : 11/07/2016                                   *
@@ -1953,6 +2042,7 @@ void residualSimpleLm(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
   for(j=0;j<ndm;j++){
     rU[j]   = 0.e0;
   }
+  *rEnergy = *rMass = 0.e0;
 /*...................................................................*/
 
 /*...*/
@@ -2079,7 +2169,7 @@ void residualSimpleLm(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
       
 /*... sum ( | F - Ax |P / sum( |Ap*energyP| ) )*/
       for(i=0;i<nEl;i++){
-        mod      = fabs(rCellEnergy[i]);
+         mod      = fabs(rCellEnergy[i]);
         *rEnergy += mod;
       }
       if( sum[0] > (*rEnergy)*SZERO)
