@@ -622,7 +622,7 @@ void simpleSolver3D(Memoria *m
 
 /*********************************************************************
 * Data de criacao    : 21/08/2017                                   *
-* Data de modificaco : 00/00/0000                                   *
+* Data de modificaco : 03/09/2017                                   *
 *-------------------------------------------------------------------*
 * SIMPLESOLVERENERGY: metodo simple e simpleC para escoamentos      * 
 * 2D/3D termo ativados                                              *
@@ -637,7 +637,7 @@ void simpleSolver3D(Memoria *m
 *********************************************************************/
 void simpleSolverLm(Memoria *m          ,PropVar prop     
                    ,Loads *loadsVel     ,Loads *loadsPres
-                   ,Loads *loadsEnergy
+                   ,Loads *loadsEnergy  ,EnergyModel eModel
                    ,Mesh *mesh0         ,Mesh *mesh
                    ,SistEq *sistEqVel   ,SistEq *sistEqPres
                    ,SistEq *sistEqEnergy
@@ -657,7 +657,8 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                  kZeroEnergy = sp->kZeroEnergy;
   INT jj = 1;
   DOUBLE time, timei;
-  DOUBLE *b1, *b2, *b3, *bPc, *bE, *xu1, *xu2, *xu3, *xp, *adU1, *adU2, *adU3;
+  DOUBLE *b1, *b2, *b3, *bPc, *bE, *xu1, *xu2, *xu3, *xp;
+  DOUBLE *adU1, *adU2, *adU3;
   DOUBLE *rCellPc,*rCellE;
 /*...*/
   DOUBLE rU[3], rU0[3], tmp, tb[3], rMass0, rMass,rEnergy0, rEnergy;
@@ -704,6 +705,9 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
   tolSimpleMass = sp->tolPres;
   tolSimpleEnergy = sp->tolEnergy;
 /*...................................................................*/
+
+/*
+*/
 
 /*...*/
   rMass0 = 1.e0;
@@ -769,6 +773,9 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*... energy(n-1) = energy(n)*/
     alphaProdVector(1.e0       ,mesh->elm.energy
                    ,mesh->numel,mesh->elm.energy0);
+/*... pres(n-1) = pres(n)*/
+    alphaProdVector(1.e0       ,mesh->elm.pressure
+                   ,mesh->numel,mesh->elm.pressure0);
 /*...................................................................*/
     tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;
   }
@@ -1263,7 +1270,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*... equacao de energia*/
 /*... calculo de: A(i),bE(i)*/
     tm.systFormEnergy = getTimeC() - tm.systFormEnergy;
-    systFormEnergy(loadsEnergy
+    systFormEnergy(loadsEnergy       ,eModel
              ,sc.advEnergy           ,sc.diffEnergy
              ,mesh->elm.node         ,mesh->elm.adj.nelcon
              ,mesh->elm.nen          ,mesh->elm.adj.nViz
@@ -1282,6 +1289,8 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
              ,mesh->elm.faceRenergy  ,mesh->elm.faceLoadEnergy
              ,mesh->elm.energy       ,mesh->elm.gradEnergy
              ,mesh->elm.vel          ,mesh->elm.gradVel
+             ,mesh->elm.pressure0    ,mesh->elm.pressure  
+             ,mesh->elm.gradPres
              ,mesh->elm.rCellEnergy 
              ,mesh->elm.densityFluid ,mesh->elm.specificHeat
              ,mesh->elm.dViscosity   ,mesh->elm.tConductivity
@@ -1338,7 +1347,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
     updateCellValue(mesh->elm.energy,sistEqEnergy->x
                    ,sistEqEnergy->id,&sistEqEnergy->iNeq
                    ,mesh->numel     ,1
-                   ,true            ,true);
+                   ,eModel.fRes     ,true);
 /*...................................................................*/
 
 /*... residual*/

@@ -28,7 +28,8 @@
   
   void simpleSolverLm(Memoria *m           ,PropVar prop
                       ,Loads *loadsVel     ,Loads *loadsPres 
-                      ,Loads *loadsEnergy
+                      ,Loads *loadsEnergy  
+                      ,EnergyModel eModel
                       ,Mesh *mesh0         ,Mesh *mesh
                       ,SistEq *sistEqVel   ,SistEq *sistEqPres
                       ,SistEq *sistEqEnergy

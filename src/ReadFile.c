@@ -246,10 +246,15 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, PropVar prop, FILE* file)
               ,nel * DENSITY_LEVEL, "denFluid", _AD_);
      zero(mesh->elm.densityFluid, nel * DENSITY_LEVEL, DOUBLEC);
 
-/*... ePres*/
+/*... ePres(n+1)*/
      HccaAlloc(DOUBLE,m,mesh->elm.pressure 
             ,nel              ,"pressure"          ,_AD_);
      zero(mesh->elm.pressure  ,nel                         ,DOUBLEC);
+
+/*... ePres(n)*/
+     HccaAlloc(DOUBLE,m,mesh->elm.pressure0
+            ,nel              ,"pressure0"         ,_AD_);
+     zero(mesh->elm.pressure0 ,nel                         ,DOUBLEC);
 
 /*... pres*/
      HccaAlloc(DOUBLE,m,mesh->node.pressure
@@ -821,6 +826,9 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, PropVar prop, FILE* file)
 /*...*/
     alphaProdVector(1.e0        ,mesh->elm.energy0
                    ,mesh->numel ,mesh->elm.energy);
+/*...*/
+    alphaProdVector(1.e0        ,mesh->elm.pressure0
+                   ,mesh->numel ,mesh->elm.pressure);
   
 /*... inicializando a densidade*/
     if(prop.fDensity)
@@ -1817,6 +1825,7 @@ void readPropVar(PropVar *p,FILE *file){
     if(!strcmp(word,"sHeat")){
       readMacro(file,word,false);
       p->fSpecificHeat = true;
+      initSheatPol(); 
       if(!mpiVar.myId && p->fSpecificHeat) 
         printf("sHeat variation        : Enable\n");
     }
@@ -1849,6 +1858,89 @@ void readPropVar(PropVar *p,FILE *file){
     }
 /*...................................................................*/
     
+    readMacro(file,word,false);
+  }while(strcmp(word,str));
+
+
+}
+/*********************************************************************/ 
+
+/*********************************************************************
+ * Data de criacao    : 04/09/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------* 
+ * READPROPVAR : propriedades variaveis                              * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * p       ->                                                        * 
+ * file    -> arquivo de arquivo                                     * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * p       ->                                                        * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void readModel(EnergyModel *e,FILE *file){
+
+  char *str={"endModel"};
+  char word[WORD_SIZE];
+  char macros[][WORD_SIZE] = {"energy"};
+  char energy[][WORD_SIZE] = {"presWork"   ,"dissipation","residual"
+                             ,"temperature","help"};
+  int i,nPar;
+/*...*/
+  e->fPresWork    = false;
+  e->fDissipation = false;
+  e->fRes         = false;
+  e->fTemperature = false;
+/*...................................................................*/
+
+  readMacro(file,word,false);
+  do{
+/*... equacao da energia*/
+    if(!strcmp(word,macros[0])){      
+      fscanf(file,"%d",&nPar);
+      for(i=0;i<nPar;i++){
+        readMacro(file,word,false);
+/*...*/
+        if(!strcmp(word,energy[0])){    
+          e->fPresWork = true;
+          if(!mpiVar.myId && e->fPresWork) 
+            printf("PresWork : Enable\n");
+        }
+/*...................................................................*/
+
+/*...*/
+        else if(!strcmp(word,energy[1])){        
+          e->fDissipation = true;
+          if(!mpiVar.myId && e->fDissipation) 
+            printf("Dissipation : Enable\n");                           
+        }
+/*...................................................................*/
+
+/*...*/
+        else if(!strcmp(word,energy[2])){
+          e->fRes = true;
+          if(!mpiVar.myId && e->fRes)
+            printf("Residual : Enable\n");;
+        }
+/*...................................................................*/
+
+/*...*/
+        else if(!strcmp(word,energy[3])){
+          e->fTemperature = true;
+          if(!mpiVar.myId && e->fTemperature)
+            printf("Temperatura : Enable\n");;
+        }
+/*...................................................................*/
+
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
     readMacro(file,word,false);
   }while(strcmp(word,str));
 

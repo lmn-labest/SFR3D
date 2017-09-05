@@ -8,11 +8,10 @@
 *-------------------------------------------------------------------*
 * Parametros de entrada:                                            *
 *-------------------------------------------------------------------*
-* loadsVel  -> definicoes de cargas de velocidades                  *
-* loadsPres -> definicoes de cargas de pressao                      *
-* advVel    -> tecnica da discretizacao do termo advecao            *
-* diffVel   -> tecnica da discretizacao do termo difusivo           *
-* typeSimple-> tipo do metodo simple                                *
+* loads     -> definicoes de cargas                                 *
+* model     -> modelo da equacao de energia                         *
+* adv       -> tecnica da discretizacao do termo advecao            *
+* diff      -> tecnica da discretizacao do termo difusivo           *
 * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
 * lprop     -> propriedade fisicas das celulas                      *
 * lViz      -> viznhos da celula central                            *
@@ -61,7 +60,7 @@
 * lB        -> vetor de forca da linha i                            *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void cellLibEnergy(Loads *loads                        
+void cellLibEnergy(Loads *loads   ,EnergyModel model                     
      ,Advection  adv              ,Diffusion diff   
      ,short *RESTRICT lGeomType   ,DOUBLE *RESTRICT lprop
      ,INT   *RESTRICT lViz        ,INT *RESTRICT lId
@@ -76,6 +75,7 @@ void cellLibEnergy(Loads *loads
      ,short  *RESTRICT lFaceR     , short  *RESTRICT lFaceL    
      ,DOUBLE *RESTRICT u          ,DOUBLE *RESTRICT gradU
      ,DOUBLE *RESTRICT vel        ,DOUBLE *RESTRICT gradVel
+     ,DOUBLE *RESTRICT pres       ,DOUBLE *RESTRICT gradPres  
      ,DOUBLE *RESTRICT lDensity   ,DOUBLE *RESTRICT lSheat
      ,DOUBLE *RESTRICT lDviscosity,DOUBLE *RESTRICT lTconductvity
      ,DOUBLE const underU
@@ -88,7 +88,7 @@ void cellLibEnergy(Loads *loads
   if (lib == 1) {
 /*... 2D*/
     if (ndm == 2)  
-      cellEnergy2D(loads
+      cellEnergy2D(loads     ,model
                   ,adv       ,diff
                   ,lGeomType ,lprop
                   ,lViz      ,lId
@@ -103,6 +103,7 @@ void cellLibEnergy(Loads *loads
                   ,lFaceR    ,lFaceL
                   ,u         ,gradU    
                   ,vel       ,gradVel
+                  ,pres      ,gradPres  
                   ,lDensity  ,lSheat
                   ,lDviscosity,lTconductvity
                   ,underU

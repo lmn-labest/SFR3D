@@ -330,68 +330,71 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*********************************************************************/
 
 /*********************************************************************
-* Data de criacao    : 20/08/2017                                   *
-* Data de modificaco : 01/09/2017                                   *
-*-------------------------------------------------------------------*
-* CELLENERGY2D: Celula 2D para transporte                           *
-*-------------------------------------------------------------------*
-* Parametros de entrada:                                            *
-*-------------------------------------------------------------------*
-* loads     -> definicoes de cargas                                 *
-* advT      -> tecnica da discretizacao do termo advecao            *
-* diffT     -> tecnica da discretizacao do termo difusivo           *
-* lnFace    -> numero de faces da celula central e seus vizinhos    *
-* lGeomType -> tipo geometrico da celula central e seus vizinhos    *
-* lprop     -> propriedade fisicas das celulas                      *
-* lViz      -> viznhos da celula central                            *
-* lId       -> numeracoes das equacoes das celulas                  *
-* Ksi       -> vetores que unem centroide da celula central aos     *
-*            vizinhos destas                                        *
-* mKsi      -> modulo do vetor ksi                                  *
-* eta       -> vetores paralelos as faces das celulas               *
-* mEta      -> modulo do vetor eta                                  *
-* normal    -> vetores normais as faces das celulas                 *
-* area      -> area da celula central                               *
-* xm        -> pontos medios das faces da celula central            *
-* xmcc      -> vetores que unem o centroide aos pontos medios das   *
-*            faces da celula central                                *
-* vSkew  -> vetor entre o ponto medio a intersecao que une os       *
-*            centrois compartilhado nessa face da celula central    *
-* mvSkew -> distacia entre o ponto medio a intersecao que une os    *
-*            centrois compartilhado nessa face da celula central    *
-* dcca      -> menor distancia do centroide central a faces desta   *
-*              celula                                               *
-* lDensity  -> massa especifica com variacao temporal               *
-* lSheat    -> calor especifico com variacao temporal               *
-* lDviscosity-> viscosidade dinamica com variacao temporal          *
-* lTconductivity-> condutividade termica com variacao temporal      *
-* lA        -> nao definido                                         *
-* lB        -> nao definido                                         *
-* lRcell    -> nao definido                                         *
-* ddt       -> discretizacao temporal                               *
-* faceR     -> restricoes por elmento                               *
-* faceL     -> carga por elemento                                   *
-* u0        -> solucao conhecida                                    *
-* gradU0    -> gradiente rescontruido da solucao conhecida          *
-* vel       -> campo de velocidade conhecido                        *
-* gradVel   -> gradiente rescontruido da velocidade                 *
-* cc        -> centroides da celula centra e seus vizinhos          *
-* underU    -> parametro de sob relaxamento                         *
-* nEn       -> numero de nos da celula central                      *
-* nFace     -> numero de faces da celula central                    *
-* ndm       -> numero de dimensoes                                  *
-* nel       -> numero da celula                                     *
-*-------------------------------------------------------------------*
-* Parametros de saida:                                              *
-*-------------------------------------------------------------------*
-* lA        -> coeficiente da linha i                               *
-* lB        -> vetor de forca da linha i                            *
-* lRcell    -> residuo por celula                                   *
-*-------------------------------------------------------------------*
-* OBS:                                                              *
-*-------------------------------------------------------------------*
-*********************************************************************/
-void cellEnergy2D(Loads *loads
+ * Data de criacao    : 20/08/2017                                   *
+ * Data de modificaco : 01/09/2017                                   *
+ *-------------------------------------------------------------------*
+ * CELLENERGY2D: Celula 2D para transporte                           *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * loads     -> definicoes de cargas                                 *
+ * model     -> modelo da equacao de energia                         *
+ * advT      -> tecnica da discretizacao do termo advecao            *
+ * diffT     -> tecnica da discretizacao do termo difusivo           *
+ * lnFace    -> numero de faces da celula central e seus vizinhos    *
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
+ * lprop     -> propriedade fisicas das celulas                      *
+ * lViz      -> viznhos da celula central                            *
+ * lId       -> numeracoes das equacoes das celulas                  *
+ * Ksi       -> vetores que unem centroide da celula central aos     *
+ *            vizinhos destas                                        *
+ * mKsi      -> modulo do vetor ksi                                  *
+ * eta       -> vetores paralelos as faces das celulas               *
+ * mEta      -> modulo do vetor eta                                  *
+ * normal    -> vetores normais as faces das celulas                 *
+ * area      -> area da celula central                               *
+ * xm        -> pontos medios das faces da celula central            *
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   *
+ *            faces da celula central                                *
+ * vSkew  -> vetor entre o ponto medio a intersecao que une os       *
+ *            centrois compartilhado nessa face da celula central    *
+ * mvSkew -> distacia entre o ponto medio a intersecao que une os    *
+ *            centrois compartilhado nessa face da celula central    *
+ * dcca      -> menor distancia do centroide central a faces desta   *
+ *              celula                                               *
+ * lDensity  -> massa especifica com variacao temporal               *
+ * lSheat    -> calor especifico com variacao temporal               *
+ * lDviscosity-> viscosidade dinamica com variacao temporal          *
+ * lTconductivity-> condutividade termica com variacao temporal      *
+ * lA        -> nao definido                                         *
+ * lB        -> nao definido                                         *
+ * lRcell    -> nao definido                                         *
+ * ddt       -> discretizacao temporal                               *
+ * faceR     -> restricoes por elmento                               *
+ * faceL     -> carga por elemento                                   *
+ * u0        -> solucao conhecida                                    *
+ * gradU0    -> gradiente rescontruido da solucao conhecida          *
+ * vel       -> campo de velocidade conhecido                        *
+ * gradVel   -> gradiente rescontruido da velocidade                 *
+ * pres      -> pressao do tempo atual e do tempo anterior           *
+ * gradPres  -> gradiente de pressao do tempo atual                  *
+ * cc        -> centroides da celula centra e seus vizinhos          *
+ * underU    -> parametro de sob relaxamento                         *
+ * nEn       -> numero de nos da celula central                      *
+ * nFace     -> numero de faces da celula central                    *
+ * ndm       -> numero de dimensoes                                  *
+ * nel       -> numero da celula                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * lA        -> coeficiente da linha i                               *
+ * lB        -> vetor de forca da linha i                            *
+ * lRcell    -> residuo por celula                                   *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void cellEnergy2D(Loads *loads           ,EnergyModel model
             ,Advection advT              ,Diffusion diffT
             ,short *RESTRICT lGeomType   ,DOUBLE *RESTRICT prop
             ,INT *RESTRICT lViz          ,INT *RESTRICT lId
@@ -406,6 +409,7 @@ void cellEnergy2D(Loads *loads
             ,short  *RESTRICT lFaceR     ,short *RESTRICT lFaceL
             ,DOUBLE *RESTRICT u0         ,DOUBLE *RESTRICT gradU0
             ,DOUBLE *RESTRICT vel        ,DOUBLE *RESTRICT gradVel
+            ,DOUBLE *RESTRICT pres       ,DOUBLE *RESTRICT gradPres  
             ,DOUBLE *RESTRICT lDensity   ,DOUBLE *RESTRICT lSheat
             ,DOUBLE *RESTRICT lDviscosity,DOUBLE *RESTRICT lTconductivity
             ,DOUBLE const underU
@@ -426,6 +430,7 @@ void cellEnergy2D(Loads *loads
   DOUBLE e[2], t[2], modE, dfdc;
   DOUBLE xx[3];
 /*... */
+  DOUBLE presC[2],gradPresC[2];
   DOUBLE wfn, wf[2], velC[2], velF[2], cv, cvc;
   short iCodAdv1 = advT.iCod1;
   short iCodAdv2 = advT.iCod2;
@@ -436,15 +441,16 @@ void cellEnergy2D(Loads *loads
   short idCell = nFace;
   short nAresta, nCarg, typeTime;
   INT vizNel;
-  bool fTime,fDisp,fRes;
+  bool fTime,fDisp,fRes,fPresWork;
 
 /*...*/
-  dt       = ddt.dt[0];
-  dt0      = ddt.dt[1];
-  typeTime = ddt.type;
-  fTime    = ddt.flag;  
-  fDisp    = false;
-  fRes     = true;
+  dt        = ddt.dt[0];
+  dt0       = ddt.dt[1];
+  typeTime  = ddt.type;
+  fTime     = ddt.flag;  
+  fDisp     = model.fDissipation;
+  fRes      = model.fRes;
+  fPresWork = model.fPresWork;
 /*...................................................................*/
 
 /*... propriedades da celula*/
@@ -456,10 +462,14 @@ void cellEnergy2D(Loads *loads
 /*...................................................................*/
 
 /*...*/
-  gradUp[0] = MAT2D(idCell, 0, gradU0, ndm);
-  gradUp[1] = MAT2D(idCell, 1, gradU0, ndm);
-  velC[0]   = MAT2D(idCell, 0, vel, ndm);
-  velC[1]   = MAT2D(idCell, 1, vel, ndm);
+  gradUp[0]    = MAT2D(idCell, 0, gradU0, ndm);
+  gradUp[1]    = MAT2D(idCell, 1, gradU0, ndm);
+  velC[0]      = MAT2D(idCell, 0, vel, ndm);
+  velC[1]      = MAT2D(idCell, 1, vel, ndm);
+  presC[0]     = pres[0];
+  presC[1]     = pres[1];
+  gradPresC[0] = gradPres[0];
+  gradPresC[1] = gradPres[1];
 /*...................................................................*/
 
   p = 0.0e0;
@@ -622,20 +632,21 @@ void cellEnergy2D(Loads *loads
     tmp  = gradVelC[0][0]*gradVelC[0][0] + gradVelC[1][1]*gradVelC[1][1];
     tmp1 = gradVelC[0][1] + gradVelC[1][0];
     phi = 2.0*tmp + tmp1*tmp1;    
+    tmp = (lambda*psi + miC*phi);
 /*...*/
-    p+= (lambda*psi + miC*phi)*volume[idCell];
+    p+= tmp*volume[idCell];
   }
 /*.....................................................................*/ 
 
 /*...*/
-//if(workPres){
+  if(fPresWork){
 /*... derivada materia da pressao*/
-//  tmp = (presC - presC0)/dt + velC[0]*gradPresC[0] + velC[1]*gradPresC[1];
+    tmp = (pres[1] - pres[0])/dt 
+        + velC[0]*gradPresC[0] + velC[1]*gradPresC[1];
 /*...*/
-//  tmp1 = (u*(densityC - denstiC0) )/(densityC*(u - u0))
-//  p-= tmp1*tmp;
+    p+= tmp*volume[idCell];
 /*.....................................................................*/
-//}
+  }
 /*.....................................................................*/
 
 /*... distretizacao temporal*/

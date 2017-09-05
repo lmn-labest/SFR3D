@@ -206,7 +206,7 @@
 
 
 /*...*/
-  void systFormEnergy(Loads *loads
+  void systFormEnergy(Loads *loads         ,EnergyModel model
                ,Advection advE             ,Diffusion diffE
                ,INT    *RESTRICT el        ,INT    *RESTRICT nelcon
                ,short  *RESTRICT nen       ,short  *RESTRICT nFace
@@ -225,6 +225,8 @@
                ,short  *RESTRICT faceR     ,short  *RESTRICT faceL
                ,DOUBLE *RESTRICT u0        ,DOUBLE *RESTRICT gradU0
                ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
+               ,DOUBLE *RESTRICT pres0     ,DOUBLE *RESTRICT pres   
+               ,DOUBLE *RESTRICT gradPres 
                ,DOUBLE *RESTRICT rCell     
                ,DOUBLE *RESTRICT density   ,DOUBLE *RESTRICT sHeat
                ,DOUBLE *RESTRICT dViscosity,DOUBLE *RESTRICT tConductvity
@@ -383,7 +385,7 @@
 /*...................................................................*/
 
 /*... chamada da biblioteca de elementos (transporte)*/
-  void cellLibEnergy(Loads *loads
+  void cellLibEnergy(Loads *loads ,EnergyModel model
      ,Advection  adv              ,Diffusion diff
      ,short *RESTRICT lGeomType   ,DOUBLE *RESTRICT lprop
      ,INT   *RESTRICT lViz        ,INT *RESTRICT lId
@@ -398,6 +400,7 @@
      ,short  *RESTRICT lFaceR     ,short  *RESTRICT lFaceL
      ,DOUBLE *RESTRICT u          ,DOUBLE *RESTRICT gradU
      ,DOUBLE *RESTRICT vel        ,DOUBLE *RESTRICT gradVel
+     ,DOUBLE *RESTRICT pres       ,DOUBLE *RESTRICT gradPres 
      ,DOUBLE *RESTRICT lDensity   ,DOUBLE *RESTRICT lSheat
      ,DOUBLE *RESTRICT lDviscosity,DOUBLE *RESTRICT ltConductvity
      ,DOUBLE const underU
@@ -722,7 +725,7 @@
 /*...................................................................*/
 
 /*.......................... ENRGIA .................................*/
-  void cellEnergy2D(Loads *loads
+  void cellEnergy2D(Loads *loads          ,EnergyModel model
             ,Advection adv                ,Diffusion diff
             ,short *RESTRICT lGeomType    ,DOUBLE *RESTRICT prop
             ,INT *RESTRICT lViz           ,INT *RESTRICT lId
@@ -735,8 +738,9 @@
             ,DOUBLE *RESTRICT lA          ,DOUBLE *RESTRICT lB
             ,DOUBLE *RESTRICT lRcell      ,Temporal const ddt
             ,short  *RESTRICT lFaceR      ,short *RESTRICT lFaceL
-            ,DOUBLE *RESTRICT u0          ,DOUBLE *RESTRICT gradU0
-            ,DOUBLE *RESTRICT vel         ,DOUBLE *RESTRICT gradVel           
+            ,DOUBLE *RESTRICT u0          ,DOUBLE *RESTRICT gradU0           
+            ,DOUBLE *RESTRICT vel         ,DOUBLE *RESTRICT gradVel  
+            ,DOUBLE *RESTRICT pres        ,DOUBLE *RESTRICT gradPres         
             ,DOUBLE *RESTRICT lDensity    ,DOUBLE *RESTRICT lSheat
             ,DOUBLE *RESTRICT lDviscosity ,DOUBLE *RESTRICT ltConductvity
             ,DOUBLE const underU

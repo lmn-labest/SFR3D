@@ -50,6 +50,8 @@ int main(int argc,char**argv){
   Simple *simple = NULL;
   Prime  *prime  = NULL;
 
+/*...*/
+  EnergyModel eModel;
 /*... propriedade variaveis*/
   PropVar propVarFluid;
 
@@ -105,7 +107,7 @@ int main(int argc,char**argv){
   ,"advection"   ,"edp"          ,"diffusion"     /*27,28,29*/
   ,"pFluid"      ,"setPrintFluid" ,""             /*30,31,32*/
   ,"setPrime"    ,"prime"         ,"propVar"      /*33,34,35*/
-  ,"gravity"     ,""              ,""        };   /*36,37,38*/
+  ,"gravity"     ,"model"         ,""        };   /*36,37,38*/
 /* ..................................................................*/
 
 /*... Memoria principal(valor padrao - bytes)*/
@@ -115,6 +117,13 @@ int main(int argc,char**argv){
 /*... temperatura interna em kelvin*/
   iKelvin = false;
 /* ..................................................................*/
+
+/*...*/
+  eModel.fPresWork     = false;
+  eModel.fDissipation  = false;
+  eModel.fRes          = true;
+  eModel.fTemperature  = true;
+/*...................................................................*/
 
 /*... OpenMP*/
   ompVar.nThreadsSolver = 1;
@@ -2119,7 +2128,7 @@ int main(int argc,char**argv){
       else if(mesh->ndfFt)
         simpleSolverLm(&m          ,propVarFluid
                       ,loadsVel    ,loadsPres 
-                      ,loadsEnergy         
+                      ,loadsEnergy ,eModel        
                       ,mesh0       ,mesh
                       ,sistEqVel   ,sistEqPres
                       ,sistEqEnergy
@@ -2859,6 +2868,20 @@ int main(int argc,char**argv){
         printf("%s\n",word);
       }   
       readGravity(gravity,fileIn);
+/*...................................................................*/
+      if(!mpiVar.myId ) printf("%s\n",DIF);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: model modelos utilizados nas equacao diferencias         
+ *===================================================================*/
+    else if((!strcmp(word,macro[37]))){
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+      }
+      readModel(&eModel,fileIn);
 /*...................................................................*/
       if(!mpiVar.myId ) printf("%s\n",DIF);
     }   

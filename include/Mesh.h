@@ -26,8 +26,24 @@
     bool    fDynamicViscosity;
     bool    fThermalCondutivty;
   }PropVar;
+/*...................................................................*/
+  
+/*...*/
+  typedef struct{
+    bool    fPresWork;
+    bool    fDissipation;
+    bool    fRes;
+    bool    fTemperature;
+  }EnergyModel;
 /*...................................................................*/  
 
+/*...*/
+  typedef struct{
+    bool    fRes;
+    short buoyancy;
+    short typeSimple;      
+  }MomentumModel;
+/*...................................................................*/
 
 /*...*/
   typedef struct{
@@ -117,7 +133,8 @@
 /*...*/
     DOUBLE *energy;       /*energia*/
     DOUBLE *energy0;      /*energia*/
-    DOUBLE *pressure;     /*pressao*/
+    DOUBLE *pressure;     /*pressao (n+1)*/
+    DOUBLE *pressure0;    /*pressao (n)*/
     DOUBLE *vel;          /*velocidade do fluido*/
     DOUBLE *vel0;         /*velocidade do fluido*/
     DOUBLE *densityFluid; /*massa especifica do fluido*/

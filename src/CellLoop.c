@@ -2203,92 +2203,99 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
 /*...................................................................*/
 }
 /*********************************************************************/
+
 /*********************************************************************
-* Data de criacao    : 22/08/2017                                   *
-* Data de modificaco : 01/09/2017                                   *
-*-------------------------------------------------------------------*
-* SYSTFOMENERGY: calculo do sistema de equacoes para problemas      *
-* transporte de energia (Ax=b)                                      *
-*-------------------------------------------------------------------*
-* Parametros de entrada:                                            *
-*-------------------------------------------------------------------*
-* loads   -> definicoes de cargas                                   *
-* advT    -> tecnica da discretizacao do termo advecao              *
-* diffT   -> tecnica da discretizacao do termo difusivo             *
-* el      -> conetividade dos celulas                               *
-* nelcon  -> vizinhos dos elementos                                 *
-* nen     -> numero de nos por celulas                              *
-* nFace   -> numero de faces por celulas                            *
-* calType -> tipo de calculo das celulas                            *
-* geomType-> tipo geometrico das celulas                            *
-* prop    -> propriedades dos material                              *
-* mat     -> material por celula                                    *
-* gCc     -> centroide das celulas                                  *
-* gKsi    -> vetores que unem centroide da celula central aos       *
-*            vizinhos destas                                        *
-* gmKsi   -> modulo do vetor ksi                                    *
-* gEta    -> vetores paralelos as faces das celulas                 *
-* gfArea  -> modulo do vetor eta                                    *
-* gNormal -> vetores normais as faces das celulas                   *
-* gVolume -> volumes das celulas                                    *
-* gXm     -> pontos medios das faces das celulas                    *
-* gXmcc   -> vetores que unem o centroide aos pontos medios das     *
-*            faces                                                  *
-* gvSkew  -> vetor entre o ponto medio a intersecao que une os      *
-*            centrois compartilhado nessa face                      *
-* gmvSkew -> distacia entre o ponto medio a intersecao que une os   *
-*            centrois compartilhado nessa face                      *
-* au      -> matriz de coeficientes esparsa                         *
-*            ( CSR - nao utiliza                            )       *
-*            ( CSRD/CSRC- triangular superior               )       *
-* gDcca   -> menor distancia do centroide a faces desta celula      *
-* ia      -> ponteiro para as linhas da matriz esparsa              *
-* ja      -> ponteiro para as colunas da matriz esparsa             *
-* a       -> matriz de coeficientes esparsa                         *
-*            ( CSR - nao utiliza                            )       *
-*            ( CSRD/CSRC- fora da diagonal principal        )       *
-* ad      -> matrix de coeficientes esparsa                         *
-*            ( CSR - matriz completa                        )       *
-*            ( CSRD/CSRC- diagonal principal                )       *
-* b       -> vetor de forcas                                        *
-* id      -> numera das equacoes                                    *
-* faceR   -> restricoes por elemento                                *
-* faceLd1 -> carga por elemento                                     *
-* u0      -> solucao conhecida                                      *
-* gradU0  -> gradiente da solucao conhecido                         *
-* vel     -> compo de velocidade conhecido                          *
-* rCell   -> nao definido                                           *
-* density -> massa especifica com variacao temporal                 *
-* sHeat    -> calor especifico com variacao temporal                *
-* dViscosity-> viscosidade dinamica com variacao temporal           *
-* tConductvity -> condutividade termica com variacao temporal       *
-* ddt     -> discretizacao temporal                                 *
-* underU  -> parametro de sob relaxamento                           *
-* nEq     -> numero de equacoes                                     *
-* neqNov  -> numero de equacoes nao sobrepostas                     *
-* nAd     -> numero de termos nao nulos                             *
-* nAdR    -> numero de termos nao nulos na parte retangular         *
-* maxNo   -> numero de nos por celula maximo da malha               *
-* maxViz  -> numero vizinhos por celula maximo da malha             *
-* ndm     -> numero de dimensoes                                    *
-* numel   -> numero de toral de celulas                             *
-* ndf     -> graus de liberdade                                     *
-* storage -> tecnica de armazenamento da matriz esparsa             *
-* forces  -> mantagem no vetor de forcas                            *
-* matrix  -> mantagem da matriz de coeficientes                     *
-* calRcell-> calculo do residuo de celula                           *
-* unsym   -> matiz nao simetrica                                    *
-*-------------------------------------------------------------------*
-* Parametros de saida:                                              *
-*-------------------------------------------------------------------*
-* au,a,al   -> coeficiente da linha i     (matriz = true)           *
-* b         -> vetor de forca da linha i  (forces = true)           *
-* rCell     -> residuo por celula                                   *
-*-------------------------------------------------------------------*
-* OBS:                                                              *
-*-------------------------------------------------------------------*
-*********************************************************************/
-void systFormEnergy(Loads *loads
+ * Data de criacao    : 22/08/2017                                   *
+ * Data de modificaco : 01/09/2017                                   *
+ *-------------------------------------------------------------------*
+ * SYSTFOMENERGY: calculo do sistema de equacoes para problemas      *
+ * transporte de energia (Ax=b)                                      *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * loads   -> definicoes de cargas                                   *
+ * model     -> modelo da equacao de energia                         *
+ * advT    -> tecnica da discretizacao do termo advecao              *
+ * diffT   -> tecnica da discretizacao do termo difusivo             *
+ * el      -> conetividade dos celulas                               *
+ * nelcon  -> vizinhos dos elementos                                 *
+ * nen     -> numero de nos por celulas                              *
+ * nFace   -> numero de faces por celulas                            *
+ * calType -> tipo de calculo das celulas                            *
+ * geomType-> tipo geometrico das celulas                            *
+ * prop    -> propriedades dos material                              *
+ * mat     -> material por celula                                    *
+ * gCc     -> centroide das celulas                                  *
+ * gKsi    -> vetores que unem centroide da celula central aos       *
+ *            vizinhos destas                                        *
+ * gmKsi   -> modulo do vetor ksi                                    *
+ * gEta    -> vetores paralelos as faces das celulas                 *
+ * gfArea  -> modulo do vetor eta                                    *
+ * gNormal -> vetores normais as faces das celulas                   *
+ * gVolume -> volumes das celulas                                    *
+ * gXm     -> pontos medios das faces das celulas                    *
+ * gXmcc   -> vetores que unem o centroide aos pontos medios das     *
+ *            faces                                                  *
+ * gvSkew  -> vetor entre o ponto medio a intersecao que une os      *
+ *            centrois compartilhado nessa face                      *
+ * gmvSkew -> distacia entre o ponto medio a intersecao que une os   *
+ *            centrois compartilhado nessa face                      *
+ * au      -> matriz de coeficientes esparsa                         *
+ *            ( CSR - nao utiliza                            )       *
+ *            ( CSRD/CSRC- triangular superior               )       *
+ * gDcca   -> menor distancia do centroide a faces desta celula      *
+ * ia      -> ponteiro para as linhas da matriz esparsa              *
+ * ja      -> ponteiro para as colunas da matriz esparsa             *
+ * a       -> matriz de coeficientes esparsa                         *
+ *            ( CSR - nao utiliza                            )       *
+ *            ( CSRD/CSRC- fora da diagonal principal        )       *
+ * ad      -> matrix de coeficientes esparsa                         *
+ *            ( CSR - matriz completa                        )       *
+ *            ( CSRD/CSRC- diagonal principal                )       *
+ * b       -> vetor de forcas                                        *
+ * id      -> numera das equacoes                                    *
+ * faceR   -> restricoes por elemento                                *
+ * faceLd1 -> carga por elemento                                     *
+ * u0      -> solucao conhecida                                      *
+ * gradU0  -> gradiente da solucao conhecido                         *
+ * vel       -> campo de velocidade conhecido                        *
+ * gradVel   -> gradiente rescontruido da velocidade                 *
+ * pres0     -> pressao do tempo anterior                            *
+ * pres      -> pressao do tempo atual                               *
+ * gradPres  -> gradiente de pressao do tempo atual                  *
+ * cc        -> centroides da celula centra e seus vizinhos          *
+ * rCell   -> nao definido                                           *
+ * density -> massa especifica com variacao temporal                 *
+ * sHeat    -> calor especifico com variacao temporal                *
+ * dViscosity-> viscosidade dinamica com variacao temporal           *
+ * tConductvity -> condutividade termica com variacao temporal       *
+ * ddt     -> discretizacao temporal                                 *
+ * underU  -> parametro de sob relaxamento                           *
+ * nEq     -> numero de equacoes                                     *
+ * neqNov  -> numero de equacoes nao sobrepostas                     *
+ * nAd     -> numero de termos nao nulos                             *
+ * nAdR    -> numero de termos nao nulos na parte retangular         *
+ * maxNo   -> numero de nos por celula maximo da malha               *
+ * maxViz  -> numero vizinhos por celula maximo da malha             *
+ * ndm     -> numero de dimensoes                                    *
+ * numel   -> numero de toral de celulas                             *
+ * ndf     -> graus de liberdade                                     *
+ * storage -> tecnica de armazenamento da matriz esparsa             *
+ * forces  -> mantagem no vetor de forcas                            *
+ * matrix  -> mantagem da matriz de coeficientes                     *
+ * calRcell-> calculo do residuo de celula                           *
+ * unsym   -> matiz nao simetrica                                    *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * au,a,al   -> coeficiente da linha i     (matriz = true)           *
+ * b         -> vetor de forca da linha i  (forces = true)           *
+ * rCell     -> residuo por celula                                   *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void systFormEnergy(Loads *loads          ,EnergyModel model 
               ,Advection adv              ,Diffusion diff 
               ,INT    *RESTRICT el        ,INT    *RESTRICT nelcon
               ,short  *RESTRICT nen       ,short  *RESTRICT nFace
@@ -2307,6 +2314,8 @@ void systFormEnergy(Loads *loads
               ,short  *RESTRICT faceR     ,short  *RESTRICT faceL
               ,DOUBLE *RESTRICT u0        ,DOUBLE *RESTRICT gradU0
               ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
+              ,DOUBLE *RESTRICT pres0     ,DOUBLE *RESTRICT pres 
+              ,DOUBLE *RESTRICT gradPres 
               ,DOUBLE *RESTRICT rCell     
               ,DOUBLE *RESTRICT density   ,DOUBLE *RESTRICT sHeat
               ,DOUBLE *RESTRICT dViscosity,DOUBLE *RESTRICT tConductivity
@@ -2337,9 +2346,10 @@ void systFormEnergy(Loads *loads
          ldViscosity[(MAX_NUM_FACE + 1)],ltConductivity[(MAX_NUM_FACE + 1)];
   DOUBLE lA[(MAX_NUM_FACE + 1)*MAX_NDF], lB[MAX_NDF];
   DOUBLE lProp[(MAX_NUM_FACE + 1)*MAXPROP];
-  DOUBLE lu0[(MAX_NUM_FACE + 1)*MAX_NDF];
+  DOUBLE lu0[(MAX_NUM_FACE + 1)*MAX_NDF],lPres[3];
   DOUBLE lGradVel[(MAX_NUM_FACE + 1)*MAX_NDM*MAX_NDF];
   DOUBLE lGradU0[(MAX_NUM_FACE + 1)*MAX_NDM];
+  DOUBLE lGradPres[MAX_NDM];
   DOUBLE lVel[(MAX_NUM_FACE + 1)*MAX_NDM];
   DOUBLE lCc[(MAX_NUM_FACE + 1)*MAX_NDM];
   DOUBLE lRcell[MAX_NDF];
@@ -2515,6 +2525,8 @@ void systFormEnergy(Loads *loads
         lFaceL[aux1] = MAT2D(nel, aux1, faceL, aux2);
         lDensity[aux1] = MAT2D(nel, 2, density, DENSITY_LEVEL);
         lsHeat[aux1]   = MAT2D(nel, 2, sHeat  , SHEAT_LEVEL);
+        lPres[0]       = pres0[nel];
+        lPres[1]       = pres[nel];
         ldViscosity[aux1]    = dViscosity[nel];
         ltConductivity[aux1] = tConductivity[nel];
 /*...................................................................*/
@@ -2535,6 +2547,7 @@ void systFormEnergy(Loads *loads
           MAT2D(aux1, j, lGradU0, ndm) = MAT2D(nel, j, gradU0, ndm);
           MAT2D(aux1, j, lVel, ndm) = MAT2D(nel, j, vel, ndm);
           MAT2D(aux1, j, lCc, ndm) = MAT2D(nel, j, gCc, ndm);
+          lGradPres[j] = MAT2D(nel, j, gradPres, ndm);
         }
 /*...................................................................*/
 
@@ -2599,7 +2612,7 @@ void systFormEnergy(Loads *loads
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
-        cellLibEnergy(loads
+        cellLibEnergy(loads      ,model
                      ,adv        ,diff 
                      ,lGeomType  ,lProp
                      ,lViz       ,lId
@@ -2614,6 +2627,7 @@ void systFormEnergy(Loads *loads
                      ,lFaceR     ,lFaceL
                      ,lu0        ,lGradU0
                      ,lVel       ,lGradVel
+                     ,lPres      ,lGradPres 
                      ,lDensity   ,lsHeat
                      ,ldViscosity,ltConductivity            
                      ,underU

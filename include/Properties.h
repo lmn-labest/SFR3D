@@ -9,14 +9,22 @@
 /*...*/
   #include<Define.h>
   #include<HccaStdBool.h>
+  #include<Erro.h>
 /*...................................................................*/
 
 /*...*/
+  typedef struct{
+    short nPol;
+    DOUBLE a[10];   
+  }PropPol;
+/*...................................................................*/
+
+/*...*/
+  #define TREF      288.15e+00    /*Kelvin         */
   #define PREREF    1.01325e-01   /*MPa            */
   #define IDEALGASR 8.3144598e-06 /*MJ/(mol.kelvin)*/
   #define MMOLARAR  2.896e-2      /*kg/mol         */
 /*...................................................................*/
-
 
 /*...*/
   #define PROP_UPDATE_SIMPLE_LOOP 0
@@ -34,6 +42,8 @@
   DOUBLE airSpecifiHeat(DOUBLE const t,bool fKelvin);
   DOUBLE airDynamicViscosity(DOUBLE const t,bool fKelvin);
   DOUBLE airThermalConductvity(DOUBLE const t,bool fKelvin);
+  DOUBLE specificEnthalpyForTemp(DOUBLE const hs,bool fKelvin);
+  DOUBLE tempForSpecificEnthalpy(DOUBLE const t,bool fKelvin);
 /*...................................................................*/
 
 /*...*/
@@ -53,6 +63,11 @@
 /*...................................................................*/
 
 /*...*/
+  void initSheatPol(void);
+/*...................................................................*/
+
+/*...*/
   bool iKelvin;
+  PropPol sHeat;
 /*...................................................................*/
 #endif /*_PROPERTIES_H_*/
