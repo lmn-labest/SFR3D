@@ -1096,6 +1096,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
           ,bool fVel            ,bool fGradVel 
           ,bool fPres           ,bool fGradPres
           ,bool fEnergy         ,bool fGradEnergy
+          ,bool fKelvin
           ,Temporal ddt         ,FILE *f)
 {
   int    *lel=NULL;
@@ -1190,7 +1191,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 
 /*... escrever campo de energia por celula*/
   if (fEnergy){
-    if(iKelvin){
+    if(fKelvin ){
       HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
       ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__)
       alphaProdVector(1.e0,elEnergy,numel,p);
@@ -1256,7 +1257,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 
 /*... escrever resultados de energia por nos*/
   if (fEnergy){
-    if(iKelvin){
+    if(fKelvin ){
       HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
       ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__)
       alphaProdVector(1.e0,nEnergy,nnode,p);

@@ -706,9 +706,6 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
   tolSimpleEnergy = sp->tolEnergy;
 /*...................................................................*/
 
-/*
-*/
-
 /*...*/
   rMass0 = 1.e0;
   rMass = 0.e0;
@@ -761,12 +758,19 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                        ,mesh->numelNov        ,ndfVel
                        ,true);
 /*... Energia*/
-    cellTransientEnergy(mesh->elm.geom.volume  ,sistEqEnergy->id
-                       ,mesh->elm.energy0      ,mesh->elm.energy
-                       ,mesh->elm.densityFluid ,mesh->elm.specificHeat
-                       ,sistEqEnergy->b0
-                       ,sc.ddt                 ,mesh->numelNov
-                       ,true);
+    if(eModel.fTemperature)
+      cellTransientEnergy(mesh->elm.geom.volume  ,sistEqEnergy->id
+                         ,mesh->elm.energy0      ,mesh->elm.energy
+                         ,mesh->elm.densityFluid ,mesh->elm.specificHeat
+                         ,sistEqEnergy->b0
+                         ,sc.ddt                 ,mesh->numelNov
+                         ,true);
+    else
+      cellTransient(mesh->elm.geom.volume  ,sistEqEnergy->id
+                   ,mesh->elm.energy0      ,mesh->elm.energy
+                   ,mesh->elm.densityFluid ,sistEqEnergy->b0
+                   ,sc.ddt                 ,mesh->numelNov
+                   ,1                      ,true);
 /*... vel(n-1) = vel(n)*/
     alphaProdVector(1.e0              ,mesh->elm.vel
                    ,mesh->numel*ndfVel,mesh->elm.vel0);
@@ -1363,18 +1367,28 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*...................................................................*/
 
 /*...*/
+    getTempForEnergy(mesh->elm.temp         ,mesh->elm.energy
+                    ,mesh->elm.material.prop,mesh->elm.mat                    
+                    ,mesh->numel            ,eModel.fTemperature
+                    ,fSheat                 ,eModel.fKelvin);
+/*...................................................................*/
+
+/*...*/
     if(fDensity)
       updateDensity(mesh->elm.energy,mesh->elm.densityFluid
+                   ,eModel.fKelvin   
                    ,mesh->numel      ,PROP_UPDATE_SIMPLE_LOOP);
     if(fSheat)
       updateSpecificHeat(mesh->elm.energy,mesh->elm.specificHeat
+                        ,eModel.fKelvin
                        ,mesh->numel     ,PROP_UPDATE_SIMPLE_LOOP);
     if(fDvisc)
-     updateDynamicViscosity(mesh->elm.energy,mesh->elm.dViscosity
+     updateDynamicViscosity(mesh->elm.energy,mesh->elm.dViscosity  
+                           ,eModel.fKelvin   
                            ,mesh->numel);
     if(fTcond)
       updateDynamicViscosity(mesh->elm.energy,mesh->elm.tConductivity
-                            ,mesh->numel);
+                            ,eModel.fKelvin  ,mesh->numel);
 /*...................................................................*/
 
 /*...*/
@@ -1471,8 +1485,10 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 
 /*... guardando as propriedades para o proximo passo*/
   if(fDensity) updateDensity(mesh->elm.energy,mesh->elm.densityFluid
+              ,eModel.fKelvin
               ,mesh->numel     ,PROP_UPDATE_OLD_TIME   );
   if(fSheat) updateSpecificHeat(mesh->elm.energy,mesh->elm.specificHeat
+                         ,eModel.fKelvin     
                          ,mesh->numel   ,PROP_UPDATE_OLD_TIME);
 /*...................................................................*/
 
@@ -2205,3 +2221,4 @@ void residualSimpleLm(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
   }
 
 }
+

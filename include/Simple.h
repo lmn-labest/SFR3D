@@ -84,7 +84,6 @@
             ,INT  *RESTRICT idVel         ,INT  *RESTRICT idEnergy 
             ,INT const nEl                ,INT const nEqVel
             ,short const ndm              ,short iCod);
-
 /*...................................................................*/
 
 /*...*/

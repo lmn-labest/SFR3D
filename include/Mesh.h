@@ -21,19 +21,20 @@
 
 /*...*/
   typedef struct{
-    bool    fDensity;
-    bool    fSpecificHeat;
-    bool    fDynamicViscosity;
-    bool    fThermalCondutivty;
+    bool fDensity;
+    bool fSpecificHeat;
+    bool fDynamicViscosity;
+    bool fThermalCondutivty;
   }PropVar;
 /*...................................................................*/
   
 /*...*/
   typedef struct{
-    bool    fPresWork;
-    bool    fDissipation;
-    bool    fRes;
-    bool    fTemperature;
+    bool fPresWork;
+    bool fDissipation;
+    bool fRes;
+    bool fTemperature;
+    bool fKelvin;
   }EnergyModel;
 /*...................................................................*/  
 
@@ -47,13 +48,13 @@
 
 /*...*/
   typedef struct{
-    bool    flag;
-    short   iCod;            
-    short   type;
+    bool flag;
+    short iCod;            
+    short type;
     INT timeStep;
     DOUBLE total;
-    DOUBLE    dt[3];
-    DOUBLE     t;   
+    DOUBLE dt[3];
+    DOUBLE t;   
   }Temporal;
 /*...................................................................*/  
 
@@ -98,7 +99,8 @@
         ,loadsVel[MAXLOADFLUID]     /*tipo de cargas (fluid-Vel)*/
         ,loadsPres[MAXLOADFLUID]    /*tipo de cargas (fluid-Pres)*/
         ,loadsPresC[MAXLOADFLUID]   /*tipo de cargas (fluid-Pres)*/
-        ,loadsEnergy[MAXLOADFLUID]; /*tipo de cargas (fluid-Pres)*/
+        ,loadsEnergy[MAXLOADFLUID]  /*tipo de cargas (fluid-Pres)*/
+        ,loadsTemp[MAXLOADFLUID];   /*tipo de cargas (fluid-Pres)*/
 /*...................................................................*/
 
 /*...*/
@@ -135,6 +137,7 @@
     DOUBLE *energy0;      /*energia*/
     DOUBLE *pressure;     /*pressao (n+1)*/
     DOUBLE *pressure0;    /*pressao (n)*/
+    DOUBLE *temp;         /*temperatura*/
     DOUBLE *vel;          /*velocidade do fluido*/
     DOUBLE *vel0;         /*velocidade do fluido*/
     DOUBLE *densityFluid; /*massa especifica do fluido*/
@@ -145,14 +148,13 @@
     DOUBLE *gradVel;    /*gradiente do campo de velocidade*/    
     DOUBLE *gradPres;   /*gradiente do campo de pressao*/    
     DOUBLE *gradEnergy; /*gradiente do campo de energia*/
+    DOUBLE *gradTemp;   /*gradiente da temperatura*/
 /*...*/
     DOUBLE *rCellVel;   /*residuo da celula*/
     DOUBLE *rCellPres;  /*residuo da celula*/
     DOUBLE *rCellEnergy;/*residuo da celula*/
-/*...*/
-    DOUBLE *temp;       /*temperatura*/
-    DOUBLE *gradTemp;   /*gradiente da temperatura*/
-    DOUBLE *rCellTemp;  /*residuo da celula*/
+
+    
 /*...*/
     DOUBLE *densityUd1; /*massa especifica do material uD1*/
     DOUBLE *uD1 ;       /*difusao pura uD1*/

@@ -417,7 +417,7 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
             ,const short ndm             ,INT const nel)
 {
 
-  DOUBLE coefDifC, coefDif, coefDifV, rCell, dt, dt0;
+  DOUBLE coefDifC, coefDif, coefDifF, rCell, dt, dt0;
   DOUBLE densityC, densityF, densityM;
   DOUBLE sHeatC,sHeatF,sHeatM;
   DOUBLE p, sP, dfd, gfKsi, lvSkew[2];
@@ -441,7 +441,7 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
   short idCell = nFace;
   short nAresta, nCarg, typeTime;
   INT vizNel;
-  bool fTime,fDisp,fRes,fPresWork;
+  bool fTime,fDisp,fRes,fPresWork,fTemp;
 
 /*...*/
   dt        = ddt.dt[0];
@@ -451,6 +451,7 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
   fDisp     = model.fDissipation;
   fRes      = model.fRes;
   fPresWork = model.fPresWork;
+  fTemp     = model.fTemperature;
 /*...................................................................*/
 
 /*... propriedades da celula*/
@@ -486,7 +487,7 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
 /*...*/
       densityF = lDensity[nAresta]; 
       sHeatF   = lSheat[nAresta];    
-      coefDifV = lTconductivity[nAresta];  
+      coefDifF = lTconductivity[nAresta];  
 /*...*/
       velF[0] = MAT2D(nAresta, 0, vel, ndm);
       velF[1] = MAT2D(nAresta, 1, vel, ndm);      
@@ -526,9 +527,16 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
       alphaMenosUm = 1.0e0 - alpha;
 /*...................................................................*/
 
-/*... media harmonica*/      
-      coefDif = alpha / coefDifC + alphaMenosUm / coefDifV;
-      coefDif = 1.0e0 / coefDif;
+/*... media harmonica*/ 
+      if(fTemp){
+        coefDif = alpha / coefDifC + alphaMenosUm / coefDifF;
+        coefDif = 1.0e0 / coefDif;
+      }
+      else {
+        coefDif = alpha / (coefDifC*sHeatC) 
+                + alphaMenosUm / (coefDifF*sHeatF);
+        coefDif = 1.0e0 / coefDif;
+      }
 /*...................................................................*/
 
 /*... difusao direta*/
@@ -543,7 +551,8 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
       wf[0] = alphaMenosUm*velC[0] + alpha*velF[0];
       wf[1] = alphaMenosUm*velC[1] + alpha*velF[1];
       densityM = alphaMenosUm*densityC + alpha*densityF;
-      sHeatM   = alphaMenosUm*sHeatC + alpha*sHeatF;
+      if(fTemp)
+        sHeatM   = alphaMenosUm*sHeatC + alpha*sHeatF;
 /*...................................................................*/
 
 /*... velocidade normal a face*/
@@ -569,9 +578,12 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
 /*...................................................................*/
 
 /*... fluxo convectivo upwind de primeira ordem*/
-      cv = sHeatM*densityM*wfn*lModEta;
+      if(fTemp)
+        cv = sHeatM*densityM*wfn*lModEta;
+      else
+        cv = densityM*wfn*lModEta;
 /*...................................................................*/
-
+ 
 /*...*/
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
@@ -602,12 +614,20 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
         xx[0] = MAT2D(nAresta, 0, xm, 2);
         xx[1] = MAT2D(nAresta, 1, xm, 2);
         xx[2] = 0.e0;
-        pLoad(&sP         ,&p
-             ,&tA
-             ,coefDifC    ,sHeatC*densityC
-             ,wfn         ,xx
-             ,lModEta     ,dcca[nAresta]
-             ,loads[nCarg],true);
+        if(fTemp)
+          pLoad(&sP         ,&p
+               ,&tA
+               ,coefDifC    ,sHeatC*densityC
+               ,wfn         ,xx
+               ,lModEta     ,dcca[nAresta]
+               ,loads[nCarg],true);
+        else 
+          pLoad(&sP            ,&p
+               ,&tA
+               ,coefDifC/sHeatC,densityC
+               ,wfn            ,xx
+               ,lModEta        ,dcca[nAresta]
+               ,loads[nCarg]   ,true);
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -650,14 +670,19 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
 /*.....................................................................*/
 
 /*... distretizacao temporal*/
+  if(fTemp)
+    tmp1 = sHeatC*densityC;
+  else
+    tmp1 = densityC;
+
   if (fTime) {
 /*... EULER*/
     if (typeTime == EULER)
-      sP += sHeatC*densityC*volume[idCell] / dt;
+      sP += tmp1*volume[idCell] / dt;
 /*...BACKWARD*/
     else if (typeTime == BACKWARD) {
       tmp = 1.e0 / dt + 1.e0 / (dt + dt0);
-      sP += tmp*sHeatC*densityC*volume[idCell];
+      sP += tmp*tmp1*volume[idCell];
     }
   }
 /*...................................................................*/

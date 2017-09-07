@@ -5049,9 +5049,9 @@ void parameterCellLm(DOUBLE *RESTRICT vel    ,DOUBLE *RESTRICT prop
 /*..................................................................*/
 
 /*...*/
-        lMat = mat[i] - 1;
-        den   = MAT2D(i, 0, density, DENSITY_LEVEL);
-        sHeat0 = MAT2D(i, 0, sHeat  , SHEAT_LEVEL);
+        lMat    = mat[i] - 1;
+        den     = MAT2D(i, 0, density, DENSITY_LEVEL);
+        sHeat0  = MAT2D(i, 0, sHeat  , SHEAT_LEVEL);
         coefDif = MAT2D(lMat, THERMALCONDUCTIVITY, prop, MAXPROP);
 /*..................................................................*/
 

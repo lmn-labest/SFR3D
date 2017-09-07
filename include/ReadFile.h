@@ -25,7 +25,10 @@
                  ,short *maxNo,short *maxViz
                  ,short *ndm  ,short *numat
                  ,FILE  *file);
-  void readFileFvMesh(Memoria *m,Mesh *mesh, PropVar prop, FILE *file);
+  void readFileFvMesh(Memoria *m  ,Mesh *mesh
+                     ,PropVar prop,EnergyModel eModel
+                     ,FILE *file);
+
   void readVfMat(DOUBLE *prop,short *type,short numat,FILE *file);
   void readVfCoor(DOUBLE *x,INT nn, short ndm,FILE *file);
   void readVfElmt(INT *el    ,short *mat ,short *nen,short *nFace
@@ -45,7 +48,7 @@
   void readEdo(Mesh *mesh,FILE *file);
   void readPropVar(PropVar *p,FILE *file);
   void readGravity(DOUBLE *gravity,FILE *file);
-
+  void readModel(EnergyModel *e,FILE *file);
   void setPrintFluid(FileOpt *opt,FILE *file);
 
   void initProp(DOUBLE *RESTRICT prop 

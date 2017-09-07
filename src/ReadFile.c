@@ -3,11 +3,17 @@
 /*...funcao de apoio*/
   static void getword(char *line, char*word);
   static int getnumprop2(char *line);
-  static void convLoadsEnergy(Loads *loadsEnergy);
+  static void convLoadsEnergy(Loads *loadsEnergy  ,Loads *loadsTemp
+                             ,DOUBLE *RESTRICT prop
+                             ,bool const fTemp    ,bool const fSheat                             
+                             ,bool const fKelvin );
   static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC);
 /*..................................................................*/
 
 /*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 05/09/2017                                   *
+ *-------------------------------------------------------------------*
  * readFileFc : leitura de arquivo de dados em volume finitos        *
  * ------------------------------------------------------------------*
  * Parametros de entrada:                                            *
@@ -20,7 +26,9 @@
  * ------------------------------------------------------------------*
  * ------------------------------------------------------------------*
  * *******************************************************************/
-void readFileFvMesh(Memoria *m,Mesh *mesh, PropVar prop, FILE* file)
+void readFileFvMesh( Memoria *m        , Mesh *mesh
+                   , PropVar prop      , EnergyModel energyModel
+                   , FILE* file)
 {
   char word[WORD_SIZE],str[WORD_SIZE];
   char macro[NMACROS][WORD_SIZE]={
@@ -307,6 +315,27 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, PropVar prop, FILE* file)
        HccaAlloc(DOUBLE ,m            ,mesh->elm.gradEnergy
                 ,nel*ndm,"eGradEnergy",_AD_);
        zero(mesh->elm.gradEnergy, nel*ndm, DOUBLEC);
+
+/*... eTemp*/
+       HccaAlloc(DOUBLE,m        ,mesh->elm.temp
+                ,nel   ,"eTemp",_AD_);
+       zero(mesh->elm.energy, nel, DOUBLEC);
+
+/*... nTemp*/
+       HccaAlloc(DOUBLE,m        ,mesh->node.temp
+                ,nn    ,"nTemp",_AD_);
+       zero(mesh->node.energy, nn, DOUBLEC);
+
+/*... nGradTemp*/
+       HccaAlloc(DOUBLE, m, mesh->node.gradTemp
+                ,nn*ndm, "nGradTemp", _AD_);
+       zero(mesh->node.gradEnergy, nn*ndm, DOUBLEC);
+
+/*... eGradTemp*/
+       HccaAlloc(DOUBLE ,m            ,mesh->elm.gradTemp
+                ,nel*ndm,"eGradTemp",_AD_);
+       zero(mesh->elm.gradEnergy, nel*ndm, DOUBLEC);
+
      }
 
      if( mpiVar.nPrcs < 2){
@@ -667,7 +696,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, PropVar prop, FILE* file)
       printf("loading loadsPres ...\n");
       readVfLoads(loadsPres,str       ,file);
       printf("done.\n");
-       convLoadsPresC(loadsPres, loadsPresC);
+      convLoadsPresC(loadsPres, loadsPresC);
       printf("%s\n\n",DIF);
     }
 /*...................................................................*/
@@ -710,10 +739,12 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, PropVar prop, FILE* file)
       rflag[25] = true;
       strcpy(str, "endLoadsTemp");
       printf("loading loadsTemp ...\n");
-      readVfLoads(loadsEnergy, str, file);
+      readVfLoads(loadsTemp, str, file);
       printf("done.\n");
-      if(iKelvin) 
-        convLoadsEnergy(loadsEnergy);  
+      convLoadsEnergy(loadsEnergy             ,loadsTemp
+                     ,mesh->elm.material.prop
+                     ,energyModel.fTemperature,prop.fSpecificHeat
+                     ,energyModel.fKelvin);  
       printf("%s\n\n", DIF);
     }
 /*...................................................................*/
@@ -781,7 +812,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, PropVar prop, FILE* file)
       strcpy(macros[nmacro++], word);
       rflag[30] = true;
       printf("loading unifomTemp ...\n");
-      uniformField(mesh->elm.energy0, mesh->numel, 1, file);
+      uniformField(mesh->elm.temp, mesh->numel, 1, file);
       printf("done.\n");
       printf("%s\n\n", DIF);
     }
@@ -817,15 +848,32 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, PropVar prop, FILE* file)
 
 /*...*/
   if (mesh->ndfFt > 0) {
+    if(energyModel.fTemperature){
 /*... convertendo temperatura para kelvin*/
-    if(iKelvin)
-      convTempForKelvin(mesh->elm.energy0,mesh->numel,true); 
+      if(energyModel.fKelvin)
+        convTempForKelvin(mesh->elm.temp,mesh->numel,true); 
+/*...*/
+      alphaProdVector(1.e0        ,mesh->elm.temp
+                     ,mesh->numel ,mesh->elm.energy0);
+
+      alphaProdVector(1.e0        ,mesh->elm.energy0
+                     ,mesh->numel ,mesh->elm.energy);
+    }
+    else{
+      getEnergyForTemp(mesh->elm.temp         ,mesh->elm.energy0
+                      ,mesh->elm.material.prop,mesh->elm.mat                        
+                      ,mesh->numel            
+                      ,prop.fSpecificHeat     ,energyModel.fKelvin);
+/*...*/
+      alphaProdVector(1.e0        ,mesh->elm.energy0
+                     ,mesh->numel ,mesh->elm.energy);
+    }   
+/*...................................................................*/
+
+
 /*...*/
     alphaProdVector(1.e0              ,mesh->elm.vel0
                    ,mesh->numel*ndfVel,mesh->elm.vel);
-/*...*/
-    alphaProdVector(1.e0        ,mesh->elm.energy0
-                   ,mesh->numel ,mesh->elm.energy);
 /*...*/
     alphaProdVector(1.e0        ,mesh->elm.pressure0
                    ,mesh->numel ,mesh->elm.pressure);
@@ -835,7 +883,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, PropVar prop, FILE* file)
       initPropTemp(mesh->elm.densityFluid ,mesh->elm.energy0 
                   ,mesh->elm.material.prop,mesh->elm.mat
                   ,DENSITY_LEVEL          ,mesh->numel
-                  ,DENSITY);
+                  ,energyModel.fKelvin    ,DENSITY);
     else
       initProp(mesh->elm.densityFluid 
               ,mesh->elm.material.prop,mesh->elm.mat
@@ -848,7 +896,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, PropVar prop, FILE* file)
       initPropTemp(mesh->elm.specificHeat   ,mesh->elm.energy0 
                   ,mesh->elm.material.prop  ,mesh->elm.mat
                   ,SHEAT_LEVEL              ,mesh->numel
-                  ,SPECIFICHEATCAPACITYFLUID);
+                  ,energyModel.fKelvin      ,SPECIFICHEATCAPACITYFLUID);
     else
       initProp(mesh->elm.specificHeat  
              ,mesh->elm.material.prop,mesh->elm.mat
@@ -861,7 +909,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, PropVar prop, FILE* file)
       initPropTemp(mesh->elm.dViscosity     ,mesh->elm.energy0 
                 ,mesh->elm.material.prop  ,mesh->elm.mat
                 ,DVISCOSITY_LEVEL         ,mesh->numel
-                ,DYNAMICVISCOSITY);
+                ,energyModel.fKelvin      ,DYNAMICVISCOSITY);
    else
       initProp(mesh->elm.dViscosity 
               ,mesh->elm.material.prop  ,mesh->elm.mat
@@ -874,7 +922,7 @@ void readFileFvMesh(Memoria *m,Mesh *mesh, PropVar prop, FILE* file)
       initPropTemp(mesh->elm.tConductivity ,mesh->elm.energy0 
                 ,mesh->elm.material.prop   ,mesh->elm.mat
                 ,TCONDUCTIVITY_LEVEL       ,mesh->numel
-                ,THERMALCONDUCTIVITY);
+                ,energyModel.fKelvin       ,THERMALCONDUCTIVITY);
    else
       initProp(mesh->elm.tConductivity 
               ,mesh->elm.material.prop  ,mesh->elm.mat
@@ -2093,17 +2141,67 @@ static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC){
   }
 }
 
+/********************************************************************* 
+ * Data de criacao    : 30/06/2016                                   *
+ * Data de modificaco : 05/09/2017                                   *
+ *-------------------------------------------------------------------*
+ * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
+ * de C para kelvin                                                  *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
 /*********************************************************************/
-/*Converte condicoes de contorno da Temperatura de C para kelvin
-/*********************************************************************/
-static void convLoadsEnergy(Loads *loadsEnergy){
+static void convLoadsEnergy(Loads *loadsEnergy   ,Loads *loadsTemp
+                           ,DOUBLE *RESTRICT prop
+                           ,bool const fTemp     ,bool const fSheat 
+                           ,bool const iKelvin){
 
-  short i,type;
+  short i,j,type;
+  DOUBLE t,sHeat;
+  
+/*... cc da equacao da energia e em temperatura*/
+  if(fTemp){
 
-  for(i=0;i<MAXLOADFLUID;i++){
-    type = loadsEnergy[i].type;
-    if( type == DIRICHLETBC ||  type == INLET ){
-      loadsEnergy[i].par[0] = CELSIUS_FOR_KELVIN(loadsEnergy[i].par[0]);
+    for(i=0;i<MAXLOADFLUID;i++){
+      loadsEnergy[i].type = loadsTemp[i].type;
+      loadsEnergy[i].np   = loadsTemp[i].np;
+      for(j=0;j<MAXLOADPARAMETER;j++)
+        loadsEnergy[i].par[j] = loadsTemp[i].par[j];
     }
+/*... converte c para kelvin*/    
+    if(iKelvin)
+      for(i=0;i<MAXLOADFLUID;i++){
+        type = loadsEnergy[i].type;
+        if( type == DIRICHLETBC ||  type == INLET )
+          loadsEnergy[i].par[0] 
+                         = CELSIUS_FOR_KELVIN(loadsEnergy[i].par[0]);
+      }
+      
   }
+/*....................................................................*/
+
+  else{
+    sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+    for(i=0;i<MAXLOADFLUID;i++){
+      loadsEnergy[i].type = loadsTemp[i].type;
+      loadsEnergy[i].np   = loadsTemp[i].np;
+      type = loadsTemp[i].type;
+      if( type == DIRICHLETBC ||  type == INLET ){
+        t = loadsTemp[i].par[0];         
+        if(fSheat)
+          loadsEnergy[i].par[0] = tempForSpecificEnthalpy(t,iKelvin);
+        else{
+          if(!iKelvin) t = CELSIUS_FOR_KELVIN(t);
+          loadsEnergy[i].par[0] = TEMP_FOR_ENTHALPY(sHeat,t,TREF);
+        }
+      }
+    }     
+  }
+/*....................................................................*/
 }

@@ -16,7 +16,7 @@
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE airDensity(DOUBLE const t,bool fKelvin) {
+DOUBLE airDensity(DOUBLE const t,bool const fKelvin) {
 
   DOUBLE tc,d;
   
@@ -51,9 +51,10 @@ DOUBLE airDensity(DOUBLE const t,bool fKelvin) {
  * regressao com polinomio de ordem 5 obtido pelo excel              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE airSpecifiHeat(DOUBLE const t,bool fKelvin) {
+DOUBLE airSpecifiHeat(DOUBLE const t,bool const fKelvin) {
 
-  DOUBLE a[6],x[5],y,d;
+  short i,n=sHeat.nPol;  
+  DOUBLE a[10],y,d;
   DOUBLE tc;
 
   if(fKelvin)
@@ -61,26 +62,13 @@ DOUBLE airSpecifiHeat(DOUBLE const t,bool fKelvin) {
   else
     tc = CELSIUS_FOR_KELVIN(t);  
 
-  a[0] = 1.143178880938200E+00;
-  a[1] =-1.694359211627670E-03;
-  a[2] = 7.966237791866350E-06;
-  a[3] =-1.860841726408540E-08;
-  a[4] = 2.239058739944800E-11;
-  a[5] =-1.060989866966260E-14;
-
-/*... t */  
-  x[0] = tc;
-/*... t^2 */
-  x[1] = tc*tc;
-/*... t^3 */
-  x[2] = tc*x[1];
-/*... t^4 */
-  x[3] = tc*x[2];
-/*... t^5 */
-  x[4] = tc*x[3];
+  for (i = 0; i < n; i++)
+    a[i] = sHeat.a[i];
   
 /*... polinomio*/
-  y = a[0] + a[1]*x[0] + a[2]*x[1] + a[3]*x[2] + a[4]*x[3] + a[5]*x[4];
+  y = a[0];
+  for (i = 1; i < n; i++)
+    y += a[i]*pow(tc,i);
 /*.....................................................................*/
 
   if (y < 0) {
@@ -116,7 +104,7 @@ DOUBLE airSpecifiHeat(DOUBLE const t,bool fKelvin) {
  * regressao com polinomio de ordem 5 obtido pelo excel              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE airDynamicViscosity(DOUBLE const t,bool fKelvin) {
+DOUBLE airDynamicViscosity(DOUBLE const t,bool const fKelvin) {
 
   DOUBLE a[6],x[5],y,d;
   DOUBLE tc;
@@ -183,7 +171,7 @@ DOUBLE airDynamicViscosity(DOUBLE const t,bool fKelvin) {
  *                                                                   *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE airThermalConductvity(DOUBLE const t,bool fKelvin) {
+DOUBLE airThermalConductvity(DOUBLE const t,bool const fKelvin) {
 
   DOUBLE a[6],x[5],y,d;
   DOUBLE tc;
@@ -248,7 +236,7 @@ DOUBLE airThermalConductvity(DOUBLE const t,bool fKelvin) {
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE tempForSpecificEnthalpy(DOUBLE const t,bool fKelvin) {
+DOUBLE tempForSpecificEnthalpy(DOUBLE const t,bool const fKelvin) {
 
   short i,n=sHeat.nPol;
   DOUBLE a[6],d,dt,tmp;
@@ -259,12 +247,8 @@ DOUBLE tempForSpecificEnthalpy(DOUBLE const t,bool fKelvin) {
   else
     tc = CELSIUS_FOR_KELVIN(t);  
 
-  a[0] = sHeat.a[0];
-  a[1] = sHeat.a[1];
-  a[2] = sHeat.a[2];
-  a[3] = sHeat.a[3];
-  a[4] = sHeat.a[4];
-  a[5] = sHeat.a[5];
+  for (i = 0; i < n; i++)
+    a[i] = sHeat.a[i];
 
   tmp = 0.0;
   for (i = 0; i < n; i++) {
@@ -272,7 +256,7 @@ DOUBLE tempForSpecificEnthalpy(DOUBLE const t,bool fKelvin) {
     dt   = tc-tRef;
     tmp += a[i]*pow(dt,d)/d;
   }
-
+  
   return tmp;
 
 }
@@ -296,17 +280,17 @@ DOUBLE tempForSpecificEnthalpy(DOUBLE const t,bool fKelvin) {
  *-------------------------------------------------------------------*
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE specificEnthalpyForTemp(DOUBLE const hs,bool fKelvin) {
+DOUBLE specificEnthalpyForTemp(DOUBLE const hs,bool const fKelvin) {
 
-  short i;
+  unsigned short i;
   bool flag = false;
-  DOUBLE f,fl,t,conv,tol=1e-11;
+  DOUBLE f,fl,t,conv,tol=1e-10;
  
-  t=TREF;
+  t    = 0.e0;
   conv = (hs-tempForSpecificEnthalpy(t,true))*tol;
-
+  conv = fabs(conv);
 /*... Newton-Raphson*/
-  for(i=0;i<1000;i++){
+  for(i=0;i<60000;i++){
     f  = hs-tempForSpecificEnthalpy(t,true);
     if(fabs(f) < conv ) {
       flag = true;
@@ -319,6 +303,7 @@ DOUBLE specificEnthalpyForTemp(DOUBLE const hs,bool fKelvin) {
 /*...................................................................*/
 
   if(!flag){
+    printf("%i %e %e %e\n",i,t,f,conv);
     ERRO_GERAL(__FILE__,__func__,__LINE__,
     "temperature->sEnthalpy:\n Newton-raphson did not converge !!");
   }
@@ -558,6 +543,7 @@ DOUBLE waterThermalConductvity(DOUBLE const t) {
  *-------------------------------------------------------------------*
  *********************************************************************/
 void updateDensity(DOUBLE *RESTRICT temp     ,DOUBLE *RESTRICT density
+                  ,bool const iKelvin    
                   ,INT const nEl             ,char  const iCod)
 
 {
@@ -606,6 +592,7 @@ void updateDensity(DOUBLE *RESTRICT temp     ,DOUBLE *RESTRICT density
  *-------------------------------------------------------------------*
  *********************************************************************/
 void updateSpecificHeat(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT sHeat
+                       ,bool const iKelvin 
                        ,INT const nEl        ,char  const iCod)
 
 {
@@ -650,8 +637,8 @@ void updateSpecificHeat(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT sHeat
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateThermalCondutivty(DOUBLE *RESTRICT t,DOUBLE *RESTRICT thCond    
-                            ,INT const nEl)
+void updateThermalCondutivty(DOUBLE *RESTRICT t,DOUBLE *RESTRICT thCond   
+                            ,bool const iKelvin,INT const nEl)
 
 {
   INT i;
@@ -678,7 +665,7 @@ void updateThermalCondutivty(DOUBLE *RESTRICT t,DOUBLE *RESTRICT thCond
  *-------------------------------------------------------------------*
  *********************************************************************/
 void updateDynamicViscosity(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT visc    
-                          ,INT const nEl)
+                          ,bool const iKelvin    ,INT const nEl)
 
 {
   INT i;
@@ -704,6 +691,7 @@ void updateDynamicViscosity(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT visc
  * mat     -> material por celula                                    * 
  * np      -> numero niveis de tempos                                * 
  * nCell   -> numero de celulas                                      * 
+ * iKelvin -> temperatura em kelvin (true|false)                     *
  * iProp   -> numero da propriedade                                  * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -716,7 +704,7 @@ void updateDynamicViscosity(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT visc
 void initPropTemp(DOUBLE *RESTRICT prop   ,DOUBLE *RESTRICT t 
                  ,DOUBLE *RESTRICT propMat,short *RESTRICT mat
                  ,short const np          ,INT    const nCell 
-                 ,short const iProp)
+                 ,bool const iKelvin      ,short const iProp)
 {    
   INT i;
   unsigned short j,lMat;         
@@ -789,5 +777,129 @@ void initSheatPol(void) {
   sHeat.a[4] = 2.239058739944800E-11;
   sHeat.a[5] =-1.060989866966260E-14;
 
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 06/09/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * GETTEMPFORENERGY: obtem a temperatura aprtir da entalpia sensivel *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * temp   - nao definido                                             *
+ * energy - entalpia sensivel                                        * 
+ * prop   - propriedades por material                                *
+ * mat    - material da celula                                       *
+ * nCell  - numero da celulas                                        *
+ * fTemp  - equaca da energia na forma de temperatura (true|false)   *
+ * fsHeat - variacao do calor especifico em funcao da Temperatura    *
+ *          (true|false)                                             *
+ * fKelnvin - temperatura em kelvin (true|false)                     *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------*
+ * temp   - temperatura (C ou kelvin)                                * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void getTempForEnergy(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
+                     ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
+                     ,INT const nCell      ,bool const fTemp
+                     ,bool const fSheat    ,bool const fKelvin){
+  
+  short lMat;
+  INT i;  
+  DOUBLE sHeat,t;
+
+/*... resolucao da eq da energia na forma de temperatura*/ 
+  if(fTemp)
+    for (i = 0; i < nCell; i++)
+      temp[i] = energy[i]; 
+/*...................................................................*/ 
+
+/*... resolucao da eq da energia na forma de entalpia sensivel*/  
+  else
+/*...*/
+    if (fSheat) {
+      for (i = 0; i < nCell; i++) 
+        temp[i] = specificEnthalpyForTemp(energy[i],fKelvin);
+    }
+/*...................................................................*/ 
+
+/*...*/
+    else {
+ /*...*/
+      for (i = 0; i < nCell; i++){
+        lMat  = mat[i] - 1;
+        sHeat = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+        t = ENTHALPY_FOR_TEMP(sHeat,energy[i],TREF);
+        if(!fKelvin)
+           temp[i] = KELVIN_FOR_CELSIUS(t);
+      }
+/*...................................................................*/ 
+    }
+/*...................................................................*/ 
+
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 06/09/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * GETENERGYFORTEMP: obtem a entalpia sensivel apartir da temp       *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * temp   - temp                                                     *
+ * energy - nao definido                                             * 
+ * prop   - propriedades por material                                *
+ * mat    - material da celula                                       *
+ * nCell  - numero da celulas                                        *
+ * fTemp  - equaca da energia na forma de temperatura (true|false)   *
+ * fsHeat - variacao do calor especifico em funcao da Temperatura    *
+ *          (true|false)                                             *
+ * fKelnvin - temperatura em kelvin (true|false)                     *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------*
+ * energy - entalpia sensivel                                        * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void getEnergyForTemp(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
+                     ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
+                     ,INT const nCell     
+                     ,bool const fSheat    ,bool const fKelvin) {
+  short lMat;
+  INT i;  
+  DOUBLE sHeat,t;
+
+/*...*/ 
+  if(fSheat)
+    for (i = 0; i < nCell; i++) 
+      energy[i] = tempForSpecificEnthalpy(temp[i],fKelvin); 
+/*...................................................................*/ 
+
+/*...*/ 
+  else
+    for (i = 0; i < nCell; i++) {
+/*...*/
+      if(fKelvin)
+        t = temp[i];  
+      else
+        t = CELSIUS_FOR_KELVIN(temp[i]);  
+/*...................................................................*/ 
+
+      lMat  = mat[i] - 1;
+      sHeat = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+
+      energy[i] = TEMP_FOR_ENTHALPY(sHeat,t,TREF); 
+    }
+/*...................................................................*/ 
 }
 /*********************************************************************/

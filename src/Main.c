@@ -114,15 +114,12 @@ int main(int argc,char**argv){
   nmax = 200000;
 /* ..................................................................*/
 
-/*... temperatura interna em kelvin*/
-  iKelvin = false;
-/* ..................................................................*/
-
 /*...*/
   eModel.fPresWork     = false;
   eModel.fDissipation  = false;
   eModel.fRes          = true;
-  eModel.fTemperature  = true;
+  eModel.fTemperature  = false;
+  eModel.fKelvin       = false;
 /*...................................................................*/
 
 /*... OpenMP*/
@@ -357,7 +354,9 @@ int main(int argc,char**argv){
       initMem(&m,nmax,false);
 /*... leitura da malha*/
       if(!mpiVar.myId)
-        readFileFvMesh(&m,mesh0,propVarFluid,fileIn);
+        readFileFvMesh(&m          ,mesh0
+                      ,propVarFluid,eModel
+                      ,fileIn);
       mpiWait();
 /*...................................................................*/
  
@@ -2616,8 +2615,8 @@ int main(int argc,char**argv){
               ,mesh->elm.geom.xm    ,mesh->elm.geom.xmcc
               ,mesh->elm.geom.dcca
               ,mesh->elm.faceRenergy,mesh->elm.faceLoadEnergy
-              ,mesh->elm.energy     ,mesh->elm.gradEnergy
-              ,mesh->node.energy    ,sc.rcGrad
+              ,mesh->elm.temp       ,mesh->elm.gradTemp  
+              ,mesh->node.temp      ,sc.rcGrad
               ,mesh->maxNo          ,mesh->maxViz
               ,1, mesh->ndm
               ,&pMesh->iNo          ,&pMesh->iEl
@@ -2627,8 +2626,8 @@ int main(int argc,char**argv){
 
 
 /*... interpolacao das variaveis da celulas para pos nos (GradEnergy)*/
-        interCellNode(&m         ,loadsEnergy
-              ,mesh->node.gradEnergy,mesh->elm.gradEnergy
+        interCellNode(&m            ,loadsTemp  
+              ,mesh->node.gradTemp  ,mesh->elm.gradTemp  
               ,mesh->elm.node       ,mesh->elm.geomType
               ,mesh->elm.geom.cc    ,mesh->node.x
               ,mesh->elm.geom.xm
@@ -2644,8 +2643,8 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (energy)*/
-        interCellNode(&m, loadsEnergy
-             ,mesh->node.energy    ,mesh->elm.energy
+        interCellNode(&m           ,loadsTemp
+             ,mesh->node.temp      ,mesh->elm.temp
              ,mesh->elm.node       ,mesh->elm.geomType
              ,mesh->elm.geom.cc    ,mesh->node.x
              ,mesh->elm.geom.xm
@@ -2688,8 +2687,8 @@ int main(int argc,char**argv){
                ,mesh0->elm.gradPres  ,mesh0->node.gradPres  
                ,mesh0->elm.vel       ,mesh0->node.vel      
                ,mesh0->elm.gradVel   ,mesh0->node.gradVel 
-               ,mesh0->elm.energy    ,mesh0->node.energy
-               ,mesh0->elm.gradEnergy,mesh0->node.gradEnergy
+               ,mesh0->elm.temp      ,mesh0->node.temp   
+               ,mesh0->elm.gradTemp  ,mesh0->node.gradTemp   
                ,mesh0->nnode         ,mesh0->numel  
                ,mesh0->ndm           ,mesh0->maxNo 
                ,mesh0->numat         ,ndfVel
@@ -2703,6 +2702,7 @@ int main(int argc,char**argv){
                ,opt.vel              ,opt.gradVel 
                ,opt.pres             ,opt.gradPres
                ,opt.energy           ,opt.gradEnergy
+               ,eModel.fKelvin
                ,sc.ddt               ,fileOut);  
 /*...................................................................*/
       }

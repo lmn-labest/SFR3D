@@ -128,6 +128,7 @@
                    ,bool fVel            ,bool fGradVel
                    ,bool fPres           ,bool fGradPres
                    ,bool fEnergy         ,bool fGradEnergy
+                   ,bool fKelvin   
                    ,Temporal ddt         ,FILE *f);
 /*...................................................................*/
 

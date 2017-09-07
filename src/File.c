@@ -593,7 +593,7 @@ void readMacro(FILE* file,char *mc,bool allline)
   strcpy(mc,line);
  }
  
- /*lendo apenas uma paralvra*/
+ /*lendo apenas uma palavra*/
  else{
    fscanf(file,"%s",word);
    sscanf(word,"%s",mc);
