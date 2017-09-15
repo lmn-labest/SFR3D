@@ -30,14 +30,17 @@
   typedef struct{
     bool  bVtk;
     bool  fItPlotRes;
-    bool  fItPlot;
-    FILE *fileItPlot[7];
+    bool  fItPlot;    
     bool gradPres;
     bool gradVel;
     bool gradEnergy;
     bool vel;
     bool pres;
     bool energy;
+    bool eddyViscosity;
+    short stepPlotFluid[2];
+    FILE *fileItPlot[7];
+    
   }FileOpt;
 
   void  iota(INT,char*);

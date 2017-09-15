@@ -106,30 +106,32 @@
                ,char *nameOut     ,bool iws
                ,Temporal ddt      ,FILE *f);
 
-  void wResVtkFluid(Memoria *m           ,DOUBLE *x
-                   ,INT *el              ,short *mat
-                   ,short *nen           ,short *typeGeom
-                   ,DOUBLE *elPres       ,DOUBLE *nPres
-                   ,DOUBLE *elGradPres   ,DOUBLE *nGradPres
-                   ,DOUBLE *elVel        ,DOUBLE *nVel
-                   ,DOUBLE *elGradVel    ,DOUBLE *nGradVel
-                   ,DOUBLE *elEnergy     ,DOUBLE *nEnergy
-                   ,DOUBLE *elGradEnergy ,DOUBLE *nGradEnergy
-                   ,INT nnode            ,INT numel
-                   ,short const ndm      ,short const maxNo
-                   ,short const numat    ,short const ndf
-                   ,char *presResEl      ,char *presResNo
-                   ,char *gradPresResEl  ,char *gradPresResNo
-                   ,char *velEl          ,char *velNo
-                   ,char *gradVelResEl   ,char *gradVelResNo
-                   ,char *energyResEl    ,char *energyResNo
-                   ,char *gradEnergyResEl,char *gradEnergyResNo
-                   ,char *nameOut        ,bool iws
-                   ,bool fVel            ,bool fGradVel
-                   ,bool fPres           ,bool fGradPres
-                   ,bool fEnergy         ,bool fGradEnergy
-                   ,bool fKelvin   
-                   ,Temporal ddt         ,FILE *f);
+  void wResVtkFluid(Memoria *m   , DOUBLE *x      
+          , INT *el              , short *mat    
+          , short *nen           , short *typeGeom
+          , DOUBLE *elPres       , DOUBLE *nPres
+          , DOUBLE *elGradPres   , DOUBLE *nGradPres
+          , DOUBLE *elVel        , DOUBLE *nVel      
+          , DOUBLE *elGradVel    , DOUBLE *nGradVel 
+          , DOUBLE *elEnergy     , DOUBLE *nEnergy
+          , DOUBLE *elGradEnergy , DOUBLE *nGradEnergy
+          , DOUBLE *eddyVis        
+          , INT nnode            , INT numel    
+          , short const ndm      , short const maxNo 
+          , short const numat    , short const ndf   
+          , char *presResEl      , char *presResNo 
+          , char *gradPresResEl  , char *gradPresResNo 
+          , char *velEl          , char *velNo       
+          , char *gradVelResEl   , char *gradVelResNo 
+          , char *energyResEl    , char *energyResNo
+          , char *gradEnergyResEl, char *gradEnergyResNo
+          , char *eddyVisRes       
+          , char *nameOut        , bool iws
+          , bool fVel            , bool fGradVel 
+          , bool fPres           , bool fGradPres
+          , bool fEnergy         , bool fGradEnergy
+          , bool fEddyViscosity  , bool fKelvin
+          , Temporal ddt         , FILE *f);
 /*...................................................................*/
 
 /*...*/

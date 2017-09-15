@@ -27,7 +27,15 @@
     bool fThermalCondutivty;
   }PropVar;
 /*...................................................................*/
-  
+ 
+/*...*/
+  typedef struct{
+    bool fTurb;
+    short type;
+    DOUBLE cs;    /*Smagorisnksy-Lilly*/
+  }Turbulence; 
+/*...................................................................*/
+
 /*...*/
   typedef struct{
     bool fPresWork;
@@ -153,8 +161,8 @@
     DOUBLE *rCellVel;   /*residuo da celula*/
     DOUBLE *rCellPres;  /*residuo da celula*/
     DOUBLE *rCellEnergy;/*residuo da celula*/
-
-    
+/*... turbulencia*/
+    DOUBLE *eddyViscosity;    
 /*...*/
     DOUBLE *densityUd1; /*massa especifica do material uD1*/
     DOUBLE *uD1 ;       /*difusao pura uD1*/

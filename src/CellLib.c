@@ -1,7 +1,117 @@
 #include<CellLoop.h>
 /*********************************************************************
+ * Data de criacao    : 10/09/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * CELLLIBSIMPLETURBULENCE: chamada de bibliotecas de celulas para   *
+ * o calculo da viscosidae turbelenta                                *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * tModel    -> modelo de turbulencia                                *
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
+ * lprop     -> propriedade fisicas das celulas                      *
+ * lViz      -> viznhos da celula central                            *
+ * Ksi       -> vetores que unem centroide da celula central aos     *
+ *            vizinhos destas                                        *
+ * mKsi      -> modulo do vetor ksi                                  *
+ * eta       -> vetores paralelos as faces das celulas               *
+ * fArea     -> area das faces                                       *
+ * normal    -> vetores normais as faces das celulas                 *
+ * volume    -> volume celula central                                *
+ * xm        -> pontos medios das faces da celula central            *
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   *
+ *            faces da celula central                                *
+ * vSkew     -> vetor entre o ponto medio a intersecao que une os    *
+ *            centrois compartilhado nessa face da celula central    *
+ * mvSkew    -> distacia entre o ponto medio a intersecao que une os *
+ *            centrois compartilhado nessa face da celula central    *
+ * dcca      -> menor distacia do centroide central a faces desta    *
+ *              celula                                               *
+ * cc        -> centroides da celula centra e seus vizinhos          *
+ * vel       -> campo de velocidade conhecido                        *
+ * lDensity  -> massa especifica com variacao temporal               *
+ * lViscosity-> viscosidade dinamica com variacao temporal           *
+ * nEn       -> numero de nos da celula central                      *
+ * nFace     -> numero de faces da celula central                    *
+ * ndm       -> numero de dimensoes                                  *
+ * lib       -> numero da biblioteca                                 *
+ * nel       -> numero da celula                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * lViscosity-> viscosidae turbulenta                                *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void cellLibTurbulence(Turbulence tModel 
+           , short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop
+           , INT   *RESTRICT lViz       , DOUBLE *RESTRICT ksi
+           , DOUBLE *RESTRICT mKsi      
+           , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea
+           , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume
+           , DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc
+           , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc
+           , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
+           , DOUBLE *RESTRICT gradVel   , DOUBLE *RESTRICT lDensity 
+           , DOUBLE *lViscosity
+           , short const nEn            , short  const nFace
+           , short const ndm            , short const lib
+           , INT const nel)
+{
+
+/*... */
+  if(lib == 1){
+/*... 2D*/
+    if(ndm == 2){
+      cellLes(tModel,       
+              lGeomType  , lprop,
+              lViz,       
+              ksi        , mKsi,
+              eta        , fArea,  
+              normal     , volume,
+              xm         , xmcc,
+              dcca       , cc,
+              vSkew      , mvSkew,     
+              gradVel    , lDensity,
+              lViscosity ,
+              nEn        , nFace, 
+              ndm        , nel);  
+    }
+/*..................................................................*/
+
+/*... 3D*/
+/*  else if(ndm == 3){
+      cellSimpleVel3D(loadsVel,loadsPres   
+                 ,advVel      ,diffVel     
+                 ,typeSimple
+                 ,lGeomType   ,lprop
+                 ,lViz        ,lId
+                 ,ksi         ,mKsi
+                 ,eta         ,fArea
+                 ,normal      ,volume
+                 ,xm          ,xmcc
+                 ,dcca        ,lDensity 
+                 ,vSkew       ,mvSkew
+                 ,lA          ,lB
+                 ,lRcell      ,ddt 
+                 ,lFaceVelR   ,lFaceVelL
+                 ,lFacePresR  ,lFacePresL
+                 ,pres        ,gradPres 
+                 ,vel         ,gradVel
+                 ,dField      ,cc
+                 ,underU      ,sPressure
+                 ,nEn         ,nFace 
+                 ,ndm         ,nel);  
+    }*/
+/*..................................................................*/
+  }
+
+}
+/*********************************************************************/
+
+/*********************************************************************
 * Data de criacao    : 22/08/2017                                   *
-* Data de modificaco : 01/08/2017                                   *
+* Data de modificaco : 12/09/2017                                   *
 *-------------------------------------------------------------------*
 * CELLLIBENERGY: chamada de bibliotecas de celulas para             *
 * problema de escoamento de fluidos (Energy)                        *
@@ -47,6 +157,7 @@
 * lSheat    -> calor especifico com variacao temporal               *
 * lDviscosity-> viscosidade dinamica com variacao temporal          *
 * ltConductvity -> condutividade termica com variacao temporal      *
+* dField    -> matriz D do metodo simple                            * 
 * underU    -> fator underrelaxtion sinple                          *
 * nEn       -> numero de nos da celula central                      *
 * nFace     -> numero de faces da celula central                    *
@@ -60,55 +171,59 @@
 * lB        -> vetor de forca da linha i                            *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void cellLibEnergy(Loads *loads   ,EnergyModel model                     
-     ,Advection  adv              ,Diffusion diff   
-     ,short *RESTRICT lGeomType   ,DOUBLE *RESTRICT lprop
-     ,INT   *RESTRICT lViz        ,INT *RESTRICT lId
-     ,DOUBLE *RESTRICT ksi        ,DOUBLE *RESTRICT mKsi
-     ,DOUBLE *RESTRICT eta        ,DOUBLE *RESTRICT fArea
-     ,DOUBLE *RESTRICT normal     ,DOUBLE *RESTRICT volume
-     ,DOUBLE *RESTRICT xm         ,DOUBLE *RESTRICT xmcc
-     ,DOUBLE *RESTRICT dcca       ,DOUBLE *RESTRICT cc
-     ,DOUBLE *RESTRICT vSkew      ,DOUBLE *RESTRICT mvSkew
-     ,DOUBLE *RESTRICT lA         ,DOUBLE *RESTRICT lB
-     ,DOUBLE *RESTRICT lRcell     ,Temporal const ddt
-     ,short  *RESTRICT lFaceR     , short  *RESTRICT lFaceL    
-     ,DOUBLE *RESTRICT u          ,DOUBLE *RESTRICT gradU
-     ,DOUBLE *RESTRICT vel        ,DOUBLE *RESTRICT gradVel
-     ,DOUBLE *RESTRICT pres       ,DOUBLE *RESTRICT gradPres  
-     ,DOUBLE *RESTRICT lDensity   ,DOUBLE *RESTRICT lSheat
-     ,DOUBLE *RESTRICT lDviscosity,DOUBLE *RESTRICT lTconductvity
-     ,DOUBLE const underU
-     ,short const nEn             ,short  const nFace
-     ,short const ndm             ,short const lib
-     ,INT const nel)
+void cellLibEnergy(Loads *loads    , EnergyModel model                     
+     , Advection  adv              , Diffusion diff      
+     , Turbulence tModel             
+     , short *RESTRICT lGeomType   , DOUBLE *RESTRICT lprop
+     , INT   *RESTRICT lViz        , INT *RESTRICT lId
+     , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
+     , DOUBLE *RESTRICT eta        , DOUBLE *RESTRICT fArea
+     , DOUBLE *RESTRICT normal     , DOUBLE *RESTRICT volume
+     , DOUBLE *RESTRICT xm         , DOUBLE *RESTRICT xmcc
+     , DOUBLE *RESTRICT dcca       , DOUBLE *RESTRICT cc
+     , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
+     , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
+     , DOUBLE *RESTRICT lRcell     , Temporal const ddt
+     , short  *RESTRICT lFaceR     , short  *RESTRICT lFaceL    
+     , DOUBLE *RESTRICT u          , DOUBLE *RESTRICT gradU
+     , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
+     , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres  
+     , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lSheat
+     , DOUBLE *RESTRICT lDviscosity, DOUBLE *RESTRICT lTconductvity
+     , DOUBLE *RESTRICT dField
+     , DOUBLE const underU           
+     , short const nEn             , short  const nFace
+     , short const ndm             , short const lib
+     , INT const nel)
 {
 
 /*... */
   if (lib == 1) {
 /*... 2D*/
     if (ndm == 2)  
-      cellEnergy2D(loads     ,model
-                  ,adv       ,diff
-                  ,lGeomType ,lprop
-                  ,lViz      ,lId
-                  ,ksi       ,mKsi
-                  ,eta       ,fArea
-                  ,normal    ,volume
-                  ,xm        ,xmcc
-                  ,dcca      ,cc
-                  ,vSkew     ,mvSkew 
-                  ,lA        ,lB
-                  ,lRcell    ,ddt
-                  ,lFaceR    ,lFaceL
-                  ,u         ,gradU    
-                  ,vel       ,gradVel
-                  ,pres      ,gradPres  
-                  ,lDensity  ,lSheat
-                  ,lDviscosity,lTconductvity
-                  ,underU
-                  ,nEn       ,nFace
-                  ,ndm       ,nel);    
+      cellEnergy2D(loads      , model
+                 , adv        , diff
+                 , tModel       
+                 , lGeomType  , lprop
+                 , lViz       , lId
+                 , ksi        , mKsi
+                 , eta        , fArea
+                 , normal     , volume
+                 , xm         , xmcc
+                 , dcca       , cc
+                 , vSkew      , mvSkew 
+                 , lA         , lB
+                 , lRcell     , ddt
+                 , lFaceR     , lFaceL
+                 , u          , gradU    
+                 , vel        , gradVel
+                 , pres       , gradPres  
+                 , lDensity   , lSheat
+                 , lDviscosity, lTconductvity
+                 , dField
+                 , underU       
+                 , nEn        , nFace
+                 , ndm        , nel);    
 /*..................................................................*/
 
 /*... 3D*/
@@ -352,57 +467,57 @@ void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
  * lB        -> vetor de forca da linha i                            *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void cellLibSimpleVelLw(Loads *loadsVel    ,Loads *loadsPres
-             ,Advection  advVel          ,Diffusion diffVel    
-             ,short const typeSimple 
-             ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
-             ,INT   *RESTRICT lViz       ,INT *RESTRICT lId  
-             ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
-             ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea
-             ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT volume
-             ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
-             ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT cc
-             ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
-             ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
-             ,DOUBLE *RESTRICT lRcell    ,Temporal const ddt
-             ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
-             ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
-             ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres 
-             ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
-             ,DOUBLE *RESTRICT lDensity  ,DOUBLE *RESTRICT lDviscosity
-             ,DOUBLE *RESTRICT dField    
-             ,DOUBLE const underU        ,const bool sPressure
-             ,short const nEn            ,short  const nFace
-             ,short const ndm            ,short const lib
-             ,INT const nel)
+void cellLibSimpleVelLw(Loads *loadsVel , Loads *loadsPres,
+             Advection  advVel          , Diffusion diffVel,    
+             Turbulence tModel          , short const typeSimple,
+             short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop,
+             INT   *RESTRICT lViz       , INT *RESTRICT lId,  
+             DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi,
+             DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea,
+             DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume,
+             DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc,
+             DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc,
+             DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew,
+             DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB,
+             DOUBLE *RESTRICT lRcell    , Temporal const ddt,
+             short  *RESTRICT lFaceVelR , short  *RESTRICT lFaceVelL,
+             short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL,
+             DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres, 
+             DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel,
+             DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lViscosity,
+             DOUBLE *RESTRICT dField,      
+             DOUBLE const underU        , const bool sPressure,
+             short const nEn            , short  const nFace,
+             short const ndm            , short const lib,
+             INT const nel)
 {
 
 /*... */
   if(lib == 1){
 /*... 2D*/
     if(ndm == 2){
-      cellSimpleVelLw2D(loadsVel  ,loadsPres   
-                       ,advVel    ,diffVel
-                       ,typeSimple
-                       ,lGeomType ,lprop
-                       ,lViz      ,lId
-                       ,ksi       ,mKsi
-                       ,eta       ,fArea
-                       ,normal    ,volume
-                       ,xm        ,xmcc
-                       ,dcca      ,cc
-                       ,vSkew     ,mvSkew
-                       ,lA        ,lB
-                       ,lRcell    ,ddt 
-                       ,lFaceVelR ,lFaceVelL
-                       ,lFacePresR,lFacePresL
-                       ,pres      ,gradPres 
-                       ,vel       ,gradVel
-                       ,lDensity  ,lDviscosity
-                       ,dField    
-                       ,underU    ,sPressure
-                       ,nEn       ,nFace 
-                       ,ndm       ,nel);  
+      cellSimpleVelLw2D(loadsVel  , loadsPres,   
+                       advVel     , diffVel,
+                       tModel     , typeSimple,  
+                       lGeomType  , lprop,
+                       lViz       , lId,
+                       ksi        , mKsi,
+                       eta        , fArea,
+                       normal     , volume,
+                       xm         , xmcc,
+                       dcca       , cc,
+                       vSkew      , mvSkew,
+                       lA         , lB,
+                       lRcell     , ddt, 
+                       lFaceVelR  , lFaceVelL,
+                       lFacePresR , lFacePresL,
+                       pres       , gradPres, 
+                       vel        , gradVel,
+                       lDensity   , lViscosity,
+                       dField,       
+                       underU     , sPressure,
+                       nEn        , nFace, 
+                       ndm        , nel);  
     }
 /*..................................................................*/
 
@@ -435,9 +550,6 @@ void cellLibSimpleVelLw(Loads *loadsVel    ,Loads *loadsPres
 
 }
 /*********************************************************************/
-
-
-
 
 /*********************************************************************
  * Data de criacao    : 01/07/2016                                   *

@@ -1022,7 +1022,7 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 17/07/2016                                   * 
+ * Data de modificaco : 12/09/2017                                   * 
  *-------------------------------------------------------------------* 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1062,6 +1062,7 @@ void wResVtkDif(Memoria *m        ,double *x
  * fGradVel     -> escreve os gradientes da velocidades               *
  * fPres        -> escreve as pressoes                                *
  * fGradPes     -> escrever os gradientes da pressoes                 *
+ * feddyViscosity> escrever a viscosidade turbulenta                  *
  * f            -> arquivlo                                           *
  * ------------------------------------------------------------------ *
  * parametros de saida  :                                             * 
@@ -1083,6 +1084,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
           ,DOUBLE *elGradVel    ,DOUBLE *nGradVel 
           ,DOUBLE *elEnergy     ,DOUBLE *nEnergy
           ,DOUBLE *elGradEnergy ,DOUBLE *nGradEnergy
+          ,DOUBLE *eddyVis
           ,INT nnode            ,INT numel    
           ,short const ndm      ,short const maxNo 
           ,short const numat    ,short const ndf   
@@ -1092,11 +1094,12 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
           ,char *gradVelResEl   ,char *gradVelResNo 
           ,char *energyResEl    ,char *energyResNo
           ,char *gradEnergyResEl,char *gradEnergyResNo
+          ,char *eddyVisRes
           ,char *nameOut        ,bool iws
           ,bool fVel            ,bool fGradVel 
           ,bool fPres           ,bool fGradPres
           ,bool fEnergy         ,bool fGradEnergy
-          ,bool fKelvin
+          ,bool fEddyViscosity  ,bool fKelvin
           ,Temporal ddt         ,FILE *f)
 {
   int    *lel=NULL;
@@ -1213,6 +1216,13 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
                    ,iws, DOUBLEV, 2, f);
   }
 /*...................................................................*/
+
+/*... escrever gradiente de velocidade por celula*/  
+  if(fEddyViscosity)  
+    writeVtkProp(&idum,eddyVis,numel,1,eddyVisRes
+                ,iws,DOUBLEV,1,f);
+/*...................................................................*/
+
 
 /*.... campo por no*/
   fprintf(f,"POINT_DATA %ld\n",(long) nnode);

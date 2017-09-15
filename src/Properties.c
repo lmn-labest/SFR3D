@@ -680,7 +680,7 @@ void updateDynamicViscosity(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT visc
  * Data de criacao    : 27/08/2017                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
- * INITPROPTEMP: inicializao de propriedades com variacao temporal da*
+ * INITPROPTEMP: inicializao de propriedades com variacao temporal   *
  * dependentes da temperatura                                        *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 

@@ -14,6 +14,7 @@
   #include<Sisteq.h>
   #include<Solv.h>
   #include<Transient.h>
+  #include<Turbulence.h>
   #include<Properties.h>
 /*...................................................................*/
   void simpleSolver3D(Memoria *m        
@@ -29,7 +30,7 @@
   void simpleSolverLm(Memoria *m           ,PropVar prop
                       ,Loads *loadsVel     ,Loads *loadsPres 
                       ,Loads *loadsEnergy  
-                      ,EnergyModel eModel
+                      ,EnergyModel eModel  ,Turbulence turbModel
                       ,Mesh *mesh0         ,Mesh *mesh
                       ,SistEq *sistEqVel   ,SistEq *sistEqPres
                       ,SistEq *sistEqEnergy

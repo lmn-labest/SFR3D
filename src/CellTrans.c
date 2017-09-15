@@ -331,7 +331,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*********************************************************************
  * Data de criacao    : 20/08/2017                                   *
- * Data de modificaco : 01/09/2017                                   *
+ * Data de modificaco : 13/09/2017                                   *
  *-------------------------------------------------------------------*
  * CELLENERGY2D: Celula 2D para transporte                           *
  *-------------------------------------------------------------------*
@@ -341,6 +341,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * model     -> modelo da equacao de energia                         *
  * advT      -> tecnica da discretizacao do termo advecao            *
  * diffT     -> tecnica da discretizacao do termo difusivo           *
+ * tModel    -> modelo de turbulencia                                *
  * lnFace    -> numero de faces da celula central e seus vizinhos    *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
  * lprop     -> propriedade fisicas das celulas                      *
@@ -366,6 +367,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * lSheat    -> calor especifico com variacao temporal               *
  * lDviscosity-> viscosidade dinamica com variacao temporal          *
  * lTconductivity-> condutividade termica com variacao temporal      *
+ * dField    -> matriz D do metodo simple                            * 
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
@@ -394,56 +396,56 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void cellEnergy2D(Loads *loads           ,EnergyModel model
-            ,Advection advT              ,Diffusion diffT
-            ,short *RESTRICT lGeomType   ,DOUBLE *RESTRICT prop
-            ,INT *RESTRICT lViz          ,INT *RESTRICT lId
-            ,DOUBLE *RESTRICT ksi        ,DOUBLE *RESTRICT mKsi
-            ,DOUBLE *RESTRICT eta        ,DOUBLE *RESTRICT mEta
-            ,DOUBLE *RESTRICT normal     ,DOUBLE *RESTRICT volume
-            ,DOUBLE *RESTRICT xm         ,DOUBLE *RESTRICT xmcc
-            ,DOUBLE *RESTRICT dcca        ,DOUBLE *RESTRICT cc
-            ,DOUBLE *RESTRICT vSkew      ,DOUBLE *RESTRICT mvSkew
-            ,DOUBLE *RESTRICT lA         ,DOUBLE *RESTRICT lB
-            ,DOUBLE *RESTRICT lRcell     ,Temporal const ddt
-            ,short  *RESTRICT lFaceR     ,short *RESTRICT lFaceL
-            ,DOUBLE *RESTRICT u0         ,DOUBLE *RESTRICT gradU0
-            ,DOUBLE *RESTRICT vel        ,DOUBLE *RESTRICT gradVel
-            ,DOUBLE *RESTRICT pres       ,DOUBLE *RESTRICT gradPres  
-            ,DOUBLE *RESTRICT lDensity   ,DOUBLE *RESTRICT lSheat
-            ,DOUBLE *RESTRICT lDviscosity,DOUBLE *RESTRICT lTconductivity
-            ,DOUBLE const underU
-            ,const short nEn             ,short const nFace
-            ,const short ndm             ,INT const nel)
+void cellEnergy2D(Loads *loads            , EnergyModel model
+            , Advection advT              , Diffusion diffT
+            , Turbulence tModel  
+            , short *RESTRICT lGeomType   , DOUBLE *RESTRICT prop
+            , INT *RESTRICT lViz          , INT *RESTRICT lId
+            , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
+            , DOUBLE *RESTRICT eta        , DOUBLE *RESTRICT mEta
+            , DOUBLE *RESTRICT normal     , DOUBLE *RESTRICT volume
+            , DOUBLE *RESTRICT xm         , DOUBLE *RESTRICT xmcc
+            , DOUBLE *RESTRICT dcca       , DOUBLE *RESTRICT cc
+            , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
+            , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
+            , DOUBLE *RESTRICT lRcell     , Temporal const ddt
+            , short  *RESTRICT lFaceR     , short *RESTRICT lFaceL
+            , DOUBLE *RESTRICT u0         , DOUBLE *RESTRICT gradU0
+            , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
+            , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres  
+            , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lSheat
+            , DOUBLE *RESTRICT lViscosity , DOUBLE *RESTRICT lTconductivity
+            , DOUBLE *RESTRICT dField
+            , DOUBLE const underU
+            , const short nEn             , short const nFace
+            , const short ndm             , INT const nel)
 {
-
-  DOUBLE coefDifC, coefDif, coefDifF, rCell, dt, dt0;
-  DOUBLE densityC, densityF, densityM;
-  DOUBLE sHeatC,sHeatF,sHeatM;
-  DOUBLE p, sP, dfd, gfKsi, lvSkew[2];
+  bool fTime, fDisp, fRes, fPresWork, fTemp, fTurb;
+  short iCodAdv1 = advT.iCod1, iCodAdv2 = advT.iCod2, iCodDif = diffT.iCod;
+/*...*/
+  short idCell = nFace, nAresta, nCarg, typeTime;
+/*...*/
+  INT vizNel;
+/*...*/
+  DOUBLE thermCoefC, thermCoefV, densityC, densityV, densityM,
+         diffEffC, diffEffV, diffEff, sHeatC, sHeatV, sHeatM, 
+         eddyViscosityC, eddyViscosityV, viscosityC, tA, coef,
+         tmp, tmp1, PrT;
+  DOUBLE p, sP, dfd, gfKsi, lvSkew[2], alpha, alphaMenosUm;
   DOUBLE v[2], gradUcomp[2], lKsi[2], lNormal[2], gf[2];
   DOUBLE dPviz, lModKsi, lModEta, du, duDksi, lXmcc[2], lXm[2];
-  DOUBLE gradUp[2], gradUv[2], ccV[2], gradVelC[2][2];
-  DOUBLE alpha, alphaMenosUm;
-  DOUBLE tA, coef, tmp,tmp1;
+  DOUBLE gradUp[2], gradUv[2], ccV[2], gradVelC[2][2], rCell, dt, dt0; 
 /*... nonOrtogonal*/
-  DOUBLE e[2], t[2], modE, dfdc;
-  DOUBLE xx[3];
+  DOUBLE e[2], t[2], modE, dfdc, xx[3];
 /*... */
-  DOUBLE presC[2],gradPresC[2];
-  DOUBLE wfn, wf[2], velC[2], velF[2], cv, cvc;
-  short iCodAdv1 = advT.iCod1;
-  short iCodAdv2 = advT.iCod2;
-  short iCodDif = diffT.iCod;
-/*...*/
-  DOUBLE phi,psi,miC,lambda;
-/*...*/
-  short idCell = nFace;
-  short nAresta, nCarg, typeTime;
-  INT vizNel;
-  bool fTime,fDisp,fRes,fPresWork,fTemp;
+  DOUBLE presC, presC0, presV, gradPresC[2], gradPresV[2], wfn
+        , velC[2], velV[2], dFieldC[2], dFieldV[2], dFieldF[2], cv, cvc;
 
 /*...*/
+  DOUBLE phi,psi,lambda;
+
+/*...*/
+  eddyViscosityC = eddyViscosityV = 0.e0;
   dt        = ddt.dt[0];
   dt0       = ddt.dt[1];
   typeTime  = ddt.type;
@@ -452,14 +454,24 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
   fRes      = model.fRes;
   fPresWork = model.fPresWork;
   fTemp     = model.fTemperature;
+  fTurb     = tModel.fTurb;
+  PrT       = 0.9e0;
 /*...................................................................*/
 
 /*... propriedades da celula*/
-  densityC = lDensity[idCell];
-  sHeatC   = lSheat[idCell];
-  coefDifC = lTconductivity[idCell];  
-  miC      = lDviscosity[idCell]; 
-  lambda  = -D2DIV3*miC;  
+  densityC    = lDensity[idCell];
+  sHeatC      = lSheat[idCell];
+  thermCoefC  = lTconductivity[idCell];  
+  viscosityC  = MAT2D(idCell, 0, lViscosity, 2);
+  if(fTurb) eddyViscosityC = MAT2D(idCell, 1, lViscosity, 2);
+  lambda      = -D2DIV3*(viscosityC + eddyViscosityC);  
+/*...................................................................*/
+
+/*...*/
+  if(fTemp)
+    diffEffC = thermCoefC + sHeatC*viscosityC/PrT;
+  else
+    diffEffC = thermCoefC/sHeatC + viscosityC/PrT;
 /*...................................................................*/
 
 /*...*/
@@ -467,10 +479,15 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
   gradUp[1]    = MAT2D(idCell, 1, gradU0, ndm);
   velC[0]      = MAT2D(idCell, 0, vel, ndm);
   velC[1]      = MAT2D(idCell, 1, vel, ndm);
-  presC[0]     = pres[0];
-  presC[1]     = pres[1];
-  gradPresC[0] = gradPres[0];
-  gradPresC[1] = gradPres[1];
+/*... p(n)*/
+  presC0 = MAT2D(idCell, 0, pres, 2); 
+/*... p(n+1)*/
+  presC  = MAT2D(idCell, 1, pres, 2);
+/*...*/
+  gradPresC[0] = MAT2D(idCell, 0, gradPres, ndm);
+  gradPresC[1] = MAT2D(idCell, 1, gradPres, ndm);
+  dFieldC[0]   = MAT2D(idCell, 0, dField, 2); 
+  dFieldC[1]   = MAT2D(idCell, 1, dField, 2);
 /*...................................................................*/
 
   p = 0.0e0;
@@ -485,12 +502,19 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
 /*... dominio*/
     if (vizNel  > -1) {
 /*...*/
-      densityF = lDensity[nAresta]; 
-      sHeatF   = lSheat[nAresta];    
-      coefDifF = lTconductivity[nAresta];  
+      densityV = lDensity[nAresta]; 
+      sHeatV   = lSheat[nAresta];    
+      thermCoefV = lTconductivity[nAresta];  
+      if(fTurb) eddyViscosityV = MAT2D(nAresta, 1, lViscosity, 2);
+/*... p(n+1)*/
+      presV     = MAT2D(nAresta, 1, pres, 2);
+      gradPresV[0] = MAT2D(nAresta, 0, gradPres, ndm);
+      gradPresV[1] = MAT2D(nAresta, 1, gradPres, ndm);
+      dFieldV[0]   = MAT2D(nAresta, 0, dField, 2);
+      dFieldV[1]   = MAT2D(nAresta, 1, dField, 2);
 /*...*/
-      velF[0] = MAT2D(nAresta, 0, vel, ndm);
-      velF[1] = MAT2D(nAresta, 1, vel, ndm);      
+      velV[0] = MAT2D(nAresta, 0, vel, ndm);
+      velV[1] = MAT2D(nAresta, 1, vel, ndm);      
 /*...*/
       lKsi[0] = MAT2D(nAresta, 0, ksi, ndm);
       lKsi[1] = MAT2D(nAresta, 1, ksi, ndm);
@@ -529,18 +553,19 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
 
 /*... media harmonica*/ 
       if(fTemp){
-        coefDif = alpha / coefDifC + alphaMenosUm / coefDifF;
-        coefDif = 1.0e0 / coefDif;
+        diffEffV = thermCoefV + sHeatV*eddyViscosityV/PrT;
+        diffEff = alpha / diffEffC + alphaMenosUm / diffEffV;
+        diffEff = 1.0e0 /  diffEff;
       }
-      else {
-        coefDif = alpha / (coefDifC*sHeatC) 
-                + alphaMenosUm / (coefDifF*sHeatF);
-        coefDif = 1.0e0 / coefDif;
+      else {        
+        diffEffV = thermCoefV/sHeatV + eddyViscosityV/PrT;
+        diffEff = alpha / diffEffC + alphaMenosUm / diffEffV;
+        diffEff = 1.0e0 / diffEff;
       }
 /*...................................................................*/
 
 /*... difusao direta*/
-      coef = coefDif;
+      coef = diffEff;
       modE = sqrt(e[0] * e[0] + e[1] * e[1]);
       dfd = coef*modE / lModKsi;
 /*...................................................................*/
@@ -548,15 +573,21 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
 /*...*/
       gf[0] = alphaMenosUm*gradUp[0] + alpha*gradUv[0];
       gf[1] = alphaMenosUm*gradUp[1] + alpha*gradUv[1];
-      wf[0] = alphaMenosUm*velC[0] + alpha*velF[0];
-      wf[1] = alphaMenosUm*velC[1] + alpha*velF[1];
-      densityM = alphaMenosUm*densityC + alpha*densityF;
+      dFieldF[0] = alphaMenosUm*dFieldC[0] + alpha*dFieldV[0];
+      dFieldF[1] = alphaMenosUm*dFieldC[1] + alpha*dFieldV[1];
+      densityM = alphaMenosUm*densityC + alpha*densityV;
       if(fTemp)
-        sHeatM   = alphaMenosUm*sHeatC + alpha*sHeatF;
+        sHeatM   = alphaMenosUm*sHeatC + alpha*sHeatV;
 /*...................................................................*/
 
 /*... velocidade normal a face*/
-      wfn = wf[0] * lNormal[0] + wf[1] * lNormal[1];
+      wfn = interpolFaceVel(velC         ,velV
+                           ,presC        ,presV
+                           ,gradPresC    ,gradPresV
+                           ,lNormal      ,lKsi
+                           ,lModKsi      ,dFieldF
+                           ,alphaMenosUm ,alpha
+                           ,ndm);    
 /*...................................................................*/
 
 /*... derivadas direcionais*/
@@ -574,7 +605,7 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
 /*...................................................................*/
 
 /*... correcao nao-ortogonal*/
-      dfdc = coefDif*gfKsi;
+      dfdc = coef*gfKsi;
 /*...................................................................*/
 
 /*... fluxo convectivo upwind de primeira ordem*/
@@ -617,14 +648,14 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
         if(fTemp)
           pLoad(&sP         ,&p
                ,&tA
-               ,coefDifC    ,sHeatC*densityC
+               ,diffEffC    ,sHeatC*densityC
                ,wfn         ,xx
                ,lModEta     ,dcca[nAresta]
                ,loads[nCarg],true);
         else 
           pLoad(&sP            ,&p
                ,&tA
-               ,coefDifC/sHeatC,densityC
+               ,diffEffC       ,densityC
                ,wfn            ,xx
                ,lModEta        ,dcca[nAresta]
                ,loads[nCarg]   ,true);
@@ -652,7 +683,7 @@ void cellEnergy2D(Loads *loads           ,EnergyModel model
     tmp  = gradVelC[0][0]*gradVelC[0][0] + gradVelC[1][1]*gradVelC[1][1];
     tmp1 = gradVelC[0][1] + gradVelC[1][0];
     phi = 2.0*tmp + tmp1*tmp1;    
-    tmp = (lambda*psi + miC*phi);
+    tmp = ( lambda*psi + (viscosityC + eddyViscosityC)*phi );
 /*...*/
     p+= tmp*volume[idCell];
   }

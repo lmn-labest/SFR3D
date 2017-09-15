@@ -48,7 +48,8 @@
   void readEdo(Mesh *mesh,FILE *file);
   void readPropVar(PropVar *p,FILE *file);
   void readGravity(DOUBLE *gravity,FILE *file);
-  void readModel(EnergyModel *e,FILE *file);
+  void readModel(EnergyModel *e, Turbulence *t
+               , FILE *file);
   void setPrintFluid(FileOpt *opt,FILE *file);
 
   void initProp(DOUBLE *RESTRICT prop 

@@ -74,7 +74,8 @@
     double overHeadGNodMpi;
     double overHeadGCelMpi;
     double overHeadTotalMpi;
-
+/*...*/
+    double turbulence;
 /*...*/
     double total;
   }Time;

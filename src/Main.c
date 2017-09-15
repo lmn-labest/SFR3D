@@ -49,7 +49,8 @@ int main(int argc,char**argv){
 /*... metodo de acoplamento pressao-velocidade*/
   Simple *simple = NULL;
   Prime  *prime  = NULL;
-
+/*... tubulence*/
+  Turbulence turbModel;
 /*...*/
   EnergyModel eModel;
 /*... propriedade variaveis*/
@@ -115,6 +116,12 @@ int main(int argc,char**argv){
 /* ..................................................................*/
 
 /*...*/
+  turbModel.fTurb = false;
+  turbModel.type  = 1;
+  turbModel.cs    = 0.2e0;
+/*....................................................................*/
+
+/*...*/
   eModel.fPresWork     = false;
   eModel.fDissipation  = false;
   eModel.fRes          = true;
@@ -131,15 +138,18 @@ int main(int argc,char**argv){
 /* ..................................................................*/
 
 /* ... opcoes de arquivos */                                           
-  opt.bVtk       = false;
-  opt.fItPlotRes = false;
-  opt.fItPlot    = false;
-  opt.vel        = false;
-  opt.pres       = false;
-  opt.energy     = false;
-  opt.gradVel    = false;
-  opt.gradPres   = false;
-  opt.gradEnergy = false;
+  opt.bVtk          = false;
+  opt.fItPlotRes    = false;
+  opt.fItPlot       = false;
+  opt.vel           = false;
+  opt.pres          = false;
+  opt.energy        = false;
+  opt.gradVel       = false;
+  opt.gradPres      = false;
+  opt.gradEnergy    = false;
+  opt.eddyViscosity = false;
+  opt.stepPlotFluid[0] =  5;
+  opt.stepPlotFluid[1] = opt.stepPlotFluid[0];
 /* ..................................................................*/
 
 /*... propriedades variaveis*/
@@ -211,6 +221,8 @@ int main(int argc,char**argv){
   tm.overHeadGCelMpi   = 0.e0;
   tm.overHeadGNodMpi   = 0.e0;
   tm.overHeadTotalMpi  = 0.e0;
+/*...*/
+  tm.turbulence = 0.e0;
 
 /*... precondicionador*/
   tm.precondDiag       = 0.e0;
@@ -2127,7 +2139,8 @@ int main(int argc,char**argv){
       else if(mesh->ndfFt)
         simpleSolverLm(&m          ,propVarFluid
                       ,loadsVel    ,loadsPres 
-                      ,loadsEnergy ,eModel        
+                      ,loadsEnergy 
+                      ,eModel      ,turbModel   
                       ,mesh0       ,mesh
                       ,sistEqVel   ,sistEqPres
                       ,sistEqEnergy
@@ -2267,7 +2280,7 @@ int main(int argc,char**argv){
         sc.ddt.t        = 0.e0;
         sc.ddt.dt[1]    = sc.ddt.dt[0];
         sc.ddt.dt[2]    = sc.ddt.dt[0];
-        sc.ddt.timeStep =    1;
+        sc.ddt.timeStep =    0;
       }
 /*...................................................................*/
 
@@ -2463,8 +2476,10 @@ int main(int argc,char**argv){
  * macro: pFluid : escreve os arquivos dos resultados do escoamente
  * imcompressivel                    
  *===================================================================*/
-    else if((!strcmp(word,macro[30]))){
+    else if( (!strcmp(word,macro[30])) && 
+             (opt.stepPlotFluid[1]++) == opt.stepPlotFluid[0]){      
 /*...*/
+      opt.stepPlotFluid[1] = 1;
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -2678,32 +2693,36 @@ int main(int argc,char**argv){
         strcpy(strRes[9] ,"noTemp");
         strcpy(strRes[10],"elGradTemp");
         strcpy(strRes[11],"noGradTemp");
+/*...*/
+        strcpy(strRes[12],"elEddyViscosity");
 
 /*...*/
-        wResVtkFluid(&m              ,mesh0->node.x      
-               ,mesh0->elm.node      ,mesh0->elm.mat    
-               ,mesh0->elm.nen       ,mesh0->elm.geomType
-               ,mesh0->elm.pressure  ,mesh0->node.pressure
-               ,mesh0->elm.gradPres  ,mesh0->node.gradPres  
-               ,mesh0->elm.vel       ,mesh0->node.vel      
-               ,mesh0->elm.gradVel   ,mesh0->node.gradVel 
-               ,mesh0->elm.temp      ,mesh0->node.temp   
-               ,mesh0->elm.gradTemp  ,mesh0->node.gradTemp   
-               ,mesh0->nnode         ,mesh0->numel  
-               ,mesh0->ndm           ,mesh0->maxNo 
-               ,mesh0->numat         ,ndfVel
-               ,strRes[0]            ,strRes[1]
-               ,strRes[2]            ,strRes[3]
-               ,strRes[4]            ,strRes[5]
-               ,strRes[6]            ,strRes[7]
-               ,strRes[8]            ,strRes[9]
-               ,strRes[10]           ,strRes[11]
-               ,nameOut              ,opt.bVtk      
-               ,opt.vel              ,opt.gradVel 
-               ,opt.pres             ,opt.gradPres
-               ,opt.energy           ,opt.gradEnergy
-               ,eModel.fKelvin
-               ,sc.ddt               ,fileOut);  
+        wResVtkFluid(&m                 , mesh0->node.x      
+               , mesh0->elm.node         , mesh0->elm.mat    
+               , mesh0->elm.nen          , mesh0->elm.geomType
+               , mesh0->elm.pressure     , mesh0->node.pressure
+               , mesh0->elm.gradPres     , mesh0->node.gradPres  
+               , mesh0->elm.vel          , mesh0->node.vel      
+               , mesh0->elm.gradVel      , mesh0->node.gradVel 
+               , mesh0->elm.temp         , mesh0->node.temp   
+               , mesh0->elm.gradTemp     , mesh0->node.gradTemp
+               , mesh0->elm.eddyViscosity    
+               , mesh0->nnode            , mesh0->numel  
+               , mesh0->ndm              , mesh0->maxNo 
+               , mesh0->numat            , ndfVel
+               , strRes[0]               , strRes[1]
+               , strRes[2]               , strRes[3]
+               , strRes[4]               , strRes[5]
+               , strRes[6]               , strRes[7]
+               , strRes[8]               , strRes[9]
+               , strRes[10]              , strRes[11]
+               , strRes[12]                
+               , nameOut                 , opt.bVtk      
+               , opt.vel                 , opt.gradVel 
+               , opt.pres                , opt.gradPres
+               , opt.energy              , opt.gradEnergy
+               , opt.eddyViscosity       , eModel.fKelvin
+               , sc.ddt                  , fileOut);  
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -2881,7 +2900,7 @@ int main(int argc,char**argv){
         printf("%s\n",DIF);
         printf("%s\n",word);
       }
-      readModel(&eModel,fileIn);
+      readModel(&eModel,&turbModel,fileIn);
 /*...................................................................*/
       if(!mpiVar.myId ) printf("%s\n",DIF);
     }   
