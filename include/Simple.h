@@ -27,19 +27,19 @@
                    ,FileOpt opt       ,char *preName  
                    ,char *nameOut     ,FILE *fileOut);
   
-  void simpleSolverLm(Memoria *m           ,PropVar prop
-                      ,Loads *loadsVel     ,Loads *loadsPres 
-                      ,Loads *loadsEnergy  
-                      ,EnergyModel eModel  ,Turbulence turbModel
-                      ,Mesh *mesh0         ,Mesh *mesh
-                      ,SistEq *sistEqVel   ,SistEq *sistEqPres
-                      ,SistEq *sistEqEnergy
-                      ,Solv *solvVel       ,Solv *solvPres 
-                      ,Solv *solvEnergy
-                      ,Simple *sp  
-                      ,Scheme sc           ,PartMesh *pMesh
-                      ,FileOpt opt         ,char *preName
-                      ,char *nameOut       ,FILE *fileOut);
+  void simpleSolverLm(Memoria *m          , PropVar prop
+                    , Loads *loadsVel     , Loads *loadsPres 
+                    , Loads *loadsEnergy  , EnergyModel eModel
+                    , Turbulence turbModel, ThermoDynamic *thDynamic
+                    , Mesh *mesh0         , Mesh *mesh
+                    , SistEq *sistEqVel   , SistEq *sistEqPres
+                    , SistEq *sistEqEnergy  
+                    , Solv *solvVel       , Solv *solvPres 
+                    , Solv *solvEnergy      
+                    , Simple *sp            
+                    , Scheme sc           , PartMesh *pMesh
+                    , FileOpt opt         , char *preName
+                    , char *nameOut       , FILE *fileOut);
 
 /*...*/
   void updateCellSimpleVel(DOUBLE *RESTRICT w

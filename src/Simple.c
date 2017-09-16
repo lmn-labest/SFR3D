@@ -638,7 +638,7 @@ void simpleSolver3D(Memoria *m
 void simpleSolverLm(Memoria *m          ,PropVar prop     
                    ,Loads *loadsVel     ,Loads *loadsPres
                    ,Loads *loadsEnergy  ,EnergyModel eModel
-                   ,Turbulence turbModel
+                   ,Turbulence turbModel,ThermoDynamic *thDynamic
                    ,Mesh *mesh0         ,Mesh *mesh
                    ,SistEq *sistEqVel   ,SistEq *sistEqPres
                    ,SistEq *sistEqEnergy 
@@ -670,11 +670,13 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
   bool relRes = false;
   bool fPrint = false;
   bool fDensity = prop.fDensity,
-       fSheat   = prop.fSpecificHeat,
-       fDvisc   = prop.fDynamicViscosity,
-       fTcond   = prop.fThermalCondutivty;
-  DOUBLE cfl, reynolds, peclet;
-  bool fParameter[3];
+    fSheat      = prop.fSpecificHeat,
+    fDvisc      = prop.fDynamicViscosity,
+    fTcond      = prop.fThermalCondutivty,
+    fDensityRef = thDynamic->fDensityRef,
+    fPresRef    = thDynamic->fPresTh;
+  DOUBLE cfl, reynolds, peclet, mass;
+  bool fParameter[10];
 
   time = getTimeC();
 /*...*/
@@ -1408,6 +1410,13 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                             ,eModel.fKelvin  ,mesh->numel);
 /*...................................................................*/
 
+/*... pressa de referencia*/
+    if(fPresRef)
+      presRef(mesh->elm.temp0      , mesh->elm.temp
+            , mesh->elm.geom.volume, thDynamic->pTh  
+            , mesh->numel          , eModel.fKelvin);
+/*...................................................................*/
+
 /*...*/
     if (itSimple == kZeroPres && relRes &&  pCor) rMass0 = rMass;
     if (itSimple == kZeroEnergy && relRes && fEnergy) rEnergy0 = rEnergy;
@@ -1438,7 +1447,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
     if (jj == sp->pSimple) {
       jj = 0;
       printf("It simple: %d \n", itSimple + 1);
-      printf("Time(s)  : %lf \n", timei);
+      printf("CPU Time(s)  : %lf \n", timei);
       printf("Residuo:\n");
       printf("conservacao da massa   : %20.8e\n", rMass / rMass0);
       printf("momentum x1            : %20.8e\n", rU[0] / rU0[0]);
@@ -1491,12 +1500,13 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
   fParameter[0] = true;
   fParameter[1] = true;
   fParameter[2] = true;
+  fParameter[3] = true;
   parameterCellLm(mesh->elm.vel         , mesh->elm.material.prop
                , mesh->elm.densityFluid , mesh->elm.specificHeat
-               , mesh->elm.tConductivity, mesh->elm.geom.volume 
-               , mesh->elm.mat            
+               , mesh->elm.tConductivity, mesh->elm.dViscosity
+               , mesh->elm.geom.volume  , mesh->elm.mat            
                , &cfl                   , &reynolds
-               , &peclet                  
+               , &peclet                , &mass
                , fParameter             , sc.ddt.dt[0]
                , mesh->numelNov         , mesh->ndm);
 /*...................................................................*/
@@ -1510,13 +1520,34 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                          ,mesh->numel   ,PROP_UPDATE_OLD_TIME);
 /*...................................................................*/
 
+/*... calcula a massa especifica de referencia*/
+  if(fDensityRef)
+    specificMassRef(mesh->elm.densityFluid , mesh->elm.geom.volume                  
+                  , mesh->elm.material.prop, mesh->elm.mat
+                  , mesh->numel);
+/*...................................................................*/
+
+/*... temp(n) = temp(n+1)*/
+  alphaProdVector(1.e0        ,mesh->elm.temp
+                 ,mesh->numel ,mesh->elm.temp0);
+/*...................................................................*/
+
+/*... pth(n-2) = pth(n-1)*/
+  thDynamic->pTh[0] = thDynamic->pTh[1];
+/*... pth(n-1) = pth(n)*/
+  thDynamic->pTh[1] = thDynamic->pTh[2];
+/*...................................................................*/
+
 /*...*/
   printf("It simple: %d \n", itSimple + 1);
   printf("Time(s)  : %lf \n", timei);
-  printf("Reynolds: %lf\n", reynolds);
-  printf("Pecelt  : %lf\n", peclet);
   if (sc.ddt.flag)
     printf("CFL     : %lf\n", cfl);
+  printf("Reynolds: %lf\n", reynolds);
+  printf("Peclet  : %lf\n", peclet);
+  printf("Mass    : %lf\n", mass);
+  printf("PresRef : %lf\n", thDynamic->pTh[2]);
+  
   printf("Residuo:\n");
   printf("conservacao da massa   (init,final): %20.8e %20.8e \n"
         , rMass0, rMass);

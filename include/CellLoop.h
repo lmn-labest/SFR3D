@@ -1027,6 +1027,9 @@
 /*...................................................................*/
 
 /*...*/
+  bool openDomain(short  *RESTRICT faceR, short  *RESTRICT nFace
+                 , INT const numel      , short const maxViz);
+
   void wallFluid(short *RESTRICT faceR ,INT *RESTRICT nelcon
               ,short *RESTRICT nFace     
               ,INT const nEl         ,short const maxViz);
@@ -1080,10 +1083,10 @@
 /*... parametro fisicos do escoamento*/  
   void parameterCellLm(DOUBLE *RESTRICT vel , DOUBLE *RESTRICT prop
                 , DOUBLE *RESTRICT density  , DOUBLE *RESTRICT sHeat
-                , DOUBLE *RESTRICT tCond    , DOUBLE *RESTRICT volume
-                , short  *RESTRICT mat        
+                , DOUBLE *RESTRICT tCond    , DOUBLE *RESTRICT viscosity
+                , DOUBLE *RESTRICT volume   , short  *RESTRICT mat        
                 , DOUBLE *cfl               , DOUBLE *reynolds
-                , DOUBLE *peclet              
+                , DOUBLE *peclet            , DOUBLE *mass     
                 , bool *fParameter          , DOUBLE const dt
                 , INT const nEl             , short const ndm);
 /*...................................................................*/

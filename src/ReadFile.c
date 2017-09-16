@@ -324,7 +324,12 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 /*... eTemp*/
        HccaAlloc(DOUBLE,m        ,mesh->elm.temp
                 ,nel   ,"eTemp",_AD_);
-       zero(mesh->elm.energy, nel, DOUBLEC);
+       zero(mesh->elm.temp, nel, DOUBLEC);
+
+/*... eTemp*/
+       HccaAlloc(DOUBLE,m        ,mesh->elm.temp0
+                ,nel   ,"eTemp0",_AD_);
+       zero(mesh->elm.temp0, nel, DOUBLEC);
 
 /*... nTemp*/
        HccaAlloc(DOUBLE,m        ,mesh->node.temp
@@ -334,12 +339,12 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 /*... nGradTemp*/
        HccaAlloc(DOUBLE, m, mesh->node.gradTemp
                 ,nn*ndm, "nGradTemp", _AD_);
-       zero(mesh->node.gradEnergy, nn*ndm, DOUBLEC);
+       zero(mesh->node.gradTemp, nn*ndm, DOUBLEC);
 
 /*... eGradTemp*/
        HccaAlloc(DOUBLE ,m            ,mesh->elm.gradTemp
                 ,nel*ndm,"eGradTemp",_AD_);
-       zero(mesh->elm.gradEnergy, nel*ndm, DOUBLEC);
+       zero(mesh->elm.gradTemp, nel*ndm, DOUBLEC);
 
      }
 
@@ -817,7 +822,7 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
       strcpy(macros[nmacro++], word);
       rflag[30] = true;
       printf("loading unifomTemp ...\n");
-      uniformField(mesh->elm.temp, mesh->numel, 1, file);
+      uniformField(mesh->elm.temp0, mesh->numel, 1, file);
       printf("done.\n");
       printf("%s\n\n", DIF);
     }
@@ -867,11 +872,16 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 
 /*...*/
   if (mesh->ndfFt > 0) {
+/*...*/
+    alphaProdVector(1.e0        ,mesh->elm.temp0
+                     ,mesh->numel ,mesh->elm.temp);
+/*...................................................................*/
+
     if(energyModel.fTemperature){
 /*... convertendo temperatura para kelvin*/
       if(energyModel.fKelvin)
-        convTempForKelvin(mesh->elm.temp,mesh->numel,true); 
-/*...*/
+        convTempForKelvin(mesh->elm.temp0,mesh->numel,true); 
+
       alphaProdVector(1.e0        ,mesh->elm.temp
                      ,mesh->numel ,mesh->elm.energy0);
 
@@ -898,11 +908,13 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
                    ,mesh->numel ,mesh->elm.pressure);
   
 /*... inicializando a densidade*/
-    if(prop.fDensity)
+    if(prop.fDensity){
+/*... inicia a massa especifica com o campo de temperatura inicial*/
       initPropTemp(mesh->elm.densityFluid ,mesh->elm.temp 
                   ,mesh->elm.material.prop,mesh->elm.mat
                   ,DENSITY_LEVEL          ,mesh->numel
                   ,energyModel.fKelvin    ,DENSITY);
+    }
     else
       initProp(mesh->elm.densityFluid 
               ,mesh->elm.material.prop,mesh->elm.mat
@@ -1911,6 +1923,7 @@ void readPropVar(PropVar *p,FILE *file){
     else if(!strcmp(word,"dViscosity")){
       readMacro(file,word,false);
       p->fDynamicViscosity = true;
+      initDviscosityPol(word); 
       if(!mpiVar.myId && p->fDynamicViscosity)
         printf("dViscosity variation   : Enable\n");;
     }
@@ -1920,6 +1933,7 @@ void readPropVar(PropVar *p,FILE *file){
     else if(!strcmp(word,"tCondutivity")){
       readMacro(file,word,false);
       p->fThermalCondutivty = true;
+      initThCondPol(word);
       if(!mpiVar.myId && p->fThermalCondutivty)
         printf("tCondutivity variation : Enable\n");                          
     }

@@ -17,6 +17,7 @@
 #include<WriteLog.h>
 #include<PartMesh.h>
 #include<ParallelMpi.h>
+#include<Properties.h>
 #include<Prime.h>
 #include<Sisteq.h>
 #include<Solv.h>
@@ -114,6 +115,12 @@ int main(int argc,char**argv){
 /*... Memoria principal(valor padrao - bytes)*/
   nmax = 200000;
 /* ..................................................................*/
+
+/*...*/  
+  thDynamic.pTh[0]      = PREREF;
+  thDynamic.pTh[1]      = PREREF;
+  thDynamic.pTh[2]      = PREREF;
+/*....................................................................*/
 
 /*...*/
   turbModel.fTurb = false;
@@ -391,12 +398,21 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... identifica parede impermevais*/
-      if(mesh0->ndfF > 0 || mesh0->ndfFt > 0)
+      if(mesh0->ndfF > 0 || mesh0->ndfFt > 0){
         wallFluid(mesh0->elm.faceRvel,mesh0->elm.adj.nelcon
                  ,mesh0->elm.adj.nViz   
-                 ,mesh0->numel       ,mesh0->maxViz);         
-/*...................................................................*/
-
+                 ,mesh0->numel       ,mesh0->maxViz);  
+/*... verifica se o dominio e aberto ou nao*/
+        mesh0->fOpen = openDomain(mesh0->elm.faceRvel
+                                 , mesh0->elm.adj.nViz
+                                 , mesh0->numelNov ,mesh0->maxViz);
+/*...*/
+        thDynamic.fDensityRef = !mesh0->fOpen;
+        thDynamic.fPresTh     = !mesh0->fOpen;
+/*...................................................................*/   
+      }
+/*...................................................................*/      
+     
 /*... particionamento da malha*/
       if(pMesh->fPartMesh && mpiVar.nPrcs > 1){
         tm.partdMesh = getTimeC() - tm.partdMesh;
@@ -485,7 +501,26 @@ int main(int argc,char**argv){
                 ,mesh->numelNov 
                 ,mesh->ndm           ,1);
 /*...................................................................*/
-      
+
+/*...*/
+     if(mesh->ndfFt > 0){
+/*...*/
+        if(thDynamic.fDensityRef)
+          specificMassRef(mesh->elm.densityFluid, mesh->elm.geom.volume                  
+                       , mesh->elm.material.prop, mesh->elm.mat
+                       , mesh->numel);
+/*...................................................................*/
+
+/*...*/
+        if(thDynamic.fPresTh)
+          initPresRef(mesh->elm.temp 
+                    , mesh->elm.geom.volume  , thDynamic.pTh                  
+                    , mesh->elm.material.prop, mesh->elm.mat
+                    , mesh->numel            , eModel.fKelvin);
+/*...................................................................*/
+      }
+/*...................................................................*/  
+ 
 /*... reconstrucao de gradiente least square*/
       if(sc.rcGrad ==  RCLSQUARE || sc.rcGrad ==  RCLSQUAREQR){
         if(!mpiVar.myId ){
@@ -542,12 +577,12 @@ int main(int argc,char**argv){
       HccaAlloc(INT,&m,reordMesh->num,mesh->numel,"rNum" ,_AD_);
       if(!mpiVar.myId ) printf("%s\n",DIF);
       if(!mpiVar.myId ) printf("Reordenando a malha ...\n");
-        tm.reord = getTimeC() - tm.reord;
-        reord(&m                ,reordMesh->num,mesh->elm.adj.nelcon
-             ,mesh->elm.adj.nViz,mesh->maxViz  
-             ,mesh->numel       ,mesh->numelNov
-             ,reordMesh->flag   ,mpiVar.nPrcs);
-        tm.reord = getTimeC() - tm.reord;
+      tm.reord = getTimeC() - tm.reord;
+      reord(&m                ,reordMesh->num,mesh->elm.adj.nelcon
+           ,mesh->elm.adj.nViz,mesh->maxViz  
+           ,mesh->numel       ,mesh->numelNov
+           ,reordMesh->flag   ,mpiVar.nPrcs);
+      tm.reord = getTimeC() - tm.reord;
       if(!mpiVar.myId ){
         printf("Malha reordenada.\n");
         printf("%s\n",DIF);
@@ -2137,19 +2172,19 @@ int main(int argc,char**argv){
 
 /*...*/
       else if(mesh->ndfFt)
-        simpleSolverLm(&m          ,propVarFluid
-                      ,loadsVel    ,loadsPres 
-                      ,loadsEnergy 
-                      ,eModel      ,turbModel   
-                      ,mesh0       ,mesh
-                      ,sistEqVel   ,sistEqPres
-                      ,sistEqEnergy
-                      ,solvVel     ,solvPres
-                      ,solvEnergy  
-                      ,simple
-                      ,sc          ,pMesh
-                      ,opt         ,preName
-                      ,nameOut     ,fileOut);  
+        simpleSolverLm(&m          , propVarFluid
+                     , loadsVel    , loadsPres 
+                     , loadsEnergy , eModel
+                     , turbModel   , &thDynamic   
+                     , mesh0       , mesh
+                     , sistEqVel   , sistEqPres
+                     , sistEqEnergy  
+                     , solvVel     , solvPres
+                     , solvEnergy    
+                     , simple        
+                     , sc          , pMesh
+                     , opt         , preName
+                     , nameOut     , fileOut);  
 /*...................................................................*/
 
 /*...*/

@@ -2,13 +2,14 @@
 
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 15/09/2017                                   *
  *-------------------------------------------------------------------*
  * IDEALGASDENSITY: kg/(m^3)                                         *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * t - temperatura em kelvin                                         *
+ * presRef - pressao de referencia ou termomecanica                  *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -16,7 +17,8 @@
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE airDensity(DOUBLE const t,bool const fKelvin) {
+DOUBLE airDensity(DOUBLE const t,DOUBLE const presRef
+                 ,bool const fKelvin) {
 
   DOUBLE tc,d;
   
@@ -25,7 +27,7 @@ DOUBLE airDensity(DOUBLE const t,bool const fKelvin) {
   else
     tc = CELSIUS_FOR_KELVIN(t);  
 
-  d = (MMOLARAR*PREREF)/(IDEALGASR*tc);
+  d = (MMOLARAR*presRef)/(IDEALGASR*tc);
 
   return d;
 
@@ -46,7 +48,7 @@ DOUBLE airDensity(DOUBLE const t,bool const fKelvin) {
  *-------------------------------------------------------------------*
  *-------------------------------------------------------------------*
  * OBS:                                                              *
- * www.engineeringtoolbox.com/water-thermal-properties-d_162.html	   *
+ * http://www.engineeringtoolbox.com/air-properties-d_156.html   	   *
  *                                                                   *
  * regressao com polinomio de ordem 5 obtido pelo excel              *
  *-------------------------------------------------------------------*
@@ -87,7 +89,7 @@ DOUBLE airSpecifiHeat(DOUBLE const t,bool const fKelvin) {
 
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 16/09/2017                                   *
  *-------------------------------------------------------------------*
  * AIRDYNAMICVISCOSITY: kJ/(kg.K)                                    *
  *-------------------------------------------------------------------*
@@ -99,13 +101,14 @@ DOUBLE airSpecifiHeat(DOUBLE const t,bool const fKelvin) {
  *-------------------------------------------------------------------*
  *-------------------------------------------------------------------*
  * OBS:                                                              *
- * www.engineeringtoolbox.com/water-thermal-properties-d_162.html	   *
+ * http://www.engineeringtoolbox.com/air-properties-d_156.html       *
  *                                                                   *
  * regressao com polinomio de ordem 5 obtido pelo excel              *
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE airDynamicViscosity(DOUBLE const t,bool const fKelvin) {
 
+  short i,n=dVisc.nPol;  
   DOUBLE a[6],x[5],y,d;
   DOUBLE tc;
 
@@ -114,36 +117,58 @@ DOUBLE airDynamicViscosity(DOUBLE const t,bool const fKelvin) {
   else
     tc = CELSIUS_FOR_KELVIN(t);  
 
-  a[0] = 1.01715208657198E-04;
-  a[1] =-1.11853193802525E-06;
-  a[2] = 5.13828104260976E-09;
-  a[3] =-1.17795003220707E-11;
-  a[4] = 1.32665295560992E-14;
-  a[5] =-5.84123566384409E-18;
-
+  switch (dVisc.type) {
+/*... polinomio*/
+    case POL:
+      for (i = 0; i < n; i++)
+        a[i] = dVisc.a[i];
 /*... t */  
-  x[0] = tc;
+        x[0] = tc;
 /*... t^2 */
-  x[1] = tc*tc;
+        x[1] = tc*tc;
 /*... t^3 */
-  x[2] = tc*x[1];
+        x[2] = tc*x[1];
 /*... t^4 */
-  x[3] = tc*x[2];
+        x[3] = tc*x[2];
 /*... t^5 */
-  x[4] = tc*x[3];
+        x[4] = tc*x[3];
   
 /*... polinomio*/
-  y = a[0] + a[1]*x[0] + a[2]*x[1] + a[3]*x[2] + a[4]*x[3] + a[5]*x[4];
+        y = a[0] + a[1]*x[0] + a[2]*x[1] 
+          + a[3]*x[2] + a[4]*x[3] + a[5]*x[4];
+        d = 1.e-05;
+/*.....................................................................*/
+        break;
 /*.....................................................................*/
 
+/*... polinomio*/
+    case SUTHERLAND:
+      a[0] = dVisc.a[0]; /*viscosidade de referencia*/
+      a[1] = dVisc.a[1]; /*temperatura de referencia*/ 
+      a[2] = dVisc.a[2]; /*constante de Sutherland*/
+
+      x[0] = a[1]+ a[2];
+      x[1] = tc  + a[2];
+
+      y = a[0]*(x[0]/x[1])*pow(tc/a[1],1.5);
+
+      d = 1.e0;
+/*.....................................................................*/
+      break;
+/*.....................................................................*/
+
+/*...*/
+    default:  
+      ERRO_OP(__FILE__,__func__,dVisc.type);
+      break;
+/*.....................................................................*/
+  }
+/*.....................................................................*/
+ 
   if (y < 0) {
     printf("Viscosidade dinamica negativa temp: %lf\n!!",tc);
     exit(EXIT_FAILURE);
   }
-
-/*...*/
-  d = 1.e0;
-/*.....................................................................*/
 
   return d*y;
 
@@ -152,7 +177,7 @@ DOUBLE airDynamicViscosity(DOUBLE const t,bool const fKelvin) {
 
 /*********************************************************************
  * Data de criacao    : 28/08/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 19/09/2017                                   *
  *-------------------------------------------------------------------*
  * AIRTHERMALCONDUCTITY: [KW/m.K]                                    *
  *-------------------------------------------------------------------*
@@ -165,7 +190,7 @@ DOUBLE airDynamicViscosity(DOUBLE const t,bool const fKelvin) {
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
- * www.engineeringtoolbox.com/water-thermal-properties-d_162.html	   *
+ * http://www.engineeringtoolbox.com/air-properties-d_156.html   	   *
  *                                                                   *
  * regressao com polinomio de ordem 5 obtido pelo excel              *
  *                                                                   *
@@ -173,6 +198,7 @@ DOUBLE airDynamicViscosity(DOUBLE const t,bool const fKelvin) {
  *********************************************************************/
 DOUBLE airThermalConductvity(DOUBLE const t,bool const fKelvin) {
 
+  short i,n=thCond.nPol;  
   DOUBLE a[6],x[5],y,d;
   DOUBLE tc;
 
@@ -180,37 +206,42 @@ DOUBLE airThermalConductvity(DOUBLE const t,bool const fKelvin) {
     tc = t;  
   else
     tc = CELSIUS_FOR_KELVIN(t);  
-
-  a[0] =-4.18269223884387E-03;
-  a[1] = 1.64562119970664E-04;
-  a[2] =-3.84678212644587E-07;
-  a[3] = 7.78532588867624E-10;
-  a[4] =-7.49481811253193E-13;
-  a[5] = 2.57602368857936E-16;
-;
-
+  switch (thCond.type) {
+/*... polinomio*/
+    case POL:
+       for (i = 0; i < n; i++)
+        a[i] = thCond.a[i];
 /*... t */  
-  x[0] = tc;
+        x[0] = tc;
 /*... t^2 */
-  x[1] = tc*tc;
+        x[1] = tc*tc;
 /*... t^3 */
-  x[2] = tc*x[1];
+        x[2] = tc*x[1];
 /*... t^4 */
-  x[3] = tc*x[2];
+        x[3] = tc*x[2];
 /*... t^5 */
-  x[4] = tc*x[3];
+        x[4] = tc*x[3];
   
 /*... polinomio*/
-  y = a[0] + a[1]*x[0]+ a[2]*x[1] + a[3]*x[2] + a[4]*x[3] + a[5]*x[4];
+        y = a[0] + a[1]*x[0] + a[2]*x[1] 
+          + a[3]*x[2] + a[4]*x[3] + a[5]*x[4];
+        d = 1.e-05;
+/*.....................................................................*/
+        break;
+/*.....................................................................*/
+ /*...*/
+    default:  
+      ERRO_OP(__FILE__,__func__,dVisc.type);
+      break;
+/*.....................................................................*/
+  }
 /*.....................................................................*/
 
+/*...*/ 
   if (y < 0) {
     printf("Condutividade termica negativa temp: %lf\n!!",tc);
     exit(EXIT_FAILURE);
   }
-
-/*...*/
-  d = 1.e-3;
 /*.....................................................................*/
 
   return d*y;
@@ -446,7 +477,7 @@ DOUBLE waterDynamicViscosity(DOUBLE const t) {
   a[1] =-5.20548110460391e-02;
   a[2] = 8.73350059860241e-04;
   a[3] =-7.60339598706936e-06;
-  a[4] = 2.60693147656508e-08;
+  a[4] = 2.96188559332536E-16;
 
 /*... t */  
   x[0] = t;
@@ -555,7 +586,8 @@ void updateDensity(DOUBLE *RESTRICT temp     ,DOUBLE *RESTRICT density
     case PROP_UPDATE_SIMPLE_LOOP:
       for(i=0;i<nEl;i++){
 /*...*/           
-        MAT2D(i,2 ,density ,nD) = airDensity(temp[i],iKelvin);
+        MAT2D(i,2 ,density ,nD) = airDensity(temp[i], thDynamic.pTh[2]
+                                            , iKelvin);
       }
 /*..................................................................*/
     break;  
@@ -603,7 +635,7 @@ void updateSpecificHeat(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT sHeat
     case PROP_UPDATE_SIMPLE_LOOP:
       for(i=0;i<nEl;i++)
 /*...*/           
-        MAT2D(i,2 ,sHeat ,nD) =  airSpecifiHeat(temp[i],iKelvin);
+        MAT2D(i,2 ,sHeat ,nD) = airSpecifiHeat(temp[i], iKelvin);
 /*..................................................................*/
     break;  
 
@@ -617,8 +649,6 @@ void updateSpecificHeat(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT sHeat
     break;
   }
 /*..................................................................*/
-
-
 }
 /*********************************************************************/
 
@@ -716,18 +746,19 @@ void initPropTemp(DOUBLE *RESTRICT prop   ,DOUBLE *RESTRICT t
 
 /*...*/
     if( iProp == DENSITY )
-      MAT2D(lMat,iProp,propMat,MAXPROP) = airDensity(t[i],iKelvin);
+      MAT2D(lMat, iProp, propMat, MAXPROP) 
+        = airDensity(t[i], thDynamic.pTh[2], iKelvin);
 /*...................................................................*/
 
 /*...*/
     else if( iProp == SPECIFICHEATCAPACITYFLUID)  
-      MAT2D(lMat,iProp,propMat,MAXPROP) 
+      MAT2D(lMat, iProp, propMat, MAXPROP) 
       = airSpecifiHeat(t[i],iKelvin);
 /*...................................................................*/
 
 /*...*/
     else if( iProp == DYNAMICVISCOSITY)  
-      MAT2D(lMat,iProp,propMat,MAXPROP) 
+      MAT2D(lMat, iProp, propMat, MAXPROP) 
       = airDynamicViscosity(t[i],iKelvin);
 /*...................................................................*/
 
@@ -761,7 +792,7 @@ void initPropTemp(DOUBLE *RESTRICT prop   ,DOUBLE *RESTRICT t
  *-------------------------------------------------------------------* 
  * OBS:                                                              *
  *-------------------------------------------------------------------*
- * www.engineeringtoolbox.com/water-thermal-properties-d_162.html	   *
+ * http://www.engineeringtoolbox.com/air-properties-d_156.html  	   *
  *                                                                   *
  * regressao com polinomio de ordem 5 obtido pelo excel              *
  *                                                                   *
@@ -770,13 +801,102 @@ void initSheatPol(void) {
 
   sHeat.nPol = 6;
 
-  sHeat.a[0] = 1.143178880938200E+00;
-  sHeat.a[1] =-1.694359211627670E-03;
-  sHeat.a[2] = 7.966237791866350E-06;
-  sHeat.a[3] =-1.860841726408540E-08;
-  sHeat.a[4] = 2.239058739944800E-11;
-  sHeat.a[5] =-1.060989866966260E-14;
+  sHeat.a[0] = 1.048057862882000E+00;
+  sHeat.a[1] =-4.283505419516730E-04;
+  sHeat.a[2] = 1.196253372934490E-06;
+  sHeat.a[3] =-9.784803154493030E-10;
+  sHeat.a[4] = 3.497377099477960E-13;
+  sHeat.a[5] =-4.663062674693290E-17;
 
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 16/09/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * INITVISCOSITYPOL: inicializao a estrutura para o calculo da       *
+ * viscosidade dinamica via polinomio                                *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ * http://www.engineeringtoolbox.com/air-properties-d_156.html  	   *
+ *                                                                   *
+ * regressao com polinomio de ordem 5 obtido pelo excel              *
+ *                                                                   *
+ *********************************************************************/
+void initDviscosityPol(char *s) {
+
+  if(!strcmp(s,"polinomio")){
+    dVisc.type = POL;
+    dVisc.nPol = 6;
+    dVisc.a[0] = 7.90864535186124E-03;
+    dVisc.a[1] = 7.83417856886777E-03;
+    dVisc.a[2] =-7.04677460750563E-06;
+    dVisc.a[3] = 4.96383517580279E-09;
+    dVisc.a[4] =-1.90489010749328E-12;
+    dVisc.a[5] = 2.96188559332536E-16;
+  }
+
+  else if(!strcmp(s,"Sutherland")){
+    dVisc.type = SUTHERLAND;
+    dVisc.a[0] = 1.789e-05; /*viscosidade de referencia*/
+    dVisc.a[1] = 273.11e0;  /*temperatura de referencia*/
+    dVisc.a[2] = 110.56e0;  /*constante de Sutherland*/
+  }
+  else {
+    ERRO_GERAL(__FILE__,__func__,__LINE__,s);
+  }
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 16/09/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * INITTHCONDPOL: inicializao a estrutura para o calculo da          *
+ * condutividade termica via polinomio                               *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ * http://www.engineeringtoolbox.com/air-properties-d_156.html  	   *
+ *                                                                   *
+ * regressao com polinomio de ordem 5 obtido pelo excel              *
+ *                                                                   *
+ *********************************************************************/
+void initThCondPol(char *s) {
+
+  if(!strcmp(s,"polinomio")){
+    thCond.type = POL;
+    thCond.nPol = 6;
+    thCond.a[0] =-1.08258923946027E-01;
+    thCond.a[1] = 1.07023532477279E-02;
+    thCond.a[2] =-6.17983109198392E-06;
+    thCond.a[3] = 3.19214156395719E-09;
+    thCond.a[4] =-9.80535866543648E-13;
+    thCond.a[5] = 1.29223908056440E-16;
+  }
+  else if(!strcmp(s,"Sutherland")){
+    dVisc.type = SUTHERLAND;
+    dVisc.a[0] = 1.789e-05; /*viscosidade de referencia*/
+    dVisc.a[1] = 273.11e0;  /*temperatura de referencia*/
+    dVisc.a[2] = 110.56e0;  /*constante de Sutherland*/
+  }
+  else {
+    ERRO_GERAL(__FILE__,__func__,__LINE__,s);
+  }
 }
 /*********************************************************************/
 
@@ -901,5 +1021,160 @@ void getEnergyForTemp(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
       energy[i] = TEMP_FOR_ENTHALPY(sHeat,t,TREF); 
     }
 /*...................................................................*/ 
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 15/09/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * SPECIFICMASSREF : calcula a massa especifica de referencia        *
+ * atraves da media do valores nas celulas                           * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * temp   - temp                                                     *
+ * volume - volume das celulas                                       *
+ * prop   - propriedades por material                                *
+ * mat    - material da celula                                       *
+ * nCell  - numero da celulas                                        *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------*
+ * densidade de referencia - entalpia sensivel                       * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void specificMassRef(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume                  
+                  , DOUBLE *RESTRICT prop    , short  *RESTRICT mat
+                  , INT const nCell)
+{
+  short nD = DENSITY_LEVEL;
+  INT i;  
+  DOUBLE dm,vm;
+
+  dm = vm = 0.e0;
+
+  for (i = 0; i < nCell; i++) {
+/*...*/   
+   dm += MAT2D(i,2 ,density ,nD)*volume[i];
+   vm += volume[i];
+/*...................................................................*/ 
+  }
+
+  MAT2D(0,DENSITY,prop,MAXPROP) = dm/vm;  
+
+  printf("densityRef :%e\n",MAT2D(0,DENSITY,prop,MAXPROP));
+
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 15/09/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * PRESREF : calcula da pressao de referencia atualizada             *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * temp0  - temperatura no passo n                                   *
+ * temp   - temperatura no passo n + 1                               *
+ * volume - volume das celulas                                       *
+ * pTh    - pressao termodinamica de referencia                      *
+ * nCell  - numero da celulas                                        *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------*
+ * pTh    - pressao termodinamica de referencia atualizada           *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void presRef(DOUBLE *RESTRICT temp0         , DOUBLE *RESTRICT temp  
+                   , DOUBLE *RESTRICT volume, DOUBLE *pTh                               
+                   , INT const nCell        , bool const fKelvin)
+{
+  INT i;  
+  DOUBLE dm,vm,t,t0;
+
+  dm = vm = 0.e0;
+
+  for (i = 0; i < nCell; i++) {
+/*...*/
+    if(fKelvin){
+      t  = temp[i];
+      t0 = temp0[i];
+    }  
+    else{
+      t  = CELSIUS_FOR_KELVIN(temp[i]); 
+      t0 = CELSIUS_FOR_KELVIN(temp0[i]);  
+    }
+/*...................................................................*/ 
+
+/*...*/   
+    dm += t/t0*volume[i];
+    vm += volume[i];
+/*...................................................................*/ 
+  }
+
+  pTh[2] = pTh[1]* dm/vm;
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 15/09/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * INIPRESREF : incializa a pressao ref atrazes da massa especifica  * 
+ * de referencia e temperatura media do dominio                      *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * temp0  - temperatura no passo n                                   *
+ * temp   - temperatura no passo n + 1                               *
+ * volume - volume das celulas                                       *
+ * pTh    - pressao termodinamica de referencia                      *
+ * nCell  - numero da celulas                                        *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------*
+ * pTh    - pressao termodinamica de referencia atualizada           *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void initPresRef(DOUBLE *RESTRICT temp  
+               , DOUBLE *RESTRICT volume, DOUBLE *pTh   
+               , DOUBLE *RESTRICT prop  , short  *RESTRICT mat                     
+               , INT const nCell        , bool const fKelvin)
+{
+  INT i;  
+  DOUBLE dRef,tm,dm,vm;
+
+  dm = vm = 0.e0;
+
+  for (i = 0; i < nCell; i++) {
+
+/*...*/   
+    dm += temp[i]*volume[i];
+    vm += volume[i];
+/*...................................................................*/ 
+  }
+  
+  dm = dm/vm;
+
+/*...*/
+  if(fKelvin)
+    tm  = dm;
+  else
+    tm  = CELSIUS_FOR_KELVIN(dm); 
+/*...................................................................*/ 
+
+  dRef = MAT2D(0,DENSITY,prop,MAXPROP);  
+  vm   = PRESREF(dRef, IDEALGASR, tm, MMOLARAR);
+
+  pTh[0] = pTh[1] = pTh[2] = vm;
+
 }
 /*********************************************************************/

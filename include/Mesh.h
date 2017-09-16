@@ -145,7 +145,8 @@
     DOUBLE *energy0;      /*energia*/
     DOUBLE *pressure;     /*pressao (n+1)*/
     DOUBLE *pressure0;    /*pressao (n)*/
-    DOUBLE *temp;         /*temperatura*/
+    DOUBLE *temp;         /*temperatura (n+1)*/
+    DOUBLE *temp0;         /*temperatura (n)*/
     DOUBLE *vel;          /*velocidade do fluido*/
     DOUBLE *vel0;         /*velocidade do fluido*/
     DOUBLE *densityFluid; /*massa especifica do fluido*/
@@ -277,6 +278,7 @@
  
 /*... Malha*/
   typedef struct{
+    bool fOpen;   /*dominio aberto*/
     short ndm;     /*dimensao*/
     short ndfF;    /*fluido*/    
     short ndfFt;   /*fluido termo ativado*/  

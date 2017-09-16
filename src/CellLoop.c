@@ -4960,25 +4960,28 @@ void wallFluid(short *RESTRICT faceR ,INT *RESTRICT nelcon
 
 /*********************************************************************
  * Data de criacao    : 28/08/2017                                   *
- * Data de modificaco : 13/09/2017                                   *
+ * Data de modificaco : 15/09/2017                                   *
  *-------------------------------------------------------------------*
  * PARAMETERCELLLM:                                                  *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
- * vel - velocidade                                                  *
- * prop - propriedade definidas por materiaç                         * 
- * density - densidade por celula                                    *
- * sHeat   - calor especifico por celula                             *
- * tCond   - condutividade termica                                   *
- * mat     - material por celula                                     *
- * cfl     - cfl                                                     *
+ * vel       - velocidade                                            *
+ * prop      - propriedade definidas por materiaç                    * 
+ * density   - densidade por celula                                  *
+ * sHeat     - calor especifico por celula                           *
+ * tCond     - condutividade termica                                 *
+ * viscosity -  viscosidade dinamica                                 *
+ * volume    - volume                                                 *
+ * mat        - material por celula                                  *
+ * cfl        - cfl                                                  *
  * reynolds- numero de reynolds                                      *
  * peclet  - peclet                                                  *
  * fPrameter - parametro a serem calculados                          *
  *              0 - cfl                                              *
  *              1 - reynolds                                         *
  *              2 - peclet                                           *
+ *              3 - massa total                                      *
  * dt         - passo de tempo                                       *
  * nEl        - numero de celulas                                    *
  * ndm        - numero de dimensoes                                  *
@@ -4993,17 +4996,18 @@ void wallFluid(short *RESTRICT faceR ,INT *RESTRICT nelcon
  *-------------------------------------------------------------------*
 *********************************************************************/
 void parameterCellLm(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT prop
-                   , DOUBLE *RESTRICT density, DOUBLE *RESTRICT sHeat
-                   , DOUBLE *RESTRICT tCond  , DOUBLE *RESTRICT volume
-                   , short  *RESTRICT mat      
-                   , DOUBLE *cfl             , DOUBLE *reynolds
-                   , DOUBLE *peclet            
-                   , bool *fParameter        , DOUBLE const dt
-                   , INT const nEl           , short const ndm)
+                , DOUBLE *RESTRICT density   , DOUBLE *RESTRICT sHeat
+                , DOUBLE *RESTRICT tCond     , DOUBLE *RESTRICT dViscosity
+                , DOUBLE *RESTRICT volume    , short  *RESTRICT mat      
+                , DOUBLE *cfl                , DOUBLE *reynolds
+                , DOUBLE *peclet             , DOUBLE *mass   
+                , bool *fParameter           , DOUBLE const dt
+                , INT const nEl              , short const ndm)
 
 {
 
-  DOUBLE modVel,lc,den,sHeat0,viscosity,coefDif,tmp,v[3];
+  DOUBLE modVel,lc,den,sHeat0,viscosity,coefDif,tmp,v[3]
+        ,dm=0.e0,vm=0.e0;
   DOUBLE cflMax=0.0e0,reynoldsMax=0.e0,pecletMax=0.e0;
   INT i;
   short lMat;
@@ -5058,8 +5062,8 @@ void parameterCellLm(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT prop
 
 /*...*/
       lMat      = mat[i]-1;
-      den       = MAT2D(i,0 ,density ,DENSITY_LEVEL);
-      viscosity = MAT2D(lMat,DYNAMICVISCOSITY,prop,MAXPROP);
+      den       = MAT2D(i,2 ,density ,DENSITY_LEVEL);
+      viscosity = dViscosity[i];
 /*..................................................................*/
 
 
@@ -5091,9 +5095,8 @@ void parameterCellLm(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT prop
 /*..................................................................*/
 
 /*...*/
-        lMat    = mat[i] - 1;
-        den     = MAT2D(i, 0, density, DENSITY_LEVEL);
-        sHeat0  = MAT2D(i, 0, sHeat  , SHEAT_LEVEL);
+        den     = MAT2D(i, 2, density, DENSITY_LEVEL);
+        sHeat0  = MAT2D(i, 2, sHeat  , SHEAT_LEVEL);
         coefDif = tCond[i];
 /*..................................................................*/
 
@@ -5103,29 +5106,40 @@ void parameterCellLm(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT prop
 /*..................................................................*/
       }
 /*..................................................................*/
+
+/*... massa total*/
+      if (fParameter[3]) {
+/*...*/
+        den = MAT2D(i, 2, density, DENSITY_LEVEL);
+        dm += den*volume[i];
+        vm += volume[i];
+/*..................................................................*/
+      }
+/*..................................................................*/
   }
 /*..................................................................*/  
 
   *cfl      = cflMax;
   *reynolds = reynoldsMax;
   *peclet   = pecletMax;
+  *mass     = dm/vm;
 }
 /*********************************************************************/ 
 
 /*********************************************************************
-* Data de criacao    : 00/00/0000                                   *
-* Data de modificaco : 26/08/2017                                   *
-*-------------------------------------------------------------------*
-* PARAMETERCELL:                                                    *
-*-------------------------------------------------------------------*
-* Parametros de entrada:                                            *
-*-------------------------------------------------------------------*
-*-------------------------------------------------------------------*
-* Parametros de saida:                                              *
-*-------------------------------------------------------------------*
-*-------------------------------------------------------------------*
-* OBS:                                                              *
-*-------------------------------------------------------------------*
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 26/08/2017                                   *
+ *-------------------------------------------------------------------*
+ * PARAMETERCELL:                                                    *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
 *********************************************************************/
 void parameterCell(DOUBLE *RESTRICT vel, DOUBLE *RESTRICT prop
                   ,DOUBLE *RESTRICT density  , DOUBLE *RESTRICT volume
@@ -5212,3 +5226,40 @@ void parameterCell(DOUBLE *RESTRICT vel, DOUBLE *RESTRICT prop
 }
 /*********************************************************************/
 
+/*********************************************************************
+ * Data de criacao    : 15/09/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * OPENDOMAIN: verifica se o dominio e aberto ou fechado             *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+*********************************************************************/
+bool openDomain(short  *RESTRICT faceVelR, short  *RESTRICT nFace
+              , INT const numel          , short const maxViz  ) {
+
+  bool fOpen = false;
+  short  type, aux1, aux2;
+  INT nel;
+
+  aux2 = maxViz + 1;
+  for (nel = 0; nel<numel; nel++) {
+    aux1 = nFace[nel];
+/*... elementos com equacoes*/
+    type = MAT2D(nel, aux1, faceVelR, aux2);
+    if (  type == INLET || type == OUTLET
+        || type == OPEN || type == INLETSTAICTPRES) {
+      fOpen = true;
+      break; 
+    }     
+  }
+
+  return fOpen;
+
+}
