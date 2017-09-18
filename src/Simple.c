@@ -878,7 +878,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 
 /*... montagem do sistema u, v e w*/
     tm.systFormVel = getTimeC() - tm.systFormVel;
-    systFormSimpleVelLw(loadsVel              , loadsPres,
+    systFormSimpleVelLm(loadsVel              , loadsPres,
                        sc.advVel              , sc.diffVel,
                        turbModel              , sp->type,
                        mesh->elm.node         , mesh->elm.adj.nelcon,
@@ -1021,7 +1021,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 
 /*... montagem do sistema  da pressao de correca*/
     tm.systFormPres = getTimeC() - tm.systFormPres;
-    systFormSimplePres(loadsVel               ,loadsPresC
+    systFormSimplePresLm(loadsVel               ,loadsPresC
                       ,sc.diffPres
                       ,mesh->elm.node         ,mesh->elm.adj.nelcon
                       ,mesh->elm.nen          ,mesh->elm.adj.nViz
@@ -1079,7 +1079,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
              ,solvPres->tol      ,solvPres->maxIt
              ,sistEqPres->storage,solvPres->solver
              ,solvPres->fileSolv ,solvPres->log
-             ,true               ,sistEqPres->unsym);  
+             ,true               ,sistEqPres->unsym);    
       tm.solvPres = getTimeC() - tm.solvPres;
 /*...................................................................*/
 
@@ -1394,9 +1394,9 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 
 /*...*/
     if(fDensity)
-      updateDensity(mesh->elm.temp,mesh->elm.densityFluid
-                   ,eModel.fKelvin   
-                   ,mesh->numel      ,PROP_UPDATE_SIMPLE_LOOP);
+      updateDensity(mesh->elm.temp   , mesh->elm.densityFluid
+                  , sp->alphaDensity , eModel.fKelvin   
+                  , mesh->numel      , PROP_UPDATE_SIMPLE_LOOP);
     if(fSheat)
       updateSpecificHeat(mesh->elm.temp,mesh->elm.specificHeat
                         ,eModel.fKelvin
@@ -1512,9 +1512,9 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*...................................................................*/
 
 /*... guardando as propriedades para o proximo passo*/
-  if(fDensity) updateDensity(mesh->elm.temp,mesh->elm.densityFluid
-              ,eModel.fKelvin
-              ,mesh->numel     ,PROP_UPDATE_OLD_TIME   );
+  if(fDensity) updateDensity(mesh->elm.temp, mesh->elm.densityFluid
+              , sp->alphaDensity           , eModel.fKelvin
+              , mesh->numel                , PROP_UPDATE_OLD_TIME   );
   if(fSheat) updateSpecificHeat(mesh->elm.temp,mesh->elm.specificHeat
                          ,eModel.fKelvin     
                          ,mesh->numel   ,PROP_UPDATE_OLD_TIME);
@@ -1540,7 +1540,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 
 /*...*/
   printf("It simple: %d \n", itSimple + 1);
-  printf("Time(s)  : %lf \n", timei);
+  printf("Time(s) : %lf \n", timei);
   if (sc.ddt.flag)
     printf("CFL     : %lf\n", cfl);
   printf("Reynolds: %lf\n", reynolds);

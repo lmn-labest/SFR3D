@@ -48,9 +48,9 @@
 
 /*...*/
   typedef struct{
-    bool    fRes;
-    short buoyancy;
-    short typeSimple;      
+    bool        fRes;
+    short   buoyancy;
+    short typeSimple;
   }MomentumModel;
 /*...................................................................*/
 
@@ -236,7 +236,8 @@
     int    pSimple;
     int    maxIt;
     int nNonOrth;
-    DOUBLE alphaPres,alphaVel,alphaEnergy;           /*under-relaxation*/
+    DOUBLE alphaPres,alphaVel,alphaEnergy
+          ,alphaDensity;                  /*under-relaxation*/
     DOUBLE *ePresC,*nPresC  ,*eGradPresC;/*Pressao de correcao*/
     DOUBLE *ePresC1;                     /*Pressao de correcao 1*/
     DOUBLE *d;
@@ -286,14 +287,15 @@
                                   para o problema de transporte*/
     short ndfD[MAX_DIF_EQ];   /*graus de liberdade 
                                   para o problema de difusa pura*/
-    short numat;   /*numero maximo de materias no dominio*/
-    short maxNo;   /*numero maximo de nos por elemento*/
-    short maxViz;  /*numero maximo de vizinhos que um elemento possui*/
-    INT nnode;     /*numero de nos*/
-    INT numel;     /*numero de elementos*/
-    INT numelNov;  /*numero de elementos sobrepostos*/
-    INT nnodeOv;   /*numero de nos em elementos sobrepostos*/
-    INT nnodeNov;  /*numero de nos em elementos nao sobrepostos*/
+    short numat;    /*numero maximo de materias no dominio*/
+    short maxNo;    /*numero maximo de nos por elemento*/
+    short maxViz;   /*numero maximo de vizinhos que um elemento possui*/
+    INT nnode;      /*numero de nos*/
+    INT numel;      /*numero de elementos*/
+    INT numelNov;   /*numero de elementos sobrepostos*/
+    INT nnodeOv;    /*numero de nos em elementos sobrepostos*/
+    INT nnodeNov;   /*numero de nos em elementos nao sobrepostos*/
+    DOUBLE xRef[3]; /*ponto de referencia da malha*/
 /*...*/    
     Elmt elm;     
     Node node;

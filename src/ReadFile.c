@@ -2129,7 +2129,7 @@ void readGravity(DOUBLE *gravity,FILE *file){
 
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
- * Data de modificaco : 24/08/2017                                   * 
+ * Data de modificaco : 18/09/2017                                   * 
  *-------------------------------------------------------------------* 
  * SETPPRINTFLUID : Seleciona as veriaves que serao impressas na     *
  * macro pFluid                                                      *
@@ -2151,6 +2151,18 @@ void setPrintFluid(FileOpt *opt,FILE *file){
   char str[]={"end"};
   char word[WORD_SIZE];
   int tmp;
+
+  opt->bVtk          = false;
+  opt->fItPlotRes    = false;
+  opt->fItPlot       = false;
+  opt->vel           = false;
+  opt->pres          = false;
+  opt->energy        = false;
+  opt->gradVel       = false;
+  opt->gradPres      = false;
+  opt->gradEnergy    = false;
+  opt->eddyViscosity = false;
+  opt->densityFluid  = false;
 
   fscanf(file,"%d",&tmp);
   opt->stepPlotFluid[0] = opt->stepPlotFluid[1] = (short) tmp;
@@ -2202,6 +2214,13 @@ void setPrintFluid(FileOpt *opt,FILE *file){
     else if (!strcmp(word, "eddyViscosity")) {
       opt->eddyViscosity = true;
       if (!mpiVar.myId) printf("print : eddyViscosity\n");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, "densityFluid")) {
+      opt->densityFluid = true;
+      if (!mpiVar.myId) printf("print : densityFluid\n");
     }
 /*.....................................................................*/
     readMacro(file,word,false);

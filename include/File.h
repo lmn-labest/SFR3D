@@ -38,6 +38,7 @@
     bool pres;
     bool energy;
     bool eddyViscosity;
+    bool densityFluid;
     short stepPlotFluid[2];
     FILE *fileItPlot[7];
     

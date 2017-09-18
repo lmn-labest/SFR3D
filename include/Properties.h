@@ -73,7 +73,7 @@
 
 /*...*/
   void updateDensity(DOUBLE *RESTRICT temp     ,DOUBLE *RESTRICT density
-                    ,bool const iKelvin 
+                    ,DOUBLE const alpha        ,bool const iKelvin 
                     ,INT const nEl             ,char  const iCod);
   void updateSpecificHeat(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT sHeat
                          ,bool const iKelvin  

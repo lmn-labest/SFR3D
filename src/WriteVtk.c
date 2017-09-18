@@ -1084,7 +1084,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
           ,DOUBLE *elGradVel    ,DOUBLE *nGradVel 
           ,DOUBLE *elEnergy     ,DOUBLE *nEnergy
           ,DOUBLE *elGradEnergy ,DOUBLE *nGradEnergy
-          ,DOUBLE *eddyVis
+          ,DOUBLE *eddyVis      ,DOUBLE *densityFluid
           ,INT nnode            ,INT numel    
           ,short const ndm      ,short const maxNo 
           ,short const numat    ,short const ndf   
@@ -1094,12 +1094,13 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
           ,char *gradVelResEl   ,char *gradVelResNo 
           ,char *energyResEl    ,char *energyResNo
           ,char *gradEnergyResEl,char *gradEnergyResNo
-          ,char *eddyVisRes
+          ,char *eddyVisRes     ,char *densityFluidRes
           ,char *nameOut        ,bool iws
           ,bool fVel            ,bool fGradVel 
           ,bool fPres           ,bool fGradPres
           ,bool fEnergy         ,bool fGradEnergy
-          ,bool fEddyViscosity  ,bool fKelvin
+          ,bool fEddyViscosity  ,bool fSpecificMass
+          ,bool fKelvin
           ,Temporal ddt         ,FILE *f)
 {
   int    *lel=NULL;
@@ -1223,6 +1224,17 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
                 ,iws,DOUBLEV,1,f);
 /*...................................................................*/
 
+/*... escrever gradiente de velocidade por celula*/  
+  if(fSpecificMass){
+    HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
+    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
+    for(i=0;i<numel;i++)
+      p[i] = MAT2D(i,2, densityFluid, DENSITY_LEVEL);
+    writeVtkProp(&idum,p,numel,1,densityFluidRes
+                ,iws,DOUBLEV,1,f);
+    HccaDealloc(m,p,"p",_AD_);
+  }
+/*...................................................................*/
 
 /*.... campo por no*/
   fprintf(f,"POINT_DATA %ld\n",(long) nnode);

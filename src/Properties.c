@@ -560,7 +560,7 @@ DOUBLE waterThermalConductvity(DOUBLE const t) {
 
 /*********************************************************************
  * Data de criacao    : 27/08/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 18/09/2017                                   *
  *-------------------------------------------------------------------*
  * UPDATEDENSITY:                                                    *
  *-------------------------------------------------------------------*
@@ -573,21 +573,22 @@ DOUBLE waterThermalConductvity(DOUBLE const t) {
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateDensity(DOUBLE *RESTRICT temp     ,DOUBLE *RESTRICT density
-                  ,bool const iKelvin    
-                  ,INT const nEl             ,char  const iCod)
+void updateDensity(DOUBLE *RESTRICT temp , DOUBLE *RESTRICT density
+                 , DOUBLE const alpha    , bool const iKelvin    
+                 , INT const nEl         , char  const iCod)
 
 {
-  INT i;
   short nD = DENSITY_LEVEL;
-
+  INT i;
+  DOUBLE den,den0;
 /*...*/
   switch (iCod){
     case PROP_UPDATE_SIMPLE_LOOP:
       for(i=0;i<nEl;i++){
+        den0 =  MAT2D(i,2 ,density ,nD);         
+        den = airDensity(temp[i], thDynamic.pTh[2], iKelvin);
 /*...*/           
-        MAT2D(i,2 ,density ,nD) = airDensity(temp[i], thDynamic.pTh[2]
-                                            , iKelvin);
+        MAT2D(i,2 ,density ,nD) =  alpha*den + (1.e0-alpha)*den0;
       }
 /*..................................................................*/
     break;  
@@ -610,7 +611,7 @@ void updateDensity(DOUBLE *RESTRICT temp     ,DOUBLE *RESTRICT density
 
 /*********************************************************************
  * Data de criacao    : 27/08/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 18/09/2017                                   *
  *-------------------------------------------------------------------*
  * UPDATESPECIFICHEAT:                                               *
  *-------------------------------------------------------------------*
@@ -623,19 +624,20 @@ void updateDensity(DOUBLE *RESTRICT temp     ,DOUBLE *RESTRICT density
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateSpecificHeat(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT sHeat
-                       ,bool const iKelvin 
-                       ,INT const nEl        ,char  const iCod)
+void updateSpecificHeat(DOUBLE *RESTRICT temp, DOUBLE *RESTRICT sHeat
+                       , bool const iKelvin 
+                       ,INT const nEl        , char  const iCod)
 
 {
-  INT i;
   short nD = SHEAT_LEVEL;
+  INT i;  
+  
 /*...*/
   switch (iCod){
     case PROP_UPDATE_SIMPLE_LOOP:
       for(i=0;i<nEl;i++)
 /*...*/           
-        MAT2D(i,2 ,sHeat ,nD) = airSpecifiHeat(temp[i], iKelvin);
+        MAT2D(i,2 ,sHeat ,nD) = airSpecifiHeat(temp[i],iKelvin);
 /*..................................................................*/
     break;  
 

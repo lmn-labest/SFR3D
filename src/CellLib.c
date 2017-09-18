@@ -467,7 +467,7 @@ void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
  * lB        -> vetor de forca da linha i                            *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void cellLibSimpleVelLw(Loads *loadsVel , Loads *loadsPres,
+void cellLibSimpleVelLm(Loads *loadsVel , Loads *loadsPres,
              Advection  advVel          , Diffusion diffVel,    
              Turbulence tModel          , short const typeSimple,
              short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop,
@@ -496,7 +496,7 @@ void cellLibSimpleVelLw(Loads *loadsVel , Loads *loadsPres,
   if(lib == 1){
 /*... 2D*/
     if(ndm == 2){
-      cellSimpleVelLw2D(loadsVel  , loadsPres,   
+      cellSimpleVel2DLm(loadsVel  , loadsPres,   
                        advVel     , diffVel,
                        tModel     , typeSimple,  
                        lGeomType  , lprop,
@@ -651,6 +651,136 @@ void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres
                  ,vel      ,dField
                  ,nEn      ,nFace  
                  ,ndm      ,nel);  
+    }
+/*..................................................................*/
+
+/*... 3D*/
+    else if(ndm == 3){
+      cellSimplePres3D(loadsVel,loadsPres
+								 ,diffPres
+                 ,lGeomType,lprop
+                 ,lViz     ,lId
+                 ,ksi      ,mKsi
+                 ,eta      ,fArea
+                 ,normal   ,volume
+                 ,xm       ,xmcc
+                 ,dcca     ,lDensity 
+                 ,vSkew    ,mvSkew
+                 ,lA       ,lB
+                 ,lRcell    
+                 ,lFaceVelR   ,lFaceVelL
+                 ,lFacePresR  ,lFacePresL
+                 ,pres     ,gradPres
+                 ,vel      ,dField
+                 ,nEn      ,nFace
+                 ,ndm      ,nel);
+    } 
+/*..................................................................*/
+  }
+
+}
+/*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 17/09/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * CELLLIBSIMPLEPRESLM: chamada de bibliotecas de celulas para       *
+ * problema de escoamento de fluidos a baixo Mach (PRES)             *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * loadsVel  -> definicoes de cargas de velocidades                  *
+ * loadsPres -> definicoes de cargas de pressao                      *
+ * diffPres  -> tecnica da discretizacao do termo difusivo           *
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
+ * lprop     -> propriedade fisicas das celulas                      *
+ * lViz      -> viznhos da celula central                            *
+ * lId       -> equa da celula                                       *
+ * Ksi       -> vetores que unem centroide da celula central aos     *
+ *            vizinhos destas                                        *
+ * mKsi      -> modulo do vetor ksi                                  *
+ * eta       -> vetores paralelos as faces das celulas               *
+ * fArea     -> area das faces                                       *
+ * normal    -> vetores normais as faces das celulas                 *
+ * volume    -> volume celula central                                *
+ * xm        -> pontos medios das faces da celula central            *
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   *
+ *            faces da celula central                                *
+ * vSkew     -> vetor entre o ponto medio a intersecao que une os    *
+ *            centrois compartilhado nessa face da celula central    *
+ * mvSkew    -> distacia entre o ponto medio a intersecao que une os *
+ *            centrois compartilhado nessa face da celula central    *
+ * dcca      -> menor distacia do centroide central a faces desta    *
+ *              celula                                               *
+ * lDensity  -> massa especifica com variacao temporal               *
+ * lA        -> nao definido                                         *
+ * lB        -> nao definido                                         *
+ * lRcell    -> nao definido                                         *
+ * ddt       -> discretizacao temporal                               *
+ * faceVelR  -> restricoes por elemento de velocidades               *
+ * faceVelL  -> carga por elemento de velocidades                    *
+ * facePresR -> restricoes por elemento de pressao                   *
+ * facePresL -> carga por elemento de pressao                        *
+ * pres      -> campo de pressao conhecido                           *
+ * gradPes   -> gradiente reconstruido da pressao                    *
+ * vel       -> campo de velocidade conhecido                        *
+ * dField    -> matriz D do metodo simple                            *
+ * nEn       -> numero de nos da celula central                      *
+ * nFace     -> numero de faces da celula central                    *
+ * ndm       -> numero de dimensoes                                  *
+ * lib       -> numero da biblioteca                                 *
+ * nel       -> numero da celula                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * lA        -> coeficiente da linha i                               *
+ * lB        -> vetor de forca da linha i                            *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void cellLibSimplePresLm(Loads *loadsVel   , Loads *loadsPres
+	             , Diffusion diffPres           
+               , short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop
+               , INT   *RESTRICT lViz       , INT *RESTRICT lId  
+               , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
+               , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea
+               , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume
+               , DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc
+               , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT lDensity
+               , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
+               , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
+               , DOUBLE *RESTRICT lRcell    , Temporal const ddt
+               , short  *RESTRICT lFaceVelR , short  *RESTRICT lFaceVelL
+               , short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL
+               , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres 
+               , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField 
+               , short const nEn            , short  const nFace     
+               , short const ndm            , short const lib    
+               , INT const nel)
+{
+
+/*... */
+  if(lib == 1){
+/*... 2D*/
+    if(ndm == 2){
+      cellSimplePres2DLm(loadsVel, loadsPres
+								 , diffPres	  
+                 , lGeomType , lprop
+                 , lViz      , lId
+                 , ksi       , mKsi
+                 , eta       , fArea
+                 , normal    , volume
+                 , xm        , xmcc
+                 , dcca      , lDensity 
+                 , vSkew     , mvSkew
+                 , lA        , lB
+                 , lRcell    , ddt 
+                 , lFaceVelR , lFaceVelL
+                 , lFacePresR, lFacePresL
+                 , pres      , gradPres 
+                 , vel       , dField
+                 , nEn       , nFace  
+                 , ndm       , nel);  
     }
 /*..................................................................*/
 

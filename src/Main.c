@@ -148,13 +148,14 @@ int main(int argc,char**argv){
   opt.bVtk          = false;
   opt.fItPlotRes    = false;
   opt.fItPlot       = false;
-  opt.vel           = false;
-  opt.pres          = false;
-  opt.energy        = false;
+  opt.vel           = true;
+  opt.pres          = true;
+  opt.energy        = true;
   opt.gradVel       = false;
   opt.gradPres      = false;
   opt.gradEnergy    = false;
   opt.eddyViscosity = false;
+  opt.densityFluid  = false;
   opt.stepPlotFluid[0] =  5;
   opt.stepPlotFluid[1] = opt.stepPlotFluid[0];
 /* ..................................................................*/
@@ -517,6 +518,13 @@ int main(int argc,char**argv){
                     , mesh->elm.geom.volume  , thDynamic.pTh                  
                     , mesh->elm.material.prop, mesh->elm.mat
                     , mesh->numel            , eModel.fKelvin);
+/*...................................................................*/
+
+/*... gera a pressao inicial hidrostatica*/
+/*      hPres(mesh->elm.pressure0   , mesh->elm.pressure
+            , mesh->elm.densityFluid, mesh->elm.geom.cc
+            , gravity               , mesh->xRef
+            , mesh->numel           , mesh->ndm );*/
 /*...................................................................*/
       }
 /*...................................................................*/  
@@ -2222,8 +2230,10 @@ int main(int argc,char**argv){
       simple->tolPres         = 1.e-06;
       simple->tolVel          = 1.e-06;
       if (mesh->ndfFt){
-        simple->kZeroEnergy = 0;
-        simple->tolEnergy   = 1.e-06;
+        simple->kZeroEnergy  = 0;
+        simple->tolEnergy    = 1.e-06;
+        simple->alphaEnergy  = 1.e0;
+        simple->alphaDensity = 1.0e0; 
       }
       simple->pSimple         = 500;
 /*...................................................................*/
@@ -2730,6 +2740,7 @@ int main(int argc,char**argv){
         strcpy(strRes[11],"noGradTemp");
 /*...*/
         strcpy(strRes[12],"elEddyViscosity");
+        strcpy(strRes[13],"elSpecificMass");
 
 /*...*/
         wResVtkFluid(&m                 , mesh0->node.x      
@@ -2741,7 +2752,7 @@ int main(int argc,char**argv){
                , mesh0->elm.gradVel      , mesh0->node.gradVel 
                , mesh0->elm.temp         , mesh0->node.temp   
                , mesh0->elm.gradTemp     , mesh0->node.gradTemp
-               , mesh0->elm.eddyViscosity    
+               , mesh0->elm.eddyViscosity, mesh0->elm.densityFluid    
                , mesh0->nnode            , mesh0->numel  
                , mesh0->ndm              , mesh0->maxNo 
                , mesh0->numat            , ndfVel
@@ -2751,12 +2762,13 @@ int main(int argc,char**argv){
                , strRes[6]               , strRes[7]
                , strRes[8]               , strRes[9]
                , strRes[10]              , strRes[11]
-               , strRes[12]                
+               , strRes[12]              , strRes[13]
                , nameOut                 , opt.bVtk      
                , opt.vel                 , opt.gradVel 
                , opt.pres                , opt.gradPres
                , opt.energy              , opt.gradEnergy
-               , opt.eddyViscosity       , eModel.fKelvin
+               , opt.eddyViscosity       , opt.densityFluid 
+               , eModel.fKelvin
                , sc.ddt                  , fileOut);  
 /*...................................................................*/
       }
