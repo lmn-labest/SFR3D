@@ -54,7 +54,7 @@ void solverC(Memoria *m
   void   (*matVecC)();
   DOUBLE (*dotC)();
   INT nn;
-  unsigned short nKrylov=15;
+  unsigned short nKrylov=50;
   bool fPrint = false,openMp = ompVar.fSolver;
 /*...*/
 	dotC    = NULL;
@@ -357,6 +357,84 @@ void solverC(Memoria *m
     break;
 /*...................................................................*/ 
 
+/*... MINRES com precondicionador diagonal*/
+    case MINRES:
+/*... precondiconador diagonal*/
+      HccaAlloc(DOUBLE,m,pc,nEqNov,"pc",false);
+      zero(pc,nEqNov,DOUBLEC);
+      tm.precondDiag = getTimeC() - tm.precondDiag;
+      preCondDiag(pc,ad,nEqNov);
+      tm.precondDiag = getTimeC() - tm.precondDiag;
+/*...................................................................*/
+
+/*... arranjos auxiliares do pbicgstab*/
+      HccaAlloc(DOUBLE,m,z,nEq,"z",false);
+      HccaAlloc(DOUBLE,m,r,nEq,"r",false);
+      HccaAlloc(DOUBLE,m,t,nEq,"tt",false);
+      HccaAlloc(DOUBLE,m,v,nEq,"vv",false);
+      HccaAlloc(DOUBLE,m,p,nEq,"pp",false);
+			HccaAlloc(DOUBLE,m,h,nEq,"hh", false);
+      HccaAlloc(DOUBLE,m,o,nEq,"oo", false);
+      HccaAlloc(DOUBLE,m,d,nEq,"dd", false);
+      zero(z,nEq,DOUBLEC);
+      zero(r,nEq,DOUBLEC);
+      zero(t,nEq,DOUBLEC);
+      zero(v,nEq,DOUBLEC);
+      zero(p,nEq,DOUBLEC);
+			zero(h,nEq,DOUBLEC);
+      zero(o,nEq,DOUBLEC);
+      zero(d,nEq,DOUBLEC);
+/*...................................................................*/
+
+/*...*/
+			setMatVec(&matVecC, storage, unSym,openMp);
+/*...................................................................*/
+      
+/*...*/
+			setDot(&dotC,DOT);
+/*...................................................................*/
+
+/*... gradientes conjugados bi-ortoganilizado*/
+      tm.minres = getTimeC() - tm.minres;
+/*...*/
+      callMinRes(nEq    , nEqNov
+                ,nAd    , nAdR
+                ,ia     , ja
+                ,al     , ad    
+                ,pc     , b     
+                ,x      , t  
+                ,v      , r
+                ,p      , z
+                ,h      , o
+                ,d
+                ,tol    , maxIt 
+                ,newX   , fSolvLog
+                ,fLog   , fPrint
+                ,iNeq   , bOmp           
+                ,matVecC, dotC);  
+/*...................................................................*/
+
+/*...*/
+      tm.minres = getTimeC() - tm.minres;
+/*...................................................................*/
+      
+/*... liberando arranjos auxiliares do pbicgstab*/
+      HccaDealloc(m,d,"dd",false);
+      HccaDealloc(m,o,"oo",false);
+			HccaDealloc(m,h,"hh",false);
+      HccaDealloc(m,p,"pp",false);
+      HccaDealloc(m,v,"vv",false);
+      HccaDealloc(m,t,"tt",false);
+      HccaDealloc(m,r,"r" ,false);
+      HccaDealloc(m,z,"z" ,false);
+/*...................................................................*/
+
+/*... liberando arranjos do precondicionador*/
+      HccaDealloc(m,pc,"pc",false);
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
 /*...*/
     default:
       ERRO_OP(__FILE__,__func__,solver);
@@ -381,6 +459,8 @@ void setSolver(char *word,short *solver)
     *solver = PBICGSTABL2;
   else if (!strcmp(word, "GMRES"))
     *solver = GMRES;
+ else if (!strcmp(word, "MINRES"))
+    *solver = MINRES;
 
 } 
 /*********************************************************************/      
@@ -390,7 +470,7 @@ void setSolver(char *word,short *solver)
  **********************************************************************/
 void setSolverConfig(char *word,Solv *solv,FILE *fileIn)
 {
-
+/*...*/
   if(!strcmp(word,"PCG")){
     fscanf(fileIn,"%u" ,&solv->maxIt);
     fscanf(fileIn,"%lf",&solv->tol);
@@ -405,6 +485,9 @@ void setSolverConfig(char *word,Solv *solv,FILE *fileIn)
       printf("Tol       : %e\n",solv->tol);
     }
   }
+/*...................................................................*/
+
+/*...*/
   else if(!strcmp(word,"PBICGSTAB")){
     fscanf(fileIn,"%u" ,&solv->maxIt);
     fscanf(fileIn,"%lf",&solv->tol);
@@ -419,6 +502,9 @@ void setSolverConfig(char *word,Solv *solv,FILE *fileIn)
       printf("Tol       : %e\n",solv->tol);
     }
   }
+/*...................................................................*/
+
+/*...*/
   else if (!strcmp(word, "PBICGSTABL2")){
     fscanf(fileIn,"%u" ,&solv->maxIt);
     fscanf(fileIn,"%lf",&solv->tol);
@@ -433,6 +519,9 @@ void setSolverConfig(char *word,Solv *solv,FILE *fileIn)
       printf("Tol       : %e\n",solv->tol);
     }
   }
+/*...................................................................*/
+
+/*...*/
   else if (!strcmp(word, "GMRES")){
     fscanf(fileIn,"%u" ,&solv->maxIt);
     fscanf(fileIn,"%lf",&solv->tol);
@@ -446,7 +535,25 @@ void setSolverConfig(char *word,Solv *solv,FILE *fileIn)
       printf("MaxIt     : %d\n",solv->maxIt);
       printf("Tol       : %e\n",solv->tol);
     }
-  }  
+  }
+/*...................................................................*/
+
+/*...*/
+  else if(!strcmp(word,"MINRES")){
+    fscanf(fileIn,"%u" ,&solv->maxIt);
+    fscanf(fileIn,"%lf",&solv->tol);
+    solv->solver = MINRES;   
+
+    if(solv->tol == 0.e0) 
+      solv->tol = smachn();
+
+    if(!mpiVar.myId ) {
+      printf("Solver    : MINRES\n");
+      printf("MaxIt     : %d\n",solv->maxIt);
+      printf("Tol       : %e\n",solv->tol);
+    }
+  }
+/*...................................................................*/  
 
 } 
 /*********************************************************************/      
@@ -1057,7 +1164,7 @@ void callGmres(INT const nEq     ,INT const nEqNov
                    ,tol  ,maxIt
                    ,newX ,fSolvLog
                    ,NULL ,fLog
-                   ,false,false
+                   ,fLog ,fPrint
                    ,bOmp
                    ,matVec,dot);
 /*...................................................................*/
@@ -1075,12 +1182,107 @@ void callGmres(INT const nEq     ,INT const nEqNov
            ,tol    ,maxIt
            ,newX   ,fSolvLog
            ,NULL   ,fLog
-           ,false  ,false
+           ,fLog   ,fPrint
            ,matVec ,dot);
     }
 /*...................................................................*/
   }
 /*...................................................................*/
 
+}
+/*********************************************************************/
+
+
+/**********************************************************************
+* Data de criacao    : 18/09/2017                                    *
+* Data de modificaco : 00/00/0000                                    *
+* -------------------------------------------------------------------*
+* CALLMINRES : chama o minres                                        *                   
+* -------------------------------------------------------------------*
+* Parametro de entrada                                               *
+* -------------------------------------------------------------------*
+* -------------------------------------------------------------------*
+* Parametro de saida :                                               *
+* -------------------------------------------------------------------*
+* -------------------------------------------------------------------*
+* OBS:                                                               *
+**********************************************************************/
+void callMinRes(INT const nEq     ,INT const nEqNov
+               ,INT const nAd     ,INT const nAdR
+               ,INT *RESTRICT ia  ,INT *RESTRICT ja
+               , DOUBLE *RESTRICT al, DOUBLE *RESTRICT ad
+	             , DOUBLE *RESTRICT m , DOUBLE *RESTRICT b
+               , DOUBLE *RESTRICT x , DOUBLE *RESTRICT v0
+               , DOUBLE *RESTRICT v , DOUBLE *RESTRICT w
+               , DOUBLE *RESTRICT w0, DOUBLE *RESTRICT w00
+               , DOUBLE *RESTRICT z , DOUBLE *RESTRICT z0
+               , DOUBLE *RESTRICT p
+               ,DOUBLE const tol  ,unsigned int maxIt
+               ,bool const newX   ,FILE* fSolvLog
+               ,bool const fLog   ,bool const fPrint
+               ,Interface *iNeq   ,BufferOmp *bOmp
+               ,void(*matVec)()   ,DOUBLE(*dot)())
+{
+
+/*... MPI*/
+  if (mpiVar.nPrcs > 1);
+/*  mpiPbicgstab(nEq, nEqNov
+                 , nAd, nAdR
+                 , ia, ja
+                 , a, ad
+                 , m, b
+                 , x, t
+                 , v, r
+                 , p, z
+                 , tol
+                 , maxIt, newX
+                 , fSolvLog, fLog
+                 , fPrint, iNeq
+                 , matVec, dot);  */
+/*...................................................................*/
+
+/*... */
+  else {
+/*... OpenMp*/
+    if (ompVar.fSolver) {
+/*    pbicgstabl2Omp(nEq   ,nAd
+                    ,ia    ,ja
+                    ,a     ,ad
+                    ,m     ,b
+                    ,x     ,t
+                    ,v     ,r
+                    ,u     ,r0
+                    ,w     ,s
+                    ,p     ,h
+                    ,z
+                    ,tol   ,maxIt
+                    ,newX  ,fSolvLog
+                    ,NULL  ,fLog
+                    ,false ,fPrint
+                    ,bOmp 
+                    ,matVec,dot);*/
+    }
+/*...................................................................*/
+
+/*... sequencial*/
+    else {
+      pminres(nEq   ,nAd
+             ,ia    ,ja
+             ,al    ,ad
+             ,m     ,b
+             ,x     ,v0
+             ,v     ,w
+             ,w0    ,w00
+             ,z     ,z0
+             ,p 
+             ,tol   ,maxIt
+             ,newX  ,fSolvLog
+             ,NULL  ,fLog
+             ,false ,fPrint
+             ,matVec,dot);  
+     }
+/*...................................................................*/
+  }
+/*...................................................................*/
 }
 /*********************************************************************/

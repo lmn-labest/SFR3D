@@ -62,6 +62,7 @@
     double pcg;
     double pbicgstab;
     double gmres;
+    double minres;
 /*... precondicionador*/
     double precondDiag;
 /*... particionamento*/

@@ -54,6 +54,7 @@ int main(int argc,char**argv){
   Turbulence turbModel;
 /*...*/
   EnergyModel eModel;
+  MassEqModel eMass;
 /*... propriedade variaveis*/
   PropVar propVarFluid;
 
@@ -134,6 +135,11 @@ int main(int argc,char**argv){
   eModel.fRes          = true;
   eModel.fTemperature  = false;
   eModel.fKelvin       = false;
+/*...................................................................*/
+
+/*...*/
+  eMass.RhsDensity = false;
+  eMass.LhsDensity = false;
 /*...................................................................*/
 
 /*... OpenMP*/
@@ -219,6 +225,7 @@ int main(int argc,char**argv){
   tm.pcg               = 0.e0;
   tm.pbicgstab         = 0.e0;
   tm.gmres             = 0.e0;
+  tm.minres            = 0.e0;
 /*... particionamento*/
   tm.partdMesh         = 0.e0;
   tm.partdMeshCom      = 0.e0;
@@ -2183,6 +2190,7 @@ int main(int argc,char**argv){
         simpleSolverLm(&m          , propVarFluid
                      , loadsVel    , loadsPres 
                      , loadsEnergy , eModel
+                     , eMass
                      , turbModel   , &thDynamic   
                      , mesh0       , mesh
                      , sistEqVel   , sistEqPres
@@ -2947,7 +2955,7 @@ int main(int argc,char**argv){
         printf("%s\n",DIF);
         printf("%s\n",word);
       }
-      readModel(&eModel,&turbModel,fileIn);
+      readModel(&eModel,&turbModel,&eMass,fileIn);
 /*...................................................................*/
       if(!mpiVar.myId ) printf("%s\n",DIF);
     }   

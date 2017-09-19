@@ -189,6 +189,7 @@
   #define PBICGSTAB    2
   #define PBICGSTABL2  3
   #define GMRES        4
+  #define MINRES       5
 /*...................................................................*/
 
 /*... STORAGE*/

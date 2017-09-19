@@ -16,6 +16,10 @@
   #include<OpenMp.h>
 /*...................................................................*/
   
+/*...*/
+  #define SING1(x) x > 0.0 ? 1.e0:-1.e0 
+/*...................................................................*/
+
 /*....*/
   typedef struct{
     DOUBLE            tol;
@@ -242,6 +246,54 @@
                     , FILE* fLog, bool const log
                     , bool const fPrint, Interface *iNeq
                     , void(*matvec)(), DOUBLE(*dot)());*/
+/*...................................................................*/
+
+/*...*/
+  void callMinRes(INT const nEq     , INT const nEqNov
+               , INT const nAd      , INT const nAdR
+               , INT *RESTRICT ia   , INT *RESTRICT ja
+               , DOUBLE *RESTRICT al, DOUBLE *RESTRICT ad
+	             , DOUBLE *RESTRICT m , DOUBLE *RESTRICT b
+               , DOUBLE *RESTRICT x , DOUBLE *RESTRICT v0
+               , DOUBLE *RESTRICT v , DOUBLE *RESTRICT w
+               , DOUBLE *RESTRICT w0, DOUBLE *RESTRICT w00
+               , DOUBLE *RESTRICT z , DOUBLE *RESTRICT z0
+               , DOUBLE *RESTRICT p
+               , DOUBLE const tol   , unsigned int maxIt
+               , bool const newX    , FILE* fSolvLog
+               , bool const fLog    , bool const fPrint
+               , Interface *iNeq    , BufferOmp *bOmp
+               , void(*matVec)()    , DOUBLE(*dot)());
+/*...*/
+  void minres(INT const nEq        , INT const nAd
+	        , INT *RESTRICT ia    , INT *RESTRICT ja
+	        , DOUBLE *RESTRICT al , DOUBLE *RESTRICT ad
+	        , DOUBLE *RESTRICT b  , DOUBLE *RESTRICT x 
+          , DOUBLE *RESTRICT v0 , DOUBLE *RESTRICT v
+          , DOUBLE *RESTRICT w  , DOUBLE *RESTRICT w0
+          , DOUBLE *RESTRICT w00, DOUBLE *RESTRICT z 
+          , DOUBLE *RESTRICT p
+	        , DOUBLE const tol   , unsigned int maxIt
+          , bool const newX    , FILE* fileLog   
+          , FILE *fileHistLog	, bool const log 
+          , bool const fHistLog, bool const fPrint
+	        , void(*matvec)()    , DOUBLE(*dot)());
+
+/*...*/
+  void pminres(INT const nEq    , INT const nAd
+	         , INT *RESTRICT ia   , INT *RESTRICT ja
+	         , DOUBLE *RESTRICT al, DOUBLE *RESTRICT ad
+	         , DOUBLE *RESTRICT m , DOUBLE *RESTRICT b
+           , DOUBLE *RESTRICT x , DOUBLE *RESTRICT v0
+           , DOUBLE *RESTRICT v , DOUBLE *RESTRICT w
+           , DOUBLE *RESTRICT w0, DOUBLE *RESTRICT w00
+           , DOUBLE *RESTRICT z , DOUBLE *RESTRICT z0
+           , DOUBLE *RESTRICT p
+	         , DOUBLE const tol   , unsigned int maxIt
+           , bool const newX    , FILE* fileLog   
+           , FILE *fileHistLog	, bool const log 
+           , bool const fHistLog, bool const fPrint
+	         , void(*matvec)()    , DOUBLE(*dot)());
 /*...................................................................*/
 
 /*...*/
