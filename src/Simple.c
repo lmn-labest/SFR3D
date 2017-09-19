@@ -622,7 +622,7 @@ void simpleSolver3D(Memoria *m
 
 /*********************************************************************
 * Data de criacao    : 21/08/2017                                   *
-* Data de modificaco : 10/09/2017                                   *
+* Data de modificaco : 19/09/2017                                   *
 *-------------------------------------------------------------------*
 * SIMPLESOLVERENERGY: metodo simple e simpleC para escoamentos      * 
 * 2D/3D termo ativados                                              *
@@ -638,6 +638,7 @@ void simpleSolver3D(Memoria *m
 void simpleSolverLm(Memoria *m          ,PropVar prop     
                    ,Loads *loadsVel     ,Loads *loadsPres
                    ,Loads *loadsEnergy  ,EnergyModel eModel
+                   ,MassEqModel eMass   ,MomentumModel eMomentum
                    ,Turbulence turbModel,ThermoDynamic *thDynamic
                    ,Mesh *mesh0         ,Mesh *mesh
                    ,SistEq *sistEqVel   ,SistEq *sistEqPres
@@ -878,38 +879,39 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 
 /*... montagem do sistema u, v e w*/
     tm.systFormVel = getTimeC() - tm.systFormVel;
-    systFormSimpleVelLm(loadsVel              , loadsPres,
-                       sc.advVel              , sc.diffVel,
-                       turbModel              , sp->type,
-                       mesh->elm.node         , mesh->elm.adj.nelcon,
-                       mesh->elm.nen          , mesh->elm.adj.nViz,
-                       mesh->elm.geomType     , mesh->elm.material.prop,
-                       mesh->elm.material.type, mesh->elm.mat,
-                       mesh->elm.geom.cc      , mesh->elm.geom.ksi,
-                       mesh->elm.geom.mksi    , mesh->elm.geom.eta,    
-                       mesh->elm.geom.fArea   , mesh->elm.geom.normal,
-                       mesh->elm.geom.volume  , mesh->elm.geom.xm,    
-                       mesh->elm.geom.xmcc    , mesh->elm.geom.vSkew,   
-                       mesh->elm.geom.mvSkew  , mesh->elm.geom.dcca,    
-                       sistEqVel->ia          , sistEqVel->ja,
-                       sistEqVel->al          , sistEqVel->ad,
-                       sistEqVel->b           , sistEqVel->id,
-                       mesh->elm.faceRvel     , mesh->elm.faceLoadVel,
-                       mesh->elm.faceRpres    , mesh->elm.faceLoadPres,
-                       mesh->elm.pressure     , mesh->elm.gradPres,
-                       mesh->elm.vel          , mesh->elm.gradVel,
-                       sp->d                  , sp->alphaVel,
-                       mesh->elm.rCellVel,      
-                       mesh->elm.densityFluid , mesh->elm.dViscosity, 
-                       mesh->elm.eddyViscosity, sc.ddt,
-                       sistEqVel->neq         , sistEqVel->neqNov,
-                       sistEqVel->nad         , sistEqVel->nadr,
-                       mesh->maxNo            , mesh->maxViz,
-                       mesh->ndm              , mesh->numelNov,
-                       ndfVel                 , sistEqVel->storage,
-                       true                   , true,
-                       true                   , sistEqVel->unsym,
-                       sp->sPressure);
+    systFormSimpleVelLm(loadsVel              , loadsPres 
+                     , sc.advVel              , sc.diffVel 
+                     , turbModel              , eMomentum
+                     , sp->type 
+                     , mesh->elm.node         , mesh->elm.adj.nelcon 
+                     , mesh->elm.nen          , mesh->elm.adj.nViz 
+                     , mesh->elm.geomType     , mesh->elm.material.prop 
+                     , mesh->elm.material.type, mesh->elm.mat 
+                     , mesh->elm.geom.cc      , mesh->elm.geom.ksi 
+                     , mesh->elm.geom.mksi    , mesh->elm.geom.eta     
+                     , mesh->elm.geom.fArea   , mesh->elm.geom.normal 
+                     , mesh->elm.geom.volume  , mesh->elm.geom.xm     
+                     , mesh->elm.geom.xmcc    , mesh->elm.geom.vSkew    
+                     , mesh->elm.geom.mvSkew  , mesh->elm.geom.dcca     
+                     , sistEqVel->ia          , sistEqVel->ja 
+                     , sistEqVel->al          , sistEqVel->ad 
+                     , sistEqVel->b           , sistEqVel->id 
+                     , mesh->elm.faceRvel     , mesh->elm.faceLoadVel 
+                     , mesh->elm.faceRpres    , mesh->elm.faceLoadPres 
+                     , mesh->elm.pressure     , mesh->elm.gradPres 
+                     , mesh->elm.vel          , mesh->elm.gradVel 
+                     , sp->d                  , sp->alphaVel 
+                     , mesh->elm.rCellVel       
+                     , mesh->elm.densityFluid , mesh->elm.dViscosity  
+                     , mesh->elm.eddyViscosity, sc.ddt 
+                     , sistEqVel->neq         , sistEqVel->neqNov 
+                     , sistEqVel->nad         , sistEqVel->nadr 
+                     , mesh->maxNo            , mesh->maxViz 
+                     , mesh->ndm              , mesh->numelNov 
+                     , ndfVel                 , sistEqVel->storage 
+                     , true                   , true 
+                     , true                   , sistEqVel->unsym 
+                     , sp->sPressure);
     tm.systFormVel = getTimeC() - tm.systFormVel;
 /*...................................................................*/
 
@@ -1013,7 +1015,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
     updateCellSimpleVelR(mesh->elm.vel ,xu1
                         ,xu2           ,xu3
                         ,sistEqVel->id ,mesh->numelNov
-                        ,mesh->ndm);
+                        ,eMomentum.fRes,mesh->ndm);
 /*...................................................................*/
 
 /*...*/
@@ -1021,8 +1023,8 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 
 /*... montagem do sistema  da pressao de correca*/
     tm.systFormPres = getTimeC() - tm.systFormPres;
-    systFormSimplePresLm(loadsVel               ,loadsPresC
-                      ,sc.diffPres
+    systFormSimplePresLm(loadsVel             ,loadsPresC
+                      ,sc.diffPres            ,eMass
                       ,mesh->elm.node         ,mesh->elm.adj.nelcon
                       ,mesh->elm.nen          ,mesh->elm.adj.nViz
                       ,mesh->elm.geomType     ,mesh->elm.material.prop
@@ -1040,6 +1042,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                       ,mesh->elm.faceRpres    ,mesh->elm.faceLoadPres
                       ,mesh->elm.pressure     ,mesh->elm.gradPres
                       ,mesh->elm.vel          ,sp->d
+                      ,mesh->elm.pressure
                       ,rCellPc                ,sc.ddt
                       ,sistEqPres->neq        ,sistEqPres->neqNov
                       ,sistEqPres->nad        ,sistEqPres->nadr

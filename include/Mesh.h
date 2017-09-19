@@ -48,9 +48,16 @@
 
 /*...*/
   typedef struct{
-    bool        fRes;
-    short   buoyancy;
-    short typeSimple;
+    bool RhsDensity;
+    bool LhsDensity;
+  }MassEqModel;
+/*...................................................................*/
+
+/*...*/
+  typedef struct{    
+    bool fRes;
+    bool fRhieChowInt;
+    bool fAbsultePressure; 
   }MomentumModel;
 /*...................................................................*/
 

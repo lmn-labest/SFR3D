@@ -30,6 +30,7 @@
   void simpleSolverLm(Memoria *m          , PropVar prop
                     , Loads *loadsVel     , Loads *loadsPres 
                     , Loads *loadsEnergy  , EnergyModel eModel
+                    , MassEqModel eMass   , MomentumModel eMomentum
                     , Turbulence turbModel, ThermoDynamic *thDynamic
                     , Mesh *mesh0         , Mesh *mesh
                     , SistEq *sistEqVel   , SistEq *sistEqPres

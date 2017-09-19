@@ -16,6 +16,7 @@
   #include<ParallelMpi.h>
   #include<Loads.h>
   #include<Turbulence.h>
+  #include<Properties.h>
 /*...................................................................*/
 
 /*...*/
@@ -188,68 +189,70 @@
 /*...................................................................*/
 
 /* ... montagem do sistemas de equacoes (Simple - VEl - low mach)*/
-  void systFormSimpleVelLm(Loads *loadsVel,Loads *loadsPres 
-      ,Advection advVel               ,Diffusion diffVel  
-      ,Turbulence tModel              ,short const typeSimple              
-      ,INT    *RESTRICT el            ,INT    *RESTRICT nelcon 
-      ,short  *RESTRICT nen           ,short  *RESTRICT nFace
-      ,short  *RESTRICT geomType      ,DOUBLE *RESTRICT prop 
-      ,short  *RESTRICT calType       ,short  *RESTRICT mat  
-      ,DOUBLE *RESTRICT gCc           ,DOUBLE *RESTRICT gKsi     
-      ,DOUBLE *RESTRICT gmKsi         ,DOUBLE *RESTRICT gEta     
-      ,DOUBLE *RESTRICT gfArea        ,DOUBLE *RESTRICT gNormal 
-      ,DOUBLE *RESTRICT gVolume       ,DOUBLE *RESTRICT gXm      
-      ,DOUBLE *RESTRICT gXmcc         ,DOUBLE *RESTRICT gvSkew   
-      ,DOUBLE *RESTRICT gmvSkew       ,DOUBLE *RESTRICT gDcca    
-      ,INT    *RESTRICT ia            ,INT    *RESTRICT ja
-      ,DOUBLE *RESTRICT al            ,DOUBLE *RESTRICT ad
-      ,DOUBLE *RESTRICT b             ,INT    *RESTRICT id 
-      ,short  *RESTRICT faceVelR      ,short  *RESTRICT faceVelL 
-      ,short  *RESTRICT facePresR     ,short  *RESTRICT facePresL 
-      ,DOUBLE *RESTRICT pres          ,DOUBLE *RESTRICT gradPres
-      ,DOUBLE *RESTRICT vel           ,DOUBLE *RESTRICT gradVel
-      ,DOUBLE *RESTRICT dField        ,DOUBLE const underU
-      ,DOUBLE *RESTRICT rCell  
-      ,DOUBLE *RESTRICT density       ,DOUBLE *RESTRICT dViscosity   
-       ,DOUBLE *RESTRICT eddyViscosity
-      ,Temporal const ddt
-      ,INT const nEq                  ,INT const nEqNov
-      ,INT const nAd                  ,INT const nAdR 
-      ,short const maxNo              ,short const maxViz
-      ,short const ndm                ,INT const numel
-      ,short const ndf                ,short const storage
-      ,bool const forces              ,bool const matrix 
-      ,bool const calRcell            ,bool const unsym
-      ,const bool sPressure);  
+  void systFormSimpleVelLm(Loads *loadsVel, Loads *loadsPres 
+      , Advection advVel               , Diffusion diffVel  
+      , Turbulence tModel              , MomentumModel eMomentum
+      , short const typeSimple              
+      , INT    *RESTRICT el            , INT    *RESTRICT nelcon 
+      , short  *RESTRICT nen           , short  *RESTRICT nFace
+      , short  *RESTRICT geomType      , DOUBLE *RESTRICT prop 
+      , short  *RESTRICT calType       , short  *RESTRICT mat  
+      , DOUBLE *RESTRICT gCc           , DOUBLE *RESTRICT gKsi     
+      , DOUBLE *RESTRICT gmKsi         , DOUBLE *RESTRICT gEta     
+      , DOUBLE *RESTRICT gfArea        , DOUBLE *RESTRICT gNormal 
+      , DOUBLE *RESTRICT gVolume       , DOUBLE *RESTRICT gXm      
+      , DOUBLE *RESTRICT gXmcc         , DOUBLE *RESTRICT gvSkew   
+      , DOUBLE *RESTRICT gmvSkew       , DOUBLE *RESTRICT gDcca    
+      , INT    *RESTRICT ia            , INT    *RESTRICT ja
+      , DOUBLE *RESTRICT al            , DOUBLE *RESTRICT ad
+      , DOUBLE *RESTRICT b             , INT    *RESTRICT id 
+      , short  *RESTRICT faceVelR      , short  *RESTRICT faceVelL 
+      , short  *RESTRICT facePresR     , short  *RESTRICT facePresL 
+      , DOUBLE *RESTRICT pres          , DOUBLE *RESTRICT gradPres
+      , DOUBLE *RESTRICT vel           , DOUBLE *RESTRICT gradVel
+      , DOUBLE *RESTRICT dField        , DOUBLE const underU
+      , DOUBLE *RESTRICT rCell           
+      , DOUBLE *RESTRICT density       , DOUBLE *RESTRICT dViscosity   
+      , DOUBLE *RESTRICT eddyViscosity  
+      , Temporal const ddt               
+      , INT const nEq                  , INT const nEqNov
+      , INT const nAd                  , INT const nAdR 
+      , short const maxNo              , short const maxViz
+      , short const ndm                , INT const numel
+      , short const ndf                , short const storage
+      , bool const forces              , bool const matrix 
+      , bool const calRcell            , bool const unsym
+      , const bool sPressure);  
 
 /* ... montagem do sistemas de equacoes (Simple - Pres)*/
-  void systFormSimplePresLm(Loads *loadsVel  ,Loads *loadsPres 
-							 ,Diffusion diffPres
-               ,INT    *RESTRICT el      ,INT    *RESTRICT nelcon 
-               ,short  *RESTRICT nen     ,short  *RESTRICT nFace
-               ,short  *RESTRICT geomType,DOUBLE *RESTRICT prop 
-               ,short  *RESTRICT calType ,short  *RESTRICT mat     
-               ,DOUBLE *RESTRICT gKsi    ,DOUBLE *RESTRICT gmKsi 
-               ,DOUBLE *RESTRICT gEta    ,DOUBLE *RESTRICT gfArea 
-               ,DOUBLE *RESTRICT gNormal ,DOUBLE *RESTRICT gVolume
-               ,DOUBLE *RESTRICT gXm     ,DOUBLE *RESTRICT gXmcc 
-               ,DOUBLE *RESTRICT gvSkew  ,DOUBLE *RESTRICT gmvSkew 
-               ,DOUBLE *RESTRICT gDcca   ,DOUBLE *RESTRICT density
-               ,INT    *RESTRICT ia      ,INT    *RESTRICT ja
-               ,DOUBLE *RESTRICT a       ,DOUBLE *RESTRICT ad 
-               ,DOUBLE *RESTRICT b       ,INT    *RESTRICT id
-               ,short  *RESTRICT faceVelR ,short  *RESTRICT faceVelL       
-               ,short  *RESTRICT facePresR,short  *RESTRICT facePresL      
-               ,DOUBLE *RESTRICT pres    ,DOUBLE *RESTRICT gradPres
-               ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT dField    
-               ,DOUBLE *RESTRICT rCell   ,Temporal const ddt 
-               ,INT const nEq            ,INT const nEqNov
-               ,INT const nAd            ,INT const nAdR                  
-               ,short const maxNo        ,short const maxViz
-               ,short const ndm          ,INT const numel
-               ,short const ndf          ,short const storage
-               ,bool  const forces       ,bool const matrix 
-               ,bool const calRcell      ,bool  const  unsym); 
+  void systFormSimplePresLm(Loads *loadsVel, Loads *loadsPres 
+							 , Diffusion diffPres        , MassEqModel eMass  
+               , INT    *RESTRICT el       , INT    *RESTRICT nelcon 
+               , short  *RESTRICT nen      , short  *RESTRICT nFace
+               , short  *RESTRICT geomType , DOUBLE *RESTRICT prop 
+               , short  *RESTRICT calType  , short  *RESTRICT mat     
+               , DOUBLE *RESTRICT gKsi     , DOUBLE *RESTRICT gmKsi 
+               , DOUBLE *RESTRICT gEta     , DOUBLE *RESTRICT gfArea 
+               , DOUBLE *RESTRICT gNormal  , DOUBLE *RESTRICT gVolume
+               , DOUBLE *RESTRICT gXm      , DOUBLE *RESTRICT gXmcc 
+               , DOUBLE *RESTRICT gvSkew   , DOUBLE *RESTRICT gmvSkew 
+               , DOUBLE *RESTRICT gDcca    , DOUBLE *RESTRICT density
+               , INT    *RESTRICT ia       , INT    *RESTRICT ja
+               , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad 
+               , DOUBLE *RESTRICT b        , INT    *RESTRICT id
+               , short  *RESTRICT faceVelR , short  *RESTRICT faceVelL       
+               , short  *RESTRICT facePresR, short  *RESTRICT facePresL      
+               , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
+               , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT dField   
+               , DOUBLE *RESTRICT temp       
+               , DOUBLE *RESTRICT rCell    , Temporal const ddt 
+               , INT const nEq             , INT const nEqNov
+               , INT const nAd             , INT const nAdR                  
+               , short const maxNo         , short const maxViz
+               , short const ndm           , INT const numel
+               , short const ndf           , short const storage
+               , bool  const forces        , bool const matrix 
+               , bool const calRcell       , bool  const  unsym); 
 /*...................................................................*/
 
 
@@ -345,7 +348,7 @@
 
 /* ... montagem do sistemas de equacoes (Simple - Pres)*/
   void systFormSimplePres(Loads *loadsVel,Loads *loadsPres 
-						 ,Diffusion diffPres
+						 ,Diffusion diffPres      
              ,INT    *RESTRICT el      ,INT    *RESTRICT nelcon 
              ,short  *RESTRICT nen     ,short  *RESTRICT nFace
              ,short  *RESTRICT geomType,DOUBLE *RESTRICT prop 
@@ -532,32 +535,33 @@
 
 /*.......................... SIMPLE-LM ..............................*/
 /*... chamada da biblioteca de elementos (escoamento-vel-Low Mach)*/
-  void cellLibSimpleVelLm(Loads *loadsVel, Loads *loadsPres,
-              Advection  advVel          , Diffusion diffVel, 
-              Turbulence tModel          , short const typeSimple,       
-              short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop,
-              INT   *RESTRICT lViz       , INT *RESTRICT lId,
-              DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi,
-              DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea,
-              DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume,
-              DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc,
-              DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc,
-              DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew,
-              DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB,
-              DOUBLE *RESTRICT lRcell    , Temporal const ddt,
-              short  *RESTRICT lFaceVelR , short  *RESTRICT lFaceVelL,
-              short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL,
-              DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres, 
-              DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel,
-              DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lViscosity,
-              DOUBLE *RESTRICT dField    ,      
-              DOUBLE const underU        , const bool sPressure,
-              short const nEn            , short  const nFace,
-              short const ndm            , short const lib,
-              INT const nel);
+  void cellLibSimpleVelLm(Loads *loadsVel, Loads *loadsPres
+            , Advection  advVel          , Diffusion diffVel 
+            , Turbulence tModel          , MomentumModel eMomentum
+            , short const typeSimple       
+            , short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop
+            , INT   *RESTRICT lViz       , INT *RESTRICT lId
+            , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
+            , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea
+            , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume
+            , DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc
+            , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc
+            , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
+            , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
+            , DOUBLE *RESTRICT lRcell    , Temporal const ddt
+            , short  *RESTRICT lFaceVelR , short  *RESTRICT lFaceVelL
+            , short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL
+            , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres 
+            , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel
+            , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lViscosity
+            , DOUBLE *RESTRICT dField          
+            , DOUBLE const underU        , const bool sPressure
+            , short const nEn            , short  const nFace
+            , short const ndm            , short const lib
+            , INT const nel);
 /*... chamada da biblioteca de elementos (escoamento-pres-Low Mach)*/
-  void cellLibSimplePresLm(Loads *loadsVel   , Loads *loadsPres
-	             , Diffusion diffPres           
+  void cellLibSimplePresLm(Loads *loadsVel  , Loads *loadsPres
+	             , Diffusion diffPres         , MassEqModel eMass    
                , short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop
                , INT   *RESTRICT lViz       , INT *RESTRICT lId  
                , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
@@ -572,6 +576,7 @@
                , short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL
                , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres 
                , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField 
+               , DOUBLE *RESTRICT temp 
                , short const nEn            , short  const nFace     
                , short const ndm            , short const lib    
                , INT const nel);
@@ -949,8 +954,9 @@
 /*... biblioteca de celulas (simple - vel - levemente compressivel)*/
  /*... biblioteca de celulas (simple - vel - low mach)*/
   void cellSimpleVel2DLm(Loads *loadsVel , Loads *loadsPres  
-           , Advection advVel           , Diffusion diffVel 
-           , Turbulence tModel          , short const typeSimple      
+           , Advection advVel           , Diffusion diffVel
+           , Turbulence tModel          , MomentumModel eMomentum
+           , short const typeSimple      
            , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop 
            , INT *RESTRICT lViz         , INT *RESTRICT lId 
            , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi 
@@ -972,7 +978,7 @@
            , const short ndm            , INT const nel);
 
   void cellSimplePres2DLm(Loads *loadsVel, Loads *loadsPres 
-					 , Diffusion diffPres	
+					 , Diffusion diffPres        	, MassEqModel eMass
            , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop
            , INT *RESTRICT lViz         , INT *RESTRICT lId  
            , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
@@ -987,6 +993,7 @@
            , short  *RESTRICT lFacePresR, short *RESTRICT lFacePresL
            , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres 
            , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField  
+           , DOUBLE *RESTRICT temp
            , const short nEn            , short const nFace    
            , const short ndm            , INT const nel);
 /*...................................................................*/

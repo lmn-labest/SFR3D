@@ -564,6 +564,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       tmp = (densityC - densityC0)/dt;
       if( fRhsDensity) p  -= tmp*area[idCell];
 /*...*/
+      tempC = CELSIUS_FOR_KELVIN(tempC);
       tmp1 = 1.e0/(IDEALGASR*tempC);
       if( fLhsDensity) sP += tmp1*area[idCell]/dt;
     } 
@@ -576,6 +577,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       tmp1 = tmp*densityC + tmp0*densityC0 + tmp00*densityC00; 
       if( fRhsDensity) p -= tmp1*area[idCell];
 /*...*/
+      tempC = CELSIUS_FOR_KELVIN(tempC);
       tmp1 = 1.e0/(IDEALGASR*tempC);
       if( fLhsDensity) sP += tmp*area[idCell];
     }

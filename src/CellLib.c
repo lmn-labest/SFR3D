@@ -405,7 +405,7 @@ void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
 
 /*********************************************************************
  * Data de criacao    : 27/08/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 19/09/2017                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEVEl: chamada de bibliotecas de celulas para          *
  * problema de escoamento de fluidos (VEL -low mach)                 *
@@ -416,6 +416,7 @@ void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
  * loadsPres -> definicoes de cargas de pressao                      *
  * advVel    -> tecnica da discretizacao do termo advecao            *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
+ * eMomentum -> termos/modelos da equacao de momento linear          *
  * typeSimple-> tipo do metodo simple                                *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
  * lprop     -> propriedade fisicas das celulas                      *
@@ -467,57 +468,59 @@ void cellLibSimpleVel(Loads *loadsVel    ,Loads *loadsPres
  * lB        -> vetor de forca da linha i                            *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void cellLibSimpleVelLm(Loads *loadsVel , Loads *loadsPres,
-             Advection  advVel          , Diffusion diffVel,    
-             Turbulence tModel          , short const typeSimple,
-             short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop,
-             INT   *RESTRICT lViz       , INT *RESTRICT lId,  
-             DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi,
-             DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea,
-             DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume,
-             DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc,
-             DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc,
-             DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew,
-             DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB,
-             DOUBLE *RESTRICT lRcell    , Temporal const ddt,
-             short  *RESTRICT lFaceVelR , short  *RESTRICT lFaceVelL,
-             short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL,
-             DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres, 
-             DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel,
-             DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lViscosity,
-             DOUBLE *RESTRICT dField,      
-             DOUBLE const underU        , const bool sPressure,
-             short const nEn            , short  const nFace,
-             short const ndm            , short const lib,
-             INT const nel)
+void cellLibSimpleVelLm(Loads *loadsVel , Loads *loadsPres
+           , Advection  advVel          , Diffusion diffVel    
+           , Turbulence tModel          , MomentumModel eMomentum
+           , short const typeSimple 
+           , short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop 
+           , INT   *RESTRICT lViz       , INT *RESTRICT lId   
+           , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi 
+           , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea 
+           , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume 
+           , DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc 
+           , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc 
+           , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew 
+           , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB 
+           , DOUBLE *RESTRICT lRcell    , Temporal const ddt 
+           , short  *RESTRICT lFaceVelR , short  *RESTRICT lFaceVelL 
+           , short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL 
+           , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres  
+           , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel 
+           , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lViscosity 
+           , DOUBLE *RESTRICT dField       
+           , DOUBLE const underU        , const bool sPressure 
+           , short const nEn            , short  const nFace 
+           , short const ndm            , short const lib 
+           , INT const nel)
 {
 
 /*... */
   if(lib == 1){
 /*... 2D*/
     if(ndm == 2){
-      cellSimpleVel2DLm(loadsVel  , loadsPres,   
-                       advVel     , diffVel,
-                       tModel     , typeSimple,  
-                       lGeomType  , lprop,
-                       lViz       , lId,
-                       ksi        , mKsi,
-                       eta        , fArea,
-                       normal     , volume,
-                       xm         , xmcc,
-                       dcca       , cc,
-                       vSkew      , mvSkew,
-                       lA         , lB,
-                       lRcell     , ddt, 
-                       lFaceVelR  , lFaceVelL,
-                       lFacePresR , lFacePresL,
-                       pres       , gradPres, 
-                       vel        , gradVel,
-                       lDensity   , lViscosity,
-                       dField,       
-                       underU     , sPressure,
-                       nEn        , nFace, 
-                       ndm        , nel);  
+      cellSimpleVel2DLm(loadsVel  , loadsPres    
+                     , advVel     , diffVel 
+                     , tModel     , eMomentum
+                     , typeSimple   
+                     , lGeomType  , lprop 
+                     , lViz       , lId 
+                     , ksi        , mKsi 
+                     , eta        , fArea 
+                     , normal     , volume 
+                     , xm         , xmcc 
+                     , dcca       , cc 
+                     , vSkew      , mvSkew 
+                     , lA         , lB 
+                     , lRcell     , ddt  
+                     , lFaceVelR  , lFaceVelL 
+                     , lFacePresR , lFacePresL 
+                     , pres       , gradPres  
+                     , vel        , gradVel 
+                     , lDensity   , lViscosity 
+                     , dField        
+                     , underU     , sPressure 
+                     , nEn        , nFace  
+                     , ndm        , nel);  
     }
 /*..................................................................*/
 
@@ -693,6 +696,7 @@ void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres
  * loadsVel  -> definicoes de cargas de velocidades                  *
  * loadsPres -> definicoes de cargas de pressao                      *
  * diffPres  -> tecnica da discretizacao do termo difusivo           *
+ * eMass     -> termos/modelos da equacao de mass                    *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
  * lprop     -> propriedade fisicas das celulas                      *
  * lViz      -> viznhos da celula central                            *
@@ -738,8 +742,8 @@ void cellLibSimplePres(Loads *loadsVel    ,Loads *loadsPres
  * lB        -> vetor de forca da linha i                            *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void cellLibSimplePresLm(Loads *loadsVel   , Loads *loadsPres
-	             , Diffusion diffPres           
+void cellLibSimplePresLm(Loads *loadsVel    , Loads *loadsPres
+	             , Diffusion diffPres         , MassEqModel eMass  
                , short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop
                , INT   *RESTRICT lViz       , INT *RESTRICT lId  
                , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
@@ -754,6 +758,7 @@ void cellLibSimplePresLm(Loads *loadsVel   , Loads *loadsPres
                , short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL
                , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres 
                , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField 
+               , DOUBLE *RESTRICT temp
                , short const nEn            , short  const nFace     
                , short const ndm            , short const lib    
                , INT const nel)
@@ -764,7 +769,7 @@ void cellLibSimplePresLm(Loads *loadsVel   , Loads *loadsPres
 /*... 2D*/
     if(ndm == 2){
       cellSimplePres2DLm(loadsVel, loadsPres
-								 , diffPres	  
+								 , diffPres	 , eMass 
                  , lGeomType , lprop
                  , lViz      , lId
                  , ksi       , mKsi
@@ -779,6 +784,7 @@ void cellLibSimplePresLm(Loads *loadsVel   , Loads *loadsPres
                  , lFacePresR, lFacePresL
                  , pres      , gradPres 
                  , vel       , dField
+                 , temp
                  , nEn       , nFace  
                  , ndm       , nel);  
     }

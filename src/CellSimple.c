@@ -549,7 +549,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 
 /*********************************************************************
 * Data de criacao    : 20/08/2017                                   *
-* Data de modificaco : 12/09/2017                                   *
+* Data de modificaco : 19/09/2017                                   *
 *-------------------------------------------------------------------*
 * CELLSIMPLEVEL2DLM: Celula 2D para velocidade do metodo simple     *
 * em escoamento levemento compressivel (Low Mach)                   *
@@ -561,6 +561,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 * advVel    -> tecnica da discretizacao do termo advecao            *
 * diffVel   -> tecnica da discretizacao do termo difusivo           *
 * tModel    -> modelo de turbulencia                                *
+* eMomentum -> termos/modelos da equacao de momento linear          *
 * typeSimple-> tipo do metodo simple                                *
 * lnFace    -> numero de faces da celula central e seus vizinhos    *
 * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
@@ -634,7 +635,8 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 *********************************************************************/
 void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres 
             , Advection advVel           , Diffusion diffVel 
-            , Turbulence tModel          , short const typeSimple      
+            , Turbulence tModel          , MomentumModel eMomentum
+            , short const typeSimple      
             , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop 
             , INT *RESTRICT lViz         , INT *RESTRICT lId 
             , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi 
@@ -661,8 +663,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
 /*...*/
   short idCell = nFace;
   short nAresta, nCarg, typeTime;
-  bool fTime, fAbsultePressure = false, fRes = true,
-       fTurb = tModel.fTurb, fGradRo = false;
+  bool fTime, fAbsultePressure, fRes, fTurb, fRhieInt;
   INT vizNel;
   DOUBLE viscosityC, viscosityV, viscosity, 
          eddyViscosityC, eddyViscosityV, effViscosityC, effViscosityV,
@@ -690,9 +691,16 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
   dt        = ddt.dt[0];  
   dt0       = ddt.dt[1];
   typeTime  = ddt.type;
-  fTime     = ddt.flag;  
-  g[0]      = gravity[0];
-  g[1]      = gravity[1];
+  fTime      = ddt.flag;
+/*...................................................................*/
+
+/*...*/  
+  fTurb            = tModel.fTurb;
+  fRhieInt         = eMomentum.fRhieChowInt;  
+  fRes             = eMomentum.fRes;
+  fAbsultePressure = eMomentum.fAbsultePressure;
+  g[0]             = gravity[0];
+  g[1]             = gravity[1];
 /*...................................................................*/
 
 /*... propriedades da celula*/
@@ -720,6 +728,8 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
   gradPresC[1] = MAT2D(idCell, 1, gradPres, ndm);
   dFieldC[0]   = MAT2D(idCell, 0, dField, 2); 
   dFieldC[1]   = MAT2D(idCell, 1, dField, 2);
+  dFieldF[0] = dFieldF[0]  = 0.e0;
+  wf[0] = wf[1] = 0.e0;
 /*...................................................................*/
   sP = 0.0e0;
   p[0] = p[1] = 0.0e0;
@@ -811,22 +821,26 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
       gf[1][0] = alphaMenosUm*gradVelC[1][0] + alpha*gradVelV[1][0];
       gf[1][1] = alphaMenosUm*gradVelC[1][1] + alpha*gradVelV[1][1];
 /*...*/
-      wf[0]      = alphaMenosUm*velC[0] + alpha*velV[0];
-      wf[1]      = alphaMenosUm*velC[1] + alpha*velV[1];
-//    dFieldF[0] = alphaMenosUm*dFieldC[0] + alpha*dFieldV[0];
-//    dFieldF[1] = alphaMenosUm*dFieldC[1] + alpha*dFieldV[1];
       density = alphaMenosUm*densityC + alpha*densityV;
 /*...................................................................*/
 
 /*... velocidade normal a face*/
-      wfn = wf[0]*lNormal[0] + wf[1]*lNormal[1];
-/*    wfn = interpolFaceVel(velC         ,velV
-                           ,presC        ,presV
-                           ,gradPresC    ,gradPresV
-                           ,lNormal      ,lKsi
-                           ,lModKsi      ,dFieldF
-                           ,alphaMenosUm ,alpha
-                           ,ndm); */
+      if(fRhieInt) {
+        dFieldF[0] = alphaMenosUm*dFieldC[0] + alpha*dFieldV[0];
+        dFieldF[1] = alphaMenosUm*dFieldC[1] + alpha*dFieldV[1];
+        wfn = interpolFaceVel(velC         ,velV
+                             ,presC        ,presV
+                            ,gradPresC    ,gradPresV
+                            ,lNormal      ,lKsi
+                            ,lModKsi      ,dFieldF
+                            ,alphaMenosUm ,alpha
+                            ,ndm);
+      }
+      else {
+        wf[0]      = alphaMenosUm*velC[0] + alpha*velV[0];
+        wf[1]      = alphaMenosUm*velC[1] + alpha*velV[1];
+        wfn      = wf[0]*lNormal[0] + wf[1]*lNormal[1];
+      }     
 /*...................................................................*/
 
 /*... derivadas direcionais*/
@@ -885,14 +899,6 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
       p[1] += dfdc[1] - cv*cvc[1];
 /*...................................................................*/
 
-/*... gradiente da massa especifica */
-      if(fGradRo){
-        tmp = density*lModEta;
-        gradRo[0] +=  tmp*lNormal[0];
-        gradRo[1] +=  tmp*lNormal[1];
-      }
-/*...................................................................*/
-
 /*... gradiente da pressao com resconstrucao de segunda ordem
       (forma conservativa)*/
       if (sPressure) {
@@ -944,14 +950,6 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
       tmp = D2DIV3*aP*(gradVelC[0][0] + gradVelC[1][1]);
       p[0] -= tmp*lNormal[0];
       p[1] -= tmp*lNormal[1];
-/*...................................................................*/
-
-/*... gradiente da massa especifica */
-      if(fGradRo){
-        tmp = densityC*lModEta;
-        gradRo[0] += tmp*lNormal[0];
-        gradRo[1] += tmp*lNormal[1];
-      }
 /*...................................................................*/
 
 /*...*/
@@ -1017,16 +1015,6 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
     tmp   = densityC*area[idCell];
     p[0] += tmp*g[0];
     p[1] += tmp*g[1];
-  }
-  else if (fGradRo) {
-    ccV[0] = MAT2D(idCell,0,cc,ndm);
-    ccV[1] = MAT2D(idCell,1,cc,ndm);
-    tmp = ccV[0]*g[0] + ccV[1]*g[1];
-    if( nel == 9899 || nel == 9799){
-       printf("nel %d %lf %lf %lf %lf\n",nel,densityC,tmp,gradRo[1],p[1]);
-    }
-    p[0] -= tmp*gradRo[0];
-    p[1] -= tmp*gradRo[1];
   }
   else {
     tmp   = (densityC-densityRef)*area[idCell];  

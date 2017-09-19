@@ -55,6 +55,7 @@ int main(int argc,char**argv){
 /*...*/
   EnergyModel eModel;
   MassEqModel eMass;
+  MomentumModel eMomentum;
 /*... propriedade variaveis*/
   PropVar propVarFluid;
 
@@ -135,6 +136,12 @@ int main(int argc,char**argv){
   eModel.fRes          = true;
   eModel.fTemperature  = false;
   eModel.fKelvin       = false;
+/*...................................................................*/
+
+/*...*/
+  eMomentum.fRes             = true;
+  eMomentum.fRhieChowInt     = false;
+  eMomentum.fAbsultePressure = false;
 /*...................................................................*/
 
 /*...*/
@@ -531,7 +538,7 @@ int main(int argc,char**argv){
 /*      hPres(mesh->elm.pressure0   , mesh->elm.pressure
             , mesh->elm.densityFluid, mesh->elm.geom.cc
             , gravity               , mesh->xRef
-            , mesh->numel           , mesh->ndm );*/
+            , mesh->numel           , mesh->ndm );    */
 /*...................................................................*/
       }
 /*...................................................................*/  
@@ -2190,7 +2197,7 @@ int main(int argc,char**argv){
         simpleSolverLm(&m          , propVarFluid
                      , loadsVel    , loadsPres 
                      , loadsEnergy , eModel
-                     , eMass
+                     , eMass       , eMomentum
                      , turbModel   , &thDynamic   
                      , mesh0       , mesh
                      , sistEqVel   , sistEqPres
@@ -2955,7 +2962,9 @@ int main(int argc,char**argv){
         printf("%s\n",DIF);
         printf("%s\n",word);
       }
-      readModel(&eModel,&turbModel,&eMass,fileIn);
+      readModel(&eModel,&turbModel
+              , &eMass ,&eMomentum
+              , fileIn);
 /*...................................................................*/
       if(!mpiVar.myId ) printf("%s\n",DIF);
     }   
