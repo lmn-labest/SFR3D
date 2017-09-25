@@ -1948,7 +1948,7 @@ void readPropVar(PropVar *p,FILE *file){
 
 /*********************************************************************
  * Data de criacao    : 04/09/2017                                   *
- * Data de modificaco : 19/09/2017                                   *
+ * Data de modificaco : 24/09/2017                                   *
  *-------------------------------------------------------------------* 
  * READPROPVAR : propriedades variaveis                              * 
  *-------------------------------------------------------------------* 
@@ -1964,6 +1964,7 @@ void readPropVar(PropVar *p,FILE *file){
  *-------------------------------------------------------------------* 
  * e       ->                                                        * 
  * t       ->                                                        * 
+ * eModel  ->                                                        * 
  *-------------------------------------------------------------------* 
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
@@ -1981,12 +1982,15 @@ void readModel(EnergyModel *e     , Turbulence *t
                              , "residual"   , "Absolute", "temperature"
                              , "entalphy"}; 
 
-  char turbulence[][WORD_SIZE] = { "help" , "smagorinsky"}; 
+  char turbulence[][WORD_SIZE] = { "help" , "smagorinsky","wallModel"}; 
 
   char mass[][WORD_SIZE] = { "help" , "lhsDensity","rhsDensity"}; 
 
   char momentom[][WORD_SIZE] = {"help" , "residual","Absolute"
                                ,"presA", "presRef" ,"RhieChow"};
+
+  char typeWallModel[][WORD_SIZE] ={"standard"};
+  
   int i,nPar;
 
   readMacro(file,word,false);
@@ -2067,10 +2071,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*... turbulencia*/
     else if(!strcmp(word,macros[1])){   
       if(!mpiVar.myId)
-        printf("TurbulenceModel:\n");  
-/*...*/
-      t->fTurb = true;
-/*...................................................................*/      
+        printf("TurbulenceModel:\n");   
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++){
         readMacro(file,word,false);
@@ -2083,6 +2084,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 
 /*... Smagorinsky*/
         else if(!strcmp(word,turbulence[1])){
+          t->fTurb = true;      
           t->type  = SMAGORINSKY;
           fscanf(file,"%lf",&t->cs);    
           if(!mpiVar.myId){ 
@@ -2090,6 +2092,18 @@ void readModel(EnergyModel *e     , Turbulence *t
           }
         }
 /*...................................................................*/    
+
+/*... wallModel*/
+        else if(!strcmp(word,turbulence[2])){
+          t->fWall = true;         
+          readMacro(file,word,false); 
+          if(!strcmp(word,"standard"))
+            t->type  = STANDARDWALL; 
+          if(!mpiVar.myId){ 
+            printf("wallModel: %s",typeWallModel[t->type-1]);
+          }
+        }
+/*...................................................................*/
       }
 /*...................................................................*/
     }

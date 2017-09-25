@@ -43,7 +43,7 @@
  * lViscosity-> viscosidae turbulenta                                *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void cellLibTurbulence(Turbulence tModel 
+void cellLibTurbulence(Loads *loadsVel  , Turbulence tModel 
            , short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop
            , INT   *RESTRICT lViz       , DOUBLE *RESTRICT ksi
            , DOUBLE *RESTRICT mKsi      
@@ -52,8 +52,10 @@ void cellLibTurbulence(Turbulence tModel
            , DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc
            , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc
            , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
-           , DOUBLE *RESTRICT gradVel   , DOUBLE *RESTRICT lDensity 
-           , DOUBLE *lViscosity
+           , short  *RESTRICT faceVelR  , short *RESTRICT faceVelL  
+           , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel 
+           , DOUBLE *RESTRICT lDensity  , DOUBLE const dViscosity
+           , DOUBLE *viscosity          
            , short const nEn            , short  const nFace
            , short const ndm            , short const lib
            , INT const nel)
@@ -63,19 +65,21 @@ void cellLibTurbulence(Turbulence tModel
   if(lib == 1){
 /*... 2D*/
     if(ndm == 2){
-      cellLes(tModel,       
-              lGeomType  , lprop,
-              lViz,       
-              ksi        , mKsi,
-              eta        , fArea,  
-              normal     , volume,
-              xm         , xmcc,
-              dcca       , cc,
-              vSkew      , mvSkew,     
-              gradVel    , lDensity,
-              lViscosity ,
-              nEn        , nFace, 
-              ndm        , nel);  
+      cellLes(loadsVel   , tModel       
+            , lGeomType  , lprop
+            , lViz       
+            , ksi        , mKsi
+            , eta        , fArea  
+            , normal     , volume
+            , xm         , xmcc
+            , dcca       , cc
+            , vSkew      , mvSkew 
+            , faceVelR   , faceVelL      
+            , vel        , gradVel
+            , lDensity   , dViscosity
+            , viscosity  
+            , nEn        , nFace 
+            , ndm        , nel);  
     }
 /*..................................................................*/
 
@@ -111,7 +115,7 @@ void cellLibTurbulence(Turbulence tModel
 
 /*********************************************************************
 * Data de criacao    : 22/08/2017                                   *
-* Data de modificaco : 12/09/2017                                   *
+* Data de modificaco : 22/09/2017                                   *
 *-------------------------------------------------------------------*
 * CELLLIBENERGY: chamada de bibliotecas de celulas para             *
 * problema de escoamento de fluidos (Energy)                        *
@@ -171,9 +175,9 @@ void cellLibTurbulence(Turbulence tModel
 * lB        -> vetor de forca da linha i                            *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void cellLibEnergy(Loads *loads    , EnergyModel model                     
+void cellLibEnergy(Loads *loads    , Loads *loadsVel                      
      , Advection  adv              , Diffusion diff      
-     , Turbulence tModel             
+     , Turbulence tModel           , EnergyModel model  
      , short *RESTRICT lGeomType   , DOUBLE *RESTRICT lprop
      , INT   *RESTRICT lViz        , INT *RESTRICT lId
      , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
@@ -184,7 +188,8 @@ void cellLibEnergy(Loads *loads    , EnergyModel model
      , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
      , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
      , DOUBLE *RESTRICT lRcell     , Temporal const ddt
-     , short  *RESTRICT lFaceR     , short  *RESTRICT lFaceL    
+     , short  *RESTRICT lFaceR     , short  *RESTRICT lFaceL
+     , short  *RESTRICT lFaceVelR  , short  *RESTRICT lFaceVelL     
      , DOUBLE *RESTRICT u          , DOUBLE *RESTRICT gradU
      , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
      , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres  
@@ -201,9 +206,9 @@ void cellLibEnergy(Loads *loads    , EnergyModel model
   if (lib == 1) {
 /*... 2D*/
     if (ndm == 2)  
-      cellEnergy2D(loads      , model
+      cellEnergy2D(loads      , loadsVel
                  , adv        , diff
-                 , tModel       
+                 , tModel     , model  
                  , lGeomType  , lprop
                  , lViz       , lId
                  , ksi        , mKsi
@@ -215,6 +220,7 @@ void cellLibEnergy(Loads *loads    , EnergyModel model
                  , lA         , lB
                  , lRcell     , ddt
                  , lFaceR     , lFaceL
+                 , lFaceVelR  , lFaceVelL
                  , u          , gradU    
                  , vel        , gradVel
                  , pres       , gradPres  
@@ -2126,8 +2132,7 @@ void greenGaussCell(Loads *loads
 /*... valor prescrito*/
           if( type == DIRICHLETBC || type == INLET || type == MOVEWALL){
             for(k=0;k<ndf;k++)
-              MAT2D(i,k,uf,ndf) = loads[nCarg].par[k];
-            
+              MAT2D(i,k,uf,ndf) = loads[nCarg].par[k];            
           }
 /*...................................................................*/
 
@@ -3583,7 +3588,7 @@ DOUBLE volume3DGreenGauss(DOUBLE *RESTRICT xm,DOUBLE *RESTRICT normal
 
 /********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 04/04/2016                                   * 
+ * Data de modificaco : 24/09/2017                                   * 
  *-------------------------------------------------------------------* 
  * pLoadSimple : condicao de contorno para velocidades               *
  *-------------------------------------------------------------------* 
@@ -3598,6 +3603,7 @@ DOUBLE volume3DGreenGauss(DOUBLE *RESTRICT xm,DOUBLE *RESTRICT normal
  * xmcc       -> vetores que unem o centroide aos pontos medios das  * 
  *              faces da celula central                              * 
  * viscosityC -> coeficiente de viscosidade dinamica                 * 
+ * effViscosityC -> coeficiente de viscosidade effeyiva              * 
  * densityC   -> massa especifica                                    * 
  * fArea      -> area da face                                        * 
  * dcca       -> menor distancia do centroide central a face desta   *
@@ -3622,61 +3628,92 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
           ,DOUBLE *RESTRICT tA        ,DOUBLE *RESTRICT velC
           ,DOUBLE *RESTRICT n       
           ,DOUBLE *RESTRICT gradVel   ,DOUBLE *RESTRICT xmcc
-          ,DOUBLE const viscosityC    ,DOUBLE const densityC
+          ,DOUBLE const viscosityC    ,DOUBLE const effViscosityC  
+          ,DOUBLE const densityC
           ,DOUBLE const fArea         ,DOUBLE const dcca
           ,Loads ld                   ,short  const ndm 
-          ,bool const fCalVel         ,bool const fCalPres){
+          ,bool const fCalVel         ,bool const fCalPres
+          ,bool const fWallModel      ,short const wallType){
 
-  DOUBLE aP,wfn,m,tmp[4],gradVelFace[9],modVel;
+  DOUBLE aP,wfn,wf[3],m,tmp[4],gradVelFace[9],modVel,yPlus,uPlus;
+  DOUBLE viscosityWall;
 
 /*... parade impermeavel movel*/
   if( ld.type == MOVEWALL){
     tA[0]   = ld.par[0];
     tA[1]   = ld.par[1];
     if( ndm == 3 )  tA[2]   = ld.par[2];
+    if(!fCalVel)return;
 /*...*/
-    if(fCalVel){
-      aP     = viscosityC*fArea/dcca;
-      if( ndm == 2) {
+    yPlus = 0.e0;
+    if (fWallModel) {
+/*... calculo da velociade paralela a face*/
+      wfn   = velC[0] * n[0] + velC[1] * n[1];
+      wf[0] = velC[0] - wfn * n[0] - tA[0];
+      wf[1] = velC[1] - wfn * n[1] - tA[1];
+      if( ndm == 3 ) wf[2] = velC[2] - wfn*n[2] - tA[2];
+      wfn = wf[0]*wf[0] + wf[1]*wf[1];
+      if( ndm == 3 ) wfn += wf[2]*wf[2];
+      wfn   = sqrt(wfn);
 /*...*/
-        sP[0] += aP*(1.e0 - n[0]*n[0]);
-        sP[1] += aP*(1.e0 - n[1]*n[1]);
+      if (wfn > 0.e0)
+        wallModel(wfn     , viscosityC
+                 ,densityC, dcca
+                 ,&yPlus  , &uPlus     
+                 ,wallType);
+/*...................................................................*/ 
+  }
+/*...................................................................*/ 
+
+/*... inertial sub-layer*/    
+    if(yPlus > 11.81)
+      viscosityWall = viscosityC*yPlus/uPlus;
+/*...................................................................*/
+
+/*... viscosity sub-layer*/
+    else
+      viscosityWall = effViscosityC;
+/*...................................................................*/
+
+/*...*/
+    aP     = viscosityWall*fArea/dcca;
+    if( ndm == 2) {
+/*...*/
+      sP[0] += aP*(1.e0 - n[0]*n[0]);
+      sP[1] += aP*(1.e0 - n[1]*n[1]);
 /*...................................................................*/
 
 /*... x*/
-        p[0]  += aP*(tA[0]*(1.0-n[0]*n[0]) 
-              + (velC[1]-tA[1])*n[1]*n[0]);
+      p[0]  += aP*(tA[0]*(1.0-n[0]*n[0]) 
+            + (velC[1]-tA[1])*n[1]*n[0]);
 /*... y*/
-        p[1]  += aP*(tA[1]*(1.0-n[1]*n[1]) 
-              + (velC[0]-tA[0])*n[0]*n[1]);
-      }
+      p[1]  += aP*(tA[1]*(1.0-n[1]*n[1]) 
+            + (velC[0]-tA[0])*n[0]*n[1]);
+    }
 /*...................................................................*/
 
 /*...*/
-      else if( ndm == 3 ){
+    else if( ndm == 3 ){
 /*...*/
-        sP[0] += aP*(1.e0 - n[0] * n[0]);
-        sP[1] += aP*(1.e0 - n[1] * n[1]);
-        sP[2] += aP*(1.e0 - n[2] * n[2]);
+      sP[0] += aP*(1.e0 - n[0] * n[0]);
+      sP[1] += aP*(1.e0 - n[1] * n[1]);
+      sP[2] += aP*(1.e0 - n[2] * n[2]);
 /*...................................................................*/
 
 /*... x*/
-        p[0]  += aP*(tA[0]*(1.0-n[0]*n[0]) 
-              + (velC[1]-tA[1])*n[1]*n[0]
-              + (velC[2]-tA[2])*n[2]*n[0]);
+      p[0]  += aP*(tA[0]*(1.0-n[0]*n[0]) 
+            + (velC[1]-tA[1])*n[1]*n[0]
+            + (velC[2]-tA[2])*n[2]*n[0]);
 /*... y*/
-        p[1]  += aP*(tA[1]*(1.0-n[1]*n[1]) 
-              + (velC[0]-tA[0])*n[0]*n[1]
-              + (velC[2]-tA[2])*n[2]*n[1]);
+      p[1]  += aP*(tA[1]*(1.0-n[1]*n[1]) 
+            + (velC[0]-tA[0])*n[0]*n[1]
+            + (velC[2]-tA[2])*n[2]*n[1]);
 /*... z*/
-        p[2]  += aP*(tA[2]*(1.0-n[2]*n[2]) 
-              + (velC[0]-tA[0])*n[0]*n[2]
-              + (velC[1]-tA[1])*n[1]*n[2]);
-      }
+      p[2]  += aP*(tA[2]*(1.0-n[2]*n[2]) 
+            + (velC[0]-tA[0])*n[0]*n[2]
+            + (velC[1]-tA[1])*n[1]*n[2]);
+    }
 /*...................................................................*/
-    } 
-/*...................................................................*/
-
   }
 /*...................................................................*/
 
@@ -4033,6 +4070,228 @@ void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
 /*...*/
      if(fCal)
        *sP += wfn*densityC*fArea;
+/*...................................................................*/
+   }
+/*...................................................................*/
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 21/09/2017                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * pLoadEnergy : cargas da equacao de energia                        *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * sP      -> termo da diagonal                                      * 
+ * p       -> forca local                                            * 
+ * tA      -> nao definido                                           * 
+ * coefDifC-> coeficiente de difusao                                 * 
+ * densityC-> densidade                                              * 
+ * wfn     -> velocidade normal a face                               * 
+ * xm      -> coordenada do ponto medio da face                      * 
+ * fArea   -> area da face                                           * 
+ * dcca    -> menor distancia do centroide central a face desta      *
+ *            celula                                                 * 
+ * ld      -> definicao da carga                                     * 
+ * ldVel   -> definicao da carga para velociades                     * 
+ * fCal    -> true - atualizada sP e p                               * 
+ *            false- atualizada sP e p                               * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * sP      -> termo da diagonal atualizado                           * 
+ * p       -> forcas locais atualizada                               * 
+ * tA      -> valor pescrito na face                                 * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
+               , DOUBLE *RESTRICT tA     , DOUBLE *RESTRICT velC
+               , DOUBLE const uC         , DOUBLE *RESTRICT n  
+               , DOUBLE const thermCoef  , DOUBLE const densityC
+               , DOUBLE const viscosityC , DOUBLE const sHeatC
+               , DOUBLE const prT        , DOUBLE *RESTRICT xm                   
+               , DOUBLE const fArea      , DOUBLE const dcca
+               , Loads ld                , Loads ldVel 
+               , short  const ndm
+               , bool const fCal         , bool const fTemp
+               , bool const iKelvin      , bool const fSheat
+               , bool const fWallModel   , short const wallType){
+
+  DOUBLE aP,h,wfn,wf[3],tempPlus,yPlus,uPlus,tC,tW,vW[3];
+  DOUBLE prM = viscosityC*sHeatC/thermCoef;
+
+/*...*/
+  uPlus = yPlus = 0.e0;
+  vW[0] = vW[1] = vW[2] = 0.e0;
+  wf[0] = wf[1] = wf[2] = 0.e0;
+  if (fWallModel && fCal) {
+    if (ldVel.type == MOVEWALL) {
+      vW[0]   = ldVel.par[0];
+      vW[1]   = ldVel.par[1];
+      if( ndm == 3 )  vW[2]   = ldVel.par[2]; 
+    }
+/*... calculo da velocidade paralela a face*/
+    
+    wfn   = velC[0] * n[0] + velC[1] * n[1];
+    wf[0] = velC[0] - wfn * n[0] - vW[0];
+    wf[1] = velC[1] - wfn * n[1] - vW[1];
+    if( ndm == 3 ) wf[2] = velC[2] - wfn*n[2] - vW[2];
+    wfn = wf[0]*wf[0] + wf[1]*wf[1];
+    if( ndm == 3 ) wfn += wf[2]*wf[2];
+    wfn   = sqrt(wfn);
+/*...*/
+    if (wfn > 0.e0){
+      wallModel(wfn      , viscosityC
+              , densityC , dcca
+              , &yPlus   , &uPlus         
+              , wallType);
+/*...*/ 
+      tempPlus = wallModelHeat(yPlus,prM,prT);
+    }
+/*...................................................................*/ 
+  }
+/*...................................................................*/ 
+
+/*... potencial prescrito (Parede)*/
+  if( ld.type == DIRICHLETBC){
+    tA[0]   = ld.par[0];
+    if(!fCal) return;
+/*... inertial sub-layer*/
+    if ( yPlus > 11.81e0 ){
+/*...*/
+      if (fTemp) {
+        tW = tA[0];
+        tC = uC;  
+      }
+      else{
+        if(fSheat){
+          tW =specificEnthalpyForTemp(tA[0],iKelvin);
+          tC =specificEnthalpyForTemp(uC   ,iKelvin); 
+        }
+        else {
+/*...*/
+          tW = ENTHALPY_FOR_TEMP(sHeatC,tA[0],TREF);
+          tC = ENTHALPY_FOR_TEMP(sHeatC,uC   ,TREF); 
+          if(!iKelvin){
+             tW = KELVIN_FOR_CELSIUS(tW);
+             tC = KELVIN_FOR_CELSIUS(tC);         
+          }
+        }
+      }
+/*...................................................................*/ 
+
+/*...*/
+      aP = sHeatC*viscosityC*yPlus*(tW - tC)/(tempPlus*dcca);
+      *p += aP*fArea;
+/*...................................................................*/ 
+    }
+/*... viscosity sub-layer*/
+    else{
+    
+/*...*/
+      aP   = thermCoef*fArea/dcca;
+      if(!fTemp) aP /=  sHeatC;
+      *sP += aP;
+      *p  += aP*tA[0];
+    }
+/*...................................................................*/ 
+  }
+/*...................................................................*/
+
+/*... lei de resfriamento de newton*/
+  else if( ld.type == ROBINBC){
+    h     = ld.par[0];
+//  tA[0] = ld.par[1];
+/*...*/
+//  if(fCal){
+//    aP  = ((thermCoef*h)/(thermCoef+h*dcca))*fArea;
+//    *sP += aP;
+//    *p  += aP*tA[0];
+//  }    
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... fluxo prestrito diferente de zero*/
+   else if( ld.type == NEUMANNBC){
+     tA[0]   = ld.par[0];
+     if(!fCal) return;
+/*... inertial sub-layer*/     
+     if ( yPlus > 11.81e0 ){
+//     tC = uC;
+//     if (fTemp) {
+//      tW = uC - tA[0]*dcca*tempPlus/(sHeatC*viscosityC*yPlus);
+ //     if(!iKelvin){
+ //       tW = KELVIN_FOR_CELSIUS(tW);
+ //       tC = KELVIN_FOR_CELSIUS(tC);        
+ //     }
+ //    }
+/*...................................................................*/
+      
+/*...*/
+//    else{
+//      if(fSheat){
+//        tC =specificEnthalpyForTemp(tC   ,iKelvin); 
+//      }
+//      else {
+//        if(!iKelvin){
+ //         tW = CELSIUS_FOR_KELVIN(tW);
+ //         tC = CELSIUS_FOR_KELVIN(tC);
+ //       }        
+ //       tW = TEMP_FOR_ENTHALPY(sHeatC,tW   ,TREF);
+ //       tC = TEMP_FOR_ENTHALPY(sHeatC,tC   ,TREF); 
+ //     }
+ //   }
+/*...................................................................*/
+
+/*...*/
+//    aP   = thermCoef*fArea/dcca;
+//    if(!fTemp) aP /=  sHeatC;
+//    *sP += aP;
+//    *p  += aP*tW;      
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*... viscosity sub-layer*/
+    else
+      *p += fArea*tA[0];
+/*...................................................................*/
+   }
+/*...................................................................*/
+
+/*... potencial senoidal prescrito 
+      ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
+   else if( ld.type == SINBC){
+//   loadSenProd(tA,ld.par,xm); 
+/*...*/
+//   if(fCal){ 
+//     aP   = thermCoef*fArea/dcca;
+//     *sP += aP;
+//     *p  += aP*tA[0];
+//   }  
+/*...................................................................*/
+   }
+/*...................................................................*/
+
+/*... potencial prescrito (entra)*/
+   else if( ld.type == INLET){
+//   tA[0]   = ld.par[0];
+/*...*/
+//   if(fCal)
+//     *p -= wfn*densityC*fArea*tA[0];
+   }
+/*...................................................................*/
+
+/*... derivada nula (condicao localmente parabolica saida)*/
+   else if( ld.type == OUTLET){
+/*...*/
+//   if(fCal)
+//     *sP += wfn*densityC*fArea;
 /*...................................................................*/
    }
 /*...................................................................*/

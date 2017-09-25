@@ -854,29 +854,6 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
     }
 /*...................................................................*/
 
-/*... modelo de turbulencia*/
-    if(turbModel.fTurb){
-      tm.turbulence = getTimeC() - tm.turbulence;
-      turbulence(turbModel               
-            , mesh->elm.node         , mesh->elm.adj.nelcon 
-            , mesh->elm.nen          , mesh->elm.adj.nViz 
-            , mesh->elm.geomType     , mesh->elm.material.prop 
-            , mesh->elm.material.type, mesh->elm.mat 
-            , mesh->elm.geom.cc      , mesh->elm.geom.ksi 
-            , mesh->elm.geom.mksi    , mesh->elm.geom.eta     
-            , mesh->elm.geom.fArea   , mesh->elm.geom.normal 
-            , mesh->elm.geom.volume  , mesh->elm.geom.xm     
-            , mesh->elm.geom.xmcc    , mesh->elm.geom.vSkew    
-            , mesh->elm.geom.mvSkew  , mesh->elm.geom.dcca     
-            , mesh->elm.gradVel      , mesh->elm.densityFluid  
-            , mesh->elm.eddyViscosity  
-            , mesh->maxNo            , mesh->maxViz 
-            , mesh->ndm              , mesh->numelNov 
-            , ndfVel);  
-      tm.turbulence = getTimeC() - tm.turbulence;
-    }
-/*...................................................................*/
-
 /*... montagem do sistema u, v e w*/
     tm.systFormVel = getTimeC() - tm.systFormVel;
     systFormSimpleVelLm(loadsVel              , loadsPres 
@@ -1291,13 +1268,37 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
     tm.rcGradEnergy = getTimeC() - tm.rcGradEnergy;
 /*.................................................................. */
 
+/*... modelo de turbulencia*/
+    if(turbModel.fTurb){
+      tm.turbulence = getTimeC() - tm.turbulence;
+      turbulence(loadsVel            , turbModel               
+            , mesh->elm.node         , mesh->elm.adj.nelcon 
+            , mesh->elm.nen          , mesh->elm.adj.nViz 
+            , mesh->elm.geomType     , mesh->elm.material.prop 
+            , mesh->elm.material.type, mesh->elm.mat 
+            , mesh->elm.geom.cc      , mesh->elm.geom.ksi 
+            , mesh->elm.geom.mksi    , mesh->elm.geom.eta     
+            , mesh->elm.geom.fArea   , mesh->elm.geom.normal 
+            , mesh->elm.geom.volume  , mesh->elm.geom.xm     
+            , mesh->elm.geom.xmcc    , mesh->elm.geom.vSkew    
+            , mesh->elm.geom.mvSkew  , mesh->elm.geom.dcca 
+            , mesh->elm.faceRvel     , mesh->elm.faceLoadVel     
+            , mesh->elm.vel          , mesh->elm.gradVel      
+            , mesh->elm.densityFluid  
+            , mesh->elm.dViscosity   , mesh->elm.eddyViscosity  
+            , mesh->maxNo            , mesh->maxViz 
+            , mesh->ndm              , mesh->numelNov 
+            , ndfVel);  
+      tm.turbulence = getTimeC() - tm.turbulence;
+    }
+/*...................................................................*/
 
 /*... equacao de energia*/
 /*... calculo de: A(i),bE(i)*/
     tm.systFormEnergy = getTimeC() - tm.systFormEnergy;
-    systFormEnergy(loadsEnergy        , eModel
+    systFormEnergy(loadsEnergy        , loadsVel
              , sc.advEnergy           , sc.diffEnergy
-             , turbModel                
+             , turbModel              , eModel  
              , mesh->elm.node         , mesh->elm.adj.nelcon
              , mesh->elm.nen          , mesh->elm.adj.nViz
              , mesh->elm.geomType     , mesh->elm.material.prop
@@ -1313,6 +1314,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
              , sistEqEnergy->al       , sistEqEnergy->ad
              , sistEqEnergy->b        , sistEqEnergy->id
              , mesh->elm.faceRenergy  , mesh->elm.faceLoadEnergy
+             , mesh->elm.faceRvel     , mesh->elm.faceLoadVel   
              , mesh->elm.energy       , mesh->elm.gradEnergy
              , mesh->elm.vel          , mesh->elm.gradVel
              , mesh->elm.pressure0    , mesh->elm.pressure  
@@ -1635,27 +1637,65 @@ void updateCellSimpleVel(DOUBLE  *RESTRICT w
 void updateCellSimpleVelR(DOUBLE  *RESTRICT w  ,DOUBLE  *RESTRICT u1
                          ,DOUBLE  *RESTRICT u2 ,DOUBLE  *RESTRICT u3
                          ,INT  *RESTRICT id    ,INT const nEl
-                         ,short const ndm)
+                         ,bool const fRes      ,short const ndm)
 {
   INT i,lNeq;
+  if(fRes){
+/*...*/
+    if(ndm == 3){    
+      for(i=0;i<nEl;i++){
+        lNeq             = id[i] - 1;
+        if(lNeq > -1){  
+          MAT2D(i,0,w,2) += u1[lNeq];
+          MAT2D(i,1,w,2) += u2[lNeq];
+          MAT2D(i,1,w,3) += u3[lNeq];
+        }
+      }
+    }
+/*...................................................................*/
 
-  if(ndm == 3)
-    for(i=0;i<nEl;i++){
-      lNeq             = id[i] - 1;
-      if(lNeq > -1){  
-        MAT2D(i,0,w,2) += u1[lNeq];
-        MAT2D(i,1,w,2) += u2[lNeq];
-        MAT2D(i,1,w,3) += u3[lNeq];
+/*...*/
+    else{
+      for(i=0;i<nEl;i++){
+        lNeq             = id[i] - 1;
+        if(lNeq > -1){  
+          MAT2D(i,0,w,2) += u1[lNeq];
+          MAT2D(i,1,w,2) += u2[lNeq];
+        }
       }
     }
-  else
-    for(i=0;i<nEl;i++){
-      lNeq             = id[i] - 1;
-      if(lNeq > -1){  
-        MAT2D(i,0,w,2) += u1[lNeq];
-        MAT2D(i,1,w,2) += u2[lNeq];
+/*...................................................................*/
+  }
+
+/*...*/
+  else{
+/*...*/
+    if(ndm == 3){    
+      for(i=0;i<nEl;i++){
+        lNeq             = id[i] - 1;
+        if(lNeq > -1){  
+          MAT2D(i,0,w,2) = u1[lNeq];
+          MAT2D(i,1,w,2) = u2[lNeq];
+          MAT2D(i,1,w,3) = u3[lNeq];
+        }
       }
     }
+/*...................................................................*/
+
+/*...*/
+    else{
+      for(i=0;i<nEl;i++){
+        lNeq             = id[i] - 1;
+        if(lNeq > -1){  
+          MAT2D(i,0,w,2) = u1[lNeq];
+          MAT2D(i,1,w,2) = u2[lNeq];
+        }
+      }
+    }
+/*...................................................................*/
+  }
+
+
 }
 /*********************************************************************/ 
 

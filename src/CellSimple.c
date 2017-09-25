@@ -427,10 +427,12 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
                    ,tA             ,velC  
                    ,lNormal  
                    ,gradVelC[0]    ,lXmcc 
-                   ,viscosityC     ,densityC
+                   ,viscosityC     ,viscosityC 
+                   ,densityC
                    ,lModEta        ,dcca[nAresta]
                    ,loadsVel[nCarg],ndm
-                   ,true           ,false);
+                   ,true           ,false
+                   ,false          ,0);
       }  
 /*...................................................................*/
 
@@ -658,12 +660,10 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
             , const short ndm            , INT const nel)
 {
 /*...*/
-  short iCodAdv1 = advVel.iCod1, iCodAdv2 = advVel.iCod2
-      , iCodDif = diffVel.iCod;
+  short iCodAdv1, iCodAdv2, iCodDif,wallType, idCell, nAresta
+      , nCarg, typeTime;
 /*...*/
-  short idCell = nFace;
-  short nAresta, nCarg, typeTime;
-  bool fTime, fAbsultePressure, fRes, fTurb, fRhieInt;
+  bool fTime, fAbsultePressure, fRes, fTurb, fRhieInt, fWallModel;
   INT vizNel;
   DOUBLE viscosityC, viscosityV, viscosity, 
          eddyViscosityC, eddyViscosityV, effViscosityC, effViscosityV,
@@ -686,6 +686,15 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
 /*... */
   DOUBLE wfn, velC[2], velV[2], g[2], gf[2][2], gfKsi[2],
          gradVelC[2][2], gradVelV[2][2], gradVelComp[2][2],gradRo[2];
+/*...*/
+  DOUBLE uPlus,yPlus,viscosityWall;
+
+/*...*/
+  idCell   = nFace;
+  iCodAdv1 = advVel.iCod1;
+  iCodAdv2 = advVel.iCod2;
+  iCodDif  = diffVel.iCod;
+/*...................................................................*/
 
 /*...*/
   dt        = ddt.dt[0];  
@@ -695,6 +704,8 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
 /*...................................................................*/
 
 /*...*/  
+  fWallModel       = tModel.fWall;
+  wallType         = tModel.wallType;
   fTurb            = tModel.fTurb;
   fRhieInt         = eMomentum.fRhieChowInt;  
   fRes             = eMomentum.fRes;
@@ -980,20 +991,49 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
       if (lFaceVelR[nAresta] > 0) {
 /*...cargas*/
         nCarg = lFaceVelL[nAresta] - 1;
-        pLoadSimple(sPc            , p,
-                    tA             , velC,
-                    lNormal,
-                    gradVelC[0]    , lXmcc,
-                    effViscosityC   , densityC,
-                    lModEta        , dcca[nAresta],
-                    loadsVel[nCarg], ndm,
-                    true           , false);
+        pLoadSimple(sPc            , p
+                  , tA             , velC
+                  , lNormal
+                  , gradVelC[0]    , lXmcc
+                  , viscosityC     , effViscosityC  
+                  , densityC
+                  , lModEta        , dcca[nAresta]
+                  , loadsVel[nCarg], ndm
+                  , true           , false
+                  , fWallModel     , wallType);
       }
 /*...................................................................*/
 
 /*... parede impermevavel*/
       else if (lFaceVelR[nAresta] == STATICWALL) {
-        aP = effViscosityC*lModEta / dcca[nAresta];
+/*... com modelo de parede*/
+        yPlus = 0.e0;
+        if (fWallModel) {
+/*... calculo da velociade paralela a face*/
+          wfn= velC[0] * lNormal[0] + velC[1] * lNormal[1];
+          wf[0] = velC[0] - wfn * lNormal[0];
+          wf[1] = velC[1] - wfn * lNormal[1];
+          wfn   = wf[0]*wf[0]+ wf[1]*wf[1];
+          wfn = sqrt(wfn);
+/*...*/
+          if (wfn > 0.e0)
+            wallModel(wfn     , viscosityC
+                     ,densityC, dcca[nAresta]
+                     ,&yPlus  , &uPlus
+                     ,wallType);
+        }
+/*...................................................................*/
+
+/*...*/
+        if(yPlus > 11.81e0)
+          viscosityWall = viscosityC*yPlus/uPlus;
+/*...................................................................*/
+
+/*... sem modelo de parede*/
+        else
+          viscosityWall = effViscosityC;
+/*...................................................................*/
+        aP = viscosityWall*lModEta / dcca[nAresta];
 /*...*/
         sPc[0] += aP*(1.e0 - lNormal[0] * lNormal[0]);
         sPc[1] += aP*(1.e0 - lNormal[1] * lNormal[1]);
@@ -1002,7 +1042,6 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
 /*...*/
         p[0] += aP*velC[1] * lNormal[1] * lNormal[0];
         p[1] += aP*velC[0] * lNormal[0] * lNormal[1];
-/*...................................................................*/
       }
 /*...................................................................*/
     }
@@ -1509,10 +1548,12 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
                     , tA, velC
                     , lNormal
                     , gradVelC[0], lXmcc
-                    , viscosityC, densityC
+                    , viscosityC , viscosityC 
+                    , densityC
                     , lModEta, dcca[nAresta]
                     , loadsVel[nCarg], ndm
-                    , true, false);
+                    , true          , false
+                    , false         , 0);
       }
 /*...................................................................*/
 
@@ -2095,10 +2136,12 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                    ,tA             ,velC  
                    ,lNormal  
                    ,gradVelC[0]    ,lXmcc 
-                   ,viscosityC     ,densityC
+                   ,viscosityC     ,viscosityC
+                   ,densityC
                    ,lFarea         ,dcca[nAresta]
                    ,loadsVel[nCarg],ndm
-                   ,true           ,false);
+                   ,true           ,false
+                   ,false          ,0);
       }  
 /*...................................................................*/
 
@@ -2704,14 +2747,16 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
       if (lFaceVelR[nAresta] > 0) {
 /*...cargas*/
         nCarg = lFaceVelL[nAresta] - 1;
-        pLoadSimple(sPc, p
-                    , tA, velC
-                    , lNormal
-                    , gradVelC[0], lXmcc
-                    , viscosityC, densityC
-                    , lFarea, dcca[nAresta]
-                    , loadsVel[nCarg], ndm
-                    , true, false);
+        pLoadSimple(sPc              , p
+                   , tA             , velC
+                   , lNormal
+                   , gradVelC[0]    , lXmcc
+                   , viscosityC     , viscosityC
+                   , densityC
+                   , lFarea         , dcca[nAresta]
+                   , loadsVel[nCarg], ndm
+                   , true           , false
+                   , false          , 0);
       }
 /*...................................................................*/
 

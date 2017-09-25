@@ -125,9 +125,12 @@ int main(int argc,char**argv){
 /*....................................................................*/
 
 /*...*/
-  turbModel.fTurb = false;
-  turbModel.type  = 1;
-  turbModel.cs    = 0.2e0;
+  turbModel.fWall    = false;
+  turbModel.wallType = STANDARDWALL;
+  turbModel.fTurb    = false;
+  turbModel.type     = SMAGORINSKY;
+  turbModel.cs       = 0.2e0;
+  turbModel.PrandltT = 0.5e0;
 /*....................................................................*/
 
 /*...*/

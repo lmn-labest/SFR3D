@@ -81,20 +81,22 @@
 /*...................................................................*/
 
 /*... */
-  void cellLibTurbulence(Turbulence tModel, 
-             short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop,
-             INT   *RESTRICT lViz       , DOUBLE *RESTRICT ksi,
-             DOUBLE *RESTRICT mKsi      ,
-             DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea,
-             DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume,
-             DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc,
-             DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc,
-             DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew,
-             DOUBLE *RESTRICT gradVel   , DOUBLE *RESTRICT lDensity, 
-             DOUBLE *lViscosity         ,
-             short const nEn            , short  const nFace,
-             short const ndm            , short const lib,
-             INT const nel);
+  void cellLibTurbulence(Loads *loadsVel  , Turbulence tModel   
+           , short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop 
+           , INT   *RESTRICT lViz       , DOUBLE *RESTRICT ksi 
+           , DOUBLE *RESTRICT mKsi       
+           , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea 
+           , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume 
+           , DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc 
+           , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc 
+           , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
+           , short  *RESTRICT faceVelR  , short *RESTRICT faceVelL  
+           , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel  
+           , DOUBLE *RESTRICT lDensity  , DOUBLE const dViscosity
+           , DOUBLE *viscosity          
+           , short const nEn            , short  const nFace 
+           , short const ndm            , short const lib 
+           , INT const nel);
 /*...................................................................*/
 
 /* ... montagem do sistemas de equacoes (difusao)*/
@@ -257,9 +259,9 @@
 
 
 /*...*/
-  void systFormEnergy(Loads *loads        , EnergyModel model
+  void systFormEnergy(Loads *loads        , Loads *loadsVel 
            , Advection advE               , Diffusion diffE
-           , Turbulence tModel              
+           , Turbulence tModel            , EnergyModel model  
            , INT    *RESTRICT el          , INT    *RESTRICT nelcon
            , short  *RESTRICT nen         , short  *RESTRICT nFace
            , short  *RESTRICT geomType    , DOUBLE *RESTRICT prop
@@ -275,6 +277,7 @@
            , DOUBLE *RESTRICT a           , DOUBLE *RESTRICT ad
            , DOUBLE *RESTRICT b           , INT    *RESTRICT id
            , short  *RESTRICT faceR       , short  *RESTRICT faceL
+           , short  *RESTRICT faceVelR    , short  *RESTRICT faceVelL
            , DOUBLE *RESTRICT u0          , DOUBLE *RESTRICT gradU0
            , DOUBLE *RESTRICT vel         , DOUBLE *RESTRICT gradVel
            , DOUBLE *RESTRICT pres0       , DOUBLE *RESTRICT pres   
@@ -437,9 +440,9 @@
 /*...................................................................*/
 
 /*... chamada da biblioteca de elementos (transporte)*/
-  void cellLibEnergy(Loads *loads  , EnergyModel model
+  void cellLibEnergy(Loads *loads  , Loads *loadsVel
      , Advection  adv              , Diffusion diff
-     , Turbulence tModel             
+     , Turbulence tModel           , EnergyModel model  
      , short *RESTRICT lGeomType   , DOUBLE *RESTRICT lprop
      , INT   *RESTRICT lViz        , INT *RESTRICT lId
      , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
@@ -451,6 +454,7 @@
      , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
      , DOUBLE *RESTRICT lRcell     , Temporal const ddt
      , short  *RESTRICT lFaceR     , short  *RESTRICT lFaceL
+     , short  *RESTRICT lFaceVelR  , short  *RESTRICT lFaceVelL    
      , DOUBLE *RESTRICT u          , DOUBLE *RESTRICT gradU
      , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
      , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres 
@@ -612,14 +616,16 @@
 
 /*... carga por elmento e condicoes pescritas por celula no 
       metodo simple*/
-  void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
-          ,DOUBLE *RESTRICT tA          ,DOUBLE *RESTRICT velC
-          ,DOUBLE *RESTRICT n
-          ,DOUBLE *RESTRICT gradVel     ,DOUBLE *RESTRICT xmcc
-          ,DOUBLE const viscosityC      ,DOUBLE const densityC
-          ,DOUBLE const fArea           ,DOUBLE const dcca
-          ,Loads ld                     ,short const ndm
-          ,bool const fCal1             ,bool const fCal2);
+  void pLoadSimple(DOUBLE *RESTRICT sP  , DOUBLE *RESTRICT p
+          , DOUBLE *RESTRICT tA          , DOUBLE *RESTRICT velC
+          , DOUBLE *RESTRICT n             
+          , DOUBLE *RESTRICT gradVel     , DOUBLE *RESTRICT xmcc
+          , DOUBLE const viscosityC      , DOUBLE const effViscosityC 
+          , DOUBLE const densityC          
+          , DOUBLE const fArea           , DOUBLE const dcca
+          , Loads ld                     , short const ndm
+          , bool const fCal1             , bool const fCal2
+          , bool const fWallModel        , short const wallType);
 
   void pLoadSimplePres(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
           ,DOUBLE *RESTRICT tA
@@ -627,6 +633,20 @@
           ,DOUBLE const wfn
           ,DOUBLE const fArea     ,DOUBLE const dcca 
           ,Loads ld               ,bool const fCal);
+
+  void pLoadEnergy(DOUBLE *RESTRICT sP   , DOUBLE *RESTRICT p
+               , DOUBLE *RESTRICT tA     , DOUBLE *RESTRICT velC
+               , DOUBLE const uC         , DOUBLE *RESTRICT n  
+               , DOUBLE const thermCoef  , DOUBLE const densityC
+               , DOUBLE const viscosityC , DOUBLE const sHeatC
+               , DOUBLE const prT        , DOUBLE *RESTRICT xm                   
+               , DOUBLE const fArea      , DOUBLE const dcca
+               , Loads ld                , Loads ldVel 
+               , short  const ndm
+               , bool const fCal         , bool const fTemp
+               , bool const iKelvin      , bool const fSheat
+               , bool const fWallModel   , short const wallType);
+
 /*...................................................................*/
 
 /*... carga por elmento e condicoes pescritas por celula no metodo 
@@ -802,9 +822,9 @@
 /*...................................................................*/
 
 /*.......................... ENRGIA .................................*/
-  void cellEnergy2D(Loads *loads           , EnergyModel model
+  void cellEnergy2D(Loads *loads           , Loads *loadsVel 
             , Advection adv                , Diffusion diff
-            , Turbulence tModel  
+            , Turbulence tModel            , EnergyModel model 
             , short *RESTRICT lGeomType    , DOUBLE *RESTRICT prop
             , INT *RESTRICT lViz           , INT *RESTRICT lId
             , DOUBLE *RESTRICT ksi         , DOUBLE *RESTRICT mKsi
@@ -816,6 +836,7 @@
             , DOUBLE *RESTRICT lA          , DOUBLE *RESTRICT lB
             , DOUBLE *RESTRICT lRcell      , Temporal const ddt
             , short  *RESTRICT lFaceR      , short *RESTRICT lFaceL
+            , short  *RESTRICT lFaceVelR   , short *RESTRICT lFacevelL
             , DOUBLE *RESTRICT u0          , DOUBLE *RESTRICT gradU0           
             , DOUBLE *RESTRICT vel         , DOUBLE *RESTRICT gradVel  
             , DOUBLE *RESTRICT pres        , DOUBLE *RESTRICT gradPres         

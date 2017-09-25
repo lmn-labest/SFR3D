@@ -31,8 +31,11 @@
 /*...*/
   typedef struct{
     bool fTurb;
+    bool fWall;
+    short wallType;
     short type;
     DOUBLE cs;    /*Smagorisnksy-Lilly*/
+    DOUBLE PrandltT;
   }Turbulence; 
 /*...................................................................*/
 

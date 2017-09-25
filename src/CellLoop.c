@@ -2212,7 +2212,7 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
 
 /*********************************************************************
  * Data de criacao    : 22/08/2017                                   *
- * Data de modificaco : 12/09/2017                                   *
+ * Data de modificaco : 22/09/2017                                   *
  *-------------------------------------------------------------------*
  * SYSTFOMENERGY: calculo do sistema de equacoes para problemas      *
  * transporte de energia (Ax=b)                                      *
@@ -2302,9 +2302,9 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void systFormEnergy(Loads *loads        , EnergyModel model 
+void systFormEnergy(Loads *loads       , Loads *loadsVel  
        , Advection adv                 , Diffusion diff 
-       , Turbulence tModel             
+       , Turbulence tModel             , EnergyModel model 
        , INT    *RESTRICT el           , INT    *RESTRICT nelcon
        , short  *RESTRICT nen          , short  *RESTRICT nFace
        , short  *RESTRICT geomType     , DOUBLE *RESTRICT prop
@@ -2320,6 +2320,7 @@ void systFormEnergy(Loads *loads        , EnergyModel model
        , DOUBLE *RESTRICT a            , DOUBLE *RESTRICT ad
        , DOUBLE *RESTRICT b            , INT    *RESTRICT id
        , short  *RESTRICT faceR        , short  *RESTRICT faceL
+       , short  *RESTRICT faceVelR     , short  *RESTRICT faceVelL
        , DOUBLE *RESTRICT u0           , DOUBLE *RESTRICT gradU0
        , DOUBLE *RESTRICT vel          , DOUBLE *RESTRICT gradVel
        , DOUBLE *RESTRICT pres0        , DOUBLE *RESTRICT pres 
@@ -2341,8 +2342,9 @@ void systFormEnergy(Loads *loads        , EnergyModel model
   INT nel, vizNel;
   
 /*... variavel local */
-  short  lGeomType[MAX_NUM_FACE + 1], lFaceR[MAX_NUM_FACE + 1],
-         lFaceL[MAX_NUM_FACE + 1];
+  short  lGeomType[MAX_NUM_FACE + 1],
+          lFaceR[MAX_NUM_FACE + 1], lFaceL[MAX_NUM_FACE + 1],
+          lFaceVelR[MAX_NUM_FACE + 1], lFaceVelL[MAX_NUM_FACE + 1];
   INT    lId[(MAX_NUM_FACE + 1)*MAX_NDF], lViz[MAX_NUM_FACE];
   DOUBLE lKsi[MAX_NUM_FACE*MAX_NDM], lmKsi[MAX_NUM_FACE];
   DOUBLE lEta[MAX_NUM_FACE*MAX_NDM], lfArea[MAX_NUM_FACE];
@@ -2525,14 +2527,16 @@ void systFormEnergy(Loads *loads        , EnergyModel model
           lu0[j] = 0.e0;
         }
 /*... loop na celula central*/
-        lMat = mat[nel] - 1;
-        lib = calType[lMat];
-        lVolume[aux1] = gVolume[nel];
+        lMat            = mat[nel] - 1;
+        lib             = calType[lMat];
+        lVolume[aux1]   = gVolume[nel];
         lGeomType[aux1] = geomType[nel];
-        lFaceR[aux1] = MAT2D(nel, aux1, faceR, aux2);
-        lFaceL[aux1] = MAT2D(nel, aux1, faceL, aux2);
-        lDensity[aux1] = MAT2D(nel, 2, density, DENSITY_LEVEL);
-        lsHeat[aux1]   = MAT2D(nel, 2, sHeat  , SHEAT_LEVEL); 
+        lFaceR[aux1]    = MAT2D(nel, aux1, faceR, aux2);
+        lFaceL[aux1]    = MAT2D(nel, aux1, faceL, aux2);
+        lFaceVelR[aux1] = MAT2D(nel, aux1, faceVelR, aux2);
+        lFaceVelL[aux1] = MAT2D(nel, aux1, faceVelL, aux2);
+        lDensity[aux1]  = MAT2D(nel, 2, density, DENSITY_LEVEL);
+        lsHeat[aux1]    = MAT2D(nel, 2, sHeat  , SHEAT_LEVEL); 
         ltConductivity[aux1] = tConductivity[nel];
 /*...*/
         MAT2D(aux1, 0, lPres, 2) = pres0[nel];
@@ -2574,13 +2578,15 @@ void systFormEnergy(Loads *loads        , EnergyModel model
 
 /*...*/
         for (i = 0; i<aux1; i++) {
-          lmKsi[i] = MAT2D(nel, i, gmKsi, maxViz);
-          lfArea[i] = MAT2D(nel, i, gfArea, maxViz);
-          lDcca[i] = MAT2D(nel, i, gDcca, maxViz);
-          lmvSkew[i] = MAT2D(nel, i, gmvSkew, maxViz);
-          aux2 = (maxViz + 1);
-          lFaceR[i] = MAT2D(nel, i, faceR, aux2);
-          lFaceL[i] = MAT2D(nel, i, faceL, aux2);
+          lmKsi[i]     = MAT2D(nel, i, gmKsi, maxViz);
+          lfArea[i]    = MAT2D(nel, i, gfArea, maxViz);
+          lDcca[i]     = MAT2D(nel, i, gDcca, maxViz);
+          lmvSkew[i]   = MAT2D(nel, i, gmvSkew, maxViz);
+          aux2         = (maxViz + 1);
+          lFaceR[i]    = MAT2D(nel, i, faceR, aux2);
+          lFaceL[i]    = MAT2D(nel, i, faceL, aux2);
+          lFaceVelR[i] = MAT2D(nel, i, faceVelR, aux2);
+          lFaceVelL[i] = MAT2D(nel, i, faceVelL, aux2);
           for (j = 0; j<ndm; j++) {
             MAT2D(i, j, lKsi, ndm) = MAT3D(nel, i, j, gKsi, maxViz, ndm);
             MAT2D(i, j, lEta, ndm) = MAT3D(nel, i, j, gEta, maxViz, ndm);
@@ -2636,9 +2642,9 @@ void systFormEnergy(Loads *loads        , EnergyModel model
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
-        cellLibEnergy(loads      , model
+        cellLibEnergy(loads      , loadsVel
                     , adv        , diff 
-                    , tModel       
+                    , tModel     , model  
                     , lGeomType  , lProp
                     , lViz       , lId
                     , lKsi       , lmKsi
@@ -2650,6 +2656,7 @@ void systFormEnergy(Loads *loads        , EnergyModel model
                     , lA         , lB
                     , lRcell     , ddt
                     , lFaceR     , lFaceL
+                    , lFaceVelR  , lFaceVelL
                     , lu0        , lGradU0
                     , lVel       , lGradVel
                     , lPres      , lGradPres 

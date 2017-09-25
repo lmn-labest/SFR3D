@@ -47,20 +47,21 @@
  * OBS:                                                              *
  *-------------------------------------------------------------------* 
   *********************************************************************/
-void turbulence(Turbulence tModel             
+void turbulence(Loads *loadsVel             , Turbulence tModel             
       , INT    *RESTRICT el                 , INT    *RESTRICT nelcon 
       , short  *RESTRICT nen                , short  *RESTRICT nFace 
       , short  *RESTRICT geomType           , DOUBLE *RESTRICT prop  
       , short  *RESTRICT calType            , short  *RESTRICT mat        
-      , DOUBLE *RESTRICT cc                                       
-      , DOUBLE *RESTRICT gKsi               , DOUBLE *RESTRICT gmKsi   
-      , DOUBLE *RESTRICT gEta               , DOUBLE *RESTRICT gfArea  
-      , DOUBLE *RESTRICT gNormal            , DOUBLE *RESTRICT gVolume
-      , DOUBLE *RESTRICT gXm                , DOUBLE *RESTRICT gXmcc
-      , DOUBLE *RESTRICT gvSkew             , DOUBLE *RESTRICT gmvSkew 
-      , DOUBLE *RESTRICT gDcca                
-      , DOUBLE *RESTRICT gradVel            , DOUBLE *RESTRICT density
-      , DOUBLE *RESTRICT eddyViscosity                          
+      , DOUBLE *RESTRICT cc                 , DOUBLE *RESTRICT gKsi                      
+      , DOUBLE *RESTRICT gmKsi              , DOUBLE *RESTRICT gEta  
+      , DOUBLE *RESTRICT gfArea             , DOUBLE *RESTRICT gNormal  
+      , DOUBLE *RESTRICT gVolume            , DOUBLE *RESTRICT gXm  
+      , DOUBLE *RESTRICT gXmcc              , DOUBLE *RESTRICT gvSkew    
+      , DOUBLE *RESTRICT gmvSkew            , DOUBLE *RESTRICT gDcca  
+      , short  *RESTRICT faceVelR           , short *RESTRICT faceVelL               
+      , DOUBLE *RESTRICT vel                , DOUBLE *RESTRICT gradVel
+      , DOUBLE *RESTRICT density
+      , DOUBLE *RESTRICT dViscosity         , DOUBLE *RESTRICT eddyViscosity                          
       , short const maxNo                   , short const maxViz
       , short const ndm                     , INT const numel     
       , short const ndf)                      
@@ -70,7 +71,8 @@ void turbulence(Turbulence tModel
   
 /*... variavel local */
   short  aux1,aux2,lMat,lib;
-  short  lGeomType[MAX_NUM_FACE+1];         
+  short  lGeomType[MAX_NUM_FACE+1],  
+         lFaceVelR[MAX_NUM_FACE+1],lFaceVelL[MAX_NUM_FACE+1];       
   INT    lViz[MAX_NUM_FACE];
   DOUBLE lKsi[MAX_NUM_FACE*MAX_NDM], lmKsi[MAX_NUM_FACE],
          lEta[MAX_NUM_FACE*MAX_NDM], lfArea[MAX_NUM_FACE],
@@ -78,9 +80,11 @@ void turbulence(Turbulence tModel
          lXm[MAX_NUM_FACE*MAX_NDM], lXmcc[MAX_NUM_FACE*MAX_NDM],
          lDcca[MAX_NUM_FACE], lmvSkew[MAX_NUM_FACE],
          lvSkew[MAX_NUM_FACE*MAX_NDM], lDensity[(MAX_NUM_FACE+1)],
-         lViscosity, lProp[(MAX_NUM_FACE+1)*MAXPROP],
+         lProp[(MAX_NUM_FACE+1)*MAXPROP],
          lCc[(MAX_NUM_FACE+1)*MAX_NDM],
-         lGradVel[(MAX_NUM_FACE+1)*MAX_NDM*MAX_NDF];
+         lGradVel[(MAX_NUM_FACE+1)*MAX_NDM*MAX_NDF],
+         lVel[(MAX_NUM_FACE+1)*MAX_NDM],
+         lEddyViscosity,lDviscosity; 
            
 
 /*... loop nas celulas*/
@@ -94,7 +98,11 @@ void turbulence(Turbulence tModel
     lib               = calType[lMat];
     lVolume[aux1]     = gVolume[nel]; 
     lGeomType[aux1]   = geomType[nel];
+    lFaceVelR[aux1]   = MAT2D(nel,aux1,faceVelR ,aux2);
+    lFaceVelL[aux1]   = MAT2D(nel,aux1,faceVelL ,aux2);
     lDensity[aux1]    = MAT2D(nel,2   ,density ,DENSITY_LEVEL);
+/*...*/
+    lDviscosity       = dViscosity[nel];
 /*...*/      
     for(j=0;j<MAXPROP;j++)
       MAT2D(aux1,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);
@@ -102,6 +110,7 @@ void turbulence(Turbulence tModel
 
 /*...*/
     for(j=0;j<ndm;j++){
+       MAT2D(aux1,j,lVel,ndm)  = MAT2D(nel,j,vel     ,ndm);
       MAT2D(aux1, j, lCc, ndm) = MAT2D(nel, j, cc, ndm);
     }
 /*...................................................................*/
@@ -119,6 +128,8 @@ void turbulence(Turbulence tModel
       lfArea[i]     = MAT2D(nel,i,gfArea  ,maxViz);
       lDcca[i]      = MAT2D(nel,i,gDcca   ,maxViz);
       lmvSkew[i]    = MAT2D(nel,i,gmvSkew ,maxViz);
+      lFaceVelR[i]  = MAT2D(nel,i,faceVelR,aux2);
+      lFaceVelL[i]  = MAT2D(nel,i,faceVelL,aux2);
       for(j=0;j<ndm;j++){
         MAT2D(i,j,lKsi   ,ndm) = MAT3D(nel,i,j,gKsi   ,maxViz,ndm);
         MAT2D(i,j,lEta   ,ndm) = MAT3D(nel,i,j,gEta   ,maxViz,ndm);
@@ -142,6 +153,7 @@ void turbulence(Turbulence tModel
  
         for(j=0;j<ndm;j++){
           MAT2D(i,j,lCc      ,ndm) = MAT2D(vizNel,j,cc      ,ndm);
+          MAT2D(i,j,lVel     ,ndm) = MAT2D(vizNel,j,vel     ,ndm);
         }
       
         for(k=0;k<ndf;k++)
@@ -156,24 +168,26 @@ void turbulence(Turbulence tModel
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
-     cellLibTurbulence(tModel        
-                      , lGeomType     , lProp
-                      , lViz          , lKsi
+     cellLibTurbulence(loadsVel        , tModel        
+                      , lGeomType      , lProp
+                      , lViz           , lKsi
                       , lmKsi 
-                      , lEta          , lfArea 
-                      , lNormal       , lVolume
-                      , lXm           , lXmcc
-                      , lDcca         , lCc
-                      , lvSkew        , lmvSkew
-                      , lGradVel      , lDensity 
-                      , &lViscosity
-                      , nen[nel]      , nFace[nel] 
-                      , ndm           , lib   
+                      , lEta           , lfArea 
+                      , lNormal        , lVolume
+                      , lXm            , lXmcc
+                      , lDcca          , lCc
+                      , lvSkew         , lmvSkew
+                      , lFaceVelR      , lFaceVelL 
+                      , lVel           , lGradVel
+                      , lDensity       , lDviscosity 
+                      , &lEddyViscosity
+                      , nen[nel]       , nFace[nel] 
+                      , ndm            , lib   
                       , nel);    
 /*...................................................................*/
  
 /*...*/
-    eddyViscosity[nel] = lViscosity;
+    eddyViscosity[nel]  = lEddyViscosity;
 /*...................................................................*/
 
   }
@@ -222,9 +236,7 @@ void turbulence(Turbulence tModel
 *-------------------------------------------------------------------*
 * Parametros de saida:                                              *
 *-------------------------------------------------------------------*
-* lA        -> coeficiente da linha i                               *
-* lB        -> vetor de forca da linha i                            *
-* lRcell    -> residuo por celula                                   *
+* eddyViscosity                                                     *
 *-------------------------------------------------------------------*
 * OBS:                                                              *
 *-------------------------------------------------------------------*
@@ -240,27 +252,39 @@ void turbulence(Turbulence tModel
 *                  | du2dx1 du2dx2 |                                *
 *                                                                   *
 *********************************************************************/
-void cellLes(Turbulence tModel,           
-            short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop,
-            INT *RESTRICT lViz         , DOUBLE *RESTRICT ksi,
-            DOUBLE *RESTRICT mKsi,
-            DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT mEta,
-            DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT area,
-            DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc,
-            DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc,
-            DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew,
-            DOUBLE *RESTRICT gradVel   , DOUBLE *RESTRICT lDensity,
-            DOUBLE *viscosity,
-            const short nEn            , short const nFace,
-            const short ndm            , INT const nel) 
+void cellLes(Loads *loadsVel           , Turbulence tModel           
+          , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop 
+          , INT *RESTRICT lViz         , DOUBLE *RESTRICT ksi 
+          , DOUBLE *RESTRICT mKsi
+          , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT mEta 
+          , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT area 
+          , DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc 
+          , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc 
+          , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew 
+          , short *RESTRICT lFaceVelR  , short *RESTRICT lFaceVelL 
+          , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel       
+          , DOUBLE *RESTRICT lDensity  , DOUBLE const dViscosity
+          , DOUBLE *viscosity          
+          , const short nEn            , short const nFace 
+          , const short ndm            , INT const nel) 
 {
 /*...*/
-  short idCell = nFace;
-  DOUBLE modS,tmp,densityC,cs,s[3], gradVelC[2][2],delta;
+  bool fWall = false;
+  short nAresta, vizNel, nCarg, idCell = nFace,wallType;
+  DOUBLE modS, tmp, densityC, viscosityC, cs, s[3], gradVelC[2][2],delta;
+  DOUBLE wt,velC[2],vParallel[2],lNormal[2],lMin,dMin
+        ,yPlus,uPlus,velB[2],yPlusMax;
 
-/*... propriedades da celula*/
-  cs        = tModel.cs;
-  densityC  = lDensity[idCell];
+/*...*/
+  cs         = tModel.cs;
+  wallType   = tModel.wallType;
+  densityC   = lDensity[idCell];
+  viscosityC = dViscosity;
+/*...................................................................*/
+
+/*...*/
+  velC[0] = MAT2D(idCell, 0, vel, ndm);
+  velC[1] = MAT2D(idCell, 1, vel, ndm);
 /*...................................................................*/
 
 /*... | du1/dx1 du1/dx2*/
@@ -269,6 +293,71 @@ void cellLes(Turbulence tModel,
 /*... | du2/dx1 du2/dx2*/
   gradVelC[1][0] = MAT3D(idCell, 1, 0, gradVel, 2, ndm);
   gradVelC[1][1] = MAT3D(idCell, 1, 1, gradVel, 2, ndm);
+/*...................................................................*/
+  
+/*... wall model*/
+  yPlusMax = 0.e0;
+  dMin     = 1.e+16;
+  for (nAresta = 0; nAresta<nFace; nAresta++) {
+    vizNel         = lViz[nAresta]; 
+    yPlus = 0.e0; 
+/*... contorno*/
+    if (vizNel  == -2) {
+      if (lFaceVelR[nAresta] > 0) {
+        nCarg = lFaceVelL[nAresta] - 1;
+        if( loadsVel[nCarg].type == MOVEWALL){
+          fWall = true;
+/*... velocidade da parede*/
+          nCarg     = lFaceVelL[nAresta] - 1;
+          velB[0]   = loadsVel[nCarg].par[0];
+          velB[1]   = loadsVel[nCarg].par[1];
+/*...*/
+          lNormal[0] = MAT2D(nAresta, 0, normal, ndm);
+          lNormal[1] = MAT2D(nAresta, 1, normal, ndm);   
+/*... calculo da velociade paralela a face*/
+          wt = velC[0] * lNormal[0] + velC[1] * lNormal[1];
+          vParallel[0] = velC[0] - wt * lNormal[0] - velB[0];
+          vParallel[1] = velC[1] - wt * lNormal[1] - velB[1];
+          wt = vParallel[0]*vParallel[0]+ vParallel[1]*vParallel[1];
+          wt = sqrt(wt);
+/*...*/
+          if (wt > 0.e0)
+            wallModel(wt      , viscosityC
+                            , densityC, dcca[nAresta]
+                            , &yPlus  , &uPlus
+                            , wallType); 
+/*...................................................................*/
+          yPlusMax = max(yPlus,yPlusMax);
+          dMin     = min(dcca[nAresta],dMin);
+/*...................................................................*/
+        }
+/*...................................................................*/
+      }
+/*...*/
+      else if (lFaceVelR[nAresta] == STATICWALL){
+        fWall = true;
+        lNormal[0] = MAT2D(nAresta, 0, normal, ndm);
+        lNormal[1] = MAT2D(nAresta, 1, normal, ndm);   
+/*... calculo da velociade paralela a face*/
+        wt = velC[0] * lNormal[0] + velC[1] * lNormal[1];
+        vParallel[0] = velC[0] - wt * lNormal[0];
+        vParallel[1] = velC[1] - wt * lNormal[1];
+        wt = vParallel[0]*vParallel[0]+ vParallel[1]*vParallel[1];
+        wt = sqrt(wt);
+/*...*/
+        if (wt > 0.e0)
+          wallModel(wt      , viscosityC
+                  , densityC, dcca[nAresta]
+                  , &yPlus  , &uPlus
+                  , wallType); 
+/*...................................................................*/
+        yPlusMax = max(yPlus,yPlusMax);
+        dMin     = min(dcca[nAresta],dMin);
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+  }
 /*...................................................................*/
 
 /*... |S|*/
@@ -283,8 +372,124 @@ void cellLes(Turbulence tModel,
  
 /*...*/
   delta = sqrt(area[idCell]);
-  tmp = cs*cs*delta*delta;
-  *viscosity = densityC*tmp*modS;  
+  lMin = cs*delta;
+  if (fWall) {
+    tmp  = 1.e0-exp(-yPlusMax/VANDRIEST); 
+    lMin = min(VONKARMAN*dMin,tmp*lMin); 
+  }
+/*...................................................................*/
+  *viscosity = densityC*lMin*lMin*modS;  
+/*...................................................................*/
+}
+/*********************************************************************/
 
+/*********************************************************************
+ * Data de criacao    : 21/09/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * WALLMODEL : modelo de parade                                      *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * vt        -> velocidade tangencial a parede da celula             *
+ * viscosity -> viscosidade dinamica molecular                       *
+ * density   -> densidade                                            *
+ * dWall     -> distancia da celcula a parede                        *
+ * iCod      -> tipo de funcao de parede                             *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * y+ -> retorna o y+                                                *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void wallModel(DOUBLE const vt     , DOUBLE const viscosity
+             , DOUBLE const density, DOUBLE const dWall 
+             , DOUBLE *yP          , DOUBLE *uP   
+             , short const iCod) {
+  
+  unsigned short i, maxIt=10000;
+  DOUBLE stressW,f,df,tol = 1.e-7, nu = viscosity/density;
+  DOUBLE yPlus,uPlus,fu,fu0, conv;
+  DOUBLE invKarman = 1.e0/VONKARMAN;
+
+  switch (iCod) {
+
+    case STANDARDWALL:
+/* ... wall shear stress (viscosidade)*/
+      stressW = viscosity*vt/dWall;
+/* ... friction velocity*/
+      fu     = sqrt(stressW/density);
+      conv   = fu*tol;
+      for(i = 0; i < maxIt; i++){
+        fu0      = fu;
+/*...*/
+        yPlus    = fu*dWall/nu;
+        uPlus    = vt/fu;
+/*...................................................................*/
+        
+/*...*/
+        if( yPlus < 11.81e0){
+          f   = yPlus - uPlus;
+          df  = (yPlus + uPlus)/nu;
+          fu -= f/df;
+        }
+        else {
+          f  = invKarman*log(E_WALLMODEL*yPlus) - uPlus;
+          df = (1.e0 + VONKARMAN*uPlus)/(VONKARMAN*fu);
+          fu -= f/df;
+        }
+        if(fabs(fu-fu0) < conv) break; 
+      }
+      yPlus    = fu*dWall/nu;      
+      if ( yPlus < 0.e0 )
+        ERRO_GERAL(__FILE__,__func__,__LINE__,"WallModel: y+ < 0");   
+/*...................................................................*/        
+      break;
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*...*/
+  *yP = yPlus;
+  *uP = uPlus;
+/*...................................................................*/
+}
+/*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 23/09/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * WALLMODELHEAT : modelo de parade par conducao termica             *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * yPLus     -> distancia normalizada a parede                       *
+ * prM       -> numero de Prandlt molecular                          *
+ * prT       -> numero de Prandlt turbulento                         * 
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * y+ -> retorna o y+                                                *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE wallModelHeat(DOUBLE const yPlus,DOUBLE const prM
+                   , DOUBLE const prT) {
+  
+  DOUBLE tempPlus,tmp,bt;  
+  
+  if (yPlus < 11.81e0) 
+    tempPlus = prM*yPlus;
+  else{
+    tmp = 3.85e0*pow(prM,D1DIV3);
+    bt = tmp*tmp + 2.12*log (prM);
+    tempPlus = (prT/VONKARMAN)*log(yPlus) + bt;
+  }
+  
+  return tempPlus;
 }
 /*********************************************************************/

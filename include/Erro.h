@@ -9,10 +9,10 @@
     exit(EXIT_FAILURE);
  
   #define ERRO_GERAL(file,func,line,str)\
-    fprintf(stderr,"Erro: %s!!\n",str);\
+    {fprintf(stderr,"Erro: %s!!\n",str);\
     fprintf(stderr,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"\
            ,file,func,line);\
-    exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);}
 
   #define ERRO_MALLOC(point,str,line,file,func)\
      if(point == NULL){\

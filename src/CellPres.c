@@ -257,14 +257,16 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*... velocidades*/
       if(lFaceVelR[nAresta] > 0){
         nCarg = lFaceVelL[nAresta]-1;
-        pLoadSimple(&sP            ,&p
-                   ,tA             ,velC          
-                   ,lNormal
-                   ,&ddum          ,&ddum   
-                   ,ddum           ,densityC
-                   ,lModEta        ,dcca[nAresta]
-                   ,loadsVel[nCarg],ndm
-                   ,false          ,true);   
+        pLoadSimple(&sP            , &p
+                  , tA             , velC          
+                  , lNormal          
+                  , &ddum          , &ddum   
+                  , ddum           , ddum    
+                  , densityC
+                  , lModEta        , dcca[nAresta]
+                  , loadsVel[nCarg], ndm
+                  , false          , true
+                  , false          , 0);   
       } 
 /*...................................................................*/
     }
@@ -319,6 +321,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * loadsPres -> definicoes de cargas de pressao                      * 
  * diffPres  -> tecnica da discretizacao do termo difusivo           *
  * lnFace    -> numero de faces da celula central e seus vizinhos    * 
+ * eMass     -> termos/modelos da equacao de mass                    *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
  * lprop     -> propriedade fisicas das celulas                      * 
  * lViz      -> viznhos da celula central                            * 
@@ -542,14 +545,16 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*... velocidades*/
       if(lFaceVelR[nAresta] > 0){
         nCarg = lFaceVelL[nAresta]-1;
-        pLoadSimple(&sP            ,&p
-                   ,tA             ,velC          
-                   ,lNormal
-                   ,&ddum          ,&ddum   
-                   ,ddum           ,densityC
-                   ,lModEta        ,dcca[nAresta]
-                   ,loadsVel[nCarg],ndm
-                   ,false          ,true);   
+        pLoadSimple(&sP            , &p
+                  , tA             , velC          
+                  , lNormal          
+                  , &ddum          , &ddum   
+                  , ddum           , ddum 
+                  , densityC
+                  , lModEta        , dcca[nAresta]
+                  , loadsVel[nCarg], ndm
+                  , false          , true
+                  , false          , 0);   
       } 
 /*...................................................................*/
     }
@@ -1098,14 +1103,16 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
 /*... velocidades*/
       if(lFaceVelR[nAresta] > 0){
         nCarg = lFaceVelL[nAresta]-1;
-        pLoadSimple(&sP            ,&p
-                   ,tA             ,velC          
-                   ,lNormal
-                   ,&ddum          ,&ddum 
-                   ,ddum           ,densityC
-                   ,lFarea         ,dcca[nAresta]
-                   ,loadsVel[nCarg],ndm
-                   ,false          ,true);   
+        pLoadSimple(&sP            , &p
+                  , tA             , velC          
+                  , lNormal          
+                  , &ddum          , &ddum 
+                  , ddum           , ddum    
+                  , densityC
+                  , lFarea         , dcca[nAresta]
+                  , loadsVel[nCarg], ndm
+                  , false          , true
+                  , false          , 0);   
       } 
 /*...................................................................*/
     }

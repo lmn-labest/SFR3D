@@ -396,9 +396,9 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void cellEnergy2D(Loads *loads            , EnergyModel model
+void cellEnergy2D(Loads *loads            , Loads *loadsVel
             , Advection advT              , Diffusion diffT
-            , Turbulence tModel  
+            , Turbulence tModel           , EnergyModel model
             , short *RESTRICT lGeomType   , DOUBLE *RESTRICT prop
             , INT *RESTRICT lViz          , INT *RESTRICT lId
             , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
@@ -410,6 +410,7 @@ void cellEnergy2D(Loads *loads            , EnergyModel model
             , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
             , DOUBLE *RESTRICT lRcell     , Temporal const ddt
             , short  *RESTRICT lFaceR     , short *RESTRICT lFaceL
+            , short  *RESTRICT lFaceVelR  , short *RESTRICT lFaceVelL
             , DOUBLE *RESTRICT u0         , DOUBLE *RESTRICT gradU0
             , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
             , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres  
@@ -420,45 +421,55 @@ void cellEnergy2D(Loads *loads            , EnergyModel model
             , const short nEn             , short const nFace
             , const short ndm             , INT const nel)
 {
-  bool fTime, fDisp, fRes, fPresWork, fTemp, fTurb;
-  short iCodAdv1 = advT.iCod1, iCodAdv2 = advT.iCod2, iCodDif = diffT.iCod;
-/*...*/
-  short idCell = nFace, nAresta, nCarg, typeTime;
+  bool fTime, fDisp, fRes, fPresWork, fTemp, fTurb, fWallModel, fKelvin;
+  short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nAresta, nCarg1
+        , nCarg2, typeTime;
 /*...*/
   INT vizNel;
 /*...*/
   DOUBLE thermCoefC, thermCoefV, densityC, densityV, densityM,
          diffEffC, diffEffV, diffEff, sHeatC, sHeatV, sHeatM, 
          eddyViscosityC, eddyViscosityV, viscosityC, tA, coef,
-         tmp, tmp1, PrT;
+         tmp, tmp1, prT;
   DOUBLE p, sP, dfd, gfKsi, lvSkew[2], alpha, alphaMenosUm;
   DOUBLE v[2], gradUcomp[2], lKsi[2], lNormal[2], gf[2];
   DOUBLE dPviz, lModKsi, lModEta, du, duDksi, lXmcc[2], lXm[2];
   DOUBLE gradUp[2], gradUv[2], ccV[2], gradVelC[2][2], rCell, dt, dt0; 
+  DOUBLE uC, uV;
 /*... nonOrtogonal*/
   DOUBLE e[2], t[2], modE, dfdc, xx[3];
 /*... */
   DOUBLE presC, presC0, presV, gradPresC[2], gradPresV[2], wfn
-        , velC[2], velV[2], dFieldC[2], dFieldV[2], dFieldF[2], cv, cvc;
+        , velC[2], velV[2], dFieldC[2], dFieldV[2], dFieldF[2], cv, cvc;       
 
 /*...*/
   DOUBLE phi,psi,lambda;
 
 /*...*/
-  eddyViscosityC = eddyViscosityV = 0.e0;
-  dt        = ddt.dt[0];
-  dt0       = ddt.dt[1];
-  typeTime  = ddt.type;
-  fTime     = ddt.flag;  
-  fDisp     = model.fDissipation;
-  fRes      = model.fRes;
-  fPresWork = model.fPresWork;
-  fTemp     = model.fTemperature;
-  fTurb     = tModel.fTurb;
-  PrT       = 0.9e0;
+  idCell   = nFace;
+  iCodAdv1 = advT.iCod1;
+  iCodAdv2 = advT.iCod2;
+  iCodDif  = diffT.iCod;
+/*...................................................................*/
+
+/*...*/  
+  dt         = ddt.dt[0];
+  dt0        = ddt.dt[1];
+  typeTime   = ddt.type;
+  fTime      = ddt.flag;  
+  fDisp      = model.fDissipation;
+  fRes       = model.fRes;
+  fPresWork  = model.fPresWork;
+  fTemp      = model.fTemperature;
+  fKelvin    = model.fKelvin;
+  fTurb      = tModel.fTurb;
+  prT        = tModel.PrandltT;
+  fWallModel = tModel.fWall;
+  wallType   = tModel.wallType;
 /*...................................................................*/
 
 /*... propriedades da celula*/
+  eddyViscosityC = eddyViscosityV = 0.e0;
   densityC    = lDensity[idCell];
   sHeatC      = lSheat[idCell];
   thermCoefC  = lTconductivity[idCell];  
@@ -469,9 +480,9 @@ void cellEnergy2D(Loads *loads            , EnergyModel model
 
 /*...*/
   if(fTemp)
-    diffEffC = thermCoefC + sHeatC*viscosityC/PrT;
+    diffEffC = thermCoefC + sHeatC*viscosityC/prT;
   else
-    diffEffC = thermCoefC/sHeatC + viscosityC/PrT;
+    diffEffC = thermCoefC/sHeatC + viscosityC/prT;
 /*...................................................................*/
 
 /*...*/
@@ -479,6 +490,7 @@ void cellEnergy2D(Loads *loads            , EnergyModel model
   gradUp[1]    = MAT2D(idCell, 1, gradU0, ndm);
   velC[0]      = MAT2D(idCell, 0, vel, ndm);
   velC[1]      = MAT2D(idCell, 1, vel, ndm);
+  uC           = u0[idCell];
 /*... p(n)*/
   presC0 = MAT2D(idCell, 0, pres, 2); 
 /*... p(n+1)*/
@@ -513,6 +525,7 @@ void cellEnergy2D(Loads *loads            , EnergyModel model
       dFieldV[0]   = MAT2D(nAresta, 0, dField, 2);
       dFieldV[1]   = MAT2D(nAresta, 1, dField, 2);
 /*...*/
+      uV      = u0[nAresta];
       velV[0] = MAT2D(nAresta, 0, vel, ndm);
       velV[1] = MAT2D(nAresta, 1, vel, ndm);      
 /*...*/
@@ -523,7 +536,7 @@ void cellEnergy2D(Loads *loads            , EnergyModel model
       lvSkew[0] = MAT2D(nAresta, 0, vSkew, ndm);
       lvSkew[1] = MAT2D(nAresta, 1, vSkew, ndm);
 /*...*/
-      duDksi = (u0[nAresta] - u0[idCell]) / lModKsi;
+      duDksi = (uV - uC) / lModKsi;
 /*...*/
       gradUv[0] = MAT2D(nAresta, 0, gradU0, ndm);
       gradUv[1] = MAT2D(nAresta, 1, gradU0, ndm);
@@ -553,12 +566,12 @@ void cellEnergy2D(Loads *loads            , EnergyModel model
 
 /*... media harmonica*/ 
       if(fTemp){
-        diffEffV = thermCoefV + sHeatV*eddyViscosityV/PrT;
+        diffEffV = thermCoefV + sHeatV*eddyViscosityV/prT;
         diffEff = alpha / diffEffC + alphaMenosUm / diffEffV;
         diffEff = 1.0e0 /  diffEff;
       }
       else {        
-        diffEffV = thermCoefV/sHeatV + eddyViscosityV/PrT;
+        diffEffV = thermCoefV/sHeatV + eddyViscosityV/prT;
         diffEff = alpha / diffEffC + alphaMenosUm / diffEffV;
         diffEff = 1.0e0 / diffEff;
       }
@@ -618,13 +631,13 @@ void cellEnergy2D(Loads *loads            , EnergyModel model
 /*...*/
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
-      advectiveSchemeScalar(u0[idCell],u0[nAresta]
+      advectiveSchemeScalar(uC        ,uV
                            ,gradUp    ,gradUv
                            ,gradUcomp ,lvSkew
                            ,lXmcc     ,v
                            ,lKsi      ,lModKsi
                            ,cv        ,&cvc
-                           ,ndm
+                           ,ndm   
                            ,iCodAdv1  ,iCodAdv2);
 /*...................................................................*/
 
@@ -641,24 +654,23 @@ void cellEnergy2D(Loads *loads            , EnergyModel model
       if (lFaceR[nAresta]) {
         wfn = velC[0] * lNormal[0] + velC[1] * lNormal[1];
 /*...cargas*/
-        nCarg = lFaceL[nAresta] - 1;
+        nCarg1 = lFaceL[nAresta] - 1;
+        nCarg2 = lFaceVelL[nAresta] - 1;
         xx[0] = MAT2D(nAresta, 0, xm, 2);
         xx[1] = MAT2D(nAresta, 1, xm, 2);
         xx[2] = 0.e0;
-        if(fTemp)
-          pLoad(&sP         ,&p
-               ,&tA
-               ,diffEffC    ,sHeatC*densityC
-               ,wfn         ,xx
-               ,lModEta     ,dcca[nAresta]
-               ,loads[nCarg],true);
-        else 
-          pLoad(&sP            ,&p
-               ,&tA
-               ,diffEffC       ,densityC
-               ,wfn            ,xx
-               ,lModEta        ,dcca[nAresta]
-               ,loads[nCarg]   ,true);
+        pLoadEnergy(&sP          , &p
+                  , &tA          , velC
+                  , uC           , lNormal  
+                  , thermCoefC   , densityC
+                  , viscosityC   , sHeatC
+                  , prT          , xx                   
+                  , lModEta      , dcca[nAresta]
+                  , loads[nCarg1], loadsVel[nCarg2]
+                  , ndm
+                  , true         , fTemp
+                  , fKelvin      , false
+                  , fWallModel   , wallType);  
 /*...................................................................*/
       }
 /*...................................................................*/
