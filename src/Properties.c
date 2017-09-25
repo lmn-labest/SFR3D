@@ -251,23 +251,27 @@ DOUBLE airThermalConductvity(DOUBLE const t,bool const fKelvin) {
 
 /*********************************************************************
  * Data de criacao    : 28/08/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 24/09/2017                                   *
  *-------------------------------------------------------------------*
  * TEMPFORSPECIFICENTHALPY: calcula a entalpia espeficia apartir da  *
  * temperatura                                                       *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
- * t - temperatura                                                   *
+ * t        - temperatura (°C/K)                                     *
+ * sHeatRef - calor especifico de referencia constante com temp      *
+ * fSheat   - calor especifico com variacao com a Temperatura        *
+ * fKelvin  - temperatura dada em kelvin                             *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
+ * entalpia sensivel                                                 *
  *-------------------------------------------------------------------* 
- *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE tempForSpecificEnthalpy(DOUBLE const t,bool const fKelvin) {
+DOUBLE tempForSpecificEnthalpy(DOUBLE const t   , DOUBLE const sHeatRef
+                             , bool const fSheat, bool const fKelvin) {
 
   short i,n=sHeat.nPol;
   DOUBLE a[6],d,dt,tmp;
@@ -278,16 +282,21 @@ DOUBLE tempForSpecificEnthalpy(DOUBLE const t,bool const fKelvin) {
   else
     tc = CELSIUS_FOR_KELVIN(t);  
 
-  for (i = 0; i < n; i++)
-    a[i] = sHeat.a[i];
+  if(fSheat){
+    for (i = 0; i < n; i++)
+      a[i] = sHeat.a[i];
 
-  tmp = 0.0;
-  for (i = 0; i < n; i++) {
-    d    = (double) (i + 1);
-    dt   = tc-tRef;
-    tmp += a[i]*pow(dt,d)/d;
+    tmp = 0.0;
+    for (i = 0; i < n; i++) {
+      d    = (double) (i + 1);
+      dt   = tc-tRef;
+      tmp += a[i]*pow(dt,d)/d;
+    }
   }
-  
+
+  else 
+    tmp = TEMP_FOR_ENTHALPY(sHeatRef,tc,TREF);
+
   return tmp;
 
 }
@@ -295,49 +304,62 @@ DOUBLE tempForSpecificEnthalpy(DOUBLE const t,bool const fKelvin) {
 
 /*********************************************************************
  * Data de criacao    : 28/08/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 24/09/2017                                   *
  *-------------------------------------------------------------------*
  * SPECIFICENTHALPYFORTEMP:  calcula a temperatura apartir da        *
  * entalpia especifica                                               * 
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
- * t -                                                               *
+ * hs       - entalpia sensivel                                      *
+ * sHeatRef - calor especifico de referencia constante com temp      *
+ * fSheat   - calor especifico com variacao com a Temperatura        *
+ * fKelvin  - temperatura dada em kelvin                             *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
+ * temperatura (°C/Kelvin)                                          *
  *-------------------------------------------------------------------*
- * OBS:                                                              *
- *-------------------------------------------------------------------*
+ * OBS:                                                              * 
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE specificEnthalpyForTemp(DOUBLE const hs,bool const fKelvin) {
-
+DOUBLE specificEnthalpyForTemp(DOUBLE const hs  , DOUBLE const sHeatRef
+                             , bool const fSheat, bool const fKelvin) 
+{
   unsigned short i;
   bool flag = false;
   DOUBLE f,fl,t,conv,tol=1e-10;
  
-  t    = 0.e0;
-  conv = (hs-tempForSpecificEnthalpy(t,true))*tol;
-  conv = fabs(conv);
+/*...*/
+  if(fSheat){
+    t    = 0.e0;
+    conv = (hs-tempForSpecificEnthalpy(t,sHeatRef,false,true))*tol;
+    conv = fabs(conv);
 /*... Newton-Raphson*/
-  for(i=0;i<60000;i++){
-    f  = hs-tempForSpecificEnthalpy(t,true);
-    if(fabs(f) < conv ) {
-      flag = true;
-      break;
-    }
+    for(i=0;i<60000;i++){
+      f  = hs-tempForSpecificEnthalpy(t,sHeatRef,false,true);
+      if(fabs(f) < conv ) {
+        flag = true;
+        break;
+      }
     
-    fl = airSpecifiHeat(t,true);
-    t += f/fl;   
+      fl = airSpecifiHeat(t,true);
+      t += f/fl;   
+    }
+/*...................................................................*/
+
+    if(!flag){
+      printf("%i %e %e %e\n",i,t,f,conv);
+      ERRO_GERAL(__FILE__,__func__,__LINE__,
+      "sEnthalpy->temperature:\n Newton-raphson did not converge !!");
+    }
   }
 /*...................................................................*/
 
-  if(!flag){
-    printf("%i %e %e %e\n",i,t,f,conv);
-    ERRO_GERAL(__FILE__,__func__,__LINE__,
-    "temperature->sEnthalpy:\n Newton-raphson did not converge !!");
-  }
+/*...*/
+  else
+    t = ENTHALPY_FOR_TEMP(sHeatRef,hs,TREF);
+/*...................................................................*/
 
   if(!fKelvin)
     t = KELVIN_FOR_CELSIUS(t);  
@@ -934,7 +956,7 @@ void getTempForEnergy(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
   
   short lMat;
   INT i;  
-  DOUBLE sHeat,t;
+  DOUBLE sHeat;
 
 /*... resolucao da eq da energia na forma de temperatura*/ 
   if(fTemp)
@@ -943,26 +965,16 @@ void getTempForEnergy(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
 /*...................................................................*/ 
 
 /*... resolucao da eq da energia na forma de entalpia sensivel*/  
-  else
+  else{
 /*...*/
-    if (fSheat) {
-      for (i = 0; i < nCell; i++) 
-        temp[i] = specificEnthalpyForTemp(energy[i],fKelvin);
+    for (i = 0; i < nCell; i++) {
+      lMat  = mat[i] - 1;
+      sHeat = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+      temp[i] = specificEnthalpyForTemp(energy[i], sHeat
+                                       , fSheat  , fKelvin);
     }
 /*...................................................................*/ 
-
-/*...*/
-    else {
- /*...*/
-      for (i = 0; i < nCell; i++){
-        lMat  = mat[i] - 1;
-        sHeat = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-        t = ENTHALPY_FOR_TEMP(sHeat,energy[i],TREF);
-        if(!fKelvin)
-           temp[i] = KELVIN_FOR_CELSIUS(t);
-      }
-/*...................................................................*/ 
-    }
+  }
 /*...................................................................*/ 
 
 }
@@ -999,30 +1011,16 @@ void getEnergyForTemp(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                      ,bool const fSheat    ,bool const fKelvin) {
   short lMat;
   INT i;  
-  DOUBLE sHeat,t;
+  DOUBLE sHeat;
 
 /*...*/ 
-  if(fSheat)
-    for (i = 0; i < nCell; i++) 
-      energy[i] = tempForSpecificEnthalpy(temp[i],fKelvin); 
+  for (i = 0; i < nCell; i++) {
+    lMat  = mat[i] - 1;
+    sHeat = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+    energy[i] = tempForSpecificEnthalpy(temp[i],sHeat,fSheat,fKelvin);
+  }
 /*...................................................................*/ 
 
-/*...*/ 
-  else
-    for (i = 0; i < nCell; i++) {
-/*...*/
-      if(fKelvin)
-        t = temp[i];  
-      else
-        t = CELSIUS_FOR_KELVIN(temp[i]);  
-/*...................................................................*/ 
-
-      lMat  = mat[i] - 1;
-      sHeat = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-
-      energy[i] = TEMP_FOR_ENTHALPY(sHeat,t,TREF); 
-    }
-/*...................................................................*/ 
 }
 /*********************************************************************/
 

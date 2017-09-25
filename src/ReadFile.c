@@ -2414,7 +2414,7 @@ static void convLoadsEnergy(Loads *loadsEnergy   ,Loads *loadsTemp
                            ,bool const iKelvin){
 
   short i,j,type;
-  DOUBLE t,sHeat;
+  DOUBLE t,sHeat,tmp;
   
 /*... cc da equacao da energia e em temperatura*/
   if(fTemp){
@@ -2443,15 +2443,19 @@ static void convLoadsEnergy(Loads *loadsEnergy   ,Loads *loadsTemp
       loadsEnergy[i].type = loadsTemp[i].type;
       loadsEnergy[i].np   = loadsTemp[i].np;
       type = loadsTemp[i].type;
+/*...*/
       if( type == DIRICHLETBC ||  type == INLET ){
-        t = loadsTemp[i].par[0];         
-        if(fSheat)
-          loadsEnergy[i].par[0] = tempForSpecificEnthalpy(t,iKelvin);
-        else{
-          if(!iKelvin) t = CELSIUS_FOR_KELVIN(t);
-          loadsEnergy[i].par[0] = TEMP_FOR_ENTHALPY(sHeat,t,TREF);
-        }
+        t = loadsTemp[i].par[0];
+        tmp = tempForSpecificEnthalpy(t, sHeat, fSheat, iKelvin);
+        loadsEnergy[i].par[0] = tmp;       
       }
+/*....................................................................*/
+
+/*...*/
+      else if (type == NEUMANNBC) {
+        loadsEnergy[i].par[0] = loadsTemp[i].par[0];
+      }
+/*....................................................................*/
     }     
   }
 /*....................................................................*/

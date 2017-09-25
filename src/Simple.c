@@ -1299,6 +1299,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
     systFormEnergy(loadsEnergy        , loadsVel
              , sc.advEnergy           , sc.diffEnergy
              , turbModel              , eModel  
+             , prop  
              , mesh->elm.node         , mesh->elm.adj.nelcon
              , mesh->elm.nen          , mesh->elm.adj.nViz
              , mesh->elm.geomType     , mesh->elm.material.prop

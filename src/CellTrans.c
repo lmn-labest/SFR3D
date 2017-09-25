@@ -331,7 +331,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*********************************************************************
  * Data de criacao    : 20/08/2017                                   *
- * Data de modificaco : 13/09/2017                                   *
+ * Data de modificaco : 24/09/2017                                   *
  *-------------------------------------------------------------------*
  * CELLENERGY2D: Celula 2D para transporte                           *
  *-------------------------------------------------------------------*
@@ -342,6 +342,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * advT      -> tecnica da discretizacao do termo advecao            *
  * diffT     -> tecnica da discretizacao do termo difusivo           *
  * tModel    -> modelo de turbulencia                                *
+ * vProp     -> propedades variaveis (true|false)                    *
  * lnFace    -> numero de faces da celula central e seus vizinhos    *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
  * lprop     -> propriedade fisicas das celulas                      *
@@ -382,6 +383,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * gradPres  -> gradiente de pressao do tempo atual                  *
  * cc        -> centroides da celula centra e seus vizinhos          *
  * underU    -> parametro de sob relaxamento                         *
+ * fSheat    -> calor especifico com variacao com a Temperatura      *
  * nEn       -> numero de nos da celula central                      *
  * nFace     -> numero de faces da celula central                    *
  * ndm       -> numero de dimensoes                                  *
@@ -399,6 +401,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 void cellEnergy2D(Loads *loads            , Loads *loadsVel
             , Advection advT              , Diffusion diffT
             , Turbulence tModel           , EnergyModel model
+            , PropVar vProp
             , short *RESTRICT lGeomType   , DOUBLE *RESTRICT prop
             , INT *RESTRICT lViz          , INT *RESTRICT lId
             , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
@@ -417,13 +420,13 @@ void cellEnergy2D(Loads *loads            , Loads *loadsVel
             , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lSheat
             , DOUBLE *RESTRICT lViscosity , DOUBLE *RESTRICT lTconductivity
             , DOUBLE *RESTRICT dField
-            , DOUBLE const underU
+            , DOUBLE const underU           
             , const short nEn             , short const nFace
             , const short ndm             , INT const nel)
 {
   bool fTime, fDisp, fRes, fPresWork, fTemp, fTurb, fWallModel, fKelvin;
   short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nAresta, nCarg1
-        , nCarg2, typeTime;
+        , nCarg2, typeTime, fSheat;
 /*...*/
   INT vizNel;
 /*...*/
@@ -466,6 +469,7 @@ void cellEnergy2D(Loads *loads            , Loads *loadsVel
   prT        = tModel.PrandltT;
   fWallModel = tModel.fWall;
   wallType   = tModel.wallType;
+  fSheat     = vProp.fSpecificHeat;
 /*...................................................................*/
 
 /*... propriedades da celula*/
@@ -669,7 +673,7 @@ void cellEnergy2D(Loads *loads            , Loads *loadsVel
                   , loads[nCarg1], loadsVel[nCarg2]
                   , ndm
                   , true         , fTemp
-                  , fKelvin      , false
+                  , fKelvin      , fSheat
                   , fWallModel   , wallType);  
 /*...................................................................*/
       }

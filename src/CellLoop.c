@@ -2212,7 +2212,7 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
 
 /*********************************************************************
  * Data de criacao    : 22/08/2017                                   *
- * Data de modificaco : 22/09/2017                                   *
+ * Data de modificaco : 24/09/2017                                   *
  *-------------------------------------------------------------------*
  * SYSTFOMENERGY: calculo do sistema de equacoes para problemas      *
  * transporte de energia (Ax=b)                                      *
@@ -2223,6 +2223,7 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
  * model     -> modelo da equacao de energia                         *
  * advT    -> tecnica da discretizacao do termo advecao              *
  * diffT   -> tecnica da discretizacao do termo difusivo             *
+ * vProp     -> propedades variaveis (true|false)                    *
  * el      -> conetividade dos celulas                               *
  * nelcon  -> vizinhos dos elementos                                 *
  * nen     -> numero de nos por celulas                              *
@@ -2305,6 +2306,7 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
 void systFormEnergy(Loads *loads       , Loads *loadsVel  
        , Advection adv                 , Diffusion diff 
        , Turbulence tModel             , EnergyModel model 
+       , PropVar vProp
        , INT    *RESTRICT el           , INT    *RESTRICT nelcon
        , short  *RESTRICT nen          , short  *RESTRICT nFace
        , short  *RESTRICT geomType     , DOUBLE *RESTRICT prop
@@ -2645,6 +2647,7 @@ void systFormEnergy(Loads *loads       , Loads *loadsVel
         cellLibEnergy(loads      , loadsVel
                     , adv        , diff 
                     , tModel     , model  
+                    , vProp
                     , lGeomType  , lProp
                     , lViz       , lId
                     , lKsi       , lmKsi

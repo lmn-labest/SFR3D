@@ -126,6 +126,7 @@ void cellLibTurbulence(Loads *loadsVel  , Turbulence tModel
 * model     -> modelo da equacao de energia                         *
 * adv       -> tecnica da discretizacao do termo advecao            *
 * diff      -> tecnica da discretizacao do termo difusivo           *
+* vProp     -> propedades variaveis (true|false)                    *
 * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
 * lprop     -> propriedade fisicas das celulas                      *
 * lViz      -> viznhos da celula central                            *
@@ -178,6 +179,7 @@ void cellLibTurbulence(Loads *loadsVel  , Turbulence tModel
 void cellLibEnergy(Loads *loads    , Loads *loadsVel                      
      , Advection  adv              , Diffusion diff      
      , Turbulence tModel           , EnergyModel model  
+     , PropVar vProp 
      , short *RESTRICT lGeomType   , DOUBLE *RESTRICT lprop
      , INT   *RESTRICT lViz        , INT *RESTRICT lId
      , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
@@ -208,7 +210,8 @@ void cellLibEnergy(Loads *loads    , Loads *loadsVel
     if (ndm == 2)  
       cellEnergy2D(loads      , loadsVel
                  , adv        , diff
-                 , tModel     , model  
+                 , tModel     , model 
+                 , vProp 
                  , lGeomType  , lprop
                  , lViz       , lId
                  , ksi        , mKsi
@@ -4168,19 +4171,8 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
         tC = uC;  
       }
       else{
-        if(fSheat){
-          tW =specificEnthalpyForTemp(tA[0],iKelvin);
-          tC =specificEnthalpyForTemp(uC   ,iKelvin); 
-        }
-        else {
-/*...*/
-          tW = ENTHALPY_FOR_TEMP(sHeatC,tA[0],TREF);
-          tC = ENTHALPY_FOR_TEMP(sHeatC,uC   ,TREF); 
-          if(!iKelvin){
-             tW = KELVIN_FOR_CELSIUS(tW);
-             tC = KELVIN_FOR_CELSIUS(tC);         
-          }
-        }
+        tW =specificEnthalpyForTemp(tA[0],sHeatC,fSheat,iKelvin);
+        tC =specificEnthalpyForTemp(uC   ,sHeatC,fSheat,iKelvin); 
       }
 /*...................................................................*/ 
 
@@ -4222,37 +4214,24 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
      if(!fCal) return;
 /*... inertial sub-layer*/     
      if ( yPlus > 11.81e0 ){
-//     tC = uC;
-//     if (fTemp) {
-//      tW = uC - tA[0]*dcca*tempPlus/(sHeatC*viscosityC*yPlus);
- //     if(!iKelvin){
- //       tW = KELVIN_FOR_CELSIUS(tW);
- //       tC = KELVIN_FOR_CELSIUS(tC);        
- //     }
- //    }
+/*... energia na forma da temperatura*/
+       if (fTemp) 
+        tW = uC + tA[0]*dcca*tempPlus/(sHeatC*viscosityC*yPlus);      
+/*...................................................................*/
+      
+/*... energia na forma da entalpia*/
+      else{
+        tC = specificEnthalpyForTemp(uC ,sHeatC,fSheat,iKelvin); 
+        tW = tC + tA[0]*dcca*tempPlus/(sHeatC*viscosityC*yPlus);
+        tW = tempForSpecificEnthalpy(tW,sHeatC,fSheat,iKelvin); 
+       }
 /*...................................................................*/
       
 /*...*/
-//    else{
-//      if(fSheat){
-//        tC =specificEnthalpyForTemp(tC   ,iKelvin); 
-//      }
-//      else {
-//        if(!iKelvin){
- //         tW = CELSIUS_FOR_KELVIN(tW);
- //         tC = CELSIUS_FOR_KELVIN(tC);
- //       }        
- //       tW = TEMP_FOR_ENTHALPY(sHeatC,tW   ,TREF);
- //       tC = TEMP_FOR_ENTHALPY(sHeatC,tC   ,TREF); 
- //     }
- //   }
-/*...................................................................*/
-
-/*...*/
-//    aP   = thermCoef*fArea/dcca;
-//    if(!fTemp) aP /=  sHeatC;
-//    *sP += aP;
-//    *p  += aP*tW;      
+      aP   = thermCoef*fArea/dcca;
+      if(!fTemp) aP /=  sHeatC;
+      *sP += aP;
+      *p  += aP*tW;      
 /*...................................................................*/
     }
 /*...................................................................*/

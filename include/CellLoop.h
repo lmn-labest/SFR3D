@@ -261,7 +261,8 @@
 /*...*/
   void systFormEnergy(Loads *loads        , Loads *loadsVel 
            , Advection advE               , Diffusion diffE
-           , Turbulence tModel            , EnergyModel model  
+           , Turbulence tModel            , EnergyModel model 
+           , PropVar vProp 
            , INT    *RESTRICT el          , INT    *RESTRICT nelcon
            , short  *RESTRICT nen         , short  *RESTRICT nFace
            , short  *RESTRICT geomType    , DOUBLE *RESTRICT prop
@@ -443,6 +444,7 @@
   void cellLibEnergy(Loads *loads  , Loads *loadsVel
      , Advection  adv              , Diffusion diff
      , Turbulence tModel           , EnergyModel model  
+     , PropVar vProp
      , short *RESTRICT lGeomType   , DOUBLE *RESTRICT lprop
      , INT   *RESTRICT lViz        , INT *RESTRICT lId
      , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
@@ -825,6 +827,7 @@
   void cellEnergy2D(Loads *loads           , Loads *loadsVel 
             , Advection adv                , Diffusion diff
             , Turbulence tModel            , EnergyModel model 
+            , PropVar vProp
             , short *RESTRICT lGeomType    , DOUBLE *RESTRICT prop
             , INT *RESTRICT lViz           , INT *RESTRICT lId
             , DOUBLE *RESTRICT ksi         , DOUBLE *RESTRICT mKsi

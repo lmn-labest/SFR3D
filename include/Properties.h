@@ -68,8 +68,10 @@
   DOUBLE airSpecifiHeat(DOUBLE const t,bool const fKelvin);
   DOUBLE airDynamicViscosity(DOUBLE const t,bool const fKelvin);
   DOUBLE airThermalConductvity(DOUBLE const t,bool const fKelvin);
-  DOUBLE specificEnthalpyForTemp(DOUBLE const hs,bool const fKelvin);
-  DOUBLE tempForSpecificEnthalpy(DOUBLE const t,bool const fKelvin);
+  DOUBLE specificEnthalpyForTemp(DOUBLE const hs, DOUBLE const sHeatRef
+                               , bool const fSheat, bool const fKelvin); 
+  DOUBLE tempForSpecificEnthalpy(DOUBLE const t, DOUBLE const sHeatRef
+                               , bool const fSheat, bool const fKelvin);
 /*...................................................................*/
 
 /*...*/
