@@ -1022,7 +1022,7 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 12/09/2017                                   * 
+ * Data de modificaco : 26/09/2017                                   * 
  *-------------------------------------------------------------------* 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1052,17 +1052,7 @@ void wResVtkDif(Memoria *m        ,double *x
  * numat        -> numero maximo de nos por elemento                  *
  * ndf          -> graus de liberdade das equacoes                    *
  * nameOut      -> nome de arquivo de saida                           *
- * presResEl    -> nome dos resultados                                *
- * presResNo    -> nome dos resultados                                *
- * presgradResEl-> nome dos resultados                                *
- * presgradResNo-> nome dos resultados                                *
- * nameOut      -> nome de arquivo de saida                           *
- * iws          -> vtk binario                                        *
- * fVel         -> escreve as velocidades                             *
- * fGradVel     -> escreve os gradientes da velocidades               *
- * fPres        -> escreve as pressoes                                *
- * fGradPes     -> escrever os gradientes da pressoes                 *
- * feddyViscosity> escrever a viscosidade turbulenta                  *
+ * opt          -> opcoes do arquivo
  * f            -> arquivlo                                           *
  * ------------------------------------------------------------------ *
  * parametros de saida  :                                             * 
@@ -1085,24 +1075,17 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
           ,DOUBLE *elEnergy     ,DOUBLE *nEnergy
           ,DOUBLE *elGradEnergy ,DOUBLE *nGradEnergy
           ,DOUBLE *eddyVis      ,DOUBLE *densityFluid
+          ,DOUBLE *specificHeat ,DOUBLE *dViscosity
+          ,DOUBLE *tConductivity
           ,INT nnode            ,INT numel    
           ,short const ndm      ,short const maxNo 
           ,short const numat    ,short const ndf   
-          ,char *presResEl      ,char *presResNo 
-          ,char *gradPresResEl  ,char *gradPresResNo 
-          ,char *velEl          ,char *velNo       
-          ,char *gradVelResEl   ,char *gradVelResNo 
-          ,char *energyResEl    ,char *energyResNo
-          ,char *gradEnergyResEl,char *gradEnergyResNo
-          ,char *eddyVisRes     ,char *densityFluidRes
-          ,char *nameOut        ,bool iws
-          ,bool fVel            ,bool fGradVel 
-          ,bool fPres           ,bool fGradPres
-          ,bool fEnergy         ,bool fGradEnergy
-          ,bool fEddyViscosity  ,bool fSpecificMass
+          ,char *nameOut        ,FileOpt opt
           ,bool fKelvin
           ,Temporal ddt         ,FILE *f)
 {
+  bool iws = opt.bVtk;
+  char str[50];
   int    *lel=NULL;
   DOUBLE *p=NULL;
   INT i;
@@ -1165,73 +1148,103 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
   HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
   
-/*... escrever resultados de pressao por celula*/ 
-  if(fPres)
-    writeVtkProp(&idum,elPres,numel,1,presResEl,iws,DOUBLEV,1,f);
+/*... escrever resultados de pressao por celula*/   
+  if(opt.pres){
+    strcpy(str,"CellPres");
+    writeVtkProp(&idum,elPres,numel,1,str,iws,DOUBLEV,1,f);
+  }
 /*...................................................................*/
 
-/*... escrever gradiente da pressao por celula*/
-  if(fGradPres)  
-    writeVtkProp(&idum,elGradPres,numel,ndm,gradPresResEl
-                ,iws,DOUBLEV,2,f);
+/*... escrever gradiente da pressao por celula*/  
+  if(opt.gradPres){
+    strcpy(str,"CellGradPres");
+    writeVtkProp(&idum,elGradPres,numel,ndm,str ,iws,DOUBLEV,2,f);
+  }
 /*...................................................................*/
 
 
 /*... escrever campo de velociade por celula*/  
-  if(fVel)
-    writeVtkProp(&idum,elVel,numel,ndm,velEl,iws,DOUBLEV,2,f);
+  if(opt.vel){
+    strcpy(str,"CellVel");
+    writeVtkProp(&idum,elVel,numel,ndm,str,iws,DOUBLEV,2,f);
+  }
 /*...................................................................*/
 
 /*... escrever gradiente de velocidade por celula*/  
-  if(fGradVel){  
+  if(opt.gradVel){  
+    strcpy(str,"CellGradVel");
     if( ndm == 2) 
-      writeVtkProp(&idum,elGradVel,numel,2*ndm,gradVelResEl
-                  ,iws,DOUBLEV,1,f);
+      writeVtkProp(&idum,elGradVel,numel,2*ndm,str,iws,DOUBLEV,1,f);
     else if( ndm ==3 )
-      writeVtkProp(&idum,elGradVel,numel,3*ndm,gradVelResEl
-                  ,iws,DOUBLEV,1,f);
+      writeVtkProp(&idum,elGradVel,numel,3*ndm,str,iws,DOUBLEV,1,f);
   }
 /*...................................................................*/
 
 /*... escrever campo de energia por celula*/
-  if (fEnergy){
+  if (opt.energy){
+    strcpy(str,"CellTemp");
     if(fKelvin ){
-      HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
+      HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
       ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__)
       alphaProdVector(1.e0,elEnergy,numel,p);
       convTempForKelvin(p, numel,false);
-      writeVtkProp(&idum, p, numel,   1, energyResEl, iws
-                   , DOUBLEV, 1, f);
+      writeVtkProp(&idum,p,numel,1,str,iws,DOUBLEV,1,f);
       HccaDealloc(m,p,"p",_AD_);
     }
     else
-      writeVtkProp(&idum, elEnergy, numel,   1, energyResEl, iws
-                   , DOUBLEV, 1, f);
+      writeVtkProp(&idum,elEnergy,numel,1,str,iws,DOUBLEV,1,f);
    }
 /*...................................................................*/
 
 /*... escrever gradiente de velocidade por celula*/
-  if (fGradEnergy) {
+  if (opt.gradEnergy) {
+    strcpy(str,"CellGradTemp");
     if (ndm == 2)
-      writeVtkProp(&idum, elGradEnergy, numel,ndm, gradEnergyResEl
-                   ,iws, DOUBLEV, 2, f);
+      writeVtkProp(&idum,elGradEnergy,numel,ndm,str,iws,DOUBLEV,2,f);
+  }
+/*...................................................................*/
+
+/*... escrever a viscosidade turbulenta por celula*/  
+  if(opt.eddyViscosity){
+    strcpy(str,"CellEddyViscosity");
+    writeVtkProp(&idum,eddyVis,numel,1,str,iws,DOUBLEV,1,f);
+  }
+/*...................................................................*/
+
+/*... escrever viscosidade dinamica por celula*/  
+  if(opt.dViscosity){
+    strcpy(str,"CellDinamicyViscosity");
+    writeVtkProp(&idum,dViscosity,numel,1,str,iws,DOUBLEV,1,f);
   }
 /*...................................................................*/
 
 /*... escrever gradiente de velocidade por celula*/  
-  if(fEddyViscosity)  
-    writeVtkProp(&idum,eddyVis,numel,1,eddyVisRes
-                ,iws,DOUBLEV,1,f);
+  if(opt.tConductivity){
+    strcpy(str,"CellThermoCondutivity");
+    writeVtkProp(&idum,tConductivity,numel,1,str,iws,DOUBLEV,1,f);
+  }
 /*...................................................................*/
 
-/*... escrever gradiente de velocidade por celula*/  
-  if(fSpecificMass){
-    HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
+/*... escrever calor especifico por celula*/  
+  if(opt.specificHeat){
+    strcpy(str,"CellSpecificHeat");
+    HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
+    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
+    for(i=0;i<numel;i++)
+      p[i] = MAT2D(i,2, specificHeat, SHEAT_LEVEL);
+    writeVtkProp(&idum,p,numel,1,str,iws,DOUBLEV,1,f);
+    HccaDealloc(m,p,"p",_AD_);
+  }
+/*...................................................................*/
+
+/*... escrever a massa especifica por celula*/  
+  if(opt.densityFluid){
+    strcpy(str,"CellSpecificMass");
+    HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
     ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
     for(i=0;i<numel;i++)
       p[i] = MAT2D(i,2, densityFluid, DENSITY_LEVEL);
-    writeVtkProp(&idum,p,numel,1,densityFluidRes
-                ,iws,DOUBLEV,1,f);
+    writeVtkProp(&idum,p,numel,1,str,iws,DOUBLEV,1,f);
     HccaDealloc(m,p,"p",_AD_);
   }
 /*...................................................................*/
@@ -1251,53 +1264,57 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*...................................................................*/
 
 /*... escrever resultados de pressao por nos*/  
-  if(fPres)
-    writeVtkProp(&idum,nPres ,nnode,1,presResNo,iws,DOUBLEV,1,f);
+  if(opt.pres){
+    strcpy(str,"NodePres");
+    writeVtkProp(&idum,nPres ,nnode,1,str,iws,DOUBLEV,1,f);
+  }
 /*...................................................................*/
   
 /*... escrever os gradiente de pressao por nos*/  
-  if(fGradPres)  
-    writeVtkProp(&idum,nGradPres,nnode,ndm,gradPresResNo
-                ,iws,DOUBLEV,2,f);
+  if(opt.gradPres){
+    strcpy(str,"NodeGradPres");
+    writeVtkProp(&idum,nGradPres,nnode,ndm,str,iws,DOUBLEV,2,f);
+  }
 /*...................................................................*/
 
 /*... escrever as velocidade por nos*/  
-  if(fVel)
-    writeVtkProp(&idum,nVel,nnode,ndm,velNo,iws,DOUBLEV,2,f);
+  if(opt.vel){
+    strcpy(str,"NodeVel");
+    writeVtkProp(&idum,nVel,nnode,ndm,str,iws,DOUBLEV,2,f);
+  }
 /*...................................................................*/
 
 /*... escrever as gradiente de velocidade por nos*/ 
-  if(fGradVel){  
+  if(opt.gradVel){  
+    strcpy(str,"NodeGradVel");
     if( ndm == 2) 
-      writeVtkProp(&idum,nGradVel,nnode,2*ndm,gradVelResNo
-                  ,iws,DOUBLEV,1,f);
+      writeVtkProp(&idum,nGradVel,nnode,2*ndm,str,iws,DOUBLEV,1,f);
     else if( ndm == 3) 
-      writeVtkProp(&idum,nGradVel,nnode,3*ndm,gradVelResNo
-                  ,iws,DOUBLEV,1,f);
+      writeVtkProp(&idum,nGradVel,nnode,3*ndm,str,iws,DOUBLEV,1,f);
   }
 /*...................................................................*/
 
 /*... escrever resultados de energia por nos*/
-  if (fEnergy){
+  if (opt.energy){
+    strcpy(str,"NodeTemp");
     if(fKelvin ){
       HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
       ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__)
       alphaProdVector(1.e0,nEnergy,nnode,p);
       convTempForKelvin(p, nnode,false);
-      writeVtkProp(&idum, p, nnode, 1, energyResNo, iws
-                , DOUBLEV, 1, f);
+      writeVtkProp(&idum, p, nnode, 1, str, iws, DOUBLEV, 1, f);
       HccaDealloc(m,p,"p",_AD_);
     }
     else
-      writeVtkProp(&idum, nEnergy, nnode, 1, energyResNo, iws
-                  , DOUBLEV, 1, f);     
+      writeVtkProp(&idum, nEnergy, nnode, 1, str, iws, DOUBLEV, 1, f);     
   }
 /*...................................................................*/
 
 /*... escrever os gradiente de pressao por nos*/
-  if (fGradEnergy)
-    writeVtkProp(&idum, nGradEnergy, nnode, ndm, gradEnergyResNo
-                 ,iws, DOUBLEV, 2, f);
+  if (opt.gradEnergy){ 
+    strcpy(str,"NodeGradTemp");
+    writeVtkProp(&idum, nGradEnergy, nnode, ndm, str,iws, DOUBLEV, 2, f);
+  }
 /*...................................................................*/
 
   fclose(f);

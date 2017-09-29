@@ -2254,7 +2254,7 @@ void readGravity(DOUBLE *gravity,FILE *file){
 
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
- * Data de modificaco : 18/09/2017                                   * 
+ * Data de modificaco : 36/09/2017                                   * 
  *-------------------------------------------------------------------* 
  * SETPPRINTFLUID : Seleciona as veriaves que serao impressas na     *
  * macro pFluid                                                      *
@@ -2288,6 +2288,9 @@ void setPrintFluid(FileOpt *opt,FILE *file){
   opt->gradEnergy    = false;
   opt->eddyViscosity = false;
   opt->densityFluid  = false;
+  opt->specificHeat  = false;
+  opt->dViscosity    = false;
+  opt->tConductivity = false;
 
   fscanf(file,"%d",&tmp);
   opt->stepPlotFluid[0] = opt->stepPlotFluid[1] = (short) tmp;
@@ -2322,16 +2325,16 @@ void setPrintFluid(FileOpt *opt,FILE *file){
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word, "energy")) {
+    else if (!strcmp(word, "temp")) {
       opt->energy = true;
-      if (!mpiVar.myId) printf("print : energy\n");
+      if (!mpiVar.myId) printf("print : temp\n");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word, "gradEnergy")) {
+    else if (!strcmp(word, "gradTemp")) {
       opt->gradEnergy = true;
-      if (!mpiVar.myId) printf("print : gradEnergy\n");
+      if (!mpiVar.myId) printf("print : gradTemp\n");
     }
 /*.....................................................................*/
 
@@ -2348,6 +2351,29 @@ void setPrintFluid(FileOpt *opt,FILE *file){
       if (!mpiVar.myId) printf("print : densityFluid\n");
     }
 /*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, "specificHeat")) {
+      opt->specificHeat = true;
+      if (!mpiVar.myId) printf("print : specificHeat\n");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, "dViscosity")) {
+      opt->dViscosity = true;
+      if (!mpiVar.myId) printf("print : dViscosity\n");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, "tConductivity")) {
+      opt->tConductivity = true;
+      if (!mpiVar.myId) printf("print : tConductivity\n");
+    }
+/*.....................................................................*/
+
+
     readMacro(file,word,false);
   }
 /*.....................................................................*/
@@ -2429,7 +2455,8 @@ static void convLoadsEnergy(Loads *loadsEnergy   ,Loads *loadsTemp
     if(iKelvin)
       for(i=0;i<MAXLOADFLUID;i++){
         type = loadsEnergy[i].type;
-        if( type == DIRICHLETBC ||  type == INLET )
+        if( type == DIRICHLETBC ||  type == INLET 
+        ||  type == CONVECTIONHEAT)
           loadsEnergy[i].par[0] 
                          = CELSIUS_FOR_KELVIN(loadsEnergy[i].par[0]);
       }
@@ -2452,7 +2479,7 @@ static void convLoadsEnergy(Loads *loadsEnergy   ,Loads *loadsTemp
 /*....................................................................*/
 
 /*...*/
-      else if (type == NEUMANNBC) {
+      else if (type == NEUMANNBC  ||  type == CONVECTIONHEAT) {
         loadsEnergy[i].par[0] = loadsTemp[i].par[0];
       }
 /*....................................................................*/

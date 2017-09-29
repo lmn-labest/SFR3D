@@ -39,6 +39,9 @@
     bool energy;
     bool eddyViscosity;
     bool densityFluid;
+    bool specificHeat;
+    bool dViscosity;
+    bool tConductivity;
     short stepPlotFluid[2];
     FILE *fileItPlot[7];
     

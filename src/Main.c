@@ -85,7 +85,6 @@ int main(int argc,char**argv){
   char *nameIn=NULL,*nameOut=NULL,*preName=NULL,*auxName=NULL;
   FILE *fileIn=NULL,*fileOut=NULL,*fileLog=NULL;
   char str1[100],str2[100],str3[100],str4[100],str5[100],str6[100];
-  char strRes[100][100];
   FileOpt opt;
 
 /*...*/
@@ -172,6 +171,9 @@ int main(int argc,char**argv){
   opt.gradEnergy    = false;
   opt.eddyViscosity = false;
   opt.densityFluid  = false;
+  opt.specificHeat  = false;
+  opt.dViscosity    = false;
+  opt.tConductivity = false;
   opt.stepPlotFluid[0] =  5;
   opt.stepPlotFluid[1] = opt.stepPlotFluid[0];
 /* ..................................................................*/
@@ -2741,24 +2743,6 @@ int main(int argc,char**argv){
 /*...*/
       if(!mpiVar.myId ){
         fName(preName,sc.ddt.timeStep,0,21,&nameOut);
-/*...*/
-        strcpy(strRes[0],"elPres");
-        strcpy(strRes[1],"noPres");
-        strcpy(strRes[2],"elGradPres");
-        strcpy(strRes[3],"noGradPres");
-/*...*/
-        strcpy(strRes[4],"elVel");
-        strcpy(strRes[5],"noVel");
-        strcpy(strRes[6],"elGradVel");
-        strcpy(strRes[7],"noGradVel");
-/*...*/
-        strcpy(strRes[8] ,"elTemp");
-        strcpy(strRes[9] ,"noTemp");
-        strcpy(strRes[10],"elGradTemp");
-        strcpy(strRes[11],"noGradTemp");
-/*...*/
-        strcpy(strRes[12],"elEddyViscosity");
-        strcpy(strRes[13],"elSpecificMass");
 
 /*...*/
         wResVtkFluid(&m                 , mesh0->node.x      
@@ -2770,22 +2754,13 @@ int main(int argc,char**argv){
                , mesh0->elm.gradVel      , mesh0->node.gradVel 
                , mesh0->elm.temp         , mesh0->node.temp   
                , mesh0->elm.gradTemp     , mesh0->node.gradTemp
-               , mesh0->elm.eddyViscosity, mesh0->elm.densityFluid    
+               , mesh0->elm.eddyViscosity, mesh0->elm.densityFluid 
+               , mesh->elm.specificHeat  , mesh->elm.dViscosity
+               , mesh->elm.tConductivity  
                , mesh0->nnode            , mesh0->numel  
                , mesh0->ndm              , mesh0->maxNo 
                , mesh0->numat            , ndfVel
-               , strRes[0]               , strRes[1]
-               , strRes[2]               , strRes[3]
-               , strRes[4]               , strRes[5]
-               , strRes[6]               , strRes[7]
-               , strRes[8]               , strRes[9]
-               , strRes[10]              , strRes[11]
-               , strRes[12]              , strRes[13]
-               , nameOut                 , opt.bVtk      
-               , opt.vel                 , opt.gradVel 
-               , opt.pres                , opt.gradPres
-               , opt.energy              , opt.gradEnergy
-               , opt.eddyViscosity       , opt.densityFluid 
+               , nameOut                 , opt
                , eModel.fKelvin
                , sc.ddt                  , fileOut);  
 /*...................................................................*/

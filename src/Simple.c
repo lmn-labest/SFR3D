@@ -856,7 +856,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 
 /*... montagem do sistema u, v e w*/
     tm.systFormVel = getTimeC() - tm.systFormVel;
-    systFormSimpleVelLm(loadsVel              , loadsPres 
+   systFormSimpleVelLm(loadsVel              , loadsPres 
                      , sc.advVel              , sc.diffVel 
                      , turbModel              , eMomentum
                      , sp->type 
@@ -907,7 +907,8 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*...................................................................*/
 
 /*...*/
-    tb[0] = sqrt(dot(b1, b1, sistEqVel->neqNov));
+//  tb[0] = sqrt(dot(b1, b1, sistEqVel->neqNov));
+    tb[0] = dot(b1, b1, sistEqVel->neqNov);
     tb[1] = sqrt(dot(b2, b2, sistEqVel->neqNov));
     if (ndfVel == 3) tb[2] = sqrt(dot(b3, b3, sistEqVel->neqNov));
     if (itSimple == 0) {

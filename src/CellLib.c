@@ -2039,7 +2039,7 @@ void greenGaussCell(Loads *loads
 /*...................................................................*/
 
 /*... condicao de robin*/
-          else if(type == ROBINBC){
+          else if(type == ROBINBC || type == CONVECTIONHEAT ){
             uf[i] =uC[0];
             for(j=0;j<ndm;j++)
               uf[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
@@ -2150,7 +2150,7 @@ void greenGaussCell(Loads *loads
 /*...................................................................*/
 
 /*... condicao de robin*/
-          else if(type == ROBINBC){
+          else if(type == ROBINBC || type == CONVECTIONHEAT){
             ERRO_GERAL(__FILE__,__func__,__LINE__
             ,"Condicao de robin na implementada");
           }
@@ -2395,7 +2395,7 @@ void  leastSquare(Loads *loads
 /*...................................................................*/
 
 /*... condicao de robin*/
-            else if( type == ROBINBC ){
+            else if( type == ROBINBC || type == CONVECTIONHEAT ){
               du[i] =0.e0;
               for(j=0;j<ndm;j++)
                 du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
@@ -2477,7 +2477,7 @@ void  leastSquare(Loads *loads
 /*...................................................................*/
 
 /*... condicao de robin*/
-            else if(type == ROBINBC){
+            else if(type == ROBINBC || type == CONVECTIONHEAT){
               ERRO_GERAL(__FILE__,__func__,__LINE__
               ,"Condicao de robin na implementada");
             }
@@ -2613,7 +2613,7 @@ void  leastSquareQR(Loads *loads
 /*...................................................................*/
 
 /*... condicao de robin*/
-            else if( type == ROBINBC ){
+            else if(type == ROBINBC || type == CONVECTIONHEAT ){
               du[i] =0.e0;
               for(j=0;j<ndm;j++)
                 du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
@@ -2711,7 +2711,7 @@ void  leastSquareQR(Loads *loads
 /*...................................................................*/
 
 /*... condicao de robin*/
-            else if(type == ROBINBC){
+            else if(type == ROBINBC || type == CONVECTIONHEAT){
               ERRO_GERAL(__FILE__,__func__,__LINE__
               ,"Condicao de robin na implementada");
             }
@@ -3649,6 +3649,7 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
     if(!fCalVel)return;
 /*...*/
     yPlus = 0.e0;
+    uPlus = 0.e0;
     if (fWallModel) {
 /*... calculo da velociade paralela a face*/
       wfn   = velC[0] * n[0] + velC[1] * n[1];
@@ -3664,16 +3665,15 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
                  ,densityC, dcca
                  ,&yPlus  , &uPlus     
                  ,wallType);
-/*...................................................................*/ 
-  }
-/*...................................................................*/ 
-
-/*... inertial sub-layer*/    
-    if(yPlus > 11.81)
-      viscosityWall = viscosityC*yPlus/uPlus;
 /*...................................................................*/
+      if( yPlus > 11.81e0)
+        viscosityWall = viscosityC*yPlus/uPlus;
+      else
+        viscosityWall = viscosityC;
+    }
+/*...................................................................*/ 
 
-/*... viscosity sub-layer*/
+/*...*/
     else
       viscosityWall = effViscosityC;
 /*...................................................................*/
@@ -4195,15 +4195,42 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... lei de resfriamento de newton*/
+  else if( ld.type == CONVECTIONHEAT){
+    tA[0] = ld.par[0];
+    if(!fCal) return;
+
+/*...*/
+    if (fTemp) {
+      tW = tA[0];
+      tC = uC;  
+    }
+    else{
+      tW = tA[0];
+      tC = specificEnthalpyForTemp(uC   ,sHeatC,fSheat,iKelvin); 
+    }
+/*...................................................................*/ 
+
+/*... inertial sub-layer*/  
+    if ( yPlus > 11.81e0 )
+      h  = sHeatC*viscosityC*tempPlus/(tempPlus*dcca);   
+    else
+      h     = thermCoef/dcca;
+/*...................................................................*/
+  
+    aP  = h*(tW-tC)*fArea;
+    *p  += aP;
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... condicao de ROBIN*/
   else if( ld.type == ROBINBC){
     h     = ld.par[0];
-//  tA[0] = ld.par[1];
-/*...*/
-//  if(fCal){
-//    aP  = ((thermCoef*h)/(thermCoef+h*dcca))*fArea;
-//    *sP += aP;
-//    *p  += aP*tA[0];
-//  }    
+    tA[0] = ld.par[1];
+  
+    aP  = ((thermCoef*h)/(thermCoef+h*dcca))*fArea;
+    *sP += aP;
+    *p  += aP*tA[0];
 /*...................................................................*/
   }
 /*...................................................................*/
@@ -4259,18 +4286,18 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 
 /*... potencial prescrito (entra)*/
    else if( ld.type == INLET){
-//   tA[0]   = ld.par[0];
+     tA[0]   = ld.par[0];
 /*...*/
-//   if(fCal)
-//     *p -= wfn*densityC*fArea*tA[0];
+     if(fCal)
+       *p -= wfn*densityC*fArea*tA[0];
    }
 /*...................................................................*/
 
 /*... derivada nula (condicao localmente parabolica saida)*/
    else if( ld.type == OUTLET){
 /*...*/
-//   if(fCal)
-//     *sP += wfn*densityC*fArea;
+     if(fCal)
+       *sP += wfn*densityC*fArea;
 /*...................................................................*/
    }
 /*...................................................................*/

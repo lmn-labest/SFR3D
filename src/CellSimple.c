@@ -1008,25 +1008,26 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
       else if (lFaceVelR[nAresta] == STATICWALL) {
 /*... com modelo de parede*/
         yPlus = 0.e0;
+        uPlus = 0.e0;
         if (fWallModel) {
 /*... calculo da velociade paralela a face*/
           wfn= velC[0] * lNormal[0] + velC[1] * lNormal[1];
           wf[0] = velC[0] - wfn * lNormal[0];
           wf[1] = velC[1] - wfn * lNormal[1];
           wfn   = wf[0]*wf[0]+ wf[1]*wf[1];
-          wfn = sqrt(wfn);
+          wfn   = sqrt(wfn);
 /*...*/
           if (wfn > 0.e0)
             wallModel(wfn     , viscosityC
                      ,densityC, dcca[nAresta]
                      ,&yPlus  , &uPlus
                      ,wallType);
-        }
 /*...................................................................*/
-
-/*...*/
-        if(yPlus > 11.81e0)
-          viscosityWall = viscosityC*yPlus/uPlus;
+          if( yPlus > 11.81e0)
+            viscosityWall = viscosityC*yPlus/uPlus;
+          else
+            viscosityWall = viscosityC;
+        }
 /*...................................................................*/
 
 /*... sem modelo de parede*/

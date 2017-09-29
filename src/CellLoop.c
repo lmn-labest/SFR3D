@@ -1669,14 +1669,14 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
       aux1    = nFace[nel];
 /*... elementos com equacoes*/
       if(MAT2D(nel,aux1,faceVelR ,aux2) != PCCELL){
-
+ 
 /*... zerando vetores*/
         for(j=0;j<(MAX_NUM_FACE+1)*MAX_NDF;j++) 
           lId[j]  = -1;
        
         for(j=0;j<MAX_NUM_FACE+1;j++) 
           lPres[j] = 0.e0;    
-
+       
 /*... loop na celula central*/    
         lMat              = mat[nel]-1;
         lib               = calType[lMat];

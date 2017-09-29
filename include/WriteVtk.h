@@ -115,23 +115,14 @@
           , DOUBLE *elGradVel    , DOUBLE *nGradVel 
           , DOUBLE *elEnergy     , DOUBLE *nEnergy
           , DOUBLE *elGradEnergy , DOUBLE *nGradEnergy
-          , DOUBLE *eddyVis      , DOUBLE *densityFluid  
+          , DOUBLE *eddyVis      , DOUBLE *densityFluid
+          , DOUBLE *specificHeat , DOUBLE *dViscosity
+          , DOUBLE *tConductivity  
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf   
-          , char *presResEl      , char *presResNo 
-          , char *gradPresResEl  , char *gradPresResNo 
-          , char *velEl          , char *velNo       
-          , char *gradVelResEl   , char *gradVelResNo 
-          , char *energyResEl    , char *energyResNo
-          , char *gradEnergyResEl, char *gradEnergyResNo
-          , char *eddyVisRes     , char *densityFluidRes  
-          , char *nameOut        , bool iws
-          , bool fVel            , bool fGradVel 
-          , bool fPres           , bool fGradPres
-          , bool fEnergy         , bool fGradEnergy
-          , bool fEddyViscosity  , bool fSpecificMass 
-          , bool fKelvin
+          , char *nameOut        , FileOpt opt
+          , bool fKelvin           
           , Temporal ddt         , FILE *f);
 /*...................................................................*/
 

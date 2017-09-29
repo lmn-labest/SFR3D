@@ -73,14 +73,17 @@ DOUBLE airSpecifiHeat(DOUBLE const t,bool const fKelvin) {
     y += a[i]*pow(tc,i);
 /*.....................................................................*/
 
-  if (y < 0) {
-    printf("Calor especifico negativo temp: %lf\n!!",tc);
-    exit(EXIT_FAILURE);
-  }
-
 /*...*/
   d = 1.e+0;
 /*.....................................................................*/
+
+ if (y < 0) {
+    printf("Calor especifico negativo!!"
+           "Calor especifico = %e\n"
+           "Temperatura      = %lf\n!!",d*y,tc);
+    exit(EXIT_FAILURE);
+  }
+
 
   return d*y;
 
@@ -166,7 +169,9 @@ DOUBLE airDynamicViscosity(DOUBLE const t,bool const fKelvin) {
 /*.....................................................................*/
  
   if (y < 0) {
-    printf("Viscosidade dinamica negativa temp: %lf\n!!",tc);
+    printf("Viscosidade dinamica negativa!!\n"
+           "Viscosidade dinamica = %e\n"
+           "Temperatura          = %lf\n!!",d*y,tc);
     exit(EXIT_FAILURE);
   }
 
@@ -239,7 +244,9 @@ DOUBLE airThermalConductvity(DOUBLE const t,bool const fKelvin) {
 
 /*...*/ 
   if (y < 0) {
-    printf("Condutividade termica negativa temp: %lf\n!!",tc);
+    printf("Condutividade termica negativa!!\n"
+           "Condutividade termica = %e\n"
+           "Temperatura           = %lf\n!!",d*y,tc);
     exit(EXIT_FAILURE);
   }
 /*.....................................................................*/
@@ -328,17 +335,19 @@ DOUBLE specificEnthalpyForTemp(DOUBLE const hs  , DOUBLE const sHeatRef
 {
   unsigned short i;
   bool flag = false;
-  DOUBLE f,fl,t,conv,tol=1e-10;
+  DOUBLE f,fl,t,conv,tol=1e-06;
  
 /*...*/
   if(fSheat){
-    t    = 0.e0;
-    conv = (hs-tempForSpecificEnthalpy(t,sHeatRef,false,true))*tol;
+/*... chute inicial usando a massa espeficia constante*/
+    t = ENTHALPY_FOR_TEMP(sHeatRef,hs,TREF);
+/*...*/
+    conv = (hs-tempForSpecificEnthalpy(t,sHeatRef,fSheat,true))*tol;
     conv = fabs(conv);
 /*... Newton-Raphson*/
     for(i=0;i<60000;i++){
-      f  = hs-tempForSpecificEnthalpy(t,sHeatRef,false,true);
-      if(fabs(f) < conv ) {
+      f  = hs-tempForSpecificEnthalpy(t,sHeatRef,fSheat,true);
+      if(fabs(f) < conv) {
         flag = true;
         break;
       }
