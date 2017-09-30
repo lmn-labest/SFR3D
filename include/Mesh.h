@@ -108,6 +108,7 @@
 
 /*... loads*/
   typedef struct{
+    short load;                       /*variavel*/
     short type;                     /*tipo*/
     short np;                       /*numero de particoes*/  
     DOUBLE par[MAXLOADPARAMETER];

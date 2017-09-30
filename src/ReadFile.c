@@ -2470,16 +2470,20 @@ static void convLoadsEnergy(Loads *loadsEnergy   ,Loads *loadsTemp
       loadsEnergy[i].type = loadsTemp[i].type;
       loadsEnergy[i].np   = loadsTemp[i].np;
       type = loadsTemp[i].type;
+      for(j=0;j<MAXLOADPARAMETER;j++)
+        loadsEnergy[i].par[j] = loadsTemp[i].par[j];
+
 /*...*/
-      if( type == DIRICHLETBC ||  type == INLET ){
+      if( type == DIRICHLETBC ||  type == INLET ||  type == OPEN){
         t = loadsTemp[i].par[0];
         tmp = tempForSpecificEnthalpy(t, sHeat, fSheat, iKelvin);
-        loadsEnergy[i].par[0] = tmp;       
+        loadsEnergy[i].par[0] = tmp;               
       }
 /*....................................................................*/
 
 /*...*/
-      else if (type == NEUMANNBC  ||  type == CONVECTIONHEAT) {
+      else if (type == NEUMANNBC  ||  type == CONVECTIONHEAT
+           ||  type == OUTLET) {
         loadsEnergy[i].par[0] = loadsTemp[i].par[0];
       }
 /*....................................................................*/

@@ -1104,7 +1104,8 @@
 /*...................................................................*/
 
 /*...*/
-  bool openDomain(short  *RESTRICT faceR, short  *RESTRICT nFace
+  bool openDomain(Loads *loadVel
+                 , short  *RESTRICT faceL, short  *RESTRICT nFace
                  , INT const numel      , short const maxViz);
 
   void wallFluid(short *RESTRICT faceR ,INT *RESTRICT nelcon

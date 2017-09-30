@@ -423,9 +423,9 @@ int main(int argc,char**argv){
                  ,mesh0->elm.adj.nViz   
                  ,mesh0->numel       ,mesh0->maxViz);  
 /*... verifica se o dominio e aberto ou nao*/
-        mesh0->fOpen = openDomain(mesh0->elm.faceRvel
-                                 , mesh0->elm.adj.nViz
-                                 , mesh0->numelNov ,mesh0->maxViz);
+        mesh0->fOpen = openDomain(loadsVel
+                         , mesh0->elm.faceLoadVel , mesh0->elm.adj.nViz
+                         , mesh0->numelNov ,mesh0->maxViz);
 /*...*/
         thDynamic.fDensityRef = !mesh0->fOpen;
         thDynamic.fPresTh     = !mesh0->fOpen;
@@ -2681,7 +2681,7 @@ int main(int argc,char**argv){
 
 /*... reconstruindo do gradiente (Energia)*/
       if(mesh->ndfFt){
-         rcGradU(&m                 ,loadsEnergy
+         rcGradU(&m                 ,loadsTemp
               ,mesh->elm.node       ,mesh->elm.adj.nelcon
               ,mesh->elm.geom.cc    ,mesh->node.x
               ,mesh->elm.nen        ,mesh->elm.adj.nViz

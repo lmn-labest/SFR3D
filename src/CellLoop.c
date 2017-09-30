@@ -5725,23 +5725,29 @@ void parameterCell(DOUBLE *RESTRICT vel, DOUBLE *RESTRICT prop
  * OBS:                                                              *
  *-------------------------------------------------------------------*
 *********************************************************************/
-bool openDomain(short  *RESTRICT faceVelR, short  *RESTRICT nFace
-              , INT const numel          , short const maxViz  ) {
+bool openDomain(Loads *loadVel
+              , short  *RESTRICT faceVelLoad, short  *RESTRICT nFace
+              , INT const numel             , short const maxViz  ) {
 
   bool fOpen = false;
-  short  type, aux1, aux2;
+  short  nCarg, j, type, aux1, aux2;
   INT nel;
 
   aux2 = maxViz + 1;
   for (nel = 0; nel<numel; nel++) {
     aux1 = nFace[nel];
 /*... elementos com equacoes*/
-    type = MAT2D(nel, aux1, faceVelR, aux2);
-    if (  type == INLET || type == OUTLET
-        || type == OPEN || type == INLETSTAICTPRES) {
-      fOpen = true;
-      break; 
-    }     
+    for(j=0;j<aux1;j++){
+      nCarg = MAT2D(nel, j, faceVelLoad, aux2);
+      if(!nCarg){
+        type  = loadVel[nCarg].type;
+        if (  type == INLET || type == OUTLET
+            || type == OPEN || type == INLETSTAICTPRES) {
+          fOpen = true;
+          break; 
+        }     
+      }
+    }
   }
 
   return fOpen;

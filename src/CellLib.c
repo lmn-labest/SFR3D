@@ -2403,7 +2403,7 @@ void  leastSquare(Loads *loads
 /*...................................................................*/
 
 /*... derivada nula (condicao localmente parabolica saida)*/
-            else if (type == OUTLET){
+            else if (type == OUTLET || type == OPEN ){
               du[i] = 0.e0;
             }
 /*...................................................................*/
@@ -3591,7 +3591,7 @@ DOUBLE volume3DGreenGauss(DOUBLE *RESTRICT xm,DOUBLE *RESTRICT normal
 
 /********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 24/09/2017                                   * 
+ * Data de modificaco : 30/09/2017                                   * 
  *-------------------------------------------------------------------* 
  * pLoadSimple : condicao de contorno para velocidades               *
  *-------------------------------------------------------------------* 
@@ -3639,7 +3639,7 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
           ,bool const fWallModel      ,short const wallType){
 
   DOUBLE aP,wfn,wf[3],m,tmp[4],gradVelFace[9],modVel,yPlus,uPlus;
-  DOUBLE viscosityWall;
+  DOUBLE viscosityWall,densityEnv;
 
 /*... parade impermeavel movel*/
   if( ld.type == MOVEWALL){
@@ -3720,7 +3720,7 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
   }
 /*...................................................................*/
 
-/*... entrada de massa(Pressao estatica*/
+/*... entrada de massa(Pressao estatica)*/
   else if (ld.type == INLETSTAICTPRES) {
     if (ndm == 2) {
 /*... direcao*/
@@ -3767,7 +3767,8 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
       wfn   = tA[0]*n[0] + tA[1]*n[1] + tA[2]*n[2] ;
     }
  /*... eq momentum*/
-    m  = densityC*wfn*fArea;
+    densityEnv = ld.par[ndm];
+    m  = densityEnv*wfn*fArea;
     if(fCalVel){
       p[0] -= m*tA[0];
       p[1] -= m*tA[1];
@@ -3780,10 +3781,9 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
 
 /*... saida (derivada nula, pressa estatica)*/
   else if( ld.type ==  OUTLET){
-    if ( ndm == 2 ) 
-      wfn = velC[0]*n[0] + velC[1]*n[1];
-    else 
-      wfn = velC[0]*n[0] + velC[1]*n[1] + velC[2]*n[2];
+    
+    wfn = velC[0]*n[0] + velC[1]*n[1];
+    if ( ndm == 3 ) wfn += velC[2]*n[2];
 
     m    = densityC*wfn*fArea;
 /*... vb = vc + Grad(Vc)*r*/
@@ -3861,24 +3861,34 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
   else if (ld.type == OPEN) {
 
 /*...*/
-    if (ndm == 2){  
-      wfn = velC[0]*n[0] + velC[1]*n[1];
-      modVel = 1.e0/sqrt(velC[0]*velC[0] + velC[1]*velC[1]);
-    }
-    else{
-      wfn = velC[0]*n[0] + velC[1]*n[1] + velC[2]*n[2];
-      modVel = 1.e0/sqrt(velC[0]*velC[0]
-                       + velC[1]*velC[1] 
-                       + velC[2]*velC[2]);
-    }
+    wfn = velC[0]*n[0] + velC[1]*n[1];
+    if( ndm == 3 ) wfn += velC[2]*n[2];     
 /*...................................................................*/
-    
-    m = densityC*wfn*fArea;
+
 /*... saida de massa*/
     if(wfn >= 0.e0){
+      m = densityC*wfn*fArea;
 /*... vb = vc + Grad(Vc)*r*/
-      if (fCalVel) {
-        if(ndm == 2) {
+      if(fCalVel){
+/*...*/
+        if(ndm == 2){
+          gradVelFace[0] = 0.0e0; 
+          gradVelFace[1] = 0.0e0;
+          gradVelFace[2] = 0.0e0;
+          gradVelFace[3] = 0.0e0;
+        
+          gradFaceNull(gradVelFace,gradVel,xmcc,ndm);
+        
+          tmp[0] = MAT2D(0,0,gradVelFace,2)*xmcc[0] 
+                 + MAT2D(0,1,gradVelFace,2)*xmcc[1];      
+         
+          tmp[1] = MAT2D(1,0,gradVelFace,2)*xmcc[0] 
+                 + MAT2D(1,1,gradVelFace,2)*xmcc[1];      
+
+          p[0] -= m*tmp[0];
+          p[1] -= m*tmp[1];
+/*...................................................................*/
+
 /*...*/
           sP[0] += m;
           sP[1] += m;
@@ -3887,24 +3897,71 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*...*/
-        else {
- /*...*/
+        else{
+          gradVelFace[0] = 0.0e0;
+          gradVelFace[1] = 0.0e0;
+          gradVelFace[2] = 0.0e0;
+          gradVelFace[3] = 0.0e0;
+          gradVelFace[4] = 0.0e0;
+          gradVelFace[5] = 0.0e0;
+          gradVelFace[6] = 0.0e0;
+          gradVelFace[7] = 0.0e0;
+          gradVelFace[8] = 0.0e0;
+        
+          gradFaceNull(gradVelFace,gradVel,xmcc,ndm);
+        
+          tmp[0] = MAT2D(0,0,gradVelFace,3)*xmcc[0] 
+                 + MAT2D(0,1,gradVelFace,3)*xmcc[1]       
+                 + MAT2D(0,2,gradVelFace,3)*xmcc[2];      
+        
+          tmp[1] = MAT2D(1,0,gradVelFace,3)*xmcc[0] 
+                 + MAT2D(1,1,gradVelFace,3)*xmcc[1]       
+                 + MAT2D(1,2,gradVelFace,3)*xmcc[2];      
+        
+          tmp[2] = MAT2D(2,0,gradVelFace,3)*xmcc[0] 
+                 + MAT2D(2,1,gradVelFace,3)*xmcc[1]       
+                 + MAT2D(2,2,gradVelFace,3)*xmcc[2]; 
+     
+          p[0] -= m*tmp[0];
+          p[1] -= m*tmp[1];
+          p[2] -= m*tmp[2];
+/*...................................................................*/
+
+/*...*/
           sP[0] += m;
           sP[1] += m;
           sP[2] += m;
-/*...................................................................*/
         }
 /*...................................................................*/
       }
 /*...................................................................*/
     }
-/*...*/
+/*...................................................................*/
+
+/*... entrada*/
     else{
+/*...*/
+      densityEnv = ld.par[0];
+/*...................................................................*/
+      m = densityEnv*wfn*fArea;
 /*... eq momentum*/
       if (fCalVel) {
-        p[0] -= m*wfn*velC[0]*modVel;
-        p[1] -= m*wfn*velC[1]*modVel;
-        if (ndm == 3) p[2] -= m*wfn*velC[2]*modVel;
+/*... direacao definida pelo proprio campo de velocidae*/
+        modVel = velC[0]*velC[0] + velC[1]*velC[1];
+        if(ndm == 3) modVel += velC[2]*velC[2];
+        modVel = 1.e0/sqrt(modVel);
+        aP    = m*wfn*modVel;
+        p[0] -= aP*velC[0];
+        p[1] -= aP*velC[1];
+        if (ndm == 3) p[2] -= aP*velC[2];  
+/*...................................................................*/
+
+/*... direcao normal*/
+/*      aP = m*wfn;
+        p[0] -= aP*n[0];
+        p[1] -= aP*n[1];
+        if (ndm == 3) p[2] -=  aP*n[2];  */
+/*...................................................................*/
       }
 /*...................................................................*/
     }
@@ -4074,14 +4131,16 @@ void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
      if(fCal)
        *sP += wfn*densityC*fArea;
 /*...................................................................*/
+
    }
 /*...................................................................*/
+    
 }
 /*********************************************************************/
 
 /********************************************************************* 
  * Data de criacao    : 21/09/2017                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 30/09/2017                                   * 
  *-------------------------------------------------------------------* 
  * pLoadEnergy : cargas da equacao de energia                        *
  *-------------------------------------------------------------------* 
@@ -4124,7 +4183,7 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
                , bool const iKelvin      , bool const fSheat
                , bool const fWallModel   , short const wallType){
 
-  DOUBLE aP,h,wfn,wf[3],tempPlus,yPlus,uPlus,tC,tW,vW[3];
+  DOUBLE aP,h,wfn,wf[3],tempPlus,yPlus,uPlus,tC,tW,vW[3],densityEnv;
   DOUBLE prM = viscosityC*sHeatC/thermCoef;
 
 /*...*/
@@ -4288,16 +4347,43 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
    else if( ld.type == INLET){
      tA[0]   = ld.par[0];
 /*...*/
-     if(fCal)
-       *p -= wfn*densityC*fArea*tA[0];
+     if(fCal){
+        densityEnv = ld.par[1];
+        wfn   = velC[0] * n[0] + velC[1] * n[1];
+       *p -= wfn*densityEnv*fArea*tA[0];
+     } 
    }
 /*...................................................................*/
 
 /*... derivada nula (condicao localmente parabolica saida)*/
    else if( ld.type == OUTLET){
 /*...*/
-     if(fCal)
+     if(fCal){
+       wfn   = velC[0] * n[0] + velC[1] * n[1];
        *sP += wfn*densityC*fArea;
+     } 
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... fronteira aberta(Pressao estatica)*/
+  else if (ld.type == OPEN) {
+    tA[0]   = ld.par[0];
+    if(!fCal) return;
+/*...*/
+    wfn  = velC[0]*n[0] + velC[1]*n[1];
+    if (ndm == 3) wfn += velC[2]*n[2];
+/*... saida de massa*/
+    if(wfn >= 0.e0)   
+      *sP += wfn*densityC*fArea;
+/*...................................................................*/
+
+/*... entrada*/
+    else{
+      densityEnv = ld.par[1];
+      densityEnv = densityC;
+      *p -= wfn*densityEnv*fArea*tA[0]; 
+    } 
 /*...................................................................*/
    }
 /*...................................................................*/
