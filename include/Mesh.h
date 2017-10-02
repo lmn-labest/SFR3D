@@ -290,7 +290,7 @@
  
 /*... Malha*/
   typedef struct{
-    bool fOpen;   /*dominio aberto*/
+    bool fOpen;   /*dominio aberto*/    
     short ndm;     /*dimensao*/
     short ndfF;    /*fluido*/    
     short ndfFt;   /*fluido termo ativado*/  
@@ -307,6 +307,9 @@
     INT nnodeOv;    /*numero de nos em elementos sobrepostos*/
     INT nnodeNov;   /*numero de nos em elementos nao sobrepostos*/
     DOUBLE xRef[3]; /*ponto de referencia da malha*/
+    DOUBLE mass[3]; /*mass inicial do sistema 
+                      massa atual calculo incremental
+                      massa atual calculo direto*/
 /*...*/    
     Elmt elm;     
     Node node;

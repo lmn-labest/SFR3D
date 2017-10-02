@@ -1111,7 +1111,17 @@
   void wallFluid(short *RESTRICT faceR ,INT *RESTRICT nelcon
               ,short *RESTRICT nFace     
               ,INT const nEl         ,short const maxViz);
+  
+  DOUBLE totalMass(DOUBLE *RESTRICT density  , DOUBLE *RESTRICT volume
+                  ,INT const nEl) ;
 
+  DOUBLE massFluxOpenDomain(Loads *loadVel    , Temporal const ddt
+              , short  *RESTRICT faceVelLoad, short  *RESTRICT nFace
+              , DOUBLE *RESTRICT gfArea     , DOUBLE *RESTRICT gNormal
+              , DOUBLE *RESTRICT density    , DOUBLE *RESTRICT vel 
+              , INT const numel             , short const ndm  
+              , short const maxViz  ) ;
+ 
   void hPres(DOUBLE *RESTRICT pres0, DOUBLE *RESTRICT pres
          , DOUBLE *RESTRICT dFluid, DOUBLE *RESTRICT cc
          , DOUBLE *RESTRICT gravity, DOUBLE *RESTRICT xRef

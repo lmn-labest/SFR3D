@@ -2474,10 +2474,18 @@ static void convLoadsEnergy(Loads *loadsEnergy   ,Loads *loadsTemp
         loadsEnergy[i].par[j] = loadsTemp[i].par[j];
 
 /*...*/
-      if( type == DIRICHLETBC ||  type == INLET ||  type == OPEN){
+      if( type == DIRICHLETBC ){
         t = loadsTemp[i].par[0];
         tmp = tempForSpecificEnthalpy(t, sHeat, fSheat, iKelvin);
         loadsEnergy[i].par[0] = tmp;               
+      }
+/*....................................................................*/
+
+/*...*/
+      else if ( type == INLET ||  type == OPEN) {
+        t = loadsTemp[i].par[1];
+        tmp = tempForSpecificEnthalpy(t, sHeat, fSheat, iKelvin);
+        loadsEnergy[i].par[1] = tmp;  
       }
 /*....................................................................*/
 

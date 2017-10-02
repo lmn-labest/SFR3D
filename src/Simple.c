@@ -676,7 +676,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
     fTcond      = prop.fThermalCondutivty,
     fDensityRef = thDynamic->fDensityRef,
     fPresRef    = thDynamic->fPresTh;
-  DOUBLE cfl, reynolds, peclet, mass;
+  DOUBLE cfl, reynolds, peclet,  deltaMass;
   bool fParameter[10];
 
   time = getTimeC();
@@ -715,6 +715,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
   rMass = 0.e0;
   rU[0] = rU[1] = rU[2] = 0.e0;
   rU0[0] = rU0[1] = rU0[2] = 1.e0;
+  tb[0] = tb[1] = tb[2] = 0.e0;
   rEnergy0 = 1.e0;
   rEnergy  = 0.e0;
   conv = 0;
@@ -855,8 +856,8 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*...................................................................*/
 
 /*... montagem do sistema u, v e w*/
-    tm.systFormVel = getTimeC() - tm.systFormVel;
-   systFormSimpleVelLm(loadsVel              , loadsPres 
+   tm.systFormVel = getTimeC() - tm.systFormVel;
+   systFormSimpleVelLm(loadsVel               , loadsPres 
                      , sc.advVel              , sc.diffVel 
                      , turbModel              , eMomentum
                      , sp->type 
@@ -907,8 +908,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*...................................................................*/
 
 /*...*/
-//  tb[0] = sqrt(dot(b1, b1, sistEqVel->neqNov));
-    tb[0] = dot(b1, b1, sistEqVel->neqNov);
+    tb[0] = sqrt(dot(b1, b1, sistEqVel->neqNov));
     tb[1] = sqrt(dot(b2, b2, sistEqVel->neqNov));
     if (ndfVel == 3) tb[2] = sqrt(dot(b3, b3, sistEqVel->neqNov));
     if (itSimple == 0) {
@@ -1513,7 +1513,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                , mesh->elm.tConductivity, mesh->elm.dViscosity
                , mesh->elm.geom.volume  , mesh->elm.mat            
                , &cfl                   , &reynolds
-               , &peclet                , &mass
+               , &peclet                , &mesh->mass[2]
                , fParameter             , sc.ddt.dt[0]
                , mesh->numelNov         , mesh->ndm);
 /*...................................................................*/
@@ -1534,6 +1534,16 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                   , mesh->numel);
 /*...................................................................*/
 
+/*... calculo da taxa de massa atravessando o contorno aberto*/
+  deltaMass = massFluxOpenDomain(loadsVel              , sc.ddt 
+              , mesh->elm.faceLoadVel , mesh->elm.adj.nViz 
+              , mesh->elm.geom.fArea  , mesh->elm.geom.normal 
+              , mesh->elm.densityFluid, mesh->elm.vel 
+              , mesh->numelNov        , mesh->ndm  
+              , mesh->maxViz  );
+  mesh->mass[1] = mesh->mass[1] + deltaMass;
+/*...................................................................*/
+
 /*... temp(n) = temp(n+1)*/
   alphaProdVector(1.e0        ,mesh->elm.temp
                  ,mesh->numel ,mesh->elm.temp0);
@@ -1549,12 +1559,13 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
   printf("It simple: %d \n", itSimple + 1);
   printf("Time(s) : %lf \n", timei);
   if (sc.ddt.flag)
-    printf("CFL     : %lf\n", cfl);
-  printf("Reynolds: %lf\n", reynolds);
-  printf("Peclet  : %lf\n", peclet);
-  printf("Mass    : %lf\n", mass);
-  printf("PresRef : %lf\n", thDynamic->pTh[2]);
-  
+    printf("CFL             : %lf\n", cfl);
+  printf("Reynolds        : %lf\n", reynolds);
+  printf("Peclet          : %lf\n", peclet);
+  printf("PresRef         : %lf\n", thDynamic->pTh[2]);
+  printf("(In) Mass/Mass0 : %lf\n", mesh->mass[1]/mesh->mass[0]);
+  printf("(D ) Mass/Mass0 : %lf\n", mesh->mass[2]/mesh->mass[0]);
+ 
   printf("Residuo:\n");
   printf("conservacao da massa   (init,final): %20.8e %20.8e \n"
         , rMass0, rMass);

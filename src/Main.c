@@ -539,6 +539,13 @@ int main(int argc,char**argv){
                     , mesh->numel            , eModel.fKelvin);
 /*...................................................................*/
 
+/*...*/
+        mesh->mass[0] = totalMass(mesh->elm.densityFluid
+                                , mesh->elm.geom.volume
+                                , mesh->numel); 
+        mesh->mass[1] =  mesh->mass[0];
+/*....................................................................*/
+
 /*... gera a pressao inicial hidrostatica*/
 /*      hPres(mesh->elm.pressure0   , mesh->elm.pressure
             , mesh->elm.densityFluid, mesh->elm.geom.cc

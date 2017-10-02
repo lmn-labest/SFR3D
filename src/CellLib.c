@@ -1933,7 +1933,7 @@ void cellLibRcGrad(Loads *loads
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 05/09/2016                                   * 
+ * Data de modificaco : 01/10/2017                                   * 
  *-------------------------------------------------------------------* 
  * GRREENGAUSSCELL: reconstrucao de gradiente green-gauss linear por * 
  * celula                                                            *
@@ -2025,9 +2025,13 @@ void greenGaussCell(Loads *loads
           nCarg= lFaceL[i]-1;
           type = loads[nCarg].type;
 /*... valor prescrito*/
-          if( type == DIRICHLETBC || type == INLET){
+          if( type == DIRICHLETBC )
             uf[i] = loads[nCarg].par[0];
-          }
+/*...................................................................*/
+
+/*...*/
+          else if( type == INLET)
+            uf[i] = loads[nCarg].par[1];
 /*...................................................................*/
 
 /*... fluxo prescrito*/
@@ -2133,10 +2137,16 @@ void greenGaussCell(Loads *loads
           nCarg= lFaceL[i]-1;
           type = loads[nCarg].type;
 /*... valor prescrito*/
-          if( type == DIRICHLETBC || type == INLET || type == MOVEWALL){
+          if( type == DIRICHLETBC || type == MOVEWALL){
             for(k=0;k<ndf;k++)
               MAT2D(i,k,uf,ndf) = loads[nCarg].par[k];            
           }
+/*...................................................................*/
+
+/*...*/          
+          else if( type == INLET )
+            for(k=0;k<ndf;k++)
+              MAT2D(i,k,uf,ndf) = loads[nCarg].par[k+1];      
 /*...................................................................*/
 
 /*... fluxo prescrito*/
@@ -2365,11 +2375,13 @@ void  leastSquare(Loads *loads
   short idCell = nFace,nCarg,type;
   short i,j,k,l;
 
-  for(l=0;l<2;l++){
+
+  for(l=0;l<2;l++){    
 /*... um grau de liberdade*/  
     if(ndf == 1){
       uC[0] = u[idCell];  
       for(i=0;i<nFace;i++){
+        du[i]  = 0.e0;
         vizNel = lViz[i];
 /*... dominio*/
         if(vizNel > -1)
@@ -2381,9 +2393,13 @@ void  leastSquare(Loads *loads
             nCarg=lFaceL[i]-1;
             type = loads[nCarg].type;
 /*... valor prescrito*/
-            if( type == DIRICHLETBC || type == INLET){
+            if( type == DIRICHLETBC || type == MOVEWALL )
               du[i] = loads[nCarg].par[0] - uC[0];
-             }
+/*...................................................................*/
+
+/*...*/
+            else if( type == INLET)
+              du[i] = loads[nCarg].par[1] - uC[0];            
 /*...................................................................*/
 
 /*... fluxo prescrito*/
@@ -2457,6 +2473,8 @@ void  leastSquare(Loads *loads
         uC[k] = MAT2D(idCell,k,u,ndf);
 /*... loop nas faces*/
       for(i=0;i<nFace;i++){
+        for(k=0;k<ndf;k++)
+          MAT2D(i,k,du,ndf) = 0.e0;    
         vizNel = lViz[i];
 /*... dominio*/
         if(vizNel > -1)
@@ -2469,10 +2487,16 @@ void  leastSquare(Loads *loads
             nCarg= lFaceL[i]-1;
             type = loads[nCarg].type;
 /*... valor prescrito*/
-            if( type == DIRICHLETBC || type == INLET 
-             || type == MOVEWALL){
+            if( type == DIRICHLETBC || type == MOVEWALL){
               for(k=0;k<ndf;k++)
                 MAT2D(i,k,du,ndf) = loads[nCarg].par[k] - uC[k];
+            }
+/*...................................................................*/
+
+/*...*/
+            else if( type == INLET){
+              for(k=0;k<ndf;k++)
+                MAT2D(i,k,du,ndf) = loads[nCarg].par[k+1] - uC[k];
             }
 /*...................................................................*/
 
@@ -2599,9 +2623,13 @@ void  leastSquareQR(Loads *loads
             nCarg=lFaceL[i]-1;
             type = loads[nCarg].type;
 /*... valor prescrito*/
-            if( type == DIRICHLETBC || type == INLET ){
+            if( type == DIRICHLETBC  )
               du[i] = loads[nCarg].par[0] - uC[0];
-             }
+/*...................................................................*/
+
+/*...*/
+            else if(type == INLET )
+              du[i] = loads[nCarg].par[1] - uC[0];
 /*...................................................................*/
 
 /*... fluxo prescrito*/
@@ -2703,11 +2731,16 @@ void  leastSquareQR(Loads *loads
             nCarg= lFaceL[i]-1;
             type = loads[nCarg].type;
 /*... valor prescrito*/
-            if( type == DIRICHLETBC || type == INLET 
-             || type == MOVEWALL){
+            if( type == DIRICHLETBC || type == MOVEWALL){
               for(k=0;k<ndf;k++)
                 MAT2D(i,k,du,ndf) = loads[nCarg].par[k] - uC[k];
             }
+/*...................................................................*/
+
+/*...*/
+            if( type == INLET)
+              for(k=0;k<ndf;k++)
+                MAT2D(i,k,du,ndf) = loads[nCarg].par[k+1] - uC[k];
 /*...................................................................*/
 
 /*... condicao de robin*/
@@ -3755,19 +3788,15 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
 
 /*... entrada de massa ( Velocidade)*/
   else if( ld.type ==  INLET){
-    if( ndm == 2) {
-      tA[0] = ld.par[0];
-      tA[1] = ld.par[1];
-      wfn   = tA[0]*n[0] + tA[1]*n[1];
-    }
-    else{
-      tA[0] = ld.par[0];
-      tA[1] = ld.par[1];
-      tA[2] = ld.par[2];
-      wfn   = tA[0]*n[0] + tA[1]*n[1] + tA[2]*n[2] ;
+    tA[0] = ld.par[1];
+    tA[1] = ld.par[2];
+    wfn   = tA[0]*n[0] + tA[1]*n[1];
+    if( ndm == 3){
+      tA[2] = ld.par[3];
+      wfn  += tA[2]*n[2];
     }
  /*... eq momentum*/
-    densityEnv = ld.par[ndm];
+    densityEnv = ld.par[0];
     m  = densityEnv*wfn*fArea;
     if(fCalVel){
       p[0] -= m*tA[0];
@@ -3947,20 +3976,20 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
 /*... eq momentum*/
       if (fCalVel) {
 /*... direacao definida pelo proprio campo de velocidae*/
-        modVel = velC[0]*velC[0] + velC[1]*velC[1];
-        if(ndm == 3) modVel += velC[2]*velC[2];
-        modVel = 1.e0/sqrt(modVel);
-        aP    = m*wfn*modVel;
-        p[0] -= aP*velC[0];
-        p[1] -= aP*velC[1];
-        if (ndm == 3) p[2] -= aP*velC[2];  
+//      modVel = velC[0]*velC[0] + velC[1]*velC[1];
+//      if(ndm == 3) modVel += velC[2]*velC[2];
+//      modVel = 1.e0/sqrt(modVel);
+//      aP    = m*wfn*modVel;
+//      p[0] -= aP*velC[0];
+//      p[1] -= aP*velC[1];
+//      if (ndm == 3) p[2] -= aP*velC[2];  
 /*...................................................................*/
 
 /*... direcao normal*/
-/*      aP = m*wfn;
+        aP = m*wfn;
         p[0] -= aP*n[0];
         p[1] -= aP*n[1];
-        if (ndm == 3) p[2] -=  aP*n[2];  */
+        if (ndm == 3) p[2] -=  aP*n[2];    
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -4345,10 +4374,10 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 
 /*... potencial prescrito (entra)*/
    else if( ld.type == INLET){
-     tA[0]   = ld.par[0];
+     tA[0]   = ld.par[1];
 /*...*/
      if(fCal){
-        densityEnv = ld.par[1];
+        densityEnv = ld.par[0];
         wfn   = velC[0] * n[0] + velC[1] * n[1];
        *p -= wfn*densityEnv*fArea*tA[0];
      } 
@@ -4368,7 +4397,7 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 
 /*... fronteira aberta(Pressao estatica)*/
   else if (ld.type == OPEN) {
-    tA[0]   = ld.par[0];
+    tA[0]   = ld.par[1];
     if(!fCal) return;
 /*...*/
     wfn  = velC[0]*n[0] + velC[1]*n[1];
@@ -4380,7 +4409,7 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 
 /*... entrada*/
     else{
-      densityEnv = ld.par[1];
+      densityEnv = ld.par[0];
       densityEnv = densityC;
       *p -= wfn*densityEnv*fArea*tA[0]; 
     } 

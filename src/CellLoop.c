@@ -4481,7 +4481,7 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 04/07/2016                                   * 
+ * Data de modificaco : 01/10/2017                                   * 
  *-------------------------------------------------------------------* 
  * INTERCELLNODE: interpolacao dos valores das celulas para o no da  *
  * malha                                                             *
@@ -4738,8 +4738,7 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
           nCarg=MAT2D(nel,i,faceL,aux)-1;
           typed = loads[nCarg].type;
 /*... valor pescrito */
-          if( typed == DIRICHLETBC || typed == INLET 
-          || typed == MOVEWALL){
+          if( typed == DIRICHLETBC || typed == MOVEWALL){
             ty = geomType[nel];
             nodeFace =  sn(isNod,ty,nel); 
             for(n=0;n<nodeFace ;n++){
@@ -4752,6 +4751,25 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
               }
               for(k = 0; k   < ndf1;k++) 
                 MAT2D(no[n],k,noU,ndf1) += loads[nCarg].par[k];
+              md[no[n]]++;
+            }
+          }
+/*...................................................................*/
+
+/*... valor pescrito */
+          else if( typed == INLET ){
+            ty = geomType[nel];
+            nodeFace =  sn(isNod,ty,nel); 
+            for(n=0;n<nodeFace ;n++){
+              no[n] = MAT2D(i,n,isNod,nodeFace );
+              no[n] = MAT2D(nel,no[n],el,maxNo) - 1;
+              if(flag[no[n]] == false){
+                flag[no[n]] = true;
+                for(k = 0; k   < ndf1;k++)
+                  MAT2D(no[n],k,noU,ndf1) = 0.e0;
+              }
+              for(k = 0; k   < ndf1;k++) 
+                MAT2D(no[n],k,noU,ndf1) += loads[nCarg].par[k+1];
               md[no[n]]++;
             }
           }
@@ -5600,6 +5618,7 @@ void parameterCellLm(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT prop
 /*..................................................................*/
       }
 /*..................................................................*/
+
   }
 /*..................................................................*/  
 
@@ -5740,6 +5759,7 @@ bool openDomain(Loads *loadVel
     for(j=0;j<aux1;j++){
       nCarg = MAT2D(nel, j, faceVelLoad, aux2);
       if(!nCarg){
+        nCarg--;
         type  = loadVel[nCarg].type;
         if (  type == INLET || type == OUTLET
             || type == OPEN || type == INLETSTAICTPRES) {
@@ -5754,6 +5774,158 @@ bool openDomain(Loads *loadVel
 
 }
 /*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 01/10/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * MASSFLUXOPENDOMAIN: calcula da massa entrando e saindo            *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+*********************************************************************/
+DOUBLE massFluxOpenDomain(Loads *loadVel      , Temporal const ddt
+              , short  *RESTRICT faceVelLoad, short  *RESTRICT nFace
+              , DOUBLE *RESTRICT gfArea     , DOUBLE *RESTRICT gNormal
+              , DOUBLE *RESTRICT density    , DOUBLE *RESTRICT vel 
+              , INT const numel             , short const ndm  
+              , short const maxViz  ) {
+
+  short  nCarg, j, type, aux1, aux2;
+  INT nel;
+  DOUBLE lDensity,aFace,mOut,mIn,n[3],v[3],wfn,deltaMass,dt,densityOut;
+  
+
+  densityOut = mOut = mIn = 0.e0;
+  aux2 = maxViz + 1;
+  for (nel = 0; nel<numel; nel++) {
+    aux1 = nFace[nel];
+/*... elementos com equacoes*/
+    for(j=0;j<aux1;j++){
+      nCarg = MAT2D(nel, j, faceVelLoad, aux2);
+      if(nCarg){
+        nCarg--;
+        type  = loadVel[nCarg].type;
+/*...*/
+        if (type == INLET) {
+          aFace = MAT2D(nel, j, gfArea , maxViz);
+          n[0]  = MAT3D(nel, j, 0, gNormal, maxViz, ndm);
+          n[1]  = MAT3D(nel, j, 1, gNormal, maxViz, ndm);
+          v[0]  = loadVel[nCarg].par[1];
+          v[1]  = loadVel[nCarg].par[2];
+          wfn   = v[0]*n[0] + v[1]*n[1];
+          if ( ndm == 3 ) {
+            n[2] = MAT3D(nel, j, 2, gNormal, maxViz, ndm);
+            v[2] = loadVel[nCarg].par[3];
+            wfn +=  v[2]*n[2];
+          }
+          lDensity = loadVel[nCarg].par[0];
+      
+          mIn     += lDensity*wfn*aFace;          
+        }
+/*...................................................................*/
+
+/*...*/
+        else if ( type == OUTLET ){
+          lDensity  = MAT2D(nel, 2, density ,DENSITY_LEVEL);
+          aFace     = MAT2D(nel, j, gfArea , maxViz);
+          n[0]      = MAT3D(nel, j, 0, gNormal, maxViz, ndm);
+          n[1]      = MAT3D(nel, j, 1, gNormal, maxViz, ndm);
+          v[0]      = MAT2D(nel, 0, vel, ndm);
+          v[1]      = MAT2D(nel, 1, vel, ndm);
+          wfn       = v[0]*n[0] + v[1]*n[1];
+          if ( ndm == 3 ) {
+            n[2] = MAT3D(nel, j, 2, gNormal, maxViz, ndm);
+            v[2] = MAT2D(nel, 2, vel, ndm);
+            wfn +=  v[2]*n[2];
+          }
+          mOut       += lDensity*wfn*aFace;  
+          densityOut += lDensity*aFace;
+        }
+/*...................................................................*/
+
+/*...*/
+        else if( type == OPEN || type == INLETSTAICTPRES) {
+          lDensity  = MAT2D(nel, 2, density ,DENSITY_LEVEL);
+          aFace     = MAT2D(nel, j, gfArea , maxViz);
+          n[0]      = MAT3D(nel, j, 0, gNormal, maxViz, ndm);
+          n[1]      = MAT3D(nel, j, 1, gNormal, maxViz, ndm);
+          v[0]      = MAT2D(nel, 0, vel, ndm);
+          v[1]      = MAT2D(nel, 1, vel, ndm);
+          wfn = v[0]*n[0] + v[1]*n[1];
+          if (ndm == 3) {
+            n[2] = MAT3D(nel, j, 2, gNormal, maxViz, ndm);
+            v[2] = MAT2D(nel, 2, vel, ndm);
+            wfn +=  v[2]*n[2];
+          } 
+          if(wfn > 0.e0){
+            mOut       += lDensity*wfn*aFace;
+            densityOut += lDensity*aFace;
+          }
+          else{
+            lDensity = loadVel[nCarg].par[0];
+            mIn   += lDensity*wfn*aFace;  
+          }  
+/*...................................................................*/          
+        }     
+/*...................................................................*/
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*...*/
+  dt = ddt.dt[1];
+  deltaMass = (mOut + mIn) * dt;
+//printf("%e %e %e %e\n",mIn,mOut,deltaMass,mIn/densityOut);
+  return deltaMass;
+/*...................................................................*/
+
+}
+/*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 01/10/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * TOTALMASS ; calculo da massa total do sistema                     *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+*********************************************************************/
+DOUBLE totalMass(DOUBLE *RESTRICT density  , DOUBLE *RESTRICT volume
+                ,INT const nEl){
+
+  INT i;
+  DOUBLE den, dm, vm;
+
+  dm = vm = 0.e0;
+  for(i=0;i<nEl;i++){
+    den = MAT2D(i, 2, density, DENSITY_LEVEL);
+    dm += den*volume[i];
+    vm += volume[i];
+   }
+/*..................................................................*/  
+  return dm/vm;
+/*...................................................................*/
+
+}
+/*********************************************************************/
+
 
 void hPres(DOUBLE *RESTRICT pres0, DOUBLE *RESTRICT pres
          , DOUBLE *RESTRICT dFluid, DOUBLE *RESTRICT cc
