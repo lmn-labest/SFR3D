@@ -1020,13 +1020,14 @@ void getEnergyForTemp(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                      ,bool const fSheat    ,bool const fKelvin) {
   short lMat;
   INT i;  
-  DOUBLE sHeat;
+  DOUBLE sHeatRef;
 
 /*...*/ 
   for (i = 0; i < nCell; i++) {
     lMat  = mat[i] - 1;
-    sHeat = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-    energy[i] = tempForSpecificEnthalpy(temp[i],sHeat,fSheat,fKelvin);
+    sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+    energy[i] = tempForSpecificEnthalpy(temp[i],sHeatRef
+                                       ,fSheat,fKelvin);
   }
 /*...................................................................*/ 
 

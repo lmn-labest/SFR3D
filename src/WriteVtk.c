@@ -1533,10 +1533,10 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
              ,INT const numel    ,INT *nFace){
 
   short  isnod[MAX_SN],nenFaceMax=MAX_NUM_NODE_FACE;
-  short j,k,ty,tmp;
+  short j,k,ty;
   unsigned int nf = 0;
   short cCell = maxViz + 1;
-  int no,nel;
+  int no,nel,tmp;
   
   for(nel=0;nel<numel;nel++){
     ty = typeGeom[nel];

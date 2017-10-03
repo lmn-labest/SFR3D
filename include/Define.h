@@ -153,6 +153,7 @@
   #define MAXLOADD1        200
   #define MAXLOADT1        200
   #define MAXLOADFLUID     200
+  #define MAXINTERPOL      100
 /*...................................................................*/
 
 /*...*/
@@ -253,8 +254,8 @@
     typedef __int64 LONG_INT;
     #define RESTRICT __restrict
   #else
-/*  #define LONG_INT long*/
-    typedef __int64 LONG_INT;
+    #define LONG_INT long  
+/*  typedef __int64 LONG_INT;*/
     #define RESTRICT restrict
   #endif
 /*...................................................................*/

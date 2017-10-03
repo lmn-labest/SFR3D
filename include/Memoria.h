@@ -30,8 +30,8 @@
   typedef struct{
     char *ia;/*arroanjo principal*/
     char nome_ponteiro[NPONTEIRO][MNOMEPONTEIRO+1];/*nome dos ponterios alocados*/
-	  iptx pont[NPONTEIRO][2];/*localizacao do ponteiro no ia*/
-    unsigned int npont;/*numero de ponteiros alocados*/
+	  unsigned int npont;/*numero de ponteiros alocados*/
+    iptx pont[NPONTEIRO][2];/*localizacao do ponteiro no ia*/    
 	  TYPEADRESS **end[NPONTEIRO];/*endereco dos ponterios allocados*/
 	  iptx iespont;/*localizacao do ultimo ponteiro allocado no ia*/
     double   tempmem;/*tempo total de excucao das funcoes*/

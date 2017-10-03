@@ -369,7 +369,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellSimplePres2DLm(Loads *loadsVel  , Loads *loadsPres 
+void cellSimplePres2DLm(Loads *lVel      , Loads *lPres 
 					 , Diffusion diffPres	         , MassEqModel eMass
            , short *RESTRICT lGeomType   , DOUBLE *RESTRICT prop
            , INT *RESTRICT lViz          , INT *RESTRICT lId  
@@ -537,7 +537,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                        ,tA              ,modE      
                        ,densityC        ,wfn                      
                        ,lModEta         ,lModKsi         
-                       ,loadsPres[nCarg],true);
+                       ,lPres[nCarg]    ,true);
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -552,7 +552,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                   , ddum           , ddum 
                   , densityC
                   , lModEta        , dcca[nAresta]
-                  , loadsVel[nCarg], ndm
+                  , lVel[nCarg]    , ndm
                   , false          , true
                   , false          , 0);   
       } 
@@ -891,7 +891,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * Fonte: Ferziger-Precic                                            *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres 
+void cellSimplePres3D(Loads *lVel       ,Loads *lPres 
 							,Diffusion diffPres
               ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
               ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
@@ -1095,7 +1095,7 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
                        ,tA              ,modE
                        ,densityC        ,wfn
                        ,lFarea          ,lModKsi
-                       ,loadsPres[nCarg],true);
+                       ,lPres[nCarg]    ,true);
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -1110,7 +1110,7 @@ void cellSimplePres3D(Loads *loadsVel     ,Loads *loadsPres
                   , ddum           , ddum    
                   , densityC
                   , lFarea         , dcca[nAresta]
-                  , loadsVel[nCarg], ndm
+                  , lVel[nCarg]    , ndm
                   , false          , true
                   , false          , 0);   
       } 

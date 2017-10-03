@@ -47,7 +47,7 @@
  * OBS:                                                              *
  *-------------------------------------------------------------------* 
   *********************************************************************/
-void turbulence(Loads *loadsVel             , Turbulence tModel             
+void turbulence(Loads *lVel                 , Turbulence tModel             
       , INT    *RESTRICT el                 , INT    *RESTRICT nelcon 
       , short  *RESTRICT nen                , short  *RESTRICT nFace 
       , short  *RESTRICT geomType           , DOUBLE *RESTRICT prop  
@@ -83,7 +83,7 @@ void turbulence(Loads *loadsVel             , Turbulence tModel
          lProp[(MAX_NUM_FACE+1)*MAXPROP],
          lCc[(MAX_NUM_FACE+1)*MAX_NDM],
          lGradVel[(MAX_NUM_FACE+1)*MAX_NDM*MAX_NDF],
-         lVel[(MAX_NUM_FACE+1)*MAX_NDM],
+         lVel0[(MAX_NUM_FACE+1)*MAX_NDM],
          lEddyViscosity,lDviscosity; 
            
 
@@ -110,7 +110,7 @@ void turbulence(Loads *loadsVel             , Turbulence tModel
 
 /*...*/
     for(j=0;j<ndm;j++){
-       MAT2D(aux1,j,lVel,ndm)  = MAT2D(nel,j,vel     ,ndm);
+       MAT2D(aux1,j,lVel0,ndm)  = MAT2D(nel,j,vel     ,ndm);
       MAT2D(aux1, j, lCc, ndm) = MAT2D(nel, j, cc, ndm);
     }
 /*...................................................................*/
@@ -152,8 +152,8 @@ void turbulence(Loads *loadsVel             , Turbulence tModel
         lMat         = mat[vizNel]-1;
  
         for(j=0;j<ndm;j++){
-          MAT2D(i,j,lCc      ,ndm) = MAT2D(vizNel,j,cc      ,ndm);
-          MAT2D(i,j,lVel     ,ndm) = MAT2D(vizNel,j,vel     ,ndm);
+          MAT2D(i,j,lCc      ,ndm)  = MAT2D(vizNel,j,cc      ,ndm);
+          MAT2D(i,j,lVel0     ,ndm) = MAT2D(vizNel,j,vel     ,ndm);
         }
       
         for(k=0;k<ndf;k++)
@@ -168,7 +168,7 @@ void turbulence(Loads *loadsVel             , Turbulence tModel
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
-     cellLibTurbulence(loadsVel        , tModel        
+     cellLibTurbulence(lVel            , tModel        
                       , lGeomType      , lProp
                       , lViz           , lKsi
                       , lmKsi 
@@ -178,7 +178,7 @@ void turbulence(Loads *loadsVel             , Turbulence tModel
                       , lDcca          , lCc
                       , lvSkew         , lmvSkew
                       , lFaceVelR      , lFaceVelL 
-                      , lVel           , lGradVel
+                      , lVel0          , lGradVel
                       , lDensity       , lDviscosity 
                       , &lEddyViscosity
                       , nen[nel]       , nFace[nel] 
@@ -252,7 +252,7 @@ void turbulence(Loads *loadsVel             , Turbulence tModel
 *                  | du2dx1 du2dx2 |                                *
 *                                                                   *
 *********************************************************************/
-void cellLes(Loads *loadsVel           , Turbulence tModel           
+void cellLes(Loads *lVel               , Turbulence tModel           
           , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop 
           , INT *RESTRICT lViz         , DOUBLE *RESTRICT ksi 
           , DOUBLE *RESTRICT mKsi
@@ -270,7 +270,8 @@ void cellLes(Loads *loadsVel           , Turbulence tModel
 {
 /*...*/
   bool fWall = false;
-  short nAresta, vizNel, nCarg, idCell = nFace,wallType;
+  short nAresta, nCarg, idCell = nFace,wallType;
+  INT vizNel;
   DOUBLE modS, tmp, densityC, viscosityC, cs, s[3], gradVelC[2][2],delta;
   DOUBLE wt,velC[2],vParallel[2],lNormal[2],lMin,dMin
         ,yPlus,uPlus,velB[2],yPlusMax;
@@ -305,7 +306,7 @@ void cellLes(Loads *loadsVel           , Turbulence tModel
     if (vizNel  == -2) {
       if (lFaceVelR[nAresta] > 0) {
         nCarg = lFaceVelL[nAresta] - 1;
-        if( loadsVel[nCarg].type == MOVEWALL){
+        if( lVel[nCarg].type == MOVEWALL){
           fWall = true;
 /*... velocidade da parede*/
           nCarg     = lFaceVelL[nAresta] - 1;

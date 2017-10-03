@@ -606,8 +606,6 @@
                ,short const ndm          ,INT const nel);
 /*...................................................................*/
 
-/*...................................................................*/
-
 /*... carga por elmento e condicoes pescritas por celula*/
   void cellPload(Loads *loads           ,DOUBLE *RESTRICT gCc
                 ,short  *RESTRICT faceR ,short *RESTRICT faceS
@@ -615,41 +613,8 @@
                 ,DOUBLE *RESTRICT u     ,DOUBLE *RESTRICT f
                 ,INT const numel        ,short const ndf
                 ,short const ndm        ,short const maxViz);
-
-/*... carga por elmento e condicoes pescritas por celula no 
-      metodo simple*/
-  void pLoadSimple(DOUBLE *RESTRICT sP  , DOUBLE *RESTRICT p
-          , DOUBLE *RESTRICT tA          , DOUBLE *RESTRICT velC
-          , DOUBLE *RESTRICT n             
-          , DOUBLE *RESTRICT gradVel     , DOUBLE *RESTRICT xmcc
-          , DOUBLE const viscosityC      , DOUBLE const effViscosityC 
-          , DOUBLE const densityC          
-          , DOUBLE const fArea           , DOUBLE const dcca
-          , Loads ld                     , short const ndm
-          , bool const fCal1             , bool const fCal2
-          , bool const fWallModel        , short const wallType);
-
-  void pLoadSimplePres(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
-          ,DOUBLE *RESTRICT tA
-          ,DOUBLE const viscosityC,DOUBLE const densityC
-          ,DOUBLE const wfn
-          ,DOUBLE const fArea     ,DOUBLE const dcca 
-          ,Loads ld               ,bool const fCal);
-
-  void pLoadEnergy(DOUBLE *RESTRICT sP   , DOUBLE *RESTRICT p
-               , DOUBLE *RESTRICT tA     , DOUBLE *RESTRICT velC
-               , DOUBLE const uC         , DOUBLE *RESTRICT n  
-               , DOUBLE const thermCoef  , DOUBLE const densityC
-               , DOUBLE const viscosityC , DOUBLE const sHeatC
-               , DOUBLE const prT        , DOUBLE *RESTRICT xm                   
-               , DOUBLE const fArea      , DOUBLE const dcca
-               , Loads ld                , Loads ldVel 
-               , short  const ndm
-               , bool const fCal         , bool const fTemp
-               , bool const iKelvin      , bool const fSheat
-               , bool const fWallModel   , short const wallType);
-
 /*...................................................................*/
+
 
 /*... carga por elmento e condicoes pescritas por celula no metodo 
       simple*/

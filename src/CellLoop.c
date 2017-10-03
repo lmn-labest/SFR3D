@@ -4543,7 +4543,7 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
   DOUBLE *mdf=NULL;
   bool *flag=NULL;
   DOUBLE dist,dx;
-  DOUBLE uT[MAX_NDF],xx[3];
+  DOUBLE uT[MAX_NDF],xx[3],par[MAXLOADPARAMETER];;
   short i,j,k,l,n,nodeFace,aux=maxViz+1;
   INT nel,no1,no[4];
   short  isNod[MAX_SN],nCarg,ty,typed;
@@ -4749,8 +4749,9 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
                 for(k = 0; k   < ndf1;k++)
                   MAT2D(no[n],k,noU,ndf1) = 0.e0;
               }
+              getLoads(par,loads[nCarg]);
               for(k = 0; k   < ndf1;k++) 
-                MAT2D(no[n],k,noU,ndf1) += loads[nCarg].par[k];
+                MAT2D(no[n],k,noU,ndf1) += par[k];
               md[no[n]]++;
             }
           }
@@ -4768,8 +4769,9 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
                 for(k = 0; k   < ndf1;k++)
                   MAT2D(no[n],k,noU,ndf1) = 0.e0;
               }
+              getLoads(par,loads[nCarg]);
               for(k = 0; k   < ndf1;k++) 
-                MAT2D(no[n],k,noU,ndf1) += loads[nCarg].par[k+1];
+                MAT2D(no[n],k,noU,ndf1) += par[k+1];
               md[no[n]]++;
             }
           }
