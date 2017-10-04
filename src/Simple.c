@@ -1452,7 +1452,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 
 /*...*/
     if (jj == sp->pSimple) {
-      jj = 0;
+      jj = 1;
       printf("It simple: %d \n", itSimple + 1);
       printf("CPU Time(s)  : %lf \n", timei);
       printf("Residuo:\n");
@@ -1460,7 +1460,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
       printf("momentum x1            : %20.8e\n", rU[0] / rU0[0]);
       printf("momentum x2            : %20.8e\n", rU[1] / rU0[1]);
       if (ndfVel == 3)
-        printf("momentum x3           : %20.8e\n", rU[2] / rU0[2]);
+        printf("momentum x3            : %20.8e\n", rU[2] / rU0[2]);
       printf("conservacao da energia : %20.8e\n",rEnergy/rEnergy0);
     }
    
@@ -1625,7 +1625,7 @@ void updateCellSimpleVel(DOUBLE  *RESTRICT w
 
 /********************************************************************* 
  * Data de criacao    : 30/08/2017                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 03/10/2017                                   * 
  *-------------------------------------------------------------------* 
  * UPDATECELLSIMPLEVELR: atualizacao dos valores das velocidades     *
  * estimadas com os valores das respectivas equacoes                 *
@@ -1659,9 +1659,9 @@ void updateCellSimpleVelR(DOUBLE  *RESTRICT w  ,DOUBLE  *RESTRICT u1
       for(i=0;i<nEl;i++){
         lNeq             = id[i] - 1;
         if(lNeq > -1){  
-          MAT2D(i,0,w,2) += u1[lNeq];
-          MAT2D(i,1,w,2) += u2[lNeq];
-          MAT2D(i,1,w,3) += u3[lNeq];
+          MAT2D(i,0,w,3) += u1[lNeq];
+          MAT2D(i,1,w,3) += u2[lNeq];
+          MAT2D(i,2,w,3) += u3[lNeq];
         }
       }
     }
@@ -1687,9 +1687,9 @@ void updateCellSimpleVelR(DOUBLE  *RESTRICT w  ,DOUBLE  *RESTRICT u1
       for(i=0;i<nEl;i++){
         lNeq             = id[i] - 1;
         if(lNeq > -1){  
-          MAT2D(i,0,w,2) = u1[lNeq];
-          MAT2D(i,1,w,2) = u2[lNeq];
-          MAT2D(i,1,w,3) = u3[lNeq];
+          MAT2D(i,0,w,3) = u1[lNeq];
+          MAT2D(i,1,w,3) = u2[lNeq];
+          MAT2D(i,2,w,3) = u3[lNeq];
         }
       }
     }

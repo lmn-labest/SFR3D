@@ -2785,10 +2785,6 @@ int main(int argc,char**argv){
         printf("%s\n",DIF);
         printf("%s\n",word);
       }
-      opt.vel      = false;
-      opt.pres     = false;
-      opt.gradVel  = false;
-      opt.gradPres = false;
 /*...*/
       setPrintFluid(&opt,fileIn);
 /*...................................................................*/

@@ -814,6 +814,33 @@
             , DOUBLE const underU            
             , const short nEn              , short const nFace
             , const short ndm              , INT const nel);
+  
+  void cellEnergy3D(Loads *loads          , Loads *lVel
+            , Advection advT              , Diffusion diffT
+            , Turbulence tModel           , EnergyModel model
+            , PropVar vProp
+            , short *RESTRICT lGeomType   , DOUBLE *RESTRICT prop
+            , INT *RESTRICT lViz          , INT *RESTRICT lId
+            , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
+            , DOUBLE *RESTRICT eta        , DOUBLE *RESTRICT fArea
+            , DOUBLE *RESTRICT normal     , DOUBLE *RESTRICT volume
+            , DOUBLE *RESTRICT xm         , DOUBLE *RESTRICT xmcc
+            , DOUBLE *RESTRICT dcca       , DOUBLE *RESTRICT cc
+            , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
+            , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
+            , DOUBLE *RESTRICT lRcell     , Temporal const ddt
+            , short  *RESTRICT lFaceR     , short *RESTRICT lFaceL
+            , short  *RESTRICT lFaceVelR  , short *RESTRICT lFaceVelL
+            , DOUBLE *RESTRICT u0         , DOUBLE *RESTRICT gradU0
+            , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
+            , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres  
+            , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lSheat
+            , DOUBLE *RESTRICT lViscosity , DOUBLE *RESTRICT lTconductivity
+            , DOUBLE *RESTRICT dField
+            , DOUBLE const underU           
+            , const short nEn             , short const nFace
+            , const short ndm             , INT const nel);
+
 /*...................................................................*/
 
 /*.......................... SIMPLE .................................*/
@@ -941,7 +968,8 @@
 /*...................................................................*/
 
 /*... biblioteca de celulas (simple - vel - levemente compressivel)*/
- /*... biblioteca de celulas (simple - vel - low mach)*/
+
+/*... biblioteca de celulas 2D(simple - vel - low mach)*/
   void cellSimpleVel2DLm(Loads *loadsVel , Loads *loadsPres  
            , Advection advVel           , Diffusion diffVel
            , Turbulence tModel          , MomentumModel eMomentum
@@ -966,6 +994,7 @@
            , const short nEn            , short const nFace 
            , const short ndm            , INT const nel);
 
+/*... biblioteca de celulas 3D(simple - pres - low mach)*/
   void cellSimplePres2DLm(Loads *loadsVel, Loads *loadsPres 
 					 , Diffusion diffPres        	, MassEqModel eMass
            , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop
@@ -985,6 +1014,52 @@
            , DOUBLE *RESTRICT temp
            , const short nEn            , short const nFace    
            , const short ndm            , INT const nel);
+
+/*... biblioteca de celulas 3D(simple - vel - low mach)*/
+  void cellSimpleVel3DLm(Loads *lVel      , Loads *lPres 
+            , Advection advVel            , Diffusion diffVel
+            , Turbulence tModel           , MomentumModel eMomentum
+            , short const typeSimple 
+            , short *RESTRICT lGeomType   , DOUBLE *RESTRICT prop
+            , INT *RESTRICT lViz          , INT *RESTRICT lId  
+            , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
+            , DOUBLE *RESTRICT eta        , DOUBLE *RESTRICT fArea
+            , DOUBLE *RESTRICT normal     , DOUBLE *RESTRICT volume 
+            , DOUBLE *RESTRICT xm         , DOUBLE *RESTRICT xmcc
+            , DOUBLE *RESTRICT dcca       , DOUBLE *RESTRICT cc
+            , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
+            , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
+            , DOUBLE *RESTRICT lRcell     , Temporal const ddt
+            , short  *RESTRICT lFaceVelR  , short *RESTRICT lFaceVelL
+            , short  *RESTRICT lFacePresR , short *RESTRICT lFacePresL
+            , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres 
+            , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
+            , DOUBLE *RESTRICT lDensity   ,  DOUBLE *RESTRICT lViscosity 
+            , DOUBLE *RESTRICT dField     
+            , DOUBLE const underU         , const bool sPressure
+            , const short nEn             , short const nFace    
+            , const short ndm             , INT const nel);
+/*... biblioteca de celulas 3D(simple - pres - low mach)*/
+  void cellSimplePres3DLm(Loads *lVel        , Loads *lPres 
+							, Diffusion diffPres         , MassEqModel eMass
+              , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop
+              , INT *RESTRICT lViz         , INT *RESTRICT lId  
+              , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
+              , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea
+              , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume
+              , DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc
+              , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT lDensity
+              , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
+              , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
+              , DOUBLE *RESTRICT lRcell    , Temporal const ddt 
+              , short  *RESTRICT lFaceVelR , short *RESTRICT lFaceVelL
+              , short  *RESTRICT lFacePresR, short *RESTRICT lFacePresL
+              , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres
+              , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField
+              , DOUBLE *RESTRICT temp 
+              , const short nEn            , short const nFace
+              , const short ndm            , INT const nel);
+
 /*...................................................................*/
 
 /*... biblioteca de reconstrucao de gradiente*/

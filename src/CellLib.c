@@ -236,29 +236,34 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
 /*..................................................................*/
 
 /*... 3D*/
-/*    else if (ndm == 3) {
-      cellSimpleVel3D(loadsVel, loadsPres
-        , advVel, diffVel
-        , typeSimple
-        , lGeomType, lprop
-        , lViz, lId
-        , ksi, mKsi
-        , eta, fArea
-        , normal, volume
-        , xm, xmcc
-        , dcca, lDensity
-        , vSkew, mvSkew
-        , lA, lB
-        , lRcell, ddt
-        , lFaceVelR, lFaceVelL
-        , lFacePresR, lFacePresL
-        , pres, gradPres
-        , vel, gradVel
-        , dField, cc
-        , underU, sPressure
-        , nEn, nFace
-        , ndm, nel);
-    }*/
+      else if (ndm == 3) {
+        cellEnergy3D(lEnergy    , lVel
+                 , adv        , diff
+                 , tModel     , model 
+                 , vProp 
+                 , lGeomType  , lprop
+                 , lViz       , lId
+                 , ksi        , mKsi
+                 , eta        , fArea
+                 , normal     , volume
+                 , xm         , xmcc
+                 , dcca       , cc
+                 , vSkew      , mvSkew 
+                 , lA         , lB
+                 , lRcell     , ddt
+                 , lFaceR     , lFaceL
+                 , lFaceVelR  , lFaceVelL
+                 , u          , gradU    
+                 , vel        , gradVel
+                 , pres       , gradPres  
+                 , lDensity   , lSheat
+                 , lDviscosity, lTconductvity
+                 , dField
+                 , underU       
+                 , nEn        , nFace
+                 , ndm        , nel);    
+/*..................................................................*/
+    }  
 /*..................................................................*/
   }
 
@@ -414,7 +419,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
 
 /*********************************************************************
  * Data de criacao    : 27/08/2017                                   *
- * Data de modificaco : 19/09/2017                                   *
+ * Data de modificaco : 03/10/2017                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEVEl: chamada de bibliotecas de celulas para          *
  * problema de escoamento de fluidos (VEL -low mach)                 *
@@ -534,29 +539,31 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
 /*..................................................................*/
 
 /*... 3D*/
-/*  else if(ndm == 3){
-      cellSimpleVel3D(loadsVel,loadsPres   
-                 ,advVel      ,diffVel     
-                 ,typeSimple
-                 ,lGeomType   ,lprop
-                 ,lViz        ,lId
-                 ,ksi         ,mKsi
-                 ,eta         ,fArea
-                 ,normal      ,volume
-                 ,xm          ,xmcc
-                 ,dcca        ,lDensity 
-                 ,vSkew       ,mvSkew
-                 ,lA          ,lB
-                 ,lRcell      ,ddt 
-                 ,lFaceVelR   ,lFaceVelL
-                 ,lFacePresR  ,lFacePresL
-                 ,pres        ,gradPres 
-                 ,vel         ,gradVel
-                 ,dField      ,cc
-                 ,underU      ,sPressure
-                 ,nEn         ,nFace 
-                 ,ndm         ,nel);  
-    }*/
+    else if(ndm == 3){
+     cellSimpleVel3DLm(lVel      , lPres    
+                     , advVel     , diffVel 
+                     , tModel     , eMomentum
+                     , typeSimple   
+                     , lGeomType  , lprop 
+                     , lViz       , lId 
+                     , ksi        , mKsi 
+                     , eta        , fArea 
+                     , normal     , volume 
+                     , xm         , xmcc 
+                     , dcca       , cc 
+                     , vSkew      , mvSkew 
+                     , lA         , lB 
+                     , lRcell     , ddt  
+                     , lFaceVelR  , lFaceVelL 
+                     , lFacePresR , lFacePresL 
+                     , pres       , gradPres  
+                     , vel        , gradVel 
+                     , lDensity   , lViscosity 
+                     , dField        
+                     , underU     , sPressure 
+                     , nEn        , nFace  
+                     , ndm        , nel); 
+    }  
 /*..................................................................*/
   }
 
@@ -695,7 +702,7 @@ void cellLibSimplePres(Loads *lVel       ,Loads *lPres
 
 /*********************************************************************
  * Data de criacao    : 17/09/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 03/10/2017                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEPRESLM: chamada de bibliotecas de celulas para       *
  * problema de escoamento de fluidos a baixo Mach (PRES)             *
@@ -751,7 +758,7 @@ void cellLibSimplePres(Loads *lVel       ,Loads *lPres
  * lB        -> vetor de forca da linha i                            *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void cellLibSimplePresLm(Loads *loadsVel    , Loads *loadsPres
+void cellLibSimplePresLm(Loads *lVel        , Loads *lPres
 	             , Diffusion diffPres         , MassEqModel eMass  
                , short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop
                , INT   *RESTRICT lViz       , INT *RESTRICT lId  
@@ -777,7 +784,7 @@ void cellLibSimplePresLm(Loads *loadsVel    , Loads *loadsPres
   if(lib == 1){
 /*... 2D*/
     if(ndm == 2){
-      cellSimplePres2DLm(loadsVel, loadsPres
+      cellSimplePres2DLm(lVel, lPres
 								 , diffPres	 , eMass 
                  , lGeomType , lprop
                  , lViz      , lId
@@ -801,24 +808,25 @@ void cellLibSimplePresLm(Loads *loadsVel    , Loads *loadsPres
 
 /*... 3D*/
     else if(ndm == 3){
-      cellSimplePres3D(loadsVel,loadsPres
-								 ,diffPres
-                 ,lGeomType,lprop
-                 ,lViz     ,lId
-                 ,ksi      ,mKsi
-                 ,eta      ,fArea
-                 ,normal   ,volume
-                 ,xm       ,xmcc
-                 ,dcca     ,lDensity 
-                 ,vSkew    ,mvSkew
-                 ,lA       ,lB
-                 ,lRcell    
-                 ,lFaceVelR   ,lFaceVelL
-                 ,lFacePresR  ,lFacePresL
-                 ,pres     ,gradPres
-                 ,vel      ,dField
-                 ,nEn      ,nFace
-                 ,ndm      ,nel);
+      cellSimplePres3DLm(lVel, lPres
+								 , diffPres	 , eMass 
+                 , lGeomType , lprop
+                 , lViz      , lId
+                 , ksi       , mKsi
+                 , eta       , fArea
+                 , normal    , volume
+                 , xm        , xmcc
+                 , dcca      , lDensity 
+                 , vSkew     , mvSkew
+                 , lA        , lB
+                 , lRcell    , ddt 
+                 , lFaceVelR , lFaceVelL
+                 , lFacePresR, lFacePresL
+                 , pres      , gradPres 
+                 , vel       , dField
+                 , temp
+                 , nEn       , nFace  
+                 , ndm       , nel);  
     } 
 /*..................................................................*/
   }
@@ -5482,7 +5490,7 @@ DOUBLE interpolFaceVel(DOUBLE *RESTRICT velC,DOUBLE *RESTRICT velV
               ,short const ndm)
 {
 
-  DOUBLE wfn,nk,wf[2],gf[2],gfp[2];
+  DOUBLE wfn,nk,wf[3],gf[3],gfp[3];
 
   if( ndm == 2 ){
 /*...*/
@@ -5514,6 +5522,45 @@ DOUBLE interpolFaceVel(DOUBLE *RESTRICT velC,DOUBLE *RESTRICT velV
     gfp[1] = (gfp[1] - gfp[0])*nk;
 /*...................................................................*/
   }
+/*...................................................................*/
+
+  else if( ndm == 3 ){
+/*...*/
+    wf[0] = alphaMenosUm*velC[0] + alpha*velV[0];
+    wf[1] = alphaMenosUm*velC[1] + alpha*velV[1]; 
+    wf[2] = alphaMenosUm*velC[2] + alpha*velV[2]; 
+/*...................................................................*/
+
+/*...................................................................*/
+    wfn = wf[0] * lNormal[0] 
+        + wf[1] * lNormal[1]
+        + wf[2] * lNormal[2];
+/*...................................................................*/
+
+/*... 2016 - Darwish-Moukalled*/
+/*... interpolacao linear dos gradientes das pressoes*/
+    gf[0] = alphaMenosUm*gradPresC[0] + alpha*gradPresV[0];
+    gf[1] = alphaMenosUm*gradPresC[1] + alpha*gradPresV[1];
+    gf[2] = alphaMenosUm*gradPresC[2] + alpha*gradPresV[2];
+/*...................................................................*/
+
+/*...*/
+    gfp[0] = (presV - presC) / mKsi;
+/*...................................................................*/
+
+/*... produtos interno*/
+    nk = dFieldF[0] * vKsi[0] * lNormal[0]
+       + dFieldF[1] * vKsi[1] * lNormal[1]
+       + dFieldF[2] * vKsi[2] * lNormal[2];
+    gfp[1] = gf[0] * vKsi[0] + gf[1] * vKsi[1] + gf[2] * vKsi[2];
+/*...................................................................*/
+
+/*...*/
+    gfp[1] = (gfp[1] - gfp[0])*nk;
+/*...................................................................*/
+  }
+/*...................................................................*/
+
 /*...*/ 
   wfn += gfp[1];
 /*...................................................................*/

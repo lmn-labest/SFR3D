@@ -2277,9 +2277,6 @@ void setPrintFluid(FileOpt *opt,FILE *file){
   char word[WORD_SIZE];
   int tmp;
 
-  opt->bVtk          = false;
-  opt->fItPlotRes    = false;
-  opt->fItPlot       = false;
   opt->vel           = false;
   opt->pres          = false;
   opt->energy        = false;
