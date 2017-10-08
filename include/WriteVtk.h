@@ -13,7 +13,7 @@
   #include<Memoria.h>
   #include<File.h>
   #include<Properties.h>
-  
+  #include<Erro.h>
 /*... particionamento*/
   void wPartVtk(Memoria *m   ,double *x      
                ,INT *el            

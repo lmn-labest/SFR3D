@@ -310,12 +310,7 @@ void wGeoVtk(Memoria *m        ,double *x
   
 /*... conectividades*/
   HccaAlloc(int,m,lel,numel*maxNo,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
+  ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
   for(i=0;i<numel;i++){
     for(j=0;j<maxNo;j++){
       MAT2D(i,j,lel,maxNo) = MAT2D(i,j,el,maxNo)-1;
@@ -331,12 +326,7 @@ void wGeoVtk(Memoria *m        ,double *x
 
 /*... material*/
   HccaAlloc(int,m,lel,numel,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
+  ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
   for(i=0;i<numel;i++)
     lel[i]=(int) mat[i];
    
@@ -346,12 +336,8 @@ void wGeoVtk(Memoria *m        ,double *x
 
 /*... numero do elemento*/
   HccaAlloc(int,m,lel,numel*maxNo,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
+  ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
+  
   for(i=0;i<numel;i++)
     lel[i]= i+1;
    
@@ -361,12 +347,7 @@ void wGeoVtk(Memoria *m        ,double *x
 
 /*... tipo celula para o calculo*/
   HccaAlloc(int,m,lel,numel*maxNo,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
+  ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
   
   for(i=0;i<numel;i++){
     idum = mat[i]-1;
@@ -379,12 +360,7 @@ void wGeoVtk(Memoria *m        ,double *x
 
 /*... propriedades dos elementos*/
   HccaAlloc(double,m,aux,numel*numat,"el",_AD_);
-  if( aux == NULL){
-    fprintf(stderr,"Erro na alocação de aux.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
+  ERRO_MALLOC(aux,"aux",__LINE__,__FILE__,__func__);
   for(i=0;i<numel;i++){
     for(j=0;j<MAXPROP;j++){
       idum = mat[i]-1;
@@ -399,12 +375,7 @@ void wGeoVtk(Memoria *m        ,double *x
   if(ndfD[0] > 0 ){
 /*... faceRd1*/
     HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
-    if( lel == NULL){
-      fprintf(stderr,"Erro na alocação de lel.\n"
-                     "Nome do arquivo: %s.\n"
-                    ,__FILE__);
-      exit(EXIT_FAILURE);
-    }
+    ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
     for(i=0;i<numel*(maxNo+1);i++)
       lel[i]=(int) faceRd1[i];
    
@@ -414,12 +385,7 @@ void wGeoVtk(Memoria *m        ,double *x
 
 /*... faceLoadT1*/
     HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
-    if( lel == NULL){
-      fprintf(stderr,"Erro na alocação de lel.\n"
-                     "Nome do arquivo: %s.\n"
-                    ,__FILE__);
-      exit(EXIT_FAILURE);
-    }
+    ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
     for(i=0;i<numel*(maxNo+1);i++)
       lel[i]=(int) faceLd1[i];
     writeVtkProp(lel,&ddum,numel,maxViz+1,"faceLd1",iws
@@ -433,12 +399,7 @@ void wGeoVtk(Memoria *m        ,double *x
   if(ndfT[0] > 0 ){
 /*... faceRt1*/
     HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
-    if( lel == NULL){
-      fprintf(stderr,"Erro na alocação de lel.\n"
-                     "Nome do arquivo: %s.\n"
-                    ,__FILE__);
-      exit(EXIT_FAILURE);
-    }
+    ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
     for(i=0;i<numel*(maxNo+1);i++)
       lel[i]=(int) faceRt1[i];
    
@@ -448,12 +409,7 @@ void wGeoVtk(Memoria *m        ,double *x
 
 /*... faceLoadT1*/
     HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
-    if( lel == NULL){
-      fprintf(stderr,"Erro na alocação de lel.\n"
-                     "Nome do arquivo: %s.\n"
-                    ,__FILE__);
-      exit(EXIT_FAILURE);
-    }
+    ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
     for(i=0;i<numel*(maxNo+1);i++)
       lel[i]=(int) faceLt1[i];
     writeVtkProp(lel,&ddum,numel,maxViz+1,"faceLt1",iws
@@ -467,12 +423,7 @@ void wGeoVtk(Memoria *m        ,double *x
   if(ndfF > 0 || ndfFt > 0){
 /*... faceRfluid*/
     HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
-    if( lel == NULL){
-      fprintf(stderr,"Erro na alocação de lel.\n"
-                     "Nome do arquivo: %s.\n"
-                    ,__FILE__);
-      exit(EXIT_FAILURE);
-    }
+    ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
     for(i=0;i<numel*(maxNo+1);i++)
       lel[i]=(int) faceRfluid[i];
    
@@ -482,12 +433,7 @@ void wGeoVtk(Memoria *m        ,double *x
 
 /*... faceLoadFluid*/
     HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
-    if( lel == NULL){
-      fprintf(stderr,"Erro na alocação de lel.\n"
-                     "Nome do arquivo: %s.\n"
-                    ,__FILE__);
-      exit(EXIT_FAILURE);
-    }
+    ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
     for(i=0;i<numel*(maxNo+1);i++)
       lel[i]=(int) faceLfluid[i];
     writeVtkProp(lel,&ddum,numel,maxViz+1,"faceLfluid",iws
@@ -503,12 +449,7 @@ void wGeoVtk(Memoria *m        ,double *x
 
 /*... numero do no*/
   HccaAlloc(int,m,lel,nnode,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
+  ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
   for(i=0;i<nnode;i++)
     lel[i]=i+1;
    

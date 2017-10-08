@@ -76,6 +76,8 @@
     double overHeadGCelMpi;
     double overHeadTotalMpi;
 /*...*/
+    double tempForEnergy;
+/*...*/
     double turbulence;
 /*...*/
     double total;

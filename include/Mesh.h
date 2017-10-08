@@ -30,12 +30,11 @@
  
 /*...*/
   typedef struct{
-    bool fTurb;
-    bool fWall;
-    short wallType;
-    short type;
-    DOUBLE cs;    /*Smagorisnksy-Lilly*/
-    DOUBLE PrandltT;
+    bool fTurb,fWall;
+    short wallType,type;
+    DOUBLE cs;           /*Smagorisnksy-Lilly*/
+    DOUBLE PrandltT;     /*Prandtl turbulento */
+    DOUBLE PrandltTsgs;  /*Prandtl de sub-grid */
   }Turbulence; 
 /*...................................................................*/
 
@@ -51,28 +50,22 @@
 
 /*...*/
   typedef struct{
-    bool RhsDensity;
-    bool LhsDensity;
+    bool RhsDensity,LhsDensity;
   }MassEqModel;
 /*...................................................................*/
 
 /*...*/
   typedef struct{    
-    bool fRes;
-    bool fRhieChowInt;
-    bool fAbsultePressure; 
+    bool fRes,fRhieChowInt,fAbsultePressure; 
   }MomentumModel;
 /*...................................................................*/
 
 /*...*/
   typedef struct{
     bool flag;
-    short iCod;            
-    short type;
+    short iCod,type;
     INT timeStep;
-    DOUBLE total;
-    DOUBLE dt[3];
-    DOUBLE t;   
+    DOUBLE total,dt[3],t;   
   }Temporal;
 /*...................................................................*/  
 

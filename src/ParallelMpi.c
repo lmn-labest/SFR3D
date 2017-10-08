@@ -18,7 +18,6 @@ void mpiStart(int *argc,char **argv){
 
   int np=1,id=0;
  
- 
   
 #ifdef _MPICH_
   mpiVar.comm = 0;

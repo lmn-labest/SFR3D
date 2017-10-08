@@ -24,15 +24,17 @@
   
 /*... OPENMP*/
   typedef struct {
+    bool           flag,fSolver,fCell,fUpdate;
     unsigned short nThreadsSolver;
     unsigned short nThreadsCell;
-    bool           fSolver;
-    bool           fCell;
+    unsigned short nThreadsUpdate;    
     DOUBLE         *buffer;
   }Omp;
 /*...................................................................*/
   Omp ompVar;
   
+  void openMpCheck(bool omp);
+
   void pMatrixSolverOmp(Memoria *m,SistEq *eq
                        ,char *s1  ,char *s2
                        ,char *s3  ,char *s4);

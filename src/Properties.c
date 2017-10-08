@@ -935,7 +935,7 @@ void initThCondPol(char *s) {
 
 /********************************************************************* 
  * Data de criacao    : 06/09/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 05/10/2017                                   *
  *-------------------------------------------------------------------*
  * GETTEMPFORENERGY: obtem a temperatura aprtir da entalpia sensivel *
  *-------------------------------------------------------------------* 
@@ -961,11 +961,12 @@ void initThCondPol(char *s) {
 void getTempForEnergy(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                      ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                      ,INT const nCell      ,bool const fTemp
-                     ,bool const fSheat    ,bool const fKelvin){
+                     ,bool const fSheat    ,bool const fKelvin
+                     ,bool const fOmp      ,short const nThreads ){
   
   short lMat;
   INT i;  
-  DOUBLE sHeat;
+  DOUBLE sHeatRef;
 
 /*... resolucao da eq da energia na forma de temperatura*/ 
   if(fTemp)
@@ -975,12 +976,29 @@ void getTempForEnergy(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
 
 /*... resolucao da eq da energia na forma de entalpia sensivel*/  
   else{
+    if(fOmp){
+#pragma omp parallel  for default(none) num_threads(nThreads)\
+      private(i,lMat,sHeatRef)\
+      shared(nCell,prop,mat,energy,temp,fSheat,fKelvin)
+      for (i = 0; i < nCell; i++) {
+        lMat  = mat[i] - 1;
+        sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+        temp[i] = specificEnthalpyForTemp(energy[i], sHeatRef
+                                         , fSheat  , fKelvin);
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+
 /*...*/
-    for (i = 0; i < nCell; i++) {
-      lMat  = mat[i] - 1;
-      sHeat = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-      temp[i] = specificEnthalpyForTemp(energy[i], sHeat
-                                       , fSheat  , fKelvin);
+    else{
+      for (i = 0; i < nCell; i++) {
+        lMat  = mat[i] - 1;
+        sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+        temp[i] = specificEnthalpyForTemp(energy[i], sHeatRef
+                                         , fSheat  , fKelvin);
+      }
+/*...................................................................*/
     }
 /*...................................................................*/ 
   }
@@ -991,7 +1009,7 @@ void getTempForEnergy(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
 
 /********************************************************************* 
  * Data de criacao    : 06/09/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 05/10/2017                                   *
  *-------------------------------------------------------------------*
  * GETENERGYFORTEMP: obtem a entalpia sensivel apartir da temp       *
  *-------------------------------------------------------------------* 
@@ -1017,20 +1035,39 @@ void getTempForEnergy(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
 void getEnergyForTemp(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                      ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                      ,INT const nCell     
-                     ,bool const fSheat    ,bool const fKelvin) {
+                     ,bool const fSheat    ,bool const fKelvin
+                     ,bool const fOmp      ,short const nThreads ) {
   short lMat;
   INT i;  
   DOUBLE sHeatRef;
 
+/*...*/
+  if (fOmp) {
 /*...*/ 
-  for (i = 0; i < nCell; i++) {
-    lMat  = mat[i] - 1;
-    sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-    energy[i] = tempForSpecificEnthalpy(temp[i],sHeatRef
-                                       ,fSheat,fKelvin);
+#pragma omp parallel  for default(none) num_threads(nThreads)\
+    private(i,lMat,sHeatRef)\
+    shared(nCell,prop,mat,energy,temp,fSheat,fKelvin)
+    for (i = 0; i < nCell; i++) {
+      lMat  = mat[i] - 1;
+      sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+      energy[i] = tempForSpecificEnthalpy(temp[i],sHeatRef
+                                         ,fSheat,fKelvin);
+    }
+/*...................................................................*/ 
   }
 /*...................................................................*/ 
 
+  else{
+/*...*/ 
+    for (i = 0; i < nCell; i++) {
+      lMat  = mat[i] - 1;
+      sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+      energy[i] = tempForSpecificEnthalpy(temp[i],sHeatRef
+                                         ,fSheat,fKelvin);
+    }
+/*...................................................................*/ 
+  }
+/*...................................................................*/ 
 }
 /*********************************************************************/
 

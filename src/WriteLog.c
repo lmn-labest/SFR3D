@@ -1,5 +1,8 @@
 #include<WriteLog.h>
 /********************************************************************* 
+ * Data de criacao    : 03/10/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------* 
  * WRITELOG : escrita do arquivo log de execuao                      * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -19,6 +22,7 @@ void writeLog(Mesh mesh          ,Scheme sc
              ,Time t
              ,bool const fSolvD1 ,bool const fSolvT1
              ,bool const fSolvVel,bool const fSolvPres
+             ,bool const fEnergy ,bool const fTurb
              ,Omp omp
              ,char *nameIn       ,FILE *file){
 
@@ -117,7 +121,23 @@ void writeLog(Mesh mesh          ,Scheme sc
     fprintf(file,"solvEdpFuild       : %lf\n",t.solvEdpFluid);
   }
 /*...................................................................*/
-  
+
+/*... solvVel*/
+  if(fEnergy){
+    fprintf(file,"SolvEnergy         : %lf\n",t.solvEnergy);
+    fprintf(file,"numeqEnergy        : %lf\n",t.numeqEnergy);
+    fprintf(file,"dataStructEnergy   : %lf\n",t.dataStructEnergy);
+    fprintf(file,"systFormEnergy     : %lf\n",t.systFormEnergy);
+    fprintf(file,"rcGradEnergy       : %lf\n",t.rcGradEnergy);
+    fprintf(file,"tempForEnergy      : %lf\n",t.tempForEnergy);
+  }
+/*...................................................................*/
+
+/*... turbulence*/
+  if(fTurb)  
+    fprintf(file,"turbulence         : %lf\n",t.turbulence);
+/*...................................................................*/
+
   fprintf(file,"Total              : %lf\n",t.total);
 /*...*/
   fprintf(file,"\nMalha:\n");

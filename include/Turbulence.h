@@ -49,6 +49,22 @@
           , DOUBLE *viscosity          
           , const short nEn            , short const nFace
           , const short ndm            , INT const nel);
+
+  void cellLes3D(Loads *lVel             , Turbulence tModel           
+          , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop 
+          , INT *RESTRICT lViz         , DOUBLE *RESTRICT ksi 
+          , DOUBLE *RESTRICT mKsi
+          , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea
+          , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume 
+          , DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc 
+          , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc 
+          , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew 
+          , short *RESTRICT lFaceVelR  , short *RESTRICT lFaceVelL 
+          , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel       
+          , DOUBLE *RESTRICT lDensity  , DOUBLE const dViscosity
+          , DOUBLE *viscosity          
+          , const short nEn            , short const nFace 
+          , const short ndm            , INT const nel);
 /*...................................................................*/
 
 /*...*/

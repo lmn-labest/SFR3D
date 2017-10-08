@@ -84,29 +84,23 @@ void cellLibTurbulence(Loads *lVel  , Turbulence tModel
 /*..................................................................*/
 
 /*... 3D*/
-/*  else if(ndm == 3){
-      cellSimpleVel3D(loadsVel,loadsPres   
-                 ,advVel      ,diffVel     
-                 ,typeSimple
-                 ,lGeomType   ,lprop
-                 ,lViz        ,lId
-                 ,ksi         ,mKsi
-                 ,eta         ,fArea
-                 ,normal      ,volume
-                 ,xm          ,xmcc
-                 ,dcca        ,lDensity 
-                 ,vSkew       ,mvSkew
-                 ,lA          ,lB
-                 ,lRcell      ,ddt 
-                 ,lFaceVelR   ,lFaceVelL
-                 ,lFacePresR  ,lFacePresL
-                 ,pres        ,gradPres 
-                 ,vel         ,gradVel
-                 ,dField      ,cc
-                 ,underU      ,sPressure
-                 ,nEn         ,nFace 
-                 ,ndm         ,nel);  
-    }*/
+    else if(ndm == 3){
+      cellLes3D(lVel       , tModel       
+            , lGeomType  , lprop
+            , lViz       
+            , ksi        , mKsi
+            , eta        , fArea  
+            , normal     , volume
+            , xm         , xmcc
+            , dcca       , cc
+            , vSkew      , mvSkew 
+            , faceVelR   , faceVelL      
+            , vel        , gradVel
+            , lDensity   , dViscosity
+            , viscosity  
+            , nEn        , nFace 
+            , ndm        , nel); 
+    }  
 /*..................................................................*/
   }
 
@@ -2396,7 +2390,7 @@ void  leastSquare(Loads *loads
   short i,j,k,l;
 
 
-  for(l=0;l<2;l++){    
+  for(l=0;l<1;l++){    
 /*... um grau de liberdade*/  
     if(ndf == 1){
       uC[0] = u[idCell];  

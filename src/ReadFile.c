@@ -892,7 +892,8 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
       getEnergyForTemp(mesh->elm.temp         ,mesh->elm.energy0
                       ,mesh->elm.material.prop,mesh->elm.mat                        
                       ,mesh->numel            
-                      ,prop.fSpecificHeat     ,energyModel.fKelvin);
+                      ,prop.fSpecificHeat     ,energyModel.fKelvin
+                      ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);
 /*...*/
       alphaProdVector(1.e0        ,mesh->elm.energy0
                      ,mesh->numel ,mesh->elm.energy);
@@ -1982,7 +1983,8 @@ void readModel(EnergyModel *e     , Turbulence *t
                              , "residual"   , "Absolute", "temperature"
                              , "entalphy"}; 
 
-  char turbulence[][WORD_SIZE] = { "help" , "smagorinsky","wallModel"}; 
+  char turbulence[][WORD_SIZE] = { "help" , "smagorinsky","wallModel"
+                                 , "wale" , "vreman"}; 
 
   char mass[][WORD_SIZE] = { "help" , "lhsDensity","rhsDensity"}; 
 
@@ -1991,6 +1993,10 @@ void readModel(EnergyModel *e     , Turbulence *t
 
   char typeWallModel[][WORD_SIZE] ={"standard"};
   
+  char help[][WORD_SIZE] =  {"smagorinsky 0.2"
+                            ,"wallModel standard"
+                            ,"wale       0.325"};
+
   int i,nPar;
 
   readMacro(file,word,false);
@@ -2077,8 +2083,11 @@ void readModel(EnergyModel *e     , Turbulence *t
         readMacro(file,word,false);
 /*... Help*/
         if(!strcmp(word,mass[0])){    
-          if(!mpiVar.myId) 
+          if(!mpiVar.myId){
             printf("Help : nao implemenado!!\n");
+            exit(EXIT_FAILURE);
+          } 
+            
         }
 /*...................................................................*/  
 
@@ -2098,12 +2107,35 @@ void readModel(EnergyModel *e     , Turbulence *t
           t->fWall = true;         
           readMacro(file,word,false); 
           if(!strcmp(word,"standard"))
-            t->type  = STANDARDWALL; 
+            t->wallType  = STANDARDWALL; 
           if(!mpiVar.myId){ 
-            printf("wallModel: %s",typeWallModel[t->type-1]);
+            printf("wallModel: %s\n",typeWallModel[t->type-1]);
           }
         }
 /*...................................................................*/
+
+/*... Wale*/
+        else if(!strcmp(word,turbulence[3])){
+          t->fTurb = true;      
+          t->type  = WALEMODEL;
+          fscanf(file,"%lf",&t->cs);    
+          if(!mpiVar.myId){ 
+            printf("Wale: Cw = %lf\n",t->cs);
+          }
+        }
+/*...................................................................*/ 
+
+/*... Vreman*/
+        else if(!strcmp(word,turbulence[4])){
+          t->fTurb = true;      
+          t->type  = VREMAN;
+          fscanf(file,"%lf",&t->cs);    
+          if(!mpiVar.myId){ 
+            printf("Wale: Cw = %lf\n",t->cs);
+          }
+        }
+/*...................................................................*/ 
+
       }
 /*...................................................................*/
     }

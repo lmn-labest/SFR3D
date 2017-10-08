@@ -152,11 +152,15 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... OpenMP*/
+  ompVar.flag          = false;
   ompVar.nThreadsSolver = 1;
   ompVar.fSolver        = false;
 
   ompVar.nThreadsCell   = 1;
   ompVar.fCell          = false;
+
+  ompVar.nThreadsUpdate = 1;
+  ompVar.fUpdate        = false;
 /* ..................................................................*/
 
 /* ... opcoes de arquivos */                                           
@@ -248,6 +252,8 @@ int main(int argc,char**argv){
   tm.overHeadGCelMpi   = 0.e0;
   tm.overHeadGNodMpi   = 0.e0;
   tm.overHeadTotalMpi  = 0.e0;
+/*...*/
+  tm.tempForEnergy     = 0.e0;
 /*...*/
   tm.turbulence = 0.e0;
 
@@ -647,16 +653,17 @@ int main(int argc,char**argv){
 /*... */
       fName(preName,mpiVar.nPrcs,mpiVar.myId,7,&nameOut);
       fileLog = openFile(nameOut,"w");
-      writeLog(*mesh     ,sc
-              ,solvD1    ,sistEqD1
-              ,solvT1    ,sistEqT1
-              ,solvVel   ,sistEqVel
-              ,solvPres  ,sistEqPres
+      writeLog(*mesh      ,sc
+              ,solvD1     ,sistEqD1
+              ,solvT1     ,sistEqT1
+              ,solvVel    ,sistEqVel
+              ,solvPres   ,sistEqPres
               ,tm       
-              ,fSolvD1   ,fSolvT1     
-              ,fSolvVel  ,fSolvPres   
+              ,fSolvD1    ,fSolvT1     
+              ,fSolvVel   ,fSolvPres 
+              ,fSolvEnergy,turbModel.fTurb  
               ,ompVar
-              ,nameIn    ,fileLog);
+              ,nameIn     ,fileLog);
       fclose(fileLog);
 /*...................................................................*/
 
@@ -1163,6 +1170,7 @@ int main(int argc,char**argv){
       readMacro(fileIn, word, false);
       printf("OpenMp:\n");
       nOmp = (short)atol(word);
+      ompVar.flag = true;
       do {
         readMacro(fileIn, word, false);
 /*... solver*/
@@ -1194,7 +1202,24 @@ int main(int argc,char**argv){
           nOmp--;
         }
 /*...................................................................*/
+
+/*... update*/
+        else if (!strcmp(word, "Update") || !strcmp(word, "update")) {
+          readMacro(fileIn, word, false);
+/*...*/
+          ompVar.nThreadsUpdate = (short)atol(word);
+          ompVar.fUpdate = true;
+/*...................................................................*/
+
+/*...*/       
+          printf("Update nThreads: %d\n", ompVar.nThreadsUpdate);
+/*...................................................................*/
+          nOmp--;
+        }
+/*...................................................................*/
       } while (nOmp);
+
+      openMpCheck(ompVar.flag);
     }
 /*===================================================================*/
 
@@ -1981,7 +2006,7 @@ int main(int argc,char**argv){
         }
 /*...................................................................*/
 
-/*... velocidade*/
+/*... energy*/
         else if (!strcmp(word, "Energy") || !strcmp(word, "energy")) {
           nSistEq--;
 /*... inicializando a estrutura de equacoes do problema (VELOCIDADE)*/
@@ -2130,8 +2155,20 @@ int main(int argc,char**argv){
 
 /*... Openmp(Vel,Pres)*/
       if(ompVar.fSolver){
+
 /*... alocando o buffer*/
-        if(fSolvPres && fSolvVel){
+        if(fSolvPres && fSolvVel && fSolvEnergy){
+          nEqMax = max(sistEqPres->neqNov,sistEqVel->neqNov);
+          nEqMax = max(sistEqEnergy->neqNov,nEqMax);
+          HccaAlloc(DOUBLE, &m, ompVar.buffer
+                   ,nEqMax*ompVar.nThreadsSolver,"bufferOmp",false);
+          zero(ompVar.buffer,nEqMax*ompVar.nThreadsSolver,DOUBLEC);
+          sistEqPres->omp.thY   = ompVar.buffer;
+          sistEqVel->omp.thY    = ompVar.buffer;
+          sistEqEnergy->omp.thY = ompVar.buffer;
+        }
+/*... alocando o buffer*/
+        else if(fSolvPres && fSolvVel){
           nEqMax = max(sistEqPres->neqNov,sistEqVel->neqNov);
           HccaAlloc(DOUBLE, &m, ompVar.buffer
                    ,nEqMax*ompVar.nThreadsSolver,"bufferOmp",false);
@@ -2139,6 +2176,7 @@ int main(int argc,char**argv){
           sistEqPres->omp.thY = ompVar.buffer;
           sistEqVel ->omp.thY = ompVar.buffer;
         }
+/*... alocando o buffer*/
         else if(fSolvPres){
           nEqMax = sistEqPres->neqNov;
           HccaAlloc(DOUBLE, &m, ompVar.buffer

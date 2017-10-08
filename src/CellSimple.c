@@ -1788,7 +1788,7 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 	short iCodDif = diffVel.iCod;
 /*...*/
   short idCell = nFace;
-  short nAresta,nCarg,typeTime;
+  short nf,nCarg,typeTime;
   INT vizNel;
   bool fTime;
 
@@ -1838,60 +1838,60 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
   sPc[0] = 0.0e0;
   sPc[1] = 0.0e0;
   sPc[2] = 0.0e0;
-  for(nAresta=0;nAresta<nFace;nAresta++){
-    vizNel     = lViz[nAresta];
-    lNormal[0] = MAT2D(nAresta,0,normal,ndm);
-    lNormal[1] = MAT2D(nAresta,1,normal,ndm);
-    lNormal[2] = MAT2D(nAresta,2,normal,ndm);
-    lFarea     = fArea[nAresta];
-    lXmcc[0]   = MAT2D(nAresta,0,xmcc,ndm);
-    lXmcc[1]   = MAT2D(nAresta,1,xmcc,ndm);
-    lXmcc[2]   = MAT2D(nAresta,2,xmcc,ndm);
+  for(nf=0;nf<nFace;nf++){
+    vizNel     = lViz[nf];
+    lNormal[0] = MAT2D(nf,0,normal,ndm);
+    lNormal[1] = MAT2D(nf,1,normal,ndm);
+    lNormal[2] = MAT2D(nf,2,normal,ndm);
+    lFarea     = fArea[nf];
+    lXmcc[0]   = MAT2D(nf,0,xmcc,ndm);
+    lXmcc[1]   = MAT2D(nf,1,xmcc,ndm);
+    lXmcc[2]   = MAT2D(nf,2,xmcc,ndm);
 /*... dominio*/
     if( vizNel  > -1 ){
 /*...*/
-      velV[0]        = MAT2D(nAresta,0,vel,ndm);
-      velV[1]        = MAT2D(nAresta,1,vel,ndm);
-      velV[2]        = MAT2D(nAresta,2,vel,ndm);
-      presF          = pres[nAresta];
-      densityV       = lDensity[nAresta];
+      velV[0]        = MAT2D(nf,0,vel,ndm);
+      velV[1]        = MAT2D(nf,1,vel,ndm);
+      velV[2]        = MAT2D(nf,2,vel,ndm);
+      presF          = pres[nf];
+      densityV       = lDensity[nf];
 /*..*/
-      lKsi[0]        = MAT2D(nAresta,0,ksi,ndm);
-      lKsi[1]        = MAT2D(nAresta,1,ksi,ndm);
-      lKsi[2]        = MAT2D(nAresta,2,ksi,ndm);
-      lModKsi        = mKsi[nAresta];
+      lKsi[0]        = MAT2D(nf,0,ksi,ndm);
+      lKsi[1]        = MAT2D(nf,1,ksi,ndm);
+      lKsi[2]        = MAT2D(nf,2,ksi,ndm);
+      lModKsi        = mKsi[nf];
 /*..*/
-      lvSkew[0]      = MAT2D(nAresta,0,vSkew,ndm);
-      lvSkew[1]      = MAT2D(nAresta,1,vSkew,ndm);
-      lvSkew[2]      = MAT2D(nAresta,2,vSkew,ndm);
+      lvSkew[0]      = MAT2D(nf,0,vSkew,ndm);
+      lvSkew[1]      = MAT2D(nf,1,vSkew,ndm);
+      lvSkew[2]      = MAT2D(nf,2,vSkew,ndm);
 /*..*/
       duDksi[0]      = (velV[0] - velC[0]) / lModKsi;
       duDksi[1]      = (velV[1] - velC[1]) / lModKsi;
       duDksi[2]      = (velV[2] - velC[2]) / lModKsi;
 /*... | du1/dx1 du1/dx2 du1/dx3*/
-      gradVelV[0][0] = MAT3D(nAresta,0,0,gradVel,3,ndm);
-      gradVelV[0][1] = MAT3D(nAresta,0,1,gradVel,3,ndm);
-      gradVelV[0][2] = MAT3D(nAresta,0,2,gradVel,3,ndm);
+      gradVelV[0][0] = MAT3D(nf,0,0,gradVel,3,ndm);
+      gradVelV[0][1] = MAT3D(nf,0,1,gradVel,3,ndm);
+      gradVelV[0][2] = MAT3D(nf,0,2,gradVel,3,ndm);
 /*... | du2/dx1 du2/dx2 du2/dx3*/
-      gradVelV[1][0] = MAT3D(nAresta,1,0,gradVel,3,ndm);
-      gradVelV[1][1] = MAT3D(nAresta,1,1,gradVel,3,ndm);
-      gradVelV[1][2] = MAT3D(nAresta,1,2,gradVel,3,ndm);
+      gradVelV[1][0] = MAT3D(nf,1,0,gradVel,3,ndm);
+      gradVelV[1][1] = MAT3D(nf,1,1,gradVel,3,ndm);
+      gradVelV[1][2] = MAT3D(nf,1,2,gradVel,3,ndm);
 /*... | du3/dx1 du3/dx2 du3/dx3*/
-      gradVelV[2][0] = MAT3D(nAresta,2,0,gradVel,3,ndm);
-      gradVelV[2][1] = MAT3D(nAresta,2,1,gradVel,3,ndm);
-      gradVelV[2][2] = MAT3D(nAresta,2,2,gradVel,3,ndm);
+      gradVelV[2][0] = MAT3D(nf,2,0,gradVel,3,ndm);
+      gradVelV[2][1] = MAT3D(nf,2,1,gradVel,3,ndm);
+      gradVelV[2][2] = MAT3D(nf,2,2,gradVel,3,ndm);
 /*...................................................................*/
-      gradPresV[0] =  MAT2D(nAresta,0,gradPres,ndm);
-      gradPresV[1] =  MAT2D(nAresta,1,gradPres,ndm);
-      gradPresV[2] =  MAT2D(nAresta,2,gradPres,ndm);
+      gradPresV[0] =  MAT2D(nf,0,gradPres,ndm);
+      gradPresV[1] =  MAT2D(nf,1,gradPres,ndm);
+      gradPresV[2] =  MAT2D(nf,2,gradPres,ndm);
  
-      ccV[0]       =  MAT2D(nAresta,0,cc,ndm);
-      ccV[1]       =  MAT2D(nAresta,1,cc,ndm);
-      ccV[2]       =  MAT2D(nAresta,2,cc,ndm);
+      ccV[0]       =  MAT2D(nf,0,cc,ndm);
+      ccV[1]       =  MAT2D(nf,1,cc,ndm);
+      ccV[2]       =  MAT2D(nf,2,cc,ndm);
  
-      lXm[0]       =  MAT2D(nAresta,0,xm,ndm);
-      lXm[1]       =  MAT2D(nAresta,1,xm,ndm);
-      lXm[2]       =  MAT2D(nAresta,2,xm,ndm);
+      lXm[0]       =  MAT2D(nf,0,xm,ndm);
+      lXm[1]       =  MAT2D(nf,1,xm,ndm);
+      lXm[2]       =  MAT2D(nf,2,xm,ndm);
 /*...................................................................*/
 
 /*... termo difusivo
@@ -1903,16 +1903,16 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*...*/
-      v[0]         = lvSkew[0] + MAT2D(nAresta,0,xmcc,ndm);
-      v[1]         = lvSkew[1] + MAT2D(nAresta,1,xmcc,ndm);
-      v[2]         = lvSkew[2] + MAT2D(nAresta,2,xmcc,ndm);
+      v[0]         = lvSkew[0] + MAT2D(nf,0,xmcc,ndm);
+      v[1]         = lvSkew[1] + MAT2D(nf,1,xmcc,ndm);
+      v[2]         = lvSkew[2] + MAT2D(nf,2,xmcc,ndm);
       dPviz        = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
       alpha        = dPviz/lModKsi;
       alphaMenosUm = 1.0e0 - alpha; 
 /*...................................................................*/
 
 /*... media harmonica*/
-      viscosityV = MAT2D(nAresta, DYNAMICVISCOSITY,prop,MAXPROP);
+      viscosityV = MAT2D(nf, DYNAMICVISCOSITY,prop,MAXPROP);
       viscosity  = alpha/viscosityC + alphaMenosUm/viscosityV;
       viscosity  = 1.0e0/viscosity;
 /*...................................................................*/
@@ -2018,7 +2018,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*...*/
-      lA[nAresta] = dfd - min(cv,0.0e0);
+      lA[nf] = dfd - min(cv,0.0e0);
       sP         += cv;
 /*... correcao nao ortogonal e do fluxo advectivo*/
       p[0]       += dfdc[0] - cv*cvc[0];
@@ -2074,7 +2074,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
     }
 /*... contorno*/
     else{
-      lA[nAresta] = 0.0e0;
+      lA[nf] = 0.0e0;
       wfn = velC[0]*lNormal[0] 
           + velC[1]*lNormal[1] 
           + velC[2]*lNormal[2];
@@ -2097,14 +2097,14 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...*/
       pFace = presC;
 /*... pressao prescrita*/
-      if(lFacePresR[nAresta]){
+      if(lFacePresR[nf]){
 /*...cargas*/
-        nCarg = lFacePresL[nAresta]-1;
+        nCarg = lFacePresL[nf]-1;
         pLoadSimplePres(&sP             ,p
                        ,&pFace
                        ,viscosityC      ,densityC
                        ,wfn                 
-                       ,lFarea          ,dcca[nAresta]
+                       ,lFarea          ,dcca[nf]
                        ,loadsPres[nCarg],false); 
       } 
 /*...................................................................*/
@@ -2123,16 +2123,16 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 
 /*... velocidades*/
-      if(lFaceVelR[nAresta] > 0){
+      if(lFaceVelR[nf] > 0){
 /*...cargas*/
-        nCarg = lFaceVelL[nAresta]-1;
+        nCarg = lFaceVelL[nf]-1;
         pLoadSimple(sPc            ,p
                    ,tA             ,velC  
                    ,lNormal  
                    ,gradVelC[0]    ,lXmcc 
                    ,viscosityC     ,viscosityC
                    ,densityC
-                   ,lFarea         ,dcca[nAresta]
+                   ,lFarea         ,dcca[nf]
                    ,loadsVel[nCarg],ndm
                    ,true           ,false
                    ,false          ,0);
@@ -2140,8 +2140,8 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*... parede impermevavel*/
-      else if(lFaceVelR[nAresta] == STATICWALL){
-        aP   = viscosityC*lFarea /dcca[nAresta];
+      else if(lFaceVelR[nf] == STATICWALL){
+        aP   = viscosityC*lFarea /dcca[nf];
 /*...*/
         sPc[0] += aP*(1.e0 - lNormal[0]*lNormal[0]);
         sPc[1] += aP*(1.e0 - lNormal[1]*lNormal[1]);
@@ -2210,19 +2210,19 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
   rCell[0] = 0.0e0;
   rCell[1] = 0.0e0;
   rCell[2] = 0.0e0;
-  for(nAresta=0;nAresta<nFace;nAresta++){
-    if( lViz[nAresta] > -1){
+  for(nf=0;nf<nFace;nf++){
+    if( lViz[nf] > -1){
 /*... pasando os valores conhecidos para o lado direito*/
-      if(lId[nAresta] == -2){
-        p[0] += lA[nAresta]*MAT2D(nAresta,0,vel,ndm);
-        p[1] += lA[nAresta]*MAT2D(nAresta,1,vel,ndm);
-        p[2] += lA[nAresta]*MAT2D(nAresta,2,vel,ndm);
+      if(lId[nf] == -2){
+        p[0] += lA[nf]*MAT2D(nf,0,vel,ndm);
+        p[1] += lA[nf]*MAT2D(nf,1,vel,ndm);
+        p[2] += lA[nf]*MAT2D(nf,2,vel,ndm);
       }
       else{
 /*residuo (R = F-KvizUviz ) e valores prescritos por elemento*/
-        rCell[0] += lA[nAresta]*MAT2D(nAresta,0,vel,ndm);
-        rCell[1] += lA[nAresta]*MAT2D(nAresta,1,vel,ndm);
-        rCell[2] += lA[nAresta]*MAT2D(nAresta,2,vel,ndm);
+        rCell[0] += lA[nf]*MAT2D(nf,0,vel,ndm);
+        rCell[1] += lA[nf]*MAT2D(nf,1,vel,ndm);
+        rCell[2] += lA[nf]*MAT2D(nf,2,vel,ndm);
       } 
     }
   }
@@ -2385,7 +2385,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
             , const short ndm             , INT const nel)
 { 
 /*...*/
-  short iCodAdv1, iCodAdv2, iCodDif,wallType, idCell, nAresta
+  short iCodAdv1, iCodAdv2, iCodDif,wallType, idCell, nf
       , nCarg, typeTime;
 /*...*/
   bool fTime, fAbsultePressure, fRes, fTurb, fRhieInt, fWallModel;
@@ -2491,67 +2491,67 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   p[0]   = p[1] = p[2] = 0.0e0;
   pf[0]  = pf[1] = pf[2] = 0.0e0;
   sPc[0] = sPc[1] = sPc[2] = 0.0e0;
-  for(nAresta=0;nAresta<nFace;nAresta++){
-    vizNel     = lViz[nAresta];
-    lNormal[0] = MAT2D(nAresta,0,normal,3);
-    lNormal[1] = MAT2D(nAresta,1,normal,3);
-    lNormal[2] = MAT2D(nAresta,2,normal,3);
-    lFarea     = fArea[nAresta];
-    lXmcc[0]   = MAT2D(nAresta,0,xmcc,3);
-    lXmcc[1]   = MAT2D(nAresta,1,xmcc,3);
-    lXmcc[2]   = MAT2D(nAresta,2,xmcc,3);
+  for(nf=0;nf<nFace;nf++){
+    vizNel     = lViz[nf];
+    lNormal[0] = MAT2D(nf,0,normal,3);
+    lNormal[1] = MAT2D(nf,1,normal,3);
+    lNormal[2] = MAT2D(nf,2,normal,3);
+    lFarea     = fArea[nf];
+    lXmcc[0]   = MAT2D(nf,0,xmcc,3);
+    lXmcc[1]   = MAT2D(nf,1,xmcc,3);
+    lXmcc[2]   = MAT2D(nf,2,xmcc,3);
 /*... dominio*/
     if( vizNel  > -1 ){
 /*...*/
-      densityV    = lDensity[nAresta];
-      viscosityV  = MAT2D(nAresta, 0, lViscosity, 2);
-      if(fTurb) eddyViscosityV = MAT2D(nAresta, 1, lViscosity, 2);
+      densityV    = lDensity[nf];
+      viscosityV  = MAT2D(nf, 0, lViscosity, 2);
+      if(fTurb) eddyViscosityV = MAT2D(nf, 1, lViscosity, 2);
 /*...*/
-      velV[0]        = MAT2D(nAresta,0,vel,3);
-      velV[1]        = MAT2D(nAresta,1,vel,3);
-      velV[2]        = MAT2D(nAresta,2,vel,3);
+      velV[0]        = MAT2D(nf,0,vel,3);
+      velV[1]        = MAT2D(nf,1,vel,3);
+      velV[2]        = MAT2D(nf,2,vel,3);
 /*...*/
-      presV        = pres[nAresta];      
-      gradPresV[0] = MAT2D(nAresta, 0, gradPres, 3);
-      gradPresV[1] = MAT2D(nAresta, 1, gradPres, 3);
-      gradPresV[2] = MAT2D(nAresta, 2, gradPres, 3);
-      dFieldV[0]   = MAT2D(nAresta, 0, dField, 3);
-      dFieldV[1]   = MAT2D(nAresta, 1, dField, 3);
-      dFieldV[2]   = MAT2D(nAresta, 2, dField, 3);
+      presV        = pres[nf];      
+      gradPresV[0] = MAT2D(nf, 0, gradPres, 3);
+      gradPresV[1] = MAT2D(nf, 1, gradPres, 3);
+      gradPresV[2] = MAT2D(nf, 2, gradPres, 3);
+      dFieldV[0]   = MAT2D(nf, 0, dField, 3);
+      dFieldV[1]   = MAT2D(nf, 1, dField, 3);
+      dFieldV[2]   = MAT2D(nf, 2, dField, 3);
 /*..*/
-      lKsi[0]        = MAT2D(nAresta,0,ksi,3);
-      lKsi[1]        = MAT2D(nAresta,1,ksi,3);
-      lKsi[2]        = MAT2D(nAresta,2,ksi,3);
-      lModKsi        = mKsi[nAresta];
+      lKsi[0]        = MAT2D(nf,0,ksi,3);
+      lKsi[1]        = MAT2D(nf,1,ksi,3);
+      lKsi[2]        = MAT2D(nf,2,ksi,3);
+      lModKsi        = mKsi[nf];
 /*..*/
-      lvSkew[0]      = MAT2D(nAresta,0,vSkew,3);
-      lvSkew[1]      = MAT2D(nAresta,1,vSkew,3);
-      lvSkew[2]      = MAT2D(nAresta,2,vSkew,3);
+      lvSkew[0]      = MAT2D(nf,0,vSkew,3);
+      lvSkew[1]      = MAT2D(nf,1,vSkew,3);
+      lvSkew[2]      = MAT2D(nf,2,vSkew,3);
 /*..*/
       duDksi[0]      = (velV[0] - velC[0]) / lModKsi;
       duDksi[1]      = (velV[1] - velC[1]) / lModKsi;
       duDksi[2]      = (velV[2] - velC[2]) / lModKsi;
 /*... | du1/dx1 du1/dx2 du1/dx3*/
-      gradVelV[0][0] = MAT3D(nAresta,0,0,gradVel,3,3);
-      gradVelV[0][1] = MAT3D(nAresta,0,1,gradVel,3,3);
-      gradVelV[0][2] = MAT3D(nAresta,0,2,gradVel,3,3);
+      gradVelV[0][0] = MAT3D(nf,0,0,gradVel,3,3);
+      gradVelV[0][1] = MAT3D(nf,0,1,gradVel,3,3);
+      gradVelV[0][2] = MAT3D(nf,0,2,gradVel,3,3);
 /*... | du2/dx1 du2/dx2 du2/dx3*/
-      gradVelV[1][0] = MAT3D(nAresta,1,0,gradVel,3,3);
-      gradVelV[1][1] = MAT3D(nAresta,1,1,gradVel,3,3);
-      gradVelV[1][2] = MAT3D(nAresta,1,2,gradVel,3,3);
+      gradVelV[1][0] = MAT3D(nf,1,0,gradVel,3,3);
+      gradVelV[1][1] = MAT3D(nf,1,1,gradVel,3,3);
+      gradVelV[1][2] = MAT3D(nf,1,2,gradVel,3,3);
 /*... | du3/dx1 du3/dx2 du3/dx3*/
-      gradVelV[2][0] = MAT3D(nAresta,2,0,gradVel,3,3);
-      gradVelV[2][1] = MAT3D(nAresta,2,1,gradVel,3,3);
-      gradVelV[2][2] = MAT3D(nAresta,2,2,gradVel,3,3);
+      gradVelV[2][0] = MAT3D(nf,2,0,gradVel,3,3);
+      gradVelV[2][1] = MAT3D(nf,2,1,gradVel,3,3);
+      gradVelV[2][2] = MAT3D(nf,2,2,gradVel,3,3);
 /*...................................................................*/
 
-      ccV[0]       =  MAT2D(nAresta,0,cc,3);
-      ccV[1]       =  MAT2D(nAresta,1,cc,3);
-      ccV[2]       =  MAT2D(nAresta,2,cc,3);
+      ccV[0]       =  MAT2D(nf,0,cc,3);
+      ccV[1]       =  MAT2D(nf,1,cc,3);
+      ccV[2]       =  MAT2D(nf,2,cc,3);
  
-      lXm[0]       =  MAT2D(nAresta,0,xm,3);
-      lXm[1]       =  MAT2D(nAresta,1,xm,3);
-      lXm[2]       =  MAT2D(nAresta,2,xm,3);
+      lXm[0]       =  MAT2D(nf,0,xm,3);
+      lXm[1]       =  MAT2D(nf,1,xm,3);
+      lXm[2]       =  MAT2D(nf,2,xm,3);
 /*...................................................................*/
 
 /*... termo difusivo
@@ -2563,9 +2563,9 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*...*/
-      v[0]         = lvSkew[0] + MAT2D(nAresta,0,xmcc,ndm);
-      v[1]         = lvSkew[1] + MAT2D(nAresta,1,xmcc,ndm);
-      v[2]         = lvSkew[2] + MAT2D(nAresta,2,xmcc,ndm);
+      v[0]         = lvSkew[0] + MAT2D(nf,0,xmcc,ndm);
+      v[1]         = lvSkew[1] + MAT2D(nf,1,xmcc,ndm);
+      v[2]         = lvSkew[2] + MAT2D(nf,2,xmcc,ndm);
       dPviz        = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
       alpha        = dPviz/lModKsi;
       alphaMenosUm = 1.0e0 - alpha; 
@@ -2695,7 +2695,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*...*/
-      lA[nAresta] = dfd - min(cv,0.0e0);
+      lA[nf] = dfd - min(cv,0.0e0);
       sP         += cv;
 /*... correcao nao ortogonal e do fluxo advectivo*/
       p[0]       += dfdc[0] - cv*cvc[0];
@@ -2758,7 +2758,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
     }
 /*... contorno*/
     else{
-      lA[nAresta] = 0.0e0;
+      lA[nf] = 0.0e0;
       wfn = velC[0]*lNormal[0] 
           + velC[1]*lNormal[1] 
           + velC[2]*lNormal[2];
@@ -2788,14 +2788,14 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...*/
       pFace = presC;
 /*... pressao prescrita*/
-      if(lFacePresR[nAresta]){
+      if(lFacePresR[nf]){
 /*...cargas*/
-        nCarg = lFacePresL[nAresta]-1;
+        nCarg = lFacePresL[nf]-1;
         pLoadSimplePres(&sP             ,p
                        ,&pFace
                        ,effViscosityC   ,densityC
                        ,wfn                 
-                       ,lFarea          ,dcca[nAresta]
+                       ,lFarea          ,dcca[nf]
                        ,lPres[nCarg]    ,false); 
       } 
 /*...................................................................*/
@@ -2814,16 +2814,16 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 
 /*... velocidades*/
-      if(lFaceVelR[nAresta] > 0){
+      if(lFaceVelR[nf] > 0){
 /*...cargas*/
-        nCarg = lFaceVelL[nAresta]-1;
+        nCarg = lFaceVelL[nf]-1;
         pLoadSimple(sPc         , p
                   , tA          , velC  
                   , lNormal  
                   , gradVelC[0] , lXmcc 
                   , viscosityC  , viscosityC
                   , densityC
-                  , lFarea      , dcca[nAresta]
+                  , lFarea      , dcca[nf]
                   , lVel[nCarg] , ndm
                   , true        , false
                   , fWallModel  , wallType);
@@ -2831,7 +2831,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*... parede impermevavel*/
-      else if(lFaceVelR[nAresta] == STATICWALL){
+      else if(lFaceVelR[nf] == STATICWALL){
 /*... com modelo de parede*/
         yPlus = 0.e0;
         uPlus = 0.e0;
@@ -2848,7 +2848,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...*/
           if (wfn > 0.e0)
             wallModel(wfn     , viscosityC
-                     ,densityC, dcca[nAresta]
+                     ,densityC, dcca[nf]
                      ,&yPlus  , &uPlus
                      ,wallType);
 /*...................................................................*/
@@ -2863,7 +2863,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
         else
           viscosityWall = effViscosityC;
 /*...................................................................*/
-        aP = viscosityWall*lFarea / dcca[nAresta];
+        aP = viscosityWall*lFarea / dcca[nf];
 /*...*/
         sPc[0] += aP*(1.e0 - lNormal[0] * lNormal[0]);
         sPc[1] += aP*(1.e0 - lNormal[1] * lNormal[1]);
@@ -2941,19 +2941,19 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
   rCell[0] = 0.0e0;
   rCell[1] = 0.0e0;
   rCell[2] = 0.0e0;
-  for(nAresta=0;nAresta<nFace;nAresta++){
-    if( lViz[nAresta] > -1){
+  for(nf=0;nf<nFace;nf++){
+    if( lViz[nf] > -1){
 /*... pasando os valores conhecidos para o lado direito*/
-      if(lId[nAresta] == -2){
-        p[0] += lA[nAresta]*MAT2D(nAresta,0,vel,ndm);
-        p[1] += lA[nAresta]*MAT2D(nAresta,1,vel,ndm);
-        p[2] += lA[nAresta]*MAT2D(nAresta,2,vel,ndm);
+      if(lId[nf] == -2){
+        p[0] += lA[nf]*MAT2D(nf,0,vel,ndm);
+        p[1] += lA[nf]*MAT2D(nf,1,vel,ndm);
+        p[2] += lA[nf]*MAT2D(nf,2,vel,ndm);
       }
       else{
 /*residuo (R = F-KvizUviz ) e valores prescritos por elemento*/
-        rCell[0] += lA[nAresta]*MAT2D(nAresta,0,vel,ndm);
-        rCell[1] += lA[nAresta]*MAT2D(nAresta,1,vel,ndm);
-        rCell[2] += lA[nAresta]*MAT2D(nAresta,2,vel,ndm);
+        rCell[0] += lA[nf]*MAT2D(nf,0,vel,ndm);
+        rCell[1] += lA[nf]*MAT2D(nf,1,vel,ndm);
+        rCell[2] += lA[nf]*MAT2D(nf,2,vel,ndm);
       } 
     }
   }
@@ -3142,7 +3142,7 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
   short iCodDif = diffVel.iCod;
 /*...*/
   short idCell = nFace;
-  short nAresta, nCarg, typeTime;
+  short nf, nCarg, typeTime;
   INT vizNel;
   bool fTime;
 
@@ -3192,60 +3192,60 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
   sPc[0] = 0.0e0;
   sPc[1] = 0.0e0;
   sPc[2] = 0.0e0;
-  for (nAresta = 0; nAresta<nFace; nAresta++) {
-    vizNel = lViz[nAresta];
-    lNormal[0] = MAT2D(nAresta, 0, normal, ndm);
-    lNormal[1] = MAT2D(nAresta, 1, normal, ndm);
-    lNormal[2] = MAT2D(nAresta, 2, normal, ndm);
-    lFarea = fArea[nAresta];
-    lXmcc[0] = MAT2D(nAresta, 0, xmcc, ndm);
-    lXmcc[1] = MAT2D(nAresta, 1, xmcc, ndm);
-    lXmcc[2] = MAT2D(nAresta, 2, xmcc, ndm);
+  for (nf = 0; nf<nFace; nf++) {
+    vizNel = lViz[nf];
+    lNormal[0] = MAT2D(nf, 0, normal, ndm);
+    lNormal[1] = MAT2D(nf, 1, normal, ndm);
+    lNormal[2] = MAT2D(nf, 2, normal, ndm);
+    lFarea = fArea[nf];
+    lXmcc[0] = MAT2D(nf, 0, xmcc, ndm);
+    lXmcc[1] = MAT2D(nf, 1, xmcc, ndm);
+    lXmcc[2] = MAT2D(nf, 2, xmcc, ndm);
 /*... dominio*/
     if (vizNel  > -1) {
 /*...*/
-      velV[0] = MAT2D(nAresta, 0, vel, ndm);
-      velV[1] = MAT2D(nAresta, 1, vel, ndm);
-      velV[2] = MAT2D(nAresta, 2, vel, ndm);
-      presF = pres[nAresta];
-      densityV = lDensity[nAresta];
+      velV[0] = MAT2D(nf, 0, vel, ndm);
+      velV[1] = MAT2D(nf, 1, vel, ndm);
+      velV[2] = MAT2D(nf, 2, vel, ndm);
+      presF = pres[nf];
+      densityV = lDensity[nf];
 /*...*/
-      lKsi[0] = MAT2D(nAresta, 0, ksi, ndm);
-      lKsi[1] = MAT2D(nAresta, 1, ksi, ndm);
-      lKsi[2] = MAT2D(nAresta, 2, ksi, ndm);
-      lModKsi = mKsi[nAresta];
+      lKsi[0] = MAT2D(nf, 0, ksi, ndm);
+      lKsi[1] = MAT2D(nf, 1, ksi, ndm);
+      lKsi[2] = MAT2D(nf, 2, ksi, ndm);
+      lModKsi = mKsi[nf];
 /*...*/
-      lvSkew[0] = MAT2D(nAresta, 0, vSkew, ndm);
-      lvSkew[1] = MAT2D(nAresta, 1, vSkew, ndm);
-      lvSkew[2] = MAT2D(nAresta, 2, vSkew, ndm);
+      lvSkew[0] = MAT2D(nf, 0, vSkew, ndm);
+      lvSkew[1] = MAT2D(nf, 1, vSkew, ndm);
+      lvSkew[2] = MAT2D(nf, 2, vSkew, ndm);
 /*...*/
       duDksi[0] = (velV[0] - velC[0]) / lModKsi;
       duDksi[1] = (velV[1] - velC[1]) / lModKsi;
       duDksi[2] = (velV[2] - velC[2]) / lModKsi;
 /*... | du1/dx1 du1/dx2 du1/dx3*/
-      gradVelV[0][0] = MAT3D(nAresta, 0, 0, gradVel, 3, ndm);
-      gradVelV[0][1] = MAT3D(nAresta, 0, 1, gradVel, 3, ndm);
-      gradVelV[0][2] = MAT3D(nAresta, 0, 2, gradVel, 3, ndm);
+      gradVelV[0][0] = MAT3D(nf, 0, 0, gradVel, 3, ndm);
+      gradVelV[0][1] = MAT3D(nf, 0, 1, gradVel, 3, ndm);
+      gradVelV[0][2] = MAT3D(nf, 0, 2, gradVel, 3, ndm);
 /*... | du2/dx1 du2/dx2 du2/dx3*/
-      gradVelV[1][0] = MAT3D(nAresta, 1, 0, gradVel, 3, ndm);
-      gradVelV[1][1] = MAT3D(nAresta, 1, 1, gradVel, 3, ndm);
-      gradVelV[1][2] = MAT3D(nAresta, 1, 2, gradVel, 3, ndm);
+      gradVelV[1][0] = MAT3D(nf, 1, 0, gradVel, 3, ndm);
+      gradVelV[1][1] = MAT3D(nf, 1, 1, gradVel, 3, ndm);
+      gradVelV[1][2] = MAT3D(nf, 1, 2, gradVel, 3, ndm);
 /*... | du3/dx1 du3/dx2 du3/dx3*/
-      gradVelV[2][0] = MAT3D(nAresta, 2, 0, gradVel, 3, ndm);
-      gradVelV[2][1] = MAT3D(nAresta, 2, 1, gradVel, 3, ndm);
-      gradVelV[2][2] = MAT3D(nAresta, 2, 2, gradVel, 3, ndm);
+      gradVelV[2][0] = MAT3D(nf, 2, 0, gradVel, 3, ndm);
+      gradVelV[2][1] = MAT3D(nf, 2, 1, gradVel, 3, ndm);
+      gradVelV[2][2] = MAT3D(nf, 2, 2, gradVel, 3, ndm);
 /*...................................................................*/
-      gradPresV[0] = MAT2D(nAresta, 0, gradPres, ndm);
-      gradPresV[1] = MAT2D(nAresta, 1, gradPres, ndm);
-      gradPresV[2] = MAT2D(nAresta, 2, gradPres, ndm);
+      gradPresV[0] = MAT2D(nf, 0, gradPres, ndm);
+      gradPresV[1] = MAT2D(nf, 1, gradPres, ndm);
+      gradPresV[2] = MAT2D(nf, 2, gradPres, ndm);
 
-      ccV[0] = MAT2D(nAresta, 0, cc, ndm);
-      ccV[1] = MAT2D(nAresta, 1, cc, ndm);
-      ccV[2] = MAT2D(nAresta, 2, cc, ndm);
+      ccV[0] = MAT2D(nf, 0, cc, ndm);
+      ccV[1] = MAT2D(nf, 1, cc, ndm);
+      ccV[2] = MAT2D(nf, 2, cc, ndm);
 
-      lXm[0] = MAT2D(nAresta, 0, xm, ndm);
-      lXm[1] = MAT2D(nAresta, 1, xm, ndm);
-      lXm[2] = MAT2D(nAresta, 2, xm, ndm);
+      lXm[0] = MAT2D(nf, 0, xm, ndm);
+      lXm[1] = MAT2D(nf, 1, xm, ndm);
+      lXm[2] = MAT2D(nf, 2, xm, ndm);
 /*...................................................................*/
 
 /*... termo difusivo
@@ -3257,16 +3257,16 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
 /*...................................................................*/
 
 /*...*/
-      v[0] = lvSkew[0] + MAT2D(nAresta, 0, xmcc, ndm);
-      v[1] = lvSkew[1] + MAT2D(nAresta, 1, xmcc, ndm);
-      v[2] = lvSkew[2] + MAT2D(nAresta, 2, xmcc, ndm);
+      v[0] = lvSkew[0] + MAT2D(nf, 0, xmcc, ndm);
+      v[1] = lvSkew[1] + MAT2D(nf, 1, xmcc, ndm);
+      v[2] = lvSkew[2] + MAT2D(nf, 2, xmcc, ndm);
       dPviz = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
       alpha = dPviz / lModKsi;
       alphaMenosUm = 1.0e0 - alpha;
 /*...................................................................*/
 
 /*... media harmonica*/
-      viscosityV = MAT2D(nAresta, DYNAMICVISCOSITY, prop, MAXPROP);
+      viscosityV = MAT2D(nf, DYNAMICVISCOSITY, prop, MAXPROP);
       viscosity = alpha / viscosityC + alphaMenosUm / viscosityV;
       viscosity = 1.0e0 / viscosity;
 /*...................................................................*/
@@ -3372,7 +3372,7 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
 /*...................................................................*/
 
 /*...*/
-      lA[nAresta] = dfd - min(cv, 0.0e0);
+      lA[nf] = dfd - min(cv, 0.0e0);
       sP += cv;
 /*... correcao nao ortogonal e do fluxo advectivo*/
       p[0] += dfdc[0] - cv*cvc[0];
@@ -3428,7 +3428,7 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
     }
 /*... contorno*/
     else {
-      lA[nAresta] = 0.0e0;
+      lA[nf] = 0.0e0;
       wfn = velC[0] * lNormal[0]
         + velC[1] * lNormal[1]
         + velC[2] * lNormal[2];
@@ -3451,14 +3451,14 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
 /*...*/
       pFace = presC;
 /*... pressao prescrita*/
-      if (lFacePresR[nAresta]) {
+      if (lFacePresR[nf]) {
 /*...cargas*/
-        nCarg = lFacePresL[nAresta] - 1;
+        nCarg = lFacePresL[nf] - 1;
         pLoadSimplePres(&sP, p
                         , &pFace
                         , viscosityC, densityC
                         , wfn
-                        , lFarea, dcca[nAresta]
+                        , lFarea, dcca[nf]
                         , loadsPres[nCarg], false);
       }
 /*...................................................................*/
@@ -3475,16 +3475,16 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
 /*...................................................................*/
 
 /*... velocidades*/
-      if (lFaceVelR[nAresta] > 0) {
+      if (lFaceVelR[nf] > 0) {
 /*...cargas*/
-        nCarg = lFaceVelL[nAresta] - 1;
+        nCarg = lFaceVelL[nf] - 1;
         pLoadSimple(sPc              , p
                    , tA             , velC
                    , lNormal
                    , gradVelC[0]    , lXmcc
                    , viscosityC     , viscosityC
                    , densityC
-                   , lFarea         , dcca[nAresta]
+                   , lFarea         , dcca[nf]
                    , loadsVel[nCarg], ndm
                    , true           , false
                    , false          , 0);
@@ -3492,8 +3492,8 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
 /*...................................................................*/
 
 /*... parede impermevavel*/
-      else if (lFaceVelR[nAresta] == STATICWALL) {
-        aP = viscosityC*lFarea / dcca[nAresta];
+      else if (lFaceVelR[nf] == STATICWALL) {
+        aP = viscosityC*lFarea / dcca[nf];
 /*...*/
         sPc[0] += aP*(1.e0 - lNormal[0] * lNormal[0]);
         sPc[1] += aP*(1.e0 - lNormal[1] * lNormal[1]);
@@ -3554,11 +3554,11 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
 
 /*... calculo do residuo*/
   if (fResidual) {
-    for (nAresta = 0; nAresta<nFace; nAresta++) {
-      if (lViz[nAresta] > -1) {
-        p[0] += lA[nAresta]*MAT2D(nAresta,0,vel,ndm);
-        p[1] += lA[nAresta]*MAT2D(nAresta,1,vel,ndm);
-        p[2] += lA[nAresta]*MAT2D(nAresta,2,vel,ndm);
+    for (nf = 0; nf<nFace; nf++) {
+      if (lViz[nf] > -1) {
+        p[0] += lA[nf]*MAT2D(nf,0,vel,ndm);
+        p[1] += lA[nf]*MAT2D(nf,1,vel,ndm);
+        p[2] += lA[nf]*MAT2D(nf,2,vel,ndm);
       }
     }
 /*... residuo: R = F - KpUp*/
@@ -3577,11 +3577,11 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
 
 /*... atualizacao explicita*/
   else {
-    for (nAresta = 0; nAresta<nFace; nAresta++) {
-      if (lViz[nAresta] > -1) {
-        p[0] += lA[nAresta]*MAT2D(nAresta,0,vel,ndm);
-        p[1] += lA[nAresta]*MAT2D(nAresta,1,vel,ndm);
-        p[2] += lA[nAresta]*MAT2D(nAresta,2,vel,ndm);
+    for (nf = 0; nf<nFace; nf++) {
+      if (lViz[nf] > -1) {
+        p[0] += lA[nf]*MAT2D(nf,0,vel,ndm);
+        p[1] += lA[nf]*MAT2D(nf,1,vel,ndm);
+        p[2] += lA[nf]*MAT2D(nf,2,vel,ndm);
       }
     }
 /*... velocida explicita: vC = (-H[vF] - grad(P))/ac*/

@@ -98,12 +98,14 @@
  void getTempForEnergy(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                      ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                      ,INT const nCell      ,bool const fTemp
-                     ,bool const fSheat    ,bool const fKelvin);
+                     ,bool const fSheat    ,bool const fKelvin
+                     ,bool const fOmp      ,short const nThreads );
 
-  void getEnergyForTemp(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
-                       ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
-                       ,INT const nCell     
-                       ,bool const fHeat     ,bool const fKelvin);
+ void getEnergyForTemp(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
+                     ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
+                     ,INT const nCell     
+                     ,bool const fSheat    ,bool const fKelvin
+                     ,bool const fOmp      ,short const nThreads );
 /*...................................................................*/
 
 /*...*/

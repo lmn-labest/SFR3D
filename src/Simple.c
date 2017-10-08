@@ -850,7 +850,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
   for (itSimple = 0; itSimple<sp->maxIt; itSimple++) {
 /*...*/
     if ((fStop = fopen("stopSimple.mvf", "r")) != NULL) {
-      fclose(fStop);
+      fclose(fStop);      
       break;
     }
 /*...................................................................*/
@@ -1393,10 +1393,13 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*...................................................................*/
 
 /*...*/
+    tm.tempForEnergy = getTimeC() - tm.tempForEnergy;
     getTempForEnergy(mesh->elm.temp         ,mesh->elm.energy
                     ,mesh->elm.material.prop,mesh->elm.mat                    
                     ,mesh->numel            ,eModel.fTemperature
-                    ,fSheat                 ,eModel.fKelvin);
+                    ,fSheat                 ,eModel.fKelvin
+                    ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);
+    tm.tempForEnergy = getTimeC() - tm.tempForEnergy;
 /*...................................................................*/
 
 /*...*/
@@ -1452,7 +1455,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 
 /*...*/
     if (jj == sp->pSimple) {
-      jj = 1;
+      jj = 0;
       printf("It simple: %d \n", itSimple + 1);
       printf("CPU Time(s)  : %lf \n", timei);
       printf("Residuo:\n");
@@ -1463,7 +1466,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
         printf("momentum x3            : %20.8e\n", rU[2] / rU0[2]);
       printf("conservacao da energia : %20.8e\n",rEnergy/rEnergy0);
     }
-   
+    jj++;   
 /*...................................................................*/
 
 /*... 3D*/
@@ -1493,11 +1496,9 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
       if(rU[1]/rU0[1]<tolSimpleU2 || rU[1]<=tmp*SZERO) conv++;
 /*..*/
       if(conv == 4) break;
-/*...................................................................*/
-      jj++;
+/*...................................................................*/      
     }
 /*...................................................................*/
-
 
   }
 /*...................................................................*/
