@@ -101,11 +101,18 @@
 
 /*... loads*/
   typedef struct{
-    short load;                     /*variavel*/
+    unsigned short np;                       /*numero de particoes*/  
+    DOUBLE *x,*y;                            /*interpolacao*/
+  }Interpol;
+  Interpol iPol[MAXINTERPOL];
+/*...................................................................*/  
+
+/*... loads*/
+  typedef struct{
     short type;                     /*tipo*/
     short np;                       /*numero de particoes*/  
     DOUBLE par[MAXLOADPARAMETER];
-    DOUBLE x[MAXINTERPOL],y[MAXINTERPOL]; /*interpolacao*/
+    Interpol *intPol;               /*interpolacao*/
   }Loads;
   Loads  loadsD1[MAXLOADD1]         /*tipo de cargas (difusao pura)*/
         ,loadsT1[MAXLOADT1]         /*tipo de cargas (difusao-transporte)*/

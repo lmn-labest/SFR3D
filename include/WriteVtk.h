@@ -43,6 +43,7 @@
               ,short *faceRd1    ,short *faceSd1
               ,short *faceRt1    ,short *faceSt1
               ,short *faceRfluid ,short *faceSfluid
+              ,short *faceRenergy,short *faceLenergy 
               ,INT nnode         ,INT numel    
               ,short ndm      
               ,short maxno       ,short maxIt 
@@ -58,6 +59,7 @@
             ,short *faceRd1       ,short *faceSd1
             ,short *faceRt1       ,short *faceSt1
             ,short *faceRfluid    ,short *faceSfluid
+            ,short *faceRtemp     ,short *faceLtemp
             ,INT const nnode      ,INT const numel    
             ,short const ndm      
             ,short const ndfD     ,short const ndfT 

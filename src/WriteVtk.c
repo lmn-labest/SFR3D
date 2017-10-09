@@ -233,7 +233,7 @@ void wPartVtk(Memoria *m
 
 /********************************************************************** 
  * Data de criacao    : 00/00/0000                                    *
- * Data de modificaco : 22/08/2017                                    *
+ * Data de modificaco : 09/10/2017                                    *
  *------------------------------------------------------------------- *
  * WGEOVTK : escreve a malha com os resultados e condicao             *  
  * ------------------------------------------------------------------ *
@@ -278,6 +278,7 @@ void wGeoVtk(Memoria *m        ,double *x
             ,short *faceRd1    ,short *faceLd1
             ,short *faceRt1    ,short *faceLt1
             ,short *faceRfluid ,short *faceLfluid
+            ,short *faceRenergy,short *faceLenergy 
             ,INT nnode         ,INT numel    
             ,short ndm      
             ,short maxNo       ,short maxViz  
@@ -420,7 +421,7 @@ void wGeoVtk(Memoria *m        ,double *x
 /*...................................................................*/
 
 /*...*/
-  if(ndfF > 0 || ndfFt > 0){
+  if(ndfF > 0){
 /*... faceRfluid*/
     HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
     ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
@@ -437,6 +438,50 @@ void wGeoVtk(Memoria *m        ,double *x
     for(i=0;i<numel*(maxNo+1);i++)
       lel[i]=(int) faceLfluid[i];
     writeVtkProp(lel,&ddum,numel,maxViz+1,"faceLfluid",iws
+                    ,INTEGER,1,f);
+    HccaDealloc(m,lel,"el",_AD_);
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*...*/
+  if(ndfFt > 0){
+/*... faceRfluid*/
+    HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
+    ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
+    for(i=0;i<numel*(maxNo+1);i++)
+      lel[i]=(int) faceRfluid[i];
+   
+    writeVtkProp(lel,&ddum,numel,maxViz+1,"faceRfuild",iws,INTEGER,1,f);
+    HccaDealloc(m,lel,"el",_AD_);
+/*...................................................................*/
+
+/*... faceLoadFluid*/
+    HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
+    ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
+    for(i=0;i<numel*(maxNo+1);i++)
+      lel[i]=(int) faceLfluid[i];
+    writeVtkProp(lel,&ddum,numel,maxViz+1,"faceLfluid",iws
+                    ,INTEGER,1,f);
+    HccaDealloc(m,lel,"el",_AD_);
+/*...................................................................*/
+
+/*... faceRenergy*/
+    HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
+    ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
+    for(i=0;i<numel*(maxNo+1);i++)
+      lel[i]=(int) faceRenergy[i];
+   
+    writeVtkProp(lel,&ddum,numel,maxViz+1,"faceRtemp",iws,INTEGER,1,f);
+    HccaDealloc(m,lel,"el",_AD_);
+/*...................................................................*/
+
+/*... faceLoadEnergy*/
+    HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
+    ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
+    for(i=0;i<numel*(maxNo+1);i++)
+      lel[i]=(int) faceLenergy[i];
+    writeVtkProp(lel,&ddum,numel,maxViz+1,"faceLtemp",iws
                     ,INTEGER,1,f);
     HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
@@ -462,7 +507,7 @@ void wGeoVtk(Memoria *m        ,double *x
 
 /**********************************************************************
  * Data de criacao    : 00/00/0000                                    *
- * Data de modificaco : 22/08/2017                                    *
+ * Data de modificaco : 09/10/2017                                    *
  *------------------------------------------------------------------- *
  * WGEOFACEVTK : escreve a malha apenas com os faces com condicao     *  
  * ------------------------------------------------------------------ *
@@ -482,6 +527,8 @@ void wGeoVtk(Memoria *m        ,double *x
  * faceLt1    -> tipo da condicao de contorno T1                      * 
  * faceRfluid -> condicao de contorno fluido                          * 
  * faceLfluid -> tipo da condicao de contorno fluido                  * 
+ * faceRtemp  -> condicao de contorno temp                            * 
+ * faceLtemp  -> tipo da condicao de contorn temp                     * 
  * nel        -> numeracao do elemento                                *
  * nnode      -> numero de nos                                        *  
  * numel      -> numero de elementos                                  *
@@ -505,6 +552,7 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
             ,short *faceRd1       ,short *faceLd1
             ,short *faceRt1       ,short *faceLt1
             ,short *faceRfluid    ,short *faceLfluid
+            ,short *faceRenergy   ,short *faceLenergy 
             ,INT const nnode      ,INT const numel    
             ,short const ndm      
             ,short const ndfD1    ,short const ndfT1
@@ -516,7 +564,7 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
   char head[]={"FACE_VOLUME_FINITO"};
   int nFace=0;
   int *face = NULL,*idFace=NULL;
-  int *lfaceLd1 = NULL,*lfaceLt1=NULL,*lfaceLfluid=NULL;
+  int *lfaceLd1 = NULL,*lfaceLt1=NULL,*lfaceLfluid=NULL,*lfaceLenergy=NULL;
   short *typeGeomFace = NULL,*nenFace=NULL;
   int i;  
   int *aux=NULL;
@@ -555,7 +603,7 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
 /*...................................................................*/
 
 /*... ndfF*/
-  if(ndfF > 0 || ndfFt > 0){
+  if(ndfF > 0){
     HccaAlloc(int,m,lfaceLfluid,numel*MAX_NUM_FACE,"lfaceSfluid",_AD_);
 /*  makeFace(el          ,faceRfluid   ,faceLfluid
             ,typeGeom    
@@ -564,6 +612,19 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
             ,maxViz      ,maxNo
             ,ndfT1       
             ,numel       ,&nFace);*/
+  }
+/*...................................................................*/
+
+/*... ndfF*/
+  if(ndfFt > 0){  
+    HccaAlloc(int,m,lfaceLenergy,numel*MAX_NUM_FACE,"lfaceSenergy",_AD_);
+    makeFace(el          ,faceRenergy    ,faceLenergy 
+            ,typeGeom    
+            ,face        ,lfaceLenergy   ,idFace
+            ,typeGeomFace,nenFace
+            ,maxViz      ,maxNo
+            ,1           
+            ,numel       ,&nFace);  
   }
 /*...................................................................*/
 
@@ -605,9 +666,13 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
     writeVtkProp(lfaceLd1,&ddum,nFace,1    ,"lFaceLd1",iws,INTEGER,1,f);
   if(ndfT1 > 0) 
     writeVtkProp(lfaceLt1,&ddum,nFace,1    ,"lFaceLt1",iws,INTEGER,1,f);
-  if(ndfF  > 0 || ndfFt > 0) 
+  if(ndfF  > 0 ) 
     writeVtkProp(lfaceLfluid  ,&ddum,nFace  ,1   
                 ,"lFaceLfluid",iws  ,INTEGER,1   ,f);
+  if (ndfFt > 0 ){
+    writeVtkProp(lfaceLenergy  ,&ddum,nFace  ,1   
+                ,"lFaceLtemp",iws  ,INTEGER,1   ,f);
+  }
 /*...................................................................*/
 
 /*.... campo por no*/
@@ -636,6 +701,10 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
     HccaDealloc(m,lfaceLd1    ,"lfaceSd1",_AD_);
   if(ndfF  > 0) 
     HccaDealloc(m,lfaceLfluid ,"lfaceSfluid",_AD_);
+  if(ndfFt  > 0) {
+    HccaDealloc(m,lfaceLfluid ,"lfaceSfluid",_AD_);
+    HccaDealloc(m,lfaceLenergy ,"lfaceSenergy",_AD_);
+  }
 
   HccaDealloc(m,nenFace     ,"lnenFace",_AD_);
   HccaDealloc(m,typeGeomFace,"ltGface" ,_AD_);
@@ -1140,8 +1209,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*... escrever gradiente de velocidade por celula*/
   if (opt.gradEnergy) {
     strcpy(str,"CellGradTemp");
-    if (ndm == 2)
-      writeVtkProp(&idum,elGradEnergy,numel,ndm,str,iws,DOUBLEV,2,f);
+    writeVtkProp(&idum,elGradEnergy,numel,ndm,str,iws,DOUBLEV,2,f);
   }
 /*...................................................................*/
 

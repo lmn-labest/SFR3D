@@ -46,6 +46,8 @@ void getLoads(DOUBLE *par, Loads ld) {
   else if (ld.type == INLET) {
     par[0] = ld.par[0];
     par[1] = ld.par[1];
+    par[2] = ld.par[2];
+    par[3] = ld.par[3];
   }
 
   else if (ld.type == OPEN) {

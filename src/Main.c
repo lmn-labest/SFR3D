@@ -744,7 +744,8 @@ int main(int argc,char**argv){
                ,mesh0->elm.material.prop ,mesh0->elm.material.type 
                ,mesh0->elm.faceRd1       ,mesh0->elm.faceLoadD1
                ,mesh0->elm.faceRt1       ,mesh0->elm.faceLoadT1
-               ,mesh0->elm.faceRvel      ,mesh0->elm.faceLoadVel   
+               ,mesh0->elm.faceRvel      ,mesh0->elm.faceLoadVel  
+               ,mesh0->elm.faceRenergy   ,mesh0->elm.faceLoadEnergy
                ,mesh0->nnode             ,mesh0->numel    
                ,mesh0->ndm               
                ,mesh0->maxNo             ,mesh0->maxViz
@@ -761,6 +762,7 @@ int main(int argc,char**argv){
              ,mesh0->elm.faceRd1       ,mesh0->elm.faceLoadD1
              ,mesh0->elm.faceRt1       ,mesh0->elm.faceLoadT1
              ,mesh0->elm.faceRvel      ,mesh0->elm.faceLoadVel  
+             ,mesh0->elm.faceRenergy   ,mesh0->elm.faceLoadEnergy 
              ,mesh0->nnode             ,mesh0->numel    
              ,mesh0->ndm               
              ,mesh0->ndfD[0]           ,mesh0->ndfT[0]
@@ -949,6 +951,7 @@ int main(int argc,char**argv){
                ,sistEqD1->neq            ,"sistD1b ",_AD_);
       HccaAlloc(DOUBLE                   ,&m        ,sistEqD1->x 
                ,sistEqD1->neq            ,"sistD1x ",_AD_);
+      
       zero(sistEqD1->b0,sistEqD1->neq    ,DOUBLEC);
       zero(sistEqD1->b ,sistEqD1->neq    ,DOUBLEC);
       zero(sistEqD1->x ,sistEqD1->neq    ,DOUBLEC);

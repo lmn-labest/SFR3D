@@ -7,14 +7,6 @@
 /*...................................................................*/
 
 /*...*/
-  #define LOADTEMP   1
-  #define LOADENERGY 2
-  #define LOADVEL    3
-  #define LOADPRES   4 
-  #define LOADPRESC  5 
-/*...................................................................*/
-
-/*...*/
   #define SMAGORINSKY 1
   #define WALEMODEL   2
   #define VREMAN      3
