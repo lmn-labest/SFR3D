@@ -765,6 +765,8 @@ void wallModel(DOUBLE const vt     , DOUBLE const viscosity
   DOUBLE yPlus,uPlus,fu,fu0, conv;
   DOUBLE invKarman = 1.e0/VONKARMAN;
 
+  yPlus = uPlus = 0.e0;
+
   switch (iCod) {
 
 /*...*/

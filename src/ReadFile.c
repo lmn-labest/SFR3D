@@ -2462,7 +2462,7 @@ static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC){
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
-/*********************************************************************/
+ *********************************************************************/
 static void convLoadsEnergy(Loads *loadsEnergy   ,Loads *loadsTemp
                            ,DOUBLE *RESTRICT prop
                            ,bool const fTemp     ,bool const fSheat 

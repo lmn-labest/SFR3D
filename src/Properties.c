@@ -978,8 +978,7 @@ void getTempForEnergy(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
   else{
     if(fOmp){
 #pragma omp parallel  for default(none) num_threads(nThreads)\
-      private(i,lMat,sHeatRef)\
-      shared(nCell,prop,mat,energy,temp,fSheat,fKelvin)
+      private(i,lMat,sHeatRef) shared(prop,mat,energy,temp)
       for (i = 0; i < nCell; i++) {
         lMat  = mat[i] - 1;
         sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
@@ -1045,8 +1044,7 @@ void getEnergyForTemp(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
   if (fOmp) {
 /*...*/ 
 #pragma omp parallel  for default(none) num_threads(nThreads)\
-    private(i,lMat,sHeatRef)\
-    shared(nCell,prop,mat,energy,temp,fSheat,fKelvin)
+    private(i,lMat,sHeatRef) shared(prop,mat,energy,temp)
     for (i = 0; i < nCell; i++) {
       lMat  = mat[i] - 1;
       sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);

@@ -73,7 +73,7 @@ int main(int argc,char**argv){
 
 /*...*/
   char loopWord[100][MAX_LINE];
-  unsigned short kLoop,jLoop,ndfVel;
+  unsigned short kLoop = 0 ,jLoop = 0,ndfVel;
   bool flWord=false;
   unsigned short nScheme,nOmp,nSistEq; 
 

@@ -474,7 +474,7 @@ void cellEnergy2D(Loads *loads            , Loads *loadsVel
 /*...................................................................*/
 
 /*... propriedades da celula*/
-  eddyViscosityC = eddyViscosityV = 0.e0;
+  sHeatM      =  eddyViscosityC = eddyViscosityV = 0.e0;
   densityC    = lDensity[idCell];
   sHeatC      = lSheat[idCell];
   thermCoefC  = lTconductivity[idCell];  
@@ -1287,7 +1287,7 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
 /*...................................................................*/
 
 /*... propriedades da celula*/
-  eddyViscosityC = eddyViscosityV = 0.e0;
+  sHeatM      = eddyViscosityC = eddyViscosityV = 0.e0;
   densityC    = lDensity[idCell];
   sHeatC      = lSheat[idCell];
   thermCoefC  = lTconductivity[idCell];  

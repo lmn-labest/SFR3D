@@ -1897,7 +1897,9 @@ void matVecCsrDsymOmp(INT const nEq
   tm.matVecSparse = getTimeC() - tm.matVecSparse;
 /*...................................................................*/
 
+#ifdef _OPENMP
   id = omp_get_thread_num();
+#endif
 
 /*... inicializacao do buffer*/
   for (i = 0; i<nThreads; i++) {
@@ -2790,7 +2792,9 @@ void matVecCsrDomp(INT const nEq
   tm.matVecSparse = getTimeC() - tm.matVecSparse;
 /*...................................................................*/
 
+#ifdef _OPENMP
   id = omp_get_thread_num();
+#endif
 
 /*...*/
   for(i=thBegin[id];i<thEnd[id];i++) {
@@ -2923,7 +2927,9 @@ void matVecCsrComp(INT const nEq
   tm.matVecSparse = getTimeC() - tm.matVecSparse;
 /*...................................................................*/
 
+#ifdef _OPENMP
   id = omp_get_thread_num();
+#endif
 
 /*... inicializacao do buffer*/
   for (i = 0; i<nThreads; i++) {

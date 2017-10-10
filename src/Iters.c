@@ -423,7 +423,7 @@ void pcgOmp(INT const nEq, INT const nAd
             , void(*matvec)(), DOUBLE(*dot)())
 {
   short nThreads = ompVar.nThreadsSolver;
-  unsigned int j, jj;
+  unsigned int j, jj, jG;
   INT i;
   DOUBLE alpha, beta, d, conv, xKx, norm_b, norm, norm_r_m, norm_r, di,tmp;
   DOUBLE timei, timef;
@@ -431,8 +431,8 @@ void pcgOmp(INT const nEq, INT const nAd
 
 #pragma omp parallel default(none) num_threads(nThreads)\
    private(i,j,jj,conv,norm_b,tmp,norm,d,di,alpha,beta)\
-   shared(ia,ja,a,ad,m,b,x,z,r,p,tol,maxIt,newX,fileLog,xKx,norm_r_m,norm_r\
-         ,fileHistLog,log,fHistLog,fPrint,matvec,dot,bOmp,nThreads)
+   shared(ia,ja,a,ad,m,b,x,z,r,p,maxIt,fileLog,xKx,norm_r_m,norm_r\
+         ,fileHistLog,matvec,dot,bOmp,nThreads,jG)
   {
 /*... chute inicial*/
     if (newX)
@@ -540,6 +540,9 @@ void pcgOmp(INT const nEq, INT const nAd
     }
 /*...................................................................*/
 
+#pragma omp master
+    jG = j;
+
 /*... Energy norm:  x*Kx*/
     matvec(nEq
            , ia, ja
@@ -550,13 +553,13 @@ void pcgOmp(INT const nEq, INT const nAd
            , nThreads);
 /*norma de energia = xT*A*x */
     tmp = dot(x, z, nEq);
-#pragma omp single
+#pragma omp master
     xKx = tmp;
 /*...................................................................*/
 
 /*... norm - 2 = || x ||*/
     tmp  = sqrt(dot(x, x, nEq));
-#pragma omp single
+#pragma omp master
     norm = tmp;
 /*...................................................................*/
 
@@ -568,14 +571,14 @@ void pcgOmp(INT const nEq, INT const nAd
     }
 
     tmp = dot(r, z, nEq);
-#pragma omp single
+#pragma omp master
     norm_r_m = sqrt(fabs(tmp));
     
     tmp = dot(r, r, nEq);
-#pragma omp single
+#pragma omp master
     norm_r = sqrt(tmp);
 
-#pragma omp single
+#pragma omp master
     if (fPrint && norm_r_m > 3.16e0*conv)
       printf("PCGOMP: %20.9e > %20.9e!!\n", norm_r_m, conv);
 /*...................................................................*/
@@ -595,10 +598,10 @@ void pcgOmp(INT const nEq, INT const nAd
            "\t|| b - Ax ||   = %20.2e\n"
            "\t|| b - Ax || m = %20.2e\n"
            "\tCPU time(s)    = %20.2lf\n"
-           , nEq, nAd, tol, j + 1, xKx, norm, norm_r, norm_r_m, timef);
+           , nEq, nAd, tol, jG + 1, xKx, norm, norm_r, norm_r_m, timef);
   }
 
-  if (j == maxIt) {
+  if (jG == maxIt) {
     printf("PCGOMP: *** WARNING: no convergende reached !\n");
     printf("MAXIT = %d \n", maxIt);
     exit(EXIT_FAILURE);
@@ -610,7 +613,7 @@ void pcgOmp(INT const nEq, INT const nAd
             "xKx %20.12e "
             "norma(x*x) %20.12e "
             "time %20.5lf\n"
-            , tol, j + 1, xKx, norm, timef);
+            , tol, jG + 1, xKx, norm, timef);
 }
 /**********************************************************************/
 
@@ -673,7 +676,7 @@ void minres(INT const nEq        , INT const nAd
           , bool const fHistLog, bool const fPrint
 	        , void(*matvec)()    , DOUBLE(*dot)())
 {
-  unsigned int j, jj, it,nRestart=200;
+  unsigned int j, jj, it;
   INT i;
   DOUBLE tmp1, tmp2, conv, beta, beta_old, neta
        , c, c_old, s, s_old, ro1, ro2, ro3, alpha, delta, xKx
@@ -1380,8 +1383,8 @@ void pbicgstab(INT const nEq  ,INT const nAd
  * -------------------------------------------------------------------*
  * Parametros de Entrada:                                             *
  * -------------------------------------------------------------------*
- *  neq -> numero de equacoes                                         *
- *neqNov-> numero de equacoes nao sobrepostas                         *
+ * neq -> numero de equacoes                                          *
+ * neqNov-> numero de equacoes nao sobrepostas                        *
  *  nad -> numero de elementos nao nulos fora da diagonal             *
  *  nadR-> numero de elementos nao nulos na parte retangular          *
  *  ia  -> estrutura de dados para matriz esparsa A                   *
@@ -1589,9 +1592,8 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
 
 #pragma omp parallel default(none) num_threads(nThreads)\
    private(i,j,jj,conv,norm_b,tmp,d,alpha,beta,rr0,w)\
-   shared(js,ia,ja,a,ad,m,b,x,z,r,p,r0,v,t,tol,maxIt,newX,fileLog\
-         ,xKx,norm,norm_r\
-         ,fileHistLog,log,fHistLog,fPrint,matvec,dot,bOmp,nThreads)
+   shared(js,ia,ja,a,ad,m,b,x,z,r,p,r0,v,t,maxIt,xKx,norm,norm_r\
+         ,fileHistLog,matvec,dot,bOmp,nThreads)
   {
 /*... chute inicial*/
     if (newX)
@@ -1728,7 +1730,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
     }
 /*...................................................................*/
 
-#pragma omp single
+#pragma omp master
     js = j;
 
 /*... Energy norm:  x*Kx*/
@@ -1759,7 +1761,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
 
     tmp = dot(r, r, nEq);
 
-#pragma omp single
+#pragma omp master
     {
       norm_r = sqrt(tmp);
       if(fPrint && norm_r > 3.16e0*conv)
@@ -1796,7 +1798,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
             "xKx %20.12e "
             "norma(x*x) %20.12e "
             "time %20.5lf\n"
-            , tol, j + 1, xKx, norm, timef);
+            , tol, js + 1, xKx, norm, timef);
 
 
 }
@@ -2206,9 +2208,8 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
 #pragma omp parallel default(none) num_threads(nThreads)\
    private(i,j,jj,conv,norm_b,tmp,d,alpha,beta,rr0,rr1,omega1,omega2\
           ,gamma,mi,ni,tau)\
-   shared(js,ia,ja,a,ad,m,b,x,t,v,r,u,r0,w,s,p,h,z,tol,maxIt,newX,fileLog\
-         ,xKx,norm,norm_r\
-         ,fileHistLog,log,fHistLog,fPrint,matvec,dot,bOmp,nThreads)
+   shared(js,ia,ja,a,ad,m,b,x,t,v,r,u,r0,w,s,p,h,z,maxIt,fileLog\
+         ,xKx,norm,norm_r,fileHistLog,matvec,dot,bOmp,nThreads)
   {
 /*... chute inicial*/
     if (newX)
@@ -2492,7 +2493,7 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
            "\t|| x ||        = %20.2e\n"
            "\t|| b - Ax ||   = %20.2e\n"
            "\tCPU time(s)    = %20.2lf\n"
-           , nEq, nAd, tol, j + 1, xKx, norm, norm_r, timef);
+           , nEq, nAd, tol, js + 1, xKx, norm, norm_r, timef);
   }
 
   if (js == maxIt) {
@@ -2507,7 +2508,7 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
             "xKx %20.12e "
             "norma(x*x) %20.12e "
             "time %20.5lf\n"
-            , tol, j + 1, xKx, norm, timef);
+            , tol, js + 1, xKx, norm, timef);
 
 
 }
@@ -2860,7 +2861,9 @@ void gmresOmp(INT const nEq      ,INT const nAd
 
   timei = getTimeC();
 
+#ifdef _OPENMP
   omp_set_num_threads(nThreads);
+#endif
 
 /*... chute inicial*/
   if (newX)
@@ -2870,7 +2873,7 @@ void gmresOmp(INT const nEq      ,INT const nAd
 
 /*...g(1,i) = (M-1)*b*/
 #pragma omp parallel default(none) private(tmp,iLong)\
-        shared(nEq,g,b,m,norm,dot)
+        shared(g,b,m,norm,dot)
   {
   #pragma omp for
     for (iLong = 0; iLong < nEq; iLong++)
@@ -2894,7 +2897,7 @@ void gmresOmp(INT const nEq      ,INT const nAd
   for (l = 0; l < nCycles; l++) {
 /*... Residuo g1 = b - Ax*/
 #pragma omp parallel default(none) private(tmp)\
-        shared(nEq,ia,ja,a,ad,x,g,b,m,e,bOmp,nThreads,matvec,dot)
+        shared(ia,ja,a,ad,x,g,b,m,e,bOmp,nThreads,matvec,dot)
   {
     matvec(nEq
           ,ia            ,ja
@@ -2933,7 +2936,7 @@ void gmresOmp(INT const nEq      ,INT const nAd
 /*... g2 = g(ni+1)*/
       g2 = &g[(ni + 1)*nEq];
 #pragma omp parallel default(none) private(tmp)\
-        shared(nEq,ia,ja,a,ad,g1,g2,m,bOmp,nThreads,matvec,dot)
+        shared(ia,ja,a,ad,g1,g2,m,bOmp,nThreads,matvec,dot)
   {
 /*... Residuo  g(ni+1) = A*g(ni)*/
       matvec(nEq
@@ -2958,7 +2961,7 @@ void gmresOmp(INT const nEq      ,INT const nAd
 /*... g1 = g(j)*/
         g1   = &g[j*nEq];
 #pragma omp  parallel default(none) private(tmp,iLong)\
-       shared(nEq,g1,g2,beta,dot) 
+       shared(g1,g2,beta,dot) 
   {
         tmp = dot(g2, g1, nEq);
     #pragma omp single
@@ -2976,7 +2979,7 @@ void gmresOmp(INT const nEq      ,INT const nAd
 /*...................................................................*/
 
 #pragma omp parallel default(none) private(tmp,iLong)\
-      shared(nEq,norm,h,g1,g2,beta,dot,ni,nCol)
+      shared(norm,h,g1,g2,beta,dot,ni,nCol)
   { 
 /*... g(i+1) = |g(i+1)|*/
       tmp  = sqrt(dot(g2, g2, nEq));
@@ -3038,7 +3041,7 @@ void gmresOmp(INT const nEq      ,INT const nAd
 /*... x = Vy = (Vt)y*/
     for (j = 0; j<ni; j++) {
       tmp = y[j];
-#pragma omp parallel for default (none) private(iLong) shared(tmp,x,g,j,nEq)
+#pragma omp parallel for default (none) private(iLong) shared(tmp,x,g,j)
       for (iLong = 0; iLong<nEq; iLong++)
         x[iLong] += MAT2D(j, iLong, g, nEq)*tmp;
     }
@@ -3051,7 +3054,7 @@ void gmresOmp(INT const nEq      ,INT const nAd
 
 /*... Energy norm:  x*Kx*/
 #pragma omp parallel default(none) private(tmp)\
-        shared(nEq,ia,ja,a,ad,x,g,bOmp,nThreads,xKx,norm,matvec,dot)
+        shared(ia,ja,a,ad,x,g,bOmp,nThreads,xKx,norm,matvec,dot)
   {
     matvec(nEq
           ,ia            ,ja

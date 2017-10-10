@@ -5486,6 +5486,7 @@ DOUBLE interpolFaceVel(DOUBLE *RESTRICT velC,DOUBLE *RESTRICT velV
 
   DOUBLE wfn,nk,wf[3],gf[3],gfp[3];
 
+  wfn = 0.e0;
   if( ndm == 2 ){
 /*...*/
     wf[0] = alphaMenosUm*velC[0] + alpha*velV[0];

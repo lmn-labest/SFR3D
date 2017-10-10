@@ -36,7 +36,7 @@
 
 /*...*/
   #define TDF 1          /*Discretizacao temporal em diferenca finita*/
-  #define TVF 2          /*Discretizacao temporal em volume finito". 
+  #define TVF 2          /*Discretizacao temporal em volume finito"*/ 
 /*...................................................................*/
 
 /*...*/

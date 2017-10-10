@@ -702,7 +702,6 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
   if(ndfF  > 0) 
     HccaDealloc(m,lfaceLfluid ,"lfaceSfluid",_AD_);
   if(ndfFt  > 0) {
-    HccaDealloc(m,lfaceLfluid ,"lfaceSfluid",_AD_);
     HccaDealloc(m,lfaceLenergy ,"lfaceSenergy",_AD_);
   }
 

@@ -79,6 +79,7 @@ void simpleSolver3D(Memoria *m
   rU0[0] = rU0[1] = rU0[2] = 1.e0;
   conv = 0;
   xMomentum = yMomentum = zMomentum = true;
+  tmp = tb[0] = tb[1] = tb[2] = 0.e0;
 /*...................................................................*/
 
 /*...*/
@@ -715,7 +716,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
   rMass = 0.e0;
   rU[0] = rU[1] = rU[2] = 0.e0;
   rU0[0] = rU0[1] = rU0[2] = 1.e0;
-  tb[0] = tb[1] = tb[2] = 0.e0;
+  tmp = tb[0] = tb[1] = tb[2] = 0.e0;
   rEnergy0 = 1.e0;
   rEnergy  = 0.e0;
   conv = 0;

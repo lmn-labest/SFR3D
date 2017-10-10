@@ -24,8 +24,7 @@ void mpiStart(int *argc,char **argv){
   MPI_Init(argc, &argv);
   PI_Comm_dup(MPI_COMM_WORLD, &mpiVar.comm);
   MPI_Comm_size(mpiVar.comm, &np);
-  MPI_Comm_rank(mpiVar.comm, &id);
-  
+  MPI_Comm_rank(mpiVar.comm, &id);  
 #endif
 
   mpiVar.nPrcs = np;

@@ -299,7 +299,7 @@ void* dalloc(Memoria* m,char *s,bool iws)
 #ifdef _MSC_VER
         printf("Memoria liberada %s %lld bytes.\n",s,nec);
 #else
-        printf("Memoria liberada %s %lld bytes.\n",s,nec);
+        printf("Memoria liberada %s %ld bytes.\n",s,nec);
 #endif
       
       return NULL;

@@ -156,6 +156,7 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
   DOUBLE aP,wfn,wf[3],m,tmp[4],gradVelFace[9],modVel,yPlus,uPlus;
   DOUBLE viscosityWall,densityEnv;
 
+  tmp[0] = tmp[1] = tmp[2] = tmp[3] = 0.e0;
 /*... parade impermeavel movel*/
   if( ld.type == MOVEWALL){
     tA[0]   = ld.par[0];
@@ -698,7 +699,7 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
   DOUBLE prM = viscosityC*sHeatC/thermCoef;
 
 /*...*/
-  uPlus = yPlus = 0.e0;
+  tempPlus = uPlus = yPlus = 0.e0;
   vW[0] = vW[1] = vW[2] = 0.e0;
   wf[0] = wf[1] = wf[2] = 0.e0;
   if (fWallModel && fCal) {

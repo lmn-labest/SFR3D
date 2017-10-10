@@ -36,6 +36,8 @@ void transport(Memoria *m   ,Loads *loadsTrans
   char str1[100],str2[100],str3[100],str4[100],str5[100],str6[100];
   DOUBLE rCell,rCell0,conv;
 
+  rCell = rCell0 = conv = 0.e0;
+
   zero(sistEqT->b0,sistEqT->neqNov,DOUBLEC);
   zero(sistEqT->x ,sistEqT->neq   ,DOUBLEC);
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
