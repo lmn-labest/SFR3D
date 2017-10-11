@@ -1949,7 +1949,7 @@ void readPropVar(PropVar *p,FILE *file){
 
 /*********************************************************************
  * Data de criacao    : 04/09/2017                                   *
- * Data de modificaco : 24/09/2017                                   *
+ * Data de modificaco : 11/10/2017                                   *
  *-------------------------------------------------------------------* 
  * READPROPVAR : propriedades variaveis                              * 
  *-------------------------------------------------------------------* 
@@ -1984,7 +1984,7 @@ void readModel(EnergyModel *e     , Turbulence *t
                              , "entalphy"}; 
 
   char turbulence[][WORD_SIZE] = { "help" , "smagorinsky","wallModel"
-                                 , "wale" , "vreman"}; 
+                                 , "wale" , "vreman"     ,"dynamic"}; 
 
   char mass[][WORD_SIZE] = { "help" , "lhsDensity","rhsDensity"}; 
 
@@ -2132,6 +2132,16 @@ void readModel(EnergyModel *e     , Turbulence *t
           fscanf(file,"%lf",&t->cs);    
           if(!mpiVar.myId){ 
             printf("Wale: Cw = %lf\n",t->cs);
+          }
+        }
+/*...................................................................*/
+
+/*... dynamic-germano-lilly*/
+        else if(!strcmp(word,turbulence[5])){
+          t->fTurb = true;      
+          t->type  = DYNAMIC;
+          if(!mpiVar.myId){ 
+            printf("Dynamic\n");
           }
         }
 /*...................................................................*/ 

@@ -10,6 +10,7 @@
   #define SMAGORINSKY 1
   #define WALEMODEL   2
   #define VREMAN      3
+  #define DYNAMIC     4
 /*...................................................................*/
 
 /*... NEAR-WALL_MODEL*/
