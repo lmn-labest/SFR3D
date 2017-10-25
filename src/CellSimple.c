@@ -2378,7 +2378,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
             , short  *RESTRICT lFacePresR , short *RESTRICT lFacePresL
             , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres 
             , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
-            , DOUBLE *RESTRICT lDensity   ,  DOUBLE *RESTRICT lViscosity 
+            , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lViscosity 
             , DOUBLE *RESTRICT dField     
             , DOUBLE const underU         , const bool sPressure
             , const short nEn             , short const nFace    
