@@ -242,17 +242,22 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
                  , nel  , "dVis", _AD_);
         zero(mesh->elm.dViscosity, nel, DOUBLEC);
 
-/*... viscosidade turbulenta*/
-        HccaAlloc(DOUBLE, m, mesh->elm.eddyViscosity
-                 , nel  , "eddyVis", _AD_);
-        zero(mesh->elm.eddyViscosity, nel, DOUBLEC);
-
 /*... condutividade termica*/
         HccaAlloc(DOUBLE, m, mesh->elm.tConductivity
                  , nel  , "tCon", _AD_);
         zero(mesh->elm.tConductivity, nel, DOUBLEC);
 
      }
+
+/*... viscosidade turbulenta*/
+     HccaAlloc(DOUBLE, m, mesh->elm.eddyViscosity
+              , nel  , "eddyVis", _AD_);
+     zero(mesh->elm.eddyViscosity, nel, DOUBLEC);
+
+/*... viscosidade turbulenta*/
+    HccaAlloc(DOUBLE, m, mesh->node.eddyViscosity
+            , nn   , "nEddyVis", _AD_);
+    zero(mesh->node.eddyViscosity, nn, DOUBLEC);
 
 /*... densityFluid*/
      HccaAlloc(DOUBLE , m         , mesh->elm.densityFluid

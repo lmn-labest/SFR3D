@@ -178,6 +178,7 @@ int main(int argc,char**argv){
   opt.specificHeat  = false;
   opt.dViscosity    = false;
   opt.tConductivity = false;
+  opt.bconditions   = true;
   opt.stepPlotFluid[0] =  5;
   opt.stepPlotFluid[1] = opt.stepPlotFluid[0];
 /* ..................................................................*/
@@ -2660,7 +2661,7 @@ int main(int argc,char**argv){
                    ,mesh->maxNo        ,mesh->maxViz   
                    ,1                  ,1
                    ,mesh->ndm      
-                   ,true               ,2);
+                   ,opt.bconditions    ,2);
 /*...................................................................*/
 
 /*... calculo da matrix jacobiana das velocidades
@@ -2693,7 +2694,7 @@ int main(int argc,char**argv){
      tm.rcGradVel = getTimeC() - tm.rcGradVel;  
 /*...................................................................*/
 
-/*... interpolacao das variaveis da celulas para pos nos (vel)*/
+/*... interpolacao das variaveis da celulas para pos nos (gradVel)*/
       interCellNode(&m                 ,loadsVel
                    ,mesh->node.gradVel ,mesh->elm.gradVel    
                    ,mesh->elm.node     ,mesh->elm.geomType            
@@ -2724,7 +2725,7 @@ int main(int argc,char**argv){
                    ,mesh->maxNo        ,mesh->maxViz   
                    ,mesh->ndm          ,1
                    ,mesh->ndm      
-                   ,true               ,2);
+                   ,opt.bconditions    ,2);
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (Energia)*/
@@ -2784,8 +2785,27 @@ int main(int argc,char**argv){
              ,mesh->maxNo          ,mesh->maxViz
              ,1                    ,1
              ,mesh->ndm
-             ,true                 ,2);
+             ,opt.bconditions      ,2);
       }
+/*...................................................................*/
+
+/*...*/
+      if (turbModel.fTurb) {
+        interCellNode(&m                     ,loadsVel
+                   ,mesh->node.eddyViscosity ,mesh->elm.eddyViscosity        
+                   ,mesh->elm.node           ,mesh->elm.geomType            
+                   ,mesh->elm.geom.cc        ,mesh->node.x  
+                   ,mesh->elm.geom.xm       
+                   ,mesh->elm.nen            ,mesh->elm.adj.nViz
+                   ,mesh->elm.faceRvel       ,mesh->elm.faceLoadVel 
+                   ,&pMesh->iNo                
+                   ,mesh->numelNov           ,mesh->numel        
+                   ,mesh->nnodeNov           ,mesh->nnode 
+                   ,mesh->maxNo              ,mesh->maxViz   
+                   ,1                        ,1
+                   ,mesh->ndm               
+                   ,false                    ,2);
+      }                                 
 /*...................................................................*/
 
 /*...*/
@@ -2793,7 +2813,7 @@ int main(int argc,char**argv){
         fName(preName,sc.ddt.timeStep,0,21,&nameOut);
 
 /*...*/
-        wResVtkFluid(&m                 , mesh0->node.x      
+        wResVtkFluid(&m                  , mesh0->node.x      
                , mesh0->elm.node         , mesh0->elm.mat    
                , mesh0->elm.nen          , mesh0->elm.geomType
                , mesh0->elm.pressure     , mesh0->node.pressure
@@ -2802,9 +2822,9 @@ int main(int argc,char**argv){
                , mesh0->elm.gradVel      , mesh0->node.gradVel 
                , mesh0->elm.temp         , mesh0->node.temp   
                , mesh0->elm.gradTemp     , mesh0->node.gradTemp
-               , mesh0->elm.eddyViscosity, mesh0->elm.densityFluid 
-               , mesh->elm.specificHeat  , mesh->elm.dViscosity
-               , mesh->elm.tConductivity  
+               , mesh0->elm.eddyViscosity, mesh->node.eddyViscosity
+               , mesh0->elm.densityFluid , mesh->elm.specificHeat
+               , mesh->elm.dViscosity    , mesh->elm.tConductivity  
                , mesh0->nnode            , mesh0->numel  
                , mesh0->ndm              , mesh0->maxNo 
                , mesh0->numat            , ndfVel

@@ -213,7 +213,8 @@
                             | du1dx1 du1dx2 du1dx3 |   
                             | du2dx1 du2dx2 du2dx3 |   
                             | du3dx1 du3dx2 du3dx3 |   
-                        */                             
+                        */    
+    DOUBLE *eddyViscosity;/*turbulencia*/                       
     DOUBLE *gradPres;  /*gradiente da Pressao*/
     DOUBLE *gradEnergy;/*gradiente da Energia*/
     INT    *nno; 
@@ -307,10 +308,10 @@
     INT numelNov;   /*numero de elementos sobrepostos*/
     INT nnodeOv;    /*numero de nos em elementos sobrepostos*/
     INT nnodeNov;   /*numero de nos em elementos nao sobrepostos*/
-    DOUBLE xRef[3]; /*ponto de referencia da malha*/
-    DOUBLE mass[3]; /*mass inicial do sistema 
-                      massa atual calculo incremental
-                      massa atual calculo direto*/
+    DOUBLE mass[3]; /* mass inicial do sistema 
+                       massa atual calculo incremental
+                       massa atual calculo direto*/
+
 /*...*/    
     Elmt elm;     
     Node node;

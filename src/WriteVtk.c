@@ -1031,7 +1031,7 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 26/09/2017                                   * 
+ * Data de modificaco : 25/10/2017                                   * 
  *-------------------------------------------------------------------* 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1083,9 +1083,9 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
           ,DOUBLE *elGradVel    ,DOUBLE *nGradVel 
           ,DOUBLE *elEnergy     ,DOUBLE *nEnergy
           ,DOUBLE *elGradEnergy ,DOUBLE *nGradEnergy
-          ,DOUBLE *eddyVis      ,DOUBLE *densityFluid
-          ,DOUBLE *specificHeat ,DOUBLE *dViscosity
-          ,DOUBLE *tConductivity
+          ,DOUBLE *elEddyVis    ,DOUBLE *nEddyVis
+          ,DOUBLE *densityFluid ,DOUBLE *specificHeat 
+          ,DOUBLE *dViscosity   ,DOUBLE *tConductivity
           ,INT nnode            ,INT numel    
           ,short const ndm      ,short const maxNo 
           ,short const numat    ,short const ndf   
@@ -1215,7 +1215,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*... escrever a viscosidade turbulenta por celula*/  
   if(opt.eddyViscosity){
     strcpy(str,"CellEddyViscosity");
-    writeVtkProp(&idum,eddyVis,numel,1,str,iws,DOUBLEV,1,f);
+    writeVtkProp(&idum,elEddyVis,numel,1,str,iws,DOUBLEV,1,f);
   }
 /*...................................................................*/
 
@@ -1315,6 +1315,13 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
     }
     else
       writeVtkProp(&idum, nEnergy, nnode, 1, str, iws, DOUBLEV, 1, f);     
+  }
+/*...................................................................*/
+
+/*... escrever a viscosidade turbulenta por celula*/  
+  if(opt.eddyViscosity){
+    strcpy(str,"NodeEddyViscosity");
+    writeVtkProp(&idum, nEddyVis, nnode, 1, str, iws, DOUBLEV, 1, f);
   }
 /*...................................................................*/
 

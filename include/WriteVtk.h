@@ -117,9 +117,9 @@
           , DOUBLE *elGradVel    , DOUBLE *nGradVel 
           , DOUBLE *elEnergy     , DOUBLE *nEnergy
           , DOUBLE *elGradEnergy , DOUBLE *nGradEnergy
-          , DOUBLE *eddyVis      , DOUBLE *densityFluid
-          , DOUBLE *specificHeat , DOUBLE *dViscosity
-          , DOUBLE *tConductivity  
+          , DOUBLE *elEddyVis    , DOUBLE *nEddyVis       
+          , DOUBLE *densityFluid , DOUBLE *specificHeat
+          , DOUBLE *dViscosity   , DOUBLE *tConductivity  
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf   

@@ -68,6 +68,12 @@
 /*...................................................................*/
 
 /*...*/
+  DOUBLE lesDynamic(INT *RESTRICT lViz     , DOUBLE *RESTRICT volume
+                , DOUBLE *RESTRICT lDensity, DOUBLE *restrict vel
+                , DOUBLE *restrict gradVel , short const nFace  );
+/*...................................................................*/
+
+/*...*/
   void wallModel(DOUBLE const vt     , DOUBLE const viscosity
                , DOUBLE const density, DOUBLE const dWall 
                , DOUBLE *yP          , DOUBLE *uP
