@@ -757,7 +757,7 @@ int main(int argc,char**argv){
                ,fileOut);  
 /*... face com cargas*/
        fName(preName,0,0,17,&nameOut);
-       wGeoFaceVtk(&m                    ,mesh0->node.x        
+       wGeoFaceVtk(&m                  ,mesh0->node.x        
              ,mesh0->elm.node          ,mesh0->elm.nen      
              ,mesh0->elm.geomType
              ,mesh0->elm.faceRd1       ,mesh0->elm.faceLoadD1

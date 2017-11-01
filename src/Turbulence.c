@@ -644,7 +644,7 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
             nCarg = lFaceVelL[nf] - 1;
             if( lVel[nCarg].type == MOVEWALL){
               fWall = true;
-              dMin     = min(dcca[nf],dMin);
+              dMin  = min(dcca[nf],dMin);
             }
 /*...................................................................*/
           }
@@ -653,7 +653,7 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
 /*...*/
         else if (lFaceVelR[nf] == STATICWALL){
           fWall = true;
-          dMin     = min(dcca[nf],dMin);
+          dMin  = min(dcca[nf],dMin);
         }
 /*...................................................................*/
       }
@@ -665,17 +665,24 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
 /*...................................................................*/
 
 /*... Sd = Sd:Sd*/
-      b[0][0] = g[0][0]*g[0][0]; 
-      b[0][1] = g[0][1]*g[0][1]; 
-      b[0][2] = g[0][2]*g[0][2];
-/*...*/ 
-      b[1][0] = g[1][0]*g[1][0]; 
-      b[1][1] = g[1][1]*g[1][1]; 
-      b[1][2] = g[1][2]*g[1][2]; 
-/*...*/
-      b[2][0] = g[2][0]*g[2][0]; 
-      b[2][1] = g[2][1]*g[2][1]; 
-      b[2][2] = g[2][2]*g[2][2];  
+/*... g00 = g00*g00 + g01*g10 + g02*g20
+      g01 = g00*g01 + g01*g11 + g02*g21
+      g02 = g00*g02 + g01*g12 + g02*g22*/ 
+      b[0][0] = g[0][0]*g[0][0] + g[0][1]*g[1][0] + g[0][2]*g[2][0];
+      b[0][1] = g[0][0]*g[0][1] + g[0][1]*g[1][1] + g[0][2]*g[2][1]; 
+      b[0][2] = g[0][0]*g[0][2] + g[0][1]*g[1][2] + g[0][2]*g[2][2]; 
+/*... g10 = g10*g00 + g11*g10 + g12*g20
+      g11 = g10*g01 + g11*g11 + g12*g21
+      g12 = g10*g02 + g11*g12 + g12*g22*/  
+      b[1][0] = g[1][0]*g[0][0] + g[1][1]*g[1][0] + g[1][2]*g[2][0]; 
+      b[1][1] = g[1][0]*g[0][1] + g[1][1]*g[1][1] + g[1][2]*g[2][1]; 
+      b[1][2] = g[1][0]*g[0][2] + g[1][1]*g[1][2] + g[1][2]*g[2][2]; 
+/*... g20 = g20*g00 + g21*g10 + g22*g20
+      g21 = g20*g01 + g21*g11 + g22*g21
+      g22 = g20*g02 + g21*g12 + g22*g22*/ 
+      b[2][0] = g[2][0]*g[0][0] + g[2][1]*g[1][0] + g[2][2]*g[2][0]; 
+      b[2][1] = g[2][0]*g[0][1] + g[2][1]*g[1][1] + g[2][2]*g[2][1]; 
+      b[2][2] = g[2][0]*g[0][2] + g[2][1]*g[1][2] + g[2][2]*g[2][2]; 
 /*...*/
       tmp = D1DIV3*(b[0][0] + b[1][1] + b[2][2]);
       m[0] = b[0][0] - tmp;
@@ -699,7 +706,7 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
 /*...................................................................*/
       
 /*...*/
-      mm  = pow(modS,2.5e0) +  pow(modSd,1.25e0) + 1.e-64;
+      mm  = pow(modS,2.5e0) +  pow(modSd,1.25e0);
       lm  = pow(modSd,1.5e0);
       tmp = lm/mm; 
       delta = pow(volume[idCell],D1DIV3);
@@ -1072,6 +1079,12 @@ DOUBLE lesDynamic(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
     l[3] = tFilterDenVv[3] - tFilterDenV[0]*tFilterDenV[1];  /*l1v2*/
     l[4] = tFilterDenVv[4] - tFilterDenV[0]*tFilterDenV[2];  /*l1v3*/
     l[5] = tFilterDenVv[5] - tFilterDenV[1]*tFilterDenV[2];  /*l2v3*/
+/*... parte desviadora de L*/
+    tmp   = D1DIV3*( l[0] + l[1] + l[2] );
+    l[0] -=tmp;
+    l[1] -=tmp;
+    l[2] -=tmp;
+    
 /*... m*/
     tmp  = deltaT*tFilterDen*tFilterModS;
     m[0] = delta*tFilterDenModSs[0] - tmp*tFilterS[0];  /*l11*/
