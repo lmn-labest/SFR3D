@@ -15,7 +15,10 @@
 
 /*...*/
   #define POL        1
+/*... viscosidade*/
   #define SUTHERLAND 2
+/*... densidade*/
+  #define IDEALGAS   2
 /*...................................................................*/
 
 /*...*/
@@ -123,12 +126,13 @@
 
 
 /*...*/
+  void initDensityPol(char *s);
   void initSheatPol(void);
   void initDviscosityPol(char *s);
   void initThCondPol(char *s);
 /*...................................................................*/
 
 /*...*/
-  PropPol sHeat,dVisc,thCond;
+  PropPol sHeat,dVisc,thCond,den;
 /*...................................................................*/
 #endif /*_PROPERTIES_H_*/

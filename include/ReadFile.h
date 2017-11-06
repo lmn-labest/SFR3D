@@ -9,6 +9,7 @@
 /*...................................................................*/  
   #include<stdio.h>
   #include<stdlib.h>
+  #include<ctype.h>
 /*...*/
   #include<Mesh.h>
   #include<CellLoop.h>
@@ -61,5 +62,5 @@
    void uniformField(DOUBLE *field, INT const n, short const ndf
                     , FILE* file);
  
-
+   void convStringLower(char *s);
 #endif  /*_READ_FILE_*/

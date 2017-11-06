@@ -1920,6 +1920,8 @@ void readPropVar(PropVar *p,FILE *file){
     else if(!strcmp(word,"density")){
       readMacro(file,word,false);
       p->fDensity = true;
+      convStringLower(word);
+      initDensityPol(word);
       if(!mpiVar.myId && p->fDensity) 
         printf("Density variation      : Enable\n");                           
     }
@@ -2542,4 +2544,26 @@ static void convLoadsEnergy(Loads *loadsEnergy   ,Loads *loadsTemp
     }     
   }
 /*....................................................................*/
+}
+
+/********************************************************************* 
+ * Data de criacao    : 05/11/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * convStringLower: Converte um string toda para caracteres minusculo*
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * s - recebe uma string                                             *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * s - converte os carateres maiuscolos para minuscolos              *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void convStringLower(char *s){
+  char *p = s;
+  for ( ; *p; ++p) *p = tolower(*p);
 }

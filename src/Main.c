@@ -178,7 +178,7 @@ int main(int argc,char**argv){
   opt.specificHeat  = false;
   opt.dViscosity    = false;
   opt.tConductivity = false;
-  opt.bconditions   = true;
+  opt.bconditions   = false;
   opt.stepPlotFluid[0] =  5;
   opt.stepPlotFluid[1] = opt.stepPlotFluid[0];
 /* ..................................................................*/
