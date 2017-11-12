@@ -1031,7 +1031,7 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 25/10/2017                                   * 
+ * Data de modificaco : 11/11/2017                                   * 
  *-------------------------------------------------------------------* 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1158,14 +1158,14 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*...................................................................*/
   
 /*... escrever resultados de pressao por celula*/   
-  if(opt.pres){
+  if(opt.pres && opt.fCell){
     strcpy(str,"CellPres");
     writeVtkProp(&idum,elPres,numel,1,str,iws,DOUBLEV,1,f);
   }
 /*...................................................................*/
 
 /*... escrever gradiente da pressao por celula*/  
-  if(opt.gradPres){
+  if(opt.gradPres && opt.fCell){
     strcpy(str,"CellGradPres");
     writeVtkProp(&idum,elGradPres,numel,ndm,str ,iws,DOUBLEV,2,f);
   }
@@ -1173,14 +1173,14 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 
 
 /*... escrever campo de velociade por celula*/  
-  if(opt.vel){
+  if(opt.vel && opt.fCell ){
     strcpy(str,"CellVel");
     writeVtkProp(&idum,elVel,numel,ndm,str,iws,DOUBLEV,2,f);
   }
 /*...................................................................*/
 
 /*... escrever gradiente de velocidade por celula*/  
-  if(opt.gradVel){  
+  if(opt.gradVel && opt.fCell){  
     strcpy(str,"CellGradVel");
     if( ndm == 2) 
       writeVtkProp(&idum,elGradVel,numel,2*ndm,str,iws,DOUBLEV,1,f);
@@ -1190,7 +1190,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*...................................................................*/
 
 /*... escrever campo de energia por celula*/
-  if (opt.energy){
+  if (opt.energy && opt.fCell){
     strcpy(str,"CellTemp");
     if(fKelvin ){
       HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
@@ -1206,35 +1206,35 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*...................................................................*/
 
 /*... escrever gradiente de velocidade por celula*/
-  if (opt.gradEnergy) {
+  if (opt.gradEnergy && opt.fCell) {
     strcpy(str,"CellGradTemp");
     writeVtkProp(&idum,elGradEnergy,numel,ndm,str,iws,DOUBLEV,2,f);
   }
 /*...................................................................*/
 
 /*... escrever a viscosidade turbulenta por celula*/  
-  if(opt.eddyViscosity){
+  if(opt.eddyViscosity && opt.fCell){
     strcpy(str,"CellEddyViscosity");
     writeVtkProp(&idum,elEddyVis,numel,1,str,iws,DOUBLEV,1,f);
   }
 /*...................................................................*/
 
 /*... escrever viscosidade dinamica por celula*/  
-  if(opt.dViscosity){
+  if(opt.dViscosity && opt.fCell){
     strcpy(str,"CellDinamicyViscosity");
     writeVtkProp(&idum,dViscosity,numel,1,str,iws,DOUBLEV,1,f);
   }
 /*...................................................................*/
 
 /*... escrever gradiente de velocidade por celula*/  
-  if(opt.tConductivity){
+  if(opt.tConductivity && opt.fCell ){
     strcpy(str,"CellThermoCondutivity");
     writeVtkProp(&idum,tConductivity,numel,1,str,iws,DOUBLEV,1,f);
   }
 /*...................................................................*/
 
 /*... escrever calor especifico por celula*/  
-  if(opt.specificHeat){
+  if(opt.specificHeat && opt.fCell ){
     strcpy(str,"CellSpecificHeat");
     HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
     ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
@@ -1246,13 +1246,24 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*...................................................................*/
 
 /*... escrever a massa especifica por celula*/  
-  if(opt.densityFluid){
+  if(opt.densityFluid && opt.fCell ){
     strcpy(str,"CellSpecificMass");
     HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
     ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
     for(i=0;i<numel;i++)
       p[i] = MAT2D(i,2, densityFluid, DENSITY_LEVEL);
     writeVtkProp(&idum,p,numel,1,str,iws,DOUBLEV,1,f);
+    HccaDealloc(m,p,"p",_AD_);
+  }
+/*...................................................................*/
+
+/*... escreve a vorticidade */  
+  if(opt.vorticity && opt.fCell ){
+    strcpy(str,"CellVorticity");
+    HccaAlloc(DOUBLE,m,p,numel*3,"p",_AD_);
+    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
+    makeVorticity(p,elGradVel,numel,ndm);
+    writeVtkProp(&idum,p,numel,ndm,str,iws,DOUBLEV,1,f);
     HccaDealloc(m,p,"p",_AD_);
   }
 /*...................................................................*/
@@ -1272,28 +1283,28 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*...................................................................*/
 
 /*... escrever resultados de pressao por nos*/  
-  if(opt.pres){
+  if(opt.pres && opt.fNode){
     strcpy(str,"NodePres");
     writeVtkProp(&idum,nPres ,nnode,1,str,iws,DOUBLEV,1,f);
   }
 /*...................................................................*/
   
 /*... escrever os gradiente de pressao por nos*/  
-  if(opt.gradPres){
+  if(opt.gradPres && opt.fNode){
     strcpy(str,"NodeGradPres");
     writeVtkProp(&idum,nGradPres,nnode,ndm,str,iws,DOUBLEV,2,f);
   }
 /*...................................................................*/
 
 /*... escrever as velocidade por nos*/  
-  if(opt.vel){
+  if(opt.vel && opt.fNode){
     strcpy(str,"NodeVel");
     writeVtkProp(&idum,nVel,nnode,ndm,str,iws,DOUBLEV,2,f);
   }
 /*...................................................................*/
 
 /*... escrever as gradiente de velocidade por nos*/ 
-  if(opt.gradVel){  
+  if(opt.gradVel && opt.fNode){  
     strcpy(str,"NodeGradVel");
     if( ndm == 2) 
       writeVtkProp(&idum,nGradVel,nnode,2*ndm,str,iws,DOUBLEV,1,f);
@@ -1303,7 +1314,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*...................................................................*/
 
 /*... escrever resultados de energia por nos*/
-  if (opt.energy){
+  if (opt.energy && opt.fNode){
     strcpy(str,"NodeTemp");
     if(fKelvin ){
       HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
@@ -1319,16 +1330,27 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*...................................................................*/
 
 /*... escrever a viscosidade turbulenta por celula*/  
-  if(opt.eddyViscosity){
+  if(opt.eddyViscosity && opt.fNode){
     strcpy(str,"NodeEddyViscosity");
     writeVtkProp(&idum, nEddyVis, nnode, 1, str, iws, DOUBLEV, 1, f);
   }
 /*...................................................................*/
 
 /*... escrever os gradiente de pressao por nos*/
-  if (opt.gradEnergy){ 
+  if (opt.gradEnergy && opt.fNode){ 
     strcpy(str,"NodeGradTemp");
     writeVtkProp(&idum, nGradEnergy, nnode, ndm, str,iws, DOUBLEV, 2, f);
+  }
+/*...................................................................*/
+
+/*... escreve a vorticidade */  
+  if(opt.vorticity && opt.fNode ){
+    strcpy(str,"NodeVorticity");
+    HccaAlloc(DOUBLE,m,p,nnode*3,"p",_AD_);
+    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
+    makeVorticity(p,nGradVel,nnode,ndm);
+    writeVtkProp(&idum,p,nnode,ndm,str,iws,DOUBLEV,1,f);
+    HccaDealloc(m,p,"p",_AD_);
   }
 /*...................................................................*/
 
@@ -1687,3 +1709,47 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
 
 }
 /*********************************************************************/ 
+
+/**********************************************************************
+ * Data de criacao    : 11/11/2017                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *------------------------------------------------------------------- * 
+ * MAKEFACE : gera as faces/aresta onde ha carregamento               *  
+ * ------------------------------------------------------------------ *
+ * parametros de entrada:                                             * 
+ * ------------------------------------------------------------------ *
+ * w       -> nao definido                                            * 
+ * gradVel -> gradienta das velocidades                               * 
+ * n       -> numero de elementos/nos                                 *
+ * ndm     -> dimensao                                                * 
+ * ------------------------------------------------------------------ *
+ * parametros de saida  :                                             * 
+ * ------------------------------------------------------------------ *
+ * w       -> vorticidade                                             *
+ * ------------------------------------------------------------------ *
+ * OBS:                                                               *
+ *------------------------------------------------------------------- *
+ *                                                                    *
+ * gradVel(*,ndf,ndm)                                                 *
+ *                                                                    *
+ *               | du1dx1 du1dx2 du1dx3 |                             * 
+ * grad(*,*,*) = | du2dx1 du2dx2 du2dx3 |                             *
+ *               | du3dx1 du3dx2 du3dx3 |                             *
+ *                                                                    *
+ **********************************************************************/
+void makeVorticity(DOUBLE *RESTRICT w, DOUBLE *RESTRICT gradVel
+                  ,INT const n       , const short ndm) {
+  short j;
+  INT i;
+  DOUBLE v[3],*p;
+
+  for (i = 0; i < n; i++) {
+//      vorticity(v,&MAT3D(i,0,0,gradVel,ndm,ndm),ndm);
+      p = gradVel + i*ndm*ndm;
+      vorticity(v,p,ndm);
+      for (j=0;j<ndm;j++)
+        MAT2D(i,j,w,ndm) =  v[j];
+  }
+
+}
+/**********************************************************************/

@@ -295,6 +295,7 @@ void adjHex8(INT *el          ,INT *nodcon         ,INT *nelcon
                  nel2 == nodcon[node[3]] && nel2 != nel1){
                  k = hexa8face(nel2,el,node,maxNo);
                  if( k == -1) {
+                   k = hexa8face(nel2,el,node,maxNo);                   
                    printf("adjHex8: Erro na vizinhaca!!!\n");
                    exit(EXIT_FAILURE); 
                  }
@@ -592,7 +593,6 @@ void hexa8fNod(INT const nEl     ,short const face
  * Parametros de entrada:                                              *
  * ------------------------------------------------------------------- * 
  * nEl      -> numero do elemento                                      *
- * face     -> numero da face do elemento                              * 
  * el       -> conetividades nodal                                     * 
  * nodeFace -> nos da face j (numeracao local)                         * 
  * maxNo    -> numero maximo de nos por elemento na malha              * 
@@ -613,9 +613,9 @@ short hexa8face(INT const nEl         ,INT *RESTRICT el
     for(j=0;j<4;j++){
       if(no[0] == nodeFace[j]){
         if( no[1] == nodeFace[ind[j][2]] &&
-            no[2] == nodeFace[ind[j][1]] &&
-            no[3] == nodeFace[ind[j][0]] ) 
-        return nFace; 
+             no[2] == nodeFace[ind[j][1]] &&
+             no[3] == nodeFace[ind[j][0]] ) 
+          return nFace; 
       }
     }
   }

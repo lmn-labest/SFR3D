@@ -489,11 +489,10 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
   bool fWall = false;
   short i, j, nf, nCarg, idCell,type,wallType;
   INT vizNel;
-  DOUBLE modS, tmp, density, viscosityC, cs, s[6], gradVelC[3][3],delta;
-  DOUBLE wt,v[3],vParallel[3],lNormal[3],lMin,dMin, g[3][3], sd[6]
+  DOUBLE modS, tmp, density, viscosityC, cs, s[6],delta;
+  DOUBLE wt,v[3],vParallel[3],lNormal[3],lMin,dMin, g[3][3]
         ,yPlus,uPlus,velB[3],yPlusMax, modSd, b[3][3];
-  DOUBLE tFilterDenModSs[6],tFilterMods[6],tFilterDenVv[6],m[6],l[6],mm,lm,volW
-         ,volTotal, tFilterModS,tFilterDen,tFilterDenV[3],tFilterS[6],deltaT;
+  DOUBLE m[6],l[6],mm,lm,volTotal;
 
   idCell = nFace;
   type=tModel.type;

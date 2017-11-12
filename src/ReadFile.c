@@ -2303,7 +2303,7 @@ void readGravity(DOUBLE *gravity,FILE *file){
 
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
- * Data de modificaco : 36/09/2017                                   * 
+ * Data de modificaco : 11/11/2017                                   * 
  *-------------------------------------------------------------------* 
  * SETPPRINTFLUID : Seleciona as veriaves que serao impressas na     *
  * macro pFluid                                                      *
@@ -2324,8 +2324,16 @@ void setPrintFluid(FileOpt *opt,FILE *file){
 
   char str[]={"end"};
   char word[WORD_SIZE];
+  char macro[][WORD_SIZE] = 
+               {"cell"         ,"node"        ,"vel"          /* 0, 1, 2*/
+               ,"pres    "     ,"gradVel"     ,"gradPres"     /* 3, 4, 5*/
+               ,"temp"         ,"gradTemp"    ,"eddyViscosity"/* 6, 7, 8*/
+               ,"densityFluid" ,"specificHeat","dViscosity"   /* 9,10,11*/
+               ,"tConductivity","vorticity"};                 /*12,13*/
   int tmp;
 
+  opt->fCell         = false;
+  opt->fNode         = false;
   opt->vel           = false;
   opt->pres          = false;
   opt->energy        = false;
@@ -2337,88 +2345,109 @@ void setPrintFluid(FileOpt *opt,FILE *file){
   opt->specificHeat  = false;
   opt->dViscosity    = false;
   opt->tConductivity = false;
+  opt->vorticity     = false;
 
   fscanf(file,"%d",&tmp);
   opt->stepPlotFluid[0] = opt->stepPlotFluid[1] = (short) tmp;
   readMacro(file,word,false);
   while(strcmp(word,str)){
-/*... fPrintMesh*/        
-    if(!strcmp(word,"vel")){ 
+/*... cell*/        
+    if(!strcmp(word,macro[0])){ 
+      opt->fCell = true;
+      if(!mpiVar.myId ) printf("print : cell\n");
+    }
+/*.....................................................................*/
+
+/*... node*/        
+    else if(!strcmp(word,macro[1])){ 
+      opt->fNode = true;
+      if(!mpiVar.myId ) printf("print : node\n");
+    }
+/*.....................................................................*/
+
+/*... vel*/        
+    else if(!strcmp(word,macro[2])){ 
       opt->vel = true;
       if(!mpiVar.myId ) printf("print : vel\n");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if(!strcmp(word,"pres")){ 
+    else if(!strcmp(word,macro[3])){ 
       opt->pres = true;
       if(!mpiVar.myId ) printf("print : pres\n");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if(!strcmp(word,"gradVel")){ 
+    else if(!strcmp(word,macro[4])){ 
       opt->gradVel = true;
       if(!mpiVar.myId ) printf("print : gradVel\n");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if(!strcmp(word,"gradPres")){ 
+    else if(!strcmp(word,macro[5])){ 
       opt->gradPres = true;
       if(!mpiVar.myId ) printf("print : gradPres\n");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word, "temp")) {
+    else if (!strcmp(word,macro[6])) {
       opt->energy = true;
       if (!mpiVar.myId) printf("print : temp\n");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word, "gradTemp")) {
+    else if (!strcmp(word,macro[7])) {
       opt->gradEnergy = true;
       if (!mpiVar.myId) printf("print : gradTemp\n");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word, "eddyViscosity")) {
+    else if (!strcmp(word,macro[8])) {
       opt->eddyViscosity = true;
       if (!mpiVar.myId) printf("print : eddyViscosity\n");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word, "densityFluid")) {
+    else if (!strcmp(word,macro[9])) {
       opt->densityFluid = true;
       if (!mpiVar.myId) printf("print : densityFluid\n");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word, "specificHeat")) {
+    else if (!strcmp(word,macro[10])) {
       opt->specificHeat = true;
       if (!mpiVar.myId) printf("print : specificHeat\n");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word, "dViscosity")) {
+    else if (!strcmp(word,macro[11])) {
       opt->dViscosity = true;
       if (!mpiVar.myId) printf("print : dViscosity\n");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word, "tConductivity")) {
+    else if (!strcmp(word,macro[12])) {
       opt->tConductivity = true;
       if (!mpiVar.myId) printf("print : tConductivity\n");
     }
 /*.....................................................................*/
 
+/*...*/
+    else if (!strcmp(word,macro[13])) {
+      opt->vorticity = true;
+      if (!mpiVar.myId) printf("print : vorticity\n");
+    }
+/*.....................................................................*/
 
     readMacro(file,word,false);
   }
@@ -2545,6 +2574,7 @@ static void convLoadsEnergy(Loads *loadsEnergy   ,Loads *loadsTemp
   }
 /*....................................................................*/
 }
+/*********************************************************************/
 
 /********************************************************************* 
  * Data de criacao    : 05/11/2017                                   *
@@ -2567,3 +2597,69 @@ void convStringLower(char *s){
   char *p = s;
   for ( ; *p; ++p) *p = tolower(*p);
 }
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 11/11/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * help : Ajuda em relação a algumas macros                          *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * f - arquivo                                                       *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void help(FILE *f){
+
+  char word[WORD_SIZE];
+  char macro[][WORD_SIZE] = 
+               {"macros"       ,"setPrintFluid",""             /* 0, 1, 2*/
+               ,""             ,""             ,""             /* 3, 4, 5*/
+               ,""             ,""             ,""             /* 6, 7, 8*/
+               ,""             ,""             ,""             /* 9,10,11*/
+               ,""             ,""             ,""};           /*12,13,15*/
+
+  char m0[][WORD_SIZE] = 
+               {"setPrintFluid","setSolv"     ,"setSimple"    /* 0, 1, 2*/
+               ,"pgeo"         ,"transient"   ,"simple"       /* 3, 4, 5*/
+               ,"pFluid"       ,"endTransient","stop"         /* 6, 7, 8*/
+               ,"model"        ,"propVar"     ,"gravity"      /* 9,10,11*/
+               ,"edp"          ,"vorticity"   ,"openmp"       /*12,13,14*/
+               ,"advection"    ,"config"      ,""};           /*15,16,17*/
+
+
+  char m1[][WORD_SIZE] = 
+               {"cell"         ,"node"        ,"vel"          /* 0, 1, 2*/
+               ,"pres"         ,"gradVel"     ,"gradPres"     /* 3, 4, 5*/
+               ,"temp"         ,"gradTemp"    ,"eddyViscosity"/* 6, 7, 8*/
+               ,"densityFluid" ,"specificHeat","dViscosity"   /* 9,10,11*/
+               ,"tConductivity","vorticity"};                 /*12,13*/
+  int i;
+
+  readMacro(f,word,false);
+/*... macros*/
+  if(!strcmp(word,macro[0])){
+    printf("Macros:\n");
+    for(i=0;i<16;i++)
+      printf("%3d - %s\n",i+1,m0[i]);
+    exit(EXIT_FAILURE);
+  }
+/*.....................................................................*/
+
+/*... setPrintFluid*/        
+  else if(!strcmp(word,macro[1])){     
+    printf("setPrintFluid 10 options end\n");
+    printf("options:\n");
+    for(i=0;i<14;i++)
+      printf("%3d - %s\n",i+1,m1[i]);
+    exit(EXIT_FAILURE);
+  }
+/*.....................................................................*/
+}
+/*********************************************************************/

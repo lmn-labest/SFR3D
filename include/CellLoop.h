@@ -1295,6 +1295,8 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
   void  setDiffusionScheme(char *word,short *iCod);
   void  setAdvectionScheme(char *word, Advection *adv,FILE *fileIn);
   DOUBLE sizeCar(DOUBLE const volume,short const ndm);
+  void vorticity(DOUBLE *RESTRICT w,DOUBLE *RESTRICT gradVel
+                ,const short ndm);
 /*...................................................................*/
 
 #endif/*_CELLLOOP_H_*/

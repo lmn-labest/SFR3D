@@ -30,7 +30,9 @@
   typedef struct{
     bool bVtk;           /*escrita do arquivo binario*/
     bool fItPlotRes; 
-    bool fItPlot;        
+    bool fItPlot;
+    bool fCell;
+    bool fNode;        
     bool gradPres;       
     bool gradVel;        
     bool gradEnergy;     
@@ -41,7 +43,8 @@
     bool densityFluid;   
     bool specificHeat;   
     bool dViscosity;     
-    bool tConductivity;  
+    bool tConductivity; 
+    bool vorticity; 
     bool bconditions;    /*insere as condicoes de contorno nos valores nodais*/
     short stepPlotFluid[2];
     FILE *fileItPlot[7];

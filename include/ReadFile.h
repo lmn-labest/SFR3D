@@ -63,4 +63,5 @@
                     , FILE* file);
  
    void convStringLower(char *s);
+   void help(fileIn);
 #endif  /*_READ_FILE_*/

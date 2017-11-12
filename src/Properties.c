@@ -21,6 +21,9 @@ DOUBLE airDensity(DOUBLE const t,DOUBLE const presRef
                  ,bool const fKelvin) {
   short i,n=den.nPol;
   DOUBLE a[10],tc,y,d;  
+
+  for (i = 0; i < n; i++)
+    a[i] = 0.0e0;
   
   if(fKelvin)
     tc = t;  

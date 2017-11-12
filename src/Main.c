@@ -97,20 +97,21 @@ int main(int argc,char**argv){
 /* ... macro camandos de leitura*/
   bool macroFlag; 
   char word[WORD_SIZE],str[WORD_SIZE];
-  char macro[][WORD_SIZE] = 
-  {"mesh"        ,"stop"         ,"config"        /* 0, 1, 2*/
-  ,"pgeo"        ,"pcoob"        ,"pcoo"          /* 3, 4, 5*/ 
-  ,"presolvD1"   ,"presolvT1"    ,"openmp"        /* 6, 7, 8*/
-  ,"solvD1"      ,""             ,"pD1"           /* 9,10,11*/
-  ,"nlItD1"      ,"pD1CsvCell"   ,"pD1CsvNode"    /*12,13,14*/
-  ,"solvT1"      ,""             ,"pT1"           /*15,16,17*/
-  ,"nlItT1"      ,"pT1CsvCell"   ,"pT1CsvNode"    /*18,19,20*/
-  ,"setSolv"     ,"simple"       ,"setSimple"     /*21,22,23*/
-  ,"transient"   ,"timeUpdate"   ,"partd"         /*24,25,26*/
-  ,"advection"   ,"edp"          ,"diffusion"     /*27,28,29*/
-  ,"pFluid"      ,"setPrintFluid" ,""             /*30,31,32*/
-  ,"setPrime"    ,"prime"         ,"propVar"      /*33,34,35*/
-  ,"gravity"     ,"model"         ,""        };   /*36,37,38*/
+  char macro[][WORD_SIZE] =
+  {"help"        ,"mesh"         ,"stop"          /* 0, 1, 2*/
+  ,"config"      ,""             ,""              /* 3, 4, 5*/
+  ,"pgeo"        ,"pcoob"        ,"pcoo"          /* 6, 7, 8*/ 
+  ,"presolvD1"   ,"presolvT1"    ,"openmp"        /* 9,10,11*/
+  ,"solvD1"      ,""             ,"pD1"           /*12,13,14*/
+  ,"nlItD1"      ,"pD1CsvCell"   ,"pD1CsvNode"    /*15,16,17*/
+  ,"solvT1"      ,""             ,"pT1"           /*18,19,20*/
+  ,"nlItT1"      ,"pT1CsvCell"   ,"pT1CsvNode"    /*21,22,23*/
+  ,"setSolv"     ,"simple"       ,"setSimple"     /*24,25,26*/
+  ,"transient"   ,"timeUpdate"   ,"partd"         /*27,28,29*/
+  ,"advection"   ,"edp"          ,"diffusion"     /*30,31,32*/
+  ,"pFluid"      ,"setPrintFluid" ,""             /*33,34,35*/
+  ,"setPrime"    ,"prime"         ,"propVar"      /*36,37,38*/
+  ,"gravity"     ,"model"         ,""        };   /*39,40,41*/
 /* ..................................................................*/
 
 /*... Memoria principal(valor padrao - bytes)*/
@@ -165,6 +166,8 @@ int main(int argc,char**argv){
 
 /* ... opcoes de arquivos */                                           
   opt.bVtk          = false;
+  opt.fCell         = false;
+  opt.fNode         = true;
   opt.fItPlotRes    = false;
   opt.fItPlot       = false;
   opt.vel           = true;
@@ -178,6 +181,7 @@ int main(int argc,char**argv){
   opt.specificHeat  = false;
   opt.dViscosity    = false;
   opt.tConductivity = false;
+  opt.vorticity     = true;
   opt.bconditions   = false;
   opt.stepPlotFluid[0] =  5;
   opt.stepPlotFluid[1] = opt.stepPlotFluid[0];
@@ -327,7 +331,7 @@ int main(int argc,char**argv){
   nameIn = (char *) malloc(sizeof(char)*MAX_STR_LEN_IN);
     
   if( argc > 1)
-    strcpy(nameIn,argv[1]);
+    strcpy(nameIn,argv[1]);  
   else{
     if(!mpiVar.myId ) printf("Arquivo de dados:\n");
     if(!mpiVar.myId ) scanf("%s",nameIn);
@@ -381,10 +385,19 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*===================================================================*
+ * macro: help - leitura da malha e inicializa das estruturas        *
+ * de resolucao do problema                                          * 
+ *===================================================================*/
+    if(!strcmp(word,macro[0])){
+      help(fileIn);
+    }
+/*===================================================================*/
+
+/*===================================================================*
  * macro: mesh - leitura da malha e inicializa das estruturas        *
  * de resolucao do problema                                          * 
  *===================================================================*/
-    if((!strcmp(word,macro[0]))){
+    else if((!strcmp(word,macro[1]))){
       if(!mpiVar.myId) printf("%s\n",DIF);
       if(!mpiVar.myId) printf("%s\n",word); 
       if(!mpiVar.myId) printf("%s\n",DIF);
@@ -644,7 +657,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: stop : finalizacao do programa
  *===================================================================*/
-    else if((!strcmp(word,macro[1]))){
+    else if((!strcmp(word,macro[2]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word); 
@@ -717,7 +730,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: config : configuracao basica de excucao
  *===================================================================*/
-    else if((!strcmp(word,macro[2]))){
+    else if((!strcmp(word,macro[3]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -733,7 +746,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: pgeo : escreve a geometria com os carregamentos
  *===================================================================*/
-    else if((!strcmp(word,macro[3]))){
+    else if((!strcmp(word,macro[6]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -778,7 +791,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: pcoob : escreve a matriz de coeficientes no formato COO
  *===================================================================*/
-    else if((!strcmp(word,macro[4]))){
+    else if((!strcmp(word,macro[7]))){
       if(mpiVar.nPrcs == 1){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -799,7 +812,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: pcoo : escreve a matriz de coeficientes no formato COO
  *===================================================================*/
-    else if((!strcmp(word,macro[5]))){
+    else if((!strcmp(word,macro[8]))){
       if( mpiVar.nPrcs == 1 ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -829,7 +842,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: presolvd1 : problema de difusao pura
  *===================================================================*/
-    else if((!strcmp(word,macro[6]))){
+    else if((!strcmp(word,macro[9]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -994,7 +1007,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: presolvt1 : problema de transporte  
  *===================================================================*/
-    else if((!strcmp(word,macro[7]))){
+    else if((!strcmp(word,macro[10]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -1169,7 +1182,7 @@ int main(int argc,char**argv){
 /*===================================================================*
 * macro: openmp: configuracao do openmp  
 *===================================================================*/
-    else if ((!strcmp(word, macro[8]))) {
+    else if ((!strcmp(word, macro[11]))) {
 /*... tecnica de adveccao*/
       readMacro(fileIn, word, false);
       printf("OpenMp:\n");
@@ -1230,7 +1243,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: solvd1: problema de difusao pura
  *===================================================================*/
-    else if((!strcmp(word,macro[9]))){
+    else if((!strcmp(word,macro[12]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -1263,7 +1276,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: puD1 : escreve os arquivos dos resultados da uD1          
  *===================================================================*/
-    else if((!strcmp(word,macro[11]))){
+    else if((!strcmp(word,macro[14]))){
 /*... reconstruindo do gradiente*/
       tm.rcGradD1 = getTimeC() - tm.rcGradD1;
       rcGradU(&m                      ,loadsD1
@@ -1378,7 +1391,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: nlItD1: configura das iteracoes nao lineares             
  *===================================================================*/
-    else if((!strcmp(word,macro[12]))){
+    else if((!strcmp(word,macro[15]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -1398,7 +1411,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: pD1CellCsv:imprime os resultados no formato csv                  
  *===================================================================*/
-    else if((!strcmp(word,macro[13]))){
+    else if((!strcmp(word,macro[16]))){
 /*... globalizacao das variaveis*/
 /*... uD1(Cel)*/
       dGlobalCel(&m                  ,pMesh
@@ -1437,7 +1450,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: pD1CsvNode:imprime os resultados no formato csv                  
  *===================================================================*/
-    else if((!strcmp(word,macro[14]))){
+    else if((!strcmp(word,macro[17]))){
 /*... globalizacao das variaveis*/
 /*... uD1(Node)*/
       dGlobalNode(&m                 ,pMesh
@@ -1476,7 +1489,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: solvt1: problema de transporte  
  *===================================================================*/
-    else if((!strcmp(word,macro[15]))){
+    else if((!strcmp(word,macro[18]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -1509,7 +1522,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: puT1 : escreve os arquivos dos resultados da uT1          
  *===================================================================*/
-    else if((!strcmp(word,macro[17]))){
+    else if((!strcmp(word,macro[20]))){
 /*... reconstruindo do gradiente*/
       tm.rcGradT1 = getTimeC() - tm.rcGradT1;
       rcGradU(&m                      ,loadsT1
@@ -1654,7 +1667,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: nlItT1: configura das iteracoes nao lineares             
  *===================================================================*/
-    else if((!strcmp(word,macro[18]))){
+    else if((!strcmp(word,macro[21]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -1674,7 +1687,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: pT1CellCsv:imprime os resultados no formato csv                  
  *===================================================================*/
-    else if((!strcmp(word,macro[19]))){
+    else if((!strcmp(word,macro[22]))){
 /*... globalizacao das variaveis*/
 /*... uT1(Cel)*/
       dGlobalCel(&m                  ,pMesh
@@ -1713,7 +1726,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: pT1CsvNode:imprime os resultados no formato csv                  
  *===================================================================*/
-    else if((!strcmp(word,macro[20]))){
+    else if((!strcmp(word,macro[23]))){
 /*... globalizacao das variaveis*/
 /*... uT1(Node)*/
       dGlobalNode(&m                 ,pMesh
@@ -1752,7 +1765,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: setSolv : escoamento de fluidos  
  *===================================================================*/
-    else if((!strcmp(word,macro[21]))){
+    else if((!strcmp(word,macro[24]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -2211,7 +2224,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: simple: escoamento de fluidos (SIMPLE)
  *===================================================================*/
-    else if((!strcmp(word,macro[22]))){
+    else if((!strcmp(word,macro[25]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -2274,7 +2287,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: preSimple: configuracoe do metodo simple
  *===================================================================*/
-    else if((!strcmp(word,macro[23]))){
+    else if((!strcmp(word,macro[26]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -2367,7 +2380,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: transient:configuracao da discretizacao temporal                 
  *===================================================================*/
-    else if((!strcmp(word,macro[24]))){
+    else if((!strcmp(word,macro[27]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -2419,7 +2432,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: timeUpdate : macro de atualizaco do tempo                       
  *===================================================================*/
-    else if((!strcmp(word,macro[25]))){
+    else if((!strcmp(word,macro[28]))){
       if(!mpiVar.myId ){
         printf("\n%s\n",DIF);
         printf("%s\n",word);
@@ -2450,7 +2463,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: partd particionamento da malha                                   
  *===================================================================*/
-    else if((!strcmp(word,macro[26]))){
+    else if((!strcmp(word,macro[29]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -2481,7 +2494,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: advection tecnica aplicada no termo advectivo          
  *===================================================================*/
-    else if((!strcmp(word,macro[27]))){
+    else if((!strcmp(word,macro[30]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -2524,7 +2537,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: edo equacoes diferencias resolvidas                    
  *===================================================================*/
-    else if((!strcmp(word,macro[28]))){
+    else if((!strcmp(word,macro[31]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -2538,7 +2551,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: diffusion tecnica aplicada no termo difusivo           
  *===================================================================*/
-    else if((!strcmp(word,macro[29]))){
+    else if((!strcmp(word,macro[32]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -2590,7 +2603,7 @@ int main(int argc,char**argv){
  * macro: pFluid : escreve os arquivos dos resultados do escoamente
  * imcompressivel                    
  *===================================================================*/
-    else if( (!strcmp(word,macro[30])) && 
+    else if( (!strcmp(word,macro[33])) && 
              (opt.stepPlotFluid[1]++) == opt.stepPlotFluid[0]){      
 /*...*/
       opt.stepPlotFluid[1] = 1;
@@ -2841,7 +2854,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: setPrintFluid                                    
  *===================================================================*/
-    else if((!strcmp(word,macro[31]))){
+    else if((!strcmp(word,macro[34]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -2856,7 +2869,7 @@ int main(int argc,char**argv){
 /*===================================================================*
 * macro: setPrime
 *===================================================================*/
-    else if ((!strcmp(word, macro[33]))) {
+    else if ((!strcmp(word, macro[36]))) {
       if (!mpiVar.myId) {
         printf("%s\n", DIF);
         printf("%s\n", word);
@@ -2928,7 +2941,7 @@ int main(int argc,char**argv){
 /*===================================================================*
 * macro: prime
 *===================================================================*/
-    else if ((!strcmp(word, macro[34]))) {
+    else if ((!strcmp(word, macro[37]))) {
       if (!mpiVar.myId) {
         printf("%s\n", DIF);
         printf("%s\n", word);
@@ -2971,7 +2984,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: vprop propriedades variaveis                             
  *===================================================================*/
-    else if((!strcmp(word,macro[35]))){
+    else if((!strcmp(word,macro[38]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -2985,7 +2998,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: gravity                                                  
  *===================================================================*/
-    else if((!strcmp(word,macro[36]))){
+    else if((!strcmp(word,macro[39]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -2999,7 +3012,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: model modelos utilizados nas equacao diferencias         
  *===================================================================*/
-    else if((!strcmp(word,macro[37]))){
+    else if((!strcmp(word,macro[40]))){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);

@@ -129,13 +129,15 @@
 /*...................................................................*/
 
 /*...*/
- void makeFace(INT *el            ,short *faceR       ,short *faceL     
+  void makeFace(INT *el            ,short *faceR       ,short *faceL     
              ,short *typeGeom
              ,INT *face          ,INT *lFaceS    ,INT *idFace
              ,short *typeGeomFace,short *nenFace
              ,short const maxViz ,short const maxNo
              ,short const ndf 
              ,int   const numel  ,int *nFace);
+  void makeVorticity(DOUBLE *RESTRICT w, DOUBLE *RESTRICT gradVel
+                    ,INT const n       , const short ndm);
 /*...................................................................*/
 
 #endif/*_WRITE_VTK_H_*/

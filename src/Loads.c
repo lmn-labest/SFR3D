@@ -862,6 +862,7 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
      if(fCal){
         densityEnv = ld.par[0];
         wfn   = velC[0] * n[0] + velC[1] * n[1];
+        if (ndm == 3) wfn += velC[2]*n[2];
        *p -= wfn*densityEnv*fArea*tA[0];
      } 
    }
@@ -872,6 +873,7 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 /*...*/
      if(fCal){
        wfn   = velC[0] * n[0] + velC[1] * n[1];
+       if (ndm == 3) wfn += velC[2]*n[2];
        *sP += wfn*densityC*fArea;
      } 
 /*...................................................................*/
