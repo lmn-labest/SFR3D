@@ -65,7 +65,7 @@
     bool flag;
     short iCod,type;
     INT timeStep;
-    DOUBLE total,dt[3],t;   
+    DOUBLE total,dt[3],dtInicial,t;   
   }Temporal;
 /*...................................................................*/  
 

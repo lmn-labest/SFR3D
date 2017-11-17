@@ -38,7 +38,7 @@
                     , Solv *solvVel       , Solv *solvPres 
                     , Solv *solvEnergy      
                     , Simple *sp            
-                    , Scheme sc           , PartMesh *pMesh
+                    , Scheme *sc          , PartMesh *pMesh
                     , FileOpt opt         , char *preName
                     , char *nameOut       , FILE *fileOut);
 
@@ -86,6 +86,14 @@
             ,INT  *RESTRICT idVel         ,INT  *RESTRICT idEnergy 
             ,INT const nEl                ,INT const nEqVel
             ,short const ndm              ,short iCod);
+/*...................................................................*/
+
+/*...*/
+  void dinamicyDeltat(DOUBLE *RESTRICT vel  , DOUBLE *RESTRICT volume
+                  , DOUBLE *RESTRICT density, DOUBLE *RESTRICT sHeat
+                  , DOUBLE *RESTRICT tCond  , DOUBLE *RESTRICT dViscosity
+                  , DOUBLE *dt              , INT const nEl
+                  , short const ndm         , short const iCod); 
 /*...................................................................*/
 
 /*...*/

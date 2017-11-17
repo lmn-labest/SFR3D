@@ -181,7 +181,7 @@ int main(int argc,char**argv){
   opt.specificHeat  = false;
   opt.dViscosity    = false;
   opt.tConductivity = false;
-  opt.vorticity     = true;
+  opt.vorticity     = false;
   opt.bconditions   = false;
   opt.stepPlotFluid[0] =  5;
   opt.stepPlotFluid[1] = opt.stepPlotFluid[0];
@@ -311,6 +311,7 @@ int main(int argc,char**argv){
   sc.ddt.dt[0]    = 1.e0;
   sc.ddt.dt[1]    = 1.e0;
   sc.ddt.dt[2]    = 1.e0;
+  sc.ddt.dtInicial= 1.e0;
   sc.ddt.total    = 1.e0;
   sc.ddt.timeStep = 0;
   sc.ddt.type     = BACKWARD;
@@ -2272,7 +2273,7 @@ int main(int argc,char**argv){
                      , solvVel     , solvPres
                      , solvEnergy    
                      , simple        
-                     , sc          , pMesh
+                     , &sc         , pMesh
                      , opt         , preName
                      , nameOut     , fileOut);  
 /*...................................................................*/
@@ -2404,10 +2405,11 @@ int main(int argc,char**argv){
         else if(sc.ddt.type == BACKWARD && !mpiVar.myId )     
           printf("ddtScheme : BACKWARD\n");
 
-        sc.ddt.t        = 0.e0;
-        sc.ddt.dt[1]    = sc.ddt.dt[0];
-        sc.ddt.dt[2]    = sc.ddt.dt[0];
-        sc.ddt.timeStep =    0;
+        sc.ddt.t         = 0.e0;
+        sc.ddt.dtInicial = sc.ddt.dt[0];
+        sc.ddt.dt[1]     = sc.ddt.dt[0];
+        sc.ddt.dt[2]     = sc.ddt.dt[0];
+        sc.ddt.timeStep  = 0;
       }
 /*...................................................................*/
 
@@ -2442,7 +2444,7 @@ int main(int argc,char**argv){
       sc.ddt.t        += sc.ddt.dt[0];
       sc.ddt.timeStep ++;
 /*...................................................................*/
-      
+
 /*...*/
       if(sc.ddt.t > sc.ddt.total + 0.1e0*sc.ddt.dt[0])
         flWord = false;  
@@ -2452,8 +2454,10 @@ int main(int argc,char**argv){
       
 /*...*/
       else{
-        if(!mpiVar.myId ) printf("t(s) = %lf\n",sc.ddt.t);
-        if(!mpiVar.myId ) printf("step = %d\n" ,sc.ddt.timeStep);
+        if(!mpiVar.myId ){
+          printf("t(s) = %lf\n",sc.ddt.t);
+          printf("step = %d\n" ,sc.ddt.timeStep);
+        } 
       }
 /*...................................................................*/
       if(!mpiVar.myId ) printf("%s\n\n",DIF);

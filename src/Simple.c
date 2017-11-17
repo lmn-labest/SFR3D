@@ -647,7 +647,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                    ,Solv *solvVel       ,Solv *solvPres
                    ,Solv *solvEnergy
                    ,Simple *sp
-                   ,Scheme sc           ,PartMesh *pMesh
+                   ,Scheme *sc          ,PartMesh *pMesh
                    ,FileOpt opt         ,char *preName
                    ,char *nameOut       ,FILE *fileOut) {
   FILE *fStop = NULL;
@@ -754,13 +754,13 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*...................................................................*/
 
 /*... discretizacao temporal*/
-  if (sc.ddt.flag) {
+  if (sc->ddt.flag) {
     tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;
 /*... velocidade*/
     cellTransientSimple(mesh->elm.geom.volume ,sistEqVel->id
                        ,mesh->elm.vel0        ,mesh->elm.vel
                        ,mesh->elm.densityFluid,sistEqVel->b0
-                       ,sc.ddt                ,sistEqVel->neqNov
+                       ,sc->ddt                ,sistEqVel->neqNov
                        ,mesh->numelNov        ,ndfVel
                        ,true);
 /*... Energia*/
@@ -769,13 +769,13 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                          ,mesh->elm.energy0      ,mesh->elm.energy
                          ,mesh->elm.densityFluid ,mesh->elm.specificHeat
                          ,sistEqEnergy->b0
-                         ,sc.ddt                 ,mesh->numelNov
+                         ,sc->ddt                 ,mesh->numelNov
                          ,true);
     else
       cellTransient(mesh->elm.geom.volume  ,sistEqEnergy->id
                    ,mesh->elm.energy0      ,mesh->elm.energy
                    ,mesh->elm.densityFluid ,sistEqEnergy->b0
-                   ,sc.ddt                 ,mesh->numelNov
+                   ,sc->ddt                ,mesh->numelNov
                    ,1                      ,true);
 /*... vel(n-1) = vel(n)*/
     alphaProdVector(1.e0              ,mesh->elm.vel
@@ -812,7 +812,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
             , mesh->elm.geom.dcca
             , mesh->elm.faceRvel, mesh->elm.faceLoadVel
             , mesh->elm.vel, mesh->elm.gradVel
-            , mesh->node.vel, sc.rcGrad
+            , mesh->node.vel, sc->rcGrad
             , mesh->maxNo, mesh->maxViz
             , ndfVel, mesh->ndm
             , &pMesh->iNo, &pMesh->iEl
@@ -838,7 +838,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
            ,mesh->elm.geom.dcca
            ,mesh->elm.faceRpres  ,mesh->elm.faceLoadPres
            ,mesh->elm.pressure   ,mesh->elm.gradPres
-           ,mesh->node.pressure  ,sc.rcGrad
+           ,mesh->node.pressure  ,sc->rcGrad
            ,mesh->maxNo          ,mesh->maxViz
            ,1                    ,mesh->ndm
            ,&pMesh->iNo          ,&pMesh->iEl
@@ -859,7 +859,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*... montagem do sistema u, v e w*/
    tm.systFormVel = getTimeC() - tm.systFormVel;
    systFormSimpleVelLm(loadsVel               , loadsPres 
-                     , sc.advVel              , sc.diffVel 
+                     , sc->advVel             , sc->diffVel 
                      , turbModel              , eMomentum
                      , sp->type 
                      , mesh->elm.node         , mesh->elm.adj.nelcon 
@@ -882,7 +882,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                      , sp->d                  , sp->alphaVel 
                      , mesh->elm.rCellVel       
                      , mesh->elm.densityFluid , mesh->elm.dViscosity  
-                     , mesh->elm.eddyViscosity, sc.ddt 
+                     , mesh->elm.eddyViscosity, sc->ddt 
                      , sistEqVel->neq         , sistEqVel->neqNov 
                      , sistEqVel->nad         , sistEqVel->nadr 
                      , mesh->maxNo            , mesh->maxViz 
@@ -1003,7 +1003,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*... montagem do sistema  da pressao de correca*/
     tm.systFormPres = getTimeC() - tm.systFormPres;
     systFormSimplePresLm(loadsVel             ,loadsPresC
-                      ,sc.diffPres            ,eMass
+                      ,sc->diffPres            ,eMass
                       ,mesh->elm.node         ,mesh->elm.adj.nelcon
                       ,mesh->elm.nen          ,mesh->elm.adj.nViz
                       ,mesh->elm.geomType     ,mesh->elm.material.prop
@@ -1022,7 +1022,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                       ,mesh->elm.pressure     ,mesh->elm.gradPres
                       ,mesh->elm.vel          ,sp->d
                       ,mesh->elm.pressure
-                      ,rCellPc                ,sc.ddt
+                      ,rCellPc                ,sc->ddt
                       ,sistEqPres->neq        ,sistEqPres->neqNov
                       ,sistEqPres->nad        ,sistEqPres->nadr
                       ,mesh->maxNo            ,mesh->maxViz
@@ -1078,32 +1078,32 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*... reconstruindo do gradiente da pressao correcao*/
         tm.rcGradPres = getTimeC() - tm.rcGradPres;
         rcGradU(m, loadsPresC
-                ,mesh->elm.node       ,mesh->elm.adj.nelcon
-                ,mesh->elm.geom.cc    ,mesh->node.x
-                ,mesh->elm.nen        ,mesh->elm.adj.nViz
-                ,mesh->elm.geomType   ,mesh->elm.material.prop
-                ,mesh->elm.mat
-                ,mesh->elm.leastSquare,mesh->elm.leastSquareR
-                ,mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
-                ,mesh->elm.geom.eta   ,mesh->elm.geom.fArea
-                ,mesh->elm.geom.normal,mesh->elm.geom.volume
-                ,mesh->elm.geom.vSkew
-                ,mesh->elm.geom.xm    ,mesh->elm.geom.xmcc
-                ,mesh->elm.geom.dcca
-                ,mesh->elm.faceRpres  ,mesh->elm.faceLoadPres
-                ,sp->ePresC1          ,sp->eGradPresC
-                ,sp->nPresC, sc.rcGrad
+                ,mesh->elm.node       , mesh->elm.adj.nelcon
+                ,mesh->elm.geom.cc    , mesh->node.x
+                ,mesh->elm.nen        , mesh->elm.adj.nViz
+                ,mesh->elm.geomType   , mesh->elm.material.prop
+                ,mesh->elm.mat          
+                ,mesh->elm.leastSquare, mesh->elm.leastSquareR
+                ,mesh->elm.geom.ksi   , mesh->elm.geom.mksi
+                ,mesh->elm.geom.eta   , mesh->elm.geom.fArea
+                ,mesh->elm.geom.normal, mesh->elm.geom.volume
+                ,mesh->elm.geom.vSkew   
+                ,mesh->elm.geom.xm    , mesh->elm.geom.xmcc
+                ,mesh->elm.geom.dcca    
+                ,mesh->elm.faceRpres  , mesh->elm.faceLoadPres
+                ,sp->ePresC1          , sp->eGradPresC
+                ,sp->nPresC           , sc->rcGrad
                 ,mesh->maxNo          , mesh->maxViz
-                ,1                    ,mesh->ndm
-                ,&pMesh->iNo          ,&pMesh->iEl
-                ,mesh->numelNov       ,mesh->numel
-                ,mesh->nnodeNov       ,mesh->nnode);  
+                ,1                    , mesh->ndm
+                ,&pMesh->iNo          , &pMesh->iEl
+                ,mesh->numelNov       , mesh->numel
+                ,mesh->nnodeNov       , mesh->nnode);  
         tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 
 /*...*/
         tm.systFormPres = getTimeC() - tm.systFormPres;
-        simpleNonOrthPres(sc.diffPres
+        simpleNonOrthPres(sc->diffPres
                          ,mesh->elm.node         ,mesh->elm.adj.nelcon
                          ,mesh->elm.nen          ,mesh->elm.adj.nViz
                          ,mesh->elm.geomType     ,mesh->elm.material.prop
@@ -1157,26 +1157,26 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*... reconstruindo do gradiente da pressao correcao*/
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
     rcGradU(m, loadsPresC
-           ,mesh->elm.node, mesh->elm.adj.nelcon
-           ,mesh->elm.geom.cc, mesh->node.x
-           ,mesh->elm.nen, mesh->elm.adj.nViz
-           ,mesh->elm.geomType, mesh->elm.material.prop
-           ,mesh->elm.mat
-           ,mesh->elm.leastSquare, mesh->elm.leastSquareR
-           ,mesh->elm.geom.ksi, mesh->elm.geom.mksi
-           ,mesh->elm.geom.eta, mesh->elm.geom.fArea
-           ,mesh->elm.geom.normal, mesh->elm.geom.volume
-           ,mesh->elm.geom.vSkew
-           ,mesh->elm.geom.xm, mesh->elm.geom.xmcc
-           ,mesh->elm.geom.dcca
-           ,mesh->elm.faceRpres, mesh->elm.faceLoadPres
-           ,sp->ePresC, sp->eGradPresC
-           ,sp->nPresC, sc.rcGrad
-           ,mesh->maxNo, mesh->maxViz
-           ,1, mesh->ndm
-           ,&pMesh->iNo, &pMesh->iEl
-           ,mesh->numelNov, mesh->numel
-           ,mesh->nnodeNov, mesh->nnode);
+           , mesh->elm.node, mesh->elm.adj.nelcon
+           , mesh->elm.geom.cc, mesh->node.x
+           , mesh->elm.nen, mesh->elm.adj.nViz
+           , mesh->elm.geomType, mesh->elm.material.prop
+           , mesh->elm.mat
+           , mesh->elm.leastSquare, mesh->elm.leastSquareR
+           , mesh->elm.geom.ksi, mesh->elm.geom.mksi
+           , mesh->elm.geom.eta, mesh->elm.geom.fArea
+           , mesh->elm.geom.normal, mesh->elm.geom.volume
+           , mesh->elm.geom.vSkew
+           , mesh->elm.geom.xm, mesh->elm.geom.xmcc
+           , mesh->elm.geom.dcca
+           , mesh->elm.faceRpres, mesh->elm.faceLoadPres
+           , sp->ePresC, sp->eGradPresC
+           , sp->nPresC, sc->rcGrad
+           , mesh->maxNo, mesh->maxViz
+           , 1, mesh->ndm
+           , &pMesh->iNo, &pMesh->iEl
+           , mesh->numelNov, mesh->numel
+           , mesh->nnodeNov, mesh->nnode);
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 
@@ -1209,7 +1209,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
             , mesh->elm.geom.dcca
             , mesh->elm.faceRvel, mesh->elm.faceLoadVel
             , mesh->elm.vel, mesh->elm.gradVel
-            , mesh->node.vel, sc.rcGrad
+            , mesh->node.vel, sc->rcGrad
             , mesh->maxNo, mesh->maxViz
             , ndfVel, mesh->ndm
             , &pMesh->iNo, &pMesh->iEl
@@ -1235,7 +1235,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
            ,mesh->elm.geom.dcca
            ,mesh->elm.faceRpres  ,mesh->elm.faceLoadPres
            ,mesh->elm.pressure   ,mesh->elm.gradPres
-           ,mesh->node.pressure  ,sc.rcGrad
+           ,mesh->node.pressure  ,sc->rcGrad
            ,mesh->maxNo          ,mesh->maxViz
            ,1                    ,mesh->ndm
            ,&pMesh->iNo          ,&pMesh->iEl
@@ -1261,7 +1261,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
            ,mesh->elm.geom.dcca
            ,mesh->elm.faceRenergy,mesh->elm.faceLoadEnergy
            ,mesh->elm.energy     ,mesh->elm.gradEnergy
-           ,mesh->node.energy    ,sc.rcGrad
+           ,mesh->node.energy    ,sc->rcGrad
            ,mesh->maxNo          ,mesh->maxViz
            ,1, mesh->ndm
            ,&pMesh->iNo          ,&pMesh->iEl
@@ -1299,7 +1299,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*... calculo de: A(i),bE(i)*/
     tm.systFormEnergy = getTimeC() - tm.systFormEnergy;
     systFormEnergy(loadsEnergy        , loadsVel
-             , sc.advEnergy           , sc.diffEnergy
+             , sc->advEnergy          , sc->diffEnergy
              , turbModel              , eModel  
              , prop  
              , mesh->elm.node         , mesh->elm.adj.nelcon
@@ -1325,7 +1325,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
              , mesh->elm.densityFluid , mesh->elm.specificHeat
              , mesh->elm.dViscosity   , mesh->elm.eddyViscosity 
              , mesh->elm.tConductivity, sp->d
-             , sc.ddt                 , sp->alphaEnergy
+             , sc->ddt                , sp->alphaEnergy
              , sistEqEnergy->neq      , sistEqEnergy->neqNov
              , sistEqEnergy->nad      , sistEqEnergy->nadr
              , mesh->maxNo            , mesh->maxViz
@@ -1516,8 +1516,16 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                , mesh->elm.geom.volume  , mesh->elm.mat            
                , &cfl                   , &reynolds
                , &peclet                , &mesh->mass[2]
-               , fParameter             , sc.ddt.dt[0]
+               , fParameter             , sc->ddt.dt[0]
                , mesh->numelNov         , mesh->ndm);
+/*...................................................................*/
+
+/*...*/
+  dinamicyDeltat(mesh->elm.vel          , mesh->elm.geom.volume 
+               , mesh->elm.densityFluid , mesh->elm.specificHeat
+               , mesh->elm.tConductivity, mesh->elm.dViscosity
+               , sc->ddt.dt             , mesh->numelNov
+               , mesh->ndm              , CFL);
 /*...................................................................*/
 
 /*... guardando as propriedades para o proximo passo*/
@@ -1537,7 +1545,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*...................................................................*/
 
 /*... calculo da taxa de massa atravessando o contorno aberto*/
-  deltaMass = massFluxOpenDomain(loadsVel              , sc.ddt 
+  deltaMass = massFluxOpenDomain(loadsVel              , sc->ddt 
               , mesh->elm.faceLoadVel , mesh->elm.adj.nViz 
               , mesh->elm.geom.fArea  , mesh->elm.geom.normal 
               , mesh->elm.densityFluid, mesh->elm.vel 
@@ -1560,13 +1568,13 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*...*/
   printf("It simple: %d \n", itSimple + 1);
   printf("Time(s) : %lf \n", timei);
-  if (sc.ddt.flag)
-    printf("CFL             : %lf\n", cfl);
-  printf("Reynolds        : %lf\n", reynolds);
-  printf("Peclet          : %lf\n", peclet);
-  printf("PresRef         : %lf\n", thDynamic->pTh[2]);
-  printf("(In) Mass/Mass0 : %lf\n", mesh->mass[1]/mesh->mass[0]);
-  printf("(D ) Mass/Mass0 : %lf\n", mesh->mass[2]/mesh->mass[0]);
+  if (sc->ddt.flag)
+    printf("CFL                  : %lf\n", cfl);
+  printf("Reynolds             : %lf\n", reynolds);
+  printf("Peclet               : %lf\n", peclet);
+  printf("PresRef              : %lf\n", thDynamic->pTh[2]);
+  printf("(Inc    ) Mass/Mass0 : %lf\n", mesh->mass[1]/mesh->mass[0]);
+  printf("(Average) Mass/Mass0 : %lf\n", mesh->mass[2]/mesh->mass[0]);
  
   printf("Residuo:\n");
   printf("conservacao da massa   (init,final): %20.8e %20.8e \n"
@@ -2329,3 +2337,103 @@ void residualSimpleLm(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
 
 }
 
+/********************************************************************* 
+ * Data de criacao    : 12/11/2017                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * dinamicyDeltat : calculo dos residuos no metodo simple            *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * vel      -> campo de velocidade                                   *
+ * density   - densidade por celula                                  *
+ * sHeat     - calor especifico por celula                           *
+ * tCond     - condutividade termica                                 *
+ * viscosity -  viscosidade dinamica                                 *
+ * volume    - volume                                                *
+ * nEl      -> numero de elementos                                   * 
+ * dt       -> dt                                                    * 
+ * ndm      -> numero de dimensoes                                   * 
+ * iCod     -> tipo de residuo                                       * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * ddt.dt   -> dt atualizado                                         *  
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *                                                                   *
+ * ddt.dt[0] - delta atual                      (n)                  * 
+ * ddt.dt[1] - delta do passo anterior          (n-1)                * 
+ * ddt.dt[2] - delta do passo anterior anterior (n-2)                *  
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void dinamicyDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
+                  , DOUBLE *RESTRICT density, DOUBLE *RESTRICT sHeat
+                  , DOUBLE *RESTRICT tCond  , DOUBLE *RESTRICT dViscosity
+                  , DOUBLE *dt              , INT const nEl
+                  , short const ndm         , short const iCod)
+
+{
+  short j, nD = DENSITY_LEVEL;
+  INT i;
+  DOUBLE dtCfl,dtVn,modVel,nCfl,lc,v[3],deltaT,deltaT0,diff,den;
+  
+/*...*/
+  switch(iCod){
+
+/*... scaled*/
+    case CFL:
+      nCfl = 1.5e0;
+      dtVn = dtCfl = 86400.e0; /*24*3600*/
+      for(i=0;i<nEl;i++){
+ /*... modulo das velocidades*/
+        if (ndm == 2) {
+          v[0] = MAT2D(i, 0, vel, ndm)*MAT2D(i, 0, vel, ndm);
+          v[1] = MAT2D(i, 1, vel, ndm)*MAT2D(i, 1, vel, ndm);
+          modVel = sqrt(v[0] + v[1]);
+        }
+        else {
+          v[0] = MAT2D(i, 0, vel, ndm)*MAT2D(i, 0, vel, ndm);
+          v[1] = MAT2D(i, 1, vel, ndm)*MAT2D(i, 1, vel, ndm);
+          v[2] = MAT2D(i, 2, vel, ndm)*MAT2D(i, 2, vel, ndm);
+          modVel = sqrt(v[0] + v[1] + v[2]);
+        }
+/*...................................................................*/
+
+/*... tamanho caracteristico*/
+        lc = sizeCar(volume[i],ndm);
+/*...................................................................*/
+
+/*...*/
+        diff = tCond[i]/sHeat[i];
+        den  = MAT2D(i,2,density,nD);
+/*...................................................................*/
+
+/*...*/
+        dtCfl = min(dtCfl,nCfl*lc/modVel);
+        dtVn  = min(dtVn,(den*lc*lc)/(2.0*diff));
+/*...................................................................*/
+      }
+/*...................................................................*/
+      
+/*...*/
+      deltaT  = dt[0] ;
+      deltaT0 = dt[1];
+      if (deltaT > dtCfl || deltaT > dtVn ) {
+        dt[0] = min(dtCfl,dtVn);
+        dt[1] = deltaT;  
+        dt[2] = deltaT0;
+        printf("change dt for: %lf\n",dt[0]);
+      }
+/*...................................................................*/
+      break;
+/*...................................................................*/
+
+/*... */
+    default:
+       ERRO_OP(__FILE__,__func__,iCod);
+    break;
+/*...................................................................*/
+  }
+
+}

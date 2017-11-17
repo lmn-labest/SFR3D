@@ -5555,7 +5555,7 @@ void wallFluid(short *RESTRICT faceR ,INT *RESTRICT nelcon
  * sHeat     - calor especifico por celula                           *
  * tCond     - condutividade termica                                 *
  * viscosity -  viscosidade dinamica                                 *
- * volume    - volume                                                 *
+ * volume    - volume                                                *
  * mat        - material por celula                                  *
  * cfl        - cfl                                                  *
  * reynolds- numero de reynolds                                      *
@@ -5725,12 +5725,12 @@ void parameterCellLm(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT prop
  * OBS:                                                              *
  *-------------------------------------------------------------------*
 *********************************************************************/
-void parameterCell(DOUBLE *RESTRICT vel, DOUBLE *RESTRICT prop
-                  ,DOUBLE *RESTRICT density  , DOUBLE *RESTRICT volume
-                  ,short  *RESTRICT mat
-                  ,DOUBLE *cfl     ,DOUBLE *reynolds
-                  ,bool *fParameter,DOUBLE const dt
-                  ,INT const nEl   ,short const ndm)
+void parameterCell(DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT prop
+                 , DOUBLE *RESTRICT density , DOUBLE *RESTRICT volume
+                 , short  *RESTRICT mat       
+                 , DOUBLE *cfl              , DOUBLE *reynolds
+                 , bool *fParameter         , DOUBLE const dt
+                 , INT const nEl            , short const ndm)
 
 {
 
@@ -5871,7 +5871,7 @@ bool openDomain(Loads *loadVel
  * OBS:                                                              *
  *-------------------------------------------------------------------*
 *********************************************************************/
-DOUBLE massFluxOpenDomain(Loads *loadVel      , Temporal const ddt
+DOUBLE massFluxOpenDomain(Loads *loadVel    , Temporal const ddt
               , short  *RESTRICT faceVelLoad, short  *RESTRICT nFace
               , DOUBLE *RESTRICT gfArea     , DOUBLE *RESTRICT gNormal
               , DOUBLE *RESTRICT density    , DOUBLE *RESTRICT vel 
@@ -6030,3 +6030,4 @@ void hPres(DOUBLE *RESTRICT pres0, DOUBLE *RESTRICT pres
     pres[i]  = pres0[i];
   }  
 }
+/*********************************************************************/
