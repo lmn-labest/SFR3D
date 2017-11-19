@@ -62,7 +62,7 @@
 
 /*...*/
   typedef struct{
-    bool flag;
+    bool flag,fDynamic;
     short iCod,type;
     INT timeStep;
     DOUBLE total,dt[3],dtInicial,t;   
@@ -175,7 +175,9 @@
     DOUBLE *rCellPres;  /*residuo da celula*/
     DOUBLE *rCellEnergy;/*residuo da celula*/
 /*... turbulencia*/
-    DOUBLE *eddyViscosity;    
+    DOUBLE *eddyViscosity; 
+    DOUBLE *yPlus;       
+  
 /*...*/
     DOUBLE *densityUd1; /*massa especifica do material uD1*/
     DOUBLE *uD1 ;       /*difusao pura uD1*/
@@ -191,6 +193,7 @@
 /*...*/
     DOUBLE *leastSquare; /*matriz de aproxima leastSquare*/
     DOUBLE *leastSquareR;/*fatoracao QR*/
+/*...*/
     Material material;
     Adjacency adj;
   }Elmt;

@@ -89,7 +89,7 @@
 /*...................................................................*/
 
 /*...*/
-  void dinamicyDeltat(DOUBLE *RESTRICT vel  , DOUBLE *RESTRICT volume
+  void dynamicDeltat(DOUBLE *RESTRICT vel  , DOUBLE *RESTRICT volume
                   , DOUBLE *RESTRICT density, DOUBLE *RESTRICT sHeat
                   , DOUBLE *RESTRICT tCond  , DOUBLE *RESTRICT dViscosity
                   , DOUBLE *dt              , INT const nEl

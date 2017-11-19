@@ -93,7 +93,7 @@
            , short  *RESTRICT faceVelR  , short *RESTRICT faceVelL  
            , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel  
            , DOUBLE *RESTRICT lDensity  , DOUBLE const dViscosity
-           , DOUBLE *viscosity          
+           , DOUBLE *viscosity          , DOUBLE *yPlus 
            , short const nEn            , short  const nFace 
            , short const ndm            , short const lib 
            , INT const nel);

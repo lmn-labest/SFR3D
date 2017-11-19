@@ -1031,7 +1031,7 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 11/11/2017                                   * 
+ * Data de modificaco : 17/11/2017                                   * 
  *-------------------------------------------------------------------* 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1053,6 +1053,11 @@ void wResVtkDif(Memoria *m        ,double *x
  * nVel         -> campo de velocidade por nos                        *
  * elGradVel    -> gradientes dos resultados por elementos            *
  * nGradVel     -> gradientes dos resultados por nos                  *
+ * elEddyVis    -> viscosidade turbulenta                             *
+ * densityFluid -> densidade do fluido                                *
+ * dViscosity   -> viscosidade molecular                              *
+ * tConductivity-> condutividade termica                              *
+ * yPlus        -> distancia a parede                                 * 
  * nel          -> numeracao do elemento                              *
  * nnode        -> numero de nos                                      *  
  * numel        -> numero de elementos                                *
@@ -1061,7 +1066,7 @@ void wResVtkDif(Memoria *m        ,double *x
  * numat        -> numero maximo de nos por elemento                  *
  * ndf          -> graus de liberdade das equacoes                    *
  * nameOut      -> nome de arquivo de saida                           *
- * opt          -> opcoes do arquivo
+ * opt          -> opcoes do arquivo                                  *
  * f            -> arquivlo                                           *
  * ------------------------------------------------------------------ *
  * parametros de saida  :                                             * 
@@ -1086,6 +1091,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
           ,DOUBLE *elEddyVis    ,DOUBLE *nEddyVis
           ,DOUBLE *densityFluid ,DOUBLE *specificHeat 
           ,DOUBLE *dViscosity   ,DOUBLE *tConductivity
+          ,DOUBLE *yPlus
           ,INT nnode            ,INT numel    
           ,short const ndm      ,short const maxNo 
           ,short const numat    ,short const ndf   
@@ -1265,6 +1271,13 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
     makeVorticity(p,elGradVel,numel,ndm);
     writeVtkProp(&idum,p,numel,ndm,str,iws,DOUBLEV,1,f);
     HccaDealloc(m,p,"p",_AD_);
+  }
+/*...................................................................*/
+
+/*... escreve a yPlus */  
+  if(opt.yPlus && opt.fCell ){
+    strcpy(str,"yPlus");
+    writeVtkProp(&idum,yPlus,numel,1,str,iws,DOUBLEV,1,f);
   }
 /*...................................................................*/
 

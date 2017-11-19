@@ -1,7 +1,7 @@
 #include<CellLoop.h>
 /*********************************************************************
  * Data de criacao    : 10/09/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 17/11/2017                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLETURBULENCE: chamada de bibliotecas de celulas para   *
  * o calculo da viscosidae turbelenta                                *
@@ -32,6 +32,7 @@
  * vel       -> campo de velocidade conhecido                        *
  * lDensity  -> massa especifica com variacao temporal               *
  * lViscosity-> viscosidade dinamica com variacao temporal           *
+ * yPlus     -> distancia adimensional a parede
  * nEn       -> numero de nos da celula central                      *
  * nFace     -> numero de faces da celula central                    *
  * ndm       -> numero de dimensoes                                  *
@@ -41,6 +42,7 @@
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
  * lViscosity-> viscosidae turbulenta                                *
+ * yPlus     -> distancia adimensional a parede atualizada           *
  *-------------------------------------------------------------------*
  *********************************************************************/
 void cellLibTurbulence(Loads *lVel  , Turbulence tModel 
@@ -55,7 +57,7 @@ void cellLibTurbulence(Loads *lVel  , Turbulence tModel
            , short  *RESTRICT faceVelR  , short *RESTRICT faceVelL  
            , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel 
            , DOUBLE *RESTRICT lDensity  , DOUBLE const dViscosity
-           , DOUBLE *viscosity          
+           , DOUBLE *viscosity          , DOUBLE *yPlus
            , short const nEn            , short  const nFace
            , short const ndm            , short const lib
            , INT const nel)
@@ -85,21 +87,17 @@ void cellLibTurbulence(Loads *lVel  , Turbulence tModel
 
 /*... 3D*/
     else if(ndm == 3){
-      cellLes3D(lVel       , tModel       
-            , lGeomType  , lprop
-            , lViz       
-            , ksi        , mKsi
-            , eta        , fArea  
-            , normal     , volume
-            , xm         , xmcc
-            , dcca       , cc
-            , vSkew      , mvSkew 
-            , faceVelR   , faceVelL      
-            , vel        , gradVel
-            , lDensity   , dViscosity
-            , viscosity  
-            , nEn        , nFace 
-            , ndm        , nel); 
+      cellLes3D(lVel     , tModel       
+               , lGeomType  , lprop
+               , lViz       , fArea  
+               , normal     , volume
+               , dcca      
+               , faceVelR   , faceVelL      
+               , vel        , gradVel
+               , lDensity   , dViscosity
+               , viscosity  , yPlus
+               , nEn        , nFace 
+               , ndm        , nel); 
     }  
 /*..................................................................*/
   }

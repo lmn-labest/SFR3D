@@ -623,7 +623,7 @@ void simpleSolver3D(Memoria *m
 
 /*********************************************************************
 * Data de criacao    : 21/08/2017                                   *
-* Data de modificaco : 19/09/2017                                   *
+* Data de modificaco : 17/11/2017                                   *
 *-------------------------------------------------------------------*
 * SIMPLESOLVERENERGY: metodo simple e simpleC para escoamentos      * 
 * 2D/3D termo ativados                                              *
@@ -671,12 +671,13 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
   bool xMomentum, yMomentum, zMomentum, pCor, fEnergy;
   bool relRes = false;
   bool fPrint = false;
-  bool fDensity = prop.fDensity,
-    fSheat      = prop.fSpecificHeat,
-    fDvisc      = prop.fDynamicViscosity,
-    fTcond      = prop.fThermalCondutivty,
-    fDensityRef = thDynamic->fDensityRef,
-    fPresRef    = thDynamic->fPresTh;
+  bool fDensity       = prop.fDensity,
+    fSheat            = prop.fSpecificHeat,
+    fDvisc            = prop.fDynamicViscosity,
+    fTcond            = prop.fThermalCondutivty,
+    fDensityRef       = thDynamic->fDensityRef,
+    fPresRef          = thDynamic->fPresTh,
+    fDeltaTimeDynamic = sc->ddt.fDynamic;
   DOUBLE cfl, reynolds, peclet,  deltaMass;
   bool fParameter[10];
 
@@ -1286,8 +1287,8 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
             , mesh->elm.geom.mvSkew  , mesh->elm.geom.dcca 
             , mesh->elm.faceRvel     , mesh->elm.faceLoadVel     
             , mesh->elm.vel          , mesh->elm.gradVel      
-            , mesh->elm.densityFluid  
-            , mesh->elm.dViscosity   , mesh->elm.eddyViscosity  
+            , mesh->elm.densityFluid , mesh->elm.dViscosity
+            , mesh->elm.eddyViscosity, mesh->elm.yPlus   
             , mesh->maxNo            , mesh->maxViz 
             , mesh->ndm              , mesh->numelNov 
             , ndfVel);  
@@ -1521,11 +1522,12 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*...................................................................*/
 
 /*...*/
-  dinamicyDeltat(mesh->elm.vel          , mesh->elm.geom.volume 
-               , mesh->elm.densityFluid , mesh->elm.specificHeat
-               , mesh->elm.tConductivity, mesh->elm.dViscosity
-               , sc->ddt.dt             , mesh->numelNov
-               , mesh->ndm              , CFL);
+  if(fDeltaTimeDynamic)
+    dynamicDeltat(mesh->elm.vel          , mesh->elm.geom.volume 
+                 , mesh->elm.densityFluid , mesh->elm.specificHeat
+                 , mesh->elm.tConductivity, mesh->elm.dViscosity
+                 , sc->ddt.dt             , mesh->numelNov
+                 , mesh->ndm              , CFL);
 /*...................................................................*/
 
 /*... guardando as propriedades para o proximo passo*/
@@ -2367,7 +2369,7 @@ void residualSimpleLm(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
  * ddt.dt[2] - delta do passo anterior anterior (n-2)                *  
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void dinamicyDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
+void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
                   , DOUBLE *RESTRICT density, DOUBLE *RESTRICT sHeat
                   , DOUBLE *RESTRICT tCond  , DOUBLE *RESTRICT dViscosity
                   , DOUBLE *dt              , INT const nEl
@@ -2421,10 +2423,10 @@ void dinamicyDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
       deltaT0 = dt[1];
       if (deltaT > dtCfl || deltaT > dtVn ) {
         dt[0] = min(dtCfl,dtVn);
-        dt[1] = deltaT;  
-        dt[2] = deltaT0;
         printf("change dt for: %lf\n",dt[0]);
       }
+      dt[1] = deltaT;  
+      dt[2] = deltaT0;
 /*...................................................................*/
       break;
 /*...................................................................*/

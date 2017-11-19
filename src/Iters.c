@@ -530,7 +530,7 @@ void pcgOmp(INT const nEq, INT const nAd
 /*...................................................................*/
 
 /*...*/
-      if (jj == 2000) {
+      if (jj == 5000) {
         jj = 0;
 #pragma omp master
         printf("PCGOMP: %d %20.9e %20.9e\n", j + 1, sqrt(fabs(d)), conv);

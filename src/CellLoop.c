@@ -2237,7 +2237,7 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * loads   -> definicoes de cargas                                   *
- * model     -> modelo da equacao de energia                         *
+ * model   -> modelo da equacao de energia                           *
  * advT    -> tecnica da discretizacao do termo advecao              *
  * diffT   -> tecnica da discretizacao do termo difusivo             *
  * vProp     -> propedades variaveis (true|false)                    *

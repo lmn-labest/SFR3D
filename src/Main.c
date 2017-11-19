@@ -182,7 +182,8 @@ int main(int argc,char**argv){
   opt.dViscosity    = false;
   opt.tConductivity = false;
   opt.vorticity     = false;
-  opt.bconditions   = false;
+  opt.bconditions   = true;
+  opt.yPlus         = false;
   opt.stepPlotFluid[0] =  5;
   opt.stepPlotFluid[1] = opt.stepPlotFluid[0];
 /* ..................................................................*/
@@ -308,6 +309,7 @@ int main(int argc,char**argv){
 
 /*...*/  
   sc.ddt.flag     = false;
+  sc.ddt.fDynamic = false;
   sc.ddt.dt[0]    = 1.e0;
   sc.ddt.dt[1]    = 1.e0;
   sc.ddt.dt[2]    = 1.e0;
@@ -331,8 +333,9 @@ int main(int argc,char**argv){
 /*... abrindo ar quivo de entrada*/ 
   nameIn = (char *) malloc(sizeof(char)*MAX_STR_LEN_IN);
     
-  if( argc > 1)
+  if( argc > 1){    
     strcpy(nameIn,argv[1]);  
+  }
   else{
     if(!mpiVar.myId ) printf("Arquivo de dados:\n");
     if(!mpiVar.myId ) scanf("%s",nameIn);
@@ -2396,6 +2399,16 @@ int main(int argc,char**argv){
 /*...*/ 
         fscanf(fileIn,"%lf",&sc.ddt.dt[0]);
         fscanf(fileIn,"%lf",&sc.ddt.total);
+/*...*/
+        readMacro(fileIn,word,false);
+        if(!strcmp(word,"dynamic"))     
+          sc.ddt.fDynamic = true;
+        if(sc.ddt.fDynamic){
+          if(!mpiVar.myId) printf("dynamic : True\n");
+        }
+        else {
+          if(!mpiVar.myId) printf("dynamic : False\n");
+        }          
 /*...*/        
         if(!mpiVar.myId ) printf("dt(s)     : %lf\n",sc.ddt.dt[0]);
         if(!mpiVar.myId ) printf("Total(s)  : %lf\n",sc.ddt.total);
@@ -2442,7 +2455,7 @@ int main(int argc,char**argv){
 /*...*/
       jLoop            = 0;
       sc.ddt.t        += sc.ddt.dt[0];
-      sc.ddt.timeStep ++;
+      sc.ddt.timeStep ++; 
 /*...................................................................*/
 
 /*...*/
@@ -2455,8 +2468,11 @@ int main(int argc,char**argv){
 /*...*/
       else{
         if(!mpiVar.myId ){
-          printf("t(s) = %lf\n",sc.ddt.t);
-          printf("step = %d\n" ,sc.ddt.timeStep);
+          printf("dt(n-2) = %lf\n",sc.ddt.dt[2]);
+          printf("dt(n-1) = %lf\n",sc.ddt.dt[1]);
+          printf("dt(n)   = %lf\n",sc.ddt.dt[0]);
+          printf("t(s)    = %lf\n",sc.ddt.t);
+          printf("step    = %d\n" ,sc.ddt.timeStep);
         } 
       }
 /*...................................................................*/
@@ -2839,9 +2855,10 @@ int main(int argc,char**argv){
                , mesh0->elm.gradVel      , mesh0->node.gradVel 
                , mesh0->elm.temp         , mesh0->node.temp   
                , mesh0->elm.gradTemp     , mesh0->node.gradTemp
-               , mesh0->elm.eddyViscosity, mesh->node.eddyViscosity
-               , mesh0->elm.densityFluid , mesh->elm.specificHeat
-               , mesh->elm.dViscosity    , mesh->elm.tConductivity  
+               , mesh0->elm.eddyViscosity, mesh0->node.eddyViscosity
+               , mesh0->elm.densityFluid , mesh0->elm.specificHeat
+               , mesh0->elm.dViscosity   , mesh0->elm.tConductivity
+               , mesh0->elm.yPlus                  
                , mesh0->nnode            , mesh0->numel  
                , mesh0->ndm              , mesh0->maxNo 
                , mesh0->numat            , ndfVel

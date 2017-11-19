@@ -696,7 +696,7 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
                , bool const fWallModel   , short const wallType){
 
   DOUBLE aP,h,wfn,wf[3],tempPlus,yPlus,uPlus,tC,tW,vW[3],densityEnv;
-  DOUBLE prM = viscosityC*sHeatC/thermCoef;
+  DOUBLE prM = viscosityC*sHeatC/thermCoef,diff;
 
 /*...*/
   tempPlus = uPlus = yPlus = 0.e0;
@@ -767,17 +767,20 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 
 /*... lei de resfriamento de newton*/
   else if( ld.type == CONVECTIONHEAT){
-    tA[0] = ld.par[0];
+    tA[0] = ld.par[0];    
     if(!fCal) return;
 
 /*...*/
     if (fTemp) {
-      tW = tA[0];
-      tC = uC;  
+      tW   = tA[0];
+      tC   = uC; 
+      diff =  thermCoef; 
     }
     else{
-      tW = tA[0];
-      tC = specificEnthalpyForTemp(uC   ,sHeatC,fSheat,iKelvin); 
+//    tW = tA[0];
+      tW = tempForSpecificEnthalpy(tA[0],sHeatC,fSheat,iKelvin);
+//    tC = specificEnthalpyForTemp(uC   ,sHeatC,fSheat,iKelvin); 
+      diff =  thermCoef / sHeatC; 
     }
 /*...................................................................*/ 
 
@@ -785,11 +788,14 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
     if ( yPlus > 11.81e0 )
       h  = sHeatC*viscosityC*tempPlus/(tempPlus*dcca);   
     else
-      h     = thermCoef/dcca;
+      h  = thermCoef/dcca;
 /*...................................................................*/
   
-    aP  = h*(tW-tC)*fArea;
-    *p  += aP;
+//  aP  = h*(tW-tC)*fArea;
+//  *p  += aP;
+    aP  = ((diff*h)/(diff+h*dcca))*fArea;
+    *sP += aP;
+    *p  += aP*tW;
 /*...................................................................*/
   }
 /*...................................................................*/
@@ -798,7 +804,6 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
   else if( ld.type == ROBINBC){
     h     = ld.par[0];
     tA[0] = ld.par[1];
-  
     aP  = ((thermCoef*h)/(thermCoef+h*dcca))*fArea;
     *sP += aP;
     *p  += aP*tA[0];

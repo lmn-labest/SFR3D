@@ -42,7 +42,7 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
          ,"faceRpres"  ,"loadsPres"  ,"faceLoadPres"   /*21,22,23*/
          ,"faceRtemp"  ,"loadsTemp"  ,"faceLoadTemp"   /*24,25,26*/
          ,"materials"  ,"uniformPres","initialVel"     /*27,28,29*/
-         ,"uniformTemp",""           ,""               /*30,31,32*/
+         ,"uniformTemp","uniformVel" ,""               /*30,31,32*/
          ,""           ,""           ,""               /*33,34,35*/
          ,""           ,""           ,""               /*36,37,38*/
 	   };                                             
@@ -248,16 +248,20 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
         zero(mesh->elm.tConductivity, nel, DOUBLEC);
 
      }
-
 /*... viscosidade turbulenta*/
      HccaAlloc(DOUBLE, m, mesh->elm.eddyViscosity
               , nel  , "eddyVis", _AD_);
      zero(mesh->elm.eddyViscosity, nel, DOUBLEC);
 
 /*... viscosidade turbulenta*/
-    HccaAlloc(DOUBLE, m, mesh->node.eddyViscosity
+     HccaAlloc(DOUBLE, m, mesh->node.eddyViscosity
             , nn   , "nEddyVis", _AD_);
-    zero(mesh->node.eddyViscosity, nn, DOUBLEC);
+     zero(mesh->node.eddyViscosity, nn, DOUBLEC);
+
+/*... viscosidade turbulenta*/
+     HccaAlloc(DOUBLE, m, mesh->elm.yPlus
+              , nel   , "yPlus"   , _AD_);
+     zero(mesh->elm.yPlus, nel, DOUBLEC);
 
 /*... densityFluid*/
      HccaAlloc(DOUBLE , m         , mesh->elm.densityFluid
@@ -820,27 +824,27 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
     }
 /*...................................................................*/
 
-/*... initiaTemp */
+/*... uniformTemp */
     else if ((!strcmp(word, macro[30])) && (!rflag[30])) {
       printf("%s\n", DIF);
       printf("%s\n", word);
       strcpy(macros[nmacro++], word);
       rflag[30] = true;
-      printf("loading unifomTemp ...\n");
+      printf("loading uniformTemp ...\n");
       uniformField(mesh->elm.temp0, mesh->numel, 1, file);
       printf("done.\n");
       printf("%s\n\n", DIF);
     }
 /*...................................................................*/
 
-/*... hPres */
+/*... uniformVel */
     else if ((!strcmp(word, macro[31])) && (!rflag[31])) {
       printf("%s\n", DIF);
       printf("%s\n", word);
       strcpy(macros[nmacro++], word);
       rflag[30] = true;
-      printf("loading hPres ...\n");
-//    hPres(mesh->elm.pressure, mesh->numel, 1, file);
+      printf("loading uniformVel ...\n");
+      uniformField(mesh->elm.vel, mesh->numel, ndm, file);
       printf("done.\n");
       printf("%s\n\n", DIF);
     }
@@ -2116,7 +2120,7 @@ void readModel(EnergyModel *e     , Turbulence *t
           if(!strcmp(word,"standard"))
             t->wallType  = STANDARDWALL; 
           if(!mpiVar.myId){ 
-            printf("wallModel: %s\n",typeWallModel[t->type-1]);
+            printf("wallModel: %s\n",typeWallModel[t->wallType-1]);
           }
         }
 /*...................................................................*/
@@ -2303,7 +2307,7 @@ void readGravity(DOUBLE *gravity,FILE *file){
 
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
- * Data de modificaco : 11/11/2017                                   * 
+ * Data de modificaco : 17/11/2017                                   * 
  *-------------------------------------------------------------------* 
  * SETPPRINTFLUID : Seleciona as veriaves que serao impressas na     *
  * macro pFluid                                                      *
@@ -2329,7 +2333,7 @@ void setPrintFluid(FileOpt *opt,FILE *file){
                ,"pres    "     ,"gradVel"     ,"gradPres"     /* 3, 4, 5*/
                ,"temp"         ,"gradTemp"    ,"eddyViscosity"/* 6, 7, 8*/
                ,"densityFluid" ,"specificHeat","dViscosity"   /* 9,10,11*/
-               ,"tConductivity","vorticity"};                 /*12,13*/
+               ,"tConductivity","vorticity"   ,"yPlus"};      /*12,13,14*/
   int tmp;
 
   opt->fCell         = false;
@@ -2346,6 +2350,7 @@ void setPrintFluid(FileOpt *opt,FILE *file){
   opt->dViscosity    = false;
   opt->tConductivity = false;
   opt->vorticity     = false;
+  opt->yPlus         = false;
 
   fscanf(file,"%d",&tmp);
   opt->stepPlotFluid[0] = opt->stepPlotFluid[1] = (short) tmp;
@@ -2446,6 +2451,13 @@ void setPrintFluid(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[13])) {
       opt->vorticity = true;
       if (!mpiVar.myId) printf("print : vorticity\n");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word,macro[14])) {
+      opt->yPlus = true;
+      if (!mpiVar.myId) printf("print : yPlus\n");
     }
 /*.....................................................................*/
 
@@ -2619,7 +2631,7 @@ void help(FILE *f){
 
   char word[WORD_SIZE];
   char macro[][WORD_SIZE] = 
-               {"macros"       ,"setPrintFluid",""             /* 0, 1, 2*/
+               {"macros"       ,"setprintfluid","advection"    /* 0, 1, 2*/
                ,""             ,""             ,""             /* 3, 4, 5*/
                ,""             ,""             ,""             /* 6, 7, 8*/
                ,""             ,""             ,""             /* 9,10,11*/
@@ -2639,10 +2651,27 @@ void help(FILE *f){
                ,"pres"         ,"gradVel"     ,"gradPres"     /* 3, 4, 5*/
                ,"temp"         ,"gradTemp"    ,"eddyViscosity"/* 6, 7, 8*/
                ,"densityFluid" ,"specificHeat","dViscosity"   /* 9,10,11*/
-               ,"tConductivity","vorticity"};                 /*12,13*/
-  int i;
+               ,"tConductivity","vorticity"   ,"yPlus" };     /*12,13,14*/
+
+/*... adveccao*/
+  char fAdv[][WORD_SIZE] =                                   
+                         { "FoUp","CD","SoUp"                /* 0, 1, 2*/
+                          ,"TVD" ,"NVD"};                    /* 3, 4*/
+
+  char nvd[][WORD_SIZE] =
+                {"BCD"        ,"MUSCL"   ,"Smart"             /* 0, 1, 2*/
+                ,"ModSmart"   ,"SuperBee","ModSuperBee"       /* 3, 4, 5*/
+                ,"Stoic" };                                   /* 6*/
+  
+  char tvd[][WORD_SIZE]=
+                         {"VanLeer" ,"VanAlbada","MidMod "   /* 0, 1, 2*/
+                         ,"Osher"   ,"SuperBee"};            /* 3, 4*/
+/*....................................................................*/
+
+  int i;                                                     
 
   readMacro(f,word,false);
+  convStringLower(word);
 /*... macros*/
   if(!strcmp(word,macro[0])){
     printf("Macros:\n");
@@ -2656,10 +2685,28 @@ void help(FILE *f){
   else if(!strcmp(word,macro[1])){     
     printf("setPrintFluid 10 options end\n");
     printf("options:\n");
-    for(i=0;i<14;i++)
+    for(i=0;i<15;i++)
       printf("%3d - %s\n",i+1,m1[i]);
     exit(EXIT_FAILURE);
   }
 /*.....................................................................*/
+
+/*... advection*/        
+  else if(!strcmp(word,macro[2])){   
+    printf("Ex1:\n"); 
+    printf("advection 3 Vel FoUp Energy CD Temp SoUp \n"); 
+    printf("Ex2:\n"); 
+    printf("advection 2 Vel NVD [options] Energy TVD [opitions]\n");
+    printf("TVD options:\n");
+    for(i=0;i<5;i++)
+      printf("%3d - %s\n",i+1,tvd[i]);
+    printf("NVD options:\n");
+    for(i=0;i<7;i++)
+      printf("%3d - %s\n",i+1,nvd[i]);
+    exit(EXIT_FAILURE);
+  }
+/*.....................................................................*/
+
+
 }
 /*********************************************************************/

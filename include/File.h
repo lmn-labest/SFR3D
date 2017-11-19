@@ -44,7 +44,8 @@
     bool specificHeat;   
     bool dViscosity;     
     bool tConductivity; 
-    bool vorticity; 
+    bool vorticity;
+    bool yPlus;  
     bool bconditions;    /*insere as condicoes de contorno nos valores nodais*/
     short stepPlotFluid[2];
     FILE *fileItPlot[7];

@@ -26,8 +26,8 @@
      , DOUBLE *RESTRICT gDcca        
      , short  *RESTRICT faceVelR            , short *RESTRICT faceVelL          
      , DOUBLE *RESTRICT vel                 , DOUBLE *RESTRICT gradVel         
-     , DOUBLE *RESTRICT density
-     , DOUBLE *RESTRICT dViscosity          , DOUBLE *RESTRICT eddyViscosity     
+     , DOUBLE *RESTRICT density             , DOUBLE *RESTRICT dViscosity         
+     , DOUBLE *RESTRICT eddyViscosity       , DOUBLE *RESTRICT yPlus      
      , short const maxNo                    , short const maxViz
      , short const ndm                      , INT const numel
      , short const ndf);        
@@ -52,17 +52,13 @@
 
   void cellLes3D(Loads *lVel             , Turbulence tModel           
           , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop 
-          , INT *RESTRICT lViz         , DOUBLE *RESTRICT ksi 
-          , DOUBLE *RESTRICT mKsi
-          , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea
+          , INT *RESTRICT lViz         , DOUBLE *RESTRICT fArea
           , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume 
-          , DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc 
-          , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc 
-          , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew 
+          , DOUBLE *RESTRICT dcca      
           , short *RESTRICT lFaceVelR  , short *RESTRICT lFaceVelL 
           , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel       
           , DOUBLE *RESTRICT lDensity  , DOUBLE const dViscosity
-          , DOUBLE *viscosity          
+          , DOUBLE *viscosity          , DOUBLE *yPlus
           , const short nEn            , short const nFace 
           , const short ndm            , INT const nel);
 /*...................................................................*/
@@ -80,6 +76,16 @@
                , short const iCod);
   DOUBLE wallModelHeat(DOUBLE const yPlus,DOUBLE const prM
                      , DOUBLE const prT);
+/*...................................................................*/
+
+/*...*/
+bool  wallDist(Loads *lVel               
+             , INT *RESTRICT lViz       , DOUBLE *RESTRICT v 
+             , DOUBLE *RESTRICT normal  , DOUBLE *RESTRICT dcca
+             , short *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL
+             , DOUBLE const viscosity   , DOUBLE const density
+             , DOUBLE *yP               , DOUBLE *dWall     
+             , short const wallType     , short const nFace );
 /*...................................................................*/
 
 #endif /*_TURBULENCE_H_*/
