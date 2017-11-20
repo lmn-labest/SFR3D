@@ -100,6 +100,8 @@
   #define TVD           4
 /*...*/
   #define NVD           5
+/*...*/
+  #define LUST          6
 
 /*... ADVECTION - TVD EDGEBASE LIMIT*/
   #define VANLEERFACE   1

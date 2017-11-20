@@ -260,8 +260,8 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 
 /*... viscosidade turbulenta*/
      HccaAlloc(DOUBLE, m, mesh->elm.yPlus
-              , nel   , "yPlus"   , _AD_);
-     zero(mesh->elm.yPlus, nel, DOUBLEC);
+              , nel*4   , "wallParm", _AD_);
+     zero(mesh->elm.yPlus, nel*4, DOUBLEC);
 
 /*... densityFluid*/
      HccaAlloc(DOUBLE , m         , mesh->elm.densityFluid
@@ -2655,8 +2655,8 @@ void help(FILE *f){
 
 /*... adveccao*/
   char fAdv[][WORD_SIZE] =                                   
-                         { "FoUp","CD","SoUp"                /* 0, 1, 2*/
-                          ,"TVD" ,"NVD"};                    /* 3, 4*/  
+                         { "FoUp","CD" ,"SoUp"                /* 0, 1, 2*/
+                          ,"TVD" ,"NVD","LUST"};              /* 3, 4, 5*/  
   char tvd[][WORD_SIZE]=
                          {"VanLeer" ,"VanAlbada","MidMod "   /* 0, 1, 2*/
                          ,"Osher"   ,"SuperBee"};            /* 3, 4*/

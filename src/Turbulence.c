@@ -25,7 +25,7 @@ static DOUBLE doubleDotSym(DOUBLE *t) {
 
 /********************************************************************* 
  * Data de criacao    : 11/09/2017                                   *
- * Data de modificaco : 17/11/2017                                   * 
+ * Data de modificaco : 20/11/2017                                   * 
  *-------------------------------------------------------------------* 
  * TURBULENCE: Calculo da viscosidae turbulenta                      *
  *-------------------------------------------------------------------* 
@@ -58,7 +58,7 @@ static DOUBLE doubleDotSym(DOUBLE *t) {
  * gradVel   -> gradiente da solucao conhecido                       * 
  * density   -> massa especifica com variacao temporal               *  
  * eddyViscosity-> viscosidade turbulenta                            *
- * yPlus     -> distancia adimensional a parede                      *
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
  * maxNo     -> numero de nos por celula maximo da malha             * 
  * maxViz    -> numero vizinhos por celula maximo da malha           * 
  * ndm       -> numero de dimensoes                                  * 
@@ -68,6 +68,7 @@ static DOUBLE doubleDotSym(DOUBLE *t) {
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
  * eddyViscosity-> viscosidade turbulenta atualizada                 *
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
  *-------------------------------------------------------------------* 
  * OBS:                                                              *
  *-------------------------------------------------------------------* 
@@ -86,7 +87,7 @@ void turbulence(Loads *lVel                 , Turbulence tModel
       , short  *RESTRICT faceVelR           , short *RESTRICT faceVelL               
       , DOUBLE *RESTRICT vel                , DOUBLE *RESTRICT gradVel
       , DOUBLE *RESTRICT density            , DOUBLE *RESTRICT dViscosity        
-      , DOUBLE *RESTRICT eddyViscosity      , DOUBLE *RESTRICT yPlus                          
+      , DOUBLE *RESTRICT eddyViscosity      , DOUBLE *RESTRICT wallPar                        
       , short const maxNo                   , short const maxViz
       , short const ndm                     , INT const numel     
       , short const ndf)                      
@@ -109,7 +110,7 @@ void turbulence(Loads *lVel                 , Turbulence tModel
          lCc[(MAX_NUM_FACE+1)*MAX_NDM],
          lGradVel[(MAX_NUM_FACE+1)*MAX_NDM*MAX_NDF],
          lVel0[(MAX_NUM_FACE+1)*MAX_NDM],
-         lEddyViscosity,lDviscosity,lyPlus; 
+         lEddyViscosity,lDviscosity,lWallPar[4];
            
 
 /*... loop nas celulas*/
@@ -205,7 +206,7 @@ void turbulence(Loads *lVel                 , Turbulence tModel
                       , lFaceVelR      , lFaceVelL 
                       , lVel0          , lGradVel
                       , lDensity       , lDviscosity 
-                      , &lEddyViscosity, &lyPlus
+                      , &lEddyViscosity, lWallPar
                       , nen[nel]       , nFace[nel] 
                       , ndm            , lib   
                       , nel);    
@@ -213,7 +214,10 @@ void turbulence(Loads *lVel                 , Turbulence tModel
  
 /*...*/
     eddyViscosity[nel]  = lEddyViscosity;
-    yPlus[nel]          = lyPlus;
+    MAT2D(nel,0,wallPar,4) = lWallPar[0];
+    MAT2D(nel,1,wallPar,4) = lWallPar[1];
+    MAT2D(nel,2,wallPar,4) = lWallPar[2];
+    MAT2D(nel,3,wallPar,4) = lWallPar[3];
 /*...................................................................*/
 
   }
@@ -435,12 +439,12 @@ void cellLes(Loads *lVel               , Turbulence tModel
  * density   -> massa especifica                                     *
  * dViscosity-> viscosidade dinamica                                 *
  * eddyViscosity - nao definido                                      *
- * yP        -> nao definido                                         *  
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
  * eddyViscosity -> viscosidade turbulenta                           *
- * yP            -> distancia normalizada a parede                   *  
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
@@ -468,7 +472,7 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
           , short *RESTRICT lFaceVelR  , short *RESTRICT lFaceVelL 
           , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel       
           , DOUBLE *RESTRICT lDensity  , DOUBLE const dViscosity
-          , DOUBLE *viscosity          , DOUBLE *yP
+          , DOUBLE *viscosity          , DOUBLE *wallPar
           , const short nEn            , short const nFace 
           , const short ndm            , INT const nel) 
 {
@@ -514,9 +518,10 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
                   ,normal     ,dcca
                   ,lFaceVelR  ,lFaceVelL
                   ,viscosityC ,density
-                  ,yP         ,&dMin
+                  ,wallPar    ,&dMin
                   ,wallType   ,nFace );
-  yPlusMax = *yP;
+   
+  yPlusMax = wallPar[0];
 
 /*...*/
   switch (type) {
@@ -1021,13 +1026,13 @@ DOUBLE lesDynamic(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
  * faceVelL  -> carga por elemento de velocidades                    *
  * dViscosity-> viscosidade dinamica                                 *
  * density   -> massa especifica                                     *
- * yP        -> nao definido                                         *
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri)          * 
  * dWall     -> nao definido                                         *
  * nFace     -> numero de faces da celula central                    * 
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * yP    - distancia normalizada a parede                            *
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
  * dWall - distancia a parede                                        *
  *-------------------------------------------------------------------*
  * OBS:                                                              *
@@ -1038,16 +1043,16 @@ bool  wallDist(Loads *lVel
              , DOUBLE *RESTRICT normal  , DOUBLE *RESTRICT dcca
              , short *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL
              , DOUBLE const viscosity   , DOUBLE const density
-             , DOUBLE *yP               , DOUBLE *dWall     
+             , DOUBLE *wallPar           , DOUBLE *dWall     
              , short const wallType     , short const nFace )
 { 
   bool fWall = false;
   short i, j, nf, nCarg, idCell,type;
   INT vizNel;
-  DOUBLE wt, yPlusMax, dMin, vParallel[3], lNormal[3],yPlus,uPlus
-        ,velB[3];
+  DOUBLE wt, yPlusMax, uPlusMax,uFricMax,sWallMax;
+  DOUBLE dMin, vParallel[3], lNormal[3],yPlus,uPlus,uFric,sW,velB[3];
 
-  yPlusMax = 0.e0;
+  sWallMax = uFricMax = uPlusMax = yPlusMax = 0.e0;
   dMin     = 1.e+16;
   for (nf = 0; nf<nFace; nf++) {
     vizNel         = lViz[nf]; 
@@ -1081,12 +1086,17 @@ bool  wallDist(Loads *lVel
 /*...*/
           if (wt > 0.e0)
             wallModel(wt      , viscosity
-                    , density , dcca[nf]
-                    , &yPlus  , &uPlus
-                    , wallType); 
+                     , density , dcca[nf]
+                     , &yPlus  , &uPlus
+                     , wallType); 
 /*...................................................................*/
-          yPlusMax = max(yPlus,yPlusMax);
           dMin     = min(dcca[nf],dMin);
+          yPlusMax = max(yPlus   ,yPlusMax);
+          uPlusMax = max(uPlus   ,uPlusMax);
+          uFric    = wt/uPlus;
+          sW       = density*uFric*uFric;
+          uFricMax = max(uFric,uFricMax);
+          sWallMax = max(sW   ,sWallMax);
 /*...................................................................*/
         }
 /*...................................................................*/
@@ -1115,16 +1125,24 @@ bool  wallDist(Loads *lVel
                  , &yPlus  , &uPlus
                  , wallType); 
 /*...................................................................*/
-        yPlusMax = max(yPlus,yPlusMax);
         dMin     = min(dcca[nf],dMin);
+        yPlusMax = max(yPlus   ,yPlusMax);
+        uPlusMax = max(uPlus   ,uPlusMax);
+        uFric    = wt/uPlus;
+        sW       = density*uFric*uFric;
+        uFricMax = max(uFric,uFricMax);
+        sWallMax = max(sW   ,sWallMax);
       }
 /*...................................................................*/
     }
 /*...................................................................*/
   }
 
-  *yP    = yPlusMax;
-  *dWall = dMin;
+  wallPar[0] = yPlusMax;
+  wallPar[1] = uPlusMax;
+  wallPar[2] = uFricMax;
+  wallPar[3] = sWallMax;
+  *dWall     = dMin;
 
   return  fWall; 
 /*...................................................................*/

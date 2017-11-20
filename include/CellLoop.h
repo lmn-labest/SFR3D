@@ -1237,21 +1237,30 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                      ,DOUBLE *RESTRICT gradVelComp,DOUBLE *RESTRICT vSkew
                      ,DOUBLE *RESTRICT rC         ,DOUBLE *RESTRICT rV
                      ,DOUBLE *RESTRICT ksi        ,DOUBLE const modKsi
-                     ,DOUBLE const m              ,DOUBLE *RESTRICT cvc
+                     ,DOUBLE const wfn            ,DOUBLE *RESTRICT cvc
+                     ,DOUBLE const alphaMenosUm   ,DOUBLE const alpha
                      ,short const ndm
-                     ,short const iCod1, short const iCod2);
+                     ,short const iCod1           ,short const iCod2);
    
-  void advectiveSchemeScalar(DOUBLE const uC     ,DOUBLE const uV
-                     ,DOUBLE *RESTRICT gradUc   ,DOUBLE *RESTRICT gradUv
-                     ,DOUBLE *RESTRICT gradUcomp,DOUBLE *RESTRICT vSkew
-                     ,DOUBLE *RESTRICT rC       ,DOUBLE *RESTRICT rV
-                     ,DOUBLE *RESTRICT ksi      ,DOUBLE const modKsi
-                     ,DOUBLE const m            ,DOUBLE *cvc
-                     ,short const ndm
-                     ,short const iCod1, short const iCod2);
+  void advectiveSchemeScalar(DOUBLE const uC, DOUBLE const uV
+              ,DOUBLE *RESTRICT gradUc    ,DOUBLE *RESTRICT gradUv
+              ,DOUBLE *RESTRICT gradUcomp ,DOUBLE *RESTRICT vSkew
+              ,DOUBLE *RESTRICT rC        ,DOUBLE *RESTRICT rV
+              ,DOUBLE *RESTRICT ksi       ,DOUBLE const modKsi
+              ,DOUBLE const wfn           ,DOUBLE *cvc
+              ,DOUBLE const alphaMenosUm  ,DOUBLE const alpha          
+              ,short const ndm
+              ,short const iCod1          ,short const iCod2);
 
   DOUBLE deferredCd(DOUBLE const velC,DOUBLE const velV
                    ,DOUBLE const wfn);
+  
+  DOUBLE deferredLust(DOUBLE const uC         ,DOUBLE const uV
+                   ,DOUBLE *RESTRICT gradUc   ,DOUBLE *RESTRICT gradUv
+                   ,DOUBLE *RESTRICT rC       ,DOUBLE *RESTRICT rV
+                   ,DOUBLE const alphaMenosUm ,DOUBLE const alpha               
+                   ,DOUBLE const wfn          ,short const ndm);
+
 
   DOUBLE upwindLinearV1(DOUBLE const uC  ,DOUBLE const uV
                  ,DOUBLE *RESTRICT gradUc,DOUBLE *RESTRICT gradUv

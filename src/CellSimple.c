@@ -333,6 +333,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
                      ,lXmcc         ,v  
                      ,lKsi          ,lModKsi
                      ,cv            ,cvc
+                     ,alphaMenosUm  ,alpha
                      ,ndm
                      ,iCodAdv1, iCodAdv2);
 /*...................................................................*/
@@ -891,6 +892,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
         , lXmcc, v
         , lKsi, lModKsi
         , cv, cvc
+        , alphaMenosUm  ,alpha
         , ndm
         , iCodAdv1, iCodAdv2);
 /*...................................................................*/
@@ -1456,6 +1458,7 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
                       , lXmcc, v
                       , lKsi, lModKsi
                       , cv, cvc
+                      , alphaMenosUm  ,alpha
                       , ndm
                       , iCodAdv1, iCodAdv2);
 /*...................................................................*/
@@ -2013,6 +2016,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                      ,lXmcc         ,v  
                      ,lKsi          ,lModKsi
                      ,cv            ,cvc
+                     ,alphaMenosUm  ,alpha
                      ,ndm
                      ,iCodAdv1      ,iCodAdv2);
 /*...................................................................*/
@@ -2690,6 +2694,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                      ,lXmcc         ,v  
                      ,lKsi          ,lModKsi
                      ,cv            ,cvc
+                     ,alphaMenosUm  ,alpha
                      ,ndm
                      ,iCodAdv1      ,iCodAdv2);
 /*...................................................................*/
@@ -3367,6 +3372,7 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
                       , lXmcc, v
                       , lKsi, lModKsi
                       , cv, cvc
+                      , alphaMenosUm  ,alpha
                       , ndm
                       , iCodAdv1, iCodAdv2);
 /*...................................................................*/

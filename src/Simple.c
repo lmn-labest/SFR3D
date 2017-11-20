@@ -2385,7 +2385,7 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 
 /*... scaled*/
     case CFL:
-      nCfl = 1.0e0;
+      nCfl = 1.5e0;
       dtVn = dtCfl = 86400.e0; /*24*3600*/
       for(i=0;i<nEl;i++){
  /*... modulo das velocidades*/

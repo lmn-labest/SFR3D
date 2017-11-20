@@ -1057,7 +1057,7 @@ void wResVtkDif(Memoria *m        ,double *x
  * densityFluid -> densidade do fluido                                *
  * dViscosity   -> viscosidade molecular                              *
  * tConductivity-> condutividade termica                              *
- * yPlus        -> distancia a parede                                 * 
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri)          * 
  * nel          -> numeracao do elemento                              *
  * nnode        -> numero de nos                                      *  
  * numel        -> numero de elementos                                *
@@ -1091,7 +1091,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
           ,DOUBLE *elEddyVis    ,DOUBLE *nEddyVis
           ,DOUBLE *densityFluid ,DOUBLE *specificHeat 
           ,DOUBLE *dViscosity   ,DOUBLE *tConductivity
-          ,DOUBLE *yPlus
+          ,DOUBLE *wallPar
           ,INT nnode            ,INT numel    
           ,short const ndm      ,short const maxNo 
           ,short const numat    ,short const ndf   
@@ -1276,8 +1276,8 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 
 /*... escreve a yPlus */  
   if(opt.yPlus && opt.fCell ){
-    strcpy(str,"yPlus");
-    writeVtkProp(&idum,yPlus,numel,1,str,iws,DOUBLEV,1,f);
+    strcpy(str,"WallParameters");
+    writeVtkProp(&idum,wallPar,numel,4,str,iws,DOUBLEV,1,f);
   }
 /*...................................................................*/
 

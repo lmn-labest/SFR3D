@@ -230,14 +230,15 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...*/
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
-      advectiveSchemeScalar(u0[idCell],u0[nAresta]
-                           ,gradUp    ,gradUv
-                           ,gradUcomp ,lvSkew
-                           ,lXmcc     ,v    
-                           ,lKsi      ,lModKsi
-                           ,cv        ,&cvc
+      advectiveSchemeScalar(u0[idCell]   ,u0[nAresta]
+                           ,gradUp       ,gradUv
+                           ,gradUcomp    ,lvSkew
+                           ,lXmcc        ,v    
+                           ,lKsi         ,lModKsi
+                           ,cv           ,&cvc
+                           ,alphaMenosUm ,alpha    
                            ,ndm
-                           ,iCodAdv1  ,iCodAdv2);
+                           ,iCodAdv1     ,iCodAdv2);
 /*...................................................................*/
 
 /*...*/
@@ -642,6 +643,7 @@ void cellEnergy2D(Loads *loads            , Loads *loadsVel
                            ,lXmcc     ,v
                            ,lKsi      ,lModKsi
                            ,cv        ,&cvc
+                           ,alphaMenosUm ,alpha
                            ,ndm   
                            ,iCodAdv1  ,iCodAdv2);
 /*...................................................................*/
@@ -1027,14 +1029,15 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
       v[2] = lXm[2] - ccV[2];
-      advectiveSchemeScalar(u0[idCell],u0[nf]
-                           ,gradUp    ,gradUv
-                           ,gradUcomp ,lvSkew
-                           ,lXmcc     ,v
-                           ,lKsi      ,lModKsi
-                           ,cv        ,&cvc
+      advectiveSchemeScalar(u0[idCell]  ,u0[nf]
+                           ,gradUp      ,gradUv
+                           ,gradUcomp   ,lvSkew
+                           ,lXmcc       ,v
+                           ,lKsi        ,lModKsi
+                           ,wfn         ,&cvc
+                           ,alphaMenosUm ,alpha     
                            ,ndm
-                           ,iCodAdv1, iCodAdv2);
+                           ,iCodAdv1    ,iCodAdv2);
 /*...................................................................*/
 
 /*...*/
@@ -1470,14 +1473,15 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
       v[2] = lXm[2] - ccV[2];
-      advectiveSchemeScalar(uC        ,uV
-                           ,gradUp    ,gradUv
-                           ,gradUcomp ,lvSkew
-                           ,lXmcc     ,v
-                           ,lKsi      ,lModKsi
-                           ,cv        ,&cvc
+      advectiveSchemeScalar(uC           ,uV
+                           ,gradUp       ,gradUv
+                           ,gradUcomp    ,lvSkew
+                           ,lXmcc        ,v
+                           ,lKsi         ,lModKsi
+                           ,wfn          ,&cvc
+                           ,alphaMenosUm ,alpha
                            ,ndm   
-                           ,iCodAdv1  ,iCodAdv2);
+                           ,iCodAdv1     ,iCodAdv2);
 /*...................................................................*/
 
 /*...*/
