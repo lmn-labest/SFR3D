@@ -1200,7 +1200,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                      , DOUBLE *RESTRICT lKsi, DOUBLE const lModKsi
                      , DOUBLE const m
                      , short const iCod, short const ndm);
-  DOUBLE nvd(DOUBLE const phiTil, short const iCod);
+  void nvd(DOUBLE const phiTil,DOUBLE *p, short const iCod);
 /*...................................................................*/
 
 /*... parametro fisicos do escoamento*/

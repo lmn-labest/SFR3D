@@ -1041,7 +1041,7 @@ bool  wallDist(Loads *lVel
              , DOUBLE *yP               , DOUBLE *dWall     
              , short const wallType     , short const nFace )
 { 
-  bool fWall;
+  bool fWall = false;
   short i, j, nf, nCarg, idCell,type;
   INT vizNel;
   DOUBLE wt, yPlusMax, dMin, vParallel[3], lNormal[3],yPlus,uPlus

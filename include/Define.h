@@ -86,8 +86,8 @@
 /*...................................................................*/
   
 /*... ADVECTION*/
-  #define NFUNCLIMTFACE 6
-  #define NFUNCNVD      7
+  #define NFUNCLIMTFACE 5
+  #define NFUNCNVD      9
 /*...................................................................*/
 
 /*... ADVECTION*/
@@ -117,9 +117,11 @@
   #define MSMART_NVD    4
   #define SUPERBEE_NVD  5    
   #define MSUPERBEE_NVD 6
-  #define STOIC_NVD     7    
+  #define STOIC_NVD     7 
+  #define MINMOD_NVD    8   
+  #define MBCD_NVD      9 
 /*...................................................................*/
-
+ 
 /*... ADVECTION*/
   #define FBASE 1 /*limitacao por face*/
   #define VBASE 2 /*limitacao por volume*/

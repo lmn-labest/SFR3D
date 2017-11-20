@@ -3742,7 +3742,7 @@ DOUBLE limitFaceBase(DOUBLE const r,short const iCod)
 
 /*********************************************************************
 * Data de criacao    : 22/08/2016                                   *
-* Data de modificaco : 00/00/0000                                   *
+* Data de modificaco : 19/11/2017                                   *
 *-------------------------------------------------------------------*
 * NVD :                                                             *
 *-------------------------------------------------------------------*
@@ -3750,140 +3750,214 @@ DOUBLE limitFaceBase(DOUBLE const r,short const iCod)
 *-------------------------------------------------------------------*
 * phiTil  -> parametro utilizado                                    *
 * iCod    -> tipo de funcao limitadora                              *
+* p       -> nao definido                                           *  
 *-------------------------------------------------------------------*
 * Parametros de saida:                                              *
 *-------------------------------------------------------------------*
+* p[0] -> alfa                                                      *
+* p[1] -> beta                                                      *
 *-------------------------------------------------------------------*
 * OBS:                                                              *
 *-------------------------------------------------------------------*
+* phiFtil = alfa*phiCtil + beta                                     *
 *********************************************************************/
-DOUBLE nvd(DOUBLE const phiTil, short const iCod)
+void nvd(DOUBLE const phiTil,DOUBLE *p, short const iCod)
 {
 
   DOUBLE a;
-  short i;
-  char word[][WORD_SIZE] =
-  {"BCD"        ,"MUSCL" 
-  ,"Smart"      ,"ModSmart"
-  ,"SuperBee"   ,"ModSuperBee"
-  ,"Stoic" };
+  short i; 
+
+  char scheme_nvd[][20] ={"BCD"        ,"MUSCL"   ,"Smart"
+                         ,"ModSmart"   ,"SuperBee","ModSuperBee"
+                         ,"Stoic"      ,"MinMod"  ,"ModBCD"};
+
+  p[1] = p[0] = 0.0e0;
 
   switch (iCod) {
 
 /*... Bounded CD - NVD*/
-  case BCD_NVD:
+    case BCD_NVD:
 /*...*/
-    if( phiTil >= 0 && phiTil <= 1.e0)
-      a = 5.e-1*(phiTil + 1.e0);
-    else
-      a = phiTil;
-    return a;
-  break;
-/*...................................................................*/
+      if (phiTil >= 0 && phiTil <= 1.e0) {
+        p[0] = 0.5e0;
+        p[1] = 0.5e0;
+      }
+      else {
+        p[0] = 1.0e0;
+        p[1] = 0.0e0;
+      }
+      
+    break;
+/*..................................................................*/
 
 /*... MUSCL - NVD*/
   case MUSCL_NVD:
 /*...*/
-    if (phiTil >= 0 && phiTil <= 0.25e0)
-      a = 2.e0*phiTil;
-    else if (phiTil > 0.25e0 && phiTil <= 0.75e0)
-      a = phiTil + 2.5e-1;
-    else if (phiTil > 0.75e0 && phiTil <= 1.e0)
-      a = 1.e0;
-    else
-      a = phiTil;
-    return a;
+//  if (phiTil >= 0 && phiTil <= 0.25e0)
+//    a = 2.e0*phiTil;
+//  else if (phiTil > 0.25e0 && phiTil <= 0.75e0)
+//    a = phiTil + 2.5e-1;
+//  else if (phiTil > 0.75e0 && phiTil <= 1.e0)
+//    a = 1.e0;
+//  else
+//    a = phiTil;
+//  return a;
   break;
 /*...................................................................*/
 
 /*... SMART - NVD*/
   case SMART_NVD:
 /*...*/
-    if (phiTil >= 0 && phiTil <= D5DIV6 )
-      a = 7.5e-1*phiTil + 3.75e-1;
-    else if (phiTil > D5DIV6 && phiTil <= 1.e0)
-      a = 1.e0;
-    else
-      a = phiTil;
-    return a;
-  break;
-/*...................................................................*/
+      if (phiTil >= 0 && phiTil <= 5.0/6.0) {
+        p[0] = 3.0/4.0;
+        p[1] = 3.0/8.0;
+      }
+      else if (phiTil > 5.0/6.0 && phiTil <= 1.0) {
+        p[0] = 0.0e0;
+        p[1] = 1.0e0;
+      }
+      else {
+        p[0] = 1.0e0;
+        p[1] = 0.0e0;
+      }      
+    break;
+/*..................................................................*/
 
 /*... SMART - NVD*/
   case MSMART_NVD:
 /*...*/
-    if (phiTil >= 0 && phiTil <= D1DIV6)
-      a = 3.e0*phiTil;
-    else if (phiTil > D1DIV6 && phiTil <= 7.e-1)
-      a = 7.5e-1*phiTil + 3.75e-1;
-    else if (phiTil > 7e-1 && phiTil <= 1.e0)
-      a = D1DIV3*phiTil + D2DIV3;
-    else
-      a = phiTil;
-    return a;
-  break;
-/*...................................................................*/
+      if (phiTil >= 0 && phiTil <= 1.0/6.0) {
+        p[0] = 3.0;
+        p[1] = 0.0;
+      }
+      else if (phiTil > 1.0/6.0 && phiTil <= 0.7) {
+        p[0] = 3.0e0/4.e0;
+        p[1] = 3.0e0/8.0e0;
+      }
+      else if (phiTil > 0.7 && phiTil <= 1.0) {
+        p[0] = D1DIV3;
+        p[1] = D2DIV3;
+      }
+      else {
+        p[0] = 1.0e0;
+        p[1] = 0.0e0;
+      }      
+    break;
+/*..................................................................*/
 
 /*... SUPERBBE - NVD*/
-  case SUPERBEE_NVD:
+    case SUPERBEE_NVD:
 /*...*/
-    if (phiTil >= 0 && phiTil <= 5.e-1)
-      a = 5.0e-1*(phiTil + 1.e0);
-    else if (phiTil > 5e-1 && phiTil <= D2DIV3)
-      a = 1.5e0*phiTil;
-    else if (phiTil > D2DIV3 && phiTil <= 1.e0)
-      a = 1.e0;
-    else
-      a = phiTil;
-    return a;
-  break;
+      if (phiTil >= 0 && phiTil <= 5.e-1) {
+        p[0] = 0.5e0;
+        p[1] = 0.5e0;
+      }
+      else if (phiTil > 5e-1 && phiTil <= D2DIV3) {
+        p[0] = 1.5e0;
+        p[1] = 0.0e0;
+      }
+      else if (phiTil > D2DIV3 && phiTil <= 1.e0) {
+        p[0] = 0.0e0;
+        p[1] = 1.0e0;
+      }
+      else {
+        p[0] = 1.0e0;
+        p[1] = 0.0e0;
+      }      
+    break;
 /*..................................................................*/
 
 /*... MSUPERBBE - NVD*/
-  case MSUPERBEE_NVD:
+    case MSUPERBEE_NVD:
 /*...*/
-    if (phiTil >= 0 && phiTil <= D1DIV3)
-      a = 2.e0*phiTil;
-    else if (phiTil > D1DIV3 && phiTil <= 5.e-1)
-      a = 5.e-1*(phiTil + 1.e0);
-    else if (phiTil > 5e-1 && phiTil <= D2DIV3)
-      a = 1.5e0*phiTil;
-    else if (phiTil > D2DIV3 && phiTil <= 1.e0)
-      a = 1.e0;
-    else
-      a = phiTil;
-    return a;
-  break;
+      if (phiTil >= 0 && phiTil <= D1DIV3) {
+        p[0] = 2.0e0;
+        p[1] = 0.0e0;
+      }
+      else if (phiTil > D1DIV3 && phiTil <= 0.5e0) {
+        p[0] = 0.5e0;
+        p[1] = 0.5e0;
+      }
+      else if (phiTil > 0.5e0 && phiTil <= D2DIV3) {
+        p[0] = 1.5e0;
+        p[1] = 0.0e0;
+      }
+      else if (phiTil >  D2DIV3 && phiTil <= 1) {
+        p[0] = 0.0e0;
+        p[1] = 1.0e0;
+      }
+      else {
+        p[0] = 1.0e0;
+        p[1] = 0.0e0;
+      }  
+    break;
 /*..................................................................*/
 
 /*...STOIC - NVD*/
-  case STOIC_NVD:
+    case STOIC_NVD:
 /*...*/
-    if (phiTil > 0.e0 && phiTil <= 5.e-1)
-      a = 5.e-1*(phiTil + 1.e0);
-    else if (phiTil > 5e-1 && phiTil <= D5DIV6)
-      a = 7.5e-1*phiTil + 3.75e-1;
-    else if (phiTil > D5DIV6 && phiTil <= 1.e0)
-      a = 1.e0;
-    else
-      a = phiTil;
-    return a;
-  break;
+//  if (phiTil > 0.e0 && phiTil <= 5.e-1)
+//    a = 5.e-1*(phiTil + 1.e0);
+//  else if (phiTil > 5e-1 && phiTil <= D5DIV6)
+//    a = 7.5e-1*phiTil + 3.75e-1;
+//  else if (phiTil > D5DIV6 && phiTil <= 1.e0)
+//    a = 1.e0;
+//  else
+//    a = phiTil;
+//  return a;
+    break;
 /*..................................................................*/
 
-  default:
-    printf("Erro: tipo de funcao NVD invalida.\n"
-           "Arquivo fonte:  \"%s\".\n"
-           "Nome da funcao: \"%s\".\n"
-           "Linha         : \"%d\".\n"
-          , __FILE__, __func__, __LINE__);
-    printf("Funcoes disponiveis:\n");
-    for (i = 0; i<NFUNCNVD; i++)
-      printf("%s\n", word[i]);
-    exit(EXIT_FAILURE);
+/*...MINMOD - NVD*/
+    case MINMOD_NVD:
+/*...*/
+      if (phiTil >= 0 && phiTil <= 5.e-1) {
+        p[0] = 1.5e0;
+        p[1] = 0.0e0;
+      }
+      else if (phiTil > 5e-1 && phiTil <= 1.0) {
+        p[0] = 0.5e0;
+        p[1] = 0.5e0;
+      }
+      else {
+        p[0] = 1.0e0;
+        p[1] = 0.0e0;
+      }      
+    break;
+/*..................................................................*/
+
+/*...MBCD - NVD*/
+    case MBCD_NVD:
+/*...*/
+      if (phiTil >= 0.e0 && phiTil <= 1.0/4.0) {
+        p[0] = 2.5;
+        p[1] = 0.0e0;
+      }
+      else if (phiTil > 1.0/4.0 && phiTil <= 1.e0) {
+        p[0] = 0.5e0;
+        p[1] = 0.5e0;
+      }
+      else {
+        p[0] = 1.0e0;
+        p[1] = 0.0e0;
+      }
+    break;
+/*..................................................................*/
+
+
+    default:
+      printf("Erro: tipo de funcao NVD invalida.\n"
+             "Arquivo fonte:  \"%s\".\n"
+             "Nome da funcao: \"%s\".\n"
+             "Linha         : \"%d\".\n"
+            , __FILE__, __func__, __LINE__);
+      printf("Funcoes disponiveis:\n");
+      for (i = 0; i<NFUNCNVD; i++)
+        printf("%s\n", scheme_nvd[i]);
+      exit(EXIT_FAILURE);
 /*...................................................................*/
   }
-  return 0.e0;
+
 }
 /*********************************************************************/
 
@@ -3915,36 +3989,21 @@ DOUBLE faceBaseTvd(short const nAresta    ,short const idCell
   DOUBLE du,r,cvc=0.0e0,gf;
   DOUBLE eps=1.e-14;
  
-  if(ndm == 2)
-    if( cv < 0.0e0) {
-      du    = u0[idCell] - u0[nAresta] + eps;
-      gf    = -(gradUv[0]*lKsi[0] + gradUv[1]*lKsi[1])*lModKsi;
-      r     = 2.0e0*gf/du - 1.0e0;
-      cvc   = 0.5e0*limitFaceBase(r ,iCod)*du;
-    }
-    else{
-      du    = u0[nAresta] - u0[idCell] + eps;
-      gf    = (gradUp[0]*lKsi[0] + gradUp[1]*lKsi[1])*lModKsi;
-      r     = 2.0e0*gf/du - 1.0e0;
-      cvc   = 0.5e0*limitFaceBase(r,iCod)*du;
-    }
-  else if(ndm ==3){
-    if( cv < 0.0e0) {
-      du    = u0[idCell] - u0[nAresta] + eps;
-      gf    = -( gradUv[0]*lKsi[0] 
-               + gradUv[1]*lKsi[1]
-               + gradUv[2]*lKsi[2])*lModKsi;
-      r     = 2.0e0*gf/du - 1.0e0;
-      cvc   = 0.5e0*limitFaceBase(r ,iCod)*du;
-    }
-    else{
-      du    = u0[nAresta] - u0[idCell] + eps;
-      gf    = (gradUp[0]*lKsi[0] 
-             + gradUp[1]*lKsi[1]
-             + gradUp[2]*lKsi[2])*lModKsi;
-      r     = 2.0e0*gf/du - 1.0e0;
-      cvc   = 0.5e0*limitFaceBase(r,iCod)*du;
-    }
+  if( cv < 0.0e0) {
+    du    = u0[idCell] - u0[nAresta] + eps;
+    gf    = gradUv[0]*lKsi[0] + gradUv[1]*lKsi[1];
+    if(ndm == 3) gf += gradUv[2]*lKsi[2];
+    gf  = -2.e0*gf*lModKsi;
+    r   = gf/du - 1.0e0;
+    cvc = 0.5e0*limitFaceBase(r ,iCod)*du;
+  }
+  else{
+    du    = u0[nAresta] - u0[idCell] + eps;
+    gf    = gradUp[0]*lKsi[0] + gradUp[1]*lKsi[1];
+    if(ndm == 3) gf += gradUp[2]*lKsi[2];
+    gf  = 2.e0*gf*lModKsi;
+    r   = gf/du - 1.0e0;
+    cvc  = 0.5e0*limitFaceBase(r,iCod)*du;
   }
  
   return cvc;
@@ -3953,7 +4012,7 @@ DOUBLE faceBaseTvd(short const nAresta    ,short const idCell
 
 /********************************************************************* 
  * Data de criacao    : 04/07/2016                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 19/11/2017                                   * 
  *-------------------------------------------------------------------* 
  * FACEBASETVDV1 : metodo TVD baseado na face                        * 
  *-------------------------------------------------------------------* 
@@ -3988,45 +4047,30 @@ DOUBLE faceBaseTvdV1(DOUBLE const uC     ,DOUBLE const uV
   DOUBLE du,r,cvc=0.0e0,gf;
   DOUBLE eps=1.e-14;
  
-  if(ndm == 2)
-    if( cv < 0.0e0) {
-      du    = uC - uV + eps;
-      gf    = -(gradUv[0]*lKsi[0] + gradUv[1]*lKsi[1])*lModKsi;
-      r     = 2.0e0*gf/du - 1.0e0;
-      cvc   = 0.5e0*limitFaceBase(r ,iCod)*du;
-    }
-    else{
-      du    = uV - uC + eps;
-      gf    = (gradUc[0]*lKsi[0] + gradUc[1]*lKsi[1])*lModKsi;
-      r     = 2.0e0*gf/du - 1.0e0;
-      cvc   = 0.5e0*limitFaceBase(r,iCod)*du;
-    }
-  else if(ndm == 3){
-    if( cv < 0.0e0) {
-      du    = uC - uV + eps;
-      gf    = -( gradUv[0]*lKsi[0] 
-               + gradUv[1]*lKsi[1]
-               + gradUv[2]*lKsi[2])*lModKsi;
-      r     = 2.0e0*gf/du - 1.0e0;
-      cvc   = 0.5e0*limitFaceBase(r ,iCod)*du;
-    }
-    else{
-      du    = uV - uC + eps;
-      gf    = (gradUc[0]*lKsi[0] 
-             + gradUc[1]*lKsi[1]
-             + gradUc[2]*lKsi[2])*lModKsi;
-      r     = 2.0e0*gf/du - 1.0e0;
-      cvc   = 0.5e0*limitFaceBase(r,iCod)*du;
-    }
+  if( cv < 0.0e0) {
+    du  = uC - uV + eps;
+    gf  = gradUv[0]*lKsi[0] + gradUv[1]*lKsi[1];
+    if(ndm == 3) gf += gradUv[2]*lKsi[2];
+    gf  =-2.e0*gf*lModKsi;
+    r   = gf/du - 1.0e0;
+    cvc = 0.5e0*limitFaceBase(r ,iCod)*du;
   }
- 
+  else{
+    du    = uV - uC + eps;
+    gf    = gradUc[0]*lKsi[0] + gradUc[1]*lKsi[1];
+    if(ndm == 3) gf += gradUc[2]*lKsi[2];
+    gf    = 2.e0*gf*lModKsi;
+    r     = gf/du - 1.0e0;
+    cvc   = 0.5e0*limitFaceBase(r,iCod)*du;
+  }
+
   return cvc;
 } 
 /*********************************************************************/ 
 
 /*********************************************************************
 * Data de criacao    : 22/08/2016                                   *
-* Data de modificaco : 00/00/0000                                   *
+* Data de modificaco : 19/11/2017                                   *
 *-------------------------------------------------------------------*
 * FACEBANVD :                                                       *
 *-------------------------------------------------------------------*
@@ -4055,52 +4099,36 @@ DOUBLE faceBaseNvd(DOUBLE const uP        ,DOUBLE const uV
                   ,short const iCod       ,short const ndm)
 {
 
-  DOUBLE phiCtil, du, cvc = 0.0e0, gf,phiFtil;
+  DOUBLE phiCtil, du, cvc = 0.0e0, gf,par[2];
   DOUBLE eps = 1.e-32;
 
-  if (ndm == 2){
-/*... phiC = uV phiD = uP*/
-    if (m < 0.0e0) {
-      gf      =-2.e0*(gradUv[0]*lKsi[0] + gradUv[1]*lKsi[1])*lModKsi;
-      if ( gf == 0.e0) gf += eps;
-      du      = uV - uP;
-      phiCtil = du/gf + 1.e0;
-      phiFtil = nvd(phiCtil,iCod);
-      cvc     = uP + (phiFtil - 1.e0)*gf - uV;
-    }
-/*... phiC = uP phiD = uV*/
-    else {
-      gf      = 2.e0*(gradUp[0]*lKsi[0] + gradUp[1]*lKsi[1])*lModKsi;
-      if (gf == 0.e0) gf += eps;
-      du      = uP - uV;
-      phiCtil = du/gf + 1.e0;
-      phiFtil = nvd(phiCtil, iCod);
-      cvc     = uV + (phiFtil - 1.e0)*gf - uP;
-    }
+  
+/*... phiC = uV; phiD = uP*/
+  if (m < 0.0e0) {
+    gf      = gradUv[0]*lKsi[0] + gradUv[1]*lKsi[1];
+    if (ndm == 3) gf += gradUv[2]*lKsi[2];
+    gf = -2.e0*gf*lModKsi + eps;
+    du      = uV - uP;
+    phiCtil = du/gf + 1.e0;
+    nvd(phiCtil,par,iCod);
+    cvc     = (par[0] - 1.0)*uV + par[1]*uP
+            + (1.0-par[0]-par[1])*(uP - gf);
+//  printf("%e %e %e %e\n",par[0],par[1],gf,phiCtil);
+//  cvc     = uP + (phiFtil - 1.e0)*gf - uV;
   }
-  else if (ndm == 3) {
-    if (m < 0.0e0) {
-      gf = -2.e0*(gradUv[0]*lKsi[0] 
-         + gradUv[1]*lKsi[1]
-         + gradUv[2]*lKsi[2])*lModKsi;
-      if (gf == 0.e0) gf += eps;
-      du = uV - uP;
-      phiCtil = du / gf + 1.e0;
-      phiFtil = nvd(phiCtil, iCod);
-      cvc = uP + (phiFtil - 1.e0)*gf - uV;
-    }
-    /*... phiC = uP phiD = uV*/
-    else {
-      gf = 2.e0*(gradUp[0]*lKsi[0]
-         + gradUp[1]*lKsi[1]
-         + gradUp[2]*lKsi[2])*lModKsi;
-      if (gf == 0.e0) gf += eps;
-      du = uP - uV;
-      phiCtil = du / gf + 1.e0;
-      phiFtil = nvd(phiCtil, iCod);
-      cvc = uV + (phiFtil - 1.e0)*gf - uP;
-    }
- }
+/*... phiC = uP; phiD = uV*/
+  else {
+    gf      = gradUp[0]*lKsi[0] + gradUp[1]*lKsi[1];
+    if (ndm == 3) gf += gradUp[2]*lKsi[2];
+    gf = 2.e0*gf*lModKsi + eps;
+    du      = uP - uV;
+    phiCtil = du/gf + 1.e0;
+    nvd(phiCtil,par, iCod);
+    cvc     = (par[0] - 1.0)*uP + par[1]*uV
+            + (1.0-par[0]-par[1])*(uV - gf); 
+//  printf("%e %e %e %e\n",par[0],par[1],gf,phiCtil);
+//  cvc     = uV + (phiFtil - 1.e0)*gf - uP;
+  }
 
   return cvc;
 }
@@ -4108,7 +4136,7 @@ DOUBLE faceBaseNvd(DOUBLE const uP        ,DOUBLE const uV
 
 /*********************************************************************
 * Data de criacao    : 22/08/2016                                   *
-* Data de modificaco : 00/00/0000                                   *
+* Data de modificaco : 19/11/2017                                   *
 *-------------------------------------------------------------------*
 * SETNVD :                                                          *
 *-------------------------------------------------------------------*
@@ -4127,58 +4155,70 @@ DOUBLE faceBaseNvd(DOUBLE const uP        ,DOUBLE const uV
 void setNvd(char *word, short *iCod)
 {
   short i;
-  char fNvd[][WORD_SIZE] =
-  { "BCD"    ,"Muscl"
-  ,"Smart"   ,"ModSmart"
-  ,"SuperBee","ModSuperBee"
-  ,"Stoic" };
+  char scheme_nvd[][20] ={"BCD"        ,"MUSCL"   ,"Smart"
+                         ,"ModSmart"   ,"SuperBee","ModSuperBee"
+                         ,"Stoic"      ,"MinMod"  ,"ModBCD"};
 
 /*...*/
-  if (!strcmp(word,fNvd[0])) {
+  if (!strcmp(word,scheme_nvd[0])) {
     *iCod = BCD_NVD;
     if (!mpiVar.myId) printf("iCod  : BCD\n");
   }
 /*...................................................................*/
 
 /*...*/
-  else if (!strcmp(word, fNvd[1])) {
+  else if (!strcmp(word, scheme_nvd[1])) {
     *iCod = MUSCL_NVD;
     if (!mpiVar.myId) printf("iCod  : Muscl\n");
   }
 /*...................................................................*/
 
 /*...*/
-  else if (!strcmp(word, fNvd[2])) {
+  else if (!strcmp(word, scheme_nvd[2])) {
     *iCod = SMART_NVD;
     if (!mpiVar.myId) printf("iCod  : Smart\n");
   }
 /*...................................................................*/
 
 /*...*/
-  else if (!strcmp(word, fNvd[3])) {
+  else if (!strcmp(word, scheme_nvd[3])) {
     *iCod = MSMART_NVD;
     if (!mpiVar.myId) printf("iCod  : ModSmart\n");
   }
 /*...................................................................*/
 
 /*...*/
-  else if (!strcmp(word, fNvd[4])) {
+  else if (!strcmp(word, scheme_nvd[4])) {
     *iCod = SUPERBEE_NVD;
     if (!mpiVar.myId) printf("iCod  : SuperBee\n");
   }
 /*...................................................................*/
 
 /*...*/
-  else if (!strcmp(word, fNvd[5])) {
+  else if (!strcmp(word, scheme_nvd[5])) {
     *iCod = MSUPERBEE_NVD;
     if (!mpiVar.myId) printf("iCod  : ModSuperBee\n");
   }
 /*...................................................................*/
 
 /*...*/
-  else if (!strcmp(word, fNvd[6])) {
+  else if (!strcmp(word, scheme_nvd[6])) {
     *iCod = STOIC_NVD;
     if (!mpiVar.myId) printf("iCod  : Stoic\n");
+  }
+/*...................................................................*/
+
+/*...*/
+  else if (!strcmp(word, scheme_nvd[7])) {
+    *iCod = MINMOD_NVD;
+    if (!mpiVar.myId) printf("iCod  : MinMod\n");
+  }
+/*...................................................................*/
+
+/*...*/
+  else if (!strcmp(word, scheme_nvd[8])) {
+    *iCod = MBCD_NVD;
+    if (!mpiVar.myId) printf("iCod  : MBCD\n");
   }
 /*...................................................................*/
 
@@ -4191,7 +4231,7 @@ void setNvd(char *word, short *iCod)
            , __FILE__, __func__, __LINE__);
     printf("Funcoes disponiveis:\n");
     for (i = 0; i< NFUNCNVD; i++)
-      printf("%s\n", fNvd[i]);
+      printf("%s\n", scheme_nvd[i]);
     exit(EXIT_FAILURE);
   }
   /*...................................................................*/
@@ -5271,8 +5311,8 @@ void advectiveScheme(DOUBLE *RESTRICT velC   ,DOUBLE *RESTRICT velV
                           ,ksi         ,modKsi
                           ,m
                           ,iCod2       ,ndm);
-    /*... interpolacao undirecional*/
-      cvc[0] -= MAT2D(0, 0, gradVelComp, 3)*vSkew[0]
+/*... interpolacao undirecional*/
+/*    cvc[0] -= MAT2D(0, 0, gradVelComp, 3)*vSkew[0]
               + MAT2D(0, 1, gradVelComp, 3)*vSkew[1]
               + MAT2D(0, 2, gradVelComp, 3)*vSkew[2];
 
@@ -5282,7 +5322,7 @@ void advectiveScheme(DOUBLE *RESTRICT velC   ,DOUBLE *RESTRICT velV
 
       cvc[2] -= MAT2D(2, 0, gradVelComp, 3)*vSkew[0]
               + MAT2D(2, 1, gradVelComp, 3)*vSkew[1]
-              + MAT2D(2, 2, gradVelComp, 3)*vSkew[2];
+              + MAT2D(2, 2, gradVelComp, 3)*vSkew[2];*/
 /*...................................................................*/
     }
 /*...................................................................*/
@@ -5419,12 +5459,12 @@ void advectiveSchemeScalar(DOUBLE const uC, DOUBLE const uV
 /*...................................................................*/
 
 /*... interpolacao undirecional*/
-    if (ndm == 2)
+/*  if (ndm == 2)
       *cvc -= gradUcomp[0]*vSkew[0] + gradUcomp[1]*vSkew[1];
     else if (ndm == 3)
       *cvc -= gradUcomp[0]*vSkew[0]
             + gradUcomp[1]*vSkew[1]
-            + gradUcomp[2]*vSkew[2];
+            + gradUcomp[2]*vSkew[2];*/
 /*...................................................................*/
   break;
 /*...................................................................*/

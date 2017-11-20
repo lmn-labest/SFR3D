@@ -2656,16 +2656,14 @@ void help(FILE *f){
 /*... adveccao*/
   char fAdv[][WORD_SIZE] =                                   
                          { "FoUp","CD","SoUp"                /* 0, 1, 2*/
-                          ,"TVD" ,"NVD"};                    /* 3, 4*/
-
-  char nvd[][WORD_SIZE] =
-                {"BCD"        ,"MUSCL"   ,"Smart"             /* 0, 1, 2*/
-                ,"ModSmart"   ,"SuperBee","ModSuperBee"       /* 3, 4, 5*/
-                ,"Stoic" };                                   /* 6*/
-  
+                          ,"TVD" ,"NVD"};                    /* 3, 4*/  
   char tvd[][WORD_SIZE]=
                          {"VanLeer" ,"VanAlbada","MidMod "   /* 0, 1, 2*/
                          ,"Osher"   ,"SuperBee"};            /* 3, 4*/
+
+  char scheme_nvd[][20] ={"BCD"        ,"MUSCL"   ,"Smart"       /* 0, 1, 2*/
+                         ,"ModSmart"   ,"SuperBee","ModSuperBee" /* 3, 4, 5*/
+                         ,"Stoic"      ,"MinMod"  ,"ModBCD"};    /* 5, 6, 7*/
 /*....................................................................*/
 
   int i;                                                     
@@ -2698,11 +2696,11 @@ void help(FILE *f){
     printf("Ex2:\n"); 
     printf("advection 2 Vel NVD [options] Energy TVD [opitions]\n");
     printf("TVD options:\n");
-    for(i=0;i<5;i++)
+    for(i=0;i<NFUNCLIMTFACE;i++)
       printf("%3d - %s\n",i+1,tvd[i]);
     printf("NVD options:\n");
-    for(i=0;i<7;i++)
-      printf("%3d - %s\n",i+1,nvd[i]);
+    for(i=0;i<NFUNCNVD;i++)
+      printf("%3d - %s\n",i+1,scheme_nvd[i]);
     exit(EXIT_FAILURE);
   }
 /*.....................................................................*/
