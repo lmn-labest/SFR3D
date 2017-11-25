@@ -842,7 +842,7 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
       printf("%s\n", DIF);
       printf("%s\n", word);
       strcpy(macros[nmacro++], word);
-      rflag[30] = true;
+      rflag[31] = true;
       printf("loading uniformVel ...\n");
       uniformField(mesh->elm.vel, mesh->numel, ndm, file);
       printf("done.\n");

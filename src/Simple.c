@@ -1572,8 +1572,8 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
   printf("Time(s) : %lf \n", timei);
   if (sc->ddt.flag)
     printf("CFL                  : %lf\n", cfl);
-  printf("Reynolds             : %lf\n", reynolds);
-  printf("Peclet               : %lf\n", peclet);
+  printf("Reynolds             : %.3e\n", reynolds);
+  printf("Peclet               : %.3e\n", peclet);
   printf("PresRef              : %lf\n", thDynamic->pTh[2]);
   printf("(Inc    ) Mass/Mass0 : %lf\n", mesh->mass[1]/mesh->mass[0]);
   printf("(Average) Mass/Mass0 : %lf\n", mesh->mass[2]/mesh->mass[0]);

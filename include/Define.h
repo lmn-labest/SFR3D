@@ -149,6 +149,7 @@
   #define OPEN            10 
   #define CONVECTIONHEAT  11
   #define STATICWALL      -1  /*parede impermevel para escoamento*/
+  #define SLIP            12 /*parede perfeitamente lisa*/
 /*...................................................................*/
 
 /*...*/

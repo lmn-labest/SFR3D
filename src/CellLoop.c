@@ -5499,7 +5499,7 @@ void meshQuality(MeshQuality *mq
 
 /********************************************************************* 
  * Data de criacao    : 04/07/2016                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 24/11/2017                                   * 
  *-------------------------------------------------------------------* 
  * WALLFLUID : identifica as paredes impermeveis estaticas           * 
  *-------------------------------------------------------------------* 
@@ -5533,6 +5533,12 @@ void wallFluid(short *RESTRICT faceR ,INT *RESTRICT nelcon
 /*... parede estatic*/
         if(MAT2D(i,j,faceR,aux2) == 0){
           MAT2D(i,j,faceR,aux2) = STATICWALL;
+        }
+/*....................................................................*/
+
+/*... parede estatic*/
+        else if(MAT2D(i,j,faceR,aux2) == SLIP){
+          MAT2D(i,j,faceR,aux2) = 0;
         }
 /*....................................................................*/
       }
