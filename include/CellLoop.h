@@ -1306,6 +1306,9 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
   DOUBLE sizeCar(DOUBLE const volume,short const ndm);
   void vorticity(DOUBLE *RESTRICT w,DOUBLE *RESTRICT gradVel
                 ,const short ndm);
+  void stress(DOUBLE *RESTRICT s,DOUBLE *RESTRICT gradVel
+           ,DOUBLE const nu   ,DOUBLE const lambda
+           ,short const ndm);
 /*...................................................................*/
 
 #endif/*_CELLLOOP_H_*/

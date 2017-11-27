@@ -221,6 +221,9 @@ void writeVtkCell(int *el       ,short *nen ,short *type
 /*********************************************************************/
 
 /**********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 25/11/2017                                   * 
+ *-------------------------------------------------------------------* 
  * writeVtkProp :  escreve propriedades                               *
  * -------------------------------------------------------------------*
  * Parametro de entrada :                                             *
@@ -232,7 +235,7 @@ void writeVtkCell(int *el       ,short *nen ,short *type
  * s     -> nome do campo                                             *
  * cod1  -> true BINARY vtk false ASCII vtk                           *
  * cod2  -> 1 int; 2 double                                           *
- * cod3  -> 1 SCALAR ; 2 VECTORS                                      *
+ * cod3  -> 1 SCALAR ; 2 VECTORS; 3 TENSOR                            *
  *  f    -> ponteiro para o arquivo de saida                          *
  * -------------------------------------------------------------------*
  * Parametro de saida :                                               *
@@ -250,7 +253,7 @@ void writeVtkProp(int *iprop,double *dprop,INT n     ,int gdl
 /*===*/
    switch(cod2){
 /*... int*/
-     case 1:   
+     case INTEGER_VTK:   
        fprintf(f,"SCALARS %s int %d\n",s,gdl); 
        fprintf(f,"LOOKUP_TABLE default\n"); 
        for(i=0;i<n;i++){
@@ -263,9 +266,9 @@ void writeVtkProp(int *iprop,double *dprop,INT n     ,int gdl
 /*...................................................................*/
 
 /*... double*/
-     case 2:
+     case DOUBLE_VTK:
 /*...escalar*/
-       if(cod3 == 1){     
+       if(cod3 == SCALARS_VTK){     
          fprintf(f,"SCALARS %s double %d\n",s,gdl); 
          fprintf(f,"LOOKUP_TABLE default\n"); 
          for(i=0;i<n;i++){
@@ -275,8 +278,10 @@ void writeVtkProp(int *iprop,double *dprop,INT n     ,int gdl
          }  
          new_section(cod1,f);
        }
+/*...................................................................*/
+
 /*... vetorial*/
-       if(cod3 == 2){     
+       else if(cod3 == VECTORS_VTK){     
          fprintf(f,"VECTORS %s double\n",s); 
          for(i=0;i<n;i++){
 /*...*/
@@ -293,7 +298,20 @@ void writeVtkProp(int *iprop,double *dprop,INT n     ,int gdl
                write_double(dprop[i*gdl+j],cod1,f);
 /*...................................................................*/
            new_section(cod1,f); 
-         }  
+         }
+/*...................................................................*/
+       }
+/*...................................................................*/
+
+/*... tensor*/
+       else if(cod3 == TENSORS_VTK){     
+         fprintf(f,"TENSORS %s double\n",s); 
+         for(i=0;i<n;i++){
+           for(j=0;j<gdl*gdl;j++)
+             write_double(dprop[i*gdl*gdl+j],cod1,f);
+/*...................................................................*/
+           new_section(cod1,f); 
+         }   
          new_section(cod1,f);
        }
        break;
@@ -334,8 +352,8 @@ void writeVtkNodeProp(int *iprop,double *dprop,short cod1,short cod2
 /*===*/
 
 /*... escalar*/
-   if( cod2 == 1){
-     if( cod1 == 1 ){
+   if( cod2 == INTEGER_VTK){
+     if( cod1 == SCALARS_VTK ){
        fprintf(f,"SCALARS %s int %d\n",s,ndf); 
        fprintf(f,"LOOKUP_TABLE default\n"); 
        for(i=0;i<nnode;i++){
@@ -345,7 +363,7 @@ void writeVtkNodeProp(int *iprop,double *dprop,short cod1,short cod2
        }  
        new_section(cod,f);
      }  
-     else if( cod1 == 2 ){
+     else if( cod1 == DOUBLE_VTK ){
        fprintf(f,"SCALARS %s double %d\n",s,ndf); 
        fprintf(f,"LOOKUP_TABLE default\n"); 
        for(i=0;i<nnode;i++){
@@ -359,10 +377,10 @@ void writeVtkNodeProp(int *iprop,double *dprop,short cod1,short cod2
 /*...................................................................*/
 
 /*... vetorial*/
-   else if(cod2 == 2){
-     if( cod1 == 1 ){
+   else if(cod2 == VECTORS_VTK){
+     if( cod1 == INTEGER_VTK ){
      }
-     if( cod1 == 2 ){
+     if( cod1 == DOUBLE_VTK ){
        fprintf(f,"VECTORS %s double \n",s); 
        for(i=0;i<nnode;i++){
          if(ndf == 2){

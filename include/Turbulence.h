@@ -10,6 +10,7 @@
   #define E_WALLMODEL   9.793e0
   #define VANDRIEST    26.e0
   #define VONKARMAN     0.4187e0
+  #define DYNAMIC_CLIP  0.23e0
 
 /*...*/
   void turbulence(Loads *loadsVel           , Turbulence tModel     
@@ -27,7 +28,7 @@
      , short  *RESTRICT faceVelR            , short *RESTRICT faceVelL          
      , DOUBLE *RESTRICT vel                 , DOUBLE *RESTRICT gradVel         
      , DOUBLE *RESTRICT density             , DOUBLE *RESTRICT dViscosity         
-     , DOUBLE *RESTRICT eddyViscosity       , DOUBLE *RESTRICT yPlus      
+     , DOUBLE *RESTRICT eddyViscosity       , DOUBLE *RESTRICT wallPar       
      , short const maxNo                    , short const maxViz
      , short const ndm                      , INT const numel
      , short const ndf);        

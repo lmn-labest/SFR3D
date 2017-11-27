@@ -1,7 +1,7 @@
 #ifndef _WRITE_VTK_H_
   #define _WRITE_VTK_H_
-  #define INTEGER 1
-  #define DOUBLEV 2
+  
+
 /*...*/
   #include<stdio.h>
   #include<stdlib.h>
@@ -139,6 +139,9 @@
              ,int   const numel  ,int *nFace);
   void makeVorticity(DOUBLE *RESTRICT w, DOUBLE *RESTRICT gradVel
                     ,INT const n       , const short ndm);
+  void makeStress(DOUBLE *RESTRICT stress , DOUBLE *RESTRICT gradVel
+               ,DOUBLE *RESTRICT viscosity 
+               ,INT const n               , short const ndm);
 /*...................................................................*/
 
 #endif/*_WRITE_VTK_H_*/

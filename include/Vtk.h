@@ -1,5 +1,10 @@
 #ifndef _VTK_
   #define _VTK_
+  #define INTEGER_VTK 1
+  #define DOUBLE_VTK  2
+  #define SCALARS_VTK 1
+  #define VECTORS_VTK 2
+  #define TENSORS_VTK 3
   #include<stdio.h>
   #include<stdlib.h>
   #include<HccaStdBool.h>

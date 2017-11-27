@@ -183,7 +183,7 @@ int main(int argc,char**argv){
   opt.tConductivity = false;
   opt.vorticity     = false;
   opt.bconditions   = true;
-  opt.yPlus         = false;
+  opt.wallParameters= false;
   opt.stepPlotFluid[0] =  5;
   opt.stepPlotFluid[1] = opt.stepPlotFluid[0];
 /* ..................................................................*/
@@ -2858,7 +2858,7 @@ int main(int argc,char**argv){
                , mesh0->elm.eddyViscosity, mesh0->node.eddyViscosity
                , mesh0->elm.densityFluid , mesh0->elm.specificHeat
                , mesh0->elm.dViscosity   , mesh0->elm.tConductivity
-               , mesh0->elm.yPlus                  
+               , mesh0->elm.wallParameters                  
                , mesh0->nnode            , mesh0->numel  
                , mesh0->ndm              , mesh0->maxNo 
                , mesh0->numat            , ndfVel

@@ -112,7 +112,6 @@ void turbulence(Loads *lVel                 , Turbulence tModel
          lVel0[(MAX_NUM_FACE+1)*MAX_NDM],
          lEddyViscosity,lDviscosity,lWallPar[4];
            
-
 /*... loop nas celulas*/
   aux2    = maxViz+1;
   for(nel=0;nel<numel;nel++){
@@ -137,7 +136,7 @@ void turbulence(Loads *lVel                 , Turbulence tModel
 /*...*/
     for(j=0;j<ndm;j++){
        MAT2D(aux1,j,lVel0,ndm)  = MAT2D(nel,j,vel     ,ndm);
-      MAT2D(aux1, j, lCc, ndm) = MAT2D(nel, j, cc, ndm);
+       MAT2D(aux1, j, lCc, ndm) = MAT2D(nel, j, cc, ndm);
     }
 /*...................................................................*/
 
@@ -218,6 +217,9 @@ void turbulence(Loads *lVel                 , Turbulence tModel
     MAT2D(nel,1,wallPar,4) = lWallPar[1];
     MAT2D(nel,2,wallPar,4) = lWallPar[2];
     MAT2D(nel,3,wallPar,4) = lWallPar[3];
+/*...*/
+//  MAT2D(nel,0,dynamicLes,2) = lDynamicLes[0];
+//  MAT2D(nel,1,dynamicLes,2) = lDynamicLes[1];
 /*...................................................................*/
 
   }
@@ -531,21 +533,21 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
       density    = lDensity[idCell];
 /*...................................................................*/
 
-/*... |S| = |2S:S|*/
-      s[0] = g[0][0]; /*s11*/
-      s[1] = g[1][1]; /*s22*/
-      s[2] = g[2][2]; /*s33*/
+/*.. calculo Sij*/
+      s[0] = g[0][0];
+      s[1] = g[1][1];
+      s[2] = g[2][2];
       s[3] = 0.5e0*(g[0][1] + g[1][0]); /*s12*/
       s[4] = 0.5e0*(g[0][2] + g[2][0]); /*s13*/
       s[5] = 0.5e0*(g[1][2] + g[2][1]); /*s23*/
-
+/*... |S| = sqrt(2S:S)*/
       modS = doubleDotSym(s);
       modS = sqrt(2.e0*modS);
 /*...................................................................*/
  
 /*...*/
       delta = pow(volume[idCell],D1DIV3);
-      lMin = cs*delta;
+      lMin = cs*delta;      
       if (fWall) {
         tmp  = 1.e0-exp(-yPlusMax/VANDRIEST); 
         lMin = min(VONKARMAN*dMin,tmp*lMin); 
@@ -903,7 +905,7 @@ DOUBLE lesDynamic(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
         modS = doubleDotSym(s);
         modS = sqrt(2.e0*modS);
 /*... tesFilter( desinty*|s|s) -> vol*desinty*modS*s */
-        tmp              = volW*modS*density;
+        tmp                 = volW*modS*density;
         tFilterDenModSs[0] += tmp*s[0];  /*modS*s11*/
         tFilterDenModSs[1] += tmp*s[1];  /*modS*s22*/
         tFilterDenModSs[2] += tmp*s[2];  /*modS*s33*/
@@ -973,12 +975,12 @@ DOUBLE lesDynamic(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
     deltaT   = pow(volTotal      ,D2DIV3);
 
 /*... L*/
-    l[0] = tFilterDenVv[0] - tFilterDenV[0]*tFilterDenV[0];  /*l11*/
-    l[1] = tFilterDenVv[1] - tFilterDenV[1]*tFilterDenV[1];  /*l22*/
-    l[2] = tFilterDenVv[0] - tFilterDenV[2]*tFilterDenV[2];  /*l33*/
-    l[3] = tFilterDenVv[3] - tFilterDenV[0]*tFilterDenV[1];  /*l1v2*/
-    l[4] = tFilterDenVv[4] - tFilterDenV[0]*tFilterDenV[2];  /*l1v3*/
-    l[5] = tFilterDenVv[5] - tFilterDenV[1]*tFilterDenV[2];  /*l2v3*/
+    l[0] = tFilterDenVv[0] - tFilterDenV[0]*tFilterDenV[0]/tFilterDen;  /*l11*/
+    l[1] = tFilterDenVv[1] - tFilterDenV[1]*tFilterDenV[1]/tFilterDen;  /*l22*/
+    l[2] = tFilterDenVv[2] - tFilterDenV[2]*tFilterDenV[2]/tFilterDen;  /*l33*/
+    l[3] = tFilterDenVv[3] - tFilterDenV[0]*tFilterDenV[1]/tFilterDen;  /*l1v2*/
+    l[4] = tFilterDenVv[4] - tFilterDenV[0]*tFilterDenV[2]/tFilterDen;  /*l1v3*/
+    l[5] = tFilterDenVv[5] - tFilterDenV[1]*tFilterDenV[2]/tFilterDen;  /*l2v3*/
 /*... parte desviadora de L*/
     tmp   = D1DIV3*( l[0] + l[1] + l[2] );
     l[0] -=tmp;
@@ -998,13 +1000,15 @@ DOUBLE lesDynamic(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
     lm = l[0]*m[0] + l[1]*m[1] + l[2]*m[2]
        + 2.e0*( l[3]*m[3] + l[4]*m[4] + l[5]*m[5]);
 /*... MijMij*/
-    mm = doubleDotSym(m) + 1.e-64;      
+    mm = doubleDotSym(m);      
+    lm += 1.e-64;
+    mm += 1.e-64;
 /*... (cs)^2 = LijMij/MijMij*/
     cs = 0.5e0*lm/mm;
     if(cs < 0.e0)
-      cs = 0.e0;
-    else if(sqrt(cs) > 0.23e0)
-      cs = 0.23e0*0.23e0; 
+      cs = 0.e0; 
+    else if(sqrt(cs) > DYNAMIC_CLIP)
+      cs = DYNAMIC_CLIP*DYNAMIC_CLIP; 
 
   return cs*delta;
 }

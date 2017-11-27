@@ -176,7 +176,7 @@
     DOUBLE *rCellEnergy;/*residuo da celula*/
 /*... turbulencia*/
     DOUBLE *eddyViscosity; 
-    DOUBLE *yPlus;       
+    DOUBLE *wallParameters;       
   
 /*...*/
     DOUBLE *densityUd1; /*massa especifica do material uD1*/

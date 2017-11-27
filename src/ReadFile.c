@@ -259,9 +259,9 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
      zero(mesh->node.eddyViscosity, nn, DOUBLEC);
 
 /*... viscosidade turbulenta*/
-     HccaAlloc(DOUBLE, m, mesh->elm.yPlus
+     HccaAlloc(DOUBLE, m, mesh->elm.wallParameters
               , nel*4   , "wallParm", _AD_);
-     zero(mesh->elm.yPlus, nel*4, DOUBLEC);
+     zero(mesh->elm.wallParameters, nel*4, DOUBLEC);
 
 /*... densityFluid*/
      HccaAlloc(DOUBLE , m         , mesh->elm.densityFluid
@@ -2329,28 +2329,30 @@ void setPrintFluid(FileOpt *opt,FILE *file){
   char str[]={"end"};
   char word[WORD_SIZE];
   char macro[][WORD_SIZE] = 
-               {"cell"         ,"node"        ,"vel"          /* 0, 1, 2*/
-               ,"pres    "     ,"gradVel"     ,"gradPres"     /* 3, 4, 5*/
-               ,"temp"         ,"gradTemp"    ,"eddyViscosity"/* 6, 7, 8*/
-               ,"densityFluid" ,"specificHeat","dViscosity"   /* 9,10,11*/
-               ,"tConductivity","vorticity"   ,"yPlus"};      /*12,13,14*/
+               {"cell"         ,"node"        ,"vel"             /* 0, 1, 2*/
+               ,"pres"         ,"gradVel"     ,"gradPres"        /* 3, 4, 5*/
+               ,"temp"         ,"gradTemp"    ,"eddyViscosity"   /* 6, 7, 8*/
+               ,"densityFluid" ,"specificHeat","dViscosity"      /* 9,10,11*/
+               ,"tConductivity","vorticity"   ,"wallParameters"  /*12,13,14*/
+               ,"stress"};                                       /*15*/
   int tmp;
 
-  opt->fCell         = false;
-  opt->fNode         = false;
-  opt->vel           = false;
-  opt->pres          = false;
-  opt->energy        = false;
-  opt->gradVel       = false;
-  opt->gradPres      = false;
-  opt->gradEnergy    = false;
-  opt->eddyViscosity = false;
-  opt->densityFluid  = false;
-  opt->specificHeat  = false;
-  opt->dViscosity    = false;
-  opt->tConductivity = false;
-  opt->vorticity     = false;
-  opt->yPlus         = false;
+  opt->fCell          = false;
+  opt->fNode          = false;
+  opt->vel            = false;
+  opt->pres           = false;
+  opt->energy         = false;
+  opt->gradVel        = false;
+  opt->gradPres       = false;
+  opt->gradEnergy     = false;
+  opt->eddyViscosity  = false;
+  opt->densityFluid   = false;
+  opt->specificHeat   = false;
+  opt->dViscosity     = false;
+  opt->tConductivity  = false;
+  opt->vorticity      = false;
+  opt->wallParameters = false;
+  opt->stress         = false;
 
   fscanf(file,"%d",&tmp);
   opt->stepPlotFluid[0] = opt->stepPlotFluid[1] = (short) tmp;
@@ -2456,8 +2458,15 @@ void setPrintFluid(FileOpt *opt,FILE *file){
 
 /*...*/
     else if (!strcmp(word,macro[14])) {
-      opt->yPlus = true;
-      if (!mpiVar.myId) printf("print : yPlus\n");
+      opt->wallParameters = true;
+      if (!mpiVar.myId) printf("print : wallParameters\n");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word,macro[15])) {
+      opt->stress = true;
+      if (!mpiVar.myId) printf("print : stress\n");
     }
 /*.....................................................................*/
 
@@ -2647,12 +2656,13 @@ void help(FILE *f){
 
 
   char m1[][WORD_SIZE] = 
-               {"cell"         ,"node"        ,"vel"          /* 0, 1, 2*/
-               ,"pres"         ,"gradVel"     ,"gradPres"     /* 3, 4, 5*/
-               ,"temp"         ,"gradTemp"    ,"eddyViscosity"/* 6, 7, 8*/
-               ,"densityFluid" ,"specificHeat","dViscosity"   /* 9,10,11*/
-               ,"tConductivity","vorticity"   ,"yPlus" };     /*12,13,14*/
-
+               {"cell"         ,"node"        ,"vel"            /* 0, 1, 2*/
+               ,"pres"         ,"gradVel"     ,"gradPres"       /* 3, 4, 5*/
+               ,"temp"         ,"gradTemp"    ,"eddyViscosity"  /* 6, 7, 8*/
+               ,"densityFluid" ,"specificHeat","dViscosity"     /* 9,10,11*/
+               ,"tConductivity","vorticity"   ,"wallParameters" /*12,13,14*/ 
+               ,"stress"                                      };/*15*/
+  
 /*... adveccao*/
   char fAdv[][WORD_SIZE] =                                   
                          { "FoUp","CD" ,"SoUp"                /* 0, 1, 2*/
@@ -2683,7 +2693,7 @@ void help(FILE *f){
   else if(!strcmp(word,macro[1])){     
     printf("setPrintFluid 10 options end\n");
     printf("options:\n");
-    for(i=0;i<15;i++)
+    for(i=0;i<16;i++)
       printf("%3d - %s\n",i+1,m1[i]);
     exit(EXIT_FAILURE);
   }
