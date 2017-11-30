@@ -1370,7 +1370,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
         ,solvEnergy->tol      ,solvEnergy->maxIt
         ,sistEqEnergy->storage,solvEnergy->solver
         ,solvEnergy->fileSolv ,solvEnergy->log
-        ,true                 ,sistEqEnergy->unsym);
+        ,true                 ,sistEqEnergy->unsym);  
       tm.solvEnergy = getTimeC() - tm.solvEnergy;
     }
 /*...................................................................*/

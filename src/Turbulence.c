@@ -482,7 +482,7 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
   bool fWall = false;
   short i, j, nf, nCarg, idCell,type,wallType;
   INT vizNel;
-  DOUBLE modS, tmp, density, viscosityC, cs, s[6],delta;
+  DOUBLE modS, tmp, density, viscosityC, cs, s[6],delta,*iGradVel;
   DOUBLE wt,v[3],vParallel[3],lNormal[3],lMin,dMin, g[3][3]
         ,yPlus  ,uPlus,velB[3],yPlusMax, modSd, b[3][3];
   DOUBLE m[6],l[6],mm,lm,volTotal;
@@ -689,6 +689,30 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
 /*...................................................................*/
 
 /*...*/
+    case SIGMAMODEL: 
+/*...*/
+      cs       = tModel.cs*tModel.cs;
+      density  = lDensity[idCell];
+      delta    = pow(volume[idCell],D2DIV3);
+/*...................................................................*/
+
+/*... (cs*delta)^2*/
+      lMin = cs*delta;
+/*...................................................................*/
+
+/*... operador(grad(u))*/
+      iGradVel = &MAT3D(idCell,0,0,gradVel,3,3);
+      tmp = sigmaModel(s    ,iGradVel 
+                      ,nFace,ndm);
+/*...................................................................*/
+
+/*...*/   
+       *viscosity = density*lMin*tmp; 
+/*...................................................................*/
+      break;
+/*...................................................................*/
+
+/*...*/
     default: 
       ERRO_OP(__FILE__,__func__,type);
 /*...................................................................*/
@@ -811,7 +835,6 @@ DOUBLE wallModelHeat(DOUBLE const yPlus,DOUBLE const prM
   return tempPlus;
 }
 /*********************************************************************/
-
 
 /*********************************************************************
  * Data de criacao    : 24/10/2017                                   *
@@ -1012,6 +1035,8 @@ DOUBLE lesDynamic(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
 
   return cs*delta;
 }
+/********************************************************************/
+
 /*********************************************************************
  * Data de criacao    : 18/11/2017                                   *
  * Data de modificaco : 00/00/0000                                   *
@@ -1152,3 +1177,180 @@ bool  wallDist(Loads *lVel
 /*...................................................................*/
 
 }
+
+/*********************************************************************
+ * Data de criacao    : 27/11/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * LESDYNAMIC: Metodo dinamico para o calculo da constente do LES    *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * lViz      -> vizinhos da celula central                           *
+ * volume    -> volume da celula central                             *
+ * lDensity  -> massa especifica sem variacao temporal               *
+ * vel       -> campo de velocidades                                 *
+ * gradVel   -> gradiente rescontruido das velocidades               *
+ * nFace     -> numero de faces da celula central                    * 
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * retorna cs*delta                                                  *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ * delta a largura do filtro que é igual a raiz cubica do volume da  *
+ * celula central                                                    *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE sigmaModel(DOUBLE *RESTRICT s, DOUBLE *restrict gradVel 
+                , short const nFace , short const ndm) {
+
+  short i,idCell;
+  INT vizNel,ip[3];
+  DOUBLE g[9],gt[9],gtg[9],x[9],op;
+ 
+/*... tgg*/
+//g[0] = MAT2D(0,0,gradVel,3);
+//g[1] = MAT2D(0,1,gradVel,3);
+//g[2] = MAT2D(0,2,gradVel,3);
+//g[3] = MAT2D(1,0,gradVel,3);
+//g[4] = MAT2D(1,1,gradVel,3);
+//g[5] = MAT2D(1,2,gradVel,3);
+//g[6] = MAT2D(2,0,gradVel,3);
+//g[7] = MAT2D(2,1,gradVel,3);  
+//g[8] = MAT2D(2,2,gradVel,3);
+/*...*/
+//gt[0] = MAT2D(0,0,gradVel,3);
+//gt[1] = MAT2D(1,0,gradVel,3);
+//gt[2] = MAT2D(2,0,gradVel,3);
+//gt[3] = MAT2D(0,1,gradVel,3);
+//gt[4] = MAT2D(1,1,gradVel,3);
+//gt[5] = MAT2D(2,1,gradVel,3);
+//gt[6] = MAT2D(0,2,gradVel,3);
+//gt[7] = MAT2D(1,2,gradVel,3);  
+//gt[8] = MAT2D(2,2,gradVel,3);
+
+//dgemm(3,3,3,g,gt,gtg);
+/*... g11*/
+  g[0] = MAT2D(0,0,gradVel,3)*MAT2D(0,0,gradVel,3)
+       + MAT2D(0,1,gradVel,3)*MAT2D(0,1,gradVel,3)
+       + MAT2D(0,2,gradVel,3)*MAT2D(0,2,gradVel,3);
+/*... g12*/
+  g[1] = MAT2D(0,0,gradVel,3)*MAT2D(1,0,gradVel,3)
+       + MAT2D(0,1,gradVel,3)*MAT2D(1,1,gradVel,3)
+       + MAT2D(0,2,gradVel,3)*MAT2D(1,2,gradVel,3);
+/*... g13*/
+  g[2] = MAT2D(0,0,gradVel,3)*MAT2D(2,0,gradVel,3)
+       + MAT2D(0,1,gradVel,3)*MAT2D(2,1,gradVel,3)
+       + MAT2D(0,2,gradVel,3)*MAT2D(2,2,gradVel,3);
+/*... g21*/
+  g[3] = g[1];
+/*... g22*/
+  g[4] = MAT2D(1,0,gradVel,3)*MAT2D(1,0,gradVel,3)
+       + MAT2D(1,1,gradVel,3)*MAT2D(1,1,gradVel,3)
+       + MAT2D(1,2,gradVel,3)*MAT2D(1,2,gradVel,3);
+/*... g23*/
+  g[5] = MAT2D(1,0,gradVel,3)*MAT2D(2,0,gradVel,3)
+       + MAT2D(1,1,gradVel,3)*MAT2D(2,1,gradVel,3)
+       + MAT2D(1,2,gradVel,3)*MAT2D(2,2,gradVel,3);
+/*... g31*/
+  g[6] = g[2];   
+/*... g32*/              
+  g[7] = g[5];
+/*... g33*/
+  g[8] = MAT2D(2,0,gradVel,3)*MAT2D(2,0,gradVel,3)
+       + MAT2D(2,1,gradVel,3)*MAT2D(2,1,gradVel,3)
+       + MAT2D(2,2,gradVel,3)*MAT2D(2,2,gradVel,3);
+/*...................................................................*/
+
+/*... autovalores*/
+  cyclic_jacobi(g    ,x
+               ,s    ,ip
+               ,3    ,1.e-14
+               ,10000,false);  
+/*...................................................................*/
+
+/*... valores singulares de g*/
+  s[0] = sqrt(fabs(s[0]));
+  s[1] = sqrt(fabs(s[1]));
+  s[2] = sqrt(fabs(s[2]));
+/*...................................................................*/
+
+/*...*/  
+   op = s[2]*(s[0]-s[1])*(s[1]-s[2])/(s[0]*s[0]);  
+// printf("%e %e %e %e\n",s[0],s[1],s[2],op);
+/*...................................................................*/
+   return op;
+}
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * Data de criacao    : 27/11/2017                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * eigenValue3x3 : autovalores de uma matrix 3x3 simetrica           * 
+ *-------------------------------------------------------------------* 
+ * g -> matriz 3x3                                                   *
+ * s -> nao definido                                                 *  
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * s -> autovalores s1>s2>s3                                         *  
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void eigenValue3x3(DOUBLE *RESTRICT g, DOUBLE *RESTRICT s) {
+
+  DOUBLE i1,i2,i3,a1,a2,a3,tmp;
+
+/*... primeiro invariante*/
+  i1 =  MAT2D(0,0,g,3) + MAT2D(1,1,g,3) + MAT2D(2,2,g,3); 
+/*... segundo invariante*/
+  tmp = MAT2D(0,0,g,3)*MAT2D(0,0,g,3)   
+      + MAT2D(0,1,g,3)*MAT2D(1,0,g,3) 
+      + MAT2D(0,2,g,3)*MAT2D(2,0,g,3) 
+/*...*/
+      + MAT2D(1,0,g,3)*MAT2D(0,1,g,3) 
+      + MAT2D(1,1,g,3)*MAT2D(1,1,g,3) 
+      + MAT2D(1,2,g,3)*MAT2D(2,1,g,3) 
+/*...*/
+      + MAT2D(2,0,g,3)*MAT2D(0,2,g,3) 
+      + MAT2D(2,1,g,3)*MAT2D(1,2,g,3) 
+      + MAT2D(2,2,g,3)*MAT2D(2,2,g,3);
+  i2 = 0.5*(i1*i1 - tmp); 
+/*... terceiro incariante*/
+  i3 = MAT2D(0,0,g,3)*MAT2D(1,1,g,3)*MAT2D(2,2,g,3)  
+     + MAT2D(0,1,g,3)*MAT2D(1,2,g,3)*MAT2D(2,0,g,3)  
+     + MAT2D(0,2,g,3)*MAT2D(1,0,g,3)*MAT2D(2,1,g,3) 
+/*...*/ 
+     - MAT2D(2,0,g,3)*MAT2D(1,1,g,3)*MAT2D(0,2,g,3)  
+     - MAT2D(2,1,g,3)*MAT2D(1,2,g,3)*MAT2D(0,0,g,3) 
+     - MAT2D(2,2,g,3)*MAT2D(1,0,g,3)*MAT2D(0,1,g,3);  
+/*...*/
+  a1 = i1*i1 - 3.e0*i2;
+  a2 = 2.e0*i1*i1*i1 - 9.e0*i1*i2 + 27.e0*i3;
+/* ... problema de precisao que gera valore ligeiramente superiores a 1*/ 
+  tmp = 0.5*a2/pow(a1,1.5);
+  if(tmp > 1.0) 
+    tmp = 1.e0;
+  else if( tmp < -1.0)
+    tmp = -1.e0;
+
+  a3=D1DIV3*acos(tmp);;
+/* ..................................................................*/
+
+/*...*/
+  s[0] = D1DIV3*i1 + D2DIV3*sqrt(a1)*cos(a3);
+  s[1] = D1DIV3*i1 + D2DIV3*sqrt(a1)*cos(a3-D2DIV3*PI);
+  s[2] = D1DIV3*i1 + D2DIV3*sqrt(a1)*cos(a3-2.e0*D2DIV3*PI);
+
+  printf("Matrix:\n");
+  printf("%e %e %e\n%e %e %e\n%e %e %e\n"
+        ,MAT2D(0,0,g,3),MAT2D(0,1,g,3),MAT2D(0,2,g,3)
+        ,MAT2D(1,0,g,3),MAT2D(1,1,g,3),MAT2D(1,2,g,3)
+        ,MAT2D(2,0,g,3),MAT2D(2,1,g,3),MAT2D(2,2,g,3));
+
+  printf("%e %e %e %e\n",s[0],s[1],s[2],a3);
+}
+/*********************************************************************/

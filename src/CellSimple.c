@@ -2427,10 +2427,10 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 /*...................................................................*/
 
 /*...*/
-  dt        = ddt.dt[0];  
-  dt0       = ddt.dt[1];
-  typeTime  = ddt.type;
-  fTime      = ddt.flag;
+  dt       = ddt.dt[0];  
+  dt0      = ddt.dt[1];
+  typeTime = ddt.type;
+  fTime    = ddt.flag;
 /*...................................................................*/
 
 /*...*/  
@@ -2455,8 +2455,8 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 
 /*... propriedades da celula*/
   eddyViscosityC = eddyViscosityV = 0.0e0;
-  densityC  = lDensity[idCell];
-  viscosityC    = MAT2D(idCell, 0, lViscosity, 2);
+  densityC       = lDensity[idCell];
+  viscosityC     = MAT2D(idCell, 0, lViscosity, 2);
   if(fTurb) eddyViscosityC= MAT2D(idCell, 1, lViscosity, 2);
   effViscosityC = viscosityC + eddyViscosityC;
   densityRef = MAT2D(idCell, DENSITY, prop, MAXPROP);
@@ -2769,7 +2769,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
           + velC[2]*lNormal[2];
 
 /*... termos viscosos explicitos*/
-      aP    = viscosityC*lFarea;
+      aP    = effViscosityC*lFarea;
       p[0] += aP*( gradVelC[0][0]*lNormal[0] 
                  + gradVelC[1][0]*lNormal[1]  
                  + gradVelC[2][0]*lNormal[2]);
@@ -2875,9 +2875,15 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
         sPc[2] += aP*(1.e0 - lNormal[2] * lNormal[2]);
 /*...................................................................*/
 
-/*...*/
-        p[0] += aP*velC[1] * lNormal[1] * lNormal[0];
-        p[1] += aP*velC[0] * lNormal[0] * lNormal[1];
+/*... x*/
+        p[0]+= aP*(velC[1]*lNormal[0]*lNormal[1]
+                  +velC[2]*lNormal[0]*lNormal[2]);
+/*... y*/
+        p[1]+= aP*(velC[0]*lNormal[0]*lNormal[1]
+                  +velC[2]*lNormal[1]*lNormal[2]);
+/*... z*/
+        p[2]+= aP*(velC[0]*lNormal[0]*lNormal[2]
+                  +velC[1]*lNormal[1]*lNormal[2]);
       }
 /*...................................................................*/
     }
@@ -3307,16 +3313,16 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
 
 /*... derivadas direcionais*/
       gfKsi[0] = gf[0][0] * lKsi[0]
-        + gf[0][1] * lKsi[1]
-        + gf[0][2] * lKsi[2];
+               + gf[0][1] * lKsi[1]
+               + gf[0][2] * lKsi[2];
 /*...*/
       gfKsi[1] = gf[1][0] * lKsi[0]
-        + gf[1][1] * lKsi[1]
-        + gf[1][2] * lKsi[2];
+               + gf[1][1] * lKsi[1]
+               + gf[1][2] * lKsi[2];
 /*...*/
       gfKsi[2] = gf[2][0] * lKsi[0]
-        + gf[2][1] * lKsi[1]
-        + gf[2][2] * lKsi[2];
+               + gf[2][1] * lKsi[1]
+               + gf[2][2] * lKsi[2];
 /*...................................................................*/
 
 /*... gradiente compacto (Darwish e Moukalled)*/
@@ -3340,16 +3346,16 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
 /*... derivadas direcionais*/
 /*...*/
       gfKsi[0] = gradVelComp[0][0] * t[0]
-        + gradVelComp[0][1] * t[1]
-        + gradVelComp[0][2] * t[2];
+               + gradVelComp[0][1] * t[1]
+               + gradVelComp[0][2] * t[2];
 /*...*/
       gfKsi[1] = gradVelComp[1][0] * t[0]
-        + gradVelComp[1][1] * t[1]
-        + gradVelComp[1][2] * t[2];
+               + gradVelComp[1][1] * t[1]
+               + gradVelComp[1][2] * t[2];
 /*...*/
       gfKsi[2] = gradVelComp[2][0] * t[0]
-        + gradVelComp[2][1] * t[1]
-        + gradVelComp[2][2] * t[2];
+               + gradVelComp[2][1] * t[1]
+               + gradVelComp[2][2] * t[2];
 /*...................................................................*/
 
 /*... correcao nao-ortogonal*/
@@ -3366,15 +3372,15 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
       v[2] = lXm[2] - ccV[2];
-      advectiveScheme(velC, velV
-                      , gradVelC[0], gradVelV[0]
-                      , gradVelComp[0], lvSkew
-                      , lXmcc, v
-                      , lKsi, lModKsi
-                      , cv, cvc
-                      , alphaMenosUm  ,alpha
-                      , ndm
-                      , iCodAdv1, iCodAdv2);
+      advectiveScheme(velC          , velV
+                    , gradVelC[0]   , gradVelV[0]
+                    , gradVelComp[0], lvSkew
+                    , lXmcc         , v
+                    , lKsi          , lModKsi
+                    , cv            , cvc
+                    , alphaMenosUm  , alpha
+                    , ndm
+                    , iCodAdv1      , iCodAdv2);
 /*...................................................................*/
 
 /*...*/
@@ -3396,12 +3402,12 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
         v[2] = lXm[2] - ccV[2];
 
         p1 = presC + gradPresC[0] * lXmcc[0]
-          + gradPresC[1] * lXmcc[1]
-          + gradPresC[2] * lXmcc[2];
+           + gradPresC[1] * lXmcc[1]
+           + gradPresC[2] * lXmcc[2];
 
         p2 = presF + gradPresV[0] * v[0]
-          + gradPresV[1] * v[1]
-          + gradPresV[2] * v[2];
+           + gradPresV[1] * v[1]
+           + gradPresV[2] * v[2];
 
         pFace = 0.5e0*(p1 + p2);
       }
@@ -3442,16 +3448,16 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
 /*... termos viscosos explicitos*/
       aP = viscosityC*lFarea;
       p[0] += aP*(gradVelC[0][0] * lNormal[0]
-                  + gradVelC[1][0] * lNormal[1]
-                  + gradVelC[2][0] * lNormal[2]);
+                + gradVelC[1][0] * lNormal[1]
+                + gradVelC[2][0] * lNormal[2]);
 
       p[1] += aP*(gradVelC[0][1] * lNormal[0]
-                  + gradVelC[1][1] * lNormal[1]
-                  + gradVelC[2][1] * lNormal[2]);
+                + gradVelC[1][1] * lNormal[1]
+                + gradVelC[2][1] * lNormal[2]);
 
       p[2] += aP*(gradVelC[0][2] * lNormal[0]
-                  + gradVelC[1][2] * lNormal[1]
-                  + gradVelC[2][2] * lNormal[2]);
+                + gradVelC[1][2] * lNormal[1]
+                + gradVelC[2][2] * lNormal[2]);
 /*...................................................................*/
 
 /*...*/

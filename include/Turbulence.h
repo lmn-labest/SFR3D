@@ -1,10 +1,15 @@
 #ifndef _TURBULENCE_H_
   #define  _TURBULENCE_H_
 /*...*/
+  #include<math.h>
+/*...................................................................*/
+
+/*...*/
   #include<CellLoop.h>
   #include<Define.h>
   #include<Erro.h>
   #include<Mesh.h>
+  #include<Jacobi.h>
 /*...................................................................*/
 
   #define E_WALLMODEL   9.793e0
@@ -87,6 +92,11 @@ bool  wallDist(Loads *lVel
              , DOUBLE const viscosity   , DOUBLE const density
              , DOUBLE *yP               , DOUBLE *dWall     
              , short const wallType     , short const nFace );
+/*...................................................................*/
+
+/*...*/
+  DOUBLE sigmaModel(DOUBLE *RESTRICT s, DOUBLE *restrict gradVel 
+                , short const nFace , short const ndm);
 /*...................................................................*/
 
 #endif /*_TURBULENCE_H_*/

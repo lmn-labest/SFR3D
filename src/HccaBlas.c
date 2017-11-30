@@ -9,6 +9,7 @@
  * esta armazenada em um formato da familia CSR                       *
  * flopDot        -> FLOP para operacao produto interno               *
  * pordVet        -> produto vetorial                                 *
+ * dgemm          -> op matriz matriz para matriz cheia               * 
  *                                                                    *
  * ------------------------- VECTOR --------------------------------- *
  *                                                                    *
@@ -3646,4 +3647,42 @@ void mpiMatVecEllPack(INT const nEq  ,INT const *nAd
 /*==================================================================*/
 
 /*======================== level 3 =================================*/
+/*********************************************************************
+ * Data de criacao    : 28/11/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * dgemm: matrix matrix cheia                                        *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * ni        -> numera de linhas                                     *
+ * nj        -> volume da celula central                             *
+ * nk        -> massa especifica sem variacao temporal               *
+ * a         -> matriz a(i,k)                                        *
+ * b         -> matriz b(k,j)                                        *
+ * c         -> nao definido                                         * 
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * c         -> c(i,j)                                               *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void dgemm(INT const ni,INT const nj,INT const nk
+          ,DOUBLE *restrict a,DOUBLE *restrict b,DOUBLE *restrict c)
+{
+  int i,j,k;
+
+  
+  for(i=0;i<ni;i++)
+    for(j=0;j<nj;j++)
+      MAT2D(i,j,c,nk) = 0.0; 
+
+  for(k=0;k<nk;k++)
+    for(i=0;i<ni;i++)
+      for(j=0;j<nj;j++)
+        MAT2D(i,k,c,nk) += MAT2D(i,j,a,nj)* MAT2D(j,k,b,nk);
+
+}
 /*==================================================================*/

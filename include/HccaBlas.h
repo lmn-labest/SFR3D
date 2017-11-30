@@ -206,6 +206,8 @@
 /*==================================================================*/
 
 /*======================== level 3 =================================*/
+  void dgemm(INT const ni,INT const nj,INT const nk
+          ,DOUBLE *restrict a,DOUBLE *restrict b,DOUBLE *restrict c);
 /*==================================================================*/
 
 #endif /*_HCCABLAS_H_*/

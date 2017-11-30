@@ -11,6 +11,7 @@
   #define WALEMODEL   2
   #define VREMAN      3
   #define DYNAMIC     4
+  #define SIGMAMODEL  5
 /*...................................................................*/
 
 /*... NEAR-WALL_MODEL*/

@@ -2388,7 +2388,7 @@ void  leastSquare(Loads *loads
   short i,j,k,l;
 
 
-  for(l=0;l<1;l++){    
+  for(l=0;l<2;l++){    
 /*... um grau de liberdade*/  
     if(ndf == 1){
       uC[0] = u[idCell];  

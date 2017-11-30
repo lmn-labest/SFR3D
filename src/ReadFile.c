@@ -1960,7 +1960,7 @@ void readPropVar(PropVar *p,FILE *file){
 
 /*********************************************************************
  * Data de criacao    : 04/09/2017                                   *
- * Data de modificaco : 11/10/2017                                   *
+ * Data de modificaco : 29/11/2017                                   *
  *-------------------------------------------------------------------* 
  * READPROPVAR : propriedades variaveis                              * 
  *-------------------------------------------------------------------* 
@@ -1990,23 +1990,20 @@ void readModel(EnergyModel *e     , Turbulence *t
   char macros[][WORD_SIZE] = {"energy"  ,"turbulence","mass"
                              ,"momentum"};
 
-  char energy[][WORD_SIZE] = { "help"       , "presWork", "dissipation"
-                             , "residual"   , "Absolute", "temperature"
-                             , "entalphy"}; 
+  char energy[][WORD_SIZE] = { "preswork", "dissipation", "residual"  
+                             , "absolute", "temperature", "entalphy"}; 
 
-  char turbulence[][WORD_SIZE] = { "help" , "smagorinsky","wallModel"
-                                 , "wale" , "vreman"     ,"dynamic"}; 
+  char turbulence[][WORD_SIZE] = { "smagorinsky","wallmodel" , "wale"     
+                                 ,"vreman"      ,"dynamic"   , "sigmamodel"}; 
 
-  char mass[][WORD_SIZE] = { "help" , "lhsDensity","rhsDensity"}; 
+  char mass[][WORD_SIZE] = { "lhsdensity","rhsdensity"}; 
 
-  char momentom[][WORD_SIZE] = {"help" , "residual","Absolute"
-                               ,"presA", "presRef" ,"RhieChow"};
+  char momentum[][WORD_SIZE] = {"residual","absolute"
+                               ,"presa", "presref" ,"rhiechow"};
 
   char typeWallModel[][WORD_SIZE] ={"standard"};
   
-  char help[][WORD_SIZE] =  {"smagorinsky 0.2"
-                            ,"wallModel standard"
-                            ,"wale       0.325"};
+
 
   int i,nPar;
 
@@ -2025,15 +2022,9 @@ void readModel(EnergyModel *e     , Turbulence *t
         if(!mpiVar.myId)
           printf("EnergyModel:\n");  
         readMacro(file,word,false);
-/*... Help*/
-        if(!strcmp(word,energy[0])){    
-          if(!mpiVar.myId) 
-            printf("Help : nao implemenado!!\n");
-        }
-/*...................................................................*/
-
+        convStringLower(word);
 /*... PresWork*/
-        else if(!strcmp(word,energy[1])){    
+        if(!strcmp(word,energy[0])){    
           e->fPresWork = true;
           if(!mpiVar.myId && e->fPresWork) 
             printf("PresWork : Enable\n");
@@ -2041,7 +2032,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*...................................................................*/
 
 /*... Dissipation*/
-        else if(!strcmp(word,energy[2])){        
+        else if(!strcmp(word,energy[1])){        
           e->fDissipation = true;
           if(!mpiVar.myId && e->fDissipation) 
             printf("Dissipation : Enable\n");                           
@@ -2049,7 +2040,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*...................................................................*/
 
 /*... Residual*/
-        else if(!strcmp(word,energy[3])){
+        else if(!strcmp(word,energy[2])){
           e->fRes = true;
           if(!mpiVar.myId && e->fRes)
             printf("Residual : Enable\n");;
@@ -2057,7 +2048,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*...................................................................*/
 
 /*... Absolute*/
-        else if(!strcmp(word,energy[4])){
+        else if(!strcmp(word,energy[3])){
           e->fRes = false;
           if(!mpiVar.myId && e->fRes)
             printf("Absolute : Enable\n");;
@@ -2065,7 +2056,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*...................................................................*/
 
 /*... Temperatura*/
-        else if(!strcmp(word,energy[5])){
+        else if(!strcmp(word,energy[4])){
           e->fTemperature = true;
           if(!mpiVar.myId && e->fTemperature)
             printf("Temperatura : Enable\n");;
@@ -2073,7 +2064,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*...................................................................*/
 
 /*... Entalphy*/
-        else if(!strcmp(word,energy[6])){
+        else if(!strcmp(word,energy[5])){
           e->fTemperature = false;
           if(!mpiVar.myId && e->fTemperature)
             printf("Entalphy : Enable\n");;
@@ -2092,18 +2083,9 @@ void readModel(EnergyModel *e     , Turbulence *t
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++){
         readMacro(file,word,false);
-/*... Help*/
-        if(!strcmp(word,mass[0])){    
-          if(!mpiVar.myId){
-            printf("Help : nao implemenado!!\n");
-            exit(EXIT_FAILURE);
-          } 
-            
-        }
-/*...................................................................*/  
-
+        convStringLower(word);
 /*... Smagorinsky*/
-        else if(!strcmp(word,turbulence[1])){
+        if(!strcmp(word,turbulence[0])){
           t->fTurb = true;      
           t->type  = SMAGORINSKY;
           fscanf(file,"%lf",&t->cs);    
@@ -2114,7 +2096,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*...................................................................*/    
 
 /*... wallModel*/
-        else if(!strcmp(word,turbulence[2])){
+        else if(!strcmp(word,turbulence[1])){
           t->fWall = true;         
           readMacro(file,word,false); 
           if(!strcmp(word,"standard"))
@@ -2126,7 +2108,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*...................................................................*/
 
 /*... Wale*/
-        else if(!strcmp(word,turbulence[3])){
+        else if(!strcmp(word,turbulence[2])){
           t->fTurb = true;      
           t->type  = WALEMODEL;
           fscanf(file,"%lf",&t->cs);    
@@ -2137,7 +2119,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*...................................................................*/ 
 
 /*... Vreman*/
-        else if(!strcmp(word,turbulence[4])){
+        else if(!strcmp(word,turbulence[3])){
           t->fTurb = true;      
           t->type  = VREMAN;
           fscanf(file,"%lf",&t->cs);    
@@ -2148,14 +2130,26 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*...................................................................*/
 
 /*... dynamic-germano-lilly*/
-        else if(!strcmp(word,turbulence[5])){
+        else if(!strcmp(word,turbulence[4])){
           t->fTurb = true;      
           t->type  = DYNAMIC;
           if(!mpiVar.myId){ 
             printf("Dynamic\n");
           }
         }
+/*...................................................................*/
+
+/*... sigmaModel*/
+        else if(!strcmp(word,turbulence[5])){
+          t->fTurb = true;      
+          t->type  = SIGMAMODEL;
+          fscanf(file,"%lf",&t->cs);   
+          if(!mpiVar.myId){ 
+            printf("SigmaModel: Cw = %lf\n",t->cs);
+          }
+        }
 /*...................................................................*/ 
+ 
 
       }
 /*...................................................................*/
@@ -2171,15 +2165,9 @@ void readModel(EnergyModel *e     , Turbulence *t
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++){
         readMacro(file,word,false);
-/*... help*/
-        if(!strcmp(word,turbulence[0])){    
-          if(!mpiVar.myId) 
-            printf("Help : nao implemenado!!\n");
-        }
-/*...................................................................*/  
-
+        convStringLower(word);
 /*... LhsDensity*/
-        else if(!strcmp(word,mass[1])){
+        if(!strcmp(word,mass[0])){
           eMass->LhsDensity = true;          
           if(!mpiVar.myId && eMass->LhsDensity){ 
             printf("LhsDensity: Enable\n");
@@ -2188,7 +2176,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*...................................................................*/
 
 /*... RhsDensity*/
-        else if(!strcmp(word,mass[2])){
+        else if(!strcmp(word,mass[1])){
           eMass->RhsDensity = true;          
           if(!mpiVar.myId && eMass->RhsDensity){ 
             printf("RhsDensity: Enable\n");
@@ -2200,7 +2188,7 @@ void readModel(EnergyModel *e     , Turbulence *t
     }
 /*...................................................................*/
 
-/*... Momentom*/
+/*... Momentum*/
     else if(!strcmp(word,macros[3])){ 
       if(!mpiVar.myId)
         printf("MomentumEqModel:\n");    
@@ -2210,15 +2198,9 @@ void readModel(EnergyModel *e     , Turbulence *t
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++){
         readMacro(file,word,false);
-/*... help*/
-        if(!strcmp(word,turbulence[0])){    
-          if(!mpiVar.myId) 
-            printf("Help : nao implemenado!!\n");
-        }
-/*...................................................................*/  
-
+        convStringLower(word);
 /*... residual*/
-        else if(!strcmp(word,momentom[1])){
+        if(!strcmp(word,momentum[0])){
           eMomentum->fRes = true;          
           if(!mpiVar.myId && eMomentum->fRes){ 
             printf("Residual: Enable\n");
@@ -2227,7 +2209,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*...................................................................*/
 
 /*... Absolute*/
-        else if(!strcmp(word,momentom[2])){
+        else if(!strcmp(word,momentum[1])){
           eMomentum->fRes = false;            
           if(!mpiVar.myId && !eMomentum->fRes){ 
             printf("Absolute: Enable\n");
@@ -2236,7 +2218,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*...................................................................*/
 
 /*... presAbs*/
-        else if(!strcmp(word,momentom[3])){
+        else if(!strcmp(word,momentum[2])){
           eMomentum->fAbsultePressure = true;            
           if(!mpiVar.myId && eMomentum->fAbsultePressure ){ 
             printf("presAbs: Enable\n");
@@ -2245,7 +2227,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*...................................................................*/
 
 /*... presRef*/
-        else if(!strcmp(word,momentom[4])){
+        else if(!strcmp(word,momentum[3])){
           eMomentum->fAbsultePressure = false;            
           if(!mpiVar.myId && !eMomentum->fAbsultePressure ){ 
             printf("presRef: Enable\n");
@@ -2254,7 +2236,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*...................................................................*/
 
 /*... RhieChow*/
-        else if(!strcmp(word,momentom[5])){
+        else if(!strcmp(word,momentum[4])){
           eMomentum->fRhieChowInt = true;            
           if(!mpiVar.myId && eMomentum->fRhieChowInt){ 
             printf("RhieChowInt: Enable\n");
@@ -2641,7 +2623,7 @@ void help(FILE *f){
   char word[WORD_SIZE];
   char macro[][WORD_SIZE] = 
                {"macros"       ,"setprintfluid","advection"    /* 0, 1, 2*/
-               ,""             ,""             ,""             /* 3, 4, 5*/
+               ,"model"        ,""             ,""             /* 3, 4, 5*/
                ,""             ,""             ,""             /* 6, 7, 8*/
                ,""             ,""             ,""             /* 9,10,11*/
                ,""             ,""             ,""};           /*12,13,15*/
@@ -2676,8 +2658,30 @@ void help(FILE *f){
                          ,"Stoic"      ,"MinMod"  ,"ModBCD"};    /* 5, 6, 7*/
 /*....................................................................*/
 
+/*... model*/
+  char models[][WORD_SIZE] = {"energy"  ,"turbulence","mass"     /* 0, 1, 2*/
+                             ,"momentum"};                       /* 3*/
+  char energy[][WORD_SIZE] = { "preswork", "dissipation", "residual"  
+                             , "absolute", "temperature", "entalphy"}; 
+
+  char turbulence[][WORD_SIZE] = {"wallmodel type"  
+                                 ,"smagorinsky 0.1"
+                                 ,"wale 0.325"      
+                                 ,"vreman 0.1"     
+                                 ,"dynamic"  
+                                 ,"sigmamodel 1.35"}; 
+
+  char mass[][WORD_SIZE] = { "lhsDensity","rhsDensity"}; 
+
+  char momentum[][WORD_SIZE] = {"residual","Absolute"
+                               ,"presA", "presRef" ,"RhieChow"};
+
+  char typeWallModel[][WORD_SIZE] ={"standard"};
+/*....................................................................*/
+
   int i;                                                     
 
+  printf("Help:\n");
   readMacro(f,word,false);
   convStringLower(word);
 /*... macros*/
@@ -2715,6 +2719,39 @@ void help(FILE *f){
   }
 /*.....................................................................*/
 
+/*... model*/        
+  else if(!strcmp(word,macro[3])){   
+    printf("Ex1:\n"); 
+    printf("model\nenergy 2 presWork dissipation\n"
+           "turbulence 1 dynamic\nendModel\n\n"); 
 
+    printf("Models options:\n");
+    for(i=0;i<4;i++)
+      printf("%3d - %s\n",i+1,models[i]);
+
+    printf("Energy options:\n");
+    for(i=0;i<6;i++)
+      printf("%3d - %s\n",i+1,energy[i]);
+
+    printf("Turbulence options:\n");
+    for(i=0;i<6;i++)
+      printf("%3d - %s\n",i+1,turbulence[i]);
+
+    printf("WallModel options:\n");
+    for(i=0;i<1;i++)
+      printf("%3d - %s\n",i+1,typeWallModel[i]);
+
+    printf("Mass options:\n");
+    for(i=0;i<2;i++)
+      printf("%3d - %s\n",i+1,mass[i]);
+
+    printf("Momentum options:\n");
+    for(i=0;i<2;i++)
+      printf("%3d - %s\n",i+1,momentum[i]);
+
+    exit(EXIT_FAILURE);
+  }
+/*.....................................................................*/
+  exit(EXIT_FAILURE);
 }
 /*********************************************************************/
