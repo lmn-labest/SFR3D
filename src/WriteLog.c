@@ -54,6 +54,7 @@ void writeLog(Mesh mesh          ,Scheme sc
   fprintf(file,"Pcg                : %lf\n",t.pcg);
   fprintf(file,"Pbicgstab          : %lf\n",t.pbicgstab);
   fprintf(file,"Gmres              : %lf\n",t.gmres);
+  fprintf(file,"Pardiso            : %lf\n",t.pardiso);
   fprintf(file,"precondDiag        : %lf\n",t.precondDiag);
 
 /*... particionamento*/
@@ -337,6 +338,8 @@ void writeLog(Mesh mesh          ,Scheme sc
       fprintf(file,"Iterativo          : PBICGSTAB\n");
     else if (solvPres->solver == PBICGSTABL2)
       fprintf(file, "Iterativo          : PBICGSTAB(2)\n");
+    else if (solvPres->solver == PARDISO)
+      fprintf(file, "Ditero             : PARDISO\n");
   }
 /*...................................................................*/
 

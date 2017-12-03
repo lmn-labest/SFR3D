@@ -209,6 +209,7 @@
   #define PBICGSTABL2  3
   #define GMRES        4
   #define MINRES       5
+  #define PARDISO      6
 /*...................................................................*/
 
 /*... STORAGE*/

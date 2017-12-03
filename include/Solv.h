@@ -7,6 +7,21 @@
 /*...................................................................*/
 
 /*...*/
+  #if _MKL_
+    #if defined(MKL_ILP64)
+      #define MKL_INT long long
+    #else
+      #define MKL_INT int
+    #endif  
+    extern MKL_INT pardiso
+	  (void *, MKL_INT *, MKL_INT *, MKL_INT *, MKL_INT *, MKL_INT *,
+	  double *, MKL_INT *, MKL_INT *, MKL_INT *, MKL_INT *, MKL_INT *,
+	  MKL_INT *, double *, double *, MKL_INT *);
+    extern void mkl_set_num_threads(MKL_INT *nt);
+  #endif
+/*...................................................................*/
+
+/*...*/
   #include<PreCond.h>
   #include<HccaBlas.h>
   #include<Sisteq.h>
@@ -345,6 +360,15 @@
                 , bool const fHistLog, bool const fPrint
                 , BufferOmp *bOmp
                 , void(*matvec)(), DOUBLE(*dot)());
+/*...................................................................*/
+
+/*...*/
+  void callMklPardiso(INT const nEq     , INT const mtype
+                    , INT   *RESTRICT ia, INT   *RESTRICT ja
+                    , DOUBLE *RESTRICT a, DOUBLE *RESTRICT b
+                    , DOUBLE *RESTRICT x, DOUBLE *RESTRICT z  
+                    , DOUBLE *RESTRICT r                        
+                    , bool const fPrint);
 /*...................................................................*/
 /*===================================================================*/
 

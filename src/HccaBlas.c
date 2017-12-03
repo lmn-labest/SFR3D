@@ -44,7 +44,21 @@
  * dotOmpO6       -> produto interno entre dois vetores (OMP)         *
  * dotOmpO8       -> produto interno entre dois vetores (OMP)         *
  *                                                                    *
- * -------------------------- CSRD ---------------------------------- *
+ * ==================== MATRIX VETOR ESPARSO ======================== *
+ *                                                                    *
+ * __________________________ CSR ___________________________________ *
+ *                                                                    *
+ * ....................... SIMETRICA ................................ *
+ *                                                                    *
+ * matVecCsrSym -> matriz-vetor para matriz simetrica no formato      *           
+ * CSR (SEQ)                                                          *
+ *                                                                    *
+ * .......................... GERA .................................. *
+ *                                                                    *
+ * matVecCsr    -> matriz-vetor para matriz geral no formato CSR (SEQ)*                                                          *
+ * __________________________________________________________________ *
+ *                                                                    *
+ * __________________________ CSRD __________________________________ *
  *                                                                    *
  * ....................... SIMETRICA ................................ *
  *                                                                    *
@@ -52,7 +66,7 @@
  * CSRD (MPI)                                                         *
  *                                                                    *
  * =========================== MPI ================================== *
- *                                                                    *                                                                    *
+ *                                                                    *
  * ................... SIMETRICA - MPI (CSRD+CSR) ................... *
  *                                                                    *
  * mpiMatVecCsrDSym -> matizt vetor para matriz simetrica no formato  *           
@@ -85,7 +99,9 @@
  *                                                                    *
  * mpiMatVecCsrD ->matizt vetor para matriz simetrica no formato (MPI)*
  *                                                                    *
- * -------------------------- CSRC ---------------------------------- *
+ * __________________________________________________________________ *
+ *                                                                    *                                                                   *
+ * __________________________ CSRC __________________________________ *
  *                                                                    *
  * ................. ESTRUTURALMENTE SIMETRICA ...................... *
  *                                                                    *
@@ -104,7 +120,9 @@
  * mpiMatVecCsrComp -> matizt vetor para matriz simetrica no          *
  * formato CSRC (OMP)                                                 *
  *                                                                    *
- * ------------------------ ELLPACK --------------------------------- *
+ * __________________________________________________________________ *
+ *                                                                    *   
+ * ________________________ ELLPACK _________________________________ *
  *                                                                    *
  * ...........................GERAL ................................. *
  *                                                                    *
@@ -1948,6 +1966,123 @@ void matVecCsrDsymOmp(INT const nEq
 /*...................................................................*/
 }
 /*********************************************************************/
+
+/*********************** CSR  GERAL **********************************/
+
+/********************************************************************* 
+ * Data de criacao :    03 / 12 / 2017                               *
+ * Data de modificaco : 00 / 00 / 0000  				 	                   *
+ * ----------------------------------------------------------------- *
+ * MATVECCSR  :produto matriz vetor para uma matriz no formato CSR   * 
+ * (y=Ax, A uma matriz nao simentrica)                               * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * a   -> vetor com os valores da matriz fora diagonal               * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecCsr(INT const neq
+              ,INT *RESTRICT ia  ,INT *RESTRICT ja
+              ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+              ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y)
+{
+
+  INT i,j;
+  DOUBLE tmp;
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+
+  for(i=0;i<neq;i++){
+    tmp = 0.e0;
+    for(j=ia[i];j<ia[i+1];j++){
+      tmp += a[j]*x[ja[j]];
+    }
+    y[i] = tmp;
+  }
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+}
+/*********************************************************************/
+
+/*********************** CSR  SIMETRICA ******************************/
+
+/********************************************************************* 
+ * Data de criacao :    03 / 12 / 2017                               *
+ * Data de modificaco : 00 / 00 / 0000  				 	                   *
+ * ----------------------------------------------------------------- *
+ * matVevCsrSym :produto matriz vetor para uma matriz no formato CSR * 
+ * (y=Ax, A uma matriz simentrica)                                   *  
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * a   -> vetor com os valores da matriz fora diagonal               * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecCsrSym(INT const neq
+                 ,INT *RESTRICT ia  ,INT *RESTRICT ja
+                 ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
+                 ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y)
+{
+
+  INT    i,j,jak;
+  DOUBLE xi,tmp,sAu;
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+
+  for(i=0;i<neq;i++){
+    xi   = x[i];
+    tmp = y[i] = 0.e0;
+    for(j=ia[i];j<ia[i+1];j++){
+      jak = ja[j];
+      sAu = a[j];
+      if( i == ja[j] )
+        tmp += sAu*xi;
+      else{
+  /*... produto da linha i pelo vetor x*/
+        tmp    += sAu*x[jak];
+/*... produto dos coef. da parte superior da matriz por x(i)*/
+        y[jak] += sAu*xi;    
+      }
+    }
+    y[i] = tmp;
+  }
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+}
+/*********************************************************************/
+
 
 /*********************** CSRD GERAL **********************************/
 

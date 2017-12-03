@@ -570,6 +570,33 @@ void csr(INT    *RESTRICT  ia,INT *RESTRICT ja
   switch (storage){
 /*... estrutura CSR(ia,ja,a,b)*/
     case CSR:
+      lNeq = lId[nFace];
+/*... vetor de forcas*/
+      if(forces) 
+        b[lNeq] = lB[0];
+/*...................................................................*/
+
+/*... matriz de coefiencientes*/
+      if(matrix){ 
+        al       = a;
+        lNeq     = lId[nFace];
+        iPoint   = ia[lNeq];
+        iaKneq   = ia[lNeq+1];
+        for(k=0;k<nFace+1;k++){
+          lCol     = lId[k];
+          if(lCol > -1){
+            for(iak = iPoint; iak < iaKneq;iak++){
+              jak = ja[iak];
+              if( lCol == jak ) 
+                al[iak] = lA[k];  
+            }
+/*...................................................................*/
+          }      
+/*...................................................................*/
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
     break;
 /*...................................................................*/
 
@@ -1016,6 +1043,8 @@ void csrSimple(INT    *RESTRICT  ia,INT *RESTRICT ja
   switch (storage){
 /*... estrutura CSR(ia,ja,a,b)*/
     case CSR:
+      printf("Nao implementado!!\n");
+      exit(EXIT_FAILURE);
     break;
 /*...................................................................*/
 

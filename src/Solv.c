@@ -1,4 +1,5 @@
 #include<Solv.h>
+
 /**********************************************************************
  * Data de criacao    : 00/00/0000                                    *
  * Data de modificaco : 27/08/2016                                    *
@@ -435,6 +436,35 @@ void solverC(Memoria *m
     break;
 /*...................................................................*/
 
+/*... PARDISO MKL*/
+    case PARDISO:
+
+/*... arranjos auxiliares*/
+      HccaAlloc(DOUBLE,m,z,nEq,"z",false);
+      HccaAlloc(DOUBLE,m,r,nEq,"r",false);
+      zero(z,nEq,DOUBLEC);
+      zero(r,nEq,DOUBLEC);
+/*...................................................................*/
+
+/*... pardiso*/
+      tm.pardiso = getTimeC() - tm.pardiso;
+      callMklPardiso(nEq    , 2
+                   , ia     , ja
+                   , ad     , b
+                   , x      , z
+                   , r
+                   , true);  
+      tm.pardiso = getTimeC() - tm.pardiso;
+/*...................................................................*/
+      
+/*... liberando arranjos auxiliares*/
+      HccaDealloc(m,r,"r" ,false);
+      HccaDealloc(m,z,"z" ,false);
+/*...................................................................*/
+
+    break;
+/*...................................................................*/
+
 /*...*/
     default:
       ERRO_OP(__FILE__,__func__,solver);
@@ -446,7 +476,7 @@ void solverC(Memoria *m
 /*********************************************************************/      
 
 /**********************************************************************
- *SETSOLVER : escolhe o solver                                        *
+ *SetSolver : escolhe o solver (versao antiga)                        *
  **********************************************************************/
 void setSolver(char *word,short *solver)
 {
@@ -461,12 +491,14 @@ void setSolver(char *word,short *solver)
     *solver = GMRES;
  else if (!strcmp(word, "MINRES"))
     *solver = MINRES;
+  else if (!strcmp(word, "PARDISO"))
+    *solver = PARDISO;
 
 } 
 /*********************************************************************/      
 
 /**********************************************************************
- *SETSOLVER : escolhe o solver                                        *
+ *SerSolverConfig : escolhe o solver                                        *
  **********************************************************************/
 void setSolverConfig(char *word,Solv *solv,FILE *fileIn)
 {
@@ -555,6 +587,15 @@ void setSolverConfig(char *word,Solv *solv,FILE *fileIn)
   }
 /*...................................................................*/  
 
+/*...*/
+  else if(!strcmp(word,"PARDISO")){
+    solv->solver = PARDISO;   
+
+    if(!mpiVar.myId ) {
+      printf("Solver    : PARDISO\n");
+    }
+  }
+/*...................................................................*/  
 } 
 /*********************************************************************/      
 
@@ -663,7 +704,7 @@ void setDot(DOUBLE(**dotC)(),short const iCod) {
 
 /**********************************************************************
 * Data de criacao :    22 / 07 / 2016                                 *
-* Data de modificaco : 27 / 08 / 2016  															  *
+* Data de modificaco : 03 / 12 / 2017  															  *
 * ------------------------------------------------------------------- *
 * SETMATVEC: escolhe o produto matriz vetor desejado                  *
 * ------------------------------------------------------------------- *
@@ -687,7 +728,10 @@ void setMatVec(void (**matVecC)(),short const storage
 	switch (storage) {
 /*... armazenamento CSR(a)*/
 	case CSR:
-		*matVecC = NULL;
+    if(unSym)
+      *matVecC = matVecCsr;
+    else
+		  *matVecC = matVecCsrSym;
 		break;
 /*...................................................................*/
 
@@ -1286,3 +1330,145 @@ void callMinRes(INT const nEq     ,INT const nEqNov
 /*...................................................................*/
 }
 /*********************************************************************/
+
+/***********************************************************************
+ * Data de criacao    : 30/04/2016                                    *
+ * Data de modificaco : 00/00/0000                                    * 
+ * ------------------------------------------------------------------ *   
+ * CALL_PARDISO : chama o sover pardiso mkl                           *    
+ * ------------------------------------------------------------------ * 
+ * Parametros de entrada:                                             *
+ * ------------------------------------------------------------------ * 
+ * nEq      - numero de equacoes                                      *
+ * mtype    - -2 simetrico indefinido                                 *
+               2 simetrico positivo definido                          *
+ * ia(*)    - ponteiro das colunas no formato CSR                     *
+ * ja(*)    - ponteiro das colunas no formato CSR                     *
+ * a(*)     - matriz A                                                *
+ * b(neq)   - vetor de forcas                                         *
+ * x(neq)   - nao definido                                            *   
+ * z(neq)   - vetor auxiliar                                          *
+ * r(neq)   - vetor auxiliar                                          *
+ * ------------------------------------------------------------------ * 
+ * Parametros de saida:                                               *
+ * ------------------------------------------------------------------ *
+ * x(neq)      - vetor solucao                                        *
+  * ----------------------------------------------------------------- * 
+ * OBS:                                                               *
+ * ------------------------------------------------------------------ *
+ * A matriz simetrica guarda apenas a parte superior no formato CSR   *
+ * parada (ia,ja,a)                                                   *
+ **********************************************************************/ 
+void callMklPardiso(INT nEq           , INT mtype
+                  , INT   *RESTRICT ia, INT   *RESTRICT ja
+                  , DOUBLE *RESTRICT a, DOUBLE *RESTRICT b
+                  , DOUBLE *RESTRICT x, DOUBLE *RESTRICT z 
+                  , DOUBLE *RESTRICT r                        
+                  , bool const fPrint)
+{
+  
+  INT nThreads = ompVar.nThreadsSolver;
+  DOUBLE norm,normR,xKx,mem,ddum;
+/*... variavel interna do mkl( 64 btis)*/
+  void *pt[64];
+/*...*/
+  INT i,iparm[64],msglvl,error,idum;
+/*...*/
+  INT maxfct,mnum,phase,nrhs,time;
+/*...*/
+  error  = 0;
+  maxfct = 1;
+  mnum   = 1;
+  nrhs   = 1;
+/*...................................................................*/
+
+/*...................................................................*/
+  for (i = 0; i < 64; i++) {
+    pt[i]    = 0;
+    iparm[i] = 0;
+  }
+/*...................................................................*/
+
+/*... simetrico indefinido*/
+  if( mtype == -2){
+    iparm[0]  = 1;/*no solver default*/
+    iparm[1]  = 2;/*fill-in reordering from METIS*/
+    iparm[6]  = 2;/*numbers of iterative refinement steps*/
+    iparm[ 9] = 8;/*perturbe the pivot elements with 1E-08*/
+    iparm[20] = 1;/*Pivoting for symmetric indefinite matrices.*/                                 
+    iparm[23] = 0;/*Parallel factorization control.*/
+    iparm[34] = 1; /*C-style indexing*/
+  }
+/*...................................................................*/
+
+/*... simetrico definido positivo*/
+   else if( mtype == 2){
+     iparm[0]  = 1;/*no solver default*/
+     iparm[1]  = 2;/*fill-in reordering from METIS*/
+     iparm[6]  = 2;/*numbers of iterative refinement steps*/
+//   iparm[16] =-1;
+//   iparm[17] =-1;
+     iparm[23] = 0; /*Parallel factorization control.*/
+     iparm[34] = 1; /*C-style indexing*/
+   }             
+/*...................................................................*/
+
+/*...*/
+   time = getTimeC(); 
+/*...................................................................*/
+ 
+   for (i = 0; i < nEq; i++) 
+     r[i] = b[i] - z[i];
+/*...*/
+   phase = 13;       
+   msglvl = 1;
+#if _MKL_
+   mkl_set_num_threads(&nThreads);
+   pardiso (pt   , &maxfct, &mnum, &mtype, &phase
+          , &nEq , a      , ia   , ja
+          , &idum, &nrhs  , iparm, &msglvl, b, x, &error);
+#endif
+   time = getTimeC() - time;
+/*...................................................................*/
+ 
+/*...*/
+   mem = ( max(iparm[14], iparm[15] + iparm[16] ) )/1024e0;
+/*...................................................................*/
+  
+/*... produto:  x*Kx*/
+   matVecCsrSym(nEq,ia,ja,a,a,x,z);
+   xKx = dot(x,z,nEq);
+/*...................................................................*/  
+ 
+/*... norm-2 = || x ||*/
+   norm = sqrt(dot(x,x,nEq));
+/*....................................................................*/
+
+/*... Termination and release of memory*/
+   phase = -1;/*release internal memory*/
+   msglvl = 0;
+#if _MKL_
+   pardiso(pt    , &maxfct, &mnum, &mtype , &phase
+          , &nEq , &ddum, &idum  , &idum
+          , &idum, &nrhs  , iparm, &msglvl
+          , &ddum, &ddum  , &error);
+#endif
+/*....................................................................*/
+
+/*... r = (b - Ax) (calculo do residuo explicito)*/
+	for (i = 0; i < nEq; i++) 
+    r[i] = b[i] - z[i];
+
+  normR = dot(r, r, nEq);
+/*...*/
+  if(fPrint)
+	  printf(" (PARDISO) solver:\n"
+		  			"\tEquations      = %20d\n"
+ 			  		"\tx * Kx         = %20.2e\n"
+				    "\t|| x ||        = %20.2e\n"
+					  "\t|| b - Ax ||   = %20.2e\n"
+	          "\tCPU time(s)    = %20.2lf\n" 
+	          ,nEq,xKx,norm,normR,time);
+/*....................................................................*/
+}
+/**********************************************************************/

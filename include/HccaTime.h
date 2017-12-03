@@ -63,6 +63,8 @@
     double pbicgstab;
     double gmres;
     double minres;
+/*... direto*/
+    double pardiso;
 /*... precondicionador*/
     double precondDiag;
 /*... particionamento*/
@@ -84,4 +86,5 @@
   }Time;
   Time tm;
   double getTimeC(void);
+  void initTime(Time *tm);
 #endif/*_MYTIME_H_*/

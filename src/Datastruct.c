@@ -1,5 +1,8 @@
 #include<Sisteq.h>
 /********************************************************************* 
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 03/12/2017                                   *
+ * ------------------------------------------------------------------*
  * DATASTRUC: estrutura de dados para a matriz de coeficientes       * 
  *-------------------------------------------------------------------* 
  * Parametros iniciais:                                              * 
@@ -38,6 +41,73 @@ void dataStruct(Memoria *m      ,INT *id
    switch(type){
 /*... armazenamento CSR(a)*/
      case CSR:
+       diag = true;
+/*...*/
+       if(sistEqX->unsym){
+         upper = true;
+         lower = true;
+       }
+/*...*/
+       else{
+         upper = true;
+         lower = false;
+       }
+/*...................................................................*/
+       sistEqX->nadr = 0;
+       n1 = sistEqX->neq + 1; 
+       HccaAlloc(INT,m,sistEqX->ia,n1,strIa,_AD_);
+/*... */
+       nad = sistEqX->nad = csrIa(sistEqX->ia ,id 
+                             ,num         ,nelcon 
+                             ,nViz
+                             ,numel       ,sistEqX->neqNov
+                             ,maxViz      ,ndf
+                             ,upper       ,diag         
+                             ,lower       );
+/*...................................................................*/
+
+/*...*/
+       HccaAlloc(INT,m,sistEqX->ja   ,nad ,strJa   ,_AD_);
+       csrJa(sistEqX->ia ,sistEqX->ja,id ,num    
+           ,nelcon,nViz ,numel      ,sistEqX->neqNov, maxViz,ndf
+           ,upper,diag ,lower);
+/*...................................................................*/
+
+/*... reordenando o grafo*/
+       sortGraphCsr(sistEqX->ia,sistEqX->ja,sistEqX->neqNov);
+/*...................................................................*/
+
+/*... alocacao da matriz*/
+       HccaAlloc(DOUBLE         ,m    ,sistEqX->al
+               ,nad            ,strA ,false);
+       zero(sistEqX->al,nad,DOUBLEC);
+       sistEqX->ad = sistEqX->al;
+/*...................................................................*/
+
+/*... banda da matriz*/
+       sistEqX->bandCsr[BANDCSRMAX] 
+                = bandCsr(sistEqX->ia
+                         ,sistEqX->ja
+                         ,sistEqX->neqNov
+                         ,BANDCSRMAX);
+       sistEqX->bandCsr[BANDCSRMED] 
+               = bandCsr(sistEqX->ia
+                        ,sistEqX->ja
+                        ,sistEqX->neqNov
+                        ,BANDCSRMED);
+       
+       sistEqX->bandCsr[BANDCSRMIN] 
+               = bandCsr(sistEqX->ia
+                        ,sistEqX->ja
+                        ,sistEqX->neqNov
+                        ,BANDCSRMIN);
+
+       if(!mpiVar.myId  ) {
+         printf("band Maxima: %d\n",sistEqX->bandCsr[BANDCSRMAX]);
+         printf("band Media : %d\n",sistEqX->bandCsr[BANDCSRMED]);
+         printf("band Minima: %d\n",sistEqX->bandCsr[BANDCSRMIN]);
+       }
+/*...................................................................*/
      break;
 /*...................................................................*/
 
@@ -1097,9 +1167,16 @@ void dataStructSimple(Memoria *m      ,INT *id
 void setDataStruct(char *word,short *data)
 {
 
+/*... CSR*/
+  if(!strcmp(word,"CSR")){
+    printf("DataStruct: CSR\n");
+    *data = CSR;
+  }
+/*...................................................................*/
+
 /*... CSRD*/
-  if(!strcmp(word,"CSRD")){
-    printf("Solver    : PCG\n");
+  else if(!strcmp(word,"CSRD")){
+    printf("DataStruct: CSRD\n");
     *data = CSRD;
   }
 /*...................................................................*/

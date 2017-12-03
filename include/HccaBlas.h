@@ -60,6 +60,21 @@
 /*==================================================================*/
 
 /*======================== level 2 =================================*/
+
+/*... Csr*/
+  void matVecCsr(INT const neq           
+                    ,INT *RESTRICT ia   ,INT *RESTRICT ja
+                    ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
+                    ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y);
+/*...................................................................*/
+
+/*... CsrSym*/
+  void matVecCsrSym(INT const neq           
+                   ,INT *RESTRICT ia   ,INT *RESTRICT ja
+                   ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
+                   ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y);
+/*...................................................................*/
+
 /*... CsrDSym*/
   void matVecCsrDSym(INT const neq           
                     ,INT *RESTRICT ia   ,INT *RESTRICT ja
@@ -206,8 +221,9 @@
 /*==================================================================*/
 
 /*======================== level 3 =================================*/
-  void dgemm(INT const ni,INT const nj,INT const nk
-          ,DOUBLE *restrict a,DOUBLE *restrict b,DOUBLE *restrict c);
+  void hccaDgemm(INT const ni,INT const nj,INT const nk
+                ,DOUBLE *restrict a,DOUBLE *restrict b
+                ,DOUBLE *restrict c);
 /*==================================================================*/
 
 #endif /*_HCCABLAS_H_*/
