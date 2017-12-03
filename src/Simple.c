@@ -1274,7 +1274,8 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*... modelo de turbulencia*/
     if(turbModel.fTurb){
       tm.turbulence = getTimeC() - tm.turbulence;
-      turbulence(loadsVel            , turbModel               
+      turbulence(m
+            , loadsVel               , turbModel               
             , mesh->elm.node         , mesh->elm.adj.nelcon 
             , mesh->elm.nen          , mesh->elm.adj.nViz 
             , mesh->elm.geomType     , mesh->elm.material.prop 

@@ -24,6 +24,136 @@ static DOUBLE doubleDotSym(DOUBLE *t) {
 /*********************************************************************/
 
 /********************************************************************* 
+ * Data de criacao    : 30/11/2017                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * TURBULENCE: Calculo da viscosidae turbulenta                      *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * m     -> memoria principal                                        *
+ * el        -> conetividade dos celulas                             * 
+ * nelcon    -> vizinhos dos elementos                               * 
+ * nen       -> numero de nos por celulas                            * 
+ * nFace     -> numero de faces por celulas                          * 
+ * calType   -> tipo de calculo das celulas                          * 
+ * geomType  -> tipo geometrico das celulas                          * 
+ * prop      -> propriedades dos material                            * 
+ * mat       -> material por celula                                  * 
+ * cc        -> centroide das celulas                                * 
+ * gKsi      -> vetores que unem centroide da celula central aos     *
+ *              vizinhos destas                                      * 
+ * mKsi     -> modulo do vetor ksi                                   * 
+ * eta      -> vetores paralelos as faces das celulas                * 
+ * fArea    -> modulo do vetor eta                                   * 
+ * normal   -> vetores normais as faces das celulas                  * 
+ * volume   -> volumes das celulas                                   * 
+ * xm       -> pontos medios das faces das celulas                   * 
+ * xmcc     -> vetores que unem o centroide aos pontos medios das    * 
+ *              faces                                                * 
+ * vSkew    -> vetor entre o ponto medio a intersecao que une os     * 
+ *              centrois compartilhado nessa face                    * 
+ * mvSkew   -> distacia entre o ponto medio a intersecao que une os  * 
+ *              centrois compartilhado nessa face                    * 
+ * dcca     -> menor distancia do centroide a faces desta celula     * 
+ * gradVel   -> gradiente da solucao conhecido                       * 
+ * density   -> massa especifica com variacao temporal               *  
+ * eddyViscosity-> viscosidade turbulenta                            *
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
+ * maxNo     -> numero de nos por celula maximo da malha             * 
+ * maxViz    -> numero vizinhos por celula maximo da malha           * 
+ * ndm       -> numero de dimensoes                                  * 
+ * numel     -> numero de toral de celulas                           * 
+ * ndf       -> graus de liberdade                                   * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * eddyViscosity-> viscosidade turbulenta atualizada                 *
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void turbulence(Memoria *m
+      , Loads *lVel                 , Turbulence tModel             
+      , INT    *RESTRICT el                 , INT    *RESTRICT nelcon 
+      , short  *RESTRICT nen                , short  *RESTRICT nFace 
+      , short  *RESTRICT geomType           , DOUBLE *RESTRICT prop  
+      , short  *RESTRICT calType            , short  *RESTRICT mat        
+      , DOUBLE *RESTRICT cc                 , DOUBLE *RESTRICT ksi                      
+      , DOUBLE *RESTRICT mKsi               , DOUBLE *RESTRICT eta  
+      , DOUBLE *RESTRICT fArea              , DOUBLE *RESTRICT normal  
+      , DOUBLE *RESTRICT volume             , DOUBLE *RESTRICT xm  
+      , DOUBLE *RESTRICT xmcc               , DOUBLE *RESTRICT vSkew    
+      , DOUBLE *RESTRICT mvSkew             , DOUBLE *RESTRICT dcca  
+      , short  *RESTRICT faceRvel           , short *RESTRICT faceVelL               
+      , DOUBLE *RESTRICT vel                , DOUBLE *RESTRICT gradVel
+      , DOUBLE *RESTRICT densityFluid       , DOUBLE *RESTRICT dViscosity        
+      , DOUBLE *RESTRICT eddyViscosity      , DOUBLE *RESTRICT wallPar                        
+      , short const maxNo                   , short const maxViz
+      , short const ndm                     , INT const numel     
+      , short const ndf)                      
+{   
+  bool flag = false;
+  short type = tModel.type;
+  DOUBLE *dynamic=NULL;
+
+  HccaAlloc(DOUBLE,m,dynamic, numel*2,"dynamic"  ,_AD_); 
+/*...*/
+  switch (type) {  
+    case DYNAMIC:
+/*...*/ 
+      lesDynamicMean(nelcon,nen          , nFace 
+                    , volume      , vel   
+                    , gradVel     , densityFluid 
+                    , dynamic
+                    , maxNo        , maxViz         
+                    , ndm          , numel 
+                    , ndf); 
+/*...................................................................*/ 
+
+    case SMAGORINSKY:
+    case WALEMODEL:
+    case VREMAN: 
+    case SIGMAMODEL: 
+/*...*/ 
+      turbulenceCellLoop(lVel         , tModel               
+                   , el           , nelcon 
+                   , nen          , nFace 
+                   , geomType     , prop 
+                   , calType      , mat 
+                   , cc           , ksi 
+                   , mKsi         , eta     
+                   , fArea        , normal 
+                   , volume       , xm     
+                   , xmcc         , vSkew    
+                   , mvSkew       , dcca 
+                   , faceRvel     , faceVelL     
+                   , vel          , gradVel      
+                   , densityFluid , dViscosity
+                   , eddyViscosity, wallPar
+                   , dynamic   
+                   , maxNo        , maxViz         
+                   , ndm          , numel 
+                   , ndf); 
+/*...................................................................*/ 
+      break;
+/*...................................................................*/ 
+
+/*...*/
+    default: 
+      ERRO_OP(__FILE__,__func__,type);
+/*...................................................................*/ 
+  }
+
+/*...*/
+  HccaDealloc(m,dynamic,"dynamic",_AD_);
+/*...................................................................*/ 
+
+}
+/*********************************************************************/
+
+/********************************************************************* 
  * Data de criacao    : 11/09/2017                                   *
  * Data de modificaco : 20/11/2017                                   * 
  *-------------------------------------------------------------------* 
@@ -73,7 +203,7 @@ static DOUBLE doubleDotSym(DOUBLE *t) {
  * OBS:                                                              *
  *-------------------------------------------------------------------* 
   *********************************************************************/
-void turbulence(Loads *lVel                 , Turbulence tModel             
+void turbulenceCellLoop(Loads *lVel         , Turbulence tModel             
       , INT    *RESTRICT el                 , INT    *RESTRICT nelcon 
       , short  *RESTRICT nen                , short  *RESTRICT nFace 
       , short  *RESTRICT geomType           , DOUBLE *RESTRICT prop  
@@ -87,7 +217,8 @@ void turbulence(Loads *lVel                 , Turbulence tModel
       , short  *RESTRICT faceVelR           , short *RESTRICT faceVelL               
       , DOUBLE *RESTRICT vel                , DOUBLE *RESTRICT gradVel
       , DOUBLE *RESTRICT density            , DOUBLE *RESTRICT dViscosity        
-      , DOUBLE *RESTRICT eddyViscosity      , DOUBLE *RESTRICT wallPar                        
+      , DOUBLE *RESTRICT eddyViscosity      , DOUBLE *RESTRICT wallPar  
+      , DOUBLE *RESTRICT dynamic                 
       , short const maxNo                   , short const maxViz
       , short const ndm                     , INT const numel     
       , short const ndf)                      
@@ -109,7 +240,7 @@ void turbulence(Loads *lVel                 , Turbulence tModel
          lProp[(MAX_NUM_FACE+1)*MAXPROP],
          lCc[(MAX_NUM_FACE+1)*MAX_NDM],
          lGradVel[(MAX_NUM_FACE+1)*MAX_NDM*MAX_NDF],
-         lVel0[(MAX_NUM_FACE+1)*MAX_NDM],
+         lVel0[(MAX_NUM_FACE+1)*MAX_NDM],lDyn[(MAX_NUM_FACE+1)*2],
          lEddyViscosity,lDviscosity,lWallPar[4];
            
 /*... loop nas celulas*/
@@ -117,15 +248,16 @@ void turbulence(Loads *lVel                 , Turbulence tModel
   for(nel=0;nel<numel;nel++){
 /*...*/
     aux1    = nFace[nel];
-
 /*... loop na celula central*/    
-    lMat              = mat[nel]-1;
-    lib               = calType[lMat];
-    lVolume[aux1]     = gVolume[nel]; 
-    lGeomType[aux1]   = geomType[nel];
-    lFaceVelR[aux1]   = MAT2D(nel,aux1,faceVelR ,aux2);
-    lFaceVelL[aux1]   = MAT2D(nel,aux1,faceVelL ,aux2);
-    lDensity[aux1]    = MAT2D(nel,2   ,density ,DENSITY_LEVEL);
+    lMat                 = mat[nel]-1;
+    lib                  = calType[lMat];
+    lVolume[aux1]        = gVolume[nel]; 
+    lGeomType[aux1]      = geomType[nel];
+    lFaceVelR[aux1]      = MAT2D(nel,aux1,faceVelR ,aux2);
+    lFaceVelL[aux1]      = MAT2D(nel,aux1,faceVelL ,aux2);
+    lDensity[aux1]       = MAT2D(nel,2   ,density ,DENSITY_LEVEL);
+    MAT2D(aux1,0,lDyn,2) = MAT2D(nel,0,dynamic,2); 
+    MAT2D(aux1,1,lDyn,2) = MAT2D(nel,1,dynamic,2); 
 /*...*/
     lDviscosity       = dViscosity[nel];
 /*...*/      
@@ -173,6 +305,8 @@ void turbulence(Loads *lVel                 , Turbulence tModel
         lVolume[i]   = gVolume[vizNel]; 
         lGeomType[i] = geomType[vizNel];
         lDensity[i]  = MAT2D(vizNel,2   ,density ,DENSITY_LEVEL);
+        MAT2D(i,0,lDyn,2) = MAT2D(vizNel,0,dynamic,2); 
+        MAT2D(i,1,lDyn,2) = MAT2D(vizNel,1,dynamic,2); 
 
         lMat         = mat[vizNel]-1;
  
@@ -196,16 +330,16 @@ void turbulence(Loads *lVel                 , Turbulence tModel
      cellLibTurbulence(lVel            , tModel        
                       , lGeomType      , lProp
                       , lViz           , lKsi
-                      , lmKsi 
-                      , lEta           , lfArea 
-                      , lNormal        , lVolume
-                      , lXm            , lXmcc
-                      , lDcca          , lCc
-                      , lvSkew         , lmvSkew
-                      , lFaceVelR      , lFaceVelL 
-                      , lVel0          , lGradVel
-                      , lDensity       , lDviscosity 
-                      , &lEddyViscosity, lWallPar
+                      , lmKsi          , lEta  
+                      , lfArea         , lNormal        
+                      , lVolume        , lXm 
+                      , lXmcc          , lDcca  
+                      , lCc            , lvSkew         
+                      , lmvSkew        , lFaceVelR 
+                      , lFaceVelL      , lVel0   
+                      , lGradVel       , lDensity
+                      , lDviscosity    , &lEddyViscosity
+                      , lWallPar       , lDyn
                       , nen[nel]       , nFace[nel] 
                       , ndm            , lib   
                       , nel);    
@@ -217,11 +351,112 @@ void turbulence(Loads *lVel                 , Turbulence tModel
     MAT2D(nel,1,wallPar,4) = lWallPar[1];
     MAT2D(nel,2,wallPar,4) = lWallPar[2];
     MAT2D(nel,3,wallPar,4) = lWallPar[3];
+
+  }
+/*...................................................................*/
+}
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * Data de criacao    : 30/11/2017                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * lesDynamicMean : cacula do M:L e M:M separados para fazer a media *
+ * do LES dinamico                                                   *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * nelcon    -> vizinhos dos elementos                               * 
+ * nen       -> numero de nos por celulas                            * 
+ * nFace     -> numero de faces por celulas                          * 
+ * gradVel   -> gradiente da solucao conhecido                       * 
+ * density   -> massa especifica com variacao temporal               * 
+ * dynamic   -> nao definido                                         * 
+ * maxNo     -> numero de nos por celula maximo da malha             * 
+ * maxViz    -> numero vizinhos por celula maximo da malha           * 
+ * ndm       -> numero de dimensoes                                  * 
+ * numel     -> numero de toral de celulas                           * 
+ * ndf       -> graus de liberdade                                   * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * dynamic  -> retorna o produto M:L e M:M                           *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void lesDynamicMean(INT    *RESTRICT nelcon  , short  *RESTRICT nen    
+                  , short  *RESTRICT nFace   , DOUBLE *RESTRICT gVolume 
+                  , DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT gradVel 
+                  , DOUBLE *RESTRICT density , DOUBLE *RESTRICT dynamic                                  
+                  , short const maxNo        , short const maxViz
+                  , short const ndm          , INT const numel     
+                  , short const ndf)                      
+{   
+  short i,j,k;
+  INT nel,vizNel;
+  
+/*... variavel local */
+  short  aux1,aux2,lMat,lib;
+  INT    lViz[MAX_NUM_FACE];
+  DOUBLE lVolume[MAX_NUM_FACE+1],lDensity[(MAX_NUM_FACE+1)],
+         lGradVel[(MAX_NUM_FACE+1)*MAX_NDM*MAX_NDF],
+         lVel[(MAX_NUM_FACE+1)*MAX_NDM],lDynamic[2];
+           
+/*... loop nas celulas*/
+  aux2    = maxViz+1;
+  for(nel=0;nel<numel;nel++){
 /*...*/
-//  MAT2D(nel,0,dynamicLes,2) = lDynamicLes[0];
-//  MAT2D(nel,1,dynamicLes,2) = lDynamicLes[1];
+    aux1    = nFace[nel];
+
+/*... loop na celula central*/    
+    lVolume[aux1]     = gVolume[nel]; 
+    lDensity[aux1]    = MAT2D(nel,2   ,density ,DENSITY_LEVEL);
+
+/*...*/
+    for(j=0;j<ndm;j++){
+       MAT2D(aux1,j,lVel,ndm)  = MAT2D(nel,j,vel     ,ndm);
+    }
 /*...................................................................*/
 
+/*...*/
+    for(i=0;i<ndf;i++)
+      for(j=0;j<ndm;j++)
+        MAT3D(aux1, i, j, lGradVel, ndf, ndm) 
+                = MAT3D(nel, i, j, gradVel, ndf, ndm);
+/*...................................................................*/
+
+/*... loop na celulas vizinhas*/    
+    for(i=0;i<aux1;i++){
+      vizNel  = MAT2D(nel,i,nelcon,maxViz) - 1;
+      lViz[i] = vizNel;
+      if( vizNel != -2) {
+        lVolume[i]   = gVolume[vizNel]; 
+        lDensity[i]  = MAT2D(vizNel,2   ,density ,DENSITY_LEVEL);
+
+        for(j=0;j<ndm;j++){
+          MAT2D(i,j,lVel      ,ndm) = MAT2D(vizNel,j,vel     ,ndm);
+        }
+      
+        for(k=0;k<ndf;k++)
+          for(j=0;j<ndm;j++)
+            MAT3D(i,k,j,lGradVel,ndf,ndm) 
+                           = MAT3D(vizNel,k,j,gradVel,ndf,ndm);
+      }
+    }  
+/*...................................................................*/
+
+/*...*/
+    lesDynamic(lViz     , lVolume
+              , lDensity , lVel
+              , lGradVel , lDynamic 
+              , nFace[nel]);
+/*...................................................................*/
+
+/*...*/
+    MAT2D(nel,0,dynamic,2) = lDynamic[0];
+    MAT2D(nel,1,dynamic,2) = lDynamic[1];
+/*...................................................................*/
   }
 /*...................................................................*/
 }
@@ -306,7 +541,7 @@ void cellLes(Loads *lVel               , Turbulence tModel
   INT vizNel;
   DOUBLE modS, tmp, densityC, viscosityC, cs, s[3], gradVelC[2][2],delta;
   DOUBLE wt,velC[2],vParallel[2],lNormal[2],lMin,dMin
-        ,yPlus,uPlus,velB[2],yPlusMax;
+        ,yPlus,uPlus,velB[2],yPlusMax,par[MAXLOADPARAMETER];
 
 /*...*/
   cs         = tModel.cs;
@@ -342,8 +577,9 @@ void cellLes(Loads *lVel               , Turbulence tModel
           fWall = true;
 /*... velocidade da parede*/
           nCarg     = lFaceVelL[nAresta] - 1;
-          velB[0]   = loadsVel[nCarg].par[0];
-          velB[1]   = loadsVel[nCarg].par[1];
+          getLoads(par,loadsVel[nCarg]);
+          velB[0]   = par[0];
+          velB[1]   = par[1];
 /*...*/
           lNormal[0] = MAT2D(nAresta, 0, normal, ndm);
           lNormal[1] = MAT2D(nAresta, 1, normal, ndm);   
@@ -418,7 +654,7 @@ void cellLes(Loads *lVel               , Turbulence tModel
 
 /*********************************************************************
  * Data de criacao    : 03/10/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 30/11/2017                                   *
  *-------------------------------------------------------------------*
  * celLes3D: Calculo da viscosidae turbulenta para o LES             *
  *-------------------------------------------------------------------*
@@ -470,11 +706,11 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
           , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop 
           , INT *RESTRICT lViz         , DOUBLE *RESTRICT fArea
           , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume 
-          , DOUBLE *RESTRICT dcca      
-          , short *RESTRICT lFaceVelR  , short *RESTRICT lFaceVelL 
-          , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel       
-          , DOUBLE *RESTRICT lDensity  , DOUBLE const dViscosity
-          , DOUBLE *viscosity          , DOUBLE *wallPar
+          , DOUBLE *RESTRICT dcca      , short *RESTRICT lFaceVelR  
+          , short *RESTRICT lFaceVelL  , DOUBLE *RESTRICT vel       
+          , DOUBLE *RESTRICT gradVel   , DOUBLE *RESTRICT lDensity  
+          , DOUBLE const dViscosity    , DOUBLE *viscosity          
+          , DOUBLE *RESTRICT wallPar   , DOUBLE *RESTRICT dynamic
           , const short nEn            , short const nFace 
           , const short ndm            , INT const nel) 
 {
@@ -505,7 +741,6 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
 /*...................................................................*/
 
 /*... wall model*/
-
   wallType   = tModel.wallType;
   viscosityC = dViscosity;
   density    = lDensity[idCell];
@@ -662,10 +897,34 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
 /*...*/
     case DYNAMIC: 
 
+/*... cs =(1/2)<M:L>/<M:M>*/
+      lm = mm = 1.e-64;
+      for (i = 0; i < nFace; i++) {
+        vizNel = lViz[i];
+        if(vizNel  > -1){
+          lm += MAT2D(i,0,dynamic,2);
+          mm += MAT2D(i,1,dynamic,2);
+        }
+      }
+      lm += MAT2D(idCell,0,dynamic,2);
+      mm += MAT2D(idCell,1,dynamic,2);      
+/*...................................................................*/
+
+/*... 0.0 < sqrt(c) < 0.23*/      
+      cs = 0.5e0*lm/mm;
+      if(cs < 0.0e0)
+        cs = 0.e0;
+      else if (sqrt(cs) > DYNAMIC_CLIP)
+        cs = DYNAMIC_CLIP*DYNAMIC_CLIP;
+/*...................................................................*/
+      
+/*...*/
+      density  = lDensity[idCell];
+      delta    = pow(volume[idCell],D2DIV3);
+/*...................................................................*/
+
 /*... (cs*delta)^2*/
-      lMin= lesDynamic(lViz     , volume
-                      ,lDensity ,vel
-                      ,gradVel , nFace);
+      lMin= cs*delta;
 /*...................................................................*/
 
 /*.. calculo Sij*/
@@ -681,7 +940,6 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
 /*...................................................................*/
 
 /*...*/   
-      density = lDensity[idCell];
       tmp      = density*lMin*modS;
        *viscosity = tmp; 
 /*...................................................................*/
@@ -849,20 +1107,22 @@ DOUBLE wallModelHeat(DOUBLE const yPlus,DOUBLE const prM
  * lDensity  -> massa especifica sem variacao temporal               *
  * vel       -> campo de velocidades                                 *
  * gradVel   -> gradiente rescontruido das velocidades               *
+ * lDynamic  -> nao definido                                         *
  * nFace     -> numero de faces da celula central                    * 
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * retorna cs*delta                                                  *
+ * lDynamic  -> retorna o produto M:L e M:M da celula central        *
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  * delta a largura do filtro que é igual a raiz cubica do volume da  *
  * celula central                                                    *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE lesDynamic(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
-                , DOUBLE *RESTRICT lDensity, DOUBLE *restrict vel
-                , DOUBLE *restrict gradVel , short const nFace  ) {
+void lesDynamic(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
+              , DOUBLE *RESTRICT lDensity, DOUBLE *restrict vel
+              , DOUBLE *restrict gradVel , DOUBLE *RESTRICT lDynamic
+              , short const nFace  ) {
 
   short i,idCell;
   INT vizNel;
@@ -888,152 +1148,148 @@ DOUBLE lesDynamic(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
     if( i < nFace )
       vizNel = lViz[i];
 /*... celula central e elementos vizinhos*/        
-      if( vizNel  > -1 ){
-        volW      = volume[i];
-        volTotal += volW;
+    if( vizNel  > -1 ){
+      volW      = volume[i];
+      volTotal += volW;
 
 /*...*/
-        v[0] = MAT2D(i, 0, vel, 3);
-        v[1] = MAT2D(i, 1, vel, 3);
-        v[2] = MAT2D(i, 2, vel, 3);
+      v[0] = MAT2D(i, 0, vel, 3);
+      v[1] = MAT2D(i, 1, vel, 3);
+      v[2] = MAT2D(i, 2, vel, 3);
 /*...................................................................*/
 
 /*...*/
-        density = lDensity[i];
+      density = lDensity[i];
 /*...................................................................*/
 
 /*... | du1/dx1 du1/dx2 du1/dx3*/
-        g[0][0] = MAT3D(i,0,0,gradVel,3,3);
-        g[0][1] = MAT3D(i,0,1,gradVel,3,3);
-        g[0][2] = MAT3D(i,0,2,gradVel,3,3);
+      g[0][0] = MAT3D(i,0,0,gradVel,3,3);
+      g[0][1] = MAT3D(i,0,1,gradVel,3,3);
+      g[0][2] = MAT3D(i,0,2,gradVel,3,3);
 /*... | du2/dx1 du2/dx2 du2/dx3*/
-        g[1][0] = MAT3D(i,1,0,gradVel,3,3);
-        g[1][1] = MAT3D(i,1,1,gradVel,3,3);
-        g[1][2] = MAT3D(i,1,2,gradVel,3,3);
+      g[1][0] = MAT3D(i,1,0,gradVel,3,3);
+      g[1][1] = MAT3D(i,1,1,gradVel,3,3);
+      g[1][2] = MAT3D(i,1,2,gradVel,3,3);
 /*... | du3/dx1 du3/dx2 du3/dx3*/
-        g[2][0] = MAT3D(i,2,0,gradVel,3,3);
-        g[2][1] = MAT3D(i,2,1,gradVel,3,3);
-        g[2][2] = MAT3D(i,2,2,gradVel,3,3);
+      g[2][0] = MAT3D(i,2,0,gradVel,3,3);
+      g[2][1] = MAT3D(i,2,1,gradVel,3,3);
+      g[2][2] = MAT3D(i,2,2,gradVel,3,3);
 /*...................................................................*/
 
 /*.. calculo Sij*/
-        tmp  = D1DIV3*(g[0][0] + g[1][1] + g[2][2]);
-        s[0] = g[0][0] - tmp;
-        s[1] = g[1][1] - tmp;
-        s[2] = g[2][2] - tmp;
-        s[3] = 0.5e0*(g[0][1] + g[1][0]); /*s12*/
-        s[4] = 0.5e0*(g[0][2] + g[2][0]); /*s13*/
-        s[5] = 0.5e0*(g[1][2] + g[2][1]); /*s23*/
+      tmp  = D1DIV3*(g[0][0] + g[1][1] + g[2][2]);
+      s[0] = g[0][0] - tmp;
+      s[1] = g[1][1] - tmp;
+      s[2] = g[2][2] - tmp;
+      s[3] = 0.5e0*(g[0][1] + g[1][0]); /*s12*/
+      s[4] = 0.5e0*(g[0][2] + g[2][0]); /*s13*/
+      s[5] = 0.5e0*(g[1][2] + g[2][1]); /*s23*/
 /*... |S| = |2S:S|*/
-        modS = doubleDotSym(s);
-        modS = sqrt(2.e0*modS);
+      modS = doubleDotSym(s);
+      modS = sqrt(2.e0*modS);
 /*... tesFilter( desinty*|s|s) -> vol*desinty*modS*s */
-        tmp                 = volW*modS*density;
-        tFilterDenModSs[0] += tmp*s[0];  /*modS*s11*/
-        tFilterDenModSs[1] += tmp*s[1];  /*modS*s22*/
-        tFilterDenModSs[2] += tmp*s[2];  /*modS*s33*/
-        tFilterDenModSs[3] += tmp*s[3];  /*modS*s12*/
-        tFilterDenModSs[4] += tmp*s[4];  /*modS*s13*/
-        tFilterDenModSs[5] += tmp*s[5];  /*modS*s23*/
+      tmp                 = volW*modS*density;
+      tFilterDenModSs[0] += tmp*s[0];  /*modS*s11*/
+      tFilterDenModSs[1] += tmp*s[1];  /*modS*s22*/
+      tFilterDenModSs[2] += tmp*s[2];  /*modS*s33*/
+      tFilterDenModSs[3] += tmp*s[3];  /*modS*s12*/
+      tFilterDenModSs[4] += tmp*s[4];  /*modS*s13*/
+      tFilterDenModSs[5] += tmp*s[5];  /*modS*s23*/
 /*... tesFilter( |s|) -> vol*modS */
-        tFilterModS += volW*modS;
+      tFilterModS += volW*modS;
 /*... tesFilter(s) -> vol*s */
-        tFilterS[0] += volW*s[0];     /*s11*/
-        tFilterS[1] += volW*s[1];     /*s22*/
-        tFilterS[2] += volW*s[2];     /*s33*/
-        tFilterS[3] += volW*s[3];     /*s12*/
-        tFilterS[4] += volW*s[4];     /*s13*/
-        tFilterS[5] += volW*s[5];     /*s23*/
+      tFilterS[0] += volW*s[0];     /*s11*/
+      tFilterS[1] += volW*s[1];     /*s22*/
+      tFilterS[2] += volW*s[2];     /*s33*/
+      tFilterS[3] += volW*s[3];     /*s12*/
+      tFilterS[4] += volW*s[4];     /*s13*/
+      tFilterS[5] += volW*s[5];     /*s23*/
 /*... tesFilter(desinty*vv) -> vol*desinty*vv */
-        tmp              = volW*density;
-        tFilterDenVv[0] += tmp*v[0]*v[0]; /*v1v1*/
-        tFilterDenVv[1] += tmp*v[1]*v[1]; /*v2v2*/
-        tFilterDenVv[2] += tmp*v[2]*v[2]; /*v3v3*/
-        tFilterDenVv[3] += tmp*v[0]*v[1]; /*v1v2*/
-        tFilterDenVv[4] += tmp*v[0]*v[2]; /*v1v3*/
-        tFilterDenVv[5] += tmp*v[1]*v[2]; /*v2v3*/
+      tmp              = volW*density;
+      tFilterDenVv[0] += tmp*v[0]*v[0]; /*v1v1*/
+      tFilterDenVv[1] += tmp*v[1]*v[1]; /*v2v2*/
+      tFilterDenVv[2] += tmp*v[2]*v[2]; /*v3v3*/
+      tFilterDenVv[3] += tmp*v[0]*v[1]; /*v1v2*/
+      tFilterDenVv[4] += tmp*v[0]*v[2]; /*v1v3*/
+      tFilterDenVv[5] += tmp*v[1]*v[2]; /*v2v3*/
 /*... tesFilter(desinty*v) -> vol*desinty*v */
-        tFilterDenV[0] += tmp*v[0]; 
-        tFilterDenV[1] += tmp*v[1]; 
-        tFilterDenV[2] += tmp*v[2];
+      tFilterDenV[0] += tmp*v[0]; 
+      tFilterDenV[1] += tmp*v[1]; 
+      tFilterDenV[2] += tmp*v[2];
 /*... tesFilter(desinty) -> vol*desinty */
-        tFilterDen += tmp; 
-      }
+      tFilterDen += tmp; 
+    }
 /*...................................................................*/
-    } 
+  } 
 /*...................................................................*/
 
 /*tesFilter( density*|s|*s ) */
-    tFilterDenModSs[0] /= volTotal;
-    tFilterDenModSs[1] /= volTotal;
-    tFilterDenModSs[2] /= volTotal;
-    tFilterDenModSs[3] /= volTotal;
-    tFilterDenModSs[4] /= volTotal;
-    tFilterDenModSs[5] /= volTotal;
+  tFilterDenModSs[0] /= volTotal;
+  tFilterDenModSs[1] /= volTotal;
+  tFilterDenModSs[2] /= volTotal;
+  tFilterDenModSs[3] /= volTotal;
+  tFilterDenModSs[4] /= volTotal;
+  tFilterDenModSs[5] /= volTotal;
 /*... tesFilter( |s|) -> vol*modS */
-    tFilterModS /= volTotal;
+  tFilterModS /= volTotal;
 /*... tesFilter(s) -> vol*s */
-    tFilterS[0] /= volTotal;
-    tFilterS[1] /= volTotal;
-    tFilterS[2] /= volTotal;
-    tFilterS[3] /= volTotal;
-    tFilterS[4] /= volTotal;
-    tFilterS[5] /= volTotal;
+  tFilterS[0] /= volTotal;
+  tFilterS[1] /= volTotal;
+  tFilterS[2] /= volTotal;
+  tFilterS[3] /= volTotal;
+  tFilterS[4] /= volTotal;
+  tFilterS[5] /= volTotal;
 /*... tesFilter(density*vv)*/
-    tFilterDenVv[0] /= volTotal; /*v1v1*/
-    tFilterDenVv[1] /= volTotal; /*v2v2*/
-    tFilterDenVv[2] /= volTotal; /*v3v3*/
-    tFilterDenVv[3] /= volTotal; /*v1v2*/
-    tFilterDenVv[4] /= volTotal; /*v1v3*/
-    tFilterDenVv[5] /= volTotal; /*v2v3*/
+  tFilterDenVv[0] /= volTotal; /*v1v1*/
+  tFilterDenVv[1] /= volTotal; /*v2v2*/
+  tFilterDenVv[2] /= volTotal; /*v3v3*/
+  tFilterDenVv[3] /= volTotal; /*v1v2*/
+  tFilterDenVv[4] /= volTotal; /*v1v3*/
+  tFilterDenVv[5] /= volTotal; /*v2v3*/
 /*... tesFilter(density*v)*/
-    tFilterDenV[0] /= volTotal; 
-    tFilterDenV[1] /= volTotal; 
-    tFilterDenV[2] /= volTotal;
+  tFilterDenV[0] /= volTotal; 
+  tFilterDenV[1] /= volTotal; 
+  tFilterDenV[2] /= volTotal;
 /*... tesFilter(desinty)*/
-    tFilterDen     /= volTotal;
+  tFilterDen     /= volTotal;
       
 /*... (filtros)^2*/
-    delta    = pow(volume[idCell],D2DIV3);
-    deltaT   = pow(volTotal      ,D2DIV3);
+  delta    = pow(volume[idCell],D2DIV3);
+  deltaT   = pow(volTotal      ,D2DIV3);
 
 /*... L*/
-    l[0] = tFilterDenVv[0] - tFilterDenV[0]*tFilterDenV[0]/tFilterDen;  /*l11*/
-    l[1] = tFilterDenVv[1] - tFilterDenV[1]*tFilterDenV[1]/tFilterDen;  /*l22*/
-    l[2] = tFilterDenVv[2] - tFilterDenV[2]*tFilterDenV[2]/tFilterDen;  /*l33*/
-    l[3] = tFilterDenVv[3] - tFilterDenV[0]*tFilterDenV[1]/tFilterDen;  /*l1v2*/
-    l[4] = tFilterDenVv[4] - tFilterDenV[0]*tFilterDenV[2]/tFilterDen;  /*l1v3*/
-    l[5] = tFilterDenVv[5] - tFilterDenV[1]*tFilterDenV[2]/tFilterDen;  /*l2v3*/
+  l[0] = tFilterDenVv[0] - tFilterDenV[0]*tFilterDenV[0]/tFilterDen;  /*l11*/
+  l[1] = tFilterDenVv[1] - tFilterDenV[1]*tFilterDenV[1]/tFilterDen;  /*l22*/
+  l[2] = tFilterDenVv[2] - tFilterDenV[2]*tFilterDenV[2]/tFilterDen;  /*l33*/
+  l[3] = tFilterDenVv[3] - tFilterDenV[0]*tFilterDenV[1]/tFilterDen;  /*l1v2*/
+  l[4] = tFilterDenVv[4] - tFilterDenV[0]*tFilterDenV[2]/tFilterDen;  /*l1v3*/
+  l[5] = tFilterDenVv[5] - tFilterDenV[1]*tFilterDenV[2]/tFilterDen;  /*l2v3*/
 /*... parte desviadora de L*/
-    tmp   = D1DIV3*( l[0] + l[1] + l[2] );
-    l[0] -=tmp;
-    l[1] -=tmp;
-    l[2] -=tmp;
+  tmp   = D1DIV3*( l[0] + l[1] + l[2] );
+  l[0] -=tmp;
+  l[1] -=tmp;
+  l[2] -=tmp;
     
 /*... m*/
-    tmp  = deltaT*tFilterDen*tFilterModS;
-    m[0] = delta*tFilterDenModSs[0] - tmp*tFilterS[0];  /*l11*/
-    m[1] = delta*tFilterDenModSs[1] - tmp*tFilterS[1];  /*l22*/
-    m[2] = delta*tFilterDenModSs[2] - tmp*tFilterS[2];  /*l33*/
-    m[3] = delta*tFilterDenModSs[3] - tmp*tFilterS[3];  /*l1v2*/
-    m[4] = delta*tFilterDenModSs[4] - tmp*tFilterS[4];  /*l1v3*/
-    m[5] = delta*tFilterDenModSs[5] - tmp*tFilterS[5];  /*l2v3*/
+  tmp  = deltaT*tFilterDen*tFilterModS;
+  m[0] = delta*tFilterDenModSs[0] - tmp*tFilterS[0];  /*l11*/
+  m[1] = delta*tFilterDenModSs[1] - tmp*tFilterS[1];  /*l22*/
+  m[2] = delta*tFilterDenModSs[2] - tmp*tFilterS[2];  /*l33*/
+  m[3] = delta*tFilterDenModSs[3] - tmp*tFilterS[3];  /*l1v2*/
+  m[4] = delta*tFilterDenModSs[4] - tmp*tFilterS[4];  /*l1v3*/
+  m[5] = delta*tFilterDenModSs[5] - tmp*tFilterS[5];  /*l2v3*/
 
 /*... LijMij*/
-    lm = l[0]*m[0] + l[1]*m[1] + l[2]*m[2]
-       + 2.e0*( l[3]*m[3] + l[4]*m[4] + l[5]*m[5]);
+  lm = l[0]*m[0] + l[1]*m[1] + l[2]*m[2]
+     + 2.e0*( l[3]*m[3] + l[4]*m[4] + l[5]*m[5]);
 /*... MijMij*/
-    mm = doubleDotSym(m);      
-    lm += 1.e-64;
-    mm += 1.e-64;
-/*... (cs)^2 = LijMij/MijMij*/
-    cs = 0.5e0*lm/mm;
-    if(cs < 0.e0)
-      cs = 0.e0; 
-    else if(sqrt(cs) > DYNAMIC_CLIP)
-      cs = DYNAMIC_CLIP*DYNAMIC_CLIP; 
+  mm = doubleDotSym(m);      
 
-  return cs*delta;
+/*...*/
+  lDynamic[0] = lm;
+  lDynamic[1] = mm;
+/*...................................................................*/
+
 }
 /********************************************************************/
 
@@ -1072,13 +1328,13 @@ bool  wallDist(Loads *lVel
              , DOUBLE *RESTRICT normal  , DOUBLE *RESTRICT dcca
              , short *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL
              , DOUBLE const viscosity   , DOUBLE const density
-             , DOUBLE *wallPar           , DOUBLE *dWall     
+             , DOUBLE *RESTRICT wallPar , DOUBLE *dWall     
              , short const wallType     , short const nFace )
 { 
   bool fWall = false;
   short i, j, nf, nCarg, idCell,type;
   INT vizNel;
-  DOUBLE wt, yPlusMax, uPlusMax,uFricMax,sWallMax;
+  DOUBLE wt, yPlusMax, uPlusMax,uFricMax,sWallMax,par[MAXLOADPARAMETER];
   DOUBLE dMin, vParallel[3], lNormal[3],yPlus,uPlus,uFric,sW,velB[3];
 
   sWallMax = uFricMax = uPlusMax = yPlusMax = 0.e0;
@@ -1094,9 +1350,10 @@ bool  wallDist(Loads *lVel
           fWall = true;
 /*... velocidade da parede*/
           nCarg     = lFaceVelL[nf] - 1;
-          velB[0]   = loadsVel[nCarg].par[0];
-          velB[1]   = loadsVel[nCarg].par[1];
-          velB[2]   = loadsVel[nCarg].par[2];
+          getLoads(par,loadsVel[nCarg]);
+          velB[0]   = par[0];
+          velB[1]   = par[1];
+          velB[2]   = par[2];
 /*...*/
           lNormal[0] = MAT2D(nf, 0, normal, 3);
           lNormal[1] = MAT2D(nf, 1, normal, 3);   
@@ -1207,7 +1464,7 @@ DOUBLE sigmaModel(DOUBLE *RESTRICT s, DOUBLE *restrict gradVel
 
   short i,idCell;
   INT vizNel,ip[3];
-  DOUBLE g[9],gt[9],gtg[9],x[9],op;
+  DOUBLE g[9],x[9],op;
  
 /*... tgg*/
 //g[0] = MAT2D(0,0,gradVel,3);

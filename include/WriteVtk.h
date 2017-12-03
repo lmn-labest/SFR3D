@@ -108,25 +108,26 @@
                ,char *nameOut     ,bool iws
                ,Temporal ddt      ,FILE *f);
 
-  void wResVtkFluid(Memoria *m   , DOUBLE *x      
-          , INT *el              , short *mat    
-          , short *nen           , short *typeGeom
-          , DOUBLE *elPres       , DOUBLE *nPres
-          , DOUBLE *elGradPres   , DOUBLE *nGradPres
-          , DOUBLE *elVel        , DOUBLE *nVel      
-          , DOUBLE *elGradVel    , DOUBLE *nGradVel 
-          , DOUBLE *elEnergy     , DOUBLE *nEnergy
-          , DOUBLE *elGradEnergy , DOUBLE *nGradEnergy
-          , DOUBLE *elEddyVis    , DOUBLE *nEddyVis       
-          , DOUBLE *densityFluid , DOUBLE *specificHeat
-          , DOUBLE *dViscosity   , DOUBLE *tConductivity  
-          , DOUBLE *yPlus
-          , INT nnode            , INT numel    
-          , short const ndm      , short const maxNo 
-          , short const numat    , short const ndf   
-          , char *nameOut        , FileOpt opt
-          , bool fKelvin           
-          , Temporal ddt         , FILE *f);
+  void wResVtkFluid(Memoria *m    ,DOUBLE *x      
+          ,INT *el              ,short *mat    
+          ,short *nen           ,short *typeGeom
+          ,DOUBLE *elPres       ,DOUBLE *nPres
+          ,DOUBLE *elGradPres   ,DOUBLE *nGradPres
+          ,DOUBLE *elVel        ,DOUBLE *nVel      
+          ,DOUBLE *elGradVel    ,DOUBLE *nGradVel 
+          ,DOUBLE *elEnergy     ,DOUBLE *nEnergy
+          ,DOUBLE *elGradEnergy ,DOUBLE *nGradEnergy
+          ,DOUBLE *elEddyVis    ,DOUBLE *nEddyVis
+          ,DOUBLE *eDensityFluid,DOUBLE *nDensityFluid
+          ,DOUBLE *eDyViscosity ,DOUBLE *nDyViscosity
+          ,DOUBLE *specificHeat ,DOUBLE *tConductivity
+          ,DOUBLE *wallPar
+          ,INT nnode            ,INT numel    
+          ,short const ndm      ,short const maxNo 
+          ,short const numat    ,short const ndf   
+          ,char *nameOut        ,FileOpt opt
+          ,bool fKelvin
+          ,Temporal ddt         ,FILE *f);
 /*...................................................................*/
 
 /*...*/
@@ -142,6 +143,9 @@
   void makeStress(DOUBLE *RESTRICT stress , DOUBLE *RESTRICT gradVel
                ,DOUBLE *RESTRICT viscosity 
                ,INT const n               , short const ndm);
+  void makeKineticEnergy(DOUBLE *RESTRICT e    , DOUBLE *RESTRICT vel
+                    ,DOUBLE *RESTRICT density 
+                    ,INT const n               , short const ndm);
 /*...................................................................*/
 
 #endif/*_WRITE_VTK_H_*/

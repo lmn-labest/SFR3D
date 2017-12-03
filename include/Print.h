@@ -1,0 +1,24 @@
+#ifndef _PRINT_H_
+  #define _PRINT_H_
+  
+/*...*/
+  #include<stdio.h>
+  #include<stdlib.h>
+/*...*/
+  #include<HccaStdBool.h>
+  #include<CellLoop.h>
+  #include<Mesh.h>
+  #include<Memoria.h>
+  #include<File.h>
+  #include<WriteVtk.h>
+  #include<ParallelMpi.h>
+
+  void printFluid(Memoria *m        
+               ,Turbulence turbModel,EnergyModel eModel
+               ,PartMesh *pMesh     ,Scheme sc
+               ,Loads *loadsVel     ,Loads *loadsPres 
+               ,Loads *loadsTemp    ,FileOpt opt
+               ,Mesh *mesh0         ,Mesh *mesh  
+               ,char *preName       ,char *nameOut);
+
+#endif/*_WRITE_VTK_H_*/

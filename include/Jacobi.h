@@ -11,12 +11,12 @@
   #include<HccaStdBool.h>
 /*...................................................................*/
   
+/*...*/
   void cyclic_jacobi(DOUBLE *RESTRICT a   , DOUBLE *RESTRICT x
                  , DOUBLE *RESTRICT w   , INT *RESTRICT ip
                  , INT const        n   , DOUBLE const tol
                  , short const maxciclos, bool const cflag);
-
- 
+/*...................................................................*/ 
 
 /*... funcoe de auxiliares*/
   void indenty(DOUBLE *RESTRICT x, INT const n); 
@@ -33,7 +33,7 @@
   void ordena(DOUBLE *RESTRICT a, DOUBLE *RESTRICT x
             , DOUBLE *RESTRICT w, INT *RESTRICT ip
             , INT const n       , bool const fDes );
-  DOUBLE off_forbenius_norm_sym(DOUBLE *RESTRICT a,INT const n);
-  DOUBLE forbenius_norm_sym(DOUBLE *RESTRICT a,INT const n);
+  DOUBLE offForbeniusNormSym(DOUBLE *RESTRICT a,INT const n);
+  DOUBLE forbeniusNormSym(DOUBLE *RESTRICT a,INT const n);
 /*...................................................................*/
 #endif /*_JACOBI_H*/

@@ -217,7 +217,9 @@
                             | du2dx1 du2dx2 du2dx3 |   
                             | du3dx1 du3dx2 du3dx3 |   
                         */    
-    DOUBLE *eddyViscosity;/*turbulencia*/                       
+    DOUBLE *eddyViscosity;/*turbulencia*/  
+    DOUBLE *densityFluid;   
+    DOUBLE *dViscosity;                         
     DOUBLE *gradPres;  /*gradiente da Pressao*/
     DOUBLE *gradEnergy;/*gradiente da Energia*/
     INT    *nno; 

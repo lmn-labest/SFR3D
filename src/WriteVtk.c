@@ -605,13 +605,13 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
 /*... ndfF*/
   if(ndfF > 0){
     HccaAlloc(int,m,lfaceLfluid,numel*MAX_NUM_FACE,"lfaceSfluid",_AD_);
-/*  makeFace(el          ,faceRfluid   ,faceLfluid
+    makeFace(el          ,faceRfluid   ,faceLfluid
             ,typeGeom    
             ,face        ,lfaceLfluid  ,idFace
             ,typeGeomFace,nenFace
             ,maxViz      ,maxNo
             ,ndfT1       
-            ,numel       ,&nFace);*/
+            ,numel       ,&nFace);  
   }
 /*...................................................................*/
 
@@ -1031,7 +1031,7 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                    *
- * Data de modificaco : 17/11/2017                                    * 
+ * Data de modificaco : 01/12/2017                                    * 
  *------------------------------------------------------------------- * 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1054,10 +1054,12 @@ void wResVtkDif(Memoria *m        ,double *x
  * elGradVel    -> gradientes dos resultados por elementos            *
  * nGradVel     -> gradientes dos resultados por nos                  *
  * elEddyVis    -> viscosidade turbulenta                             *
- * densityFluid -> densidade do fluido                                *
- * dViscosity   -> viscosidade molecular                              *
+ * eDensityFluid-> densidade do fluido (cell)                         *
+ * nDensityFluid-> densidade do fluido (node)                         *
+ * eDyViscosity -> viscosidade molecular (cell)                       *
+ * nDyViscosity   > viscosidade molecular (cell)                      *
  * tConductivity-> condutividade termica                              *
- * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri)          * 
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri)           * 
  * nel          -> numeracao do elemento                              *
  * nnode        -> numero de nos                                      *  
  * numel        -> numero de elementos                                *
@@ -1089,8 +1091,9 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
           ,DOUBLE *elEnergy     ,DOUBLE *nEnergy
           ,DOUBLE *elGradEnergy ,DOUBLE *nGradEnergy
           ,DOUBLE *elEddyVis    ,DOUBLE *nEddyVis
-          ,DOUBLE *densityFluid ,DOUBLE *specificHeat 
-          ,DOUBLE *dViscosity   ,DOUBLE *tConductivity
+          ,DOUBLE *eDensityFluid,DOUBLE *nDensityFluid
+          ,DOUBLE *eDyViscosity ,DOUBLE *nDyViscosity
+          ,DOUBLE *specificHeat ,DOUBLE *tConductivity
           ,DOUBLE *wallPar
           ,INT nnode            ,INT numel    
           ,short const ndm      ,short const maxNo 
@@ -1195,7 +1198,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
     if( ndm == 2) 
       writeVtkProp(&idum,elGradVel,numel,2*ndm,str,iws
                   ,DOUBLE_VTK,SCALARS_VTK,f);
-    else if( ndm ==3 )
+    else if( ndm == 3 )
       writeVtkProp(&idum,elGradVel,numel,3*ndm,str,iws
                   ,DOUBLE_VTK,SCALARS_VTK,f);
   }
@@ -1238,7 +1241,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*... escrever viscosidade dinamica por celula*/  
   if(opt.dViscosity && opt.fCell){
     strcpy(str,"CellDinamicyViscosity");
-    writeVtkProp(&idum,dViscosity,numel,1,str,iws
+    writeVtkProp(&idum,eDyViscosity,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
 /*...................................................................*/
@@ -1270,7 +1273,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
     HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
     ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
     for(i=0;i<numel;i++)
-      p[i] = MAT2D(i,2, densityFluid, DENSITY_LEVEL);
+      p[i] = MAT2D(i,2, eDensityFluid, DENSITY_LEVEL);
     writeVtkProp(&idum,p,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
     HccaDealloc(m,p,"p",_AD_);
@@ -1294,6 +1297,18 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
     strcpy(str,"WallParameters(y+,u+,uf,sW)");
     writeVtkProp(&idum,wallPar,numel,4,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
+  }
+/*...................................................................*/
+
+/*... escreve a energia cinetica */  
+  if(opt.kinetic && opt.fCell ){
+    strcpy(str,"CellKinetic");
+    HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
+    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
+    makeKineticEnergy(p,elVel,eDensityFluid,numel,ndm);
+    writeVtkProp(&idum,p,numel,1,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+    HccaDealloc(m,p,"p",_AD_);
   }
 /*...................................................................*/
 
@@ -1394,18 +1409,29 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
   }
 /*...................................................................*/
 
-/*... escreve a vorticidade */  
+/*... escreve a tenso desviadora */  
   if(opt.stress && opt.fNode ){
     strcpy(str,"NodeStress");
     HccaAlloc(DOUBLE,m,p,nnode*9,"p",_AD_);
     ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
-    makeStress(p,nGradVel,dViscosity,nnode,ndm);
+    makeStress(p,nGradVel,nDyViscosity,nnode,ndm);
     writeVtkProp(&idum,p,nnode,ndm,str,iws
                 ,DOUBLE_VTK,TENSORS_VTK,f);
     HccaDealloc(m,p,"p",_AD_);
   }
 /*...................................................................*/
 
+/*... escreve a energia cinetica */  
+  if(opt.kinetic && opt.fNode ){
+    strcpy(str,"NodeKinetic");
+    HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
+    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
+    makeKineticEnergy(p,nVel,nDensityFluid,nnode,ndm);
+    writeVtkProp(&idum,p,nnode,1,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+    HccaDealloc(m,p,"p",_AD_);
+  }
+/*...................................................................*/
   fclose(f);
 }
 /*********************************************************************/
@@ -1848,6 +1874,49 @@ void makeStress(DOUBLE *RESTRICT str      , DOUBLE *RESTRICT gradVel
       stress(s           ,p
             ,viscosity[i],tmp
             ,ndm);
+  }
+
+}
+/**********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 30 11/2017                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *------------------------------------------------------------------- * 
+ * makeKineticEnergy : campo de energia cinetica                      *  
+ * ------------------------------------------------------------------ *
+ * parametros de entrada:                                             * 
+ * ------------------------------------------------------------------ *
+ * e         -> energia cinetica                                      * 
+ * vel       -> campo de velocidade                                   * 
+ * density   -> densidade do fluido                                   * 
+ * n         -> numero de pontos                                      * 
+ * ndm       -> dimensao                                              * 
+ * ------------------------------------------------------------------ *
+ * parametros de saida  :                                             * 
+ * ------------------------------------------------------------------ *
+ * e       -> energia cinetica espexifica                             *
+ * ------------------------------------------------------------------ *
+ * OBS:                                                               *
+ *------------------------------------------------------------------- *
+ **********************************************************************/
+void makeKineticEnergy(DOUBLE *RESTRICT e      , DOUBLE *RESTRICT vel
+                    ,DOUBLE *RESTRICT density 
+                    ,INT const n               , short const ndm) {
+  short j;
+  INT i;
+  DOUBLE vv,den,v[3];
+
+  for (i = 0; i < n; i++) {
+    den  = MAT2D(i, 2, density, DENSITY_LEVEL);
+    v[0] =  MAT2D(i, 0, vel, ndm);
+    v[1] =  MAT2D(i, 1, vel, ndm);
+    vv = v[0]*v[0] + v[1]*v[1];
+    if(ndm == 3){
+      v[2] =  MAT2D(i, 2, vel, ndm);
+      vv += v[2]*v[2];
+    }
+    e[i] = 0.5e0*den*vv;
   }
 
 }

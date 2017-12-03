@@ -241,6 +241,10 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
         HccaAlloc(DOUBLE, m, mesh->elm.dViscosity
                  , nel  , "dVis", _AD_);
         zero(mesh->elm.dViscosity, nel, DOUBLEC);
+        
+        HccaAlloc(DOUBLE, m, mesh->node.dViscosity
+                 , nn  , "nDyVis", _AD_);
+        zero(mesh->node.dViscosity, nel, DOUBLEC);
 
 /*... condutividade termica*/
         HccaAlloc(DOUBLE, m, mesh->elm.tConductivity
@@ -265,8 +269,13 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 
 /*... densityFluid*/
      HccaAlloc(DOUBLE , m         , mesh->elm.densityFluid
-              ,nel * DENSITY_LEVEL, "denFluid", _AD_);
+              ,nel * DENSITY_LEVEL, "eDenFluid", _AD_);
      zero(mesh->elm.densityFluid, nel * DENSITY_LEVEL, DOUBLEC);
+
+/*... densityFluid*/
+     HccaAlloc(DOUBLE , m         , mesh->node.densityFluid
+              ,nn  * DENSITY_LEVEL, "nDenFluid", _AD_);
+     zero(mesh->node.densityFluid, nn  * DENSITY_LEVEL, DOUBLEC);
 
 /*... ePres(n+1)*/
      HccaAlloc(DOUBLE,m,mesh->elm.pressure 
@@ -2316,7 +2325,7 @@ void setPrintFluid(FileOpt *opt,FILE *file){
                ,"temp"         ,"gradTemp"    ,"eddyViscosity"   /* 6, 7, 8*/
                ,"densityFluid" ,"specificHeat","dViscosity"      /* 9,10,11*/
                ,"tConductivity","vorticity"   ,"wallParameters"  /*12,13,14*/
-               ,"stress"};                                       /*15*/
+               ,"stress"       ,"kinecit" };                     /*15,16*/
   int tmp;
 
   opt->fCell          = false;
@@ -2335,6 +2344,7 @@ void setPrintFluid(FileOpt *opt,FILE *file){
   opt->vorticity      = false;
   opt->wallParameters = false;
   opt->stress         = false;
+  opt->kinetic        = false;
 
   fscanf(file,"%d",&tmp);
   opt->stepPlotFluid[0] = opt->stepPlotFluid[1] = (short) tmp;
@@ -2449,6 +2459,13 @@ void setPrintFluid(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[15])) {
       opt->stress = true;
       if (!mpiVar.myId) printf("print : stress\n");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word,macro[16])) {
+      opt->kinetic = true;
+      if (!mpiVar.myId) printf("print : kinecit\n");
     }
 /*.....................................................................*/
 
@@ -2621,14 +2638,15 @@ void convStringLower(char *s){
 void help(FILE *f){
 
   char word[WORD_SIZE];
-  char macro[][WORD_SIZE] = 
+  char help [][WORD_SIZE] = 
                {"macros"       ,"setprintfluid","advection"    /* 0, 1, 2*/
                ,"model"        ,""             ,""             /* 3, 4, 5*/
                ,""             ,""             ,""             /* 6, 7, 8*/
                ,""             ,""             ,""             /* 9,10,11*/
                ,""             ,""             ,""};           /*12,13,15*/
 
-  char m0[][WORD_SIZE] = 
+  short iMacros = 17;
+  char macros[][WORD_SIZE] = 
                {"setPrintFluid","setSolv"     ,"setSimple"    /* 0, 1, 2*/
                ,"pgeo"         ,"transient"   ,"simple"       /* 3, 4, 5*/
                ,"pFluid"       ,"endTransient","stop"         /* 6, 7, 8*/
@@ -2636,14 +2654,14 @@ void help(FILE *f){
                ,"edp"          ,"vorticity"   ,"openmp"       /*12,13,14*/
                ,"advection"    ,"config"      ,""};           /*15,16,17*/
 
-
-  char m1[][WORD_SIZE] = 
+  short iPrint = 17;
+  char print[][WORD_SIZE] = 
                {"cell"         ,"node"        ,"vel"            /* 0, 1, 2*/
                ,"pres"         ,"gradVel"     ,"gradPres"       /* 3, 4, 5*/
                ,"temp"         ,"gradTemp"    ,"eddyViscosity"  /* 6, 7, 8*/
                ,"densityFluid" ,"specificHeat","dViscosity"     /* 9,10,11*/
                ,"tConductivity","vorticity"   ,"wallParameters" /*12,13,14*/ 
-               ,"stress"                                      };/*15*/
+               ,"stress"       ,"kinetic"                     };/*15,16*/
   
 /*... adveccao*/
   char fAdv[][WORD_SIZE] =                                   
@@ -2659,6 +2677,11 @@ void help(FILE *f){
 /*....................................................................*/
 
 /*... model*/
+  short iModels = 4;
+  short iEnergy = 6;
+  short iTurb   = 6;
+  short iMass   = 2;
+  short iMom    = 2;
   char models[][WORD_SIZE] = {"energy"  ,"turbulence","mass"     /* 0, 1, 2*/
                              ,"momentum"};                       /* 3*/
   char energy[][WORD_SIZE] = { "preswork", "dissipation", "residual"  
@@ -2685,26 +2708,26 @@ void help(FILE *f){
   readMacro(f,word,false);
   convStringLower(word);
 /*... macros*/
-  if(!strcmp(word,macro[0])){
+  if(!strcmp(word,help[0])){
     printf("Macros:\n");
-    for(i=0;i<16;i++)
-      printf("%3d - %s\n",i+1,m0[i]);
+    for(i=0;i<iMacros;i++)
+      printf("%3d - %s\n",i+1,macros[i]);
     exit(EXIT_FAILURE);
   }
 /*.....................................................................*/
 
 /*... setPrintFluid*/        
-  else if(!strcmp(word,macro[1])){     
+  else if(!strcmp(word,help[1])){     
     printf("setPrintFluid 10 options end\n");
     printf("options:\n");
-    for(i=0;i<16;i++)
-      printf("%3d - %s\n",i+1,m1[i]);
+    for(i=0;i<iPrint;i++)
+      printf("%3d - %s\n",i+1,print[i]);
     exit(EXIT_FAILURE);
   }
 /*.....................................................................*/
 
 /*... advection*/        
-  else if(!strcmp(word,macro[2])){   
+  else if(!strcmp(word,help[2])){   
     printf("Ex1:\n"); 
     printf("advection 3 Vel FoUp Energy CD Temp SoUp \n"); 
     printf("Ex2:\n"); 
@@ -2720,21 +2743,21 @@ void help(FILE *f){
 /*.....................................................................*/
 
 /*... model*/        
-  else if(!strcmp(word,macro[3])){   
+  else if(!strcmp(word,help[3])){   
     printf("Ex1:\n"); 
     printf("model\nenergy 2 presWork dissipation\n"
            "turbulence 1 dynamic\nendModel\n\n"); 
 
     printf("Models options:\n");
-    for(i=0;i<4;i++)
+    for(i=0;i<iModels;i++)
       printf("%3d - %s\n",i+1,models[i]);
 
     printf("Energy options:\n");
-    for(i=0;i<6;i++)
+    for(i=0;i<iEnergy;i++)
       printf("%3d - %s\n",i+1,energy[i]);
 
     printf("Turbulence options:\n");
-    for(i=0;i<6;i++)
+    for(i=0;i<iTurb;i++)
       printf("%3d - %s\n",i+1,turbulence[i]);
 
     printf("WallModel options:\n");
@@ -2742,11 +2765,11 @@ void help(FILE *f){
       printf("%3d - %s\n",i+1,typeWallModel[i]);
 
     printf("Mass options:\n");
-    for(i=0;i<2;i++)
+    for(i=0;i<iMass;i++)
       printf("%3d - %s\n",i+1,mass[i]);
 
     printf("Momentum options:\n");
-    for(i=0;i<2;i++)
+    for(i=0;i<iMom;i++)
       printf("%3d - %s\n",i+1,momentum[i]);
 
     exit(EXIT_FAILURE);

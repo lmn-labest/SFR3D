@@ -36,7 +36,7 @@
  * b      - modificado                                                *
  * -------------------------------------------------------------------*
  * OBS: csrD e csrC sao iguais para matrizes simetricas               *
-**********************************************************************/
+ **********************************************************************/
 void solverC(Memoria *m    
             ,INT const nEq       ,INT const nEqNov  
             ,INT const nAd       ,INT const nAdR
