@@ -4163,63 +4163,63 @@ void setNvd(char *word, short *iCod)
 /*...*/
   if (!strcmp(word,scheme_nvd[0])) {
     *iCod = BCD_NVD;
-    if (!mpiVar.myId) printf("iCod  : BCD\n");
+    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : BCD\n");
   }
 /*...................................................................*/
 
 /*...*/
   else if (!strcmp(word, scheme_nvd[1])) {
     *iCod = MUSCL_NVD;
-    if (!mpiVar.myId) printf("iCod  : Muscl\n");
+    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : Muscl\n");
   }
 /*...................................................................*/
 
 /*...*/
   else if (!strcmp(word, scheme_nvd[2])) {
     *iCod = SMART_NVD;
-    if (!mpiVar.myId) printf("iCod  : Smart\n");
+    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : Smart\n");
   }
 /*...................................................................*/
 
 /*...*/
   else if (!strcmp(word, scheme_nvd[3])) {
     *iCod = MSMART_NVD;
-    if (!mpiVar.myId) printf("iCod  : ModSmart\n");
+    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : ModSmart\n");
   }
 /*...................................................................*/
 
 /*...*/
   else if (!strcmp(word, scheme_nvd[4])) {
     *iCod = SUPERBEE_NVD;
-    if (!mpiVar.myId) printf("iCod  : SuperBee\n");
+    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : SuperBee\n");
   }
 /*...................................................................*/
 
 /*...*/
   else if (!strcmp(word, scheme_nvd[5])) {
     *iCod = MSUPERBEE_NVD;
-    if (!mpiVar.myId) printf("iCod  : ModSuperBee\n");
+    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : ModSuperBee\n");
   }
 /*...................................................................*/
 
 /*...*/
   else if (!strcmp(word, scheme_nvd[6])) {
     *iCod = STOIC_NVD;
-    if (!mpiVar.myId) printf("iCod  : Stoic\n");
+    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : Stoic\n");
   }
 /*...................................................................*/
 
 /*...*/
   else if (!strcmp(word, scheme_nvd[7])) {
     *iCod = MINMOD_NVD;
-    if (!mpiVar.myId) printf("iCod  : MinMod\n");
+    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : MinMod\n");
   }
 /*...................................................................*/
 
 /*...*/
   else if (!strcmp(word, scheme_nvd[8])) {
     *iCod = MBCD_NVD;
-    if (!mpiVar.myId) printf("iCod  : MBCD\n");
+    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : MBCD\n");
   }
 /*...................................................................*/
 
@@ -4409,35 +4409,35 @@ void setTvd(char *word,short *iCod)
 /*...*/
   if(!strcmp(word,"VanLeer")){
     *iCod = VANLEERFACE; 
-    if(!mpiVar.myId ) printf("iCod  : VanLeer\n");
+    if(!mpiVar.myId ) fprintf(fileLogExc,"iCod  : VanLeer\n");
   }
 /*...................................................................*/
 
 /*...*/
   else if(!strcmp(word,"VanAlbada")){
     *iCod =  VANALBADAFACE; 
-    if(!mpiVar.myId ) printf("iCod  : VanAlbade\n");
+    if(!mpiVar.myId ) fprintf(fileLogExc,"iCod  : VanAlbade\n");
   }
 /*...................................................................*/
 
 /*...*/
   else if(!strcmp(word,"MidMod")){
     *iCod =  MIDMODFACE; 
-    if(!mpiVar.myId ) printf("iCod  : MidMod\n");
+    if(!mpiVar.myId ) fprintf(fileLogExc,"iCod  : MidMod\n");
   }
 /*...................................................................*/
 
 /*...*/
   else if(!strcmp(word,"Osher")){
     *iCod =  OSHERFACE; 
-    if(!mpiVar.myId ) printf("iCod  : Osher\n");
+    if(!mpiVar.myId ) fprintf(fileLogExc,"iCod  : Osher\n");
   }
 /*...................................................................*/
 
 /*...*/
   else if(!strcmp(word,"SuperBee")){
     *iCod =  SUPERBEEFACE; 
-    if(!mpiVar.myId ) printf("iCod  : SuperBee\n");
+    if(!mpiVar.myId )fprintf(fileLogExc,"iCod  : SuperBee\n");
   }
 /*...................................................................*/
 
@@ -4484,28 +4484,28 @@ void  setDiffusionScheme(char *word,short *iCod)
 /*...*/  
   if(!strcmp(word,fDif[0])){
     *iCod = ORTHOGONAL; 
-    if(!mpiVar.myId ) printf("iCod  : %s\n",fDif[0]);
+    if(!mpiVar.myId ) fprintf(fileLogExc,"iCod  : %s\n",fDif[0]);
   }
 /*...................................................................*/
   
 /*...*/
   else if(!strcmp(word,fDif[1])){
     *iCod = MINIMAL; 
-    if(!mpiVar.myId ) printf("iCod  : %s\n",fDif[1]);
+    if(!mpiVar.myId ) fprintf(fileLogExc,"iCod  : %s\n",fDif[1]);
   }
 /*...................................................................*/
 
 /*...*/
   else if(!strcmp(word,fDif[2])){
     *iCod = ORTHOGONALC; 
-    if(!mpiVar.myId ) printf("iCod  : %s\n",fDif[2]);
+    if(!mpiVar.myId ) fprintf(fileLogExc,"iCod  : %s\n",fDif[2]);
   }
 /*...................................................................*/
 
 /*...*/
   else if(!strcmp(word,fDif[3])){
     *iCod = OVERRELAXED; 
-    if(!mpiVar.myId ) printf("iCod  : %s\n",fDif[3]);
+    if(!mpiVar.myId ) fprintf(fileLogExc,"iCod  : %s\n",fDif[3]);
   }
 /*...................................................................*/
 
@@ -4552,28 +4552,28 @@ void  setAdvectionScheme(char *word, Advection *adv,FILE *fileIn)
   /*...*/
   if (!strcmp(word, fAdv[0])) {
     adv->iCod1 = FOUP;
-    if (!mpiVar.myId) printf("iCod  : %s\n", fAdv[0]);
+    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : %s\n", fAdv[0]);
   }
   /*...................................................................*/
 
   /*...*/
   else if (!strcmp(word, fAdv[1])) {
     adv->iCod1 = CD;
-    if (!mpiVar.myId) printf("iCod  : %s\n", fAdv[1]);
+    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : %s\n", fAdv[1]);
   }
   /*...................................................................*/
 
 /*...*/
   else if (!strcmp(word, fAdv[2])) {
     adv->iCod1 = SOUP;
-    if (!mpiVar.myId) printf("iCod  : %s\n", fAdv[2]);
+    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : %s\n", fAdv[2]);
   }
 /*...................................................................*/
 
 /*...*/
   else if (!strcmp(word, fAdv[3])) {
     adv->iCod1 = TVD;
-    if (!mpiVar.myId) printf("iCod  : %s\n", fAdv[3]);
+    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : %s\n", fAdv[3]);
     readMacro(fileIn, word, false);
     setTvd(word, &adv->iCod2);
   }
@@ -4582,7 +4582,7 @@ void  setAdvectionScheme(char *word, Advection *adv,FILE *fileIn)
 /*...*/
   else if (!strcmp(word, fAdv[4])) {
     adv->iCod1 = NVD;
-    if (!mpiVar.myId) printf("iCod  : %s\n", fAdv[4]);
+    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : %s\n", fAdv[4]);
     readMacro(fileIn, word, false);
     setNvd(word, &adv->iCod2);
   }
@@ -4591,7 +4591,7 @@ void  setAdvectionScheme(char *word, Advection *adv,FILE *fileIn)
 /*...*/
   else if (!strcmp(word, fAdv[5])) {
     adv->iCod1 = LUST;
-    if (!mpiVar.myId) printf("iCod  : %s\n", fAdv[5]);
+    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : %s\n", fAdv[5]);
   }
 /*...................................................................*/
 

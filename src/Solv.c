@@ -512,9 +512,9 @@ void setSolverConfig(char *word,Solv *solv,FILE *fileIn)
       solv->tol = smachn();
 
     if(!mpiVar.myId ) {
-      printf("Solver    : PCG\n");
-      printf("MaxIt     : %d\n",solv->maxIt);
-      printf("Tol       : %e\n",solv->tol);
+      fprintf(fileLogExc,"Solver    : PCG\n");
+      fprintf(fileLogExc,"MaxIt     : %d\n",solv->maxIt);
+      fprintf(fileLogExc,"Tol       : %e\n",solv->tol);
     }
   }
 /*...................................................................*/
@@ -529,9 +529,9 @@ void setSolverConfig(char *word,Solv *solv,FILE *fileIn)
       solv->tol = smachn(); 
 
     if(!mpiVar.myId ) {
-      printf("Solver    : PBICGSTAB\n");
-      printf("MaxIt     : %d\n",solv->maxIt);
-      printf("Tol       : %e\n",solv->tol);
+      fprintf(fileLogExc,"Solver    : PBICGSTAB\n");
+      fprintf(fileLogExc,"MaxIt     : %d\n",solv->maxIt);
+      fprintf(fileLogExc,"Tol       : %e\n",solv->tol);
     }
   }
 /*...................................................................*/
@@ -546,9 +546,9 @@ void setSolverConfig(char *word,Solv *solv,FILE *fileIn)
       solv->tol = smachn();
 
     if(!mpiVar.myId ) {
-      printf("Solver    : PBICGSTABL2\n");
-      printf("MaxIt     : %d\n",solv->maxIt);
-      printf("Tol       : %e\n",solv->tol);
+      fprintf(fileLogExc,"Solver    : PBICGSTABL2\n");
+      fprintf(fileLogExc,"MaxIt     : %d\n",solv->maxIt);
+      fprintf(fileLogExc,"Tol       : %e\n",solv->tol);
     }
   }
 /*...................................................................*/
@@ -563,9 +563,9 @@ void setSolverConfig(char *word,Solv *solv,FILE *fileIn)
       solv->tol = smachn();
 
     if(!mpiVar.myId ) {
-      printf("Solver    : GMRES\n");
-      printf("MaxIt     : %d\n",solv->maxIt);
-      printf("Tol       : %e\n",solv->tol);
+      fprintf(fileLogExc,"Solver    : GMRES\n");
+      fprintf(fileLogExc,"MaxIt     : %d\n",solv->maxIt);
+      fprintf(fileLogExc,"Tol       : %e\n",solv->tol);
     }
   }
 /*...................................................................*/
@@ -580,9 +580,9 @@ void setSolverConfig(char *word,Solv *solv,FILE *fileIn)
       solv->tol = smachn();
 
     if(!mpiVar.myId ) {
-      printf("Solver    : MINRES\n");
-      printf("MaxIt     : %d\n",solv->maxIt);
-      printf("Tol       : %e\n",solv->tol);
+      fprintf(fileLogExc,"Solver    : MINRES\n");
+      fprintf(fileLogExc,"MaxIt     : %d\n",solv->maxIt);
+      fprintf(fileLogExc,"Tol       : %e\n",solv->tol);
     }
   }
 /*...................................................................*/  
@@ -592,7 +592,7 @@ void setSolverConfig(char *word,Solv *solv,FILE *fileIn)
     solv->solver = PARDISO;   
 
     if(!mpiVar.myId ) {
-      printf("Solver    : PARDISO\n");
+      fprintf(fileLogExc,"Solver    : PARDISO\n");
     }
   }
 /*...................................................................*/  

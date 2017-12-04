@@ -505,22 +505,22 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 
 /*... coordinates*/
     if((!strcmp(word,macro[0])) && (!rflag[0])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[0] = true;
-      printf("loading coordinates...\n");
+      fprintf(fileLogExc,"loading coordinates...\n");
       readVfCoor(mesh->node.x,mesh->nnode,mesh->ndm,file);
-      printf("done.\n");
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*...................................................................*/
 
 /*... endMesh*/
     else if((!strcmp(word,macro[1])) && (!rflag[1])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc,"%s\n\n",DIF);
       strcpy(macros[nmacro++],word);
       rflag[1] = true;
       macroFlag = false;    
@@ -529,9 +529,9 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 
 /*... insert*/
     else if((!strcmp(word,macro[2])) && (!rflag[2])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc,"%s\n\n",DIF);
       fscanf(file,"%s",nameAux);
       fileAux = file;
       file    = openFile(nameAux,"r");
@@ -541,9 +541,9 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 
 /*... return*/
     else if((!strcmp(word,macro[3]))){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc,"%s\n\n",DIF);
       if(!rflag[2]){
         ERRO_GERAL(__FILE__,__func__,__LINE__
                   ,"Erro: macro return sem um insert associado!!");
@@ -556,306 +556,306 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 
 /*... cells  */
     else if((!strcmp(word,macro[4])) && (!rflag[4])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[4] = true;
-      printf("loading cells ...\n");
+      fprintf(fileLogExc,"loading cells ...\n");
       readVfElmt(mesh->elm.node    ,mesh->elm.mat
                 ,mesh->elm.nen     ,mesh->elm.adj.nViz
                 ,mesh->elm.geomType,mesh->numel
                 ,mesh->maxNo       ,file);
-      printf("done.\n");
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*...................................................................*/
 
 /*... faceRt1 */
     else if((!strcmp(word,macro[5])) && (!rflag[5])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[5] = true;
       strcpy(str,"endFaceRt1");
-      printf("loading faceRt1 ...\n");
+      fprintf(fileLogExc,"loading faceRt1 ...\n");
       readVfRes(mesh->elm.faceRt1,mesh->numel,mesh->maxViz+1,str,file);
-      printf("done.\n");
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*...................................................................*/
 
 /*... faceLoadT1 - cargas nas faces transporte */
     else if((!strcmp(word,macro[6])) && (!rflag[6])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[6] = true;
       strcpy(str,"endFaceLoadT1");
-      printf("loading faceLoadT1 ...\n");
+      fprintf(fileLogExc,"loading faceLoadT1 ...\n");
       readVfRes(mesh->elm.faceLoadT1,mesh->numel
                ,mesh->maxViz+1       ,str       ,file);
-      printf("done.\n");
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*...................................................................*/
 
 /*... loadT1 - definicao de cargar transporte */
     else if((!strcmp(word,macro[7])) && (!rflag[7])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[7] = true;
       strcpy(str,"endLoadsT1");
-      printf("loading loadsT1 ...\n");
+      fprintf(fileLogExc,"loading loadsT1 ...\n");
       readVfLoads(loadsT1,str       ,file);
-      printf("done.\n");
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*...................................................................*/
 
 /*... faceRd1- condicao de contorno para problemas de difusa pura */
     else if((!strcmp(word,macro[12])) && (!rflag[12])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[12] = true;
       strcpy(str,"endFaceRd1");
-      printf("loading faceRd1 ...\n");
+      fprintf(fileLogExc,"loading faceRd1 ...\n");
       readVfRes(mesh->elm.faceRd1,mesh->numel,mesh->maxViz+1,str,file);
-      printf("done.\n");
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*...................................................................*/
 
 /*... loadD1 - definicao de cargar difusao pura */
     else if((!strcmp(word,macro[14])) && (!rflag[14])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[14] = true;
       strcpy(str,"endLoadsD1");
-      printf("loading loadsD1 ...\n");
+      fprintf(fileLogExc,"loading loadsD1 ...\n");
       readVfLoads(loadsD1,str       ,file);
-      printf("done.\n");
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*...................................................................*/
 
 /*... faceLoadD1 - cargas nas faces difusao pura */
     else if((!strcmp(word,macro[15])) && (!rflag[15])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[15] = true;
       strcpy(str,"endFaceLoadD1");
-      printf("loading faceLoadD1 ...\n");
+      fprintf(fileLogExc,"loading faceLoadD1 ...\n");
       readVfRes(mesh->elm.faceLoadD1,mesh->numel
                ,mesh->maxViz+1       ,str       ,file);
-      printf("done.\n");
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*...................................................................*/
 
 /*... faceRvel- condicao de contorno para problemas fluidos (Vel) */
     else if((!strcmp(word,macro[18])) && (!rflag[18])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[18] = true;
       strcpy(str,"endFaceRvel");
-      printf("loading faceRvel ...\n");
+      fprintf(fileLogExc,"loading faceRvel ...\n");
       readVfRes(mesh->elm.faceRvel,mesh->numel,mesh->maxViz+1,str,file);
-      printf("done.\n");
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*...................................................................*/
 
 /*... loadVel - definicao de cargar fluidos (Vel)*/
     else if((!strcmp(word,macro[19])) && (!rflag[19])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[19] = true;
       strcpy(str,"endLoadsVel");
-      printf("loading loadsVel ...\n");
+      fprintf(fileLogExc,"loading loadsVel ...\n");
       readVfLoads(loadsVel,str       ,file);
-      printf("done.\n");
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*...................................................................*/
 
 /*... faceLoadVel - cargas nas faces fluido (Vel)*/
     else if((!strcmp(word,macro[20])) && (!rflag[20])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[20] = true;
       strcpy(str,"endFaceLoadVel");
-      printf("loading faceLoadVel ...\n");
+      fprintf(fileLogExc,"loading faceLoadVel ...\n");
       readVfRes(mesh->elm.faceLoadVel  ,mesh->numel
                ,mesh->maxViz+1         ,str        ,file);
-      printf("done.\n");
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*...................................................................*/
 
 /*... faceRpres - condicao de contorno para problemas fluidos (Pres)*/
     else if((!strcmp(word,macro[21])) && (!rflag[21])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[21] = true;
       strcpy(str,"endFaceRpres");
-      printf("loading faceRpres ...\n");
+      fprintf(fileLogExc,"loading faceRpres ...\n");
       readVfRes(mesh->elm.faceRpres,mesh->numel
                ,mesh->maxViz+1     ,str        ,file);
-      printf("done.\n");
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*...................................................................*/
 
 /*... loadPres - definicao de cargar fluidos (Pres)*/
     else if((!strcmp(word,macro[22])) && (!rflag[22])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[22] = true;
       strcpy(str,"endLoadsPres");
-      printf("loading loadsPres ...\n");
+      fprintf(fileLogExc,"loading loadsPres ...\n");
       readVfLoads(loadsPres,str       ,file);
-      printf("done.\n");
+      fprintf(fileLogExc,"done.\n");
       convLoadsPresC(loadsPres, loadsPresC);
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*...................................................................*/
 
 /*... faceLoadPres - cargas nas faces fluido (Pres)*/
     else if((!strcmp(word,macro[23])) && (!rflag[23])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[23] = true;
       strcpy(str,"endFaceLoadPres");
-      printf("loading faceLoadPres ...\n");
+      fprintf(fileLogExc,"loading faceLoadPres ...\n");
       readVfRes(mesh->elm.faceLoadPres ,mesh->numel
                ,mesh->maxViz+1         ,str        ,file);
-      printf("done.\n");
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*...................................................................*/
 
 /*... faceRenergy - condicao de contorno para problemas fluidos (Energy)*/
     else if ((!strcmp(word, macro[24])) && (!rflag[24])) {
-      printf("%s\n", DIF);
-      printf("%s\n", word);
+      fprintf(fileLogExc,"%s\n", DIF);
+      fprintf(fileLogExc,"%s\n", word);
       strcpy(macros[nmacro++], word);
       rflag[24] = true;
       strcpy(str, "endFaceRtemp");
-      printf("loading faceRtemp ...\n");
+      fprintf(fileLogExc,"loading faceRtemp ...\n");
       readVfRes(mesh->elm.faceRenergy,mesh->numel
                ,mesh->maxViz + 1     ,str        ,file);
-      printf("done.\n");
-      printf("%s\n\n", DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... loadEnergy - definicao de cargar fluidos (Energy)*/
     else if ((!strcmp(word, macro[25])) && (!rflag[25])) {
-      printf("%s\n", DIF);
-      printf("%s\n", word);
+      fprintf(fileLogExc,"%s\n", DIF);
+      fprintf(fileLogExc,"%s\n", word);
       strcpy(macros[nmacro++], word);
       rflag[25] = true;
       strcpy(str, "endLoadsTemp");
-      printf("loading loadsTemp ...\n");
+      fprintf(fileLogExc,"loading loadsTemp ...\n");
       readVfLoads(loadsTemp, str, file);
-      printf("done.\n");
+      fprintf(fileLogExc,"done.\n");
       convLoadsEnergy(loadsEnergy             ,loadsTemp
                      ,mesh->elm.material.prop
                      ,energyModel.fTemperature,prop.fSpecificHeat
                      ,energyModel.fKelvin);  
-      printf("%s\n\n", DIF);
+      fprintf(fileLogExc,"%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... faceLoadEnergy - cargas nas faces fluido (Energy)*/
     else if ((!strcmp(word, macro[26])) && (!rflag[26])) {
-      printf("%s\n", DIF);
-      printf("%s\n", word);
+      fprintf(fileLogExc,"%s\n", DIF);
+      fprintf(fileLogExc,"%s\n", word);
       strcpy(macros[nmacro++], word);
       rflag[26] = true;
       strcpy(str, "endFaceLoadTemp");
-      printf("loading faceLoadTemp ...\n");
+      fprintf(fileLogExc,"loading faceLoadTemp ...\n");
       readVfRes(mesh->elm.faceLoadEnergy,mesh->numel
                ,mesh->maxViz + 1        ,str        ,file);
-      printf("done.\n");
-      printf("%s\n\n", DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... materiais */
     else if((!strcmp(word,macro[27])) && (!rflag[27])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[27] = true;
       strcpy(str,"endMaterials");
-      printf("loading materials ...\n");
+      fprintf(fileLogExc,"loading materials ...\n");
       readVfMat(mesh->elm.material.prop,mesh->elm.material.type
                ,numat,file);
-      printf("done.\n");
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*...................................................................*/
 
 /*... uniformPres */
     else if ((!strcmp(word, macro[28])) && (!rflag[28])) {
-      printf("%s\n", DIF);
-      printf("%s\n", word);
+      fprintf(fileLogExc,"%s\n", DIF);
+      fprintf(fileLogExc,"%s\n", word);
       strcpy(macros[nmacro++], word);
       rflag[28] = true;
       uniformField(mesh->elm.pressure, mesh->numel,1, file);
-      printf("done.\n");
-      printf("%s\n\n", DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... initialVel */
     else if((!strcmp(word,macro[29])) && (!rflag[29])){
-      printf("%s\n",DIF);
-      printf("%s\n",word);
+      fprintf(fileLogExc,"%s\n",DIF);
+      fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[29] = true;
       strcpy(str,"endInitialVel");
-      printf("loading initialVel ...\n");
+      fprintf(fileLogExc,"loading initialVel ...\n");
       readVfInitial(mesh->elm.vel,mesh->numel,mesh->ndm,str,file);
-      printf("done.\n");
-      printf("%s\n\n",DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*...................................................................*/
 
 /*... uniformTemp */
     else if ((!strcmp(word, macro[30])) && (!rflag[30])) {
-      printf("%s\n", DIF);
-      printf("%s\n", word);
+      fprintf(fileLogExc,"%s\n", DIF);
+      fprintf(fileLogExc,"%s\n", word);
       strcpy(macros[nmacro++], word);
       rflag[30] = true;
-      printf("loading uniformTemp ...\n");
+      fprintf(fileLogExc,"loading uniformTemp ...\n");
       uniformField(mesh->elm.temp0, mesh->numel, 1, file);
-      printf("done.\n");
-      printf("%s\n\n", DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... uniformVel */
     else if ((!strcmp(word, macro[31])) && (!rflag[31])) {
-      printf("%s\n", DIF);
-      printf("%s\n", word);
+      fprintf(fileLogExc,"%s\n", DIF);
+      fprintf(fileLogExc,"%s\n", word);
       strcpy(macros[nmacro++], word);
       rflag[31] = true;
-      printf("loading uniformVel ...\n");
+      fprintf(fileLogExc,"loading uniformVel ...\n");
       uniformField(mesh->elm.vel, mesh->numel, ndm, file);
-      printf("done.\n");
-      printf("%s\n\n", DIF);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n", DIF);
     }
 /*...................................................................*/
 
@@ -1099,7 +1099,7 @@ void parametros(INT  *nn    ,INT *nel
   
   for(j=0;j<NPARAMETROS;j++){
     if(!flag[j]){
-      fprintf(stderr,"parametro: %s faltando.\n"
+      fprintf(fileLogExc,"parametro: %s faltando.\n"
               "fonte: %s \n",parameter[j],__FILE__);
       exit(EXIT_FAILURE);
     }
@@ -1517,9 +1517,9 @@ void config(FileOpt *opt,Reord *reordMesh
       i++;
       if(!mpiVar.myId){
         if(opt->bVtk)
-          printf("bVtk: true\n");
+          fprintf(fileLogExc,"bVtk: true\n");
         else
-          printf("bVtk: false\n");
+          fprintf(fileLogExc,"bVtk: false\n");
       }
     }
 /*... reord*/   
@@ -1534,9 +1534,9 @@ void config(FileOpt *opt,Reord *reordMesh
       i++;
       if(!mpiVar.myId){
         if(reordMesh->flag)
-          printf("Reord: true\n");
+          fprintf(fileLogExc,"Reord: true\n");
         else
-          printf("Reod: false\n");
+          fprintf(fileLogExc,"Reod: false\n");
       }
     }
 /*... mem*/   
@@ -1550,7 +1550,7 @@ void config(FileOpt *opt,Reord *reordMesh
       i++;
       
       if(!mpiVar.myId)
-        printf("Memoria principal: %d MBytes\n"
+        fprintf(fileLogExc,"Memoria principal: %d MBytes\n"
               ,(int)(nmax/conv));
     }
 /*... rcGrad*/   
@@ -1559,23 +1559,23 @@ void config(FileOpt *opt,Reord *reordMesh
       if(!strcmp(s,"gglc")){
         *rcGrad = RCGRADGAUSSC;
         if(!mpiVar.myId)
-          printf("rcGrad: GreenGaussCell\n");
+          fprintf(fileLogExc,"rcGrad: GreenGaussCell\n");
       }
       else if(!strcmp(s,"ggln")){
         *rcGrad = RCGRADGAUSSN;
         if(!mpiVar.myId)
-          printf("rcGrad: GreenGaussNode\n");
+          fprintf(fileLogExc,"rcGrad: GreenGaussNode\n");
       }
       else if(!strcmp(s,"lSquare")){
         *rcGrad = RCLSQUARE;
         if(!mpiVar.myId)
-          printf("rcGrad: LeastSquare\n");
+          fprintf(fileLogExc,"rcGrad: LeastSquare\n");
       }
       
       else if(!strcmp(s,"lSquareQR")){
         *rcGrad = RCLSQUAREQR;
         if(!mpiVar.myId)
-          printf("rcGrad: LeastSquareQR\n");
+          fprintf(fileLogExc,"rcGrad: LeastSquareQR\n");
       }
 
       flag[3] = true;
@@ -1587,12 +1587,12 @@ void config(FileOpt *opt,Reord *reordMesh
       if(!strcmp(s,"true")){
         opt->fItPlotRes = true;
         if(!mpiVar.myId)
-          printf("fItPlotRes: true\n");
+          fprintf(fileLogExc,"fItPlotRes: true\n");
       }
       else{
         opt->fItPlotRes = false;
         if(!mpiVar.myId)
-          printf("fItPlotRes: false\n");
+          fprintf(fileLogExc,"fItPlotRes: false\n");
       }
       flag[4] = true;
       i++;
@@ -1603,12 +1603,12 @@ void config(FileOpt *opt,Reord *reordMesh
       if(!strcmp(s,"true")){
         opt->fItPlot = true;
         if(!mpiVar.myId)
-          printf("fItPlot: true\n");
+          fprintf(fileLogExc,"fItPlot: true\n");
       }
       else{
         opt->fItPlot = false;
         if(!mpiVar.myId)
-          printf("fItPlot: false\n");
+          fprintf(fileLogExc,"fItPlot: false\n");
       }
       flag[5] = true;
       i++;
@@ -1620,7 +1620,7 @@ void config(FileOpt *opt,Reord *reordMesh
   
   for(j=0;j<NCONFIG;j++){
     if(!flag[j]){
-      fprintf(stderr,"%s: %s faltando.\n"
+      fprintf(fileLogExc,"%s: %s faltando.\n"
              "fonte: %s \n",__func__,config[j],__FILE__);
       exit(EXIT_FAILURE);
     }
@@ -1813,7 +1813,7 @@ void readEdo(Mesh *mesh,FILE *file){
     if(!strcmp(word,"transport1")){
       readMacro(file,word,false);
       mesh->ndfT[0]=(short) atol(word);
-      if(!mpiVar.myId ) printf("transport1 ndf %d\n"
+      if(!mpiVar.myId ) fprintf(fileLogExc,"transport1 ndf %d\n"
                               ,mesh->ndfT[0]);
     }
 /*...................................................................*/
@@ -1822,7 +1822,7 @@ void readEdo(Mesh *mesh,FILE *file){
     else if(!strcmp(word,"transport2")){
       readMacro(file,word,false);
       mesh->ndfT[1]= (short) atol(word);
-      if(!mpiVar.myId ) printf("transport2 ndf %d\n"
+      if(!mpiVar.myId ) fprintf(fileLogExc,"transport2 ndf %d\n"
                                ,mesh->ndfT[1]);
     }
 /*...................................................................*/
@@ -1831,7 +1831,7 @@ void readEdo(Mesh *mesh,FILE *file){
     else if(!strcmp(word,"transport3")){
       readMacro(file,word,false);
       mesh->ndfT[2]= (short) atol(word);
-      if(!mpiVar.myId ) printf("transport3 ndf %d\n"
+      if(!mpiVar.myId ) fprintf(fileLogExc,"transport3 ndf %d\n"
                                ,mesh->ndfT[2]);
     }
 /*...................................................................*/
@@ -1840,15 +1840,16 @@ void readEdo(Mesh *mesh,FILE *file){
     else if(!strcmp(word,"diffusion1")){
       readMacro(file,word,false);
       mesh->ndfD[0]= (short) atol(word);
-      if(!mpiVar.myId ) printf("diffusion1 ndf %d\n"
+      if(!mpiVar.myId ) fprintf(fileLogExc,"diffusion1 ndf %d\n"
                               ,mesh->ndfD[0]);
     }
 /*...................................................................*/
 
 /*... diffusion2*/
-    else if(!strcmp(word,"diffusion2")){      readMacro(file,word,false);
+    else if(!strcmp(word,"diffusion2")){ 
+     readMacro(file,word,false);
       mesh->ndfD[1]= (short) atol(word);
-      if(!mpiVar.myId ) printf("diffusion2 ndf %d\n"
+      if(!mpiVar.myId ) fprintf(fileLogExc,"diffusion2 ndf %d\n"
                               ,mesh->ndfD[1]);
     }
 /*...................................................................*/
@@ -1857,7 +1858,7 @@ void readEdo(Mesh *mesh,FILE *file){
     else if(!strcmp(word,"diffusion3")){
       readMacro(file,word,false);
       mesh->ndfD[2]= (short) atol(word);
-      if(!mpiVar.myId ) printf("diffusion3 ndf %d\n"
+      if(!mpiVar.myId ) fprintf(fileLogExc,"diffusion3 ndf %d\n"
                               ,mesh->ndfD[2]);
     }
 /*...................................................................*/
@@ -1866,7 +1867,7 @@ void readEdo(Mesh *mesh,FILE *file){
     else if(!strcmp(word,"fluid")){
       readMacro(file,word,false);
       mesh->ndfF= (short) atol(word);
-      if(!mpiVar.myId ) printf("fluid ndf %d\n"
+      if(!mpiVar.myId ) fprintf(fileLogExc,"fluid ndf %d\n"
                               ,mesh->ndfF);
     }
 /*...................................................................*/
@@ -1875,7 +1876,7 @@ void readEdo(Mesh *mesh,FILE *file){
     else if(!strcmp(word,"fluidt")){
       readMacro(file,word,false);
       mesh->ndfFt= (short) atol(word);
-      if(!mpiVar.myId ) printf("fluidt ndf %d\n"
+      if(!mpiVar.myId ) fprintf(fileLogExc,"fluidt ndf %d\n"
                               ,mesh->ndfFt);
     }
 /*...................................................................*/
@@ -1925,7 +1926,7 @@ void readPropVar(PropVar *p,FILE *file){
       p->fSpecificHeat = true;
       initSheatPol(); 
       if(!mpiVar.myId && p->fSpecificHeat) 
-        printf("sHeat variation        : Enable\n");
+        fprintf(fileLogExc,"sHeat variation        : Enable\n");
     }
 /*...................................................................*/
 
@@ -1936,7 +1937,7 @@ void readPropVar(PropVar *p,FILE *file){
       convStringLower(word);
       initDensityPol(word);
       if(!mpiVar.myId && p->fDensity) 
-        printf("Density variation      : Enable\n");                           
+        fprintf(fileLogExc,"Density variation      : Enable\n");                           
     }
 /*...................................................................*/
 
@@ -1946,7 +1947,7 @@ void readPropVar(PropVar *p,FILE *file){
       p->fDynamicViscosity = true;
       initDviscosityPol(word); 
       if(!mpiVar.myId && p->fDynamicViscosity)
-        printf("dViscosity variation   : Enable\n");;
+        fprintf(fileLogExc,"dViscosity variation   : Enable\n");;
     }
 /*...................................................................*/
 
@@ -1956,7 +1957,7 @@ void readPropVar(PropVar *p,FILE *file){
       p->fThermalCondutivty = true;
       initThCondPol(word);
       if(!mpiVar.myId && p->fThermalCondutivty)
-        printf("tCondutivity variation : Enable\n");                          
+        fprintf(fileLogExc,"tCondutivity variation : Enable\n");                          
     }
 /*...................................................................*/
     
@@ -2025,18 +2026,19 @@ void readModel(EnergyModel *e     , Turbulence *t
       e->fDissipation = false;
       e->fRes         = false;
       e->fTemperature = false;
+      if(!mpiVar.myId)
+        fprintf(fileLogExc,"EnergyModel:\n");  
 /*...................................................................*/      
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++){
-        if(!mpiVar.myId)
-          printf("EnergyModel:\n");  
+        
         readMacro(file,word,false);
         convStringLower(word);
 /*... PresWork*/
         if(!strcmp(word,energy[0])){    
           e->fPresWork = true;
           if(!mpiVar.myId && e->fPresWork) 
-            printf("PresWork : Enable\n");
+            fprintf(fileLogExc,"PresWork : Enable\n");
         }
 /*...................................................................*/
 
@@ -2044,7 +2046,7 @@ void readModel(EnergyModel *e     , Turbulence *t
         else if(!strcmp(word,energy[1])){        
           e->fDissipation = true;
           if(!mpiVar.myId && e->fDissipation) 
-            printf("Dissipation : Enable\n");                           
+            fprintf(fileLogExc,"Dissipation : Enable\n");                           
         }
 /*...................................................................*/
 
@@ -2052,7 +2054,7 @@ void readModel(EnergyModel *e     , Turbulence *t
         else if(!strcmp(word,energy[2])){
           e->fRes = true;
           if(!mpiVar.myId && e->fRes)
-            printf("Residual : Enable\n");;
+            fprintf(fileLogExc,"Residual : Enable\n");;
         }
 /*...................................................................*/
 
@@ -2060,7 +2062,7 @@ void readModel(EnergyModel *e     , Turbulence *t
         else if(!strcmp(word,energy[3])){
           e->fRes = false;
           if(!mpiVar.myId && e->fRes)
-            printf("Absolute : Enable\n");;
+            fprintf(fileLogExc,"Absolute : Enable\n");;
         }
 /*...................................................................*/
 
@@ -2068,7 +2070,7 @@ void readModel(EnergyModel *e     , Turbulence *t
         else if(!strcmp(word,energy[4])){
           e->fTemperature = true;
           if(!mpiVar.myId && e->fTemperature)
-            printf("Temperatura : Enable\n");;
+            fprintf(fileLogExc,"Temperatura : Enable\n");;
         }
 /*...................................................................*/
 
@@ -2076,7 +2078,7 @@ void readModel(EnergyModel *e     , Turbulence *t
         else if(!strcmp(word,energy[5])){
           e->fTemperature = false;
           if(!mpiVar.myId && e->fTemperature)
-            printf("Entalphy : Enable\n");;
+            fprintf(fileLogExc,"Entalphy : Enable\n");;
         }
 /*...................................................................*/
 
@@ -2088,7 +2090,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*... turbulencia*/
     else if(!strcmp(word,macros[1])){   
       if(!mpiVar.myId)
-        printf("TurbulenceModel:\n");   
+        fprintf(fileLogExc,"TurbulenceModel:\n");   
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++){
         readMacro(file,word,false);
@@ -2099,7 +2101,7 @@ void readModel(EnergyModel *e     , Turbulence *t
           t->type  = SMAGORINSKY;
           fscanf(file,"%lf",&t->cs);    
           if(!mpiVar.myId){ 
-            printf("Smagorinsky: Cs = %lf\n",t->cs);
+            fprintf(fileLogExc,"Smagorinsky: Cs = %lf\n",t->cs);
           }
         }
 /*...................................................................*/    
@@ -2111,7 +2113,7 @@ void readModel(EnergyModel *e     , Turbulence *t
           if(!strcmp(word,"standard"))
             t->wallType  = STANDARDWALL; 
           if(!mpiVar.myId){ 
-            printf("wallModel: %s\n",typeWallModel[t->wallType-1]);
+            fprintf(fileLogExc,"wallModel: %s\n",typeWallModel[t->wallType-1]);
           }
         }
 /*...................................................................*/
@@ -2122,7 +2124,7 @@ void readModel(EnergyModel *e     , Turbulence *t
           t->type  = WALEMODEL;
           fscanf(file,"%lf",&t->cs);    
           if(!mpiVar.myId){ 
-            printf("Wale: Cw = %lf\n",t->cs);
+            fprintf(fileLogExc,"Wale: Cw = %lf\n",t->cs);
           }
         }
 /*...................................................................*/ 
@@ -2133,7 +2135,7 @@ void readModel(EnergyModel *e     , Turbulence *t
           t->type  = VREMAN;
           fscanf(file,"%lf",&t->cs);    
           if(!mpiVar.myId){ 
-            printf("Wale: Cw = %lf\n",t->cs);
+            fprintf(fileLogExc,"Wale: Cw = %lf\n",t->cs);
           }
         }
 /*...................................................................*/
@@ -2143,7 +2145,7 @@ void readModel(EnergyModel *e     , Turbulence *t
           t->fTurb = true;      
           t->type  = DYNAMIC;
           if(!mpiVar.myId){ 
-            printf("Dynamic\n");
+            fprintf(fileLogExc,"Dynamic\n");
           }
         }
 /*...................................................................*/
@@ -2154,7 +2156,7 @@ void readModel(EnergyModel *e     , Turbulence *t
           t->type  = SIGMAMODEL;
           fscanf(file,"%lf",&t->cs);   
           if(!mpiVar.myId){ 
-            printf("SigmaModel: Cw = %lf\n",t->cs);
+            fprintf(fileLogExc,"SigmaModel: Cw = %lf\n",t->cs);
           }
         }
 /*...................................................................*/ 
@@ -2168,7 +2170,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*... mass*/
     else if(!strcmp(word,macros[2])){ 
       if(!mpiVar.myId)
-        printf("MassEqModel:\n");    
+        fprintf(fileLogExc,"MassEqModel:\n");    
       eMass->LhsDensity = false;
       eMass->RhsDensity = false;
       fscanf(file,"%d",&nPar);
@@ -2179,7 +2181,7 @@ void readModel(EnergyModel *e     , Turbulence *t
         if(!strcmp(word,mass[0])){
           eMass->LhsDensity = true;          
           if(!mpiVar.myId && eMass->LhsDensity){ 
-            printf("LhsDensity: Enable\n");
+            fprintf(fileLogExc,"LhsDensity: Enable\n");
           }
         }
 /*...................................................................*/
@@ -2188,7 +2190,7 @@ void readModel(EnergyModel *e     , Turbulence *t
         else if(!strcmp(word,mass[1])){
           eMass->RhsDensity = true;          
           if(!mpiVar.myId && eMass->RhsDensity){ 
-            printf("RhsDensity: Enable\n");
+            fprintf(fileLogExc,"RhsDensity: Enable\n");
           }
         }
 /*...................................................................*/
@@ -2200,7 +2202,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*... Momentum*/
     else if(!strcmp(word,macros[3])){ 
       if(!mpiVar.myId)
-        printf("MomentumEqModel:\n");    
+        fprintf(fileLogExc,"MomentumEqModel:\n");    
       eMomentum->fRes             = false;
       eMomentum->fAbsultePressure = false;
       eMomentum->fRhieChowInt     = false;
@@ -2212,7 +2214,7 @@ void readModel(EnergyModel *e     , Turbulence *t
         if(!strcmp(word,momentum[0])){
           eMomentum->fRes = true;          
           if(!mpiVar.myId && eMomentum->fRes){ 
-            printf("Residual: Enable\n");
+            fprintf(fileLogExc,"Residual: Enable\n");
           }
         }
 /*...................................................................*/
@@ -2221,7 +2223,7 @@ void readModel(EnergyModel *e     , Turbulence *t
         else if(!strcmp(word,momentum[1])){
           eMomentum->fRes = false;            
           if(!mpiVar.myId && !eMomentum->fRes){ 
-            printf("Absolute: Enable\n");
+            fprintf(fileLogExc,"Absolute: Enable\n");
           }
         }
 /*...................................................................*/
@@ -2230,7 +2232,7 @@ void readModel(EnergyModel *e     , Turbulence *t
         else if(!strcmp(word,momentum[2])){
           eMomentum->fAbsultePressure = true;            
           if(!mpiVar.myId && eMomentum->fAbsultePressure ){ 
-            printf("presAbs: Enable\n");
+            fprintf(fileLogExc,"presAbs: Enable\n");
           }
         }
 /*...................................................................*/
@@ -2239,7 +2241,7 @@ void readModel(EnergyModel *e     , Turbulence *t
         else if(!strcmp(word,momentum[3])){
           eMomentum->fAbsultePressure = false;            
           if(!mpiVar.myId && !eMomentum->fAbsultePressure ){ 
-            printf("presRef: Enable\n");
+            fprintf(fileLogExc,"presRef: Enable\n");
           }
         }
 /*...................................................................*/
@@ -2248,7 +2250,7 @@ void readModel(EnergyModel *e     , Turbulence *t
         else if(!strcmp(word,momentum[4])){
           eMomentum->fRhieChowInt = true;            
           if(!mpiVar.myId && eMomentum->fRhieChowInt){ 
-            printf("RhieChowInt: Enable\n");
+            fprintf(fileLogExc,"RhieChowInt: Enable\n");
           }
         }
 /*...................................................................*/
@@ -2291,7 +2293,8 @@ void readGravity(DOUBLE *gravity,FILE *file){
     fscanf(file,"%lf",gravity+i);
 
   if(!mpiVar.myId ) 
-    printf("g = (%lf,%lf,%lf)\n",gravity[0],gravity[1],gravity[2]);
+    fprintf(fileLogExc,"g = (%lf,%lf,%lf)\n"
+           ,gravity[0],gravity[1],gravity[2]);
 
 }
 /*********************************************************************/ 
@@ -2353,119 +2356,119 @@ void setPrintFluid(FileOpt *opt,FILE *file){
 /*... cell*/        
     if(!strcmp(word,macro[0])){ 
       opt->fCell = true;
-      if(!mpiVar.myId ) printf("print : cell\n");
+      if(!mpiVar.myId ) fprintf(fileLogExc,"print : cell\n");
     }
 /*.....................................................................*/
 
 /*... node*/        
     else if(!strcmp(word,macro[1])){ 
       opt->fNode = true;
-      if(!mpiVar.myId ) printf("print : node\n");
+      if(!mpiVar.myId ) fprintf(fileLogExc,"print : node\n");
     }
 /*.....................................................................*/
 
 /*... vel*/        
     else if(!strcmp(word,macro[2])){ 
       opt->vel = true;
-      if(!mpiVar.myId ) printf("print : vel\n");
+      if(!mpiVar.myId ) fprintf(fileLogExc,"print : vel\n");
     }
 /*.....................................................................*/
 
 /*...*/
     else if(!strcmp(word,macro[3])){ 
       opt->pres = true;
-      if(!mpiVar.myId ) printf("print : pres\n");
+      if(!mpiVar.myId ) fprintf(fileLogExc,"print : pres\n");
     }
 /*.....................................................................*/
 
 /*...*/
     else if(!strcmp(word,macro[4])){ 
       opt->gradVel = true;
-      if(!mpiVar.myId ) printf("print : gradVel\n");
+      if(!mpiVar.myId ) fprintf(fileLogExc,"print : gradVel\n");
     }
 /*.....................................................................*/
 
 /*...*/
     else if(!strcmp(word,macro[5])){ 
       opt->gradPres = true;
-      if(!mpiVar.myId ) printf("print : gradPres\n");
+      if(!mpiVar.myId ) fprintf(fileLogExc,"print : gradPres\n");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[6])) {
       opt->energy = true;
-      if (!mpiVar.myId) printf("print : temp\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,"print : temp\n");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[7])) {
       opt->gradEnergy = true;
-      if (!mpiVar.myId) printf("print : gradTemp\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,"print : gradTemp\n");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[8])) {
       opt->eddyViscosity = true;
-      if (!mpiVar.myId) printf("print : eddyViscosity\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,"print : eddyViscosity\n");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[9])) {
       opt->densityFluid = true;
-      if (!mpiVar.myId) printf("print : densityFluid\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,"print : densityFluid\n");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[10])) {
       opt->specificHeat = true;
-      if (!mpiVar.myId) printf("print : specificHeat\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,"print : specificHeat\n");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[11])) {
       opt->dViscosity = true;
-      if (!mpiVar.myId) printf("print : dViscosity\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,"print : dViscosity\n");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[12])) {
       opt->tConductivity = true;
-      if (!mpiVar.myId) printf("print : tConductivity\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,"print : tConductivity\n");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[13])) {
       opt->vorticity = true;
-      if (!mpiVar.myId) printf("print : vorticity\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,"print : vorticity\n");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[14])) {
       opt->wallParameters = true;
-      if (!mpiVar.myId) printf("print : wallParameters\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,"print : wallParameters\n");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[15])) {
       opt->stress = true;
-      if (!mpiVar.myId) printf("print : stress\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,"print : stress\n");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[16])) {
       opt->kinetic = true;
-      if (!mpiVar.myId) printf("print : kinecit\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,"print : kinecit\n");
     }
 /*.....................................................................*/
 

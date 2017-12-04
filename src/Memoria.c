@@ -504,19 +504,19 @@ iptx usoMemoria(Memoria *m,char *s){
   double conv;
   
   if(!strcmp(s,"B"))
-   printf("Total de memoria usada: %20.4lf bytes\n"
+   fprintf(fileLogExc,"Total de memoria usada: %20.4lf bytes\n"
          ,(double) m->iespont);
   else if(!strcmp(s,"KB")){
    conv = CONV_BYTES; 
-   printf("Total de memoria usada: %20.4lf KB\n",m->iespont/conv);
+   fprintf(fileLogExc,"Total de memoria usada: %20.4lf KB\n",m->iespont/conv);
   }  
   else if(!strcmp(s,"MB")){
    conv = CONV_BYTES*CONV_BYTES;
-   printf("Total de memoria usada: %20.4lf MB\n",m->iespont/conv);
+   fprintf(fileLogExc,"Total de memoria usada: %20.4lf MB\n",m->iespont/conv);
   } 
   else if(!strcmp(s,"GB")){
    conv = CONV_BYTES*CONV_BYTES*CONV_BYTES;
-   printf("Total de memoria usada: %20.4lf GB\n",m->iespont/conv);
+   fprintf(fileLogExc,"Total de memoria usada: %20.4lf GB\n",m->iespont/conv);
   }
   return m->iespont;
 }
@@ -540,22 +540,22 @@ double memoriaTotal(char *s)
 {
    double conv;
    if(!strcmp(s,"B")){
-     printf("Total disponivel : %25.4lf bytes\n",(double) nmax);
+     fprintf(fileLogExc,"Total disponivel : %25.4lf bytes\n",(double) nmax);
      return (double)nmax;
    } 
    else if(!strcmp(s,"KB")){
      conv = CONV_BYTES; 
-     printf("Total disponivel : %25.4lf KB\n",nmax/conv);
+     fprintf(fileLogExc,"Total disponivel : %25.4lf KB\n",nmax/conv);
      return nmax/conv;
    }  
    else if(!strcmp(s,"MB")){
      conv = CONV_BYTES*CONV_BYTES;
-     printf("Total disponivel : %25.4lf MB\n",nmax/conv);
+     fprintf(fileLogExc,"Total disponivel : %25.4lf MB\n",nmax/conv);
      return nmax/conv;
    } 
    else if(!strcmp(s,"GB")){
      conv = CONV_BYTES*CONV_BYTES*CONV_BYTES;
-     printf("Total disponivel : %25.4lf GB\n",nmax/conv);
+     fprintf(fileLogExc,"Total disponivel : %25.4lf GB\n",nmax/conv);
      return nmax/conv;
    }
    return -1.0;
