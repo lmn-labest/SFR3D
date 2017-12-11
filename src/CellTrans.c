@@ -435,7 +435,7 @@ void cellEnergy2D(Loads *loads            , Loads *loadsVel
   DOUBLE thermCoefC, thermCoefV, densityC, densityV, densityM,
          diffEffC, diffEffV, diffEff, sHeatC, sHeatV, sHeatM, 
          eddyViscosityC, eddyViscosityV, viscosityC, tA, coef,
-         tmp, tmp1, prT;
+         tmp, tmp1, prTwall, prTsgs;
   DOUBLE p, sP, dfd, gfKsi, lvSkew[2], alpha, alphaMenosUm;
   DOUBLE v[2], gradUcomp[2], lKsi[2], lNormal[2], gf[2];
   DOUBLE dPviz, lModKsi, lModEta, du, duDksi, lXmcc[2], lXm[2];
@@ -468,7 +468,8 @@ void cellEnergy2D(Loads *loads            , Loads *loadsVel
   fTemp      = model.fTemperature;
   fKelvin    = model.fKelvin;
   fTurb      = tModel.fTurb;
-  prT        = tModel.PrandltT;
+  prTwall    = tModel.PrandltTwall;
+  prTsgs     = tModel.PrandltTsgs;
   fWallModel = tModel.fWall;
   wallType   = tModel.wallType;
   fSheat     = vProp.fSpecificHeat;
@@ -486,9 +487,9 @@ void cellEnergy2D(Loads *loads            , Loads *loadsVel
 
 /*...*/
   if(fTemp)
-    diffEffC = thermCoefC + sHeatC*viscosityC/prT;
+    diffEffC = thermCoefC + sHeatC*viscosityC/prTsgs;
   else
-    diffEffC = thermCoefC/sHeatC + viscosityC/prT;
+    diffEffC = thermCoefC/sHeatC + viscosityC/prTsgs;
 /*...................................................................*/
 
 /*...*/
@@ -572,12 +573,12 @@ void cellEnergy2D(Loads *loads            , Loads *loadsVel
 
 /*... media harmonica*/ 
       if(fTemp){
-        diffEffV = thermCoefV + sHeatV*eddyViscosityV/prT;
+        diffEffV = thermCoefV + sHeatV*eddyViscosityV/prTsgs;
         diffEff = alpha / diffEffC + alphaMenosUm / diffEffV;
         diffEff = 1.0e0 /  diffEff;
       }
       else {        
-        diffEffV = thermCoefV/sHeatV + eddyViscosityV/prT;
+        diffEffV = thermCoefV/sHeatV + eddyViscosityV/prTsgs;
         diffEff = alpha / diffEffC + alphaMenosUm / diffEffV;
         diffEff = 1.0e0 / diffEff;
       }
@@ -671,7 +672,7 @@ void cellEnergy2D(Loads *loads            , Loads *loadsVel
                   , uC           , lNormal  
                   , thermCoefC   , densityC
                   , viscosityC   , sHeatC
-                  , prT          , xx                   
+                  , prTwall      , xx                   
                   , lModEta      , dcca[nAresta]
                   , loads[nCarg1], loadsVel[nCarg2]
                   , ndm
@@ -1249,7 +1250,7 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
   DOUBLE thermCoefC, thermCoefV, densityC, densityV, densityM,
          diffEffC, diffEffV, diffEff, sHeatC, sHeatV, sHeatM, 
          eddyViscosityC, eddyViscosityV, viscosityC, tA, coef,
-         tmp, tmp1, tmp2, tmp3, prT;
+         tmp, tmp1, tmp2, tmp3, prTwall, prTsgs;
   DOUBLE p, sP, dfd, gfKsi, lvSkew[3], alpha, alphaMenosUm;
   DOUBLE v[3], gradUcomp[3], lKsi[3], lNormal[3], gf[3];
   DOUBLE dPviz, lModKsi, lFarea, du, duDksi, lXmcc[3], lXm[3];
@@ -1283,7 +1284,8 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
   fTemp      = model.fTemperature;
   fKelvin    = model.fKelvin;
   fTurb      = tModel.fTurb;
-  prT        = tModel.PrandltT;
+  prTwall    = tModel.PrandltTwall;
+  prTsgs     = tModel.PrandltTsgs;
   fWallModel = tModel.fWall;
   wallType   = tModel.wallType;
   fSheat     = vProp.fSpecificHeat;
@@ -1301,9 +1303,9 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
 
 /*...*/
   if(fTemp)
-    diffEffC = thermCoefC + sHeatC*viscosityC/prT;
+    diffEffC = thermCoefC + sHeatC*viscosityC/prTsgs;
   else
-    diffEffC = thermCoefC/sHeatC + viscosityC/prT;
+    diffEffC = thermCoefC/sHeatC + viscosityC/prTsgs;
 /*...................................................................*/
 
 /*...*/
@@ -1402,12 +1404,12 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
 
 /*... media harmonica*/ 
       if(fTemp){
-        diffEffV = thermCoefV + sHeatV*eddyViscosityV/prT;
+        diffEffV = thermCoefV + sHeatV*eddyViscosityV/prTsgs;
         diffEff = alpha / diffEffC + alphaMenosUm / diffEffV;
         diffEff = 1.0e0 /  diffEff;
       }
       else {        
-        diffEffV = thermCoefV/sHeatV + eddyViscosityV/prT;
+        diffEffV = thermCoefV/sHeatV + eddyViscosityV/prTsgs;
         diffEff = alpha / diffEffC + alphaMenosUm / diffEffV;
         diffEff = 1.0e0 / diffEff;
       }
@@ -1509,7 +1511,7 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
                   , uC           , lNormal  
                   , thermCoefC   , densityC
                   , viscosityC   , sHeatC
-                  , prT          , xx                   
+                  , prTwall      , xx                   
                   , lFarea       , dcca[nAresta]
                   , loads[nCarg1], loadsVel[nCarg2]
                   , ndm

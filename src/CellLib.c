@@ -88,7 +88,7 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
 
 /*... 3D*/
     else if(ndm == 3){
-      cellLes3D(lVel          , tModel       
+      eddyViscosity3D(lVel          , tModel       
               , lGeomType     , lprop 
               , lViz          , fArea  
               , normal        , volume
@@ -412,7 +412,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
 
 /*********************************************************************
  * Data de criacao    : 27/08/2017                                   *
- * Data de modificaco : 03/10/2017                                   *
+ * Data de modificaco : 05/12/2017                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEVEl: chamada de bibliotecas de celulas para          *
  * problema de escoamento de fluidos (VEL -low mach)                 *
@@ -460,6 +460,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
  * lDensity  -> massa especifica com variacao temporal               *
  * lDviscosity-> viscosidade dinamica com variacao temporal          *
  * dField    -> matriz D do metodo simple                            *
+ * stressR   -> tensor residual                                      *
  * underU    -> fator underrelaxtion sinple                          *
  * sPressure -> reconstrucao de segunda ordem para pressoes nas      *
  *              faces                                                *
@@ -494,7 +495,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
            , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres  
            , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel 
            , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lViscosity 
-           , DOUBLE *RESTRICT dField       
+           , DOUBLE *RESTRICT dField    , DOUBLE *RESTRICT stressR   
            , DOUBLE const underU        , const bool sPressure 
            , short const nEn            , short  const nFace 
            , short const ndm            , short const lib 
@@ -552,7 +553,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
                      , pres       , gradPres  
                      , vel        , gradVel 
                      , lDensity   , lViscosity 
-                     , dField        
+                     , dField     , stressR
                      , underU     , sPressure 
                      , nEn        , nFace  
                      , ndm        , nel); 
@@ -5769,7 +5770,7 @@ void vorticity(DOUBLE *RESTRICT w,DOUBLE *RESTRICT gradVel
 
 /********************************************************************** 
  * Data de criacao    : 25/11/2017                                    *
- * Data de modificaco : 00/00/0000                                    *
+ * Data de modificaco : 09/12/2017                                    *
  *------------------------------------------------------------------- *
  * stress: tensor de forcas viscosas                                  *  
  * ------------------------------------------------------------------ *
@@ -5805,31 +5806,74 @@ void stress(DOUBLE *RESTRICT s,DOUBLE *RESTRICT gradVel
     tmp = MAT2D(0,0,gradVel,ndm)
         + MAT2D(1,1,gradVel,ndm) 
         + MAT2D(2,2,gradVel,ndm);
-/*... s11*/
-    MAT2D(0,0,s,ndm) = 2.0*nu*MAT2D(0,0,gradVel,ndm) + lambda*tmp;
-/*... s11*/
-    MAT2D(1,1,s,ndm) = 2.0*nu*MAT2D(1,1,gradVel,ndm) + lambda*tmp;
-/*... s11*/
-    MAT2D(2,2,s,ndm) = 2.0*nu*MAT2D(2,2,gradVel,ndm) + lambda*tmp;
-/*... s12*/
-    tmp = MAT2D(1,0,gradVel,ndm) + MAT2D(0,1,gradVel,ndm);
-    MAT2D(0,1,s,ndm) = nu*tmp;
-/*... s21*/
-    tmp = MAT2D(0,1,gradVel,ndm) + MAT2D(1,0,gradVel,ndm);
-    MAT2D(1,2,s,ndm) = nu*tmp;
-/*... s13*/
-    tmp = MAT2D(2,0,gradVel,ndm) + MAT2D(0,2,gradVel,ndm);
-    MAT2D(0,2,s,ndm) = nu*tmp;
-/*... s31*/
-    tmp = MAT2D(2,0,gradVel,ndm) + MAT2D(0,2,gradVel,ndm);
-    MAT2D(2,0,s,ndm) = nu*tmp;
-/*... s23*/
-    tmp = MAT2D(2,1,gradVel,ndm) + MAT2D(1,2,gradVel,ndm);
-    MAT2D(1,2,s,ndm) = nu*tmp;
-/*... s32*/
-    tmp = MAT2D(1,2,gradVel,ndm) + MAT2D(2,1,gradVel,ndm);
-    MAT2D(2,1,s,ndm) = nu*tmp;
+/*... s11 - s0*/
+    s[0] = 2.e0*nu*MAT2D(0,0,gradVel,ndm) + lambda*tmp;
+/*... s22 - s1*/
+    s[1] = 2.e0*nu*MAT2D(1,1,gradVel,ndm) + lambda*tmp;
+/*... s33 - s2*/
+    s[2] = 2.e0*nu*MAT2D(2,2,gradVel,ndm) + lambda*tmp;
+/*... s12 - s3*/
+    s[3] = nu*(MAT2D(1,0,gradVel,ndm) + MAT2D(0,1,gradVel,ndm));
+/*... s23 - s4*/
+    s[4] = nu*(MAT2D(2,1,gradVel,ndm) + MAT2D(1,2,gradVel,ndm));
+/*... s13 - s5*/
+    s[5] = nu*(MAT2D(2,0,gradVel,ndm) + MAT2D(0,2,gradVel,ndm));
+
   }
 
 }
-/*********************************************************************/ 
+/*********************************************************************/
+
+/********************************************************************** 
+ * Data de criacao    : 09/12/2017                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *------------------------------------------------------------------- *
+ * stressEddyViscosity : tensor de forcas viscosas turbulenta         *  
+ * ------------------------------------------------------------------ *
+ * parametros de entrada:                                             * 
+ * ------------------------------------------------------------------ *
+ * s       -> nao definido                                            * 
+ * gradVel -> gradienta das velocidades                               * 
+ * nu      -> viscosidade turbulenta                                  * 
+ * ndm     -> dimensao                                                * 
+ * ------------------------------------------------------------------ *
+ * parametros de saida  :                                             * 
+ * ------------------------------------------------------------------ *
+ * s       -> tensor                                                  *
+ * ------------------------------------------------------------------ *
+ * OBS:                                                               *
+ *------------------------------------------------------------------- *
+ *                                                                    *
+ * gradVel(ndf,ndm) -> gradVel(3,3)                                   *
+ *                                                                    *
+ *             | du1dx1 du1dx2 du1dx3 |                               * 
+ * grad(*,*) = | du2dx1 du2dx2 du2dx3 |                               *
+ *             | du3dx1 du3dx2 du3dx3 |                               *
+ *                                                                    *
+ **********************************************************************/
+void stressEddyViscosity(DOUBLE *RESTRICT s,DOUBLE *RESTRICT gradVel
+                       , DOUBLE const nut  , short const ndm) {
+
+  DOUBLE tmp;
+
+  if (ndm == 3) {
+     tmp =D1DIV3*(MAT2D(0,0,gradVel,ndm)
+                + MAT2D(1,1,gradVel,ndm) 
+                + MAT2D(2,2,gradVel,ndm));
+/*... s11 - s0*/
+    s[0] = -2.e0*nut*(MAT2D(0,0,gradVel,ndm) - tmp);
+/*... s22 - s1*/
+    s[1] = -2.e0*nut*(MAT2D(1,1,gradVel,ndm) - tmp);
+/*... s33 - s2*/
+    s[2] = -2.e0*nut*(MAT2D(2,2,gradVel,ndm) - tmp);
+/*... s12 - s3*/
+    s[3] = -nut*(MAT2D(1,0,gradVel,ndm) + MAT2D(0,1,gradVel,ndm));
+/*... s23 - s4*/
+    s[4] = -nut*(MAT2D(2,1,gradVel,ndm) + MAT2D(1,2,gradVel,ndm));
+/*... s13 - s5*/
+    s[5] = -nut*(MAT2D(2,0,gradVel,ndm) + MAT2D(0,2,gradVel,ndm));
+
+  }
+
+}
+/*********************************************************************/  

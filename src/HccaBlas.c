@@ -3805,7 +3805,7 @@ void mpiMatVecEllPack(INT const nEq  ,INT const *nAd
  *-------------------------------------------------------------------*
  *********************************************************************/
 void dgemm(INT const ni,INT const nj,INT const nk
-          ,DOUBLE *restrict a,DOUBLE *restrict b,DOUBLE *restrict c)
+          ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT b,DOUBLE *RESTRICT c)
 {
   int i,j,k;
 

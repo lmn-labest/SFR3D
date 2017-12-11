@@ -1031,7 +1031,7 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                    *
- * Data de modificaco : 01/12/2017                                    * 
+ * Data de modificaco : 04/12/2017                                    * 
  *------------------------------------------------------------------- * 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1065,8 +1065,9 @@ void wResVtkDif(Memoria *m        ,double *x
  * numel        -> numero de elementos                                *
  * ndm          -> numero de dimensao                                 *
  * maxNo        -> numero maximo de nos por elemento                  *
- * numat        -> numero maximo de nos por elemento                  *
+ * numat        -> numero de materias                                 *
  * ndf          -> graus de liberdade das equacoes                    *
+ * ntn          -> numero de termos no tensor ( 4 ; 6)                *
  * nameOut      -> nome de arquivo de saida                           *
  * opt          -> opcoes do arquivo                                  *
  * f            -> arquivlo                                           *
@@ -1093,11 +1094,13 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
           ,DOUBLE *elEddyVis    ,DOUBLE *nEddyVis
           ,DOUBLE *eDensityFluid,DOUBLE *nDensityFluid
           ,DOUBLE *eDyViscosity ,DOUBLE *nDyViscosity
+          ,DOUBLE *eStressR     ,DOUBLE *nStressR
           ,DOUBLE *specificHeat ,DOUBLE *tConductivity
           ,DOUBLE *wallPar
           ,INT nnode            ,INT numel    
           ,short const ndm      ,short const maxNo 
-          ,short const numat    ,short const ndf   
+          ,short const numat    ,short const ndf
+          ,short const ntn   
           ,char *nameOut        ,FileOpt opt
           ,bool fKelvin
           ,Temporal ddt         ,FILE *f)
@@ -1312,6 +1315,20 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
   }
 /*...................................................................*/
 
+/*... escreve o tensor residual */  
+  if(opt.stressR && opt.fCell ){
+    strcpy(str,"eStressRs");
+    writeVtkProp(&idum,eStressR,numel,ntn,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+    HccaAlloc(DOUBLE,m,p,numel*ntn,"p",_AD_);
+    makeStress(p,elGradVel,eDyViscosity,numel,ndm,ntn,false);
+    strcpy(str,"eStressRf");
+    writeVtkProp(&idum,p,numel,ntn,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+    HccaDealloc(m,p,"p",_AD_);
+  }
+/*...................................................................*/
+
 /*.... campo por no*/
   fprintf(f,"POINT_DATA %ld\n",(long) nnode);
 /*...................................................................*/
@@ -1409,15 +1426,15 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
   }
 /*...................................................................*/
 
-/*... escreve a tenso desviadora */  
+/*... escreve a tensor desviador */  
   if(opt.stress && opt.fNode ){
-    strcpy(str,"NodeStress");
-    HccaAlloc(DOUBLE,m,p,nnode*9,"p",_AD_);
+/*  strcpy(str,"NodeStress");
+    HccaAlloc(DOUBLE,m,p,nnode*ntn,"p",_AD_);
     ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
-    makeStress(p,nGradVel,nDyViscosity,nnode,ndm);
-    writeVtkProp(&idum,p,nnode,ndm,str,iws
+    makeStress(p,nGradVel,nDyViscosity,nnode,ndm,true);
+    writeVtkProp(&idum,p,nnode,ntn,str,iws
                 ,DOUBLE_VTK,TENSORS_VTK,f);
-    HccaDealloc(m,p,"p",_AD_);
+    HccaDealloc(m,p,"p",_AD_);*/
   }
 /*...................................................................*/
 
@@ -1432,6 +1449,21 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
     HccaDealloc(m,p,"p",_AD_);
   }
 /*...................................................................*/
+
+/*... escreve o tensor residual */  
+  if(opt.stressR && opt.fNode ){
+    strcpy(str,"nStressRs");
+    writeVtkProp(&idum,nStressR,nnode,6,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+    HccaAlloc(DOUBLE,m,p,numel*ntn,"p",_AD_);
+    makeStress(p,nGradVel,nDyViscosity,nnode,ndm,ntn,false);
+    strcpy(str,"nStressRf");
+    writeVtkProp(&idum,p,nnode,ntn,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+    HccaDealloc(m,p,"p",_AD_);
+  }
+/*...................................................................*/
+
   fclose(f);
 }
 /*********************************************************************/
@@ -1836,7 +1868,7 @@ void makeVorticity(DOUBLE *RESTRICT w, DOUBLE *RESTRICT gradVel
  * Data de criacao    : 11/11/2017                                    *
  * Data de modificaco : 00/00/0000                                    *
  *------------------------------------------------------------------- * 
- * makeStress : campo de tensoes viscosas                             *  
+ * makeStress : campo de tensoes viscosas desviadoras                 *  
  * ------------------------------------------------------------------ *
  * parametros de entrada:                                             * 
  * ------------------------------------------------------------------ *
@@ -1845,6 +1877,7 @@ void makeVorticity(DOUBLE *RESTRICT w, DOUBLE *RESTRICT gradVel
  * viscosity -> viscosidade molecular                                 * 
  * n         -> numero de pontos                                      * 
  * ndm       -> dimensao                                              * 
+ * ntn       -> numetro de termos no tensor simetrico (4;6)           *
  * ------------------------------------------------------------------ *
  * parametros de saida  :                                             * 
  * ------------------------------------------------------------------ *
@@ -1861,21 +1894,33 @@ void makeVorticity(DOUBLE *RESTRICT w, DOUBLE *RESTRICT gradVel
  *                                                                    *
  **********************************************************************/
 void makeStress(DOUBLE *RESTRICT str      , DOUBLE *RESTRICT gradVel
-               ,DOUBLE *RESTRICT viscosity 
-               ,INT const n               , short const ndm) {
-  short j;
+              , DOUBLE *RESTRICT viscosity,INT const n          
+              , short const ndm           , short const ntn           
+              , bool const flag ) {
   INT i;
   DOUBLE *p,*s,tmp;
 
-  for (i = 0; i < n; i++) {
+/*... tensao desviador laminar*/
+  if(flag)
+    for (i = 0; i < n; i++) {
       p = gradVel + i*ndm*ndm;
-      s = str     + i*ndm*ndm;
+      s = str     + i*ntn;
       tmp = -D2DIV3*viscosity[i];
       stress(s           ,p
             ,viscosity[i],tmp
             ,ndm);
-  }
+    }
+/*.....................................................................*/
 
+/*... tensao desviador turbulenta*/
+  else
+    for (i = 0; i < n; i++) {
+      p = gradVel + i*ndm*ndm;
+      s = str     + i*ntn;
+      stressEddyViscosity(s           ,p
+                         ,viscosity[i],ndm);
+    }
+/*.....................................................................*/
 }
 /**********************************************************************/
 
@@ -1903,7 +1948,6 @@ void makeStress(DOUBLE *RESTRICT str      , DOUBLE *RESTRICT gradVel
 void makeKineticEnergy(DOUBLE *RESTRICT e      , DOUBLE *RESTRICT vel
                     ,DOUBLE *RESTRICT density 
                     ,INT const n               , short const ndm) {
-  short j;
   INT i;
   DOUBLE vv,den,v[3];
 

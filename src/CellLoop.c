@@ -277,13 +277,13 @@ void systFormDif(Loads *loads
                ,short  *RESTRICT faceR   ,short  *RESTRICT faceLd1        
                ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0 
                ,DOUBLE *RESTRICT rCell   ,Temporal const ddt 
-               ,INT nEq                  ,INT nEqNov     
-               ,INT nAd                  ,INT nAdR                     
-               ,short maxNo              ,short maxViz
-               ,short ndm                ,INT numel
-               ,short ndf                ,short storage
-               ,bool forces              ,bool matrix 
-               ,bool calRcell            ,bool unsym) 
+               ,INT const nEq            ,INT const nEqNov     
+               ,INT const nAd            ,INT const nAdR                     
+               ,short const maxNo        ,short const maxViz
+               ,short const ndm          ,INT const numel
+               ,short const ndf          ,short const storage
+               ,bool const forces        ,bool const matrix 
+               ,bool const calRcell      ,bool const unsym) 
 {
   INT nel,vizNel;
   short i,j;
@@ -1333,7 +1333,7 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
 
 /********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 19/09/2017                                   * 
+ * Data de modificaco : 05/12/2017                                   * 
  *-------------------------------------------------------------------* 
  * SYSTFOMSIMPLEVELLM: calculo do sistema de equacoes para problemas * 
  * de escomaneto de fluidos ( Vel )                                  * 
@@ -1390,6 +1390,7 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
  * underU    -> fator underrelaxtion sinple                          * 
  * vel       -> campo de velocidade conhecido                        * 
  * rCell     -> nao definido                                         *
+ * stressR   -> tensor residual
  * density   -> massa especifica com variacao temporal               *  
  * dViscosity-> viscosidade dinamica com variacao temporal           *
  * ddt       -> discretizacao temporal                               *
@@ -1444,17 +1445,17 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
     , DOUBLE *RESTRICT pres                , DOUBLE *RESTRICT gradPres
     , DOUBLE *RESTRICT vel                 , DOUBLE *RESTRICT gradVel
     , DOUBLE *RESTRICT dField              , DOUBLE underU 
-    , DOUBLE *RESTRICT rCell                 
+    , DOUBLE *RESTRICT rCell               , DOUBLE *RESTRICT stressR  
     , DOUBLE *RESTRICT density             , DOUBLE *RESTRICT dViscosity 
     , DOUBLE *RESTRICT eddyViscosity       , Temporal ddt                     
-    , INT nEq                              , INT nEqNov
-    , INT nAd                              , INT nAdR                 
-    , short maxNo                          , short maxViz
-    , short ndm                            , INT numel
-    , short ndf                            , short storage
-    , bool  forces                         , bool matrix
-    , bool calRcell                        , bool unsym
-    , bool sPressure) 
+    , INT const nEq                        , INT const nEqNov
+    , INT const nAd                        , INT const nAdR                 
+    , short const maxNo                    , short const maxViz
+    , short const ndm                      , INT const numel
+    , short const ndf                      , short const storage
+    , short const ntn                      , bool const forces      
+    , bool const matrix                    , bool const calRcell
+    , const bool unsym                     , bool const sPressure) 
 {   
   short i,j,k;
   short nThreads = ompVar.nThreadsCell;
@@ -1477,7 +1478,8 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
          lPres[(MAX_NUM_FACE+1)], lCc[(MAX_NUM_FACE+1)*MAX_NDM],
          lGradVel[(MAX_NUM_FACE+1)*MAX_NDM*MAX_NDF],
          lGradPres[(MAX_NUM_FACE+1)*MAX_NDM], lRcell[MAX_NDF],
-         lVel[(MAX_NUM_FACE+1)*MAX_NDM], lDfield[(MAX_NUM_FACE+1)*MAX_NDM];
+         lVel[(MAX_NUM_FACE+1)*MAX_NDM], lDfield[(MAX_NUM_FACE+1)*MAX_NDM],
+         lStressR[(MAX_NUM_FACE+1)*6];
   
 /*...*/
   if(ompVar.fCell){
@@ -1488,15 +1490,15 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
           ,lFaceVelR,lA,lB,lDfield\
           ,lFaceVelL,lFacePresR,lFacePresL,lDensity,lProp,lGradPres\
           ,lVel,lCc,lGradVel,lmKsi,lfArea,lDcca,lmvSkew,lKsi,lEta\
-          ,lNormal,lXm,lXmcc,lvSkew,vizNel,lViz,lRcell,lViscosity)\
-     shared(aux2,ndm,ndf,numel,maxViz,calRcell,rCell,nFace,mat\
+          ,lNormal,lXm,lXmcc,lvSkew,vizNel,lViz,lRcell,lViscosity,lStressR)\
+     shared(aux2,ndm,ndf,numel,maxViz,calRcell,rCell,nFace,mat,ntn\
          ,calType,gVolume, geomType, faceVelR, faceVelL, facePresR\
          ,facePresL,density, prop,gradPres,vel,cc,gradVel,gmKsi\
          ,gfArea,gDcca,gmvSkew,gKsi,gEta,gNormal,gXm,gXmcc,gvSkew\
          ,nelcon,id,loadsVel,loadsPres,advVel,diffVel,typeSimple\
          ,ddt,underU,sPressure,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd\
          ,nAdR,storage,forces,matrix,unsym,pres,dField,dViscosity,eddyViscosity\
-         ,tModel,eMomentum) 
+         ,stressR,tModel,eMomentum) 
 /*... loop nas celulas*/
     for(nel=0;nel<numel;nel++){
 /*...*/
@@ -1550,6 +1552,11 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
 /*...................................................................*/
 
 /*...*/
+        for(j=0;j<ntn;j++)
+          MAT2D(aux1,j,lStressR,ntn)  = MAT2D(nel,j,stressR,ntn);
+/*...................................................................*/
+
+/*...*/
         for(i=0;i<ndf;i++)
           for(j=0;j<ndm;j++)
             MAT3D(aux1,i,j,lGradVel,ndf,ndm) 
@@ -1599,6 +1606,9 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
               MAT2D(i ,j, lDfield, ndm) = MAT2D(vizNel, j, dField, ndm);
             }
           
+            for(j=0;j<ntn;j++)
+              MAT2D(i,j,lStressR,ntn)  = MAT2D(vizNel,j,stressR,ntn);
+
             for(k=0;k<ndf;k++)
               for(j=0;j<ndm;j++)
                 MAT3D(i,k,j,lGradVel,ndf,ndm) 
@@ -1630,7 +1640,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                     , lPres         , lGradPres     
                     , lVel          , lGradVel 
                     , lDensity      , lViscosity 
-                    , lDfield        
+                    , lDfield       , lStressR 
                     , underU        , sPressure 
                     , nen[nel]      , nFace[nel]  
                     , ndm           , lib    
@@ -1725,6 +1735,11 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
 /*...................................................................*/
 
 /*...*/
+        for(j=0;j<ntn;j++)
+          MAT2D(aux1,j,lStressR,ntn)  = MAT2D(nel,j,stressR,ntn);
+/*...................................................................*/
+
+/*...*/
         for(i=0;i<ndf;i++)
           for(j=0;j<ndm;j++)
             MAT3D(aux1,i,j,lGradVel,ndf,ndm) 
@@ -1774,6 +1789,9 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
               MAT2D(i ,j, lDfield, ndm) = MAT2D(vizNel, j, dField, ndm);
             }
           
+            for(j=0;j<ntn;j++)
+              MAT2D(i,j,lStressR,ntn)  = MAT2D(vizNel,j,stressR,ntn);
+
             for(k=0;k<ndf;k++)
               for(j=0;j<ndm;j++)
                 MAT3D(i,k,j,lGradVel,ndf,ndm) 
@@ -1805,7 +1823,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                     , lPres         , lGradPres     
                     , lVel          , lGradVel 
                     , lDensity      , lViscosity 
-                    , lDfield        
+                    , lDfield       , lStressR 
                     , underU        , sPressure 
                     , nen[nel]      , nFace[nel]  
                     , ndm           , lib    
@@ -3704,13 +3722,13 @@ void systFormSimplePresLm(Loads *loadsVel, Loads *loadsPres
                ,DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT dField
                ,DOUBLE *RESTRICT temp      
                ,DOUBLE *RESTRICT rCell   , Temporal ddt 
-               ,INT nEq                  , INT nEqNov
-               ,INT nAd                  , INT nAdR                  
-               ,short maxNo              , short maxViz
-               ,short ndm                , INT numel
-               ,short ndf                , short storage
-               ,bool forces              , bool matrix 
-               ,bool calRcell            , bool  unsym) 
+               ,INT const nEq            , INT const nEqNov
+               ,INT const nAd            , INT const nAdR                  
+               ,short const maxNo        , short const maxViz
+               ,short const ndm          , INT const numel
+               ,short const ndf          , short const storage
+               ,bool const forces        , bool const matrix 
+               ,bool const calRcell      , bool const  unsym) 
 {
   short nThreads = ompVar.nThreadsCell;
   INT nel,vizNel;

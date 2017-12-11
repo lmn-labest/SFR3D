@@ -222,8 +222,8 @@
 
 /*======================== level 3 =================================*/
   void hccaDgemm(INT const ni,INT const nj,INT const nk
-                ,DOUBLE *restrict a,DOUBLE *restrict b
-                ,DOUBLE *restrict c);
+                ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT b
+                ,DOUBLE *RESTRICT c);
 /*==================================================================*/
 
 #endif /*_HCCABLAS_H_*/

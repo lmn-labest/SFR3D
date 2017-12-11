@@ -29,12 +29,20 @@
 /*...................................................................*/
  
 /*...*/
-  typedef struct{
-    bool fTurb,fWall;
-    short wallType,type;
-    DOUBLE cs;           /*Smagorisnksy-Lilly*/
-    DOUBLE PrandltT;     /*Prandtl turbulento */
+  typedef struct{  
+    bool fTurb;
+    bool fWall;
+    bool dynamic;  
+    short wallType;
+    short type;          /* 0 - LES*/
+    short typeLes;       /* 0 - funcional
+                            1 - estrutural
+                            2 - misto*/ 
+    short typeMixed[2];  /*[0] - estrutural - [1] funcional*/
+    DOUBLE cs,cf,c;      /*constante*/
+    DOUBLE PrandltTwall; /*Prandtl turbulento */
     DOUBLE PrandltTsgs;  /*Prandtl de sub-grid */
+    
   }Turbulence; 
 /*...................................................................*/
 
@@ -175,6 +183,7 @@
     DOUBLE *rCellPres;  /*residuo da celula*/
     DOUBLE *rCellEnergy;/*residuo da celula*/
 /*... turbulencia*/
+    DOUBLE *stressR;
     DOUBLE *eddyViscosity; 
     DOUBLE *wallParameters;       
   
@@ -202,6 +211,7 @@
 
 /*... nos*/
   typedef struct{
+    INT    *nno; 
     DOUBLE *x;         /*coordenadas*/
     DOUBLE *vel;       /*velocidades*/
     DOUBLE *energy;    /*velocidades*/
@@ -215,14 +225,9 @@
     DOUBLE *gradVel ;  /*gradiente da da velocidad ( Matriz Jacobiana) 
                             | du1dx1 du1dx2 du1dx3 |   
                             | du2dx1 du2dx2 du2dx3 |   
-                            | du3dx1 du3dx2 du3dx3 |   
-                        */    
-    DOUBLE *eddyViscosity;/*turbulencia*/  
-    DOUBLE *densityFluid;   
-    DOUBLE *dViscosity;                         
-    DOUBLE *gradPres;  /*gradiente da Pressao*/
-    DOUBLE *gradEnergy;/*gradiente da Energia*/
-    INT    *nno; 
+                            | du3dx1 du3dx2 du3dx3 |*/                          
+    DOUBLE *gradPres;     /*gradiente da Pressao*/
+    DOUBLE *gradEnergy;   /*gradiente da Energia*/
   }Node;
 /*...................................................................*/
 
@@ -298,6 +303,7 @@
 /*... Malha*/
   typedef struct{
     bool fOpen;   /*dominio aberto*/    
+    short ntn;    /*dimenso do tensor simetrico*/
     short ndm;     /*dimensao*/
     short ndfF;    /*fluido*/    
     short ndfFt;   /*fluido termo ativado*/  

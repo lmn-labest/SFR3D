@@ -52,6 +52,7 @@
   void readModel(EnergyModel *e    , Turbulence *t
                , MassEqModel *eMass, MomentumModel *eMomentum
                , FILE *file);
+  void setMixedModelLes(Turbulence *t, FILE *file);
   void setPrintFluid(FileOpt *opt,FILE *file);
 
   void initProp(DOUBLE *RESTRICT prop 

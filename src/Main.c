@@ -92,7 +92,6 @@ int main(int argc,char**argv){
   Scheme sc;
 /*...................................................................*/
  
-  void *dum;
 /*... loop nas celulas*/
 /*Lib lib;*/
   
@@ -127,12 +126,19 @@ int main(int argc,char**argv){
 /*....................................................................*/
 
 /*...*/
-  turbModel.fWall    = false;
-  turbModel.wallType = STANDARDWALL;
-  turbModel.fTurb    = false;
-  turbModel.type     = SMAGORINSKY;
-  turbModel.cs       = 0.2e0;
-  turbModel.PrandltT = 0.5e0;
+  turbModel.fWall               = false;
+  turbModel.fTurb               = false;
+  turbModel.dynamic             = false;
+  turbModel.wallType            = STANDARDWALL;
+  turbModel.type                = LES;
+  turbModel.typeLes             = LESFUNCMODEL;
+  turbModel.typeMixed[FUNMODEL] = SIGMAMODEL;
+  turbModel.typeMixed[ESTMODEL] = BARDINAMOD;
+  turbModel.cs                  = 1.0e0;
+  turbModel.cf                  = 0.2e0;
+  turbModel.c                   = 0.5e0;
+  turbModel.PrandltTwall        = 0.5e0;
+  turbModel.PrandltTsgs         = 0.5e0;
 /*....................................................................*/
 
 /*...*/
@@ -155,7 +161,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... OpenMP*/
-  ompVar.flag          = false;
+  ompVar.flag           = false;
   ompVar.nThreadsSolver = 1;
   ompVar.fSolver        = false;
 
@@ -184,8 +190,9 @@ int main(int argc,char**argv){
   opt.dViscosity    = false;
   opt.tConductivity = false;
   opt.vorticity     = false;
-  opt.kinetic       = false;
   opt.wallParameters= false;
+  opt.kinetic       = false;
+  opt.stressR       = false;
   opt.bconditions   = true;
  
   opt.stepPlotFluid[0] =  5;
@@ -1139,10 +1146,10 @@ int main(int argc,char**argv){
 * macro: openmp: configuracao do openmp  
 *===================================================================*/
     else if ((!strcmp(word, macro[11]))) {
-      if(!mpiVar.myId  ) printf("%s\n\n",DIF);
+      if(!mpiVar.myId  ) fprintf(fileLogExc,"%s\n\n",DIF);
 /*... tecnica de adveccao*/
       readMacro(fileIn, word, false);
-      fprintf(fileLogExc,"OpenMp:\n");
+      fprintf(fileLogExc,"%-20s:\n","OpenMp:");
       nOmp = (short)atol(word);
       ompVar.flag = true;
       do {
@@ -1156,7 +1163,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/    
-          fprintf(fileLogExc,"Solver nThreads: %d\n"
+          fprintf(fileLogExc,"%-20s: %d\n","Solver nThreads"
                             ,ompVar.nThreadsSolver);
 /*...................................................................*/
           nOmp--;
@@ -1172,7 +1179,8 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/       
-          fprintf(fileLogExc,"Cell nThreads: %d\n", ompVar.nThreadsCell);
+          fprintf(fileLogExc,"%-20s: %d\n","Cell nThreads"
+                            , ompVar.nThreadsCell);
 /*...................................................................*/
           nOmp--;
         }
@@ -1187,7 +1195,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/       
-          fprintf(fileLogExc,"Update nThreads: %d\n"
+          fprintf(fileLogExc,"%-20s: %d\n","Update nThreads"
                             , ompVar.nThreadsUpdate);
 /*...................................................................*/
           nOmp--;
@@ -2231,7 +2239,7 @@ int main(int argc,char**argv){
                      , loadsVel    , loadsPres 
                      , loadsEnergy , eModel
                      , eMass       , eMomentum
-                     , turbModel   , &thDynamic   
+                     , &turbModel  , &thDynamic   
                      , mesh0       , mesh
                      , sistEqVel   , sistEqPres
                      , sistEqEnergy  

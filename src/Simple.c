@@ -640,7 +640,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                    ,Loads *loadsVel     ,Loads *loadsPres
                    ,Loads *loadsEnergy  ,EnergyModel eModel
                    ,MassEqModel eMass   ,MomentumModel eMomentum
-                   ,Turbulence turbModel,ThermoDynamic *thDynamic
+                   ,Turbulence *tModel  ,ThermoDynamic *thDynamic
                    ,Mesh *mesh0         ,Mesh *mesh
                    ,SistEq *sistEqVel   ,SistEq *sistEqPres
                    ,SistEq *sistEqEnergy 
@@ -857,11 +857,11 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
     }
 /*...................................................................*/
 
-/*... montagem do sistema u, v e w*/
+/*... montagem do sistema u, v e w*/    
    tm.systFormVel = getTimeC() - tm.systFormVel;
    systFormSimpleVelLm(loadsVel               , loadsPres 
                      , sc->advVel             , sc->diffVel 
-                     , turbModel              , eMomentum
+                     ,*tModel                 , eMomentum
                      , sp->type 
                      , mesh->elm.node         , mesh->elm.adj.nelcon 
                      , mesh->elm.nen          , mesh->elm.adj.nViz 
@@ -881,7 +881,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                      , mesh->elm.pressure     , mesh->elm.gradPres 
                      , mesh->elm.vel          , mesh->elm.gradVel 
                      , sp->d                  , sp->alphaVel 
-                     , mesh->elm.rCellVel       
+                     , mesh->elm.rCellVel     , mesh->elm.stressR
                      , mesh->elm.densityFluid , mesh->elm.dViscosity  
                      , mesh->elm.eddyViscosity, sc->ddt 
                      , sistEqVel->neq         , sistEqVel->neqNov 
@@ -889,9 +889,9 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                      , mesh->maxNo            , mesh->maxViz 
                      , mesh->ndm              , mesh->numelNov 
                      , ndfVel                 , sistEqVel->storage 
-                     , true                   , true 
-                     , true                   , sistEqVel->unsym 
-                     , sp->sPressure);
+                     , mesh->ntn              , true
+                     , true                   , true                   
+                     , sistEqVel->unsym       , sp->sPressure);
     tm.systFormVel = getTimeC() - tm.systFormVel;
 /*...................................................................*/
 
@@ -1272,10 +1272,11 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*.................................................................. */
 
 /*... modelo de turbulencia*/
-    if(turbModel.fTurb){
+    if(tModel->fTurb){
       tm.turbulence = getTimeC() - tm.turbulence;
-      turbulence(m
-            , loadsVel               , turbModel               
+      turbulence(m                   , loadsVel  
+            , &pMesh->iNo            , &pMesh->iEl
+            , *tModel                , mesh->node.x             
             , mesh->elm.node         , mesh->elm.adj.nelcon 
             , mesh->elm.nen          , mesh->elm.adj.nViz 
             , mesh->elm.geomType     , mesh->elm.material.prop 
@@ -1289,20 +1290,22 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
             , mesh->elm.faceRvel     , mesh->elm.faceLoadVel     
             , mesh->elm.vel          , mesh->elm.gradVel      
             , mesh->elm.densityFluid , mesh->elm.dViscosity
-            , mesh->elm.eddyViscosity, mesh->elm.wallParameters   
+            , mesh->elm.eddyViscosity, mesh->elm.wallParameters
+            , mesh->elm.stressR   
+            , mesh->nnode            , mesh->numelNov
             , mesh->maxNo            , mesh->maxViz 
-            , mesh->ndm              , mesh->numelNov 
-            , ndfVel);  
+            , mesh->ndm              , ndfVel);  
       tm.turbulence = getTimeC() - tm.turbulence;
     }
 /*...................................................................*/
 
 /*... equacao de energia*/
+    if (fPrint) printf("Consercao de Energia:\n");
 /*... calculo de: A(i),bE(i)*/
     tm.systFormEnergy = getTimeC() - tm.systFormEnergy;
     systFormEnergy(loadsEnergy        , loadsVel
              , sc->advEnergy          , sc->diffEnergy
-             , turbModel              , eModel  
+             , *tModel                , eModel  
              , prop  
              , mesh->elm.node         , mesh->elm.adj.nelcon
              , mesh->elm.nen          , mesh->elm.adj.nViz
@@ -2377,7 +2380,7 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
                   , short const ndm         , short const iCod)
 
 {
-  short j, nD = DENSITY_LEVEL;
+  short nD = DENSITY_LEVEL;
   INT i;
   DOUBLE dtCfl,dtVn,modVel,nCfl,lc,v[3],deltaT,deltaT0,diff,den;
   

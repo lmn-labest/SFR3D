@@ -363,7 +363,7 @@
 /*...................................................................*/
 
 /*...*/
-  void callMklPardiso(INT const nEq     , INT const mtype
+  void callMklPardiso(INT  nEq          , INT  mtype
                     , INT   *RESTRICT ia, INT   *RESTRICT ja
                     , DOUBLE *RESTRICT a, DOUBLE *RESTRICT b
                     , DOUBLE *RESTRICT x, DOUBLE *RESTRICT z  

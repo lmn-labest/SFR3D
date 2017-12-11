@@ -429,6 +429,8 @@ void pcgOmp(INT const nEq, INT const nAd
   DOUBLE timei, timef;
   timei = getTimeC();
 
+  norm = 0.e0;
+
 #pragma omp parallel default(none) num_threads(nThreads)\
    private(i,j,jj,conv,norm_b,tmp,norm,d,di,alpha,beta)\
    shared(ia,ja,a,ad,m,b,x,z,r,p,maxIt,fileLog,xKx,norm_r_m,norm_r\

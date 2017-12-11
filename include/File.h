@@ -47,7 +47,8 @@
     bool vorticity;
     bool wallParameters;
     bool stress; 
-    bool kinetic ; 
+    bool kinetic;
+    bool stressR;  
     bool bconditions;    /*insere as condicoes de contorno nos valores nodais*/
     short stepPlotFluid[2];
     FILE *fileItPlot[7];

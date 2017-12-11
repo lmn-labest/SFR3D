@@ -17,6 +17,7 @@
   #include<Turbulence.h>
   #include<Properties.h>
 /*...................................................................*/
+
   void simpleSolver3D(Memoria *m        
                    ,Loads *loadsVel   ,Loads *loadsPres 
                    ,Mesh *mesh0       ,Mesh *mesh       
@@ -31,7 +32,7 @@
                     , Loads *loadsVel     , Loads *loadsPres 
                     , Loads *loadsEnergy  , EnergyModel eModel
                     , MassEqModel eMass   , MomentumModel eMomentum
-                    , Turbulence turbModel, ThermoDynamic *thDynamic
+                    , Turbulence *tModel  , ThermoDynamic *thDynamic
                     , Mesh *mesh0         , Mesh *mesh
                     , SistEq *sistEqVel   , SistEq *sistEqPres
                     , SistEq *sistEqEnergy  

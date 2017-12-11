@@ -25,14 +25,19 @@ static DOUBLE doubleDotSym(DOUBLE *t) {
 
 /********************************************************************* 
  * Data de criacao    : 30/11/2017                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 04/12/2017                                   * 
  *-------------------------------------------------------------------* 
  * TURBULENCE: Calculo da viscosidae turbulenta                      *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * m     -> memoria principal                                        *
- * el        -> conetividade dos celulas                             * 
+ * iNo     -> interface de nos                                       * 
+ * iCel    -> interface de elementos                                 * 
+ * lVel  -> carga de velocidades                                     *
+ * tModel -> turbulencia                                             * 
+ * x       -> cordenadas dos pontos                                  * 
+ * el        -> conetividade dos celulas                             *  
  * nelcon    -> vizinhos dos elementos                               * 
  * nen       -> numero de nos por celulas                            * 
  * nFace     -> numero de faces por celulas                          * 
@@ -60,10 +65,12 @@ static DOUBLE doubleDotSym(DOUBLE *t) {
  * density   -> massa especifica com variacao temporal               *  
  * eddyViscosity-> viscosidade turbulenta                            *
  * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
+ * stressR   -> tensor residual                                      *
+ * nnode     -> numero de nos                                        * 
+ * numel     -> numero de toral de celulas                           * 
  * maxNo     -> numero de nos por celula maximo da malha             * 
  * maxViz    -> numero vizinhos por celula maximo da malha           * 
- * ndm       -> numero de dimensoes                                  * 
- * numel     -> numero de toral de celulas                           * 
+ * ndm       -> numero de dimensoes                                  *  
  * ndf       -> graus de liberdade                                   * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -74,50 +81,52 @@ static DOUBLE doubleDotSym(DOUBLE *t) {
  * OBS:                                                              *
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void turbulence(Memoria *m
-      , Loads *lVel                 , Turbulence tModel             
-      , INT    *RESTRICT el                 , INT    *RESTRICT nelcon 
-      , short  *RESTRICT nen                , short  *RESTRICT nFace 
-      , short  *RESTRICT geomType           , DOUBLE *RESTRICT prop  
-      , short  *RESTRICT calType            , short  *RESTRICT mat        
-      , DOUBLE *RESTRICT cc                 , DOUBLE *RESTRICT ksi                      
-      , DOUBLE *RESTRICT mKsi               , DOUBLE *RESTRICT eta  
-      , DOUBLE *RESTRICT fArea              , DOUBLE *RESTRICT normal  
-      , DOUBLE *RESTRICT volume             , DOUBLE *RESTRICT xm  
-      , DOUBLE *RESTRICT xmcc               , DOUBLE *RESTRICT vSkew    
-      , DOUBLE *RESTRICT mvSkew             , DOUBLE *RESTRICT dcca  
-      , short  *RESTRICT faceRvel           , short *RESTRICT faceVelL               
-      , DOUBLE *RESTRICT vel                , DOUBLE *RESTRICT gradVel
-      , DOUBLE *RESTRICT densityFluid       , DOUBLE *RESTRICT dViscosity        
-      , DOUBLE *RESTRICT eddyViscosity      , DOUBLE *RESTRICT wallPar                        
-      , short const maxNo                   , short const maxViz
-      , short const ndm                     , INT const numel     
-      , short const ndf)                      
+void turbulence(Memoria *m            , Loads *lVel
+      , InterfaceNo *iNo              , Interface *iCel
+      , Turbulence tModel             , DOUBLE *RESTRICT x               
+      , INT    *RESTRICT el           , INT    *RESTRICT nelcon 
+      , short  *RESTRICT nen          , short  *RESTRICT nFace 
+      , short  *RESTRICT geomType     , DOUBLE *RESTRICT prop  
+      , short  *RESTRICT calType      , short  *RESTRICT mat        
+      , DOUBLE *RESTRICT cc           , DOUBLE *RESTRICT ksi                      
+      , DOUBLE *RESTRICT mKsi         , DOUBLE *RESTRICT eta  
+      , DOUBLE *RESTRICT fArea        , DOUBLE *RESTRICT normal  
+      , DOUBLE *RESTRICT volume       , DOUBLE *RESTRICT xm  
+      , DOUBLE *RESTRICT xmcc         , DOUBLE *RESTRICT vSkew    
+      , DOUBLE *RESTRICT mvSkew       , DOUBLE *RESTRICT dcca  
+      , short  *RESTRICT faceRvel     , short *RESTRICT faceVelL               
+      , DOUBLE *RESTRICT vel          , DOUBLE *RESTRICT gradVel
+      , DOUBLE *RESTRICT densityFluid , DOUBLE *RESTRICT dViscosity        
+      , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT wallPar  
+      , DOUBLE *RESTRICT stressR      
+      , INT const nnode               , INT const numel              
+      , short const maxNo             , short const maxViz
+      , short const ndm               , short const ndf)                      
 {   
-  bool flag = false;
-  short type = tModel.type;
-  DOUBLE *dynamic=NULL;
-
-  HccaAlloc(DOUBLE,m,dynamic, numel*2,"dynamic"  ,_AD_); 
+  short type = tModel.type,typeLes = tModel.typeLes;
+  DOUBLE *dynamic=NULL,*nVel=NULL,*nDen=NULL;
+  
 /*...*/
-  switch (type) {  
-    case DYNAMIC:
+  switch (type) { 
 /*...*/ 
-      lesDynamicMean(nelcon,nen          , nFace 
-                    , volume      , vel   
-                    , gradVel     , densityFluid 
-                    , dynamic
-                    , maxNo        , maxViz         
-                    , ndm          , numel 
-                    , ndf); 
+    case LES:
+/*...*/
+      if(typeLes == LESFUNCMODEL ){
+        HccaAlloc(DOUBLE,m,dynamic, numel*2,"dynamic"  ,_AD_); 
+/*...*/ 
+        if(tModel.dynamic)
+          lesDynamicMean(nelcon       ,nen    
+                          , nFace 
+                          , volume      , vel   
+                          , gradVel     , densityFluid 
+                          , dynamic
+                          , maxNo        , maxViz         
+                          , ndm          , numel 
+                          , ndf); 
 /*...................................................................*/ 
 
-    case SMAGORINSKY:
-    case WALEMODEL:
-    case VREMAN: 
-    case SIGMAMODEL: 
 /*...*/ 
-      turbulenceCellLoop(lVel         , tModel               
+        turbulenceCellLoop(lVel     , tModel               
                    , el           , nelcon 
                    , nen          , nFace 
                    , geomType     , prop 
@@ -137,18 +146,116 @@ void turbulence(Memoria *m
                    , ndm          , numel 
                    , ndf); 
 /*...................................................................*/ 
-      break;
+
+/*...*/
+        HccaDealloc(m,dynamic,"dynamic",_AD_);
+/*...................................................................*/ 
+      }
 /*...................................................................*/ 
 
 /*...*/
-    default: 
-      ERRO_OP(__FILE__,__func__,type);
+      else if (typeLes == LESMIXEDMODEL){  
+        HccaAlloc(DOUBLE,m,dynamic, numel*2,"dynamic"  ,_AD_);
+        HccaAlloc(DOUBLE,m,nVel, nnode*ndm,"nU"  ,_AD_); 
+        HccaAlloc(DOUBLE,m,nDen, nnode*3  ,"nDen",_AD_); 
+
+/*... modelo funcional*/ 
+        turbulenceCellLoop(lVel     , tModel               
+                   , el           , nelcon 
+                   , nen          , nFace 
+                   , geomType     , prop 
+                   , calType      , mat 
+                   , cc           , ksi 
+                   , mKsi         , eta     
+                   , fArea        , normal 
+                   , volume       , xm     
+                   , xmcc         , vSkew    
+                   , mvSkew       , dcca 
+                   , faceRvel     , faceVelL     
+                   , vel          , gradVel      
+                   , densityFluid , dViscosity
+                   , eddyViscosity, wallPar
+                   , dynamic   
+                   , maxNo        , maxViz         
+                   , ndm          , numel 
+                   , ndf); 
+/*...................................................................*/ 
+
+/*... interpolacao das variaveis da celulas para pos nos (vel)*/
+        if( tModel.typeMixed[ESTMODEL] == BARDINA){
+          interCellNode(m       ,lVel
+                     ,nVel    ,vel        
+                     ,el      ,geomType                      
+                     ,cc      ,x               
+                     ,xm           
+                     ,nen     ,nFace               
+                     ,faceRvel,faceVelL                
+                     ,iNo     
+                     ,numel   ,numel              
+                     ,nnode   ,nnode        
+                     ,maxNo   ,maxViz           
+                     ,ndm     ,1
+                     ,ndm     
+                     ,false   ,2);
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (vel)*/
+          interCellNode(m       ,lVel
+                     ,nDen    ,densityFluid        
+                     ,el      ,geomType                      
+                     ,cc      ,x               
+                     ,xm           
+                     ,nen     ,nFace               
+                     ,faceRvel,faceVelL                
+                     ,iNo     
+                     ,numel   ,numel              
+                     ,nnode   ,nnode        
+                     ,maxNo   ,maxViz           
+                     ,3       ,1
+                     ,ndm     
+                     ,false   ,2);
+/*...................................................................*/
+        }
+/*... modelo estrutual*/
+        sLesModCellLoop(tModel  
+                     , x      , el
+                     , nelcon , nen 
+                     , nFace  , volume    
+                     , nVel   , vel           
+                     , nDen   , densityFluid
+                     , gradVel, stressR 
+                     , maxNo  , maxViz         
+                     , ndm    , numel 
+                     , ndf); 
+/*...................................................................*/ 
+
+/*...*/
+        HccaDealloc(m,nDen,"nDen",_AD_); 
+        HccaDealloc(m,nVel,"nU",_AD_); 
+        HccaDealloc(m,dynamic,"dynamic",_AD_);
+/*...................................................................*/
+      }
+/*...................................................................*/ 
+
+/*...*/
+//    else if (typeLes == LESMIXEDMODEL){
+//    }
+/*...................................................................*/   
+
+/*...*/
+      else      
+        ERRO_GERAL(__FILE__,__func__,__LINE__,
+                  "LES Model: Opcao invalida !! ");
+/*...................................................................*/ 
+    break;
+/*...................................................................*/ 
+
+/*...*/
+    default:       
+      ERRO_GERAL(__FILE__,__func__,__LINE__,
+                "Turb Model: Opcao invalida !! ");
 /*...................................................................*/ 
   }
-
-/*...*/
-  HccaDealloc(m,dynamic,"dynamic",_AD_);
-/*...................................................................*/ 
 
 }
 /*********************************************************************/
@@ -256,8 +363,10 @@ void turbulenceCellLoop(Loads *lVel         , Turbulence tModel
     lFaceVelR[aux1]      = MAT2D(nel,aux1,faceVelR ,aux2);
     lFaceVelL[aux1]      = MAT2D(nel,aux1,faceVelL ,aux2);
     lDensity[aux1]       = MAT2D(nel,2   ,density ,DENSITY_LEVEL);
+    
     MAT2D(aux1,0,lDyn,2) = MAT2D(nel,0,dynamic,2); 
     MAT2D(aux1,1,lDyn,2) = MAT2D(nel,1,dynamic,2); 
+ 
 /*...*/
     lDviscosity       = dViscosity[nel];
 /*...*/      
@@ -305,6 +414,7 @@ void turbulenceCellLoop(Loads *lVel         , Turbulence tModel
         lVolume[i]   = gVolume[vizNel]; 
         lGeomType[i] = geomType[vizNel];
         lDensity[i]  = MAT2D(vizNel,2   ,density ,DENSITY_LEVEL);
+
         MAT2D(i,0,lDyn,2) = MAT2D(vizNel,0,dynamic,2); 
         MAT2D(i,1,lDyn,2) = MAT2D(vizNel,1,dynamic,2); 
 
@@ -397,7 +507,7 @@ void lesDynamicMean(INT    *RESTRICT nelcon  , short  *RESTRICT nen
   INT nel,vizNel;
   
 /*... variavel local */
-  short  aux1,aux2,lMat,lib;
+  short  aux1,aux2;
   INT    lViz[MAX_NUM_FACE];
   DOUBLE lVolume[MAX_NUM_FACE+1],lDensity[(MAX_NUM_FACE+1)],
          lGradVel[(MAX_NUM_FACE+1)*MAX_NDM*MAX_NDF],
@@ -461,6 +571,153 @@ void lesDynamicMean(INT    *RESTRICT nelcon  , short  *RESTRICT nen
 /*...................................................................*/
 }
 /*********************************************************************/ 
+
+/********************************************************************* 
+ * Data de criacao    : 04/12/2017                                   *
+ * Data de modificaco : 11/12/2017                                   * 
+ *-------------------------------------------------------------------* 
+ * sLesModCellLoop : cacula do tensor residual por metodos           *
+ * estrutarais                                                       *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * tModel    -> modelo de turbulencia                                * 
+ * x         -> cordenadas dos pontos                                * 
+ * el      -> conetividade dos celulas                               * 
+ * nelcon    -> vizinhos dos elementos                               * 
+ * nen       -> numero de nos por celulas                            * 
+ * nFace     -> numero de faces por celulas                          * 
+ * nVel      -> velocidade nodal                                     *
+ * eVel      -> velocidade por elemento                              *
+ * nDensity  -> massa especifica com variacao temporal (nodal)       *
+ * eDensity  -> massa especifica com variacao temporal (celula)      * 
+ * gradVel   -> gradiente da solucao conhecido                       * 
+ * stressR   -> nao definido                                         * 
+ * maxNo     -> numero de nos por celula maximo da malha             * 
+ * maxViz    -> numero vizinhos por celula maximo da malha           * 
+ * ndm       -> numero de dimensoes                                  * 
+ * numel     -> numero de toral de celulas                           * 
+ * ndf       -> graus de liberdade                                   * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * stressR  -> tensor residual                                       *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ * stressR(s11,s22,s33,s12,s23,s13)                                  *
+ * stressR(sxx,syy,szz,sxy,syz,sxz)                                  *
+ *                                                                   *
+ *      | x   y  z |  no1                                            *
+ * lx = | x   y  z |  no2                                            *
+ *      | x   y  z |  no3                                            *
+ *                                                                   *
+ *       | u   v  w |  no1                                           *
+ * vel = | u   v  w |  no2                                           *
+ *       | u   v  w |  no3                                           *
+ *                                                                   *
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void sLesModCellLoop(Turbulence tModel      
+                   , DOUBLE *RESTRICT x       , INT *RESTRICT el       
+                   , INT *RESTRICT nelcon     , short  *RESTRICT nen    
+                   , short *RESTRICT nFace    , DOUBLE *RESTRICT gVolume 
+                   , DOUBLE *RESTRICT nVel    , DOUBLE *RESTRICT eVel 
+                   , DOUBLE *RESTRICT nDensity, DOUBLE *RESTRICT eDensity  
+                   , DOUBLE *RESTRICT gradVel , DOUBLE *RESTRICT stressR                                  
+                   , short const maxNo        , short const maxViz
+                   , short const ndm          , INT const numel     
+                   , short const ndf)                      
+{   
+  short i,j,k;
+  INT nel,vizNel;
+  
+/*... variavel local */
+  short  aux1,aux2;
+  INT    no,lViz[MAX_NUM_FACE];
+  DOUBLE lVolume[MAX_NUM_FACE+1],lDensity[(MAX_NUM_FACE+1)],
+         lGradVel[(MAX_NUM_FACE+1)*MAX_NDM*MAX_NDF],
+         lVel[(MAX_NUM_FACE+1)*MAX_NDM],lStress[6],
+         lx[(MAX_NUM_NODE)*MAX_NDM],lnVel[(MAX_NUM_NODE)*MAX_NDM],
+         lnDensity[MAX_NUM_NODE];
+           
+/*... loop nas celulas*/
+  aux2    = maxViz+1;
+  for(nel=0;nel<numel;nel++){
+/*...*/
+    aux1    = nFace[nel];
+
+/*... coordenadas dos pontos dos verticeis da celula central*/
+    for(j=0;j<nen[nel];j++){
+/*...*/
+      no = MAT2D(nel,j,el,maxNo) - 1;
+
+      lnDensity[j] = MAT2D(no,2,nDensity ,DENSITY_LEVEL);
+
+      for(k=0;k<ndm;k++){
+        MAT2D(j,k,lx,ndm)    = MAT2D(no,k,x,ndm);
+        MAT2D(j,k,lnVel,ndm) = MAT2D(no,k,nVel,ndm);
+      }
+      
+    }
+/*...................................................................*/
+
+/*... loop na celula central*/    
+    lVolume[aux1]     = gVolume[nel]; 
+    lDensity[aux1]    = MAT2D(nel,2   ,eDensity ,DENSITY_LEVEL);
+
+/*...*/
+    for(j=0;j<ndm;j++){
+       MAT2D(aux1,j,lVel,ndm)  = MAT2D(nel,j,eVel     ,ndm);
+    }
+/*...................................................................*/
+
+/*...*/
+    for(i=0;i<ndf;i++)
+      for(j=0;j<ndm;j++)
+        MAT3D(aux1, i, j, lGradVel, ndf, ndm) 
+                = MAT3D(nel, i, j, gradVel, ndf, ndm);
+/*...................................................................*/
+
+/*... loop na celulas vizinhas*/    
+    for(i=0;i<aux1;i++){
+      vizNel  = MAT2D(nel,i,nelcon,maxViz) - 1;
+      lViz[i] = vizNel;
+      if( vizNel != -2) {
+        lVolume[i]   = gVolume[vizNel]; 
+        lDensity[i]  = MAT2D(vizNel,2   ,eDensity ,DENSITY_LEVEL);
+
+        for(j=0;j<ndm;j++){
+          MAT2D(i,j,lVel,ndm) = MAT2D(vizNel,j,eVel,ndm);
+        }
+      
+        for(k=0;k<ndf;k++)
+          for(j=0;j<ndm;j++)
+            MAT3D(i,k,j,lGradVel,ndf,ndm) 
+                           = MAT3D(vizNel,k,j,gradVel,ndf,ndm);
+      }
+    }  
+/*...................................................................*/
+  
+/*...*/
+    structuralStress(tModel       , lx
+                   , lViz         , lStress  
+                   , lnVel        , lVel   
+                   , lnDensity    , lDensity     
+                   , lGradVel     , lVolume
+                   , ndm          , nFace[nel]
+                   , nel);
+/*...................................................................*/
+
+/*...*/
+    if(ndm == 3){
+      for(k=0;k<6;k++)
+        MAT2D(nel,k,stressR,6) = lStress[k];
+    }  
+/*...................................................................*/
+  }
+/*...................................................................*/
+}
+/*********************************************************************/
 
 /*********************************************************************
 * Data de criacao    : 11/09/2017                                   *
@@ -656,7 +913,7 @@ void cellLes(Loads *lVel               , Turbulence tModel
  * Data de criacao    : 03/10/2017                                   *
  * Data de modificaco : 30/11/2017                                   *
  *-------------------------------------------------------------------*
- * celLes3D: Calculo da viscosidae turbulenta para o LES             *
+ * eddyViscosity3D: Calculo da viscosidae turbulenta para o LES      *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
@@ -702,7 +959,7 @@ void cellLes(Loads *lVel               , Turbulence tModel
  *                  | du3dx1 du3dx2 du3dx3 |                         *
  *                                                                   *  
  *********************************************************************/
-void cellLes3D(Loads *lVel             , Turbulence tModel           
+void eddyViscosity3D(Loads *lVel             , Turbulence tModel           
           , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop 
           , INT *RESTRICT lViz         , DOUBLE *RESTRICT fArea
           , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume 
@@ -716,15 +973,15 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
 {
 /*...*/
   bool fWall = false;
-  short i, j, nf, nCarg, idCell,type,wallType;
+  short i, j, idCell,type,wallType;
   INT vizNel;
-  DOUBLE modS, tmp, density, viscosityC, cs, s[6],delta,*iGradVel;
-  DOUBLE wt,v[3],vParallel[3],lNormal[3],lMin,dMin, g[3][3]
-        ,yPlus  ,uPlus,velB[3],yPlusMax, modSd, b[3][3];
-  DOUBLE m[6],l[6],mm,lm,volTotal;
+  DOUBLE modS, tmp, density, viscosityC, cf, s[6],m[6], delta,*iGradVel;
+  DOUBLE v[3],lMin,dMin, g[3][3],yPlusMax, modSd, b[3][3];
+  DOUBLE mm,lm;
 
   idCell = nFace;
-  type=tModel.type;
+ 
+  type=tModel.typeMixed[FUNMODEL];
 
 /*... | du1/dx1 du1/dx2 du1/dx3*/
   g[0][0] = MAT3D(idCell,0,0,gradVel,3,3);
@@ -764,7 +1021,7 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
   switch (type) {
     case SMAGORINSKY:
 /*...*/
-      cs         = tModel.cs;
+      cf         = tModel.cf;
       density    = lDensity[idCell];
 /*...................................................................*/
 
@@ -782,10 +1039,10 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
  
 /*...*/
       delta = pow(volume[idCell],D1DIV3);
-      lMin = cs*delta;      
+      lMin = cf*delta;      
       if (fWall) {
         tmp  = 1.e0-exp(-yPlusMax/VANDRIEST); 
-        lMin = min(VONKARMAN*dMin,tmp*lMin); 
+        lMin = min(VONKARMAN*dMin,lMin )*tmp; 
       }
 /*...................................................................*/
       *viscosity = density*lMin*lMin*modS;  
@@ -797,7 +1054,7 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
     case WALEMODEL: 
 
 /*...*/
-      cs         = tModel.cs;
+      cf         = tModel.cf;
       density    = lDensity[idCell];
 /*...................................................................*/
 
@@ -849,9 +1106,9 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
       delta = pow(volume[idCell],D1DIV3);
 /*...*/
       if(fWall)
-        lMin = min(VONKARMAN*dMin,cs*delta);
+        lMin = min(VONKARMAN*dMin,cf*delta);
       else
-        lMin  = cs*delta;
+        lMin  = cf*delta;
 /*...................................................................*/
       *viscosity = density*lMin*lMin*tmp;  
 /*...................................................................*/
@@ -863,7 +1120,7 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
     case VREMAN: 
 
 /*...*/
-      cs       = 2.5e0*tModel.cs*tModel.cs;
+      cf       = 2.5e0*tModel.cf*tModel.cf;
       density  = lDensity[idCell];
       delta    = pow(volume[idCell],D1DIV3);
 /*...................................................................*/
@@ -888,7 +1145,7 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
 /*...*/  
       if ( tmp < 0.e0 ) tmp = 0.e0;
       tmp = sqrt(tmp/modS);      
-      *viscosity = density*cs*tmp;     
+      *viscosity = density*cf*tmp;     
 /*...................................................................*/
         
       break;
@@ -911,11 +1168,11 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
 /*...................................................................*/
 
 /*... 0.0 < sqrt(c) < 0.23*/      
-      cs = 0.5e0*lm/mm;
-      if(cs < 0.0e0)
-        cs = 0.e0;
-      else if (sqrt(cs) > DYNAMIC_CLIP)
-        cs = DYNAMIC_CLIP*DYNAMIC_CLIP;
+      cf = 0.5e0*lm/mm;
+      if(cf < 0.0e0)
+        cf = 0.e0;
+      else if (sqrt(cf) > DYNAMIC_CLIP)
+        cf = DYNAMIC_CLIP*DYNAMIC_CLIP;
 /*...................................................................*/
       
 /*...*/
@@ -923,8 +1180,8 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
       delta    = pow(volume[idCell],D2DIV3);
 /*...................................................................*/
 
-/*... (cs*delta)^2*/
-      lMin= cs*delta;
+/*... (cf*delta)^2*/
+      lMin= cf*delta;
 /*...................................................................*/
 
 /*.. calculo Sij*/
@@ -949,13 +1206,13 @@ void cellLes3D(Loads *lVel             , Turbulence tModel
 /*...*/
     case SIGMAMODEL: 
 /*...*/
-      cs       = tModel.cs*tModel.cs;
+      cf       = tModel.cf*tModel.cf;
       density  = lDensity[idCell];
       delta    = pow(volume[idCell],D2DIV3);
 /*...................................................................*/
 
 /*... (cs*delta)^2*/
-      lMin = cs*delta;
+      lMin = cf*delta;
 /*...................................................................*/
 
 /*... operador(grad(u))*/
@@ -1120,15 +1377,15 @@ DOUBLE wallModelHeat(DOUBLE const yPlus,DOUBLE const prM
  *-------------------------------------------------------------------*
  *********************************************************************/
 void lesDynamic(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
-              , DOUBLE *RESTRICT lDensity, DOUBLE *restrict vel
-              , DOUBLE *restrict gradVel , DOUBLE *RESTRICT lDynamic
+              , DOUBLE *RESTRICT lDensity, DOUBLE *RESTRICT vel
+              , DOUBLE *RESTRICT gradVel , DOUBLE *RESTRICT lDynamic
               , short const nFace  ) {
 
   short i,idCell;
   INT vizNel;
-  DOUBLE tmp,s[6],modS,cs;
+  DOUBLE tmp,s[6],modS;
   DOUBLE v[3],m[6],l[6],mm,lm,deltaT,delta,volW,volTotal,density,g[3][3];
-  DOUBLE tFilterDenModSs[6],tFilterMods[6],tFilterDenVv[6];
+  DOUBLE tFilterDenModSs[6],tFilterDenVv[6];
   DOUBLE tFilterModS,tFilterDen,tFilterDenV[3],tFilterS[6];
 
   idCell = nFace;
@@ -1332,7 +1589,7 @@ bool  wallDist(Loads *lVel
              , short const wallType     , short const nFace )
 { 
   bool fWall = false;
-  short i, j, nf, nCarg, idCell,type;
+  short nf, nCarg;
   INT vizNel;
   DOUBLE wt, yPlusMax, uPlusMax,uFricMax,sWallMax,par[MAXLOADPARAMETER];
   DOUBLE dMin, vParallel[3], lNormal[3],yPlus,uPlus,uFric,sW,velB[3];
@@ -1459,35 +1716,12 @@ bool  wallDist(Loads *lVel
  * celula central                                                    *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE sigmaModel(DOUBLE *RESTRICT s, DOUBLE *restrict gradVel 
+DOUBLE sigmaModel(DOUBLE *RESTRICT s, DOUBLE *RESTRICT gradVel 
                 , short const nFace , short const ndm) {
 
-  short i,idCell;
-  INT vizNel,ip[3];
+  INT ip[3];
   DOUBLE g[9],x[9],op;
  
-/*... tgg*/
-//g[0] = MAT2D(0,0,gradVel,3);
-//g[1] = MAT2D(0,1,gradVel,3);
-//g[2] = MAT2D(0,2,gradVel,3);
-//g[3] = MAT2D(1,0,gradVel,3);
-//g[4] = MAT2D(1,1,gradVel,3);
-//g[5] = MAT2D(1,2,gradVel,3);
-//g[6] = MAT2D(2,0,gradVel,3);
-//g[7] = MAT2D(2,1,gradVel,3);  
-//g[8] = MAT2D(2,2,gradVel,3);
-/*...*/
-//gt[0] = MAT2D(0,0,gradVel,3);
-//gt[1] = MAT2D(1,0,gradVel,3);
-//gt[2] = MAT2D(2,0,gradVel,3);
-//gt[3] = MAT2D(0,1,gradVel,3);
-//gt[4] = MAT2D(1,1,gradVel,3);
-//gt[5] = MAT2D(2,1,gradVel,3);
-//gt[6] = MAT2D(0,2,gradVel,3);
-//gt[7] = MAT2D(1,2,gradVel,3);  
-//gt[8] = MAT2D(2,2,gradVel,3);
-
-//dgemm(3,3,3,g,gt,gtg);
 /*... g11*/
   g[0] = MAT2D(0,0,gradVel,3)*MAT2D(0,0,gradVel,3)
        + MAT2D(0,1,gradVel,3)*MAT2D(0,1,gradVel,3)
@@ -1540,6 +1774,625 @@ DOUBLE sigmaModel(DOUBLE *RESTRICT s, DOUBLE *restrict gradVel
    return op;
 }
 /*********************************************************************/ 
+
+/********************************************************************* 
+ * Data de criacao    : 04/12/2017                                   *
+ * Data de modificaco : 07/12/2017                                   * 
+ *-------------------------------------------------------------------* 
+ * structuralStress : calculo do tensor residual por metodos         *
+ * estrutarais                                                       *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * tModel    -> modelo de turbulencia                                *
+ * lViz      -> vizinhos dos elementos                               * 
+ * stressR   -> nao definido                                         *
+ * nVel      -> velocidade nodal                                     *
+ * eVel      -> velocidade por elemento                              *
+ * nDensity  -> massa especifica com variacao temporal (nodal)       *
+ * eDensity  -> massa especifica com variacao temporal (celula)      * 
+ * gradVel   -> gradiente da solucao conhecido                       * 
+ * stressR   -> nao definido                                         * 
+ * ndm       -> numero de dimensoes                                  * 
+ * nFace     -> numero de faces por celulas                          * 
+ * nel       -> numero do elemento                                   *
+ * ----------------------------------------------------------------- * 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * s        -> tensor residual                                       *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ * s(s11,s22,s33,s12,s23,s13)                                        *
+ * s(sxx,syy,szz,sxy,syz,sxz)                                        *
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void structuralStress(Turbulence tModel   , DOUBLE *RESTRICT xl
+                , INT *RESTRICT lViz      , DOUBLE *RESTRICT stressR  
+                , DOUBLE *RESTRICT nVel   , DOUBLE *RESTRICT eVel
+                , DOUBLE *RESTRICT nDen   , DOUBLE *RESTRICT eDen
+                , DOUBLE *RESTRICT gradVel, DOUBLE *RESTRICT vol   
+                , short const ndm         , short const nFace
+                , INT const nEl ) {
+
+  short type, idCell = nFace;
+  DOUBLE g[3][3],tmp,delta;
+
+/*...*/
+  type=tModel.typeMixed[ESTMODEL];
+/*...................................................................*/
+
+/*...*/
+  switch (type) {
+
+/*...*/
+    case CLARK:
+
+/*... | du1/dx1 du1/dx2 du1/dx3*/
+      g[0][0] = MAT3D(idCell,0,0,gradVel,3,3);
+      g[0][1] = MAT3D(idCell,0,1,gradVel,3,3);
+      g[0][2] = MAT3D(idCell,0,2,gradVel,3,3);
+/*... | du2/dx1 du2/dx2 du2/dx3*/
+      g[1][0] = MAT3D(idCell,1,0,gradVel,3,3);
+      g[1][1] = MAT3D(idCell,1,1,gradVel,3,3);
+      g[1][2] = MAT3D(idCell,1,2,gradVel,3,3);
+/*... | du3/dx1 du3/dx2 du3/dx3*/
+      g[2][0] = MAT3D(idCell,2,0,gradVel,3,3);
+      g[2][1] = MAT3D(idCell,2,1,gradVel,3,3);
+      g[2][2] = MAT3D(idCell,2,2,gradVel,3,3);
+/*...................................................................*/
+
+/*... delta*delta*/
+      delta    = pow(vol[idCell],D2DIV3);
+/*...................................................................*/
+
+/*...*/
+      tmp = eDen[idCell]*(1.e0/12.0e0)*delta;
+/*...s00 = sxx*/
+      stressR[0] = tmp*( g[0][0]*g[0][0] 
+                       + g[0][1]*g[0][1] 
+                       + g[0][2]*g[0][2]  );
+/*...s11 = syy*/
+      stressR[1] = tmp*( g[1][0]*g[1][0] 
+                       + g[1][1]*g[1][1] 
+                       + g[1][2]*g[1][2]  );
+/*...s22 = szz*/
+      stressR[2] = tmp*( g[2][0]*g[2][0] 
+                       + g[2][1]*g[2][1] 
+                       + g[2][2]*g[2][2]  );
+/*...s01 = sxy*/     
+      stressR[3] = tmp*( g[0][0]*g[1][0] 
+                       + g[0][1]*g[1][1] 
+                       + g[0][2]*g[1][2]  );
+/*...s12 = syz*/     
+      stressR[4] = tmp*( g[1][0]*g[2][0] 
+                       + g[1][1]*g[2][1] 
+                       + g[1][2]*g[2][2]  );
+
+/*...s02 = sxz*/     
+      stressR[5] = tmp*( g[0][0]*g[2][0] 
+                       + g[0][1]*g[2][1] 
+                       + g[0][2]*g[2][2]  );  
+
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
+/*...*/
+    case BARDINA:
+      bardinaModel(xl       , stressR  
+                 , nVel     , nDen
+                 , vol[idCell]
+                 , tModel.cs, lViz[idCell]
+                 , ndm      , nFace);
+    break;
+/*...................................................................*/
+
+/*...*/
+    case BARDINAMOD:
+      bardinaModelMod(lViz     , stressR
+                     ,eVel     , gradVel
+                     ,vol      , eDen
+                     ,tModel.cs
+                     ,ndm      , nFace);
+    break;
+/*...................................................................*/
+
+/*...*/
+    default: 
+      ERRO_OP(__FILE__,__func__,type);
+/*...................................................................*/ 
+  }
+/*...................................................................*/
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 05/12/2017                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * bardinaModelMod : tensor residual baseado no tensor Bardina       *
+ * (Liu-Meneveau-Katz)                                               *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * lViz      -> vizinhos dos elementos                               * 
+ * stressR   -> nao definido                                         *
+ * vel       -> campo de velocidades                                 *
+ * gradVel   -> gradiente de velocidades                             * 
+ * vol       -> volume da  celula central                            *
+ * density   -> massa especifica com variacao temporal               *   
+ * ndm       -> numero de dimensoes                                  * 
+ * nFace     -> numero de faces por celulas                          * 
+ * ----------------------------------------------------------------- * 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * stressR        -> tensor residual                                 *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ * stressR(s11,s22,s33,s12,s23,s13)                                  *
+ * stressR(sxx,syy,szz,sxy,syz,sxz)                                  *
+ *       | v1 v2 v3 | no1                                            *
+ * vel = | v1 v2 v3 | no2                                            *
+         | v1 v2 v3 | no3                                            *
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void bardinaModel(DOUBLE *RESTRICT xl   , DOUBLE *RESTRICT stressR  
+                , DOUBLE *RESTRICT nVel , DOUBLE *RESTRICT nDensity
+                , DOUBLE const vol      , DOUBLE const cs       
+                , INT const nEl
+                , short const ndm       , short const nFace) {
+
+  short i,j,l,k,nint;
+  bool af,dev,ninter;
+  DOUBLE hx[8],hy[8],hz[8],N[8],de[8],dn[8],dz[8];
+  DOUBLE alf,bet,teta,eps,nn,ze,det,wt,denI,velI[3];
+  DOUBLE denVel[3],denVelVel[6],den,volume;
+
+/*...*/
+  volume = den = 0.e0;
+  denVelVel[0] = 0.e0;
+  denVelVel[1] = 0.e0;
+  denVelVel[2] = 0.e0;
+  denVelVel[3] = 0.e0;
+  denVelVel[4] = 0.e0;
+  denVelVel[5] = 0.e0;
+  denVel[0]    = 0.e0;
+  denVel[1]    = 0.e0;
+  denVel[2]    = 0.e0;  
+/*...................................................................*/
+
+/*... Matriz de rigidez - 2 pontos de integração*/
+  nint  =     3;
+  af    = true;/* calculo do jacobiano*/
+  ninter= true;/* funcoes de interpolacao*/
+  dev   = true;/* derivadas das funcoes de interpolacao*/
+  for(i=0;i<nint;i++){      
+    eps = intponto(nint,i);
+    alf = peso(nint,i);
+    for(j=0;j<nint;j++){
+      nn = intponto(nint,j);
+      bet= peso(nint,j);
+      for(l=0;l<nint;l++){
+        ze   = intponto(nint,l);
+	      teta = peso(nint,l);
+
+/*...*/
+        sfHexa8(eps,nn,ze,N,de,dn,dz,ninter,dev);
+        det  = jacob3d(xl,de,dn,dz,hx,hy,hz,8,af,dev,nEl);
+/*...................................................................*/
+
+/*...*/
+        denI    = 0.e0;      
+        velI[0] = 0.e0;
+        velI[1] = 0.e0;
+        velI[2] = 0.e0;
+/*...................................................................*/
+
+/*...*/
+        for (k = 0; k < 8; k++) {
+          denI    += nDensity[k]*N[k];
+          velI[0] += MAT2D(k,0,nVel,3)*N[k];
+          velI[1] += MAT2D(k,1,nVel,3)*N[k];
+          velI[2] += MAT2D(k,2,nVel,3)*N[k]; 
+        }
+/*...................................................................*/
+
+/*...*/         
+        wt            = det*alf*bet*teta;
+        den          += denI*wt;
+
+        denVelVel[0] += (denI*velI[0]*velI[0])*wt;
+        denVelVel[1] += (denI*velI[1]*velI[1])*wt;
+        denVelVel[2] += (denI*velI[2]*velI[2])*wt;
+        denVelVel[3] += (denI*velI[0]*velI[1])*wt;
+        denVelVel[4] += (denI*velI[1]*velI[2])*wt;
+        denVelVel[5] += (denI*velI[0]*velI[2])*wt;
+
+        denVel[0]    += denI*velI[0]*wt;
+        denVel[1]    += denI*velI[1]*wt;
+        denVel[2]    += denI*velI[2]*wt;
+/*...................................................................*/
+       }
+    }	
+  }       
+
+/*... filtro(den)*/
+  den       /= vol;
+/*... filtro(den*v)*/
+  denVel[0] /= vol;
+  denVel[1] /= vol;
+  denVel[2] /= vol;
+/*... filtro(den*vv)*/
+  denVelVel[0] /= vol;
+  denVelVel[1] /= vol;
+  denVelVel[2] /= vol;
+  denVelVel[3] /= vol;
+  denVelVel[4] /= vol;
+  denVelVel[5] /= vol;
+
+/*...*/
+  stressR[0] = cs*(denVelVel[0] - denVel[0]*denVel[0]/den);
+  stressR[1] = cs*(denVelVel[1] - denVel[1]*denVel[1]/den);
+  stressR[2] = cs*(denVelVel[2] - denVel[2]*denVel[2]/den);
+  stressR[3] = cs*(denVelVel[3] - denVel[0]*denVel[1]/den);
+  stressR[4] = cs*(denVelVel[4] - denVel[1]*denVel[2]/den);
+  stressR[5] = cs*(denVelVel[5] - denVel[0]*denVel[2]/den);
+//  printf("%e %e %e %e %e %e %e %e\n",stressR[0],stressR[1],stressR[2]
+//                             ,stressR[3],stressR[4],stressR[5],vol,den);
+/*...................................................................*/
+
+}
+/********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 05/12/2017                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * bardinaModelMod : tensor residual baseado no tensor Bardina       *
+ * (Liu-Meneveau-Katz)                                               *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * lViz      -> vizinhos dos elementos                               * 
+ * stressR   -> nao definido                                         *
+ * vel       -> campo de velocidades                                 *
+ * gradVel   -> gradiente de velocidades                             * 
+ * vol       -> volume das celulas                                   *
+ * density   -> massa especifica com variacao temporal               *   
+ * ndm       -> numero de dimensoes                                  * 
+ * nFace     -> numero de faces por celulas                          * 
+ * ----------------------------------------------------------------- * 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * stressR        -> tensor residual                                 *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ * stressR(s11,s22,s33,s12,s23,s13)                                  *
+ * stressR(sxx,syy,szz,sxy,syz,sxz)                                  *
+ * fonte:                                                            *
+ * Large Eddy Simulation for incompressible Flows - Pierre Sagaut    *
+ * 3° Ed                                                             * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void bardinaModelMod(INT *RESTRICT lViz  , DOUBLE *RESTRICT stressR  
+                   , DOUBLE *RESTRICT vel, DOUBLE *RESTRICT gradVel
+                   , DOUBLE *RESTRICT vol, DOUBLE *RESTRICT lDensity
+                   , DOUBLE const cs 
+                   , short const ndm     , short const nFace) {
+
+  short i, idCell = nFace;
+  INT vizNel;
+  DOUBLE volW,volTotal,tmp,g[3][3]; 
+  DOUBLE v[3],filterVv[6],filterV[3],l[6],s[6],ll,lm,ss,iLs,fs;
+
+/*... | du1/dx1 du1/dx2 du1/dx3*/
+  g[0][0] = MAT3D(idCell,0,0,gradVel,3,3);
+  g[0][1] = MAT3D(idCell,0,1,gradVel,3,3);
+  g[0][2] = MAT3D(idCell,0,2,gradVel,3,3);
+/*... | du2/dx1 du2/dx2 du2/dx3*/
+  g[1][0] = MAT3D(idCell,1,0,gradVel,3,3);
+  g[1][1] = MAT3D(idCell,1,1,gradVel,3,3);
+  g[1][2] = MAT3D(idCell,1,2,gradVel,3,3);
+/*... | du3/dx1 du3/dx2 du3/dx3*/
+  g[2][0] = MAT3D(idCell,2,0,gradVel,3,3);
+  g[2][1] = MAT3D(idCell,2,1,gradVel,3,3);
+  g[2][2] = MAT3D(idCell,2,2,gradVel,3,3);
+/*...................................................................*/
+
+  volTotal = 0.e0;
+  filterV[0] = filterV[1] = filterV[2] = 0.e0;
+  for(i = 0; i<6 ; i++ )
+    filterVv[i]    = 0.e0;
+
+/*...*/
+  for(i = 0; i<nFace+1;i++ ){
+    vizNel = 0;
+    if( i < nFace )
+      vizNel = lViz[i];
+/*... celula central e elementos vizinhos*/        
+    if( vizNel  > -1 ){
+      volW      = vol[i];
+      volTotal += volW;
+
+/*...*/
+      v[0] = MAT2D(i, 0, vel, 3);
+      v[1] = MAT2D(i, 1, vel, 3);
+      v[2] = MAT2D(i, 2, vel, 3);
+/*...................................................................*/
+
+/*... tesFilter(vv) -> vol**vv */
+      tmp          = volW;
+      filterVv[0] += tmp*v[0]*v[0]; /*v1v1*/
+      filterVv[1] += tmp*v[1]*v[1]; /*v2v2*/
+      filterVv[2] += tmp*v[2]*v[2]; /*v3v3*/
+      filterVv[3] += tmp*v[0]*v[1]; /*v1v2*/
+      filterVv[4] += tmp*v[0]*v[2]; /*v1v3*/
+      filterVv[5] += tmp*v[1]*v[2]; /*v2v3*/
+/*... tesFilter(desinty*v) -> vol*desinty*v */
+      filterV[0] += tmp*v[0]; 
+      filterV[1] += tmp*v[1]; 
+      filterV[2] += tmp*v[2];
+    }
+/*...................................................................*/
+  } 
+/*...................................................................*/
+
+/*... tesFilter(vv)*/
+  filterVv[0] /= volTotal; /*v1v1*/
+  filterVv[1] /= volTotal; /*v2v2*/
+  filterVv[2] /= volTotal; /*v3v3*/
+  filterVv[3] /= volTotal; /*v1v2*/
+  filterVv[4] /= volTotal; /*v1v3*/
+  filterVv[5] /= volTotal; /*v2v3*/
+/*... tesFilter(v)*/
+  filterV[0] /= volTotal; 
+  filterV[1] /= volTotal; 
+  filterV[2] /= volTotal;
+
+/*... bardina*/
+  l[0] = filterVv[0] - filterV[0]*filterV[0];
+  l[1] = filterVv[1] - filterV[1]*filterV[1];
+  l[2] = filterVv[2] - filterV[2]*filterV[2];
+  l[3] = filterVv[3] - filterV[0]*filterV[1];
+  l[4] = filterVv[4] - filterV[1]*filterV[2];
+  l[5] = filterVv[5] - filterV[0]*filterV[2]; 
+/*...................................................................*/
+
+/*.. calculo Sij*/
+  s[0] = g[0][0];
+  s[1] = g[1][1];
+  s[2] = g[2][2];
+  s[3] = 0.5e0*(g[0][1] + g[1][0]); /*s12*/
+  s[4] = 0.5e0*(g[0][2] + g[2][0]); /*s13*/
+  s[5] = 0.5e0*(g[1][2] + g[2][1]); /*s23*/
+/*...................................................................*/
+
+/*... LijSij*/
+  lm = l[0]*s[0] + l[1]*s[1] + l[2]*s[2]
+     + 2.e0*( l[3]*s[3] + l[4]*s[4] + l[5]*s[5]);
+/*... LijLij*/
+  ll = doubleDotSym(l);
+/*... LijLij*/
+  ss = doubleDotSym(s);  
+
+/*...*/
+  iLs = lm/(sqrt(ll)*sqrt(ss));
+  if(iLs >= 0.0)
+    fs = 1.e0 - exp(-10.e0*iLs*iLs);
+  else
+    fs = 0.e0;
+/*...................................................................*/
+
+//printf("%e\n",fs);
+/*...*/    
+  tmp = cs*fs*lDensity[idCell];
+  stressR[0] = tmp*fs*l[0];
+  stressR[1] = tmp*fs*l[1];
+  stressR[2] = tmp*fs*l[2];
+  stressR[3] = tmp*fs*l[3];
+  stressR[4] = tmp*fs*l[4];
+  stressR[5] = tmp*fs*l[5];
+/*...................................................................*/
+
+
+}
+/********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 07/12/2017                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ * ------------------------------------------------------------------ *
+ * sfHexa8 : funcao de interpolacao do hexaedro                       * 
+ * ------------------------------------------------------------------ *
+ * parametros de entrada:                                             * 
+ * ------------------------------------------------------------------ *
+ * eps - coordenada do ponto de integração                            *  
+ * nn  - coordenada do ponto de integração                            * 
+ * ze  - coordenada do ponto de integração                            * 
+ * ------------------------------------------------------------------ *
+ * parametros de saida  :                                             * 
+ * ------------------------------------------------------------------ *
+ * N  - Funçao de interpolação (ninter = true)                        * 
+ * dn - derivada de N em relação a n                                  *        
+ * de - derivada de N em relação a e                                  * 
+ * -------------------------------------------------------------------* 
+ *  OBS:                                                              *
+ * no  ( r, s, t)                                                     *
+ * no1 ( 1, 1, 1)                                                     * 
+ * no2 (-1, 1, 1)                                                     * 
+ * no3 (-1,-1, 1)                                                     * 
+ * no4 ( 1,-1, 1)                                                     * 
+ * no5 ( 1, 1,-1)                                                     * 
+ * no6 (-1, 1,-1)                                                     * 
+ * no7 (-1,-1,-1)                                                     * 
+ * no8 ( 1,-1,-1)                                                     * 
+ * -------------------------------------------------------------------* 
+ **********************************************************************/
+void sfHexa8(DOUBLE const eps ,DOUBLE const nn
+           , DOUBLE const ze  
+           , DOUBLE *RESTRICT N        ,DOUBLE *RESTRICT de
+           , DOUBLE *RESTRICT dn       ,DOUBLE *RESTRICT dz
+           , bool const ninter         ,bool const dev){
+
+
+/*... Função de interpolação */
+  if(ninter){
+    N[4]  = ( 1.0+eps ) * ( 1.0+nn ) * (1.0+ze) * 0.125;
+    N[5]  = ( 1.0-eps ) * ( 1.0+nn ) * (1.0+ze) * 0.125;
+    N[6]  = ( 1.0-eps ) * ( 1.0-nn ) * (1.0+ze) * 0.125;
+    N[7]  = ( 1.0+eps ) * ( 1.0-nn ) * (1.0+ze) * 0.125;
+    N[0]  = ( 1.0+eps ) * ( 1.0+nn ) * (1.0-ze) * 0.125;
+    N[1]  = ( 1.0-eps ) * ( 1.0+nn ) * (1.0-ze) * 0.125;
+    N[2]  = ( 1.0-eps ) * ( 1.0-nn ) * (1.0-ze) * 0.125;
+    N[3]  = ( 1.0+eps ) * ( 1.0-nn ) * (1.0-ze) * 0.125;
+  }
+/*.................................................................*/
+
+/*... derivadas*/
+  if(dev) {
+/*... derivadas em relacao a e :*/
+
+    de[4]  =   (1.0+nn) * (1.0+ze) * 0.125;
+    de[5]  = - (1.0+nn) * (1.0+ze) * 0.125;
+    de[6]  =   (nn-1.0) * (1.0+ze) * 0.125;
+    de[7]  =   (1.0-nn) * (1.0+ze) * 0.125;
+    de[0]  =   (1.0+nn) * (1.0-ze) * 0.125;
+    de[1]  =   (1.0+nn) * (ze-1.0) * 0.125;
+    de[2]  =   (1.0-nn) * (ze-1.0) * 0.125;
+    de[3]  =   (1.0-nn) * (1.0-ze) * 0.125;
+
+/*... derivadas em relacao a n :*/
+
+    dn[4]  =  (1.0+eps) * (1.0+ze)* 0.125;
+    dn[5]  =  (1.0-eps) * (1.0+ze)* 0.125;
+    dn[6]  =  (eps-1.0) * (1.0+ze)* 0.125;
+    dn[7]  = -(1.0+eps) * (1.0+ze)* 0.125;
+    dn[0]  =  (1.0+eps) * (1.0-ze)* 0.125;
+    dn[1]  =  (1.0-eps) * (1.0-ze)* 0.125;
+    dn[2]  =  (1.0-eps) * (ze-1.0)* 0.125;
+    dn[3]  =  (1.0+eps) * (ze-1.0)* 0.125;
+
+/*... derivadas em relacao a z   :*/
+
+    dz[4]  =  ( 1.0+eps ) * ( 1.0+nn )* 0.125;
+    dz[5]  =  ( 1.0-eps ) * ( 1.0+nn )* 0.125;
+    dz[6]  =  ( 1.0-eps ) * ( 1.0-nn )* 0.125;
+    dz[7]  =  ( 1.0+eps ) * ( 1.0-nn )* 0.125;
+    dz[0]  = -( 1.0+eps ) * ( 1.0+nn )* 0.125;
+    dz[1]  =  (eps -1.0 ) * ( 1.0+nn )* 0.125;
+    dz[2]  =  ( 1.0-eps ) * ( nn -1.0)* 0.125;
+    dz[3]  =  ( 1.0+eps ) * ( nn -1.0)* 0.125;
+  }
+/*..................................................................*/  
+} 
+/********************************************************************/ 
+
+
+/*********************************************************************
+ * Data de criacao    : 07/12/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ * ----------------------------------------------------------------- *
+ * JACAB3D: Calcula a matriz jacobiana inversa e o det do            *   
+ * ponto (e,n)                                                       * 
+ * e as derivada da em função de intepolação em relação a x,y,z      *   
+ * ----------------------------------------------------------------- *
+ * parametros de entrada:                                            * 
+ * ----------------------------------------------------------------- *
+ * xl  - coordenadas                                                 *
+ * de - derivadas das funcoes de interpolacao em relacao a e         *
+ * dn - derivadas das funcaem de interpolacao em relacao a n         *  
+ * dz - derivadas das funcoes de interpolacao em relacao a e         *
+ * nel - numero do elemneto                                          *
+ * nen - numero de pontos                                            *  
+ * alf - calculo do jacobiano                                        * 
+ * dev - derivadas das funcoes de interplocao                        *
+ * nel - numero do elemento                                          *
+ * ----------------------------------------------------------------- *
+ * parametros de saida:                                              * 
+ * ----------------------------------------------------------------- *
+ * hx - derivada da funcao de interpolacap em relacao a x            *
+ * hy - derivada da funcao de interpolacap em relacao a y            *
+ * hz - derivada da funcao de interpolacap em relacao a y            *
+ * det - determinante da matriz jacobiana normal                     *
+ * -------------------------------------------------------------------* 
+ *  OBS:                                                              *
+ * -------------------------------------------------------------------* 
+ *********************************************************************/
+DOUBLE jacob3d(DOUBLE *RESTRICT xl, DOUBLE *RESTRICT de
+           , DOUBLE *RESTRICT dn  , DOUBLE *RESTRICT dz 
+           , DOUBLE *RESTRICT hx  , DOUBLE *RESTRICT hy
+           , DOUBLE *RESTRICT hz   
+ 	         , short const nen      , bool const afl
+           , bool const dev       , INT const nel ){
+
+  double jac[3][3],jaci[3][3],DET,xx;
+  long i,j;
+ 
+/*... Calculo da matriz jacobiana */
+  if(afl){
+    for(i=0;i<3;i++){
+      jac[0][i] = 0.0;
+      jac[1][i] = 0.0;
+      jac[2][i] = 0.0;
+      for(j=0;j<nen;j++){
+        xx         = MAT2D(j,i,xl,3); 
+        jac[0][i] += de[j] * xx;
+        jac[1][i] += dn[j] * xx;
+        jac[2][i] += dz[j] * xx;
+      }
+    }
+/*....................................................................*/ 
+
+/*... determinante da matriz jacobiana:*/ 
+    DET = jac[0][0]*jac[1][1]*jac[2][2] + jac[0][1]*jac[1][2]*jac[2][0] 
+        + jac[0][2]*jac[1][0]*jac[2][1] - jac[2][0]*jac[1][1]*jac[0][2] 
+        - jac[0][1]*jac[1][0]*jac[2][2] - jac[0][0]*jac[2][1]*jac[1][2];
+ 
+    if (DET <= 0.e0)   {
+      printf("Determinante nulo ou negativo do elemento ->  %ld ",nel); 
+      exit(EXIT_FAILURE); 
+    }
+/*...................................................................*/
+  }  
+/*...................................................................*/
+
+/*... Inversa da matriz Jacobiana:*/  
+  if(dev){
+    jaci[0][0] =  ( jac[1][1] * jac[2][2] 
+               -    jac[1][2] * jac[2][1] ) / DET;
+    jaci[1][0] = -( jac[1][0] * jac[2][2] 
+               -    jac[1][2] * jac[2][0] ) / DET;
+    jaci[2][0] =  ( jac[1][0] * jac[2][1] 
+               -     jac[1][1] * jac[2][0] ) / DET;
+    jaci[0][1] = -( jac[0][1] * jac[2][2] 
+               -     jac[0][2] * jac[2][1] ) / DET;
+    jaci[1][1] =  ( jac[0][0] * jac[2][2] 
+               -    jac[0][2] * jac[2][0] ) / DET;
+    jaci[2][1] = -( jac[0][0] * jac[2][1] 
+               -    jac[0][1] * jac[2][0] ) / DET;
+    jaci[0][2] =  ( jac[0][1] * jac[1][2] 
+               -    jac[0][2] * jac[1][1] ) / DET;
+    jaci[1][2] = -( jac[0][0] * jac[1][2] 
+               -    jac[0][2] * jac[1][0] ) / DET;
+    jaci[2][2] =  ( jac[0][0] * jac[1][1] 
+               -    jac[0][1] * jac[1][0] ) / DET;
+/*...................................................................*/
+ 
+
+/*... Derivadas(x,y,z) das funcoes de interpolacao:*/
+    for(i=0;i<nen;i++){   
+      hx[i] = jaci[0][0]*de[i] + jaci[1][0]*dn[i] 
+            + jaci[2][0]*dz[i];
+      hy[i] = jaci[0][1]*de[i] + jaci[1][1]*dn[i] 
+            + jaci[2][1]*dz[i];
+      hz[i] = jaci[0][2]*de[i] + jaci[1][2]*dn[i] 
+            + jaci[2][2]*dz[i];
+    }
+  }
+/*....................................................................*/
+  return DET;
+}
+/*********************************************************************/   
 
 /********************************************************************* 
  * Data de criacao    : 27/11/2017                                   *
@@ -1610,4 +2463,4 @@ void eigenValue3x3(DOUBLE *RESTRICT g, DOUBLE *RESTRICT s) {
 
   printf("%e %e %e %e\n",s[0],s[1],s[2],a3);
 }
-/*********************************************************************/
+/*********************************************************************/ 

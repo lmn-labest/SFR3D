@@ -1368,13 +1368,13 @@ void callMklPardiso(INT nEq           , INT mtype
 {
   
   INT nThreads = ompVar.nThreadsSolver;
-  DOUBLE norm,normR,xKx,mem,ddum;
+  DOUBLE norm,normR,xKx,mem,ddum,time;
 /*... variavel interna do mkl( 64 btis)*/
   void *pt[64];
 /*...*/
   INT i,iparm[64],msglvl,error,idum;
 /*...*/
-  INT maxfct,mnum,phase,nrhs,time;
+  INT maxfct,mnum,phase,nrhs;
 /*...*/
   error  = 0;
   maxfct = 1;
