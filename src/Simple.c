@@ -1291,7 +1291,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
             , mesh->elm.vel          , mesh->elm.gradVel      
             , mesh->elm.densityFluid , mesh->elm.dViscosity
             , mesh->elm.eddyViscosity, mesh->elm.wallParameters
-            , mesh->elm.stressR   
+            , mesh->elm.stressR      , mesh->elm.cd 
             , mesh->nnode            , mesh->numelNov
             , mesh->maxNo            , mesh->maxViz 
             , mesh->ndm              , ndfVel);  

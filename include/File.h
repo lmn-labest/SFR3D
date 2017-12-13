@@ -49,6 +49,8 @@
     bool stress; 
     bool kinetic;
     bool stressR;  
+    bool cDynamic; 
+    bool Qcriterion; 
     bool bconditions;    /*insere as condicoes de contorno nos valores nodais*/
     short stepPlotFluid[2];
     FILE *fileItPlot[7];
@@ -57,6 +59,7 @@
 
   void  iota(INT,char*);
   FILE* openFile(char *,char *);
+  FILE* openFileBuffer(char *,char *,bool);
   void  fName(char*,INT,int,int,char**);
   void  readMacro(FILE*,char*,bool);
   void  clearLine(char *);

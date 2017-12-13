@@ -270,6 +270,10 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
               , nel*4   , "wallParm", _AD_);
      zero(mesh->elm.wallParameters, nel*4, DOUBLEC);
 
+/*... viscosidade turbulenta*/
+     HccaAlloc(DOUBLE, m, mesh->elm.cd
+              , nel*2   , "cDynamic"     , _AD_);
+     zero(mesh->elm.cd, nel*2, DOUBLEC);
 
 /*... densityFluid*/
      HccaAlloc(DOUBLE , m         , mesh->elm.densityFluid
@@ -2007,7 +2011,7 @@ void readModel(EnergyModel *e     , Turbulence *t
   char turb[][WORD_SIZE] = { "smagorinsky","wallmodel" , "wale"     
                             ,"vreman"     ,"dynamic"   , "sigmamodel"
                             ,"mixed"      ,"bardina"   , "clark"
-                            ,"bardinaMod" }; 
+                            ,"bardinaMod" ,"towdynamic"}; 
 
   char mass[][WORD_SIZE] = { "lhsdensity","rhsdensity"}; 
 
@@ -2030,7 +2034,7 @@ void readModel(EnergyModel *e     , Turbulence *t
       e->fRes         = false;
       e->fTemperature = false;
       if(!mpiVar.myId)
-        fprintf(fileLogExc,"%-20s: \n","EnergyModel");  
+        fprintf(fileLogExc,"\n%-20s: \n","EnergyModel");  
 /*...................................................................*/      
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++){
@@ -2093,7 +2097,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 /*... turbulencia*/
     else if(!strcmp(word,macros[1])){   
       if(!mpiVar.myId)
-        fprintf(fileLogExc,"%-20s: \n","TurbulenceModel");   
+        fprintf(fileLogExc,"\n%-20s: \n","TurbulenceModel");   
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++){
         readMacro(file,word,false);
@@ -2153,18 +2157,18 @@ void readModel(EnergyModel *e     , Turbulence *t
         }
 /*...................................................................*/
 
-/*... dynamic-germano-lilly*/
+/*... Dynamic*/
         else if(!strcmp(word,turb[4])){
-          t->dynamic                = true;  
-          t->fTurb                  = true;      
-          t->type                   = LES;
-          t->typeMixed[FUNMODEL]    = DYNAMIC;
-          t->typeLes = LESFUNCMODEL;
+          t->dynamic = true;
+          t->fTurb   = true;      
+          t->type    = LES;
+          fscanf(file,"%lf",&t->c);  
           if(!mpiVar.myId){ 
-             fprintf(fileLogExc,"%-20s:\n", turb[4]); 
+            fprintf(fileLogExc,"%-20s:\n", "Dynamic"); 
           }
+          setDynamicModelLes(t,file);
         }
-/*...................................................................*/
+/*...................................................................*/ 
 
 /*... sigmaModel*/
         else if(!strcmp(word,turb[5])){
@@ -2192,7 +2196,7 @@ void readModel(EnergyModel *e     , Turbulence *t
           }
           setMixedModelLes(t,file);
         }
-/*...................................................................*/ 
+/*...................................................................*/
 
 /*... bardina*/
         else if(!strcmp(word,turb[7])){
@@ -2236,6 +2240,19 @@ void readModel(EnergyModel *e     , Turbulence *t
         }
 /*...................................................................*/   
 
+/*... mixed 2 paramentros*/
+        else if(!strcmp(word,turb[10])){
+          t->dynamic = true;
+          t->fTurb   = true;      
+          t->type    = LES;
+          t->typeLes = LESMIXEDTWOMODEL; 
+          fscanf(file,"%lf",&t->c);  
+          if(!mpiVar.myId){ 
+            fprintf(fileLogExc,"%-20s:\n", "TowDynamic"); 
+          }
+          setMixedModelLes(t,file);
+        }
+/*...................................................................*/
       }
 /*...................................................................*/
     }
@@ -2245,7 +2262,7 @@ void readModel(EnergyModel *e     , Turbulence *t
     else if(!strcmp(word,macros[2])){ 
       strcpy(format,"%-20s: %s\n");
       if(!mpiVar.myId)
-        fprintf(fileLogExc,"%-20s: \n","MassEqModel");    
+        fprintf(fileLogExc,"\n%-20s: \n","MassEqModel");    
       eMass->LhsDensity = false;
       eMass->RhsDensity = false;
       fscanf(file,"%d",&nPar);
@@ -2278,7 +2295,7 @@ void readModel(EnergyModel *e     , Turbulence *t
     else if(!strcmp(word,macros[3])){ 
       strcpy(format,"%-20s: %s\n");
       if(!mpiVar.myId)
-        fprintf(fileLogExc,"%-20s: \n","MomentumEqModel");    
+        fprintf(fileLogExc,"\n%-20s: \n","<MomentumEqModel>");    
       eMomentum->fRes             = false;
       eMomentum->fAbsultePressure = false;
       eMomentum->fRhieChowInt     = false;
@@ -2377,7 +2394,7 @@ void readGravity(DOUBLE *gravity,FILE *file){
 
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
- * Data de modificaco : 17/11/2017                                   * 
+ * Data de modificaco : 13/12/2017                                   * 
  *-------------------------------------------------------------------* 
  * SETPPRINTFLUID : Seleciona as veriaves que serao impressas na     *
  * macro pFluid                                                      *
@@ -2397,15 +2414,19 @@ void readGravity(DOUBLE *gravity,FILE *file){
 void setPrintFluid(FileOpt *opt,FILE *file){
 
   char str[]={"end"};
+  char format[1024];
   char word[WORD_SIZE];
   char macro[][WORD_SIZE] = 
                {"cell"         ,"node"        ,"vel"             /* 0, 1, 2*/
-               ,"pres"         ,"gradVel"     ,"gradPres"        /* 3, 4, 5*/
-               ,"temp"         ,"gradTemp"    ,"eddyViscosity"   /* 6, 7, 8*/
-               ,"densityFluid" ,"specificHeat","dViscosity"      /* 9,10,11*/
-               ,"tConductivity","vorticity"   ,"wallParameters"  /*12,13,14*/
-               ,"stress"       ,"kinecit"     ,"stressR"};       /*15,16,17*/
+               ,"pres"         ,"gradvel"     ,"gradpres"        /* 3, 4, 5*/
+               ,"temp"         ,"gradtemp"    ,"eddyviscosity"   /* 6, 7, 8*/
+               ,"densityfluid" ,"specificheat","dviscosity"      /* 9,10,11*/
+               ,"tconductivity","vorticity"   ,"wallparameters"  /*12,13,14*/
+               ,"stress"       ,"kinecit"     ,"stressr"         /*15,16,17*/
+               ,"cdynamic"     ,"qcriterion"};                   /*18,19*/  
   int tmp;
+
+  strcpy(format,"%-20s: %s\n");
 
   opt->fCell          = false;
   opt->fNode          = false;
@@ -2425,138 +2446,156 @@ void setPrintFluid(FileOpt *opt,FILE *file){
   opt->stress         = false;
   opt->kinetic        = false;
   opt->stressR        = false;
+  opt->cDynamic        = false;  
+  opt->Qcriterion     = false;
 
   fscanf(file,"%d",&tmp);
   opt->stepPlotFluid[0] = opt->stepPlotFluid[1] = (short) tmp;
   readMacro(file,word,false);
+  convStringLower(word);
   while(strcmp(word,str)){
 /*... cell*/        
     if(!strcmp(word,macro[0])){ 
       opt->fCell = true;
-      if(!mpiVar.myId ) fprintf(fileLogExc,"print : cell\n");
+      if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","cell");
     }
 /*.....................................................................*/
 
 /*... node*/        
     else if(!strcmp(word,macro[1])){ 
       opt->fNode = true;
-      if(!mpiVar.myId ) fprintf(fileLogExc,"print : node\n");
+      if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","node");
     }
 /*.....................................................................*/
 
 /*... vel*/        
     else if(!strcmp(word,macro[2])){ 
       opt->vel = true;
-      if(!mpiVar.myId ) fprintf(fileLogExc,"print : vel\n");
+      if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","vel");
     }
 /*.....................................................................*/
 
 /*...*/
     else if(!strcmp(word,macro[3])){ 
       opt->pres = true;
-      if(!mpiVar.myId ) fprintf(fileLogExc,"print : pres\n");
+      if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","pres");
     }
 /*.....................................................................*/
 
 /*...*/
     else if(!strcmp(word,macro[4])){ 
       opt->gradVel = true;
-      if(!mpiVar.myId ) fprintf(fileLogExc,"print : gradVel\n");
+      if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","gradVel");
     }
 /*.....................................................................*/
 
 /*...*/
     else if(!strcmp(word,macro[5])){ 
       opt->gradPres = true;
-      if(!mpiVar.myId ) fprintf(fileLogExc,"print : gradPres\n");
+      if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","gradPres");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[6])) {
       opt->energy = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,"print : temp\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","temp");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[7])) {
       opt->gradEnergy = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,"print : gradTemp\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","gradTemp");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[8])) {
       opt->eddyViscosity = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,"print : eddyViscosity\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","eddyViscosity");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[9])) {
       opt->densityFluid = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,"print : densityFluid\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","densityFluid");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[10])) {
       opt->specificHeat = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,"print : specificHeat\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","specificHeat");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[11])) {
       opt->dViscosity = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,"print : dViscosity\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","dViscosity");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[12])) {
       opt->tConductivity = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,"print : tConductivity\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","tConductivity");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[13])) {
       opt->vorticity = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,"print : vorticity\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","vorticity");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[14])) {
       opt->wallParameters = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,"print : wallParameters\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","wallParameters");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[15])) {
       opt->stress = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,"print : stress\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","stress");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[16])) {
       opt->kinetic = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,"print : kinecit\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","kinecit");
     }
 /*.....................................................................*/
 
 /*...*/
     else if (!strcmp(word,macro[17])) {
       opt->stressR = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,"print : stressR\n");
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","stressR");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word,macro[18])) {
+      opt->cDynamic = true;
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","cDynamic");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word,macro[19])) {
+      opt->Qcriterion = true;
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","Qcriterion");
     }
 /*.....................................................................*/
 
     readMacro(file,word,false);
+    convStringLower(word);
   }
 /*.....................................................................*/
 
@@ -2764,7 +2803,7 @@ void help(FILE *f){
 /*....................................................................*/
 
 /*... model*/
-  short iModels = 4;
+  short iModels = 11;
   short iEnergy = 6;
   short iTurb   = 6;
   short iMass   = 2;
@@ -2775,11 +2814,16 @@ void help(FILE *f){
                              , "absolute", "temperature", "entalphy"}; 
 
   char turbulence[][WORD_SIZE] = {"wallmodel type"  
-                                 ,"smagorinsky 0.1"
+                                 ,"smagorinsky 0.2"
                                  ,"wale 0.325"      
-                                 ,"vreman 0.1"     
-                                 ,"dynamic"  
-                                 ,"sigmamodel 1.35"}; 
+                                 ,"vreman 0.2" 
+                                 ,"sigmamodel 0.136"     
+                                 ,"dynamic smagorinsky 0.2"  
+                                 ,"bardina 1.0"
+                                 ,"bardinaMod 1.0"
+                                 ,"clark 1.0"
+                                 ,"mixed 0.5 clark 1.0 smagorinsky 0.2"
+                                 ,"towdynamic clark 1.0 smagorinsky 0.2"};   
 
   char mass[][WORD_SIZE] = { "lhsDensity","rhsDensity"}; 
 
@@ -2969,6 +3013,48 @@ void setMixedModelLes(Turbulence *t       , FILE *file) {
 
   if (ii == 10)
     ERRO_GERAL(__FILE__,__func__,__LINE__,"Erro na leitura");
+
+}
+/**********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 12/12/2017                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *--------------------------------------------------------------------* 
+ * setDynamicModelLes : modelos dinamicos com um parementro           *                * 
+ *--------------------------------------------------------------------* 
+ * Parametros de entrada:                                             * 
+ *--------------------------------------------------------------------* 
+ * t       -> modelo de turbilencia                                   *
+ * file    -> arquivo de arquivo                                      * 
+ *--------------------------------------------------------------------* 
+ * Parametros de saida:                                               * 
+ *--------------------------------------------------------------------* 
+ * t       -> atualizado                                              * 
+ *--------------------------------------------------------------------* 
+ * OBS:                                                               * 
+ *--------------------------------------------------------------------*
+ **********************************************************************/
+void setDynamicModelLes(Turbulence *t       , FILE *file) {
+
+  char word[WORD_SIZE];
+  char turb[][WORD_SIZE] = { "smagorinsky"}; 
+
+  short k = 0, ii=0,jj;
+
+  readMacro(file,word,false);
+  convStringLower(word);
+/*... Smagorinsky*/
+  if(!strcmp(word,turb[0])){ 
+    k++;
+    t->typeLes             = LESFUNCMODEL;
+    t->typeMixed[FUNMODEL] = SMAGORINSKY;
+    fscanf(file,"%lf",&t->cf);  
+    if(!mpiVar.myId) 
+      fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[0],t->cf);    
+  }
+/*...................................................................*/ 
+
 
 }
 /**********************************************************************/

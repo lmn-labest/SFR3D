@@ -185,7 +185,8 @@
 /*... turbulencia*/
     DOUBLE *stressR;
     DOUBLE *eddyViscosity; 
-    DOUBLE *wallParameters;       
+    DOUBLE *wallParameters;
+    DOUBLE *cd;          
   
 /*...*/
     DOUBLE *densityUd1; /*massa especifica do material uD1*/

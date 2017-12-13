@@ -1031,7 +1031,7 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                    *
- * Data de modificaco : 04/12/2017                                    * 
+ * Data de modificaco : 12/12/2017                                    * 
  *------------------------------------------------------------------- * 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1060,6 +1060,7 @@ void wResVtkDif(Memoria *m        ,double *x
  * nDyViscosity   > viscosidade molecular (cell)                      *
  * tConductivity-> condutividade termica                              *
  * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri)           * 
+ * cd           -> coeficientes dincamicamente calculados             *
  * nel          -> numeracao do elemento                              *
  * nnode        -> numero de nos                                      *  
  * numel        -> numero de elementos                                *
@@ -1096,7 +1097,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
           ,DOUBLE *eDyViscosity ,DOUBLE *nDyViscosity
           ,DOUBLE *eStressR     ,DOUBLE *nStressR
           ,DOUBLE *specificHeat ,DOUBLE *tConductivity
-          ,DOUBLE *wallPar
+          ,DOUBLE *wallPar      ,DOUBLE *cd
           ,INT nnode            ,INT numel    
           ,short const ndm      ,short const maxNo 
           ,short const numat    ,short const ndf
@@ -1108,7 +1109,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
   bool iws = opt.bVtk;
   char str[50];
   int    *lel=NULL;
-  DOUBLE *p=NULL;
+  DOUBLE *p=NULL,*w=NULL;
   INT i;
   short j;
   char head[]={"FLUID_VOLUME_FINITO"};
@@ -1296,7 +1297,7 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*...................................................................*/
 
 /*... escreve a yPlus */  
-  if(opt.wallParameters && opt.fCell ){
+  if(opt.wallParameters){
     strcpy(str,"WallParameters(y+,u+,uf,sW)");
     writeVtkProp(&idum,wallPar,numel,4,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
@@ -1317,13 +1318,44 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 
 /*... escreve o tensor residual */  
   if(opt.stressR && opt.fCell ){
+    HccaAlloc(DOUBLE,m,p,numel*ntn,"p",_AD_);
+    HccaAlloc(DOUBLE,m,w,numel*ntn,"w",_AD_);
+/*... estrutural*/
     strcpy(str,"eStressRs");
     writeVtkProp(&idum,eStressR,numel,ntn,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
-    HccaAlloc(DOUBLE,m,p,numel*ntn,"p",_AD_);
     makeStress(p,elGradVel,eDyViscosity,numel,ndm,ntn,false);
+/*... funcional*/
     strcpy(str,"eStressRf");
     writeVtkProp(&idum,p,numel,ntn,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+/*... total*/
+    strcpy(str,"eStressRtotal");
+    addVector(1.e0     , eStressR
+             ,1.e0     , p
+             ,numel*ntn, w);
+    writeVtkProp(&idum,w,numel,ntn,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+    HccaDealloc(m,w,"w",_AD_);
+    HccaDealloc(m,p,"p",_AD_);
+  }
+/*...................................................................*/
+
+/*... coeficiente dinmicamente calculados */  
+  if(opt.cDynamic){
+    strcpy(str,"cDyn");
+    writeVtkProp(&idum,cd,numel,2,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+  }
+/*...................................................................*/
+
+/*... escreve a energia cinetica */  
+  if(opt.Qcriterion && opt.fCell ){
+    strcpy(str,"eQCriterion");
+    HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
+    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
+    makeQcriterion(p,elGradVel,numel,ndm);
+    writeVtkProp(&idum,p,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
     HccaDealloc(m,p,"p",_AD_);
   }
@@ -1463,6 +1495,19 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
     HccaDealloc(m,p,"p",_AD_);
   }
 /*...................................................................*/
+
+/*... escreve a energia cinetica */  
+  if(opt.Qcriterion &&  opt.fNode ){
+    strcpy(str,"nQCriterion");
+    HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
+    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
+    makeQcriterion(p,nGradVel,nnode,ndm);
+    writeVtkProp(&idum,p,nnode,1,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+    HccaDealloc(m,p,"p",_AD_);
+  }
+/*...................................................................*/
+
 
   fclose(f);
 }
@@ -1946,8 +1991,8 @@ void makeStress(DOUBLE *RESTRICT str      , DOUBLE *RESTRICT gradVel
  *------------------------------------------------------------------- *
  **********************************************************************/
 void makeKineticEnergy(DOUBLE *RESTRICT e      , DOUBLE *RESTRICT vel
-                    ,DOUBLE *RESTRICT density 
-                    ,INT const n               , short const ndm) {
+                     , DOUBLE *RESTRICT density 
+                     , INT const n             , short const ndm) {
   INT i;
   DOUBLE vv,den,v[3];
 
@@ -1965,3 +2010,35 @@ void makeKineticEnergy(DOUBLE *RESTRICT e      , DOUBLE *RESTRICT vel
 
 }
 /**********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 13/12/2017                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *------------------------------------------------------------------- * 
+ * makeQcriterion : criterio de vorticiade Q                          *  
+ * ------------------------------------------------------------------ *
+ * parametros de entrada:                                             * 
+ * ------------------------------------------------------------------ *
+ * gradVel -> gradienbte de velocidades                               *
+ * n         -> numero de pontos                                      * 
+ * ndm       -> dimensao                                              * 
+ * ------------------------------------------------------------------ *
+ * parametros de saida  :                                             * 
+ * ------------------------------------------------------------------ *
+ * q -> retorna o campo Q                                             *
+ * ------------------------------------------------------------------ *
+ * OBS:                                                               *
+ *------------------------------------------------------------------- *
+ **********************************************************************/
+void makeQcriterion( DOUBLE *RESTRICT q, DOUBLE *RESTRICT gradVel
+                  , INT const n        , short const ndm)
+{
+  INT i;
+  DOUBLE *p;
+
+  for (i = 0; i < n; i++) {
+    p = gradVel + i*ndm*ndm;
+    q[i] = qCriterion(p,ndm);
+  }
+
+}

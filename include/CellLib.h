@@ -238,7 +238,7 @@
       , short *RESTRICT faceVelL      , DOUBLE *RESTRICT vel    
       , DOUBLE *RESTRICT gradVel      , DOUBLE *RESTRICT lDensity  
       , DOUBLE const dViscosity       , DOUBLE *viscosity          
-      , DOUBLE *RESTRICT wallPar      , DOUBLE *RESTRICT dynamic
+      , DOUBLE *RESTRICT wallPar      , DOUBLE const cDyn
       , short const nEn               , short  const nFace
       , short const ndm               , short const lib
       , INT const nel);
@@ -911,6 +911,7 @@
            ,short const ndm);
   void stressEddyViscosity(DOUBLE *RESTRICT s, DOUBLE *RESTRICT gradVel
                          , DOUBLE const nut  , short const ndm);
+  DOUBLE qCriterion(DOUBLE *RESTRICT gradVel, short const ndm);
 /*...................................................................*/
 
 

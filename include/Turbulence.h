@@ -18,7 +18,6 @@
   #define E_WALLMODEL   9.793e0
   #define VANDRIEST    26.e0
   #define VONKARMAN     0.4187e0
-  #define DYNAMIC_CLIP  0.23e0
 /*...................................................................*/
 
 /*...*/
@@ -34,9 +33,10 @@
 /*...................................................................*/
   
 /*...*/
-  #define LESFUNCMODEL  0
-  #define LESSTRUMODEL  1
-  #define LESMIXEDMODEL  2
+  #define LESFUNCMODEL     0
+  #define LESSTRUMODEL     1
+  #define LESMIXEDMODEL    2
+  #define LESMIXEDTWOMODEL 3
 /*...................................................................*/
 
 /*...*/
@@ -68,20 +68,21 @@
       , DOUBLE *RESTRICT vel          , DOUBLE *RESTRICT gradVel
       , DOUBLE *RESTRICT densityFluid , DOUBLE *RESTRICT dViscosity        
       , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT wallPar  
-      , DOUBLE *RESTRICT stressR      
+      , DOUBLE *RESTRICT stressR      , DOUBLE *RESTRICT cd
       , INT const nnode               , INT const numel              
       , short const maxNo             , short const maxViz
       , short const ndm               , short const ndf);  
 /*...................................................................*/
 
 /*...*/
-  void lesDynamicMean(INT    *RESTRICT nelcon   , short  *RESTRICT nen    
+  void lesDynamicMean(Memoria *m              , Turbulence tModel
+                   , INT    *RESTRICT nelcon  , short  *RESTRICT nen    
                    , short  *RESTRICT nFace   , DOUBLE *RESTRICT gVolume 
                    , DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT gradVel 
                    , DOUBLE *RESTRICT density , DOUBLE *RESTRICT dynamic                                  
                    , short const maxNo        , short const maxViz
                    , short const ndm          , INT const numel     
-                   , short const ndf); 
+                   , short const ndf          , bool const onePar); 
 /*...................................................................*/
 
 /*...*/
@@ -108,16 +109,17 @@
 
 
 /*...*/
-void sLesModCellLoop(Turbulence tModel      
+  void sLesModCellLoop(Turbulence tModel      
                    , DOUBLE *RESTRICT x       , INT *RESTRICT el       
                    , INT *RESTRICT nelcon     , short  *RESTRICT nen    
                    , short *RESTRICT nFace    , DOUBLE *RESTRICT gVolume 
                    , DOUBLE *RESTRICT nVel    , DOUBLE *RESTRICT eVel 
                    , DOUBLE *RESTRICT nDensity, DOUBLE *RESTRICT eDensity  
                    , DOUBLE *RESTRICT gradVel , DOUBLE *RESTRICT stressR                                  
+                   , DOUBLE *RESTRICT cd
                    , short const maxNo        , short const maxViz
                    , short const ndm          , INT const numel     
-                   , short const ndf);  
+                   , short const ndf          , bool const fNode);  
 /*...................................................................*/
 
 /*...*/
@@ -145,7 +147,7 @@ void sLesModCellLoop(Turbulence tModel
           , short *RESTRICT lFaceVelL  , DOUBLE *RESTRICT vel       
           , DOUBLE *RESTRICT gradVel   , DOUBLE *RESTRICT lDensity  
           , DOUBLE const dViscosity    , DOUBLE *viscosity          
-          , DOUBLE *RESTRICT wallPar   , DOUBLE *RESTRICT dynamic
+          , DOUBLE *RESTRICT wallPar   , DOUBLE const nDyn
           , const short nEn            , short const nFace 
           , const short ndm            , INT const nel); 
 /*...................................................................*/
@@ -154,6 +156,11 @@ void sLesModCellLoop(Turbulence tModel
   void lesDynamic(INT *RESTRICT lViz         , DOUBLE *RESTRICT volume
                 , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT vel
                 , DOUBLE *RESTRICT gradVel   , DOUBLE *RESTRICT lDynamic
+                , short const nFace  );
+
+  void lesDynTwoPar(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
+                , DOUBLE *RESTRICT lDensity, DOUBLE *RESTRICT vel
+                , DOUBLE *RESTRICT gradVel , DOUBLE *RESTRICT lDynamic
                 , short const nFace  );
 /*...................................................................*/
 
@@ -198,9 +205,23 @@ void sLesModCellLoop(Turbulence tModel
                 , INT *RESTRICT lViz      , DOUBLE *RESTRICT stressR  
                 , DOUBLE *RESTRICT nVel   , DOUBLE *RESTRICT eVel
                 , DOUBLE *RESTRICT nDen   , DOUBLE *RESTRICT eDen
-                , DOUBLE *RESTRICT gradVel, DOUBLE *RESTRICT vol                    
-                , short const ndm         , short const nFace
+                , DOUBLE *RESTRICT gradVel, DOUBLE *RESTRICT vol 
+                , DOUBLE const cd                   
+                , short const ndm         , short const nFace                
                 , INT const nEl);
+/*...................................................................*/
+
+/*...*/
+  DOUBLE doubleDotSym(DOUBLE *t);
+  DOUBLE doubleDotSym2(DOUBLE *RESTRICT t,DOUBLE *RESTRICT q);
+/*...................................................................*/
+
+/*...*/
+  DOUBLE oneParLes(INT *RESTRICT lViz,DOUBLE *RESTRICT dynamic
+                  , DOUBLE const cap  ,short const nFace);
+  void twoParLes(INT *RESTRICT lViz   , DOUBLE *RESTRICT dynamic
+               , DOUBLE *RESTRICT cDyn
+               , DOUBLE const cap     , short const nFace);
 /*...................................................................*/
 
 /*...*/

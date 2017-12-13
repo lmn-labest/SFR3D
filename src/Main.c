@@ -132,11 +132,11 @@ int main(int argc,char**argv){
   turbModel.wallType            = STANDARDWALL;
   turbModel.type                = LES;
   turbModel.typeLes             = LESFUNCMODEL;
-  turbModel.typeMixed[FUNMODEL] = SIGMAMODEL;
-  turbModel.typeMixed[ESTMODEL] = BARDINAMOD;
+  turbModel.typeMixed[FUNMODEL] = SMAGORINSKY;
+  turbModel.typeMixed[ESTMODEL] = CLARK;
   turbModel.cs                  = 1.0e0;
   turbModel.cf                  = 0.2e0;
-  turbModel.c                   = 0.5e0;
+  turbModel.c                   = 1.0e0;
   turbModel.PrandltTwall        = 0.5e0;
   turbModel.PrandltTsgs         = 0.5e0;
 /*....................................................................*/
@@ -193,6 +193,7 @@ int main(int argc,char**argv){
   opt.wallParameters= false;
   opt.kinetic       = false;
   opt.stressR       = false;
+  opt.cDynamic      = false;
   opt.bconditions   = true;
  
   opt.stepPlotFluid[0] =  5;
@@ -319,7 +320,7 @@ int main(int argc,char**argv){
  
 /*...*/
   fName(preName,0,0, 23 ,&nameOut);
-  fileLogExc = openFile(nameOut,"w");
+  fileLogExc = openFileBuffer(nameOut,"w",false);
 /*...................................................................*/
 
 /*loop de execucao*/

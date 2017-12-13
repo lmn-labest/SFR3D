@@ -2418,7 +2418,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
          gradVelC[3][3], gradVelV[3][3], gradVelComp[3][3],
          stressRc[6],stressRv[6],s[6] ;
 /*...*/
-  DOUBLE uPlus,yPlus,viscosityWall,alphaT,alphaTCom;
+  DOUBLE uPlus,yPlus,viscosityWall;
 
 /*...*/
   idCell   = nFace;
@@ -2447,24 +2447,12 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   g[2]             = gravity[2];
 /*...................................................................*/
 
-/*... metodos mistos*/
-  if(tModel.typeLes == LESMIXEDMODEL ){
-    fStruc    = true;
-    alphaT    = tModel.c;
-    alphaTCom = 1.e0 - alphaT;
-  }
-/*... estruturais*/
-  else if(tModel.typeLes == LESSTRUMODEL){
-    fStruc    = true;
-    alphaT    = 0.e0;
-    alphaTCom = 1.e0;
-  }
 /*... funcionais*/
-  else{
-    fStruc    = false;
-    alphaT    = 1.e0;
-    alphaTCom = 0.e0;
-  }
+  if(tModel.typeLes == LESFUNCMODEL ) 
+    fStruc    = false;  
+/*... estruturais*/
+  else
+    fStruc    = true;
 /*...................................................................*/
 
 /*...*/
@@ -2480,7 +2468,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   densityC       = lDensity[idCell];
   viscosityC     = MAT2D(idCell, 0, lViscosity, 2);
   if(fTurb) eddyViscosityC= MAT2D(idCell, 1, lViscosity, 2);
-  effViscosityC = viscosityC + alphaT*eddyViscosityC;
+  effViscosityC = viscosityC + eddyViscosityC;
   densityRef = MAT2D(idCell, DENSITY, prop, MAXPROP);
 /*...................................................................*/
 
@@ -2619,7 +2607,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*... media harmonica*/
-      effViscosityV = viscosityV + alphaT*eddyViscosityV;
+      effViscosityV = viscosityV + eddyViscosityV;
       viscosity = alpha / effViscosityC + alphaMenosUm / effViscosityV;
       viscosity = 1.0e0 / viscosity;
 /*...................................................................*/
@@ -2816,7 +2804,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
         s[3] = alphaMenosUm*stressRc[3] + alpha*stressRv[3];
         s[4] = alphaMenosUm*stressRc[4] + alpha*stressRv[4];
         s[5] = alphaMenosUm*stressRc[5] + alpha*stressRv[5];
-        aP   = alphaTCom*lFarea;
+        aP   = lFarea;
         p[0] -= aP*(s[0]*lNormal[0] 
                   + s[3]*lNormal[1] 
                   + s[5]*lNormal[2]);
@@ -2898,7 +2886,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
         s[3] = stressRc[3];
         s[4] = stressRc[4];
         s[5] = stressRc[5];
-        aP   = alphaTCom*lFarea;
+        aP   = lFarea;
         p[0] -= aP*(s[0]*lNormal[0] 
                   + s[3]*lNormal[1] 
                   + s[5]*lNormal[2]);

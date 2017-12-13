@@ -122,7 +122,7 @@
           , DOUBLE *eDyViscosity , DOUBLE *nDyViscosity
           , DOUBLE *eStressR     , DOUBLE *nStressR
           , DOUBLE *specificHeat , DOUBLE *tConductivity
-          , DOUBLE *wallPar        
+          , DOUBLE *wallPar      , DOUBLE *cd  
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf  
@@ -149,6 +149,9 @@
   void makeKineticEnergy(DOUBLE *RESTRICT e    , DOUBLE *RESTRICT vel
                     ,DOUBLE *RESTRICT density 
                     ,INT const n               , short const ndm);
+
+  void makeQcriterion(DOUBLE *RESTRICT gradVel, DOUBLE *RESTRICT q
+                    , INT const n             , short const ndm);
 /*...................................................................*/
 
 #endif/*_WRITE_VTK_H_*/

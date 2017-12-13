@@ -1,7 +1,7 @@
 #include<CellLib.h>
 /*********************************************************************
  * Data de criacao    : 10/09/2017                                   *
- * Data de modificaco : 30/11/2017                                   *
+ * Data de modificaco : 12/12/2017                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLETURBULENCE: chamada de bibliotecas de celulas para   *
  * o calculo da viscosidae turbelenta                                *
@@ -58,7 +58,7 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
       , short *RESTRICT faceVelL      , DOUBLE *RESTRICT vel    
       , DOUBLE *RESTRICT gradVel      , DOUBLE *RESTRICT lDensity  
       , DOUBLE const dViscosity       , DOUBLE *viscosity          
-      , DOUBLE *RESTRICT wallPar      , DOUBLE *RESTRICT dynamic
+      , DOUBLE *RESTRICT wallPar      , DOUBLE const cDyn
       , short const nEn               , short  const nFace
       , short const ndm               , short const lib
       , INT const nel)
@@ -96,7 +96,7 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
               , faceVelL      , vel  
               , gradVel       , lDensity 
               , dViscosity    , viscosity 
-              , wallPar       , dynamic
+              , wallPar       , cDyn
               , nEn           , nFace 
               , ndm           , nel); 
     }  
@@ -5875,5 +5875,56 @@ void stressEddyViscosity(DOUBLE *RESTRICT s,DOUBLE *RESTRICT gradVel
 
   }
 
+}
+/*********************************************************************/  
+
+/**********************************************************************
+ * Data de criacao    : 13/12/2017                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *------------------------------------------------------------------- * 
+ * qCriterion : calculo do parametro Q                                *  
+ * ------------------------------------------------------------------ *
+ * parametros de entrada:                                             * 
+ * ------------------------------------------------------------------ *
+ * gradVel -> gradienbte de velocidades                               *
+ * ndm     -> dimensao                                                * 
+ * ------------------------------------------------------------------ *
+ * parametros de saida  :                                             * 
+ * ------------------------------------------------------------------ *
+ *                                                                    *
+ * ------------------------------------------------------------------ *
+ * OBS:                                                               *
+ *       | 0   w1  w2 |            | s1  s3  s6 |                     *
+ *  W =  |-w1   0  w3 |        S = | s3  s2  s4 |                     *
+ *       |-w2 -w3   0 |            | s6  s4  s3 |                     * 
+ *------------------------------------------------------------------- *
+ **********************************************************************/
+DOUBLE qCriterion(DOUBLE *RESTRICT gradVel, short const ndm) {
+
+  DOUBLE q,ss,ww,s[6],w[3];
+
+
+  if (ndm == 3) {
+
+    s[0] = MAT2D(0, 0, gradVel, 3);         /*s11*/
+    s[1] = MAT2D(1, 1, gradVel, 3);         /*s22*/
+    s[2] = MAT2D(2, 2, gradVel, 3);         /*s33*/ 
+    s[3] = 0.5e0*(MAT2D(0, 1, gradVel, 3) + MAT2D(1, 0, gradVel, 3)); /*s12*/
+    s[4] = 0.5e0*(MAT2D(1, 2, gradVel, 3) + MAT2D(2, 1, gradVel, 3)); /*s23*/
+    s[5] = 0.5e0*(MAT2D(0, 2, gradVel, 3) + MAT2D(2, 0, gradVel, 3)); /*s13*/
+
+    ss = doubleDotSym(s);
+
+
+    w[0] = 0.5e0*(MAT2D(0, 1, gradVel, 3) - MAT2D(1, 0, gradVel, 3)); /*w12*/
+    w[1] = 0.5e0*(MAT2D(0, 2, gradVel, 3) - MAT2D(2, 0, gradVel, 3)); /*w13*/
+    w[2] = 0.5e0*(MAT2D(1, 2, gradVel, 3) - MAT2D(1, 2, gradVel, 3)); /*w23*/
+
+    ww = 2.e0*(w[0]*w[0] + w[1]*w[1] + w[2]*w[2]);
+
+    q = ww - ss;
+  }
+
+  return 0.25*q; 
 }
 /*********************************************************************/  

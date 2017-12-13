@@ -312,28 +312,28 @@ void printFluid(Memoria *m
   if(!mpiVar.myId ){
     fName(preName,sc.ddt.timeStep,0,21,&nameOut);
 /*...*/
-    wResVtkFluid(m                       , mesh0->node.x      
-               , mesh0->elm.node         , mesh0->elm.mat    
-               , mesh0->elm.nen          , mesh0->elm.geomType
-               , mesh0->elm.pressure     , mesh0->node.pressure
-               , mesh0->elm.gradPres     , mesh0->node.gradPres  
-               , mesh0->elm.vel          , mesh0->node.vel      
-               , mesh0->elm.gradVel      , mesh0->node.gradVel 
-               , mesh0->elm.temp         , mesh0->node.temp   
-               , mesh0->elm.gradTemp     , mesh0->node.gradTemp
-               , mesh0->elm.eddyViscosity, nEddyV
-               , mesh0->elm.densityFluid , nDenFluid
-               , mesh0->elm.dViscosity   , nDvisc
-               , mesh0->elm.stressR      , nStressR
-               , mesh0->elm.specificHeat , mesh0->elm.tConductivity
-               , mesh0->elm.wallParameters                  
-               , mesh0->nnode            , mesh0->numel  
-               , mesh0->ndm              , mesh0->maxNo 
-               , mesh0->numat            , ndfVel
-               , mesh0->ntn
-               , nameOut                 , opt
-               , eModel.fKelvin
-               , sc.ddt                  , fileOut);   
+    wResVtkFluid(m                        , mesh0->node.x      
+               , mesh0->elm.node          , mesh0->elm.mat    
+               , mesh0->elm.nen           , mesh0->elm.geomType
+               , mesh0->elm.pressure      , mesh0->node.pressure
+               , mesh0->elm.gradPres      , mesh0->node.gradPres  
+               , mesh0->elm.vel           , mesh0->node.vel      
+               , mesh0->elm.gradVel       , mesh0->node.gradVel 
+               , mesh0->elm.temp          , mesh0->node.temp   
+               , mesh0->elm.gradTemp      , mesh0->node.gradTemp
+               , mesh0->elm.eddyViscosity , nEddyV
+               , mesh0->elm.densityFluid  , nDenFluid
+               , mesh0->elm.dViscosity    , nDvisc
+               , mesh0->elm.stressR       , nStressR
+               , mesh0->elm.specificHeat  , mesh0->elm.tConductivity
+               , mesh0->elm.wallParameters, mesh0->elm.cd                  
+               , mesh0->nnode             , mesh0->numel  
+               , mesh0->ndm               , mesh0->maxNo 
+               , mesh0->numat             , ndfVel
+               , mesh0->ntn               
+               , nameOut                  , opt
+               , eModel.fKelvin           
+               , sc.ddt                   , fileOut);   
 /*...................................................................*/
   }
 /*...................................................................*/

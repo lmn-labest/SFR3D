@@ -1,5 +1,8 @@
 #include<File.h>
 /*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ * ------------------------------------------------------------------*
  * openFile : abre um arquivo                                        *
  * ------------------------------------------------------------------*
  * Parametros de entrada:                                            *
@@ -18,6 +21,40 @@ FILE *aux;
       fprintf(stderr,"Erro na abertura do arquivo %s.\n",name);
       exit(EXIT_FAILURE);
     }
+
+  return aux;  
+}
+/********************************************************************/
+
+
+/*********************************************************************
+ * Data de criacao    : 13/12/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * openFileBuffer: abre um arquivo                                   *
+ * ------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ * ------------------------------------------------------------------* 
+ * name  -> nome do arquivo                                          * 
+ * mod   -> mode de abertura                                         *
+ * buffer-> true  buffer habilitado                                  *
+ *          false buffer desbilitado                                 *
+ * ------------------------------------------------------------------*
+ * Paramanetros de saida:                                            *
+ * ------------------------------------------------------------------*
+ * FILE * ponterio par o arquivo de saida                            * 
+ * ------------------------------------------------------------------*
+ * *******************************************************************/
+FILE* openFileBuffer(char *name,char *mod,bool buffer){
+FILE *aux;
+  if(( aux =fopen(name,mod))==NULL){
+      fprintf(stderr,"Erro na abertura do arquivo %s.\n",name);
+      exit(EXIT_FAILURE);
+    }
+
+  if(!buffer)
+    setbuf(aux, NULL);
+
   return aux;  
 }
 /********************************************************************/
