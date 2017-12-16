@@ -1031,7 +1031,7 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                    *
- * Data de modificaco : 12/12/2017                                    * 
+ * Data de modificaco : 16/12/2017                                    * 
  *------------------------------------------------------------------- * 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1058,9 +1058,11 @@ void wResVtkDif(Memoria *m        ,double *x
  * nDensityFluid-> densidade do fluido (node)                         *
  * eDyViscosity -> viscosidade molecular (cell)                       *
  * nDyViscosity   > viscosidade molecular (cell)                      *
- * tConductivity-> condutividade termica                              *
- * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri)           * 
- * cd           -> coeficientes dincamicamente calculados             *
+ * eCd          -> coeficientes dincamicamente calculados (cell)      *
+ * nCd          -> coeficientes dincamicamente calculados (node)      *
+ * eWallPar   -> parametros de parede  ( yPlus, uPlus, uFri) (cell)   *
+ * nWallPar   -> parametros de parede  ( yPlus, uPlus, uFri) (node)   *
+ * tConductivity-> condutividade termica                              *   
  * nel          -> numeracao do elemento                              *
  * nnode        -> numero de nos                                      *  
  * numel        -> numero de elementos                                *
@@ -1083,28 +1085,29 @@ void wResVtkDif(Memoria *m        ,double *x
  *           | du3dx1 du3dx2 du3dx3 |                                 *
  *                                                                    *
  **********************************************************************/
-void wResVtkFluid(Memoria *m    ,DOUBLE *x      
-          ,INT *el              ,short *mat    
-          ,short *nen           ,short *typeGeom
-          ,DOUBLE *elPres       ,DOUBLE *nPres
-          ,DOUBLE *elGradPres   ,DOUBLE *nGradPres
-          ,DOUBLE *elVel        ,DOUBLE *nVel      
-          ,DOUBLE *elGradVel    ,DOUBLE *nGradVel 
-          ,DOUBLE *elEnergy     ,DOUBLE *nEnergy
-          ,DOUBLE *elGradEnergy ,DOUBLE *nGradEnergy
-          ,DOUBLE *elEddyVis    ,DOUBLE *nEddyVis
-          ,DOUBLE *eDensityFluid,DOUBLE *nDensityFluid
-          ,DOUBLE *eDyViscosity ,DOUBLE *nDyViscosity
-          ,DOUBLE *eStressR     ,DOUBLE *nStressR
-          ,DOUBLE *specificHeat ,DOUBLE *tConductivity
-          ,DOUBLE *wallPar      ,DOUBLE *cd
-          ,INT nnode            ,INT numel    
-          ,short const ndm      ,short const maxNo 
-          ,short const numat    ,short const ndf
-          ,short const ntn   
-          ,char *nameOut        ,FileOpt opt
-          ,bool fKelvin
-          ,Temporal ddt         ,FILE *f)
+void wResVtkFluid(Memoria *m     , DOUBLE *x      
+          , INT *el              , short *mat    
+          , short *nen           , short *typeGeom
+          , DOUBLE *elPres       , DOUBLE *nPres
+          , DOUBLE *elGradPres   , DOUBLE *nGradPres
+          , DOUBLE *elVel        , DOUBLE *nVel      
+          , DOUBLE *elGradVel    , DOUBLE *nGradVel 
+          , DOUBLE *elEnergy     , DOUBLE *nEnergy
+          , DOUBLE *elGradEnergy , DOUBLE *nGradEnergy
+          , DOUBLE *elEddyVis    , DOUBLE *nEddyVis
+          , DOUBLE *eDensityFluid, DOUBLE *nDensityFluid
+          , DOUBLE *eDyViscosity , DOUBLE *nDyViscosity
+          , DOUBLE *eStressR     , DOUBLE *nStressR
+          , DOUBLE *eCd          , DOUBLE *nCd
+          , DOUBLE *eWallPar     , DOUBLE *nWallPar   
+          , DOUBLE *specificHeat , DOUBLE *tConductivity
+          , INT nnode            , INT numel    
+          , short const ndm      , short const maxNo 
+          , short const numat    , short const ndf
+          , short const ntn        
+          , char *nameOut        , FileOpt opt
+          , bool fKelvin           
+          , Temporal ddt         , FILE *f)
 {
   bool iws = opt.bVtk;
   char str[50];
@@ -1297,9 +1300,9 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*...................................................................*/
 
 /*... escreve a yPlus */  
-  if(opt.wallParameters){
-    strcpy(str,"WallParameters(y+,u+,uf,sW)");
-    writeVtkProp(&idum,wallPar,numel,4,str,iws
+  if(opt.wallParameters && opt.fCell){
+    strcpy(str,"eWallParameters(y+,u+,uf,sW)");
+    writeVtkProp(&idum,eWallPar,numel,4,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
 /*...................................................................*/
@@ -1342,9 +1345,9 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
 /*...................................................................*/
 
 /*... coeficiente dinmicamente calculados */  
-  if(opt.cDynamic){
-    strcpy(str,"cDyn");
-    writeVtkProp(&idum,cd,numel,2,str,iws
+  if(opt.cDynamic && opt.fCell){
+    strcpy(str,"eCdyn");
+    writeVtkProp(&idum,eCd,numel,2,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
 /*...................................................................*/
@@ -1493,6 +1496,22 @@ void wResVtkFluid(Memoria *m    ,DOUBLE *x
     writeVtkProp(&idum,p,nnode,ntn,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
     HccaDealloc(m,p,"p",_AD_);
+  }
+/*...................................................................*/
+
+/*... coeficiente dinmicamente calculados */  
+  if(opt.cDynamic && opt.fNode){
+    strcpy(str,"nCdyn");
+    writeVtkProp(&idum,nCd,nnode,2,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+  }
+/*...................................................................*/
+
+/*... escreve a yPlus */  
+  if(opt.wallParameters && opt.fNode){
+    strcpy(str,"nWallParameters(y+,u+,uf,sW)");
+    writeVtkProp(&idum,nWallPar,nnode,4,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
   }
 /*...................................................................*/
 

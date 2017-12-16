@@ -35,6 +35,7 @@ void printFluid(Memoria *m
   void *dum=NULL;
   INT ndfVel;
   DOUBLE *nStressR=NULL,*nEddyV=NULL,*nDvisc=NULL,*nDenFluid=NULL;
+  DOUBLE *nCdyn=NULL,*nWall=NULL;
   FILE *fileOut=NULL;
 
 /*...*/
@@ -45,7 +46,9 @@ void printFluid(Memoria *m
   HccaAlloc(DOUBLE, m, nDenFluid, mesh->nnode*3, "nDenFluid", _AD_);
   HccaAlloc(DOUBLE, m, nDvisc   , mesh->nnode  , "nVis"     , _AD_); 
   HccaAlloc(DOUBLE, m, nEddyV   , mesh->nnode  , "nEddyV"   , _AD_);
-  HccaAlloc(DOUBLE, m, nStressR , mesh->nnode*6, "nStressR" , _AD_); 
+  HccaAlloc(DOUBLE, m, nStressR , mesh->nnode*6, "nStressR" , _AD_);
+  HccaAlloc(DOUBLE, m, nCdyn    , mesh->nnode*2, "nCdyn"    , _AD_); 
+  HccaAlloc(DOUBLE, m, nWall    , mesh->nnode*4, "nWall"    , _AD_); 
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (Pres)*/
@@ -305,6 +308,43 @@ void printFluid(Memoria *m
                 ,mesh->ndm               
                 ,false                    ,2);
 /*...................................................................*/
+
+/*... coeficiente dinamico*/
+    if(opt.cDynamic)
+      interCellNode(m                     ,loadsVel
+                ,nCdyn                    ,mesh->elm.cd              
+                ,mesh->elm.node           ,mesh->elm.geomType            
+                ,mesh->elm.geom.cc        ,mesh->node.x  
+                ,mesh->elm.geom.xm       
+                ,mesh->elm.nen            ,mesh->elm.adj.nViz
+                ,dum                      ,dum                   
+                ,&pMesh->iNo                
+                ,mesh->numelNov           ,mesh->numel        
+                ,mesh->nnodeNov           ,mesh->nnode 
+                ,mesh->maxNo              ,mesh->maxViz   
+                ,2                        ,1
+                ,mesh->ndm               
+                ,false                    ,2);
+/*...................................................................*/
+
+/*... parametros de parede*/
+    if(opt.wallParameters)
+      interCellNode(m                     ,loadsVel
+                ,nWall                    ,mesh->elm.wallParameters              
+                ,mesh->elm.node           ,mesh->elm.geomType            
+                ,mesh->elm.geom.cc        ,mesh->node.x  
+                ,mesh->elm.geom.xm       
+                ,mesh->elm.nen            ,mesh->elm.adj.nViz
+                ,dum                      ,dum                   
+                ,&pMesh->iNo                
+                ,mesh->numelNov           ,mesh->numel        
+                ,mesh->nnodeNov           ,mesh->nnode 
+                ,mesh->maxNo              ,mesh->maxViz   
+                ,4                        ,1
+                ,mesh->ndm               
+                ,false                    ,2);
+/*...................................................................*/
+
   }                                 
 /*...................................................................*/
 
@@ -325,8 +365,9 @@ void printFluid(Memoria *m
                , mesh0->elm.densityFluid  , nDenFluid
                , mesh0->elm.dViscosity    , nDvisc
                , mesh0->elm.stressR       , nStressR
-               , mesh0->elm.specificHeat  , mesh0->elm.tConductivity
-               , mesh0->elm.wallParameters, mesh0->elm.cd                  
+               , mesh0->elm.cd            , nCdyn
+               , mesh0->elm.wallParameters, nWall
+               , mesh0->elm.specificHeat  , mesh0->elm.tConductivity                                               
                , mesh0->nnode             , mesh0->numel  
                , mesh0->ndm               , mesh0->maxNo 
                , mesh0->numat             , ndfVel
@@ -339,6 +380,8 @@ void printFluid(Memoria *m
 /*...................................................................*/
 
 /*... desalocando memoria*/
+  HccaDealloc(m, nWall    , "nWall"    , _AD_);
+  HccaDealloc(m, nCdyn    , "nCdyn"    , _AD_); 
   HccaDealloc(m, nStressR , "nStressR" , _AD_); 
   HccaDealloc(m, nEddyV   , "nEddyV"   , _AD_); 
   HccaDealloc(m, nDvisc   , "nVis"     , _AD_);   

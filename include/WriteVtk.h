@@ -121,8 +121,9 @@
           , DOUBLE *eDensityFluid, DOUBLE *nDensityFluid
           , DOUBLE *eDyViscosity , DOUBLE *nDyViscosity
           , DOUBLE *eStressR     , DOUBLE *nStressR
-          , DOUBLE *specificHeat , DOUBLE *tConductivity
-          , DOUBLE *wallPar      , DOUBLE *cd  
+          , DOUBLE *eCd          , DOUBLE *nCd 
+          , DOUBLE *eWallPar     , DOUBLE *nWallPar 
+          , DOUBLE *specificHeat , DOUBLE *tConductivity               
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf  
