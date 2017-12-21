@@ -2016,7 +2016,9 @@ void readModel(EnergyModel *e     , Turbulence *t
   char mass[][WORD_SIZE] = { "lhsdensity","rhsdensity"}; 
 
   char momentum[][WORD_SIZE] = {"residual","absolute"
-                               ,"presa", "presref" ,"rhiechow"};
+                               ,"presa"   ,"presref" 
+                               ,"rhiechow","viscosity"
+                               ,"div"};
 
   char typeWallModel[][WORD_SIZE] ={"standard"};
   
@@ -2295,10 +2297,12 @@ void readModel(EnergyModel *e     , Turbulence *t
     else if(!strcmp(word,macros[3])){ 
       strcpy(format,"%-20s: %s\n");
       if(!mpiVar.myId)
-        fprintf(fileLogExc,"\n%-20s: \n","<MomentumEqModel>");    
+        fprintf(fileLogExc,"\n%-20s: \n","MomentumEqModel");    
       eMomentum->fRes             = false;
       eMomentum->fAbsultePressure = false;
       eMomentum->fRhieChowInt     = false;
+      eMomentum->fViscosity       = false;
+      eMomentum->fDiv             = false;
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++){
         readMacro(file,word,false);
@@ -2347,6 +2351,25 @@ void readModel(EnergyModel *e     , Turbulence *t
           }
         }
 /*...................................................................*/
+
+/*... Viscosity*/
+        else if(!strcmp(word,momentum[5])){
+          eMomentum->fViscosity = true;            
+          if(!mpiVar.myId && eMomentum->fViscosity){ 
+            fprintf(fileLogExc,format,"Viscosity","Enable");
+          }
+        }
+/*...................................................................*/
+
+/*... Viscosity*/
+        else if(!strcmp(word,momentum[6])){
+          eMomentum->fDiv = true;            
+          if(!mpiVar.myId && eMomentum->fDiv){ 
+            fprintf(fileLogExc,format,"Divergente","Enable");
+          }
+        }
+/*...................................................................*/
+
       }
 /*...................................................................*/
     }
@@ -2807,7 +2830,7 @@ void help(FILE *f){
   short iEnergy = 6;
   short iTurb   = 6;
   short iMass   = 2;
-  short iMom    = 2;
+  short iMom    = 7;
   char models[][WORD_SIZE] = {"energy"  ,"turbulence","mass"     /* 0, 1, 2*/
                              ,"momentum"};                       /* 3*/
   char energy[][WORD_SIZE] = { "preswork", "dissipation", "residual"  
@@ -2827,8 +2850,11 @@ void help(FILE *f){
 
   char mass[][WORD_SIZE] = { "lhsDensity","rhsDensity"}; 
 
-  char momentum[][WORD_SIZE] = {"residual","Absolute"
-                               ,"presA", "presRef" ,"RhieChow"};
+  
+  char momentum[][WORD_SIZE] = {"residual","absolute"    /* 0, 1*/
+                               ,"presa"   ,"presref"     /* 2, 3*/
+                               ,"rhiechow","viscosity"   /* 4, 5*/
+                               ,"div"};                  /* 6*/
 
   char typeWallModel[][WORD_SIZE] ={"standard"};
 /*....................................................................*/
@@ -3021,7 +3047,7 @@ void setMixedModelLes(Turbulence *t       , FILE *file) {
  * Data de criacao    : 12/12/2017                                    *
  * Data de modificaco : 00/00/0000                                    *
  *--------------------------------------------------------------------* 
- * setDynamicModelLes : modelos dinamicos com um parementro           *                * 
+ * setDynamicModelLes : modelos dinamicos com um parementro           *
  *--------------------------------------------------------------------* 
  * Parametros de entrada:                                             * 
  *--------------------------------------------------------------------* 
@@ -3038,7 +3064,8 @@ void setMixedModelLes(Turbulence *t       , FILE *file) {
 void setDynamicModelLes(Turbulence *t       , FILE *file) {
 
   char word[WORD_SIZE];
-  char turb[][WORD_SIZE] = { "smagorinsky"}; 
+  char turb[][WORD_SIZE] = { "smagorinsky","sigmamodel"
+                             ,"wale"}; 
 
   short k = 0, ii=0,jj;
 
@@ -3055,6 +3082,26 @@ void setDynamicModelLes(Turbulence *t       , FILE *file) {
   }
 /*...................................................................*/ 
 
+/*... SigmaModel*/
+  else if(!strcmp(word,turb[1])){ 
+    k++;
+    t->typeLes             = LESFUNCMODEL;
+    t->typeMixed[FUNMODEL] = SIGMAMODEL;
+    fscanf(file,"%lf",&t->cf);  
+    if(!mpiVar.myId) 
+      fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[1],t->cf);    
+  }
+/*...................................................................*/
 
+/*... WaleModel*/
+  else if(!strcmp(word,turb[2])){ 
+    k++;
+    t->typeLes             = LESFUNCMODEL;
+    t->typeMixed[FUNMODEL] = WALEMODEL;
+    fscanf(file,"%lf",&t->cf);  
+    if(!mpiVar.myId) 
+      fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[2],t->cf);    
+  }
+/*...................................................................*/ 
 }
 /**********************************************************************/

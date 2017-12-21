@@ -153,10 +153,10 @@
 /*...................................................................*/
 
 /*...*/
-  void lesDynamic(INT *RESTRICT lViz         , DOUBLE *RESTRICT volume
+  void lesDynOnePar(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
                 , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT vel
                 , DOUBLE *RESTRICT gradVel   , DOUBLE *RESTRICT lDynamic
-                , short const nFace  );
+                , short const typeLesFunc    , short const nFace  );
 
   void lesDynTwoPar(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
                 , DOUBLE *RESTRICT lDensity, DOUBLE *RESTRICT vel
@@ -184,8 +184,10 @@
 /*...................................................................*/
 
 /*...*/
-  DOUBLE sigmaModel(DOUBLE *RESTRICT s, DOUBLE *RESTRICT gradVel 
-                , short const nFace , short const ndm);
+  DOUBLE sigmaModel( DOUBLE *RESTRICT gradVel 
+                   , short const nFace , short const ndm);
+  DOUBLE waleModel(DOUBLE *RESTRICT gradVel);
+  DOUBLE svs(DOUBLE *RESTRICT gradVel);
 /*...................................................................*/
 
 /*...*/
@@ -217,15 +219,17 @@
 /*...................................................................*/
 
 /*...*/
-  DOUBLE oneParLes(INT *RESTRICT lViz,DOUBLE *RESTRICT dynamic
-                  , DOUBLE const cap  ,short const nFace);
+  DOUBLE oneParLes(Turbulence *tModel
+                 , INT *RESTRICT lViz, DOUBLE *RESTRICT dynamic
+                 , short const nFace);
   void twoParLes(INT *RESTRICT lViz   , DOUBLE *RESTRICT dynamic
                , DOUBLE *RESTRICT cDyn
-               , DOUBLE const cap     , short const nFace);
+               , DOUBLE const capFmin , DOUBLE const capFmax   
+               , DOUBLE const capSmin , DOUBLE const capSmax      
+               , short const nFace);
 /*...................................................................*/
 
 /*...*/
-
   void sfHexa8(DOUBLE const eps ,DOUBLE const nn
            , DOUBLE const ze  
            , DOUBLE *RESTRICT N        ,DOUBLE *RESTRICT de

@@ -153,6 +153,8 @@ int main(int argc,char**argv){
   eMomentum.fRes             = true;
   eMomentum.fRhieChowInt     = false;
   eMomentum.fAbsultePressure = false;
+  eMomentum.fViscosity       = true;
+  eMomentum.fDiv             = true;
 /*...................................................................*/
 
 /*...*/
@@ -2285,7 +2287,9 @@ int main(int argc,char**argv){
       simple->faceInterpolVel = 1;
       simple->nNonOrth        = 0;
       simple->tolPres         = 1.e-06;
-      simple->tolVel          = 1.e-06;
+      simple->tolVel[0]       = 1.e-06;
+      simple->tolVel[1]       = 1.e-06;
+      simple->tolVel[2]       = 1.e-06;
       if (mesh->ndfFt){
         simple->kZeroEnergy  = 0;
         simple->tolEnergy    = 1.e-06;
@@ -2302,10 +2306,10 @@ int main(int argc,char**argv){
         readMacro(fileIn,word,false);
 /*... levemente compressivel*/       
         if (mesh->ndfFt)
-          setSimpleLmScheme(word,simple,fileIn);
+          setSimpleLmScheme(word,mesh0->ndm,simple,fileIn);
 /*... imcompressivel*/
         else
-          setSimpleScheme(word, simple, fileIn);
+          setSimpleScheme(word,mesh0->ndm, simple, fileIn);
 /*...*/        
         if(simple->type == SIMPLE && !mpiVar.myId)     
           fprintf(fileLogExc,"PRES-VEL  : SIMPLE\n");
@@ -2318,7 +2322,9 @@ int main(int argc,char**argv){
           fprintf(fileLogExc,"alphaPres : %lf\n",simple->alphaPres);
           fprintf(fileLogExc,"alphaVel  : %lf\n",simple->alphaVel);
           fprintf(fileLogExc,"tolPres   : %e\n",simple->tolPres);
-          fprintf(fileLogExc,"tolVel    : %e\n",simple->tolVel);
+          fprintf(fileLogExc,"tolVelX   : %e\n",simple->tolVel[0]);
+          fprintf(fileLogExc,"tolVelY   : %e\n",simple->tolVel[1]);
+          fprintf(fileLogExc,"tolVelZ   : %e\n",simple->tolVel[2]);
           if(mesh->ndfFt)
             fprintf(fileLogExc,"tolEnergy : %e\n", simple->tolEnergy);
           fprintf(fileLogExc,"nNonOrth  : %d\n",simple->nNonOrth);

@@ -64,7 +64,7 @@
 
 /*...*/
   typedef struct{    
-    bool fRes,fRhieChowInt,fAbsultePressure; 
+    bool fRes,fRhieChowInt,fAbsultePressure,fViscosity,fDiv; 
   }MomentumModel;
 /*...................................................................*/
 
@@ -265,7 +265,7 @@
     DOUBLE *ePresC,*nPresC  ,*eGradPresC;/*Pressao de correcao*/
     DOUBLE *ePresC1;                     /*Pressao de correcao 1*/
     DOUBLE *d;
-    DOUBLE tolPres,tolVel,tolEnergy;
+    DOUBLE tolPres,tolVel[3],tolEnergy;
   }Simple;
 /*...................................................................*/
 

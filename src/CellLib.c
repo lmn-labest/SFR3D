@@ -2390,7 +2390,7 @@ void  leastSquare(Loads *loads
   short i,j,k,l;
 
 
-  for(l=0;l<2;l++){    
+  for(l=0;l<1;l++){    
 /*... um grau de liberdade*/  
     if(ndf == 1){
       uC[0] = u[idCell];  
@@ -5399,23 +5399,23 @@ void advectiveScheme(DOUBLE *RESTRICT velC   ,DOUBLE *RESTRICT velV
 /*... NVD*/
   case LUST:
 /*...*/
-    cvc[0] =  deferredLust(velC[0]     ,velV[0]
+    cvc[0] = deferredLust(velC[0]     ,velV[0]
                           ,&gradVelC[0],&gradVelV[0]
                           ,rC          ,rV  
                           ,alphaMenosUm,alpha     
                           ,wfn         ,ndm);
     
-    cvc[1] =  deferredLust(velC[1]     ,velV[1]
+    cvc[1] = deferredLust(velC[1]     ,velV[1]
                           ,&gradVelC[3],&gradVelV[3]
                           ,rC          ,rV  
                           ,alphaMenosUm,alpha    
                           ,wfn         ,ndm);
-    
-    cvc[2] =  deferredLust(velC[2]     ,velV[2]
-                          ,&gradVelC[6],&gradVelV[6]
-                          ,rC          ,rV  
-                          ,alphaMenosUm,alpha     
-                          ,wfn         ,ndm);
+    if (ndm == 3)
+      cvc[2] = deferredLust(velC[2]     ,velV[2]
+                            ,&gradVelC[6],&gradVelV[6]
+                            ,rC          ,rV  
+                            ,alphaMenosUm,alpha     
+                            ,wfn         ,ndm);
 /*...................................................................*/
 
   break;

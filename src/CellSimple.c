@@ -2280,7 +2280,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*********************************************************************
  * Data de criacao    : 03/10/2017                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 19/12/2017                                   * 
  *-------------------------------------------------------------------* 
  * CELLSIMPLEVE3DLM: Celula 3D para velocidade do metodo simple      * 
  * em escoamento levemento compressivel (Low Mach)                   * 
@@ -2393,6 +2393,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
       , nCarg, typeTime;
 /*...*/
   bool fTime, fAbsultePressure, fRes, fTurb, fRhieInt, fWallModel, fStruc;
+  bool fDiv,fViscosity;
   INT vizNel;
 /*...*/
   DOUBLE viscosityC, viscosityV, viscosity, 
@@ -2442,6 +2443,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   fRhieInt         = eMomentum.fRhieChowInt;  
   fRes             = eMomentum.fRes;
   fAbsultePressure = eMomentum.fAbsultePressure;
+  fViscosity       = eMomentum.fViscosity;
   g[0]             = gravity[0];
   g[1]             = gravity[1];
   g[2]             = gravity[2];
@@ -2507,7 +2509,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   dFieldC[1]    = MAT2D(idCell, 1, dField  , 3);
   dFieldC[2]    = MAT2D(idCell, 2, dField  , 3);
   dFieldF[0]    = dFieldF[1] = dFieldF[2] = 0.e0;
-  wf[0] = wf[1] = wf[1]= 0.e0;
+  wf[0] = wf[1] = wf[2]= 0.e0;
 /*...................................................................*/
 
   sP     = 0.0e0;
@@ -2772,24 +2774,28 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*... termos viscosos explicitos*/
       aP    = viscosity*lFarea;
-      p[0] += aP*( gradVelV[0][0]*lNormal[0] 
-                 + gradVelV[1][0]*lNormal[1]  
-                 + gradVelV[2][0]*lNormal[2]);
+      if(fViscosity){
+        p[0] += aP*( gradVelV[0][0]*lNormal[0] 
+                   + gradVelV[1][0]*lNormal[1]  
+                   + gradVelV[2][0]*lNormal[2]);
  
-      p[1] += aP*( gradVelV[0][1]*lNormal[0] 
-                 + gradVelV[1][1]*lNormal[1]  
-                 + gradVelV[2][1]*lNormal[2]);
+        p[1] += aP*( gradVelV[0][1]*lNormal[0] 
+                   + gradVelV[1][1]*lNormal[1]  
+                   + gradVelV[2][1]*lNormal[2]);
       
-      p[2] += aP*( gradVelV[0][2]*lNormal[0] 
-                 + gradVelV[1][2]*lNormal[1]  
-                 + gradVelV[2][2]*lNormal[2]);
+        p[2] += aP*( gradVelV[0][2]*lNormal[0] 
+                   + gradVelV[1][2]*lNormal[1]  
+                   + gradVelV[2][2]*lNormal[2]);
+      }
 /*... divergente*/
-      tmp = D2DIV3*aP*(gradVelV[0][0] 
-                     + gradVelV[1][1]
-                     + gradVelV[2][2]);
-      p[0] -= tmp*lNormal[0];
-      p[1] -= tmp*lNormal[1];
-      p[2] -= tmp*lNormal[2];
+      if(fDiv){
+        tmp = D2DIV3*aP*(gradVelV[0][0] 
+                       + gradVelV[1][1]
+                       + gradVelV[2][2]);
+        p[0] -= tmp*lNormal[0];
+        p[1] -= tmp*lNormal[1];
+        p[2] -= tmp*lNormal[2];
+      }
 /*...................................................................*/
 
 /*... termos viscosos explicitos*/
@@ -2829,24 +2835,29 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*... termos viscosos explicitos*/
       aP    = effViscosityC*lFarea;
-      p[0] += aP*( gradVelC[0][0]*lNormal[0] 
-                 + gradVelC[1][0]*lNormal[1]  
-                 + gradVelC[2][0]*lNormal[2]);
+      if(fViscosity){
+        p[0] += aP*( gradVelC[0][0]*lNormal[0] 
+                   + gradVelC[1][0]*lNormal[1]  
+                   + gradVelC[2][0]*lNormal[2]);
 
-      p[1] += aP*( gradVelC[0][1]*lNormal[0] 
-                 + gradVelC[1][1]*lNormal[1]
-                 + gradVelC[2][1]*lNormal[2]);
+        p[1] += aP*( gradVelC[0][1]*lNormal[0] 
+                   + gradVelC[1][1]*lNormal[1]
+                   + gradVelC[2][1]*lNormal[2]);
       
-      p[2] += aP*( gradVelC[0][2]*lNormal[0] 
-                 + gradVelC[1][2]*lNormal[1]
-                 + gradVelC[2][2]*lNormal[2]);
+        p[2] += aP*( gradVelC[0][2]*lNormal[0] 
+                   + gradVelC[1][2]*lNormal[1]
+                   + gradVelC[2][2]*lNormal[2]);
+      }
+  
 /*... divergente*/
-      tmp = D2DIV3*aP*(gradVelC[0][0] 
-                     + gradVelC[1][1]
-                     + gradVelC[2][2]);
-      p[0] -= tmp*lNormal[0];
-      p[1] -= tmp*lNormal[1];
-      p[2] -= tmp*lNormal[2];
+      if(fDiv){
+        tmp = D2DIV3*aP*(gradVelC[0][0] 
+                       + gradVelC[1][1]
+                       + gradVelC[2][2]);
+        p[0] -= tmp*lNormal[0];
+        p[1] -= tmp*lNormal[1];
+        p[2] -= tmp*lNormal[2];
+      }
 /*...................................................................*/
 
 /*...*/
@@ -3002,7 +3013,6 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
   }
 /*...................................................................*/
 
-
 /*...*/
   lAn = 0.e0;
   if(nFace == 4){
@@ -3109,8 +3119,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * Data de criacao    : 11/07/2016                                   *
  * Data de modificaco : 15/08/2016                                   *
  *-------------------------------------------------------------------*
- * CELLSIMPLEPRES3D: Celula 3D para equacao de correcao de pressoa   *
- * metodo simple em escoamento imcompressivel                        * 
+ * cellVelExp3D:                                                     * 
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*

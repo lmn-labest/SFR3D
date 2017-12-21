@@ -1,14 +1,240 @@
 #include<Turbulence.h>
+/********************************************************************* 
+ * Data de criacao    : 17/12/2017                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * waleModel : calculo do operador do modelo WALE                    * 
+ *-------------------------------------------------------------------* 
+ * gradVel  -> gradiente de velociade                                *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------*                                                                      *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+DOUBLE waleModel(DOUBLE *RESTRICT gradVel) {
+
+  DOUBLE lm,mm,modS,modSd,tmp,g[3][3],b[3][3],m[6],s[6];
+
+/*... | du1/dx1 du1/dx2 du1/dx3*/
+  g[0][0] = MAT2D(0,0,gradVel,3);
+  g[0][1] = MAT2D(0,1,gradVel,3);
+  g[0][2] = MAT2D(0,2,gradVel,3);
+/*... | du2/dx1 du2/dx2 du2/dx3*/
+  g[1][0] = MAT2D(1,0,gradVel,3);
+  g[1][1] = MAT2D(1,1,gradVel,3);
+  g[1][2] = MAT2D(1,2,gradVel,3);
+/*... | du3/dx1 du3/dx2 du3/dx3*/
+  g[2][0] = MAT2D(2,0,gradVel,3);
+  g[2][1] = MAT2D(2,1,gradVel,3);
+  g[2][2] = MAT2D(2,2,gradVel,3);
+/*...................................................................*/
+
+/*... Sd = Sd:Sd*/
+/*... g00 = g00*g00 + g01*g10 + g02*g20
+      g01 = g00*g01 + g01*g11 + g02*g21
+      g02 = g00*g02 + g01*g12 + g02*g22*/ 
+  b[0][0] = g[0][0]*g[0][0] + g[0][1]*g[1][0] + g[0][2]*g[2][0];
+  b[0][1] = g[0][0]*g[0][1] + g[0][1]*g[1][1] + g[0][2]*g[2][1]; 
+  b[0][2] = g[0][0]*g[0][2] + g[0][1]*g[1][2] + g[0][2]*g[2][2]; 
+/*... g10 = g10*g00 + g11*g10 + g12*g20
+      g11 = g10*g01 + g11*g11 + g12*g21
+      g12 = g10*g02 + g11*g12 + g12*g22*/  
+  b[1][0] = g[1][0]*g[0][0] + g[1][1]*g[1][0] + g[1][2]*g[2][0]; 
+  b[1][1] = g[1][0]*g[0][1] + g[1][1]*g[1][1] + g[1][2]*g[2][1]; 
+  b[1][2] = g[1][0]*g[0][2] + g[1][1]*g[1][2] + g[1][2]*g[2][2]; 
+/*... g20 = g20*g00 + g21*g10 + g22*g20
+      g21 = g20*g01 + g21*g11 + g22*g21
+      g22 = g20*g02 + g21*g12 + g22*g22*/ 
+  b[2][0] = g[2][0]*g[0][0] + g[2][1]*g[1][0] + g[2][2]*g[2][0]; 
+  b[2][1] = g[2][0]*g[0][1] + g[2][1]*g[1][1] + g[2][2]*g[2][1]; 
+  b[2][2] = g[2][0]*g[0][2] + g[2][1]*g[1][2] + g[2][2]*g[2][2]; 
+/*...*/
+  tmp  = D1DIV3*(b[0][0] + b[1][1] + b[2][2]);
+  m[0] = b[0][0] - tmp;
+  m[1] = b[1][1] - tmp;
+  m[2] = b[2][2] - tmp;     
+  m[3] = 0.5e0*(b[0][1] + b[1][0]); /*g12*/
+  m[4] = 0.5e0*(b[0][2] + b[2][0]); /*g13*/
+  m[5] = 0.5e0*(b[1][2] + b[2][1]); /*g23*/
+   
+  modSd = doubleDotSym(m);
+
+/*... S = S:S*/
+  s[0] = g[0][0];
+  s[1] = g[1][1];
+  s[2] = g[2][2];
+  s[3] = 0.5e0*(g[0][1] + g[1][0]); /*s12*/
+  s[4] = 0.5e0*(g[0][2] + g[2][0]); /*s13*/
+  s[5] = 0.5e0*(g[1][2] + g[2][1]); /*s23*/
+
+  modS = doubleDotSym(s);
+/*...................................................................*/
+      
+/*...*/
+  mm = lm = 1.0e-64;
+  mm = pow(modS,2.5e0) +  pow(modSd,1.25e0);
+  lm = pow(modSd,1.5e0);
+/*...................................................................*/
+
+/*...*/
+  return lm/mm;
+/*...................................................................*/
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 17/12/2017                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * waleModel : calculo do operador do modelo WALE                    * 
+ *-------------------------------------------------------------------* 
+ * gradVel  -> gradiente de velociade                                *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------*                                                                      *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+DOUBLE svs(DOUBLE *RESTRICT gradVel) {
+
+  DOUBLE lm,mm,modS,modSd,tmp,g[3][3],b[3][3],m[6],s[6];
+
+/*... | du1/dx1 du1/dx2 du1/dx3*/
+  g[0][0] = MAT2D(0,0,gradVel,3);
+  g[0][1] = MAT2D(0,1,gradVel,3);
+  g[0][2] = MAT2D(0,2,gradVel,3);
+/*... | du2/dx1 du2/dx2 du2/dx3*/
+  g[1][0] = MAT2D(1,0,gradVel,3);
+  g[1][1] = MAT2D(1,1,gradVel,3);
+  g[1][2] = MAT2D(1,2,gradVel,3);
+/*... | du3/dx1 du3/dx2 du3/dx3*/
+  g[2][0] = MAT2D(2,0,gradVel,3);
+  g[2][1] = MAT2D(2,1,gradVel,3);
+  g[2][2] = MAT2D(2,2,gradVel,3);
+/*...................................................................*/
+
+/*... Sd = Sd:Sd*/
+/*... g00 = g00*g00 + g01*g10 + g02*g20
+      g01 = g00*g01 + g01*g11 + g02*g21
+      g02 = g00*g02 + g01*g12 + g02*g22*/ 
+  b[0][0] = g[0][0]*g[0][0] + g[0][1]*g[1][0] + g[0][2]*g[2][0];
+  b[0][1] = g[0][0]*g[0][1] + g[0][1]*g[1][1] + g[0][2]*g[2][1]; 
+  b[0][2] = g[0][0]*g[0][2] + g[0][1]*g[1][2] + g[0][2]*g[2][2]; 
+/*... g10 = g10*g00 + g11*g10 + g12*g20
+      g11 = g10*g01 + g11*g11 + g12*g21
+      g12 = g10*g02 + g11*g12 + g12*g22*/  
+  b[1][0] = g[1][0]*g[0][0] + g[1][1]*g[1][0] + g[1][2]*g[2][0]; 
+  b[1][1] = g[1][0]*g[0][1] + g[1][1]*g[1][1] + g[1][2]*g[2][1]; 
+  b[1][2] = g[1][0]*g[0][2] + g[1][1]*g[1][2] + g[1][2]*g[2][2]; 
+/*... g20 = g20*g00 + g21*g10 + g22*g20
+      g21 = g20*g01 + g21*g11 + g22*g21
+      g22 = g20*g02 + g21*g12 + g22*g22*/ 
+  b[2][0] = g[2][0]*g[0][0] + g[2][1]*g[1][0] + g[2][2]*g[2][0]; 
+  b[2][1] = g[2][0]*g[0][1] + g[2][1]*g[1][1] + g[2][2]*g[2][1]; 
+  b[2][2] = g[2][0]*g[0][2] + g[2][1]*g[1][2] + g[2][2]*g[2][2]; 
+/*...*/
+  tmp  = D1DIV3*(b[0][0] + b[1][1] + b[2][2]);
+  m[0] = b[0][0] - tmp;
+  m[1] = b[1][1] - tmp;
+  m[2] = b[2][2] - tmp;     
+  m[3] = 0.5e0*(b[0][1] + b[1][0]); /*g12*/
+  m[4] = 0.5e0*(b[0][2] + b[2][0]); /*g13*/
+  m[5] = 0.5e0*(b[1][2] + b[2][1]); /*g23*/
+   
+  modSd = doubleDotSym(m);
+
+/*... S = S:S*/
+  s[0] = g[0][0];
+  s[1] = g[1][1];
+  s[2] = g[2][2];
+  s[3] = 0.5e0*(g[0][1] + g[1][0]); /*s12*/
+  s[4] = 0.5e0*(g[0][2] + g[2][0]); /*s13*/
+  s[5] = 0.5e0*(g[1][2] + g[2][1]); /*s23*/
+
+  modS = doubleDotSym(s);
+/*...................................................................*/
+      
+/*...*/
+  mm = lm = 1.0e-64;
+  mm = pow(modSd,1.5e0) + pow(modS,3.e0);
+  lm = pow(modSd,1.5e0);
+/*...................................................................*/
+
+/*...*/
+  return lm/mm;
+/*...................................................................*/
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 16/12/2017                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * tensorS : calculo de Sij                                          * 
+ *-------------------------------------------------------------------* 
+ * s        -> nao definido                                          * 
+ * gradVel  -> gradiente de velociade                                *
+ * flag     -> true|false                                            *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * flag     -> true -  Sij - (1/3)*Skk*deltaij                       *   
+ *             false-  Sij                                           *                                                                       *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------* 
+ * s =(s11,s22,s33,s12,s23,s13)                                      *
+ *********************************************************************/
+void tensorS( DOUBLE *RESTRICT s,  DOUBLE *RESTRICT gradVel
+            , bool const flag ) {
+
+  DOUBLE tmp,g[3][3];
+
+/*... | du1/dx1 du1/dx2 du1/dx3*/
+  g[0][0] = MAT2D(0,0,gradVel,3);
+  g[0][1] = MAT2D(0,1,gradVel,3);
+  g[0][2] = MAT2D(0,2,gradVel,3);
+/*... | du2/dx1 du2/dx2 du2/dx3*/
+  g[1][0] = MAT2D(1,0,gradVel,3);
+  g[1][1] = MAT2D(1,1,gradVel,3);
+  g[1][2] = MAT2D(1,2,gradVel,3);
+/*... | du3/dx1 du3/dx2 du3/dx3*/
+  g[2][0] = MAT2D(2,0,gradVel,3);
+  g[2][1] = MAT2D(2,1,gradVel,3);
+  g[2][2] = MAT2D(2,2,gradVel,3);
+/*...................................................................*/
+
+  tmp  = D1DIV3*(g[0][0] + g[1][1] + g[2][2]);
+  s[0] = g[0][0] - tmp;
+  s[1] = g[1][1] - tmp;
+  s[2] = g[2][2] - tmp;
+  s[3] = 0.5e0*(g[0][1] + g[1][0]); /*s12*/
+  s[4] = 0.5e0*(g[0][2] + g[2][0]); /*s13*/
+  s[5] = 0.5e0*(g[1][2] + g[2][1]); /*s23*/ 
+
+  if (flag) {
+    tmp  = D1DIV3*(g[0][0] + g[1][1] + g[2][2]);
+    s[0] -= tmp;
+    s[1] -= tmp;
+    s[2] -= tmp;
+  }
+
+}
+/*********************************************************************/
+
 
 /********************************************************************* 
  * Data de criacao    : 12/12/2017                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 19/12/2017                                   * 
  *-------------------------------------------------------------------* 
  * onParLes : calculo do coefciente do les de um paramento           * 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * tModel   -> modelo de turbulencia                                 *
  * lViz     -> vizinhos                                              * 
- * dynamicl -> L:M e M:M nas celulas central e vizinhas              *
- * cap      -> valor maximo                                          *
+ * dynamicl -> L:M, M:M e SVS nas celulas central e vizinhas         *
  * nFace    -> numero de faces da celula                             *
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -17,36 +243,52 @@
  *-------------------------------------------------------------------* 
  * OBS:                                                              *
  *-------------------------------------------------------------------* 
- * dynamic(*,2) = ( L:M, M:M)                                        *
+ * dynamic(*,3) = ( L:M, M:M, SVS)                                   *
  *********************************************************************/
-DOUBLE oneParLes(INT *RESTRICT lViz,DOUBLE *RESTRICT dynamic
-               , DOUBLE const cap  ,short const nFace) {
+DOUBLE oneParLes(Turbulence *tModel
+               , INT *RESTRICT lViz  , DOUBLE *RESTRICT dynamic
+               , short const nFace) {
 
-  short i, idCell;
+  short i, idCell, type;
   INT vizNel;
-  DOUBLE lm,mm,cf;
+  DOUBLE lm,mm,cf,capFmin,capFmax;
+
+  type    = tModel->typeMixed[FUNMODEL];
+  capFmin = 0.e0;
+  capFmax = tModel->cf;
 
   idCell = nFace;
-/*... cs =(1/2)<M:L>/<M:M>*/
-//lm = mm = 1.e-64;
+/*... cs =<M:L>/<M:M>*/
+  lm = mm = 1.e-64;
   for (i = 0; i < nFace; i++) {
     vizNel = lViz[i];
     if(vizNel  > -1){
-      lm += MAT2D(i,0,dynamic,2);
-      mm += MAT2D(i,1,dynamic,2);
+      lm += MAT2D(i,0,dynamic,3);
+      mm += MAT2D(i,1,dynamic,3);
     }
   }
-  lm += MAT2D(idCell,0,dynamic,2);
-  mm += MAT2D(idCell,1,dynamic,2);      
+  lm += MAT2D(idCell,0,dynamic,3);
+  mm += MAT2D(idCell,1,dynamic,3);      
 /*...................................................................*/
 
-/*... 0.0 < sqrt(c) < cap*/      
+/*...*/      
   cf = lm/mm;
-  if(cf < 0.0e0)
-    cf = 0.e0;
-  else if (sqrt(cf) > cap)
-    cf = cap*cap;
 /*...................................................................*/
+
+/*...*/ 
+  if (type == WALEMODEL) { 
+    if( MAT2D(idCell,2,dynamic,3) < 0.09e0 )
+      cf = capFmax*capFmax; 
+  }
+/*...................................................................*/
+
+/*... 0.0 < sqrt(c) < cap*/
+  if(cf <= capFmin)
+    cf = capFmin;
+  else if (sqrt(cf) > capFmax)
+    cf = capFmax*capFmax;
+/*...................................................................*/
+
   return  cf;
 
 }
@@ -54,13 +296,16 @@ DOUBLE oneParLes(INT *RESTRICT lViz,DOUBLE *RESTRICT dynamic
 
 /********************************************************************* 
  * Data de criacao    : 12/12/2017                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 16/12/2017                                   * 
  *-------------------------------------------------------------------* 
  * onParLes : calculo do coefciente do les de um paramento           * 
  *-------------------------------------------------------------------* 
  * lViz     -> vizinhos                                              * 
  * dynamicl -> L:M e M:M nas celulas central e vizinhas              *
- * cap      -> valor maximo                                          *
+ * capFmin  -> valor minimo (Funcional)                              *        
+ * capFmax  -> valor maximo (Funcional)                              *
+ * capSmin  -> valor minimo (Estrutural)                             *
+ * capSmax  -> valor maximo (Estrutural)                             *
  * nFace    -> numero de faces da celula                             *
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -76,7 +321,9 @@ DOUBLE oneParLes(INT *RESTRICT lViz,DOUBLE *RESTRICT dynamic
  *********************************************************************/
 void twoParLes(INT *RESTRICT lViz   , DOUBLE *RESTRICT dynamic
              , DOUBLE *RESTRICT cDyn
-             , DOUBLE const cap     , short const nFace) {
+             , DOUBLE const capFmin , DOUBLE const capFmax   
+             , DOUBLE const capSmin , DOUBLE const capSmax  
+             , short const nFace) {
 
   bool uncoupled = false; 
   short i, idCell,count=1;
@@ -87,7 +334,7 @@ void twoParLes(INT *RESTRICT lViz   , DOUBLE *RESTRICT dynamic
 
   b[0] = b[1] = 0.e0;
   a[0][0] = a[0][1] = a[1][0] = a[1][1] = 0.e0;
-/*... cs =(1/2)<M:L>/<M:M>*/
+/*... */
   for (i = 0; i < nFace; i++) {
     vizNel = lViz[i];
     if(vizNel  > -1){
@@ -125,17 +372,17 @@ void twoParLes(INT *RESTRICT lViz   , DOUBLE *RESTRICT dynamic
 /*...................................................................*/
   
 /*... 0.0 < sqrt(c) < cap*/      
-  if(cf < 0.0e0)
-    cf = 0.e0;
-  else if (sqrt(cf) > cap)
-    cf = cap*cap;
+  if(cf < capFmin)
+    cf = capFmin;
+  else if (sqrt(cf) > capFmax)
+    cf = capFmax*capFmax;
 /*...................................................................*/
 
 /*... 0.0 < sqrt(c) < 1.00*/      
-//if(cs < 0.0e0)
-//  cs =  0.e0;
-//else if (cs > 1.0e0)
-//  cs =  1.e0;
+  if(cs < capSmin)
+    cs =  capSmin;
+  else if (cs > capSmax)
+    cs =  capSmax;
 /*...................................................................*/
 
 /*...*/
@@ -761,7 +1008,7 @@ void lesDynamicMean(Memoria *m               , Turbulence tModel
    
 /*...*/
   if(onePar)
-    nPar = 2;
+    nPar = 3;
   else
     nPar = 6;
 /*...................................................................*/
@@ -813,21 +1060,22 @@ void lesDynamicMean(Memoria *m               , Turbulence tModel
 
 /*...*/
     if(onePar)
-      lesDynamic(lViz     , lVolume
-                , lDensity , lVel
-                , lGradVel , lDynamic 
-               , nFace[nel]);
+      lesDynOnePar(lViz                       , lVolume
+                 , lDensity                   , lVel
+                 , lGradVel                   , lDynamic 
+                 , tModel.typeMixed[FUNMODEL] , nFace[nel]);
     else
       lesDynTwoPar(lViz       , lVolume
                  , lDensity   , lVel
                  , lGradVel   , lDynamic
-                 ,  nFace[nel]  );
+                 , nFace[nel]  );
 /*...................................................................*/
 
-//  if (nel == 0) {
-//    printf("%e %e %e %e %e %e\n",lDynamic[0],lDynamic[1],lDynamic[2]
-//                                ,lDynamic[3],lDynamic[4],lDynamic[5]);
+/// if (nel == 3099 || nel == 62299) {
+//    printf("%d %e %e %lf %e\n",nel,lDynamic[0],lDynamic[1]
+//                               ,lDynamic[2],lDynamic[0]/lDynamic[1]);
 //  }
+
 /*...*/
     for(k=0;k<nPar;k++)
       MAT2D(nel,k,dynamic,nPar) = lDynamic[k];
@@ -855,13 +1103,16 @@ void lesDynamicMean(Memoria *m               , Turbulence tModel
 
 /*...*/
     if(onePar)
-      MAT2D(nel,0,cDyn,2) = oneParLes(lViz     , lDynamic
-                                    , tModel.cf, nFace[nel]);
+      MAT2D(nel,0,cDyn,2) = oneParLes(&tModel 
+                                     , lViz      , lDynamic                                    
+                                     , nFace[nel]);
 /*...*/
     else {
       twoParLes(lViz      , lDynamic
                , lDyn
-               , tModel.cf, nFace[nel]);
+               , 0.e0     , tModel.cf
+               , 0.e0     , tModel.cs 
+               , nFace[nel]);
       MAT2D(nel,0,cDyn,2) = lDyn[0];
       MAT2D(nel,1,cDyn,2) = lDyn[1];
 
@@ -1281,7 +1532,7 @@ void eddyViscosity3D(Loads *lVel             , Turbulence tModel
   bool fDynamic, fWall = false;
   short i, j, idCell,type,typeLes, wallType;
   INT vizNel;
-  DOUBLE modS, tmp, density, viscosityC, cf, s[6],m[6], delta,*iGradVel;
+  DOUBLE modS, tmp, density, viscosityC, cf2, s[6],m[6], delta,*iGradVel;
   DOUBLE v[3],lMin,dMin, g[3][3],yPlusMax, modSd, b[3][3];
   DOUBLE mm,lm,c;
 
@@ -1328,9 +1579,9 @@ void eddyViscosity3D(Loads *lVel             , Turbulence tModel
 
 /*...*/
   if (fDynamic) 
-    cf = cDyn;
+    cf2 = cDyn;
   else     
-    cf = tModel.cf;
+    cf2 = tModel.cf*tModel.cf;
 /*...................................................................*/
 
 
@@ -1344,7 +1595,7 @@ void eddyViscosity3D(Loads *lVel             , Turbulence tModel
 /*...................................................................*/
 
 /*... (cs*delta)^2*/
-      lMin= cf*delta;
+      lMin= cf2*delta;
 /*...................................................................*/
 
 /*.. calculo Sij*/
@@ -1375,62 +1626,21 @@ void eddyViscosity3D(Loads *lVel             , Turbulence tModel
     case WALEMODEL: 
 
 /*...*/
-      density    = lDensity[idCell];
+      delta = pow(volume[idCell],D2DIV3);
+      density = lDensity[idCell];
 /*...................................................................*/
 
-/*... Sd = Sd:Sd*/
-/*... g00 = g00*g00 + g01*g10 + g02*g20
-      g01 = g00*g01 + g01*g11 + g02*g21
-      g02 = g00*g02 + g01*g12 + g02*g22*/ 
-      b[0][0] = g[0][0]*g[0][0] + g[0][1]*g[1][0] + g[0][2]*g[2][0];
-      b[0][1] = g[0][0]*g[0][1] + g[0][1]*g[1][1] + g[0][2]*g[2][1]; 
-      b[0][2] = g[0][0]*g[0][2] + g[0][1]*g[1][2] + g[0][2]*g[2][2]; 
-/*... g10 = g10*g00 + g11*g10 + g12*g20
-      g11 = g10*g01 + g11*g11 + g12*g21
-      g12 = g10*g02 + g11*g12 + g12*g22*/  
-      b[1][0] = g[1][0]*g[0][0] + g[1][1]*g[1][0] + g[1][2]*g[2][0]; 
-      b[1][1] = g[1][0]*g[0][1] + g[1][1]*g[1][1] + g[1][2]*g[2][1]; 
-      b[1][2] = g[1][0]*g[0][2] + g[1][1]*g[1][2] + g[1][2]*g[2][2]; 
-/*... g20 = g20*g00 + g21*g10 + g22*g20
-      g21 = g20*g01 + g21*g11 + g22*g21
-      g22 = g20*g02 + g21*g12 + g22*g22*/ 
-      b[2][0] = g[2][0]*g[0][0] + g[2][1]*g[1][0] + g[2][2]*g[2][0]; 
-      b[2][1] = g[2][0]*g[0][1] + g[2][1]*g[1][1] + g[2][2]*g[2][1]; 
-      b[2][2] = g[2][0]*g[0][2] + g[2][1]*g[1][2] + g[2][2]*g[2][2]; 
-/*...*/
-      tmp = D1DIV3*(b[0][0] + b[1][1] + b[2][2]);
-      m[0] = b[0][0] - tmp;
-      m[1] = b[1][1] - tmp;
-      m[2] = b[2][2] - tmp;     
-      m[3] = 0.5e0*(b[0][1] + b[1][0]); /*g12*/
-      m[4] = 0.5e0*(b[0][2] + b[2][0]); /*g13*/
-      m[5] = 0.5e0*(b[1][2] + b[2][1]); /*g23*/
-   
-      modSd = doubleDotSym(m);
-
-/*... S = S:S*/
-      s[0] = g[0][0];
-      s[1] = g[1][1];
-      s[2] = g[2][2];
-      s[3] = 0.5e0*(g[0][1] + g[1][0]); /*s12*/
-      s[4] = 0.5e0*(g[0][2] + g[2][0]); /*s13*/
-      s[5] = 0.5e0*(g[1][2] + g[2][1]); /*s23*/
-
-      modS = doubleDotSym(s);
+/*... (cs*delta)^2*/
+      lMin = cf2*delta;
 /*...................................................................*/
-      
-/*...*/
-      mm  = pow(modS,2.5e0) +  pow(modSd,1.25e0);
-      lm  = pow(modSd,1.5e0);
-      tmp = lm/mm; 
-      delta = pow(volume[idCell],D1DIV3);
-/*...*/
-      if(fWall)
-        lMin = min(VONKARMAN*dMin,cf*delta);
-      else
-        lMin  = cf*delta;
+
+/*... operador(grad(u))*/
+      iGradVel = &MAT3D(idCell,0,0,gradVel,3,3);
+      tmp = waleModel(iGradVel);
 /*...................................................................*/
-      *viscosity = density*lMin*lMin*tmp;  
+
+/*...*/
+      *viscosity = density*lMin*tmp;  
 /*...................................................................*/
         
       break;
@@ -1440,7 +1650,7 @@ void eddyViscosity3D(Loads *lVel             , Turbulence tModel
     case VREMAN: 
 
 /*...*/
-      cf       = 2.5e0*cf;
+      cf2      = 2.5e0*cf2;
       density  = lDensity[idCell];
       delta    = pow(volume[idCell],D2DIV3);
 /*...................................................................*/
@@ -1464,7 +1674,7 @@ void eddyViscosity3D(Loads *lVel             , Turbulence tModel
 /*...*/  
       if ( tmp < 0.e0 ) tmp = 0.e0;
       tmp = sqrt(tmp/modS);      
-      *viscosity = density*cf*tmp;     
+      *viscosity = density*cf2*tmp;     
 /*...................................................................*/
         
       break;
@@ -1473,19 +1683,17 @@ void eddyViscosity3D(Loads *lVel             , Turbulence tModel
 /*...*/
     case SIGMAMODEL: 
 /*...*/
-      cf       = cf*cf;
       density  = lDensity[idCell];
       delta    = pow(volume[idCell],D2DIV3);
 /*...................................................................*/
 
 /*... (cs*delta)^2*/
-      lMin = cf*delta;
+      lMin = cf2*delta;
 /*...................................................................*/
 
 /*... operador(grad(u))*/
       iGradVel = &MAT3D(idCell,0,0,gradVel,3,3);
-      tmp = sigmaModel(s    ,iGradVel 
-                      ,nFace,ndm);
+      tmp = sigmaModel(iGradVel,nFace,ndm);
 /*...................................................................*/
 
 /*...*/   
@@ -1512,19 +1720,20 @@ void eddyViscosity3D(Loads *lVel             , Turbulence tModel
 
 /*********************************************************************
  * Data de criacao    : 24/10/2017                                   *
- * Data de modificaco : 13/12/2017                                   *
+ * Data de modificaco : 19/12/2017                                   *
  *-------------------------------------------------------------------*
  * LESDYNAMIC: Metodo dinamico para o calculo da constente do LES    *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
- * lViz      -> vizinhos da celula central                           *
- * volume    -> volume da celula central                             *
- * lDensity  -> massa especifica sem variacao temporal               *
- * vel       -> campo de velocidades                                 *
- * gradVel   -> gradiente rescontruido das velocidades               *
- * lDynamic  -> nao definido                                         *
- * nFace     -> numero de faces da celula central                    * 
+ * lViz       -> vizinhos da celula central                          *
+ * volume     -> volume da celula central                            *
+ * lDensity   -> massa especifica sem variacao temporal              *
+ * vel        -> campo de velocidades                                *
+ * gradVel    -> gradiente rescontruido das velocidades              *
+ * lDynamic   -> nao definido                                        *
+ * typeLesFunc-> metodo funcional                                    *
+ * nFace      -> numero de faces da celula central                   * 
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -1535,30 +1744,32 @@ void eddyViscosity3D(Loads *lVel             , Turbulence tModel
  * celula central                                                    *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void lesDynamic(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
-              , DOUBLE *RESTRICT lDensity, DOUBLE *RESTRICT vel
-              , DOUBLE *RESTRICT gradVel , DOUBLE *RESTRICT lDynamic
-              , short const nFace  ) {
+void lesDynOnePar(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
+                , DOUBLE *RESTRICT lDensity, DOUBLE *RESTRICT vel
+                , DOUBLE *RESTRICT gradVel , DOUBLE *RESTRICT lDynamic
+                , short const typeLesFunc  , short const nFace  ) {
 
   short i,j,k,idCell;
   INT vizNel;
-  DOUBLE tmp,s[6],modS;
+  DOUBLE tmp,s[6];
   DOUBLE v[3],m[6],l[6],mm,lm,deltaT,delta,volW,volTotal,density,g[3][3];
-  DOUBLE tFilterDenModSs[6],tFilterDenVv[6],rFiltergVel[3][3];
-  DOUBLE tFilterModS,tFilterDen,tFilterDenV[3],tFilterS[6];
+  DOUBLE tFilterDenVv[6],rFiltergVel[3][3];
+  DOUBLE tFilterDen,tFilterDenV[3],op;
+  DOUBLE ff[6],tFilterFf[6];
+  DOUBLE *iGradVel=NULL;
 
   idCell = nFace;
 
   tFilterDenV[0] = tFilterDenV[1] = tFilterDenV[2] = 0.e0;
-  tFilterDen     = tFilterModS = volTotal = 0.e0;
+  tFilterDen     = volTotal = 0.e0;
   
-  for(i = 0; i< 3 ; i++ )
-    for(j = 0; j< 3 ; j++ )
-      rFiltergVel[i][j] = 0.e0;
+  iGradVel = rFiltergVel[0];
+  for(i = 0; i< 9 ; i++ )
+    iGradVel[i] = 0.e0;
 
   for(i = 0; i<6 ; i++ ){
-    tFilterDenModSs[i] = 0.e0;
-    tFilterS[i]        = 0.e0;
+    ff[i]              = 0.e0;
+    tFilterFf[i]       = 0.e0;  
     tFilterDenVv[i]    = 0.e0;
   }
 
@@ -1596,37 +1807,12 @@ void lesDynamic(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
       g[2][2] = MAT3D(i,2,2,gradVel,3,3);
 /*...................................................................*/
 
-/*... smagorinsky*/
-
-/*.. calculo Sij*/
-      tmp  = D1DIV3*(g[0][0] + g[1][1] + g[2][2]);
-      s[0] = g[0][0] - tmp;
-      s[1] = g[1][1] - tmp;
-      s[2] = g[2][2] - tmp;
-      s[3] = 0.5e0*(g[0][1] + g[1][0]); /*s12*/
-      s[4] = 0.5e0*(g[0][2] + g[2][0]); /*s13*/
-      s[5] = 0.5e0*(g[1][2] + g[2][1]); /*s23*/
-/*... |S| = |2S:S|*/
-      modS = doubleDotSym(s);
-      modS = sqrt(2.e0*modS);
-
-/*... tesFilter( |s|) -> vol*modS */
-      tFilterModS += volW*modS;
-     
-      tmp                 = volW*modS*density;
-      for(j=0;j<6;j++){
-/*... tesFilter( desinty*|s|s) -> vol*desinty*modS*s */
-        tFilterDenModSs[j] += tmp*s[j];  
-/*... tesFilter(s) -> vol*s */
-        tFilterS[j] += volW*s[j];
-      }
+/*... tensor L*/
 
 /*... tesFilter( gradVel ) -> vol*gradVel*/      
       for(j=0;j<3;j++)
         for(k=0;k<3;k++)
           rFiltergVel[j][k] += volW*g[j][k];
-
-/*... tensor L*/
 
 /*... tesFilter(desinty*vv) -> vol*desinty*vv */
       tmp              = volW*density;
@@ -1641,7 +1827,40 @@ void lesDynamic(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
       tFilterDenV[1] += tmp*v[1]; 
       tFilterDenV[2] += tmp*v[2];
 /*... tesFilter(desinty) -> vol*desinty */
-      tFilterDen += tmp; 
+      tFilterDen += tmp;
+/*...................................................................*/
+
+/*... smagorinsky*/
+/*.. calculo Sij*/
+      tensorS(s,g[0],true);
+/*...*/
+      if( typeLesFunc == SMAGORINSKY ){
+/*... |S| = |2S:S|*/
+        op = sqrt(2.e0*doubleDotSym(s));
+      }
+/*...................................................................*/
+
+/*... Sigmamodel*/
+      else if (typeLesFunc == SIGMAMODEL) {
+/*... OP = sg3*(sg1 -sg2)*(sg2 -sg3)/sg1^2 )*/
+        iGradVel = &MAT3D(i,0,0,gradVel,3,3);
+        op = sigmaModel(iGradVel,nFace ,3);
+      }
+/*...................................................................*/
+
+/*... wale*/
+      else if (typeLesFunc == WALEMODEL) {
+/*... OP = ( (Sd:Sd)^1.5 ) / ( (S:S)^2.5 + (Sd:Sd)^1.25 )*/
+        iGradVel = &MAT3D(i,0,0,gradVel,3,3);
+        op = waleModel(iGradVel);
+      }
+/*...................................................................*/
+
+      tmp = volW*op*density;
+      for(j=0;j<6;j++)
+/*... tesFilter( desinty*OP*s) -> vol*desinty*OP*s */
+        tFilterFf[j] += tmp*s[j];  
+/*...................................................................*/
     }
 /*...................................................................*/
   } 
@@ -1650,13 +1869,15 @@ void lesDynamic(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
 /*... (filtros)^2*/
   delta    = pow(volume[idCell],D2DIV3);
   deltaT   = pow(volTotal      ,D2DIV3);
-
-/*tesFilter( gradVel ) */
-  for(k=0;k<3;k++)
-    for(j=0;j<3;j++)
-      rFiltergVel[k][j] /= volTotal;
+/*...................................................................*/
 
 /*... tensor L*/
+
+/*... tesFilter( gradVel ) */
+  iGradVel = rFiltergVel[0];
+  for(i = 0; i< 9 ; i++ )
+    iGradVel[i] /= volTotal;
+
 /*... tesFilter(density*vv)*/
   for(i=0;i<6;i++)
     tFilterDenVv[i] /= volTotal; /*v1v1*/
@@ -1666,7 +1887,7 @@ void lesDynamic(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
   tFilterDenV[1] /= volTotal; 
   tFilterDenV[2] /= volTotal;
 /*... tesFilter(desinty)*/
-  tFilterDen     /= volTotal;
+  tFilterDen /= volTotal;
       
 /*... L*/
   l[0] = tFilterDenVv[0] - tFilterDenV[0]*tFilterDenV[0]/tFilterDen;  /*l11*/
@@ -1681,33 +1902,54 @@ void lesDynamic(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
   l[1] -=tmp;
   l[2] -=tmp;
 
+/*.... tesFilter(s)*/
+/*... Sij - (1/3)*Skk*deltaij*/
+  tensorS(s,rFiltergVel[0],true);
 /*... samgorisnky*/
+  if( typeLesFunc == SMAGORINSKY ){ 
+/*... |S| = |2S:S|*/
+    op = sqrt(2.e0*doubleDotSym(s));
+  }
+/*...................................................................*/
 
-/*... tesFilter( |s|) -> vol*modS */
-  tFilterModS /= volTotal;
+/*... Sigmamodel*/
+  else if (typeLesFunc == SIGMAMODEL) {
+/*... OP=sg3*(sg1 -sg2)*(sg2 -sg3)/sg1^2 )*/
+    iGradVel = rFiltergVel[0];
+    op = sigmaModel(iGradVel, nFace  , 3);
+  }
+/*...................................................................*/
 
-/*.... tesFilter( density*|s|*s ) */
-  tmp  = deltaT*tFilterDen*tFilterModS;
+/*... Sigmamodel*/
+  else if (typeLesFunc == WALEMODEL) {
+/*... OP= ( (Sd:Sd)^1.5 ) / ( (S:S)^2.5 + (Sd:Sd)^1.25 )*/
+    iGradVel = rFiltergVel[0];
+    op = waleModel(iGradVel);
+  }
+/*...................................................................*/
+  
+/*...*/
+  tmp = deltaT*tFilterDen*op;
   for(i=0;i<6;i++){
 /*.... tesFilter( density*|s|*s ) */
-    tFilterDenModSs[i] /= volTotal;
-/*... tesFilter(s) -> vol*s */
-    tFilterS[i] /= volTotal;
-
-    m[i] = 2.e0*(delta*tFilterDenModSs[i] - tmp*tFilterS[i]);   
+    tFilterFf[i] /= volTotal;
+/*...*/
+    m[i] = 2.e0*(delta*tFilterFf[i] - tmp*s[i]);   
   }
-  
+/*...................................................................*/
 
 /*... LijMij*/
-  lm = doubleDotSym2(l,m);
+  lDynamic[0] = doubleDotSym2(l,m);
 /*... MijMij*/
-  mm = doubleDotSym(m);      
+  lDynamic[1] = doubleDotSym(m);      
+/*...................................................................*/
 
-/*...*/
-  lDynamic[0] = lm;
-  lDynamic[1] = mm;
-//for(i=0;i<6;i++)
-//  lDynamic[i] = tmp*tFilterS[i];
+/*... SVS*/
+  lDynamic[2] = 0.0e0; 
+  if( typeLesFunc == WALEMODEL ){
+    iGradVel = &MAT3D(idCell,0,0,gradVel,3,3);    
+    lDynamic[2] = svs(iGradVel);
+  }
 /*...................................................................*/
 
 }
@@ -2245,27 +2487,23 @@ bool  wallDist(Loads *lVel
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
- * lViz      -> vizinhos da celula central                           *
- * volume    -> volume da celula central                             *
- * lDensity  -> massa especifica sem variacao temporal               *
- * vel       -> campo de velocidades                                 *
  * gradVel   -> gradiente rescontruido das velocidades               *
  * nFace     -> numero de faces da celula central                    * 
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * retorna cs*delta                                                  *
+ * retorna sg3*(sg1 -sg2)*(sg2 -sg3)/sg1^2                           *                                     *
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  * delta a largura do filtro que é igual a raiz cubica do volume da  *
  * celula central                                                    *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE sigmaModel(DOUBLE *RESTRICT s, DOUBLE *RESTRICT gradVel 
-                , short const nFace , short const ndm) {
+DOUBLE sigmaModel(DOUBLE *RESTRICT gradVel 
+                , short const nFace       , short const ndm) {
 
   INT ip[3];
-  DOUBLE g[9],x[9],op;
+  DOUBLE g[9],x[9],sg[3],op;
  
 /*... g11*/
   g[0] = MAT2D(0,0,gradVel,3)*MAT2D(0,0,gradVel,3)
@@ -2301,19 +2539,19 @@ DOUBLE sigmaModel(DOUBLE *RESTRICT s, DOUBLE *RESTRICT gradVel
 
 /*... autovalores*/
   cyclic_jacobi(g    ,x
-               ,s    ,ip
+               ,sg   ,ip
                ,3    ,1.e-14
                ,10000,false);  
 /*...................................................................*/
 
 /*... valores singulares de g*/
-  s[0] = sqrt(fabs(s[0]));
-  s[1] = sqrt(fabs(s[1]));
-  s[2] = sqrt(fabs(s[2]));
+  sg[0] = sqrt(fabs(sg[0]));
+  sg[1] = sqrt(fabs(sg[1]));
+  sg[2] = sqrt(fabs(sg[2]));
 /*...................................................................*/
 
 /*...*/  
-   op = s[2]*(s[0]-s[1])*(s[1]-s[2])/(s[0]*s[0]);  
+   op = sg[2]*(sg[0]-sg[1])*(sg[1]-sg[2])/(sg[0]*sg[0]);  
 // printf("%e %e %e %e\n",s[0],s[1],s[2],op);
 /*...................................................................*/
    return op;

@@ -98,8 +98,10 @@
 /*...................................................................*/
 
 /*...*/
-  void setSimpleScheme(char *word,Simple *sp,FILE *fileIn);
-  void setSimpleLmScheme(char *word, Simple *sp, FILE *fileIn);
+  void setSimpleScheme(char *word , short const ndm
+                      , Simple *sp, FILE *fileIn);
+  void setSimpleLmScheme(char *word, short const ndm
+                       , Simple *sp, FILE *fileIn);
 /*...................................................................*/
 
 #endif/*_SIMPLE_H_*/

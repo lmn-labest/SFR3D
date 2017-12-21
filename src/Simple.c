@@ -68,7 +68,9 @@ void simpleSolver3D(Memoria *m
 /*...................................................................*/
 
 /*...*/
-  tolSimpleU1   = tolSimpleU2 = tolSimpleU3 = sp->tolVel;
+  tolSimpleU1 = sp->tolVel[0];
+  tolSimpleU2 = sp->tolVel[1];
+  tolSimpleU3 = sp->tolVel[2];
   tolSimpleMass = sp->tolPres;
 /*...................................................................*/
 
@@ -707,7 +709,9 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*...................................................................*/
 
 /*...*/
-  tolSimpleU1 = tolSimpleU2 = tolSimpleU3 = sp->tolVel;
+  tolSimpleU1 = sp->tolVel[0];
+  tolSimpleU2 = sp->tolVel[1];
+  tolSimpleU3 = sp->tolVel[2];
   tolSimpleMass = sp->tolPres;
   tolSimpleEnergy = sp->tolEnergy;
 /*...................................................................*/
@@ -1886,7 +1890,7 @@ void simpleUpdate(DOUBLE *RESTRICT w     ,DOUBLE *RESTRICT pressure
 
 /********************************************************************* 
  * Data de criacao    : 09/07/2016                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 19/12/2017                                   * 
  *-------------------------------------------------------------------* 
  * SETSIMPLESCHEME : set o metodo simple incompressivel              *
  *-------------------------------------------------------------------* 
@@ -1902,7 +1906,8 @@ void simpleUpdate(DOUBLE *RESTRICT w     ,DOUBLE *RESTRICT pressure
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void setSimpleScheme(char *word,Simple *sp,FILE *fileIn){
+void setSimpleScheme(char *word, short const ndm
+                   , Simple *sp, FILE *fileIn){
 
   if(!strcmp(word,"SIMPLE"))
    sp->type = SIMPLE;
@@ -1914,7 +1919,9 @@ void setSimpleScheme(char *word,Simple *sp,FILE *fileIn){
   fscanf(fileIn,"%lf",&sp->alphaPres); 
   fscanf(fileIn,"%lf",&sp->alphaVel); 
   fscanf(fileIn,"%lf",&sp->tolPres); 
-  fscanf(fileIn,"%lf",&sp->tolVel); 
+  fscanf(fileIn, "%lf", &sp->tolVel[0]);
+  fscanf(fileIn, "%lf", &sp->tolVel[1]);
+  if (ndm == 3)  fscanf(fileIn, "%lf", &sp->tolVel[2]); 
   
   fscanf(fileIn,"%d",&sp->nNonOrth); 
 
@@ -1925,7 +1932,7 @@ void setSimpleScheme(char *word,Simple *sp,FILE *fileIn){
 
 /*********************************************************************
 * Data de criacao    : 24/08/2017                                   *
-* Data de modificaco : 00/00/0000                                   *
+* Data de modificaco : 19/12/2017                                   *
 *-------------------------------------------------------------------*
 * SETSIMPLELMSCHEME : set o metodo simple para baixo numero mach    *
 *-------------------------------------------------------------------*
@@ -1941,7 +1948,8 @@ void setSimpleScheme(char *word,Simple *sp,FILE *fileIn){
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void setSimpleLmScheme(char *word, Simple *sp, FILE *fileIn) {
+void setSimpleLmScheme(char *word, short const ndm
+                     , Simple *sp, FILE *fileIn) {
 
   if (!strcmp(word, "SIMPLE"))
     sp->type = SIMPLE;
@@ -1954,7 +1962,9 @@ void setSimpleLmScheme(char *word, Simple *sp, FILE *fileIn) {
   fscanf(fileIn, "%lf", &sp->alphaVel);
   fscanf(fileIn, "%lf", &sp->alphaEnergy);
   fscanf(fileIn, "%lf", &sp->tolPres);
-  fscanf(fileIn, "%lf", &sp->tolVel);
+  fscanf(fileIn, "%lf", &sp->tolVel[0]);
+  fscanf(fileIn, "%lf", &sp->tolVel[1]);
+  if (ndm == 3)  fscanf(fileIn, "%lf", &sp->tolVel[2]);
   fscanf(fileIn, "%lf", &sp->tolEnergy);
 
   fscanf(fileIn, "%d", &sp->nNonOrth);
