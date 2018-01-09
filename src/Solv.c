@@ -453,7 +453,7 @@ void solverC(Memoria *m
                    , ad     , b
                    , x      , z
                    , r
-                   , true);  
+                   , false);  
       tm.pardiso = getTimeC() - tm.pardiso;
 /*...................................................................*/
       
@@ -1421,7 +1421,7 @@ void callMklPardiso(INT nEq           , INT mtype
      r[i] = b[i] - z[i];
 /*...*/
    phase = 13;       
-   msglvl = 1;
+   msglvl = 0;
 #if _MKL_
    mkl_set_num_threads(&nThreads);
    pardiso (pt   , &maxfct, &mnum, &mtype, &phase

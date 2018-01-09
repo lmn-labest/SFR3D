@@ -2446,7 +2446,7 @@ void setPrintFluid(FileOpt *opt,FILE *file){
                ,"densityfluid" ,"specificheat","dviscosity"      /* 9,10,11*/
                ,"tconductivity","vorticity"   ,"wallparameters"  /*12,13,14*/
                ,"stress"       ,"kinecit"     ,"stressr"         /*15,16,17*/
-               ,"cdynamic"     ,"qcriterion"};                   /*18,19*/  
+               ,"cdynamic"     ,"qcriterion"  ,"prestotal"};     /*18,19,20*/  
   int tmp;
 
   strcpy(format,"%-20s: %s\n");
@@ -2455,6 +2455,7 @@ void setPrintFluid(FileOpt *opt,FILE *file){
   opt->fNode          = false;
   opt->vel            = false;
   opt->pres           = false;
+  opt->presTotal      = false;
   opt->energy         = false;
   opt->gradVel        = false;
   opt->gradPres       = false;
@@ -2617,6 +2618,13 @@ void setPrintFluid(FileOpt *opt,FILE *file){
     }
 /*.....................................................................*/
 
+/*...*/
+    else if (!strcmp(word,macro[20])) {
+      opt->presTotal = true;
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","presTotal");
+    }
+/*.....................................................................*/
+
     readMacro(file,word,false);
     convStringLower(word);
   }
@@ -2651,14 +2659,20 @@ void uniformField(DOUBLE *field, INT const n, short const ndf
 /*********************************************************************/
 static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC){
 
-  short i,j;
+  short i,j,type;
 
   for(i=0;i<MAXLOADFLUID;i++){
     loadsPresC[i].type = loadsPres[i].type;
     loadsPresC[i].np   = loadsPres[i].np;
     for(j=0;j<MAXLOADPARAMETER;j++){
-      loadsPresC[i].par[j] = 0.e0;
+      loadsPresC[i].par[j] = loadsPres[i].par[j];
     }
+
+    type = loadsPresC[i].type;
+    if(type == DIRICHLETBC)
+      loadsPresC[i].par[0] = 0.e0;
+    else if(type == INLETTOTALPRES)
+      loadsPresC[i].par[1] = 0.e0;
   }
 }
 
@@ -2770,7 +2784,7 @@ void convStringLower(char *s){
 
 /********************************************************************* 
  * Data de criacao    : 11/11/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 08/01/2018                                   *
  *-------------------------------------------------------------------*
  * help : Ajuda em relação a algumas macros                          *
  *-------------------------------------------------------------------*
@@ -2787,30 +2801,32 @@ void convStringLower(char *s){
 void help(FILE *f){
 
   char word[WORD_SIZE];
+  short iHelp = 5;
   char help [][WORD_SIZE] = 
-               {"macros"       ,"setprintfluid","advection"    /* 0, 1, 2*/
-               ,"model"        ,""             ,""             /* 3, 4, 5*/
-               ,""             ,""             ,""             /* 6, 7, 8*/
-               ,""             ,""             ,""             /* 9,10,11*/
-               ,""             ,""             ,""};           /*12,13,15*/
+               {"macros","setprintfluid","advection"    /* 0, 1, 2*/
+               ,"model" ,"diffusion"    ,""             /* 3, 4, 5*/
+               ,""      ,""             ,""             /* 6, 7, 8*/
+               ,""      ,""             ,""             /* 9,10,11*/
+               ,""      ,""             ,""};           /*12,13,15*/
 
-  short iMacros = 17;
+  short iMacros = 18;
   char macros[][WORD_SIZE] = 
                {"setPrintFluid","setSolv"     ,"setSimple"    /* 0, 1, 2*/
                ,"pgeo"         ,"transient"   ,"simple"       /* 3, 4, 5*/
                ,"pFluid"       ,"endTransient","stop"         /* 6, 7, 8*/
                ,"model"        ,"propVar"     ,"gravity"      /* 9,10,11*/
                ,"edp"          ,"vorticity"   ,"openmp"       /*12,13,14*/
-               ,"advection"    ,"config"      ,""};           /*15,16,17*/
+               ,"advection"    ,"diffusion"   ,"config" };    /*15,16,17*/
 
-  short iPrint = 18;
+  short iPrint = 21;
   char print[][WORD_SIZE] = 
-               {"cell"         ,"node"        ,"vel"            /* 0, 1, 2*/
-               ,"pres"         ,"gradVel"     ,"gradPres"       /* 3, 4, 5*/
-               ,"temp"         ,"gradTemp"    ,"eddyViscosity"  /* 6, 7, 8*/
-               ,"densityFluid" ,"specificHeat","dViscosity"     /* 9,10,11*/
-               ,"tConductivity","vorticity"   ,"wallParameters" /*12,13,14*/ 
-               ,"stress"       ,"kinetic"     ,"stressR"      };/*15,16,17*/
+               {"cell"         ,"node"        ,"vel"             /* 0, 1, 2*/
+               ,"pres"         ,"gradvel"     ,"gradpres"        /* 3, 4, 5*/
+               ,"temp"         ,"gradtemp"    ,"eddyviscosity"   /* 6, 7, 8*/
+               ,"densityfluid" ,"specificheat","dviscosity"      /* 9,10,11*/
+               ,"tconductivity","vorticity"   ,"wallparameters"  /*12,13,14*/
+               ,"stress"       ,"kinecit"     ,"stressr"         /*15,16,17*/
+               ,"cdynamic"     ,"qcriterion"  ,"prestotal"};     /*18,19,20*/  
   
 /*... adveccao*/
   char fAdv[][WORD_SIZE] =                                   
@@ -2825,6 +2841,11 @@ void help(FILE *f){
                          ,"Stoic"      ,"MinMod"  ,"ModBCD"};    /* 5, 6, 7*/
 /*....................................................................*/
 
+/*... diffusion*/
+  short iDiff = 4;
+  char fDif[][WORD_SIZE]={"Orthogonal"  ,"Minimal","OrthogonalC" /* 0, 1, 2*/
+                         ,"OverRelaxed"};                        /* 3*/
+/*....................................................................*/
 /*... model*/
   short iModels = 11;
   short iEnergy = 6;
@@ -2932,6 +2953,27 @@ void help(FILE *f){
     exit(EXIT_FAILURE);
   }
 /*.....................................................................*/
+
+/*... advection*/        
+  else if(!strcmp(word,help[4])){   
+    printf("Ex1:\n"); 
+    printf("diffusion 2 Vel Orthogonal Pres Orthogonal \n"); 
+    printf("Options:\n");
+    for(i=0;i<iDiff;i++)
+      printf("%3d - %s\n",i+1,fDif[i]);
+    exit(EXIT_FAILURE);
+  }
+/*.....................................................................*/
+
+/*... advection*/        
+  else{   
+    printf("Options:\n");
+    for(i=0;i<iHelp;i++)
+      printf("%3d - %s\n",i+1,help[i]);
+    exit(EXIT_FAILURE);
+  }
+/*.....................................................................*/
+
   exit(EXIT_FAILURE);
 }
 /***********************************************************************/

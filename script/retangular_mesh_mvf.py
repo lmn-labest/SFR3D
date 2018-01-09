@@ -10,7 +10,7 @@ def main(argv):
   if nArgs < 4:
     sys.stderr.write("Usage: %s "%argv[0])
     for arg in progArg:
-      print arg 
+      print (arg) 
     return 1
 
 # ... atribuindo variaveis
@@ -24,9 +24,9 @@ def main(argv):
   dh = h/float(nh-1)
   x0 = 0.0
   y0 = 0.0
-  print dl,dh
-  print nl,nh
-  print 'nCoor: ',nl*nh,'nEl: ',(nl-1)*(nh-1)
+  print (dl,dh)
+  print (nl,nh)
+  print ('nCoor: ',nl*nh,'nEl: ',(nl-1)*(nh-1))
 # ... coordenadas
   fileName =fileOut +'.dat'
 #  fileName = fileOut + '_coor.dat'

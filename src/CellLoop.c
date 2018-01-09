@@ -5867,7 +5867,8 @@ bool openDomain(Loads *loadVel
         nCarg--;
         type  = loadVel[nCarg].type;
         if (  type == INLET || type == OUTLET
-            || type == OPEN || type == INLETSTAICTPRES) {
+            || type == OPEN || type == INLETSTAICTPRES
+            || type == INLETTOTALPRES) {
           fOpen = true;
           break; 
         }     
@@ -5956,7 +5957,7 @@ DOUBLE massFluxOpenDomain(Loads *loadVel    , Temporal const ddt
 /*...................................................................*/
 
 /*...*/
-        else if( type == OPEN || type == INLETSTAICTPRES) {
+        else if( type == OPEN || type == INLETSTAICTPRES || type == INLETTOTALPRES) {
           lDensity  = MAT2D(nel, 2, density ,DENSITY_LEVEL);
           aFace     = MAT2D(nel, j, gfArea , maxViz);
           n[0]      = MAT3D(nel, j, 0, gNormal, maxViz, ndm);

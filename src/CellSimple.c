@@ -397,12 +397,15 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
       if(lFacePresR[nAresta]){
 /*...cargas*/
         nCarg = lFacePresL[nAresta]-1;
-        pLoadSimplePres(&sP        ,p
-                       ,&pFace
-                       ,viscosityC      ,densityC
-                       ,wfn                 
-                       ,lModEta         ,dcca[nAresta]
-                       ,loadsPres[nCarg],false); 
+        pLoadSimplePres(&sP             , p
+                      , &pFace          , lKsi
+                      , presC           , gradPresC  
+                      , lNormal         , lNormal
+                      , lNormal         , lNormal
+                      , densityC        , velC         
+                      , lModEta         , dcca[nAresta]
+                      , loadsPres[nCarg], ndm
+                      , false); 
       } 
 /*...................................................................*/
 
@@ -420,7 +423,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
       if(lFaceVelR[nAresta] > 0){
 /*...cargas*/
         nCarg = lFaceVelL[nAresta]-1;
-        pLoadSimple(sPc            ,p
+/*      pLoadSimple(sPc            ,p
                    ,tA             ,velC  
                    ,lNormal  
                    ,gradVelC[0]    ,lXmcc 
@@ -429,7 +432,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
                    ,lModEta        ,dcca[nAresta]
                    ,loadsVel[nCarg],ndm
                    ,true           ,false
-                   ,false          ,0);
+                   ,false          ,0);*/
       }  
 /*...................................................................*/
 
@@ -964,12 +967,15 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
       if (lFacePresR[nAresta]) {
 /*...cargas*/
         nCarg = lFacePresL[nAresta] - 1;
-        pLoadSimplePres(&sP, p
-                        ,&pFace
-                        ,effViscosityC, densityC
-                        ,wfn
-                        ,lModEta, dcca[nAresta]
-                        ,loadsPres[nCarg], false);
+        pLoadSimplePres(&sP             , p
+                      , &pFace          , lKsi
+                      , presC           , gradPresC     
+                      , lNormal         , lNormal
+                      , lNormal         , lNormal
+                      , densityC        , velC
+                      , lModEta         , dcca[nAresta]
+                      , loadsPres[nCarg], ndm
+                      , false); 
       }
  /*...................................................................*/
 
@@ -986,7 +992,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
       if (lFaceVelR[nAresta] > 0) {
 /*...cargas*/
         nCarg = lFaceVelL[nAresta] - 1;
-        pLoadSimple(sPc            , p
+/*      pLoadSimple(sPc            , p
                   , tA             , velC
                   , lNormal
                   , gradVelC[0]    , lXmcc
@@ -995,7 +1001,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
                   , lModEta        , dcca[nAresta]
                   , loadsVel[nCarg], ndm
                   , true           , false
-                  , fWallModel     , wallType);
+                  , fWallModel     , wallType);*/
       }
 /*...................................................................*/
 
@@ -1520,13 +1526,16 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
 /*... pressao prescrita*/
       if (lFacePresR[nAresta]) {
 /*...cargas*/
-        nCarg = lFacePresL[nAresta] - 1;
-        pLoadSimplePres(&sP, p
-                        , &pFace
-                        , viscosityC, densityC
-                        , wfn
-                        , lModEta, dcca[nAresta]
-                        , loadsPres[nCarg], false);
+        nCarg = lFacePresL[nAresta] - 1;        
+        pLoadSimplePres(&sP             , p
+                      , &pFace          , lKsi
+                      , presC           , gradPresC 
+                      , lNormal         , lNormal
+                      , lNormal         , lNormal  
+                      , densityC        , velC
+                      , lModEta         , dcca[nAresta]
+                      , loadsPres[nCarg], ndm
+                      , false); 
       }
 /*...................................................................*/
 
@@ -1541,16 +1550,16 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
       if (lFaceVelR[nAresta] > 0) {
 /*...cargas*/
         nCarg = lFaceVelL[nAresta] - 1;
-        pLoadSimple(sPc, p
-                    , tA, velC
-                    , lNormal
-                    , gradVelC[0], lXmcc
-                    , viscosityC , viscosityC 
-                    , densityC
-                    , lModEta, dcca[nAresta]
-                    , loadsVel[nCarg], ndm
-                    , true          , false
-                    , false         , 0);
+/*      pLoadSimple(sPc            , p
+                  , tA             , velC
+                  , lNormal        
+                  , gradVelC[0]    , lXmcc
+                  , viscosityC     , viscosityC 
+                  , densityC
+                  , lModEta        , dcca[nAresta]
+                  , loadsVel[nCarg], ndm
+                  , true           , false
+                  , false          , 0);*/
       }
 /*...................................................................*/
 
@@ -2104,12 +2113,16 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       if(lFacePresR[nf]){
 /*...cargas*/
         nCarg = lFacePresL[nf]-1;
-        pLoadSimplePres(&sP             ,p
-                       ,&pFace
-                       ,viscosityC      ,densityC
-                       ,wfn                 
-                       ,lFarea          ,dcca[nf]
-                       ,loadsPres[nCarg],false); 
+        pLoadSimplePres(&sP             , p
+                      , &pFace          , lKsi
+                      , presC           , gradPresC
+                      , lNormal         , lNormal
+                      , lNormal         , lNormal
+                      , densityC        , velC
+                      , lFarea          , dcca[nf]
+                      , loadsPres[nCarg], ndm 
+                      , false); 
+
       } 
 /*...................................................................*/
 
@@ -2130,7 +2143,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       if(lFaceVelR[nf] > 0){
 /*...cargas*/
         nCarg = lFaceVelL[nf]-1;
-        pLoadSimple(sPc            ,p
+/*      pLoadSimple(sPc            ,p
                    ,tA             ,velC  
                    ,lNormal  
                    ,gradVelC[0]    ,lXmcc 
@@ -2139,7 +2152,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                    ,lFarea         ,dcca[nf]
                    ,loadsVel[nCarg],ndm
                    ,true           ,false
-                   ,false          ,0);
+                   ,false          ,0);*/
       }  
 /*...................................................................*/
 
@@ -2444,6 +2457,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   fRes             = eMomentum.fRes;
   fAbsultePressure = eMomentum.fAbsultePressure;
   fViscosity       = eMomentum.fViscosity;
+  fDiv             = eMomentum.fDiv;
   g[0]             = gravity[0];
   g[1]             = gravity[1];
   g[2]             = gravity[2];
@@ -2526,6 +2540,11 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
     lXmcc[0]   = MAT2D(nf,0,xmcc,3);
     lXmcc[1]   = MAT2D(nf,1,xmcc,3);
     lXmcc[2]   = MAT2D(nf,2,xmcc,3);
+/*..*/
+    lKsi[0] = MAT2D(nf,0,ksi,3);
+    lKsi[1] = MAT2D(nf,1,ksi,3);
+    lKsi[2] = MAT2D(nf,2,ksi,3);
+    lModKsi = mKsi[nf];
 /*...................................................................*/
 
 /*... dominio*/
@@ -2546,11 +2565,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
       dFieldV[0]   = MAT2D(nf, 0, dField, 3);
       dFieldV[1]   = MAT2D(nf, 1, dField, 3);
       dFieldV[2]   = MAT2D(nf, 2, dField, 3);
-/*..*/
-      lKsi[0]        = MAT2D(nf,0,ksi,3);
-      lKsi[1]        = MAT2D(nf,1,ksi,3);
-      lKsi[2]        = MAT2D(nf,2,ksi,3);
-      lModKsi        = mKsi[nf];
+
 /*..*/
       lvSkew[0]      = MAT2D(nf,0,vSkew,3);
       lvSkew[1]      = MAT2D(nf,1,vSkew,3);
@@ -2593,10 +2608,14 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 
 /*... termo difusivo
 grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
-			difusionScheme(lNormal,lKsi
-			            	,lFarea ,lModKsi
-				            ,e      ,t
-				            ,ndm    ,iCodDif);
+/*...*/
+      s[0] = lFarea*lNormal[0];
+      s[1] = lFarea*lNormal[1];
+      s[2] = lFarea*lNormal[2];
+/*...*/
+			difusionSchemeNew(s  , lKsi
+			                , e  , t
+				              , ndm, iCodDif);
 /*...................................................................*/
 
 /*...*/
@@ -2803,7 +2822,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
         s[0] = alphaMenosUm*stressRc[0] + alpha*stressRv[0];
         s[1] = alphaMenosUm*stressRc[1] + alpha*stressRv[1];
         s[2] = alphaMenosUm*stressRc[2] + alpha*stressRv[2];
-        tmp  = D1DIV3*(s[0]+s[1]+s[2]);
+        tmp = D1DIV3*(s[0]+s[1]+s[2]);
         s[0] -= tmp;
         s[1] -= tmp;
         s[2] -= tmp;
@@ -2861,17 +2880,28 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*...*/
+      s[0] = dFieldC[0]*lFarea*lNormal[0];
+      s[1] = dFieldC[1]*lFarea*lNormal[1];
+      s[2] = dFieldC[2]*lFarea*lNormal[2];
+/*...*/
+      difusionSchemeAnisotropic(s, lKsi, e, t, ndm, iCodDif);
+/*...................................................................*/
+
+/*...*/
       pFace = presC;
 /*... pressao prescrita*/
       if(lFacePresR[nf]){
 /*...cargas*/
         nCarg = lFacePresL[nf]-1;
-        pLoadSimplePres(&sP             ,p
-                       ,&pFace
-                       ,effViscosityC   ,densityC
-                       ,wfn                 
-                       ,lFarea          ,dcca[nf]
-                       ,lPres[nCarg]    ,false); 
+        pLoadSimplePres(&sP             , p
+                      , &pFace          , lXmcc
+                      , presC           , gradPresC   
+                      , s               , e         
+                      , t               , lNormal
+                      , densityC        , velC              
+                      , lFarea          , dcca[nf]
+                      , lPres[nCarg]    , ndm
+                      , false); 
       } 
 /*...................................................................*/
 
@@ -2912,15 +2942,27 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       }
 /*...................................................................*/
 
+/*...*/
+      s[0] = lFarea*lNormal[0];
+      s[1] = lFarea*lNormal[1];
+      s[2] = lFarea*lNormal[2];
+/*...*/
+			difusionSchemeNew(s  , lKsi
+			                , e  , t
+				              , ndm, iCodDif);
+/*...................................................................*/
+
 /*... velocidades*/
       if(lFaceVelR[nf] > 0){
 /*...cargas*/
         nCarg = lFaceVelL[nf]-1;
         pLoadSimple(sPc         , p
-                  , tA          , velC  
-                  , lNormal  
-                  , gradVelC[0] , lXmcc 
-                  , viscosityC  , viscosityC
+                  , tA          , lXmcc
+                  , velC        , gradVelC[0] 
+                  , presC       , gradPresC
+                  , viscosityC  , viscosityC   
+                  , s           , e         
+                  , t           , lNormal
                   , densityC
                   , lFarea      , dcca[nf]
                   , lVel[nCarg] , ndm
@@ -3559,12 +3601,15 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
       if (lFacePresR[nf]) {
 /*...cargas*/
         nCarg = lFacePresL[nf] - 1;
-        pLoadSimplePres(&sP, p
-                        , &pFace
-                        , viscosityC, densityC
-                        , wfn
-                        , lFarea, dcca[nf]
-                        , loadsPres[nCarg], false);
+        pLoadSimplePres(&sP             , p
+                      , &pFace          , lKsi
+                      , presC           , gradPresC
+                      , lNormal         , lNormal
+                      , lNormal         , lNormal
+                      , densityC        , velC
+                      , lFarea          , dcca[nf]
+                      , loadsPres[nCarg], ndm
+                      , false);
       }
 /*...................................................................*/
 
@@ -3583,7 +3628,7 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
       if (lFaceVelR[nf] > 0) {
 /*...cargas*/
         nCarg = lFaceVelL[nf] - 1;
-        pLoadSimple(sPc              , p
+/*      pLoadSimple(sPc              , p
                    , tA             , velC
                    , lNormal
                    , gradVelC[0]    , lXmcc
@@ -3592,7 +3637,7 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
                    , lFarea         , dcca[nf]
                    , loadsVel[nCarg], ndm
                    , true           , false
-                   , false          , 0);
+                   , false          , 0);*/
       }
 /*...................................................................*/
 

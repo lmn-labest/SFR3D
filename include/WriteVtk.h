@@ -153,6 +153,9 @@
 
   void makeQcriterion(DOUBLE *RESTRICT gradVel, DOUBLE *RESTRICT q
                     , INT const n             , short const ndm);
+  void makePresTotal(DOUBLE *RESTRICT presT, DOUBLE *RESTRICT pres
+                 , DOUBLE *RESTRICT vel  , DOUBLE *RESTRICT density 
+                 , INT const n           , short const ndm);
 /*...................................................................*/
 
 #endif/*_WRITE_VTK_H_*/

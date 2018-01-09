@@ -829,9 +829,14 @@
                     ,DOUBLE *RESTRICT e ,DOUBLE *RESTRICT t   
                     ,short const ndm    ,short const iCod);
 
+  void difusionSchemeNew(DOUBLE *RESTRICT s , DOUBLE *RESTRICT ksi 
+                      , DOUBLE *RESTRICT e , DOUBLE *RESTRICT t   
+                      , short const ndm    , short const iCod);
+
   void difusionSchemeAnisotropic(DOUBLE *RESTRICT s,DOUBLE *RESTRICT ksi
                                 ,DOUBLE *RESTRICT e,DOUBLE *RESTRICT t
                                 ,short const ndm   ,short const iCod);
+
   void advectiveScheme(DOUBLE *RESTRICT velC       ,DOUBLE *RESTRICT velV
                      ,DOUBLE *RESTRICT gradVelC   ,DOUBLE *RESTRICT gradVelV
                      ,DOUBLE *RESTRICT gradVelComp,DOUBLE *RESTRICT vSkew

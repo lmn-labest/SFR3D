@@ -1,5 +1,8 @@
 #include<WriteVtk.h>
 /********************************************************************** 
+ * Data de criacao    : 00/00/0000                                    *
+ * Data de modificaco : 00/00/0000                                    * 
+ * -------------------------------------------------------------------* 
  * WMESHPARTVTK: escreve a malha divida em particoes                  *  
  * ------------------------------------------------------------------ *
  * parametros de entrada:                                             * 
@@ -1031,7 +1034,7 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                    *
- * Data de modificaco : 16/12/2017                                    * 
+ * Data de modificaco : 08/01/2018                                    * 
  *------------------------------------------------------------------- * 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1364,6 +1367,18 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
   }
 /*...................................................................*/
 
+/*... escreve a pressao total */  
+  if(opt.presTotal &&  opt.fCell ){
+    strcpy(str,"ePresTotal");
+    HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
+    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
+    makePresTotal(p,elPres,elVel,eDensityFluid,numel,ndm);
+    writeVtkProp(&idum,p,numel,1,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+    HccaDealloc(m,p,"p",_AD_);
+  }
+/*...................................................................*/
+
 /*.... campo por no*/
   fprintf(f,"POINT_DATA %ld\n",(long) nnode);
 /*...................................................................*/
@@ -1527,7 +1542,17 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
   }
 /*...................................................................*/
 
-
+/*... escreve a pressao total */  
+  if(opt.presTotal &&  opt.fNode ){
+    strcpy(str,"nPresTotal");
+    HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
+    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
+    makePresTotal(p,nPres,nVel,nDensityFluid,nnode,ndm);
+    writeVtkProp(&idum,p,nnode,1,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+    HccaDealloc(m,p,"p",_AD_);
+  }
+/*...................................................................*/
   fclose(f);
 }
 /*********************************************************************/
@@ -2061,3 +2086,45 @@ void makeQcriterion( DOUBLE *RESTRICT q, DOUBLE *RESTRICT gradVel
   }
 
 }
+/**********************************************************************
+ * Data de criacao    : 08/01/2018                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *------------------------------------------------------------------- * 
+ * makeKineticEnergy : campo de energia cinetica                      *  
+ * ------------------------------------------------------------------ *
+ * parametros de entrada:                                             * 
+ * ------------------------------------------------------------------ *
+ * presT     -> nao definido                                          * 
+ * vel       -> campo de velocidade                                   * 
+ * pres      -> pressao estatica                                      * 
+ * density   -> densidade do fluido                                   * 
+ * n         -> numero de pontos                                      * 
+ * ndm       -> dimensao                                              * 
+ * ------------------------------------------------------------------ *
+ * parametros de saida  :                                             * 
+ * ------------------------------------------------------------------ *
+ * presT   -> pressao total                                           *
+ * ------------------------------------------------------------------ *
+ * OBS:                                                               *
+ *------------------------------------------------------------------- *
+ **********************************************************************/
+void makePresTotal(DOUBLE *RESTRICT presT, DOUBLE *RESTRICT pres
+                 , DOUBLE *RESTRICT vel  , DOUBLE *RESTRICT density 
+                 , INT const n           , short const ndm) {
+  INT i;
+  DOUBLE vv,den,v[3];
+
+  for (i = 0; i < n; i++) {
+    den  = MAT2D(i, 2, density, DENSITY_LEVEL);
+    v[0] =  MAT2D(i, 0, vel, ndm);
+    v[1] =  MAT2D(i, 1, vel, ndm);
+    vv = v[0]*v[0] + v[1]*v[1];
+    if(ndm == 3){
+      v[2] =  MAT2D(i, 2, vel, ndm);
+      vv += v[2]*v[2];
+    }
+    presT[i] = pres[i] +0.5e0*den*vv;
+  }
+
+}
+/**********************************************************************/

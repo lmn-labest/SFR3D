@@ -40,9 +40,18 @@ void getLoads(DOUBLE *par, Loads ld) {
     par[1]   = ld.par[1];
     par[2]   = ld.par[2];
   }
-  else if (ld.type == INLETSTAICTPRES) {
 
+  else if (ld.type == INLETSTAICTPRES) {
   }
+
+  else if (ld.type == INLETTOTALPRES) {
+    par[0] = ld.par[0];
+    par[1] = ld.par[1];
+    par[2] = ld.par[2];
+    par[3] = ld.par[3];
+    par[4] = ld.par[4];
+  }
+
   else if (ld.type == INLET) {
     par[0] = ld.par[0];
     par[1] = ld.par[1];
@@ -106,7 +115,7 @@ void loadSenProd(DOUBLE *tA,DOUBLE *par,DOUBLE *xm){
 
 /********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 30/09/2017                                   * 
+ * Data de modificaco : 07/01/2018                                   * 
  *-------------------------------------------------------------------* 
  * pLoadSimple : condicao de contorno para velocidades               *
  *-------------------------------------------------------------------* 
@@ -115,13 +124,18 @@ void loadSenProd(DOUBLE *tA,DOUBLE *par,DOUBLE *xm){
  * sP         -> termo da diagonal                                   * 
  * p          -> forca local                                         * 
  * tA         -> velocidade na face                                  * 
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   *
+ *            faces da celula central                                *
  * VelC       -> velocidade na centro do elemento no passo (n-1)     * 
- * n          -> normal                                              * 
  * gradVel    -> dradiente da velocidade                             * 
- * xmcc       -> vetores que unem o centroide aos pontos medios das  * 
- *              faces da celula central                              * 
+ * presC      -> pressao no centro da celula                         * 
+ * gradPresC  -> gradiente no centro da celulca                      * 
  * viscosityC -> coeficiente de viscosidade dinamica                 * 
  * effViscosityC -> coeficiente de viscosidade effeyiva              * 
+ * s          -> vetor s                                             * 
+ * e          -> vetor e                                             *
+ * t          -> vetor t                                             *  
+ * n          -> vetorno normal a face                               * 
  * densityC   -> massa especifica                                    * 
  * fArea      -> area da face                                        * 
  * dcca       -> menor distancia do centroide central a face desta   *
@@ -142,26 +156,28 @@ void loadSenProd(DOUBLE *tA,DOUBLE *par,DOUBLE *xm){
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
-          ,DOUBLE *RESTRICT tA        ,DOUBLE *RESTRICT velC
-          ,DOUBLE *RESTRICT n       
-          ,DOUBLE *RESTRICT gradVel   ,DOUBLE *RESTRICT xmcc
-          ,DOUBLE const viscosityC    ,DOUBLE const effViscosityC  
-          ,DOUBLE const densityC
-          ,DOUBLE const fArea         ,DOUBLE const dcca
-          ,Loads ld                   ,short  const ndm 
-          ,bool const fCalVel         ,bool const fCalPres
-          ,bool const fWallModel      ,short const wallType){
+void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
+          , DOUBLE *RESTRICT tA     , DOUBLE *RESTRICT xmcc               
+          , DOUBLE *RESTRICT velC   , DOUBLE *RESTRICT gradVel
+          , DOUBLE const presC      , DOUBLE *RESTRICT gradPresC
+          , DOUBLE const viscosityC , DOUBLE const effViscosityC  
+          , DOUBLE *RESTRICT s      , DOUBLE *RESTRICT e        
+          , DOUBLE *RESTRICT t      , DOUBLE *RESTRICT n  
+          , DOUBLE const densityC     
+          , DOUBLE const fArea      , DOUBLE const dcca
+          , Loads ld                , short  const ndm 
+          , bool const fCalVel      , bool const fCalPres
+          , bool const fWallModel   , short const wallType){
 
-  DOUBLE aP,wfn,wf[3],m,tmp[4],gradVelFace[9],modVel,yPlus,uPlus;
-  DOUBLE viscosityWall,densityEnv;
+  DOUBLE aP,wfn,wf[3],m,tmp[5],gradVelFace[9],modVel,yPlus,uPlus;
+  DOUBLE viscosityWall,densityEnv,par[MAXLOADPARAMETER],ev[3],dc,modE;
 
   tmp[0] = tmp[1] = tmp[2] = tmp[3] = 0.e0;
 /*... parade impermeavel movel*/
   if( ld.type == MOVEWALL){
-    tA[0]   = ld.par[0];
-    tA[1]   = ld.par[1];
-    if( ndm == 3 )  tA[2]   = ld.par[2];
+    tA[0] = ld.par[0];
+    tA[1] = ld.par[1];
+    if( ndm == 3 ) tA[2] = ld.par[2];
     if(!fCalVel)return;
 /*...*/
     yPlus = 0.e0;
@@ -238,23 +254,22 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
 
 /*... entrada de massa(Pressao estatica)*/
   else if (ld.type == INLETSTAICTPRES) {
-    if (ndm == 2) {
+    densityEnv = ld.par[0];
 /*... direcao*/
-      tmp[0] = ld.par[0];
-      tmp[1] = ld.par[1];
+    tmp[0] = ld.par[1];
+    tmp[1] = ld.par[2];
 /*... velocidade normal*/
+    if (ndm == 3) {
+      tmp[2] = ld.par[3];
+      wfn += velC[2]*n[2];
+      tmp[3] = wfn / (tmp[0]*n[0] + tmp[1]*n[1] + tmp[2]*n[2]);
+    }
+    else {
       wfn    = velC[0]*n[0] + velC[1]*n[1];
       tmp[3] = wfn/(tmp[0]*n[0] + tmp[1]*n[1]);
     }
-    else {
-/*... direcao*/
-      tmp[0] = ld.par[0];
-      tmp[1] = ld.par[1];
-      tmp[2] = ld.par[2];
-/*... velocidade normal*/
-      wfn = velC[0]*n[0] + velC[1]*n[1] + velC[2]*n[2];
-      tmp[3] = wfn / (tmp[0]*n[0] + tmp[1]*n[1] + tmp[2]*n[2]);
-    }
+/*...................................................................*/    
+
 /*...*/
     m = densityC*wfn*fArea;
 /*... eq momentum*/
@@ -469,10 +484,10 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... direcao normal*/
-/*      aP = m*wfn;
+        aP = m*wfn;
         p[0] -= aP*n[0];
         p[1] -= aP*n[1];
-        if (ndm == 3) p[2] -=  aP*n[2];*/
+        if (ndm == 3) p[2] -=  aP*n[2];  
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -485,12 +500,54 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
   }
 /*...................................................................*/
 
+/*... entrada de massa(Pressao total)*/
+  else if (ld.type == INLETTOTALPRES) {
+    getLoads(par,ld);
+    densityEnv = par[0];   
+    ev[0]      = par[2];
+    ev[1]      = par[3];
+    ev[2]      = par[4];
+
+/*...*/
+    if(ndm == 3){
+      tmp[0] = velC[0]*n[0] + velC[1]*n[1] + velC[2]*n[2];
+      tmp[1] = (ev[0]*n[0] + ev[1]*n[1] + ev[2]*n[2])*fArea;
+   }
+/*...................................................................*/
+
+/*...*/
+    else {
+      tmp[0] = velC[0]*n[0] + velC[1]*n[1];
+      tmp[1] = (ev[0]*n[0] + ev[1]*n[1])*fArea;
+    }
+/*...................................................................*/
+    
+/*...*/
+    m      = densityEnv*tmp[0]*fArea;  
+    modVel = m/(densityEnv*tmp[1]);
+/*...................................................................*/
+
+
+/*... eq momentum*/
+    if (fCalVel) {
+      tmp[0] = m*modVel;
+      p[0] -= tmp[0]*ev[0];
+      p[1] -= tmp[0]*ev[1];
+      if (ndm == 3) p[2] -= tmp[0]*ev[2];
+    }
+/*... eq pressao*/
+    if (fCalPres) p[0] -= m;
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+
 }
 /*********************************************************************/
 
 /********************************************************************* 
  * Data de criacao    : 01/07/2016                                   *
- * Data de modificaco : 20/08/2016                                   * 
+ * Data de modificaco : 07/01/2018                                   * 
  *-------------------------------------------------------------------* 
  * pLoadSimplePres : condicao de contorno para pressao               *
  *-------------------------------------------------------------------* 
@@ -498,11 +555,17 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
  *-------------------------------------------------------------------* 
  * sP         -> termo da diagonal                                   * 
  * p          -> forca local                                         * 
- * tA         -> nao definido                                        * 
- * dField     -> coeficiente de D na face                            * 
+ * tA         -> nao definido                                        *
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   *
+ *            faces da celula central                                * 
+ * presC      -> pressao no centro da celula                         * 
+ * gradPresC  -> gradiente no centro da celulca                      * 
+ * sl         -> vetor s                                             * 
+ * e          -> vetor e                                             *
+ * t          -> vetor t                                             *  
+ * n          -> vetorno normal a face                               * 
  * densityC   -> massa especifica                                    * 
- * wfn        -> velocidade normal a face                            * 
- * xm         -> coordenada do ponto medio da face                   * 
+ * velC       -> velocidade da celucla central                       * 
  * fArea      -> area da face                                        * 
  * dd         -> distancia ate o ponto medio da face                 * 
  * ld         -> definicao da carga                                  * 
@@ -517,18 +580,73 @@ void pLoadSimple(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
  *-------------------------------------------------------------------* 
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
+ * termo difusivo anisotropico                                       *
+ * sl = e + t, sl = D*S                                              *
  *********************************************************************/
-void pLoadSimplePres(DOUBLE *RESTRICT sP,DOUBLE *RESTRICT p
-          ,DOUBLE *RESTRICT tA          ,DOUBLE const df         
-          ,DOUBLE const densityC        ,DOUBLE const wfn                                              
-          ,DOUBLE const fArea           ,DOUBLE const dd
-          ,Loads ld                     ,bool const fCal){
+void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
+          , DOUBLE *RESTRICT tA         , DOUBLE *RESTRICT xmcc
+          , DOUBLE const presC          , DOUBLE *RESTRICT gradPresC 
+          , DOUBLE *RESTRICT sl         , DOUBLE *RESTRICT e        
+          , DOUBLE *RESTRICT t          , DOUBLE *RESTRICT n      
+          , DOUBLE const densityC       , DOUBLE *RESTRICT velC                                             
+          , DOUBLE const fArea          , DOUBLE const dd
+          , Loads ld                    , short  const ndm 
+          , bool const fCal){              
+
+  DOUBLE modVel,par[MAXLOADPARAMETER],ev[3],dc,densityEnv,m,presT;
+  DOUBLE tmp[5],presB,modE;
+
+/*...*/
+  tmp[0] = e[0]*e[0] + e[1]*e[1];
+  if(ndm == 3) tmp[0] += e[2]*e[2];
+  modE = sqrt(tmp[0]);
+/*...................................................................*/
 
 /*... pressao prescrita*/
   if( ld.type == DIRICHLETBC){
     tA[0]   = ld.par[0];
     if(fCal){
-      *sP += densityC*df/dd;
+      *sP += densityC*modE/dd;
+    }
+  }
+/*...................................................................*/
+
+/*... pressao total prescrita*/
+  else if( ld.type == INLETTOTALPRES){
+    getLoads(par,ld);
+    densityEnv = par[0];   
+    presT      = par[1];
+    ev[0]      = par[2];
+    ev[1]      = par[3];
+    ev[2]      = par[4];
+
+    dc = modE/dd;
+
+/*...*/
+    if(ndm == 3){
+/*...*/
+      tmp[0] = velC[0]*n[0] + velC[1]*n[1] + velC[2]*n[2];
+      tmp[1] = (ev[0]*n[0] + ev[1]*n[1] + ev[2]*n[2])*fArea;
+    }
+/*...................................................................*/
+
+/*...*/
+    else {
+      tmp[0] = velC[0]*n[0] + velC[1]*n[1];
+      tmp[1] = (ev[0]*n[0] + ev[1]*n[1])*fArea;
+    }
+/*...................................................................*/
+
+    m      = densityEnv*tmp[0]*fArea;
+    modVel = m/(densityEnv*tmp[1]);
+/*... pressa estatica*/
+    tA[0] = presT - 0.5*densityEnv*modVel*modVel;
+
+    if(fCal){    
+      tmp[0] = densityEnv*modVel;
+      tmp[1] = m - dc*tmp[0]*tmp[0];
+//    *sP += densityEnv*m*dc/tmp[1];
+      *sP += densityC*modE/dd;
     }
   }
 /*...................................................................*/

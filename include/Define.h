@@ -15,9 +15,10 @@
 /*...................................................................*/
 
 /*... residuos*/
-  #define RSCALED    1
-  #define RSQRT      2 
-  #define RSCALEDSUM 3
+  #define RSCALED       1
+  #define RSQRT         2 
+  #define RSCALEDSUM    3
+  #define RSCALEDSUMMAX 4
 
 /*... trasiente*/
   #define EULER    0
@@ -139,6 +140,7 @@
   #define CONVECTIONHEAT  11
   #define STATICWALL      -1  /*parede impermevel para escoamento*/
   #define SLIP            12 /*parede perfeitamente lisa*/
+  #define INLETTOTALPRES  13
 /*...................................................................*/
 
 /*...*/

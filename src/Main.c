@@ -182,6 +182,7 @@ int main(int argc,char**argv){
   opt.fItPlot       = false;
   opt.vel           = true;
   opt.pres          = true;
+  opt.presTotal     = true;
   opt.energy        = true;
   opt.gradVel       = false;
   opt.gradPres      = false;

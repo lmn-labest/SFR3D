@@ -37,7 +37,8 @@
     bool gradVel;        
     bool gradEnergy;     
     bool vel;            
-    bool pres;           
+    bool pres;
+    bool presTotal;           
     bool energy;         
     bool eddyViscosity;  
     bool densityFluid;   

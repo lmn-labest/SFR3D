@@ -1399,7 +1399,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                  ,&rEnergy          
                  ,sistEqVel->id        ,sistEqEnergy->id
                  ,mesh->numelNov       ,sistEqVel->neqNov
-                 ,mesh->ndm            ,RSCALEDSUM);  
+                 ,mesh->ndm            ,RSCALEDSUM );  
 /*...................................................................*/
 
 /*...*/
@@ -2136,7 +2136,7 @@ void residualSimple(DOUBLE *RESTRICT vel
 
 /********************************************************************* 
  * Data de criacao    : 26/08/2017                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 24/12/2017                                   * 
  *-------------------------------------------------------------------* 
  * RESIDUALSIMPLE : calculo dos residuos no metodo simple            *
  *-------------------------------------------------------------------* 
@@ -2188,7 +2188,7 @@ void residualSimpleLm(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
             ,short const ndm              ,short iCod)
 
 {
-  DOUBLE maxV[3],sum[3],maxE,mod,tmp,v,rScale;
+  DOUBLE maxV[3],sum[3],maxE,mod,tmp,v,rScale,sumMax;
   DOUBLE *p;
   INT i,j,lNeq;
   
@@ -2313,6 +2313,72 @@ void residualSimpleLm(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
 /*...................................................................*/
 
 /*... sum( |Ap*energyP| ) */
+      sum[0] = 0.e0;
+      for(i=0;i<nEl;i++){
+        lNeq = idEnergy[i] - 1;
+        if(lNeq > -1){ 
+          v       = energy[i];
+          mod     = fabs(adEnergy[lNeq]*v);
+          sum[0] += mod;
+        }
+      }
+/*...................................................................*/
+      
+/*... sum ( | F - Ax |P / sum( |Ap*energyP| ) )*/
+      for(i=0;i<nEl;i++){
+         mod      = fabs(rCellEnergy[i]);
+        *rEnergy += mod;
+      }
+      if( sum[0] > (*rEnergy)*SZERO)
+        *rEnergy /=  sum[0];  
+/*...................................................................*/
+
+
+/*...*/
+      tmp = 0.e0;
+      for(i=0;i<nEl;i++){
+        v    = fabs(rCellMass[i]);
+        tmp += v;
+      } 
+      *rMass = tmp; 
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
+/*... scaled*/
+    case RSCALEDSUMMAX:
+/*... sum( |Ap*velP |) */
+      for(i=0;i<nEl;i++){
+        lNeq = idVel[i] - 1;
+        if(lNeq > -1){ 
+          for(j=0;j<ndm;j++){
+            v       = MAT2D(i,j,vel,ndm);
+            lNeq   += j*nEqVel;
+            mod     = fabs(adVel[lNeq]*v);
+            sum[j] += mod;
+          }
+        }
+      }
+/*...................................................................*/
+      
+/*...*/
+      sumMax = sum[0];
+      for (j = 1; j < ndm; j++) 
+        sumMax = max(sumMax,sum[j]);
+/*...................................................................*/
+
+/*... sum ( | F - Ax |P / sum( |Ap*velP| ) )*/
+      for(j=0;j<ndm;j++){
+        for(i=0;i<nEl;i++){
+          mod    = fabs(MAT2D(j,i,rCellVel,nEl));
+          rU[j] += mod;
+        }
+        rU[j]  /= sumMax;
+      }  
+/*...................................................................*/
+
+/*... sum( |Ap*energyP| ) */
+      sum[0] = 0.e0;
       for(i=0;i<nEl;i++){
         lNeq = idEnergy[i] - 1;
         if(lNeq > -1){ 

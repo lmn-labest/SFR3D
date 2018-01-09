@@ -21,23 +21,28 @@
 
 /*... carga por elmento e condicoes pescritas por celula no 
       metodo simple*/
-  void pLoadSimple(DOUBLE *RESTRICT sP  , DOUBLE *RESTRICT p
-          , DOUBLE *RESTRICT tA          , DOUBLE *RESTRICT velC
-          , DOUBLE *RESTRICT n             
-          , DOUBLE *RESTRICT gradVel     , DOUBLE *RESTRICT xmcc
-          , DOUBLE const viscosityC      , DOUBLE const effViscosityC 
-          , DOUBLE const densityC          
-          , DOUBLE const fArea           , DOUBLE const dcca
-          , Loads ld                     , short const ndm
-          , bool const fCal1             , bool const fCal2
-          , bool const fWallModel        , short const wallType);
+  void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
+          , DOUBLE *RESTRICT tA     , DOUBLE *RESTRICT xmcc               
+          , DOUBLE *RESTRICT velC   , DOUBLE *RESTRICT gradVel
+          , DOUBLE const presC      , DOUBLE *RESTRICT gradPresC
+          , DOUBLE const viscosityC , DOUBLE const effViscosityC  
+          , DOUBLE *RESTRICT sl     , DOUBLE *RESTRICT e        
+          , DOUBLE *RESTRICT t      , DOUBLE *RESTRICT n  
+          , DOUBLE const densityC     
+          , DOUBLE const fArea      , DOUBLE const dcca
+          , Loads ld                , short  const ndm 
+          , bool const fCalVel      , bool const fCalPres
+          , bool const fWallModel   , short const wallType);
 
-  void pLoadSimplePres(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
-          ,DOUBLE *RESTRICT tA
-          ,DOUBLE const viscosityC,DOUBLE const densityC
-          ,DOUBLE const wfn
-          ,DOUBLE const fArea     ,DOUBLE const dcca 
-          ,Loads ld               ,bool const fCal);
+  void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
+          , DOUBLE *RESTRICT tA         , DOUBLE *RESTRICT ksi
+          , DOUBLE const presC          , DOUBLE *RESTRICT gradPresC 
+          , DOUBLE *RESTRICT sl         , DOUBLE *RESTRICT e        
+          , DOUBLE *RESTRICT t          , DOUBLE *RESTRICT n      
+          , DOUBLE const densityC       , DOUBLE *RESTRICT velC                                             
+          , DOUBLE const fArea          , DOUBLE const dd
+          , Loads ld                    , short  const ndm 
+          , bool const fCal);
 
   void pLoadEnergy(DOUBLE *RESTRICT sP   , DOUBLE *RESTRICT p
                , DOUBLE *RESTRICT tA     , DOUBLE *RESTRICT velC
