@@ -18,6 +18,8 @@
   #define E_WALLMODEL   9.793e0
   #define VANDRIEST    26.e0
   #define VONKARMAN     0.4187e0
+  #define AKADER        0.01e0
+  #define BKADER        5.e0
 /*...................................................................*/
 
 /*...*/
@@ -48,6 +50,7 @@
 
 /*... NEAR-WALL_MODEL*/
   #define STANDARDWALL 1
+  #define ENHANCEDWALL 2
 /*...................................................................*/
 
 /*...*/

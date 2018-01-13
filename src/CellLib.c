@@ -4314,10 +4314,10 @@ DOUBLE deferredCd(DOUBLE const uC,DOUBLE const uV,DOUBLE const wfn)
   DOUBLE cvc=0.0e0;
  
   if(wfn < 0.0e0) {
-    cvc   = 0.5e0*(uC+uV) - uV;
+    cvc = 0.5e0*(uC+uV) - uV;
   }
   else{
-    cvc   = 0.5e0*(uC+uV) - uC;
+    cvc = 0.5e0*(uC+uV) - uC;
   }
  
   return cvc;

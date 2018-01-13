@@ -2219,7 +2219,7 @@ void lesDynTwoPar(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
 
 /*********************************************************************
  * Data de criacao    : 21/09/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 11/01/2017                                   *
  *-------------------------------------------------------------------*
  * WALLMODEL : modelo de parade                                      *
  *-------------------------------------------------------------------*
@@ -2244,8 +2244,9 @@ void wallModel(DOUBLE const vt     , DOUBLE const viscosity
              , short const iCod) {
   
   unsigned short i, maxIt=10000;
-  DOUBLE stressW,f,df,tol = 1.e-7, nu = viscosity/density;
-  DOUBLE yPlus,uPlus,fu,fu0, conv;
+  DOUBLE stressW,f,df,tol = 1.e-11, nu = viscosity/density;
+  DOUBLE yPlus,uPlus,fu,fu0, conv,onePlusB,yPlus3,yPlus4,uPlusL,uPlusT,
+         gama,gamai,temp1;
   DOUBLE invKarman = 1.e0/VONKARMAN;
 
   yPlus = uPlus = 0.e0;
@@ -2279,12 +2280,64 @@ void wallModel(DOUBLE const vt     , DOUBLE const viscosity
         }
         if(fabs(fu-fu0) < conv) break; 
       }
+/*...................................................................*/ 
       yPlus    = fu*dWall/nu;      
       if ( yPlus < 0.e0 )
         ERRO_GERAL(__FILE__,__func__,__LINE__,"WallModel: y+ < 0");   
 /*...................................................................*/        
       break;
 /*...................................................................*/
+
+/*...*/
+    case ENHANCEDWALL:
+/* ... wall shear stress (viscosidade)*/
+      stressW = viscosity*vt/dWall;
+/* ... friction velocity*/
+      fu     = sqrt(stressW/density);
+      conv   = fu*tol;
+      for(i = 0; i < maxIt; i++){
+        fu0      = fu;
+/*...*/
+        yPlus    = fu*dWall/nu;
+        uPlus    = vt/fu;
+/*...................................................................*/
+        
+/*...*/
+        onePlusB = 1.0e0 + BKADER*yPlus; 
+        yPlus3   = yPlus*yPlus*yPlus;
+        yPlus4   = yPlus3*yPlus;
+/*... u+ laminar (linear)*/
+        uPlusL   = yPlus;
+/* ... u+ trubulento (log)*/
+        uPlusT   = invKarman*log(E_WALLMODEL*yPlus);
+/* ... parametro T = -(a(y+)**4)/(1+by+)*/
+        gama  = - (AKADER*yPlus4) / onePlusB;
+        gamai = 1.0e0/gama;
+/*... derivada dT/dy+*/
+        temp1 = AKADER*BKADER*yPlus4-4.0e0*AKADER*yPlus3*onePlusB;
+        temp1 = temp1/(onePlusB*onePlusB);
+/* ... f = e(T)*(y+) + e(1/T)*(1/k)ln(Ey+) - u+*/
+        f = exp(gama)*uPlusL + exp(gamai)*uPlusT - uPlus;
+/* ... derivada de f*/
+        df = (temp1*yPlus+1.0e0)*exp(gama)*yPlus   
+           + invKarman*exp(gamai)*( 1.0e0 
+           - (temp1/(gama*gama))*yPlus*log(E_WALLMODEL*yPlus))
+           + uPlus;
+/* .....................................................................*/
+
+/*...*/
+//      fu -= f/df;
+        fu = fu*(1.e0 - f/df);
+        if(fabs(fu-fu0) < conv) break; 
+      }
+/*...................................................................*/ 
+      yPlus    = fu*dWall/nu;      
+      if ( yPlus < 0.e0 )
+        ERRO_GERAL(__FILE__,__func__,__LINE__,"WallModel: y+ < 0");   
+/*...................................................................*/        
+      break;
+/*...................................................................*/
+
 
 /*...*/
       default: 

@@ -2974,8 +2974,8 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*... parede impermevavel*/
       else if(lFaceVelR[nf] == STATICWALL){
 /*... com modelo de parede*/
-        yPlus = 0.e0;
-        uPlus = 0.e0;
+        yPlus = 1.e0;
+        uPlus = 1.e0;
         if (fWallModel) {
 /*... calculo da velociade paralela a face*/
           wfn= velC[0] * lNormal[0] 
@@ -2993,10 +2993,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                      ,&yPlus  , &uPlus
                      ,wallType);
 /*...................................................................*/
-          if( yPlus > 11.81e0)
-            viscosityWall = viscosityC*yPlus/uPlus;
-          else
-            viscosityWall = viscosityC;
+          viscosityWall = viscosityC*yPlus/uPlus;
         }
 /*...................................................................*/
 

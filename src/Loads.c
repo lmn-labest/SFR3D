@@ -198,10 +198,7 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
                  ,&yPlus  , &uPlus     
                  ,wallType);
 /*...................................................................*/
-      if( yPlus > 11.81e0)        
-        viscosityWall = viscosityC*yPlus/uPlus;
-      else
-        viscosityWall = viscosityC;
+      viscosityWall = viscosityC*yPlus/uPlus;
     }
 /*...................................................................*/ 
 

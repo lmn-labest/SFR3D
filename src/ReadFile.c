@@ -2020,7 +2020,7 @@ void readModel(EnergyModel *e     , Turbulence *t
                                ,"rhiechow","viscosity"
                                ,"div"};
 
-  char typeWallModel[][WORD_SIZE] ={"standard"};
+  char typeWallModel[][WORD_SIZE] ={"standard","enhanced"};
   
 
 
@@ -2122,12 +2122,20 @@ void readModel(EnergyModel *e     , Turbulence *t
         else if(!strcmp(word,turb[1])){
           t->fWall = true;         
           readMacro(file,word,false); 
-          if(!strcmp(word,"standard"))
+/*...*/
+          if(!strcmp(word,typeWallModel[0])){
             t->wallType  = STANDARDWALL; 
-          if(!mpiVar.myId){ 
-            fprintf(fileLogExc,"%-20s: %s\n",turb[1]
-                                       ,typeWallModel[t->wallType-1]);
           }
+/*...................................................................*/
+
+/*...*/
+          else if(!strcmp(word,typeWallModel[1])){
+            t->wallType  = ENHANCEDWALL; 
+          }
+/*...................................................................*/
+          if(!mpiVar.myId)
+            fprintf(fileLogExc,"%-20s: %s\n",turb[1]
+                              ,typeWallModel[t->wallType-1]);
         }
 /*...................................................................*/
 
@@ -2846,17 +2854,15 @@ void help(FILE *f){
   char fDif[][WORD_SIZE]={"Orthogonal"  ,"Minimal","OrthogonalC" /* 0, 1, 2*/
                          ,"OverRelaxed"};                        /* 3*/
 /*....................................................................*/
+
 /*... model*/
   short iModels = 11;
-  short iEnergy = 6;
-  short iTurb   = 6;
-  short iMass   = 2;
-  short iMom    = 7;
   char models[][WORD_SIZE] = {"energy"  ,"turbulence","mass"     /* 0, 1, 2*/
                              ,"momentum"};                       /* 3*/
+  short iEnergy = 6;
   char energy[][WORD_SIZE] = { "preswork", "dissipation", "residual"  
                              , "absolute", "temperature", "entalphy"}; 
-
+  short iTurb   = 6;
   char turbulence[][WORD_SIZE] = {"wallmodel type"  
                                  ,"smagorinsky 0.2"
                                  ,"wale 0.325"      
@@ -2868,16 +2874,17 @@ void help(FILE *f){
                                  ,"clark 1.0"
                                  ,"mixed 0.5 clark 1.0 smagorinsky 0.2"
                                  ,"towdynamic clark 1.0 smagorinsky 0.2"};   
-
+  short iMass   = 2;
   char mass[][WORD_SIZE] = { "lhsDensity","rhsDensity"}; 
 
-  
+  short iMom    = 7;  
   char momentum[][WORD_SIZE] = {"residual","absolute"    /* 0, 1*/
                                ,"presa"   ,"presref"     /* 2, 3*/
                                ,"rhiechow","viscosity"   /* 4, 5*/
                                ,"div"};                  /* 6*/
 
-  char typeWallModel[][WORD_SIZE] ={"standard"};
+  short iWall = 2;
+  char typeWallModel[][WORD_SIZE] ={"standard","enhanced"};
 /*....................................................................*/
 
   int i;                                                     
@@ -2939,7 +2946,7 @@ void help(FILE *f){
       printf("%3d - %s\n",i+1,turbulence[i]);
 
     printf("WallModel options:\n");
-    for(i=0;i<1;i++)
+    for(i=0;i<iWall;i++)
       printf("%3d - %s\n",i+1,typeWallModel[i]);
 
     printf("Mass options:\n");
