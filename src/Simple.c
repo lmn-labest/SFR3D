@@ -1280,7 +1280,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
       tm.turbulence = getTimeC() - tm.turbulence;
       turbulence(m                   , loadsVel  
             , &pMesh->iNo            , &pMesh->iEl
-            , *tModel                , mesh->node.x             
+            , tModel                 , mesh->node.x             
             , mesh->elm.node         , mesh->elm.adj.nelcon 
             , mesh->elm.nen          , mesh->elm.adj.nViz 
             , mesh->elm.geomType     , mesh->elm.material.prop 

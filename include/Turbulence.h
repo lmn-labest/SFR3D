@@ -54,9 +54,15 @@
 /*...................................................................*/
 
 /*...*/
+  #define LDYNAMIC      1
+  #define GDYNAMIC      2
+  #define GDYNAMICMOD   3
+  #define TWOPARDYNAMIC 4 
+/*...................................................................*/
+/*...*/
   void turbulence(Memoria *m          , Loads *lVel
       , InterfaceNo *iNo              , Interface *iCel
-      , Turbulence tModel             , DOUBLE *RESTRICT x               
+      , Turbulence *tModel            , DOUBLE *RESTRICT x               
       , INT    *RESTRICT el           , INT    *RESTRICT nelcon 
       , short  *RESTRICT nen          , short  *RESTRICT nFace 
       , short  *RESTRICT geomType     , DOUBLE *RESTRICT prop  
@@ -78,18 +84,19 @@
 /*...................................................................*/
 
 /*...*/
-  void lesDynamicMean(Memoria *m              , Turbulence tModel
+  void lesDynamicMean(Memoria *m              , Turbulence *tModel
                    , INT    *RESTRICT nelcon  , short  *RESTRICT nen    
                    , short  *RESTRICT nFace   , DOUBLE *RESTRICT gVolume 
                    , DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT gradVel 
-                   , DOUBLE *RESTRICT density , DOUBLE *RESTRICT dynamic                                  
+                   , DOUBLE *RESTRICT density , DOUBLE *RESTRICT dViscosity
+                   , DOUBLE *RESTRICT cDyn                                   
                    , short const maxNo        , short const maxViz
                    , short const ndm          , INT const numel     
-                   , short const ndf          , bool const onePar); 
+                   , short const ndf          , short const iCod) ; 
 /*...................................................................*/
 
 /*...*/
-  void turbulenceCellLoop(Loads *lVel       , Turbulence tModel             
+  void turbulenceCellLoop(Loads *lVel       , Turbulence *tModel             
       , INT    *RESTRICT el                 , INT    *RESTRICT nelcon 
       , short  *RESTRICT nen                , short  *RESTRICT nFace 
       , short  *RESTRICT geomType           , DOUBLE *RESTRICT prop  
@@ -112,7 +119,7 @@
 
 
 /*...*/
-  void sLesModCellLoop(Turbulence tModel      
+  void sLesModCellLoop(Turbulence *tModel      
                    , DOUBLE *RESTRICT x       , INT *RESTRICT el       
                    , INT *RESTRICT nelcon     , short  *RESTRICT nen    
                    , short *RESTRICT nFace    , DOUBLE *RESTRICT gVolume 
@@ -160,7 +167,11 @@
                 , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT vel
                 , DOUBLE *RESTRICT gradVel   , DOUBLE *RESTRICT lDynamic
                 , short const typeLesFunc    , short const nFace  );
-
+  
+  void lesDynOneParG(INT *RESTRICT lViz      , DOUBLE *RESTRICT volume
+                , DOUBLE *RESTRICT gradVel , DOUBLE *RESTRICT lDynamic
+                , short const typeLesFunc  , short const nFace  );
+  
   void lesDynTwoPar(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
                 , DOUBLE *RESTRICT lDensity, DOUBLE *RESTRICT vel
                 , DOUBLE *RESTRICT gradVel , DOUBLE *RESTRICT lDynamic
@@ -177,7 +188,7 @@
 /*...................................................................*/
 
 /*...*/
-  bool  wallDist(Loads *lVel               
+  bool wallParamenters(Loads *lVel               
              , INT *RESTRICT lViz       , DOUBLE *RESTRICT v 
              , DOUBLE *RESTRICT normal  , DOUBLE *RESTRICT dcca
              , short *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL
@@ -217,6 +228,7 @@
 /*...................................................................*/
 
 /*...*/
+  DOUBLE doubleDot(DOUBLE *t);
   DOUBLE doubleDotSym(DOUBLE *t);
   DOUBLE doubleDotSym2(DOUBLE *RESTRICT t,DOUBLE *RESTRICT q);
 /*...................................................................*/
@@ -224,12 +236,22 @@
 /*...*/
   DOUBLE oneParLes(Turbulence *tModel
                  , INT *RESTRICT lViz, DOUBLE *RESTRICT dynamic
-                 , short const nFace);
-  void twoParLes(INT *RESTRICT lViz   , DOUBLE *RESTRICT dynamic
-               , DOUBLE *RESTRICT cDyn
-               , DOUBLE const capFmin , DOUBLE const capFmax   
-               , DOUBLE const capSmin , DOUBLE const capSmax      
-               , short const nFace);
+                 , short const nFace , bool const cap);
+  DOUBLE oneGoParLes(Turbulence *tModel , DOUBLE *gmm
+                    , bool const cap);
+  DOUBLE oneGoParLesMod(Turbulence *tModel  , DOUBLE *gmm
+                    , DOUBLE const density, DOUBLE const viscosity
+                    , bool const cap);
+  void twoParLes(Turbulence *tModel      , INT *RESTRICT lViz
+               , DOUBLE *RESTRICT dynamic, DOUBLE *RESTRICT cDyn             
+               , short const nFace       , bool const cap);
+  void tensorS( DOUBLE *RESTRICT s,  DOUBLE *RESTRICT gradVel
+              , bool const flag );
+/*...................................................................*/
+
+/*...*/
+  DOUBLE vremanModel(DOUBLE *RESTRICT gradVel);
+  DOUBLE waleModel(DOUBLE *RESTRICT gradVel);
 /*...................................................................*/
 
 /*...*/

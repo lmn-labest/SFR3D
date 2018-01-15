@@ -32,13 +32,18 @@
   typedef struct{  
     bool fTurb;
     bool fWall;
-    bool dynamic;  
+    bool dynamic;
     short wallType;
     short type;          /* 0 - LES*/
     short typeLes;       /* 0 - funcional
                             1 - estrutural
                             2 - misto*/ 
     short typeMixed[2];  /*[0] - estrutural - [1] funcional*/
+    short typeDynamic;    /* 1 - um paremetro local 
+                            2 - um parametro global padrao
+                            3 - um parametro global modicado
+                            4 - 2 paramento local*/
+
     DOUBLE cs,cf,c;      /*constante*/
     DOUBLE PrandltTwall; /*Prandtl turbulento */
     DOUBLE PrandltTsgs;  /*Prandtl de sub-grid */
