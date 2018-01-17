@@ -625,7 +625,7 @@ void simpleSolver3D(Memoria *m
 
 /*********************************************************************
 * Data de criacao    : 21/08/2017                                   *
-* Data de modificaco : 17/11/2017                                   *
+* Data de modificaco : 16/01/2018                                   *
 *-------------------------------------------------------------------*
 * SIMPLESOLVERENERGY: metodo simple e simpleC para escoamentos      * 
 * 2D/3D termo ativados                                              *
@@ -647,8 +647,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                    ,SistEq *sistEqVel   ,SistEq *sistEqPres
                    ,SistEq *sistEqEnergy 
                    ,Solv *solvVel       ,Solv *solvPres
-                   ,Solv *solvEnergy
-                   ,Simple *sp
+                   ,Solv *solvEnergy    ,Simple *sp
                    ,Scheme *sc          ,PartMesh *pMesh
                    ,FileOpt opt         ,char *preName
                    ,char *nameOut       ,FILE *fileOut) {
@@ -666,9 +665,11 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
   DOUBLE *adU1, *adU2, *adU3;
   DOUBLE *rCellPc,*rCellE;
 /*...*/
-  DOUBLE rU[3], rU0[3], tmp, tb[3], rMass0, rMass,rEnergy0, rEnergy;
+  DOUBLE rU[3], rU0[3], tb[3], tmp, rMass0, rMass
+       , rEnergy0, rEnergy;
   /*...*/
-  DOUBLE tolSimpleU1, tolSimpleU2, tolSimpleU3, tolSimpleMass, tolSimpleEnergy;
+  DOUBLE tolSimpleU1, tolSimpleU2, tolSimpleU3
+       , tolSimpleMass, tolSimpleEnergy;
 /*...*/
   bool xMomentum, yMomentum, zMomentum, pCor, fEnergy;
   bool relRes = false;
@@ -718,7 +719,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 
 /*...*/
   rMass0 = 1.e0;
-  rMass = 0.e0;
+  rMass  = 0.e0;
   rU[0] = rU[1] = rU[2] = 0.e0;
   rU0[0] = rU0[1] = rU0[2] = 1.e0;
   tmp = tb[0] = tb[1] = tb[2] = 0.e0;
@@ -1249,32 +1250,6 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 
-/*... reconstruindo do gradiente (Energia)*/
-    tm.rcGradEnergy = getTimeC() - tm.rcGradEnergy;
-    rcGradU(m                    ,loadsEnergy
-           ,mesh->elm.node       ,mesh->elm.adj.nelcon
-           ,mesh->elm.geom.cc    ,mesh->node.x
-           ,mesh->elm.nen        ,mesh->elm.adj.nViz
-           ,mesh->elm.geomType   ,mesh->elm.material.prop
-           ,mesh->elm.mat
-           ,mesh->elm.leastSquare,mesh->elm.leastSquareR
-           ,mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
-           ,mesh->elm.geom.eta   ,mesh->elm.geom.fArea
-           ,mesh->elm.geom.normal,mesh->elm.geom.volume
-           ,mesh->elm.geom.vSkew
-           ,mesh->elm.geom.xm    ,mesh->elm.geom.xmcc
-           ,mesh->elm.geom.dcca
-           ,mesh->elm.faceRenergy,mesh->elm.faceLoadEnergy
-           ,mesh->elm.energy     ,mesh->elm.gradEnergy
-           ,mesh->node.energy    ,sc->rcGrad
-           ,mesh->maxNo          ,mesh->maxViz
-           ,1, mesh->ndm
-           ,&pMesh->iNo          ,&pMesh->iEl
-           ,mesh->numelNov       ,mesh->numel
-           ,mesh->nnodeNov       ,mesh->nnode);
-    tm.rcGradEnergy = getTimeC() - tm.rcGradEnergy;
-/*.................................................................. */
-
 /*... modelo de turbulencia*/
     if(tModel->fTurb){
       tm.turbulence = getTimeC() - tm.turbulence;
@@ -1305,89 +1280,14 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 
 /*... equacao de energia*/
     if (fPrint) printf("Consercao de Energia:\n");
-/*... calculo de: A(i),bE(i)*/
-    tm.systFormEnergy = getTimeC() - tm.systFormEnergy;
-    systFormEnergy(loadsEnergy        , loadsVel
-             , sc->advEnergy          , sc->diffEnergy
-             , *tModel                , eModel  
-             , prop  
-             , mesh->elm.node         , mesh->elm.adj.nelcon
-             , mesh->elm.nen          , mesh->elm.adj.nViz
-             , mesh->elm.geomType     , mesh->elm.material.prop
-             , mesh->elm.material.type, mesh->elm.mat
-             , mesh->elm.geom.cc        
-             , mesh->elm.geom.ksi     , mesh->elm.geom.mksi
-             , mesh->elm.geom.eta     , mesh->elm.geom.fArea
-             , mesh->elm.geom.normal  , mesh->elm.geom.volume
-             , mesh->elm.geom.xm      , mesh->elm.geom.xmcc
-             , mesh->elm.geom.vSkew   , mesh->elm.geom.mvSkew
-             , mesh->elm.geom.dcca      
-             , sistEqEnergy->ia       , sistEqEnergy->ja
-             , sistEqEnergy->al       , sistEqEnergy->ad
-             , sistEqEnergy->b        , sistEqEnergy->id
-             , mesh->elm.faceRenergy  , mesh->elm.faceLoadEnergy
-             , mesh->elm.faceRvel     , mesh->elm.faceLoadVel   
-             , mesh->elm.energy       , mesh->elm.gradEnergy
-             , mesh->elm.vel          , mesh->elm.gradVel
-             , mesh->elm.pressure0    , mesh->elm.pressure  
-             , mesh->elm.gradPres     , mesh->elm.rCellEnergy 
-             , mesh->elm.densityFluid , mesh->elm.specificHeat
-             , mesh->elm.dViscosity   , mesh->elm.eddyViscosity 
-             , mesh->elm.tConductivity, sp->d
-             , sc->ddt                , sp->alphaEnergy
-             , sistEqEnergy->neq      , sistEqEnergy->neqNov
-             , sistEqEnergy->nad      , sistEqEnergy->nadr
-             , mesh->maxNo            , mesh->maxViz
-             , mesh->ndm              , mesh->numelNov
-             , 1                      , sistEqEnergy->storage
-             , true                   , true
-             , true                   , sistEqEnergy->unsym);
-    tm.systFormEnergy = getTimeC() - tm.systFormEnergy;
-/*...................................................................*/
-
-/*... soma o vetor bE(i) = bE(i) + bE0(i)*/
-    addVector(1.0e0               ,sistEqEnergy->b
-             ,1.0e0               ,sistEqEnergy->b0
-             ,sistEqEnergy->neqNov,sistEqEnergy->b);
-/*...................................................................*/
-
-/*... soma o vetor RE(i) = RE(i) + bE0(i)*/
-    updateCellValue(mesh->elm.rCellEnergy,sistEqEnergy->b0
-                   ,sistEqEnergy->id     ,&sistEqEnergy->iNeq
-                   ,mesh->numelNov       ,1
-                   ,true                 ,false);
-/*...................................................................*/
-
-/*...*/
-    tmp = sqrt(dot(sistEqEnergy->b,sistEqEnergy->b
-                  ,sistEqEnergy->neqNov));
-    fEnergy = true;
-    if (tmp == 0.e0) fEnergy = false;  
-/*...................................................................*/
-
-/*...Ae=bE*/
-    if (fEnergy) {
-      tm.solvEnergy = getTimeC() - tm.solvEnergy;
-      solverC(m
-        ,sistEqEnergy->neq    ,sistEqEnergy->neqNov
-        ,sistEqEnergy->nad    ,sistEqEnergy->nadr
-        ,sistEqEnergy->ia     ,sistEqEnergy->ja
-        ,sistEqEnergy->al     ,sistEqEnergy->ad, sistEqEnergy->au
-        ,sistEqEnergy->b      ,sistEqEnergy->x
-        ,&sistEqEnergy->iNeq  ,&sistEqEnergy->omp
-        ,solvEnergy->tol      ,solvEnergy->maxIt
-        ,sistEqEnergy->storage,solvEnergy->solver
-        ,solvEnergy->fileSolv ,solvEnergy->log
-        ,true                 ,sistEqEnergy->unsym);  
-      tm.solvEnergy = getTimeC() - tm.solvEnergy;
-    }
-/*...................................................................*/
-
-/*... x -> Energy*/
-    updateCellValue(mesh->elm.energy,sistEqEnergy->x
-                   ,sistEqEnergy->id,&sistEqEnergy->iNeq
-                   ,mesh->numel     ,1
-                   ,eModel.fRes     ,true);
+    fEnergy = energyEquation(m            , &prop 
+                           , loadsVel     , loadsEnergy  
+                           , &eModel
+                           , tModel      , thDynamic
+                           , mesh          
+                           , sistEqEnergy, solvEnergy
+                           , sp          , sc
+                           , pMesh);    
 /*...................................................................*/
 
 /*... residual*/

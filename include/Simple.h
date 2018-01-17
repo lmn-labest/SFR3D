@@ -16,6 +16,7 @@
   #include<Transient.h>
   #include<Turbulence.h>
   #include<Properties.h>
+  #include<Energy.h>
 /*...................................................................*/
 
   void simpleSolver3D(Memoria *m        
