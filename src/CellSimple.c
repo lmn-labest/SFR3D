@@ -2293,7 +2293,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*********************************************************************
  * Data de criacao    : 03/10/2017                                   *
- * Data de modificaco : 19/12/2017                                   * 
+ * Data de modificaco : 17/12/2018                                   * 
  *-------------------------------------------------------------------* 
  * CELLSIMPLEVE3DLM: Celula 3D para velocidade do metodo simple      * 
  * em escoamento levemento compressivel (Low Mach)                   * 
@@ -2327,7 +2327,8 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * mvSkew    -> distacia entre o ponto medio a intersecao que une os *
  *              centrois compartilhado nessa face da celula central  *
  * dcca      -> menor distancia do centroide central a faces desta   *
- *              celula                                               *
+ *              celula  
+ * cc        -> centroides da celula centra e seus vizinhos          *                                             *
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
@@ -2342,8 +2343,9 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * gradVel   -> gradiente rescontruido das velocidades               *
  * lDensity  -> massa especifica sem variacao temporal               *
  * lDviscosity-> viscosidade dinamica com variacao temporal          *
- * dField    -> matriz D do metodo simple                            *
- * cc        -> centroides da celula centra e seus vizinhos          *
+ * dField    -> matriz D do metodo simple                            * 
+ * stressR   -> tensao residual estrutural                           *
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
  * underU    -> parametro de sobre relaxamento                       *
  * nEn       -> numero de nos da celula central                      *
  * sPressure -> reconstrucao de segunda ordem para pressoes nas      *
@@ -2397,6 +2399,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
             , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
             , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lViscosity 
             , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT stressR
+            , DOUBLE *RESTRICT wallPar
             , DOUBLE const underU         , const bool sPressure
             , const short nEn             , short const nFace    
             , const short ndm             , INT const nel)
@@ -2963,7 +2966,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                   , viscosityC  , viscosityC   
                   , s           , e         
                   , t           , lNormal
-                  , densityC
+                  , densityC    , wallPar
                   , lFarea      , dcca[nf]
                   , lVel[nCarg] , ndm
                   , true        , false
@@ -2977,23 +2980,12 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
         yPlus = 1.e0;
         uPlus = 1.e0;
         if (fWallModel) {
-/*... calculo da velociade paralela a face*/
-          wfn= velC[0] * lNormal[0] 
-             + velC[1] * lNormal[1]
-             + velC[2] * lNormal[2];
-          wf[0] = velC[0] - wfn * lNormal[0];
-          wf[1] = velC[1] - wfn * lNormal[1];
-          wf[2] = velC[2] - wfn * lNormal[2];
-          wfn   = wf[0]*wf[0] + wf[1]*wf[1] + wf[2]*wf[2];
-          wfn   = sqrt(wfn);
-/*...*/
-          if (wfn > 0.e0)
-            wallModel(wfn     , viscosityC
-                     ,densityC, dcca[nf]
-                     ,&yPlus  , &uPlus
-                     ,wallType);
-/*...................................................................*/
-          viscosityWall = viscosityC*yPlus/uPlus;
+          yPlus = wallPar[0];
+          uPlus = wallPar[1];
+          if(yPlus > 0.01e0)          
+            viscosityWall = viscosityC*yPlus/uPlus;
+          else
+            viscosityWall = viscosityC;   
         }
 /*...................................................................*/
 

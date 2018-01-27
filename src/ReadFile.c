@@ -12,7 +12,7 @@
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 05/09/2017                                   *
+ * Data de modificaco : 17/01/2018                                   *
  *-------------------------------------------------------------------*
  * readFileFc : leitura de arquivo de dados em volume finitos        *
  * ------------------------------------------------------------------*
@@ -43,10 +43,10 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
          ,"faceRtemp"  ,"loadsTemp"  ,"faceLoadTemp"   /*24,25,26*/
          ,"materials"  ,"uniformPres","initialVel"     /*27,28,29*/
          ,"uniformTemp","uniformVel" ,""               /*30,31,32*/
-         ,""           ,""           ,""               /*33,34,35*/
+         ,"faceReKturb","loadsKturb" ,"faceLoadKturb"  /*33,34,35*/
          ,""           ,""           ,""               /*36,37,38*/
 	   };                                             
-  bool rflag[NMACROS],macroFlag;
+  bool rflag[NMACROS],macroFlag,fOneEqK = true;
   INT nn,nel;
   short maxno,ndm,numat,maxViz,ndfVel;
   char nameAux[MAX_STR_LEN_IN];
@@ -260,61 +260,93 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
               , nel  , "eddyVis", _AD_);
      zero(mesh->elm.eddyViscosity, nel, DOUBLEC);
 
-/*... viscosidade turbulenta*/
+/*... tensor residual turbulenta*/
      HccaAlloc(DOUBLE, m, mesh->elm.stressR        
               , nel*mesh->ntn , "stressR", _AD_);
      zero(mesh->elm.stressR, nel*mesh->ntn, DOUBLEC);
 
-/*... viscosidade turbulenta*/
+/*... paramentros de parede*/
      HccaAlloc(DOUBLE, m, mesh->elm.wallParameters
               , nel*4   , "wallParm", _AD_);
      zero(mesh->elm.wallParameters, nel*4, DOUBLEC);
 
-/*... viscosidade turbulenta*/
+/*... coeficientes dinamicos locais*/
      HccaAlloc(DOUBLE, m, mesh->elm.cd
               , nel*2   , "cDynamic"     , _AD_);
      zero(mesh->elm.cd, nel*2, DOUBLEC);
 
+/*... energia cinetica turbulenta*/
+     if(fOneEqK){
+       HccaAlloc(DOUBLE, m           , mesh->elm.kTurb
+              , nel  , "kTurb"     , _AD_);
+       zero(mesh->elm.kTurb, nel, DOUBLEC);
+       
+       HccaAlloc(DOUBLE, m        , mesh->elm.kTurb0
+                , nel  , "kTurb0" , _AD_);
+       zero(mesh->elm.kTurb0, nel, DOUBLEC);
+       
+       HccaAlloc(DOUBLE  , m           , mesh->elm.gradKturb
+                , nel*ndm, "gradKturb" , _AD_);
+       zero(mesh->elm.gradKturb, nel*ndm, DOUBLEC);
+       
+       HccaAlloc(DOUBLE, m        , mesh->node.kTurb
+                , nel  , "nkTurb" , _AD_);
+       zero(mesh->node.kTurb, nn  , DOUBLEC);
+
+/*... eGradPres*/
+       HccaAlloc(DOUBLE,m,mesh->elm.gradKturb
+                ,nel*ndm        ,"eGradKturb",_AD_);
+       zero(mesh->elm.gradKturb ,nel*ndm,DOUBLEC);
+       
+/*... cc da equacao energia cinetica turbulenta*/
+       HccaAlloc(short,m,mesh->elm.faceReKturb
+              ,nel*(maxViz+1),"faceReKturb",_AD_);
+       zero(mesh->elm.faceReKturb ,nel*(maxViz+1),"short"  );
+       
+       HccaAlloc(short,m,mesh->elm.faceLoadKturb 
+              ,nel*(maxViz+1),"faceLKturb",_AD_);
+       zero(mesh->elm.faceLoadKturb ,nel*(maxViz+1),"short"  );
+     }
+ 
 /*... densityFluid*/
      HccaAlloc(DOUBLE , m         , mesh->elm.densityFluid
               ,nel * DENSITY_LEVEL, "eDenFluid", _AD_);
      zero(mesh->elm.densityFluid, nel * DENSITY_LEVEL, DOUBLEC);
 
-
 /*... ePres(n+1)*/
      HccaAlloc(DOUBLE,m,mesh->elm.pressure 
             ,nel              ,"pressure"          ,_AD_);
-     zero(mesh->elm.pressure  ,nel                         ,DOUBLEC);
+     zero(mesh->elm.pressure  ,nel ,DOUBLEC);
 
 /*... ePres(n)*/
      HccaAlloc(DOUBLE,m,mesh->elm.pressure0
             ,nel              ,"pressure0"         ,_AD_);
-     zero(mesh->elm.pressure0 ,nel                         ,DOUBLEC);
+     zero(mesh->elm.pressure0 ,nel,DOUBLEC);
 
 /*... pres*/
      HccaAlloc(DOUBLE,m,mesh->node.pressure
               ,nn    ,"npressure",_AD_);
-     zero(mesh->node.pressure     ,nn                         ,DOUBLEC);
+     zero(mesh->node.pressure     ,nn,DOUBLEC);
 
 /*... nGradVel*/
      HccaAlloc(DOUBLE,m,mesh->node.gradVel  
               ,nn*ndm*ndfVel ,"nGradVel"     ,_AD_);
-     zero(mesh->node.gradVel  ,nn*ndm*ndfVel        ,DOUBLEC);
+     zero(mesh->node.gradVel  ,nn*ndm*ndfVel,DOUBLEC);
      
 /*... eGradVel*/
      HccaAlloc(DOUBLE,m,mesh->elm.gradVel 
               ,nel*ndm*ndfVel ,"eGradVel"     ,_AD_);
-     zero(mesh->elm.gradVel   ,nel*ndm*ndfVel       ,DOUBLEC);
+     zero(mesh->elm.gradVel   ,nel*ndm*ndfVel,DOUBLEC);
 
 /*... nGradPres*/
      HccaAlloc(DOUBLE,m,mesh->node.gradPres 
               ,nn*ndm        ,"nGradPres"    ,_AD_);
-     zero(mesh->node.gradPres ,nn*ndm               ,DOUBLEC);
+     zero(mesh->node.gradPres ,nn*ndm,DOUBLEC);
      
 /*... eGradPres*/
      HccaAlloc(DOUBLE,m,mesh->elm.gradPres
               ,nel*ndm        ,"eGradPres"     ,_AD_);
-     zero(mesh->elm.gradPres  ,nel*ndm              ,DOUBLEC);
+     zero(mesh->elm.gradPres  ,nel*ndm,DOUBLEC);
 
 /*... */
      if (mesh->ndfFt > 0) {
@@ -384,6 +416,12 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
           HccaAlloc(DOUBLE,m            ,mesh->elm.rCellEnergy
                    ,nel   ,"rCellEnergy",_AD_);
           zero(mesh->elm.rCellEnergy, nel, DOUBLEC);
+       }
+/*... rCellKturb*/
+       if(fOneEqK){
+         HccaAlloc(DOUBLE,m,mesh->elm.rCellKturb
+                ,nel  ,"rCellKturb",_AD_);
+         zero(mesh->elm.rCellKturb,nel,DOUBLEC);
        }
      }
 /*...................................................................*/
@@ -858,6 +896,50 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
       rflag[31] = true;
       fprintf(fileLogExc,"loading uniformVel ...\n");
       uniformField(mesh->elm.vel, mesh->numel, ndm, file);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n", DIF);
+    }
+/*...................................................................*/
+
+/*... faceReKturb - condicao de contorno para problemas fluidos (Kturb)*/
+    else if ((!strcmp(word, macro[33])) && (!rflag[33])) {
+      fprintf(fileLogExc,"%s\n", DIF);
+      fprintf(fileLogExc,"%s\n", word);
+      strcpy(macros[nmacro++], word);
+      rflag[33] = true;
+      strcpy(str, "endFaceReKturb");
+      fprintf(fileLogExc,"loading faceReKturb ...\n");
+      readVfRes(mesh->elm.faceReKturb,mesh->numel
+               ,mesh->maxViz + 1     ,str        ,file);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n", DIF);
+    }
+/*...................................................................*/
+
+/*... loadKturb - definicao de cargar fluidos (Kturb)*/
+    else if ((!strcmp(word, macro[34])) && (!rflag[34])) {
+      fprintf(fileLogExc,"%s\n", DIF);
+      fprintf(fileLogExc,"%s\n", word);
+      strcpy(macros[nmacro++], word);
+      rflag[34] = true;
+      strcpy(str, "endLoadsKturb");
+      fprintf(fileLogExc,"loading loadsKturb ...\n");
+      readVfLoads(loadsKturb, str, file);
+      fprintf(fileLogExc,"done.\n");
+      fprintf(fileLogExc,"%s\n\n", DIF);
+    }
+/*...................................................................*/
+
+/*... faceLoadKturb - cargas nas faces fluido (Kturb)*/
+    else if ((!strcmp(word, macro[35])) && (!rflag[35])) {
+      fprintf(fileLogExc,"%s\n", DIF);
+      fprintf(fileLogExc,"%s\n", word);
+      strcpy(macros[nmacro++], word);
+      rflag[35] = true;
+      strcpy(str, "endFaceLoadKturb");
+      fprintf(fileLogExc,"loading faceLoadKturb ...\n");
+      readVfRes(mesh->elm.faceLoadKturb,mesh->numel
+               ,mesh->maxViz + 1        ,str        ,file);
       fprintf(fileLogExc,"done.\n");
       fprintf(fileLogExc,"%s\n\n", DIF);
     }
@@ -1995,7 +2077,7 @@ void readPropVar(PropVar *p,FILE *file){
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void readModel(EnergyModel *e     , Turbulence *t
+void readModel(EnergyModel *e    , Turbulence *t
              , MassEqModel *eMass, MomentumModel *eMomentum
              , FILE *file){
 
@@ -2012,7 +2094,7 @@ void readModel(EnergyModel *e     , Turbulence *t
                             ,"vreman"     ,"ldynamic"  , "sigmamodel"
                             ,"mixed"      ,"bardina"   , "clark"
                             ,"bardinaMod" ,"towdynamic", "gdynamic"
-                            ,"gdynamicmod"}; 
+                            ,"gdynamicmod","oneeqk"}; 
 
   char mass[][WORD_SIZE] = { "lhsdensity","rhsdensity"}; 
 
@@ -2107,7 +2189,7 @@ void readModel(EnergyModel *e     , Turbulence *t
         convStringLower(word);
 /*... Smagorinsky*/
         if(!strcmp(word,turb[0])){
-          t->dynamic             = false;
+          t->fDynamic             = false;
           t->fTurb               = true;      
           t->type                = LES;
           t->typeMixed[FUNMODEL] = SMAGORINSKY;
@@ -2142,7 +2224,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 
 /*... Wale*/
         else if(!strcmp(word,turb[2])){
-          t->dynamic                = false;
+          t->fDynamic                = false;
           t->fTurb                  = true;     
           t->type                   = LES;
           t->typeMixed[FUNMODEL]    = WALEMODEL; 
@@ -2156,7 +2238,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 
 /*... Vreman*/
         else if(!strcmp(word,turb[3])){
-          t->dynamic                = false;
+          t->fDynamic                = false;
           t->fTurb                  = true;      
           t->type                   = LES;
           t->typeMixed[FUNMODEL]    = VREMAN;
@@ -2170,7 +2252,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 
 /*... Dynamic*/
         else if(!strcmp(word,turb[4])){
-          t->dynamic     = true;
+          t->fDynamic     = true;
           t->fTurb       = true;      
           t->type        = LES;
           t->typeDynamic = LDYNAMIC;
@@ -2184,7 +2266,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 
 /*... sigmaModel*/
         else if(!strcmp(word,turb[5])){
-          t->dynamic             = false;
+          t->fDynamic             = false;
           t->fTurb               = true;      
           t->type                = LES;
           t->typeMixed[FUNMODEL] = SIGMAMODEL;
@@ -2198,7 +2280,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 
 /*... mixed*/
         else if(!strcmp(word,turb[6])){
-          t->dynamic = false;
+          t->fDynamic = false;
           t->fTurb   = true;      
           t->type    = LES;
           t->typeLes = LESMIXEDMODEL; 
@@ -2212,7 +2294,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 
 /*... bardina*/
         else if(!strcmp(word,turb[7])){
-          t->dynamic             = false;
+          t->fDynamic             = false;
           t->fTurb               = true;   
           t->type                = LES;
           t->typeMixed[ESTMODEL] = BARDINA;
@@ -2226,7 +2308,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 
 /*... clark*/
         else if(!strcmp(word,turb[8])){
-          t->dynamic             = false;
+          t->fDynamic            = false;
           t->fTurb               = true;      
           t->type                = LES;
           t->typeMixed[ESTMODEL] = CLARK;
@@ -2240,21 +2322,21 @@ void readModel(EnergyModel *e     , Turbulence *t
 
 /*... bardinaMod*/
         else if(!strcmp(word,turb[9])){
-          t->dynamic             = false;
+          t->fDynamic             = false;
           t->fTurb               = true;      
           t->type                = LES;
           t->typeMixed[ESTMODEL] = BARDINAMOD;
           t->typeLes             = LESSTRUMODEL;
           fscanf(file,"%lf",&t->cs);  
           if(!mpiVar.myId){ 
-             fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[9],t->cs); 
+            fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[9],t->cs); 
           }
         }
 /*...................................................................*/   
 
 /*... mixed 2 paramentros*/
         else if(!strcmp(word,turb[10])){
-          t->dynamic     = true;
+          t->fDynamic     = true;
           t->fTurb       = true;      
           t->type        = LES;
           t->typeLes     = LESMIXEDTWOMODEL; 
@@ -2269,7 +2351,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 
 /*... Gdynamic*/
         else if(!strcmp(word,turb[11])){
-          t->dynamic     = true;
+          t->fDynamic     = true;
           t->fTurb       = true;      
           t->type        = LES;
           t->typeDynamic = GDYNAMIC;
@@ -2283,7 +2365,7 @@ void readModel(EnergyModel *e     , Turbulence *t
 
 /*... Gdynamic*/
         else if(!strcmp(word,turb[12])){
-          t->dynamic     = true;
+          t->fDynamic    = true;
           t->fTurb       = true;      
           t->type        = LES;
           t->typeDynamic = GDYNAMICMOD;
@@ -2293,7 +2375,31 @@ void readModel(EnergyModel *e     , Turbulence *t
           }
           setDynamicModelLes(t,file);
         }
-/*...................................................................*/ 
+/*...................................................................*/
+
+/*... oneEqk*/
+        else if(!strcmp(word,turb[13])){
+          t->fDynamic    = true;
+          t->fTurb       = true;      
+          t->type        = LES;
+          t->typeMixed[FUNMODEL] = ONEEQK;
+          t->typeLes = LESFUNCMODELONEEQK;
+          t->eK.fRes =  true;
+          fscanf(file,"%lf %lf %lf %d %lf",&(t->eK.ck)
+                                          ,&(t->eK.ce)
+                                          ,&(t->eK.sk)
+                                          ,&(t->eK.maxIt)
+                                          ,&(t->eK.tol) );  
+          if(!mpiVar.myId){ 
+            strcpy(format,"%-20s: Ck = %.3lf Ce = %.3lf Sk = %.3lf\n");
+            fprintf(fileLogExc,format,"oneEqK"
+                              ,t->eK.ck
+                              ,t->eK.ce
+                              ,t->eK.sk); 
+          }
+        }
+/*...................................................................*/
+ 
 
       }
 /*...................................................................*/
@@ -2486,7 +2592,8 @@ void setPrintFluid(FileOpt *opt,FILE *file){
                ,"densityfluid" ,"specificheat","dviscosity"      /* 9,10,11*/
                ,"tconductivity","vorticity"   ,"wallparameters"  /*12,13,14*/
                ,"stress"       ,"kinecit"     ,"stressr"         /*15,16,17*/
-               ,"cdynamic"     ,"qcriterion"  ,"prestotal"};     /*18,19,20*/  
+               ,"cdynamic"     ,"qcriterion"  ,"prestotal"       /*18,19,20*/
+               ,"kturb"};                                        /*21*/  
   int tmp;
 
   strcpy(format,"%-20s: %s\n");
@@ -2510,8 +2617,9 @@ void setPrintFluid(FileOpt *opt,FILE *file){
   opt->stress         = false;
   opt->kinetic        = false;
   opt->stressR        = false;
-  opt->cDynamic        = false;  
+  opt->cDynamic       = false;  
   opt->Qcriterion     = false;
+  opt->kTurb          = false;
 
   fscanf(file,"%d",&tmp);
   opt->stepPlotFluid[0] = opt->stepPlotFluid[1] = (short) tmp;
@@ -2662,6 +2770,13 @@ void setPrintFluid(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[20])) {
       opt->presTotal = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","presTotal");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word,macro[21])) {
+      opt->kTurb = true;
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","kTurb");
     }
 /*.....................................................................*/
 

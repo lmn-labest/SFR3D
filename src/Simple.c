@@ -638,19 +638,21 @@ void simpleSolver3D(Memoria *m
 *-------------------------------------------------------------------*
 *-------------------------------------------------------------------*
 *********************************************************************/
-void simpleSolverLm(Memoria *m          ,PropVar prop     
-                   ,Loads *loadsVel     ,Loads *loadsPres
-                   ,Loads *loadsEnergy  ,EnergyModel eModel
-                   ,MassEqModel eMass   ,MomentumModel eMomentum
-                   ,Turbulence *tModel  ,ThermoDynamic *thDynamic
-                   ,Mesh *mesh0         ,Mesh *mesh
-                   ,SistEq *sistEqVel   ,SistEq *sistEqPres
-                   ,SistEq *sistEqEnergy 
-                   ,Solv *solvVel       ,Solv *solvPres
-                   ,Solv *solvEnergy    ,Simple *sp
-                   ,Scheme *sc          ,PartMesh *pMesh
-                   ,FileOpt opt         ,char *preName
-                   ,char *nameOut       ,FILE *fileOut) {
+void simpleSolverLm(Memoria *m          , PropVar prop     
+                  , Loads *loadsVel     , Loads *loadsPres
+                  , Loads *loadsEnergy  , Loads *loadsKturb
+                  , EnergyModel eModel
+                  , MassEqModel eMass   , MomentumModel eMomentum
+                  , Turbulence *tModel  , ThermoDynamic *thDynamic
+                  , Mesh *mesh0         , Mesh *mesh
+                  , SistEq *sistEqVel   , SistEq *sistEqPres
+                  , SistEq *sistEqEnergy, SistEq *sistEqKturb 
+                  , Solv *solvVel       , Solv *solvPres
+                  , Solv *solvEnergy    , Solv *solvKturb
+                  , Simple *sp
+                  , Scheme *sc          , PartMesh *pMesh
+                  , FileOpt opt         , char *preName
+                  , char *nameOut       , FILE *fileOut) {
   FILE *fStop = NULL;
   short unsigned ndfVel = mesh->ndfFt - 2;
   short unsigned conv;
@@ -754,9 +756,23 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
            ,mesh->elm.faceRenergy  ,mesh->elm.faceLoadEnergy
            ,mesh->elm.geom.volume  ,sistEqEnergy->id
            ,mesh->elm.energy       ,sistEqEnergy->b0
-           ,mesh->numelNov         ,ndfVel
+           ,mesh->numelNov         ,1        
            ,mesh->ndm              ,mesh->maxViz);
   tm.cellPloadSimple = getTimeC() - tm.cellPloadSimple;
+/*...................................................................*/
+
+/* ... restricoes por centro de celula u0 e cargas por volume b0*/
+  if (tModel->typeLes == LESFUNCMODELONEEQK) {
+    zero(sistEqKturb->b0 ,sistEqKturb->neqNov     ,DOUBLEC);
+    tm.turbulence = getTimeC() - tm.turbulence;
+    cellPload(loadsKturb         ,mesh->elm.geom.cc
+         ,mesh->elm.faceReKturb  ,mesh->elm.faceLoadKturb 
+         ,mesh->elm.geom.volume  ,sistEqKturb->id
+         ,mesh->elm.energy       ,sistEqKturb->b0
+         ,mesh->numelNov         ,1         
+         ,mesh->ndm              ,mesh->maxViz);
+    tm.turbulence = getTimeC() - tm.turbulence;
+  }
 /*...................................................................*/
 
 /*... discretizacao temporal*/
@@ -769,6 +785,8 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                        ,sc->ddt                ,sistEqVel->neqNov
                        ,mesh->numelNov        ,ndfVel
                        ,true);
+/*...................................................................*/
+
 /*... Energia*/
     if(eModel.fTemperature)
       cellTransientEnergy(mesh->elm.geom.volume  ,sistEqEnergy->id
@@ -783,6 +801,23 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                    ,mesh->elm.densityFluid ,sistEqEnergy->b0
                    ,sc->ddt                ,mesh->numelNov
                    ,1                      ,true);
+/*...................................................................*/
+
+/*... energia cinetica turbulenta*/
+    if (tModel->typeLes == LESFUNCMODELONEEQK) {
+      tm.turbulence = getTimeC() - tm.turbulence;
+      cellTransient(mesh->elm.geom.volume  ,sistEqKturb->id
+                   ,mesh->elm.kTurb0       ,mesh->elm.kTurb  
+                   ,mesh->elm.densityFluid ,sistEqKturb->b0
+                   ,sc->ddt                ,mesh->numelNov
+                   ,1                      ,true);
+/*... kTurb(n-1) = kTueb(n)*/
+      alphaProdVector(1.e0              ,mesh->elm.kTurb
+                     ,mesh->numel       ,mesh->elm.kTurb0);
+      tm.turbulence = getTimeC() - tm.turbulence;
+    }
+/*...................................................................*/
+
 /*... vel(n-1) = vel(n)*/
     alphaProdVector(1.e0              ,mesh->elm.vel
                    ,mesh->numel*ndfVel,mesh->elm.vel0);
@@ -888,7 +923,8 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                      , sp->d                  , sp->alphaVel 
                      , mesh->elm.rCellVel     , mesh->elm.stressR
                      , mesh->elm.densityFluid , mesh->elm.dViscosity  
-                     , mesh->elm.eddyViscosity, sc->ddt 
+                     , mesh->elm.eddyViscosity, mesh->elm.wallParameters
+                     , sc->ddt 
                      , sistEqVel->neq         , sistEqVel->neqNov 
                      , sistEqVel->nad         , sistEqVel->nadr 
                      , mesh->maxNo            , mesh->maxViz 
@@ -1027,7 +1063,7 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
                       ,mesh->elm.faceRpres    ,mesh->elm.faceLoadPres
                       ,mesh->elm.pressure     ,mesh->elm.gradPres
                       ,mesh->elm.vel          ,sp->d
-                      ,mesh->elm.pressure
+                      ,mesh->elm.temp         ,mesh->elm.wallParameters
                       ,rCellPc                ,sc->ddt
                       ,sistEqPres->neq        ,sistEqPres->neqNov
                       ,sistEqPres->nad        ,sistEqPres->nadr
@@ -1253,27 +1289,13 @@ void simpleSolverLm(Memoria *m          ,PropVar prop
 /*... modelo de turbulencia*/
     if(tModel->fTurb){
       tm.turbulence = getTimeC() - tm.turbulence;
-      turbulence(m                   , loadsVel  
-            , &pMesh->iNo            , &pMesh->iEl
-            , tModel                 , mesh->node.x             
-            , mesh->elm.node         , mesh->elm.adj.nelcon 
-            , mesh->elm.nen          , mesh->elm.adj.nViz 
-            , mesh->elm.geomType     , mesh->elm.material.prop 
-            , mesh->elm.material.type, mesh->elm.mat 
-            , mesh->elm.geom.cc      , mesh->elm.geom.ksi 
-            , mesh->elm.geom.mksi    , mesh->elm.geom.eta     
-            , mesh->elm.geom.fArea   , mesh->elm.geom.normal 
-            , mesh->elm.geom.volume  , mesh->elm.geom.xm     
-            , mesh->elm.geom.xmcc    , mesh->elm.geom.vSkew    
-            , mesh->elm.geom.mvSkew  , mesh->elm.geom.dcca 
-            , mesh->elm.faceRvel     , mesh->elm.faceLoadVel     
-            , mesh->elm.vel          , mesh->elm.gradVel      
-            , mesh->elm.densityFluid , mesh->elm.dViscosity
-            , mesh->elm.eddyViscosity, mesh->elm.wallParameters
-            , mesh->elm.stressR      , mesh->elm.cd 
-            , mesh->nnode            , mesh->numelNov
-            , mesh->maxNo            , mesh->maxViz 
-            , mesh->ndm              , ndfVel);  
+      turbulence(m    
+               , loadsKturb, loadsVel  
+               , pMesh     , tModel
+               , mesh      , sc
+               , sp        , sistEqKturb
+               , solvKturb , ndfVel);  
+
       tm.turbulence = getTimeC() - tm.turbulence;
     }
 /*...................................................................*/

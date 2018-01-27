@@ -28,7 +28,7 @@
           , DOUBLE const viscosityC , DOUBLE const effViscosityC  
           , DOUBLE *RESTRICT sl     , DOUBLE *RESTRICT e        
           , DOUBLE *RESTRICT t      , DOUBLE *RESTRICT n  
-          , DOUBLE const densityC     
+          , DOUBLE const densityC   , DOUBLE *RESTRICT wallPar 
           , DOUBLE const fArea      , DOUBLE const dcca
           , Loads ld                , short  const ndm 
           , bool const fCalVel      , bool const fCalPres
@@ -52,10 +52,22 @@
                , DOUBLE const prT        , DOUBLE *RESTRICT xm                   
                , DOUBLE const fArea      , DOUBLE const dcca
                , Loads ld                , Loads ldVel 
-               , short  const ndm
+               , DOUBLE *RESTRICT wallPar, short  const ndm        
                , bool const fCal         , bool const fTemp
                , bool const iKelvin      , bool const fSheat
                , bool const fWallModel   , short const wallType);
+
+  void pLoadOneEqK(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
+               , DOUBLE *RESTRICT tA     , DOUBLE *RESTRICT velC
+               , DOUBLE const uC         , DOUBLE *RESTRICT n  
+               , DOUBLE const densityC   , DOUBLE const viscosityC
+               , DOUBLE const prT        , DOUBLE *RESTRICT xm                   
+               , DOUBLE const fArea      , DOUBLE const dcca
+               , Loads ld                , Loads ldVel
+               , short const lFaceReK  
+               , DOUBLE *RESTRICT wallPar, short  const ndm          
+               , bool const fCal         , bool const fWallModel   
+               , short const wallType);
 /*...................................................................*/
 
 

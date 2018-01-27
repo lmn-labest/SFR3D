@@ -35,7 +35,7 @@ void printFluid(Memoria *m
   void *dum=NULL;
   INT ndfVel;
   DOUBLE *nStressR=NULL,*nEddyV=NULL,*nDvisc=NULL,*nDenFluid=NULL;
-  DOUBLE *nCdyn=NULL,*nWall=NULL;
+  DOUBLE *nCdyn=NULL,*nWall=NULL,*nKturb=NULL;
   FILE *fileOut=NULL;
 
 /*...*/
@@ -49,6 +49,7 @@ void printFluid(Memoria *m
   HccaAlloc(DOUBLE, m, nStressR , mesh->nnode*6, "nStressR" , _AD_);
   HccaAlloc(DOUBLE, m, nCdyn    , mesh->nnode*2, "nCdyn"    , _AD_); 
   HccaAlloc(DOUBLE, m, nWall    , mesh->nnode*4, "nWall"    , _AD_); 
+  HccaAlloc(DOUBLE, m, nKturb   , mesh->nnode  , "nKturb"   , _AD_); 
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (Pres)*/
@@ -345,6 +346,24 @@ void printFluid(Memoria *m
                 ,false                    ,2);
 /*...................................................................*/
 
+/*... energia cinetica turbulenta*/
+    if(opt.kTurb)       
+      interCellNode(m              , loadsVel
+            , nKturb               , mesh->elm.kTurb                
+            , mesh->elm.node       , mesh->elm.geomType            
+            , mesh->elm.geom.cc    , mesh->node.x  
+            , mesh->elm.geom.xm      
+            , mesh->elm.nen        , mesh->elm.adj.nViz
+            , mesh->elm.faceReKturb,mesh->elm.faceLoadKturb                   
+            , &pMesh->iNo          
+            , mesh->numelNov       , mesh->numel        
+            , mesh->nnodeNov       , mesh->nnode 
+            , mesh->maxNo          , mesh->maxViz   
+            , 1                    , 1
+            , mesh->ndm              
+            , false                , 2);
+/*...................................................................*/
+
   }                                 
 /*...................................................................*/
 
@@ -367,6 +386,7 @@ void printFluid(Memoria *m
                , mesh0->elm.stressR       , nStressR
                , mesh0->elm.cd            , nCdyn
                , mesh0->elm.wallParameters, nWall
+               , mesh0->elm.kTurb         , nKturb
                , mesh0->elm.specificHeat  , mesh0->elm.tConductivity                                               
                , mesh0->nnode             , mesh0->numel  
                , mesh0->ndm               , mesh0->maxNo 
@@ -380,6 +400,7 @@ void printFluid(Memoria *m
 /*...................................................................*/
 
 /*... desalocando memoria*/
+  HccaDealloc(m, nKturb   , "nKturb"   , _AD_);
   HccaDealloc(m, nWall    , "nWall"    , _AD_);
   HccaDealloc(m, nCdyn    , "nCdyn"    , _AD_); 
   HccaDealloc(m, nStressR , "nStressR" , _AD_); 

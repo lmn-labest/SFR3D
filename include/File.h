@@ -52,6 +52,7 @@
     bool stressR;  
     bool cDynamic; 
     bool Qcriterion; 
+    bool kTurb; 
     bool bconditions;    /*insere as condicoes de contorno nos valores nodais*/
     short stepPlotFluid[2];
     FILE *fileItPlot[7];

@@ -58,41 +58,41 @@ bool energyEquation(Memoria *m              , PropVar *prop
 
 /*... calculo de: A(i),bE(i)*/
   tm.systFormEnergy = getTimeC() - tm.systFormEnergy;
-  systFormEnergy(loadsEnergy         , loadsVel
-            , sc->advEnergy          , sc->diffEnergy
-            , *tModel                , *eModel  
+  systFormEnergy(loadsEnergy          , loadsVel
+            , sc->advEnergy           , sc->diffEnergy
+            , *tModel                 , *eModel  
             , *prop  
-            , mesh->elm.node         , mesh->elm.adj.nelcon
-            , mesh->elm.nen          , mesh->elm.adj.nViz
-            , mesh->elm.geomType     , mesh->elm.material.prop
-            , mesh->elm.material.type, mesh->elm.mat
-            , mesh->elm.geom.cc        
-            , mesh->elm.geom.ksi     , mesh->elm.geom.mksi
-            , mesh->elm.geom.eta     , mesh->elm.geom.fArea
-            , mesh->elm.geom.normal  , mesh->elm.geom.volume
-            , mesh->elm.geom.xm      , mesh->elm.geom.xmcc
-            , mesh->elm.geom.vSkew   , mesh->elm.geom.mvSkew
-            , mesh->elm.geom.dcca      
-            , sistEqEnergy->ia       , sistEqEnergy->ja
-            , sistEqEnergy->al       , sistEqEnergy->ad
-            , sistEqEnergy->b        , sistEqEnergy->id
-            , mesh->elm.faceRenergy  , mesh->elm.faceLoadEnergy
-            , mesh->elm.faceRvel     , mesh->elm.faceLoadVel   
-            , mesh->elm.energy       , mesh->elm.gradEnergy
-            , mesh->elm.vel          , mesh->elm.gradVel
-            , mesh->elm.pressure0    , mesh->elm.pressure  
-            , mesh->elm.gradPres     , mesh->elm.rCellEnergy 
-            , mesh->elm.densityFluid , mesh->elm.specificHeat
-            , mesh->elm.dViscosity   , mesh->elm.eddyViscosity 
-            , mesh->elm.tConductivity, sp->d
-            , sc->ddt                , sp->alphaEnergy
-            , sistEqEnergy->neq      , sistEqEnergy->neqNov
-            , sistEqEnergy->nad      , sistEqEnergy->nadr
-            , mesh->maxNo            , mesh->maxViz
-            , mesh->ndm              , mesh->numelNov
-            , 1                      , sistEqEnergy->storage
-            , true                   , true
-            , true                   , sistEqEnergy->unsym);
+            , mesh->elm.node          , mesh->elm.adj.nelcon
+            , mesh->elm.nen           , mesh->elm.adj.nViz
+            , mesh->elm.geomType      , mesh->elm.material.prop
+            , mesh->elm.material.type , mesh->elm.mat
+            , mesh->elm.geom.cc       , mesh->elm.geom.ksi    
+            , mesh->elm.geom.mksi     , mesh->elm.geom.eta     
+            , mesh->elm.geom.fArea    , mesh->elm.geom.normal  
+            , mesh->elm.geom.volume   , mesh->elm.geom.xm
+            , mesh->elm.geom.xmcc     , mesh->elm.geom.vSkew   
+            , mesh->elm.geom.mvSkew   , mesh->elm.geom.dcca     
+            , sistEqEnergy->ia        , sistEqEnergy->ja
+            , sistEqEnergy->al        , sistEqEnergy->ad
+            , sistEqEnergy->b         , sistEqEnergy->id
+            , mesh->elm.faceRenergy   , mesh->elm.faceLoadEnergy
+            , mesh->elm.faceRvel      , mesh->elm.faceLoadVel   
+            , mesh->elm.energy        , mesh->elm.gradEnergy
+            , mesh->elm.vel           , mesh->elm.gradVel
+            , mesh->elm.pressure0     , mesh->elm.pressure  
+            , mesh->elm.gradPres      , mesh->elm.rCellEnergy 
+            , mesh->elm.densityFluid  , mesh->elm.specificHeat
+            , mesh->elm.dViscosity    , mesh->elm.eddyViscosity 
+            , mesh->elm.tConductivity , sp->d
+            , mesh->elm.wallParameters
+            , sc->ddt                 , sp->alphaEnergy
+            , sistEqEnergy->neq       , sistEqEnergy->neqNov
+            , sistEqEnergy->nad       , sistEqEnergy->nadr
+            , mesh->maxNo             , mesh->maxViz
+            , mesh->ndm               , mesh->numelNov
+            , 1                       , sistEqEnergy->storage
+            , true                    , true
+            , true                    , sistEqEnergy->unsym);
   tm.systFormEnergy = getTimeC() - tm.systFormEnergy;
 /*...................................................................*/
 

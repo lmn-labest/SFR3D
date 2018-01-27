@@ -67,8 +67,7 @@ void transport(Memoria *m   ,Loads *loadsTrans
   }
 /*...................................................................*/
   
-/*... correcao nao ortoganal*/ 
-  
+/*... correcao nao ortoganal*/   
   for(i=0;i<sc.nlT1.maxIt;i++){
  
 /*... calculo de: A(i),b(i)*/

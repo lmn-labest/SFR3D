@@ -31,14 +31,15 @@
   
   void simpleSolverLm(Memoria *m          , PropVar prop
                     , Loads *loadsVel     , Loads *loadsPres 
-                    , Loads *loadsEnergy  , EnergyModel eModel
+                    , Loads *loadsEnergy  , Loads *loadsKturb  
+                    , EnergyModel eModel
                     , MassEqModel eMass   , MomentumModel eMomentum
                     , Turbulence *tModel  , ThermoDynamic *thDynamic
                     , Mesh *mesh0         , Mesh *mesh
                     , SistEq *sistEqVel   , SistEq *sistEqPres
-                    , SistEq *sistEqEnergy  
+                    , SistEq *sistEqEnergy, SistEq *sistEqKturb 
                     , Solv *solvVel       , Solv *solvPres 
-                    , Solv *solvEnergy      
+                    , Solv *solvEnergy    , Solv *solvKturb      
                     , Simple *sp            
                     , Scheme *sc          , PartMesh *pMesh
                     , FileOpt opt         , char *preName

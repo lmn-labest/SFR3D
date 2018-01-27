@@ -81,7 +81,7 @@
      , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres 
      , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lSheat
      , DOUBLE *RESTRICT lDviscosity, DOUBLE *RESTRICT ltConductvity
-     , DOUBLE *RESTRICT dField
+     , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT wallPar
      , DOUBLE const underU
      , short const nEn             , short  const nFace
      , short const ndm             , short const lib
@@ -180,6 +180,7 @@
             , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel
             , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lViscosity
             , DOUBLE *RESTRICT dField    , DOUBLE *RESTRICT stressR
+            , DOUBLE *RESTRICT wallPar  
             , DOUBLE const underU        , const bool sPressure
             , short const nEn            , short  const nFace
             , short const ndm            , short const lib
@@ -201,7 +202,7 @@
                , short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL
                , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres 
                , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField 
-               , DOUBLE *RESTRICT temp      
+               , DOUBLE *RESTRICT temp      , DOUBLE *RESTRICT wallPar
                , short const nEn            , short  const nFace     
                , short const ndm            , short const lib    
                , INT const nel);
@@ -242,6 +243,32 @@
       , short const nEn               , short  const nFace
       , short const ndm               , short const lib
       , INT const nel);
+/*...................................................................*/
+
+/*...*/
+void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
+     , Turbulence *tModel                       
+     , Advection  *adv             , Diffusion *diff              
+     , short *RESTRICT lGeomType   , DOUBLE *RESTRICT lprop
+     , INT   *RESTRICT lViz        , INT *RESTRICT lId
+     , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
+     , DOUBLE *RESTRICT eta        , DOUBLE *RESTRICT fArea
+     , DOUBLE *RESTRICT normal     , DOUBLE *RESTRICT volume
+     , DOUBLE *RESTRICT xm         , DOUBLE *RESTRICT xmcc
+     , DOUBLE *RESTRICT dcca       , DOUBLE *RESTRICT cc
+     , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
+     , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
+     , DOUBLE *RESTRICT lRcell     , Temporal *ddt
+     , short  *RESTRICT lFaceReK   , short  *RESTRICT lFaceLdK 
+     , short  *RESTRICT lFaceReVel , short  *RESTRICT lFaceLdVel 
+     , DOUBLE *RESTRICT u          , DOUBLE *RESTRICT gradU
+     , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
+     , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres  
+     , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lDviscosity
+     , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT wallPar    
+     , DOUBLE *RESTRICT cDyn
+     , short const nEn             , short  const nFace
+     , short const ndm             , INT const nel);
 /*...................................................................*/
 
 /*... funcoes geometricas*/
@@ -391,7 +418,7 @@
              ,const short ndm            ,INT const nel);
 /*...................................................................*/
 
-/*.......................... ENRGIA .................................*/
+/*.......................... ENERGIA ................................*/
   void cellEnergy2D(Loads *loads           , Loads *loadsVel 
             , Advection adv                , Diffusion diff
             , Turbulence tModel            , EnergyModel model 
@@ -439,11 +466,36 @@
             , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres  
             , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lSheat
             , DOUBLE *RESTRICT lViscosity , DOUBLE *RESTRICT lTconductivity
-            , DOUBLE *RESTRICT dField
+            , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT wallPar
             , DOUBLE const underU           
             , const short nEn             , short const nFace
             , const short ndm             , INT const nel);
+/*...................................................................*/
 
+/*........................ TURBULENCIA ..............................*/
+void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel        
+            , Turbulence *tModel
+            , Advection *advT             , Diffusion *diffT
+            , short *RESTRICT lGeomType   , DOUBLE *RESTRICT prop
+            , INT *RESTRICT lViz          , INT *RESTRICT lId
+            , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
+            , DOUBLE *RESTRICT eta        , DOUBLE *RESTRICT fArea
+            , DOUBLE *RESTRICT normal     , DOUBLE *RESTRICT volume
+            , DOUBLE *RESTRICT xm         , DOUBLE *RESTRICT xmcc
+            , DOUBLE *RESTRICT dcca       , DOUBLE *RESTRICT cc
+            , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
+            , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
+            , DOUBLE *RESTRICT lRcell     , Temporal *ddt
+            , short  *RESTRICT lFaceReK   , short *RESTRICT lFaceLdK
+            , short  *RESTRICT lFaceReVel , short *RESTRICT lFaceLdVel
+            , DOUBLE *RESTRICT u0         , DOUBLE *RESTRICT gradU0
+            , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
+            , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres  
+            , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lViscosity 
+            , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT wallPar      
+            , DOUBLE *RESTRICT cDyn
+            , const short nEn             , short const nFace
+            , const short ndm             , INT const nel);
 /*...................................................................*/
 
 /*.......................... SIMPLE .................................*/
@@ -639,6 +691,7 @@
             , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
             , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lViscosity 
             , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT stressR
+            , DOUBLE *RESTRICT wallPar
             , DOUBLE const underU         , const bool sPressure
             , const short nEn             , short const nFace    
             , const short ndm             , INT const nel);
@@ -659,7 +712,7 @@
               , short  *RESTRICT lFacePresR, short *RESTRICT lFacePresL
               , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres
               , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField
-              , DOUBLE *RESTRICT temp 
+              , DOUBLE *RESTRICT temp      , DOUBLE *RESTRICT wallPar
               , const short nEn            , short const nFace
               , const short ndm            , INT const nel);
 /*...................................................................*/

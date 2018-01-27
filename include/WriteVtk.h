@@ -123,6 +123,7 @@
           , DOUBLE *eStressR     , DOUBLE *nStressR
           , DOUBLE *eCd          , DOUBLE *nCd 
           , DOUBLE *eWallPar     , DOUBLE *nWallPar 
+          , DOUBLE *eKturb       , DOUBLE *nKturb
           , DOUBLE *specificHeat , DOUBLE *tConductivity               
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 

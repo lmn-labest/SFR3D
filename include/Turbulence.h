@@ -12,6 +12,8 @@
   #include<Mesh.h>
   #include<NumInt.h>
   #include<Jacobi.h>
+  #include<Sisteq.h>
+  #include<Solv.h>
 /*...................................................................*/
 
 /*...*/
@@ -32,13 +34,15 @@
   #define BARDINA     7
   #define CLARK       8 
   #define BARDINAMOD  9
+  #define ONEEQK     10
 /*...................................................................*/
   
 /*...*/
-  #define LESFUNCMODEL     0
-  #define LESSTRUMODEL     1
-  #define LESMIXEDMODEL    2
-  #define LESMIXEDTWOMODEL 3
+  #define LESFUNCMODEL       0
+  #define LESSTRUMODEL       1
+  #define LESMIXEDMODEL      2
+  #define LESMIXEDTWOMODEL   3
+  #define LESFUNCMODELONEEQK 4
 /*...................................................................*/
 
 /*...*/
@@ -54,33 +58,23 @@
 /*...................................................................*/
 
 /*...*/
+  #define NWALLPAR     4
+/*...................................................................*/
+
+/*...*/
   #define LDYNAMIC      1
   #define GDYNAMIC      2
   #define GDYNAMICMOD   3
   #define TWOPARDYNAMIC 4 
 /*...................................................................*/
+
 /*...*/
-  void turbulence(Memoria *m          , Loads *lVel
-      , InterfaceNo *iNo              , Interface *iCel
-      , Turbulence *tModel            , DOUBLE *RESTRICT x               
-      , INT    *RESTRICT el           , INT    *RESTRICT nelcon 
-      , short  *RESTRICT nen          , short  *RESTRICT nFace 
-      , short  *RESTRICT geomType     , DOUBLE *RESTRICT prop  
-      , short  *RESTRICT calType      , short  *RESTRICT mat        
-      , DOUBLE *RESTRICT cc           , DOUBLE *RESTRICT ksi                      
-      , DOUBLE *RESTRICT mKsi         , DOUBLE *RESTRICT eta  
-      , DOUBLE *RESTRICT fArea        , DOUBLE *RESTRICT normal  
-      , DOUBLE *RESTRICT volume       , DOUBLE *RESTRICT xm  
-      , DOUBLE *RESTRICT xmcc         , DOUBLE *RESTRICT vSkew    
-      , DOUBLE *RESTRICT mvSkew       , DOUBLE *RESTRICT dcca  
-      , short  *RESTRICT faceRvel     , short *RESTRICT faceVelL               
-      , DOUBLE *RESTRICT vel          , DOUBLE *RESTRICT gradVel
-      , DOUBLE *RESTRICT densityFluid , DOUBLE *RESTRICT dViscosity        
-      , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT wallPar  
-      , DOUBLE *RESTRICT stressR      , DOUBLE *RESTRICT cd
-      , INT const nnode               , INT const numel              
-      , short const maxNo             , short const maxViz
-      , short const ndm               , short const ndf);  
+  void turbulence(Memoria *m            
+                , Loads *lKturb  , Loads *lVel
+                , PartMesh *pMesh, Turbulence *tModel
+                , Mesh *mesh     , Scheme *sc
+                , Simple *sp     , SistEq *sistEq    
+                , Solv *solv     , short const ndf);   
 /*...................................................................*/
 
 /*...*/
@@ -188,7 +182,51 @@
 /*...................................................................*/
 
 /*...*/
-  bool wallParamenters(Loads *lVel               
+  void wallParametersCellLoop(Loads *lVel , Turbulence *tModel             
+      , INT    *RESTRICT nelcon         , short  *RESTRICT nFace 
+      , DOUBLE *RESTRICT gNormal        , DOUBLE *RESTRICT gVolume
+      , DOUBLE *RESTRICT gDcca  
+      , short  *RESTRICT faceVelR       , short *RESTRICT faceVelL               
+      , DOUBLE *RESTRICT vel            , DOUBLE *RESTRICT density
+      , DOUBLE *RESTRICT dViscosity     , DOUBLE *RESTRICT wallPar  
+      , short const maxNo               , short const maxViz
+      , short const ndm                 , INT const numel     
+      , short const ndf);                      
+/*...................................................................*/
+
+/*...*/
+  void oneEquationK(Memoria *m        
+                , Loads *lKturb     , Loads *lVel
+                , PartMesh *pMesh   , Turbulence *tModel
+                , Mesh *mesh        , Scheme *sc
+                , Simple *sp  
+                , SistEq *sistEq    , Solv *solv);
+  
+  void lesOneKeqLoc(INT *RESTRICT lViz     , DOUBLE *RESTRICT volume
+                , DOUBLE *RESTRICT lDensity, DOUBLE *RESTRICT vel
+                , DOUBLE *RESTRICT gradVel , DOUBLE *RESTRICT lDynamic
+                , DOUBLE const dViscosity  , DOUBLE const eddyViscosity
+                , INT const nel            , short const nFace  );
+
+  void lesOneKeqPar(Turbulence *tModel, INT *RESTRICT lViz
+         , DOUBLE *RESTRICT dynamic , DOUBLE *RESTRICT cDyn
+         , DOUBLE *RESTRICT volume  , short const nFace
+         , INT const nel            , short const nPar 
+         , bool const fCap); 
+
+  void lesDynamicOneKeq(Memoria *m             , Turbulence *tModel
+                  , INT    *RESTRICT nelcon  , short  *RESTRICT nen    
+                  , short  *RESTRICT nFace   , DOUBLE *RESTRICT gVolume 
+                  , DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT gradVel 
+                  , DOUBLE *RESTRICT density , DOUBLE *RESTRICT dViscosity
+                  , DOUBLE *RESTRICT eddyVis , DOUBLE *RESTRICT cDyn                                      
+                  , short const maxNo        , short const maxViz
+                  , short const ndm          , INT const numel     
+                  , short const ndf          , short const iCod) ;
+/*...................................................................*/
+
+/*...*/
+  bool wallParameters(Loads *lVel               
              , INT *RESTRICT lViz       , DOUBLE *RESTRICT v 
              , DOUBLE *RESTRICT normal  , DOUBLE *RESTRICT dcca
              , short *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL

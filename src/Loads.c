@@ -115,7 +115,7 @@ void loadSenProd(DOUBLE *tA,DOUBLE *par,DOUBLE *xm){
 
 /********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 07/01/2018                                   * 
+ * Data de modificaco : 17/01/2018                                   * 
  *-------------------------------------------------------------------* 
  * pLoadSimple : condicao de contorno para velocidades               *
  *-------------------------------------------------------------------* 
@@ -137,6 +137,7 @@ void loadSenProd(DOUBLE *tA,DOUBLE *par,DOUBLE *xm){
  * t          -> vetor t                                             *  
  * n          -> vetorno normal a face                               * 
  * densityC   -> massa especifica                                    * 
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  *  
  * fArea      -> area da face                                        * 
  * dcca       -> menor distancia do centroide central a face desta   *
  *               celula                                              * 
@@ -163,7 +164,7 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
           , DOUBLE const viscosityC , DOUBLE const effViscosityC  
           , DOUBLE *RESTRICT s      , DOUBLE *RESTRICT e        
           , DOUBLE *RESTRICT t      , DOUBLE *RESTRICT n  
-          , DOUBLE const densityC     
+          , DOUBLE const densityC   , DOUBLE *RESTRICT wallPar   
           , DOUBLE const fArea      , DOUBLE const dcca
           , Loads ld                , short  const ndm 
           , bool const fCalVel      , bool const fCalPres
@@ -175,28 +176,13 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
   tmp[0] = tmp[1] = tmp[2] = tmp[3] = 0.e0;
 /*... parade impermeavel movel*/
   if( ld.type == MOVEWALL){
-    tA[0] = ld.par[0];
-    tA[1] = ld.par[1];
-    if( ndm == 3 ) tA[2] = ld.par[2];
     if(!fCalVel)return;
 /*...*/
     yPlus = 0.e0;
-    uPlus = 0.e0;
-    if (fWallModel) {
-/*... calculo da velociade paralela a face*/
-      wfn   = velC[0] * n[0] + velC[1] * n[1];
-      wf[0] = velC[0] - wfn * n[0] - tA[0];
-      wf[1] = velC[1] - wfn * n[1] - tA[1];
-      if( ndm == 3 ) wf[2] = velC[2] - wfn*n[2] - tA[2];
-      wfn = wf[0]*wf[0] + wf[1]*wf[1];
-      if( ndm == 3 ) wfn += wf[2]*wf[2];
-      wfn   = sqrt(wfn);
-/*...*/
-      if (wfn > 0.e0)
-        wallModel(wfn     , viscosityC
-                 ,densityC, dcca
-                 ,&yPlus  , &uPlus     
-                 ,wallType);
+    uPlus = 1.e0;
+    if (fWallModel) {    
+      yPlus = wallPar[0];
+      uPlus = wallPar[1];
 /*...................................................................*/
       viscosityWall = viscosityC*yPlus/uPlus;
     }
@@ -258,7 +244,7 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 /*... velocidade normal*/
     if (ndm == 3) {
       tmp[2] = ld.par[3];
-      wfn += velC[2]*n[2];
+      wfn = velC[0]*n[0] + velC[1]*n[1] + velC[2]*n[2];
       tmp[3] = wfn / (tmp[0]*n[0] + tmp[1]*n[1] + tmp[2]*n[2]);
     }
     else {
@@ -642,8 +628,8 @@ void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
     if(fCal){    
       tmp[0] = densityEnv*modVel;
       tmp[1] = m - dc*tmp[0]*tmp[0];
-//    *sP += densityEnv*m*dc/tmp[1];
-      *sP += densityC*modE/dd;
+      *sP += densityEnv*m*dc/tmp[1];
+//    *sP += densityC*modE/dd;
     }
   }
 /*...................................................................*/
@@ -805,42 +791,22 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
                , DOUBLE const prT        , DOUBLE *RESTRICT xm                   
                , DOUBLE const fArea      , DOUBLE const dcca
                , Loads ld                , Loads ldVel 
-               , short  const ndm
+               , DOUBLE *RESTRICT wallPar, short  const ndm          
                , bool const fCal         , bool const fTemp
                , bool const iKelvin      , bool const fSheat
                , bool const fWallModel   , short const wallType){
 
-  DOUBLE aP,h,wfn,wf[3],tempPlus,yPlus,uPlus,tC,tW,vW[3],densityEnv;
+  DOUBLE aP,h,wfn,wf[3],tempPlus,yPlus,uPlus,tC,tW,densityEnv;
   DOUBLE prM = viscosityC*sHeatC/thermCoef,diff;
 
 /*...*/
   tempPlus = uPlus = yPlus = 0.e0;
-  vW[0] = vW[1] = vW[2] = 0.e0;
   wf[0] = wf[1] = wf[2] = 0.e0;
   if (fWallModel && fCal) {
-    if (ldVel.type == MOVEWALL) {
-      vW[0]   = ldVel.par[0];
-      vW[1]   = ldVel.par[1];
-      if( ndm == 3 )  vW[2]   = ldVel.par[2]; 
-    }
 /*... calculo da velocidade paralela a face*/
-    
-    wfn   = velC[0] * n[0] + velC[1] * n[1];
-    wf[0] = velC[0] - wfn * n[0] - vW[0];
-    wf[1] = velC[1] - wfn * n[1] - vW[1];
-    if( ndm == 3 ) wf[2] = velC[2] - wfn*n[2] - vW[2];
-    wfn = wf[0]*wf[0] + wf[1]*wf[1];
-    if( ndm == 3 ) wfn += wf[2]*wf[2];
-    wfn   = sqrt(wfn);
-/*...*/
-    if (wfn > 0.e0){
-      wallModel(wfn      , viscosityC
-              , densityC , dcca
-              , &yPlus   , &uPlus         
-              , wallType);
+      yPlus = wallPar[0];
 /*...*/ 
       tempPlus = wallModelHeat(yPlus,prM,prT);
-    }
 /*...................................................................*/ 
   }
 /*...................................................................*/ 
@@ -1021,5 +987,112 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 /*...................................................................*/
    }
 /*...................................................................*/
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 21/09/2017                                   *
+ * Data de modificaco : 30/09/2017                                   * 
+ *-------------------------------------------------------------------* 
+ * pLoadEnergy : cargas da equacao de energia                        *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * sP      -> termo da diagonal                                      * 
+ * p       -> forca local                                            * 
+ * tA      -> nao definido                                           * 
+ * coefDifC-> coeficiente de difusao                                 * 
+ * densityC-> densidade                                              * 
+ * wfn     -> velocidade normal a face                               * 
+ * xm      -> coordenada do ponto medio da face                      * 
+ * fArea   -> area da face                                           * 
+ * dd      -> menor distancia do centroide central a face desta      *
+ *            celula                                                 * 
+ * ld      -> definicao da carga                                     * 
+ * ldVel   -> definicao da carga para velociades                     * 
+ * fCal    -> true - atualizada sP e p                               * 
+ *            false- atualizada sP e p                               * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * sP      -> termo da diagonal atualizado                           * 
+ * p       -> forcas locais atualizada                               * 
+ * tA      -> valor pescrito na face                                 * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void pLoadOneEqK(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
+               , DOUBLE *RESTRICT tA     , DOUBLE *RESTRICT velC
+               , DOUBLE const uC         , DOUBLE *RESTRICT n  
+               , DOUBLE const densityC   , DOUBLE const viscosityC
+               , DOUBLE const prT        , DOUBLE *RESTRICT xm                   
+               , DOUBLE const fArea      , DOUBLE const dd
+               , Loads ld                , Loads ldVel
+               , short const lFaceReK  
+               , DOUBLE *RESTRICT wallPar, short  const ndm          
+               , bool const fCal         , bool const fWallModel   
+               , short const wallType){
+
+  DOUBLE aP,wfn,wf[3],yPlus,uF,densityEnv,in,vv,vB[3];
+  DOUBLE par[MAXLOADPARAMETER],modE,cMu = 0.09;
+
+  yPlus = 0.e0;
+/*...*/
+  if (fWallModel && fCal) {
+/*... calculo da velocidade paralela a face*/
+    yPlus = wallPar[0];
+    uF    = wallPar[2];
+/*...*/ 
+//    tempPlus = wallModelHeat(yPlus,prM,prT);
+/*...................................................................*/ 
+  }
+/*...................................................................*/ 
+
+/*...*/
+  if (lFaceReK == STATICWALL || ld.type == MOVEWALL) {
+    tA[0]   = 0.0;
+    if(!fCal) return;
+    aP   = viscosityC*fArea/dd;
+//  if(yPlus <= 20.0)
+    *sP += aP;
+ // *p += aP*uF*uF/0.3;
+  }
+/*...................................................................*/ 
+
+/*... potencial prescrito (entra)*/
+   else if( ld.type == INLET){
+     getLoads(par,ldVel);
+     densityEnv = par[0];
+     vB[0]      = par[1];
+     vB[1]      = par[2];
+     vv         = vB[0]*vB[0] + vB[1]*vB[1]; 
+     wfn        = vB[0]*n[0] + vB[1]*n[1];
+     if( ndm == 3){
+       vB[2] = par[3];
+       wfn += vB[2]*n[2];
+       vv  += vB[2]*vB[2];
+     }
+     getLoads(par,ld);
+     in    = ld.par[0];
+     tA[0] = 1.5e0*in*in*vv;
+/*...*/
+     if(fCal)
+       *p -= wfn*densityEnv*fArea*tA[0]; 
+   }
+/*...................................................................*/
+
+/*... derivada nula (condicao localmente parabolica saida)*/
+   else if( ld.type == OUTLET){
+/*...*/
+     if(fCal){
+       wfn   = velC[0] * n[0] + velC[1] * n[1];
+       if (ndm == 3) wfn += velC[2]*n[2];
+       *sP += wfn*densityC*fArea;
+     } 
+/*...................................................................*/
+  }
+/*...................................................................*/
+
 }
 /*********************************************************************/

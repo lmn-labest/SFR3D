@@ -1034,7 +1034,7 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                    *
- * Data de modificaco : 08/01/2018                                    * 
+ * Data de modificaco : 19/01/2018                                    * 
  *------------------------------------------------------------------- * 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1102,7 +1102,8 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
           , DOUBLE *eDyViscosity , DOUBLE *nDyViscosity
           , DOUBLE *eStressR     , DOUBLE *nStressR
           , DOUBLE *eCd          , DOUBLE *nCd
-          , DOUBLE *eWallPar     , DOUBLE *nWallPar   
+          , DOUBLE *eWallPar     , DOUBLE *nWallPar
+          , DOUBLE *eKturb       , DOUBLE *nKturb
           , DOUBLE *specificHeat , DOUBLE *tConductivity
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
@@ -1379,6 +1380,14 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
   }
 /*...................................................................*/
 
+/*... escreve a pressao total */  
+  if(opt.kTurb &&  opt.fCell ){
+    strcpy(str,"eKTurbl");
+    writeVtkProp(&idum,eKturb,numel,1,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+  }
+/*...................................................................*/
+
 /*.... campo por no*/
   fprintf(f,"POINT_DATA %ld\n",(long) nnode);
 /*...................................................................*/
@@ -1553,6 +1562,15 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
     HccaDealloc(m,p,"p",_AD_);
   }
 /*...................................................................*/
+
+/*... escreve a pressao total */  
+  if(opt.kTurb &&  opt.fNode ){
+    strcpy(str,"nKturbl");
+    writeVtkProp(&idum,nKturb,nnode,1,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+  }
+/*...................................................................*/
+
   fclose(f);
 }
 /*********************************************************************/

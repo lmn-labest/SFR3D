@@ -48,6 +48,7 @@ int main(int argc,char**argv){
 /*... Sistema de equacao*/
   SistEq *sistEqD1 =NULL, *sistEqT1=NULL;
   SistEq *sistEqVel=NULL, *sistEqPres=NULL, *sistEqEnergy = NULL;
+  SistEq *sistEqKturb = NULL;
 /*... metodo de acoplamento pressao-velocidade*/
   Simple *simple = NULL;
   Prime  *prime  = NULL;
@@ -62,9 +63,11 @@ int main(int argc,char**argv){
 
 /*... solver*/
   INT nEqMax;
-  Solv *solvD1=NULL,*solvT1=NULL,*solvVel=NULL,*solvPres=NULL,*solvEnergy=NULL;
+  Solv *solvD1=NULL,*solvT1=NULL,*solvVel=NULL,*solvPres=NULL;
+  Solv *solvEnergy=NULL,*solvKturb=NULL;
   bool fSolvD1 = false, fSolvT1 = false;
   bool fSolvVel = false,fSolvPres = false, fSolvEnergy = false;
+  bool fSolvKturb = false;
   bool fSolvSimple = false,fSolvPrime = false;
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
@@ -128,7 +131,7 @@ int main(int argc,char**argv){
 /*...*/
   turbModel.fWall               = false;
   turbModel.fTurb               = false;
-  turbModel.dynamic             = false;
+  turbModel.fDynamic            = false;
   turbModel.wallType            = STANDARDWALL;
   turbModel.type                = LES;
   turbModel.typeLes             = LESFUNCMODEL;
@@ -245,16 +248,19 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-  sc.advVel.iCod1 = TVD;
-  sc.advVel.iCod2 = VANLEERFACE;
+  sc.advVel.iCod1    = TVD;
+  sc.advVel.iCod2    = VANLEERFACE;
   sc.advEnergy.iCod1 = TVD;
   sc.advEnergy.iCod2 = VANLEERFACE;
+  sc.advKturb.iCod1  = TVD;
+  sc.advKturb.iCod2  = MIDMODFACE;
 /*...................................................................*/
 
 /*...*/  
   sc.diffVel.iCod  = OVERRELAXED;
   sc.diffPres.iCod = OVERRELAXED;
   sc.diffEnergy.iCod = OVERRELAXED;
+  sc.diffKturb.iCod  = OVERRELAXED;
 /*...................................................................*/
 
 /*...*/  
@@ -402,7 +408,11 @@ int main(int argc,char**argv){
       if(mesh0->ndfF > 0 || mesh0->ndfFt > 0){
         wallFluid(mesh0->elm.faceRvel,mesh0->elm.adj.nelcon
                  ,mesh0->elm.adj.nViz   
-                 ,mesh0->numel       ,mesh0->maxViz);  
+                 ,mesh0->numel       ,mesh0->maxViz); 
+        if( turbModel.fTurb)
+          wallFluid(mesh0->elm.faceReKturb,mesh0->elm.adj.nelcon
+                   ,mesh0->elm.adj.nViz   
+                   ,mesh0->numel          ,mesh0->maxViz);  
 /*... verifica se o dominio e aberto ou nao*/
         mesh0->fOpen = openDomain(loadsVel
                          , mesh0->elm.faceLoadVel , mesh0->elm.adj.nViz
@@ -1151,7 +1161,7 @@ int main(int argc,char**argv){
 *===================================================================*/
     else if ((!strcmp(word, macro[11]))) {
       if(!mpiVar.myId  ) fprintf(fileLogExc,"%s\n\n",DIF);
-/*... tecnica de adveccao*/
+/*... */
       readMacro(fileIn, word, false);
       fprintf(fileLogExc,"%-20s:\n","OpenMp:");
       nOmp = (short)atol(word);
@@ -2126,7 +2136,138 @@ int main(int argc,char**argv){
         }
 /*...................................................................*/
 
+/*... kTurb*/
+        else if (!strcmp(word, "kTurb") || !strcmp(word, "kturb")) {
+          nSistEq--;
+/*... inicializando a estrutura de equacoes do problema 
+      (energica cinetica turbulenta)*/
+          solvKturb = (Solv*)malloc(sizeof(Solv));
+          if (solvKturb == NULL) {
+            printf("Erro ponteiro solvKturb\n");
+            exit(EXIT_FAILURE);
+          }
+          fSolvKturb = true;
+          solvKturb->solver = PBICGSTAB;
+          solvKturb->tol = smachn();
+          solvKturb->maxIt = 50000;
+          solvKturb->fileSolv = NULL;
+          solvKturb->log = true;
+          solvKturb->flag = true;
+/*...................................................................*/
+
+/*...*/
+          if (solvKturb->log && !mpiVar.myId) {
+            strcpy(auxName, preName);
+            strcat(auxName, "_fluid_kturb");
+            fName(auxName, mpiVar.nPrcs, 0, 11, &nameOut);
+            solvKturb->fileSolv = openFile(nameOut, "w");
+          }
+/*...................................................................*/
+
+/*... inicializa a estrutura do solver(Energia cinetica turbulenta)*/
+          sistEqKturb = (SistEq*)malloc(sizeof(SistEq));
+          if (sistEqKturb == NULL) {
+            fprintf(fileLogExc,"Erro ponteiro sistEqKturb\n");
+            exit(EXIT_FAILURE);
+          }
+          sistEqKturb->unsym = true;
+/*...................................................................*/
+
+/*... solver*/
+          readMacro(fileIn, word, false);
+          setSolverConfig(word, solvKturb, fileIn);
+/*...................................................................*/
+
+/*... DataStruct*/
+          readMacro(fileIn, word, false);
+          setDataStruct(word, &sistEqKturb->storage);
+/*...................................................................*/
+
+/*... numeracao das equacoes (Energia cinetica turbulenta)*/
+          HccaAlloc(INT           ,&m  ,sistEqKturb->id
+                   ,mesh->numel
+                   ,"sistKturbId",_AD_);
+          if (!mpiVar.myId) { 
+            fprintf(fileLogExc,"%s\n", DIF);
+            fprintf(fileLogExc,"Numerando as equacoes.\n");
+          }
+          tm.turbulence = getTimeC() - tm.turbulence;
+          sistEqKturb->neq = numEqV1(sistEqKturb->id, reordMesh->num
+                                     ,mesh->numel);
+          tm.turbulence = getTimeC() - tm.turbulence;
+
+          if (!mpiVar.myId) {
+            fprintf(fileLogExc,"Equacoes numeradas.\n");
+            fprintf(fileLogExc,"%s\n", DIF);
+          }
+/*...................................................................*/
+
+/*...*/
+          if (mpiVar.nPrcs > 1) {
+            //          tm.numeqPres = getTimeC() - tm.numeqPres;
+            //      sistEqT1->neqNov = countEq(reordMesh->num
+            //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
+            //                          ,mesh->numelNov     ,mesh->maxViz
+            //                          ,mesh->ndfT[0]);
+            //          tm.numeqPres = getTimeC() - tm.numeqPres;
+          }
+          else
+            sistEqKturb->neqNov = sistEqKturb->neq;
+/*...................................................................*/
+
+/*... energia*/
+          HccaAlloc(DOUBLE           ,&m           ,sistEqKturb->b0
+                   ,sistEqKturb->neq,"sistKturb0",_AD_);
+          HccaAlloc(DOUBLE             , &m        ,sistEqKturb->b
+                   ,sistEqKturb->neq, "sistKturb", _AD_);
+          HccaAlloc(DOUBLE          ,&m            ,sistEqKturb->x
+                   ,sistEqKturb->neq,"sistKturbx ",_AD_);  
+          zero(sistEqKturb->b0,sistEqKturb->neq, DOUBLEC);
+          zero(sistEqKturb->b ,sistEqKturb->neq, DOUBLEC);
+          zero(sistEqKturb->x ,sistEqKturb->neq, DOUBLEC);
+/*...................................................................*/
+
+/*... Estrutura de dados energia*/
+          strcpy(strIa, "iaKturb");
+          strcpy(strJa, "jaKturb");
+          strcpy(strAd, "adKturb");
+          strcpy(strA , "akTurb");
+
+          if (!mpiVar.myId) { 
+            fprintf(fileLogExc,"Kturb:\n");
+            fprintf(fileLogExc,"Montagem da estrura de dados esparsa.\n");
+          }
+
+          tm.turbulence = getTimeC() - tm.turbulence;
+//        dataStructSimple(&m,sistEqEnergy->id ,reordMesh->num
+//                        ,mesh->elm.adj.nelcon
+//                        ,mesh->elm.adj.nViz  ,mesh->numelNov,mesh->maxViz  
+ //                       ,1                   ,strIa         ,strJa
+ //                       ,strAd               ,strA          ,sistEqEnergy);
+          dataStruct(&m,sistEqKturb->id  ,reordMesh->num
+                    ,mesh->elm.adj.nelcon
+                    ,mesh->elm.adj.nViz  ,mesh->numelNov,mesh->maxViz  
+                    ,1                   ,strIa         ,strJa
+                    ,strAd               ,strA          ,sistEqKturb);
+          tm.turbulence = getTimeC() - tm.turbulence;
+
+          if (!mpiVar.myId) fprintf(fileLogExc,"Estrutuda montada.\n");
+/*...................................................................*/
+
+/*... dividindo a matriz*/
+/*... Openmp(energy)*/
+          if (ompVar.fSolver) {
+            strcpy(str1, "thBeginKturb");
+            strcpy(str2, "thEndKturb");
+            strcpy(str3, "thSizeKturb");
+            strcpy(str4, "thHeightKturb");
+            pMatrixSolverOmp(&m,sistEqKturb,str1,str2,str3,str4);
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
       }while(nSistEq);    
+/*...................................................................*/
 
 /*...*/
       if(opt.fItPlot && !mpiVar.myId){  
@@ -2150,9 +2291,21 @@ int main(int argc,char**argv){
 
 /*... Openmp(Vel,Pres)*/
       if(ompVar.fSolver){
-
 /*... alocando o buffer*/
-        if(fSolvPres && fSolvVel && fSolvEnergy){
+        if(fSolvPres && fSolvVel && fSolvEnergy && fSolvKturb){
+          nEqMax = max(sistEqPres->neqNov,sistEqVel->neqNov);
+          nEqMax = max(sistEqEnergy->neqNov,nEqMax);
+          nEqMax = max(sistEqKturb->neqNov ,nEqMax);
+          HccaAlloc(DOUBLE, &m, ompVar.buffer
+                   ,nEqMax*ompVar.nThreadsSolver,"bufferOmp",false);
+          zero(ompVar.buffer,nEqMax*ompVar.nThreadsSolver,DOUBLEC);
+          sistEqPres->omp.thY   = ompVar.buffer;
+          sistEqVel->omp.thY    = ompVar.buffer;
+          sistEqEnergy->omp.thY = ompVar.buffer;
+          sistEqKturb->omp.thY  = ompVar.buffer;
+        }
+/*... alocando o buffer*/
+        else if(fSolvPres && fSolvVel && fSolvEnergy){
           nEqMax = max(sistEqPres->neqNov,sistEqVel->neqNov);
           nEqMax = max(sistEqEnergy->neqNov,nEqMax);
           HccaAlloc(DOUBLE, &m, ompVar.buffer
@@ -2162,6 +2315,7 @@ int main(int argc,char**argv){
           sistEqVel->omp.thY    = ompVar.buffer;
           sistEqEnergy->omp.thY = ompVar.buffer;
         }
+
 /*... alocando o buffer*/
         else if(fSolvPres && fSolvVel){
           nEqMax = max(sistEqPres->neqNov,sistEqVel->neqNov);
@@ -2241,14 +2395,15 @@ int main(int argc,char**argv){
       else if(mesh->ndfFt)
         simpleSolverLm(&m          , propVarFluid
                      , loadsVel    , loadsPres 
-                     , loadsEnergy , eModel
+                     , loadsEnergy , loadsKturb
+                     , eModel
                      , eMass       , eMomentum
                      , &turbModel  , &thDynamic   
                      , mesh0       , mesh
                      , sistEqVel   , sistEqPres
-                     , sistEqEnergy  
+                     , sistEqEnergy, sistEqKturb   
                      , solvVel     , solvPres
-                     , solvEnergy    
+                     , solvEnergy  , solvKturb  
                      , simple        
                      , &sc         , pMesh
                      , opt         , preName
@@ -2526,6 +2681,14 @@ int main(int argc,char**argv){
           readMacro(fileIn, word, false);
 /*... codigo da da funcao limitadora de fluxo*/
           setAdvectionScheme(word, &sc.advEnergy, fileIn);
+          nScheme--;
+        }
+/*... kTutb*/
+        else if (!strcmp(word, "kTurb") || !strcmp(word, "kturb")) {
+          fprintf(fileLogExc,"%s:\n", word);
+          readMacro(fileIn, word, false);
+/*... codigo da da funcao limitadora de fluxo*/
+          setAdvectionScheme(word, &sc.advKturb, fileIn);
           nScheme--;
         }
       } while (nScheme);

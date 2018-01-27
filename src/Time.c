@@ -52,7 +52,7 @@ double getTimeC(void){
 
 /**********************************************************************
  * Data de criacao    : 03/12/2017                                    *
- * Data de modificaco : 00/00/0000                                    *
+ * Data de modificaco : 17/01/2018                                    *
  * -------------------------------------------------------------------*
  * initTime : inicializacao da variaveis de tempo                     *
  * -------------------------------------------------------------------*
@@ -131,7 +131,7 @@ void initTime(Time *tm) {
 /*...*/
   tm->tempForEnergy     = 0.e0;
 /*...*/
-  tm->turbulence = 0.e0;
+  tm->turbulence        = 0.e0;
 /*... precondicionador*/
   tm->precondDiag       = 0.e0;
   tm->total             = getTimeC();

@@ -263,18 +263,18 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*... velocidades*/
       if(lFaceVelR[nAresta] > 0){
         nCarg = lFaceVelL[nAresta]-1;
-        pLoadSimple(&sP            , &p
+/*      pLoadSimple(&sP            , &p
                   , tA             , &ddum
                   , velC           , &ddum
                   , ddum           , &ddum
                   , ddum           , ddum           
                   , &ddum          , &ddum   
                   , &ddum          , lNormal    
-                  , densityC
+                  , densityC       
                   , lModEta        , dcca[nAresta]
                   , loadsVel[nCarg], ndm
                   , false          , true
-                  , false          , 0);   
+                  , false          , 0);   */
       } 
 /*...................................................................*/
     }
@@ -556,7 +556,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*... velocidades*/
       if(lFaceVelR[nAresta] > 0){
         nCarg = lFaceVelL[nAresta]-1;
-        pLoadSimple(&sP            , &p
+/*      pLoadSimple(&sP            , &p
                   , tA             , &ddum
                   , velC           , &ddum
                   , ddum           , &ddum
@@ -567,7 +567,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                   , lModEta        , dcca[nAresta]
                   , loadsVel[nCarg], ndm
                   , false          , true
-                  , false          , 0);     
+                  , false          , 0);     */
       } 
 /*...................................................................*/
     }
@@ -1174,7 +1174,7 @@ void cellSimplePres3D(Loads *lVel       ,Loads *lPres
 
 /*********************************************************************
  * Data de criacao    : 03/10/2017                                   *
- * Data de modificaco : 27/12/2017                                   *
+ * Data de modificaco : 17/01/2018                                   *
  *-------------------------------------------------------------------*
  * CELLSIMPLEPRES3D: Celula 3D para equacao de correcao de pressao   *
  * metodo simple em escoamento levemene compressivel                 *
@@ -1218,6 +1218,8 @@ void cellSimplePres3D(Loads *lVel       ,Loads *lPres
  * vel       -> campo de velocidade conhecido                        *
  * gradVel   -> gradiente rescontruido das velocidades               *
  * dField    -> matriz D do metodo simple                            *
+ * temp      -> temperatura                                          *  
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  *  
  * nEn       -> numero de nos da celula central                      *
  * nFace     -> numero de faces da celula central                    *
  * ndm       -> numero de dimensoes                                  *
@@ -1249,7 +1251,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
               , short  *RESTRICT lFacePresR, short *RESTRICT lFacePresL
               , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres
               , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField
-              , DOUBLE *RESTRICT temp 
+              , DOUBLE *RESTRICT temp      , DOUBLE *RESTRICT wallPar
               , const short nEn            , short const nFace
               , const short ndm            , INT const nel)
 { 
@@ -1448,7 +1450,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
                   , ddum           , ddum           
                   , s              , e       
                   , t              , lNormal    
-                  , densityC
+                  , densityC       , wallPar
                   , lFarea         , lModKsi
                   , loadsVel[nCarg], ndm
                   , false          , true

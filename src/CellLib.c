@@ -108,7 +108,7 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
 
 /*********************************************************************
 * Data de criacao    : 22/08/2017                                   *
-* Data de modificaco : 22/09/2017                                   *
+* Data de modificaco : 18/01/2018                                   *
 *-------------------------------------------------------------------*
 * CELLLIBENERGY: chamada de bibliotecas de celulas para             *
 * problema de escoamento de fluidos (Energy)                        *
@@ -156,6 +156,7 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
 * lDviscosity-> viscosidade dinamica com variacao temporal          *
 * ltConductvity -> condutividade termica com variacao temporal      *
 * dField    -> matriz D do metodo simple                            * 
+* wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
 * underU    -> fator underrelaxtion sinple                          *
 * nEn       -> numero de nos da celula central                      *
 * nFace     -> numero de faces da celula central                    *
@@ -190,7 +191,7 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
      , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres  
      , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lSheat
      , DOUBLE *RESTRICT lDviscosity, DOUBLE *RESTRICT lTconductvity
-     , DOUBLE *RESTRICT dField
+     , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT wallPar
      , DOUBLE const underU           
      , short const nEn             , short  const nFace
      , short const ndm             , short const lib
@@ -251,7 +252,7 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
                  , pres       , gradPres  
                  , lDensity   , lSheat
                  , lDviscosity, lTconductvity
-                 , dField
+                 , dField     , wallPar
                  , underU       
                  , nEn        , nFace
                  , ndm        , nel);    
@@ -260,6 +261,127 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
 /*..................................................................*/
   }
 
+}
+/*********************************************************************/
+
+/*********************************************************************
+* Data de criacao    : 18/01/2018                                   *
+* Data de modificaco : 22/01/2018                                   *
+*-------------------------------------------------------------------*
+* cellLibOneEqK: chamada de bibliotecas de celulas para             *
+* problema de escoamento de fluidos (Energia cinetica turbulenta)   *                       *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* loads   -> definicoes de cargas K                                 *
+* ldsVel  -> definicoes de cargas para velocidades                  *
+* model     -> modelo da equacao de energia                         *
+* adv       -> tecnica da discretizacao do termo advecao            *
+* diff      -> tecnica da discretizacao do termo difusivo           *
+* vProp     -> propedades variaveis (true|false)                    *
+* lGeomType -> tipo geometrico da celula central e seus vizinhos    *
+* lprop     -> propriedade fisicas das celulas                      *
+* lViz      -> viznhos da celula central                            *
+* lId       -> equa da celula                                       *
+* Ksi       -> vetores que unem centroide da celula central aos     *
+*            vizinhos destas                                        *
+* mKsi      -> modulo do vetor ksi                                  *
+* eta       -> vetores paralelos as faces das celulas               *
+* fArea     -> area das faces                                       *
+* normal    -> vetores normais as faces das celulas                 *
+* volume    -> volume celula central                                *
+* xm        -> pontos medios das faces da celula central            *
+* xmcc      -> vetores que unem o centroide aos pontos medios das   *
+*            faces da celula central                                *
+* vSkew     -> vetor entre o ponto medio a intersecao que une os    *
+*            centrois compartilhado nessa face da celula central    *
+* mvSkew    -> distacia entre o ponto medio a intersecao que une os *
+*            centrois compartilhado nessa face da celula central    *
+* dcca      -> menor distacia do centroide central a faces desta    *
+*              celula                                               *
+* cc        -> centroides da celula centra e seus vizinhos          *
+* lA        -> nao definido                                         *
+* lB        -> nao definido                                         *
+* lRcell    -> nao definido                                         *
+* ddt       -> discretizacao temporal                               *
+* faceReK -> restricoes por elemento                                *
+* faceLdK -> carga por elemento                                     *
+* faceReVel-> restricoes por elemento                               *
+* faceLdVel-> carga por elemento                                    *
+* vel       -> campo de velocidade conhecido                        *
+* dField    -> matriz D do metodo simple                            *
+* lDensity  -> massa especifica com variacao temporal               *
+* lDviscosity-> viscosidade dinamica com variacao temporal          *
+* dField    -> matriz D do metodo simple                            * 
+* wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
+* cDyn    -> coeficiente dinanmicos ( Ck, Ce)                       * 
+* nEn       -> numero de nos da celula central                      *
+* nFace     -> numero de faces da celula central                    *
+* ndm       -> numero de dimensoes                                  *
+* lib       -> numero da biblioteca                                 *
+* nel       -> numero da celula                                     *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* lA        -> coeficiente da linha i                               *
+* lB        -> vetor de forca da linha i                            *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
+     , Turbulence *tModel                       
+     , Advection  *adv             , Diffusion *diff              
+     , short *RESTRICT lGeomType   , DOUBLE *RESTRICT lprop
+     , INT   *RESTRICT lViz        , INT *RESTRICT lId
+     , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
+     , DOUBLE *RESTRICT eta        , DOUBLE *RESTRICT fArea
+     , DOUBLE *RESTRICT normal     , DOUBLE *RESTRICT volume
+     , DOUBLE *RESTRICT xm         , DOUBLE *RESTRICT xmcc
+     , DOUBLE *RESTRICT dcca       , DOUBLE *RESTRICT cc
+     , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
+     , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
+     , DOUBLE *RESTRICT lRcell     , Temporal *ddt
+     , short  *RESTRICT lFaceReK   , short  *RESTRICT lFaceLdK 
+     , short  *RESTRICT lFaceReVel , short  *RESTRICT lFaceLdVel   
+     , DOUBLE *RESTRICT u          , DOUBLE *RESTRICT gradU
+     , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
+     , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres  
+     , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lDviscosity
+     , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT wallPar    
+     , DOUBLE *RESTRICT cDyn
+     , short const nEn             , short  const nFace
+     , short const ndm             , INT const nel)
+{
+
+/*... 2D*/
+  if (ndm == 2);  
+ /*..................................................................*/
+
+/*... 3D*/
+  else if (ndm == 3) 
+    cellKinectTurb3D(ldsK        , ldsVel 
+                    , tModel
+                    , adv        , diff                      
+                    , lGeomType  , lprop
+                    , lViz       , lId
+                    , ksi        , mKsi
+                    , eta        , fArea
+                    , normal     , volume
+                    , xm         , xmcc
+                    , dcca       , cc
+                    , vSkew      , mvSkew 
+                    , lA         , lB
+                    , lRcell     , ddt
+                    , lFaceReK   , lFaceLdK
+                    , lFaceReVel , lFaceLdVel
+                    , u          , gradU    
+                    , vel        , gradVel
+                    , pres       , gradPres  
+                    , lDensity   , lDviscosity
+                    , dField     , wallPar
+                    , cDyn
+                    , nEn        , nFace
+                    , ndm        , nel);    
+/*..................................................................*/
 }
 /*********************************************************************/
 
@@ -412,7 +534,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
 
 /*********************************************************************
  * Data de criacao    : 27/08/2017                                   *
- * Data de modificaco : 05/12/2017                                   *
+ * Data de modificaco : 17/01/2018                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEVEl: chamada de bibliotecas de celulas para          *
  * problema de escoamento de fluidos (VEL -low mach)                 *
@@ -496,6 +618,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
            , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel 
            , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lViscosity 
            , DOUBLE *RESTRICT dField    , DOUBLE *RESTRICT stressR   
+           , DOUBLE *RESTRICT wallPar
            , DOUBLE const underU        , const bool sPressure 
            , short const nEn            , short  const nFace 
            , short const ndm            , short const lib 
@@ -554,6 +677,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
                      , vel        , gradVel 
                      , lDensity   , lViscosity 
                      , dField     , stressR
+                     , wallPar
                      , underU     , sPressure 
                      , nEn        , nFace  
                      , ndm        , nel); 
@@ -696,7 +820,7 @@ void cellLibSimplePres(Loads *lVel       ,Loads *lPres
 
 /*********************************************************************
  * Data de criacao    : 17/09/2017                                   *
- * Data de modificaco : 03/10/2017                                   *
+ * Data de modificaco : 17/01/2018                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEPRESLM: chamada de bibliotecas de celulas para       *
  * problema de escoamento de fluidos a baixo Mach (PRES)             *
@@ -740,6 +864,8 @@ void cellLibSimplePres(Loads *lVel       ,Loads *lPres
  * gradPes   -> gradiente reconstruido da pressao                    *
  * vel       -> campo de velocidade conhecido                        *
  * dField    -> matriz D do metodo simple                            *
+ * temp    -> temperatura                                            *   
+ * wallPar -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)    *
  * nEn       -> numero de nos da celula central                      *
  * nFace     -> numero de faces da celula central                    *
  * ndm       -> numero de dimensoes                                  *
@@ -768,7 +894,7 @@ void cellLibSimplePresLm(Loads *lVel        , Loads *lPres
                , short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL
                , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres 
                , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField 
-               , DOUBLE *RESTRICT temp
+               , DOUBLE *RESTRICT temp      , DOUBLE *RESTRICT wallPar
                , short const nEn            , short  const nFace     
                , short const ndm            , short const lib    
                , INT const nel)
@@ -818,7 +944,7 @@ void cellLibSimplePresLm(Loads *lVel        , Loads *lPres
                  , lFacePresR, lFacePresL
                  , pres      , gradPres 
                  , vel       , dField
-                 , temp
+                 , temp      , wallPar
                  , nEn       , nFace  
                  , ndm       , nel);  
     } 
@@ -4548,7 +4674,7 @@ void  setDiffusionScheme(char *word,short *iCod)
 *********************************************************************/
 void  setAdvectionScheme(char *word, Advection *adv,FILE *fileIn)
 {
-  short i;
+  short i,nTerm=6;
   char fAdv[][WORD_SIZE] = { "FoUp","CD"   ,"SoUp"  /*0,1,2*/
                             ,"TVD" ,"NVD"  ,"LUST"};/*3,4,5*/
   /*...*/
@@ -4605,7 +4731,7 @@ void  setAdvectionScheme(char *word, Advection *adv,FILE *fileIn)
            "Linha         : \"%d\".\n"
            , __FILE__, __func__, __LINE__);
     printf("Funcoes disponiveis:\n");
-    for (i = 0; i<5; i++)
+    for (i = 0; i<nTerm; i++)
       printf("%s\n", fAdv[i]);
     exit(EXIT_FAILURE);
   }

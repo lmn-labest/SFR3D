@@ -29,10 +29,19 @@
 /*...................................................................*/
  
 /*...*/
+  typedef struct{
+    bool fRes;
+    INT maxIt;
+    DOUBLE ck,ce,sk,tol;
+  }EqK;
+/*...................................................................*/  
+
+
+/*...*/
   typedef struct{  
     bool fTurb;
     bool fWall;
-    bool dynamic;
+    bool fDynamic;
     short wallType;
     short type;          /* 0 - LES*/
     short typeLes;       /* 0 - funcional
@@ -44,9 +53,13 @@
                             3 - um parametro global modicado
                             4 - 2 paramento local*/
 
-    DOUBLE cs,cf,c;      /*constante*/
-    DOUBLE PrandltTwall; /*Prandtl turbulento */
-    DOUBLE PrandltTsgs;  /*Prandtl de sub-grid */
+    DOUBLE cs,cf,c; /*constante    
+                           1 -        
+                           */   
+    DOUBLE PrandltTwall;   /*Prandtl turbulento */
+    DOUBLE PrandltTsgs;    /*Prandtl de sub-grid */
+
+    EqK eK;
     
   }Turbulence; 
 /*...................................................................*/
@@ -80,6 +93,13 @@
     INT timeStep;
     DOUBLE total,dt[3],dtInicial,t;   
   }Temporal;
+/*...................................................................*/  
+
+/*...*/
+  typedef struct{
+    bool fRes;
+    DOUBLE cEq[3];
+  }kModel;
 /*...................................................................*/  
 
 /*...*/
@@ -131,9 +151,10 @@
         ,loadsT1[MAXLOADT1]         /*tipo de cargas (difusao-transporte)*/
         ,loadsVel[MAXLOADFLUID]     /*tipo de cargas (fluid-Vel)*/
         ,loadsPres[MAXLOADFLUID]    /*tipo de cargas (fluid-Pres)*/
-        ,loadsPresC[MAXLOADFLUID]   /*tipo de cargas (fluid-Pres)*/
-        ,loadsEnergy[MAXLOADFLUID]  /*tipo de cargas (fluid-Pres)*/
-        ,loadsTemp[MAXLOADFLUID];   /*tipo de cargas (fluid-Pres)*/
+        ,loadsPresC[MAXLOADFLUID]   /*tipo de cargas (fluid-Pres-correcao)*/
+        ,loadsEnergy[MAXLOADFLUID]  /*tipo de cargas (fluid-energia)*/
+        ,loadsTemp[MAXLOADFLUID]    /*tipo de cargas (fluid-temperatura)*/
+        ,loadsKturb[MAXLOADFLUID];  /*tipo de cargas (fluid-turbulencia)*/
 /*...................................................................*/
 
 /*...*/
@@ -156,6 +177,9 @@
     short *faceLoadPres;   /*tipo de carga contorno na face (fluido)*/
     short *faceRenergy;    /*condicao  contorno na face (fluido)*/
     short *faceLoadEnergy; /*tipo de carga contorno na face (fluido)*/
+/*...*/
+    short *faceReKturb;     /*condicao  contorno na face (fluido)*/
+    short *faceLoadKturb;  /*tipo de carga contorno na face (fluido)*/
 /*... */               
     short *faceRt1;    /*condicao  contorno na face (transporte)*/
     short *faceLoadT1; /*tipo de carga contorno na face (transporte)*/
@@ -188,10 +212,14 @@
     DOUBLE *rCellPres;  /*residuo da celula*/
     DOUBLE *rCellEnergy;/*residuo da celula*/
 /*... turbulencia*/
+    DOUBLE *kTurb;
+    DOUBLE *kTurb0;
     DOUBLE *stressR;
     DOUBLE *eddyViscosity; 
     DOUBLE *wallParameters;
-    DOUBLE *cd;          
+    DOUBLE *cd; 
+    DOUBLE *gradKturb;    /*gradiente da difusao pura uT1*/
+    DOUBLE *rCellKturb;   /*residuo da celula*/         
   
 /*...*/
     DOUBLE *densityUd1; /*massa especifica do material uD1*/
@@ -220,7 +248,8 @@
     INT    *nno; 
     DOUBLE *x;         /*coordenadas*/
     DOUBLE *vel;       /*velocidades*/
-    DOUBLE *energy;    /*velocidades*/
+    DOUBLE *energy;    /*energia*/
+    DOUBLE *kTurb ;    /*energia cinetica turbulenta*/
     DOUBLE *pressure;  /*pressao*/
     DOUBLE *temp;      /*temperatura*/
     DOUBLE *uD1;       /*difusao pura uD1*/
@@ -328,7 +357,6 @@
     DOUBLE mass[3]; /* mass inicial do sistema 
                        massa atual calculo incremental
                        massa atual calculo direto*/
-
 /*...*/    
     Elmt elm;     
     Node node;
@@ -348,14 +376,17 @@
     NonLinear nlD1;
     NonLinear nlT1;
 /*... equacao de transporte*/
-    Advection  advT1;
+    Advection advT1;
     Diffusion diffT1;
 /*... equacao de velocidade*/
-    Advection  advVel;
+    Advection advVel;
     Diffusion diffVel;
 /*... equacao de energia*/
-    Advection  advEnergy;
+    Advection advEnergy;
     Diffusion diffEnergy;
+/*... equacao de energia*/
+    Advection advKturb;
+    Diffusion diffKturb;
 /*... equacao de pressao*/
     Diffusion diffPres;
   }Scheme;
