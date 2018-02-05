@@ -54,6 +54,7 @@
     bool Qcriterion; 
     bool kTurb; 
     bool bconditions;    /*insere as condicoes de contorno nos valores nodais*/
+    bool cc;             /*centro geomentrico da celula*/       
     short stepPlotFluid[2];
     FILE *fileItPlot[7];
     

@@ -108,7 +108,8 @@
                ,char *nameOut     ,bool iws
                ,Temporal ddt      ,FILE *f);
 
-  void wResVtkFluid(Memoria *m   , DOUBLE *x      
+  void wResVtkFluid(Memoria *m   , DOUBLE *x
+          , DOUBLE *cc      
           , INT *el              , short *mat    
           , short *nen           , short *typeGeom
           , DOUBLE *elPres       , DOUBLE *nPres
@@ -124,13 +125,16 @@
           , DOUBLE *eCd          , DOUBLE *nCd 
           , DOUBLE *eWallPar     , DOUBLE *nWallPar 
           , DOUBLE *eKturb       , DOUBLE *nKturb
+          , DOUBLE *eMedVel      , DOUBLE *nMedVel
+          , DOUBLE *eP2Vel       , DOUBLE *nP2Vel
+          , DOUBLE *eMedP2Vel    , DOUBLE *nMedP2Vel
           , DOUBLE *specificHeat , DOUBLE *tConductivity               
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf  
           , short const ntn   
           , char *nameOut        , FileOpt opt
-          , bool fKelvin           
+          , bool fKelvin         , Mean *media  
           , Temporal ddt         , FILE *f);
 /*...................................................................*/
 
@@ -156,6 +160,8 @@
                     , INT const n             , short const ndm);
   void makePresTotal(DOUBLE *RESTRICT presT, DOUBLE *RESTRICT pres
                  , DOUBLE *RESTRICT vel  , DOUBLE *RESTRICT density 
+                 , INT const n           , short const ndm);
+  void makeModuleVel(DOUBLE *RESTRICT p,DOUBLE *RESTRICT elVel
                  , INT const n           , short const ndm);
 /*...................................................................*/
 

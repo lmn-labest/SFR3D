@@ -649,8 +649,8 @@ void simpleSolverLm(Memoria *m          , PropVar prop
                   , SistEq *sistEqEnergy, SistEq *sistEqKturb 
                   , Solv *solvVel       , Solv *solvPres
                   , Solv *solvEnergy    , Solv *solvKturb
-                  , Simple *sp
-                  , Scheme *sc          , PartMesh *pMesh
+                  , Simple *sp          , Scheme *sc          
+                  , PartMesh *pMesh     , Mean *media
                   , FileOpt opt         , char *preName
                   , char *nameOut       , FILE *fileOut) {
   FILE *fStop = NULL;
@@ -1309,7 +1309,7 @@ void simpleSolverLm(Memoria *m          , PropVar prop
                            , mesh          
                            , sistEqEnergy, solvEnergy
                            , sp          , sc
-                           , pMesh);    
+                           , pMesh);      
 /*...................................................................*/
 
 /*... residual*/
@@ -1479,7 +1479,8 @@ void simpleSolverLm(Memoria *m          , PropVar prop
 /*... calculo da taxa de massa atravessando o contorno aberto*/
   deltaMass = massFluxOpenDomain(loadsVel              , sc->ddt 
               , mesh->elm.faceLoadVel , mesh->elm.adj.nViz 
-              , mesh->elm.geom.fArea  , mesh->elm.geom.normal 
+              , mesh->elm.geom.fArea  , mesh->elm.geom.normal
+              , mesh->elm.geom.xm  
               , mesh->elm.densityFluid, mesh->elm.vel 
               , mesh->numelNov        , mesh->ndm  
               , mesh->maxViz  );
@@ -2340,6 +2341,7 @@ void residualSimpleLm(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
   }
 
 }
+/*********************************************************************/
 
 /********************************************************************* 
  * Data de criacao    : 12/11/2017                                   *
@@ -2441,3 +2443,4 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
   }
 
 }
+/*********************************************************************/

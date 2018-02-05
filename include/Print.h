@@ -5,6 +5,7 @@
   #include<stdio.h>
   #include<stdlib.h>
 /*...*/
+  #include<Define.h>
   #include<HccaStdBool.h>
   #include<CellLoop.h>
   #include<Mesh.h>
@@ -12,13 +13,15 @@
   #include<File.h>
   #include<WriteVtk.h>
   #include<ParallelMpi.h>
+  #include<Media.h>
 
   void printFluid(Memoria *m        
-               ,Turbulence turbModel,EnergyModel eModel
-               ,PartMesh *pMesh     ,Scheme sc
-               ,Loads *loadsVel     ,Loads *loadsPres 
-               ,Loads *loadsTemp    ,FileOpt opt
-               ,Mesh *mesh0         ,Mesh *mesh  
-               ,char *preName       ,char *nameOut);
+                , Turbulence turbModel, EnergyModel eModel
+                , PartMesh *pMesh     , Scheme sc
+                , Loads *loadsVel     , Loads *loadsPres 
+                , Loads *loadsTemp    , FileOpt opt
+                , Mesh *mesh0         , Mesh *mesh  
+                , Mean *media         
+                , char *preName       , char *nameOut);
 
 #endif/*_WRITE_VTK_H_*/

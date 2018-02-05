@@ -20,15 +20,17 @@
   #include<Memoria.h>
   #include<ParallelMpi.h>
   #include<Properties.h>
+  #include<Simple.h>
 /*...................................................................*/  
 
   void parametros(INT   *nnode,INT *nel    
                  ,short *maxNo,short *maxViz
                  ,short *ndm  ,short *numat
                  ,FILE  *file);
-  void readFileFvMesh(Memoria *m  ,Mesh *mesh
-                     ,PropVar prop,EnergyModel eModel
-                     ,FILE *file);
+  void readFileFvMesh( Memoria *m      , Mesh *mesh
+                   , PropVar prop      , EnergyModel energyModel
+                   , Turbulence *tModel, Mean *media
+                   , FILE* file);
 
   void readVfMat(DOUBLE *prop,short *type,short numat,FILE *file);
   void readVfCoor(DOUBLE *x,INT nn, short ndm,FILE *file);
@@ -52,6 +54,8 @@
   void readModel(EnergyModel *e    , Turbulence *t
                , MassEqModel *eMass, MomentumModel *eMomentum
                , FILE *file);
+  void readMean(Memoria *m, FILE *fileIn
+              , Mesh *mesh, Mean *media);
   void setMixedModelLes(Turbulence *t  , FILE *file);
   void setDynamicModelLes(Turbulence *t, FILE *file);
   void setPrintFluid(FileOpt *opt,FILE *file);
@@ -63,7 +67,11 @@
   
    void uniformField(DOUBLE *field, INT const n, short const ndf
                     , FILE* file);
- 
+   void readAdvectionScheme(FILE *fileIn, Scheme *sc);
+   void readDiffusionScheme(FILE *fileIn, Scheme *sc);
+   void readSetSimple(Memoria *m    , FILE *fileIn
+                 , Mesh *mesh0   , Mesh *mesh
+                 , Simple *simple, bool *fSolvSimple);
    void convStringLower(char *s);
    void help(FILE *f);
 #endif  /*_READ_FILE_*/

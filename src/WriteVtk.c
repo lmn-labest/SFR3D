@@ -1034,7 +1034,7 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                    *
- * Data de modificaco : 19/01/2018                                    * 
+ * Data de modificaco : 03/02/2018                                    * 
  *------------------------------------------------------------------- * 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1043,6 +1043,7 @@ void wResVtkDif(Memoria *m        ,double *x
  * ------------------------------------------------------------------ *
  * m            -> arranjo da menoria principal                       *  
  * x            -> coordenadas                                        * 
+ * cc           -> centro geomentrico das celulas                     * 
  * el           -> conectividade                                      * 
  * mat          -> materias                                           *  
  * nen          -> conectividades por elemento                        *  
@@ -1088,7 +1089,8 @@ void wResVtkDif(Memoria *m        ,double *x
  *           | du3dx1 du3dx2 du3dx3 |                                 *
  *                                                                    *
  **********************************************************************/
-void wResVtkFluid(Memoria *m     , DOUBLE *x      
+void wResVtkFluid(Memoria *m     , DOUBLE *x 
+          , DOUBLE *cc     
           , INT *el              , short *mat    
           , short *nen           , short *typeGeom
           , DOUBLE *elPres       , DOUBLE *nPres
@@ -1104,13 +1106,16 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
           , DOUBLE *eCd          , DOUBLE *nCd
           , DOUBLE *eWallPar     , DOUBLE *nWallPar
           , DOUBLE *eKturb       , DOUBLE *nKturb
+          , DOUBLE *eMedVel      , DOUBLE *nMedVel
+          , DOUBLE *eP2Vel       , DOUBLE *nP2Vel  
+          , DOUBLE *eMedP2Vel    , DOUBLE *nMedP2Vel  
           , DOUBLE *specificHeat , DOUBLE *tConductivity
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf
           , short const ntn        
           , char *nameOut        , FileOpt opt
-          , bool fKelvin           
+          , bool fKelvin         , Mean *media  
           , Temporal ddt         , FILE *f)
 {
   bool iws = opt.bVtk;
@@ -1178,6 +1183,38 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
   HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
   
+/*...*/
+  if(opt.cc){
+    strcpy(str,"cc");
+    writeVtkProp(&idum,cc    ,numel,ndm,str,iws
+                 ,DOUBLE_VTK,VECTORS_VTK,f);
+  }
+/*...................................................................*/
+
+/*...*/
+  if(media->fVel && opt.fCell){
+    strcpy(str,"<eVel>");
+    writeVtkProp(&idum,eMedVel,numel,ndm,str,iws
+                 ,DOUBLE_VTK,VECTORS_VTK,f);
+  }
+/*...................................................................*/
+
+/*...*/
+  else if(media->f2pVel && opt.fCell){
+    strcpy(str,"eP2Vel");
+    writeVtkProp(&idum     ,eP2Vel,numel,ndm,str,iws
+                ,DOUBLE_VTK,VECTORS_VTK ,f);
+  }
+/*...................................................................*/
+
+/*...*/
+  else if(media->f2pVel && opt.fCell){
+    strcpy(str,"<eP2Vel>");
+    writeVtkProp(&idum     ,eMedP2Vel,numel,ndm,str,iws
+                ,DOUBLE_VTK,VECTORS_VTK ,f);
+  }
+/*...................................................................*/
+
 /*... escrever resultados de pressao por celula*/   
   if(opt.pres && opt.fCell){
     strcpy(str,"CellPres");
@@ -1200,6 +1237,14 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
     strcpy(str,"CellVel");
     writeVtkProp(&idum,elVel,numel,ndm,str,iws
                 ,DOUBLE_VTK,VECTORS_VTK,f);
+    
+    HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
+    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__)
+    strcpy(str,"modCellVel");
+    makeModuleVel(p,elVel,numel,ndm);
+    writeVtkProp(&idum,p,numel,1,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+    HccaDealloc(m,p,"p",_AD_);
   }
 /*...................................................................*/
 
@@ -1305,7 +1350,7 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
 
 /*... escreve a yPlus */  
   if(opt.wallParameters && opt.fCell){
-    strcpy(str,"eWallParameters(y+,u+,uf,sW)");
+    strcpy(str,"eWallParameters(y+|u+|uf|sW)");
     writeVtkProp(&idum,eWallPar,numel,4,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
@@ -1403,6 +1448,30 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
   HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
 
+/*...*/
+  if(media->fVel && opt.fNode){
+    strcpy(str,"<nVel>");
+    writeVtkProp(&idum,nMedVel,nnode,ndm,str,iws
+                 ,DOUBLE_VTK,VECTORS_VTK,f);
+  }
+/*...................................................................*/
+
+/*...*/
+  if(media->f2pVel && opt.fNode){
+    strcpy(str,"nP2Vel");
+    writeVtkProp(&idum     ,nP2Vel,nnode,ndm,str,iws
+                ,DOUBLE_VTK,VECTORS_VTK ,f);
+  }
+/*...................................................................*/
+
+/*...*/
+  if(media->f2pVel && opt.fNode){
+    strcpy(str,"<nP2Vel>");
+    writeVtkProp(&idum     ,nMedP2Vel,nnode,ndm,str,iws
+                ,DOUBLE_VTK,VECTORS_VTK ,f);
+  }
+/*...................................................................*/
+
 /*... escrever resultados de pressao por nos*/  
   if(opt.pres && opt.fNode){
     strcpy(str,"NodePres");
@@ -1424,6 +1493,13 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
     strcpy(str,"NodeVel");
     writeVtkProp(&idum,nVel,nnode,ndm,str,iws
                 ,DOUBLE_VTK,VECTORS_VTK,f);
+    HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
+    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__)
+    strcpy(str,"modNodeVel");
+    makeModuleVel(p,nVel,nnode,ndm);
+    writeVtkProp(&idum,p,nnode,1,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+    HccaDealloc(m,p,"p",_AD_);
   }
 /*...................................................................*/
 
@@ -1533,7 +1609,7 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
 
 /*... escreve a yPlus */  
   if(opt.wallParameters && opt.fNode){
-    strcpy(str,"nWallParameters(y+,u+,uf,sW)");
+    strcpy(str,"nWallParameters(y+|u+|uf|sW)");
     writeVtkProp(&idum,nWallPar,nnode,4,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
@@ -2104,6 +2180,8 @@ void makeQcriterion( DOUBLE *RESTRICT q, DOUBLE *RESTRICT gradVel
   }
 
 }
+/**********************************************************************/
+
 /**********************************************************************
  * Data de criacao    : 08/01/2018                                    *
  * Data de modificaco : 00/00/0000                                    *
@@ -2142,6 +2220,45 @@ void makePresTotal(DOUBLE *RESTRICT presT, DOUBLE *RESTRICT pres
       vv += v[2]*v[2];
     }
     presT[i] = pres[i] +0.5e0*den*vv;
+  }
+
+}
+/**********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 29/01/2018                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *------------------------------------------------------------------- * 
+ * makeModuleVel : campo de energia cinetica                          *  
+ * ------------------------------------------------------------------ *
+ * parametros de entrada:                                             * 
+ * ------------------------------------------------------------------ *
+ * p         -> nao definido                                          * 
+ * vel       -> campo de velocidade                                   * 
+ * n         -> numero de pontos                                      * 
+ * ndm       -> dimensao                                              * 
+ * ------------------------------------------------------------------ *
+ * parametros de saida  :                                             * 
+ * ------------------------------------------------------------------ *
+ * p -> sqrt(v1*v1+v1*v1+v1*v1)                                       *
+ * ------------------------------------------------------------------ *
+ * OBS:                                                               *
+ *------------------------------------------------------------------- *
+ **********************************************************************/
+void makeModuleVel(DOUBLE *RESTRICT p,DOUBLE *RESTRICT vel
+                 , INT const n           , short const ndm) {
+  INT i;
+  DOUBLE vv,den,v[3];
+
+  for (i = 0; i < n; i++) {
+    v[0] =  MAT2D(i, 0, vel, ndm);
+    v[1] =  MAT2D(i, 1, vel, ndm);
+    vv = v[0]*v[0] + v[1]*v[1];
+    if(ndm == 3){
+      v[2] =  MAT2D(i, 2, vel, ndm);
+      vv += v[2]*v[2];
+    }
+    p[i] = sqrt(vv);
   }
 
 }

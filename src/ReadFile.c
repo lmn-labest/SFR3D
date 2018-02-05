@@ -12,7 +12,7 @@
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 17/01/2018                                   *
+ * Data de modificaco : 29/01/2018                                   *
  *-------------------------------------------------------------------*
  * readFileFc : leitura de arquivo de dados em volume finitos        *
  * ------------------------------------------------------------------*
@@ -28,6 +28,7 @@
  * *******************************************************************/
 void readFileFvMesh( Memoria *m        , Mesh *mesh
                    , PropVar prop      , EnergyModel energyModel
+                   , Turbulence *tModel, Mean *media
                    , FILE* file)
 {
   char word[WORD_SIZE],str[WORD_SIZE];
@@ -93,7 +94,7 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
   HccaAlloc(short,m,mesh->elm.geomType ,nel      ,"elgT"    ,_AD_);
 
 /*... centroide */
-  HccaAlloc(DOUBLE,m,mesh->elm.geom.cc ,nel*ndm          ,"elCc"    ,_AD_);
+  HccaAlloc(DOUBLE,m,mesh->elm.geom.cc ,nel*ndm,"elCc"    ,_AD_);
 
   if( mpiVar.nPrcs < 2){
 
@@ -721,6 +722,7 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
       strcpy(str,"endLoadsVel");
       fprintf(fileLogExc,"loading loadsVel ...\n");
       readVfLoads(loadsVel,str       ,file);
+      loadsVel[0].nTypeVar =  LVARCONST;
       fprintf(fileLogExc,"done.\n");
       fprintf(fileLogExc,"%s\n\n",DIF);
     }
@@ -895,7 +897,7 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
       strcpy(macros[nmacro++], word);
       rflag[31] = true;
       fprintf(fileLogExc,"loading uniformVel ...\n");
-      uniformField(mesh->elm.vel, mesh->numel, ndm, file);
+      uniformField(mesh->elm.vel0, mesh->numel, ndm, file);        
       fprintf(fileLogExc,"done.\n");
       fprintf(fileLogExc,"%s\n\n", DIF);
     }
@@ -2964,14 +2966,15 @@ void help(FILE *f){
                ,""      ,""             ,""             /* 9,10,11*/
                ,""      ,""             ,""};           /*12,13,15*/
 
-  short iMacros = 18;
+  short iMacros = 20;
   char macros[][WORD_SIZE] = 
                {"setPrintFluid","setSolv"     ,"setSimple"    /* 0, 1, 2*/
                ,"pgeo"         ,"transient"   ,"simple"       /* 3, 4, 5*/
                ,"pFluid"       ,"endTransient","stop"         /* 6, 7, 8*/
                ,"model"        ,"propVar"     ,"gravity"      /* 9,10,11*/
                ,"edp"          ,"vorticity"   ,"openmp"       /*12,13,14*/
-               ,"advection"    ,"diffusion"   ,"config" };    /*15,16,17*/
+               ,"advection"    ,"diffusion"   ,"config"       /*15,16,17*/
+               ,"mean"         ,"smean"                 };    /*18,19,  */
 
   short iPrint = 21;
   char print[][WORD_SIZE] = 
@@ -3006,10 +3009,11 @@ void help(FILE *f){
   short iModels = 11;
   char models[][WORD_SIZE] = {"energy"  ,"turbulence","mass"     /* 0, 1, 2*/
                              ,"momentum"};                       /* 3*/
-  short iEnergy = 6;
-  char energy[][WORD_SIZE] = { "preswork", "dissipation", "residual"  
-                             , "absolute", "temperature", "entalphy"}; 
-  short iTurb = 13;
+  short iEnergy = 7;
+  char energy[][WORD_SIZE] = { "preswork", "dissipation", "residual"   /* 0, 1, 2*/
+                             , "absolute", "temperature", "entalphy" };/* 2, 3, 4*/
+
+  short iTurb = 14;
   char turbulence[][WORD_SIZE] = {"wallmodel type"                       
                                  ,"smagorinsky 0.2"
                                  ,"wale 0.325"      
@@ -3022,7 +3026,8 @@ void help(FILE *f){
                                  ,"bardinaMod 1.0"
                                  ,"clark 1.0"
                                  ,"mixed 0.5 clark 1.0 smagorinsky 0.2"
-                                 ,"towdynamic clark 1.0 smagorinsky 0.2"};   
+                                 ,"towdynamic clark 1.0 smagorinsky 0.2"
+                                 ,"oneeqk 0.094 1.048 1.0"};   
   short iMass = 2;
   char mass[][WORD_SIZE] = { "lhsDensity","rhsDensity"}; 
 
@@ -3312,5 +3317,317 @@ void setDynamicModelLes(Turbulence *t       , FILE *file) {
       fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[3],t->cf);    
   }
 /*...................................................................*/ 
+}
+/**********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 28/01/2018                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *--------------------------------------------------------------------* 
+ * readAdvectionScheme:                                               *
+ *--------------------------------------------------------------------* 
+ * Parametros de entrada:                                             * 
+ *--------------------------------------------------------------------* 
+ * file    -> arquivo de arquivo                                      * 
+ *--------------------------------------------------------------------* 
+ * Parametros de saida:                                               * 
+ *--------------------------------------------------------------------* 
+ *--------------------------------------------------------------------* 
+ * OBS:                                                               * 
+ *--------------------------------------------------------------------*
+ **********************************************************************/
+void readAdvectionScheme(FILE *fileIn, Scheme *sc) {
+
+  char word[WORD_SIZE];
+  unsigned short nScheme;
+/*... tecnica de adveccao*/
+  readMacro(fileIn, word, false);
+  nScheme = (short) atol(word);
+  do {
+    readMacro(fileIn, word, false);
+/*... velocidade*/
+    if (!strcmp(word, "Vel") || !strcmp(word, "vel")) {
+      fprintf(fileLogExc,"%s:\n", word);
+      readMacro(fileIn, word, false);
+ /*... codigo da da funcao limitadora de fluxo*/
+      setAdvectionScheme(word, &sc->advVel,fileIn);
+      nScheme--;
+    }
+ /*... T1*/
+    else if (!strcmp(word, "T1") || !strcmp(word, "t1")) {
+      fprintf(fileLogExc,"%s:\n", word);
+      readMacro(fileIn, word, false);
+ /*... codigo da da funcao limitadora de fluxo*/
+      setAdvectionScheme(word, &sc->advT1,fileIn);
+      nScheme--;
+    }
+ /*... Energy*/
+    else if (!strcmp(word, "Energy") || !strcmp(word, "energy")) {
+      fprintf(fileLogExc,"%s:\n", word);
+      readMacro(fileIn, word, false);
+/*... codigo da da funcao limitadora de fluxo*/
+      setAdvectionScheme(word, &sc->advEnergy, fileIn);
+      nScheme--;
+    }
+/*... kTutb*/
+    else if (!strcmp(word, "kTurb") || !strcmp(word, "kturb")) {
+      fprintf(fileLogExc,"%s:\n", word);
+      readMacro(fileIn, word, false);
+/*... codigo da da funcao limitadora de fluxo*/
+      setAdvectionScheme(word, &sc->advKturb, fileIn);
+      nScheme--;
+    }
+  } while (nScheme);
+/*...................................................................*/
+}
+/**********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 28/01/2018                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *--------------------------------------------------------------------* 
+ * readAdvectionScheme:                                               *
+ *--------------------------------------------------------------------* 
+ * Parametros de entrada:                                             * 
+ *--------------------------------------------------------------------* 
+ * file    -> arquivo de arquivo                                      * 
+ *--------------------------------------------------------------------* 
+ * Parametros de saida:                                               * 
+ *--------------------------------------------------------------------* 
+ *--------------------------------------------------------------------* 
+ * OBS:                                                               * 
+ *--------------------------------------------------------------------*
+ **********************************************************************/
+void readDiffusionScheme(FILE *fileIn, Scheme *sc) {
+
+  char word[WORD_SIZE];
+  unsigned short nScheme;
+
+/*... tecnica de adveccao*/
+  readMacro(fileIn, word, false);
+  nScheme = (short) atol(word);
+  do {
+    readMacro(fileIn,word,false);
+/*... velocidade*/
+    if(!strcmp(word,"Vel") || !strcmp(word, "vel")){
+      fprintf(fileLogExc,"%s:\n",word);
+      readMacro(fileIn,word,false);
+/*... codigo da da funcao limitadora de fluxo*/        
+      setDiffusionScheme(word,&sc->diffVel.iCod);
+      nScheme--;
+    }
+/*... Pressao*/
+    else if(!strcmp(word,"Pres") || !strcmp(word, "pres")){
+      fprintf(fileLogExc,"%s:\n",word);
+      readMacro(fileIn,word,false);
+/*... codigo da da funcao limitadora de fluxo*/        
+      setDiffusionScheme(word,&sc->diffPres.iCod);
+      nScheme--;
+    }
+ /*... transporte T1*/
+    else if (!strcmp(word,"T1") || !strcmp(word, "t1")){
+      fprintf(fileLogExc,"%s:\n", word);
+      readMacro(fileIn, word, false);
+ /*... codigo da da funcao limitadora de fluxo*/
+      setDiffusionScheme(word, &sc->diffT1.iCod);
+      nScheme--;
+    }
+ /*... Energy*/
+    else if (!strcmp(word, "Energy") || !strcmp(word, "energy")) {
+      fprintf(fileLogExc,"%s:\n", word);
+      readMacro(fileIn, word, false);
+ /*... codigo da da funcao limitadora de fluxo*/
+      setDiffusionScheme(word, &sc->diffEnergy.iCod);
+      nScheme--;
+    }
+  } while (nScheme);
+/*...................................................................*/
+
+}
+/**********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 28/01/2018                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *--------------------------------------------------------------------* 
+ * readSetSimple:                                                     *
+ *--------------------------------------------------------------------* 
+ * Parametros de entrada:                                             * 
+ *--------------------------------------------------------------------* 
+ * file    -> arquivo de arquivo                                      * 
+ *--------------------------------------------------------------------* 
+ * Parametros de saida:                                               * 
+ *--------------------------------------------------------------------* 
+ *--------------------------------------------------------------------* 
+ * OBS:                                                               * 
+ *--------------------------------------------------------------------*
+ **********************************************************************/
+void readSetSimple(Memoria *m    , FILE *fileIn
+                 , Mesh *mesh0   , Mesh *mesh
+                 , Simple *simple, bool *fSolvSimple) {
+
+  char word[WORD_SIZE];
+  unsigned short nScheme;
+
+/*...*/
+  *fSolvSimple            = true;  
+  simple->maxIt           = 1000;
+  simple->alphaPres       = 0.3e0; 
+  simple->alphaVel        = 0.7e0; 
+  simple->type            = SIMPLE;
+  simple->kZeroVel        = 4;
+  simple->kZeroPres       = 0;
+  simple->sPressure       = true;
+  simple->faceInterpolVel = 1;
+  simple->nNonOrth        = 0;
+  simple->tolPres         = 1.e-06;
+  simple->tolVel[0]       = 1.e-06;
+  simple->tolVel[1]       = 1.e-06;
+  simple->tolVel[2]       = 1.e-06;
+  if (mesh->ndfFt){
+    simple->kZeroEnergy  = 0;
+    simple->tolEnergy    = 1.e-06;
+    simple->alphaEnergy  = 1.e0;
+    simple->alphaDensity = 1.0e0; 
+  }
+  simple->pSimple         = 500;
+/*...................................................................*/
+      
+/*...*/
+  readMacro(fileIn,word,false);
+  if(!strcmp(word,"config:")){
+/*... timer*/        
+    readMacro(fileIn,word,false);
+/*... levemente compressivel*/       
+    if (mesh->ndfFt)
+      setSimpleLmScheme(word,mesh0->ndm,simple,fileIn);
+/*... imcompressivel*/
+    else
+      setSimpleScheme(word,mesh0->ndm, simple, fileIn);
+/*...*/        
+    if(simple->type == SIMPLE && !mpiVar.myId)     
+      fprintf(fileLogExc,"PRES-VEL  : SIMPLE\n");
+    else if(simple->type == SIMPLEC && !mpiVar.myId )     
+      fprintf(fileLogExc,"PRES-VEL  : SIMPLEC\n");
+
+/*...*/        
+    if(!mpiVar.myId ){ 
+      fprintf(fileLogExc,"Maxit     : %d\n",simple->maxIt);
+      fprintf(fileLogExc,"alphaPres : %lf\n",simple->alphaPres);
+      fprintf(fileLogExc,"alphaVel  : %lf\n",simple->alphaVel);
+      fprintf(fileLogExc,"tolPres   : %e\n",simple->tolPres);
+      fprintf(fileLogExc,"tolVelX   : %e\n",simple->tolVel[0]);
+      fprintf(fileLogExc,"tolVelY   : %e\n",simple->tolVel[1]);
+      fprintf(fileLogExc,"tolVelZ   : %e\n",simple->tolVel[2]);
+      if(mesh->ndfFt)
+        fprintf(fileLogExc,"tolEnergy : %e\n", simple->tolEnergy);
+      fprintf(fileLogExc,"nNonOrth  : %d\n",simple->nNonOrth);
+      fprintf(fileLogExc,"pSimple   : %d\n",simple->pSimple);
+    }
+  }
+/*...................................................................*/
+
+/*...*/
+  HccaAlloc(DOUBLE     ,m       ,simple->d
+           ,mesh->numel*mesh->ndm,"dField" ,false);
+  zero(simple->d    ,mesh->numel*mesh->ndm,DOUBLEC);
+
+  HccaAlloc(DOUBLE     ,m       ,simple->ePresC
+           ,mesh->numel,"ePresC" ,false);
+  zero(simple->ePresC,mesh->numel  ,DOUBLEC);
+
+  HccaAlloc(DOUBLE     ,m       ,simple->nPresC
+           ,mesh->nnode,"nPresC" ,false);
+  zero(simple->nPresC    ,mesh->numel  ,DOUBLEC);
+
+  HccaAlloc(DOUBLE     ,m      ,simple->eGradPresC
+           ,mesh->numel*mesh->ndm,"eGradPresC",false);
+  zero(simple->eGradPresC,mesh->numel*mesh->ndm  ,DOUBLEC);
+  
+  HccaAlloc(DOUBLE     ,m       ,simple->ePresC1
+           ,mesh->numel,"ePresC1",false);
+  zero(simple->ePresC,mesh->numel  ,DOUBLEC);
+/*...................................................................*/
+}
+/**********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 29/01/2018                                    *
+ * Data de modificaco : 02/02/2018                                    *
+ *--------------------------------------------------------------------* 
+ * readMean:                                                          *
+ *--------------------------------------------------------------------* 
+ * Parametros de entrada:                                             * 
+ *--------------------------------------------------------------------* 
+ * file    -> arquivo de arquivo                                      * 
+ *--------------------------------------------------------------------* 
+ * Parametros de saida:                                               * 
+ *--------------------------------------------------------------------* 
+ *--------------------------------------------------------------------* 
+ * OBS:                                                               * 
+ *--------------------------------------------------------------------*
+ **********************************************************************/
+void readMean(Memoria *m, FILE *fileIn
+            , Mesh *mesh, Mean *media) {
+
+  char word[WORD_SIZE];
+  unsigned short nTerm,ndfVel;
+  INT nel=mesh->numel;
+/*...*/
+  ndfVel = max(mesh->ndfF - 1,mesh->ndfFt - 2);
+/*...................................................................*/
+
+/*...*/
+  media->t0 = 0.e0;
+  fscanf(fileIn,"%d %d",&media->startSample,&media->endSample);
+  if(!mpiVar.myId) 
+    fprintf(fileLogExc,"%-20s: (%d-%d)\n", "Samples"
+                                       , media->startSample 
+                                       , media->endSample);    
+/*...................................................................*/
+
+/*...*/
+  media->fMedia = true;
+  media->fInit  = false;
+/*... tecnica de adveccao*/
+  readMacro(fileIn, word, false);
+  nTerm = (short) atol(word);
+  do {
+    readMacro(fileIn, word, false);
+/*... velocidade*/
+    if (!strcmp(word, "Vel") || !strcmp(word, "vel")) {
+      if(!mpiVar.myId)
+        fprintf(fileLogExc,"%-20s: enable\n", word);
+      media->fVel = true;
+      nTerm--;
+/*... media das velcidades*/
+      HccaAlloc(DOUBLE,m,media->mVel,nel*ndfVel,"medVel",_AD_);
+      zero(media->mVel, nel*ndfVel, DOUBLEC);
+/*... integral acumulada da media*/
+      HccaAlloc(DOUBLE,m,media->sVel,nel*ndfVel,"medsVel",_AD_);
+      zero(media->sVel, nel*ndfVel, DOUBLEC);      
+    }
+/*...................................................................*/
+
+/*... 2pvelocidade*/
+    if (!strcmp(word, "p2Vel") || !strcmp(word, "p2vel")) {
+      if(!mpiVar.myId)
+        fprintf(fileLogExc,"%-20s: enable\n", word);
+      media->f2pVel = true;
+      nTerm--;
+/*... vel``(t) = vel(t) - <vel>*/
+      HccaAlloc(DOUBLE,m,media->p2Vel,nel*ndfVel,"p2Vel",_AD_);
+      zero(media->p2Vel, nel*ndfVel, DOUBLEC);
+/*... vel``(t) = vel(t) - <vel>*/
+      HccaAlloc(DOUBLE,m,media->sP2Vel,nel*ndfVel,"sP2Vel",_AD_);
+      zero(media->sP2Vel, nel*ndfVel, DOUBLEC);
+/*...*/
+      HccaAlloc(DOUBLE,m,media->mP2Vel,nel*ndfVel,"mP2Vel",_AD_);
+      zero(media->mP2Vel, nel*ndfVel, DOUBLEC);
+    }
+/*...................................................................*/   
+  } while (nTerm);
+/*....................................................................*/
+
 }
 /**********************************************************************/

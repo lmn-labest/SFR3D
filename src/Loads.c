@@ -1,8 +1,45 @@
 #include<Loads.h>
 
 /********************************************************************* 
+ * Data de criacao    : 27/01/2017                                   *
+ * Data de modificaco : 27/01/2018                                   * 
+ *-------------------------------------------------------------------* 
+ * InletFunction:                                                         * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * r      -> posicao                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * tA     -> valor calculado da funcao                               * 
+ *-------------------------------------------------------------------* 
+ * u(r) = vMax*(1-(r-d)/R)^(n)                                            * 
+ * n = 2 laminar                                                     * 
+ * n = 7 turbulento                                                  *
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+DOUBLE static InletFunction(DOUBLE const x) {
+
+  DOUBLE vMax,h,h2,f,r;
+
+
+  vMax = 1.0;
+  h  = 0.1;
+  h2 = h*0.5e0;
+  r  = (x - h2)/h2;
+
+  f = vMax*(1.0 - pow(fabs(r),7.0));
+
+  return  f;
+
+
+}
+
+
+/********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 30/09/2017                                   * 
+ * Data de modificaco : 27/01/2018                                   * 
  *-------------------------------------------------------------------* 
  * GETLOADS:                                                         * 
  *-------------------------------------------------------------------* 
@@ -10,7 +47,7 @@
  *-------------------------------------------------------------------* 
  * tA     -> nao definido                                            * 
  * par    -> parametros                                              * 
- * xm     -> ponto (x1,x2,x3)                                        * 
+ * xm     -> ponto (x1,x2,x3,t)                                      * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
@@ -19,49 +56,63 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void getLoads(DOUBLE *par, Loads ld) {
+void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx) {
 
+  DOUBLE x1,x2,x3,t;
 
-  if (ld.type == DIRICHLETBC) {
-    par[0] = ld.par[0];
+  x1=xx[0];
+  x2=xx[1];
+  x3=xx[2];
+  t =xx[3];
+
+  if (ld->type == DIRICHLETBC) {
+    par[0] = ld->par[0];
   }
   
-  else if( ld.type == ROBINBC){
-    par[0] = ld.par[0];
-    par[1] = ld.par[1];
+  else if( ld->type == ROBINBC){
+    par[0] = ld->par[0];
+    par[1] = ld->par[1];
   }
   
-  else if (ld.type == NEUMANNBC) {
-    par[0] = ld.par[0];
+  else if (ld->type == NEUMANNBC) {
+    par[0] = ld->par[0];
   }
 
-  else if (ld.type == MOVEWALL) {
-    par[0]   = ld.par[0];
-    par[1]   = ld.par[1];
-    par[2]   = ld.par[2];
+  else if (ld->type == MOVEWALL) {
+    par[0]   = ld->par[0];
+    par[1]   = ld->par[1];
+    par[2]   = ld->par[2];
   }
 
-  else if (ld.type == INLETSTAICTPRES) {
+  else if (ld->type == INLETSTAICTPRES) {
   }
 
-  else if (ld.type == INLETTOTALPRES) {
-    par[0] = ld.par[0];
-    par[1] = ld.par[1];
-    par[2] = ld.par[2];
-    par[3] = ld.par[3];
-    par[4] = ld.par[4];
+  else if (ld->type == INLETTOTALPRES) {
+    par[0] = ld->par[0];
+    par[1] = ld->par[1];
+    par[2] = ld->par[2];
+    par[3] = ld->par[3];
+    par[4] = ld->par[4];
   }
 
-  else if (ld.type == INLET) {
-    par[0] = ld.par[0];
-    par[1] = ld.par[1];
-    par[2] = ld.par[2];
-    par[3] = ld.par[3];
+  else if (ld->type == INLET) {
+    if (ld->nTypeVar == LVARCONST){
+      par[0] = ld->par[0];
+      par[1] = ld->par[1];
+      par[2] = ld->par[2];
+      par[3] = ld->par[3];
+    }
+    else if (ld->nTypeVar == LFUNCPARABOLIC) {
+      par[0] = ld->par[0];
+      par[1] = InletFunction(x2);
+      par[2] = 0.0;
+      par[3] = 0.0;
+    }
   }
 
-  else if (ld.type == OPEN) {
-    par[0]   = ld.par[0];
-    par[1]   = ld.par[1];
+  else if (ld->type == OPEN) {
+    par[0]   = ld->par[0];
+    par[1]   = ld->par[1];
   }
 }
 /********************************************************************/
@@ -132,6 +183,7 @@ void loadSenProd(DOUBLE *tA,DOUBLE *par,DOUBLE *xm){
  * gradPresC  -> gradiente no centro da celulca                      * 
  * viscosityC -> coeficiente de viscosidade dinamica                 * 
  * effViscosityC -> coeficiente de viscosidade effeyiva              * 
+ * xx         -> pontos medios da face e tempo (x1,x2,x3,t)
  * s          -> vetor s                                             * 
  * e          -> vetor e                                             *
  * t          -> vetor t                                             *  
@@ -162,20 +214,24 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
           , DOUBLE *RESTRICT velC   , DOUBLE *RESTRICT gradVel
           , DOUBLE const presC      , DOUBLE *RESTRICT gradPresC
           , DOUBLE const viscosityC , DOUBLE const effViscosityC  
+          , DOUBLE *RESTRICT xx
           , DOUBLE *RESTRICT s      , DOUBLE *RESTRICT e        
           , DOUBLE *RESTRICT t      , DOUBLE *RESTRICT n  
           , DOUBLE const densityC   , DOUBLE *RESTRICT wallPar   
           , DOUBLE const fArea      , DOUBLE const dcca
-          , Loads ld                , short  const ndm 
+          , Loads *ld               , short  const ndm 
           , bool const fCalVel      , bool const fCalPres
           , bool const fWallModel   , short const wallType){
 
   DOUBLE aP,wfn,wf[3],m,tmp[5],gradVelFace[9],modVel,yPlus,uPlus;
   DOUBLE viscosityWall,densityEnv,par[MAXLOADPARAMETER],ev[3],dc,modE;
-
   tmp[0] = tmp[1] = tmp[2] = tmp[3] = 0.e0;
 /*... parade impermeavel movel*/
-  if( ld.type == MOVEWALL){
+  if( ld->type == MOVEWALL){
+    getLoads(par,ld,xx);
+    tA[0] = par[0];
+    tA[1] = par[1];
+    if(ndm == 3) tA[2] = par[2];
     if(!fCalVel)return;
 /*...*/
     yPlus = 0.e0;
@@ -184,7 +240,10 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
       yPlus = wallPar[0];
       uPlus = wallPar[1];
 /*...................................................................*/
-      viscosityWall = viscosityC*yPlus/uPlus;
+      if(yPlus > 0.01e0)          
+        viscosityWall = viscosityC*yPlus/uPlus;
+      else
+        viscosityWall = viscosityC;   
     }
 /*...................................................................*/ 
 
@@ -236,14 +295,15 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... entrada de massa(Pressao estatica)*/
-  else if (ld.type == INLETSTAICTPRES) {
-    densityEnv = ld.par[0];
+  else if (ld->type == INLETSTAICTPRES) {
+    getLoads(par,ld,xx);
+    densityEnv = par[0];
 /*... direcao*/
-    tmp[0] = ld.par[1];
-    tmp[1] = ld.par[2];
+    tmp[0] = par[1];
+    tmp[1] = par[2];
 /*... velocidade normal*/
     if (ndm == 3) {
-      tmp[2] = ld.par[3];
+      tmp[2] = par[3];
       wfn = velC[0]*n[0] + velC[1]*n[1] + velC[2]*n[2];
       tmp[3] = wfn / (tmp[0]*n[0] + tmp[1]*n[1] + tmp[2]*n[2]);
     }
@@ -268,16 +328,17 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... entrada de massa ( Velocidade)*/
-  else if( ld.type ==  INLET){
-    tA[0] = ld.par[1];
-    tA[1] = ld.par[2];
+  else if( ld->type ==  INLET){
+    getLoads(par,ld, xx);
+    tA[0] = par[1];
+    tA[1] = par[2];
     wfn   = tA[0]*n[0] + tA[1]*n[1];
     if( ndm == 3){
-      tA[2] = ld.par[3];
+      tA[2] = par[3];
       wfn  += tA[2]*n[2];
     }
  /*... eq momentum*/
-    densityEnv = ld.par[0];
+    densityEnv = par[0];
     m  = densityEnv*wfn*fArea;
     if(fCalVel){
       p[0] -= m*tA[0];
@@ -290,7 +351,7 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... saida (derivada nula, pressa estatica)*/
-  else if( ld.type ==  OUTLET){
+  else if( ld->type ==  OUTLET){
     
     wfn = velC[0]*n[0] + velC[1]*n[1];
     if ( ndm == 3 ) wfn += velC[2]*n[2];
@@ -368,7 +429,7 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 /*...................................................................*/
   }   
 /*... fronteira aberta(Pressao estatica)*/
-  else if (ld.type == OPEN) {
+  else if (ld->type == OPEN) {
 
 /*...*/
     wfn = velC[0]*n[0] + velC[1]*n[1];
@@ -451,7 +512,7 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 /*... entrada*/
     else{
 /*...*/
-      densityEnv = ld.par[0];
+      densityEnv = ld->par[0];
 /*...................................................................*/
       m = densityEnv*wfn*fArea;
 /*... eq momentum*/
@@ -484,8 +545,8 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... entrada de massa(Pressao total)*/
-  else if (ld.type == INLETTOTALPRES) {
-    getLoads(par,ld);
+  else if (ld->type == INLETTOTALPRES) {
+    getLoads(par,ld,xx);
     densityEnv = par[0];   
     ev[0]      = par[2];
     ev[1]      = par[3];
@@ -530,7 +591,7 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 
 /********************************************************************* 
  * Data de criacao    : 01/07/2016                                   *
- * Data de modificaco : 07/01/2018                                   * 
+ * Data de modificaco : 27/01/2018                                   * 
  *-------------------------------------------------------------------* 
  * pLoadSimplePres : condicao de contorno para pressao               *
  *-------------------------------------------------------------------* 
@@ -573,11 +634,11 @@ void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
           , DOUBLE *RESTRICT t          , DOUBLE *RESTRICT n      
           , DOUBLE const densityC       , DOUBLE *RESTRICT velC                                             
           , DOUBLE const fArea          , DOUBLE const dd
-          , Loads ld                    , short  const ndm 
+          , Loads *ld                   , short  const ndm 
           , bool const fCal){              
 
   DOUBLE modVel,par[MAXLOADPARAMETER],ev[3],dc,densityEnv,m,presT;
-  DOUBLE tmp[5],presB,modE;
+  DOUBLE tmp[5],presB,modE,xx[4];
 
 /*...*/
   tmp[0] = e[0]*e[0] + e[1]*e[1];
@@ -586,8 +647,8 @@ void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... pressao prescrita*/
-  if( ld.type == DIRICHLETBC){
-    tA[0]   = ld.par[0];
+  if( ld->type == DIRICHLETBC){
+    tA[0]   = ld->par[0];
     if(fCal){
       *sP += densityC*modE/dd;
     }
@@ -595,8 +656,8 @@ void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... pressao total prescrita*/
-  else if( ld.type == INLETTOTALPRES){
-    getLoads(par,ld);
+  else if( ld->type == INLETTOTALPRES){
+    getLoads(par,ld,xx);
     densityEnv = par[0];   
     presT      = par[1];
     ev[0]      = par[2];
@@ -753,7 +814,7 @@ void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
 
 /********************************************************************* 
  * Data de criacao    : 21/09/2017                                   *
- * Data de modificaco : 30/09/2017                                   * 
+ * Data de modificaco : 27/01/2018                                   * 
  *-------------------------------------------------------------------* 
  * pLoadEnergy : cargas da equacao de energia                        *
  *-------------------------------------------------------------------* 
@@ -788,9 +849,9 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
                , DOUBLE const uC         , DOUBLE *RESTRICT n  
                , DOUBLE const thermCoef  , DOUBLE const densityC
                , DOUBLE const viscosityC , DOUBLE const sHeatC
-               , DOUBLE const prT        , DOUBLE *RESTRICT xm                   
+               , DOUBLE const prT        , DOUBLE *RESTRICT xx                   
                , DOUBLE const fArea      , DOUBLE const dcca
-               , Loads ld                , Loads ldVel 
+               , Loads *ld               , Loads *ldVel 
                , DOUBLE *RESTRICT wallPar, short  const ndm          
                , bool const fCal         , bool const fTemp
                , bool const iKelvin      , bool const fSheat
@@ -798,6 +859,7 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 
   DOUBLE aP,h,wfn,wf[3],tempPlus,yPlus,uPlus,tC,tW,densityEnv;
   DOUBLE prM = viscosityC*sHeatC/thermCoef,diff;
+  DOUBLE par[MAXLOADPARAMETER],velB[3];
 
 /*...*/
   tempPlus = uPlus = yPlus = 0.e0;
@@ -812,8 +874,9 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 /*...................................................................*/ 
 
 /*... potencial prescrito (Parede)*/
-  if( ld.type == DIRICHLETBC){
-    tA[0]   = ld.par[0];
+  if( ld->type == DIRICHLETBC){
+    getLoads(par,ld,xx);
+    tA[0]   = par[0];
     if(!fCal) return;
 /*... inertial sub-layer*/
     if ( yPlus > 11.81e0 ){
@@ -847,8 +910,9 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... lei de resfriamento de newton*/
-  else if( ld.type == CONVECTIONHEAT){
-    tA[0] = ld.par[0];    
+  else if( ld->type == CONVECTIONHEAT){
+    getLoads(par,ld,xx);
+    tA[0] = par[0];    
     if(!fCal) return;
 
 /*...*/
@@ -882,9 +946,10 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... condicao de ROBIN*/
-  else if( ld.type == ROBINBC){
-    h     = ld.par[0];
-    tA[0] = ld.par[1];
+  else if( ld->type == ROBINBC){
+    getLoads(par,ld,xx); 
+    h     = par[0];
+    tA[0] = par[1];
     aP  = ((thermCoef*h)/(thermCoef+h*dcca))*fArea;
     *sP += aP;
     *p  += aP*tA[0];
@@ -893,8 +958,9 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... fluxo prestrito diferente de zero*/
-   else if( ld.type == NEUMANNBC){
-     tA[0]   = ld.par[0];
+   else if( ld->type == NEUMANNBC){
+     getLoads(par,ld,xx); 
+     tA[0] = par[0];
      if(!fCal) return;
 /*... inertial sub-layer*/     
      if ( yPlus > 11.81e0 ){
@@ -911,7 +977,7 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
        }
 /*...................................................................*/
       
-/*...*/
+/*...*/  
       aP   = thermCoef*fArea/dcca;
       if(!fTemp) aP /=  sHeatC;
       *sP += aP;
@@ -929,7 +995,7 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 
 /*... potencial senoidal prescrito 
       ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
-   else if( ld.type == SINBC){
+   else if( ld->type == SINBC){
 //   loadSenProd(tA,ld.par,xm); 
 /*...*/
 //   if(fCal){ 
@@ -942,20 +1008,27 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... potencial prescrito (entra)*/
-   else if( ld.type == INLET){
-     tA[0]   = ld.par[1];
+   else if( ld->type == INLET){
+     getLoads(par,ld,xx); 
+     tA[0]   = par[1];
 /*...*/
      if(fCal){
-        densityEnv = ld.par[0];
-        wfn   = velC[0] * n[0] + velC[1] * n[1];
-        if (ndm == 3) wfn += velC[2]*n[2];
+        densityEnv = par[0];
+        velB[0] = par[2];
+        velB[1] = par[3];
+        
+        wfn   = velB[0] * n[0] + velB[1] * n[1];
+        if (ndm == 3) {
+          velB[2] = par[4];  
+          wfn += velB[2]*n[2];
+        }
        *p -= wfn*densityEnv*fArea*tA[0];
      } 
    }
 /*...................................................................*/
 
 /*... derivada nula (condicao localmente parabolica saida)*/
-   else if( ld.type == OUTLET){
+   else if( ld->type == OUTLET){
 /*...*/
      if(fCal){
        wfn   = velC[0] * n[0] + velC[1] * n[1];
@@ -967,8 +1040,9 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... fronteira aberta(Pressao estatica)*/
-  else if (ld.type == OPEN) {
-    tA[0]   = ld.par[1];
+  else if (ld->type == OPEN) {
+    getLoads(par,ld,xx); 
+    tA[0]   = par[1];
     if(!fCal) return;
 /*...*/
     wfn  = velC[0]*n[0] + velC[1]*n[1];
@@ -980,7 +1054,7 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 
 /*... entrada*/
     else{
-      densityEnv = ld.par[0];
+      densityEnv = par[0];
       densityEnv = densityC;
       *p -= wfn*densityEnv*fArea*tA[0]; 
     } 
@@ -992,9 +1066,9 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 
 /********************************************************************* 
  * Data de criacao    : 21/09/2017                                   *
- * Data de modificaco : 30/09/2017                                   * 
+ * Data de modificaco : 27/01/2018                                   * 
  *-------------------------------------------------------------------* 
- * pLoadEnergy : cargas da equacao de energia                        *
+ * pLoadOneEqK : cargas da equacao K                                 *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -1028,14 +1102,14 @@ void pLoadOneEqK(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
                , DOUBLE const densityC   , DOUBLE const viscosityC
                , DOUBLE const prT        , DOUBLE *RESTRICT xm                   
                , DOUBLE const fArea      , DOUBLE const dd
-               , Loads ld                , Loads ldVel
+               , Loads *ld               , Loads *ldVel
                , short const lFaceReK  
                , DOUBLE *RESTRICT wallPar, short  const ndm          
                , bool const fCal         , bool const fWallModel   
                , short const wallType){
 
   DOUBLE aP,wfn,wf[3],yPlus,uF,densityEnv,in,vv,vB[3];
-  DOUBLE par[MAXLOADPARAMETER],modE,cMu = 0.09;
+  DOUBLE par[MAXLOADPARAMETER],modE,cMu = 0.09,xx[4];
 
   yPlus = 0.e0;
 /*...*/
@@ -1050,7 +1124,7 @@ void pLoadOneEqK(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 /*...................................................................*/ 
 
 /*...*/
-  if (lFaceReK == STATICWALL || ld.type == MOVEWALL) {
+  if (lFaceReK == STATICWALL || ld->type == MOVEWALL) {
     tA[0]   = 0.0;
     if(!fCal) return;
     aP   = viscosityC*fArea/dd;
@@ -1061,8 +1135,8 @@ void pLoadOneEqK(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 /*...................................................................*/ 
 
 /*... potencial prescrito (entra)*/
-   else if( ld.type == INLET){
-     getLoads(par,ldVel);
+   else if( ld->type == INLET){
+     getLoads(par,ldVel,xx);
      densityEnv = par[0];
      vB[0]      = par[1];
      vB[1]      = par[2];
@@ -1073,8 +1147,8 @@ void pLoadOneEqK(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
        wfn += vB[2]*n[2];
        vv  += vB[2]*vB[2];
      }
-     getLoads(par,ld);
-     in    = ld.par[0];
+     getLoads(par,ld,xx);
+     in    = par[0];
      tA[0] = 1.5e0*in*in*vv;
 /*...*/
      if(fCal)
@@ -1083,7 +1157,7 @@ void pLoadOneEqK(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... derivada nula (condicao localmente parabolica saida)*/
-   else if( ld.type == OUTLET){
+   else if( ld->type == OUTLET){
 /*...*/
      if(fCal){
        wfn   = velC[0] * n[0] + velC[1] * n[1];

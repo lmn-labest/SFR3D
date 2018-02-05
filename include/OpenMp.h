@@ -38,6 +38,7 @@
   void pMatrixSolverOmp(Memoria *m,SistEq *eq
                        ,char *s1  ,char *s2
                        ,char *s3  ,char *s4);
-    
+
+  void openMpSet(FILE *fileIn, Omp *ompVar);  
 
 #endif /*_OPENMP_H_*/

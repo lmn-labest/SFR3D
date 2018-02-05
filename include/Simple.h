@@ -17,6 +17,7 @@
   #include<Turbulence.h>
   #include<Properties.h>
   #include<Energy.h>
+  #include<Media.h>
 /*...................................................................*/
 
   void simpleSolver3D(Memoria *m        
@@ -40,8 +41,8 @@
                     , SistEq *sistEqEnergy, SistEq *sistEqKturb 
                     , Solv *solvVel       , Solv *solvPres 
                     , Solv *solvEnergy    , Solv *solvKturb      
-                    , Simple *sp            
-                    , Scheme *sc          , PartMesh *pMesh
+                    , Simple *sp          , Scheme *sc          
+                    , PartMesh *pMesh     , Mean *media
                     , FileOpt opt         , char *preName
                     , char *nameOut       , FILE *fileOut);
 
@@ -105,5 +106,4 @@
   void setSimpleLmScheme(char *word, short const ndm
                        , Simple *sp, FILE *fileIn);
 /*...................................................................*/
-
 #endif/*_SIMPLE_H_*/

@@ -55,6 +55,8 @@ int main(int argc,char**argv){
 /*... tubulence*/
   Turbulence turbModel;
 /*...*/
+  Mean media;
+/*...*/
   EnergyModel eModel;
   MassEqModel eMass;
   MomentumModel eMomentum;
@@ -103,7 +105,7 @@ int main(int argc,char**argv){
   char word[WORD_SIZE],str[WORD_SIZE];
   char macro[][WORD_SIZE] =
   {"help"        ,"mesh"         ,"stop"          /* 0, 1, 2*/
-  ,"config"      ,""             ,""              /* 3, 4, 5*/
+  ,"config"      ,"nextLoop"     ,""              /* 3, 4, 5*/
   ,"pgeo"        ,"pcoob"        ,"pcoo"          /* 6, 7, 8*/ 
   ,"presolvD1"   ,"presolvT1"    ,"openmp"        /* 9,10,11*/
   ,"solvD1"      ,""             ,"pD1"           /*12,13,14*/
@@ -115,12 +117,19 @@ int main(int argc,char**argv){
   ,"advection"   ,"edp"          ,"diffusion"     /*30,31,32*/
   ,"pFluid"      ,"setPrintFluid" ,""             /*33,34,35*/
   ,"setPrime"    ,"prime"         ,"propVar"      /*36,37,38*/
-  ,"gravity"     ,"model"         ,""        };   /*39,40,41*/
+  ,"gravity"     ,"model"         ,"mean"         /*39,40,41*/
+  ,"setMean"};                                    /*42,  ,  */
 /* ..................................................................*/
 
 /*... Memoria principal(valor padrao - bytes)*/
   nmax = 200000;
 /* ..................................................................*/
+
+/*...*/
+  media.fMedia = false;
+  media.fVel   = false;
+  media.f2pVel = false;
+/*..................................................................*/
 
 /*...*/  
   thDynamic.pTh[0]      = PREREF;
@@ -177,6 +186,10 @@ int main(int argc,char**argv){
   ompVar.fUpdate        = false;
 /* ..................................................................*/
 
+/*...*/
+     
+/* ..................................................................*/
+
 /* ... opcoes de arquivos */                                           
   opt.bVtk          = false;
   opt.fCell         = false;
@@ -201,6 +214,7 @@ int main(int argc,char**argv){
   opt.stressR       = false;
   opt.cDynamic      = false;
   opt.bconditions   = true;
+  opt.cc            = false;
  
   opt.stepPlotFluid[0] =  5;
   opt.stepPlotFluid[1] = opt.stepPlotFluid[0];
@@ -366,7 +380,7 @@ int main(int argc,char**argv){
       if(!mpiVar.myId){ 
         fprintf(fileLogExc,"%s\n",DIF);
         fprintf(fileLogExc,"%s\n",word); 
-        fprintf(fileLogExc,"%s\n",DIF);
+        fprintf(fileLogExc,"%s\n\n",DIF);
       }
 /*...*/
       if(mpiVar.nPrcs>1 && !pMesh->fPartMesh){
@@ -382,6 +396,7 @@ int main(int argc,char**argv){
       if(!mpiVar.myId)
         readFileFvMesh(&m          ,mesh0
                       ,propVarFluid,eModel
+                      ,&turbModel  ,&media       
                       ,fileIn);
       mpiWait();
 /*...................................................................*/
@@ -409,7 +424,7 @@ int main(int argc,char**argv){
         wallFluid(mesh0->elm.faceRvel,mesh0->elm.adj.nelcon
                  ,mesh0->elm.adj.nViz   
                  ,mesh0->numel       ,mesh0->maxViz); 
-        if( turbModel.fTurb)
+        if(turbModel.fTurb)
           wallFluid(mesh0->elm.faceReKturb,mesh0->elm.adj.nelcon
                    ,mesh0->elm.adj.nViz   
                    ,mesh0->numel          ,mesh0->maxViz);  
@@ -610,7 +625,7 @@ int main(int argc,char**argv){
       tm.reord = getTimeC() - tm.reord;
       if(!mpiVar.myId ){
         fprintf(fileLogExc,"Malha reordenada.\n");
-        fprintf(fileLogExc,"%s\n",DIF);
+        fprintf(fileLogExc,"%s\n\n",DIF);
       }
 /*...................................................................*/
 
@@ -713,6 +728,15 @@ int main(int argc,char**argv){
       if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
     }   
 /*===================================================================*/
+
+/*===================================================================*
+ * macro: nextLoop : proximo loop tempo ralxcucao
+ *===================================================================*/
+    else if((!strcmp(word,macro[4]))){
+      jLoop = 0;
+    }   
+/*===================================================================*/
+
 
 /*===================================================================*
  * macro: pgeo : escreve a geometria com os carregamentos
@@ -1162,62 +1186,8 @@ int main(int argc,char**argv){
     else if ((!strcmp(word, macro[11]))) {
       if(!mpiVar.myId  ) fprintf(fileLogExc,"%s\n\n",DIF);
 /*... */
-      readMacro(fileIn, word, false);
-      fprintf(fileLogExc,"%-20s:\n","OpenMp:");
-      nOmp = (short)atol(word);
-      ompVar.flag = true;
-      do {
-        readMacro(fileIn, word, false);
-/*... solver*/
-        if (!strcmp(word, "solver") || !strcmp(word, "Solver")) {
-          readMacro(fileIn, word, false);
-/*... codigo da da funcao limitadora de fluxo*/
-          ompVar.nThreadsSolver = (short)atol(word);
-          ompVar.fSolver        = true;
-/*...................................................................*/
-
-/*...*/    
-          fprintf(fileLogExc,"%-20s: %d\n","Solver nThreads"
-                            ,ompVar.nThreadsSolver);
-/*...................................................................*/
-          nOmp--;
-        }
-/*...................................................................*/
-
-/*... cell*/
-        else if (!strcmp(word, "Cell") || !strcmp(word, "cell")) {
-          readMacro(fileIn, word, false);
-/*...*/
-          ompVar.nThreadsCell = (short)atol(word);
-          ompVar.fCell = true;
-/*...................................................................*/
-
-/*...*/       
-          fprintf(fileLogExc,"%-20s: %d\n","Cell nThreads"
-                            , ompVar.nThreadsCell);
-/*...................................................................*/
-          nOmp--;
-        }
-/*...................................................................*/
-
-/*... update*/
-        else if (!strcmp(word, "Update") || !strcmp(word, "update")) {
-          readMacro(fileIn, word, false);
-/*...*/
-          ompVar.nThreadsUpdate = (short)atol(word);
-          ompVar.fUpdate = true;
-/*...................................................................*/
-
-/*...*/       
-          fprintf(fileLogExc,"%-20s: %d\n","Update nThreads"
-                            , ompVar.nThreadsUpdate);
-/*...................................................................*/
-          nOmp--;
-        }
-/*...................................................................*/
-      } while (nOmp);
-
-      openMpCheck(ompVar.flag);
+      openMpSet(fileIn,&ompVar);
+/*..................................................................*/
       if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*===================================================================*/
@@ -2404,8 +2374,8 @@ int main(int argc,char**argv){
                      , sistEqEnergy, sistEqKturb   
                      , solvVel     , solvPres
                      , solvEnergy  , solvKturb  
-                     , simple        
-                     , &sc         , pMesh
+                     , simple      , &sc     
+                     , pMesh       , &media 
                      , opt         , preName
                      , nameOut     , fileOut);  
 /*...................................................................*/
@@ -2418,7 +2388,7 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: preSimple: configuracoe do metodo simple
+ * macro: setSimple: configuracoe do metodo simple
  *===================================================================*/
     else if((!strcmp(word,macro[26]))){
       if(!mpiVar.myId ){
@@ -2432,84 +2402,12 @@ int main(int argc,char**argv){
         printf("Erro ponteiro simple\n");
         exit(EXIT_FAILURE);
       }
-      fSolvSimple             = true;  
-      simple->maxIt           = 1000;
-      simple->alphaPres       = 0.3e0; 
-      simple->alphaVel        = 0.7e0; 
-      simple->type            = SIMPLE;
-      simple->kZeroVel        = 4;
-      simple->kZeroPres       = 0;
-      simple->sPressure       = true;
-      simple->faceInterpolVel = 1;
-      simple->nNonOrth        = 0;
-      simple->tolPres         = 1.e-06;
-      simple->tolVel[0]       = 1.e-06;
-      simple->tolVel[1]       = 1.e-06;
-      simple->tolVel[2]       = 1.e-06;
-      if (mesh->ndfFt){
-        simple->kZeroEnergy  = 0;
-        simple->tolEnergy    = 1.e-06;
-        simple->alphaEnergy  = 1.e0;
-        simple->alphaDensity = 1.0e0; 
-      }
-      simple->pSimple         = 500;
-/*...................................................................*/
-      
-/*...*/
-      readMacro(fileIn,word,false);
-      if(!strcmp(word,"config:")){
-/*... timer*/        
-        readMacro(fileIn,word,false);
-/*... levemente compressivel*/       
-        if (mesh->ndfFt)
-          setSimpleLmScheme(word,mesh0->ndm,simple,fileIn);
-/*... imcompressivel*/
-        else
-          setSimpleScheme(word,mesh0->ndm, simple, fileIn);
-/*...*/        
-        if(simple->type == SIMPLE && !mpiVar.myId)     
-          fprintf(fileLogExc,"PRES-VEL  : SIMPLE\n");
-        else if(simple->type == SIMPLEC && !mpiVar.myId )     
-          fprintf(fileLogExc,"PRES-VEL  : SIMPLEC\n");
 
-/*...*/        
-        if(!mpiVar.myId ){ 
-          fprintf(fileLogExc,"Maxit     : %d\n",simple->maxIt);
-          fprintf(fileLogExc,"alphaPres : %lf\n",simple->alphaPres);
-          fprintf(fileLogExc,"alphaVel  : %lf\n",simple->alphaVel);
-          fprintf(fileLogExc,"tolPres   : %e\n",simple->tolPres);
-          fprintf(fileLogExc,"tolVelX   : %e\n",simple->tolVel[0]);
-          fprintf(fileLogExc,"tolVelY   : %e\n",simple->tolVel[1]);
-          fprintf(fileLogExc,"tolVelZ   : %e\n",simple->tolVel[2]);
-          if(mesh->ndfFt)
-            fprintf(fileLogExc,"tolEnergy : %e\n", simple->tolEnergy);
-          fprintf(fileLogExc,"nNonOrth  : %d\n",simple->nNonOrth);
-          fprintf(fileLogExc,"pSimple   : %d\n",simple->pSimple);
-        }
-      }
+      readSetSimple(&m    , fileIn
+                  , mesh0 , mesh
+                  , simple, &fSolvSimple);
 /*...................................................................*/
 
-/*...*/
-      HccaAlloc(DOUBLE     ,&m       ,simple->d
-               ,mesh->numel*mesh->ndm,"dField" ,false);
-      zero(simple->d    ,mesh->numel*mesh->ndm,DOUBLEC);
-
-      HccaAlloc(DOUBLE     ,&m       ,simple->ePresC
-               ,mesh->numel,"ePresC" ,false);
-      zero(simple->ePresC,mesh->numel  ,DOUBLEC);
-
-      HccaAlloc(DOUBLE     ,&m       ,simple->nPresC
-               ,mesh->nnode,"nPresC" ,false);
-      zero(simple->nPresC    ,mesh->numel  ,DOUBLEC);
-
-      HccaAlloc(DOUBLE     ,&m      ,simple->eGradPresC
-               ,mesh->numel*mesh->ndm,"eGradPresC",false);
-      zero(simple->eGradPresC,mesh->numel*mesh->ndm  ,DOUBLEC);
-      
-      HccaAlloc(DOUBLE     ,&m       ,simple->ePresC1
-               ,mesh->numel,"ePresC1",false);
-      zero(simple->ePresC,mesh->numel  ,DOUBLEC);
-/*...................................................................*/
       if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
     }
 /*===================================================================*/
@@ -2574,6 +2472,7 @@ int main(int argc,char**argv){
                    "Numero de comandos na macro trasient execedido"); 
         }
       }while(strcmp(word,"endTransient"));
+      strcpy(loopWord[kLoop-1],"nextLoop");
 /*...................................................................*/
       if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
     }   
@@ -2588,13 +2487,13 @@ int main(int argc,char**argv){
         printf("%s\n",word);
       }
 /*...*/
-      jLoop            = 0;
+//    jLoop            = 0;
       sc.ddt.t        += sc.ddt.dt[0];
       sc.ddt.timeStep ++; 
 /*...................................................................*/
 
 /*...*/
-      if(sc.ddt.t > sc.ddt.total + 0.1e0*sc.ddt.dt[0])
+      if(sc.ddt.t > sc.ddt.total + 0.1e0*sc.ddt.dt[TIME_N])
         flWord = false;  
 /*    if(sc.ddt.t > sc.ddt.total)
         flWord = false;  */
@@ -2603,9 +2502,9 @@ int main(int argc,char**argv){
 /*...*/
       else{
         if(!mpiVar.myId ){
-          printf("dt(n-2) = %lf\n",sc.ddt.dt[2]);
-          printf("dt(n-1) = %lf\n",sc.ddt.dt[1]);
-          printf("dt(n)   = %lf\n",sc.ddt.dt[0]);
+          printf("dt(n-2) = %lf\n",sc.ddt.dt[TIME_N_MINUS_2]);
+          printf("dt(n-1) = %lf\n",sc.ddt.dt[TIME_N_MINUS_1]);
+          printf("dt(n)   = %lf\n",sc.ddt.dt[TIME_N ]);
           printf("t(s)    = %lf\n",sc.ddt.t);
           printf("step    = %d\n" ,sc.ddt.timeStep);
         } 
@@ -2642,7 +2541,7 @@ int main(int argc,char**argv){
         }
       }
 /*...................................................................*/
-       if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n",DIF);
+       if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
     }   
 /*===================================================================*/
 
@@ -2654,46 +2553,10 @@ int main(int argc,char**argv){
         fprintf(fileLogExc,"%s\n",DIF);
         fprintf(fileLogExc,"%s\n",word);
       }
- /*... tecnica de adveccao*/
-      readMacro(fileIn, word, false);
-      nScheme = (short) atol(word);
-      do {
-        readMacro(fileIn, word, false);
- /*... velocidade*/
-        if (!strcmp(word, "Vel") || !strcmp(word, "vel")) {
-          fprintf(fileLogExc,"%s:\n", word);
-          readMacro(fileIn, word, false);
- /*... codigo da da funcao limitadora de fluxo*/
-          setAdvectionScheme(word, &sc.advVel,fileIn);
-          nScheme--;
-        }
- /*... T1*/
-        else if (!strcmp(word, "T1") || !strcmp(word, "t1")) {
-          fprintf(fileLogExc,"%s:\n", word);
-          readMacro(fileIn, word, false);
- /*... codigo da da funcao limitadora de fluxo*/
-          setAdvectionScheme(word, &sc.advT1,fileIn);
-          nScheme--;
-        }
- /*... Energy*/
-        else if (!strcmp(word, "Energy") || !strcmp(word, "energy")) {
-          fprintf(fileLogExc,"%s:\n", word);
-          readMacro(fileIn, word, false);
-/*... codigo da da funcao limitadora de fluxo*/
-          setAdvectionScheme(word, &sc.advEnergy, fileIn);
-          nScheme--;
-        }
-/*... kTutb*/
-        else if (!strcmp(word, "kTurb") || !strcmp(word, "kturb")) {
-          fprintf(fileLogExc,"%s:\n", word);
-          readMacro(fileIn, word, false);
-/*... codigo da da funcao limitadora de fluxo*/
-          setAdvectionScheme(word, &sc.advKturb, fileIn);
-          nScheme--;
-        }
-      } while (nScheme);
-/*...................................................................*/
-      if (!mpiVar.myId) fprintf(fileLogExc,"%s\n", DIF);
+/*...*/
+      readAdvectionScheme(fileIn, &sc);
+ /*...................................................................*/
+      if (!mpiVar.myId) fprintf(fileLogExc,"%s\n\n", DIF);
     }   
 /*===================================================================*/
 
@@ -2707,7 +2570,7 @@ int main(int argc,char**argv){
       }
       readEdo(mesh0,fileIn);
 /*...................................................................*/
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n",DIF);
+      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
     }   
 /*===================================================================*/
 
@@ -2719,46 +2582,10 @@ int main(int argc,char**argv){
         fprintf(fileLogExc,"%s\n",DIF);
         fprintf(fileLogExc,"%s\n",word);
       }
-/*... tecnica de adveccao*/
-      readMacro(fileIn,word,false);
-      nScheme = (short) atol(word);
-      do{ 
-        readMacro(fileIn,word,false);
-/*... velocidade*/
-        if(!strcmp(word,"Vel") || !strcmp(word, "vel")){
-          fprintf(fileLogExc,"%s:\n",word);
-          readMacro(fileIn,word,false);
-/*... codigo da da funcao limitadora de fluxo*/        
-          setDiffusionScheme(word,&sc.diffVel.iCod);
-          nScheme--;
-        }
-/*... Pressao*/
-        else if(!strcmp(word,"Pres") || !strcmp(word, "pres")){
-          fprintf(fileLogExc,"%s:\n",word);
-          readMacro(fileIn,word,false);
-/*... codigo da da funcao limitadora de fluxo*/        
-          setDiffusionScheme(word,&sc.diffPres.iCod);
-          nScheme--;
-        }
- /*... transporte T1*/
-        else if (!strcmp(word,"T1") || !strcmp(word, "t1")){
-          fprintf(fileLogExc,"%s:\n", word);
-          readMacro(fileIn, word, false);
- /*... codigo da da funcao limitadora de fluxo*/
-          setDiffusionScheme(word, &sc.diffT1.iCod);
-          nScheme--;
-        }
- /*... Energy*/
-        else if (!strcmp(word, "Energy") || !strcmp(word, "energy")) {
-          fprintf(fileLogExc,"%s:\n", word);
-          readMacro(fileIn, word, false);
- /*... codigo da da funcao limitadora de fluxo*/
-          setDiffusionScheme(word, &sc.diffEnergy.iCod);
-          nScheme--;
-        }
-      }while(nScheme);
+/*... */
+      readDiffusionScheme(fileIn, &sc);
 /*...................................................................*/
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n",DIF);
+      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
     }   
 /*===================================================================*/
 
@@ -2776,17 +2603,18 @@ int main(int argc,char**argv){
       }
 /*...................................................................*/
 
-/*...*/
-      printFluid(&m        
-                ,turbModel     ,eModel
-                ,pMesh         ,sc
-                ,loadsVel      ,loadsPres 
-                ,loadsTemp     ,opt
-                ,mesh0         ,mesh  
-                ,preName       ,nameOut);
+/*...*/                     
+      printFluid(&m         
+               , turbModel, eModel
+               , pMesh    , sc
+               , loadsVel , loadsPres 
+               , loadsTemp, opt
+               , mesh0    , mesh 
+               , &media     
+               , preName  , nameOut);
 /*...................................................................*/
 
-      if(!mpiVar.myId ) printf("%s\n",DIF);
+      if(!mpiVar.myId ) printf("%s\n\n",DIF);
     }   
 /*===================================================================*/
 
@@ -2801,7 +2629,7 @@ int main(int argc,char**argv){
 /*...*/
       setPrintFluid(&opt,fileIn);
 /*...................................................................*/
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n",DIF);
+      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
     }   
 /*===================================================================*/
 
@@ -2873,7 +2701,7 @@ int main(int argc,char**argv){
       zero(prime->bTemporal, mesh->numel*mesh->ndm, DOUBLEC);
 /*...................................................................*/
 
-      if (!mpiVar.myId) printf("%s\n", DIF);
+      if (!mpiVar.myId) printf("%s\n\n", DIF);
     }
 /*===================================================================*/
 
@@ -2921,7 +2749,7 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: vprop propriedades variaveis                             
+ * macro: vprop: propriedades variaveis                             
  *===================================================================*/
     else if((!strcmp(word,macro[38]))){
       if(!mpiVar.myId ){
@@ -2930,12 +2758,12 @@ int main(int argc,char**argv){
       }
       readPropVar(&propVarFluid,fileIn);
 /*...................................................................*/
-      if(!mpiVar.myId )fprintf(fileLogExc,"%s\n",DIF);
+      if(!mpiVar.myId )fprintf(fileLogExc,"%s\n\n",DIF);
     }   
 /*===================================================================*/
 
 /*===================================================================*
- * macro: gravity                                                  
+ * macro: gravity : gravidade                                                 
  *===================================================================*/
     else if((!strcmp(word,macro[39]))){
       if(!mpiVar.myId ){
@@ -2944,12 +2772,12 @@ int main(int argc,char**argv){
       }   
       readGravity(gravity,fileIn);
 /*...................................................................*/
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n",DIF);
+      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
     }   
 /*===================================================================*/
 
 /*===================================================================*
- * macro: model modelos utilizados nas equacao diferencias         
+ * macro: model: modelos utilizados nas equacao diferencias         
  *===================================================================*/
     else if((!strcmp(word,macro[40]))){
       if(!mpiVar.myId ){
@@ -2960,7 +2788,35 @@ int main(int argc,char**argv){
               , &eMass ,&eMomentum
               , fileIn);
 /*...................................................................*/
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n",DIF);
+      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: mean : calcula a media                                                        
+ *===================================================================*/
+    else if((!strcmp(word,macro[41]))){
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+      }    
+      calMean(&media,mesh,sc.ddt.dt[TIME_N_MINUS_1], sc.ddt.t,sc.ddt.timeStep);
+/*...................................................................*/
+      if(!mpiVar.myId ) printf("%s\n\n",DIF);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: setMean : configuracao das medias temporais                                   
+ *===================================================================*/
+    else if((!strcmp(word,macro[42]))){
+      if(!mpiVar.myId ){
+        fprintf(fileLogExc,"%s\n",DIF);
+        fprintf(fileLogExc,"%s\n",word);
+      }
+      readMean(&m,fileIn,mesh,&media);
+/*...................................................................*/
+      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
     }   
 /*===================================================================*/
 

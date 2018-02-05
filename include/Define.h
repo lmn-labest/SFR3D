@@ -39,6 +39,12 @@
 /*...................................................................*/
 
 /*...*/
+  #define TIME_N_MINUS_2 2
+  #define TIME_N_MINUS_1 1
+  #define TIME_N         0
+/*...................................................................*/
+
+/*...*/
   #define SIMPLE  1
   #define SIMPLEC 2
   #define SIMPLER 3
@@ -150,6 +156,12 @@
   #define MAXLOADFLUID     200
   #define MAXINTERPOL      100
 /*...................................................................*/
+
+/*...*/
+  #define LVARCONST          0
+  #define LFUNCPARABOLIC     1
+/*...................................................................*/
+
 
 /*...*/
   #define DIFPROP        5  /*numero de propriedade de 

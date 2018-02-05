@@ -2079,7 +2079,7 @@ void cellLibRcGrad(Loads *loads
  * volume    -> area da celula central                               * 
  * vSkew      -> vetor entre o ponto medio a intersecao que une os   * 
  *            centrois compartilhado nessa face                      * 
- * xm        -> pontos medios das faces das celulas                  * 
+ * xm        -> pontos medios das faces das celulas (x1,x2,x3,t)     * 
  * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
  *            faces da celula central                                * 
  * lFaceR    -> restricoes por elmento                               * 
@@ -2110,7 +2110,7 @@ void greenGaussCell(Loads *loads
 {
   DOUBLE v,dPviz,coefDif,tmp;
   DOUBLE uf[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF],par[MAXLOADPARAMETER];
-  DOUBLE lModKsi,alpha,alphaMenosUm,invVol,xx[3];
+  DOUBLE lModKsi,alpha,alphaMenosUm,invVol,xx[4];
   INT vizNel;
   short idCell = nFace,nCarg,type;
   short i,j,k;
@@ -2148,20 +2148,25 @@ void greenGaussCell(Loads *loads
 
 /*... contorno*/
       else{
+        xx[0] = MAT2D(i,0,xm,ndm);
+        xx[1] = MAT2D(i,1,xm,ndm);
+        xx[2] = 0.e0;
+        xx[3] = 0.e0;
+        if(ndm == 3) xx[2] = MAT2D(i,2,xm,ndm);
 /*... temperatura prescrita na face(extrapolacao linear)*/
         if(lFaceR[i]){
           nCarg= lFaceL[i]-1;
           type = loads[nCarg].type;
 /*... valor prescrito*/
           if (type == DIRICHLETBC) {
-            getLoads(par,loads[nCarg]);
+            getLoads(par,&loads[nCarg],xx);
             uf[i] =par[0];
           }
 /*...................................................................*/
 
 /*...*/
           else if (type == INLET) {
-            getLoads(par,loads[nCarg]);
+            getLoads(par,&loads[nCarg],xx);
             uf[i] =par[1];
           }
 /*...................................................................*/
@@ -2170,7 +2175,7 @@ void greenGaussCell(Loads *loads
           else if (type == NEUMANNBC ){
             coefDif = lProp[COEFDIF];
             if (coefDif != 0.e0) {
-              getLoads(par,loads[nCarg]);
+              getLoads(par,&loads[nCarg],xx);
               uf[i] = uC[0] - (par[0]/coefDif)*lDcca[i];
             }              
           }
@@ -2193,16 +2198,6 @@ void greenGaussCell(Loads *loads
 /*... potencial senoidal prescrito 
       ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
           else if(type == SINBC){
-            if(ndm == 2){
-              xx[0] = MAT2D(i,0,xm,ndm);
-              xx[1] = MAT2D(i,1,xm,ndm);
-              xx[2] = 0.e0;
-            }
-            else{              
-              xx[0] = MAT2D(i,0,xm,ndm);
-              xx[1] = MAT2D(i,1,xm,ndm);
-              xx[2] = MAT2D(i,2,xm,ndm);
-             }
             loadSenProd(&uf[i],loads[nCarg].par,xx);
           }
 /*...................................................................*/
@@ -2272,7 +2267,7 @@ void greenGaussCell(Loads *loads
           type = loads[nCarg].type;
 /*... valor prescrito*/
           if( type == DIRICHLETBC || type == MOVEWALL){
-            getLoads(par,loads[nCarg]);
+            getLoads(par,&loads[nCarg],xx);
             for(k=0;k<ndf;k++)
               MAT2D(i,k,uf,ndf) = par[k];            
           }
@@ -2280,7 +2275,7 @@ void greenGaussCell(Loads *loads
 
 /*...*/          
           else if( type == INLET ){
-            getLoads(par,loads[nCarg]);
+            getLoads(par,&loads[nCarg],xx);
             for(k=0;k<ndf;k++)
               MAT2D(i,k,uf,ndf) = par[k+1];      
           }
@@ -2290,7 +2285,7 @@ void greenGaussCell(Loads *loads
           else if (type == NEUMANNBC ){
             coefDif = lProp[COEFDIF];
             if (coefDif != 0.e0) {
-              getLoads(par,loads[nCarg]);
+              getLoads(par,&loads[nCarg],xx);
               for(k=0;k<ndf;k++)
                 MAT2D(i,k,uf,ndf) = uC[k] 
                              - (par[k]/coefDif)*lDcca[i];
@@ -2471,7 +2466,7 @@ void greenGaussNode(INT *RESTRICT lViz   ,DOUBLE *RESTRICT fArea
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 08/01/2018                                   * 
+ * Data de modificaco : 27/01/2018                                   * 
  *-------------------------------------------------------------------* 
  * LEASTSQUARE : calcula o gradiente por minimos quadrados           *
  *-------------------------------------------------------------------* 
@@ -2509,13 +2504,12 @@ void  leastSquare(Loads *loads
                  ,short const ndm          ,INT const nel){
 
   DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF];
-  DOUBLE uT[MAX_NDF],xx[3],par[MAXLOADPARAMETER];
+  DOUBLE uT[MAX_NDF],xx[4],par[MAXLOADPARAMETER];
   DOUBLE tmp,coefDif;
   INT vizNel;
   short idCell = nFace,nCarg,type;
   short i,j,k,l;
-
-
+ 
   for(l=0;l<1;l++){    
 /*... um grau de liberdade*/  
     if(ndf == 1){
@@ -2528,20 +2522,25 @@ void  leastSquare(Loads *loads
           du[i] = u[i] - uC[0];
 /*... contorno*/
         else{
+          xx[0] = MAT2D(i,0,xm,ndm);
+          xx[1] = MAT2D(i,1,xm,ndm);
+          xx[2] = 0.e0;
+          if(ndm == 3) xx[2] = MAT2D(i,2,xm,ndm);
+          xx[3] = 0.e0;          
 /*... temperatura prescrita na face(extrapolacao linear)*/
           if(lFaceR[i]){
             nCarg = lFaceL[i]-1;
             type  = loads[nCarg].type;
 /*... valor prescrito*/
             if (type == DIRICHLETBC || type == MOVEWALL) {
-              getLoads(par,loads[nCarg]);
+              getLoads(par,&loads[nCarg],xx);
               du[i] = par[0] - uC[0];
             }              
 /*...................................................................*/
 
 /*...*/
             else if (type == INLET) {
-              getLoads(par,loads[nCarg]);
+              getLoads(par,&loads[nCarg],xx);
               du[i] = par[1] - uC[0];
             }                          
 /*...................................................................*/
@@ -2550,7 +2549,7 @@ void  leastSquare(Loads *loads
             else if (type == NEUMANNBC){
               coefDif = lProp[COEFDIF];
               if (coefDif != 0.e0) {
-                getLoads(par,loads[nCarg]);
+                getLoads(par,&loads[nCarg],xx);
                 du[i] = (par[0]/coefDif)*lDcca[i];
               }
                 
@@ -2575,16 +2574,6 @@ void  leastSquare(Loads *loads
 /*... potencial senoidal prescrito 
       ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
             else if( type == SINBC ){
-              if(ndm == 2){
-                xx[0] = MAT2D(i,0,xm,ndm);
-                xx[1] = MAT2D(i,1,xm,ndm);
-                xx[2] = 0.e0;
-              }
-              else{              
-                xx[0] = MAT2D(i,0,xm,ndm);
-                xx[1] = MAT2D(i,1,xm,ndm);
-                xx[2] = MAT2D(i,2,xm,ndm);
-              }
               loadSenProd(uT,loads[nCarg].par,xx);
               du[i] = uT[0] - uC[0];
             }
@@ -2630,13 +2619,18 @@ void  leastSquare(Loads *loads
             MAT2D(i,k,du,ndf) =  MAT2D(i,k,u,ndf) - uC[k];
 /*... contorno*/
         else{
+          xx[0] = MAT2D(i,0,xm,ndm);
+          xx[1] = MAT2D(i,1,xm,ndm);
+          xx[2] = 0.e0;
+          if(ndm == 3) xx[2] = MAT2D(i,2,xm,ndm);
+          xx[3] = 0.e0;
 /*... potencial prescrito na face(extrapolacao linear)*/
           if(lFaceR[i] > 0){
             nCarg= lFaceL[i]-1;
             type = loads[nCarg].type;
 /*... valor prescrito*/
             if( type == DIRICHLETBC || type == MOVEWALL){
-              getLoads(par,loads[nCarg]);
+              getLoads(par,&loads[nCarg],xx);
               for(k=0;k<ndf;k++)
                 MAT2D(i,k,du,ndf) = par[k] - uC[k];
             }
@@ -2644,7 +2638,7 @@ void  leastSquare(Loads *loads
 
 /*...*/
             else if( type == INLET){
-              getLoads(par,loads[nCarg]);
+              getLoads(par,&loads[nCarg],xx);
               for(k=0;k<ndf;k++)
                 MAT2D(i,k,du,ndf) = par[k+1] - uC[k];
             }
@@ -2712,7 +2706,7 @@ void  leastSquare(Loads *loads
 } 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 05/09/2016                                   * 
+ * Data de modificaco : 27/01/2018                                   * 
  *-------------------------------------------------------------------* 
  * LEASTSQUAREQR: calcula o gradiente por minimos quadrados           *
  *-------------------------------------------------------------------* 
@@ -2723,7 +2717,7 @@ void  leastSquare(Loads *loads
  * lLsR      -> fatoracao R (RCLSQUAREQR)                            * 
  * lProp     -> propriedades dos material                            *
  * lDcca     -> menor distancia do centroide a faces desta celula    * 
- * xm        -> pontos medios das faces das celulas                  * 
+ * xm        -> pontos medios das faces das celulas (x1,x2,x3)       * 
  * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
  *            faces da celula central                                * 
  * lViz      -> viznhos da celula central                            * 
@@ -2751,7 +2745,7 @@ void  leastSquareQR(Loads *loads
                    ,short const ndm){
 
   DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF],coefDif;
-  DOUBLE uT[MAX_NDF],xx[3],par[MAXLOADPARAMETER];
+  DOUBLE uT[MAX_NDF],xx[4],par[MAXLOADPARAMETER];
   DOUBLE b[MAX_NUM_FACE*MAX_NDF],b0,b1,b2;
   INT vizNel;
   short idCell = nFace,type;
@@ -2769,20 +2763,25 @@ void  leastSquareQR(Loads *loads
           du[i] = u[i] - uC[0];
 /*... contorno*/
         else{
+          xx[0] = MAT2D(i,0,xm,ndm);
+          xx[1] = MAT2D(i,1,xm,ndm);
+          xx[2] = 0.e0;
+          if(ndm == 3) xx[2] = MAT2D(i,2,xm,ndm);
+          xx[3] = 0.e0;
 /*... temperatura prescrita na face(extrapolacao linear)*/
           if(lFaceR[i]){
             nCarg=lFaceL[i]-1;
             type = loads[nCarg].type;
 /*... valor prescrito*/
             if (type == DIRICHLETBC || type == MOVEWALL) {
-              getLoads(par,loads[nCarg]);
+              getLoads(par,&loads[nCarg],xx);
               du[i] = par[0] - uC[0];
             }              
 /*...................................................................*/
 
 /*...*/
             else if (type == INLET) {
-              getLoads(par,loads[nCarg]);
+              getLoads(par,&loads[nCarg],xx);
               du[i] = par[1] - uC[0];
             }                          
 /*...................................................................*/
@@ -2791,7 +2790,7 @@ void  leastSquareQR(Loads *loads
             else if (type == NEUMANNBC){
               coefDif = lProp[COEFDIF];
               if (coefDif != 0.e0) {
-                getLoads(par,loads[nCarg]);
+                getLoads(par,&loads[nCarg],xx);
                 du[i] = (par[0]/coefDif)*lDcca[i];
               }
                 
@@ -2815,16 +2814,6 @@ void  leastSquareQR(Loads *loads
 /*... potencial senoidal prescrito 
       ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
             else if( type == SINBC ){
-              if(ndm == 2){
-                xx[0] = MAT2D(i,0,xm,ndm);
-                xx[1] = MAT2D(i,1,xm,ndm);
-                xx[2] = 0.e0;
-              }
-              else{              
-                xx[0] = MAT2D(i,0,xm,ndm);
-                xx[1] = MAT2D(i,1,xm,ndm);
-                xx[2] = MAT2D(i,2,xm,ndm);
-              }
               loadSenProd(uT,loads[nCarg].par,xx);
               du[i] = uT[0] - uC[0];
             }
@@ -2884,13 +2873,18 @@ void  leastSquareQR(Loads *loads
             MAT2D(i,k,du,ndf) =  MAT2D(i,k,u,ndf) - uC[k];
 /*... contorno*/
         else{
+          xx[0] = MAT2D(i,0,xm,ndm);
+          xx[1] = MAT2D(i,1,xm,ndm);
+          xx[2] = 0.e0;
+          if(ndm == 3) xx[2] = MAT2D(i,2,xm,ndm);
+          xx[3] = 0.e0;
 /*... potencial prescrito na face(extrapolacao linear)*/
           if(lFaceR[i] > 0){
             nCarg= lFaceL[i]-1;
             type = loads[nCarg].type;
 /*... valor prescrito*/
             if( type == DIRICHLETBC || type == MOVEWALL){
-              getLoads(par,loads[nCarg]);
+              getLoads(par,&loads[nCarg],xx);
               for(k=0;k<ndf;k++)
                 MAT2D(i,k,du,ndf) = par[k] - uC[k];
             }
@@ -2898,7 +2892,7 @@ void  leastSquareQR(Loads *loads
 
 /*...*/
             else if( type == INLET){
-              getLoads(par,loads[nCarg]);
+              getLoads(par,&loads[nCarg],xx);
               for(k=0;k<ndf;k++)
                 MAT2D(i,k,du,ndf) = par[k+1] - uC[k];
             }
@@ -4452,7 +4446,7 @@ DOUBLE deferredCd(DOUBLE const uC,DOUBLE const uV,DOUBLE const wfn)
 
 /********************************************************************* 
  * Data de criacao    : 20/11/2017                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 26/01/2018                                   * 
  *-------------------------------------------------------------------* 
  *  deferredLust : tecnica do openFOAM                               * 
  *-------------------------------------------------------------------* 
@@ -4484,7 +4478,7 @@ DOUBLE deferredLust(DOUBLE const uC          ,DOUBLE const uV
                    ,DOUBLE const wfn         ,short const ndm)
 {                    
   
-  DOUBLE gf,cd,up,ul,beta=0.25e0;
+  DOUBLE gf,cd,up,ul,uf1,uf2,beta=0.25e0;
 
 /*... upwind linear *SouUp*/   
   if (wfn < 0.0e0) {
@@ -4501,7 +4495,14 @@ DOUBLE deferredLust(DOUBLE const uC          ,DOUBLE const uV
 /*....................................................................*/
 
 /*... centrado*/
-  cd = alphaMenosUm*uC+alpha*uV;
+//cd = alphaMenosUm*uC+alpha*uV;
+  uf1 = uC + gradUc[0]*rC[0] + gradUc[1]*rC[1];
+  uf2 = uV + gradUv[0]*rV[0] + gradUv[1]*rV[1];
+  if (ndm == 3) {
+    uf1 += gradUc[2]*rC[2];
+    uf2 += gradUv[2]*rV[2];
+  }
+  cd = alphaMenosUm*uf1+alpha*uf2;
 /*....................................................................*/
  
   return  beta*ul + (1.e0 - beta)*cd - up ;
@@ -5107,7 +5108,7 @@ void gradFaceNull(DOUBLE *RESTRICT gradVelFace
 
 /********************************************************************* 
  * Data de criacao    : 08/07/2016                                   *
- * Data de modificaco : 08/01/2018                                   * 
+ * Data de modificaco : 30/01/2018                                   * 
  *-------------------------------------------------------------------* 
  * difusionScheme :  correcao nao ortogonal do termo difusivo        * 
  *-------------------------------------------------------------------* 
@@ -5307,7 +5308,7 @@ void gradFaceNull(DOUBLE *RESTRICT gradVelFace
 /*...................................................................*/
 
 /*... vetor E*/
-        tmp  = ss*nk;
+        tmp  = ss/nk;
         e[0] = tmp*ksi[0];        
         e[1] = tmp*ksi[1];        
         e[2] = tmp*ksi[2];        
@@ -5337,8 +5338,6 @@ void gradFaceNull(DOUBLE *RESTRICT gradVelFace
   }
 }
 /*********************************************************************/ 
-
-
 
 /*********************************************************************
 * Data de criacao    : 15/08/2016                                   *
@@ -5585,7 +5584,7 @@ void advectiveScheme(DOUBLE *RESTRICT velC   ,DOUBLE *RESTRICT velV
       cvc[1] = deferredCd(velC[1], velV[1], wfn);
       cvc[2] = deferredCd(velC[2], velV[2], wfn);
 /*... interpolacao undirecional*/
-      cvc[0] -= MAT2D(0,0,gradVelComp,3)*vSkew[0]
+/*    cvc[0] -= MAT2D(0,0,gradVelComp,3)*vSkew[0]
               + MAT2D(0,1,gradVelComp,3)*vSkew[1] 
               + MAT2D(0,2,gradVelComp,3)*vSkew[2];
 
@@ -5595,7 +5594,7 @@ void advectiveScheme(DOUBLE *RESTRICT velC   ,DOUBLE *RESTRICT velV
       
       cvc[2] -= MAT2D(2,0,gradVelComp,3)*vSkew[0]
               + MAT2D(2,1,gradVelComp,3)*vSkew[1]
-              + MAT2D(2,2,gradVelComp,3)*vSkew[2];
+              + MAT2D(2,2,gradVelComp,3)*vSkew[2];*/
 /*...................................................................*/
     }
 /*...................................................................*/

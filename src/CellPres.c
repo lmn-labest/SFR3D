@@ -254,7 +254,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                       , t               , lNormal  
                       , densityC        , velC                      
                       , lModEta         , lModKsi         
-                      , loadsPres[nCarg], ndm
+                      , &loadsPres[nCarg], ndm
                       , true);
 /*...................................................................*/
       }
@@ -547,7 +547,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                       , t               , lNormal  
                       , densityC        , velC                      
                       , lModEta         , lModKsi         
-                      , lPres[nCarg]    , ndm
+                      , &lPres[nCarg]    , ndm
                       , true);
 /*...................................................................*/
       }
@@ -1107,7 +1107,7 @@ void cellSimplePres3D(Loads *lVel       ,Loads *lPres
                       , t               , lNormal  
                       , densityC        , velC
                       , lFarea          , lModKsi
-                      , lPres[nCarg]    , ndm
+                      , &lPres[nCarg]    , ndm
                       , true);
 /*...................................................................*/
       }
@@ -1279,13 +1279,14 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*... interpolacao linear*/
   DOUBLE alpha,alphaMenosUm,tA[3],ddum=0.e0;
 /*... */
-  DOUBLE wfn,velC[3],velF[3],presC,presV,tempC;
+  DOUBLE wfn,velC[3],velF[3],presC,presV,tempC,ts,xx[4];
 
 /*...*/
   densityC = lDensity[idCell];
 /*...................................................................*/
 
 /*...*/
+  ts        = ddt.t;
   dt        = ddt.dt[0];  
   dt0       = ddt.dt[1];
   typeTime  = ddt.type;
@@ -1411,6 +1412,10 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 
 /*... contorno*/
     else{
+      xx[0] = MAT2D(nf, 0, xm, 3);
+      xx[1] = MAT2D(nf, 1, xm, 3);
+      xx[2] = MAT2D(nf, 2, xm, 3);
+      xx[3] = ts;
       lA[nf] = 0.0e0;
       wfn = velC[0]*lNormal[0] 
           + velC[1]*lNormal[1] 
@@ -1434,7 +1439,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
                       , t               , lNormal
                       , densityC        , velC
                       , lFarea          , lModKsi
-                      , lPres[nCarg]    , ndm
+                      , &lPres[nCarg]    , ndm
                       , true);
 /*...................................................................*/
       }
@@ -1443,18 +1448,19 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*... velocidades*/
       if(lFaceVelR[nf] > 0){
         nCarg = lFaceVelL[nf]-1;
-        pLoadSimple(&sP            , &p
-                  , tA             , lXmcc
-                  , velC           , &ddum
-                  , presC          , gradPresC
-                  , ddum           , ddum           
-                  , s              , e       
-                  , t              , lNormal    
-                  , densityC       , wallPar
-                  , lFarea         , lModKsi
-                  , loadsVel[nCarg], ndm
-                  , false          , true
-                  , false          , 0);   
+        pLoadSimple(&sP             , &p
+                  , tA              , lXmcc
+                  , velC            , &ddum
+                  , presC           , gradPresC
+                  , ddum            , ddum  
+                  , xx         
+                  , s               , e       
+                  , t               , lNormal    
+                  , densityC        , wallPar
+                  , lFarea          , lModKsi
+                  , &loadsVel[nCarg], ndm
+                  , false           , true
+                  , false           , 0);   
       } 
 /*...................................................................*/
     }

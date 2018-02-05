@@ -1237,7 +1237,7 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
             , const short ndm             , INT const nel)
 {
   bool fTime, fDisp, fRes, fPresWork, fTemp, fTurb, fWallModel, fKelvin;
-  short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nAresta, nCarg1
+  short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf, nCarg1
         , nCarg2, typeTime, fSheat;
 /*...*/
   INT vizNel;
@@ -1326,58 +1326,58 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
 
   p = 0.0e0;
   sP = 0.0e0;
-  for (nAresta = 0; nAresta<nFace; nAresta++) {
-    vizNel = lViz[nAresta];
-    lFarea = fArea[nAresta];
-    lNormal[0] = MAT2D(nAresta, 0, normal, 3);
-    lNormal[1] = MAT2D(nAresta, 1, normal, 3);
-    lNormal[2] = MAT2D(nAresta, 2, normal, 3);    
-    lXmcc[0] = MAT2D(nAresta, 0, xmcc, 3);
-    lXmcc[1] = MAT2D(nAresta, 1, xmcc, 3);
-    lXmcc[2] = MAT2D(nAresta, 2, xmcc, 3);
+  for (nf = 0; nf<nFace; nf++) {
+    vizNel = lViz[nf];
+    lFarea = fArea[nf];
+    lNormal[0] = MAT2D(nf, 0, normal, 3);
+    lNormal[1] = MAT2D(nf, 1, normal, 3);
+    lNormal[2] = MAT2D(nf, 2, normal, 3);    
+    lXmcc[0] = MAT2D(nf, 0, xmcc, 3);
+    lXmcc[1] = MAT2D(nf, 1, xmcc, 3);
+    lXmcc[2] = MAT2D(nf, 2, xmcc, 3);
 /*... dominio*/
     if (vizNel  > -1) {
 /*...*/
-      densityV = lDensity[nAresta]; 
-      sHeatV   = lSheat[nAresta];    
-      thermCoefV = lTconductivity[nAresta];  
-      if(fTurb) eddyViscosityV = MAT2D(nAresta, 1, lViscosity, 2);
+      densityV = lDensity[nf]; 
+      sHeatV   = lSheat[nf];    
+      thermCoefV = lTconductivity[nf];  
+      if(fTurb) eddyViscosityV = MAT2D(nf, 1, lViscosity, 2);
 /*... p(n+1)*/
-      presV     = MAT2D(nAresta, 1, pres, 2);
-      gradPresV[0] = MAT2D(nAresta, 0, gradPres, 3);
-      gradPresV[1] = MAT2D(nAresta, 1, gradPres, 3);
-      gradPresV[2] = MAT2D(nAresta, 2, gradPres, 3);
-      dFieldV[0]   = MAT2D(nAresta, 0, dField, 3);
-      dFieldV[1]   = MAT2D(nAresta, 1, dField, 3);
-      dFieldV[2]   = MAT2D(nAresta, 2, dField, 3);
+      presV     = MAT2D(nf, 1, pres, 2);
+      gradPresV[0] = MAT2D(nf, 0, gradPres, 3);
+      gradPresV[1] = MAT2D(nf, 1, gradPres, 3);
+      gradPresV[2] = MAT2D(nf, 2, gradPres, 3);
+      dFieldV[0]   = MAT2D(nf, 0, dField, 3);
+      dFieldV[1]   = MAT2D(nf, 1, dField, 3);
+      dFieldV[2]   = MAT2D(nf, 2, dField, 3);
 /*...*/
-      uV      = u0[nAresta];
-      velV[0] = MAT2D(nAresta, 0, vel, 3);
-      velV[1] = MAT2D(nAresta, 1, vel, 3);      
-      velV[2] = MAT2D(nAresta, 2, vel, 3);      
+      uV      = u0[nf];
+      velV[0] = MAT2D(nf, 0, vel, 3);
+      velV[1] = MAT2D(nf, 1, vel, 3);      
+      velV[2] = MAT2D(nf, 2, vel, 3);      
 /*...*/
-      lKsi[0] = MAT2D(nAresta, 0, ksi, 3);
-      lKsi[1] = MAT2D(nAresta, 1, ksi, 3);
-      lKsi[2] = MAT2D(nAresta, 2, ksi, 3);
-      lModKsi = mKsi[nAresta];
+      lKsi[0] = MAT2D(nf, 0, ksi, 3);
+      lKsi[1] = MAT2D(nf, 1, ksi, 3);
+      lKsi[2] = MAT2D(nf, 2, ksi, 3);
+      lModKsi = mKsi[nf];
 /*...*/
-      lvSkew[0] = MAT2D(nAresta, 0, vSkew, 3);
-      lvSkew[1] = MAT2D(nAresta, 1, vSkew, 3);
-      lvSkew[2] = MAT2D(nAresta, 2, vSkew, 3);
+      lvSkew[0] = MAT2D(nf, 0, vSkew, 3);
+      lvSkew[1] = MAT2D(nf, 1, vSkew, 3);
+      lvSkew[2] = MAT2D(nf, 2, vSkew, 3);
 /*...*/
       duDksi = (uV - uC) / lModKsi;
 /*...*/
-      gradUv[0] = MAT2D(nAresta, 0, gradU0, 3);
-      gradUv[1] = MAT2D(nAresta, 1, gradU0, 3);
-      gradUv[2] = MAT2D(nAresta, 2, gradU0, 3);
+      gradUv[0] = MAT2D(nf, 0, gradU0, 3);
+      gradUv[1] = MAT2D(nf, 1, gradU0, 3);
+      gradUv[2] = MAT2D(nf, 2, gradU0, 3);
 
-      ccV[0] = MAT2D(nAresta, 0, cc, 3);
-      ccV[1] = MAT2D(nAresta, 1, cc, 3);
-      ccV[2] = MAT2D(nAresta, 2, cc, 3);
+      ccV[0] = MAT2D(nf, 0, cc, 3);
+      ccV[1] = MAT2D(nf, 1, cc, 3);
+      ccV[2] = MAT2D(nf, 2, cc, 3);
 
-      lXm[0] = MAT2D(nAresta, 0, xm, 3);
-      lXm[1] = MAT2D(nAresta, 1, xm, 3);
-      lXm[2] = MAT2D(nAresta, 2, xm, 3);
+      lXm[0] = MAT2D(nf, 0, xm, 3);
+      lXm[1] = MAT2D(nf, 1, xm, 3);
+      lXm[2] = MAT2D(nf, 2, xm, 3);
 /*...................................................................*/
 
 /*... termo difusivo
@@ -1482,7 +1482,7 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
 /*...................................................................*/
 
 /*...*/
-      lA[nAresta] = dfd - min(cv, 0e0);
+      lA[nf] = dfd - min(cv, 0e0);
       sP += cv;
 /*... correcao nao ortogonal e do fluxo advectivo*/
       p += dfdc - cv*cvc;
@@ -1490,25 +1490,25 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
     }
 /*... contorno*/
     else {
-      lA[nAresta] = 0.e0;
-      if (lFaceR[nAresta]) {
+      lA[nf] = 0.e0;
+      if (lFaceR[nf]) {
         wfn = velC[0] * lNormal[0] 
             + velC[1] * lNormal[1]
             + velC[2] * lNormal[2];
 /*...cargas*/
-        nCarg1 = lFaceL[nAresta] - 1;
-        nCarg2 = lFaceVelL[nAresta] - 1;
-        xx[0] = MAT2D(nAresta, 0, xm, 3);
-        xx[1] = MAT2D(nAresta, 1, xm, 3);
-        xx[2] = MAT2D(nAresta, 2, xm, 3);
+        nCarg1 = lFaceL[nf] - 1;
+        nCarg2 = lFaceVelL[nf] - 1;
+        xx[0] = MAT2D(nf, 0, xm, 3);
+        xx[1] = MAT2D(nf, 1, xm, 3);
+        xx[2] = MAT2D(nf, 2, xm, 3);
         pLoadEnergy(&sP          , &p
                   , &tA          , velC
                   , uC           , lNormal  
                   , thermCoefC   , densityC
                   , viscosityC   , sHeatC
                   , prTwall      , xx                   
-                  , lFarea       , dcca[nAresta]
-                  , loads[nCarg1], loadsVel[nCarg2]
+                  , lFarea       , dcca[nf]
+                  , &loads[nCarg1], &loadsVel[nCarg2]
                   , wallPar      , ndm           
                   , true         , fTemp
                   , fKelvin      , fSheat
@@ -1595,14 +1595,14 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
 
 /*...*/
   rCell = 0.0e0;
-  for (nAresta = 0; nAresta<nFace; nAresta++) {
-    if (lViz[nAresta] > -1) {
+  for (nf = 0; nf<nFace; nf++) {
+    if (lViz[nf] > -1) {
 /*... pasando os valoeres conhecidos para o lado direito*/
-      if (lId[nAresta] == -2) 
-        p += lA[nAresta] * u0[nAresta];
+      if (lId[nf] == -2) 
+        p += lA[nf] * u0[nf];
       else
 /*residuo (R = F-KvizUviz ) e valores prescritos por elemento*/
-        rCell += lA[nAresta] * u0[nAresta];
+        rCell += lA[nf] * u0[nf];
     }
   }
 /*... residuo: R = F - KpUp*/
@@ -2001,7 +2001,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                   , densityC     , viscosityC 
                   , prTwall      , xx                   
                   , lFarea       , dcca[nf]
-                  , ldsK[nCarg1] , ldsVel[nCarg2]
+                  , &ldsK[nCarg1], &ldsVel[nCarg2]
                   , lFaceReK[nf] , wallPar   
                   , ndm          , true 
                   , fWallModel   , wallType);   

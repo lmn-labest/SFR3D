@@ -130,7 +130,13 @@
     DOUBLE *vSkew; /*vetor vSkew*/                               
     DOUBLE *mvSkew;/*modulo do vSkew*/                               
   }Geom;
-/*...................................................................*/  
+/*...................................................................*/
+
+/*...*/
+  typedef struct{
+    DOUBLE *vel;    /*Velocidade na face*/                             
+  }Face;
+/*...................................................................*/    
 
 /*... loads*/
   typedef struct{
@@ -142,6 +148,8 @@
 
 /*... loads*/
   typedef struct{
+    short nTypeVar;               /*0 - constante
+                                    1 - funcao parabolica*/  
     short type;                     /*tipo*/
     short np;                       /*numero de particoes*/  
     DOUBLE par[MAXLOADPARAMETER];
@@ -162,6 +170,18 @@
     int maxIt;
     DOUBLE tol;                               
   }NonLinear;
+/*...................................................................*/  
+
+/*...*/
+  typedef struct{
+    bool fInit;
+    bool fMedia;
+    bool fVel,f2pVel;
+    int startSample,endSample;
+    DOUBLE *mVel,*sVel;  
+    DOUBLE *p2Vel,*sP2Vel,*mP2Vel;  
+    DOUBLE t0;                             
+  }Mean;
 /*...................................................................*/  
 
 /*... Elementos*/
@@ -188,7 +208,8 @@
     short *faceLoadD1; /*tipo de carga contorno na face (difusa pura)*/
 /*...................................................................*/
     INT    *node;       /*conectividades*/
-    Geom   geom;       
+    Geom   geom;
+    Face   face;       
 /*...*/
     DOUBLE *energy;       /*energia*/
     DOUBLE *energy0;      /*energia*/

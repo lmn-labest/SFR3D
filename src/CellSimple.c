@@ -404,7 +404,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
                       , lNormal         , lNormal
                       , densityC        , velC         
                       , lModEta         , dcca[nAresta]
-                      , loadsPres[nCarg], ndm
+                      , &loadsPres[nCarg], ndm
                       , false); 
       } 
 /*...................................................................*/
@@ -974,7 +974,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
                       , lNormal         , lNormal
                       , densityC        , velC
                       , lModEta         , dcca[nAresta]
-                      , loadsPres[nCarg], ndm
+                      , &loadsPres[nCarg], ndm
                       , false); 
       }
  /*...................................................................*/
@@ -1534,7 +1534,7 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
                       , lNormal         , lNormal  
                       , densityC        , velC
                       , lModEta         , dcca[nAresta]
-                      , loadsPres[nCarg], ndm
+                      , &loadsPres[nCarg], ndm
                       , false); 
       }
 /*...................................................................*/
@@ -2120,7 +2120,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                       , lNormal         , lNormal
                       , densityC        , velC
                       , lFarea          , dcca[nf]
-                      , loadsPres[nCarg], ndm 
+                      , &loadsPres[nCarg], ndm 
                       , false); 
 
       } 
@@ -2433,7 +2433,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 /*... */
   DOUBLE wfn, velC[3], velV[3], g[3], gf[3][3], gfKsi[3],
          gradVelC[3][3], gradVelV[3][3], gradVelComp[3][3],
-         stressRc[6],stressRv[6],s[6] ;
+         stressRc[6],stressRv[6],s[6],xx[4],ts;
 /*...*/
   DOUBLE uPlus,yPlus,viscosityWall;
 
@@ -2445,6 +2445,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 /*...................................................................*/
 
 /*...*/
+  ts       = ddt.t; 
   dt       = ddt.dt[0];  
   dt0      = ddt.dt[1];
   typeTime = ddt.type;
@@ -2903,7 +2904,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                       , t               , lNormal
                       , densityC        , velC              
                       , lFarea          , dcca[nf]
-                      , lPres[nCarg]    , ndm
+                      , &lPres[nCarg]    , ndm
                       , false); 
       } 
 /*...................................................................*/
@@ -2957,18 +2958,23 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*... velocidades*/
       if(lFaceVelR[nf] > 0){
+        xx[0] = MAT2D(nf, 0, xm, 3);
+        xx[1] = MAT2D(nf, 1, xm, 3);
+        xx[2] = MAT2D(nf, 2, xm, 3);
+        xx[3] = ts;
 /*...cargas*/
         nCarg = lFaceVelL[nf]-1;
         pLoadSimple(sPc         , p
                   , tA          , lXmcc
                   , velC        , gradVelC[0] 
                   , presC       , gradPresC
-                  , viscosityC  , viscosityC   
+                  , viscosityC  , viscosityC 
+                  , xx  
                   , s           , e         
                   , t           , lNormal
                   , densityC    , wallPar
                   , lFarea      , dcca[nf]
-                  , lVel[nCarg] , ndm
+                  , &lVel[nCarg], ndm
                   , true        , false
                   , fWallModel  , wallType);
       }  
@@ -3597,7 +3603,7 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
                       , lNormal         , lNormal
                       , densityC        , velC
                       , lFarea          , dcca[nf]
-                      , loadsPres[nCarg], ndm
+                      , &loadsPres[nCarg], ndm
                       , false);
       }
 /*...................................................................*/

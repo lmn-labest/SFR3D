@@ -1407,7 +1407,7 @@ void cellLes(Loads *lVel               , Turbulence tModel
   short nAresta, nCarg, idCell = nFace,wallType;
   INT vizNel;
   DOUBLE modS, tmp, densityC, viscosityC, cs, s[3], gradVelC[2][2],delta;
-  DOUBLE wt,velC[2],vParallel[2],lNormal[2],lMin,dMin
+  DOUBLE wt,velC[2],vParallel[2],lNormal[2],lMin,dMin,xx[4]
         ,yPlus,uPlus,velB[2],yPlusMax,par[MAXLOADPARAMETER];
 
 /*...*/
@@ -1444,7 +1444,7 @@ void cellLes(Loads *lVel               , Turbulence tModel
           fWall = true;
 /*... velocidade da parede*/
           nCarg     = lFaceVelL[nAresta] - 1;
-          getLoads(par,loadsVel[nCarg]);
+          getLoads(par,&loadsVel[nCarg],xx);
           velB[0]   = par[0];
           velB[1]   = par[1];
 /*...*/
@@ -2823,13 +2823,14 @@ bool wallParameters(Loads *lVel
   short nf, nCarg;
   INT vizNel;
   DOUBLE wt, yPlusMax, uPlusMax,uFricMax,sWallMax,par[MAXLOADPARAMETER];
-  DOUBLE dMin, vParallel[3], lNormal[3],yPlus,uPlus,uFric,sW,velB[3];
+  DOUBLE dMin, vParallel[3], lNormal[3],yPlus,uPlus,uFric,sW,velB[3],xx[4];
 
   sWallMax = uFricMax = uPlusMax = yPlusMax = 0.e0;
   dMin     = 1.e+16;
   for (nf = 0; nf<nFace; nf++) {
     vizNel         = lViz[nf]; 
-    yPlus = 0.e0; 
+    yPlus = 0.e0;
+    uPlus = 1.e0; 
 /*... contorno*/
     if (vizNel  == -2) {
       if (lFaceVelR[nf] > 0) {
@@ -2838,7 +2839,7 @@ bool wallParameters(Loads *lVel
           fWall = true;
 /*... velocidade da parede*/
           nCarg     = lFaceVelL[nf] - 1;
-          getLoads(par,loadsVel[nCarg]);
+          getLoads(par,&lVel[nCarg],xx);
           velB[0]   = par[0];
           velB[1]   = par[1];
           velB[2]   = par[2];
@@ -3512,7 +3513,7 @@ DOUBLE vremanModel(DOUBLE *RESTRICT gradVel) {
  *********************************************************************/
 DOUBLE waleModel(DOUBLE *RESTRICT gradVel) {
 
-  DOUBLE lm,mm,modS,modSd,tmp,g[3][3],b[3][3],m[6],s[6];
+  DOUBLE lm,mm,modS,modSd,tmp,g[3][3],b[3][3],m[6],s[6],ce;
 
 /*... | du1/dx1 du1/dx2 du1/dx3*/
   g[0][0] = MAT2D(0,0,gradVel,3);
@@ -3570,13 +3571,14 @@ DOUBLE waleModel(DOUBLE *RESTRICT gradVel) {
 /*...................................................................*/
       
 /*...*/
-  mm = lm = 1.0e-64;
-  mm = pow(modS,2.5e0) +  pow(modSd,1.25e0);
+  mm = pow(modS,2.5e0) + pow(modSd,1.25e0);
   lm = pow(modSd,1.5e0);
+  ce = lm/mm;
+  if (mm == 0.0e0) ce = 0.e0;
 /*...................................................................*/
 
 /*...*/
-  return lm/mm;
+  return ce;
 /*...................................................................*/
 }
 /*********************************************************************/

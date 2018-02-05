@@ -5158,7 +5158,7 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 01/10/2017                                   * 
+ * Data de modificaco : 27/01/2018                                   * 
  *-------------------------------------------------------------------* 
  * INTERCELLNODE: interpolacao dos valores das celulas para o no da  *
  * malha                                                             *
@@ -5220,7 +5220,7 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
   DOUBLE *mdf=NULL;
   bool *flag=NULL;
   DOUBLE dist,dx;
-  DOUBLE uT[MAX_NDF],xx[3],par[MAXLOADPARAMETER];;
+  DOUBLE uT[MAX_NDF],xx[4],par[MAXLOADPARAMETER];;
   short i,j,k,l,n,nodeFace,aux=maxViz+1;
   INT nel,no1,no[4];
   short  isNod[MAX_SN],nCarg,ty,typed;
@@ -5412,6 +5412,12 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
     for(nel = 0; nel < numel; nel++)
       for(i = 0; i < nFace[nel]; i++){
         if(MAT2D(nel,i,faceR,aux)>0){
+/*...*/
+          xx[0] = MAT3D(nel,i,0,xm     ,maxViz,ndm); 
+          xx[1] = MAT3D(nel,i,1,xm     ,maxViz,ndm); 
+          xx[2] = 0.0e0;                             
+          if(ndm == 3) xx[2] = MAT3D(nel,i,2,xm     ,maxViz,ndm); 
+/*...................................................................*/
           nCarg=MAT2D(nel,i,faceL,aux)-1;
           typed = loads[nCarg].type;
 /*... valor pescrito */
@@ -5426,7 +5432,7 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
                 for(k = 0; k   < ndf1;k++)
                   MAT2D(no[n],k,noU,ndf1) = 0.e0;
               }
-              getLoads(par,loads[nCarg]);
+              getLoads(par,&loads[nCarg],xx);
               for(k = 0; k   < ndf1;k++) 
                 MAT2D(no[n],k,noU,ndf1) += par[k];
               md[no[n]]++;
@@ -5446,7 +5452,7 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
                 for(k = 0; k   < ndf1;k++)
                   MAT2D(no[n],k,noU,ndf1) = 0.e0;
               }
-              getLoads(par,loads[nCarg]);
+              getLoads(par,&loads[nCarg],xx);
               for(k = 0; k   < ndf1;k++) 
                 MAT2D(no[n],k,noU,ndf1) += par[k+1];
               md[no[n]]++;
@@ -5466,18 +5472,6 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
                 for(k = 0; k   < ndf1;k++)
                   MAT2D(no[n],k,noU,ndf1) = 0.e0;
               }
-/*...*/
-              if(ndm == 2){
-                xx[0] = MAT3D(nel,i,0,xm     ,maxViz,ndm); 
-                xx[1] = MAT3D(nel,i,1,xm     ,maxViz,ndm); 
-                xx[2] = 0.0e0;                             
-              }
-              else{              
-                xx[0] = MAT3D(nel,i,0,xm     ,maxViz,ndm); 
-                xx[1] = MAT3D(nel,i,1,xm     ,maxViz,ndm); 
-                xx[2] = MAT3D(nel,i,2,xm     ,maxViz,ndm); 
-              }
-/*...................................................................*/
               loadSenProd(uT,loads[nCarg].par,xx);
               for(k = 0; k   < ndf1;k++) 
                 MAT2D(no[n],k,noU,ndf1) += uT[k];
@@ -6463,7 +6457,7 @@ bool openDomain(Loads *loadVel
 
 /*********************************************************************
  * Data de criacao    : 01/10/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 27/01/2018                                   *
  *-------------------------------------------------------------------*
  * MASSFLUXOPENDOMAIN: calcula da massa entrando e saindo            *
  *-------------------------------------------------------------------*
@@ -6479,6 +6473,7 @@ bool openDomain(Loads *loadVel
 DOUBLE massFluxOpenDomain(Loads *loadVel    , Temporal const ddt
               , short  *RESTRICT faceVelLoad, short  *RESTRICT nFace
               , DOUBLE *RESTRICT gfArea     , DOUBLE *RESTRICT gNormal
+              , DOUBLE *RESTRICT xm    
               , DOUBLE *RESTRICT density    , DOUBLE *RESTRICT vel 
               , INT const numel             , short const ndm  
               , short const maxViz  ) {
@@ -6486,7 +6481,7 @@ DOUBLE massFluxOpenDomain(Loads *loadVel    , Temporal const ddt
   short  nCarg, j, type, aux1, aux2;
   INT nel;
   DOUBLE lDensity,aFace,mOut,mIn,n[3],v[3],wfn,deltaMass,dt,densityOut;
-  
+  DOUBLE par[MAXLOADPARAMETER],xx[4];
 
   densityOut = mOut = mIn = 0.e0;
   aux2 = maxViz + 1;
@@ -6500,18 +6495,26 @@ DOUBLE massFluxOpenDomain(Loads *loadVel    , Temporal const ddt
         type  = loadVel[nCarg].type;
 /*...*/
         if (type == INLET) {
+/*...*/
+          xx[0] = MAT3D(nel,j,0,xm     ,maxViz,ndm); 
+          xx[1] = MAT3D(nel,j,1,xm     ,maxViz,ndm); 
+          xx[2] = 0.0e0;                             
+          if(ndm == 3) xx[2] = MAT3D(nel,j,2,xm     ,maxViz,ndm); 
+          xx[3] = ddt.t;
+/*...................................................................*/
+          getLoads(par,loadVel,xx); 
           aFace = MAT2D(nel, j, gfArea , maxViz);
           n[0]  = MAT3D(nel, j, 0, gNormal, maxViz, ndm);
           n[1]  = MAT3D(nel, j, 1, gNormal, maxViz, ndm);
-          v[0]  = loadVel[nCarg].par[1];
-          v[1]  = loadVel[nCarg].par[2];
+          v[0]  = par[1];
+          v[1]  = par[2];
           wfn   = v[0]*n[0] + v[1]*n[1];
           if ( ndm == 3 ) {
             n[2] = MAT3D(nel, j, 2, gNormal, maxViz, ndm);
-            v[2] = loadVel[nCarg].par[3];
+            v[2] = par[3];
             wfn +=  v[2]*n[2];
           }
-          lDensity = loadVel[nCarg].par[0];
+          lDensity = par[0];
       
           mIn     += lDensity*wfn*aFace;          
         }
