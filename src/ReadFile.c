@@ -2989,7 +2989,7 @@ void help(FILE *f){
 /*... adveccao*/
   char fAdv[][WORD_SIZE] =                                   
                          { "FoUp","CD" ,"SoUp"                /* 0, 1, 2*/
-                          ,"TVD" ,"NVD","LUST"};              /* 3, 4, 5*/  
+                          ,"TVD" ,"NVD","LUST 0.25"};         /* 3, 4, 5*/  
   char tvd[][WORD_SIZE]=
                          {"VanLeer" ,"VanAlbada","MidMod "   /* 0, 1, 2*/
                          ,"Osher"   ,"SuperBee"};            /* 3, 4*/
@@ -3475,7 +3475,7 @@ void readSetSimple(Memoria *m    , FILE *fileIn
   simple->alphaPres       = 0.3e0; 
   simple->alphaVel        = 0.7e0; 
   simple->type            = SIMPLE;
-  simple->kZeroVel        = 4;
+  simple->kZeroVel        = 1;
   simple->kZeroPres       = 0;
   simple->sPressure       = true;
   simple->faceInterpolVel = 1;

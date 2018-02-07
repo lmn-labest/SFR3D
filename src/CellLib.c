@@ -4446,9 +4446,9 @@ DOUBLE deferredCd(DOUBLE const uC,DOUBLE const uV,DOUBLE const wfn)
 
 /********************************************************************* 
  * Data de criacao    : 20/11/2017                                   *
- * Data de modificaco : 26/01/2018                                   * 
+ * Data de modificaco : 05/02/2018                                   * 
  *-------------------------------------------------------------------* 
- *  deferredLust : tecnica do openFOAM                               * 
+ * deferredLust : tecnica do openFOAM                                * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -4458,6 +4458,11 @@ DOUBLE deferredCd(DOUBLE const uC,DOUBLE const uV,DOUBLE const wfn)
  * gradUv -> gradiente do vizinho                                    * 
  * rC     -> distancia ate o ponto central da face (Celula central)  * 
  * rV     -> distancia ate o ponto central da face (Celula vizinha)  * 
+ * alphaMenosUm -> interpolacao linear na face (1.e0 - alfa)         *
+ * alpha        -> interpolacao linear na face (alfa)                *
+ * beta   -> para metro do lust ( beta 0 -1 )                        *
+ *         0 - CD                                                    *
+ *         1 - UPWIND                                                *
  * wfn    -> velociade normal a face                                 * 
  * ndm    -> numero de dimensoes                                     * 
  *-------------------------------------------------------------------* 
@@ -4474,11 +4479,12 @@ DOUBLE deferredCd(DOUBLE const uC,DOUBLE const uV,DOUBLE const wfn)
 DOUBLE deferredLust(DOUBLE const uC          ,DOUBLE const uV
                    ,DOUBLE *RESTRICT gradUc  ,DOUBLE *RESTRICT gradUv
                    ,DOUBLE *RESTRICT rC      ,DOUBLE *RESTRICT rV
-                   ,DOUBLE const alphaMenosUm,DOUBLE const alpha 
+                   ,DOUBLE const alphaMenosUm,DOUBLE const alpha
+                   ,DOUBLE const beta 
                    ,DOUBLE const wfn         ,short const ndm)
 {                    
   
-  DOUBLE gf,cd,up,ul,uf1,uf2,beta=0.25e0;
+  DOUBLE gf,cd,up,ul,uf1,uf2;
 
 /*... upwind linear *SouUp*/   
   if (wfn < 0.0e0) {
@@ -4720,7 +4726,10 @@ void  setAdvectionScheme(char *word, Advection *adv,FILE *fileIn)
 /*...*/
   else if (!strcmp(word, fAdv[5])) {
     adv->iCod1 = LUST;
-    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : %s\n", fAdv[5]);
+    readMacro(fileIn, word, false);
+    adv->par[0] = atof(word);
+    if (!mpiVar.myId) fprintf(fileLogExc,"iCod  : %s(%lf)\n"
+                                        , fAdv[5],adv->par[0]);
   }
 /*...................................................................*/
 
@@ -5502,7 +5511,7 @@ void difusionSchemeAnisotropic(DOUBLE *RESTRICT s,DOUBLE *RESTRICT ksi
 
 /*********************************************************************
 * Data de criacao    : 08/07/2016                                   *
-* Data de modificaco : 20/11/2017                                   *
+* Data de modificaco : 05/02/2018                                   *
 *-------------------------------------------------------------------*
 * advecticeShceme: discretizacao do termo advectivo                 *
 *-------------------------------------------------------------------*
@@ -5526,6 +5535,7 @@ void difusionSchemeAnisotropic(DOUBLE *RESTRICT s,DOUBLE *RESTRICT ksi
 * cvc         -> nao definido                                       *
 * alphaMenosUm -> interpolocao linear                               *      
 * alfa      -> interpolocao linear                                  *   
+* parameters  -> paramentros das tecnicas de advecao                *
 * ndm         -> dimensao                                           *
 * iCod1       -> tipo de tecnica                                    *
 * iCod2       -> funcoes NVD ou TVD                                 *
@@ -5543,8 +5553,8 @@ void advectiveScheme(DOUBLE *RESTRICT velC   ,DOUBLE *RESTRICT velV
                 ,DOUBLE *RESTRICT rC         ,DOUBLE *RESTRICT rV
                 ,DOUBLE *RESTRICT ksi        ,DOUBLE const modKsi
                 ,DOUBLE const wfn            ,DOUBLE *RESTRICT cvc 
-                ,DOUBLE const alphaMenosUm  ,DOUBLE const alpha
-                ,short const ndm             
+                ,DOUBLE const alphaMenosUm   ,DOUBLE const alpha
+                ,DOUBLE *RESTRICT parameters ,short const ndm             
                 ,short const iCod1           ,short const iCod2) {
 
   short i;
@@ -5552,7 +5562,7 @@ void advectiveScheme(DOUBLE *RESTRICT velC   ,DOUBLE *RESTRICT velV
   { "FoUp","Cd"
    ,"SoUp","Tvd"
    ,"Nvd" ,"LUST"};
-
+  printf("%lf\n",parameters[0]);
   switch(iCod1){
 /*... Upwind de primeira ordem*/
     case FOUP:
@@ -5766,19 +5776,22 @@ void advectiveScheme(DOUBLE *RESTRICT velC   ,DOUBLE *RESTRICT velV
     cvc[0] = deferredLust(velC[0]     ,velV[0]
                           ,&gradVelC[0],&gradVelV[0]
                           ,rC          ,rV  
-                          ,alphaMenosUm,alpha     
+                          ,alphaMenosUm,alpha   
+                          ,parameters[0]   
                           ,wfn         ,ndm);
     
     cvc[1] = deferredLust(velC[1]     ,velV[1]
                           ,&gradVelC[3],&gradVelV[3]
                           ,rC          ,rV  
-                          ,alphaMenosUm,alpha    
+                          ,alphaMenosUm,alpha  
+                          ,parameters[0]     
                           ,wfn         ,ndm);
     if (ndm == 3)
       cvc[2] = deferredLust(velC[2]     ,velV[2]
                             ,&gradVelC[6],&gradVelV[6]
                             ,rC          ,rV  
                             ,alphaMenosUm,alpha     
+                            ,parameters[0]   
                             ,wfn         ,ndm);
 /*...................................................................*/
 
@@ -5803,7 +5816,7 @@ void advectiveScheme(DOUBLE *RESTRICT velC   ,DOUBLE *RESTRICT velV
 
 /*********************************************************************
 * Data de criacao    : 22/08/2016                                   *
-* Data de modificaco : 20/11/2017                                   *
+* Data de modificaco : 07/02/2018                                   *
 *-------------------------------------------------------------------*
 * advecticeShcemeScalar: discretizacao do termo advectivo           *
 *-------------------------------------------------------------------*
@@ -5823,6 +5836,7 @@ void advectiveScheme(DOUBLE *RESTRICT velC   ,DOUBLE *RESTRICT velV
 * mKsi      -> modulo do vetor ksi                                  *
 * m         -> velocidade normal a face                             *
 * cvc       -> nao definido                                         *
+* alphaMenosUm -> interpolocao linear                               *      
 * ndm       -> dimensao                                             *
 * alphaMenosUm -> interpolocao linear                               *      
 * alfa      -> interpolocao linear                                  *                                    *
@@ -5844,7 +5858,7 @@ void advectiveSchemeScalar(DOUBLE const uC, DOUBLE const uV
               ,DOUBLE *RESTRICT ksi       ,DOUBLE const modKsi
               ,DOUBLE const wfn           ,DOUBLE *cvc
               ,DOUBLE const alphaMenosUm  ,DOUBLE const alpha          
-              ,short const ndm
+              ,DOUBLE *RESTRICT parameters ,short const ndm
               ,short const iCod1          ,short const iCod2) {
 
   short i;
@@ -5932,24 +5946,15 @@ void advectiveSchemeScalar(DOUBLE const uC, DOUBLE const uV
 /*... LUST*/
   case LUST:
 /*...*/
-    *cvc =  deferredLust(uC          ,uV
-                        ,gradUc      ,gradUv
-                        ,rC          ,rV  
-                        ,alphaMenosUm,alpha      
-                        ,wfn         ,ndm);
+    *cvc =  deferredLust(uC           ,uV
+                        ,gradUc       ,gradUv
+                        ,rC           ,rV  
+                        ,alphaMenosUm ,alpha      
+                        ,parameters[0]
+                        ,wfn          ,ndm);
 /*...................................................................*/
 
   break;
-/*...................................................................*/
-
-/*... NWF*/
-//case LUST:
-/*...*/
-//  *cvc =  deferredLust(uC          ,uV
-//                      ,gradUc      ,gradUv
-//                      ,rC          ,rV  
-//                      ,alphaMenosUm,alpha      
-//                      ,wfn         ,ndm);
 /*...................................................................*/
 
   break;

@@ -891,14 +891,14 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                                 ,DOUBLE *RESTRICT e,DOUBLE *RESTRICT t
                                 ,short const ndm   ,short const iCod);
 
-  void advectiveScheme(DOUBLE *RESTRICT velC       ,DOUBLE *RESTRICT velV
+  void advectiveScheme(DOUBLE *RESTRICT velC      ,DOUBLE *RESTRICT velV
                      ,DOUBLE *RESTRICT gradVelC   ,DOUBLE *RESTRICT gradVelV
                      ,DOUBLE *RESTRICT gradVelComp,DOUBLE *RESTRICT vSkew
                      ,DOUBLE *RESTRICT rC         ,DOUBLE *RESTRICT rV
                      ,DOUBLE *RESTRICT ksi        ,DOUBLE const modKsi
                      ,DOUBLE const wfn            ,DOUBLE *RESTRICT cvc
                      ,DOUBLE const alphaMenosUm   ,DOUBLE const alpha
-                     ,short const ndm
+                     ,DOUBLE *RESTRICT parameters ,short const ndm
                      ,short const iCod1           ,short const iCod2);
    
   void advectiveSchemeScalar(DOUBLE const uC, DOUBLE const uV
@@ -908,7 +908,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
               ,DOUBLE *RESTRICT ksi       ,DOUBLE const modKsi
               ,DOUBLE const wfn           ,DOUBLE *cvc
               ,DOUBLE const alphaMenosUm  ,DOUBLE const alpha          
-              ,short const ndm
+              ,DOUBLE *RESTRICT parameters,short const ndm
               ,short const iCod1          ,short const iCod2);
 
   DOUBLE deferredCd(DOUBLE const velC,DOUBLE const velV
@@ -917,7 +917,8 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
   DOUBLE deferredLust(DOUBLE const uC         ,DOUBLE const uV
                    ,DOUBLE *RESTRICT gradUc   ,DOUBLE *RESTRICT gradUv
                    ,DOUBLE *RESTRICT rC       ,DOUBLE *RESTRICT rV
-                   ,DOUBLE const alphaMenosUm ,DOUBLE const alpha               
+                   ,DOUBLE const alphaMenosUm ,DOUBLE const alpha   
+                   ,DOUBLE const beta             
                    ,DOUBLE const wfn          ,short const ndm);
 
 

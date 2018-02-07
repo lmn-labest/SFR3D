@@ -88,16 +88,14 @@
 
 /*... ADVECTION*/
   #define FOUP          1
-/*...*/
   #define CD            2
-/*...*/
   #define SOUP          3
-/*...*/
   #define TVD           4
-/*...*/
   #define NVD           5
-/*...*/
   #define LUST          6
+
+/*...*/
+  #define NPADV         1
 
 /*... ADVECTION - TVD EDGEBASE LIMIT*/
   #define VANLEERFACE   1

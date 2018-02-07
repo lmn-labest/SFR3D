@@ -106,6 +106,7 @@
   typedef struct{
     short  iCod1;
     short  iCod2;
+    DOUBLE par[NPADV];
   }Advection;
 /*...................................................................*/  
 

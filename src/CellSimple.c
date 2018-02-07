@@ -327,7 +327,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 /*... correcao do fluxo advectivo*/
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
-      advectiveScheme(velC          ,velV
+/*    advectiveScheme(velC          ,velV
                      ,gradVelC[0]   ,gradVelV[0]
                      ,gradVelComp[0],lvSkew
                      ,lXmcc         ,v  
@@ -335,7 +335,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
                      ,cv            ,cvc
                      ,alphaMenosUm  ,alpha
                      ,ndm
-                     ,iCodAdv1, iCodAdv2);
+                     ,iCodAdv1, iCodAdv2);*/
 /*...................................................................*/
 
 /*...*/
@@ -889,7 +889,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
 /*... correcao do fluxo advectivo*/
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
-      advectiveScheme(velC, velV
+/*    advectiveScheme(velC, velV
         , gradVelC[0], gradVelV[0]
         , gradVelComp[0], lvSkew
         , lXmcc, v
@@ -897,7 +897,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
         , cv, cvc
         , alphaMenosUm  ,alpha
         , ndm
-        , iCodAdv1, iCodAdv2);
+        , iCodAdv1, iCodAdv2);*/
 /*...................................................................*/
 
 /*...*/
@@ -1458,7 +1458,7 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
 /*... correcao do fluxo advectivo*/
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
-      advectiveScheme(velC, velV
+/*    advectiveScheme(velC, velV
                       , gradVelC[0], gradVelV[0]
                       , gradVelComp[0], lvSkew
                       , lXmcc, v
@@ -1466,7 +1466,7 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
                       , cv, cvc
                       , alphaMenosUm  ,alpha
                       , ndm
-                      , iCodAdv1, iCodAdv2);
+                      , iCodAdv1, iCodAdv2);*/
 /*...................................................................*/
 
 /*...*/
@@ -2019,7 +2019,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
       v[2] = lXm[2] - ccV[2];
-      advectiveScheme(velC          ,velV
+/*    advectiveScheme(velC          ,velV
                      ,gradVelC[0]   ,gradVelV[0]
                      ,gradVelComp[0],lvSkew
                      ,lXmcc         ,v  
@@ -2027,7 +2027,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                      ,cv            ,cvc
                      ,alphaMenosUm  ,alpha
                      ,ndm
-                     ,iCodAdv1      ,iCodAdv2);
+                     ,iCodAdv1      ,iCodAdv2);*/
 /*...................................................................*/
 
 /*...*/
@@ -2436,11 +2436,14 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
          stressRc[6],stressRv[6],s[6],xx[4],ts;
 /*...*/
   DOUBLE uPlus,yPlus,viscosityWall;
+/*...*/
+  DOUBLE pAdv[NPADV];
 
 /*...*/
   idCell   = nFace;
   iCodAdv1 = advVel.iCod1;
   iCodAdv2 = advVel.iCod2;
+  pAdv[0]  = advVel.par[0];
   iCodDif  = diffVel.iCod;
 /*...................................................................*/
 
@@ -2751,7 +2754,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                      ,lKsi          ,lModKsi
                      ,cv            ,cvc
                      ,alphaMenosUm  ,alpha
-                     ,ndm
+                     ,pAdv          ,ndm
                      ,iCodAdv1      ,iCodAdv2);
 /*...................................................................*/
 
@@ -3502,7 +3505,7 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
       v[2] = lXm[2] - ccV[2];
-      advectiveScheme(velC          , velV
+/*    advectiveScheme(velC          , velV
                     , gradVelC[0]   , gradVelV[0]
                     , gradVelComp[0], lvSkew
                     , lXmcc         , v
@@ -3510,7 +3513,7 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
                     , cv            , cvc
                     , alphaMenosUm  , alpha
                     , ndm
-                    , iCodAdv1      , iCodAdv2);
+                    , iCodAdv1      , iCodAdv2);*/
 /*...................................................................*/
 
 /*...*/

@@ -656,6 +656,7 @@ void simpleSolverLm(Memoria *m          , PropVar prop
   FILE *fStop = NULL;
   short unsigned ndfVel = mesh->ndfFt - 2;
   short unsigned conv;
+  short unsigned typeResidual;
   int itSimple;
   int nonOrth;
   short unsigned kZeroVel    = sp->kZeroVel,
@@ -674,7 +675,7 @@ void simpleSolverLm(Memoria *m          , PropVar prop
        , tolSimpleMass, tolSimpleEnergy;
 /*...*/
   bool xMomentum, yMomentum, zMomentum, pCor, fEnergy;
-  bool relRes = false;
+  bool relRes;
   bool fPrint = false;
   bool fDensity       = prop.fDensity,
     fSheat            = prop.fSpecificHeat,
@@ -687,6 +688,10 @@ void simpleSolverLm(Memoria *m          , PropVar prop
   bool fParameter[10];
 
   time = getTimeC();
+
+/*...*/
+  relRes       = true;
+  typeResidual = RSQRT;
 /*...*/
   b1 = b2 = b3 = bPc = NULL;
   xu1 = xu2 = xu3 = NULL;
@@ -1321,7 +1326,7 @@ void simpleSolverLm(Memoria *m          , PropVar prop
                  ,&rEnergy          
                  ,sistEqVel->id        ,sistEqEnergy->id
                  ,mesh->numelNov       ,sistEqVel->neqNov
-                 ,mesh->ndm            ,RSCALEDSUM );  
+                 ,mesh->ndm            ,typeResidual );  
 /*...................................................................*/
 
 /*...*/
