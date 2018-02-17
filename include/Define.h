@@ -160,7 +160,6 @@
   #define LFUNCPARABOLIC     1
 /*...................................................................*/
 
-
 /*...*/
   #define DIFPROP        5  /*numero de propriedade de 
                             problemas difusao pura*/

@@ -749,7 +749,7 @@ void updateThermalCondutivty(DOUBLE *RESTRICT t,DOUBLE *RESTRICT thCond
  * Data de criacao    : 01/09/2017                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
- * UPDATESPECIFICHEAT:                                               *
+ * updateDynamicViscosity:                                           *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*

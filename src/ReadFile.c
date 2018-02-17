@@ -2324,7 +2324,7 @@ void readModel(EnergyModel *e    , Turbulence *t
 
 /*... bardinaMod*/
         else if(!strcmp(word,turb[9])){
-          t->fDynamic             = false;
+          t->fDynamic            = false;
           t->fTurb               = true;      
           t->type                = LES;
           t->typeMixed[ESTMODEL] = BARDINAMOD;
@@ -2338,7 +2338,7 @@ void readModel(EnergyModel *e    , Turbulence *t
 
 /*... mixed 2 paramentros*/
         else if(!strcmp(word,turb[10])){
-          t->fDynamic     = true;
+          t->fDynamic    = true;
           t->fTurb       = true;      
           t->type        = LES;
           t->typeLes     = LESMIXEDTWOMODEL; 
@@ -2353,7 +2353,7 @@ void readModel(EnergyModel *e    , Turbulence *t
 
 /*... Gdynamic*/
         else if(!strcmp(word,turb[11])){
-          t->fDynamic     = true;
+          t->fDynamic    = true;
           t->fTurb       = true;      
           t->type        = LES;
           t->typeDynamic = GDYNAMIC;
@@ -3609,23 +3609,6 @@ void readMean(Memoria *m, FILE *fileIn
     }
 /*...................................................................*/
 
-/*... 2pvelocidade*/
-    if (!strcmp(word, "p2Vel") || !strcmp(word, "p2vel")) {
-      if(!mpiVar.myId)
-        fprintf(fileLogExc,"%-20s: enable\n", word);
-      media->f2pVel = true;
-      nTerm--;
-/*... vel``(t) = vel(t) - <vel>*/
-      HccaAlloc(DOUBLE,m,media->p2Vel,nel*ndfVel,"p2Vel",_AD_);
-      zero(media->p2Vel, nel*ndfVel, DOUBLEC);
-/*... vel``(t) = vel(t) - <vel>*/
-      HccaAlloc(DOUBLE,m,media->sP2Vel,nel*ndfVel,"sP2Vel",_AD_);
-      zero(media->sP2Vel, nel*ndfVel, DOUBLEC);
-/*...*/
-      HccaAlloc(DOUBLE,m,media->mP2Vel,nel*ndfVel,"mP2Vel",_AD_);
-      zero(media->mP2Vel, nel*ndfVel, DOUBLEC);
-    }
-/*...................................................................*/   
   } while (nTerm);
 /*....................................................................*/
 

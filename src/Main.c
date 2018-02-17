@@ -28,6 +28,7 @@
 #include<Transport.h>
 #include<Print.h>
 #include<OpenMp.h>
+#include<SaveLoad.h>
 /*********************************************************************/
 
 /*********************************************************************/
@@ -76,6 +77,8 @@ int main(int argc,char**argv){
 
 /*... particionamento*/
   PartMesh *pMesh = NULL;
+/*...*/
+  Save save;
 
 /*...*/
   char loopWord[100][MAX_LINE];
@@ -118,7 +121,7 @@ int main(int argc,char**argv){
   ,"pFluid"      ,"setPrintFluid" ,""             /*33,34,35*/
   ,"setPrime"    ,"prime"         ,"propVar"      /*36,37,38*/
   ,"gravity"     ,"model"         ,"mean"         /*39,40,41*/
-  ,"setMean"};                                    /*42,  ,  */
+  ,"setMean"     ,"save"          ,"load"};       /*42,43,44*/
 /* ..................................................................*/
 
 /*... Memoria principal(valor padrao - bytes)*/
@@ -128,7 +131,13 @@ int main(int argc,char**argv){
 /*...*/
   media.fMedia = false;
   media.fVel   = false;
-  media.f2pVel = false;
+/*..................................................................*/
+
+/*...*/
+  save.fLoad = false;
+  save.fSave = true;
+  save.step[0] =  1;
+  save.step[1] = save.step[0];
 /*..................................................................*/
 
 /*...*/  
@@ -2454,11 +2463,13 @@ int main(int argc,char**argv){
         else if(sc.ddt.type == BACKWARD && !mpiVar.myId )     
           fprintf(fileLogExc,"ddtScheme : BACKWARD\n");
 
-        sc.ddt.t         = 0.e0;
-        sc.ddt.dtInicial = sc.ddt.dt[0];
-        sc.ddt.dt[1]     = sc.ddt.dt[0];
-        sc.ddt.dt[2]     = sc.ddt.dt[0];
-        sc.ddt.timeStep  = 0;
+        if(!save.fLoad){
+          sc.ddt.t         = 0.e0;
+          sc.ddt.dtInicial = sc.ddt.dt[0];
+          sc.ddt.dt[1]     = sc.ddt.dt[0];
+          sc.ddt.dt[2]     = sc.ddt.dt[0];
+          sc.ddt.timeStep  = 0;
+        }
       }
 /*...................................................................*/
 
@@ -2798,12 +2809,13 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: mean : calcula a media                                                        
  *===================================================================*/
-    else if((!strcmp(word,macro[41]))){
+    else if(!strcmp(word,macro[41])){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
       }    
-      calMean(&media,mesh,sc.ddt.dt[TIME_N_MINUS_1], sc.ddt.t,sc.ddt.timeStep);
+      calMean(&media,mesh,sc.ddt.dt[TIME_N_MINUS_1]
+            , sc.ddt.t,sc.ddt.timeStep);
 /*...................................................................*/
       if(!mpiVar.myId ) printf("%s\n\n",DIF);
     }   
@@ -2812,7 +2824,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: setMean : configuracao das medias temporais                                   
  *===================================================================*/
-    else if((!strcmp(word,macro[42]))){
+    else if(!strcmp(word,macro[42])){
       if(!mpiVar.myId ){
         fprintf(fileLogExc,"%s\n",DIF);
         fprintf(fileLogExc,"%s\n",word);
@@ -2822,6 +2834,46 @@ int main(int argc,char**argv){
       if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
     }   
 /*===================================================================*/
+
+/*===================================================================*
+ * macro: save : salva o estado do programa                                          
+ *===================================================================*/
+    else if( (!strcmp(word,macro[43])) &&
+             (save.step[1]++ == save.step[0]) ){
+      if(!mpiVar.myId ){
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+      }
+      save.step[1] = 1;
+      wSave(&propVarFluid,&turbModel
+          ,&thDynamic
+          ,mesh         ,&sc.ddt
+          ,&media
+          ,preName      ,nameOut);
+/*...................................................................*/
+      if(!mpiVar.myId ) printf("%s\n\n",DIF);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: load : carrega um estodo do sistema especifico                             
+ *===================================================================*/
+    else if((!strcmp(word,macro[44]))){
+      if(!mpiVar.myId ){
+        fprintf(fileLogExc,"%s\n",DIF);
+        fprintf(fileLogExc,"%s\n",word);
+      }
+      save.fLoad = true;
+      load(&propVarFluid,&turbModel
+          ,&thDynamic
+          ,mesh         ,&sc.ddt
+          ,&media
+          ,fileIn);
+/*...................................................................*/
+      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+    }   
+/*===================================================================*/
+
 
 /*===================================================================*/
   }while(macroFlag && (!feof(fileIn)));

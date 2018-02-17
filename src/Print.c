@@ -206,41 +206,6 @@ void printFluid(Memoria *m
                    ,mesh->ndm      
                    ,false              ,2);
 /*...................................................................*/
-
-/*...*/
-    if(media->f2pVel){
-/*... calculo de vel''(x,t) = vel(x,t) - <vel>(x,t)*/
-      interCellNode(m                  ,loadsVel
-                   ,nP2Vel             ,media->p2Vel        
-                   ,mesh->elm.node     ,mesh->elm.geomType            
-                   ,mesh->elm.geom.cc  ,mesh->node.x  
-                   ,mesh->elm.geom.xm
-                   ,mesh->elm.nen      ,mesh->elm.adj.nViz
-                   ,mesh->elm.faceRvel ,mesh->elm.faceLoadVel 
-                   ,&pMesh->iNo          
-                   ,mesh->numelNov     ,mesh->numel        
-                   ,mesh->nnodeNov     ,mesh->nnode 
-                   ,mesh->maxNo        ,mesh->maxViz   
-                   ,mesh->ndm          ,1
-                   ,mesh->ndm      
-                   ,false              ,2);
-/*... calculo de vel''(x,t) = vel(x,t) - <vel>(x,t)*/
-      interCellNode(m                  ,loadsVel
-                   ,nMedP2Vel          ,media->mP2Vel        
-                   ,mesh->elm.node     ,mesh->elm.geomType            
-                   ,mesh->elm.geom.cc  ,mesh->node.x  
-                   ,mesh->elm.geom.xm
-                   ,mesh->elm.nen      ,mesh->elm.adj.nViz
-                   ,mesh->elm.faceRvel ,mesh->elm.faceLoadVel 
-                   ,&pMesh->iNo          
-                   ,mesh->numelNov     ,mesh->numel        
-                   ,mesh->nnodeNov     ,mesh->nnode 
-                   ,mesh->maxNo        ,mesh->maxViz   
-                   ,mesh->ndm          ,1
-                   ,mesh->ndm      
-                   ,false              ,2);
-    }
-/*...................................................................*/
   }
 /*...................................................................*/
 
@@ -457,8 +422,6 @@ void printFluid(Memoria *m
                , mesh0->elm.wallParameters, nWall
                , mesh0->elm.kTurb         , nKturb
                , media->mVel              , nMedVel
-               , media->p2Vel             , nP2Vel
-               , media->mP2Vel            , nMedP2Vel
                , mesh0->elm.specificHeat  , mesh0->elm.tConductivity                                               
                , mesh0->nnode             , mesh0->numel  
                , mesh0->ndm               , mesh0->maxNo 

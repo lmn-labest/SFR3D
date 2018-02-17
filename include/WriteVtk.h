@@ -126,8 +126,6 @@
           , DOUBLE *eWallPar     , DOUBLE *nWallPar 
           , DOUBLE *eKturb       , DOUBLE *nKturb
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
-          , DOUBLE *eP2Vel       , DOUBLE *nP2Vel
-          , DOUBLE *eMedP2Vel    , DOUBLE *nMedP2Vel
           , DOUBLE *specificHeat , DOUBLE *tConductivity               
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 

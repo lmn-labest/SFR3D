@@ -103,6 +103,9 @@
 /*...................................................................*/  
 
 /*...*/
+/*...................................................................*/  
+
+/*...*/
   typedef struct{
     short  iCod1;
     short  iCod2;
@@ -134,12 +137,12 @@
 /*...................................................................*/
 
 /*...*/
-  typedef struct{
-    DOUBLE *vel;    /*Velocidade na face*/                             
-  }Face;
+//typedef struct{
+//  DOUBLE *vel;    /*Velocidade na face*/                             
+//}Face;
 /*...................................................................*/    
 
-/*... loads*/
+/*... interpol*/
   typedef struct{
     unsigned short np;                       /*numero de particoes*/  
     DOUBLE *x,*y;                            /*interpolacao*/
@@ -177,10 +180,9 @@
   typedef struct{
     bool fInit;
     bool fMedia;
-    bool fVel,f2pVel;
+    bool fVel;
     int startSample,endSample;
     DOUBLE *mVel,*sVel;  
-    DOUBLE *p2Vel,*sP2Vel,*mP2Vel;  
     DOUBLE t0;                             
   }Mean;
 /*...................................................................*/  
@@ -209,8 +211,7 @@
     short *faceLoadD1; /*tipo de carga contorno na face (difusa pura)*/
 /*...................................................................*/
     INT    *node;       /*conectividades*/
-    Geom   geom;
-    Face   face;       
+    Geom   geom;  
 /*...*/
     DOUBLE *energy;       /*energia*/
     DOUBLE *energy0;      /*energia*/

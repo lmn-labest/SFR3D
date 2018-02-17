@@ -15,7 +15,7 @@
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 22/08/2016                                   *
+ * Data de modificaco : 07/02/2018                                   *
  *-------------------------------------------------------------------*
  * CELLTRANS2D: Celula 2D para transporte                            * 
  *-------------------------------------------------------------------* 
@@ -110,6 +110,8 @@ void cellTrans2D(Loads *loads
   short nAresta,nCarg,typeTime;
   INT vizNel;
   bool fTime;
+/*...*/
+  DOUBLE pAdv[NPADV];
 
 /*...*/
   dt       = ddt.dt[0];
@@ -237,7 +239,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                            ,lKsi         ,lModKsi
                            ,cv           ,&cvc
                            ,alphaMenosUm ,alpha    
-                           ,ndm
+                           ,pAdv         ,ndm
                            ,iCodAdv1     ,iCodAdv2);
 /*...................................................................*/
 
@@ -450,11 +452,14 @@ void cellEnergy2D(Loads *loads            , Loads *loadsVel
 
 /*...*/
   DOUBLE phi,psi,lambda;
+/*...*/
+  DOUBLE pAdv[NPADV];
 
 /*...*/
   idCell   = nFace;
   iCodAdv1 = advT.iCod1;
   iCodAdv2 = advT.iCod2;
+  pAdv[0]  = advT.par[0];
   iCodDif  = diffT.iCod;
 /*...................................................................*/
 
@@ -646,7 +651,7 @@ void cellEnergy2D(Loads *loads            , Loads *loadsVel
                            ,lKsi      ,lModKsi
                            ,cv        ,&cvc
                            ,alphaMenosUm ,alpha
-                           ,ndm   
+                           ,pAdv      ,ndm   
                            ,iCodAdv1  ,iCodAdv2);
 /*...................................................................*/
 
@@ -892,6 +897,8 @@ void cellTrans3D(Loads *loads
   short nf,nCarg,typeTime;
   INT vizNel;
   bool fTime;
+/*...*/
+  DOUBLE pAdv[NPADV];
 
 /*...*/
   dt       = ddt.dt[0];
@@ -1037,8 +1044,8 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                            ,lXmcc       ,v
                            ,lKsi        ,lModKsi
                            ,wfn         ,&cvc
-                           ,alphaMenosUm ,alpha     
-                           ,ndm
+                           ,alphaMenosUm,alpha     
+                           ,pAdv        ,ndm
                            ,iCodAdv1    ,iCodAdv2);
 /*...................................................................*/
 
@@ -1256,14 +1263,17 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
 /*... */
   DOUBLE presC, presC0, presV, gradPresC[3], gradPresV[3], wfn
         , velC[3], velV[3], dFieldC[3], dFieldV[3], dFieldF[3], cv, cvc;       
-
 /*...*/
   DOUBLE phi,psi,lambda;
+/*...*/
+  DOUBLE pAdv[NPADV];
+
 
 /*...*/
   idCell   = nFace;
   iCodAdv1 = advT.iCod1;
   iCodAdv2 = advT.iCod2;
+  pAdv[0]  = advT.par[0];
   iCodDif  = diffT.iCod;
 /*...................................................................*/
 
@@ -1477,7 +1487,7 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
                            ,lKsi         ,lModKsi
                            ,wfn          ,&cvc
                            ,alphaMenosUm ,alpha
-                           ,ndm   
+                           ,pAdv         ,ndm   
                            ,iCodAdv1     ,iCodAdv2);
 /*...................................................................*/
 
@@ -1763,11 +1773,14 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
   DOUBLE presC, presC0, presV, gradPresC[3], gradPresV[3], wfn
         , velC[3], velV[3], dFieldC[3], dFieldV[3], dFieldF[3], cv, cvc
         , s[6], sd[6], delta;       
+/*...*/
+  DOUBLE pAdv[NPADV];
 
 /*...*/
   idCell   = nFace;
   iCodAdv1 = advT->iCod1;
   iCodAdv2 = advT->iCod2;
+  pAdv[0]  = advT->par[0];
   iCodDif  = diffT->iCod;
 /*...................................................................*/
 
@@ -1971,7 +1984,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                            ,lKsi         ,lModKsi
                            ,wfn          ,&cvc
                            ,alphaMenosUm ,alpha
-                           ,ndm   
+                           ,pAdv         ,ndm   
                            ,iCodAdv1     ,iCodAdv2);
 /*...................................................................*/
 

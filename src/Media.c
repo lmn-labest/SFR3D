@@ -27,10 +27,10 @@ void calMean(Mean *media       , Mesh *mesh
 
 
   if(timeStep >= media->startSample){
-    if(media->f2pVel)
-      prime2(media->mVel  , mesh->elm.vel
-           , media->p2Vel
-           , mesh->numel , mesh->ndm);
+//  if(media->f2pVel)
+//    prime2(media->mVel  , mesh->elm.vel
+//         , media->p2Vel
+//         , mesh->numel , mesh->ndm);
 
 /*... calula e acumulada as integrais*/
     integralTemp(media, mesh,dt);
@@ -85,18 +85,6 @@ void integralTemp(Mean *media    , Mesh *mesh, DOUBLE const dt) {
     }
 /*...................................................................*/
 
-/*...*/
-    if (media->f2pVel) {
-      v  = media->p2Vel;
-      me = media->sP2Vel;
-/*...*/
-      for (j = 0; j < ndm; j++) {
-        vm[j] = MAT2D(nel,j,v,ndm);
-        MAT2D(nel,j,me,ndm) += vm[j]*dt;
-      }
-/*...................................................................*/ 
-    }
-/*...................................................................*/
   }
 /*...................................................................*/
 }
@@ -144,16 +132,6 @@ void  calMediaTempFinal(Mean *media, DOUBLE const t
       }
 /*...................................................................*/
 
-/*...*/
-      if (media->f2pVel) {
-        me = media->mP2Vel;
-        se = media->sP2Vel;
-/*...*/
-        for (j = 0; j < ndf; j++) 
-          MAT2D(i,j,me,ndf) =  MAT2D(i,j,se,ndf)/tTotal;      
-/*...................................................................*/ 
-      }
-/*...................................................................*/
     }
 /*...................................................................*/
   }

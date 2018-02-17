@@ -1034,7 +1034,7 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                    *
- * Data de modificaco : 03/02/2018                                    * 
+ * Data de modificaco : 07/02/2018                                    * 
  *------------------------------------------------------------------- * 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1107,8 +1107,6 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
           , DOUBLE *eWallPar     , DOUBLE *nWallPar
           , DOUBLE *eKturb       , DOUBLE *nKturb
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
-          , DOUBLE *eP2Vel       , DOUBLE *nP2Vel  
-          , DOUBLE *eMedP2Vel    , DOUBLE *nMedP2Vel  
           , DOUBLE *specificHeat , DOUBLE *tConductivity
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
@@ -1196,22 +1194,6 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
     strcpy(str,"<eVel>");
     writeVtkProp(&idum,eMedVel,numel,ndm,str,iws
                  ,DOUBLE_VTK,VECTORS_VTK,f);
-  }
-/*...................................................................*/
-
-/*...*/
-  else if(media->f2pVel && opt.fCell){
-    strcpy(str,"eP2Vel");
-    writeVtkProp(&idum     ,eP2Vel,numel,ndm,str,iws
-                ,DOUBLE_VTK,VECTORS_VTK ,f);
-  }
-/*...................................................................*/
-
-/*...*/
-  else if(media->f2pVel && opt.fCell){
-    strcpy(str,"<eP2Vel>");
-    writeVtkProp(&idum     ,eMedP2Vel,numel,ndm,str,iws
-                ,DOUBLE_VTK,VECTORS_VTK ,f);
   }
 /*...................................................................*/
 
@@ -1453,22 +1435,6 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
     strcpy(str,"<nVel>");
     writeVtkProp(&idum,nMedVel,nnode,ndm,str,iws
                  ,DOUBLE_VTK,VECTORS_VTK,f);
-  }
-/*...................................................................*/
-
-/*...*/
-  if(media->f2pVel && opt.fNode){
-    strcpy(str,"nP2Vel");
-    writeVtkProp(&idum     ,nP2Vel,nnode,ndm,str,iws
-                ,DOUBLE_VTK,VECTORS_VTK ,f);
-  }
-/*...................................................................*/
-
-/*...*/
-  if(media->f2pVel && opt.fNode){
-    strcpy(str,"<nP2Vel>");
-    writeVtkProp(&idum     ,nMedP2Vel,nnode,ndm,str,iws
-                ,DOUBLE_VTK,VECTORS_VTK ,f);
   }
 /*...................................................................*/
 

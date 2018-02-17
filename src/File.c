@@ -61,7 +61,7 @@ FILE *aux;
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 03/12/2017                                   * 
+ * Data de modificaco : 07/02/2018                                   * 
  *-------------------------------------------------------------------* 
  * fname: add as extencoes dos arquivos de saida                     *
  * ------------------------------------------------------------------*
@@ -92,7 +92,8 @@ FILE *aux;
  *         20 -> resultados do problema de transporte vtk            *      
  *         21 -> resultados do problema de escoamente imconpressivel *       
  *         22 -> log de residuo do simple                            *
- *         23 -> log de excucao                                      *              
+ *         23 -> log de excucao                                      *
+ *         24 -> save                                                *               
  *         60 -> media dos tempos (MPI)                              *      
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
@@ -531,6 +532,27 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 /*... arquivo com o log do solv*/
     case 23:
       strcat(ext,"_exc_log.txt");
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+        exit(EXIT_FAILURE);      
+      }
+      strcpy(*out,name);
+      strcat(*out,ext);
+      break;
+/*...................................................................*/
+
+/*... arquivo de save*/
+    case 24:
+      iota(num1,st);
+      strcpy(ext,"_");
+      strcat(ext,st);
+      strcat(ext,".save");
       size1 = (int) strlen(name);
       size2 = (int) strlen(ext);
       if( (size1+size2)  > SIZEMAX){

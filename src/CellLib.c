@@ -5562,7 +5562,6 @@ void advectiveScheme(DOUBLE *RESTRICT velC   ,DOUBLE *RESTRICT velV
   { "FoUp","Cd"
    ,"SoUp","Tvd"
    ,"Nvd" ,"LUST"};
-  printf("%lf\n",parameters[0]);
   switch(iCod1){
 /*... Upwind de primeira ordem*/
     case FOUP:

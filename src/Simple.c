@@ -690,8 +690,10 @@ void simpleSolverLm(Memoria *m          , PropVar prop
   time = getTimeC();
 
 /*...*/
-  relRes       = true;
-  typeResidual = RSQRT;
+//relRes       = true;
+//typeResidual = RSQRT;
+  relRes       = false;
+  typeResidual = RSCALEDSUM;
 /*...*/
   b1 = b2 = b3 = bPc = NULL;
   xu1 = xu2 = xu3 = NULL;
@@ -1349,12 +1351,11 @@ void simpleSolverLm(Memoria *m          , PropVar prop
                         ,eModel.fKelvin
                        ,mesh->numel     ,PROP_UPDATE_SIMPLE_LOOP);
     if(fDvisc)
-     updateDynamicViscosity(mesh->elm.temp,mesh->elm.dViscosity  
-                           ,eModel.fKelvin   
-                           ,mesh->numel);
+      updateDynamicViscosity(mesh->elm.temp,mesh->elm.dViscosity  
+                           ,eModel.fKelvin ,mesh->numel);
     if(fTcond)
-      updateDynamicViscosity(mesh->elm.temp,mesh->elm.tConductivity
-                            ,eModel.fKelvin  ,mesh->numel);
+      updateThermalCondutivty(mesh->elm.temp,mesh->elm.tConductivity
+                             ,eModel.fKelvin  ,mesh->numel);
 /*...................................................................*/
 
 /*... pressa de referencia*/
