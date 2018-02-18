@@ -1705,7 +1705,8 @@ void config(FileOpt *opt,Reord *reordMesh
       i++;
 /*...................................................................*/
   }
-  
+  readMacro(file,word,true);
+  readMacro(file,word,true);
   for(j=0;j<NCONFIG;j++){
     if(!flag[j]){
       fprintf(fileLogExc,"%s: %s faltando.\n"
@@ -2565,7 +2566,7 @@ void readGravity(DOUBLE *gravity,FILE *file){
 
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
- * Data de modificaco : 13/12/2017                                   * 
+ * Data de modificaco : 17/02/2018                                   * 
  *-------------------------------------------------------------------* 
  * SETPPRINTFLUID : Seleciona as veriaves que serao impressas na     *
  * macro pFluid                                                      *
@@ -2595,7 +2596,7 @@ void setPrintFluid(FileOpt *opt,FILE *file){
                ,"tconductivity","vorticity"   ,"wallparameters"  /*12,13,14*/
                ,"stress"       ,"kinecit"     ,"stressr"         /*15,16,17*/
                ,"cdynamic"     ,"qcriterion"  ,"prestotal"       /*18,19,20*/
-               ,"kturb"};                                        /*21*/  
+               ,"kturb"        ,"pkelvin"     };                 /*21,22*/  
   int tmp;
 
   strcpy(format,"%-20s: %s\n");
@@ -2622,6 +2623,7 @@ void setPrintFluid(FileOpt *opt,FILE *file){
   opt->cDynamic       = false;  
   opt->Qcriterion     = false;
   opt->kTurb          = false;
+  opt->pKelvin        = false;
 
   fscanf(file,"%d",&tmp);
   opt->stepPlotFluid[0] = opt->stepPlotFluid[1] = (short) tmp;
@@ -2782,6 +2784,13 @@ void setPrintFluid(FileOpt *opt,FILE *file){
     }
 /*.....................................................................*/
 
+/*...*/
+    else if (!strcmp(word,macro[22])) {
+      opt->pKelvin = true;
+      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","pKelvin");
+    }
+/*.....................................................................*/
+
     readMacro(file,word,false);
     convStringLower(word);
   }
@@ -2867,14 +2876,14 @@ static void convLoadsEnergy(Loads *loadsEnergy   ,Loads *loadsTemp
         loadsEnergy[i].par[j] = loadsTemp[i].par[j];
     }
 /*... converte c para kelvin*/    
-    if(iKelvin)
-      for(i=0;i<MAXLOADFLUID;i++){
-        type = loadsEnergy[i].type;
-        if( type == DIRICHLETBC ||  type == INLET 
-        ||  type == CONVECTIONHEAT)
-          loadsEnergy[i].par[0] 
-                         = CELSIUS_FOR_KELVIN(loadsEnergy[i].par[0]);
-      }
+//  if(iKelvin)
+//    for(i=0;i<MAXLOADFLUID;i++){
+//      type = loadsEnergy[i].type;
+//      if( type == DIRICHLETBC ||  type == INLET 
+//      ||  type == CONVECTIONHEAT)
+//        loadsEnergy[i].par[0] 
+//                       = CELSIUS_FOR_KELVIN(loadsEnergy[i].par[0]);
+//    }
       
   }
 /*....................................................................*/

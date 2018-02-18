@@ -224,6 +224,7 @@ int main(int argc,char**argv){
   opt.cDynamic      = false;
   opt.bconditions   = true;
   opt.cc            = false;
+  opt.pKelvin       = false;
  
   opt.stepPlotFluid[0] =  5;
   opt.stepPlotFluid[1] = opt.stepPlotFluid[0];
@@ -2619,13 +2620,13 @@ int main(int argc,char**argv){
 
 /*...*/                     
       printFluid(&m         
-               , turbModel, eModel
-               , pMesh    , sc
-               , loadsVel , loadsPres 
-               , loadsTemp, opt
-               , mesh0    , mesh 
-               , &media     
-               , preName  , nameOut);
+               , &turbModel, &eModel
+               , pMesh     , sc
+               , loadsVel  , loadsPres 
+               , loadsTemp , opt
+               , mesh0     , mesh 
+               , &media      
+               , preName   , nameOut);
 /*...................................................................*/
 
       if(!mpiVar.myId ) printf("%s\n\n",DIF);

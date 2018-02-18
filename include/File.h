@@ -55,6 +55,7 @@
     bool kTurb; 
     bool bconditions;    /*insere as condicoes de contorno nos valores nodais*/
     bool cc;             /*centro geomentrico da celula*/       
+    bool pKelvin;        /*plot em kelvin*/  
     short stepPlotFluid[2];
     FILE *fileItPlot[7];
     

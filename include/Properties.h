@@ -46,12 +46,12 @@
 /*...................................................................*/
 
 /*...*/
-  #define TEMP_FOR_ENTHALPY(cp,t,tr) ( cp*(t-tr) )
-  #define ENTHALPY_FOR_TEMP(cp,hs,tr) ( hs/cp+tr )
+  #define TEMP_FOR_ENTHALPY(cp,t,tr) ( (cp)*(t-tr) )
+  #define ENTHALPY_FOR_TEMP(cp,hs,tr) ( (hs/cp) + (tr) )
 /*...................................................................*/
 
 /*...*/
-  #define PRESREF(dRef,R,T,Mg) (dRef*R*T/Mg) 
+  #define PRESREF(dRef,R,T,Mg) ((dRef)*(R)*(T)/(Mg)) 
 /*...................................................................*/
 
 /*...*/

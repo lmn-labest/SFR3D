@@ -652,7 +652,7 @@ void updateDensity(DOUBLE *RESTRICT temp , DOUBLE *RESTRICT density
         den0 =  MAT2D(i,2 ,density ,nD);         
         den = airDensity(temp[i], thDynamic.pTh[2], iKelvin);
 /*...*/           
-        MAT2D(i,2 ,density ,nD) =  alpha*den + (1.e0-alpha)*den0;
+        MAT2D(i,TIME_N ,density ,nD) =  alpha*den + (1.e0-alpha)*den0;
       }
 /*..................................................................*/
     break;  
@@ -660,9 +660,9 @@ void updateDensity(DOUBLE *RESTRICT temp , DOUBLE *RESTRICT density
   case PROP_UPDATE_OLD_TIME:
     for(i=0;i<nEl;i++){
 /*...t(n-2) = t(n-1)*/
-      MAT2D(i,0 ,density ,nD) = MAT2D(i,1 ,density ,nD);
+      MAT2D(i,TIME_N_MINUS_2 ,density ,nD) = MAT2D(i,1 ,density ,nD);
 /*...t(n-1) = t(n)*/           
-      MAT2D(i,1 ,density ,nD) = MAT2D(i,2 ,density ,nD);
+      MAT2D(i,TIME_N_MINUS_1 ,density ,nD) = MAT2D(i,2 ,density ,nD);
     }
 /*..................................................................*/
     break;
@@ -701,15 +701,15 @@ void updateSpecificHeat(DOUBLE *RESTRICT temp, DOUBLE *RESTRICT sHeat
     case PROP_UPDATE_SIMPLE_LOOP:
       for(i=0;i<nEl;i++)
 /*...*/           
-        MAT2D(i,2 ,sHeat ,nD) = airSpecifiHeat(temp[i],iKelvin);
+        MAT2D(i,TIME_N ,sHeat ,nD) = airSpecifiHeat(temp[i],iKelvin);
 /*..................................................................*/
     break;  
 
   case PROP_UPDATE_OLD_TIME:
     for(i=0;i<nEl;i++){
 /*...*/
-      MAT2D(i,0 ,sHeat ,nD) = MAT2D(i,1 ,sHeat ,nD);           
-      MAT2D(i,1 ,sHeat ,nD) = MAT2D(i,2 ,sHeat ,nD);
+      MAT2D(i, TIME_N_MINUS_2, sHeat, nD) = MAT2D(i,1 ,sHeat ,nD);           
+      MAT2D(i, TIME_N_MINUS_1, sHeat, nD) = MAT2D(i,2 ,sHeat ,nD);
     }
 /*..................................................................*/
     break;

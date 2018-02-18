@@ -2459,8 +2459,8 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
         lFaceL[aux1]    = MAT2D(nel, aux1, faceL, aux2);
         lFaceVelR[aux1] = MAT2D(nel, aux1, faceVelR, aux2);
         lFaceVelL[aux1] = MAT2D(nel, aux1, faceVelL, aux2);
-        lDensity[aux1]  = MAT2D(nel, 2, density, DENSITY_LEVEL);
-        lsHeat[aux1]    = MAT2D(nel, 2, sHeat  , SHEAT_LEVEL); 
+        lDensity[aux1]  = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+        lsHeat[aux1]    = MAT2D(nel, TIME_N, sHeat  , SHEAT_LEVEL); 
         ltConductivity[aux1] = tConductivity[nel];
 /*...*/
         MAT2D(aux1, 0, lPres, 2) = pres0[nel];
@@ -2652,8 +2652,8 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
         lFaceL[aux1]    = MAT2D(nel, aux1, faceL, aux2);
         lFaceVelR[aux1] = MAT2D(nel, aux1, faceVelR, aux2);
         lFaceVelL[aux1] = MAT2D(nel, aux1, faceVelL, aux2);
-        lDensity[aux1]  = MAT2D(nel, 2, density, DENSITY_LEVEL);
-        lsHeat[aux1]    = MAT2D(nel, 2, sHeat  , SHEAT_LEVEL); 
+        lDensity[aux1]  = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+        lsHeat[aux1]    = MAT2D(nel, TIME_N, sHeat  , SHEAT_LEVEL); 
         ltConductivity[aux1] = tConductivity[nel];
 /*...*/
         MAT2D(aux1, 0, lPres, 2) = pres0[nel];
@@ -5999,13 +5999,22 @@ void rcLeastSquare(DOUBLE *RESTRICT gKsi    ,DOUBLE *RESTRICT gmKsi
   void convTempForKelvin(DOUBLE *RESTRICT u,INT const n
                         ,bool const fKelvin){
     int i;
-    if(fKelvin)
-      for(i=0;i<n;i++)
+    DOUBLE tmp;
+/*...*/
+    if(fKelvin){
+      for(i=0;i<n;i++){
         u[i] = CELSIUS_FOR_KELVIN(u[i]); 
-    else
-      for(i=0;i<n;i++)
+      }
+    }
+/*...................................................................*/ 
+
+/*...*/
+    else{
+      for(i=0;i<n;i++){
         u[i] = KELVIN_FOR_CELSIUS(u[i]); 
-    
+      }
+    }
+/*...................................................................*/    
   }
 /*********************************************************************/
 

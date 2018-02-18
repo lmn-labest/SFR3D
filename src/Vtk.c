@@ -473,8 +473,8 @@ static void force_big_endian(unsigned char *bytes,bool cod,int nbytes)
           bytes[2] = bytes[5];
           bytes[5] = tmp;
           tmp = bytes[3];
-          bytes[3] = bytes[5];
-          bytes[5] = tmp;
+          bytes[3] = bytes[4];
+          bytes[4] = tmp;
 
 	}
         else if(nbytes==4){	

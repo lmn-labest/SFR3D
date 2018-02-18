@@ -1259,7 +1259,7 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
   DOUBLE gradUp[3], gradUv[3], ccV[3], gradVelC[3][3], rCell, dt, dt0; 
   DOUBLE uC, uV;
 /*... nonOrtogonal*/
-  DOUBLE e[3], t[3], modE, dfdc, xx[3];
+  DOUBLE e[3], t[3], s[3], modE, dfdc, xx[3];
 /*... */
   DOUBLE presC, presC0, presV, gradPresC[3], gradPresV[3], wfn
         , velC[3], velV[3], dFieldC[3], dFieldV[3], dFieldF[3], cv, cvc;       
@@ -1308,9 +1308,9 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
 
 /*...*/
   if(fTemp)
-    diffEffC = thermCoefC + sHeatC*viscosityC/prTsgs;
+    diffEffC = thermCoefC + sHeatC*eddyViscosityC/prTsgs;
   else
-    diffEffC = thermCoefC/sHeatC + viscosityC/prTsgs;
+    diffEffC = thermCoefC/sHeatC + eddyViscosityC/prTsgs;
 /*...................................................................*/
 
 /*...*/
@@ -1392,10 +1392,13 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
 
 /*... termo difusivo
       grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
-      difusionScheme(lNormal ,lKsi
-                    ,lFarea  ,lModKsi
-                    ,e       ,t
-                    ,ndm     ,iCodDif);
+      s[0] = lFarea*lNormal[0];
+      s[1] = lFarea*lNormal[1];
+      s[2] = lFarea*lNormal[2];
+/*...*/
+			difusionSchemeNew(s  , lKsi
+			                , e  , t
+				              , ndm, iCodDif);
 /*...................................................................*/
 
 /*...*/

@@ -24,13 +24,13 @@
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void printFluid(Memoria *m        
-               ,Turbulence turbModel,EnergyModel eModel
-               ,PartMesh *pMesh     ,Scheme sc
-               ,Loads *loadsVel     ,Loads *loadsPres 
-               ,Loads *loadsTemp    ,FileOpt opt
-               ,Mesh *mesh0         ,Mesh *mesh  
+               ,Turbulence *turbModel,EnergyModel *eModel
+               ,PartMesh *pMesh      ,Scheme sc
+               ,Loads *loadsVel      ,Loads *loadsPres 
+               ,Loads *loadsTemp     ,FileOpt opt
+               ,Mesh *mesh0          ,Mesh *mesh  
                ,Mean *media      
-               ,char *preName       ,char *nameOut){
+               ,char *preName        ,char *nameOut){
  
   short ndm = mesh->ndm;
   void *dum=NULL;
@@ -306,7 +306,7 @@ void printFluid(Memoria *m
 /*...................................................................*/
 
 /*...*/
-  if (turbModel.fTurb) {
+  if (turbModel->fTurb) {
 /*... viscisidade turbulenta*/
     if(opt.eddyViscosity)       
       interCellNode(m                  , loadsVel
@@ -428,7 +428,7 @@ void printFluid(Memoria *m
                , mesh0->numat             , ndfVel
                , mesh0->ntn               
                , nameOut                  , opt
-               , eModel.fKelvin           , media
+               , eModel->fKelvin          , media
                , sc.ddt                   , fileOut);   
 /*...................................................................*/
   }
