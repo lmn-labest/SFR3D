@@ -1490,7 +1490,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*...*/
       tempC = CELSIUS_FOR_KELVIN(tempC);
       tmp1 = 1.e0/(IDEALGASR*tempC);
-      if( fLhsDensity) sP += tmp*volume[idCell];
+      if(fLhsDensity) sP += tmp1*tmp*volume[idCell];
     }
   }
 /*...................................................................*/

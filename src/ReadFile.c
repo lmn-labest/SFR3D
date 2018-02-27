@@ -857,7 +857,7 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
       fprintf(fileLogExc,"%s\n", word);
       strcpy(macros[nmacro++], word);
       rflag[28] = true;
-      uniformField(mesh->elm.pressure, mesh->numel,1, file);
+      uniformField(mesh->elm.pressure0, mesh->numel,1, file);
       fprintf(fileLogExc,"done.\n");
       fprintf(fileLogExc,"%s\n\n", DIF);
     }
@@ -1018,7 +1018,8 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
     if(prop.fDensity){
 /*... inicia a massa especifica com o campo de temperatura inicial*/
       initPropTemp(mesh->elm.densityFluid ,mesh->elm.temp 
-                  ,mesh->elm.material.prop,mesh->elm.mat
+                  ,mesh->elm.pressure0    ,mesh->elm.material.prop
+                  ,mesh->elm.mat
                   ,DENSITY_LEVEL          ,mesh->numel
                   ,energyModel.fKelvin    ,DENSITY);
     }
@@ -1032,7 +1033,8 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 /*... inicializando o calor especifico*/
     if(prop.fSpecificHeat)
       initPropTemp(mesh->elm.specificHeat   ,mesh->elm.temp 
-                  ,mesh->elm.material.prop  ,mesh->elm.mat
+                  ,mesh->elm.pressure0      ,mesh->elm.material.prop  
+                  ,mesh->elm.mat
                   ,SHEAT_LEVEL              ,mesh->numel
                   ,energyModel.fKelvin      ,SPECIFICHEATCAPACITYFLUID);
     else
@@ -1044,8 +1046,9 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 
 /*... inicializando a viscosidade dinamica*/
     if(prop.fDynamicViscosity)
-      initPropTemp(mesh->elm.dViscosity     ,mesh->elm.temp 
-                ,mesh->elm.material.prop  ,mesh->elm.mat
+      initPropTemp(mesh->elm.dViscosity   ,mesh->elm.temp 
+                ,mesh->elm.pressure0      ,mesh->elm.material.prop  
+                ,mesh->elm.mat
                 ,DVISCOSITY_LEVEL         ,mesh->numel
                 ,energyModel.fKelvin      ,DYNAMICVISCOSITY);
    else
@@ -1058,6 +1061,7 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 /*... inicializando a condutividade termica*/
     if(prop.fThermalCondutivty)
       initPropTemp(mesh->elm.tConductivity ,mesh->elm.temp 
+                ,mesh->elm.pressure0 
                 ,mesh->elm.material.prop   ,mesh->elm.mat
                 ,TCONDUCTIVITY_LEVEL       ,mesh->numel
                 ,energyModel.fKelvin       ,THERMALCONDUCTIVITY);
@@ -2059,7 +2063,7 @@ void readPropVar(PropVar *p,FILE *file){
 
 /*********************************************************************
  * Data de criacao    : 04/09/2017                                   *
- * Data de modificaco : 13/01/2018                                   *
+ * Data de modificaco : 20/02/2018                                   *
  *-------------------------------------------------------------------* 
  * READPROPVAR : propriedades variaveis                              * 
  *-------------------------------------------------------------------* 
@@ -2068,7 +2072,7 @@ void readPropVar(PropVar *p,FILE *file){
  * e       -> modelos/termos usandos na eq energia                   * 
  * t       -> modelo de turbilencia                                  *
  * eMass   -> modelos/termos usados na equacao da conv de mass       * 
- * eMomentum  -> modelos/termos usados na equacao da conv de mass    *
+ * ModelMomentum  -> modelos/termos usados na equacao da conv de mass*
  * file    -> arquivo de arquivo                                     * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -2081,7 +2085,7 @@ void readPropVar(PropVar *p,FILE *file){
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void readModel(EnergyModel *e    , Turbulence *t
-             , MassEqModel *eMass, MomentumModel *eMomentum
+             , MassEqModel *eMass, MomentumModel *ModelMomentum
              , FILE *file){
 
   char *str={"endModel"};
@@ -2101,15 +2105,13 @@ void readModel(EnergyModel *e    , Turbulence *t
 
   char mass[][WORD_SIZE] = { "lhsdensity","rhsdensity"}; 
 
-  char momentum[][WORD_SIZE] = {"residual","absolute"
-                               ,"presa"   ,"presref" 
-                               ,"rhiechow","viscosity"
-                               ,"div"};
+  char momentum[][WORD_SIZE] = {"residual"   ,"absolute"       /*0,1*/                    
+                               ,"rhiechow"   ,"viscosity"      /*2,3*/
+                               ,"div"        ,"buoyanthy"      /*4,5*/  
+                               ,"buoyantprgh","buoyantrhoref"};/*6,7*/ 
 
   char typeWallModel[][WORD_SIZE] ={"standard","enhanced"};
   
-
-
   int i,nPar;
 
   readMacro(file,word,false);
@@ -2447,19 +2449,18 @@ void readModel(EnergyModel *e    , Turbulence *t
       strcpy(format,"%-20s: %s\n");
       if(!mpiVar.myId)
         fprintf(fileLogExc,"\n%-20s: \n","MomentumEqModel");    
-      eMomentum->fRes             = false;
-      eMomentum->fAbsultePressure = false;
-      eMomentum->fRhieChowInt     = false;
-      eMomentum->fViscosity       = false;
-      eMomentum->fDiv             = false;
+      ModelMomentum->fRes             = false;
+      ModelMomentum->fRhieChowInt     = false;
+      ModelMomentum->fViscosity       = false;
+      ModelMomentum->fDiv             = false;
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++){
         readMacro(file,word,false);
         convStringLower(word);
 /*... residual*/
         if(!strcmp(word,momentum[0])){
-          eMomentum->fRes = true;          
-          if(!mpiVar.myId && eMomentum->fRes){ 
+          ModelMomentum->fRes = true;          
+          if(!mpiVar.myId && ModelMomentum->fRes){ 
             fprintf(fileLogExc,format,"Residual","Enable");
           }
         }
@@ -2467,54 +2468,63 @@ void readModel(EnergyModel *e    , Turbulence *t
 
 /*... Absolute*/
         else if(!strcmp(word,momentum[1])){
-          eMomentum->fRes = false;            
-          if(!mpiVar.myId && !eMomentum->fRes){ 
+          ModelMomentum->fRes = false;            
+          if(!mpiVar.myId && !ModelMomentum->fRes){ 
             fprintf(fileLogExc,format,"Absolute","Enable");
           }
         }
 /*...................................................................*/
 
-/*... presAbs*/
-        else if(!strcmp(word,momentum[2])){
-          eMomentum->fAbsultePressure = true;            
-          if(!mpiVar.myId && eMomentum->fAbsultePressure ){ 
-            fprintf(fileLogExc,format,"presAbs","Enable");
-          }
-        }
-/*...................................................................*/
-
-/*... presRef*/
-        else if(!strcmp(word,momentum[3])){
-          eMomentum->fAbsultePressure = false;            
-          if(!mpiVar.myId && !eMomentum->fAbsultePressure ){ 
-            fprintf(fileLogExc,format,"presRef","Enable");
-          }
-        }
-/*...................................................................*/
-
 /*... RhieChow*/
-        else if(!strcmp(word,momentum[4])){
-          eMomentum->fRhieChowInt = true;            
-          if(!mpiVar.myId && eMomentum->fRhieChowInt){ 
+        else if(!strcmp(word,momentum[2])){
+          ModelMomentum->fRhieChowInt = true;            
+          if(!mpiVar.myId && ModelMomentum->fRhieChowInt){ 
             fprintf(fileLogExc,format,"RhieChowInt","Enable");
           }
         }
 /*...................................................................*/
 
 /*... Viscosity*/
-        else if(!strcmp(word,momentum[5])){
-          eMomentum->fViscosity = true;            
-          if(!mpiVar.myId && eMomentum->fViscosity){ 
+        else if(!strcmp(word,momentum[3])){
+          ModelMomentum->fViscosity = true;            
+          if(!mpiVar.myId && ModelMomentum->fViscosity){ 
             fprintf(fileLogExc,format,"Viscosity","Enable");
           }
         }
 /*...................................................................*/
 
-/*... Viscosity*/
-        else if(!strcmp(word,momentum[6])){
-          eMomentum->fDiv = true;            
-          if(!mpiVar.myId && eMomentum->fDiv){ 
+/*... div*/
+        else if(!strcmp(word,momentum[4])){
+          ModelMomentum->fDiv = true;            
+          if(!mpiVar.myId && ModelMomentum->fDiv){ 
             fprintf(fileLogExc,format,"Divergente","Enable");
+          }
+        }
+/*...................................................................*/
+
+/*... bouyant_hydrostatic*/
+        else if(!strcmp(word,momentum[5])){
+          ModelMomentum->iCodBuoyant = BUOYANT_HYDROSTATIC;            
+          if(!mpiVar.myId){ 
+            fprintf(fileLogExc,format,"bouyant_hydrostatic","Enable");
+          }
+        }
+/*...................................................................*/
+
+/*... bouyant_prgh*/
+        else if(!strcmp(word,momentum[6])){
+          ModelMomentum->iCodBuoyant = BUOYANT_PRGH;            
+          if(!mpiVar.myId){ 
+            fprintf(fileLogExc,format,"bouyant_prgh","Enable");
+          }
+        }
+/*...................................................................*/
+
+/*... bouyant_prgh*/
+        else if(!strcmp(word,momentum[7])){
+          ModelMomentum->iCodBuoyant = BUOYANT_RHOREF;            
+          if(!mpiVar.myId){ 
+            fprintf(fileLogExc,format,"bouyant_rofref","Enable");
           }
         }
 /*...................................................................*/
@@ -3040,11 +3050,11 @@ void help(FILE *f){
   short iMass = 2;
   char mass[][WORD_SIZE] = { "lhsDensity","rhsDensity"}; 
 
-  short iMom = 7;  
-  char momentum[][WORD_SIZE] = {"residual","absolute"    /* 0, 1*/
-                               ,"presa"   ,"presref"     /* 2, 3*/
-                               ,"rhiechow","viscosity"   /* 4, 5*/
-                               ,"div"};                  /* 6*/
+  short iMom = 8;  
+  char momentum[][WORD_SIZE] =  {"residual"   ,"absolute"       /*0,1*/                    
+                               ,"rhiechow"    ,"viscosity"      /*2,3*/
+                               ,"div"         ,"buoyanthy"      /*4,5*/  
+                               ,"buoyantprgh" ,"buoyantrhoref"};/*6,7*/ 
 
   short iWall = 2;
   char typeWallModel[][WORD_SIZE] ={"standard","enhanced"};

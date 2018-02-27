@@ -642,7 +642,7 @@ void simpleSolverLm(Memoria *m          , PropVar prop
                   , Loads *loadsVel     , Loads *loadsPres
                   , Loads *loadsEnergy  , Loads *loadsKturb
                   , EnergyModel eModel
-                  , MassEqModel eMass   , MomentumModel eMomentum
+                  , MassEqModel eMass   , MomentumModel ModelMomentum
                   , Turbulence *tModel  , ThermoDynamic *thDynamic
                   , Mesh *mesh0         , Mesh *mesh
                   , SistEq *sistEqVel   , SistEq *sistEqPres
@@ -690,7 +690,7 @@ void simpleSolverLm(Memoria *m          , PropVar prop
   time = getTimeC();
 
 /*...*/
-//relRes       = true;
+//relRes       = false;
 //typeResidual = RSQRT;
   relRes       = false;
   typeResidual = RSCALEDSUM;
@@ -908,7 +908,7 @@ void simpleSolverLm(Memoria *m          , PropVar prop
    tm.systFormVel = getTimeC() - tm.systFormVel;
    systFormSimpleVelLm(loadsVel               , loadsPres 
                      , sc->advVel             , sc->diffVel 
-                     ,*tModel                 , eMomentum
+                     ,*tModel                 , ModelMomentum
                      , sp->type 
                      , mesh->elm.node         , mesh->elm.adj.nelcon 
                      , mesh->elm.nen          , mesh->elm.adj.nViz 
@@ -1043,7 +1043,7 @@ void simpleSolverLm(Memoria *m          , PropVar prop
     updateCellSimpleVelR(mesh->elm.vel ,xu1
                         ,xu2           ,xu3
                         ,sistEqVel->id ,mesh->numelNov
-                        ,eMomentum.fRes,mesh->ndm);
+                        ,ModelMomentum.fRes,mesh->ndm);
 /*...................................................................*/
 
 /*...*/
@@ -1343,7 +1343,8 @@ void simpleSolverLm(Memoria *m          , PropVar prop
 
 /*...*/
     if(fDensity)
-      updateDensity(mesh->elm.temp   , mesh->elm.densityFluid
+      updateDensity(mesh->elm.temp    ,mesh->elm.pressure0  
+                  , mesh->elm.densityFluid
                   , sp->alphaDensity , eModel.fKelvin   
                   , mesh->numel      , PROP_UPDATE_SIMPLE_LOOP);
     if(fSheat)
@@ -1467,7 +1468,8 @@ void simpleSolverLm(Memoria *m          , PropVar prop
 /*...................................................................*/
 
 /*... guardando as propriedades para o proximo passo*/
-  if(fDensity) updateDensity(mesh->elm.temp, mesh->elm.densityFluid
+  if(fDensity) updateDensity(mesh->elm.temp ,mesh->elm.pressure0 
+              , mesh->elm.densityFluid
               , sp->alphaDensity           , eModel.fKelvin
               , mesh->numel                , PROP_UPDATE_OLD_TIME   );
   if(fSheat) updateSpecificHeat(mesh->elm.temp,mesh->elm.specificHeat
@@ -1511,9 +1513,9 @@ void simpleSolverLm(Memoria *m          , PropVar prop
     printf("CFL                  : %lf\n", cfl);
   printf("Reynolds             : %.3e\n", reynolds);
   printf("Peclet               : %.3e\n", peclet);
-  printf("PresRef              : %lf\n", thDynamic->pTh[2]);
-  printf("(Inc    ) Mass/Mass0 : %lf\n", mesh->mass[1]/mesh->mass[0]);
-  printf("(Average) Mass/Mass0 : %lf\n", mesh->mass[2]/mesh->mass[0]);
+  printf("PresRef              : %.6e\n", thDynamic->pTh[2]);
+  printf("(Inc    ) Mass/Mass0 : %.6e\n", mesh->mass[1]/mesh->mass[0]);
+  printf("(Average) Mass/Mass0 : %.6e\n", mesh->mass[2]/mesh->mass[0]);
  
   printf("Residuo:\n");
   printf("conservacao da massa   (init,final): %20.8e %20.8e \n"

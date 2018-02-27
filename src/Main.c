@@ -60,7 +60,7 @@ int main(int argc,char**argv){
 /*...*/
   EnergyModel eModel;
   MassEqModel eMass;
-  MomentumModel eMomentum;
+  MomentumModel ModelMomentum;
 /*... propriedade variaveis*/
   PropVar propVarFluid;
 
@@ -158,8 +158,8 @@ int main(int argc,char**argv){
   turbModel.cs                  = 1.0e0;
   turbModel.cf                  = 0.2e0;
   turbModel.c                   = 1.0e0;
-  turbModel.PrandltTwall        = 0.5e0;
-  turbModel.PrandltTsgs         = 0.5e0;
+  turbModel.PrandltTwall        = 0.85e0;
+  turbModel.PrandltTsgs         = 0.85e0;
 /*....................................................................*/
 
 /*...*/
@@ -171,11 +171,11 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-  eMomentum.fRes             = true;
-  eMomentum.fRhieChowInt     = false;
-  eMomentum.fAbsultePressure = false;
-  eMomentum.fViscosity       = true;
-  eMomentum.fDiv             = true;
+  ModelMomentum.fRes             = true;
+  ModelMomentum.fRhieChowInt     = false;
+  ModelMomentum.iCodBuoyant      = BUOYANT_RHOREF;
+  ModelMomentum.fViscosity       = true;
+  ModelMomentum.fDiv             = true;
 /*...................................................................*/
 
 /*...*/
@@ -414,14 +414,6 @@ int main(int argc,char**argv){
       mpiWait();
 /*...................................................................*/
  
-/*...*/
-      if(!mpiVar.myId){
-        fprintf(fileLogExc,"%s\n",DIF);
-        usoMemoria(&m,"GB");
-        fprintf(fileLogExc,"%s\n",DIF);
-      }
-/*...................................................................*/
-
 /*... calcula a vizinhaca do elementos*/
       if(!mpiVar.myId){
         tm.adjcency = getTimeC();
@@ -566,10 +558,11 @@ int main(int argc,char**argv){
 /*....................................................................*/
 
 /*... gera a pressao inicial hidrostatica*/
-/*      hPres(mesh->elm.pressure0   , mesh->elm.pressure
-            , mesh->elm.densityFluid, mesh->elm.geom.cc
-            , gravity               , mesh->xRef
-            , mesh->numel           , mesh->ndm );    */
+        if(ModelMomentum.iCodBuoyant == BUOYANT_HYDROSTATIC)
+          hPres(mesh->elm.pressure0   , mesh->elm.pressure
+              , mesh->elm.densityFluid, mesh->elm.geom.cc
+              , gravity               , mesh->xRef
+              , mesh->numel           , mesh->ndm );      
 /*...................................................................*/
       }
 /*...................................................................*/  
@@ -639,14 +632,6 @@ int main(int argc,char**argv){
       if(!mpiVar.myId ){
         fprintf(fileLogExc,"Malha reordenada.\n");
         fprintf(fileLogExc,"%s\n\n",DIF);
-      }
-/*...................................................................*/
-
-/*...*/
-      if(!mpiVar.myId ){
-        strcpy(str,"GB");
-        memoriaTotal(str);
-        usoMemoria(&m,str);
       }
 /*...................................................................*/
 
@@ -2345,6 +2330,7 @@ int main(int argc,char**argv){
         printf("%s\n",word);
         printf("%s\n",DIF);
       }
+
       mpiWait();
       tm.solvEdpFluid = getTimeC() - tm.solvEdpFluid;
 /*...*/
@@ -2380,7 +2366,7 @@ int main(int argc,char**argv){
                      , loadsVel    , loadsPres 
                      , loadsEnergy , loadsKturb
                      , eModel
-                     , eMass       , eMomentum
+                     , eMass       , ModelMomentum
                      , &turbModel  , &thDynamic   
                      , mesh0       , mesh
                      , sistEqVel   , sistEqPres
@@ -2800,7 +2786,7 @@ int main(int argc,char**argv){
         fprintf(fileLogExc,"%s\n",word);
       }
       readModel(&eModel,&turbModel
-              , &eMass ,&eMomentum
+              , &eMass ,&ModelMomentum
               , fileIn);
 /*...................................................................*/
       if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);

@@ -1265,6 +1265,7 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
         , velC[3], velV[3], dFieldC[3], dFieldV[3], dFieldF[3], cv, cvc;       
 /*...*/
   DOUBLE phi,psi,lambda;
+  DOUBLE tW,tC;
 /*...*/
   DOUBLE pAdv[NPADV];
 
@@ -1526,6 +1527,34 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
                   , true         , fTemp
                   , fKelvin      , fSheat
                   , fWallModel   , wallType);  
+/*...................................................................*/
+      }
+/*...................................................................*/
+
+/*...*/
+      else {
+/*... inertial sub-layer*/     
+         if ( wallPar[0] > 11.81e0 ){
+/*... energia na forma da temperatura*/
+          if (fTemp) 
+            tW = uC;      
+/*...................................................................*/
+      
+/*... energia na forma da entalpia*/
+          else{
+            tC = specificEnthalpyForTemp(uC ,sHeatC,fSheat,fKelvin); 
+            tW = tC;
+            tW = tempForSpecificEnthalpy(tW,sHeatC,fSheat,fKelvin); 
+          }
+/*...................................................................*/
+      
+/*...*/  
+          tmp   = thermCoefC*lFarea /dcca[nf];
+          if(!fTemp) tmp /=  sHeatC;
+          sP += tmp;
+          p  += tmp*tW;      
+/*...................................................................*/
+        }
 /*...................................................................*/
       }
 /*...................................................................*/

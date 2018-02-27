@@ -563,7 +563,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 * advVel    -> tecnica da discretizacao do termo advecao            *
 * diffVel   -> tecnica da discretizacao do termo difusivo           *
 * tModel    -> modelo de turbulencia                                *
-* eMomentum -> termos/modelos da equacao de momento linear          *
+* ModelMomentum -> termos/modelos da equacao de momento linear          *
 * typeSimple-> tipo do metodo simple                                *
 * lnFace    -> numero de faces da celula central e seus vizinhos    *
 * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
@@ -637,7 +637,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 *********************************************************************/
 void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres 
             , Advection advVel           , Diffusion diffVel 
-            , Turbulence tModel          , MomentumModel eMomentum
+            , Turbulence tModel          , MomentumModel ModelMomentum
             , short const typeSimple      
             , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop 
             , INT *RESTRICT lViz         , INT *RESTRICT lId 
@@ -707,9 +707,8 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
   fWallModel       = tModel.fWall;
   wallType         = tModel.wallType;
   fTurb            = tModel.fTurb;
-  fRhieInt         = eMomentum.fRhieChowInt;  
-  fRes             = eMomentum.fRes;
-  fAbsultePressure = eMomentum.fAbsultePressure;
+  fRhieInt         = ModelMomentum.fRhieChowInt;  
+  fRes             = ModelMomentum.fRes;
   g[0]             = gravity[0];
   g[1]             = gravity[1];
 /*...................................................................*/
@@ -1052,16 +1051,16 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
 /*...................................................................*/
 
 /*...*/
-  if(fAbsultePressure){
-    tmp   = densityC*area[idCell];
-    p[0] += tmp*g[0];
-    p[1] += tmp*g[1];
-  }
-  else {
-    tmp   = (densityC-densityRef)*area[idCell];  
-    p[0] += tmp*g[0];
-    p[1] += tmp*g[1];
-  }
+//if(fAbsultePressure){
+//  tmp   = densityC*area[idCell];
+//  p[0] += tmp*g[0];
+//  p[1] += tmp*g[1];
+//}
+//else {
+//  tmp   = (densityC-densityRef)*area[idCell];  
+//  p[0] += tmp*g[0];
+//  p[1] += tmp*g[1];
+//}
 /*...................................................................*/
 
 /*... distretizacao temporal*/
@@ -2305,7 +2304,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * advVel    -> tecnica da discretizacao do termo advecao            *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
  * tModel    -> modelo de turbulencia                                *
- * eMomentum -> termos/modelos da equacao de momento linear          *
+ * ModelMomentum -> termos/modelos da equacao de momento linear          *
  * typeSimple-> tipo do metodo simple                                *
  * lnFace    -> numero de faces da celula central e seus vizinhos    *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
@@ -2381,7 +2380,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  *********************************************************************/
 void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres 
             , Advection advVel            , Diffusion diffVel
-            , Turbulence tModel           , MomentumModel eMomentum
+            , Turbulence tModel           , MomentumModel ModelMomentum
             , short const typeSimple 
             , short *RESTRICT lGeomType   , DOUBLE *RESTRICT prop
             , INT *RESTRICT lViz          , INT *RESTRICT lId  
@@ -2405,11 +2404,13 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
             , const short ndm             , INT const nel)
 { 
 /*...*/
-  short iCodAdv1, iCodAdv2, iCodDif,wallType, idCell, nf
-      , nCarg, typeTime;
-/*...*/
-  bool fTime, fAbsultePressure, fRes, fTurb, fRhieInt, fWallModel, fStruc;
+  bool fTime, fRes, fTurb, fRhieInt, fWallModel, fStruc;
   bool fDiv,fViscosity;
+
+/*...*/
+  short iCodAdv1, iCodAdv2, iCodDif,wallType, idCell, nf
+      , nCarg, typeTime, iCodBuoyant;
+
   INT vizNel;
 /*...*/
   DOUBLE viscosityC, viscosityV, viscosity, 
@@ -2434,6 +2435,10 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   DOUBLE wfn, velC[3], velV[3], g[3], gf[3][3], gfKsi[3],
          gradVelC[3][3], gradVelV[3][3], gradVelComp[3][3],
          stressRc[6],stressRv[6],s[6],xx[4],ts;
+  
+/*... */
+  DOUBLE gradRho[3];
+
 /*...*/
   DOUBLE uPlus,yPlus,viscosityWall;
 /*...*/
@@ -2460,11 +2465,11 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   wallType         = tModel.wallType;
   fTurb            = tModel.fTurb;
 
-  fRhieInt         = eMomentum.fRhieChowInt;  
-  fRes             = eMomentum.fRes;
-  fAbsultePressure = eMomentum.fAbsultePressure;
-  fViscosity       = eMomentum.fViscosity;
-  fDiv             = eMomentum.fDiv;
+  fRhieInt         = ModelMomentum.fRhieChowInt;  
+  fRes             = ModelMomentum.fRes;
+  fViscosity       = ModelMomentum.fViscosity;
+  fDiv             = ModelMomentum.fDiv;
+  iCodBuoyant      = ModelMomentum.iCodBuoyant;
   g[0]             = gravity[0];
   g[1]             = gravity[1];
   g[2]             = gravity[2];
@@ -2533,10 +2538,11 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   wf[0] = wf[1] = wf[2]= 0.e0;
 /*...................................................................*/
 
-  sP     = 0.0e0;
-  p[0]   = p[1] = p[2] = 0.0e0;
-  pf[0]  = pf[1] = pf[2] = 0.0e0;
-  sPc[0] = sPc[1] = sPc[2] = 0.0e0;
+  sP        = 0.0e0;
+  p[0]      = p[1]      = p[2]      = 0.0e0;
+  pf[0]     = pf[1]     = pf[2]     = 0.0e0;
+  sPc[0]    = sPc[1]    = sPc[2]    = 0.0e0;
+  gradRho[0] = gradRho[1] = gradRho[2] = 0.0e0;
   for(nf=0;nf<nFace;nf++){
 /*...*/
     vizNel     = lViz[nf];
@@ -2798,6 +2804,13 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       pf[2]+= tmp*lNormal[2];
 /*...................................................................*/
 
+/*... gradiente de densidade*/
+      tmp         = density*lFarea;
+      gradRho[0] += tmp*lNormal[0];
+      gradRho[1] += tmp*lNormal[1];
+      gradRho[2] += tmp*lNormal[2];
+/*...................................................................*/
+
 /*... termos viscosos explicitos*/
       aP    = viscosity*lFarea;
       if(fViscosity){
@@ -2813,6 +2826,8 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                    + gradVelV[1][2]*lNormal[1]  
                    + gradVelV[2][2]*lNormal[2]);
       }
+/*...................................................................*/
+
 /*... divergente*/
       if(fDiv){
         tmp = D2DIV3*aP*(gradVelV[0][0] 
@@ -2874,6 +2889,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                    + gradVelC[1][2]*lNormal[1]
                    + gradVelC[2][2]*lNormal[2]);
       }
+/*...................................................................*/
   
 /*... divergente*/
       if(fDiv){
@@ -2923,6 +2939,14 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       pf[1] += tmp*lNormal[1];
       pf[2] += tmp*lNormal[2];
 /*...................................................................*/
+
+/*... gradiente de densidade*/
+      tmp         = densityC*lFarea;
+      gradRho[0] += tmp*lNormal[0];
+      gradRho[1] += tmp*lNormal[1];
+      gradRho[2] += tmp*lNormal[2];
+/*...................................................................*/
+
 
 /*... termos viscosos explicitos*/
       if(fStruc){
@@ -3026,13 +3050,22 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*...*/
-  if(fAbsultePressure){
+  if(iCodBuoyant == BUOYANT_HYDROSTATIC){
     tmp   = densityC*volume[idCell];
     p[0] += tmp*g[0];
     p[1] += tmp*g[1];
     p[2] += tmp*g[2];
   }
-  else {
+  else if (iCodBuoyant == BUOYANT_PRGH) {
+    ccV[0] = MAT2D(idCell,0,cc,3);
+    ccV[1] = MAT2D(idCell,1,cc,3);
+    ccV[2] = MAT2D(idCell,2,cc,3);
+    tmp   = ccV[0]*g[0] + ccV[1]*g[1] + ccV[2]*g[2];
+    p[0] -= tmp*gradRho[0];
+    p[1] -= tmp*gradRho[1];
+    p[2] -= tmp*gradRho[2]; 
+  }
+  else if (iCodBuoyant == BUOYANT_RHOREF){
     tmp   = (densityC-densityRef)*volume[idCell];  
     p[0] += tmp*g[0];
     p[1] += tmp*g[1];
@@ -3109,7 +3142,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*...*/
    if(typeSimple == SIMPLEC){ 
-     MAT2D(idCell,0,dField,3) = volume[idCell] / (lA[idCell] - lAn);
+     MAT2D(idCell,0,dField,3) = volume[idCell] / (lA[idCell]     - lAn);
      MAT2D(idCell,1,dField,3) = volume[idCell] / (lA[idCell + 1] - lAn);
      MAT2D(idCell,2,dField,3) = volume[idCell] / (lA[idCell + 2] - lAn);   
   }

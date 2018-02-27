@@ -10,6 +10,7 @@
  *-------------------------------------------------------------------*
  * t - temperatura em kelvin                                         *
  * presRef - pressao de referencia ou termomecanica                  *
+ * p       - pressao ( pressao do modelo)                            *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -17,8 +18,8 @@
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE airDensity(DOUBLE const t,DOUBLE const presRef
-                 ,bool const fKelvin) {
+DOUBLE airDensity(DOUBLE const t      ,DOUBLE const p
+                 ,DOUBLE const presRef,bool const fKelvin) {
   short i,n=den.nPol;
   DOUBLE a[10],tc,y,d;  
 
@@ -49,6 +50,13 @@ DOUBLE airDensity(DOUBLE const t,DOUBLE const presRef
  
 /*...*/
     case IDEALGAS:
+      y = (MMOLARAR*p)/(IDEALGASR*tc);
+      d = 1.e0; 
+      break;
+/*.....................................................................*/
+
+/*...*/
+    case INCIDEALGAS:
       y = (MMOLARAR*presRef)/(IDEALGASR*tc);
       d = 1.e0; 
       break;
@@ -624,7 +632,7 @@ DOUBLE waterThermalConductvity(DOUBLE const t) {
 
 /*********************************************************************
  * Data de criacao    : 27/08/2017                                   *
- * Data de modificaco : 18/09/2017                                   *
+ * Data de modificaco : 19/02/2018                                   *
  *-------------------------------------------------------------------*
  * UPDATEDENSITY:                                                    *
  *-------------------------------------------------------------------*
@@ -637,9 +645,10 @@ DOUBLE waterThermalConductvity(DOUBLE const t) {
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateDensity(DOUBLE *RESTRICT temp , DOUBLE *RESTRICT density
-                 , DOUBLE const alpha    , bool const iKelvin    
-                 , INT const nEl         , char  const iCod)
+void updateDensity(DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT pressure
+                 , DOUBLE *RESTRICT density                 
+                 , DOUBLE const alpha       , bool const iKelvin    
+                 , INT const nEl            , char  const iCod)
 
 {
   short nD = DENSITY_LEVEL;
@@ -650,7 +659,7 @@ void updateDensity(DOUBLE *RESTRICT temp , DOUBLE *RESTRICT density
     case PROP_UPDATE_SIMPLE_LOOP:
       for(i=0;i<nEl;i++){
         den0 =  MAT2D(i,2 ,density ,nD);         
-        den = airDensity(temp[i], thDynamic.pTh[2], iKelvin);
+        den = airDensity(temp[i],pressure[i],thDynamic.pTh[2], iKelvin);
 /*...*/           
         MAT2D(i,TIME_N ,density ,nD) =  alpha*den + (1.e0-alpha)*den0;
       }
@@ -774,7 +783,7 @@ void updateDynamicViscosity(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT visc
 
 /********************************************************************* 
  * Data de criacao    : 27/08/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 19/02/2018                                   *
  *-------------------------------------------------------------------*
  * INITPROPTEMP: inicializao de propriedades com variacao temporal   *
  * dependentes da temperatura                                        *
@@ -783,6 +792,7 @@ void updateDynamicViscosity(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT visc
  *-------------------------------------------------------------------* 
  * prop    -> nao definido                                           * 
  * t       -> temperatura                                            *
+ * pressure-> pressao                                                *
  * propMat -> propriedade de referencia por material                 * 
  * mat     -> material por celula                                    * 
  * np      -> numero niveis de tempos                                * 
@@ -798,7 +808,8 @@ void updateDynamicViscosity(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT visc
  *-------------------------------------------------------------------* 
   *********************************************************************/
 void initPropTemp(DOUBLE *RESTRICT prop   ,DOUBLE *RESTRICT t 
-                 ,DOUBLE *RESTRICT propMat,short *RESTRICT mat
+                 ,DOUBLE *RESTRICT pressure,DOUBLE *RESTRICT propMat
+                 ,short *RESTRICT mat
                  ,short const np          ,INT    const nCell 
                  ,bool const iKelvin      ,short const iProp)
 {    
@@ -813,7 +824,7 @@ void initPropTemp(DOUBLE *RESTRICT prop   ,DOUBLE *RESTRICT t
 /*...*/
     if( iProp == DENSITY )
       MAT2D(lMat, iProp, propMat, MAXPROP) 
-        = airDensity(t[i], thDynamic.pTh[2], iKelvin);
+        = airDensity(t[i], pressure[i], thDynamic.pTh[2], iKelvin);
 /*...................................................................*/
 
 /*...*/
@@ -924,7 +935,7 @@ void initDviscosityPol(char *s) {
 
 /********************************************************************* 
  * Data de criacao    : 05/11/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 20/02/2018                                   *
  *-------------------------------------------------------------------*
  * INITDENSITY: inicializao a estrutura para o calculo da            *
  * densidade via polinomio                                           *
@@ -954,8 +965,12 @@ void initDensityPol(char *s) {
     den.a[4] = 1.89199376092919E-10;
     den.a[5] =-6.64860318865526E-14;
   }
+/*... ideal gas (p)*/
   else if(!strcmp(s,"idealgas"))
     den.type = IDEALGAS;
+/*... ideal gas incompressivel (PRef)*/
+  else if(!strcmp(s,"incidealgas"))
+    den.type = INCIDEALGAS;
   else {
     ERRO_GERAL(__FILE__,__func__,__LINE__,s);
   }

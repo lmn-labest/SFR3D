@@ -1344,7 +1344,7 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
  * loadsPres -> definicoes de cargas de pressao                      * 
  * advVel    -> tecnica da discretizacao do termo advecao            *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
- * eMomentum -> termos/modelos da equacao de momento linear          *
+ * ModelMomentum -> termos/modelos da equacao de momento linear      *
  * typeSimple-> tipo do metodo simple                                *
  * el        -> conetividade dos celulas                             * 
  * nelcon    -> vizinhos dos elementos                               * 
@@ -1425,7 +1425,7 @@ void systFormSimpleVel(Loads *loadsVel   ,Loads *loadsPres
  *********************************************************************/
 void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres    
     , Advection advVel                     , Diffusion diffVel
-    , Turbulence tModel                    , MomentumModel eMomentum
+    , Turbulence tModel                    , MomentumModel ModelMomentum
     , short typeSimple     
     , INT    *RESTRICT el                  , INT    *RESTRICT nelcon 
     , short  *RESTRICT nen                 , short  *RESTRICT nFace
@@ -1500,7 +1500,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
          ,nelcon,id,loadsVel,loadsPres,advVel,diffVel,typeSimple\
          ,ddt,underU,sPressure,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd\
          ,nAdR,storage,forces,matrix,unsym,pres,dField,dViscosity,eddyViscosity\
-         ,stressR,tModel,eMomentum,wallPar) 
+         ,stressR,tModel,ModelMomentum,wallPar) 
 /*... loop nas celulas*/
     for(nel=0;nel<numel;nel++){
 /*...*/
@@ -1630,7 +1630,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
 /*... chamando a biblioteca de celulas*/
         cellLibSimpleVelLm(loadsVel , loadsPres    
                     , advVel        , diffVel  
-                    , tModel        , eMomentum
+                    , tModel        , ModelMomentum
                     , typeSimple 
                     , lGeomType     , lProp 
                     , lViz          , lId            
@@ -1819,7 +1819,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
 /*... chamando a biblioteca de celulas*/
         cellLibSimpleVelLm(loadsVel , loadsPres    
                     , advVel        , diffVel  
-                    , tModel        , eMomentum
+                    , tModel        , ModelMomentum
                     , typeSimple 
                     , lGeomType     , lProp 
                     , lViz          , lId            
@@ -6624,27 +6624,52 @@ DOUBLE totalMass(DOUBLE *RESTRICT density  , DOUBLE *RESTRICT volume
 }
 /*********************************************************************/
 
-
-void hPres(DOUBLE *RESTRICT pres0, DOUBLE *RESTRICT pres
-         , DOUBLE *RESTRICT dFluid, DOUBLE *RESTRICT cc
+/*********************************************************************
+ * Data de criacao    : 19/02/2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * hPres : pressao com parcela hidroestatica                         *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * pres0   -> pressao do tempo (n-1)                                 *
+ * pres    -> pressao do tempo (n)                                   *
+ * dFluid  -> densidade do Fluid                                     *
+ * gravity -> vetor campo de gravidade                               *
+ * xRef    -> pontos de referencia                                   *
+ * nEl     -> numero de elementos                                    *
+ * ndm     -> numero de dimensoes                                    *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * pres0   -> p= p - rho*g*h                                         *
+ * pres    -> p= p - rho*g*h                                         *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+*********************************************************************/
+void hPres(DOUBLE *RESTRICT pres0  , DOUBLE *RESTRICT pres
+         , DOUBLE *RESTRICT dFluid , DOUBLE *RESTRICT cc
          , DOUBLE *RESTRICT gravity, DOUBLE *RESTRICT xRef
          , INT const nEl           , short const ndm) 
 {
-  short j;
+  short j,nD=DENSITY_LEVEL;
   INT i;
-  DOUBLE xc[3],tmp;
+  DOUBLE xc[3],tmp,dm;
   
-  xRef[0] =   0.0e0;
-  xRef[1] = -0.5e0;
+  xRef[0] =  0.0e0;
+  xRef[1] =  0.0e0;
+  xRef[2] =  0.0e0;
 
   for(i=0; i < nEl; i++){
     
     for(tmp = 0.e0, j=0; j < ndm; j++){
       xc[j] = MAT2D(i,j,cc,ndm);
-      tmp  += xc[j]*gravity[j];
+      tmp  += (xc[j]-xRef[j])*gravity[j];
     }
-    pres0[i] = dFluid[i]*tmp;
-    pres[i]  = pres0[i];
+    dm       = MAT2D(i,0,dFluid,nD);
+    pres0[i] += dm*tmp;
+    pres[i]   = pres0[i];
   }  
 }
 /*********************************************************************/

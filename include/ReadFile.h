@@ -52,7 +52,7 @@
   void readPropVar(PropVar *p,FILE *file);
   void readGravity(DOUBLE *gravity,FILE *file);
   void readModel(EnergyModel *e    , Turbulence *t
-               , MassEqModel *eMass, MomentumModel *eMomentum
+               , MassEqModel *eMass, MomentumModel *ModelMomentum
                , FILE *file);
   void readMean(Memoria *m, FILE *fileIn
               , Mesh *mesh, Mean *media);

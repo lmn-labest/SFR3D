@@ -82,7 +82,8 @@
 
 /*...*/
   typedef struct{    
-    bool fRes,fRhieChowInt,fAbsultePressure,fViscosity,fDiv; 
+    bool fRes,fRhieChowInt,fViscosity,fDiv; 
+    short iCodBuoyant;
   }MomentumModel;
 /*...................................................................*/
 
@@ -380,6 +381,7 @@
     DOUBLE mass[3]; /* mass inicial do sistema 
                        massa atual calculo incremental
                        massa atual calculo direto*/
+    DOUBLE xRef[3]; /*... ponto de referencia*/
 /*...*/    
     Elmt elm;     
     Node node;

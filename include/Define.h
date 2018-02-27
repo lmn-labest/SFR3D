@@ -130,6 +130,12 @@
   #define OVERRELAXED 4
 /*...................................................................*/
 
+/*... BUOYANT*/
+  #define BUOYANT_HYDROSTATIC 1
+  #define BUOYANT_PRGH        2
+  #define BUOYANT_RHOREF      3      
+/*...................................................................*/
+
 /*... tipos de CC (faces)*/
   #define DIRICHLETBC      1
   #define NEUMANNBC        2  /*para caso de fluxo nao nulo*/

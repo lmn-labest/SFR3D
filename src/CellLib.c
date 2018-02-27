@@ -545,7 +545,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
  * loadsPres -> definicoes de cargas de pressao                      *
  * advVel    -> tecnica da discretizacao do termo advecao            *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
- * eMomentum -> termos/modelos da equacao de momento linear          *
+ * ModelMomentum -> termos/modelos da equacao de momento linear          *
  * typeSimple-> tipo do metodo simple                                *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
  * lprop     -> propriedade fisicas das celulas                      *
@@ -600,7 +600,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
  *********************************************************************/
 void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
            , Advection  advVel          , Diffusion diffVel    
-           , Turbulence tModel          , MomentumModel eMomentum
+           , Turbulence tModel          , MomentumModel ModelMomentum
            , short const typeSimple 
            , short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop 
            , INT   *RESTRICT lViz       , INT *RESTRICT lId   
@@ -631,7 +631,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
     if(ndm == 2){
       cellSimpleVel2DLm(lVel      , lPres    
                      , advVel     , diffVel 
-                     , tModel     , eMomentum
+                     , tModel     , ModelMomentum
                      , typeSimple   
                      , lGeomType  , lprop 
                      , lViz       , lId 
@@ -659,7 +659,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
     else if(ndm == 3){
      cellSimpleVel3DLm(lVel      , lPres    
                      , advVel     , diffVel 
-                     , tModel     , eMomentum
+                     , tModel     , ModelMomentum
                      , typeSimple   
                      , lGeomType  , lprop 
                      , lViz       , lId 

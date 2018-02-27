@@ -19,6 +19,8 @@
   #define SUTHERLAND 2
 /*... densidade*/
   #define IDEALGAS   2
+/*... densidade*/
+  #define INCIDEALGAS   3
 /*...................................................................*/
 
 /*...*/
@@ -40,8 +42,8 @@
 
 /*...*/
   #define TREF      288.15e+00    /*Kelvin         */
-  #define PREREF    1.01325e-01   /*MPa            */
-  #define IDEALGASR 8.3144598e-06 /*MJ/(mol.kelvin)*/
+  #define PREREF    1.01325e+05   /*Pa             */
+  #define IDEALGASR 8.3144598e+00 /*J/(mol.kelvin) */
   #define MMOLARAR  2.896e-2      /*kg/mol         */
 /*...................................................................*/
 
@@ -67,7 +69,7 @@
 
 /*... gas ideal incompressivel(Ar)*/
   DOUBLE airDensity(DOUBLE const t, DOUBLE const presRef
-                   ,bool const fKelvin);
+                   ,DOUBLE const p, bool const fKelvin);
   DOUBLE airSpecifiHeat(DOUBLE const t,bool const fKelvin);
   DOUBLE airDynamicViscosity(DOUBLE const t,bool const fKelvin);
   DOUBLE airThermalConductvity(DOUBLE const t,bool const fKelvin);
@@ -78,7 +80,8 @@
 /*...................................................................*/
 
 /*...*/
-  void updateDensity(DOUBLE *RESTRICT temp     ,DOUBLE *RESTRICT density
+  void updateDensity(DOUBLE *RESTRICT temp   , DOUBLE *RESTRICT pressure
+                    ,DOUBLE *RESTRICT density                 
                     ,DOUBLE const alpha        ,bool const iKelvin 
                     ,INT const nEl             ,char  const iCod);
   void updateSpecificHeat(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT sHeat
@@ -91,10 +94,11 @@
                               ,bool const iKelvin       
                               ,INT const nEl);
   
- void initPropTemp(DOUBLE *RESTRICT prop   ,DOUBLE *RESTRICT t 
-                  ,DOUBLE *RESTRICT propMat,short *RESTRICT mat
-                  ,short const np          ,INT const nCell 
-                  ,bool const iKelvin      ,short const iProp);
+ void initPropTemp(DOUBLE *RESTRICT prop    ,DOUBLE *RESTRICT t 
+                  ,DOUBLE *RESTRICT pressure,DOUBLE *RESTRICT propMat
+                  ,short *RESTRICT mat
+                  ,short const np           ,INT const nCell 
+                  ,bool const iKelvin       ,short const iProp);
 /*...................................................................*/
 
 /*...*/
