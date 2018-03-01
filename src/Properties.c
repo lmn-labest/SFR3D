@@ -964,13 +964,18 @@ void initDensityPol(char *s) {
     den.a[3] =-2.14542924896456E-07;
     den.a[4] = 1.89199376092919E-10;
     den.a[5] =-6.64860318865526E-14;
+    fprintf(fileLogExc,"%-20s: %s\n","Type",s);
   }
 /*... ideal gas (p)*/
-  else if(!strcmp(s,"idealgas"))
+  else if(!strcmp(s,"idealgas")){
     den.type = IDEALGAS;
+    fprintf(fileLogExc,"%-20s: %s\n","Type",s);
+  }
 /*... ideal gas incompressivel (PRef)*/
-  else if(!strcmp(s,"incidealgas"))
+  else if(!strcmp(s,"incidealgas")){
     den.type = INCIDEALGAS;
+    fprintf(fileLogExc,"%-20s: %s\n","Type",s);
+  }
   else {
     ERRO_GERAL(__FILE__,__func__,__LINE__,s);
   }

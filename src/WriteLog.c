@@ -141,7 +141,7 @@ void writeLog(Mesh mesh          ,Scheme sc
 
   fprintf(file,"Total              : %lf\n",t.total);
 /*...*/
-  fprintf(file,"\nMalha:\n");
+  fprintf(file,"\nMesh:\n");
   fprintf(file,"nnode              : %d\n",mesh.nnode);
   fprintf(file,"nCell              : %d\n",mesh.numel);
   fprintf(file,"volume             : %lf\n",mesh.mQuality.volume);
@@ -149,6 +149,9 @@ void writeLog(Mesh mesh          ,Scheme sc
   fprintf(file,"non-OtthMax        : %.1lf°\n",mesh.mQuality.nonOrthMax);
   fprintf(file,"skewMed            : %lf\n",mesh.mQuality.skewMed);
   fprintf(file,"skewMax            : %lf\n",mesh.mQuality.skewMax);
+  fprintf(file,"aspect ratio max   : %lf\n",mesh.mQuality.aspectRaMax);
+  fprintf(file,"aspect ratio min   : %lf\n",mesh.mQuality.aspectRaMin);
+
 
 /*...*/
   if(fSolvD1){

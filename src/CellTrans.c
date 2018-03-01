@@ -1245,7 +1245,7 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
 {
   bool fTime, fDisp, fRes, fPresWork, fTemp, fTurb, fWallModel, fKelvin;
   short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf, nCarg1
-        , nCarg2, typeTime, fSheat;
+        , nCarg2, typeTime, fSheat, iCodPolFace;
 /*...*/
   INT vizNel;
 /*...*/
@@ -1269,13 +1269,13 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
 /*...*/
   DOUBLE pAdv[NPADV];
 
-
 /*...*/
-  idCell   = nFace;
-  iCodAdv1 = advT.iCod1;
-  iCodAdv2 = advT.iCod2;
-  pAdv[0]  = advT.par[0];
-  iCodDif  = diffT.iCod;
+  idCell      = nFace;
+  iCodAdv1    = advT.iCod1;
+  iCodAdv2    = advT.iCod2;
+  pAdv[0]     = advT.par[0];
+  iCodDif     = diffT.iCod;
+  iCodPolFace = INTPOLFACELINEAR;
 /*...................................................................*/
 
 /*...*/  
@@ -1403,11 +1403,10 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
 /*...................................................................*/
 
 /*...*/
-      v[0] = lvSkew[0] + lXmcc[0];
-      v[1] = lvSkew[1] + lXmcc[1];
-      v[2] = lvSkew[2] + lXmcc[2];
-      dPviz = sqrt(v[0] * v[0] + v[1] * v[1] + v[2]*v[2]);
-      alpha = dPviz / lModKsi;
+      alpha = interpolFace(lvSkew           ,lXmcc
+                          ,volume[idCell]   ,volume[nf]
+                          ,lModKsi          ,ndm
+                          ,iCodPolFace);
       alphaMenosUm = 1.0e0 - alpha;
 /*...................................................................*/
 
@@ -1449,7 +1448,7 @@ void cellEnergy3D(Loads *loads            , Loads *lVel
                            ,lNormal      ,lKsi
                            ,lModKsi      ,dFieldF
                            ,alphaMenosUm ,alpha
-                           ,ndm);    
+                           ,ndm);          
 /*...................................................................*/
 
 /*... derivadas direcionais*/

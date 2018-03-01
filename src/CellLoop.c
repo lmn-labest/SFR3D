@@ -1,5 +1,8 @@
 #include<CellLoop.h>
 /********************************************************************* 
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 28/02/2018                                   * 
+ *-------------------------------------------------------------------* 
  * PGEOMFORM: calculo da propriedades geometricas das celulas        * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -6047,19 +6050,23 @@ void rcLeastSquare(DOUBLE *RESTRICT gKsi    ,DOUBLE *RESTRICT gmKsi
 void meshQuality(MeshQuality *mq
                 ,short  *RESTRICT nFace   ,DOUBLE *RESTRICT volume
                 ,DOUBLE *RESTRICT gKsi    ,DOUBLE *RESTRICT gNormal
-                ,DOUBLE *RESTRICT gmvSkew
-                ,short const maxViz      ,short const ndm
+                ,DOUBLE *RESTRICT gmvSkew ,DOUBLE *RESTRICT gDcca 
+                ,short const maxViz       ,short const ndm
                 ,INT const numel)        
 {
   INT nEl,k=0;
   DOUBLE volumeTotal = 0.e0,nk,nkMin=1.e0,nkMed=0.e0;
   DOUBLE skewMax=0.0e0, skewMed=0.0e0,teta;
+  DOUBLE lenth,lMax,lMin,aspectRaMax=0.0,aspectRaMin=1.e+32;
   short nf,j;
 
   for(nEl=0;nEl<numel;nEl++){
 /*... Volume total da malha*/
     volumeTotal += volume[nEl];
-/*... nao-ortoganilidade*/
+/*...*/
+    lMax=0.0;
+    lMin=1.0e+32;
+/*...*/
     for(nf=0;nf<nFace[nEl];nf++){
       nk = 0.e0;
 /*... k * normal*/
@@ -6067,34 +6074,50 @@ void meshQuality(MeshQuality *mq
         nk += MAT3D(nEl,nf,j,gKsi   ,maxViz,ndm)
              *MAT3D(nEl,nf,j,gNormal,maxViz,ndm);
 /*...................................................................*/ 
-      
+  
+/*... nao-ortoganilidade*/   
       nkMed += nk;
       nkMin = min(nkMin,nk); 
       k++;   
       nk       = MAT2D(nEl,nf,gmvSkew,maxViz);
       skewMed += nk;
       skewMax  = max(skewMax,nk);
+/*...................................................................*/
+
+/*... aspcto ratio*/
+      lenth = MAT2D(nEl,nf,gDcca,maxViz);
+      lMax  = max(lMax,lenth);
+      lMin  = min(lMin,lenth);
+/*...................................................................*/
     }
 /*...................................................................*/ 
 
-/*... sKew*/  
+/*... aspectRa*/    
+    aspectRaMax = max(aspectRaMax,lMax/lMin);
+    aspectRaMin = min( aspectRaMin,lMax/lMin);
+/*...................................................................*/
+
   }
+/*...................................................................*/ 
 
   skewMed    /= k;
   nkMed      /= k;
 
-  teta           = acos(nkMed);
-  teta           = radToDeg(teta);
-  mq->nonOrthMed = teta; 
+  teta            = acos(nkMed);
+  teta            = radToDeg(teta);
+  mq->nonOrthMed  = teta; 
 
-  teta           = acos(nkMin);
-  teta           = radToDeg(teta);
-  mq->nonOrthMax = teta; 
+  teta            = acos(nkMin);
+  teta            = radToDeg(teta);
+  mq->nonOrthMax  = teta; 
   
-  mq->volume     = volumeTotal; 
-  mq->skewMed    = skewMed; 
-  mq->skewMax    = skewMax; 
+  mq->volume      = volumeTotal; 
+  mq->skewMed     = skewMed; 
+  mq->skewMax     = skewMax; 
 
+  mq->aspectRaMax =  aspectRaMax;
+  mq->aspectRaMin =  aspectRaMin;
+ 
 }
 /*********************************************************************/
 

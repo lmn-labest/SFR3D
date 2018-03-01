@@ -2,7 +2,7 @@
   #define _RANDOM_H_
 /*...*/
   #include<stdlib.h>
-  #include<Time.h>
+  #include<time.h>
 /*...................................................................*/
 
 /*...*/ 

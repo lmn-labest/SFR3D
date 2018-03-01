@@ -284,8 +284,9 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/  
-  sc.diffVel.iCod  = OVERRELAXED;
-  sc.diffPres.iCod = OVERRELAXED;
+  sc.diffVel.iCod    = OVERRELAXED;
+  sc.diffPres.iCod   = OVERRELAXED;
+//  sc.diffPres.iCod   = ORTHOGONAL;
   sc.diffEnergy.iCod = OVERRELAXED;
   sc.diffKturb.iCod  = OVERRELAXED;
 /*...................................................................*/
@@ -610,7 +611,7 @@ int main(int argc,char**argv){
       meshQuality(&mesh->mQuality
                  ,mesh->elm.adj.nViz     ,mesh->elm.geom.volume
                  ,mesh->elm.geom.ksi     ,mesh->elm.geom.normal
-                 ,mesh->elm.geom.mvSkew 
+                 ,mesh->elm.geom.mvSkew  ,mesh->elm.geom.dcca
                  ,mesh->maxViz           ,mesh->ndm
                  ,mesh->numelNov);
 /*... qualidade da malha global*/

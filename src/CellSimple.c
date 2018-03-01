@@ -2304,7 +2304,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * advVel    -> tecnica da discretizacao do termo advecao            *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
  * tModel    -> modelo de turbulencia                                *
- * ModelMomentum -> termos/modelos da equacao de momento linear          *
+ * ModelMomentum -> termos/modelos da equacao de momento linear      *
  * typeSimple-> tipo do metodo simple                                *
  * lnFace    -> numero de faces da celula central e seus vizinhos    *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
@@ -2409,7 +2409,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 
 /*...*/
   short iCodAdv1, iCodAdv2, iCodDif,wallType, idCell, nf
-      , nCarg, typeTime, iCodBuoyant;
+      , nCarg, typeTime, iCodBuoyant, iCodPolFace;
 
   INT vizNel;
 /*...*/
@@ -2445,11 +2445,12 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   DOUBLE pAdv[NPADV];
 
 /*...*/
-  idCell   = nFace;
-  iCodAdv1 = advVel.iCod1;
-  iCodAdv2 = advVel.iCod2;
-  pAdv[0]  = advVel.par[0];
-  iCodDif  = diffVel.iCod;
+  idCell      = nFace;
+  iCodAdv1    = advVel.iCod1;
+  iCodAdv2    = advVel.iCod2;
+  pAdv[0]     = advVel.par[0];
+  iCodDif     = diffVel.iCod;
+  iCodPolFace = INTPOLFACELINEAR;
 /*...................................................................*/
 
 /*...*/
@@ -2632,12 +2633,11 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*...*/
-      v[0]         = lvSkew[0] + MAT2D(nf,0,xmcc,ndm);
-      v[1]         = lvSkew[1] + MAT2D(nf,1,xmcc,ndm);
-      v[2]         = lvSkew[2] + MAT2D(nf,2,xmcc,ndm);
-      dPviz        = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-      alpha        = dPviz/lModKsi;
-      alphaMenosUm = 1.0e0 - alpha; 
+      alpha = interpolFace(lvSkew           ,lXmcc
+                          ,volume[idCell]   ,volume[nf]
+                          ,lModKsi          ,ndm
+                          ,iCodPolFace);
+      alphaMenosUm = 1.0e0 - alpha;
 /*...................................................................*/
 
 /*... media harmonica*/
@@ -2907,7 +2907,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       s[1] = dFieldC[1]*lFarea*lNormal[1];
       s[2] = dFieldC[2]*lFarea*lNormal[2];
 /*...*/
-      difusionSchemeAnisotropic(s, lKsi, e, t, ndm, iCodDif);
+//    difusionSchemeAnisotropic(s, lKsi, e, t, ndm, iCodDif);
 /*...................................................................*/
 
 /*...*/
@@ -2923,7 +2923,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                       , t               , lNormal
                       , densityC        , velC              
                       , lFarea          , dcca[nf]
-                      , &lPres[nCarg]    , ndm
+                      , &lPres[nCarg]   , ndm
                       , false); 
       } 
 /*...................................................................*/
@@ -3066,7 +3066,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
     p[2] -= tmp*gradRho[2]; 
   }
   else if (iCodBuoyant == BUOYANT_RHOREF){
-    tmp   = (densityC-densityRef)*volume[idCell];  
+    tmp   = (densityC-densityRef)*volume[idCell];
     p[0] += tmp*g[0];
     p[1] += tmp*g[1];
     p[2] += tmp*g[2];

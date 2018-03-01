@@ -1646,7 +1646,7 @@ void cellGeom2D(DOUBLE *RESTRICT lx       ,short *RESTRICT lnFace
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 28/02/2018                                   * 
  *-------------------------------------------------------------------* 
  * CELLGEOM3D : calculo geometrico de propriedade de celula 3D       * 
  *-------------------------------------------------------------------* 
@@ -1733,8 +1733,7 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
   if( lGeomType[cCell] == HEXACELL )
     nenFaces = 4;  
   else if( lGeomType[cCell] == TETRCELL )  
-    nenFaces = 3;  
-  
+    nenFaces = 3;    
 
 /*... calculo do centro geometrico das celulas*/    
   for(i=0;i<=maxViz;i++){
@@ -1829,7 +1828,6 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
   }
 /*...................................................................*/
 
-
 /*... ponto medio da aresta(xm) e vetor que une este ponto ao 
       centroide(mxcc) */
   if( lGeomType[cCell] == HEXACELL ){
@@ -1860,7 +1858,7 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
   }
 /*...................................................................*/  
 
-  
+/*...*/  
   else if( lGeomType[cCell] == TETRCELL ){
     for(i=0;i<lnFace[cCell];i++){
       no1 = MAT2D(i,0,sn,nenFaces);
@@ -5465,6 +5463,7 @@ void difusionSchemeAnisotropic(DOUBLE *RESTRICT s,DOUBLE *RESTRICT ksi
 
 /*...*/
     else if(ndm == 3) {
+
 /*...*/
       ss = s[0]*s[0] + s[1]*s[1] + s[2]*s[2];
 /*...................................................................*/
@@ -5473,9 +5472,6 @@ void difusionSchemeAnisotropic(DOUBLE *RESTRICT s,DOUBLE *RESTRICT ksi
       nk = s[0]*ksi[0] + s[1]*ksi[1] + s[2]*ksi[2]; 
 /*...................................................................*/
  
-      if( ss <= SZERO)
-        nk = 1.0;
-    
 /*... vetor E*/
       tmp = ss / nk;
       e[0] = tmp*ksi[0];
@@ -6294,5 +6290,75 @@ DOUBLE qCriterion(DOUBLE *RESTRICT gradVel, short const ndm) {
   }
 
   return 0.25*q; 
+}
+/*********************************************************************/  
+
+/**********************************************************************
+ * Data de criacao    : 28/02/2018                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *------------------------------------------------------------------- * 
+ * interpolFace : interpolacao linear de valores na face              *  
+ * ------------------------------------------------------------------ *
+ * parametros de entrada:                                             * 
+ * ------------------------------------------------------------------ *
+ * vSkew  -> vetor entre o ponto medio a intersecao que une os        *
+ *            centrois compartilhado nessa face da celula central     *
+ * xmcc      -> vetores que unem o centroide aos pontos medios das    *
+ *            faces da celula central                                 * 
+ * volP    -> volume da celula central                                *
+ * volV    -> volume da celula vizinha                                *
+ * mKsi    -> modulo do vetor ksi ( vetor que une os dois centroiodes)*
+ * ndm     -> dimensao                                                * 
+ * iCod    -> 0 LINEAR                                                *
+ *            1 por volume                                            *
+ *            2 media                                                 *
+ * ------------------------------------------------------------------ *
+ * parametros de saida  :                                             * 
+ * ------------------------------------------------------------------ *
+ *                                                                    *
+ * ------------------------------------------------------------------ *
+ * OBS:                                                               *
+ *------------------------------------------------------------------- *
+ **********************************************************************/
+DOUBLE interpolFace(DOUBLE *RESTRICT vSkew, DOUBLE *RESTRICT xmcc
+                  , DOUBLE volP            , DOUBLE volV
+                  , DOUBLE lModKsi         , short ndm           
+                  , short iCod    ) 
+{
+
+  DOUBLE v[3],alpha,dPviz;
+
+
+  switch(iCod){
+
+/*... interpolacao usando distancias lineares*/
+    case INTPOLFACELINEAR: 
+      if (ndm == 3) {
+        v[0]         = vSkew[0] + xmcc[0];
+        v[1]         = vSkew[1] + xmcc[1];
+        v[2]         = vSkew[2] + xmcc[2];
+        dPviz        = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+        alpha        = dPviz/lModKsi;
+      }
+      break;
+/*....................................................................*/    
+
+/*... interpolacao usando os volumes das celulas*/
+    case INTPOLFACEVOL: 
+      if (ndm == 3) {
+        alpha        = volV/(volP+volV);
+      }
+      break;
+/*....................................................................*/ 
+
+/*... interpolacao usando distancias lineares*/
+    case INTPOLFACEMED: 
+      alpha        = 0.5e0;
+      break;
+/*....................................................................*/ 
+
+  }
+
+  return alpha; 
 }
 /*********************************************************************/  

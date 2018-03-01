@@ -293,10 +293,9 @@
 /*... meshQuality*/
   typedef struct{
     DOUBLE volume;
-    DOUBLE nonOrthMed;
-    DOUBLE nonOrthMax;
-    DOUBLE skewMed;
-    DOUBLE skewMax;
+    DOUBLE nonOrthMed,nonOrthMax;
+    DOUBLE skewMed,skewMax;
+    DOUBLE aspectRaMax,aspectRaMin;
   }MeshQuality;
 /*...................................................................*/
 

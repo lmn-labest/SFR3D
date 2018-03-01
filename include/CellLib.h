@@ -790,8 +790,8 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
   void meshQuality(MeshQuality *mq
                 ,short  *RESTRICT nFace   ,DOUBLE *RESTRICT volume
                 ,DOUBLE *RESTRICT gKsi    ,DOUBLE *RESTRICT gNormal
-                ,DOUBLE *RESTRICT gmvSkew
-                ,short const maxViz      ,short const ndm
+                ,DOUBLE *RESTRICT gmvSkew ,DOUBLE *RESTRICT gDcca
+                ,short const maxViz       ,short const ndm
                 ,INT const numel); 
 /*...................................................................*/
 
@@ -926,6 +926,13 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                  ,DOUBLE *RESTRICT gradUc,DOUBLE *RESTRICT gradUv
                  ,DOUBLE *RESTRICT rC    ,DOUBLE *RESTRICT rV
                  ,DOUBLE const m         ,short const ndm);
+/*...................................................................*/
+
+/*...*/
+  DOUBLE interpolFace(DOUBLE *RESTRICT lvSkew, DOUBLE *RESTRICT lXmcc
+                  , DOUBLE volP            , DOUBLE volV
+                  , DOUBLE lModKsi         , short ndm           
+                  , short iCod    ) ;
 /*...................................................................*/
 
 /*... funcoes de apoio*/ 

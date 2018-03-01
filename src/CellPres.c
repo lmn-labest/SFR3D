@@ -1257,7 +1257,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 { 
 
 /*...*/
-	short iCodDif = diffPres.iCod;
+	short iCodDif = diffPres.iCod,iCodPolFace;
 /*...*/
   short idCell = nFace;
   short nf, nCarg, typeTime;
@@ -1286,19 +1286,20 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*...................................................................*/
 
 /*...*/
-  ts        = ddt.t;
-  dt        = ddt.dt[0];  
-  dt0       = ddt.dt[1];
-  typeTime  = ddt.type;
-  fTime     = ddt.flag;
+  ts          = ddt.t;
+  dt          = ddt.dt[0];  
+  dt0         = ddt.dt[1];
+  typeTime    = ddt.type;
+  fTime       = ddt.flag;
   fLhsDensity = eMass.LhsDensity;
   fRhsDensity = eMass.RhsDensity; 
+  iCodPolFace = INTPOLFACELINEAR;
 /*...................................................................*/
 
 /*...*/
-  densityC00 = MAT2D(idCell,0,lDensity,3);
-  densityC0  = MAT2D(idCell,1,lDensity,3);
-  densityC   = MAT2D(idCell,2,lDensity,3);
+  densityC00 = MAT2D(idCell,TIME_N_MINUS_2,lDensity,3);
+  densityC0  = MAT2D(idCell,TIME_N_MINUS_1,lDensity,3);
+  densityC   = MAT2D(idCell,TIME_N        ,lDensity,3);
 /*...................................................................*/
 
 /*...*/
@@ -1351,7 +1352,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
       lvSkew[2] = MAT2D(nf,2,vSkew,3);
 
       presV    = pres[nf];
-      densityV = MAT2D(nf,2,lDensity,3);
+      densityV = MAT2D(nf,TIME_N,lDensity,3);
 
       dFieldV[0] = MAT2D(nf, 0, dField, 3);
       dFieldV[1] = MAT2D(nf, 1, dField, 3);
@@ -1363,12 +1364,11 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*...................................................................*/
 
 /*...*/
-      v[0]         = lvSkew[0] + lXmcc[0];
-      v[1]         = lvSkew[1] + lXmcc[1];
-      v[2]         = lvSkew[2] + lXmcc[2];
-      dPviz        = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-      alpha        = dPviz/lModKsi;
-      alphaMenosUm = 1.0e0 - alpha; 
+      alpha = interpolFace(lvSkew           ,lXmcc
+                          ,volume[idCell]   ,volume[nf]
+                          ,lModKsi          ,ndm
+                          ,iCodPolFace);
+      alphaMenosUm = 1.0e0 - alpha;
 /*...................................................................*/
 
 /*... interpolacao das propriedades*/
@@ -1460,7 +1460,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
                   , lFarea          , lModKsi
                   , &loadsVel[nCarg], ndm
                   , false           , true
-                  , false           , 0);   
+                  , false           , 0);     
       } 
 /*...................................................................*/
     }

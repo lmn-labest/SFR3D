@@ -45,6 +45,12 @@
 /*...................................................................*/
 
 /*...*/
+  #define INTPOLFACELINEAR 0
+  #define INTPOLFACEVOL    1
+  #define INTPOLFACEMED    2
+/*...................................................................*/
+
+/*...*/
   #define SIMPLE  1
   #define SIMPLEC 2
   #define SIMPLER 3

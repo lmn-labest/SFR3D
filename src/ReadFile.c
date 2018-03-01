@@ -2019,7 +2019,7 @@ void readPropVar(PropVar *p,FILE *file){
       p->fSpecificHeat = true;
       initSheatPol(); 
       if(!mpiVar.myId && p->fSpecificHeat) 
-        fprintf(fileLogExc,"sHeat variation        : Enable\n");
+        fprintf(fileLogExc,"%-20s: %s\n","sHeat variation","Enable\n");
     }
 /*...................................................................*/
 
@@ -2027,10 +2027,10 @@ void readPropVar(PropVar *p,FILE *file){
     else if(!strcmp(word,"density")){
       readMacro(file,word,false);
       p->fDensity = true;
-      convStringLower(word);
-      initDensityPol(word);
       if(!mpiVar.myId && p->fDensity) 
-        fprintf(fileLogExc,"Density variation      : Enable\n");                           
+        fprintf(fileLogExc,"%-20s: %s\n","Density variation","Enable");
+      convStringLower(word);
+      initDensityPol(word);                              
     }
 /*...................................................................*/
 
@@ -2040,7 +2040,8 @@ void readPropVar(PropVar *p,FILE *file){
       p->fDynamicViscosity = true;
       initDviscosityPol(word); 
       if(!mpiVar.myId && p->fDynamicViscosity)
-        fprintf(fileLogExc,"dViscosity variation   : Enable\n");;
+        fprintf(fileLogExc,"%-20s: %s\n","dViscosity variation"
+                          ,"Enable");;
     }
 /*...................................................................*/
 
@@ -2050,7 +2051,8 @@ void readPropVar(PropVar *p,FILE *file){
       p->fThermalCondutivty = true;
       initThCondPol(word);
       if(!mpiVar.myId && p->fThermalCondutivty)
-        fprintf(fileLogExc,"tCondutivity variation : Enable\n");                          
+        fprintf(fileLogExc,"%-20s: %s\n","tCondutivity variation"
+                                        ,"Enable");                          
     }
 /*...................................................................*/
     
