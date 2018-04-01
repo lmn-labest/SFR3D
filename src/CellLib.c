@@ -108,7 +108,7 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
 
 /*********************************************************************
 * Data de criacao    : 22/08/2017                                   *
-* Data de modificaco : 18/01/2018                                   *
+* Data de modificaco : 31/03/2018                                   *
 *-------------------------------------------------------------------*
 * CELLLIBENERGY: chamada de bibliotecas de celulas para             *
 * problema de escoamento de fluidos (Energy)                        *
@@ -223,7 +223,7 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
                  , pres       , gradPres  
                  , lDensity   , lSheat
                  , lDviscosity, lTconductvity
-                 , dField
+                 , dField     , wallPar
                  , underU       
                  , nEn        , nFace
                  , ndm        , nel);    
@@ -269,7 +269,7 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
 * Data de modificaco : 22/01/2018                                   *
 *-------------------------------------------------------------------*
 * cellLibOneEqK: chamada de bibliotecas de celulas para             *
-* problema de escoamento de fluidos (Energia cinetica turbulenta)   *                       *
+* problema de escoamento de fluidos (Energia cinetica turbulenta)   * 
 *-------------------------------------------------------------------*
 * Parametros de entrada:                                            *
 *-------------------------------------------------------------------*
@@ -534,7 +534,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
 
 /*********************************************************************
  * Data de criacao    : 27/08/2017                                   *
- * Data de modificaco : 17/01/2018                                   *
+ * Data de modificaco : 31/03/2018                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEVEl: chamada de bibliotecas de celulas para          *
  * problema de escoamento de fluidos (VEL -low mach)                 *
@@ -545,7 +545,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
  * loadsPres -> definicoes de cargas de pressao                      *
  * advVel    -> tecnica da discretizacao do termo advecao            *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
- * ModelMomentum -> termos/modelos da equacao de momento linear          *
+ * ModelMomentum -> termos/modelos da equacao de momento linear      *
  * typeSimple-> tipo do metodo simple                                *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
  * lprop     -> propriedade fisicas das celulas                      *
@@ -648,7 +648,8 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
                      , pres       , gradPres  
                      , vel        , gradVel 
                      , lDensity   , lViscosity 
-                     , dField        
+                     , dField     , stressR
+                     , wallPar
                      , underU     , sPressure 
                      , nEn        , nFace  
                      , ndm        , nel);  

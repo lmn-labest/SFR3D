@@ -14,9 +14,9 @@
       #define MKL_INT int
     #endif  
     extern MKL_INT pardiso
-	  (void *, MKL_INT *, MKL_INT *, MKL_INT *, MKL_INT *, MKL_INT *,
-	  double *, MKL_INT *, MKL_INT *, MKL_INT *, MKL_INT *, MKL_INT *,
-	  MKL_INT *, double *, double *, MKL_INT *);
+    (void *, MKL_INT *, MKL_INT *, MKL_INT *, MKL_INT *, MKL_INT *,
+    double *, MKL_INT *, MKL_INT *, MKL_INT *, MKL_INT *, MKL_INT *,
+    MKL_INT *, double *, double *, MKL_INT *);
     extern void mkl_set_num_threads(MKL_INT *nt);
   #endif
 /*...................................................................*/
@@ -50,8 +50,8 @@
   void setSolver(char * word,short *solver);
   void setSolverConfig(char *word,Solv *solv,FILE *fileIn);
   DOUBLE smachn();
-	void setDot(DOUBLE(**dotC)(), short const iCod);
-	void setMatVec(void(**matVecC)(),short const storage
+  void setDot(DOUBLE(**dotC)(), short const iCod);
+  void setMatVec(void(**matVecC)(),short const storage
                 ,bool const unSym ,bool const openMp);
 /*...................................................................*/
 

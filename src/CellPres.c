@@ -1275,7 +1275,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*...*/
   DOUBLE dfd,coef,lvSkew[3];
 /*... nonOrtogonal*/
-	DOUBLE e[3],t[3],s[3],modE;
+  DOUBLE e[3],t[3],s[3],modE;
 /*... interpolacao linear*/
   DOUBLE alpha,alphaMenosUm,tA[3],ddum=0.e0;
 /*... */

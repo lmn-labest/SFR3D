@@ -72,6 +72,18 @@
    void readSetSimple(Memoria *m    , FILE *fileIn
                  , Mesh *mesh0   , Mesh *mesh
                  , Simple *simple, bool *fSolvSimple);
+
+ /*...*/
+   void readSolvFluid(Memoria *m, Mesh *mesh
+     , Reord *reordMesh
+     , Solv *solvVel, SistEq* sistEqVel, bool *fSolvVel
+     , Solv *solvPres, SistEq* sistEqPres, bool *fSolvPres
+     , Solv *solvEnergy, SistEq* sistEqEnergy, bool *fSolvEnergy
+     , Solv *solvKturb, SistEq* sistEqKturb, bool *fSolvKturb
+     , char* auxName, char* preName, char* nameOut
+     , FILE *fileIn, FileOpt *opt);
+/*...................................................................*/
+
    void convStringLower(char *s);
    void help(FILE *f);
 #endif  /*_READ_FILE_*/

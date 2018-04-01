@@ -549,9 +549,9 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 }
 /*********************************************************************/
 
-/*********************************************************************
+/********************************************************************
 * Data de criacao    : 20/08/2017                                   *
-* Data de modificaco : 19/09/2017                                   *
+* Data de modificaco : 31/03/2018                                   *
 *-------------------------------------------------------------------*
 * CELLSIMPLEVEL2DLM: Celula 2D para velocidade do metodo simple     *
 * em escoamento levemento compressivel (Low Mach)                   *
@@ -563,7 +563,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 * advVel    -> tecnica da discretizacao do termo advecao            *
 * diffVel   -> tecnica da discretizacao do termo difusivo           *
 * tModel    -> modelo de turbulencia                                *
-* ModelMomentum -> termos/modelos da equacao de momento linear          *
+* ModelMomentum -> termos/modelos da equacao de momento linear      *
 * typeSimple-> tipo do metodo simple                                *
 * lnFace    -> numero de faces da celula central e seus vizinhos    *
 * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
@@ -602,6 +602,8 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 * lDensity  -> massa especifica sem variacao temporal               *
 * lDviscosity-> viscosidade dinamica com variacao temporal          *
 * dField    -> matriz D do metodo simple                            *
+* stressR   -> tensao residual estrutural                           *
+* wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  *
 * cc        -> centroides da celula centra e seus vizinhos          *
 * underU    -> parametro de sobre relaxamento                       *
 * nEn       -> numero de nos da celula central                      *
@@ -654,16 +656,19 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
             , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres 
             , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel 
             , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lViscosity 
-            , DOUBLE *RESTRICT dField      
+            , DOUBLE *RESTRICT dField    , DOUBLE *RESTRICT stressR
+            , DOUBLE *RESTRICT wallPar
             , DOUBLE const underU        , const bool sPressure 
             , const short nEn            , short const nFace 
             , const short ndm            , INT const nel)
 {
+  /*...*/
+  bool fTime, fRes, fTurb, fRhieInt, fWallModel, fStruc;
+  bool fDiv, fViscosity;
 /*...*/
   short iCodAdv1, iCodAdv2, iCodDif,wallType, idCell, nAresta
-      , nCarg, typeTime;
+      , nCarg, typeTime, iCodBuoyant, iCodPolFace;
 /*...*/
-  bool fTime, fAbsultePressure, fRes, fTurb, fRhieInt, fWallModel;
   INT vizNel;
   DOUBLE viscosityC, viscosityV, viscosity, 
          eddyViscosityC, eddyViscosityV, effViscosityC, effViscosityV,
@@ -685,32 +690,40 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
   DOUBLE pFace, pf[2], p1, p2, presC, presV, gradPresC[2], gradPresV[2];
 /*... */
   DOUBLE wfn, velC[2], velV[2], g[2], gf[2][2], gfKsi[2],
-         gradVelC[2][2], gradVelV[2][2], gradVelComp[2][2];
+         gradVelC[2][2], gradVelV[2][2], gradVelComp[2][2], s[4], xx[4], ts;
 /*...*/
   DOUBLE uPlus,yPlus,viscosityWall;
+/*...*/
+  DOUBLE pAdv[NPADV];
 
 /*...*/
-  idCell   = nFace;
-  iCodAdv1 = advVel.iCod1;
-  iCodAdv2 = advVel.iCod2;
-  iCodDif  = diffVel.iCod;
+  idCell      = nFace;
+  iCodAdv1    = advVel.iCod1;
+  iCodAdv2    = advVel.iCod2;
+  pAdv[0]     = advVel.par[0];
+  iCodDif     = diffVel.iCod;
+  iCodPolFace = INTPOLFACELINEAR;
 /*...................................................................*/
 
 /*...*/
   dt        = ddt.dt[0];  
   dt0       = ddt.dt[1];
   typeTime  = ddt.type;
-  fTime      = ddt.flag;
+  fTime     = ddt.flag;
 /*...................................................................*/
 
 /*...*/  
-  fWallModel       = tModel.fWall;
-  wallType         = tModel.wallType;
-  fTurb            = tModel.fTurb;
-  fRhieInt         = ModelMomentum.fRhieChowInt;  
-  fRes             = ModelMomentum.fRes;
-  g[0]             = gravity[0];
-  g[1]             = gravity[1];
+  fWallModel  = tModel.fWall;
+  wallType    = tModel.wallType;
+  fTurb       = tModel.fTurb;
+
+  fRhieInt    = ModelMomentum.fRhieChowInt;  
+  fRes        = ModelMomentum.fRes;
+  fViscosity  = ModelMomentum.fViscosity;
+  fDiv        = ModelMomentum.fDiv;
+  iCodBuoyant = ModelMomentum.iCodBuoyant;
+  g[0]        = gravity[0];
+  g[1]        = gravity[1];
 /*...................................................................*/
 
 /*... propriedades da celula*/
@@ -794,17 +807,19 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
 
 /*... termo difusivo
       grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
-      difusionScheme(lNormal,lKsi
-                    ,lModEta,lModKsi
-                    ,e      ,t
-                    ,ndm    ,iCodDif);
+      s[0] = lModEta * lNormal[0];
+      s[1] = lModEta * lNormal[1];
+      /*...*/
+      difusionSchemeNew(s   , lKsi
+                       , e  , t
+                       , ndm, iCodDif);
 /*...................................................................*/
 
 /*...*/
-      v[0] = lvSkew[0] + MAT2D(nAresta, 0, xmcc, ndm);
-      v[1] = lvSkew[1] + MAT2D(nAresta, 1, xmcc, ndm);
-      dPviz = sqrt(v[0] * v[0] + v[1] * v[1]);
-      alpha = dPviz / lModKsi;
+      alpha = interpolFace(lvSkew, lXmcc
+                         , area[idCell], area[nAresta]
+                         , lModKsi, ndm
+                         , iCodPolFace);
       alphaMenosUm = 1.0e0 - alpha;
 /*...................................................................*/
 
@@ -888,15 +903,15 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
 /*... correcao do fluxo advectivo*/
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
-/*    advectiveScheme(velC, velV
-        , gradVelC[0], gradVelV[0]
-        , gradVelComp[0], lvSkew
-        , lXmcc, v
-        , lKsi, lModKsi
-        , cv, cvc
-        , alphaMenosUm  ,alpha
-        , ndm
-        , iCodAdv1, iCodAdv2);*/
+      advectiveScheme(velC, velV
+                    , gradVelC[0]   , gradVelV[0]
+                    , gradVelComp[0], lvSkew
+                    , lXmcc         , v
+                    , lKsi          , lModKsi
+                    , cv            , cvc
+                    , alphaMenosUm  ,alpha
+                    , pAdv          , ndm
+                    , iCodAdv1      , iCodAdv2);
 /*...................................................................*/
 
 /*...*/
@@ -987,20 +1002,36 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
       pf[1] += tmp*lNormal[1];
 /*...................................................................*/
 
+/*...*/
+      s[0] = lModEta * lNormal[0];
+      s[1] = lModEta * lNormal[1];
+      /*...*/
+      difusionSchemeNew(s  , lKsi
+                      , e  , t
+                      , ndm, iCodDif);
+/*...................................................................*/
+
 /*... velocidades*/
       if (lFaceVelR[nAresta] > 0) {
+        xx[0] = MAT2D(nAresta, 0, xm, 2);
+        xx[1] = MAT2D(nAresta, 1, xm, 2);
+        xx[2] = 0.e0;
+        xx[3] = ts;
 /*...cargas*/
         nCarg = lFaceVelL[nAresta] - 1;
-/*      pLoadSimple(sPc            , p
-                  , tA             , velC
-                  , lNormal
-                  , gradVelC[0]    , lXmcc
-                  , viscosityC     , effViscosityC  
-                  , densityC
-                  , lModEta        , dcca[nAresta]
-                  , loadsVel[nCarg], ndm
-                  , true           , false
-                  , fWallModel     , wallType);*/
+        pLoadSimple(sPc             , p
+                  , tA              , lXmcc
+                  , velC            , gradVelC[0]
+                  , presC           , gradPresC
+                  , viscosityC      , effViscosityC
+                  , xx
+                  , s               , e    
+                  , t               , lNormal  
+                  , densityC        , wallPar
+                  , lModEta         , dcca[nAresta]
+                  , &loadsVel[nCarg], ndm
+                  , true            , false
+                  , fWallModel      , wallType);
       }
 /*...................................................................*/
 
@@ -1010,26 +1041,13 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
         yPlus = 0.e0;
         uPlus = 0.e0;
         if (fWallModel) {
-/*... calculo da velociade paralela a face*/
-          wfn= velC[0] * lNormal[0] + velC[1] * lNormal[1];
-          wf[0] = velC[0] - wfn * lNormal[0];
-          wf[1] = velC[1] - wfn * lNormal[1];
-          wfn   = wf[0]*wf[0]+ wf[1]*wf[1];
-          wfn   = sqrt(wfn);
-/*...*/
-          if (wfn > 0.e0)
-            wallModel(wfn     , viscosityC
-                     ,densityC, dcca[nAresta]
-                     ,&yPlus  , &uPlus
-                     ,wallType);
-/*...................................................................*/
-          if( yPlus > 11.81e0)
-            viscosityWall = viscosityC*yPlus/uPlus;
+          yPlus = wallPar[0];
+          uPlus = wallPar[1];
+          if (yPlus > 0.01e0)
+            viscosityWall = viscosityC * yPlus / uPlus;
           else
             viscosityWall = viscosityC;
         }
-/*...................................................................*/
-
 /*... sem modelo de parede*/
         else
           viscosityWall = effViscosityC;
@@ -1051,17 +1069,25 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
 /*...................................................................*/
 
 /*...*/
-//if(fAbsultePressure){
-//  tmp   = densityC*area[idCell];
-//  p[0] += tmp*g[0];
-//  p[1] += tmp*g[1];
-//}
-//else {
-//  tmp   = (densityC-densityRef)*area[idCell];  
-//  p[0] += tmp*g[0];
-//  p[1] += tmp*g[1];
-//}
-/*...................................................................*/
+  if (iCodBuoyant == BUOYANT_HYDROSTATIC) {
+    tmp = densityC * area[idCell];
+    p[0] += tmp * g[0];
+    p[1] += tmp * g[1];
+  }
+/*else if (iCodBuoyant == BUOYANT_PRGH) {
+    ccV[0] = MAT2D(idCell, 0, cc, 3);
+    ccV[1] = MAT2D(idCell, 1, cc, 3);
+    ccV[2] = MAT2D(idCell, 2, cc, 3);
+    tmp = ccV[0] * g[0] + ccV[1] * g[1] + ccV[2] * g[2];
+    p[0] -= tmp * gradRho[0];
+    p[1] -= tmp * gradRho[1];
+  }*/
+  else if (iCodBuoyant == BUOYANT_RHOREF) {
+    tmp = (densityC - densityRef)*area[idCell];
+    p[0] += tmp * g[0];
+    p[1] += tmp * g[1];
+  }
+  /*...................................................................*/
 
 /*... distretizacao temporal*/
   if (fTime) {
@@ -1126,7 +1152,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
 
 /*...*/
   if (typeSimple == SIMPLEC) {
-    MAT2D(idCell,0,dField,2) = area[idCell] / (lA[idCell] - lAn);
+    MAT2D(idCell,0,dField,2) = area[idCell] / (lA[idCell]     - lAn);
     MAT2D(idCell,1,dField,2) = area[idCell] / (lA[idCell + 1] - lAn);
   }
   else if (typeSimple == SIMPLE) {
@@ -1287,7 +1313,7 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
   DOUBLE wfn, velC[2], velV[2], presC, presF;
   DOUBLE gradPresC[2], gradPresV[2];
   DOUBLE gradVelC[2][2], gradVelV[2][2], gf[2][2], gfKsi[2];
-  DOUBLE gradVelComp[2][2];
+  DOUBLE gradVelComp[2][2],xx[4],ts;
 /*...*/
   short iCodAdv1 = advVel.iCod1;
   short iCodAdv2 = advVel.iCod2;
@@ -1299,6 +1325,7 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
   bool fTime;
 
 /*...*/
+  ts       = ddt.t;
   dt       = ddt.dt[0];
   dt0      = ddt.dt[1];
   typeTime = ddt.type;
@@ -1547,18 +1574,25 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
 
 /*... velocidades*/
       if (lFaceVelR[nAresta] > 0) {
+        xx[0] = MAT2D(nAresta, 0, xm, 2);
+        xx[1] = MAT2D(nAresta, 1, xm, 2);
+        xx[2] = 0.e0;
+        xx[3] = ts;
 /*...cargas*/
         nCarg = lFaceVelL[nAresta] - 1;
-/*      pLoadSimple(sPc            , p
-                  , tA             , velC
-                  , lNormal        
-                  , gradVelC[0]    , lXmcc
-                  , viscosityC     , viscosityC 
-                  , densityC
-                  , lModEta        , dcca[nAresta]
-                  , loadsVel[nCarg], ndm
-                  , true           , false
-                  , false          , 0);*/
+/*      pLoadSimple(sPc             , p
+                  , tA              , lXmcc
+                  , velC            , gradVelC[0]
+                  , presC           , gradPresC
+                  , viscosityC      , viscosityC
+                  , xx        
+                  , s               , e
+                  , t               , lNormal 
+                  , densityC        , wallPar
+                  , lModEta         , dcca[nAresta]
+                  , &loadsVel[nCarg], ndm
+                  , true            , false
+                  , false           , wallType);*/
       }
 /*...................................................................*/
 
@@ -1906,11 +1940,11 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
 
 /*... termo difusivo
-grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
-			difusionScheme(lNormal,lKsi
-			            	,lFarea ,lModKsi
-				            ,e      ,t
-				            ,ndm    ,iCodDif);
+      grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
+      difusionScheme(lNormal,lKsi
+                    ,lFarea ,lModKsi
+                    ,e      ,t
+                    ,ndm    ,iCodDif);
 /*...................................................................*/
 
 /*...*/
@@ -1929,9 +1963,9 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*... difusao direta*/
-			coef = viscosity;
-			modE = sqrt(e[0]*e[0] + e[1]*e[1] + e[2]*e[2]);
-			dfd  = coef*modE/lModKsi;
+      coef = viscosity;
+      modE = sqrt(e[0]*e[0] + e[1]*e[1] + e[2]*e[2]);
+      dfd  = coef*modE/lModKsi;
 /*...................................................................*/
       
 /*...*/
@@ -2627,9 +2661,9 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       s[1] = lFarea*lNormal[1];
       s[2] = lFarea*lNormal[2];
 /*...*/
-			difusionSchemeNew(s  , lKsi
-			                , e  , t
-				              , ndm, iCodDif);
+      difusionSchemeNew(s  , lKsi
+                      , e  , t
+                      , ndm, iCodDif);
 /*...................................................................*/
 
 /*...*/
@@ -2647,9 +2681,9 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*... difusao direta*/
-			coef = viscosity;
-			modE = sqrt(e[0]*e[0] + e[1]*e[1] + e[2]*e[2]);
-			dfd  = coef*modE/lModKsi;
+      coef = viscosity;
+      modE = sqrt(e[0]*e[0] + e[1]*e[1] + e[2]*e[2]);
+      dfd  = coef*modE/lModKsi;
 /*...................................................................*/
       
 /*...*/
@@ -2978,9 +3012,9 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       s[1] = lFarea*lNormal[1];
       s[2] = lFarea*lNormal[2];
 /*...*/
-			difusionSchemeNew(s  , lKsi
-			                , e  , t
-				              , ndm, iCodDif);
+      difusionSchemeNew(s   , lKsi
+                       , e  , t
+                       , ndm, iCodDif);
 /*...................................................................*/
 
 /*... velocidades*/
@@ -2995,7 +3029,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                   , tA          , lXmcc
                   , velC        , gradVelC[0] 
                   , presC       , gradPresC
-                  , viscosityC  , viscosityC 
+                  , viscosityC  , effViscosityC
                   , xx  
                   , s           , e         
                   , t           , lNormal

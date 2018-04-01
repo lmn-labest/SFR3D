@@ -440,7 +440,7 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
             , DOUBLE *RESTRICT pres        , DOUBLE *RESTRICT gradPres         
             , DOUBLE *RESTRICT lDensity    , DOUBLE *RESTRICT lSheat
             , DOUBLE *RESTRICT lDviscosity , DOUBLE *RESTRICT ltConductvity
-            , DOUBLE *RESTRICT dField
+            , DOUBLE *RESTRICT dField      , DOUBLE *RESTRICT wallPar
             , DOUBLE const underU            
             , const short nEn              , short const nFace
             , const short ndm              , INT const nel);
@@ -525,8 +525,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
 
 /*... biblioteca de celulas (simple - vel)*/
   void cellSimpleVel3D(Loads *loadsVel    ,Loads *loadsPres
-              ,Advection  advVel          ,Diffusion  diffVel
-							,short const typeSimple 
+              ,Advection  advVel          ,Diffusion  diffVel							,short const typeSimple 
               ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
               ,INT   *RESTRICT lViz       ,INT *RESTRICT lId
               ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mksi
@@ -548,8 +547,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
 /*...................................................................*/
 
 /*... biblioteca de celulas (simple - pres)*/
-  void cellSimplePres2D(Loads *loadsVel    ,Loads *loadsPres   
-							,Diffusion diffPres        
+  void cellSimplePres2D(Loads *loadsVel    ,Loads *loadsPres 							,Diffusion diffPres        
               ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
               ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
               ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
@@ -568,24 +566,24 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
               ,const short ndm          ,INT const nel);
   
 /*... biblioteca de celulas (simple - pres)*/
-  void cellSimplePres3D(Loads *loadsVel    ,Loads *loadsPres
-							,Diffusion diffPres
-		          ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
-              ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
-              ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
-              ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT mEta
-              ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT area   
-              ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
-              ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
-              ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
-              ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-              ,DOUBLE *RESTRICT lRcell  
-              ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
-              ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
-              ,DOUBLE *RESTRICT pres    ,DOUBLE *RESTRICT gradPres 
-              ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT dField  
-              ,const short nEn          ,short const nFace    
-              ,const short ndm          ,INT const nel);
+  void cellSimplePres3D(Loads *loadsVel         ,Loads *loadsPres
+                      ,Diffusion diffPres
+                      ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
+                      ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
+                      ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
+                      ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT mEta
+                      ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT area   
+                      ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+                      ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
+                      ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
+                      ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
+                      ,DOUBLE *RESTRICT lRcell  
+                      ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
+                      ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
+                      ,DOUBLE *RESTRICT pres    ,DOUBLE *RESTRICT gradPres 
+                      ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT dField  
+                      ,const short nEn          ,short const nFace    
+                      ,const short ndm          ,INT const nel);
 /*...................................................................*/
 
 /*... biblioteca de celulas (simple - pres-correcao non-ortogonal)*/
@@ -644,14 +642,14 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
            , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres 
            , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel 
            , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lDviscosity 
-           , DOUBLE *RESTRICT dField       
+           , DOUBLE *RESTRICT dField    , DOUBLE *RESTRICT stressR
+           , DOUBLE *RESTRICT wallPar
            , DOUBLE const underU        , const bool sPressure 
            , const short nEn            , short const nFace 
            , const short ndm            , INT const nel);
 
 /*... biblioteca de celulas 3D(simple - pres - low mach)*/
-  void cellSimplePres2DLm(Loads *loadsVel, Loads *loadsPres 
-					 , Diffusion diffPres        	, MassEqModel eMass
+  void cellSimplePres2DLm(Loads *loadsVel, Loads *loadsPres					 , Diffusion diffPres        	, MassEqModel eMass
            , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop
            , INT *RESTRICT lViz         , INT *RESTRICT lId  
            , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
@@ -764,6 +762,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                   ,INT const numel          ,short const maxViz
                   ,short const type         ,short const ndm);
 /*...................................................................*/
+
 /*...................................................................*/
   
 /*... green-gauss*/

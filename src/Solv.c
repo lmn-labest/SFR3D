@@ -1,5 +1,4 @@
 #include<Solv.h>
-
 /**********************************************************************
  * Data de criacao    : 00/00/0000                                    *
  * Data de modificaco : 27/08/2016                                    *
@@ -12,7 +11,7 @@
  * neq     -> numero de equacoes                                      *
  * neqNov  -> numero de equacoes nao sobrepostas                      *
  * nad     -> numero de elemetos nao nulos fora da diagonal principal *
- * nAdR    -> numero de termos nao nulos na parte retangular         *
+ * nAdR    -> numero de termos nao nulos na parte retangular          *
  * ia      -> vetor das linhas da estrutura de dados                  *
  * ja      -> vetor das colunas da estrutura de dados                 *
  * al      -> parte inferior da matriz a                              *

@@ -138,9 +138,9 @@
 /*...................................................................*/
 
 /*...*/
-//typedef struct{
-//  DOUBLE *vel;    /*Velocidade na face*/                             
-//}Face;
+  typedef struct{
+    DOUBLE *vel;    /*Velocidade na face*/                             
+  }Face;
 /*...................................................................*/    
 
 /*... interpol*/
