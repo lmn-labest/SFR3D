@@ -402,7 +402,7 @@ void printFluid(Memoria *m
 
 /*...*/
   if(!mpiVar.myId ){
-    fName(preName,sc.ddt.timeStep,0,21,&nameOut);
+    fName(preName,sc.ddt.timeStep,0,21,nameOut);
 /*...*/
     wResVtkFluid(m                        , mesh0->node.x
                , mesh0->elm.geom.cc       

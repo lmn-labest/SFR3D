@@ -21,6 +21,7 @@
   #include<ParallelMpi.h>
   #include<Properties.h>
   #include<Simple.h>
+  #include<Prime.h>
 /*...................................................................*/  
 
   void parametros(INT   *nnode,INT *nel    
@@ -82,6 +83,10 @@
      , Solv *solvKturb, SistEq* sistEqKturb, bool *fSolvKturb
      , char* auxName, char* preName, char* nameOut
      , FILE *fileIn, FileOpt *opt);
+
+   void readSetPrime(Memoria *m, FILE *fileIn
+     , Mesh *mesh0, Mesh *mesh
+     , Prime  *prime, bool *fSolvPrime);
 /*...................................................................*/
 
    void convStringLower(char *s);

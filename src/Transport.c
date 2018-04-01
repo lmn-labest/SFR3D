@@ -270,7 +270,7 @@ void transport(Memoria *m   ,Loads *loadsTrans
 
 /*...*/
       if(!mpiVar.myId){
-        fName(preName,sc.ddt.timeStep,i,19,&nameOut);
+        fName(preName,sc.ddt.timeStep,i,19,nameOut);
         strcpy(str1,"elT1");
         strcpy(str2,"noT1");
         strcpy(str3,"elGradT1");

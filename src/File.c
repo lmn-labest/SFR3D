@@ -61,7 +61,7 @@ FILE *aux;
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 07/02/2018                                   * 
+ * Data de modificaco : 31/03/2018                                   * 
  *-------------------------------------------------------------------* 
  * fname: add as extencoes dos arquivos de saida                     *
  * ------------------------------------------------------------------*
@@ -101,7 +101,7 @@ FILE *aux;
  * out -> aruivo de saida com a extencao                             * 
  * ------------------------------------------------------------------*
  * *******************************************************************/
-void fName(char *name,INT num1,INT num2, int cod ,char **out ){
+void fName(char *name,INT num1,INT num2, int cod ,char *out){
 /*===*/
   char st[MAX_STR_NUMBER];
   char ext[MAX_EXT];
@@ -110,7 +110,7 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 /**/
 /*===*/
   strcpy(ext,"");
-  strcpy(*out,"");
+  strcpy(out,"");
   switch( cod ) {
 /*.... vtk no-overlanping*/
     case 1:
@@ -129,8 +129,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
 	      exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;     
 /*...................................................................*/
 
@@ -153,8 +153,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
 	      exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;     
 /*...................................................................*/
 
@@ -174,8 +174,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -195,8 +195,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
 	       exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -213,8 +213,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -237,8 +237,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -258,8 +258,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -279,8 +279,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -300,8 +300,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -318,8 +318,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -336,8 +336,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -354,8 +354,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -378,8 +378,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -398,8 +398,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -416,8 +416,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -437,8 +437,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -461,8 +461,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -482,8 +482,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -503,8 +503,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -524,8 +524,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -542,8 +542,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -563,8 +563,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 
@@ -584,8 +584,8 @@ void fName(char *name,INT num1,INT num2, int cod ,char **out ){
 		       ,name,SIZEMAX,__func__,__FILE__);
         exit(EXIT_FAILURE);      
       }
-      strcpy(*out,name);
-      strcat(*out,ext);
+      strcpy(out,name);
+      strcat(out,ext);
       break;
 /*...................................................................*/
 

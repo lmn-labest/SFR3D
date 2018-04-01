@@ -241,7 +241,7 @@ void diffusion(Memoria *m   ,Loads *loadsDif
 
 /*...*/
        if(!mpiVar.myId){
-         fName(preName,sc.ddt.timeStep,i,15,&nameOut);
+         fName(preName,sc.ddt.timeStep,i,15,nameOut);
          strcpy(str1,"elD1");
          strcpy(str2,"noD1");
          strcpy(str3,"elGradD1");

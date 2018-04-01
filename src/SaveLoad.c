@@ -26,7 +26,7 @@ void wSave(PropVar *prop           ,Turbulence *tModel
   FILE *file;
 
 /*...*/
-  fName(preName,ddt->timeStep,0,24,&nameOut);
+  fName(preName,ddt->timeStep,0,24,nameOut);
   file = openFile(nameOut,"w");
 /*...................................................................*/
 

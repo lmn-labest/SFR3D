@@ -3573,6 +3573,85 @@ void readSetSimple(Memoria *m    , FILE *fileIn
 }
 /**********************************************************************/
 
+/**********************************************************************
+* Data de criacao    : 31/03/2018                                    *
+* Data de modificaco : 00/00/0000                                    *
+*--------------------------------------------------------------------*
+* readSetSimple:                                                     *
+*--------------------------------------------------------------------*
+* Parametros de entrada:                                             *
+*--------------------------------------------------------------------*
+*--------------------------------------------------------------------*
+* Parametros de saida:                                               *
+*--------------------------------------------------------------------*
+*--------------------------------------------------------------------*
+* OBS:                                                               *
+*--------------------------------------------------------------------*
+**********************************************************************/
+void readSetPrime(Memoria *m    , FILE *fileIn
+                 , Mesh *mesh0  , Mesh *mesh
+                 , Prime  *prime, bool *fSolvPrime) {
+
+  char word[WORD_SIZE];
+  unsigned short nScheme;
+
+  *fSolvPrime = true;
+  prime->maxIt = 2000;
+  prime->alphaPres = 1.0e0;
+  prime->alphaVel = 0.9e0;
+  prime->kZeroVel = 1;
+  prime->kZeroPres = 0;
+  prime->sPressure = true;
+  prime->nNonOrth = 0;
+  prime->tolPres = 1.e-04;
+  prime->tolVel = 1.e-04;
+  prime->pPrime = 10;
+  /*...................................................................*/
+
+  /*...*/
+  readMacro(fileIn, word, false);
+  if (!strcmp(word, "config:"))
+    setPrimeScheme(word, prime, fileIn);
+  /*...................................................................*/
+
+  /*...*/
+  HccaAlloc(DOUBLE, m, prime->d
+    , mesh->numel*mesh->ndm, "dField", false);
+  zero(prime->d, mesh->numel*mesh->ndm, DOUBLEC);
+
+  HccaAlloc(DOUBLE, m, prime->velUp
+    , mesh->numel*mesh->ndm, "velUp", false);
+  zero(prime->d, mesh->numel*mesh->ndm, DOUBLEC);
+
+  HccaAlloc(DOUBLE, m, prime->ePresC
+    , mesh->numel, "ePresC", false);
+  zero(prime->ePresC, mesh->numel, DOUBLEC);
+
+  HccaAlloc(DOUBLE, m, prime->nPresC
+    , mesh->nnode, "nPresC", false);
+  zero(prime->nPresC, mesh->numel, DOUBLEC);
+
+  HccaAlloc(DOUBLE, m, prime->eGradPresC
+    , mesh->numel*mesh->ndm, "eGradPresC", false);
+  zero(prime->eGradPresC, mesh->numel*mesh->ndm, DOUBLEC);
+
+  HccaAlloc(DOUBLE, m, prime->ePresC1
+    , mesh->numel, "ePresC1", false);
+  zero(prime->ePresC, mesh->numel, DOUBLEC);
+
+  HccaAlloc(DOUBLE, m, prime->aD
+    , mesh->numel*mesh->ndm, "aD", false);
+  zero(prime->aD, mesh->numel*mesh->ndm, DOUBLEC);
+
+  HccaAlloc(DOUBLE, m, prime->bTemporal
+    , mesh->numel*mesh->ndm, "bT", false);
+  zero(prime->bTemporal, mesh->numel*mesh->ndm, DOUBLEC);
+  /*...................................................................*/
+}
+/**********************************************************************/
+
+
+
 /*********************************************************************
 * Data de criacao    : 31/03/2018                                   *
 * Data de modificaco : 00/00/0000                                   *
@@ -3631,7 +3710,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh
       if (solvVel->log && !mpiVar.myId) {
         strcpy(auxName, preName);
         strcat(auxName, "_fluid_vel");
-        fName(auxName, mpiVar.nPrcs, 0, 11, &nameOut);
+        fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
         solvVel->fileSolv = openFile(nameOut, "w");
       }
 /*...................................................................*/
@@ -3745,7 +3824,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh
       if (solvPres->log && !mpiVar.myId) {
         strcpy(auxName, preName);
         strcat(auxName, "_fluid_pres");
-        fName(auxName, mpiVar.nPrcs, 0, 11, &nameOut);
+        fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
         solvPres->fileSolv = openFile(nameOut, "w");
       }
 /*...................................................................*/
@@ -3857,7 +3936,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh
       if (solvEnergy->log && !mpiVar.myId) {
         strcpy(auxName, preName);
         strcat(auxName, "_fluid_energy");
-        fName(auxName, mpiVar.nPrcs, 0, 11, &nameOut);
+        fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
         solvEnergy->fileSolv = openFile(nameOut, "w");
       }
 /*...................................................................*/
@@ -3978,7 +4057,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh
       if (solvKturb->log && !mpiVar.myId) {
         strcpy(auxName, preName);
         strcat(auxName, "_fluid_kturb");
-        fName(auxName, mpiVar.nPrcs, 0, 11, &nameOut);
+        fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
         solvKturb->fileSolv = openFile(nameOut, "w");
       }
 /*...................................................................*/
@@ -4086,7 +4165,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh
 /*...*/
   if (opt->fItPlot && !mpiVar.myId) {
     strcpy(auxName, preName);
-    fName(auxName, mpiVar.nPrcs, 0, 22, &nameOut);
+    fName(auxName, mpiVar.nPrcs, 0, 22, nameOut);
     opt->fileItPlot[FITPLOTSIMPLE] = openFile(nameOut, "w");
     if (mesh->ndfF == 3)
       fprintf(opt->fileItPlot[FITPLOTSIMPLE]

@@ -51,7 +51,7 @@ int main(int argc,char**argv){
   SistEq sistEqVel, sistEqPres, sistEqEnergy, sistEqKturb;
 /*... metodo de acoplamento pressao-velocidade*/
   Simple simple;
-  Prime  *prime  = NULL;
+  Prime  prime;
 /*... tubulence*/
   Turbulence turbModel;
 /*...*/
@@ -81,16 +81,16 @@ int main(int argc,char**argv){
 
 /*...*/
   char loopWord[100][MAX_LINE];
-  unsigned short kLoop = 0 ,jLoop = 0,ndfVel;
+  unsigned short kLoop = 0 ,jLoop = 0;
   bool flWord=false;
-  unsigned short nScheme,nOmp,nSistEq; 
 
 /*... Estrutura de dados*/
   char strIa[MNOMEPONTEIRO],strJa[MNOMEPONTEIRO];
   char strA[MNOMEPONTEIRO],strAd[MNOMEPONTEIRO];
 
 /*... arquivo*/
-  char *nameIn=NULL,*nameOut=NULL,*preName=NULL,*auxName=NULL;
+  char nameIn[MAX_STR_LEN_IN], nameOut[SIZEMAX];
+  char auxName[MAX_STR_LEN_SUFIXO], preName[MAX_STR_LEN_SUFIXO];
   FILE *fileIn=NULL,*fileOut=NULL,*fileLog=NULL;
   char str1[100],str2[100],str3[100],str4[100],str5[100],str6[100];
   FileOpt opt;
@@ -310,8 +310,7 @@ int main(int argc,char**argv){
 /* ..................................................................*/
     
 /*... abrindo ar quivo de entrada*/ 
-  nameIn = (char *) malloc(sizeof(char)*MAX_STR_LEN_IN);
-    
+
   if( argc > 1){    
     strcpy(nameIn,argv[1]);  
   }
@@ -323,25 +322,7 @@ int main(int argc,char**argv){
   fileIn = openFile(nameIn,"r");
 /*...................................................................*/
 
-/*... arquivos de saida*/
-  preName = (char *) malloc(sizeof(char)*MAX_STR_LEN_SUFIXO);
-  if(preName == NULL){
-    printf("Erro ponteiro prename\n");
-    exit(EXIT_FAILURE);
-  }
-  
-  auxName = (char *) malloc(sizeof(char)*MAX_STR_LEN_SUFIXO);
-  if(preName == NULL){
-    printf("Erro ponteiro auxName\n");
-    exit(EXIT_FAILURE);
-  }
-  
-  nameOut = (char *) malloc(sizeof(char)*(SIZEMAX));
-  if(nameOut == NULL){
-    printf("Erro ponteiro nameout\n");
-    exit(EXIT_FAILURE);
-  }
-    
+/*... arquivos de saida*/    
   if( argc > 2)
     strcpy(preName,argv[2]);
   else{
@@ -351,7 +332,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
  
 /*...*/
-  fName(preName,0,0, 23 ,&nameOut);
+  fName(preName,0,0, 23 ,nameOut);
   fileLogExc = openFileBuffer(nameOut,"w",false);
 /*...................................................................*/
 
@@ -453,7 +434,7 @@ int main(int argc,char**argv){
                   ,mpiVar.nPrcs);
 /*... */
           if(pMesh->fPrintMesh){
-            fName(preName,mpiVar.nPrcs,0,1,&nameOut);
+            fName(preName,mpiVar.nPrcs,0,1,nameOut);
             wPartVtk(&m            
                     ,mesh0->node.x      ,mesh0->elm.node              
                     ,mesh0->elm.nen     ,mesh0->elm.geomType
@@ -479,7 +460,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
         if(pMesh->fPrintMeshPart){
-          fName(preName,mpiVar.nPrcs,mpiVar.myId,2,&nameOut);
+          fName(preName,mpiVar.nPrcs,mpiVar.myId,2,nameOut);
           wMeshPartVtk(&m            
                       ,mesh->node.x      ,mesh->elm.node              
                       ,mesh->elm.nen     ,mesh->elm.geomType
@@ -488,7 +469,7 @@ int main(int argc,char**argv){
                       ,mesh->maxNo       ,mesh->maxViz
                       ,nameOut           ,opt.bVtk             
                       ,fileOut);
-          fName(preName,mpiVar.nPrcs,mpiVar.myId,18,&nameOut);
+          fName(preName,mpiVar.nPrcs,mpiVar.myId,18,nameOut);
           printMap(*pMesh
                   ,mesh->nnode ,mesh->numel
                   ,mpiVar.myId ,nameOut
@@ -645,7 +626,7 @@ int main(int argc,char**argv){
       }
       tm.total = getTimeC() - tm.total;
 /*... */
-      fName(preName,mpiVar.nPrcs,mpiVar.myId,7,&nameOut);
+      fName(preName,mpiVar.nPrcs,mpiVar.myId,7,nameOut);
       fileLog = openFile(nameOut,"w");
       writeLog(*mesh      ,sc
               ,solvD1     ,sistEqD1
@@ -664,7 +645,7 @@ int main(int argc,char**argv){
 /*... medias do tempo dos processos Mpi*/
       if(mpiVar.nPrcs > 1) {
         if(!mpiVar.myId){
-          fName(preName,mpiVar.nPrcs,mpiVar.myId,60,&nameOut);
+          fName(preName,mpiVar.nPrcs,mpiVar.myId,60,nameOut);
           fileLog = openFile(nameOut,"w");
         }
         writeLogMeanTime(*mesh0    ,sc
@@ -740,7 +721,7 @@ int main(int argc,char**argv){
         printf("%s\n",DIF);
         printf("%s\n",word);
 /*... geometrica completa*/
-        fName(preName,0,0,6,&nameOut);
+        fName(preName,0,0,6,nameOut);
         wGeoVtk(&m                       ,mesh0->node.x   
                ,mesh0->elm.node          ,mesh0->elm.mat    
                ,mesh0->elm.nen           ,mesh0->elm.geomType
@@ -758,7 +739,7 @@ int main(int argc,char**argv){
                ,nameOut                  ,opt.bVtk             
                ,fileOut);  
 /*... face com cargas*/
-       fName(preName,0,0,17,&nameOut);
+       fName(preName,0,0,17,nameOut);
        wGeoFaceVtk(&m                  ,mesh0->node.x        
              ,mesh0->elm.node          ,mesh0->elm.nen      
              ,mesh0->elm.geomType
@@ -785,7 +766,7 @@ int main(int argc,char**argv){
         printf("%s\n",DIF);
         printf("%s\n",word);
        
-        fName(preName,0,0,13,&nameOut);
+        fName(preName,0,0,13,nameOut);
 /*...*/
         writeCoo(&m,sistEqD1->ia,sistEqD1->ja,sistEqD1->neq
                 ,sistEqD1->au   ,sistEqD1->ad,sistEqD1->al        
@@ -806,7 +787,7 @@ int main(int argc,char**argv){
         printf("%s\n",DIF);
         printf("%s\n",word);
       
-        fName(preName,0,0,12,&nameOut);
+        fName(preName,0,0,12,nameOut);
 /*... matriz A*/
         writeCoo(&m,sistEqD1->ia,sistEqD1->ja,sistEqD1->neq
                 ,sistEqD1->au   ,sistEqD1->ad,sistEqD1->al        
@@ -816,7 +797,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... vetor de forcas b*/      
-        fName(preName,0,0,14,&nameOut);
+        fName(preName,0,0,14,nameOut);
         for(int i=0;i<sistEqD1->neq;i++)
           sistEqD1->b[i] /= sistEqD1->ad[i];
 
@@ -856,7 +837,7 @@ int main(int argc,char**argv){
       if(solvD1->log && !mpiVar.myId){  
         strcpy(auxName,preName);
         strcat(auxName,"_D1");
-        fName(auxName,mpiVar.nPrcs,0,11,&nameOut);
+        fName(auxName,mpiVar.nPrcs,0,11,nameOut);
         solvD1->fileSolv = openFile(nameOut,"w");
       }
 /*...................................................................*/
@@ -865,7 +846,7 @@ int main(int argc,char**argv){
       if(opt.fItPlot && !mpiVar.myId){  
         strcpy(auxName,preName);
         strcat(auxName,"_D1");
-        fName(auxName,mpiVar.nPrcs,0,10,&nameOut);
+        fName(auxName,mpiVar.nPrcs,0,10,nameOut);
         opt.fileItPlot[FITPLOTD1] = openFile(nameOut,"w");
         fprintf(opt.fileItPlot[FITPLOTD1]
                ,"#D1\n#it ||b||/||b0|| ||b||\n");
@@ -1025,7 +1006,7 @@ int main(int argc,char**argv){
       if(solvT1->log && !mpiVar.myId){  
         strcpy(auxName,preName);
         strcat(auxName,"_T1");
-        fName(auxName,mpiVar.nPrcs,0,11,&nameOut);
+        fName(auxName,mpiVar.nPrcs,0,11,nameOut);
         solvT1->fileSolv = openFile(nameOut,"w");
       }
 /*...................................................................*/
@@ -1034,7 +1015,7 @@ int main(int argc,char**argv){
       if(opt.fItPlot && !mpiVar.myId){  
         strcpy(auxName,preName);
         strcat(auxName,"_T1");
-        fName(auxName,mpiVar.nPrcs,0,10,&nameOut);
+        fName(auxName,mpiVar.nPrcs,0,10,nameOut);
         opt.fileItPlot[FITPLOTT1] = openFile(nameOut,"w");
         fprintf(opt.fileItPlot[FITPLOTT1]
                ,"#T1\n#it ||b||/||b0|| ||b||\n");
@@ -1310,7 +1291,7 @@ int main(int argc,char**argv){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
-        fName(preName,sc.ddt.timeStep,0,8,&nameOut);
+        fName(preName,sc.ddt.timeStep,0,8,nameOut);
 
         strcpy(str1,"elD1");
         strcpy(str2,"noD1");
@@ -1379,7 +1360,7 @@ int main(int argc,char**argv){
 /*...*/
         strcpy(auxName,preName);
         strcat(auxName,"_D1_cell_");
-        fName(auxName,sc.ddt.timeStep,0,16,&nameOut);
+        fName(auxName,sc.ddt.timeStep,0,16,nameOut);
         fileOut = openFile(nameOut,"w");
 /*...*/
         writeCsvCell(mesh0->elm.uD1    ,mesh0->elm.gradUd1
@@ -1418,7 +1399,7 @@ int main(int argc,char**argv){
 /*...*/
         strcpy(auxName,preName);
         strcat(auxName,"_D1_node_");
-        fName(auxName,sc.ddt.timeStep,0,16,&nameOut);
+        fName(auxName,sc.ddt.timeStep,0,16,nameOut);
         fileOut = openFile(nameOut,"w");
 /*...*/
         writeCsvNode(mesh0->node.uD1,mesh0->node.gradUd1
@@ -1582,7 +1563,7 @@ int main(int argc,char**argv){
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
-        fName(preName,sc.ddt.timeStep,0,20,&nameOut);
+        fName(preName,sc.ddt.timeStep,0,20,nameOut);
 
         strcpy(str1,"elT1");
         strcpy(str2,"noT1");
@@ -1655,7 +1636,7 @@ int main(int argc,char**argv){
 /*...*/
         strcpy(auxName,preName);
         strcat(auxName,"_T1_cell_");
-        fName(auxName,sc.ddt.timeStep,0,16,&nameOut);
+        fName(auxName,sc.ddt.timeStep,0,16,nameOut);
         fileOut = openFile(nameOut,"w");
 /*...*/
         writeCsvCell(mesh0->elm.uT1    ,mesh0->elm.gradUt1
@@ -1694,7 +1675,7 @@ int main(int argc,char**argv){
 /*...*/
         strcpy(auxName,preName);
         strcat(auxName,"_T1_node_");
-        fName(auxName,sc.ddt.timeStep,0,16,&nameOut);
+        fName(auxName,sc.ddt.timeStep,0,16,nameOut);
         fileOut = openFile(nameOut,"w");
 /*...*/
         writeCsvNode(mesh0->node.uT1    ,mesh0->node.gradUt1
@@ -2050,63 +2031,9 @@ int main(int argc,char**argv){
         fprintf(fileLogExc,"%s\n", DIF);
       }
 /*...*/
-      prime = (Prime*)malloc(sizeof(Prime));
-      if (prime == NULL) {
-        printf("Erro ponteiro Prime\n");
-        exit(EXIT_FAILURE);
-      }
-      fSolvPrime       = true;
-      prime->maxIt     = 2000;
-      prime->alphaPres = 1.0e0;
-      prime->alphaVel  = 0.9e0;
-      prime->kZeroVel  = 1;
-      prime->kZeroPres = 0;
-      prime->sPressure = true;
-      prime->nNonOrth  = 0;
-      prime->tolPres   = 1.e-04;
-      prime->tolVel    = 1.e-04;
-      prime->pPrime    = 10;
-/*...................................................................*/
-
-/*...*/
-      readMacro(fileIn, word, false);
-      if (!strcmp(word, "config:")) 
-        setPrimeScheme(word, prime, fileIn);
-/*...................................................................*/
-
-/*...*/
-      HccaAlloc(DOUBLE, &m, prime->d
-               ,mesh->numel*mesh->ndm, "dField", false);
-      zero(prime->d, mesh->numel*mesh->ndm, DOUBLEC);
-
-      HccaAlloc(DOUBLE, &m, prime->velUp
-               ,mesh->numel*mesh->ndm, "velUp", false);
-      zero(prime->d, mesh->numel*mesh->ndm, DOUBLEC);
-
-      HccaAlloc(DOUBLE, &m, prime->ePresC
-               ,mesh->numel, "ePresC", false);
-      zero(prime->ePresC, mesh->numel, DOUBLEC);
-
-      HccaAlloc(DOUBLE, &m, prime->nPresC
-               ,mesh->nnode, "nPresC", false);
-      zero(prime->nPresC, mesh->numel, DOUBLEC);
-
-      HccaAlloc(DOUBLE, &m, prime->eGradPresC
-                , mesh->numel*mesh->ndm, "eGradPresC", false);
-      zero(prime->eGradPresC, mesh->numel*mesh->ndm, DOUBLEC);
-
-      HccaAlloc(DOUBLE, &m, prime->ePresC1
-                , mesh->numel, "ePresC1", false);
-      zero(prime->ePresC, mesh->numel, DOUBLEC);
-
-      HccaAlloc(DOUBLE, &m, prime->aD
-               ,mesh->numel*mesh->ndm, "aD", false);
-      zero(prime->aD, mesh->numel*mesh->ndm, DOUBLEC);
-
-      HccaAlloc(DOUBLE, &m, prime->bTemporal
-               ,mesh->numel*mesh->ndm, "bT", false);
-      zero(prime->bTemporal, mesh->numel*mesh->ndm, DOUBLEC);
-/*...................................................................*/
+      readSetPrime(&m    , fileIn
+                  , mesh0, mesh
+                  , &prime, &fSolvPrime);
 
       if (!mpiVar.myId) printf("%s\n\n", DIF);
     }
@@ -2142,7 +2069,7 @@ int main(int argc,char**argv){
                  ,loadsVel   ,loadsPres
                  ,mesh0      ,mesh
                  ,&sistEqPres,&solvPres
-                 ,prime      ,sc 
+                 ,&prime     ,sc 
                  ,pMesh      ,opt
                  ,preName    ,nameOut
                  ,fileOut   );
