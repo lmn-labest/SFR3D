@@ -1,4 +1,6 @@
 #include<Simple.h>
+
+static DOUBLE trunkNumber(DOUBLE const a);
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
  * Data de modificaco : 20/08/2017                                   * 
@@ -2380,15 +2382,15 @@ void residualSimpleLm(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
-                  , DOUBLE *RESTRICT density, DOUBLE *RESTRICT sHeat
-                  , DOUBLE *RESTRICT tCond  , DOUBLE *RESTRICT dViscosity
-                  , DOUBLE *dt              , INT const nEl
-                  , short const ndm         , short const iCod)
+                 , DOUBLE *RESTRICT density, DOUBLE *RESTRICT sHeat
+                 , DOUBLE *RESTRICT tCond  , DOUBLE *RESTRICT dViscosity
+                 , DOUBLE *dt              , INT const nEl
+                 , short const ndm         , short const iCod)
 
 {
   short nD = DENSITY_LEVEL;
   INT i;
-  DOUBLE dtCfl,dtVn,modVel,nCfl,lc,v[3],deltaT,deltaT0,diff,den;
+  DOUBLE dtCfl,dtVn,modVel,nCfl,cfl,lc,v[3],deltaT,deltaT0,diff,den;
   
 /*...*/
   switch(iCod){
@@ -2396,6 +2398,7 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 /*... scaled*/
     case CFL:
       nCfl = 1.5e0;
+      cfl  = 0.0e0;
       dtVn = dtCfl = 86400.e0; /*24*3600*/
       for(i=0;i<nEl;i++){
  /*... modulo das velocidades*/
@@ -2422,6 +2425,7 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 /*...................................................................*/
 
 /*...*/
+        cfl   = max(cfl,lc/modVel);
         dtCfl = min(dtCfl,nCfl*lc/modVel);
         dtVn  = min(dtVn,(den*lc*lc)/(2.0*diff));
 /*...................................................................*/
@@ -2431,10 +2435,15 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 /*...*/
       deltaT  = dt[0] ;
       deltaT0 = dt[1];
-      if (deltaT > dtCfl || deltaT > dtVn ) {
+/*    if (deltaT > dtCfl || deltaT > dtVn ) {
         dt[0] = min(dtCfl,dtVn);
         printf("change dt for: %lf\n",dt[0]);
       }
+*/
+      if (deltaT > dtCfl) {
+        dt[0] = trunkNumber(dtCfl);
+        printf("change dt for: %lf\n",dt[0]);
+      }  
       dt[1] = deltaT;  
       dt[2] = deltaT0;
 /*...................................................................*/
@@ -2450,3 +2459,41 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 
 }
 /*********************************************************************/
+
+
+
+/********************************************************************* 
+ * Data de criacao    : 01/04/2018                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * fTrunkNumber: mantem apenas o primeiro digito no numero           *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * a        -> numero                                                *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * retorna o numero truncado                                         *  
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *                                                                   *
+ * 5.02012  -> 5.0                                                   * 
+ * 0.02012  -> 0.02                                                  * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+static DOUBLE trunkNumber(DOUBLE const a){
+
+  double base,aa;
+  int firstNumber,j;
+
+  base = 10.0e0;
+  for(j=0;j<100;j++){
+    aa = a*base;
+    firstNumber = (int) aa;
+    if(firstNumber) break;
+    base*=10.0e0;
+  }
+  return firstNumber/base;    
+
+}
