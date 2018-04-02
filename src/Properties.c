@@ -100,6 +100,8 @@ DOUBLE airSpecifiHeat(DOUBLE const t,bool const fKelvin) {
   DOUBLE a[10],y,d;
   DOUBLE tc;
 
+  a[0] = 0.0e0;
+  
   if(fKelvin)
     tc = t;  
   else
@@ -156,6 +158,8 @@ DOUBLE airDynamicViscosity(DOUBLE const t,bool const fKelvin) {
   DOUBLE a[6],x[5],y,d;
   DOUBLE tc;
 
+  a[0] = 0.0e0;
+  
   if(fKelvin)
     tc = t;  
   else
@@ -166,23 +170,15 @@ DOUBLE airDynamicViscosity(DOUBLE const t,bool const fKelvin) {
     case POL:
       for (i = 0; i < n; i++)
         a[i] = dVisc.a[i];
-/*... t */  
-        x[0] = tc;
-/*... t^2 */
-        x[1] = tc*tc;
-/*... t^3 */
-        x[2] = tc*x[1];
-/*... t^4 */
-        x[3] = tc*x[2];
-/*... t^5 */
-        x[4] = tc*x[3];
+/*.....................................................................*/
   
 /*... polinomio*/
-        y = a[0] + a[1]*x[0] + a[2]*x[1] 
-          + a[3]*x[2] + a[4]*x[3] + a[5]*x[4];
-        d = 1.e-05;
+      y = a[0];
+      for (i = 1; i < n; i++)
+        y += a[i]*pow(tc,i);
+      d = 1.e-05;
 /*.....................................................................*/
-        break;
+      break;
 /*.....................................................................*/
 
 /*... polinomio*/
@@ -223,7 +219,7 @@ DOUBLE airDynamicViscosity(DOUBLE const t,bool const fKelvin) {
 
 /*********************************************************************
  * Data de criacao    : 28/08/2017                                   *
- * Data de modificaco : 19/09/2017                                   *
+ * Data de modificaco : 01/04/2017                                   *
  *-------------------------------------------------------------------*
  * AIRTHERMALCONDUCTITY: [KW/m.K]                                    *
  *-------------------------------------------------------------------*
@@ -245,8 +241,10 @@ DOUBLE airDynamicViscosity(DOUBLE const t,bool const fKelvin) {
 DOUBLE airThermalConductvity(DOUBLE const t,bool const fKelvin) {
 
   short i,n=thCond.nPol;  
-  DOUBLE a[6],x[5],y,d;
+  DOUBLE a[6],y,d;
   DOUBLE tc;
+
+  a[0] = 0.0e0;
 
   if(fKelvin)
     tc = t;  
@@ -255,25 +253,17 @@ DOUBLE airThermalConductvity(DOUBLE const t,bool const fKelvin) {
   switch (thCond.type) {
 /*... polinomio*/
     case POL:
-       for (i = 0; i < n; i++)
+      for (i = 0; i < n; i++)
         a[i] = thCond.a[i];
-/*... t */  
-        x[0] = tc;
-/*... t^2 */
-        x[1] = tc*tc;
-/*... t^3 */
-        x[2] = tc*x[1];
-/*... t^4 */
-        x[3] = tc*x[2];
-/*... t^5 */
-        x[4] = tc*x[3];
-  
-/*... polinomio*/
-        y = a[0] + a[1]*x[0] + a[2]*x[1] 
-          + a[3]*x[2] + a[4]*x[3] + a[5]*x[4];
-        d = 1.e-05;
 /*.....................................................................*/
-        break;
+
+/*... polinomio*/
+      y = a[0];
+      for (i = 1; i < n; i++)
+        y += a[i]*pow(tc,i);
+      d = 1.e-05;
+/*.....................................................................*/
+      break;
 /*.....................................................................*/
  /*...*/
     default:  

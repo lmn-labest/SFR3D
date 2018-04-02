@@ -149,7 +149,8 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE e[2],t[2],modE,dfdc[2];
 /*... interpolacao linear*/
   DOUBLE alpha,alphaMenosUm;
-  DOUBLE aP,tA[2];
+  DOUBLE aP;
+//DOUBLE tA[2];
 /*... */
   DOUBLE pFace,pf[2],p1,p2;
 /*... */
@@ -166,6 +167,8 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
   short nAresta,nCarg,typeTime;
   INT vizNel;
   bool fTime;
+/*...*/
+  DOUBLE pAdv[NPADV];
 
 /*...*/
   dt       = ddt.dt[0];
@@ -173,6 +176,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
   typeTime = ddt.type;
   fTime    = ddt.flag;
   densityC = lDensity[idCell];
+  pAdv[0]  = advVel.par[0];
 /*...................................................................*/
 
 /*... propriedades da celula*/
@@ -327,15 +331,15 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 /*... correcao do fluxo advectivo*/
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
-/*    advectiveScheme(velC          ,velV
-                     ,gradVelC[0]   ,gradVelV[0]
-                     ,gradVelComp[0],lvSkew
-                     ,lXmcc         ,v  
-                     ,lKsi          ,lModKsi
-                     ,cv            ,cvc
-                     ,alphaMenosUm  ,alpha
-                     ,ndm
-                     ,iCodAdv1, iCodAdv2);*/
+      advectiveScheme(velC          , velV
+                     ,gradVelC[0]   , gradVelV[0]
+                     ,gradVelComp[0], lvSkew
+                     ,lXmcc         , v  
+                     ,lKsi          , lModKsi
+                     ,cv            , cvc
+                     ,alphaMenosUm  , alpha
+                     ,pAdv          , ndm
+                     ,iCodAdv1      , iCodAdv2);  
 /*...................................................................*/
 
 /*...*/
@@ -663,8 +667,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
             , const short ndm            , INT const nel)
 {
   /*...*/
-  bool fTime, fRes, fTurb, fRhieInt, fWallModel, fStruc;
-  bool fDiv, fViscosity;
+  bool fTime, fRes, fTurb, fRhieInt, fWallModel;
 /*...*/
   short iCodAdv1, iCodAdv2, iCodDif,wallType, idCell, nAresta
       , nCarg, typeTime, iCodBuoyant, iCodPolFace;
@@ -678,7 +681,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
          dFieldF[2], wf[2];
 /*...*/
   DOUBLE v[2], lKsi[2], lNormal[2], lXmcc[2], ccV[2];
-  DOUBLE dPviz, lModKsi, lModEta, du[2], duDksi[2], lXm[2];
+  DOUBLE lModKsi, lModEta, du[2], duDksi[2], lXm[2];
   DOUBLE coef, lAn, tmp;
 /*...*/
   DOUBLE dfd, cv, cvc[2], lvSkew[2];
@@ -706,6 +709,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
 /*...................................................................*/
 
 /*...*/
+  ts        = ddt.t;
   dt        = ddt.dt[0];  
   dt0       = ddt.dt[1];
   typeTime  = ddt.type;
@@ -719,8 +723,6 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
 
   fRhieInt    = ModelMomentum.fRhieChowInt;  
   fRes        = ModelMomentum.fRes;
-  fViscosity  = ModelMomentum.fViscosity;
-  fDiv        = ModelMomentum.fDiv;
   iCodBuoyant = ModelMomentum.iCodBuoyant;
   g[0]        = gravity[0];
   g[1]        = gravity[1];
@@ -909,7 +911,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
                     , lXmcc         , v
                     , lKsi          , lModKsi
                     , cv            , cvc
-                    , alphaMenosUm  ,alpha
+                    , alphaMenosUm  , alpha
                     , pAdv          , ndm
                     , iCodAdv1      , iCodAdv2);
 /*...................................................................*/
@@ -1291,6 +1293,14 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
                ,const short nEn            ,short const nFace
                ,const short ndm            ,INT const nel)
 {
+  bool fTime;
+  short iCodAdv1 = advVel.iCod1;
+  short iCodAdv2 = advVel.iCod2;
+  short iCodDif = diffVel.iCod;
+  INT vizNel;
+/*...*/
+  short idCell = nFace;
+  short nAresta, nCarg, typeTime;
   DOUBLE viscosityC, viscosityV, viscosity;
   DOUBLE densityC, densityV, density;
 /*...*/
@@ -1298,34 +1308,27 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
   DOUBLE p[2], sP, sPc[2],lA[(MAX_NUM_FACE + 1)*MAX_NDF],velExp[2];
 /*...*/
   DOUBLE v[2], lKsi[2], lNormal[2], lXmcc[2], wf[2], ccV[2];
-  DOUBLE dPviz, lModKsi, lModEta, du[2], duDksi[2], lXm[2];
+  DOUBLE lModKsi, lModEta, du[2], duDksi[2], lXm[2];
   DOUBLE coef, lAn, tmp;
 /*...*/
-  DOUBLE dfd, cv, cvc[2], lvSkew[2];
+  DOUBLE dPviz, dfd, cv, cvc[2], lvSkew[2];
 /*... nonOrtogonal*/
   DOUBLE e[2], t[2], modE, dfdc[2];
 /*... interpolacao linear*/
   DOUBLE alpha, alphaMenosUm;
-  DOUBLE aP, tA[2];
+  DOUBLE aP;/*, tA[2];*/
 /*... */
   DOUBLE pFace, pf[2], p1, p2;
 /*... */
   DOUBLE wfn, velC[2], velV[2], presC, presF;
   DOUBLE gradPresC[2], gradPresV[2];
   DOUBLE gradVelC[2][2], gradVelV[2][2], gf[2][2], gfKsi[2];
-  DOUBLE gradVelComp[2][2],xx[4],ts;
+  DOUBLE gradVelComp[2][2];
+  DOUBLE pAdv[NPADV];
 /*...*/
-  short iCodAdv1 = advVel.iCod1;
-  short iCodAdv2 = advVel.iCod2;
-  short iCodDif = diffVel.iCod;
-/*...*/
-  short idCell = nFace;
-  short nAresta, nCarg, typeTime;
-  INT vizNel;
-  bool fTime;
 
 /*...*/
-  ts       = ddt.t;
+//ts       = ddt.t;
   dt       = ddt.dt[0];
   dt0      = ddt.dt[1];
   typeTime = ddt.type;
@@ -1428,8 +1431,6 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
       modE = sqrt(e[0] * e[0] + e[1] * e[1]);
       dfd = coef*modE / lModKsi;
 /*...................................................................*/
-
-/*...*/
 /*... | du1/dx1 du1/dx2 |*/
       gf[0][0] = alphaMenosUm*gradVelC[0][0] + alpha*gradVelV[0][0];
       gf[0][1] = alphaMenosUm*gradVelC[0][1] + alpha*gradVelV[0][1];
@@ -1484,15 +1485,15 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
 /*... correcao do fluxo advectivo*/
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
-/*    advectiveScheme(velC, velV
+      advectiveScheme(velC, velV
                       , gradVelC[0], gradVelV[0]
                       , gradVelComp[0], lvSkew
                       , lXmcc, v
                       , lKsi, lModKsi
                       , cv, cvc
                       , alphaMenosUm  ,alpha
-                      , ndm
-                      , iCodAdv1, iCodAdv2);*/
+                      , pAdv     , ndm
+                      , iCodAdv1, iCodAdv2);  
 /*...................................................................*/
 
 /*...*/
@@ -1574,10 +1575,10 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
 
 /*... velocidades*/
       if (lFaceVelR[nAresta] > 0) {
-        xx[0] = MAT2D(nAresta, 0, xm, 2);
+/*      xx[0] = MAT2D(nAresta, 0, xm, 2);
         xx[1] = MAT2D(nAresta, 1, xm, 2);
         xx[2] = 0.e0;
-        xx[3] = ts;
+        xx[3] = ts;*/
 /*...cargas*/
         nCarg = lFaceVelL[nAresta] - 1;
 /*      pLoadSimple(sPc             , p
@@ -1804,6 +1805,13 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
             ,const short nEn             ,short const nFace    
             ,const short ndm             ,INT const nel)
 { 
+  bool fTime;
+  short idCell = nFace;
+  short nf,nCarg,typeTime;
+/*...*/
+  short iCodAdv1, iCodAdv2, iCodDif;
+  INT vizNel;
+/*...*/
   DOUBLE viscosityC ,viscosityV,viscosity;
   DOUBLE densityC   ,densityV  ,density;
 /*...*/
@@ -1819,7 +1827,8 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 	DOUBLE e[3], t[3], modE, dfdc[3];
 /*... interpolacao linear*/
   DOUBLE alpha,alphaMenosUm;
-  DOUBLE aP,tA[3];
+  DOUBLE aP;
+//tA[3];
 /*... */
   DOUBLE pFace,pf[3],p1,p2;
 /*... */
@@ -1828,15 +1837,13 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE gradVelC[3][3],gradVelV[3][3],gf[3][3],gfKsi[3];
   DOUBLE gradVelComp[3][3];
 /*...*/
-  short iCodAdv1= advVel.iCod1;
-  short iCodAdv2= advVel.iCod2;
-	short iCodDif = diffVel.iCod;
-/*...*/
-  short idCell = nFace;
-  short nf,nCarg,typeTime;
-  INT vizNel;
-  bool fTime;
+  DOUBLE pAdv[NPADV];
 
+/*...*/
+  iCodAdv1    = advVel.iCod1;
+  iCodAdv2    = advVel.iCod2;
+  pAdv[0]     = advVel.par[0];
+  iCodDif     = diffVel.iCod;
 /*...*/
   dt       = ddt.dt[0];
   dt0      = ddt.dt[1];
@@ -2052,15 +2059,15 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
       v[2] = lXm[2] - ccV[2];
-/*    advectiveScheme(velC          ,velV
+      advectiveScheme(velC          ,velV
                      ,gradVelC[0]   ,gradVelV[0]
                      ,gradVelComp[0],lvSkew
                      ,lXmcc         ,v  
                      ,lKsi          ,lModKsi
                      ,cv            ,cvc
                      ,alphaMenosUm  ,alpha
-                     ,ndm
-                     ,iCodAdv1      ,iCodAdv2);*/
+                     ,pAdv          ,ndm
+                     ,iCodAdv1      ,iCodAdv2);  
 /*...................................................................*/
 
 /*...*/
@@ -2176,16 +2183,17 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
       if(lFaceVelR[nf] > 0){
 /*...cargas*/
         nCarg = lFaceVelL[nf]-1;
-/*      pLoadSimple(sPc            ,p
-                   ,tA             ,velC  
-                   ,lNormal  
-                   ,gradVelC[0]    ,lXmcc 
-                   ,viscosityC     ,viscosityC
-                   ,densityC
-                   ,lFarea         ,dcca[nf]
-                   ,loadsVel[nCarg],ndm
-                   ,true           ,false
-                   ,false          ,0);*/
+/*      pLoadSimple(sPc            , p
+                  , tA             , lXmcc
+                  , velC           , gradVelC[0]
+                  , presC         , gradPresC                 
+                  , viscosityC     ,viscosityC
+                  , lNormal  
+                  , densityC
+                  , lFarea         ,dcca[nf]
+                  , loadsVel[nCarg],ndm
+                  , true           ,false
+                  , false          ,0);  */
       }  
 /*...................................................................*/
 
@@ -2455,7 +2463,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
          dFieldF[3], wf[3];
 /*...*/
   DOUBLE v[3], lKsi[3], lNormal[3], lXmcc[3], ccV[3];
-  DOUBLE dPviz, lModKsi, lFarea, du[3], duDksi[3], lXm[3];
+  DOUBLE lModKsi, lFarea, du[3], duDksi[3], lXm[3];
   DOUBLE coef, lAn, tmp;
 /*...*/
   DOUBLE dfd, cv, cvc[3], lvSkew[3];
@@ -3323,6 +3331,14 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
                  ,const short nEn            ,short const nFace
                  ,const short ndm            ,INT const nel)
 {
+/*...*/
+  bool fTime;
+  short iCodAdv1,iCodAdv2,iCodDif;
+/*...*/
+  short idCell = nFace;
+  short nf, nCarg, typeTime;
+/*...*/
+  INT vizNel;
   DOUBLE viscosityC, viscosityV, viscosity;
   DOUBLE densityC, densityV, density;
 /*...*/
@@ -3338,7 +3354,7 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
   DOUBLE e[3], t[3], modE, dfdc[3];
 /*... interpolacao linear*/
   DOUBLE alpha, alphaMenosUm;
-  DOUBLE aP, tA[3];
+  DOUBLE aP;
 /*... */
   DOUBLE pFace, pf[3], p1, p2;
 /*... */
@@ -3347,14 +3363,7 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
   DOUBLE gradVelC[3][3], gradVelV[3][3], gf[3][3], gfKsi[3];
   DOUBLE gradVelComp[3][3];
 /*...*/
-  short iCodAdv1 = advVel.iCod1;
-  short iCodAdv2 = advVel.iCod2;
-  short iCodDif = diffVel.iCod;
-/*...*/
-  short idCell = nFace;
-  short nf, nCarg, typeTime;
-  INT vizNel;
-  bool fTime;
+  DOUBLE pAdv[NPADV];
 
 /*...*/
   dt       = ddt.dt[0];
@@ -3362,6 +3371,10 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
   typeTime = ddt.type;
   fTime    = ddt.flag;
   densityC = lDensity[idCell];
+  iCodAdv1 = advVel.iCod1;
+  iCodAdv2 = advVel.iCod2;
+  iCodDif  = diffVel.iCod;
+  pAdv[0]  = advVel.par[0];
 /*...................................................................*/
 
 /*... propriedades da celula*/
@@ -3572,15 +3585,15 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
       v[2] = lXm[2] - ccV[2];
-/*    advectiveScheme(velC          , velV
+      advectiveScheme(velC          , velV
                     , gradVelC[0]   , gradVelV[0]
                     , gradVelComp[0], lvSkew
                     , lXmcc         , v
                     , lKsi          , lModKsi
                     , cv            , cvc
                     , alphaMenosUm  , alpha
-                    , ndm
-                    , iCodAdv1      , iCodAdv2);*/
+                    , pAdv          , ndm
+                    , iCodAdv1      , iCodAdv2);
 /*...................................................................*/
 
 /*...*/

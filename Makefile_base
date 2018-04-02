@@ -3,10 +3,11 @@ PATH_INCLUDE="include"
 PATH_LIB="lib"    
 PRENAME=mfvCell
 CC=gcc
-OPENMP=no
+OPENMP=yes
 OT=O3
 DEBUG=no
-
+MPI=no
+METIS=no
 #------------------gerando o nome do excutavel-------------
 ifeq ($(CC),icc)
   ifeq ($(OPENMP),yes)
@@ -17,48 +18,89 @@ ifeq ($(CC),icc)
 endif
 
 ifeq ($(CC),gcc)
-  ifeq ($(OPENMP),yes)
-    COMPILER_NAME=gnu_omp_$(OT)
+  COMPILER_NAME=gnu
+# --- mpi
+  ifeq ($(MPI),yes)
+    COMPILER_NAME=gnu_mpi_$(OT)
+# --- openmp
+    ifeq ($(OPENMP),yes)
+      COMPILER_NAME=gnu_mpi_omp_$(OT)
+    endif
+# --- sem mpi
   else
-    COMPILER_NAME=gnu_$(OT)
-  endif  
+# --- openmp
+    ifeq ($(OPENMP),yes)
+      COMPILER_NAME=gnu_omp_$(OT)
+		else
+      COMPILER_NAME=gnu_$(OT)
+		endif
+  endif
 endif
   
-NAME+=$(PRENAME)_$(COMPILER_NAME)
+NAME=$(PRENAME)_$(COMPILER_NAME)
 #-------------------Fontes--------------------------------
 fontes = \
 src/Assbly.c\
 src/Adjcency.c\
-src/CellLoop.c\
-src/CellLib.c\
 src/CellDif.c\
+src/CellEnergy.c\
+src/CellLib.c\
+src/CellLoop.c\
+src/CellPres.c\
+src/CellSimple.c\
+src/CellTrans.c\
 src/Csr.c\
+src/Coo.c\
 src/Datastruct.c\
 src/Debug.c\
+src/Diffusion.c\
+src/EllPack.c\
+src/ElmIncid.c\
+src/Energy.c\
 src/File.c\
 src/Graph.c\
 src/HccaBlas.c\
+src/HccaOpenMp.c\
+src/HccaSort.c\
+src/Iters.c\
+src/Jacobi.c\
+src/Loads.c\
 src/Main.c\
+src/Media.c\
 src/Memoria.c\
 src/Numeq.c\
+src/NunInt.c\
+src/ParallelMpi.c\
+src/PartMesh.c\
+src/PreCond.c\
+src/Prime.c\
+src/Print.c\
+src/Properties.c\
+src/Random.c\
 src/Rcm.c\
 src/ReadFile.c\
 src/Reord.c\
+src/SaveLoad.c\
+src/Simple.c\
 src/Solv.c\
 src/Time.c\
-src/Iters.c\
+src/Transient.c\
+src/Transport.c\
+src/Turbulence.c\
 src/Vtk.c\
-src/WriteVtk.c\
-src/WriteMtx.c
+src/WriteCsv.c\
+src/WriteLog.c\
+src/WriteMtx.c\
+src/WriteVtk.c
 #-------------------Flags necessarios--------------------------------
-NFLAGS=-I$(PATH_INCLUDE) -L$(PATH_LIB) -D_MMIO_  -D_DEBUG \
-        -fopt-info-optimized-missed=logOpt.txt 
-LDFLAGS=-lmmio 
+#NFLAGS=-I$(PATH_INCLUDE) -L$(PATH_LIB) -D_MMIO_ 
+NFLAGS=-I$(PATH_INCLUDE) -L$(PATH_LIB) 
+#LDFLAGS=-lmmio  
 #--------------------compiladores------------------------------------
 # intel ifort
 ifeq ($(CC),icc)
   LDFLAGS += 
-  OFLAGS  +=  
+  OFLAGS  += -ansi -std=c99  
   ifeq ($(OPENMP),yes)
     OFLAGS  += -openmp
   endif
@@ -66,9 +108,18 @@ endif
 # gnu gcc
 ifeq ($(CC),gcc)
   LDFLAGS +=  -lm 
-  OFLAGS  +=  -Wall -ansi -std=c99 -pedantic-errors 
+  OFLAGS  +=  -Wall -ansi -std=c99 -pedantic-errors -pedantic\
+              -fopt-info-optimized-missed=logOpt.txt -mtune=native
+  ifeq ($(METIS),yes)
+    LDFLAGS += -lmetis-x86_64
+    OFLAGS  += -D_METIS_
+  endif
   ifeq ($(OPENMP),yes)
     OFLAGS  += -fopenmp
+  endif
+  ifeq ($(MPI),yes)
+    OFLAGS  +=  -D_MPICH_
+    CC=mpicc -cc=gcc
   endif
 endif
 #--------------------------------------------------------------------
@@ -99,14 +150,15 @@ cleantags:
 .PHONY: clean
 clean:  
 	@rm -fv src/*.o
-	@rm -fv ../src/*.o
+#	@rm -fv ../src/*.o
 	@rm -fv bin/$(NAME)
 
 .PHONY: cleanall
 cleanall:  
 	@rm -fv tags
 	@rm -fv src/*.o
-	@rm -fv ../src/*.o
+	@rm -fv src/*.swp
+#	@rm -fv ../src/*.o
 	@rm -fv bin/$(NAME)
 
 

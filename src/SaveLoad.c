@@ -21,7 +21,7 @@ void wSave(PropVar *prop           ,Turbulence *tModel
          ,Mean *media
          ,char *preName           ,char *nameOut) {
 
-  short k,j,ndm=mesh->ndm,nD,ntn=mesh->ntn;
+  short k,j,ndm=mesh->ndm,nD;
   INT i;
   FILE *file;
 
@@ -177,10 +177,10 @@ void wSave(PropVar *prop           ,Turbulence *tModel
 
 /*... condutividade*/
   if(media->fMedia){
-    fprintf(file,"/media/ %e %d %d\n",media->t0
-                                   ,media->startSample
-                                   ,media->endSample
-                                   ,mesh->numel);
+    fprintf(file,"/media/ %e %d %d %d\n",media->t0
+                                        ,media->startSample
+                                        ,media->endSample
+                                        ,mesh->numel);
     if(media->fVel){
       fprintf(file,"/mVel/\n");
       for (i = 0; i < mesh->numel; i++){
@@ -218,7 +218,7 @@ void load(PropVar *prop           ,Turbulence *tModel
          ,FILE *fileIn) {
   
   char word[WORD_SIZE], str[1024];
-  short k,j,ndm=mesh->ndm,nD,ntn=mesh->ntn;
+  short k,j,ndm=mesh->ndm,nD;
   INT i;
   FILE *file;
 

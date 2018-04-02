@@ -4,7 +4,7 @@
  * Data de criacao    : 27/01/2017                                   *
  * Data de modificaco : 27/01/2018                                   * 
  *-------------------------------------------------------------------* 
- * InletFunction:                                                         * 
+ * InletFunction:                                                    * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -14,12 +14,12 @@
  *-------------------------------------------------------------------* 
  * tA     -> valor calculado da funcao                               * 
  *-------------------------------------------------------------------* 
- * u(r) = vMax*(1-(r-d)/R)^(n)                                            * 
+ * u(r) = vMax*(1-(r-d)/R)^(n)                                       * 
  * n = 2 laminar                                                     * 
  * n = 7 turbulento                                                  *
  *-------------------------------------------------------------------* 
  *********************************************************************/
-DOUBLE static InletFunction(DOUBLE const x) {
+DOUBLE InletFunction(DOUBLE const x) {
 
   DOUBLE vMax,h,h2,f,r;
 
@@ -58,12 +58,12 @@ DOUBLE static InletFunction(DOUBLE const x) {
  *********************************************************************/
 void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx) {
 
-  DOUBLE x1,x2,x3,t;
+//DOUBLE x1,x2,x3;
 
-  x1=xx[0];
-  x2=xx[1];
-  x3=xx[2];
-  t =xx[3];
+//x1=xx[0];
+//x2=xx[1];
+//x3=xx[2];
+//t =xx[3];
 
   if (ld->type == DIRICHLETBC) {
     par[0] = ld->par[0];
@@ -104,7 +104,7 @@ void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx) {
     }
     else if (ld->nTypeVar == LFUNCPARABOLIC) {
       par[0] = ld->par[0];
-      par[1] = InletFunction(x2);
+//    par[1] = InletFunction(x2);
       par[2] = 0.0;
       par[3] = 0.0;
     }
@@ -223,9 +223,14 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
           , bool const fCalVel      , bool const fCalPres
           , bool const fWallModel   , short const wallType){
 
-  DOUBLE aP,wfn,wf[3],m,tmp[5],gradVelFace[9],modVel,yPlus,uPlus;
-  DOUBLE viscosityWall,densityEnv,par[MAXLOADPARAMETER],ev[3],dc,modE;
+  short i;
+  DOUBLE aP,wfn,m,tmp[5],gradVelFace[9],modVel,yPlus,uPlus;
+  DOUBLE viscosityWall,densityEnv,par[MAXLOADPARAMETER],ev[3];
   tmp[0] = tmp[1] = tmp[2] = tmp[3] = 0.e0;
+    
+  for(i=0;i<MAXLOADPARAMETER;i++)
+    par[i] = 0.e0;
+
 /*... parade impermeavel movel*/
   if( ld->type == MOVEWALL){
     getLoads(par,ld,xx);
@@ -632,13 +637,13 @@ void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
           , DOUBLE const presC          , DOUBLE *RESTRICT gradPresC 
           , DOUBLE *RESTRICT sl         , DOUBLE *RESTRICT e        
           , DOUBLE *RESTRICT t          , DOUBLE *RESTRICT n      
-          , DOUBLE const densityC       , DOUBLE *RESTRICT velC                                             
+          , DOUBLE const densityC       , DOUBLE *RESTRICT velC
           , DOUBLE const fArea          , DOUBLE const dd
           , Loads *ld                   , short  const ndm 
           , bool const fCal){              
 
   DOUBLE modVel,par[MAXLOADPARAMETER],ev[3],dc,densityEnv,m,presT;
-  DOUBLE tmp[5],presB,modE,xx[4];
+  DOUBLE tmp[5],modE,xx[4];
 
 /*...*/
   tmp[0] = e[0]*e[0] + e[1]*e[1];
@@ -857,9 +862,15 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
                , bool const iKelvin      , bool const fSheat
                , bool const fWallModel   , short const wallType){
 
+  short i;
   DOUBLE aP,h,wfn,wf[3],tempPlus,yPlus,uPlus,tC,tW,densityEnv;
   DOUBLE prM = viscosityC*sHeatC/thermCoef,diff;
   DOUBLE par[MAXLOADPARAMETER],velB[3];
+  
+  velB[0] = velB[1] = velB[2] = 0.e0;
+
+  for(i=0;i<MAXLOADPARAMETER;i++)
+    par[i] = 0.e0;
 
 /*...*/
   tempPlus = uPlus = yPlus = 0.e0;
@@ -1108,19 +1119,25 @@ void pLoadOneEqK(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
                , bool const fCal         , bool const fWallModel   
                , short const wallType){
 
-  DOUBLE aP,wfn,wf[3],yPlus,uF,densityEnv,in,vv,vB[3];
-  DOUBLE par[MAXLOADPARAMETER],modE,cMu = 0.09,xx[4];
+  short i;
+  DOUBLE aP,wfn,densityEnv,in,vv,vB[3];
+  DOUBLE par[MAXLOADPARAMETER],xx[4];
 
-  yPlus = 0.e0;
+
+  densityEnv = wfn = 0.e0;
+  for(i=0;i<MAXLOADPARAMETER;i++)
+    par[i] = 0.e0;
+
+//yPlus = 0.e0;
 /*...*/
-  if (fWallModel && fCal) {
+//if (fWallModel && fCal) {
 /*... calculo da velocidade paralela a face*/
-    yPlus = wallPar[0];
-    uF    = wallPar[2];
+//  yPlus = wallPar[0];
+//  uF    = wallPar[2];
 /*...*/ 
 //    tempPlus = wallModelHeat(yPlus,prM,prT);
 /*...................................................................*/ 
-  }
+//}
 /*...................................................................*/ 
 
 /*...*/

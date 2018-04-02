@@ -392,7 +392,7 @@ DOUBLE offForbeniusNormSym(DOUBLE *RESTRICT a,INT const n){
  * OBS:                                                                *
  * ------------------------------------------------------------------  * 
  ***********************************************************************/
- static void symSchur2(DOUBLE const aqq, DOUBLE const app
+ void symSchur2(DOUBLE const aqq, DOUBLE const app
                      , DOUBLE const apq
                      , DOUBLE *c       ,DOUBLE *s){
 

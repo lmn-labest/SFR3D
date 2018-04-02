@@ -2398,11 +2398,19 @@ void greenGaussNode(INT *RESTRICT lViz   ,DOUBLE *RESTRICT fArea
   INT no[4];
   short idCell = nFace;
   short i,j,k;
-
+  
   invVol = 1.e0/volume[idCell];
   
   for(i=0;i<ndf*ndm;i++)
     gradU[i]  = 0.e0;
+  
+  for(i=0;i<ndm;i++)
+    lNormal[i]  = 0.e0;
+  
+  for(i=0;i<MAX_NDF;i++)
+    uf[i]  = 0.e0;
+
+  
   
 /*...*/
   for(i=0;i<nFace;i++){
@@ -2508,6 +2516,9 @@ void  leastSquare(Loads *loads
   INT vizNel;
   short idCell = nFace,nCarg,type;
   short i,j,k,l;
+  
+  for(j=0;j<MAX_NDF;j++)
+    uC[j] = 0.e0;
  
   for(l=0;l<1;l++){    
 /*... um grau de liberdade*/  
@@ -2750,6 +2761,9 @@ void  leastSquareQR(Loads *loads
   short idCell = nFace,type;
   short i,j,k,l,nCarg;
 
+  for(j=0;j<MAX_NDF;j++)
+    uC[j] = 0.e0;
+ 
   for(l=0;l<1;l++){
 /*... um grau de liberdade*/  
     if(ndf == 1){
@@ -3886,7 +3900,6 @@ DOUBLE limitFaceBase(DOUBLE const r,short const iCod)
 void nvd(DOUBLE const phiTil,DOUBLE *p, short const iCod)
 {
 
-  DOUBLE a;
   short i; 
 
   char scheme_nvd[][20] ={"BCD"        ,"MUSCL"   ,"Smart"
@@ -6012,7 +6025,7 @@ DOUBLE interpolFaceVel(DOUBLE *RESTRICT velC,DOUBLE *RESTRICT velV
 
   DOUBLE wfn,nk,wf[3],gf[3],gfp[3];
 
-  wfn = 0.e0;
+  wfn = gfp[0] = gfp[1] = gfp[2] = 0.e0;
   if( ndm == 2 ){
 /*...*/
     wf[0] = alphaMenosUm*velC[0] + alpha*velV[0];
@@ -6266,7 +6279,7 @@ void stressEddyViscosity(DOUBLE *RESTRICT s,DOUBLE *RESTRICT gradVel
  **********************************************************************/
 DOUBLE qCriterion(DOUBLE *RESTRICT gradVel, short const ndm) {
 
-  DOUBLE q,ss,ww,s[6],w[3];
+  DOUBLE q=0.0e0,ss,ww,s[6],w[3];
 
 
   if (ndm == 3) {
@@ -6327,7 +6340,7 @@ DOUBLE interpolFace(DOUBLE *RESTRICT vSkew, DOUBLE *RESTRICT xmcc
                   , short iCod    ) 
 {
 
-  DOUBLE v[3],alpha,dPviz;
+  DOUBLE v[3],alpha=0.e0,dPviz;
 
 
   switch(iCod){

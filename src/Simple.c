@@ -664,9 +664,9 @@ void simpleSolverLm(Memoria *m          , PropVar prop
                  kZeroEnergy = sp->kZeroEnergy;
   INT jj = 1;
   DOUBLE time, timei;
-  DOUBLE *b1, *b2, *b3, *bPc, *bE, *xu1, *xu2, *xu3, *xp;
+  DOUBLE *b1, *b2, *b3, *bPc, *xu1, *xu2, *xu3, *xp;
   DOUBLE *adU1, *adU2, *adU3;
-  DOUBLE *rCellPc,*rCellE;
+  DOUBLE *rCellPc;
 /*...*/
   DOUBLE rU[3], rU0[3], tb[3], tmp, rMass0, rMass
        , rEnergy0, rEnergy;
@@ -703,7 +703,6 @@ void simpleSolverLm(Memoria *m          , PropVar prop
   b2 = &sistEqVel->b[sistEqVel->neq];
   if (ndfVel == 3) b3 = &sistEqVel->b[2 * sistEqVel->neq];
   bPc = sistEqPres->b;
-  bE  = sistEqEnergy->b;
 
   xu1 = sistEqVel->x;
   xu2 = &sistEqVel->x[sistEqVel->neq];
@@ -715,7 +714,6 @@ void simpleSolverLm(Memoria *m          , PropVar prop
   if (ndfVel == 3) adU3 = &sistEqVel->ad[2 * sistEqVel->neq];
 
   rCellPc = mesh->elm.rCellPres;
-  rCellE  = mesh->elm.rCellEnergy;
 /*...................................................................*/
 
 /*...*/

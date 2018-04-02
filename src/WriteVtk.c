@@ -2231,7 +2231,7 @@ void makePresTotal(DOUBLE *RESTRICT presT, DOUBLE *RESTRICT pres
 void makeModuleVel(DOUBLE *RESTRICT p,DOUBLE *RESTRICT vel
                  , INT const n           , short const ndm) {
   INT i;
-  DOUBLE vv,den,v[3];
+  DOUBLE vv,v[3];
 
   for (i = 0; i < n; i++) {
     v[0] =  MAT2D(i, 0, vel, ndm);

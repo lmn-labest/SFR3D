@@ -777,16 +777,16 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
             , const short nEn             , short const nFace
             , const short ndm             , INT const nel)
 {
-  bool fTime, fRes, fTurb, fWallModel, flag, fDynamic;
+  bool fTime, fRes, fWallModel, flag, fDynamic;
   short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf, nCarg1
         , nCarg2, typeTime;
 /*...*/
   INT vizNel;
 /*...*/
-  DOUBLE ck,ce,sk, densityC, densityV, densityM;
+  DOUBLE ce,sk, densityC, densityV, densityM;
   DOUBLE diffEffC, diffEffV, diffEff; 
   DOUBLE eddyViscosityC, eddyViscosityV, viscosityC, viscosityV;
-  DOUBLE tmp, tmp1, prTwall, prTsgs, tA, coef;
+  DOUBLE tmp, tmp1, prTwall, tA, coef;
   DOUBLE p, sP, dfd, gfKsi, lvSkew[3], alpha, alphaMenosUm;
   DOUBLE v[3], gradUcomp[3], lKsi[3], lNormal[3], gf[3];
   DOUBLE dPviz, lModKsi, lFarea, du, duDksi, lXmcc[3], lXm[3];
@@ -795,7 +795,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
 /*... nonOrtogonal*/
   DOUBLE e[3], t[3], modE, dfdc, xx[3];
 /*... */
-  DOUBLE presC, presC0, presV, gradPresC[3], gradPresV[3], wfn
+  DOUBLE presC, presV, gradPresC[3], gradPresV[3], wfn
         , velC[3], velV[3], dFieldC[3], dFieldV[3], dFieldF[3], cv, cvc
         , s[6], sd[6], delta;       
 /*...*/
@@ -818,19 +818,19 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
   fDynamic   = tModel->fDynamic;
   flag       = false;
   fRes       = tModel->eK.fRes;
-  fTurb      = tModel->fTurb;
+//fTurb      = tModel->fTurb;
   prTwall    = tModel->PrandltTwall;
-  prTsgs     = tModel->PrandltTsgs;
+//prTsgs     = tModel->PrandltTsgs;
   fWallModel = tModel->fWall;
   wallType   = tModel->wallType;
   
   if(fDynamic){
-    ck = cDyn[0];
+//  ck = cDyn[0];
     ce = cDyn[1];
     sk = tModel->eK.sk;
   }
   else {
-    ck = tModel->eK.ck;
+//  ck = tModel->eK.ck;
     ce = tModel->eK.ce;
     sk = tModel->eK.sk;
   }

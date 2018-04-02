@@ -199,14 +199,14 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
     , DOUBLE *RESTRICT density             , DOUBLE *RESTRICT dViscosity 
     , DOUBLE *RESTRICT eddyViscosity       , DOUBLE *RESTRICT wallPar
     , Temporal ddt                     
-    , INT const nEq                        , INT const nEqNov
-    , INT const nAd                        , INT const nAdR                 
-    , short const maxNo                    , short const maxViz
-    , short const ndm                      , INT const numel
-    , short const ndf                      , short const storage
-    , short const ntn                      , bool const forces      
-    , bool const matrix                    , bool const calRcell
-    , const bool unsym                     , bool const sPressure); 
+    , INT nEq                              , INT nEqNov
+    , INT nAd                              , INT nAdR                 
+    , short maxNo                          , short maxViz
+    , short ndm                            , INT numel
+    , short ndf                            , short storage
+    , short ntn                            , bool forces      
+    , bool matrix                          , bool calRcell
+    , bool unsym                           , bool sPressure); 
 
 /* ... montagem do sistemas de equacoes (Simple - Pres)*/
   void systFormSimplePresLm(Loads *loadsVel, Loads *loadsPres 

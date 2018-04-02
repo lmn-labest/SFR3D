@@ -3092,6 +3092,9 @@ void help(FILE *f){
     printf("advection 3 Vel FoUp Energy CD Temp SoUp \n"); 
     printf("Ex2:\n"); 
     printf("advection 2 Vel NVD [options] Energy TVD [opitions]\n");
+    printf("Options:\n");
+    for(i=0;i<6;i++)
+      printf("%3d - %s\n",i+1,fAdv[i]);
     printf("TVD options:\n");
     for(i=0;i<NFUNCLIMTFACE;i++)
       printf("%3d - %s\n",i+1,tvd[i]);
@@ -3187,13 +3190,12 @@ void setMixedModelLes(Turbulence *t       , FILE *file) {
                             ,"sigmamodel" ,"bardina" 
                             ,"clark"      ,"bardinamod" }; 
 
-  short k = 0, ii=0,jj;
+  short k = 0, ii=0;
 
   do{
     ii++;
     readMacro(file,word,false);
     convStringLower(word);
-    jj = 0;
 /*... Smagorinsky*/
     if(!strcmp(word,turb[0])){ 
       k++;
@@ -3291,7 +3293,7 @@ void setDynamicModelLes(Turbulence *t       , FILE *file) {
   char turb[][WORD_SIZE] = { "smagorinsky","sigmamodel"
                             ,"wale"       ,"vreman"}; 
 
-  short k = 0, ii=0,jj;
+  short k = 0;
 
   readMacro(file,word,false);
   convStringLower(word);
@@ -3488,7 +3490,6 @@ void readSetSimple(Memoria *m    , FILE *fileIn
                  , Simple *simple, bool *fSolvSimple) {
 
   char word[WORD_SIZE];
-  unsigned short nScheme;
 
 /*...*/
   *fSolvSimple            = true;  
@@ -3593,7 +3594,6 @@ void readSetPrime(Memoria *m    , FILE *fileIn
                  , Prime  *prime, bool *fSolvPrime) {
 
   char word[WORD_SIZE];
-  unsigned short nScheme;
 
   *fSolvPrime = true;
   prime->maxIt = 2000;

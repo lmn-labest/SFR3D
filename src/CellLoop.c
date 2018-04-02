@@ -549,9 +549,9 @@ void systFormTrans(Loads *loads
                ,bool forces              ,bool matrix 
                ,bool calRcell            ,bool unsym) 
 {
+  short i,j;
   short nThreads = ompVar.nThreadsCell;
   INT nel,vizNel;
-  short i,j;
 /*... variavel local */
   DOUBLE lKsi[MAX_NUM_FACE*MAX_NDM],lmKsi[MAX_NUM_FACE];
   DOUBLE lEta[MAX_NUM_FACE*MAX_NDM],lfArea[MAX_NUM_FACE];
@@ -1452,14 +1452,14 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
     , DOUBLE *RESTRICT density             , DOUBLE *RESTRICT dViscosity 
     , DOUBLE *RESTRICT eddyViscosity       , DOUBLE *RESTRICT wallPar
     , Temporal ddt                     
-    , INT const nEq                        , INT const nEqNov
-    , INT const nAd                        , INT const nAdR                 
-    , short const maxNo                    , short const maxViz
-    , short const ndm                      , INT const numel
-    , short const ndf                      , short const storage
-    , short const ntn                      , bool const forces      
-    , bool const matrix                    , bool const calRcell
-    , const bool unsym                     , bool const sPressure) 
+    , INT nEq                              , INT nEqNov
+    , INT nAd                              , INT nAdR                 
+    , short maxNo                          , short maxViz
+    , short ndm                            , INT numel
+    , short ndf                            , short storage
+    , short ntn                            , bool forces      
+    , bool matrix                          , bool calRcell
+    , bool unsym                           , bool sPressure) 
 {   
   short i,j,k;
   short nThreads = ompVar.nThreadsCell;
@@ -1983,7 +1983,6 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
   DOUBLE lDcca[MAX_NUM_FACE];
   DOUBLE lmvSkew[MAX_NUM_FACE], lvSkew[MAX_NUM_FACE*MAX_NDM];
   short  lGeomType[MAX_NUM_FACE+1];
-  short  lib;
   short  lFaceVelR[MAX_NUM_FACE+1],lFacePresR[MAX_NUM_FACE+1];
   short  lFaceVelL[MAX_NUM_FACE+1],lFacePresL[MAX_NUM_FACE+1];
   DOUBLE lDensity[(MAX_NUM_FACE+1)];
@@ -2002,7 +2001,7 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
 /*... loop nas celulas*/
     aux2 = maxViz + 1;
 #pragma omp parallel  for default(none) num_threads(nThreads)\
-     private(nel,i,j,k,aux1,lPres,lMat,lib,lVolume,lGeomType\
+     private(nel,i,j,k,aux1,lPres,lMat,lVolume,lGeomType\
           ,lFaceVelR,lDfield,lB,lBt\
           ,lFaceVelL,lFacePresR,lFacePresL,lDensity,lProp,lGradPres\
           ,lVel,lCc,lGradVel,lmKsi,lfArea,lDcca,lmvSkew,lKsi,lEta\
@@ -2024,7 +2023,7 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
 
 /*... loop na celula central*/
         lMat             = mat[nel] - 1;
-        lib              = calType[lMat];
+//      lib              = calType[lMat];
         lVolume[aux1]    = gVolume[nel];
         lGeomType[aux1]  = geomType[nel];
         lFaceVelR[aux1]  = MAT2D(nel, aux1, faceVelR, aux2);
@@ -2151,7 +2150,7 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
 
 /*... loop na celula central*/
         lMat             = mat[nel] - 1;
-        lib              = calType[lMat];
+//      lib              = calType[lMat];
         lVolume[aux1]    = gVolume[nel];
         lGeomType[aux1]  = geomType[nel];
         lFaceVelR[aux1]  = MAT2D(nel,aux1,faceVelR ,aux2);
@@ -2950,7 +2949,7 @@ void systFormOneEqK(Loads *ldsK        ,Loads *ldsVel
        , bool forces                   , bool matrix
        , bool calRcell                 , bool unsym)
 {
-  short i, j, k, lib, aux1, aux2, lMat;;
+  short i, j, k, aux1, aux2, lMat;;
   short nThreads = ompVar.nThreadsCell;
   INT nel, vizNel;
   
@@ -2981,7 +2980,7 @@ void systFormOneEqK(Loads *ldsK        ,Loads *ldsVel
 /*... loop nas celulas*/
     aux2 = maxViz + 1;
 #pragma omp parallel  for default(none) num_threads(nThreads)\
-     private(nel,i,j,k,aux1,lId,lMat,lib,lVolume,lGeomType,lu0\
+     private(nel,i,j,k,aux1,lId,lMat,lVolume,lGeomType,lu0\
           ,lA,lB,lDensity,lProp,lGradU0,lDfield\
           ,lFaceReK,lFaceLdK,lFaceReVel,lFaceLdVel\
           ,lVel,lCc,lmKsi,lfArea,lDcca,lmvSkew,lKsi,lEta,lViscosity\
@@ -3012,7 +3011,7 @@ void systFormOneEqK(Loads *ldsK        ,Loads *ldsVel
         }
 /*... loop na celula central*/
         lMat             = mat[nel] - 1;
-        lib              = calType[lMat];
+//      lib              = calType[lMat];
         lVolume[aux1]    = gVolume[nel];
         lGeomType[aux1]  = geomType[nel];
         lFaceReK[aux1]   = MAT2D(nel, aux1, faceReK, aux2);
@@ -3198,7 +3197,7 @@ void systFormOneEqK(Loads *ldsK        ,Loads *ldsVel
         }
 /*... loop na celula central*/
         lMat             = mat[nel] - 1;
-        lib              = calType[lMat];
+//      lib              = calType[lMat];
         lVolume[aux1]    = gVolume[nel];
         lGeomType[aux1]  = geomType[nel];
         lFaceReK[aux1]   = MAT2D(nel, aux1, faceReK, aux2);
@@ -3455,9 +3454,9 @@ void velResidual(Loads *loadsVel            , Loads *loadsPres
               , short ndf                  , bool sPressure
               , bool fResidual)
 {
+  short i, j, k;
   short nThreads = ompVar.nThreadsCell;
   INT nel, vizNel;
-  short i, j, k;
   /*... variavel local*/
   DOUBLE lKsi[MAX_NUM_FACE*MAX_NDM], lmKsi[MAX_NUM_FACE];
   DOUBLE lEta[MAX_NUM_FACE*MAX_NDM], lfArea[MAX_NUM_FACE];
@@ -3466,7 +3465,6 @@ void velResidual(Loads *loadsVel            , Loads *loadsPres
   DOUBLE lDcca[MAX_NUM_FACE];
   DOUBLE lmvSkew[MAX_NUM_FACE], lvSkew[MAX_NUM_FACE*MAX_NDM];
   short  lGeomType[MAX_NUM_FACE + 1];
-  short  lib;
   short  lFaceVelR[MAX_NUM_FACE + 1], lFacePresR[MAX_NUM_FACE + 1];
   short  lFaceVelL[MAX_NUM_FACE + 1], lFacePresL[MAX_NUM_FACE + 1];
   DOUBLE lDensity[(MAX_NUM_FACE + 1)];
@@ -3485,7 +3483,7 @@ void velResidual(Loads *loadsVel            , Loads *loadsPres
 /*... loop nas celulas*/
     aux2 = maxViz + 1;
 #pragma omp parallel  for default(none) num_threads(nThreads)\
-     private(nel,i,j,k,aux1,lPres,lMat,lib,lVolume,lGeomType\
+     private(nel,i,j,k,aux1,lPres,lMat,lVolume,lGeomType\
           ,lFaceVelR,lDfield,lB,lBt\
           ,lFaceVelL,lFacePresR,lFacePresL,lDensity,lProp,lGradPres\
           ,lVel,lCc,lGradVel,lmKsi,lfArea,lDcca,lmvSkew,lKsi,lEta\
@@ -3507,7 +3505,7 @@ void velResidual(Loads *loadsVel            , Loads *loadsPres
 
 /*... loop na celula central*/
         lMat = mat[nel] - 1;
-        lib = calType[lMat];
+//      lib = calType[lMat];
         lVolume[aux1] = gVolume[nel];
         lGeomType[aux1] = geomType[nel];
         lFaceVelR[aux1] = MAT2D(nel, aux1, faceVelR, aux2);
@@ -3643,7 +3641,7 @@ void velResidual(Loads *loadsVel            , Loads *loadsPres
 
 /*... loop na celula central*/
         lMat             = mat[nel] - 1;
-        lib              = calType[lMat];
+//      lib              = calType[lMat];
         lVolume[aux1]    = gVolume[nel];
         lGeomType[aux1]  = geomType[nel];
         lFaceVelR[aux1]  = MAT2D(nel, aux1, faceVelR, aux2);
@@ -3872,9 +3870,9 @@ void systFormSimplePres(Loads *loadsVel  , Loads *loadsPres
                , bool forces              , bool matrix 
                , bool calRcell            , bool unsym) 
 {
+  short i,j;
   short nThreads = ompVar.nThreadsCell;
   INT nel,vizNel;
-  short i,j;
 /*... variavel local */
   DOUBLE lKsi[MAX_NUM_FACE*MAX_NDM],lmKsi[MAX_NUM_FACE];
   DOUBLE lEta[MAX_NUM_FACE*MAX_NDM],lfArea[MAX_NUM_FACE];
@@ -4295,17 +4293,17 @@ void systFormSimplePresLm(Loads *loadsVel, Loads *loadsPres
                ,DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT dField
                ,DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT wallPar  
                ,DOUBLE *RESTRICT rCell   , Temporal ddt 
-               ,INT const nEq            , INT const nEqNov
-               ,INT const nAd            , INT const nAdR                  
-               ,short const maxNo        , short const maxViz
-               ,short const ndm          , INT const numel
-               ,short const ndf          , short const storage
-               ,bool const forces        , bool const matrix 
-               ,bool const calRcell      , bool const  unsym) 
+               ,INT nEq                  , INT nEqNov
+               ,INT nAd                  , INT nAdR                  
+               ,short maxNo              , short maxViz
+               ,short ndm                , INT numel
+               ,short ndf                , short storage
+               ,bool forces              , bool matrix 
+               ,bool calRcell            , bool unsym) 
 {
+  short i,j;
   short nThreads = ompVar.nThreadsCell;
   INT nel,vizNel;
-  short i,j;
 /*... variavel local */
   DOUBLE lKsi[MAX_NUM_FACE*MAX_NDM],lmKsi[MAX_NUM_FACE];
   DOUBLE lEta[MAX_NUM_FACE*MAX_NDM],lfArea[MAX_NUM_FACE];
@@ -5600,9 +5598,9 @@ void rcGradU(Memoria *m               , Loads *loads
            , INT numelNov             , INT numel 
            , INT nNodeNov             , INT nNode)
 {
+  short i,j;
   short nThreads = ompVar.nThreadsCell;
   INT nel,no,vizNel;
-  short i,j;
 /*... variavel local */
   DOUBLE lKsi[MAX_NUM_FACE*3],lmKsi[MAX_NUM_FACE];
   DOUBLE lEta[MAX_NUM_FACE*3],lfArea[MAX_NUM_FACE];
@@ -6002,7 +6000,6 @@ void rcLeastSquare(DOUBLE *RESTRICT gKsi    ,DOUBLE *RESTRICT gmKsi
   void convTempForKelvin(DOUBLE *RESTRICT u,INT const n
                         ,bool const fKelvin){
     int i;
-    DOUBLE tmp;
 /*...*/
     if(fKelvin){
       for(i=0;i<n;i++){
@@ -6223,7 +6220,6 @@ void parameterCellLm(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT prop
         ,dm=0.e0,vm=0.e0;
   DOUBLE cflMax=0.0e0,reynoldsMax=0.e0,pecletMax=0.e0;
   INT i;
-  short lMat;
 
   for(i=0;i<nEl;i++){
 
@@ -6274,7 +6270,6 @@ void parameterCellLm(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT prop
 /*..................................................................*/
 
 /*...*/
-      lMat      = mat[i]-1;
       den       = MAT2D(i,2 ,density ,DENSITY_LEVEL);
       viscosity = dViscosity[i];
 /*..................................................................*/

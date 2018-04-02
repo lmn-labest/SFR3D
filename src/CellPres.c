@@ -132,7 +132,7 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
 	DOUBLE e[2],t[2],s[2],modE;
 /*... interpolacao linear*/
   DOUBLE alpha,alphaMenosUm;
-  DOUBLE tA[2],ddum=0.e0;
+  DOUBLE tA[2];
 /*... */
   DOUBLE wfn,velC[2],velF[2],presC,presV;
 /*...*/
@@ -419,7 +419,7 @@ void cellSimplePres2DLm(Loads *lVel      , Loads *lPres
 /*... nonOrtogonal*/
 	DOUBLE e[2],t[2],s[2],modE;
 /*... interpolacao linear*/
-  DOUBLE alpha,alphaMenosUm,tA[2],ddum=0.e0;
+  DOUBLE alpha,alphaMenosUm,tA[2];
 /*... */
   DOUBLE wfn,velC[2],velF[2],presC,presV,tempC;
 
@@ -708,7 +708,7 @@ void cellSimpleNonOrthPres2D(Diffusion diffPres
   DOUBLE p,coef;
 /*...*/
   DOUBLE v[2],lKsi[2],lNormal[2],presC,presV;
-  DOUBLE ccV[2],ccC[2],lXm[2],lXmcc[2];
+//DOUBLE ccV[2],ccC[2],lXm[2],lXmcc[2];
   DOUBLE dPviz,lModKsi,lModEta,du,duDksi;
 /*...*/
   DOUBLE gradPresC[2],gradPresV[2],gradPresComp[2],gf[2],gfKsi;
@@ -734,8 +734,8 @@ void cellSimpleNonOrthPres2D(Diffusion diffPres
   gradPresC[0] = MAT2D(idCell,0,gradPres,ndm);
   gradPresC[1] = MAT2D(idCell,1,gradPres,ndm);
       
-  ccC[0]     =  MAT2D(idCell,0,cc,ndm);
-  ccC[1]     =  MAT2D(idCell,1,cc,ndm);
+//ccC[0]     =  MAT2D(idCell,0,cc,ndm);
+//ccC[1]     =  MAT2D(idCell,1,cc,ndm);
 
   presC      =  pres[idCell];
 
@@ -771,14 +771,14 @@ void cellSimpleNonOrthPres2D(Diffusion diffPres
 
       densityV   = lDensity[nAresta];
 
-      ccV[0]     =  MAT2D(nAresta,0,cc,ndm);
+/*    ccV[0]     =  MAT2D(nAresta,0,cc,ndm);
       ccV[1]     =  MAT2D(nAresta,1,cc,ndm);
 
       lXm[0]     =  MAT2D(nAresta,0,xm,ndm);
       lXm[1]     =  MAT2D(nAresta,1,xm,ndm);
 
       lXmcc[0]   = MAT2D(nAresta,0,xmcc,ndm);
-      lXmcc[1]   = MAT2D(nAresta,1,xmcc,ndm);
+      lXmcc[1]   = MAT2D(nAresta,1,xmcc,ndm);*/
       
       gradPresV[0] =  MAT2D(nAresta,0,gradPres,ndm);
       gradPresV[1] =  MAT2D(nAresta,1,gradPres,ndm);
@@ -940,7 +940,7 @@ void cellSimplePres3D(Loads *lVel       ,Loads *lPres
 	DOUBLE e[3],t[3],s[3],modE;
 /*... interpolacao linear*/
   DOUBLE alpha,alphaMenosUm;
-  DOUBLE tA[3],ddum=0.e0;
+  DOUBLE tA[3];
 /*... */
   DOUBLE wfn,velC[3],velF[3],presC,presV;
 /*...*/
@@ -1269,7 +1269,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*...*/
   DOUBLE rCell,p,sP, dt, dt0, tmp, tmp0, tmp00, tmp1;
 /*...*/
-  DOUBLE v[3],lKsi[3],lXmcc[3],lNormal[3],dPviz,lModKsi,lFarea;
+  DOUBLE lKsi[3],lXmcc[3],lNormal[3],lModKsi,lFarea;
 /*...*/
   DOUBLE gradPresC[3],gradPresV[3];
 /*...*/
@@ -1439,7 +1439,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
                       , t               , lNormal
                       , densityC        , velC
                       , lFarea          , lModKsi
-                      , &lPres[nCarg]    , ndm
+                      , &lPres[nCarg]   , ndm
                       , true);
 /*...................................................................*/
       }
@@ -1606,7 +1606,7 @@ void cellSimpleNonOrthPres3D(Diffusion diffPres
   DOUBLE p,coef;
 /*...*/
   DOUBLE v[3],lKsi[3],lNormal[3],presC,presV;
-  DOUBLE ccV[3],ccC[3],lXm[3],lXmcc[3];
+/*DOUBLE ccV[3],ccC[3],lXm[3],lXmcc[3];*/
   DOUBLE dPviz,lModKsi,lFarea,du,duDksi;
 /*...*/
   DOUBLE gradPresC[3],gradPresV[3],gradPresComp[3],gf[3],gfKsi;
@@ -1633,9 +1633,9 @@ void cellSimpleNonOrthPres3D(Diffusion diffPres
   gradPresC[1] = MAT2D(idCell,1,gradPres,ndm);
   gradPresC[2] = MAT2D(idCell,2,gradPres,ndm);
       
-  ccC[0]     =  MAT2D(idCell,0,cc,ndm);
+/*ccC[0]     =  MAT2D(idCell,0,cc,ndm);
   ccC[1]     =  MAT2D(idCell,1,cc,ndm);
-  ccC[2]     =  MAT2D(idCell,2,cc,ndm);
+  ccC[2]     =  MAT2D(idCell,2,cc,ndm);*/
 
   presC      =  pres[idCell];
 
@@ -1677,7 +1677,7 @@ void cellSimpleNonOrthPres3D(Diffusion diffPres
 
       densityV   = lDensity[nAresta];
 
-      ccV[0]     =  MAT2D(nAresta,0,cc,ndm);
+/*    ccV[0]     =  MAT2D(nAresta,0,cc,ndm);
       ccV[1]     =  MAT2D(nAresta,1,cc,ndm);
       ccV[2]     =  MAT2D(nAresta,2,cc,ndm);
 
@@ -1687,7 +1687,7 @@ void cellSimpleNonOrthPres3D(Diffusion diffPres
 
       lXmcc[0]   = MAT2D(nAresta,0,xmcc,ndm);
       lXmcc[1]   = MAT2D(nAresta,1,xmcc,ndm);
-      lXmcc[2]   = MAT2D(nAresta,2,xmcc,ndm);
+      lXmcc[2]   = MAT2D(nAresta,2,xmcc,ndm);*/
       
       gradPresV[0] =  MAT2D(nAresta,0,gradPres,ndm);
       gradPresV[1] =  MAT2D(nAresta,1,gradPres,ndm);

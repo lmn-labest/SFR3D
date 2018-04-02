@@ -11,7 +11,7 @@ c * ----------------------------------------------------------------  *
 c *                                                                   *
 c * PCG - gradiente conjugados com precondicionador diagonal          *
 c *                                                                   * 
-c * MINRES - MINRES com precondicionador diagonal M=D(1/2)D(1/2)      *                                                    *
+c * MINRES - MINRES com precondicionador diagonal M=D(1/2)D(1/2)      *
 c * ----------------------------------------------------------------  *
 c * nao - simetricos:                                                 *
 c * ----------------------------------------------------------------  *
@@ -687,6 +687,7 @@ void minres(INT const nEq        , INT const nAd
   DOUBLE timei, timef;
 	timei = getTimeC();
   it       = 0;
+  ro1 = ro2 = ro3 = 1.e0;
 /*... chute inicial*/
 	if (newX)
 		for (i = 0; i < nEq; i++)
@@ -945,6 +946,7 @@ void pminres(INT const nEq      , INT const nAd
   DOUBLE timei, timef;
 	timei = getTimeC();
   it       = 0;
+  ro1 = ro2 = ro3 = 1.e0;
 /*... chute inicial*/
 	if (newX)
 		for (i = 0; i < nEq; i++)
@@ -2854,7 +2856,7 @@ void gmresOmp(INT const nEq      ,INT const nAd
              ,void(*matvec)()    ,DOUBLE(*dot)())
 {
   short nThreads = ompVar.nThreadsSolver;
-  int i, j, jj, ni, nIt;
+  int i, j, ni, nIt;
   unsigned short l,nCol = nKrylov;
   DOUBLE *g1, *g2;
   DOUBLE tmp, norm, norm_r, eConv, beta, h1, h2, aux1, aux2, r, xKx;
@@ -2895,7 +2897,6 @@ void gmresOmp(INT const nEq      ,INT const nAd
 
 /*... Ciclos Gmres*/
   nIt = 0;
-  jj = 0;
   for (l = 0; l < nCycles; l++) {
 /*... Residuo g1 = b - Ax*/
 #pragma omp parallel default(none) private(tmp)\

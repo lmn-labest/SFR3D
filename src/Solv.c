@@ -1366,8 +1366,8 @@ void callMklPardiso(INT nEq           , INT mtype
                   , bool const fPrint)
 {
   
-  INT nThreads = ompVar.nThreadsSolver;
-  DOUBLE norm,normR,xKx,mem,ddum,time;
+#if _MKL_
+  DOUBLE norm,normR,xKx,time;
 /*... variavel interna do mkl( 64 btis)*/
   void *pt[64];
 /*...*/
@@ -1394,7 +1394,7 @@ void callMklPardiso(INT nEq           , INT mtype
     iparm[1]  = 2;/*fill-in reordering from METIS*/
     iparm[6]  = 2;/*numbers of iterative refinement steps*/
     iparm[ 9] = 8;/*perturbe the pivot elements with 1E-08*/
-    iparm[20] = 1;/*Pivoting for symmetric indefinite matrices.*/                                 
+    iparm[20] = 1;/*Pivoting for symmetric indefinite matrices.*/                
     iparm[23] = 0;/*Parallel factorization control.*/
     iparm[34] = 1; /*C-style indexing*/
   }
@@ -1421,17 +1421,15 @@ void callMklPardiso(INT nEq           , INT mtype
 /*...*/
    phase = 13;       
    msglvl = 0;
-#if _MKL_
    mkl_set_num_threads(&nThreads);
    pardiso (pt   , &maxfct, &mnum, &mtype, &phase
           , &nEq , a      , ia   , ja
           , &idum, &nrhs  , iparm, &msglvl, b, x, &error);
-#endif
    time = getTimeC() - time;
 /*...................................................................*/
  
 /*...*/
-   mem = ( max(iparm[14], iparm[15] + iparm[16] ) )/1024e0;
+/* mem = ( max(iparm[14], iparm[15] + iparm[16] ) )/1024e0;*/
 /*...................................................................*/
   
 /*... produto:  x*Kx*/
@@ -1446,12 +1444,10 @@ void callMklPardiso(INT nEq           , INT mtype
 /*... Termination and release of memory*/
    phase = -1;/*release internal memory*/
    msglvl = 0;
-#if _MKL_
    pardiso(pt    , &maxfct, &mnum, &mtype , &phase
           , &nEq , &ddum, &idum  , &idum
           , &idum, &nrhs  , iparm, &msglvl
           , &ddum, &ddum  , &error);
-#endif
 /*....................................................................*/
 
 /*... r = (b - Ax) (calculo do residuo explicito)*/
@@ -1469,5 +1465,6 @@ void callMklPardiso(INT nEq           , INT mtype
 	          "\tCPU time(s)    = %20.2lf\n" 
 	          ,nEq,xKx,norm,normR,time);
 /*....................................................................*/
+#endif
 }
 /**********************************************************************/
