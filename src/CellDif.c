@@ -255,12 +255,16 @@ void cellDif2D(Loads *loads
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
+ * Data de criacao    : 16/01/2018                                   *
+ * Data de modificaco : 30/04/2018                                   *
+ * ----------------------------------------------------------------- *
  * CELLDIF3D: Celula 3D para difusao pura                            * 
- *-------------------------------------------------------------------* 
+ *------------------------------------------------------------------ * 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * loads     -> definicoes de cargas                                 * 
+ * diff      -> tecnica da discretizacao do termo difusivo           *
  * lnFace    -> numero de faces da celula central e seus vizinhos    * 
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
  * lprop     -> propriedade fisicas das celulas                      * 
@@ -305,7 +309,7 @@ void cellDif2D(Loads *loads
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellDif3D(Loads *loads
+void cellDif3D(Loads *loads             ,Diffusion *diff
               ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
               ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
               ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
@@ -315,33 +319,40 @@ void cellDif3D(Loads *loads
               ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
               ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
               ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-              ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt             
+              ,DOUBLE *RESTRICT lRcell  ,Temporal *ddt             
               ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL  
               ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
               ,const short nEn          ,short const nFace    
               ,const short ndm          ,INT const nel)
 { 
 
+  bool fTime,fRes;
+  short idCell, nf, nCarg, typeTime, iCodPolFace, iCodDif;
+  INT vizNel;
   DOUBLE coefDifC,coefDif,coefDifV,rCell,dt,dt0;
   DOUBLE densityC;
-  DOUBLE p,sP,nk,dfd,dfdc,gfKsi,modE,lvSkew[3];
-  DOUBLE v[3],gradUcomp[3],lKsi[3],lNormal[3],gf[3];
-  DOUBLE dPviz,lModKsi,lfArea,du,duDksi;
-  DOUBLE gradUp[3],gradUv[3],nMinusKsi[3];
+  DOUBLE p,sP,dfd,dfdc,gfKsi,lvSkew[3];
+  DOUBLE gradUcomp[3],lKsi[3],lNormal[3],gf[3];
+  DOUBLE lModKsi,lfArea,du,duDksi, lXmcc[3];
+  DOUBLE gradUp[3],gradUv[3];
   DOUBLE alpha,alphaMenosUm;
-  DOUBLE xx[3];
+/*... nonOrtogonal*/
+  DOUBLE e[3], t[3], s[3], modE, xx[3];
   DOUBLE tA,tmp;
-  short idCell = nFace;
-  short nf,nCarg,typeTime;
-  INT vizNel;
-  bool fTime;
 
 /*...*/
-  dt       = ddt.dt[0];
-  dt0      = ddt.dt[1];
-  typeTime = ddt.type;
-  fTime    = ddt.flag;
+  idCell      = nFace;
+  iCodDif     = diff->iCod;
+  iCodPolFace = INTPOLFACELINEAR;
+/*...................................................................*/
+
+/*...*/
+  dt       = ddt->dt[0];
+  dt0      = ddt->dt[1];
+  typeTime = ddt->type;
+  fTime    = ddt->flag;
   densityC = *lDensity;
+  fRes     = true;
 /*...................................................................*/
   
 /*... propriedades da celula*/
@@ -358,17 +369,20 @@ void cellDif3D(Loads *loads
   sP = 0.0e0;
   for(nf=0;nf<nFace;nf++){
     vizNel = lViz[nf];
+    lfArea = fArea[nf];
+    lNormal[0] = MAT2D(nf, 0, normal, ndm);
+    lNormal[1] = MAT2D(nf, 1, normal, ndm);
+    lNormal[2] = MAT2D(nf, 2, normal, ndm);
+    lXmcc[0] = MAT2D(nf, 0, xmcc, 3);
+    lXmcc[1] = MAT2D(nf, 1, xmcc, 3);
+    lXmcc[2] = MAT2D(nf, 2, xmcc, 3);
 /*... dominio*/
     if( vizNel  > -1 ){
 /*...*/
       lKsi[0]    = MAT2D(nf,0,ksi,ndm);
       lKsi[1]    = MAT2D(nf,1,ksi,ndm);
       lKsi[2]    = MAT2D(nf,2,ksi,ndm);
-      lNormal[0] = MAT2D(nf,0,normal,ndm);
-      lNormal[1] = MAT2D(nf,1,normal,ndm);
-      lNormal[2] = MAT2D(nf,2,normal,ndm);
       lModKsi    = mKsi[nf];
-      lfArea     = fArea[nf];
       lvSkew[0]  = MAT2D(nf,0,vSkew,ndm);
       lvSkew[1]  = MAT2D(nf,1,vSkew,ndm);
       lvSkew[2]  = MAT2D(nf,2,vSkew,ndm);
@@ -378,23 +392,22 @@ void cellDif3D(Loads *loads
       gradUv[2]  = MAT2D(nf,2,gradU0,ndm);
 /*...................................................................*/
 
-/*... produtos internos*/
-      nk = lNormal[0] * lKsi[0] 
-         + lNormal[1] * lKsi[1] 
-         + lNormal[2] * lKsi[2];
-/*...................................................................*/
-      
-/*... correcao sobre-relaxada*/
-      modE       = 1.0e0/nk;
+     
+/*... termo difusivo
+      grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
+      s[0] = lfArea * lNormal[0];
+      s[1] = lfArea * lNormal[1];
+      s[2] = lfArea * lNormal[2];
+/*...*/
+      difusionSchemeNew(s, lKsi, e, t, ndm, iCodDif);
 /*...................................................................*/
 
 /*...*/
-      v[0]  = lvSkew[0] + MAT2D(nf,0,xmcc,ndm);
-      v[1]  = lvSkew[1] + MAT2D(nf,1,xmcc,ndm);
-      v[2]  = lvSkew[2] + MAT2D(nf,2,xmcc,ndm);
-      dPviz = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
-      alpha        = dPviz/lModKsi;
-      alphaMenosUm = 1.0e0 - alpha; 
+      alpha = interpolFace(lvSkew, lXmcc
+            , volume[idCell], volume[nf]
+            , lModKsi, ndm
+            , iCodPolFace);
+      alphaMenosUm = 1.0e0 - alpha;
 /*...................................................................*/
 
 /*... media harmonica*/
@@ -404,7 +417,8 @@ void cellDif3D(Loads *loads
 /*...................................................................*/
 
 /*... difusao direta*/
-      dfd = (coefDif*lfArea*modE)/lModKsi;
+      modE = sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
+      dfd = coefDif*modE/lModKsi;
 /*...................................................................*/
       
 /*...*/
@@ -427,12 +441,9 @@ void cellDif3D(Loads *loads
 /*...................................................................*/
 
 /*... derivadas direcionais*/
-      nMinusKsi[0] = lNormal[0] - modE*lKsi[0];
-      nMinusKsi[1] = lNormal[1] - modE*lKsi[1];
-      nMinusKsi[2] = lNormal[2] - modE*lKsi[2];
-      gfKsi = gradUcomp[0]*nMinusKsi[0] 
-            + gradUcomp[1]*nMinusKsi[1] 
-            + gradUcomp[2]*nMinusKsi[2];
+      gfKsi = gradUcomp[0]*t[0] 
+            + gradUcomp[1]*t[1] 
+            + gradUcomp[2]*t[2];
 /*...................................................................*/
 
 /*... correcao nao-ortogonal*/
@@ -508,7 +519,11 @@ void cellDif3D(Loads *loads
 /*...................................................................*/
 
 /*...*/
-  lB[0]     = p;
+  if (fRes)
+    lB[0] = rCell;
+  else
+    lB[0] = p;
+/*...*/
   lRcell[0] = rCell;
 /*...................................................................*/
 }

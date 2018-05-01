@@ -576,9 +576,9 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void cellEnergy3D(Loads *loads, Loads *lVel
-                , Advection advT, Diffusion diffT
-                , Turbulence tModel, EnergyModel model
+void cellEnergy3D(Loads *loads       , Loads *lVel
+                , Advection advT     , Diffusion diffT
+                , Turbulence tModel  , EnergyModel model
                 , PropVar vProp
                 , short *RESTRICT lGeomType, DOUBLE *RESTRICT prop
                 , INT *RESTRICT lViz, INT *RESTRICT lId
@@ -821,8 +821,8 @@ void cellEnergy3D(Loads *loads, Loads *lVel
 
 /*... derivadas direcionais*/
       gfKsi = gradUcomp[0] * t[0]
-        + gradUcomp[1] * t[1]
-        + gradUcomp[2] * t[2];
+            + gradUcomp[1] * t[1]
+            + gradUcomp[2] * t[2];
 /*...................................................................*/
 
 /*... correcao nao-ortogonal*/
@@ -986,15 +986,6 @@ void cellEnergy3D(Loads *loads, Loads *lVel
   lA[idCell] = sP;
   for(nf=0;nf<nFace;nf++)
     lA[idCell] += lA[nf];
-/*if (nFace == 4) {
-    lA[idCell] = sP + lA[0] + lA[1] + lA[2] + lA[3];
-  }
-  else if (nFace == 5) {
-    lA[idCell] = sP + lA[0] + lA[1] + lA[2] + lA[3] + lA[4];
-  }
-  else if (nFace == 6) {
-    lA[idCell] = sP + lA[0] + lA[1] + lA[2] + lA[3] + lA[4] + lA[5];
-  }*/
 /*...................................................................*/
 
 /*...*/
@@ -1022,30 +1013,6 @@ void cellEnergy3D(Loads *loads, Loads *lVel
 /*...*/
   for (nf = 0; nf<nFace; nf++)
     lA[nf] *= -1.e0;
-/*...................................................................*/
-
-/*...*/
-/*if (nFace == 4) {
-    lA[0] *= -1.e0;
-    lA[1] *= -1.e0;
-    lA[2] *= -1.e0;
-    lA[3] *= -1.e0;
-  }
-  else if (nFace == 5) {
-    lA[0] *= -1.e0;
-    lA[1] *= -1.e0;
-    lA[2] *= -1.e0;
-    lA[3] *= -1.e0;
-    lA[4] *= -1.e0;
-  }
-  else if (nFace == 6) {
-    lA[0] *= -1.e0;
-    lA[1] *= -1.e0;
-    lA[2] *= -1.e0;
-    lA[3] *= -1.e0;
-    lA[4] *= -1.e0;
-    lA[5] *= -1.e0;
-  }*/
 /*...................................................................*/
 
 /*...*/

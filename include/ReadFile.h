@@ -83,6 +83,12 @@
      , Solv *solvKturb, SistEq* sistEqKturb, bool *fSolvKturb
      , char* auxName, char* preName, char* nameOut
      , FILE *fileIn, FileOpt *opt);
+/*...*/
+  void readSolvDiff(Memoria *m, Mesh *mesh, Reord *reordMesh
+                 , Solv *solvD1, SistEq* sistEqD1, bool *fSolvD1
+                 , char* auxName, char* preName, char* nameOut
+                 , FILE *fileIn, FileOpt *opt);
+
 
    void readSetPrime(Memoria *m, FILE *fileIn
      , Mesh *mesh0, Mesh *mesh

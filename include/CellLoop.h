@@ -77,30 +77,30 @@
 /*...................................................................*/
 
 /* ... montagem do sistemas de equacoes (difusao)*/
- void systFormDif(Loads *loads
-             ,INT    *RESTRICT el  ,INT    *RESTRICT nelcon 
+ void systFormDif(Loads *loads         ,Diffusion *diff
+             ,INT    *RESTRICT el      ,INT    *RESTRICT nelcon 
              ,short  *RESTRICT nen     ,short  *RESTRICT nFace
              ,short  *RESTRICT geomType,DOUBLE *RESTRICT prop 
              ,short  *RESTRICT calType ,short  *RESTRICT mat  
-             ,DOUBLE *RESTRICT gKsi   ,DOUBLE *RESTRICT gmKsi
-             ,DOUBLE *RESTRICT gEta   ,DOUBLE *RESTRICT gfArea
-             ,DOUBLE *RESTRICT gNormal,DOUBLE *RESTRICT gVolume
-             ,DOUBLE *RESTRICT gXm    ,DOUBLE *RESTRICT gXmcc
-             ,DOUBLE *RESTRICT gvSkew ,DOUBLE *RESTRICT gmvSkew
-             ,DOUBLE *RESTRICT gDcca  ,DOUBLE *RESTRICT density 
-             ,INT    *RESTRICT ia     ,INT    *RESTRICT ja
-             ,DOUBLE *RESTRICT al     ,DOUBLE *RESTRICT ad
-             ,DOUBLE *RESTRICT b      ,INT    *RESTRICT id
-             ,short  *RESTRICT faceR  ,short  *RESTRICT faceL
-             ,DOUBLE *RESTRICT u0     ,DOUBLE *RESTRICT gradU0
-             ,DOUBLE *RESTRICT rCell  ,Temporal const ddt
-             ,INT const nEq           ,INT const nEqNov
-             ,INT const nAd           ,INT const nAdR
-             ,short const maxNo       ,short const maxViz
-             ,short const ndm         ,INT const numel
-             ,short const ndf         ,short const storage
-             ,bool const forces       ,bool const matrix 
-             ,bool const calRcell     ,bool const unsym); 
+             ,DOUBLE *RESTRICT gKsi    ,DOUBLE *RESTRICT gmKsi
+             ,DOUBLE *RESTRICT gEta    ,DOUBLE *RESTRICT gfArea
+             ,DOUBLE *RESTRICT gNormal ,DOUBLE *RESTRICT gVolume
+             ,DOUBLE *RESTRICT gXm     ,DOUBLE *RESTRICT gXmcc
+             ,DOUBLE *RESTRICT gvSkew  ,DOUBLE *RESTRICT gmvSkew
+             ,DOUBLE *RESTRICT gDcca   ,DOUBLE *RESTRICT density 
+             ,INT    *RESTRICT ia      ,INT    *RESTRICT ja
+             ,DOUBLE *RESTRICT al      ,DOUBLE *RESTRICT ad
+             ,DOUBLE *RESTRICT b       ,INT    *RESTRICT id
+             ,short  *RESTRICT faceR   ,short  *RESTRICT faceL
+             ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
+             ,DOUBLE *RESTRICT rCell   ,Temporal *ddt
+             ,INT const nEq            ,INT const nEqNov
+             ,INT const nAd            ,INT const nAdR
+             ,short const maxNo        ,short const maxViz
+             ,short const ndm          ,INT const numel
+             ,short const ndf          ,short const storage
+             ,bool const forces        ,bool const matrix 
+             ,bool const calRcell      ,bool const unsym); 
 /*...................................................................*/
  
 /* ... montagem do sistemas de equacoes (Transporte)*/
@@ -224,18 +224,18 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT dField   
                , DOUBLE *RESTRICT temp     , DOUBLE *RESTRICT wallPar  
-               , DOUBLE *RESTRICT rCell    , Temporal const ddt 
-               , INT const nEq             , INT const nEqNov
-               , INT const nAd             , INT const nAdR                  
-               , short const maxNo         , short const maxViz
-               , short const ndm           , INT const numel
-               , short const ndf           , short const storage
-               , bool  const forces        , bool const matrix 
-               , bool const calRcell       , bool  const  unsym); 
+               , DOUBLE *RESTRICT rCell    , Temporal ddt 
+               , INT nEq                  , INT nEqNov
+               , INT nAd                  , INT nAdR                  
+               , short maxNo              , short maxViz
+               , short ndm                , INT numel
+               , short ndf                , short storage
+               , bool forces              , bool matrix 
+               , bool calRcell            , bool unsym); 
 /*...................................................................*/
 
 /*...*/
-void systFormEnergy(Loads *loads       , Loads *ldVel  
+  void systFormEnergy(Loads *loads       , Loads *ldVel  
        , Advection adv                 , Diffusion diff 
        , Turbulence tModel             , EnergyModel eModel 
        , PropVar vProp
@@ -309,7 +309,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
 /*...................................................................*/
 
 /*... */
- void velExp(Loads *loadsVel        ,Loads *loadsPres
+  void velExp(Loads *loadsVel        ,Loads *loadsPres
              ,Advection advVel           ,Diffusion diffVel
              ,INT    *RESTRICT el        ,INT    *RESTRICT nelcon
              ,short  *RESTRICT nen       ,short  *RESTRICT nFace
@@ -336,7 +336,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
 /*.....................................................................*/
 
 /*...*/
-   void velResidual(Loads *loadsVel      , Loads *loadsPres
+  void velResidual(Loads *loadsVel      , Loads *loadsPres
               ,Advection advVel          , Diffusion diffVel
               ,INT    *RESTRICT el       , INT    *RESTRICT nelcon
               ,short  *RESTRICT nen      , short  *RESTRICT nFace
@@ -438,13 +438,13 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
   void updateCellValue(DOUBLE *RESTRICT u,DOUBLE *RESTRICT x
                       ,INT *RESTRICT id  ,Interface *iNeq
                       ,INT const numel   ,short const ndf
-                      ,bool const fAdd   ,short const fCom);
+                      ,bool const fAdd   ,bool const fCom);
   
   void updateCellValueSimple(DOUBLE *RESTRICT u,DOUBLE *RESTRICT x
                       ,INT *RESTRICT id  ,Interface *iNeq
                       ,INT const numel   ,INT const nEq 
                       ,short const ndf
-                      ,bool const fAdd   ,short const fCom);
+                      ,bool const fAdd   ,bool const fCom);
 /*...................................................................*/
 
 #endif/*_CELLLOOP_H_*/

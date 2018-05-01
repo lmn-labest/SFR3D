@@ -209,12 +209,16 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
 /*********************************************************************/ 
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/2015                                   *
+ * Data de modificaco : 01/05/2018                                   *
+ *-------------------------------------------------------------------*
  * SYSTFOMDIF : calculo do sistema de equacoes para problemas        * 
  * difusao (Ax=b)                                                    * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * loads   -> definicoes de cargas                                   * 
+ * diff    -> tecnica da discretizacao do termo difusivo             *
  * el      -> conetividade dos celulas                               * 
  * nelcon  -> vizinhos dos elementos                                 * 
  * nen     -> numero de nos por celulas                              * 
@@ -279,8 +283,8 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void systFormDif(Loads *loads
-               ,INT    *RESTRICT el     ,INT    *RESTRICT nelcon 
+void systFormDif(Loads *loads            ,Diffusion *diff
+               ,INT    *RESTRICT el      ,INT    *RESTRICT nelcon 
                ,short  *RESTRICT nen     ,short  *RESTRICT nFace
                ,short  *RESTRICT geomType,DOUBLE *RESTRICT prop 
                ,short  *RESTRICT calType ,short  *RESTRICT mat     
@@ -295,7 +299,7 @@ void systFormDif(Loads *loads
                ,DOUBLE *RESTRICT b       ,INT    *RESTRICT id
                ,short  *RESTRICT faceR   ,short  *RESTRICT faceLd1        
                ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0 
-               ,DOUBLE *RESTRICT rCell   ,Temporal const ddt 
+               ,DOUBLE *RESTRICT rCell   ,Temporal *ddt 
                ,INT const nEq            ,INT const nEqNov     
                ,INT const nAd            ,INT const nAdR                     
                ,short const maxNo        ,short const maxViz
@@ -413,7 +417,7 @@ void systFormDif(Loads *loads
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
-      cellLibDif(loads
+      cellLibDif(loads     ,diff
                 ,lGeomType ,lProp 
                 ,lViz      ,lId           
                 ,lKsi      ,lmKsi
@@ -5065,7 +5069,7 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
  void updateCellValue(DOUBLE *RESTRICT u,DOUBLE *RESTRICT x
                  ,INT *RESTRICT id      ,Interface *iNeq
                  ,INT const numel       ,short const ndf
-                 ,bool const fAdd       ,short const fCom)
+                 ,bool const fAdd       ,bool const fCom)
 {
   INT nel,lNeq;
   short jNdf;
@@ -5135,7 +5139,7 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
                            ,INT *RESTRICT id      ,Interface *iNeq
                            ,INT const numel       ,INT const nEq   
                            ,short const ndf
-                           ,bool const fAdd       ,short const fCom)
+                           ,bool const fAdd       ,bool const fCom)
 {
   INT nel,lNeq;
   short jNdf;

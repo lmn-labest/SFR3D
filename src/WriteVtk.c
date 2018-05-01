@@ -567,8 +567,6 @@ void wGeoVtk2(Memoria *m        , DOUBLE *x
   INT i;
   short j;
   char head[] = { "GEOM_VOLUME_FINITO" };
-  double ddum;
-  int    idum;
 
   if (iws)
     f = openFile(nameOut, "wb");
@@ -591,14 +589,6 @@ void wGeoVtk2(Memoria *m        , DOUBLE *x
     }
   }
 
-  for (i = 0; i< nnode+numel; i++)
-  {
-    printf("%d %lf %lf %lf\n",i+1
-                             , MAT2D(i, 0, daux, ndm)
-                             , MAT2D(i, 1, daux, ndm)
-                             , MAT2D(i, 2, daux, ndm));
-  }
-
   writeVtkCoor(daux, nnode + numel, ndm, iws, f);
   HccaDealloc(m, daux, "daux", _AD_);
 /* ..................................................................*/
@@ -616,14 +606,12 @@ void wGeoVtk2(Memoria *m        , DOUBLE *x
     for (j = 0; j<maxNo; j++) {
       MAT2D(i, j, lel, maxNo) = MAT2D(i, j, el, maxNo) - 1;
     }
-    printf("%d %d\n", i, iaux1[i]);
   }
 
   for (i = 0; i<numel; i++) {
     iaux1[numel+i] = 1;
     iaux2[numel+i] = DOTCELL;
     MAT2D(numel + i, 0, lel, maxNo) = nnode + i;
-    printf("%d %d\n", i, iaux1[i]);
   }
   writeVtkCell(lel, iaux1, iaux2, 2*numel, maxNo, iws, f);
   HccaDealloc(m, iaux2, "laux2", _AD_);

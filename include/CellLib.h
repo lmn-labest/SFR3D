@@ -20,7 +20,7 @@
 /*...................................................................*/
 
 /*... chamada da biblioteca de elementos (difusao)*/
-  void cellLibDif(Loads *loads
+  void cellLibDif(Loads *loads             ,Diffusion *diff
                  ,short *RESTRICT lGeomType,DOUBLE *RESTRICT lprop
                  ,INT   *RESTRICT lViz     ,INT    *RESTRICT lId
                  ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mksi    
@@ -30,7 +30,7 @@
                  ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity 
                  ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
                  ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-                 ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt
+                 ,DOUBLE *RESTRICT lRcell  ,Temporal *ddt
                  ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL
                  ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT lGradU0 
                  ,short const nEn          ,short const nFace
@@ -315,7 +315,7 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
                 ,short const nen          ,short const nFace
                 ,short const ndm          ,INT const nel);
   
-  void cellDif3D(Loads *loads
+  void cellDif3D(Loads *loads             ,Diffusion *diff 
                 ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
                 ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
                 ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
@@ -325,7 +325,7 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
                 ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity 
                 ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
                 ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-                ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt   
+                ,DOUBLE *RESTRICT lRcell  ,Temporal *ddt   
                 ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL
                 ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
                 ,const short nEn          ,short const nFace    

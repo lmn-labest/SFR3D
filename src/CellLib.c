@@ -1320,7 +1320,7 @@ void cellLibTrans(Loads *loads
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 01/05/2018                                   * 
  *-------------------------------------------------------------------* 
  * CELLLIBDIF : chamada de bibliotecas de celulas para o problema    *
  * de difusao.                                                       * 
@@ -1328,6 +1328,7 @@ void cellLibTrans(Loads *loads
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * loads     -> definicoes de cargas                                 * 
+ * diff      -> tecnica da discretizacao do termo difusivo           *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
  * lprop     -> propriedade fisicas das celulas                      *
  * lViz      -> viznhos da celula central                            * 
@@ -1369,7 +1370,7 @@ void cellLibTrans(Loads *loads
  * lB        -> vetor de forca da linha i                            *
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellLibDif(Loads *loads
+void cellLibDif(Loads *loads             ,Diffusion *diff
                ,short *RESTRICT lGeomType,DOUBLE *RESTRICT lprop
                ,INT   *RESTRICT lViz     ,INT *RESTRICT lId  
                ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
@@ -1379,7 +1380,7 @@ void cellLibDif(Loads *loads
                ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
                ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
                ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-               ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt
+               ,DOUBLE *RESTRICT lRcell  ,Temporal *ddt
                ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL       
                ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
                ,short const nEn          ,short  const nFace     
@@ -1391,7 +1392,7 @@ void cellLibDif(Loads *loads
   if(lib == 1){
 /*... 2D*/
     if(ndm == 2){
-      cellDif2D(loads
+/*    cellDif2D(loads
                ,lGeomType,lprop
                ,lViz     ,lId
                ,ksi      ,mKsi
@@ -1405,13 +1406,13 @@ void cellLibDif(Loads *loads
                ,lFaceR   ,lFaceL
                ,u0       ,gradU0      
                ,nEn      ,nFace 
-               ,ndm      ,nel);
+               ,ndm      ,nel);*/
     }
 /*..................................................................*/   
 
 /*... 3D*/
     else if(ndm == 3){
-      cellDif3D(loads     
+      cellDif3D(loads    ,diff
                ,lGeomType,lprop
                ,lViz     ,lId
                ,ksi      ,mKsi

@@ -27,7 +27,7 @@
  *********************************************************************/
 void diffusion(Memoria *m   ,Loads *loadsDif
               ,Mesh *mesh0  ,Mesh *mesh     ,SistEq *sistEqD
-              ,Solv *solvD  ,Scheme sc      ,PartMesh *pMesh 
+              ,Solv *solvD  ,Scheme *sc     ,PartMesh *pMesh 
               ,FileOpt opt  ,char *preName  ,char *nameOut
               ,FILE *fileOut) 
 {   
@@ -51,12 +51,12 @@ void diffusion(Memoria *m   ,Loads *loadsDif
 /*...................................................................*/
 
 /*... discretizacao temporal*/
-  if(sc.ddt.flag){
+  if(sc->ddt.flag){
     tm.CellTransientD1 = getTimeC() - tm.CellTransientD1;
     cellTransient(mesh->elm.geom.volume   ,sistEqD->id     
                  ,mesh->elm.u0D1          ,mesh->elm.uD1
                  ,mesh->elm.densityUd1    ,sistEqD->b0
-                 ,sc.ddt                  ,mesh->numelNov 
+                 ,sc->ddt                 ,mesh->numelNov 
                  ,mesh->ndfD[0]           ,true);
 /*... u(n-1) = u(n)*/
     alphaProdVector(1.e0,mesh->elm.uD1
@@ -67,11 +67,11 @@ void diffusion(Memoria *m   ,Loads *loadsDif
 /*...................................................................*/
 
 /*... correcao nao ortoganal*/ 
-  for(i=0;i<sc.nlD1.maxIt;i++){
+  for(i=0;i<sc->nlD1.maxIt;i++){
 
 /*... calculo de: A(i),b(i)*/
     tm.systFormD1 = getTimeC() - tm.systFormD1;
-    systFormDif(loadsDif
+    systFormDif(loadsDif                ,&sc->diffD1
                ,mesh->elm.node          ,mesh->elm.adj.nelcon  
                ,mesh->elm.nen           ,mesh->elm.adj.nViz   
                ,mesh->elm.geomType      ,mesh->elm.material.prop 
@@ -82,12 +82,12 @@ void diffusion(Memoria *m   ,Loads *loadsDif
                ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
                ,mesh->elm.geom.vSkew    ,mesh->elm.geom.mvSkew   
                ,mesh->elm.geom.dcca     ,mesh->elm.densityUd1
-               ,sistEqD->ia            ,sistEqD->ja      
-               ,sistEqD->al            ,sistEqD->ad       
-               ,sistEqD->b             ,sistEqD->id       
+               ,sistEqD->ia             ,sistEqD->ja      
+               ,sistEqD->al             ,sistEqD->ad       
+               ,sistEqD->b              ,sistEqD->id       
                ,mesh->elm.faceRd1       ,mesh->elm.faceLoadD1  
                ,mesh->elm.uD1           ,mesh->elm.gradUd1           
-               ,mesh->elm.rCellUd1      ,sc.ddt
+               ,mesh->elm.rCellUd1      ,&sc->ddt
                ,sistEqD->neq            ,sistEqD->neqNov        
                ,sistEqD->nad            ,sistEqD->nadr      
                ,mesh->maxNo             ,mesh->maxViz
@@ -116,14 +116,14 @@ void diffusion(Memoria *m   ,Loads *loadsDif
       rCell  = rCell0 = sqrt(dot(mesh->elm.rCellUd1
                             ,mesh->elm.rCellUd1 
                             ,mesh->numelNov));
-      conv   = rCell0*sc.nlD1.tol;
+      conv   = rCell0*sc->nlD1.tol;
     }
     else
       rCell  = sqrt(dot(mesh->elm.rCellUd1 
                    ,mesh->elm.rCellUd1 
                    ,mesh->numelNov));
     if(!mpiVar.myId ){
-      printf("it: %8d %.6e\n",i,rCell/rCell0);  
+      printf("it: %9d %.6e %0.6e\n",i,rCell/rCell0,rCell);
       if(opt.fItPlot)  
         fprintf(opt.fileItPlot[FITPLOTD1]
                ,"%9d %.6e %0.6e\n",i,rCell/rCell0,rCell);
@@ -147,12 +147,11 @@ void diffusion(Memoria *m   ,Loads *loadsDif
     tm.solvD1 = getTimeC() - tm.solvD1;
 /*...................................................................*/
 
-
 /*... x -> uD1*/
     updateCellValue(mesh->elm.uD1 ,sistEqD->x
                    ,sistEqD->id  ,&sistEqD->iNeq
-                   ,mesh->numel   ,mesh->ndfD[0]
-                   ,false         ,true);
+                   ,mesh->numel  ,mesh->ndfD[0]
+                   ,true         ,true);
 /*...................................................................*/
 
 /*... reconstruindo do gradiente*/
@@ -172,7 +171,7 @@ void diffusion(Memoria *m   ,Loads *loadsDif
            ,mesh->elm.geom.dcca
            ,mesh->elm.faceRd1       ,mesh->elm.faceLoadD1    
            ,mesh->elm.uD1           ,mesh->elm.gradUd1                 
-           ,mesh->node.uD1          ,sc.rcGrad
+           ,mesh->node.uD1          ,sc->rcGrad
            ,mesh->maxNo             ,mesh->maxViz
            ,mesh->ndfD[0]           ,mesh->ndm
            ,&pMesh->iNo             ,&pMesh->iEl  
@@ -241,7 +240,7 @@ void diffusion(Memoria *m   ,Loads *loadsDif
 
 /*...*/
        if(!mpiVar.myId){
-         fName(preName,sc.ddt.timeStep,i,15,nameOut);
+         fName(preName,sc->ddt.timeStep,i,15,nameOut);
          strcpy(str1,"elD1");
          strcpy(str2,"noD1");
          strcpy(str3,"elGradD1");
@@ -258,7 +257,7 @@ void diffusion(Memoria *m   ,Loads *loadsDif
                    ,str1                ,str2         
                    ,str3                ,str4         
                    ,nameOut             ,opt.bVtk    
-                   ,sc.ddt              ,fileOut);
+                   ,sc->ddt             ,fileOut);
       }
 /*...................................................................*/
     }

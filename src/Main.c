@@ -53,7 +53,7 @@ int main(int argc,char**argv){
 /*... estrutura da dados para a malha*/
   Mesh *mesh=NULL,*mesh0=NULL;
 /*... Sistema de equacao*/
-  SistEq *sistEqD1 =NULL, *sistEqT1=NULL;
+  SistEq sistEqD1, *sistEqT1=NULL;
   SistEq sistEqVel, sistEqPres, sistEqEnergy, sistEqKturb;
 /*... metodo de acoplamento pressao-velocidade*/
   Simple simple;
@@ -71,7 +71,7 @@ int main(int argc,char**argv){
 
 /*... solver*/
   INT nEqMax;
-  Solv *solvD1 = NULL, *solvT1 = NULL;
+  Solv solvD1, *solvT1 = NULL;
   Solv solvVel,solvPres,solvEnergy,solvKturb;
   bool fSolvD1 = false, fSolvT1 = false;
   bool fSolvVel = false,fSolvPres = false, fSolvEnergy = false;
@@ -115,7 +115,7 @@ int main(int argc,char**argv){
   {"help"        ,"mesh"         ,"stop"          /* 0, 1, 2*/
   ,"config"      ,"nextLoop"     ,""              /* 3, 4, 5*/
   ,"pgeo"        ,"pcoob"        ,"pcoo"          /* 6, 7, 8*/ 
-  ,"presolvD1"   ,"presolvT1"    ,"openmp"        /* 9,10,11*/
+  ,"setSolvDiff" ,"presolvT1"    ,"openmp"        /* 9,10,11*/
   ,"solvD1"      ,""             ,"pD1"           /*12,13,14*/
   ,"nlItD1"      ,"pD1CsvCell"   ,"pD1CsvNode"    /*15,16,17*/
   ,"solvT1"      ,""             ,"pT1"           /*18,19,20*/
@@ -274,6 +274,9 @@ int main(int argc,char**argv){
   sc.advT1.iCod1 = TVD;
   sc.advT1.iCod2 = VANLEERFACE;
   sc.diffT1.iCod = OVERRELAXED;
+
+/*...*/
+  sc.diffD1.iCod = OVERRELAXED;
 /*...................................................................*/
 
 /*...*/
@@ -643,7 +646,7 @@ int main(int argc,char**argv){
       fName(preName,mpiVar.nPrcs,mpiVar.myId,7,nameOut);
       fileLog = openFile(nameOut,"w");
       writeLog(*mesh      ,sc
-              ,solvD1     ,sistEqD1
+              ,&solvD1    ,&sistEqD1
               ,solvT1     ,sistEqT1
               ,&solvVel   ,&sistEqVel
               ,&solvPres  ,&sistEqPres
@@ -663,7 +666,7 @@ int main(int argc,char**argv){
           fileLog = openFile(nameOut,"w");
         }
         writeLogMeanTime(*mesh0    ,sc
-                        ,solvD1    ,sistEqD1
+                        ,&solvD1   ,&sistEqD1
                         ,solvT1    ,sistEqT1
                         ,tm       
                         ,fSolvD1   ,fSolvT1     
@@ -680,8 +683,8 @@ int main(int argc,char**argv){
       if(fSolvVel && solvVel.log && !mpiVar.myId)  
         fclose(solvVel.fileSolv);
 /*... fechando o arquivo do log do solver linear T1*/
-      if(fSolvD1 && solvD1->log && !mpiVar.myId)  
-        fclose(solvD1->fileSolv);
+      if(fSolvD1 && solvD1.log && !mpiVar.myId)  
+        fclose(solvD1.fileSolv);
 /*... fechando o arquivo do log do solver linear T1*/
       if(fSolvT1 && solvT1->log && !mpiVar.myId)  
         fclose(solvT1->fileSolv);
@@ -797,10 +800,10 @@ int main(int argc,char**argv){
        
         fName(preName,0,0,13,nameOut);
 /*...*/
-        writeCoo(&m,sistEqD1->ia,sistEqD1->ja,sistEqD1->neq
-                ,sistEqD1->au   ,sistEqD1->ad,sistEqD1->al        
-                ,sistEqD1->nad  ,sistEqD1->storage
-                ,sistEqD1->unsym,true
+        writeCoo(&m,sistEqD1.ia,sistEqD1.ja,sistEqD1.neq
+                ,sistEqD1.au   ,sistEqD1.ad,sistEqD1.al        
+                ,sistEqD1.nad  ,sistEqD1.storage
+                ,sistEqD1.unsym,true
                 ,nameOut);
 /*...................................................................*/
         printf("%s\n\n",DIF);
@@ -818,19 +821,19 @@ int main(int argc,char**argv){
       
         fName(preName,0,0,12,nameOut);
 /*... matriz A*/
-        writeCoo(&m,sistEqD1->ia,sistEqD1->ja,sistEqD1->neq
-                ,sistEqD1->au   ,sistEqD1->ad,sistEqD1->al        
-                ,sistEqD1->nad  ,sistEqD1->storage
-                ,sistEqD1->unsym,false 
+        writeCoo(&m,sistEqD1.ia,sistEqD1.ja,sistEqD1.neq
+                ,sistEqD1.au   ,sistEqD1.ad,sistEqD1.al        
+                ,sistEqD1.nad  ,sistEqD1.storage
+                ,sistEqD1.unsym,false 
                 ,nameOut);
 /*...................................................................*/
 
 /*... vetor de forcas b*/      
         fName(preName,0,0,14,nameOut);
-        for(int i=0;i<sistEqD1->neq;i++)
-          sistEqD1->b[i] /= sistEqD1->ad[i];
+        for(int i=0;i<sistEqD1.neq;i++)
+          sistEqD1.b[i] /= sistEqD1.ad[i];
 
-        writeCooB(sistEqD1->b,sistEqD1->neq,nameOut);
+        writeCooB(sistEqD1.b,sistEqD1.neq,nameOut);
 /*...................................................................*/
         printf("%s\n\n",DIF);
       }
@@ -839,168 +842,20 @@ int main(int argc,char**argv){
 
 
 /*===================================================================*
- * macro: presolvd1 : problema de difusao pura
+ * macro: setSolvDiff : problema de difusao pura
  *===================================================================*/
-    else if((!strcmp(word,macro[9]))){
-      if(!mpiVar.myId ){
+    else if((!strcmp(word,macro[9])))
+    {
+      if(!mpiVar.myId )
+      {
         fprintf(fileLogExc,"%s\n",DIF);
         fprintf(fileLogExc,"%s\n",word);
       }
+      readSolvDiff(&m     , mesh     , reordMesh
+                  ,&solvD1, &sistEqD1, &fSolvD1
+                  ,auxName, preName  , nameOut
+                  ,fileIn , &opt);
 
-/*... inicializando a estrutura de equacoes do problema*/
-      solvD1 = (Solv*) malloc(sizeof(Solv));
-      if(solvD1 == NULL){
-        printf("Erro ponteiro solvD1\n");
-        exit(EXIT_FAILURE);
-      }
-      fSolvD1          = true;
-      solvD1->solver   = PCG;
-      solvD1->tol      = smachn();
-      solvD1->maxIt    = 50000;    
-      solvD1->fileSolv = NULL;
-      solvD1->log      = true;
-      solvD1->flag     = true;
-/*...................................................................*/
-
-/*...*/
-      if(solvD1->log && !mpiVar.myId){  
-        strcpy(auxName,preName);
-        strcat(auxName,"_D1");
-        fName(auxName,mpiVar.nPrcs,0,11,nameOut);
-        solvD1->fileSolv = openFile(nameOut,"w");
-      }
-/*...................................................................*/
-
-/*...*/
-      if(opt.fItPlot && !mpiVar.myId){  
-        strcpy(auxName,preName);
-        strcat(auxName,"_D1");
-        fName(auxName,mpiVar.nPrcs,0,10,nameOut);
-        opt.fileItPlot[FITPLOTD1] = openFile(nameOut,"w");
-        fprintf(opt.fileItPlot[FITPLOTD1]
-               ,"#D1\n#it ||b||/||b0|| ||b||\n");
-      }
-/*...................................................................*/
-
-/*... inicializa a estrutura do solver*/
-      sistEqD1 = (SistEq*) malloc(sizeof(SistEq));
-      if(sistEqD1 == NULL){
-        printf("Erro ponteiro sistEqD1\n");
-        exit(EXIT_FAILURE);
-      }
-      sistEqD1->storage = CSRD;
-//    sistEqD1->storage = ELLPACK;
-      sistEqD1->unsym   = false; 
-/*...................................................................*/
-
-/*... config*/
-      readMacro(fileIn,word,false);
-      if(!strcmp(word,"config:")){
-/*... solver*/        
-        readMacro(fileIn,word,false);
-        setSolver(word,&solvD1->solver); 
-        
-/*... DataStruct*/    
-        readMacro(fileIn,word,false);
-        setDataStruct(word,&sistEqD1->storage); 
-
-/*... simetria*/        
-        readMacro(fileIn,word,false);
-        if(!strcmp(word,"sym"))
-          sistEqD1->unsym   = false;    
-        else if(!strcmp("unSym",word))
-          sistEqD1->unsym   = true;    
-        
-/*... */        
-        fscanf(fileIn,"%u" ,&solvD1->maxIt);
-        fscanf(fileIn,"%lf",&solvD1->tol);
-
-        if( solvD1->tol == 0.e0) 
-          solvD1->tol = smachn();
-
-        if(!mpiVar.myId ) 
-          fprintf(fileLogExc,"MaxIt     : %d\n",solvD1->maxIt);
-        if(!mpiVar.myId ) 
-          fprintf(fileLogExc,"Tol       : %e\n",solvD1->tol); 
-      } 
-/*...................................................................*/
-
-/*... numeracao das equacoes*/
-      HccaAlloc(INT,&m,sistEqD1->id
-               ,mesh->numel*mesh->ndfD[0]
-               ,"sistD1id",_AD_);
-      if(!mpiVar.myId){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"Numerando as equacoes.\n");
-      }
-      tm.numeqD1 = getTimeC() - tm.numeqD1;
-      sistEqD1->neq = numeq(sistEqD1->id       ,reordMesh->num
-                           ,mesh->elm.faceRd1  ,mesh->elm.adj.nViz
-                           ,mesh->numel        ,mesh->maxViz
-                           ,mesh->ndfD[0]);
-      tm.numeqD1 = getTimeC() - tm.numeqD1;
-      if(!mpiVar.myId){
-        fprintf(fileLogExc,"Equacoes numeradas.\n");
-        fprintf(fileLogExc,"%s\n",DIF);
-      }
-/*...................................................................*/
-
-/*...*/
-      if( mpiVar.nPrcs > 1) {      
-        tm.numeqD1 = getTimeC() - tm.numeqD1;
-        sistEqD1->neqNov = countEq(reordMesh->num
-                            ,mesh->elm.faceRd1  ,mesh->elm.adj.nViz
-                            ,mesh->numelNov     ,mesh->maxViz
-                            ,mesh->ndfD[0]);
-        tm.numeqD1 = getTimeC() - tm.numeqD1;
-      }
-      else{
-        sistEqD1->neqNov = sistEqD1->neq;
-      }
-/*...................................................................*/
-
-/*...*/
-      HccaAlloc(DOUBLE                   ,&m        ,sistEqD1->b0
-               ,sistEqD1->neq            ,"sistD1b0",_AD_);
-      HccaAlloc(DOUBLE                   ,&m        ,sistEqD1->b 
-               ,sistEqD1->neq            ,"sistD1b ",_AD_);
-      HccaAlloc(DOUBLE                   ,&m        ,sistEqD1->x 
-               ,sistEqD1->neq            ,"sistD1x ",_AD_);
-      
-      zero(sistEqD1->b0,sistEqD1->neq    ,DOUBLEC);
-      zero(sistEqD1->b ,sistEqD1->neq    ,DOUBLEC);
-      zero(sistEqD1->x ,sistEqD1->neq    ,DOUBLEC);
-/*...................................................................*/
-
-/*... Estrutura de Dados*/
-      strcpy(strIa,"iaD1");
-      strcpy(strJa,"JaD1");
-      strcpy(strAd,"aDD1");
-      strcpy(strA ,"aD1");
-      if(!mpiVar.myId) 
-        fprintf(fileLogExc,"Montagem da estrura de dados esparsa.\n");
-      tm.dataStructD1 = getTimeC() - tm.dataStructD1 ;
-      dataStruct(&m,sistEqD1->id   ,reordMesh->num,mesh->elm.adj.nelcon
-                ,mesh->elm.adj.nViz,mesh->numelNov,mesh->maxViz
-                ,mesh->ndfD[0]     ,strIa         ,strJa
-                ,strAd             ,strA          ,sistEqD1);
-      tm.dataStructD1 = getTimeC() - tm.dataStructD1 ;
-      if(!mpiVar.myId) fprintf(fileLogExc,"Estrutuda montada.\n");
-/*...................................................................*/
-
-
-/*... mapa de equacoes para comunicacao*/
-      if( mpiVar.nPrcs > 1) {    
-        front(&m,pMesh,sistEqD1,mesh->ndfD[0]);  
-      } 
-/*...................................................................*/
-
-/*... informacao da memoria total usada*/
-      if(!mpiVar.myId  ) {
-        strcpy(str,"GB");
-        memoriaTotal(str);
-        usoMemoria(&m,str);
-      }
 /*...................................................................*/
       if(!mpiVar.myId  ) fprintf(fileLogExc,"%s\n\n",DIF);
     }   
@@ -1199,16 +1054,19 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: solvd1: problema de difusao pura
  *===================================================================*/
-    else if((!strcmp(word,macro[12]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-        fprintf(fileLogExc,"%s\n",DIF);
+    else if((!strcmp(word,macro[12])))
+    {
+      if(!mpiVar.myId )
+      {
+        printf("%s\n",DIF);
+        printf("%s\n",word);
+        printf("%s\n",DIF);
       }
       mpiWait();
       tm.solvEdpD1    = getTimeC() - tm.solvEdpD1;
 /*...*/
-      if(solvD1 == NULL){
+      if(!fSolvD1)
+      {
         fprintf(fileLogExc
                 ,"Estrutara de dados nao montada para o solvD1!!!\n");
         exit(EXIT_FAILURE);
@@ -1216,9 +1074,9 @@ int main(int argc,char**argv){
 /*...................................................................*/
      
 /*...*/
-      diffusion(&m         ,loadsD1
-               ,mesh0      ,mesh           ,sistEqD1
-               ,solvD1     ,sc             ,pMesh
+      diffusion(&m         ,loadsD1        
+               ,mesh0      ,mesh           ,&sistEqD1
+               ,&solvD1    ,&sc            ,pMesh
                ,opt        ,preName        ,nameOut
                ,fileOut);
 /*...................................................................*/
@@ -1226,7 +1084,7 @@ int main(int argc,char**argv){
 /*...*/
      tm.solvEdpD1    = getTimeC() - tm.solvEdpD1;
 /*...................................................................*/
-     if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+     if(!mpiVar.myId ) printf("%s\n\n",DIF);
     }
 /*===================================================================*/
 
@@ -1359,7 +1217,6 @@ int main(int argc,char**argv){
         fprintf(fileLogExc,"MaxIt: %d\n",sc.nlD1.maxIt);
         fprintf(fileLogExc,"Tol  : %e\n",sc.nlD1.tol);
       }
-      readMacro(fileIn,word,false);
 /*...................................................................*/
       if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
     }   
@@ -1730,8 +1587,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-      readSolvFluid(&m                       , mesh
-                   , reordMesh
+      readSolvFluid(&m          , mesh          , reordMesh
                    , &solvVel   , &sistEqVel    , &fSolvVel
                    , &solvPres  , &sistEqPres   , &fSolvPres
                    , &solvEnergy, &sistEqEnergy , &fSolvEnergy

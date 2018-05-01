@@ -12,9 +12,9 @@
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 29/01/2018                                   *
+ * Data de modificaco : 30/04/2018                                   *
  *-------------------------------------------------------------------*
- * readFileFc : leitura de arquivo de dados em volume finitos        *
+ * readFileFvMesh : leitura de arquivo de dados em volume finitos    *
  * ------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  * ------------------------------------------------------------------* 
@@ -37,7 +37,7 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
          ,"return"     ,"cells"      ,"faceRt1"        /* 3, 4, 5*/
          ,"faceLoadT1" ,"loadsT1"    ,""               /* 6, 7, 8*/ 
          ,""           ,""           ,""               /* 9,10,11*/ 
-         ,"faceRd1"    ,""           ,"loadsD1"        /*12,13,14*/ 
+         ,"faceRD1"    ,""           ,"loadsD1"        /*12,13,14*/ 
          ,"faceLoadD1" ,""           ,""               /*15,16,17*/ 
          ,"faceRvel"   ,"loadsVel"   ,"faceLoadVel"    /*18,19,20*/ 
          ,"faceRpres"  ,"loadsPres"  ,"faceLoadPres"   /*21,22,23*/
@@ -664,8 +664,8 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
       fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[12] = true;
-      strcpy(str,"endFaceRd1");
-      fprintf(fileLogExc,"loading faceRd1 ...\n");
+      strcpy(str,"endFaceRD1");
+      fprintf(fileLogExc,"loading faceRD1 ...\n");
       readVfRes(mesh->elm.faceRd1,mesh->numel,mesh->maxViz+1,str,file);
       fprintf(fileLogExc,"done.\n");
       fprintf(fileLogExc,"%s\n\n",DIF);
@@ -3409,9 +3409,9 @@ void readAdvectionScheme(FILE *fileIn, Scheme *sc) {
 
 /**********************************************************************
  * Data de criacao    : 28/01/2018                                    *
- * Data de modificaco : 00/00/0000                                    *
+ * Data de modificaco : 01/05/2018                                    *
  *--------------------------------------------------------------------* 
- * readAdvectionScheme:                                               *
+ * readDiffusionScheme:                                               *
  *--------------------------------------------------------------------* 
  * Parametros de entrada:                                             * 
  *--------------------------------------------------------------------* 
@@ -3455,6 +3455,14 @@ void readDiffusionScheme(FILE *fileIn, Scheme *sc) {
       readMacro(fileIn, word, false);
  /*... codigo da da funcao limitadora de fluxo*/
       setDiffusionScheme(word, &sc->diffT1.iCod);
+      nScheme--;
+    }
+/*... difusao D1*/
+    else if (!strcmp(word, "D1") || !strcmp(word, "D1")) {
+      fprintf(fileLogExc, "%s:\n", word);
+      readMacro(fileIn, word, false);
+/*... codigo da da funcao limitadora de fluxo*/
+      setDiffusionScheme(word, &sc->diffD1.iCod);
       nScheme--;
     }
  /*... Energy*/
@@ -3652,31 +3660,28 @@ void readSetPrime(Memoria *m    , FILE *fileIn
 }
 /**********************************************************************/
 
-
-
 /*********************************************************************
-* Data de criacao    : 31/03/2018                                   *
-* Data de modificaco : 00/00/0000                                   *
-*-------------------------------------------------------------------*
-* readSolvFluid: leitura das configuracoes do solvers utilizados    *
-* no escoamento de fluidos                                          *
-*-------------------------------------------------------------------*
-* Parametros de entrada:                                            *
-*-------------------------------------------------------------------*
-*-------------------------------------------------------------------*
-* Parametros de saida:                                              *
-*-------------------------------------------------------------------*
-*-------------------------------------------------------------------*
-* OBS:                                                              *
-*-------------------------------------------------------------------*
-*********************************************************************/
-void readSolvFluid(Memoria *m      , Mesh *mesh
-                 , Reord *reordMesh
-                 , Solv *solvVel   , SistEq* sistEqVel, bool *fSolvVel
-                 , Solv *solvPres  , SistEq* sistEqPres, bool *fSolvPres
+ * Data de criacao    : 31/03/2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * readSolvFluid: leitura das configuracoes do solvers utilizados    *
+ * no escoamento de fluidos                                          *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh                 
+                 , Solv *solvVel   , SistEq* sistEqVel   , bool *fSolvVel
+                 , Solv *solvPres  , SistEq* sistEqPres  , bool *fSolvPres
                  , Solv *solvEnergy, SistEq* sistEqEnergy, bool *fSolvEnergy
-                 , Solv *solvKturb , SistEq* sistEqKturb, bool *fSolvKturb
-                 , char* auxName   , char* preName, char* nameOut
+                 , Solv *solvKturb , SistEq* sistEqKturb , bool *fSolvKturb
+                 , char* auxName   , char* preName       , char* nameOut
                  , FILE *fileIn    , FileOpt *opt)
 {
 
@@ -4235,6 +4240,197 @@ void readSolvFluid(Memoria *m      , Mesh *mesh
   //    if( mpiVar.nPrcs > 1) {    
   //      front(&m,pMesh,sistEqT1,mesh->ndfT[0]);  
   //    } 
+/*...................................................................*/
+
+/*... informacao da memoria total usada*/
+  if (!mpiVar.myId) {
+    strcpy(str1, "MB");
+    memoriaTotal(str1);
+    usoMemoria(m, str1);
+  }
+/*...................................................................*/
+
+}
+/**********************************************************************/
+
+
+/*********************************************************************
+ * Data de criacao    : 30/04/2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * readSolvDifff: leitura das configuracoes do solvers utilizados    *
+ * nos problemas de difusoes                                         *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
+                 , Solv *solvD1, SistEq* sistEqD1, bool *fSolvD1
+                 , char* auxName, char* preName, char* nameOut
+                 , FILE *fileIn, FileOpt *opt)
+{
+
+  unsigned short nSistEq;
+
+  INT nEqMax;
+/*... Estrutura de dados*/
+  char strIa[MNOMEPONTEIRO], strJa[MNOMEPONTEIRO];
+  char strA[MNOMEPONTEIRO], strAd[MNOMEPONTEIRO];
+
+  char str1[100], str2[100], str3[100], str4[100];
+
+  char word[WORD_SIZE];
+
+  /*... solver*/
+  readMacro(fileIn, word, false);
+  nSistEq = (short)atol(word);
+  do {
+    readMacro(fileIn, word, false);
+/*... equaocao de difusao d1*/
+    if (!strcmp(word, "D1") || !strcmp(word, "d1")) {
+      nSistEq--;
+      *fSolvD1         = true;
+      solvD1->solver   = PCG;
+      solvD1->tol      = smachn();
+      solvD1->maxIt    = 50000;
+      solvD1->fileSolv = NULL;
+      solvD1->log      = true;
+      solvD1->flag     = true;
+/*...................................................................*/
+
+/*...*/
+      if (solvD1->log && !mpiVar.myId) {
+        strcpy(auxName, preName);
+        strcat(auxName, "_D1");
+        fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
+        solvD1->fileSolv = openFile(nameOut, "w");
+      }
+/*...................................................................*/
+
+      sistEqD1->unsym = false;
+/*...................................................................*/
+
+/*... solver*/
+      readMacro(fileIn, word, false);
+      setSolverConfig(word, solvD1, fileIn);
+/*...................................................................*/
+
+/*... DataStruct*/
+      readMacro(fileIn, word, false);
+      setDataStruct(word, &sistEqD1->storage);
+/*...................................................................*/
+
+/*... numeracao das equacoes das velocidades*/
+      HccaAlloc(INT, m, sistEqD1->id, mesh->numel,"sistD1id", _AD_);
+      if (!mpiVar.myId) {
+        fprintf(fileLogExc, "%s\n", DIF);
+        fprintf(fileLogExc, "Numerando as equacoes.\n");
+      }
+      tm.numeqD1 = getTimeC() - tm.numeqD1;
+      sistEqD1->neq = numeq(sistEqD1->id, reordMesh->num
+                          , mesh->elm.faceRd1, mesh->elm.adj.nViz
+                          , mesh->numel, mesh->maxViz
+                          , mesh->ndfD[0]);
+      tm.numeqD1 = getTimeC() - tm.numeqD1;
+
+      if (!mpiVar.myId) {
+        fprintf(fileLogExc, "Equacoes numeradas.\n");
+        fprintf(fileLogExc, "%s\n", DIF);
+      }
+/*...................................................................*/
+
+/*...*/
+      if (mpiVar.nPrcs > 1) {
+        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+        //      sistEqT1->neqNov = countEq(reordMesh->num
+        //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
+        //                          ,mesh->numelNov     ,mesh->maxViz
+        //                          ,mesh->ndfT[0]);
+        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+      }
+      else
+        sistEqD1->neqNov = sistEqD1->neq;
+/*...................................................................*/
+
+/*... */
+      HccaAlloc(DOUBLE, m, sistEqD1->b0
+               , sistEqD1->neq, "sistD1b0", _AD_);
+      HccaAlloc(DOUBLE, m, sistEqD1->b
+               , sistEqD1->neq, "sistD1b ", _AD_);
+      HccaAlloc(DOUBLE, m, sistEqD1->x
+              , sistEqD1->neq, "sistD1x ", _AD_);
+      zero(sistEqD1->b0, sistEqD1->neq, DOUBLEC);
+      zero(sistEqD1->b , sistEqD1->neq, DOUBLEC);
+      zero(sistEqD1->x , sistEqD1->neq, DOUBLEC);
+/*...................................................................*/
+
+/*... Estrutura de dados velocidades*/
+      strcpy(strIa, "iaD1");
+      strcpy(strJa, "jaD1");
+      strcpy(strAd, "adD1");
+      strcpy(strA , "aD1");
+
+      if (!mpiVar.myId) fprintf(fileLogExc, "D1:\n");
+      if (!mpiVar.myId)
+        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
+
+      tm.dataStructD1 = getTimeC() - tm.dataStructD1;
+      dataStruct(m, sistEqD1->id, reordMesh->num, mesh->elm.adj.nelcon
+               , mesh->elm.adj.nViz, mesh->numelNov, mesh->maxViz
+               , mesh->ndfD[0], strIa, strJa
+               , strAd, strA, sistEqD1);
+      tm.dataStructD1 = getTimeC() - tm.dataStructD1;
+
+      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+/*...................................................................*/
+
+/*... dividindo a matriz*/
+/*... Openmp(Vel,Pres)*/
+      if (ompVar.fSolver) {
+        strcpy(str1, "thBeginD1");
+        strcpy(str2, "thEndD1");
+        strcpy(str3, "thSizeD1");
+        strcpy(str4, "thHeightD1");
+        pMatrixSolverOmp(m, sistEqD1, str1, str2, str3, str4);
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+  } while (nSistEq);
+/*...................................................................*/
+
+/*...*/
+  if (opt->fItPlot && !mpiVar.myId) {
+    strcpy(auxName, preName);
+    strcat(auxName, "_D1");
+    fName(auxName, mpiVar.nPrcs, 0, 10, nameOut);
+    opt->fileItPlot[FITPLOTD1] = openFile(nameOut, "w");
+    fprintf(opt->fileItPlot[FITPLOTD1], "#D1\n#it ||b||/||b0|| ||b||\n");  
+  }
+/*...................................................................*/
+
+/*... Openmp(Vel,Pres)*/
+  if (ompVar.fSolver) {
+    if (*fSolvD1) {
+      nEqMax = sistEqD1->neqNov;
+      HccaAlloc(DOUBLE, m, ompVar.buffer
+               , nEqMax*ompVar.nThreadsSolver, "bufferOmp", false);
+      zero(ompVar.buffer, nEqMax*ompVar.nThreadsSolver, DOUBLEC);
+      sistEqD1->omp.thY = ompVar.buffer;
+    }
+  }
+/*...................................................................*/
+
+/*... mapa de equacoes para comunicacao*/
+//    if( mpiVar.nPrcs > 1) {    
+//      front(&m,pMesh,sistEqT1,mesh->ndfT[0]);  
+//    } 
 /*...................................................................*/
 
 /*... informacao da memoria total usada*/

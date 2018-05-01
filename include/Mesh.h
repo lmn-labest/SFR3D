@@ -411,6 +411,8 @@
     NonLinear nlTemp;
     NonLinear nlD1;
     NonLinear nlT1;
+/*... equacao de difusao*/
+    Diffusion diffD1;
 /*... equacao de transporte*/
     Advection advT1;
     Diffusion diffT1;
