@@ -1,7 +1,7 @@
 #include<CellLoop.h>
 /********************************************************************* 
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 28/02/2018                                   * 
+ * Data de modificaco : 14/04/2018                                   * 
  *-------------------------------------------------------------------* 
  * PGEOMFORM: calculo da propriedades geometricas das celulas        * 
  *-------------------------------------------------------------------* 
@@ -10,21 +10,12 @@
  * x       -> cordenadas dos pontos                                  * 
  * el      -> conetividade dos celulas                               * 
  * nelcon  -> vizinhos dos elementos                                 * 
- * nen     -> numero de nos por celulas                              * 
  * nFace   -> numero de faces por celulas                            * 
  * geomType-> tipo geometrico das celulas                            * 
- * gCc     -> indefinido                                             * 
- * gKsi    -> indefinido                                             * 
- * gmKsi   -> indefinido                                             * 
- * gEta    -> indefinido                                             * 
- * gfArea  -> indefinido                                             * 
- * gNormal -> indefinido                                             * 
- * gVolume -> indefinido                                             * 
- * gXm     -> indefinido                                             * 
- * gXmcc   -> indefinido                                             * 
- * vSkew   -> indefinido                                             * 
- * mvSkew  -> indefinifo                                             * 
- * gDcca   -> indefinido                                             * 
+ * nen     -> numero de nos por celulas                              *
+ * cellFace-> faces que componhe a celula                            *
+ * geom    -> geometria por celula                                   *
+ * face    -> geometria por face                                     *
  * maxNo   -> numero de nos por celula maximo da malha               * 
  * maxViz  -> numero vizinhos por celula maximo da malha             * 
  * ndm     -> numero de dimensoes                                    * 
@@ -52,21 +43,16 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void pGeomForm(DOUBLE *RESTRICT x      ,INT    *RESTRICT el
-              ,INT    *RESTRICT nelcon ,short  *RESTRICT nen    
-              ,short  *RESTRICT nFace  ,short  *RESTRICT geomType
-              ,DOUBLE *RESTRICT gCc    ,DOUBLE *RESTRICT gKsi   
-              ,DOUBLE *RESTRICT gmKsi  ,DOUBLE *RESTRICT gEta   
-              ,DOUBLE *RESTRICT gfArea ,DOUBLE *RESTRICT gNormal
-              ,DOUBLE *RESTRICT gVolume,DOUBLE *RESTRICT gXm   
-              ,DOUBLE *RESTRICT gXmcc  
-              ,DOUBLE *RESTRICT gvSkew ,DOUBLE *RESTRICT gmvSkew
-              ,DOUBLE *RESTRICT gDcca                 
-              ,short maxNo             ,short maxViz
-              ,short ndm               ,INT numel)
+void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
+              ,INT    *RESTRICT nelcon  ,short  *RESTRICT nFace
+              ,short  *RESTRICT geomType,short *RESTRICT nen
+              ,INT *RESTRICT cellFace
+              ,Geom *RESTRICT geom      ,Face *RESTRICT face
+              ,short maxNo              ,short maxViz
+              ,short ndm                ,INT numel)
 {
-  INT nel,no,vizNel;
-  short i,j,k;
+  short i, j, k;
+  INT nel,no,vizNel,idFace,idCell;
 /*... variavel local */
   DOUBLE lx[MAX_NUM_PONT];
   DOUBLE lCc[(MAX_NUM_FACE+1)*MAX_NDM];
@@ -81,8 +67,7 @@ void pGeomForm(DOUBLE *RESTRICT x      ,INT    *RESTRICT el
   short  isnod[MAX_SN];
 /*...................................................................*/
   
-/*... loop nas celulas*/
-  
+/*... loop nas celulas*/  
   for(nel=0;nel<numel;nel++){
 
 /*... zerando vetores*/
@@ -150,7 +135,7 @@ void pGeomForm(DOUBLE *RESTRICT x      ,INT    *RESTRICT el
 /*...................................................................*/
 
 /*... tetraedros e hexaedros*/
-    else if(ty == TETRCELL || ty == HEXACELL){
+    else if(ty == TETRCELL || ty == HEXACELL || ty == PIRACELL){
       sn(isnod,ty,nel); 
       cellGeom3D(lx       ,lGeomType
                 ,lnFace   ,lnEn
@@ -168,24 +153,55 @@ void pGeomForm(DOUBLE *RESTRICT x      ,INT    *RESTRICT el
 /*...................................................................*/
 
 /*... atribuido valores aos celula global*/
-    gVolume[nel] = lVolume;
-    for(i=0;i<ndm;i++){
-      MAT2D(nel,i,gCc ,ndm) = MAT2D(maxViz,i,lCc  ,ndm);
+    geom->volume[nel] = lVolume;
+    for (i = 0; i<ndm; i++)  
+      MAT2D(nel, i, geom->cc, ndm) = MAT2D(maxViz, i, lCc, ndm);
+/*...................................................................*/
+
+/*... atribuindo valores por face*/
+    for(i=0;i<nFace[nel];i++)
+    {
+      idFace = MAT2D(nel,i , cellFace, maxViz) - 1;
+      idCell = MAT2D(idFace, 0, face->owner, 2) - 1;
+      if (idCell == nel)
+      {
+        face->mksi[idFace]   = lmKsi[i];
+        face->area[idFace]   = lfArea[i];
+        face->mvSkew[idFace] = lmvSkew[i];
+        for (j = 0; j < ndm; j++)
+        {
+          MAT2D(idFace, j, face->ksi, ndm) = MAT2D(i, j, lKsi, ndm);
+          MAT2D(idFace, j, face->eta, ndm) = MAT2D(i, j, lEta, ndm);
+          MAT2D(idFace, j, face->normal, ndm) = MAT2D(i, j, lNormal, ndm);
+          MAT2D(idFace, j, face->xm, ndm)    = MAT2D(i, j, lXm, ndm);
+          MAT2D(idFace, j, face->vSkew, ndm) = MAT2D(i, j, lvSkew, ndm);
+        }
+      }  
     }
-    for(i=0;i<nFace[nel];i++) {
-      MAT2D(nel,i,gmKsi   ,maxViz)        = lmKsi[i];
-      MAT2D(nel,i,gfArea  ,maxViz)        = lfArea[i];
-      MAT2D(nel,i,gDcca   ,maxViz)        = lDcca[i];
-      MAT2D(nel,i,gmvSkew ,maxViz)        = lmvSkew[i];
-      for(j=0;j<ndm;j++){
-        MAT3D(nel,i,j,gKsi   ,maxViz,ndm) = MAT2D(i,j,lKsi   ,ndm);
-        MAT3D(nel,i,j,gEta,maxViz,ndm)    = MAT2D(i,j,lEta   ,ndm);
-        MAT3D(nel,i,j,gNormal,maxViz,ndm) = MAT2D(i,j,lNormal,ndm);
-        MAT3D(nel,i,j,gXm    ,maxViz,ndm) = MAT2D(i,j,lXm    ,ndm);
-        MAT3D(nel,i,j,gXmcc  ,maxViz,ndm) = MAT2D(i,j,lXmcc  ,ndm);
-        MAT3D(nel,i,j,gvSkew ,maxViz,ndm) = MAT2D(i,j,lvSkew ,ndm);
-      }
-    }
+/*...................................................................*/
+
+/*... atribuido valores aos celula global*/
+	  for (i = 0; i<nFace[nel]; i++) {
+		  MAT2D(nel, i, geom->mksi, maxViz)   = lmKsi[i];
+      MAT2D(nel, i, geom->fArea, maxViz)  = lfArea[i];
+		  MAT2D(nel, i, geom->dcca, maxViz)   = lDcca[i];
+		  MAT2D(nel, i, geom->mvSkew, maxViz) = lmvSkew[i];
+		  for (j = 0; j<ndm; j++) {
+			  MAT3D(nel, i, j, geom->ksi, maxViz, ndm) 
+                                    = MAT2D(i, j, lKsi, ndm);
+			  MAT3D(nel, i, j, geom->eta, maxViz, ndm) 
+                                    = MAT2D(i, j, lEta, ndm);
+			  MAT3D(nel, i, j, geom->normal, maxViz, ndm) 
+                                    = MAT2D(i, j, lNormal, ndm);
+			  MAT3D(nel, i, j, geom->xm, maxViz, ndm) 
+                                    = MAT2D(i, j, lXm, ndm);
+			  MAT3D(nel, i, j, geom->xmcc, maxViz, ndm) 
+                                    = MAT2D(i, j, lXmcc, ndm);
+			  MAT3D(nel, i, j, geom->vSkew, maxViz, ndm) 
+                                    = MAT2D(i, j, lvSkew, ndm);
+		  }
+/*...................................................................*/
+	  }
 /*...................................................................*/
   }
 /*...................................................................*/

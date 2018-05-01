@@ -29,6 +29,7 @@
 #include<Print.h>
 #include<OpenMp.h>
 #include<SaveLoad.h>
+#include<FaceStruct.h>
 /*********************************************************************/
 
 /*********************************************************************/
@@ -38,7 +39,12 @@
 /*********************************************************************/
 
 /*********************************************************************/
+void testeFace(Geom *geom, Face *face
+             , INT *cellFace, short *nFace
+             , INT numel, short maxViz
+             , short ndm, short maxNo);
 
+/*********************************************************************/
 
 int main(int argc,char**argv){
 
@@ -391,12 +397,21 @@ int main(int argc,char**argv){
       mpiWait();
 /*...................................................................*/
  
-/*... calcula a vizinhaca do elementos*/
+/*...*/
       if(!mpiVar.myId){
         tm.adjcency = getTimeC();
-        viz(&m                 ,mesh0->elm.node ,mesh0->elm.adj.nelcon
-           ,mesh0->elm.nen     ,mesh0->nnode    ,mesh0->numel     
-           ,mesh0->maxNo       ,mesh0->maxViz   ,mesh0->ndm);
+/*... calcula a vizinhaca do elementos*/
+        neighbors(&m                   ,mesh0->elm.node 
+                 ,mesh0->elm.adj.nelcon,mesh0->elm.adj.nViz
+                 ,mesh0->elm.nen       ,&mesh0->nFaces
+                 ,mesh0->nnode         ,mesh0->numel     
+                 ,mesh0->maxNo         ,mesh0->maxViz   
+                 ,mesh0->ndm);        
+/*...................................................................*/
+        
+/*...*/        
+        faceStruct(&m, mesh0);
+/*...................................................................*/
         tm.adjcency = getTimeC() - tm.adjcency;
       }
 /*...................................................................*/
@@ -489,18 +504,17 @@ int main(int argc,char**argv){
 /*... calculo de propriedades geometricas recorrentes*/
       tm.geom = getTimeC() - tm.geom;
       pGeomForm(mesh->node.x         ,mesh->elm.node
-               ,mesh->elm.adj.nelcon ,mesh->elm.nen 
-               ,mesh->elm.adj.nViz   ,mesh->elm.geomType
-               ,mesh->elm.geom.cc    ,mesh->elm.geom.ksi 
-               ,mesh->elm.geom.mksi  ,mesh->elm.geom.eta   
-               ,mesh->elm.geom.fArea ,mesh->elm.geom.normal
-               ,mesh->elm.geom.volume,mesh->elm.geom.xm   
-               ,mesh->elm.geom.xmcc                 
-               ,mesh->elm.geom.vSkew ,mesh->elm.geom.mvSkew  
-               ,mesh->elm.geom.dcca
+               ,mesh->elm.adj.nelcon ,mesh->elm.adj.nViz
+               ,mesh->elm.geomType   ,mesh->elm.nen        
+               ,mesh->elm.cellFace
+               ,&mesh->elm.geom      ,&mesh->face   
                ,mesh->maxNo          ,mesh->maxViz
                ,mesh->ndm            ,mesh->numelNov);
       tm.geom = getTimeC() - tm.geom;
+/*    testeFace(&mesh->elm.geom    , &mesh->face
+               , mesh->elm.cellFace, mesh->elm.adj.nViz
+               , mesh->numel       , mesh->maxViz
+               , mesh->ndm         , mesh->maxNo); */
 /*...................................................................*/
 
 /*... geom(Cel)*/
@@ -738,6 +752,20 @@ int main(int argc,char**argv){
                ,mesh0->ndfF              ,mesh0->ndfFt
                ,nameOut                  ,opt.bVtk             
                ,fileOut);  
+/*...................................................................*/
+
+/*... geometrica completa*/
+        fName(preName, 0, 0, 25, nameOut);
+        wGeoVtk2(&m                   , mesh0->node.x
+               , mesh0->elm.geom.cc   , mesh0->elm.node
+               , mesh0->elm.nen       , mesh0->elm.geomType
+               , mesh0->nnode         , mesh0->numel
+               , mesh0->ndm           , mesh0->maxNo 
+               , mesh0->maxViz
+               , nameOut              , opt.bVtk
+               , fileOut);
+/*...................................................................*/
+
 /*... face com cargas*/
        fName(preName,0,0,17,nameOut);
        wGeoFaceVtk(&m                  ,mesh0->node.x        
@@ -754,6 +782,7 @@ int main(int argc,char**argv){
              ,mesh0->maxViz            ,mesh0->maxNo
              ,nameOut                  ,opt.bVtk             
              ,fileOut);  
+/*...................................................................*/
       }
     }   
 /*===================================================================*/
@@ -2202,5 +2231,251 @@ int main(int argc,char**argv){
   return EXIT_SUCCESS;
 }    
 /*********************************************************************/
+
+
+/*********************************************************************/
+void testeFace(Geom *geom, Face *face
+              , INT *cellFace, short *nFace
+              , INT numel, short maxViz
+              , short ndm, short maxNo) {
+  short i, j;
+  INT nel, idFace, cellOwner;
+  DOUBLE lG[6], lF[6];
+  DOUBLE lG1[6][3], lF1[6][3];
+
+
+
+  for (i = 0; i < 6; i++) {
+    lG[i] = lF[i] = 0.0;
+    for (j = 0; j < 3; j++)
+      lG1[i][j] = lF1[i][j] = 0.0;
+  }
+
+  for (nel = 0; nel < numel; nel++) {
+
+    printf("volume\nnel %d\n", nel + 1);
+    printf("%lf\n",geom->volume[nel]);
  
+    printf("cc\nnel %d\n", nel + 1);
+    printf("%lf %lf %lf\n", MAT2D(nel, 0,geom->cc,ndm)
+                          , MAT2D(nel, 1, geom->cc, ndm)
+                          , MAT2D(nel, 2, geom->cc, ndm));
+
+    for (i = 0; i < nFace[nel]; i++) {
+      lG[i]  = MAT2D(nel, i, geom->mksi, maxViz);
+      idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
+      lF[i] = face->mksi[idFace];
+    }
+    printf("mksi\nnel %d\n", nel + 1);
+    printf("%lf %lf %lf %lf %lf %lf\n"
+          , lG[0], lG[1], lG[2]
+          , lG[3], lG[4], lG[5]);
+    printf("%lf %lf %lf %lf %lf %lf\n"
+          , lF[0], lF[1], lF[2]
+          , lF[3], lF[4], lF[5]); 
+
+    for (i = 0; i < nFace[nel]; i++) {
+      lG[i] = MAT2D(nel, i, geom->fArea, maxViz);
+      idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
+      lF[i] = face->area[idFace];
+    }
+    printf("area\nnel %d\n", nel + 1);
+    printf("%lf %lf %lf %lf %lf %lf\n"
+      , lG[0], lG[1], lG[2]
+      , lG[3], lG[4], lG[5]);
+    printf("%lf %lf %lf %lf %lf %lf\n"
+      , lF[0], lF[1], lF[2]
+      , lF[3], lF[4], lF[5]);
+
+    for (i = 0; i < nFace[nel]; i++) {
+      lG[i] = MAT2D(nel, i, geom->mvSkew, maxViz);
+      idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
+      lF[i] = face->mvSkew[idFace];
+    }
+    printf("mvSkew\nnel %d\n", nel + 1);
+    printf("%lf %lf %lf %lf %lf %lf\n"
+      , lG[0], lG[1], lG[2]
+      , lG[3], lG[4], lG[5]);
+    printf("%lf %lf %lf %lf %lf %lf\n"
+      , lF[0], lF[1], lF[2]
+      , lF[3], lF[4], lF[5]);
+
+    for (i = 0; i < nFace[nel]; i++) {
+      idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
+      cellOwner = MAT2D(idFace, 0, face->owner, 2) - 1;
+      for (j = 0; j < ndm; j++) {
+        lG1[i][j] = MAT3D(nel, i, j, geom->ksi, maxViz, ndm);
+        lF1[i][j] = OWNER(cellOwner, nel)*MAT2D(idFace, j, face->ksi, ndm);
+      }
+    }
+    printf("ksi\nnel %d\n", nel + 1);
+    printf("(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n\n"
+      , lG1[0][0], lG1[0][1], lG1[0][2]
+      , lG1[1][0], lG1[1][1], lG1[1][2]
+      , lG1[2][0], lG1[2][1], lG1[2][2]
+      , lG1[3][0], lG1[3][1], lG1[3][2]
+      , lG1[4][0], lG1[4][1], lG1[4][2]
+      , lG1[5][0], lG1[5][1], lG1[5][2]);
+
+    printf("(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      , lF1[0][0], lF1[0][1], lF1[0][2]
+      , lF1[1][0], lF1[1][1], lF1[1][2]
+      , lF1[2][0], lF1[2][1], lF1[2][2]
+      , lF1[3][0], lF1[3][1], lF1[3][2]
+      , lF1[4][0], lF1[4][1], lF1[4][2]
+      , lF1[5][0], lF1[5][1], lF1[5][2]);
+
+    for (i = 0; i < nFace[nel]; i++) {
+      idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
+      cellOwner = MAT2D(idFace, 0, face->owner, 2) - 1;
+      for (j = 0; j < ndm; j++) {
+        lG1[i][j] = MAT3D(nel, i, j, geom->eta, maxViz, ndm);
+        lF1[i][j] = OWNER(cellOwner, nel)*MAT2D(idFace, j, face->eta, ndm);
+      }
+    }
+    printf("eta\nnel %d\n", nel + 1);
+    printf("(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n\n"
+      , lG1[0][0], lG1[0][1], lG1[0][2]
+      , lG1[1][0], lG1[1][1], lG1[1][2]
+      , lG1[2][0], lG1[2][1], lG1[2][2]
+      , lG1[3][0], lG1[3][1], lG1[3][2]
+      , lG1[4][0], lG1[4][1], lG1[4][2]
+      , lG1[5][0], lG1[5][1], lG1[5][2]);
+
+    printf("(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      , lF1[0][0], lF1[0][1], lF1[0][2]
+      , lF1[1][0], lF1[1][1], lF1[1][2]
+      , lF1[2][0], lF1[2][1], lF1[2][2]
+      , lF1[3][0], lF1[3][1], lF1[3][2]
+      , lF1[4][0], lF1[4][1], lF1[4][2]
+      , lF1[5][0], lF1[5][1], lF1[5][2]);
+    for (i = 0; i < nFace[nel]; i++) {
+      idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
+      cellOwner = MAT2D(idFace, 0, face->owner, 2) - 1;
+      for (j = 0; j < ndm; j++) {
+        lG1[i][j] = MAT3D(nel, i, j, geom->normal, maxViz, ndm);
+        lF1[i][j] = OWNER(cellOwner, nel)*MAT2D(idFace, j, face->normal, ndm);
+      }
+    }
+    printf("normal\nnel %d\n", nel + 1);
+    printf("(%9lf %9lf %9lf)\n"
+           "(%9lf %9lf %9lf)\n"
+           "(%9lf %9lf %9lf)\n"
+           "(%9lf %9lf %9lf)\n"
+           "(%9lf %9lf %9lf)\n"
+           "(%9lf %9lf %9lf)\n\n"
+           , lG1[0][0], lG1[0][1], lG1[0][2]
+           , lG1[1][0], lG1[1][1], lG1[1][2]
+           , lG1[2][0], lG1[2][1], lG1[2][2]
+           , lG1[3][0], lG1[3][1], lG1[3][2]
+           , lG1[4][0], lG1[4][1], lG1[4][2]
+           , lG1[5][0], lG1[5][1], lG1[5][2]);
+
+    printf("(%9lf %9lf %9lf)\n"
+           "(%9lf %9lf %9lf)\n"
+           "(%9lf %9lf %9lf)\n"
+           "(%9lf %9lf %9lf)\n"
+           "(%9lf %9lf %9lf)\n"
+           "(%9lf %9lf %9lf)\n"
+           , lF1[0][0], lF1[0][1], lF1[0][2]
+           , lF1[1][0], lF1[1][1], lF1[1][2]
+           , lF1[2][0], lF1[2][1], lF1[2][2]
+           , lF1[3][0], lF1[3][1], lF1[3][2]
+           , lF1[4][0], lF1[4][1], lF1[4][2]
+           , lF1[5][0], lF1[5][1], lF1[5][2]);
+
+    for (i = 0; i < nFace[nel]; i++) {
+      idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
+      cellOwner = MAT2D(idFace, 0, face->owner, 2) - 1;
+      for (j = 0; j < ndm; j++) {
+        lG1[i][j] = MAT3D(nel, i, j, geom->xm, maxViz, ndm);
+        lF1[i][j] = MAT2D(idFace, j, face->xm, ndm);
+      }
+    }
+    printf("xm\nnel %d\n", nel + 1);
+    printf("(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n\n"
+      , lG1[0][0], lG1[0][1], lG1[0][2]
+      , lG1[1][0], lG1[1][1], lG1[1][2]
+      , lG1[2][0], lG1[2][1], lG1[2][2]
+      , lG1[3][0], lG1[3][1], lG1[3][2]
+      , lG1[4][0], lG1[4][1], lG1[4][2]
+      , lG1[5][0], lG1[5][1], lG1[5][2]);
+
+    printf("(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      , lF1[0][0], lF1[0][1], lF1[0][2]
+      , lF1[1][0], lF1[1][1], lF1[1][2]
+      , lF1[2][0], lF1[2][1], lF1[2][2]
+      , lF1[3][0], lF1[3][1], lF1[3][2]
+      , lF1[4][0], lF1[4][1], lF1[4][2]
+      , lF1[5][0], lF1[5][1], lF1[5][2]);
+
+    for (i = 0; i < nFace[nel]; i++) {
+      idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
+      cellOwner = MAT2D(idFace, 0, face->owner, 2) - 1;
+      for (j = 0; j < ndm; j++) {
+        lG1[i][j] = MAT3D(nel, i, j, geom->vSkew, maxViz, ndm);
+        lF1[i][j] = MAT2D(idFace, j, face->vSkew, ndm);
+      }
+    }
+
+    printf("vSkew\nnel %d\n", nel + 1);
+    printf("(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n\n"
+      , lG1[0][0], lG1[0][1], lG1[0][2]
+      , lG1[1][0], lG1[1][1], lG1[1][2]
+      , lG1[2][0], lG1[2][1], lG1[2][2]
+      , lG1[3][0], lG1[3][1], lG1[3][2]
+      , lG1[4][0], lG1[4][1], lG1[4][2]
+      , lG1[5][0], lG1[5][1], lG1[5][2]);
+
+    printf("(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      "(%9lf %9lf %9lf)\n"
+      , lF1[0][0], lF1[0][1], lF1[0][2]
+      , lF1[1][0], lF1[1][1], lF1[1][2]
+      , lF1[2][0], lF1[2][1], lF1[2][2]
+      , lF1[3][0], lF1[3][1], lF1[3][2]
+      , lF1[4][0], lF1[4][1], lF1[4][2]
+      , lF1[5][0], lF1[5][1], lF1[5][2]);
+  }
+
+}
+/***************************************************************************/
  

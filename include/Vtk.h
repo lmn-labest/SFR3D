@@ -5,6 +5,17 @@
   #define SCALARS_VTK 1
   #define VECTORS_VTK 2
   #define TENSORS_VTK 3
+
+/*... vtk elmentos*/
+  #define VTK_DOT       1
+  #define VTK_LINE      3
+  #define VTK_TRIA      5
+  #define VTK_QUAD      9
+  #define VTK_TETR     10
+  #define VTK_HEXA     12
+  #define VTK_PIRA     14
+/*...................................................................*/
+
   #include<stdio.h>
   #include<stdlib.h>
   #include<HccaStdBool.h>

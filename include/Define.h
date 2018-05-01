@@ -65,6 +65,10 @@
   #define MAX_MPI_PROCESS 2048
 /*...................................................................*/
 
+/*...*/
+  #define OWNER(cell,nel) ((cell) == (nel) ? 1:-1)
+/*...................................................................*/
+
 /*... */            
   #define KELVINCONV 273.15E+00
   #define CELSIUS_FOR_KELVIN(t) ((t)+(KELVINCONV)) 
@@ -79,7 +83,7 @@
 /*...................................................................*/
 
 /*... conv radianos para graus*/
-  #define radToDeg(teta) (180.e0*(teta)/PI)
+  #define radToDeg(teta) (180.e0*(teta)/(PI))
 /*...................................................................*/
 
 /*... tipo de cargr no volume*/
@@ -187,6 +191,8 @@
   #define QUADCELL  3  
   #define TETRCELL  4  
   #define HEXACELL  5  
+  #define PIRACELL  6
+  #define DOTCELL   7
 /*...................................................................*/
 
 /*...cellLoop*/
@@ -250,13 +256,6 @@
 	#define DOTO8    9
 	#define DOTO2I2 10
 /*...................................................................*/
-/*... vtk elmentos*/
-  #define VTK_LINE      3
-  #define VTK_TRIA      5
-  #define VTK_QUAD      9
-  #define VTK_TETR     10
-  #define VTK_HEXA     12
-/*...................................................................*/
 
 /*... definicao do tipo de inteiros usados*/
   #define INT         int   
@@ -278,15 +277,15 @@
 /*...................................................................*/
 
 /*... macro para acesso matricial em vetores*/
-  #define   MAT2D(i,j,vector,col)           vector[(i)*(col)+(j)]
-  #define   MAT3D(i,j,k,vector,col1,col2)   vector[(i)*(col1)*(col2)+(col2)*(j)+(k)]
+  #define   MAT2D(i,j,vector,col)           (vector[(i)*(col)+(j)])
+  #define   MAT3D(i,j,k,vector,col1,col2)   (vector[(i)*(col1)*(col2)+(col2)*(j)+(k)])
 /*...................................................................*/
 
 /*... definicao de funcoes*/
   #define min(a, b)  (((a) < (b)) ? (a) : (b))
   #define max(a, b)  (((a) > (b)) ? (a) : (b))
-  #define vectorPlusOne(v,n,i)  for(i=0;i<n;i++) v[i]++ 
-  #define vectorMinusOne(v,n,i) for(i=0;i<n;i++) v[i]--  
+  #define vectorPlusOne(v,n,i)  for(i=0;i<n;i++) (v[i]++) 
+  #define vectorMinusOne(v,n,i) for(i=0;i<n;i++) (v[i]--)  
 /*...................................................................*/
 
 /*...*/

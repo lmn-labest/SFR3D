@@ -680,7 +680,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*********************************************************************
  * Data de criacao    : 18/01/2018                                   *
- * Data de modificaco : 22/01/2018                                   *
+ * Data de modificaco : 30/04/2018                                   *
  *-------------------------------------------------------------------*
  * cellKinectTurb3D: Celula 3D para transporte da energia kinetica   *
  * turbulenta                                                        * 
@@ -1135,13 +1135,10 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
   }
 /*...................................................................*/
 
-/*...*/ 
-  if(nFace == 4){
-    lA[idCell] = sP + lA[0] + lA[1] + lA[2] + lA[3];
-  }
-  else if(nFace == 6){
-    lA[idCell] = sP + lA[0] + lA[1] + lA[2] + lA[3] + lA[4] + lA[5];
-  }
+/*...*/
+  lA[idCell] = sP;
+  for (nf = 0; nf<nFace; nf++)
+    lA[idCell] += lA[nf];
 /*...................................................................*/
 
 /*...*/
@@ -1161,20 +1158,8 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
 /*...................................................................*/
 
 /*...*/
-  if(nFace == 4){
-    lA[0] *= -1.e0;
-    lA[1] *= -1.e0;
-    lA[2] *= -1.e0;
-    lA[3] *= -1.e0;
-  }
-  else if(nFace == 6){
-    lA[0] *= -1.e0;
-    lA[1] *= -1.e0;
-    lA[2] *= -1.e0;
-    lA[3] *= -1.e0;
-    lA[4] *= -1.e0;
-    lA[5] *= -1.e0;
-  }
+  for (nf = 0; nf<nFace; nf++)
+    lA[nf] *= -1.e0;
 /*...................................................................*/
 
 /*...*/

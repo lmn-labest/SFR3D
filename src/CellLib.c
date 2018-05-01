@@ -526,9 +526,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
     } 
 /*..................................................................*/
   }
-
-
-
+/*..................................................................*/
 }
 /*********************************************************************/
 
@@ -1507,7 +1505,7 @@ void cellGeom2D(DOUBLE *RESTRICT lx       ,short *RESTRICT lnFace
   short i,j,k,cCell = maxViz;
   short no1,no2;
   double x1,x2;
-
+/*...*/
   for(i=0;i<lnFace[cCell];i++){
     mksi[i]  = 0.0e0;
     meta[i]  = 0.0e0;
@@ -1517,7 +1515,8 @@ void cellGeom2D(DOUBLE *RESTRICT lx       ,short *RESTRICT lnFace
     MAT2D(i,0,eta,ndm)= 0.0e0; 
     MAT2D(i,1,eta,ndm)= 0.0e0; 
   }
-  
+/*...................................................................*/
+
 /*... calculo do centro geometrico das celulas*/      
   for(i=0;i<=maxViz;i++){
     for(j=0;j<ndm;j++){
@@ -1532,7 +1531,6 @@ void cellGeom2D(DOUBLE *RESTRICT lx       ,short *RESTRICT lnFace
   }
 /*...................................................................*/
 
-
 /*... vetor que une o centroide da celula ao vizinho(ksi)*/
   for(i=0;i<lnFace[cCell];i++){
     if(lnFace[i]){
@@ -1545,7 +1543,6 @@ void cellGeom2D(DOUBLE *RESTRICT lx       ,short *RESTRICT lnFace
     }   
   }
 /*...................................................................*/
-
 
 /*... vetor paralelo as arestas (eta)*/
   for(i=0;i<lnFace[cCell];i++){
@@ -1647,7 +1644,7 @@ void cellGeom2D(DOUBLE *RESTRICT lx       ,short *RESTRICT lnFace
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 28/02/2018                                   * 
+ * Data de modificaco : 28/04/2018                                   * 
  *-------------------------------------------------------------------* 
  * CELLGEOM3D : calculo geometrico de propriedade de celula 3D       * 
  *-------------------------------------------------------------------* 
@@ -1730,14 +1727,16 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
     MAT2D(i,1,eta,ndm)= 0.0e0; 
     MAT2D(i,2,eta,ndm)= 0.0e0; 
   }
- 
-  if( lGeomType[cCell] == HEXACELL )
+
+/*...*/
+  if( lGeomType[cCell] == HEXACELL || lGeomType[cCell] == PIRACELL)
     nenFaces = 4;  
   else if( lGeomType[cCell] == TETRCELL )  
-    nenFaces = 3;    
+    nenFaces = 3;   
+/*...................................................................*/
 
-/*... calculo do centro geometrico das celulas*/    
-  for(i=0;i<=maxViz;i++){
+/*... calculo do centro geometrico das celulas*/
+  for(i=0;i<= maxViz;i++){
     for(j=0;j<ndm;j++){
       MAT2D(i,j,xc,ndm) = 0.0e0;
       if(lnFace[i]){
@@ -1829,6 +1828,73 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
   }
 /*...................................................................*/
 
+/*... calculo do vetor normal e area da face*/
+  else if (lGeomType[cCell] == PIRACELL)
+  {
+    for (i = 0; i<lnFace[cCell]; i++) {
+/*... face triangular*/
+      if (i)
+      {
+        no1 = MAT2D(i, 0, sn, nenFaces);
+        no2 = MAT2D(i, 1, sn, nenFaces);
+        no3 = MAT2D(i, 2, sn, nenFaces);
+        for (j = 0; j<ndm; j++) {
+          x1 = MAT3D(cCell, no1, j, lx, maxNo, ndm);
+          x2 = MAT3D(cCell, no2, j, lx, maxNo, ndm);
+          x3 = MAT3D(cCell, no3, j, lx, maxNo, ndm);
+          v1[j] = MAT2D(0, j, eta, ndm) = x2 - x1;
+          v2[j] = MAT2D(1, j, eta, ndm) = x3 - x1;
+        }
+/*... area da face*/
+        fArea[i] = areaCell(eta, TRIACELL, ndm, nel);
+/*... normal a face*/
+        prodVet(v1, v2, n);
+/*... normal do vetor normal*/
+        dot = 0.e0;
+        for (j = 0; j<ndm; j++) {
+          dot += n[j] * n[j];
+        }
+        dot = sqrt(dot);
+/*... vetor unitario normal*/
+        for (j = 0; j<ndm; j++)
+          MAT2D(i, j, normal, ndm) = n[j] / dot;
+      }
+/*... face quandrigular*/
+      else
+      {
+        no1 = MAT2D(i, 0, sn, nenFaces);
+        no2 = MAT2D(i, 1, sn, nenFaces);
+        no3 = MAT2D(i, 2, sn, nenFaces);
+        no4 = MAT2D(i, 3, sn, nenFaces);
+        for (j = 0; j<ndm; j++) 
+        {
+          x1 = MAT3D(cCell, no1, j, lx, maxNo, ndm);
+          x2 = MAT3D(cCell, no2, j, lx, maxNo, ndm);
+          x3 = MAT3D(cCell, no3, j, lx, maxNo, ndm);
+          x4 = MAT3D(cCell, no4, j, lx, maxNo, ndm);
+          v1[j] = MAT2D(0, j, eta, ndm) = x2 - x1;
+          MAT2D(1, j, eta, ndm) = x3 - x2;
+          MAT2D(2, j, eta, ndm) = x4 - x3;
+          v2[j] = MAT2D(3, j, eta, ndm) = x1 - x4;
+        }
+/*... area da face*/
+        fArea[i] = areaCell(eta, QUADCELL, ndm, nel);
+/*... normal a face*/
+        prodVet(v2, v1, n);
+/*... normal do vetor normal*/
+        dot = 0.e0;
+        for (j = 0; j<ndm; j++) {
+          dot += n[j] * n[j];
+        }
+        dot = sqrt(dot);
+/*... vetor unitario normal*/
+        for (j = 0; j<ndm; j++)
+          MAT2D(i, j, normal, ndm) = n[j] / dot;
+      }
+    }
+  }
+/*...................................................................*/
+
 /*... ponto medio da aresta(xm) e vetor que une este ponto ao 
       centroide(mxcc) */
   if( lGeomType[cCell] == HEXACELL ){
@@ -1885,6 +1951,70 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
 /*...................................................................*/  
   }
 /*...................................................................*/  
+
+/*...*/
+  else if (lGeomType[cCell] == PIRACELL) {
+    for (i = 0; i<lnFace[cCell]; i++) {
+/*... faces triangulares*/
+      if(i)
+      {
+        no1 = MAT2D(i, 0, sn, nenFaces);
+        no2 = MAT2D(i, 1, sn, nenFaces);
+        no3 = MAT2D(i, 2, sn, nenFaces);
+        for (j = 0; j<ndm; j++) {
+          x1 = MAT3D(cCell, no1, j, lx, maxNo, ndm);
+          x2 = MAT3D(cCell, no2, j, lx, maxNo, ndm);
+          x3 = MAT3D(cCell, no3, j, lx, maxNo, ndm);
+/*...*/
+          MAT2D(i, j, xm, ndm) = D1DIV3 * (x1 + x2 + x3);
+/*...................................................................*/
+
+/*...*/
+          MAT2D(i, j, xmcc, ndm) = MAT2D(i, j, xm, ndm) 
+                                 - MAT2D(cCell, j, xc, ndm);
+/*...................................................................*/
+
+/*...*/
+          dcca[i] += MAT2D(i, j, xmcc, ndm)*MAT2D(i, j, normal, ndm);
+/*...................................................................*/
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+
+/*... fa quadrada*/
+      else
+      {
+        no1 = MAT2D(i, 0, sn, nenFaces);
+        no2 = MAT2D(i, 1, sn, nenFaces);
+        no3 = MAT2D(i, 2, sn, nenFaces);
+        no4 = MAT2D(i, 3, sn, nenFaces);
+        for (j = 0; j<ndm; j++)
+        {
+          x1 = MAT3D(cCell, no1, j, lx, maxNo, ndm);
+          x2 = MAT3D(cCell, no2, j, lx, maxNo, ndm);
+          x3 = MAT3D(cCell, no3, j, lx, maxNo, ndm);
+          x4 = MAT3D(cCell, no4, j, lx, maxNo, ndm);
+/*...*/
+          MAT2D(i, j, xm, ndm) = 0.25e0*(x1 + x2 + x3 + x4);
+/*...................................................................*/
+
+/*...*/
+          MAT2D(i, j, xmcc, ndm) = MAT2D(i, j, xm, ndm) 
+                                 - MAT2D(cCell, j, xc, ndm);
+/*...................................................................*/
+
+/*...*/
+          dcca[i] += MAT2D(i, j, xmcc, ndm)*MAT2D(i, j, normal, ndm);
+/*...................................................................*/
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+  }
+/*...................................................................*/
     
 /*... calculo do centro da celula fantasma*/      
 /*  for(i=0;i<=maxViz;i++){
@@ -2358,7 +2488,7 @@ void greenGaussCell(Loads *loads
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 30/04/2018                                   * 
  *-------------------------------------------------------------------* 
  * GRREENGAUSSNODE: reconstrucao de gradiente green-gauss linear por * 
  * celula                                                            *
@@ -2409,16 +2539,15 @@ void greenGaussNode(INT *RESTRICT lViz   ,DOUBLE *RESTRICT fArea
   
   for(i=0;i<MAX_NDF;i++)
     uf[i]  = 0.e0;
-
-  
   
 /*...*/
-  for(i=0;i<nFace;i++){
-    
+  for(i=0;i<nFace;i++)
+  {    
     for(j=0;j<ndm;j++)
       lNormal[j] = MAT2D(i,j,normal,ndm);
 /*... triangulos e quadrilateros*/    
-    if(ty == TRIACELL || ty == QUADCELL){
+    if(ty == TRIACELL || ty == QUADCELL)
+    {
       no[0] = MAT2D(i,0,isNod,2);
       no[1] = MAT2D(i,1,isNod,2);
       for(j=0;j<ndf;j++)
@@ -2427,19 +2556,21 @@ void greenGaussNode(INT *RESTRICT lViz   ,DOUBLE *RESTRICT fArea
 /*...................................................................*/
 
 /*... tetraedro*/    
-    else if(ty == TETRCELL){
+    else if(ty == TETRCELL)
+    {
       no[0] = MAT2D(i,0,isNod,3);
       no[1] = MAT2D(i,1,isNod,3);
       no[2] = MAT2D(i,2,isNod,3);
       for(j=0;j<ndf;j++)
         uf[j] = D1DIV3*(MAT2D(no[0],j,u,ndf) 
-                           +MAT2D(no[1],j,u,ndf)
-                           +MAT2D(no[2],j,u,ndf));
+                       +MAT2D(no[1],j,u,ndf)
+                       +MAT2D(no[2],j,u,ndf));
     }
 /*...................................................................*/
 
 /*... hexaedro*/    
-    else if(ty == HEXACELL){
+    else if(ty == HEXACELL)
+    {
       no[0] = MAT2D(i,0,isNod,4);
       no[1] = MAT2D(i,1,isNod,4);
       no[2] = MAT2D(i,2,isNod,4);
@@ -2452,8 +2583,42 @@ void greenGaussNode(INT *RESTRICT lViz   ,DOUBLE *RESTRICT fArea
     }
 /*...................................................................*/
 
+/*... piramide*/
+    else if (ty == PIRACELL)
+    {
+/*... face triangular*/
+      if (i)
+      {
+        no[0] = MAT2D(i, 0, isNod, 4);
+        no[1] = MAT2D(i, 1, isNod, 4);
+        no[2] = MAT2D(i, 2, isNod, 4);
+        for (j = 0; j<ndf; j++)
+          uf[j] = D1DIV3 * (MAT2D(no[0], j, u, ndf)
+            + MAT2D(no[1], j, u, ndf)
+            + MAT2D(no[2], j, u, ndf));
+      }
+/*...................................................................*/
+
+/*... face quadrangular*/
+      else
+      {
+        no[0] = MAT2D(i, 0, isNod, 4);
+        no[1] = MAT2D(i, 1, isNod, 4);
+        no[2] = MAT2D(i, 2, isNod, 4);
+        no[3] = MAT2D(i, 3, isNod, 4);
+        for (j = 0; j<ndf; j++)
+          uf[j] = 0.25e0*(MAT2D(no[0], j, u, ndf)
+                        + MAT2D(no[1], j, u, ndf)
+                        + MAT2D(no[2], j, u, ndf)
+                        + MAT2D(no[3], j, u, ndf));
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+
 /*...*/
-    for(j=0;j<ndf;j++){
+    for(j=0;j<ndf;j++)
+    {
       aux1 = uf[j]*fArea[i]; 
       for(k=0;k<ndm;k++)
         MAT2D(j,k,gradU,ndm) += aux1*lNormal[k]; 
@@ -3237,7 +3402,7 @@ void  leastSquareQR(Loads *loads
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 28/04/2018                                   * 
  *-------------------------------------------------------------------* 
  * SN: numera dos nos das faces das celulas                          * 
  *-------------------------------------------------------------------* 
@@ -3277,6 +3442,12 @@ short sn(short *s,short ty,INT nel)
                        ,2,3,7,6
                        ,3,0,4,7};
 
+  short isNodPira[20] = { 0,3,2, 1
+                         ,0,1,4,-1
+                         ,1,2,4,-1
+                         ,2,3,4,-1
+                         ,3,0,4,-1};
+
   switch(ty){
 
 /* ... triangulo*/  
@@ -3307,6 +3478,14 @@ short sn(short *s,short ty,INT nel)
     case HEXACELL:
       for(i=0;i<24;i++)
         s[i] = isNodHex[i];
+      return 4;
+    break;
+/*...................................................................*/
+
+/* ... hexaedros*/
+    case PIRACELL:
+      for (i = 0; i<20; i++)
+        s[i] = isNodPira[i];
       return 4;
     break;
 /*...................................................................*/
@@ -6375,4 +6554,4 @@ DOUBLE interpolFace(DOUBLE *RESTRICT vSkew, DOUBLE *RESTRICT xmcc
 
   return alpha; 
 }
-/*********************************************************************/  
+/*********************************************************************/   

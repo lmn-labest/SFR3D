@@ -139,7 +139,16 @@
 
 /*...*/
   typedef struct{
-    DOUBLE *vel;    /*Velocidade na face*/                             
+    INT *node;
+    INT *owner;
+    DOUBLE *ksi;   /*vetor que une os centroides da celulas*/
+    DOUBLE *mksi;  /*modulo do vetor que une os centroides da celulas*/
+    DOUBLE *eta;   /*vetor paralelo a aresta*/
+    DOUBLE *area; /*area da face compartilhada*/
+    DOUBLE *normal;/*vetor normal a face*/
+    DOUBLE *xm;    /*ponto medio da face*/
+    DOUBLE *vSkew; /*vetor vSkew*/
+    DOUBLE *mvSkew;/*modulo do vSkew*/
   }Face;
 /*...................................................................*/    
 
@@ -212,6 +221,7 @@
     short *faceLoadD1; /*tipo de carga contorno na face (difusa pura)*/
 /*...................................................................*/
     INT    *node;       /*conectividades*/
+    INT    *cellFace;   /*faces que da celula*/
     Geom   geom;  
 /*...*/
     DOUBLE *energy;       /*energia*/
@@ -374,6 +384,7 @@
     short maxViz;   /*numero maximo de vizinhos que um elemento possui*/
     INT nnode;      /*numero de nos*/
     INT numel;      /*numero de elementos*/
+    INT nFaces;     /*numero de faces totais*/
     INT numelNov;   /*numero de elementos sobrepostos*/
     INT nnodeOv;    /*numero de nos em elementos sobrepostos*/
     INT nnodeNov;   /*numero de nos em elementos nao sobrepostos*/
@@ -384,6 +395,7 @@
 /*...*/    
     Elmt elm;     
     Node node;
+    Face face;
     Pnode noIncid;
 /*...*/
     MeshQuality mQuality;

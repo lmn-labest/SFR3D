@@ -61,7 +61,7 @@ FILE *aux;
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 31/03/2018                                   * 
+ * Data de modificaco : 30/04/2018                                   * 
  *-------------------------------------------------------------------* 
  * fname: add as extencoes dos arquivos de saida                     *
  * ------------------------------------------------------------------*
@@ -93,7 +93,8 @@ FILE *aux;
  *         21 -> resultados do problema de escoamente imconpressivel *       
  *         22 -> log de residuo do simple                            *
  *         23 -> log de excucao                                      *
- *         24 -> save                                                *               
+ *         24 -> save                                                *
+ *         25 -> geometrica com os centroides                        *
  *         60 -> media dos tempos (MPI)                              *      
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
@@ -565,6 +566,24 @@ void fName(char *name,INT num1,INT num2, int cod ,char *out){
       }
       strcpy(out,name);
       strcat(out,ext);
+      break;
+/*...................................................................*/
+
+/*... arquivo de geom*/
+    case 25:
+      strcat(ext, "_pgeo_cc.vtk");
+      size1 = (int)strlen(name);
+      size2 = (int)strlen(ext);
+      if ((size1 + size2)  > SIZEMAX) {
+        fprintf(stderr, "Nome do arquivo muito extenso.\n"
+          "name : \"%s\"\n"
+          "Name maximo : %d\n"
+          "Funcao %s, arquivo fonte \"%s\"\n"
+          , name, SIZEMAX, __func__, __FILE__);
+        exit(EXIT_FAILURE);
+      }
+      strcpy(out, name);
+      strcat(out, ext);
       break;
 /*...................................................................*/
 

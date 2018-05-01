@@ -2334,7 +2334,7 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 
 /*********************************************************************
  * Data de criacao    : 03/10/2017                                   *
- * Data de modificaco : 17/12/2018                                   * 
+ * Data de modificaco : 29/04/2018                                   * 
  *-------------------------------------------------------------------* 
  * CELLSIMPLEVE3DLM: Celula 3D para velocidade do metodo simple      * 
  * em escoamento levemento compressivel (Low Mach)                   * 
@@ -3130,12 +3130,8 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*...*/
   lAn = 0.e0;
-  if(nFace == 4){
-    lAn = lA[0] + lA[1] + lA[2] + lA[3];
-  }
-  else if(nFace == 6){
-    lAn = lA[0] + lA[1] + lA[2] + lA[3] + lA[4] + lA[5];
-  }
+  for (nf = 0; nf<nFace; nf++)
+    lAn += lA[nf];
   lA[idCell  ] = sP + sPc[0] + lAn;
   lA[idCell+1] = sP + sPc[1] + lAn;
   lA[idCell+2] = sP + sPc[2] + lAn;
@@ -3196,20 +3192,8 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*...*/
-  if(nFace == 4){
-    lA[0] *= -1.e0;
-    lA[1] *= -1.e0;
-    lA[2] *= -1.e0;
-    lA[3] *= -1.e0;
-  }
-  else if(nFace == 6){
-    lA[0] *= -1.e0;
-    lA[1] *= -1.e0;
-    lA[2] *= -1.e0;
-    lA[3] *= -1.e0;
-    lA[4] *= -1.e0;
-    lA[5] *= -1.e0;
-  }
+  for (nf = 0; nf<nFace; nf++)
+    lA[nf] *= -1.e0;
 /*...................................................................*/
 
 /*...*/

@@ -236,14 +236,15 @@ void wPartVtk(Memoria *m
 
 /********************************************************************** 
  * Data de criacao    : 00/00/0000                                    *
- * Data de modificaco : 09/10/2017                                    *
+ * Data de modificaco : 30/04/2018                                    *
  *------------------------------------------------------------------- *
  * WGEOVTK : escreve a malha com os resultados e condicao             *  
  * ------------------------------------------------------------------ *
  * parametros de entrada:                                             * 
  * ------------------------------------------------------------------ *
  * m          -> arranjo da menoria principal                         *  
- * x          -> coordenadas                                          * 
+ * x          -> coordenadas                                          *
+ * cc           -> centro geomentrico das celulas                     *
  * el         -> conectividade                                        * 
  * mat        -> materias                                             *  
  * nen        -> conectividades por elemento                          *  
@@ -274,7 +275,7 @@ void wPartVtk(Memoria *m
  * parametros de saida  :                                             * 
  * ------------------------------------------------------------------ *
  **********************************************************************/
-void wGeoVtk(Memoria *m        ,double *x      
+void wGeoVtk(Memoria *m        ,double *x 
             ,INT *el           ,short *mat    
             ,short *nen        ,short *typeGeom
             ,double *prop      ,short *typeCal
@@ -292,7 +293,7 @@ void wGeoVtk(Memoria *m        ,double *x
             ,FILE *f)
 {
   int    *lel=NULL;
-  double *aux=NULL;
+  double *daux=NULL;
   INT i;
   short j;
   char head[]={"GEOM_VOLUME_FINITO"};
@@ -309,23 +310,25 @@ void wGeoVtk(Memoria *m        ,double *x
 /* ..................................................................*/
 
 /*... coordenadas*/
-  writeVtkCoor(x,nnode,ndm,iws,f);
-/*...................................................................*/
-  
+  writeVtkCoor(x, nnode, ndm, iws, f);
+/* ..................................................................*/
+ 
 /*... conectividades*/
-  HccaAlloc(int,m,lel,numel*maxNo,"el",_AD_);
+  HccaAlloc(int,m,lel,numel*maxNo,"lel",_AD_);
   ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
-  for(i=0;i<numel;i++){
-    for(j=0;j<maxNo;j++){
+  for(i=0;i<numel;i++)
+  {
+    for(j=0;j<maxNo;j++)
+    {
       MAT2D(i,j,lel,maxNo) = MAT2D(i,j,el,maxNo)-1;
     }
-  }  
+  }
   writeVtkCell(lel,nen,typeGeom,numel,maxNo,iws,f);
-  HccaDealloc(m,lel,"el",_AD_);
+  HccaDealloc(m, lel ,"lel"   ,_AD_);
 /*...................................................................*/
 
 /*... campo por elemento*/
-  fprintf(f,"CELL_DATA %ld\n",(long) numel);
+  fprintf(f,"CELL_DATA %ld\n",(long) numel );
 /*...................................................................*/
 
 /*... material*/
@@ -363,16 +366,16 @@ void wGeoVtk(Memoria *m        ,double *x
 /*...................................................................*/
 
 /*... propriedades dos elementos*/
-  HccaAlloc(double,m,aux,numel*numat,"el",_AD_);
-  ERRO_MALLOC(aux,"aux",__LINE__,__FILE__,__func__);
+  HccaAlloc(double,m,daux,numel*numat,"el",_AD_);
+  ERRO_MALLOC(daux,"daux",__LINE__,__FILE__,__func__);
   for(i=0;i<numel;i++){
     for(j=0;j<MAXPROP;j++){
       idum = mat[i]-1;
-      MAT2D(i,j,aux,MAXPROP) = MAT2D(idum,j,prop,MAXPROP);
+      MAT2D(i,j,daux,MAXPROP) = MAT2D(idum,j,prop,MAXPROP);
     }
   } 
-  writeVtkProp(&idum,aux,numel,MAXPROP,"elProp",iws,DOUBLE_VTK,1,f);
-  HccaDealloc(m,aux,"el",_AD_);
+  writeVtkProp(&idum,daux,numel,MAXPROP,"elProp",iws,DOUBLE_VTK,1,f);
+  HccaDealloc(m,daux,"el",_AD_);
 /*...................................................................*/
 
 /*...*/
@@ -507,6 +510,129 @@ void wGeoVtk(Memoria *m        ,double *x
   fclose(f);
 }
 /*********************************************************************/ 
+
+/**********************************************************************
+* Data de criacao    : 00/00/0000                                    *
+* Data de modificaco : 30/04/2018                                    *
+*------------------------------------------------------------------- *
+* WGEOVTK : escreve a malha com os resultados e condicao             *
+* ------------------------------------------------------------------ *
+* parametros de entrada:                                             *
+* ------------------------------------------------------------------ *
+* m          -> arranjo da menoria principal                         *
+* x          -> coordenadas                                          *
+* cc           -> centro geomentrico das celulas                     *
+* el         -> conectividade                                        *
+* mat        -> materias                                             *
+* nen        -> conectividades por elemento                          *
+* mat        -> material por elemento                                *
+* typeGeom   -> tipo geometrico do elemento                          *
+* typeCal    -> tipo calculo do elemento                             *
+* nel        -> numeracao do elemento                                *
+* faceRd1    -> condicao de contorno D1                              *
+* faceLd1    -> tipo da condicao de contorno D1                      *
+* faceRt1    -> condicao de contorno T1                              *
+* faceLt1    -> tipo da condicao de contorno T1                      *
+* faceRfluid -> condicao de contorno fluido                          *
+* faceLfluid -> tipo da condicao de contorno fluido                  *
+* nnode      -> numero de nos                                        *
+* numel      -> numero de elementos                                  *
+* ndm        -> numero de dimensao                                   *
+* maxNo      -> numero maximo de nos por elemento                    *
+* maxNo      -> numero maximo de vizinhos por elemento               *
+* numat      -> numero de materias                                   *
+* ndfD       -> graus de liberdade das equacoes de difusao D1        *
+* ndfT       -> graus de liberdade das equacoes de tranporte T1      *
+* ndfF       -> graus de liberdade das equacoes de fluidos           *
+* ndfFt      -> graus de liberdade das equacoes de fluidos           *
+* nameOut    -> nome de arquivo de saida                             *
+* iws        -> vtk binario                                          *
+* f          -> arquivlo                                             *
+* ------------------------------------------------------------------ *
+* parametros de saida  :                                             *
+* ------------------------------------------------------------------ *
+**********************************************************************/
+void wGeoVtk2(Memoria *m        , DOUBLE *x
+            , DOUBLE *cc        , INT *el         
+            , short *nen        , short *typeGeom
+            , INT nnode         , INT numel
+            , short ndm         , short maxNo       
+            , short maxViz      
+            , char *nameOut     , bool iws
+            , FILE *f)
+{
+  short  *iaux1 = NULL,*iaux2 = NULL;
+  int    *lel = NULL;
+  double *daux = NULL;
+  INT i;
+  short j;
+  char head[] = { "GEOM_VOLUME_FINITO" };
+  double ddum;
+  int    idum;
+
+  if (iws)
+    f = openFile(nameOut, "wb");
+  else
+    f = openFile(nameOut, "w");
+
+/* ...*/
+  headVtk(head, iws, f);
+/* ..................................................................*/
+
+/*... coordenadas*/
+  HccaAlloc(double, m, daux, (nnode+numel)*ndm, "daux", _AD_);
+  ERRO_MALLOC(daux, "daux", __LINE__, __FILE__, __func__);
+  for (i = 0; i< nnode; i++)
+  {
+    for (j = 0; j<ndm; j++)
+    {
+      MAT2D(i + nnode, j, daux, ndm) = MAT2D(i, j, cc, ndm);
+      MAT2D(i, j, daux, ndm) = MAT2D(i, j, x, ndm);
+    }
+  }
+
+  for (i = 0; i< nnode+numel; i++)
+  {
+    printf("%d %lf %lf %lf\n",i+1
+                             , MAT2D(i, 0, daux, ndm)
+                             , MAT2D(i, 1, daux, ndm)
+                             , MAT2D(i, 2, daux, ndm));
+  }
+
+  writeVtkCoor(daux, nnode + numel, ndm, iws, f);
+  HccaDealloc(m, daux, "daux", _AD_);
+/* ..................................................................*/
+
+/*... conectividades*/
+  HccaAlloc(int, m, lel, (numel + numel) * maxNo, "lel", _AD_);
+  ERRO_MALLOC(lel, "lel", __LINE__, __FILE__, __func__);
+  HccaAlloc(short, m, iaux1, numel + numel, "laux1", _AD_);
+  ERRO_MALLOC(iaux1, "laux1", __LINE__, __FILE__, __func__);
+  HccaAlloc(short, m, iaux2, numel + numel, "laux2", _AD_);
+  ERRO_MALLOC(iaux2, "laux2", __LINE__, __FILE__, __func__);
+  for (i = 0; i<numel; i++) {
+    iaux1[i] = nen[i];
+    iaux2[i] = typeGeom[i];
+    for (j = 0; j<maxNo; j++) {
+      MAT2D(i, j, lel, maxNo) = MAT2D(i, j, el, maxNo) - 1;
+    }
+    printf("%d %d\n", i, iaux1[i]);
+  }
+
+  for (i = 0; i<numel; i++) {
+    iaux1[numel+i] = 1;
+    iaux2[numel+i] = DOTCELL;
+    MAT2D(numel + i, 0, lel, maxNo) = nnode + i;
+    printf("%d %d\n", i, iaux1[i]);
+  }
+  writeVtkCell(lel, iaux1, iaux2, 2*numel, maxNo, iws, f);
+  HccaDealloc(m, iaux2, "laux2", _AD_);
+  HccaDealloc(m, iaux1, "laux1", _AD_);
+  HccaDealloc(m, lel  , "lel"   , _AD_);
+/*...................................................................*/
+  fclose(f);
+}
+/*********************************************************************/
 
 /**********************************************************************
  * Data de criacao    : 00/00/0000                                    *
@@ -1810,7 +1936,10 @@ void wResVtkTrans(Memoria *m        ,double *x
 }
 /*********************************************************************/
 
-/********************************************************************** 
+/**********************************************************************
+ * Data de criacao    : 00/00/0000                                    *
+ * Data de modificaco : 30/04/2018                                    *
+ * ------------------------------------------------------------------ *
  * MAKEFACE : gera as faces/aresta onde ha carregamento               *  
  * ------------------------------------------------------------------ *
  * parametros de entrada:                                             * 
@@ -1973,6 +2102,41 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
             }    
             nf++;
           } 
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*... hexaedro*/
+    else if (ty == PIRACELL) {
+/*...*/
+      tmp = 0;
+/*... checa se ha carga nas faces das celula*/
+      for (j = 0; j<maxViz; j++)
+        tmp += abs(MAT2D(nel, j, faceR, cCell));
+/*...*/
+      if (tmp) {
+/*... loop nas faces*/
+        for (j = 0; j<5; j++) {
+          tmp = MAT2D(nel, j, faceR, cCell);
+/*...*/
+          if (tmp) {
+            idFace[nf] = nel + 1;
+            if(j)
+              typeGeomFace[nf] = TRIACELL;
+            else
+              typeGeomFace[nf] = QUADCELL;
+            nenFace[nf] = sn(isnod, ty, nel);
+            lFaceL[nf] = MAT2D(nel, j, faceL, cCell);
+/*... loop nos nos da face*/
+            for (k = 0; k<nenFace[nf]; k++) {
+              no = MAT2D(j, k, isnod, nenFace[nf]);
+              MAT2D(nf, k, face, nenFaceMax) = MAT2D(nel, no, el, maxNo) - 1;
+            }
+            nf++;
+          }
         }
 /*...................................................................*/
       }

@@ -1367,7 +1367,8 @@ void callMklPardiso(INT nEq           , INT mtype
 {
   
 #if _MKL_
-  DOUBLE norm,normR,xKx,time;
+  int nThreads = ompVar.nThreadsCell;
+  DOUBLE norm,normR,xKx,time,ddum;
 /*... variavel interna do mkl( 64 btis)*/
   void *pt[64];
 /*...*/

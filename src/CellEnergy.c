@@ -508,7 +508,7 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
 
 /********************************************************************
 * Data de criacao    : 03/10/2017                                   *
-* Data de modificaco : 31/03/2018                                   *
+* Data de modificaco : 29/04/2018                                   *
 *-------------------------------------------------------------------*
 * CELLENERGY3D: Celula 3D para transporte                           *
 *-------------------------------------------------------------------*
@@ -577,30 +577,30 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
 *-------------------------------------------------------------------*
 *********************************************************************/
 void cellEnergy3D(Loads *loads, Loads *lVel
-  , Advection advT, Diffusion diffT
-  , Turbulence tModel, EnergyModel model
-  , PropVar vProp
-  , short *RESTRICT lGeomType, DOUBLE *RESTRICT prop
-  , INT *RESTRICT lViz, INT *RESTRICT lId
-  , DOUBLE *RESTRICT ksi, DOUBLE *RESTRICT mKsi
-  , DOUBLE *RESTRICT eta, DOUBLE *RESTRICT fArea
-  , DOUBLE *RESTRICT normal, DOUBLE *RESTRICT volume
-  , DOUBLE *RESTRICT xm, DOUBLE *RESTRICT xmcc
-  , DOUBLE *RESTRICT dcca, DOUBLE *RESTRICT cc
-  , DOUBLE *RESTRICT vSkew, DOUBLE *RESTRICT mvSkew
-  , DOUBLE *RESTRICT lA, DOUBLE *RESTRICT lB
-  , DOUBLE *RESTRICT lRcell, Temporal const ddt
-  , short  *RESTRICT lFaceR, short *RESTRICT lFaceL
-  , short  *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL
-  , DOUBLE *RESTRICT u0, DOUBLE *RESTRICT gradU0
-  , DOUBLE *RESTRICT vel, DOUBLE *RESTRICT gradVel
-  , DOUBLE *RESTRICT pres, DOUBLE *RESTRICT gradPres
-  , DOUBLE *RESTRICT lDensity, DOUBLE *RESTRICT lSheat
-  , DOUBLE *RESTRICT lViscosity, DOUBLE *RESTRICT lTconductivity
-  , DOUBLE *RESTRICT dField, DOUBLE *RESTRICT wallPar
-  , DOUBLE const underU
-  , const short nEn, short const nFace
-  , const short ndm, INT const nel)
+                , Advection advT, Diffusion diffT
+                , Turbulence tModel, EnergyModel model
+                , PropVar vProp
+                , short *RESTRICT lGeomType, DOUBLE *RESTRICT prop
+                , INT *RESTRICT lViz, INT *RESTRICT lId
+                , DOUBLE *RESTRICT ksi, DOUBLE *RESTRICT mKsi
+                , DOUBLE *RESTRICT eta, DOUBLE *RESTRICT fArea
+                , DOUBLE *RESTRICT normal, DOUBLE *RESTRICT volume
+                , DOUBLE *RESTRICT xm, DOUBLE *RESTRICT xmcc
+                , DOUBLE *RESTRICT dcca, DOUBLE *RESTRICT cc
+                , DOUBLE *RESTRICT vSkew, DOUBLE *RESTRICT mvSkew
+                , DOUBLE *RESTRICT lA, DOUBLE *RESTRICT lB
+                , DOUBLE *RESTRICT lRcell, Temporal const ddt
+                , short  *RESTRICT lFaceR, short *RESTRICT lFaceL
+                , short  *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL
+                , DOUBLE *RESTRICT u0, DOUBLE *RESTRICT gradU0
+                , DOUBLE *RESTRICT vel, DOUBLE *RESTRICT gradVel
+                , DOUBLE *RESTRICT pres, DOUBLE *RESTRICT gradPres
+                , DOUBLE *RESTRICT lDensity, DOUBLE *RESTRICT lSheat
+                , DOUBLE *RESTRICT lViscosity, DOUBLE *RESTRICT lTconductivity
+                , DOUBLE *RESTRICT dField, DOUBLE *RESTRICT wallPar
+                , DOUBLE const underU
+                , const short nEn, short const nFace
+                , const short ndm, INT const nel)
 {
   bool fTime, fDisp, fRes, fPresWork, fTemp, fTurb, fWallModel, fKelvin
     , fSheat;
@@ -983,12 +983,18 @@ void cellEnergy3D(Loads *loads, Loads *lVel
 /*...................................................................*/
 
 /*...*/
-  if (nFace == 4) {
+  lA[idCell] = sP;
+  for(nf=0;nf<nFace;nf++)
+    lA[idCell] += lA[nf];
+/*if (nFace == 4) {
     lA[idCell] = sP + lA[0] + lA[1] + lA[2] + lA[3];
+  }
+  else if (nFace == 5) {
+    lA[idCell] = sP + lA[0] + lA[1] + lA[2] + lA[3] + lA[4];
   }
   else if (nFace == 6) {
     lA[idCell] = sP + lA[0] + lA[1] + lA[2] + lA[3] + lA[4] + lA[5];
-  }
+  }*/
 /*...................................................................*/
 
 /*...*/
@@ -1014,11 +1020,23 @@ void cellEnergy3D(Loads *loads, Loads *lVel
 /*...................................................................*/
 
 /*...*/
-  if (nFace == 4) {
+  for (nf = 0; nf<nFace; nf++)
+    lA[nf] *= -1.e0;
+/*...................................................................*/
+
+/*...*/
+/*if (nFace == 4) {
     lA[0] *= -1.e0;
     lA[1] *= -1.e0;
     lA[2] *= -1.e0;
     lA[3] *= -1.e0;
+  }
+  else if (nFace == 5) {
+    lA[0] *= -1.e0;
+    lA[1] *= -1.e0;
+    lA[2] *= -1.e0;
+    lA[3] *= -1.e0;
+    lA[4] *= -1.e0;
   }
   else if (nFace == 6) {
     lA[0] *= -1.e0;
@@ -1027,7 +1045,7 @@ void cellEnergy3D(Loads *loads, Loads *lVel
     lA[3] *= -1.e0;
     lA[4] *= -1.e0;
     lA[5] *= -1.e0;
-  }
+  }*/
 /*...................................................................*/
 
 /*...*/
@@ -1037,6 +1055,6 @@ void cellEnergy3D(Loads *loads, Loads *lVel
     lB[0] = p;
 /*...*/
   lRcell[0] = rCell;
-  /*...................................................................*/
+/*...................................................................*/
 }
 /*********************************************************************/

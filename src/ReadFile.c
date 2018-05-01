@@ -86,8 +86,10 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 /*... alocando variavies de elementos*/
 /*... conectividade*/ 
   HccaAlloc(INT,m,mesh->elm.node       ,nel*maxno,"elnode"  ,_AD_);
+  /*... conectividade*/
+  HccaAlloc(INT, m, mesh->elm.cellFace, nel*maxViz,"cellface", _AD_);
 /*... materiais*/ 
-  HccaAlloc(short,m,mesh->elm.mat      ,nel      ,"elmat"   ,_AD_);
+  HccaAlloc(short,m,mesh->elm.mat      ,nel       ,"elmat"   ,_AD_);
 /*... nos por elementos*/
   HccaAlloc(short,m,mesh->elm.nen      ,nel      ,"elnen"   ,_AD_);
 /*... tipo geometrico */
@@ -4175,10 +4177,10 @@ void readSolvFluid(Memoria *m      , Mesh *mesh
         , "#VelPres\n#it ||rU1|| ||rU2|| ||rU3|| ||rMass||\n");
     else if (mesh->ndfFt == 4)
       fprintf(opt->fileItPlot[FITPLOTSIMPLE]
-        , "#VelPres\n#it ||rU1|| ||rU2|| ||rEnergy|| ||rMass||\n");
+        , "#VelPres\n#it ||rU1|| ||rU2|| ||rMass|| ||rEnergy||\n");
     else if (mesh->ndfFt == 5)
       fprintf(opt->fileItPlot[FITPLOTSIMPLE]
-        , "#VelPres\n#it ||rU1|| ||rU2|| ||rU3|| ||rEnergy|| ||rMass||\n");
+        , "#VelPres\n#it ||rU1|| ||rU2|| ||rU3|| ||rMass|| ||rEnergy||\n");
   }
 /*...................................................................*/
 

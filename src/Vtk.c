@@ -204,6 +204,10 @@ void writeVtkCell(int *el       ,short *nen ,short *type
       dum = VTK_TETR;
     else if(type[i] == HEXACELL)
       dum = VTK_HEXA;
+    else if (type[i] == PIRACELL)
+      dum = VTK_PIRA;
+    else if (type[i] == DOTCELL)
+      dum = VTK_DOT;
     else
       dum = 0;
     write_int(dum,cod,f);

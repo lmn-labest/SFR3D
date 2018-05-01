@@ -26,18 +26,13 @@
 /*...................................................................*/
 
 /* ... calculo das propriedade geometicas*/
-  void pGeomForm(DOUBLE *RESTRICT x    ,INT    *RESTRICT el
-              ,INT    *RESTRICT nelcon ,short  *RESTRICT nen    
-              ,short  *RESTRICT nFace  ,short  *RESTRICT geomType
-              ,DOUBLE *RESTRICT gCc    ,DOUBLE *RESTRICT gKsi  
-              ,DOUBLE *RESTRICT gmKsi  ,DOUBLE *RESTRICT gEta 
-              ,DOUBLE *RESTRICT gmEta  ,DOUBLE *RESTRICT gNormal
-              ,DOUBLE *RESTRICT gVolume,DOUBLE *RESTRICT gXm    
-              ,DOUBLE *RESTRICT gXmcc  
-              ,DOUBLE *RESTRICT gvSkew ,DOUBLE *RESTRICT gmSkew
-              ,DOUBLE *RESTRICT gDcca               
-              ,short maxNo             ,short maxViz
-              ,short ndm               ,INT numel);
+  void pGeomForm(DOUBLE *RESTRICT x        , INT    *RESTRICT el
+                , INT    *RESTRICT nelcon  , short  *RESTRICT nFace
+                , short  *RESTRICT geomType, short *RESTRICT nen
+                , INT *RESTRICT cellFace
+                , Geom *RESTRICT geom      , Face *RESTRICT face
+                , short maxNo              , short maxViz
+                , short ndm                , INT numel);
 /*...................................................................*/
 
 /*.. reconstrucao de gradiente*/

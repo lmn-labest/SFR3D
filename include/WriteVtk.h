@@ -36,7 +36,7 @@
 /*...................................................................*/
 
 /*... geom*/  
-  void wGeoVtk(Memoria *m        ,double *x      
+  void wGeoVtk(Memoria *m        ,double *x  
               ,INT *el           ,short *mat    
               ,short *nen        ,short *typeGeom
               ,double *prop      ,short *typeCal
@@ -52,6 +52,15 @@
               ,short const ndfF  ,short const ndfFt
               ,char *nameOut     ,bool iws      
               ,FILE *f);
+
+  void wGeoVtk2(Memoria *m   , DOUBLE *x
+              , DOUBLE *cc   , INT *el
+              , short *nen   , short *typeGeom
+              , INT nnode    , INT numel
+              , short ndm    , short maxNo
+              , short maxViz
+              , char *nameOut, bool iws
+              , FILE *f);
 
   void wGeoFaceVtk(Memoria *m     ,DOUBLE *x      
             ,INT *el              ,short *nen     
