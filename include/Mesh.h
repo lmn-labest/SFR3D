@@ -182,6 +182,7 @@
 /*...*/
   typedef struct{
     int maxIt;
+    int pPlot;
     DOUBLE tol;                               
   }NonLinear;
 /*...................................................................*/  

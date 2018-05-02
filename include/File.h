@@ -35,7 +35,11 @@
     bool fNode;        
     bool gradPres;       
     bool gradVel;        
-    bool gradEnergy;     
+    bool gradEnergy; 
+    bool graduD1; 
+    bool graduT1;
+    bool uD1;
+    bool uT1;
     bool vel;            
     bool pres;
     bool presTotal;           

@@ -2580,10 +2580,10 @@ void readGravity(DOUBLE *gravity,FILE *file){
 
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
- * Data de modificaco : 17/02/2018                                   * 
+ * Data de modificaco : 01/05/2018                                   * 
  *-------------------------------------------------------------------* 
- * SETPPRINTFLUID : Seleciona as veriaves que serao impressas na     *
- * macro pFluid                                                      *
+ * SETPPRINT : Seleciona as veriaves que serao impressas na          *
+ * macro pFluid, puD1, puT1                                          *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -2597,7 +2597,7 @@ void readGravity(DOUBLE *gravity,FILE *file){
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void setPrintFluid(FileOpt *opt,FILE *file){
+void setPrint(FileOpt *opt,FILE *file){
 
   char str[]={"end"};
   char format[1024];
@@ -2610,7 +2610,8 @@ void setPrintFluid(FileOpt *opt,FILE *file){
                ,"tconductivity","vorticity"   ,"wallparameters"  /*12,13,14*/
                ,"stress"       ,"kinecit"     ,"stressr"         /*15,16,17*/
                ,"cdynamic"     ,"qcriterion"  ,"prestotal"       /*18,19,20*/
-               ,"kturb"        ,"pkelvin"     };                 /*21,22*/  
+               ,"kturb"        ,"pkelvin"     ,"ud1"             /*21,22,23*/
+               ,"gradud1"      ,"ut1"         ,"gradut1" };      /*24,25,26*/  
   int tmp;
 
   strcpy(format,"%-20s: %s\n");
@@ -2620,10 +2621,14 @@ void setPrintFluid(FileOpt *opt,FILE *file){
   opt->vel            = false;
   opt->pres           = false;
   opt->presTotal      = false;
+  opt->uD1            = false;
+  opt->uT1            = false;
   opt->energy         = false;
   opt->gradVel        = false;
   opt->gradPres       = false;
   opt->gradEnergy     = false;
+  opt->graduD1        = false;
+  opt->graduT1        = false;
   opt->eddyViscosity  = false;
   opt->densityFluid   = false;
   opt->specificHeat   = false;
@@ -2643,168 +2648,223 @@ void setPrintFluid(FileOpt *opt,FILE *file){
   opt->stepPlotFluid[0] = opt->stepPlotFluid[1] = (short) tmp;
   readMacro(file,word,false);
   convStringLower(word);
-  while(strcmp(word,str)){
+  while(strcmp(word,str))
+  {
 /*... cell*/        
-    if(!strcmp(word,macro[0])){ 
+    if(!strcmp(word,macro[0]))
+    { 
       opt->fCell = true;
       if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","cell");
     }
 /*.....................................................................*/
 
 /*... node*/        
-    else if(!strcmp(word,macro[1])){ 
+    else if(!strcmp(word,macro[1]))
+    { 
       opt->fNode = true;
       if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","node");
     }
 /*.....................................................................*/
 
 /*... vel*/        
-    else if(!strcmp(word,macro[2])){ 
+    else if(!strcmp(word,macro[2]))
+    { 
       opt->vel = true;
       if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","vel");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if(!strcmp(word,macro[3])){ 
+    else if(!strcmp(word,macro[3]))
+    { 
       opt->pres = true;
       if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","pres");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if(!strcmp(word,macro[4])){ 
+    else if(!strcmp(word,macro[4]))
+    { 
       opt->gradVel = true;
       if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","gradVel");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if(!strcmp(word,macro[5])){ 
+    else if(!strcmp(word,macro[5]))
+    { 
       opt->gradPres = true;
       if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","gradPres");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[6])) {
+    else if (!strcmp(word,macro[6])) 
+    {
       opt->energy = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","temp");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[7])) {
+    else if (!strcmp(word,macro[7])) 
+    {
       opt->gradEnergy = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","gradTemp");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[8])) {
+    else if (!strcmp(word,macro[8])) 
+    {
       opt->eddyViscosity = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","eddyViscosity");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[9])) {
+    else if (!strcmp(word,macro[9])) 
+    {
       opt->densityFluid = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","densityFluid");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[10])) {
+    else if (!strcmp(word,macro[10])) 
+    {
       opt->specificHeat = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","specificHeat");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[11])) {
+    else if (!strcmp(word,macro[11])) 
+    {
       opt->dViscosity = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","dViscosity");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[12])) {
+    else if (!strcmp(word,macro[12])) 
+    {
       opt->tConductivity = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","tConductivity");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[13])) {
+    else if (!strcmp(word,macro[13])) 
+    {
       opt->vorticity = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","vorticity");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[14])) {
+    else if (!strcmp(word,macro[14])) 
+    {
       opt->wallParameters = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","wallParameters");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[15])) {
+    else if (!strcmp(word,macro[15])) 
+    {
       opt->stress = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","stress");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[16])) {
+    else if (!strcmp(word,macro[16])) 
+    {
       opt->kinetic = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","kinecit");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[17])) {
+    else if (!strcmp(word,macro[17])) 
+    {
       opt->stressR = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","stressR");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[18])) {
+    else if (!strcmp(word,macro[18])) 
+    {
       opt->cDynamic = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","cDynamic");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[19])) {
+    else if (!strcmp(word,macro[19])) 
+    {
       opt->Qcriterion = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","Qcriterion");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[20])) {
+    else if (!strcmp(word,macro[20])) 
+    {
       opt->presTotal = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","presTotal");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[21])) {
+    else if (!strcmp(word,macro[21])) 
+    {
       opt->kTurb = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","kTurb");
     }
 /*.....................................................................*/
 
 /*...*/
-    else if (!strcmp(word,macro[22])) {
+    else if (!strcmp(word,macro[22])) 
+    {
       opt->pKelvin = true;
       if (!mpiVar.myId) fprintf(fileLogExc,format,"print","pKelvin");
     }
 /*.....................................................................*/
 
+/*...*/
+    else if (!strcmp(word, macro[23])) 
+    {
+      opt->uD1 = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "uD1");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[24])) 
+    {
+      opt->graduD1 = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "graduD1");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[25]))  
+    {
+      opt->uT1 = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "uT1");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[26])) 
+    {
+      opt->graduT1 = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "graduT1");
+    }
+/*.....................................................................*/
     readMacro(file,word,false);
     convStringLower(word);
   }
@@ -2964,7 +3024,7 @@ void convStringLower(char *s){
 
 /********************************************************************* 
  * Data de criacao    : 11/11/2017                                   *
- * Data de modificaco : 08/01/2018                                   *
+ * Data de modificaco : 01/05/2018                                   *
  *-------------------------------------------------------------------*
  * help : Ajuda em relação a algumas macros                          *
  *-------------------------------------------------------------------*
@@ -2981,23 +3041,23 @@ void convStringLower(char *s){
 void help(FILE *f){
 
   char word[WORD_SIZE];
-  short iHelp = 5;
+  short iHelp = 7;
   char help [][WORD_SIZE] = 
-               {"macros","setprintfluid","advection"    /* 0, 1, 2*/
-               ,"model" ,"diffusion"    ,""             /* 3, 4, 5*/
-               ,""      ,""             ,""             /* 6, 7, 8*/
-               ,""      ,""             ,""             /* 9,10,11*/
-               ,""      ,""             ,""};           /*12,13,15*/
+               {"macros"   ,"setprint" ,"advection"    /* 0, 1, 2*/
+               ,"model"    ,"diffusion","nlit"         /* 3, 4, 5*/
+               ,"transient",""         ,""             /* 6, 7, 8*/
+               ,""         ,""         ,""             /* 9,10,11*/
+               ,""         ,""         ,""};           /*12,13,15*/
 
   short iMacros = 20;
   char macros[][WORD_SIZE] = 
-               {"setPrintFluid","setSolv"     ,"setSimple"    /* 0, 1, 2*/
-               ,"pgeo"         ,"transient"   ,"simple"       /* 3, 4, 5*/
-               ,"pFluid"       ,"endTransient","stop"         /* 6, 7, 8*/
-               ,"model"        ,"propVar"     ,"gravity"      /* 9,10,11*/
-               ,"edp"          ,"vorticity"   ,"openmp"       /*12,13,14*/
-               ,"advection"    ,"diffusion"   ,"config"       /*15,16,17*/
-               ,"mean"         ,"smean"                 };    /*18,19,  */
+               {"setPrint" ,"setSolv"     ,"setSimple"    /* 0, 1, 2*/
+               ,"pgeo"     ,"transient"   ,"simple"       /* 3, 4, 5*/
+               ,"pFluid"   ,"endTransient","stop"         /* 6, 7, 8*/
+               ,"model"    ,"propVar"     ,"gravity"      /* 9,10,11*/
+               ,"edp"      ,"vorticity"   ,"openmp"       /*12,13,14*/
+               ,"advection","diffusion"   ,"config"       /*15,16,17*/
+               ,"mean"     ,"smean"                 };    /*18,19,  */
 
   short iPrint = 21;
   char print[][WORD_SIZE] = 
@@ -3062,6 +3122,16 @@ void help(FILE *f){
 
   short iWall = 2;
   char typeWallModel[][WORD_SIZE] ={"standard","enhanced"};
+
+  short iNlIt = 2;
+  char sNlTy[][WORD_SIZE] = 
+    { "nlIt 1 d1 500 1.e-06 50"
+     ,"nlIt 2 d1 500 1.e-06 50 t1 500 1.e-06 50"};
+
+  short iTrans = 2;
+  char sTrans[][WORD_SIZE] = 
+    { "transient config: BACKWARD 1.0e-02 1.e+01 dynamic"
+     ,"transient config: EULER    1.0e-02 1.e+01 static" };
 /*....................................................................*/
 
   int i;                                                     
@@ -3080,7 +3150,7 @@ void help(FILE *f){
 
 /*... setPrintFluid*/        
   else if(!strcmp(word,help[1])){     
-    printf("setPrintFluid 10 options end\n");
+    printf("setPrint 10 options end\n");
     printf("options:\n");
     for(i=0;i<iPrint;i++)
       printf("%3d - %s\n",i+1,print[i]);
@@ -3148,6 +3218,24 @@ void help(FILE *f){
     printf("Options:\n");
     for(i=0;i<iDiff;i++)
       printf("%3d - %s\n",i+1,fDif[i]);
+    exit(EXIT_FAILURE);
+  }
+/*.....................................................................*/
+
+/*... nlIt*/
+  else if (!strcmp(word, help[5])) {
+    printf("Exemplos:\n");
+    for (i = 0; i<iNlIt; i++)
+      printf("%3d - %s\n", i + 1, sNlTy[i]);
+    exit(EXIT_FAILURE);
+  }
+/*.....................................................................*/
+
+/*... transient*/
+  else if (!strcmp(word, help[6])) {
+    printf("Exemplos:\n");
+    for (i = 0; i<iTrans; i++)
+      printf("%3d - %s\n", i + 1, sTrans[i]);
     exit(EXIT_FAILURE);
   }
 /*.....................................................................*/
@@ -4248,6 +4336,69 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
     memoriaTotal(str1);
     usoMemoria(m, str1);
   }
+/*...................................................................*/
+
+}
+/**********************************************************************/
+
+/*********************************************************************
+* Data de criacao    : 01/05/2018                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* readSolvFluid: leitura das configuracoes do solvers utilizados    *
+* no escoamento de fluidos                                          *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void readNlIt(Scheme *sc, FILE *fileIn)
+{
+  unsigned short nCount;
+  char word[WORD_SIZE];
+
+/*... solver*/
+  readMacro(fileIn, word, false);
+  nCount = (short)atol(word);
+  do 
+  {
+    readMacro(fileIn, word, false);
+/*... D1*/
+    if (!strcmp(word, "D1") || !strcmp(word, "d1")) 
+    {
+      nCount--;
+      fscanf(fileIn, "%d" ,&sc->nlD1.maxIt);
+      fscanf(fileIn, "%lf",&sc->nlD1.tol);
+      fscanf(fileIn, "%d" ,&sc->nlD1.pPlot);
+      if (!mpiVar.myId) {
+        fprintf(fileLogExc, "MaxIt: %d\n", sc->nlD1.maxIt);
+        fprintf(fileLogExc, "Tol  : %e\n", sc->nlD1.tol);
+        fprintf(fileLogExc, "pPlot: %d\n", sc->nlD1.pPlot);
+      }
+    }
+/*...................................................................*/
+
+/*... T1*/
+    if (!strcmp(word, "T1") || !strcmp(word, "t1"))
+    {
+      nCount--;
+      fscanf(fileIn, "%d" , &sc->nlT1.maxIt);
+      fscanf(fileIn, "%lf", &sc->nlT1.tol);
+      fscanf(fileIn, "%d" , &sc->nlT1.pPlot);
+      if (!mpiVar.myId) {
+        fprintf(fileLogExc, "MaxIt: %d\n", sc->nlT1.maxIt);
+        fprintf(fileLogExc, "Tol  : %e\n", sc->nlT1.tol);
+        fprintf(fileLogExc, "pPlot: %d\n", sc->nlT1.pPlot);
+      }
+    }
+/*...................................................................*/
+
+  } while (nCount);
 /*...................................................................*/
 
 }

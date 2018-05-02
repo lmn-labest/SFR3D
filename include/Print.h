@@ -23,5 +23,9 @@
                 , Mesh *mesh0          , Mesh *mesh  
                 , Mean *media          
                 , char *preName        , char *nameOut);
-
+  void printDiff(Memoria *m
+               , PartMesh *pMesh, Scheme *sc
+               , Loads *loadsD1 , FileOpt *opt
+               , Mesh *mesh0    , Mesh *mesh
+               , char *preName  , char *nameOut);
 #endif/*_WRITE_VTK_H_*/

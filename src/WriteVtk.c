@@ -978,7 +978,7 @@ void wResVtk(Memoria *m     ,double *x
 
 /********************************************************************** 
  * Data de criacao    : 00/00/0000                                    *
- * Data de modificaco : 15/02/2017                                    * 
+ * Data de modificaco : 01/05/2018                                    * 
  * -------------------------------------------------------------------* 
  * WRESVTKDIF : escreve a malha com os resultados para problemas de   *  
  * difusao pura                                                       *  
@@ -1009,7 +1009,7 @@ void wResVtk(Memoria *m     ,double *x
  * gradResEl -> nome dos resultados                                   *
  * gradResNo -> nome dos resultados                                   *
  * nameOut -> nome de arquivo de saida                                *
- * iws     -> vtk binario                                             *
+ * opt     -> opcoes de arquivo                                       *
  * f       -> arquivlo                                                *
  * ------------------------------------------------------------------ *
  * parametros de saida  :                                             * 
@@ -1028,12 +1028,14 @@ void wResVtkDif(Memoria *m        ,double *x
                ,short numat       ,short ndf   
                ,char *uResEl      ,char *uResNo 
                ,char *gradResEl   ,char *gradResNo 
-               ,char *nameOut     ,bool iws
-               ,Temporal ddt      ,FILE *f)
+               ,char *nameOut     ,FileOpt *opt
+               ,Temporal *ddt     ,FILE *f)
 {
+  bool iws = opt->bVtk;
+  short j;
   int    *lel=NULL;
   INT i;
-  short j;
+
   char head[]={"DIF_VOLUME_FINITO"};
   double ddum;
   int    idum;
@@ -1048,8 +1050,8 @@ void wResVtkDif(Memoria *m        ,double *x
 /* ..................................................................*/
 
 /* ...*/
-  if(ddt.flag)
-    timeVtk(ddt.t,ddt.timeStep,iws,f);
+  if(ddt->flag)
+    timeVtk(ddt->t,ddt->timeStep,iws,f);
 /* ..................................................................*/
 
 /*... coordenadas*/
@@ -1108,11 +1110,13 @@ void wResVtkDif(Memoria *m        ,double *x
 /*...................................................................*/
   
 /*... escrever resultados por celula*/  
-  writeVtkProp(&idum,elU,numel,ndf,uResEl,iws,DOUBLE_VTK,1,f);
+  if(opt->fCell && opt->uD1)
+    writeVtkProp(&idum,elU,numel,ndf,uResEl,iws,DOUBLE_VTK,1,f);
 /*...................................................................*/
 
 /*... escrever gradiente por celula*/  
-  writeVtkProp(&idum,elGradU,numel,ndm,gradResEl,iws,DOUBLE_VTK,2,f);
+  if (opt->fCell && opt->graduD1)
+    writeVtkProp(&idum,elGradU,numel,ndm,gradResEl,iws,DOUBLE_VTK,2,f);
 /*...................................................................*/
 
 /*.... campo por no*/
@@ -1135,11 +1139,13 @@ void wResVtkDif(Memoria *m        ,double *x
 /*...................................................................*/
 
 /*... escrever resuldos por nos*/  
-  writeVtkProp(&idum,nU    ,nnode,ndf,uResNo,iws,DOUBLE_VTK,1,f);
+  if(opt->fNode && opt->uD1)
+    writeVtkProp(&idum,nU    ,nnode,ndf,uResNo,iws,DOUBLE_VTK,1,f);
 /*...................................................................*/
   
-/*... escrever os gradiente por nos*/  
-  writeVtkProp(&idum,nGradU,nnode,ndm,gradResNo,iws,DOUBLE_VTK,2,f);
+/*... escrever os gradiente por nos*/
+  if(opt->fNode && opt->graduD1)
+    writeVtkProp(&idum,nGradU,nnode,ndm,gradResNo,iws,DOUBLE_VTK,2,f);
 /*...................................................................*/
 
   fclose(f);

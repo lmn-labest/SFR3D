@@ -1,5 +1,8 @@
 #include<Diffusion.h>
 /********************************************************************* 
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 01/05/2018                                   *
+ *-------------------------------------------------------------------*
  * DIFFUSION :Resolucao do problema de difusao pura no passo de tempo* 
  * n+1                                                               * 
  *-------------------------------------------------------------------* 
@@ -32,8 +35,7 @@ void diffusion(Memoria *m   ,Loads *loadsDif
               ,FILE *fileOut) 
 {   
   
-  short unsigned i;
-  char str1[100],str2[100],str3[100],str4[100];
+  short unsigned i,jj;
   DOUBLE rCell,rCell0,conv;
 
   rCell = rCell0 = conv = 0.e0;
@@ -67,6 +69,7 @@ void diffusion(Memoria *m   ,Loads *loadsDif
 /*...................................................................*/
 
 /*... correcao nao ortoganal*/ 
+  jj = 0;
   for(i=0;i<sc->nlD1.maxIt;i++){
 
 /*... calculo de: A(i),b(i)*/
@@ -122,12 +125,15 @@ void diffusion(Memoria *m   ,Loads *loadsDif
       rCell  = sqrt(dot(mesh->elm.rCellUd1 
                    ,mesh->elm.rCellUd1 
                    ,mesh->numelNov));
-    if(!mpiVar.myId ){
+    if(!mpiVar.myId && jj == sc->nlD1.pPlot)
+    {
+      jj = 0;
       printf("it: %9d %.6e %0.6e\n",i,rCell/rCell0,rCell);
       if(opt.fItPlot)  
         fprintf(opt.fileItPlot[FITPLOTD1]
                ,"%9d %.6e %0.6e\n",i,rCell/rCell0,rCell);
     }
+    jj++;
     if(rCell < conv) break;
 /*...................................................................*/
 
@@ -178,89 +184,6 @@ void diffusion(Memoria *m   ,Loads *loadsDif
            ,mesh->numelNov          ,mesh->numel        
            ,mesh->nnodeNov          ,mesh->nnode); 
     tm.rcGradD1 = getTimeC() - tm.rcGradD1;
-/*...................................................................*/
-
-    if(opt.fItPlotRes){  
-
-/*... interpolacao das variaveis da celulas para pos nos (Grad)*/
-      interCellNode(m                  ,loadsDif
-                   ,mesh->node.gradUd1 ,mesh->elm.gradUd1 
-                   ,mesh->elm.node     ,mesh->elm.geomType            
-                   ,mesh->elm.geom.cc  ,mesh->node.x   
-                   ,mesh->elm.geom.xm               
-                   ,mesh->elm.nen      ,mesh->elm.adj.nViz
-                   ,mesh->elm.faceRd1  ,mesh->elm.faceLoadD1    
-                   ,&pMesh->iNo          
-                   ,mesh->numelNov     ,mesh->numel 
-                   ,mesh->nnodeNov     ,mesh->nnode 
-                   ,mesh->maxNo        ,mesh->maxViz   
-                   ,mesh->ndm          ,1 
-                   ,mesh->ndm
-                   ,false              ,2);
-/*...................................................................*/
-
-/*... interpolacao das variaveis da celulas para pos nos (uD1)*/
-       interCellNode(m                ,loadsDif
-                    ,mesh->node.uD1   ,mesh->elm.uD1 
-                    ,mesh->elm.node   ,mesh->elm.geomType
-                    ,mesh->elm.geom.cc,mesh->node.x    
-                    ,mesh->elm.geom.xm              
-                    ,mesh->elm.nen    ,mesh->elm.adj.nViz
-                    ,mesh->elm.faceRd1,mesh->elm.faceLoadD1    
-                    ,&pMesh->iNo             
-                    ,mesh->numelNov   ,mesh->numel
-                    ,mesh->nnodeNov   ,mesh->nnode 
-                    ,mesh->maxNo      ,mesh->maxViz 
-                    ,mesh->ndfD[0]    ,1
-                    ,mesh->ndm
-                    ,true             ,2);
-/*...................................................................*/
-
-/*... globalizacao das variaveis*/
-/*... uD1(Node)*/
-       dGlobalNode(m                  ,pMesh
-                  ,mesh0->node.uD1    ,mesh->node.uD1     
-                  ,mesh->ndfD[0]      ,1               );
-          
-/*... gradUd1(Node)*/
-       dGlobalNode(m                  ,pMesh
-                  ,mesh0->node.gradUd1,mesh->node.gradUd1     
-                  ,mesh->ndm          ,1               );
-/*... uD1(Cel)*/
-       dGlobalCel(m                   ,pMesh
-                 ,mesh0->elm.uD1      ,mesh->elm.uD1
-                 ,mesh->numelNov 
-                 ,mesh->ndfD[0]      ,1);
-/*... gradUd1(Cel)*/
-       dGlobalCel(m                   ,pMesh
-                 ,mesh0->elm.gradUd1  ,mesh->elm.gradUd1
-                 ,mesh->numelNov 
-                 ,mesh->ndm           ,1);
-/*...................................................................*/
-
-/*...*/
-       if(!mpiVar.myId){
-         fName(preName,sc->ddt.timeStep,i,15,nameOut);
-         strcpy(str1,"elD1");
-         strcpy(str2,"noD1");
-         strcpy(str3,"elGradD1");
-         strcpy(str4,"noGradD1");
-/*...*/
-         wResVtkDif(m                  ,mesh0->node.x      
-                   ,mesh0->elm.node     ,mesh0->elm.mat    
-                   ,mesh0->elm.nen      ,mesh0->elm.geomType
-                   ,mesh0->elm.uD1      ,mesh0->node.uD1 
-                   ,mesh0->elm.gradUd1  ,mesh0->node.gradUd1 
-                   ,mesh0->nnode        ,mesh0->numel  
-                   ,mesh0->ndm          ,mesh0->maxNo 
-                   ,mesh0->numat        ,mesh0->ndfD[0]
-                   ,str1                ,str2         
-                   ,str3                ,str4         
-                   ,nameOut             ,opt.bVtk    
-                   ,sc->ddt             ,fileOut);
-      }
-/*...................................................................*/
-    }
 /*...................................................................*/
   } 
 /*...................................................................*/

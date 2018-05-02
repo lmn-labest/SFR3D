@@ -59,7 +59,7 @@
               , Mesh *mesh, Mean *media);
   void setMixedModelLes(Turbulence *t  , FILE *file);
   void setDynamicModelLes(Turbulence *t, FILE *file);
-  void setPrintFluid(FileOpt *opt,FILE *file);
+  void setPrint(FileOpt *opt,FILE *file);
 
   void initProp(DOUBLE *RESTRICT prop 
              ,DOUBLE *RESTRICT propMat,short *RESTRICT mat
@@ -76,23 +76,24 @@
 
  /*...*/
    void readSolvFluid(Memoria *m, Mesh *mesh
-     , Reord *reordMesh
-     , Solv *solvVel, SistEq* sistEqVel, bool *fSolvVel
-     , Solv *solvPres, SistEq* sistEqPres, bool *fSolvPres
-     , Solv *solvEnergy, SistEq* sistEqEnergy, bool *fSolvEnergy
-     , Solv *solvKturb, SistEq* sistEqKturb, bool *fSolvKturb
-     , char* auxName, char* preName, char* nameOut
-     , FILE *fileIn, FileOpt *opt);
+                    , Reord *reordMesh
+                    , Solv *solvVel, SistEq* sistEqVel, bool *fSolvVel
+                    , Solv *solvPres, SistEq* sistEqPres, bool *fSolvPres
+                    , Solv *solvEnergy, SistEq* sistEqEnergy, bool *fSolvEnergy
+                    , Solv *solvKturb, SistEq* sistEqKturb, bool *fSolvKturb
+                    , char* auxName, char* preName, char* nameOut
+                    , FILE *fileIn, FileOpt *opt);
 /*...*/
   void readSolvDiff(Memoria *m, Mesh *mesh, Reord *reordMesh
                  , Solv *solvD1, SistEq* sistEqD1, bool *fSolvD1
                  , char* auxName, char* preName, char* nameOut
                  , FILE *fileIn, FileOpt *opt);
 
-
-   void readSetPrime(Memoria *m, FILE *fileIn
-     , Mesh *mesh0, Mesh *mesh
-     , Prime  *prime, bool *fSolvPrime);
+   void readNlIt(Scheme *sc, FILE *fileIn);
+   
+   void readSetPrime(Memoria *m   , FILE *fileIn
+                   , Mesh *mesh0  , Mesh *mesh
+                   , Prime  *prime, bool *fSolvPrime);
 /*...................................................................*/
 
    void convStringLower(char *s);

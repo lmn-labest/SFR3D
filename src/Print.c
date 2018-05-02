@@ -451,3 +451,146 @@ void printFluid(Memoria *m
 
 }
 /*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 01 05 2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * printDiff: impressao da equacao de diff                           *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * m       -> vetor de memoria principal                             *
+ * pMesh     -> modelo de turbulencia                                *
+ * sc        -> modelo da equacao de energia                         *
+ * loadsD1   -> deficicao de cargas velocidade                       *
+ * opt       -> opcoes de arquivo                                    *
+ * mesh0     -> malha global                                         *
+ * mesh      -> malha particionada                                   *
+ * preName   -> prefixo do arquivo                                   *
+ * nameOut   -> arquivo de saida                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void printDiff(Memoria *m
+             , PartMesh *pMesh      , Scheme *sc
+             , Loads *loadsD1       , FileOpt *opt
+             , Mesh *mesh0          , Mesh *mesh
+             , char *preName        , char *nameOut)
+{
+  
+  char str1[100], str2[100], str3[100], str4[100];
+  FILE *fileOut = NULL;
+/*... reconstruindo do gradiente*/
+  tm.rcGradD1 = getTimeC() - tm.rcGradD1;
+  rcGradU(m                    , loadsD1
+        , mesh->elm.node       , mesh->elm.adj.nelcon
+        , mesh->elm.geom.cc    , mesh->node.x
+        , mesh->elm.nen        , mesh->elm.adj.nViz
+        , mesh->elm.geomType   , mesh->elm.material.prop
+        , mesh->elm.mat
+        , mesh->elm.leastSquare, mesh->elm.leastSquareR
+        , mesh->elm.geom.ksi   , mesh->elm.geom.mksi
+        , mesh->elm.geom.eta   , mesh->elm.geom.fArea
+        , mesh->elm.geom.normal, mesh->elm.geom.volume
+        , mesh->elm.geom.vSkew
+        , mesh->elm.geom.xm    , mesh->elm.geom.xmcc
+        , mesh->elm.geom.dcca
+        , mesh->elm.faceRd1    , mesh->elm.faceLoadD1
+        , mesh->elm.uD1        , mesh->elm.gradUd1
+        , mesh->node.uD1       , sc->rcGrad
+        , mesh->maxNo          , mesh->maxViz
+        , mesh->ndfD[0]        , mesh->ndm
+        , &pMesh->iNo          , &pMesh->iEl
+        , mesh->numelNov       , mesh->numel
+        , mesh->nnodeNov       , mesh->nnode);
+  tm.rcGradD1 = getTimeC() - tm.rcGradD1;
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (Grad)*/
+  interCellNode(m                 , loadsD1
+               , mesh->node.gradUd1, mesh->elm.gradUd1
+               , mesh->elm.node    , mesh->elm.geomType
+               , mesh->elm.geom.cc , mesh->node.x
+               , mesh->elm.geom.xm
+               , mesh->elm.nen     , mesh->elm.adj.nViz
+               , mesh->elm.faceRd1 , mesh->elm.faceLoadD1
+               , &pMesh->iNo
+               , mesh->numelNov    , mesh->numel
+               , mesh->nnodeNov    , mesh->nnode
+               , mesh->maxNo       , mesh->maxViz
+               , mesh->ndm         , 1
+               , mesh->ndm
+               , false             , 2);
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (uD1)*/
+  interCellNode(m                , loadsD1
+              , mesh->node.uD1   , mesh->elm.uD1
+              , mesh->elm.node   , mesh->elm.geomType
+              , mesh->elm.geom.cc, mesh->node.x
+              , mesh->elm.geom.xm
+              , mesh->elm.nen    , mesh->elm.adj.nViz
+              , mesh->elm.faceRd1, mesh->elm.faceLoadD1
+              , &pMesh->iNo
+              , mesh->numelNov   , mesh->numel
+              , mesh->nnodeNov   , mesh->nnode
+              , mesh->maxNo      , mesh->maxViz
+              , mesh->ndfD[0]    , 1
+              , mesh->ndm
+              , true             , 2);
+/*...................................................................*/
+
+/*... globalizacao das variaveis*/
+/*... uD1(Node)*/
+  dGlobalNode(m              , pMesh
+            , mesh0->node.uD1, mesh->node.uD1
+            , mesh->ndfD[0]  , 1);
+
+/*... gradUd1(Node)*/
+  dGlobalNode(m                   , pMesh
+             , mesh0->node.gradUd1, mesh->node.gradUd1
+             , mesh->ndm          , 1);
+/*... uD1(Cel)*/
+  dGlobalCel(m             , pMesh
+           , mesh0->elm.uD1, mesh->elm.uD1
+           , mesh->numelNov
+           , mesh->ndfD[0] , 1);
+/*... gradUd1(Cel)*/
+  dGlobalCel(m                 , pMesh
+           , mesh0->elm.gradUd1, mesh->elm.gradUd1
+           , mesh->numelNov
+           , mesh->ndm         , 1);
+/*...................................................................*/
+
+/*...*/
+  if (!mpiVar.myId)
+  {
+    fName(preName, sc->ddt.timeStep, 0, 8, nameOut);
+
+    strcpy(str1, "elD1");
+    strcpy(str2, "noD1");
+    strcpy(str3, "elGradD1");
+    strcpy(str4, "noGradD1");
+/*...*/
+    wResVtkDif(m                 , mesh0->node.x
+             , mesh0->elm.node   , mesh0->elm.mat
+             , mesh0->elm.nen    , mesh0->elm.geomType
+             , mesh0->elm.uD1    , mesh0->node.uD1
+             , mesh0->elm.gradUd1, mesh0->node.gradUd1
+             , mesh0->nnode      , mesh0->numel
+             , mesh0->ndm        , mesh0->maxNo
+             , mesh0->numat      , mesh0->ndfD[0]
+             , str1              , str2
+             , str3              , str4
+             , nameOut           , opt
+             , &(sc->ddt)        , fileOut);
+/*...................................................................*/
+  }
+/*...................................................................*/
+}
+/*********************************************************************/
