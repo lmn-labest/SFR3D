@@ -1,7 +1,7 @@
 #ifndef _READ_FILE_
   #define _READ_FILE_
   #define NPARAMETROS   6
-  #define NCONFIG       6
+  #define NCONFIG       5
   #ifdef NMACROS 
     #undef NMACROS
   #endif  
@@ -45,9 +45,7 @@
                     ,char *str,FILE *file);
   void readVfLoads(Loads *loads,char *str,FILE* file);
 
-  void config(FileOpt *opt ,Reord *reord
-             ,short *rcGrad
-             ,FILE* f);
+  void config(FileOpt *opt ,Reord *reord,FILE* f);
   
   void readEdo(Mesh *mesh,FILE *file);
   void readPropVar(PropVar *p,FILE *file);
@@ -60,6 +58,7 @@
   void setMixedModelLes(Turbulence *t  , FILE *file);
   void setDynamicModelLes(Turbulence *t, FILE *file);
   void setPrint(FileOpt *opt,FILE *file);
+  void setReGrad(short *rcGrad, FILE *fileIn);
 
   void initProp(DOUBLE *RESTRICT prop 
              ,DOUBLE *RESTRICT propMat,short *RESTRICT mat

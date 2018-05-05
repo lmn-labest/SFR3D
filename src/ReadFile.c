@@ -1570,23 +1570,31 @@ void readVfLoads(Loads *loads,char *str,FILE* file){
 /*********************************************************************/
 
 /*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 05/05/2018                                   *
+ * ------------------------------------------------------------------*
  * CONFIG : configuraceos gerais                                     *
- *********************************************************************
+ * ------------------------------------------------------------------*
  * Parametro de entrada:                                             *
  * ----------------------------------------------------------------- *
  * fileOpt   - opcoes de arquivo                                     *
  * reordMesh - reordenacao do malha                                  *
- * rcGrad    - tipo de tecnica de rescontrucao de gradiente          *
  * m         - memoria principal                                     *
  * file  - ponteiro para o arquivo de dados                          *
- * ----------------------------------------------------------------- *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * lA        -> coeficiente da linha i                               *
+ * lB        -> vetor de forca da linha i                            *
+ * lRcell    -> residuo por celula                                   *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
  *********************************************************************/
-void config(FileOpt *opt,Reord *reordMesh
-           ,short *rcGrad
-           ,FILE* file)
+void config(FileOpt *opt,Reord *reordMesh,FILE* file)
 {
   char config[][WORD_SIZE]={"bvtk"  ,"reord"     ,"mem" 
-                           ,"rcGrad","fItPlotRes","fItPlot"};
+                           ,"fItPlotRes","fItPlot"};
   
   char word[WORD_SIZE];
   char s[WORD_SIZE];
@@ -1647,36 +1655,9 @@ void config(FileOpt *opt,Reord *reordMesh
         fprintf(fileLogExc,"%-20s: %d\n","Memory(MBytes)"
               ,(int)(nmax/conv));
     }
-/*... rcGrad*/   
-    else if(!strcmp(word,config[3])){
-      fscanf(file,"%s",s);
-      if(!strcmp(s,"gglc")){
-        *rcGrad = RCGRADGAUSSC;
-        if(!mpiVar.myId)
-          fprintf(fileLogExc,"%-20s: %s\n","rcGrad","GreenGaussCell");
-      }
-      else if(!strcmp(s,"ggln")){
-        *rcGrad = RCGRADGAUSSN;
-        if(!mpiVar.myId)
-          fprintf(fileLogExc,"%-20s: %s\n","rcGrad","GreenGaussNode");
-      }
-      else if(!strcmp(s,"lSquare")){
-        *rcGrad = RCLSQUARE;
-        if(!mpiVar.myId)
-          fprintf(fileLogExc,"%-20s: %s\n","rcGrad","LeastSquare");
-      }
-      
-      else if(!strcmp(s,"lSquareQR")){
-        *rcGrad = RCLSQUAREQR;
-        if(!mpiVar.myId)
-          fprintf(fileLogExc,"%-20s: %s\n","rcGrad","LeastSquareQR");
-      }
 
-      flag[3] = true;
-      i++;
-    }
 /*... fItPlotRes*/   
-    else if(!strcmp(word,config[4])){
+    else if(!strcmp(word,config[3])){
       fscanf(file,"%s",s);
       if(!strcmp(s,"true")){
         opt->fItPlotRes = true;
@@ -1688,11 +1669,11 @@ void config(FileOpt *opt,Reord *reordMesh
         if(!mpiVar.myId)
           fprintf(fileLogExc,"%-20s: %s\n","fItPlotRes","false");
       }
-      flag[4] = true;
+      flag[3] = true;
       i++;
     }
 /*... fItPlot*/   
-    else if(!strcmp(word,config[5])){
+    else if(!strcmp(word,config[4])){
       fscanf(file,"%s",s);
       if(!strcmp(s,"true")){
         opt->fItPlot = true;
@@ -1704,7 +1685,7 @@ void config(FileOpt *opt,Reord *reordMesh
         if(!mpiVar.myId)
           fprintf(fileLogExc,"%-20s: %s\n","fItPlot","false");
       }
-      flag[5] = true;
+      flag[4] = true;
       i++;
     }
     else
@@ -3024,7 +3005,7 @@ void convStringLower(char *s){
 
 /********************************************************************* 
  * Data de criacao    : 11/11/2017                                   *
- * Data de modificaco : 01/05/2018                                   *
+ * Data de modificaco : 05/05/2018                                   *
  *-------------------------------------------------------------------*
  * help : Ajuda em relação a algumas macros                          *
  *-------------------------------------------------------------------*
@@ -3041,11 +3022,11 @@ void convStringLower(char *s){
 void help(FILE *f){
 
   char word[WORD_SIZE];
-  short iHelp = 7;
+  short iHelp = 9;
   char help [][WORD_SIZE] = 
                {"macros"   ,"setprint" ,"advection"    /* 0, 1, 2*/
                ,"model"    ,"diffusion","nlit"         /* 3, 4, 5*/
-               ,"transient",""         ,""             /* 6, 7, 8*/
+               ,"transient","rcgrad"   ,"config"       /* 6, 7, 8*/
                ,""         ,""         ,""             /* 9,10,11*/
                ,""         ,""         ,""};           /*12,13,15*/
 
@@ -3132,7 +3113,15 @@ void help(FILE *f){
   char sTrans[][WORD_SIZE] = 
     { "transient config: BACKWARD 1.0e-02 1.e+01 dynamic"
      ,"transient config: EULER    1.0e-02 1.e+01 static" };
+
+
+  short iRcGrad = 4;
+  char sRcGrad[][WORD_SIZE] = 
+    { "greenGaussCell"  ,"greenGaussNode"
+     ,"leastSquare"     ,"leastSquareQR" };
 /*....................................................................*/
+
+
 
   int i;                                                     
 
@@ -3240,8 +3229,30 @@ void help(FILE *f){
   }
 /*.....................................................................*/
 
-/*... advection*/        
-  else{   
+/*... rcGrad*/
+  else if (!strcmp(word, help[7])) {
+    printf("rcGrad |options|\n");
+    printf("Exemplos:\n");
+    printf("rcGrad greenGaussCell\n");
+    printf("Options:\n");
+    for (i = 0; i<iRcGrad; i++)
+      printf("%3d - %s\n", i + 1, sRcGrad[i]);
+    exit(EXIT_FAILURE);
+  }
+/*.....................................................................*/
+
+/*... config*/
+  else if (!strcmp(word, help[8])) {
+    printf("config\n");
+    printf("reord false bvtk false mem 100 "
+           "fItPlotRes false fItPlot true\n");
+    printf("endConfig\n");
+    exit(EXIT_FAILURE);
+  }
+/*.....................................................................*/
+
+/*... opcoes*/        
+  else{    
     printf("Options:\n");
     for(i=0;i<iHelp;i++)
       printf("%3d - %s\n",i+1,help[i]);
@@ -4342,21 +4353,21 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /**********************************************************************/
 
 /*********************************************************************
-* Data de criacao    : 01/05/2018                                   *
-* Data de modificaco : 00/00/0000                                   *
-*-------------------------------------------------------------------*
-* readSolvFluid: leitura das configuracoes do solvers utilizados    *
-* no escoamento de fluidos                                          *
-*-------------------------------------------------------------------*
-* Parametros de entrada:                                            *
-*-------------------------------------------------------------------*
-*-------------------------------------------------------------------*
-* Parametros de saida:                                              *
-*-------------------------------------------------------------------*
-*-------------------------------------------------------------------*
-* OBS:                                                              *
-*-------------------------------------------------------------------*
-*********************************************************************/
+ * Data de criacao    : 01/05/2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * readSolvFluid: leitura das configuracoes do solvers utilizados    *
+ * no escoamento de fluidos                                          *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
 void readNlIt(Scheme *sc, FILE *fileIn)
 {
   unsigned short nCount;
@@ -4656,5 +4667,72 @@ void readMean(Memoria *m, FILE *fileIn
   } while (nTerm);
 /*....................................................................*/
 
+}
+/**********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 05/05/2018                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *--------------------------------------------------------------------*
+ * setReGrad:                                                         *
+ *--------------------------------------------------------------------*
+ * Parametros de entrada:                                             *
+ *--------------------------------------------------------------------*
+ * rcGrad  -> nao definido                                            *
+ * file    -> arquivo de arquivo                                      *
+ *--------------------------------------------------------------------*
+ * Parametros de saida:                                               *
+ *--------------------------------------------------------------------*
+ * rcGrad  -> tipo de tecnica de reconstrucao de gradiente            *
+ *--------------------------------------------------------------------*
+ * OBS:                                                               *
+ *--------------------------------------------------------------------*
+ **********************************************************************/
+void setReGrad(short *rcGrad, FILE *file)
+{
+  char word[WORD_SIZE];
+  char macro[][WORD_SIZE] = { "greenGaussCell"  ,"greenGaussNode"
+                             ,"leastSquare"     ,"leastSquareQR"};
+
+/*...*/
+  readMacro(file, word, false);
+
+/*...*/
+  if(!strcmp(word, macro[0])) 
+  {
+    *rcGrad = RCGRADGAUSSC;
+    if (!mpiVar.myId)
+      fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "GreenGaussCell");
+  }
+/*.....................................................................*/
+
+/*...*/
+  else if(!strcmp(word, macro[1]))
+  {
+    *rcGrad = RCGRADGAUSSN;
+    if (!mpiVar.myId)
+      fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "GreenGaussNode");
+  }
+/*.....................................................................*/
+
+/*...*/
+  else if(!strcmp(word, macro[2]))
+  {
+    *rcGrad = RCLSQUARE;
+    if (!mpiVar.myId)
+      fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "LeatSquare");
+  }
+/*.....................................................................*/
+
+/*...*/
+  else if(!strcmp(word, macro[3]))
+  {
+    *rcGrad = RCLSQUAREQR;
+    if (!mpiVar.myId)
+      fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "LeatSquareQR");
+  }
+/*.....................................................................*/
+
+  
 }
 /**********************************************************************/

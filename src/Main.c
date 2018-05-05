@@ -113,7 +113,7 @@ int main(int argc,char**argv){
   char word[WORD_SIZE],str[WORD_SIZE];
   char macro[][WORD_SIZE] =
   {"help"        ,"mesh"         ,"stop"         /* 0, 1, 2*/
-  ,"config"      ,"nextLoop"     ,""             /* 3, 4, 5*/
+  ,"config"      ,"nextLoop"     ,"rcGrad"       /* 3, 4, 5*/
   ,"pgeo"        ,"pcoob"        ,"pcoo"         /* 6, 7, 8*/ 
   ,"setSolvDiff" ,"presolvT1"    ,"openmp"       /* 9,10,11*/
   ,"solvD1"      ,""             ,"pD1"          /*12,13,14*/
@@ -715,22 +715,32 @@ int main(int argc,char**argv){
         fprintf(fileLogExc,"%s\n",word);
       }
       
-      config(&opt          ,reordMesh
-            ,&sc.rcGrad    ,fileIn);
+      config(&opt          ,reordMesh ,fileIn);
       
       if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
     }   
 /*===================================================================*/
 
 /*===================================================================*
- * macro: nextLoop : proximo loop tempo ralxcucao
+ * macro: nextLoop : proximo loop tempo            
  *===================================================================*/
     else if((!strcmp(word,macro[4]))){
       jLoop = 0;
     }   
 /*===================================================================*/
 
-
+/*===================================================================*
+* macro: rcGrad: tipo de reconstrucao de gradeiente
+*===================================================================*/
+    else if ((!strcmp(word, macro[5]))) {
+      if (!mpiVar.myId) {
+        fprintf(fileLogExc, "%s\n", DIF);
+        fprintf(fileLogExc, "%s\n", word);
+      }
+      setReGrad(&sc.rcGrad, fileIn);
+      if (!mpiVar.myId) fprintf(fileLogExc, "%s\n\n", DIF);
+    }
+/*===================================================================*/
 /*===================================================================*
  * macro: pgeo : escreve a geometria com os carregamentos
  *===================================================================*/
