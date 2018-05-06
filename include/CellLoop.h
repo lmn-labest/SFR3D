@@ -77,30 +77,32 @@
 /*...................................................................*/
 
 /* ... montagem do sistemas de equacoes (difusao)*/
- void systFormDif(Loads *loads         ,Diffusion *diff
-             ,INT    *RESTRICT el      ,INT    *RESTRICT nelcon 
-             ,short  *RESTRICT nen     ,short  *RESTRICT nFace
-             ,short  *RESTRICT geomType,DOUBLE *RESTRICT prop 
-             ,short  *RESTRICT calType ,short  *RESTRICT mat  
-             ,DOUBLE *RESTRICT gKsi    ,DOUBLE *RESTRICT gmKsi
-             ,DOUBLE *RESTRICT gEta    ,DOUBLE *RESTRICT gfArea
-             ,DOUBLE *RESTRICT gNormal ,DOUBLE *RESTRICT gVolume
-             ,DOUBLE *RESTRICT gXm     ,DOUBLE *RESTRICT gXmcc
-             ,DOUBLE *RESTRICT gvSkew  ,DOUBLE *RESTRICT gmvSkew
-             ,DOUBLE *RESTRICT gDcca   ,DOUBLE *RESTRICT density 
-             ,INT    *RESTRICT ia      ,INT    *RESTRICT ja
-             ,DOUBLE *RESTRICT al      ,DOUBLE *RESTRICT ad
-             ,DOUBLE *RESTRICT b       ,INT    *RESTRICT id
-             ,short  *RESTRICT faceR   ,short  *RESTRICT faceL
-             ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
-             ,DOUBLE *RESTRICT rCell   ,Temporal *ddt
-             ,INT const nEq            ,INT const nEqNov
-             ,INT const nAd            ,INT const nAdR
-             ,short const maxNo        ,short const maxViz
-             ,short const ndm          ,INT const numel
-             ,short const ndf          ,short const storage
-             ,bool const forces        ,bool const matrix 
-             ,bool const calRcell      ,bool const unsym); 
+  void systFormDif(Loads *loads, Diffusion *diff
+    , INT    *RESTRICT el, INT    *RESTRICT nelcon
+    , short  *RESTRICT nen, short  *RESTRICT nFace
+    , INT *RESTRICT cellFace, INT *RESTRICT fOwner
+    , DOUBLE *RESTRICT gVolume, DOUBLE *RESTRICT gDcca
+    , DOUBLE *RESTRICT gXmCc
+    , DOUBLE *RESTRICT fModksi, DOUBLE *RESTRICT fKsi
+    , DOUBLE *RESTRICT fEta, DOUBLE *RESTRICT fArea
+    , DOUBLE *RESTRICT fNormal, DOUBLE *RESTRICT fXm
+    , DOUBLE *RESTRICT fModvSkew, DOUBLE *RESTRICT fvSkew
+    , short  *RESTRICT geomType, DOUBLE *RESTRICT prop
+    , short  *RESTRICT calType, short  *RESTRICT mat
+    , DOUBLE *RESTRICT density
+    , INT    *RESTRICT ia, INT    *RESTRICT ja
+    , DOUBLE *RESTRICT a, DOUBLE *RESTRICT ad
+    , DOUBLE *RESTRICT b, INT    *RESTRICT id
+    , short  *RESTRICT faceR, short  *RESTRICT faceLd1
+    , DOUBLE *RESTRICT u0, DOUBLE *RESTRICT gradU0
+    , DOUBLE *RESTRICT rCell, Temporal *ddt
+    , INT nEq, INT nEqNov
+    , INT nAd, INT nAdR
+    , short maxNo, short maxViz
+    , short ndm, INT numel
+    , short ndf, short storage
+    , bool forces, bool matrix
+    , bool calRcell, bool unsym);
 /*...................................................................*/
  
 /* ... montagem do sistemas de equacoes (Transporte)*/
@@ -445,6 +447,34 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                       ,INT const numel   ,INT const nEq 
                       ,short const ndf
                       ,bool const fAdd   ,bool const fCom);
+/*...................................................................*/
+
+/*... funcoes antigas*/
+  void systFormDifOld(Loads *loads              , Diffusion *diff
+                    , INT    *RESTRICT el       , INT    *RESTRICT nelcon
+                    , short  *RESTRICT nen      , short  *RESTRICT nFace
+                    , DOUBLE *RESTRICT gVolume  , DOUBLE *RESTRICT gDcca
+                    , DOUBLE *RESTRICT gXmCc
+                    , DOUBLE *RESTRICT gModksi  , DOUBLE *RESTRICT gKsi
+                    , DOUBLE *RESTRICT gEta     , DOUBLE *RESTRICT gfArea
+                    , DOUBLE *RESTRICT gNormal  , DOUBLE *RESTRICT gXm
+                    , DOUBLE *RESTRICT gModvSkew, DOUBLE *RESTRICT gvSkew
+                    , short  *RESTRICT geomType , DOUBLE *RESTRICT prop
+                    , short  *RESTRICT calType  , short  *RESTRICT mat
+                    , DOUBLE *RESTRICT density
+                    , INT    *RESTRICT ia       , INT    *RESTRICT ja
+                    , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad
+                    , DOUBLE *RESTRICT b        , INT    *RESTRICT id
+                    , short  *RESTRICT faceR    , short  *RESTRICT faceL
+                    , DOUBLE *RESTRICT u0       , DOUBLE *RESTRICT gradU0
+                    , DOUBLE *RESTRICT rCell    , Temporal *ddt
+                    , INT nEq                   , INT nEqNov
+                    , INT nAd                   , INT nAdR
+                    , short maxNo               , short maxViz
+                    , short ndm                 , INT numel
+                    , short ndf                 , short storage
+                    , bool forces               , bool matrix
+                    , bool calRcell             , bool unsym);
 /*...................................................................*/
 
 #endif/*_CELLLOOP_H_*/

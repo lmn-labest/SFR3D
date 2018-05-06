@@ -391,7 +391,6 @@ void cellDif3D(Loads *loads             ,Diffusion *diff
       gradUv[1]  = MAT2D(nf,1,gradU0,ndm);
       gradUv[2]  = MAT2D(nf,2,gradU0,ndm);
 /*...................................................................*/
-
      
 /*... termo difusivo
       grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
@@ -477,23 +476,24 @@ void cellDif3D(Loads *loads             ,Diffusion *diff
   }
 
 /*... distretizacao temporal*/
-  if (fTime) {
+  if (fTime) 
+  {
 /*... EULER*/
     if (typeTime == EULER)
       sP += densityC*volume[idCell] / dt;
 /*...BACKWARD*/
-    else if (typeTime == BACKWARD) {
+    else if (typeTime == BACKWARD) 
+    { 
       tmp = 1.e0 / dt + 1.e0 / (dt + dt0);
       sP += tmp*densityC*volume[idCell];
     }
-  }
+  }  
 /*...................................................................*/
 
-/*...*/ 
+/*...*/
   lA[idCell] = sP;
-  for(nf=0;nf<nFace;nf++){
+  for(nf=0;nf<nFace;nf++)
     lA[idCell] += lA[nf];
-  }
 /*...................................................................*/
 
 /*...*/
@@ -513,9 +513,8 @@ void cellDif3D(Loads *loads             ,Diffusion *diff
 /*...................................................................*/
 
 /*...*/  
-  for(nf=0;nf<nFace;nf++){
-   lA[nf] *= -1.e0;
-  }
+  for(nf=0;nf<nFace;nf++)
+    lA[nf] *= -1.e0;
 /*...................................................................*/
 
 /*...*/

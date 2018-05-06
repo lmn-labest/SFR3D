@@ -123,7 +123,7 @@ int main(int argc,char**argv){
   ,"setSolv"     ,"simple"       ,"setSimple"    /*24,25,26*/
   ,"transient"   ,"timeUpdate"   ,"partd"        /*27,28,29*/
   ,"advection"   ,"edp"          ,"diffusion"    /*30,31,32*/
-  ,"pFluid"      ,"setPrint"     ,""             /*33,34,35*/
+  ,"pFluid"      ,"setPrint"     ,"reScaleMesh"  /*33,34,35*/
   ,"setPrime"    ,"prime"        ,"propVar"      /*36,37,38*/
   ,"gravity"     ,"model"        ,"mean"         /*39,40,41*/
   ,"setMean"     ,"save"         ,"load"};       /*42,43,44*/
@@ -231,8 +231,8 @@ int main(int argc,char**argv){
   opt.cc            = false;
   opt.pKelvin       = false;
  
-  opt.stepPlotFluid[0] =  5;
-  opt.stepPlotFluid[1] = opt.stepPlotFluid[0];
+  opt.stepPlot[0] =  5;
+  opt.stepPlot[1] = opt.stepPlot[0];
 /* ..................................................................*/
 
 /*... propriedades variaveis*/
@@ -518,7 +518,7 @@ int main(int argc,char**argv){
 /*    testeFace(&mesh->elm.geom    , &mesh->face
                , mesh->elm.cellFace, mesh->elm.adj.nViz
                , mesh->numel       , mesh->maxViz
-               , mesh->ndm         , mesh->maxNo); */
+               , mesh->ndm         , mesh->maxNo);*/
 /*...................................................................*/
 
 /*... geom(Cel)*/
@@ -840,11 +840,11 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... vetor de forcas b*/      
-        fName(preName,0,0,14,nameOut);
-        for(int i=0;i<sistEqD1.neq;i++)
-          sistEqD1.b[i] /= sistEqD1.ad[i];
-
-        writeCooB(sistEqD1.b,sistEqD1.neq,nameOut);
+//      fName(preName,0,0,14,nameOut);
+//      for(i=0;i<sistEqD1.neq;i++)
+//        sistEqD1.b[i] /= sistEqD1.ad[i];
+//
+//      writeCooB(sistEqD1.b,sistEqD1.neq,nameOut);
 /*...................................................................*/
         printf("%s\n\n",DIF);
       }
@@ -1102,7 +1102,11 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: puD1 : escreve os arquivos dos resultados da uD1          
  *===================================================================*/
-    else if((!strcmp(word,macro[14]))){
+    else if((!strcmp(word,macro[14]) && 
+            (opt.stepPlot[1]++) == opt.stepPlot[0]))
+    {
+/*...*/
+      opt.stepPlot[1] = 1;
       if (!mpiVar.myId) {
         printf("%s\n", DIF);
         printf("%s\n", word);
@@ -1769,9 +1773,9 @@ int main(int argc,char**argv){
  * imcompressivel                    
  *===================================================================*/
     else if( (!strcmp(word,macro[33])) && 
-             (opt.stepPlotFluid[1]++) == opt.stepPlotFluid[0]){      
+             (opt.stepPlot[1]++) == opt.stepPlot[0]){      
 /*...*/
-      opt.stepPlotFluid[1] = 1;
+      opt.stepPlot[1] = 1;
       if(!mpiVar.myId ){
         printf("%s\n",DIF);
         printf("%s\n",word);
@@ -1806,6 +1810,21 @@ int main(int argc,char**argv){
 /*...................................................................*/
       if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
     }   
+/*===================================================================*/
+
+/*===================================================================*
+* macro: setPrint
+*===================================================================*/
+    else if ((!strcmp(word, macro[35]))) {
+      if (!mpiVar.myId) {
+        fprintf(fileLogExc, "%s\n", DIF);
+        fprintf(fileLogExc, "%s\n", word);
+      }
+/*...*/
+      reScaleMesh(mesh->node.x, mesh->nnode,mesh->ndm,fileIn);
+/*...................................................................*/
+      if (!mpiVar.myId) fprintf(fileLogExc, "%s\n\n", DIF);
+    }
 /*===================================================================*/
 
 /*===================================================================*
@@ -2033,7 +2052,7 @@ void testeFace(Geom *geom, Face *face
           , lF[3], lF[4], lF[5]); 
 
     for (i = 0; i < nFace[nel]; i++) {
-      lG[i] = MAT2D(nel, i, geom->fArea, maxViz);
+      lG[i] =   MAT2D(nel, i, geom->fArea, maxViz);
       idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
       lF[i] = face->area[idFace];
     }
@@ -2164,7 +2183,6 @@ void testeFace(Geom *geom, Face *face
 
     for (i = 0; i < nFace[nel]; i++) {
       idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
-      cellOwner = MAT2D(idFace, 0, face->owner, 2) - 1;
       for (j = 0; j < ndm; j++) {
         lG1[i][j] = MAT3D(nel, i, j, geom->xm, maxViz, ndm);
         lF1[i][j] = MAT2D(idFace, j, face->xm, ndm);

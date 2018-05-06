@@ -371,7 +371,7 @@ void neighbors(Memoria *m          ,INT *RESTRICT el
     adj3d(el   , nodcon, nelcon
         , nViz , nnode , numel
         , maxNo, maxViz, nFace);
-
+  
 /*... tetraedro*/
 //  if(maxViz == 4)
 //    adjTetra4(el         ,nodcon         ,nelcon
@@ -468,8 +468,8 @@ void makeFaces(Memoria *m             , INT *RESTRICT el
          , nnode , numel
          , maxNo , 4
          , maxViz, nFaces);
-
-    for (int i = 0; i<numel; i++)
+  
+/*  for (int i = 0; i<numel; i++)
     {
       printf("nel %4d faces ", i + 1);
       for (int j = 0; j<maxViz; j++)
@@ -485,6 +485,7 @@ void makeFaces(Memoria *m             , INT *RESTRICT el
         printf(" %4d ", MAT2D(i, j, owner, 2));
       printf("\n");
     }
+    exit(0);*/
   }
 /*.....................................................................*/
 

@@ -222,7 +222,7 @@
     short *faceLoadD1; /*tipo de carga contorno na face (difusa pura)*/
 /*...................................................................*/
     INT    *node;       /*conectividades*/
-    INT    *cellFace;   /*faces que da celula*/
+    INT    *cellFace;   /*faces que gera as celulas*/
     Geom   geom;  
 /*...*/
     DOUBLE *energy;       /*energia*/

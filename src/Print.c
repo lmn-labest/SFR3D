@@ -453,7 +453,7 @@ void printFluid(Memoria *m
 /*********************************************************************/
 
 /*********************************************************************
- * Data de criacao    : 01 05 2018                                   *
+ * Data de criacao    : 01/05/2018                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
  * printDiff: impressao da equacao de diff                           *
@@ -590,6 +590,61 @@ void printDiff(Memoria *m
              , nameOut           , opt
              , &(sc->ddt)        , fileOut);
 /*...................................................................*/
+  }
+/*...................................................................*/
+}
+/*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 01/05/2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * reScaleMesh : redimensio as coordenada da matriz                  *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * m       -> vetor de memoria principal                             *
+ * pMesh     -> modelo de turbulencia                                *
+ * sc        -> modelo da equacao de energia                         *
+ * loadsD1   -> deficicao de cargas velocidade                       *
+ * opt       -> opcoes de arquivo                                    *
+ * mesh0     -> malha global                                         *
+ * mesh      -> malha particionada                                   *
+ * preName   -> prefixo do arquivo                                   *
+ * nameOut   -> arquivo de saida                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void reScaleMesh(DOUBLE *x,INT nnode, short ndm, FILE *fileIn)
+{
+  char word[WORD_SIZE], fNomeOut[MAX_STR_LEN_SUFIXO];
+  short j;
+  int i;
+  DOUBLE sC[MAX_NDM];
+
+/*... lendo os valores de escala*/  
+  if(ndm == 2)
+    fscanf(fileIn,"%lf %lf", &sC[0],&sC[1]);
+  else if (ndm == 3)
+    fscanf(fileIn, "%lf %lf %lf", &sC[0], &sC[1], &sC[2]);
+  readMacro(fileIn, word, false);
+/*...................................................................*/
+
+/*... lendo o nome do arquivo de saida*/
+  strcpy(fNomeOut,word);
+/*...................................................................*/
+
+/*...*/
+  for(i=0;i<nnode;i++)
+  {
+    for (j = 0; j < ndm; j++) 
+    {
+      MAT2D(i,j,x,ndm) *= sC[j];
+    }
   }
 /*...................................................................*/
 }

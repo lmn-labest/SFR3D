@@ -48,7 +48,7 @@ void diffusion(Memoria *m   ,Loads *loadsDif
            ,mesh->elm.geom.volume,sistEqD->id 
            ,mesh->elm.uD1        ,sistEqD->b0
            ,mesh->numelNov       ,mesh->ndfD[0]
-           ,mesh->ndm            ,mesh->maxViz);
+           ,mesh->ndm            ,mesh->maxViz);  
   tm.CellPloadD1 = getTimeC() - tm.CellPloadD1;
 /*...................................................................*/
 
@@ -61,7 +61,7 @@ void diffusion(Memoria *m   ,Loads *loadsDif
                  ,sc->ddt                 ,mesh->numelNov 
                  ,mesh->ndfD[0]           ,true);
 /*... u(n-1) = u(n)*/
-    alphaProdVector(1.e0,mesh->elm.uD1
+    alphaProdVector(1.e0              ,mesh->elm.uD1
                    ,mesh->numel       ,mesh->elm.u0D1); 
 /*...................................................................*/
     tm.CellTransientD1 = getTimeC() - tm.CellTransientD1;
@@ -77,14 +77,16 @@ void diffusion(Memoria *m   ,Loads *loadsDif
     systFormDif(loadsDif                ,&sc->diffD1
                ,mesh->elm.node          ,mesh->elm.adj.nelcon  
                ,mesh->elm.nen           ,mesh->elm.adj.nViz   
+               ,mesh->elm.cellFace      ,mesh->face.owner
+               ,mesh->elm.geom.volume   ,mesh->elm.geom.dcca
+               ,mesh->elm.geom.xmcc     
+               ,mesh->face.mksi         ,mesh->face.ksi
+               ,mesh->face.eta          ,mesh->face.area       
+               ,mesh->face.normal       ,mesh->face.xm    
+               ,mesh->face.mvSkew       ,mesh->face.vSkew
                ,mesh->elm.geomType      ,mesh->elm.material.prop 
                ,mesh->elm.material.type ,mesh->elm.mat   
-               ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
-               ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
-               ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-               ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
-               ,mesh->elm.geom.vSkew    ,mesh->elm.geom.mvSkew   
-               ,mesh->elm.geom.dcca     ,mesh->elm.densityUd1
+               ,mesh->elm.densityUd1
                ,sistEqD->ia             ,sistEqD->ja      
                ,sistEqD->al             ,sistEqD->ad       
                ,sistEqD->b              ,sistEqD->id       
@@ -182,10 +184,39 @@ void diffusion(Memoria *m   ,Loads *loadsDif
            ,mesh->ndfD[0]           ,mesh->ndm
            ,&pMesh->iNo             ,&pMesh->iEl  
            ,mesh->numelNov          ,mesh->numel        
-           ,mesh->nnodeNov          ,mesh->nnode); 
+           ,mesh->nnodeNov          ,mesh->nnode);   
     tm.rcGradD1 = getTimeC() - tm.rcGradD1;
 /*...................................................................*/
   } 
 /*...................................................................*/
 }
 /*********************************************************************/
+
+
+
+
+/*  systFormDifOld(loadsDif, &sc->diffD1
+, mesh->elm.node, mesh->elm.adj.nelcon
+, mesh->elm.nen, mesh->elm.adj.nViz
+, mesh->elm.geom.volume, mesh->elm.geom.dcca
+, mesh->elm.geom.xmcc
+, mesh->elm.geom.mksi, mesh->elm.geom.ksi
+, mesh->elm.geom.eta, mesh->elm.geom.fArea
+, mesh->elm.geom.normal, mesh->elm.geom.xm
+, mesh->elm.geom.mvSkew, mesh->elm.geom.vSkew
+, mesh->elm.geomType, mesh->elm.material.prop
+, mesh->elm.material.type, mesh->elm.mat
+, mesh->elm.densityUd1
+, sistEqD->ia, sistEqD->ja
+, sistEqD->al, sistEqD->ad
+, sistEqD->b, sistEqD->id
+, mesh->elm.faceRd1, mesh->elm.faceLoadD1
+, mesh->elm.uD1, mesh->elm.gradUd1
+, mesh->elm.rCellUd1, &sc->ddt
+, sistEqD->neq, sistEqD->neqNov
+, sistEqD->nad, sistEqD->nadr
+, mesh->maxNo, mesh->maxViz
+, mesh->ndm, mesh->numelNov
+, mesh->ndfD[0], sistEqD->storage
+, true, true
+, true, sistEqD->unsym);*/

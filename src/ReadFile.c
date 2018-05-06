@@ -37,7 +37,7 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
          ,"return"     ,"cells"      ,"faceRt1"        /* 3, 4, 5*/
          ,"faceLoadT1" ,"loadsT1"    ,""               /* 6, 7, 8*/ 
          ,""           ,""           ,""               /* 9,10,11*/ 
-         ,"faceRD1"    ,""           ,"loadsD1"        /*12,13,14*/ 
+         ,"faceResD1"  ,"uniformD1"  ,"loadsD1"        /*12,13,14*/ 
          ,"faceLoadD1" ,""           ,""               /*15,16,17*/ 
          ,"faceRvel"   ,"loadsVel"   ,"faceLoadVel"    /*18,19,20*/ 
          ,"faceRpres"  ,"loadsPres"  ,"faceLoadPres"   /*21,22,23*/
@@ -454,7 +454,7 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
      zero(mesh->elm.u0T1        ,nel*mesh->ndfT[0]           ,DOUBLEC);
 /*... densityUt1*/ 
      HccaAlloc(DOUBLE,m,mesh->elm.densityUt1
-              ,nel*2            ,"densityUt1" ,_AD_);
+             ,nel*DENSITY_LEVEL,"densityUt1" ,_AD_);
      zero(mesh->elm.densityUt1  ,nel*2                       ,DOUBLEC);
 
 /*... uT1*/
@@ -505,7 +505,7 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 
 /*... densityUd1*/ 
      HccaAlloc(DOUBLE,m,mesh->elm.densityUd1
-              ,nel*2            ,"densityUd1" ,_AD_);
+              ,nel*DENSITY_LEVEL ,"densityUd1" ,_AD_);
      zero(mesh->elm.densityUd1  ,nel*2                       ,DOUBLEC);
 
 /*... uD1*/
@@ -658,17 +658,29 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
     }
 /*...................................................................*/
 
-/*... faceRd1- condicao de contorno para problemas de difusa pura */
+/*... faceResD1- condicao de contorno para problemas de difusa pura */
     else if((!strcmp(word,macro[12])) && (!rflag[12])){
       fprintf(fileLogExc,"%s\n",DIF);
       fprintf(fileLogExc,"%s\n",word);
       strcpy(macros[nmacro++],word);
       rflag[12] = true;
-      strcpy(str,"endFaceRD1");
-      fprintf(fileLogExc,"loading faceRD1 ...\n");
+      strcpy(str,"endFaceResD1");
+      fprintf(fileLogExc,"loading faceResD1 ...\n");
       readVfRes(mesh->elm.faceRd1,mesh->numel,mesh->maxViz+1,str,file);
       fprintf(fileLogExc,"done.\n");
       fprintf(fileLogExc,"%s\n\n",DIF);
+    }
+/*...................................................................*/
+
+/*... uniformD1 */
+    else if ((!strcmp(word, macro[13])) && (!rflag[13])) {
+      fprintf(fileLogExc, "%s\n", DIF);
+      fprintf(fileLogExc, "%s\n", word);
+      strcpy(macros[nmacro++], word);
+      rflag[13] = true;
+      uniformField(mesh->elm.u0D1, mesh->numel, 1, file);
+      fprintf(fileLogExc, "done.\n");
+      fprintf(fileLogExc, "%s\n\n", DIF);
     }
 /*...................................................................*/
 
@@ -952,40 +964,60 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
   }while(macroFlag && (!feof(file)));
   
 /*... iniciacao de propriedades do material varaivel com o tempo*/
-  if(mesh->ndfD[0] > 0) {   
+  if(mesh->ndfD[0] > 0) 
+  {   
     initProp(mesh->elm.densityUd1
             ,mesh->elm.material.prop,mesh->elm.mat
-            ,2                      ,mesh->numel
-            ,DENSITY);         
+            ,DENSITY_LEVEL          ,mesh->numel
+            ,DENSITY);    
+/*...*/
+      alphaProdVector(1.e0                     , mesh->elm.u0D1
+                     , mesh->numel*mesh->ndfD[0], mesh->elm.uD1);  
   }
 /*...................................................................*/
 
 /*...*/
-  if(mesh->ndfT[0] > 0) {   
+  if(mesh->ndfT[0] > 0) 
+  {   
     initProp(mesh->elm.densityUt1
             ,mesh->elm.material.prop,mesh->elm.mat
-            ,2                      ,mesh->numel
-            ,DENSITY);         
+            ,DENSITY_LEVEL          ,mesh->numel
+            ,DENSITY);  
+/*...*/
+    alphaProdVector(1.e0                     , mesh->elm.u0T1
+                  , mesh->numel*mesh->ndfT[0], mesh->elm.uT1);
+     
   }
 /*...................................................................*/
 
 /*...*/
-  if(mesh->ndfF > 0) {   
+  if(mesh->ndfF > 0) 
+  {   
     initProp(mesh->elm.densityFluid
             ,mesh->elm.material.prop,mesh->elm.mat
-            ,2                      ,mesh->numel
-            ,DENSITY);         
+            ,DENSITY_LEVEL          ,mesh->numel
+            ,DENSITY); 
+
+/*...*/
+    alphaProdVector(1.e0, mesh->elm.vel0
+                  , mesh->numel*ndfVel, mesh->elm.vel);
+/*...*/
+    alphaProdVector(1.e0, mesh->elm.pressure0
+                  , mesh->numel, mesh->elm.pressure);
+        
   }
 /*...................................................................*/
 
 /*...*/
-  if (mesh->ndfFt > 0) {
+  if (mesh->ndfFt > 0) 
+  {
 /*...*/
-    alphaProdVector(1.e0        ,mesh->elm.temp0
+    alphaProdVector(1.e0          ,mesh->elm.temp0
                      ,mesh->numel ,mesh->elm.temp);
 /*...................................................................*/
 
-    if(energyModel.fTemperature){
+    if(energyModel.fTemperature)
+    {
 /*... convertendo temperatura para kelvin*/
       if(energyModel.fKelvin)
         convTempForKelvin(mesh->elm.temp0,mesh->numel,true); 
@@ -996,7 +1028,8 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
       alphaProdVector(1.e0        ,mesh->elm.energy0
                      ,mesh->numel ,mesh->elm.energy);
     }
-    else{
+    else
+    {
       getEnergyForTemp(mesh->elm.temp         ,mesh->elm.energy0
                       ,mesh->elm.material.prop,mesh->elm.mat                        
                       ,mesh->numel            
@@ -1017,7 +1050,8 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
                    ,mesh->numel ,mesh->elm.pressure);
   
 /*... inicializando a densidade*/
-    if(prop.fDensity){
+    if(prop.fDensity)
+    {
 /*... inicia a massa especifica com o campo de temperatura inicial*/
       initPropTemp(mesh->elm.densityFluid ,mesh->elm.temp 
                   ,mesh->elm.pressure0    ,mesh->elm.material.prop
@@ -1854,6 +1888,9 @@ void initProp(DOUBLE *RESTRICT prop
 /*********************************************************************/
 
 /********************************************************************* 
+ * Data de criacao    : 11/11/2017                                   *
+ * Data de modificaco : 05/05/2018                                   *
+ *-------------------------------------------------------------------*
  * READEDP : graus de liberdade das equacoes diferencias             * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -1870,10 +1907,14 @@ void initProp(DOUBLE *RESTRICT prop
  *********************************************************************/
 void readEdo(Mesh *mesh,FILE *file){
 
+  short i;
   char *str={"endEdp"};
-  char word[WORD_SIZE];
-	short i;
-
+  char word[WORD_SIZE];;
+  char macros[][WORD_SIZE] =
+       { "transport1" ,"transport2","transport3"    /* 0, 1, 2*/
+         ,"diffusion1","diffusion2","diffusion3"    /* 3, 4, 5*/
+         ,"fluid"     ,"fluidt"    ,""};            /* 6, 7, 8*/
+ 
 /*...*/
 	for (i = 0; i < MAX_TRANS_EQ; i++)
 		mesh->ndfT[i] = 0;
@@ -1886,7 +1927,7 @@ void readEdo(Mesh *mesh,FILE *file){
   readMacro(file,word,false);
   do{
 /*... transport1*/
-    if(!strcmp(word,"transport1")){
+    if(!strcmp(word, macros[0])){
       readMacro(file,word,false);
       mesh->ndfT[0]=(short) atol(word);
       if(!mpiVar.myId ) fprintf(fileLogExc,"transport1 ndf %d\n"
@@ -1895,7 +1936,7 @@ void readEdo(Mesh *mesh,FILE *file){
 /*...................................................................*/
 
 /*... transport2*/
-    else if(!strcmp(word,"transport2")){
+    else if(!strcmp(word, macros[1])){
       readMacro(file,word,false);
       mesh->ndfT[1]= (short) atol(word);
       if(!mpiVar.myId ) fprintf(fileLogExc,"transport2 ndf %d\n"
@@ -1904,7 +1945,7 @@ void readEdo(Mesh *mesh,FILE *file){
 /*...................................................................*/
 
 /*... transport3*/
-    else if(!strcmp(word,"transport3")){
+    else if(!strcmp(word, macros[2])){
       readMacro(file,word,false);
       mesh->ndfT[2]= (short) atol(word);
       if(!mpiVar.myId ) fprintf(fileLogExc,"transport3 ndf %d\n"
@@ -1913,7 +1954,7 @@ void readEdo(Mesh *mesh,FILE *file){
 /*...................................................................*/
 
 /*... diffusion1*/
-    else if(!strcmp(word,"diffusion1")){
+    else if(!strcmp(word, macros[3])){
       readMacro(file,word,false);
       mesh->ndfD[0]= (short) atol(word);
       if(!mpiVar.myId ) fprintf(fileLogExc,"diffusion1 ndf %d\n"
@@ -1922,7 +1963,7 @@ void readEdo(Mesh *mesh,FILE *file){
 /*...................................................................*/
 
 /*... diffusion2*/
-    else if(!strcmp(word,"diffusion2")){ 
+    else if(!strcmp(word, macros[4])){
      readMacro(file,word,false);
       mesh->ndfD[1]= (short) atol(word);
       if(!mpiVar.myId ) fprintf(fileLogExc,"diffusion2 ndf %d\n"
@@ -1931,7 +1972,7 @@ void readEdo(Mesh *mesh,FILE *file){
 /*...................................................................*/
 
 /*... diffusion3*/
-    else if(!strcmp(word,"diffusion3")){
+    else if(!strcmp(word, macros[5])){
       readMacro(file,word,false);
       mesh->ndfD[2]= (short) atol(word);
       if(!mpiVar.myId ) fprintf(fileLogExc,"diffusion3 ndf %d\n"
@@ -1940,7 +1981,7 @@ void readEdo(Mesh *mesh,FILE *file){
 /*...................................................................*/
 
 /*... fluido*/
-    else if(!strcmp(word,"fluid")){
+    else if(!strcmp(word,macros[6])){
       readMacro(file,word,false);
       mesh->ndfF= (short) atol(word);
       if(!mpiVar.myId ) fprintf(fileLogExc,"fluid ndf %d\n"
@@ -1949,7 +1990,7 @@ void readEdo(Mesh *mesh,FILE *file){
 /*...................................................................*/
 
 /*... fluido-termo ativado*/
-    else if(!strcmp(word,"fluidt")){
+    else if(!strcmp(word, macros[7])){
       readMacro(file,word,false);
       mesh->ndfFt= (short) atol(word);
       if(!mpiVar.myId ) fprintf(fileLogExc,"fluidt ndf %d\n"
@@ -2626,7 +2667,7 @@ void setPrint(FileOpt *opt,FILE *file){
   opt->pKelvin        = false;
 
   fscanf(file,"%d",&tmp);
-  opt->stepPlotFluid[0] = opt->stepPlotFluid[1] = (short) tmp;
+  opt->stepPlot[0] = opt->stepPlot[1] = (short) tmp;
   readMacro(file,word,false);
   convStringLower(word);
   while(strcmp(word,str))
@@ -3022,24 +3063,32 @@ void convStringLower(char *s){
 void help(FILE *f){
 
   char word[WORD_SIZE];
-  short iHelp = 9;
+  short iHelp = 10;
   char help [][WORD_SIZE] = 
                {"macros"   ,"setprint" ,"advection"    /* 0, 1, 2*/
                ,"model"    ,"diffusion","nlit"         /* 3, 4, 5*/
                ,"transient","rcgrad"   ,"config"       /* 6, 7, 8*/
-               ,""         ,""         ,""             /* 9,10,11*/
-               ,""         ,""         ,""};           /*12,13,15*/
+               ,"edp"      ,""         ,""             /* 9,10,11*/
+               ,""         ,""         ,""    };        /*12,13,14*/
 
-  short iMacros = 20;
+  short iMacros = 45;
   char macros[][WORD_SIZE] = 
-               {"setPrint" ,"setSolv"     ,"setSimple"    /* 0, 1, 2*/
-               ,"pgeo"     ,"transient"   ,"simple"       /* 3, 4, 5*/
-               ,"pFluid"   ,"endTransient","stop"         /* 6, 7, 8*/
-               ,"model"    ,"propVar"     ,"gravity"      /* 9,10,11*/
-               ,"edp"      ,"vorticity"   ,"openmp"       /*12,13,14*/
-               ,"advection","diffusion"   ,"config"       /*15,16,17*/
-               ,"mean"     ,"smean"                 };    /*18,19,  */
-
+       { ""            ,"mesh"         ,"stop"          /* 0, 1, 2*/
+        ,"config"      ,"nextLoop"     ,"rcGrad"        /* 3, 4, 5*/
+        ,"pgeo"        ,"pcoob"        ,"pcoo"          /* 6, 7, 8*/
+        ,"setSolvDiff" ,"presolvT1"    ,"openmp"        /* 9,10,11*/
+        ,"solvD1"      ,""             ,"pD1"           /*12,13,14*/
+        ,"nlIt"        ,"pD1CsvCell"   ,"pD1CsvNode"    /*15,16,17*/
+        ,"solvT1"      ,""             ,"pT1"           /*18,19,20*/
+        ,""            ,"pT1CsvCell"   ,"pT1CsvNode"    /*21,22,23*/
+       ,"setSolv"     ,"simple"       ,"setSimple"      /*24,25,26*/
+       ,"transient"   ,"timeUpdate"   ,"partd"          /*27,28,29*/
+       ,"advection"   ,"edp"          ,"diffusion"      /*30,31,32*/
+       ,"pFluid"      ,"setPrint"     ,"reScaleMesh"    /*33,34,35*/
+       ,"setPrime"    ,"prime"        ,"propVar"        /*36,37,38*/
+       ,"gravity"     ,"model"        ,"mean"           /*39,40,41*/
+       ,"setMean"     ,"save"         ,"load" };        /*42,43,44*/
+ 
   short iPrint = 21;
   char print[][WORD_SIZE] = 
                {"cell"         ,"node"        ,"vel"             /* 0, 1, 2*/
@@ -3119,9 +3168,13 @@ void help(FILE *f){
   char sRcGrad[][WORD_SIZE] = 
     { "greenGaussCell"  ,"greenGaussNode"
      ,"leastSquare"     ,"leastSquareQR" };
+
+  short iEdp= 8;
+  char sEdp[][WORD_SIZE] =
+    { "transport1" ,"transport2","transport3"   
+     ,"diffusion1","diffusion2","diffusion3"    
+     ,"fluid"     ,"fluidt"    ,"" };
 /*....................................................................*/
-
-
 
   int i;                                                     
 
@@ -3243,10 +3296,22 @@ void help(FILE *f){
 
 /*... config*/
   else if (!strcmp(word, help[8])) {
+    printf("Ex:\n");
     printf("config\n");
     printf("reord false bvtk false mem 100 "
            "fItPlotRes false fItPlot true\n");
     printf("endConfig\n");
+    exit(EXIT_FAILURE);
+  }
+/*.....................................................................*/
+
+/*... edp*/
+  else if (!strcmp(word, help[9])) {
+    printf("Ex:\n");
+    printf("edp\nfluid 4\ndiffusion1 1\n");
+    printf("endEdp\n");
+    for (i = 0; i<iEdp; i++)
+      printf("%3d - %s\n", i + 1, sEdp[i]);
     exit(EXIT_FAILURE);
   }
 /*.....................................................................*/
@@ -4238,11 +4303,11 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       }
 
       tm.turbulence = getTimeC() - tm.turbulence;
-      //        dataStructSimple(&m,sistEqEnergy->id ,reordMesh->num
-      //                        ,mesh->elm.adj.nelcon
-      //                        ,mesh->elm.adj.nViz  ,mesh->numelNov,mesh->maxViz  
-      //                       ,1                   ,strIa         ,strJa
-      //                       ,strAd               ,strA          ,sistEqEnergy);
+//        dataStructSimple(&m,sistEqEnergy->id ,reordMesh->num
+//                        ,mesh->elm.adj.nelcon
+//                        ,mesh->elm.adj.nViz  ,mesh->numelNov,mesh->maxViz  
+//                       ,1                   ,strIa         ,strJa
+//                       ,strAd               ,strA          ,sistEqEnergy);
       dataStruct(m, sistEqKturb->id, reordMesh->num
         , mesh->elm.adj.nelcon
         , mesh->elm.adj.nViz, mesh->numelNov, mesh->maxViz
@@ -4449,7 +4514,7 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
 
   char word[WORD_SIZE];
 
-  /*... solver*/
+/*... solver*/
   readMacro(fileIn, word, false);
   nSistEq = (short)atol(word);
   do {
@@ -4474,7 +4539,9 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
         solvD1->fileSolv = openFile(nameOut, "w");
       }
 /*...................................................................*/
-
+      
+/*...*/
+      sistEqD1->storage = CSRD;
       sistEqD1->unsym = false;
 /*...................................................................*/
 
@@ -4489,15 +4556,16 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
 /*...................................................................*/
 
 /*... numeracao das equacoes das velocidades*/
-      HccaAlloc(INT, m, sistEqD1->id, mesh->numel,"sistD1id", _AD_);
+      HccaAlloc(INT, m, sistEqD1->id, mesh->numel*mesh->ndfD[0]
+               ,"sistD1id", _AD_);
       if (!mpiVar.myId) {
         fprintf(fileLogExc, "%s\n", DIF);
         fprintf(fileLogExc, "Numerando as equacoes.\n");
       }
       tm.numeqD1 = getTimeC() - tm.numeqD1;
-      sistEqD1->neq = numeq(sistEqD1->id, reordMesh->num
+      sistEqD1->neq = numeq(sistEqD1->id     , reordMesh->num
                           , mesh->elm.faceRd1, mesh->elm.adj.nViz
-                          , mesh->numel, mesh->maxViz
+                          , mesh->numel      , mesh->maxViz
                           , mesh->ndfD[0]);
       tm.numeqD1 = getTimeC() - tm.numeqD1;
 
@@ -4521,11 +4589,11 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
 /*...................................................................*/
 
 /*... */
-      HccaAlloc(DOUBLE, m, sistEqD1->b0
+      HccaAlloc(DOUBLE        , m         , sistEqD1->b0
                , sistEqD1->neq, "sistD1b0", _AD_);
-      HccaAlloc(DOUBLE, m, sistEqD1->b
+      HccaAlloc(DOUBLE        , m         , sistEqD1->b
                , sistEqD1->neq, "sistD1b ", _AD_);
-      HccaAlloc(DOUBLE, m, sistEqD1->x
+      HccaAlloc(DOUBLE       , m         , sistEqD1->x
               , sistEqD1->neq, "sistD1x ", _AD_);
       zero(sistEqD1->b0, sistEqD1->neq, DOUBLEC);
       zero(sistEqD1->b , sistEqD1->neq, DOUBLEC);

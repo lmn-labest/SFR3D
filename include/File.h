@@ -60,7 +60,7 @@
     bool bconditions;    /*insere as condicoes de contorno nos valores nodais*/
     bool cc;             /*centro geomentrico da celula*/       
     bool pKelvin;        /*plot em kelvin*/  
-    short stepPlotFluid[2];
+    short stepPlot[2];
     FILE *fileItPlot[7];
     
   }FileOpt;
