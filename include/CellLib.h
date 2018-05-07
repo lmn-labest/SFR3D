@@ -21,6 +21,7 @@
 
 /*... chamada da biblioteca de elementos (difusao)*/
   void cellLibDif(Loads *loads             ,Diffusion *diff
+                 ,DiffModel *dModel     
                  ,short *RESTRICT lGeomType,DOUBLE *RESTRICT lprop
                  ,INT   *RESTRICT lViz     ,INT    *RESTRICT lId
                  ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mksi    
@@ -316,6 +317,7 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
                 ,short const ndm          ,INT const nel);
   
   void cellDif3D(Loads *loads             ,Diffusion *diff 
+                ,DiffModel *dModel
                 ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
                 ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
                 ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
@@ -649,7 +651,8 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
            , const short ndm            , INT const nel);
 
 /*... biblioteca de celulas 3D(simple - pres - low mach)*/
-  void cellSimplePres2DLm(Loads *loadsVel, Loads *loadsPres					 , Diffusion diffPres        	, MassEqModel eMass
+  void cellSimplePres2DLm(Loads *loadsVel, Loads *loadsPres		
+    			 , Diffusion diffPres        	, MassEqModel eMass
            , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop
            , INT *RESTRICT lViz         , INT *RESTRICT lId  
            , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi

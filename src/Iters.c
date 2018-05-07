@@ -425,7 +425,8 @@ void pcgOmp(INT const nEq, INT const nAd
   short nThreads = ompVar.nThreadsSolver;
   unsigned int j, jj, jG;
   INT i;
-  DOUBLE alpha, beta, d, conv, xKx, norm_b, norm, norm_r_m, norm_r, di,tmp;
+  DOUBLE alpha, beta, d, conv, xKx, norm_b, norm, norm_r_m, norm_r;
+  DOUBLE di,tmp;
   DOUBLE timei, timef;
   timei = getTimeC();
 

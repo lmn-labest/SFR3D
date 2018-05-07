@@ -1320,7 +1320,7 @@ void cellLibTrans(Loads *loads
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 01/05/2018                                   * 
+ * Data de modificaco : 06/05/2018                                   * 
  *-------------------------------------------------------------------* 
  * CELLLIBDIF : chamada de bibliotecas de celulas para o problema    *
  * de difusao.                                                       * 
@@ -1329,6 +1329,7 @@ void cellLibTrans(Loads *loads
  *-------------------------------------------------------------------* 
  * loads     -> definicoes de cargas                                 * 
  * diff      -> tecnica da discretizacao do termo difusivo           *
+ * dModel   -> configuracoes do modelo difusivo                      *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
  * lprop     -> propriedade fisicas das celulas                      *
  * lViz      -> viznhos da celula central                            * 
@@ -1371,6 +1372,7 @@ void cellLibTrans(Loads *loads
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void cellLibDif(Loads *loads             ,Diffusion *diff
+               ,DiffModel *dModel
                ,short *RESTRICT lGeomType,DOUBLE *RESTRICT lprop
                ,INT   *RESTRICT lViz     ,INT *RESTRICT lId  
                ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
@@ -1413,6 +1415,7 @@ void cellLibDif(Loads *loads             ,Diffusion *diff
 /*... 3D*/
     else if(ndm == 3){
       cellDif3D(loads    ,diff
+               ,dModel 
                ,lGeomType,lprop
                ,lViz     ,lId
                ,ksi      ,mKsi

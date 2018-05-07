@@ -10,6 +10,7 @@
  *-------------------------------------------------------------------* 
  * m        -> nao definido                                          *
  * loadsDif -> definicoes de cargas                                  *
+ * dModel   -> configuracoes do modelo difusivo                      *
  * mesh0    -> parametros                                            * 
  * mesh     -> parametros                                            * 
  * sistEqD  -> sistema de equacoes                                   * 
@@ -28,7 +29,7 @@
  * de tempo n+1                                                      * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void diffusion(Memoria *m   ,Loads *loadsDif
+void diffusion(Memoria *m   ,Loads *loadsDif,DiffModel *dModel
               ,Mesh *mesh0  ,Mesh *mesh     ,SistEq *sistEqD
               ,Solv *solvD  ,Scheme *sc     ,PartMesh *pMesh 
               ,FileOpt opt  ,char *preName  ,char *nameOut
@@ -75,6 +76,7 @@ void diffusion(Memoria *m   ,Loads *loadsDif
 /*... calculo de: A(i),b(i)*/
     tm.systFormD1 = getTimeC() - tm.systFormD1;
     systFormDif(loadsDif                ,&sc->diffD1
+               ,dModel 
                ,mesh->elm.node          ,mesh->elm.adj.nelcon  
                ,mesh->elm.nen           ,mesh->elm.adj.nViz   
                ,mesh->elm.cellFace      ,mesh->face.owner
@@ -159,7 +161,7 @@ void diffusion(Memoria *m   ,Loads *loadsDif
     updateCellValue(mesh->elm.uD1 ,sistEqD->x
                    ,sistEqD->id  ,&sistEqD->iNeq
                    ,mesh->numel  ,mesh->ndfD[0]
-                   ,true         ,true);
+                   ,dModel->fRes ,true);
 /*...................................................................*/
 
 /*... reconstruindo do gradiente*/

@@ -210,7 +210,7 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 05/05/2018                                   *
+ * Data de modificaco : 06/05/2018                                   *
  *-------------------------------------------------------------------*
  * SYSTFOMDIF : calculo do sistema de equacoes para problemas        * 
  * difusao (Ax=b)                                                    * 
@@ -219,6 +219,7 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
  *-------------------------------------------------------------------* 
  * loads   -> definicoes de cargas                                   * 
  * diff    -> tecnica da discretizacao do termo difusivo             *
+ * dModel   -> configuracoes do modelo difusivo                      *
  * el      -> conetividade dos celulas                               * 
  * nelcon  -> vizinhos dos elementos                                 * 
  * nen     -> numero de nos por celulas                              * 
@@ -288,6 +289,7 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void systFormDif(Loads *loads             ,Diffusion *diff
+               ,DiffModel *dModel
                ,INT    *RESTRICT el       ,INT    *RESTRICT nelcon 
                ,short  *RESTRICT nen      ,short  *RESTRICT nFace
                ,INT *RESTRICT cellFace    ,INT *RESTRICT fOwner
@@ -430,6 +432,7 @@ void systFormDif(Loads *loads             ,Diffusion *diff
 
 /*... chamando a biblioteca de celulas*/
       cellLibDif(loads     ,diff
+                ,dModel  
                 ,lGeomType ,lProp 
                 ,lViz      ,lId           
                 ,lKsi      ,lmKsi
@@ -6865,7 +6868,7 @@ void systFormDifOld(Loads *loads, Diffusion *diff
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
-      cellLibDif(loads    , diff
+/*    cellLibDif(loads    , diff
                , lGeomType, lProp
                , lViz     , lId
                , lKsi     , lmKsi
@@ -6880,7 +6883,7 @@ void systFormDifOld(Loads *loads, Diffusion *diff
                , lu0      , lGradU0
                , nen[nel] , nFace[nel]
                , ndm      , lib
-               , nel);
+               , nel);*/
 /*...................................................................*/
 
 /*... residuo da celula*/

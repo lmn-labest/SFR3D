@@ -52,6 +52,7 @@
   void readGravity(DOUBLE *gravity,FILE *file);
   void readModel(EnergyModel *e    , Turbulence *t
                , MassEqModel *eMass, MomentumModel *ModelMomentum
+               , DiffModel *dModel
                , FILE *file);
   void readMean(Memoria *m, FILE *fileIn
               , Mesh *mesh, Mean *media);

@@ -310,6 +310,7 @@ void cellDif2D(Loads *loads
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void cellDif3D(Loads *loads             ,Diffusion *diff
+              ,DiffModel *dModel    
               ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
               ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
               ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
@@ -352,7 +353,7 @@ void cellDif3D(Loads *loads             ,Diffusion *diff
   typeTime = ddt->type;
   fTime    = ddt->flag;
   densityC = *lDensity;
-  fRes     = true;
+  fRes     = dModel->fRes;
 /*...................................................................*/
   
 /*... propriedades da celula*/

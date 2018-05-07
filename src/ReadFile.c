@@ -2089,9 +2089,9 @@ void readPropVar(PropVar *p,FILE *file){
 
 /*********************************************************************
  * Data de criacao    : 04/09/2017                                   *
- * Data de modificaco : 20/02/2018                                   *
+ * Data de modificaco : 06/05/2018                                   *
  *-------------------------------------------------------------------* 
- * READPROPVAR : propriedades variaveis                              * 
+ * readMode : le as configuraoes dos modelos                         * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -2099,6 +2099,7 @@ void readPropVar(PropVar *p,FILE *file){
  * t       -> modelo de turbilencia                                  *
  * eMass   -> modelos/termos usados na equacao da conv de mass       * 
  * ModelMomentum  -> modelos/termos usados na equacao da conv de mass*
+ * dModel  -> modelos/termos usados nas equacoes de diffusao         *
  * file    -> arquivo de arquivo                                     * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -2112,13 +2113,14 @@ void readPropVar(PropVar *p,FILE *file){
  *********************************************************************/
 void readModel(EnergyModel *e    , Turbulence *t
              , MassEqModel *eMass, MomentumModel *ModelMomentum
+             , DiffModel   *dModel  
              , FILE *file){
 
   char *str={"endModel"};
   char format[1024];
   char word[WORD_SIZE];
   char macros[][WORD_SIZE] = {"energy"  ,"turbulence","mass"
-                             ,"momentum"};
+                             ,"momentum","diffusion"};
 
   char energy[][WORD_SIZE] = { "preswork", "dissipation", "residual"  
                              , "absolute", "temperature", "entalphy"}; 
@@ -2134,11 +2136,13 @@ void readModel(EnergyModel *e    , Turbulence *t
   char momentum[][WORD_SIZE] = {"residual"   ,"absolute"       /*0,1*/                    
                                ,"rhiechow"   ,"viscosity"      /*2,3*/
                                ,"div"        ,"buoyanthy"      /*4,5*/  
-                               ,"buoyantprgh","buoyantrhoref"};/*6,7*/ 
+                               ,"buoyantprgh","buoyantrhoref"};/*6,7*/
+
+  char diff[][WORD_SIZE] = { "residual"   ,"absolute"};        /*0,1*/
 
   char typeWallModel[][WORD_SIZE] ={"standard","enhanced"};
   
-  int i,nPar;
+  int i,nPar,id;
 
   readMacro(file,word,false);
   do{
@@ -2430,8 +2434,6 @@ void readModel(EnergyModel *e    , Turbulence *t
           }
         }
 /*...................................................................*/
- 
-
       }
 /*...................................................................*/
     }
@@ -2471,7 +2473,8 @@ void readModel(EnergyModel *e    , Turbulence *t
 /*...................................................................*/
 
 /*... Momentum*/
-    else if(!strcmp(word,macros[3])){ 
+    else if(!strcmp(word,macros[3]))
+    { 
       strcpy(format,"%-20s: %s\n");
       if(!mpiVar.myId)
         fprintf(fileLogExc,"\n%-20s: \n","MomentumEqModel");    
@@ -2480,81 +2483,125 @@ void readModel(EnergyModel *e    , Turbulence *t
       ModelMomentum->fViscosity       = false;
       ModelMomentum->fDiv             = false;
       fscanf(file,"%d",&nPar);
-      for(i=0;i<nPar;i++){
+      for(i=0;i<nPar;i++)
+      {
         readMacro(file,word,false);
         convStringLower(word);
 /*... residual*/
-        if(!strcmp(word,momentum[0])){
+        if(!strcmp(word,momentum[0]))
+        {
           ModelMomentum->fRes = true;          
-          if(!mpiVar.myId && ModelMomentum->fRes){ 
+          if(!mpiVar.myId && ModelMomentum->fRes) 
             fprintf(fileLogExc,format,"Residual","Enable");
-          }
         }
 /*...................................................................*/
 
 /*... Absolute*/
-        else if(!strcmp(word,momentum[1])){
+        else if(!strcmp(word,momentum[1]))
+        {
           ModelMomentum->fRes = false;            
-          if(!mpiVar.myId && !ModelMomentum->fRes){ 
+          if(!mpiVar.myId && !ModelMomentum->fRes) 
             fprintf(fileLogExc,format,"Absolute","Enable");
-          }
         }
 /*...................................................................*/
 
 /*... RhieChow*/
-        else if(!strcmp(word,momentum[2])){
+        else if(!strcmp(word,momentum[2]))
+        {
           ModelMomentum->fRhieChowInt = true;            
-          if(!mpiVar.myId && ModelMomentum->fRhieChowInt){ 
+          if(!mpiVar.myId && ModelMomentum->fRhieChowInt) 
             fprintf(fileLogExc,format,"RhieChowInt","Enable");
-          }
         }
 /*...................................................................*/
 
 /*... Viscosity*/
-        else if(!strcmp(word,momentum[3])){
+        else if(!strcmp(word,momentum[3]))
+        {
           ModelMomentum->fViscosity = true;            
-          if(!mpiVar.myId && ModelMomentum->fViscosity){ 
+          if(!mpiVar.myId && ModelMomentum->fViscosity) 
             fprintf(fileLogExc,format,"Viscosity","Enable");
-          }
         }
 /*...................................................................*/
 
 /*... div*/
-        else if(!strcmp(word,momentum[4])){
+        else if(!strcmp(word,momentum[4]))
+        {
           ModelMomentum->fDiv = true;            
-          if(!mpiVar.myId && ModelMomentum->fDiv){ 
+          if(!mpiVar.myId && ModelMomentum->fDiv) 
             fprintf(fileLogExc,format,"Divergente","Enable");
-          }
         }
 /*...................................................................*/
 
 /*... bouyant_hydrostatic*/
-        else if(!strcmp(word,momentum[5])){
+        else if(!strcmp(word,momentum[5]))
+        {
           ModelMomentum->iCodBuoyant = BUOYANT_HYDROSTATIC;            
-          if(!mpiVar.myId){ 
+          if(!mpiVar.myId) 
             fprintf(fileLogExc,format,"bouyant_hydrostatic","Enable");
-          }
         }
 /*...................................................................*/
 
 /*... bouyant_prgh*/
-        else if(!strcmp(word,momentum[6])){
+        else if(!strcmp(word,momentum[6]))
+        {
           ModelMomentum->iCodBuoyant = BUOYANT_PRGH;            
-          if(!mpiVar.myId){ 
+          if(!mpiVar.myId) 
             fprintf(fileLogExc,format,"bouyant_prgh","Enable");
-          }
         }
 /*...................................................................*/
 
 /*... bouyant_prgh*/
-        else if(!strcmp(word,momentum[7])){
+        else if(!strcmp(word,momentum[7]))
+        {
           ModelMomentum->iCodBuoyant = BUOYANT_RHOREF;            
-          if(!mpiVar.myId){ 
+          if(!mpiVar.myId) 
             fprintf(fileLogExc,format,"bouyant_rofref","Enable");
-          }
+        }
+      }
+    }
+/*...................................................................*/
+
+/*... Momentum*/
+    else if (!strcmp(word, macros[4])) 
+    {
+      strcpy(format, "%-20s: %s\n");
+      readMacro(file, word, false);
+      convStringLower(word);
+/*...*/
+      if(!strcmp(word,"d1"))
+        id = 0;
+      else if (!strcmp(word,"d2"))
+        id = 1;
+      else if (!strcmp(word, "d3"))
+        id = 2;  
+/*...................................................................*/
+
+      if (!mpiVar.myId)
+        fprintf(fileLogExc, "\n%-20s: D%1d\n", "DiffusionMode",id+1);
+
+      dModel[id].fRes = false;
+      fscanf(file, "%d", &nPar);
+      for (i = 0; i<nPar; i++) 
+      {
+        readMacro(file, word, false);
+        convStringLower(word);
+/*... residual*/
+        if (!strcmp(word, diff[0])) 
+        {
+          dModel[id].fRes = true;
+          if (!mpiVar.myId && dModel[id].fRes)
+            fprintf(fileLogExc, format, "Residual", "Enable");
         }
 /*...................................................................*/
 
+/*... Absolute*/
+        else if (!strcmp(word, diff[1]))
+        {
+          dModel[id].fRes = false;
+          if (!mpiVar.myId && !dModel[id].fRes)
+            fprintf(fileLogExc, format, "Absolute", "Enable");
+        }
+/*...................................................................*/
       }
 /*...................................................................*/
     }

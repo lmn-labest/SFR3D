@@ -66,6 +66,7 @@ int main(int argc,char**argv){
   EnergyModel eModel;
   MassEqModel eMass;
   MomentumModel ModelMomentum;
+  DiffModel diffModel[3];
 /*... propriedade variaveis*/
   PropVar propVarFluid;
 
@@ -133,6 +134,8 @@ int main(int argc,char**argv){
   nmax = 200000;
 /* ..................................................................*/
 
+/*...*/
+  diffModel[0].fRes = true;
 /*...*/
   media.fMedia = false;
   media.fVel   = false;
@@ -1085,7 +1088,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
      
 /*...*/
-      diffusion(&m         ,loadsD1        
+      diffusion(&m         ,loadsD1        ,&diffModel[0]
                ,mesh0      ,mesh           ,&sistEqD1
                ,&solvD1    ,&sc            ,pMesh
                ,opt        ,preName        ,nameOut
@@ -1924,8 +1927,9 @@ int main(int argc,char**argv){
         fprintf(fileLogExc,"%s\n",DIF);
         fprintf(fileLogExc,"%s\n",word);
       }
-      readModel(&eModel,&turbModel
-              , &eMass ,&ModelMomentum
+      readModel(&eModel   ,&turbModel
+              , &eMass    ,&ModelMomentum
+              , diffModel
               , fileIn);
 /*...................................................................*/
       if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
