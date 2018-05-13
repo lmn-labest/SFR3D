@@ -27,5 +27,16 @@
      fprintf(stderr,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"\
             ,file,func,line);\
      a = - 1;}
+
+  #define ERRO_POL_READ(a,b,file,func,line)\
+    if(a > b)\
+    {\
+      fprintf(stderr,"Numero de grau do polinmios execedido!!");\
+      fprintf(stderr,"%d > %d",a,b);\
+      fprintf(stderr,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"\
+             ,file,func,line);\
+      exit(EXIT_FAILURE);\
+    }
+
 /*...................................................................*/
 #endif /*_ERRO_H_*/

@@ -7,6 +7,41 @@
 /*...................................................................*/
 
 /*...*/
+  #define POL        1
+/*... viscosidade*/
+  #define SUTHERLAND 2
+/*... densidade*/
+  #define IDEALGAS   2
+/*... densidade*/
+  #define INCIDEALGAS   3
+/*...................................................................*/
+
+/*...*/
+  #define TREF      288.15e+00    /*Kelvin         */
+  #define PREREF    1.01325e+05   /*Pa             */
+  #define IDEALGASR 8.3144598e+00 /*J/(mol.kelvin) */
+  #define MMOLARAR  2.896e-2      /*kg/mol         */
+/*...................................................................*/
+
+/*...*/
+  #define TEMP_FOR_ENTHALPY(cp,t,tr) ( (cp)*(t-tr) )
+  #define ENTHALPY_FOR_TEMP(cp,hs,tr) ( (hs/cp) + (tr) )
+/*...................................................................*/
+
+/*...*/
+  #define PRESREF(dRef,R,T,Mg) ((dRef)*(R)*(T)/(Mg)) 
+/*...................................................................*/
+
+/*...*/
+  #define PROP_UPDATE_NL_LOOP       0
+  #define PROP_UPDATE_OLD_TIME    1
+/*...................................................................*/
+
+/*...*/
+  #define MAXPLODEG  10  
+/*...................................................................*/
+
+/*...*/
   #define PI     3.14159265358979323846E0
   #define D5DIV6 8.33333333333333333333E-1
   #define D1DIV6 1.66666666666666666666E-1
@@ -80,6 +115,7 @@
   #define DENSITY_LEVEL       3
   #define SHEAT_LEVEL         3
   #define TCONDUCTIVITY_LEVEL 1
+  #define COEFDIFF_LEVEL      1
 /*...................................................................*/
 
 /*... conv radianos para graus*/

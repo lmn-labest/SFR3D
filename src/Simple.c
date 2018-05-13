@@ -682,7 +682,7 @@ void simpleSolverLm(Memoria *m          , PropVar prop
   bool fDensity       = prop.fDensity,
     fSheat            = prop.fSpecificHeat,
     fDvisc            = prop.fDynamicViscosity,
-    fTcond            = prop.fThermalCondutivty,
+    fTcond            = prop.fThermalconductivity,
     fDensityRef       = thDynamic->fDensityRef,
     fPresRef          = thDynamic->fPresTh,
     fDeltaTimeDynamic = sc->ddt.fDynamic;
@@ -1346,16 +1346,16 @@ void simpleSolverLm(Memoria *m          , PropVar prop
       updateDensity(mesh->elm.temp    ,mesh->elm.pressure0  
                   , mesh->elm.densityFluid
                   , sp->alphaDensity , eModel.fKelvin   
-                  , mesh->numel      , PROP_UPDATE_SIMPLE_LOOP);
+                  , mesh->numel      , PROP_UPDATE_NL_LOOP);
     if(fSheat)
       updateSpecificHeat(mesh->elm.temp,mesh->elm.specificHeat
                         ,eModel.fKelvin
-                       ,mesh->numel     ,PROP_UPDATE_SIMPLE_LOOP);
+                       ,mesh->numel     , PROP_UPDATE_NL_LOOP);
     if(fDvisc)
       updateDynamicViscosity(mesh->elm.temp,mesh->elm.dViscosity  
                            ,eModel.fKelvin ,mesh->numel);
     if(fTcond)
-      updateThermalCondutivty(mesh->elm.temp,mesh->elm.tConductivity
+      updateThermalconductivity(mesh->elm.temp,mesh->elm.tConductivity
                              ,eModel.fKelvin  ,mesh->numel);
 /*...................................................................*/
 

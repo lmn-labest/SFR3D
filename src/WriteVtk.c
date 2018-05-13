@@ -978,7 +978,7 @@ void wResVtk(Memoria *m     ,double *x
 
 /********************************************************************** 
  * Data de criacao    : 00/00/0000                                    *
- * Data de modificaco : 01/05/2018                                    * 
+ * Data de modificaco : 13/05/2018                                    * 
  * -------------------------------------------------------------------* 
  * WRESVTKDIF : escreve a malha com os resultados para problemas de   *  
  * difusao pura                                                       *  
@@ -1023,6 +1023,8 @@ void wResVtkDif(Memoria *m        ,double *x
                ,short *nen        ,short *typeGeom
                ,DOUBLE *elU       ,DOUBLE *nU
                ,DOUBLE *elGradU   ,DOUBLE *nGradU
+               ,DOUBLE *elDensity ,DOUBLE *nDensity
+               ,DOUBLE *elCoefDiff,DOUBLE *nCoefDiff
                ,INT nnode         ,INT numel    
                ,short ndm         ,short maxNo 
                ,short numat       ,short ndf   
@@ -1032,9 +1034,11 @@ void wResVtkDif(Memoria *m        ,double *x
                ,Temporal *ddt     ,FILE *f)
 {
   bool iws = opt->bVtk;
+  char str[50];
   short j;
   int    *lel=NULL;
   INT i;
+  DOUBLE *p=NULL;
 
   char head[]={"DIF_VOLUME_FINITO"};
   double ddum;
@@ -1060,17 +1064,12 @@ void wResVtkDif(Memoria *m        ,double *x
   
 /*... conectividades*/
   HccaAlloc(int,m,lel,numel*maxNo,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
-  for(i=0;i<numel;i++){
-    for(j=0;j<maxNo;j++){
+  ERRO_MALLOC(lel, "el", __LINE__, __FILE__, __func__);
+
+  for(i=0;i<numel;i++)
+    for(j=0;j<maxNo;j++)
       MAT2D(i,j,lel,maxNo) = MAT2D(i,j,el,maxNo)-1;
-    }
-  }  
+  
   writeVtkCell(lel,nen,typeGeom,numel,maxNo,iws,f);
   HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
@@ -1081,42 +1080,59 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /*... material*/
   HccaAlloc(int,m,lel,numel,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
+  ERRO_MALLOC(lel, "el", __LINE__, __FILE__, __func__);
   for(i=0;i<numel;i++)
     lel[i]=(int) mat[i];
    
-  writeVtkProp(lel,&ddum,numel,1,"mat",iws,INTEGER_VTK,1,f);
+  writeVtkProp(lel,&ddum,numel,1,"mat",iws,INTEGER_VTK, SCALARS_VTK,f);
   HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
 
 /*... numero do elemento*/
   HccaAlloc(int,m,lel,numel*maxNo,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
+  ERRO_MALLOC(lel, "el", __LINE__, __FILE__, __func__);
   for(i=0;i<numel;i++)
     lel[i]= i+1;
    
-  writeVtkProp(lel,&ddum,numel,1,"elGlobal",iws,INTEGER_VTK,1,f);
+  writeVtkProp(lel,&ddum,numel,1,"elGlobal",iws,INTEGER_VTK
+             , SCALARS_VTK,f);
   HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
   
 /*... escrever resultados por celula*/  
   if(opt->fCell && opt->uD1)
-    writeVtkProp(&idum,elU,numel,ndf,uResEl,iws,DOUBLE_VTK,1,f);
+    writeVtkProp(&idum,elU,numel,ndf,uResEl,iws,DOUBLE_VTK
+                , SCALARS_VTK,f);
 /*...................................................................*/
 
-/*... escrever gradiente por celula*/  
+/*... escrever os gradiente por nos*/
   if (opt->fCell && opt->graduD1)
-    writeVtkProp(&idum,elGradU,numel,ndm,gradResEl,iws,DOUBLE_VTK,2,f);
+    writeVtkProp(&idum, elGradU, numel, ndm, gradResNo, iws, DOUBLE_VTK
+               , VECTORS_VTK, f);
+/*...................................................................*/
+
+
+/*... escrever gradiente por celula*/  
+  if (opt->fCell && opt->densityD1)
+  {
+    strcpy(str, "eDensity");
+    HccaAlloc(DOUBLE, m, p, numel, "p", _AD_);
+    ERRO_MALLOC(p, "p", __LINE__, __FILE__, __func__);
+    for (i = 0; i<numel; i++)
+      p[i] = MAT2D(i, TIME_N, elDensity, DENSITY_LEVEL);
+    writeVtkProp(&idum, p, numel, 1, str, iws
+               , DOUBLE_VTK, SCALARS_VTK, f);
+    HccaDealloc(m, p, "p", _AD_);
+  }  
+/*...................................................................*/
+
+/*... escrever gradiente por celula*/
+  if (opt->fCell && opt->coefDiffD1)
+  {
+    strcpy(str, "eCeofDiff");
+    writeVtkProp(&idum, elCoefDiff, numel, 1, str, iws
+               , DOUBLE_VTK, SCALARS_VTK, f);
+  }
 /*...................................................................*/
 
 /*.... campo por no*/
@@ -1125,29 +1141,49 @@ void wResVtkDif(Memoria *m        ,double *x
 
 /*... numero do no*/
   HccaAlloc(int,m,lel,nnode,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
+  ERRO_MALLOC(lel, "el", __LINE__, __FILE__, __func__);
   for(i=0;i<nnode;i++)
     lel[i]=i+1;
    
-  writeVtkProp(lel,&ddum,nnode,1,"pNode",iws,INTEGER_VTK,1,f);
+  writeVtkProp(lel,&ddum,nnode,1,"pNode",iws,INTEGER_VTK
+              , SCALARS_VTK,f);
   HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
 
 /*... escrever resuldos por nos*/  
   if(opt->fNode && opt->uD1)
-    writeVtkProp(&idum,nU    ,nnode,ndf,uResNo,iws,DOUBLE_VTK,1,f);
+    writeVtkProp(&idum,nU    ,nnode,ndf,uResNo,iws,DOUBLE_VTK
+               , SCALARS_VTK,f);
 /*...................................................................*/
   
 /*... escrever os gradiente por nos*/
   if(opt->fNode && opt->graduD1)
-    writeVtkProp(&idum,nGradU,nnode,ndm,gradResNo,iws,DOUBLE_VTK,2,f);
+    writeVtkProp(&idum,nGradU,nnode,ndm,gradResNo,iws,DOUBLE_VTK
+                ,VECTORS_VTK,f);
 /*...................................................................*/
 
+/*... escrever gradiente por celula*/
+  if (opt->fNode && opt->densityD1)
+  {
+    strcpy(str, "nDensity");
+    HccaAlloc(DOUBLE, m, p, nnode, "p", _AD_);
+    ERRO_MALLOC(p, "p", __LINE__, __FILE__, __func__);
+    for (i = 0; i<nnode; i++)
+      p[i] = MAT2D(i, TIME_N, nDensity, DENSITY_LEVEL);
+    writeVtkProp(&idum, p, nnode, 1, str, iws
+                , DOUBLE_VTK, SCALARS_VTK, f);
+    HccaDealloc(m, p, "p", _AD_);
+  }
+/*...................................................................*/
+
+/*... escrever gradiente por celula*/
+  if (opt->fNode && opt->coefDiffD1)
+  {
+    strcpy(str, "nCeofDiff");
+    writeVtkProp(&idum, nCoefDiff, nnode, 1, str, iws
+      , DOUBLE_VTK, SCALARS_VTK, f);
+  }
+/*...................................................................*/
   fclose(f);
 }
 /*********************************************************************/

@@ -1,7 +1,7 @@
 #include<Diffusion.h>
 /********************************************************************* 
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 01/05/2018                                   *
+ * Data de modificaco : 12/05/2018                                   *
  *-------------------------------------------------------------------*
  * DIFFUSION :Resolucao do problema de difusao pura no passo de tempo* 
  * n+1                                                               * 
@@ -17,6 +17,7 @@
  * solvD    -> sistema de equacoes                                   * 
  * sc       -> tecnica de discretizacao temporal                     * 
  * pMesh    -> varaives de particionamento                           * 
+ * prop     -> propeidades variaveis
  * opt      -> opcoes de arquivos                                    * 
  * preName  -> sufixo dos arquivos de saida                          * 
  * nameOut  -> string para o nome do arquivo de saida                * 
@@ -29,13 +30,13 @@
  * de tempo n+1                                                      * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void diffusion(Memoria *m   ,Loads *loadsDif,DiffModel *dModel
-              ,Mesh *mesh0  ,Mesh *mesh     ,SistEq *sistEqD
-              ,Solv *solvD  ,Scheme *sc     ,PartMesh *pMesh 
-              ,FileOpt opt  ,char *preName  ,char *nameOut
-              ,FILE *fileOut) 
+void diffusion(Memoria *m       ,Loads *loadsDif,DiffModel *dModel
+              ,Mesh *mesh0      ,Mesh *mesh     ,SistEq *sistEqD
+              ,Solv *solvD      ,Scheme *sc     ,PartMesh *pMesh 
+              ,PropVarCD *prop  ,FileOpt *opt   ,char *preName
+              ,char *nameOut    ,FILE *fileOut) 
 {   
-  
+  bool fDensity=prop->fDensity,fCoefDiff=prop->fCeofDiff;
   short unsigned i,jj;
   DOUBLE rCell,rCell0,conv;
 
@@ -88,7 +89,7 @@ void diffusion(Memoria *m   ,Loads *loadsDif,DiffModel *dModel
                ,mesh->face.mvSkew       ,mesh->face.vSkew
                ,mesh->elm.geomType      ,mesh->elm.material.prop 
                ,mesh->elm.material.type ,mesh->elm.mat   
-               ,mesh->elm.densityUd1
+               ,mesh->elm.densityUd1    ,mesh->elm.cDiffD1
                ,sistEqD->ia             ,sistEqD->ja      
                ,sistEqD->al             ,sistEqD->ad       
                ,sistEqD->b              ,sistEqD->id       
@@ -133,8 +134,8 @@ void diffusion(Memoria *m   ,Loads *loadsDif,DiffModel *dModel
     {
       jj = 0;
       printf("it: %9d %.6e %0.6e\n",i,rCell/rCell0,rCell);
-      if(opt.fItPlot)  
-        fprintf(opt.fileItPlot[FITPLOTD1]
+      if(opt->fItPlot)  
+        fprintf(opt->fileItPlot[FITPLOTD1]
                ,"%9d %.6e %0.6e\n",i,rCell/rCell0,rCell);
     }
     jj++;
@@ -189,7 +190,28 @@ void diffusion(Memoria *m   ,Loads *loadsDif,DiffModel *dModel
            ,mesh->nnodeNov          ,mesh->nnode);   
     tm.rcGradD1 = getTimeC() - tm.rcGradD1;
 /*...................................................................*/
+
+/*...*/
+    if(fDensity)
+      updateDensityCD( &prop->den
+                     , mesh->elm.uD1 , mesh->elm.densityUd1
+                     , mesh->numel   , PROP_UPDATE_NL_LOOP);
+/*...................................................................*/
+
+/*...*/
+    if (fCoefDiff)
+      updateProp(&prop->ceofDiff  , mesh->elm.uD1
+               , mesh->elm.cDiffD1, mesh->numel);
+/*...................................................................*/
+
   } 
+/*...................................................................*/
+
+/*...*/
+  if (fDensity)
+    updateDensityCD(&prop->den
+                  , mesh->elm.uD1, mesh->elm.densityUd1
+                  , mesh->numel  , PROP_UPDATE_OLD_TIME);
 /*...................................................................*/
 }
 /*********************************************************************/

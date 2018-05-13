@@ -89,18 +89,20 @@
             ,char *nameOut  ,bool iws
             ,FILE *f);
 
-  void wResVtkDif(Memoria *m      , double *x
-                 , INT *el        , short *mat
-                 , short *nen     , short *typeGeom
-                 , DOUBLE *elU    , DOUBLE *nU
-                 , DOUBLE *elGradU, DOUBLE *nGradU
-                 , INT nnode      , INT numel
-                 , short ndm      , short maxNo
-                 , short numat    , short ndf
-                 , char *uResEl   , char *uResNo
-                 , char *gradResEl, char *gradResNo
-                 , char *nameOut  , FileOpt *opt
-                 , Temporal *ddt  , FILE *f);
+  void wResVtkDif(Memoria *m        , double *x
+                , INT *el           , short *mat
+                , short *nen        , short *typeGeom
+                , DOUBLE *elU       , DOUBLE *nU
+                , DOUBLE *elGradU   , DOUBLE *nGradU
+                , DOUBLE *elDensity , DOUBLE *nDensity
+                , DOUBLE *elCoefDiff, DOUBLE *nCoefDiff
+                , INT nnode         , INT numel
+                , short ndm         , short maxNo
+                , short numat       , short ndf
+                , char *uResEl      , char *uResNo
+                , char *gradResEl   , char *gradResNo
+                , char *nameOut     , FileOpt *opt
+                , Temporal *ddt     , FILE *f);
   
   void wResVtkTrans(Memoria *m        ,double *x      
                ,INT *el           ,short *mat    

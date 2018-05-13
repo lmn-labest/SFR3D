@@ -210,7 +210,7 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 06/05/2018                                   *
+ * Data de modificaco : 12/05/2018                                   *
  *-------------------------------------------------------------------*
  * SYSTFOMDIF : calculo do sistema de equacoes para problemas        * 
  * difusao (Ax=b)                                                    * 
@@ -230,7 +230,6 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
  * gDcca   -> menor distancia do centroide a faces desta celula      *
  * gXmCc   -> vetores que unem o centroide aos pontos medios das     *
  * gModKsi -> modulo do vetor ksi                                    *
- 
  * fModKsi -> o mudolo do vetores que unem centroide da celula       * 
  *            central aos vizinhos destas                            *
  * fKsi    -> vetores que unem centroide da celula central aos       *
@@ -247,7 +246,8 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
  * geomType-> tipo geometrico das celulas                            * 
  * prop    -> propriedades dos material                              * 
  * mat     -> material por celula                                    * 
- * density -> massa especifica com variacao temporal                 * 
+ * density -> massa especifica com variacao temporal                 *
+ * cDiffD  -> coeficiente de difusao com variacao temporal           *
  * ia      -> ponteiro para as linhas da matriz esparsa              * 
  * ja      -> ponteiro para as colunas da matriz esparsa             * 
  * a       -> matriz de coeficientes esparsa                         * 
@@ -301,7 +301,7 @@ void systFormDif(Loads *loads             ,Diffusion *diff
                ,DOUBLE *RESTRICT fModvSkew,DOUBLE *RESTRICT fvSkew            
                ,short  *RESTRICT geomType,DOUBLE *RESTRICT prop 
                ,short  *RESTRICT calType ,short  *RESTRICT mat     
-               ,DOUBLE *RESTRICT density
+               ,DOUBLE *RESTRICT density ,DOUBLE *RESTRICT cDiffD
                ,INT    *RESTRICT ia      ,INT    *RESTRICT ja   
                ,DOUBLE *RESTRICT a       ,DOUBLE *RESTRICT ad
                ,DOUBLE *RESTRICT b       ,INT    *RESTRICT id
@@ -329,7 +329,7 @@ void systFormDif(Loads *loads             ,Diffusion *diff
   short  lib;
   short  lFaceR[MAX_NUM_FACE+1];
   short  lFaceL[MAX_NUM_FACE+1];
-  DOUBLE lDensity;
+  DOUBLE lDensity,lCoefDiffD[MAX_NUM_FACE+1];
   DOUBLE lA[(MAX_NUM_FACE+1)*MAX_NDF],lB[MAX_NDF];
   DOUBLE lProp[(MAX_NUM_FACE+1)*MAXPROP];
   DOUBLE lu0[(MAX_NUM_FACE+1)*MAX_NDF];
@@ -364,7 +364,8 @@ void systFormDif(Loads *loads             ,Diffusion *diff
       lGeomType[aux1] = geomType[nel];
       lFaceR[aux1]    = MAT2D(nel,aux1,faceR   ,aux2);
       lFaceL[aux1]    = MAT2D(nel,aux1,faceLd1 ,aux2);
-      lDensity        = MAT2D(nel,0   ,density ,DENSITY_LEVEL);
+      lDensity        = MAT2D(nel,TIME_N,density ,DENSITY_LEVEL);
+      lCoefDiffD[aux1]= cDiffD[nel];
       
       for(j=0;j<ndf;j++){
         MAT2D(aux1,j,lu0   ,ndf) = MAT2D(nel,j,u0   ,ndf);
@@ -411,12 +412,13 @@ void systFormDif(Loads *loads             ,Diffusion *diff
 /*... loop na celulas vizinhas*/    
       for(i=0;i<aux1;i++)
       {
-        vizNel  = MAT2D(nel,i,nelcon,maxViz) - 1;
+        vizNel        = MAT2D(nel,i,nelcon,maxViz) - 1;
         lViz[i] = vizNel;
         if( vizNel != -2)
         {
-          lVolume[i]   = gVolume[vizNel]; 
-          lGeomType[i] = geomType[vizNel];
+          lVolume[i]    = gVolume[vizNel]; 
+          lGeomType[i]  = geomType[vizNel];
+          lCoefDiffD[i] = cDiffD[vizNel];
           lMat = mat[vizNel]-1;
           for(j=0;j<ndf;j++){
             MAT2D(i,j,lu0 ,ndf)   = MAT2D(vizNel,j,u0   ,ndf);
@@ -432,7 +434,7 @@ void systFormDif(Loads *loads             ,Diffusion *diff
 
 /*... chamando a biblioteca de celulas*/
       cellLibDif(loads     ,diff
-                ,dModel  
+                ,dModel    
                 ,lGeomType ,lProp 
                 ,lViz      ,lId           
                 ,lKsi      ,lmKsi
@@ -440,6 +442,7 @@ void systFormDif(Loads *loads             ,Diffusion *diff
                 ,lNormal   ,lVolume
                 ,lXm       ,lXmcc
                 ,lDcca     ,&lDensity
+                ,lCoefDiffD
                 ,lvSkew    ,lmvSkew
                 ,lA        ,lB
                 ,lRcell    ,ddt

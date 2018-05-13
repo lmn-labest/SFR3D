@@ -76,6 +76,61 @@ DOUBLE airDensity(DOUBLE const t      ,DOUBLE const p
 /**********************************************************************/
 
 /*********************************************************************
+* Data de criacao    : 12/05/2018                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* diffProp:                                                         *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* u - valor da propriedade                                          *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* retorna a valor da massa especifica                               *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+DOUBLE diffProp(PropPol *pol  , DOUBLE u) 
+{
+  short i, n = pol->nPol;
+  DOUBLE a[10], y;
+
+  for (i = 0; i < n; i++)
+    a[i] = 0.0e0;
+
+  switch (pol->type)
+  {
+/*... polinomio*/
+    case POL:
+      for (i = 0; i < n; i++)
+        a[i] = pol->a[i];
+
+/*... polinomio*/
+      y = a[0];
+      for (i = 1; i < n; i++)
+        y += a[i] * pow(u, i);
+/*.....................................................................*/
+
+/*.....................................................................*/
+      break;
+/*.....................................................................*/
+
+
+/*...*/
+    default:
+      ERRO_OP(__FILE__, __func__, pol->type);
+      break;
+/*.....................................................................*/
+  }
+
+  return y;
+
+}
+/**********************************************************************/
+
+/*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
@@ -646,7 +701,7 @@ void updateDensity(DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT pressure
   DOUBLE den,den0;
 /*...*/
   switch (iCod){
-    case PROP_UPDATE_SIMPLE_LOOP:
+    case PROP_UPDATE_NL_LOOP:
       for(i=0;i<nEl;i++){
         den0 =  MAT2D(i,2 ,density ,nD);         
         den = airDensity(temp[i],pressure[i],thDynamic.pTh[2], iKelvin);
@@ -697,7 +752,7 @@ void updateSpecificHeat(DOUBLE *RESTRICT temp, DOUBLE *RESTRICT sHeat
   
 /*...*/
   switch (iCod){
-    case PROP_UPDATE_SIMPLE_LOOP:
+    case PROP_UPDATE_NL_LOOP:
       for(i=0;i<nEl;i++)
 /*...*/           
         MAT2D(i,TIME_N ,sHeat ,nD) = airSpecifiHeat(temp[i],iKelvin);
@@ -732,7 +787,7 @@ void updateSpecificHeat(DOUBLE *RESTRICT temp, DOUBLE *RESTRICT sHeat
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateThermalCondutivty(DOUBLE *RESTRICT t,DOUBLE *RESTRICT thCond   
+void updateThermalconductivity(DOUBLE *RESTRICT t,DOUBLE *RESTRICT thCond   
                             ,bool const iKelvin,INT const nEl)
 
 {
@@ -768,6 +823,87 @@ void updateDynamicViscosity(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT visc
   for(i=0;i<nEl;i++)         
     visc[i] = airDynamicViscosity(temp[i],iKelvin);
 
+}
+/*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 13/05/2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * updateProp:                                                       *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * pol     - polinomico de interpolacao com u                        *
+ * u       - variavel                                                *
+ * coef    - coeficiente a ser atualizado                            *
+ * nEl     - numero de elementos                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void updateProp(PropPol *pol         , DOUBLE *RESTRICT u
+              , DOUBLE *RESTRICT coef, INT nEl)
+
+{
+  INT i;
+
+  for (i = 0; i<nEl; i++)
+    coef[i] = diffProp(pol, u[i]);
+
+}
+/*********************************************************************/
+
+/*********************************************************************
+* Data de criacao    : 12/05/2018                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* UPDATESPECIFICHEAT:                                               *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* pol     - polinomico de interpolacao com u                        *
+* u       - variavel                                                *
+* density - massa especifica                                        *
+* nEl     - numero de elementos                                     *
+* iCod    - codigo                                                  *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void updateDensityCD(PropPol *pol            , DOUBLE *RESTRICT u
+                   , DOUBLE *RESTRICT density, INT nEl    
+                   , char  iCod)
+
+{
+  short nD = SHEAT_LEVEL;
+  INT i;
+
+/*...*/
+  switch (iCod) {
+  case PROP_UPDATE_NL_LOOP:
+    for (i = 0; i<nEl; i++)
+/*...*/
+      MAT2D(i, TIME_N, density, nD) = diffProp(pol,u[i]);
+/*..................................................................*/
+    break;
+
+  case PROP_UPDATE_OLD_TIME:
+    for (i = 0; i<nEl; i++) {
+/*...*/
+      MAT2D(i,TIME_N_MINUS_2,density, nD) = MAT2D(i,1,density, nD);
+      MAT2D(i,TIME_N_MINUS_1,density, nD) = MAT2D(i,2,density, nD);
+    }
+/*..................................................................*/
+    break;
+  }
+/*..................................................................*/
 }
 /*********************************************************************/
 
@@ -840,6 +976,58 @@ void initPropTemp(DOUBLE *RESTRICT prop   ,DOUBLE *RESTRICT t
       MAT2D(i,j,prop,np) = MAT2D(lMat,iProp,propMat,MAXPROP); 
 /*...................................................................*/
   
+  }
+}
+/*********************************************************************/
+
+/*********************************************************************
+* Data de criacao    : 12/05/2018                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* initPropCD: inicializao de propriedades com variacao de           *
+* temperatura                                                       *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* pol     -> polinomio de baixa ordem                               *
+* prop    -> nao definido                                           *
+* u       -> temperatura                                            *
+* propMat -> propriedade de referencia por material                 *
+* mat     -> material por celula                                    *
+* np      -> numero niveis de tempos                                *
+* nCell   -> numero de celulas                                      *
+* iProp   -> numero da propriedade                                  *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* prop    -> propriedade iniciacializada                            *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void initPropCD(PropPol *pol            , DOUBLE *RESTRICT prop   
+              , DOUBLE *RESTRICT u      , DOUBLE *RESTRICT propMat
+              , short *RESTRICT mat
+              , short np                , INT    nCell
+              , short iProp)
+{
+  INT i;
+  unsigned short j, lMat;
+/*...*/
+  for (i = 0; i<nCell; i++) 
+  {
+/*...*/
+    lMat = mat[i] - 1;
+/*...................................................................*/
+
+/*...*/
+    MAT2D(lMat, iProp, propMat, MAXPROP) = diffProp(pol, u[i]);
+/*...................................................................*/
+
+/*...*/
+    for (j = 0; j<np; j++)
+      MAT2D(i, j, prop, np) = MAT2D(lMat, iProp, propMat, MAXPROP);
+/*...................................................................*/
   }
 }
 /*********************************************************************/
@@ -972,7 +1160,52 @@ void initDensityPol(char *s) {
 }
 /*********************************************************************/
 
+/*********************************************************************
+* Data de criacao    : 05/11/2017                                   *
+* Data de modificaco : 20/02/2018                                   *
+*-------------------------------------------------------------------*
+* initDiffPol: inicializao a estrutura para o calculo da            *
+* propriedade via polinomio                                         *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void initDiffPol(PropPol *prop,char *s,FILE *file)
+{
 
+  FILE *fileOut;  
+  char nameAux[1000];
+  short i;
+  double x[MAXPLODEG];
+
+  if (!strcmp(s, "polinomio")) 
+  {
+    prop->type = POL;
+    fscanf(file, "%s", nameAux);
+    fileOut = openFile(nameAux, "r");
+
+    prop->nPol = readFileLineSimple(x,fileOut);
+    ERRO_POL_READ(prop->nPol, MAXPLODEG, __FILE__,__func__, __LINE__);
+
+    for (i = 0; i < prop->nPol; i++)
+      prop->a[i] = x[i];
+
+    fclose(fileOut);
+
+    fprintf(fileLogExc, "%-20s: %s\n", "Type", s);
+  }
+  else 
+  {
+    ERRO_GERAL(__FILE__, __func__, __LINE__, s);
+  }
+}
+/*********************************************************************/
 
 /********************************************************************* 
  * Data de criacao    : 16/09/2017                                   *
@@ -1308,3 +1541,37 @@ void initPresRef(DOUBLE *RESTRICT temp
 
 }
 /*********************************************************************/
+
+/**********************************************************************
+* Data de criacao    : 12/05/2018                                    *
+* Data de modificaco : 00/00/0000                                    *
+*--------------------------------------------------------------------*
+* setReGrad:                                                         *
+*--------------------------------------------------------------------*
+* Parametros de entrada:                                             *
+*--------------------------------------------------------------------*
+* x       -> nao definido                                            *
+* file    -> arquivo de arquivo                                      *
+*--------------------------------------------------------------------*
+* Parametros de saida:                                               *
+*--------------------------------------------------------------------*
+* x       -> valores lidos                                           *
+* nTerms  -> retornas o numero de valores lidos                      *
+*--------------------------------------------------------------------*
+* OBS:                                                               *
+*--------------------------------------------------------------------*
+**********************************************************************/
+int readFileLineSimple(DOUBLE *a, FILE *file)
+{
+
+  int i, nTerms;
+
+  fscanf(file, "%d", &nTerms);
+
+  for (i = 0; i<nTerms; i++)
+    fscanf(file, "%lf", a + i);
+
+  return nTerms;
+
+}
+/**********************************************************************/

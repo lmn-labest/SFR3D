@@ -11,16 +11,8 @@
   #include<Define.h>
   #include<HccaStdBool.h>
   #include<Erro.h>
-/*...................................................................*/
-
-/*...*/
-  #define POL        1
-/*... viscosidade*/
-  #define SUTHERLAND 2
-/*... densidade*/
-  #define IDEALGAS   2
-/*... densidade*/
-  #define INCIDEALGAS   3
+  #include<File.h>
+  #include<Mesh.h>
 /*...................................................................*/
 
 /*...*/
@@ -31,35 +23,6 @@
   }ThermoDynamic;
    ThermoDynamic thDynamic;
 /*...................................................................*/  
-
-/*...*/
-  typedef struct{
-    unsigned char type;
-    short nPol;
-    DOUBLE a[10];       
-  }PropPol;
-/*...................................................................*/
-
-/*...*/
-  #define TREF      288.15e+00    /*Kelvin         */
-  #define PREREF    1.01325e+05   /*Pa             */
-  #define IDEALGASR 8.3144598e+00 /*J/(mol.kelvin) */
-  #define MMOLARAR  2.896e-2      /*kg/mol         */
-/*...................................................................*/
-
-/*...*/
-  #define TEMP_FOR_ENTHALPY(cp,t,tr) ( (cp)*(t-tr) )
-  #define ENTHALPY_FOR_TEMP(cp,hs,tr) ( (hs/cp) + (tr) )
-/*...................................................................*/
-
-/*...*/
-  #define PRESREF(dRef,R,T,Mg) ((dRef)*(R)*(T)/(Mg)) 
-/*...................................................................*/
-
-/*...*/
-  #define PROP_UPDATE_SIMPLE_LOOP 0
-  #define PROP_UPDATE_OLD_TIME    1
-/*...................................................................*/
 
 /*...agua*/
   DOUBLE waterDensity(DOUBLE const t);
@@ -90,29 +53,47 @@
   void updateDynamicViscosity(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT visc    
                             ,bool const iKelvin   
                             ,INT const nEl);
-  void updateThermalCondutivty(DOUBLE *RESTRICT t,DOUBLE *RESTRICT thCond    
+  void updateThermalconductivity(DOUBLE *RESTRICT t,DOUBLE *RESTRICT thCond    
                               ,bool const iKelvin       
                               ,INT const nEl);
   
- void initPropTemp(DOUBLE *RESTRICT prop    ,DOUBLE *RESTRICT t 
+  void updateDensityCD(PropPol *pol, DOUBLE *RESTRICT u
+                     , DOUBLE *RESTRICT density, INT nEl
+                     , char  iCod);
+
+  void updateProp(PropPol *pol, DOUBLE *RESTRICT u
+                , DOUBLE *RESTRICT coef, INT nEl);
+
+
+  void initPropTemp(DOUBLE *RESTRICT prop    ,DOUBLE *RESTRICT t 
                   ,DOUBLE *RESTRICT pressure,DOUBLE *RESTRICT propMat
                   ,short *RESTRICT mat
                   ,short const np           ,INT const nCell 
                   ,bool const iKelvin       ,short const iProp);
+
+  void initPropCD(PropPol *pol, DOUBLE *RESTRICT prop
+               , DOUBLE *RESTRICT u, DOUBLE *RESTRICT propMat
+               , short *RESTRICT mat
+               , short np, INT    nCell
+               , short iProp);
 /*...................................................................*/
 
 /*...*/
- void getTempForEnergy(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
+  void getTempForEnergy(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                      ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                      ,INT const nCell      ,bool const fTemp
                      ,bool const fSheat    ,bool const fKelvin
                      ,bool const fOmp      ,short const nThreads );
 
- void getEnergyForTemp(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
+  void getEnergyForTemp(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                      ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                      ,INT const nCell     
                      ,bool const fSheat    ,bool const fKelvin
                      ,bool const fOmp      ,short const nThreads );
+/*...................................................................*/
+
+/*...*/
+  DOUBLE diffProp(PropPol *pol, DOUBLE u);
 /*...................................................................*/
 
 /*...*/
@@ -128,13 +109,18 @@
                  , INT const nCell        , bool const fKelvin);
 /*...................................................................*/
 
-
 /*...*/
   void initDensityPol(char *s);
   void initSheatPol(void);
   void initDviscosityPol(char *s);
   void initThCondPol(char *s);
 /*...................................................................*/
+
+/*...*/
+  void initDiffPol(PropPol *prop, char *s, FILE *file);
+/*...................................................................*/
+
+  int readFileLineSimple(DOUBLE *x, FILE *file);
 
 /*...*/
   PropPol sHeat,dVisc,thCond,den;

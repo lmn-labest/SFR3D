@@ -482,9 +482,16 @@ void printDiff(Memoria *m
              , Mesh *mesh0          , Mesh *mesh
              , char *preName        , char *nameOut)
 {
-  
+  void *dum = NULL;
   char str1[100], str2[100], str3[100], str4[100];
   FILE *fileOut = NULL;
+  DOUBLE *nDenD = NULL, *nCoefDiffD = NULL;
+
+/*...*/
+  HccaAlloc(DOUBLE,m, nDenD,mesh->nnode * DENSITY_LEVEL,"nDenD", _AD_);
+  HccaAlloc(DOUBLE,m,nCoefDiffD,mesh->nnode, "nCeofDiff", _AD_);
+  /*...................................................................*/
+
 /*... reconstruindo do gradiente*/
   tm.rcGradD1 = getTimeC() - tm.rcGradD1;
   rcGradU(m                    , loadsD1
@@ -545,6 +552,41 @@ void printDiff(Memoria *m
               , true             , 2);
 /*...................................................................*/
 
+
+/*... interpolacao das variaveis da celulas para pos nos (density)*/
+  interCellNode(m                , loadsD1
+              , nDenD            , mesh->elm.densityUd1
+              , mesh->elm.node   , mesh->elm.geomType
+              , mesh->elm.geom.cc, mesh->node.x
+              , mesh->elm.geom.xm
+              , mesh->elm.nen    , mesh->elm.adj.nViz
+              , dum              , dum
+              , &pMesh->iNo
+              , mesh->numelNov   , mesh->numel
+              , mesh->nnodeNov   , mesh->nnode
+              , mesh->maxNo      , mesh->maxViz
+              , 3                , 1
+              , mesh->ndm
+              , false            , 2);
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (coefDif)*/
+  interCellNode(m                , loadsD1
+              , nCoefDiffD       , mesh->elm.cDiffD1
+              , mesh->elm.node   , mesh->elm.geomType
+              , mesh->elm.geom.cc, mesh->node.x
+              , mesh->elm.geom.xm
+              , mesh->elm.nen    , mesh->elm.adj.nViz
+              , dum              , dum
+              , &pMesh->iNo
+              , mesh->numelNov   , mesh->numel
+              , mesh->nnodeNov   , mesh->nnode
+              , mesh->maxNo      , mesh->maxViz
+              , 1                , 1
+              , mesh->ndm
+              , false            , 2);
+/*...................................................................*/
+
 /*... globalizacao das variaveis*/
 /*... uD1(Node)*/
   dGlobalNode(m              , pMesh
@@ -577,20 +619,27 @@ void printDiff(Memoria *m
     strcpy(str3, "elGradD1");
     strcpy(str4, "noGradD1");
 /*...*/
-    wResVtkDif(m                 , mesh0->node.x
-             , mesh0->elm.node   , mesh0->elm.mat
-             , mesh0->elm.nen    , mesh0->elm.geomType
-             , mesh0->elm.uD1    , mesh0->node.uD1
-             , mesh0->elm.gradUd1, mesh0->node.gradUd1
-             , mesh0->nnode      , mesh0->numel
-             , mesh0->ndm        , mesh0->maxNo
-             , mesh0->numat      , mesh0->ndfD[0]
-             , str1              , str2
-             , str3              , str4
-             , nameOut           , opt
-             , &(sc->ddt)        , fileOut);
+    wResVtkDif(m                    , mesh0->node.x
+             , mesh0->elm.node      , mesh0->elm.mat
+             , mesh0->elm.nen       , mesh0->elm.geomType
+             , mesh0->elm.uD1       , mesh0->node.uD1
+             , mesh0->elm.gradUd1   , mesh0->node.gradUd1
+             , mesh0->elm.densityUd1, nDenD
+             , mesh0->elm.cDiffD1   , nCoefDiffD
+             , mesh0->nnode         , mesh0->numel
+             , mesh0->ndm           , mesh0->maxNo
+             , mesh0->numat         , mesh0->ndfD[0]
+             , str1                 , str2
+             , str3                 , str4
+             , nameOut              , opt
+             , &(sc->ddt)           , fileOut);
 /*...................................................................*/
   }
+/*...................................................................*/
+
+/*... desalocando memoria*/
+  HccaDealloc(m, nCoefDiffD, "nCeofDiff", _AD_);
+  HccaDealloc(m, nDenD     , "nDenD"    , _AD_);
 /*...................................................................*/
 }
 /*********************************************************************/

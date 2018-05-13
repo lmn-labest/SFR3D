@@ -28,10 +28,12 @@
                  ,short *maxNo,short *maxViz
                  ,short *ndm  ,short *numat
                  ,FILE  *file);
-  void readFileFvMesh( Memoria *m      , Mesh *mesh
-                   , PropVar prop      , EnergyModel energyModel
-                   , Turbulence *tModel, Mean *media
-                   , FILE* file);
+  
+  void readFileFvMesh(Memoria *m        , Mesh *mesh
+                    , PropVar prop      , PropVarCD *propD
+                    , EnergyModel energyModel
+                    , Turbulence *tModel, Mean *media
+                    , FILE* file);
 
   void readVfMat(DOUBLE *prop,short *type,short numat,FILE *file);
   void readVfCoor(DOUBLE *x,INT nn, short ndm,FILE *file);
@@ -49,6 +51,7 @@
   
   void readEdo(Mesh *mesh,FILE *file);
   void readPropVar(PropVar *p,FILE *file);
+  void readPropVarDiff(PropVarCD *p, FILE *file);
   void readGravity(DOUBLE *gravity,FILE *file);
   void readModel(EnergyModel *e    , Turbulence *t
                , MassEqModel *eMass, MomentumModel *ModelMomentum

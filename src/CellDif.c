@@ -257,7 +257,7 @@ void cellDif2D(Loads *loads
 
 /*********************************************************************
  * Data de criacao    : 16/01/2018                                   *
- * Data de modificaco : 30/04/2018                                   *
+ * Data de modificaco : 13/05/2018                                   *
  * ----------------------------------------------------------------- *
  * CELLDIF3D: Celula 3D para difusao pura                            * 
  *------------------------------------------------------------------ * 
@@ -287,6 +287,7 @@ void cellDif2D(Loads *loads
  * dcca      -> menor distancia do centroide central a faces desta   *
  *              celula                                               * 
  * lDensity  -> massa especifica com variacao temporal               * 
+ * lCeofDiffD-> coeficiente de difusao com variacao temporal         *
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
@@ -309,22 +310,23 @@ void cellDif2D(Loads *loads
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellDif3D(Loads *loads             ,Diffusion *diff
-              ,DiffModel *dModel    
-              ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
-              ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
-              ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
-              ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
-              ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
-              ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
-              ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
-              ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
-              ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-              ,DOUBLE *RESTRICT lRcell  ,Temporal *ddt             
-              ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL  
-              ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
-              ,const short nEn          ,short const nFace    
-              ,const short ndm          ,INT const nel)
+void cellDif3D(Loads *loads               ,Diffusion *diff
+              ,DiffModel *dModel          
+              ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT prop
+              ,INT *RESTRICT lViz         ,INT *RESTRICT lId  
+              ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
+              ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea
+              ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT volume
+              ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
+              ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT lDensity
+              ,DOUBLE *RESTRICT lCeofDiffD
+              ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
+              ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
+              ,DOUBLE *RESTRICT lRcell    ,Temporal *ddt             
+              ,short  *RESTRICT lFaceR    ,short  *RESTRICT lFaceL  
+              ,DOUBLE *RESTRICT u0        ,DOUBLE *RESTRICT gradU0
+              ,const short nEn            ,short const nFace    
+              ,const short ndm            ,INT const nel)
 { 
 
   bool fTime,fRes;
@@ -357,7 +359,7 @@ void cellDif3D(Loads *loads             ,Diffusion *diff
 /*...................................................................*/
   
 /*... propriedades da celula*/
-  coefDifC = MAT2D(idCell,COEFDIF,prop,MAXPROP);
+  coefDifC = lCeofDiffD[idCell];
 /*...................................................................*/
 
 /*...*/
@@ -411,7 +413,7 @@ void cellDif3D(Loads *loads             ,Diffusion *diff
 /*...................................................................*/
 
 /*... media harmonica*/
-      coefDifV = MAT2D(nf,COEFDIF,prop,MAXPROP); 
+      coefDifV = lCeofDiffD[nf];
       coefDif  = alpha/coefDifC + alphaMenosUm/coefDifV;
       coefDif  = 1.0e0/coefDif;
 /*...................................................................*/

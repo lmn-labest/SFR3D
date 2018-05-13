@@ -1320,7 +1320,7 @@ void cellLibTrans(Loads *loads
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 06/05/2018                                   * 
+ * Data de modificaco : 13/05/2018                                   * 
  *-------------------------------------------------------------------* 
  * CELLLIBDIF : chamada de bibliotecas de celulas para o problema    *
  * de difusao.                                                       * 
@@ -1351,6 +1351,7 @@ void cellLibTrans(Loads *loads
  * dcca      -> menor distacia do centroide central a faces desta    *
  *              celula                                               * 
  * lDensity  -> massa especifica com variacao temporal               * 
+ * lCeofDiffD-> coeficiente de difusao com variacao temporal         *
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
@@ -1371,22 +1372,23 @@ void cellLibTrans(Loads *loads
  * lB        -> vetor de forca da linha i                            *
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellLibDif(Loads *loads             ,Diffusion *diff
-               ,DiffModel *dModel
-               ,short *RESTRICT lGeomType,DOUBLE *RESTRICT lprop
-               ,INT   *RESTRICT lViz     ,INT *RESTRICT lId  
-               ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
-               ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
-               ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
-               ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
-               ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
-               ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
-               ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-               ,DOUBLE *RESTRICT lRcell  ,Temporal *ddt
-               ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL       
-               ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
-               ,short const nEn          ,short  const nFace     
-               ,short const ndm          ,short const lib    
+void cellLibDif(Loads *loads               ,Diffusion *diff
+               ,DiffModel *dModel          
+               ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
+               ,INT   *RESTRICT lViz       ,INT *RESTRICT lId  
+               ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
+               ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea
+               ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT volume
+               ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
+               ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT lDensity
+               ,DOUBLE *RESTRICT lCeofDiffD
+               ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
+               ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
+               ,DOUBLE *RESTRICT lRcell    ,Temporal *ddt
+               ,short  *RESTRICT lFaceR    ,short  *RESTRICT lFaceL       
+               ,DOUBLE *RESTRICT u0        ,DOUBLE *RESTRICT gradU0
+               ,short const nEn            ,short  const nFace     
+               ,short const ndm            ,short const lib    
                ,INT const nel)
 {
 
@@ -1414,22 +1416,23 @@ void cellLibDif(Loads *loads             ,Diffusion *diff
 
 /*... 3D*/
     else if(ndm == 3){
-      cellDif3D(loads    ,diff
-               ,dModel 
-               ,lGeomType,lprop
-               ,lViz     ,lId
-               ,ksi      ,mKsi
-               ,eta      ,fArea
-               ,normal   ,volume
-               ,xm       ,xmcc
-               ,dcca     ,lDensity
-               ,vSkew    ,mvSkew
-               ,lA       ,lB
-               ,lRcell   ,ddt
-               ,lFaceR   ,lFaceL 
-               ,u0       ,gradU0      
-               ,nEn      ,nFace 
-               ,ndm      ,nel);
+      cellDif3D(loads     ,diff
+               ,dModel    
+               ,lGeomType ,lprop
+               ,lViz      ,lId
+               ,ksi       ,mKsi
+               ,eta       ,fArea
+               ,normal    ,volume
+               ,xm        ,xmcc
+               ,dcca      ,lDensity  
+               ,lCeofDiffD
+               ,vSkew     ,mvSkew
+               ,lA        ,lB
+               ,lRcell    ,ddt
+               ,lFaceR    ,lFaceL 
+               ,u0        ,gradU0      
+               ,nEn       ,nFace 
+               ,ndm       ,nel);
     } 
 /*..................................................................*/   
   }

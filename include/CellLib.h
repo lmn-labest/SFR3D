@@ -20,22 +20,23 @@
 /*...................................................................*/
 
 /*... chamada da biblioteca de elementos (difusao)*/
-  void cellLibDif(Loads *loads             ,Diffusion *diff
-                 ,DiffModel *dModel     
-                 ,short *RESTRICT lGeomType,DOUBLE *RESTRICT lprop
-                 ,INT   *RESTRICT lViz     ,INT    *RESTRICT lId
-                 ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mksi    
-                 ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea 
-                 ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume 
-                 ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
-                 ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity 
-                 ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
-                 ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-                 ,DOUBLE *RESTRICT lRcell  ,Temporal *ddt
-                 ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL
-                 ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT lGradU0 
-                 ,short const nEn          ,short const nFace
-                 ,short const ndm          ,short const lib 
+  void cellLibDif(Loads *loads               ,Diffusion *diff
+                 ,DiffModel *dModel          
+                 ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
+                 ,INT   *RESTRICT lViz       ,INT    *RESTRICT lId
+                 ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mksi    
+                 ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea 
+                 ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT volume 
+                 ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
+                 ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT lDensity 
+                 ,DOUBLE *RESTRICT lCeofDiffD
+                 ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
+                 ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
+                 ,DOUBLE *RESTRICT lRcell    ,Temporal *ddt
+                 ,short  *RESTRICT lFaceR    ,short  *RESTRICT lFaceL
+                 ,DOUBLE *RESTRICT u0        ,DOUBLE *RESTRICT lGradU0 
+                 ,short const nEn            ,short const nFace
+                 ,short const ndm            ,short const lib 
                  ,INT const nel);
 /*...................................................................*/
 
@@ -316,22 +317,23 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
                 ,short const nen          ,short const nFace
                 ,short const ndm          ,INT const nel);
   
-  void cellDif3D(Loads *loads             ,Diffusion *diff 
-                ,DiffModel *dModel
-                ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
-                ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
-                ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
-                ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
-                ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
-                ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
-                ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity 
-                ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
-                ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-                ,DOUBLE *RESTRICT lRcell  ,Temporal *ddt   
-                ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL
-                ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
-                ,const short nEn          ,short const nFace    
-                ,const short ndm          ,INT const nel);
+  void cellDif3D(Loads *loads               ,Diffusion *diff 
+                ,DiffModel *dModel          
+                ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT prop
+                ,INT *RESTRICT lViz         ,INT *RESTRICT lId  
+                ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
+                ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea
+                ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT volume
+                ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
+                ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT lDensity 
+                ,DOUBLE *RESTRICT lCeofDiffD
+                ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
+                ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
+                ,DOUBLE *RESTRICT lRcell    ,Temporal *ddt   
+                ,short  *RESTRICT lFaceR    ,short  *RESTRICT lFaceL
+                ,DOUBLE *RESTRICT u0        ,DOUBLE *RESTRICT gradU0
+                ,const short nEn            ,short const nFace    
+                ,const short ndm            ,INT const nel);
 /*...................................................................*/
 
 /*... biblioteca de celulas (transporte)*/
@@ -527,7 +529,8 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
 
 /*... biblioteca de celulas (simple - vel)*/
   void cellSimpleVel3D(Loads *loadsVel    ,Loads *loadsPres
-              ,Advection  advVel          ,Diffusion  diffVel							,short const typeSimple 
+              ,Advection  advVel          ,Diffusion  diffVel					
+          		,short const typeSimple 
               ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
               ,INT   *RESTRICT lViz       ,INT *RESTRICT lId
               ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mksi
@@ -549,7 +552,8 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
 /*...................................................................*/
 
 /*... biblioteca de celulas (simple - pres)*/
-  void cellSimplePres2D(Loads *loadsVel    ,Loads *loadsPres 							,Diffusion diffPres        
+  void cellSimplePres2D(Loads *loadsVel ,Loads *loadsPres 						
+             	,Diffusion diffPres        
               ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
               ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
               ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi

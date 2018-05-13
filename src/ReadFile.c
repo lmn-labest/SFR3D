@@ -12,7 +12,7 @@
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 30/04/2018                                   *
+ * Data de modificaco : 12/05/2018                                   *
  *-------------------------------------------------------------------*
  * readFileFvMesh : leitura de arquivo de dados em volume finitos    *
  * ------------------------------------------------------------------*
@@ -26,9 +26,10 @@
  * ------------------------------------------------------------------*
  * ------------------------------------------------------------------*
  * *******************************************************************/
-void readFileFvMesh( Memoria *m        , Mesh *mesh
-                   , PropVar prop      , EnergyModel energyModel
-                   , Turbulence *tModel, Mean *media
+void readFileFvMesh( Memoria *m             , Mesh *mesh
+                   , PropVar prop           , PropVarCD *propD
+                   , EnergyModel energyModel
+                   , Turbulence *tModel     , Mean *media
                    , FILE* file)
 {
   char word[WORD_SIZE],str[WORD_SIZE];
@@ -455,7 +456,7 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 /*... densityUt1*/ 
      HccaAlloc(DOUBLE,m,mesh->elm.densityUt1
              ,nel*DENSITY_LEVEL,"densityUt1" ,_AD_);
-     zero(mesh->elm.densityUt1  ,nel*2                       ,DOUBLEC);
+     zero(mesh->elm.densityUt1  ,nel*DENSITY_LEVEL,DOUBLEC);
 
 /*... uT1*/
      HccaAlloc(DOUBLE,m,mesh->node.uT1 
@@ -506,7 +507,11 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 /*... densityUd1*/ 
      HccaAlloc(DOUBLE,m,mesh->elm.densityUd1
               ,nel*DENSITY_LEVEL ,"densityUd1" ,_AD_);
-     zero(mesh->elm.densityUd1  ,nel*2                       ,DOUBLEC);
+     zero(mesh->elm.densityUd1  ,nel*DENSITY_LEVEL,DOUBLEC);
+
+/*... ceoficiente de diffusividae D1*/
+     HccaAlloc(DOUBLE, m, mesh->elm.cDiffD1, nel, "cDiffD1", _AD_);
+     zero(mesh->elm.cDiffD1, nel, DOUBLEC);
 
 /*... uD1*/
      HccaAlloc(DOUBLE,m,mesh->node.uD1 
@@ -965,14 +970,38 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
   
 /*... iniciacao de propriedades do material varaivel com o tempo*/
   if(mesh->ndfD[0] > 0) 
-  {   
-    initProp(mesh->elm.densityUd1
+  {
+/*...*/
+    alphaProdVector(1.e0, mesh->elm.u0D1
+                  , mesh->numel*mesh->ndfD[0], mesh->elm.uD1);
+    if(propD[0].fDensity)
+/*... inicia a massa especifica com o campo inicial*/
+      initPropCD(&propD[0].den          , mesh->elm.densityUd1
+               , mesh->elm.u0D1         , mesh->elm.material.prop
+               , mesh->elm.mat
+               , DENSITY_LEVEL          , mesh->numel
+               , DENSITY);
+    else
+      initProp(mesh->elm.densityUd1
             ,mesh->elm.material.prop,mesh->elm.mat
             ,DENSITY_LEVEL          ,mesh->numel
             ,DENSITY);    
-/*...*/
-      alphaProdVector(1.e0                     , mesh->elm.u0D1
-                     , mesh->numel*mesh->ndfD[0], mesh->elm.uD1);  
+
+
+/*... inicializando o coeficiente de difusao*/
+    if (propD[0].fCeofDiff)
+      initPropCD(&propD[0].ceofDiff, mesh->elm.cDiffD1
+        , mesh->elm.u0D1, mesh->elm.material.prop
+        , mesh->elm.mat
+        , COEFDIFF_LEVEL, mesh->numel
+        , COEFDIF);
+    else
+      initProp(mesh->elm.cDiffD1
+             , mesh->elm.material.prop, mesh->elm.mat
+             , COEFDIFF_LEVEL         , mesh->numel
+             , COEFDIF);
+/*...................................................................*/
+
   }
 /*...................................................................*/
 
@@ -1095,7 +1124,7 @@ void readFileFvMesh( Memoria *m        , Mesh *mesh
 /*...................................................................*/
 
 /*... inicializando a condutividade termica*/
-    if(prop.fThermalCondutivty)
+    if(prop.fThermalconductivity)
       initPropTemp(mesh->elm.tConductivity ,mesh->elm.temp 
                 ,mesh->elm.pressure0 
                 ,mesh->elm.material.prop   ,mesh->elm.mat
@@ -2007,13 +2036,13 @@ void readEdo(Mesh *mesh,FILE *file){
 
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 12/05/2018                                   *
  *-------------------------------------------------------------------* 
  * READPROPVAR : propriedades variaveis                              * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
- * p       ->                                                        * 
+ * pFluid  ->                                                        *
  * file    -> arquivo de arquivo                                     * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -2026,19 +2055,22 @@ void readEdo(Mesh *mesh,FILE *file){
 void readPropVar(PropVar *p,FILE *file){
 
   char *str={"endPropVar"};
+  char macros[][WORD_SIZE] =
+       { "sHeat"       ,"density"   ,"dViscosity"   /* 0, 1, 2*/
+        ,"tCondutivity",""          ,""         };  /* 3, 4, 5*/
   char word[WORD_SIZE];
 
 /*...*/
   p->fDensity           = false;
   p->fSpecificHeat      = false;
   p->fDynamicViscosity  = false;
-  p->fThermalCondutivty = false;
+  p->fThermalconductivity = false;
 /*...................................................................*/
 
   readMacro(file,word,false);
   do{
 /*... specific heat*/
-    if(!strcmp(word,"sHeat")){
+    if(!strcmp(word,macros[0])){
       readMacro(file,word,false);
       p->fSpecificHeat = true;
       initSheatPol(); 
@@ -2048,7 +2080,7 @@ void readPropVar(PropVar *p,FILE *file){
 /*...................................................................*/
 
 /*... densidade*/
-    else if(!strcmp(word,"density")){
+    else if(!strcmp(word,macros[1])){
       readMacro(file,word,false);
       p->fDensity = true;
       if(!mpiVar.myId && p->fDensity) 
@@ -2059,7 +2091,7 @@ void readPropVar(PropVar *p,FILE *file){
 /*...................................................................*/
 
 /*... specific heat*/
-    else if(!strcmp(word,"dViscosity")){
+    else if(!strcmp(word, macros[2])){
       readMacro(file,word,false);
       p->fDynamicViscosity = true;
       initDviscosityPol(word); 
@@ -2070,11 +2102,11 @@ void readPropVar(PropVar *p,FILE *file){
 /*...................................................................*/
 
 /*... specific heat*/
-    else if(!strcmp(word,"tCondutivity")){
+    else if(!strcmp(word, macros[3])){
       readMacro(file,word,false);
-      p->fThermalCondutivty = true;
+      p->fThermalconductivity = true;
       initThCondPol(word);
-      if(!mpiVar.myId && p->fThermalCondutivty)
+      if(!mpiVar.myId && p->fThermalconductivity)
         fprintf(fileLogExc,"%-20s: %s\n","tCondutivity variation"
                                         ,"Enable");                          
     }
@@ -2086,6 +2118,70 @@ void readPropVar(PropVar *p,FILE *file){
 
 }
 /*********************************************************************/ 
+
+
+/*********************************************************************
+ * Data de criacao    : 12/05/2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * READPROPVAR : propriedades variaveis                              *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * p       ->                                                        *
+ * file    -> arquivo de arquivo                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * p       ->                                                        *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void readPropVarDiff(PropVarCD *p, FILE *file)
+{
+
+  char *str = { "endPropVarDiff" };
+  char macros[][WORD_SIZE] =
+             { "densityD1"   ,"cDiffD1"};  /* 0, 1, 2*/
+  char word[WORD_SIZE];
+
+/*...*/
+  p[0].fDensity = false;
+  p[0].fCeofDiff = false;
+/*...................................................................*/
+
+  readMacro(file, word, false);
+  do 
+  {
+/*... density D1*/
+    if (!strcmp(word, macros[0]))
+    {
+      readMacro(file, word, false);
+      p[0].fDensity = true;
+      initDiffPol(&p[0].den, word,file);
+      if (!mpiVar.myId && p[0].fDensity)
+        fprintf(fileLogExc, "%-20s: %s\n", "DensityD1 variation"
+                                         , "Enable");
+    }
+/*...................................................................*/
+
+/*... condutividade termica D1*/
+    if (!strcmp(word, macros[1]))
+    {
+      readMacro(file, word, false);
+      p[0].fCeofDiff = true;
+      initDiffPol(&p[0].ceofDiff, word, file);
+      if (!mpiVar.myId && p[0].fCeofDiff)
+        fprintf(fileLogExc, "%-20s: %s\n", "CeofDiff D1 variation"
+                                         , "Enable");
+    }
+/*...................................................................*/
+    readMacro(file, word, false);
+  } while (strcmp(word, str));
+
+}
+/*********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 04/09/2017                                   *
@@ -2616,7 +2712,7 @@ void readModel(EnergyModel *e    , Turbulence *t
  * Data de criacao    : 30/08/2017                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------* 
- * READPROPVAR : propriedades variaveis                              * 
+ * readGravity : lendo o campo gravitacional                         * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -2649,7 +2745,7 @@ void readGravity(DOUBLE *gravity,FILE *file){
 
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
- * Data de modificaco : 01/05/2018                                   * 
+ * Data de modificaco : 13/05/2018                                   * 
  *-------------------------------------------------------------------* 
  * SETPPRINT : Seleciona as veriaves que serao impressas na          *
  * macro pFluid, puD1, puT1                                          *
@@ -2680,7 +2776,8 @@ void setPrint(FileOpt *opt,FILE *file){
                ,"stress"       ,"kinecit"     ,"stressr"         /*15,16,17*/
                ,"cdynamic"     ,"qcriterion"  ,"prestotal"       /*18,19,20*/
                ,"kturb"        ,"pkelvin"     ,"ud1"             /*21,22,23*/
-               ,"gradud1"      ,"ut1"         ,"gradut1" };      /*24,25,26*/  
+               ,"gradud1"      ,"ut1"         ,"gradut1"         /*24,25,26*/
+               ,"densityd1"    ,"coefdiffd1"  ,""};              /*27,28,29*/
   int tmp;
 
   strcpy(format,"%-20s: %s\n");
@@ -2703,6 +2800,8 @@ void setPrint(FileOpt *opt,FILE *file){
   opt->specificHeat   = false;
   opt->dViscosity     = false;
   opt->tConductivity  = false;
+  opt->densityD1      = false;
+  opt->coefDiffD1     = false;
   opt->vorticity      = false;
   opt->wallParameters = false;
   opt->stress         = false;
@@ -2934,6 +3033,23 @@ void setPrint(FileOpt *opt,FILE *file){
       if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "graduT1");
     }
 /*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[27]))
+    {
+      opt->densityD1 = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "densityD1");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[28]))
+    {
+      opt->coefDiffD1 = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "coefDiffD1");
+    }
+/*.....................................................................*/
+
     readMacro(file,word,false);
     convStringLower(word);
   }
@@ -3375,7 +3491,6 @@ void help(FILE *f){
   exit(EXIT_FAILURE);
 }
 /***********************************************************************/
-
 
 /**********************************************************************
  * Data de criacao    : 09/12/2017                                    *

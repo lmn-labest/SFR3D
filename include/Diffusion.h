@@ -11,9 +11,9 @@
   #include<Solv.h>
   #include<Transient.h>
 
-  void diffusion(Memoria *m ,Loads *loadsDif,DiffModel *dModel
-                ,Mesh *mesh0,Mesh *mesh     ,SistEq *sistEqD
-                ,Solv *solvD,Scheme *sc     ,PartMesh *pMesh
-                ,FileOpt opt,char *preName  ,char *nameOut
-                ,FILE *fileOut);
+  void diffusion(Memoria *m     , Loads *loadsDif, DiffModel *dModel
+               , Mesh *mesh0    , Mesh *mesh     , SistEq *sistEqD
+               , Solv *solvD    , Scheme *sc     , PartMesh *pMesh
+               , PropVarCD *prop, FileOpt *opt   , char *preName
+               , char *nameOut  , FILE *fileOut);
 #endif/*_DIFFUSION_H_*/

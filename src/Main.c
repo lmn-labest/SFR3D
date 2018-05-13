@@ -69,6 +69,7 @@ int main(int argc,char**argv){
   DiffModel diffModel[3];
 /*... propriedade variaveis*/
   PropVar propVarFluid;
+  PropVarCD propVarD[3];
 
 /*... solver*/
   INT nEqMax;
@@ -117,7 +118,7 @@ int main(int argc,char**argv){
   ,"config"      ,"nextLoop"     ,"rcGrad"       /* 3, 4, 5*/
   ,"pgeo"        ,"pcoob"        ,"pcoo"         /* 6, 7, 8*/ 
   ,"setSolvDiff" ,"presolvT1"    ,"openmp"       /* 9,10,11*/
-  ,"solvD1"      ,""             ,"pD1"          /*12,13,14*/
+  ,"solvD1"      ,"propVarDiff"  ,"pD1"          /*12,13,14*/
   ,"nlIt"        ,"pD1CsvCell"   ,"pD1CsvNode"   /*15,16,17*/
   ,"solvT1"      ,""             ,"pT1"          /*18,19,20*/
   ,""            ,"pT1CsvCell"   ,"pT1CsvNode"   /*21,22,23*/
@@ -225,6 +226,8 @@ int main(int argc,char**argv){
   opt.specificHeat  = false;
   opt.dViscosity    = false;
   opt.tConductivity = false;
+  opt.densityD1     = false;
+  opt.coefDiffD1    = false;
   opt.vorticity     = false;
   opt.wallParameters= false;
   opt.kinetic       = false;
@@ -242,7 +245,7 @@ int main(int argc,char**argv){
   propVarFluid.fDensity           = false;
   propVarFluid.fSpecificHeat      = false;
   propVarFluid.fDynamicViscosity  = false;
-  propVarFluid.fThermalCondutivty = false;
+  propVarFluid.fThermalconductivity = false;
 /*...................................................................*/
 
 /*... Mpi*/
@@ -398,7 +401,8 @@ int main(int argc,char**argv){
 /*... leitura da malha*/
       if(!mpiVar.myId)
         readFileFvMesh(&m          ,mesh0
-                      ,propVarFluid,eModel
+                      ,propVarFluid,propVarD
+                      ,eModel
                       ,&turbModel  ,&media       
                       ,fileIn);
       mpiWait();
@@ -1088,17 +1092,32 @@ int main(int argc,char**argv){
 /*...................................................................*/
      
 /*...*/
-      diffusion(&m         ,loadsD1        ,&diffModel[0]
-               ,mesh0      ,mesh           ,&sistEqD1
-               ,&solvD1    ,&sc            ,pMesh
-               ,opt        ,preName        ,nameOut
-               ,fileOut);
+      diffusion(&m          ,loadsD1        ,&diffModel[0]
+               ,mesh0       ,mesh           ,&sistEqD1
+               ,&solvD1     ,&sc            ,pMesh
+               ,&propVarD[0],&opt           ,preName    
+               ,nameOut     ,fileOut);
 /*...................................................................*/
 
 /*...*/
      tm.solvEdpD1    = getTimeC() - tm.solvEdpD1;
 /*...................................................................*/
      if(!mpiVar.myId ) printf("%s\n\n",DIF);
+    }
+/*===================================================================*/
+
+/*===================================================================*
+  * macro: vprop: propriedades variaveis no problema de difusao
+*===================================================================*/
+    else if ((!strcmp(word, macro[13])))
+    {
+      if (!mpiVar.myId) {
+        fprintf(fileLogExc, "%s\n", DIF);
+        fprintf(fileLogExc, "%s\n", word);
+      }
+      readPropVarDiff(propVarD, fileIn);
+/*...................................................................*/
+      if (!mpiVar.myId)fprintf(fileLogExc, "%s\n\n", DIF);
     }
 /*===================================================================*/
 

@@ -5,6 +5,14 @@
   #include<HccaStdBool.h>
   #include<Define.h>
 
+/*...*/
+  typedef struct {
+    unsigned char type;
+    short nPol;
+    DOUBLE a[MAXPLODEG];
+  }PropPol;
+/*...................................................................*/
+
 /*... Material*/
   typedef struct{
     short  *type;      /*tipo de calculo da celula*/ 
@@ -24,8 +32,16 @@
     bool fDensity;
     bool fSpecificHeat;
     bool fDynamicViscosity;
-    bool fThermalCondutivty;
+    bool fThermalconductivity;
   }PropVar;
+/*...................................................................*/
+
+/*...*/
+  typedef struct {
+    bool fDensity;
+    bool fCeofDiff;
+    PropPol den,ceofDiff;
+  }PropVarCD;
 /*...................................................................*/
  
 /*...*/
@@ -260,12 +276,14 @@
   
 /*...*/
     DOUBLE *densityUd1; /*massa especifica do material uD1*/
+    DOUBLE *cDiffD1;    /*coefieiente de difusao D1*/
     DOUBLE *uD1 ;       /*difusao pura uD1*/
     DOUBLE *u0D1;       /*difusao pura uD1*/
     DOUBLE *gradUd1;    /*gradiente da difusao pura uD1*/
     DOUBLE *rCellUd1;   /*residuo da celula*/
 /*...*/
     DOUBLE *densityUt1; /*massa especifica do material uT1*/
+    DOUBLE *cDiffT1;    /*coefieiente de difusao T1*/
     DOUBLE *uT1 ;       /*difusao pura uT1*/
     DOUBLE *u0T1;       /*difusao pura uT1*/
     DOUBLE *gradUt1;    /*gradiente da difusao pura uT1*/

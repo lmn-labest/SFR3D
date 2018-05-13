@@ -90,7 +90,7 @@
                  , DOUBLE *RESTRICT fModvSkew, DOUBLE *RESTRICT fvSkew
                  , short  *RESTRICT geomType , DOUBLE *RESTRICT prop
                  , short  *RESTRICT calType  , short  *RESTRICT mat
-                 , DOUBLE *RESTRICT density
+                 , DOUBLE *RESTRICT density  , DOUBLE *RESTRICT cDiffD
                  , INT    *RESTRICT ia       , INT    *RESTRICT ja
                  , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad
                  , DOUBLE *RESTRICT b        , INT    *RESTRICT id
