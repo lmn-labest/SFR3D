@@ -2075,7 +2075,7 @@ void readPropVar(PropVar *p,FILE *file){
       p->fSpecificHeat = true;
       initSheatPol(); 
       if(!mpiVar.myId && p->fSpecificHeat) 
-        fprintf(fileLogExc,"%-20s: %s\n","sHeat variation","Enable\n");
+        fprintf(fileLogExc,"%-25s: %s\n","sHeat variation","Enable\n");
     }
 /*...................................................................*/
 
@@ -2084,7 +2084,7 @@ void readPropVar(PropVar *p,FILE *file){
       readMacro(file,word,false);
       p->fDensity = true;
       if(!mpiVar.myId && p->fDensity) 
-        fprintf(fileLogExc,"%-20s: %s\n","Density variation","Enable");
+        fprintf(fileLogExc,"%-25s: %s\n","Density variation","Enable");
       convStringLower(word);
       initDensityPol(word);                              
     }
@@ -2096,7 +2096,7 @@ void readPropVar(PropVar *p,FILE *file){
       p->fDynamicViscosity = true;
       initDviscosityPol(word); 
       if(!mpiVar.myId && p->fDynamicViscosity)
-        fprintf(fileLogExc,"%-20s: %s\n","dViscosity variation"
+        fprintf(fileLogExc,"%-25s: %s\n","dViscosity variation"
                           ,"Enable");;
     }
 /*...................................................................*/
@@ -2107,7 +2107,7 @@ void readPropVar(PropVar *p,FILE *file){
       p->fThermalconductivity = true;
       initThCondPol(word);
       if(!mpiVar.myId && p->fThermalconductivity)
-        fprintf(fileLogExc,"%-20s: %s\n","tCondutivity variation"
+        fprintf(fileLogExc,"%-25s: %s\n","tCondutivity variation"
                                         ,"Enable");                          
     }
 /*...................................................................*/
@@ -2118,7 +2118,6 @@ void readPropVar(PropVar *p,FILE *file){
 
 }
 /*********************************************************************/ 
-
 
 /*********************************************************************
  * Data de criacao    : 12/05/2018                                   *
@@ -2161,7 +2160,7 @@ void readPropVarDiff(PropVarCD *p, FILE *file)
       p[0].fDensity = true;
       initDiffPol(&p[0].den, word,file);
       if (!mpiVar.myId && p[0].fDensity)
-        fprintf(fileLogExc, "%-20s: %s\n", "DensityD1 variation"
+        fprintf(fileLogExc, "%-25s: %s\n", "DensityD1 variation"
                                          , "Enable");
     }
 /*...................................................................*/
@@ -2173,7 +2172,7 @@ void readPropVarDiff(PropVarCD *p, FILE *file)
       p[0].fCeofDiff = true;
       initDiffPol(&p[0].ceofDiff, word, file);
       if (!mpiVar.myId && p[0].fCeofDiff)
-        fprintf(fileLogExc, "%-20s: %s\n", "CeofDiff D1 variation"
+        fprintf(fileLogExc, "%-25s: %s\n", "CeofDiff D1 variation"
                                          , "Enable");
     }
 /*...................................................................*/

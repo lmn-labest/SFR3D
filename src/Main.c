@@ -38,6 +38,37 @@
 #endif
 /*********************************************************************/
 
+static void initSec(char *word,short icod) 
+{
+  if (!mpiVar.myId) {
+    switch(icod){
+      case OUTPUT_FOR_FILE:
+        fprintf(fileLogExc, "%s\n", DIF);
+        fprintf(fileLogExc, "%s\n", word);
+      break;
+      case OUTPUT_FOR_SCREEN:
+        printf("%s\n", DIF);
+        printf("%s\n", word);
+      break;
+    }
+  }
+}
+
+static void endSec(short icod)
+{
+  if (!mpiVar.myId){
+    switch (icod) {
+      case OUTPUT_FOR_FILE:
+        fprintf(fileLogExc, "%s\n\n", DIF);
+      break;
+      case OUTPUT_FOR_SCREEN:
+        printf("%s\n\n", DIF);
+      break;
+    }
+  }
+}
+
+
 /*********************************************************************/
 void testeFace(Geom *geom, Face *face
              , INT *cellFace, short *nFace
@@ -374,7 +405,9 @@ int main(int argc,char**argv){
  * de resolucao do problema                                          * 
  *===================================================================*/
     if(!strcmp(word,macro[0])){
+      initSec(word, OUTPUT_FOR_SCREEN);
       help(fileIn);
+      endSec(OUTPUT_FOR_SCREEN);
     }
 /*===================================================================*/
 
@@ -383,11 +416,7 @@ int main(int argc,char**argv){
  * de resolucao do problema                                          * 
  *===================================================================*/
     else if((!strcmp(word,macro[1]))){
-      if(!mpiVar.myId){ 
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word); 
-        fprintf(fileLogExc,"%s\n\n",DIF);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
 /*...*/
       if(mpiVar.nPrcs>1 && !pMesh->fPartMesh){
         printf("Erro: Falta a macro partd!!\n");
@@ -636,7 +665,7 @@ int main(int argc,char**argv){
         fprintf(fileLogExc,"%s\n\n",DIF);
       }
 /*...................................................................*/
-
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -644,11 +673,7 @@ int main(int argc,char**argv){
  * macro: stop : finalizacao do programa
  *===================================================================*/
     else if((!strcmp(word,macro[2]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word); 
-        fprintf(fileLogExc,"%s\n\n",DIF);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
       tm.total = getTimeC() - tm.total;
 /*... */
       fName(preName,mpiVar.nPrcs,mpiVar.myId,7,nameOut);
@@ -710,6 +735,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
       finalizeMem(&m,false);
       macroFlag = false;
+      endSec(OUTPUT_FOR_FILE);
     }    
 /*===================================================================*/
 
@@ -717,14 +743,9 @@ int main(int argc,char**argv){
  * macro: config : configuracao basica de excucao
  *===================================================================*/
     else if((!strcmp(word,macro[3]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }
-      
-      config(&opt          ,reordMesh ,fileIn);
-      
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+      initSec(word, OUTPUT_FOR_FILE);
+      config(&opt,reordMesh ,fileIn);      
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -739,13 +760,10 @@ int main(int argc,char**argv){
 /*===================================================================*
 * macro: rcGrad: tipo de reconstrucao de gradeiente
 *===================================================================*/
-    else if ((!strcmp(word, macro[5]))) {
-      if (!mpiVar.myId) {
-        fprintf(fileLogExc, "%s\n", DIF);
-        fprintf(fileLogExc, "%s\n", word);
-      }
+    else if ((!strcmp(word, macro[5]))){
+      initSec(word, OUTPUT_FOR_FILE);
       setReGrad(&sc.rcGrad, fileIn);
-      if (!mpiVar.myId) fprintf(fileLogExc, "%s\n\n", DIF);
+      endSec(OUTPUT_FOR_FILE);
     }
 /*===================================================================*/
 /*===================================================================*
@@ -864,18 +882,13 @@ int main(int argc,char**argv){
  *===================================================================*/
     else if((!strcmp(word,macro[9])))
     {
+      initSec(word, OUTPUT_FOR_FILE);
       if(!mpiVar.myId )
-      {
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }
       readSolvDiff(&m     , mesh     , reordMesh
                   ,&solvD1, &sistEqD1, &fSolvD1
                   ,auxName, preName  , nameOut
                   ,fileIn , &opt);
-
-/*...................................................................*/
-      if(!mpiVar.myId  ) fprintf(fileLogExc,"%s\n\n",DIF);
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -883,12 +896,7 @@ int main(int argc,char**argv){
  * macro: presolvt1 : problema de transporte  
  *===================================================================*/
     else if((!strcmp(word,macro[10]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }
-      
-
+      initSec(word, OUTPUT_FOR_FILE);
 /*... inicializando a estrutura de equacoes do problema*/
       solvT1 = (Solv*) malloc(sizeof(Solv));
       if(solvT1 == NULL){
@@ -1053,7 +1061,7 @@ int main(int argc,char**argv){
         usoMemoria(&m,str);
       }
 /*...................................................................*/
-      if(!mpiVar.myId  ) fprintf(fileLogExc,"%s\n\n",DIF);
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -1061,11 +1069,11 @@ int main(int argc,char**argv){
 * macro: openmp: configuracao do openmp  
 *===================================================================*/
     else if ((!strcmp(word, macro[11]))) {
-      if(!mpiVar.myId  ) fprintf(fileLogExc,"%s\n\n",DIF);
+      initSec(word, OUTPUT_FOR_FILE);
 /*... */
       openMpSet(fileIn,&ompVar);
 /*..................................................................*/
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+      endSec(OUTPUT_FOR_FILE);
     }
 /*===================================================================*/
 
@@ -1074,12 +1082,7 @@ int main(int argc,char**argv){
  *===================================================================*/
     else if((!strcmp(word,macro[12])))
     {
-      if(!mpiVar.myId )
-      {
-        printf("%s\n",DIF);
-        printf("%s\n",word);
-        printf("%s\n",DIF);
-      }
+      initSec(word, OUTPUT_FOR_SCREEN);
       mpiWait();
       tm.solvEdpD1    = getTimeC() - tm.solvEdpD1;
 /*...*/
@@ -1102,7 +1105,7 @@ int main(int argc,char**argv){
 /*...*/
      tm.solvEdpD1    = getTimeC() - tm.solvEdpD1;
 /*...................................................................*/
-     if(!mpiVar.myId ) printf("%s\n\n",DIF);
+     endSec(OUTPUT_FOR_SCREEN);
     }
 /*===================================================================*/
 
@@ -1111,13 +1114,9 @@ int main(int argc,char**argv){
 *===================================================================*/
     else if ((!strcmp(word, macro[13])))
     {
-      if (!mpiVar.myId) {
-        fprintf(fileLogExc, "%s\n", DIF);
-        fprintf(fileLogExc, "%s\n", word);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
       readPropVarDiff(propVarD, fileIn);
-/*...................................................................*/
-      if (!mpiVar.myId)fprintf(fileLogExc, "%s\n\n", DIF);
+      endSec(OUTPUT_FOR_FILE);
     }
 /*===================================================================*/
 
@@ -1129,16 +1128,13 @@ int main(int argc,char**argv){
     {
 /*...*/
       opt.stepPlot[1] = 1;
-      if (!mpiVar.myId) {
-        printf("%s\n", DIF);
-        printf("%s\n", word);
-      }
+      initSec(word, OUTPUT_FOR_SCREEN);
       printDiff(&m
               , pMesh   , &sc
               , loadsD1 , &opt
               , mesh0   , mesh
               , preName , nameOut);
-      if (!mpiVar.myId) printf("%s\n\n", DIF);
+      endSec(OUTPUT_FOR_SCREEN);
     }   
 /*===================================================================*/
 
@@ -1146,14 +1142,10 @@ int main(int argc,char**argv){
  * macro: nlIt: configura das iteracoes nao lineares             
  *===================================================================*/
     else if((!strcmp(word,macro[15]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }
-
+      initSec(word, OUTPUT_FOR_FILE);
       readNlIt(&sc, fileIn);
 /*...................................................................*/
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -1161,6 +1153,7 @@ int main(int argc,char**argv){
  * macro: pD1CellCsv:imprime os resultados no formato csv                  
  *===================================================================*/
     else if((!strcmp(word,macro[16]))){
+      initSec(word, OUTPUT_FOR_SCREEN);
 /*... globalizacao das variaveis*/
 /*... uD1(Cel)*/
       dGlobalCel(&m                  ,pMesh
@@ -1174,10 +1167,8 @@ int main(int argc,char**argv){
                 ,mesh->ndm           ,1);
         
 /*...*/
-      if(!mpiVar.myId ){
-        printf("%s\n",DIF);
-        printf("%s\n",word);
-      
+      if(!mpiVar.myId )
+      {    
 /*...*/
         strcpy(auxName,preName);
         strcat(auxName,"_D1_cell_");
@@ -1191,7 +1182,6 @@ int main(int argc,char**argv){
 /*...*/
         fclose(fileOut);
 /*...................................................................*/
-        printf("%s\n\n",DIF);
       }
     }   
 /*===================================================================*/
@@ -1200,6 +1190,7 @@ int main(int argc,char**argv){
  * macro: pD1CsvNode:imprime os resultados no formato csv                  
  *===================================================================*/
     else if((!strcmp(word,macro[17]))){
+      initSec(word, OUTPUT_FOR_SCREEN);
 /*... globalizacao das variaveis*/
 /*... uD1(Node)*/
       dGlobalNode(&m                 ,pMesh
@@ -1214,9 +1205,8 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-      if(!mpiVar.myId ){
-        printf("%s\n",DIF);
-        printf("%s\n",word);
+      if(!mpiVar.myId )
+      {
 /*...*/
         strcpy(auxName,preName);
         strcat(auxName,"_D1_node_");
@@ -1230,7 +1220,6 @@ int main(int argc,char**argv){
 /*...*/
         fclose(fileOut);
 /*...................................................................*/
-        printf("%s\n\n",DIF);
       }
     }   
 /*===================================================================*/
@@ -1239,11 +1228,7 @@ int main(int argc,char**argv){
  * macro: solvt1: problema de transporte  
  *===================================================================*/
     else if((!strcmp(word,macro[18]))){
-      if(!mpiVar.myId ){
-        printf("%s\n",DIF);
-        printf("%s\n",word);
-        printf("%s\n",DIF);
-      }
+      initSec(word, OUTPUT_FOR_SCREEN);
       mpiWait();
       tm.solvEdpT1    = getTimeC() - tm.solvEdpT1;
 /*...*/
@@ -1264,7 +1249,7 @@ int main(int argc,char**argv){
 /*...*/
      tm.solvEdpT1    = getTimeC() - tm.solvEdpT1;
 /*...................................................................*/
-     if(!mpiVar.myId ) printf("%s\n\n",DIF);
+     endSec(OUTPUT_FOR_SCREEN);
     }
 /*===================================================================*/
 
@@ -1417,12 +1402,8 @@ int main(int argc,char**argv){
  * macro:             
  *===================================================================*/
     else if((!strcmp(word,macro[21]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }
-/*...................................................................*/
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+      initSec(word, OUTPUT_FOR_FILE);
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -1508,10 +1489,7 @@ int main(int argc,char**argv){
  * macro: setSolv : escoamento de fluidos  
  *===================================================================*/
     else if((!strcmp(word,macro[24]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
 /*...................................................................*/
 
 /*...*/
@@ -1523,7 +1501,7 @@ int main(int argc,char**argv){
                    , auxName    , preName       , nameOut
                    , fileIn                     , &opt);
 /*...................................................................*/
-      if(!mpiVar.myId  ) fprintf(fileLogExc,"%s\n\n",DIF);
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -1531,12 +1509,7 @@ int main(int argc,char**argv){
  * macro: simple: escoamento de fluidos (SIMPLE)
  *===================================================================*/
     else if((!strcmp(word,macro[25]))){
-      if(!mpiVar.myId ){
-        printf("%s\n",DIF);
-        printf("%s\n",word);
-        printf("%s\n",DIF);
-      }
-
+      initSec(word, OUTPUT_FOR_SCREEN);
       mpiWait();
       tm.solvEdpFluid = getTimeC() - tm.solvEdpFluid;
 /*...*/
@@ -1586,9 +1559,9 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-     tm.solvEdpFluid    = getTimeC() - tm.solvEdpFluid;
+      tm.solvEdpFluid    = getTimeC() - tm.solvEdpFluid;
 /*...................................................................*/
-     if(!mpiVar.myId ) printf("%s\n\n",DIF);
+      endSec(OUTPUT_FOR_SCREEN);
     }
 /*===================================================================*/
 
@@ -1596,18 +1569,14 @@ int main(int argc,char**argv){
  * macro: setSimple: configuracoe do metodo simple
  *===================================================================*/
     else if((!strcmp(word,macro[26]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-        fprintf(fileLogExc,"%s\n",DIF);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
 /*...*/
       readSetSimple(&m     , fileIn
                   , mesh0  , mesh
                   , &simple, &fSolvSimple);
 /*...................................................................*/
 
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+      endSec(OUTPUT_FOR_FILE);
     }
 /*===================================================================*/
 
@@ -1615,10 +1584,7 @@ int main(int argc,char**argv){
  * macro: transient:configuracao da discretizacao temporal                 
  *===================================================================*/
     else if((!strcmp(word,macro[27]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
 /*...*/
       sc.ddt.flag = true;
       readMacro(fileIn,word,false);
@@ -1675,7 +1641,7 @@ int main(int argc,char**argv){
       }while(strcmp(word,"endTransient"));
       strcpy(loopWord[kLoop-1],"nextLoop");
 /*...................................................................*/
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -1683,10 +1649,7 @@ int main(int argc,char**argv){
  * macro: timeUpdate : macro de atualizaco do tempo                       
  *===================================================================*/
     else if((!strcmp(word,macro[28]))){
-      if(!mpiVar.myId ){
-        printf("\n%s\n",DIF);
-        printf("%s\n",word);
-      }
+      initSec(word, OUTPUT_FOR_SCREEN);
 /*...*/
 //    jLoop            = 0;
       sc.ddt.t        += sc.ddt.dt[0];
@@ -1711,7 +1674,7 @@ int main(int argc,char**argv){
         } 
       }
 /*...................................................................*/
-      if(!mpiVar.myId ) printf("%s\n\n",DIF);
+      endSec(OUTPUT_FOR_SCREEN);
     }   
 /*===================================================================*/
 
@@ -1719,10 +1682,7 @@ int main(int argc,char**argv){
  * macro: partd particionamento da malha                                   
  *===================================================================*/
     else if((!strcmp(word,macro[29]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
 /*...*/
       pMesh->fPartMesh = true;
       readMacro(fileIn,word,false);
@@ -1742,7 +1702,7 @@ int main(int argc,char**argv){
         }
       }
 /*...................................................................*/
-       if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -1750,14 +1710,11 @@ int main(int argc,char**argv){
  * macro: advection tecnica aplicada no termo advectivo          
  *===================================================================*/
     else if((!strcmp(word,macro[30]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
 /*...*/
       readAdvectionScheme(fileIn, &sc);
  /*...................................................................*/
-      if (!mpiVar.myId) fprintf(fileLogExc,"%s\n\n", DIF);
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -1765,13 +1722,10 @@ int main(int argc,char**argv){
  * macro: edo equacoes diferencias resolvidas                    
  *===================================================================*/
     else if((!strcmp(word,macro[31]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
       readEdo(mesh0,fileIn);
 /*...................................................................*/
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -1779,14 +1733,11 @@ int main(int argc,char**argv){
  * macro: diffusion tecnica aplicada no termo difusivo           
  *===================================================================*/
     else if((!strcmp(word,macro[32]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
 /*... */
       readDiffusionScheme(fileIn, &sc);
 /*...................................................................*/
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -1798,10 +1749,7 @@ int main(int argc,char**argv){
              (opt.stepPlot[1]++) == opt.stepPlot[0]){      
 /*...*/
       opt.stepPlot[1] = 1;
-      if(!mpiVar.myId ){
-        printf("%s\n",DIF);
-        printf("%s\n",word);
-      }
+      initSec(word, OUTPUT_FOR_SCREEN);
 /*...................................................................*/
 
 /*...*/                     
@@ -1814,8 +1762,7 @@ int main(int argc,char**argv){
                , &media      
                , preName   , nameOut);
 /*...................................................................*/
-
-      if(!mpiVar.myId ) printf("%s\n\n",DIF);
+      endSec(OUTPUT_FOR_SCREEN);
     }   
 /*===================================================================*/
 
@@ -1823,14 +1770,11 @@ int main(int argc,char**argv){
  * macro: setPrint                                   
  *===================================================================*/
     else if((!strcmp(word,macro[34]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
 /*...*/
       setPrint(&opt,fileIn);
 /*...................................................................*/
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -1838,14 +1782,11 @@ int main(int argc,char**argv){
 * macro: setPrint
 *===================================================================*/
     else if ((!strcmp(word, macro[35]))) {
-      if (!mpiVar.myId) {
-        fprintf(fileLogExc, "%s\n", DIF);
-        fprintf(fileLogExc, "%s\n", word);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
 /*...*/
       reScaleMesh(mesh->node.x, mesh->nnode,mesh->ndm,fileIn);
 /*...................................................................*/
-      if (!mpiVar.myId) fprintf(fileLogExc, "%s\n\n", DIF);
+      endSec(OUTPUT_FOR_FILE);
     }
 /*===================================================================*/
 
@@ -1853,17 +1794,13 @@ int main(int argc,char**argv){
 * macro: setPrime
 *===================================================================*/
     else if ((!strcmp(word, macro[36]))) {
-      if (!mpiVar.myId) {
-        fprintf(fileLogExc,"%s\n", DIF);
-        fprintf(fileLogExc,"%s\n", word);
-        fprintf(fileLogExc,"%s\n", DIF);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
 /*...*/
       readSetPrime(&m    , fileIn
                   , mesh0, mesh
                   , &prime, &fSolvPrime);
-
-      if (!mpiVar.myId) printf("%s\n\n", DIF);
+/*...................................................................*/
+      endSec(OUTPUT_FOR_FILE);
     }
 /*===================================================================*/
 
@@ -1871,11 +1808,7 @@ int main(int argc,char**argv){
 * macro: prime
 *===================================================================*/
     else if ((!strcmp(word, macro[37]))) {
-      if (!mpiVar.myId) {
-        fprintf(fileLogExc,"%s\n", DIF);
-        fprintf(fileLogExc,"%s\n", word);
-        fprintf(fileLogExc,"%s\n", DIF);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
       mpiWait();
       tm.solvEdpFluid = getTimeC() - tm.solvEdpFluid;
 /*...*/
@@ -1906,7 +1839,7 @@ int main(int argc,char**argv){
 /*...*/
       tm.solvEdpFluid = getTimeC() - tm.solvEdpFluid;
 /*...................................................................*/
-      if (!mpiVar.myId) fprintf(fileLogExc,"%s\n\n", DIF);
+      endSec(OUTPUT_FOR_FILE);
     }
 /*===================================================================*/
 
@@ -1914,13 +1847,10 @@ int main(int argc,char**argv){
  * macro: vprop: propriedades variaveis                             
  *===================================================================*/
     else if((!strcmp(word,macro[38]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
       readPropVar(&propVarFluid,fileIn);
 /*...................................................................*/
-      if(!mpiVar.myId )fprintf(fileLogExc,"%s\n\n",DIF);
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -1928,13 +1858,10 @@ int main(int argc,char**argv){
  * macro: gravity : gravidade                                                 
  *===================================================================*/
     else if((!strcmp(word,macro[39]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }   
+      initSec(word, OUTPUT_FOR_FILE);
       readGravity(gravity,fileIn);
 /*...................................................................*/
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -1942,16 +1869,13 @@ int main(int argc,char**argv){
  * macro: model: modelos utilizados nas equacao diferencias         
  *===================================================================*/
     else if((!strcmp(word,macro[40]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
       readModel(&eModel   ,&turbModel
               , &eMass    ,&ModelMomentum
               , diffModel
               , fileIn);
 /*...................................................................*/
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -1959,14 +1883,11 @@ int main(int argc,char**argv){
  * macro: mean : calcula a media                                                        
  *===================================================================*/
     else if(!strcmp(word,macro[41])){
-      if(!mpiVar.myId ){
-        printf("%s\n",DIF);
-        printf("%s\n",word);
-      }    
+      initSec(word, OUTPUT_FOR_SCREEN);
       calMean(&media,mesh,sc.ddt.dt[TIME_N_MINUS_1]
             , sc.ddt.t,sc.ddt.timeStep);
 /*...................................................................*/
-      if(!mpiVar.myId ) printf("%s\n\n",DIF);
+      endSec(OUTPUT_FOR_SCREEN);
     }   
 /*===================================================================*/
 
@@ -1974,13 +1895,10 @@ int main(int argc,char**argv){
  * macro: setMean : configuracao das medias temporais                                   
  *===================================================================*/
     else if(!strcmp(word,macro[42])){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }
+      initSec(word, OUTPUT_FOR_FILE);
       readMean(&m,fileIn,mesh,&media);
 /*...................................................................*/
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+      endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
 
@@ -1989,10 +1907,7 @@ int main(int argc,char**argv){
  *===================================================================*/
     else if( (!strcmp(word,macro[43])) &&
              (save.step[1]++ == save.step[0]) ){
-      if(!mpiVar.myId ){
-        printf("%s\n",DIF);
-        printf("%s\n",word);
-      }
+      initSec(word, OUTPUT_FOR_SCREEN);
       save.step[1] = 1;
       wSave(&propVarFluid,&turbModel
           ,&thDynamic
@@ -2000,7 +1915,7 @@ int main(int argc,char**argv){
           ,&media
           ,preName      ,nameOut);
 /*...................................................................*/
-      if(!mpiVar.myId ) printf("%s\n\n",DIF);
+      endSec(OUTPUT_FOR_SCREEN);
     }   
 /*===================================================================*/
 
@@ -2008,10 +1923,7 @@ int main(int argc,char**argv){
  * macro: load : carrega um estodo do sistema especifico                             
  *===================================================================*/
     else if((!strcmp(word,macro[44]))){
-      if(!mpiVar.myId ){
-        fprintf(fileLogExc,"%s\n",DIF);
-        fprintf(fileLogExc,"%s\n",word);
-      }
+      initSec(word, OUTPUT_FOR_SCREEN);
       save.fLoad = true;
       load(&propVarFluid,&turbModel
           ,&thDynamic
@@ -2019,7 +1931,7 @@ int main(int argc,char**argv){
           ,&media
           ,fileIn);
 /*...................................................................*/
-      if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n\n",DIF);
+      endSec(OUTPUT_FOR_SCREEN);
     }   
 /*===================================================================*/
 
