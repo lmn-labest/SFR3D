@@ -67,14 +67,14 @@
     
   }FileOpt;
 
-  void  iota(INT,char*);
-  FILE* openFile(char *,char *);
-  FILE* openFileBuffer(char *,char *,bool);
-  void  fName(char*,INT,int,int,char*);
-  void  readMacro(FILE*,char*,bool);
-  void  clearLine(char *);
-  int   rl(FILE *,char *);
-  int   getNumProp(FILE *);
+  void  iota(INT t, char* st);
+  FILE* openFile(const char* const name, const char* const mod);
+  FILE* openFileBuffer(const char* const name, const char* const mod, bool buffer);
+  void fName(const char* const name, INT num1, INT num2, int cod, char *out);
+  void  readMacro(FILE* file, char *mc, bool allline);
+  void  clearLine(char *s);
+  int   rl(FILE *f, char *st);
+//int   getNumProp(FILE *f);
 /*...*/  
   char macros[MAX_LINE][WORD_SIZE];/*todas as macros lidas no arquivo*/
   int  nmacro;

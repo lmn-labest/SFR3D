@@ -1,7 +1,7 @@
 #include<File.h>
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 19/05/2018                                   *
  * ------------------------------------------------------------------*
  * openFile : abre um arquivo                                        *
  * ------------------------------------------------------------------*
@@ -15,21 +15,22 @@
  * FILE * ponterio par o arquivo de saida                            * 
  * ------------------------------------------------------------------*
  * *******************************************************************/
-FILE* openFile(char *name,char *mod){
-FILE *aux;
-  if(( aux =fopen(name,mod))==NULL){
+FILE* openFile(const char* const name,const char* const mod)
+{
+  FILE *aux;
+  if(( aux =fopen(name,mod))==NULL)
+  {
       fprintf(stderr,"Erro na abertura do arquivo %s.\n",name);
       exit(EXIT_FAILURE);
-    }
+  }
 
   return aux;  
 }
 /********************************************************************/
 
-
 /*********************************************************************
  * Data de criacao    : 13/12/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 02/06/2018                                   *
  *-------------------------------------------------------------------*
  * openFileBuffer: abre um arquivo                                   *
  * ------------------------------------------------------------------*
@@ -45,12 +46,14 @@ FILE *aux;
  * FILE * ponterio par o arquivo de saida                            * 
  * ------------------------------------------------------------------*
  * *******************************************************************/
-FILE* openFileBuffer(char *name,char *mod,bool buffer){
-FILE *aux;
-  if(( aux =fopen(name,mod))==NULL){
+FILE* openFileBuffer(const char* const name,const char* const mod,bool buffer)
+{
+  FILE *aux;
+  if(( aux =fopen(name,mod))==NULL)
+  {
       fprintf(stderr,"Erro na abertura do arquivo %s.\n",name);
       exit(EXIT_FAILURE);
-    }
+  }
 
   if(!buffer)
     setbuf(aux, NULL);
@@ -102,7 +105,7 @@ FILE *aux;
  * out -> aruivo de saida com a extencao                             * 
  * ------------------------------------------------------------------*
  * *******************************************************************/
-void fName(char *name,INT num1,INT num2, int cod ,char *out){
+void fName(const char *name,INT num1,INT num2, int cod ,char *out){
 /*===*/
   char st[MAX_STR_NUMBER];
   char ext[MAX_EXT];
@@ -632,7 +635,7 @@ void fName(char *name,INT num1,INT num2, int cod ,char *out){
  * st -> string com a volar de istep                                 *
  * ------------------------------------------------------------------*
  *********************************************************************/
-void iota( INT t , char* st ){
+void iota(INT t , char* st ){
 /*...*/
   char c;
   int n , dec , j , k;

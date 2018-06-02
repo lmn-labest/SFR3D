@@ -12,7 +12,7 @@
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 12/05/2018                                   *
+ * Data de modificaco : 19/05/2018                                   *
  *-------------------------------------------------------------------*
  * readFileFvMesh : leitura de arquivo de dados em volume finitos    *
  * ------------------------------------------------------------------*
@@ -34,19 +34,19 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
 {
   char word[WORD_SIZE],str[WORD_SIZE];
   char macro[NMACROS][WORD_SIZE]={
-          "coordinates","endMesh"    ,"insert"         /* 0, 1, 2*/
-         ,"return"     ,"cells"      ,"faceRt1"        /* 3, 4, 5*/
-         ,"faceLoadT1" ,"loadsT1"    ,""               /* 6, 7, 8*/ 
-         ,""           ,""           ,""               /* 9,10,11*/ 
-         ,"faceResD1"  ,"uniformD1"  ,"loadsD1"        /*12,13,14*/ 
-         ,"faceLoadD1" ,""           ,""               /*15,16,17*/ 
-         ,"faceRvel"   ,"loadsVel"   ,"faceLoadVel"    /*18,19,20*/ 
-         ,"faceRpres"  ,"loadsPres"  ,"faceLoadPres"   /*21,22,23*/
-         ,"faceRtemp"  ,"loadsTemp"  ,"faceLoadTemp"   /*24,25,26*/
-         ,"materials"  ,"uniformPres","initialVel"     /*27,28,29*/
-         ,"uniformTemp","uniformVel" ,""               /*30,31,32*/
-         ,"faceReKturb","loadsKturb" ,"faceLoadKturb"  /*33,34,35*/
-         ,""           ,""           ,""               /*36,37,38*/
+        "coordinates"  ,"endMesh"    ,"insert"         /* 0, 1, 2*/
+       ,"return"       ,"cells"      ,"faceRt1"        /* 3, 4, 5*/
+       ,"faceLoadT1"   ,"loadsT1"    ,""               /* 6, 7, 8*/ 
+       ,""             ,""           ,""               /* 9,10,11*/ 
+       ,"faceResD1"    ,"uniformD1"  ,"loadsD1"        /*12,13,14*/ 
+       ,"faceLoadD1"   ,""           ,""               /*15,16,17*/ 
+       ,"faceRvel"     ,"loadsVel"   ,"faceLoadVel"    /*18,19,20*/ 
+       ,"faceRpres"    ,"loadsPres"  ,"faceLoadPres"   /*21,22,23*/
+       ,"faceRtemp"    ,"loadsTemp"  ,"faceLoadTemp"   /*24,25,26*/
+       ,"materials"    ,"uniformPres","initialVel"     /*27,28,29*/
+       ,"uniformTemp"  ,"uniformVel" ,""               /*30,31,32*/
+       ,"faceReKturb"  ,"loadsKturb" ,"faceLoadKturb"  /*33,34,35*/
+       ,"fileMaterials",""           ,""               /*36,37,38*/
 	   };                                             
   bool rflag[NMACROS],macroFlag,fOneEqK = true;
   INT nn,nel;
@@ -561,8 +561,7 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
       rflag[0] = true;
       fprintf(fileLogExc,"loading coordinates...\n");
       readVfCoor(mesh->node.x,mesh->nnode,mesh->ndm,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n",DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
@@ -573,7 +572,8 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
       fprintf(fileLogExc,"%s\n\n",DIF);
       strcpy(macros[nmacro++],word);
       rflag[1] = true;
-      macroFlag = false;    
+      macroFlag = false;  
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
@@ -606,8 +606,7 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
 
 /*... cells  */
     else if((!strcmp(word,macro[4])) && (!rflag[4])){
-      fprintf(fileLogExc,"%s\n",DIF);
-      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[4] = true;
       fprintf(fileLogExc,"loading cells ...\n");
@@ -615,354 +614,318 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
                 ,mesh->elm.nen     ,mesh->elm.adj.nViz
                 ,mesh->elm.geomType,mesh->numel
                 ,mesh->maxNo       ,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n",DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... faceRt1 */
     else if((!strcmp(word,macro[5])) && (!rflag[5])){
-      fprintf(fileLogExc,"%s\n",DIF);
-      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[5] = true;
       strcpy(str,"endFaceRt1");
       fprintf(fileLogExc,"loading faceRt1 ...\n");
       readVfRes(mesh->elm.faceRt1,mesh->numel,mesh->maxViz+1,str,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n",DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... faceLoadT1 - cargas nas faces transporte */
     else if((!strcmp(word,macro[6])) && (!rflag[6])){
-      fprintf(fileLogExc,"%s\n",DIF);
-      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[6] = true;
       strcpy(str,"endFaceLoadT1");
       fprintf(fileLogExc,"loading faceLoadT1 ...\n");
       readVfRes(mesh->elm.faceLoadT1,mesh->numel
                ,mesh->maxViz+1       ,str       ,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n",DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... loadT1 - definicao de cargar transporte */
     else if((!strcmp(word,macro[7])) && (!rflag[7])){
-      fprintf(fileLogExc,"%s\n",DIF);
-      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[7] = true;
       strcpy(str,"endLoadsT1");
       fprintf(fileLogExc,"loading loadsT1 ...\n");
       readVfLoads(loadsT1,str       ,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n",DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... faceResD1- condicao de contorno para problemas de difusa pura */
     else if((!strcmp(word,macro[12])) && (!rflag[12])){
-      fprintf(fileLogExc,"%s\n",DIF);
-      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[12] = true;
       strcpy(str,"endFaceResD1");
       fprintf(fileLogExc,"loading faceResD1 ...\n");
       readVfRes(mesh->elm.faceRd1,mesh->numel,mesh->maxViz+1,str,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n",DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... uniformD1 */
     else if ((!strcmp(word, macro[13])) && (!rflag[13])) {
-      fprintf(fileLogExc, "%s\n", DIF);
-      fprintf(fileLogExc, "%s\n", word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++], word);
       rflag[13] = true;
       uniformField(mesh->elm.u0D1, mesh->numel, 1, file);
-      fprintf(fileLogExc, "done.\n");
-      fprintf(fileLogExc, "%s\n\n", DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... loadD1 - definicao de cargar difusao pura */
     else if((!strcmp(word,macro[14])) && (!rflag[14])){
-      fprintf(fileLogExc,"%s\n",DIF);
-      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[14] = true;
       strcpy(str,"endLoadsD1");
       fprintf(fileLogExc,"loading loadsD1 ...\n");
       readVfLoads(loadsD1,str       ,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n",DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... faceLoadD1 - cargas nas faces difusao pura */
     else if((!strcmp(word,macro[15])) && (!rflag[15])){
-      fprintf(fileLogExc,"%s\n",DIF);
-      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[15] = true;
       strcpy(str,"endFaceLoadD1");
       fprintf(fileLogExc,"loading faceLoadD1 ...\n");
       readVfRes(mesh->elm.faceLoadD1,mesh->numel
                ,mesh->maxViz+1       ,str       ,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n",DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... faceRvel- condicao de contorno para problemas fluidos (Vel) */
     else if((!strcmp(word,macro[18])) && (!rflag[18])){
-      fprintf(fileLogExc,"%s\n",DIF);
-      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[18] = true;
       strcpy(str,"endFaceRvel");
       fprintf(fileLogExc,"loading faceRvel ...\n");
       readVfRes(mesh->elm.faceRvel,mesh->numel,mesh->maxViz+1,str,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n",DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... loadVel - definicao de cargar fluidos (Vel)*/
     else if((!strcmp(word,macro[19])) && (!rflag[19])){
-      fprintf(fileLogExc,"%s\n",DIF);
-      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[19] = true;
       strcpy(str,"endLoadsVel");
       fprintf(fileLogExc,"loading loadsVel ...\n");
       readVfLoads(loadsVel,str       ,file);
       loadsVel[0].nTypeVar =  LVARCONST;
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n",DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... faceLoadVel - cargas nas faces fluido (Vel)*/
     else if((!strcmp(word,macro[20])) && (!rflag[20])){
-      fprintf(fileLogExc,"%s\n",DIF);
-      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[20] = true;
       strcpy(str,"endFaceLoadVel");
       fprintf(fileLogExc,"loading faceLoadVel ...\n");
       readVfRes(mesh->elm.faceLoadVel  ,mesh->numel
                ,mesh->maxViz+1         ,str        ,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n",DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... faceRpres - condicao de contorno para problemas fluidos (Pres)*/
     else if((!strcmp(word,macro[21])) && (!rflag[21])){
-      fprintf(fileLogExc,"%s\n",DIF);
-      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[21] = true;
       strcpy(str,"endFaceRpres");
       fprintf(fileLogExc,"loading faceRpres ...\n");
       readVfRes(mesh->elm.faceRpres,mesh->numel
                ,mesh->maxViz+1     ,str        ,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n",DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... loadPres - definicao de cargar fluidos (Pres)*/
     else if((!strcmp(word,macro[22])) && (!rflag[22])){
-      fprintf(fileLogExc,"%s\n",DIF);
-      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[22] = true;
       strcpy(str,"endLoadsPres");
       fprintf(fileLogExc,"loading loadsPres ...\n");
       readVfLoads(loadsPres,str       ,file);
-      fprintf(fileLogExc,"done.\n");
       convLoadsPresC(loadsPres, loadsPresC);
-      fprintf(fileLogExc,"%s\n\n",DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... faceLoadPres - cargas nas faces fluido (Pres)*/
     else if((!strcmp(word,macro[23])) && (!rflag[23])){
-      fprintf(fileLogExc,"%s\n",DIF);
-      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[23] = true;
       strcpy(str,"endFaceLoadPres");
       fprintf(fileLogExc,"loading faceLoadPres ...\n");
       readVfRes(mesh->elm.faceLoadPres ,mesh->numel
                ,mesh->maxViz+1         ,str        ,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n",DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... faceRenergy - condicao de contorno para problemas fluidos (Energy)*/
     else if ((!strcmp(word, macro[24])) && (!rflag[24])) {
-      fprintf(fileLogExc,"%s\n", DIF);
-      fprintf(fileLogExc,"%s\n", word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++], word);
       rflag[24] = true;
       strcpy(str, "endFaceRtemp");
       fprintf(fileLogExc,"loading faceRtemp ...\n");
       readVfRes(mesh->elm.faceRenergy,mesh->numel
                ,mesh->maxViz + 1     ,str        ,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n", DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... loadEnergy - definicao de cargar fluidos (Energy)*/
     else if ((!strcmp(word, macro[25])) && (!rflag[25])) {
-      fprintf(fileLogExc,"%s\n", DIF);
-      fprintf(fileLogExc,"%s\n", word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++], word);
       rflag[25] = true;
       strcpy(str, "endLoadsTemp");
       fprintf(fileLogExc,"loading loadsTemp ...\n");
       readVfLoads(loadsTemp, str, file);
-      fprintf(fileLogExc,"done.\n");
       convLoadsEnergy(loadsEnergy             ,loadsTemp
                      ,mesh->elm.material.prop
                      ,energyModel.fTemperature,prop.fSpecificHeat
                      ,energyModel.fKelvin);  
-      fprintf(fileLogExc,"%s\n\n", DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... faceLoadEnergy - cargas nas faces fluido (Energy)*/
     else if ((!strcmp(word, macro[26])) && (!rflag[26])) {
-      fprintf(fileLogExc,"%s\n", DIF);
-      fprintf(fileLogExc,"%s\n", word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++], word);
       rflag[26] = true;
       strcpy(str, "endFaceLoadTemp");
       fprintf(fileLogExc,"loading faceLoadTemp ...\n");
       readVfRes(mesh->elm.faceLoadEnergy,mesh->numel
                ,mesh->maxViz + 1        ,str        ,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n", DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... materiais */
     else if((!strcmp(word,macro[27])) && (!rflag[27])){
-      fprintf(fileLogExc,"%s\n",DIF);
-      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[27] = true;
       strcpy(str,"endMaterials");
       fprintf(fileLogExc,"loading materials ...\n");
       readVfMat(mesh->elm.material.prop,mesh->elm.material.type
                ,numat,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n",DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... uniformPres */
     else if ((!strcmp(word, macro[28])) && (!rflag[28])) {
-      fprintf(fileLogExc,"%s\n", DIF);
-      fprintf(fileLogExc,"%s\n", word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++], word);
       rflag[28] = true;
       uniformField(mesh->elm.pressure0, mesh->numel,1, file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n", DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... initialVel */
     else if((!strcmp(word,macro[29])) && (!rflag[29])){
-      fprintf(fileLogExc,"%s\n",DIF);
-      fprintf(fileLogExc,"%s\n",word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[29] = true;
       strcpy(str,"endInitialVel");
       fprintf(fileLogExc,"loading initialVel ...\n");
       readVfInitial(mesh->elm.vel,mesh->numel,mesh->ndm,str,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n",DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... uniformTemp */
     else if ((!strcmp(word, macro[30])) && (!rflag[30])) {
-      fprintf(fileLogExc,"%s\n", DIF);
-      fprintf(fileLogExc,"%s\n", word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++], word);
       rflag[30] = true;
       fprintf(fileLogExc,"loading uniformTemp ...\n");
       uniformField(mesh->elm.temp0, mesh->numel, 1, file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n", DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... uniformVel */
     else if ((!strcmp(word, macro[31])) && (!rflag[31])) {
-      fprintf(fileLogExc,"%s\n", DIF);
-      fprintf(fileLogExc,"%s\n", word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++], word);
       rflag[31] = true;
       fprintf(fileLogExc,"loading uniformVel ...\n");
       uniformField(mesh->elm.vel0, mesh->numel, ndm, file);        
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n", DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... faceReKturb - condicao de contorno para problemas fluidos (Kturb)*/
     else if ((!strcmp(word, macro[33])) && (!rflag[33])) {
-      fprintf(fileLogExc,"%s\n", DIF);
-      fprintf(fileLogExc,"%s\n", word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++], word);
       rflag[33] = true;
       strcpy(str, "endFaceReKturb");
       fprintf(fileLogExc,"loading faceReKturb ...\n");
       readVfRes(mesh->elm.faceReKturb,mesh->numel
                ,mesh->maxViz + 1     ,str        ,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n", DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... loadKturb - definicao de cargar fluidos (Kturb)*/
     else if ((!strcmp(word, macro[34])) && (!rflag[34])) {
-      fprintf(fileLogExc,"%s\n", DIF);
-      fprintf(fileLogExc,"%s\n", word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++], word);
       rflag[34] = true;
       strcpy(str, "endLoadsKturb");
       fprintf(fileLogExc,"loading loadsKturb ...\n");
       readVfLoads(loadsKturb, str, file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n", DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
 /*... faceLoadKturb - cargas nas faces fluido (Kturb)*/
     else if ((!strcmp(word, macro[35])) && (!rflag[35])) {
-      fprintf(fileLogExc,"%s\n", DIF);
-      fprintf(fileLogExc,"%s\n", word);
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++], word);
       rflag[35] = true;
       strcpy(str, "endFaceLoadKturb");
       fprintf(fileLogExc,"loading faceLoadKturb ...\n");
       readVfRes(mesh->elm.faceLoadKturb,mesh->numel
                ,mesh->maxViz + 1        ,str        ,file);
-      fprintf(fileLogExc,"done.\n");
-      fprintf(fileLogExc,"%s\n\n", DIF);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
+    }
+/*...................................................................*/
+
+/*... fileMaterials - materias dados vias arquivos*/
+    else if ((!strcmp(word, macro[36])) && (!rflag[36])) {
+      fprintf(fileLogExc, "%s\n%s\n", DIF,word);
+      strcpy(macros[nmacro++], word);
+      rflag[36] = true;
+      strcpy(str, "endFileMaterials");
+      fprintf(fileLogExc, "loading endFileMaterials ...\n");
+      readFileMat(mesh->elm.material.prop, mesh->elm.material.type
+                 , numat, file);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
 
@@ -4961,7 +4924,83 @@ void setReGrad(short *rcGrad, FILE *file)
       fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "LeatSquareQR");
   }
 /*.....................................................................*/
-
   
+}
+/**********************************************************************/
+
+/**********************************************************************
+* Data de criacao    : 19/05/2018                                    *
+* Data de modificaco : 00/00/0000                                    *
+*--------------------------------------------------------------------*
+* setReGrad:                                                         *
+*--------------------------------------------------------------------*
+* Parametros de entrada:                                             *
+*--------------------------------------------------------------------*
+* prop    -> nao definido                                            *
+* type    -> tipo vo de arquivo                                      *
+*--------------------------------------------------------------------*
+* Parametros de saida:                                               *
+*--------------------------------------------------------------------*
+* rcGrad  -> tipo de tecnica de reconstrucao de gradiente            *
+*--------------------------------------------------------------------*
+* OBS:                                                               *
+*--------------------------------------------------------------------*
+**********************************************************************/
+void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
+{
+  FILE *fileOut = NULL;
+  char str[] = {"end"};
+  char word[WORD_SIZE];
+  char macro[][WORD_SIZE] = { "celltype","densityd1","coefdiffd1"};
+  short i, j,iMat;
+  INT ty;
+  DOUBLE v;
+
+  for(i=0;i<numat;i++)
+  {
+    fscanf(file, "%hd", &iMat);
+    iMat--;    
+    readMacro(file, word, false);
+    fileOut = openFile(word,"r");
+/*...*/
+    readMacro(fileOut, word, false);
+    do
+    {
+      convStringLower(word);
+      j = 0;
+/*...*/
+      if (!strcmp(word, macro[j++]))
+      {
+        fscanf(fileOut, "%d", &type[iMat]);
+        if (!mpiVar.myId)
+          fprintf(fileLogExc, "%-20s: %d\n",macro[j-1], type[iMat]);
+      }
+/*.....................................................................*/
+
+/*...*/
+      else if (!strcmp(word, macro[j++]))
+      {
+        fscanf(fileOut,"%lf",&v);
+        prop[DENSITY] = v;
+        if (!mpiVar.myId)
+          fprintf(fileLogExc, "%-20s: %lf\n", macro[j-1], prop[DENSITY]);
+      }
+/*.....................................................................*/
+
+/*...*/
+      else if (!strcmp(word, macro[j++]))
+      {
+        fscanf(fileOut, "%lf", &v);
+        prop[COEFDIF] = v;
+        if (!mpiVar.myId)
+          fprintf(fileLogExc, "%-20s: %lf\n", macro[j-1], prop[COEFDIF]);
+      }
+/*.....................................................................*/
+      readMacro(fileOut, word, false);
+    }while(strcmp(word,str));
+/*.....................................................................*/
+    fclose(fileOut);
+  }
+/*.....................................................................*/
 }
 /**********************************************************************/

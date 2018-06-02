@@ -36,6 +36,9 @@
                     , FILE* file);
 
   void readVfMat(DOUBLE *prop,short *type,short numat,FILE *file);
+
+  void readFileMat(DOUBLE *prop, short *type, short numat, FILE *file);
+
   void readVfCoor(DOUBLE *x,INT nn, short ndm,FILE *file);
   void readVfElmt(INT *el    ,short *mat ,short *nen,short *nFace
                  ,short *ty  ,INT  nel   ,short maxno
