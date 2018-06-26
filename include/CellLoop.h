@@ -37,26 +37,26 @@
 
 /*.. reconstrucao de gradiente*/
   void rcGradU(Memoria *m             , Loads *loads
-         , INT    *RESTRICT el         , INT    *RESTRICT nelcon
-         , DOUBLE *RESTRICT cc         , DOUBLE *RESTRICT x     
-         , short  *RESTRICT nen        , short  *RESTRICT nFace
-         , short  *RESTRICT geomType   , DOUBLE *RESTRICT prop 
-         , short  *RESTRICT mat          
-         , DOUBLE *RESTRICT leastSquare, DOUBLE *RESTRICT leastSquareR   
-         , DOUBLE *RESTRICT gKsi       , DOUBLE *RESTRICT gmKsi 
-         , DOUBLE *RESTRICT gEta       , DOUBLE *RESTRICT gmEta 
-         , DOUBLE *RESTRICT gNormal    , DOUBLE *RESTRICT gVolume
-         , DOUBLE *RESTRICT gvSkew       
-         , DOUBLE *RESTRICT gXm        , DOUBLE *RESTRICT gXmcc
-         , DOUBLE *RESTRICT gDcca        
-         , short  *RESTRICT faceR      , short *RESTRICT faceL  
-         , DOUBLE *RESTRICT u          , DOUBLE *RESTRICT gradU               
-         , DOUBLE *RESTRICT nU         , short lib
-         , short maxNo                 , short maxViz
-         , short ndf                   , short ndm
-         , InterfaceNo *iNo            , Interface *iCel 
-         , INT numelNov                , INT numel 
-         , INT nNodeNov                , INT nNode);
+             , INT    *RESTRICT el         , INT    *RESTRICT nelcon
+             , DOUBLE *RESTRICT cc         , DOUBLE *RESTRICT x     
+             , short  *RESTRICT nen        , short  *RESTRICT nFace
+             , short  *RESTRICT geomType   , DOUBLE *RESTRICT prop 
+             , short  *RESTRICT mat          
+             , DOUBLE *RESTRICT leastSquare, DOUBLE *RESTRICT leastSquareR   
+             , DOUBLE *RESTRICT gKsi       , DOUBLE *RESTRICT gmKsi 
+             , DOUBLE *RESTRICT gEta       , DOUBLE *RESTRICT gmEta 
+             , DOUBLE *RESTRICT gNormal    , DOUBLE *RESTRICT gVolume
+             , DOUBLE *RESTRICT gvSkew       
+             , DOUBLE *RESTRICT gXm        , DOUBLE *RESTRICT gXmcc
+             , DOUBLE *RESTRICT gDcca        
+             , short  *RESTRICT faceR      , short *RESTRICT faceL  
+             , DOUBLE *RESTRICT u          , DOUBLE *RESTRICT gradU               
+             , DOUBLE *RESTRICT nU         , short lib
+             , short maxNo                 , short maxViz
+             , short ndf                   , short ndm
+             , InterfaceNo *iNo            , Interface *iCel 
+             , INT numelNov                , INT numel 
+             , INT nNodeNov                , INT nNode);
 /*...................................................................*/
 
 /*... */
@@ -107,33 +107,35 @@
 /*...................................................................*/
  
 /* ... montagem do sistemas de equacoes (Transporte)*/
-  void systFormTrans(Loads *loads          
-               ,Advection advT           ,Diffusion diffT
-               ,INT    *RESTRICT el      ,INT    *RESTRICT nelcon 
-               ,short  *RESTRICT nen     ,short  *RESTRICT nFace
-               ,short  *RESTRICT geomType,DOUBLE *RESTRICT prop 
-               ,short  *RESTRICT calType ,short  *RESTRICT mat
-               ,DOUBLE *RESTRICT gCc
-               ,DOUBLE *RESTRICT gKsi    ,DOUBLE *RESTRICT gmKsi 
-               ,DOUBLE *RESTRICT gEta    ,DOUBLE *RESTRICT gfArea 
-               ,DOUBLE *RESTRICT gNormal ,DOUBLE *RESTRICT gVolume
-               ,DOUBLE *RESTRICT gXm     ,DOUBLE *RESTRICT gXmcc 
-               ,DOUBLE *RESTRICT gvSkew  ,DOUBLE *RESTRICT gmvSkew 
-               ,DOUBLE *RESTRICT gDcca   ,DOUBLE *RESTRICT density
-               ,INT    *RESTRICT ia      ,INT    *RESTRICT ja
-               ,DOUBLE *RESTRICT a       ,DOUBLE *RESTRICT ad 
-               ,DOUBLE *RESTRICT b       ,INT    *RESTRICT id
-               ,short  *RESTRICT faceR   ,short  *RESTRICT faceL        
-               ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0 
-               ,DOUBLE *RESTRICT vel                               
-               ,DOUBLE *RESTRICT rCell   ,Temporal ddt 
-               ,INT nEq                  ,INT nEqNov
-               ,INT nAd                  ,INT nAdR                     
-               ,short maxNo              ,short maxViz
-               ,short ndm                ,INT numel
-               ,short ndf                ,short storage
-               ,bool forces              ,bool matrix 
-               ,bool calRcell            ,bool unsym);
+  void systFormTrans(Loads *loads
+                   , Advection *advT           , Diffusion *diffT
+                   , TransModel *tModel
+                   , INT    *RESTRICT el       , INT    *RESTRICT nelcon
+                   , short  *RESTRICT nen      , short  *RESTRICT nFace
+                   , INT *RESTRICT cellFace    , INT *RESTRICT fOwner
+                   , DOUBLE *RESTRICT gVolume  , DOUBLE *RESTRICT gDcca
+                   , DOUBLE *RESTRICT gXmCc    , DOUBLE *RESTRICT gCc
+                   , DOUBLE *RESTRICT fModksi  , DOUBLE *RESTRICT fKsi
+                   , DOUBLE *RESTRICT fEta     , DOUBLE *RESTRICT fArea
+                   , DOUBLE *RESTRICT fNormal  , DOUBLE *RESTRICT fXm
+                   , DOUBLE *RESTRICT fModvSkew, DOUBLE *RESTRICT fvSkew
+                   , short  *RESTRICT geomType , DOUBLE *RESTRICT prop
+                   , short  *RESTRICT calType  , short  *RESTRICT mat
+                   , DOUBLE *RESTRICT density  , DOUBLE *RESTRICT cDiff
+                   , INT    *RESTRICT ia       , INT    *RESTRICT ja
+                   , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad
+                   , DOUBLE *RESTRICT b        , INT    *RESTRICT id
+                   , short  *RESTRICT faceR    , short  *RESTRICT faceL
+                   , DOUBLE *RESTRICT u0       , DOUBLE *RESTRICT gradU0
+                   , DOUBLE *RESTRICT vel
+                   , DOUBLE *RESTRICT rCell    , Temporal *ddt
+                   , INT nEq                   , INT nEqNov
+                   , INT nAd                   , INT nAdR
+                   , short maxNo               , short maxViz
+                   , short ndm                 , INT numel
+                   , short ndf                 , short storage
+                   , bool forces               , bool matrix
+                   , bool calRcell             , bool unsym);
 /*...................................................................*/
 
 /* ... montagem do sistemas de equacoes (Simple - VEl)*/

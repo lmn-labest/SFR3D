@@ -1188,6 +1188,221 @@ void wResVtkDif(Memoria *m        ,double *x
 }
 /*********************************************************************/
 
+/**********************************************************************
+* Data de criacao    : 00/00/0000                                    *
+* Data de modificaco : 13/05/2018                                    *
+* -------------------------------------------------------------------*
+* WRESVTKDIF : escreve a malha com os resultados para problemas de   *
+* difusao pura                                                       *
+* ------------------------------------------------------------------ *
+* parametros de entrada:                                             *
+* ------------------------------------------------------------------ *
+* m       -> arranjo da menoria principal                            *
+* x       -> coordenadas                                             *
+* el      -> conectividade                                           *
+* mat     -> materias                                                *
+* nen     -> conectividades por elemento                             *
+* mat     -> material por elemento                                   *
+* typeGeom-> tipo geometrico do elemento                             *
+* elU     -> resultados por elementos                                *
+* nU      -> resultados por nos                                      *
+* elGradU -> gradientes dos resultados por elementos                 *
+* nGradU  -> gradientes dos resultados por nos                       *
+* elVel   -> campo de velocidades por elementos                      *
+* nVel    -> campo de velocidades por nos                            *
+* nel     -> numeracao do elemento                                   *
+* nnode   -> numero de nos                                           *
+* numel   -> numero de elementos                                     *
+* ndm     -> numero de dimensao                                      *
+* maxNo   -> numero maximo de nos por elemento                       *
+* numat   -> numero maximo de nos por elemento                       *
+* ndf     -> graus de liberdade das equacoes                         *
+* nameOut -> nome de arquivo de saida                                *
+* uResEl  -> nome dos resultados                                     *
+* uResNo  -> nome dos resultados                                     *
+* gradResEl -> nome dos resultados                                   *
+* gradResNo -> nome dos resultados                                   *
+* nameOut -> nome de arquivo de saida                                *
+* opt     -> opcoes de arquivo                                       *
+* f       -> arquivlo                                                *
+* ------------------------------------------------------------------ *
+* parametros de saida  :                                             *
+* ------------------------------------------------------------------ *
+* -------------------------------------------------------------------*
+* OBS:                                                               *
+* -------------------------------------------------------------------*
+**********************************************************************/
+void wResVtkTrans(Memoria *m        , double *x
+                , INT *el           , short *mat
+                , short *nen        , short *typeGeom
+                , DOUBLE *elU       , DOUBLE *noU
+                , DOUBLE *elGradU   , DOUBLE *noGradU
+                , DOUBLE *elVel     , DOUBLE *noVel
+                , DOUBLE *elDensity , DOUBLE *noDensity
+                , DOUBLE *elCoefDiff, DOUBLE *noCoefDiff
+                , INT nnode         , INT numel
+                , short ndm         , short maxNo
+                , short numat       , short ndf
+                , char **ps
+                , char *nameOut     , FileOpt *opt
+                , Temporal *ddt     , FILE *f)
+{
+  bool iws = opt->bVtk;
+  short j;
+  int    *lel = NULL;
+  INT i;
+  DOUBLE *p = NULL;
+  enum { eT1     = 0, nT1      = 1 
+       , eGradT1 = 2, nGradT1  = 3   
+       , eVel    = 4, nVel     = 5
+       , eDen    = 6, nDen     = 7
+       , eCoefDif= 8, nCoefDiff= 9};    
+
+  char head[] = { "DIF_VOLUME_FINITO" };
+  double ddum;
+  int    idum;
+
+  if (iws)
+    f = openFile(nameOut, "wb");
+  else
+    f = openFile(nameOut, "w");
+
+/* ...*/
+  headVtk(head, iws, f);
+/* ..................................................................*/
+
+/* ...*/
+  if (ddt->flag)
+    timeVtk(ddt->t, ddt->timeStep, iws, f);
+/* ..................................................................*/
+
+/*... coordenadas*/
+  writeVtkCoor(x, nnode, ndm, iws, f);
+/*...................................................................*/
+
+/*... conectividades*/
+  HccaAlloc(int, m, lel, numel*maxNo, "el", _AD_);
+  ERRO_MALLOC(lel, "el", __LINE__, __FILE__, __func__);
+
+  for (i = 0; i<numel; i++)
+    for (j = 0; j<maxNo; j++)
+      MAT2D(i, j, lel, maxNo) = MAT2D(i, j, el, maxNo) - 1;
+
+  writeVtkCell(lel, nen, typeGeom, numel, maxNo, iws, f);
+  HccaDealloc(m, lel, "el", _AD_);
+/*...................................................................*/
+
+/*... campo por elemento*/
+  fprintf(f, "CELL_DATA %ld\n", (long)numel);
+/*...................................................................*/
+
+/*... material*/
+  HccaAlloc(int, m, lel, numel, "el", _AD_);
+  ERRO_MALLOC(lel, "el", __LINE__, __FILE__, __func__);
+  for (i = 0; i<numel; i++)
+    lel[i] = (int)mat[i];
+
+  writeVtkProp(lel, &ddum, numel, 1, "mat", iws, INTEGER_VTK, SCALARS_VTK, f);
+  HccaDealloc(m, lel, "el", _AD_);
+/*...................................................................*/
+
+/*... numero do elemento*/
+  HccaAlloc(int, m, lel, numel*maxNo, "el", _AD_);
+  ERRO_MALLOC(lel, "el", __LINE__, __FILE__, __func__);
+  for (i = 0; i<numel; i++)
+    lel[i] = i + 1;
+
+  writeVtkProp(lel, &ddum, numel, 1, "elGlobal", iws, INTEGER_VTK
+    , SCALARS_VTK, f);
+  HccaDealloc(m, lel, "el", _AD_);
+/*...................................................................*/
+
+/*... escrever resultados por celula*/
+  if (opt->fCell && opt->uT1)
+    writeVtkProp(&idum, elU, numel, ndf, ps[eT1], iws, DOUBLE_VTK
+               , SCALARS_VTK, f);
+/*...................................................................*/
+
+/*... escrever os gradiente por nos*/
+  if (opt->fCell && opt->graduT1)
+    writeVtkProp(&idum, elGradU   , numel      , ndm, ps[eGradT1]
+                , iws , DOUBLE_VTK, VECTORS_VTK, f);
+/*...................................................................*/
+
+
+/*... escrever gradiente por celula*/
+  if (opt->fCell && opt->densityT1)
+  {
+    HccaAlloc(DOUBLE, m, p, numel, "p", _AD_);
+    ERRO_MALLOC(p, "p", __LINE__, __FILE__, __func__);
+    for (i = 0; i<numel; i++)
+      p[i] = MAT2D(i, TIME_N, elDensity, DENSITY_LEVEL);
+    writeVtkProp(&idum      , p, numel, 1, ps[eDen], iws
+                , DOUBLE_VTK, SCALARS_VTK, f);
+    HccaDealloc(m, p, "p", _AD_);
+  }
+/*...................................................................*/
+
+/*... escrever gradiente por celula*/
+  if (opt->fCell && opt->coefDiffT1)
+  {
+    writeVtkProp(&idum, elCoefDiff, numel, 1, ps[eCoefDif], iws
+      , DOUBLE_VTK, SCALARS_VTK, f);
+  }
+/*...................................................................*/
+
+/*.... campo por no*/
+  fprintf(f, "POINT_DATA %ld\n", (long)nnode);
+/*...................................................................*/
+
+/*... numero do no*/
+  HccaAlloc(int, m, lel, nnode, "el", _AD_);
+  ERRO_MALLOC(lel, "el", __LINE__, __FILE__, __func__);
+  for (i = 0; i<nnode; i++)
+    lel[i] = i + 1;
+
+  writeVtkProp(lel, &ddum, nnode, 1, "pNode", iws, INTEGER_VTK
+    , SCALARS_VTK, f);
+  HccaDealloc(m, lel, "el", _AD_);
+/*...................................................................*/
+
+/*... escrever resuldos por nos*/
+  if (opt->fNode && opt->uT1)
+    writeVtkProp(&idum, noU, nnode, ndf, ps[nT1], iws, DOUBLE_VTK
+      , SCALARS_VTK, f);
+/*...................................................................*/
+
+/*... escrever os gradiente por nos*/
+  if (opt->fNode && opt->graduT1)
+    writeVtkProp(&idum, noGradU, nnode, ndm, ps[nGradT1], iws, DOUBLE_VTK
+               , VECTORS_VTK, f);
+/*...................................................................*/
+
+/*... escrever gradiente por celula*/
+  if (opt->fNode && opt->densityT1)
+  {
+    HccaAlloc(DOUBLE, m, p, nnode, "p", _AD_);
+    ERRO_MALLOC(p, "p", __LINE__, __FILE__, __func__);
+    for (i = 0; i<nnode; i++)
+      p[i] = MAT2D(i, TIME_N, noDensity, DENSITY_LEVEL);
+    writeVtkProp(&idum, p, nnode, 1, ps[nDen], iws
+      , DOUBLE_VTK, SCALARS_VTK, f);
+    HccaDealloc(m, p, "p", _AD_);
+  }
+/*...................................................................*/
+
+/*... escrever gradiente por celula*/
+  if (opt->fNode && opt->coefDiffT1)
+  {
+    writeVtkProp(&idum, noCoefDiff, nnode, 1, ps[nCoefDiff], iws
+      , DOUBLE_VTK, SCALARS_VTK, f);
+  }
+/*...................................................................*/
+  fclose(f);
+}
+/*********************************************************************/
+
+
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                    *
  * Data de modificaco : 18/02/2018                                    * 
@@ -1784,182 +1999,6 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
                 ,DOUBLE_VTK,SCALARS_VTK,f);
     HccaDealloc(m,p,"p",_AD_);
   }
-/*...................................................................*/
-
-  fclose(f);
-}
-/*********************************************************************/
-
-/********************************************************************** 
- * WRESVTKTRANS:escreve a malha com os resultados para problemas de   *  
- * transporte                                                         *  
- * ------------------------------------------------------------------ *
- * parametros de entrada:                                             * 
- * ------------------------------------------------------------------ *
- * m       -> arranjo da menoria principal                            *  
- * x       -> coordenadas                                             * 
- * el      -> conectividade                                           * 
- * mat     -> materias                                                *  
- * nen     -> conectividades por elemento                             *  
- * mat     -> material por elemento                                   *
- * typeGeom-> tipo geometrico do elemento                             *
- * elU     -> resultados por elementos                                *
- * nU      -> resultados por nos                                      *
- * elGradU -> gradientes dos resultados por elementos                 *
- * nGradU  -> gradientes dos resultados por nos                       *
- * elVel   -> campo de velocidade por elementos                       *
- * nVel    -> campo de velocidade por nos                             *
- * nel     -> numeracao do elemento                                   *
- * nnode   -> numero de nos                                           *  
- * numel   -> numero de elementos                                     *
- * ndm     -> numero de dimensao                                      *
- * maxNo   -> numero maximo de nos por elemento                       *
- * numat   -> numero maximo de nos por elemento                       *
- * ndf     -> graus de liberdade das equacoes                         *
- * nameOut -> nome de arquivo de saida                                *
- * uResEl  -> nome dos resultados                                     *
- * uResNo  -> nome dos resultados                                     *
- * gradResEl -> nome dos resultados                                   *
- * gradResNo -> nome dos resultados                                   *
- * nameOut -> nome de arquivo de saida                                *
- * iws     -> vtk binario                                             *
- * f       -> arquivlo                                                *
- * ------------------------------------------------------------------ *
- * parametros de saida  :                                             * 
- * ------------------------------------------------------------------ *
- **********************************************************************/
-void wResVtkTrans(Memoria *m        ,double *x      
-                 ,INT *el           ,short *mat    
-                 ,short *nen        ,short *typeGeom
-                 ,DOUBLE *elU       ,DOUBLE *nU
-                 ,DOUBLE *elGradU   ,DOUBLE *nGradU
-                 ,DOUBLE *elVel     ,DOUBLE *nVel      
-                 ,INT nnode         ,INT numel    
-                 ,short ndm         ,short maxNo 
-                 ,short numat       ,short ndf   
-                 ,char *uResEl      ,char *uResNo 
-                 ,char *gradResEl   ,char *gradResNo 
-                 ,char *velEl       ,char *velNo       
-                 ,char *nameOut     ,bool iws
-                 ,Temporal ddt      ,FILE *f)
-{
-  int    *lel=NULL;
-  INT i;
-  short j;
-  char head[]={"DIF_VOLUME_FINITO"};
-  double ddum;
-  int    idum;
-
-  if(iws)
-    f = openFile(nameOut,"wb");
-  else
-    f = openFile(nameOut,"w");
-
-/* ...*/
-  headVtk(head,iws,f);
-/* ..................................................................*/
-
-/* ...*/
-  if(ddt.flag)
-    timeVtk(ddt.t,ddt.timeStep,iws,f);
-/* ..................................................................*/
-
-/*... coordenadas*/
-  writeVtkCoor(x,nnode,ndm,iws,f);
-/*...................................................................*/
-  
-/*... conectividades*/
-  HccaAlloc(int,m,lel,numel*maxNo,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
-  for(i=0;i<numel;i++){
-    for(j=0;j<maxNo;j++){
-      MAT2D(i,j,lel,maxNo) = MAT2D(i,j,el,maxNo)-1;
-    }
-  }  
-  writeVtkCell(lel,nen,typeGeom,numel,maxNo,iws,f);
-  HccaDealloc(m,lel,"el",_AD_);
-/*...................................................................*/
-
-/*... campo por elemento*/
-  fprintf(f,"CELL_DATA %ld\n",(long) numel);
-/*...................................................................*/
-
-/*... material*/
-  HccaAlloc(int,m,lel,numel,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
-  for(i=0;i<numel;i++)
-    lel[i]=(int) mat[i];
-   
-  writeVtkProp(lel,&ddum,numel,1,"mat",iws,INTEGER_VTK,1,f);
-  HccaDealloc(m,lel,"el",_AD_);
-/*...................................................................*/
-
-/*... numero do elemento*/
-  HccaAlloc(int,m,lel,numel*maxNo,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
-  for(i=0;i<numel;i++)
-    lel[i]= i+1;
-   
-  writeVtkProp(lel,&ddum,numel,1,"elGlobal",iws,INTEGER_VTK,1,f);
-  HccaDealloc(m,lel,"el",_AD_);
-/*...................................................................*/
-  
-/*... escrever resultados por celula*/  
-  writeVtkProp(&idum,elU,numel,ndf,uResEl,iws,DOUBLE_VTK,1,f);
-/*...................................................................*/
-
-/*... escrever gradiente por celula*/  
-  writeVtkProp(&idum,elGradU,numel,ndm,gradResEl,iws,DOUBLE_VTK,2,f);
-/*...................................................................*/
-
-/*... escrever campo de velociade  por celula*/  
-  writeVtkProp(&idum,elVel,numel,ndm,velEl,iws,DOUBLE_VTK,2,f);
-/*...................................................................*/
-
-/*.... campo por no*/
-  fprintf(f,"POINT_DATA %ld\n",(long) nnode);
-/*...................................................................*/
-
-/*... numero do no*/
-  HccaAlloc(int,m,lel,nnode,"el",_AD_);
-  if( lel == NULL){
-    fprintf(stderr,"Erro na alocação de lel.\n"
-                   "Nome do arquivo: %s.\n"
-                  ,__FILE__);
-    exit(EXIT_FAILURE);
-  }
-  for(i=0;i<nnode;i++)
-    lel[i]=i+1;
-   
-  writeVtkProp(lel,&ddum,nnode,1,"pNode",iws,INTEGER_VTK,1,f);
-  HccaDealloc(m,lel,"el",_AD_);
-/*...................................................................*/
-
-/*... escrever resuldos por nos*/  
-  writeVtkProp(&idum,nU    ,nnode,ndf,uResNo,iws,DOUBLE_VTK,1,f);
-/*...................................................................*/
-  
-/*... escrever os gradiente por nos*/  
-  writeVtkProp(&idum,nGradU,nnode,ndm,gradResNo,iws,DOUBLE_VTK,2,f);
-/*...................................................................*/
-
-/*... escrever as velocidade por nos*/  
-  writeVtkProp(&idum,nVel,nnode,ndm,velNo,iws,DOUBLE_VTK,2,f);
 /*...................................................................*/
 
   fclose(f);

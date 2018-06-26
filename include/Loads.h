@@ -69,6 +69,15 @@
                , DOUBLE *RESTRICT wallPar, short  const ndm          
                , bool const fCal         , bool const fWallModel   
                , short const wallType);
+
+  void pLoad(DOUBLE *RESTRICT sP  , DOUBLE *RESTRICT p
+           , DOUBLE *RESTRICT tA  , DOUBLE *RESTRICT velC
+           , DOUBLE *RESTRICT n
+           , DOUBLE const coefDifC, DOUBLE const densityC
+           , DOUBLE *RESTRICT xm  , DOUBLE const fArea
+           , DOUBLE const dcca    , Loads *ld
+           , short const ndm      , bool const fCal);
+
 /*...................................................................*/
 
 

@@ -72,10 +72,12 @@
                   ,bool const iKelvin       ,short const iProp);
 
   void initPropCD(PropPol *pol, DOUBLE *RESTRICT prop
-               , DOUBLE *RESTRICT u, DOUBLE *RESTRICT propMat
-               , short *RESTRICT mat
-               , short np, INT    nCell
-               , short iProp);
+                 , DOUBLE *RESTRICT u, DOUBLE *RESTRICT propMat
+                 , short *RESTRICT mat
+                 , short np, INT    nCell
+                 , short iProp);
+
+  void initPropStructCD(PropVarCD *propVar, short const n);
 /*...................................................................*/
 
 /*...*/
@@ -117,7 +119,7 @@
 /*...................................................................*/
 
 /*...*/
-  void initDiffPol(PropPol *prop, char *s, FILE *file);
+  void initCdPol(PropPol *prop, char *s, FILE *file);
 /*...................................................................*/
 
   int readFileLineSimple(DOUBLE *x, FILE *file);

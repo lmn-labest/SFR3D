@@ -1204,7 +1204,8 @@ void cellLibSimpleNonOrthPres(Diffusion diffPres
  *-------------------------------------------------------------------* 
  * loads     -> definicoes de cargas                                 * 
  * advT      -> tecnica da discretizacao do termo advecao            *
- * diffT   -> tecnica da discretizacao do termo difusivo             *
+ * diffT     -> tecnica da discretizacao do termo difusivo           *
+ * tModel    -> configuracoes do modelo de transporte                *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
  * lprop     -> propriedade fisicas das celulas                      *
  * lViz      -> viznhos da celula central                            * 
@@ -1249,17 +1250,19 @@ void cellLibSimpleNonOrthPres(Diffusion diffPres
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void cellLibTrans(Loads *loads           
-               ,Advection advT           ,Diffusion diffT
+               ,Advection *advT          ,Diffusion *diffT
+               ,TransModel *tModel
                ,short *RESTRICT lGeomType,DOUBLE *RESTRICT lprop
                ,INT   *RESTRICT lViz     ,INT *RESTRICT lId  
                ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
                ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
                ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
                ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
-               ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
+               ,DOUBLE *RESTRICT dcca    
+               ,DOUBLE *RESTRICT lDensity,DOUBLE *RESTRICT lCoefDiff
                ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
                ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-               ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt
+               ,DOUBLE *RESTRICT lRcell  ,Temporal *ddt
                ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL       
                ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
                ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT cc
@@ -1272,7 +1275,7 @@ void cellLibTrans(Loads *loads
   if(lib == 1){
 /*... 2D*/
     if(ndm == 2){
-      cellTrans2D(loads    
+/*    cellTrans2D(loads    
                  ,advT     ,diffT
                  ,lGeomType,lprop
                  ,lViz     ,lId
@@ -1288,7 +1291,7 @@ void cellLibTrans(Loads *loads
                  ,u0       ,gradU0      
                  ,vel      ,cc             
                  ,nEn      ,nFace 
-                 ,ndm      ,nel);
+                 ,ndm      ,nel);*/
     }
 /*..................................................................*/   
 
@@ -1296,13 +1299,15 @@ void cellLibTrans(Loads *loads
     else if(ndm == 3){
       cellTrans3D(loads    
                  ,advT     ,diffT
+                 ,tModel
                  ,lGeomType,lprop
                  ,lViz     ,lId
                  ,ksi      ,mKsi
                  ,eta      ,fArea
                  ,normal   ,volume
                  ,xm       ,xmcc
-                 ,dcca     ,lDensity 
+                 ,dcca     
+                 ,lDensity ,lCoefDiff
                  ,vSkew    ,mvSkew
                  ,lA       ,lB
                  ,lRcell   ,ddt 
@@ -1310,7 +1315,7 @@ void cellLibTrans(Loads *loads
                  ,u0       ,gradU0      
                  ,vel      ,cc             
                  ,nEn      ,nFace 
-                 ,ndm      ,nel);
+                 ,ndm      ,nel);  
     } 
 /*..................................................................*/   
   }

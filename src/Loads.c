@@ -39,7 +39,7 @@ DOUBLE InletFunction(DOUBLE const x) {
 
 /********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 27/01/2018                                   * 
+ * Data de modificaco : 02/06/2018                                   * 
  *-------------------------------------------------------------------* 
  * GETLOADS:                                                         * 
  *-------------------------------------------------------------------* 
@@ -56,8 +56,10 @@ DOUBLE InletFunction(DOUBLE const x) {
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx) {
+void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx)
+{
 
+  char i;
 //DOUBLE x1,x2,x3;
 
 //x1=xx[0];
@@ -65,44 +67,44 @@ void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx) {
 //x3=xx[2];
 //t =xx[3];
 
-  if (ld->type == DIRICHLETBC) {
+  if (ld->type == DIRICHLETBC)
+  {
     par[0] = ld->par[0];
   }
   
-  else if( ld->type == ROBINBC){
+  else if( ld->type == ROBINBC)
+  {
     par[0] = ld->par[0];
     par[1] = ld->par[1];
   }
   
-  else if (ld->type == NEUMANNBC) {
+  else if (ld->type == NEUMANNBC)
+  {
     par[0] = ld->par[0];
   }
 
-  else if (ld->type == MOVEWALL) {
-    par[0]   = ld->par[0];
-    par[1]   = ld->par[1];
-    par[2]   = ld->par[2];
+  else if (ld->type == MOVEWALL) 
+  {
+    for (i = 0; i< 4; par[i] = ld->par[i], i++);
   }
 
-  else if (ld->type == INLETSTAICTPRES) {
+  else if (ld->type == INLETSTAICTPRES) 
+  {
   }
 
-  else if (ld->type == INLETTOTALPRES) {
-    par[0] = ld->par[0];
-    par[1] = ld->par[1];
-    par[2] = ld->par[2];
-    par[3] = ld->par[3];
-    par[4] = ld->par[4];
+  else if (ld->type == INLETTOTALPRES) 
+  {
+    for (i = 0; i< 5; par[i] = ld->par[i], i++);
   }
 
-  else if (ld->type == INLET) {
-    if (ld->nTypeVar == LVARCONST){
-      par[0] = ld->par[0];
-      par[1] = ld->par[1];
-      par[2] = ld->par[2];
-      par[3] = ld->par[3];
+  else if (ld->type == INLET)
+  {
+    if (ld->nTypeVar == LVARCONST)
+    {
+      for(i=0; i< 5; par[i] = ld->par[i],i++);
     }
-    else if (ld->nTypeVar == LFUNCPARABOLIC) {
+    else if (ld->nTypeVar == LFUNCPARABOLIC)
+    {
       par[0] = ld->par[0];
 //    par[1] = InletFunction(x2);
       par[2] = 0.0;
@@ -110,7 +112,8 @@ void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx) {
     }
   }
 
-  else if (ld->type == OPEN) {
+  else if (ld->type == OPEN)
+  {
     par[0]   = ld->par[0];
     par[1]   = ld->par[1];
   }
@@ -705,7 +708,7 @@ void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 02/06/2018                                   * 
  *-------------------------------------------------------------------* 
  * pLoad : cargas                                                    *
  *-------------------------------------------------------------------* 
@@ -714,14 +717,16 @@ void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
  * sP      -> termo da diagonal                                      * 
  * p       -> forca local                                            * 
  * tA      -> nao definido                                           * 
+ * velC    -> Velocidade da celula central                           *
+ * n       -> normal externa                                         *
  * coefDifC-> coeficiente de difusao                                 * 
  * densityC-> densidade                                              * 
- * wfn     -> velocidade normal a face                               * 
  * xm      -> coordenada do ponto medio da face                      * 
  * fArea   -> area da face                                           * 
  * dcca    -> menor distancia do centroide central a face desta      *
  *            celula                                                 * 
- * ld      -> definicao da carga                                     * 
+ * ld      -> definicao da carga                                     *
+ * ndm     -> dimensao espacial                                      *
  * fCal    -> true - atualizada sP e p                               * 
  *            false- atualizada sP e p                               * 
  *-------------------------------------------------------------------* 
@@ -735,18 +740,21 @@ void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
-          ,DOUBLE *RESTRICT tA
+          ,DOUBLE *RESTRICT tA  ,DOUBLE *RESTRICT velC
+          ,DOUBLE *RESTRICT n
           ,DOUBLE const coefDifC,DOUBLE const densityC
-          ,DOUBLE const wfn     ,DOUBLE *RESTRICT xm                   
-          ,DOUBLE const fArea   ,DOUBLE const dcca
-          ,Loads ld             ,bool const fCal){
+          ,DOUBLE *RESTRICT xm  ,DOUBLE const fArea   
+          ,DOUBLE const dcca    ,Loads *ld    
+          ,short const ndm      ,bool const fCal){
 
-  DOUBLE aP,h;
+  DOUBLE aP,h,par[MAXLOADPARAMETER], velB[3], densityEnv, wfn;
 
+  velB[0] = velB[1] = velB[2] = 0.e0;
 
 /*... potencial prescrito*/
-  if( ld.type == DIRICHLETBC){
-    tA[0]   = ld.par[0];
+  if( ld->type == DIRICHLETBC){
+    getLoads(par, ld, xm);
+    tA[0]   = par[0];
 /*...*/
     if(fCal){
       aP   = coefDifC*fArea/dcca;
@@ -758,9 +766,10 @@ void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... lei de resfriamento de newton*/
-  else if( ld.type == ROBINBC){
-    h     = ld.par[0];
-    tA[0] = ld.par[1];
+  else if( ld->type == ROBINBC){
+    getLoads(par, ld, xm);
+    h     = par[0];
+    tA[0] = par[1];
 /*...*/
     if(fCal){
       aP  = ((coefDifC*h)/(coefDifC+h*dcca))*fArea;
@@ -772,8 +781,9 @@ void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... fluxo prestrito diferente de zero*/
-   else if( ld.type == NEUMANNBC){
-     tA[0]   = ld.par[0];
+   else if( ld->type == NEUMANNBC){
+     getLoads(par, ld, xm);
+     tA[0] = par[0];
 /*...*/
      if(fCal)
        *p += fArea*tA[0];
@@ -783,8 +793,9 @@ void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
 
 /*... potencial senoidal prescrito 
       ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
-   else if( ld.type == SINBC){
-     loadSenProd(tA,ld.par,xm); 
+   else if( ld->type == SINBC){
+     getLoads(par, ld, xm);
+     loadSenProd(tA,par,xm); 
 /*...*/
      if(fCal){ 
        aP   = coefDifC*fArea/dcca;
@@ -796,21 +807,35 @@ void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... potencial prescrito (entra)*/
-   else if( ld.type == INLET){
-     tA[0]   = ld.par[0];
+   else if( ld->type == INLET){
+     getLoads(par, ld, xm);
+     tA[0] = par[1];
 /*...*/
      if(fCal)
-       *p -= wfn*densityC*fArea*tA[0];
+     {
+       densityEnv = par[0];
+       velB[0]    = par[2];
+       velB[1]    = par[3];
+       wfn = velB[0] * n[0] + velB[1] * n[1];
+       if (ndm == 3)
+       {
+         velB[2] = par[4];
+         wfn += velB[2] * n[2];
+       }
+       *p -= wfn*densityEnv*fArea*tA[0];
+     }
    }
 /*...................................................................*/
 
 /*... derivada nula (condicao localmente parabolica saida)*/
-   else if( ld.type == OUTLET){
+   else if( ld->type == OUTLET){
 /*...*/
-     if(fCal)
-       *sP += wfn*densityC*fArea;
+     if(fCal){
+       wfn = velC[0] * n[0] + velC[1] * n[1];
+       if (ndm == 3) wfn += velC[2] * n[2];
+       *sP += wfn * densityC*fArea;
+     }
 /*...................................................................*/
-
    }
 /*...................................................................*/
     
@@ -828,6 +853,7 @@ void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
  * sP      -> termo da diagonal                                      * 
  * p       -> forca local                                            * 
  * tA      -> nao definido                                           * 
+ * n       -> normal externa                                         *
  * coefDifC-> coeficiente de difusao                                 * 
  * densityC-> densidade                                              * 
  * wfn     -> velocidade normal a face                               * 
@@ -1025,8 +1051,8 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 /*...*/
      if(fCal){
         densityEnv = par[0];
-        velB[0] = par[2];
-        velB[1] = par[3];
+        velB[0]    = par[2];
+        velB[1]    = par[3];
         
         wfn   = velB[0] * n[0] + velB[1] * n[1];
         if (ndm == 3) {
@@ -1086,9 +1112,10 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
  * sP      -> termo da diagonal                                      * 
  * p       -> forca local                                            * 
  * tA      -> nao definido                                           * 
+ * velC    -> Velocidade da celula central                           *
+ * n       -> normal externa                                         *
  * coefDifC-> coeficiente de difusao                                 * 
  * densityC-> densidade                                              * 
- * wfn     -> velocidade normal a face                               * 
  * xm      -> coordenada do ponto medio da face                      * 
  * fArea   -> area da face                                           * 
  * dd      -> menor distancia do centroide central a face desta      *

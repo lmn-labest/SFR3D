@@ -12,7 +12,7 @@
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 19/05/2018                                   *
+ * Data de modificaco : 02/06/2018                                   *
  *-------------------------------------------------------------------*
  * readFileFvMesh : leitura de arquivo de dados em volume finitos    *
  * ------------------------------------------------------------------*
@@ -27,7 +27,8 @@
  * ------------------------------------------------------------------*
  * *******************************************************************/
 void readFileFvMesh( Memoria *m             , Mesh *mesh
-                   , PropVar prop           , PropVarCD *propD
+                   , PropVar prop           
+                   , PropVarCD *propD       , PropVarCD *propT
                    , EnergyModel energyModel
                    , Turbulence *tModel     , Mean *media
                    , FILE* file)
@@ -35,7 +36,7 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
   char word[WORD_SIZE],str[WORD_SIZE];
   char macro[NMACROS][WORD_SIZE]={
         "coordinates"  ,"endMesh"    ,"insert"         /* 0, 1, 2*/
-       ,"return"       ,"cells"      ,"faceRt1"        /* 3, 4, 5*/
+       ,"return"       ,"cells"      ,"faceResT1"      /* 3, 4, 5*/
        ,"faceLoadT1"   ,"loadsT1"    ,""               /* 6, 7, 8*/ 
        ,""             ,""           ,""               /* 9,10,11*/ 
        ,"faceResD1"    ,"uniformD1"  ,"loadsD1"        /*12,13,14*/ 
@@ -453,10 +454,15 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
      HccaAlloc(DOUBLE,m,mesh->elm.u0T1
               ,nel*mesh->ndfT[0],"eU0t1"             ,_AD_);
      zero(mesh->elm.u0T1        ,nel*mesh->ndfT[0]           ,DOUBLEC);
-/*... densityUt1*/ 
-     HccaAlloc(DOUBLE,m,mesh->elm.densityUt1
-             ,nel*DENSITY_LEVEL,"densityUt1" ,_AD_);
-     zero(mesh->elm.densityUt1  ,nel*DENSITY_LEVEL,DOUBLEC);
+
+/*... densityUt1*/
+     HccaAlloc(DOUBLE, m, mesh->elm.densityUt1
+             , nel*DENSITY_LEVEL, "densityUt1", _AD_);
+     zero(mesh->elm.densityUt1, nel*DENSITY_LEVEL, DOUBLEC);
+
+/*... ceoficiente de diffusividae T1*/
+     HccaAlloc(DOUBLE, m, mesh->elm.cDiffT1, nel, "cDiffT1", _AD_);
+     zero(mesh->elm.cDiffT1, nel, DOUBLEC);
 
 /*... uT1*/
      HccaAlloc(DOUBLE,m,mesh->node.uT1 
@@ -618,13 +624,13 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
     }
 /*...................................................................*/
 
-/*... faceRt1 */
+/*... faceResT1 */
     else if((!strcmp(word,macro[5])) && (!rflag[5])){
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[5] = true;
-      strcpy(str,"endFaceRt1");
-      fprintf(fileLogExc,"loading faceRt1 ...\n");
+      strcpy(str,"endFaceResT1");
+      fprintf(fileLogExc,"loading faceResT1 ...\n");
       readVfRes(mesh->elm.faceRt1,mesh->numel,mesh->maxViz+1,str,file);
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
@@ -970,15 +976,40 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
 
 /*...*/
   if(mesh->ndfT[0] > 0) 
-  {   
-    initProp(mesh->elm.densityUt1
-            ,mesh->elm.material.prop,mesh->elm.mat
-            ,DENSITY_LEVEL          ,mesh->numel
-            ,DENSITY);  
+  {
+/*...*/
+    alphaProdVector(1.e0             , mesh->elm.vel0
+                 , mesh->numel*ndm   , mesh->elm.vel);
 /*...*/
     alphaProdVector(1.e0                     , mesh->elm.u0T1
                   , mesh->numel*mesh->ndfT[0], mesh->elm.uT1);
-     
+    if (propT[0].fDensity)
+/*... inicia a massa especifica com o campo inicial*/
+      initPropCD(&propT[0].den , mesh->elm.densityUt1
+                , mesh->elm.u0T1, mesh->elm.material.prop
+                , mesh->elm.mat
+                , DENSITY_LEVEL , mesh->numel
+                , DENSITY);
+    else
+      initProp(mesh->elm.densityUt1
+             , mesh->elm.material.prop, mesh->elm.mat
+             , DENSITY_LEVEL, mesh->numel
+             , DENSITY);
+
+
+/*... inicializando o coeficiente de difusao*/
+    if (propT[0].fCeofDiff)
+      initPropCD(&propT[0].ceofDiff, mesh->elm.cDiffT1
+               , mesh->elm.u0T1    , mesh->elm.material.prop
+               , mesh->elm.mat
+               , COEFDIFF_LEVEL    , mesh->numel
+               , COEFDIF);
+  else
+    initProp(mesh->elm.cDiffT1
+           , mesh->elm.material.prop, mesh->elm.mat
+           , COEFDIFF_LEVEL         , mesh->numel
+           , COEFDIF);
+/*...................................................................*/
   }
 /*...................................................................*/
 
@@ -1999,7 +2030,7 @@ void readEdo(Mesh *mesh,FILE *file){
 
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
- * Data de modificaco : 12/05/2018                                   *
+ * Data de modificaco : 19/06/2018                                   *
  *-------------------------------------------------------------------* 
  * READPROPVAR : propriedades variaveis                              * 
  *-------------------------------------------------------------------* 
@@ -2015,7 +2046,7 @@ void readEdo(Mesh *mesh,FILE *file){
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void readPropVar(PropVar *p,FILE *file){
+void readPropVarFluid(PropVar *p,FILE *file){
 
   char *str={"endPropVar"};
   char macros[][WORD_SIZE] =
@@ -2084,7 +2115,7 @@ void readPropVar(PropVar *p,FILE *file){
 
 /*********************************************************************
  * Data de criacao    : 12/05/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 19/06/2018                                   *
  *-------------------------------------------------------------------*
  * READPROPVAR : propriedades variaveis                              *
  *-------------------------------------------------------------------*
@@ -2103,7 +2134,7 @@ void readPropVar(PropVar *p,FILE *file){
 void readPropVarDiff(PropVarCD *p, FILE *file)
 {
 
-  char *str = { "endPropVarDiff" };
+  char *str = { "endDiff" };
   char macros[][WORD_SIZE] =
              { "densityD1"   ,"cDiffD1"};  /* 0, 1, 2*/
   char word[WORD_SIZE];
@@ -2121,7 +2152,7 @@ void readPropVarDiff(PropVarCD *p, FILE *file)
     {
       readMacro(file, word, false);
       p[0].fDensity = true;
-      initDiffPol(&p[0].den, word,file);
+      initCdPol(&p[0].den, word,file);
       if (!mpiVar.myId && p[0].fDensity)
         fprintf(fileLogExc, "%-25s: %s\n", "DensityD1 variation"
                                          , "Enable");
@@ -2129,11 +2160,11 @@ void readPropVarDiff(PropVarCD *p, FILE *file)
 /*...................................................................*/
 
 /*... condutividade termica D1*/
-    if (!strcmp(word, macros[1]))
+    else if (!strcmp(word, macros[1]))
     {
       readMacro(file, word, false);
       p[0].fCeofDiff = true;
-      initDiffPol(&p[0].ceofDiff, word, file);
+      initCdPol(&p[0].ceofDiff, word, file);
       if (!mpiVar.myId && p[0].fCeofDiff)
         fprintf(fileLogExc, "%-25s: %s\n", "CeofDiff D1 variation"
                                          , "Enable");
@@ -2146,8 +2177,115 @@ void readPropVarDiff(PropVarCD *p, FILE *file)
 /*********************************************************************/
 
 /*********************************************************************
+ * Data de criacao    : 19/06/2018                                   *
+ * Data de modificaco : 10/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * READPROPVAR : propriedades variaveis                              *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * p       ->                                                        *
+ * file    -> arquivo de arquivo                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * p       ->                                                        *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void readPropVarTrans(PropVarCD *p, FILE *file)
+{
+
+  char *str = { "endTrans" };
+  char macros[][WORD_SIZE] =  { "densityT1","cDiffT1" };  /* 0, 1, 2*/
+  char word[WORD_SIZE];
+
+/*...*/
+  p[0].fDensity = false;
+  p[0].fCeofDiff = false;
+/*...................................................................*/
+
+  readMacro(file, word, false);
+  do
+  {
+ /*... density T1*/
+    if (!strcmp(word, macros[0]))
+    {
+      readMacro(file, word, false);
+      p[0].fDensity = true;
+      initCdPol(&p[0].den, word, file);
+      if (!mpiVar.myId && p[0].fDensity)
+        fprintf(fileLogExc, "%-25s: %s\n", "DensityD1 variation"
+          , "Enable");
+    }
+/*...................................................................*/
+
+/*... condutividade termica T1*/
+    else if (!strcmp(word, macros[1]))
+    {
+      readMacro(file, word, false);
+      p[0].fCeofDiff = true;
+      initCdPol(&p[0].ceofDiff, word, file);
+      if (!mpiVar.myId && p[0].fCeofDiff)
+        fprintf(fileLogExc, "%-25s: %s\n", "CeofDiff D1 variation"
+          , "Enable");
+    }
+/*...................................................................*/
+    readMacro(file, word, false);
+  } while (strcmp(word, str));
+}
+/*********************************************************************/
+
+
+/*********************************************************************
+ * Data de criacao    : 19/06/2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * READPROPVAR : propriedades variaveis                              *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * pd      -> difusao                                                *
+ * pt      -> transporte                                             *
+ * file    -> arquivo de arquivo                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * pd      -> difusao                                                *
+ * pt      -> transporte                                             *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void readPropVar(PropVarCD *pd, PropVarCD *pt, FILE *file)
+{
+
+  char *str = { "endPropVar" };
+  char macros[][WORD_SIZE] = { "Diff","Trans" };  /* 0, 1, 2*/
+  char word[WORD_SIZE];
+
+  readMacro(file, word, false);
+  do
+  {
+/*... diff*/
+    if (!strcmp(word, macros[0]))
+      readPropVarDiff(pd,file);
+/*...................................................................*/
+
+/*... Trans*/
+    else if (!strcmp(word, macros[1]))
+      readPropVarTrans(pt, file);
+ /*...................................................................*/
+    readMacro(file, word, false);
+  } while (strcmp(word, str));
+
+}
+/*********************************************************************/
+
+/*********************************************************************
  * Data de criacao    : 04/09/2017                                   *
- * Data de modificaco : 06/05/2018                                   *
+ * Data de modificaco : 02/06/2018                                   *
  *-------------------------------------------------------------------* 
  * readMode : le as configuraoes dos modelos                         * 
  *-------------------------------------------------------------------* 
@@ -2158,6 +2296,7 @@ void readPropVarDiff(PropVarCD *p, FILE *file)
  * eMass   -> modelos/termos usados na equacao da conv de mass       * 
  * ModelMomentum  -> modelos/termos usados na equacao da conv de mass*
  * dModel  -> modelos/termos usados nas equacoes de diffusao         *
+ * tModel  -> modelos/termos usados nas equacoes de transporte       *
  * file    -> arquivo de arquivo                                     * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -2171,14 +2310,14 @@ void readPropVarDiff(PropVarCD *p, FILE *file)
  *********************************************************************/
 void readModel(EnergyModel *e    , Turbulence *t
              , MassEqModel *eMass, MomentumModel *ModelMomentum
-             , DiffModel   *dModel  
+             , DiffModel   *dModel,TransModel *tModel
              , FILE *file){
 
   char *str={"endModel"};
   char format[1024];
   char word[WORD_SIZE];
   char macros[][WORD_SIZE] = {"energy"  ,"turbulence","mass"
-                             ,"momentum","diffusion"};
+                             ,"momentum","diffusion" ,"transport"};
 
   char energy[][WORD_SIZE] = { "preswork", "dissipation", "residual"  
                              , "absolute", "temperature", "entalphy"}; 
@@ -2196,7 +2335,8 @@ void readModel(EnergyModel *e    , Turbulence *t
                                ,"div"        ,"buoyanthy"      /*4,5*/  
                                ,"buoyantprgh","buoyantrhoref"};/*6,7*/
 
-  char diff[][WORD_SIZE] = { "residual"   ,"absolute"};        /*0,1*/
+  char diff[][WORD_SIZE] = { "residual","absolute"};        /*0,1*/
+  char tran[][WORD_SIZE] = { "residual","absolute" };       /*0,1*/
 
   char typeWallModel[][WORD_SIZE] ={"standard","enhanced"};
   
@@ -2619,7 +2759,7 @@ void readModel(EnergyModel *e    , Turbulence *t
     }
 /*...................................................................*/
 
-/*... Momentum*/
+/*... Diffusion*/
     else if (!strcmp(word, macros[4])) 
     {
       strcpy(format, "%-20s: %s\n");
@@ -2657,6 +2797,52 @@ void readModel(EnergyModel *e    , Turbulence *t
         {
           dModel[id].fRes = false;
           if (!mpiVar.myId && !dModel[id].fRes)
+            fprintf(fileLogExc, format, "Absolute", "Enable");
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*... Transport*/
+    else if (!strcmp(word, macros[5]))
+    {
+      strcpy(format, "%-20s: %s\n");
+      readMacro(file, word, false);
+      convStringLower(word);
+/*...*/
+      if (!strcmp(word, "t1"))
+        id = 0;
+      else if (!strcmp(word, "t2"))
+        id = 1;
+      else if (!strcmp(word, "t3"))
+        id = 2;
+/*...................................................................*/
+
+      if (!mpiVar.myId)
+        fprintf(fileLogExc, "\n%-20s: D%1d\n", "TransportMode", id + 1);
+
+      tModel[id].fRes = false;
+      fscanf(file, "%d", &nPar);
+      for (i = 0; i<nPar; i++)
+      {
+        readMacro(file, word, false);
+        convStringLower(word);
+/*... residual*/
+        if (!strcmp(word, tran[0]))
+        {
+          tModel[id].fRes = true;
+          if (!mpiVar.myId && tModel[id].fRes)
+            fprintf(fileLogExc, format, "Residual", "Enable");
+        }
+/*...................................................................*/
+
+/*... Absolute*/
+        else if (!strcmp(word, tran[1]))
+        {
+          tModel[id].fRes = false;
+          if (!mpiVar.myId && !tModel[id].fRes)
             fprintf(fileLogExc, format, "Absolute", "Enable");
         }
 /*...................................................................*/
@@ -2707,7 +2893,7 @@ void readGravity(DOUBLE *gravity,FILE *file){
 
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
- * Data de modificaco : 13/05/2018                                   * 
+ * Data de modificaco : 19/06/2018                                   * 
  *-------------------------------------------------------------------* 
  * SETPPRINT : Seleciona as veriaves que serao impressas na          *
  * macro pFluid, puD1, puT1                                          *
@@ -2739,7 +2925,8 @@ void setPrint(FileOpt *opt,FILE *file){
                ,"cdynamic"     ,"qcriterion"  ,"prestotal"       /*18,19,20*/
                ,"kturb"        ,"pkelvin"     ,"ud1"             /*21,22,23*/
                ,"gradud1"      ,"ut1"         ,"gradut1"         /*24,25,26*/
-               ,"densityd1"    ,"coefdiffd1"  ,""};              /*27,28,29*/
+               ,"densityd1"    ,"coefdiffd1"  ,"densityt1"       /*27,28,29*/
+               ,"coefdifft1"};                                   /*30,31,32*/
   int tmp;
 
   strcpy(format,"%-20s: %s\n");
@@ -2764,6 +2951,8 @@ void setPrint(FileOpt *opt,FILE *file){
   opt->tConductivity  = false;
   opt->densityD1      = false;
   opt->coefDiffD1     = false;
+  opt->densityT1      = false;
+  opt->coefDiffT1     = false;
   opt->vorticity      = false;
   opt->wallParameters = false;
   opt->stress         = false;
@@ -3009,6 +3198,22 @@ void setPrint(FileOpt *opt,FILE *file){
     {
       opt->coefDiffD1 = true;
       if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "coefDiffD1");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[29]))
+    {
+      opt->densityT1 = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "densityT1");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[30]))
+    {
+      opt->coefDiffT1 = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "coefDiffT1");
     }
 /*.....................................................................*/
 
@@ -4604,7 +4809,6 @@ void readNlIt(Scheme *sc, FILE *fileIn)
 }
 /**********************************************************************/
 
-
 /*********************************************************************
  * Data de criacao    : 30/04/2018                                   *
  * Data de modificaco : 00/00/0000                                   *
@@ -4798,6 +5002,208 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
 }
 /**********************************************************************/
 
+/*********************************************************************
+* Data de criacao    : 02/06/2018                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* readSolvTrans: leitura das configuracoes do solvers utilizados    *
+* nos problemas de transporte                                       *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void readSolvTrans(Memoria *m  , Mesh *mesh      , Reord *reordMesh
+                , Solv *solvT1 , SistEq* sistEqT1, bool *fSolvT1
+                , char* auxName, char* preName   , char* nameOut
+                , FILE *fileIn , FileOpt *opt)
+{
+
+  unsigned short nSistEq;
+
+  INT nEqMax;
+  /*... Estrutura de dados*/
+  char strIa[MNOMEPONTEIRO], strJa[MNOMEPONTEIRO];
+  char strA[MNOMEPONTEIRO], strAd[MNOMEPONTEIRO];
+
+  char str1[100], str2[100], str3[100], str4[100];
+
+  char word[WORD_SIZE];
+
+/*... solver*/
+  readMacro(fileIn, word, false);
+  nSistEq = (short)atol(word);
+  do
+  {
+    readMacro(fileIn, word, false);
+/*... equaocao de difusao d1*/
+    if (!strcmp(word, "T1") || !strcmp(word, "t1"))
+    {
+      nSistEq--;
+      *fSolvT1         = true;
+      solvT1->solver   = PBICGSTAB;
+      solvT1->tol      = smachn();
+      solvT1->maxIt    = 50000;
+      solvT1->fileSolv = NULL;
+      solvT1->log      = true;
+      solvT1->flag     = true;
+/*...................................................................*/
+
+/*...*/
+      if (solvT1->log && !mpiVar.myId)
+      {
+        strcpy(auxName, preName);
+        strcat(auxName, "_D1");
+        fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
+        solvT1->fileSolv = openFile(nameOut, "w");
+      }
+/*...................................................................*/
+
+/*...*/
+      sistEqT1->storage = CSRD;
+      sistEqT1->unsym   = true;
+/*...................................................................*/
+
+/*... solver*/
+      readMacro(fileIn, word, false);
+      setSolverConfig(word, solvT1, fileIn);
+/*...................................................................*/
+
+/*... DataStruct*/
+      readMacro(fileIn, word, false);
+      setDataStruct(word, &sistEqT1->storage);
+/*...................................................................*/
+
+/*... numeracao das equacoes das velocidades*/
+      HccaAlloc(INT, m, sistEqT1->id, mesh->numel*mesh->ndfT[0]
+              , "sistT1id", _AD_);
+      if (!mpiVar.myId)
+      {
+        fprintf(fileLogExc, "%s\n", DIF);
+        fprintf(fileLogExc, "Numerando as equacoes.\n");
+      }
+      tm.numeqT1 = getTimeC() - tm.numeqT1;
+      sistEqT1->neq = numeq(sistEqT1->id     , reordMesh->num
+                          , mesh->elm.faceRt1, mesh->elm.adj.nViz
+                          , mesh->numel      , mesh->maxViz
+                          , mesh->ndfT[0]);
+      tm.numeqT1 = getTimeC() - tm.numeqT1;
+
+      if (!mpiVar.myId)
+      {
+        fprintf(fileLogExc, "Equacoes numeradas.\n");
+        fprintf(fileLogExc, "%s\n", DIF);
+      }
+/*...................................................................*/
+
+/*...*/
+      if (mpiVar.nPrcs > 1)
+      {
+        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+        //      sistEqT1->neqNov = countEq(reordMesh->num
+        //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
+        //                          ,mesh->numelNov     ,mesh->maxViz
+        //                          ,mesh->ndfT[0]);
+        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+      }
+      else
+        sistEqT1->neqNov = sistEqT1->neq;
+/*...................................................................*/
+
+/*...*/
+      HccaAlloc(DOUBLE        , m        , sistEqT1->b0
+              , sistEqT1->neq, "sistT1b0", _AD_);
+      HccaAlloc(DOUBLE      , m         , sistEqT1->b
+             , sistEqT1->neq, "sistT1b ", _AD_);
+      HccaAlloc(DOUBLE       , m         , sistEqT1->x
+              , sistEqT1->neq, "sistT1x ", _AD_);
+      zero(sistEqT1->b0, sistEqT1->neq, DOUBLEC);
+      zero(sistEqT1->b , sistEqT1->neq, DOUBLEC);
+      zero(sistEqT1->x , sistEqT1->neq, DOUBLEC);
+/*...................................................................*/
+
+/*... Estrutura de dados velocidades*/
+      strcpy(strIa, "iaT1");
+      strcpy(strJa, "jaT1");
+      strcpy(strAd, "adT1");
+      strcpy(strA , "aT1");
+
+      if (!mpiVar.myId) fprintf(fileLogExc, "T1:\n");
+      if (!mpiVar.myId)
+        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
+
+      tm.dataStructT1 = getTimeC() - tm.dataStructT1;
+      dataStruct(m               
+               , sistEqT1->id      , reordMesh->num, mesh->elm.adj.nelcon
+               , mesh->elm.adj.nViz, mesh->numelNov, mesh->maxViz
+               , mesh->ndfT[0]     , strIa         , strJa
+               , strAd             , strA          , sistEqT1);
+      tm.dataStructT1 = getTimeC() - tm.dataStructT1;
+
+      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+/*...................................................................*/
+
+/*... dividindo a matriz*/
+/*... Openmp(T1)*/
+      if (ompVar.fSolver)
+      {
+        strcpy(str1, "thBeginT1");
+        strcpy(str2, "thEndT1");
+        strcpy(str3, "thSizeT1");
+        strcpy(str4, "thHeightT1");
+        pMatrixSolverOmp(m, sistEqT1, str1, str2, str3, str4);
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+  } while (nSistEq);
+/*...................................................................*/
+
+  /*...*/
+  if (opt->fItPlot && !mpiVar.myId)
+  {
+    strcpy(auxName, preName);
+    strcat(auxName, "_T1");
+    fName(auxName, mpiVar.nPrcs, 0, 10, nameOut);
+    opt->fileItPlot[FITPLOTT1] = openFile(nameOut, "w");
+    fprintf(opt->fileItPlot[FITPLOTT1], "#T1\n#it ||b||/||b0|| ||b||\n");
+  }
+  /*...................................................................*/
+
+/*... Openmp(Vel,Pres)*/
+  if (ompVar.fSolver) {
+    if (*fSolvT1) {
+      nEqMax = sistEqT1->neqNov;
+      HccaAlloc(DOUBLE, m, ompVar.buffer
+              , nEqMax*ompVar.nThreadsSolver, "bufferOmp", false);
+      zero(ompVar.buffer, nEqMax*ompVar.nThreadsSolver, DOUBLEC);
+      sistEqT1->omp.thY = ompVar.buffer;
+    }
+  }
+/*...................................................................*/
+
+/*... mapa de equacoes para comunicacao*/
+  //    if( mpiVar.nPrcs > 1) {    
+  //      front(&m,pMesh,sistEqT1,mesh->ndfT[0]);  
+  //    } 
+/*...................................................................*/
+
+/*... informacao da memoria total usada*/
+  if (!mpiVar.myId) {
+    strcpy(str1, "MB");
+    memoriaTotal(str1);
+    usoMemoria(m, str1);
+  }
+/*...................................................................*/
+
+}
+/**********************************************************************/
+
 /**********************************************************************
  * Data de criacao    : 29/01/2018                                    *
  * Data de modificaco : 02/02/2018                                    *
@@ -4930,7 +5336,7 @@ void setReGrad(short *rcGrad, FILE *file)
 
 /**********************************************************************
 * Data de criacao    : 19/05/2018                                    *
-* Data de modificaco : 00/00/0000                                    *
+* Data de modificaco : 02/06/2018                                    *
 *--------------------------------------------------------------------*
 * setReGrad:                                                         *
 *--------------------------------------------------------------------*
@@ -4951,7 +5357,9 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
   FILE *fileOut = NULL;
   char str[] = {"end"};
   char word[WORD_SIZE];
-  char macro[][WORD_SIZE] = { "celltype","densityd1","coefdiffd1"};
+  char macro[][WORD_SIZE] = { "celltype"                    /*0  */
+                            ,"densityd1","coefdiffd1"       /*1,2*/   
+                            ,"densityt1","coefdifft1" };    /*3,4*/
   short i, j,iMat;
   INT ty;
   DOUBLE v;
@@ -4968,7 +5376,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
     {
       convStringLower(word);
       j = 0;
-/*...*/
+/*... cellType*/
       if (!strcmp(word, macro[j++]))
       {
         fscanf(fileOut, "%d", &type[iMat]);
@@ -4977,7 +5385,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
       }
 /*.....................................................................*/
 
-/*...*/
+/*... densityd1*/
       else if (!strcmp(word, macro[j++]))
       {
         fscanf(fileOut,"%lf",&v);
@@ -4987,7 +5395,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
       }
 /*.....................................................................*/
 
-/*...*/
+/*... coefdiffd1*/
       else if (!strcmp(word, macro[j++]))
       {
         fscanf(fileOut, "%lf", &v);
@@ -4996,6 +5404,27 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
           fprintf(fileLogExc, "%-20s: %lf\n", macro[j-1], prop[COEFDIF]);
       }
 /*.....................................................................*/
+
+/*... densityt1*/
+      else if (!strcmp(word, macro[j++]))
+      {
+        fscanf(fileOut, "%lf", &v);
+        prop[DENSITY] = v;
+        if (!mpiVar.myId)
+          fprintf(fileLogExc, "%-20s: %lf\n", macro[j - 1], prop[DENSITY]);
+      }
+/*.....................................................................*/
+
+/*... coefdifft1*/
+      else if (!strcmp(word, macro[j++]))
+      {
+        fscanf(fileOut, "%lf", &v);
+        prop[COEFDIF] = v;
+        if (!mpiVar.myId)
+          fprintf(fileLogExc, "%-20s: %lf\n", macro[j - 1], prop[COEFDIF]);
+      }
+/*.....................................................................*/
+
       readMacro(fileOut, word, false);
     }while(strcmp(word,str));
 /*.....................................................................*/

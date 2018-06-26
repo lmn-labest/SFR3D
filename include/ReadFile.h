@@ -29,10 +29,11 @@
                  ,short *ndm  ,short *numat
                  ,FILE  *file);
   
-  void readFileFvMesh(Memoria *m        , Mesh *mesh
-                    , PropVar prop      , PropVarCD *propD
+  void readFileFvMesh(Memoria *m             , Mesh *mesh
+                    , PropVar prop      
+                    , PropVarCD *propD       , PropVarCD *propT
                     , EnergyModel energyModel
-                    , Turbulence *tModel, Mean *media
+                    , Turbulence *tModel     , Mean *media
                     , FILE* file);
 
   void readVfMat(DOUBLE *prop,short *type,short numat,FILE *file);
@@ -52,13 +53,15 @@
 
   void config(FileOpt *opt ,Reord *reord,FILE* f);
   
-  void readEdo(Mesh *mesh,FILE *file);
-  void readPropVar(PropVar *p,FILE *file);
-  void readPropVarDiff(PropVarCD *p, FILE *file);
+  void readEdo(Mesh *mesh,FILE *file);  
+  void readPropVar(PropVarCD *pd, PropVarCD *pt, FILE *file);
+  void readPropVarDiff(PropVarCD *p , FILE *file);
+  void readPropVarTrans(PropVarCD *p, FILE *file);
+  void readPropVarFluid(PropVar *p, FILE *file);
   void readGravity(DOUBLE *gravity,FILE *file);
   void readModel(EnergyModel *e    , Turbulence *t
                , MassEqModel *eMass, MomentumModel *ModelMomentum
-               , DiffModel *dModel
+               , DiffModel *dModel , TransModel *tModel
                , FILE *file);
   void readMean(Memoria *m, FILE *fileIn
               , Mesh *mesh, Mean *media);
@@ -90,10 +93,15 @@
                     , char* auxName, char* preName, char* nameOut
                     , FILE *fileIn, FileOpt *opt);
 /*...*/
-  void readSolvDiff(Memoria *m, Mesh *mesh, Reord *reordMesh
-                 , Solv *solvD1, SistEq* sistEqD1, bool *fSolvD1
-                 , char* auxName, char* preName, char* nameOut
-                 , FILE *fileIn, FileOpt *opt);
+  void readSolvDiff (Memoria *m   , Mesh *mesh      , Reord *reordMesh
+                   , Solv *solvD1 , SistEq* sistEqD1, bool *fSolvD1
+                   , char* auxName, char* preName   , char* nameOut
+                   , FILE *fileIn , FileOpt *opt);
+
+  void readSolvTrans(Memoria *m   , Mesh *mesh      , Reord *reordMesh
+                   , Solv *solvT1 , SistEq* sistEqT1, bool *fSolvT1
+                   , char* auxName, char* preName   , char* nameOut
+                   , FILE *fileIn , FileOpt *opt);
 
    void readNlIt(Scheme *sc, FILE *fileIn);
    

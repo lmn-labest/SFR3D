@@ -12,9 +12,9 @@
   #include<Transient.h>
 
 
-  void transport(Memoria *m ,Loads *loadsTrans
-                ,Mesh *mesh0,Mesh *mesh       ,SistEq *sistEqT
-                ,Solv *solvT,Scheme sc        ,PartMesh *pMesh
-                ,FileOpt opt,char *preName    ,char *nameOut
-                ,FILE *fileOut);
+void transport(Memoria *m     , Loads *loadsTrans, TransModel *tModel
+             , Mesh *mesh0    , Mesh *mesh       , SistEq *sistEqT
+             , Solv *solvT    , Scheme *sc       , PartMesh *pMesh
+             , PropVarCD *prop, FileOpt *opt     , char *preName
+             , char *nameOut  , FILE *fileOut);
 #endif/*_TRANSPORT_H_*/

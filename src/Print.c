@@ -453,6 +453,227 @@ void printFluid(Memoria *m
 /*********************************************************************/
 
 /*********************************************************************
+ * Data de criacao    : 02/06/2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * printTrans:impressao da equacao de de transporte                  *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * m       -> vetor de memoria principal                             *
+ * pMesh     -> modelo de turbulencia                                *
+ * sc        -> modelo da equacao de energia                         *
+ * loadsT1   -> deficicao de cargas                                  *
+ * opt       -> opcoes de arquivo                                    *
+ * mesh0     -> malha global                                         *
+ * mesh      -> malha particionada                                   *
+ * preName   -> prefixo do arquivo                                   *
+ * nameOut   -> arquivo de saida                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+*********************************************************************/
+void printTrans(Memoria *m
+              , PartMesh *pMesh, Scheme *sc
+              , Loads *loadsT1 , FileOpt *opt
+              , Mesh *mesh0    , Mesh *mesh
+              , char *preName  , char *nameOut)
+{
+  void *dum = NULL;
+  char i,str[10][100],*ps[10];
+  FILE *fileOut = NULL;
+  DOUBLE *nDen = NULL, *nCoefDiff = NULL, *nVel = NULL;
+
+/*...*/
+  for(i=0;i<10;ps[i] = str[i],i++);
+/*....................................................................*/
+
+/*...*/
+  HccaAlloc(DOUBLE,m,nDen     ,mesh->nnode*DENSITY_LEVEL,"nDen",_AD_);
+  HccaAlloc(DOUBLE,m,nCoefDiff,mesh->nnode          ,"nCeofDiff",_AD_);
+/*...................................................................*/
+
+/*... reconstruindo do gradiente*/
+  tm.rcGradT1 = getTimeC() - tm.rcGradT1;
+  rcGradU(m                     , loadsT1
+         , mesh->elm.node       , mesh->elm.adj.nelcon
+         , mesh->elm.geom.cc    , mesh->node.x
+         , mesh->elm.nen        , mesh->elm.adj.nViz
+         , mesh->elm.geomType   , mesh->elm.material.prop
+         , mesh->elm.mat
+         , mesh->elm.leastSquare, mesh->elm.leastSquareR
+         , mesh->elm.geom.ksi   , mesh->elm.geom.mksi
+         , mesh->elm.geom.eta   , mesh->elm.geom.fArea
+         , mesh->elm.geom.normal, mesh->elm.geom.volume
+         , mesh->elm.geom.vSkew
+         , mesh->elm.geom.xm    , mesh->elm.geom.xmcc
+         , mesh->elm.geom.dcca
+         , mesh->elm.faceRt1    , mesh->elm.faceLoadT1
+         , mesh->elm.uT1        , mesh->elm.gradUt1
+         , mesh->node.uT1       , sc->rcGrad
+         , mesh->maxNo          , mesh->maxViz
+         , mesh->ndfT[0]        , mesh->ndm
+         , &pMesh->iNo          , &pMesh->iEl
+         , mesh->numelNov       , mesh->numel
+         , mesh->nnodeNov       , mesh->nnode);
+  tm.rcGradT1 = getTimeC() - tm.rcGradT1;
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (Grad)*/
+  interCellNode(m                 , loadsT1
+              , mesh->node.gradUt1, mesh->elm.gradUt1
+              , mesh->elm.node    , mesh->elm.geomType
+              , mesh->elm.geom.cc , mesh->node.x
+              , mesh->elm.geom.xm
+              , mesh->elm.nen     , mesh->elm.adj.nViz
+              , mesh->elm.faceRt1 , mesh->elm.faceLoadT1
+              , &pMesh->iNo
+              , mesh->numelNov    , mesh->numel
+              , mesh->nnodeNov    , mesh->nnode
+              , mesh->maxNo       , mesh->maxViz
+              , mesh->ndm         , 1
+              , mesh->ndm
+              , false             , 2);
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (uT1)*/
+  interCellNode(m                , loadsT1
+              , mesh->node.uT1   , mesh->elm.uT1
+              , mesh->elm.node   , mesh->elm.geomType
+              , mesh->elm.geom.cc, mesh->node.x
+              , mesh->elm.geom.xm
+              , mesh->elm.nen    , mesh->elm.adj.nViz
+              , mesh->elm.faceRt1, mesh->elm.faceLoadT1
+              , &pMesh->iNo
+              , mesh->numelNov   , mesh->numel
+              , mesh->nnodeNov   , mesh->nnode
+              , mesh->maxNo      , mesh->maxViz
+              , mesh->ndfT[0]    , 1
+              , mesh->ndm
+              , true             , 2);
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (density)*/
+  interCellNode(m                , loadsT1
+              , nDen             , mesh->elm.densityUt1
+              , mesh->elm.node   , mesh->elm.geomType
+              , mesh->elm.geom.cc, mesh->node.x
+              , mesh->elm.geom.xm
+              , mesh->elm.nen    , mesh->elm.adj.nViz
+              , dum              , dum
+              , &pMesh->iNo
+              , mesh->numelNov   , mesh->numel
+              , mesh->nnodeNov   , mesh->nnode
+              , mesh->maxNo      , mesh->maxViz
+              , 3                , 1
+              , mesh->ndm
+              , false            , 2);
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (coefDif)*/
+  interCellNode(m, loadsD1
+              , nCoefDiff        , mesh->elm.cDiffT1
+              , mesh->elm.node   , mesh->elm.geomType
+              , mesh->elm.geom.cc, mesh->node.x
+              , mesh->elm.geom.xm
+              , mesh->elm.nen    , mesh->elm.adj.nViz
+              , dum              , dum
+              , &pMesh->iNo
+              , mesh->numelNov   , mesh->numel
+              , mesh->nnodeNov   , mesh->nnode
+              , mesh->maxNo      , mesh->maxViz
+              , 1                , 1
+              , mesh->ndm
+              , false            , 2);
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (vel)*/
+  interCellNode(m                  , loadsT1
+               , mesh->node.vel    , mesh->elm.vel
+               , mesh->elm.node    , mesh->elm.geomType
+               , mesh->elm.geom.cc , mesh->node.x
+               , mesh->elm.geom.xm
+               , mesh->elm.nen     , mesh->elm.adj.nViz
+               , dum               , dum                     
+               , &pMesh->iNo
+               , mesh->numelNov    , mesh->numel
+               , mesh->nnodeNov    , mesh->nnode
+               , mesh->maxNo       , mesh->maxViz
+               , mesh->ndm         , 1
+               , mesh->ndm
+               , false             , 2);
+/*...................................................................*/
+
+/*... globalizacao das variaveis*/
+/*... uT1(Node)*/
+  dGlobalNode(m              , pMesh
+            , mesh0->node.uT1, mesh->node.uT1
+            , mesh->ndfT[0]  , 1);
+  /*... vel(Node)*/
+  dGlobalNode(m              , pMesh
+            , mesh0->node.vel, mesh->node.vel
+            , mesh->ndm, 1);
+/*... gradUt1(Node)*/
+  dGlobalNode(m                  , pMesh
+            , mesh0->node.gradUt1, mesh->node.gradUt1
+            , mesh->ndm          , 1);
+/*... uT1(Cel)*/
+  dGlobalCel(m             , pMesh
+           , mesh0->elm.uT1, mesh->elm.uT1
+           , mesh->numelNov
+           , mesh->ndfT[0] , 1);
+/*... gradUt1(Cel)*/
+  dGlobalCel(m                 , pMesh
+           , mesh0->elm.gradUt1, mesh->elm.gradUt1
+           , mesh->numelNov
+           , mesh->ndm         , 1);
+/*...................................................................*/
+
+/*...*/
+  if (!mpiVar.myId)
+  {
+    fName(preName, sc->ddt.timeStep, 0, 20, nameOut);
+
+    strcpy(str[0], "elT1");
+    strcpy(str[1], "noT1");
+    strcpy(str[2], "elGradT1");
+    strcpy(str[3], "noGradT1");
+    strcpy(str[4], "elVel");
+    strcpy(str[5], "nVel");
+    strcpy(str[6], "eDensityT1");
+    strcpy(str[7], "nDensityT1");
+    strcpy(str[8], "nCoefDiffT1");
+    strcpy(str[9], "nCoefDiffT1");
+/*...*/
+    wResVtkTrans(m           , mesh0->node.x
+      , mesh0->elm.node      , mesh0->elm.mat
+      , mesh0->elm.nen       , mesh0->elm.geomType
+      , mesh0->elm.uT1       , mesh0->node.uT1
+      , mesh0->elm.gradUt1   , mesh0->node.gradUt1
+      , mesh0->elm.vel       , nVel
+      , mesh0->elm.densityUt1, nDen
+      , mesh0->elm.cDiffT1   , nCoefDiff
+      , mesh0->nnode         , mesh0->numel
+      , mesh0->ndm           , mesh0->maxNo
+      , mesh0->numat         , mesh0->ndfT[0]
+      , ps    
+      , nameOut              , opt
+      , &sc->ddt             , fileOut);
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... desalocando memoria*/
+  HccaDealloc(m, nCoefDiff, "nCeofDiff", _AD_);
+  HccaDealloc(m, nDen     , "nDen"     , _AD_);
+/*...................................................................*/
+}
+/*********************************************************************/
+
+/*********************************************************************
  * Data de criacao    : 01/05/2018                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
@@ -632,7 +853,7 @@ void printDiff(Memoria *m
              , str1                 , str2
              , str3                 , str4
              , nameOut              , opt
-             , &(sc->ddt)           , fileOut);
+             , &sc->ddt             , fileOut);
 /*...................................................................*/
   }
 /*...................................................................*/

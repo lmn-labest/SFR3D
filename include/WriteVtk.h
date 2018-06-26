@@ -104,20 +104,20 @@
                 , char *nameOut     , FileOpt *opt
                 , Temporal *ddt     , FILE *f);
   
-  void wResVtkTrans(Memoria *m        ,double *x      
-               ,INT *el           ,short *mat    
-               ,short *nen        ,short *typeGeom
-               ,DOUBLE *elU       ,DOUBLE *nU
-               ,DOUBLE *elGradU   ,DOUBLE *nGradU
-               ,DOUBLE *elVel     ,DOUBLE *nVel  
-               ,INT nnode         ,INT numel    
-               ,short ndm         ,short maxNo 
-               ,short numat       ,short ndf   
-               ,char *uResEl      ,char *uResNo 
-               ,char *gradResEl   ,char *gradResNo 
-               ,char *velEl       ,char *velNo     
-               ,char *nameOut     ,bool iws
-               ,Temporal ddt      ,FILE *f);
+  void wResVtkTrans(Memoria *m        , double *x
+                  , INT *el           , short *mat
+                  , short *nen        , short *typeGeom
+                  , DOUBLE *elU       , DOUBLE *nU
+                  , DOUBLE *elGradU   , DOUBLE *nGradU
+                  , DOUBLE *elVel     , DOUBLE *nVel
+                  , DOUBLE *elDensity , DOUBLE *nDensity
+                  , DOUBLE *elCoefDiff, DOUBLE *nCoefDiff
+                  , INT nnode         , INT numel
+                  , short ndm         , short maxNo
+                  , short numat       , short ndf
+                  , char **ps    
+                  , char *nameOut     , FileOpt *opt
+                  , Temporal *ddt     , FILE *f);
 
   void wResVtkFluid(Memoria *m   , DOUBLE *x
           , DOUBLE *cc      

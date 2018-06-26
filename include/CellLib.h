@@ -41,53 +41,55 @@
 /*...................................................................*/
 
 /*... chamada da biblioteca de elementos (transporte)*/
-  void cellLibTrans(Loads *loads           
-                 ,Advection advT           ,Diffusion diffT
-                 ,short *RESTRICT lGeomType,DOUBLE *RESTRICT lprop
-                 ,INT   *RESTRICT lViz     ,INT    *RESTRICT lId
-                 ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mksi
-                 ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea 
-                 ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume 
-                 ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
-                 ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity 
-                 ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
-                 ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-                 ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt
-                 ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL
-                 ,DOUBLE *RESTRICT lu0     ,DOUBLE *RESTRICT lGradU0 
-                 ,DOUBLE *RESTRICT lVel    ,DOUBLE *RESTRICT cc
-                 ,short const nEn          ,short const nFace
-                 ,short const ndm          ,short const lib 
-                 ,INT const nel);
+  void cellLibTrans(Loads *loads
+                  , Advection *advT          , Diffusion *diffT
+                  , TransModel *tModel
+                  , short *RESTRICT lGeomType, DOUBLE *RESTRICT lprop
+                  , INT   *RESTRICT lViz     , INT *RESTRICT lId
+                  , DOUBLE *RESTRICT ksi     , DOUBLE *RESTRICT mKsi
+                  , DOUBLE *RESTRICT eta     , DOUBLE *RESTRICT fArea
+                  , DOUBLE *RESTRICT normal  , DOUBLE *RESTRICT volume
+                  , DOUBLE *RESTRICT xm      , DOUBLE *RESTRICT xmcc
+                  , DOUBLE *RESTRICT dcca
+                  , DOUBLE *RESTRICT lDensity, DOUBLE *RESTRICT lCoefDiff
+                  , DOUBLE *RESTRICT vSkew   , DOUBLE *RESTRICT mvSkew
+                  , DOUBLE *RESTRICT lA      , DOUBLE *RESTRICT lB
+                  , DOUBLE *RESTRICT lRcell  , Temporal *ddt
+                  , short  *RESTRICT lFaceR  , short  *RESTRICT lFaceL
+                  , DOUBLE *RESTRICT u0      , DOUBLE *RESTRICT gradU0
+                  , DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT cc
+                  , short const nEn          , short  const nFace
+                  , short const ndm          , short const lib
+                  , INT const nel);
 /*...................................................................*/
 
 /*... chamada da biblioteca de elementos (transporte)*/
-  void cellLibEnergy(Loads *loads  , Loads *loadsVel
-     , Advection  adv              , Diffusion diff
-     , Turbulence tModel           , EnergyModel model  
-     , PropVar vProp
-     , short *RESTRICT lGeomType   , DOUBLE *RESTRICT lprop
-     , INT   *RESTRICT lViz        , INT *RESTRICT lId
-     , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
-     , DOUBLE *RESTRICT eta        , DOUBLE *RESTRICT fArea
-     , DOUBLE *RESTRICT normal     , DOUBLE *RESTRICT volume
-     , DOUBLE *RESTRICT xm         , DOUBLE *RESTRICT xmcc
-     , DOUBLE *RESTRICT dcca       , DOUBLE *RESTRICT cc
-     , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
-     , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
-     , DOUBLE *RESTRICT lRcell     , Temporal const ddt
-     , short  *RESTRICT lFaceR     , short  *RESTRICT lFaceL
-     , short  *RESTRICT lFaceVelR  , short  *RESTRICT lFaceVelL    
-     , DOUBLE *RESTRICT u          , DOUBLE *RESTRICT gradU
-     , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
-     , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres 
-     , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lSheat
-     , DOUBLE *RESTRICT lDviscosity, DOUBLE *RESTRICT ltConductvity
-     , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT wallPar
-     , DOUBLE const underU
-     , short const nEn             , short  const nFace
-     , short const ndm             , short const lib
-     , INT const nel);
+  void cellLibEnergy(Loads *loads                , Loads *loadsVel
+                   , Advection  adv              , Diffusion diff
+                   , Turbulence tModel           , EnergyModel model  
+                   , PropVar vProp
+                   , short *RESTRICT lGeomType   , DOUBLE *RESTRICT lprop
+                   , INT   *RESTRICT lViz        , INT *RESTRICT lId
+                   , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
+                   , DOUBLE *RESTRICT eta        , DOUBLE *RESTRICT fArea
+                   , DOUBLE *RESTRICT normal     , DOUBLE *RESTRICT volume
+                   , DOUBLE *RESTRICT xm         , DOUBLE *RESTRICT xmcc
+                   , DOUBLE *RESTRICT dcca       , DOUBLE *RESTRICT cc
+                   , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
+                   , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
+                   , DOUBLE *RESTRICT lRcell     , Temporal const ddt
+                   , short  *RESTRICT lFaceR     , short  *RESTRICT lFaceL
+                   , short  *RESTRICT lFaceVelR  , short  *RESTRICT lFaceVelL    
+                   , DOUBLE *RESTRICT u          , DOUBLE *RESTRICT gradU
+                   , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
+                   , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres 
+                   , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lSheat
+                   , DOUBLE *RESTRICT lDviscosity, DOUBLE *RESTRICT ltConductvity
+                   , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT wallPar
+                   , DOUBLE const underU
+                   , short const nEn             , short  const nFace
+                   , short const ndm             , short const lib
+                   , INT const nel);
 /*...................................................................*/
 
 /*.......................... PRIME ..................................*/
@@ -356,17 +358,19 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
                 ,short const ndm          ,INT const nel);
   
   void cellTrans3D(Loads *loads           
-                ,Advection advT           , Diffusion diffT
+                ,Advection *advT          ,Diffusion *diffT
+                ,TransModel *tModel
                 ,short *RESTRICT lGeomType,DOUBLE *RESTRICT lprop
                 ,INT   *RESTRICT lViz     ,INT *RESTRICT lId
                 ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mksi
                 ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT mEta
                 ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
                 ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
-                ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
+                ,DOUBLE *RESTRICT dcca    
+                ,DOUBLE *RESTRICT lDensity,DOUBLE *RESTRICT lCoefDiff
                 ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
                 ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-                ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt
+                ,DOUBLE *RESTRICT lRcell  ,Temporal *ddt
                 ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
                 ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT lGradU0
                 ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT cc
@@ -966,12 +970,6 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                  ,short const nFace      ,short const ndm
                  ,short const maxViz     ,INT nel);
   
-  void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
-            ,DOUBLE *RESTRICT tA
-            ,DOUBLE const coefDifC,DOUBLE const densityC
-            ,DOUBLE const wfn     ,DOUBLE *RESTRICT xm                   
-            ,DOUBLE const fArea   ,DOUBLE const dcca
-            ,Loads ld             ,bool const fCal);
   void setNvd(char *word,short *iCod);
   void setTvd(char *word,short *iCod);
   void  setDiffusionScheme(char *word,short *iCod);

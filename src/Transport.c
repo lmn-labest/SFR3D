@@ -1,5 +1,8 @@
 #include<Transport.h>
 /********************************************************************* 
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 02/06/2018                                   *
+ *-------------------------------------------------------------------*
  * TRANSPORT :Resolucao do problema de transporte no passo de tempo  * 
  * n+1                                                               * 
  *-------------------------------------------------------------------* 
@@ -25,14 +28,14 @@
  * de tempo n+1                                                      * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void transport(Memoria *m   ,Loads *loadsTrans
-              ,Mesh *mesh0  ,Mesh *mesh       ,SistEq *sistEqT
-              ,Solv *solvT  ,Scheme sc        ,PartMesh *pMesh 
-              ,FileOpt opt  ,char *preName    ,char *nameOut
-              ,FILE *fileOut) 
+void transport(Memoria *m      ,Loads *loadsTrans,TransModel *tModel
+              ,Mesh *mesh0     ,Mesh *mesh       ,SistEq *sistEqT
+              ,Solv *solvT     ,Scheme *sc       ,PartMesh *pMesh 
+              ,PropVarCD *prop ,FileOpt *opt     ,char *preName  
+              ,char *nameOut   ,FILE *fileOut) 
 {   
-  
-  short unsigned i;
+  bool fDensity = prop->fDensity, fCoefDiff = prop->fCeofDiff;
+  short unsigned i, jj;
   char str1[100],str2[100],str3[100],str4[100],str5[100],str6[100];
   DOUBLE rCell,rCell0,conv;
 
@@ -52,12 +55,12 @@ void transport(Memoria *m   ,Loads *loadsTrans
 /*...................................................................*/
 
 /*... discretizacao temporal*/
-  if(sc.ddt.flag){
+  if(sc->ddt.flag){
     tm.CellTransientT1 = getTimeC() - tm.CellTransientT1;
     cellTransient(mesh->elm.geom.volume   ,sistEqT->id     
                  ,mesh->elm.u0T1          ,mesh->elm.uT1
                  ,mesh->elm.densityUt1    ,sistEqT->b0
-                 ,sc.ddt                  ,mesh->numelNov   
+                 ,sc->ddt                 ,mesh->numelNov   
                  ,mesh->ndfT[0]           ,true);
 /*... u(n-1) = u(n)*/
     alphaProdVector(1.e0,mesh->elm.uT1
@@ -68,30 +71,32 @@ void transport(Memoria *m   ,Loads *loadsTrans
 /*...................................................................*/
   
 /*... correcao nao ortoganal*/   
-  for(i=0;i<sc.nlT1.maxIt;i++){
+  for(i=0,jj=0;i<sc->nlT1.maxIt;i++){
  
 /*... calculo de: A(i),b(i)*/
     tm.systFormT1 = getTimeC() - tm.systFormT1;
     systFormTrans(loadsTrans            
-               ,sc.advT1                ,sc.diffT1
+               ,&sc->advT1              ,&sc->diffT1
+               ,tModel
                ,mesh->elm.node          ,mesh->elm.adj.nelcon  
                ,mesh->elm.nen           ,mesh->elm.adj.nViz   
-               ,mesh->elm.geomType      ,mesh->elm.material.prop 
+               ,mesh->elm.cellFace      ,mesh->face.owner
+               ,mesh->elm.geom.volume   ,mesh->elm.geom.dcca
+               ,mesh->elm.geom.xmcc     ,mesh->elm.geom.cc
+               ,mesh->face.mksi         ,mesh->face.ksi
+               ,mesh->face.eta          ,mesh->face.area
+               ,mesh->face.normal       ,mesh->face.xm
+               ,mesh->face.mvSkew       ,mesh->face.vSkew
+               ,mesh->elm.geomType      ,mesh->elm.material.prop
                ,mesh->elm.material.type ,mesh->elm.mat
-               ,mesh->elm.geom.cc    
-               ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
-               ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
-               ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-               ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
-               ,mesh->elm.geom.vSkew    ,mesh->elm.geom.mvSkew   
-               ,mesh->elm.geom.dcca     ,mesh->elm.densityUt1
+               ,mesh->elm.densityUt1    ,mesh->elm.cDiffT1
                ,sistEqT->ia             ,sistEqT->ja      
                ,sistEqT->al             ,sistEqT->ad       
                ,sistEqT->b              ,sistEqT->id       
                ,mesh->elm.faceRt1       ,mesh->elm.faceLoadT1  
                ,mesh->elm.uT1           ,mesh->elm.gradUt1           
                ,mesh->elm.vel                                        
-               ,mesh->elm.rCellUt1      ,sc.ddt
+               ,mesh->elm.rCellUt1      ,&sc->ddt
                ,sistEqT->neq            ,sistEqT->neqNov      
                ,sistEqT->nad            ,sistEqT->nadr      
                ,mesh->maxNo             ,mesh->maxViz
@@ -116,23 +121,27 @@ void transport(Memoria *m   ,Loads *loadsTrans
 /*...................................................................*/
 
 /*...*/ 
-    if( i == 0 ){
+    if( i == 0 )
+    {
       rCell  = rCell0 = sqrt(dot(mesh->elm.rCellUt1
                             ,mesh->elm.rCellUt1 
                             ,mesh->numelNov));
-      conv   = rCell0*sc.nlT1.tol;
+      conv   = rCell0*sc->nlT1.tol;
     }
     else
       rCell  = sqrt(dot(mesh->elm.rCellUt1 
                    ,mesh->elm.rCellUt1 
                    ,mesh->numelNov));
         
-    if(!mpiVar.myId ){
-      printf("it: %8d %.6e\n",i,rCell/rCell0);  
-      if(opt.fItPlot)  
-        fprintf(opt.fileItPlot[FITPLOTT1]
+    if(!mpiVar.myId )
+    {
+      jj = 0;
+      printf("it: %9d %.6e %0.6e\n", i, rCell / rCell0, rCell);
+      if(opt->fItPlot)  
+        fprintf(opt->fileItPlot[FITPLOTT1]
                ,"%9d %.6e %0.6e\n",i,rCell/rCell0,rCell);
     }
+    jj++;
     if(rCell < conv) break;
 /*...................................................................*/
 
@@ -156,7 +165,7 @@ void transport(Memoria *m   ,Loads *loadsTrans
     updateCellValue(mesh->elm.uT1 ,sistEqT->x
                    ,sistEqT->id   ,&sistEqT->iNeq
                    ,mesh->numel   ,mesh->ndfT[0]
-                   ,false         ,true);
+                   ,tModel->fRes  ,true);
 /*...................................................................*/
 
 /*... reconstruindo do gradiente*/
@@ -176,7 +185,7 @@ void transport(Memoria *m   ,Loads *loadsTrans
            ,mesh->elm.geom.dcca
            ,mesh->elm.faceRt1       ,mesh->elm.faceLoadT1    
            ,mesh->elm.uT1           ,mesh->elm.gradUt1                 
-           ,mesh->node.uT1          ,sc.rcGrad
+           ,mesh->node.uT1          ,sc->rcGrad
            ,mesh->maxNo             ,mesh->maxViz
            ,mesh->ndfT[0]           ,mesh->ndm
            ,&pMesh->iNo             ,&pMesh->iEl  
@@ -185,119 +194,27 @@ void transport(Memoria *m   ,Loads *loadsTrans
     tm.rcGradT1 = getTimeC() - tm.rcGradT1;
 /*...................................................................*/
 
-    if(opt.fItPlotRes){  
-
-/*... interpolacao das variaveis da celulas para pos nos (Grad)*/
-      interCellNode(m                  ,loadsTrans
-                   ,mesh->node.gradUt1 ,mesh->elm.gradUt1 
-                   ,mesh->elm.node     ,mesh->elm.geomType            
-                   ,mesh->elm.geom.cc  ,mesh->node.x   
-                   ,mesh->elm.geom.xm               
-                   ,mesh->elm.nen      ,mesh->elm.adj.nViz
-                   ,mesh->elm.faceRt1  ,mesh->elm.faceLoadT1    
-                   ,&pMesh->iNo          
-                   ,mesh->numelNov     ,mesh->numel 
-                   ,mesh->nnodeNov     ,mesh->nnode 
-                   ,mesh->maxNo        ,mesh->maxViz   
-                   ,mesh->ndm          ,1 
-                   ,mesh->ndm
-                   ,false              ,2);
-/*...................................................................*/
-
-/*... interpolacao das variaveis da celulas para pos nos (vel)*/
-      interCellNode(m                  ,loadsTrans
-                   ,mesh->node.vel     ,mesh->elm.vel        
-                   ,mesh->elm.node     ,mesh->elm.geomType            
-                   ,mesh->elm.geom.cc  ,mesh->node.x  
-                   ,mesh->elm.geom.xm
-                   ,mesh->elm.nen      ,mesh->elm.adj.nViz
-                   ,mesh->elm.faceRt1  ,mesh->elm.faceLoadT1  
-                   ,&pMesh->iNo          
-                   ,mesh->numelNov     ,mesh->numel        
-                   ,mesh->nnodeNov     ,mesh->nnode 
-                   ,mesh->maxNo        ,mesh->maxViz   
-                   ,mesh->ndm          ,1
-                   ,mesh->ndm      
-                   ,false              ,2);
-/*...................................................................*/
-
-/*... interpolacao das variaveis da celulas para pos nos (uT1)*/
-      interCellNode(m                ,loadsTrans
-                    ,mesh->node.uT1   ,mesh->elm.uT1 
-                    ,mesh->elm.node   ,mesh->elm.geomType
-                    ,mesh->elm.geom.cc,mesh->node.x    
-                    ,mesh->elm.geom.xm              
-                    ,mesh->elm.nen    ,mesh->elm.adj.nViz
-                    ,mesh->elm.faceRt1,mesh->elm.faceLoadT1    
-                    ,&pMesh->iNo             
-                    ,mesh->numelNov   ,mesh->numel
-                    ,mesh->nnodeNov   ,mesh->nnode 
-                    ,mesh->maxNo      ,mesh->maxViz 
-                    ,mesh->ndfT[0]    ,1
-                    ,mesh->ndm
-                    ,true             ,2);
-/*...................................................................*/
-
-/*... globalizacao das variaveis*/
-/*... uT1(Node)*/
-      dGlobalNode(m                  ,pMesh
-                  ,mesh0->node.uT1    ,mesh->node.uT1     
-                  ,mesh->ndfT[0]      ,1               );
-/*... gradUt1(Node)*/
-      dGlobalNode(m                  ,pMesh
-                  ,mesh0->node.gradUt1,mesh->node.gradUt1     
-                  ,mesh->ndm          ,1               );
-/*... vel(Node)*/
-      dGlobalNode(m                  ,pMesh
-                 ,mesh0->node.vel    ,mesh->node.vel         
-                 ,mesh->ndm          ,1               );
-/*... uT1(Cel)*/
-      dGlobalCel(m                   ,pMesh
-                ,mesh0->elm.uT1      ,mesh->elm.uT1
-                ,mesh->numelNov 
-                ,mesh->ndfT[0]      ,1);
-/*... gradUt1(Cel)*/
-      dGlobalCel(m                   ,pMesh
-                ,mesh0->elm.gradUt1  ,mesh->elm.gradUt1
-                ,mesh->numelNov 
-                ,mesh->ndm           ,1);
-/*... vel(Cel)*/
-      dGlobalCel(m                   ,pMesh
-                ,mesh0->elm.vel      ,mesh->elm.vel       
-                ,mesh->numelNov 
-                ,mesh->ndm           ,1);
+/*...*/
+    if (fDensity)
+      updateDensityCD(&prop->den
+                    , mesh->elm.uT1, mesh->elm.densityUt1
+                    , mesh->numel, PROP_UPDATE_NL_LOOP);
 /*...................................................................*/
 
 /*...*/
-      if(!mpiVar.myId){
-        fName(preName,sc.ddt.timeStep,i,19,nameOut);
-        strcpy(str1,"elT1");
-        strcpy(str2,"noT1");
-        strcpy(str3,"elGradT1");
-        strcpy(str4,"noGradT1");
-        strcpy(str5,"elVel");
-        strcpy(str6,"noVel");
+    if (fCoefDiff)
+      updateProp(&prop->ceofDiff, mesh->elm.uT1
+                , mesh->elm.cDiffT1, mesh->numel);
+/*...................................................................*/
+
+  }
+/*...................................................................*/
+
 /*...*/
-        wResVtkTrans(m                 ,mesh0->node.x      
-                    ,mesh0->elm.node    ,mesh0->elm.mat    
-                    ,mesh0->elm.nen     ,mesh0->elm.geomType
-                    ,mesh0->elm.uT1     ,mesh0->node.uT1 
-                    ,mesh0->elm.gradUt1 ,mesh0->node.gradUt1  
-                    ,mesh0->elm.vel     ,mesh0->node.vel      
-                    ,mesh0->nnode       ,mesh0->numel  
-                    ,mesh0->ndm         ,mesh0->maxNo 
-                    ,mesh0->numat       ,mesh0->ndfT[0]
-                    ,str1               ,str2         
-                    ,str3               ,str4         
-                    ,str5               ,str6         
-                    ,nameOut            ,opt.bVtk    
-                    ,sc.ddt             ,fileOut);
-/*...................................................................*/
-      }
-/*...................................................................*/
-    }
-/*...................................................................*/
-  } 
+  if (fDensity)
+    updateDensityCD(&prop->den
+                   , mesh->elm.uT1, mesh->elm.densityUt1
+                   , mesh->numel, PROP_UPDATE_OLD_TIME);
 /*...................................................................*/
 }
 /*********************************************************************/

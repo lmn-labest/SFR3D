@@ -13,7 +13,7 @@
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 07/02/2018                                   *
+ * Data de modificaco : 02/06/2018                                   *
  *-------------------------------------------------------------------*
  * CELLTRANS2D: Celula 2D para transporte                            * 
  *-------------------------------------------------------------------* 
@@ -259,11 +259,12 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
         xx[1] = MAT2D(nAresta,1,xm,2);
         xx[2] = 0.e0;                    
         pLoad(&sP           ,&p
-             ,&tA
+             ,&tA           ,velC
+             ,lNormal
              ,coefDifC      ,densityC
-             ,wfn           ,xx 
-             ,lModEta       ,dcca[nAresta]
-             ,loads[nCarg]  ,true);
+             ,xx            ,lModEta      
+             ,dcca[nAresta] ,&loads[nCarg]
+             ,ndm           ,true);
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -333,7 +334,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 22/08/2016                                   *
+ * Data de modificaco : 02/06/2018                                   *
  *-------------------------------------------------------------------*
  * CELLTRANS3D: Celula 3D para transporte                            * 
  *-------------------------------------------------------------------* 
@@ -342,6 +343,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * loads     -> definicoes de cargas                                 * 
  * advT      -> tecnica da discretizacao do termo advecao            *
  * diffT   -> tecnica da discretizacao do termo difusivo             *
+ * tModel  -> configuracoes do modelo de transporte                  *
  * lnFace    -> numero de faces da celula central e seus vizinhos    * 
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
  * lprop     -> propriedade fisicas das celulas                      * 
@@ -364,6 +366,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * dcca      -> menor distancia do centroide central a faces desta   *
  *              celula                                               * 
  * lDensity  -> massa especifica com variacao temporal               * 
+ * lCoefDiff -> coeficiente difusao com variacao temporal            *
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
@@ -389,24 +392,28 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void cellTrans3D(Loads *loads           
-              ,Advection advT           ,Diffusion diffT
-              ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
-              ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
-              ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
-              ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
-              ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
-              ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
-              ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
-              ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
-              ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-              ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt             
-              ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL  
-              ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
-              ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT cc
-              ,const short nEn          ,short const nFace    
-              ,const short ndm          ,INT const nel)
+                ,Advection *advT          ,Diffusion *diffT
+                ,TransModel *tModel
+                ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
+                ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
+                ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
+                ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
+                ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
+                ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+                ,DOUBLE *RESTRICT dcca    
+                ,DOUBLE *RESTRICT lDensity,DOUBLE *RESTRICT lCoefDiff
+                ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
+                ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
+                ,DOUBLE *RESTRICT lRcell  ,Temporal *ddt             
+                ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL  
+                ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
+                ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT cc
+                ,const short nEn          ,short const nFace    
+                ,const short ndm          ,INT const nel)
 { 
-
+  bool fTime,fRes;
+  short iCodAdv1,iCodAdv2,iCodDif,idCell,nf,nCarg,typeTime,iCodPolFace;
+  INT vizNel;
   DOUBLE coefDifC,coefDif,coefDifV,rCell,dt,dt0;
   DOUBLE densityC,densityF,densityM;
   DOUBLE p,sP,dfd,gfKsi,lvSkew[3];
@@ -420,27 +427,28 @@ void cellTrans3D(Loads *loads
   DOUBLE xx[3];
 /*...*/
   DOUBLE wfn,wf[3],velC[3],velF[3],cv,cvc;
-  short iCodAdv1=advT.iCod1;
-  short iCodAdv2=advT.iCod2;
-  short iCodDif = diffT.iCod;
-/*...*/
-  short idCell = nFace;
-  short nf,nCarg,typeTime;
-  INT vizNel;
-  bool fTime;
 /*...*/
   DOUBLE pAdv[NPADV];
 
 /*...*/
-  dt       = ddt.dt[0];
-  dt0      = ddt.dt[1];
-  typeTime = ddt.type;
-  fTime    = ddt.flag;
+  idCell      = nFace;
+  iCodAdv1    = advT->iCod1;
+  iCodAdv2    = advT->iCod2;
+  iCodDif     = diffT->iCod;
+  iCodPolFace = INTPOLFACELINEAR;
+/*...................................................................*/
+
+/*...*/
+  dt       = ddt->dt[0];
+  dt0      = ddt->dt[1];
+  typeTime = ddt->type;
+  fTime    = ddt->flag;
   densityC = lDensity[idCell];
+  fRes     = tModel->fRes;
 /*...................................................................*/
   
 /*... propriedades da celula*/
-  coefDifC = MAT2D(idCell,COEFDIF,prop,MAXPROP);
+  coefDifC = lCoefDiff[idCell];
 /*...................................................................*/
 
 /*...*/
@@ -513,7 +521,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*... media harmonica*/
-      coefDifV = MAT2D(nf,COEFDIF,prop,MAXPROP); 
+      coefDifV = lCoefDiff[nf];
       coefDif  = alpha/coefDifC + alphaMenosUm/coefDifV;
       coefDif  = 1.0e0/coefDif;
 /*...................................................................*/
@@ -600,11 +608,12 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
         xx[1] = MAT2D(nf,1,xm,3);
         xx[2] = MAT2D(nf,2,xm,3);        
         pLoad(&sP           ,&p
-             ,&tA
+             ,&tA           ,velC
+             ,lNormal
              ,coefDifC      ,densityC
-             ,wfn           ,xx 
-             ,fArea[nf]     ,dcca[nf]
-             ,loads[nCarg]  ,true);
+             ,xx            ,fArea[nf]   
+             ,dcca[nf]      ,&loads[nCarg] 
+             ,ndm           ,true);
       }
 /*...................................................................*/
     }
@@ -624,13 +633,10 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
   }
 /*...................................................................*/
 
-/*...*/ 
-  if(nf == 4){
-    lA[idCell] = sP + lA[0] + lA[1] + lA[2] + lA[3];
-  }
-  else if(nf == 6){
-    lA[idCell] = sP + lA[0] + lA[1] + lA[2] + lA[3] + lA[4] + lA[5];
-  }
+/*...*/
+  lA[idCell] = sP;
+  for (nf = 0; nf<nFace; nf++)
+    lA[idCell] += lA[nf];
 /*...................................................................*/
 
 /*...*/
@@ -649,30 +655,16 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
   rCell += p -lA[idCell]*u0[idCell]; 
 /*...................................................................*/
 
-/*...*/  
-/*
-  for(nf=0;nf<nFace;nf++){
-   lA[nf] *= -1.e0;
-  }
-*/
-  if(nf == 4){
-    lA[0] *= -1.e0;
-    lA[1] *= -1.e0;
-    lA[2] *= -1.e0;
-    lA[3] *= -1.e0;
-  }
-  else if(nf == 6){
-    lA[0] *= -1.e0;
-    lA[1] *= -1.e0;
-    lA[2] *= -1.e0;
-    lA[3] *= -1.e0;
-    lA[4] *= -1.e0;
-    lA[5] *= -1.e0;
-  }
+/*...*/
+  for (nf = 0; nf<nFace; nf++)
+    lA[nf] *= -1.e0;
 /*...................................................................*/
 
 /*...*/
-  lB[0]     = p;
+  if (fRes)
+    lB[0] = rCell;
+  else
+    lB[0] = p;
   lRcell[0] = rCell;
 /*...................................................................*/
 }

@@ -30,6 +30,12 @@
                , Mesh *mesh0    , Mesh *mesh
                , char *preName  , char *nameOut);
 
+  void printTrans(Memoria *m
+                , PartMesh *pMesh, Scheme *sc
+                , Loads *loadsT1 , FileOpt *opt
+                , Mesh *mesh0    , Mesh *mesh
+                , char *preName  , char *nameOut);
+
   void reScaleMesh(DOUBLE *x, INT nnode, short ndm, FILE *fileIn);
 
 

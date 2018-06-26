@@ -66,7 +66,7 @@ void cellDif2D(Loads *loads
               ,const short ndm          ,INT const nel)
 { 
 
-  DOUBLE coefDifC,coefDif,coefDifV,rCell;
+  DOUBLE coefDifC,coefDif,coefDifV,rCell,*dum=NULL;
   DOUBLE densityC,dt,dt0;
   DOUBLE p,sP,nk,dfd,dfdc,gfKsi,modE,lvSkew[2];
   DOUBLE v[2],gradUcomp[2],lKsi[2],lNormal[2],gf[2];
@@ -183,11 +183,12 @@ void cellDif2D(Loads *loads
         xx[1] = MAT2D(nAresta,1,xm,2);
         xx[2] = 0.e0;                    
         pLoad(&sP           ,&p
-             ,&tA
+             ,&tA           ,lNormal
+             ,dum
              ,coefDifC      ,0.e0
-             ,0.0e0         ,xx 
-             ,mEta[nAresta] ,dcca[nAresta]
-             ,loads[nCarg]  ,true);
+             ,xx            ,mEta[nAresta] 
+             ,dcca[nAresta] ,&loads[nCarg]
+             ,2             ,true);
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -332,7 +333,7 @@ void cellDif3D(Loads *loads               ,Diffusion *diff
   bool fTime,fRes;
   short idCell, nf, nCarg, typeTime, iCodPolFace, iCodDif;
   INT vizNel;
-  DOUBLE coefDifC,coefDif,coefDifV,rCell,dt,dt0;
+  DOUBLE coefDifC,coefDif,coefDifV,rCell,dt,dt0, *dum = NULL;
   DOUBLE densityC;
   DOUBLE p,sP,dfd,dfdc,gfKsi,lvSkew[3];
   DOUBLE gradUcomp[3],lKsi[3],lNormal[3],gf[3];
@@ -467,11 +468,12 @@ void cellDif3D(Loads *loads               ,Diffusion *diff
         xx[1] = MAT2D(nf,1,xm,2);
         xx[2] = MAT2D(nf,2,xm,3);        
         pLoad(&sP           ,&p
-             ,&tA
-             ,coefDifC      ,0.e0
-             ,0.0e0         ,xx 
-             ,fArea[nf]     ,dcca[nf]
-             ,loads[nCarg]  ,true);
+             ,&tA           ,dum
+             ,lNormal
+             ,coefDifC      ,densityC
+             ,xx            ,fArea[nf] 
+             ,dcca[nf]      ,&loads[nCarg] 
+             ,ndm           ,true);
       }
 /*...................................................................*/
     }
