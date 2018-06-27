@@ -3398,7 +3398,7 @@ void help(FILE *f){
                {"macros"   ,"setprint" ,"advection"    /* 0, 1, 2*/
                ,"model"    ,"diffusion","nlit"         /* 3, 4, 5*/
                ,"transient","rcgrad"   ,"config"       /* 6, 7, 8*/
-               ,"edp"      ,""         ,""             /* 9,10,11*/
+               ,"edp"      ,"openmp"   ,""             /* 9,10,11*/
                ,""         ,""         ,""    };        /*12,13,14*/
 
   short iMacros = 45;
@@ -3508,7 +3508,7 @@ void help(FILE *f){
 
   int i;                                                     
 
-  printf("Help:\n");
+  printf("Help options:\n");
   readMacro(f,word,false);
   convStringLower(word);
 /*... macros*/
@@ -3642,6 +3642,14 @@ void help(FILE *f){
     printf("endEdp\n");
     for (i = 0; i<iEdp; i++)
       printf("%3d - %s\n", i + 1, sEdp[i]);
+    exit(EXIT_FAILURE);
+  }
+/*.....................................................................*/
+
+/*... openmp*/
+  else if (!strcmp(word, help[10])) {
+    printf("Ex:\n");
+    printf("openmp 3 solver 2 update 2 cell 2\n");
     exit(EXIT_FAILURE);
   }
 /*.....................................................................*/
