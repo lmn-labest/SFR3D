@@ -104,7 +104,6 @@ int main(int argc,char**argv){
   PropVarCD propVarD[3],propVarT[3];
 
 /*... solver*/
-  INT nEqMax;
   Solv solvD1, solvT1;
   Solv solvVel,solvPres,solvEnergy,solvKturb;
   bool fSolvD1 = false, fSolvT1 = false;
@@ -124,15 +123,10 @@ int main(int argc,char**argv){
   unsigned short kLoop = 0 ,jLoop = 0;
   bool flWord=false;
 
-/*... Estrutura de dados*/
-  char strIa[MNOMEPONTEIRO],strJa[MNOMEPONTEIRO];
-  char strA[MNOMEPONTEIRO],strAd[MNOMEPONTEIRO];
-
 /*... arquivo*/
   char nameIn[MAX_STR_LEN_IN], nameOut[SIZEMAX];
   char auxName[MAX_STR_LEN_SUFIXO], preName[MAX_STR_LEN_SUFIXO];
   FILE *fileIn=NULL,*fileOut=NULL,*fileLog=NULL;
-  char str1[100],str2[100],str3[100],str4[100],str5[100],str6[100];
   FileOpt opt;
 
 /*...*/
@@ -144,7 +138,7 @@ int main(int argc,char**argv){
   
 /* ... macro camandos de leitura*/
   bool macroFlag; 
-  char word[WORD_SIZE],str[WORD_SIZE];
+  char word[WORD_SIZE];
   char macro[][WORD_SIZE] =
   {"help"        ,"mesh"         ,"stop"         /* 0, 1, 2*/
   ,"config"      ,"nextLoop"     ,"rcGrad"       /* 3, 4, 5*/
