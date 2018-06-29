@@ -5344,7 +5344,7 @@ void setReGrad(short *rcGrad, FILE *file)
 
 /**********************************************************************
 * Data de criacao    : 19/05/2018                                    *
-* Data de modificaco : 02/06/2018                                    *
+* Data de modificaco : 29/06/2018                                    *
 *--------------------------------------------------------------------*
 * setReGrad:                                                         *
 *--------------------------------------------------------------------*
@@ -5369,7 +5369,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
                             ,"densityd1","coefdiffd1"       /*1,2*/   
                             ,"densityt1","coefdifft1" };    /*3,4*/
   short i, j,iMat;
-  INT ty;
+  int aux; 
   DOUBLE v;
 
   for(i=0;i<numat;i++)
@@ -5387,7 +5387,8 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
 /*... cellType*/
       if (!strcmp(word, macro[j++]))
       {
-        fscanf(fileOut, "%d", &type[iMat]);
+        fscanf(fileOut, "%d", &aux);
+        type[iMat] = (short) aux;
         if (!mpiVar.myId)
           fprintf(fileLogExc, "%-20s: %d\n",macro[j-1], type[iMat]);
       }

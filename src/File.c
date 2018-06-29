@@ -105,7 +105,7 @@ FILE* openFileBuffer(const char* const name,const char* const mod,bool buffer)
  * out -> aruivo de saida com a extencao                             * 
  * ------------------------------------------------------------------*
  * *******************************************************************/
-void fName(const char *name,INT num1,INT num2, int cod ,char *out){
+void fName(const char* const name,INT num1,INT num2, int cod ,char *out){
 /*===*/
   char st[MAX_STR_NUMBER];
   char ext[MAX_EXT];

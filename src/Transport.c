@@ -1,7 +1,7 @@
 #include<Transport.h>
 /********************************************************************* 
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 02/06/2018                                   *
+ * Data de modificaco : 29/06/2018                                   *
  *-------------------------------------------------------------------*
  * TRANSPORT :Resolucao do problema de transporte no passo de tempo  * 
  * n+1                                                               * 
@@ -36,7 +36,6 @@ void transport(Memoria *m      ,Loads *loadsTrans,TransModel *tModel
 {   
   bool fDensity = prop->fDensity, fCoefDiff = prop->fCeofDiff;
   short unsigned i, jj;
-  char str1[100],str2[100],str3[100],str4[100],str5[100],str6[100];
   DOUBLE rCell,rCell0,conv;
 
   rCell = rCell0 = conv = 0.e0;
