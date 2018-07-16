@@ -20,32 +20,6 @@
 /*...................................................................*/  
 
 /*...*/
-  typedef struct {
-    unsigned char type;
-    short nPol;
-    DOUBLE a[MAXPLODEG];
-  }PropPol;
-/*...................................................................*/
-
-/*...*/
-  typedef struct{
-    bool fDensity;
-    bool fSpecificHeat;
-    bool fDynamicViscosity;
-    bool fThermalconductivity;
-    PropPol den,thCond,dVisc, sHeat;
-  }PropVarFluid;
-/*...................................................................*/
-
-/*...*/
-  typedef struct {
-    bool fDensity;
-    bool fCeofDiff;
-    PropPol den,ceofDiff;
-  }PropVarCD;
-/*...................................................................*/
- 
-/*...*/
   typedef struct{
     bool fRes;
     INT maxIt;
