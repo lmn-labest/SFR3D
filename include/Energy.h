@@ -15,7 +15,7 @@
 /*...................................................................*/
 
 /*...*/
-bool energyEquation(Memoria *m              , PropVar *prop 
+bool energyEquation(Memoria *m               , PropVarFluid *prop 
                    , Loads *loadsVel         , Loads *loadsEnergy  
                    , EnergyModel *eModel     , Turbulence *tModel  
                    , ThermoDynamic *thDynamic, Mesh *mesh          

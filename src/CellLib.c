@@ -171,9 +171,9 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
 *-------------------------------------------------------------------*
 *********************************************************************/
 void cellLibEnergy(Loads *lEnergy  , Loads *lVel                      
-     , Advection  adv              , Diffusion diff      
-     , Turbulence tModel           , EnergyModel model  
-     , PropVar vProp 
+     , Advection  *adv             , Diffusion *diff      
+     , Turbulence *tModel          , EnergyModel *model  
+     , PropVarFluid *vProp 
      , short *RESTRICT lGeomType   , DOUBLE *RESTRICT lprop
      , INT   *RESTRICT lViz        , INT *RESTRICT lId
      , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi

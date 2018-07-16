@@ -20,7 +20,7 @@
 /*...................................................................*/
 
 /*...*/
-  void wSave(PropVar *prop           ,Turbulence *tModel
+  void wSave(PropVarFluid *prop           ,Turbulence *tModel
             ,ThermoDynamic *thDynamic
             ,Mesh *mesh              ,Temporal *ddt
             ,Mean *media
@@ -28,7 +28,7 @@
 /*...................................................................*/
 
 /*...*/
-  void load(PropVar *prop           ,Turbulence *tModel
+  void load(PropVarFluid *prop           ,Turbulence *tModel
            ,ThermoDynamic *thDynamic
            ,Mesh *mesh              ,Temporal *ddt
            ,Mean *media

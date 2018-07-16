@@ -627,7 +627,7 @@ void simpleSolver3D(Memoria *m
 
 /*********************************************************************
 * Data de criacao    : 21/08/2017                                   *
-* Data de modificaco : 16/01/2018                                   *
+* Data de modificaco : 12/07/2018                                   *
 *-------------------------------------------------------------------*
 * SIMPLESOLVERENERGY: metodo simple e simpleC para escoamentos      * 
 * 2D/3D termo ativados                                              *
@@ -640,11 +640,11 @@ void simpleSolver3D(Memoria *m
 *-------------------------------------------------------------------*
 *-------------------------------------------------------------------*
 *********************************************************************/
-void simpleSolverLm(Memoria *m          , PropVar prop     
+void simpleSolverLm(Memoria *m          , PropVarFluid *propF     
                   , Loads *loadsVel     , Loads *loadsPres
                   , Loads *loadsEnergy  , Loads *loadsKturb
-                  , EnergyModel eModel
-                  , MassEqModel eMass   , MomentumModel ModelMomentum
+                  , EnergyModel *eModel
+                  , MassEqModel *eMass  , MomentumModel *ModelMomentum
                   , Turbulence *tModel  , ThermoDynamic *thDynamic
                   , Mesh *mesh0         , Mesh *mesh
                   , SistEq *sistEqVel   , SistEq *sistEqPres
@@ -679,10 +679,10 @@ void simpleSolverLm(Memoria *m          , PropVar prop
   bool xMomentum, yMomentum, zMomentum, pCor, fEnergy;
   bool relRes;
   bool fPrint = false;
-  bool fDensity       = prop.fDensity,
-    fSheat            = prop.fSpecificHeat,
-    fDvisc            = prop.fDynamicViscosity,
-    fTcond            = prop.fThermalconductivity,
+  bool fDensity       = propF->fDensity,
+    fSheat            = propF->fSpecificHeat,
+    fDvisc            = propF->fDynamicViscosity,
+    fTcond            = propF->fThermalconductivity,
     fDensityRef       = thDynamic->fDensityRef,
     fPresRef          = thDynamic->fPresTh,
     fDeltaTimeDynamic = sc->ddt.fDynamic;
@@ -795,7 +795,7 @@ void simpleSolverLm(Memoria *m          , PropVar prop
 /*...................................................................*/
 
 /*... Energia*/
-    if(eModel.fTemperature)
+    if(eModel->fTemperature)
       cellTransientEnergy(mesh->elm.geom.volume  ,sistEqEnergy->id
                          ,mesh->elm.energy0      ,mesh->elm.energy
                          ,mesh->elm.densityFluid ,mesh->elm.specificHeat
@@ -908,7 +908,7 @@ void simpleSolverLm(Memoria *m          , PropVar prop
    tm.systFormVel = getTimeC() - tm.systFormVel;
    systFormSimpleVelLm(loadsVel               , loadsPres 
                      , sc->advVel             , sc->diffVel 
-                     ,*tModel                 , ModelMomentum
+                     ,*tModel                 , *ModelMomentum
                      , sp->type 
                      , mesh->elm.node         , mesh->elm.adj.nelcon 
                      , mesh->elm.nen          , mesh->elm.adj.nViz 
@@ -1040,10 +1040,10 @@ void simpleSolverLm(Memoria *m          , PropVar prop
 /*...................................................................*/
 
 /*... atualizando o campo de velociade estimadas*/
-    updateCellSimpleVelR(mesh->elm.vel ,xu1
-                        ,xu2           ,xu3
-                        ,sistEqVel->id ,mesh->numelNov
-                        ,ModelMomentum.fRes,mesh->ndm);
+    updateCellSimpleVelR(mesh->elm.vel      ,xu1
+                        ,xu2                ,xu3
+                        ,sistEqVel->id      ,mesh->numelNov
+                        ,ModelMomentum->fRes,mesh->ndm);
 /*...................................................................*/
 
 /*...*/
@@ -1052,7 +1052,7 @@ void simpleSolverLm(Memoria *m          , PropVar prop
 /*... montagem do sistema  da pressao de correca*/
     tm.systFormPres = getTimeC() - tm.systFormPres;
     systFormSimplePresLm(loadsVel             ,loadsPresC
-                      ,sc->diffPres            ,eMass
+                      ,sc->diffPres           ,*eMass
                       ,mesh->elm.node         ,mesh->elm.adj.nelcon
                       ,mesh->elm.nen          ,mesh->elm.adj.nViz
                       ,mesh->elm.geomType     ,mesh->elm.material.prop
@@ -1309,9 +1309,9 @@ void simpleSolverLm(Memoria *m          , PropVar prop
 
 /*... equacao de energia*/
     if (fPrint) printf("Consercao de Energia:\n");
-    fEnergy = energyEquation(m            , &prop 
+    fEnergy = energyEquation(m            , propF 
                            , loadsVel     , loadsEnergy  
-                           , &eModel
+                           , eModel
                            , tModel      , thDynamic
                            , mesh          
                            , sistEqEnergy, solvEnergy
@@ -1333,37 +1333,42 @@ void simpleSolverLm(Memoria *m          , PropVar prop
 
 /*...*/
     tm.tempForEnergy = getTimeC() - tm.tempForEnergy;
-    getTempForEnergy(mesh->elm.temp         ,mesh->elm.energy
+    getTempForEnergy(&propF->sHeat
+                    ,mesh->elm.temp         ,mesh->elm.energy
                     ,mesh->elm.material.prop,mesh->elm.mat                    
-                    ,mesh->numel            ,eModel.fTemperature
-                    ,fSheat                 ,eModel.fKelvin
+                    ,mesh->numel            ,eModel->fTemperature
+                    ,fSheat                 ,eModel->fKelvin
                     ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);
     tm.tempForEnergy = getTimeC() - tm.tempForEnergy;
 /*...................................................................*/
 
 /*...*/
     if(fDensity)
-      updateDensity(mesh->elm.temp    ,mesh->elm.pressure0  
+      updateDensity(&propF->den
+                  , mesh->elm.temp    ,mesh->elm.pressure0  
                   , mesh->elm.densityFluid
-                  , sp->alphaDensity , eModel.fKelvin   
+                  , sp->alphaDensity , eModel->fKelvin   
                   , mesh->numel      , PROP_UPDATE_NL_LOOP);
     if(fSheat)
-      updateSpecificHeat(mesh->elm.temp,mesh->elm.specificHeat
-                        ,eModel.fKelvin
-                       ,mesh->numel     , PROP_UPDATE_NL_LOOP);
+      updateSpecificHeat(&propF->sHeat
+                        ,mesh->elm.temp,mesh->elm.specificHeat
+                        ,eModel->fKelvin
+                        ,mesh->numel     , PROP_UPDATE_NL_LOOP);
     if(fDvisc)
-      updateDynamicViscosity(mesh->elm.temp,mesh->elm.dViscosity  
-                           ,eModel.fKelvin ,mesh->numel);
+      updateDynamicViscosity(&propF->dVisc
+                           ,mesh->elm.temp,mesh->elm.dViscosity  
+                           ,eModel->fKelvin ,mesh->numel);
     if(fTcond)
-      updateThermalconductivity(mesh->elm.temp,mesh->elm.tConductivity
-                             ,eModel.fKelvin  ,mesh->numel);
+      updateThermalconductivity(&propF->thCond
+                              ,mesh->elm.temp,mesh->elm.tConductivity
+                              ,eModel->fKelvin  ,mesh->numel);
 /*...................................................................*/
 
 /*... pressa de referencia*/
     if(fPresRef)
       presRef(mesh->elm.temp0      , mesh->elm.temp
             , mesh->elm.geom.volume, thDynamic->pTh  
-            , mesh->numel          , eModel.fKelvin);
+            , mesh->numel          , eModel->fKelvin);
 /*...................................................................*/
 
 /*...*/
@@ -1468,12 +1473,14 @@ void simpleSolverLm(Memoria *m          , PropVar prop
 /*...................................................................*/
 
 /*... guardando as propriedades para o proximo passo*/
-  if(fDensity) updateDensity(mesh->elm.temp ,mesh->elm.pressure0 
+  if(fDensity) updateDensity(&propF->den
+              , mesh->elm.temp ,mesh->elm.pressure0 
               , mesh->elm.densityFluid
-              , sp->alphaDensity           , eModel.fKelvin
+              , sp->alphaDensity           , eModel->fKelvin
               , mesh->numel                , PROP_UPDATE_OLD_TIME   );
-  if(fSheat) updateSpecificHeat(mesh->elm.temp,mesh->elm.specificHeat
-                         ,eModel.fKelvin     
+  if(fSheat) updateSpecificHeat(&propF->sHeat
+                         ,mesh->elm.temp,mesh->elm.specificHeat
+                         ,eModel->fKelvin     
                          ,mesh->numel   ,PROP_UPDATE_OLD_TIME);
 /*...................................................................*/
 

@@ -844,12 +844,13 @@ void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
 
 /********************************************************************* 
  * Data de criacao    : 21/09/2017                                   *
- * Data de modificaco : 27/01/2018                                   * 
+ * Data de modificaco : 15/07/2018                                   * 
  *-------------------------------------------------------------------* 
  * pLoadEnergy : cargas da equacao de energia                        *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
+ * vProp   -> estrutura que guarda a propriedades do fluido          *
  * sP      -> termo da diagonal                                      * 
  * p       -> forca local                                            * 
  * tA      -> nao definido                                           * 
@@ -875,7 +876,8 @@ void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
+void pLoadEnergy(PropVarFluid *vProp
+               , DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
                , DOUBLE *RESTRICT tA     , DOUBLE *RESTRICT velC
                , DOUBLE const uC         , DOUBLE *RESTRICT n  
                , DOUBLE const thermCoef  , DOUBLE const densityC
@@ -923,8 +925,10 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
         tC = uC;  
       }
       else{
-        tW =specificEnthalpyForTemp(tA[0],sHeatC,fSheat,iKelvin);
-        tC =specificEnthalpyForTemp(uC   ,sHeatC,fSheat,iKelvin); 
+        tW =specificEnthalpyForTemp(&vProp->sHeat
+                                   ,tA[0],sHeatC,fSheat,iKelvin);
+        tC =specificEnthalpyForTemp(&vProp->sHeat
+                                   ,uC   ,sHeatC,fSheat,iKelvin); 
       }
 /*...................................................................*/ 
 
@@ -960,7 +964,8 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
     }
     else{
 //    tW = tA[0];
-      tW = tempForSpecificEnthalpy(tA[0],sHeatC,fSheat,iKelvin);
+      tW = tempForSpecificEnthalpy(&vProp->sHeat
+                                  ,tA[0],sHeatC,fSheat,iKelvin);
 //    tC = specificEnthalpyForTemp(uC   ,sHeatC,fSheat,iKelvin); 
       diff =  thermCoef / sHeatC; 
     }
@@ -1008,9 +1013,11 @@ void pLoadEnergy(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
       
 /*... energia na forma da entalpia*/
       else{
-        tC = specificEnthalpyForTemp(uC ,sHeatC,fSheat,iKelvin); 
+        tC = specificEnthalpyForTemp(&vProp->sHeat
+                                    ,uC ,sHeatC,fSheat,iKelvin); 
         tW = tC + tA[0]*dcca*tempPlus/(sHeatC*viscosityC*yPlus);
-        tW = tempForSpecificEnthalpy(tW,sHeatC,fSheat,iKelvin); 
+        tW = tempForSpecificEnthalpy(&vProp->sHeat
+                                    ,tW,sHeatC,fSheat,iKelvin); 
        }
 /*...................................................................*/
       

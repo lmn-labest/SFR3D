@@ -15,6 +15,9 @@
   #include<ParallelMpi.h>
   #include<Media.h>
 
+  void initPrintVtk(FileOpt *opt);
+
+
   void printFluid(Memoria *m        
                 , Turbulence *turbModel, EnergyModel *eModel
                 , PartMesh *pMesh      , Scheme sc

@@ -31,29 +31,40 @@
 /*...................................................................*/
 
 /*... gas ideal incompressivel(Ar)*/
-  DOUBLE airDensity(DOUBLE const t, DOUBLE const presRef
+  DOUBLE airDensity(PropPol *den
+                   ,DOUBLE const t, DOUBLE const presRef
                    ,DOUBLE const p, bool const fKelvin);
-  DOUBLE airSpecifiHeat(DOUBLE const t,bool const fKelvin);
-  DOUBLE airDynamicViscosity(DOUBLE const t,bool const fKelvin);
-  DOUBLE airThermalConductvity(DOUBLE const t,bool const fKelvin);
-  DOUBLE specificEnthalpyForTemp(DOUBLE const hs, DOUBLE const sHeatRef
+  DOUBLE airSpecifiHeat(PropPol *sHeatPol
+                       ,DOUBLE const t,bool const fKelvin);
+  DOUBLE airDynamicViscosity(PropPol *dVisc,DOUBLE const t
+                            ,bool const fKelvin);
+  DOUBLE airThermalConductvity(PropPol *thC,DOUBLE const t
+                              ,bool const fKelvin);
+  DOUBLE specificEnthalpyForTemp(PropPol *sHeatPol
+                               , DOUBLE const hs, DOUBLE const sHeatRef
                                , bool const fSheat, bool const fKelvin); 
-  DOUBLE tempForSpecificEnthalpy(DOUBLE const t, DOUBLE const sHeatRef
+  DOUBLE tempForSpecificEnthalpy(PropPol *sHeatPol
+                               , DOUBLE const t, DOUBLE const sHeatRef
                                , bool const fSheat, bool const fKelvin);
 /*...................................................................*/
 
 /*...*/
-  void updateDensity(DOUBLE *RESTRICT temp   , DOUBLE *RESTRICT pressure
+  void updateDensity(PropPol *pDen
+                    ,DOUBLE *RESTRICT temp   , DOUBLE *RESTRICT pressure
                     ,DOUBLE *RESTRICT density                 
                     ,DOUBLE const alpha        ,bool const iKelvin 
                     ,INT const nEl             ,char  const iCod);
-  void updateSpecificHeat(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT sHeat
+
+  void updateSpecificHeat(PropPol *sHeatPol
+                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT sHeat
                          ,bool const iKelvin  
                          ,INT const nEl        ,char  const iCod);
-  void updateDynamicViscosity(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT visc    
+  void updateDynamicViscosity(PropPol *dVisc
+                            ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT visc    
                             ,bool const iKelvin   
                             ,INT const nEl);
-  void updateThermalconductivity(DOUBLE *RESTRICT t,DOUBLE *RESTRICT thCond    
+  void updateThermalconductivity(PropPol *thC
+                              ,DOUBLE *RESTRICT t,DOUBLE *RESTRICT thCond    
                               ,bool const iKelvin       
                               ,INT const nEl);
   
@@ -65,7 +76,8 @@
                 , DOUBLE *RESTRICT coef, INT nEl);
 
 
-  void initPropTemp(DOUBLE *RESTRICT prop    ,DOUBLE *RESTRICT t 
+  void initPropTemp(PropVarFluid *propFluid
+                  ,DOUBLE *RESTRICT prop    ,DOUBLE *RESTRICT t 
                   ,DOUBLE *RESTRICT pressure,DOUBLE *RESTRICT propMat
                   ,short *RESTRICT mat
                   ,short const np           ,INT const nCell 
@@ -81,13 +93,15 @@
 /*...................................................................*/
 
 /*...*/
-  void getTempForEnergy(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
+  void getTempForEnergy(PropPol *sHeatPol
+                     ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                      ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                      ,INT const nCell      ,bool const fTemp
                      ,bool const fSheat    ,bool const fKelvin
                      ,bool const fOmp      ,short const nThreads );
 
-  void getEnergyForTemp(DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
+  void getEnergyForTemp(PropPol *sHeatPol
+                     ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                      ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                      ,INT const nCell     
                      ,bool const fSheat    ,bool const fKelvin
@@ -112,10 +126,10 @@
 /*...................................................................*/
 
 /*...*/
-  void initDensityPol(char *s);
-  void initSheatPol(void);
-  void initDviscosityPol(char *s);
-  void initThCondPol(char *s);
+  void initDensityPol(PropPol *prop, char *s, FILE *file);
+  void initSheatPol(PropPol *prop, char *s, FILE *file);
+  void initDviscosityPol(PropPol *prop, char *s, FILE *file);
+  void initThCondPol(PropPol *prop, char *s, FILE *file);
 /*...................................................................*/
 
 /*...*/
@@ -124,7 +138,4 @@
 
   int readFileLineSimple(DOUBLE *x, FILE *file);
 
-/*...*/
-  PropPol sHeat,dVisc,thCond,den;
-/*...................................................................*/
 #endif /*_PROPERTIES_H_*/

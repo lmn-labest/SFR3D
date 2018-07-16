@@ -4,10 +4,11 @@
   #include<math.h>
   #include<stdio.h>
   #include<stdlib.h>
+  #include<ctype.h>
+  #include<string.h>
 /*...*/
   #include<Erro.h>
-  #include<HccaStdBool.h>
-  #include<string.h>
+  #include<HccaStdBool.h>  
   #include<Define.h>
 /*...*/
   #define MAX_STR_LEN_IN    129 /*tamanho do arquivo de entrada maximo*/
@@ -73,9 +74,11 @@
   FILE* openFile(const char* const name, const char* const mod);
   FILE* openFileBuffer(const char* const name, const char* const mod, bool buffer);
   void fName(const char* const name, INT num1, INT num2, int cod, char *out);
-  void  readMacro(FILE* file, char *mc, bool allline);
+  void readMacro(FILE* file, char *mc, bool allline);
+  void readMacroV2(FILE* file, char *mc, bool allline, bool lower);
   void  clearLine(char *s);
   int   rl(FILE *f, char *st);
+  void convStringLower(char *s);
 //int   getNumProp(FILE *f);
 /*...*/  
   char macros[MAX_LINE][WORD_SIZE];/*todas as macros lidas no arquivo*/

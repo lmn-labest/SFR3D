@@ -45,7 +45,8 @@
           , Loads *ld                   , short  const ndm 
           , bool const fCal);
 
-  void pLoadEnergy(DOUBLE *RESTRICT sP   , DOUBLE *RESTRICT p
+  void pLoadEnergy(PropVarFluid *vProp
+               , DOUBLE *RESTRICT sP   , DOUBLE *RESTRICT p
                , DOUBLE *RESTRICT tA     , DOUBLE *RESTRICT velC
                , DOUBLE const uC         , DOUBLE *RESTRICT n  
                , DOUBLE const thermCoef  , DOUBLE const densityC

@@ -9,11 +9,9 @@
 /*...................................................................*/  
   #include<stdio.h>
   #include<stdlib.h>
-  #include<ctype.h>
 /*...*/
   #include<Mesh.h>
   #include<CellLoop.h>
-  #include<string.h>
   #include<File.h>
   #include<HccaStdBool.h>
   #include<HccaBlas.h>
@@ -22,6 +20,7 @@
   #include<Properties.h>
   #include<Simple.h>
   #include<Prime.h>
+  #include<Print.h>
 /*...................................................................*/  
 
   void parametros(INT   *nnode,INT *nel    
@@ -30,9 +29,9 @@
                  ,FILE  *file);
   
   void readFileFvMesh(Memoria *m             , Mesh *mesh
-                    , PropVar prop      
+                    , PropVarFluid *prop      
                     , PropVarCD *propD       , PropVarCD *propT
-                    , EnergyModel energyModel
+                    , EnergyModel *energyModel
                     , Turbulence *tModel     , Mean *media
                     , FILE* file);
 
@@ -54,10 +53,10 @@
   void config(FileOpt *opt ,Reord *reord,FILE* f);
   
   void readEdo(Mesh *mesh,FILE *file);  
-  void readPropVar(PropVarCD *pd, PropVarCD *pt, FILE *file);
-  void readPropVarDiff(PropVarCD *p , FILE *file);
+  void readPropVar(PropVarFluid *pf, PropVarCD *pd, PropVarCD *pt, FILE *file);
+  void readPropVarDiff(PropVarCD *p, FILE *file);
   void readPropVarTrans(PropVarCD *p, FILE *file);
-  void readPropVarFluid(PropVar *p, FILE *file);
+  void readPropVarFluid(PropVarFluid *p, FILE *file);
   void readGravity(DOUBLE *gravity,FILE *file);
   void readModel(EnergyModel *e    , Turbulence *t
                , MassEqModel *eMass, MomentumModel *ModelMomentum
@@ -109,7 +108,5 @@
                    , Mesh *mesh0  , Mesh *mesh
                    , Prime  *prime, bool *fSolvPrime);
 /*...................................................................*/
-
-   void convStringLower(char *s);
    void help(FILE *f);
 #endif  /*_READ_FILE_*/

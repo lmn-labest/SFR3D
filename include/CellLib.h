@@ -65,9 +65,9 @@
 
 /*... chamada da biblioteca de elementos (transporte)*/
   void cellLibEnergy(Loads *loads                , Loads *loadsVel
-                   , Advection  adv              , Diffusion diff
-                   , Turbulence tModel           , EnergyModel model  
-                   , PropVar vProp
+                   , Advection  *adv             , Diffusion *diff
+                   , Turbulence *tModel          , EnergyModel *model  
+                   , PropVarFluid *vProp
                    , short *RESTRICT lGeomType   , DOUBLE *RESTRICT lprop
                    , INT   *RESTRICT lViz        , INT *RESTRICT lId
                    , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
@@ -428,9 +428,9 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
 
 /*.......................... ENERGIA ................................*/
   void cellEnergy2D(Loads *loads           , Loads *loadsVel 
-            , Advection adv                , Diffusion diff
-            , Turbulence tModel            , EnergyModel model 
-            , PropVar vProp
+            , Advection *adv               , Diffusion *diff
+            , Turbulence *tModel           , EnergyModel *model 
+            , PropVarFluid *vProp
             , short *RESTRICT lGeomType    , DOUBLE *RESTRICT prop
             , INT *RESTRICT lViz           , INT *RESTRICT lId
             , DOUBLE *RESTRICT ksi         , DOUBLE *RESTRICT mKsi
@@ -454,9 +454,9 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
             , const short ndm              , INT const nel);
   
   void cellEnergy3D(Loads *loads          , Loads *lVel
-            , Advection advT              , Diffusion diffT
-            , Turbulence tModel           , EnergyModel model
-            , PropVar vProp
+            , Advection *advT             , Diffusion *diffT
+            , Turbulence *tModel          , EnergyModel *model
+            , PropVarFluid *vProp
             , short *RESTRICT lGeomType   , DOUBLE *RESTRICT prop
             , INT *RESTRICT lViz          , INT *RESTRICT lId
             , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi

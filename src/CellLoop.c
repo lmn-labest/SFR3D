@@ -2442,9 +2442,9 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
  *-------------------------------------------------------------------*
  *********************************************************************/
 void systFormEnergy(Loads *loads       , Loads *ldVel  
-       , Advection adv                 , Diffusion diff 
-       , Turbulence tModel             , EnergyModel eModel 
-       , PropVar vProp
+       , Advection *adv                , Diffusion *diff 
+       , Turbulence *tModel            , EnergyModel *eModel 
+       , PropVarFluid *vProp
        , INT    *RESTRICT el           , INT    *RESTRICT nelcon
        , short  *RESTRICT nen          , short  *RESTRICT nFace
        , short  *RESTRICT geomType     , DOUBLE *RESTRICT prop

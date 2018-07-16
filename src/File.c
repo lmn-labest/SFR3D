@@ -658,7 +658,6 @@ void iota(INT t , char* st ){
 }
 /*********************************************************************/ 
 
-
 /*********************************************************************
  * READMACRO: le uma carcteres de um arquivo                         *
  *********************************************************************
@@ -714,6 +713,97 @@ void readMacro(FILE* file,char *mc,bool allline)
         "linha  : \"%s\"\n"
         "palavra: \"%s\"\n",line,mc);
 #endif
+}
+/*********************************************************************/
+
+/********************************************************************
+* Data de criacao    : 30/04/2018                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* READMACRO: le uma carcteres de um arquivo                         *
+* ------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+* ------------------------------------------------------------------*
+* mc     -> string de caracter                                      *
+* allline-> leitura da linha toda                                   *
+* lower  -> converte para letra minusculas                          *
+* ------------------------------------------------------------------*
+* Paramanetros de saida:                                            *
+* ------------------------------------------------------------------*
+* mc -> string com lida                                             *
+* ------------------------------------------------------------------*
+*********************************************************************/
+void readMacroV2(FILE* file, char *mc, bool allline,bool lower)
+{
+  static char line[LINE_SIZE];
+  static char word[WORD_SIZE];
+  char c;
+  int z;
+
+#ifdef _DEBUG_READ 
+  printf("DEGUB INFO: Antes funcao readmacro.\n"
+    "linha  : \"%s\"\n", line);
+#endif
+
+/*lendo um linha inteira*/
+  if (allline) 
+  {
+    z = 0;
+    while ((c = getc(file)) != '\n' && z< WORD_SIZE - 1 && c != EOF)
+    {
+      line[z++] = c;
+    }
+    line[z] = '\0';
+    strcpy(mc, line);
+  }
+
+/*lendo apenas uma palavra*/
+  else
+  {
+    fscanf(file, "%s", word);
+    sscanf(word, "%s", mc);
+  }
+
+/*... se encontrado '//' discarta a linha lida*/
+  if (mc[0] == '/' && mc[1] == '/')
+  {
+    // mc[0] = '\0'; 
+    while ((c = getc(file)) != '\n'&& c != EOF);
+    // printf("linha discartada\n");
+  }
+
+/*... converte as letras para minisculas*/
+  if(lower)
+    convStringLower(mc);
+
+#ifdef _DEBUG_READ 
+  printf("DEGUB INFO: Depois funcao readmacro.\n"
+    "linha  : \"%s\"\n"
+    "palavra: \"%s\"\n", line, mc);
+#endif
+}
+/*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 05/11/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * convStringLower: Converte um string toda para caracteres minusculo*
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * s - recebe uma string                                             *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * s - converte os carateres maiuscolos para minuscolos              *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+*********************************************************************/
+void convStringLower(char *s) {
+  char *p = s;
+  for (; *p; ++p) *p = tolower(*p);
 }
 /*********************************************************************/
 

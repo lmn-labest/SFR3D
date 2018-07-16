@@ -30,11 +30,11 @@
                    ,FileOpt opt       ,char *preName  
                    ,char *nameOut     ,FILE *fileOut);
   
-  void simpleSolverLm(Memoria *m          , PropVar prop
+  void simpleSolverLm(Memoria *m          , PropVarFluid *prop
                     , Loads *loadsVel     , Loads *loadsPres 
                     , Loads *loadsEnergy  , Loads *loadsKturb  
-                    , EnergyModel eModel
-                    , MassEqModel eMass   , MomentumModel ModelMomentum
+                    , EnergyModel *eModel
+                    , MassEqModel *eMass  , MomentumModel *ModelMomentum
                     , Turbulence *tModel  , ThermoDynamic *thDynamic
                     , Mesh *mesh0         , Mesh *mesh
                     , SistEq *sistEqVel   , SistEq *sistEqPres

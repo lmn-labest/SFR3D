@@ -5,14 +5,6 @@
   #include<HccaStdBool.h>
   #include<Define.h>
 
-/*...*/
-  typedef struct {
-    unsigned char type;
-    short nPol;
-    DOUBLE a[MAXPLODEG];
-  }PropPol;
-/*...................................................................*/
-
 /*... Material*/
   typedef struct{
     short  *type;      /*tipo de calculo da celula*/ 
@@ -28,12 +20,21 @@
 /*...................................................................*/  
 
 /*...*/
+  typedef struct {
+    unsigned char type;
+    short nPol;
+    DOUBLE a[MAXPLODEG];
+  }PropPol;
+/*...................................................................*/
+
+/*...*/
   typedef struct{
     bool fDensity;
     bool fSpecificHeat;
     bool fDynamicViscosity;
     bool fThermalconductivity;
-  }PropVar;
+    PropPol den,thCond,dVisc, sHeat;
+  }PropVarFluid;
 /*...................................................................*/
 
 /*...*/

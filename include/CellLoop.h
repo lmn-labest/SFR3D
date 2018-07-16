@@ -240,10 +240,10 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
 /*...................................................................*/
 
 /*...*/
-  void systFormEnergy(Loads *loads       , Loads *ldVel  
-       , Advection adv                 , Diffusion diff 
-       , Turbulence tModel             , EnergyModel eModel 
-       , PropVar vProp
+  void systFormEnergy(Loads *loads     , Loads *ldVel  
+       , Advection *adv                , Diffusion *diff 
+       , Turbulence *tModel            , EnergyModel *eModel 
+       , PropVarFluid *vProp
        , INT    *RESTRICT el           , INT    *RESTRICT nelcon
        , short  *RESTRICT nen          , short  *RESTRICT nFace
        , short  *RESTRICT geomType     , DOUBLE *RESTRICT prop

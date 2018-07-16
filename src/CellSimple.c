@@ -2989,7 +2989,6 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       gradRho[2] += tmp*lNormal[2];
 /*...................................................................*/
 
-
 /*... termos viscosos explicitos*/
       if(fStruc){
         tmp  = D1DIV3*(stressRc[0]+stressRc[1]+stressRc[2]);

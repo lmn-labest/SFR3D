@@ -100,7 +100,7 @@ int main(int argc,char**argv){
   DiffModel diffModel[3];
   TransModel transModel[3];
 /*... propriedade variaveis*/
-  PropVar propVarFluid;
+  PropVarFluid propVarFluid;
   PropVarCD propVarD[3],propVarT[3];
 
 /*... solver*/
@@ -152,7 +152,7 @@ int main(int argc,char**argv){
   ,"transient"   ,"timeUpdate"   ,"partd"        /*27,28,29*/
   ,"advection"   ,"edp"          ,"diffusion"    /*30,31,32*/
   ,"pFluid"      ,"setPrint"     ,"reScaleMesh"  /*33,34,35*/
-  ,"setPrime"    ,"prime"        ,"propVar"      /*36,37,38*/
+  ,"setPrime"    ,"prime"        ,""             /*36,37,38*/
   ,"gravity"     ,"model"        ,"mean"         /*39,40,41*/
   ,"setMean"     ,"save"         ,"load"};       /*42,43,44*/
 /* ..................................................................*/
@@ -230,43 +230,18 @@ int main(int argc,char**argv){
   ompVar.fUpdate        = false;
 /* ..................................................................*/
 
-/* ... opcoes de arquivos */                                           
-  opt.bVtk          = false;
-  opt.fCell         = false;
+/* ... opcoes de arquivos */
+  initPrintVtk(&opt);
   opt.fNode         = true;
-  opt.fItPlotRes    = false;
-  opt.fItPlot       = false;
   opt.vel           = true;
   opt.pres          = true;
   opt.presTotal     = true;
   opt.uD1           = true;
   opt.uT1           = true;
   opt.energy        = true;
-  opt.gradVel       = false;
-  opt.gradPres      = false;
-  opt.gradEnergy    = false;
   opt.graduD1       = true;
   opt.graduT1       = true;
-  opt.eddyViscosity = false;
-  opt.densityFluid  = false;
-  opt.specificHeat  = false;
-  opt.dViscosity    = false;
-  opt.tConductivity = false;
-  opt.densityD1     = false;
-  opt.coefDiffD1    = false;
-  opt.densityT1     = false;
-  opt.coefDiffT1    = false;
-  opt.vorticity     = false;
-  opt.wallParameters= false;
-  opt.kinetic       = false;
-  opt.stressR       = false;
-  opt.cDynamic      = false;
   opt.bconditions   = true;
-  opt.cc            = false;
-  opt.pKelvin       = false;
- 
-  opt.stepPlot[0] =  5;
-  opt.stepPlot[1] = opt.stepPlot[0];
 /* ..................................................................*/
 
 /*... propriedades variaveis*/
@@ -431,11 +406,11 @@ int main(int argc,char**argv){
       initMem(&m,nmax,false);
 /*... leitura da malha*/
       if(!mpiVar.myId)
-        readFileFvMesh(&m          ,mesh0
-                      ,propVarFluid
-                      ,propVarD    ,propVarT
-                      ,eModel
-                      ,&turbModel  ,&media       
+        readFileFvMesh(&m           ,mesh0
+                      ,&propVarFluid
+                      ,propVarD     ,propVarT
+                      ,&eModel
+                      ,&turbModel   ,&media       
                       ,fileIn);
       mpiWait();
 /*...................................................................*/
@@ -959,7 +934,7 @@ int main(int argc,char**argv){
     else if ((!strcmp(word, macro[13])))
     {
       initSec(word, OUTPUT_FOR_FILE);
-      readPropVar(propVarD,propVarT,fileIn);
+      readPropVar(&propVarFluid,propVarD,propVarT,fileIn);
       endSec(OUTPUT_FOR_FILE);
     }
 /*===================================================================*/
@@ -1260,11 +1235,11 @@ int main(int argc,char**argv){
 
 /*...*/
       else if(mesh->ndfFt)
-        simpleSolverLm(&m           , propVarFluid
+        simpleSolverLm(&m           , &propVarFluid
                      , loadsVel     , loadsPres 
                      , loadsEnergy  , loadsKturb
-                     , eModel       
-                     , eMass        , ModelMomentum
+                     , &eModel       
+                     , &eMass       , &ModelMomentum
                      , &turbModel   , &thDynamic   
                      , mesh0        , mesh
                      , &sistEqVel   , &sistEqPres
@@ -1572,18 +1547,6 @@ int main(int argc,char**argv){
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
     }
-/*===================================================================*/
-
-/*===================================================================*
- * macro: vprop: propriedades variaveis                             
- *===================================================================*/
-    else if((!strcmp(word,macro[38])))
-    {
-      initSec(word, OUTPUT_FOR_FILE);
-      readPropVarFluid(&propVarFluid,fileIn);
-/*...................................................................*/
-      endSec(OUTPUT_FOR_FILE);
-    }   
 /*===================================================================*/
 
 /*===================================================================*

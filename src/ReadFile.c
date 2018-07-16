@@ -3,7 +3,8 @@
 /*...funcao de apoio*/
   static void getword(char *line, char*word);
   static int getnumprop2(char *line);
-  static void convLoadsEnergy(Loads *loadsEnergy  ,Loads *loadsTemp
+  static void convLoadsEnergy(PropPol *sHeatProp
+                             ,Loads *loadsEnergy  ,Loads *loadsTemp
                              ,DOUBLE *RESTRICT prop
                              ,bool const fTemp    ,bool const fSheat                             
                              ,bool const fKelvin );
@@ -12,7 +13,7 @@
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 02/06/2018                                   *
+ * Data de modificaco : 12/07/2018                                   *
  *-------------------------------------------------------------------*
  * readFileFvMesh : leitura de arquivo de dados em volume finitos    *
  * ------------------------------------------------------------------*
@@ -27,9 +28,9 @@
  * ------------------------------------------------------------------*
  * *******************************************************************/
 void readFileFvMesh( Memoria *m             , Mesh *mesh
-                   , PropVar prop           
+                   , PropVarFluid *propF           
                    , PropVarCD *propD       , PropVarCD *propT
-                   , EnergyModel energyModel
+                   , EnergyModel *energyModel
                    , Turbulence *tModel     , Mean *media
                    , FILE* file)
 {
@@ -806,10 +807,11 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
       strcpy(str, "endLoadsTemp");
       fprintf(fileLogExc,"loading loadsTemp ...\n");
       readVfLoads(loadsTemp, str, file);
-      convLoadsEnergy(loadsEnergy             ,loadsTemp
+      convLoadsEnergy(&propF->sHeat
+                     ,loadsEnergy             ,loadsTemp
                      ,mesh->elm.material.prop
-                     ,energyModel.fTemperature,prop.fSpecificHeat
-                     ,energyModel.fKelvin);  
+                     ,energyModel->fTemperature,propF->fSpecificHeat
+                     ,energyModel->fKelvin);  
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
@@ -1039,10 +1041,10 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
                      ,mesh->numel ,mesh->elm.temp);
 /*...................................................................*/
 
-    if(energyModel.fTemperature)
+    if(energyModel->fTemperature)
     {
 /*... convertendo temperatura para kelvin*/
-      if(energyModel.fKelvin)
+      if(energyModel->fKelvin)
         convTempForKelvin(mesh->elm.temp0,mesh->numel,true); 
 
       alphaProdVector(1.e0        ,mesh->elm.temp
@@ -1053,10 +1055,11 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
     }
     else
     {
-      getEnergyForTemp(mesh->elm.temp         ,mesh->elm.energy0
+      getEnergyForTemp(&propF->sHeat
+                      ,mesh->elm.temp         ,mesh->elm.energy0
                       ,mesh->elm.material.prop,mesh->elm.mat                        
                       ,mesh->numel            
-                      ,prop.fSpecificHeat     ,energyModel.fKelvin
+                      ,propF->fSpecificHeat   ,energyModel->fKelvin
                       ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);
 /*...*/
       alphaProdVector(1.e0        ,mesh->elm.energy0
@@ -1073,14 +1076,15 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
                    ,mesh->numel ,mesh->elm.pressure);
   
 /*... inicializando a densidade*/
-    if(prop.fDensity)
+    if(propF->fDensity)
     {
 /*... inicia a massa especifica com o campo de temperatura inicial*/
-      initPropTemp(mesh->elm.densityFluid ,mesh->elm.temp 
+      initPropTemp(propF
+                  ,mesh->elm.densityFluid ,mesh->elm.temp 
                   ,mesh->elm.pressure0    ,mesh->elm.material.prop
                   ,mesh->elm.mat
                   ,DENSITY_LEVEL          ,mesh->numel
-                  ,energyModel.fKelvin    ,DENSITY);
+                  ,energyModel->fKelvin   ,DENSITY);
     }
     else
       initProp(mesh->elm.densityFluid 
@@ -1090,12 +1094,13 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
 /*...................................................................*/
 
 /*... inicializando o calor especifico*/
-    if(prop.fSpecificHeat)
-      initPropTemp(mesh->elm.specificHeat   ,mesh->elm.temp 
+    if(propF->fSpecificHeat)
+      initPropTemp(propF
+                  ,mesh->elm.specificHeat   ,mesh->elm.temp 
                   ,mesh->elm.pressure0      ,mesh->elm.material.prop  
                   ,mesh->elm.mat
                   ,SHEAT_LEVEL              ,mesh->numel
-                  ,energyModel.fKelvin      ,SPECIFICHEATCAPACITYFLUID);
+                  ,energyModel->fKelvin     ,SPECIFICHEATCAPACITYFLUID);
     else
       initProp(mesh->elm.specificHeat  
              ,mesh->elm.material.prop,mesh->elm.mat
@@ -1104,12 +1109,13 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
 /*...................................................................*/
 
 /*... inicializando a viscosidade dinamica*/
-    if(prop.fDynamicViscosity)
-      initPropTemp(mesh->elm.dViscosity   ,mesh->elm.temp 
+    if(propF->fDynamicViscosity)
+      initPropTemp(propF
+                ,mesh->elm.dViscosity     ,mesh->elm.temp 
                 ,mesh->elm.pressure0      ,mesh->elm.material.prop  
                 ,mesh->elm.mat
                 ,DVISCOSITY_LEVEL         ,mesh->numel
-                ,energyModel.fKelvin      ,DYNAMICVISCOSITY);
+                ,energyModel->fKelvin     ,DYNAMICVISCOSITY);
    else
       initProp(mesh->elm.dViscosity 
               ,mesh->elm.material.prop  ,mesh->elm.mat
@@ -1118,12 +1124,13 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
 /*...................................................................*/
 
 /*... inicializando a condutividade termica*/
-    if(prop.fThermalconductivity)
-      initPropTemp(mesh->elm.tConductivity ,mesh->elm.temp 
+    if(propF->fThermalconductivity)
+      initPropTemp(propF
+                ,mesh->elm.tConductivity ,mesh->elm.temp 
                 ,mesh->elm.pressure0 
                 ,mesh->elm.material.prop   ,mesh->elm.mat
                 ,TCONDUCTIVITY_LEVEL       ,mesh->numel
-                ,energyModel.fKelvin       ,THERMALCONDUCTIVITY);
+                ,energyModel->fKelvin      ,THERMALCONDUCTIVITY);
    else
       initProp(mesh->elm.tConductivity 
               ,mesh->elm.material.prop  ,mesh->elm.mat
@@ -2030,7 +2037,7 @@ void readEdo(Mesh *mesh,FILE *file){
 
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
- * Data de modificaco : 19/06/2018                                   *
+ * Data de modificaco : 10/07/2018                                   *
  *-------------------------------------------------------------------* 
  * READPROPVAR : propriedades variaveis                              * 
  *-------------------------------------------------------------------* 
@@ -2046,12 +2053,12 @@ void readEdo(Mesh *mesh,FILE *file){
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void readPropVarFluid(PropVar *p,FILE *file){
+void readPropVarFluid(PropVarFluid *p,FILE *file){
 
-  char *str={"endPropVar"};
+  char *str={"endfluid"};
   char macros[][WORD_SIZE] =
-       { "sHeat"       ,"density"   ,"dViscosity"   /* 0, 1, 2*/
-        ,"tCondutivity",""          ,""         };  /* 3, 4, 5*/
+       { "sheat"       ,"density"   ,"dviscosity"   /* 0, 1, 2*/
+        ,"tcondutivity",""          ,""         };  /* 3, 4, 5*/
   char word[WORD_SIZE];
 
 /*...*/
@@ -2061,61 +2068,59 @@ void readPropVarFluid(PropVar *p,FILE *file){
   p->fThermalconductivity = false;
 /*...................................................................*/
 
-  readMacro(file,word,false);
+  readMacroV2(file,word,false,true);
   do{
 /*... specific heat*/
     if(!strcmp(word,macros[0])){
-      readMacro(file,word,false);
+      readMacroV2(file, word, false, true);
       p->fSpecificHeat = true;
-      initSheatPol(); 
       if(!mpiVar.myId && p->fSpecificHeat) 
         fprintf(fileLogExc,"%-25s: %s\n","sHeat variation","Enable\n");
+      initSheatPol(&p->sHeat, word, file);
     }
 /*...................................................................*/
 
 /*... densidade*/
     else if(!strcmp(word,macros[1])){
-      readMacro(file,word,false);
+      readMacroV2(file, word, false, true);
       p->fDensity = true;
       if(!mpiVar.myId && p->fDensity) 
         fprintf(fileLogExc,"%-25s: %s\n","Density variation","Enable");
-      convStringLower(word);
-      initDensityPol(word);                              
+      initDensityPol(&p->den,word,file);
     }
 /*...................................................................*/
 
 /*... specific heat*/
     else if(!strcmp(word, macros[2])){
-      readMacro(file,word,false);
-      p->fDynamicViscosity = true;
-      initDviscosityPol(word); 
+      readMacroV2(file, word, false, true);
+      p->fDynamicViscosity = true;  
       if(!mpiVar.myId && p->fDynamicViscosity)
         fprintf(fileLogExc,"%-25s: %s\n","dViscosity variation"
-                          ,"Enable");;
+                          ,"Enable");
+      initDviscosityPol(&p->dVisc, word, file);
     }
 /*...................................................................*/
 
-/*... specific heat*/
+/*... condutiviade termica*/
     else if(!strcmp(word, macros[3])){
-      readMacro(file,word,false);
+      readMacroV2(file, word, false, true);
       p->fThermalconductivity = true;
-      initThCondPol(word);
       if(!mpiVar.myId && p->fThermalconductivity)
         fprintf(fileLogExc,"%-25s: %s\n","tCondutivity variation"
-                                        ,"Enable");                          
+                                        ,"Enable"); 
+      initThCondPol(&p->thCond, word, file);
     }
 /*...................................................................*/
     
-    readMacro(file,word,false);
+    readMacroV2(file, word, false, true);
   }while(strcmp(word,str));
-
 
 }
 /*********************************************************************/ 
 
 /*********************************************************************
  * Data de criacao    : 12/05/2018                                   *
- * Data de modificaco : 19/06/2018                                   *
+ * Data de modificaco : 10/07/2018                                   *
  *-------------------------------------------------------------------*
  * READPROPVAR : propriedades variaveis                              *
  *-------------------------------------------------------------------*
@@ -2134,9 +2139,9 @@ void readPropVarFluid(PropVar *p,FILE *file){
 void readPropVarDiff(PropVarCD *p, FILE *file)
 {
 
-  char *str = { "endDiff" };
+  char *str = { "enddiff" };
   char macros[][WORD_SIZE] =
-             { "densityD1"   ,"cDiffD1"};  /* 0, 1, 2*/
+             { "densityd1"   ,"cdiffd1"};  /* 0, 1, 2*/
   char word[WORD_SIZE];
 
 /*...*/
@@ -2144,13 +2149,13 @@ void readPropVarDiff(PropVarCD *p, FILE *file)
   p[0].fCeofDiff = false;
 /*...................................................................*/
 
-  readMacro(file, word, false);
+  readMacroV2(file, word, false, true);
   do 
   {
 /*... density D1*/
     if (!strcmp(word, macros[0]))
     {
-      readMacro(file, word, false);
+      readMacroV2(file, word, false, true);
       p[0].fDensity = true;
       initCdPol(&p[0].den, word,file);
       if (!mpiVar.myId && p[0].fDensity)
@@ -2162,7 +2167,7 @@ void readPropVarDiff(PropVarCD *p, FILE *file)
 /*... condutividade termica D1*/
     else if (!strcmp(word, macros[1]))
     {
-      readMacro(file, word, false);
+      readMacroV2(file, word, false, true);
       p[0].fCeofDiff = true;
       initCdPol(&p[0].ceofDiff, word, file);
       if (!mpiVar.myId && p[0].fCeofDiff)
@@ -2170,7 +2175,7 @@ void readPropVarDiff(PropVarCD *p, FILE *file)
                                          , "Enable");
     }
 /*...................................................................*/
-    readMacro(file, word, false);
+    readMacroV2(file, word, false, true);
   } while (strcmp(word, str));
 
 }
@@ -2178,7 +2183,7 @@ void readPropVarDiff(PropVarCD *p, FILE *file)
 
 /*********************************************************************
  * Data de criacao    : 19/06/2018                                   *
- * Data de modificaco : 10/00/0000                                   *
+ * Data de modificaco : 10/07/2018                                   *
  *-------------------------------------------------------------------*
  * READPROPVAR : propriedades variaveis                              *
  *-------------------------------------------------------------------*
@@ -2197,8 +2202,8 @@ void readPropVarDiff(PropVarCD *p, FILE *file)
 void readPropVarTrans(PropVarCD *p, FILE *file)
 {
 
-  char *str = { "endTrans" };
-  char macros[][WORD_SIZE] =  { "densityT1","cDiffT1" };  /* 0, 1, 2*/
+  char *str = { "endtrans" };
+  char macros[][WORD_SIZE] =  { "densityt1","cdifft1" };  /* 0, 1, 2*/
   char word[WORD_SIZE];
 
 /*...*/
@@ -2206,13 +2211,13 @@ void readPropVarTrans(PropVarCD *p, FILE *file)
   p[0].fCeofDiff = false;
 /*...................................................................*/
 
-  readMacro(file, word, false);
+  readMacroV2(file, word, false, true);
   do
   {
  /*... density T1*/
     if (!strcmp(word, macros[0]))
     {
-      readMacro(file, word, false);
+      readMacroV2(file, word, false, true);
       p[0].fDensity = true;
       initCdPol(&p[0].den, word, file);
       if (!mpiVar.myId && p[0].fDensity)
@@ -2224,7 +2229,7 @@ void readPropVarTrans(PropVarCD *p, FILE *file)
 /*... condutividade termica T1*/
     else if (!strcmp(word, macros[1]))
     {
-      readMacro(file, word, false);
+      readMacroV2(file, word, false, true);
       p[0].fCeofDiff = true;
       initCdPol(&p[0].ceofDiff, word, file);
       if (!mpiVar.myId && p[0].fCeofDiff)
@@ -2232,20 +2237,20 @@ void readPropVarTrans(PropVarCD *p, FILE *file)
           , "Enable");
     }
 /*...................................................................*/
-    readMacro(file, word, false);
+    readMacroV2(file, word, false, true);
   } while (strcmp(word, str));
 }
 /*********************************************************************/
 
-
 /*********************************************************************
  * Data de criacao    : 19/06/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 10/07/2018                                   *
  *-------------------------------------------------------------------*
  * READPROPVAR : propriedades variaveis                              *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
+ * pf      -> fluido                                                 *
  * pd      -> difusao                                                *
  * pt      -> transporte                                             *
  * file    -> arquivo de arquivo                                     *
@@ -2258,14 +2263,14 @@ void readPropVarTrans(PropVarCD *p, FILE *file)
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void readPropVar(PropVarCD *pd, PropVarCD *pt, FILE *file)
+void readPropVar(PropVarFluid *pf, PropVarCD *pd, PropVarCD *pt, FILE *file)
 {
 
-  char *str = { "endPropVar" };
-  char macros[][WORD_SIZE] = { "Diff","Trans" };  /* 0, 1, 2*/
+  char *str = { "endpropvar" };
+  char macros[][WORD_SIZE] = { "diff","trans","fluid"};  /* 0, 1, 2*/
   char word[WORD_SIZE];
 
-  readMacro(file, word, false);
+  readMacroV2(file, word, false, true);
   do
   {
 /*... diff*/
@@ -2277,7 +2282,13 @@ void readPropVar(PropVarCD *pd, PropVarCD *pt, FILE *file)
     else if (!strcmp(word, macros[1]))
       readPropVarTrans(pt, file);
  /*...................................................................*/
-    readMacro(file, word, false);
+
+/*... Fluid*/
+    else if (!strcmp(word, macros[2]))
+      readPropVarFluid(pf, file);
+/*...................................................................*/
+
+    readMacroV2(file, word, false, true);
   } while (strcmp(word, str));
 
 }
@@ -2285,7 +2296,7 @@ void readPropVar(PropVarCD *pd, PropVarCD *pt, FILE *file)
 
 /*********************************************************************
  * Data de criacao    : 04/09/2017                                   *
- * Data de modificaco : 02/06/2018                                   *
+ * Data de modificaco : 10/07/2018                                   *
  *-------------------------------------------------------------------* 
  * readMode : le as configuraoes dos modelos                         * 
  *-------------------------------------------------------------------* 
@@ -2313,7 +2324,7 @@ void readModel(EnergyModel *e    , Turbulence *t
              , DiffModel   *dModel,TransModel *tModel
              , FILE *file){
 
-  char *str={"endModel"};
+  char *str={"endmodel"};
   char format[1024];
   char word[WORD_SIZE];
   char macros[][WORD_SIZE] = {"energy"  ,"turbulence","mass"
@@ -2342,7 +2353,7 @@ void readModel(EnergyModel *e    , Turbulence *t
   
   int i,nPar,id;
 
-  readMacro(file,word,false);
+  readMacroV2(file, word, false, true);
   do{
 /*... equacao da energia*/
     if(!strcmp(word,macros[0])){
@@ -2357,8 +2368,7 @@ void readModel(EnergyModel *e    , Turbulence *t
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++){
         strcpy(format,"%-20s: %s\n");
-        readMacro(file,word,false);
-        convStringLower(word);
+        readMacroV2(file,word,false,true);
 /*... PresWork*/
         if(!strcmp(word,energy[0])){    
           e->fPresWork = true;
@@ -2418,8 +2428,7 @@ void readModel(EnergyModel *e    , Turbulence *t
         fprintf(fileLogExc,"\n%-20s: \n","TurbulenceModel");   
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++){
-        readMacro(file,word,false);
-        convStringLower(word);
+        readMacroV2(file, word, false, true);
 /*... Smagorinsky*/
         if(!strcmp(word,turb[0])){
           t->fDynamic             = false;
@@ -2437,7 +2446,7 @@ void readModel(EnergyModel *e    , Turbulence *t
 /*... wallModel*/
         else if(!strcmp(word,turb[1])){
           t->fWall = true;         
-          readMacro(file,word,false); 
+          readMacroV2(file, word, false, true);
 /*...*/
           if(!strcmp(word,typeWallModel[0])){
             t->wallType  = STANDARDWALL; 
@@ -2646,8 +2655,7 @@ void readModel(EnergyModel *e    , Turbulence *t
       eMass->RhsDensity = false;
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++){
-        readMacro(file,word,false);
-        convStringLower(word);
+        readMacroV2(file, word, false, true);
 /*... LhsDensity*/
         if(!strcmp(word,mass[0])){
           eMass->LhsDensity = true;          
@@ -2683,8 +2691,7 @@ void readModel(EnergyModel *e    , Turbulence *t
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++)
       {
-        readMacro(file,word,false);
-        convStringLower(word);
+        readMacroV2(file, word, false, true);
 /*... residual*/
         if(!strcmp(word,momentum[0]))
         {
@@ -2763,8 +2770,7 @@ void readModel(EnergyModel *e    , Turbulence *t
     else if (!strcmp(word, macros[4])) 
     {
       strcpy(format, "%-20s: %s\n");
-      readMacro(file, word, false);
-      convStringLower(word);
+      readMacroV2(file, word, false, true);
 /*...*/
       if(!strcmp(word,"d1"))
         id = 0;
@@ -2781,8 +2787,7 @@ void readModel(EnergyModel *e    , Turbulence *t
       fscanf(file, "%d", &nPar);
       for (i = 0; i<nPar; i++) 
       {
-        readMacro(file, word, false);
-        convStringLower(word);
+        readMacroV2(file, word, false, true);
 /*... residual*/
         if (!strcmp(word, diff[0])) 
         {
@@ -2809,8 +2814,7 @@ void readModel(EnergyModel *e    , Turbulence *t
     else if (!strcmp(word, macros[5]))
     {
       strcpy(format, "%-20s: %s\n");
-      readMacro(file, word, false);
-      convStringLower(word);
+      readMacroV2(file, word, false, true);
 /*...*/
       if (!strcmp(word, "t1"))
         id = 0;
@@ -2827,8 +2831,7 @@ void readModel(EnergyModel *e    , Turbulence *t
       fscanf(file, "%d", &nPar);
       for (i = 0; i<nPar; i++)
       {
-        readMacro(file, word, false);
-        convStringLower(word);
+        readMacroV2(file, word, false, true);
 /*... residual*/
         if (!strcmp(word, tran[0]))
         {
@@ -2850,7 +2853,7 @@ void readModel(EnergyModel *e    , Turbulence *t
 /*...................................................................*/
     }
 /*...................................................................*/
-    readMacro(file,word,false);
+    readMacroV2(file, word, false, true);
   }while(strcmp(word,str));
 
 }
@@ -2931,42 +2934,11 @@ void setPrint(FileOpt *opt,FILE *file){
 
   strcpy(format,"%-20s: %s\n");
 
-  opt->fCell          = false;
-  opt->fNode          = false;
-  opt->vel            = false;
-  opt->pres           = false;
-  opt->presTotal      = false;
-  opt->uD1            = false;
-  opt->uT1            = false;
-  opt->energy         = false;
-  opt->gradVel        = false;
-  opt->gradPres       = false;
-  opt->gradEnergy     = false;
-  opt->graduD1        = false;
-  opt->graduT1        = false;
-  opt->eddyViscosity  = false;
-  opt->densityFluid   = false;
-  opt->specificHeat   = false;
-  opt->dViscosity     = false;
-  opt->tConductivity  = false;
-  opt->densityD1      = false;
-  opt->coefDiffD1     = false;
-  opt->densityT1      = false;
-  opt->coefDiffT1     = false;
-  opt->vorticity      = false;
-  opt->wallParameters = false;
-  opt->stress         = false;
-  opt->kinetic        = false;
-  opt->stressR        = false;
-  opt->cDynamic       = false;  
-  opt->Qcriterion     = false;
-  opt->kTurb          = false;
-  opt->pKelvin        = false;
+  initPrintVtk(opt);
 
   fscanf(file,"%d",&tmp);
   opt->stepPlot[0] = opt->stepPlot[1] = (short) tmp;
-  readMacro(file,word,false);
-  convStringLower(word);
+  readMacroV2(file, word, false, true);
   while(strcmp(word,str))
   {
 /*... cell*/        
@@ -3217,8 +3189,7 @@ void setPrint(FileOpt *opt,FILE *file){
     }
 /*.....................................................................*/
 
-    readMacro(file,word,false);
-    convStringLower(word);
+    readMacroV2(file, word, false, true);
   }
 /*.....................................................................*/
 
@@ -3284,7 +3255,8 @@ static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC){
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-static void convLoadsEnergy(Loads *loadsEnergy   ,Loads *loadsTemp
+static void convLoadsEnergy(PropPol *sHeatProp
+                           ,Loads *loadsEnergy   ,Loads *loadsTemp
                            ,DOUBLE *RESTRICT prop
                            ,bool const fTemp     ,bool const fSheat 
                            ,bool const iKelvin){
@@ -3326,7 +3298,7 @@ static void convLoadsEnergy(Loads *loadsEnergy   ,Loads *loadsTemp
 /*...*/
       if( type == DIRICHLETBC ){
         t = loadsTemp[i].par[0];
-        tmp = tempForSpecificEnthalpy(t, sHeat, fSheat, iKelvin);
+        tmp = tempForSpecificEnthalpy(sHeatProp,t, sHeat, fSheat, iKelvin);
         loadsEnergy[i].par[0] = tmp;               
       }
 /*....................................................................*/
@@ -3334,7 +3306,7 @@ static void convLoadsEnergy(Loads *loadsEnergy   ,Loads *loadsTemp
 /*...*/
       else if ( type == INLET ||  type == OPEN) {
         t = loadsTemp[i].par[1];
-        tmp = tempForSpecificEnthalpy(t, sHeat, fSheat, iKelvin);
+        tmp = tempForSpecificEnthalpy(sHeatProp,t, sHeat, fSheat, iKelvin);
         loadsEnergy[i].par[1] = tmp;  
       }
 /*....................................................................*/
@@ -3352,31 +3324,8 @@ static void convLoadsEnergy(Loads *loadsEnergy   ,Loads *loadsTemp
 /*********************************************************************/
 
 /********************************************************************* 
- * Data de criacao    : 05/11/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
- *-------------------------------------------------------------------*
- * convStringLower: Converte um string toda para caracteres minusculo*
- *-------------------------------------------------------------------*
- * Parametros de entrada:                                            *
- *-------------------------------------------------------------------*
- * s - recebe uma string                                             *
- *-------------------------------------------------------------------*
- * Parametros de saida:                                              *
- *-------------------------------------------------------------------*
- * s - converte os carateres maiuscolos para minuscolos              *
- *-------------------------------------------------------------------*
- * OBS:                                                              *
- *-------------------------------------------------------------------*
- *********************************************************************/
-void convStringLower(char *s){
-  char *p = s;
-  for ( ; *p; ++p) *p = tolower(*p);
-}
-/*********************************************************************/
-
-/********************************************************************* 
  * Data de criacao    : 11/11/2017                                   *
- * Data de modificaco : 05/05/2018                                   *
+ * Data de modificaco : 15/07/2018                                   *
  *-------------------------------------------------------------------*
  * help : Ajuda em relação a algumas macros                          *
  *-------------------------------------------------------------------*
@@ -3393,24 +3342,24 @@ void convStringLower(char *s){
 void help(FILE *f){
 
   char word[WORD_SIZE];
-  short iHelp = 10;
+  short iHelp = 12;
   char help [][WORD_SIZE] = 
                {"macros"   ,"setprint" ,"advection"    /* 0, 1, 2*/
                ,"model"    ,"diffusion","nlit"         /* 3, 4, 5*/
                ,"transient","rcgrad"   ,"config"       /* 6, 7, 8*/
-               ,"edp"      ,"openmp"   ,""             /* 9,10,11*/
-               ,""         ,""         ,""    };        /*12,13,14*/
+               ,"edp"      ,"openmp"   ,"propvar"      /* 9,10,11*/
+               ,""         ,""         ,""    };       /*12,13,14*/
 
   short iMacros = 45;
   char macros[][WORD_SIZE] = 
        { ""            ,"mesh"         ,"stop"          /* 0, 1, 2*/
-        ,"config"      ,"nextLoop"     ,"rcGrad"        /* 3, 4, 5*/
-        ,"pgeo"        ,"pcoob"        ,"pcoo"          /* 6, 7, 8*/
-        ,"setSolvDiff" ,"presolvT1"    ,"openmp"        /* 9,10,11*/
-        ,"solvD1"      ,""             ,"pD1"           /*12,13,14*/
-        ,"nlIt"        ,"pD1CsvCell"   ,"pD1CsvNode"    /*15,16,17*/
-        ,"solvT1"      ,""             ,"pT1"           /*18,19,20*/
-        ,""            ,"pT1CsvCell"   ,"pT1CsvNode"    /*21,22,23*/
+       ,"config"      ,"nextLoop"     ,"rcGrad"         /* 3, 4, 5*/
+       ,"pgeo"        ,"pcoob"        ,"pcoo"           /* 6, 7, 8*/
+       ,"setSolvDiff" ,"presolvT1"    ,"openmp"         /* 9,10,11*/
+       ,"solvD1"      ,""             ,"pD1"            /*12,13,14*/
+       ,"nlIt"        ,"pD1CsvCell"   ,"pD1CsvNode"     /*15,16,17*/
+       ,"solvT1"      ,""             ,"pT1"            /*18,19,20*/
+       ,""            ,"pT1CsvCell"   ,"pT1CsvNode"     /*21,22,23*/
        ,"setSolv"     ,"simple"       ,"setSimple"      /*24,25,26*/
        ,"transient"   ,"timeUpdate"   ,"partd"          /*27,28,29*/
        ,"advection"   ,"edp"          ,"diffusion"      /*30,31,32*/
@@ -3419,16 +3368,19 @@ void help(FILE *f){
        ,"gravity"     ,"model"        ,"mean"           /*39,40,41*/
        ,"setMean"     ,"save"         ,"load" };        /*42,43,44*/
  
-  short iPrint = 21;
+  short iPrint = 30;
   char print[][WORD_SIZE] = 
-               {"cell"         ,"node"        ,"vel"             /* 0, 1, 2*/
-               ,"pres"         ,"gradvel"     ,"gradpres"        /* 3, 4, 5*/
-               ,"temp"         ,"gradtemp"    ,"eddyviscosity"   /* 6, 7, 8*/
-               ,"densityfluid" ,"specificheat","dviscosity"      /* 9,10,11*/
-               ,"tconductivity","vorticity"   ,"wallparameters"  /*12,13,14*/
-               ,"stress"       ,"kinecit"     ,"stressr"         /*15,16,17*/
-               ,"cdynamic"     ,"qcriterion"  ,"prestotal"};     /*18,19,20*/  
-  
+               {"cell"         ,"node"         , "gradPres"        /* 0 , 1, 2*/     
+               ,"gradVel"      ,"gradEnergy"   ,"graduD1"          /* 3 , 4, 5*/ 
+               ,"graduT1"      ,"uD1"          ,"uT1"              /* 6 , 7, 8*/      
+               ,"vel"          ,"pres"         ,"presTotal"        /* 9 ,10,11*/ 
+               ,"energy"       ,"eddyViscosity","densityFluid"     /*12 ,13,14*/ 
+               ,"specificHeat" ,"dviscosity"   ,"tconductivity"    /*15 ,16,17*/                                     /* 0, 1, 2*/
+               ,"densityD1"    ,"coefDiffD1"   ,"densityT1"        /*18 ,19,20*/ 
+               ,"coefDiffT1"   ,"vorticity"    ,"wallParameters"   /*21 ,22,23*/ 
+               ,"kinetic"      ,"stressR"      ,"cDynamic"         /*24 ,25,26*/ 
+               ,"Qcriterion"   ,"kTurb"        ,"" }               /*27 ,28,29*/
+;
 /*... adveccao*/
   char fAdv[][WORD_SIZE] =                                   
                          { "FoUp","CD" ,"SoUp"                /* 0, 1, 2*/
@@ -3650,6 +3602,21 @@ void help(FILE *f){
   else if (!strcmp(word, help[10])) {
     printf("Ex:\n");
     printf("openmp 3 solver 2 update 2 cell 2\n");
+    exit(EXIT_FAILURE);
+  }
+/*.....................................................................*/
+
+/*... propVar*/
+  else if (!strcmp(word, help[11])) {
+    printf("Ex:\n");
+    printf("PropVar\n");
+    printf("Fluid\n");
+    printf("density      polinomio mat/denPol.dat\n");
+    printf("tcondutivity polinomio mat/ThCondPol.dat\n");
+    printf("dviscosity   polinomio mat/dViscPol.dat\n");
+    printf("sHeat        polinomio mat/sHeatPol.dat\n");
+    printf("endFluid\n");
+    printf("endPropVar\n");    
     exit(EXIT_FAILURE);
   }
 /*.....................................................................*/

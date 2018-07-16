@@ -13,7 +13,7 @@
 
 /*********************************************************************
 * Data de criacao    : 20/08/2017                                   *
-* Data de modificaco : 31/03/2018                                   *
+* Data de modificaco : 15/07/2018                                   *
 *-------------------------------------------------------------------*
 * CELLENERGY2D: Celula 2D para transporte                           *
 *-------------------------------------------------------------------*
@@ -82,9 +82,9 @@
 *-------------------------------------------------------------------*
 *********************************************************************/
 void cellEnergy2D(Loads *loads , Loads *loadsVel
-  , Advection advT             , Diffusion diffT
-  , Turbulence tModel          , EnergyModel model
-  , PropVar vProp
+  , Advection *advT            , Diffusion *diffT
+  , Turbulence *tModel         , EnergyModel *model
+  , PropVarFluid *vProp
   , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop
   , INT *RESTRICT lViz         , INT *RESTRICT lId
   , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
@@ -136,28 +136,28 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
   DOUBLE pAdv[NPADV];
 
 /*...*/
-  idCell = nFace;
-  iCodAdv1 = advT.iCod1;
-  iCodAdv2 = advT.iCod2;
-  pAdv[0] = advT.par[0];
-  iCodDif = diffT.iCod;
+  idCell      = nFace;
+  iCodAdv1    = advT->iCod1;
+  iCodAdv2    = advT->iCod2;
+  pAdv[0]     = advT->par[0];
+  iCodDif     = diffT->iCod;
   iCodPolFace = INTPOLFACELINEAR;
 /*...................................................................*/
-  dt = ddt.dt[0];
-  dt0 = ddt.dt[1];
-  typeTime = ddt.type;
-  fTime = ddt.flag;
-  fDisp = model.fDissipation;
-  fRes = model.fRes;
-  fPresWork = model.fPresWork;
-  fTemp = model.fTemperature;
-  fKelvin = model.fKelvin;
-  fTurb = tModel.fTurb;
-  prTwall = tModel.PrandltTwall;
-  prTsgs = tModel.PrandltTsgs;
-  fWallModel = tModel.fWall;
-  wallType = tModel.wallType;
-  fSheat = vProp.fSpecificHeat;
+  dt         = ddt.dt[0];
+  dt0        = ddt.dt[1];
+  typeTime   = ddt.type;
+  fTime      = ddt.flag;
+  fDisp      = model->fDissipation;
+  fRes       = model->fRes;
+  fPresWork  = model->fPresWork;
+  fTemp      = model->fTemperature;
+  fKelvin    = model->fKelvin;
+  fTurb      = tModel->fTurb;
+  prTwall    = tModel->PrandltTwall;
+  prTsgs     = tModel->PrandltTsgs;
+  fWallModel = tModel->fWall;
+  wallType   = tModel->wallType;
+  fSheat     = vProp->fSpecificHeat;
 /*...................................................................*/
 
 /*... propriedades da celula*/
@@ -352,18 +352,19 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
         xx[0] = MAT2D(nAresta, 0, xm, 2);
         xx[1] = MAT2D(nAresta, 1, xm, 2);
         xx[2] = 0.e0;
-        pLoadEnergy(&sP, &p
-          , &tA, velC
-          , uC, lNormal
-          , thermCoefC, densityC
-          , viscosityC, sHeatC
-          , prTwall, xx
-          , lModEta, dcca[nAresta]
-          , &loads[nCarg1], &loadsVel[nCarg2]
-          , wallPar, ndm
-          , true, fTemp
-          , fKelvin, fSheat
-          , fWallModel, wallType);
+        pLoadEnergy(vProp
+                  , &sP, &p
+                  , &tA, velC
+                  , uC, lNormal
+                  , thermCoefC, densityC
+                  , viscosityC, sHeatC
+                  , prTwall, xx
+                  , lModEta, dcca[nAresta]
+                  , &loads[nCarg1], &loadsVel[nCarg2]
+                  , wallPar, ndm
+                  , true, fTemp
+                  , fKelvin, fSheat
+                  , fWallModel, wallType);
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -379,9 +380,11 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
 
 /*... energia na forma da entalpia*/
           else {
-            tC = specificEnthalpyForTemp(uC, sHeatC, fSheat, fKelvin);
+            tC = specificEnthalpyForTemp(&vProp->sHeat
+                                        ,uC, sHeatC, fSheat, fKelvin);
             tW = tC;
-            tW = tempForSpecificEnthalpy(tW, sHeatC, fSheat, fKelvin);
+            tW = tempForSpecificEnthalpy(&vProp->sHeat
+                                        , tW, sHeatC, fSheat, fKelvin);
           }
 /*...................................................................*/
 
@@ -508,7 +511,7 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
 
 /********************************************************************
 * Data de criacao    : 03/10/2017                                   *
-* Data de modificaco : 29/04/2018                                   *
+* Data de modificaco : 15/07/2018                                   *
 *-------------------------------------------------------------------*
 * CELLENERGY3D: Celula 3D para transporte                           *
 *-------------------------------------------------------------------*
@@ -577,9 +580,9 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
 *-------------------------------------------------------------------*
 *********************************************************************/
 void cellEnergy3D(Loads *loads       , Loads *lVel
-                , Advection advT     , Diffusion diffT
-                , Turbulence tModel  , EnergyModel model
-                , PropVar vProp
+                , Advection *advT    , Diffusion *diffT
+                , Turbulence *tModel , EnergyModel *model
+                , PropVarFluid *vProp
                 , short *RESTRICT lGeomType, DOUBLE *RESTRICT prop
                 , INT *RESTRICT lViz, INT *RESTRICT lId
                 , DOUBLE *RESTRICT ksi, DOUBLE *RESTRICT mKsi
@@ -630,30 +633,30 @@ void cellEnergy3D(Loads *loads       , Loads *lVel
   DOUBLE pAdv[NPADV];
 
 /*...*/
-  idCell = nFace;
-  iCodAdv1 = advT.iCod1;
-  iCodAdv2 = advT.iCod2;
-  pAdv[0] = advT.par[0];
-  iCodDif = diffT.iCod;
+  idCell      = nFace;
+  iCodAdv1    = advT->iCod1;
+  iCodAdv2    = advT->iCod2;
+  pAdv[0]     = advT->par[0];
+  iCodDif     = diffT->iCod;
   iCodPolFace = INTPOLFACELINEAR;
 /*...................................................................*/
 
 /*...*/
-  dt = ddt.dt[0];
-  dt0 = ddt.dt[1];
-  typeTime = ddt.type;
-  fTime = ddt.flag;
-  fDisp = model.fDissipation;
-  fRes = model.fRes;
-  fPresWork = model.fPresWork;
-  fTemp = model.fTemperature;
-  fKelvin = model.fKelvin;
-  fTurb = tModel.fTurb;
-  prTwall = tModel.PrandltTwall;
-  prTsgs = tModel.PrandltTsgs;
-  fWallModel = tModel.fWall;
-  wallType = tModel.wallType;
-  fSheat = vProp.fSpecificHeat;
+  dt         = ddt.dt[0];
+  dt0        = ddt.dt[1];
+  typeTime   = ddt.type;
+  fTime      = ddt.flag;
+  fDisp      = model->fDissipation;
+  fRes       = model->fRes;
+  fPresWork  = model->fPresWork;
+  fTemp      = model->fTemperature;
+  fKelvin    = model->fKelvin;
+  fTurb      = tModel->fTurb;
+  prTwall    = tModel->PrandltTwall;
+  prTsgs     = tModel->PrandltTsgs;
+  fWallModel = tModel->fWall;
+  wallType   = tModel->wallType;
+  fSheat     = vProp->fSpecificHeat;
 /*...................................................................*/
 
 /*... propriedades da celula*/
@@ -871,7 +874,8 @@ void cellEnergy3D(Loads *loads       , Loads *lVel
         xx[0] = MAT2D(nf, 0, xm, 3);
         xx[1] = MAT2D(nf, 1, xm, 3);
         xx[2] = MAT2D(nf, 2, xm, 3);
-        pLoadEnergy(&sP, &p
+        pLoadEnergy(vProp
+          , &sP, &p
           , &tA, velC
           , uC, lNormal
           , thermCoefC, densityC
@@ -898,9 +902,11 @@ void cellEnergy3D(Loads *loads       , Loads *lVel
 
 /*... energia na forma da entalpia*/
           else {
-            tC = specificEnthalpyForTemp(uC, sHeatC, fSheat, fKelvin);
+            tC = specificEnthalpyForTemp(&vProp->sHeat
+                                        , uC, sHeatC, fSheat, fKelvin);
             tW = tC;
-            tW = tempForSpecificEnthalpy(tW, sHeatC, fSheat, fKelvin);
+            tW = tempForSpecificEnthalpy( &vProp->sHeat
+                                        , tW, sHeatC, fSheat, fKelvin);
           }
 /*...................................................................*/
 

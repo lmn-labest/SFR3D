@@ -919,3 +919,71 @@ void reScaleMesh(DOUBLE *x,INT nnode, short ndm, FILE *fileIn)
 /*...................................................................*/
 }
 /*********************************************************************/
+
+/*********************************************************************
+* Data de criacao    : 01/05/2018                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* reScaleMesh : redimensio as coordenada da matriz                  *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* m       -> vetor de memoria principal                             *
+* pMesh     -> modelo de turbulencia                                *
+* sc        -> modelo da equacao de energia                         *
+* loadsD1   -> deficicao de cargas velocidade                       *
+* opt       -> opcoes de arquivo                                    *
+* mesh0     -> malha global                                         *
+* mesh      -> malha particionada                                   *
+* preName   -> prefixo do arquivo                                   *
+* nameOut   -> arquivo de saida                                     *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void initPrintVtk(FileOpt *opt)
+{
+  opt->bVtk           = false;
+  opt->fItPlotRes     = false;
+  opt->fItPlot        = false;
+  opt->fCell          = false;
+  opt->fNode          = false;
+  opt->gradPres       = false;
+  opt->gradVel        = false;
+  opt->gradEnergy     = false;
+  opt->graduD1        = false;
+  opt->graduT1        = false;
+  opt->uD1            = false;
+  opt->uT1            = false;
+  opt->vel            = false;
+  opt->pres           = false;
+  opt->presTotal      = false;
+  opt->energy         = false;
+  opt->eddyViscosity  = false;
+  opt->densityFluid   = false;
+  opt->specificHeat   = false;
+  opt->dViscosity     = false;
+  opt->tConductivity  = false;
+  opt->densityD1      = false;
+  opt->coefDiffD1     = false;
+  opt->densityT1      = false;
+  opt->coefDiffT1     = false;
+  opt->vorticity      = false;
+  opt->wallParameters = false;
+  opt->stress         = false;
+  opt->kinetic        = false;
+  opt->stressR        = false;
+  opt->cDynamic       = false;
+  opt->Qcriterion     = false;
+  opt->kTurb          = false;
+  opt->bconditions    = false;
+  opt->cc             = false;
+  opt->pKelvin        = false;
+
+  opt->stepPlot[0] = 5;
+  opt->stepPlot[1] = opt->stepPlot[0];
+
+}

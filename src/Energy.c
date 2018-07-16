@@ -13,7 +13,7 @@
  *-------------------------------------------------------------------* 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-bool energyEquation(Memoria *m              , PropVar *prop 
+bool energyEquation(Memoria *m              , PropVarFluid *prop 
                    , Loads *loadsVel         , Loads *loadsEnergy  
                    , EnergyModel *eModel     , Turbulence *tModel  
                    , ThermoDynamic *thDynamic, Mesh *mesh          
@@ -57,9 +57,9 @@ bool energyEquation(Memoria *m              , PropVar *prop
 /*... calculo de: A(i),bE(i)*/
   tm.systFormEnergy = getTimeC() - tm.systFormEnergy;
   systFormEnergy(loadsEnergy          , loadsVel
-            , sc->advEnergy           , sc->diffEnergy
-            , *tModel                 , *eModel  
-            , *prop  
+            , &sc->advEnergy          , &sc->diffEnergy
+            , tModel                  , eModel  
+            , prop  
             , mesh->elm.node          , mesh->elm.adj.nelcon
             , mesh->elm.nen           , mesh->elm.adj.nViz
             , mesh->elm.geomType      , mesh->elm.material.prop
