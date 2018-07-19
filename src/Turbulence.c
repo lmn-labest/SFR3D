@@ -767,7 +767,8 @@ void wallParametersCellLoop(Loads *lVel, Turbulence *tModel
   dMin = 0.0e0;        
 /*... loop nas celulas*/
   aux2    = maxViz+1;
-  for(nel=0;nel<numel;nel++){
+  for(nel=0;nel<numel;nel++)
+  {
 /*...*/
     aux1    = nFace[nel];
 /*... loop na celula central*/    
@@ -784,7 +785,8 @@ void wallParametersCellLoop(Loads *lVel, Turbulence *tModel
 /*...................................................................*/
 
 /*...*/
-    for(i=0;i<aux1;i++){
+    for(i=0;i<aux1;i++)
+    {
       lDcca[i]      = MAT2D(nel,i,gDcca   ,maxViz);
       lFaceVelR[i]  = MAT2D(nel,i,faceVelR,aux2);
       lFaceVelL[i]  = MAT2D(nel,i,faceVelL,aux2);
@@ -798,7 +800,8 @@ void wallParametersCellLoop(Loads *lVel, Turbulence *tModel
     }
 
 /*... loop na celulas vizinhas*/    
-    for(i=0;i<aux1;i++){
+    for(i=0;i<aux1;i++)
+    {
       vizNel  = MAT2D(nel,i,nelcon,maxViz) - 1;
       lViz[i] = vizNel;
     }  
@@ -820,7 +823,8 @@ void wallParametersCellLoop(Loads *lVel, Turbulence *tModel
 /*...................................................................*/
  
 /*...*/
-    if(fWall){
+    if(fWall)
+    {
       for(i=0;i<NWALLPAR;i++)
         MAT2D(nel,i,wallPar,NWALLPAR) = lWallPar[i];
     }
