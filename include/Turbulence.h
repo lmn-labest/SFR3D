@@ -90,25 +90,26 @@
 /*...................................................................*/
 
 /*...*/
-  void turbulenceCellLoop(Loads *lVel       , Turbulence *tModel             
-      , INT    *RESTRICT el                 , INT    *RESTRICT nelcon 
-      , short  *RESTRICT nen                , short  *RESTRICT nFace 
-      , short  *RESTRICT geomType           , DOUBLE *RESTRICT prop  
-      , short  *RESTRICT calType            , short  *RESTRICT mat        
-      , DOUBLE *RESTRICT cc                 , DOUBLE *RESTRICT gKsi                      
-      , DOUBLE *RESTRICT gmKsi              , DOUBLE *RESTRICT gEta  
-      , DOUBLE *RESTRICT gfArea             , DOUBLE *RESTRICT gNormal  
-      , DOUBLE *RESTRICT gVolume            , DOUBLE *RESTRICT gXm  
-      , DOUBLE *RESTRICT gXmcc              , DOUBLE *RESTRICT gvSkew    
-      , DOUBLE *RESTRICT gmvSkew            , DOUBLE *RESTRICT gDcca  
-      , short  *RESTRICT faceVelR           , short *RESTRICT faceVelL               
-      , DOUBLE *RESTRICT vel                , DOUBLE *RESTRICT gradVel
-      , DOUBLE *RESTRICT density            , DOUBLE *RESTRICT dViscosity        
-      , DOUBLE *RESTRICT eddyViscosity      , DOUBLE *RESTRICT wallPar  
-      , DOUBLE *RESTRICT dynamic                 
-      , short const maxNo                   , short const maxViz
-      , short const ndm                     , INT const numel     
-      , short const ndf);  
+  void turbulenceCellLoop(Loads *lVel     , Turbulence *tModel
+          , INT    *RESTRICT el           , INT    *RESTRICT nelcon
+          , short  *RESTRICT nen          , short  *RESTRICT nFace
+          , INT *RESTRICT cellFace        , INT *RESTRICT fOwner
+          , DOUBLE *RESTRICT gVolume      , DOUBLE *RESTRICT gDcca
+          , DOUBLE *RESTRICT gXmCc        , DOUBLE *RESTRICT gCc
+          , DOUBLE *RESTRICT fModKsi      , DOUBLE *RESTRICT fKsi
+          , DOUBLE *RESTRICT fEta         , DOUBLE *RESTRICT fArea
+          , DOUBLE *RESTRICT fNormal      , DOUBLE *RESTRICT fXm
+          , DOUBLE *RESTRICT fModvSkew    , DOUBLE *RESTRICT fvSkew
+          , short  *RESTRICT geomType     , DOUBLE *RESTRICT prop
+          , short  *RESTRICT calType      , short  *RESTRICT mat
+          , short  *RESTRICT faceVelR     , short *RESTRICT faceVelL
+          , DOUBLE *RESTRICT vel          , DOUBLE *RESTRICT gradVel
+          , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT dViscosity
+          , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT wallPar
+          , DOUBLE *RESTRICT cDyn
+          , short const maxNo             , short const maxViz
+          , short const ndm               , INT const numel
+          , short const ndf);
 /*...................................................................*/
 
 
@@ -182,9 +183,10 @@
 /*...................................................................*/
 
 /*...*/
-  void wallParametersCellLoop(Loads *lVel , Turbulence *tModel             
+  void wallParametersCellLoop(Loads *lVel , Turbulence *tModel  
+      , INT *RESTRICT cellFace          , INT *RESTRICT fOwner
       , INT    *RESTRICT nelcon         , short  *RESTRICT nFace 
-      , DOUBLE *RESTRICT gNormal        , DOUBLE *RESTRICT gVolume
+      , DOUBLE *RESTRICT fNormal        , DOUBLE *RESTRICT gVolume
       , DOUBLE *RESTRICT gDcca  
       , short  *RESTRICT faceVelR       , short *RESTRICT faceVelL               
       , DOUBLE *RESTRICT vel            , DOUBLE *RESTRICT density

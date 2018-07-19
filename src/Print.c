@@ -64,62 +64,65 @@ void printFluid(Memoria *m
 
 /*... reconstruindo do gradiente (Pres)*/
   tm.rcGradPres = getTimeC() - tm.rcGradPres;
-  rcGradU(m                      ,loadsPres
-         ,mesh->elm.node          ,mesh->elm.adj.nelcon
-         ,mesh->elm.geom.cc       ,mesh->node.x   
-         ,mesh->elm.nen           ,mesh->elm.adj.nViz 
-         ,mesh->elm.geomType      ,mesh->elm.material.prop 
-         ,mesh->elm.mat 
-         ,mesh->elm.leastSquare   ,mesh->elm.leastSquareR
-         ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
-         ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
-         ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-         ,mesh->elm.geom.vSkew     
-         ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
-         ,mesh->elm.geom.dcca
-         ,mesh->elm.faceRpres     ,mesh->elm.faceLoadPres  
-         ,mesh->elm.pressure      ,mesh->elm.gradPres                
-         ,mesh->node.pressure     ,sc.rcGrad
-         ,mesh->maxNo             ,mesh->maxViz
-         ,1                       ,mesh->ndm       
-         ,&pMesh->iNo             ,&pMesh->iEl  
-         ,mesh->numelNov          ,mesh->numel        
-         ,mesh->nnodeNov          ,mesh->nnode);  
+  rcGradU(m                        , loadsPres
+         , mesh->elm.node          , mesh->elm.adj.nelcon
+         , mesh->node.x
+         , mesh->elm.nen           , mesh->elm.adj.nViz
+         , mesh->elm.cellFace      , mesh->face.owner
+         , mesh->elm.geom.volume   , mesh->elm.geom.dcca
+         , mesh->elm.geom.xmcc     , mesh->elm.geom.cc
+         , mesh->face.mksi         , mesh->face.ksi
+         , mesh->face.eta          , mesh->face.area
+         , mesh->face.normal       , mesh->face.xm
+         , mesh->face.mvSkew       , mesh->face.vSkew
+         , mesh->elm.geomType      , mesh->elm.material.prop
+         , mesh->elm.material.type , mesh->elm.mat
+         , mesh->elm.leastSquare   , mesh->elm.leastSquareR
+         , mesh->elm.faceRpres     , mesh->elm.faceLoadPres
+         , mesh->elm.pressure      , mesh->elm.gradPres                
+         , mesh->node.pressure     , sc.rcGrad
+         , mesh->maxNo             , mesh->maxViz
+         , 1                       , mesh->ndm       
+         , &pMesh->iNo             , &pMesh->iEl  
+         , mesh->numelNov          , mesh->numel        
+         , mesh->nnodeNov          , mesh->nnode);  
   tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (GradPres)*/
-  interCellNode(m                   ,loadsPres
-               ,mesh->node.gradPres,mesh->elm.gradPres
-               ,mesh->elm.node     ,mesh->elm.geomType            
-               ,mesh->elm.geom.cc  ,mesh->node.x  
-               ,mesh->elm.geom.xm
-               ,mesh->elm.nen      ,mesh->elm.adj.nViz
-               ,mesh->elm.faceRpres,mesh->elm.faceLoadPres
-               ,&pMesh->iNo          
-               ,mesh->numelNov     ,mesh->numel        
-               ,mesh->nnodeNov     ,mesh->nnode 
-               ,mesh->maxNo        ,mesh->maxViz   
-               ,mesh->ndm          ,1
-               ,mesh->ndm      
-               ,false              ,2);
+  interCellNode(m                  , loadsPres
+              , mesh->elm.cellFace , mesh->face.owner
+              , mesh->node.gradPres, mesh->elm.gradPres
+              , mesh->elm.node     , mesh->elm.geomType            
+              , mesh->elm.geom.cc  , mesh->node.x  
+              , mesh->face.xm
+              , mesh->elm.nen      , mesh->elm.adj.nViz
+              , mesh->elm.faceRpres, mesh->elm.faceLoadPres
+              , &pMesh->iNo          
+              , mesh->numelNov     , mesh->numel        
+              , mesh->nnodeNov     , mesh->nnode 
+              , mesh->maxNo        , mesh->maxViz   
+              , mesh->ndm          , 1
+              , mesh->ndm      
+              , false              , 2);
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (pres)*/
-  interCellNode(m                  ,loadsPres
-               ,mesh->node.pressure,mesh->elm.pressure   
-               ,mesh->elm.node     ,mesh->elm.geomType            
-               ,mesh->elm.geom.cc  ,mesh->node.x  
-               ,mesh->elm.geom.xm
-               ,mesh->elm.nen      ,mesh->elm.adj.nViz
-               ,mesh->elm.faceRpres,mesh->elm.faceLoadPres  
-               ,&pMesh->iNo          
-               ,mesh->numelNov     ,mesh->numel        
-               ,mesh->nnodeNov     ,mesh->nnode 
-               ,mesh->maxNo        ,mesh->maxViz   
-               ,1                  ,1
-               ,mesh->ndm      
-               ,opt.bconditions    ,2);
+  interCellNode(m                   , loadsPres
+               , mesh->elm.cellFace , mesh->face.owner
+               , mesh->node.pressure, mesh->elm.pressure   
+               , mesh->elm.node     , mesh->elm.geomType            
+               , mesh->elm.geom.cc  , mesh->node.x  
+               , mesh->face.xm        
+               , mesh->elm.nen      , mesh->elm.adj.nViz
+               , mesh->elm.faceRpres, mesh->elm.faceLoadPres  
+               , &pMesh->iNo           
+               , mesh->numelNov     , mesh->numel        
+               , mesh->nnodeNov     , mesh->nnode 
+               , mesh->maxNo        , mesh->maxViz   
+               , 1                  , 1
+               , mesh->ndm            
+               , opt.bconditions    , 2);
 /*...................................................................*/
 
 /*... calculo da matrix jacobiana das velocidades
@@ -128,62 +131,65 @@ void printFluid(Memoria *m
                             | du3dx1 du3dx2 du3dx3 |
 */        
   tm.rcGradVel  = getTimeC() - tm.rcGradVel;
-  rcGradU(m                         ,loadsVel
-           ,mesh->elm.node          ,mesh->elm.adj.nelcon
-           ,mesh->elm.geom.cc       ,mesh->node.x   
-           ,mesh->elm.nen           ,mesh->elm.adj.nViz 
-           ,mesh->elm.geomType      ,mesh->elm.material.prop 
-           ,mesh->elm.mat 
-           ,mesh->elm.leastSquare   ,mesh->elm.leastSquareR
-           ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
-           ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
-           ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-           ,mesh->elm.geom.vSkew      
-           ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
-           ,mesh->elm.geom.dcca
-           ,mesh->elm.faceRvel      ,mesh->elm.faceLoadVel   
-           ,mesh->elm.vel           ,mesh->elm.gradVel                           
-           ,mesh->node.vel          ,sc.rcGrad
-           ,mesh->maxNo             ,mesh->maxViz
-           ,ndfVel                  ,mesh->ndm
-           ,&pMesh->iNo             ,&pMesh->iEl  
-           ,mesh->numelNov          ,mesh->numel        
-           ,mesh->nnodeNov          ,mesh->nnode); 
+  rcGradU(m                        , loadsVel
+         , mesh->elm.node          , mesh->elm.adj.nelcon
+         , mesh->node.x
+         , mesh->elm.nen           , mesh->elm.adj.nViz
+         , mesh->elm.cellFace      , mesh->face.owner
+         , mesh->elm.geom.volume   , mesh->elm.geom.dcca
+         , mesh->elm.geom.xmcc     , mesh->elm.geom.cc
+         , mesh->face.mksi         , mesh->face.ksi
+         , mesh->face.eta          , mesh->face.area
+         , mesh->face.normal       , mesh->face.xm
+         , mesh->face.mvSkew       , mesh->face.vSkew
+         , mesh->elm.geomType      , mesh->elm.material.prop
+         , mesh->elm.material.type , mesh->elm.mat
+         , mesh->elm.leastSquare   , mesh->elm.leastSquareR
+         , mesh->elm.faceRvel      , mesh->elm.faceLoadVel   
+         , mesh->elm.vel           , mesh->elm.gradVel                           
+         , mesh->node.vel          , sc.rcGrad
+         , mesh->maxNo             , mesh->maxViz
+         , ndfVel                  , mesh->ndm
+         , &pMesh->iNo             , &pMesh->iEl  
+         , mesh->numelNov          , mesh->numel        
+         , mesh->nnodeNov          , mesh->nnode); 
   tm.rcGradVel = getTimeC() - tm.rcGradVel;  
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (gradVel)*/
-  interCellNode(m                      ,loadsVel
-               ,mesh->node.gradVel ,mesh->elm.gradVel    
-               ,mesh->elm.node     ,mesh->elm.geomType            
-               ,mesh->elm.geom.cc  ,mesh->node.x  
-               ,mesh->elm.geom.xm
-               ,mesh->elm.nen      ,mesh->elm.adj.nViz
-               ,mesh->elm.faceRvel ,mesh->elm.faceLoadVel 
-               ,&pMesh->iNo          
-               ,mesh->numelNov     ,mesh->numel        
-               ,mesh->nnodeNov     ,mesh->nnode 
-               ,mesh->maxNo        ,mesh->maxViz   
-               ,ndfVel             ,mesh->ndm
-               ,mesh->ndm      
-               ,false              ,2);
+  interCellNode(m                   , loadsVel
+               , mesh->elm.cellFace , mesh->face.owner
+               , mesh->node.gradVel , mesh->elm.gradVel    
+               , mesh->elm.node     , mesh->elm.geomType            
+               , mesh->elm.geom.cc  , mesh->node.x  
+               , mesh->face.xm        
+               , mesh->elm.nen      , mesh->elm.adj.nViz
+               , mesh->elm.faceRvel , mesh->elm.faceLoadVel 
+               , &pMesh->iNo           
+               , mesh->numelNov     , mesh->numel        
+               , mesh->nnodeNov     , mesh->nnode 
+               , mesh->maxNo        , mesh->maxViz   
+               , ndfVel             , mesh->ndm
+               , mesh->ndm            
+               , false              , 2);
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
-  interCellNode(m                 ,loadsVel
-               ,mesh->node.vel     ,mesh->elm.vel        
-               ,mesh->elm.node     ,mesh->elm.geomType            
-               ,mesh->elm.geom.cc  ,mesh->node.x  
-               ,mesh->elm.geom.xm
-               ,mesh->elm.nen      ,mesh->elm.adj.nViz
-               ,mesh->elm.faceRvel ,mesh->elm.faceLoadVel 
-               ,&pMesh->iNo          
-               ,mesh->numelNov     ,mesh->numel        
-               ,mesh->nnodeNov     ,mesh->nnode 
-               ,mesh->maxNo        ,mesh->maxViz   
-               ,mesh->ndm          ,1
-               ,mesh->ndm      
-               ,opt.bconditions    ,2);
+  interCellNode(m                  , loadsVel
+               , mesh->elm.cellFace, mesh->face.owner
+               , mesh->node.vel    , mesh->elm.vel        
+               , mesh->elm.node    , mesh->elm.geomType            
+               , mesh->elm.geom.cc , mesh->node.x  
+               , mesh->face.xm   
+               , mesh->elm.nen     , mesh->elm.adj.nViz
+               , mesh->elm.faceRvel, mesh->elm.faceLoadVel 
+               , &pMesh->iNo          
+               , mesh->numelNov    , mesh->numel        
+               , mesh->nnodeNov    , mesh->nnode 
+               , mesh->maxNo       , mesh->maxViz   
+               , mesh->ndm         , 1
+               , mesh->ndm      
+               , opt.bconditions   , 2);
 /*...................................................................*/
 
 /*... medias*/
@@ -191,118 +197,124 @@ void printFluid(Memoria *m
 
 /*... medias das velociade*/
     if(media->fVel)
-      interCellNode(m                  ,loadsVel
-                   ,nMedVel            ,media->mVel        
-                   ,mesh->elm.node     ,mesh->elm.geomType            
-                   ,mesh->elm.geom.cc  ,mesh->node.x  
-                   ,mesh->elm.geom.xm
-                   ,mesh->elm.nen      ,mesh->elm.adj.nViz
-                   ,mesh->elm.faceRvel ,mesh->elm.faceLoadVel 
-                   ,&pMesh->iNo          
-                   ,mesh->numelNov     ,mesh->numel        
-                   ,mesh->nnodeNov     ,mesh->nnode 
-                   ,mesh->maxNo        ,mesh->maxViz   
-                   ,mesh->ndm          ,1
-                   ,mesh->ndm      
-                   ,false              ,2);
+      interCellNode(m                   , loadsVel
+                   , mesh->elm.cellFace , mesh->face.owner
+                   , nMedVel            , media->mVel        
+                   , mesh->elm.node     , mesh->elm.geomType            
+                   , mesh->elm.geom.cc  , mesh->node.x  
+                   , mesh->face.xm        
+                   , mesh->elm.nen      , mesh->elm.adj.nViz
+                   , mesh->elm.faceRvel , mesh->elm.faceLoadVel 
+                   , &pMesh->iNo           
+                   , mesh->numelNov     , mesh->numel        
+                   , mesh->nnodeNov     , mesh->nnode 
+                   , mesh->maxNo        , mesh->maxViz   
+                   , mesh->ndm          , 1
+                   , mesh->ndm            
+                   , false              , 2);
 /*...................................................................*/
   }
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (Energia)*/
   if(mesh->ndfFt){
-    rcGradU(m                 ,loadsTemp
-              ,mesh->elm.node       ,mesh->elm.adj.nelcon
-              ,mesh->elm.geom.cc    ,mesh->node.x
-              ,mesh->elm.nen        ,mesh->elm.adj.nViz
-              ,mesh->elm.geomType   ,mesh->elm.material.prop
-              ,mesh->elm.mat
-              ,mesh->elm.leastSquare,mesh->elm.leastSquareR
-              ,mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
-              ,mesh->elm.geom.eta   ,mesh->elm.geom.fArea
-              ,mesh->elm.geom.normal,mesh->elm.geom.volume
-              ,mesh->elm.geom.vSkew
-              ,mesh->elm.geom.xm    ,mesh->elm.geom.xmcc
-              ,mesh->elm.geom.dcca
-              ,mesh->elm.faceRenergy,mesh->elm.faceLoadEnergy
-              ,mesh->elm.temp       ,mesh->elm.gradTemp  
-              ,mesh->node.temp      ,sc.rcGrad
-              ,mesh->maxNo          ,mesh->maxViz
-              ,1, mesh->ndm
-              ,&pMesh->iNo          ,&pMesh->iEl
-              ,mesh->numelNov       ,mesh->numel
-              ,mesh->nnodeNov       ,mesh->nnode); 
+    rcGradU(m                       , loadsTemp
+           , mesh->elm.node         , mesh->elm.adj.nelcon
+           , mesh->node.x
+           , mesh->elm.nen          , mesh->elm.adj.nViz
+           , mesh->elm.cellFace     , mesh->face.owner
+           , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+           , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+           , mesh->face.mksi        , mesh->face.ksi
+           , mesh->face.eta         , mesh->face.area
+           , mesh->face.normal      , mesh->face.xm
+           , mesh->face.mvSkew      , mesh->face.vSkew
+           , mesh->elm.geomType     , mesh->elm.material.prop
+           , mesh->elm.material.type, mesh->elm.mat
+           , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+           , mesh->elm.faceRenergy  , mesh->elm.faceLoadEnergy
+           , mesh->elm.temp         , mesh->elm.gradTemp  
+           , mesh->node.temp        , sc.rcGrad
+           , mesh->maxNo            , mesh->maxViz
+           , 1                      , mesh->ndm
+           , &pMesh->iNo            , &pMesh->iEl
+           , mesh->numelNov         , mesh->numel
+           , mesh->nnodeNov         , mesh->nnode); 
 /*.................................................................. */
 
 
 /*... interpolacao das variaveis da celulas para pos nos (GradEnergy)*/
-    interCellNode(m                 ,loadsTemp  
-              ,mesh->node.gradTemp  ,mesh->elm.gradTemp  
-              ,mesh->elm.node       ,mesh->elm.geomType
-              ,mesh->elm.geom.cc    ,mesh->node.x
-              ,mesh->elm.geom.xm
-              ,mesh->elm.nen        ,mesh->elm.adj.nViz
-              ,mesh->elm.faceRenergy,mesh->elm.faceLoadEnergy
-              ,&pMesh->iNo
-              ,mesh->numelNov       ,mesh->numel
-              ,mesh->nnodeNov       ,mesh->nnode
-              ,mesh->maxNo          ,mesh->maxViz
-              ,mesh->ndm            ,1
-              ,mesh->ndm
-              ,false                ,2);  
+    interCellNode(m                  , loadsTemp  
+              , mesh->elm.cellFace   , mesh->face.owner
+              , mesh->node.gradTemp  , mesh->elm.gradTemp  
+              , mesh->elm.node       , mesh->elm.geomType
+              , mesh->elm.geom.cc    , mesh->node.x
+              , mesh->face.xm          
+              , mesh->elm.nen        , mesh->elm.adj.nViz
+              , mesh->elm.faceRenergy, mesh->elm.faceLoadEnergy
+              , &pMesh->iNo            
+              , mesh->numelNov       , mesh->numel
+              , mesh->nnodeNov       , mesh->nnode
+              , mesh->maxNo          , mesh->maxViz
+              , mesh->ndm            , 1
+              , mesh->ndm              
+              , false                , 2);  
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (energy)*/
-    interCellNode(m                ,loadsTemp
-             ,mesh->node.temp      ,mesh->elm.temp
-             ,mesh->elm.node       ,mesh->elm.geomType
-             ,mesh->elm.geom.cc    ,mesh->node.x
-             ,mesh->elm.geom.xm
-             ,mesh->elm.nen        ,mesh->elm.adj.nViz
-             ,mesh->elm.faceRenergy,mesh->elm.faceLoadEnergy
-             ,&pMesh->iNo
-             ,mesh->numelNov       ,mesh->numel
-             ,mesh->nnodeNov       ,mesh->nnode
-             ,mesh->maxNo          ,mesh->maxViz
-             ,1                    ,1
-             ,mesh->ndm
-             ,opt.bconditions      ,2);  
+    interCellNode(m                 , loadsTemp
+             , mesh->elm.cellFace   , mesh->face.owner
+             , mesh->node.temp      , mesh->elm.temp
+             , mesh->elm.node       , mesh->elm.geomType
+             , mesh->elm.geom.cc    , mesh->node.x
+             , mesh->face.xm          
+             , mesh->elm.nen        , mesh->elm.adj.nViz
+             , mesh->elm.faceRenergy, mesh->elm.faceLoadEnergy
+             , &pMesh->iNo            
+             , mesh->numelNov       , mesh->numel
+             , mesh->nnodeNov       , mesh->nnode
+             , mesh->maxNo          , mesh->maxViz
+             , 1                    , 1
+             , mesh->ndm              
+             , opt.bconditions      , 2);  
 /*...................................................................*/
   }
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (density)*/
-  interCellNode(m               , loadsTemp
-             ,nDenFluid         , mesh->elm.densityFluid
-             ,mesh->elm.node    , mesh->elm.geomType
-             ,mesh->elm.geom.cc , mesh->node.x
-             ,mesh->elm.geom.xm   
-             ,mesh->elm.nen     , mesh->elm.adj.nViz
-             ,dum               , dum                           
-             ,&pMesh->iNo         
-             ,mesh->numelNov    , mesh->numel
-             ,mesh->nnodeNov    , mesh->nnode
-             ,mesh->maxNo       , mesh->maxViz
-             ,3                 , 1
-             ,mesh->ndm           
-             ,false             , 2);  
+  interCellNode(m                , loadsTemp
+             , mesh->elm.cellFace, mesh->face.owner
+             , nDenFluid         , mesh->elm.densityFluid
+             , mesh->elm.node    , mesh->elm.geomType
+             , mesh->elm.geom.cc , mesh->node.x
+             , mesh->face.xm   
+             , mesh->elm.nen     , mesh->elm.adj.nViz
+             , dum               , dum                           
+             , &pMesh->iNo         
+             , mesh->numelNov    , mesh->numel
+             , mesh->nnodeNov    , mesh->nnode
+             , mesh->maxNo       , mesh->maxViz
+             , 3                 , 1
+             , mesh->ndm           
+             , false             , 2);  
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (dViscosity)*/
-  interCellNode(m                    ,loadsTemp
-              ,nDvisc                 ,mesh->elm.dViscosity
-              ,mesh->elm.node         ,mesh->elm.geomType
-              ,mesh->elm.geom.cc      ,mesh->node.x
-              ,mesh->elm.geom.xm      
-              ,mesh->elm.nen          ,mesh->elm.adj.nViz
-              ,dum                    ,dum                           
-              ,&pMesh->iNo            
-              ,mesh->numelNov         ,mesh->numel
-              ,mesh->nnodeNov         ,mesh->nnode
-              ,mesh->maxNo            ,mesh->maxViz
-              ,1                      ,1
-              ,mesh->ndm              
-              ,false                  ,2);
+  interCellNode(m                    , loadsTemp
+              , mesh->elm.cellFace   , mesh->face.owner
+              , nDvisc               , mesh->elm.dViscosity
+              , mesh->elm.node       , mesh->elm.geomType
+              , mesh->elm.geom.cc    , mesh->node.x
+              , mesh->face.xm          
+              , mesh->elm.nen        , mesh->elm.adj.nViz
+              , dum                  , dum                           
+              , &pMesh->iNo            
+              , mesh->numelNov       , mesh->numel
+              , mesh->nnodeNov       , mesh->nnode
+              , mesh->maxNo          , mesh->maxViz
+              , 1                    , 1
+              , mesh->ndm              
+              , false                , 2);
 /*...................................................................*/
 
 /*...*/
@@ -310,10 +322,11 @@ void printFluid(Memoria *m
 /*... viscisidade turbulenta*/
     if(opt.eddyViscosity)       
       interCellNode(m                  , loadsVel
+                   , mesh->elm.cellFace, mesh->face.owner
                    , nEddyV            , mesh->elm.eddyViscosity        
                    , mesh->elm.node    , mesh->elm.geomType            
                    , mesh->elm.geom.cc , mesh->node.x  
-                   , mesh->elm.geom.xm   
+                   , mesh->face.xm   
                    , mesh->elm.nen     , mesh->elm.adj.nViz
                    , dum               , dum                   
                    , &pMesh->iNo          
@@ -327,65 +340,69 @@ void printFluid(Memoria *m
 
 /*... tensor residual (modelos estruturais)*/
     if(opt.stressR)
-      interCellNode(m                     ,loadsVel
-                ,nStressR                 ,mesh->elm.stressR              
-                ,mesh->elm.node           ,mesh->elm.geomType            
-                ,mesh->elm.geom.cc        ,mesh->node.x  
-                ,mesh->elm.geom.xm       
-                ,mesh->elm.nen            ,mesh->elm.adj.nViz
-                ,dum                      ,dum                   
-                ,&pMesh->iNo                
-                ,mesh->numelNov           ,mesh->numel        
-                ,mesh->nnodeNov           ,mesh->nnode 
-                ,mesh->maxNo              ,mesh->maxViz   
-                ,6                        ,1
-                ,mesh->ndm               
-                ,false                    ,2);
+      interCellNode(m                     , loadsVel
+                , mesh->elm.cellFace      , mesh->face.owner
+                , nStressR                , mesh->elm.stressR              
+                , mesh->elm.node          , mesh->elm.geomType            
+                , mesh->elm.geom.cc       , mesh->node.x  
+                , mesh->face.xm             
+                , mesh->elm.nen           , mesh->elm.adj.nViz
+                , dum                     , dum                   
+                , &pMesh->iNo                
+                , mesh->numelNov          , mesh->numel        
+                , mesh->nnodeNov          , mesh->nnode 
+                , mesh->maxNo             , mesh->maxViz   
+                , 6                       , 1
+                , mesh->ndm                 
+                , false                   , 2);
 /*...................................................................*/
 
 /*... coeficiente dinamico*/
     if(opt.cDynamic)
-      interCellNode(m                     ,loadsVel
-                ,nCdyn                    ,mesh->elm.cd              
-                ,mesh->elm.node           ,mesh->elm.geomType            
-                ,mesh->elm.geom.cc        ,mesh->node.x  
-                ,mesh->elm.geom.xm       
-                ,mesh->elm.nen            ,mesh->elm.adj.nViz
-                ,dum                      ,dum                   
-                ,&pMesh->iNo                
-                ,mesh->numelNov           ,mesh->numel        
-                ,mesh->nnodeNov           ,mesh->nnode 
-                ,mesh->maxNo              ,mesh->maxViz   
-                ,2                        ,1
-                ,mesh->ndm               
-                ,false                    ,2);
+      interCellNode(m                      , loadsVel
+                , mesh->elm.cellFace       , mesh->face.owner
+                , nCdyn                    , mesh->elm.cd              
+                , mesh->elm.node           , mesh->elm.geomType            
+                , mesh->elm.geom.cc        , mesh->node.x  
+                , mesh->face.xm              
+                , mesh->elm.nen            , mesh->elm.adj.nViz
+                , dum                      , dum                   
+                , &pMesh->iNo                 
+                , mesh->numelNov           , mesh->numel        
+                , mesh->nnodeNov           , mesh->nnode 
+                , mesh->maxNo              , mesh->maxViz   
+                , 2                        , 1
+                , mesh->ndm                  
+                , false                    , 2);
 /*...................................................................*/
 
 /*... parametros de parede*/
     if(opt.wallParameters)
-      interCellNode(m                     ,loadsVel
-                ,nWall                    ,mesh->elm.wallParameters              
-                ,mesh->elm.node           ,mesh->elm.geomType            
-                ,mesh->elm.geom.cc        ,mesh->node.x  
-                ,mesh->elm.geom.xm       
-                ,mesh->elm.nen            ,mesh->elm.adj.nViz
-                ,dum                      ,dum                   
-                ,&pMesh->iNo                
-                ,mesh->numelNov           ,mesh->numel        
-                ,mesh->nnodeNov           ,mesh->nnode 
-                ,mesh->maxNo              ,mesh->maxViz   
-                ,4                        ,1
-                ,mesh->ndm               
-                ,false                    ,2);
+      interCellNode(m                     , loadsVel
+                , mesh->elm.cellFace      , mesh->face.owner
+                , nWall                   , mesh->elm.wallParameters              
+                , mesh->elm.node          , mesh->elm.geomType            
+                , mesh->elm.geom.cc       , mesh->node.x  
+                , mesh->face.xm             
+                , mesh->elm.nen           , mesh->elm.adj.nViz
+                , dum                     , dum                   
+                , &pMesh->iNo                
+                , mesh->numelNov          , mesh->numel        
+                , mesh->nnodeNov          , mesh->nnode 
+                , mesh->maxNo             , mesh->maxViz   
+                , 4                       , 1
+                , mesh->ndm                 
+                , false                   , 2);
 /*...................................................................*/
 
 /*... energia cinetica turbulenta*/
     if(opt.kTurb)       
       interCellNode(m              , loadsVel
+            , mesh->elm.cellFace   , mesh->face.owner
             , nKturb               , mesh->elm.kTurb                
             , mesh->elm.node       , mesh->elm.geomType            
             , mesh->elm.geom.cc    , mesh->node.x  
-            , mesh->elm.geom.xm      
+            , mesh->face.xm      
             , mesh->elm.nen        , mesh->elm.adj.nViz
             , mesh->elm.faceReKturb,mesh->elm.faceLoadKturb                   
             , &pMesh->iNo          
@@ -500,34 +517,36 @@ void printTrans(Memoria *m
   tm.rcGradT1 = getTimeC() - tm.rcGradT1;
   rcGradU(m                     , loadsT1
          , mesh->elm.node       , mesh->elm.adj.nelcon
-         , mesh->elm.geom.cc    , mesh->node.x
-         , mesh->elm.nen        , mesh->elm.adj.nViz
-         , mesh->elm.geomType   , mesh->elm.material.prop
-         , mesh->elm.mat
-         , mesh->elm.leastSquare, mesh->elm.leastSquareR
-         , mesh->elm.geom.ksi   , mesh->elm.geom.mksi
-         , mesh->elm.geom.eta   , mesh->elm.geom.fArea
-         , mesh->elm.geom.normal, mesh->elm.geom.volume
-         , mesh->elm.geom.vSkew
-         , mesh->elm.geom.xm    , mesh->elm.geom.xmcc
-         , mesh->elm.geom.dcca
-         , mesh->elm.faceRt1    , mesh->elm.faceLoadT1
-         , mesh->elm.uT1        , mesh->elm.gradUt1
-         , mesh->node.uT1       , sc->rcGrad
-         , mesh->maxNo          , mesh->maxViz
-         , mesh->ndfT[0]        , mesh->ndm
-         , &pMesh->iNo          , &pMesh->iEl
-         , mesh->numelNov       , mesh->numel
-         , mesh->nnodeNov       , mesh->nnode);
+         , mesh->node.x
+         , mesh->elm.nen          , mesh->elm.adj.nViz
+         , mesh->elm.cellFace     , mesh->face.owner
+         , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+         , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+         , mesh->face.mksi        , mesh->face.ksi
+         , mesh->face.eta         , mesh->face.area
+         , mesh->face.normal      , mesh->face.xm
+         , mesh->face.mvSkew      , mesh->face.vSkew
+         , mesh->elm.geomType     , mesh->elm.material.prop
+         , mesh->elm.material.type, mesh->elm.mat
+         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+         , mesh->elm.faceRt1      , mesh->elm.faceLoadT1
+         , mesh->elm.uT1          , mesh->elm.gradUt1
+         , mesh->node.uT1         , sc->rcGrad
+         , mesh->maxNo            , mesh->maxViz
+         , mesh->ndfT[0]          , mesh->ndm
+         , &pMesh->iNo            , &pMesh->iEl
+         , mesh->numelNov         , mesh->numel
+         , mesh->nnodeNov         , mesh->nnode);
   tm.rcGradT1 = getTimeC() - tm.rcGradT1;
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (Grad)*/
   interCellNode(m                 , loadsT1
+              , mesh->elm.cellFace, mesh->face.owner
               , mesh->node.gradUt1, mesh->elm.gradUt1
               , mesh->elm.node    , mesh->elm.geomType
               , mesh->elm.geom.cc , mesh->node.x
-              , mesh->elm.geom.xm
+              , mesh->face.xm
               , mesh->elm.nen     , mesh->elm.adj.nViz
               , mesh->elm.faceRt1 , mesh->elm.faceLoadT1
               , &pMesh->iNo
@@ -540,62 +559,66 @@ void printTrans(Memoria *m
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (uT1)*/
-  interCellNode(m                , loadsT1
-              , mesh->node.uT1   , mesh->elm.uT1
-              , mesh->elm.node   , mesh->elm.geomType
-              , mesh->elm.geom.cc, mesh->node.x
-              , mesh->elm.geom.xm
-              , mesh->elm.nen    , mesh->elm.adj.nViz
-              , mesh->elm.faceRt1, mesh->elm.faceLoadT1
+  interCellNode(m                 , loadsT1
+              , mesh->elm.cellFace, mesh->face.owner
+              , mesh->node.uT1    , mesh->elm.uT1
+              , mesh->elm.node    , mesh->elm.geomType
+              , mesh->elm.geom.cc , mesh->node.x
+              , mesh->face.xm
+              , mesh->elm.nen     , mesh->elm.adj.nViz
+              , mesh->elm.faceRt1 , mesh->elm.faceLoadT1
               , &pMesh->iNo
-              , mesh->numelNov   , mesh->numel
-              , mesh->nnodeNov   , mesh->nnode
-              , mesh->maxNo      , mesh->maxViz
-              , mesh->ndfT[0]    , 1
+              , mesh->numelNov    , mesh->numel
+              , mesh->nnodeNov    , mesh->nnode
+              , mesh->maxNo       , mesh->maxViz
+              , mesh->ndfT[0]     , 1
               , mesh->ndm
-              , true             , 2);
+              , true              , 2);
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (density)*/
-  interCellNode(m                , loadsT1
-              , nDen             , mesh->elm.densityUt1
-              , mesh->elm.node   , mesh->elm.geomType
-              , mesh->elm.geom.cc, mesh->node.x
-              , mesh->elm.geom.xm
-              , mesh->elm.nen    , mesh->elm.adj.nViz
-              , dum              , dum
+  interCellNode(m                 , loadsT1
+              , mesh->elm.cellFace, mesh->face.owner
+              , nDen              , mesh->elm.densityUt1
+              , mesh->elm.node    , mesh->elm.geomType
+              , mesh->elm.geom.cc , mesh->node.x
+              , mesh->face.xm
+              , mesh->elm.nen     , mesh->elm.adj.nViz
+              , dum               , dum
               , &pMesh->iNo
-              , mesh->numelNov   , mesh->numel
-              , mesh->nnodeNov   , mesh->nnode
-              , mesh->maxNo      , mesh->maxViz
-              , 3                , 1
+              , mesh->numelNov    , mesh->numel
+              , mesh->nnodeNov    , mesh->nnode
+              , mesh->maxNo       , mesh->maxViz
+              , 3                 , 1
               , mesh->ndm
-              , false            , 2);
+              , false             , 2);
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (coefDif)*/
-  interCellNode(m, loadsD1
-              , nCoefDiff        , mesh->elm.cDiffT1
-              , mesh->elm.node   , mesh->elm.geomType
-              , mesh->elm.geom.cc, mesh->node.x
-              , mesh->elm.geom.xm
-              , mesh->elm.nen    , mesh->elm.adj.nViz
-              , dum              , dum
+  interCellNode(m                 , loadsD1
+              , mesh->elm.cellFace, mesh->face.owner
+              , nCoefDiff         , mesh->elm.cDiffT1
+              , mesh->elm.node    , mesh->elm.geomType
+              , mesh->elm.geom.cc , mesh->node.x
+              , mesh->face.xm
+              , mesh->elm.nen     , mesh->elm.adj.nViz
+              , dum               , dum
               , &pMesh->iNo
-              , mesh->numelNov   , mesh->numel
-              , mesh->nnodeNov   , mesh->nnode
-              , mesh->maxNo      , mesh->maxViz
-              , 1                , 1
+              , mesh->numelNov    , mesh->numel
+              , mesh->nnodeNov    , mesh->nnode
+              , mesh->maxNo       , mesh->maxViz
+              , 1                 , 1
               , mesh->ndm
-              , false            , 2);
+              , false             , 2);
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
   interCellNode(m                  , loadsT1
+               , mesh->elm.cellFace, mesh->face.owner
                , mesh->node.vel    , mesh->elm.vel
                , mesh->elm.node    , mesh->elm.geomType
                , mesh->elm.geom.cc , mesh->node.x
-               , mesh->elm.geom.xm
+               , mesh->face.xm
                , mesh->elm.nen     , mesh->elm.adj.nViz
                , dum               , dum                     
                , &pMesh->iNo
@@ -715,36 +738,38 @@ void printDiff(Memoria *m
 
 /*... reconstruindo do gradiente*/
   tm.rcGradD1 = getTimeC() - tm.rcGradD1;
-  rcGradU(m                    , loadsD1
-        , mesh->elm.node       , mesh->elm.adj.nelcon
-        , mesh->elm.geom.cc    , mesh->node.x
-        , mesh->elm.nen        , mesh->elm.adj.nViz
-        , mesh->elm.geomType   , mesh->elm.material.prop
-        , mesh->elm.mat
-        , mesh->elm.leastSquare, mesh->elm.leastSquareR
-        , mesh->elm.geom.ksi   , mesh->elm.geom.mksi
-        , mesh->elm.geom.eta   , mesh->elm.geom.fArea
-        , mesh->elm.geom.normal, mesh->elm.geom.volume
-        , mesh->elm.geom.vSkew
-        , mesh->elm.geom.xm    , mesh->elm.geom.xmcc
-        , mesh->elm.geom.dcca
-        , mesh->elm.faceRd1    , mesh->elm.faceLoadD1
-        , mesh->elm.uD1        , mesh->elm.gradUd1
-        , mesh->node.uD1       , sc->rcGrad
-        , mesh->maxNo          , mesh->maxViz
-        , mesh->ndfD[0]        , mesh->ndm
-        , &pMesh->iNo          , &pMesh->iEl
-        , mesh->numelNov       , mesh->numel
-        , mesh->nnodeNov       , mesh->nnode);
+  rcGradU(m                      , loadsD1
+        , mesh->elm.node         , mesh->elm.adj.nelcon
+        , mesh->node.x
+        , mesh->elm.nen          , mesh->elm.adj.nViz
+        , mesh->elm.cellFace     , mesh->face.owner
+        , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+        , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+        , mesh->face.mksi        , mesh->face.ksi
+        , mesh->face.eta         , mesh->face.area
+        , mesh->face.normal      , mesh->face.xm
+        , mesh->face.mvSkew      , mesh->face.vSkew
+        , mesh->elm.geomType     , mesh->elm.material.prop
+        , mesh->elm.material.type, mesh->elm.mat
+        , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+        , mesh->elm.faceRd1      , mesh->elm.faceLoadD1
+        , mesh->elm.uD1          , mesh->elm.gradUd1
+        , mesh->node.uD1         , sc->rcGrad
+        , mesh->maxNo            , mesh->maxViz
+        , mesh->ndfD[0]          , mesh->ndm
+        , &pMesh->iNo            , &pMesh->iEl
+        , mesh->numelNov         , mesh->numel
+        , mesh->nnodeNov         , mesh->nnode);
   tm.rcGradD1 = getTimeC() - tm.rcGradD1;
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (Grad)*/
   interCellNode(m                 , loadsD1
+               , mesh->elm.cellFace, mesh->face.owner
                , mesh->node.gradUd1, mesh->elm.gradUd1
                , mesh->elm.node    , mesh->elm.geomType
                , mesh->elm.geom.cc , mesh->node.x
-               , mesh->elm.geom.xm
+               , mesh->face.xm
                , mesh->elm.nen     , mesh->elm.adj.nViz
                , mesh->elm.faceRd1 , mesh->elm.faceLoadD1
                , &pMesh->iNo
@@ -757,55 +782,58 @@ void printDiff(Memoria *m
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (uD1)*/
-  interCellNode(m                , loadsD1
-              , mesh->node.uD1   , mesh->elm.uD1
-              , mesh->elm.node   , mesh->elm.geomType
-              , mesh->elm.geom.cc, mesh->node.x
-              , mesh->elm.geom.xm
-              , mesh->elm.nen    , mesh->elm.adj.nViz
-              , mesh->elm.faceRd1, mesh->elm.faceLoadD1
+  interCellNode(m                 , loadsD1
+              , mesh->elm.cellFace, mesh->face.owner
+              , mesh->node.uD1    , mesh->elm.uD1
+              , mesh->elm.node    , mesh->elm.geomType
+              , mesh->elm.geom.cc , mesh->node.x
+              , mesh->face.xm
+              , mesh->elm.nen     , mesh->elm.adj.nViz
+              , mesh->elm.faceRd1 , mesh->elm.faceLoadD1
               , &pMesh->iNo
-              , mesh->numelNov   , mesh->numel
-              , mesh->nnodeNov   , mesh->nnode
-              , mesh->maxNo      , mesh->maxViz
-              , mesh->ndfD[0]    , 1
+              , mesh->numelNov    , mesh->numel
+              , mesh->nnodeNov    , mesh->nnode
+              , mesh->maxNo       , mesh->maxViz
+              , mesh->ndfD[0]     , 1
               , mesh->ndm
-              , true             , 2);
+              , true              , 2);
 /*...................................................................*/
 
 
 /*... interpolacao das variaveis da celulas para pos nos (density)*/
-  interCellNode(m                , loadsD1
-              , nDenD            , mesh->elm.densityUd1
-              , mesh->elm.node   , mesh->elm.geomType
-              , mesh->elm.geom.cc, mesh->node.x
-              , mesh->elm.geom.xm
-              , mesh->elm.nen    , mesh->elm.adj.nViz
-              , dum              , dum
+  interCellNode(m                 , loadsD1
+              , mesh->elm.cellFace, mesh->face.owner
+              , nDenD             , mesh->elm.densityUd1
+              , mesh->elm.node    , mesh->elm.geomType
+              , mesh->elm.geom.cc , mesh->node.x
+              , mesh->face.xm
+              , mesh->elm.nen     , mesh->elm.adj.nViz
+              , dum               , dum
               , &pMesh->iNo
-              , mesh->numelNov   , mesh->numel
-              , mesh->nnodeNov   , mesh->nnode
-              , mesh->maxNo      , mesh->maxViz
-              , 3                , 1
+              , mesh->numelNov    , mesh->numel
+              , mesh->nnodeNov    , mesh->nnode
+              , mesh->maxNo       , mesh->maxViz
+              , 3                 , 1
               , mesh->ndm
-              , false            , 2);
+              , false             , 2);
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (coefDif)*/
-  interCellNode(m                , loadsD1
-              , nCoefDiffD       , mesh->elm.cDiffD1
-              , mesh->elm.node   , mesh->elm.geomType
-              , mesh->elm.geom.cc, mesh->node.x
-              , mesh->elm.geom.xm
-              , mesh->elm.nen    , mesh->elm.adj.nViz
-              , dum              , dum
+  interCellNode(m                 , loadsD1
+              , mesh->elm.cellFace, mesh->face.owner
+              , nCoefDiffD        , mesh->elm.cDiffD1
+              , mesh->elm.node    , mesh->elm.geomType
+              , mesh->elm.geom.cc , mesh->node.x
+              , mesh->face.xm
+              , mesh->elm.nen     , mesh->elm.adj.nViz
+              , dum               , dum
               , &pMesh->iNo
-              , mesh->numelNov   , mesh->numel
-              , mesh->nnodeNov   , mesh->nnode
-              , mesh->maxNo      , mesh->maxViz
-              , 1                , 1
+              , mesh->numelNov    , mesh->numel
+              , mesh->nnodeNov    , mesh->nnode
+              , mesh->maxNo       , mesh->maxViz
+              , 1                 , 1
               , mesh->ndm
-              , false            , 2);
+              , false             , 2);
 /*...................................................................*/
 
 /*... globalizacao das variaveis*/

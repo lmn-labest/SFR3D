@@ -601,11 +601,12 @@ int main(int argc,char**argv){
         }
 /*...*/
         tm.leastSquareMatrix = getTimeC() - tm.leastSquareMatrix;
-        rcLeastSquare(mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
-                     ,mesh->elm.leastSquare,mesh->elm.leastSquareR
-                     ,mesh->elm.adj.nViz       
-                     ,mesh->numelNov       ,mesh->maxViz
-                     ,sc.rcGrad            ,mesh->ndm);
+        rcLeastSquare(mesh->elm.cellFace   , mesh->face.owner
+                    , mesh->face.mksi      , mesh->face.ksi
+                    , mesh->elm.leastSquare, mesh->elm.leastSquareR
+                    , mesh->elm.adj.nViz       
+                    , mesh->numelNov       , mesh->maxViz
+                    , sc.rcGrad            , mesh->ndm);
         tm.leastSquareMatrix = getTimeC() - tm.leastSquareMatrix;
 /*...................................................................*/
         if(!mpiVar.myId ){
@@ -617,11 +618,12 @@ int main(int argc,char**argv){
 
 /*... qualidade da malha*/
       meshQuality(&mesh->mQuality
-                 ,mesh->elm.adj.nViz     ,mesh->elm.geom.volume
-                 ,mesh->elm.geom.ksi     ,mesh->elm.geom.normal
-                 ,mesh->elm.geom.mvSkew  ,mesh->elm.geom.dcca
-                 ,mesh->maxViz           ,mesh->ndm
-                 ,mesh->numelNov);
+                , mesh->elm.cellFace     , mesh->face.owner
+                , mesh->elm.adj.nViz     , mesh->elm.geom.volume
+                , mesh->face.mksi        , mesh->face.normal
+                , mesh->face.mvSkew      , mesh->elm.geom.dcca
+                , mesh->maxViz           , mesh->ndm
+                , mesh->numelNov);
 /*... qualidade da malha global*/
       if(mpiVar.nPrcs > 1){
         globalMeshQuality(&mesh->mQuality,&mesh0->mQuality);
@@ -1672,7 +1674,7 @@ void testeFace(Geom *geom, Face *face
                           , MAT2D(nel, 2, geom->cc, ndm));
 
     for (i = 0; i < nFace[nel]; i++) {
-      lG[i]  = MAT2D(nel, i, geom->mksi, maxViz);
+//      lG[i]  = MAT2D(nel, i, geom->mksi, maxViz);
       idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
       lF[i] = face->mksi[idFace];
     }
@@ -1685,7 +1687,7 @@ void testeFace(Geom *geom, Face *face
           , lF[3], lF[4], lF[5]); 
 
     for (i = 0; i < nFace[nel]; i++) {
-      lG[i] =   MAT2D(nel, i, geom->fArea, maxViz);
+//      lG[i] =   MAT2D(nel, i, geom->fArea, maxViz);
       idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
       lF[i] = face->area[idFace];
     }
@@ -1698,7 +1700,7 @@ void testeFace(Geom *geom, Face *face
       , lF[3], lF[4], lF[5]);
 
     for (i = 0; i < nFace[nel]; i++) {
-      lG[i] = MAT2D(nel, i, geom->mvSkew, maxViz);
+//      lG[i] = MAT2D(nel, i, geom->mvSkew, maxViz);
       idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
       lF[i] = face->mvSkew[idFace];
     }
@@ -1714,7 +1716,7 @@ void testeFace(Geom *geom, Face *face
       idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
       cellOwner = MAT2D(idFace, 0, face->owner, 2) - 1;
       for (j = 0; j < ndm; j++) {
-        lG1[i][j] = MAT3D(nel, i, j, geom->ksi, maxViz, ndm);
+//        lG1[i][j] = MAT3D(nel, i, j, geom->ksi, maxViz, ndm);
         lF1[i][j] = OWNER(cellOwner, nel)*MAT2D(idFace, j, face->ksi, ndm);
       }
     }
@@ -1749,7 +1751,7 @@ void testeFace(Geom *geom, Face *face
       idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
       cellOwner = MAT2D(idFace, 0, face->owner, 2) - 1;
       for (j = 0; j < ndm; j++) {
-        lG1[i][j] = MAT3D(nel, i, j, geom->eta, maxViz, ndm);
+//        lG1[i][j] = MAT3D(nel, i, j, geom->eta, maxViz, ndm);
         lF1[i][j] = OWNER(cellOwner, nel)*MAT2D(idFace, j, face->eta, ndm);
       }
     }
@@ -1783,7 +1785,7 @@ void testeFace(Geom *geom, Face *face
       idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
       cellOwner = MAT2D(idFace, 0, face->owner, 2) - 1;
       for (j = 0; j < ndm; j++) {
-        lG1[i][j] = MAT3D(nel, i, j, geom->normal, maxViz, ndm);
+//        lG1[i][j] = MAT3D(nel, i, j, geom->normal, maxViz, ndm);
         lF1[i][j] = OWNER(cellOwner, nel)*MAT2D(idFace, j, face->normal, ndm);
       }
     }
@@ -1817,7 +1819,7 @@ void testeFace(Geom *geom, Face *face
     for (i = 0; i < nFace[nel]; i++) {
       idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
       for (j = 0; j < ndm; j++) {
-        lG1[i][j] = MAT3D(nel, i, j, geom->xm, maxViz, ndm);
+//        lG1[i][j] = MAT3D(nel, i, j, geom->xm, maxViz, ndm);
         lF1[i][j] = MAT2D(idFace, j, face->xm, ndm);
       }
     }
@@ -1852,7 +1854,7 @@ void testeFace(Geom *geom, Face *face
       idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
       cellOwner = MAT2D(idFace, 0, face->owner, 2) - 1;
       for (j = 0; j < ndm; j++) {
-        lG1[i][j] = MAT3D(nel, i, j, geom->vSkew, maxViz, ndm);
+//        lG1[i][j] = MAT3D(nel, i, j, geom->vSkew, maxViz, ndm);
         lF1[i][j] = MAT2D(idFace, j, face->vSkew, ndm);
       }
     }

@@ -118,59 +118,61 @@ void primeSolver(Memoria *m
     | du3dx1 du3dx2 du3dx3 |
 */
     tm.rcGradVel = getTimeC() - tm.rcGradVel;
-    rcGradU(m, loadsVel
-            ,mesh->elm.node       ,mesh->elm.adj.nelcon
-            ,mesh->elm.geom.cc    ,mesh->node.x
-            ,mesh->elm.nen        ,mesh->elm.adj.nViz
-            ,mesh->elm.geomType   ,mesh->elm.material.prop
-            ,mesh->elm.mat
-            ,mesh->elm.leastSquare,mesh->elm.leastSquareR
-            ,mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
-            ,mesh->elm.geom.eta   ,mesh->elm.geom.fArea
-            ,mesh->elm.geom.normal,mesh->elm.geom.volume
-            ,mesh->elm.geom.vSkew
-            ,mesh->elm.geom.xm    ,mesh->elm.geom.xmcc
-            ,mesh->elm.geom.dcca
-            ,mesh->elm.faceRvel   ,mesh->elm.faceLoadVel
-            ,mesh->elm.vel        ,mesh->elm.gradVel
-            ,mesh->node.vel       ,sc.rcGrad
-            ,mesh->maxNo          ,mesh->maxViz
-            ,ndfVel               ,mesh->ndm
-            ,&pMesh->iNo          ,&pMesh->iEl
-            ,mesh->numelNov       ,mesh->numel
-            ,mesh->nnodeNov       ,mesh->nnode);
+    rcGradU(m                       , loadsVel
+           , mesh->elm.node         , mesh->elm.adj.nelcon
+           , mesh->node.x
+           , mesh->elm.nen          , mesh->elm.adj.nViz
+           , mesh->elm.cellFace     , mesh->face.owner
+           , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+           , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+           , mesh->face.mksi        , mesh->face.ksi
+           , mesh->face.eta         , mesh->face.area
+           , mesh->face.normal      , mesh->face.xm
+           , mesh->face.mvSkew      , mesh->face.vSkew
+           , mesh->elm.geomType     , mesh->elm.material.prop
+           , mesh->elm.material.type, mesh->elm.mat
+           , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+           , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
+           , mesh->elm.vel          , mesh->elm.gradVel
+           , mesh->node.vel         , sc.rcGrad
+           , mesh->maxNo            , mesh->maxViz
+           , ndfVel                 , mesh->ndm
+           , &pMesh->iNo            , &pMesh->iEl
+           , mesh->numelNov         , mesh->numel
+           , mesh->nnodeNov         , mesh->nnode);
     tm.rcGradVel = getTimeC() - tm.rcGradVel;
  /*...................................................................*/
 
  /*... reconstruindo do gradiente da pressao*/
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
     rcGradU(m, loadsPres
-            ,mesh->elm.node       ,mesh->elm.adj.nelcon
-            ,mesh->elm.geom.cc    ,mesh->node.x
-            ,mesh->elm.nen        ,mesh->elm.adj.nViz
-            ,mesh->elm.geomType   ,mesh->elm.material.prop
-            ,mesh->elm.mat
-            ,mesh->elm.leastSquare,mesh->elm.leastSquareR
-            ,mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
-            ,mesh->elm.geom.eta   ,mesh->elm.geom.fArea
-            ,mesh->elm.geom.normal,mesh->elm.geom.volume
-            ,mesh->elm.geom.vSkew
-            ,mesh->elm.geom.xm    ,mesh->elm.geom.xmcc
-            ,mesh->elm.geom.dcca
-            ,mesh->elm.faceRpres,mesh->elm.faceLoadPres
-            ,mesh->elm.pressure ,mesh->elm.gradPres
-            ,mesh->node.pressure,sc.rcGrad
-            ,mesh->maxNo        ,mesh->maxViz
-            ,1, mesh->ndm
-            ,&pMesh->iNo        ,&pMesh->iEl
-            ,mesh->numelNov     ,mesh->numel
-            ,mesh->nnodeNov     ,mesh->nnode);
+            , mesh->elm.node         , mesh->elm.adj.nelcon
+            , mesh->node.x
+            , mesh->elm.nen          , mesh->elm.adj.nViz
+            , mesh->elm.cellFace     , mesh->face.owner
+            , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+            , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+            , mesh->face.mksi        , mesh->face.ksi
+            , mesh->face.eta         , mesh->face.area
+            , mesh->face.normal      , mesh->face.xm
+            , mesh->face.mvSkew      , mesh->face.vSkew
+            , mesh->elm.geomType     , mesh->elm.material.prop
+            , mesh->elm.material.type, mesh->elm.mat
+            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+            , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
+            , mesh->elm.pressure     , mesh->elm.gradPres
+            , mesh->node.pressure    , sc.rcGrad
+            , mesh->maxNo            , mesh->maxViz
+            , 1, mesh->ndm
+            , &pMesh->iNo            , &pMesh->iEl
+            , mesh->numelNov         , mesh->numel
+            , mesh->nnodeNov         , mesh->nnode);
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 
 /*... calculo da velocidade explicita*/
    tm.velExp = getTimeC() - tm.velExp;
-   velExp(loadsVel               ,loadsPres
+/* velExp(loadsVel               ,loadsPres
          ,sc.advVel              ,sc.diffVel
          ,mesh->elm.node         ,mesh->elm.adj.nelcon
          ,mesh->elm.nen          ,mesh->elm.adj.nViz
@@ -193,13 +195,13 @@ void primeSolver(Memoria *m
          ,mesh->maxNo            ,mesh->maxViz
          ,mesh->ndm              ,mesh->numelNov
          ,ndfVel                 ,pr->sPressure
-         ,false);  
+         ,false); */
      tm.velExp = getTimeC() - tm.velExp;
 /*...................................................................*/
 
 /*... calculo do residui R = b - A vExp*/
      tm.velExp = getTimeC() - tm.velExp;
-     velResidual(loadsVel             ,loadsPres
+/*   velResidual(loadsVel             ,loadsPres
               ,sc.advVel              ,sc.diffVel
               ,mesh->elm.node         ,mesh->elm.adj.nelcon
               ,mesh->elm.nen          , mesh->elm.adj.nViz
@@ -222,7 +224,7 @@ void primeSolver(Memoria *m
               ,mesh->maxNo            ,mesh->maxViz
               ,mesh->ndm              ,mesh->numelNov
               ,ndfVel                 ,pr->sPressure
-              ,true);    
+              ,true);    */
      tm.velExp = getTimeC() - tm.velExp;
 /*...................................................................*/
  
@@ -242,7 +244,7 @@ void primeSolver(Memoria *m
 
 /*... montagem do sistema  da pressao de correca*/
     tm.systFormPres = getTimeC() - tm.systFormPres;
-    systFormSimplePres(loadsVel    ,loadsPresC
+/*  systFormSimplePres(loadsVel    ,loadsPresC
            ,sc.diffPres
            ,mesh->elm.node         ,mesh->elm.adj.nelcon
            ,mesh->elm.nen          ,mesh->elm.adj.nViz
@@ -268,7 +270,7 @@ void primeSolver(Memoria *m
            ,mesh->ndm              ,mesh->numelNov
            ,ndfVel                 ,sistEqPres->storage
            ,true                   ,true
-           ,true                   ,sistEqPres->unsym);
+           ,true                   ,sistEqPres->unsym);*/
     tm.systFormPres = getTimeC() - tm.systFormPres;
 /*...................................................................*/
 
@@ -317,27 +319,28 @@ void primeSolver(Memoria *m
 
 /*... reconstruindo do gradiente da pressao correcao*/
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
-    rcGradU(m                    ,loadsPresC
-           ,mesh->elm.node       ,mesh->elm.adj.nelcon
-           ,mesh->elm.geom.cc    ,mesh->node.x
-           ,mesh->elm.nen        ,mesh->elm.adj.nViz
-           ,mesh->elm.geomType   ,mesh->elm.material.prop
-           ,mesh->elm.mat
-           ,mesh->elm.leastSquare,mesh->elm.leastSquareR
-           ,mesh->elm.geom.ksi   ,mesh->elm.geom.mksi
-           ,mesh->elm.geom.eta   ,mesh->elm.geom.fArea
-           ,mesh->elm.geom.normal,mesh->elm.geom.volume
-           ,mesh->elm.geom.vSkew
-           ,mesh->elm.geom.xm    ,mesh->elm.geom.xmcc
-           ,mesh->elm.geom.dcca
-           ,mesh->elm.faceRpres  ,mesh->elm.faceLoadPres
-           ,pr->ePresC           ,pr->eGradPresC
-           ,pr->nPresC           ,sc.rcGrad
-           ,mesh->maxNo          ,mesh->maxViz
-           ,1                    ,mesh->ndm
-           ,&pMesh->iNo          ,&pMesh->iEl
-           ,mesh->numelNov       ,mesh->numel
-           ,mesh->nnodeNov       ,mesh->nnode);
+    rcGradU(m                      , loadsPresC
+          , mesh->elm.node         , mesh->elm.adj.nelcon
+          , mesh->node.x
+          , mesh->elm.nen          , mesh->elm.adj.nViz
+          , mesh->elm.cellFace     , mesh->face.owner
+          , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+          , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+          , mesh->face.mksi        , mesh->face.ksi
+          , mesh->face.eta         , mesh->face.area
+          , mesh->face.normal      , mesh->face.xm
+          , mesh->face.mvSkew      , mesh->face.vSkew
+          , mesh->elm.geomType     , mesh->elm.material.prop
+          , mesh->elm.material.type, mesh->elm.mat
+          , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+          , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
+          , pr->ePresC             , pr->eGradPresC
+          , pr->nPresC             , sc.rcGrad
+          , mesh->maxNo            , mesh->maxViz
+          , 1                      , mesh->ndm
+          , &pMesh->iNo            , &pMesh->iEl
+          , mesh->numelNov         , mesh->numel
+          , mesh->nnodeNov         , mesh->nnode);
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 

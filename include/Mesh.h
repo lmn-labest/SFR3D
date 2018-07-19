@@ -123,17 +123,18 @@
 /*...*/
   typedef struct{
     DOUBLE *cc;    /*centroide da celulas*/
-    DOUBLE *ksi;   /*vetor que une os centroides da celulas*/
-    DOUBLE *mksi;  /*modulo do vetor que une os centroides da celulas*/
-    DOUBLE *eta;   /*vetor paralelo a aresta*/
-    DOUBLE *fArea; /*area da face compartilhada*/
-    DOUBLE *normal;/*vetor normal a face*/       
     DOUBLE *volume;/*volume da celula*/
-    DOUBLE *xm;    /*ponto medio da face*/
     DOUBLE *xmcc;  /*vetor entre o centroide a ponto médio da aresta*/
     DOUBLE *dcca;  /*menor distancia entre o centroide a aresta*/
-    DOUBLE *vSkew; /*vetor vSkew*/                               
-    DOUBLE *mvSkew;/*modulo do vSkew*/                               
+
+//  DOUBLE *xm;    /*ponto medio da face*/
+//  DOUBLE *vSkew; /*vetor vSkew*/                               
+//  DOUBLE *mvSkew;/*modulo do vSkew*/  
+//  DOUBLE *ksi;   /*vetor que une os centroides da celulas*/
+//  DOUBLE *mksi;  /*modulo do vetor que une os centroides da celulas*/
+//  DOUBLE *eta;   /*vetor paralelo a aresta*/
+//  DOUBLE *fArea; /*area da face compartilhada*/
+//  DOUBLE *normal;/*vetor normal a face*/
   }Geom;
 /*...................................................................*/
 

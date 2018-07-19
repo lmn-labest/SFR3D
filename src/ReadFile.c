@@ -103,38 +103,12 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
 
   if( mpiVar.nPrcs < 2){
 
-/*... vetor que une os centroides dos elementos */
-    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.ksi
-             ,nel*ndm*maxViz,"elksi"  ,_AD_);
-/*... modulo do vetor que une os centroides dos elementos */
-    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.mksi
-              ,nel*maxViz     ,"elmksi",_AD_);
-/*... vetor paralelo a face da celula */
-    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.eta
-             ,nel*ndm*maxViz,"eleta"  ,_AD_);
-/*... modulo do vetor paralelo a face da celula */
-    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.fArea
-            ,nel*maxViz     ,"elfArea",_AD_);
 /*... volume da celula*/                           
     HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.volume
             ,nel            ,"elVol",_AD_);
-/*... vetor normal a face da celula*/                           
-    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.normal
-             ,nel*maxViz*ndm       ,"elnorm",_AD_);
-/*... ponto medio da face*/                           
-    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.xm
-             ,nel*maxViz*ndm       ,"elxm",_AD_);
 /*... vetor que une o centroide ao ponto medio*/                           
     HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.xmcc
              ,nel*maxViz*ndm       ,"elxmcc",_AD_);
-/*... vetor entre o ponto medio da face e ponto de intercao 
-      entre a linha entre os centroides e a face*/         
-    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.vSkew  
-             ,nel*ndm*maxViz         ,"elvSkew" ,_AD_);
-/*... distancia entro o ponto medio da face e ponto de intercao 
-      entre a linha entre os centroides e a face*/         
-    HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.mvSkew  
-             ,nel*maxViz           ,"elmvSkew" ,_AD_);
 /*... distancia entro o ponto medio da face e ponto de intercao 
       entre a linha entre os centroides e a face*/         
     HccaAlloc(DOUBLE               ,m       ,mesh->elm.geom.dcca 
@@ -146,16 +120,8 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
     zero(mesh->elm.nen          ,nel           ,"short"  );
     zero(mesh->elm.geomType     ,nel           ,"short"  );
     zero(mesh->elm.geom.cc      ,nel*ndm       ,DOUBLEC);
-    zero(mesh->elm.geom.ksi     ,nel*ndm*maxViz,DOUBLEC);
-    zero(mesh->elm.geom.mksi    ,nel*maxViz    ,DOUBLEC);
-    zero(mesh->elm.geom.eta     ,nel*ndm*maxViz,DOUBLEC);
-    zero(mesh->elm.geom.fArea   ,nel*maxViz    ,DOUBLEC);
     zero(mesh->elm.geom.volume  ,nel           ,DOUBLEC);
-    zero(mesh->elm.geom.normal  ,nel*ndm*maxViz,DOUBLEC);
-    zero(mesh->elm.geom.xm      ,nel*ndm*maxViz,DOUBLEC);
     zero(mesh->elm.geom.xmcc    ,nel*ndm*maxViz,DOUBLEC);
-    zero(mesh->elm.geom.mvSkew  ,nel*maxViz    ,DOUBLEC);
-    zero(mesh->elm.geom.mvSkew  ,nel*ndm*maxViz,DOUBLEC);
     zero(mesh->elm.geom.dcca    ,nel*maxViz    ,DOUBLEC);
 /*...................................................................*/
   }

@@ -166,27 +166,28 @@ void diffusion(Memoria *m       ,Loads *loadsDif,DiffModel *dModel
 
 /*... reconstruindo do gradiente*/
     tm.rcGradD1 = getTimeC() - tm.rcGradD1;
-    rcGradU(m                       ,loadsDif
-           ,mesh->elm.node          ,mesh->elm.adj.nelcon
-           ,mesh->elm.geom.cc       ,mesh->node.x   
-           ,mesh->elm.nen           ,mesh->elm.adj.nViz 
-           ,mesh->elm.geomType      ,mesh->elm.material.prop 
-           ,mesh->elm.mat 
-           ,mesh->elm.leastSquare   ,mesh->elm.leastSquareR
-           ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
-           ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
-           ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-           ,mesh->elm.geom.vSkew      
-           ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
-           ,mesh->elm.geom.dcca
-           ,mesh->elm.faceRd1       ,mesh->elm.faceLoadD1    
-           ,mesh->elm.uD1           ,mesh->elm.gradUd1                 
-           ,mesh->node.uD1          ,sc->rcGrad
-           ,mesh->maxNo             ,mesh->maxViz
-           ,mesh->ndfD[0]           ,mesh->ndm
-           ,&pMesh->iNo             ,&pMesh->iEl  
-           ,mesh->numelNov          ,mesh->numel        
-           ,mesh->nnodeNov          ,mesh->nnode);   
+    rcGradU( m                       , loadsDif
+           , mesh->elm.node          , mesh->elm.adj.nelcon
+           , mesh->node.x  
+           , mesh->elm.nen           , mesh->elm.adj.nViz
+           , mesh->elm.cellFace      , mesh->face.owner
+           , mesh->elm.geom.volume   , mesh->elm.geom.dcca
+           , mesh->elm.geom.xmcc     , mesh->elm.geom.cc
+           , mesh->face.mksi         , mesh->face.ksi
+           , mesh->face.eta          , mesh->face.area
+           , mesh->face.normal       , mesh->face.xm
+           , mesh->face.mvSkew       , mesh->face.vSkew
+           , mesh->elm.geomType      , mesh->elm.material.prop
+           , mesh->elm.material.type , mesh->elm.mat
+           , mesh->elm.leastSquare   , mesh->elm.leastSquareR
+           , mesh->elm.faceRd1       , mesh->elm.faceLoadD1    
+           , mesh->elm.uD1           , mesh->elm.gradUd1                 
+           , mesh->node.uD1          , sc->rcGrad
+           , mesh->maxNo             , mesh->maxViz
+           , mesh->ndfD[0]           , mesh->ndm
+           , &pMesh->iNo             , &pMesh->iEl  
+           , mesh->numelNov          , mesh->numel        
+           , mesh->nnodeNov          , mesh->nnode);   
     tm.rcGradD1 = getTimeC() - tm.rcGradD1;
 /*...................................................................*/
 

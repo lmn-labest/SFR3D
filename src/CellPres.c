@@ -38,7 +38,7 @@
 
 /*********************************************************************
  * Data de criacao    : 01/07/2016                                   *
- * Data de modificaco : 15/08/2016                                   * 
+ * Data de modificaco : 19/07/2018                                   * 
  *-------------------------------------------------------------------* 
  * CELLSIMPLEPRES2D: Celula 2D para equacao de correcao de pressoa   *
  * metodo simple em escoamento imcompressivel                        * 
@@ -97,7 +97,7 @@
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres 
-							,Diffusion diffPres	
+							,Diffusion *diffPres	
               ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
               ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
               ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
@@ -136,7 +136,7 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
 /*... */
   DOUBLE wfn,velC[2],velF[2],presC,presV;
 /*...*/
-	short iCodDif = diffPres.iCod;
+	short iCodDif = diffPres->iCod;
 /*...*/
   short idCell = nFace;
   short nAresta,nCarg;
@@ -318,7 +318,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*********************************************************************
  * Data de criacao    : 17/09/2017                                   *
- * Data de modificaco : 19/09/2017                                   * 
+ * Data de modificaco : 17/07/2018                                   * 
  *-------------------------------------------------------------------* 
  * CELLSIMPLEPRES2DLM: Celula 2D para equacao de correcao de pressoa *
  * metodo simple em escoamento levemene compressivel                 *                      * 
@@ -378,7 +378,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void cellSimplePres2DLm(Loads *lVel      , Loads *lPres 
-					 , Diffusion diffPres	         , MassEqModel eMass
+					 , Diffusion *diffPres	       , MassEqModel *eMass
            , short *RESTRICT lGeomType   , DOUBLE *RESTRICT prop
            , INT *RESTRICT lViz          , INT *RESTRICT lId  
            , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
@@ -398,7 +398,7 @@ void cellSimplePres2DLm(Loads *lVel      , Loads *lPres
            , const short ndm             , INT const nel)
 { 
 /*...*/
-	short iCodDif = diffPres.iCod;
+	short iCodDif = diffPres->iCod;
 /*...*/
   short idCell = nFace;
   short nAresta, nCarg, typeTime;
@@ -428,8 +428,8 @@ void cellSimplePres2DLm(Loads *lVel      , Loads *lPres
   dt0       = ddt.dt[1];
   typeTime  = ddt.type;
   fTime     = ddt.flag;
-  fLhsDensity = eMass.LhsDensity;
-  fRhsDensity = eMass.RhsDensity; 
+  fLhsDensity = eMass->LhsDensity;
+  fRhsDensity = eMass->RhsDensity; 
 /*...................................................................*/
 
 /*...*/
@@ -845,7 +845,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*********************************************************************
  * Data de criacao    : 11/07/2016                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 19/07/2018                                   *
  *-------------------------------------------------------------------*
  * CELLSIMPLEPRES3D: Celula 3D para equacao de correcao de pressao   *
  * metodo simple em escoamento imcompressivel                        *
@@ -905,7 +905,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  *-------------------------------------------------------------------*
  *********************************************************************/
 void cellSimplePres3D(Loads *lVel       ,Loads *lPres 
-							,Diffusion diffPres
+							,Diffusion *diffPres
               ,short *RESTRICT lGeomType,DOUBLE *RESTRICT prop
               ,INT *RESTRICT lViz       ,INT *RESTRICT lId  
               ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
@@ -944,7 +944,7 @@ void cellSimplePres3D(Loads *lVel       ,Loads *lPres
 /*... */
   DOUBLE wfn,velC[3],velF[3],presC,presV;
 /*...*/
-	short iCodDif = diffPres.iCod;
+	short iCodDif = diffPres->iCod;
 /*...*/
   short idCell = nFace;
   short nAresta,nCarg;
@@ -1174,7 +1174,7 @@ void cellSimplePres3D(Loads *lVel       ,Loads *lPres
 
 /*********************************************************************
  * Data de criacao    : 03/10/2017                                   *
- * Data de modificaco : 30/04/2018                                   *
+ * Data de modificaco : 17/07/2018                                   *
  *-------------------------------------------------------------------*
  * CELLSIMPLEPRES3D: Celula 3D para equacao de correcao de pressao   *
  * metodo simple em escoamento levemene compressivel                 *
@@ -1236,7 +1236,7 @@ void cellSimplePres3D(Loads *lVel       ,Loads *lPres
  *-------------------------------------------------------------------*
  *********************************************************************/
 void cellSimplePres3DLm(Loads *lVel        , Loads *lPres 
-							, Diffusion diffPres         , MassEqModel eMass
+							, Diffusion *diffPres        , MassEqModel *eMass
               , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop
               , INT *RESTRICT lViz         , INT *RESTRICT lId  
               , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
@@ -1257,7 +1257,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 { 
 
 /*...*/
-	short iCodDif = diffPres.iCod,iCodPolFace;
+	short iCodDif = diffPres->iCod,iCodPolFace;
 /*...*/
   short idCell = nFace;
   short nf, nCarg, typeTime;
@@ -1291,15 +1291,15 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
   dt0         = ddt.dt[1];
   typeTime    = ddt.type;
   fTime       = ddt.flag;
-  fLhsDensity = eMass.LhsDensity;
-  fRhsDensity = eMass.RhsDensity; 
+  fLhsDensity = eMass->LhsDensity;
+  fRhsDensity = eMass->RhsDensity; 
   iCodPolFace = INTPOLFACELINEAR;
 /*...................................................................*/
 
 /*...*/
-  densityC00 = MAT2D(idCell,TIME_N_MINUS_2,lDensity,3);
-  densityC0  = MAT2D(idCell,TIME_N_MINUS_1,lDensity,3);
-  densityC   = MAT2D(idCell,TIME_N        ,lDensity,3);
+  densityC00 = MAT2D(idCell,TIME_N_MINUS_2,lDensity,DENSITY_LEVEL);
+  densityC0  = MAT2D(idCell,TIME_N_MINUS_1,lDensity,DENSITY_LEVEL);
+  densityC   = MAT2D(idCell,TIME_N        ,lDensity,DENSITY_LEVEL);
 /*...................................................................*/
 
 /*...*/

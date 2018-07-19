@@ -60,7 +60,7 @@ static void eddyViscKtEq(Turbulence *tModel
 
 /********************************************************************* 
  * Data de criacao    : 30/11/2017                                   *
- * Data de modificaco : 17/01/2018                                   * 
+ * Data de modificaco : 19/07/2018                                   * 
  *-------------------------------------------------------------------* 
  * TURBULENCE: Calculo da viscosidae turbulenta                      *
  *-------------------------------------------------------------------* 
@@ -93,16 +93,17 @@ void turbulence(Memoria *m
   
 
 /*...*/
-  wallParametersCellLoop(lVel    ,tModel             
+  wallParametersCellLoop(lVel    , tModel             
+      , mesh->elm.cellFace       , mesh->face.owner
       , mesh->elm.adj.nelcon     , mesh->elm.adj.nViz 
-      , mesh->elm.geom.normal    , mesh->elm.geom.volume
+      , mesh->face.normal        , mesh->elm.geom.volume
       , mesh->elm.geom.dcca  
       , mesh->elm.faceRvel       , mesh->elm.faceLoadVel               
       , mesh->elm.vel            , mesh->elm.densityFluid
       , mesh->elm.dViscosity     , mesh->elm.wallParameters  
       , mesh->maxNo              , mesh->maxViz
       , mesh->ndm                , mesh->numelNov     
-      , ndf);   
+      , ndf); 
 /*...................................................................*/
 
 /*...*/
@@ -128,14 +129,15 @@ void turbulence(Memoria *m
         turbulenceCellLoop(lVel             , tModel               
                    , mesh->elm.node         , mesh->elm.adj.nelcon 
                    , mesh->elm.nen          , mesh->elm.adj.nViz 
-                   , mesh->elm.geomType     , mesh->elm.material.prop 
-                   , mesh->elm.material.type, mesh->elm.mat 
-                   , mesh->elm.geom.cc      , mesh->elm.geom.ksi 
-                   , mesh->elm.geom.mksi    , mesh->elm.geom.eta    
-                   , mesh->elm.geom.fArea   , mesh->elm.geom.normal 
-                   , mesh->elm.geom.volume  , mesh->elm.geom.xm     
-                   , mesh->elm.geom.xmcc    , mesh->elm.geom.vSkew    
-                   , mesh->elm.geom.mvSkew  , mesh->elm.geom.dcca 
+                   , mesh->elm.cellFace     , mesh->face.owner
+                   , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+                   , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+                   , mesh->face.mksi        , mesh->face.ksi
+                   , mesh->face.eta         , mesh->face.area
+                   , mesh->face.normal      , mesh->face.xm
+                   , mesh->face.mvSkew      , mesh->face.vSkew
+                   , mesh->elm.geomType     , mesh->elm.material.prop
+                   , mesh->elm.material.type, mesh->elm.mat
                    , mesh->elm.faceRvel     , mesh->elm.faceLoadVel     
                    , mesh->elm.vel          , mesh->elm.gradVel      
                    , mesh->elm.densityFluid , mesh->elm.dViscosity
@@ -155,34 +157,36 @@ void turbulence(Memoria *m
         HccaAlloc(DOUBLE,m,nDen, mesh->nnode*3  ,"nDen",_AD_); 
 
 /*... modelo funcional*/ 
-        turbulenceCellLoop(lVel             , tModel               
-                   , mesh->elm.node         , mesh->elm.adj.nelcon 
-                   , mesh->elm.nen          , mesh->elm.adj.nViz 
-                   , mesh->elm.geomType     , mesh->elm.material.prop 
-                   , mesh->elm.material.type, mesh->elm.mat 
-                   , mesh->elm.geom.cc      , mesh->elm.geom.ksi 
-                   , mesh->elm.geom.mksi    , mesh->elm.geom.eta    
-                   , mesh->elm.geom.fArea   , mesh->elm.geom.normal 
-                   , mesh->elm.geom.volume  , mesh->elm.geom.xm     
-                   , mesh->elm.geom.xmcc    , mesh->elm.geom.vSkew    
-                   , mesh->elm.geom.mvSkew  , mesh->elm.geom.dcca 
-                   , mesh->elm.faceRvel     , mesh->elm.faceLoadVel     
-                   , mesh->elm.vel          , mesh->elm.gradVel      
-                   , mesh->elm.densityFluid , mesh->elm.dViscosity
-                   , mesh->elm.eddyViscosity, mesh->elm.wallParameters
-                   , mesh->elm.cd   
-                   , mesh->maxNo            , mesh->maxViz         
-                   , mesh->ndm              , mesh->numelNov 
-                   , ndf);   
+        turbulenceCellLoop(lVel            , tModel
+                  , mesh->elm.node         , mesh->elm.adj.nelcon
+                  , mesh->elm.nen          , mesh->elm.adj.nViz
+                  , mesh->elm.cellFace     , mesh->face.owner
+                  , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+                  , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+                  , mesh->face.mksi        , mesh->face.ksi
+                  , mesh->face.eta         , mesh->face.area
+                  , mesh->face.normal      , mesh->face.xm
+                  , mesh->face.mvSkew      , mesh->face.vSkew
+                  , mesh->elm.geomType     , mesh->elm.material.prop
+                  , mesh->elm.material.type, mesh->elm.mat
+                  , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
+                  , mesh->elm.vel          , mesh->elm.gradVel
+                  , mesh->elm.densityFluid , mesh->elm.dViscosity
+                  , mesh->elm.eddyViscosity, mesh->elm.wallParameters
+                  , mesh->elm.cd
+                  , mesh->maxNo            , mesh->maxViz
+                  , mesh->ndm              , mesh->numelNov
+                  , ndf);
 /*...................................................................*/ 
 
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
         if( tModel->typeMixed[ESTMODEL] == BARDINA){
-          interCellNode(m               , lVel
-                     , nVel             , mesh->elm.vel        
-                     , mesh->elm.node   , mesh->elm.geomType                      
-                     , mesh->elm.geom.cc, mesh->node.x               
-                     , mesh->elm.geom.xm           
+          interCellNode(m                , lVel
+                     , mesh->elm.cellFace, mesh->face.owner
+                     , nVel              , mesh->elm.vel        
+                     , mesh->elm.node    , mesh->elm.geomType                      
+                     , mesh->elm.geom.cc , mesh->node.x               
+                     , mesh->face.xm           
                      , mesh->elm.nen     , mesh->elm.adj.nViz               
                      , mesh->elm.faceRvel, mesh->elm.faceLoadVel                
                      , &pMesh->iNo     
@@ -195,20 +199,21 @@ void turbulence(Memoria *m
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
-          interCellNode(m               , lVel
-                     , nDen             , mesh->elm.densityFluid        
-                     , mesh->elm.node   , mesh->elm.geomType                      
-                     , mesh->elm.geom.cc, mesh->node.x               
-                     , mesh->elm.geom.xm           
-                     , mesh->elm.nen     , mesh->elm.adj.nViz               
-                     , mesh->elm.faceRvel, mesh->elm.faceLoadVel                
+          interCellNode(m                , lVel
+                     , mesh->elm.cellFace, mesh->face.owner
+                     , nDen              , mesh->elm.densityFluid        
+                     , mesh->elm.node    , mesh->elm.geomType                      
+                     , mesh->elm.geom.cc , mesh->node.x               
+                     , mesh->face.xm           
+                     , mesh->elm.nen      , mesh->elm.adj.nViz               
+                     , mesh->elm.faceRvel , mesh->elm.faceLoadVel                
                      , &pMesh->iNo      
-                     , mesh->numelNov    , mesh->numelNov              
-                     , mesh->nnode       , mesh->nnode        
-                     , mesh->maxNo       , mesh->maxViz            
-                     , 3                 , 1
+                     , mesh->numelNov     , mesh->numelNov              
+                     , mesh->nnode        , mesh->nnode        
+                     , mesh->maxNo        , mesh->maxViz            
+                     , 3                  , 1
                      , mesh->ndm     
-                     , false             , 2);
+                     , false              , 2);
 /*...................................................................*/
         }
 /*... modelo estrutual*/
@@ -249,14 +254,15 @@ void turbulence(Memoria *m
         turbulenceCellLoop(lVel             , tModel               
                    , mesh->elm.node         , mesh->elm.adj.nelcon 
                    , mesh->elm.nen          , mesh->elm.adj.nViz 
-                   , mesh->elm.geomType     , mesh->elm.material.prop 
-                   , mesh->elm.material.type, mesh->elm.mat 
-                   , mesh->elm.geom.cc      , mesh->elm.geom.ksi 
-                   , mesh->elm.geom.mksi    , mesh->elm.geom.eta    
-                   , mesh->elm.geom.fArea   , mesh->elm.geom.normal 
-                   , mesh->elm.geom.volume  , mesh->elm.geom.xm     
-                   , mesh->elm.geom.xmcc    , mesh->elm.geom.vSkew    
-                   , mesh->elm.geom.mvSkew  , mesh->elm.geom.dcca 
+                   , mesh->elm.cellFace     , mesh->face.owner
+                   , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+                   , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+                   , mesh->face.mksi        , mesh->face.ksi
+                   , mesh->face.eta         , mesh->face.area
+                   , mesh->face.normal      , mesh->face.xm
+                   , mesh->face.mvSkew      , mesh->face.vSkew
+                   , mesh->elm.geomType     , mesh->elm.material.prop
+                   , mesh->elm.material.type, mesh->elm.mat
                    , mesh->elm.faceRvel     , mesh->elm.faceLoadVel     
                    , mesh->elm.vel          , mesh->elm.gradVel      
                    , mesh->elm.densityFluid , mesh->elm.dViscosity
@@ -361,44 +367,45 @@ void oneEquationK(Memoria *m
 /*...................................................................*/
 
 /*... reconstruindo do gradiente*/
-    rcGradU(m                       ,lKturb
-           ,mesh->elm.node          ,mesh->elm.adj.nelcon
-           ,mesh->elm.geom.cc       ,mesh->node.x   
-           ,mesh->elm.nen           ,mesh->elm.adj.nViz 
-           ,mesh->elm.geomType      ,mesh->elm.material.prop 
-           ,mesh->elm.mat 
-           ,mesh->elm.leastSquare   ,mesh->elm.leastSquareR
-           ,mesh->elm.geom.ksi      ,mesh->elm.geom.mksi  
-           ,mesh->elm.geom.eta      ,mesh->elm.geom.fArea    
-           ,mesh->elm.geom.normal   ,mesh->elm.geom.volume   
-           ,mesh->elm.geom.vSkew      
-           ,mesh->elm.geom.xm       ,mesh->elm.geom.xmcc    
-           ,mesh->elm.geom.dcca  
-           ,mesh->elm.faceReKturb   ,mesh->elm.faceLoadKturb    
-           ,mesh->elm.kTurb         ,mesh->elm.gradKturb               
-           ,mesh->node.kTurb        ,sc->rcGrad
-           ,mesh->maxNo             ,mesh->maxViz
-           ,1                       ,mesh->ndm
-           ,&pMesh->iNo             ,&pMesh->iEl  
-           ,mesh->numelNov          ,mesh->numel        
-           ,mesh->nnodeNov          ,mesh->nnode); 
+    rcGradU(m                       , lKturb
+           , mesh->elm.node         , mesh->elm.adj.nelcon
+           , mesh->node.x
+           , mesh->elm.nen          , mesh->elm.adj.nViz
+           , mesh->elm.cellFace     , mesh->face.owner
+           , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+           , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+           , mesh->face.mksi        , mesh->face.ksi
+           , mesh->face.eta         , mesh->face.area
+           , mesh->face.normal      , mesh->face.xm
+           , mesh->face.mvSkew      , mesh->face.vSkew
+           , mesh->elm.geomType     , mesh->elm.material.prop
+           , mesh->elm.material.type, mesh->elm.mat
+           , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+           , mesh->elm.faceReKturb  , mesh->elm.faceLoadKturb    
+           , mesh->elm.kTurb        , mesh->elm.gradKturb               
+           , mesh->node.kTurb       , sc->rcGrad
+           , mesh->maxNo            , mesh->maxViz
+           , 1                      , mesh->ndm
+           , &pMesh->iNo            , &pMesh->iEl  
+           , mesh->numelNov         , mesh->numel        
+           , mesh->nnodeNov         , mesh->nnode); 
 /*...................................................................*/           
 
 /*... calculo de: A(i),b(i)*/
-    systFormOneEqK(lKturb                ,lVel
+    systFormOneEqK(lKturb                , lVel
                , tModel
                , sc->advKturb            , sc->diffKturb
-               , mesh->elm.node          , mesh->elm.adj.nelcon  
-               , mesh->elm.nen           , mesh->elm.adj.nViz   
-               , mesh->elm.geomType      , mesh->elm.material.prop 
+               , mesh->elm.node          , mesh->elm.adj.nelcon
+               , mesh->elm.nen           , mesh->elm.adj.nViz
+               , mesh->elm.cellFace      , mesh->face.owner
+               , mesh->elm.geom.volume   , mesh->elm.geom.dcca
+               , mesh->elm.geom.xmcc     , mesh->elm.geom.cc
+               , mesh->face.mksi         , mesh->face.ksi
+               , mesh->face.eta          , mesh->face.area
+               , mesh->face.normal       , mesh->face.xm
+               , mesh->face.mvSkew       , mesh->face.vSkew
+               , mesh->elm.geomType      , mesh->elm.material.prop
                , mesh->elm.material.type , mesh->elm.mat
-               , mesh->elm.geom.cc         
-               , mesh->elm.geom.ksi      , mesh->elm.geom.mksi  
-               , mesh->elm.geom.eta      , mesh->elm.geom.fArea    
-               , mesh->elm.geom.normal   , mesh->elm.geom.volume   
-               , mesh->elm.geom.xm       , mesh->elm.geom.xmcc    
-               , mesh->elm.geom.vSkew    , mesh->elm.geom.mvSkew   
-               , mesh->elm.geom.dcca     
                , sistEq->ia              , sistEq->ja      
                , sistEq->al              , sistEq->ad       
                , sistEq->b               , sistEq->id       
@@ -485,9 +492,9 @@ void oneEquationK(Memoria *m
 
 /********************************************************************* 
  * Data de criacao    : 11/09/2017                                   *
- * Data de modificaco : 20/11/2017                                   * 
+ * Data de modificaco : 19/07/2018                                   * 
  *-------------------------------------------------------------------* 
- * turbulenceCellLoop: Calculo da viscosidae turbulenta                      *
+ * turbulenceCellLoop: Calculo da viscosidae turbulenta              *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -495,26 +502,28 @@ void oneEquationK(Memoria *m
  * nelcon    -> vizinhos dos elementos                               * 
  * nen       -> numero de nos por celulas                            * 
  * nFace     -> numero de faces por celulas                          * 
- * calType   -> tipo de calculo das celulas                          * 
- * geomType  -> tipo geometrico das celulas                          * 
- * prop      -> propriedades dos material                            * 
- * mat       -> material por celula                                  * 
- * cc        -> centroide das celulas                                * 
- * gKsi      -> vetores que unem centroide da celula central aos     *
- *              vizinhos destas                                      * 
- * gmKsi     -> modulo do vetor ksi                                  * 
- * gEta      -> vetores paralelos as faces das celulas               * 
- * gfArea    -> modulo do vetor eta                                  * 
- * gNormal   -> vetores normais as faces das celulas                 * 
- * gVolume   -> volumes das celulas                                  * 
- * gXm       -> pontos medios das faces das celulas                  * 
- * gXmcc     -> vetores que unem o centroide aos pontos medios das   * 
- *              faces                                                * 
- * gvSkew    -> vetor entre o ponto medio a intersecao que une os    * 
- *              centrois compartilhado nessa face                    * 
- * gmvSkew   -> distacia entre o ponto medio a intersecao que une os * 
- *              centrois compartilhado nessa face                    * 
- * gDcca     -> menor distancia do centroide a faces desta celula    * 
+ * cellFace-> faces que formam a celulas                             *
+ * owner   -> elementos que compartilham a face(0- o dono,1 - viz)   *
+ * gVolume -> volumes das celulas                                    *
+ * gDcca   -> menor distancia do centroide a faces desta celula      *
+ * gXmCc   -> vetores que unem o centroide aos pontos medios das     *
+ * gCc     -> centroide do elemento                                  * 
+ * fModKsi -> o mudolo do vetores que unem centroide da celula       * 
+ *            central aos vizinhos destas                            *
+ * fKsi    -> vetores que unem centroide da celula central aos       *
+ *            vizinhos destas                                        * 
+ * fEta    -> vetores paralelos as faces das celulas                 *
+ * fArea   -> modulo do vetor eta                                    *
+ * fNormal -> vetores normais as faces das celulas                   *
+ * fXm     -> pontos medios das faces das celulas                    *
+ * fModvSkew -> distacia entre o ponto medio a intersecao que une os * 
+ *            centrois compartilhado nessa face                      * 
+ * fvSkew  -> vetor entre o ponto medio a intersecao que une os      *
+ *            centrois compartilhado nessa face                      *
+ * calType -> tipo de calculo das celulas                            * 
+ * geomType-> tipo geometrico das celulas                            * 
+ * prop    -> propriedades dos material                              * 
+ * mat     -> material por celula                                    * 
  * gradVel   -> gradiente da solucao conhecido                       * 
  * density   -> massa especifica com variacao temporal               *  
  * eddyViscosity-> viscosidade turbulenta                            *
@@ -536,14 +545,15 @@ void oneEquationK(Memoria *m
 void turbulenceCellLoop(Loads *lVel         , Turbulence *tModel             
       , INT    *RESTRICT el                 , INT    *RESTRICT nelcon 
       , short  *RESTRICT nen                , short  *RESTRICT nFace 
-      , short  *RESTRICT geomType           , DOUBLE *RESTRICT prop  
-      , short  *RESTRICT calType            , short  *RESTRICT mat        
-      , DOUBLE *RESTRICT cc                 , DOUBLE *RESTRICT gKsi                      
-      , DOUBLE *RESTRICT gmKsi              , DOUBLE *RESTRICT gEta  
-      , DOUBLE *RESTRICT gfArea             , DOUBLE *RESTRICT gNormal  
-      , DOUBLE *RESTRICT gVolume            , DOUBLE *RESTRICT gXm  
-      , DOUBLE *RESTRICT gXmcc              , DOUBLE *RESTRICT gvSkew    
-      , DOUBLE *RESTRICT gmvSkew            , DOUBLE *RESTRICT gDcca  
+      , INT *RESTRICT cellFace              , INT *RESTRICT fOwner
+      , DOUBLE *RESTRICT gVolume            , DOUBLE *RESTRICT gDcca
+      , DOUBLE *RESTRICT gXmCc              , DOUBLE *RESTRICT gCc
+      , DOUBLE *RESTRICT fModKsi            , DOUBLE *RESTRICT fKsi
+      , DOUBLE *RESTRICT fEta               , DOUBLE *RESTRICT fArea
+      , DOUBLE *RESTRICT fNormal            , DOUBLE *RESTRICT fXm
+      , DOUBLE *RESTRICT fModvSkew          , DOUBLE *RESTRICT fvSkew 
+      , short  *RESTRICT geomType           , DOUBLE *RESTRICT prop
+      , short  *RESTRICT calType            , short  *RESTRICT mat
       , short  *RESTRICT faceVelR           , short *RESTRICT faceVelL               
       , DOUBLE *RESTRICT vel                , DOUBLE *RESTRICT gradVel
       , DOUBLE *RESTRICT density            , DOUBLE *RESTRICT dViscosity        
@@ -561,6 +571,7 @@ void turbulenceCellLoop(Loads *lVel         , Turbulence *tModel
   short  lGeomType[MAX_NUM_FACE+1],  
          lFaceVelR[MAX_NUM_FACE+1],lFaceVelL[MAX_NUM_FACE+1];       
   INT    lViz[MAX_NUM_FACE];
+  INT    idFace, cellOwner, ch;
   DOUBLE lKsi[MAX_NUM_FACE*MAX_NDM], lmKsi[MAX_NUM_FACE],
          lEta[MAX_NUM_FACE*MAX_NDM], lfArea[MAX_NUM_FACE],
          lNormal[MAX_NUM_FACE*MAX_NDM], lVolume[MAX_NUM_FACE+1],
@@ -575,7 +586,8 @@ void turbulenceCellLoop(Loads *lVel         , Turbulence *tModel
            
 /*... loop nas celulas*/
   aux2    = maxViz+1;
-  for(nel=0;nel<numel;nel++){
+  for(nel=0;nel<numel;nel++)
+  {
 /*...*/
     aux1    = nFace[nel];
 /*... loop na celula central*/    
@@ -595,9 +607,10 @@ void turbulenceCellLoop(Loads *lVel         , Turbulence *tModel
 /*...................................................................*/
 
 /*...*/
-    for(j=0;j<ndm;j++){
-       MAT2D(aux1,j,lVel0,ndm)  = MAT2D(nel,j,vel     ,ndm);
-       MAT2D(aux1, j, lCc, ndm) = MAT2D(nel, j, cc, ndm);
+    for(j=0;j<ndm;j++)
+    {
+       MAT2D(aux1,j,lVel0,ndm)  = MAT2D(nel, j, vel, ndm);
+       MAT2D(aux1, j, lCc, ndm) = MAT2D(nel, j, gCc, ndm);
     }
 /*...................................................................*/
 
@@ -609,37 +622,47 @@ void turbulenceCellLoop(Loads *lVel         , Turbulence *tModel
 /*...................................................................*/
 
 /*...*/
-    for(i=0;i<aux1;i++){
-      lmKsi[i]      = MAT2D(nel,i,gmKsi   ,maxViz);
-      lfArea[i]     = MAT2D(nel,i,gfArea  ,maxViz);
+    for(i=0;i<aux1;i++)
+    {
       lDcca[i]      = MAT2D(nel,i,gDcca   ,maxViz);
-      lmvSkew[i]    = MAT2D(nel,i,gmvSkew ,maxViz);
       lFaceVelR[i]  = MAT2D(nel,i,faceVelR,aux2);
       lFaceVelL[i]  = MAT2D(nel,i,faceVelL,aux2);
-      for(j=0;j<ndm;j++){
-        MAT2D(i,j,lKsi   ,ndm) = MAT3D(nel,i,j,gKsi   ,maxViz,ndm);
-        MAT2D(i,j,lEta   ,ndm) = MAT3D(nel,i,j,gEta   ,maxViz,ndm);
-        MAT2D(i,j,lNormal,ndm) = MAT3D(nel,i,j,gNormal,maxViz,ndm);
-        MAT2D(i,j,lXm    ,ndm) = MAT3D(nel,i,j,gXm    ,maxViz,ndm); 
-        MAT2D(i,j,lXmcc  ,ndm) = MAT3D(nel,i,j,gXmcc  ,maxViz,ndm);
-        MAT2D(i,j,lvSkew ,ndm) = MAT3D(nel,i,j,gvSkew ,maxViz,ndm);
+/*... propriedades por face*/
+      idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
+      cellOwner = MAT2D(idFace, 0, fOwner, 2) - 1;
+      ch = OWNER(cellOwner, nel);
+      lmKsi[i] = fModKsi[idFace];
+      lfArea[i] = fArea[idFace];
+      lmvSkew[i] = fModvSkew[idFace];
+      for(j=0;j<ndm;j++)
+      {
+        MAT2D(i,j,lXmcc  ,ndm)    = MAT3D(nel,i,j,gXmCc  ,maxViz,ndm);
+/*... propriedades por face*/
+        MAT2D(i, j, lKsi, ndm)    = ch * MAT2D(idFace, j, fKsi, ndm);
+        MAT2D(i, j, lEta, ndm)    = ch * MAT2D(idFace, j, fEta, ndm);
+        MAT2D(i, j, lNormal, ndm) = ch * MAT2D(idFace, j, fNormal, ndm);
+        MAT2D(i, j, lXm, ndm)     = MAT2D(idFace, j, fXm, ndm);
+        MAT2D(i, j, lvSkew, ndm)  = MAT2D(idFace, j, fvSkew, ndm);
       }
     }
 
 /*... loop na celulas vizinhas*/    
-    for(i=0;i<aux1;i++){
+    for(i=0;i<aux1;i++)
+    {
       vizNel  = MAT2D(nel,i,nelcon,maxViz) - 1;
       lViz[i] = vizNel;
-      if( vizNel != -2) {
+      if( vizNel != -2)
+      {
         lVolume[i]   = gVolume[vizNel]; 
         lGeomType[i] = geomType[vizNel];
         lDensity[i]  = MAT2D(vizNel,2   ,density ,DENSITY_LEVEL);
 
         lMat         = mat[vizNel]-1;
  
-        for(j=0;j<ndm;j++){
-          MAT2D(i,j,lCc      ,ndm)  = MAT2D(vizNel,j,cc      ,ndm);
-          MAT2D(i,j,lVel0     ,ndm) = MAT2D(vizNel,j,vel     ,ndm);
+        for(j=0;j<ndm;j++)
+        {
+          MAT2D(i,j,lCc      ,ndm)  = MAT2D(vizNel, j, gCc, ndm);
+          MAT2D(i,j,lVel0     ,ndm) = MAT2D(vizNel, j, vel, ndm);
         }
       
         for(k=0;k<ndf;k++)
@@ -688,7 +711,7 @@ void turbulenceCellLoop(Loads *lVel         , Turbulence *tModel
 
 /********************************************************************* 
  * Data de criacao    : 17/01/2018                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 19/07/2018                                   * 
  *-------------------------------------------------------------------* 
  * wallParametersCellLoop: Calculo dos paramentros de parede         *
  *-------------------------------------------------------------------* 
@@ -696,7 +719,9 @@ void turbulenceCellLoop(Loads *lVel         , Turbulence *tModel
  *-------------------------------------------------------------------*  
  * nelcon    -> vizinhos dos elementos                               * 
  * nFace     -> numero de faces por celulas                          * 
- * gNormal   -> vetores normais as faces das celulas                 * 
+ * cellFace-> faces que formam a celulas                             *
+ * owner   -> elementos que compartilham a face(0- o dono,1 - viz)   *
+ * fNormal   -> vetores normais as faces das celulas                 * 
  * gVolume   -> volumes das celulas                                  * 
  * gDcca     -> menor distancia do centroide a faces desta celula    * 
  * density   -> massa especifica com variacao temporal               *  
@@ -714,9 +739,10 @@ void turbulenceCellLoop(Loads *lVel         , Turbulence *tModel
  * OBS:                                                              *
  *-------------------------------------------------------------------* 
   *********************************************************************/
-void wallParametersCellLoop(Loads *lVel, Turbulence *tModel             
+void wallParametersCellLoop(Loads *lVel, Turbulence *tModel 
+      , INT *RESTRICT cellFace         , INT *RESTRICT fOwner
       , INT    *RESTRICT nelcon        , short  *RESTRICT nFace 
-      , DOUBLE *RESTRICT gNormal       , DOUBLE *RESTRICT gVolume
+      , DOUBLE *RESTRICT fNormal       , DOUBLE *RESTRICT gVolume
       , DOUBLE *RESTRICT gDcca  
       , short  *RESTRICT faceVelR      , short *RESTRICT faceVelL               
       , DOUBLE *RESTRICT vel           , DOUBLE *RESTRICT density
@@ -733,6 +759,7 @@ void wallParametersCellLoop(Loads *lVel, Turbulence *tModel
   short  aux1,aux2;
   short  lFaceVelR[MAX_NUM_FACE+1],lFaceVelL[MAX_NUM_FACE+1];       
   INT    lViz[MAX_NUM_FACE];
+  INT    idFace, cellOwner, ch;
   DOUBLE lNormal[MAX_NUM_FACE*MAX_NDM],lDcca[MAX_NUM_FACE],
          lDensityC,lVel0[MAX_NDM],lDviscosityC,lWallPar[4],dMin;
  
@@ -761,8 +788,13 @@ void wallParametersCellLoop(Loads *lVel, Turbulence *tModel
       lDcca[i]      = MAT2D(nel,i,gDcca   ,maxViz);
       lFaceVelR[i]  = MAT2D(nel,i,faceVelR,aux2);
       lFaceVelL[i]  = MAT2D(nel,i,faceVelL,aux2);
+
+      idFace    = MAT2D(nel, i, cellFace, maxViz) - 1;
+      cellOwner = MAT2D(idFace, 0, fOwner, 2) - 1;
+      ch        = OWNER(cellOwner, nel);
+
       for(j=0;j<ndm;j++)
-        MAT2D(i,j,lNormal,ndm) = MAT3D(nel,i,j,gNormal,maxViz,ndm);
+        MAT2D(i,j,lNormal,ndm) = ch * MAT2D(idFace, j, fNormal, ndm);
     }
 
 /*... loop na celulas vizinhas*/    

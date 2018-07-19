@@ -387,7 +387,7 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
 
 /*********************************************************************
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 08/08/2016                                   *
+ * Data de modificaco : 19/07/2018                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEVEl: chamada de bibliotecas de celulas para          *
  * problema de escoamento de fluidos (VEL)                           *
@@ -449,7 +449,7 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
  *-------------------------------------------------------------------*
  *********************************************************************/
 void cellLibSimpleVel(Loads *lVel        ,Loads *lPres     
-             ,Advection  advVel          ,Diffusion diffVel    
+             ,Advection  *advVel         ,Diffusion *diffVel    
              ,short const typeSimple 
              ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
              ,INT   *RESTRICT lViz       ,INT *RESTRICT lId  
@@ -597,8 +597,8 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
  *-------------------------------------------------------------------*
  *********************************************************************/
 void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
-           , Advection  advVel          , Diffusion diffVel    
-           , Turbulence tModel          , MomentumModel ModelMomentum
+           , Advection  *advVel         , Diffusion *diffVel    
+           , Turbulence *tModel         , MomentumModel *ModelMomentum
            , short const typeSimple 
            , short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop 
            , INT   *RESTRICT lViz       , INT *RESTRICT lId   
@@ -628,8 +628,8 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
 /*... 2D*/
     if(ndm == 2){
       cellSimpleVel2DLm(lVel      , lPres    
-                     , advVel     , diffVel 
-                     , tModel     , ModelMomentum
+                     , *advVel    , *diffVel 
+                     , *tModel    , *ModelMomentum
                      , typeSimple   
                      , lGeomType  , lprop 
                      , lViz       , lId 
@@ -745,7 +745,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
  *-------------------------------------------------------------------*
  *********************************************************************/
 void cellLibSimplePres(Loads *lVel       ,Loads *lPres
-	             ,Diffusion diffPres
+	             ,Diffusion *diffPres
                ,short *RESTRICT lGeomType,DOUBLE *RESTRICT lprop
                ,INT   *RESTRICT lViz     ,INT *RESTRICT lId  
                ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
@@ -819,7 +819,7 @@ void cellLibSimplePres(Loads *lVel       ,Loads *lPres
 
 /*********************************************************************
  * Data de criacao    : 17/09/2017                                   *
- * Data de modificaco : 17/01/2018                                   *
+ * Data de modificaco : 17/07/2018                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEPRESLM: chamada de bibliotecas de celulas para       *
  * problema de escoamento de fluidos a baixo Mach (PRES)             *
@@ -878,7 +878,7 @@ void cellLibSimplePres(Loads *lVel       ,Loads *lPres
  *-------------------------------------------------------------------*
  *********************************************************************/
 void cellLibSimplePresLm(Loads *lVel        , Loads *lPres
-	             , Diffusion diffPres         , MassEqModel eMass  
+	             , Diffusion *diffPres        , MassEqModel *eMass  
                , short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop
                , INT   *RESTRICT lViz       , INT *RESTRICT lId  
                , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi

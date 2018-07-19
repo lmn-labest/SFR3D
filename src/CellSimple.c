@@ -32,7 +32,7 @@
 
 /*********************************************************************
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 15/02/2017                                   *
+ * Data de modificaco : 19/07/2018                                   *
  *-------------------------------------------------------------------*
  * CELLSIMPLEVEL2D: Celula 2D para velocidade do metodo simple       *
  * em escoamento imcompressivel                                      *
@@ -113,7 +113,7 @@
  *                  | du2dx1 du2dx2 |                                *
  *********************************************************************/
 void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres 
-            ,Advection advVel            ,Diffusion diffVel 
+            ,Advection *advVel           ,Diffusion *diffVel 
             ,short const typeSimple 
             ,short *RESTRICT lGeomType   ,DOUBLE *RESTRICT prop
             ,INT *RESTRICT lViz          ,INT *RESTRICT lId  
@@ -159,9 +159,9 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE gradVelC[2][2],gradVelV[2][2],gf[2][2],gfKsi[2];
   DOUBLE gradVelComp[2][2];
 /*...*/
-  short iCodAdv1 = advVel.iCod1;
-  short iCodAdv2 = advVel.iCod2;
-  short iCodDif  = diffVel.iCod;
+  short iCodAdv1 = advVel->iCod1;
+  short iCodAdv2 = advVel->iCod2;
+  short iCodDif  = diffVel->iCod;
 /*...*/
   short idCell = nFace;
   short nAresta,nCarg,typeTime;
@@ -176,7 +176,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
   typeTime = ddt.type;
   fTime    = ddt.flag;
   densityC = lDensity[idCell];
-  pAdv[0]  = advVel.par[0];
+  pAdv[0]  = advVel->par[0];
 /*...................................................................*/
 
 /*... propriedades da celula*/
@@ -1702,7 +1702,7 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
 
 /*********************************************************************
  * Data de criacao    : 11/07/2016                                   *
- * Data de modificaco : 15/08/2016                                   * 
+ * Data de modificaco : 19/07/2018                                   * 
  *-------------------------------------------------------------------* 
  * CELLSIMPLEVE3D: Celula 3D para velocidade do metodo simple        * 
  * em escoamento imcompressivel                                      * 
@@ -1784,7 +1784,7 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
  *                                                                   *  
  *********************************************************************/
 void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres 
-            ,Advection advVel            ,Diffusion diffVel
+            ,Advection *advVel           ,Diffusion *diffVel
             ,short const typeSimple 
             ,short *RESTRICT lGeomType   ,DOUBLE *RESTRICT prop
             ,INT *RESTRICT lViz          ,INT *RESTRICT lId  
@@ -1840,10 +1840,10 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
   DOUBLE pAdv[NPADV];
 
 /*...*/
-  iCodAdv1    = advVel.iCod1;
-  iCodAdv2    = advVel.iCod2;
-  pAdv[0]     = advVel.par[0];
-  iCodDif     = diffVel.iCod;
+  iCodAdv1    = advVel->iCod1;
+  iCodAdv2    = advVel->iCod2;
+  pAdv[0]     = advVel->par[0];
+  iCodDif     = diffVel->iCod;
 /*...*/
   dt       = ddt.dt[0];
   dt0      = ddt.dt[1];
@@ -2421,8 +2421,8 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
  *                                                                   *  
  *********************************************************************/
 void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres 
-            , Advection advVel            , Diffusion diffVel
-            , Turbulence tModel           , MomentumModel ModelMomentum
+            , Advection *advVel           , Diffusion *diffVel
+            , Turbulence *tModel          , MomentumModel *ModelMomentum
             , short const typeSimple 
             , short *RESTRICT lGeomType   , DOUBLE *RESTRICT prop
             , INT *RESTRICT lViz          , INT *RESTRICT lId  
@@ -2488,10 +2488,10 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 
 /*...*/
   idCell      = nFace;
-  iCodAdv1    = advVel.iCod1;
-  iCodAdv2    = advVel.iCod2;
-  pAdv[0]     = advVel.par[0];
-  iCodDif     = diffVel.iCod;
+  iCodAdv1    = advVel->iCod1;
+  iCodAdv2    = advVel->iCod2;
+  pAdv[0]     = advVel->par[0];
+  iCodDif     = diffVel->iCod;
   iCodPolFace = INTPOLFACELINEAR;
 /*...................................................................*/
 
@@ -2504,22 +2504,22 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 /*...................................................................*/
 
 /*...*/  
-  fWallModel       = tModel.fWall;
-  wallType         = tModel.wallType;
-  fTurb            = tModel.fTurb;
+  fWallModel       = tModel->fWall;
+  wallType         = tModel->wallType;
+  fTurb            = tModel->fTurb;
 
-  fRhieInt         = ModelMomentum.fRhieChowInt;  
-  fRes             = ModelMomentum.fRes;
-  fViscosity       = ModelMomentum.fViscosity;
-  fDiv             = ModelMomentum.fDiv;
-  iCodBuoyant      = ModelMomentum.iCodBuoyant;
+  fRhieInt         = ModelMomentum->fRhieChowInt;
+  fRes             = ModelMomentum->fRes;
+  fViscosity       = ModelMomentum->fViscosity;
+  fDiv             = ModelMomentum->fDiv;
+  iCodBuoyant      = ModelMomentum->iCodBuoyant;
   g[0]             = gravity[0];
   g[1]             = gravity[1];
   g[2]             = gravity[2];
 /*...................................................................*/
 
 /*... funcionais*/
-  if(tModel.typeLes == LESFUNCMODEL ) 
+  if(tModel->typeLes == LESFUNCMODEL )
     fStruc    = false;  
 /*... estruturais*/
   else
