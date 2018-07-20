@@ -39,6 +39,11 @@
                 , Mesh *mesh0    , Mesh *mesh
                 , char *preName  , char *nameOut);
 
+  void printFace(Memoria *m   , Mesh *mesh
+               , char* preName, bool bVtk
+               , FILE *fileOut);
+
+
   void reScaleMesh(DOUBLE *x, INT nnode, short ndm, FILE *fileIn);
 
 

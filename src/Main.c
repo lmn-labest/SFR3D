@@ -786,21 +786,9 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... face com cargas*/
-       fName(preName,0,0,17,nameOut);
-       wGeoFaceVtk(&m                  ,mesh0->node.x        
-             ,mesh0->elm.node          ,mesh0->elm.nen      
-             ,mesh0->elm.geomType
-             ,mesh0->elm.faceRd1       ,mesh0->elm.faceLoadD1
-             ,mesh0->elm.faceRt1       ,mesh0->elm.faceLoadT1
-             ,mesh0->elm.faceRvel      ,mesh0->elm.faceLoadVel  
-             ,mesh0->elm.faceRenergy   ,mesh0->elm.faceLoadEnergy 
-             ,mesh0->nnode             ,mesh0->numel    
-             ,mesh0->ndm               
-             ,mesh0->ndfD[0]           ,mesh0->ndfT[0]
-             ,mesh0->ndfF              ,mesh0->ndfFt
-             ,mesh0->maxViz            ,mesh0->maxNo
-             ,nameOut                  ,opt.bVtk             
-             ,fileOut);  
+      printFace(&m     , mesh0
+              , preName, opt.bVtk
+              , fileOut);
 /*...................................................................*/
       }
     }   

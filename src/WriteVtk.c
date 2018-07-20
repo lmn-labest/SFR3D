@@ -832,6 +832,155 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
 }
 /*********************************************************************/ 
 
+/**********************************************************************
+* Data de criacao    : 20/07/2018                                    *
+* Data de modificaco : 00/00/0000                                    *
+*------------------------------------------------------------------- *
+* WGEOFACEVTK2: escreve a malha apenas com os faces com condicao     *
+* ------------------------------------------------------------------ *
+* parametros de entrada:                                             *
+* ------------------------------------------------------------------ *
+* m          -> arranjo da menoria principal                         *
+* x          -> coordenadas                                          *
+* el         -> conectividade                                        *
+* mat        -> materias                                             *
+* nen        -> conectividades por elemento                          *
+* mat        -> material por elemento                                *
+* typeGeom   -> tipo geometrico do elemento                          *
+* typeCal    -> tipo calculo do elemento                             *
+* faceRd1    -> condicao de contorno D1                              *
+* faceLd1    -> tipo da condicao de contorno D1                      *
+* faceRt1    -> condicao de contorno T1                              *
+* faceLt1    -> tipo da condicao de contorno T1                      *
+* faceRfluid -> condicao de contorno fluido                          *
+* faceLfluid -> tipo da condicao de contorno fluido                  *
+* faceRtemp  -> condicao de contorno temp                            *
+* faceLtemp  -> tipo da condicao de contorn temp                     *
+* nel        -> numeracao do elemento                                *
+* nnode      -> numero de nos                                        *
+* numel      -> numero de elementos                                  *
+* ndm        -> numero de dimensao                                   *
+* maxNo      -> numero maximo de nos por elemento                    *
+* numat      -> numero maximo de nos por elemento                    *
+* ndfD1      -> graus de liberdade das equacoes difusao pura D1      *
+* ndfT1      -> graus de liberdade das equacoes de transporte T1     *
+* ndfF       -> graus de liberdade das equacoes de fluidos           *
+* ndfFt      -> graus de liberdade das equacoes de fluidos           *
+* nameOut    -> nome de arquivo de saida                             *
+* iws        -> vtk binario                                          *
+* f          -> arquivlo                                             *
+* ------------------------------------------------------------------ *
+* parametros de saida  :                                             *
+* ------------------------------------------------------------------ *
+**********************************************************************/
+void wGeoFaceVtk2(Memoria *m     , DOUBLE *x
+                , INT *el        , short *nen
+                , short *typeGeom
+                , short *faceRd  , short *faceLd
+                , INT const nnode, INT const numel
+                , short const ndm, short const maxViz 
+                , short const ndf, short const maxNo
+                , char *nameOut  , bool iws
+                , FILE *f)
+{
+  char head[] = { "FACE_VOLUME_FINITO" };
+  int nFace = 0;
+  int *face = NULL, *idFace = NULL;
+  int *lfaceL = NULL; 
+  short *typeGeomFace = NULL, *nenFace = NULL;
+  int i;
+  int *aux = NULL;
+  double ddum;
+
+  HccaAlloc(INT, m, face, numel*MAX_NUM_FACE*MAX_NUM_NODE_FACE
+           , "lFace", _AD_);
+  HccaAlloc(INT, m, idFace, numel*MAX_NUM_FACE, "iDFace", _AD_);
+  HccaAlloc(short, m, typeGeomFace, numel*MAX_NUM_FACE, "ltGface", _AD_);
+  HccaAlloc(short, m, nenFace, numel*MAX_NUM_FACE, "lnenFace", _AD_);
+
+/*... ndf*/
+  HccaAlloc(int, m, lfaceL, numel*MAX_NUM_FACE, "lfaceS", _AD_);
+  makeFace( el          , faceRd , faceLd
+          , typeGeom
+          , face        , lfaceL , idFace
+          , typeGeomFace, nenFace
+          , maxViz      , maxNo
+          , ndf
+          , numel       , &nFace);
+/*...................................................................*/
+
+/*...*/
+  if (nFace)
+    if (iws)
+      f = openFile(nameOut, "wb");
+    else
+      f = openFile(nameOut, "w");
+/*...................................................................*/
+
+/*... malha sem condicao de contorno na face*/
+  else
+    return;
+/*...................................................................*/
+
+/* ...*/
+  headVtk(head, iws, f);
+/* ..................................................................*/
+
+/*... coordenadas*/
+  writeVtkCoor(x, nnode, ndm, iws, f);
+/*...................................................................*/
+
+/*... faces*/
+  writeVtkCell(face, nenFace, typeGeomFace, nFace
+              , MAX_NUM_NODE_FACE, iws, f);
+/*...................................................................*/
+
+/*... campo por elemento*/
+  fprintf(f, "CELL_DATA %ld\n", (long)nFace);
+/*...................................................................*/
+
+/*... relacao face celula*/
+  writeVtkProp(idFace, &ddum, nFace, 1, "idCellFace", iws
+             , INTEGER_VTK, 1, f);
+/*...................................................................*/
+
+/*... valores das cargas por celula*/
+  writeVtkProp(lfaceL  , &ddum, nFace, 1
+             , "lFaceL", iws, INTEGER_VTK, 1, f);
+
+/*.... campo por no*/
+  fprintf(f, "POINT_DATA %ld\n", (long)nnode);
+/*...................................................................*/
+
+/*... numero do no*/
+  HccaAlloc(int, m, aux, nnode, "el", _AD_);
+  if (aux == NULL) {
+    fprintf(stderr, "Erro na alocação de lel.\n"
+      "Nome do arquivo: %s.\n"
+      , __FILE__);
+    exit(EXIT_FAILURE);
+  }
+  for (i = 0; i<nnode; i++)
+    aux[i] = i + 1;
+
+  writeVtkProp(aux, &ddum, nnode, 1, "pNode", iws, INTEGER_VTK, 1, f);
+  HccaDealloc(m, aux, "el", _AD_);
+/*...................................................................*/
+
+/*... dealloc*/
+
+  HccaDealloc(m, lfaceL, "lfaceS", _AD_);
+  HccaDealloc(m, nenFace, "lnenFace", _AD_);
+  HccaDealloc(m, typeGeomFace, "ltGface", _AD_);
+  HccaDealloc(m, idFace, "iDFace", _AD_);
+  HccaDealloc(m, face, "lFace", _AD_);
+/*...................................................................*/
+
+  fclose(f);
+}
+/*********************************************************************/
+
+
 /********************************************************************** 
  * WRESVTK : escreve a malha com os resultados                        *  
  * ------------------------------------------------------------------ *
@@ -1401,7 +1550,6 @@ void wResVtkTrans(Memoria *m        , double *x
   fclose(f);
 }
 /*********************************************************************/
-
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                    *

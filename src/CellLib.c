@@ -4938,7 +4938,7 @@ void  setAdvectionScheme(char *word, Advection *adv,FILE *fileIn)
 
 /*...*/
   else {
-    printf("Erro: tipo de correcao nao ortogonal invalida.\n"
+    printf("Erro: tipo de tecnica advectiva invalida.\n"
            "Arquivo fonte:  \"%s\".\n"
            "Nome da funcao: \"%s\".\n"
            "Linha         : \"%d\".\n"

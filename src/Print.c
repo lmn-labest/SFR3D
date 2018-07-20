@@ -949,29 +949,29 @@ void reScaleMesh(DOUBLE *x,INT nnode, short ndm, FILE *fileIn)
 /*********************************************************************/
 
 /*********************************************************************
-* Data de criacao    : 01/05/2018                                   *
-* Data de modificaco : 00/00/0000                                   *
-*-------------------------------------------------------------------*
-* reScaleMesh : redimensio as coordenada da matriz                  *
-*-------------------------------------------------------------------*
-* Parametros de entrada:                                            *
-*-------------------------------------------------------------------*
-* m       -> vetor de memoria principal                             *
-* pMesh     -> modelo de turbulencia                                *
-* sc        -> modelo da equacao de energia                         *
-* loadsD1   -> deficicao de cargas velocidade                       *
-* opt       -> opcoes de arquivo                                    *
-* mesh0     -> malha global                                         *
-* mesh      -> malha particionada                                   *
-* preName   -> prefixo do arquivo                                   *
-* nameOut   -> arquivo de saida                                     *
-*-------------------------------------------------------------------*
-* Parametros de saida:                                              *
-*-------------------------------------------------------------------*
-*-------------------------------------------------------------------*
-* OBS:                                                              *
-*-------------------------------------------------------------------*
-*********************************************************************/
+ * Data de criacao    : 01/05/2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * reScaleMesh : redimensio as coordenada da matriz                  *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * m       -> vetor de memoria principal                             *
+ * pMesh     -> modelo de turbulencia                                *
+ * sc        -> modelo da equacao de energia                         *
+ * loadsD1   -> deficicao de cargas velocidade                       *
+ * opt       -> opcoes de arquivo                                    *
+ * mesh0     -> malha global                                         *
+ * mesh      -> malha particionada                                   *
+ * preName   -> prefixo do arquivo                                   *
+ * nameOut   -> arquivo de saida                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
 void initPrintVtk(FileOpt *opt)
 {
   opt->bVtk           = false;
@@ -1015,3 +1015,150 @@ void initPrintVtk(FileOpt *opt)
   opt->stepPlot[1] = opt->stepPlot[0];
 
 }
+/*********************************************************************
+* Data de criacao    : 20/07/2018                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* reScaleMesh : redimensio as coordenada da matriz                  *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* m       -> vetor de memoria principal                             *
+* mesh      -> malha global                                         *
+* preName   -> prefixo do arquivo                                   *
+* bVtk      -> arquivo vtk binario                                  *
+* fileOut  -> ponteiro do arquivo de saida                          *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void printFace(Memoria *m   , Mesh *mesh
+             , char* preName, bool bVtk
+             , FILE *fileOut)
+{
+
+  char nameOut[SIZEMAX],aux[MAX_STR_LEN_SUFIXO];
+
+/*...*/
+  if (mesh->ndfF > 0)
+  {
+    aux[0] = '\0';
+    strcpy(aux, preName);
+    strcat(aux, "_vel");
+    fName(aux, 0, 0, 17, nameOut);
+    wGeoFaceVtk2(m        , mesh->node.x
+               , mesh->elm.node    , mesh->elm.nen
+               , mesh->elm.geomType
+               , mesh->elm.faceRvel, mesh->elm.faceLoadVel
+               , mesh->nnode       , mesh->numel
+               , mesh->ndm         , mesh->maxViz
+               , mesh->ndfF - 1    , mesh->maxNo
+               , nameOut           , bVtk
+               , fileOut);
+
+    aux[0] = '\0';
+    strcpy(aux, preName);
+    strcat(aux, "_pres");
+    fName(aux, 0, 0, 17, nameOut);
+    wGeoFaceVtk2(m                  , mesh->node.x
+               , mesh->elm.node     , mesh->elm.nen
+               , mesh->elm.geomType
+               , mesh->elm.faceRpres, mesh->elm.faceLoadPres
+               , mesh->nnode        , mesh->numel
+               , mesh->ndm          , mesh->maxViz
+               , 1                  , mesh->maxNo
+               , nameOut            , bVtk
+               , fileOut);
+  }
+/*..................................................................*/
+
+/*...*/
+  if(mesh->ndfFt > 0)
+  {
+    aux[0] = '\0';
+    strcpy(aux,preName);
+    strcat(aux,"_energy");
+    fName(aux, 0, 0, 17, nameOut);
+    wGeoFaceVtk2(m                   , mesh->node.x
+               , mesh->elm.node       , mesh->elm.nen
+              , mesh->elm.geomType
+              , mesh->elm.faceRenergy, mesh->elm.faceLoadEnergy
+              , mesh->nnode          , mesh->numel
+              , mesh->ndm            , mesh->maxViz
+              , 1                    , mesh->maxNo          
+              , nameOut              , bVtk                 
+              , fileOut);
+    
+    aux[0] = '\0';
+    strcpy(aux, preName);
+    strcat(aux, "_vel");
+    fName(aux, 0, 0, 17, nameOut);
+    wGeoFaceVtk2(m                    , mesh->node.x
+               , mesh->elm.node       , mesh->elm.nen
+               , mesh->elm.geomType
+               , mesh->elm.faceRvel   , mesh->elm.faceLoadVel
+               , mesh->nnode          , mesh->numel
+               , mesh->ndm            , mesh->maxViz
+               , mesh->ndfFt-1        , mesh->maxNo
+               , nameOut              , bVtk
+               , fileOut);
+
+    aux[0] = '\0';
+    strcpy(aux, preName);
+    strcat(aux, "_pres");
+    fName(aux, 0, 0, 17, nameOut);
+    wGeoFaceVtk2(m                  , mesh->node.x
+               , mesh->elm.node     , mesh->elm.nen
+               , mesh->elm.geomType
+               , mesh->elm.faceRpres, mesh->elm.faceLoadPres
+               , mesh->nnode        , mesh->numel
+               , mesh->ndm          , mesh->maxViz
+               , 1                  , mesh->maxNo
+               , nameOut            , bVtk
+               , fileOut);
+  }
+/*..................................................................*/
+
+/*...*/
+  if (mesh->ndfD[0] > 0)
+  {
+    aux[0] = '\0';
+    strcpy(aux, preName);
+    strcat(aux, "_D1");
+    fName(aux, 0, 0, 17, nameOut);
+    wGeoFaceVtk2(m         , mesh->node.x
+      , mesh->elm.node     , mesh->elm.nen
+      , mesh->elm.geomType
+      , mesh->elm.faceRd1  , mesh->elm.faceLoadD1
+      , mesh->nnode        , mesh->numel
+      , mesh->ndm          , mesh->maxViz
+      , 1                  , mesh->maxNo
+      , nameOut            , bVtk
+      , fileOut);
+  }
+/*..................................................................*/
+
+/*...*/
+  if (mesh->ndfT[0] > 0)
+  {
+    aux[0] = '\0';
+    strcpy(aux, preName);
+    strcat(aux, "_T1");
+    fName(aux, 0, 0, 17, nameOut);
+    wGeoFaceVtk2(m                 , mesh->node.x
+               , mesh->elm.node    , mesh->elm.nen
+               , mesh->elm.geomType
+               , mesh->elm.faceRt1 , mesh->elm.faceLoadT1
+               , mesh->nnode       , mesh->numel
+               , mesh->ndm         , mesh->maxViz
+               , 1                 , mesh->maxNo
+               , nameOut           , bVtk
+               , fileOut);
+  }
+/*..................................................................*/
+
+}
+/********************************************************************/
