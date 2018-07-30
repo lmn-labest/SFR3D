@@ -2669,21 +2669,6 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
         }
 /*...................................................................*/
 
-/*... propriedades por face*/
-        for (i = 0; i<aux1; i++)
-        {
-
-          for (j = 0; j<ndm; j++)
-          {
-            MAT2D(i, j, lKsi, ndm) = ch * MAT2D(idFace, j, fKsi, ndm);
-            MAT2D(i, j, lEta, ndm) = ch * MAT2D(idFace, j, fEta, ndm);
-            MAT2D(i, j, lNormal, ndm) = ch * MAT2D(idFace, j, fNormal, ndm);
-            MAT2D(i, j, lXm, ndm) = MAT2D(idFace, j, fXm, ndm);
-            MAT2D(i, j, lvSkew, ndm) = MAT2D(idFace, j, fvSkew, ndm);
-          }
-        }
-/*...................................................................*/
-
 /*... loop na celulas vizinhas*/
         for (i = 0; i<aux1; i++) {
           vizNel = MAT2D(nel, i, nelcon, maxViz) - 1;
@@ -4552,7 +4537,6 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
   INT    lId[(MAX_NUM_FACE+1)*MAX_NDF],lViz[MAX_NUM_FACE];
   INT idFace, cellOwner, ch;
   short  aux1,aux2,lMat;
-
 /*...*/
   if(ompVar.fCell)
   {
@@ -6253,7 +6237,6 @@ void rcGradU(Memoria *m                , Loads *loads
 /*...................................................................*/
   }  
 /*...................................................................*/
-
   if(mpiVar.nPrcs > 1 ) comunicateCel(iCel,gradU,ndm,ndf);
 
 }

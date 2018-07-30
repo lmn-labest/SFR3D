@@ -634,20 +634,20 @@ void simpleSolver3D(Memoria *m
 /*********************************************************************/ 
 
 /*********************************************************************
-* Data de criacao    : 21/08/2017                                   *
-* Data de modificaco : 12/07/2018                                   *
-*-------------------------------------------------------------------*
-* SIMPLESOLVERENERGY: metodo simple e simpleC para escoamentos      * 
-* 2D/3D termo ativados                                              *
-*-------------------------------------------------------------------*
-* Parametros de entrada:                                            *
-*-------------------------------------------------------------------*
-*-------------------------------------------------------------------*
-* Parametros de saida:                                              *
-*-------------------------------------------------------------------*
-*-------------------------------------------------------------------*
-*-------------------------------------------------------------------*
-*********************************************************************/
+ * Data de criacao    : 21/08/2017                                   *
+ * Data de modificaco : 12/07/2018                                   *
+ *-------------------------------------------------------------------*
+ * SIMPLESOLVERENERGY: metodo simple e simpleC para escoamentos      * 
+ * 2D/3D termo ativados                                              *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ *********************************************************************/
 void simpleSolverLm(Memoria *m          , PropVarFluid *propF     
                   , Loads *loadsVel     , Loads *loadsPres
                   , Loads *loadsEnergy  , Loads *loadsKturb
@@ -667,20 +667,18 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
   short unsigned ndfVel = mesh->ndfFt - 2;
   short unsigned conv;
   short unsigned typeResidual;
-  int itSimple;
-  int nonOrth;
+  short itSimple;
   short unsigned kZeroVel    = sp->kZeroVel,
                  kZeroPres   = sp->kZeroPres,
                  kZeroEnergy = sp->kZeroEnergy;
   INT jj = 1;
   DOUBLE time, timei;
-  DOUBLE *b1, *b2, *b3, *bPc, *xu1, *xu2, *xu3, *xp;
-  DOUBLE *adU1, *adU2, *adU3;
   DOUBLE *rCellPc;
+
 /*...*/
-  DOUBLE rU[3], rU0[3], tb[3], tmp, rMass0, rMass
+  DOUBLE rU[3], rU0[3], rMass0, rMass
        , rEnergy0, rEnergy;
-  /*...*/
+/*...*/
   DOUBLE tolSimpleU1, tolSimpleU2, tolSimpleU3
        , tolSimpleMass, tolSimpleEnergy;
 /*...*/
@@ -704,27 +702,6 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
 //typeResidual = RSQRT;
   relRes       = false;
   typeResidual = RSCALEDSUM;
-/*...*/
-  b1 = b2 = b3 = bPc = NULL;
-  xu1 = xu2 = xu3 = NULL;
-  adU1 = adU2 = adU3 = NULL;
-
-  b1 = sistEqVel->b;
-  b2 = &sistEqVel->b[sistEqVel->neq];
-  if (ndfVel == 3) b3 = &sistEqVel->b[2 * sistEqVel->neq];
-  bPc = sistEqPres->b;
-
-  xu1 = sistEqVel->x;
-  xu2 = &sistEqVel->x[sistEqVel->neq];
-  if (ndfVel == 3) xu3 = &sistEqVel->x[2 * sistEqVel->neq];
-  xp = sistEqPres->x;
-
-  adU1 = sistEqVel->ad;
-  adU2 = &sistEqVel->ad[sistEqVel->neq];
-  if (ndfVel == 3) adU3 = &sistEqVel->ad[2 * sistEqVel->neq];
-
-  rCellPc = mesh->elm.rCellPres;
-/*...................................................................*/
 
 /*...*/
   tolSimpleU1 = sp->tolVel[0];
@@ -739,11 +716,11 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
   rMass  = 0.e0;
   rU[0] = rU[1] = rU[2] = 0.e0;
   rU0[0] = rU0[1] = rU0[2] = 1.e0;
-  tmp = tb[0] = tb[1] = tb[2] = 0.e0;
   rEnergy0 = 1.e0;
   rEnergy  = 0.e0;
   conv = 0;
   xMomentum = yMomentum = zMomentum = true;
+  rCellPc = mesh->elm.rCellPres;
 /*...................................................................*/
 
 /*...*/
@@ -777,7 +754,8 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
 /*...................................................................*/
 
 /* ... restricoes por centro de celula u0 e cargas por volume b0*/
-  if (tModel->typeLes == LESFUNCMODELONEEQK) {
+  if (tModel->typeLes == LESFUNCMODELONEEQK) 
+  {
     zero(sistEqKturb->b0 ,sistEqKturb->neqNov     ,DOUBLEC);
     tm.turbulence = getTimeC() - tm.turbulence;
     cellPload(loadsKturb         ,mesh->elm.geom.cc
@@ -791,7 +769,8 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
 /*...................................................................*/
 
 /*... discretizacao temporal*/
-  if (sc->ddt.flag) {
+  if (sc->ddt.flag) 
+  {
     tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;
 /*... velocidade*/
     cellTransientSimple(mesh->elm.geom.volume ,sistEqVel->id
@@ -819,7 +798,8 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
 /*...................................................................*/
 
 /*... energia cinetica turbulenta*/
-    if (tModel->typeLes == LESFUNCMODELONEEQK) {
+    if (tModel->typeLes == LESFUNCMODELONEEQK) 
+    {
       tm.turbulence = getTimeC() - tm.turbulence;
       cellTransient(mesh->elm.geom.volume  ,sistEqKturb->id
                    ,mesh->elm.kTurb0       ,mesh->elm.kTurb  
@@ -847,468 +827,30 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
   }
 /*...................................................................*/
 
-/*... calculo da matrix jacobiana das velocidades
-    | du1dx1 du1dx2 du1dx3 |
-    | du2dx1 du2dx2 du2dx3 |
-    | du3dx1 du3dx2 du3dx3 |
-*/
-  tm.rcGradVel = getTimeC() - tm.rcGradVel;
-  rcGradU(m                      , loadsVel
-        , mesh->elm.node         , mesh->elm.adj.nelcon
-        , mesh->node.x
-        , mesh->elm.nen          , mesh->elm.adj.nViz
-        , mesh->elm.cellFace     , mesh->face.owner
-        , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-        , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-        , mesh->face.mksi        , mesh->face.ksi
-        , mesh->face.eta         , mesh->face.area
-        , mesh->face.normal      , mesh->face.xm
-        , mesh->face.mvSkew      , mesh->face.vSkew
-        , mesh->elm.geomType     , mesh->elm.material.prop
-        , mesh->elm.material.type, mesh->elm.mat
-        , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-        , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
-        , mesh->elm.vel          , mesh->elm.gradVel
-        , mesh->node.vel         , sc->rcGrad
-        , mesh->maxNo            , mesh->maxViz
-        , ndfVel                 , mesh->ndm
-        , &pMesh->iNo            , &pMesh->iEl
-        , mesh->numelNov         , mesh->numel
-        , mesh->nnodeNov         , mesh->nnode);
-  tm.rcGradVel = getTimeC() - tm.rcGradVel;
-/*...................................................................*/
-
-/*... reconstruindo do gradiente da pressao*/
-  tm.rcGradPres = getTimeC() - tm.rcGradPres;
-  rcGradU(m                         , loadsPres
-           , mesh->elm.node         , mesh->elm.adj.nelcon
-           , mesh->node.x
-           , mesh->elm.nen          , mesh->elm.adj.nViz
-           , mesh->elm.cellFace     , mesh->face.owner
-           , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-           , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-           , mesh->face.mksi        , mesh->face.ksi
-           , mesh->face.eta         , mesh->face.area
-           , mesh->face.normal      , mesh->face.xm
-           , mesh->face.mvSkew      , mesh->face.vSkew
-           , mesh->elm.geomType     , mesh->elm.material.prop
-           , mesh->elm.material.type, mesh->elm.mat
-           , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-           , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
-           , mesh->elm.pressure     , mesh->elm.gradPres
-           , mesh->node.pressure    , sc->rcGrad
-           , mesh->maxNo            , mesh->maxViz
-           , 1                      , mesh->ndm
-           , &pMesh->iNo            , &pMesh->iEl
-           , mesh->numelNov         , mesh->numel
-           , mesh->nnodeNov         , mesh->nnode);
-  tm.rcGradPres = getTimeC() - tm.rcGradPres;
-/*...................................................................*/
-
 /*...*/
-  for (itSimple = 0; itSimple<sp->maxIt; itSimple++) {
+  for (itSimple = 0; itSimple<sp->maxIt; itSimple++) 
+  {
 /*...*/
-    if ((fStop = fopen("stopSimple.mvf", "r")) != NULL) {
+    if ((fStop = fopen("stopSimple.mvf", "r")) != NULL) 
+    {
       fclose(fStop);      
       break;
     }
 /*...................................................................*/
 
-/*... montagem do sistema u, v e w*/    
-   tm.systFormVel = getTimeC() - tm.systFormVel;
-   systFormSimpleVelLm(loadsVel               , loadsPres 
-                     , &sc->advVel            , &sc->diffVel 
-                     , tModel                 , ModelMomentum
-                     , sp->type 
-                     , mesh->elm.node         , mesh->elm.adj.nelcon
-                     , mesh->elm.nen          , mesh->elm.adj.nViz
-                     , mesh->elm.cellFace     , mesh->face.owner
-                     , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-                     , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-                     , mesh->face.mksi        , mesh->face.ksi
-                     , mesh->face.eta         , mesh->face.area
-                     , mesh->face.normal      , mesh->face.xm
-                     , mesh->face.mvSkew      , mesh->face.vSkew
-                     , mesh->elm.geomType     , mesh->elm.material.prop
-                     , mesh->elm.material.type, mesh->elm.mat 
-                     , sistEqVel->ia          , sistEqVel->ja 
-                     , sistEqVel->al          , sistEqVel->ad 
-                     , sistEqVel->b           , sistEqVel->id 
-                     , mesh->elm.faceRvel     , mesh->elm.faceLoadVel 
-                     , mesh->elm.faceRpres    , mesh->elm.faceLoadPres 
-                     , mesh->elm.pressure     , mesh->elm.gradPres 
-                     , mesh->elm.vel          , mesh->elm.gradVel 
-                     , sp->d                  , sp->alphaVel 
-                     , mesh->elm.rCellVel     , mesh->elm.stressR
-                     , mesh->elm.densityFluid , mesh->elm.dViscosity  
-                     , mesh->elm.eddyViscosity, mesh->elm.wallParameters
-                     , sc->ddt 
-                     , sistEqVel->neq         , sistEqVel->neqNov 
-                     , sistEqVel->nad         , sistEqVel->nadr 
-                     , mesh->maxNo            , mesh->maxViz 
-                     , mesh->ndm              , mesh->numelNov 
-                     , ndfVel                 , sistEqVel->storage 
-                     , mesh->ntn              , true
-                     , true                   , true                   
-                     , sistEqVel->unsym       , sp->sPressure);
-    tm.systFormVel = getTimeC() - tm.systFormVel;
-/*...................................................................*/
-
-/*... soma o vetor b(i) = b(i) + b0(i)*/
-    addVector(1.0e0                   ,sistEqVel->b
-             ,1.0e0                   ,sistEqVel->b0
-             ,sistEqVel->neqNov*ndfVel,sistEqVel->b);
-/*...................................................................*/
-
-/*... soma o vetor R(i) = R(i) + b0(i)*/
-   updateCellValueSimple(mesh->elm.rCellVel,sistEqVel->b0
-                         ,sistEqVel->id     ,&sistEqVel->iNeq
-                         ,mesh->numelNov    ,sistEqVel->neqNov
-                         ,ndfVel
-                         ,true              ,false);  
-/*...................................................................*/
-
-/*...*/
-    tb[0] = sqrt(dot(b1, b1, sistEqVel->neqNov));
-    tb[1] = sqrt(dot(b2, b2, sistEqVel->neqNov));
-    if (ndfVel == 3) tb[2] = sqrt(dot(b3, b3, sistEqVel->neqNov));
-    if (itSimple == 0) {
-      tmp = max(tb[0], tb[1]);
-      if (ndfVel == 3) tmp = max(tmp, tb[2]);
-    }
-/*...*/
-    xMomentum = true;
-    if (tb[0] <= tmp*SZERO || tb[0] == 0.e0 ) xMomentum = false;
-/*...................................................................*/
-
-/*...*/
-    yMomentum = true;
-    if (tb[1] <= tmp*SZERO || tb[1] == 0.e0) yMomentum = false;
-/*...................................................................*/
-
-/*...*/
-    if (ndfVel == 3) {
-      zMomentum = true;
-      if (tb[2] <= tmp*SZERO || tb[2] == 0.e0 ) zMomentum = false;
-    }
-/*...................................................................*/
-
-/*... solver Au = bu (velocidade estimadas)*/
-    if (xMomentum) {
-      if (fPrint) printf("Quantidade de movimento u1:\n");
-      tm.solvVel = getTimeC() - tm.solvVel;
-      solverC(m
-             ,sistEqVel->neq    ,sistEqVel->neqNov
-             ,sistEqVel->nad    ,sistEqVel->nadr
-             ,sistEqVel->ia     ,sistEqVel->ja
-             ,sistEqVel->al     ,adU1             ,sistEqVel->au
-             ,b1                ,xu1
-             ,&sistEqVel->iNeq  ,&sistEqVel->omp
-             ,solvVel->tol      ,solvVel->maxIt
-             ,sistEqVel->storage,solvVel->solver
-             ,solvVel->fileSolv ,solvVel->log
-             ,true              ,sistEqVel->unsym);  
-      tm.solvVel = getTimeC() - tm.solvVel;
-    }
-/*...................................................................*/
-
-/*... solver Av = bv (velocidade estimadas)*/
-    if (yMomentum) {
-      if (fPrint) printf("Quantidade de movimento u2:\n");
-      tm.solvVel = getTimeC() - tm.solvVel;
-      solverC(m
-             ,sistEqVel->neq    ,sistEqVel->neqNov
-             ,sistEqVel->nad    ,sistEqVel->nadr
-             ,sistEqVel->ia     ,sistEqVel->ja
-             ,sistEqVel->al     ,adU2             ,sistEqVel->au
-             ,b2                ,xu2
-             ,&sistEqVel->iNeq  ,&sistEqVel->omp
-             ,solvVel->tol      ,solvVel->maxIt
-             ,sistEqVel->storage,solvVel->solver
-             ,solvVel->fileSolv ,solvVel->log
-             ,true              ,sistEqVel->unsym);  
-      tm.solvVel = getTimeC() - tm.solvVel;
-    }
-/*...................................................................*/
-
-/*... solver Aw = bw (velocidade estimadas)*/
-    if (zMomentum && ndfVel == 3) {
-      if (fPrint) printf("Quantidade de movimento u3:\n");
-      tm.solvVel = getTimeC() - tm.solvVel;
-      solverC(m
-             ,sistEqVel->neq    ,sistEqVel->neqNov
-             ,sistEqVel->nad    ,sistEqVel->nadr
-             ,sistEqVel->ia     ,sistEqVel->ja
-             ,sistEqVel->al     ,adU3             ,sistEqVel->au
-             ,b3                ,xu3
-             ,&sistEqVel->iNeq  ,&sistEqVel->omp
-             ,solvVel->tol      ,solvVel->maxIt
-             ,sistEqVel->storage,solvVel->solver
-             ,solvVel->fileSolv ,solvVel->log
-             ,true              ,sistEqVel->unsym);  
-      tm.solvVel = getTimeC() - tm.solvVel;
-    }
-/*...................................................................*/
-
-/*... atualizando o campo de velociade estimadas*/
-    updateCellSimpleVelR(mesh->elm.vel      ,xu1
-                        ,xu2                ,xu3
-                        ,sistEqVel->id      ,mesh->numelNov
-                        ,ModelMomentum->fRes,mesh->ndm);
-/*...................................................................*/
-
-/*...*/
-    if (fPrint) printf("Correcao de pressao:\n");
-
-/*... montagem do sistema  da pressao de correca*/
-    tm.systFormPres = getTimeC() - tm.systFormPres;
-    systFormSimplePresLm(loadsVel              , loadsPresC
-                      , &sc->diffPres          , eMass
-                      , mesh->elm.node         , mesh->elm.adj.nelcon
-                      , mesh->elm.nen          , mesh->elm.adj.nViz
-                      , mesh->elm.cellFace     , mesh->face.owner
-                      , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-                      , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-                      , mesh->face.mksi        , mesh->face.ksi
-                      , mesh->face.eta         , mesh->face.area
-                      , mesh->face.normal      , mesh->face.xm
-                      , mesh->face.mvSkew      , mesh->face.vSkew
-                      , mesh->elm.geomType     , mesh->elm.material.prop
-                      , mesh->elm.material.type, mesh->elm.mat
-                      , sistEqPres->ia         , sistEqPres->ja
-                      , sistEqPres->al         , sistEqPres->ad
-                      , bPc                    , sistEqPres->id
-                      , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
-                      , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
-                      , mesh->elm.pressure     , mesh->elm.gradPres
-                      , mesh->elm.vel          , sp->d
-                      , mesh->elm.temp         , mesh->elm.wallParameters
-                      , rCellPc                , mesh->elm.densityFluid
-                      , sc->ddt
-                      , sistEqPres->neq        , sistEqPres->neqNov
-                      , sistEqPres->nad        , sistEqPres->nadr
-                      , mesh->maxNo            , mesh->maxViz
-                      , mesh->ndm              , mesh->numelNov
-                      , ndfVel                 , sistEqPres->storage
-                      , true                   , true
-                      , true                   , sistEqPres->unsym);  
-    tm.systFormPres = getTimeC() - tm.systFormPres;
-/*...................................................................*/
-
-/*... residual*/
-    tmp = sqrt(dot(bPc,bPc,sistEqPres->neqNov));
-/*...................................................................*/
-
-/*...*/
-    pCor = true;
-    if (tmp <= SZERO || tmp == 0.e0) pCor = false;
-/*...................................................................*/
-
-/*... solver ApPc = bpC (velocidade estimadas)*/
-    if (pCor) {
-/*...*/
-      zero(sp->ePresC, mesh->numel, DOUBLEC);
-      zero(sp->ePresC1, mesh->numel, DOUBLEC);
-/*...................................................................*/
-
-/*...*/
-      tm.solvPres = getTimeC() - tm.solvPres;
-      solverC(m
-             ,sistEqPres->neq    ,sistEqPres->neqNov
-             ,sistEqPres->nad    ,sistEqPres->nadr
-             ,sistEqPres->ia     ,sistEqPres->ja
-             ,sistEqPres->al     ,sistEqPres->ad, sistEqPres->au
-             ,bPc                ,xp
-             ,&sistEqPres->iNeq  ,&sistEqPres->omp
-             ,solvPres->tol      ,solvPres->maxIt
-             ,sistEqPres->storage,solvPres->solver
-             ,solvPres->fileSolv ,solvPres->log
-             ,true               ,sistEqPres->unsym);    
-      tm.solvPres = getTimeC() - tm.solvPres;
-/*...................................................................*/
-
-/*... atualizando da pressao de correcao*/
-      updateCellSimplePres(sp->ePresC, xp, sistEqPres->id, mesh->numelNov);
-/*...................................................................*/
-
-/*...*/
-      alphaProdVector(1.e0, sp->ePresC, mesh->numel, sp->ePresC1);
-/*...................................................................*/
-
-/*... correcao nao ortoganal da pressao de correcao*/
-      for (nonOrth = 0; nonOrth < sp->nNonOrth; nonOrth++) {
-/*... reconstruindo do gradiente da pressao correcao*/
-        tm.rcGradPres = getTimeC() - tm.rcGradPres;
-        rcGradU(m                      , loadsPresC
-              , mesh->elm.node         , mesh->elm.adj.nelcon
-              , mesh->node.x
-              , mesh->elm.nen          , mesh->elm.adj.nViz
-              , mesh->elm.cellFace     , mesh->face.owner
-              , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-              , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-              , mesh->face.mksi        , mesh->face.ksi
-              , mesh->face.eta         , mesh->face.area
-              , mesh->face.normal      , mesh->face.xm
-              , mesh->face.mvSkew      , mesh->face.vSkew
-              , mesh->elm.geomType     , mesh->elm.material.prop
-              , mesh->elm.material.type, mesh->elm.mat
-              , mesh->elm.leastSquare  , mesh->elm.leastSquareR          
-              , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
-              , sp->ePresC1            , sp->eGradPresC
-              , sp->nPresC             , sc->rcGrad
-              , mesh->maxNo            , mesh->maxViz
-              , 1                      , mesh->ndm
-              , &pMesh->iNo            , &pMesh->iEl
-              , mesh->numelNov         , mesh->numel
-              , mesh->nnodeNov         , mesh->nnode);  
-        tm.rcGradPres = getTimeC() - tm.rcGradPres;
-/*...................................................................*/
-
-/*...*/
-        tm.systFormPres = getTimeC() - tm.systFormPres;
-        simpleNonOrthPres(&sc->diffPres                        
-                         , mesh->elm.node         , mesh->elm.adj.nelcon
-                         , mesh->elm.nen          , mesh->elm.adj.nViz
-                         , mesh->elm.cellFace     , mesh->face.owner
-                         , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-                         , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-                         , mesh->face.mksi        , mesh->face.ksi
-                         , mesh->face.eta         , mesh->face.area
-                         , mesh->face.normal      , mesh->face.xm
-                         , mesh->face.mvSkew      , mesh->face.vSkew
-                         , mesh->elm.geomType     , mesh->elm.material.prop
-                         , mesh->elm.material.type, mesh->elm.mat                         
-                         , mesh->elm.densityFluid
-                         , bPc                    , sistEqPres->id
-                         , mesh->elm.faceRpres    , sp->ePresC1
-                         , sp->eGradPresC         , sp->d
-                         , mesh->maxNo            , mesh->maxViz
-                         , mesh->ndm              , mesh->numelNov);
-        tm.systFormPres = getTimeC() - tm.systFormPres;
-/*...................................................................*/
-
-/*...*/
-        tm.solvPres = getTimeC() - tm.solvPres;
-        solverC(m
-               ,sistEqPres->neq    ,sistEqPres->neqNov
-               ,sistEqPres->nad    ,sistEqPres->nadr
-               ,sistEqPres->ia     ,sistEqPres->ja
-               ,sistEqPres->al     ,sistEqPres->ad, sistEqPres->au
-               ,bPc                ,xp
-               ,&sistEqPres->iNeq  ,&sistEqPres->omp
-               ,solvPres->tol      ,solvPres->maxIt
-               ,sistEqPres->storage,solvPres->solver
-               ,solvPres->fileSolv ,solvPres->log
-               ,true               ,sistEqPres->unsym);
-        tm.solvPres = getTimeC() - tm.solvPres;
-/*...................................................................*/
-
-/*... atualizando da pressao de correcao*/
-        updateCellSimplePres(sp->ePresC1, xp, sistEqPres->id
-                            ,mesh->numelNov);
-/*...................................................................*/
-
-/*... soma o vetor presC(i) = presC + presC1*/
-        addVector(1.0e0      ,sp->ePresC
-                 ,1.0e0      ,sp->ePresC1
-                 ,mesh->numel,sp->ePresC);
-/*...................................................................*/
-      }
-/*...................................................................*/
-    }
-/*...................................................................*/
-
-/*... reconstruindo do gradiente da pressao correcao*/
-    tm.rcGradPres = getTimeC() - tm.rcGradPres;
-    rcGradU(m                      , loadsPresC
-           , mesh->elm.node        , mesh->elm.adj.nelcon
-           , mesh->node.x
-           , mesh->elm.nen          , mesh->elm.adj.nViz
-           , mesh->elm.cellFace     , mesh->face.owner
-           , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-           , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-           , mesh->face.mksi        , mesh->face.ksi
-           , mesh->face.eta         , mesh->face.area
-           , mesh->face.normal      , mesh->face.xm
-           , mesh->face.mvSkew      , mesh->face.vSkew
-           , mesh->elm.geomType     , mesh->elm.material.prop
-           , mesh->elm.material.type, mesh->elm.mat
-           , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-           , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
-           , sp->ePresC             , sp->eGradPresC
-           , sp->nPresC             , sc->rcGrad
-           , mesh->maxNo            , mesh->maxViz
-           , 1                      , mesh->ndm
-           , &pMesh->iNo            , &pMesh->iEl
-           , mesh->numelNov         , mesh->numel
-           , mesh->nnodeNov         , mesh->nnode);
-    tm.rcGradPres = getTimeC() - tm.rcGradPres;
-/*...................................................................*/
-
-/*... atualizacao de u, v, w e p*/
-    simpleUpdate(mesh->elm.vel ,mesh->elm.pressure
-                ,sp->ePresC    ,sp->eGradPresC
-                ,sp->d
-                ,mesh->numel   ,mesh->ndm
-                ,sp->alphaPres);
-/*...................................................................*/
-
-/*... calculo da matrix jacobiana das velocidades
-    | du1dx1 du1dx2 du1dx3 |
-    | du2dx1 du2dx2 du2dx3 |
-    | du3dx1 du3dx2 du3dx3 |
-*/
-    tm.rcGradVel = getTimeC() - tm.rcGradVel;
-    rcGradU(m                       , loadsVel
-           , mesh->elm.node         , mesh->elm.adj.nelcon
-           , mesh->node.x
-           , mesh->elm.nen          , mesh->elm.adj.nViz
-           , mesh->elm.cellFace     , mesh->face.owner
-           , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-           , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-           , mesh->face.mksi        , mesh->face.ksi
-           , mesh->face.eta         , mesh->face.area
-           , mesh->face.normal      , mesh->face.xm
-           , mesh->face.mvSkew      , mesh->face.vSkew
-           , mesh->elm.geomType     , mesh->elm.material.prop
-           , mesh->elm.material.type, mesh->elm.mat
-           , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-           , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
-           , mesh->elm.vel          , mesh->elm.gradVel
-           , mesh->node.vel         , sc->rcGrad
-           , mesh->maxNo            , mesh->maxViz
-           , ndfVel                 , mesh->ndm
-           , &pMesh->iNo            , &pMesh->iEl
-           , mesh->numelNov         , mesh->numel
-           , mesh->nnodeNov         , mesh->nnode);
-    tm.rcGradVel = getTimeC() - tm.rcGradVel;
-/*...................................................................*/
-
-/*... reconstruindo do gradiente da pressao*/
-    tm.rcGradPres = getTimeC() - tm.rcGradPres;
-    rcGradU(m                       , loadsPres
-           , mesh->elm.node         , mesh->elm.adj.nelcon
-           , mesh->node.x
-           , mesh->elm.nen          , mesh->elm.adj.nViz
-           , mesh->elm.cellFace     , mesh->face.owner
-           , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-           , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-           , mesh->face.mksi        , mesh->face.ksi
-           , mesh->face.eta         , mesh->face.area
-           , mesh->face.normal      , mesh->face.xm
-           , mesh->face.mvSkew      , mesh->face.vSkew
-           , mesh->elm.geomType     , mesh->elm.material.prop
-           , mesh->elm.material.type, mesh->elm.mat
-           , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-           , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
-           , mesh->elm.pressure     , mesh->elm.gradPres
-           , mesh->node.pressure    , sc->rcGrad
-           , mesh->maxNo            , mesh->maxViz
-           , 1                      , mesh->ndm
-           , &pMesh->iNo            , &pMesh->iEl
-           , mesh->numelNov         , mesh->numel
-           , mesh->nnodeNov         , mesh->nnode);
-    tm.rcGradPres = getTimeC() - tm.rcGradPres;
+/*... pressao-velociade*/
+    velPresCouplingLm(m         , propF
+                    , loadsVel  , loadsPres
+                    , eMass     , ModelMomentum
+                    , tModel
+                    , mesh
+                    , sistEqVel , sistEqPres
+                    , solvVel   , solvPres
+                    , sp        , sc
+                    , pMesh     , rCellPc
+                    , &xMomentum, &yMomentum
+                    , &zMomentum, &pCor
+                    , fPrint    , itSimple);    
 /*...................................................................*/
 
 /*... modelo de turbulencia*/
@@ -1437,11 +979,11 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
 /*...*/
       if(rMass/rMass0<tolSimpleMass || rMass<SZERO) conv++;
 /*...*/
-      if(rU[0]/rU0[0]<tolSimpleU1 || rU[0]<tmp*SZERO) conv++;
+      if(rU[0]/rU0[0]<tolSimpleU1 || rU[0]<SZERO) conv++;
 /*...*/
-      if(rU[1]/rU0[1]<tolSimpleU2 || rU[1]<tmp*SZERO) conv++;
+      if(rU[1]/rU0[1]<tolSimpleU2 || rU[1]<SZERO) conv++;
 /*...*/
-      if(rU[2]/rU0[2]<tolSimpleU3 || rU[2]<tmp*SZERO) conv++;
+      if(rU[2]/rU0[2]<tolSimpleU3 || rU[2]<SZERO) conv++;
 /*..*/
       if(conv == 5) break;
     }
@@ -1453,9 +995,9 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
 /*...*/
       if(rMass/rMass0<tolSimpleMass || rMass<SZERO) conv++;
 /*..*/
-      if(rU[0]/rU0[0]<tolSimpleU1 || rU[0]<=tmp*SZERO) conv++;
+      if(rU[0]/rU0[0]<tolSimpleU1 || rU[0]<SZERO) conv++;
 /*...*/
-      if(rU[1]/rU0[1]<tolSimpleU2 || rU[1]<=tmp*SZERO) conv++;
+      if(rU[1]/rU0[1]<tolSimpleU2 || rU[1]<SZERO) conv++;
 /*..*/
       if(conv == 4) break;
 /*...................................................................*/      
@@ -2486,8 +2028,6 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 }
 /*********************************************************************/
 
-
-
 /********************************************************************* 
  * Data de criacao    : 01/04/2018                                   *
  * Data de modificaco : 00/00/0000                                   * 
@@ -2521,5 +2061,529 @@ static DOUBLE trunkNumber(DOUBLE const a){
     base*=10.0e0;
   }
   return firstNumber/base;    
+
+}
+/*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 24/07/2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * velPresCouplingLm : Acoplamento pressao-velocidade do metodo      *
+ * simple                                                            *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ * campos de pressao, velocidade, gradiente de pres, gradiente de    *
+ * velocidade e D atualizados                                        * 
+ *-------------------------------------------------------------------*
+*********************************************************************/
+void velPresCouplingLm(Memoria *m        , PropVarFluid *propF
+                    , Loads *loadsVel   , Loads *loadsPres
+                    , MassEqModel *eMass, MomentumModel *ModelMomentum
+                    , Turbulence *tModel
+                    , Mesh *mesh
+                    , SistEq *sistEqVel , SistEq *sistEqPres
+                    , Solv *solvVel     , Solv *solvPres
+                    , Simple *sp        , Scheme *sc
+                    , PartMesh *pMesh   , DOUBLE *rCellPc
+                    , bool *xMomentum   , bool *yMomentum
+                    , bool *zMomentum   , bool *pCor
+                    , bool fPrint       , short itSimple )
+{
+
+  short unsigned ndfVel = mesh->ndfFt - 2;
+  short nonOrth;
+  DOUBLE *b1, *b2, *b3, *bPc, *xu1, *xu2, *xu3, *xp;
+  DOUBLE *adU1, *adU2, *adU3;
+/*...*/
+  DOUBLE tb[3], tmp;
+  tmp = tb[0] = tb[1] = tb[2] = 0.e0;
+
+/*...*/
+  b1 = b2 = b3 = bPc = NULL;
+  xu1 = xu2 = xu3 = NULL;
+  adU1 = adU2 = adU3 = NULL;
+
+  b1 = sistEqVel->b;
+  b2 = &sistEqVel->b[sistEqVel->neq];
+  if (ndfVel == 3) b3 = &sistEqVel->b[2 * sistEqVel->neq];
+  bPc = sistEqPres->b;
+
+  xu1 = sistEqVel->x;
+  xu2 = &sistEqVel->x[sistEqVel->neq];
+  if (ndfVel == 3) xu3 = &sistEqVel->x[2 * sistEqVel->neq];
+  xp = sistEqPres->x;
+
+  adU1 = sistEqVel->ad;
+  adU2 = &sistEqVel->ad[sistEqVel->neq];
+  if (ndfVel == 3) adU3 = &sistEqVel->ad[2 * sistEqVel->neq];
+/*...................................................................*/
+
+/*...*/
+  if (itSimple == 0)
+/*... calculo da matrix jacobiana das velocidades
+| du1dx1 du1dx2 du1dx3 |
+| du2dx1 du2dx2 du2dx3 |
+| du3dx1 du3dx2 du3dx3 |
+*/
+  {
+    tm.rcGradVel = getTimeC() - tm.rcGradVel;
+    rcGradU(m, loadsVel
+           , mesh->elm.node, mesh->elm.adj.nelcon
+           , mesh->node.x
+           , mesh->elm.nen, mesh->elm.adj.nViz
+           , mesh->elm.cellFace, mesh->face.owner
+           , mesh->elm.geom.volume, mesh->elm.geom.dcca
+           , mesh->elm.geom.xmcc, mesh->elm.geom.cc
+           , mesh->face.mksi, mesh->face.ksi
+           , mesh->face.eta, mesh->face.area
+           , mesh->face.normal, mesh->face.xm
+           , mesh->face.mvSkew, mesh->face.vSkew
+           , mesh->elm.geomType, mesh->elm.material.prop
+           , mesh->elm.material.type, mesh->elm.mat
+           , mesh->elm.leastSquare, mesh->elm.leastSquareR
+           , mesh->elm.faceRvel, mesh->elm.faceLoadVel
+           , mesh->elm.vel, mesh->elm.gradVel
+           , mesh->node.vel, sc->rcGrad
+           , mesh->maxNo, mesh->maxViz
+           , ndfVel, mesh->ndm
+           , &pMesh->iNo, &pMesh->iEl
+           , mesh->numelNov, mesh->numel
+           , mesh->nnodeNov, mesh->nnode);
+    tm.rcGradVel = getTimeC() - tm.rcGradVel;
+/*...................................................................*/
+
+/*... reconstruindo do gradiente da pressao*/
+    tm.rcGradPres = getTimeC() - tm.rcGradPres;
+    rcGradU(m, loadsPres
+           , mesh->elm.node, mesh->elm.adj.nelcon
+           , mesh->node.x
+           , mesh->elm.nen, mesh->elm.adj.nViz
+           , mesh->elm.cellFace, mesh->face.owner
+           , mesh->elm.geom.volume, mesh->elm.geom.dcca
+           , mesh->elm.geom.xmcc, mesh->elm.geom.cc
+           , mesh->face.mksi, mesh->face.ksi
+           , mesh->face.eta, mesh->face.area
+           , mesh->face.normal, mesh->face.xm
+           , mesh->face.mvSkew, mesh->face.vSkew
+           , mesh->elm.geomType, mesh->elm.material.prop
+           , mesh->elm.material.type, mesh->elm.mat
+           , mesh->elm.leastSquare, mesh->elm.leastSquareR
+           , mesh->elm.faceRpres, mesh->elm.faceLoadPres
+           , mesh->elm.pressure, mesh->elm.gradPres
+           , mesh->node.pressure, sc->rcGrad
+           , mesh->maxNo, mesh->maxViz
+           , 1, mesh->ndm
+           , &pMesh->iNo, &pMesh->iEl
+           , mesh->numelNov, mesh->numel
+           , mesh->nnodeNov, mesh->nnode);
+    tm.rcGradPres = getTimeC() - tm.rcGradPres;
+  }
+/*...................................................................*/
+
+/*... montagem do sistema u, v e w*/
+  tm.systFormVel = getTimeC() - tm.systFormVel;
+  systFormSimpleVelLm(loadsVel, loadsPres
+    , &sc->advVel, &sc->diffVel
+    , tModel, ModelMomentum
+    , sp->type
+    , mesh->elm.node, mesh->elm.adj.nelcon
+    , mesh->elm.nen, mesh->elm.adj.nViz
+    , mesh->elm.cellFace, mesh->face.owner
+    , mesh->elm.geom.volume, mesh->elm.geom.dcca
+    , mesh->elm.geom.xmcc, mesh->elm.geom.cc
+    , mesh->face.mksi, mesh->face.ksi
+    , mesh->face.eta, mesh->face.area
+    , mesh->face.normal, mesh->face.xm
+    , mesh->face.mvSkew, mesh->face.vSkew
+    , mesh->elm.geomType, mesh->elm.material.prop
+    , mesh->elm.material.type, mesh->elm.mat
+    , sistEqVel->ia, sistEqVel->ja
+    , sistEqVel->al, sistEqVel->ad
+    , sistEqVel->b, sistEqVel->id
+    , mesh->elm.faceRvel, mesh->elm.faceLoadVel
+    , mesh->elm.faceRpres, mesh->elm.faceLoadPres
+    , mesh->elm.pressure, mesh->elm.gradPres
+    , mesh->elm.vel, mesh->elm.gradVel
+    , sp->d, sp->alphaVel
+    , mesh->elm.rCellVel, mesh->elm.stressR
+    , mesh->elm.densityFluid, mesh->elm.dViscosity
+    , mesh->elm.eddyViscosity, mesh->elm.wallParameters
+    , sc->ddt
+    , sistEqVel->neq, sistEqVel->neqNov
+    , sistEqVel->nad, sistEqVel->nadr
+    , mesh->maxNo, mesh->maxViz
+    , mesh->ndm, mesh->numelNov
+    , ndfVel, sistEqVel->storage
+    , mesh->ntn, true
+    , true, true
+    , sistEqVel->unsym, sp->sPressure);
+  tm.systFormVel = getTimeC() - tm.systFormVel;
+/*...................................................................*/
+
+/*... soma o vetor b(i) = b(i) + b0(i)*/
+  addVector(1.0e0, sistEqVel->b
+    , 1.0e0, sistEqVel->b0
+    , sistEqVel->neqNov*ndfVel, sistEqVel->b);
+/*...................................................................*/
+
+/*... soma o vetor R(i) = R(i) + b0(i)*/
+  updateCellValueSimple(mesh->elm.rCellVel, sistEqVel->b0
+    , sistEqVel->id, &sistEqVel->iNeq
+    , mesh->numelNov, sistEqVel->neqNov
+    , ndfVel
+    , true, false);
+/*...................................................................*/
+
+/*...*/
+  tb[0] = sqrt(dot(b1, b1, sistEqVel->neqNov));
+  tb[1] = sqrt(dot(b2, b2, sistEqVel->neqNov));
+  if (ndfVel == 3) tb[2] = sqrt(dot(b3, b3, sistEqVel->neqNov));
+  if (itSimple == 0)
+  {
+    tmp = max(tb[0], tb[1]);
+    if (ndfVel == 3) tmp = max(tmp, tb[2]);
+  }
+  /*...*/
+  *xMomentum = true;
+  if (tb[0] <= tmp * SZERO || tb[0] == 0.e0) *xMomentum = false;
+  /*...................................................................*/
+
+/*...*/
+  *yMomentum = true;
+  if (tb[1] <= tmp * SZERO || tb[1] == 0.e0) *yMomentum = false;
+/*...................................................................*/
+
+/*...*/
+  if (ndfVel == 3) 
+  {
+    *zMomentum = true;
+    if (tb[2] <= tmp * SZERO || tb[2] == 0.e0) *zMomentum = false;
+  }
+/*...................................................................*/
+
+/*... solver Au = bu (velocidade estimadas)*/
+  if (*xMomentum) {
+    if (fPrint) printf("Quantidade de movimento u1:\n");
+    tm.solvVel = getTimeC() - tm.solvVel;
+    solverC(m
+      , sistEqVel->neq, sistEqVel->neqNov
+      , sistEqVel->nad, sistEqVel->nadr
+      , sistEqVel->ia, sistEqVel->ja
+      , sistEqVel->al, adU1, sistEqVel->au
+      , b1, xu1
+      , &sistEqVel->iNeq, &sistEqVel->omp
+      , solvVel->tol, solvVel->maxIt
+      , sistEqVel->storage, solvVel->solver
+      , solvVel->fileSolv, solvVel->log
+      , true, sistEqVel->unsym);
+    tm.solvVel = getTimeC() - tm.solvVel;
+  }
+/*...................................................................*/
+
+/*... solver Av = bv (velocidade estimadas)*/
+  if (*yMomentum) {
+    if (fPrint) printf("Quantidade de movimento u2:\n");
+    tm.solvVel = getTimeC() - tm.solvVel;
+    solverC(m
+      , sistEqVel->neq, sistEqVel->neqNov
+      , sistEqVel->nad, sistEqVel->nadr
+      , sistEqVel->ia, sistEqVel->ja
+      , sistEqVel->al, adU2, sistEqVel->au
+      , b2, xu2
+      , &sistEqVel->iNeq, &sistEqVel->omp
+      , solvVel->tol, solvVel->maxIt
+      , sistEqVel->storage, solvVel->solver
+      , solvVel->fileSolv, solvVel->log
+      , true, sistEqVel->unsym);
+    tm.solvVel = getTimeC() - tm.solvVel;
+  }
+/*...................................................................*/
+
+/*... solver Aw = bw (velocidade estimadas)*/
+  if (*zMomentum && ndfVel == 3) {
+    if (fPrint) printf("Quantidade de movimento u3:\n");
+    tm.solvVel = getTimeC() - tm.solvVel;
+    solverC(m
+      , sistEqVel->neq, sistEqVel->neqNov
+      , sistEqVel->nad, sistEqVel->nadr
+      , sistEqVel->ia, sistEqVel->ja
+      , sistEqVel->al, adU3, sistEqVel->au
+      , b3, xu3
+      , &sistEqVel->iNeq, &sistEqVel->omp
+      , solvVel->tol, solvVel->maxIt
+      , sistEqVel->storage, solvVel->solver
+      , solvVel->fileSolv, solvVel->log
+      , true, sistEqVel->unsym);
+    tm.solvVel = getTimeC() - tm.solvVel;
+  }
+/*...................................................................*/
+
+/*... atualizando o campo de velociade estimadas*/
+  updateCellSimpleVelR(mesh->elm.vel, xu1
+    , xu2, xu3
+    , sistEqVel->id, mesh->numelNov
+    , ModelMomentum->fRes, mesh->ndm);
+/*...................................................................*/
+
+/*...*/
+  if (fPrint) printf("Correcao de pressao:\n");
+
+/*... montagem do sistema  da pressao de correca*/
+  tm.systFormPres = getTimeC() - tm.systFormPres;
+  systFormSimplePresLm(loadsVel, loadsPresC
+    , &sc->diffPres, eMass
+    , mesh->elm.node, mesh->elm.adj.nelcon
+    , mesh->elm.nen, mesh->elm.adj.nViz
+    , mesh->elm.cellFace, mesh->face.owner
+    , mesh->elm.geom.volume, mesh->elm.geom.dcca
+    , mesh->elm.geom.xmcc, mesh->elm.geom.cc
+    , mesh->face.mksi, mesh->face.ksi
+    , mesh->face.eta, mesh->face.area
+    , mesh->face.normal, mesh->face.xm
+    , mesh->face.mvSkew, mesh->face.vSkew
+    , mesh->elm.geomType, mesh->elm.material.prop
+    , mesh->elm.material.type, mesh->elm.mat
+    , sistEqPres->ia, sistEqPres->ja
+    , sistEqPres->al, sistEqPres->ad
+    , bPc, sistEqPres->id
+    , mesh->elm.faceRvel, mesh->elm.faceLoadVel
+    , mesh->elm.faceRpres, mesh->elm.faceLoadPres
+    , mesh->elm.pressure, mesh->elm.gradPres
+    , mesh->elm.vel, sp->d
+    , mesh->elm.temp, mesh->elm.wallParameters
+    , rCellPc, mesh->elm.densityFluid
+    , sc->ddt
+    , sistEqPres->neq, sistEqPres->neqNov
+    , sistEqPres->nad, sistEqPres->nadr
+    , mesh->maxNo, mesh->maxViz
+    , mesh->ndm, mesh->numelNov
+    , ndfVel, sistEqPres->storage
+    , true, true
+    , true, sistEqPres->unsym);
+  tm.systFormPres = getTimeC() - tm.systFormPres;
+/*...................................................................*/
+
+/*... residual*/
+  tmp = sqrt(dot(bPc, bPc, sistEqPres->neqNov));
+/*...................................................................*/
+
+/*...*/
+  *pCor = true;
+  if (tmp <= SZERO || tmp == 0.e0) *pCor = false;
+/*...................................................................*/
+
+/*... solver ApPc = bpC (velocidade estimadas)*/
+  if (*pCor) {
+/*...*/
+    zero(sp->ePresC, mesh->numel, DOUBLEC);
+    zero(sp->ePresC1, mesh->numel, DOUBLEC);
+/*...................................................................*/
+
+/*...*/
+    tm.solvPres = getTimeC() - tm.solvPres;
+    solverC(m
+      , sistEqPres->neq, sistEqPres->neqNov
+      , sistEqPres->nad, sistEqPres->nadr
+      , sistEqPres->ia, sistEqPres->ja
+      , sistEqPres->al, sistEqPres->ad, sistEqPres->au
+      , bPc, xp
+      , &sistEqPres->iNeq, &sistEqPres->omp
+      , solvPres->tol, solvPres->maxIt
+      , sistEqPres->storage, solvPres->solver
+      , solvPres->fileSolv, solvPres->log
+      , true, sistEqPres->unsym);
+    tm.solvPres = getTimeC() - tm.solvPres;
+/*...................................................................*/
+
+/*... atualizando da pressao de correcao*/
+    updateCellSimplePres(sp->ePresC, xp, sistEqPres->id, mesh->numelNov);
+/*...................................................................*/
+
+/*...*/
+    alphaProdVector(1.e0, sp->ePresC, mesh->numel, sp->ePresC1);
+/*...................................................................*/
+
+/*... correcao nao ortoganal da pressao de correcao*/
+    for (nonOrth = 0; nonOrth < sp->nNonOrth; nonOrth++) {
+/*... reconstruindo do gradiente da pressao correcao*/
+      tm.rcGradPres = getTimeC() - tm.rcGradPres;
+      rcGradU(m, loadsPresC
+        , mesh->elm.node, mesh->elm.adj.nelcon
+        , mesh->node.x
+        , mesh->elm.nen, mesh->elm.adj.nViz
+        , mesh->elm.cellFace, mesh->face.owner
+        , mesh->elm.geom.volume, mesh->elm.geom.dcca
+        , mesh->elm.geom.xmcc, mesh->elm.geom.cc
+        , mesh->face.mksi, mesh->face.ksi
+        , mesh->face.eta, mesh->face.area
+        , mesh->face.normal, mesh->face.xm
+        , mesh->face.mvSkew, mesh->face.vSkew
+        , mesh->elm.geomType, mesh->elm.material.prop
+        , mesh->elm.material.type, mesh->elm.mat
+        , mesh->elm.leastSquare, mesh->elm.leastSquareR
+        , mesh->elm.faceRpres, mesh->elm.faceLoadPres
+        , sp->ePresC1, sp->eGradPresC
+        , sp->nPresC, sc->rcGrad
+        , mesh->maxNo, mesh->maxViz
+        , 1, mesh->ndm
+        , &pMesh->iNo, &pMesh->iEl
+        , mesh->numelNov, mesh->numel
+        , mesh->nnodeNov, mesh->nnode);
+      tm.rcGradPres = getTimeC() - tm.rcGradPres;
+/*...................................................................*/
+
+/*...*/
+      tm.systFormPres = getTimeC() - tm.systFormPres;
+      simpleNonOrthPres(&sc->diffPres
+        , mesh->elm.node, mesh->elm.adj.nelcon
+        , mesh->elm.nen, mesh->elm.adj.nViz
+        , mesh->elm.cellFace, mesh->face.owner
+        , mesh->elm.geom.volume, mesh->elm.geom.dcca
+        , mesh->elm.geom.xmcc, mesh->elm.geom.cc
+        , mesh->face.mksi, mesh->face.ksi
+        , mesh->face.eta, mesh->face.area
+        , mesh->face.normal, mesh->face.xm
+        , mesh->face.mvSkew, mesh->face.vSkew
+        , mesh->elm.geomType, mesh->elm.material.prop
+        , mesh->elm.material.type, mesh->elm.mat
+        , mesh->elm.densityFluid
+        , bPc, sistEqPres->id
+        , mesh->elm.faceRpres, sp->ePresC1
+        , sp->eGradPresC, sp->d
+        , mesh->maxNo, mesh->maxViz
+        , mesh->ndm, mesh->numelNov);
+      tm.systFormPres = getTimeC() - tm.systFormPres;
+/*...................................................................*/
+
+/*...*/
+      tm.solvPres = getTimeC() - tm.solvPres;
+      solverC(m
+        , sistEqPres->neq, sistEqPres->neqNov
+        , sistEqPres->nad, sistEqPres->nadr
+        , sistEqPres->ia, sistEqPres->ja
+        , sistEqPres->al, sistEqPres->ad, sistEqPres->au
+        , bPc, xp
+        , &sistEqPres->iNeq, &sistEqPres->omp
+        , solvPres->tol, solvPres->maxIt
+        , sistEqPres->storage, solvPres->solver
+        , solvPres->fileSolv, solvPres->log
+        , true, sistEqPres->unsym);
+      tm.solvPres = getTimeC() - tm.solvPres;
+/*...................................................................*/
+
+/*... atualizando da pressao de correcao*/
+      updateCellSimplePres(sp->ePresC1, xp, sistEqPres->id
+        , mesh->numelNov);
+/*...................................................................*/
+
+/*... soma o vetor presC(i) = presC + presC1*/
+      addVector(1.0e0, sp->ePresC
+        , 1.0e0, sp->ePresC1
+        , mesh->numel, sp->ePresC);
+/*...................................................................*/
+    }
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... reconstruindo do gradiente da pressao correcao*/
+  tm.rcGradPres = getTimeC() - tm.rcGradPres;
+  rcGradU(m              , loadsPresC
+        , mesh->elm.node         , mesh->elm.adj.nelcon
+        , mesh->node.x           
+        , mesh->elm.nen          , mesh->elm.adj.nViz
+        , mesh->elm.cellFace     , mesh->face.owner
+        , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+        , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+        , mesh->face.mksi        , mesh->face.ksi
+        , mesh->face.eta         , mesh->face.area
+        , mesh->face.normal      , mesh->face.xm
+        , mesh->face.mvSkew      , mesh->face.vSkew
+        , mesh->elm.geomType     , mesh->elm.material.prop
+        , mesh->elm.material.type, mesh->elm.mat
+        , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+        , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
+        , sp->ePresC             , sp->eGradPresC
+        , sp->nPresC             , sc->rcGrad
+        , mesh->maxNo            , mesh->maxViz
+        , 1                      , mesh->ndm
+        , &pMesh->iNo            , &pMesh->iEl
+        , mesh->numelNov         , mesh->numel
+        , mesh->nnodeNov         , mesh->nnode);
+  tm.rcGradPres = getTimeC() - tm.rcGradPres;
+/*...................................................................*/
+
+/*... atualizacao de u, v, w e p*/
+  simpleUpdate(mesh->elm.vel, mesh->elm.pressure
+             , sp->ePresC   , sp->eGradPresC
+             , sp->d
+             , mesh->numel  , mesh->ndm
+             , sp->alphaPres);
+/*...................................................................*/
+
+/*... calculo da matrix jacobiana das velocidades
+  | du1dx1 du1dx2 du1dx3 |
+  | du2dx1 du2dx2 du2dx3 |
+  | du3dx1 du3dx2 du3dx3 |
+*/
+  tm.rcGradVel = getTimeC() - tm.rcGradVel;
+  rcGradU(m                      , loadsVel
+        , mesh->elm.node         , mesh->elm.adj.nelcon
+        , mesh->node.x           
+        , mesh->elm.nen          , mesh->elm.adj.nViz
+        , mesh->elm.cellFace     , mesh->face.owner
+        , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+        , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+        , mesh->face.mksi        , mesh->face.ksi
+        , mesh->face.eta         , mesh->face.area
+        , mesh->face.normal      , mesh->face.xm
+        , mesh->face.mvSkew      , mesh->face.vSkew
+        , mesh->elm.geomType     , mesh->elm.material.prop
+        , mesh->elm.material.type, mesh->elm.mat
+        , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+        , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
+        , mesh->elm.vel          , mesh->elm.gradVel
+        , mesh->node.vel         , sc->rcGrad
+        , mesh->maxNo            , mesh->maxViz
+        , ndfVel                 , mesh->ndm
+        , &pMesh->iNo            , &pMesh->iEl
+        , mesh->numelNov         , mesh->numel
+        , mesh->nnodeNov         , mesh->nnode);
+  tm.rcGradVel = getTimeC() - tm.rcGradVel;
+/*...................................................................*/
+
+/*... reconstruindo do gradiente da pressao*/
+  tm.rcGradPres = getTimeC() - tm.rcGradPres;
+  rcGradU(m                      , loadsPres
+        , mesh->elm.node         , mesh->elm.adj.nelcon
+        , mesh->node.x
+        , mesh->elm.nen          , mesh->elm.adj.nViz
+        , mesh->elm.cellFace     , mesh->face.owner
+        , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+        , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+        , mesh->face.mksi        , mesh->face.ksi
+        , mesh->face.eta         , mesh->face.area
+        , mesh->face.normal      , mesh->face.xm
+        , mesh->face.mvSkew      , mesh->face.vSkew
+        , mesh->elm.geomType     , mesh->elm.material.prop
+        , mesh->elm.material.type, mesh->elm.mat
+        , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+        , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
+        , mesh->elm.pressure     , mesh->elm.gradPres
+        , mesh->node.pressure    , sc->rcGrad
+        , mesh->maxNo            , mesh->maxViz
+        , 1                      , mesh->ndm
+        , &pMesh->iNo            , &pMesh->iEl
+        , mesh->numelNov         , mesh->numel
+        , mesh->nnodeNov         , mesh->nnode);
+  tm.rcGradPres = getTimeC() - tm.rcGradPres;
+/*...................................................................*/
 
 }

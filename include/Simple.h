@@ -106,4 +106,20 @@
   void setSimpleLmScheme(char *word, short const ndm
                        , Simple *sp, FILE *fileIn);
 /*...................................................................*/
+
+/*...*/
+  void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
+                      , Loads *loadsVel   , Loads *loadsPres
+                      , MassEqModel *eMass, MomentumModel *ModelMomentum
+                      , Turbulence *tModel
+                      , Mesh *mesh
+                      , SistEq *sistEqVel , SistEq *sistEqPres
+                      , Solv *solvVel     , Solv *solvPres
+                      , Simple *sp        , Scheme *sc
+                      , PartMesh *pMesh   , DOUBLE *rCellPc
+                      , bool *xMomentum   , bool *yMomentum
+                      , bool *zMomentum   , bool *pCor
+                      , bool fPrint       , short itSimple);
+/*...................................................................*/
+
 #endif/*_SIMPLE_H_*/
