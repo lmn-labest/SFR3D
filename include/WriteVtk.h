@@ -8,6 +8,7 @@
 /*...*/
   #include<HccaStdBool.h>
   #include<CellLoop.h>
+  #include<Combustion.h>
   #include<Vtk.h>
   #include<Mesh.h>
   #include<Memoria.h>
@@ -158,13 +159,48 @@
 /*...................................................................*/
 
 /*...*/
-  void makeFace(INT *el            ,short *faceR       ,short *faceL     
+  void wResVtkCombustion(Memoria *m     , DOUBLE *x 
+          , DOUBLE *cc     
+          , INT *el              , short *mat    
+          , short *nen           , short *typeGeom
+          , DOUBLE *elPres       , DOUBLE *nPres
+          , DOUBLE *elGradPres   , DOUBLE *nGradPres
+          , DOUBLE *elVel        , DOUBLE *nVel      
+          , DOUBLE *elGradVel    , DOUBLE *nGradVel 
+          , DOUBLE *elTemp       , DOUBLE *nTemp
+          , DOUBLE *elGradEnergy , DOUBLE *nGradEnergy
+          , DOUBLE *elZcomb      , DOUBLE *nZcomb  
+          , DOUBLE *elGradZcomb  , DOUBLE *nGradZcomb 
+          , DOUBLE *elEddyVis    , DOUBLE *nEddyVis
+          , DOUBLE *eDensityFluid, DOUBLE *nDensityFluid
+          , DOUBLE *eDyViscosity , DOUBLE *nDyViscosity
+          , DOUBLE *eStressR     , DOUBLE *nStressR
+          , DOUBLE *eCd          , DOUBLE *nCd
+          , DOUBLE *eWallPar     , DOUBLE *nWallPar
+          , DOUBLE *eKturb       , DOUBLE *nKturb
+          , DOUBLE *eRateFuel    , DOUBLE *nRateFuel
+          , DOUBLE *eYfrac       , DOUBLE *nYfrac
+          , DOUBLE *eHeatRe      , DOUBLE *nHeatRe      
+          , DOUBLE *eMedVel      , DOUBLE *nMedVel
+          , DOUBLE *specificHeat , DOUBLE *tConductivity
+          , INT nnode            , INT numel    
+          , short const ndm      , short const maxNo 
+          , short const numat    , short const ndf
+          , short const ntn      , short const nOfPrSp  
+          , char *nameOut        , FileOpt *opt
+          , bool fKelvin         , Mean *media  
+          , Temporal ddt         , FILE *f);
+/*...................................................................*/
+
+/*...*/
+  void makeFace(INT *el            ,short *faceR       ,short *faceL 
              ,short *typeGeom
-             ,INT *face          ,INT *lFaceS    ,INT *idFace
+             ,INT *face          ,int    *lFaceL     ,INT *idFace
              ,short *typeGeomFace,short *nenFace
              ,short const maxViz ,short const maxNo
-             ,short const ndf 
-             ,int   const numel  ,int *nFace);
+             ,short const ndf     
+             ,INT const numel    ,INT *nFace);
+
   void makeVorticity(DOUBLE *RESTRICT w, DOUBLE *RESTRICT gradVel
                     ,INT const n       , const short ndm);
   void makeStress(DOUBLE *RESTRICT str      , DOUBLE *RESTRICT gradVel

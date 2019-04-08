@@ -108,7 +108,7 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
 
 /*********************************************************************
 * Data de criacao    : 22/08/2017                                   *
-* Data de modificaco : 31/03/2018                                   *
+* Data de modificaco : 15/08/2018                                   *
 *-------------------------------------------------------------------*
 * CELLLIBENERGY: chamada de bibliotecas de celulas para             *
 * problema de escoamento de fluidos (Energy)                        *
@@ -116,10 +116,13 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
 * Parametros de entrada:                                            *
 *-------------------------------------------------------------------*
 * loads     -> definicoes de cargas                                 *
-* model     -> modelo da equacao de energia                         *
+* loads     -> definicoes de cargas para velocidade                 *
 * adv       -> tecnica da discretizacao do termo advecao            *
 * diff      -> tecnica da discretizacao do termo difusivo           *
-* vProp     -> propedades variaveis (true|false)                    *
+* tModel    -> modelo de turbulencia                                *
+* eModel    -> modelo da equacao de energia                         *
+* cModel    -> modelo de combustao                                  *
+* vProp     -> propedades variaveis                                 *
 * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
 * lprop     -> propriedade fisicas das celulas                      *
 * lViz      -> viznhos da celula central                            *
@@ -157,6 +160,7 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
 * ltConductvity -> condutividade termica com variacao temporal      *
 * dField    -> matriz D do metodo simple                            * 
 * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
+* rateFuel  -> taxa de consumo de combustivel                       *
 * underU    -> fator underrelaxtion sinple                          *
 * nEn       -> numero de nos da celula central                      *
 * nFace     -> numero de faces da celula central                    *
@@ -173,7 +177,7 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
 void cellLibEnergy(Loads *lEnergy  , Loads *lVel                      
      , Advection  *adv             , Diffusion *diff      
      , Turbulence *tModel          , EnergyModel *model  
-     , PropVarFluid *vProp 
+     , Combustion *cModel          , PropVarFluid *vProp         
      , short *RESTRICT lGeomType   , DOUBLE *RESTRICT lprop
      , INT   *RESTRICT lViz        , INT *RESTRICT lId
      , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
@@ -192,7 +196,7 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
      , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lSheat
      , DOUBLE *RESTRICT lDviscosity, DOUBLE *RESTRICT lTconductvity
      , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT wallPar
-     , DOUBLE const underU           
+     , DOUBLE const rateFuel       , DOUBLE const underU           
      , short const nEn             , short  const nFace
      , short const ndm             , short const lib
      , INT const nel)
@@ -231,10 +235,10 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
 
 /*... 3D*/
       else if (ndm == 3) {
-        cellEnergy3D(lEnergy    , lVel
+        cellEnergy3D(lEnergy  , lVel
                  , adv        , diff
                  , tModel     , model 
-                 , vProp 
+                 , cModel     , vProp 
                  , lGeomType  , lprop
                  , lViz       , lId
                  , ksi        , mKsi
@@ -253,7 +257,7 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
                  , lDensity   , lSheat
                  , lDviscosity, lTconductvity
                  , dField     , wallPar
-                 , underU       
+                 , rateFuel   , underU       
                  , nEn        , nFace
                  , ndm        , nel);    
 /*..................................................................*/
@@ -265,68 +269,68 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
 /*********************************************************************/
 
 /*********************************************************************
-* Data de criacao    : 18/01/2018                                   *
-* Data de modificaco : 22/01/2018                                   *
-*-------------------------------------------------------------------*
-* cellLibOneEqK: chamada de bibliotecas de celulas para             *
-* problema de escoamento de fluidos (Energia cinetica turbulenta)   * 
-*-------------------------------------------------------------------*
-* Parametros de entrada:                                            *
-*-------------------------------------------------------------------*
-* loads   -> definicoes de cargas K                                 *
-* ldsVel  -> definicoes de cargas para velocidades                  *
-* model     -> modelo da equacao de energia                         *
-* adv       -> tecnica da discretizacao do termo advecao            *
-* diff      -> tecnica da discretizacao do termo difusivo           *
-* vProp     -> propedades variaveis (true|false)                    *
-* lGeomType -> tipo geometrico da celula central e seus vizinhos    *
-* lprop     -> propriedade fisicas das celulas                      *
-* lViz      -> viznhos da celula central                            *
-* lId       -> equa da celula                                       *
-* Ksi       -> vetores que unem centroide da celula central aos     *
-*            vizinhos destas                                        *
-* mKsi      -> modulo do vetor ksi                                  *
-* eta       -> vetores paralelos as faces das celulas               *
-* fArea     -> area das faces                                       *
-* normal    -> vetores normais as faces das celulas                 *
-* volume    -> volume celula central                                *
-* xm        -> pontos medios das faces da celula central            *
-* xmcc      -> vetores que unem o centroide aos pontos medios das   *
-*            faces da celula central                                *
-* vSkew     -> vetor entre o ponto medio a intersecao que une os    *
-*            centrois compartilhado nessa face da celula central    *
-* mvSkew    -> distacia entre o ponto medio a intersecao que une os *
-*            centrois compartilhado nessa face da celula central    *
-* dcca      -> menor distacia do centroide central a faces desta    *
-*              celula                                               *
-* cc        -> centroides da celula centra e seus vizinhos          *
-* lA        -> nao definido                                         *
-* lB        -> nao definido                                         *
-* lRcell    -> nao definido                                         *
-* ddt       -> discretizacao temporal                               *
-* faceReK -> restricoes por elemento                                *
-* faceLdK -> carga por elemento                                     *
-* faceReVel-> restricoes por elemento                               *
-* faceLdVel-> carga por elemento                                    *
-* vel       -> campo de velocidade conhecido                        *
-* dField    -> matriz D do metodo simple                            *
-* lDensity  -> massa especifica com variacao temporal               *
-* lDviscosity-> viscosidade dinamica com variacao temporal          *
-* dField    -> matriz D do metodo simple                            * 
-* wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
-* cDyn    -> coeficiente dinanmicos ( Ck, Ce)                       * 
-* nEn       -> numero de nos da celula central                      *
-* nFace     -> numero de faces da celula central                    *
-* ndm       -> numero de dimensoes                                  *
-* lib       -> numero da biblioteca                                 *
-* nel       -> numero da celula                                     *
-*-------------------------------------------------------------------*
-* Parametros de saida:                                              *
-*-------------------------------------------------------------------*
-* lA        -> coeficiente da linha i                               *
-* lB        -> vetor de forca da linha i                            *
-*-------------------------------------------------------------------*
-*********************************************************************/
+ * Data de criacao    : 18/01/2018                                   *
+ * Data de modificaco : 22/01/2018                                   *
+ *-------------------------------------------------------------------*
+ * cellLibOneEqK: chamada de bibliotecas de celulas para             *
+ * problema de escoamento de fluidos (Energia cinetica turbulenta)   * 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * loads   -> definicoes de cargas K                                 *
+ * ldsVel  -> definicoes de cargas para velocidades                  *
+ * model     -> modelo da equacao de energia                         *
+ * adv       -> tecnica da discretizacao do termo advecao            *
+ * diff      -> tecnica da discretizacao do termo difusivo           *
+ * vProp     -> propedades variaveis (true|false)                    *
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
+ * lprop     -> propriedade fisicas das celulas                      *
+ * lViz      -> viznhos da celula central                            *
+ * lId       -> equa da celula                                       *
+ * Ksi       -> vetores que unem centroide da celula central aos     *
+ *            vizinhos destas                                        *
+ * mKsi      -> modulo do vetor ksi                                  *
+ * eta       -> vetores paralelos as faces das celulas               *
+ * fArea     -> area das faces                                       *
+ * normal    -> vetores normais as faces das celulas                 *
+ * volume    -> volume celula central                                *
+ * xm        -> pontos medios das faces da celula central            *
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   *
+ *            faces da celula central                                *
+ * vSkew     -> vetor entre o ponto medio a intersecao que une os    *
+ *            centrois compartilhado nessa face da celula central    *
+ * mvSkew    -> distacia entre o ponto medio a intersecao que une os *
+ *            centrois compartilhado nessa face da celula central    *
+ * dcca      -> menor distacia do centroide central a faces desta    *
+ *              celula                                               *
+ * cc        -> centroides da celula centra e seus vizinhos          *
+ * lA        -> nao definido                                         *
+ * lB        -> nao definido                                         *
+ * lRcell    -> nao definido                                         *
+ * ddt       -> discretizacao temporal                               *
+ * faceReK -> restricoes por elemento                                *
+ * faceLdK -> carga por elemento                                     *
+ * faceReVel-> restricoes por elemento                               *
+ * faceLdVel-> carga por elemento                                    *
+ * vel       -> campo de velocidade conhecido                        *
+ * dField    -> matriz D do metodo simple                            *
+ * lDensity  -> massa especifica com variacao temporal               *
+ * lDviscosity-> viscosidade dinamica com variacao temporal          *
+ * dField    -> matriz D do metodo simple                            * 
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
+ * cDyn    -> coeficiente dinanmicos ( Ck, Ce)                       * 
+ * nEn       -> numero de nos da celula central                      *
+ * nFace     -> numero de faces da celula central                    *
+ * ndm       -> numero de dimensoes                                  *
+ * lib       -> numero da biblioteca                                 *
+ * nel       -> numero da celula                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * lA        -> coeficiente da linha i                               *
+ * lB        -> vetor de forca da linha i                            *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
 void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
      , Turbulence *tModel                       
      , Advection  *adv             , Diffusion *diff              
@@ -529,6 +533,167 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
 /*..................................................................*/
 }
 /*********************************************************************/
+
+/*********************************************************************
+* Data de criacao    : 05/08/2018                                   *
+* Data de modificaco : 12/08/2018                                   *
+*-------------------------------------------------------------------*
+* cellLibCombustion: chamada de bibliotecas de celulas para         *
+* problema de escoamento de fluidos (Energy)                        *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* loads     -> definicoes de cargas                                 *
+* model     -> modelo da equacao de energia                         *
+* adv       -> tecnica da discretizacao do termo advecao            *
+* diff      -> tecnica da discretizacao do termo difusivo           *
+* tModel    -> modelo de turbulencia                                *
+* cModel    -> modelo de combustao                                  *
+* vProp     -> propedades variaveis (true|false)                    *
+* lGeomType -> tipo geometrico da celula central e seus vizinhos    *
+* lprop     -> propriedade fisicas das celulas                      *
+* lViz      -> viznhos da celula central                            *
+* lId       -> equa da celula                                       *
+* Ksi       -> vetores que unem centroide da celula central aos     *
+*            vizinhos destas                                        *
+* mKsi      -> modulo do vetor ksi                                  *
+* eta       -> vetores paralelos as faces das celulas               *
+* fArea     -> area das faces                                       *
+* normal    -> vetores normais as faces das celulas                 *
+* volume    -> volume celula central                                *
+* xm        -> pontos medios das faces da celula central            *
+* xmcc      -> vetores que unem o centroide aos pontos medios das   *
+*            faces da celula central                                *
+* vSkew     -> vetor entre o ponto medio a intersecao que une os    *
+*            centrois compartilhado nessa face da celula central    *
+* mvSkew    -> distacia entre o ponto medio a intersecao que une os *
+*            centrois compartilhado nessa face da celula central    *
+* dcca      -> menor distacia do centroide central a faces desta    *
+*              celula                                               *
+* cc        -> centroides da celula centra e seus vizinhos          *
+* lA        -> nao definido                                         *
+* lB        -> nao definido                                         *
+* lRcell    -> nao definido                                         *
+* ddt       -> discretizacao temporal                               *
+* faceVelR  -> restricoes por elemento de velocidades               *
+* faceVelL  -> carga por elemento de velocidades                    *
+* facePresR -> restricoes por elemento de pressao                   *
+* facePresL -> carga por elemento de pressao                        *
+* vel       -> campo de velocidade conhecido                        *
+* dField    -> matriz D do metodo simple                            *
+* lDensity  -> massa especifica com variacao temporal               *
+* lDiff     -> coeficiente de difusao das especies                  *
+* lEddyVisc -> Viscosidade turbulenta                               *  
+* dField    -> matriz D do metodo simple                            *
+* wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  *
+* underU    -> fator underrelaxtion sinple                          *
+* nEn       -> numero de nos da celula central                      *
+* nFace     -> numero de faces da celula central                    *
+* ndm       -> numero de dimensoes                                  *
+* lib       -> numero da biblioteca                                 *
+* nel       -> numero da celula                                     *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* lA        -> coeficiente da linha i                               *
+* lB        -> vetor de forca da linha i                            *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void cellLibCombustion(Loads *lComb        , Loads *lVel
+               , Advection  *adv           , Diffusion *diff
+               , Turbulence *tModel        , Combustion *cModel
+               , PropVarFluid *vProp
+               , short *RESTRICT lGeomType , DOUBLE *RESTRICT lprop
+               , INT   *RESTRICT lViz      , INT *RESTRICT lId
+               , DOUBLE *RESTRICT ksi      , DOUBLE *RESTRICT mKsi
+               , DOUBLE *RESTRICT eta      , DOUBLE *RESTRICT fArea
+               , DOUBLE *RESTRICT normal   , DOUBLE *RESTRICT volume
+               , DOUBLE *RESTRICT xm       , DOUBLE *RESTRICT xmcc
+               , DOUBLE *RESTRICT dcca     , DOUBLE *RESTRICT cc
+               , DOUBLE *RESTRICT vSkew    , DOUBLE *RESTRICT mvSkew
+               , DOUBLE *RESTRICT lA       , DOUBLE *RESTRICT lB
+               , DOUBLE *RESTRICT lRcell   , Temporal const ddt
+               , short  *RESTRICT lFaceR   , short  *RESTRICT lFaceL
+               , short  *RESTRICT lFaceVelR, short  *RESTRICT lFaceVelL
+               , DOUBLE *RESTRICT u        , DOUBLE *RESTRICT gradU
+               , DOUBLE const rateFuel     , DOUBLE *RESTRICT vel      
+               , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
+               , DOUBLE *RESTRICT lDensity , DOUBLE *RESTRICT lDiff 
+               , DOUBLE *RESTRICT lEddyVisc
+               , DOUBLE *RESTRICT dField   , DOUBLE *RESTRICT wallPar
+               , DOUBLE const underU
+               , short const nEn           , short  const nFace
+               , short const ndm           , short const lib
+               , INT const nel)
+{
+
+/*... */
+  if (lib == 1) {
+/*... 2D*/
+    if (ndm == 2);
+/*    cellEnergy2D(lEnergy, lVel
+        , adv, diff
+        , tModel, model
+        , vProp
+        , lGeomType, lprop
+        , lViz, lId
+        , ksi, mKsi
+        , eta, fArea
+        , normal, volume
+        , xm, xmcc
+        , dcca, cc
+        , vSkew, mvSkew
+        , lA, lB
+        , lRcell, ddt
+        , lFaceR, lFaceL
+        , lFaceVelR, lFaceVelL
+        , u, gradU
+        , vel, gradVel
+        , pres, gradPres
+        , lDensity, lSheat
+        , lDviscosity, lTconductvity
+        , dField, wallPar
+        , underU
+        , nEn, nFace
+        , ndm, nel);*/
+/*..................................................................*/
+
+/*... 3D*/
+    else if (ndm == 3) 
+    {
+      cellCombustion3D(lComb    , lVel
+                     , adv       , diff
+                     , tModel    , cModel
+                     , vProp
+                     , lGeomType , lprop
+                     , lViz      , lId
+                     , ksi       , mKsi
+                     , eta       , fArea
+                     , normal    , volume
+                     , xm        , xmcc
+                     , dcca      , cc
+                     , vSkew     , mvSkew
+                     , lA        , lB
+                     , lRcell    , ddt
+                     , lFaceR    , lFaceL
+                     , lFaceVelR , lFaceVelL
+                     , u         , gradU
+                     , rateFuel  , vel       
+                     , pres      , gradPres
+                     , lDensity  , lDiff
+                     , lEddyVisc
+                     , dField    , wallPar
+                     , underU
+                     , nEn       , nFace
+                     , ndm       , nel);
+/*..................................................................*/
+    }
+/*..................................................................*/
+  }
+
+}
+/*********************************************************************/
+
 
 /*********************************************************************
  * Data de criacao    : 27/08/2017                                   *

@@ -41,18 +41,19 @@
 /******************************prototipo******************************/
   void   initMem        (Memoria*, iptx,bool );
   void   finalizeMem    (Memoria*,bool );
-  void*  alloc          (Memoria*, TYPEADRESS**,int,char*,int,bool);
-  void   setNamePoint   (Memoria*,char*,bool);
-  int    locateNamePoint(Memoria*,char*,bool);
-  void*  locate          (Memoria*,char*,bool);
+  void*  alloc          (Memoria*, TYPEADRESS**,int,const char *const,int,bool);
+  void   setNamePoint   (Memoria*,const char *const ,bool);
+  int    locateNamePoint(Memoria*,const char *const ,bool);
+  void*  locate          (Memoria*, const char *const,bool);
   void   relloc          (Memoria*,int,bool);
   void   moveVector      (Memoria*,int,int);
   void   cleanNamePoint  (Memoria*,int);
-  void*  dalloc          (Memoria*, char *,bool);
-  iptx   usoMemoria      (Memoria* ,char*);
+  void*  dalloc          (Memoria*, const char *const,bool);
+  iptx usoMemoria(Memoria *, const char *const);
   void   mapVector       (Memoria*);
-  double memoriaTotal    (char *);
-  double memoriaVector   (Memoria*,char*,char*,bool);
+  double memoriaTotal(const char *const );
+  double memoriaVector(Memoria *        , const char *const 
+                     , const char *const, bool);
   void   vzero(char*,long,char*);
 /*********************************************************************/
 /*...*/

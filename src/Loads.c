@@ -68,10 +68,8 @@ void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx)
 //t =xx[3];
 
   if (ld->type == DIRICHLETBC)
-  {
-    par[0] = ld->par[0];
-  }
-  
+    for(i = 0; i< ld->np; par[i] = ld->par[i], i++);
+   
   else if( ld->type == ROBINBC)
   {
     par[0] = ld->par[0];
@@ -79,9 +77,7 @@ void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx)
   }
   
   else if (ld->type == NEUMANNBC)
-  {
-    par[0] = ld->par[0];
-  }
+    for(i = 0; i< ld->np; par[i] = ld->par[i], i++);
 
   else if (ld->type == MOVEWALL) 
   {
@@ -1107,6 +1103,166 @@ void pLoadEnergy(PropVarFluid *vProp
 /*...................................................................*/
 }
 /*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 21/09/2017                                   *
+ * Data de modificaco : 15/07/2018                                   * 
+ *-------------------------------------------------------------------* 
+ * pLoadCombustion : cargas das equacoes de combustao                *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * vProp   -> estrutura que guarda a propriedades do fluido          *
+ * sP      -> termo da diagonal                                      * 
+ * p       -> forca local                                            * 
+ * tA      -> nao definido                                           * 
+ * n       -> normal externa                                         *
+ * coefDif -> coeficiente de difusao                                 * 
+ * densityC-> densidade                                              * 
+ * wfn     -> velocidade normal a face                               * 
+ * xm      -> coordenada do ponto medio da face                      * 
+ * fArea   -> area da face                                           * 
+ * dcca    -> menor distancia do centroide central a face desta      *
+ *            celula                                                 * 
+ * ld      -> definicao da carga                                     * 
+ * ldVel   -> definicao da carga para velociades                     * 
+ * fCal    -> true - atualizada sP e p                               * 
+ *            false- atualizada sP e p                               * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * sP      -> termo da diagonal atualizado                           * 
+ * p       -> forcas locais atualizada                               * 
+ * tA      -> valor pescrito na face                                 * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void pLoadCombustion(PropVarFluid *vProp
+               , DOUBLE *RESTRICT sP      , DOUBLE *RESTRICT p
+               , DOUBLE *RESTRICT tA      , DOUBLE *RESTRICT velC
+               , DOUBLE *RESTRICT uC      , DOUBLE *RESTRICT n  
+               , DOUBLE *RESTRICT diffCoef, DOUBLE const densityC
+               , DOUBLE const viscosityC 
+               , DOUBLE const prT         , DOUBLE *RESTRICT xx                   
+               , DOUBLE const fArea       , DOUBLE const dcca
+               , Loads *ld                , Loads *ldVel 
+               , DOUBLE *RESTRICT wallPar , short  const ndm          
+               , bool const fCal          , bool const fWallModel  
+               , short const nComb        , short const wallType)
+{
+
+  short i;
+  DOUBLE aP,h,wfn,wf[3],tempPlus,yPlus,uPlus,densityEnv;
+  DOUBLE par[MAXLOADPARAMETER],velB[3];
+  
+  velB[0] = velB[1] = velB[2] = 0.e0;
+
+  for(i=0;i<MAXLOADPARAMETER;i++)
+    par[i] = 0.e0;
+
+/*...*/
+  tempPlus = uPlus = yPlus = 0.e0;
+  wf[0] = wf[1] = wf[2] = 0.e0;
+//if (fWallModel && fCal) {
+/*... calculo da velocidade paralela a face*/
+//    yPlus = wallPar[0];
+/*...*/ 
+//    tempPlus = wallModelHeat(yPlus,prM,prT);
+/*...................................................................*/ 
+//}
+/*...................................................................*/ 
+
+/*... potencial prescrito (Parede)*/
+  if( ld->type == DIRICHLETBC)
+  {
+    getLoads(par,ld,xx);
+      
+    for(i=0;i<nComb;i++)
+      tA[i]   = par[i];
+    
+    if(!fCal) return;
+
+    for(i=0;i<nComb;i++)
+    {
+      aP     = diffCoef[i]*fArea/dcca;
+      sP[i] += aP;
+      p[i]  += aP*tA[i];
+    }
+/*...................................................................*/ 
+  }
+/*...................................................................*/
+
+/*... lei de resfriamento de newton*/
+  else if( ld->type == CONVECTIONHEAT);
+/*...................................................................*/
+
+/*... condicao de ROBIN*/
+  else if( ld->type == ROBINBC);
+/*...................................................................*/
+
+/*... fluxo prestrito diferente de zero*/
+   else if( ld->type == NEUMANNBC)
+   {
+     getLoads(par,ld,xx); 
+
+    for(i=0;i<nComb;i++)
+      tA[i]   = par[i];
+
+     if(!fCal) return;
+
+     for(i=0;i<nComb;i++)
+       p[i] += fArea*tA[i];
+/*...................................................................*/
+   }
+/*...................................................................*/
+
+/*... potencial senoidal prescrito 
+      ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
+   else if( ld->type == SINBC);
+/*...................................................................*/
+
+/*... potencial prescrito (entra)*/
+   else if( ld->type == INLET){
+     getLoads(par,ld,xx); 
+     for(i=0;i<nComb;i++)
+       tA[i]   = par[1+i];
+/*...*/
+     if(fCal){
+        densityEnv = par[0];
+        velB[0]    = par[nComb+1];
+        velB[1]    = par[nComb+2];
+        
+        wfn   = velB[0] * n[0] + velB[1] * n[1];
+        if (ndm == 3) {
+          velB[2] = par[nComb+4];  
+          wfn += velB[2]*n[2];
+        }
+        for(i=0;i<nComb;i++)
+          p[i] -= wfn*densityEnv*fArea*tA[i];
+     } 
+   }
+/*...................................................................*/
+
+/*... derivada nula (condicao localmente parabolica saida)*/
+   else if( ld->type == OUTLET){
+/*...*/
+     if(fCal){
+       wfn   = velC[0] * n[0] + velC[1] * n[1];
+       if (ndm == 3) wfn += velC[2]*n[2];
+       for(i=0;i<nComb;i++)
+         sP[i] += wfn*densityC*fArea;
+     } 
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... fronteira aberta(Pressao estatica)*/
+  else if (ld->type == OPEN);
+/*...................................................................*/
+}
+/*********************************************************************/
+
 
 /********************************************************************* 
  * Data de criacao    : 21/09/2017                                   *

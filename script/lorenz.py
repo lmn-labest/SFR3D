@@ -161,7 +161,7 @@ def func(x,p):
 
 def updateRk4(x,h,k):
 
-   return (x[0] + h*k[0],x[1] + h*k[1],x[2] + h*k[1])
+   return (x[0] + h*k[0],x[1] + h*k[1],x[2] + h*k[2])
 
 def yNew(x,k1,k2,k3,k4,h):
    

@@ -144,7 +144,10 @@ void writeLog(Mesh mesh          ,Scheme sc
   fprintf(file,"\nMesh:\n");
   fprintf(file,"nnode              : %d\n",mesh.nnode);
   fprintf(file,"nCell              : %d\n",mesh.numel);
-  fprintf(file,"volume             : %lf\n",mesh.mQuality.volume);
+  fprintf(file,"volume             : %lf m3 \n",mesh.mQuality.volume);
+  fprintf(file,"Mass(0)            : %lf kg\n",mesh.mass[0]);
+  fprintf(file,"Mass(1)            : %lf kg\n",mesh.mass[1]);
+  fprintf(file,"Mass(2)            : %lf kg\n",mesh.mass[2]);
   fprintf(file,"non-OrthMed        : %.1lf°\n",mesh.mQuality.nonOrthMed);
   fprintf(file,"non-OtthMax        : %.1lf°\n",mesh.mQuality.nonOrthMax);
   fprintf(file,"skewMed            : %lf\n",mesh.mQuality.skewMed);

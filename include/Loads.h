@@ -79,6 +79,18 @@
            , DOUBLE const dcca    , Loads *ld
            , short const ndm      , bool const fCal);
 
+  void pLoadCombustion(PropVarFluid *vProp
+               , DOUBLE *RESTRICT sP      , DOUBLE *RESTRICT p
+               , DOUBLE *RESTRICT tA      , DOUBLE *RESTRICT velC
+               , DOUBLE *RESTRICT uC      , DOUBLE *RESTRICT n  
+               , DOUBLE *RESTRICT diffCoef, DOUBLE const densityC
+               , DOUBLE const viscosityC 
+               , DOUBLE const prT         , DOUBLE *RESTRICT xx                   
+               , DOUBLE const fArea       , DOUBLE const dcca
+               , Loads *ld                , Loads *ldVel 
+               , DOUBLE *RESTRICT wallPar , short  const ndm          
+               , bool const fCal          , bool const fWallModel  
+               , short const nComb        , short const wallType);
 /*...................................................................*/
 
 

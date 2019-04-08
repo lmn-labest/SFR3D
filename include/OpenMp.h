@@ -28,6 +28,7 @@
     unsigned short nThreadsSolver;
     unsigned short nThreadsCell;
     unsigned short nThreadsUpdate;    
+    INT            nEqMax;
     DOUBLE         *buffer;
   }Omp;
 /*...................................................................*/

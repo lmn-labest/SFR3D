@@ -9,6 +9,7 @@
   #include<Memoria.h>
   #include<Mesh.h>
   #include<CellLoop.h>
+  #include<Combustion.h>
   #include<Mesh.h>
   #include<WriteVtk.h>
   #include<Sisteq.h>

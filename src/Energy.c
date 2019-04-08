@@ -1,7 +1,7 @@
 #include<Energy.h>
 /********************************************************************* 
  * Data de criacao    : 16/01/2018                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 15/08/2018                                   * 
  *-------------------------------------------------------------------* 
  * energyEquation: Solucao da equação de energia                     * 
  *-------------------------------------------------------------------* 
@@ -13,9 +13,10 @@
  *-------------------------------------------------------------------* 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-bool energyEquation(Memoria *m              , PropVarFluid *prop 
+bool energyEquation(Memoria *m               , PropVarFluid *prop 
                    , Loads *loadsVel         , Loads *loadsEnergy  
                    , EnergyModel *eModel     , Turbulence *tModel  
+                   , Combustion *cModel
                    , ThermoDynamic *thDynamic, Mesh *mesh          
                    , SistEq *sistEqEnergy    , Solv *solvEnergy
                    , Simple *sp  
@@ -60,7 +61,7 @@ bool energyEquation(Memoria *m              , PropVarFluid *prop
   systFormEnergy(loadsEnergy          , loadsVel
             , &sc->advEnergy          , &sc->diffEnergy
             , tModel                  , eModel  
-            , prop  
+            , cModel                  , prop                    
             , mesh->elm.node          , mesh->elm.adj.nelcon
             , mesh->elm.nen           , mesh->elm.adj.nViz
             , mesh->elm.cellFace      , mesh->face.owner
@@ -72,6 +73,7 @@ bool energyEquation(Memoria *m              , PropVarFluid *prop
             , mesh->face.mvSkew       , mesh->face.vSkew
             , mesh->elm.geomType      , mesh->elm.material.prop
             , mesh->elm.material.type , mesh->elm.mat
+            , mesh->elm.rateHeatReComb
             , sistEqEnergy->ia        , sistEqEnergy->ja
             , sistEqEnergy->al        , sistEqEnergy->ad
             , sistEqEnergy->b         , sistEqEnergy->id

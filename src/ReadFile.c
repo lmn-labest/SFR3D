@@ -27,11 +27,11 @@
  * ------------------------------------------------------------------*
  * ------------------------------------------------------------------*
  * *******************************************************************/
-void readFileFvMesh( Memoria *m             , Mesh *mesh
+void readFileFvMesh( Memoria *m              , Mesh *mesh
                    , PropVarFluid *propF           
-                   , PropVarCD *propD       , PropVarCD *propT
-                   , EnergyModel *energyModel
-                   , Turbulence *tModel     , Mean *media
+                   , PropVarCD *propD        , PropVarCD *propT
+                   , EnergyModel *energyModel, Turbulence *tModel     
+                   , Combustion *cModel      , Mean *media
                    , FILE* file)
 {
   char word[WORD_SIZE],str[WORD_SIZE];
@@ -39,20 +39,20 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
         "coordinates"  ,"endMesh"    ,"insert"         /* 0, 1, 2*/
        ,"return"       ,"cells"      ,"faceResT1"      /* 3, 4, 5*/
        ,"faceLoadT1"   ,"loadsT1"    ,""               /* 6, 7, 8*/ 
-       ,""             ,""           ,""               /* 9,10,11*/ 
+       ,"faceResZ"     ,"faceLoadZ"  ,"loadsZ"         /* 9,10,11*/ 
        ,"faceResD1"    ,"uniformD1"  ,"loadsD1"        /*12,13,14*/ 
        ,"faceLoadD1"   ,""           ,""               /*15,16,17*/ 
        ,"faceRvel"     ,"loadsVel"   ,"faceLoadVel"    /*18,19,20*/ 
        ,"faceRpres"    ,"loadsPres"  ,"faceLoadPres"   /*21,22,23*/
        ,"faceRtemp"    ,"loadsTemp"  ,"faceLoadTemp"   /*24,25,26*/
        ,"materials"    ,"uniformPres","initialVel"     /*27,28,29*/
-       ,"uniformTemp"  ,"uniformVel" ,""               /*30,31,32*/
+       ,"uniformTemp"  ,"uniformVel" ,"uniformZ"       /*30,31,32*/
        ,"faceReKturb"  ,"loadsKturb" ,"faceLoadKturb"  /*33,34,35*/
        ,"fileMaterials",""           ,""               /*36,37,38*/
 	   };                                             
-  bool rflag[NMACROS],macroFlag,fOneEqK = true;
+  bool rflag[NMACROS],macroFlag,fOneEqK = true,fComb;
   INT nn,nel;
-  short maxno,ndm,numat,maxViz,ndfVel;
+  short maxno,ndm,numat,maxViz,ndfVel,nComb,nSpPri;
   char nameAux[MAX_STR_LEN_IN];
   FILE *fileAux=NULL;
   int i;
@@ -66,6 +66,12 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
 
 /*...*/
   ndfVel = max(mesh->ndfF - 1,mesh->ndfFt - 2);
+/*...................................................................*/
+
+/*...*/
+  fComb  = cModel->fCombustrion;
+  nComb  = cModel->nComb;
+  nSpPri = cModel->nOfSpecies;
 /*...................................................................*/
 
 /*...*/
@@ -181,7 +187,8 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
 /*...................................................................*/
 
 /*... fluido*/
-  if(mesh->ndfF > 0 || mesh->ndfFt > 0) {
+  if(mesh->ndfF > 0 || mesh->ndfFt > 0) 
+  {
 /*... alocando memoria*/
 /*... cc da equacao de velocidades*/
      HccaAlloc(short,m,mesh->elm.faceRvel  
@@ -202,7 +209,8 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
      zero(mesh->elm.faceLoadPres ,nel*(maxViz+1),"short"  );
 
 /*... cc da equacao de energia*/
-     if (mesh->ndfFt > 0 ){
+     if (mesh->ndfFt > 0 )
+     {
         HccaAlloc(short, m, mesh->elm.faceRenergy
                   , nel*(maxViz + 1), "faceRenergy", _AD_);
         zero(mesh->elm.faceRenergy, nel*(maxViz + 1), "short");
@@ -225,8 +233,8 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
         HccaAlloc(DOUBLE, m, mesh->elm.tConductivity
                  , nel  , "tCon", _AD_);
         zero(mesh->elm.tConductivity, nel, DOUBLEC);
-
      }
+
 /*... viscosidade turbulenta*/
      HccaAlloc(DOUBLE, m, mesh->elm.eddyViscosity
               , nel  , "eddyVis", _AD_);
@@ -262,7 +270,7 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
        zero(mesh->elm.gradKturb, nel*ndm, DOUBLEC);
        
        HccaAlloc(DOUBLE, m        , mesh->node.kTurb
-                , nel  , "nkTurb" , _AD_);
+                , nn   , "nkTurb" , _AD_);
        zero(mesh->node.kTurb, nn  , DOUBLEC);
 
 /*... eGradPres*/
@@ -374,7 +382,8 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
 
      }
 
-     if( mpiVar.nPrcs < 2){
+     if( mpiVar.nPrcs < 2)
+     {
 /*... rCellVel*/
        HccaAlloc(DOUBLE,m,mesh->elm.rCellVel  
                 ,nel*ndm*ndfVel       ,"rCellVel"     ,_AD_);
@@ -384,18 +393,91 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
                 ,nel                 ,"rCellPres"    ,_AD_);
        zero(mesh->elm.rCellPres ,nel              ,DOUBLEC);
 /*... rCellEnergy*/
-       if (mesh->ndfFt > 0){
+       if (mesh->ndfFt > 0)
+       {
           HccaAlloc(DOUBLE,m            ,mesh->elm.rCellEnergy
                    ,nel   ,"rCellEnergy",_AD_);
           zero(mesh->elm.rCellEnergy, nel, DOUBLEC);
        }
 /*... rCellKturb*/
-       if(fOneEqK){
+       if(fOneEqK)
+       {
          HccaAlloc(DOUBLE,m,mesh->elm.rCellKturb
                 ,nel  ,"rCellKturb",_AD_);
          zero(mesh->elm.rCellKturb,nel,DOUBLEC);
        }
      }
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... modelo de combustao*/
+  if (fComb)
+  {
+
+    HccaAlloc(short, m, mesh->elm.faceResZcomb
+            , nel*(maxViz + 1), "faceResComb", _AD_);
+    zero(mesh->elm.faceResZcomb, nel*(maxViz + 1), "short");
+
+    HccaAlloc(short, m, mesh->elm.faceLoadZcomb
+      , nel*(maxViz + 1), "faceLoadComb", _AD_);
+    zero(mesh->elm.faceLoadZcomb, nel*(maxViz + 1), "short");
+
+/*... eZcomb*/
+    HccaAlloc(DOUBLE, m, mesh->elm.zComb
+      , nel*nComb, "zComb", _AD_);
+    zero(mesh->elm.zComb, nel*nComb, DOUBLEC);
+
+/*... eZcomb0*/
+    HccaAlloc(DOUBLE, m, mesh->elm.zComb0
+      , nel*nComb, "zComb0", _AD_);
+    zero(mesh->elm.zComb0, nel*nComb, DOUBLEC);
+
+/*... eGradZcomb*/
+    HccaAlloc(DOUBLE, m, mesh->elm.gradZcomb
+      , nel*ndm*nComb, "gradComb", _AD_);
+    zero(mesh->elm.gradZcomb, nel*ndm*nComb, DOUBLEC);
+
+/*... nZcomb*/
+    HccaAlloc(DOUBLE  ,m       ,mesh->node.zComb
+             ,nn*nComb,"nZcomb",_AD_);
+    zero(mesh->node.zComb, nn*nComb, DOUBLEC);
+
+/*... nGradZcomb*/
+    HccaAlloc(DOUBLE      , m, mesh->node.gradZcomb
+             ,nn*ndm*nComb, "nGradZcomb", _AD_);
+    zero(mesh->node.gradZcomb, nn*ndm*nComb, DOUBLEC);
+
+/*... */
+    HccaAlloc(DOUBLE, m, mesh->elm.cDiffComb
+      , nel*nComb, "cDiffComb", _AD_);
+    zero(mesh->elm.cDiffComb, nel*nComb, DOUBLEC);
+
+/*... */
+    HccaAlloc(DOUBLE, m, mesh->elm.rateFuel
+            , nel, "rateFuel", _AD_);
+    zero(mesh->elm.rateFuel, nel, DOUBLEC);
+
+/*... */
+    HccaAlloc(DOUBLE, m, mesh->elm.rateHeatReComb
+            , nel, "rateHeatCom", _AD_);
+    zero(mesh->elm.rateHeatReComb, nel, DOUBLEC);
+
+/*... */
+    HccaAlloc(DOUBLE, m, mesh->elm.yFrac
+            , nel*nSpPri, "yFrac", _AD_);
+    zero(mesh->elm.yFrac, nel*nSpPri, DOUBLEC);
+
+
+    if (mpiVar.nPrcs < 2)
+    {
+      if (fComb)
+      {
+        HccaAlloc(DOUBLE, m, mesh->elm.rCellComb
+          , nel*nComb, "rCellComb", _AD_);
+        zero(mesh->elm.rCellComb, nel*nComb, DOUBLEC);
+      }
+    }
 /*...................................................................*/
   }
 /*...................................................................*/
@@ -533,7 +615,7 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
       strcpy(macros[nmacro++],word);
       rflag[0] = true;
       fprintf(fileLogExc,"loading coordinates...\n");
-      readVfCoor(mesh->node.x,mesh->nnode,mesh->ndm,file);
+      readVfCoor(mesh->node.x,mesh->nnode,mesh->ndm,file);      
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
@@ -624,6 +706,43 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
       strcpy(str,"endLoadsT1");
       fprintf(fileLogExc,"loading loadsT1 ...\n");
       readVfLoads(loadsT1,str       ,file);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
+    }
+/*...................................................................*/
+
+/*... faceResZcomb */
+    else if((!strcmp(word,macro[9])) && (!rflag[9])){
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
+      strcpy(macros[nmacro++],word);
+      rflag[9] = true;
+      strcpy(str,"endFaceResZ");
+      fprintf(fileLogExc,"loading faceResZ ...\n");
+      readVfRes(mesh->elm.faceResZcomb,mesh->numel,mesh->maxViz+1,str,file);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
+    }
+/*...................................................................*/
+
+/*... faceLoadZcomb*/
+    else if((!strcmp(word,macro[10])) && (!rflag[10])){
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
+      strcpy(macros[nmacro++],word);
+      rflag[10] = true;
+      strcpy(str,"endFaceLoadZ");
+      fprintf(fileLogExc,"loading faceLoadZ ...\n");
+      readVfRes(mesh->elm.faceLoadZcomb,mesh->numel
+               ,mesh->maxViz+1       ,str       ,file);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
+    }
+/*...................................................................*/
+
+/*... loadZcomb*/
+    else if((!strcmp(word,macro[11])) && (!rflag[11])){
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
+      strcpy(macros[nmacro++],word);
+      rflag[11] = true;
+      strcpy(str,"endLoadsZ");
+      fprintf(fileLogExc,"loading loadsZ ...\n");
+      readVfLoads(loadsZcomb,str       ,file);
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
@@ -852,6 +971,17 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
     }
 /*...................................................................*/
 
+/*... uniformVel */
+    else if ((!strcmp(word, macro[32])) && (!rflag[32])) {
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
+      strcpy(macros[nmacro++], word);
+      rflag[32] = true;
+      fprintf(fileLogExc,"loading uniformZ ...\n");
+      uniformField(mesh->elm.zComb0, mesh->numel, nComb, file);        
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
+    }
+/*...................................................................*/
+
 /*... faceReKturb - condicao de contorno para problemas fluidos (Kturb)*/
     else if ((!strcmp(word, macro[33])) && (!rflag[33])) {
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
@@ -905,6 +1035,34 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
 
   }while(macroFlag && (!feof(file)));
   
+
+/*... combustao*/
+ if(fComb)
+  {
+/*...*/
+    alphaProdVector(1.e0             , mesh->elm.zComb0
+                 , mesh->numel*nComb , mesh->elm.zComb);
+/*...................................................................*/
+
+/*...*/
+    for(int i=0; i < nel ;i++)
+    {
+      MAT2D(i,0,mesh->elm.cDiffComb,3) = 1.0e-5; 
+      MAT2D(i,1,mesh->elm.cDiffComb,3) = 2.0e-5;
+      MAT2D(i,2,mesh->elm.cDiffComb,3) = 4.0e-5;
+    }
+/*...................................................................*/
+
+/*...*/
+    getSpeciesPrimitives(cModel
+                      ,mesh->elm.yFrac,mesh->elm.zComb
+                      ,mesh->numelNov);
+/*...................................................................*/  
+
+    propF->molarMass = mixtureMolarMass(cModel,mesh->elm.yFrac);            
+  }
+/*...................................................................*/
+
 /*... iniciacao de propriedades do material varaivel com o tempo*/
   if(mesh->ndfD[0] > 0) 
   {
@@ -1021,12 +1179,20 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
     }
     else
     {
-      getEnergyForTemp(&propF->sHeat
-                      ,mesh->elm.temp         ,mesh->elm.energy0
-                      ,mesh->elm.material.prop,mesh->elm.mat                        
-                      ,mesh->numel            
-                      ,propF->fSpecificHeat   ,energyModel->fKelvin
-                      ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);
+      if(fComb)
+        getEnergyForTempMix(&propF->sHeat          ,mesh->elm.yFrac
+                           ,mesh->elm.temp         ,mesh->elm.energy0
+                           ,mesh->elm.material.prop,mesh->elm.mat                        
+                           ,mesh->numel            ,cModel->nOfSpecies
+                           ,propF->fSpecificHeat   ,energyModel->fKelvin
+                           ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);
+      else
+        getEnergyForTemp(&propF->sHeat
+                        ,mesh->elm.temp         ,mesh->elm.energy0
+                        ,mesh->elm.material.prop,mesh->elm.mat                        
+                        ,mesh->numel            
+                        ,propF->fSpecificHeat   ,energyModel->fKelvin
+                        ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);
 /*...*/
       alphaProdVector(1.e0        ,mesh->elm.energy0
                      ,mesh->numel ,mesh->elm.energy);
@@ -1045,7 +1211,17 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
     if(propF->fDensity)
     {
 /*... inicia a massa especifica com o campo de temperatura inicial*/
-      initPropTemp(propF
+      if(fComb)
+        initPropTempMix(propF              ,cModel
+                    ,mesh->elm.densityFluid 
+                    ,mesh->elm.temp        ,mesh->elm.pressure0 
+                    ,mesh->elm.yFrac       ,mesh->elm.material.prop  
+                    ,mesh->elm.mat         ,cModel->nOfSpecies
+                    ,DENSITY_LEVEL         ,mesh->numel
+                    ,energyModel->fKelvin  ,DENSITY);
+
+      else
+        initPropTemp(propF
                   ,mesh->elm.densityFluid ,mesh->elm.temp 
                   ,mesh->elm.pressure0    ,mesh->elm.material.prop
                   ,mesh->elm.mat
@@ -1061,15 +1237,27 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
 
 /*... inicializando o calor especifico*/
     if(propF->fSpecificHeat)
-      initPropTemp(propF
-                  ,mesh->elm.specificHeat   ,mesh->elm.temp 
-                  ,mesh->elm.pressure0      ,mesh->elm.material.prop  
-                  ,mesh->elm.mat
-                  ,SHEAT_LEVEL              ,mesh->numel
-                  ,energyModel->fKelvin     ,SPECIFICHEATCAPACITYFLUID);
+    {
+      if(fComb)
+        initPropTempMix(propF              ,cModel
+                    ,mesh->elm.specificHeat 
+                    ,mesh->elm.temp        ,mesh->elm.pressure0 
+                    ,mesh->elm.yFrac       ,mesh->elm.material.prop  
+                    ,mesh->elm.mat         ,cModel->nOfSpecies
+                    ,SHEAT_LEVEL           ,mesh->numel
+                    ,energyModel->fKelvin  ,SPECIFICHEATCAPACITYFLUID);
+
+      else
+        initPropTemp(propF
+                    ,mesh->elm.specificHeat   ,mesh->elm.temp 
+                    ,mesh->elm.pressure0      ,mesh->elm.material.prop  
+                    ,mesh->elm.mat
+                    ,SHEAT_LEVEL              ,mesh->numel
+                    ,energyModel->fKelvin     ,SPECIFICHEATCAPACITYFLUID);
+    }
     else
       initProp(mesh->elm.specificHeat  
-             ,mesh->elm.material.prop,mesh->elm.mat
+             ,mesh->elm.material.prop  ,mesh->elm.mat
              ,SHEAT_LEVEL              ,mesh->numel
              ,SPECIFICHEATCAPACITYFLUID);
 /*...................................................................*/
@@ -1103,12 +1291,9 @@ void readFileFvMesh( Memoria *m             , Mesh *mesh
               ,TCONDUCTIVITY_LEVEL         ,mesh->numel
               ,THERMALCONDUCTIVITY);
 /*...................................................................*/
-
-
   }
 /*...................................................................*/
-
-
+ 
 }
 /*********************************************************************/
 
@@ -1252,16 +1437,24 @@ void readVfCoor(DOUBLE *x,INT nn, short ndm,FILE *file){
   long idum;
   int j;
  
-  for(i=0;i<nn;i++){
+  for(i=0;i<nn;i++)
+  {
     fscanf(file,"%ld",&idum);
     k = (INT) idum -1;
-    for(j=0;j<ndm;j++){
+    for(j=0;j<ndm;j++)
+    {
       fscanf(file,"%lf",&MAT2D(k,j,x,ndm));
     }
   }
 
+  for(i=0;i<nn;i++)
+  {
+    MAT2D(i,0,x,ndm) *= 0.5;
+    MAT2D(i,1,x,ndm) *= 0.5;
+    MAT2D(i,2,x,ndm) *= 0.25;
+  }
+
 //alphaProdVector(0.1,x,nn*ndm,x);
-  
 #ifdef _DEBUG_MESH_ 
   for(i=0;i<nn;i++){
     fprintf(stderr,"%ld",i+1);
@@ -2056,7 +2249,7 @@ void readPropVarFluid(PropVarFluid *p,FILE *file){
     }
 /*...................................................................*/
 
-/*... specific heat*/
+/*... sviscosidade dinamica*/
     else if(!strcmp(word, macros[2])){
       readMacroV2(file, word, false, true);
       p->fDynamicViscosity = true;  
@@ -2068,6 +2261,95 @@ void readPropVarFluid(PropVarFluid *p,FILE *file){
 /*...................................................................*/
 
 /*... condutiviade termica*/
+    else if(!strcmp(word, macros[3])){
+      readMacroV2(file, word, false, true);
+      p->fThermalconductivity = true;
+      if(!mpiVar.myId && p->fThermalconductivity)
+        fprintf(fileLogExc,"%-25s: %s\n","tCondutivity variation"
+                                        ,"Enable"); 
+      initThCondPol(&p->thCond, word, file);
+    }
+/*...................................................................*/
+    
+    readMacroV2(file, word, false, true);
+  }while(strcmp(word,str));
+
+}
+/*********************************************************************/ 
+
+/*********************************************************************
+ * Data de criacao    : 19/08/2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------* 
+ * readPropVarMixture : propriedades variaveis de uma mistura gasosa * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * p       ->                                                        *
+ * file    -> arquivo de arquivo                                     * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * p       ->                                                        * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void readPropVarMixture(PropVarFluid *p,FILE *file)
+{
+
+  char *str={"endmixture"};
+  char macros[][WORD_SIZE] =
+       { "sheat"       ,"density"   ,"dviscosity"   /* 0, 1, 2*/
+        ,"tcondutivity",""          ,""         };  /* 3, 4, 5*/
+  char word[WORD_SIZE];
+
+/*...*/
+  p->fDensity           = false;
+  p->fSpecificHeat      = false;
+  p->fDynamicViscosity  = false;
+  p->fThermalconductivity = false;
+/*...................................................................*/
+
+  readMacroV2(file,word,false,true);
+  do
+  {
+/*... specific heat*/
+    if(!strcmp(word,macros[0]))
+    {
+      readMacroV2(file, word, false, true);
+      p->fSpecificHeat = true;
+      if(!mpiVar.myId && p->fSpecificHeat) 
+        fprintf(fileLogExc,"%-25s: %s\n","sHeat variation","Enable\n");
+      initMixtureSpeciesfiHeat(&p->sHeat, word, file);
+      
+    }
+/*...................................................................*/
+
+/*... densidade*/
+    else if(!strcmp(word,macros[1]))
+    {
+      readMacroV2(file, word, false, true);
+      p->fDensity = true;
+      if(!mpiVar.myId && p->fDensity) 
+        fprintf(fileLogExc,"%-25s: %s\n","Density variation","Enable");
+      initDensityPol(&p->den,word,file);
+    }
+/*...................................................................*/
+
+/*... viscosiade dinamica*/
+    else if(!strcmp(word, macros[2]))
+    {
+      readMacroV2(file, word, false, true);
+      p->fDynamicViscosity = true;  
+      if(!mpiVar.myId && p->fDynamicViscosity)
+        fprintf(fileLogExc,"%-25s: %s\n","dViscosity variation"
+                          ,"Enable");
+      initDviscosityPol(&p->dVisc, word, file);
+    }
+/*...................................................................*/
+
+/*... condutividade termica*/
     else if(!strcmp(word, macros[3])){
       readMacroV2(file, word, false, true);
       p->fThermalconductivity = true;
@@ -2210,7 +2492,7 @@ void readPropVarTrans(PropVarCD *p, FILE *file)
 
 /*********************************************************************
  * Data de criacao    : 19/06/2018                                   *
- * Data de modificaco : 10/07/2018                                   *
+ * Data de modificaco : 19/08/2018                                   *
  *-------------------------------------------------------------------*
  * READPROPVAR : propriedades variaveis                              *
  *-------------------------------------------------------------------*
@@ -2233,7 +2515,8 @@ void readPropVar(PropVarFluid *pf, PropVarCD *pd, PropVarCD *pt, FILE *file)
 {
 
   char *str = { "endpropvar" };
-  char macros[][WORD_SIZE] = { "diff","trans","fluid"};  /* 0, 1, 2*/
+  char macros[][WORD_SIZE] = { "diff"   ,"trans","fluid"  /* 0, 1, 2*/
+                              ,"mixture"};                /* 3      */
   char word[WORD_SIZE];
 
   readMacroV2(file, word, false, true);
@@ -2252,6 +2535,11 @@ void readPropVar(PropVarFluid *pf, PropVarCD *pd, PropVarCD *pt, FILE *file)
 /*... Fluid*/
     else if (!strcmp(word, macros[2]))
       readPropVarFluid(pf, file);
+/*...................................................................*/
+
+/*... mixute*/
+    else if (!strcmp(word, macros[3]))
+      readPropVarMixture(pf, file);
 /*...................................................................*/
 
     readMacroV2(file, word, false, true);
@@ -2895,7 +3183,11 @@ void setPrint(FileOpt *opt,FILE *file){
                ,"kturb"        ,"pkelvin"     ,"ud1"             /*21,22,23*/
                ,"gradud1"      ,"ut1"         ,"gradut1"         /*24,25,26*/
                ,"densityd1"    ,"coefdiffd1"  ,"densityt1"       /*27,28,29*/
-               ,"coefdifft1"};                                   /*30,31,32*/
+               ,"coefdifft1"   ,"zcomb"       ,"gradzcomb"       /*30,31,32*/
+               ,"ratefuel"     ,"yfrac"       ,"rateheatcomb"    /*33,34,35*/                  
+               ,""             ,""            ,""                /*36,37,38*/
+               ,""             ,""            ,""                /*39,40,41*/
+               ,""             ,""            ,""};              /*42,43,44*/
   int tmp;
 
   strcpy(format,"%-20s: %s\n");
@@ -3152,6 +3444,46 @@ void setPrint(FileOpt *opt,FILE *file){
     {
       opt->coefDiffT1 = true;
       if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "coefDiffT1");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[31]))
+    {
+      opt->zComb = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "zComb");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[32]))
+    {
+      opt->gradZcomb = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "gradZcomb");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[33]))
+    {
+      opt->rateFuel = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "rateFuel");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[34]))
+    {
+      opt->yFrac = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "yFrac");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[35]))
+    {
+      opt->rateHeatComb = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "rateHeatCombustion");
     }
 /*.....................................................................*/
 
@@ -3955,6 +4287,7 @@ void readSetSimple(Memoria *m    , FILE *fileIn
     simple->tolEnergy    = 1.e-06;
     simple->alphaEnergy  = 1.e0;
     simple->alphaDensity = 1.0e0; 
+    simple->alphaComb    = 1.0e0;
   }
   simple->pSimple         = 500;
 /*...................................................................*/
@@ -4050,15 +4383,15 @@ void readSetPrime(Memoria *m    , FILE *fileIn
   prime->tolPres = 1.e-04;
   prime->tolVel = 1.e-04;
   prime->pPrime = 10;
-  /*...................................................................*/
+/*...................................................................*/
 
-  /*...*/
+/*...*/
   readMacro(fileIn, word, false);
   if (!strcmp(word, "config:"))
     setPrimeScheme(word, prime, fileIn);
-  /*...................................................................*/
+/*...................................................................*/
 
-  /*...*/
+/*...*/
   HccaAlloc(DOUBLE, m, prime->d
     , mesh->numel*mesh->ndm, "dField", false);
   zero(prime->d, mesh->numel*mesh->ndm, DOUBLEC);
@@ -4114,7 +4447,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
                  , Solv *solvVel   , SistEq* sistEqVel   , bool *fSolvVel
                  , Solv *solvPres  , SistEq* sistEqPres  , bool *fSolvPres
                  , Solv *solvEnergy, SistEq* sistEqEnergy, bool *fSolvEnergy
-                 , Solv *solvKturb , SistEq* sistEqKturb , bool *fSolvKturb
+                 , Solv *solvKturb , SistEq* sistEqKturb , bool *fSolvKturb                 
                  , char* auxName   , char* preName       , char* nameOut
                  , FILE *fileIn    , FileOpt *opt)
 {
@@ -4133,10 +4466,12 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*... solver*/
   readMacro(fileIn, word, false);
   nSistEq = (short)atol(word);
-  do {
+  do 
+  {
     readMacro(fileIn, word, false);
 /*... velocidade*/
-    if (!strcmp(word, "Vel") || !strcmp(word, "vel")) {
+    if (!strcmp(word, "Vel") || !strcmp(word, "vel")) 
+    {
       nSistEq--;
       *fSolvVel = true;
       solvVel->solver = PBICGSTAB;
@@ -4148,7 +4483,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...................................................................*/
 
 /*...*/
-      if (solvVel->log && !mpiVar.myId) {
+      if (solvVel->log && !mpiVar.myId) 
+      {
         strcpy(auxName, preName);
         strcat(auxName, "_fluid_vel");
         fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
@@ -4173,7 +4509,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       HccaAlloc(INT, m, sistEqVel->id
         , mesh->numel
         , "sistVelid", _AD_);
-      if (!mpiVar.myId) {
+      if (!mpiVar.myId) 
+      {
         fprintf(fileLogExc, "%s\n", DIF);
         fprintf(fileLogExc, "Numerando as equacoes.\n");
       }
@@ -4182,14 +4519,16 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         , mesh->numel);
       tm.numeqVel = getTimeC() - tm.numeqVel;
 
-      if (!mpiVar.myId) {
+      if (!mpiVar.myId) 
+      {
         fprintf(fileLogExc, "Equacoes numeradas.\n");
         fprintf(fileLogExc, "%s\n", DIF);
       }
 /*...................................................................*/
 
 /*...*/
-      if (mpiVar.nPrcs > 1) {
+      if (mpiVar.nPrcs > 1) 
+      {
         //          tm.numeqPres = getTimeC() - tm.numeqPres;
         //      sistEqT1->neqNov = countEq(reordMesh->num
         //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
@@ -4238,7 +4577,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*... dividindo a matriz*/
 /*... Openmp(Vel,Pres)*/
-      if (ompVar.fSolver) {
+      if (ompVar.fSolver) 
+      {
         strcpy(str1, "thBeginVel");
         strcpy(str2, "thEndVel");
         strcpy(str3, "thSizeVel");
@@ -4250,7 +4590,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...................................................................*/
 
 /*...*/
-    else if (!strcmp(word, "Pres") || !strcmp(word, "pres")) {
+    else if (!strcmp(word, "Pres") || !strcmp(word, "pres")) 
+    {
       nSistEq--;
       *fSolvPres = true;
       solvPres->solver = PCG;
@@ -4262,7 +4603,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...................................................................*/
 
 /*...*/
-      if (solvPres->log && !mpiVar.myId) {
+      if (solvPres->log && !mpiVar.myId) 
+      {
         strcpy(auxName, preName);
         strcat(auxName, "_fluid_pres");
         fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
@@ -4288,7 +4630,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       HccaAlloc(INT, m, sistEqPres->id
         , mesh->numel
         , "sistPresid", _AD_);
-      if (!mpiVar.myId) {
+      if (!mpiVar.myId) 
+      {
         fprintf(fileLogExc, "%s\n", DIF);
         fprintf(fileLogExc, "Numerando as equacoes.\n");
       }
@@ -4297,14 +4640,16 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         , mesh->elm.faceRpres, mesh->elm.adj.nViz
         , mesh->numel, mesh->maxViz);
       tm.numeqPres = getTimeC() - tm.numeqPres;
-      if (!mpiVar.myId) {
+      if (!mpiVar.myId) 
+      {
         fprintf(fileLogExc, "Equacoes numeradas.\n");
         fprintf(fileLogExc, "%s\n", DIF);
       }
 /*...................................................................*/
 
 /*...*/
-      if (mpiVar.nPrcs > 1) {
+      if (mpiVar.nPrcs > 1) 
+      {
         //          tm.numeqPres = getTimeC() - tm.numeqPres;
         //      sistEqT1->neqNov = countEq(reordMesh->num
         //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
@@ -4348,7 +4693,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...................................................................*/
 
 /*... Openmp(Vel,Pres)*/
-      if (ompVar.fSolver) {
+      if (ompVar.fSolver) 
+      {
 /*... dividindo a matriz*/
         strcpy(str1, "thBeginPres");
         strcpy(str2, "thEndPres");
@@ -4361,7 +4707,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...................................................................*/
 
 /*... energy*/
-    else if (!strcmp(word, "Energy") || !strcmp(word, "energy")) {
+    else if (!strcmp(word, "Energy") || !strcmp(word, "energy")) 
+    {
       nSistEq--;
 /*... inicializando a estrutura de equacoes do problema (ENERGY)*/
       *fSolvEnergy = true;
@@ -4374,7 +4721,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...................................................................*/
 
 /*...*/
-      if (solvEnergy->log && !mpiVar.myId) {
+      if (solvEnergy->log && !mpiVar.myId) 
+      {
         strcpy(auxName, preName);
         strcat(auxName, "_fluid_energy");
         fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
@@ -4400,7 +4748,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       HccaAlloc(INT, m, sistEqEnergy->id
         , mesh->numel
         , "sistEnergyId", _AD_);
-      if (!mpiVar.myId) {
+      if (!mpiVar.myId) 
+      {
         fprintf(fileLogExc, "%s\n", DIF);
         fprintf(fileLogExc, "Numerando as equacoes.\n");
       }
@@ -4409,14 +4758,16 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         , mesh->numel);
       tm.numeqEnergy = getTimeC() - tm.numeqEnergy;
 
-      if (!mpiVar.myId) {
+      if (!mpiVar.myId) 
+      {
         fprintf(fileLogExc, "Equacoes numeradas.\n");
         fprintf(fileLogExc, "%s\n", DIF);
       }
 /*...................................................................*/
 
 /*...*/
-      if (mpiVar.nPrcs > 1) {
+      if (mpiVar.nPrcs > 1) 
+      {
         //          tm.numeqPres = getTimeC() - tm.numeqPres;
         //      sistEqT1->neqNov = countEq(reordMesh->num
         //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
@@ -4446,7 +4797,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       strcpy(strAd, "adEnergy");
       strcpy(strA, "aEnergy");
 
-      if (!mpiVar.myId) {
+      if (!mpiVar.myId) 
+      {
         fprintf(fileLogExc, "Energy:\n");
         fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
       }
@@ -4469,7 +4821,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*... dividindo a matriz*/
 /*... Openmp(energy)*/
-      if (ompVar.fSolver) {
+      if (ompVar.fSolver) 
+      {
         strcpy(str1, "thBeginEnergy");
         strcpy(str2, "thEndEnergy");
         strcpy(str3, "thSizeEnergy");
@@ -4481,7 +4834,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...................................................................*/
 
 /*... kTurb*/
-    else if (!strcmp(word, "kTurb") || !strcmp(word, "kturb")) {
+    else if (!strcmp(word, "kTurb") || !strcmp(word, "kturb")) 
+    {
       nSistEq--;
 /*... inicializando a estrutura de equacoes do problema
       (energica cinetica turbulenta)*/
@@ -4495,7 +4849,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...................................................................*/
 
 /*...*/
-      if (solvKturb->log && !mpiVar.myId) {
+      if (solvKturb->log && !mpiVar.myId) 
+      {
         strcpy(auxName, preName);
         strcat(auxName, "_fluid_kturb");
         fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
@@ -4521,7 +4876,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       HccaAlloc(INT, m, sistEqKturb->id
         , mesh->numel
         , "sistKturbId", _AD_);
-      if (!mpiVar.myId) {
+      if (!mpiVar.myId) 
+      {
         fprintf(fileLogExc, "%s\n", DIF);
         fprintf(fileLogExc, "Numerando as equacoes.\n");
       }
@@ -4530,14 +4886,16 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         , mesh->numel);
       tm.turbulence = getTimeC() - tm.turbulence;
 
-      if (!mpiVar.myId) {
+      if (!mpiVar.myId)
+      {
         fprintf(fileLogExc, "Equacoes numeradas.\n");
         fprintf(fileLogExc, "%s\n", DIF);
       }
 /*...................................................................*/
 
 /*...*/
-      if (mpiVar.nPrcs > 1) {
+      if (mpiVar.nPrcs > 1)
+      {
         //          tm.numeqPres = getTimeC() - tm.numeqPres;
         //      sistEqT1->neqNov = countEq(reordMesh->num
         //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
@@ -4567,7 +4925,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       strcpy(strAd, "adKturb");
       strcpy(strA, "akTurb");
 
-      if (!mpiVar.myId) {
+      if (!mpiVar.myId) 
+      {
         fprintf(fileLogExc, "Kturb:\n");
         fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
       }
@@ -4590,7 +4949,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*... dividindo a matriz*/
 /*... Openmp(energy)*/
-      if (ompVar.fSolver) {
+      if (ompVar.fSolver)
+      {
         strcpy(str1, "thBeginKturb");
         strcpy(str2, "thEndKturb");
         strcpy(str3, "thSizeKturb");
@@ -4624,47 +4984,62 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...................................................................*/
 
 /*... Openmp(Vel,Pres)*/
-  if (ompVar.fSolver) {
+  if (ompVar.fSolver) 
+  {
 /*... alocando o buffer*/
-    if (*fSolvPres && *fSolvVel && *fSolvEnergy && *fSolvKturb) {
+    if (*fSolvPres && *fSolvVel && *fSolvEnergy && *fSolvKturb) 
+    {   
       nEqMax = max(sistEqPres->neqNov, sistEqVel->neqNov);
       nEqMax = max(sistEqEnergy->neqNov, nEqMax);
       nEqMax = max(sistEqKturb->neqNov, nEqMax);
+      nEqMax = max(nEqMax, ompVar.nEqMax);
+      ompVar.nEqMax = nEqMax;
       HccaAlloc(DOUBLE, m, ompVar.buffer
         , nEqMax*ompVar.nThreadsSolver, "bufferOmp", false);
       zero(ompVar.buffer, nEqMax*ompVar.nThreadsSolver, DOUBLEC);
-      sistEqPres->omp.thY = ompVar.buffer;
-      sistEqVel->omp.thY = ompVar.buffer;
+      sistEqPres->omp.thY   = ompVar.buffer;
+      sistEqVel->omp.thY    = ompVar.buffer;
       sistEqEnergy->omp.thY = ompVar.buffer;
-      sistEqKturb->omp.thY = ompVar.buffer;
+      sistEqKturb->omp.thY  = ompVar.buffer;
     }
 /*... alocando o buffer*/
-    else if (*fSolvPres && *fSolvVel && *fSolvEnergy) {
+    else if (*fSolvPres && *fSolvVel && *fSolvEnergy)
+    {
       nEqMax = max(sistEqPres->neqNov, sistEqVel->neqNov);
       nEqMax = max(sistEqEnergy->neqNov, nEqMax);
+      nEqMax = max(nEqMax, ompVar.nEqMax);
+      ompVar.nEqMax = nEqMax;
       HccaAlloc(DOUBLE, m, ompVar.buffer
         , nEqMax*ompVar.nThreadsSolver, "bufferOmp", false);
       zero(ompVar.buffer, nEqMax*ompVar.nThreadsSolver, DOUBLEC);
-      sistEqPres->omp.thY = ompVar.buffer;
-      sistEqVel->omp.thY = ompVar.buffer;
+      sistEqPres->omp.thY   = ompVar.buffer;
+      sistEqVel->omp.thY    = ompVar.buffer;
       sistEqEnergy->omp.thY = ompVar.buffer;
     }
 
 /*... alocando o buffer*/
-    else if (*fSolvPres && *fSolvVel) {
+    else if (*fSolvPres && *fSolvVel) 
+    {
       nEqMax = max(sistEqPres->neqNov, sistEqVel->neqNov);
+      nEqMax = max(nEqMax, ompVar.nEqMax);
+      ompVar.nEqMax = nEqMax;
       HccaAlloc(DOUBLE, m, ompVar.buffer
         , nEqMax*ompVar.nThreadsSolver, "bufferOmp", false);
       zero(ompVar.buffer, nEqMax*ompVar.nThreadsSolver, DOUBLEC);
+      ompVar.nEqMax = nEqMax;
       sistEqPres->omp.thY = ompVar.buffer;
-      sistEqVel->omp.thY = ompVar.buffer;
+      sistEqVel->omp.thY  = ompVar.buffer;
     }
 /*... alocando o buffer*/
-    else if (*fSolvPres) {
+    else if (*fSolvPres)
+    {
       nEqMax = sistEqPres->neqNov;
+      nEqMax = max(nEqMax, ompVar.nEqMax);
+      ompVar.nEqMax = nEqMax;
       HccaAlloc(DOUBLE, m, ompVar.buffer
         , nEqMax*ompVar.nThreadsSolver, "bufferOmp", false);
       zero(ompVar.buffer, nEqMax*ompVar.nThreadsSolver, DOUBLEC);
+      ompVar.nEqMax = nEqMax;
       sistEqPres->omp.thY = ompVar.buffer;
     }
   }
@@ -4677,7 +5052,750 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...................................................................*/
 
 /*... informacao da memoria total usada*/
-  if (!mpiVar.myId) {
+  if (!mpiVar.myId) 
+  {
+    strcpy(str1, "MB");
+    memoriaTotal(str1);
+    usoMemoria(m, str1);
+  }
+/*...................................................................*/
+
+}
+/**********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 30/07/2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * readSolvComb   leitura das configuracoes do solvers utilizados    *
+ * no modelo de combustao                                            *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
+                , Solv *solvVel   , SistEq* sistEqVel   , bool *fSolvVel
+                , Solv *solvPres  , SistEq* sistEqPres  , bool *fSolvPres
+                , Solv *solvEnergy, SistEq* sistEqEnergy, bool *fSolvEnergy
+                , Solv *solvKturb , SistEq* sistEqKturb , bool *fSolvKturb
+                , Solv *solvComb  , SistEq* sistEqComb  , bool *fSolvComb
+                , char* auxName   , char* preName       , char* nameOut
+                , FILE *fileIn    , FileOpt *opt)
+{
+
+  unsigned short nComb, ndfVel, nSistEq;
+
+  INT nEqMax;
+/*... Estrutura de dados*/
+  char strIa[MNOMEPONTEIRO], strJa[MNOMEPONTEIRO];
+  char strA[MNOMEPONTEIRO], strAd[MNOMEPONTEIRO];
+
+  char str1[100], str2[100], str3[100], str4[100];
+
+  char word[WORD_SIZE];
+
+/*... solver*/
+  readMacro(fileIn, word, false);
+  nSistEq = (short)atol(word);
+  do
+  {
+    readMacro(fileIn, word, false);
+/*... velocidade*/
+    if (!strcmp(word, "Vel") || !strcmp(word, "vel"))
+    {
+      nSistEq--;
+      *fSolvVel = true;
+      solvVel->solver = PBICGSTAB;
+      solvVel->tol = smachn();
+      solvVel->maxIt = 50000;
+      solvVel->fileSolv = NULL;
+      solvVel->log = true;
+      solvVel->flag = true;
+/*...................................................................*/
+
+/*...*/
+      if (solvVel->log && !mpiVar.myId)
+      {
+        strcpy(auxName, preName);
+        strcat(auxName, "_fluid_vel");
+        fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
+        solvVel->fileSolv = openFile(nameOut, "w");
+      }
+/*...................................................................*/
+
+      sistEqVel->unsym = true;
+/*...................................................................*/
+
+/*... solver*/
+      readMacro(fileIn, word, false);
+      setSolverConfig(word, solvVel, fileIn);
+/*...................................................................*/
+
+/*... DataStruct*/
+      readMacro(fileIn, word, false);
+      setDataStruct(word, &sistEqVel->storage);
+/*...................................................................*/
+
+/*... numeracao das equacoes das velocidades*/
+      HccaAlloc(INT, m, sistEqVel->id
+        , mesh->numel
+        , "sistVelid", _AD_);
+      if (!mpiVar.myId)
+      {
+        fprintf(fileLogExc, "%s\n", DIF);
+        fprintf(fileLogExc, "Numerando as equacoes.\n");
+      }
+      tm.numeqVel = getTimeC() - tm.numeqVel;
+      sistEqVel->neq = numEqV1(sistEqVel->id, reordMesh->num
+        , mesh->numel);
+      tm.numeqVel = getTimeC() - tm.numeqVel;
+
+      if (!mpiVar.myId)
+      {
+        fprintf(fileLogExc, "Equacoes numeradas.\n");
+        fprintf(fileLogExc, "%s\n", DIF);
+      }
+/*...................................................................*/
+
+/*...*/
+      if (mpiVar.nPrcs > 1)
+      {
+        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+        //      sistEqT1->neqNov = countEq(reordMesh->num
+        //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
+        //                          ,mesh->numelNov     ,mesh->maxViz
+        //                          ,mesh->ndfT[0]);
+        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+      }
+      else
+        sistEqVel->neqNov = sistEqVel->neq;
+/*...................................................................*/
+
+/*... velovidades*/
+      ndfVel = max(mesh->ndfF - 1, mesh->ndfFt - 2);
+/*...................................................................*/
+      HccaAlloc(DOUBLE, m, sistEqVel->b0
+        , sistEqVel->neq*ndfVel, "sistVelb0", _AD_);
+      HccaAlloc(DOUBLE, m, sistEqVel->b
+        , sistEqVel->neq*ndfVel, "sistVelb ", _AD_);
+      HccaAlloc(DOUBLE, m, sistEqVel->x
+        , sistEqVel->neq*ndfVel, "sistVelx ", _AD_);
+      zero(sistEqVel->b0, sistEqVel->neq*ndfVel, DOUBLEC);
+      zero(sistEqVel->b, sistEqVel->neq*ndfVel, DOUBLEC);
+      zero(sistEqVel->x, sistEqVel->neq*ndfVel, DOUBLEC);
+/*...................................................................*/
+
+/*... Estrutura de dados velocidades*/
+      strcpy(strIa, "iaVel");
+      strcpy(strJa, "jaVel");
+      strcpy(strAd, "adVel");
+      strcpy(strA, "aVel");
+
+      if (!mpiVar.myId) fprintf(fileLogExc, "Vel:\n");
+      if (!mpiVar.myId)
+        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
+
+      tm.dataStructVel = getTimeC() - tm.dataStructVel;
+      dataStructSimple(m, sistEqVel->id, reordMesh->num
+        , mesh->elm.adj.nelcon
+        , mesh->elm.adj.nViz, mesh->numelNov, mesh->maxViz
+        , ndfVel, strIa, strJa
+        , strAd, strA, sistEqVel);
+      tm.dataStructVel = getTimeC() - tm.dataStructVel;
+
+      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+/*...................................................................*/
+
+/*... dividindo a matriz*/
+/*... Openmp(Vel,Pres)*/
+      if (ompVar.fSolver)
+      {
+        strcpy(str1, "thBeginVel");
+        strcpy(str2, "thEndVel");
+        strcpy(str3, "thSizeVel");
+        strcpy(str4, "thHeightVel");
+        pMatrixSolverOmp(m, sistEqVel, str1, str2, str3, str4);
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*...*/
+    else if (!strcmp(word, "Pres") || !strcmp(word, "pres"))
+    {
+      nSistEq--;
+      *fSolvPres = true;
+      solvPres->solver = PCG;
+      solvPres->tol = smachn();
+      solvPres->maxIt = 50000;
+      solvPres->fileSolv = NULL;
+      solvPres->log = true;
+      solvPres->flag = true;
+/*...................................................................*/
+
+/*...*/
+      if (solvPres->log && !mpiVar.myId)
+      {
+        strcpy(auxName, preName);
+        strcat(auxName, "_fluid_pres");
+        fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
+        solvPres->fileSolv = openFile(nameOut, "w");
+      }
+/*...................................................................*/
+
+/*... inicializa a estrutura do solver(PRESSAO)*/
+      sistEqPres->unsym = false;
+/*...................................................................*/
+
+/*... solver*/
+      readMacro(fileIn, word, false);
+      setSolverConfig(word, solvPres, fileIn);
+/*...................................................................*/
+
+/*... DataStruct*/
+      readMacro(fileIn, word, false);
+      setDataStruct(word, &sistEqPres->storage);
+/*...................................................................*/
+
+/*... numeracao das equacoes das pressoes*/
+      HccaAlloc(INT, m, sistEqPres->id
+        , mesh->numel
+        , "sistPresid", _AD_);
+      if (!mpiVar.myId)
+      {
+        fprintf(fileLogExc, "%s\n", DIF);
+        fprintf(fileLogExc, "Numerando as equacoes.\n");
+      }
+      tm.numeqPres = getTimeC() - tm.numeqPres;
+      sistEqPres->neq = numEqV2(sistEqPres->id, reordMesh->num
+        , mesh->elm.faceRpres, mesh->elm.adj.nViz
+        , mesh->numel, mesh->maxViz);
+      tm.numeqPres = getTimeC() - tm.numeqPres;
+      if (!mpiVar.myId)
+      {
+        fprintf(fileLogExc, "Equacoes numeradas.\n");
+        fprintf(fileLogExc, "%s\n", DIF);
+      }
+/*...................................................................*/
+
+/*...*/
+      if (mpiVar.nPrcs > 1)
+      {
+        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+        //      sistEqT1->neqNov = countEq(reordMesh->num
+        //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
+        //                          ,mesh->numelNov     ,mesh->maxViz
+        //                          ,mesh->ndfT[0]);
+        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+      }
+      else
+        sistEqPres->neqNov = sistEqPres->neq;
+/*...................................................................*/
+
+/*... pressoes*/
+      HccaAlloc(DOUBLE, m, sistEqPres->b0
+        , sistEqPres->neq, "sistPresb0", _AD_);
+      HccaAlloc(DOUBLE, m, sistEqPres->b
+        , sistEqPres->neq, "sistPresb ", _AD_);
+      HccaAlloc(DOUBLE, m, sistEqPres->x
+        , sistEqPres->neq, "sistPresx ", _AD_);
+      zero(sistEqPres->b0, sistEqPres->neq, DOUBLEC);
+      zero(sistEqPres->b, sistEqPres->neq, DOUBLEC);
+      zero(sistEqPres->x, sistEqPres->neq, DOUBLEC);
+/*...................................................................*/
+
+/*... Estrutura de dados pressoes*/
+      strcpy(strIa, "iaPres");
+      strcpy(strJa, "japres");
+      strcpy(strAd, "adPres");
+      strcpy(strA, "aPres");
+
+      if (!mpiVar.myId) fprintf(fileLogExc, "Pres:\n");
+      if (!mpiVar.myId)
+        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
+
+      tm.dataStructPres = getTimeC() - tm.dataStructPres;
+      dataStruct(m, sistEqPres->id, reordMesh->num, mesh->elm.adj.nelcon
+        , mesh->elm.adj.nViz, mesh->numelNov, mesh->maxViz
+        , 1, strIa, strJa
+        , strAd, strA, sistEqPres);
+      tm.dataStructPres = getTimeC() - tm.dataStructPres;
+      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+/*...................................................................*/
+
+/*... Openmp(Vel,Pres)*/
+      if (ompVar.fSolver)
+      {
+/*... dividindo a matriz*/
+        strcpy(str1, "thBeginPres");
+        strcpy(str2, "thEndPres");
+        strcpy(str3, "thSizePres");
+        strcpy(str4, "thHeightPres");
+        pMatrixSolverOmp(m, sistEqPres, str1, str2, str3, str4);
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*... energy*/
+    else if (!strcmp(word, "Energy") || !strcmp(word, "energy"))
+    {
+      nSistEq--;
+/*... inicializando a estrutura de equacoes do problema (ENERGY)*/
+      *fSolvEnergy = true;
+      solvEnergy->solver = PBICGSTAB;
+      solvEnergy->tol = smachn();
+      solvEnergy->maxIt = 50000;
+      solvEnergy->fileSolv = NULL;
+      solvEnergy->log = true;
+      solvEnergy->flag = true;
+/*...................................................................*/
+
+/*...*/
+      if (solvEnergy->log && !mpiVar.myId)
+      {
+        strcpy(auxName, preName);
+        strcat(auxName, "_fluid_energy");
+        fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
+        solvEnergy->fileSolv = openFile(nameOut, "w");
+      }
+/*...................................................................*/
+
+/*... inicializa a estrutura do solver(Energia)*/
+      sistEqEnergy->unsym = true;
+/*...................................................................*/
+
+/*... solver*/
+      readMacro(fileIn, word, false);
+      setSolverConfig(word, solvEnergy, fileIn);
+/*...................................................................*/
+
+/*... DataStruct*/
+      readMacro(fileIn, word, false);
+      setDataStruct(word, &sistEqEnergy->storage);
+/*...................................................................*/
+
+/*... numeracao das equacoes das Energy*/
+      HccaAlloc(INT, m, sistEqEnergy->id
+        , mesh->numel
+        , "sistEnergyId", _AD_);
+      if (!mpiVar.myId)
+      {
+        fprintf(fileLogExc, "%s\n", DIF);
+        fprintf(fileLogExc, "Numerando as equacoes.\n");
+      }
+      tm.numeqEnergy = getTimeC() - tm.numeqEnergy;
+      sistEqEnergy->neq = numEqV1(sistEqEnergy->id, reordMesh->num
+        , mesh->numel);
+      tm.numeqEnergy = getTimeC() - tm.numeqEnergy;
+
+      if (!mpiVar.myId)
+      {
+        fprintf(fileLogExc, "Equacoes numeradas.\n");
+        fprintf(fileLogExc, "%s\n", DIF);
+      }
+/*...................................................................*/
+
+/*...*/
+      if (mpiVar.nPrcs > 1)
+      {
+        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+        //      sistEqT1->neqNov = countEq(reordMesh->num
+        //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
+        //                          ,mesh->numelNov     ,mesh->maxViz
+        //                          ,mesh->ndfT[0]);
+        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+      }
+      else
+        sistEqEnergy->neqNov = sistEqEnergy->neq;
+/*...................................................................*/
+
+/*... energia*/
+      HccaAlloc(DOUBLE, m, sistEqEnergy->b0
+        , sistEqEnergy->neq, "sistEnergy0", _AD_);
+      HccaAlloc(DOUBLE, m, sistEqEnergy->b
+        , sistEqEnergy->neq, "sistEnergyb ", _AD_);
+      HccaAlloc(DOUBLE, m, sistEqEnergy->x
+        , sistEqEnergy->neq, "sistEnergyx ", _AD_);
+      zero(sistEqEnergy->b0, sistEqEnergy->neq, DOUBLEC);
+      zero(sistEqEnergy->b, sistEqEnergy->neq, DOUBLEC);
+      zero(sistEqEnergy->x, sistEqEnergy->neq, DOUBLEC);
+/*...................................................................*/
+
+/*... Estrutura de dados energia*/
+      strcpy(strIa, "iaEnergy");
+      strcpy(strJa, "jaEnergy");
+      strcpy(strAd, "adEnergy");
+      strcpy(strA, "aEnergy");
+
+      if (!mpiVar.myId)
+      {
+        fprintf(fileLogExc, "Energy:\n");
+        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
+      }
+
+      tm.dataStructEnergy = getTimeC() - tm.dataStructEnergy;
+//        dataStructSimple(&m,sistEqEnergy->id ,reordMesh->num
+//                        ,mesh->elm.adj.nelcon
+//                        ,mesh->elm.adj.nViz  ,mesh->numelNov,mesh->maxViz  
+//                       ,1                   ,strIa         ,strJa
+//                       ,strAd               ,strA          ,sistEqEnergy);
+      dataStruct(m, sistEqEnergy->id, reordMesh->num
+        , mesh->elm.adj.nelcon
+        , mesh->elm.adj.nViz, mesh->numelNov, mesh->maxViz
+        , 1, strIa, strJa
+        , strAd, strA, sistEqEnergy);
+      tm.dataStructEnergy = getTimeC() - tm.dataStructEnergy;
+
+      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+/*...................................................................*/
+
+/*... dividindo a matriz*/
+/*... Openmp(energy)*/
+      if (ompVar.fSolver)
+      {
+        strcpy(str1, "thBeginEnergy");
+        strcpy(str2, "thEndEnergy");
+        strcpy(str3, "thSizeEnergy");
+        strcpy(str4, "thHeightEnergy");
+        pMatrixSolverOmp(m, sistEqEnergy, str1, str2, str3, str4);
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*... kTurb*/
+    else if (!strcmp(word, "kTurb") || !strcmp(word, "kturb"))
+    {
+      nSistEq--;
+/*... inicializando a estrutura de equacoes do problema
+      (energica cinetica turbulenta)*/
+      *fSolvKturb = true;
+      solvKturb->solver = PBICGSTAB;
+      solvKturb->tol = smachn();
+      solvKturb->maxIt = 50000;
+      solvKturb->fileSolv = NULL;
+      solvKturb->log = true;
+      solvKturb->flag = true;
+/*...................................................................*/
+
+/*...*/
+      if (solvKturb->log && !mpiVar.myId)
+      {
+        strcpy(auxName, preName);
+        strcat(auxName, "_fluid_kturb");
+        fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
+        solvKturb->fileSolv = openFile(nameOut, "w");
+      }
+/*...................................................................*/
+
+/*... inicializa a estrutura do solver(Energia cinetica turbulenta)*/
+      sistEqKturb->unsym = true;
+/*...................................................................*/
+
+/*... solver*/
+      readMacro(fileIn, word, false);
+      setSolverConfig(word, solvKturb, fileIn);
+/*...................................................................*/
+
+/*... DataStruct*/
+      readMacro(fileIn, word, false);
+      setDataStruct(word, &sistEqKturb->storage);
+/*...................................................................*/
+
+/*... numeracao das equacoes (Energia cinetica turbulenta)*/
+      HccaAlloc(INT, m, sistEqKturb->id
+        , mesh->numel
+        , "sistKturbId", _AD_);
+      if (!mpiVar.myId)
+      {
+        fprintf(fileLogExc, "%s\n", DIF);
+        fprintf(fileLogExc, "Numerando as equacoes.\n");
+      }
+      tm.turbulence = getTimeC() - tm.turbulence;
+      sistEqKturb->neq = numEqV1(sistEqKturb->id, reordMesh->num
+        , mesh->numel);
+      tm.turbulence = getTimeC() - tm.turbulence;
+
+      if (!mpiVar.myId)
+      {
+        fprintf(fileLogExc, "Equacoes numeradas.\n");
+        fprintf(fileLogExc, "%s\n", DIF);
+      }
+/*...................................................................*/
+
+/*...*/
+      if (mpiVar.nPrcs > 1)
+      {
+        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+        //      sistEqT1->neqNov = countEq(reordMesh->num
+        //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
+        //                          ,mesh->numelNov     ,mesh->maxViz
+        //                          ,mesh->ndfT[0]);
+        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+      }
+      else
+        sistEqKturb->neqNov = sistEqKturb->neq;
+/*...................................................................*/
+
+/*... energia*/
+      HccaAlloc(DOUBLE, m, sistEqKturb->b0
+        , sistEqKturb->neq, "sistKturb0", _AD_);
+      HccaAlloc(DOUBLE, m, sistEqKturb->b
+        , sistEqKturb->neq, "sistKturb", _AD_);
+      HccaAlloc(DOUBLE, m, sistEqKturb->x
+        , sistEqKturb->neq, "sistKturbx ", _AD_);
+      zero(sistEqKturb->b0, sistEqKturb->neq, DOUBLEC);
+      zero(sistEqKturb->b, sistEqKturb->neq, DOUBLEC);
+      zero(sistEqKturb->x, sistEqKturb->neq, DOUBLEC);
+/*...................................................................*/
+
+/*... Estrutura de dados energia*/
+      strcpy(strIa, "iaKturb");
+      strcpy(strJa, "jaKturb");
+      strcpy(strAd, "adKturb");
+      strcpy(strA, "akTurb");
+
+      if (!mpiVar.myId)
+      {
+        fprintf(fileLogExc, "Kturb:\n");
+        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
+      }
+
+      tm.turbulence = getTimeC() - tm.turbulence;
+      //        dataStructSimple(&m,sistEqEnergy->id ,reordMesh->num
+      //                        ,mesh->elm.adj.nelcon
+      //                        ,mesh->elm.adj.nViz  ,mesh->numelNov,mesh->maxViz  
+      //                       ,1                   ,strIa         ,strJa
+      //                       ,strAd               ,strA          ,sistEqEnergy);
+      dataStruct(m, sistEqKturb->id, reordMesh->num
+        , mesh->elm.adj.nelcon
+        , mesh->elm.adj.nViz, mesh->numelNov, mesh->maxViz
+        , 1, strIa, strJa
+        , strAd, strA, sistEqKturb);
+      tm.turbulence = getTimeC() - tm.turbulence;
+
+      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+/*...................................................................*/
+
+/*... dividindo a matriz*/
+/*... Openmp(energy)*/
+      if (ompVar.fSolver)
+      {
+        strcpy(str1, "thBeginKturb");
+        strcpy(str2, "thEndKturb");
+        strcpy(str3, "thSizeKturb");
+        strcpy(str4, "thHeightKturb");
+        pMatrixSolverOmp(m, sistEqKturb, str1, str2, str3, str4);
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*... velocidade*/
+    else if (!strcmp(word, "z") || !strcmp(word, "Z")) 
+    {
+      nSistEq--;
+      *fSolvComb = true;
+      solvComb->solver = PBICGSTAB;
+      solvComb->tol = smachn();
+      solvComb->maxIt = 50000;
+      solvComb->fileSolv = NULL;
+      solvComb->log = true;
+      solvComb->flag = true;
+/*...................................................................*/
+
+/*...*/
+      if (solvComb->log && !mpiVar.myId) 
+      {
+        strcpy(auxName, preName);
+        strcat(auxName, "_fluid_comb");
+        fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
+        solvComb->fileSolv = openFile(nameOut, "w");
+      }
+/*...................................................................*/
+
+      sistEqComb->unsym = true;
+/*...................................................................*/
+
+/*... solver*/
+      readMacro(fileIn, word, false);
+      setSolverConfig(word, solvComb, fileIn);
+/*...................................................................*/
+
+/*... DataStruct*/
+      readMacro(fileIn, word, false);
+      setDataStruct(word, &sistEqComb->storage);
+/*...................................................................*/
+
+/*... numeracao das equacoes das velocidades*/
+      HccaAlloc(INT, m, sistEqComb->id
+              , mesh->numel
+              , "sistCombId", _AD_);
+      if (!mpiVar.myId) 
+      {
+        fprintf(fileLogExc, "%s\n", DIF);
+        fprintf(fileLogExc, "Numerando as equacoes.\n");
+      }
+      tm.numeqVel = getTimeC() - tm.numeqVel;
+
+      sistEqComb->neq = numEqV1(sistEqComb->id, reordMesh->num
+                              , mesh->numel);    
+
+      tm.numeqVel = getTimeC() - tm.numeqVel;
+
+      if (!mpiVar.myId) 
+      {
+        fprintf(fileLogExc, "Equacoes numeradas.\n");
+        fprintf(fileLogExc, "%s\n", DIF);
+      }
+/*...................................................................*/
+
+/*...*/
+      if (mpiVar.nPrcs > 1) 
+      {
+//          tm.numeqPres = getTimeC() - tm.numeqPres;
+//      sistEqT1->neqNov = countEq(reordMesh->num
+//                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
+//                          ,mesh->numelNov     ,mesh->maxViz
+//                          ,mesh->ndfT[0]);
+//          tm.numeqPres = getTimeC() - tm.numeqPres;
+      }
+      else
+        sistEqComb->neqNov = sistEqComb->neq;
+/*...................................................................*/
+
+/*... */
+      nComb = 3;
+/*...................................................................*/
+      HccaAlloc(DOUBLE, m, sistEqComb->b0
+              , sistEqComb->neq*nComb, "sistCombb0", _AD_);
+      HccaAlloc(DOUBLE, m, sistEqComb->b
+              , sistEqComb->neq*nComb, "sistCombb ", _AD_);
+      HccaAlloc(DOUBLE, m, sistEqComb->x
+              , sistEqComb->neq*nComb, "sistCombx ", _AD_);
+      zero(sistEqComb->b0, sistEqComb->neq*nComb, DOUBLEC);
+      zero(sistEqComb->b , sistEqComb->neq*nComb, DOUBLEC);
+      zero(sistEqComb->x , sistEqComb->neq*nComb, DOUBLEC);
+/*...................................................................*/
+
+/*... Estrutura de dados velocidades*/
+      strcpy(strIa, "iaComb");
+      strcpy(strJa, "jaComb");
+      strcpy(strAd, "adComb");
+      strcpy(strA , "aComb");
+
+      if (!mpiVar.myId) fprintf(fileLogExc, "Combustion:\n");
+      if (!mpiVar.myId)
+        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
+
+      tm.dataStructComb = getTimeC() - tm.dataStructComb;
+      dataStructBlock(m                , sistEqComb->id   
+                    , reordMesh->num   , mesh->elm.adj.nelcon
+                    , mesh->elm.adj.nViz
+                    , mesh->numelNov   , mesh->maxViz
+                    , nComb            , nComb
+                    , strIa            , strJa
+                    , strAd            , strA
+                    , sistEqComb);
+      tm.dataStructComb = getTimeC() - tm.dataStructComb;
+
+      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+/*...................................................................*/
+
+/*... dividindo a matriz*/
+/*... Openmp(Vel,Pres)*/
+      if (ompVar.fSolver) 
+      {
+        strcpy(str1, "thBeginComb");
+        strcpy(str2, "thEndComb");
+        strcpy(str3, "thSizeComb");
+        strcpy(str4, "thHeightComb");
+        pMatrixSolverOmp(m, sistEqComb, str1, str2, str3, str4);
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+  } while (nSistEq);
+/*...................................................................*/
+
+/*...*/
+  if (opt->fItPlot && !mpiVar.myId) {
+    strcpy(auxName, preName);
+    fName(auxName, mpiVar.nPrcs, 0, 22, nameOut);
+    opt->fileItPlot[FITPLOTSIMPLE] = openFile(nameOut, "w");
+    if (mesh->ndfFt == 4)
+      fprintf(opt->fileItPlot[FITPLOTSIMPLE]
+        , "#VelPres\n#it ||rU1|| ||rU2|| ||rMass|| ||rEnergy||\n");
+    else if (mesh->ndfFt == 5)
+      fprintf(opt->fileItPlot[FITPLOTSIMPLE]
+        , "#VelPres\n#it ||rU1|| ||rU2|| ||rU3|| ||rMass|| ||rEnergy||\n");
+    fName(auxName, mpiVar.nPrcs, 0, 26, nameOut);
+    opt->fileItPlot[FITPLOTCOMB] = openFile(nameOut, "w");
+    fprintf(opt->fileItPlot[FITPLOTCOMB]
+        , "#Combustion\n#it ||rZFlue|| ||rZAir|| ||rZprod||\n");
+  }
+/*...................................................................*/
+
+/*... Openmp(Vel,Pres)*/
+  if (ompVar.fSolver)
+  {
+/*... alocando o buffer*/
+    if (*fSolvKturb)
+    {
+      nEqMax = max(sistEqPres->neqNov  , sistEqVel->neqNov);
+      nEqMax = max(sistEqEnergy->neqNov, nEqMax);
+      nEqMax = max(sistEqKturb->neqNov , nEqMax);
+      nEqMax = max(sistEqComb->neqNov  , nEqMax);
+      nEqMax = max(nEqMax, ompVar.nEqMax);
+      ompVar.nEqMax = nEqMax;
+      HccaAlloc(DOUBLE, m, ompVar.buffer
+        , nEqMax*ompVar.nThreadsSolver, "bufferOmp", false);
+      zero(ompVar.buffer, nEqMax*ompVar.nThreadsSolver, DOUBLEC);
+      sistEqPres->omp.thY   = ompVar.buffer;
+      sistEqVel->omp.thY    = ompVar.buffer;
+      sistEqEnergy->omp.thY = ompVar.buffer;
+      sistEqKturb->omp.thY  = ompVar.buffer;
+      sistEqComb->omp.thY   = ompVar.buffer;
+    }
+/*...................................................................*/
+
+/*...*/
+    else
+    {
+      nEqMax = max(sistEqPres->neqNov  , sistEqVel->neqNov);
+      nEqMax = max(sistEqEnergy->neqNov, nEqMax);
+      nEqMax = max(sistEqComb->neqNov  , nEqMax);
+      nEqMax = max(nEqMax, ompVar.nEqMax);
+      ompVar.nEqMax = nEqMax;
+      HccaAlloc(DOUBLE, m, ompVar.buffer
+              , nEqMax*ompVar.nThreadsSolver, "bufferOmp", false);
+      zero(ompVar.buffer, nEqMax*ompVar.nThreadsSolver, DOUBLEC);
+      sistEqPres->omp.thY   = ompVar.buffer;
+      sistEqVel->omp.thY    = ompVar.buffer;
+      sistEqEnergy->omp.thY = ompVar.buffer;
+      sistEqComb->omp.thY   = ompVar.buffer;  
+    }
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... mapa de equacoes para comunicacao*/
+  //    if( mpiVar.nPrcs > 1) {    
+  //      front(&m,pMesh,sistEqT1,mesh->ndfT[0]);  
+  //    } 
+/*...................................................................*/
+
+/*... informacao da memoria total usada*/
+  if (!mpiVar.myId)
+  {
     strcpy(str1, "MB");
     memoriaTotal(str1);
     usoMemoria(m, str1);
@@ -4691,7 +5809,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
  * Data de criacao    : 01/05/2018                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
- * readSolvFluid: leitura das configuracoes do solvers utilizados    *
+ * readNlIt  leitura das configuracoes do solvers utilizados         *
  * no escoamento de fluidos                                          *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
@@ -4786,10 +5904,12 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
 /*... solver*/
   readMacro(fileIn, word, false);
   nSistEq = (short)atol(word);
-  do {
+  do 
+  {
     readMacro(fileIn, word, false);
 /*... equaocao de difusao d1*/
-    if (!strcmp(word, "D1") || !strcmp(word, "d1")) {
+    if (!strcmp(word, "D1") || !strcmp(word, "d1")) 
+    {
       nSistEq--;
       *fSolvD1         = true;
       solvD1->solver   = PCG;
@@ -4801,7 +5921,8 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
 /*...................................................................*/
 
 /*...*/
-      if (solvD1->log && !mpiVar.myId) {
+      if (solvD1->log && !mpiVar.myId) 
+      {
         strcpy(auxName, preName);
         strcat(auxName, "_D1");
         fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
@@ -4827,7 +5948,8 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
 /*... numeracao das equacoes das velocidades*/
       HccaAlloc(INT, m, sistEqD1->id, mesh->numel*mesh->ndfD[0]
                ,"sistD1id", _AD_);
-      if (!mpiVar.myId) {
+      if (!mpiVar.myId) 
+      {
         fprintf(fileLogExc, "%s\n", DIF);
         fprintf(fileLogExc, "Numerando as equacoes.\n");
       }
@@ -4838,14 +5960,16 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
                           , mesh->ndfD[0]);
       tm.numeqD1 = getTimeC() - tm.numeqD1;
 
-      if (!mpiVar.myId) {
+      if (!mpiVar.myId) 
+      {
         fprintf(fileLogExc, "Equacoes numeradas.\n");
         fprintf(fileLogExc, "%s\n", DIF);
       }
 /*...................................................................*/
 
 /*...*/
-      if (mpiVar.nPrcs > 1) {
+      if (mpiVar.nPrcs > 1) 
+      {
         //          tm.numeqPres = getTimeC() - tm.numeqPres;
         //      sistEqT1->neqNov = countEq(reordMesh->num
         //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
@@ -4891,7 +6015,8 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
 
 /*... dividindo a matriz*/
 /*... Openmp(Vel,Pres)*/
-      if (ompVar.fSolver) {
+      if (ompVar.fSolver) 
+      {
         strcpy(str1, "thBeginD1");
         strcpy(str2, "thEndD1");
         strcpy(str3, "thSizeD1");
@@ -4905,7 +6030,8 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
 /*...................................................................*/
 
 /*...*/
-  if (opt->fItPlot && !mpiVar.myId) {
+  if (opt->fItPlot && !mpiVar.myId) 
+  {
     strcpy(auxName, preName);
     strcat(auxName, "_D1");
     fName(auxName, mpiVar.nPrcs, 0, 10, nameOut);
@@ -4915,11 +6041,14 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
 /*...................................................................*/
 
 /*... Openmp(Vel,Pres)*/
-  if (ompVar.fSolver) {
-    if (*fSolvD1) {
+  if (ompVar.fSolver) 
+  {
+    if (*fSolvD1) 
+    {
       nEqMax = sistEqD1->neqNov;
       HccaAlloc(DOUBLE, m, ompVar.buffer
                , nEqMax*ompVar.nThreadsSolver, "bufferOmp", false);
+      ompVar.nEqMax = nEqMax;
       zero(ompVar.buffer, nEqMax*ompVar.nThreadsSolver, DOUBLEC);
       sistEqD1->omp.thY = ompVar.buffer;
     }
@@ -4933,7 +6062,8 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
 /*...................................................................*/
 
 /*... informacao da memoria total usada*/
-  if (!mpiVar.myId) {
+  if (!mpiVar.myId) 
+  {
     strcpy(str1, "MB");
     memoriaTotal(str1);
     usoMemoria(m, str1);
@@ -5122,6 +6252,7 @@ void readSolvTrans(Memoria *m  , Mesh *mesh      , Reord *reordMesh
       nEqMax = sistEqT1->neqNov;
       HccaAlloc(DOUBLE, m, ompVar.buffer
               , nEqMax*ompVar.nThreadsSolver, "bufferOmp", false);
+      ompVar.nEqMax = nEqMax;
       zero(ompVar.buffer, nEqMax*ompVar.nThreadsSolver, DOUBLEC);
       sistEqT1->omp.thY = ompVar.buffer;
     }
@@ -5135,7 +6266,8 @@ void readSolvTrans(Memoria *m  , Mesh *mesh      , Reord *reordMesh
 /*...................................................................*/
 
 /*... informacao da memoria total usada*/
-  if (!mpiVar.myId) {
+  if (!mpiVar.myId) 
+  {
     strcpy(str1, "MB");
     memoriaTotal(str1);
     usoMemoria(m, str1);

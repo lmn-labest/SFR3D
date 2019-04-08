@@ -37,4 +37,16 @@
              ,bool const matrix   ,bool  const  unsym);
 /*...................................................................*/
 
+/*...*/
+  void assblyBlock(INT    *RESTRICT  ia, INT *RESTRICT ja
+                 , DOUBLE *RESTRICT a  , DOUBLE *RESTRICT ad
+                 , DOUBLE *RESTRICT b  , INT *RESTRICT lId
+                 , DOUBLE *RESTRICT lA , DOUBLE *RESTRICT lB
+                 , INT const nEq       , INT const nEqNov
+                 , INT const nAd       , INT const nAdR
+                 , short const nFace   , short const nForceBlock
+                 , short const nAdBlock, short const nAlBlock
+                 , short const storage , bool  const forces
+                 , bool const matrix   , bool  const  unsym);
+/*...................................................................*/
 #endif/*_ASSBLY_H_*/

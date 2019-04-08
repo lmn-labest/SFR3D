@@ -1352,35 +1352,475 @@ void csrSimple(INT    *RESTRICT  ia,INT *RESTRICT ja
 }
 /*********************************************************************/ 
 
+/*********************************************************************
+ * Data de criacao    : 05/08/2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * CsrBlock  : Montagem do sistema global do CSR   para sistems      *
+ * de velocidades do metodo simple                                   *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * ia      -> ponteiro para as linhas da matriz esparsa              *
+ * ja      -> ponteiro para as colunas da matriz esparsa             *
+ * a       -> matriz de coeficientes esparsa                         *
+ *            ( CSR - nao utiliza                            )       *
+ *            ( CSRD/CSRC- triangular inferior/triangular superior ) *
+ * ad      -> matrix de coeficientes esparsa                         *
+ *            ( CSR - matriz completa                        )       *
+ *            ( CSRD/CSRC- diagonal principal                )       *
+ * b       -> vetor de forcas                                        *
+ * lId     -> numeracao das equacoes dessa celula                    *
+ * lA      -> coficientes da celula                                  *
+ * lB      -> vetor de forca da celula                               *
+ * nEq     -> numero de equacoes                                     *
+ * neqNov  -> numero de equacoes nao sobrepostas                     *
+ * nAd     -> numero de termos nao nulos                             *
+ * nAdR    -> numero de termos nao nulos na parte retangular         *
+ * nFace   -> numero de faces da celula                              *
+ * ndf     -> graus de liberdade                                     *
+ * storage -> tecnica de armazenamento da matriz esparsa             *
+ * forces  -> mantagem no vetor de forcas                            *
+ * matrix  -> mantagem da matriz de coeficientes                     *
+ * unsym   -> matiz nao simetrica                                    *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * au,a,al   -> coeficiente da linha i     (matriz = true)           *
+ * b         -> vetor de forca da linha i  (forces = true)           *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ * lA | Af1X Af2X Af3X ... ACZ |                                     *
+ *    | Af1Y Af2Y Af3Y ... ACY |                                     *
+ *    | Af1Z Af2Z Af3Z ... ACZ |                                     *
+ *                                                                   *
+ * ad = [AC1x,...,ACnEqx,AC1y,...,ACnEqy,AC1z,...,ACnEqz]            *
+ * al = [Af1x,...,Af(nad)x,Af1y,...,Af(nad)y,Af1z,...,Af(nad)z]      *
+ * b = | b1x b2x ... b(neq)x b1y b2y ... b(neq)y b1z b2z ... b(neq)z *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void csrBlock(INT    *RESTRICT  ia, INT *RESTRICT ja
+             , DOUBLE *RESTRICT a  , DOUBLE *RESTRICT ad
+             , DOUBLE *RESTRICT b  , INT *RESTRICT lId
+             , DOUBLE *RESTRICT lA , DOUBLE *RESTRICT lB
+             , INT const nEq       , INT const nEqNov
+             , INT const nAd       , INT const nAdR
+             , short const nFace   , short const nForceBlock
+             , short const nAdBlock, short const nAlBlock
+             , short const storage , bool  const forces
+             , bool const matrix  , bool  const  unsym)
+{
+  INT lNeq, lCol = 0, iak, jak, iPoint, iaKneq, jPoint, iaJneq, neqS, n0, nAdT;
+  INT *iar, *jar;
+  DOUBLE *ar[10];
+  DOUBLE *au[10];
+  DOUBLE *al[10];
+  DOUBLE *al1,*al2,*al3,*au1,*au2,*au3;
+  unsigned short k,l, nst;
+  bool fCoo = false;
+
+  nst = nFace + 1;
+  neqS = nEqNov - 1;
+  switch (storage) 
+  {
+/*... estrutura CSR(ia,ja,a,b)*/
+  case CSR:
+    printf("Nao implementado!!\n");
+    exit(EXIT_FAILURE);
+    break;
+/*...................................................................*/
+
+/*... estrutura CSRD(ia,ja,a,al,b)*/
+/*...CSRD+COO(symetric)*/
+  case CSRDCOO:
+    fCoo = true;
+  case CSRD:
+    lNeq = lId[nFace];
+/*... vetor de forcas*/
+    if (forces) 
+    {
+      for (l = 0; l<nForceBlock; l++)
+        b[l * nEq + lNeq] = lB[l];
+    }
+/*...................................................................*/
+
+/*... matriz de coefiencientes*/
+    if (matrix) 
+    {
+      lNeq = lId[nFace];
+/*...*/
+      for(l=0;l<nAlBlock;l++)
+      {
+        al[l] = &a[l*nAdT];
+        ad[l * nEq + lNeq] = MAT2D(nFace,l,lA,nAdBlock);
+      }
+/*...................................................................*/
+      iPoint = ia[lNeq];
+      iaKneq = ia[lNeq + 1];
+      for (k = 0; k<nFace; k++) 
+      {
+        lCol = lId[k];
+        if (lCol > -1) 
+        {
+          for (iak = iPoint; iak < iaKneq; iak++) 
+          {
+            jak = ja[iak];
+            if (lCol == jak)
+              for (l = 0; l<nAlBlock; l++)
+                al[l][iak] = MAT2D(k, l, lA, nAlBlock);
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+
+/*... parte retagunlar para matrizes simetricas (MPI)*/
+      if (unsym == false && mpiVar.nPrcs > 1) 
+      {
+/*... parte retangular em COO*/
+        if (fCoo) {
+          n0    = nEqNov + 1;
+          iar   = &ia[n0];
+          jar   = &ja[nAd];
+          for (l = 0; l<nAlBlock; l++)
+            ar[l] = &a[l*nAdT+nAd];
+          iPoint = iar[lNeq];
+          iaKneq = iar[lNeq + 1];
+          for (k = 0; k<nFace; k++) 
+          {
+            lCol = lId[k];
+            if (lCol > -1 && lCol > neqS)
+              for (iak = iPoint; iak < iaKneq; iak++)
+                if (jar[iak] == lCol)
+                  for (l = 0; l<nAlBlock; l++)
+                    ar[l][iak] = MAT2D(k, l, lA, nAlBlock);
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
+
+/*... parte retangular em CSR*/
+        else 
+        {
+          iar = &ia[nEqNov + 1];
+          jar = &ja[nAd];
+          for (l = 0; l<nAlBlock; l++)
+            ar[l] = &a[l * nAdT + nAd];
+          iPoint = iar[lNeq];
+          iaKneq = iar[lNeq + 1];
+          for (k = 0; k<nFace; k++) {
+            lCol = lId[k];
+            if (lCol > -1 && lCol > neqS) 
+            {
+              for (iak = iPoint; iak < iaKneq; iak++) 
+              {
+                jak = jar[iak];
+                if (lCol == jak)
+                  for (l = 0; l<nAlBlock; l++)
+                    ar[l][iak] = MAT2D(k, l, lA, nAlBlock);
+/*...................................................................*/
+              }
+/*...................................................................*/
+            }
+/*...................................................................*/
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
+/*... estrutura CSRC(ia,ja,au,a,al,b)*/
+/*...CSRC+COO*/
+  case CSRCCOO:
+    fCoo = true;
+  case CSRC:
+    if(unsym)
+      nAdT = 2*nAd + nAdR;
+    else
+      nAdT = nAd + nAdR;
+/*...*/
+    lNeq = lId[nFace];
+/*... vetor de forcas*/
+    if (forces) 
+    {
+      for (l = 0; l<nForceBlock; l++)
+        b[l * nEq + lNeq] = lB[l];
+    }
+/*...................................................................*/
+
+/*... matriz de coefiencientes*/
+    if (matrix) 
+    {
+      lNeq = lId[nFace];
+/*...*/
+      for (l = 0; l<nAdBlock; l++)
+        ad[l * nEq + lNeq] = MAT2D(l, nFace, lA, nst);
+/*...................................................................*/
+
+/*...*/
+      for (l = 0; l<nAlBlock; l++)
+        al[l] = &a[l * nAdT];
+/*...................................................................*/
+      iPoint = ia[lNeq];
+      iaKneq = ia[lNeq + 1];
+/*... paralelo MPI*/
+      if (mpiVar.nPrcs > 1) 
+      {
+/*... nao simetrico*/
+        if (unsym) 
+        {
+          for (l = 0; l<nAlBlock; l++)
+            au[l] = &a[l*nAdT+nAd];
+          for (k = 0; k<nFace; k++) 
+          {
+            lCol = lId[k];
+            if (lCol > -1) 
+            {
+/*... parte inferior*/
+              if (lCol < lNeq)
+                for (iak = iPoint; iak < iaKneq; iak++) 
+                {
+                  jak = ja[iak];
+                  if (lCol == jak)
+                    for (l = 0; l<nAlBlock; l++)
+                      al[l][iak] = MAT2D( l , k, lA, nst);
+                }
+/*... parte superior*/
+              else if (lCol > lNeq && lCol <= neqS) 
+              {
+                jPoint = ia[lCol];
+                iaJneq = ia[lCol + 1];
+                for (iak = jPoint; iak < iaJneq; iak++) 
+                {
+                  jak = ja[iak];
+                  if (lNeq == jak)
+                    for (l = 0; l<nAlBlock; l++)
+                      au[l][iak] = MAT2D( l , k, lA, nst);
+/*...................................................................*/
+                }
+/*...................................................................*/
+              }
+/*...................................................................*/
+            }
+/*...................................................................*/
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
+
+/*... simetrico*/
+        else 
+        {
+          for (k = 0; k<nFace; k++) 
+          {
+            lCol = lId[k];
+            if (lCol > -1) 
+            {
+              for (iak = iPoint; iak < iaKneq; iak++) 
+              {
+                jak = ja[iak];
+                if (lCol == jak)
+                  for (l = 0; l < nAlBlock; l++)
+                    al[l][iak] = MAT2D( l, k, lA, nst);
+              }
+/*...................................................................*/
+            }
+/*...................................................................*/
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
+
+/*... parte retangular em COO*/
+        if (fCoo) 
+        {
+          n0 = nEqNov + 1;
+          iar = &ia[n0];
+          jar = &ja[nAd];
+/*...*/
+          if (unsym)
+            for (l = 0; l<nAlBlock; l++)
+              ar[l] = &a[ l * nAdT + 2 * nAd];
+          else
+            for (l = 0; l<nAlBlock; l++)
+              ar[l] = &a[ l * nAdT + nAd]; 
+/*...................................................................*/
+          iPoint = iar[lNeq];
+          iaKneq = iar[lNeq + 1];
+          for (k = 0; k<nFace; k++) 
+          {
+            lCol = lId[k];
+            if (lCol > -1 && lCol > neqS)
+              for (iak = iPoint; iak < iaKneq; iak++)
+                if (jar[iak] == lCol)
+                  for (l = 0; l<nAlBlock; l++)
+                    ar[l][iak] = MAT2D( l, k, lA, nst);
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
+
+/*... parte retangular em CSR*/
+        else
+        {
+          n0 = nEqNov + 1;
+          iar = &ia[n0];
+          jar = &ja[nAd];
+/*...*/
+          if (unsym)
+            for (l = 0; l<nAlBlock; l++)
+              ar[l] = &a[l * nAdT + 2 * nAd];
+          else
+            for (l = 0; l<nAlBlock; l++)
+              ar[l] = &a[l * nAdT + nAd];
+/*...................................................................*/
+          iPoint = iar[lNeq];
+          iaKneq = iar[lNeq + 1];
+          for (k = 0; k<nFace; k++)
+          {
+            lCol = lId[k];
+            if (lCol > -1 && lCol > neqS) 
+            {
+              for (iak = iPoint; iak < iaKneq; iak++)  
+              {
+                jak = jar[iak];
+                if (lCol == jak)
+                  for (l = 0; l<nAlBlock; l++) 
+                    ar[l][iak] = MAT2D( l, k, lA, nst);
+/*...................................................................*/
+              }
+/*...................................................................*/
+            }
+/*...................................................................*/
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+
+/*... sequencial */
+      else 
+      {
+/*... nao simetrico*/
+        if (unsym) 
+        {
+          for (l = 0; l<nAlBlock; l++)
+            au[l] = &a[l*nAdT+nAd];
+          for (k = 0; k<nFace; k++) 
+          {
+            lCol = lId[k];
+            if (lCol > -1) 
+            {
+/*... parte inferior*/
+              if (lCol < lNeq)
+                for (iak = iPoint; iak < iaKneq; iak++) 
+                {
+                  jak = ja[iak];
+                  if (lCol == jak)
+                    for (l = 0; l<nAlBlock; l++)
+                      al[l][iak] = MAT2D( l, k, lA, nst);
+                }
+/*... parte superior*/
+              else if (lCol > lNeq)
+              {
+                jPoint = ia[lCol];
+                iaJneq = ia[lCol + 1];
+                for (iak = jPoint; iak < iaJneq; iak++) 
+                {
+                  jak = ja[iak];
+                  if (lNeq == jak) 
+                    for (l = 0; l<nAlBlock; l++)                      
+                      au[l][iak] = MAT2D( l, k, lA, nst);
+/*...................................................................*/
+                }
+/*...................................................................*/
+              }
+/*...................................................................*/
+            }
+/*...................................................................*/
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
+
+/*... simetrico*/
+        else 
+        {
+          for (k = 0; k<nFace; k++) 
+          {
+            lCol = lId[k];
+            if (lCol > -1) 
+            {
+              for (iak = iPoint; iak < iaKneq; iak++) 
+              {
+                jak = ja[iak];
+                if (lCol == jak)
+                  for (l = 0; l<nAlBlock; l++)
+                    al[l][iak] = MAT2D( l, k, lA, nst);
+              }
+/*...................................................................*/
+            }
+/*...................................................................*/
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+    break;
+/*...................................................................*/
+
+/*...*/
+  default:
+    printf("\n opcao invalida\n"
+      "funcao fname(*,*,*)\narquivo = %s\n", __FILE__);
+    exit(EXIT_FAILURE);
+    break;
+/*...................................................................*/
+  }
+
+}
+/*********************************************************************/
+
 #ifdef _OPENMP
-/********************************************************************
-* Data de criacao    : 27/07/2016                                   *
-* Data de modificaco : 00/00/0000                                   *
-*-------------------------------------------------------------------*
-* PARTITIOBCSRBYNOZEROS: divisa do trabalho por threads para matriz *
-* no formato CSR                                                    *
-*-------------------------------------------------------------------*
-* Parametros de entrada:                                            *
-*-------------------------------------------------------------------*
-* ia       -> ponteiro CSR                                          *
-* ja       -> ponteiro CSR                                          *
-* neq      -> numero de equacoes                                    *
-* thBegin  -> nao definido                                          *
-* thEnd    -> nao definido                                          *
-* thSize   -> nao definido                                          *
-* thHeigth -> nao definido                                          *
-* type     -> CSR,CSRD,CSRC                                         *
-*-------------------------------------------------------------------*
-* Parametros de saida:                                              *
-*-------------------------------------------------------------------*
-* thBegin  -> primeira linha do sistema do thread i                 *
-* thEnd    -> ultima linha do sistema do thread i                   *
-* thSize   -> numero de termo nao nulos no thread i                 *
-* thHeight -> altura efetiva do thread                              *
-*-------------------------------------------------------------------*
-* OBS: retorna o numero de elmentos nao nulos                       *
-*-------------------------------------------------------------------*
-*********************************************************************/
+/*********************************************************************
+ * Data de criacao    : 27/07/2016                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * PARTITIOBCSRBYNOZEROS: divisa do trabalho por threads para matriz *
+ * no formato CSR                                                    *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * ia       -> ponteiro CSR                                          *
+ * ja       -> ponteiro CSR                                          *
+ * neq      -> numero de equacoes                                    *
+ * thBegin  -> nao definido                                          *
+ * thEnd    -> nao definido                                          *
+ * thSize   -> nao definido                                          *
+ * thHeigth -> nao definido                                          *
+ * type     -> CSR,CSRD,CSRC                                         *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * thBegin  -> primeira linha do sistema do thread i                 *
+ * thEnd    -> ultima linha do sistema do thread i                   *
+ * thSize   -> numero de termo nao nulos no thread i                 *
+ * thHeight -> altura efetiva do thread                              *
+ *-------------------------------------------------------------------*
+ * OBS: retorna o numero de elmentos nao nulos                       *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
 void partitionCsrByNonzeros(INT *RESTRICT ia      ,INT *RESTRICT ja
                            ,INT const neq
                            ,int nThreads          ,INT *RESTRICT thBegin

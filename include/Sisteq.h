@@ -78,7 +78,16 @@
                        ,char  *strIa   ,char *strJa
                        ,char *strAd    ,char *strA
                        ,SistEq *sistEqX);
-  
+
+  void dataStructBlock(Memoria *m             , INT *id
+                     , INT *num               , INT *nelcon
+                     , short *nViz
+                     , INT const numel        , short const maxViz
+                     , short const nAd        , short const nAl
+                     , const char *const strIa, const char *const strJa
+                     , const char *const strAd, const char *const strA
+                     , SistEq *sistEqX);
+
   void setDataStruct(char *word,short *data);
 
   void front(Memoria *m

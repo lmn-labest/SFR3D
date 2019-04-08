@@ -97,6 +97,7 @@ void initTime(Time *tm) {
   tm->numeqVel           = 0.e0;
   tm->dataStructVel      = 0.e0;
   tm->dataStructPres     = 0.e0;
+  tm->dataStructComb     = 0.e0; 
   tm->solvEdpFluid       = 0.e0;
   tm->cellPloadSimple    = 0.e0;
   tm->cellTransientSimple= 0.e0;

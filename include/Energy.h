@@ -17,7 +17,8 @@
 /*...*/
 bool energyEquation(Memoria *m               , PropVarFluid *prop 
                    , Loads *loadsVel         , Loads *loadsEnergy  
-                   , EnergyModel *eModel     , Turbulence *tModel  
+                   , EnergyModel *eModel     , Turbulence *tModel
+                   , Combustion *cModel
                    , ThermoDynamic *thDynamic, Mesh *mesh          
                    , SistEq *sistEqEnergy    , Solv *solvEnergy
                    , Simple *sp  

@@ -28,12 +28,12 @@
                  ,short *ndm  ,short *numat
                  ,FILE  *file);
   
-  void readFileFvMesh(Memoria *m             , Mesh *mesh
-                    , PropVarFluid *prop      
-                    , PropVarCD *propD       , PropVarCD *propT
-                    , EnergyModel *energyModel
-                    , Turbulence *tModel     , Mean *media
-                    , FILE* file);
+  void readFileFvMesh( Memoria *m              , Mesh *mesh
+                   , PropVarFluid *propF           
+                   , PropVarCD *propD        , PropVarCD *propT
+                   , EnergyModel *energyModel, Turbulence *tModel     
+                   , Combustion *cModel      , Mean *media
+                   , FILE* file);
 
   void readVfMat(DOUBLE *prop,short *type,short numat,FILE *file);
 
@@ -57,6 +57,7 @@
   void readPropVarDiff(PropVarCD *p, FILE *file);
   void readPropVarTrans(PropVarCD *p, FILE *file);
   void readPropVarFluid(PropVarFluid *p, FILE *file);
+  void readPropVarMixture(PropVarFluid *p,FILE *file);
   void readGravity(DOUBLE *gravity,FILE *file);
   void readModel(EnergyModel *e    , Turbulence *t
                , MassEqModel *eMass, MomentumModel *ModelMomentum
@@ -101,6 +102,15 @@
                    , Solv *solvT1 , SistEq* sistEqT1, bool *fSolvT1
                    , char* auxName, char* preName   , char* nameOut
                    , FILE *fileIn , FileOpt *opt);
+
+  void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
+                , Solv *solvVel   , SistEq* sistEqVel   , bool *fSolvVel
+                , Solv *solvPres  , SistEq* sistEqPres  , bool *fSolvPres
+                , Solv *solvEnergy, SistEq* sistEqEnergy, bool *fSolvEnergy
+                , Solv *solvKturb , SistEq* sistEqKturb , bool *fSolvKturb
+                , Solv *solvComb  , SistEq* sistEqComb  , bool *fSolvComb
+                , char* auxName   , char* preName       , char* nameOut
+                , FILE *fileIn    , FileOpt *opt);
 
    void readNlIt(Scheme *sc, FILE *fileIn);
    

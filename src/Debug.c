@@ -128,7 +128,7 @@ void testeSist(INT *ia      ,INT *ja
 {
 #ifdef _DEBUG_
   INT i,j;
-  
+/*
   printf("ia.\n");
   for(i=0;i<neq;i++){
     printf("i   = %9d ia = ",i+1);
@@ -142,35 +142,35 @@ void testeSist(INT *ia      ,INT *ja
       printf("%9d ",ja[j]);
     printf("\n");
   }
-  
+*/
   printf("ad.\n");
   for(i=0;i<neq;i++){
     printf("i   = %9d ",i+1);
-    printf("%lf\n",ad[i]);
+    printf("%e\n",ad[i]);
   }
 
   printf("al.\n");
   for(i=0;i<neq;i++){
-    printf("i   = %d al = ",i+1);
+    printf("i   = %d v = ",i+1);
     for(j=ia[i];j<ia[i+1];j++)
-      printf("%lf ",al[j]);
+      printf("%e ",al[j]);
     printf("\n");
   }
 
   if(unsym) {
     printf("au.\n");
     for(i=0;i<neq;i++){
-      printf("i   = %9d au= ",i+1);
+      printf("i   = %9d v= ",i+1);
       for(j=ia[i];j<ia[i+1];j++)
-        printf("%lf ",al[j]);
+        printf("%e ",al[j]);
       printf("\n");
     }
   }
   
   printf("b.\n");
   for(i=0;i<neq;i++){
-    printf("i   = %9d b =",i+1);
-    printf("%lf\n",b[i]);
+    printf("i   = %9d v =",i+1);
+    printf("%e\n",b[i]);
   }
 
 #endif

@@ -11,6 +11,22 @@
   #define OUTPUT_FOR_SCREEN 2
 /*...................................................................*/
 
+/*... combustion*/
+  #define MAXSPECIES  7
+  #define HFORMATION  1
+  #define HCOMBUSTION 2
+
+/*...*/
+  #define ARRHENIUS   1
+  #define EBU         2 
+
+/*... Kg/kmol*/
+  #define MW_O 15.9990e0
+  #define MW_H  1.00794e0
+  #define MW_N 14.00670e0 
+  #define MW_C 12.01070e0
+/*...................................................................*/
+
 /*...*/
   #define POL        1
 /*... viscosidade*/
@@ -22,10 +38,10 @@
 /*...................................................................*/
 
 /*...*/
-  #define TREF      288.15e+00    /*Kelvin         */
+  #define TREF      298.15e+00    /*Kelvin         */
   #define PREREF    1.01325e+05   /*Pa             */
-  #define IDEALGASR 8.3144598e+00 /*J/(mol.kelvin) */
-  #define MMOLARAR  2.896e-2      /*kg/mol         */
+  #define IDEALGASR 8.3144598e+03 /* J/(Kmol.kelvin) */
+  #define MMOLARAR  2.896e0      /*kg/Kmol         */
 /*...................................................................*/
 
 /*...*/
@@ -38,7 +54,7 @@
 /*...................................................................*/
 
 /*...*/
-  #define PROP_UPDATE_NL_LOOP       0
+  #define PROP_UPDATE_NL_LOOP     0
   #define PROP_UPDATE_OLD_TIME    1
 /*...................................................................*/
 
@@ -244,6 +260,7 @@
   #define  MAX_NUM_NODE_FACE  4
   #define  MAX_SN            24 
   #define  MAX_NDM            3 
+  #define  MAX_COMB           3
 /*...................................................................*/
 
 /*... reconstrucao de gradiente*/

@@ -64,7 +64,7 @@ FILE* openFileBuffer(const char* const name,const char* const mod,bool buffer)
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 30/04/2018                                   * 
+ * Data de modificaco : 15/08/2018                                   * 
  *-------------------------------------------------------------------* 
  * fname: add as extencoes dos arquivos de saida                     *
  * ------------------------------------------------------------------*
@@ -98,6 +98,9 @@ FILE* openFileBuffer(const char* const name,const char* const mod,bool buffer)
  *         23 -> log de excucao                                      *
  *         24 -> save                                                *
  *         25 -> geometrica com os centroides                        *
+ *         26 -> log de residuo do modelo de combustao               *
+ *         27 -> log dos paramentros do problema                     *
+ *         30 -> resultados do problema de escoamente imconpressivel *
  *         60 -> media dos tempos (MPI)                              *      
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
@@ -589,6 +592,70 @@ void fName(const char* const name,INT num1,INT num2, int cod ,char *out){
       strcat(out, ext);
       break;
 /*...................................................................*/
+
+/*... arquivo com o log do solv*/
+    case 26:
+      iota(num1, st);
+      strcpy(ext, "_n_");
+      strcat(ext, st);
+      strcat(ext, "_it_comb.txt");
+      size1 = (int)strlen(name);
+      size2 = (int)strlen(ext);
+      if ((size1 + size2)  > SIZEMAX) {
+        fprintf(stderr, "Nome do arquivo muito extenso.\n"
+          "name : \"%s\"\n"
+          "Name maximo : %d\n"
+          "Funcao %s, arquivo fonte \"%s\"\n"
+          , name, SIZEMAX, __func__, __FILE__);
+        exit(EXIT_FAILURE);
+      }
+      strcpy(out, name);
+      strcat(out, ext);
+      break;
+/*...................................................................*/
+
+/*... paramentros do problema*/
+    case 27:
+      iota(num1,st);
+      strcpy(ext,"_parametres_");
+      strcat(ext, st);
+      strcat(ext,".out");
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+        exit(EXIT_FAILURE);      
+      }
+      strcpy(out,name);
+      strcat(out,ext);
+      break;
+/*...................................................................*/
+
+/*... resultados fluido imcompressivel*/
+    case 30:
+      iota(num1,st);
+      strcpy(ext,"_combustion_step_");
+      strcat(ext,st);
+      strcat(ext,".vtk");
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+        exit(EXIT_FAILURE);      
+      }
+      strcpy(out,name);
+      strcat(out,ext);
+      break;
+/*...................................................................*/
+
 
 /*... medias do tempos MPI*/
     case 60:

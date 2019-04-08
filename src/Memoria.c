@@ -91,8 +91,8 @@ void finalizeMem(Memoria *m, bool iws)
  * m->tempmem  - acumulado tempo  em s                               * 
  * ----------------------------------------------------------------- * 
  *********************************************************************/
-void* alloc(Memoria *m, TYPEADRESS **end
-	         ,int comp,char *s,int size,bool iws)
+void* alloc(Memoria *m      , TYPEADRESS **end
+	         ,int comp,const char *const s,int size,bool iws)
 {
 	iptx livre,nec,necA,nv;
   int resto;
@@ -201,7 +201,7 @@ void* alloc(Memoria *m, TYPEADRESS **end
  * ------------------------------------------------------------------* 
  * ------------------------------------------------------------------* 
  *********************************************************************/
-void setNamePoint(Memoria *m,char *s,bool iws){
+void setNamePoint(Memoria *m,const char *const s,bool iws){
   int i;
   i= (int) strlen(s);
   if(i>MNOMEPONTEIRO){
@@ -233,7 +233,7 @@ void setNamePoint(Memoria *m,char *s,bool iws){
  * i-  retorna a localizacao                                         * 
  * ------------------------------------------------------------------* 
  *********************************************************************/
-int locateNamePoint(Memoria *m,char *s,bool iws){
+int locateNamePoint(Memoria *m,const char *const s,bool iws){
   int i;
 
   for(i=0;i<NPONTEIRO;i++){
@@ -268,7 +268,7 @@ int locateNamePoint(Memoria *m,char *s,bool iws){
  * m->tempmem  - acumulado tempo  em s                               * 
  * ------------------------------------------------------------------* 
  *********************************************************************/
-void* dalloc(Memoria* m,char *s,bool iws)
+void* dalloc(Memoria* m,const char *const s,bool iws)
 {
 	iptx nec;
   int  pt;
@@ -421,7 +421,7 @@ void moveVector(Memoria *m, int v1 , int v2){
  * ponterio para o vetor                                             * 
  * ------------------------------------------------------------------* 
  *********************************************************************/
-void* locate(Memoria *m,char *name,bool iws){
+void* locate(Memoria *m,const char *const name,bool iws){
 	iptx ipont;
   int pt;
 
@@ -500,7 +500,7 @@ void cleanNamePoint(Memoria *m,int pont){
  * Parametros de saida :                                             * 
  * ------------------------------------------------------------------* 
  *===================================================================*/
-iptx usoMemoria(Memoria *m,char *s){
+iptx usoMemoria(Memoria *m,const char *const s){
   double conv;
   
   if(!strcmp(s,"B"))
@@ -536,7 +536,7 @@ iptx usoMemoria(Memoria *m,char *s){
  * Parametros de saida :                                             * 
  * ------------------------------------------------------------------* 
  *********************************************************************/
-double memoriaTotal(char *s)
+double memoriaTotal(const char *const s)
 {
    double conv;
    if(!strcmp(s,"B")){
@@ -577,7 +577,8 @@ double memoriaTotal(char *s)
  * Parametros de saida :                                             * 
  * ------------------------------------------------------------------* 
  *********************************************************************/
-double memoriaVector(Memoria *m,char* s,char*npont,bool iws){
+double memoriaVector(Memoria *m             , const char *const s
+                   , const char *const npont, bool iws){
   
   int tp;
   double np,conv;

@@ -53,6 +53,15 @@
     double rcGradPres;
     double rcGradVel;
     double rcGradEnergy;
+/*... combustion*/
+    double solvComb;
+    double solvEdpComb;
+    double numeqComb;
+    double dataStructComb;
+    double cellPloadComb;
+    double cellTransientComb;
+    double systFormComb;
+    double rcGradComb;
 /*... blas*/
     double matVecOverHeadMpi;
     double matVecSparse;

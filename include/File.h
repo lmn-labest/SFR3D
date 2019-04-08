@@ -26,6 +26,7 @@
   #define FITPLOTT2           4
   #define FITPLOTTEMP         5
   #define FITPLOTSIMPLE       6
+  #define FITPLOTCOMB         7
    
 /*...................................................................*/  
   typedef struct{
@@ -39,6 +40,7 @@
     bool gradEnergy; 
     bool graduD1; 
     bool graduT1;
+    bool gradZcomb;
     bool uD1;
     bool uT1;
     bool vel;            
@@ -62,11 +64,16 @@
     bool cDynamic; 
     bool Qcriterion; 
     bool kTurb; 
+    bool zComb;
+    bool rateFuel;
+    bool yFrac;
+    bool rateHeatComb; 
     bool bconditions;    /*insere as condicoes de contorno nos valores nodais*/
     bool cc;             /*centro geomentrico da celula*/       
     bool pKelvin;        /*plot em kelvin*/  
     short stepPlot[2];
-    FILE *fileItPlot[7];
+    FILE *fileItPlot[8];
+    FILE *fileParameters;
     
   }FileOpt;
 

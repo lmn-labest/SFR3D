@@ -27,6 +27,16 @@
                 , Mean *media          
                 , char *preName        , char *nameOut);
   
+  void printCombustion(Memoria *m         , Turbulence *turbModel
+                     , EnergyModel *eModel, Combustion *cModel
+                     , PartMesh *pMesh    , Scheme sc
+                     , Loads *loadsVel    , Loads *loadsPres 
+                     , Loads *loadsTemp   , Loads *loadsComb
+                     , FileOpt *opt
+                     , Mesh *mesh0        , Mesh *mesh  
+                     , Mean *media        
+                     , char *preName      , char *nameOut);  
+
   void printDiff(Memoria *m
                , PartMesh *pMesh, Scheme *sc
                , Loads *loadsD1 , FileOpt *opt
@@ -40,8 +50,8 @@
                 , char *preName  , char *nameOut);
 
   void printFace(Memoria *m   , Mesh *mesh
-               , char* preName, bool bVtk
-               , FILE *fileOut);
+               , char* preName, bool fComb
+               , bool bVtk    , FILE *fileOut);
 
 
   void reScaleMesh(DOUBLE *x, INT nnode, short ndm, FILE *fileIn);

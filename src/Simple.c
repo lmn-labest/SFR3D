@@ -1,6 +1,11 @@
 #include<Simple.h>
 
 static DOUBLE trunkNumber(DOUBLE const a);
+void testeSist(INT *ia      ,INT *ja
+              ,double *au   ,double *ad
+              ,double *al   ,double *b
+              ,INT const neq,bool const unsym);
+
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
  * Data de modificaco : 20/08/2017                                   * 
@@ -634,10 +639,10 @@ void simpleSolver3D(Memoria *m
 /*********************************************************************/ 
 
 /*********************************************************************
- * Data de criacao    : 21/08/2017                                   *
- * Data de modificaco : 12/07/2018                                   *
+ * Data de criacao    : 30/07/2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
- * SIMPLESOLVERENERGY: metodo simple e simpleC para escoamentos      * 
+ * combustionSolver: metodo simple e simpleC para escoamentos        * 
  * 2D/3D termo ativados                                              *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
@@ -646,25 +651,30 @@ void simpleSolver3D(Memoria *m
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
  *-------------------------------------------------------------------*
+ * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void simpleSolverLm(Memoria *m          , PropVarFluid *propF     
+void combustionSolver(Memoria *m        , PropVarFluid *propF     
                   , Loads *loadsVel     , Loads *loadsPres
                   , Loads *loadsEnergy  , Loads *loadsKturb
-                  , EnergyModel *eModel
+                  , Loads *loadsComb    
+                  , EnergyModel *eModel , Combustion *cModel
                   , MassEqModel *eMass  , MomentumModel *ModelMomentum
                   , Turbulence *tModel  , ThermoDynamic *thDynamic
                   , Mesh *mesh0         , Mesh *mesh
                   , SistEq *sistEqVel   , SistEq *sistEqPres
-                  , SistEq *sistEqEnergy, SistEq *sistEqKturb 
+                  , SistEq *sistEqEnergy, SistEq *sistEqKturb
+                  , SistEq *sistEqComb
                   , Solv *solvVel       , Solv *solvPres
                   , Solv *solvEnergy    , Solv *solvKturb
+                  , Solv *solvComb     
                   , Simple *sp          , Scheme *sc          
                   , PartMesh *pMesh     , Mean *media
-                  , FileOpt opt         , char *preName
+                  , FileOpt *opt        , char *preName
                   , char *nameOut       , FILE *fileOut) {
   FILE *fStop = NULL;
   short unsigned ndfVel = mesh->ndfFt - 2;
+  short unsigned nComb = cModel->nComb;
   short unsigned conv;
   short unsigned typeResidual;
   short itSimple;
@@ -727,6 +737,7 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
   zero(sistEqVel->b0   ,sistEqVel->neqNov*ndfVel,DOUBLEC);
   zero(sistEqPres->b0  ,sistEqPres->neqNov      ,DOUBLEC);
   zero(sistEqEnergy->b0,sistEqEnergy->neqNov    ,DOUBLEC);
+  zero(sistEqComb->b0  ,sistEqComb->neqNov*nComb,DOUBLEC)
 /*...................................................................*/
 
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
@@ -776,9 +787,9 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
     cellTransientSimple(mesh->elm.geom.volume ,sistEqVel->id
                        ,mesh->elm.vel0        ,mesh->elm.vel
                        ,mesh->elm.densityFluid,sistEqVel->b0
-                       ,sc->ddt                ,sistEqVel->neqNov
+                       ,sc->ddt               ,sistEqVel->neqNov
                        ,mesh->numelNov        ,ndfVel
-                       ,true);
+                       ,true);  
 /*...................................................................*/
 
 /*... Energia*/
@@ -794,7 +805,7 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
                    ,mesh->elm.energy0      ,mesh->elm.energy
                    ,mesh->elm.densityFluid ,sistEqEnergy->b0
                    ,sc->ddt                ,mesh->numelNov
-                   ,1                      ,true);
+                   ,1                      ,true);  
 /*...................................................................*/
 
 /*... energia cinetica turbulenta*/
@@ -814,7 +825,7 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
 /*...................................................................*/
 
 /*... vel(n-1) = vel(n)*/
-    alphaProdVector(1.e0              ,mesh->elm.vel
+    alphaProdVector(1.e0              ,mesh->elm.vel 
                    ,mesh->numel*ndfVel,mesh->elm.vel0);
 /*... energy(n-1) = energy(n)*/
     alphaProdVector(1.e0       ,mesh->elm.energy
@@ -824,6 +835,23 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
                    ,mesh->numel,mesh->elm.pressure0);
 /*...................................................................*/
     tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;
+
+/*...*/
+    tm.cellTransientComb = getTimeC() - tm.cellTransientComb;
+/*... zComb*/
+    cellTransientSimple(mesh->elm.geom.volume , sistEqComb->id
+                      , mesh->elm.zComb0      , mesh->elm.zComb
+                      , mesh->elm.densityFluid, sistEqComb->b0
+                      , sc->ddt               , sistEqComb->neqNov
+                      , mesh->numelNov        , nComb
+                      , true);    
+/*...................................................................*/
+
+/*... zFuel(n-1) = zFuel(n)*/
+    alphaProdVector(1.e0             , mesh->elm.zComb
+                  , mesh->numel*nComb, mesh->elm.zComb0);
+/*...................................................................*/
+    tm.cellTransientComb = getTimeC() - tm.cellTransientComb;
   }
 /*...................................................................*/
 
@@ -839,7 +867,7 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
 /*...................................................................*/
 
 /*... pressao-velociade*/
-    velPresCouplingLm(m         , propF
+     velPresCouplingLm(m         , propF
                     , loadsVel  , loadsPres
                     , eMass     , ModelMomentum
                     , tModel
@@ -850,7 +878,7 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
                     , pMesh     , rCellPc
                     , &xMomentum, &yMomentum
                     , &zMomentum, &pCor
-                    , fPrint    , itSimple);    
+                    , fPrint    , itSimple);      
 /*...................................................................*/
 
 /*... modelo de turbulencia*/
@@ -867,16 +895,28 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
     }
 /*...................................................................*/
 
+/*... modelo de combustao*/
+    if (fPrint) printf("Modelo de combustao:\n");
+    combustionModel(m          , propF
+                   , loadsComb , loadsVel
+                   , tModel    , cModel
+                   , eModel    , mesh   
+                   , sistEqComb, solvComb 
+                   , sp        , sc       
+                   , pMesh     , opt
+                   , itSimple  );  
+/*...................................................................*/
+
 /*... equacao de energia*/
     if (fPrint) printf("Consercao de Energia:\n");
     fEnergy = energyEquation(m            , propF 
                            , loadsVel     , loadsEnergy  
-                           , eModel
-                           , tModel      , thDynamic
+                           , eModel       , tModel      
+                           , cModel       , thDynamic
                            , mesh          
                            , sistEqEnergy, solvEnergy
                            , sp          , sc
-                           , pMesh);      
+                           , pMesh);        
 /*...................................................................*/
 
 /*... residual*/
@@ -888,32 +928,41 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
                  ,&rEnergy          
                  ,sistEqVel->id        ,sistEqEnergy->id
                  ,mesh->numelNov       ,sistEqVel->neqNov
-                 ,mesh->ndm            ,typeResidual );  
+                 ,mesh->ndm            ,typeResidual );    
 /*...................................................................*/
 
 /*...*/
     tm.tempForEnergy = getTimeC() - tm.tempForEnergy;
-    getTempForEnergy(&propF->sHeat
-                    ,mesh->elm.temp         ,mesh->elm.energy
-                    ,mesh->elm.material.prop,mesh->elm.mat                    
-                    ,mesh->numel            ,eModel->fTemperature
-                    ,fSheat                 ,eModel->fKelvin
-                    ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);
+    getTempForEnergyMix(&propF->sHeat          ,mesh->elm.yFrac
+                       ,mesh->elm.temp         ,mesh->elm.energy
+                       ,mesh->elm.material.prop,mesh->elm.mat                    
+                       ,mesh->numel            ,cModel->nOfSpecies
+                       ,eModel->fTemperature   ,fSheat           
+                       ,eModel->fKelvin
+                       ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);  
     tm.tempForEnergy = getTimeC() - tm.tempForEnergy;
+/*...................................................................*/
+
+/*... pressa de referencia*/
+    if(fPresRef)
+      presRef(mesh->elm.temp0      , mesh->elm.temp
+            , mesh->elm.geom.volume, thDynamic->pTh  
+            , mesh->numel          , eModel->fKelvin);    
 /*...................................................................*/
 
 /*...*/
     if(fDensity)
-      updateDensity(&propF->den
-                  , mesh->elm.temp    ,mesh->elm.pressure0  
-                  , mesh->elm.densityFluid
-                  , sp->alphaDensity , eModel->fKelvin   
-                  , mesh->numel      , PROP_UPDATE_NL_LOOP);
+      updateMixDensity(&propF->den         , cModel
+                 , mesh->elm.temp           , mesh->elm.pressure
+                 , mesh->elm.densityFluid   , mesh->elm.yFrac         
+                 , sp->alphaDensity         , eModel->fKelvin      
+                 , mesh->numelNov           , PROP_UPDATE_NL_LOOP);  
     if(fSheat)
-      updateSpecificHeat(&propF->sHeat
-                        ,mesh->elm.temp,mesh->elm.specificHeat
-                        ,eModel->fKelvin
-                        ,mesh->numel     , PROP_UPDATE_NL_LOOP);
+      updateMixSpecificHeat(&propF->sHeat
+                         , mesh->elm.temp        , mesh->elm.yFrac
+                         , mesh->elm.specificHeat, cModel->nOfSpecies
+                         , eModel->fKelvin     
+                         , mesh->numel           , PROP_UPDATE_NL_LOOP);
     if(fDvisc)
       updateDynamicViscosity(&propF->dVisc
                            ,mesh->elm.temp,mesh->elm.dViscosity  
@@ -921,14 +970,7 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
     if(fTcond)
       updateThermalconductivity(&propF->thCond
                               ,mesh->elm.temp,mesh->elm.tConductivity
-                              ,eModel->fKelvin  ,mesh->numel);
-/*...................................................................*/
-
-/*... pressa de referencia*/
-    if(fPresRef)
-      presRef(mesh->elm.temp0      , mesh->elm.temp
-            , mesh->elm.geom.volume, thDynamic->pTh  
-            , mesh->numel          , eModel->fKelvin);
+                              ,eModel->fKelvin  ,mesh->numel);  
 /*...................................................................*/
 
 /*...*/
@@ -939,19 +981,20 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
       if (yMomentum) rU0[1] = rU[1];
       if (zMomentum && ndfVel == 3) rU0[2] = rU[2];
     }
-    conv = 0;
+    conv = 0;  
 /*...................................................................*/
 
 /*...*/
     timei = getTimeC() - time;
 /*... arquivo de log*/
-    if (opt.fItPlot) {
+    if (opt->fItPlot)
+    {
       if (ndfVel == 3)
-        fprintf(opt.fileItPlot[FITPLOTSIMPLE]
+        fprintf(opt->fileItPlot[FITPLOTSIMPLE]
           , "%d %20.8e %20.8e %20.8e %20.8e %20.8e\n"
           , itSimple + 1, rU[0], rU[1], rU[2], rMass, rEnergy);
       else
-        fprintf(opt.fileItPlot[FITPLOTSIMPLE]
+        fprintf(opt->fileItPlot[FITPLOTSIMPLE]
           , "%d %20.8e %20.8e %20.8e %20.8e\n"
           , itSimple + 1, rU[0], rU[1], rMass, rEnergy);
     }
@@ -974,7 +1017,8 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
 /*...................................................................*/
 
 /*... 3D*/
-    if (ndfVel == 3) {
+    if (ndfVel == 3) 
+    {
       if(rEnergy/rEnergy0<tolSimpleEnergy || rEnergy<SZERO) conv++;
 /*...*/
       if(rMass/rMass0<tolSimpleMass || rMass<SZERO) conv++;
@@ -989,8 +1033,9 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
     }
 /*...................................................................*/
 
-/*... 2D*/
-    else {
+/*... 2D*/ 
+    else 
+    {
       if(rEnergy/rEnergy0<tolSimpleEnergy || rEnergy<SZERO) conv++;
 /*...*/
       if(rMass/rMass0<tolSimpleMass || rMass<SZERO) conv++;
@@ -1020,7 +1065,7 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
                , &cfl                   , &reynolds
                , &peclet                , &mesh->mass[2]
                , fParameter             , sc->ddt.dt[0]
-               , mesh->numelNov         , mesh->ndm);
+               , mesh->numelNov         , mesh->ndm);  
 /*...................................................................*/
 
 /*...*/
@@ -1029,26 +1074,29 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
                  , mesh->elm.densityFluid , mesh->elm.specificHeat
                  , mesh->elm.tConductivity, mesh->elm.dViscosity
                  , sc->ddt.dt             , mesh->numelNov
-                 , mesh->ndm              , CFL);
+                 , mesh->ndm              , CFL);  
 /*...................................................................*/
 
 /*... guardando as propriedades para o proximo passo*/
-  if(fDensity) updateDensity(&propF->den
-              , mesh->elm.temp ,mesh->elm.pressure0 
-              , mesh->elm.densityFluid
-              , sp->alphaDensity           , eModel->fKelvin
-              , mesh->numel                , PROP_UPDATE_OLD_TIME   );
-  if(fSheat) updateSpecificHeat(&propF->sHeat
-                         ,mesh->elm.temp,mesh->elm.specificHeat
-                         ,eModel->fKelvin     
-                         ,mesh->numel   ,PROP_UPDATE_OLD_TIME);
+  if(fDensity)
+    updateMixDensity(&propF->den         , cModel
+                 , mesh->elm.temp           , mesh->elm.pressure
+                 , mesh->elm.densityFluid   , mesh->elm.yFrac         
+                 , sp->alphaDensity         , eModel->fKelvin      
+                 , mesh->numelNov           , PROP_UPDATE_OLD_TIME); 
+  if(fSheat)
+    updateMixSpecificHeat(&propF->sHeat
+                         , mesh->elm.temp        , mesh->elm.yFrac
+                         , mesh->elm.specificHeat, cModel->nOfSpecies
+                         , eModel->fKelvin     
+                         , mesh->numel           , PROP_UPDATE_OLD_TIME);
 /*...................................................................*/
 
 /*... calcula a massa especifica de referencia*/
   if(fDensityRef)
     specificMassRef(mesh->elm.densityFluid , mesh->elm.geom.volume                  
                   , mesh->elm.material.prop, mesh->elm.mat
-                  , mesh->numel);
+                  , mesh->numel);  
 /*...................................................................*/
 
 /*... calculo da taxa de massa atravessando o contorno aberto*/
@@ -1060,12 +1108,505 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
               , mesh->elm.densityFluid, mesh->elm.vel 
               , mesh->numelNov        , mesh->ndm  
               , mesh->maxViz  );
-  mesh->mass[1] = mesh->mass[1] + deltaMass;
+  mesh->mass[1] = mesh->mass[1] + deltaMass;  
 /*...................................................................*/
 
 /*... temp(n) = temp(n+1)*/
   alphaProdVector(1.e0        ,mesh->elm.temp
-                 ,mesh->numel ,mesh->elm.temp0);
+                 ,mesh->numel ,mesh->elm.temp0);  
+/*...................................................................*/
+
+/*... pth(n-2) = pth(n-1)*/
+  thDynamic->pTh[0] = thDynamic->pTh[1];  
+/*... pth(n-1) = pth(n)*/
+  thDynamic->pTh[1] = thDynamic->pTh[2];  
+/*...................................................................*/
+
+/*... Enegia total liberada*/
+  deltaMass =  totalHeatRealeseComb(mesh->elm.rateHeatReComb
+                      , mesh->elm.geom.volume
+                      , sc->ddt.dt[TIME_N], mesh->numelNov);
+  cModel->totalHeat += deltaMass;
+  
+/*...................................................................*/
+
+/*... Mass total consumida*/
+  deltaMass =  totalHeatRealeseComb(mesh->elm.rateFuel 
+                      , mesh->elm.geom.volume
+                      , sc->ddt.dt[TIME_N], mesh->numelNov);
+  cModel->totalMassFuel += deltaMass;
+/*...................................................................*/
+
+
+/*...*/
+  printf("It simple: %d \n", itSimple + 1);
+  printf("Time(s) : %lf \n", timei);
+  if (sc->ddt.flag)
+    printf("CFL                  : %lf\n", cfl);
+  printf("Reynolds             : %.3e\n", reynolds);
+  printf("Peclet               : %.3e\n", peclet);
+  printf("PresRef              : %.6e\n", thDynamic->pTh[2]);
+  printf("(Inc    ) Mass/Mass0 : %.6e\n", mesh->mass[1]/mesh->mass[0]);
+  printf("(Average) Mass/Mass0 : %.6e\n", mesh->mass[2]/mesh->mass[0]);
+  printf("Heat Combustion      : %.6e\n",cModel->totalHeat);
+  printf("Mass consume of fuel : %.6e\n",cModel->totalMassFuel);
+ 
+  printf("Residuo:\n");
+  printf("conservacao da massa   (init,final): %20.8e %20.8e \n"
+        , rMass0, rMass);
+  printf("momentum x1            (init,final): %20.8e %20.8e\n"
+        , rU0[0], rU[0]);
+  printf("momentum x2            (init,final): %20.8e %20.8e\n"
+        , rU0[1], rU[1]);
+  if (ndfVel == 3)
+    printf("momentum x3            (init,final): %20.8e %20.8e\n"
+          , rU0[2], rU[2]);
+  printf("conservacao da energia (init,final): %20.8e %20.8e\n"
+        , rEnergy0, rEnergy);
+/*...................................................................*/
+
+/*...*/
+  fprintf(opt->fileParameters,"%9d %lf %lf %lf %lf %lf %lf %lf %lf %lf\n"
+                             , sc->ddt.timeStep ,sc->ddt.t
+                             , cfl              , reynolds
+                             , peclet           ,thDynamic->pTh[2]
+                             , mesh->mass[1]    , mesh->mass[2]
+                             , cModel->totalHeat,cModel->totalMassFuel);
+/*...................................................................*/
+
+}
+/*********************************************************************/
+
+/*********************************************************************
+* Data de criacao    : 21/08/2017                                   *
+* Data de modificaco : 30/07/2018                                   *
+*-------------------------------------------------------------------*
+* SIMPLESOLVERENERGY: metodo simple e simpleC para escoamentos      *
+* 2D/3D termo ativados                                              *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+*********************************************************************/
+void simpleSolverLm(Memoria *m         , PropVarFluid *propF
+                 , Loads *loadsVel     , Loads *loadsPres
+                 , Loads *loadsEnergy  , Loads *loadsKturb
+                 , EnergyModel *eModel
+                 , MassEqModel *eMass  , MomentumModel *ModelMomentum
+                 , Turbulence *tModel  , ThermoDynamic *thDynamic
+                 , Mesh *mesh0         , Mesh *mesh
+                 , SistEq *sistEqVel   , SistEq *sistEqPres
+                 , SistEq *sistEqEnergy, SistEq *sistEqKturb
+                 , Solv *solvVel       , Solv *solvPres
+                 , Solv *solvEnergy    , Solv *solvKturb
+                 , Simple *sp          , Scheme *sc
+                 , PartMesh *pMesh     , Mean *media
+                 , FileOpt opt         , char *preName
+                 , char *nameOut       , FILE *fileOut) {
+  FILE *fStop = NULL;
+  short unsigned ndfVel = mesh->ndfFt - 2;
+  short unsigned conv;
+  short unsigned typeResidual;
+  short itSimple;
+  short unsigned kZeroVel = sp->kZeroVel,
+    kZeroPres = sp->kZeroPres,
+    kZeroEnergy = sp->kZeroEnergy;
+  INT jj = 1;
+  DOUBLE time, timei;
+  DOUBLE *rCellPc;
+
+/*...*/
+  DOUBLE rU[3], rU0[3], rMass0, rMass
+    , rEnergy0, rEnergy;
+/*...*/
+  DOUBLE tolSimpleU1, tolSimpleU2, tolSimpleU3
+    , tolSimpleMass, tolSimpleEnergy;
+/*...*/
+  bool xMomentum, yMomentum, zMomentum, pCor, fEnergy;
+  bool fComb = true;
+  bool relRes;
+  bool fPrint = false;
+  bool fDensity = propF->fDensity,
+    fSheat = propF->fSpecificHeat,
+    fDvisc = propF->fDynamicViscosity,
+    fTcond = propF->fThermalconductivity,
+    fDensityRef = thDynamic->fDensityRef,
+    fPresRef = thDynamic->fPresTh,
+    fDeltaTimeDynamic = sc->ddt.fDynamic;
+  DOUBLE cfl, reynolds, peclet, deltaMass;
+  bool fParameter[10];
+
+  time = getTimeC();
+
+/*...*/
+  //relRes       = false;
+  //typeResidual = RSQRT;
+  relRes = false;
+  typeResidual = RSCALEDSUM;
+
+/*...*/
+  tolSimpleU1 = sp->tolVel[0];
+  tolSimpleU2 = sp->tolVel[1];
+  tolSimpleU3 = sp->tolVel[2];
+  tolSimpleMass = sp->tolPres;
+  tolSimpleEnergy = sp->tolEnergy;
+/*...................................................................*/
+
+/*...*/
+  rMass0 = 1.e0;
+  rMass = 0.e0;
+  rU[0] = rU[1] = rU[2] = 0.e0;
+  rU0[0] = rU0[1] = rU0[2] = 1.e0;
+  rEnergy0 = 1.e0;
+  rEnergy = 0.e0;
+  conv = 0;
+  xMomentum = yMomentum = zMomentum = true;
+  rCellPc = mesh->elm.rCellPres;
+/*...................................................................*/
+
+/*...*/
+  zero(sistEqVel->b0, sistEqVel->neqNov*ndfVel, DOUBLEC);
+  zero(sistEqPres->b0, sistEqPres->neqNov, DOUBLEC);
+  zero(sistEqEnergy->b0, sistEqEnergy->neqNov, DOUBLEC);
+/*...................................................................*/
+
+/*... restricoes por centro de celula u0 e cargas por volume b0*/
+  tm.cellPloadSimple = getTimeC() - tm.cellPloadSimple;
+  cellPloadSimple(loadsPres, mesh->elm.geom.cc
+    , mesh->elm.faceRpres, mesh->elm.faceLoadPres
+    , mesh->elm.geom.volume
+    , sistEqVel->id, sistEqPres->id
+    , mesh->elm.vel, mesh->elm.pressure
+    , sistEqVel->b0, sistEqPres->b0
+    , mesh->numelNov, ndfVel
+    , mesh->ndm, mesh->maxViz);
+  tm.cellPloadSimple = getTimeC() - tm.cellPloadSimple;
+/*...................................................................*/
+
+/*... restricoes por centro de celula u0 e cargas por volume b0*/
+  tm.cellPloadSimple = getTimeC() - tm.cellPloadSimple;
+  cellPload(loadsEnergy, mesh->elm.geom.cc
+    , mesh->elm.faceRenergy, mesh->elm.faceLoadEnergy
+    , mesh->elm.geom.volume, sistEqEnergy->id
+    , mesh->elm.energy, sistEqEnergy->b0
+    , mesh->numelNov, 1
+    , mesh->ndm, mesh->maxViz);
+  tm.cellPloadSimple = getTimeC() - tm.cellPloadSimple;
+/*...................................................................*/
+
+/* ... restricoes por centro de celula u0 e cargas por volume b0*/
+  if (tModel->typeLes == LESFUNCMODELONEEQK)
+  {
+    zero(sistEqKturb->b0, sistEqKturb->neqNov, DOUBLEC);
+    tm.turbulence = getTimeC() - tm.turbulence;
+    cellPload(loadsKturb, mesh->elm.geom.cc
+      , mesh->elm.faceReKturb, mesh->elm.faceLoadKturb
+      , mesh->elm.geom.volume, sistEqKturb->id
+      , mesh->elm.energy, sistEqKturb->b0
+      , mesh->numelNov, 1
+      , mesh->ndm, mesh->maxViz);
+    tm.turbulence = getTimeC() - tm.turbulence;
+  }
+/*...................................................................*/
+
+/*... discretizacao temporal*/
+  if (sc->ddt.flag)
+  {
+    tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;
+/*... velocidade*/
+    cellTransientSimple(mesh->elm.geom.volume, sistEqVel->id
+      , mesh->elm.vel0, mesh->elm.vel
+      , mesh->elm.densityFluid, sistEqVel->b0
+      , sc->ddt, sistEqVel->neqNov
+      , mesh->numelNov, ndfVel
+      , true);
+/*...................................................................*/
+
+/*... Energia*/
+    if (eModel->fTemperature)
+      cellTransientEnergy(mesh->elm.geom.volume, sistEqEnergy->id
+        , mesh->elm.energy0, mesh->elm.energy
+        , mesh->elm.densityFluid, mesh->elm.specificHeat
+        , sistEqEnergy->b0
+        , sc->ddt, mesh->numelNov
+        , true);
+    else
+      cellTransient(mesh->elm.geom.volume, sistEqEnergy->id
+        , mesh->elm.energy0, mesh->elm.energy
+        , mesh->elm.densityFluid, sistEqEnergy->b0
+        , sc->ddt, mesh->numelNov
+        , 1, true);
+/*...................................................................*/
+
+/*... energia cinetica turbulenta*/
+    if (tModel->typeLes == LESFUNCMODELONEEQK)
+    {
+      tm.turbulence = getTimeC() - tm.turbulence;
+      cellTransient(mesh->elm.geom.volume, sistEqKturb->id
+        , mesh->elm.kTurb0, mesh->elm.kTurb
+        , mesh->elm.densityFluid, sistEqKturb->b0
+        , sc->ddt, mesh->numelNov
+        , 1, true);
+/*... kTurb(n-1) = kTueb(n)*/
+      alphaProdVector(1.e0, mesh->elm.kTurb
+        , mesh->numel, mesh->elm.kTurb0);
+      tm.turbulence = getTimeC() - tm.turbulence;
+    }
+/*...................................................................*/
+
+/*... vel(n-1) = vel(n)*/
+    alphaProdVector(1.e0, mesh->elm.vel
+      , mesh->numel*ndfVel, mesh->elm.vel0);
+/*... energy(n-1) = energy(n)*/
+    alphaProdVector(1.e0, mesh->elm.energy
+      , mesh->numel, mesh->elm.energy0);
+/*... pres(n-1) = pres(n)*/
+    alphaProdVector(1.e0, mesh->elm.pressure
+      , mesh->numel, mesh->elm.pressure0);
+/*...................................................................*/
+    tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;
+  }
+/*...................................................................*/
+
+/*...*/
+  for (itSimple = 0; itSimple<sp->maxIt; itSimple++)
+  {
+/*...*/
+    if ((fStop = fopen("stopSimple.mvf", "r")) != NULL)
+    {
+      fclose(fStop);
+      break;
+    }
+/*...................................................................*/
+
+/*... pressao-velociade*/
+    velPresCouplingLm(m, propF
+      , loadsVel, loadsPres
+      , eMass, ModelMomentum
+      , tModel
+      , mesh
+      , sistEqVel, sistEqPres
+      , solvVel, solvPres
+      , sp, sc
+      , pMesh, rCellPc
+      , &xMomentum, &yMomentum
+      , &zMomentum, &pCor
+      , fPrint, itSimple);
+/*...................................................................*/
+
+/*... modelo de turbulencia*/
+    if (tModel->fTurb) 
+    {
+      tm.turbulence = getTimeC() - tm.turbulence;
+      turbulence(m
+        , loadsKturb, loadsVel
+        , pMesh, tModel
+        , mesh, sc
+        , sp, sistEqKturb
+        , solvKturb, ndfVel);
+
+      tm.turbulence = getTimeC() - tm.turbulence;
+    }
+/*...................................................................*/
+
+/*... equacao de energia*/
+/*  if (fPrint) printf("Consercao de Energia:\n");
+    fEnergy = energyEquation(m       , propF
+                           , loadsVel, loadsEnergy
+                           , eModel  , tModel  
+                           , cModel  , thDynamic
+                           , mesh
+                           , sistEqEnergy, solvEnergy
+                           , sp, sc
+                           , pMesh);*/
+/*...................................................................*/
+
+/*... residual*/
+    residualSimpleLm(mesh->elm.vel, mesh->elm.energy
+      , mesh->elm.rCellVel, rCellPc
+      , mesh->elm.rCellEnergy
+      , sistEqVel->ad, sistEqEnergy->ad
+      , rU, &rMass
+      , &rEnergy
+      , sistEqVel->id, sistEqEnergy->id
+      , mesh->numelNov, sistEqVel->neqNov
+      , mesh->ndm, typeResidual);
+/*...................................................................*/
+
+/*...*/
+    tm.tempForEnergy = getTimeC() - tm.tempForEnergy;
+    getTempForEnergy(&propF->sHeat
+      , mesh->elm.temp, mesh->elm.energy
+      , mesh->elm.material.prop, mesh->elm.mat
+      , mesh->numel, eModel->fTemperature
+      , fSheat, eModel->fKelvin
+      , ompVar.fUpdate, ompVar.nThreadsUpdate);
+    tm.tempForEnergy = getTimeC() - tm.tempForEnergy;
+/*...................................................................*/
+
+/*...*/
+    if (fDensity)
+      updateDensity(&propF->den
+        , mesh->elm.temp, mesh->elm.pressure0
+        , mesh->elm.densityFluid
+        , sp->alphaDensity, eModel->fKelvin
+        , mesh->numel, PROP_UPDATE_NL_LOOP);
+    if (fSheat)
+      updateSpecificHeat(&propF->sHeat
+        , mesh->elm.temp, mesh->elm.specificHeat
+        , eModel->fKelvin
+        , mesh->numel, PROP_UPDATE_NL_LOOP);
+    if (fDvisc)
+      updateDynamicViscosity(&propF->dVisc
+        , mesh->elm.temp, mesh->elm.dViscosity
+        , eModel->fKelvin, mesh->numel);
+    if (fTcond)
+      updateThermalconductivity(&propF->thCond
+        , mesh->elm.temp, mesh->elm.tConductivity
+        , eModel->fKelvin, mesh->numel);
+/*...................................................................*/
+
+/*... pressa de referencia*/
+    if (fPresRef)
+      presRef(mesh->elm.temp0, mesh->elm.temp
+        , mesh->elm.geom.volume, thDynamic->pTh
+        , mesh->numel, eModel->fKelvin);
+/*...................................................................*/
+
+/*...*/
+    if (itSimple == kZeroPres && relRes &&  pCor) rMass0 = rMass;
+    if (itSimple == kZeroEnergy && relRes && fEnergy) rEnergy0 = rEnergy;
+    if (itSimple == kZeroVel && relRes) 
+    {
+      if (xMomentum) rU0[0] = rU[0];
+      if (yMomentum) rU0[1] = rU[1];
+      if (zMomentum && ndfVel == 3) rU0[2] = rU[2];
+    }
+    conv = 0;
+/*...................................................................*/
+
+/*...*/
+    timei = getTimeC() - time;
+/*... arquivo de log*/
+    if (opt.fItPlot) 
+    {
+      if (ndfVel == 3)
+        fprintf(opt.fileItPlot[FITPLOTSIMPLE]
+          , "%d %20.8e %20.8e %20.8e %20.8e %20.8e\n"
+          , itSimple + 1, rU[0], rU[1], rU[2], rMass, rEnergy);
+      else
+        fprintf(opt.fileItPlot[FITPLOTSIMPLE]
+          , "%d %20.8e %20.8e %20.8e %20.8e\n"
+          , itSimple + 1, rU[0], rU[1], rMass, rEnergy);
+    }
+/*...................................................................*/
+
+/*...*/
+    if (jj == sp->pSimple) 
+    {
+      jj = 0;
+      printf("It simple: %d \n", itSimple + 1);
+      printf("CPU Time(s)  : %lf \n", timei);
+      printf("Residuo:\n");
+      printf("conservacao da massa   : %20.8e\n", rMass / rMass0);
+      printf("momentum x1            : %20.8e\n", rU[0] / rU0[0]);
+      printf("momentum x2            : %20.8e\n", rU[1] / rU0[1]);
+      if (ndfVel == 3)
+        printf("momentum x3            : %20.8e\n", rU[2] / rU0[2]);
+      printf("conservacao da energia : %20.8e\n", rEnergy / rEnergy0);
+    }
+    jj++;
+/*...................................................................*/
+
+/*... 3D*/
+    if (ndfVel == 3) 
+    {
+      if (rEnergy / rEnergy0<tolSimpleEnergy || rEnergy<SZERO) conv++;
+      if (rMass / rMass0<tolSimpleMass || rMass<SZERO) conv++;     
+      if (rU[0] / rU0[0]<tolSimpleU1 || rU[0]<SZERO) conv++;
+      if (rU[1] / rU0[1]<tolSimpleU2 || rU[1]<SZERO) conv++;
+      if (rU[2] / rU0[2]<tolSimpleU3 || rU[2]<SZERO) conv++;
+      if (conv == 5) break;
+    }
+/*...................................................................*/
+
+/*... 2D*/
+    else {
+      if (rEnergy / rEnergy0<tolSimpleEnergy || rEnergy<SZERO) conv++;
+      if (rMass / rMass0<tolSimpleMass || rMass<SZERO) conv++;
+      if (rU[0] / rU0[0]<tolSimpleU1 || rU[0]<SZERO) conv++;
+      if (rU[1] / rU0[1]<tolSimpleU2 || rU[1]<SZERO) conv++;
+      if (conv == 4) break;
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+  }
+/*...................................................................*/
+  timei = getTimeC() - time;
+
+/*...*/
+  fParameter[0] = true;
+  fParameter[1] = true;
+  fParameter[2] = true;
+  fParameter[3] = true;
+  parameterCellLm(mesh->elm.vel, mesh->elm.material.prop
+    , mesh->elm.densityFluid, mesh->elm.specificHeat
+    , mesh->elm.tConductivity, mesh->elm.dViscosity
+    , mesh->elm.geom.volume, mesh->elm.mat
+    , &cfl, &reynolds
+    , &peclet, &mesh->mass[2]
+    , fParameter, sc->ddt.dt[0]
+    , mesh->numelNov, mesh->ndm);
+/*...................................................................*/
+
+/*...*/
+  if (fDeltaTimeDynamic)
+    dynamicDeltat(mesh->elm.vel, mesh->elm.geom.volume
+      , mesh->elm.densityFluid, mesh->elm.specificHeat
+      , mesh->elm.tConductivity, mesh->elm.dViscosity
+      , sc->ddt.dt, mesh->numelNov
+      , mesh->ndm, CFL);
+/*...................................................................*/
+
+/*... guardando as propriedades para o proximo passo*/
+  if (fDensity) updateDensity(&propF->den
+    , mesh->elm.temp, mesh->elm.pressure0
+    , mesh->elm.densityFluid
+    , sp->alphaDensity, eModel->fKelvin
+    , mesh->numel, PROP_UPDATE_OLD_TIME);
+  if (fSheat) updateSpecificHeat(&propF->sHeat
+    , mesh->elm.temp, mesh->elm.specificHeat
+    , eModel->fKelvin
+    , mesh->numel, PROP_UPDATE_OLD_TIME);
+/*...................................................................*/
+
+/*... calcula a massa especifica de referencia*/
+  if (fDensityRef)
+    specificMassRef(mesh->elm.densityFluid, mesh->elm.geom.volume
+      , mesh->elm.material.prop, mesh->elm.mat
+      , mesh->numel);
+/*...................................................................*/
+
+/*... calculo da taxa de massa atravessando o contorno aberto*/
+  deltaMass = massFluxOpenDomain(loadsVel, sc->ddt
+    , mesh->elm.cellFace, mesh->face.owner
+    , mesh->elm.faceLoadVel, mesh->elm.adj.nViz
+    , mesh->face.area, mesh->face.normal
+    , mesh->face.xm
+    , mesh->elm.densityFluid, mesh->elm.vel
+    , mesh->numelNov, mesh->ndm
+    , mesh->maxViz);
+  mesh->mass[1] = mesh->mass[1] + deltaMass;
+/*...................................................................*/
+
+/*... temp(n) = temp(n+1)*/
+  alphaProdVector(1.e0, mesh->elm.temp
+    , mesh->numel, mesh->elm.temp0);
 /*...................................................................*/
 
 /*... pth(n-2) = pth(n-1)*/
@@ -1082,21 +1623,21 @@ void simpleSolverLm(Memoria *m          , PropVarFluid *propF
   printf("Reynolds             : %.3e\n", reynolds);
   printf("Peclet               : %.3e\n", peclet);
   printf("PresRef              : %.6e\n", thDynamic->pTh[2]);
-  printf("(Inc    ) Mass/Mass0 : %.6e\n", mesh->mass[1]/mesh->mass[0]);
-  printf("(Average) Mass/Mass0 : %.6e\n", mesh->mass[2]/mesh->mass[0]);
- 
+  printf("(Inc    ) Mass/Mass0 : %.6e\n", mesh->mass[1] / mesh->mass[0]);
+  printf("(Average) Mass/Mass0 : %.6e\n", mesh->mass[2] / mesh->mass[0]);
+
   printf("Residuo:\n");
   printf("conservacao da massa   (init,final): %20.8e %20.8e \n"
-        , rMass0, rMass);
+    , rMass0, rMass);
   printf("momentum x1            (init,final): %20.8e %20.8e\n"
-        , rU0[0], rU[0]);
+    , rU0[0], rU[0]);
   printf("momentum x2            (init,final): %20.8e %20.8e\n"
-        , rU0[1], rU[1]);
+    , rU0[1], rU[1]);
   if (ndfVel == 3)
     printf("momentum x3            (init,final): %20.8e %20.8e\n"
-          , rU0[2], rU[2]);
+      , rU0[2], rU[2]);
   printf("conservacao da energia (init,final): %20.8e %20.8e\n"
-        , rEnergy0, rEnergy);
+    , rEnergy0, rEnergy);
 /*...................................................................*/
 
 }
@@ -1230,8 +1771,6 @@ void updateCellSimpleVelR(DOUBLE  *RESTRICT w  ,DOUBLE  *RESTRICT u1
 
 }
 /*********************************************************************/ 
-
-
 
 /********************************************************************* 
  * Data de criacao    : 11/07/2016                                   *

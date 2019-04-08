@@ -8,6 +8,7 @@
 #include<Adjcency.h>
 #include<CellLoop.h>
 #include<Coo.h>
+#include<Combustion.h>
 #include<Diffusion.h>
 #include<File.h>
 #include<Memoria.h>
@@ -31,7 +32,6 @@
 #include<SaveLoad.h>
 #include<FaceStruct.h>
 /*********************************************************************/
-
 /*********************************************************************/
 #ifdef _DEBUG_ 
   #include<Debug.h>
@@ -86,6 +86,7 @@ int main(int argc,char**argv){
 /*... Sistema de equacao*/
   SistEq sistEqD1, sistEqT1;
   SistEq sistEqVel, sistEqPres, sistEqEnergy, sistEqKturb;
+  SistEq sistEqComb;
 /*... metodo de acoplamento pressao-velocidade*/
   Simple simple;
   Prime  prime;
@@ -99,17 +100,19 @@ int main(int argc,char**argv){
   MomentumModel ModelMomentum;
   DiffModel diffModel[3];
   TransModel transModel[3];
+  Combustion combModel;
 /*... propriedade variaveis*/
   PropVarFluid propVarFluid;
   PropVarCD propVarD[3],propVarT[3];
 
 /*... solver*/
   Solv solvD1, solvT1;
-  Solv solvVel,solvPres,solvEnergy,solvKturb;
+  Solv solvVel,solvPres,solvEnergy,solvKturb, solvComb;
   bool fSolvD1 = false, fSolvT1 = false;
   bool fSolvVel = false,fSolvPres = false, fSolvEnergy = false;
+  bool fSolvComb = false;
   bool fSolvKturb = false;
-  bool fSolvSimple = false,fSolvPrime = false;
+  bool fSolvSimple = false,fSolvPrime = false, fSolvCombustion;
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
 
@@ -148,13 +151,14 @@ int main(int argc,char**argv){
   ,"nlIt"        ,"pD1CsvCell"   ,"pD1CsvNode"   /*15,16,17*/
   ,"solvT1"      ,""             ,"pT1"          /*18,19,20*/
   ,""            ,"pT1CsvCell"   ,"pT1CsvNode"   /*21,22,23*/
-  ,"setSolv"     ,"simple"       ,"setSimple"    /*24,25,26*/
+  ,"setSolvFluid","simple"       ,"setSimple"    /*24,25,26*/
   ,"transient"   ,"timeUpdate"   ,"partd"        /*27,28,29*/
   ,"advection"   ,"edp"          ,"diffusion"    /*30,31,32*/
   ,"pFluid"      ,"setPrint"     ,"reScaleMesh"  /*33,34,35*/
   ,"setPrime"    ,"prime"        ,""             /*36,37,38*/
-  ,"gravity"     ,"model"        ,"mean"         /*39,40,41*/
-  ,"setMean"     ,"save"         ,"load"};       /*42,43,44*/
+  ,"setSolvComb" ,"pCombustion"  ,""             /*39,40,41*/
+  ,"gravity"     ,"model"        ,"mean"         /*42,43,44*/
+  ,"setMean"     ,"save"         ,"load"};       /*45,46,47*/
 /* ..................................................................*/
 
 /*... Memoria principal(valor padrao - bytes)*/
@@ -166,6 +170,34 @@ int main(int argc,char**argv){
 /*...*/
   media.fMedia = false;
   media.fVel   = false;
+/*..................................................................*/
+
+/*...*/
+  combModel.fCombustrion         = true;
+  combModel.fRes                 = false;  
+  combModel.nComb                = 3;
+  combModel.nOfSpecies           = 5;
+  combModel.nOfSpeciesLump       = 3;
+  combModel.tMix                 = 0.125;
+  combModel.totalHeat            = 0.e0;
+  combModel.totalMassFuel        = 0.e0;
+//combModel.typeHeatRealese      = HCOMBUSTION;
+  combModel.typeHeatRealese      = HFORMATION;
+  combModel.O2InAir = 0.21;
+  combModel.N2InAir = 0.79;
+  combModel.fuel.c = 1;
+  combModel.fuel.h = 4;
+  combModel.fuel.o = 0;
+//combModel.reactionKinetic           = ARRHENIUS;
+  combModel.reactionKinetic           = EBU;
+  combModel.arrhenius.alpha           = 1.0;
+  combModel.arrhenius.energyAtivation = 12000.e0;
+  combModel.arrhenius.a               = 4.4e+09;
+  initMolarMass(&combModel);
+  stoichiometricCoeff(&combModel);
+  initLumpedMatrix(&combModel);
+  initEntalpyOfFormation(&combModel);
+  initEntalpyOfCombustion(&combModel);  
 /*..................................................................*/
 
 /*...*/
@@ -249,6 +281,7 @@ int main(int argc,char**argv){
   propVarFluid.fSpecificHeat        = false;
   propVarFluid.fDynamicViscosity    = false;
   propVarFluid.fThermalconductivity = false;
+  propVarFluid.molarMass            = MMOLARAR;
 /*...................................................................*/
 
 /*...*/
@@ -314,6 +347,14 @@ int main(int argc,char**argv){
   sc.diffKturb.iCod  = OVERRELAXED;
 /*...................................................................*/
 
+/*...*/
+  sc.diffComb.iCod = OVERRELAXED;
+//sc.advComb.iCod1 = TVD;
+  sc.advComb.iCod1 = FOUP;
+  sc.advComb.iCod2 = MIDMODFACE;
+  sc.advComb.par[0] = 0.e0;
+/*...................................................................*/
+
 /*...*/  
   sc.ddt.flag     = false;
   sc.ddt.fDynamic = false;
@@ -360,10 +401,17 @@ int main(int argc,char**argv){
   fileLogExc = openFileBuffer(nameOut,"w",false);
 /*...................................................................*/
 
+/*...*/
+  fName(preName,0,0, 27 ,nameOut);
+  opt.fileParameters = openFileBuffer(nameOut,"w",true);
+/*...................................................................*/
+
 /*loop de execucao*/
   macroFlag = true;
   do{
 /*... macros na marcro trasient*/
+
+
     if(flWord){
       if( jLoop > kLoop) { 
         ERRO_GERAL(__FILE__,__func__,__LINE__,
@@ -409,12 +457,12 @@ int main(int argc,char**argv){
         readFileFvMesh(&m           ,mesh0
                       ,&propVarFluid
                       ,propVarD     ,propVarT
-                      ,&eModel
-                      ,&turbModel   ,&media       
+                      ,&eModel      ,&turbModel 
+                      ,&combModel   ,&media       
                       ,fileIn);
       mpiWait();
 /*...................................................................*/
- 
+
 /*...*/
       if(!mpiVar.myId){
         tm.adjcency = getTimeC();
@@ -553,9 +601,9 @@ int main(int argc,char**argv){
 
 /*...*/
         if(thDynamic.fPresTh)
-          initPresRef(mesh->elm.temp 
-                    , mesh->elm.geom.volume  , thDynamic.pTh                  
-                    , mesh->elm.material.prop, mesh->elm.mat
+          initPresRef(mesh->elm.temp         , mesh->elm.geom.volume  
+                    , thDynamic.pTh          , mesh->elm.material.prop
+                    , mesh->elm.mat          , propVarFluid.molarMass    
                     , mesh->numel            , eModel.fKelvin);
 /*...................................................................*/
 
@@ -712,7 +760,16 @@ int main(int argc,char**argv){
 /*... fechando o arquivo do log nao linear do simple */      
       if(fSolvSimple && opt.fItPlot && !mpiVar.myId)  
         fclose(opt.fileItPlot[FITPLOTSIMPLE]);
+/*... fechando o arquivo do log nao linear do simple */      
+      if(fSolvCombustion && opt.fItPlot && !mpiVar.myId)
+      {
+        fclose(opt.fileItPlot[FITPLOTSIMPLE]);
+        fclose(opt.fileItPlot[FITPLOTCOMB]);
+      }
 /*...................................................................*/
+
+      fclose(opt.fileParameters);
+
       finalizeMem(&m,false);
       macroFlag = false;
       endSec(OUTPUT_FOR_FILE);
@@ -786,9 +843,9 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... face com cargas*/
-      printFace(&m     , mesh0
-              , preName, opt.bVtk
-              , fileOut);
+      printFace(&m      , mesh0
+              , preName , combModel.fCombustrion
+              , opt.bVtk, fileOut);
 /*...................................................................*/
       }
     }   
@@ -843,7 +900,6 @@ int main(int argc,char**argv){
       }
     }   
 /*===================================================================*/
-
 
 /*===================================================================*
  * macro: setSolvDiff : problema de difusao pura
@@ -1225,7 +1281,27 @@ int main(int argc,char**argv){
 
 /*...*/
       else if(mesh->ndfFt)
-        simpleSolverLm(&m           , &propVarFluid
+        combustionSolver(&m             , &propVarFluid
+                       , loadsVel       , loadsPres
+                       , loadsEnergy    , loadsKturb
+                       , loadsZcomb
+                       , &eModel        , &combModel
+                       , &eMass         , &ModelMomentum
+                       , &turbModel     , &thDynamic
+                       , mesh0          , mesh
+                       , &sistEqVel      , &sistEqPres
+                       , &sistEqEnergy   , &sistEqKturb
+                       , &sistEqComb
+                       , &solvVel       , &solvPres
+                       , &solvEnergy    , &solvKturb
+                       , &solvComb
+                       , &simple        , &sc
+                       , pMesh          , &media
+                       , &opt           , preName
+                       , nameOut        , fileOut);
+
+
+/*      simpleSolverLm(&m           , &propVarFluid
                      , loadsVel     , loadsPres 
                      , loadsEnergy  , loadsKturb
                      , &eModel       
@@ -1239,7 +1315,7 @@ int main(int argc,char**argv){
                      , &simple      , &sc     
                      , pMesh        , &media 
                      , opt          , preName
-                     , nameOut      , fileOut);  
+                     , nameOut      , fileOut);  */
 /*...................................................................*/
 
 /*...*/
@@ -1302,7 +1378,8 @@ int main(int argc,char**argv){
         else if(sc.ddt.type == BACKWARD && !mpiVar.myId )     
           fprintf(fileLogExc,"ddtScheme : BACKWARD\n");
 
-        if(!save.fLoad){
+        if(!save.fLoad)
+        {
           sc.ddt.t         = 0.e0;
           sc.ddt.dtInicial = sc.ddt.dt[0];
           sc.ddt.dt[1]     = sc.ddt.dt[0];
@@ -1320,7 +1397,8 @@ int main(int argc,char**argv){
         readMacro(fileIn,word,false);
         strcpy(loopWord[kLoop],word);
         kLoop++;
-        if(kLoop > 100){
+        if(kLoop > 100)
+        {
           ERRO_GERAL(__FILE__,__func__,__LINE__,
                    "Numero de comandos na macro trasient execedido"); 
         }
@@ -1351,8 +1429,10 @@ int main(int argc,char**argv){
 /*...................................................................*/
       
 /*...*/
-      else{
-        if(!mpiVar.myId ){
+      else
+      {
+        if(!mpiVar.myId )
+        {
           printf("dt(n-2) = %lf\n",sc.ddt.dt[TIME_N_MINUS_2]);
           printf("dt(n-1) = %lf\n",sc.ddt.dt[TIME_N_MINUS_1]);
           printf("dt(n)   = %lf\n",sc.ddt.dt[TIME_N ]);
@@ -1374,17 +1454,20 @@ int main(int argc,char**argv){
 /*...*/
       pMesh->fPartMesh = true;
       readMacro(fileIn,word,false);
-      if(!strcmp(word,"config:")){
+      if(!strcmp(word,"config:"))
+      {
 /*... fPrintMesh*/        
         readMacro(fileIn,word,false);
-        if(!strcmp(word,"true")){ 
+        if(!strcmp(word,"true"))
+        { 
           pMesh->fPrintMesh = true;
           if(!mpiVar.myId ) fprintf(fileLogExc,"fPrintMesh    : true\n");
         }
 
 /*... fPrintMeshPart*/        
         readMacro(fileIn,word,false);
-        if(!strcmp(word,"true")){ 
+        if(!strcmp(word,"true"))
+        { 
           pMesh->fPrintMeshPart = true;
           if(!mpiVar.myId ) fprintf(fileLogExc,"fPrintMeshPart: true\n");
         }
@@ -1472,7 +1555,7 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
-* macro: setPrint
+* macro: muda a escala da malha
 *===================================================================*/
     else if ((!strcmp(word, macro[35])))
     {
@@ -1540,9 +1623,56 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
+* setSolvComb : configuracao da combustao
+*===================================================================*/
+    else if ((!strcmp(word, macro[39])))
+    {
+      initSec(word, OUTPUT_FOR_FILE);
+/*...*/
+      readSolvComb(&m         , mesh         , reordMesh
+                 , &solvVel   , &sistEqVel   , &fSolvVel
+                 , &solvPres  , &sistEqPres  , &fSolvPres
+                 , &solvEnergy, &sistEqEnergy, &fSolvEnergy
+                 , &solvKturb , &sistEqKturb , &fSolvKturb
+                 , &solvComb  , &sistEqComb  , &fSolvComb  
+                 , auxName    , preName      , nameOut
+                 , fileIn                    , &opt);
+/*...................................................................*/
+      endSec(OUTPUT_FOR_FILE);
+    }
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: pCombustion : escreve os arquivos dos resultados do escoamente
+ * reativos (combustao)              
+ *===================================================================*/
+    else if( (!strcmp(word,macro[40])) && 
+             (opt.stepPlot[1]++) == opt.stepPlot[0])
+    {      
+/*...*/
+      opt.stepPlot[1] = 1;
+      initSec(word, OUTPUT_FOR_SCREEN);
+/*...................................................................*/
+
+/*...*/                     
+      printCombustion(&m      , &turbModel
+                  , &eModel   , &combModel
+                  , pMesh     , sc
+                  , loadsVel  , loadsPres 
+                  , loadsTemp , loadsZcomb
+                  , &opt       
+                  , mesh0     , mesh 
+                  , &media      
+                  , preName   , nameOut);
+/*...................................................................*/
+      endSec(OUTPUT_FOR_SCREEN);
+    }   
+/*===================================================================*/
+
+/*===================================================================*
  * macro: gravity : gravidade                                                 
  *===================================================================*/
-    else if((!strcmp(word,macro[39])))
+    else if((!strcmp(word,macro[42])))
     {
       initSec(word, OUTPUT_FOR_FILE);
       readGravity(gravity,fileIn);
@@ -1554,7 +1684,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: model: modelos utilizados nas equacao diferencias         
  *===================================================================*/
-    else if((!strcmp(word,macro[40])))
+    else if((!strcmp(word,macro[43])))
     {
       initSec(word, OUTPUT_FOR_FILE);
       readModel(&eModel   ,&turbModel
@@ -1569,7 +1699,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: mean : calcula a media                                                        
  *===================================================================*/
-    else if(!strcmp(word,macro[41]))
+    else if(!strcmp(word,macro[44]))
     {
       initSec(word, OUTPUT_FOR_SCREEN);
       calMean(&media,mesh,sc.ddt.dt[TIME_N_MINUS_1]
@@ -1582,7 +1712,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: setMean : configuracao das medias temporais                                   
  *===================================================================*/
-    else if(!strcmp(word,macro[42])){
+    else if(!strcmp(word,macro[45])){
       initSec(word, OUTPUT_FOR_FILE);
       readMean(&m,fileIn,mesh,&media);
 /*...................................................................*/
@@ -1593,7 +1723,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: save : salva o estado do programa                                          
  *===================================================================*/
-    else if( (!strcmp(word,macro[43])) &&
+    else if( (!strcmp(word,macro[46])) &&
              (save.step[1]++ == save.step[0]) ){
       initSec(word, OUTPUT_FOR_SCREEN);
       save.step[1] = 1;
@@ -1608,9 +1738,9 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: load : carrega um estodo do sistema especifico                             
+ * macro: load : carrega um estado do sistema especifico                             
  *===================================================================*/
-    else if((!strcmp(word,macro[44]))){
+    else if((!strcmp(word,macro[47]))){
       initSec(word, OUTPUT_FOR_SCREEN);
       save.fLoad = true;
       load(&propVarFluid,&turbModel

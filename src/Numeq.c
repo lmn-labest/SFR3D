@@ -62,7 +62,7 @@ INT numeq(INT *RESTRICT id       ,INT *RESTRICT num
  * id    -> numeracao das equacoes por celula                        *
  * ------------------------------------------------------------------*
  * OBS: a numera das equações u, v, e w são iguais e todas as celulas*
- * tem sempre um equacao.                                            *
+ * tem sempre uma equacao.                                           *
  * *******************************************************************/
 INT numEqV1(INT *RESTRICT id       ,INT *RESTRICT num
            ,INT const numel        ){

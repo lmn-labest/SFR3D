@@ -8,46 +8,12 @@
 /*...................................................................*/
 
 /*...*/
+  #include<Combustion.h>
   #include<Define.h>
   #include<HccaStdBool.h>
   #include<Erro.h>
   #include<File.h>
   #include<Mesh.h>
-/*...................................................................*/
-
-/*...*/
-  typedef struct{
-    bool fDensityRef;
-    bool fPresTh;
-    DOUBLE pTh[3];
-  }ThermoDynamic;
-   ThermoDynamic thDynamic;
-/*...................................................................*/  
-
-/*...*/
-   typedef struct {
-     unsigned char type;
-     short nPol;
-     DOUBLE a[MAXPLODEG];
-   }PropPol;
-/*...................................................................*/
-
-/*...*/
-   typedef struct {
-     bool fDensity;
-     bool fSpecificHeat;
-     bool fDynamicViscosity;
-     bool fThermalconductivity;
-     PropPol den, thCond, dVisc, sHeat;
-   }PropVarFluid;
-/*...................................................................*/
-
-/*...*/
-   typedef struct {
-     bool fDensity;
-     bool fCeofDiff;
-     PropPol den, ceofDiff;
-   }PropVarCD;
 /*...................................................................*/
 
 /*...agua*/
@@ -69,6 +35,7 @@
   DOUBLE specificEnthalpyForTemp(PropPol *sHeatPol
                                , DOUBLE const hs, DOUBLE const sHeatRef
                                , bool const fSheat, bool const fKelvin); 
+/*...*/
   DOUBLE tempForSpecificEnthalpy(PropPol *sHeatPol
                                , DOUBLE const t, DOUBLE const sHeatRef
                                , bool const fSheat, bool const fKelvin);
@@ -145,10 +112,10 @@
   void presRef(DOUBLE *RESTRICT temp0 , DOUBLE *RESTRICT temp  
              , DOUBLE *RESTRICT volume  , DOUBLE *pTh                  
              , INT const nCell          , bool const fKelvin);
-  void initPresRef(DOUBLE *RESTRICT temp  
-                 , DOUBLE *RESTRICT volume, DOUBLE *pTh   
-                 , DOUBLE *RESTRICT prop  , short  *RESTRICT mat                     
-                 , INT const nCell        , bool const fKelvin);
+  void initPresRef(DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT volume
+               , DOUBLE *pTh            , DOUBLE *RESTRICT prop  
+               , short  *RESTRICT mat   , DOUBLE const molarMass                  
+               , INT const nCell        , bool const fKelvin);
 /*...................................................................*/
 
 /*...*/
@@ -158,8 +125,65 @@
   void initThCondPol(PropPol *prop, char *s, FILE *file);
 /*...................................................................*/
 
+/*... mistura gasosa*/
+  void initMixtureSpeciesfiHeat(PropPol *prop, char *s, FILE *file);
+  void updateMixSpecificHeat(PropPol *sHeatPol
+                         , DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT yFrac  
+                         , DOUBLE *RESTRICT sHeat , short const nOfPrSp
+                         , bool const iKelvin
+                         , INT const nEl          , char  const iCod);
+  void updateMixDensity(PropPol *pDen         , Combustion *cModel
+                 , DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT pressure
+                 , DOUBLE *RESTRICT density , DOUBLE *RESTRICT zComb
+                 , DOUBLE const alpha       , bool const iKelvin    
+                 , INT const nEl            , char  const iCod);
+  DOUBLE mixtureSpecifiHeat(PropPol *sHeat   , DOUBLE *yFrac
+                         , DOUBLE const t    , short const nOfPrSp
+                         , bool const fKelvin); 
+  DOUBLE mixtureSpeciesDensity(PropPol *den        ,DOUBLE const malorMassMix
+                            ,DOUBLE const t      ,DOUBLE const p
+                            ,DOUBLE const presRef,bool const fKelvin);
+  DOUBLE specificEnthalpyForTempOfMix(PropPol *sHeatPol
+                             , DOUBLE const hs        , DOUBLE *yFrac
+                             , DOUBLE const sHeatRef  , short const nOfPrSp
+                             , bool const fSheat      , bool const fKelvin); 
+
+  DOUBLE tempForSpecificEnthalpyMix(PropPol *sHeat    , DOUBLE *yFrac
+                                , DOUBLE const t    , DOUBLE const sHeatRef
+                                , short const nOfPrSp
+                                , bool const fSheat , bool const fKelvin); 
+
+  void getEnergyForTempMix(PropPol *sHeatPol  ,DOUBLE *RESTRICT yFrac 
+                        ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
+                        ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
+                        ,INT const nCell      ,short const nOfPrSp
+                        ,bool const fSheat    ,bool const fKelvin
+                        ,bool const fOmp      ,short const nThreads );
+
+
+  void getTempForEnergyMix(PropPol *sHeatPol    ,DOUBLE *RESTRICT yFrac
+                        ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
+                        ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
+                        ,INT const nCell      ,short const nOfPrSp 
+                        ,bool const fTemp     ,bool const fSheat    
+                        ,bool const fKelvin
+                        ,bool const fOmp      ,short const nThreads );
+
+  void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
+                 ,DOUBLE *RESTRICT prop 
+                 ,DOUBLE *RESTRICT t        ,DOUBLE *RESTRICT pressure
+                 ,DOUBLE *RESTRICT yFrac    ,DOUBLE *RESTRICT propMat
+                 ,short *RESTRICT mat       ,short const nOfPrSp 
+                 ,short const np            ,INT    const nCell 
+                 ,bool const iKelvin        ,short const iProp);
+/*...................................................................*/
+
 /*...*/
   void initCdPol(PropPol *prop, char *s, FILE *file);
+/*...................................................................*/
+
+/*...*/
+//DOUBLE mixtureMolarMass(Combustion *cModel,DOUBLE *RESTRICT z);
 /*...................................................................*/
 
   int readFileLineSimple(DOUBLE *x, FILE *file);

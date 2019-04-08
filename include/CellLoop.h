@@ -249,7 +249,7 @@
   void systFormEnergy(Loads *loads             , Loads *ldVel
                , Advection *adv                , Diffusion *diff
                , Turbulence *tModel            , EnergyModel *eModel
-               , PropVarFluid *vProp           
+               , Combustion *cMode             , PropVarFluid *vProp           
                , INT    *RESTRICT el           , INT    *RESTRICT nelcon
                , short  *RESTRICT nen          , short  *RESTRICT nFace
                , INT *RESTRICT cellFace        , INT *RESTRICT fOwner
@@ -261,6 +261,7 @@
                , DOUBLE *RESTRICT fModvSkew    , DOUBLE *RESTRICT fvSkew
                , short  *RESTRICT geomType     , DOUBLE *RESTRICT prop
                , short  *RESTRICT calType      , short  *RESTRICT mat
+               , DOUBLE *RESTRICT rateFuel
                , INT    *RESTRICT ia           , INT    *RESTRICT ja
                , DOUBLE *RESTRICT a            , DOUBLE *RESTRICT ad
                , DOUBLE *RESTRICT b            , INT    *RESTRICT id
@@ -427,6 +428,44 @@
                  , short ndm                 , INT numel);
 /*...................................................................*/
 
+/*...*/
+  void systFormComb(Loads *loads                  , Loads *ldVel
+                  , Advection *scAdv              , Diffusion *scDiff
+                  , Turbulence *tModel            , Combustion *cModel
+                  , PropVarFluid *vProp
+                  , INT    *RESTRICT el           , INT    *RESTRICT nelcon
+                  , short  *RESTRICT nen          , short  *RESTRICT nFace
+                  , INT *RESTRICT cellFace        , INT *RESTRICT fOwner
+                  , DOUBLE *RESTRICT gVolume      , DOUBLE *RESTRICT gDcca
+                  , DOUBLE *RESTRICT gXmCc        , DOUBLE *RESTRICT gCc
+                  , DOUBLE *RESTRICT fModKsi      , DOUBLE *RESTRICT fKsi
+                  , DOUBLE *RESTRICT fEta         , DOUBLE *RESTRICT fArea
+                  , DOUBLE *RESTRICT fNormal      , DOUBLE *RESTRICT fXm
+                  , DOUBLE *RESTRICT fModvSkew    , DOUBLE *RESTRICT fvSkew
+                  , short  *RESTRICT geomType     , DOUBLE *RESTRICT prop
+                  , short  *RESTRICT calType      , short  *RESTRICT mat
+                  , INT    *RESTRICT ia           , INT    *RESTRICT ja
+                  , DOUBLE *RESTRICT a            , DOUBLE *RESTRICT ad
+                  , DOUBLE *RESTRICT b            , INT    *RESTRICT id
+                  , short  *RESTRICT faceR        , short  *RESTRICT faceL
+                  , short  *RESTRICT faceVelR     , short  *RESTRICT faceVelL
+                  , DOUBLE *RESTRICT u0           , DOUBLE *RESTRICT gradU0
+                  , DOUBLE *RESTRICT rateFuel     , DOUBLE *RESTRICT vel
+                  , DOUBLE *RESTRICT pres0        , DOUBLE *RESTRICT pres
+                  , DOUBLE *RESTRICT gradPres     , DOUBLE *RESTRICT rCell
+                  , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT diff
+                  , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT wallPar
+                  , DOUBLE *RESTRICT dField
+                  , Temporal ddt, DOUBLE underU
+                  , INT nEq, INT nEqNov
+                  , INT nAd, INT nAdR
+                  , short maxNo, short maxViz
+                  , short ndm, INT numel
+                  , short ndf, short storage
+                  , bool forces, bool matrix
+                  , bool calRcell, bool unsym);
+/*...................................................................*/
+
 /*... carga por elmento e condicoes pescritas por celula*/
   void cellPload(Loads *loads           ,DOUBLE *RESTRICT gCc
                 ,short  *RESTRICT faceR ,short *RESTRICT faceS
@@ -460,6 +499,12 @@
                       ,INT const numel   ,INT const nEq 
                       ,short const ndf
                       ,bool const fAdd   ,bool const fCom);
+
+ void updateCellValueBlock(DOUBLE *RESTRICT u,DOUBLE *RESTRICT x
+                          ,INT *RESTRICT id  ,Interface *iNeq
+                          ,INT const numel   ,INT const nEq
+                          ,short const ndf                    
+                          ,bool const fAdd   ,bool const fCom);
 /*...................................................................*/
 
 /*... funcoes antigas*/

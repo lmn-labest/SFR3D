@@ -510,103 +510,104 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
 /*********************************************************************/
 
 /********************************************************************
-* Data de criacao    : 03/10/2017                                   *
-* Data de modificaco : 15/07/2018                                   *
-*-------------------------------------------------------------------*
-* CELLENERGY3D: Celula 3D para transporte                           *
-*-------------------------------------------------------------------*
-* Parametros de entrada:                                            *
-*-------------------------------------------------------------------*
-* loads     -> definicoes de cargas                                 *
-* model     -> modelo da equacao de energia                         *
-* advT      -> tecnica da discretizacao do termo advecao            *
-* diffT     -> tecnica da discretizacao do termo difusivo           *
-* tModel    -> modelo de turbulencia                                *
-* vProp     -> propedades variaveis (true|false)                    *
-* lnFace    -> numero de faces da celula central e seus vizinhos    *
-* lGeomType -> tipo geometrico da celula central e seus vizinhos    *
-* lprop     -> propriedade fisicas das celulas                      *
-* lViz      -> viznhos da celula central                            *
-* lId       -> numeracoes das equacoes das celulas                  *
-* Ksi       -> vetores que unem centroide da celula central aos     *
-*            vizinhos destas                                        *
-* mKsi      -> modulo do vetor ksi                                  *
-* eta       -> vetores paralelos as faces das celulas               *
-* fArea     -> area das faces                                       *
-* normal    -> vetores normais as faces das celulas                 *
-* area      -> area da celula central                               *
-* xm        -> pontos medios das faces da celula central            *
-* xmcc      -> vetores que unem o centroide aos pontos medios das   *
-*            faces da celula central                                *
-* vSkew  -> vetor entre o ponto medio a intersecao que une os       *
-*            centrois compartilhado nessa face da celula central    *
-* mvSkew -> distacia entre o ponto medio a intersecao que une os    *
-*            centrois compartilhado nessa face da celula central    *
-* lA        -> nao definido                                         *
-* lB        -> nao definido                                         *
-* dcca      -> menor distancia do centroide central a faces desta   *
-*              celula                                               *
-* lDensity  -> massa especifica com variacao temporal               *
-* lSheat    -> calor especifico com variacao temporal               *
-* lDviscosity-> viscosidade dinamica com variacao temporal          *
-* lTconductivity-> condutividade termica com variacao temporal      *
-* dField    -> matriz D do metodo simple                            *
-* wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  *
-* lRcell    -> nao definido                                         *
-* ddt       -> discretizacao temporal                               *
-* faceR     -> restricoes por elmento                               *
-* faceL     -> carga por elemento                                   *
-* u0        -> solucao conhecida                                    *
-* gradU0    -> gradiente rescontruido da solucao conhecida          *
-* vel       -> campo de velocidade conhecido                        *
-* gradVel   -> gradiente rescontruido da velocidade                 *
-* pres      -> pressao do tempo atual e do tempo anterior           *
-* gradPres  -> gradiente de pressao do tempo atual                  *
-* cc        -> centroides da celula centra e seus vizinhos          *
-* underU    -> parametro de sob relaxamento                         *
-* fSheat    -> calor especifico com variacao com a Temperatura      *
-* nEn       -> numero de nos da celula central                      *
-* nFace     -> numero de faces da celula central                    *
-* ndm       -> numero de dimensoes                                  *
-* nel       -> numero da celula                                     *
-*-------------------------------------------------------------------*
-* Parametros de saida:                                              *
-*-------------------------------------------------------------------*
-* lA        -> coeficiente da linha i                               *
-* lB        -> vetor de forca da linha i                            *
-* lRcell    -> residuo por celula                                   *
-*-------------------------------------------------------------------*
-* OBS:                                                              *
-*-------------------------------------------------------------------*
-*********************************************************************/
-void cellEnergy3D(Loads *loads       , Loads *lVel
-                , Advection *advT    , Diffusion *diffT
-                , Turbulence *tModel , EnergyModel *model
-                , PropVarFluid *vProp
-                , short *RESTRICT lGeomType, DOUBLE *RESTRICT prop
-                , INT *RESTRICT lViz, INT *RESTRICT lId
-                , DOUBLE *RESTRICT ksi, DOUBLE *RESTRICT mKsi
-                , DOUBLE *RESTRICT eta, DOUBLE *RESTRICT fArea
-                , DOUBLE *RESTRICT normal, DOUBLE *RESTRICT volume
-                , DOUBLE *RESTRICT xm, DOUBLE *RESTRICT xmcc
-                , DOUBLE *RESTRICT dcca, DOUBLE *RESTRICT cc
-                , DOUBLE *RESTRICT vSkew, DOUBLE *RESTRICT mvSkew
-                , DOUBLE *RESTRICT lA, DOUBLE *RESTRICT lB
-                , DOUBLE *RESTRICT lRcell, Temporal const ddt
-                , short  *RESTRICT lFaceR, short *RESTRICT lFaceL
-                , short  *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL
-                , DOUBLE *RESTRICT u0, DOUBLE *RESTRICT gradU0
-                , DOUBLE *RESTRICT vel, DOUBLE *RESTRICT gradVel
-                , DOUBLE *RESTRICT pres, DOUBLE *RESTRICT gradPres
-                , DOUBLE *RESTRICT lDensity, DOUBLE *RESTRICT lSheat
+ * Data de criacao    : 03/10/2017                                   *
+ * Data de modificaco : 18/08/2018                                   *
+ *-------------------------------------------------------------------*
+ * CELLENERGY3D: Celula 3D para transporte                           *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * loads     -> definicoes de cargas                                 *
+ * model     -> modelo da equacao de energia                         *
+ * advT      -> tecnica da discretizacao do termo advecao            *
+ * diffT     -> tecnica da discretizacao do termo difusivo           *
+ * tModel    -> modelo de turbulencia                                *
+ * vProp     -> propedades variaveis (true|false)                    *
+ * lnFace    -> numero de faces da celula central e seus vizinhos    *
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
+ * lprop     -> propriedade fisicas das celulas                      *
+ * lViz      -> viznhos da celula central                            *
+ * lId       -> numeracoes das equacoes das celulas                  *
+ * Ksi       -> vetores que unem centroide da celula central aos     *
+ *            vizinhos destas                                        *
+ * mKsi      -> modulo do vetor ksi                                  *
+ * eta       -> vetores paralelos as faces das celulas               *
+ * fArea     -> area das faces                                       *
+ * normal    -> vetores normais as faces das celulas                 *
+ * area      -> area da celula central                               *
+ * xm        -> pontos medios das faces da celula central            *
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   *
+ *            faces da celula central                                *
+ * vSkew  -> vetor entre o ponto medio a intersecao que une os       *
+ *            centrois compartilhado nessa face da celula central    *
+ * mvSkew -> distacia entre o ponto medio a intersecao que une os    *
+ *            centrois compartilhado nessa face da celula central    *
+ * lA        -> nao definido                                         *
+ * lB        -> nao definido                                         *
+ * dcca      -> menor distancia do centroide central a faces desta   *
+ *              celula                                               *
+ * lDensity  -> massa especifica com variacao temporal               *
+ * lSheat    -> calor especifico com variacao temporal               *
+ * lDviscosity-> viscosidade dinamica com variacao temporal          *
+ * lTconductivity-> condutividade termica com variacao temporal      *
+ * dField    -> matriz D do metodo simple                            *
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  *
+ * lRcell    -> nao definido                                         *
+ * ddt       -> discretizacao temporal                               *
+ * faceR     -> restricoes por elmento                               *
+ * faceL     -> carga por elemento                                   *
+ * u0        -> solucao conhecida                                    *
+ * gradU0    -> gradiente rescontruido da solucao conhecida          *
+ * vel       -> campo de velocidade conhecido                        *
+ * gradVel   -> gradiente rescontruido da velocidade                 *
+ * pres      -> pressao do tempo atual e do tempo anterior           *
+ * gradPres  -> gradiente de pressao do tempo atual                  *
+ * cc        -> centroides da celula centra e seus vizinhos          *
+ * rateHeatC -> energia liberada pela combustao (KJ/s )              *
+ * underU    -> parametro de sob relaxamento                         *
+ * fSheat    -> calor especifico com variacao com a Temperatura      *
+ * nEn       -> numero de nos da celula central                      *
+ * nFace     -> numero de faces da celula central                    *
+ * ndm       -> numero de dimensoes                                  *
+ * nel       -> numero da celula                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * lA        -> coeficiente da linha i                               *
+ * lB        -> vetor de forca da linha i                            *
+ * lRcell    -> residuo por celula                                   *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void cellEnergy3D(Loads *loads               , Loads *lVel
+                , Advection *advT            , Diffusion *diffT
+                , Turbulence *tModel         , EnergyModel *eModel
+                , Combustion *cModel         , PropVarFluid *vProp
+                , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop
+                , INT *RESTRICT lViz         , INT *RESTRICT lId
+                , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
+                , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea
+                , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume
+                , DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc
+                , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc
+                , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
+                , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
+                , DOUBLE *RESTRICT lRcell    , Temporal const ddt
+                , short  *RESTRICT lFaceR    , short *RESTRICT lFaceL
+                , short  *RESTRICT lFaceVelR , short *RESTRICT lFaceVelL
+                , DOUBLE *RESTRICT u0        , DOUBLE *RESTRICT gradU0
+                , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel
+                , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres
+                , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lSheat
                 , DOUBLE *RESTRICT lViscosity, DOUBLE *RESTRICT lTconductivity
-                , DOUBLE *RESTRICT dField, DOUBLE *RESTRICT wallPar
-                , DOUBLE const underU
-                , const short nEn, short const nFace
-                , const short ndm, INT const nel)
+                , DOUBLE *RESTRICT dField    , DOUBLE *RESTRICT wallPar
+                , DOUBLE const rateHeatC     , DOUBLE const underU
+                , const short nEn            , short const nFace
+                , const short ndm            , INT const nel)
 {
   bool fTime, fDisp, fRes, fPresWork, fTemp, fTurb, fWallModel, fKelvin
-    , fSheat;
+    , fSheat ;
   short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf, nCarg1
     , nCarg2, typeTime, iCodPolFace;
 /*...*/
@@ -631,6 +632,9 @@ void cellEnergy3D(Loads *loads       , Loads *lVel
   DOUBLE tW, tC;
 /*...*/
   DOUBLE pAdv[NPADV];
+/*...*/
+  bool fComb;
+  DOUBLE  enOfComb;
 
 /*...*/
   idCell      = nFace;
@@ -642,21 +646,22 @@ void cellEnergy3D(Loads *loads       , Loads *lVel
 /*...................................................................*/
 
 /*...*/
-  dt         = ddt.dt[0];
-  dt0        = ddt.dt[1];
-  typeTime   = ddt.type;
-  fTime      = ddt.flag;
-  fDisp      = model->fDissipation;
-  fRes       = model->fRes;
-  fPresWork  = model->fPresWork;
-  fTemp      = model->fTemperature;
-  fKelvin    = model->fKelvin;
-  fTurb      = tModel->fTurb;
-  prTwall    = tModel->PrandltTwall;
-  prTsgs     = tModel->PrandltTsgs;
-  fWallModel = tModel->fWall;
-  wallType   = tModel->wallType;
-  fSheat     = vProp->fSpecificHeat;
+  dt        = ddt.dt[0];
+  dt0       = ddt.dt[1];
+  typeTime  = ddt.type;
+  fTime     = ddt.flag;
+  fDisp     = eModel->fDissipation;
+  fRes      = eModel->fRes;
+  fPresWork = eModel->fPresWork;
+  fTemp     = eModel->fTemperature;
+  fKelvin   = eModel->fKelvin;
+  fTurb     = tModel->fTurb;
+  prTwall   = tModel->PrandltTwall;
+  prTsgs    = tModel->PrandltTsgs;
+  fWallModel= tModel->fWall;
+  wallType  = tModel->wallType;
+  fSheat    = vProp->fSpecificHeat;
+  fComb     = cModel->fCombustrion;
 /*...................................................................*/
 
 /*... propriedades da celula*/
@@ -968,6 +973,11 @@ void cellEnergy3D(Loads *loads       , Loads *lVel
     p += tmp * volume[idCell];
 /*.....................................................................*/
   }
+/*.....................................................................*/
+
+/*...*/
+  if(fComb)
+    p += rateHeatC*volume[idCell];
 /*.....................................................................*/
 
 /*... distretizacao temporal*/
