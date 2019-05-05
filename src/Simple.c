@@ -896,8 +896,8 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*... modelo de combustao*/
-    if (fPrint) printf("Modelo de combustao:\n");
-    combustionModel(m          , propF
+   if (fPrint) printf("Modelo de combustao:\n");
+   combustionModel(m          , propF
                    , loadsComb , loadsVel
                    , tModel    , cModel
                    , eModel    , mesh   
@@ -1227,7 +1227,6 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
     , tolSimpleMass, tolSimpleEnergy;
 /*...*/
   bool xMomentum, yMomentum, zMomentum, pCor, fEnergy;
-  bool fComb = true;
   bool relRes;
   bool fPrint = false;
   bool fDensity = propF->fDensity,

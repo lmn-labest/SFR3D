@@ -16,7 +16,7 @@ static DOUBLE pol(DOUBLE *RESTRICT a, DOUBLE const x,short const n)
 
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
- * Data de modificaco : 12/07/2018                                   *
+ * Data de modificaco : 04/05/2019                                   *
  *-------------------------------------------------------------------*
  * airDensity: kg/(m^3)                                              *
  *-------------------------------------------------------------------*
@@ -62,7 +62,6 @@ DOUBLE mixtureSpeciesDensity(PropPol *den        ,DOUBLE const malorMassMix
       d = 1.e+00;
       break;
 /*.....................................................................*/
-
 
 /*...*/
     default:  
@@ -197,7 +196,7 @@ void initMixtureSpeciesfiHeat(PropPol *prop, char *s, FILE *file)
 
   }
   
-
+  printf("Write SpeciesfiHeat cp(T):\n");
   fileOut = openFile("species_cp.out", "w");
   for(i=0;i<nSpecies;i++)
   {

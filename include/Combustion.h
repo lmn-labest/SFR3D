@@ -71,8 +71,9 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
-  void regularZ(DOUBLE *RESTRICT z, INT const numel
-              , short const nLump);
+  DOUBLE maxArray(DOUBLE *RESTRICT x,INT const n);
+  void regularZ(DOUBLE *RESTRICT z    , INT const numel
+               , short const nComb      , bool fLump);
   void initLumpedMatrix(Combustion *cModel);
   void yLumpedMatrixZ(DOUBLE *RESTRICT y, DOUBLE *RESTRICT a
                   , DOUBLE *RESTRICT z

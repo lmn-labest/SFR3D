@@ -2582,17 +2582,17 @@ void wResVtkCombustion(Memoria *m     , DOUBLE *x
     HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
     ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
 
-    getColFromMatrix(p,elZcomb,numel,3,0); 
-    strcpy(str,"eZair");
-    writeVtkProp(&idum,p,numel,1,str,iws
-                ,DOUBLE_VTK,SCALARS_VTK,f);
-
-    getColFromMatrix(p,elZcomb,numel,3,1); 
+    getColFromMatrix(p,elZcomb,numel,3,SL_FUEL); 
     strcpy(str,"eZfuel");
     writeVtkProp(&idum,p,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
 
-    getColFromMatrix(p,elZcomb,numel,3,2); 
+    getColFromMatrix(p,elZcomb,numel,3,SL_AIR); 
+    strcpy(str,"eZair");
+    writeVtkProp(&idum,p,numel,1,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+
+    getColFromMatrix(p,elZcomb,numel,3,SL_PROD); 
     strcpy(str,"eZprod");
     writeVtkProp(&idum,p,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
@@ -2649,27 +2649,27 @@ void wResVtkCombustion(Memoria *m     , DOUBLE *x
     ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
 /*... Fuel*/
     strcpy(str,"eYfuel");
-    getColFromMatrix(p,eYfrac,numel,5,0); 
+    getColFromMatrix(p,eYfrac,numel,5,SP_FUEL); 
     writeVtkProp(&idum,p,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
 /*... N2*/
     strcpy(str,"eYN2");
-    getColFromMatrix(p,eYfrac,numel,5,1); 
+    getColFromMatrix(p,eYfrac,numel,5,SP_N2); 
     writeVtkProp(&idum,p,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
 /*... O2*/
     strcpy(str,"eYO2");
-    getColFromMatrix(p,eYfrac,numel,5,2); 
+    getColFromMatrix(p,eYfrac,numel,5,SP_O2); 
     writeVtkProp(&idum,p,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
 /*... CO2*/
     strcpy(str,"eYCO2");
-    getColFromMatrix(p,eYfrac,numel,5,3); 
+    getColFromMatrix(p,eYfrac,numel,5,SP_CO2); 
     writeVtkProp(&idum,p,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
 /*... H2O*/
     strcpy(str,"eYH2O");
-    getColFromMatrix(p,eYfrac,numel,5,4); 
+    getColFromMatrix(p,eYfrac,numel,5,SP_H2O); 
     writeVtkProp(&idum,p,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
 /*... CO*/

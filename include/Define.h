@@ -7,6 +7,20 @@
 /*...................................................................*/
 
 /*...*/
+  #define SP_FUEL 0
+  #define SP_O2   1
+  #define SP_N2   2
+  #define SP_CO2  3
+  #define SP_H2O  4
+/*...................................................................*/
+
+/*...*/
+  #define SL_FUEL 0
+  #define SL_AIR  1
+  #define SL_PROD 2
+/*...................................................................*/
+
+/*...*/
   #define OUTPUT_FOR_FILE   1
   #define OUTPUT_FOR_SCREEN 2
 /*...................................................................*/
@@ -38,10 +52,10 @@
 /*...................................................................*/
 
 /*...*/
-  #define TREF      298.15e+00    /*Kelvin         */
-  #define PREREF    1.01325e+05   /*Pa             */
-  #define IDEALGASR 8.3144598e+03 /* J/(Kmol.kelvin) */
-  #define MMOLARAR  2.896e0      /*kg/Kmol         */
+  #define TREF      298.15e+00    /*Kelvin          */
+  #define PREREF    1.01325e+05   /*Pa              */
+  #define IDEALGASR 8.3144598e+03 /*J/(Kmol.kelvin) */
+  #define MMOLARAR  2.896e+00     /*kg/Kmol         */
 /*...................................................................*/
 
 /*...*/
@@ -75,6 +89,7 @@
   #define RSQRT         2 
   #define RSCALEDSUM    3
   #define RSCALEDSUMMAX 4
+/*...................................................................*/
 
 /*... trasiente*/
   #define EULER    0
@@ -260,7 +275,7 @@
   #define  MAX_NUM_NODE_FACE  4
   #define  MAX_SN            24 
   #define  MAX_NDM            3 
-  #define  MAX_COMB           3
+  #define  MAX_COMB           5
 /*...................................................................*/
 
 /*... reconstrucao de gradiente*/
@@ -275,7 +290,7 @@
 /*...................................................................*/
 
 /*...*/
-  #define MAX_NDF 5
+  #define MAX_NDF 10
 /*...................................................................*/
 
 /*... solver*/

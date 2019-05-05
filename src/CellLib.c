@@ -5876,6 +5876,172 @@ void difusionSchemeAnisotropic(DOUBLE *RESTRICT s,DOUBLE *RESTRICT ksi
 /*********************************************************************/
 
 /*********************************************************************
+* Data de criacao    : 04/05/2019                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* advecticeShcemeNdim: discretizacao do termo advectivo             *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* uC        -> valor da celula central                              *
+* UF        -> valor da celula vizinha                              *
+* gradUc    -> gradiente da celula central                          *
+* gradUf    -> gradiente da celula vizinha                          *
+* gradUcomp -> gradiente compacto na face                           *
+* vSkew       -> vetor entre o ponto medio a intersecao que une os  *
+*                centrois compartilhado nessa face da celula central*
+* rC          -> distancia do centroide central ate o ponto medio da*
+*                face                                               * 
+* rV          -> distancia do centroide vizinho ate o ponto medio da*
+*                face                                               *
+* Ksi         -> vetores que unem centroide da celula central aos   *
+*                vizinhos destas                                    *
+* mKsi        -> modulo do vetor ksi                                *
+* m           -> velocidade normal                                  *
+* cvc         -> nao definido                                       *
+* alphaMenosUm -> interpolocao linear                               *      
+* alfa      -> interpolocao linear                                  *   
+* parameters  -> paramentros das tecnicas de advecao                *
+* ndm         -> dimensao                                           *
+* ndf         -> graus de liberdade                                 *
+* iCod1       -> tipo de tecnica                                    *
+* iCod2       -> funcoes NVD ou TVD                                 *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* cvc         -> inteporlacao                                       *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void advectiveSchemeNdim(DOUBLE *RESTRICT uC ,DOUBLE *RESTRICT uV
+                ,DOUBLE *RESTRICT gradUc     ,DOUBLE *RESTRICT gradUv
+                ,DOUBLE *RESTRICT gradUComp  ,DOUBLE *RESTRICT vSkew
+                ,DOUBLE *RESTRICT rC         ,DOUBLE *RESTRICT rV
+                ,DOUBLE *RESTRICT ksi        ,DOUBLE const modKsi
+                ,DOUBLE const wfn            ,DOUBLE *RESTRICT cvc 
+                ,DOUBLE const alphaMenosUm   ,DOUBLE const alpha
+                ,DOUBLE *RESTRICT parameters ,short const ndm
+                ,short const ndf               
+                ,short const iCod1           ,short const iCod2) {
+
+  short i,j;
+  DOUBLE tmp;
+  char word[][WORD_SIZE] =
+  { "FoUp","Cd"
+   ,"SoUp","Tvd"
+   ,"Nvd" ,"LUST"};
+  switch(iCod1){
+/*... Upwind de primeira ordem*/
+    case FOUP:
+      for(i=0;i<ndf;i++)
+        cvc[i] = 0.e0;
+    break;
+/*...................................................................*/
+
+/*... metodo centrado  atraso( up(implicito) + (ucd - up)explicito) */
+  case CD:
+/*...*/
+    for(i=0;i<ndf;i++)
+    {
+      cvc[i] = deferredCd(uC[0], uV[0], wfn);
+
+/*... interpolacao undirecional*/
+/*    cvc[i] -= MAT2D(i,0,gradVelComp,3)*vSkew[0]
+              + MAT2D(i,1,gradVelComp,3)*vSkew[1] 
+              + MAT2D(i,2,gradVelComp,3)*vSkew[2];
+/*...................................................................*/
+    }
+/*...................................................................*/
+ 
+  break;
+/*...................................................................*/
+
+/*... metodo upwind linear =  up(implicito) + gradU*r*/
+  case SOUP:
+/*...*/
+    for(i=0;i<ndf;i++)
+      cvc[i] = upwindLinearV1(uC[0]    ,uV[0]
+                             ,gradUc   ,gradUv
+                             ,rC         ,rV 
+                             ,wfn        ,ndm);   
+
+/*...................................................................*/
+  break;
+/*...................................................................*/
+
+/*... upwind + termo anti-difusivos*/
+  case TVD:
+/*...*/
+    for(i=0;i<ndf;i++)
+    {
+      cvc[i] = faceBaseTvdV1(uC[i]      ,uV[i]
+                           ,&gradUc[i] ,&gradUv[i]
+                            ,ksi          ,modKsi
+                            ,wfn 
+                            ,iCod2        ,ndm);
+/*... interpolacao undirecional*/
+      tmp = 0.e0;
+      for(j=0;j<ndm;j++)
+        tmp += MAT2D(i,j,gradUComp,ndm)*vSkew[j];
+      cvc[i] -= tmp;
+    } 
+/*...................................................................*/
+  break;
+/*...................................................................*/
+
+/*... NVD*/
+  case NVD:
+/*...*/
+    for(i=0;i<ndf;i++)
+    {
+      cvc[i] = faceBaseNvd(uC[i]     , uV[i]
+                          ,&gradUc[i], &gradUv[i]
+                          ,ksi, modKsi
+                          ,wfn
+                          ,iCod2, ndm);
+/*... interpolacao undirecional*/
+      tmp = 0.e0;
+      for(j=0;j<ndm;j++)
+        tmp += MAT2D(i,j,gradUComp,ndm)*vSkew[j];
+      cvc[i] -= tmp;
+    }
+/*...................................................................*/
+  break;
+/*...................................................................*/
+
+/*... NVD*/
+  case LUST:
+/*...*/
+    for(i=0;i<ndf;i++)
+      cvc[i] = deferredLust(uC[i]        ,uV[i]
+                            ,&gradUc[i]  ,&gradUv[i]
+                            ,rC          ,rV  
+                            ,alphaMenosUm,alpha   
+                            ,parameters[0]   
+                            ,wfn         ,ndm);  
+/*...................................................................*/
+
+  break;
+/*...................................................................*/
+
+/*...*/
+  default:
+    printf("Erro: tipo de tecnica de adveccao nao existente.\n"
+         "Arquivo fonte:  \"%s\".\n"
+         "Nome da funcao: \"%s\".\n"
+         "Linha         : \"%d\".\n"
+         , __FILE__, __func__, __LINE__);
+    printf("Funcoes disponiveis:\n");
+    for (i = 0; i<4; i++)
+      printf("%s\n", word[i]);
+    exit(EXIT_FAILURE);
+/*...................................................................*/
+  }
+}
+/*********************************************************************/
+
+/*********************************************************************
 * Data de criacao    : 08/07/2016                                   *
 * Data de modificaco : 05/02/2018                                   *
 *-------------------------------------------------------------------*
@@ -5885,7 +6051,7 @@ void difusionSchemeAnisotropic(DOUBLE *RESTRICT s,DOUBLE *RESTRICT ksi
 *-------------------------------------------------------------------*
 * velC        -> velocidade da celula central                       *
 * velF        -> velocidade da celula vizinha                       *
-* gradVelC    -> gradiente da velocidade da celula central          *             *
+* gradVelC    -> gradiente da velocidade da celula central          * 
 * gradVelV    -> gradiente da velocidade da celula vizinha          *
 * gradVelComp -> gradiente de velocidade compacto na face           *
 * vSkew       -> vetor entre o ponto medio a intersecao que une os  *

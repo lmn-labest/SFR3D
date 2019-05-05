@@ -3122,7 +3122,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
                 , bool forces               , bool matrix
                 , bool calRcell             , bool unsym)
 {
-  short i, j, k, lib, aux1, aux2, lMat;;
+  short i, j, k, lib, aux1, aux2, lMat;
   short nThreads = ompVar.nThreadsCell;
   INT nel, vizNel;
 
@@ -3406,16 +3406,16 @@ void systFormComb(Loads *loads              , Loads *ldVel
 /*...................................................................*/
 
 /*...*/
-        lId[aux1] = id[nel] - 1;
-
-/*... viscosidade dinamica e turbulentea*/
-        for(j=0;j<3;j++)
-          MAT2D(aux1, j, lDiff, 3) = MAT2D(nel, j, diff, 3); 
+        lId[aux1] = id[nel] - 1;        
 /*...................................................................*/
 
 /*...*/
-        for (j = 0; j<ndf; j++) 
+        for (j = 0; j<ndf; j++)
+        {
+/*... viscosidade dinamica e turbulentea*/
+          MAT2D(aux1, j, lDiff, ndf) = MAT2D(nel, j, diff, ndf); 
           MAT2D(aux1, j, lu0, ndf) = MAT2D(nel, j, u0, ndf);    
+        }  
 /*...................................................................*/
 
 /*...*/
@@ -3434,10 +3434,10 @@ void systFormComb(Loads *loads              , Loads *ldVel
 /*...................................................................*/
 
 /*...*/
-        for (k = 0; k < 3; k++)
+        for (k = 0; k < ndf; k++)
           for (j = 0; j<ndm; j++)
-            MAT3D(aux1, k, j, lGradU0, 3, ndm) 
-            = MAT3D(nel, k, j, gradU0, 3, ndm);
+            MAT3D(aux1, k, j, lGradU0, ndf, ndm) 
+            = MAT3D(nel, k, j, gradU0, ndf, ndm);
 /*...................................................................*/
 
 /*...*/
@@ -3489,14 +3489,12 @@ void systFormComb(Loads *loads              , Loads *ldVel
             lId[i] = id[vizNel] - 1;
 /*...................................................................*/
 
-/*... viscosidade dinamica e turbulentea*/
-            for (j = 0; j<3; j++)
-              MAT2D(i, j, lDiff, 3) = MAT2D(vizNel, j, diff, 3);
-/*...................................................................*/
-
             lMat = mat[vizNel] - 1;
-            for (j = 0; j<ndf; j++) 
+            for (j = 0; j<ndf; j++)
+            {
+              MAT2D(i, j, lDiff, ndf) = MAT2D(vizNel, j, diff, ndf);
               MAT2D(i, j, lu0, ndf) = MAT2D(vizNel, j, u0, ndf);
+            }
 
             for (j = 0; j<ndm; j++) 
             {
@@ -3506,10 +3504,10 @@ void systFormComb(Loads *loads              , Loads *ldVel
               MAT2D(i, j, lDfield, ndm) = MAT2D(vizNel, j, dField, ndm);
             }
 
-            for (k = 0; k<3; k++)
+            for (k = 0; k<ndf; k++)
               for (j = 0; j<ndm; j++)
-                MAT3D(i, k, j, lGradU0, 3, ndm) 
-               = MAT3D(vizNel, k, j, gradU0, 3,ndm);
+                MAT3D(i, k, j, lGradU0, ndf, ndm) 
+               = MAT3D(vizNel, k, j, gradU0, ndf,ndm);
 
             for (j = 0; j<DIFPROP; j++)
               MAT2D(i, j, lProp, MAXPROP) = MAT2D(lMat, j, prop, MAXPROP);
@@ -3550,7 +3548,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
                         , ndm          , lib
                         , nel);      
 /*...................................................................*/
-
+//      printf("%d %e %e %e %e %e\n",nel,lB[0],lB[1],lB[2],lB[3],lB[4]);
 /*... residuo da celula*/
         if(calRcell)
           for (j = 0; j<ndf; j++)
@@ -3558,14 +3556,14 @@ void systFormComb(Loads *loads              , Loads *ldVel
 /*...................................................................*/
   
 /*...*/
-          assblyBlock(ia         , ja
+          assblyBlock(ia       , ja
                    , a         , ad
                    , b         , lId
                    , lA        , lB
                    , nEq       , nEqNov
                    , nAd       , nAdR
-                   , nFace[nel], 3  
-                   , 3         , 3  
+                   , nFace[nel], ndf  
+                   , ndf       , ndf    
                    , storage   , forces
                    , matrix    , unsym);          
 /*...................................................................*/
@@ -6486,7 +6484,7 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 17/07/2018                                   *
+ * Data de modificaco : 04/05/2019                                   *
  *-------------------------------------------------------------------*
  * RCGRADU: calculo do gradiente de um campo escalar ou vetorial     * 
  * conhecido.                                                        * 
@@ -6540,9 +6538,9 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------*
- *         |gradU1|   | dU1/dx1 dU1/dx2 dU1/dx3 |                    *
- * gradU = | ...  | = |         ...             |                    *
- *         |gradUn|   | dUn/dx1 dUn/dx2 dUn/dx3 |                    *
+ *                  |gradU1|   | dU1/dx1 dU1/dx2 dU1/dx3 |           *
+ * gradU(ndf,ndm) = | ...  | = |         ...             |           *
+ *                  |gradUn|   | dUn/dx1 dUn/dx2 dUn/dx3 |           *
  *-------------------------------------------------------------------* 
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
@@ -6689,7 +6687,7 @@ void rcGradU(Memoria *m                , Loads *loads
 /*...*/
       for (i = 0; i<ndf; i++)
         for (j = 0; j<ndm; j++)
-          MAT2D(i, j, lGradU, ndf) = MAT3D(nel, i, j, gradU, ndf, ndm);
+          MAT2D(i, j, lGradU, ndm) = MAT3D(nel, i, j, gradU, ndf, ndm);
 /*...................................................................*/
 
 /*...*/
@@ -6758,7 +6756,7 @@ void rcGradU(Memoria *m                , Loads *loads
 /*...*/
       for (i = 0; i<ndf; i++)
         for (j = 0; j<ndm; j++)
-          MAT3D(nel, i, j, gradU, ndf, ndm) = MAT2D(i, j, lGradU, ndf);
+          MAT3D(nel, i, j, gradU, ndf, ndm) = MAT2D(i, j, lGradU, ndm);
 /*...................................................................*/
     }
 /*...................................................................*/
@@ -6833,7 +6831,7 @@ void rcGradU(Memoria *m                , Loads *loads
 /*...*/
       for(i=0;i<ndf;i++)
         for(j=0;j<ndm;j++)
-          MAT2D(i,j,lGradU,ndf) =  MAT3D(nel,i,j,gradU,ndf,ndm);
+          MAT2D(i,j,lGradU,ndm) =  MAT3D(nel,i,j,gradU,ndf,ndm);
 /*...................................................................*/
       
 /*...*/      
@@ -6899,17 +6897,17 @@ void rcGradU(Memoria *m                , Loads *loads
                    ,lib       ,ndf
                    ,isNod     ,nel);    
 /*...................................................................*/
-  
+
 /*...*/
       for(i=0;i<ndf;i++)
         for(j=0;j<ndm;j++)
-          MAT3D(nel,i,j,gradU,ndf,ndm)  = MAT2D(i,j,lGradU,ndf);
+          MAT3D(nel,i,j,gradU,ndf,ndm)  = MAT2D(i,j,lGradU,ndm);
 /*...................................................................*/
     }
 /*...................................................................*/
   }  
 /*...................................................................*/
-  if(mpiVar.nPrcs > 1 ) comunicateCel(iCel,gradU,ndm,ndf);
+  if(mpiVar.nPrcs > 1 ) comunicateCel(iCel,gradU,ndf,ndm);
 
 }
 /*********************************************************************/

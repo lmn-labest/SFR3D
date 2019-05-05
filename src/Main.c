@@ -112,7 +112,7 @@ int main(int argc,char**argv){
   bool fSolvVel = false,fSolvPres = false, fSolvEnergy = false;
   bool fSolvComb = false;
   bool fSolvKturb = false;
-  bool fSolvSimple = false,fSolvPrime = false, fSolvCombustion;
+  bool fSolvSimple = false,fSolvPrime = false, fSolvCombustion = false;
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
 
@@ -174,15 +174,27 @@ int main(int argc,char**argv){
 
 /*...*/
   combModel.fCombustrion         = true;
-  combModel.fRes                 = false;  
-  combModel.nComb                = 3;
+  combModel.fRes                 = true;  
+/*...*/
+
+  fSolvCombustion                = true;
+    
+//combModel.fLump                = true;
+//combModel.nComb                = 3;
+//combModel.nOfSpecies           = 5;
+//combModel.nOfSpeciesLump       = 3;
+   
+  
+  combModel.fLump                = false;
+  combModel.nComb                = 5;  
   combModel.nOfSpecies           = 5;
-  combModel.nOfSpeciesLump       = 3;
+  combModel.nOfSpeciesLump       = 0;  
+   
   combModel.tMix                 = 0.125;
   combModel.totalHeat            = 0.e0;
   combModel.totalMassFuel        = 0.e0;
-//combModel.typeHeatRealese      = HCOMBUSTION;
-  combModel.typeHeatRealese      = HFORMATION;
+  combModel.typeHeatRealese      = HCOMBUSTION; 
+//combModel.typeHeatRealese      = HFORMATION;
   combModel.O2InAir = 0.21;
   combModel.N2InAir = 0.79;
   combModel.fuel.c = 1;
@@ -195,7 +207,7 @@ int main(int argc,char**argv){
   combModel.arrhenius.a               = 4.4e+09;
   initMolarMass(&combModel);
   stoichiometricCoeff(&combModel);
-  initLumpedMatrix(&combModel);
+  if (combModel.fLump) initLumpedMatrix(&combModel);
   initEntalpyOfFormation(&combModel);
   initEntalpyOfCombustion(&combModel);  
 /*..................................................................*/
@@ -1635,6 +1647,7 @@ int main(int argc,char**argv){
                  , &solvEnergy, &sistEqEnergy, &fSolvEnergy
                  , &solvKturb , &sistEqKturb , &fSolvKturb
                  , &solvComb  , &sistEqComb  , &fSolvComb  
+                 , combModel.nComb 
                  , auxName    , preName      , nameOut
                  , fileIn                    , &opt);
 /*...................................................................*/

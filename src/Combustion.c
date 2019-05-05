@@ -4,7 +4,7 @@ static void vectorMolarMass(DOUBLE *mW, Combustion *cModel);
 
 /*********************************************************************
  * Data de criacao    : 30/07/2018                                   *
- * Data de modificaco : 26/08/2018                                   *
+ * Data de modificaco : 02/05/2019                                   *
  *-------------------------------------------------------------------*
  * combustionModel : modelo de combustao                             *
  *-------------------------------------------------------------------*
@@ -25,46 +25,51 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                    , PartMesh *pMesh    , FileOpt *opt
                    , short itSimple    ) 
 {
-  short itComb, conv, jj = 1;
-  short nComp = cModel->nComb;
+  bool fComb[MAX_COMB],rel;
+  short itComb, conv, i, j, kZero, nComb, jj = 1, jPrint;
   INT desloc;
-  bool fComb[3];
-  DOUBLE tmp,tb[3],rCell[3],rCell0[3];
-  DOUBLE *b1, *b2, *b3, *bPc, *xu1, *xu2, *xu3, *rCell1, *rCell2, *rCell3;
-  DOUBLE *ad1,*ad2,*ad3,*al1,*al2,*al3,*au1,*au2,*au3;
+  DOUBLE tmp,tb[MAX_COMB],rCell[MAX_COMB],rCell0[MAX_COMB];
+  DOUBLE *b[MAX_COMB], *bPc, *xu[MAX_COMB];
+  DOUBLE *ad[MAX_COMB],*al[MAX_COMB],*au[MAX_COMB],*rCellC[MAX_COMB];
+  char slName[][10] = {"zFuel","zAir","zProd"},
+       spName[][10] = {"zFuel","zO2" ,"zN2","zCO2","zH2O"};
+/*... rel   - criterio de parada com vlores relativos
+      kZero - iteracao na qual o resido e normalizadp  
+      nComb - numero de especies transportadas
+      jPrint - numero de iteracao que ser impresso o residuo na tela
+*/
+  rel    = true;          
+  kZero  = 0;
+  nComb  = cModel->nComb;
+  jPrint = 20;
+/*...................................................................*/
 
-  fComb[0] = fComb[1] = fComb[2] = false; 
-
-  desloc = sistEqComb->neq;
-  b1 = sistEqComb->b;
-  b2 = &sistEqComb->b[desloc];
-  b3 = &sistEqComb->b[2 * desloc];
-  
-  xu1 = sistEqComb->x;
-  xu2 = &sistEqComb->x[desloc];
-  xu3 = &sistEqComb->x[2 * desloc];
-
-  ad1 = sistEqComb->ad;
-  ad2 = &sistEqComb->ad[desloc];
-  ad3 = &sistEqComb->ad[2 * desloc];
-
-  desloc = 2*sistEqComb->nad + sistEqComb->nadr;
-  al1 = sistEqComb->al;
-  al2 = &sistEqComb->al[desloc];
-  al3 = &sistEqComb->al[2 * desloc];
-
-  au1 = sistEqComb->au;
-  au2 = &sistEqComb->au[desloc];
-  au3 = &sistEqComb->au[2 * desloc];
-
-  desloc = mesh->numel;
-  rCell1 = mesh->elm.rCellComb;
-  rCell2 = &mesh->elm.rCellComb[desloc];
-  rCell3 = &mesh->elm.rCellComb[ 2 * desloc];
-
-  rCell0[0] = rCell0[1] = rCell0[2] = 1.e0;
 /*...*/
-  if(opt->fItPlot)  
+  for(i=0;i<nComb; i++)
+  {
+    fComb[i] = false; 
+
+    desloc = sistEqComb->neq;
+    b[i] = &sistEqComb->b[i*desloc];
+  
+    xu[i] = &sistEqComb->x[i*desloc]; 
+
+    ad[i] = &sistEqComb->ad[i*desloc];
+
+    desloc = 2*sistEqComb->nad + sistEqComb->nadr;
+    al[i] = &sistEqComb->al[i*desloc];
+ 
+    au[i] = &sistEqComb->au[i*desloc];
+
+    desloc = mesh->numel;
+    rCellC[i] = &mesh->elm.rCellComb[i*desloc];
+  
+    rCell0[i] = 1.e0;
+  }
+/*...................................................................*/
+
+/*...*/
+  if(opt->fItPlot && !mpiVar.myId)  
     fprintf(opt->fileItPlot[FITPLOTCOMB]
            ,"#itSimple = %d t = %lf\n",itSimple+1,sc->ddt.t);
 /*...................................................................*/
@@ -72,7 +77,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
   printf("1 %lf\n",mixtureMolarMass(cModel,mesh->elm.yFrac));
 
 /*...*/
-  for(itComb = 0; itComb < 15;itComb++)
+  for(itComb = 0; itComb < 10;itComb++)
   {
 /*... taxa de comsumo do combustivel*/
     rateFuelConsume(cModel                , mesh->elm.zComb
@@ -95,20 +100,20 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
         , mesh->face.normal      , mesh->face.xm
         , mesh->face.mvSkew      , mesh->face.vSkew
         , mesh->elm.geomType     , mesh->elm.material.prop
-        , mesh->elm.material.type, mesh->elm.mat
+        , mesh->elm.material.type, mesh->elm.mat 
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceResZcomb , mesh->elm.faceLoadZcomb
         , mesh->elm.zComb        , mesh->elm.gradZcomb
         , mesh->node.zComb       , sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
-        , nComp                  , mesh->ndm              
+        , nComb                  , mesh->ndm              
         , &pMesh->iNo            , &pMesh->iEl
         , mesh->numelNov         , mesh->numel
         , mesh->nnodeNov         , mesh->nnode);    
     tm.rcGradComb = getTimeC() - tm.rcGradComb;
 /*.................................................................. */
 
-  /*... calculo de: A(i),bE(i)*/
+/*... calculo de: A(i),b(i)*/
     tm.systFormComb = getTimeC() - tm.systFormComb;
     systFormComb(loadsComb             , loadsVel
              , &sc->advComb            , &sc->diffComb  
@@ -148,123 +153,97 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
     tm.systFormComb = getTimeC() - tm.systFormComb;
 /*...................................................................*/
 
-/*... soma o vetor bE(i) = bE(i) + bE0(i)*/
+/*... soma o vetor b(i) = b(i) + b0(i)*/
     addVector(1.0e0                   , sistEqComb->b
             , 1.0e0                   , sistEqComb->b0
-            , sistEqComb->neqNov*nComp, sistEqComb->b);
+            , sistEqComb->neqNov*nComb, sistEqComb->b);
 /*...................................................................*/
 
-/*... soma o vetor RE(i) = RE(i) + bE0(i)*/
+/*... soma o vetor R(i) = R(i) + b0(i)*/
     updateCellValueSimple(mesh->elm.rCellComb, sistEqComb->b0
                       , sistEqComb->id       , &sistEqComb->iNeq
                       , mesh->numelNov       , sistEqComb->neqNov
-                      , nComp
+                      , nComb
                       , true                 , false);  
 /*...................................................................*/
 
 /*...*/
-    tb[0] = sqrt(dot(b1, b1, sistEqComb->neqNov));
-    tb[1] = sqrt(dot(b2, b2, sistEqComb->neqNov));
-    tb[2] = sqrt(dot(b3, b3, sistEqComb->neqNov));
-    if (itComb == 0)
+    if(jj == jPrint && !mpiVar.myId)
     {
-      tmp = max(tb[0], tb[1]);
-      tmp = max(tmp, tb[2]);
+      printf("\nIt Combustion: %d\n", itComb + 1);
+      printf("Residuo:\n");
     }
+    if(opt->fItPlot && !mpiVar.myId)
+      fprintf(opt->fileItPlot[FITPLOTCOMB],"%9d",itComb+1);
+/*...................................................................*/
+    
+/*...*/
+    for(i=0;i<nComb;i++)
+      tb[i] = sqrt(dot(b[i], b[i], sistEqComb->neqNov));
+    if (itComb == 0) tmp = maxArray(tb,nComb);
 /*...................................................................*/
 
 /*...*/
-    fComb[0] = fComb[1] = fComb[2] = true; 
-    if ( tb[0] < SZERO || tb[0] == 0.e0 ) fComb[0] = false;
-    if ( tb[1] < SZERO || tb[1] == 0.e0 ) fComb[1] = false;
-    if ( tb[2] < SZERO || tb[2] == 0.e0 ) fComb[2] = false;
+    for(i=0;i<nComb;i++)
+    {
+ /*...*/
+      fComb[i] = true; 
+      if ( tb[i] < SZERO || tb[i] == 0.e0 ) fComb[i] = false;
 /*...................................................................*/
 
 /*...*/ 
-    if( itComb == 0 )
-    {
-      if(fComb[0]) 
-        rCell[0]  = rCell0[0] = sqrt(dot(rCell1,rCell1,mesh->numelNov));
-      if(fComb[1]) 
-        rCell[1]  = rCell0[1] = sqrt(dot(rCell2,rCell2,mesh->numelNov));
-      if(fComb[2])
-        rCell[2]  = rCell0[2] = sqrt(dot(rCell3,rCell3,mesh->numelNov));
-    }
-    else
-    {
-      rCell[0] = sqrt(dot(rCell1,rCell1,mesh->numelNov));
-      rCell[1] = sqrt(dot(rCell2,rCell2,mesh->numelNov));
-      rCell[2] = sqrt(dot(rCell3,rCell3,mesh->numelNov));
-    }   
-    if( jj == 20 && !mpiVar.myId )
-    {
-      jj = 0;
-      printf("It Combustion: %d \n", itComb + 1);
-      printf("Residuo:\n");
-      printf("zFlue : %20.8e\n", rCell[0] / rCell0[0]);
-      printf("zAir  : %20.8e\n", rCell[1] / rCell0[1]);
-      printf("zPord : %20.8e\n", rCell[2] / rCell0[2]);
-
-    }
-    jj++;
-    if(opt->fItPlot && !mpiVar.myId)  
-        fprintf(opt->fileItPlot[FITPLOTCOMB]
-               ,"%9d  %20.8e  %20.8e  %20.8e\n",itComb+1
-                                               ,rCell[0]
-                                               ,rCell[1]
-                                               ,rCell[2]);
+      if( itComb == kZero && rel )
+        rCell[i]  = rCell0[i] = sqrt(dot(rCellC[i],rCellC[i]
+                                    ,mesh->numelNov));  
+      rCell[i] = sqrt(dot(rCellC[i],rCellC[i],mesh->numelNov));
+                
+      if( jj == jPrint && !mpiVar.myId )
+      {
+        if(cModel->fLump)
+        {
+          printf("%5s : %20.8e\n", slName[i],rCell[i] / rCell0[i]);
+        }
+        else
+        {
+          printf("%5s : %20.8e\n", spName[i],rCell[i] / rCell0[i]);
+        }  
+      }
+      if(opt->fItPlot && !mpiVar.myId)
+        fprintf(opt->fileItPlot[FITPLOTCOMB]," %20.8e ",rCell[i]);
 /*...................................................................*/
 
 /*...*/
-    conv = 0;
-    if(rCell[0]/ rCell0[0] < 1.e-6 || rCell[0] < 1.e-16) conv++;
-    if(rCell[1]/ rCell0[1] < 1.e-6 || rCell[1] < 1.e-16) conv++;
-    if(rCell[2]/ rCell0[2] < 1.e-6 || rCell[2] < 1.e-16) conv++;
-    if(conv == 3) break;
+      conv = 0;
+      if(rCell[i]/ rCell0[i] < 1.e-6 || rCell[i] < 1.e-16) conv++;
+      if(conv == nComb) break;
 /*...................................................................*/
 
-/*...AZ1=bZ1*/
-    tm.solvComb = getTimeC() - tm.solvComb;
-    if(fComb[0])
-      solverC(m
-            , sistEqComb->neq    , sistEqComb->neqNov
-            , sistEqComb->nad    , sistEqComb->nadr
-            , sistEqComb->ia     , sistEqComb->ja
-            , al1                , ad1             , au1
-            , b1                 , xu1                
-            , &sistEqComb->iNeq  , &sistEqComb->omp
-            , solvComb->tol      , solvComb->maxIt
-            , sistEqComb->storage, solvComb->solver
-            , solvComb->fileSolv , solvComb->log
-            , true               , sistEqComb->unsym);
-/*...AZ2=bZ2*/
-    if(fComb[1]) 
-      solverC(m
-            , sistEqComb->neq, sistEqComb->neqNov
-            , sistEqComb->nad, sistEqComb->nadr
-            , sistEqComb->ia , sistEqComb->ja
-            , al2            , ad2           , au2
-            , b2             , xu2
-            , &sistEqComb->iNeq, &sistEqComb->omp
-            , solvComb->tol, solvComb->maxIt
-            , sistEqComb->storage, solvComb->solver
-            , solvComb->fileSolv, solvComb->log
-            , true, sistEqComb->unsym);        
-  
-/*...AZ3=bZ3*/
-    if(fComb[2]) 
-      solverC(m
-         , sistEqComb->neq    , sistEqComb->neqNov
-         , sistEqComb->nad    , sistEqComb->nadr
-         , sistEqComb->ia     , sistEqComb->ja
-         , al3                , ad3         , au3
-         , b3                 , xu3
-         , &sistEqComb->iNeq  , &sistEqComb->omp
-         , solvComb->tol      , solvComb->maxIt
-         , sistEqComb->storage, solvComb->solver
-         , solvComb->fileSolv , solvComb->log
-         , true, sistEqComb->unsym);        
-    tm.solvComb = getTimeC() - tm.solvComb;    
+/*...Ax=b*/
+      tm.solvComb = getTimeC() - tm.solvComb;
+      if(fComb[i])
+        solverC(m
+              , sistEqComb->neq    , sistEqComb->neqNov
+              , sistEqComb->nad    , sistEqComb->nadr
+              , sistEqComb->ia     , sistEqComb->ja
+              , al[i]              , ad[i]           , au[i]
+              , b[i]               , xu[i]              
+              , &sistEqComb->iNeq  , &sistEqComb->omp
+              , solvComb->tol      , solvComb->maxIt
+              , sistEqComb->storage, solvComb->solver
+              , solvComb->fileSolv , solvComb->log
+              , true               , sistEqComb->unsym);
+      else
+        zero(xu[i],sistEqComb->neq,DOUBLEC);
+//    if(i==0)printf("%.16e %.16e %.16e %.16e\n",*ad[i],*al[i],*b[i],*xu[i]);
+      tm.solvComb = getTimeC() - tm.solvComb;    
+    }
+/*...................................................................*/
+
+/*...*/
+    if( jj == jPrint) jj = 0;
+    jj++;
+    if(opt->fItPlot && !mpiVar.myId) 
+      fprintf(opt->fileItPlot[FITPLOTCOMB],"\n");
 /*...................................................................*/
 
 /*... x -> zComb*/
@@ -275,11 +254,12 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                        , cModel->fRes    , true);  
 /*...................................................................*/
 
-/*...*/
-//  regularZ(mesh->elm.zComb,mesh->numelNov,cModel->nOfSpeciesLump);
+  }
 /*...................................................................*/
 
-  }
+/*...*/
+//  regularZ(mesh->elm.zComb,mesh->numelNov
+//          ,cModel->nComb  ,cModel->fLump);
 /*...................................................................*/
 
 /*...*/
@@ -296,34 +276,46 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                     , sc->ddt.dt[TIME_N]      , mesh->numelNov);
 /*...................................................................*/
 
-  prop->molarMass = mixtureMolarMass(cModel,mesh->elm.yFrac);
-//printf("2 %lf\n", mixtureMolarMass(cModel,mesh->elm.yFrac));
+/*...*/
+  if(opt->fItPlot)  
+    fprintf(opt->fileItPlot[FITPLOTCOMB],"\n");
+/*...................................................................*/
 
+/*...*/
+  prop->molarMass = mixtureMolarMass(cModel,mesh->elm.yFrac);
+  printf("2 %lf\n", mixtureMolarMass(cModel,mesh->elm.yFrac));
+/*...................................................................*/
 }
 /*********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 15/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 03/05/2019                                   *
  *-------------------------------------------------------------------*
  * regularZ : mantem o z entre 0 e 1                                 *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
- * zComb   -> fracao massica                                         *
- * numel   -> numero de elementos                                    *
- * nLump   -> numero de especie agrupadas                            *
+ * z            -> fracao massica                                    *
+ * numel        -> numero de elementos                               *
+ * nOfSpecies   -> numero de especie agrupadas                       *
+ * fLump        -> true  - especies agrupadas                        *
+ *                 false - especies primitivas                       *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * y -> fracao de massa de especies primitivas                       * 
+ * z -> fracao de massa de regularizadas                             * 
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  * z < 0.0 -> z = 0.e0                                               *
- * z > 1.0 -> z = 1.e0 - (zFuel + zAir)                              *
+ * fLump = true                                                      *
+ * sum(z) > 1.0 -> z[zProd] = 1.e0 - (zFuel + zAir)                  *
+* fLump = false                                                      *
+ * sum(z) > 1.0 -> z[zN2] = 1.e0 - (zFuel + zO2 + zCO2 + zH2O)       * 
  *********************************************************************/
-void regularZ(DOUBLE *RESTRICT z, INT const numel, short const nLump)
+void regularZ(DOUBLE *RESTRICT z    , INT const numel
+            , short const nComb      , bool fLump)
 {
   short j;
   INT nel;
@@ -332,19 +324,26 @@ void regularZ(DOUBLE *RESTRICT z, INT const numel, short const nLump)
 /*... z < 0.0*/
   for(nel = 0 ; nel < numel; nel++)
   {
-    for(j=0;j<nLump;j++)
-      if(MAT2D(nel,j,z,nLump) < 0.e0)
-        MAT2D(nel,j,z,nLump) = 0.e0;
+    for(j=0;j<nComb;j++)
+      if(MAT2D(nel,j,z,nComb) < 0.e0)
+        MAT2D(nel,j,z,nComb) = 0.e0;
   }
 
 /*... z <= 1.0*/
   for(nel = 0 ; nel < numel; nel++)
   {
-    for(j=0,zSum = 0.e0;j<nLump;j++)
-      zSum += MAT2D(nel,j,z,nLump);
+    for(j=0,zSum = 0.e0;j<nComb;j++)
+      zSum += MAT2D(nel,j,z,nComb);
     if(zSum > 1.e0)
-      MAT2D(nel,2,z,nLump) = 1.e0 
-                       - (MAT2D(nel,0,z,nLump) + MAT2D(nel,1,z,nLump));
+    {
+      if(fLump)
+        MAT2D(nel,SL_PROD,z,nComb) = 1.e0 
+        - (MAT2D(nel,SL_AIR,z,nComb) + MAT2D(nel,SL_PROD,z,nComb));
+      else
+        MAT2D(nel,SP_N2,z,nComb) = 1.e0 
+        - (MAT2D(nel,SP_FUEL,z,nComb) + MAT2D(nel,SP_O2 ,z,nComb)
+        +  MAT2D(nel,SP_CO2 ,z,nComb) + MAT2D(nel,SP_H2O,z,nComb));
+    } 
   }
 
 }
@@ -352,7 +351,7 @@ void regularZ(DOUBLE *RESTRICT z, INT const numel, short const nLump)
 
 /*********************************************************************
  * Data de criacao    : 15/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 03/05/2019                                   *
  *-------------------------------------------------------------------*
  * getSpeciesPrimitives : obtem as especies primitivas das especies  *
  * agrupadas                                                         *
@@ -375,8 +374,8 @@ void regularZ(DOUBLE *RESTRICT z, INT const numel, short const nLump)
  * z(nel,3) -> produto                                               *
  *                                                                   * 
  * y[0] - CH4                                                        *
- * y[1] - N2                                                         *
- * y[2] - O2                                                         *
+ * y[1] - O2                                                         *
+ * y[2] - N2                                                         *
  * y[3] - CO2                                                        *
  * y[4] - H2O                                                        *
  * y[5] - CO                                                         *
@@ -384,29 +383,38 @@ void regularZ(DOUBLE *RESTRICT z, INT const numel, short const nLump)
  *********************************************************************/
 void getSpeciesPrimitives(Combustion *cModel 
                         , DOUBLE *RESTRICT y,DOUBLE *RESTRICT z
-                        , INT const numel)
+                        , INT const numel   )
 {
-  short ns,nl;
+  short i,ns,nl;
   INT nel;
   DOUBLE *py,*pz,*a;
 
-  ns = cModel->nOfSpecies; 
-  nl = cModel->nOfSpeciesLump;
-  a  = cModel->lumpedMatrix;
-
-  for(nel = 0 ; nel < numel; nel++)
+  if(cModel->fLump)
   {
-    py = &MAT2D(nel,0,y,ns);
-    pz = &MAT2D(nel,0,z,nl);
-    yLumpedMatrixZ(py,a,pz,ns,nl);
-  }
+    ns = cModel->nOfSpecies; 
+    nl = cModel->nOfSpeciesLump;
+    a  = cModel->lumpedMatrix;
 
+    for(nel = 0 ; nel < numel; nel++)
+    {
+      py = &MAT2D(nel,0,y,ns);
+      pz = &MAT2D(nel,0,z,nl);
+      yLumpedMatrixZ(py,a,pz,ns,nl);
+    }
+  }
+  else
+  {
+    ns = cModel->nOfSpecies; 
+    for(nel = 0 ; nel < numel; nel++)
+      for(i=0;i<ns;i++)
+        MAT2D(nel,i,y,ns) = MAT2D(nel,i,z,ns);
+  }
 }
 /*********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 12/08/2018                                   *
- * Data de modificaco : 26/08/2018                                   *
+ * Data de modificaco : 04/05/2019                                   *
  *-------------------------------------------------------------------*
  * rateFuelConsume: calculo da taxa de consumo do combustivel        *
  *-------------------------------------------------------------------*
@@ -437,7 +445,7 @@ void rateFuelConsume(Combustion *cModel       , DOUBLE *RESTRICT zComb
   short nComb = cModel->nComb,iCod = cModel->reactionKinetic;
   INT nel;
   DOUBLE s,tMix;
-  DOUBLE zFuel, zAir, omega, densityC, alpha, coefA;
+  DOUBLE zFuel, zAir, zO2, omega, densityC, alpha, coefA;
   DOUBLE tmp1, tmp2, tmp3, tmp4;
   DOUBLE mWfuel,mWox, tempA, eOx, eFuel, ru, tc; 
 
@@ -484,18 +492,37 @@ void rateFuelConsume(Combustion *cModel       , DOUBLE *RESTRICT zComb
 
 /*...*/
     case EBU:
-      s    = cModel->sMass;
-      tMix = cModel->tMix;
-      for(nel = 0; nel < numel; nel++)
+      if(cModel->fLump)
       {
+        s    = cModel->sMassAir;
+        tMix = cModel->tMix;
+        for(nel = 0; nel < numel; nel++)
+        {
 
-        densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+          densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
 
-        zAir  = MAT2D(nel,0,zComb,nComb);
-        zFuel = MAT2D(nel,1,zComb,nComb);
+          zAir  = MAT2D(nel,SL_AIR ,zComb,nComb);
+          zFuel = MAT2D(nel,SL_FUEL,zComb,nComb);
     
-        omega = max(densityC*min(zFuel,zAir/s),0.e0);
-        rate[nel] = omega/tMix;
+          omega = max(densityC*min(zFuel,zAir/s),0.e0);
+          rate[nel] = omega/tMix;
+        }
+      }
+      else
+      {
+        s    = cModel->sMassO2;
+        tMix = cModel->tMix;
+        for(nel = 0; nel < numel; nel++)
+        {
+
+          densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+
+          zO2   = MAT2D(nel,SP_O2,zComb,nComb);
+          zFuel = MAT2D(nel,SP_FUEL,zComb,nComb);
+    
+          omega = max(densityC*min(zFuel,zO2/s),0.e0);
+          rate[nel] = omega/tMix;
+        }
       }
       break;
 /*...................................................................*/
@@ -540,7 +567,7 @@ void rateHeatRealeseCombustion(Combustion *cModel
   short i, nOfSpL = cModel->nOfSpeciesLump;
   short iCod = cModel->typeHeatRealese;
   INT nel;
-  DOUBLE s = cModel->sMass;
+  DOUBLE s = cModel->sMassAir;
   DOUBLE *h,hc;
   DOUBLE z0,z1;
   DOUBLE densityC,densityC0,tmp,dRoZ;
@@ -604,7 +631,7 @@ DOUBLE totalHeatRealeseComb(DOUBLE *RESTRICT q, DOUBLE *RESTRICT vol
 
 /*********************************************************************
  * Data de criacao    : 12/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 04/05/2019                                   *
  *-------------------------------------------------------------------*
  * initLumpedMatrix : inicializa a matriz de especies                *
  *-------------------------------------------------------------------*
@@ -624,33 +651,33 @@ void initLumpedMatrix(Combustion *cModel)
   short nComb = cModel->nComb;
 
 /*... Fuel*/
-  MAT2D(0,0,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(0,1,cModel->lumpedMatrix,nComb) = 1.e0; 
-  MAT2D(0,2,cModel->lumpedMatrix,nComb) = 0.e0; 
-/*...................................................................*/
-
-/*... N2*/
-  MAT2D(1,0,cModel->lumpedMatrix,nComb) = 0.7670e0; 
-  MAT2D(1,1,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(1,2,cModel->lumpedMatrix,nComb) = 0.7248e0; 
+  MAT2D(SP_FUEL,0,cModel->lumpedMatrix,nComb) = 1.e0; 
+  MAT2D(SP_FUEL,1,cModel->lumpedMatrix,nComb) = 0.e0; 
+  MAT2D(SP_FUEL,2,cModel->lumpedMatrix,nComb) = 0.e0; 
 /*...................................................................*/
 
 /*... O2*/
-  MAT2D(2,0,cModel->lumpedMatrix,nComb) = 0.2330e0; 
-  MAT2D(2,1,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(2,2,cModel->lumpedMatrix,nComb) = 0.000000e0; 
+  MAT2D(SP_O2,0,cModel->lumpedMatrix,nComb) = 0.e0;
+  MAT2D(SP_O2,1,cModel->lumpedMatrix,nComb) = 0.2330e0; 
+  MAT2D(SP_O2,2,cModel->lumpedMatrix,nComb) = 0.0e0; 
+/*...................................................................*/
+
+/*... N2*/
+  MAT2D(SP_N2,0,cModel->lumpedMatrix,nComb) = 0.e0; 
+  MAT2D(SP_N2,1,cModel->lumpedMatrix,nComb) = 0.7670e0; 
+  MAT2D(SP_N2,2,cModel->lumpedMatrix,nComb) = 0.7248e0; 
 /*...................................................................*/
 
 /*... CO2*/
-  MAT2D(3,0,cModel->lumpedMatrix,nComb) = 0.000e0; 
-  MAT2D(3,1,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(3,2,cModel->lumpedMatrix,nComb) = 0.1514e0; 
+  MAT2D(SP_CO2,0,cModel->lumpedMatrix,nComb) = 0.e0; 
+  MAT2D(SP_CO2,1,cModel->lumpedMatrix,nComb) = 0.0e0; 
+  MAT2D(SP_CO2,2,cModel->lumpedMatrix,nComb) = 0.1514e0; 
 /*...................................................................*/
 
 /*... H2O*/
-  MAT2D(4,0,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(4,1,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(4,2,cModel->lumpedMatrix,nComb) = 0.1238e0; 
+  MAT2D(SP_H2O,0,cModel->lumpedMatrix,nComb) = 0.e0; 
+  MAT2D(SP_H2O,1,cModel->lumpedMatrix,nComb) = 0.e0; 
+  MAT2D(SP_H2O,2,cModel->lumpedMatrix,nComb) = 0.1238e0; 
 /*...................................................................*/
 
 /*... CO*/
@@ -689,11 +716,11 @@ void initLumpedMatrix(Combustion *cModel)
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  * y[0] - CH4                                                        *
- * y[1] - N2                                                         *
- * y[2] - O2                                                         *
+ * y[1] - O2                                                         *
+ * y[2] - N2                                                         *
  * y[3] - CO2                                                        *
- * y[4] - CO                                                         *
- * y[5] - H2O                                                        *
+ * y[4] - H2O                                                        *
+ * y[5] - CO                                                         *
  * y[6] - C                                                          *
  *********************************************************************/
 void yLumpedMatrixZ(DOUBLE *RESTRICT y, DOUBLE *RESTRICT a
@@ -770,7 +797,7 @@ void initMolarMass(Combustion *cModel)
 
 /*********************************************************************
  * Data de criacao    : 23/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 03/05/2019                                   *
  *-------------------------------------------------------------------*
  * stoichiometricCoeff:                                              *
  *-------------------------------------------------------------------*
@@ -783,8 +810,8 @@ void initMolarMass(Combustion *cModel)
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *                                                                   *
- * 1*(CmHnOl) + nO2*(O2) + (nO2*pN2/pO2)*N2 - nCO2*(CO2) + nH2O*(H2O)*
- * nN2*(N2)                                                          *
+ * 1*(CmHnOl) + nO2*(O2) + (nO2*pN2/pO2)*N2                          * 
+ * -> nCO2*(CO2) + nH2O*(H2O) + nN2*(N2)                             *                              *
  *                                                                   *
  * C - m = nCO2   :.                                                 *
  * H - n = 2*nH2O :. nH2O = n/2                                      *
@@ -798,8 +825,8 @@ void initMolarMass(Combustion *cModel)
 void stoichiometricCoeff(Combustion *cModel)
 {
   short m,n,l;
-  DOUBLE nAir,nProd,pO2,pN2,pN2r,nN2r,nCO2r,nH2Or,nTotal;
-  DOUBLE pCO2r,pH2Or,nO2;
+  DOUBLE nAir,nProd,pO2,pN2,pN2r,nN2p,nCO2p,nH2Op,nTotal;
+  DOUBLE pCO2r,pH2Or,nO2,nN2;
 
   m = cModel->fuel.c;
   n = cModel->fuel.h;
@@ -828,26 +855,73 @@ void stoichiometricCoeff(Combustion *cModel)
 
 /*... Ar ( pO2*O2 + pN2*N2)*/
   nO2  = m + n/4.0e0 - l/2.0;
+  nN2  = nO2*pN2/pO2;
   nAir = nO2*(1.0e0/pO2);
 
 /*... produto  */
-  nN2r  = (m + n/4.e0)*pN2/pO2;
-  nCO2r = m;
-  nH2Or = n/2.e0;  
+  nN2p  = (m + n/4.e0)*pN2/pO2;
+  nCO2p = m;
+  nH2Op = n/2.e0;  
 
-  nTotal = nCO2r + nH2Or + nN2r;
-  pCO2r = nCO2r/nTotal;
-  pH2Or = nH2Or/nTotal;
-  pN2r = nN2r/nTotal;
-  nProd = (nN2r/pN2r+nCO2r/pCO2r+nH2Or/pH2Or)/3.0;
+  nTotal = nCO2p + nH2Op + nN2p;
+  pCO2r = nCO2p/nTotal;
+  pH2Or = nH2Op/nTotal;
+  pN2r = nN2p/nTotal;
+  nProd = (nN2p/pN2r+nCO2p/pCO2r+nH2Op/pH2Or)/3.0;
 
-  cModel->CO2InPord = pCO2r;
-  cModel->H2OInPord = pH2Or;
+  cModel->CO2InProd = pCO2r;
+  cModel->H2OInProd = pH2Or;
+  cModel->N2InProd  = pN2r;
 
 /*...*/
-  cModel->sMolar = nAir;
-  cModel->sMass  = nAir*cModel->mW_Air/cModel->mW_Fuel;
+  cModel->sMolar    = nAir;
+  cModel->sMassAir  = nAir*cModel->mW_Air/cModel->mW_Fuel;
+  cModel->sMassO2   = nO2*cModel->mW_O2/cModel->mW_Fuel;
+  cModel->sMassN2   = nN2*cModel->mW_N2/cModel->mW_Fuel;
+  cModel->sMassCO2p = nCO2p*cModel->mW_CO2/cModel->mW_Fuel;
+  cModel->sMassH2Op = nH2Op*cModel->mW_H2O/cModel->mW_Fuel;
+  cModel->sMassN2p  = nN2p*cModel->mW_N2/cModel->mW_Fuel;
+/*..................................................................*/
 
+  printf("Reaction:\n"); 
+/*...*/
+  if(cModel->fLump)
+  {
+    printf("C%dH%dO%d" 
+           " + %lf (%lf O2 + %lf N2)"
+           " -> %lf (%lf CO2 + %lf H2O + %lf N2)\n\n"
+          ,m    ,n     ,l
+          ,nAir ,pO2   ,pN2
+          ,nProd,pCO2r, pH2Or,pN2r);
+    
+    printf("1 kg C%dH%dO%d" 
+           " + %lf (%lf O2 + %lf N2)"
+           " -> %lf (%lf CO2 + %lf H2O + %lf N2)\n\n"
+          ,m                ,n     ,l
+          ,cModel->sMassAir    ,pO2   ,pN2
+          ,cModel->sMassAir + 1,pCO2r,pH2Or,pN2r);
+
+  } 
+/*..................................................................*/
+
+/*...*/
+  else
+  {
+    printf("C%dH%dO%d" 
+           " + %lf O2 + %lf N2"
+           " -> %lf CO2 + %lf H2O + %lf N2\n\n"
+          ,m    ,n    ,l
+          ,nO2  ,nO2*pN2/pO2
+          ,nCO2p,nH2Op,nN2p);
+
+     printf("1 kg C%dH%dO%d" 
+           " + %lf  kg O2 + %lf  kg N2 "
+           " -> %lf kg CO2 + %lf kg H2O + %lf kg N2\n\n"
+          ,m    ,n    ,l
+          ,cModel->sMassO2  ,cModel->sMassN2
+          ,cModel->sMassCO2p,cModel->sMassH2Op,cModel->sMassN2p);
+  }
+/*..................................................................*/
 }
 /********************************************************************/
 
@@ -873,8 +947,8 @@ void initEntalpyOfFormation(Combustion *cModel)
   DOUBLE pCO2,pH2O;
 
 
-  pCO2 = cModel->CO2InPord;
-  pH2O = cModel->H2OInPord;
+  pCO2 = cModel->CO2InProd;
+  pH2O = cModel->H2OInProd;
 
 /*...  Fuel - KJ/kMol*/
   cModel->H_Fuel = -74870.e0; 
@@ -920,8 +994,8 @@ void initEntalpyOfCombustion(Combustion *cModel)
   DOUBLE pCO2,pH2O;
 
 
-  pCO2 = cModel->CO2InPord;
-  pH2O = cModel->H2OInPord;
+  pCO2 = cModel->CO2InProd;
+  pH2O = cModel->H2OInProd;
 
 /*...  Fuel - KJ/kMol*/
   cModel->H_Fuel = -74870.e0; 
@@ -939,17 +1013,17 @@ void initEntalpyOfCombustion(Combustion *cModel)
 }
 /********************************************************************/
 
-
 /*********************************************************************
  * Data de criacao    : 12/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 02/05/2019                                   *
  *-------------------------------------------------------------------*
  * concetracionOfSpecies:                                            *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * cModel  -> nao definido                                           *
- * z       -> especies agrupadas                                     *
+ * z       -> especies agrupadas   (cModel->fLump = true)            *
+ *            especies primitivas  (cModel->fLump = false)           *
  * c       -> concetracao das especies primitivas                    *
  * density -> densidade da mistura                                   *
  *-------------------------------------------------------------------*
@@ -960,8 +1034,8 @@ void initEntalpyOfCombustion(Combustion *cModel)
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  * c[0] - CH4                                                        *
- * c[1] - N2                                                         *
- * c[2] - O2                                                         *
+ * c[1] - O2                                                         *
+ * c[2] - N2                                                         *
  * c[3] - CO2                                                        *
 *  c[4] - H2O                                                        *
  * c[5] - CO                                                         * 
@@ -970,13 +1044,13 @@ void initEntalpyOfCombustion(Combustion *cModel)
 void concetracionOfSpecies(Combustion *cModel,DOUBLE *RESTRICT z
                           ,DOUBLE *RESTRICT c,DOUBLE const density)
 {
-  
+  bool fLump = cModel->fLump;
   short i, ns = cModel->nOfSpecies, nl = cModel->nOfSpeciesLump;
-  DOUBLE y[7],mW[7];
+  DOUBLE y[MAXSPECIES],mW[MAXSPECIES];
 
   vectorMolarMass(mW,cModel);
 
-  yLumpedMatrixZ(y,cModel->lumpedMatrix, z, ns, nl);
+  if (fLump) yLumpedMatrixZ(y,cModel->lumpedMatrix, z, ns, nl);
   
   for(i=0;i<ns;i++)
     c[i] = y[i]*density/mW[i];
@@ -1039,7 +1113,7 @@ DOUBLE mixtureMolarMass(Combustion *cModel,DOUBLE *RESTRICT y)
 {                    
 
   short i, ns = cModel->nOfSpecies;
-  DOUBLE mW[7],tmp;
+  DOUBLE mW[MAXSPECIES],tmp;
 
   vectorMolarMass(mW,cModel);
 
@@ -1051,18 +1125,72 @@ DOUBLE mixtureMolarMass(Combustion *cModel,DOUBLE *RESTRICT y)
 }
 /*********************************************************************/
 
-
-/********************************************************************/
+/*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 05/05/2019                                   *
+ *-------------------------------------------------------------------*
+ * vectorMolarMass : massa molar da mistura                          *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * mW -> nao definido                                                *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * mW -> massa molar                                                 *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
 static void vectorMolarMass(DOUBLE *mW, Combustion *cModel)
 {
 
-  mW[0] = cModel->mW_Fuel;
-  mW[1] = cModel->mW_N2;
-  mW[2] = cModel->mW_O2;
-  mW[3] = cModel->mW_CO2;
-  mW[4] = cModel->mW_H2O;
-  mW[5] = cModel->mW_CO;
-  mW[6] = cModel->mW_C;
+  mW[SP_FUEL] = cModel->mW_Fuel;
+  mW[SP_O2  ] = cModel->mW_O2;
+  mW[SP_N2  ] = cModel->mW_N2;
+  mW[SP_CO2 ] = cModel->mW_CO2;
+  mW[SP_H2O ] = cModel->mW_H2O;
+/*mW[5] = cModel->mW_CO;
+  mW[6] = cModel->mW_C;*/
 
 }
-/*********************************************************************/
+/*********************************************************************/ 
+
+/*********************************************************************
+ * Data de criacao    : 03/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * maxArray : retorna o valor maximo de vetor                        *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * x -> valores                                                      *
+ * y -> dimensao de vetor                                            *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE maxArray(DOUBLE *RESTRICT x,INT const n)
+{
+  
+  INT j;
+  DOUBLE tmp;
+
+  tmp = max(x[0], x[1]);
+  for(j=2;j<n;j++)
+    tmp = max(tmp, x[j]); 
+
+  return tmp;
+
+}
+/*********************************************************************/ 
+
+void printt(double *x, short n)
+{
+  int i;
+  for(i=0;i<n;i++)
+    printf("%d %e\n",i,x[i]);
+}

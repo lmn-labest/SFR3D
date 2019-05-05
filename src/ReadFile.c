@@ -50,7 +50,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
        ,"faceReKturb"  ,"loadsKturb" ,"faceLoadKturb"  /*33,34,35*/
        ,"fileMaterials",""           ,""               /*36,37,38*/
 	   };                                             
-  bool rflag[NMACROS],macroFlag,fOneEqK = true,fComb;
+  bool rflag[NMACROS],macroFlag,fOneEqK = false,fComb;
   INT nn,nel;
   short maxno,ndm,numat,maxViz,ndfVel,nComb,nSpPri;
   char nameAux[MAX_STR_LEN_IN];
@@ -971,7 +971,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     }
 /*...................................................................*/
 
-/*... uniformVel */
+/*... uniformZ */
     else if ((!strcmp(word, macro[32])) && (!rflag[32])) {
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++], word);
@@ -1044,12 +1044,24 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                  , mesh->numel*nComb , mesh->elm.zComb);
 /*...................................................................*/
 
-/*...*/
+/*... gambirra para definir os coeficiente de difusao da modelo de 
+     combusta*/
     for(int i=0; i < nel ;i++)
     {
-      MAT2D(i,0,mesh->elm.cDiffComb,3) = 1.0e-5; 
-      MAT2D(i,1,mesh->elm.cDiffComb,3) = 2.0e-5;
-      MAT2D(i,2,mesh->elm.cDiffComb,3) = 4.0e-5;
+      if(cModel->fLump)
+      {
+        MAT2D(i,0,mesh->elm.cDiffComb,nComb) = 1.0e-5; 
+        MAT2D(i,1,mesh->elm.cDiffComb,nComb) = 1.0e-5;
+        MAT2D(i,2,mesh->elm.cDiffComb,nComb) = 1.0e-5;
+      }
+      else
+      {     
+        MAT2D(i,0,mesh->elm.cDiffComb,nComb) =  1.0e-5; 
+        MAT2D(i,1,mesh->elm.cDiffComb,nComb) =  1.0e-5;
+        MAT2D(i,2,mesh->elm.cDiffComb,nComb) =  1.0e-5;
+        MAT2D(i,3,mesh->elm.cDiffComb,nComb) =  1.0e-5;
+        MAT2D(i,4,mesh->elm.cDiffComb,nComb) =  1.0e-5;
+      }      
     }
 /*...................................................................*/
 
@@ -2249,7 +2261,7 @@ void readPropVarFluid(PropVarFluid *p,FILE *file){
     }
 /*...................................................................*/
 
-/*... sviscosidade dinamica*/
+/*... viscosidade dinamica*/
     else if(!strcmp(word, macros[2])){
       readMacroV2(file, word, false, true);
       p->fDynamicViscosity = true;  
@@ -3501,7 +3513,7 @@ void uniformField(DOUBLE *field, INT const n, short const ndf
                 ,FILE* file)
 {
 
-  DOUBLE value[4];
+  DOUBLE value[MAXSPECIES];
   INT i;
   short j;
   
@@ -5065,7 +5077,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*********************************************************************
  * Data de criacao    : 30/07/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 03/05/2019                                   *
  *-------------------------------------------------------------------*
  * readSolvComb   leitura das configuracoes do solvers utilizados    *
  * no modelo de combustao                                            *
@@ -5085,11 +5097,12 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
                 , Solv *solvEnergy, SistEq* sistEqEnergy, bool *fSolvEnergy
                 , Solv *solvKturb , SistEq* sistEqKturb , bool *fSolvKturb
                 , Solv *solvComb  , SistEq* sistEqComb  , bool *fSolvComb
+                , short const nComb
                 , char* auxName   , char* preName       , char* nameOut
                 , FILE *fileIn    , FileOpt *opt)
 {
 
-  unsigned short nComb, ndfVel, nSistEq;
+  unsigned short ndfVel, nSistEq;
 
   INT nEqMax;
 /*... Estrutura de dados*/
@@ -5672,8 +5685,6 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...................................................................*/
 
 /*... */
-      nComb = 3;
-/*...................................................................*/
       HccaAlloc(DOUBLE, m, sistEqComb->b0
               , sistEqComb->neq*nComb, "sistCombb0", _AD_);
       HccaAlloc(DOUBLE, m, sistEqComb->b

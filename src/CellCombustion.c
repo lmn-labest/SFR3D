@@ -1,8 +1,7 @@
 #include<CellLib.h>
-
 /********************************************************************
 * Data de criacao    : 05/08/2018                                   *
-* Data de modificaco : 12/08/2018                                   *
+* Data de modificaco : 03/05/2019                                   *
 *-------------------------------------------------------------------*
 * cellCombustion3D: Celula 3D para combustao                        *
 *-------------------------------------------------------------------*
@@ -68,6 +67,18 @@
 * lRcell    -> residuo por celula                                   *
 *-------------------------------------------------------------------*
 * OBS:                                                              *
+* fLump - true                                                      *
+* Fuel + Air -> Prod                                                *
+* z(0) - Air                                                        *
+* z(1) - Fuel                                                       *
+* z(2) - Prod                                                       *
+* fLump - false                                                     *
+* CH4 + O2 + N2 -> CO2 + H2O + N2                                   *
+* z(0) - CH4                                                        *
+* z(1) - O2                                                         *
+* z(2) - N2                                                         *
+* z(3) - CO2                                                        *
+* z(4) - H2O                                                        *
 *-------------------------------------------------------------------*
 *********************************************************************/
 void cellCombustion3D(Loads *loads              , Loads *lVel
@@ -96,26 +107,30 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
                     , const short nEn           , short const nFace
                     , const short ndm           , INT const nel)
 {
-  bool fTime, fRes, fTurb, fWallModel;
+  bool fTime, fRes, fTurb, fWallModel, fLump;
   short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf, nCarg1
-    , nCarg2, typeTime, iCodPolFace, nComb, nst;
+    , nCarg2, typeTime, iCodPolFace, nComb, nst, i;
 /*...*/
   INT vizNel;
 /*...*/
-  DOUBLE densityC, densityV, densityM, diffCeofC[3], diffCeofV[3], diffCeof[3],
-    diffEffC[3], diffEffV[3], diffEff[3],
-    eddyViscosityC, eddyViscosityV, viscosityC, tA[3], coef[3],
-    tmp, tmp1, tmp2, tmp3, prTwall, prTsgs;
-  DOUBLE p[3], sP, sPc[3], dfd[3], gfKsi[3], lvSkew[3], alpha, alphaMenosUm;
-  DOUBLE v[3], gradUComp[3][3], lKsi[3], lNormal[3], gf[3][3];
-  DOUBLE lModKsi, lFarea, du[3], duDksi[3], lXmcc[3], lXm[3];
-  DOUBLE gradUp[3][3], gradUv[3][3], ccV[3], rCell[3], dt, dt0;
-  DOUBLE uC[3], uV[3],wf[3];
+  DOUBLE densityC, densityV, densityM, diffCeofC[MAX_COMB]
+        , diffCeofV[MAX_COMB], diffCeof[MAX_COMB]
+        , diffEffC[MAX_COMB], diffEffV[MAX_COMB], diffEff[MAX_COMB]
+        , eddyViscosityC, eddyViscosityV, viscosityC
+        , tA[MAX_COMB], coef[MAX_COMB]
+        , tmp, tmp1, tmp2, tmp3, prTwall, prTsgs;
+  DOUBLE p[MAX_COMB], sP, sPc[MAX_COMB], dfd[MAX_COMB], gfKsi[MAX_COMB];
+  DOUBLE lvSkew[3], alpha, alphaMenosUm;
+  DOUBLE v[3], gradUComp[MAX_COMB][3], lKsi[3], lNormal[3], gf[MAX_COMB][3];
+  DOUBLE lModKsi, lFarea, du[MAX_COMB], duDksi[MAX_COMB], lXmcc[3], lXm[3];
+  DOUBLE gradUp[MAX_COMB][3], gradUv[MAX_COMB][3], ccV[3];
+  DOUBLE rCell[MAX_COMB], dt, dt0;
+  DOUBLE uC[MAX_COMB], uV[MAX_COMB],wf[3];
 /*... nonOrtogonal*/
-  DOUBLE e[3], t[3], s[3], modE, dfdc[3], xx[3];
+  DOUBLE e[3], t[3], s[3], modE, dfdc[MAX_COMB], xx[3];
 /*... */
   DOUBLE presC, presC0, presV, gradPresC[3], gradPresV[3], wfn
-    , velC[3], velV[3], dFieldC[3], dFieldV[3], dFieldF[3], cv, cvc[3];
+    , velC[3], velV[3], dFieldC[3], dFieldV[3], dFieldF[3], cv, cvc[MAX_COMB];
 /*...*/
   DOUBLE pAdv[NPADV];
 
@@ -130,6 +145,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*...................................................................*/
 
 /*...*/
+  fLump = cModel->fLump;
   nComb = cModel->nComb;
 /*...................................................................*/
 
@@ -149,34 +165,34 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*... propriedades da celula*/
   eddyViscosityC = eddyViscosityV = 0.e0;
   densityC = lDensity[idCell];
-  diffCeofC[0] = densityC*MAT2D(idCell, 0, lDiff, 3);
-  diffCeofC[1] = densityC*MAT2D(idCell, 1, lDiff, 3);
-  diffCeofC[2] = densityC*MAT2D(idCell, 2, lDiff, 3);
-
 //if (fTurb) eddyViscosityC = MAT2D(idCell, 1, lViscosity, 2);
-  diffEffC[0] = diffCeofC[0] + eddyViscosityC / prTsgs;
-  diffEffC[1] = diffCeofC[1] + eddyViscosityC / prTsgs;
-  diffEffC[2] = diffCeofC[2] + eddyViscosityC / prTsgs;
-/*...................................................................*/
-
-/*... | du1/dx1 du1/dx2 du1/dx3*/
-  gradUp[0][0] = MAT3D(idCell, 0, 0, gradU0, 3, 3);
-  gradUp[0][1] = MAT3D(idCell, 0, 1, gradU0, 3, 3);
-  gradUp[0][2] = MAT3D(idCell, 0, 2, gradU0, 3, 3);
-/*... | du2/dx1 du2/dx2 du2/dx3*/
-  gradUp[1][0] = MAT3D(idCell, 1, 0, gradU0, 3, 3);
-  gradUp[1][1] = MAT3D(idCell, 1, 1, gradU0, 3, 3);
-  gradUp[1][2] = MAT3D(idCell, 1, 2, gradU0, 3, 3);
-/*... | du3/dx1 du3/dx2 du3/dx3*/
-  gradUp[2][0] = MAT3D(idCell, 2, 0, gradU0, 3, 3);
-  gradUp[2][1] = MAT3D(idCell, 2, 1, gradU0, 3, 3);
-  gradUp[2][2] = MAT3D(idCell, 2, 2, gradU0, 3, 3);
 /*...................................................................*/
 
 /*...*/
-  uC[0]   = MAT2D(idCell, 0, u0, 3);
-  uC[1]   = MAT2D(idCell, 1, u0, 3);
-  uC[2]   = MAT2D(idCell, 2, u0, 3);
+  tmp1 = eddyViscosityC / prTsgs;
+  for(i=0;i<nComb;i++)
+  {
+/*... propriedades da celula*/
+    diffCeofC[i] = densityC*MAT2D(idCell, i, lDiff, nComb);
+
+    diffEffC[i] = diffCeofC[i] + tmp1;
+/*... | du1/dx1 du1/dx2 du1/dx3 |
+      | du2/dx1 du2/dx2 du2/dx3 |
+      | du3/dx1 du3/dx2 du3/dx3 |
+      | du4/dx1 du4/dx2 du4/dx3 |
+*/
+    gradUp[i][0] = MAT3D(idCell, i, 0, gradU0, nComb, 3);
+    gradUp[i][1] = MAT3D(idCell, i, 1, gradU0, nComb, 3);
+    gradUp[i][2] = MAT3D(idCell, i, 2, gradU0, nComb, 3);
+/*...*/
+    uC[i] = MAT2D(idCell, i, u0, nComb);
+/*...*/
+    p[i]   = 0.e0;
+    sPc[i] = 0.0e0;
+  }
+/*...................................................................*/
+
+/*...*/
   velC[0] = MAT2D(idCell, 0, vel, 3);
   velC[1] = MAT2D(idCell, 1, vel, 3);
   velC[2] = MAT2D(idCell, 2, vel, 3);
@@ -194,8 +210,6 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*...................................................................*/
 
 /*...*/
-  p[0] = p[1] = p[2] = 0.e0;
-  sPc[0] = sPc[1] = sPc[2] = 0.0e0;
   sP = 0.0e0;
   for (nf = 0; nf<nFace; nf++) 
   {
@@ -212,9 +226,11 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
     {
 /*...*/
       densityV   = lDensity[nf];
-      diffCeofV[0] = densityV*MAT2D(nf, 0, lDiff, 3);
-      diffCeofV[1] = densityV*MAT2D(nf, 1, lDiff, 3);
-      diffCeofV[2] = densityV*MAT2D(nf, 2, lDiff, 3);
+      for(i=0;i<nComb;i++)
+      {
+        diffCeofV[i] = densityV*MAT2D(nf, i, lDiff, nComb);
+        uV[i]   = MAT2D(nf, i, u0, nComb);
+      }
 //    if (fTurb) eddyViscosityV = MAT2D(nf, 1, lViscosity, 2);
 /*... p(n+1)*/
       presV = MAT2D(nf, 1, pres, 2);
@@ -225,9 +241,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
       dFieldV[1] = MAT2D(nf, 1, dField, 3);
       dFieldV[2] = MAT2D(nf, 2, dField, 3);
 /*...*/
-      uV[0]   = MAT2D(nf, 0, u0, 3);
-      uV[1]   = MAT2D(nf, 1, u0, 3);
-      uV[2]   = MAT2D(nf, 2, u0, 3);
+
       velV[0] = MAT2D(nf, 0, vel, 3);
       velV[1] = MAT2D(nf, 1, vel, 3);
       velV[2] = MAT2D(nf, 2, vel, 3);
@@ -241,23 +255,17 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
       lvSkew[1] = MAT2D(nf, 1, vSkew, 3);
       lvSkew[2] = MAT2D(nf, 2, vSkew, 3);
 /*...*/
-      duDksi[0] = (uV[0] - uC[0]) / lModKsi;
-      duDksi[1] = (uV[1] - uC[1]) / lModKsi;
-      duDksi[2] = (uV[2] - uC[2]) / lModKsi;
+      for(i=0;i<nComb;i++)
+      {
+        duDksi[i] = (uV[i] - uC[i]) / lModKsi;
 /*... | du1/dx1 du1/dx2 du1/dx3*/
-      gradUv[0][0] = MAT3D(nf, 0, 0, gradU0, 3, 3);
-      gradUv[0][1] = MAT3D(nf, 0, 1, gradU0, 3, 3);
-      gradUv[0][2] = MAT3D(nf, 0, 2, gradU0, 3, 3);
-/*... | du2/dx1 du2/dx2 du2/dx3*/
-      gradUv[1][0] = MAT3D(nf, 1, 0, gradU0, 3, 3);
-      gradUv[1][1] = MAT3D(nf, 1, 1, gradU0, 3, 3);
-      gradUv[1][2] = MAT3D(nf, 1, 2, gradU0, 3, 3);
-/*... | du3/dx1 du3/dx2 du3/dx3*/
-      gradUv[2][0] = MAT3D(nf, 2, 0, gradU0, 3, 3);
-      gradUv[2][1] = MAT3D(nf, 2, 1, gradU0, 3, 3);
-      gradUv[2][2] = MAT3D(nf, 2, 2, gradU0, 3, 3);
+        gradUv[i][0] = MAT3D(nf, 0, 0, gradU0, nComb, 3);
+        gradUv[i][1] = MAT3D(nf, 0, 1, gradU0, nComb, 3);
+        gradUv[i][2] = MAT3D(nf, 0, 2, gradU0, nComb, 3);
+      }
 /*...................................................................*/
 
+/*...*/
       ccV[0] = MAT2D(nf, 0, cc, 3);
       ccV[1] = MAT2D(nf, 1, cc, 3);
       ccV[2] = MAT2D(nf, 2, cc, 3);
@@ -285,40 +293,26 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*...................................................................*/
 
 /*... media harmonica*/
-      diffEffV[0] = diffCeofV[0] + eddyViscosityV / prTsgs;
-      diffEffV[1] = diffCeofV[1] + eddyViscosityV / prTsgs;
-      diffEffV[2] = diffCeofV[2] + eddyViscosityV / prTsgs;
-      diffEff[0] = alpha / diffEffC[0] + alphaMenosUm / diffEffV[0];
-      diffEff[1] = alpha / diffEffC[1] + alphaMenosUm / diffEffV[1];
-      diffEff[2] = alpha / diffEffC[2] + alphaMenosUm / diffEffV[2];
-      diffEff[0] = 1.0e0 / diffEff[0];
-      diffEff[1] = 1.0e0 / diffEff[1];
-      diffEff[2] = 1.0e0 / diffEff[2];
-/*...................................................................*/
-
-/*... difusao direta*/
-      coef[0] = diffEff[0];
-      coef[1] = diffEff[1];
-      coef[2] = diffEff[2];
       modE = sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
       tmp = modE / lModKsi;
-      dfd[0] = coef[0] * tmp;
-      dfd[1] = coef[1] * tmp;
-      dfd[2] = coef[2] * tmp;
+      tmp1 = eddyViscosityV / prTsgs;
+      for(i=0;i<nComb;i++)
+      {
+        diffEffV[i] = diffCeofV[i] + tmp1;
+        diffEff[i] = alpha / diffEffC[i] + alphaMenosUm / diffEffV[i];
+        diffEff[i] = 1.0e0 / diffEff[i];
+/*... difusao direta*/
+        coef[i] = diffEff[i];
+        dfd[i] = coef[i] * tmp;
 /*...................................................................*/
 
 /*...*/
-      gf[0][0] = alphaMenosUm * gradUp[0][0] + alpha * gradUv[0][0];
-      gf[0][1] = alphaMenosUm * gradUp[0][1] + alpha * gradUv[0][1];
-      gf[0][2] = alphaMenosUm * gradUp[0][2] + alpha * gradUv[0][2];
-/*...*/
-      gf[1][0] = alphaMenosUm * gradUp[1][0] + alpha * gradUv[1][0];
-      gf[1][1] = alphaMenosUm * gradUp[1][1] + alpha * gradUv[1][1];
-      gf[1][2] = alphaMenosUm * gradUp[1][2] + alpha * gradUv[1][2];
-/*...*/
-      gf[2][0] = alphaMenosUm * gradUp[2][0] + alpha * gradUv[2][0];
-      gf[2][1] = alphaMenosUm * gradUp[2][1] + alpha * gradUv[2][1];
-      gf[2][2] = alphaMenosUm * gradUp[2][2] + alpha * gradUv[2][2];
+        gf[i][0] = alphaMenosUm * gradUp[i][0] + alpha * gradUv[i][0];
+        gf[i][1] = alphaMenosUm * gradUp[i][1] + alpha * gradUv[i][1];
+        gf[i][2] = alphaMenosUm * gradUp[i][2] + alpha * gradUv[i][2];
+      }
+/*...................................................................*/
+
 /*...*/
       dFieldF[0] = alphaMenosUm * dFieldC[0] + alpha * dFieldV[0];
       dFieldF[1] = alphaMenosUm * dFieldC[1] + alpha * dFieldV[1];
@@ -338,56 +332,30 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*...................................................................*/
 
 /*... derivadas direcionais*/
-      gfKsi[0] = gf[0][0] * lKsi[0]
-               + gf[0][1] * lKsi[1]
-               + gf[0][2] * lKsi[2];
-/*...*/
-      gfKsi[1] = gf[1][0] * lKsi[0]
-               + gf[1][1] * lKsi[1]
-               + gf[1][2] * lKsi[2];
-/*...*/
-      gfKsi[2] = gf[2][0] * lKsi[0]
-               + gf[2][1] * lKsi[1]
-               + gf[2][2] * lKsi[2];
+      for(i=0;i<nComb;i++)
+      {
+        gfKsi[i] = gf[i][0] * lKsi[0]
+                 + gf[i][1] * lKsi[1]
+                 + gf[i][2] * lKsi[2];
 /*...................................................................*/
 
 /*... gradiente compacto (Darwish e Moukalled)*/
-      du[0] = duDksi[0] - gfKsi[0];
-      du[1] = duDksi[1] - gfKsi[1];
-      du[2] = duDksi[2] - gfKsi[2];
+        du[i] = duDksi[i] - gfKsi[i];
 /*...*/
-      gradUComp[0][0] = gf[0][0] + du[0] * lKsi[0];
-      gradUComp[0][1] = gf[0][1] + du[0] * lKsi[1];
-      gradUComp[0][2] = gf[0][2] + du[0] * lKsi[2];
-/*...*/
-      gradUComp[1][0] = gf[1][0] + du[1] * lKsi[0];
-      gradUComp[1][1] = gf[1][1] + du[1] * lKsi[1];
-      gradUComp[1][2] = gf[1][2] + du[1] * lKsi[2];
-/*...*/
-      gradUComp[2][0] = gf[2][0] + du[2] * lKsi[0];
-      gradUComp[2][1] = gf[2][1] + du[2] * lKsi[1];
-      gradUComp[2][2] = gf[2][2] + du[2] * lKsi[2];
+        gradUComp[i][0] = gf[i][0] + du[i] * lKsi[0];
+        gradUComp[i][1] = gf[i][1] + du[i] * lKsi[1];
+        gradUComp[i][2] = gf[i][2] + du[i] * lKsi[2];
 /*...................................................................*/
 
-//*... derivadas direcionais*/
-/*...*/
-      gfKsi[0] = gradUComp[0][0] * t[0]
-               + gradUComp[0][1] * t[1]
-               + gradUComp[0][2] * t[2];
-/*...*/
-      gfKsi[1] = gradUComp[1][0] * t[0]
-               + gradUComp[1][1] * t[1]
-               + gradUComp[1][2] * t[2];
-/*...*/
-      gfKsi[2] = gradUComp[2][0] * t[0]
-               + gradUComp[2][1] * t[1]
-               + gradUComp[2][2] * t[2];
+/*... derivadas direcionais*/
+        gfKsi[i] = gradUComp[i][0] * t[0]
+                 + gradUComp[i][1] * t[1]
+                 + gradUComp[i][2] * t[2];
 /*...................................................................*/
 
 /*... correcao nao-ortogonal*/
-      dfdc[0] = coef[0] * gfKsi[0];
-      dfdc[1] = coef[1] * gfKsi[1];
-      dfdc[2] = coef[2] * gfKsi[2];
+        dfdc[i] = coef[i] * gfKsi[i];
+      }
 /*...................................................................*/
 
 /*... fluxo convectivo upwind de primeira ordem*/
@@ -398,7 +366,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
       v[2] = lXm[2] - ccV[2];
-      advectiveScheme(uC          , uV
+      advectiveSchemeNdim(uC      , uV
                     , gradUp[0]   , gradUv[0]
                     , gradUComp[0], lvSkew
                     , lXmcc       , v
@@ -406,27 +374,26 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
                     , cv          , cvc
                     , alphaMenosUm, alpha
                     , pAdv        , ndm
+                    , nComb
                     , iCodAdv1    , iCodAdv2);
 /*...................................................................*/
 
 /*...*/
       tmp = min(cv, 0e0);
-      MAT2D( 0, nf, lA, nst) = dfd[0] - tmp;
-      MAT2D( 1, nf, lA, nst) = dfd[1] - tmp;
-      MAT2D( 2, nf, lA, nst) = dfd[2] - tmp;
-      sP += cv;
+      for(i=0;i<nComb;i++)
+      {
+        MAT2D( i, nf, lA, nst) = dfd[i] - tmp;
 /*... correcao nao ortogonal e do fluxo advectivo*/
-      p[0] += dfdc[0] - cv * cvc[0];
-      p[1] += dfdc[1] - cv * cvc[1];
-      p[2] += dfdc[2] - cv * cvc[2];
+        p[i] += dfdc[i] - cv * cvc[i];
+      }
+      sP += cv;
 /*...................................................................*/
     }
 /*... contorno*/
     else 
     {
-      MAT2D( 0, nf, lA, nst) = 0.e0;
-      MAT2D( 1, nf, lA, nst) = 0.e0;
-      MAT2D( 2, nf, lA, nst) = 0.e0;
+      for(i=0;i<nComb;i++)
+        MAT2D( i, nf, lA, nst) = 0.e0;
       if (lFaceR[nf]) 
       {
         wfn = velC[0] * lNormal[0]
@@ -474,93 +441,78 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*...................................................................*/
 
 /*... reacao*/
-  tmp  = cModel->sMass;
-  tmp1 = rateFuel*volume[idCell];
-  p[0] -= tmp*tmp1;
-  p[1] -= tmp1;
-  p[2] += (1.e0+tmp)*tmp1;
-/*...................................................................*/
-
-/*...*/
-  MAT2D(0, idCell, lA, nst) = sP + sPc[0];
-  MAT2D(1, idCell, lA, nst) = sP + sPc[1];
-  MAT2D(2, idCell, lA, nst) = sP + sPc[2];
-  for (nf = 0; nf<nFace; nf++)
+  if(fLump)
   {
-    MAT2D(0, idCell, lA, nst) += MAT2D(0, nf, lA, nst);
-    MAT2D(1, idCell, lA, nst) += MAT2D(1, nf, lA, nst);
-    MAT2D(2, idCell, lA, nst) += MAT2D(2, nf, lA, nst);
+    tmp1 = rateFuel*volume[idCell];
+    p[SL_FUEL] -= tmp1;
+    p[SL_AIR ] -= cModel->sMassAir*tmp1;
+    p[SL_PROD] += (1.e0+cModel->sMassAir)*tmp1;
+  }
+  else
+  {
+    tmp1 = rateFuel*volume[idCell];
+    p[SP_FUEL] -= tmp1;
+    p[SP_O2  ] -= cModel->sMassO2*tmp1;
+    p[SP_N2]   += 0.0e0;
+    p[SP_CO2]  += cModel->sMassCO2p*tmp1; 
+    p[SP_H2O]  += cModel->sMassH2Op*tmp1;
   }
 /*...................................................................*/
 
 /*...*/
-  rCell[0] = 0.0e0;
-  rCell[1] = 0.0e0;
-  rCell[2] = 0.0e0;
-  for (nf = 0; nf<nFace; nf++) 
+  for(i=0;i<nComb;i++)
   {
-    if (lViz[nf] > -1) 
+    MAT2D(i, idCell, lA, nst) = sP + sPc[i];
+    for (nf = 0; nf<nFace; nf++)
     {
+      MAT2D(i, idCell, lA, nst) += MAT2D(i, nf, lA, nst);
+    }
+  
+/*...*/
+    rCell[i] = 0.0e0;
+    for (nf = 0; nf<nFace; nf++) 
+    {
+      if (lViz[nf] > -1) 
+      {
 /*... passando os valores conhecidos para o lado direito*/
-      if (lId[nf] == -2)
-      {
-        p[0] += MAT2D(0, nf,  lA, nst) * MAT2D(nf, 0, u0, 3);
-        p[1] += MAT2D(1, nf,  lA, nst) * MAT2D(nf, 1, u0, 3);
-        p[2] += MAT2D(2, nf,  lA, nst) * MAT2D(nf, 2, u0, 3);
-      }  
-      else
-      {
+        if (lId[nf] == -2)
+        {
+          p[i] += MAT2D(i, nf,  lA, nst) * MAT2D(nf, i, u0, nComb);
+        }  
+        else
+        {
 /*... residuo (R = F-KvizUviz ) e valores prescritos por elemento*/
-        rCell[0] += MAT2D( 0, nf, lA, nst) * MAT2D(nf, 0, u0, 3);
-        rCell[1] += MAT2D( 1, nf, lA, nst) * MAT2D(nf, 1, u0, 3);
-        rCell[2] += MAT2D( 2, nf, lA, nst) * MAT2D(nf, 2, u0, 3);
+          rCell[i] += MAT2D( i, nf, lA, nst) * MAT2D(nf, i, u0, nComb);
+        }
       }
     }
-  }
 /*... residuo: R = F - KpUp*/
-  rCell[0] += p[0] - MAT2D( 0, idCell, lA, nst) * MAT2D(idCell, 0, u0, 3);
-  rCell[1] += p[1] - MAT2D( 1, idCell, lA, nst) * MAT2D(idCell, 1, u0, 3);
-  rCell[2] += p[2] - MAT2D( 2, idCell, lA, nst) * MAT2D(idCell, 2, u0, 3);
+    rCell[i] += p[i] 
+          - MAT2D( i, idCell, lA, nst) * MAT2D(idCell, i, u0, nComb);
 /*...................................................................*/
 
 /*... under-relaxation(simple)*/
-  MAT2D( 0, idCell, lA, nst) /= underU; 
-  MAT2D( 1, idCell, lA, nst) /= underU;
-  MAT2D( 2, idCell, lA, nst) /= underU;
-  if (!fRes)
-  {
-    tmp = (1.e0 - underU);
-    p[0] += tmp*MAT2D( 0, idCell,  lA, nst)*MAT2D(nf,0,u0,3);
-    p[1] += tmp*MAT2D( 1, idCell,  lA, nst)*MAT2D(nf,1,u0,3);
-    p[2] += tmp*MAT2D( 2, idCell,  lA, nst)*MAT2D(nf,2,u0,3);
-  }
+    MAT2D( i, idCell, lA, nst) /= underU; 
+    if (!fRes)
+    {
+      tmp = (1.e0 - underU);
+      p[i] += tmp*MAT2D( i, idCell,  lA, nst)*MAT2D(nf,i,u0,nComb);
+    }
 /*...................................................................*/
 
 /*...*/
-  for (nf = 0; nf<nFace; nf++)
-  {
-    MAT2D( 0, nf, lA, nst) *= -1.e0;
-    MAT2D( 1, nf, lA, nst) *= -1.e0;
-    MAT2D( 2, nf, lA, nst) *= -1.e0;
-  }   
+    for (nf = 0; nf<nFace; nf++)
+      MAT2D( i, nf, lA, nst) *= -1.e0;
 /*...................................................................*/
 
 /*...*/
-  if (fRes) 
-  {
-    lB[0] = rCell[0];
-    lB[1] = rCell[1];
-    lB[2] = rCell[2];
+    if (fRes) 
+      lB[i] = rCell[i];
+    else 
+      lB[i] = p[i];
+    lRcell[i] = rCell[i];
+/*...................................................................*/
   }
-  else 
-  {
-    lB[0] = p[0];
-    lB[1] = p[1];
-    lB[2] = p[2];
-  }
-  lRcell[0] = rCell[0];
-  lRcell[1] = rCell[1];
-  lRcell[2] = rCell[2];
 /*...................................................................*/
 }
 /*********************************************************************/

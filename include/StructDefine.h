@@ -5,7 +5,6 @@
   #include<Define.h>
 
 /*...*/
-/*...*/
   typedef struct{
     DOUBLE energyAtivation; /* KJ/Kmol*/
     DOUBLE alpha;
@@ -68,11 +67,16 @@
   typedef struct {
     bool fRes;
     bool fCombustrion;
-    short nOfSpecies,nOfSpeciesLump,nComb;
+    bool fLump;
+    short nOfSpecies;     /* numero total de especies*/
+    short nOfSpeciesLump; /* numero de especies agrupadas*/
+    short nComb;          /* numero especies transportadas*/
     short typeHeatRealese;
     short reactionKinetic;
     Fuel fuel;
-    DOUBLE sMass,sMolar,tMix;
+    DOUBLE sMassAir ,sMolar,tMix;
+    DOUBLE sMassO2  ,sMassN2;
+    DOUBLE sMassCO2p,sMassH2Op,sMassN2p;
     DOUBLE lumpedMatrix[21];
 /*... massa molar*/
     DOUBLE mW_Fuel,mW_N2,mW_O2,mW_CO2,mW_CO,mW_H2O,mW_C,mW_Air;
@@ -89,7 +93,7 @@
 /*... composicao do ar*/
     DOUBLE O2InAir,N2InAir;
 
-    DOUBLE CO2InPord,H2OInPord;
+    DOUBLE CO2InProd,H2OInProd,N2InProd;
 
     ArrheniusLaw arrhenius; 
 

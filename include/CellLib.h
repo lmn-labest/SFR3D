@@ -961,6 +961,17 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                                 ,DOUBLE *RESTRICT e,DOUBLE *RESTRICT t
                                 ,short const ndm   ,short const iCod);
 
+  void advectiveSchemeNdim(DOUBLE *RESTRICT uC ,DOUBLE *RESTRICT uV
+                ,DOUBLE *RESTRICT gradUc     ,DOUBLE *RESTRICT gradUv
+                ,DOUBLE *RESTRICT gradUComp  ,DOUBLE *RESTRICT vSkew
+                ,DOUBLE *RESTRICT rC         ,DOUBLE *RESTRICT rV
+                ,DOUBLE *RESTRICT ksi        ,DOUBLE const modKsi
+                ,DOUBLE const wfn            ,DOUBLE *RESTRICT cvc 
+                ,DOUBLE const alphaMenosUm   ,DOUBLE const alpha
+                ,DOUBLE *RESTRICT parameters ,short const ndm
+                ,short const ndf               
+                ,short const iCod1           ,short const iCod2);
+
   void advectiveScheme(DOUBLE *RESTRICT velC      ,DOUBLE *RESTRICT velV
                      ,DOUBLE *RESTRICT gradVelC   ,DOUBLE *RESTRICT gradVelV
                      ,DOUBLE *RESTRICT gradVelComp,DOUBLE *RESTRICT vSkew
