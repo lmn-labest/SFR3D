@@ -661,7 +661,7 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
   fWallModel= tModel->fWall;
   wallType  = tModel->wallType;
   fSheat    = vProp->fSpecificHeat;
-  fComb     = cModel->fCombustrion;
+  fComb     = cModel->fCombustion;
 /*...................................................................*/
 
 /*... propriedades da celula*/

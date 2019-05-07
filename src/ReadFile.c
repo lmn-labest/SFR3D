@@ -13,7 +13,7 @@
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 12/07/2018                                   *
+ * Data de modificaco : 05/05/2019                                   *
  *-------------------------------------------------------------------*
  * readFileFvMesh : leitura de arquivo de dados em volume finitos    *
  * ------------------------------------------------------------------*
@@ -68,8 +68,8 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
   ndfVel = max(mesh->ndfF - 1,mesh->ndfFt - 2);
 /*...................................................................*/
 
-/*...*/
-  fComb  = cModel->fCombustrion;
+/*...*/   
+  fComb  = cModel->fCombustion;
   nComb  = cModel->nComb;
   nSpPri = cModel->nOfSpecies;
 /*...................................................................*/
@@ -974,6 +974,11 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*... uniformZ */
     else if ((!strcmp(word, macro[32])) && (!rflag[32])) {
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
+      if(!fComb)
+      {
+        printf("Combustion model disable!\n");
+        exit(EXIT_FAILURE);
+      }
       strcpy(macros[nmacro++], word);
       rflag[32] = true;
       fprintf(fileLogExc,"loading uniformZ ...\n");
@@ -2562,7 +2567,7 @@ void readPropVar(PropVarFluid *pf, PropVarCD *pd, PropVarCD *pt, FILE *file)
 
 /*********************************************************************
  * Data de criacao    : 04/09/2017                                   *
- * Data de modificaco : 10/07/2018                                   *
+ * Data de modificaco : 02/05/2019                                   *
  *-------------------------------------------------------------------* 
  * readMode : le as configuraoes dos modelos                         * 
  *-------------------------------------------------------------------* 
@@ -2574,6 +2579,7 @@ void readPropVar(PropVarFluid *pf, PropVarCD *pd, PropVarCD *pt, FILE *file)
  * ModelMomentum  -> modelos/termos usados na equacao da conv de mass*
  * dModel  -> modelos/termos usados nas equacoes de diffusao         *
  * tModel  -> modelos/termos usados nas equacoes de transporte       *
+ * cModel  -> modelos/termos usados na equacoes de combustao         *
  * file    -> arquivo de arquivo                                     * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -2585,16 +2591,18 @@ void readPropVar(PropVarFluid *pf, PropVarCD *pd, PropVarCD *pt, FILE *file)
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void readModel(EnergyModel *e    , Turbulence *t
-             , MassEqModel *eMass, MomentumModel *ModelMomentum
-             , DiffModel   *dModel,TransModel *tModel
+void readModel(EnergyModel *e         , Turbulence *t
+             , MassEqModel *eMass     , MomentumModel *ModelMomentum
+             , DiffModel   *dModel    , TransModel *tModel
+             , Combustion *cModel
              , FILE *file){
 
   char *str={"endmodel"};
   char format[1024];
   char word[WORD_SIZE];
   char macros[][WORD_SIZE] = {"energy"  ,"turbulence","mass"
-                             ,"momentum","diffusion" ,"transport"};
+                             ,"momentum","diffusion" ,"transport"
+                             ,"combustion"};
 
   char energy[][WORD_SIZE] = { "preswork", "dissipation", "residual"  
                              , "absolute", "temperature", "entalphy"}; 
@@ -2612,6 +2620,11 @@ void readModel(EnergyModel *e    , Turbulence *t
                                ,"div"        ,"buoyanthy"      /*4,5*/  
                                ,"buoyantprgh","buoyantrhoref"};/*6,7*/
 
+  char combustion[][WORD_SIZE] = {"residual"   ,"absolute"       /*0,1*/                    
+                                 ,"grouped"    ,"ungrouped"      /*2,3*/
+                                 ,"edu"        ,"arrhenius"      /*4,5*/ 
+                                 ,"hcombustion","hformation"};   /*6,7*/  
+  
   char diff[][WORD_SIZE] = { "residual","absolute"};        /*0,1*/
   char tran[][WORD_SIZE] = { "residual","absolute" };       /*0,1*/
 
@@ -2662,7 +2675,7 @@ void readModel(EnergyModel *e    , Turbulence *t
 /*... Absolute*/
         else if(!strcmp(word,energy[3])){
           e->fRes = false;
-          if(!mpiVar.myId && e->fRes)
+          if(!mpiVar.myId && !e->fRes)
             fprintf(fileLogExc,format,"Absolute","Enable");
         }
 /*...................................................................*/
@@ -2678,7 +2691,7 @@ void readModel(EnergyModel *e    , Turbulence *t
 /*... Entalphy*/
         else if(!strcmp(word,energy[5])){
           e->fTemperature = false;
-          if(!mpiVar.myId && e->fTemperature)
+          if(!mpiVar.myId && !e->fTemperature)
             fprintf(fileLogExc,format,"Entalphy","Enable");
         }
 /*...................................................................*/
@@ -3117,6 +3130,125 @@ void readModel(EnergyModel *e    , Turbulence *t
 /*...................................................................*/
       }
 /*...................................................................*/
+    }
+/*...................................................................*/
+
+/*... Combustion*/
+    else if (!strcmp(word, macros[6]))
+    {
+      strcpy(format,"%-20s: %s\n");
+      if (!mpiVar.myId)
+        fprintf(fileLogExc, "\n%-20s:\n", "CombustionModel");
+
+      cModel->fCombustion  = true;
+      fscanf(file, "%d", &nPar);
+      for (i = 0; i<nPar; i++)
+      {
+        strcpy(format,"%-20s: %s\n");
+        readMacroV2(file, word, false, true);
+/*... residual*/
+        if (!strcmp(word, combustion[0]))
+        {
+          cModel->fRes = true;
+          if (!mpiVar.myId && cModel->fRes)
+            fprintf(fileLogExc, format, "Residual", "Enable");
+        }
+/*...................................................................*/
+
+/*... Absolute*/
+        else if (!strcmp(word, combustion[1]))
+        {
+          cModel->fRes = false;
+          if (!mpiVar.myId && !cModel->fRes)
+            fprintf(fileLogExc, format, "Absolute", "Enable");
+        }
+/*...................................................................*/
+
+/*... grouped (lumped)*/
+        else if (!strcmp(word, combustion[2]))
+        {
+          cModel->fLump                = true;
+          cModel->nComb                = 3;
+          cModel->nOfSpecies           = 5;
+          cModel->nOfSpeciesLump       = 3;
+          if (!mpiVar.myId)
+          {
+            strcpy(format,"%-20s: nComb= %d nOfSp = %d nOfSpLp = %d\n");
+            fprintf(fileLogExc,format,"grouped species"
+                              ,cModel->nComb
+                              ,cModel->nOfSpecies 
+                              ,cModel->nOfSpeciesLump); 
+          }
+        }
+/*...................................................................*/
+
+/*... ungrouped*/
+        else if (!strcmp(word, combustion[3]))
+        {
+          cModel->fLump                = false;
+          cModel->nComb                = 5;  
+          cModel->nOfSpecies           = 5;
+          cModel->nOfSpeciesLump       = 0;  
+          if (!mpiVar.myId)
+          {
+            strcpy(format,"%-20s: nComb = %d nOfSp = %d nOfSpLp = %d\n");
+            fprintf(fileLogExc,format,"ungrouped species"
+                              ,cModel->nComb
+                              ,cModel->nOfSpecies 
+                              ,cModel->nOfSpeciesLump); 
+          }
+        }
+/*...................................................................*/
+
+/*... edu*/
+        else if (!strcmp(word, combustion[4]))
+        {
+          cModel->reactionKinetic = EBU;
+          if (!mpiVar.myId)
+            fprintf(fileLogExc, format, "EBU", "Enable");
+          
+        }
+/*...................................................................*/
+
+/*... arrhenius*/
+        else if (!strcmp(word, combustion[5]))
+        {
+          cModel->reactionKinetic           = ARRHENIUS;
+          cModel->arrhenius.alpha           = 1.0;
+          cModel->arrhenius.energyAtivation = 12000.e0;
+          cModel->arrhenius.a               = 4.4e+09;
+          if (!mpiVar.myId)
+            fprintf(fileLogExc, format, "EBU", "Enable");
+          
+        }
+/*...................................................................*/
+
+/*... hcombustion*/
+        else if (!strcmp(word, combustion[6]))
+        {
+          cModel->typeHeatRealese  = HCOMBUSTION; 
+          if (!mpiVar.myId)
+            fprintf(fileLogExc, format, "Hcombustion", "Enable");
+          
+        }
+/*...................................................................*/
+
+/*... hformation*/
+        else if (!strcmp(word, combustion[7]))
+        {
+          cModel->typeHeatRealese  = HFORMATION; 
+          if (!mpiVar.myId)
+            fprintf(fileLogExc, format, "HFormation", "Enable");
+          
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+      initMolarMass(cModel);
+      stoichiometricCoeff(cModel);
+      if (cModel->fLump) initLumpedMatrix(cModel);
+      initEntalpyOfFormation(cModel);
+      initEntalpyOfCombustion(cModel); 
     }
 /*...................................................................*/
     readMacroV2(file, word, false, true);
@@ -3635,7 +3767,7 @@ static void convLoadsEnergy(PropPol *sHeatProp
 
 /********************************************************************* 
  * Data de criacao    : 11/11/2017                                   *
- * Data de modificaco : 15/07/2018                                   *
+ * Data de modificaco : 05/05/2019                                   *
  *-------------------------------------------------------------------*
  * help : Ajuda em relação a algumas macros                          *
  *-------------------------------------------------------------------*
@@ -3660,7 +3792,7 @@ void help(FILE *f){
                ,"edp"      ,"openmp"   ,"propvar"      /* 9,10,11*/
                ,""         ,""         ,""    };       /*12,13,14*/
 
-  short iMacros = 45;
+  short iMacros = 48;
   char macros[][WORD_SIZE] = 
        { ""            ,"mesh"         ,"stop"          /* 0, 1, 2*/
        ,"config"      ,"nextLoop"     ,"rcGrad"         /* 3, 4, 5*/
@@ -3675,8 +3807,9 @@ void help(FILE *f){
        ,"advection"   ,"edp"          ,"diffusion"      /*30,31,32*/
        ,"pFluid"      ,"setPrint"     ,"reScaleMesh"    /*33,34,35*/
        ,"setPrime"    ,"prime"        ,"propVar"        /*36,37,38*/
-       ,"gravity"     ,"model"        ,"mean"           /*39,40,41*/
-       ,"setMean"     ,"save"         ,"load" };        /*42,43,44*/
+       ,"setSolvComb" ,"pCombustion"  ,"simpleComb"     /*39,40,41*/
+       ,"gravity"     ,"model"        ,"mean"           /*42,43,44*/
+       ,"setMean"     ,"save"         ,"load"};         /*45,46,47*/
  
   short iPrint = 30;
   char print[][WORD_SIZE] = 
@@ -3741,6 +3874,11 @@ void help(FILE *f){
                                ,"rhiechow"    ,"viscosity"      /*2,3*/
                                ,"div"         ,"buoyanthy"      /*4,5*/  
                                ,"buoyantprgh" ,"buoyantrhoref"};/*6,7*/ 
+  short iComb = 8;  
+  char combustion[][WORD_SIZE] = {"residual"   ,"absolute"       /*0,1*/                    
+                                 ,"grouped"    ,"ungrouped"      /*2,3*/
+                                 ,"edu"        ,"arrhenius"      /*4,5*/ 
+                                 ,"hcombustion","hformation"};   /*6,7*/
 
   short iWall = 2;
   char typeWallModel[][WORD_SIZE] ={"standard","enhanced"};
@@ -3840,6 +3978,10 @@ void help(FILE *f){
     printf("Momentum options:\n");
     for(i=0;i<iMom;i++)
       printf("%3d - %s\n",i+1,momentum[i]);
+
+    printf("Combustion options:\n");
+    for(i=0;i<iComb;i++)
+      printf("%3d - %s\n",i+1,combustion[i]);
 
     exit(EXIT_FAILURE);
   }
@@ -5611,7 +5753,7 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
     }
 /*...................................................................*/
 
-/*... velocidade*/
+/*... fracao massiva*/
     else if (!strcmp(word, "z") || !strcmp(word, "Z")) 
     {
       nSistEq--;
@@ -6420,7 +6562,7 @@ void setReGrad(short *rcGrad, FILE *file)
 
 /**********************************************************************
 * Data de criacao    : 19/05/2018                                    *
-* Data de modificaco : 29/06/2018                                    *
+* Data de modificaco : 05/05/2019                                    *
 *--------------------------------------------------------------------*
 * setReGrad:                                                         *
 *--------------------------------------------------------------------*
@@ -6438,7 +6580,7 @@ void setReGrad(short *rcGrad, FILE *file)
 **********************************************************************/
 void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
 {
-  FILE *fileOut = NULL;
+  FILE *fileIn = NULL;
   char str[] = {"end"};
   char word[WORD_SIZE];
   char macro[][WORD_SIZE] = { "celltype"                    /*0  */
@@ -6453,9 +6595,9 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
     fscanf(file, "%hd", &iMat);
     iMat--;    
     readMacro(file, word, false);
-    fileOut = openFile(word,"r");
+    fileIn = openFile(word,"r");
 /*...*/
-    readMacro(fileOut, word, false);
+    readMacro(fileIn, word, false);
     do
     {
       convStringLower(word);
@@ -6463,7 +6605,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
 /*... cellType*/
       if (!strcmp(word, macro[j++]))
       {
-        fscanf(fileOut, "%d", &aux);
+        fscanf(fileIn, "%d", &aux);
         type[iMat] = (short) aux;
         if (!mpiVar.myId)
           fprintf(fileLogExc, "%-20s: %d\n",macro[j-1], type[iMat]);
@@ -6473,7 +6615,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
 /*... densityd1*/
       else if (!strcmp(word, macro[j++]))
       {
-        fscanf(fileOut,"%lf",&v);
+        fscanf(fileIn,"%lf",&v);
         prop[DENSITY] = v;
         if (!mpiVar.myId)
           fprintf(fileLogExc, "%-20s: %lf\n", macro[j-1], prop[DENSITY]);
@@ -6483,7 +6625,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
 /*... coefdiffd1*/
       else if (!strcmp(word, macro[j++]))
       {
-        fscanf(fileOut, "%lf", &v);
+        fscanf(fileIn, "%lf", &v);
         prop[COEFDIF] = v;
         if (!mpiVar.myId)
           fprintf(fileLogExc, "%-20s: %lf\n", macro[j-1], prop[COEFDIF]);
@@ -6493,7 +6635,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
 /*... densityt1*/
       else if (!strcmp(word, macro[j++]))
       {
-        fscanf(fileOut, "%lf", &v);
+        fscanf(fileIn, "%lf", &v);
         prop[DENSITY] = v;
         if (!mpiVar.myId)
           fprintf(fileLogExc, "%-20s: %lf\n", macro[j - 1], prop[DENSITY]);
@@ -6503,18 +6645,77 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
 /*... coefdifft1*/
       else if (!strcmp(word, macro[j++]))
       {
-        fscanf(fileOut, "%lf", &v);
+        fscanf(fileIn, "%lf", &v);
         prop[COEFDIF] = v;
         if (!mpiVar.myId)
           fprintf(fileLogExc, "%-20s: %lf\n", macro[j - 1], prop[COEFDIF]);
       }
 /*.....................................................................*/
 
-      readMacro(fileOut, word, false);
+      readMacro(fileIn, word, false);
     }while(strcmp(word,str));
 /*.....................................................................*/
-    fclose(fileOut);
+    fclose(fileIn);
   }
 /*.....................................................................*/
 }
 /**********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 05/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * READCOMPARAMETERS : leitura dos paramentros do modelo de combustao*
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * p       ->                                                        *
+ * file    -> arquivo de arquivo                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * p       ->                                                        *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void readcombParameters(Combustion *c, FILE *file)
+{
+
+  char *str = { "endcombparameters" };
+  char macros[][WORD_SIZE] =
+             { "airc","fuelc"};  /* 0, 1*/
+  char word[WORD_SIZE];
+
+  readMacroV2(file, word, false, true);
+  do 
+  {
+/*... airC*/
+    if (!strcmp(word, macros[0]))
+    {
+      fscanf(file, "%lf %lf", &c->O2InAir,&c->N2InAir);
+      if (!mpiVar.myId)
+        fprintf(fileLogExc, "%-25s: %lf O2 %lf N2\n"
+                          , "Air composition "
+                          , c->O2InAir
+                          , c->N2InAir);
+    }
+/*...................................................................*/
+
+/*... fuelC1*/
+    else if (!strcmp(word, macros[1]))
+    {
+      fscanf(file, "%hd %hd %hd", &c->fuel.c ,&c->fuel.h, &c->fuel.o);
+      if (!mpiVar.myId)
+         fprintf(fileLogExc, "%-25s: C%hdH%hdO%hd\n"
+                          , "Fuel composition "
+                          , c->fuel.c
+                          , c->fuel.h
+                          , c->fuel.o);
+    }
+/*...................................................................*/
+    readMacroV2(file, word, false, true);
+  } while (strcmp(word, str));
+
+}
+/*********************************************************************/

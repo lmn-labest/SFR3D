@@ -234,7 +234,6 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
               , true               , sistEqComb->unsym);
       else
         zero(xu[i],sistEqComb->neq,DOUBLEC);
-//    if(i==0)printf("%.16e %.16e %.16e %.16e\n",*ad[i],*al[i],*b[i],*xu[i]);
       tm.solvComb = getTimeC() - tm.solvComb;    
     }
 /*...................................................................*/
@@ -533,7 +532,7 @@ void rateFuelConsume(Combustion *cModel       , DOUBLE *RESTRICT zComb
 
 /*********************************************************************
  * Data de criacao    : 12/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 05/05/2019                                   *
  *-------------------------------------------------------------------*
  * rateHeatRealeseCombustion: calculo da taxa de liberacao de calor  *
  *-------------------------------------------------------------------*
@@ -553,8 +552,8 @@ void rateFuelConsume(Combustion *cModel       , DOUBLE *RESTRICT zComb
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
- * entalphyOfFormLumped[0] - Air KJ/Kg                               *
- * entalphyOfFormLumped[1] - Fuel KJ/Kg                              *
+ * entalphyOfFormLumped[0] - Fuel KJ/Kg                              *
+ * entalphyOfFormLumped[1] - Air KJ/Kg                               *
  * entalphyOfFormLumped[2] - Froduto KJ/Kg                           *
  *********************************************************************/
 void rateHeatRealeseCombustion(Combustion *cModel   
@@ -577,13 +576,16 @@ void rateHeatRealeseCombustion(Combustion *cModel
     h  = cModel->entalphyOfFormLumped;
     for(nel = 0; nel < numel; nel++)
     {
-      tmp = ((1.e0+s)*h[2] - s*h[0] - h[1])*rateFuel[nel];
+      tmp = ((1.e0+s)*h[SL_PROD] - s*h[SL_AIR] - h[SL_FUEL])*rateFuel[nel];
       q[nel] = -tmp;
     }
   }
   else if (iCod == HCOMBUSTION)
   {
-    hc = cModel->entalphyOfCombustion;
+    if (cModel->fLump) 
+      hc = cModel->entalphyOfCombustionGrouped;
+    else 
+      hc = cModel->entalphyOfCombustion;
     for(nel = 0; nel < numel; nel++)
     {
       tmp = rateFuel[nel]*hc;
@@ -869,6 +871,12 @@ void stoichiometricCoeff(Combustion *cModel)
   pN2r = nN2p/nTotal;
   nProd = (nN2p/pN2r+nCO2p/pCO2r+nH2Op/pH2Or)/3.0;
 
+  cModel->stoichO2   = nO2;
+  cModel->stoichN2   = nN2;
+  cModel->stoichH2Op = nH2Op;
+  cModel->stoichCO2p = nCO2p;
+  cModel->stoichN2p  = nN2p;
+
   cModel->CO2InProd = pCO2r;
   cModel->H2OInProd = pH2Or;
   cModel->N2InProd  = pN2r;
@@ -883,19 +891,19 @@ void stoichiometricCoeff(Combustion *cModel)
   cModel->sMassN2p  = nN2p*cModel->mW_N2/cModel->mW_Fuel;
 /*..................................................................*/
 
-  printf("Reaction:\n"); 
+  fprintf(fileLogExc,"\nReaction:\n\n"); 
 /*...*/
   if(cModel->fLump)
   {
-    printf("C%dH%dO%d" 
-           " + %lf (%lf O2 + %lf N2)"
+    fprintf(fileLogExc,"C%dH%dO%d" 
+           " + %lf (%lf O2 + %lf N2)\n"
            " -> %lf (%lf CO2 + %lf H2O + %lf N2)\n\n"
           ,m    ,n     ,l
           ,nAir ,pO2   ,pN2
           ,nProd,pCO2r, pH2Or,pN2r);
     
-    printf("1 kg C%dH%dO%d" 
-           " + %lf (%lf O2 + %lf N2)"
+    fprintf(fileLogExc,"1 kg C%dH%dO%d" 
+           " + %lf (%lf O2 + %lf N2)\n"
            " -> %lf (%lf CO2 + %lf H2O + %lf N2)\n\n"
           ,m                ,n     ,l
           ,cModel->sMassAir    ,pO2   ,pN2
@@ -907,15 +915,15 @@ void stoichiometricCoeff(Combustion *cModel)
 /*...*/
   else
   {
-    printf("C%dH%dO%d" 
-           " + %lf O2 + %lf N2"
+    fprintf(fileLogExc,"C%dH%dO%d" 
+           " + %lf O2 + %lf N2\n"
            " -> %lf CO2 + %lf H2O + %lf N2\n\n"
           ,m    ,n    ,l
           ,nO2  ,nO2*pN2/pO2
           ,nCO2p,nH2Op,nN2p);
 
-     printf("1 kg C%dH%dO%d" 
-           " + %lf  kg O2 + %lf  kg N2 "
+    fprintf(fileLogExc,"1 kg C%dH%dO%d" 
+           " + %lf  kg O2 + %lf  kg N2\n"
            " -> %lf kg CO2 + %lf kg H2O + %lf kg N2\n\n"
           ,m    ,n    ,l
           ,cModel->sMassO2  ,cModel->sMassN2
@@ -927,7 +935,7 @@ void stoichiometricCoeff(Combustion *cModel)
 
 /*********************************************************************
  * Data de criacao    : 18/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 05/05/2019                                   *
  *-------------------------------------------------------------------*
  * initMolarMass: inicializa a massa molar das especies              *
  *-------------------------------------------------------------------*
@@ -942,13 +950,16 @@ void stoichiometricCoeff(Combustion *cModel)
  *********************************************************************/
 void initEntalpyOfFormation(Combustion *cModel)
 {
-  
+  DOUBLE s = cModel->sMassAir,tmp;
   DOUBLE hFuelFormation,hCO2Formation;
-  DOUBLE pCO2,pH2O;
+  DOUBLE pCO2p,pH2Op,pN2p,nN2p,nCO2p,nH2Op,nProd;
 
-
-  pCO2 = cModel->CO2InProd;
-  pH2O = cModel->H2OInProd;
+  pCO2p = cModel->CO2InProd;
+  pH2Op = cModel->H2OInProd;
+  pN2p  = cModel->N2InProd;
+  nN2p  = cModel->stoichN2p;
+  nCO2p = cModel->stoichCO2p;
+  nH2Op = cModel->stoichH2Op;
 
 /*...  Fuel - KJ/kMol*/
   cModel->H_Fuel = -74870.e0; 
@@ -960,21 +971,42 @@ void initEntalpyOfFormation(Combustion *cModel)
   cModel->H_CO = -110500.e0;
 
 /*... Air - KJ/Kg*/
-  cModel->entalphyOfFormLumped[0] = 0.e0;
+  cModel->entalphyOfFormLumped[SL_AIR] = 0.e0;
 
 /*... Fuel */
-  cModel->entalphyOfFormLumped[1] = cModel->H_Fuel / cModel->mW_Fuel;
+  cModel->entalphyOfFormLumped[SL_FUEL] = cModel->H_Fuel;
  
 /*... Prod */
-  cModel->entalphyOfFormLumped[2] =  pCO2*cModel->H_CO2 / cModel->mW_CO2 
-                                   + pH2O*cModel->H_H2O / cModel->mW_H2O;
- 
+  cModel->entalphyOfFormLumped[SL_PROD] =  pCO2p*cModel->H_CO2 
+                                         + pH2Op*cModel->H_H2O;
+  if( nN2p == 0.0e0)
+    nProd = (nCO2p/pCO2p+nH2Op/pH2Op)/2.0;
+  else
+    nProd = (nN2p/pN2p+nCO2p/pCO2p+nH2Op/pH2Op)/3.0;
+
+  tmp = nProd*cModel->entalphyOfFormLumped[SL_PROD]
+           - s*cModel->entalphyOfFormLumped[SL_AIR]  
+           - cModel->entalphyOfFormLumped[SL_FUEL];
+
+  cModel->entalphyOfCombustionGrouped = tmp;
+
+  fprintf(fileLogExc,"Lumped species:\n");
+
+  fprintf(fileLogExc,"Entalphy of combustion (KJ/Kmol) = %lf\n"  
+                    ,cModel->entalphyOfCombustionGrouped);
+
+/*... KJ/KG de fuel */
+  cModel->entalphyOfCombustionGrouped  /= cModel->mW_Fuel;
+
+  fprintf(fileLogExc,"Entalphy of combustion (KJ/KG)   = %lf\n\n"
+                    ,cModel->entalphyOfCombustionGrouped);              
+
 }
 /********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 18/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 05/05/2019                                   *
  *-------------------------------------------------------------------*
  * initMolarMass: inicializa a massa molar das especies              *
  *-------------------------------------------------------------------*
@@ -1007,9 +1039,18 @@ void initEntalpyOfCombustion(Combustion *cModel)
 /*... KJ/Kmol de fuel*/
   cModel->entalphyOfCombustion = (cModel->H_CO2 + 2.0*cModel->H_H2O) 
                                - (cModel->H_Fuel);
-/*... KJ/KG   de fuel */
+
+  fprintf(fileLogExc,"Primitives species:\n");
+
+  fprintf(fileLogExc,"Entalphy of combustion (KJ/Kmol) = %lf\n"  
+                    ,cModel->entalphyOfCombustion);
+
+
+/*... KJ/KG de fuel */
   cModel->entalphyOfCombustion  /= cModel->mW_Fuel;
 
+  fprintf(fileLogExc,"Entalphy of combustion (KJ/KG)   = %lf\n\n"  
+                    ,cModel->entalphyOfCombustion);
 }
 /********************************************************************/
 

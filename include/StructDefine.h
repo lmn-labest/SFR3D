@@ -66,7 +66,7 @@
 /*...*/
   typedef struct {
     bool fRes;
-    bool fCombustrion;
+    bool fCombustion;
     bool fLump;
     short nOfSpecies;     /* numero total de especies*/
     short nOfSpeciesLump; /* numero de especies agrupadas*/
@@ -77,6 +77,8 @@
     DOUBLE sMassAir ,sMolar,tMix;
     DOUBLE sMassO2  ,sMassN2;
     DOUBLE sMassCO2p,sMassH2Op,sMassN2p;
+    DOUBLE stoichO2,stoichN2;
+    DOUBLE stoichCO2p,stoichH2Op,stoichN2p; 
     DOUBLE lumpedMatrix[21];
 /*... massa molar*/
     DOUBLE mW_Fuel,mW_N2,mW_O2,mW_CO2,mW_CO,mW_H2O,mW_C,mW_Air;
@@ -87,7 +89,10 @@
                                       1 - Fuel
                                       2 - prod*/   
 
-    DOUBLE entalphyOfCombustion;
+    DOUBLE entalphyOfCombustion;        /* Entalpia de combustao calculada 
+                                          pelas especies primitivas*/
+    DOUBLE entalphyOfCombustionGrouped;  /* Entalpia de combustao calculada 
+                                          pelas especies agrupadas*/
     DOUBLE totalHeat;     /* Calor total liberado pela reacao de combustao*/
     DOUBLE totalMassFuel;  /* massa total de combustivel consumido*/
 /*... composicao do ar*/

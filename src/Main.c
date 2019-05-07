@@ -143,22 +143,22 @@ int main(int argc,char**argv){
   bool macroFlag; 
   char word[WORD_SIZE];
   char macro[][WORD_SIZE] =
-  {"help"        ,"mesh"         ,"stop"         /* 0, 1, 2*/
-  ,"config"      ,"nextLoop"     ,"rcGrad"       /* 3, 4, 5*/
-  ,"pgeo"        ,"pcoob"        ,"pcoo"         /* 6, 7, 8*/ 
-  ,"setSolvDiff" ,"setSolvTrans" ,"openmp"       /* 9,10,11*/
-  ,"solvD1"      ,"propVar"      ,"pD1"          /*12,13,14*/
-  ,"nlIt"        ,"pD1CsvCell"   ,"pD1CsvNode"   /*15,16,17*/
-  ,"solvT1"      ,""             ,"pT1"          /*18,19,20*/
-  ,""            ,"pT1CsvCell"   ,"pT1CsvNode"   /*21,22,23*/
-  ,"setSolvFluid","simple"       ,"setSimple"    /*24,25,26*/
-  ,"transient"   ,"timeUpdate"   ,"partd"        /*27,28,29*/
-  ,"advection"   ,"edp"          ,"diffusion"    /*30,31,32*/
-  ,"pFluid"      ,"setPrint"     ,"reScaleMesh"  /*33,34,35*/
-  ,"setPrime"    ,"prime"        ,""             /*36,37,38*/
-  ,"setSolvComb" ,"pCombustion"  ,""             /*39,40,41*/
-  ,"gravity"     ,"model"        ,"mean"         /*42,43,44*/
-  ,"setMean"     ,"save"         ,"load"};       /*45,46,47*/
+  {"help"        ,"mesh"         ,"stop"           /* 0, 1, 2*/
+  ,"config"      ,"nextLoop"     ,"rcGrad"         /* 3, 4, 5*/
+  ,"pgeo"        ,"pcoob"        ,"pcoo"           /* 6, 7, 8*/ 
+  ,"setSolvDiff" ,"setSolvTrans" ,"openmp"         /* 9,10,11*/
+  ,"solvD1"      ,"propVar"      ,"pD1"            /*12,13,14*/
+  ,"nlIt"        ,"pD1CsvCell"   ,"pD1CsvNode"     /*15,16,17*/
+  ,"solvT1"      ,""             ,"pT1"            /*18,19,20*/
+  ,""            ,"pT1CsvCell"   ,"pT1CsvNode"     /*21,22,23*/
+  ,"setSolvFluid","simple"       ,"setSimple"      /*24,25,26*/
+  ,"transient"   ,"timeUpdate"   ,"partd"          /*27,28,29*/
+  ,"advection"   ,"edp"          ,"diffusion"      /*30,31,32*/
+  ,"pFluid"      ,"setPrint"     ,"reScaleMesh"    /*33,34,35*/
+  ,"setPrime"    ,"prime"        ,"combParameters" /*36,37,38*/
+  ,"setSolvComb" ,"pCombustion"  ,"simpleComb"     /*39,40,41*/
+  ,"gravity"     ,"model"        ,"mean"           /*42,43,44*/
+  ,"setMean"     ,"save"         ,"load"};         /*45,46,47*/
 /* ..................................................................*/
 
 /*... Memoria principal(valor padrao - bytes)*/
@@ -173,43 +173,10 @@ int main(int argc,char**argv){
 /*..................................................................*/
 
 /*...*/
-  combModel.fCombustrion         = true;
-  combModel.fRes                 = true;  
-/*...*/
-
-  fSolvCombustion                = true;
-    
-//combModel.fLump                = true;
-//combModel.nComb                = 3;
-//combModel.nOfSpecies           = 5;
-//combModel.nOfSpeciesLump       = 3;
-   
-  
-  combModel.fLump                = false;
-  combModel.nComb                = 5;  
-  combModel.nOfSpecies           = 5;
-  combModel.nOfSpeciesLump       = 0;  
-   
+  combModel.fCombustion          = false;
   combModel.tMix                 = 0.125;
   combModel.totalHeat            = 0.e0;
   combModel.totalMassFuel        = 0.e0;
-  combModel.typeHeatRealese      = HCOMBUSTION; 
-//combModel.typeHeatRealese      = HFORMATION;
-  combModel.O2InAir = 0.21;
-  combModel.N2InAir = 0.79;
-  combModel.fuel.c = 1;
-  combModel.fuel.h = 4;
-  combModel.fuel.o = 0;
-//combModel.reactionKinetic           = ARRHENIUS;
-  combModel.reactionKinetic           = EBU;
-  combModel.arrhenius.alpha           = 1.0;
-  combModel.arrhenius.energyAtivation = 12000.e0;
-  combModel.arrhenius.a               = 4.4e+09;
-  initMolarMass(&combModel);
-  stoichiometricCoeff(&combModel);
-  if (combModel.fLump) initLumpedMatrix(&combModel);
-  initEntalpyOfFormation(&combModel);
-  initEntalpyOfCombustion(&combModel);  
 /*..................................................................*/
 
 /*...*/
@@ -856,7 +823,7 @@ int main(int argc,char**argv){
 
 /*... face com cargas*/
       printFace(&m      , mesh0
-              , preName , combModel.fCombustrion
+              , preName , combModel.fCombustion
               , opt.bVtk, fileOut);
 /*...................................................................*/
       }
@@ -1293,27 +1260,7 @@ int main(int argc,char**argv){
 
 /*...*/
       else if(mesh->ndfFt)
-        combustionSolver(&m             , &propVarFluid
-                       , loadsVel       , loadsPres
-                       , loadsEnergy    , loadsKturb
-                       , loadsZcomb
-                       , &eModel        , &combModel
-                       , &eMass         , &ModelMomentum
-                       , &turbModel     , &thDynamic
-                       , mesh0          , mesh
-                       , &sistEqVel      , &sistEqPres
-                       , &sistEqEnergy   , &sistEqKturb
-                       , &sistEqComb
-                       , &solvVel       , &solvPres
-                       , &solvEnergy    , &solvKturb
-                       , &solvComb
-                       , &simple        , &sc
-                       , pMesh          , &media
-                       , &opt           , preName
-                       , nameOut        , fileOut);
-
-
-/*      simpleSolverLm(&m           , &propVarFluid
+ /*      simpleSolverLm(&m           , &propVarFluid
                      , loadsVel     , loadsPres 
                      , loadsEnergy  , loadsKturb
                      , &eModel       
@@ -1635,6 +1582,19 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
+* macro: combParameters
+*===================================================================*/
+    else if ((!strcmp(word, macro[38])))
+    {
+      initSec(word, OUTPUT_FOR_FILE);
+/*...*/
+      readcombParameters(&combModel, fileIn);
+/*...................................................................*/
+      endSec(OUTPUT_FOR_FILE);
+    }
+/*===================================================================*/
+
+/*===================================================================*
 * setSolvComb : configuracao da combustao
 *===================================================================*/
     else if ((!strcmp(word, macro[39])))
@@ -1683,6 +1643,67 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
+ * macro: pCombustion : escreve os arquivos dos resultados do escoamente
+ * reativos (combustao)              
+ *===================================================================*/
+    else if ((!strcmp(word, macro[41])))
+    {      
+      initSec(word, OUTPUT_FOR_SCREEN);
+      mpiWait();
+      tm.solvEdpFluid = getTimeC() - tm.solvEdpFluid;
+/*...*/
+      if(!fSolvVel || !fSolvPres || !fSolvEnergy || !fSolvComb)
+      {
+        printf("Estrutara de dados nao montada para o setSolvComb!!!\n");
+        exit(EXIT_FAILURE);
+      }
+/*...................................................................*/
+
+/*...*/
+     if(!fSolvComb) 
+     {
+        printf("Simple nao configurado ainda!!!\n");
+        exit(EXIT_FAILURE);
+     }  
+/*...................................................................*/
+
+/*...*/
+     if(!combModel.fCombustion) 
+     {
+        printf("Modelos de combustao nao configurado ainda!!!\n");
+        exit(EXIT_FAILURE);
+     }  
+/*...................................................................*/
+
+/*...*/
+     combustionSolver(&m             , &propVarFluid
+                    , loadsVel       , loadsPres
+                    , loadsEnergy    , loadsKturb
+                    , loadsZcomb
+                    , &eModel        , &combModel
+                    , &eMass         , &ModelMomentum
+                    , &turbModel     , &thDynamic
+                    , mesh0          , mesh
+                    , &sistEqVel      , &sistEqPres
+                    , &sistEqEnergy   , &sistEqKturb
+                    , &sistEqComb
+                    , &solvVel       , &solvPres
+                    , &solvEnergy    , &solvKturb
+                    , &solvComb
+                    , &simple        , &sc
+                    , pMesh          , &media
+                    , &opt           , preName
+                    , nameOut        , fileOut);
+/*...................................................................*/
+
+/*...*/
+      tm.solvEdpFluid    = getTimeC() - tm.solvEdpFluid;
+/*...................................................................*/
+      endSec(OUTPUT_FOR_SCREEN);
+   }   
+/*===================================================================*/
+
+/*===================================================================*
  * macro: gravity : gravidade                                                 
  *===================================================================*/
     else if((!strcmp(word,macro[42])))
@@ -1703,6 +1724,7 @@ int main(int argc,char**argv){
       readModel(&eModel   ,&turbModel
               , &eMass    ,&ModelMomentum
               , diffModel ,transModel
+              , &combModel  
               , fileIn);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);

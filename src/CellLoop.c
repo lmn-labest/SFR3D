@@ -2722,7 +2722,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
 /*...................................................................*/
 
 /*...*/
-        if(cModel->fCombustrion)
+        if(cModel->fCombustion)
           lRateHeatC = rateHeatComb[nel];
 /*...................................................................*/
 
@@ -2925,7 +2925,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
 /*...................................................................*/
 
 /*...*/
-        if(cModel->fCombustrion)
+        if(cModel->fCombustion)
           lRateHeatC = rateHeatComb[nel];
 /*...................................................................*/
 

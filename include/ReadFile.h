@@ -62,6 +62,7 @@
   void readModel(EnergyModel *e    , Turbulence *t
                , MassEqModel *eMass, MomentumModel *ModelMomentum
                , DiffModel *dModel , TransModel *tModel
+               , Combustion *cModel
                , FILE *file);
   void readMean(Memoria *m, FILE *fileIn
               , Mesh *mesh, Mean *media);
@@ -112,6 +113,8 @@
                 , short const nComb
                 , char* auxName   , char* preName       , char* nameOut
                 , FILE *fileIn    , FileOpt *opt);
+
+   void readcombParameters(Combustion *c, FILE *file);
 
    void readNlIt(Scheme *sc, FILE *fileIn);
    
