@@ -36,17 +36,17 @@ DOUBLE mixtureSpeciesDensity(PropPol *den        ,DOUBLE const malorMassMix
                             ,DOUBLE const t      ,DOUBLE const p
                             ,DOUBLE const presRef,bool const fKelvin)
 {
-  short i,n=den->nPol;
+  short i,n=den->nPol[0];
   DOUBLE a[MAXPLODEG],tc,y,d;
 
-  for (i = 0; i < n; i++)
+  for (i = 0; i < MAXPLODEG; i++)
     a[i] = 0.0e0;
   
   if(fKelvin)
     tc = t;  
   else
     tc = CELSIUS_FOR_KELVIN(t);  
-
+  
   switch (den->type)
   {
 /*...*/
@@ -183,10 +183,10 @@ void initMixtureSpeciesfiHeat(PropPol *prop, char *s, FILE *file)
         if(!strcmp(word,species[k]))
           break;
 
-      prop->nPol = readFileLineSimple(x, fileOut);
-      ERRO_POL_READ(prop->nPol, MAXPLODEG, __FILE__, __func__, __LINE__);
+      prop->nPol[j] = readFileLineSimple(x, fileOut);
+      ERRO_POL_READ(prop->nPol[j], MAXPLODEG, __FILE__, __func__, __LINE__);
 
-      for (i = 0; i < prop->nPol; i++)
+      for (i = 0; i < prop->nPol[j]; i++)
         MAT2D(k,i,prop->a,MAXPLODEG) = x[i]/g;
     }
 
@@ -201,9 +201,10 @@ void initMixtureSpeciesfiHeat(PropPol *prop, char *s, FILE *file)
   for(i=0;i<nSpecies;i++)
   {
     fprintf(fileOut,"%s\n",species[i]);
-    for (j = 0, g =200; j < 20; j++) 
+    for (j = 0, g =200; j < 40; j++) 
     {
-      fprintf(fileOut,"%lf %lf\n",g,pol(&MAT2D(i,0,prop->a,10),g,prop->nPol));
+      fprintf(fileOut,"%lf %lf\n",g,pol(&MAT2D(i,0,prop->a,10)
+                                   ,g,prop->nPol[i]));
       g += 200;
     }
   }
@@ -349,7 +350,8 @@ void getTempForEnergyMix(PropPol *sHeatPol    ,DOUBLE *RESTRICT yFrac
         temp[i] = specificEnthalpyForTempOfMix(sHeatPol
                                          , energy[i], y    
                                          , sHeatRef , nOfPrSp
-                                         , fSheat   , fKelvin);
+                                         , fSheat   , fKelvin
+                                         , i);
       }
 /*...................................................................*/
     }
@@ -364,7 +366,8 @@ void getTempForEnergyMix(PropPol *sHeatPol    ,DOUBLE *RESTRICT yFrac
         temp[i] = specificEnthalpyForTempOfMix(sHeatPol
                                          , energy[i], y    
                                          , sHeatRef , nOfPrSp
-                                         , fSheat   , fKelvin);
+                                         , fSheat   , fKelvin
+                                         , i);
       }
 /*...................................................................*/
     }
@@ -438,7 +441,7 @@ void updateMixSpecificHeat(PropPol *sHeatPol
 
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
- * Data de modificaco : 15/07/2018                                   *
+ * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
  * mixtureSpecifiHeat: kJ/(kg.K)                                     *
  *-------------------------------------------------------------------*
@@ -461,7 +464,7 @@ DOUBLE mixtureSpecifiHeat(PropPol *sHeat    , DOUBLE *yFrac
                          , bool const fKelvin) 
 {
 
-  short i,k,n=sHeat->nPol;  
+  short i,k,n;  
   DOUBLE a[MAXPLODEG],cpk,cp,d;
   DOUBLE tc;
 
@@ -474,6 +477,7 @@ DOUBLE mixtureSpecifiHeat(PropPol *sHeat    , DOUBLE *yFrac
 
   for(k=0,cp=0.e0;k<mOfPrSp;k++)
   {
+    n = sHeat->nPol[k];
     for (i = 0; i < n; i++)
       a[i] = MAT2D(k,i,sHeat->a,MAXPLODEG);
   
@@ -485,9 +489,9 @@ DOUBLE mixtureSpecifiHeat(PropPol *sHeat    , DOUBLE *yFrac
 
     if (cpk < 0.e0 || yFrac[k] < 0.e0)
     {
-      printf("Calor especifico negativo!!"
-             "Y                = %lf "
-             "Species          = %d "   
+      printf("Calor especifico negativo!!\n"
+             "Y                = %lf\n"
+             "Species          = %d\n"   
              "Calor especifico = %e\n"
              "Temperatura      = %lf\n!!",yFrac[k], k,cpk,tc);
       exit(EXIT_FAILURE);
@@ -510,6 +514,73 @@ DOUBLE mixtureSpecifiHeat(PropPol *sHeat    , DOUBLE *yFrac
     exit(EXIT_FAILURE);
   }
 
+  return d*cp;
+
+}
+/**********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 06/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * specieSpecifiHeat: calor especifico da especie k kJ/(kg.K)        *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * sHeatPol - estrutra par o polinoimio do calor especifico          *
+ * kSpecie  - fracao de massa da especies primitivas                 * 
+ * t - temperatura em Kelvin                                         *
+ * fKelvin  - temperatura dada em kelvin                             *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE specieSpecifiHeat(PropPol *sHeat     , short const kSpecie
+                        , DOUBLE const t    , bool const fKelvin) 
+{
+
+  short i,n;
+  DOUBLE a[MAXPLODEG],cp,d,tc;
+
+  a[0] = 0.0e0;
+  
+  if(fKelvin)
+    tc = t;  
+  else
+    tc = CELSIUS_FOR_KELVIN(t);  
+
+  n=sHeat->nPol[kSpecie];
+  for (i = 0; i < n; i++)
+    a[i] = MAT2D(kSpecie,i,sHeat->a,MAXPLODEG);
+  
+/*... polinomio*/
+  cp = a[0];
+  for (i = 1; i < n; i++)
+    cp += a[i]*pow(tc,i);
+/*.....................................................................*/
+
+  if (cp < 0.e0 )
+  {
+    printf("Calor especifico negativo!!"
+           "Species          = %hd "   
+           "Calor especifico = %e\n"
+           "Temperatura      = %lf\n!!",kSpecie, cp, tc);
+    exit(EXIT_FAILURE);
+  }
+
+/*...*/
+  d = 1.e0;
+/*.....................................................................*/
+
+ if (cp < 0.e0) {
+    printf("Calor especifico negativo!!"
+           "Calor especifico = %e\n"
+           "Temperatura      = %lf\n!!",d*cp,tc);
+    exit(EXIT_FAILURE);
+  }
 
   return d*cp;
 
@@ -518,7 +589,7 @@ DOUBLE mixtureSpecifiHeat(PropPol *sHeat    , DOUBLE *yFrac
 
 /*********************************************************************
  * Data de criacao    : 19/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
  * SPECIFICENTHALPYFORTEMPMIX:  calcula a temperatura apartir da     *
  * entalpia especifica                                               * 
@@ -532,6 +603,7 @@ DOUBLE mixtureSpecifiHeat(PropPol *sHeat    , DOUBLE *yFrac
  * nOfPrSp  - numero de especies primitivas                          *
  * fSheat   - calor especifico com variacao com a Temperatura        *
  * fKelvin  - temperatura dada em kelvin                             *
+ * nel      - numero da celula  
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -543,7 +615,8 @@ DOUBLE mixtureSpecifiHeat(PropPol *sHeat    , DOUBLE *yFrac
 DOUBLE specificEnthalpyForTempOfMix(PropPol *sHeatPol
                              , DOUBLE const hs        , DOUBLE *yFrac
                              , DOUBLE const sHeatRef  , short const nOfPrSp
-                             , bool const fSheat      , bool const fKelvin) 
+                             , bool const fSheat      , bool const fKelvin
+                             , INT const nel ) 
 {
   unsigned short i;
   bool flag = false;
@@ -553,7 +626,10 @@ DOUBLE specificEnthalpyForTempOfMix(PropPol *sHeatPol
   if(fSheat)
   {
 /*... chute inicial usando a massa espeficia constante*/
-    t = ENTHALPY_FOR_TEMP(sHeatRef,hs,TREF)+tol;
+
+    t = 0.5e0*(TREF + ENTHALPY_FOR_TEMP(sHeatRef,hs,TREF))+tol;
+    if(t > 4000.0) t = 4000.0;
+ 
 /*...*/
     conv = tol*(hs-tempForSpecificEnthalpyMix(sHeatPol,yFrac
                                              ,t       ,sHeatRef
@@ -604,7 +680,7 @@ DOUBLE specificEnthalpyForTempOfMix(PropPol *sHeatPol
 
 /*********************************************************************
  * Data de criacao    : 19/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
  * TEMPFORSPECIFICENTHALPY: calcula a entalpia espeficia apartir da  *
  * temperatura                                                       *
@@ -632,7 +708,7 @@ DOUBLE tempForSpecificEnthalpyMix(PropPol *sHeat    , DOUBLE *yFrac
                                 , bool const fSheat , bool const fKelvin) 
 {
 
-  short i,k,n=sHeat->nPol;
+  short i,k,n;
   DOUBLE a[MAXPLODEG],d,dt,hk,hs;
   DOUBLE tc,tRef= TREF ;
 
@@ -641,21 +717,20 @@ DOUBLE tempForSpecificEnthalpyMix(PropPol *sHeat    , DOUBLE *yFrac
   else
     tc = CELSIUS_FOR_KELVIN(t);  
 
-
   hs = 0.e0;
   if(fSheat)
   {
     for(k = 0; k < nOfPrSp; k++)
     {
-
+      n = sHeat->nPol[k];
       for (i = 0; i < n; i++)
         a[i] = MAT2D(k,i,sHeat->a,MAXPLODEG);
   
       for (i = 0, hk =0.e0; i < n; i++) 
       {
         d    = (double) (i + 1);
-        dt   = tc-tRef;
-        hk += a[i]*pow(dt,d)/d;
+        dt   =pow(tc,d) - pow(tRef,d);
+        hk += a[i]*dt/d;
       }
 
       hs += yFrac[k]*hk; 
@@ -666,6 +741,68 @@ DOUBLE tempForSpecificEnthalpyMix(PropPol *sHeat    , DOUBLE *yFrac
     hs = TEMP_FOR_ENTHALPY(sHeatRef,tc,TREF);
 
   return hs;
+
+}
+/**********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 07/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * TEMPFORSPECIFICENTHALPYSPECIES: calcula a entalpia espeficia da   *
+ * especie k partir da temperatura                                   *                   *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * sHeat    - estrutra par o polinoimio do calor especifico          *
+ * yFrac    - fracao de massa da especies primitivas                 *
+ * t        - temperatura (°C/K)                                     *
+ * nOfPrSp  - numero de especies primitivas                          *
+ * fSheat   - calor especifico com variacao com a Temperatura        *
+ * fKelvin  - temperatura dada em kelvin                             *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * entalpia sensivel                                                 *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE tempForSpecificEnthalpySpecies(PropPol *sHeat, short const kSpecie
+                               , DOUBLE const t     
+                               , bool const fSheat  , bool const fKelvin) 
+{
+
+  short i,n;
+  DOUBLE a[MAXPLODEG],d,dt,hk,hs;
+  DOUBLE tc,tRef= TREF,sHeatRef ;
+
+  if(fKelvin)
+    tc = t;  
+  else
+    tc = CELSIUS_FOR_KELVIN(t);  
+
+  if(fSheat)
+  {
+    n=sHeat->nPol[kSpecie];
+    for (i = 0; i < n; i++)
+      a[i] = MAT2D(kSpecie,i,sHeat->a,MAXPLODEG);
+  
+    for (i = 0, hk =0.e0; i < n; i++) 
+    {
+      d    = (double) (i + 1);
+      dt   =pow(tc,d) - pow(tRef,d);
+      hk += a[i]*dt/d;
+    }
+  }
+
+  else
+  {
+    sHeatRef =  specieSpecifiHeat(sHeat,kSpecie
+                                , TREF , false); 
+    hk       = TEMP_FOR_ENTHALPY(sHeatRef,tc,TREF);
+  }
+  return hk;
 
 }
 /**********************************************************************/
@@ -709,7 +846,7 @@ void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
 {    
   INT i;
   unsigned short j,lMat;
-  DOUBLE *y,molarMassMix;
+  DOUBLE *y,molarMassMix,tmp;
          
   for(i=0;i<nCell;i++){    
 
@@ -725,7 +862,7 @@ void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
       MAT2D(lMat, iProp, propMat, MAXPROP) 
         = mixtureSpeciesDensity(&propFluid->den,molarMassMix
                       ,t[i]                    , pressure[i]
-                     ,thDynamic.pTh[2], iKelvin);
+                      ,thDynamic.pTh[2]        , iKelvin);
     }
 /*...................................................................*/
 
@@ -761,7 +898,6 @@ void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
 }
 /*********************************************************************/
 
-
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
  * Data de modificaco : 12/07/2018                                   *
@@ -783,10 +919,10 @@ void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
 DOUBLE airDensity(PropPol *den
                  ,DOUBLE const t      ,DOUBLE const p
                  ,DOUBLE const presRef,bool const fKelvin) {
-  short i,n=den->nPol;
+  short i,n=den->nPol[0];
   DOUBLE a[MAXPLODEG],tc,y,d;
 
-  for (i = 0; i < n; i++)
+  for (i = 0; i < MAXPLODEG; i++)
     a[i] = 0.0e0;
   
   if(fKelvin)
@@ -840,7 +976,7 @@ DOUBLE airDensity(PropPol *den
 
 /*********************************************************************
 * Data de criacao    : 12/05/2018                                   *
-* Data de modificaco : 00/00/0000                                   *
+* Data de modificaco : 07/05/2019                                   *
 *-------------------------------------------------------------------*
 * diffProp:                                                         *
 *-------------------------------------------------------------------*
@@ -857,10 +993,10 @@ DOUBLE airDensity(PropPol *den
 *********************************************************************/
 DOUBLE diffProp(PropPol *pol  , DOUBLE u) 
 {
-  short i, n = pol->nPol;
+  short i, n = pol->nPol[0];
   DOUBLE a[MAXPLODEG], y;
 
-  for (i = 0; i < n; i++)
+  for (i = 0; i < MAXPLODEG; i++)
     a[i] = 0.0e0;
 
   switch (pol->type)
@@ -895,7 +1031,7 @@ DOUBLE diffProp(PropPol *pol  , DOUBLE u)
 
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
- * Data de modificaco : 15/07/2018                                   *
+ * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
  * AIRSPECIFIHEAT: kJ/(kg.K)                                         *
  *-------------------------------------------------------------------*
@@ -915,7 +1051,7 @@ DOUBLE diffProp(PropPol *pol  , DOUBLE u)
 DOUBLE airSpecifiHeat(PropPol *sHeat, DOUBLE const t
                      ,bool const fKelvin) {
 
-  short i,n=sHeat->nPol;  
+  short i,n=sHeat->nPol[0];  
   DOUBLE a[MAXPLODEG],y,d;
   DOUBLE tc;
 
@@ -954,7 +1090,7 @@ DOUBLE airSpecifiHeat(PropPol *sHeat, DOUBLE const t
 
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
- * Data de modificaco : 15/07/2018                                   *
+ * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
  * AIRDYNAMICVISCOSITY: kJ/(kg.K)                                    *
  *-------------------------------------------------------------------*
@@ -974,7 +1110,7 @@ DOUBLE airSpecifiHeat(PropPol *sHeat, DOUBLE const t
 DOUBLE airDynamicViscosity(PropPol *dVisc,DOUBLE const t
                           ,bool const fKelvin) {
 
-  short i,n=dVisc->nPol;  
+  short i,n=dVisc->nPol[0];
   DOUBLE a[MAXPLODEG],x[MAXPLODEG-1],y,d;
   DOUBLE tc;
 
@@ -1039,7 +1175,7 @@ DOUBLE airDynamicViscosity(PropPol *dVisc,DOUBLE const t
 
 /*********************************************************************
  * Data de criacao    : 28/08/2017                                   *
- * Data de modificaco : 12/07/2018                                   *
+ * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
  * AIRTHERMALCONDUCTITY: [KW/m.K]                                    *
  *-------------------------------------------------------------------*
@@ -1061,7 +1197,7 @@ DOUBLE airDynamicViscosity(PropPol *dVisc,DOUBLE const t
 DOUBLE airThermalConductvity(PropPol *thCond, DOUBLE const t 
                             ,bool const fKelvin) {
 
-  short i,n=thCond->nPol;  
+  short i,n=thCond->nPol[0];  
   DOUBLE a[MAXPLODEG],y,d;
   DOUBLE tc;
 
@@ -1110,7 +1246,7 @@ DOUBLE airThermalConductvity(PropPol *thCond, DOUBLE const t
 
 /*********************************************************************
  * Data de criacao    : 28/08/2017                                   *
- * Data de modificaco : 15/07/2018                                   *
+ * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
  * TEMPFORSPECIFICENTHALPY: calcula a entalpia espeficia apartir da  *
  * temperatura                                                       *
@@ -1134,7 +1270,7 @@ DOUBLE tempForSpecificEnthalpy(PropPol *sHeat
                              , DOUBLE const t   , DOUBLE const sHeatRef
                              , bool const fSheat, bool const fKelvin) {
 
-  short i,n=sHeat->nPol;
+  short i,n=sHeat->nPol[0];
   DOUBLE a[6],d,dt,tmp;
   DOUBLE tc,tRef= TREF ;
 
@@ -1150,8 +1286,8 @@ DOUBLE tempForSpecificEnthalpy(PropPol *sHeat
     tmp = 0.0;
     for (i = 0; i < n; i++) {
       d    = (double) (i + 1);
-      dt   = tc-tRef;
-      tmp += a[i]*pow(dt,d)/d;
+      dt   =pow(tc,d) - pow(tRef,d);
+      tmp += a[i]*dt/d;
     }
   }
 
@@ -1568,7 +1704,6 @@ void updateSpecificHeat( PropPol *sHeatPol
 void updateThermalconductivity(PropPol *thC
                               ,DOUBLE *RESTRICT t,DOUBLE *RESTRICT thCond   
                               ,bool const iKelvin,INT const nEl)
-
 {
   INT i;
 
@@ -1601,7 +1736,6 @@ void updateThermalconductivity(PropPol *thC
 void updateDynamicViscosity(PropPol *dVisc
                           ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT visc    
                           ,bool const iKelvin    ,INT const nEl)
-
 {
   INT i;
 
@@ -1822,7 +1956,7 @@ void initPropCD(PropPol *pol            , DOUBLE *RESTRICT prop
 
 /********************************************************************* 
  * Data de criacao    : 04/09/2017                                   *
- * Data de modificaco : 15/07/2018                                   *
+ * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
  * INITSHEATPOL: inicializao a estrutura para o calculo do calor     *
  * especifico em funcao da temperatura via polinomio                 *
@@ -1852,10 +1986,10 @@ void initSheatPol(PropPol *prop, char *s, FILE *file) {
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
 
-    prop->nPol = readFileLineSimple(x, fileOut);
-    ERRO_POL_READ(prop->nPol, MAXPLODEG, __FILE__, __func__, __LINE__);
+    prop->nPol[0] = readFileLineSimple(x, fileOut);
+    ERRO_POL_READ(prop->nPol[0], MAXPLODEG, __FILE__, __func__, __LINE__);
 
-    for (i = 0; i < prop->nPol; i++)
+    for (i = 0; i < prop->nPol[0]; i++)
       prop->a[i] = x[i];
 
     fclose(fileOut);
@@ -1869,7 +2003,7 @@ void initSheatPol(PropPol *prop, char *s, FILE *file) {
 
 /********************************************************************* 
  * Data de criacao    : 16/09/2017                                   *
- * Data de modificaco : 15/07/2018                                   *
+ * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
  * INITVISCOSITYPOL: inicializao a estrutura para o calculo da       *
  * viscosidade dinamica via polinomio                                *
@@ -1899,10 +2033,10 @@ void initDviscosityPol(PropPol *prop, char *s, FILE *file) {
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
 
-    prop->nPol = readFileLineSimple(x, fileOut);
-    ERRO_POL_READ(prop->nPol, MAXPLODEG, __FILE__, __func__, __LINE__);
+    prop->nPol[0] = readFileLineSimple(x, fileOut);
+    ERRO_POL_READ(prop->nPol[0], MAXPLODEG, __FILE__, __func__, __LINE__);
 
-    for (i = 0; i < prop->nPol; i++)
+    for (i = 0; i < prop->nPol[0]; i++)
       prop->a[i] = x[i];
 
     fclose(fileOut);
@@ -1925,7 +2059,7 @@ void initDviscosityPol(PropPol *prop, char *s, FILE *file) {
 
 /********************************************************************* 
  * Data de criacao    : 05/11/2017                                   *
- * Data de modificaco : 20/02/2018                                   *
+ * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
  * INITDENSITY: inicializao a estrutura para o calculo da            *
  * densidade via polinomio                                           *
@@ -1955,10 +2089,10 @@ void initDensityPol(PropPol *prop, char *s, FILE *file) {
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
 
-    prop->nPol = readFileLineSimple(x, fileOut);
-    ERRO_POL_READ(prop->nPol, MAXPLODEG, __FILE__, __func__, __LINE__);
+    prop->nPol[0] = readFileLineSimple(x, fileOut);
+    ERRO_POL_READ(prop->nPol[0], MAXPLODEG, __FILE__, __func__, __LINE__);
 
-    for (i = 0; i < prop->nPol; i++)
+    for (i = 0; i < prop->nPol[0]; i++)
       prop->a[i] = x[i];
 
     fclose(fileOut);
@@ -1984,7 +2118,7 @@ void initDensityPol(PropPol *prop, char *s, FILE *file) {
 
 /*********************************************************************
 * Data de criacao    : 05/11/2017                                   *
-* Data de modificaco : 19/06/2018                                   *
+* Data de modificaco : 07/05/2019                                   *
 *-------------------------------------------------------------------*
 * initCdPol: inicializao a estrutura para o calculo da              *
 * propriedade via polinomio                                         *
@@ -2012,10 +2146,10 @@ void initCdPol(PropPol *prop,char *s,FILE *file)
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
 
-    prop->nPol = readFileLineSimple(x,fileOut);
-    ERRO_POL_READ(prop->nPol, MAXPLODEG, __FILE__,__func__, __LINE__);
+    prop->nPol[0] = readFileLineSimple(x,fileOut);
+    ERRO_POL_READ(prop->nPol[0], MAXPLODEG, __FILE__,__func__, __LINE__);
 
-    for (i = 0; i < prop->nPol; i++)
+    for (i = 0; i < prop->nPol[0]; i++)
       prop->a[i] = x[i];
 
     fclose(fileOut);
@@ -2031,7 +2165,7 @@ void initCdPol(PropPol *prop,char *s,FILE *file)
 
 /********************************************************************* 
  * Data de criacao    : 16/09/2017                                   *
- * Data de modificaco : 12/07/2018                                   *
+ * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
  * INITTHCONDPOL: inicializao a estrutura para o calculo da          *
  * condutividade termica via polinomio                               *
@@ -2063,10 +2197,10 @@ void initThCondPol(PropPol *prop, char *s, FILE *file) {
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
 
-    prop->nPol = readFileLineSimple(x, fileOut);
-    ERRO_POL_READ(prop->nPol, MAXPLODEG, __FILE__, __func__, __LINE__);
+    prop->nPol[0] = readFileLineSimple(x, fileOut);
+    ERRO_POL_READ(prop->nPol[0], MAXPLODEG, __FILE__, __func__, __LINE__);
 
-    for (i = 0; i < prop->nPol; i++)
+    for (i = 0; i < prop->nPol[0]; i++)
       prop->a[i] = x[i];
 
     fclose(fileOut);
@@ -2450,12 +2584,12 @@ void initPropStructCD(PropVarCD *propVar, short const n)
 
   for(i=0;i<n;i++)
   {
-    propVar[i].fDensity      = false;
-    propVar[i].fCeofDiff     = false;
-    propVar[i].ceofDiff.type = -1;
-    propVar[i].ceofDiff.nPol = 0;
-    propVar[i].den.nPol      = 0;
-    propVar[i].den.type      = -1;
+    propVar[i].fDensity        = false;
+    propVar[i].fCeofDiff       = false;
+    propVar[i].ceofDiff.type   = -1;
+    propVar[i].ceofDiff.nPol[0] = 0;
+    propVar[i].den.nPol[0]     = 0;
+    propVar[i].den.type        = -1;
   }
 
 }

@@ -1236,7 +1236,6 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                     ,mesh->elm.mat         ,cModel->nOfSpecies
                     ,DENSITY_LEVEL         ,mesh->numel
                     ,energyModel->fKelvin  ,DENSITY);
-
       else
         initPropTemp(propF
                   ,mesh->elm.densityFluid ,mesh->elm.temp 
@@ -2622,7 +2621,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 
   char combustion[][WORD_SIZE] = {"residual"   ,"absolute"       /*0,1*/                    
                                  ,"grouped"    ,"ungrouped"      /*2,3*/
-                                 ,"edu"        ,"arrhenius"      /*4,5*/ 
+                                 ,"ebu"        ,"arrhenius"      /*4,5*/ 
                                  ,"hcombustion","hformation"};   /*6,7*/  
   
   char diff[][WORD_SIZE] = { "residual","absolute"};        /*0,1*/
@@ -3218,7 +3217,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           cModel->arrhenius.energyAtivation = 12000.e0;
           cModel->arrhenius.a               = 4.4e+09;
           if (!mpiVar.myId)
-            fprintf(fileLogExc, format, "EBU", "Enable");
+            fprintf(fileLogExc, format, "ARRHENIUS", "Enable");
           
         }
 /*...................................................................*/
@@ -3877,7 +3876,7 @@ void help(FILE *f){
   short iComb = 8;  
   char combustion[][WORD_SIZE] = {"residual"   ,"absolute"       /*0,1*/                    
                                  ,"grouped"    ,"ungrouped"      /*2,3*/
-                                 ,"edu"        ,"arrhenius"      /*4,5*/ 
+                                 ,"ebu"        ,"arrhenius"      /*4,5*/ 
                                  ,"hcombustion","hformation"};   /*6,7*/
 
   short iWall = 2;

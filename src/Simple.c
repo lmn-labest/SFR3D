@@ -918,7 +918,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                            , sp          , sc
                            , pMesh);        
 /*...................................................................*/
-
+    
 /*... residual*/
     residualSimpleLm(mesh->elm.vel     ,mesh->elm.energy
                  ,mesh->elm.rCellVel   ,rCellPc

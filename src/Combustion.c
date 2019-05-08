@@ -25,7 +25,9 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                    , PartMesh *pMesh    , FileOpt *opt
                    , short itSimple    ) 
 {
-  bool fComb[MAX_COMB],rel;
+  bool fComb[MAX_COMB]
+      ,rel
+      ,fSheat = prop->fSpecificHeat;
   short itComb, conv, i, j, kZero, nComb, jj = 1, jPrint;
   INT desloc;
   DOUBLE tmp,tb[MAX_COMB],rCell[MAX_COMB],rCell0[MAX_COMB];
@@ -73,8 +75,6 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
     fprintf(opt->fileItPlot[FITPLOTCOMB]
            ,"#itSimple = %d t = %lf\n",itSimple+1,sc->ddt.t);
 /*...................................................................*/
-
-  printf("1 %lf\n",mixtureMolarMass(cModel,mesh->elm.yFrac));
 
 /*...*/
   for(itComb = 0; itComb < 10;itComb++)
@@ -268,11 +268,12 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*...*/
-  rateHeatRealeseCombustion(cModel                
-                    , mesh->elm.rateHeatReComb     
+  rateHeatRealeseCombustion(cModel            , &prop->sHeat                
+                    , mesh->elm.rateHeatReComb, mesh->elm.temp     
                     , mesh->elm.zComb0        , mesh->elm.zComb
                     , mesh->elm.densityFluid  , mesh->elm.rateFuel    
-                    , sc->ddt.dt[TIME_N]      , mesh->numelNov);
+                    , sc->ddt.dt[TIME_N]      , mesh->numelNov
+                    , fSheat                  , eModel->fKelvin );
 /*...................................................................*/
 
 /*...*/
@@ -532,19 +533,22 @@ void rateFuelConsume(Combustion *cModel       , DOUBLE *RESTRICT zComb
 
 /*********************************************************************
  * Data de criacao    : 12/08/2018                                   *
- * Data de modificaco : 05/05/2019                                   *
+ * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
  * rateHeatRealeseCombustion: calculo da taxa de liberacao de calor  *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * cModel  -> modelo de combustao                                    *
+ * sHeatPol - estrutra par o polinoimio do calor especifico          *
  * q       -> nao definido                                           *
  * zComb0  -> fracao de massa agrupada do passo de tempo anterior    *
  * zComb   ->fracao de massa agrupada do passo de tempo atural       *
  * rateFuel-> taxa de consumo do combustivel                         * 
  * dt      -> delta dessa passo de tempo                             * 
  * numel   -> numero de elementos                                    *
+ * fSheat   - calor especifico com variacao com a Temperatura        *
+ * fKelvin  - temperatura dada em kelvin                             *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -552,40 +556,49 @@ void rateFuelConsume(Combustion *cModel       , DOUBLE *RESTRICT zComb
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
- * entalphyOfFormLumped[0] - Fuel KJ/Kg                              *
- * entalphyOfFormLumped[1] - Air KJ/Kg                               *
- * entalphyOfFormLumped[2] - Froduto KJ/Kg                           *
  *********************************************************************/
-void rateHeatRealeseCombustion(Combustion *cModel   
-                   , DOUBLE *RESTRICT q
+void rateHeatRealeseCombustion(Combustion *cModel,PropPol *sHeat   
+                   , DOUBLE *RESTRICT q      , DOUBLE *RESTRICT temp
                    , DOUBLE *RESTRICT zComb0 , DOUBLE *RESTRICT zComb
                    , DOUBLE *RESTRICT density, DOUBLE *RESTRICT rateFuel 
-                   , DOUBLE const dt         , INT const numel)
+                   , DOUBLE const dt         , INT const numel
+                   , bool const fsHeat       , bool const fKelvin)
 {
 
-  short i, nOfSpL = cModel->nOfSpeciesLump;
+  short i;
   short iCod = cModel->typeHeatRealese;
   INT nel;
-  DOUBLE s = cModel->sMassAir;
-  DOUBLE *h,hc;
+  DOUBLE *h,hc,H[3],nCO2p,nH2Op;
   DOUBLE z0,z1;
   DOUBLE densityC,densityC0,tmp,dRoZ;
 
   if(iCod == HFORMATION)
   {
-    h  = cModel->entalphyOfFormLumped;
+    h     = cModel->entalphyOfForm;
+    nCO2p = cModel->stoichCO2p;
+    nH2Op = cModel->stoichH2Op;
     for(nel = 0; nel < numel; nel++)
     {
-      tmp = ((1.e0+s)*h[SL_PROD] - s*h[SL_AIR] - h[SL_FUEL])*rateFuel[nel];
+      H[0] = h[SP_CO2 ] + tempForSpecificEnthalpySpecies(sHeat    , SP_CO2 
+                                                       , temp[nel]
+                                                       , fsHeat   , fKelvin);
+      H[1] = h[SP_H2O ] + tempForSpecificEnthalpySpecies(sHeat    , SP_H2O 
+                                                       , temp[nel]    
+                                                       , fsHeat   , fKelvin);
+      H[2] = h[SP_FUEL] + tempForSpecificEnthalpySpecies(sHeat    , SP_FUEL 
+                                                       , temp[nel]    
+                                                       , fsHeat   , fKelvin);
+     
+      tmp =  (nCO2p*H[0] + nH2Op*H[1] - H[2])/cModel->mW_Fuel;
+
+      tmp *=rateFuel[nel];
+
       q[nel] = -tmp;
     }
   }
   else if (iCod == HCOMBUSTION)
   {
-    if (cModel->fLump) 
-      hc = cModel->entalphyOfCombustionGrouped;
-    else 
-      hc = cModel->entalphyOfCombustion;
+    hc = cModel->entalphyOfCombustion;
     for(nel = 0; nel < numel; nel++)
     {
       tmp = rateFuel[nel]*hc;
@@ -962,44 +975,13 @@ void initEntalpyOfFormation(Combustion *cModel)
   nH2Op = cModel->stoichH2Op;
 
 /*...  Fuel - KJ/kMol*/
-  cModel->H_Fuel = -74870.e0; 
+  cModel->entalphyOfForm[SP_FUEL] = -74870.e0; 
 /*... CO2 - KJ/kMol*/
-  cModel->H_CO2 = -393510.e0;
+  cModel-> entalphyOfForm[SP_CO2] = -393510.e0;
 /*... H2O - KJ/kMol*/
-  cModel->H_H2O = -241826.e0;
+  cModel-> entalphyOfForm[SP_H2O] = -241826.e0;
 /*... CO - KJ/kMol*/
-  cModel->H_CO = -110500.e0;
-
-/*... Air - KJ/Kg*/
-  cModel->entalphyOfFormLumped[SL_AIR] = 0.e0;
-
-/*... Fuel */
-  cModel->entalphyOfFormLumped[SL_FUEL] = cModel->H_Fuel;
- 
-/*... Prod */
-  cModel->entalphyOfFormLumped[SL_PROD] =  pCO2p*cModel->H_CO2 
-                                         + pH2Op*cModel->H_H2O;
-  if( nN2p == 0.0e0)
-    nProd = (nCO2p/pCO2p+nH2Op/pH2Op)/2.0;
-  else
-    nProd = (nN2p/pN2p+nCO2p/pCO2p+nH2Op/pH2Op)/3.0;
-
-  tmp = nProd*cModel->entalphyOfFormLumped[SL_PROD]
-           - s*cModel->entalphyOfFormLumped[SL_AIR]  
-           - cModel->entalphyOfFormLumped[SL_FUEL];
-
-  cModel->entalphyOfCombustionGrouped = tmp;
-
-  fprintf(fileLogExc,"Lumped species:\n");
-
-  fprintf(fileLogExc,"Entalphy of combustion (KJ/Kmol) = %lf\n"  
-                    ,cModel->entalphyOfCombustionGrouped);
-
-/*... KJ/KG de fuel */
-  cModel->entalphyOfCombustionGrouped  /= cModel->mW_Fuel;
-
-  fprintf(fileLogExc,"Entalphy of combustion (KJ/KG)   = %lf\n\n"
-                    ,cModel->entalphyOfCombustionGrouped);              
+//cModel-> entalphyOfForm = -110500.e0;        
 
 }
 /********************************************************************/
@@ -1023,22 +1005,20 @@ void initEntalpyOfCombustion(Combustion *cModel)
 {
   
   DOUBLE hFuelFormation,hCO2Formation;
-  DOUBLE pCO2,pH2O;
-
+  DOUBLE pCO2,pH2O,hFuel,hCO2,hH2O;
 
   pCO2 = cModel->CO2InProd;
   pH2O = cModel->H2OInProd;
 
 /*...  Fuel - KJ/kMol*/
-  cModel->H_Fuel = -74870.e0; 
+  hFuel = -74870.e0; 
 /*... CO2 - KJ/kMol*/
-  cModel->H_CO2 = -393520.e0;
+  hCO2 = -393520.e0;
 /*... H2O - KJ/kMol*/
-  cModel->H_H2O = -241830.e0;
+  hH2O = -241830.e0;
 
 /*... KJ/Kmol de fuel*/
-  cModel->entalphyOfCombustion = (cModel->H_CO2 + 2.0*cModel->H_H2O) 
-                               - (cModel->H_Fuel);
+  cModel->entalphyOfCombustion = (hCO2 + 2.0*hH2O) - hFuel;
 
   fprintf(fileLogExc,"Primitives species:\n");
 

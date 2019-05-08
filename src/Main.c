@@ -263,7 +263,7 @@ int main(int argc,char**argv){
   propVarFluid.molarMass            = MMOLARAR;
 /*...................................................................*/
 
-/*...*/
+/*... propriedades variaveis*/
   initPropStructCD(propVarD,3);
   initPropStructCD(propVarT,3);
 /*...................................................................*/

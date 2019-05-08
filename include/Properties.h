@@ -140,18 +140,24 @@
   DOUBLE mixtureSpecifiHeat(PropPol *sHeat   , DOUBLE *yFrac
                          , DOUBLE const t    , short const nOfPrSp
                          , bool const fKelvin); 
+  DOUBLE specieSpecifiHeat(PropPol *sHeat     , short const kSpecie
+                        , DOUBLE const t      , bool const fKelvin); 
   DOUBLE mixtureSpeciesDensity(PropPol *den        ,DOUBLE const malorMassMix
                             ,DOUBLE const t      ,DOUBLE const p
                             ,DOUBLE const presRef,bool const fKelvin);
   DOUBLE specificEnthalpyForTempOfMix(PropPol *sHeatPol
                              , DOUBLE const hs        , DOUBLE *yFrac
                              , DOUBLE const sHeatRef  , short const nOfPrSp
-                             , bool const fSheat      , bool const fKelvin); 
+                             , bool const fSheat      , bool const fKelvin
+                             , INT const nel ); 
 
   DOUBLE tempForSpecificEnthalpyMix(PropPol *sHeat    , DOUBLE *yFrac
                                 , DOUBLE const t    , DOUBLE const sHeatRef
                                 , short const nOfPrSp
                                 , bool const fSheat , bool const fKelvin); 
+  DOUBLE tempForSpecificEnthalpySpecies(PropPol *sHeat, short const kSpecie
+                               , DOUBLE const t   
+                               , bool const fSheat , bool const fKelvin);
 
   void getEnergyForTempMix(PropPol *sHeatPol  ,DOUBLE *RESTRICT yFrac 
                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy

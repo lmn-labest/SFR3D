@@ -24,7 +24,7 @@
 /*...*/
    typedef struct {
      unsigned char type;
-     short nPol;
+     short nPol[MAXSPECIES];
      DOUBLE a[MAXSPECIES*MAXPLODEG];
    }PropPol;
 /*...................................................................*/
@@ -83,11 +83,11 @@
 /*... massa molar*/
     DOUBLE mW_Fuel,mW_N2,mW_O2,mW_CO2,mW_CO,mW_H2O,mW_C,mW_Air;
 /*... entalpia de formacao*/    
-    DOUBLE H_Fuel,H_CO2,H_CO,H_H2O;
-
-    DOUBLE entalphyOfFormLumped[3]; /*0 - Air
-                                      1 - Fuel
-                                      2 - prod*/   
+    DOUBLE entalphyOfForm[MAXSPECIES]; /*0 - Fuel
+                                         1 - O2   
+                                         2 - N2
+                                         3 - CO2     
+                                         4 - H2O*/      
 
     DOUBLE entalphyOfCombustion;        /* Entalpia de combustao calculada 
                                           pelas especies primitivas*/

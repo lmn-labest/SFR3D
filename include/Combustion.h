@@ -57,11 +57,12 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
-  void rateHeatRealeseCombustion(Combustion *cModel   
-                   , DOUBLE *RESTRICT q
+  void rateHeatRealeseCombustion(Combustion *cModel,PropPol *sHeat   
+                   , DOUBLE *RESTRICT q      , DOUBLE *RESTRICT temp
                    , DOUBLE *RESTRICT zComb0 , DOUBLE *RESTRICT zComb
                    , DOUBLE *RESTRICT density, DOUBLE *RESTRICT rateFuel 
-                   , DOUBLE const dt         , INT const numel);
+                   , DOUBLE const dt         , INT const numel
+                   , bool const fsHeat       , bool const fKelvin);
 /*...................................................................*/
 
 /*...*/
