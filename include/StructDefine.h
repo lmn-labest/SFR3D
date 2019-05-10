@@ -246,6 +246,7 @@
     short type;                     /*tipo*/
     short np;                       /*numero de particoes*/  
     DOUBLE par[MAXLOADPARAMETER];
+    DOUBLE vel[3];
     Interpol *intPol;               /*interpolacao*/
   }Loads;
   Loads  loadsD1[MAXLOADD1]         /*tipo de cargas (difusao pura)*/
@@ -305,6 +306,8 @@
                                         e normalizado*/
     unsigned short kZeroEnergy;       /*iteracao com o qual o residuo
                                      e normalizado*/
+    unsigned short kZeroComb;         /*iteracao com o qual o residuo
+                                       e normalizado*/
     int    pSimple;
     int    maxIt;
     int nNonOrth;
@@ -313,7 +316,7 @@
     DOUBLE *ePresC,*nPresC  ,*eGradPresC;/*Pressao de correcao*/
     DOUBLE *ePresC1;                     /*Pressao de correcao 1*/
     DOUBLE *d;
-    DOUBLE tolPres,tolVel[3],tolEnergy;
+    DOUBLE tolPres,tolVel[3],tolEnergy,tolComb;
   }Simple;
 /*...................................................................*/
 

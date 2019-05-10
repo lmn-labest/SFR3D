@@ -96,9 +96,7 @@ void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx)
   else if (ld->type == INLET)
   {
     if (ld->nTypeVar == LVARCONST)
-    {
-      for(i=0; i< 5; par[i] = ld->par[i],i++);
-    }
+      for(i = 0; i< ld->np; par[i] = ld->par[i], i++);
     else if (ld->nTypeVar == LFUNCPARABOLIC)
     {
       par[0] = ld->par[0];
@@ -1106,7 +1104,7 @@ void pLoadEnergy(PropVarFluid *vProp
 
 /********************************************************************* 
  * Data de criacao    : 21/09/2017                                   *
- * Data de modificaco : 15/07/2018                                   * 
+ * Data de modificaco : 10/05/2019                                   * 
  *-------------------------------------------------------------------* 
  * pLoadCombustion : cargas das equacoes de combustao                *
  *-------------------------------------------------------------------* 
@@ -1235,7 +1233,7 @@ void pLoadCombustion(PropVarFluid *vProp
         
         wfn   = velB[0] * n[0] + velB[1] * n[1];
         if (ndm == 3) {
-          velB[2] = par[nComb+4];  
+          velB[2] = par[nComb+3];  
           wfn += velB[2]*n[2];
         }
         for(i=0;i<nComb;i++)

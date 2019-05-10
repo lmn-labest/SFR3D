@@ -83,7 +83,9 @@
    void readSetSimple(Memoria *m    , FILE *fileIn
                  , Mesh *mesh0   , Mesh *mesh
                  , Simple *simple, bool *fSolvSimple);
-
+   void readSetSimpleComb(Memoria *m    , FILE *fileIn
+                     , Mesh *mesh0   , Mesh *mesh
+                    , Simple *simple, bool *fSolvComb);
  /*...*/
    void readSolvFluid(Memoria *m, Mesh *mesh
                     , Reord *reordMesh

@@ -143,22 +143,23 @@ int main(int argc,char**argv){
   bool macroFlag; 
   char word[WORD_SIZE];
   char macro[][WORD_SIZE] =
-  {"help"        ,"mesh"         ,"stop"           /* 0, 1, 2*/
-  ,"config"      ,"nextLoop"     ,"rcGrad"         /* 3, 4, 5*/
-  ,"pgeo"        ,"pcoob"        ,"pcoo"           /* 6, 7, 8*/ 
-  ,"setSolvDiff" ,"setSolvTrans" ,"openmp"         /* 9,10,11*/
-  ,"solvD1"      ,"propVar"      ,"pD1"            /*12,13,14*/
-  ,"nlIt"        ,"pD1CsvCell"   ,"pD1CsvNode"     /*15,16,17*/
-  ,"solvT1"      ,""             ,"pT1"            /*18,19,20*/
-  ,""            ,"pT1CsvCell"   ,"pT1CsvNode"     /*21,22,23*/
-  ,"setSolvFluid","simple"       ,"setSimple"      /*24,25,26*/
-  ,"transient"   ,"timeUpdate"   ,"partd"          /*27,28,29*/
-  ,"advection"   ,"edp"          ,"diffusion"      /*30,31,32*/
-  ,"pFluid"      ,"setPrint"     ,"reScaleMesh"    /*33,34,35*/
-  ,"setPrime"    ,"prime"        ,"combParameters" /*36,37,38*/
-  ,"setSolvComb" ,"pCombustion"  ,"simpleComb"     /*39,40,41*/
-  ,"gravity"     ,"model"        ,"mean"           /*42,43,44*/
-  ,"setMean"     ,"save"         ,"load"};         /*45,46,47*/
+  {"help"         ,"mesh"         ,"stop"           /* 0, 1, 2*/
+  ,"config"       ,"nextLoop"     ,"rcGrad"         /* 3, 4, 5*/
+  ,"pgeo"         ,"pcoob"        ,"pcoo"           /* 6, 7, 8*/ 
+  ,"setSolvDiff"  ,"setSolvTrans" ,"openmp"         /* 9,10,11*/
+  ,"solvD1"       ,"propVar"      ,"pD1"            /*12,13,14*/
+  ,"nlIt"         ,"pD1CsvCell"   ,"pD1CsvNode"     /*15,16,17*/
+  ,"solvT1"       ,""             ,"pT1"            /*18,19,20*/
+  ,""             ,"pT1CsvCell"   ,"pT1CsvNode"     /*21,22,23*/
+  ,"setSolvFluid" ,"simple"       ,"setSimple"      /*24,25,26*/
+  ,"transient"    ,"timeUpdate"   ,"partd"          /*27,28,29*/
+  ,"advection"    ,"edp"          ,"diffusion"      /*30,31,32*/
+  ,"pFluid"       ,"setPrint"     ,"reScaleMesh"    /*33,34,35*/
+  ,"setPrime"     ,"prime"        ,"combParameters" /*36,37,38*/
+  ,"setSolvComb"  ,"pCombustion"  ,"simpleComb"     /*39,40,41*/
+  ,"setSimpleComb",""             ,""               /*42,43,44*/ 
+  ,"gravity"      ,"model"        ,"mean"           /*45,46,47*/
+  ,"setMean"      ,"save"         ,"load"};         /*48,49,50*/
 /* ..................................................................*/
 
 /*... Memoria principal(valor padrao - bytes)*/
@@ -328,9 +329,9 @@ int main(int argc,char**argv){
 
 /*...*/
   sc.diffComb.iCod = OVERRELAXED;
-//sc.advComb.iCod1 = TVD;
-  sc.advComb.iCod1 = FOUP;
-  sc.advComb.iCod2 = MIDMODFACE;
+  sc.advComb.iCod1 = TVD;
+//sc.advComb.iCod1 = FOUP;
+  sc.advComb.iCod2 = SUPERBEEFACE;
   sc.advComb.par[0] = 0.e0;
 /*...................................................................*/
 
@@ -1660,7 +1661,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-     if(!fSolvComb) 
+     if(!fSolvCombustion) 
      {
         printf("Simple nao configurado ainda!!!\n");
         exit(EXIT_FAILURE);
@@ -1704,9 +1705,26 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: gravity : gravidade                                                 
+ * macro: setSimpleComb: configuracoe do metodo simple com combustao
  *===================================================================*/
     else if((!strcmp(word,macro[42])))
+    {
+      initSec(word, OUTPUT_FOR_FILE);
+/*...*/
+      readSetSimpleComb(&m     , fileIn
+                     , mesh0  , mesh
+                     , &simple, &fSolvCombustion);
+/*...................................................................*/
+
+      endSec(OUTPUT_FOR_FILE);
+    }
+/*===================================================================*/
+
+
+/*===================================================================*
+ * macro: gravity : gravidade                                                 
+ *===================================================================*/
+    else if((!strcmp(word,macro[45])))
     {
       initSec(word, OUTPUT_FOR_FILE);
       readGravity(gravity,fileIn);
@@ -1718,7 +1736,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: model: modelos utilizados nas equacao diferencias         
  *===================================================================*/
-    else if((!strcmp(word,macro[43])))
+    else if((!strcmp(word,macro[46])))
     {
       initSec(word, OUTPUT_FOR_FILE);
       readModel(&eModel   ,&turbModel
@@ -1734,7 +1752,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: mean : calcula a media                                                        
  *===================================================================*/
-    else if(!strcmp(word,macro[44]))
+    else if(!strcmp(word,macro[47]))
     {
       initSec(word, OUTPUT_FOR_SCREEN);
       calMean(&media,mesh,sc.ddt.dt[TIME_N_MINUS_1]
@@ -1747,7 +1765,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: setMean : configuracao das medias temporais                                   
  *===================================================================*/
-    else if(!strcmp(word,macro[45])){
+    else if(!strcmp(word,macro[48])){
       initSec(word, OUTPUT_FOR_FILE);
       readMean(&m,fileIn,mesh,&media);
 /*...................................................................*/
@@ -1758,7 +1776,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: save : salva o estado do programa                                          
  *===================================================================*/
-    else if( (!strcmp(word,macro[46])) &&
+    else if( (!strcmp(word,macro[49])) &&
              (save.step[1]++ == save.step[0]) ){
       initSec(word, OUTPUT_FOR_SCREEN);
       save.step[1] = 1;
@@ -1775,7 +1793,7 @@ int main(int argc,char**argv){
 /*===================================================================*
  * macro: load : carrega um estado do sistema especifico                             
  *===================================================================*/
-    else if((!strcmp(word,macro[47]))){
+    else if((!strcmp(word,macro[50]))){
       initSec(word, OUTPUT_FOR_SCREEN);
       save.fLoad = true;
       load(&propVarFluid,&turbModel

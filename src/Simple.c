@@ -904,7 +904,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                    , sistEqComb, solvComb 
                    , sp        , sc       
                    , pMesh     , opt
-                   , itSimple  );  
+                   , itSimple  );   
 /*...................................................................*/
 
 /*... equacao de energia*/
@@ -1108,7 +1108,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
               , mesh->elm.densityFluid, mesh->elm.vel 
               , mesh->numelNov        , mesh->ndm  
               , mesh->maxViz  );
-  mesh->mass[1] = mesh->mass[1] + deltaMass;  
+  mesh->mass[1] += deltaMass;  
 /*...................................................................*/
 
 /*... temp(n) = temp(n+1)*/
@@ -1123,18 +1123,15 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*... Enegia total liberada*/
-  deltaMass =  totalHeatRealeseComb(mesh->elm.rateHeatReComb
+  cModel->totalHeat += totalHeatRealeseComb(mesh->elm.rateHeatReComb
                       , mesh->elm.geom.volume
-                      , sc->ddt.dt[TIME_N], mesh->numelNov);
-  cModel->totalHeat += deltaMass;
-  
+                      , sc->ddt.dt[TIME_N], mesh->numelNov); 
 /*...................................................................*/
 
 /*... Mass total consumida*/
-  deltaMass =  totalHeatRealeseComb(mesh->elm.rateFuel 
+  cModel->totalMassFuel += totalHeatRealeseComb(mesh->elm.rateFuel 
                       , mesh->elm.geom.volume
                       , sc->ddt.dt[TIME_N], mesh->numelNov);
-  cModel->totalMassFuel += deltaMass;
 /*...................................................................*/
 
 
@@ -2011,6 +2008,56 @@ void setSimpleLmScheme(char *word, short const ndm
 }
 /*********************************************************************/
 
+/*********************************************************************
+* Data de criacao    : 08/05/2019                                   *
+* Data de modificaco : 00/00/00000                                  *
+*-------------------------------------------------------------------*
+* SETSIMPLELMCOMBUSTIONSCHEME : set o metodo simple para baixo      *
+* numero mach para modelos de combustao                             *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* word -> str com a discretizacao                                   *
+* sp   -> estrutura simple                                          *
+* fieIn-> arquivo de entrada                                        *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void setSimpleCombustionScheme(char *word , short const ndm
+                              , Simple *sp, FILE *fileIn) 
+{
+
+  if (!strcmp(word, "SIMPLE"))
+    sp->type = SIMPLE;
+  else if (!strcmp(word, "SIMPLEC"))
+    sp->type = SIMPLEC;
+
+  fscanf(fileIn, "%d", &sp->maxIt);
+
+  fscanf(fileIn, "%lf", &sp->alphaPres);
+  fscanf(fileIn, "%lf", &sp->alphaVel);
+  fscanf(fileIn, "%lf", &sp->alphaEnergy);
+  fscanf(fileIn, "%lf", &sp->alphaComb);
+  fscanf(fileIn, "%lf", &sp->tolPres);
+  fscanf(fileIn, "%lf", &sp->tolVel[0]);
+  fscanf(fileIn, "%lf", &sp->tolVel[1]);
+  if (ndm == 3)  fscanf(fileIn, "%lf", &sp->tolVel[2]);
+  fscanf(fileIn, "%lf", &sp->tolEnergy);
+  fscanf(fileIn, "%lf", &sp->tolComb);
+
+  fscanf(fileIn, "%d", &sp->nNonOrth);
+  fscanf(fileIn, "%d", &sp->pSimple);
+  fscanf(fileIn, "%d", &sp->kZeroPres);
+  fscanf(fileIn, "%d", &sp->kZeroVel);
+  fscanf(fileIn, "%d", &sp->kZeroEnergy);
+  fscanf(fileIn, "%d", &sp->kZeroComb);
+
+}
+/*********************************************************************/
 
 /********************************************************************* 
  * Data de criacao    : 18/07/2016                                   *

@@ -1652,7 +1652,7 @@ void initPrintVtk(FileOpt *opt)
 }
 /*********************************************************************
 * Data de criacao    : 20/07/2018                                   *
-* Data de modificaco : 15/08/2018                                   *
+* Data de modificaco : 05/05/2019                                   *
 *-------------------------------------------------------------------*
 * reScaleMesh : redimensio as coordenada da matriz                  *
 *-------------------------------------------------------------------*
@@ -1694,7 +1694,7 @@ void printFace(Memoria *m   , Mesh *mesh
                , mesh->ndm         , mesh->maxViz
                , mesh->ndfF - 1    , mesh->maxNo
                , nameOut           , bVtk
-               , fileOut);
+               , false             , fileOut);
 
     aux[0] = '\0';
     strcpy(aux, preName);
@@ -1708,7 +1708,7 @@ void printFace(Memoria *m   , Mesh *mesh
                , mesh->ndm          , mesh->maxViz
                , 1                  , mesh->maxNo
                , nameOut            , bVtk
-               , fileOut);
+               , true               , fileOut);
   }
 /*..................................................................*/
 
@@ -1727,7 +1727,7 @@ void printFace(Memoria *m   , Mesh *mesh
               , mesh->ndm            , mesh->maxViz
               , 1                    , mesh->maxNo          
               , nameOut              , bVtk                 
-              , fileOut);
+              , true                 , fileOut);
     
     aux[0] = '\0';
     strcpy(aux, preName);
@@ -1741,7 +1741,7 @@ void printFace(Memoria *m   , Mesh *mesh
                , mesh->ndm            , mesh->maxViz
                , mesh->ndfFt-1        , mesh->maxNo
                , nameOut              , bVtk
-               , fileOut);
+               , false                , fileOut);
 
     aux[0] = '\0';
     strcpy(aux, preName);
@@ -1755,7 +1755,7 @@ void printFace(Memoria *m   , Mesh *mesh
                , mesh->ndm          , mesh->maxViz
                , 1                  , mesh->maxNo
                , nameOut            , bVtk
-               , fileOut);
+               , true               , fileOut);
   }
 /*..................................................................*/
 
@@ -1774,7 +1774,7 @@ void printFace(Memoria *m   , Mesh *mesh
       , mesh->ndm          , mesh->maxViz
       , 1                  , mesh->maxNo
       , nameOut            , bVtk
-      , fileOut);
+      , true               , fileOut);
   }
 /*..................................................................*/
 
@@ -1793,7 +1793,7 @@ void printFace(Memoria *m   , Mesh *mesh
                , mesh->ndm         , mesh->maxViz
                , 1                 , mesh->maxNo
                , nameOut           , bVtk
-               , fileOut);
+               , true              , fileOut);
   }
 /*..................................................................*/
 
@@ -1812,7 +1812,7 @@ void printFace(Memoria *m   , Mesh *mesh
                , mesh->ndm             , mesh->maxViz
                , 1                     , mesh->maxNo
                , nameOut               , bVtk
-               , fileOut);
+               , true                  , fileOut);
   }
 /*..................................................................*/
 

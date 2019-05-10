@@ -706,8 +706,8 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
             ,face        ,lfaceLd1  ,idFace
             ,typeGeomFace,nenFace
             ,maxViz      ,maxNo
-            ,ndfD1       
-            ,numel       ,&nFace);
+            ,ndfD1       ,numel  
+            ,&nFace      ,true);
   }
 /*...................................................................*/
 
@@ -719,8 +719,8 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
             ,face        ,lfaceLt1  ,idFace
             ,typeGeomFace,nenFace
             ,maxViz      ,maxNo
-            ,ndfT1       
-            ,numel       ,&nFace);
+            ,ndfT1       ,numel  
+            ,&nFace      ,true);
   }
 /*...................................................................*/
 
@@ -732,8 +732,8 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
             ,face        ,lfaceLfluid  ,idFace
             ,typeGeomFace,nenFace
             ,maxViz      ,maxNo
-            ,ndfT1       
-            ,numel       ,&nFace);  
+            ,ndfT1       ,numel
+            ,&nFace      ,true);  
   }
 /*...................................................................*/
 
@@ -745,8 +745,8 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
             ,face        ,lfaceLenergy   ,idFace
             ,typeGeomFace,nenFace
             ,maxViz      ,maxNo
-            ,1           
-            ,numel       ,&nFace);  
+            ,1           ,numel      
+            ,&nFace      ,true);  
   }
 /*...................................................................*/
 
@@ -878,15 +878,15 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
 * parametros de saida  :                                             *
 * ------------------------------------------------------------------ *
 **********************************************************************/
-void wGeoFaceVtk2(Memoria *m     , DOUBLE *x
-                , INT *el        , short *nen
-                , short *typeGeom
-                , short *faceRd  , short *faceLd
-                , INT const nnode, INT const numel
-                , short const ndm, short const maxViz 
-                , short const ndf, short const maxNo
-                , char *nameOut  , bool iws
-                , FILE *f)
+void wGeoFaceVtk2(Memoria *m         , DOUBLE *x
+                , INT *el            , short *nen
+                , short *typeGeom    
+                , short *faceRd      , short *faceLd
+                , INT const nnode    , INT const numel
+                , short const ndm    , short const maxViz 
+                , short const ndf    , short const maxNo
+                , char *nameOut      , bool iws
+                , bool const fWallVel,     FILE *f)
 {
   char head[] = { "FACE_VOLUME_FINITO" };
   int nFace = 0;
@@ -910,8 +910,8 @@ void wGeoFaceVtk2(Memoria *m     , DOUBLE *x
           , face        , lfaceL , idFace
           , typeGeomFace, nenFace
           , maxViz      , maxNo
-          , ndf
-          , numel       , &nFace);
+          , ndf         , numel      
+          , &nFace      , fWallVel);
 /*...................................................................*/
 
 /*...*/
@@ -3040,7 +3040,7 @@ void wResVtkCombustion(Memoria *m     , DOUBLE *x
 
 /**********************************************************************
  * Data de criacao    : 00/00/0000                                    *
- * Data de modificaco : 30/04/2018                                    *
+ * Data de modificaco : 08/05/2019                                    *
  * ------------------------------------------------------------------ *
  * MAKEFACE : gera as faces/aresta onde ha carregamento               *  
  * ------------------------------------------------------------------ *
@@ -3059,6 +3059,8 @@ void wResVtkCombustion(Memoria *m     , DOUBLE *x
  * maxNo   -> numero maximo de nos por celula                         *
  * numel   -> numero de elementos                                     *
  * nFace   -> indefinido                                              *
+ * fWallVel-> true considera a parede impermeavel                     *
+ *            false desconsidera                                      *
  * ------------------------------------------------------------------ *
  * parametros de saida  :                                             * 
  * face    -> faces onde ha condicao de contorno                      *
@@ -3073,14 +3075,14 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
              ,INT *face          ,int    *lFaceL     ,INT *idFace
              ,short *typeGeomFace,short *nenFace
              ,short const maxViz ,short const maxNo
-             ,short const ndf     
-             ,INT const numel    ,INT *nFace){
+             ,short const ndf    ,INT const numel  
+             ,INT *nFace         ,bool const fWallVel){
 
   short  isnod[MAX_SN],nenFaceMax=MAX_NUM_NODE_FACE;
   short j,k,ty;
   unsigned int nf = 0;
   short cCell = maxViz + 1;
-  int no,nel,tmp;
+  int no,nel,tmp,tmp1;
   
   for(nel=0;nel<numel;nel++){
     ty = typeGeom[nel];
@@ -3185,12 +3187,26 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
       for(j=0;j<maxViz;j++)
-        tmp += abs(MAT2D(nel,j,faceR,cCell));
+        if(fWallVel)
+          tmp += abs(MAT2D(nel,j,faceR,cCell));
+        else
+        {
+          tmp1 = MAT2D(nel,j,faceR,cCell);
+          if(tmp1 != -1)
+            tmp += tmp1;  
+        }
+          
 /*...*/
       if(tmp){
 /*... loop nas faces*/
         for(j=0;j<6;j++){
-          tmp = MAT2D(nel,j,faceR,cCell);
+          if(fWallVel)
+            tmp = MAT2D(nel,j,faceR,cCell);
+          else {
+            tmp = MAT2D(nel,j,faceR,cCell);
+            if(tmp == -1)
+              tmp = 0;  
+          }
 /*...*/
           if(tmp){
             idFace[nf]       = nel + 1;
@@ -3515,7 +3531,7 @@ void makeModuleVel(DOUBLE *RESTRICT p,DOUBLE *RESTRICT vel
 
 /**********************************************************************
  * Data de criacao    : 15/08/2018                                    *
- * Data de modificaco : 00/00/0000                                    *
+ * Data de modificaco : 10/05/2019                                    *
  *------------------------------------------------------------------- * 
  * getColFromMatrix : pega um coluna de uma matriz                    *  
  * ------------------------------------------------------------------ *
@@ -3538,7 +3554,7 @@ void getColFromMatrix(DOUBLE *v   ,DOUBLE *m
                     ,INT const nl,short const col
                     ,short const jCol)
 {
-  short i;
+  INT i;
 
   for(i=0;i<nl;i++)
     v[i] = MAT2D(i,jCol,m,col);

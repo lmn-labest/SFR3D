@@ -8,6 +8,29 @@
                              ,DOUBLE *RESTRICT prop
                              ,bool const fTemp    ,bool const fSheat                             
                              ,bool const fKelvin );
+ static void convLoadsEnergyMix(Combustion *cModel   ,PropPol *pDen
+                              ,PropPol *sHeatProp   ,Loads *loadsEnergy
+                              ,Loads *loadsTemp     ,Loads *loadsZ  
+                              ,Loads *loadsVel      ,DOUBLE *RESTRICT prop
+                              ,bool const fTemp     ,bool const fSheat 
+                              ,bool const iKelvin   ,bool const fDensity
+                              ,bool const fGrouped);  
+ static void convLoadsZcombMix(Combustion *cModel  ,PropPol *pDen
+                             ,PropPol *sHeatProp   ,Loads *loadsTemp 
+                             ,Loads *loadsZ     
+                             ,DOUBLE *RESTRICT prop
+                             ,bool const fTemp     ,bool const fSheat 
+                             ,bool const iKelvin   ,bool const fDensity
+                             ,bool const fGrouped);  
+
+ static void convLoadsVelMix(Combustion *cModel   ,PropPol *pDen
+                            ,PropPol *sHeatProp   ,Loads *loadsVel   
+                            ,Loads *loadsTemp     ,Loads *loadsZ     
+                            ,DOUBLE *RESTRICT prop
+                            ,bool const fTemp     ,bool const fSheat 
+                            ,bool const iKelvin   ,bool const fDensity
+                            ,bool const fGrouped); 
+
   static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC);
 /*..................................................................*/
 
@@ -42,9 +65,9 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
        ,"faceResZ"     ,"faceLoadZ"  ,"loadsZ"         /* 9,10,11*/ 
        ,"faceResD1"    ,"uniformD1"  ,"loadsD1"        /*12,13,14*/ 
        ,"faceLoadD1"   ,""           ,""               /*15,16,17*/ 
-       ,"faceRvel"     ,"loadsVel"   ,"faceLoadVel"    /*18,19,20*/ 
-       ,"faceRpres"    ,"loadsPres"  ,"faceLoadPres"   /*21,22,23*/
-       ,"faceRtemp"    ,"loadsTemp"  ,"faceLoadTemp"   /*24,25,26*/
+       ,"faceResVel"   ,"loadsVel"   ,"faceLoadVel"    /*18,19,20*/ 
+       ,"faceResPres"  ,"loadsPres"  ,"faceLoadPres"   /*21,22,23*/
+       ,"faceResTemp"  ,"loadsTemp"  ,"faceLoadTemp"   /*24,25,26*/
        ,"materials"    ,"uniformPres","initialVel"     /*27,28,29*/
        ,"uniformTemp"  ,"uniformVel" ,"uniformZ"       /*30,31,32*/
        ,"faceReKturb"  ,"loadsKturb" ,"faceLoadKturb"  /*33,34,35*/
@@ -799,7 +822,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[18] = true;
-      strcpy(str,"endFaceRvel");
+      strcpy(str,"endFaceResVel");
       fprintf(fileLogExc,"loading faceRvel ...\n");
       readVfRes(mesh->elm.faceRvel,mesh->numel,mesh->maxViz+1,str,file);
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
@@ -837,7 +860,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[21] = true;
-      strcpy(str,"endFaceRpres");
+      strcpy(str,"endFaceResPres");
       fprintf(fileLogExc,"loading faceRpres ...\n");
       readVfRes(mesh->elm.faceRpres,mesh->numel
                ,mesh->maxViz+1     ,str        ,file);
@@ -876,7 +899,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++], word);
       rflag[24] = true;
-      strcpy(str, "endFaceRtemp");
+      strcpy(str, "endFaceResTemp");
       fprintf(fileLogExc,"loading faceRtemp ...\n");
       readVfRes(mesh->elm.faceRenergy,mesh->numel
                ,mesh->maxViz + 1     ,str        ,file);
@@ -892,11 +915,6 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       strcpy(str, "endLoadsTemp");
       fprintf(fileLogExc,"loading loadsTemp ...\n");
       readVfLoads(loadsTemp, str, file);
-      convLoadsEnergy(&propF->sHeat
-                     ,loadsEnergy             ,loadsTemp
-                     ,mesh->elm.material.prop
-                     ,energyModel->fTemperature,propF->fSpecificHeat
-                     ,energyModel->fKelvin);  
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
@@ -1041,6 +1059,53 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
   }while(macroFlag && (!feof(file)));
   
 
+/*... incializando as condicoes de contorno da energia*/
+  if(rflag[25])
+  {
+    if(fComb)
+      convLoadsEnergyMix(cModel                 ,&propF->den 
+                      ,&propF->sHeat            ,loadsEnergy              
+                      ,loadsTemp                ,loadsZcomb
+                      ,loadsVel                 ,mesh->elm.material.prop
+                      ,energyModel->fTemperature,propF->fSpecificHeat
+                      ,energyModel->fKelvin     ,propF->fDensity
+                      ,cModel->fLump);  
+    else
+      convLoadsEnergy(&propF->sHeat
+                       ,loadsEnergy              ,loadsTemp
+                       ,mesh->elm.material.prop
+                       ,energyModel->fTemperature,propF->fSpecificHeat
+                       ,energyModel->fKelvin     );  
+  }
+/*...................................................................*/
+
+/*... incializando as condicoes de contorno da Zcomb*/
+  if(rflag[11])
+  {
+    convLoadsZcombMix(cModel               ,&propF->den 
+                 ,&propF->sHeat                      
+                 ,loadsTemp                ,loadsZcomb
+                 ,mesh->elm.material.prop
+                 ,energyModel->fTemperature,propF->fSpecificHeat
+                 ,energyModel->fKelvin     ,propF->fDensity
+                 ,cModel->fLump);  
+  }
+/*...................................................................*/
+
+/*... incializando as condicoes de contorno da Vel*/
+  if(rflag[19])
+  {
+    convLoadsVelMix(cModel                   ,&propF->den 
+                   ,&propF->sHeat            ,loadsVel              
+                   ,loadsTemp                ,loadsZcomb
+                   ,mesh->elm.material.prop
+                   ,energyModel->fTemperature,propF->fSpecificHeat
+                   ,energyModel->fKelvin     ,propF->fDensity
+                   ,cModel->fLump);   
+  }
+/*...................................................................*/
+
+
 /*... combustao*/
  if(fComb)
   {
@@ -1055,17 +1120,17 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     {
       if(cModel->fLump)
       {
-        MAT2D(i,0,mesh->elm.cDiffComb,nComb) = 1.0e-5; 
-        MAT2D(i,1,mesh->elm.cDiffComb,nComb) = 1.0e-5;
-        MAT2D(i,2,mesh->elm.cDiffComb,nComb) = 1.0e-5;
+        MAT2D(i,0,mesh->elm.cDiffComb,nComb) = 2.0e-6; 
+        MAT2D(i,1,mesh->elm.cDiffComb,nComb) = 2.0e-6;
+        MAT2D(i,2,mesh->elm.cDiffComb,nComb) = 2.0e-6;
       }
       else
       {     
-        MAT2D(i,0,mesh->elm.cDiffComb,nComb) =  1.0e-5; 
-        MAT2D(i,1,mesh->elm.cDiffComb,nComb) =  1.0e-5;
-        MAT2D(i,2,mesh->elm.cDiffComb,nComb) =  1.0e-5;
-        MAT2D(i,3,mesh->elm.cDiffComb,nComb) =  1.0e-5;
-        MAT2D(i,4,mesh->elm.cDiffComb,nComb) =  1.0e-5;
+        MAT2D(i,0,mesh->elm.cDiffComb,nComb) =  2.0e-6; 
+        MAT2D(i,1,mesh->elm.cDiffComb,nComb) =  2.0e-6;
+        MAT2D(i,2,mesh->elm.cDiffComb,nComb) =  2.0e-6;
+        MAT2D(i,3,mesh->elm.cDiffComb,nComb) =  2.0e-6;
+        MAT2D(i,4,mesh->elm.cDiffComb,nComb) =  2.0e-6;
       }      
     }
 /*...................................................................*/
@@ -1810,7 +1875,7 @@ void readVfLoads(Loads *loads,char *str,FILE* file){
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 05/05/2018                                   *
+ * Data de modificaco : 10/05/2019                                   *
  * ------------------------------------------------------------------*
  * CONFIG : configuraceos gerais                                     *
  * ------------------------------------------------------------------*
@@ -1832,7 +1897,7 @@ void readVfLoads(Loads *loads,char *str,FILE* file){
  *********************************************************************/
 void config(FileOpt *opt,Reord *reordMesh,FILE* file)
 {
-  char config[][WORD_SIZE]={"bvtk"  ,"reord"     ,"mem" 
+  char config[][WORD_SIZE]={"bvtk"  ,"reord"     ,"memory" 
                            ,"fItPlotRes","fItPlot"};
   
   char word[WORD_SIZE];
@@ -3700,7 +3765,7 @@ static void convLoadsEnergy(PropPol *sHeatProp
                            ,Loads *loadsEnergy   ,Loads *loadsTemp
                            ,DOUBLE *RESTRICT prop
                            ,bool const fTemp     ,bool const fSheat 
-                           ,bool const iKelvin){
+                           ,bool const iKelvin   ){
 
   short i,j,type;
   DOUBLE t,sHeat,tmp;
@@ -3763,6 +3828,272 @@ static void convLoadsEnergy(PropPol *sHeatProp
 /*....................................................................*/
 }
 /*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 09/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
+ * de C para kelvin                                                  *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+static void convLoadsEnergyMix(Combustion *cModel   ,PropPol *pDen
+                              ,PropPol *sHeatProp   ,Loads *loadsEnergy
+                              ,Loads *loadsTemp     ,Loads *loadsZ     
+                              ,Loads *loadsVel      ,DOUBLE *RESTRICT prop
+                              ,bool const fTemp     ,bool const fSheat 
+                              ,bool const iKelvin   ,bool const fDensity
+                              ,bool const fGrouped)   
+{
+  short i,j,k,type,n;
+  short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
+  DOUBLE t,yFrac[MAXSPECIES],zFrac[MAX_COMB],sHeat,tmp,tmp1,molarMassMix;
+  
+/*... cc da equacao da energia e em temperatura*/
+  if(fTemp){
+
+    for(i=0;i<MAXLOADFLUID;i++){
+      loadsEnergy[i].type    = loadsTemp[i].type;
+      loadsEnergy[i].np      = loadsTemp[i].np;
+      loadsEnergy[i].vel[0]  = loadsVel[i].vel[0];
+      loadsEnergy[i].vel[1]  = loadsVel[i].vel[1];
+      loadsEnergy[i].vel[2]  = loadsVel[i].vel[2];
+      loadsTemp[i].vel[0]    = loadsVel[i].vel[0];
+      loadsTemp[i].vel[1]    = loadsVel[i].vel[1];
+      loadsTemp[i].vel[2]    = loadsVel[i].vel[2];
+      for(j=0;j<MAXLOADPARAMETER;j++)
+        loadsEnergy[i].par[j] = loadsTemp[i].par[j];
+    }
+/*... converte c para kelvin*/    
+//  if(iKelvin)
+//    for(i=0;i<MAXLOADFLUID;i++){
+//      type = loadsEnergy[i].type;
+//      if( type == DIRICHLETBC ||  type == INLET 
+//      ||  type == CONVECTIONHEAT)
+//        loadsEnergy[i].par[0] 
+//                       = CELSIUS_FOR_KELVIN(loadsEnergy[i].par[0]);
+//    }
+      
+  }
+/*....................................................................*/
+
+  else{
+    sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+    for(i=0;i<MAXLOADFLUID;i++){
+      loadsEnergy[i].type    = loadsTemp[i].type;
+      loadsEnergy[i].np      = loadsTemp[i].np;
+      loadsEnergy[i].vel[0]  = loadsVel[i].vel[0];
+      loadsEnergy[i].vel[1]  = loadsVel[i].vel[1];
+      loadsEnergy[i].vel[2]  = loadsVel[i].vel[2];
+      loadsTemp[i].vel[0]    = loadsVel[i].vel[0];
+      loadsTemp[i].vel[1]    = loadsVel[i].vel[1];
+      loadsTemp[i].vel[2]    = loadsVel[i].vel[2];
+      type = loadsTemp[i].type;
+      for(j=0;j<MAXLOADPARAMETER;j++)
+        loadsEnergy[i].par[j] = loadsTemp[i].par[j];
+
+/*...*/
+      if( type == DIRICHLETBC ){
+        t        = loadsTemp[i].par[0];
+        
+        n        = loadsZ[i].np;
+        for(k=0;k<n;k++)
+          yFrac[k] = loadsZ[i].par[k];
+
+        tmp = tempForSpecificEnthalpyMix( sHeatProp, yFrac 
+                                         , t        , sHeat
+                                         , n
+                                         , fSheat  , iKelvin);
+        loadsEnergy[i].par[0] = tmp;               
+      }
+/*....................................................................*/
+
+/*...*/
+      else if ( type == INLET ||  type == OPEN) {
+        t = loadsTemp[i].par[1];
+
+        n        = loadsZ[i].np - 4;
+
+        if(fGrouped)
+        {
+          for(k=0;k<n;k++)
+            zFrac[k] = loadsZ[i].par[k+1];
+          yLumpedMatrixZ(yFrac  , cModel->lumpedMatrix
+                        , zFrac
+                        , ns    , nl);
+        }               
+        else
+          for(k=0;k<n;k++)
+            yFrac[k] = loadsZ[i].par[k+1];
+        
+        tmp = tempForSpecificEnthalpyMix( sHeatProp  , yFrac 
+                                         , t        , sHeat
+                                         , ns
+                                         , fSheat  , iKelvin);
+        if(fDensity)
+        {
+          molarMassMix =  mixtureMolarMass(cModel,yFrac); 
+          tmp1 = mixtureSpeciesDensity(pDen           ,molarMassMix
+                                     ,t               ,thDynamic.pTh[2]
+                                     ,thDynamic.pTh[2],iKelvin);
+          loadsEnergy[i].par[0] = tmp1;  
+        }
+
+        loadsEnergy[i].par[1] = tmp;  
+        
+      }
+/*....................................................................*/
+
+/*...*/
+      else if (type == NEUMANNBC  ||  type == CONVECTIONHEAT
+           ||  type == OUTLET) {
+        loadsEnergy[i].par[0] = loadsTemp[i].par[0];
+      }
+/*....................................................................*/
+    }     
+  }
+/*....................................................................*/
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 08/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
+ * de C para kelvin                                                  *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+static void convLoadsZcombMix(Combustion *cModel   ,PropPol *pDen
+                             ,PropPol *sHeatProp   
+                             ,Loads *loadsTemp     ,Loads *loadsZ     
+                             ,DOUBLE *RESTRICT prop
+                             ,bool const fTemp     ,bool const fSheat 
+                             ,bool const iKelvin   ,bool const fDensity
+                             ,bool const fGrouped)   
+{
+  short i,j,k,type,n;
+  short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
+  DOUBLE t,yFrac[MAXSPECIES],zFrac[MAX_COMB],sHeat,tmp,tmp1,molarMassMix;
+  
+  sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+  for(i=0;i<MAXLOADFLUID;i++)
+  {
+    type = loadsZ[i].type;
+/*...*/
+    if ( type == INLET ||  type == OPEN) 
+    {
+      t = loadsTemp[i].par[1];
+
+      n        = loadsZ[i].np - 4;
+      if(fGrouped)
+      {
+        for(k=0;k<n;k++)
+          zFrac[k] = loadsZ[i].par[k+1];
+        yLumpedMatrixZ(yFrac  , cModel->lumpedMatrix
+                      , zFrac
+                      , ns    , nl);
+      }               
+      else
+        for(k=0;k<n;k++)
+          yFrac[k] = loadsZ[i].par[k+1];
+
+      if(fDensity)
+      {
+        molarMassMix =  mixtureMolarMass(cModel,yFrac); 
+        tmp1 = mixtureSpeciesDensity(pDen           ,molarMassMix
+                                    ,t               ,thDynamic.pTh[2]
+                                   ,thDynamic.pTh[2],iKelvin);
+        loadsZ[i].par[0] = tmp1;  
+      }
+/*....................................................................*/
+    }     
+  }
+/*....................................................................*/
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 08/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
+ * de C para kelvin                                                  *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+static void convLoadsVelMix(Combustion *cModel   ,PropPol *pDen
+                           ,PropPol *sHeatProp   ,Loads *loadsVel
+                           ,Loads *loadsTemp     ,Loads *loadsZ     
+                           ,DOUBLE *RESTRICT prop
+                           ,bool const fTemp     ,bool const fSheat 
+                           ,bool const iKelvin   ,bool const fDensity
+                           ,bool const fGrouped)   
+{
+  short i,j,k,type,n;
+  short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
+  DOUBLE t,yFrac[MAXSPECIES],zFrac[MAX_COMB],sHeat,tmp,tmp1,molarMassMix;
+  
+  sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+  for(i=0;i<MAXLOADFLUID;i++)
+  {
+    type = loadsVel[i].type;
+/*...*/
+    if ( type == INLET ||  type == OPEN) 
+    {
+      t = loadsTemp[i].par[1];
+
+      n        = loadsZ[i].np - 4;
+      if(fGrouped)
+      {
+        for(k=0;k<n;k++)
+          zFrac[k] = loadsZ[i].par[k+1];
+        yLumpedMatrixZ(yFrac  , cModel->lumpedMatrix
+                      , zFrac
+                      , ns    , nl);
+      }               
+      else
+        for(k=0;k<n;k++)
+          yFrac[k] = loadsZ[i].par[k+1];
+
+      if(fDensity)
+      {
+        molarMassMix =  mixtureMolarMass(cModel,yFrac); 
+        tmp1 = mixtureSpeciesDensity(pDen           ,molarMassMix
+                                    ,t               ,thDynamic.pTh[2]
+                                   ,thDynamic.pTh[2],iKelvin);
+        loadsVel[i].par[0] = tmp1;  
+      }
+/*....................................................................*/
+    }     
+  }
+/*....................................................................*/
+}
+/*********************************************************************/
+
 
 /********************************************************************* 
  * Data de criacao    : 11/11/2017                                   *
@@ -4031,7 +4362,7 @@ void help(FILE *f){
   else if (!strcmp(word, help[8])) {
     printf("Ex:\n");
     printf("config\n");
-    printf("reord false bvtk false mem 100 "
+    printf("reord false bvtk false memory 100 "
            "fItPlotRes false fItPlot true\n");
     printf("endConfig\n");
     exit(EXIT_FAILURE);
@@ -4266,7 +4597,7 @@ void setDynamicModelLes(Turbulence *t       , FILE *file) {
 
 /**********************************************************************
  * Data de criacao    : 28/01/2018                                    *
- * Data de modificaco : 00/00/0000                                    *
+ * Data de modificaco : 09/05/2019                                    *
  *--------------------------------------------------------------------* 
  * readAdvectionScheme:                                               *
  *--------------------------------------------------------------------* 
@@ -4321,6 +4652,14 @@ void readAdvectionScheme(FILE *fileIn, Scheme *sc) {
       setAdvectionScheme(word, &sc->advKturb, fileIn);
       nScheme--;
     }
+/*... Zcomb*/
+    else if (!strcmp(word, "Zcomb") || !strcmp(word, "zcomb")) {
+      fprintf(fileLogExc,"%s:\n", word);
+      readMacro(fileIn, word, false);
+ /*... codigo da da funcao limitadora de fluxo*/
+      setAdvectionScheme(word, &sc->advComb, fileIn);
+      nScheme--;
+    }
   } while (nScheme);
 /*...................................................................*/
 }
@@ -4328,7 +4667,7 @@ void readAdvectionScheme(FILE *fileIn, Scheme *sc) {
 
 /**********************************************************************
  * Data de criacao    : 28/01/2018                                    *
- * Data de modificaco : 01/05/2018                                    *
+ * Data de modificaco : 09/05/2019                                    *
  *--------------------------------------------------------------------* 
  * readDiffusionScheme:                                               *
  *--------------------------------------------------------------------* 
@@ -4390,6 +4729,14 @@ void readDiffusionScheme(FILE *fileIn, Scheme *sc) {
       readMacro(fileIn, word, false);
  /*... codigo da da funcao limitadora de fluxo*/
       setDiffusionScheme(word, &sc->diffEnergy.iCod);
+      nScheme--;
+    }
+/*... Zcomb*/
+    else if (!strcmp(word, "Zcomb") || !strcmp(word, "zcomb")) {
+      fprintf(fileLogExc,"%s:\n", word);
+      readMacro(fileIn, word, false);
+ /*... codigo da da funcao limitadora de fluxo*/
+      setDiffusionScheme(word, &sc->diffComb.iCod);
       nScheme--;
     }
   } while (nScheme);
@@ -4477,6 +4824,117 @@ void readSetSimple(Memoria *m    , FILE *fileIn
       fprintf(fileLogExc,"nNonOrth  : %d\n",simple->nNonOrth);
       fprintf(fileLogExc,"pSimple   : %d\n",simple->pSimple);
     }
+  }
+/*...................................................................*/
+
+/*...*/
+  HccaAlloc(DOUBLE     ,m       ,simple->d
+           ,mesh->numel*mesh->ndm,"dField" ,false);
+  zero(simple->d    ,mesh->numel*mesh->ndm,DOUBLEC);
+
+  HccaAlloc(DOUBLE     ,m       ,simple->ePresC
+           ,mesh->numel,"ePresC" ,false);
+  zero(simple->ePresC,mesh->numel  ,DOUBLEC);
+
+  HccaAlloc(DOUBLE     ,m       ,simple->nPresC
+           ,mesh->nnode,"nPresC" ,false);
+  zero(simple->nPresC    ,mesh->numel  ,DOUBLEC);
+
+  HccaAlloc(DOUBLE     ,m      ,simple->eGradPresC
+           ,mesh->numel*mesh->ndm,"eGradPresC",false);
+  zero(simple->eGradPresC,mesh->numel*mesh->ndm  ,DOUBLEC);
+  
+  HccaAlloc(DOUBLE     ,m       ,simple->ePresC1
+           ,mesh->numel,"ePresC1",false);
+  zero(simple->ePresC,mesh->numel  ,DOUBLEC);
+/*...................................................................*/
+}
+/**********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 08/05/2019                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *--------------------------------------------------------------------* 
+ * readSetSimpleComb:                                                     *
+ *--------------------------------------------------------------------* 
+ * Parametros de entrada:                                             * 
+ *--------------------------------------------------------------------* 
+ * file    -> arquivo de arquivo                                      * 
+ *--------------------------------------------------------------------* 
+ * Parametros de saida:                                               * 
+ *--------------------------------------------------------------------* 
+ *--------------------------------------------------------------------* 
+ * OBS:                                                               * 
+ *--------------------------------------------------------------------*
+ **********************************************************************/
+void readSetSimpleComb(Memoria *m    , FILE *fileIn
+                     , Mesh *mesh0   , Mesh *mesh
+                    , Simple *simple, bool *fSolvComb) {
+
+  char word[WORD_SIZE];
+
+/*...*/
+  *fSolvComb              = true;  
+  simple->maxIt           = 1000;
+  simple->alphaPres       = 0.3e0; 
+  simple->alphaVel        = 0.7e0; 
+  simple->type            = SIMPLE;
+  simple->kZeroVel        = 1;
+  simple->kZeroPres       = 0;
+  simple->sPressure       = true;
+  simple->faceInterpolVel = 1;
+  simple->nNonOrth        = 0;
+  simple->tolPres         = 1.e-06;
+  simple->tolVel[0]       = 1.e-06;
+  simple->tolVel[1]       = 1.e-06;
+  simple->tolVel[2]       = 1.e-06;
+  simple->kZeroEnergy     = 0;
+  simple->tolEnergy       = 1.e-06;
+  simple->kZeroComb       = 0;
+  simple->tolComb         = 1.e-06;
+  simple->alphaEnergy     = 1.e0;
+  simple->alphaDensity    = 1.0e0; 
+  simple->alphaComb       = 1.0e0;
+
+  simple->pSimple         = 500;
+/*...................................................................*/
+      
+/*...*/
+  readMacro(fileIn,word,false);
+  if(!strcmp(word,"config:")){
+/*... timer*/        
+    readMacro(fileIn,word,false);
+/*... levemente compressivel*/       
+    setSimpleCombustionScheme(word,mesh0->ndm,simple,fileIn);
+/*...*/        
+    if(simple->type == SIMPLE && !mpiVar.myId)     
+      fprintf(fileLogExc,"PRES-VEL  : SIMPLE\n");
+    else if(simple->type == SIMPLEC && !mpiVar.myId )     
+      fprintf(fileLogExc,"PRES-VEL  : SIMPLEC\n");
+
+/*...*/        
+    if(!mpiVar.myId )
+    { 
+      fprintf(fileLogExc,"%-15s : %d\n","Maxit"       ,simple->maxIt);
+      fprintf(fileLogExc,"%-15s : %d\n","alphaPres"   ,simple->alphaPres);
+      fprintf(fileLogExc,"%-15s : %d\n","alphaVel"    ,simple->alphaVel);
+      fprintf(fileLogExc,"%-15s : %lf\n","alphaVel"   ,simple->alphaVel);
+      fprintf(fileLogExc,"%-15s : %lf\n","alphaEnergy",simple->alphaEnergy);
+      fprintf(fileLogExc,"%-15s : %lf\n","alphaComb"  ,simple->alphaComb);
+      fprintf(fileLogExc,"%-15s : %lf\n","tolPres"    ,simple->tolPres);
+      fprintf(fileLogExc,"%-15s : %lf\n","tolVelX"    ,simple->tolVel[0]);
+      fprintf(fileLogExc,"%-15s : %lf\n","tolVelY"    ,simple->tolVel[1]);
+      if(mesh->ndm == 3)
+        fprintf(fileLogExc,"%-15s : %lf\n","tolVelZ"  ,simple->tolVel[2]);
+      fprintf(fileLogExc,"%-15s : %lf\n","tolEnergy"  ,simple->tolEnergy);
+      fprintf(fileLogExc,"%-15s : %lf\n","tolComb"    ,simple->tolComb);
+      fprintf(fileLogExc,"%-15s : %d\n","nNonOrth"    ,simple->nNonOrth);
+      fprintf(fileLogExc,"%-15s : %d\n","pSimple"     ,simple->pSimple);
+      fprintf(fileLogExc,"%-15s : %d\n","kZeroPres"   ,simple->kZeroPres);
+      fprintf(fileLogExc,"%-15s : %d\n","kZeroVel"    ,simple->kZeroVel);
+      fprintf(fileLogExc,"%-15s : %d\n","kZeroEnergy" ,simple->kZeroEnergy);
+      fprintf(fileLogExc,"%-15s : %d\n","kZeroComb"   ,simple->kZeroComb);
+    }   
   }
 /*...................................................................*/
 

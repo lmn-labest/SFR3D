@@ -61,6 +61,7 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
                    , DOUBLE *RESTRICT q      , DOUBLE *RESTRICT temp
                    , DOUBLE *RESTRICT zComb0 , DOUBLE *RESTRICT zComb
                    , DOUBLE *RESTRICT density, DOUBLE *RESTRICT rateFuel 
+                   , DOUBLE *RESTRICT prop   , short  *RESTRICT mat
                    , DOUBLE const dt         , INT const numel
                    , bool const fsHeat       , bool const fKelvin);
 /*...................................................................*/

@@ -156,7 +156,7 @@
                                 , short const nOfPrSp
                                 , bool const fSheat , bool const fKelvin); 
   DOUBLE tempForSpecificEnthalpySpecies(PropPol *sHeat, short const kSpecie
-                               , DOUBLE const t   
+                               , DOUBLE const t    , DOUBLE const sHeatRef
                                , bool const fSheat , bool const fKelvin);
 
   void getEnergyForTempMix(PropPol *sHeatPol  ,DOUBLE *RESTRICT yFrac 

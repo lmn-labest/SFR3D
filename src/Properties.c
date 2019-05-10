@@ -117,13 +117,14 @@ void updateMixDensity(PropPol *pDen         , Combustion *cModel
 /*..................................................................*/
     break;  
 
-  case PROP_UPDATE_OLD_TIME:
-    for(i=0;i<nEl;i++){
+    case PROP_UPDATE_OLD_TIME:
+      for(i=0;i<nEl;i++)
+      {
 /*...t(n-2) = t(n-1)*/
-      MAT2D(i,TIME_N_MINUS_2 ,density ,nD) = MAT2D(i,1 ,density ,nD);
+        MAT2D(i,TIME_N_MINUS_2 ,density ,nD) = MAT2D(i,1 ,density ,nD);
 /*...t(n-1) = t(n)*/           
-      MAT2D(i,TIME_N_MINUS_1 ,density ,nD) = MAT2D(i,2 ,density ,nD);
-    }
+        MAT2D(i,TIME_N_MINUS_1 ,density ,nD) = MAT2D(i,2 ,density ,nD);
+      }
 /*..................................................................*/
     break;
   }
@@ -490,7 +491,7 @@ DOUBLE mixtureSpecifiHeat(PropPol *sHeat    , DOUBLE *yFrac
     if (cpk < 0.e0 || yFrac[k] < 0.e0)
     {
       printf("Calor especifico negativo!!\n"
-             "Y                = %lf\n"
+             "Y                = %e\n"
              "Species          = %d\n"   
              "Calor especifico = %e\n"
              "Temperatura      = %lf\n!!",yFrac[k], k,cpk,tc);
@@ -545,14 +546,13 @@ DOUBLE specieSpecifiHeat(PropPol *sHeat     , short const kSpecie
   short i,n;
   DOUBLE a[MAXPLODEG],cp,d,tc;
 
-  a[0] = 0.0e0;
-  
   if(fKelvin)
     tc = t;  
   else
     tc = CELSIUS_FOR_KELVIN(t);  
 
   n=sHeat->nPol[kSpecie];
+  printf("%d %d\n",n,kSpecie);
   for (i = 0; i < n; i++)
     a[i] = MAT2D(kSpecie,i,sHeat->a,MAXPLODEG);
   
@@ -769,13 +769,13 @@ DOUBLE tempForSpecificEnthalpyMix(PropPol *sHeat    , DOUBLE *yFrac
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE tempForSpecificEnthalpySpecies(PropPol *sHeat, short const kSpecie
-                               , DOUBLE const t     
+                               , DOUBLE const t     , DOUBLE const sHeatRef
                                , bool const fSheat  , bool const fKelvin) 
 {
 
   short i,n;
   DOUBLE a[MAXPLODEG],d,dt,hk,hs;
-  DOUBLE tc,tRef= TREF,sHeatRef ;
+  DOUBLE tc,tRef= TREF;
 
   if(fKelvin)
     tc = t;  
@@ -797,11 +797,8 @@ DOUBLE tempForSpecificEnthalpySpecies(PropPol *sHeat, short const kSpecie
   }
 
   else
-  {
-    sHeatRef =  specieSpecifiHeat(sHeat,kSpecie
-                                , TREF , false); 
     hk       = TEMP_FOR_ENTHALPY(sHeatRef,tc,TREF);
-  }
+  
   return hk;
 
 }
@@ -2301,7 +2298,7 @@ void getTempForEnergy(PropPol *sHeatPol
  * Data de criacao    : 20/08/2018                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
- * etEnergyForTempMix: obtem a entalpia sensivel apartir da temp     *
+ * etEnergyForTemp   : obtem a entalpia sensivel apartir da temp     *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------*

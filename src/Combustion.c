@@ -25,12 +25,11 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                    , PartMesh *pMesh    , FileOpt *opt
                    , short itSimple    ) 
 {
-  bool fComb[MAX_COMB]
-      ,rel
+  bool fComb[MAX_COMB],fExit,rel
       ,fSheat = prop->fSpecificHeat;
   short itComb, conv, i, j, kZero, nComb, jj = 1, jPrint;
   INT desloc;
-  DOUBLE tmp,tb[MAX_COMB],rCell[MAX_COMB],rCell0[MAX_COMB];
+  DOUBLE tmp,tb[MAX_COMB],rCell[MAX_COMB],rCell0[MAX_COMB],tolComb;
   DOUBLE *b[MAX_COMB], *bPc, *xu[MAX_COMB];
   DOUBLE *ad[MAX_COMB],*al[MAX_COMB],*au[MAX_COMB],*rCellC[MAX_COMB];
   char slName[][10] = {"zFuel","zAir","zProd"},
@@ -40,10 +39,12 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
       nComb - numero de especies transportadas
       jPrint - numero de iteracao que ser impresso o residuo na tela
 */
-  rel    = true;          
-  kZero  = 0;
-  nComb  = cModel->nComb;
-  jPrint = 20;
+  rel     = true;         
+  fExit   = false;
+  nComb   = cModel->nComb;
+  jPrint  = 50;
+  tolComb = sp->tolComb;
+  kZero   = sp->kZeroComb;
 /*...................................................................*/
 
 /*...*/
@@ -77,7 +78,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*...*/
-  for(itComb = 0; itComb < 10;itComb++)
+  for(itComb = 0; itComb < 1;itComb++)
   {
 /*... taxa de comsumo do combustivel*/
     rateFuelConsume(cModel                , mesh->elm.zComb
@@ -178,14 +179,11 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
     
 /*...*/
-    for(i=0;i<nComb;i++)
+    for(i=0,conv=0;i<nComb;i++){
       tb[i] = sqrt(dot(b[i], b[i], sistEqComb->neqNov));
-    if (itComb == 0) tmp = maxArray(tb,nComb);
+      if (itComb == 0) tmp = maxArray(tb,nComb);
 /*...................................................................*/
 
-/*...*/
-    for(i=0;i<nComb;i++)
-    {
  /*...*/
       fComb[i] = true; 
       if ( tb[i] < SZERO || tb[i] == 0.e0 ) fComb[i] = false;
@@ -213,11 +211,24 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*...*/
-      conv = 0;
-      if(rCell[i]/ rCell0[i] < 1.e-6 || rCell[i] < 1.e-16) conv++;
-      if(conv == nComb) break;
+      if(rCell[i]/ rCell0[i] < tolComb || rCell[i] < 1.e-16) conv++;
+      if(conv == nComb && itComb != 0)
+      {
+        fExit = true;
+        break;
+      }
+/*...................................................................*/
+    }
 /*...................................................................*/
 
+/*...*/
+    if(fExit)
+      break;  
+/*...................................................................*/
+
+/*...*/
+    for(i=0,conv = 0;i<nComb;i++)
+    {
 /*...Ax=b*/
       tm.solvComb = getTimeC() - tm.solvComb;
       if(fComb[i])
@@ -252,13 +263,13 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                        , cModel->nComb   
                        , cModel->fRes    , true);  
 /*...................................................................*/
-
+   
   }
 /*...................................................................*/
 
 /*...*/
-//  regularZ(mesh->elm.zComb,mesh->numelNov
-//          ,cModel->nComb  ,cModel->fLump);
+//regularZ(mesh->elm.zComb,mesh->numelNov
+//        ,cModel->nComb  ,cModel->fLump);
 /*...................................................................*/
 
 /*...*/
@@ -271,7 +282,8 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
   rateHeatRealeseCombustion(cModel            , &prop->sHeat                
                     , mesh->elm.rateHeatReComb, mesh->elm.temp     
                     , mesh->elm.zComb0        , mesh->elm.zComb
-                    , mesh->elm.densityFluid  , mesh->elm.rateFuel    
+                    , mesh->elm.densityFluid  , mesh->elm.rateFuel 
+                    , mesh->elm.material.prop , mesh->elm.mat    
                     , sc->ddt.dt[TIME_N]      , mesh->numelNov
                     , fSheat                  , eModel->fKelvin );
 /*...................................................................*/
@@ -283,7 +295,6 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 
 /*...*/
   prop->molarMass = mixtureMolarMass(cModel,mesh->elm.yFrac);
-  printf("2 %lf\n", mixtureMolarMass(cModel,mesh->elm.yFrac));
 /*...................................................................*/
 }
 /*********************************************************************/
@@ -332,10 +343,10 @@ void regularZ(DOUBLE *RESTRICT z    , INT const numel
 /*... z <= 1.0*/
   for(nel = 0 ; nel < numel; nel++)
   {
-    for(j=0,zSum = 0.e0;j<nComb;j++)
-      zSum += MAT2D(nel,j,z,nComb);
-    if(zSum > 1.e0)
-    {
+ // for(j=0,zSum = 0.e0;j<nComb;j++)
+ //   zSum += MAT2D(nel,j,z,nComb);
+ // if(zSum > 1.e0)
+ // {
       if(fLump)
         MAT2D(nel,SL_PROD,z,nComb) = 1.e0 
         - (MAT2D(nel,SL_AIR,z,nComb) + MAT2D(nel,SL_PROD,z,nComb));
@@ -343,7 +354,7 @@ void regularZ(DOUBLE *RESTRICT z    , INT const numel
         MAT2D(nel,SP_N2,z,nComb) = 1.e0 
         - (MAT2D(nel,SP_FUEL,z,nComb) + MAT2D(nel,SP_O2 ,z,nComb)
         +  MAT2D(nel,SP_CO2 ,z,nComb) + MAT2D(nel,SP_H2O,z,nComb));
-    } 
+//  } 
   }
 
 }
@@ -544,7 +555,9 @@ void rateFuelConsume(Combustion *cModel       , DOUBLE *RESTRICT zComb
  * q       -> nao definido                                           *
  * zComb0  -> fracao de massa agrupada do passo de tempo anterior    *
  * zComb   ->fracao de massa agrupada do passo de tempo atural       *
- * rateFuel-> taxa de consumo do combustivel                         * 
+ * rateFuel-> taxa de consumo do combustivel                         *
+ * prop   - propriedades por material                                *
+ * mat    - material da celula                                       * 
  * dt      -> delta dessa passo de tempo                             * 
  * numel   -> numero de elementos                                    *
  * fSheat   - calor especifico com variacao com a Temperatura        *
@@ -561,15 +574,15 @@ void rateHeatRealeseCombustion(Combustion *cModel,PropPol *sHeat
                    , DOUBLE *RESTRICT q      , DOUBLE *RESTRICT temp
                    , DOUBLE *RESTRICT zComb0 , DOUBLE *RESTRICT zComb
                    , DOUBLE *RESTRICT density, DOUBLE *RESTRICT rateFuel 
+                   , DOUBLE *RESTRICT prop   , short  *RESTRICT mat
                    , DOUBLE const dt         , INT const numel
                    , bool const fsHeat       , bool const fKelvin)
 {
 
-  short i;
-  short iCod = cModel->typeHeatRealese;
+  short lMat, iCod = cModel->typeHeatRealese;
   INT nel;
   DOUBLE *h,hc,H[3],nCO2p,nH2Op;
-  DOUBLE z0,z1;
+  DOUBLE z0,z1,sHeatRef;
   DOUBLE densityC,densityC0,tmp,dRoZ;
 
   if(iCod == HFORMATION)
@@ -579,14 +592,17 @@ void rateHeatRealeseCombustion(Combustion *cModel,PropPol *sHeat
     nH2Op = cModel->stoichH2Op;
     for(nel = 0; nel < numel; nel++)
     {
+      lMat  = mat[nel] - 1;
+      sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+
       H[0] = h[SP_CO2 ] + tempForSpecificEnthalpySpecies(sHeat    , SP_CO2 
-                                                       , temp[nel]
+                                                       , temp[nel], sHeatRef
                                                        , fsHeat   , fKelvin);
       H[1] = h[SP_H2O ] + tempForSpecificEnthalpySpecies(sHeat    , SP_H2O 
-                                                       , temp[nel]    
+                                                       , temp[nel], sHeatRef    
                                                        , fsHeat   , fKelvin);
       H[2] = h[SP_FUEL] + tempForSpecificEnthalpySpecies(sHeat    , SP_FUEL 
-                                                       , temp[nel]    
+                                                       , temp[nel], sHeatRef    
                                                        , fsHeat   , fKelvin);
      
       tmp =  (nCO2p*H[0] + nH2Op*H[1] - H[2])/cModel->mW_Fuel;
@@ -1081,7 +1097,7 @@ void concetracionOfSpecies(Combustion *cModel,DOUBLE *RESTRICT z
 
 /**********************************************************************
  * Data de criacao    : 15/08/2018                                    *
- * Data de modificaco : 00/00/0000                                    *
+ * Data de modificaco : 10/05/2019                                    *
  *------------------------------------------------------------------- * 
  * sumFracZ : Soma todas as fracoes de massa                          *  
  * ------------------------------------------------------------------ *
@@ -1102,7 +1118,8 @@ void concetracionOfSpecies(Combustion *cModel,DOUBLE *RESTRICT z
 void sumFracZ(DOUBLE *z       ,DOUBLE *zComb 
          ,INT const n     ,short const nComb)
 {
-  short i,j;
+  short j;
+  INT i;
 
   for(i=0;i<n;i++)
   {

@@ -106,6 +106,8 @@
                       , Simple *sp, FILE *fileIn);
   void setSimpleLmScheme(char *word, short const ndm
                        , Simple *sp, FILE *fileIn);
+  void setSimpleCombustionScheme(char *word , short const ndm
+                              , Simple *sp, FILE *fileIn); 
 /*...................................................................*/
 
 /*...*/

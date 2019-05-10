@@ -78,15 +78,15 @@
             ,char *nameOut        ,bool iws
             ,FILE *f);
 
-  void wGeoFaceVtk2(Memoria *m     , DOUBLE *x
-                  , INT *el        , short *nen
-                  , short *typeGeom
-                  , short *faceRd  , short *faceLd
-                  , INT const nnode, INT const numel
-                  , short const ndm, short const maxViz
-                  , short const ndf, short const maxNo
-                  , char *nameOut  , bool iws
-                  , FILE *f);
+  void wGeoFaceVtk2(Memoria *m          , DOUBLE *x
+                  , INT *el             , short *nen
+                  , short *typeGeom     
+                  , short *faceRd       , short *faceLd
+                  , INT const nnode     , INT const numel
+                  , short const ndm     , short const maxViz
+                  , short const ndf     , short const maxNo
+                  , char *nameOut       , bool iws
+                  , bool const fWallVel , FILE *f);
 /*...................................................................*/
 
 /*... resultados*/  
@@ -198,8 +198,8 @@
              ,INT *face          ,int    *lFaceL     ,INT *idFace
              ,short *typeGeomFace,short *nenFace
              ,short const maxViz ,short const maxNo
-             ,short const ndf     
-             ,INT const numel    ,INT *nFace);
+             ,short const ndf    ,INT const numel   
+             ,INT *nFace         ,bool const fWallVel);
 
   void makeVorticity(DOUBLE *RESTRICT w, DOUBLE *RESTRICT gradVel
                     ,INT const n       , const short ndm);
