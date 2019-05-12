@@ -110,7 +110,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
         , nComb                  , mesh->ndm              
         , &pMesh->iNo            , &pMesh->iEl
         , mesh->numelNov         , mesh->numel
-        , mesh->nnodeNov         , mesh->nnode);    
+        , mesh->nnodeNov         , mesh->nnode);      
     tm.rcGradComb = getTimeC() - tm.rcGradComb;
 /*.................................................................. */
 
@@ -243,8 +243,6 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
               , sistEqComb->storage, solvComb->solver
               , solvComb->fileSolv , solvComb->log
               , true               , sistEqComb->unsym);
-      else
-        zero(xu[i],sistEqComb->neq,DOUBLEC);
       tm.solvComb = getTimeC() - tm.solvComb;    
     }
 /*...................................................................*/

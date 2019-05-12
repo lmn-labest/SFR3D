@@ -163,7 +163,7 @@ void loadSenProd(DOUBLE *tA,DOUBLE *par,DOUBLE *xm){
 
 /********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 17/01/2018                                   * 
+ * Data de modificaco : 11/05/2019                                   * 
  *-------------------------------------------------------------------* 
  * pLoadSimple : condicao de contorno para velocidades               *
  *-------------------------------------------------------------------* 
@@ -299,13 +299,13 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 /*... entrada de massa(Pressao estatica)*/
   else if (ld->type == INLETSTAICTPRES) {
     getLoads(par,ld,xx);
-    densityEnv = par[0];
+    densityEnv = par[ndm];
 /*... direcao*/
-    tmp[0] = par[1];
-    tmp[1] = par[2];
+    tmp[0] = par[0];
+    tmp[1] = par[1];
 /*... velocidade normal*/
     if (ndm == 3) {
-      tmp[2] = par[3];
+      tmp[2] = par[2];
       wfn = velC[0]*n[0] + velC[1]*n[1] + velC[2]*n[2];
       tmp[3] = wfn / (tmp[0]*n[0] + tmp[1]*n[1] + tmp[2]*n[2]);
     }
@@ -332,15 +332,15 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 /*... entrada de massa ( Velocidade)*/
   else if( ld->type ==  INLET){
     getLoads(par,ld, xx);
-    tA[0] = par[1];
-    tA[1] = par[2];
+    tA[0] = par[0];
+    tA[1] = par[1];
     wfn   = tA[0]*n[0] + tA[1]*n[1];
     if( ndm == 3){
-      tA[2] = par[3];
+      tA[2] = par[2];
       wfn  += tA[2]*n[2];
     }
  /*... eq momentum*/
-    densityEnv = par[0];
+    densityEnv = par[ld->np-1];
     m  = densityEnv*wfn*fArea;
     if(fCalVel){
       p[0] -= m*tA[0];
@@ -803,17 +803,17 @@ void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
 /*... potencial prescrito (entra)*/
    else if( ld->type == INLET){
      getLoads(par, ld, xm);
-     tA[0] = par[1];
+     tA[0] = par[0];
 /*...*/
      if(fCal)
      {
-       densityEnv = par[0];
-       velB[0]    = par[2];
-       velB[1]    = par[3];
+       densityEnv = par[ndm+1];
+       velB[0]    = par[1];
+       velB[1]    = par[2];
        wfn = velB[0] * n[0] + velB[1] * n[1];
        if (ndm == 3)
        {
-         velB[2] = par[4];
+         velB[2] = par[3];
          wfn += velB[2] * n[2];
        }
        *p -= wfn*densityEnv*fArea*tA[0];
@@ -1048,16 +1048,16 @@ void pLoadEnergy(PropVarFluid *vProp
 /*... potencial prescrito (entra)*/
    else if( ld->type == INLET){
      getLoads(par,ld,xx); 
-     tA[0]   = par[1];
+     tA[0]   = par[0];
 /*...*/
      if(fCal){
-        densityEnv = par[0];
-        velB[0]    = par[2];
-        velB[1]    = par[3];
+        densityEnv = ld->density;
+        velB[0]    = ld->vel[0];
+        velB[1]    = ld->vel[1];
         
         wfn   = velB[0] * n[0] + velB[1] * n[1];
         if (ndm == 3) {
-          velB[2] = par[4];  
+          velB[2] = ld->vel[2];  
           wfn += velB[2]*n[2];
         }
        *p -= wfn*densityEnv*fArea*tA[0];
@@ -1224,16 +1224,17 @@ void pLoadCombustion(PropVarFluid *vProp
    else if( ld->type == INLET){
      getLoads(par,ld,xx); 
      for(i=0;i<nComb;i++)
-       tA[i]   = par[1+i];
+       tA[i]   = par[i];
+
 /*...*/
      if(fCal){
-        densityEnv = par[0];
-        velB[0]    = par[nComb+1];
-        velB[1]    = par[nComb+2];
+        densityEnv = ld->density;
+        velB[0]    = ld->vel[0];
+        velB[1]    = ld->vel[1];
         
         wfn   = velB[0] * n[0] + velB[1] * n[1];
         if (ndm == 3) {
-          velB[2] = par[nComb+3];  
+          velB[2] = ld->vel[2];
           wfn += velB[2]*n[2];
         }
         for(i=0;i<nComb;i++)
@@ -1264,7 +1265,7 @@ void pLoadCombustion(PropVarFluid *vProp
 
 /********************************************************************* 
  * Data de criacao    : 21/09/2017                                   *
- * Data de modificaco : 27/01/2018                                   * 
+ * Data de modificaco : 11/05/2019                                   * 
  *-------------------------------------------------------------------* 
  * pLoadOneEqK : cargas da equacao K                                 *
  *-------------------------------------------------------------------* 
@@ -1342,13 +1343,13 @@ void pLoadOneEqK(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 /*... potencial prescrito (entra)*/
    else if( ld->type == INLET){
      getLoads(par,ldVel,xx);
-     densityEnv = par[0];
-     vB[0]      = par[1];
-     vB[1]      = par[2];
+     densityEnv = par[4];
+     vB[0]      = par[0];
+     vB[1]      = par[1];
      vv         = vB[0]*vB[0] + vB[1]*vB[1]; 
      wfn        = vB[0]*n[0] + vB[1]*n[1];
      if( ndm == 3){
-       vB[2] = par[3];
+       vB[2] = par[2];
        wfn += vB[2]*n[2];
        vv  += vB[2]*vB[2];
      }
@@ -1375,3 +1376,40 @@ void pLoadOneEqK(DOUBLE *RESTRICT sP     , DOUBLE *RESTRICT p
 
 }
 /*********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 10/05/2019                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *--------------------------------------------------------------------*
+ * initPropCD : inicializacao                                         *
+ *--------------------------------------------------------------------*
+ * Parametros de entrada:                                             *
+ *--------------------------------------------------------------------*
+ *--------------------------------------------------------------------*
+ * Parametros de saida:                                               *
+ *--------------------------------------------------------------------*
+ *--------------------------------------------------------------------*
+ * OBS:                                                               *
+ *--------------------------------------------------------------------*
+ **********************************************************************/
+void initLoads()
+{
+  short i;
+
+  for(i=0;i<MAXLOADD1;i++)
+  {
+    loadsD1[i].type = 0;
+    loadsT1[i].type = 0;
+  }
+
+  for(i=0;i<MAXLOADFLUID;i++)
+  {
+    loadsPres[i].type    = 0;
+    loadsPresC[i].type   = 0;
+    loadsEnergy[i].type  = 0;
+    loadsTemp[i].type    = 0;
+    loadsKturb[i].type   = 0;
+    loadsZcomb[i].type   = 0;
+  }
+}
+/**********************************************************************/

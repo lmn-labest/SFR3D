@@ -6086,7 +6086,7 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 18/07/2018                                   * 
+ * Data de modificaco : 11/05/2019                                   * 
  *-------------------------------------------------------------------* 
  * INTERCELLNODE: interpolacao dos valores das celulas para o no da  *
  * malha                                                             *
@@ -6414,7 +6414,7 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
               }
               getLoads(par,&loads[nCarg],xx);
               for(k = 0; k   < ndf1;k++) 
-                MAT2D(no[n],k,noU,ndf1) += par[k+1];
+                MAT2D(no[n],k,noU,ndf1) += par[k];
               md[no[n]]++;
             }
           }
@@ -7512,7 +7512,7 @@ bool openDomain(Loads *loadVel
 
 /*********************************************************************
  * Data de criacao    : 01/10/2017                                   *
- * Data de modificaco : 18/07/2018                                   *
+ * Data de modificaco : 11/05/2019                                   *
  *-------------------------------------------------------------------*
  * MASSFLUXOPENDOMAIN: calcula da massa entrando e saindo            *
  *-------------------------------------------------------------------*
@@ -7571,15 +7571,15 @@ DOUBLE massFluxOpenDomain(Loads *loadVel    , Temporal const ddt
           aFace = fArea[idFace];
           n[0]  = ch * MAT2D(idFace, 0, fNormal, ndm);
           n[1]  = ch * MAT2D(idFace, 1, fNormal, ndm);
-          v[0]  = par[1];
-          v[1]  = par[2];
+          v[0]  = par[0];
+          v[1]  = par[1];
           wfn   = v[0]*n[0] + v[1]*n[1];
           if ( ndm == 3 ) {
             n[2] = ch * MAT2D(idFace, 2, fNormal, ndm);
-            v[2] = par[3];
+            v[2] = par[2];
             wfn +=  v[2]*n[2];
           }
-          lDensity = par[0];
+          lDensity = par[ndm];
       
           mIn     += lDensity*wfn*aFace;          
         }

@@ -17,7 +17,7 @@
                               ,bool const fGrouped);  
  static void convLoadsZcombMix(Combustion *cModel  ,PropPol *pDen
                              ,PropPol *sHeatProp   ,Loads *loadsTemp 
-                             ,Loads *loadsZ     
+                             ,Loads *loadsZ        ,Loads *loadsVel
                              ,DOUBLE *RESTRICT prop
                              ,bool const fTemp     ,bool const fSheat 
                              ,bool const iKelvin   ,bool const fDensity
@@ -30,6 +30,11 @@
                             ,bool const fTemp     ,bool const fSheat 
                             ,bool const iKelvin   ,bool const fDensity
                             ,bool const fGrouped); 
+  static void convLoadsVel(PropPol *pDen
+                        ,PropPol *sHeatProp   ,Loads *loadsVel
+                        ,Loads *loadsTemp     ,DOUBLE *RESTRICT prop
+                        ,bool const fTemp     ,bool const fSheat 
+                        ,bool const iKelvin   ,bool const fDensity);
 
   static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC);
 /*..................................................................*/
@@ -1058,6 +1063,25 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 
   }while(macroFlag && (!feof(file)));
   
+/*... incializando as condicoes de contorno da Vel*/
+  if(rflag[19])
+  {
+    if(fComb)
+      convLoadsVelMix(cModel                   ,&propF->den 
+                    ,&propF->sHeat            ,loadsVel              
+                    ,loadsTemp                ,loadsZcomb
+                     ,mesh->elm.material.prop
+                    ,energyModel->fTemperature,propF->fSpecificHeat
+                    ,energyModel->fKelvin     ,propF->fDensity
+                    ,cModel->fLump);   
+    else
+      convLoadsVel(&propF->den 
+                    ,&propF->sHeat            ,loadsVel              
+                    ,loadsTemp                ,mesh->elm.material.prop
+                    ,energyModel->fTemperature,propF->fSpecificHeat
+                    ,energyModel->fKelvin     ,propF->fDensity);   
+  }
+/*...................................................................*/
 
 /*... incializando as condicoes de contorno da energia*/
   if(rflag[25])
@@ -1083,28 +1107,14 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
   if(rflag[11])
   {
     convLoadsZcombMix(cModel               ,&propF->den 
-                 ,&propF->sHeat                      
-                 ,loadsTemp                ,loadsZcomb
+                 ,&propF->sHeat            ,loadsTemp   
+                 ,loadsZcomb               ,loadsVel    
                  ,mesh->elm.material.prop
                  ,energyModel->fTemperature,propF->fSpecificHeat
                  ,energyModel->fKelvin     ,propF->fDensity
                  ,cModel->fLump);  
   }
 /*...................................................................*/
-
-/*... incializando as condicoes de contorno da Vel*/
-  if(rflag[19])
-  {
-    convLoadsVelMix(cModel                   ,&propF->den 
-                   ,&propF->sHeat            ,loadsVel              
-                   ,loadsTemp                ,loadsZcomb
-                   ,mesh->elm.material.prop
-                   ,energyModel->fTemperature,propF->fSpecificHeat
-                   ,energyModel->fKelvin     ,propF->fDensity
-                   ,cModel->fLump);   
-  }
-/*...................................................................*/
-
 
 /*... combustao*/
  if(fComb)
@@ -3722,378 +3732,6 @@ void uniformField(DOUBLE *field, INT const n, short const ndf
   
 }
 /*********************************************************************/
-
-/*********************************************************************/
-/*Converte condicoes de contorno da pressao para presssao de correcao*/
-/*********************************************************************/
-static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC){
-
-  short i,j,type;
-
-  for(i=0;i<MAXLOADFLUID;i++){
-    loadsPresC[i].type = loadsPres[i].type;
-    loadsPresC[i].np   = loadsPres[i].np;
-    for(j=0;j<MAXLOADPARAMETER;j++){
-      loadsPresC[i].par[j] = loadsPres[i].par[j];
-    }
-
-    type = loadsPresC[i].type;
-    if(type == DIRICHLETBC)
-      loadsPresC[i].par[0] = 0.e0;
-    else if(type == INLETTOTALPRES)
-      loadsPresC[i].par[1] = 0.e0;
-  }
-}
-
-/********************************************************************* 
- * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 05/09/2017                                   *
- *-------------------------------------------------------------------*
- * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
- * de C para kelvin                                                  *
- *-------------------------------------------------------------------*
- * Parametros de entrada:                                            *
- *-------------------------------------------------------------------*
- *-------------------------------------------------------------------*
- * Parametros de saida:                                              *
- *-------------------------------------------------------------------*
- *-------------------------------------------------------------------*
- * OBS:                                                              *
- *-------------------------------------------------------------------*
- *********************************************************************/
-static void convLoadsEnergy(PropPol *sHeatProp
-                           ,Loads *loadsEnergy   ,Loads *loadsTemp
-                           ,DOUBLE *RESTRICT prop
-                           ,bool const fTemp     ,bool const fSheat 
-                           ,bool const iKelvin   ){
-
-  short i,j,type;
-  DOUBLE t,sHeat,tmp;
-  
-/*... cc da equacao da energia e em temperatura*/
-  if(fTemp){
-
-    for(i=0;i<MAXLOADFLUID;i++){
-      loadsEnergy[i].type = loadsTemp[i].type;
-      loadsEnergy[i].np   = loadsTemp[i].np;
-      for(j=0;j<MAXLOADPARAMETER;j++)
-        loadsEnergy[i].par[j] = loadsTemp[i].par[j];
-    }
-/*... converte c para kelvin*/    
-//  if(iKelvin)
-//    for(i=0;i<MAXLOADFLUID;i++){
-//      type = loadsEnergy[i].type;
-//      if( type == DIRICHLETBC ||  type == INLET 
-//      ||  type == CONVECTIONHEAT)
-//        loadsEnergy[i].par[0] 
-//                       = CELSIUS_FOR_KELVIN(loadsEnergy[i].par[0]);
-//    }
-      
-  }
-/*....................................................................*/
-
-  else{
-    sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-    for(i=0;i<MAXLOADFLUID;i++){
-      loadsEnergy[i].type = loadsTemp[i].type;
-      loadsEnergy[i].np   = loadsTemp[i].np;
-      type = loadsTemp[i].type;
-      for(j=0;j<MAXLOADPARAMETER;j++)
-        loadsEnergy[i].par[j] = loadsTemp[i].par[j];
-
-/*...*/
-      if( type == DIRICHLETBC ){
-        t = loadsTemp[i].par[0];
-        tmp = tempForSpecificEnthalpy(sHeatProp,t, sHeat, fSheat, iKelvin);
-        loadsEnergy[i].par[0] = tmp;               
-      }
-/*....................................................................*/
-
-/*...*/
-      else if ( type == INLET ||  type == OPEN) {
-        t = loadsTemp[i].par[1];
-        tmp = tempForSpecificEnthalpy(sHeatProp,t, sHeat, fSheat, iKelvin);
-        loadsEnergy[i].par[1] = tmp;  
-      }
-/*....................................................................*/
-
-/*...*/
-      else if (type == NEUMANNBC  ||  type == CONVECTIONHEAT
-           ||  type == OUTLET) {
-        loadsEnergy[i].par[0] = loadsTemp[i].par[0];
-      }
-/*....................................................................*/
-    }     
-  }
-/*....................................................................*/
-}
-/*********************************************************************/
-
-/********************************************************************* 
- * Data de criacao    : 09/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
- *-------------------------------------------------------------------*
- * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
- * de C para kelvin                                                  *
- *-------------------------------------------------------------------*
- * Parametros de entrada:                                            *
- *-------------------------------------------------------------------*
- *-------------------------------------------------------------------*
- * Parametros de saida:                                              *
- *-------------------------------------------------------------------*
- *-------------------------------------------------------------------*
- * OBS:                                                              *
- *-------------------------------------------------------------------*
- *********************************************************************/
-static void convLoadsEnergyMix(Combustion *cModel   ,PropPol *pDen
-                              ,PropPol *sHeatProp   ,Loads *loadsEnergy
-                              ,Loads *loadsTemp     ,Loads *loadsZ     
-                              ,Loads *loadsVel      ,DOUBLE *RESTRICT prop
-                              ,bool const fTemp     ,bool const fSheat 
-                              ,bool const iKelvin   ,bool const fDensity
-                              ,bool const fGrouped)   
-{
-  short i,j,k,type,n;
-  short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
-  DOUBLE t,yFrac[MAXSPECIES],zFrac[MAX_COMB],sHeat,tmp,tmp1,molarMassMix;
-  
-/*... cc da equacao da energia e em temperatura*/
-  if(fTemp){
-
-    for(i=0;i<MAXLOADFLUID;i++){
-      loadsEnergy[i].type    = loadsTemp[i].type;
-      loadsEnergy[i].np      = loadsTemp[i].np;
-      loadsEnergy[i].vel[0]  = loadsVel[i].vel[0];
-      loadsEnergy[i].vel[1]  = loadsVel[i].vel[1];
-      loadsEnergy[i].vel[2]  = loadsVel[i].vel[2];
-      loadsTemp[i].vel[0]    = loadsVel[i].vel[0];
-      loadsTemp[i].vel[1]    = loadsVel[i].vel[1];
-      loadsTemp[i].vel[2]    = loadsVel[i].vel[2];
-      for(j=0;j<MAXLOADPARAMETER;j++)
-        loadsEnergy[i].par[j] = loadsTemp[i].par[j];
-    }
-/*... converte c para kelvin*/    
-//  if(iKelvin)
-//    for(i=0;i<MAXLOADFLUID;i++){
-//      type = loadsEnergy[i].type;
-//      if( type == DIRICHLETBC ||  type == INLET 
-//      ||  type == CONVECTIONHEAT)
-//        loadsEnergy[i].par[0] 
-//                       = CELSIUS_FOR_KELVIN(loadsEnergy[i].par[0]);
-//    }
-      
-  }
-/*....................................................................*/
-
-  else{
-    sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-    for(i=0;i<MAXLOADFLUID;i++){
-      loadsEnergy[i].type    = loadsTemp[i].type;
-      loadsEnergy[i].np      = loadsTemp[i].np;
-      loadsEnergy[i].vel[0]  = loadsVel[i].vel[0];
-      loadsEnergy[i].vel[1]  = loadsVel[i].vel[1];
-      loadsEnergy[i].vel[2]  = loadsVel[i].vel[2];
-      loadsTemp[i].vel[0]    = loadsVel[i].vel[0];
-      loadsTemp[i].vel[1]    = loadsVel[i].vel[1];
-      loadsTemp[i].vel[2]    = loadsVel[i].vel[2];
-      type = loadsTemp[i].type;
-      for(j=0;j<MAXLOADPARAMETER;j++)
-        loadsEnergy[i].par[j] = loadsTemp[i].par[j];
-
-/*...*/
-      if( type == DIRICHLETBC ){
-        t        = loadsTemp[i].par[0];
-        
-        n        = loadsZ[i].np;
-        for(k=0;k<n;k++)
-          yFrac[k] = loadsZ[i].par[k];
-
-        tmp = tempForSpecificEnthalpyMix( sHeatProp, yFrac 
-                                         , t        , sHeat
-                                         , n
-                                         , fSheat  , iKelvin);
-        loadsEnergy[i].par[0] = tmp;               
-      }
-/*....................................................................*/
-
-/*...*/
-      else if ( type == INLET ||  type == OPEN) {
-        t = loadsTemp[i].par[1];
-
-        n        = loadsZ[i].np - 4;
-
-        if(fGrouped)
-        {
-          for(k=0;k<n;k++)
-            zFrac[k] = loadsZ[i].par[k+1];
-          yLumpedMatrixZ(yFrac  , cModel->lumpedMatrix
-                        , zFrac
-                        , ns    , nl);
-        }               
-        else
-          for(k=0;k<n;k++)
-            yFrac[k] = loadsZ[i].par[k+1];
-        
-        tmp = tempForSpecificEnthalpyMix( sHeatProp  , yFrac 
-                                         , t        , sHeat
-                                         , ns
-                                         , fSheat  , iKelvin);
-        if(fDensity)
-        {
-          molarMassMix =  mixtureMolarMass(cModel,yFrac); 
-          tmp1 = mixtureSpeciesDensity(pDen           ,molarMassMix
-                                     ,t               ,thDynamic.pTh[2]
-                                     ,thDynamic.pTh[2],iKelvin);
-          loadsEnergy[i].par[0] = tmp1;  
-        }
-
-        loadsEnergy[i].par[1] = tmp;  
-        
-      }
-/*....................................................................*/
-
-/*...*/
-      else if (type == NEUMANNBC  ||  type == CONVECTIONHEAT
-           ||  type == OUTLET) {
-        loadsEnergy[i].par[0] = loadsTemp[i].par[0];
-      }
-/*....................................................................*/
-    }     
-  }
-/*....................................................................*/
-}
-/*********************************************************************/
-
-/********************************************************************* 
- * Data de criacao    : 08/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
- *-------------------------------------------------------------------*
- * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
- * de C para kelvin                                                  *
- *-------------------------------------------------------------------*
- * Parametros de entrada:                                            *
- *-------------------------------------------------------------------*
- *-------------------------------------------------------------------*
- * Parametros de saida:                                              *
- *-------------------------------------------------------------------*
- *-------------------------------------------------------------------*
- * OBS:                                                              *
- *-------------------------------------------------------------------*
- *********************************************************************/
-static void convLoadsZcombMix(Combustion *cModel   ,PropPol *pDen
-                             ,PropPol *sHeatProp   
-                             ,Loads *loadsTemp     ,Loads *loadsZ     
-                             ,DOUBLE *RESTRICT prop
-                             ,bool const fTemp     ,bool const fSheat 
-                             ,bool const iKelvin   ,bool const fDensity
-                             ,bool const fGrouped)   
-{
-  short i,j,k,type,n;
-  short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
-  DOUBLE t,yFrac[MAXSPECIES],zFrac[MAX_COMB],sHeat,tmp,tmp1,molarMassMix;
-  
-  sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-  for(i=0;i<MAXLOADFLUID;i++)
-  {
-    type = loadsZ[i].type;
-/*...*/
-    if ( type == INLET ||  type == OPEN) 
-    {
-      t = loadsTemp[i].par[1];
-
-      n        = loadsZ[i].np - 4;
-      if(fGrouped)
-      {
-        for(k=0;k<n;k++)
-          zFrac[k] = loadsZ[i].par[k+1];
-        yLumpedMatrixZ(yFrac  , cModel->lumpedMatrix
-                      , zFrac
-                      , ns    , nl);
-      }               
-      else
-        for(k=0;k<n;k++)
-          yFrac[k] = loadsZ[i].par[k+1];
-
-      if(fDensity)
-      {
-        molarMassMix =  mixtureMolarMass(cModel,yFrac); 
-        tmp1 = mixtureSpeciesDensity(pDen           ,molarMassMix
-                                    ,t               ,thDynamic.pTh[2]
-                                   ,thDynamic.pTh[2],iKelvin);
-        loadsZ[i].par[0] = tmp1;  
-      }
-/*....................................................................*/
-    }     
-  }
-/*....................................................................*/
-}
-/*********************************************************************/
-
-/********************************************************************* 
- * Data de criacao    : 08/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
- *-------------------------------------------------------------------*
- * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
- * de C para kelvin                                                  *
- *-------------------------------------------------------------------*
- * Parametros de entrada:                                            *
- *-------------------------------------------------------------------*
- *-------------------------------------------------------------------*
- * Parametros de saida:                                              *
- *-------------------------------------------------------------------*
- *-------------------------------------------------------------------*
- * OBS:                                                              *
- *-------------------------------------------------------------------*
- *********************************************************************/
-static void convLoadsVelMix(Combustion *cModel   ,PropPol *pDen
-                           ,PropPol *sHeatProp   ,Loads *loadsVel
-                           ,Loads *loadsTemp     ,Loads *loadsZ     
-                           ,DOUBLE *RESTRICT prop
-                           ,bool const fTemp     ,bool const fSheat 
-                           ,bool const iKelvin   ,bool const fDensity
-                           ,bool const fGrouped)   
-{
-  short i,j,k,type,n;
-  short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
-  DOUBLE t,yFrac[MAXSPECIES],zFrac[MAX_COMB],sHeat,tmp,tmp1,molarMassMix;
-  
-  sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-  for(i=0;i<MAXLOADFLUID;i++)
-  {
-    type = loadsVel[i].type;
-/*...*/
-    if ( type == INLET ||  type == OPEN) 
-    {
-      t = loadsTemp[i].par[1];
-
-      n        = loadsZ[i].np - 4;
-      if(fGrouped)
-      {
-        for(k=0;k<n;k++)
-          zFrac[k] = loadsZ[i].par[k+1];
-        yLumpedMatrixZ(yFrac  , cModel->lumpedMatrix
-                      , zFrac
-                      , ns    , nl);
-      }               
-      else
-        for(k=0;k<n;k++)
-          yFrac[k] = loadsZ[i].par[k+1];
-
-      if(fDensity)
-      {
-        molarMassMix =  mixtureMolarMass(cModel,yFrac); 
-        tmp1 = mixtureSpeciesDensity(pDen           ,molarMassMix
-                                    ,t               ,thDynamic.pTh[2]
-                                   ,thDynamic.pTh[2],iKelvin);
-        loadsVel[i].par[0] = tmp1;  
-      }
-/*....................................................................*/
-    }     
-  }
-/*....................................................................*/
-}
-/*********************************************************************/
-
 
 /********************************************************************* 
  * Data de criacao    : 11/11/2017                                   *
@@ -7174,5 +6812,436 @@ void readcombParameters(Combustion *c, FILE *file)
     readMacroV2(file, word, false, true);
   } while (strcmp(word, str));
 
+}
+/*********************************************************************/
+
+/*********************************************************************/
+/*Converte condicoes de contorno da pressao para presssao de correcao*/
+/*********************************************************************/
+static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC){
+
+  short i,j,type;
+
+  for(i=0;i<MAXLOADFLUID;i++){
+    loadsPresC[i].type = loadsPres[i].type;
+    loadsPresC[i].np   = loadsPres[i].np;
+    for(j=0;j<MAXLOADPARAMETER;j++){
+      loadsPresC[i].par[j] = loadsPres[i].par[j];
+    }
+
+    type = loadsPresC[i].type;
+    if(type == DIRICHLETBC)
+      loadsPresC[i].par[0] = 0.e0;
+    else if(type == INLETTOTALPRES)
+      loadsPresC[i].par[1] = 0.e0;
+  }
+}
+
+/********************************************************************* 
+ * Data de criacao    : 30/06/2016                                   *
+ * Data de modificaco : 05/09/2017                                   *
+ *-------------------------------------------------------------------*
+ * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
+ * de C para kelvin                                                  *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+static void convLoadsEnergy(PropPol *sHeatProp
+                           ,Loads *loadsEnergy   ,Loads *loadsTemp
+                           ,DOUBLE *RESTRICT prop
+                           ,bool const fTemp     ,bool const fSheat 
+                           ,bool const iKelvin   ){
+
+  short i,j,type;
+  DOUBLE t,sHeat,tmp;
+  
+/*... cc da equacao da energia e em temperatura*/
+  if(fTemp){
+
+    for(i=0;i<MAXLOADFLUID;i++){
+      loadsEnergy[i].type = loadsTemp[i].type;
+      loadsEnergy[i].np   = loadsTemp[i].np;
+      for(j=0;j<MAXLOADPARAMETER;j++)
+        loadsEnergy[i].par[j] = loadsTemp[i].par[j];
+    }
+/*... converte c para kelvin*/    
+//  if(iKelvin)
+//    for(i=0;i<MAXLOADFLUID;i++){
+//      type = loadsEnergy[i].type;
+//      if( type == DIRICHLETBC ||  type == INLET 
+//      ||  type == CONVECTIONHEAT)
+//        loadsEnergy[i].par[0] 
+//                       = CELSIUS_FOR_KELVIN(loadsEnergy[i].par[0]);
+//    }
+      
+  }
+/*....................................................................*/
+
+  else{
+    sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+    for(i=0;i<MAXLOADFLUID;i++){
+      loadsEnergy[i].type = loadsTemp[i].type;
+      loadsEnergy[i].np   = loadsTemp[i].np;
+      type = loadsTemp[i].type;
+      for(j=0;j<MAXLOADPARAMETER;j++)
+        loadsEnergy[i].par[j] = loadsTemp[i].par[j];
+
+/*...*/
+      if( type == DIRICHLETBC ){
+        t = loadsTemp[i].par[0];
+        tmp = tempForSpecificEnthalpy(sHeatProp,t, sHeat, fSheat, iKelvin);
+        loadsEnergy[i].par[0] = tmp;               
+      }
+/*....................................................................*/
+
+/*...*/
+      else if ( type == INLET ||  type == OPEN) {
+        t = loadsTemp[i].par[0];
+        tmp = tempForSpecificEnthalpy(sHeatProp,t, sHeat, fSheat, iKelvin);
+        loadsEnergy[i].par[0] = tmp;  
+      }
+/*....................................................................*/
+
+/*...*/
+      else if (type == NEUMANNBC  ||  type == CONVECTIONHEAT
+           ||  type == OUTLET) {
+        loadsEnergy[i].par[0] = loadsTemp[i].par[0];
+      }
+/*....................................................................*/
+    }     
+  }
+/*....................................................................*/
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 09/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
+ * de C para kelvin                                                  *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+static void convLoadsEnergyMix(Combustion *cModel   ,PropPol *pDen
+                              ,PropPol *sHeatProp   ,Loads *loadsEnergy
+                              ,Loads *loadsTemp     ,Loads *loadsZ     
+                              ,Loads *loadsVel      ,DOUBLE *RESTRICT prop
+                              ,bool const fTemp     ,bool const fSheat 
+                              ,bool const iKelvin   ,bool const fDensity
+                              ,bool const fGrouped)   
+{
+  short i,j,k,type,n;
+  short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
+  DOUBLE t,yFrac[MAXSPECIES],zFrac[MAX_COMB],sHeat,tmp,tmp1,molarMassMix;
+  
+/*... cc da equacao da energia e em temperatura*/
+  if(fTemp){
+
+    for(i=0;i<MAXLOADFLUID;i++){
+      loadsEnergy[i].type    = loadsTemp[i].type;
+      loadsEnergy[i].np      = loadsTemp[i].np;
+      for(j=0;j<MAXLOADPARAMETER;j++)
+        loadsEnergy[i].par[j] = loadsTemp[i].par[j];
+    }
+/*... converte c para kelvin*/    
+//  if(iKelvin)
+//    for(i=0;i<MAXLOADFLUID;i++){
+//      type = loadsEnergy[i].type;
+//      if( type == DIRICHLETBC ||  type == INLET 
+//      ||  type == CONVECTIONHEAT)
+//        loadsEnergy[i].par[0] 
+//                       = CELSIUS_FOR_KELVIN(loadsEnergy[i].par[0]);
+//    }
+      
+  }
+/*....................................................................*/
+
+  else{
+    sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+    for(i=0;i<MAXLOADFLUID;i++){
+      loadsEnergy[i].type    = loadsTemp[i].type;
+      loadsEnergy[i].np      = loadsTemp[i].np;
+      type = loadsTemp[i].type;
+      for(j=0;j<MAXLOADPARAMETER;j++)
+        loadsEnergy[i].par[j] = loadsTemp[i].par[j];
+
+/*...*/
+      if( type == DIRICHLETBC ){
+        t        = loadsTemp[i].par[0];
+        
+        n        = loadsZ[i].np;
+        for(k=0;k<n;k++)
+          yFrac[k] = loadsZ[i].par[k];
+
+        tmp = tempForSpecificEnthalpyMix( sHeatProp, yFrac 
+                                         , t        , sHeat
+                                         , n
+                                         , fSheat  , iKelvin);
+        loadsEnergy[i].par[0] = tmp;               
+      }
+/*....................................................................*/
+
+/*...*/
+      else if ( type == INLET ||  type == OPEN) {
+        t = loadsTemp[i].par[0];
+
+        n        = loadsZ[i].np;
+
+        if(fGrouped)
+        {
+          for(k=0;k<n;k++)  
+            zFrac[k] = loadsZ[i].par[k];
+          yLumpedMatrixZ(yFrac  , cModel->lumpedMatrix
+                        , zFrac
+                        , ns    , nl);
+        }               
+        else
+          for(k=0;k<n;k++)
+            yFrac[k] = loadsZ[i].par[k];
+        
+        tmp = tempForSpecificEnthalpyMix( sHeatProp  , yFrac 
+                                         , t        , sHeat
+                                         , ns
+                                         , fSheat  , iKelvin);
+        loadsEnergy[i].par[0] = tmp;
+/*... densidade*/
+        if(fDensity)
+        {
+          molarMassMix =  mixtureMolarMass(cModel,yFrac); 
+          tmp1 = mixtureSpeciesDensity(pDen           ,molarMassMix
+                                     ,t               ,thDynamic.pTh[2]
+                                     ,thDynamic.pTh[2],iKelvin);
+          loadsEnergy[i].density = tmp1;
+          loadsTemp[i].density   = tmp1;
+        }       
+        else
+        {
+          loadsEnergy[i].density = loadsVel[i].par[loadsVel[i].np-1];
+          loadsTemp[i].density = loadsVel[i].par[loadsVel[i].np-1];
+        }
+/*....................................................................*/
+
+/*... velocidades*/
+        loadsEnergy[i].vel[0] = loadsVel[i].par[0];
+        loadsEnergy[i].vel[1] = loadsVel[i].par[1]; 
+        loadsEnergy[i].vel[2] = loadsVel[i].par[2];
+   
+        loadsTemp[i].vel[0] = loadsVel[i].par[0];
+        loadsTemp[i].vel[1] = loadsVel[i].par[1]; 
+        loadsTemp[i].vel[2] = loadsVel[i].par[2];
+/*....................................................................*/
+      }
+/*....................................................................*/
+
+/*...*/
+      else if (type == NEUMANNBC  ||  type == CONVECTIONHEAT
+           ||  type == OUTLET) {
+        loadsEnergy[i].par[0] = loadsTemp[i].par[0];
+      }
+/*....................................................................*/
+    }     
+  }
+/*....................................................................*/
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 08/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
+ * de C para kelvin                                                  *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+static void convLoadsZcombMix(Combustion *cModel   ,PropPol *pDen
+                             ,PropPol *sHeatProp   ,Loads *loadsTemp    
+                             ,Loads *loadsZ        ,Loads *loadsVel
+                             ,DOUBLE *RESTRICT prop
+                             ,bool const fTemp     ,bool const fSheat 
+                             ,bool const iKelvin   ,bool const fDensity
+                             ,bool const fGrouped)   
+{
+  short i,j,k,type,n;
+  short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
+  DOUBLE t,yFrac[MAXSPECIES],zFrac[MAX_COMB],sHeat,tmp,tmp1,molarMassMix;
+  
+  sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+  for(i=0;i<MAXLOADFLUID;i++)
+  {
+    type = loadsZ[i].type;
+/*...*/
+    if ( type == INLET ||  type == OPEN) 
+    {
+      t = loadsTemp[i].par[0];
+
+      n        = loadsZ[i].np;
+      if(fGrouped)
+      {
+        for(k=0;k<n;k++)
+          zFrac[k] = loadsZ[i].par[k];
+        yLumpedMatrixZ(yFrac  , cModel->lumpedMatrix
+                      , zFrac
+                      , ns    , nl);
+      }               
+      else
+        for(k=0;k<n;k++)
+          yFrac[k] = loadsZ[i].par[k];
+/*... densidade*/
+      if(fDensity)
+      {
+        molarMassMix =  mixtureMolarMass(cModel,yFrac); 
+        tmp1 = mixtureSpeciesDensity(pDen           ,molarMassMix
+                                    ,t               ,thDynamic.pTh[2]
+                                   ,thDynamic.pTh[2],iKelvin);
+        loadsZ[i].density = tmp1;
+      }
+      else
+        loadsZ[i].density = loadsVel[i].par[loadsVel[i].np-1];
+/*....................................................................*/
+
+/*... velocidade*/
+      loadsZ[i].vel[0] = loadsVel[i].par[0];
+      loadsZ[i].vel[1] = loadsVel[i].par[1]; 
+      loadsZ[i].vel[2] = loadsVel[i].par[2];
+/*....................................................................*/
+    }     
+  }
+/*....................................................................*/
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 08/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
+ * de C para kelvin                                                  *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+static void convLoadsVelMix(Combustion *cModel   ,PropPol *pDen
+                           ,PropPol *sHeatProp   ,Loads *loadsVel
+                           ,Loads *loadsTemp     ,Loads *loadsZ     
+                           ,DOUBLE *RESTRICT prop
+                           ,bool const fTemp     ,bool const fSheat 
+                           ,bool const iKelvin   ,bool const fDensity
+                           ,bool const fGrouped)   
+{
+  short i,j,k,type,n;
+  short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
+  DOUBLE t,yFrac[MAXSPECIES],zFrac[MAX_COMB],sHeat,tmp,tmp1,molarMassMix;
+  
+  sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+  for(i=0;i<MAXLOADFLUID;i++)
+  {
+    type = loadsVel[i].type;
+/*...*/
+    if ( type == INLET ||  type == OPEN) 
+    {
+      t = loadsTemp[i].par[0];
+
+      n        = loadsZ[i].np;
+      if(fGrouped)
+      {
+        for(k=0;k<n;k++)
+          zFrac[k] = loadsZ[i].par[k];
+        yLumpedMatrixZ(yFrac  , cModel->lumpedMatrix
+                      , zFrac
+                      , ns    , nl);
+      }               
+      else
+        for(k=0;k<n;k++)
+          yFrac[k] = loadsZ[i].par[k];
+
+      if(fDensity)
+      {
+        molarMassMix =  mixtureMolarMass(cModel,yFrac); 
+        tmp1 = mixtureSpeciesDensity(pDen           ,molarMassMix
+                                    ,t               ,thDynamic.pTh[2]
+                                   ,thDynamic.pTh[2],iKelvin);
+        loadsVel[i].par[loadsVel[i].np-1] = tmp1;  
+      }
+/*....................................................................*/
+    }     
+  }
+/*....................................................................*/
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 10/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
+ * de C para kelvin                                                  *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+static void convLoadsVel(PropPol *pDen
+                        ,PropPol *sHeatProp   ,Loads *loadsVel
+                        ,Loads *loadsTemp     ,DOUBLE *RESTRICT prop
+                        ,bool const fTemp     ,bool const fSheat 
+                        ,bool const iKelvin   ,bool const fDensity)
+
+{
+  short i,j,k,type,n;
+  DOUBLE t,sHeat,tmp,tmp1;
+  
+  sHeat   = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+  for(i=0;i<MAXLOADFLUID;i++)
+  {
+    type               = loadsVel[i].type;
+/*...*/
+    if ( type == INLET ||  type == OPEN) 
+    {
+      t = loadsTemp[i].par[0];
+      if(fDensity)
+      {
+        tmp1 = airDensity(pDen
+                   ,t               , thDynamic.pTh[2]
+                   ,thDynamic.pTh[2], iKelvin);
+        loadsVel[i].par[loadsVel[i].np-1] = tmp1; 
+      }
+/*....................................................................*/
+    }     
+  }
+/*....................................................................*/
 }
 /*********************************************************************/

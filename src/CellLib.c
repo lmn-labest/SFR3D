@@ -2367,7 +2367,7 @@ void cellLibRcGrad(Loads *loads
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 01/10/2017                                   * 
+ * Data de modificaco : 11/05/2019                                   * 
  *-------------------------------------------------------------------* 
  * GRREENGAUSSCELL: reconstrucao de gradiente green-gauss linear por * 
  * celula                                                            *
@@ -2473,7 +2473,7 @@ void greenGaussCell(Loads *loads
 /*...*/
           else if (type == INLET) {
             getLoads(par,&loads[nCarg],xx);
-            uf[i] =par[1];
+            uf[i] =par[0];
           }
 /*...................................................................*/
 
@@ -2583,7 +2583,7 @@ void greenGaussCell(Loads *loads
           else if( type == INLET ){
             getLoads(par,&loads[nCarg],xx);
             for(k=0;k<ndf;k++)
-              MAT2D(i,k,uf,ndf) = par[k+1];      
+              MAT2D(i,k,uf,ndf) = par[k];      
           }
 /*...................................................................*/
 
@@ -2815,7 +2815,7 @@ void greenGaussNode(INT *RESTRICT lViz   ,DOUBLE *RESTRICT fArea
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 27/01/2018                                   * 
+ * Data de modificaco : 11/05/2019                                   * 
  *-------------------------------------------------------------------* 
  * LEASTSQUARE : calcula o gradiente por minimos quadrados           *
  *-------------------------------------------------------------------* 
@@ -2893,7 +2893,7 @@ void  leastSquare(Loads *loads
 /*...*/
             else if (type == INLET) {
               getLoads(par,&loads[nCarg],xx);
-              du[i] = par[1] - uC[0];
+              du[i] = par[0] - uC[0];
             }                          
 /*...................................................................*/
 
@@ -2992,7 +2992,7 @@ void  leastSquare(Loads *loads
             else if( type == INLET){
               getLoads(par,&loads[nCarg],xx);
               for(k=0;k<ndf;k++)
-                MAT2D(i,k,du,ndf) = par[k+1] - uC[k];
+                MAT2D(i,k,du,ndf) = par[k] - uC[k];
             }
 /*...................................................................*/
 
@@ -3058,7 +3058,7 @@ void  leastSquare(Loads *loads
 } 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 27/01/2018                                   * 
+ * Data de modificaco : 11/05/2019                                   * 
  *-------------------------------------------------------------------* 
  * LEASTSQUAREQR: calcula o gradiente por minimos quadrados           *
  *-------------------------------------------------------------------* 
@@ -3137,7 +3137,7 @@ void  leastSquareQR(Loads *loads
 /*...*/
             else if (type == INLET) {
               getLoads(par,&loads[nCarg],xx);
-              du[i] = par[1] - uC[0];
+              du[i] = par[0] - uC[0];
             }                          
 /*...................................................................*/
 
@@ -3249,7 +3249,7 @@ void  leastSquareQR(Loads *loads
             else if( type == INLET){
               getLoads(par,&loads[nCarg],xx);
               for(k=0;k<ndf;k++)
-                MAT2D(i,k,du,ndf) = par[k+1] - uC[k];
+                MAT2D(i,k,du,ndf) = par[k] - uC[k];
             }
 /*...................................................................*/
 

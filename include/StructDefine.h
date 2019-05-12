@@ -246,7 +246,7 @@
     short type;                     /*tipo*/
     short np;                       /*numero de particoes*/  
     DOUBLE par[MAXLOADPARAMETER];
-    DOUBLE vel[3];
+    DOUBLE vel[3],density;
     Interpol *intPol;               /*interpolacao*/
   }Loads;
   Loads  loadsD1[MAXLOADD1]         /*tipo de cargas (difusao pura)*/

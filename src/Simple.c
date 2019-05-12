@@ -867,7 +867,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*... pressao-velociade*/
-     velPresCouplingLm(m         , propF
+    velPresCouplingLm(m         , propF
                     , loadsVel  , loadsPres
                     , eMass     , ModelMomentum
                     , tModel
@@ -878,7 +878,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                     , pMesh     , rCellPc
                     , &xMomentum, &yMomentum
                     , &zMomentum, &pCor
-                    , fPrint    , itSimple);      
+                    , fPrint    , itSimple);     
 /*...................................................................*/
 
 /*... modelo de turbulencia*/
@@ -916,7 +916,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                            , mesh          
                            , sistEqEnergy, solvEnergy
                            , sp          , sc
-                           , pMesh);        
+                           , pMesh);       
 /*...................................................................*/
     
 /*... residual*/
