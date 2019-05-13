@@ -1054,6 +1054,9 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
   void stressEddyViscosity(DOUBLE *RESTRICT s, DOUBLE *RESTRICT gradVel
                          , DOUBLE const nut  , short const ndm);
   DOUBLE qCriterion(DOUBLE *RESTRICT gradVel, short const ndm);
+  void velCorrectCombustion(DOUBLE *RESTRICT diff, DOUBLE *RESTRICT gradZ
+                  , DOUBLE *RESTRICT velC      , short const ndm           
+                  , short const ns    ); 
 /*...................................................................*/
 
 

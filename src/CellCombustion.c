@@ -107,7 +107,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
                     , const short nEn           , short const nFace
                     , const short ndm           , INT const nel)
 {
-  bool fTime, fRes, fTurb, fWallModel, fLump;
+  bool fTime, fRes, fTurb, fWallModel, fLump, fDiffCoor;
   short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf, nCarg1
     , nCarg2, typeTime, iCodPolFace, nComb, nst, i;
 /*...*/
@@ -145,8 +145,9 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*...................................................................*/
 
 /*...*/
-  fLump = cModel->fLump;
-  nComb = cModel->nComb;
+  fLump     = cModel->fLump;
+  nComb     = cModel->nComb;
+  fDiffCoor = false;  
 /*...................................................................*/
 
 /*...*/
@@ -209,6 +210,14 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
   dFieldC[2] = MAT2D(idCell, 2, dField, 3);
 /*...................................................................*/
 
+/*... correcao dos coefciente de difusao para o transporte de 
+      especies*/
+   if(fDiffCoor)
+     velCorrectCombustion(diffEffC       ,gradUp[0]
+                         , velC          ,ndm
+                         , nComb );
+/*...................................................................*/
+
 /*...*/
   sP = 0.0e0;
   for (nf = 0; nf<nFace; nf++) 
@@ -260,8 +269,8 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
         duDksi[i] = (uV[i] - uC[i]) / lModKsi;
 /*... | du1/dx1 du1/dx2 du1/dx3*/
         gradUv[i][0] = MAT3D(nf, 0, 0, gradU0, nComb, 3);
-        gradUv[i][1] = MAT3D(nf, 0, 1, gradU0, nComb, 3);
-        gradUv[i][2] = MAT3D(nf, 0, 2, gradU0, nComb, 3);
+        gradUv[i][1] = MAT3D(nf, i, 1, gradU0, nComb, 3);
+        gradUv[i][2] = MAT3D(nf, i, 2, gradU0, nComb, 3);
       }
 /*...................................................................*/
 
@@ -319,6 +328,14 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
       dFieldF[2] = alphaMenosUm * dFieldC[2] + alpha * dFieldV[2];
 /*...*/
       densityM = alphaMenosUm * densityC + alpha * densityV;
+/*...................................................................*/
+
+/*... correcao dos coefciente de difusao para o transporte de 
+      especies*/
+      if(fDiffCoor)
+        velCorrectCombustion(diffEffV       ,gradUv[0]
+                            , velV          ,ndm
+                            , nComb );
 /*...................................................................*/
 
 /*... velocidade normal a face*/

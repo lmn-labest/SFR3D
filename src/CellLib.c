@@ -6898,3 +6898,59 @@ DOUBLE interpolFace(DOUBLE *RESTRICT vSkew, DOUBLE *RESTRICT xmcc
   return alpha; 
 }
 /*********************************************************************/   
+
+/**********************************************************************
+ * Data de criacao    : 12/05/2019                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *------------------------------------------------------------------- * 
+ * velCorrectCombustion : corecao da velocidade de difusao no modelo  * 
+ * de transporte de especies (combustao)                              *  
+ * ------------------------------------------------------------------ *
+ * parametros de entrada:                                             * 
+ * ------------------------------------------------------------------ *
+ * diff   -> coef de difusao das especies                             *
+ *            centrois compartilhado nessa face da celula central     *
+ * gradZ  -> gradiente das especies                                   *
+ * volC    -> nao definido                                            *
+ * ndm     -> dimensao                                                * 
+ * ns      -> numero de especies                                      *
+ * ------------------------------------------------------------------ *
+ * parametros de saida  :                                             * 
+ * ------------------------------------------------------------------ *
+ * velC   -> velocidade de correcao                                   *
+ * ------------------------------------------------------------------ *
+ * OBS:                                                               *
+ *           | du1/dx1 du1/dx2 du1/dx3 |                              *
+ * gradZ  =  | du2/dx1 du2/dx2 du2/dx3 |                              *
+ *           | du3/dx1 du3/dx2 du3/dx3 |                              *
+ *           | du4/dx1 du4/dx2 du4/dx3 |                              *
+ *                     ...                                            *
+ * Livro : Theoretical and numerical Combustion                       *
+ *------------------------------------------------------------------- *
+ **********************************************************************/
+void velCorrectCombustion(DOUBLE *RESTRICT diff, DOUBLE *RESTRICT gradZ
+                  , DOUBLE *RESTRICT velC      , short const ndm           
+                  , short const ns    ) 
+{
+  short i;
+  DOUBLE vel[3];
+
+
+  if(ndm == 3)
+  {
+    vel[0] = vel[1] = vel[2] = 0.e0;
+  
+    for(i=0;i<ns;i++)
+    {
+      vel[0] += diff[i]*MAT2D(i,0,gradZ,3);
+      vel[1] += diff[i]*MAT2D(i,1,gradZ,3);
+      vel[2] += diff[i]*MAT2D(i,2,gradZ,3);
+
+    }
+
+    velC[0] += vel[0];
+    velC[1] += vel[1];
+    velC[2] += vel[2];
+  }
+}
+/*********************************************************************/   

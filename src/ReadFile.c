@@ -1136,9 +1136,9 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       }
       else
       {     
-        MAT2D(i,0,mesh->elm.cDiffComb,nComb) =  2.0e-6; 
-        MAT2D(i,1,mesh->elm.cDiffComb,nComb) =  2.0e-6;
-        MAT2D(i,2,mesh->elm.cDiffComb,nComb) =  2.0e-6;
+        MAT2D(i,0,mesh->elm.cDiffComb,nComb) =  1.0e-6; 
+        MAT2D(i,1,mesh->elm.cDiffComb,nComb) =  2.0e-4;
+        MAT2D(i,2,mesh->elm.cDiffComb,nComb) =  4.0e-5;
         MAT2D(i,3,mesh->elm.cDiffComb,nComb) =  2.0e-6;
         MAT2D(i,4,mesh->elm.cDiffComb,nComb) =  2.0e-6;
       }      
