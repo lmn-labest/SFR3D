@@ -660,7 +660,7 @@ DOUBLE totalHeatRealeseComb(DOUBLE *RESTRICT q, DOUBLE *RESTRICT vol
 
 /*********************************************************************
  * Data de criacao    : 12/08/2018                                   *
- * Data de modificaco : 04/05/2019                                   *
+ * Data de modificaco : 12/05/2019                                   *
  *-------------------------------------------------------------------*
  * initLumpedMatrix : inicializa a matriz de especies                *
  *-------------------------------------------------------------------*
@@ -676,9 +676,18 @@ DOUBLE totalHeatRealeseComb(DOUBLE *RESTRICT q, DOUBLE *RESTRICT vol
  *********************************************************************/
 void initLumpedMatrix(Combustion *cModel)
 {
-
+  
   short nComb = cModel->nComb;
+  DOUBLE mO2,mN2,mAr,mCO2p,mH2Op,mN2p,mAir,mProd;
 
+  mO2   = cModel->stoichO2*cModel->mW_O2;
+  mN2   = cModel->stoichN2*cModel->mW_N2;
+  mCO2p = cModel->stoichCO2p*cModel->mW_CO2;
+  mH2Op = cModel->stoichH2Op*cModel->mW_H2O;
+  mN2p  = cModel->stoichN2p*cModel->mW_N2;
+
+  mAir  = mO2 + mN2;
+  mProd = mCO2p + mH2Op + mN2p;
 /*... Fuel*/
   MAT2D(SP_FUEL,0,cModel->lumpedMatrix,nComb) = 1.e0; 
   MAT2D(SP_FUEL,1,cModel->lumpedMatrix,nComb) = 0.e0; 
@@ -687,26 +696,26 @@ void initLumpedMatrix(Combustion *cModel)
 
 /*... O2*/
   MAT2D(SP_O2,0,cModel->lumpedMatrix,nComb) = 0.e0;
-  MAT2D(SP_O2,1,cModel->lumpedMatrix,nComb) = 0.2330e0; 
+  MAT2D(SP_O2,1,cModel->lumpedMatrix,nComb) = mO2/mAir; 
   MAT2D(SP_O2,2,cModel->lumpedMatrix,nComb) = 0.0e0; 
 /*...................................................................*/
 
 /*... N2*/
   MAT2D(SP_N2,0,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(SP_N2,1,cModel->lumpedMatrix,nComb) = 0.7670e0; 
-  MAT2D(SP_N2,2,cModel->lumpedMatrix,nComb) = 0.7248e0; 
+  MAT2D(SP_N2,1,cModel->lumpedMatrix,nComb) = mN2/mAir; 
+  MAT2D(SP_N2,2,cModel->lumpedMatrix,nComb) = mN2p/mProd;  
 /*...................................................................*/
 
 /*... CO2*/
   MAT2D(SP_CO2,0,cModel->lumpedMatrix,nComb) = 0.e0; 
   MAT2D(SP_CO2,1,cModel->lumpedMatrix,nComb) = 0.0e0; 
-  MAT2D(SP_CO2,2,cModel->lumpedMatrix,nComb) = 0.1514e0; 
+  MAT2D(SP_CO2,2,cModel->lumpedMatrix,nComb) = mCO2p/mProd;  
 /*...................................................................*/
 
 /*... H2O*/
   MAT2D(SP_H2O,0,cModel->lumpedMatrix,nComb) = 0.e0; 
   MAT2D(SP_H2O,1,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(SP_H2O,2,cModel->lumpedMatrix,nComb) = 0.1238e0; 
+  MAT2D(SP_H2O,2,cModel->lumpedMatrix,nComb) =  mH2Op/mProd; 
 /*...................................................................*/
 
 /*... CO*/
