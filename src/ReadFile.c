@@ -1137,10 +1137,10 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       else
       {     
         MAT2D(i,0,mesh->elm.cDiffComb,nComb) =  1.0e-6; 
-        MAT2D(i,1,mesh->elm.cDiffComb,nComb) =  2.0e-4;
-        MAT2D(i,2,mesh->elm.cDiffComb,nComb) =  4.0e-5;
-        MAT2D(i,3,mesh->elm.cDiffComb,nComb) =  2.0e-6;
-        MAT2D(i,4,mesh->elm.cDiffComb,nComb) =  2.0e-6;
+        MAT2D(i,1,mesh->elm.cDiffComb,nComb) =  1.0e-6;
+        MAT2D(i,2,mesh->elm.cDiffComb,nComb) =  1.0e-6;
+        MAT2D(i,3,mesh->elm.cDiffComb,nComb) =  1.0e-6;
+        MAT2D(i,4,mesh->elm.cDiffComb,nComb) =  1.0e-6;
       }      
     }
 /*...................................................................*/
@@ -7084,9 +7084,9 @@ static void convLoadsZcombMix(Combustion *cModel   ,PropPol *pDen
                              ,bool const iKelvin   ,bool const fDensity
                              ,bool const fGrouped)   
 {
-  short i,j,k,type,n;
+  short i,k,type,n;
   short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
-  DOUBLE t,yFrac[MAXSPECIES],zFrac[MAX_COMB],sHeat,tmp,tmp1,molarMassMix;
+  DOUBLE t,yFrac[MAXSPECIES],zFrac[MAX_COMB],sHeat,tmp1,molarMassMix;
   
   sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
   for(i=0;i<MAXLOADFLUID;i++)
@@ -7157,9 +7157,9 @@ static void convLoadsVelMix(Combustion *cModel   ,PropPol *pDen
                            ,bool const iKelvin   ,bool const fDensity
                            ,bool const fGrouped)   
 {
-  short i,j,k,type,n;
+  short i,k,type,n;
   short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
-  DOUBLE t,yFrac[MAXSPECIES],zFrac[MAX_COMB],sHeat,tmp,tmp1,molarMassMix;
+  DOUBLE t,yFrac[MAXSPECIES],zFrac[MAX_COMB],sHeat,tmp1,molarMassMix;
   
   sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
   for(i=0;i<MAXLOADFLUID;i++)
@@ -7221,8 +7221,8 @@ static void convLoadsVel(PropPol *pDen
                         ,bool const iKelvin   ,bool const fDensity)
 
 {
-  short i,j,k,type,n;
-  DOUBLE t,sHeat,tmp,tmp1;
+  short i,type;
+  DOUBLE t,sHeat,tmp1;
   
   sHeat   = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
   for(i=0;i<MAXLOADFLUID;i++)

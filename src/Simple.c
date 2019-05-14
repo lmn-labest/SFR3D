@@ -1260,7 +1260,7 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
   rEnergy0 = 1.e0;
   rEnergy = 0.e0;
   conv = 0;
-  xMomentum = yMomentum = zMomentum = true;
+  fEnergy = xMomentum = yMomentum = zMomentum = true;
   rCellPc = mesh->elm.rCellPres;
 /*...................................................................*/
 
@@ -2051,10 +2051,10 @@ void setSimpleCombustionScheme(char *word , short const ndm
 
   fscanf(fileIn, "%d", &sp->nNonOrth);
   fscanf(fileIn, "%d", &sp->pSimple);
-  fscanf(fileIn, "%d", &sp->kZeroPres);
-  fscanf(fileIn, "%d", &sp->kZeroVel);
-  fscanf(fileIn, "%d", &sp->kZeroEnergy);
-  fscanf(fileIn, "%d", &sp->kZeroComb);
+  fscanf(fileIn, "%hd", &sp->kZeroPres);
+  fscanf(fileIn, "%hd", &sp->kZeroVel);
+  fscanf(fileIn, "%hd", &sp->kZeroEnergy);
+  fscanf(fileIn, "%hd", &sp->kZeroComb);
 
 }
 /*********************************************************************/

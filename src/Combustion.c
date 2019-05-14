@@ -27,10 +27,10 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 {
   bool fComb[MAX_COMB],fExit,rel
       ,fSheat = prop->fSpecificHeat;
-  short itComb, conv, i, j, kZero, nComb, jj = 1, jPrint;
+  short itComb, conv, i, kZero, nComb, jj = 1, jPrint;
   INT desloc;
   DOUBLE tmp,tb[MAX_COMB],rCell[MAX_COMB],rCell0[MAX_COMB],tolComb;
-  DOUBLE *b[MAX_COMB], *bPc, *xu[MAX_COMB];
+  DOUBLE *b[MAX_COMB], *xu[MAX_COMB];
   DOUBLE *ad[MAX_COMB],*al[MAX_COMB],*au[MAX_COMB],*rCellC[MAX_COMB];
   char slName[][10] = {"zFuel","zAir","zProd"},
        spName[][10] = {"zFuel","zO2" ,"zN2","zCO2","zH2O"};
@@ -328,7 +328,7 @@ void regularZ(DOUBLE *RESTRICT z    , INT const numel
 {
   short j;
   INT nel;
-  DOUBLE zSum;
+/*DOUBLE zSum;*/
 
 /*... z < 0.0*/
   for(nel = 0 ; nel < numel; nel++)
@@ -580,8 +580,7 @@ void rateHeatRealeseCombustion(Combustion *cModel,PropPol *sHeat
   short lMat, iCod = cModel->typeHeatRealese;
   INT nel;
   DOUBLE *h,hc,H[3],nCO2p,nH2Op;
-  DOUBLE z0,z1,sHeatRef;
-  DOUBLE densityC,densityC0,tmp,dRoZ;
+  DOUBLE sHeatRef,tmp;
 
   if(iCod == HFORMATION)
   {
@@ -678,7 +677,7 @@ void initLumpedMatrix(Combustion *cModel)
 {
   
   short nComb = cModel->nComb;
-  DOUBLE mO2,mN2,mAr,mCO2p,mH2Op,mN2p,mAir,mProd;
+  DOUBLE mO2,mN2,mCO2p,mH2Op,mN2p,mAir,mProd;
 
   mO2   = cModel->stoichO2*cModel->mW_O2;
   mN2   = cModel->stoichN2*cModel->mW_N2;
@@ -986,9 +985,8 @@ void stoichiometricCoeff(Combustion *cModel)
  *********************************************************************/
 void initEntalpyOfFormation(Combustion *cModel)
 {
-  DOUBLE s = cModel->sMassAir,tmp;
-  DOUBLE hFuelFormation,hCO2Formation;
-  DOUBLE pCO2p,pH2Op,pN2p,nN2p,nCO2p,nH2Op,nProd;
+  DOUBLE s = cModel->sMassAir;
+  DOUBLE pCO2p,pH2Op,pN2p,nN2p,nCO2p,nH2Op;
 
   pCO2p = cModel->CO2InProd;
   pH2Op = cModel->H2OInProd;
@@ -1027,7 +1025,6 @@ void initEntalpyOfFormation(Combustion *cModel)
 void initEntalpyOfCombustion(Combustion *cModel)
 {
   
-  DOUBLE hFuelFormation,hCO2Formation;
   DOUBLE pCO2,pH2O,hFuel,hCO2,hH2O;
 
   pCO2 = cModel->CO2InProd;

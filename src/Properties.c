@@ -774,7 +774,7 @@ DOUBLE tempForSpecificEnthalpySpecies(PropPol *sHeat, short const kSpecie
 {
 
   short i,n;
-  DOUBLE a[MAXPLODEG],d,dt,hk,hs;
+  DOUBLE a[MAXPLODEG],d,dt,hk;
   DOUBLE tc,tRef= TREF;
 
   if(fKelvin)
@@ -843,7 +843,7 @@ void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
 {    
   INT i;
   unsigned short j,lMat;
-  DOUBLE *y,molarMassMix,tmp;
+  DOUBLE *y,molarMassMix;
          
   for(i=0;i<nCell;i++){    
 

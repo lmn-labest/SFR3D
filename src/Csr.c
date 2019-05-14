@@ -1354,7 +1354,7 @@ void csrSimple(INT    *RESTRICT  ia,INT *RESTRICT ja
 
 /*********************************************************************
  * Data de criacao    : 05/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 14/05/2019                                   *
  *-------------------------------------------------------------------*
  * CsrBlock  : Montagem do sistema global do CSR   para sistems      *
  * de velocidades do metodo simple                                   *
@@ -1415,7 +1415,7 @@ void csrBlock(INT    *RESTRICT  ia, INT *RESTRICT ja
   DOUBLE *ar[10];
   DOUBLE *au[10];
   DOUBLE *al[10];
-  DOUBLE *al1,*al2,*al3,*au1,*au2,*au3;
+/*DOUBLE *al1,*al2,*al3,*au1,*au2,*au3;*/
   unsigned short k,l, nst;
   bool fCoo = false;
 
@@ -1435,6 +1435,11 @@ void csrBlock(INT    *RESTRICT  ia, INT *RESTRICT ja
   case CSRDCOO:
     fCoo = true;
   case CSRD:
+    if (unsym)
+      nAdT = 2 * nAd + nAdR;
+    else
+      nAdT = nAd + nAdR;
+/*...*/
     lNeq = lId[nFace];
 /*... vetor de forcas*/
     if (forces) 

@@ -634,7 +634,6 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
   DOUBLE pAdv[NPADV];
 /*...*/
   bool fComb;
-  DOUBLE  enOfComb;
 
 /*...*/
   idCell      = nFace;

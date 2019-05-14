@@ -6150,7 +6150,7 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
   int *md=NULL;
   DOUBLE *mdf=NULL;
   bool *flag=NULL;
-  INT    idFace, cellOwner;
+  INT    idFace;
   short i,j,k,l,n,nodeFace,aux=maxViz+1;
   INT nel,no1,no[4];
   short  isNod[MAX_SN],nCarg,ty,typed;

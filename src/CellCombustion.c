@@ -114,18 +114,18 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
   INT vizNel;
 /*...*/
   DOUBLE densityC, densityV, densityM, diffCeofC[MAX_COMB]
-        , diffCeofV[MAX_COMB], diffCeof[MAX_COMB]
+        , diffCeofV[MAX_COMB]
         , diffEffC[MAX_COMB], diffEffV[MAX_COMB], diffEff[MAX_COMB]
         , eddyViscosityC, eddyViscosityV, viscosityC
         , tA[MAX_COMB], coef[MAX_COMB]
-        , tmp, tmp1, tmp2, tmp3, prTwall, prTsgs;
+        , tmp, tmp1, prTwall, prTsgs;
   DOUBLE p[MAX_COMB], sP, sPc[MAX_COMB], dfd[MAX_COMB], gfKsi[MAX_COMB];
   DOUBLE lvSkew[3], alpha, alphaMenosUm;
   DOUBLE v[3], gradUComp[MAX_COMB][3], lKsi[3], lNormal[3], gf[MAX_COMB][3];
   DOUBLE lModKsi, lFarea, du[MAX_COMB], duDksi[MAX_COMB], lXmcc[3], lXm[3];
   DOUBLE gradUp[MAX_COMB][3], gradUv[MAX_COMB][3], ccV[3];
   DOUBLE rCell[MAX_COMB], dt, dt0;
-  DOUBLE uC[MAX_COMB], uV[MAX_COMB],wf[3];
+  DOUBLE uC[MAX_COMB], uV[MAX_COMB];
 /*... nonOrtogonal*/
   DOUBLE e[3], t[3], s[3], modE, dfdc[MAX_COMB], xx[3];
 /*... */

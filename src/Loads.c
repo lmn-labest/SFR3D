@@ -1151,7 +1151,7 @@ void pLoadCombustion(PropVarFluid *vProp
 {
 
   short i;
-  DOUBLE aP,h,wfn,wf[3],tempPlus,yPlus,uPlus,densityEnv;
+  DOUBLE aP,wfn,wf[3],tempPlus,yPlus,uPlus,densityEnv;
   DOUBLE par[MAXLOADPARAMETER],velB[3];
   
   velB[0] = velB[1] = velB[2] = 0.e0;
