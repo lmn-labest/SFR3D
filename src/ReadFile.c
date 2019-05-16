@@ -1135,12 +1135,11 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
         MAT2D(i,2,mesh->elm.cDiffComb,nComb) = 2.0e-6;
       }
       else
-      {     
-        MAT2D(i,0,mesh->elm.cDiffComb,nComb) =  1.0e-6; 
-        MAT2D(i,1,mesh->elm.cDiffComb,nComb) =  1.0e-6;
-        MAT2D(i,2,mesh->elm.cDiffComb,nComb) =  1.0e-6;
-        MAT2D(i,3,mesh->elm.cDiffComb,nComb) =  1.0e-6;
-        MAT2D(i,4,mesh->elm.cDiffComb,nComb) =  1.0e-6;
+      { 
+        for(int j=0;j < nComb;j++)
+        {
+          MAT2D(i,j,mesh->elm.cDiffComb,nComb) =  1.0e-6; 
+        }  
       }      
     }
 /*...................................................................*/
@@ -2641,7 +2640,7 @@ void readPropVar(PropVarFluid *pf, PropVarCD *pd, PropVarCD *pt, FILE *file)
 
 /*********************************************************************
  * Data de criacao    : 04/09/2017                                   *
- * Data de modificaco : 02/05/2019                                   *
+ * Data de modificaco : 15/05/2019                                   *
  *-------------------------------------------------------------------* 
  * readMode : le as configuraoes dos modelos                         * 
  *-------------------------------------------------------------------* 
@@ -2694,10 +2693,11 @@ void readModel(EnergyModel *e         , Turbulence *t
                                ,"div"        ,"buoyanthy"      /*4,5*/  
                                ,"buoyantprgh","buoyantrhoref"};/*6,7*/
 
-  char combustion[][WORD_SIZE] = {"residual"   ,"absolute"       /*0,1*/                    
-                                 ,"grouped"    ,"ungrouped"      /*2,3*/
-                                 ,"ebu"        ,"arrhenius"      /*4,5*/ 
-                                 ,"hcombustion","hformation"};   /*6,7*/  
+  char combustion[][WORD_SIZE] = {"residual"   ,"absolute"      /*0,1*/                    
+                                 ,"grouped"    ,"ungrouped"     /*2,3*/
+                                 ,"ebu"        ,"arrhenius"     /*4,5*/ 
+                                 ,"hcombustion","hformation"    /*6,7*/   
+                                 ,"correctvel"};                /*8*/
   
   char diff[][WORD_SIZE] = { "residual","absolute"};        /*0,1*/
   char tran[][WORD_SIZE] = { "residual","absolute" };       /*0,1*/
@@ -2833,7 +2833,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 
 /*... Vreman*/
         else if(!strcmp(word,turb[3])){
-          t->fDynamic                = false;
+          t->fDynamic               = false;
           t->fTurb                  = true;      
           t->type                   = LES;
           t->typeMixed[FUNMODEL]    = VREMAN;
@@ -2847,7 +2847,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 
 /*... Dynamic*/
         else if(!strcmp(word,turb[4])){
-          t->fDynamic     = true;
+          t->fDynamic    = true;
           t->fTurb       = true;      
           t->type        = LES;
           t->typeDynamic = LDYNAMIC;
@@ -3242,9 +3242,9 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if (!strcmp(word, combustion[2]))
         {
           cModel->fLump                = true;
-          cModel->nComb                = 3;
-          cModel->nOfSpecies           = 5;
-          cModel->nOfSpeciesLump       = 3;
+          fscanf(file,"%hd %hd %hd",&(cModel->nComb)
+                                   ,&(cModel->nOfSpecies)
+                                   ,&(cModel->nOfSpeciesLump));
           if (!mpiVar.myId)
           {
             strcpy(format,"%-20s: nComb= %d nOfSp = %d nOfSpLp = %d\n");
@@ -3260,9 +3260,9 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if (!strcmp(word, combustion[3]))
         {
           cModel->fLump                = false;
-          cModel->nComb                = 5;  
-          cModel->nOfSpecies           = 5;
-          cModel->nOfSpeciesLump       = 0;  
+          fscanf(file,"%hd %hdf %hd",&(cModel->nComb)
+                                   ,&(cModel->nOfSpecies)
+                                   ,&(cModel->nOfSpeciesLump)); 
           if (!mpiVar.myId)
           {
             strcpy(format,"%-20s: nComb = %d nOfSp = %d nOfSpLp = %d\n");
@@ -3313,6 +3313,16 @@ void readModel(EnergyModel *e         , Turbulence *t
           cModel->typeHeatRealese  = HFORMATION; 
           if (!mpiVar.myId)
             fprintf(fileLogExc, format, "HFormation", "Enable");
+          
+        }
+/*...................................................................*/
+
+/*... correctVel*/
+        else if (!strcmp(word, combustion[8]))
+        {
+          cModel->fCorrectVel  = true; 
+          if (!mpiVar.myId && cModel->fCorrectVel)
+            fprintf(fileLogExc, format, "coorectVel", "Enable");
           
         }
 /*...................................................................*/
@@ -3842,12 +3852,12 @@ void help(FILE *f){
                                ,"rhiechow"    ,"viscosity"      /*2,3*/
                                ,"div"         ,"buoyanthy"      /*4,5*/  
                                ,"buoyantprgh" ,"buoyantrhoref"};/*6,7*/ 
-  short iComb = 8;  
-  char combustion[][WORD_SIZE] = {"residual"   ,"absolute"       /*0,1*/                    
-                                 ,"grouped"    ,"ungrouped"      /*2,3*/
-                                 ,"ebu"        ,"arrhenius"      /*4,5*/ 
-                                 ,"hcombustion","hformation"};   /*6,7*/
-
+  short iComb = 9;  
+  char combustion[][WORD_SIZE] = {"residual"   ,"absolute"      /*0,1*/                    
+                                 ,"grouped"    ,"ungrouped"     /*2,3*/
+                                 ,"ebu"        ,"arrhenius"     /*4,5*/ 
+                                 ,"hcombustion","hformation"    /*6,7*/   
+                                 ,"correctVel"};                /*8*/
   short iWall = 2;
   char typeWallModel[][WORD_SIZE] ={"standard","enhanced"};
 
@@ -4554,8 +4564,8 @@ void readSetSimpleComb(Memoria *m    , FILE *fileIn
     if(!mpiVar.myId )
     { 
       fprintf(fileLogExc,"%-15s : %d\n","Maxit"       ,simple->maxIt);
-      fprintf(fileLogExc,"%-15s : %d\n","alphaPres"   ,simple->alphaPres);
-      fprintf(fileLogExc,"%-15s : %d\n","alphaVel"    ,simple->alphaVel);
+      fprintf(fileLogExc,"%-15s : %lf\n","alphaPres"   ,simple->alphaPres);
+      fprintf(fileLogExc,"%-15s : %lf\n","alphaVel"    ,simple->alphaVel);
       fprintf(fileLogExc,"%-15s : %lf\n","alphaVel"   ,simple->alphaVel);
       fprintf(fileLogExc,"%-15s : %lf\n","alphaEnergy",simple->alphaEnergy);
       fprintf(fileLogExc,"%-15s : %lf\n","alphaComb"  ,simple->alphaComb);
@@ -6985,8 +6995,7 @@ static void convLoadsEnergyMix(Combustion *cModel   ,PropPol *pDen
         t        = loadsTemp[i].par[0];
         
         n        = loadsZ[i].np;
-        for(k=0;k<n;k++)
-          yFrac[k] = loadsZ[i].par[k];
+        getSpeciesPrimitivesCc(cModel,yFrac,loadsZ[i].par);
 
         tmp = tempForSpecificEnthalpyMix( sHeatProp, yFrac 
                                          , t        , sHeat
@@ -7000,19 +7009,7 @@ static void convLoadsEnergyMix(Combustion *cModel   ,PropPol *pDen
       else if ( type == INLET ||  type == OPEN) {
         t = loadsTemp[i].par[0];
 
-        n        = loadsZ[i].np;
-
-        if(fGrouped)
-        {
-          for(k=0;k<n;k++)  
-            zFrac[k] = loadsZ[i].par[k];
-          yLumpedMatrixZ(yFrac  , cModel->lumpedMatrix
-                        , zFrac
-                        , ns    , nl);
-        }               
-        else
-          for(k=0;k<n;k++)
-            yFrac[k] = loadsZ[i].par[k];
+        getSpeciesPrimitivesCc(cModel,yFrac,loadsZ[i].par);
         
         tmp = tempForSpecificEnthalpyMix( sHeatProp  , yFrac 
                                          , t        , sHeat
@@ -7097,18 +7094,8 @@ static void convLoadsZcombMix(Combustion *cModel   ,PropPol *pDen
     {
       t = loadsTemp[i].par[0];
 
-      n        = loadsZ[i].np;
-      if(fGrouped)
-      {
-        for(k=0;k<n;k++)
-          zFrac[k] = loadsZ[i].par[k];
-        yLumpedMatrixZ(yFrac  , cModel->lumpedMatrix
-                      , zFrac
-                      , ns    , nl);
-      }               
-      else
-        for(k=0;k<n;k++)
-          yFrac[k] = loadsZ[i].par[k];
+      getSpeciesPrimitivesCc(cModel,yFrac,loadsZ[i].par);
+
 /*... densidade*/
       if(fDensity)
       {
@@ -7170,19 +7157,8 @@ static void convLoadsVelMix(Combustion *cModel   ,PropPol *pDen
     {
       t = loadsTemp[i].par[0];
 
-      n        = loadsZ[i].np;
-      if(fGrouped)
-      {
-        for(k=0;k<n;k++)
-          zFrac[k] = loadsZ[i].par[k];
-        yLumpedMatrixZ(yFrac  , cModel->lumpedMatrix
-                      , zFrac
-                      , ns    , nl);
-      }               
-      else
-        for(k=0;k<n;k++)
-          yFrac[k] = loadsZ[i].par[k];
-
+      getSpeciesPrimitivesCc(cModel,yFrac,loadsZ[i].par);
+      
       if(fDensity)
       {
         molarMassMix =  mixtureMolarMass(cModel,yFrac); 

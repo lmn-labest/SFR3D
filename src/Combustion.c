@@ -299,7 +299,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 
 /*********************************************************************
  * Data de criacao    : 15/08/2018                                   *
- * Data de modificaco : 03/05/2019                                   *
+ * Data de modificaco : 15/05/2019                                   *
  *-------------------------------------------------------------------*
  * regularZ : mantem o z entre 0 e 1                                 *
  *-------------------------------------------------------------------*
@@ -318,10 +318,6 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  * z < 0.0 -> z = 0.e0                                               *
- * fLump = true                                                      *
- * sum(z) > 1.0 -> z[zProd] = 1.e0 - (zFuel + zAir)                  *
-* fLump = false                                                      *
- * sum(z) > 1.0 -> z[zN2] = 1.e0 - (zFuel + zO2 + zCO2 + zH2O)       * 
  *********************************************************************/
 void regularZ(DOUBLE *RESTRICT z    , INT const numel
             , short const nComb      , bool fLump)
@@ -338,29 +334,12 @@ void regularZ(DOUBLE *RESTRICT z    , INT const numel
         MAT2D(nel,j,z,nComb) = 0.e0;
   }
 
-/*... z <= 1.0*/
-  for(nel = 0 ; nel < numel; nel++)
-  {
- // for(j=0,zSum = 0.e0;j<nComb;j++)
- //   zSum += MAT2D(nel,j,z,nComb);
- // if(zSum > 1.e0)
- // {
-      if(fLump)
-        MAT2D(nel,SL_PROD,z,nComb) = 1.e0 
-        - (MAT2D(nel,SL_AIR,z,nComb) + MAT2D(nel,SL_PROD,z,nComb));
-      else
-        MAT2D(nel,SP_N2,z,nComb) = 1.e0 
-        - (MAT2D(nel,SP_FUEL,z,nComb) + MAT2D(nel,SP_O2 ,z,nComb)
-        +  MAT2D(nel,SP_CO2 ,z,nComb) + MAT2D(nel,SP_H2O,z,nComb));
-//  } 
-  }
-
 }
 /*********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 15/08/2018                                   *
- * Data de modificaco : 03/05/2019                                   *
+ * Data de modificaco : 15/05/2019                                   *
  *-------------------------------------------------------------------*
  * getSpeciesPrimitives : obtem as especies primitivas das especies  *
  * agrupadas                                                         *
@@ -394,29 +373,124 @@ void getSpeciesPrimitives(Combustion *cModel
                         , DOUBLE *RESTRICT y,DOUBLE *RESTRICT z
                         , INT const numel   )
 {
-  short i,ns,nl;
+  short i,ns,nl,nc;
   INT nel;
-  DOUBLE *py,*pz,*a;
+  DOUBLE *py,*pz,*a,zLump[3];
 
   if(cModel->fLump)
   {
     ns = cModel->nOfSpecies; 
     nl = cModel->nOfSpeciesLump;
+    nc = cModel->nComb;
     a  = cModel->lumpedMatrix;
-
-    for(nel = 0 ; nel < numel; nel++)
-    {
-      py = &MAT2D(nel,0,y,ns);
-      pz = &MAT2D(nel,0,z,nl);
-      yLumpedMatrixZ(py,a,pz,ns,nl);
-    }
+/*... resolvendo as N especies*/
+    if (nc == nl)
+      for(nel = 0 ; nel < numel; nel++)
+      {
+        py = &MAT2D(nel,0,y,ns);
+        pz = &MAT2D(nel,0,z,nc);
+        yLumpedMatrixZ(py,a,pz,ns,nl);
+      }
+    else
+      for(nel = 0 ; nel < numel; nel++)
+      {
+        py = &MAT2D(nel,0,y,ns);
+        zLump[SL_FUEL] = MAT2D(nel,SL_FUEL,z,nc);
+        zLump[SL_AIR]  = MAT2D(nel,SL_AIR ,z,nc);
+        zLump[SL_PROD] = 1.e0 - (zLump[SL_AIR] + zLump[SL_FUEL]);
+        yLumpedMatrixZ(py,a,zLump,ns,nl);
+      }
   }
   else
   {
     ns = cModel->nOfSpecies; 
-    for(nel = 0 ; nel < numel; nel++)
-      for(i=0;i<ns;i++)
-        MAT2D(nel,i,y,ns) = MAT2D(nel,i,z,ns);
+    nc = cModel->nComb;
+/*... resolvendo as N especies*/
+    if (ns == nc)
+      for(nel = 0 ; nel < numel; nel++)
+        for(i=0;i<nc;i++)
+          MAT2D(nel,i,y,ns) = MAT2D(nel,i,z,nc);
+
+/*... resolvendo as N - 1 especies*/
+    else
+      for(nel = 0 ; nel < numel; nel++)
+      {
+      
+        for(i=0;i<nc;i++)
+          MAT2D(nel,i,y,ns) = MAT2D(nel,i,z,nc);
+
+        MAT2D(nel,SP_N2,y,ns) = 1.e0 
+          - (MAT2D(nel,SP_FUEL,y,ns) + MAT2D(nel,SP_O2 ,y,ns)
+          +  MAT2D(nel,SP_CO2 ,y,ns) + MAT2D(nel,SP_H2O,y,ns));
+      }
+  }
+}
+/*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 15/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * getSpeciesPrimitives : obtem as especies primitivas das especies  *
+ * condicoes de contorno                                             *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * cModel  -> modelo de combustao                                    *
+ * y       -> nao definido                                           *
+ * zComb   -> fracao massica                                         *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * y -> fracao de massa de especies primitivas                       * 
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void getSpeciesPrimitivesCc(Combustion *cModel 
+                           , DOUBLE *RESTRICT y,DOUBLE *RESTRICT z)
+{
+  short i,ns,nl,nc;
+  INT nel;  
+  DOUBLE zLumped[3];
+  if(cModel->fLump)
+  {
+    ns = cModel->nOfSpecies; 
+    nl = cModel->nOfSpeciesLump; 
+    nc = cModel->nComb;
+    if (nc != nl)
+    {
+      zLumped[SL_FUEL] = z[SL_FUEL];
+      zLumped[SL_AIR]  = z[SL_AIR];
+      zLumped[SL_PROD] = 1.e0 - (z[SL_FUEL] + z[SL_AIR]);
+    }
+    else
+    {
+      zLumped[SL_FUEL] = z[SL_FUEL];
+      zLumped[SL_AIR]  = z[SL_AIR];
+      zLumped[SL_PROD] = z[SL_PROD];
+    }
+    yLumpedMatrixZ(y,cModel->lumpedMatrix,zLumped,ns,nl);
+  }
+  else
+  {
+    ns = cModel->nOfSpecies; 
+    nc = cModel->nComb;
+/*... resolvendo as N especies*/
+    if (ns == nc)
+    {
+      for(i=0;i<nc;i++)
+        y[i] = z[i];
+    }
+/*... resolvendo as N - 1 especies*/
+    else
+    {
+      for(i=0;i<nc;i++)
+        y[i] = z[i];
+       
+      y[SP_N2] = 1.e0 
+          - (y[SP_FUEL] + y[SP_O2] +  y[SP_CO2] + y[SP_H2O]);
+    }
   }
 }
 /*********************************************************************/
@@ -442,9 +516,16 @@ void getSpeciesPrimitives(Combustion *cModel
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
+ * fLump - true                                                      *
+ * z(nel,0) -> fuel(comburente)                                      *
  * z(nel,1) -> air (oxidante)                                        *
- * z(nel,2) -> fuel(comburente)                                      *
- * z(nel,3) -> produto                                               *
+ * z(nel,2) -> produto                                               *
+ * z(nel,0) -> fuel(comburente)                                      *
+ * fLump - false                                                     *
+ * z(nel,1) -> O2  (oxidante)                                        * 
+ * z(nel,2) -> CO2                                                   *
+ * z(nel,3) -> H2O                                                   *
+ * z(nel,4) -> N2                                                    *
  *********************************************************************/
 void rateFuelConsume(Combustion *cModel       , DOUBLE *RESTRICT zComb
                    , DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT rate
@@ -676,7 +757,7 @@ DOUBLE totalHeatRealeseComb(DOUBLE *RESTRICT q, DOUBLE *RESTRICT vol
 void initLumpedMatrix(Combustion *cModel)
 {
   
-  short nComb = cModel->nComb;
+  short nl = cModel->nOfSpeciesLump;
   DOUBLE mO2,mN2,mCO2p,mH2Op,mN2p,mAir,mProd;
 
   mO2   = cModel->stoichO2*cModel->mW_O2;
@@ -688,45 +769,45 @@ void initLumpedMatrix(Combustion *cModel)
   mAir  = mO2 + mN2;
   mProd = mCO2p + mH2Op + mN2p;
 /*... Fuel*/
-  MAT2D(SP_FUEL,0,cModel->lumpedMatrix,nComb) = 1.e0; 
-  MAT2D(SP_FUEL,1,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(SP_FUEL,2,cModel->lumpedMatrix,nComb) = 0.e0; 
+  MAT2D(SP_FUEL,0,cModel->lumpedMatrix,nl) = 1.e0; 
+  MAT2D(SP_FUEL,1,cModel->lumpedMatrix,nl) = 0.e0; 
+  MAT2D(SP_FUEL,2,cModel->lumpedMatrix,nl) = 0.e0; 
 /*...................................................................*/
 
 /*... O2*/
-  MAT2D(SP_O2,0,cModel->lumpedMatrix,nComb) = 0.e0;
-  MAT2D(SP_O2,1,cModel->lumpedMatrix,nComb) = mO2/mAir; 
-  MAT2D(SP_O2,2,cModel->lumpedMatrix,nComb) = 0.0e0; 
+  MAT2D(SP_O2,0,cModel->lumpedMatrix,nl) = 0.e0;
+  MAT2D(SP_O2,1,cModel->lumpedMatrix,nl) = mO2/mAir; 
+  MAT2D(SP_O2,2,cModel->lumpedMatrix,nl) = 0.0e0; 
 /*...................................................................*/
 
 /*... N2*/
-  MAT2D(SP_N2,0,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(SP_N2,1,cModel->lumpedMatrix,nComb) = mN2/mAir; 
-  MAT2D(SP_N2,2,cModel->lumpedMatrix,nComb) = mN2p/mProd;  
+  MAT2D(SP_N2,0,cModel->lumpedMatrix,nl) = 0.e0; 
+  MAT2D(SP_N2,1,cModel->lumpedMatrix,nl) = mN2/mAir; 
+  MAT2D(SP_N2,2,cModel->lumpedMatrix,nl) = mN2p/mProd;  
 /*...................................................................*/
 
 /*... CO2*/
-  MAT2D(SP_CO2,0,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(SP_CO2,1,cModel->lumpedMatrix,nComb) = 0.0e0; 
-  MAT2D(SP_CO2,2,cModel->lumpedMatrix,nComb) = mCO2p/mProd;  
+  MAT2D(SP_CO2,0,cModel->lumpedMatrix,nl) = 0.e0; 
+  MAT2D(SP_CO2,1,cModel->lumpedMatrix,nl) = 0.0e0; 
+  MAT2D(SP_CO2,2,cModel->lumpedMatrix,nl) = mCO2p/mProd;  
 /*...................................................................*/
 
 /*... H2O*/
-  MAT2D(SP_H2O,0,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(SP_H2O,1,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(SP_H2O,2,cModel->lumpedMatrix,nComb) =  mH2Op/mProd; 
+  MAT2D(SP_H2O,0,cModel->lumpedMatrix,nl) = 0.e0; 
+  MAT2D(SP_H2O,1,cModel->lumpedMatrix,nl) = 0.e0; 
+  MAT2D(SP_H2O,2,cModel->lumpedMatrix,nl) =  mH2Op/mProd; 
 /*...................................................................*/
 
 /*... CO*/
-  MAT2D(5,0,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(5,1,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(5,2,cModel->lumpedMatrix,nComb) = 0.e0; 
+  MAT2D(5,0,cModel->lumpedMatrix,nl) = 0.e0; 
+  MAT2D(5,1,cModel->lumpedMatrix,nl) = 0.e0; 
+  MAT2D(5,2,cModel->lumpedMatrix,nl) = 0.e0; 
 /*...................................................................*/
 
 /*... C*/
-  MAT2D(6,0,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(6,1,cModel->lumpedMatrix,nComb) = 0.e0; 
-  MAT2D(6,2,cModel->lumpedMatrix,nComb) = 0.e0; 
+  MAT2D(6,0,cModel->lumpedMatrix,nl) = 0.e0; 
+  MAT2D(6,1,cModel->lumpedMatrix,nl) = 0.e0; 
+  MAT2D(6,2,cModel->lumpedMatrix,nl) = 0.e0; 
 /*...................................................................*/
 
 }
@@ -752,13 +833,11 @@ void initLumpedMatrix(Combustion *cModel)
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
- * y[0] - CH4                                                        *
- * y[1] - O2                                                         *
- * y[2] - N2                                                         *
- * y[3] - CO2                                                        *
- * y[4] - H2O                                                        *
- * y[5] - CO                                                         *
- * y[6] - C                                                          *
+ * c[0] - CH4                                                        *
+ * c[1] - O2                                                         *
+ * c[2] - CO2                                                        *
+ * c[3] - H2O                                                        *
+ * c[4] - N2                                                         *
  *********************************************************************/
 void yLumpedMatrixZ(DOUBLE *RESTRICT y, DOUBLE *RESTRICT a
                   , DOUBLE *RESTRICT z
@@ -1076,11 +1155,9 @@ void initEntalpyOfCombustion(Combustion *cModel)
  *-------------------------------------------------------------------*
  * c[0] - CH4                                                        *
  * c[1] - O2                                                         *
- * c[2] - N2                                                         *
- * c[3] - CO2                                                        *
-*  c[4] - H2O                                                        *
- * c[5] - CO                                                         * 
- * c[6] - C                                                          *
+ * c[2] - CO2                                                        *
+ * c[3] - H2O                                                        *
+ * c[4] - N2                                                         *
  *********************************************************************/
 void concetracionOfSpecies(Combustion *cModel,DOUBLE *RESTRICT z
                           ,DOUBLE *RESTRICT c,DOUBLE const density)
@@ -1230,9 +1307,9 @@ DOUBLE maxArray(DOUBLE *RESTRICT x,INT const n)
 }
 /*********************************************************************/ 
 
-void printt(double *x, short n)
+void printt(double *x, int n)
 {
   int i;
   for(i=0;i<n;i++)
-    printf("%d %e\n",i,x[i]);
+    if( x[i] != 0.e0) printf("%d %e\n",i,x[i]);
 }

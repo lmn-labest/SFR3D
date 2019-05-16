@@ -174,10 +174,13 @@ int main(int argc,char**argv){
 /*..................................................................*/
 
 /*...*/
-  combModel.fCombustion          = false;
-  combModel.tMix                 = 0.125;
-  combModel.totalHeat            = 0.e0;
-  combModel.totalMassFuel        = 0.e0;
+  combModel.fCombustion     = false;
+  combModel.fRes            = true;
+  combModel.fCorrectVel     = false;
+  combModel.typeHeatRealese = HFORMATION; 
+  combModel.tMix            = 0.125;
+  combModel.totalHeat       = 0.e0;
+  combModel.totalMassFuel   = 0.e0;
 /*..................................................................*/
 
 /*...*/

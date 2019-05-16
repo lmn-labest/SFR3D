@@ -179,14 +179,15 @@
           , DOUBLE *eWallPar     , DOUBLE *nWallPar
           , DOUBLE *eKturb       , DOUBLE *nKturb
           , DOUBLE *eRateFuel    , DOUBLE *nRateFuel
-          , DOUBLE *eYfrac       , DOUBLE *nYfrac
-          , DOUBLE *eHeatRe      , DOUBLE *nHeatRe      
+          , DOUBLE *eYfrac       , DOUBLE *nYfrac 
+          , DOUBLE *eHeatRe      , DOUBLE *nHeatRe     
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
           , DOUBLE *specificHeat , DOUBLE *tConductivity
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf
-          , short const ntn      , short const nOfPrSp  
+          , short const ntn      , short const nOfPrSp
+          , short const nComb
           , char *nameOut        , FileOpt *opt
           , bool fKelvin         , Mean *media  
           , Temporal ddt         , FILE *f);

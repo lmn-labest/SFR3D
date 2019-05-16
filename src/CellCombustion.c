@@ -109,7 +109,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 {
   bool fTime, fRes, fTurb, fWallModel, fLump, fDiffCoor;
   short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf, nCarg1
-    , nCarg2, typeTime, iCodPolFace, nComb, nst, i;
+    , nCarg2, typeTime, iCodPolFace, nComb, nst, i, nSp, nSpLump;
 /*...*/
   INT vizNel;
 /*...*/
@@ -145,9 +145,11 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*...................................................................*/
 
 /*...*/
-  fLump     = cModel->fLump;
-  nComb     = cModel->nComb;
-  fDiffCoor = false;  
+  fLump      = cModel->fLump;
+  nComb      = cModel->nComb;
+  nSp        = cModel->nOfSpecies;
+  nSpLump    = cModel->nOfSpeciesLump;
+  fDiffCoor  = cModel->fCorrectVel;  
 /*...................................................................*/
 
 /*...*/
@@ -462,7 +464,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
   {
     tmp1 = rateFuel*volume[idCell];
     p[SL_FUEL] -= tmp1;
-    p[SL_AIR ] -= cModel->sMassAir*tmp1;
+    if( nComb == nSpLump) p[SL_AIR ] -= cModel->sMassAir*tmp1;
     p[SL_PROD] += (1.e0+cModel->sMassAir)*tmp1;
   }
   else
@@ -470,7 +472,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
     tmp1 = rateFuel*volume[idCell];
     p[SP_FUEL] -= tmp1;
     p[SP_O2  ] -= cModel->sMassO2*tmp1;
-    p[SP_N2]   += 0.0e0;
+    if( nComb == nSp) p[SP_N2]   += 0.0e0;
     p[SP_CO2]  += cModel->sMassCO2p*tmp1; 
     p[SP_H2O]  += cModel->sMassH2Op*tmp1;
   }

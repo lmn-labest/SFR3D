@@ -70,6 +70,8 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
   void getSpeciesPrimitives(Combustion *cModel 
                         , DOUBLE *RESTRICT y,DOUBLE *RESTRICT z
                         , INT const numel);
+  void getSpeciesPrimitivesCc(Combustion *cModel 
+                           , DOUBLE *RESTRICT y,DOUBLE *RESTRICT z);
 /*...................................................................*/
 
 /*...*/

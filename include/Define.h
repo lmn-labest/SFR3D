@@ -9,9 +9,9 @@
 /*...*/
   #define SP_FUEL 0
   #define SP_O2   1
-  #define SP_N2   2
-  #define SP_CO2  3
-  #define SP_H2O  4
+  #define SP_CO2  2
+  #define SP_H2O  3
+  #define SP_N2   4
 /*...................................................................*/
 
 /*...*/

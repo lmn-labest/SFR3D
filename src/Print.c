@@ -475,7 +475,7 @@ void printFluid(Memoria *m
 
 /********************************************************************* 
  * Data de criacao    : 05/08/2018                                   *
- * Data de modificaco : 20/08/2018                                   *
+ * Data de modificaco : 15/05/2019                                   *
  *-------------------------------------------------------------------*
  * printCombustion: impressao do fluido                              * 
  *-------------------------------------------------------------------* 
@@ -518,7 +518,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
   FILE *fileOut=NULL;
 
 /*...*/
-  nComb   = cModel->nOfSpeciesLump;
+  nComb   = cModel->nComb;
   nOfPrSp = cModel->nOfSpecies; 
   ndfVel = max(mesh->ndfF - 1, mesh->ndfFt - 2);
 /*...................................................................*/
@@ -1065,6 +1065,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh0->ndm               , mesh0->maxNo 
                , mesh0->numat             , ndfVel
                , mesh0->ntn               , nOfPrSp
+               , nComb
                , nameOut                  , opt
                , eModel->fKelvin          , media
                , sc.ddt                   , fileOut);   

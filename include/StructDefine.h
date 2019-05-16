@@ -68,6 +68,7 @@
     bool fRes;
     bool fCombustion;
     bool fLump;
+    bool fCorrectVel;
     short nOfSpecies;     /* numero total de especies*/
     short nOfSpeciesLump; /* numero de especies agrupadas*/
     short nComb;          /* numero especies transportadas*/

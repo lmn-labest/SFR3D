@@ -487,7 +487,7 @@ DOUBLE mixtureSpecifiHeat(PropPol *sHeat    , DOUBLE *yFrac
     for (i = 1; i < n; i++)
       cpk += a[i]*pow(tc,i);
 /*.....................................................................*/
-
+    yFrac[k] = max(yFrac[k],0.0);
     if (cpk < 0.e0 || yFrac[k] < 0.e0)
     {
       printf("Calor especifico negativo!!\n"

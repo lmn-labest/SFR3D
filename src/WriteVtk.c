@@ -2157,7 +2157,7 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
 
 /********************************************************************** 
  * Data de criacao    : 05/08/2018                                    *
- * Data de modificaco : 20/08/2018                                    * 
+ * Data de modificaco : 15/05/2019                                    * 
  *------------------------------------------------------------------- * 
  * wResVtkCombustion :                                                * 
  * ------------------------------------------------------------------ *
@@ -2216,6 +2216,7 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
  * ndf          -> graus de liberdade das equacoes                    *
  * ntn          -> numero de termos no tensor ( 4 ; 6)                *
  * nOfPrSp      -> numero de especies primitivas                      *
+ * nComb        -> numero de especies resolvidas                      *
  * nameOut      -> nome de arquivo de saida                           *
  * opt          -> opcoes do arquivo                                  *
  * f            -> arquivo                                            *
@@ -2258,12 +2259,13 @@ void wResVtkCombustion(Memoria *m     , DOUBLE *x
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf
           , short const ntn      , short const nOfPrSp
+          , short const nComb
           , char *nameOut        , FileOpt *opt
           , bool fKelvin         , Mean *media  
           , Temporal ddt         , FILE *f)
 {
   bool iws = opt->bVtk;
-  char str[50];
+  char str[50], st[MAX_STR_NUMBER];;
   int    *lel=NULL;
   DOUBLE *p=NULL,*w=NULL;
   INT i;
@@ -2582,22 +2584,17 @@ void wResVtkCombustion(Memoria *m     , DOUBLE *x
     HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
     ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
 
-    getColFromMatrix(p,elZcomb,numel,3,SL_FUEL); 
-    strcpy(str,"eZfuel");
-    writeVtkProp(&idum,p,numel,1,str,iws
-                ,DOUBLE_VTK,SCALARS_VTK,f);
+    for(i=0;i<nComb;i++)
+    {
+      getColFromMatrix(p,elZcomb,numel,nComb,i); 
+      iota(i,st);
+      strcpy(str,"eZ");
+      strcat(str,st);
+      writeVtkProp(&idum,p,numel,1,str,iws
+                  ,DOUBLE_VTK,SCALARS_VTK,f);
+    }
 
-    getColFromMatrix(p,elZcomb,numel,3,SL_AIR); 
-    strcpy(str,"eZair");
-    writeVtkProp(&idum,p,numel,1,str,iws
-                ,DOUBLE_VTK,SCALARS_VTK,f);
-
-    getColFromMatrix(p,elZcomb,numel,3,SL_PROD); 
-    strcpy(str,"eZprod");
-    writeVtkProp(&idum,p,numel,1,str,iws
-                ,DOUBLE_VTK,SCALARS_VTK,f);
-
-    sumFracZ(p,elZcomb,numel,3);
+    sumFracZ(p,elZcomb,numel,nComb);
     strcpy(str,"eZTotal");
     writeVtkProp(&idum,p,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
@@ -2610,7 +2607,7 @@ void wResVtkCombustion(Memoria *m     , DOUBLE *x
   if(opt->gradZcomb &&  opt->fCell )
   {
     strcpy(str,"eGradZcomb");
-    writeVtkProp(&idum,elGradZcomb,numel,3*ndm,str,iws
+    writeVtkProp(&idum,elGradZcomb,numel,nComb*ndm,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
 /*...................................................................*/
@@ -2931,17 +2928,17 @@ void wResVtkCombustion(Memoria *m     , DOUBLE *x
     HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
     ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
 
-    getColFromMatrix(p,nZcomb,nnode,3,0); 
+    getColFromMatrix(p,nZcomb,nnode,3,SL_FUEL); 
     strcpy(str,"nZair");
     writeVtkProp(&idum,p,nnode,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
 
-    getColFromMatrix(p,nZcomb,nnode,3,1); 
+    getColFromMatrix(p,nZcomb,nnode,3,SL_AIR); 
     strcpy(str,"nZfuel");
     writeVtkProp(&idum,p,nnode,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
 
-    getColFromMatrix(p,nZcomb,nnode,3,2); 
+    getColFromMatrix(p,nZcomb,nnode,3,SL_PROD); 
     strcpy(str,"nZprod");
     writeVtkProp(&idum,p,nnode,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
