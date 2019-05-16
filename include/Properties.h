@@ -126,25 +126,40 @@
 /*...................................................................*/
 
 /*... mistura gasosa*/
-  void initMixtureSpeciesfiHeat(PropPol *prop, char *s, FILE *file);
-  void updateMixSpecificHeat(PropPol *sHeatPol
-                         , DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT yFrac  
-                         , DOUBLE *RESTRICT sHeat , short const nOfPrSp
-                         , bool const iKelvin
-                         , INT const nEl          , char  const iCod);
+  void initLeornadJones(Combustion *cModel);
+/*... massa especifica da mistura*/
+  DOUBLE mixtureSpeciesDensity(PropPol *den        ,DOUBLE const malorMassMix
+                            ,DOUBLE const t      ,DOUBLE const p
+                            ,DOUBLE const presRef,bool const fKelvin);
   void updateMixDensity(PropPol *pDen         , Combustion *cModel
                  , DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT pressure
                  , DOUBLE *RESTRICT density , DOUBLE *RESTRICT zComb
                  , DOUBLE const alpha       , bool const iKelvin    
                  , INT const nEl            , char  const iCod);
+/*... calor especifico da mistura*/
+  void initMixtureSpeciesfiHeat(PropPol *prop, char *s, FILE *file);
   DOUBLE mixtureSpecifiHeat(PropPol *sHeat   , DOUBLE *yFrac
                          , DOUBLE const t    , short const nOfPrSp
                          , bool const fKelvin); 
   DOUBLE specieSpecifiHeat(PropPol *sHeat     , short const kSpecie
                         , DOUBLE const t      , bool const fKelvin); 
-  DOUBLE mixtureSpeciesDensity(PropPol *den        ,DOUBLE const malorMassMix
-                            ,DOUBLE const t      ,DOUBLE const p
-                            ,DOUBLE const presRef,bool const fKelvin);
+  void updateMixSpecificHeat(PropPol *sHeatPol
+                         , DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT yFrac  
+                         , DOUBLE *RESTRICT sHeat , short const nOfPrSp
+                         , bool const iKelvin
+                         , INT const nEl          , char  const iCod);
+/*... viscosidae dinamica da mistura*/
+  DOUBLE mixtureDynamicViscosity(PropPol *dVisc    ,Combustion *cModel
+                            ,DOUBLE const t      ,DOUBLE *RESTRICT yFrac
+                            ,bool const fKelvin);
+  DOUBLE specieViscosity(DOUBLE const molarMass
+                        ,DOUBLE const sigmaA   ,DOUBLE const ek   
+                        ,DOUBLE const t     ); 
+  void updateMixDynamicViscosity(PropPol *dVisc    ,Combustion *cModel
+                          ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
+                          ,DOUBLE *RESTRICT visc ,short const nOfPrSp   
+                          ,bool const iKelvin    ,INT const nEl);
+/*...*/
   DOUBLE specificEnthalpyForTempOfMix(PropPol *sHeatPol
                              , DOUBLE const hs        , DOUBLE *yFrac
                              , DOUBLE const sHeatRef  , short const nOfPrSp

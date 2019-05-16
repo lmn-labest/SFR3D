@@ -11,8 +11,94 @@ static DOUBLE pol(DOUBLE *RESTRICT a, DOUBLE const x,short const n)
 
   return tmp;
 }
-
 /********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 16/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * philn:                                                            *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * parametro omega                                                   *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *        The properies of gase and liquids (5ª)                     *
+ *        pag 95                                                     *
+ * A Simple and Accurate Method for Calculating Viscosity of Gas     *
+ * Mixtures                                                          *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+static DOUBLE philn(DOUBLE const mWi, DOUBLE const nui
+                   ,DOUBLE const mWj, DOUBLE const nuj)
+{
+
+  DOUBLE tmp1,tmp2,r8;
+
+  r8   = 1.e0/sqrt(8.e0);
+  tmp1 = 1.e0/sqrt(1.e0 + mWi/mWj);
+  tmp2 = 1.e0 + sqrt(nui/nuj)*pow(mWj/mWi,0.25e0);
+
+  return r8*tmp1*tmp2*tmp2;
+}
+/********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 15/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * collisionIntegral:                                                *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * t - temperatura em kelvin                                         *
+ * ek  - e/k do especies desejada (Leornard-Jones parameters)        *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * parametro omega                                                   *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ * fonte: Manual do FDS                                              *
+ *        livro computional fluid dynamics in fire engineering       *
+ *        pag 486                                                    *
+ *        The properies of gase and liquids (5ª)                     *
+ *        pag 95                                                     *
+ * 0.3 < T* < 100                                                    *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE collisionIntegral(DOUBLE const t,DOUBLE const ek) 
+{
+  DOUBLE ekli,ta,num;
+  DOUBLE A,B,C,D,E,F;
+
+  A =  1.16145e0;
+  B =  0.14874e0;
+  C =  0.52487e0;
+  D =  0.77320e0;
+  E =  2.16178e0;
+  F =  2.43787e0;
+
+  ta = t/ek;
+  
+  if( ta < 0.3 || ta > 100)
+  {    
+    printf("collision Integral out of range!!\n"
+           "0.3 < T* < 100\n"
+           "t*               = %lf\n",ta);
+    exit(EXIT_FAILURE);
+  }
+
+  num = A*pow(ta,-B) + C*exp(-D*ta) + E*exp(-F*ta);
+
+  return num;
+
+}
+
 
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
@@ -129,7 +215,6 @@ void updateMixDensity(PropPol *pDen         , Combustion *cModel
     break;
   }
 /*..................................................................*/
-
 
 }
 /*********************************************************************/ 
@@ -588,6 +673,188 @@ DOUBLE specieSpecifiHeat(PropPol *sHeat     , short const kSpecie
 /**********************************************************************/
 
 /*********************************************************************
+ * Data de criacao    : 16/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * specieViscosity: viscosidade dinamica kg/(m.s)                    *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * dVisc     - estrutra par o polinoimio da viscosidade              *
+ * cModel    - massa molar da especie                                *
+ * t         - temperatura                                           *
+ * yFrac     - fracao massica da mistura                             *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE mixtureDynamicViscosity(PropPol *dVisc    ,Combustion *cModel
+                            ,DOUBLE const t      ,DOUBLE *RESTRICT yFrac
+                            ,bool const fKelvin)
+{
+  short i,j,ns;
+  DOUBLE molarMassMix,tc,y,d,mWa,sum1,sum2,tmp1,sigmaA,ek,phi;
+  DOUBLE nuA[MAXSPECIES],xA[MAXSPECIES];
+  
+ 
+  if(fKelvin)
+    tc = t;  
+  else
+    tc = CELSIUS_FOR_KELVIN(t);  
+  
+  
+  switch (dVisc->type)
+  {
+/*...*/
+    case FDSVISCOSITY:
+      d  = 1.e0;
+      ns = cModel->nOfSpecies;
+      molarMassMix =  mixtureMolarMass(cModel,yFrac);
+      for(i=0,sum1=0,sum2=0;i<ns;i++)
+      { 
+        mWa = cModel->mW[i];
+        xA[0] = (mWa*yFrac[i])/molarMassMix;
+
+        sigmaA = cModel->leornadJones[i][0];
+        ek     = cModel->leornadJones[i][1];
+        nuA[0] = specieViscosity(mWa,sigmaA,ek,tc); 
+
+        tmp1 = xA[0]*sqrt(mWa);
+        sum1 += nuA[0]*tmp1;
+        sum2 += tmp1; 
+      }
+      y = sum1/sum2;
+      break;
+/*.....................................................................*/
+
+/*...*/
+    case WILKELAW:
+      d  = 1.e0;
+      ns = cModel->nOfSpecies;
+      molarMassMix =  mixtureMolarMass(cModel,yFrac);
+
+/*...*/
+      for(i=0;i<ns;i++)
+      { 
+        sigmaA = cModel->leornadJones[i][0];
+        ek     = cModel->leornadJones[i][1];
+        mWa    = cModel->mW[i];
+        nuA[i] = specieViscosity(mWa,sigmaA,ek,tc); 
+
+        xA[i] = (mWa*yFrac[i])/molarMassMix;
+      }  
+/*...................................................................*/
+
+/*...*/
+      for(i=0,sum2=0.e0;i<ns;i++)
+      {
+        for(j=0,sum1=0.e0;j<ns;j++)
+        {
+          if(i==j)
+            phi = 1.e0;
+          else  
+            phi = philn(cModel->mW[i],nuA[i]
+                       ,cModel->mW[j],nuA[j]);
+          sum1+= xA[j]*phi;
+        }
+        sum2 += xA[i]*nuA[i]/sum1;
+      }
+/*...................................................................*/
+
+      y = sum2;
+      break;
+/*.....................................................................*/
+
+/*...*/
+    default:  
+      ERRO_OP(__FILE__,__func__,dVisc->type);
+      break;
+/*.....................................................................*/
+  }
+
+  return y*d;
+
+}
+/**********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 16/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * specieViscosity: viscosidade dinamica kg/(m.s)                    *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * molarMass - massa molar da especie                                *
+ * sigmaA    - parametro de Leornad-Jones                            *
+ * ek        - parametro de Leornad-Jones                            *
+ * t - temperatura em Kelvin                                         *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE specieViscosity(DOUBLE const molarMass
+                      ,DOUBLE const sigmaA   ,DOUBLE const ek   
+                      ,DOUBLE const t     ) 
+{
+
+  short i,n;
+  DOUBLE omega,visc;
+
+  omega     = collisionIntegral(t,ek);
+  visc      = 26.69e-07*sqrt(molarMass*t)/(sigmaA*sigmaA*omega);
+
+  return visc;
+}
+/**********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 16/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * updateDynamicViscosity:                                           *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * dVisc   -> intepolacao da viscosidade dinamica                    *
+ * cModel  ->                                                        *
+ * temp    -> temperatura                                            *
+ * visc    -> vetor de viscosidades dianamica por celula             *
+ * nOfPrSp  - numero de especies primitivas                          * 
+ * iKelvin -> kelvin ou celsus                                       *
+ * nEl     -> numero total de celulas                                *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void updateMixDynamicViscosity(PropPol *dVisc    ,Combustion *cModel
+                          ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
+                          ,DOUBLE *RESTRICT visc ,short const nOfPrSp   
+                          ,bool const iKelvin    ,INT const nEl)
+{
+  INT i;
+  DOUBLE *y;
+
+  for(i=0;i<nEl;i++)
+  {
+    y = &MAT2D(i,0,yFrac,nOfPrSp);         
+    visc[i] = mixtureDynamicViscosity(dVisc    ,cModel
+                                     ,temp[i]  ,yFrac
+                                     ,iKelvin);
+  }
+}
+/*********************************************************************/
+
+/*********************************************************************
  * Data de criacao    : 19/08/2018                                   *
  * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
@@ -875,9 +1142,14 @@ void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
 /*...................................................................*/
 
 /*...*/
-    else if( iProp == DYNAMICVISCOSITY)  
+    else if( iProp == DYNAMICVISCOSITY)
+    {
+      y = &MAT2D(i,0,yFrac, nOfPrSp);
       MAT2D(lMat, iProp, propMat, MAXPROP) 
-      = airDynamicViscosity(&propFluid->dVisc,t[i],iKelvin);
+      = mixtureDynamicViscosity(&propFluid->dVisc,cModel
+                               ,t[i]             ,y
+                               ,iKelvin);
+    }
 /*...................................................................*/
 
 /*...*/
@@ -894,6 +1166,11 @@ void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
   }
 }
 /*********************************************************************/
+
+/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+
+/*++++++++++++++++++++++++++ Ar ++++++++++++++++++++++++++++++++++++*/
 
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
@@ -1089,7 +1366,7 @@ DOUBLE airSpecifiHeat(PropPol *sHeat, DOUBLE const t
  * Data de criacao    : 29/08/2017                                   *
  * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
- * AIRDYNAMICVISCOSITY: kJ/(kg.K)                                    *
+ * AIRDYNAMICVISCOSITY: kg/(m.s)                                     *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
@@ -2000,7 +2277,7 @@ void initSheatPol(PropPol *prop, char *s, FILE *file) {
 
 /********************************************************************* 
  * Data de criacao    : 16/09/2017                                   *
- * Data de modificaco : 07/05/2019                                   *
+ * Data de modificaco : 16/05/2019                                   *
  *-------------------------------------------------------------------*
  * INITVISCOSITYPOL: inicializao a estrutura para o calculo da       *
  * viscosidade dinamica via polinomio                                *
@@ -2025,7 +2302,8 @@ void initDviscosityPol(PropPol *prop, char *s, FILE *file) {
   short i;
   double x[MAXPLODEG];
 
-  if (!strcmp(s, "polinomio")) {
+  if (!strcmp(s, "polinomio")) 
+  {
     prop->type = POL;
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
@@ -2042,12 +2320,25 @@ void initDviscosityPol(PropPol *prop, char *s, FILE *file) {
 
   }
 
-  else if(!strcmp(s,"sutherland")){
+  else if(!strcmp(s,"sutherland"))
+  {
     prop->type = SUTHERLAND;
     prop->a[0] = 1.789e-05; /*viscosidade de referencia*/
     prop->a[1] = 273.11e0;  /*temperatura de referencia*/
     prop->a[2] = 110.56e0;  /*constante de Sutherland*/
   }
+  
+  else if(!strcmp(s,"fdsviscosity"))
+  {
+    prop->type = FDSVISCOSITY;
+    prop->a[0] = 26.69e-07; 
+  }
+
+  else if(!strcmp(s,"wilkelaw"))
+  {
+    prop->type = WILKELAW;
+  }
+
   else {
     ERRO_GERAL(__FILE__,__func__,__LINE__,s);
   }
@@ -2592,3 +2883,37 @@ void initPropStructCD(PropVarCD *propVar, short const n)
 }
 /**********************************************************************/
 
+/**********************************************************************
+ * Data de criacao    : 16/05/2019                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *--------------------------------------------------------------------*
+ * initLeornadJones : inicializacao                                   *
+ *--------------------------------------------------------------------*
+ * Parametros de entrada:                                             *
+ *--------------------------------------------------------------------*
+ *--------------------------------------------------------------------*
+ * Parametros de saida:                                               *
+ *--------------------------------------------------------------------*
+ *--------------------------------------------------------------------*
+ * OBS:                                                               *
+ *--------------------------------------------------------------------*
+ **********************************************************************/
+void initLeornadJones(Combustion *cModel)
+{
+/*... Fuel*/
+  cModel->leornadJones[SP_FUEL][0] = 3.758e0;
+  cModel->leornadJones[SP_FUEL][1] = 148.6e0;
+/*... O2*/
+  cModel->leornadJones[SP_O2][0] = 3.467e0;
+  cModel->leornadJones[SP_O2][1] = 106.7e0;
+/*... N2*/
+  cModel->leornadJones[SP_N2][0] = 3.798e0;
+  cModel->leornadJones[SP_N2][1] = 71.4e0;
+/*... CO2*/
+  cModel->leornadJones[SP_CO2][0] = 3.941e0;
+  cModel->leornadJones[SP_CO2][1] = 195.2e0;
+/*... H2O*/
+  cModel->leornadJones[SP_H2O][0] = 2.641e0;
+  cModel->leornadJones[SP_H2O][1] = 809.1e0;
+}
+/**********************************************************************/

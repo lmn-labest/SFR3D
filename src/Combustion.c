@@ -1,7 +1,5 @@
 #include<Combustion.h>
 
-static void vectorMolarMass(DOUBLE *mW, Combustion *cModel);
-
 /*********************************************************************
  * Data de criacao    : 30/07/2018                                   *
  * Data de modificaco : 02/05/2019                                   *
@@ -78,7 +76,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*...*/
-  for(itComb = 0; itComb < 1;itComb++)
+  for(itComb = 0; itComb < 2;itComb++)
   {
 /*... taxa de comsumo do combustivel*/
     rateFuelConsume(cModel                , mesh->elm.zComb
@@ -546,7 +544,7 @@ void rateFuelConsume(Combustion *cModel       , DOUBLE *RESTRICT zComb
     case ARRHENIUS:
       s      = cModel->sMolar;
       alpha  = cModel->arrhenius.alpha;
-      mWfuel = cModel->mW_Fuel;
+      mWfuel = cModel->mW[SP_FUEL];
       mWox   = cModel->mW_Air;
       coefA  = cModel->arrhenius.a;
 /*... KJ/(kmol*kelvin)*/
@@ -683,7 +681,7 @@ void rateHeatRealeseCombustion(Combustion *cModel,PropPol *sHeat
                                                        , temp[nel], sHeatRef    
                                                        , fsHeat   , fKelvin);
      
-      tmp =  (nCO2p*H[0] + nH2Op*H[1] - H[2])/cModel->mW_Fuel;
+      tmp =  (nCO2p*H[0] + nH2Op*H[1] - H[2])/cModel->mW[SP_FUEL];
 
       tmp *=rateFuel[nel];
 
@@ -760,11 +758,11 @@ void initLumpedMatrix(Combustion *cModel)
   short nl = cModel->nOfSpeciesLump;
   DOUBLE mO2,mN2,mCO2p,mH2Op,mN2p,mAir,mProd;
 
-  mO2   = cModel->stoichO2*cModel->mW_O2;
-  mN2   = cModel->stoichN2*cModel->mW_N2;
-  mCO2p = cModel->stoichCO2p*cModel->mW_CO2;
-  mH2Op = cModel->stoichH2Op*cModel->mW_H2O;
-  mN2p  = cModel->stoichN2p*cModel->mW_N2;
+  mO2   = cModel->stoichO2*cModel->mW[SP_O2];
+  mN2   = cModel->stoichN2*cModel->mW[SP_N2];
+  mCO2p = cModel->stoichCO2p*cModel->mW[SP_CO2];
+  mH2Op = cModel->stoichH2Op*cModel->mW[SP_H2O];
+  mN2p  = cModel->stoichN2p*cModel->mW[SP_N2];
 
   mAir  = mO2 + mN2;
   mProd = mCO2p + mH2Op + mN2p;
@@ -885,28 +883,23 @@ void initMolarMass(Combustion *cModel)
   pN2 = cModel->N2InAir;
 
 /*... Fuel */
-  cModel->mW_Fuel = nC*MW_C + nH*MW_H + nO*MW_O;
-
+  cModel->mW[SP_FUEL] = nC*MW_C + nH*MW_H + nO*MW_O;
 /*...O2*/
-  cModel->mW_O2 = 2.0e0*MW_O;
-
+  cModel->mW[SP_O2] =  2.0e0*MW_O;
 /*...N2*/
-  cModel->mW_N2 = 2.0e0*MW_N;
-
+  cModel->mW[SP_N2] =  2.0e0*MW_N;
 /*...H2O*/
-  cModel->mW_H2O = 2.0e0*MW_H + MW_O;
-
+  cModel->mW[SP_H2O]  = 2.0e0*MW_H + MW_O;
 /*...CO2*/
-  cModel->mW_CO2 =MW_C +  2.0e0*MW_O;
-
+  cModel->mW[SP_CO2] = MW_C +  2.0e0*MW_O;
 /*...CO*/
-  cModel->mW_CO = MW_C + MW_O;
+//cModel->mW_CO = MW_C + MW_O;
 
 /*...C*/
-  cModel->mW_C = MW_C;
+//cModel->mW_C = MW_C;
 
 /*... Air*/
-  cModel->mW_Air = pO2*cModel->mW_O2 + pN2*cModel->mW_N2;
+  cModel->mW_Air = pO2* cModel->mW[SP_O2] + pN2*cModel->mW[SP_N2];
 
 }
 /********************************************************************/
@@ -997,12 +990,12 @@ void stoichiometricCoeff(Combustion *cModel)
 
 /*...*/
   cModel->sMolar    = nAir;
-  cModel->sMassAir  = nAir*cModel->mW_Air/cModel->mW_Fuel;
-  cModel->sMassO2   = nO2*cModel->mW_O2/cModel->mW_Fuel;
-  cModel->sMassN2   = nN2*cModel->mW_N2/cModel->mW_Fuel;
-  cModel->sMassCO2p = nCO2p*cModel->mW_CO2/cModel->mW_Fuel;
-  cModel->sMassH2Op = nH2Op*cModel->mW_H2O/cModel->mW_Fuel;
-  cModel->sMassN2p  = nN2p*cModel->mW_N2/cModel->mW_Fuel;
+  cModel->sMassAir  = nAir*cModel->mW_Air/cModel->mW[SP_FUEL];
+  cModel->sMassO2   = nO2*cModel->mW[SP_O2]/cModel->mW[SP_FUEL];
+  cModel->sMassN2   = nN2*cModel->mW[SP_N2]/cModel->mW[SP_FUEL];
+  cModel->sMassCO2p = nCO2p*cModel->mW[SP_CO2]/cModel->mW[SP_FUEL];
+  cModel->sMassH2Op = nH2Op*cModel->mW[SP_H2O]/cModel->mW[SP_FUEL];
+  cModel->sMassN2p  = nN2p*cModel->mW[SP_N2]/cModel->mW[SP_FUEL];
 /*..................................................................*/
 
   fprintf(fileLogExc,"\nReaction:\n\n"); 
@@ -1126,7 +1119,7 @@ void initEntalpyOfCombustion(Combustion *cModel)
 
 
 /*... KJ/KG de fuel */
-  cModel->entalphyOfCombustion  /= cModel->mW_Fuel;
+  cModel->entalphyOfCombustion  /= cModel->mW[SP_FUEL];
 
   fprintf(fileLogExc,"Entalphy of combustion (KJ/KG)   = %lf\n\n"  
                     ,cModel->entalphyOfCombustion);
@@ -1164,9 +1157,9 @@ void concetracionOfSpecies(Combustion *cModel,DOUBLE *RESTRICT z
 {
   bool fLump = cModel->fLump;
   short i, ns = cModel->nOfSpecies, nl = cModel->nOfSpeciesLump;
-  DOUBLE y[MAXSPECIES],mW[MAXSPECIES];
+  DOUBLE y[MAXSPECIES],*mW;
 
-  vectorMolarMass(mW,cModel);
+  mW = cModel->mW;
 
   if (fLump) yLumpedMatrixZ(y,cModel->lumpedMatrix, z, ns, nl);
   
@@ -1232,9 +1225,9 @@ DOUBLE mixtureMolarMass(Combustion *cModel,DOUBLE *RESTRICT y)
 {                    
 
   short i, ns = cModel->nOfSpecies;
-  DOUBLE mW[MAXSPECIES],tmp;
+  DOUBLE *mW,tmp;
 
-  vectorMolarMass(mW,cModel);
+  mW = cModel->mW;
 
   for(i=0,tmp=0.e0;i<ns;i++)
     tmp += y[i]/mW[i];
@@ -1243,37 +1236,6 @@ DOUBLE mixtureMolarMass(Combustion *cModel,DOUBLE *RESTRICT y)
 
 }
 /*********************************************************************/
-
-/*********************************************************************
- * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 05/05/2019                                   *
- *-------------------------------------------------------------------*
- * vectorMolarMass : massa molar da mistura                          *
- *-------------------------------------------------------------------*
- * Parametros de entrada:                                            *
- *-------------------------------------------------------------------*
- * mW -> nao definido                                                *
- *-------------------------------------------------------------------*
- * Parametros de saida:                                              *
- *-------------------------------------------------------------------*
- * mW -> massa molar                                                 *
- *-------------------------------------------------------------------*
- * OBS:                                                              *
- *-------------------------------------------------------------------*
- *********************************************************************/
-static void vectorMolarMass(DOUBLE *mW, Combustion *cModel)
-{
-
-  mW[SP_FUEL] = cModel->mW_Fuel;
-  mW[SP_O2  ] = cModel->mW_O2;
-  mW[SP_N2  ] = cModel->mW_N2;
-  mW[SP_CO2 ] = cModel->mW_CO2;
-  mW[SP_H2O ] = cModel->mW_H2O;
-/*mW[5] = cModel->mW_CO;
-  mW[6] = cModel->mW_C;*/
-
-}
-/*********************************************************************/ 
 
 /*********************************************************************
  * Data de criacao    : 03/05/2019                                   *

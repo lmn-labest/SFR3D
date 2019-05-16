@@ -82,13 +82,15 @@
     DOUBLE stoichCO2p,stoichH2Op,stoichN2p; 
     DOUBLE lumpedMatrix[21];
 /*... massa molar*/
-    DOUBLE mW_Fuel,mW_N2,mW_O2,mW_CO2,mW_CO,mW_H2O,mW_C,mW_Air;
+    DOUBLE mW[MAXSPECIES],mW_Air;
+/*... Leornad-Jone parametros*/
+    DOUBLE leornadJones[MAXSPECIES][2]; /*col 1 - sigma, col 2 -e/k
 /*... entalpia de formacao*/    
     DOUBLE entalphyOfForm[MAXSPECIES]; /*0 - Fuel
                                          1 - O2   
-                                         2 - N2
                                          3 - CO2     
-                                         4 - H2O*/      
+                                         4 - H2O
+                                         5 - N2*/      
 
     DOUBLE entalphyOfCombustion;        /* Entalpia de combustao calculada 
                                           pelas especies primitivas*/

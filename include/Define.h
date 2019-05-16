@@ -42,9 +42,11 @@
 /*...................................................................*/
 
 /*...*/
-  #define POL        1
+  #define POL           1
 /*... viscosidade*/
-  #define SUTHERLAND 2
+  #define SUTHERLAND    2
+  #define FDSVISCOSITY  3
+  #define WILKELAW      4
 /*... densidade*/
   #define IDEALGAS   2
 /*... densidade*/

@@ -181,6 +181,7 @@ int main(int argc,char**argv){
   combModel.tMix            = 0.125;
   combModel.totalHeat       = 0.e0;
   combModel.totalMassFuel   = 0.e0;
+  initLeornadJones(&combModel);
 /*..................................................................*/
 
 /*...*/

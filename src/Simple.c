@@ -964,9 +964,10 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                          , eModel->fKelvin     
                          , mesh->numel           , PROP_UPDATE_NL_LOOP);
     if(fDvisc)
-      updateDynamicViscosity(&propF->dVisc
-                           ,mesh->elm.temp,mesh->elm.dViscosity  
-                           ,eModel->fKelvin ,mesh->numel);
+      updateMixDynamicViscosity(&propF->dVisc    ,cModel
+                          ,mesh->elm.temp        ,mesh->elm.yFrac 
+                          ,mesh->elm.dViscosity  ,cModel->nOfSpecies   
+                          ,eModel->fKelvin       , mesh->numel);
     if(fTcond)
       updateThermalconductivity(&propF->thCond
                               ,mesh->elm.temp,mesh->elm.tConductivity

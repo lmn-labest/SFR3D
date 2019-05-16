@@ -1354,12 +1354,24 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 
 /*... inicializando a viscosidade dinamica*/
     if(propF->fDynamicViscosity)
-      initPropTemp(propF
+    {
+      if(fComb)
+        initPropTempMix(propF              ,cModel
+                    ,mesh->elm.dViscosity  
+                    ,mesh->elm.temp        ,mesh->elm.pressure0 
+                    ,mesh->elm.yFrac       ,mesh->elm.material.prop  
+                    ,mesh->elm.mat         ,cModel->nOfSpecies
+                    ,DVISCOSITY_LEVEL      ,mesh->numel
+                    ,energyModel->fKelvin  ,DYNAMICVISCOSITY);
+
+      else
+        initPropTemp(propF
                 ,mesh->elm.dViscosity     ,mesh->elm.temp 
                 ,mesh->elm.pressure0      ,mesh->elm.material.prop  
                 ,mesh->elm.mat
                 ,DVISCOSITY_LEVEL         ,mesh->numel
                 ,energyModel->fKelvin     ,DYNAMICVISCOSITY);
+   }
    else
       initProp(mesh->elm.dViscosity 
               ,mesh->elm.material.prop  ,mesh->elm.mat
@@ -3789,18 +3801,23 @@ void help(FILE *f){
        ,"gravity"     ,"model"        ,"mean"           /*42,43,44*/
        ,"setMean"     ,"save"         ,"load"};         /*45,46,47*/
  
-  short iPrint = 30;
+  short iPrint = 45;
   char print[][WORD_SIZE] = 
-               {"cell"         ,"node"         , "gradPres"        /* 0 , 1, 2*/     
-               ,"gradVel"      ,"gradEnergy"   ,"graduD1"          /* 3 , 4, 5*/ 
-               ,"graduT1"      ,"uD1"          ,"uT1"              /* 6 , 7, 8*/      
-               ,"vel"          ,"pres"         ,"presTotal"        /* 9 ,10,11*/ 
-               ,"energy"       ,"eddyViscosity","densityFluid"     /*12 ,13,14*/ 
-               ,"specificHeat" ,"dviscosity"   ,"tconductivity"    /*15 ,16,17*/                                     /* 0, 1, 2*/
-               ,"densityD1"    ,"coefDiffD1"   ,"densityT1"        /*18 ,19,20*/ 
-               ,"coefDiffT1"   ,"vorticity"    ,"wallParameters"   /*21 ,22,23*/ 
-               ,"kinetic"      ,"stressR"      ,"cDynamic"         /*24 ,25,26*/ 
-               ,"Qcriterion"   ,"kTurb"        ,"" }               /*27 ,28,29*/
+               {"cell"         ,"node"        ,"vel"             /* 0, 1, 2*/
+               ,"pres"         ,"gradvel"     ,"gradpres"        /* 3, 4, 5*/
+               ,"temp"         ,"gradtemp"    ,"eddyviscosity"   /* 6, 7, 8*/
+               ,"densityfluid" ,"specificheat","dviscosity"      /* 9,10,11*/
+               ,"tconductivity","vorticity"   ,"wallparameters"  /*12,13,14*/
+               ,"stress"       ,"kinecit"     ,"stressr"         /*15,16,17*/
+               ,"cdynamic"     ,"qcriterion"  ,"prestotal"       /*18,19,20*/
+               ,"kturb"        ,"pkelvin"     ,"ud1"             /*21,22,23*/
+               ,"gradud1"      ,"ut1"         ,"gradut1"         /*24,25,26*/
+               ,"densityd1"    ,"coefdiffd1"  ,"densityt1"       /*27,28,29*/
+               ,"coefdifft1"   ,"zcomb"       ,"gradzcomb"       /*30,31,32*/
+               ,"ratefuel"     ,"yfrac"       ,"rateheatcomb"    /*33,34,35*/                  
+               ,""             ,""            ,""                /*36,37,38*/
+               ,""             ,""            ,""                /*39,40,41*/
+               ,""             ,""            ,""};              /*42,43,44*/
 ;
 /*... adveccao*/
   char fAdv[][WORD_SIZE] =                                   
@@ -3901,6 +3918,7 @@ void help(FILE *f){
 /*... setPrintFluid*/        
   else if(!strcmp(word,help[1])){     
     printf("setPrint 10 options end\n");
+    printf("10 time steps to print results\n");
     printf("options:\n");
     for(i=0;i<iPrint;i++)
       printf("%3d - %s\n",i+1,print[i]);
