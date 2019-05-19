@@ -1063,6 +1063,10 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 
   }while(macroFlag && (!feof(file)));
   
+/*... propriedades de referencia*/
+  initPropRef(propF,mesh->elm.material.prop,0);
+/*...................................................................*/
+
 /*... incializando as condicoes de contorno da Vel*/
   if(rflag[19])
   {
@@ -1380,13 +1384,22 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*...................................................................*/
 
 /*... inicializando a condutividade termica*/
-    if(propF->fThermalconductivity)
-      initPropTemp(propF
-                ,mesh->elm.tConductivity ,mesh->elm.temp 
-                ,mesh->elm.pressure0 
-                ,mesh->elm.material.prop   ,mesh->elm.mat
-                ,TCONDUCTIVITY_LEVEL       ,mesh->numel
-                ,energyModel->fKelvin      ,THERMALCONDUCTIVITY);
+    if(propF->fThermalConductivity)
+      if(fComb)
+        initPropTempMix(propF              ,cModel
+                    ,mesh->elm.tConductivity  
+                    ,mesh->elm.temp        ,mesh->elm.pressure0 
+                    ,mesh->elm.yFrac       ,mesh->elm.material.prop  
+                    ,mesh->elm.mat         ,cModel->nOfSpecies
+                    ,TCONDUCTIVITY_LEVEL   ,mesh->numel
+                    ,energyModel->fKelvin  ,THERMALCONDUCTIVITY);
+      else
+        initPropTemp(propF
+                    ,mesh->elm.tConductivity ,mesh->elm.temp 
+                    ,mesh->elm.pressure0 
+                    ,mesh->elm.material.prop   ,mesh->elm.mat
+                    ,TCONDUCTIVITY_LEVEL       ,mesh->numel
+                    ,energyModel->fKelvin      ,THERMALCONDUCTIVITY);
    else
       initProp(mesh->elm.tConductivity 
               ,mesh->elm.material.prop  ,mesh->elm.mat
@@ -2326,7 +2339,7 @@ void readPropVarFluid(PropVarFluid *p,FILE *file){
   p->fDensity           = false;
   p->fSpecificHeat      = false;
   p->fDynamicViscosity  = false;
-  p->fThermalconductivity = false;
+  p->fThermalConductivity = false;
 /*...................................................................*/
 
   readMacroV2(file,word,false,true);
@@ -2365,8 +2378,8 @@ void readPropVarFluid(PropVarFluid *p,FILE *file){
 /*... condutiviade termica*/
     else if(!strcmp(word, macros[3])){
       readMacroV2(file, word, false, true);
-      p->fThermalconductivity = true;
-      if(!mpiVar.myId && p->fThermalconductivity)
+      p->fThermalConductivity = true;
+      if(!mpiVar.myId && p->fThermalConductivity)
         fprintf(fileLogExc,"%-25s: %s\n","tCondutivity variation"
                                         ,"Enable"); 
       initThCondPol(&p->thCond, word, file);
@@ -2410,7 +2423,7 @@ void readPropVarMixture(PropVarFluid *p,FILE *file)
   p->fDensity           = false;
   p->fSpecificHeat      = false;
   p->fDynamicViscosity  = false;
-  p->fThermalconductivity = false;
+  p->fThermalConductivity = false;
 /*...................................................................*/
 
   readMacroV2(file,word,false,true);
@@ -2446,7 +2459,7 @@ void readPropVarMixture(PropVarFluid *p,FILE *file)
       p->fDynamicViscosity = true;  
       if(!mpiVar.myId && p->fDynamicViscosity)
         fprintf(fileLogExc,"%-25s: %s\n","dViscosity variation"
-                          ,"Enable");
+                          ,word);
       initDviscosityPol(&p->dVisc, word, file);
     }
 /*...................................................................*/
@@ -2454,10 +2467,10 @@ void readPropVarMixture(PropVarFluid *p,FILE *file)
 /*... condutividade termica*/
     else if(!strcmp(word, macros[3])){
       readMacroV2(file, word, false, true);
-      p->fThermalconductivity = true;
-      if(!mpiVar.myId && p->fThermalconductivity)
+      p->fThermalConductivity = true;
+      if(!mpiVar.myId && p->fThermalConductivity)
         fprintf(fileLogExc,"%-25s: %s\n","tCondutivity variation"
-                                        ,"Enable"); 
+                                        ,word); 
       initThCondPol(&p->thCond, word, file);
     }
 /*...................................................................*/

@@ -264,7 +264,7 @@ int main(int argc,char**argv){
   propVarFluid.fDensity             = false;
   propVarFluid.fSpecificHeat        = false;
   propVarFluid.fDynamicViscosity    = false;
-  propVarFluid.fThermalconductivity = false;
+  propVarFluid.fThermalConductivity = false;
   propVarFluid.molarMass            = MMOLARAR;
 /*...................................................................*/
 

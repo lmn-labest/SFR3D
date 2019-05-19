@@ -281,7 +281,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                     , mesh->elm.densityFluid  , mesh->elm.rateFuel 
                     , mesh->elm.material.prop , mesh->elm.mat    
                     , sc->ddt.dt[TIME_N]      , mesh->numelNov
-                    , fSheat                  , eModel->fKelvin );
+                    , fSheat                  , eModel->fKelvin );  
 /*...................................................................*/
 
 /*...*/

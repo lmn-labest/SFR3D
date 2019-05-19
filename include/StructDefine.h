@@ -25,6 +25,7 @@
    typedef struct {
      unsigned char type;
      short nPol[MAXSPECIES];
+     DOUBLE range[2];
      DOUBLE a[MAXSPECIES*MAXPLODEG];
    }PropPol;
 /*...................................................................*/
@@ -34,9 +35,10 @@
      bool fDensity;
      bool fSpecificHeat;
      bool fDynamicViscosity;
-     bool fThermalconductivity;
+     bool fThermalConductivity;
      PropPol den, thCond, dVisc, sHeat;
-     DOUBLE molarMass; 
+     DOUBLE molarMass;
+     DOUBLE sHeatRef,dViscosityRef,ThermalConductivityRef; 
    }PropVarFluid;
 /*...................................................................*/
 
@@ -56,7 +58,7 @@
   Interpol iPol[MAXINTERPOL];
 /*...................................................................*/  
 
-/*... interpol*/
+/*...*/
   typedef struct{
     short c,h,o;
   }Fuel;

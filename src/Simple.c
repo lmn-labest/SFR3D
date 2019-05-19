@@ -698,7 +698,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   bool fDensity       = propF->fDensity,
     fSheat            = propF->fSpecificHeat,
     fDvisc            = propF->fDynamicViscosity,
-    fTcond            = propF->fThermalconductivity,
+    fTcond            = propF->fThermalConductivity,
     fDensityRef       = thDynamic->fDensityRef,
     fPresRef          = thDynamic->fPresTh,
     fDeltaTimeDynamic = sc->ddt.fDynamic;
@@ -969,9 +969,10 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                           ,mesh->elm.dViscosity  ,cModel->nOfSpecies   
                           ,eModel->fKelvin       , mesh->numel);
     if(fTcond)
-      updateThermalconductivity(&propF->thCond
-                              ,mesh->elm.temp,mesh->elm.tConductivity
-                              ,eModel->fKelvin  ,mesh->numel);  
+      updateMixDynamicThermalCond(propF           ,cModel 
+                          ,mesh->elm.temp         , mesh->elm.yFrac
+                          ,mesh->elm.tConductivity,cModel->nOfSpecies
+                          ,eModel->fKelvin        , mesh->numel);
 /*...................................................................*/
 
 /*...*/
@@ -1230,7 +1231,7 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
   bool fDensity = propF->fDensity,
     fSheat = propF->fSpecificHeat,
     fDvisc = propF->fDynamicViscosity,
-    fTcond = propF->fThermalconductivity,
+    fTcond = propF->fThermalConductivity,
     fDensityRef = thDynamic->fDensityRef,
     fPresRef = thDynamic->fPresTh,
     fDeltaTimeDynamic = sc->ddt.fDynamic;

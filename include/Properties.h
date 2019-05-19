@@ -68,7 +68,8 @@
   void updateProp(PropPol *pol, DOUBLE *RESTRICT u
                 , DOUBLE *RESTRICT coef, INT nEl);
 
-
+  void initPropRef(PropVarFluid *propF ,DOUBLE *RESTRICT propMat
+                ,short const lMat);
   void initPropTemp(PropVarFluid *propFluid
                   ,DOUBLE *RESTRICT prop    ,DOUBLE *RESTRICT t 
                   ,DOUBLE *RESTRICT pressure,DOUBLE *RESTRICT propMat
@@ -150,7 +151,8 @@
                          , INT const nEl          , char  const iCod);
 /*... viscosidae dinamica da mistura*/
   DOUBLE mixtureDynamicViscosity(PropPol *dVisc    ,Combustion *cModel
-                            ,DOUBLE const t      ,DOUBLE *RESTRICT yFrac
+                            ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
+
                             ,bool const fKelvin);
   DOUBLE specieViscosity(DOUBLE const molarMass
                         ,DOUBLE const sigmaA   ,DOUBLE const ek   
@@ -159,6 +161,15 @@
                           ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
                           ,DOUBLE *RESTRICT visc ,short const nOfPrSp   
                           ,bool const iKelvin    ,INT const nEl);
+/*... condutividade termica*/
+  void updateMixDynamicThermalCond(PropVarFluid *PropF ,Combustion *cModel
+                          ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
+                          ,DOUBLE *RESTRICT thc  ,short const nOfPrSp   
+                          ,bool const iKelvin    ,INT const nEl);
+  DOUBLE mixtureThermalConductvity(PropVarFluid *PropF ,Combustion *cModel 
+                                ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
+                                ,bool const fKelvin);
+
 /*...*/
   DOUBLE specificEnthalpyForTempOfMix(PropPol *sHeatPol
                              , DOUBLE const hs        , DOUBLE *yFrac

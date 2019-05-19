@@ -613,7 +613,7 @@ DOUBLE mixtureSpecifiHeat(PropPol *sHeat    , DOUBLE *yFrac
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
- * sHeatPol - estrutra par o polinoimio do calor especifico          *
+ * sHeat    - estrutra par o polinoimio do calor especifico          *
  * kSpecie  - fracao de massa da especies primitivas                 * 
  * t - temperatura em Kelvin                                         *
  * fKelvin  - temperatura dada em kelvin                             *
@@ -637,7 +637,7 @@ DOUBLE specieSpecifiHeat(PropPol *sHeat     , short const kSpecie
     tc = CELSIUS_FOR_KELVIN(t);  
 
   n=sHeat->nPol[kSpecie];
-  printf("%d %d\n",n,kSpecie);
+
   for (i = 0; i < n; i++)
     a[i] = MAT2D(kSpecie,i,sHeat->a,MAXPLODEG);
   
@@ -682,8 +682,8 @@ DOUBLE specieSpecifiHeat(PropPol *sHeat     , short const kSpecie
  *-------------------------------------------------------------------*
  * dVisc     - estrutra par o polinoimio da viscosidade              *
  * cModel    - massa molar da especie                                *
- * t         - temperatura                                           *
  * yFrac     - fracao massica da mistura                             *
+ * t         - temperatura                                           *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -691,8 +691,8 @@ DOUBLE specieSpecifiHeat(PropPol *sHeat     , short const kSpecie
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE mixtureDynamicViscosity(PropPol *dVisc    ,Combustion *cModel
-                            ,DOUBLE const t      ,DOUBLE *RESTRICT yFrac
+DOUBLE mixtureDynamicViscosity(PropPol *dVisc      ,Combustion *cModel
+                            ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
                             ,bool const fKelvin)
 {
   short i,j,ns;
@@ -848,11 +848,175 @@ void updateMixDynamicViscosity(PropPol *dVisc    ,Combustion *cModel
   {
     y = &MAT2D(i,0,yFrac,nOfPrSp);         
     visc[i] = mixtureDynamicViscosity(dVisc    ,cModel
-                                     ,temp[i]  ,yFrac
+                                     ,yFrac    ,temp[i]  
                                      ,iKelvin);
   }
 }
 /*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 18/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * updateMixDynamicThermalCond:                                      *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * propF     - proprieade variavel do fluido                         *
+ * temp    -> temperatura                                            *
+ * thc     -> vetor de condutividade termica por celula              *
+ * nOfPrSp  - numero de especies primitivas                          * 
+ * iKelvin -> kelvin ou celsus                                       *
+ * nEl     -> numero total de celulas                                *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void updateMixDynamicThermalCond(PropVarFluid *propF,Combustion *cModel 
+                          ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
+                          ,DOUBLE *RESTRICT thc  ,short const nOfPrSp   
+                          ,bool const iKelvin    ,INT const nEl)
+{
+  INT i;
+  DOUBLE *y;
+
+  for(i=0;i<nEl;i++)
+  {
+    y = &MAT2D(i,0,yFrac,nOfPrSp);         
+    thc[i] = mixtureThermalConductvity(propF    ,cModel
+                                      ,yFrac    ,temp[i]  
+                                      ,iKelvin);
+  }
+}
+/*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 16/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * mixtureThermalConductvity: condutividade termica [KW/m.K]         *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * propF     - proprieade variavel do fluido                         *
+ * cModel    - massa molar da especie                                *
+ * yFrac     - fracao massica da mistura                             *
+ * t         - temperatura                                           *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel 
+                                ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
+                                ,bool const fKelvin)
+{
+  short i,j,ns;
+  DOUBLE molarMassMix,tc,y,d,mWa,sum1,sum2,tmp1,sigmaA,ek,phi;
+  DOUBLE nuA,cP,xA[MAXSPECIES],k[MAXSPECIES];
+  DOUBLE Pr=0.7;
+   
+  if(fKelvin)
+    tc = t;  
+  else
+    tc = CELSIUS_FOR_KELVIN(t);  
+  
+  
+  switch (propF->thCond.type)
+  {
+/*...*/
+    case FDSTHERMALCOND:
+      d  = 1.e0;
+      ns = cModel->nOfSpecies;
+      molarMassMix =  mixtureMolarMass(cModel,yFrac);
+/*...*/
+      for(i=0,sum1=sum2=0;i<ns;i++)
+      {        
+/*... viscosidade dinamica da especie i*/
+        mWa    = cModel->mW[i];
+        sigmaA = cModel->leornadJones[i][0];
+        ek     = cModel->leornadJones[i][1];
+        nuA    = specieViscosity(mWa,sigmaA,ek,tc); 
+/*... color especifico da especie i*/
+        if(propF->fSpecificHeat)
+          cP = specieSpecifiHeat(&propF->sHeat,i,t,fKelvin); 
+        else
+          cP = propF->sHeatRef;
+/*... condutividade termica*/
+        k[0]   = nuA*cP/Pr;
+/*... fracao molar*/
+        xA[0] = (mWa*yFrac[i])/molarMassMix;
+/*...*/
+        tmp1 = xA[0]*sqrt(mWa);
+        sum1 += k[0]*tmp1;
+        sum2 += tmp1; 
+      }
+      y = sum1/sum2;
+      break;
+/*.....................................................................*/
+
+/*...*/
+    case WILKELAW:
+      d  = 1.e0;
+      ns = cModel->nOfSpecies;
+      molarMassMix =  mixtureMolarMass(cModel,yFrac);
+
+/*...*/
+      for(i=0;i<ns;i++)
+      { 
+/*... viscosidade dinamica da especie i*/
+        mWa    = cModel->mW[i];
+        sigmaA = cModel->leornadJones[i][0];
+        ek     = cModel->leornadJones[i][1];
+        nuA    = specieViscosity(mWa,sigmaA,ek,tc); 
+/*... color especifico da especie i*/
+        if(propF->fSpecificHeat)
+          cP = specieSpecifiHeat(&propF->sHeat,i,t,fKelvin); 
+        else
+          cP = propF->sHeatRef;
+/*... condutividade termica*/
+        k[i] = nuA*cP/Pr;
+/*... fracao molar*/
+        xA[i] = (mWa*yFrac[i])/molarMassMix;
+      }  
+/*...................................................................*/
+
+/*...*/
+      for(i=0,sum2=0.e0;i<ns;i++)
+      {
+        for(j=0,sum1=0.e0;j<ns;j++)
+        {
+          if(i==j)
+            phi = 1.e0;
+          else  
+            phi = philn(cModel->mW[i],k[i]
+                       ,cModel->mW[j],k[j]);
+          sum1+= xA[j]*phi;
+        }
+        sum2 += xA[i]*k[i]/sum1;
+      }
+/*...................................................................*/
+
+      y = sum2;
+      break;
+/*.....................................................................*/
+
+/*...*/
+    default:  
+      ERRO_OP(__FILE__,__func__,propF->thCond.type);
+      break;
+/*.....................................................................*/
+  }
+
+  return y*d;
+
+}
+/**********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 19/08/2018                                   *
@@ -1073,7 +1237,7 @@ DOUBLE tempForSpecificEnthalpySpecies(PropPol *sHeat, short const kSpecie
 
 /********************************************************************* 
  * Data de criacao    : 20/08/2018                                   *
- * Data de modificaco : 25/08/2018                                   *
+ * Data de modificaco : 18/05/2019                                   *
  *-------------------------------------------------------------------*
  * initPropTempMix: inicializao de propriedades com variacao temporal*
  * dependentes da temperatura                                        *
@@ -1147,15 +1311,20 @@ void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
       y = &MAT2D(i,0,yFrac, nOfPrSp);
       MAT2D(lMat, iProp, propMat, MAXPROP) 
       = mixtureDynamicViscosity(&propFluid->dVisc,cModel
-                               ,t[i]             ,y
+                               ,y                ,t[i]
                                ,iKelvin);
     }
 /*...................................................................*/
 
 /*...*/
-    else if( iProp == THERMALCONDUCTIVITY)  
+    else if( iProp == THERMALCONDUCTIVITY)
+    {
+      y = &MAT2D(i,0,yFrac, nOfPrSp);
       MAT2D(lMat,iProp,propMat,MAXPROP) 
-      = airThermalConductvity(&propFluid->thCond,t[i],iKelvin);
+      = mixtureThermalConductvity(propFluid         ,cModel
+                                ,y                  ,t[i]
+                                ,iKelvin);
+    }
 /*...................................................................*/
 
 /*...*/
@@ -2331,7 +2500,6 @@ void initDviscosityPol(PropPol *prop, char *s, FILE *file) {
   else if(!strcmp(s,"fdsviscosity"))
   {
     prop->type = FDSVISCOSITY;
-    prop->a[0] = 26.69e-07; 
   }
 
   else if(!strcmp(s,"wilkelaw"))
@@ -2453,7 +2621,7 @@ void initCdPol(PropPol *prop,char *s,FILE *file)
 
 /********************************************************************* 
  * Data de criacao    : 16/09/2017                                   *
- * Data de modificaco : 07/05/2019                                   *
+ * Data de modificaco : 18/05/2019                                   *
  *-------------------------------------------------------------------*
  * INITTHCONDPOL: inicializao a estrutura para o calculo da          *
  * condutividade termica via polinomio                               *
@@ -2501,6 +2669,17 @@ void initThCondPol(PropPol *prop, char *s, FILE *file) {
     prop->a[0] = 1.789e-05; /*viscosidade de referencia*/
     prop->a[1] = 273.11e0;  /*temperatura de referencia*/
     prop->a[2] = 110.56e0;  /*constante de Sutherland*/
+  }
+  else if(!strcmp(s,"fdsthermalcond"))
+  {
+    prop->a[0] = 0.7e0;     /*numero de Prandlt*/
+    prop->type = FDSTHERMALCOND;
+  }
+
+  else if(!strcmp(s,"wilkelaw"))
+  {
+    prop->a[0] = 0.7e0;     /*numero de Prandlt*/
+    prop->type = WILKELAW;
   }
   else {
     ERRO_GERAL(__FILE__,__func__,__LINE__,s);
@@ -2915,5 +3094,38 @@ void initLeornadJones(Combustion *cModel)
 /*... H2O*/
   cModel->leornadJones[SP_H2O][0] = 2.641e0;
   cModel->leornadJones[SP_H2O][1] = 809.1e0;
+}
+/**********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 18/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------*
+ * INITPROPREF: inicializao de propriedades de referencia            * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * propF   -> estrutura de propriedades variaveis                    * 
+ * propMat -> propriedade de referencia por material                 * 
+ * lMat    -> matetial do Fluido                                     * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * propF   -> atualizado                                             * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void initPropRef(PropVarFluid *propF ,DOUBLE *RESTRICT propMat
+                ,short const lMat)
+{
+
+  propF->sHeatRef               =   MAT2D(lMat,SPECIFICHEATCAPACITYFLUID
+                                         ,propMat,MAXPROP);
+  propF->dViscosityRef          =   MAT2D(lMat,DYNAMICVISCOSITY
+                                          ,propMat,MAXPROP);
+  propF->ThermalConductivityRef =   MAT2D(lMat,THERMALCONDUCTIVITY
+                                         ,propMat,MAXPROP);
+
 }
 /**********************************************************************/
