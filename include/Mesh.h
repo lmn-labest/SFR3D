@@ -104,6 +104,7 @@
 /*... combustao*/
     DOUBLE *zComb0;
     DOUBLE *zComb;
+    DOUBLE *yFrac0;
     DOUBLE *yFrac;
     DOUBLE *gradZcomb;
     DOUBLE *rCellComb; 

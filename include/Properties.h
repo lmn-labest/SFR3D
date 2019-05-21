@@ -115,6 +115,11 @@
   void presRef(DOUBLE *RESTRICT temp0 , DOUBLE *RESTRICT temp  
              , DOUBLE *RESTRICT volume  , DOUBLE *pTh                  
              , INT const nCell          , bool const fKelvin);
+  void presRefMix(Combustion *cModel
+              , DOUBLE *RESTRICT temp0 , DOUBLE *RESTRICT temp  
+              , DOUBLE *RESTRICT yFrac0, DOUBLE *RESTRICT yFrac
+              , DOUBLE *RESTRICT volume, DOUBLE *pTh                               
+              , INT const nCell        , bool const fKelvin);
   void initPresRef(DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT volume
                , DOUBLE *pTh            , DOUBLE *RESTRICT prop  
                , short  *RESTRICT mat   , DOUBLE const molarMass                  

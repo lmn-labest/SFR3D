@@ -496,6 +496,10 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
             , nel*nSpPri, "yFrac", _AD_);
     zero(mesh->elm.yFrac, nel*nSpPri, DOUBLEC);
 
+    HccaAlloc(DOUBLE, m, mesh->elm.yFrac0
+            , nel*nSpPri, "yFrac0", _AD_);
+    zero(mesh->elm.yFrac0, nel*nSpPri, DOUBLEC);
+
 
     if (mpiVar.nPrcs < 2)
     {
@@ -1133,6 +1137,11 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                       ,mesh->elm.yFrac,mesh->elm.zComb
                       ,mesh->numelNov);
 /*...................................................................*/  
+
+/*...*/
+    alphaProdVector(1.e0              , mesh->elm.yFrac
+                 , mesh->numel*nSpPri , mesh->elm.yFrac0);
+/*...................................................................*/
 
     propF->molarMass = mixtureMolarMass(cModel,mesh->elm.yFrac);            
   }

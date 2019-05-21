@@ -170,10 +170,11 @@ DOUBLE mixtureSpeciesDensity(PropPol *den        ,DOUBLE const malorMassMix
                             ,DOUBLE const presRef,bool const fKelvin)
 {
   short i,n=den->nPol[0];
-  DOUBLE a[MAXPLODEG],tc,y,d;
+  DOUBLE tc,y,d;
+//DOUBLE a[MAXPLODEG],tc,y,d;
 
-  for (i = 0; i < MAXPLODEG; i++)
-    a[i] = 0.0e0;
+/*for (i = 0; i < MAXPLODEG; i++)
+    a[i] = 0.0e0;*/
   
   if(fKelvin)
     tc = t;  
@@ -285,12 +286,9 @@ void initMixtureSpeciesfiHeat(PropPol *prop, char *s, FILE *file)
 {
   FILE *fileOut;
   
-  char word[WORD_SIZE];
-  char species[][WORD_SIZE] = { "fuel","n2"
-                               ,"o2"  ,"co2" 
-                               ,"h2o"};
+  char word[WORD_SIZE],species[MAXSPECIES][WORD_SIZE];
   char nameAux[1000];
-  short i,j,k;
+  short i,j,k,jk;
   int nSpecies;
   double x[MAXPLODEG],g;
 
@@ -303,7 +301,7 @@ void initMixtureSpeciesfiHeat(PropPol *prop, char *s, FILE *file)
     fileOut = openFile(nameAux, "r");
 
     fscanf(fileOut, "%d", &nSpecies);    
-
+/*...*/
     for(j=0;j<nSpecies;j++)
     {
 
@@ -311,16 +309,52 @@ void initMixtureSpeciesfiHeat(PropPol *prop, char *s, FILE *file)
       convStringLower(word);
       
       fscanf(fileOut, "%lf", &g);
-
+/*...*/
       for(k=0;k<MAXSPECIES;k++)
-        if(!strcmp(word,species[k]))
+      {
+/*... fuel*/
+        if(!strcmp(word,"fuel"))
+        {
+          jk = SP_FUEL;  
+          strcpy(species[jk],"fuel");
           break;
+        }
+/*... n2*/
+        else if(!strcmp(word,"n2"))
+        {
+          jk = SP_N2; 
+          strcpy(species[jk],"n2"); 
+          break;
+        } 
+/*... o2*/
+        else if(!strcmp(word,"o2"))
+        {
+          jk = SP_O2;  
+          strcpy(species[jk],"o2");
+          break;
+        } 
+/*... co2*/
+        else if(!strcmp(word,"co2"))
+        {
+          jk = SP_CO2;  
+          strcpy(species[jk],"co2");
+          break;
+        }
+/*... h2o*/
+        else if(!strcmp(word,"h2o"))
+        {
+          jk = SP_H2O;
+          strcpy(species[jk],"h2o");  
+          break;
+        }    
+      }
+/*.....................................................................*/
 
-      prop->nPol[j] = readFileLineSimple(x, fileOut);
-      ERRO_POL_READ(prop->nPol[j], MAXPLODEG, __FILE__, __func__, __LINE__);
+      prop->nPol[jk] = readFileLineSimple(x, fileOut);
+      ERRO_POL_READ(prop->nPol[jk], MAXPLODEG, __FILE__, __func__, __LINE__);
 
-      for (i = 0; i < prop->nPol[j]; i++)
-        MAT2D(k,i,prop->a,MAXPLODEG) = x[i]/g;
+      for (i = 0; i < prop->nPol[jk]; i++)
+        MAT2D(jk,i,prop->a,MAXPLODEG) = x[i]/g;
     }
 
     fclose(fileOut);
@@ -328,6 +362,7 @@ void initMixtureSpeciesfiHeat(PropPol *prop, char *s, FILE *file)
     fprintf(fileLogExc, "%-25s: %s\n", "Type", s);
 
   }
+/*.....................................................................*/
   
   printf("Write SpeciesfiHeat cp(T):\n");
   fileOut = openFile("species_cp.out", "w");
@@ -336,8 +371,8 @@ void initMixtureSpeciesfiHeat(PropPol *prop, char *s, FILE *file)
     fprintf(fileOut,"%s\n",species[i]);
     for (j = 0, g =200; j < 40; j++) 
     {
-      fprintf(fileOut,"%lf %lf\n",g,pol(&MAT2D(i,0,prop->a,10)
-                                   ,g,prop->nPol[i]));
+      fprintf(fileOut,"%lf %lf\n",g
+              ,pol(&MAT2D(i,0,prop->a,10),g,prop->nPol[i]));
       g += 200;
     }
   }
@@ -3302,6 +3337,68 @@ void presRef(DOUBLE *RESTRICT temp0         , DOUBLE *RESTRICT temp
   pTh[2] = pTh[1]* dm/vm;
 }
 /*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 15/09/2017                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * PRESREF : calcula da pressao de referencia atualizada             *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * temp0  - temperatura no passo n                                   *
+ * temp   - temperatura no passo n + 1                               *
+ * volume - volume das celulas                                       *
+ * pTh    - pressao termodinamica de referencia                      *
+ * nCell  - numero da celulas                                        *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------*
+ * pTh    - pressao termodinamica de referencia atualizada           *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void presRefMix(Combustion *cModel
+              , DOUBLE *RESTRICT temp0 , DOUBLE *RESTRICT temp  
+              , DOUBLE *RESTRICT yFrac0, DOUBLE *RESTRICT yFrac
+              , DOUBLE *RESTRICT volume, DOUBLE *pTh                               
+              , INT const nCell        , bool const fKelvin)
+{
+  short ns = cModel->nOfSpecies;
+  INT i;  
+  DOUBLE dm,vm,t,t0,mW,mW0,*y,*y0;
+
+  dm = vm = 0.e0;
+
+  for (i = 0; i < nCell; i++) {
+/*...*/
+    if(fKelvin){
+      t  = temp[i];
+      t0 = temp0[i];
+    }  
+    else{
+      t  = CELSIUS_FOR_KELVIN(temp[i]); 
+      t0 = CELSIUS_FOR_KELVIN(temp0[i]);  
+    }
+/*...................................................................*/ 
+
+/*...*/
+    y  = &MAT2D(i,0,yFrac,ns);
+    y0 = &MAT2D(i,0,yFrac0,ns);
+    mW0 = mixtureMolarMass(cModel,y0);
+    mW  = mixtureMolarMass(cModel,y);
+/*...................................................................*/
+/*...*/   
+    dm += ((t*mW0)/(t0*mW))*volume[i];
+    vm += volume[i];
+/*...................................................................*/ 
+  }
+
+  pTh[2] = pTh[1]* dm/vm;
+}
+/*********************************************************************/
+
 
 /********************************************************************* 
  * Data de criacao    : 15/09/2017                                   *

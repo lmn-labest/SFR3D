@@ -848,9 +848,14 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                       , true);    
 /*...................................................................*/
 
-/*... zFuel(n-1) = zFuel(n)*/
+/*... z(n-1) = z(n)*/
     alphaProdVector(1.e0             , mesh->elm.zComb
                   , mesh->numel*nComb, mesh->elm.zComb0);
+/*...................................................................*/
+
+/*... y(n-1) = y(n)*/
+    alphaProdVector(1.e0             , mesh->elm.yFrac
+                  , mesh->numel*nComb, mesh->elm.yFrac0);
 /*...................................................................*/
     tm.cellTransientComb = getTimeC() - tm.cellTransientComb;
   }
@@ -946,7 +951,9 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 
 /*... pressa de referencia*/
     if(fPresRef)
-      presRef(mesh->elm.temp0      , mesh->elm.temp
+      presRefMix(cModel
+            , mesh->elm.temp0      , mesh->elm.temp
+            , mesh->elm.yFrac0      , mesh->elm.yFrac
             , mesh->elm.geom.volume, thDynamic->pTh  
             , mesh->numel          , eModel->fKelvin);    
 /*...................................................................*/
