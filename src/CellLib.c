@@ -697,7 +697,7 @@ void cellLibCombustion(Loads *lComb        , Loads *lVel
 
 /*********************************************************************
  * Data de criacao    : 27/08/2017                                   *
- * Data de modificaco : 31/03/2018                                   *
+ * Data de modificaco : 21/05/2019                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEVEl: chamada de bibliotecas de celulas para          *
  * problema de escoamento de fluidos (VEL -low mach)                 *
@@ -746,6 +746,7 @@ void cellLibCombustion(Loads *lComb        , Loads *lVel
  * lDviscosity-> viscosidade dinamica com variacao temporal          *
  * dField    -> matriz D do metodo simple                            *
  * stressR   -> tensor residual                                      *
+ * densityMed-> densidade media do meio                              *
  * underU    -> fator underrelaxtion sinple                          *
  * sPressure -> reconstrucao de segunda ordem para pressoes nas      *
  *              faces                                                *
@@ -781,7 +782,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
            , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel 
            , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lViscosity 
            , DOUBLE *RESTRICT dField    , DOUBLE *RESTRICT stressR   
-           , DOUBLE *RESTRICT wallPar
+           , DOUBLE *RESTRICT wallPar   , DOUBLE const densityMed
            , DOUBLE const underU        , const bool sPressure 
            , short const nEn            , short  const nFace 
            , short const ndm            , short const lib 
@@ -841,7 +842,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
                      , vel        , gradVel 
                      , lDensity   , lViscosity 
                      , dField     , stressR
-                     , wallPar
+                     , wallPar    , densityMed
                      , underU     , sPressure 
                      , nEn        , nFace  
                      , ndm        , nel); 

@@ -107,9 +107,11 @@
 /*...................................................................*/
 
 /*...*/
-  void specificMassRef(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume                  
+  void specificMassRefOld(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume                  
                   , DOUBLE *RESTRICT prop      , short  *RESTRICT mat
                   , INT const nCell);
+  DOUBLE specificMassRef(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume                  
+                       , INT const nCell);
   void presRef(DOUBLE *RESTRICT temp0 , DOUBLE *RESTRICT temp  
              , DOUBLE *RESTRICT volume  , DOUBLE *pTh                  
              , INT const nCell          , bool const fKelvin);

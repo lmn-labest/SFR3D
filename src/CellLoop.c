@@ -1430,7 +1430,7 @@ void systFormSimpleVel(Loads *loadsVel    , Loads *loadsPres
 
 /********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 17/07/2018                                   * 
+ * Data de modificaco : 21/05/2019                                   * 
  *-------------------------------------------------------------------* 
  * SYSTFOMSIMPLEVELLM: calculo do sistema de equacoes para problemas * 
  * de escomaneto de fluidos ( Vel )                                  * 
@@ -1548,7 +1548,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
     , DOUBLE *RESTRICT rCell               , DOUBLE *RESTRICT stressR  
     , DOUBLE *RESTRICT density             , DOUBLE *RESTRICT dViscosity 
     , DOUBLE *RESTRICT eddyViscosity       , DOUBLE *RESTRICT wallPar
-    , Temporal ddt                     
+    , DOUBLE const densityMed              , Temporal ddt                     
     , INT nEq                              , INT nEqNov
     , INT nAd                              , INT nAdR                 
     , short maxNo                          , short maxViz
@@ -1602,7 +1602,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
          ,nelcon,id,loadsVel,loadsPres,advVel,diffVel,typeSimple\
          ,ddt,underU,sPressure,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd\
          ,nAdR,storage,forces,matrix,unsym,pres,dField,dViscosity,eddyViscosity\
-         ,stressR,tModel,ModelMomentum,wallPar\
+         ,stressR,tModel,ModelMomentum,wallPar,densityMed \
          ,fOwner,cellFace)
 
 /*... loop nas celulas*/
@@ -1767,7 +1767,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                          , lVel, lGradVel
                          , lDensity, lViscosity
                          , lDfield, lStressR
-                         , lWallPar
+                         , lWallPar,densityMed 
                          , underU, sPressure
                          , nen[nel], nFace[nel]
                          , ndm, lib
@@ -1972,7 +1972,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                     , lVel          , lGradVel 
                     , lDensity      , lViscosity 
                     , lDfield       , lStressR 
-                    , lWallPar
+                    , lWallPar      ,densityMed 
                     , underU        , sPressure 
                     , nen[nel]      , nFace[nel]  
                     , ndm           , lib    

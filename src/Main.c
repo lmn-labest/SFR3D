@@ -583,9 +583,9 @@ int main(int argc,char**argv){
      if(mesh->ndfFt > 0){
 /*...*/
         if(thDynamic.fDensityRef)
-          specificMassRef(mesh->elm.densityFluid, mesh->elm.geom.volume                  
-                       , mesh->elm.material.prop, mesh->elm.mat
-                       , mesh->numel);
+          propVarFluid.densityRef = specificMassRef(mesh->elm.densityFluid
+                                                  , mesh->elm.geom.volume                  
+                                                  , mesh->numel);
 /*...................................................................*/
 
 /*...*/

@@ -2334,7 +2334,7 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 
 /*********************************************************************
  * Data de criacao    : 03/10/2017                                   *
- * Data de modificaco : 29/04/2018                                   * 
+ * Data de modificaco : 21/05/2019                                   * 
  *-------------------------------------------------------------------* 
  * CELLSIMPLEVE3DLM: Celula 3D para velocidade do metodo simple      * 
  * em escoamento levemento compressivel (Low Mach)                   * 
@@ -2386,7 +2386,8 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
  * lDviscosity-> viscosidade dinamica com variacao temporal          *
  * dField    -> matriz D do metodo simple                            * 
  * stressR   -> tensao residual estrutural                           *
- * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  *
+ * densityMed-> densidade media do meio                              *
  * underU    -> parametro de sobre relaxamento                       *
  * nEn       -> numero de nos da celula central                      *
  * sPressure -> reconstrucao de segunda ordem para pressoes nas      *
@@ -2422,7 +2423,7 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
  *********************************************************************/
 void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres 
             , Advection *advVel           , Diffusion *diffVel
-            , Turbulence *tModel          , MomentumModel *ModelMomentum
+            , Turbulence *tModel          , MomentumModel *ModelMomentum            
             , short const typeSimple 
             , short *RESTRICT lGeomType   , DOUBLE *RESTRICT prop
             , INT *RESTRICT lViz          , INT *RESTRICT lId  
@@ -2440,7 +2441,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
             , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
             , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lViscosity 
             , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT stressR
-            , DOUBLE *RESTRICT wallPar
+            , DOUBLE *RESTRICT wallPar    , DOUBLE const densityMed
             , DOUBLE const underU         , const bool sPressure
             , const short nEn             , short const nFace    
             , const short ndm             , INT const nel)
@@ -2540,7 +2541,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   viscosityC     = MAT2D(idCell, 0, lViscosity, 2);
   if(fTurb) eddyViscosityC= MAT2D(idCell, 1, lViscosity, 2);
   effViscosityC = viscosityC + eddyViscosityC;
-  densityRef = MAT2D(idCell, DENSITY, prop, MAXPROP);
+  densityRef    = densityMed;
 /*...................................................................*/
 
 /*... | du1/dx1 du1/dx2 du1/dx3*/

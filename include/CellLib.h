@@ -213,7 +213,7 @@
             , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel
             , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lViscosity
             , DOUBLE *RESTRICT dField    , DOUBLE *RESTRICT stressR
-            , DOUBLE *RESTRICT wallPar  
+            , DOUBLE *RESTRICT wallPar   , DOUBLE const densityMed
             , DOUBLE const underU        , const bool sPressure
             , short const nEn            , short  const nFace
             , short const ndm            , short const lib
@@ -729,7 +729,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
             , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
             , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lViscosity 
             , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT stressR
-            , DOUBLE *RESTRICT wallPar
+            , DOUBLE *RESTRICT wallPar    , DOUBLE const densityMed
             , DOUBLE const underU         , const bool sPressure
             , const short nEn             , short const nFace    
             , const short ndm             , INT const nel);

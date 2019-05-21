@@ -3185,7 +3185,7 @@ void getEnergyForTemp(PropPol *sHeatPol
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void specificMassRef(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume                  
+void specificMassRefOld(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume                  
                   , DOUBLE *RESTRICT prop    , short  *RESTRICT mat
                   , INT const nCell)
 {
@@ -3206,6 +3206,48 @@ void specificMassRef(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume
 
   printf("densityRef :%e\n",MAT2D(0,DENSITY,prop,MAXPROP));
 
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 21/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * SPECIFICMASSREF : calcula a massa especifica de referencia        *
+ * atraves da media do valores nas celulas                           * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * temp   - temp                                                     *
+ * volume - volume das celulas                                       *
+ * nCell  - numero da celulas                                        *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------*
+ * densidade de referencia                                           * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE specificMassRef(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume                  
+                    , INT const nCell)
+{
+  short nD = DENSITY_LEVEL;
+  INT i;  
+  DOUBLE dm,vm;
+
+  dm = vm = 0.e0;
+
+  for (i = 0; i < nCell; i++) {
+/*...*/   
+   dm += MAT2D(i,2 ,density ,nD)*volume[i];
+   vm += volume[i];
+/*...................................................................*/ 
+  }
+
+  printf("densityRef :%e\n",dm/vm);
+
+  return dm/vm;
 }
 /*********************************************************************/
 

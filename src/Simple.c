@@ -1104,9 +1104,9 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 
 /*... calcula a massa especifica de referencia*/
   if(fDensityRef)
-    specificMassRef(mesh->elm.densityFluid , mesh->elm.geom.volume                  
-                  , mesh->elm.material.prop, mesh->elm.mat
-                  , mesh->numel);  
+    propF->densityRef = specificMassRef(mesh->elm.densityFluid
+                                      , mesh->elm.geom.volume                  
+                                      , mesh->numel);  
 /*...................................................................*/
 
 /*... calculo da taxa de massa atravessando o contorno aberto*/
@@ -1593,9 +1593,9 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
 
 /*... calcula a massa especifica de referencia*/
   if (fDensityRef)
-    specificMassRef(mesh->elm.densityFluid, mesh->elm.geom.volume
-      , mesh->elm.material.prop, mesh->elm.mat
-      , mesh->numel);
+    propF->densityRef = specificMassRef(mesh->elm.densityFluid
+                                      , mesh->elm.geom.volume
+                                      , mesh->numel);
 /*...................................................................*/
 
 /*... calculo da taxa de massa atravessando o contorno aberto*/
@@ -2662,7 +2662,7 @@ static DOUBLE trunkNumber(DOUBLE const a){
 
 /*********************************************************************
  * Data de criacao    : 24/07/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 21/04/2019                                   *
  *-------------------------------------------------------------------*
  * velPresCouplingLm : Acoplamento pressao-velocidade do metodo      *
  * simple                                                            *
@@ -2678,7 +2678,7 @@ static DOUBLE trunkNumber(DOUBLE const a){
  * velocidade e D atualizados                                        * 
  *-------------------------------------------------------------------*
 *********************************************************************/
-void velPresCouplingLm(Memoria *m        , PropVarFluid *propF
+void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
                     , Loads *loadsVel   , Loads *loadsPres
                     , MassEqModel *eMass, MomentumModel *ModelMomentum
                     , Turbulence *tModel
@@ -2810,14 +2810,14 @@ void velPresCouplingLm(Memoria *m        , PropVarFluid *propF
     , mesh->elm.rCellVel, mesh->elm.stressR
     , mesh->elm.densityFluid, mesh->elm.dViscosity
     , mesh->elm.eddyViscosity, mesh->elm.wallParameters
-    , sc->ddt
-    , sistEqVel->neq, sistEqVel->neqNov
-    , sistEqVel->nad, sistEqVel->nadr
-    , mesh->maxNo, mesh->maxViz
-    , mesh->ndm, mesh->numelNov
-    , ndfVel, sistEqVel->storage
-    , mesh->ntn, true
-    , true, true
+    , propF->densityRef       , sc->ddt
+    , sistEqVel->neq         , sistEqVel->neqNov
+    , sistEqVel->nad        , sistEqVel->nadr
+    , mesh->maxNo           , mesh->maxViz
+    , mesh->ndm             , mesh->numelNov
+    , ndfVel                , sistEqVel->storage
+    , mesh->ntn             , true
+    , true                  , true
     , sistEqVel->unsym, sp->sPressure);
   tm.systFormVel = getTimeC() - tm.systFormVel;
 /*...................................................................*/

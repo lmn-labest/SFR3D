@@ -202,7 +202,7 @@
     , DOUBLE *RESTRICT rCell              , DOUBLE *RESTRICT stressR
     , DOUBLE *RESTRICT density            , DOUBLE *RESTRICT dViscosity
     , DOUBLE *RESTRICT eddyViscosity      , DOUBLE *RESTRICT wallPar
-    , Temporal ddt
+    , DOUBLE const densityMed             , Temporal ddt
     , INT nEq                             , INT nEqNov
     , INT nAd                             , INT nAdR
     , short maxNo                         , short maxViz

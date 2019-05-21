@@ -39,7 +39,7 @@
      bool fDiffusion;
      PropPol den, thCond, dVisc, sHeat, diff;
      DOUBLE molarMass;
-     DOUBLE sHeatRef,dViscosityRef,ThermalConductivityRef; 
+     DOUBLE sHeatRef,dViscosityRef,ThermalConductivityRef,densityRef; 
    }PropVarFluid;
 /*...................................................................*/
 
