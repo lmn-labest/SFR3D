@@ -1555,7 +1555,7 @@ void wResVtkTrans(Memoria *m        , double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                    *
- * Data de modificaco : 18/02/2018                                    * 
+ * Data de modificaco : 20/05/2019                                    * 
  *------------------------------------------------------------------- * 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1587,7 +1587,8 @@ void wResVtkTrans(Memoria *m        , double *x
  * nCd          -> coeficientes dincamicamente calculados (node)      *
  * eWallPar   -> parametros de parede  ( yPlus, uPlus, uFri) (cell)   *
  * nWallPar   -> parametros de parede  ( yPlus, uPlus, uFri) (node)   *
- * tConductivity-> condutividade termica                              *   
+ * tConductivity-> condutividade termica                              *
+ * cDiffSp      -> coeficiente de difusao das especies
  * nel          -> numeracao do elemento                              *
  * nnode        -> numero de nos                                      *  
  * numel        -> numero de elementos                                *
@@ -2157,7 +2158,7 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
 
 /********************************************************************** 
  * Data de criacao    : 05/08/2018                                    *
- * Data de modificaco : 15/05/2019                                    * 
+ * Data de modificaco : 20/05/2019                                    * 
  *------------------------------------------------------------------- * 
  * wResVtkCombustion :                                                * 
  * ------------------------------------------------------------------ *
@@ -2255,6 +2256,7 @@ void wResVtkCombustion(Memoria *m     , DOUBLE *x
           , DOUBLE *eHeatRe      , DOUBLE *nHeatRe     
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
           , DOUBLE *specificHeat , DOUBLE *tConductivity
+          , DOUBLE *eDiffSp
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf
@@ -2687,6 +2689,15 @@ void wResVtkCombustion(Memoria *m     , DOUBLE *x
                 ,DOUBLE_VTK,SCALARS_VTK,f);
 
     HccaDealloc(m,p,"p",_AD_);
+  }
+/*...................................................................*/
+
+/*... coeficiente de difusao das especies */  
+  if(opt->coefDiffSp &&  opt->fCell )
+  {
+    strcpy(str,"eCoefDiffSp");
+    writeVtkProp(&idum,eDiffSp,numel,nComb,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
   }
 /*...................................................................*/
 

@@ -484,7 +484,8 @@ int main(int argc,char**argv){
                          , mesh0->elm.faceLoadVel , mesh0->elm.adj.nViz
                          , mesh0->numelNov ,mesh0->maxViz);
 /*...*/
-        thDynamic.fDensityRef = !mesh0->fOpen;
+//      thDynamic.fDensityRef = !mesh0->fOpen;
+        thDynamic.fDensityRef = true;
         thDynamic.fPresTh     = !mesh0->fOpen;
 /*...................................................................*/   
       }

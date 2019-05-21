@@ -24,7 +24,7 @@
  *                                                                   *
  * ------------------ LEVEMENTE COMPRESSIVEl ------------------------*
  *                                                                   *
- * CellSimpleVel3DLm: Celula 3D para equacao de correcao de pressoa  *
+ * CellSimpleVel3DLm: Celula 3D para equacao de correcao de pressao  *
  * metodo simple em escoamento para baixo mach                       *
  *                                                                   *
  *-------------------------------------------------------------------*

@@ -36,7 +36,8 @@
      bool fSpecificHeat;
      bool fDynamicViscosity;
      bool fThermalConductivity;
-     PropPol den, thCond, dVisc, sHeat;
+     bool fDiffusion;
+     PropPol den, thCond, dVisc, sHeat, diff;
      DOUBLE molarMass;
      DOUBLE sHeatRef,dViscosityRef,ThermalConductivityRef; 
    }PropVarFluid;

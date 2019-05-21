@@ -183,6 +183,7 @@
           , DOUBLE *eHeatRe      , DOUBLE *nHeatRe     
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
           , DOUBLE *specificHeat , DOUBLE *tConductivity
+          , DOUBLE *cDiffSp
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf

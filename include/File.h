@@ -56,6 +56,7 @@
     bool coefDiffD1;
     bool densityT1;
     bool coefDiffT1;
+    bool coefDiffSp;
     bool vorticity;
     bool wallParameters;
     bool stress; 

@@ -73,7 +73,7 @@ static DOUBLE philn(DOUBLE const mWi, DOUBLE const nui
  *********************************************************************/
 DOUBLE collisionIntegral(DOUBLE const t,DOUBLE const ek) 
 {
-  DOUBLE ekli,ta,num;
+  DOUBLE ta,num;
   DOUBLE A,B,C,D,E,F;
 
   A =  1.16145e0;
@@ -98,7 +98,54 @@ DOUBLE collisionIntegral(DOUBLE const t,DOUBLE const ek)
   return num;
 
 }
+/********************************************************************/
 
+/*********************************************************************
+ * Data de criacao    : 20/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * collisionIntegral:                                                *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * t - temperatura em kelvin                                         *
+ * ek  - e/k do especies desejada (Leornard-Jones parameters)        *
+ * ei  - e/i do especies inerte   (Leornard-Jones parameters)        *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * parametro omega                                                   *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ * fonte: Manual do FDS                                              *
+ *        livro computional fluid dynamics in fire engineering       *
+ *        pag 486                                                    *
+ *        The properies of gase and liquids (5ª)                     *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE diffusionCollisionIntegral(DOUBLE const t
+                                 ,DOUBLE const ekl,DOUBLE const eki) 
+{
+  DOUBLE ekli,ta,num;
+  DOUBLE A,B,C,D,E,F;
+
+  A =  1.080794e0;
+  B =  0.160330e0;
+  C =  0.605009e0;
+  D =  0.885240e0;
+  E =  2.115672e0;
+  F =  2.983080e0;
+
+  ekli = sqrt(ekl*eki);
+
+  ta = t/ekli;
+  
+  num = A*pow(ta,-B) + C*exp(-D*ta) + E*exp(-F*ta);
+
+  return num;
+
+}
+/********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
@@ -1019,6 +1066,184 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
 /**********************************************************************/
 
 /*********************************************************************
+ * Data de criacao    : 16/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * mixtureDiffusion : coeficiente de difusacao da especie  A  [m2/s] *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * propF     - proprieade variavel do fluido                         *
+ * cModel    - massa molar da especie                                *
+ * yFrac     - fracao massica da mistura                             *
+ * t         - temperatura                                           *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel 
+                       ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
+                       ,short const kSpecieA  ,short const kSpecieI 
+                       ,bool const fKelvin)
+{
+  short j,ns=cModel->nOfSpecies;
+  DOUBLE tc,mWa,sA,mWi,sI,ekA,ekI,y,mMassMix,xA,sum1,d=1.e0;
+   
+  if(fKelvin)
+    tc = t;  
+  else
+    tc = CELSIUS_FOR_KELVIN(t);  
+
+  switch (propF->diff.type)
+  {
+/*...*/
+    case FDSDIFF:
+/*... especie inerte*/
+      mWi    = cModel->mW[kSpecieI];
+      sI     = cModel->leornadJones[kSpecieI][0];
+      ekI    = cModel->leornadJones[kSpecieI][1];
+/*....................................................................*/
+  
+/*... especie inerte desejada*/
+      mWa    = cModel->mW[kSpecieA];
+      sA     = cModel->leornadJones[kSpecieA][0];
+      ekA    = cModel->leornadJones[kSpecieA][1];
+/*....................................................................*/
+
+      y  = specieDiffusionBinary( mWa, mWi, sA , sI, ekA, ekI, t);
+    break;
+/*.....................................................................*/
+
+/*...*/
+    case HIRSCHDIFF:
+
+      mMassMix = mixtureMolarMass(cModel,yFrac);
+/*... especie inerte desejada*/
+      mWa    = cModel->mW[kSpecieA];
+      sA     = cModel->leornadJones[kSpecieA][0];
+      ekA    = cModel->leornadJones[kSpecieA][1];
+/*....................................................................*/
+
+/*...*/
+      for(j=0,sum1=0;j<ns;j++)
+      {
+        mWi    = cModel->mW[j];
+        sI     = cModel->leornadJones[j][0];
+        ekI    = cModel->leornadJones[j][1];
+        if (j != kSpecieA) {
+          xA = (cModel->mW[j]*yFrac[j])/mMassMix;
+          y  = specieDiffusionBinary( mWa, mWi, sA , sI, ekA, ekI, t);
+          sum1 += xA/y;
+        }
+      }
+/*....................................................................*/
+     
+/*...*/
+      y = (1.e0 - yFrac[kSpecieA])/sum1;
+/*....................................................................*/
+    break;
+/*.....................................................................*/
+
+/*...*/
+    default:  
+      ERRO_OP(__FILE__,__func__,propF->diff.type);
+      break;
+/*.....................................................................*/
+  } 
+ 
+  return y*d;
+
+}
+/**********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 20/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * specieDiffusionBinary: coeficiente de diffusao da especie A na    *
+ * especie B [m2/s]                                                  *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * molarA    - massa molar da especie                                *
+ * molarA    - massa molar da especie                                *
+ * sigmaA    - parametro de Leornad-Jones                            *
+ * sigmaB    - parametro de Leornad-Jones                            *
+ * ekA       - parametro de Leornad-Jones                            *
+ * ekB       - parametro de Leornad-Jones                            *
+ * t - temperatura em Kelvin                                         *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE specieDiffusionBinary(DOUBLE const mMassA,DOUBLE const mMassB
+                            ,DOUBLE const sigmaA,DOUBLE const sigmaB  
+                            ,DOUBLE const ekA   ,DOUBLE const ekB
+                            ,DOUBLE const t     ) 
+{
+
+  short i,n;
+  DOUBLE omega,diffAB,mMassAB,sigmaAB;
+  mMassAB = 2.e0*mMassA*mMassB/(mMassA + mMassB);
+  sigmaAB = sqrt(0.5e0*(sigmaA + sigmaB));
+  omega   = diffusionCollisionIntegral(t,ekA,ekB);
+  diffAB  = 2.66e-07*pow(t,1.5)/(sigmaA*sigmaA*omega);
+
+  return diffAB;
+}
+/**********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 18/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * updateMixDynamicThermalCond:                                      *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * propF   -> proprieade variavel do fluido                          *
+ * temp    -> temperatura                                            *
+ * diff    -> vetor de difusao das especies                          *
+ * nOfPrSp -> numero de especies primitivas                          * 
+ * nComb   -> numero de especies explicitamente resolvidas           * 
+ * iKelvin -> kelvin ou celsus                                       *
+ * nEl     -> numero total de celulas                                *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel 
+                       ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
+                       ,DOUBLE *RESTRICT diff ,short const nOfPrSp 
+                       ,short const nComb       
+                       ,bool const iKelvin    ,INT const nEl)
+{
+  short j;
+  INT i;
+  DOUBLE *y;
+
+  for(i=0;i<nEl;i++)
+  {
+    y = &MAT2D(i,0,yFrac,nOfPrSp);         
+    for(j=0;j<nComb;j++)
+      MAT2D(i,j,diff,nComb) = mixtureDiffusion(propF   ,cModel 
+                                              ,yFrac   ,temp[i]
+                                              ,j       ,SP_N2 
+                                              ,iKelvin);
+  }
+}
+/*********************************************************************/
+
+/*********************************************************************
  * Data de criacao    : 19/08/2018                                   *
  * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
@@ -1237,7 +1462,7 @@ DOUBLE tempForSpecificEnthalpySpecies(PropPol *sHeat, short const kSpecie
 
 /********************************************************************* 
  * Data de criacao    : 20/08/2018                                   *
- * Data de modificaco : 18/05/2019                                   *
+ * Data de modificaco : 20/05/2019                                   *
  *-------------------------------------------------------------------*
  * initPropTempMix: inicializao de propriedades com variacao temporal*
  * dependentes da temperatura                                        *
@@ -1248,9 +1473,7 @@ DOUBLE tempForSpecificEnthalpySpecies(PropPol *sHeat, short const kSpecie
  * prop      -> nao definido                                         * 
  * t         -> temperatura                                          *
  * pressure  -> pressao                                              *
- * yFrac    - fracao de massa da especies primitivas                 * 
- * propMat   -> propriedade de referencia por material               * 
- * mat       -> material por celula                                  * 
+ * yFrac    - fracao de massa da especies primitivas                 *
  * nOfPrSp  - numero de especies primitivas                          *
  * np        -> numero niveis de tempos                              * 
  * nCell     -> numero de celulas                                    * 
@@ -1265,30 +1488,28 @@ DOUBLE tempForSpecificEnthalpySpecies(PropPol *sHeat, short const kSpecie
  *-------------------------------------------------------------------* 
   *********************************************************************/
 void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
-                 ,DOUBLE *RESTRICT prop 
-                 ,DOUBLE *RESTRICT t        ,DOUBLE *RESTRICT pressure
-                 ,DOUBLE *RESTRICT yFrac    ,DOUBLE *RESTRICT propMat
-                 ,short *RESTRICT mat       ,short const nOfPrSp 
-                 ,short const np            ,INT    const nCell 
-                 ,bool const iKelvin        ,short const iProp)
+                 ,DOUBLE *RESTRICT prop     ,DOUBLE *RESTRICT t       
+                 ,DOUBLE *RESTRICT pressure ,DOUBLE *RESTRICT yFrac   
+                 ,short const nOfPrSp       ,short const np  
+                 ,INT    const nCell        ,bool const iKelvin 
+                 ,short const iProp)
 {    
   INT i;
-  unsigned short j,lMat;
-  DOUBLE *y,molarMassMix;
+  unsigned short j,k,lMat;
+  DOUBLE *y,molarMassMix,v;
          
   for(i=0;i<nCell;i++){    
 
 /*...*/
-    lMat               = mat[i]-1;
+    y = &MAT2D(i,0,yFrac, nOfPrSp);
 /*...................................................................*/
 
 /*...*/
     if( iProp == DENSITY )
     {
-      y = &MAT2D(i,0,yFrac, nOfPrSp);
+      
       molarMassMix =  mixtureMolarMass(cModel,y); 
-      MAT2D(lMat, iProp, propMat, MAXPROP) 
-        = mixtureSpeciesDensity(&propFluid->den,molarMassMix
+      v = mixtureSpeciesDensity(&propFluid->den,molarMassMix
                       ,t[i]                    , pressure[i]
                       ,thDynamic.pTh[2]        , iKelvin);
     }
@@ -1297,9 +1518,7 @@ void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
 /*...*/
     else if( iProp == SPECIFICHEATCAPACITYFLUID)
     {
-      y = &MAT2D(i,0,yFrac, nOfPrSp);
-      MAT2D(lMat, iProp, propMat, MAXPROP) 
-      = mixtureSpecifiHeat(&propFluid->sHeat, y
+      v = mixtureSpecifiHeat(&propFluid->sHeat, y
                            ,t[i]            , nOfPrSp
                            ,iKelvin);
     }
@@ -1308,9 +1527,7 @@ void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
 /*...*/
     else if( iProp == DYNAMICVISCOSITY)
     {
-      y = &MAT2D(i,0,yFrac, nOfPrSp);
-      MAT2D(lMat, iProp, propMat, MAXPROP) 
-      = mixtureDynamicViscosity(&propFluid->dVisc,cModel
+      v = mixtureDynamicViscosity(&propFluid->dVisc,cModel
                                ,y                ,t[i]
                                ,iKelvin);
     }
@@ -1319,9 +1536,7 @@ void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
 /*...*/
     else if( iProp == THERMALCONDUCTIVITY)
     {
-      y = &MAT2D(i,0,yFrac, nOfPrSp);
-      MAT2D(lMat,iProp,propMat,MAXPROP) 
-      = mixtureThermalConductvity(propFluid         ,cModel
+      v = mixtureThermalConductvity(propFluid         ,cModel
                                 ,y                  ,t[i]
                                 ,iKelvin);
     }
@@ -1329,10 +1544,85 @@ void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
 
 /*...*/
     for(j=0;j<np;j++)      
-      MAT2D(i,j,prop,np) = MAT2D(lMat,iProp,propMat,MAXPROP); 
-/*...................................................................*/
-  
+      MAT2D(i,j,prop,np) = v; 
+/*...................................................................*/  
   }
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 20/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * initDiffMix: inicializao do coeficiente de diffusao das especies  *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * propFluid -> estrutura de dados das propriedades varaiveis        *
+ * diff      -> nao definido                                         * 
+ * t         -> temperatura                                          *
+ * pressure  -> pressao                                              *
+ * yFrac    - fracao de massa da especies primitivas                 *  
+ * propMat -> propriedade de referencia por material                 * 
+ * mat     -> material por celula                                    * 
+ * nOfPrSp  - numero de especies primitivas                          *
+ * nComb     -> numero de especies resolvidas pela eq de transporte  * 
+ * nCell     -> numero de celulas                                    * 
+ * iKelvin   -> temperatura em kelvin (true|false)                   *
+ * iProp     -> numero da propriedade                                * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * prop    -> propriedade iniciacializada                            * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+  *********************************************************************/
+void initDiffMix(PropVarFluid *propF    , Combustion *cModel
+                ,DOUBLE *RESTRICT diff     ,DOUBLE *RESTRICT t  
+                ,DOUBLE *RESTRICT pressure ,DOUBLE *RESTRICT yFrac 
+                ,DOUBLE *RESTRICT propMat  ,short *RESTRICT mat    
+                ,short const nOfPrSp       ,short const nComb   
+                ,INT    const nCell        ,bool const iKelvin)
+{    
+  INT i;
+  unsigned short j,k,lMat;
+  DOUBLE *y;
+
+/*...*/
+  if(propF->fDiffusion)
+  {
+    for(i=0;i<nCell;i++)
+    {    
+
+/*...*/
+      y = &MAT2D(i,0,yFrac, nOfPrSp);
+/*...................................................................*/
+
+/*...*/
+      for(j=0;j<nComb;j++)
+        MAT2D(i,j,diff,nComb) = mixtureDiffusion(propF       ,cModel 
+                                ,yFrac       ,t[i]
+                                ,j           ,SP_N2
+                                ,iKelvin);
+/*...................................................................*/
+    }
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*...*/
+  else
+  {
+    for(i=0;i<nCell;i++)
+    {    
+      lMat               = mat[i]-1;
+      for(j=0;j<nComb;j++)
+        MAT2D(i,j,diff,nComb) = 
+        MAT2D(lMat,SPECIEDIFUSSIONFUEL+j,propMat,MAXPROP);     
+    }
+  }
+/*...................................................................*/
 }
 /*********************************************************************/
 
@@ -2686,6 +2976,43 @@ void initThCondPol(PropPol *prop, char *s, FILE *file) {
   }
 }
 /*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 21/09/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * INITDIFFSP:                                                       *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void initDiffSp(PropPol *prop, char *s, FILE *file) {
+
+  FILE *fileOut;
+  char nameAux[1000];
+  short i;
+  double x[MAXPLODEG];
+
+  if(!strcmp(s,"fdsdiff"))
+  {
+    prop->type = FDSDIFF;
+  }
+  else if(!strcmp(s,"hirsch"))
+  {
+    prop->type = HIRSCHDIFF;
+  }
+  else {
+    ERRO_GERAL(__FILE__,__func__,__LINE__,s);
+  }
+}
+/*********************************************************************/
+
 
 /********************************************************************* 
  * Data de criacao    : 06/09/2017                                   *

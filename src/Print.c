@@ -1060,7 +1060,8 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh0->elm.yFrac         , nYfrac
                , mesh0->elm.rateHeatReComb, nRaHeReComb
                , media->mVel              , nMedVel 
-               , mesh0->elm.specificHeat  , mesh0->elm.tConductivity                                               
+               , mesh0->elm.specificHeat  , mesh0->elm.tConductivity 
+               , mesh0->elm.cDiffComb               
                , mesh0->nnode             , mesh0->numel  
                , mesh0->ndm               , mesh0->maxNo 
                , mesh0->numat             , ndfVel

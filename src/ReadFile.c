@@ -1128,26 +1128,6 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                  , mesh->numel*nComb , mesh->elm.zComb);
 /*...................................................................*/
 
-/*... gambirra para definir os coeficiente de difusao da modelo de 
-     combusta*/
-    for(int i=0; i < nel ;i++)
-    {
-      if(cModel->fLump)
-      {
-        MAT2D(i,0,mesh->elm.cDiffComb,nComb) = 2.0e-6; 
-        MAT2D(i,1,mesh->elm.cDiffComb,nComb) = 2.0e-6;
-        MAT2D(i,2,mesh->elm.cDiffComb,nComb) = 2.0e-6;
-      }
-      else
-      { 
-        for(int j=0;j < nComb;j++)
-        {
-          MAT2D(i,j,mesh->elm.cDiffComb,nComb) =  1.0e-6; 
-        }  
-      }      
-    }
-/*...................................................................*/
-
 /*...*/
     getSpeciesPrimitives(cModel
                       ,mesh->elm.yFrac,mesh->elm.zComb
@@ -1308,12 +1288,11 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*... inicia a massa especifica com o campo de temperatura inicial*/
       if(fComb)
         initPropTempMix(propF              ,cModel
-                    ,mesh->elm.densityFluid 
-                    ,mesh->elm.temp        ,mesh->elm.pressure0 
-                    ,mesh->elm.yFrac       ,mesh->elm.material.prop  
-                    ,mesh->elm.mat         ,cModel->nOfSpecies
-                    ,DENSITY_LEVEL         ,mesh->numel
-                    ,energyModel->fKelvin  ,DENSITY);
+                    ,mesh->elm.densityFluid,mesh->elm.temp
+                    ,mesh->elm.pressure0   ,mesh->elm.yFrac
+                    ,cModel->nOfSpecies    ,DENSITY_LEVEL   
+                    ,mesh->numel           ,energyModel->fKelvin 
+                    ,DENSITY);
       else
         initPropTemp(propF
                   ,mesh->elm.densityFluid ,mesh->elm.temp 
@@ -1334,13 +1313,12 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     {
       if(fComb)
         initPropTempMix(propF              ,cModel
-                    ,mesh->elm.specificHeat 
-                    ,mesh->elm.temp        ,mesh->elm.pressure0 
-                    ,mesh->elm.yFrac       ,mesh->elm.material.prop  
-                    ,mesh->elm.mat         ,cModel->nOfSpecies
-                    ,SHEAT_LEVEL           ,mesh->numel
-                    ,energyModel->fKelvin  ,SPECIFICHEATCAPACITYFLUID);
-
+                    ,mesh->elm.specificHeat,mesh->elm.temp   
+                    ,mesh->elm.pressure0   ,mesh->elm.yFrac    
+                    ,cModel->nOfSpecies    ,SHEAT_LEVEL 
+                    ,mesh->numel           ,energyModel->fKelvin 
+                    ,SPECIFICHEATCAPACITYFLUID); 
+  
       else
         initPropTemp(propF
                     ,mesh->elm.specificHeat   ,mesh->elm.temp 
@@ -1350,7 +1328,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                     ,energyModel->fKelvin     ,SPECIFICHEATCAPACITYFLUID);
     }
     else
-      initProp(mesh->elm.specificHeat  
+      initProp(mesh->elm.specificHeat   
              ,mesh->elm.material.prop  ,mesh->elm.mat
              ,SHEAT_LEVEL              ,mesh->numel
              ,SPECIFICHEATCAPACITYFLUID);
@@ -1361,13 +1339,11 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     {
       if(fComb)
         initPropTempMix(propF              ,cModel
-                    ,mesh->elm.dViscosity  
-                    ,mesh->elm.temp        ,mesh->elm.pressure0 
-                    ,mesh->elm.yFrac       ,mesh->elm.material.prop  
-                    ,mesh->elm.mat         ,cModel->nOfSpecies
-                    ,DVISCOSITY_LEVEL      ,mesh->numel
-                    ,energyModel->fKelvin  ,DYNAMICVISCOSITY);
-
+                    ,mesh->elm.dViscosity  ,mesh->elm.temp   
+                    ,mesh->elm.pressure0   ,mesh->elm.yFrac  
+                    ,cModel->nOfSpecies    ,DVISCOSITY_LEVEL
+                    ,mesh->numel           ,energyModel->fKelvin  
+                    ,DYNAMICVISCOSITY);
       else
         initPropTemp(propF
                 ,mesh->elm.dViscosity     ,mesh->elm.temp 
@@ -1386,13 +1362,12 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*... inicializando a condutividade termica*/
     if(propF->fThermalConductivity)
       if(fComb)
-        initPropTempMix(propF              ,cModel
-                    ,mesh->elm.tConductivity  
-                    ,mesh->elm.temp        ,mesh->elm.pressure0 
-                    ,mesh->elm.yFrac       ,mesh->elm.material.prop  
-                    ,mesh->elm.mat         ,cModel->nOfSpecies
-                    ,TCONDUCTIVITY_LEVEL   ,mesh->numel
-                    ,energyModel->fKelvin  ,THERMALCONDUCTIVITY);
+        initPropTempMix(propF               ,cModel
+                    ,mesh->elm.tConductivity,mesh->elm.temp      
+                    ,mesh->elm.pressure0    ,mesh->elm.yFrac   
+                    ,cModel->nOfSpecies     ,TCONDUCTIVITY_LEVEL
+                    ,mesh->numel            ,energyModel->fKelvin
+                    ,THERMALCONDUCTIVITY);
       else
         initPropTemp(propF
                     ,mesh->elm.tConductivity ,mesh->elm.temp 
@@ -1402,13 +1377,25 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                     ,energyModel->fKelvin      ,THERMALCONDUCTIVITY);
    else
       initProp(mesh->elm.tConductivity 
-              ,mesh->elm.material.prop  ,mesh->elm.mat
+              ,mesh->elm.material.prop     ,mesh->elm.mat
               ,TCONDUCTIVITY_LEVEL         ,mesh->numel
               ,THERMALCONDUCTIVITY);
 /*...................................................................*/
+ 
+/*... inicializando a difusividade das especies*/
+    if(fComb)
+      initDiffMix(propF               , cModel
+             ,mesh->elm.cDiffComb     , mesh->elm.temp 
+             ,mesh->elm.pressure0     , mesh->elm.yFrac 
+             ,mesh->elm.material.prop ,mesh->elm.mat   
+             ,cModel->nOfSpecies      ,cModel->nComb   
+             ,mesh->numel             ,energyModel->fKelvin);
+
+/*...................................................................*/
   }
 /*...................................................................*/
- 
+
+
 }
 /*********************************************************************/
 
@@ -2416,14 +2403,15 @@ void readPropVarMixture(PropVarFluid *p,FILE *file)
   char *str={"endmixture"};
   char macros[][WORD_SIZE] =
        { "sheat"       ,"density"   ,"dviscosity"   /* 0, 1, 2*/
-        ,"tcondutivity",""          ,""         };  /* 3, 4, 5*/
+        ,"tcondutivity","diffusion" ,""         };  /* 3, 4, 5*/
   char word[WORD_SIZE];
 
 /*...*/
-  p->fDensity           = false;
-  p->fSpecificHeat      = false;
-  p->fDynamicViscosity  = false;
+  p->fDensity             = false;
+  p->fSpecificHeat        = false;
+  p->fDynamicViscosity    = false;
   p->fThermalConductivity = false;
+  p->fDiffusion           = false;
 /*...................................................................*/
 
   readMacroV2(file,word,false,true);
@@ -2475,6 +2463,17 @@ void readPropVarMixture(PropVarFluid *p,FILE *file)
     }
 /*...................................................................*/
     
+/*... coeficient de difusao*/
+    else if(!strcmp(word, macros[4])){
+      readMacroV2(file, word, false, true);
+      p->fDiffusion = true;
+      if(!mpiVar.myId && p->fDiffusion)
+        fprintf(fileLogExc,"%-25s: %s\n","Diffusion variation"
+                                        ,word); 
+      initDiffSp(&p->diff, word, file);
+    }
+/*...................................................................*/
+
     readMacroV2(file, word, false, true);
   }while(strcmp(word,str));
 
@@ -3403,7 +3402,7 @@ void readGravity(DOUBLE *gravity,FILE *file){
 
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
- * Data de modificaco : 19/06/2018                                   * 
+ * Data de modificaco : 20/05/2019                                   * 
  *-------------------------------------------------------------------* 
  * SETPPRINT : Seleciona as veriaves que serao impressas na          *
  * macro pFluid, puD1, puT1                                          *
@@ -3438,7 +3437,7 @@ void setPrint(FileOpt *opt,FILE *file){
                ,"densityd1"    ,"coefdiffd1"  ,"densityt1"       /*27,28,29*/
                ,"coefdifft1"   ,"zcomb"       ,"gradzcomb"       /*30,31,32*/
                ,"ratefuel"     ,"yfrac"       ,"rateheatcomb"    /*33,34,35*/                  
-               ,""             ,""            ,""                /*36,37,38*/
+               ,"coefdiffsp"   ,""            ,""                /*36,37,38*/
                ,""             ,""            ,""                /*39,40,41*/
                ,""             ,""            ,""};              /*42,43,44*/
   int tmp;
@@ -3736,7 +3735,16 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[35]))
     {
       opt->rateHeatComb = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "rateHeatCombustion");
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print"
+                               , "rateHeatCombustion");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[36]))
+    {
+      opt->coefDiffSp = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "coefDiffSp");
     }
 /*.....................................................................*/
 

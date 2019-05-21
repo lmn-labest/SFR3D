@@ -48,6 +48,8 @@
   #define FDSVISCOSITY   3
   #define FDSTHERMALCOND 3
   #define WILKELAW       4
+  #define FDSDIFF        2
+  #define HIRSCHDIFF     3  
 /*... densidade*/
   #define IDEALGAS   2
 /*... densidade*/
@@ -110,6 +112,11 @@
   #define DENSITY                    1
   #define THERMALCONDUCTIVITY        2
   #define SPECIFICHEATCAPACITYFLUID  3
+  #define SPECIEDIFUSSIONFUEL        4
+  #define SPECIEDIFUSSIONO2          5
+  #define SPECIEDIFUSSIONCO2         6
+  #define SPECIEDIFUSSIONH2O         7
+  #define SPECIEDIFUSSIONN2          8
 /*...................................................................*/
 
 /*...*/
@@ -150,11 +157,12 @@
 /*...................................................................*/
 
 /*...*/
-  #define DVISCOSITY_LEVEL    1
-  #define DENSITY_LEVEL       3
-  #define SHEAT_LEVEL         3
-  #define TCONDUCTIVITY_LEVEL 1
-  #define COEFDIFF_LEVEL      1
+  #define DVISCOSITY_LEVEL      1
+  #define DENSITY_LEVEL         3
+  #define SHEAT_LEVEL           3
+  #define TCONDUCTIVITY_LEVEL   1
+  #define COEFDIFF_LEVEL        1
+  #define SPECIEDIFUSSION_LEVEL 1   
 /*...................................................................*/
 
 /*... conv radianos para graus*/
@@ -254,7 +262,7 @@
 /*...*/
   #define DIFPROP        5  /*numero de propriedade de 
                             problemas difusao pura*/
-  #define MAXPROP        5  /*numero maximo de propriedades*/
+  #define MAXPROP       20  /*numero maximo de propriedades*/
   #define MAXMAT       200 /*numero maximo de materias*/
   #define MAX_TRANS_EQ   3 /*numero maximo de equacoes de transporte*/ 
   #define MAX_DIF_EQ     3 /*numero maximo de equacoes de difusa*/ 

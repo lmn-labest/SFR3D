@@ -124,10 +124,14 @@
   void initSheatPol(PropPol *prop, char *s, FILE *file);
   void initDviscosityPol(PropPol *prop, char *s, FILE *file);
   void initThCondPol(PropPol *prop, char *s, FILE *file);
+  void initDiffSp(PropPol *prop, char *s, FILE *file);
 /*...................................................................*/
 
 /*... mistura gasosa*/
   void initLeornadJones(Combustion *cModel);
+  DOUBLE collisionIntegral(DOUBLE const t,DOUBLE const ek);
+  DOUBLE diffusionCollisionIntegral(DOUBLE const t
+                                 ,DOUBLE const ekl,DOUBLE const eki); 
 /*... massa especifica da mistura*/
   DOUBLE mixtureSpeciesDensity(PropPol *den        ,DOUBLE const malorMassMix
                             ,DOUBLE const t      ,DOUBLE const p
@@ -169,6 +173,21 @@
   DOUBLE mixtureThermalConductvity(PropVarFluid *PropF ,Combustion *cModel 
                                 ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
                                 ,bool const fKelvin);
+/* ... coeficiente de diffusao da especies*/
+  DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel 
+                       ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
+                       ,short const kSpecieA  ,short const kSpecieI 
+                       ,bool const fKelvin);
+  DOUBLE specieDiffusionBinary(DOUBLE const mMassA,DOUBLE const mMassB
+                            ,DOUBLE const sigmaA,DOUBLE const sigmaB  
+                            ,DOUBLE const ekA   ,DOUBLE const ekB
+                            ,DOUBLE const t     );
+
+  void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel 
+                       ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
+                       ,DOUBLE *RESTRICT diff ,short const nOfPrSp 
+                       ,short const nComb       
+                       ,bool const iKelvin    ,INT const nEl);
 
 /*...*/
   DOUBLE specificEnthalpyForTempOfMix(PropPol *sHeatPol
@@ -202,12 +221,18 @@
                         ,bool const fOmp      ,short const nThreads );
 
   void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
-                 ,DOUBLE *RESTRICT prop 
-                 ,DOUBLE *RESTRICT t        ,DOUBLE *RESTRICT pressure
-                 ,DOUBLE *RESTRICT yFrac    ,DOUBLE *RESTRICT propMat
-                 ,short *RESTRICT mat       ,short const nOfPrSp 
-                 ,short const np            ,INT    const nCell 
-                 ,bool const iKelvin        ,short const iProp);
+                      ,DOUBLE *RESTRICT prop     ,DOUBLE *RESTRICT t       
+                      ,DOUBLE *RESTRICT pressure ,DOUBLE *RESTRICT yFrac   
+                      ,short const nOfPrSp       ,short const np  
+                      ,INT    const nCell        ,bool const iKelvin 
+                      ,short const iProp);
+  
+  void initDiffMix(PropVarFluid *propFluid, Combustion *cModel
+                ,DOUBLE *RESTRICT diff     ,DOUBLE *RESTRICT t  
+                ,DOUBLE *RESTRICT pressure ,DOUBLE *RESTRICT yFrac 
+                ,DOUBLE *RESTRICT propMat  ,short *RESTRICT mat    
+                ,short const nOfPrSp       ,short const nComb   
+                ,INT    const nCell        ,bool const iKelvin);
 /*...................................................................*/
 
 /*...*/

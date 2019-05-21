@@ -640,7 +640,7 @@ void simpleSolver3D(Memoria *m
 
 /*********************************************************************
  * Data de criacao    : 30/07/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 21/05/2019                                   *
  *-------------------------------------------------------------------*
  * combustionSolver: metodo simple e simpleC para escoamentos        * 
  * 2D/3D termo ativados                                              *
@@ -699,6 +699,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     fSheat            = propF->fSpecificHeat,
     fDvisc            = propF->fDynamicViscosity,
     fTcond            = propF->fThermalConductivity,
+    fDiff             = propF->fDiffusion,
     fDensityRef       = thDynamic->fDensityRef,
     fPresRef          = thDynamic->fPresTh,
     fDeltaTimeDynamic = sc->ddt.fDynamic;
@@ -973,6 +974,13 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                           ,mesh->elm.temp         , mesh->elm.yFrac
                           ,mesh->elm.tConductivity,cModel->nOfSpecies
                           ,eModel->fKelvin        , mesh->numel);
+    if(fDiff)
+      updateMixDiffusion(propF             , cModel 
+                       ,mesh->elm.temp     , mesh->elm.yFrac
+                       ,mesh->elm.cDiffComb, cModel->nOfSpecies 
+                       ,cModel->nComb       
+                       ,eModel->fKelvin    , mesh->numel);
+
 /*...................................................................*/
 
 /*...*/
