@@ -1558,13 +1558,6 @@ void readVfCoor(DOUBLE *x,INT nn, short ndm,FILE *file){
     }
   }
 
-  for(i=0;i<nn;i++)
-  {
-    MAT2D(i,0,x,ndm) *= 0.5;
-    MAT2D(i,1,x,ndm) *= 0.5;
-    MAT2D(i,2,x,ndm) *= 0.25;
-  }
-
 //alphaProdVector(0.1,x,nn*ndm,x);
 #ifdef _DEBUG_MESH_ 
   for(i=0;i<nn;i++){

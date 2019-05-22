@@ -7492,7 +7492,7 @@ bool openDomain(Loads *loadVel
 /*... elementos com equacoes*/
     for(j=0;j<aux1;j++){
       nCarg = MAT2D(nel, j, faceVelLoad, aux2);
-      if(!nCarg){
+      if(nCarg){
         nCarg--;
         type  = loadVel[nCarg].type;
         if (  type == INLET || type == OUTLET

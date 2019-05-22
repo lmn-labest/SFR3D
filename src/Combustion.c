@@ -449,7 +449,6 @@ void getSpeciesPrimitivesCc(Combustion *cModel
                            , DOUBLE *RESTRICT y,DOUBLE *RESTRICT z)
 {
   short i,ns,nl,nc;
-  INT nel;  
   DOUBLE zLumped[3];
   if(cModel->fLump)
   {
