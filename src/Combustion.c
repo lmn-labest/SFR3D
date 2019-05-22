@@ -542,38 +542,75 @@ void rateFuelConsume(Combustion *cModel       , DOUBLE *RESTRICT zComb
   {
 /*...*/
     case ARRHENIUS:
-      s      = cModel->sMolar;
+
       alpha  = cModel->arrhenius.alpha;
       mWfuel = cModel->mW[SP_FUEL];
-      mWox   = cModel->mW_Air;
-      coefA  = cModel->arrhenius.a;
 /*... KJ/(kmol*kelvin)*/
       ru     = IDEALGASR*1.e-03;
-      tempA  = cModel->arrhenius.energyAtivation/ru; 
-      coefA *= mWfuel/(mWfuel+pow(mWox,s));
-      eOx     = s;
-      eFuel   = 1.0;
-
-      for(nel = 0; nel < numel; nel++)
+      tempA  = cModel->arrhenius.energyAtivation/ru;
+      coefA  = cModel->arrhenius.a;
+/*...*/
+      if(cModel->fLump)
       {
+        s      = cModel->stoichAir;
+        mWox   = cModel->mW_Air;
 
-        if(fKelvin)
-          tc = temp[nel];  
-        else
-          tc = CELSIUS_FOR_KELVIN(temp[nel]);
+        coefA *= mWfuel/(mWfuel+pow(mWox,s));
+        eOx     = s;
+        eFuel   = 1.0;
 
-        densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+        for(nel = 0; nel < numel; nel++)
+        {
 
-        zAir  = MAT2D(nel,0,zComb,nComb);
-        zFuel = MAT2D(nel,1,zComb,nComb);
+          if(fKelvin)
+            tc = temp[nel];  
+          else
+            tc = CELSIUS_FOR_KELVIN(temp[nel]);
+
+          densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+
+          zAir  = MAT2D(nel,SL_AIR,zComb,nComb);
+          zFuel = MAT2D(nel,SL_FUEL,zComb,nComb);
    
-        tmp1 = pow(temp[nel],alpha); 
-        tmp2 = pow(densityC,s+1.0);
-        tmp3 = pow(zFuel,eFuel)*pow(zAir,eOx);
-        tmp4 = exp(-tempA/tc);
+          tmp1 = pow(temp[nel],alpha); 
+          tmp2 = pow(densityC,s+1.0);
+          tmp3 = pow(zFuel,eFuel)*pow(zAir,eOx);
+          tmp4 = exp(-tempA/tc);
 //      printf("%lf %lf\n",tmp3,tmp4);
 
-        rate[nel] = coefA*tmp1*tmp2*tmp3*tmp4;
+          rate[nel] = coefA*tmp1*tmp2*tmp3*tmp4;
+        }
+      }
+      else
+      {
+        s      = cModel->stoichO2;
+        mWox   = cModel->mW[SP_O2];
+        coefA *= mWfuel/(mWfuel+pow(mWox,s));
+        eOx     = s;
+        eFuel   = 1.0;
+
+        for(nel = 0; nel < numel; nel++)
+        {
+
+          if(fKelvin)
+            tc = temp[nel];  
+          else
+            tc = CELSIUS_FOR_KELVIN(temp[nel]);
+
+          densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+
+          zO2   = MAT2D(nel,SP_O2,zComb,nComb);
+          zFuel = MAT2D(nel,SP_FUEL,zComb,nComb);
+
+          tmp1 = pow(temp[nel],alpha); 
+          tmp2 = pow(densityC,s+1.0);
+          tmp3 = pow(zFuel,eFuel)*pow(zO2,eOx);
+          tmp4 = exp(-tempA/tc);
+//      printf("%lf %lf\n",tmp3,tmp4);
+
+          rate[nel] = coefA*tmp1*tmp2*tmp3*tmp4;
+        }
+
       }
     break;
 /*...................................................................*/
@@ -906,7 +943,7 @@ void initMolarMass(Combustion *cModel)
 
 /*********************************************************************
  * Data de criacao    : 23/08/2018                                   *
- * Data de modificaco : 03/05/2019                                   *
+ * Data de modificaco : 21/05/2019                                   *
  *-------------------------------------------------------------------*
  * stoichiometricCoeff:                                              *
  *-------------------------------------------------------------------*
@@ -983,13 +1020,14 @@ void stoichiometricCoeff(Combustion *cModel)
   cModel->stoichH2Op = nH2Op;
   cModel->stoichCO2p = nCO2p;
   cModel->stoichN2p  = nN2p;
+  cModel->stoichAir  = nAir;
+
 
   cModel->CO2InProd = pCO2r;
   cModel->H2OInProd = pH2Or;
   cModel->N2InProd  = pN2r;
 
 /*...*/
-  cModel->sMolar    = nAir;
   cModel->sMassAir  = nAir*cModel->mW_Air/cModel->mW[SP_FUEL];
   cModel->sMassO2   = nO2*cModel->mW[SP_O2]/cModel->mW[SP_FUEL];
   cModel->sMassN2   = nN2*cModel->mW[SP_N2]/cModel->mW[SP_FUEL];

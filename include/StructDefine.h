@@ -78,10 +78,10 @@
     short typeHeatRealese;
     short reactionKinetic;
     Fuel fuel;
-    DOUBLE sMassAir ,sMolar,tMix;
+    DOUBLE sMassAir ,tMix;
     DOUBLE sMassO2  ,sMassN2;
     DOUBLE sMassCO2p,sMassH2Op,sMassN2p;
-    DOUBLE stoichO2,stoichN2;
+    DOUBLE stoichO2,stoichN2,stoichAir;
     DOUBLE stoichCO2p,stoichH2Op,stoichN2p; 
     DOUBLE lumpedMatrix[21];
 /*... massa molar*/

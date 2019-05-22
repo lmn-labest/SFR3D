@@ -3322,8 +3322,10 @@ void readModel(EnergyModel *e         , Turbulence *t
         {
           cModel->reactionKinetic           = ARRHENIUS;
           cModel->arrhenius.alpha           = 1.0;
-          cModel->arrhenius.energyAtivation = 12000.e0;
-          cModel->arrhenius.a               = 4.4e+09;
+//        cModel->arrhenius.energyAtivation = 12000.e0;
+          cModel->arrhenius.energyAtivation = 24358.e0;
+//        cModel->arrhenius.a               = 4.4e+09;
+          cModel->arrhenius.a               = 1.3e+09;
           if (!mpiVar.myId)
             fprintf(fileLogExc, format, "ARRHENIUS", "Enable");
           
