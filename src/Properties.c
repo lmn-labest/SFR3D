@@ -928,10 +928,11 @@ void updateMixDynamicViscosity(PropPol *dVisc    ,Combustion *cModel
 
   for(i=0;i<nEl;i++)
   {
-    y = &MAT2D(i,0,yFrac,nOfPrSp);         
+    y = &MAT2D(i,0,yFrac,nOfPrSp);      
     visc[i] = mixtureDynamicViscosity(dVisc    ,cModel
-                                     ,yFrac    ,temp[i]  
+                                     ,y        ,temp[i]  
                                      ,iKelvin);
+
   }
 }
 /*********************************************************************/
@@ -969,7 +970,7 @@ void updateMixDynamicThermalCond(PropVarFluid *propF,Combustion *cModel
   {
     y = &MAT2D(i,0,yFrac,nOfPrSp);         
     thc[i] = mixtureThermalConductvity(propF    ,cModel
-                                      ,yFrac    ,temp[i]  
+                                      ,y        ,temp[i]  
                                       ,iKelvin);
   }
 }
@@ -1309,9 +1310,9 @@ DOUBLE specificEnthalpyForTempOfMix(PropPol *sHeatPol
                              , bool const fSheat      , bool const fKelvin
                              , INT const nel ) 
 {
-  unsigned short i;
+  INT i;
   bool flag = false;
-  DOUBLE f,fl,t,conv,tol=1e-04;
+  DOUBLE f,fl,t,conv,tol=1e-03;
  
 /*...*/
   if(fSheat)
@@ -1328,7 +1329,7 @@ DOUBLE specificEnthalpyForTempOfMix(PropPol *sHeatPol
                                              ,fSheat  ,true));
     conv = fabs(conv);
 /*... Newton-Raphson*/
-    for(i=0;i<60000;i++)
+    for(i=0;i<1000000;i++)
     {
       f  = hs-tempForSpecificEnthalpyMix(sHeatPol,yFrac
                                         ,t       ,sHeatRef
@@ -1497,7 +1498,7 @@ DOUBLE tempForSpecificEnthalpySpecies(PropPol *sHeat, short const kSpecie
 
 /********************************************************************* 
  * Data de criacao    : 20/08/2018                                   *
- * Data de modificaco : 20/05/2019                                   *
+ * Data de modificaco : 24/05/2019                                   *
  *-------------------------------------------------------------------*
  * initPropTempMix: inicializao de propriedades com variacao temporal*
  * dependentes da temperatura                                        *
@@ -1505,10 +1506,13 @@ DOUBLE tempForSpecificEnthalpySpecies(PropPol *sHeat, short const kSpecie
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * propFluid -> estrutura de dados das propriedades varaiveis        *
+ * cModel    -> modelo de combustao                                  *  
  * prop      -> nao definido                                         * 
  * t         -> temperatura                                          *
  * pressure  -> pressao                                              *
  * yFrac    - fracao de massa da especies primitivas                 *
+ * propMat -> propriedade de referencia por material                 * 
+ * mat     -> material por celula                                    * 
  * nOfPrSp  - numero de especies primitivas                          *
  * np        -> numero niveis de tempos                              * 
  * nCell     -> numero de celulas                                    * 
@@ -1522,9 +1526,10 @@ DOUBLE tempForSpecificEnthalpySpecies(PropPol *sHeat, short const kSpecie
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
   *********************************************************************/
-void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
+void initPropTempMix(PropVarFluid *propF    , Combustion *cModel
                  ,DOUBLE *RESTRICT prop     ,DOUBLE *RESTRICT t       
-                 ,DOUBLE *RESTRICT pressure ,DOUBLE *RESTRICT yFrac   
+                 ,DOUBLE *RESTRICT pressure ,DOUBLE *RESTRICT yFrac  
+                 ,DOUBLE *RESTRICT propMat  ,short *RESTRICT mat  
                  ,short const nOfPrSp       ,short const np  
                  ,INT    const nCell        ,bool const iKelvin 
                  ,short const iProp)
@@ -1542,38 +1547,69 @@ void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
 /*...*/
     if( iProp == DENSITY )
     {
-      
-      molarMassMix =  mixtureMolarMass(cModel,y); 
-      v = mixtureSpeciesDensity(&propFluid->den,molarMassMix
-                      ,t[i]                    , pressure[i]
-                      ,thDynamic.pTh[2]        , iKelvin);
+      if(propF->fDensity)
+      {
+        molarMassMix =  mixtureMolarMass(cModel,y); 
+        v = mixtureSpeciesDensity(&propF->den         , molarMassMix
+                                 ,t[i]                , pressure[i]
+                                ,thDynamic.pTh[2]     , iKelvin);
+      }
+      else
+      {
+        lMat = mat[i]-1;
+        v = MAT2D(lMat,iProp,propMat,MAXPROP); 
+      }
     }
 /*...................................................................*/
 
 /*...*/
     else if( iProp == SPECIFICHEATCAPACITYFLUID)
     {
-      v = mixtureSpecifiHeat(&propFluid->sHeat, y
-                           ,t[i]            , nOfPrSp
-                           ,iKelvin);
+      if(propF->fSpecificHeat)
+      {
+        v = mixtureSpecifiHeat(&propF->sHeat, y
+                             ,t[i]            , nOfPrSp
+                             ,iKelvin);
+      }
+      else
+      {
+        lMat = mat[i]-1;
+        v = MAT2D(lMat,iProp,propMat,MAXPROP); 
+      }
     }
 /*...................................................................*/
 
 /*...*/
     else if( iProp == DYNAMICVISCOSITY)
     {
-      v = mixtureDynamicViscosity(&propFluid->dVisc,cModel
+      if(propF->fDynamicViscosity)
+      {
+      v = mixtureDynamicViscosity(&propF->dVisc,cModel
                                ,y                ,t[i]
                                ,iKelvin);
+      }
+      else
+      {
+        lMat = mat[i]-1;
+        v = MAT2D(lMat,iProp,propMat,MAXPROP); 
+      }
     }
 /*...................................................................*/
 
 /*...*/
     else if( iProp == THERMALCONDUCTIVITY)
     {
-      v = mixtureThermalConductvity(propFluid         ,cModel
+      if(propF->fThermalConductivity)
+      {
+      v = mixtureThermalConductvity(propF           ,cModel
                                 ,y                  ,t[i]
                                 ,iKelvin);
+      }
+      else
+      {
+        lMat = mat[i]-1;
+        v = MAT2D(lMat,iProp,propMat,MAXPROP); 
+      }
     }
 /*...................................................................*/
 
@@ -2105,7 +2141,7 @@ DOUBLE specificEnthalpyForTemp(PropPol *sHeatPol
     conv = (hs-tempForSpecificEnthalpy(sHeatPol,t,sHeatRef,fSheat,true))*tol;
     conv = fabs(conv);
 /*... Newton-Raphson*/
-    for(i=0;i<60000;i++){
+    for(i=0;i<10000000;i++){
       f  = hs-tempForSpecificEnthalpy(sHeatPol,t,sHeatRef,fSheat,true);
       if(fabs(f) < conv) {
         flag = true;
@@ -3565,7 +3601,7 @@ void initLeornadJones(Combustion *cModel)
 
 /*********************************************************************
  * Data de criacao    : 18/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 24/05/2019                                   * 
  *-------------------------------------------------------------------*
  * INITPROPREF: inicializao de propriedades de referencia            * 
  *-------------------------------------------------------------------* 
@@ -3585,6 +3621,8 @@ void initLeornadJones(Combustion *cModel)
 void initPropRef(PropVarFluid *propF ,DOUBLE *RESTRICT propMat
                 ,short const lMat)
 {
+
+  propF->densityRef            =   MAT2D(lMat,DENSITY                                         ,propMat,MAXPROP);
 
   propF->sHeatRef               =   MAT2D(lMat,SPECIFICHEATCAPACITYFLUID
                                          ,propMat,MAXPROP);

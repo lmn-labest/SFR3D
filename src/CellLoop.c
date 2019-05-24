@@ -7512,7 +7512,7 @@ bool openDomain(Loads *loadVel
 
 /*********************************************************************
  * Data de criacao    : 01/10/2017                                   *
- * Data de modificaco : 11/05/2019                                   *
+ * Data de modificaco : 23/05/2019                                   *
  *-------------------------------------------------------------------*
  * MASSFLUXOPENDOMAIN: calcula da massa entrando e saindo            *
  *-------------------------------------------------------------------*
@@ -7525,12 +7525,13 @@ bool openDomain(Loads *loadVel
  * OBS:                                                              *
  *-------------------------------------------------------------------*
 *********************************************************************/
-DOUBLE massFluxOpenDomain(Loads *loadVel    , Temporal const ddt
+void massFluxOpenDomain(Loads *loadVel    , Temporal const ddt
               , INT *RESTRICT cellFace      , INT *RESTRICT fOwner
               , short  *RESTRICT faceVelLoad, short  *RESTRICT nFace
               , DOUBLE *RESTRICT fArea      , DOUBLE *RESTRICT fNormal
               , DOUBLE *RESTRICT fXm    
-              , DOUBLE *RESTRICT density    , DOUBLE *RESTRICT vel 
+              , DOUBLE *RESTRICT density    , DOUBLE *RESTRICT vel
+              , DOUBLE *massInOut           , DOUBLE *deltaMass
               , INT const numel             , short const ndm  
               , short const maxViz  )
 {
@@ -7538,7 +7539,7 @@ DOUBLE massFluxOpenDomain(Loads *loadVel    , Temporal const ddt
   short  nCarg, j, type, aux1, aux2;
   INT nel;
   INT    idFace, cellOwner, ch;
-  DOUBLE lDensity,aFace,mOut,mIn,n[3],v[3],wfn,deltaMass,dt;
+  DOUBLE lDensity,aFace,mOut,mIn,n[3],v[3],wfn,dt;
   DOUBLE par[MAXLOADPARAMETER],xx[4];
 
   mOut = mIn = 0.e0;
@@ -7567,7 +7568,7 @@ DOUBLE massFluxOpenDomain(Loads *loadVel    , Temporal const ddt
           if(ndm == 3) xx[2] = MAT2D(idFace, j, fXm, ndm);
           xx[3] = ddt.t;
 /*...................................................................*/
-          getLoads(par,loadVel,xx); 
+          getLoads(par,&loadVel[nCarg],xx); 
           aFace = fArea[idFace];
           n[0]  = ch * MAT2D(idFace, 0, fNormal, ndm);
           n[1]  = ch * MAT2D(idFace, 1, fNormal, ndm);
@@ -7634,9 +7635,10 @@ DOUBLE massFluxOpenDomain(Loads *loadVel    , Temporal const ddt
 /*...................................................................*/
 
 /*...*/
+  massInOut[0] = mIn;
+  massInOut[1] = mOut;
   dt = ddt.dt[1];
-  deltaMass = (mOut + mIn) * dt;
-  return deltaMass;
+  *deltaMass = -(mOut + mIn) * dt;
 /*...................................................................*/
 
 }

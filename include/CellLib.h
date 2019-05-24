@@ -876,12 +876,13 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
   DOUBLE totalMass(DOUBLE *RESTRICT density  , DOUBLE *RESTRICT volume
                   ,INT const nEl) ;
 
-  DOUBLE massFluxOpenDomain(Loads *loadVel              , Temporal const ddt
+  void massFluxOpenDomain(Loads *loadVel              , Temporal const ddt
                           , INT *RESTRICT cellFace      , INT *RESTRICT fOwner
                           , short  *RESTRICT faceVelLoad, short  *RESTRICT nFace
                           , DOUBLE *RESTRICT fArea      , DOUBLE *RESTRICT fNormal
                           , DOUBLE *RESTRICT fXm
                           , DOUBLE *RESTRICT density    , DOUBLE *RESTRICT vel
+                          , DOUBLE *massInOut           , DOUBLE *deltaMass
                           , INT const numel             , short const ndm
                           , short const maxViz);
  

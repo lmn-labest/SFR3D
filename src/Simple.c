@@ -1117,12 +1117,13 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*... calculo da taxa de massa atravessando o contorno aberto*/
-  deltaMass = massFluxOpenDomain(loadsVel              , sc->ddt 
+  massFluxOpenDomain(loadsVel         , sc->ddt 
               , mesh->elm.cellFace    , mesh->face.owner
               , mesh->elm.faceLoadVel , mesh->elm.adj.nViz 
               , mesh->face.area       , mesh->face.normal
               , mesh->face.xm  
               , mesh->elm.densityFluid, mesh->elm.vel 
+              , mesh->massInOut       , &deltaMass
               , mesh->numelNov        , mesh->ndm  
               , mesh->maxViz  );
   mesh->mass[1] += deltaMass;  
@@ -1156,14 +1157,16 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   printf("It simple: %d \n", itSimple + 1);
   printf("Time(s) : %lf \n", timei);
   if (sc->ddt.flag)
-    printf("CFL                  : %lf\n", cfl);
-  printf("Reynolds             : %.3e\n", reynolds);
-  printf("Peclet               : %.3e\n", peclet);
-  printf("PresRef              : %.6e\n", thDynamic->pTh[2]);
-  printf("(Inc    ) Mass/Mass0 : %.6e\n", mesh->mass[1]/mesh->mass[0]);
-  printf("(Average) Mass/Mass0 : %.6e\n", mesh->mass[2]/mesh->mass[0]);
-  printf("Heat Combustion      : %.6e\n",cModel->totalHeat);
-  printf("Mass consume of fuel : %.6e\n",cModel->totalMassFuel);
+    printf("%-20s : %13.6lf\n","CFL", cfl);
+  printf("%-20s : %13.6lf\n","Reynolds", reynolds);
+  printf("%-20s : %13.6lf\n","Peclet"              , peclet);
+  printf("%-20s : %13.6e\n","PresRef"             , thDynamic->pTh[2]);
+  printf("%-20s : %13.6e\n","(Inc    ) Mass/Mass0", mesh->mass[1]/mesh->mass[0]);
+  printf("%-20s : %13.6e\n","(Average) Mass/Mass0", mesh->mass[2]/mesh->mass[0]);
+  printf("%-20s : %13.6e\n","MassIn              ", mesh->massInOut[0]);
+  printf("%-20s : %13.6e\n","MassOut             ", mesh->massInOut[1]);
+  printf("%-20s : %13.6e\n","Heat Combustion"     ,cModel->totalHeat);
+  printf("%-20s : %13.6e\n","Mass consume of fuel",cModel->totalMassFuel);
  
   printf("Residuo:\n");
   printf("conservacao da massa   (init,final): %20.8e %20.8e \n"
@@ -1606,15 +1609,15 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
 /*...................................................................*/
 
 /*... calculo da taxa de massa atravessando o contorno aberto*/
-  deltaMass = massFluxOpenDomain(loadsVel, sc->ddt
-    , mesh->elm.cellFace, mesh->face.owner
-    , mesh->elm.faceLoadVel, mesh->elm.adj.nViz
-    , mesh->face.area, mesh->face.normal
-    , mesh->face.xm
-    , mesh->elm.densityFluid, mesh->elm.vel
-    , mesh->numelNov, mesh->ndm
-    , mesh->maxViz);
-  mesh->mass[1] = mesh->mass[1] + deltaMass;
+//deltaMass = massFluxOpenDomain(loadsVel, sc->ddt
+//  , mesh->elm.cellFace, mesh->face.owner
+//  , mesh->elm.faceLoadVel, mesh->elm.adj.nViz
+//  , mesh->face.area, mesh->face.normal
+//  , mesh->face.xm
+//  , mesh->elm.densityFluid, mesh->elm.vel
+//  , mesh->numelNov, mesh->ndm
+//  , mesh->maxViz);
+//mesh->mass[1] = mesh->mass[1] + deltaMass;
 /*...................................................................*/
 
 /*... temp(n) = temp(n+1)*/
@@ -1632,12 +1635,13 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
   printf("It simple: %d \n", itSimple + 1);
   printf("Time(s) : %lf \n", timei);
   if (sc->ddt.flag)
-    printf("CFL                  : %lf\n", cfl);
-  printf("Reynolds             : %.3e\n", reynolds);
-  printf("Peclet               : %.3e\n", peclet);
-  printf("PresRef              : %.6e\n", thDynamic->pTh[2]);
-  printf("(Inc    ) Mass/Mass0 : %.6e\n", mesh->mass[1] / mesh->mass[0]);
-  printf("(Average) Mass/Mass0 : %.6e\n", mesh->mass[2] / mesh->mass[0]);
+    printf("CFL                    : %lf\n", cfl);
+  printf("Reynolds               : %.3e\n", reynolds);
+  printf("Peclet                 : %.3e\n", peclet);
+  printf("PresRef                : %.6e\n", thDynamic->pTh[2]);
+  printf("(Increment) Mass/Mass0 : %.6e\n", mesh->mass[1] / mesh->mass[0]);
+  printf("(Average) Mass/Mass0   : %.6e\n", mesh->mass[2] / mesh->mass[0]);
+
 
   printf("Residuo:\n");
   printf("conservacao da massa   (init,final): %20.8e %20.8e \n"

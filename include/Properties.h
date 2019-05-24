@@ -227,12 +227,13 @@
                         ,bool const fKelvin
                         ,bool const fOmp      ,short const nThreads );
 
-  void initPropTempMix(PropVarFluid *propFluid, Combustion *cModel
-                      ,DOUBLE *RESTRICT prop     ,DOUBLE *RESTRICT t       
-                      ,DOUBLE *RESTRICT pressure ,DOUBLE *RESTRICT yFrac   
-                      ,short const nOfPrSp       ,short const np  
-                      ,INT    const nCell        ,bool const iKelvin 
-                      ,short const iProp);
+  void initPropTempMix(PropVarFluid *propF    , Combustion *cModel
+                 ,DOUBLE *RESTRICT prop     ,DOUBLE *RESTRICT t       
+                 ,DOUBLE *RESTRICT pressure ,DOUBLE *RESTRICT yFrac  
+                 ,DOUBLE *RESTRICT propMat  ,short *RESTRICT mat  
+                 ,short const nOfPrSp       ,short const np  
+                 ,INT    const nCell        ,bool const iKelvin 
+                 ,short const iProp);
   
   void initDiffMix(PropVarFluid *propFluid, Combustion *cModel
                 ,DOUBLE *RESTRICT diff     ,DOUBLE *RESTRICT t  

@@ -201,7 +201,8 @@
     DOUBLE mass[3]; /* mass inicial do sistema 
                        massa atual calculo incremental
                        massa atual calculo direto*/
-    
+    DOUBLE massInOut[2]; /* mass que adentra o dominio 
+                            mass que sai do dominio*/ 
     DOUBLE xRef[3]; /*... ponto de referencia*/
 /*...*/    
     Elmt elm;     

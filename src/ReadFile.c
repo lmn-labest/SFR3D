@@ -41,7 +41,7 @@
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 05/05/2019                                   *
+ * Data de modificaco : 24/05/2019                                   *
  *-------------------------------------------------------------------*
  * readFileFvMesh : leitura de arquivo de dados em volume finitos    *
  * ------------------------------------------------------------------*
@@ -1292,103 +1292,116 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                    ,mesh->numel ,mesh->elm.pressure);
   
 /*... inicializando a densidade*/
-    if(propF->fDensity)
+/*... mixtura*/
+    if(fComb)
+      initPropTempMix(propF              ,cModel
+                     ,mesh->elm.densityFluid,mesh->elm.temp
+                     ,mesh->elm.pressure0   ,mesh->elm.yFrac
+                     ,mesh->elm.material.prop ,mesh->elm.mat
+                     ,cModel->nOfSpecies    ,DENSITY_LEVEL   
+                     ,mesh->numel           ,energyModel->fKelvin 
+                     ,DENSITY);
+/*...*/
+    else
     {
-/*... inicia a massa especifica com o campo de temperatura inicial*/
-      if(fComb)
-        initPropTempMix(propF              ,cModel
-                    ,mesh->elm.densityFluid,mesh->elm.temp
-                    ,mesh->elm.pressure0   ,mesh->elm.yFrac
-                    ,cModel->nOfSpecies    ,DENSITY_LEVEL   
-                    ,mesh->numel           ,energyModel->fKelvin 
-                    ,DENSITY);
-      else
+      if(propF->fDensity)
         initPropTemp(propF
                   ,mesh->elm.densityFluid ,mesh->elm.temp 
                   ,mesh->elm.pressure0    ,mesh->elm.material.prop
                   ,mesh->elm.mat
                   ,DENSITY_LEVEL          ,mesh->numel
                   ,energyModel->fKelvin   ,DENSITY);
+      else
+        initProp(mesh->elm.densityFluid 
+                ,mesh->elm.material.prop,mesh->elm.mat
+                ,DENSITY_LEVEL          ,mesh->numel
+               ,DENSITY);
     }
-    else
-      initProp(mesh->elm.densityFluid 
-              ,mesh->elm.material.prop,mesh->elm.mat
-              ,DENSITY_LEVEL          ,mesh->numel
-              ,DENSITY);
 /*...................................................................*/
 
 /*... inicializando o calor especifico*/
-    if(propF->fSpecificHeat)
-    {
-      if(fComb)
-        initPropTempMix(propF              ,cModel
+/*... mixtura*/
+    if(fComb)
+      initPropTempMix(propF              ,cModel
                     ,mesh->elm.specificHeat,mesh->elm.temp   
-                    ,mesh->elm.pressure0   ,mesh->elm.yFrac    
+                    ,mesh->elm.pressure0   ,mesh->elm.yFrac  
+                    ,mesh->elm.material.prop ,mesh->elm.mat  
                     ,cModel->nOfSpecies    ,SHEAT_LEVEL 
                     ,mesh->numel           ,energyModel->fKelvin 
                     ,SPECIFICHEATCAPACITYFLUID); 
-  
-      else
+    else
+    {
+      if(propF->fSpecificHeat)
+      {
         initPropTemp(propF
                     ,mesh->elm.specificHeat   ,mesh->elm.temp 
                     ,mesh->elm.pressure0      ,mesh->elm.material.prop  
                     ,mesh->elm.mat
                     ,SHEAT_LEVEL              ,mesh->numel
                     ,energyModel->fKelvin     ,SPECIFICHEATCAPACITYFLUID);
-    }
-    else
-      initProp(mesh->elm.specificHeat   
+      }
+      else
+        initProp(mesh->elm.specificHeat   
              ,mesh->elm.material.prop  ,mesh->elm.mat
              ,SHEAT_LEVEL              ,mesh->numel
              ,SPECIFICHEATCAPACITYFLUID);
+    }
 /*...................................................................*/
 
-/*... inicializando a viscosidade dinamica*/
-    if(propF->fDynamicViscosity)
-    {
-      if(fComb)
-        initPropTempMix(propF              ,cModel
-                    ,mesh->elm.dViscosity  ,mesh->elm.temp   
-                    ,mesh->elm.pressure0   ,mesh->elm.yFrac  
-                    ,cModel->nOfSpecies    ,DVISCOSITY_LEVEL
-                    ,mesh->numel           ,energyModel->fKelvin  
+/*... inicializando a viscosidade dinamica*/   
+/*... mixtura*/
+    if(fComb)
+      initPropTempMix(propF                ,cModel
+                    ,mesh->elm.dViscosity    ,mesh->elm.temp   
+                    ,mesh->elm.pressure0     ,mesh->elm.yFrac  
+                    ,mesh->elm.material.prop ,mesh->elm.mat
+                    ,cModel->nOfSpecies      ,DVISCOSITY_LEVEL
+                    ,mesh->numel             ,energyModel->fKelvin  
                     ,DYNAMICVISCOSITY);
-      else
+    else
+    {
+      if(propF->fDynamicViscosity)
+      {
         initPropTemp(propF
                 ,mesh->elm.dViscosity     ,mesh->elm.temp 
                 ,mesh->elm.pressure0      ,mesh->elm.material.prop  
                 ,mesh->elm.mat
                 ,DVISCOSITY_LEVEL         ,mesh->numel
                 ,energyModel->fKelvin     ,DYNAMICVISCOSITY);
-   }
-   else
-      initProp(mesh->elm.dViscosity 
+      }
+      else
+        initProp(mesh->elm.dViscosity 
               ,mesh->elm.material.prop  ,mesh->elm.mat
               ,DVISCOSITY_LEVEL         ,mesh->numel
               ,DYNAMICVISCOSITY);
+    }
 /*...................................................................*/
 
 /*... inicializando a condutividade termica*/
-    if(propF->fThermalConductivity)
-      if(fComb)
+/*... mixtura*/
+    if(fComb)
         initPropTempMix(propF               ,cModel
                     ,mesh->elm.tConductivity,mesh->elm.temp      
-                    ,mesh->elm.pressure0    ,mesh->elm.yFrac   
+                    ,mesh->elm.pressure0    ,mesh->elm.yFrac 
+                    ,mesh->elm.material.prop ,mesh->elm.mat  
                     ,cModel->nOfSpecies     ,TCONDUCTIVITY_LEVEL
                     ,mesh->numel            ,energyModel->fKelvin
                     ,THERMALCONDUCTIVITY);
-      else
+    else
+    {
+      if(propF->fThermalConductivity)
         initPropTemp(propF
                     ,mesh->elm.tConductivity ,mesh->elm.temp 
                     ,mesh->elm.pressure0 
                     ,mesh->elm.material.prop   ,mesh->elm.mat
                     ,TCONDUCTIVITY_LEVEL       ,mesh->numel
                     ,energyModel->fKelvin      ,THERMALCONDUCTIVITY);
-   else
-      initProp(mesh->elm.tConductivity 
+      else
+        initProp(mesh->elm.tConductivity 
               ,mesh->elm.material.prop     ,mesh->elm.mat
               ,TCONDUCTIVITY_LEVEL         ,mesh->numel
               ,THERMALCONDUCTIVITY);
+    }
 /*...................................................................*/
  
 /*... inicializando a difusividade das especies*/
