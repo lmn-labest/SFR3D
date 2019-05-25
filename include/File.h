@@ -26,8 +26,7 @@
   #define FITPLOTT2           4
   #define FITPLOTTEMP         5
   #define FITPLOTSIMPLE       6
-  #define FITPLOTCOMB         7
-   
+  
 /*...................................................................*/  
   typedef struct{
     bool bVtk;           /*escrita do arquivo binario*/

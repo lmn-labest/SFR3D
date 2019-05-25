@@ -675,24 +675,25 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   FILE *fStop = NULL;
   short unsigned ndfVel = mesh->ndfFt - 2;
   short unsigned nComb = cModel->nComb;
-  short unsigned conv;
+  short unsigned conv, i;
   short unsigned typeResidual;
   short itSimple;
   short unsigned kZeroVel    = sp->kZeroVel,
                  kZeroPres   = sp->kZeroPres,
-                 kZeroEnergy = sp->kZeroEnergy;
+                 kZeroEnergy = sp->kZeroEnergy,
+                 kZeroComb   = sp->kZeroComb;
   INT jj = 1;
   DOUBLE time, timei;
   DOUBLE *rCellPc;
 
 /*...*/
-  DOUBLE rU[3], rU0[3], rMass0, rMass
+  DOUBLE rU[3], rU0[3], rMass0, rMass, rComb[MAXSPECIES],rComb0[MAXSPECIES]
        , rEnergy0, rEnergy;
 /*...*/
-  DOUBLE tolSimpleU1, tolSimpleU2, tolSimpleU3
+  DOUBLE tolSimpleU1, tolSimpleU2, tolSimpleU3, tolComb
        , tolSimpleMass, tolSimpleEnergy;
 /*...*/
-  bool xMomentum, yMomentum, zMomentum, pCor, fEnergy;
+  bool xMomentum, yMomentum, zMomentum, pCor, fEnergy, fComb[MAX_COMB];
   bool relRes;
   bool fPrint = false;
   bool fDensity       = propF->fDensity,
@@ -705,7 +706,10 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     fDeltaTimeDynamic = sc->ddt.fDynamic;
   DOUBLE cfl, reynolds, peclet,  deltaMass;
   bool fParameter[10];
+  char slName[][10] = {"zFuel","zAir","zProd"},
+       spName[][10] = {"zFuel","zO2","zCO2","zH2O" ,"zN2",};
 
+/*...*/
   time = getTimeC();
 
 /*...*/
@@ -715,11 +719,12 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   typeResidual = RSCALEDSUM;
 
 /*...*/
-  tolSimpleU1 = sp->tolVel[0];
-  tolSimpleU2 = sp->tolVel[1];
-  tolSimpleU3 = sp->tolVel[2];
-  tolSimpleMass = sp->tolPres;
+  tolSimpleU1     = sp->tolVel[0];
+  tolSimpleU2     = sp->tolVel[1];
+  tolSimpleU3     = sp->tolVel[2];
+  tolSimpleMass   = sp->tolPres;
   tolSimpleEnergy = sp->tolEnergy;
+  tolComb         = sp->tolComb;
 /*...................................................................*/
 
 /*...*/
@@ -727,6 +732,12 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   rMass  = 0.e0;
   rU[0] = rU[1] = rU[2] = 0.e0;
   rU0[0] = rU0[1] = rU0[2] = 1.e0;
+  for (i = 0; i < nComb; i++)
+  {
+    rComb[i]  = 0.e0; 
+    rComb0[i] = 1.e0;
+  }
+   
   rEnergy0 = 1.e0;
   rEnergy  = 0.e0;
   conv = 0;
@@ -861,6 +872,14 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   }
 /*...................................................................*/
 
+/*... arquivo de log*/
+    if (opt->fItPlot)
+    {
+      fprintf(opt->fileItPlot[FITPLOTSIMPLE]
+            , "istep = %d time = %lf\n",sc->ddt.timeStep,sc->ddt.t);
+    }
+/*...................................................................*/
+
 /*...*/
   for (itSimple = 0; itSimple<sp->maxIt; itSimple++) 
   {
@@ -910,7 +929,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                    , sistEqComb, solvComb 
                    , sp        , sc       
                    , pMesh     , opt
-                   , itSimple  );   
+                   , fComb     , itSimple  );   
 /*...................................................................*/
 
 /*... equacao de energia*/
@@ -926,15 +945,20 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
     
 /*... residual*/
-    residualSimpleLm(mesh->elm.vel     ,mesh->elm.energy
-                 ,mesh->elm.rCellVel   ,rCellPc
-                 ,mesh->elm.rCellEnergy
-                 ,sistEqVel->ad        ,sistEqEnergy->ad
-                 ,rU                   ,&rMass
-                 ,&rEnergy          
-                 ,sistEqVel->id        ,sistEqEnergy->id
-                 ,mesh->numelNov       ,sistEqVel->neqNov
-                 ,mesh->ndm            ,typeResidual );    
+    residualCombustion(mesh->elm.vel      ,mesh->elm.energy
+            ,mesh->elm.zComb
+            ,mesh->elm.rCellVel           ,rCellPc
+            ,mesh->elm.rCellEnergy        ,mesh->elm.rCellComb      
+            ,sistEqVel->ad                ,sistEqEnergy->ad 
+            ,sistEqComb->ad   
+            ,rU                           ,&rMass
+            ,&rEnergy                     ,rComb    
+            ,sistEqVel->id                ,sistEqEnergy->id
+            ,sistEqComb->id   
+            ,mesh->numelNov               ,sistEqVel->neqNov
+            ,sistEqComb->neqNov
+            ,mesh->ndm                    ,nComb       
+            ,typeResidual ); 
 /*...................................................................*/
 
 /*...*/
@@ -993,10 +1017,15 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...*/
     if (itSimple == kZeroPres && relRes &&  pCor) rMass0 = rMass;
     if (itSimple == kZeroEnergy && relRes && fEnergy) rEnergy0 = rEnergy;
-    if (itSimple == kZeroVel && relRes) {
+    if (itSimple == kZeroVel && relRes)
+    {
       if (xMomentum) rU0[0] = rU[0];
       if (yMomentum) rU0[1] = rU[1];
       if (zMomentum && ndfVel == 3) rU0[2] = rU[2];
+    }
+    if(itSimple == kZeroComb && relRes)
+    {
+      if(fComb[i]) rComb0[i] = rComb[i];
     }
     conv = 0;  
 /*...................................................................*/
@@ -1007,65 +1036,54 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     if (opt->fItPlot)
     {
       if (ndfVel == 3)
+      {
         fprintf(opt->fileItPlot[FITPLOTSIMPLE]
-          , "%d %20.8e %20.8e %20.8e %20.8e %20.8e\n"
+          , "%10d %20.8e %20.8e %20.8e %20.8e %20.8e "
           , itSimple + 1, rU[0], rU[1], rU[2], rMass, rEnergy);
-      else
-        fprintf(opt->fileItPlot[FITPLOTSIMPLE]
-          , "%d %20.8e %20.8e %20.8e %20.8e\n"
-          , itSimple + 1, rU[0], rU[1], rMass, rEnergy);
+        for(i=0;i<nComb;i++)
+          fprintf(opt->fileItPlot[FITPLOTSIMPLE]
+          , " %20.8e ",  rComb[i]);
+        fprintf(opt->fileItPlot[FITPLOTSIMPLE],"\n");
+      }
     }
 /*...................................................................*/
 
 /*...*/
-    if (jj == sp->pSimple) {
+    if (jj == sp->pSimple) 
+    {
       jj = 0;
       printf("It simple: %d \n", itSimple + 1);
       printf("CPU Time(s)  : %lf \n", timei);
       printf("Residuo:\n");
-      printf("conservacao da massa   : %20.8e\n", rMass / rMass0);
-      printf("momentum x1            : %20.8e\n", rU[0] / rU0[0]);
-      printf("momentum x2            : %20.8e\n", rU[1] / rU0[1]);
+      printf("%-25s : %20.8e\n","conservacao da massa", rMass / rMass0);
+      printf("%-25s : %20.8e\n","momentum x1", rU[0] / rU0[0]);
+      printf("%-25s : %20.8e\n","momentum x2", rU[1] / rU0[1]);
       if (ndfVel == 3)
-        printf("momentum x3            : %20.8e\n", rU[2] / rU0[2]);
-      printf("conservacao da energia : %20.8e\n",rEnergy/rEnergy0);
+        printf("%-25s : %20.8e\n","momentum x3", rU[2] / rU0[2]);
+      printf("%-25s : %20.8e\n","conservacao da energia",rEnergy/rEnergy0);
+      for(i=0;i<nComb;i++)
+        if (cModel->fLump) 
+          printf("%-25s : %20.8e\n",slName[i],rComb[i]/rComb0[i]);
+        else
+          printf("%-25s : %20.8e\n",spName[i],rComb[i]/rComb0[i]);
     }
     jj++;   
 /*...................................................................*/
 
-/*... 3D*/
-    if (ndfVel == 3) 
-    {
-      if(rEnergy/rEnergy0<tolSimpleEnergy || rEnergy<SZERO) conv++;
-/*...*/
-      if(rMass/rMass0<tolSimpleMass || rMass<SZERO) conv++;
-/*...*/
-      if(rU[0]/rU0[0]<tolSimpleU1 || rU[0]<SZERO) conv++;
-/*...*/
-      if(rU[1]/rU0[1]<tolSimpleU2 || rU[1]<SZERO) conv++;
-/*...*/
-      if(rU[2]/rU0[2]<tolSimpleU3 || rU[2]<SZERO) conv++;
+/*... Energia*/
+    if(rEnergy/rEnergy0<tolSimpleEnergy || rEnergy<SZERO) conv++;
+/*... Massa*/
+    if(rMass/rMass0<tolSimpleMass || rMass<SZERO) conv++;
+/*... Vel*/
+    if(rU[0]/rU0[0]<tolSimpleU1 || rU[0]<SZERO) conv++;
+    if(rU[1]/rU0[1]<tolSimpleU2 || rU[1]<SZERO) conv++;
+    if(rU[2]/rU0[2]<tolSimpleU3 || rU[2]<SZERO) conv++;
+/*... Combustion*/
+    for(i=0;i<nComb;i++)
+      if(rComb[i]/rComb0[i]<tolComb || rComb[i]<SZERO) conv++;
 /*..*/
-      if(conv == 5) break;
-    }
+    if(conv == (5 + nComb)) break;
 /*...................................................................*/
-
-/*... 2D*/ 
-    else 
-    {
-      if(rEnergy/rEnergy0<tolSimpleEnergy || rEnergy<SZERO) conv++;
-/*...*/
-      if(rMass/rMass0<tolSimpleMass || rMass<SZERO) conv++;
-/*..*/
-      if(rU[0]/rU0[0]<tolSimpleU1 || rU[0]<SZERO) conv++;
-/*...*/
-      if(rU[1]/rU0[1]<tolSimpleU2 || rU[1]<SZERO) conv++;
-/*..*/
-      if(conv == 4) break;
-/*...................................................................*/      
-    }
-/*...................................................................*/
-
   }
 /*...................................................................*/
   timei = getTimeC() - time;
@@ -1168,27 +1186,30 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   printf("%-20s : %13.6e\n","Heat Combustion"     ,cModel->totalHeat);
   printf("%-20s : %13.6e\n","Mass consume of fuel",cModel->totalMassFuel);
  
-  printf("Residuo:\n");
-  printf("conservacao da massa   (init,final): %20.8e %20.8e \n"
-        , rMass0, rMass);
-  printf("momentum x1            (init,final): %20.8e %20.8e\n"
-        , rU0[0], rU[0]);
-  printf("momentum x2            (init,final): %20.8e %20.8e\n"
-        , rU0[1], rU[1]);
+  printf("%-25s : %15s %20s\n","Residuo:","init","final");
+  printf("%-25s : %20.8e %20.8e\n","conservacao da massa", rMass0, rMass);
+  printf("%-25s : %20.8e %20.8e\n","momentum x1",rU0[0], rU[0]);
+  printf("%-25s : %20.8e %20.8e\n","momentum x2 ",rU0[1], rU[1]);
   if (ndfVel == 3)
-    printf("momentum x3            (init,final): %20.8e %20.8e\n"
-          , rU0[2], rU[2]);
-  printf("conservacao da energia (init,final): %20.8e %20.8e\n"
-        , rEnergy0, rEnergy);
+    printf("%-25s : %20.8e %20.8e\n","momentum x3", rU0[2], rU[2]);
+  printf("%-25s : %20.8e %20.8e\n","conservacao da energia", rEnergy0, rEnergy);
+  for(i=0;i<nComb;i++)
+  {
+    if (cModel->fLump) 
+      printf("%-25s : %20.8e %20.8e\n",slName[i],rComb0[i],rComb[i]);
+    else
+      printf("%-25s : %20.8e %20.8e\n",spName[i],rComb0[i],rComb[i]);
+  }
 /*...................................................................*/
 
 /*...*/
-  fprintf(opt->fileParameters,"%9d %lf %lf %lf %lf %lf %lf %lf %lf %lf\n"
-                             , sc->ddt.timeStep ,sc->ddt.t
-                             , cfl              , reynolds
-                             , peclet           ,thDynamic->pTh[2]
-                             , mesh->mass[1]    , mesh->mass[2]
-                             , cModel->totalHeat,cModel->totalMassFuel);
+  fprintf(opt->fileParameters,"%9d %lf %e %e %e %e %e %e %e %e %e %e\n"
+                             , sc->ddt.timeStep  , sc->ddt.t
+                             , cfl               , reynolds
+                             , peclet            , thDynamic->pTh[2]
+                             , mesh->mass[1]     , mesh->mass[2]
+                             , mesh->massInOut[0], mesh->massInOut[1]
+                             , cModel->totalHeat , cModel->totalMassFuel);
 /*...................................................................*/
 
 }
@@ -2238,6 +2259,7 @@ void residualSimple(DOUBLE *RESTRICT vel
   }
 
 }
+/*********************************************************************/
 
 /********************************************************************* 
  * Data de criacao    : 26/08/2017                                   *
@@ -2524,6 +2546,438 @@ void residualSimpleLm(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
 
 }
 /*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 24/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * RESIDUALSIMPLE : calculo dos residuos no metodo simple            *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * vel      -  > campo de velocidade                                 *
+ * energy     -> campo de energia                                    *  
+ * zComb      -> campo com a fracao massica das especies
+ * rCellVel   -> residuo das equacoes das velocidade por celulas     * 
+ * rCellMass  -> residuo de massa da equacoes de pressao por celulas * 
+ * rCellEnergy-> residuo de massa da equacoes de energia por celulas * 
+ * adVel    -> diagonal da equacoes de velocidades                   *
+ * adEnergy -> diagonal da equacoes de energia                       *  
+ * rU       -> nao definido                                          * 
+ * rMass    -> nao definido                                          * 
+ * rEnergy  -> nao definido                                          * 
+ * rComb    -> nao definido                                          * 
+ * idVel    -> numero da equacao da celula i                         * 
+ * idEnergy -> numero da equacao da celula i                         * 
+ * idComb   -> numero da equacao da celula i                         * 
+ * nEl      -> numero de elementos                                   * 
+ * nEqVel   -> numero de equacoes de velocidade                      * 
+ * ndm      -> numero de dimensoes                                   * 
+ * nComb    -> numero de especies explicitamente resolvidas          * 
+ * iCod     -> tipo de residuo                                       * 
+ *          RSCALED - residuo com escala de grandeza                 * 
+ *          RSQRT   - norma p-2 ( norma euclidiana)                  * 
+ *          RSCALEDM- residuo com escala de grandeza                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * rU       -> residuo das velocidades                               * 
+ * rMass    -> residuo de mass                                       * 
+ * rEnergy  -> residuo de energia                                    * 
+ * rComb    -> resido das especies                                   *
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *            | rvx1 rvx2 ... rvxnEl |                               *
+ * rCellVel = | rvy1 rvy2 ... rvynEl |                               * 
+ *            | rvz1 rvz2 ... rvznEl |                               * 
+ *                                                                   *
+ *         | adx1 adx2 ... adxnEq |                                  *
+ * adVel = | ady1 ady2 ... adynEq |                                  *
+ *         | adz1 adz2 ... adznEq |                                  *
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void residualCombustion(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
+            ,DOUBLE *RESTRICT zComb
+            ,DOUBLE *RESTRICT rCellVel     ,DOUBLE *RESTRICT rCellMass
+            ,DOUBLE *RESTRICT rCellEnergy ,DOUBLE *RESTRICT rCellComb      
+            ,DOUBLE *RESTRICT adVel       ,DOUBLE *RESTRICT adEnergy 
+            ,DOUBLE *RESTRICT adComb   
+            ,DOUBLE *RESTRICT rU          ,DOUBLE *rMass
+            ,DOUBLE *rEnergy              ,DOUBLE *rComb    
+            ,INT  *RESTRICT idVel         ,INT  *RESTRICT idEnergy
+            ,INT  *RESTRICT idComb    
+            ,INT const nEl                ,INT const nEqVel
+            ,INT const nEqComb
+            ,short const ndm              ,short const nComb
+            ,short iCod)
+
+{
+  DOUBLE maxV[3],sum[3],maxE,maxComb[MAXSPECIES],mod,tmp,v,rScale,sumMax;
+  DOUBLE *p;
+  INT i,j,lNeq;
+  
+/*...*/
+  maxV[0] = maxV[1] = maxV[2] = maxE = 0.e0; 
+  sum [0] = sum[1]  = sum[2] = 0.e0; 
+  
+  for(j=0;j<nComb;j++)
+    maxComb[j] = rComb[j] = 0.e0;
+
+  for(j=0;j<ndm;j++)
+    rU[j]   = 0.e0;
+
+  *rEnergy = *rMass = 0.e0;
+/*...................................................................*/
+
+/*...*/
+  switch(iCod){
+
+/*... scaled*/
+    case RSCALED:
+/*... max(Ap*velP) */
+      for(i=0;i<nEl;i++)
+      {
+        lNeq = idVel[i] - 1;
+        if(lNeq > -1)
+        { 
+          for(j=0;j<ndm;j++)
+          {
+            v       = MAT2D(i,j,vel,ndm);
+            lNeq   += j*nEqVel;  
+            mod     = fabs(adVel[lNeq]*v);
+            maxV[j] = max(maxV[j],mod);
+          }
+        }
+      }
+/*...................................................................*/
+      
+/*... max ( | F - Ax |P / max(Ap*velP) )*/
+      for(j=0;j<ndm;j++)
+      {
+        for(i=0;i<nEl;i++)
+        {
+          mod    = fabs(MAT2D(j,i,rCellVel,nEl));
+          if(maxV[j] != 0.e0)
+            rScale = mod/maxV[j];
+          else
+            rScale = 0.e0;
+          rU[j]  = max(rU[j],rScale);
+        }
+      }  
+/*...................................................................*/
+
+/*... max(Ap*energyP) */
+      for(i=0;i<nEl;i++)
+      {
+        lNeq = idEnergy[i] - 1;
+        if(lNeq > -1)
+        { 
+          v       = energy[i];
+          mod     = fabs(adEnergy[lNeq]*v);
+          maxE    = max(maxE,mod);
+        }
+      }
+/*...................................................................*/
+      
+/*... max ( | F - Ax |P /max(Ap*energyP) )*/
+      for(i=0;i<nEl;i++)
+      {
+        mod    = fabs(MAT2D(j,i,rCellVel,nEl));
+        if(maxE != 0.e0)
+          rScale = mod/maxE;
+        else
+          rScale = 0.e0;
+        *rEnergy = max(*rEnergy,rScale);
+      }  
+/*...................................................................*/
+
+/*... max(Ap*zP) */
+      for(i=0;i<nEl;i++)
+      {
+        lNeq = idComb[i] - 1;
+        if(lNeq > -1){ 
+          for(j=0;j<nComb;j++)
+          {
+            v       = MAT2D(i,j,zComb,nComb);
+            lNeq   += j*nEqComb;  
+            mod     = fabs(adComb[lNeq]*v);
+            maxComb[j] = max(maxComb[j],mod);
+          }
+        }
+      }
+/*...................................................................*/
+      
+/*... max ( | F - Ax |P / max(Ap*zP) )*/
+      for(j=0;j<ndm;j++)
+      {
+        for(i=0;i<nEl;i++)
+        { 
+          mod    = fabs(MAT2D(j,i,rCellVel,nEl));
+          if(maxComb[j] != 0.e0)
+            rScale = mod/maxComb[j];
+          else
+            rScale = 0.e0;
+          rComb[j]  = max(rComb[j],rScale);
+        }
+      }  
+/*...................................................................*/
+
+/*...*/
+      tmp = 0.e0;
+      for(i=0;i<nEl;i++)
+      {
+        v    = fabs(rCellMass[i]);
+        tmp += v;
+      } 
+      *rMass = tmp; 
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
+/*... norma euclidiana*/
+    case RSQRT:
+/*...*/
+      for(j=0;j<ndm;j++)
+      {
+        p     = &rCellVel[j*nEl]; 
+        rU[j] = sqrt(dot(p,p,nEl));
+      }
+/*...................................................................*/
+
+/*...*/
+      *rEnergy = sqrt(dot(rCellEnergy,rCellEnergy,nEl));
+/*...................................................................*/
+
+/*...*/
+      for(j=0;j<nComb;j++)
+      {
+        p     = &rCellComb[j*nEl]; 
+        rComb[j] = sqrt(dot(p,p,nEl));
+      }
+/*...................................................................*/
+
+/*...*/
+      *rMass = sqrt(dot(rCellMass,rCellMass,nEl));
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
+/*... scaled*/
+    case RSCALEDSUM:
+/*... sum( |Ap*velP |) */
+      for(i=0;i<nEl;i++)
+      {
+        lNeq = idVel[i] - 1;
+        if(lNeq > -1)
+        { 
+          for(j=0;j<ndm;j++)
+          {
+            v       = MAT2D(i,j,vel,ndm);
+            lNeq   += j*nEqVel;
+            mod     = fabs(adVel[lNeq]*v);
+            sum[j] += mod;
+          }
+        }
+      }
+/*...................................................................*/
+      
+/*... sum ( | F - Ax |P / sum( |Ap*velP| ) )*/
+      for(j=0;j<ndm;j++)
+      {
+        for(i=0;i<nEl;i++)
+        {
+          mod    = fabs(MAT2D(j,i,rCellVel,nEl));
+          rU[j] += mod;
+        }
+        if( sum[j] > rU[j]*SZERO)
+          rU[j]  /=  sum[j];
+      }  
+/*...................................................................*/
+
+/*... sum( |Ap*energyP| ) */
+      sum[0] = 0.e0;
+      for(i=0;i<nEl;i++)
+      {
+        lNeq = idEnergy[i] - 1;
+        if(lNeq > -1)
+        { 
+          v       = energy[i];
+          mod     = fabs(adEnergy[lNeq]*v);
+          sum[0] += mod;
+        }
+      }
+/*...................................................................*/
+      
+/*... sum ( | F - Ax |P / sum( |Ap*energyP| ) )*/
+      for(i=0;i<nEl;i++)
+      {
+         mod      = fabs(rCellEnergy[i]);
+        *rEnergy += mod;
+      }
+      if( sum[0] > (*rEnergy)*SZERO)
+        *rEnergy /=  sum[0];  
+/*...................................................................*/
+
+/*... sum( |Ap*zP |) */
+      for(i=0;i<nEl;i++)
+      {
+        lNeq = idComb[i] - 1;
+        if(lNeq > -1)
+        { 
+          for(j=0;j<nComb;j++)
+          {
+            v       = MAT2D(i,j,zComb,nComb);
+            lNeq   += j*nEqComb;
+            mod     = fabs(adComb[lNeq]*v);
+            sum[j] += mod;
+          }
+        }
+      }
+/*...................................................................*/
+      
+/*... sum ( | F - Ax |P / sum( |Ap*zP| ) )*/
+      for(j=0;j<nComb;j++)
+      {
+        for(i=0;i<nEl;i++)
+        {
+          mod    = fabs(MAT2D(j,i,rCellComb,nEl));
+          rComb[j] += mod;
+        }
+        if( sum[j] > rComb[j]*SZERO)
+          rComb[j]  /=  sum[j];
+      }  
+/*...................................................................*/
+
+/*...*/
+      tmp = 0.e0;
+      for(i=0;i<nEl;i++)
+      {
+        v    = fabs(rCellMass[i]);
+        tmp += v;
+      } 
+      *rMass = tmp; 
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
+/*... scaled*/
+    case RSCALEDSUMMAX:
+/*... sum( |Ap*velP |) */
+      for(i=0;i<nEl;i++)
+      {
+        lNeq = idVel[i] - 1;
+        if(lNeq > -1)
+        { 
+          for(j=0;j<ndm;j++)
+          {
+            v       = MAT2D(i,j,vel,ndm);
+            lNeq   += j*nEqVel;
+            mod     = fabs(adVel[lNeq]*v);
+            sum[j] += mod;
+          }
+        }
+      }
+/*...................................................................*/
+      
+/*...*/
+      sumMax = sum[0];
+      for (j = 1; j < ndm; j++) 
+        sumMax = max(sumMax,sum[j]);
+/*...................................................................*/
+
+/*... sum ( | F - Ax |P / sum( |Ap*velP| ) )*/
+      for(j=0;j<ndm;j++)
+      {
+        for(i=0;i<nEl;i++)
+        {
+          mod    = fabs(MAT2D(j,i,rCellVel,nEl));
+          rU[j] += mod;
+        }
+        rU[j]  /= sumMax;
+      }  
+/*...................................................................*/
+
+/*... sum( |Ap*energyP| ) */
+      sum[0] = 0.e0;
+      for(i=0;i<nEl;i++)
+      {
+        lNeq = idEnergy[i] - 1;
+        if(lNeq > -1)
+        { 
+          v       = energy[i];
+          mod     = fabs(adEnergy[lNeq]*v);
+          sum[0] += mod;
+        }
+      }
+/*...................................................................*/
+      
+/*... sum ( | F - Ax |P / sum( |Ap*energyP| ) )*/
+      for(i=0;i<nEl;i++)
+      {
+         mod      = fabs(rCellEnergy[i]);
+        *rEnergy += mod;
+      }
+      if( sum[0] > (*rEnergy)*SZERO)
+        *rEnergy /=  sum[0];  
+/*...................................................................*/
+
+/*... sum( |Ap*zP |) */
+      for(i=0;i<nEl;i++)
+      {
+        lNeq = idComb[i] - 1;
+        if(lNeq > -1)
+        { 
+          for(j=0;j<nComb;j++)
+          {
+            v       = MAT2D(i,j,zComb,nComb);
+            lNeq   += j*nEqComb;
+            mod     = fabs(adComb[lNeq]*v);
+            sum[j] += mod;
+          }
+        }
+      }
+/*...................................................................*/
+      
+/*...*/
+      sumMax = sum[0];
+      for (j = 1; j < nComb; j++) 
+        sumMax = max(sumMax,sum[j]);
+/*...................................................................*/
+
+/*... sum ( | F - Ax |P / sum( |Ap*zP| ) )*/
+      for(j=0;j<nComb;j++)
+      {
+        for(i=0;i<nEl;i++)
+        {
+          mod    = fabs(MAT2D(j,i,rCellComb,nEl));
+          rComb[j] += mod;
+        }
+        rComb[j]  /= sumMax;
+      }  
+/*...................................................................*/
+
+/*...*/
+      tmp = 0.e0;
+      for(i=0;i<nEl;i++)
+      {
+        v    = fabs(rCellMass[i]);
+        tmp += v;
+      } 
+      *rMass = tmp; 
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
+/*... */
+     default:
+       ERRO_OP(__FILE__,__func__,iCod);
+     break;
+/*...................................................................*/
+  }
+
+}
+/*********************************************************************/
+
 
 /********************************************************************* 
  * Data de criacao    : 12/11/2017                                   *

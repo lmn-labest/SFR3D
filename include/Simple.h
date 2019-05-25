@@ -91,6 +91,21 @@
             ,INT  *RESTRICT idVel         ,INT  *RESTRICT idEnergy 
             ,INT const nEl                ,INT const nEqVel
             ,short const ndm              ,short iCod);
+
+  void residualCombustion(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
+            ,DOUBLE *RESTRICT zComb
+            ,DOUBLE *RESTRICT rCellVel     ,DOUBLE *RESTRICT rCellMass
+            ,DOUBLE *RESTRICT rCellEnergy ,DOUBLE *RESTRICT rCellComb      
+            ,DOUBLE *RESTRICT adVel       ,DOUBLE *RESTRICT adEnergy 
+            ,DOUBLE *RESTRICT adComb   
+            ,DOUBLE *RESTRICT rU          ,DOUBLE *rMass
+            ,DOUBLE *rEnergy              ,DOUBLE *rComb    
+            ,INT  *RESTRICT idVel         ,INT  *RESTRICT idEnergy
+            ,INT  *RESTRICT idComb    
+            ,INT const nEl                ,INT const nEqVel
+            ,INT const nEqComb
+            ,short const ndm              ,short const nComb
+            ,short iCod);
 /*...................................................................*/
 
 /*...*/

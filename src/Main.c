@@ -751,10 +751,7 @@ int main(int argc,char**argv){
         fclose(opt.fileItPlot[FITPLOTSIMPLE]);
 /*... fechando o arquivo do log nao linear do simple */      
       if(fSolvCombustion && opt.fItPlot && !mpiVar.myId)
-      {
         fclose(opt.fileItPlot[FITPLOTSIMPLE]);
-        fclose(opt.fileItPlot[FITPLOTCOMB]);
-      }
 /*...................................................................*/
 
       fclose(opt.fileParameters);

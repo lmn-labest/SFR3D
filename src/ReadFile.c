@@ -4625,13 +4625,13 @@ void readSetSimpleComb(Memoria *m    , FILE *fileIn
       fprintf(fileLogExc,"%-15s : %lf\n","alphaVel"   ,simple->alphaVel);
       fprintf(fileLogExc,"%-15s : %lf\n","alphaEnergy",simple->alphaEnergy);
       fprintf(fileLogExc,"%-15s : %lf\n","alphaComb"  ,simple->alphaComb);
-      fprintf(fileLogExc,"%-15s : %lf\n","tolPres"    ,simple->tolPres);
-      fprintf(fileLogExc,"%-15s : %lf\n","tolVelX"    ,simple->tolVel[0]);
-      fprintf(fileLogExc,"%-15s : %lf\n","tolVelY"    ,simple->tolVel[1]);
+      fprintf(fileLogExc,"%-15s : %e\n","tolPres"    ,simple->tolPres);
+      fprintf(fileLogExc,"%-15s : %e\n","tolVelX"    ,simple->tolVel[0]);
+      fprintf(fileLogExc,"%-15s : %e\n","tolVelY"    ,simple->tolVel[1]);
       if(mesh->ndm == 3)
-        fprintf(fileLogExc,"%-15s : %lf\n","tolVelZ"  ,simple->tolVel[2]);
-      fprintf(fileLogExc,"%-15s : %lf\n","tolEnergy"  ,simple->tolEnergy);
-      fprintf(fileLogExc,"%-15s : %lf\n","tolComb"    ,simple->tolComb);
+        fprintf(fileLogExc,"%-15s : %e\n","tolVelZ"  ,simple->tolVel[2]);
+      fprintf(fileLogExc,"%-15s : %e\n","tolEnergy"  ,simple->tolEnergy);
+      fprintf(fileLogExc,"%-15s : %e\n","tolComb"    ,simple->tolComb);
       fprintf(fileLogExc,"%-15s : %d\n","nNonOrth"    ,simple->nNonOrth);
       fprintf(fileLogExc,"%-15s : %d\n","pSimple"     ,simple->pSimple);
       fprintf(fileLogExc,"%-15s : %d\n","kZeroPres"   ,simple->kZeroPres);
@@ -5405,7 +5405,7 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
                 , FILE *fileIn    , FileOpt *opt)
 {
 
-  unsigned short ndfVel, nSistEq;
+  unsigned short i, ndfVel, nSistEq;
 
   INT nEqMax;
 /*... Estrutura de dados*/
@@ -5415,6 +5415,8 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
   char str1[100], str2[100], str3[100], str4[100];
 
   char word[WORD_SIZE];
+  char slName[][10] = {"zFuel","zAir","zProd"},
+       spName[][10] = {"zFuel","zO2","zCO2","zH2O" ,"zN2",};
 
 /*... solver*/
   readMacro(fileIn, word, false);
@@ -6041,20 +6043,36 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...................................................................*/
 
 /*...*/
-  if (opt->fItPlot && !mpiVar.myId) {
+  if (opt->fItPlot && !mpiVar.myId)
+  {
     strcpy(auxName, preName);
     fName(auxName, mpiVar.nPrcs, 0, 22, nameOut);
     opt->fileItPlot[FITPLOTSIMPLE] = openFile(nameOut, "w");
+/*...*/
     if (mesh->ndfFt == 4)
       fprintf(opt->fileItPlot[FITPLOTSIMPLE]
         , "#VelPres\n#it ||rU1|| ||rU2|| ||rMass|| ||rEnergy||\n");
     else if (mesh->ndfFt == 5)
       fprintf(opt->fileItPlot[FITPLOTSIMPLE]
-        , "#VelPres\n#it ||rU1|| ||rU2|| ||rU3|| ||rMass|| ||rEnergy||\n");
-    fName(auxName, mpiVar.nPrcs, 0, 26, nameOut);
-    opt->fileItPlot[FITPLOTCOMB] = openFile(nameOut, "w");
-    fprintf(opt->fileItPlot[FITPLOTCOMB]
-        , "#Combustion\n#it ||rZFlue|| ||rZAir|| ||rZprod||\n");
+        , "#VelPres\n#it ||rU1|| ||rU2|| ||rU3|| ||rMass|| ||rEnergy|| ");
+/*...................................................................*/
+
+/*...nComb*/
+    if(nComb == 2)
+      fprintf(opt->fileItPlot[FITPLOTSIMPLE],"||%s|| ||%s||\n"
+             ,slName[0],slName[1]);
+    if(nComb == 3)
+      fprintf(opt->fileItPlot[FITPLOTSIMPLE],"||%s|| ||%s|| ||%s||\n"
+             ,slName[0],slName[1],slName[2]);
+    if(nComb == 4)
+      fprintf(opt->fileItPlot[FITPLOTSIMPLE]
+            ,"||%s|| ||%s|| ||%s|| ||%s||\n"
+             ,spName[0],spName[1],spName[2],spName[3]);
+    if(nComb == 5)
+      fprintf(opt->fileItPlot[FITPLOTSIMPLE]
+            ,"||%s|| ||%s|| ||%s|| ||%s|| ||%s||\n"
+             ,spName[0],spName[1],spName[2],spName[3],spName[4]);
+/*...................................................................*/
   }
 /*...................................................................*/
 

@@ -2,7 +2,7 @@
 
 /*********************************************************************
  * Data de criacao    : 30/07/2018                                   *
- * Data de modificaco : 02/05/2019                                   *
+ * Data de modificaco : 24/05/2019                                   *
  *-------------------------------------------------------------------*
  * combustionModel : modelo de combustao                             *
  *-------------------------------------------------------------------*
@@ -21,28 +21,16 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                    , SistEq *sistEqComb , Solv *solvComb  
                    , Simple *sp         , Scheme *sc        
                    , PartMesh *pMesh    , FileOpt *opt
-                   , short itSimple    ) 
+                   , bool *fComb        , short itSimple    ) 
 {
-  bool fComb[MAX_COMB],fExit,rel
-      ,fSheat = prop->fSpecificHeat;
-  short itComb, conv, i, kZero, nComb, jj = 1, jPrint;
+  bool fSheat = prop->fSpecificHeat;
+  short conv, i, nComb;
   INT desloc;
-  DOUBLE tmp,tb[MAX_COMB],rCell[MAX_COMB],rCell0[MAX_COMB],tolComb;
+  DOUBLE tmp,tb[MAX_COMB];
   DOUBLE *b[MAX_COMB], *xu[MAX_COMB];
   DOUBLE *ad[MAX_COMB],*al[MAX_COMB],*au[MAX_COMB],*rCellC[MAX_COMB];
-  char slName[][10] = {"zFuel","zAir","zProd"},
-       spName[][10] = {"zFuel","zO2" ,"zN2","zCO2","zH2O"};
-/*... rel   - criterio de parada com vlores relativos
-      kZero - iteracao na qual o resido e normalizadp  
-      nComb - numero de especies transportadas
-      jPrint - numero de iteracao que ser impresso o residuo na tela
-*/
-  rel     = true;         
-  fExit   = false;
+/*... nComb - numero de especies transportadas*/     
   nComb   = cModel->nComb;
-  jPrint  = 50;
-  tolComb = sp->tolComb;
-  kZero   = sp->kZeroComb;
 /*...................................................................*/
 
 /*...*/
@@ -64,30 +52,19 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 
     desloc = mesh->numel;
     rCellC[i] = &mesh->elm.rCellComb[i*desloc];
-  
-    rCell0[i] = 1.e0;
   }
 /*...................................................................*/
 
-/*...*/
-  if(opt->fItPlot && !mpiVar.myId)  
-    fprintf(opt->fileItPlot[FITPLOTCOMB]
-           ,"#itSimple = %d t = %lf\n",itSimple+1,sc->ddt.t);
-/*...................................................................*/
-
-/*...*/
-  for(itComb = 0; itComb < 2;itComb++)
-  {
 /*... taxa de comsumo do combustivel*/
-    rateFuelConsume(cModel                , mesh->elm.zComb
+  rateFuelConsume(cModel                , mesh->elm.zComb
                   , mesh->elm.temp        , mesh->elm.rateFuel 
                   , mesh->elm.densityFluid,eModel->fKelvin
                   , mesh->numel);    
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (Fuel)*/
-    tm.rcGradComb   = getTimeC() - tm.rcGradComb;
-    rcGradU(m                    , loadsComb
+  tm.rcGradComb   = getTimeC() - tm.rcGradComb;
+  rcGradU(m                    , loadsComb
         , mesh->elm.node         , mesh->elm.adj.nelcon
         , mesh->node.x           
         , mesh->elm.nen          , mesh->elm.adj.nViz
@@ -109,12 +86,12 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
         , &pMesh->iNo            , &pMesh->iEl
         , mesh->numelNov         , mesh->numel
         , mesh->nnodeNov         , mesh->nnode);      
-    tm.rcGradComb = getTimeC() - tm.rcGradComb;
+  tm.rcGradComb = getTimeC() - tm.rcGradComb;
 /*.................................................................. */
 
 /*... calculo de: A(i),b(i)*/
-    tm.systFormComb = getTimeC() - tm.systFormComb;
-    systFormComb(loadsComb             , loadsVel
+  tm.systFormComb = getTimeC() - tm.systFormComb;
+  systFormComb(loadsComb             , loadsVel
              , &sc->advComb            , &sc->diffComb  
              , tModel                  , cModel
              , prop                    
@@ -149,88 +126,43 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
              , cModel->nComb          , sistEqComb->storage
              , true                   , true
              , true                   , sistEqComb->unsym);
-    tm.systFormComb = getTimeC() - tm.systFormComb;
+  tm.systFormComb = getTimeC() - tm.systFormComb;
 /*...................................................................*/
 
 /*... soma o vetor b(i) = b(i) + b0(i)*/
-    addVector(1.0e0                   , sistEqComb->b
-            , 1.0e0                   , sistEqComb->b0
-            , sistEqComb->neqNov*nComb, sistEqComb->b);
+  addVector(1.0e0                   , sistEqComb->b
+          , 1.0e0                   , sistEqComb->b0
+          , sistEqComb->neqNov*nComb, sistEqComb->b);
 /*...................................................................*/
 
 /*... soma o vetor R(i) = R(i) + b0(i)*/
-    updateCellValueSimple(mesh->elm.rCellComb, sistEqComb->b0
+  updateCellValueSimple(mesh->elm.rCellComb  , sistEqComb->b0
                       , sistEqComb->id       , &sistEqComb->iNeq
                       , mesh->numelNov       , sistEqComb->neqNov
                       , nComb
                       , true                 , false);  
 /*...................................................................*/
-
-/*...*/
-    if(jj == jPrint && !mpiVar.myId)
-    {
-      printf("\nIt Combustion: %d\n", itComb + 1);
-      printf("Residuo:\n");
-    }
-    if(opt->fItPlot && !mpiVar.myId)
-      fprintf(opt->fileItPlot[FITPLOTCOMB],"%9d",itComb+1);
-/*...................................................................*/
     
 /*...*/
-    for(i=0,conv=0;i<nComb;i++){
-      tb[i] = sqrt(dot(b[i], b[i], sistEqComb->neqNov));
-      if (itComb == 0) tmp = maxArray(tb,nComb);
+  for(i=0,conv = 0;i<nComb;i++)
+  {
+    tb[i] = sqrt(dot(b[i], b[i], sistEqComb->neqNov));
+    if (itSimple == 0) tmp = maxArray(tb,nComb);
 /*...................................................................*/
 
  /*...*/
-      fComb[i] = true; 
-      if ( tb[i] < SZERO || tb[i] == 0.e0 ) fComb[i] = false;
-/*...................................................................*/
-
-/*...*/ 
-      if( itComb == kZero && rel )
-        rCell[i]  = rCell0[i] = sqrt(dot(rCellC[i],rCellC[i]
-                                    ,mesh->numelNov));  
-      rCell[i] = sqrt(dot(rCellC[i],rCellC[i],mesh->numelNov));
-                
-      if( jj == jPrint && !mpiVar.myId )
-      {
-        if(cModel->fLump)
-        {
-          printf("%5s : %20.8e\n", slName[i],rCell[i] / rCell0[i]);
-        }
-        else
-        {
-          printf("%5s : %20.8e\n", spName[i],rCell[i] / rCell0[i]);
-        }  
-      }
-      if(opt->fItPlot && !mpiVar.myId)
-        fprintf(opt->fileItPlot[FITPLOTCOMB]," %20.8e ",rCell[i]);
+    fComb[i] = true; 
+    if ( tb[i] < SZERO || tb[i] == 0.e0 ) fComb[i] = false;
+  }
 /*...................................................................*/
 
 /*...*/
-      if(rCell[i]/ rCell0[i] < tolComb || rCell[i] < 1.e-16) conv++;
-      if(conv == nComb && itComb != 0)
-      {
-        fExit = true;
-        break;
-      }
-/*...................................................................*/
-    }
-/*...................................................................*/
-
-/*...*/
-    if(fExit)
-      break;  
-/*...................................................................*/
-
-/*...*/
-    for(i=0,conv = 0;i<nComb;i++)
-    {
+  for(i=0,conv = 0;i<nComb;i++)
+  {
 /*...Ax=b*/
-      tm.solvComb = getTimeC() - tm.solvComb;
-      if(fComb[i])
-        solverC(m
+    tm.solvComb = getTimeC() - tm.solvComb;
+    if(fComb[i])
+      solverC(m
               , sistEqComb->neq    , sistEqComb->neqNov
               , sistEqComb->nad    , sistEqComb->nadr
               , sistEqComb->ia     , sistEqComb->ja
@@ -241,26 +173,16 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
               , sistEqComb->storage, solvComb->solver
               , solvComb->fileSolv , solvComb->log
               , true               , sistEqComb->unsym);
-      tm.solvComb = getTimeC() - tm.solvComb;    
-    }
-/*...................................................................*/
-
-/*...*/
-    if( jj == jPrint) jj = 0;
-    jj++;
-    if(opt->fItPlot && !mpiVar.myId) 
-      fprintf(opt->fileItPlot[FITPLOTCOMB],"\n");
+    tm.solvComb = getTimeC() - tm.solvComb;    
+  }
 /*...................................................................*/
 
 /*... x -> zComb*/
-    updateCellValueBlock(mesh->elm.zComb , sistEqComb->x
-                       , sistEqComb->id  , &sistEqComb->iNeq
-                       , mesh->numel     , sistEqComb->neq 
-                       , cModel->nComb   
-                       , cModel->fRes    , true);  
-/*...................................................................*/
-   
-  }
+  updateCellValueBlock(mesh->elm.zComb , sistEqComb->x
+                     , sistEqComb->id  , &sistEqComb->iNeq
+                     , mesh->numel     , sistEqComb->neq 
+                     , cModel->nComb   
+                     , cModel->fRes    , true);  
 /*...................................................................*/
 
 /*...*/
@@ -285,13 +207,9 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*...*/
-  if(opt->fItPlot)  
-    fprintf(opt->fileItPlot[FITPLOTCOMB],"\n");
-/*...................................................................*/
-
-/*...*/
   prop->molarMass = mixtureMolarMass(cModel,mesh->elm.yFrac);
 /*...................................................................*/
+
 }
 /*********************************************************************/
 

@@ -46,7 +46,7 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
                    , SistEq *sistEqComb , Solv *solvComb  
                    , Simple *sp         , Scheme *sc        
                    , PartMesh *pMesh    , FileOpt *opt
-                   , short itSimple); 
+                   , bool *fComb        , short itSimple    ); 
 /*...................................................................*/
 
 /*...*/
