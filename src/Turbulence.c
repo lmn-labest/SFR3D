@@ -4118,7 +4118,7 @@ void twoParLes(Turbulence *tModel      , INT *RESTRICT lViz
  * Data de criacao    : 19/10/2017                                   *
  * Data de modificaco : 00/00/0000                                   * 
  *-------------------------------------------------------------------* 
- * DoubleDotSym : produto duplo para tensores simentricos            * 
+ * DoubleDot : produto duplo para tensores                           * 
  *-------------------------------------------------------------------* 
  * t         -> tensor                                               * 
  *-------------------------------------------------------------------* 

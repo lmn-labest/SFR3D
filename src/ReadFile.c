@@ -2734,7 +2734,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 
   char combustion[][WORD_SIZE] = {"residual"   ,"absolute"      /*0,1*/                    
                                  ,"grouped"    ,"ungrouped"     /*2,3*/
-                                 ,"ebu"        ,"arrhenius"     /*4,5*/ 
+                                 ,"edc"        ,"arrhenius"     /*4,5*/ 
                                  ,"hcombustion","hformation"    /*6,7*/   
                                  ,"correctvel"};                /*8*/
   
@@ -3316,9 +3316,9 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... edu*/
         else if (!strcmp(word, combustion[4]))
         {
-          cModel->reactionKinetic = EBU;
+          cModel->reactionKinetic = EDC;
           if (!mpiVar.myId)
-            fprintf(fileLogExc, format, "EBU", "Enable");
+            fprintf(fileLogExc, format, "EDC", "Enable");
           
         }
 /*...................................................................*/
@@ -3877,9 +3877,9 @@ void help(FILE *f){
 /*....................................................................*/
 
 /*... model*/
-  short iModels = 11;
+  short iModels = 4;
   char models[][WORD_SIZE] = {"energy"  ,"turbulence","mass"     /* 0, 1, 2*/
-                             ,"momentum"};                       /* 3*/
+                             ,"momentum","combustion"};          /* 3, 4*/
   short iEnergy = 7;
   char energy[][WORD_SIZE] = { "preswork", "dissipation", "residual"   /* 0, 1, 2*/
                              , "absolute", "temperature", "entalphy" };/* 2, 3, 4*/
@@ -3910,7 +3910,7 @@ void help(FILE *f){
   short iComb = 9;  
   char combustion[][WORD_SIZE] = {"residual"   ,"absolute"      /*0,1*/                    
                                  ,"grouped"    ,"ungrouped"     /*2,3*/
-                                 ,"ebu"        ,"arrhenius"     /*4,5*/ 
+                                 ,"edc"        ,"arrhenius"     /*4,5*/ 
                                  ,"hcombustion","hformation"    /*6,7*/   
                                  ,"correctVel"};                /*8*/
   short iWall = 2;

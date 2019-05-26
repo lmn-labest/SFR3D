@@ -14,6 +14,14 @@
 
 /*...*/
   typedef struct{
+    short type;
+    DOUBLE cGamma,cTau,tMix; /* KJ/Kmol*/    
+  }Edc;
+/*...................................................................*/  
+
+
+/*...*/
+  typedef struct{
     bool fDensityRef;
     bool fPresTh;
     DOUBLE pTh[3];
@@ -78,7 +86,7 @@
     short typeHeatRealese;
     short reactionKinetic;
     Fuel fuel;
-    DOUBLE sMassAir ,tMix;
+    DOUBLE sMassAir;
     DOUBLE sMassO2  ,sMassN2;
     DOUBLE sMassCO2p,sMassH2Op,sMassN2p;
     DOUBLE stoichO2,stoichN2,stoichAir;
@@ -107,7 +115,7 @@
     DOUBLE CO2InProd,H2OInProd,N2InProd;
 
     ArrheniusLaw arrhenius; 
-
+    Edc          edc;
   } Combustion;
 /*...................................................................*/
 

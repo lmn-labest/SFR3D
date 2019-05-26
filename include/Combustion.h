@@ -50,10 +50,14 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
-  void rateFuelConsume(Combustion *cModel    , DOUBLE *RESTRICT zComb
-                   , DOUBLE *RESTRICT temp   , DOUBLE *RESTRICT rate
-                   , DOUBLE *RESTRICT density, bool const iKelvin
-                   , INT const numel);
+  void rateFuelConsume(Combustion *cModel    , Turbulence *tModel
+             , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT diffComb
+             , DOUBLE *RESTRICT temp         , DOUBLE *RESTRICT rate
+             , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT gradVel
+             , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT dViscosity
+             , DOUBLE *RESTRICT volume
+             , short const ndm               , INT const numel
+             , bool const fKelvin  );
 /*...................................................................*/
 
 /*...*/
@@ -97,5 +101,19 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
   DOUBLE mixtureMolarMass(Combustion *cModel,DOUBLE *RESTRICT z);
 /*...................................................................*/
 
+/*...*/
+  DOUBLE edc(DOUBLE *y 
+          ,DOUBLE const s     ,DOUBLE const density
+          ,DOUBLE const vol   ,DOUBLE const eddyVisc
+          ,DOUBLE *c          ,DOUBLE const modS 
+          ,DOUBLE const dVisc ,DOUBLE const df 
+          ,DOUBLE const tMix  ,short const iCod);
+  DOUBLE arrhenius(DOUBLE const y1   ,DOUBLE const y2
+                ,DOUBLE const a1     ,DOUBLE const a2
+                ,DOUBLE const mW1    ,DOUBLE const mW2
+                ,DOUBLE const t      ,DOUBLE const alpha
+                ,DOUBLE const density,DOUBLE const tA    
+                ,DOUBLE const coefA  ,bool const fKelvin);
 /*...................................................................*/
+
 #endif/*_COMBUSTION_H_*/

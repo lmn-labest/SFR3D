@@ -32,8 +32,14 @@
 
 /*...*/
   #define ARRHENIUS   1
-  #define EBU         2 
+  #define EDC         2 
 
+/*...*/
+  #define FDS_EDC                 1 
+  #define FLUENT_EDC              2
+  #define FLUENT_CONST_TMIX_EDC   3
+  #define PANJWANI_EDC            4
+  #define PANJWANI_CONST_TMIX_EDC 5
 /*... Kg/kmol*/
   #define MW_O 15.9990e0
   #define MW_H  1.00794e0

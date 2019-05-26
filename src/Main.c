@@ -178,7 +178,11 @@ int main(int argc,char**argv){
   combModel.fRes            = true;
   combModel.fCorrectVel     = false;
   combModel.typeHeatRealese = HFORMATION; 
-  combModel.tMix            = 0.125;
+  combModel.edc.tMix        = 0.125;
+  combModel.edc.cGamma      = 1.01;
+  combModel.edc.cTau        = 2.1377;
+  combModel.edc.type        = PANJWANI_CONST_TMIX_EDC;
+//combModel.edc.type        = FLUENT_CONST_TMIX_EDC;
   combModel.totalHeat       = 0.e0;
   combModel.totalMassFuel   = 0.e0;
   initLeornadJones(&combModel);
@@ -392,6 +396,10 @@ int main(int argc,char**argv){
 /*...*/
   fName(preName,0,0, 27 ,nameOut);
   opt.fileParameters = openFileBuffer(nameOut,"w",true);
+  fprintf(opt.fileParameters,"%s %s %s\n"
+                            ,"#step t cfl reynolds peclet P0 "
+                            ,"mass(Inc) mass(Avg) massIn massOut "
+                            ,"totalHeat toralMassFuel");
 /*...................................................................*/
 
 /*loop de execucao*/

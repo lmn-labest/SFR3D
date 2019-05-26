@@ -4,10 +4,16 @@
   #define ERRO_RCM fprintf(stderr,"\nrcm - fatal error!\n")
 
   #define ERRO_OP(file,func,op)\
-    fprintf(stderr,"Opecao %d e invalida!!\n",op);\
+    fprintf(stderr,"Opcao %d e invalida!!\n",op);\
     fprintf(stderr,"Arquivo:%s\nFonte:  %s\n",file,func);\
     exit(EXIT_FAILURE);
  
+  #define ERRO_OP_NEW(file,func,line,str,op)\
+    fprintf(stderr,"%s\nOpcao %d e invalida!!\n",str,op);\
+    fprintf(stderr,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"\
+            ,file,func,line);\
+    exit(EXIT_FAILURE);
+
   #define ERRO_GERAL(file,func,line,str)\
     {fprintf(stderr,"Erro: %s!!\n",str);\
     fprintf(stderr,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"\
