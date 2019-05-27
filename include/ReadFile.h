@@ -68,6 +68,8 @@
               , Mesh *mesh, Mean *media);
   void setMixedModelLes(Turbulence *t  , FILE *file);
   void setDynamicModelLes(Turbulence *t, FILE *file);
+  void setEdc(Edc *e       , FILE *file);
+  void setArrhenius(ArrheniusLaw *a       , FILE *file);
   void setPrint(FileOpt *opt,FILE *file);
   void setReGrad(short *rcGrad, FILE *fileIn);
 

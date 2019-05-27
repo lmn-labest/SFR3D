@@ -85,6 +85,7 @@
     short nComb;          /* numero especies transportadas*/
     short typeHeatRealese;
     short reactionKinetic;
+    short nStep; 
     Fuel fuel;
     DOUBLE sMassAir;
     DOUBLE sMassO2  ,sMassN2;
@@ -114,7 +115,7 @@
 
     DOUBLE CO2InProd,H2OInProd,N2InProd;
 
-    ArrheniusLaw arrhenius; 
+    ArrheniusLaw arrhenius[2]; 
     Edc          edc;
   } Combustion;
 /*...................................................................*/

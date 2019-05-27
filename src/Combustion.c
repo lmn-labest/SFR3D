@@ -468,13 +468,13 @@ void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
 /*...*/
     case ARRHENIUS:
 
-      alpha  = cModel->arrhenius.alpha;
+      alpha  = cModel->arrhenius[0].alpha;
       mWfuel = cModel->mW[SP_FUEL];
 
 /*... KJ/(kmol*kelvin)*/
       ru     = IDEALGASR*1.e-03;
-      tempA  = cModel->arrhenius.energyAtivation/ru;
-      coefA  = cModel->arrhenius.a;
+      tempA  = cModel->arrhenius[0].energyAtivation/ru;
+      coefA  = cModel->arrhenius[0].a;
 /*...*/
       if(cModel->fLump)
       {
@@ -1266,7 +1266,7 @@ DOUBLE edc(DOUBLE *y
     case FLUENT_EDC:
     case FLUENT_CONST_TMIX_EDC:
       gEdc  = 1.e0;
-      itMix = modS;     
+      itMix = c[1]*modS;     
       break;
 /*..................................................................*/
 
@@ -1274,7 +1274,7 @@ DOUBLE edc(DOUBLE *y
     case PANJWANI_EDC:
     case PANJWANI_CONST_TMIX_EDC:
 /*...*/
-      itMix = modS;
+      itMix = c[1]*modS;
 /*... calculo */
       gamma = min(c[0]*pow(dVisc/(eddyVisc+dVisc),0.25),0.95);
       yMin = min(yF,yOx/s); 

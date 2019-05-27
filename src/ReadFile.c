@@ -2928,7 +2928,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 
 /*... bardina*/
         else if(!strcmp(word,turb[7])){
-          t->fDynamic             = false;
+          t->fDynamic            = false;
           t->fTurb               = true;   
           t->type                = LES;
           t->typeMixed[ESTMODEL] = BARDINA;
@@ -3316,7 +3316,9 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... edu*/
         else if (!strcmp(word, combustion[4]))
         {
+          
           cModel->reactionKinetic = EDC;
+          setEdc(&cModel->edc,file);
           if (!mpiVar.myId)
             fprintf(fileLogExc, format, "EDC", "Enable");
           
@@ -3327,11 +3329,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if (!strcmp(word, combustion[5]))
         {
           cModel->reactionKinetic           = ARRHENIUS;
-          cModel->arrhenius.alpha           = 1.0;
-//        cModel->arrhenius.energyAtivation = 12000.e0;
-          cModel->arrhenius.energyAtivation = 24358.e0;
-//        cModel->arrhenius.a               = 4.4e+09;
-          cModel->arrhenius.a               = 1.3e+09;
+          setArrhenius(cModel->arrhenius,file);
           if (!mpiVar.myId)
             fprintf(fileLogExc, format, "ARRHENIUS", "Enable");
           
@@ -3795,7 +3793,7 @@ void uniformField(DOUBLE *field, INT const n, short const ndf
 
 /********************************************************************* 
  * Data de criacao    : 11/11/2017                                   *
- * Data de modificaco : 05/05/2019                                   *
+ * Data de modificaco : 26/05/2019                                   *
  *-------------------------------------------------------------------*
  * help : Ajuda em relação a algumas macros                          *
  *-------------------------------------------------------------------*
@@ -3908,11 +3906,15 @@ void help(FILE *f){
                                ,"div"         ,"buoyanthy"      /*4,5*/  
                                ,"buoyantprgh" ,"buoyantrhoref"};/*6,7*/ 
   short iComb = 9;  
-  char combustion[][WORD_SIZE] = {"residual"   ,"absolute"      /*0,1*/                    
-                                 ,"grouped"    ,"ungrouped"     /*2,3*/
-                                 ,"edc"        ,"arrhenius"     /*4,5*/ 
-                                 ,"hcombustion","hformation"    /*6,7*/   
-                                 ,"correctVel"};                /*8*/
+  char combustion[][WORD_SIZE] = {"residual"        ,"absolute"          /*0,1*/                    
+                                 ,"grouped ns np nl","ungrouped ns np nl"/*2,3*/
+                                 ,"edc options"     ,"arrhenius "        /*4,5*/ 
+                                 ,"hcombustion"     ,"hformation"        /*6,7*/   
+                                 ,"correctVel"};                         /*8*/
+  short iEdc = 4;  
+  char edc[][WORD_SIZE] = { "pan 1.01 1.0","panct 1.01 0.125"
+                           ,"fluent 1.0"  ,"fluentct 0.125"}; 
+
   short iWall = 2;
   char typeWallModel[][WORD_SIZE] ={"standard","enhanced"};
 
@@ -4016,7 +4018,9 @@ void help(FILE *f){
     printf("Combustion options:\n");
     for(i=0;i<iComb;i++)
       printf("%3d - %s\n",i+1,combustion[i]);
-
+    printf("EDC options:\n");  
+    for (i = 0; i < iEdc; i++)
+      printf("%3d - %s\n",i+1,edc[i]);
     exit(EXIT_FAILURE);
   }
 /*.....................................................................*/
@@ -4298,6 +4302,114 @@ void setDynamicModelLes(Turbulence *t       , FILE *file) {
 /*...................................................................*/ 
 }
 /**********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 26/05/2019                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *--------------------------------------------------------------------* 
+ * setEdc : Eddy Disspantion concept                                  *                * 
+ *--------------------------------------------------------------------* 
+ * Parametros de entrada:                                             * 
+ *--------------------------------------------------------------------* 
+ * e       -> modelo de EDC      ia                                   *
+ * file    -> arquivo de arquivo                                      * 
+ *--------------------------------------------------------------------* 
+ * Parametros de saida:                                               * 
+ *--------------------------------------------------------------------* 
+ * e       -> atualizado                                              * 
+ *--------------------------------------------------------------------* 
+ * OBS:                                                               * 
+ *--------------------------------------------------------------------*
+ **********************************************************************/
+void setEdc(Edc *e       , FILE *file) 
+{
+
+  char word[WORD_SIZE];
+  char edc[][WORD_SIZE] = { "pan"        ,"panct"
+                           ,"fluent"     ,"fluentct"}; 
+
+  readMacro(file,word,false);
+  convStringLower(word);
+/*... PANJWANIN (2010)*/
+  if(!strcmp(word,edc[0]))
+  { 
+    e->type = PANJWANI_EDC;
+    fscanf(file,"%lf %lf",&e->cGamma,&e->cTau);  
+    if(!mpiVar.myId) 
+      fprintf(fileLogExc,"%-20s: cGamma = %lf  cTau = %lf\n"
+                        , edc[0],e->cGamma,e->cTau);    
+  }
+/*...................................................................*/ 
+
+/*... PANJWANIN (2010) com tempo de mistura constante*/
+  else if(!strcmp(word,edc[1]))
+  { 
+    e->type = PANJWANI_CONST_TMIX_EDC;
+    fscanf(file,"%lf %lf",&e->cGamma,&e->tMix);  
+    if(!mpiVar.myId) 
+      fprintf(fileLogExc,"%-20s: cGamma = %lf  tMix = %lf\n"
+                        , edc[0],e->cGamma,e->tMix);      
+  }
+/*...................................................................*/ 
+
+/*... Fluent*/
+  else if(!strcmp(word,edc[2]))
+  {
+    e->type = FLUENT_EDC;
+    fscanf(file,"%lf",&e->cTau);  
+    if(!mpiVar.myId) 
+      fprintf(fileLogExc,"%-20s:  cTau = %lf\n"
+                        , edc[0], e->cTau);
+  }   
+/*...................................................................*/ 
+
+/*... Fluent com tempo de mistura constante*/
+  else if(!strcmp(word,edc[3])) 
+  {
+    e->type = FLUENT_CONST_TMIX_EDC;
+    fscanf(file,"%lf",&e->tMix);  
+    if(!mpiVar.myId) 
+      fprintf(fileLogExc,"%-20s: tMix = %lf\n"
+                        , edc[0],e->tMix);   
+  }
+/*...................................................................*/ 
+}
+/**********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 26/05/2019                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *--------------------------------------------------------------------* 
+ * setArrhenius :                                                     *
+ *--------------------------------------------------------------------* 
+ * Parametros de entrada:                                             * 
+ *--------------------------------------------------------------------* 
+ * a       -> modelo de turbilencia                                   *
+ * file    -> arquivo de arquivo                                      * 
+ *--------------------------------------------------------------------* 
+ * Parametros de saida:                                               * 
+ *--------------------------------------------------------------------* 
+ * t       -> atualizado                                              * 
+ *--------------------------------------------------------------------* 
+ * OBS:                                                               * 
+ *--------------------------------------------------------------------*
+ **********************************************************************/
+void setArrhenius(ArrheniusLaw *a       , FILE *file) {
+
+  short k,nTerm;
+ 
+  fscanf(file,"%hd",&nTerm);
+
+  for(k=0;k<nTerm;k++)
+  {
+    fscanf(file,"%lf %lf %lf",&a[k].alpha
+                             ,&a[k].energyAtivation
+                             ,&a[k].a);
+  }
+  
+}
+/**********************************************************************/
+
 
 /**********************************************************************
  * Data de criacao    : 28/01/2018                                    *
