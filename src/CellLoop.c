@@ -2987,7 +2987,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
 
 /*********************************************************************
  * Data de criacao    : 04/08/2017                                   *
- * Data de modificaco : 12/08/2018                                   *
+ * Data de modificaco : 27/05/2019                                   *
  *-------------------------------------------------------------------*
  * SYSTFOMCOMB  : calculo do sistema de equacoes para problemas      *
  * transporte de energia (Ax=b)                                      *
@@ -3123,7 +3123,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
                 , bool calRcell             , bool unsym)
 {
   short i, j, k, lib, aux1, aux2, lMat;
-  short nThreads = ompVar.nThreadsCell;
+  short nThreads = ompVar.nThreadsCell, nReac = cModel->nReac;
   INT nel, vizNel;
 
   /*... variavel local */
@@ -3148,7 +3148,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
   DOUBLE lGradPres[(MAX_NUM_FACE + 1)*MAX_NDM];
   DOUBLE lVel[(MAX_NUM_FACE + 1)*MAX_NDM];
   DOUBLE lCc[(MAX_NUM_FACE + 1)*MAX_NDM];
-  DOUBLE lRcell[MAX_COMB], lWallPar[NWALLPAR];
+  DOUBLE lRcell[MAX_COMB], lWallPar[NWALLPAR], lRateFuel[2];
 
   /*...*/
   if (ompVar.fCell)
@@ -3520,6 +3520,11 @@ void systFormComb(Loads *loads              , Loads *ldVel
           lWallPar[i] = MAT2D(nel, i, wallPar, NWALLPAR);
 /*...................................................................*/
 
+/*...*/
+      for (i = 0; i<nReac; i++)
+        lRateFuel[i] = MAT2D(nel,i,rateFuel,nReac); 
+/*...................................................................*/
+
 /*... chamando a biblioteca de celulas*/
         cellLibCombustion(loads        , ldVel
                         , scAdv        , scDiff
@@ -3538,7 +3543,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
                         , lFaceR       , lFaceL
                         , lFaceVelR    , lFaceVelL
                         , lu0          , lGradU0
-                        , rateFuel[nel], lVel      
+                        , lRateFuel    , lVel      
                         , lPres        , lGradPres
                         , lDensity     , lDiff
                         , lViscosity

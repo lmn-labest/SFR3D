@@ -282,7 +282,8 @@ void updateMixDensity(PropPol *pDen         , Combustion *cModel
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void initMixtureSpeciesfiHeat(PropPol *prop, char *s, FILE *file)
+void initMixtureSpeciesfiHeat(PropPol *prop, char *s,Combustion *cModel 
+                            , FILE *file)
 {
   FILE *fileOut;
   
@@ -313,37 +314,44 @@ void initMixtureSpeciesfiHeat(PropPol *prop, char *s, FILE *file)
       for(k=0;k<MAXSPECIES;k++)
       {
 /*... fuel*/
-        if(!strcmp(word,"fuel"))
+        if(!strcmp(word,"fuel1"))
         {
-          jk = SP_FUEL;  
-          strcpy(species[jk],"fuel");
+          jk = cModel->sp_fuel[0]; 
+          strcpy(species[jk],"fuel1");
+          break;
+        }
+/*... fuel1*/
+        if(!strcmp(word,"fuel2"))
+        {
+          jk = cModel->sp_fuel[1]; 
+          strcpy(species[jk],"fuel2");
           break;
         }
 /*... n2*/
         else if(!strcmp(word,"n2"))
         {
-          jk = SP_N2; 
+          jk = cModel->sp_N2; 
           strcpy(species[jk],"n2"); 
           break;
         } 
 /*... o2*/
         else if(!strcmp(word,"o2"))
         {
-          jk = SP_O2;  
+          jk = cModel->sp_O2;  
           strcpy(species[jk],"o2");
           break;
         } 
 /*... co2*/
         else if(!strcmp(word,"co2"))
         {
-          jk = SP_CO2;  
+          jk = cModel->sp_CO2;  
           strcpy(species[jk],"co2");
           break;
         }
 /*... h2o*/
         else if(!strcmp(word,"h2o"))
         {
-          jk = SP_H2O;
+          jk = cModel->sp_H2O;
           strcpy(species[jk],"h2o");  
           break;
         }    
@@ -780,14 +788,12 @@ DOUBLE mixtureDynamicViscosity(PropPol *dVisc      ,Combustion *cModel
   short i,j,ns;
   DOUBLE molarMassMix,tc,y,d,mWa,sum1,sum2,tmp1,sigmaA,ek,phi;
   DOUBLE nuA[MAXSPECIES],xA[MAXSPECIES];
-  
- 
+   
   if(fKelvin)
     tc = t;  
   else
     tc = CELSIUS_FOR_KELVIN(t);  
-  
-  
+    
   switch (dVisc->type)
   {
 /*...*/
@@ -1273,7 +1279,7 @@ void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel
     for(j=0;j<nComb;j++)
       MAT2D(i,j,diff,nComb) = mixtureDiffusion(propF   ,cModel 
                                               ,yFrac   ,temp[i]
-                                              ,j       ,SP_N2 
+                                              ,j       ,cModel->sp_N2 
                                               ,iKelvin);
   }
 }
@@ -1674,7 +1680,7 @@ void initDiffMix(PropVarFluid *propF    , Combustion *cModel
       for(j=0;j<nComb;j++)
         MAT2D(i,j,diff,nComb) = mixtureDiffusion(propF       ,cModel 
                                 ,yFrac       ,t[i]
-                                ,j           ,SP_N2
+                                ,j           ,cModel->sp_N2
                                 ,iKelvin);
 /*...................................................................*/
     }
@@ -3435,7 +3441,6 @@ void presRefMix(Combustion *cModel
 }
 /*********************************************************************/
 
-
 /********************************************************************* 
  * Data de criacao    : 15/09/2017                                   *
  * Data de modificaco : 26/08/2018                                   *
@@ -3566,7 +3571,7 @@ void initPropStructCD(PropVarCD *propVar, short const n)
 
 /**********************************************************************
  * Data de criacao    : 16/05/2019                                    *
- * Data de modificaco : 00/00/0000                                    *
+ * Data de modificaco : 27/05/2019                                    *
  *--------------------------------------------------------------------*
  * initLeornadJones : inicializacao                                   *
  *--------------------------------------------------------------------*
@@ -3581,21 +3586,30 @@ void initPropStructCD(PropVarCD *propVar, short const n)
  **********************************************************************/
 void initLeornadJones(Combustion *cModel)
 {
+  char name[][20] = {"CH4","C3H8","C2H6"};
+  short i;
+
 /*... Fuel*/
-  cModel->leornadJones[SP_FUEL][0] = 3.758e0;
-  cModel->leornadJones[SP_FUEL][1] = 148.6e0;
+  for(i=0;i<cModel->nReac;i++)
+  {
+    cModel->leornadJones[cModel->sp_fuel[i]][0] = cModel->fuel[i].lj[0];
+    cModel->leornadJones[cModel->sp_fuel[i]][1] = cModel->fuel[i].lj[1];
+  }
 /*... O2*/
-  cModel->leornadJones[SP_O2][0] = 3.467e0;
-  cModel->leornadJones[SP_O2][1] = 106.7e0;
-/*... N2*/
-  cModel->leornadJones[SP_N2][0] = 3.798e0;
-  cModel->leornadJones[SP_N2][1] = 71.4e0;
+  cModel->leornadJones[cModel->sp_O2][0] = 3.467e0;
+  cModel->leornadJones[cModel->sp_O2][1] = 106.7e0;
 /*... CO2*/
-  cModel->leornadJones[SP_CO2][0] = 3.941e0;
-  cModel->leornadJones[SP_CO2][1] = 195.2e0;
+  cModel->leornadJones[cModel->sp_CO2][0] = 3.941e0;
+  cModel->leornadJones[cModel->sp_CO2][1] = 195.2e0;
 /*... H2O*/
-  cModel->leornadJones[SP_H2O][0] = 2.641e0;
-  cModel->leornadJones[SP_H2O][1] = 809.1e0;
+  cModel->leornadJones[cModel->sp_H2O][0] = 2.641e0;
+  cModel->leornadJones[cModel->sp_H2O][1] = 809.1e0;
+/*... CO*/
+//cModel->leornadJones[cModel->sp_CO][0] = 3.390e0;
+//cModel->leornadJones[cModel->sp_CO][1] =  91.7e0;
+/*... N2*/
+  cModel->leornadJones[cModel->sp_N2][0] = 3.798e0;
+  cModel->leornadJones[cModel->sp_N2][1] = 71.4e0;
 }
 /**********************************************************************/
 

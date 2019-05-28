@@ -159,8 +159,8 @@
 /*...................................................................*/
 
 /*...*/
-  void wResVtkCombustion(Memoria *m     , DOUBLE *x 
-          , DOUBLE *cc     
+  void wResVtkCombustion(Memoria *m,Combustion *cModel     
+          , DOUBLE *x            , DOUBLE *cc     
           , INT *el              , short *mat    
           , short *nen           , short *typeGeom
           , DOUBLE *elPres       , DOUBLE *nPres
@@ -187,8 +187,7 @@
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf
-          , short const ntn      , short const nOfPrSp
-          , short const nComb
+          , short const ntn      
           , char *nameOut        , FileOpt *opt
           , bool fKelvin         , Mean *media  
           , Temporal ddt         , FILE *f);

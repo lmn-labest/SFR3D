@@ -53,11 +53,12 @@
   void config(FileOpt *opt ,Reord *reord,FILE* f);
   
   void readEdo(Mesh *mesh,FILE *file);  
-  void readPropVar(PropVarFluid *pf, PropVarCD *pd, PropVarCD *pt, FILE *file);
+  void readPropVar(PropVarFluid *pf, PropVarCD *pd, PropVarCD *pt,Combustion *cModel
+                 , FILE *file);
   void readPropVarDiff(PropVarCD *p, FILE *file);
   void readPropVarTrans(PropVarCD *p, FILE *file);
   void readPropVarFluid(PropVarFluid *p, FILE *file);
-  void readPropVarMixture(PropVarFluid *p,FILE *file);
+  void readPropVarMixture(PropVarFluid *p,Combustion *cModel,FILE *file);
   void readGravity(DOUBLE *gravity,FILE *file);
   void readModel(EnergyModel *e    , Turbulence *t
                , MassEqModel *eMass, MomentumModel *ModelMomentum

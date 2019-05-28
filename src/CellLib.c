@@ -536,7 +536,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
 
 /*********************************************************************
 * Data de criacao    : 05/08/2018                                   *
-* Data de modificaco : 12/08/2018                                   *
+* Data de modificaco : 27/05/2019                                   *
 *-------------------------------------------------------------------*
 * cellLibCombustion: chamada de bibliotecas de celulas para         *
 * problema de escoamento de fluidos (Energy)                        *
@@ -616,7 +616,7 @@ void cellLibCombustion(Loads *lComb        , Loads *lVel
                , short  *RESTRICT lFaceR   , short  *RESTRICT lFaceL
                , short  *RESTRICT lFaceVelR, short  *RESTRICT lFaceVelL
                , DOUBLE *RESTRICT u        , DOUBLE *RESTRICT gradU
-               , DOUBLE const rateFuel     , DOUBLE *RESTRICT vel      
+               , DOUBLE *RESTRICT rateFuel , DOUBLE *RESTRICT vel      
                , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                , DOUBLE *RESTRICT lDensity , DOUBLE *RESTRICT lDiff 
                , DOUBLE *RESTRICT lEddyVisc

@@ -8,7 +8,7 @@
   typedef struct{
     DOUBLE energyAtivation; /* KJ/Kmol*/
     DOUBLE alpha;
-    DOUBLE a;
+    DOUBLE a,e1,e2;
   }ArrheniusLaw;
 /*...................................................................*/  
 
@@ -70,6 +70,8 @@
 /*...*/
   typedef struct{
     short c,h,o;
+    char name[20];
+    DOUBLE hf,lj[2];
   }Fuel;
 /*...................................................................*/
 
@@ -85,24 +87,29 @@
     short nComb;          /* numero especies transportadas*/
     short typeHeatRealese;
     short reactionKinetic;
-    short nStep; 
-    Fuel fuel;
-    DOUBLE sMassAir;
-    DOUBLE sMassO2  ,sMassN2;
-    DOUBLE sMassCO2p,sMassH2Op,sMassN2p;
-    DOUBLE stoichO2,stoichN2,stoichAir;
-    DOUBLE stoichCO2p,stoichH2Op,stoichN2p; 
-    DOUBLE lumpedMatrix[21];
+    short nReac; 
+    short sp_fuel[2],sp_CO2,sp_H2O,sp_O2,sp_N2;
+    short speciesPart[2][2][MAXSPECIES],nSpeciesPart[2][2]; /*especie que participam da reacao i*/
+    DOUBLE sMass[2][2][MAXSPECIES],sMassAir;    
+    DOUBLE stoich[2][2][MAXSPECIES],stoichAir;/*(i,j,k) 
+                                              i - reacao quimica
+                                              j - 0 reagente - 1 produtos
+                                              k - especies de 0 a N - 1
+                                              */
+           
+    DOUBLE lumpedMatrix[MAXSPECIES*3];
 /*... massa molar*/
     DOUBLE mW[MAXSPECIES],mW_Air;
 /*... Leornad-Jone parametros*/
     DOUBLE leornadJones[MAXSPECIES][2]; /*col 1 - sigma, col 2 -e/k
 /*... entalpia de formacao*/    
-    DOUBLE entalphyOfForm[MAXSPECIES]; /*0 - Fuel
-                                         1 - O2   
-                                         3 - CO2     
-                                         4 - H2O
-                                         5 - N2*/      
+    DOUBLE entalphyOfForm[MAXSPECIES]; /*0   - Fuel
+                                         1   - O2   
+                                         3   - CO2     
+                                         4   - H2O
+                                         5   - CO
+                                         6   - ... 
+                                         N-1 - N2*/      
 
     DOUBLE entalphyOfCombustion;        /* Entalpia de combustao calculada 
                                           pelas especies primitivas*/
@@ -117,9 +124,10 @@
 
     ArrheniusLaw arrhenius[2]; 
     Edc          edc;
+    Fuel         fuel[2];
   } Combustion;
 /*...................................................................*/
-
+ 
 /*... Material*/
   typedef struct{
     short  *type;      /*tipo de calculo da celula*/ 

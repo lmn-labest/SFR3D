@@ -707,16 +707,16 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   DOUBLE cfl, reynolds, peclet,  deltaMass;
   bool fParameter[10];
   char slName[][10] = {"zFuel","zAir","zProd"},
-       spName[][10] = {"zFuel","zO2","zCO2","zH2O" ,"zN2",};
+       spName[][10] = {"zO2","zCO2","zH2O","zN2"};
 
 /*...*/
   time = getTimeC();
 
 /*...*/
-//relRes       = false;
-//typeResidual = RSQRT;
   relRes       = false;
+//typeResidual = RSQRT;
   typeResidual = RSCALEDSUM;
+//typeResidual = RSCALEDSUMMAX;
 
 /*...*/
   tolSimpleU1     = sp->tolVel[0];
@@ -941,7 +941,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                            , mesh          
                            , sistEqEnergy, solvEnergy
                            , sp          , sc
-                           , pMesh);       
+                           , pMesh);     
 /*...................................................................*/
     
 /*... residual*/
@@ -1025,7 +1025,8 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     }
     if(itSimple == kZeroComb && relRes)
     {
-      if(fComb[i]) rComb0[i] = rComb[i];
+      for(i=0;i<nComb;i++)
+        if(fComb[i]) rComb0[i] = rComb[i];
     }
     conv = 0;  
 /*...................................................................*/
@@ -1061,11 +1062,13 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
       if (ndfVel == 3)
         printf("%-25s : %20.8e\n","momentum x3", rU[2] / rU0[2]);
       printf("%-25s : %20.8e\n","conservacao da energia",rEnergy/rEnergy0);
-      for(i=0;i<nComb;i++)
+      for(i=0;i<cModel->nReac;i++)
+        printf("%-25s : %20.8e\n",cModel->fuel[i].name,rComb[i]/rComb0[i]);
+      for(i=cModel->nReac;i<nComb;i++)
         if (cModel->fLump) 
-          printf("%-25s : %20.8e\n",slName[i],rComb[i]/rComb0[i]);
+          printf("%-25s : %20.8e\n",slName[i-cModel->nReac],rComb[i]/rComb0[i]);
         else
-          printf("%-25s : %20.8e\n",spName[i],rComb[i]/rComb0[i]);
+          printf("%-25s : %20.8e\n",spName[i-cModel->nReac],rComb[i]/rComb0[i]);
     }
     jj++;   
 /*...................................................................*/
@@ -1193,13 +1196,15 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   if (ndfVel == 3)
     printf("%-25s : %20.8e %20.8e\n","momentum x3", rU0[2], rU[2]);
   printf("%-25s : %20.8e %20.8e\n","conservacao da energia", rEnergy0, rEnergy);
-  for(i=0;i<nComb;i++)
+  for(i=0;i<cModel->nReac;i++)
+    printf("%-25s : %20.8e %20.8e\n",cModel->fuel[i].name,rComb0[i],rComb[i]);
+  for(i=cModel->nReac;i<nComb;i++)
   {
     if (cModel->fLump) 
-      printf("%-25s : %20.8e %20.8e\n",slName[i],rComb0[i],rComb[i]);
+      printf("%-25s : %20.8e %20.8e\n",slName[i-cModel->nReac],rComb0[i],rComb[i]);
     else
-      printf("%-25s : %20.8e %20.8e\n",spName[i],rComb0[i],rComb[i]);
-  }
+      printf("%-25s : %20.8e %20.8e\n",spName[i-cModel->nReac],rComb0[i],rComb[i]);
+   }
 /*...................................................................*/
 
 /*...*/
@@ -2612,16 +2617,15 @@ void residualCombustion(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
             ,short iCod)
 
 {
-  DOUBLE maxV[3],sum[3],maxE,maxComb[MAXSPECIES],mod,tmp,v,rScale,sumMax;
+  DOUBLE maxV[3],sum[MAXSPECIES],maxE,maxComb[MAXSPECIES],mod,tmp,v,rScale,sumMax;
   DOUBLE *p;
   INT i,j,lNeq;
   
 /*...*/
   maxV[0] = maxV[1] = maxV[2] = maxE = 0.e0; 
-  sum [0] = sum[1]  = sum[2] = 0.e0; 
   
   for(j=0;j<nComb;j++)
-    maxComb[j] = rComb[j] = 0.e0;
+    maxComb[j] = rComb[j] = sum[j] = 0.e0;
 
   for(j=0;j<ndm;j++)
     rU[j]   = 0.e0;

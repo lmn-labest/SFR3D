@@ -89,6 +89,7 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
   void initMolarMass(Combustion *cModel);
   void initEntalpyOfFormation(Combustion *cModel);
   void stoichiometricCoeff(Combustion *cModel);
+  void globalReac(Combustion *c, short const iReac);
   void initEntalpyOfCombustion(Combustion *cModel);
 
   void sumFracZ(DOUBLE *z      ,DOUBLE *zComb 

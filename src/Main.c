@@ -112,7 +112,7 @@ int main(int argc,char**argv){
   bool fSolvVel = false,fSolvPres = false, fSolvEnergy = false;
   bool fSolvComb = false;
   bool fSolvKturb = false;
-  bool fSolvSimple = false,fSolvPrime = false, fSolvCombustion = false;
+  bool fSolvSimple = false,fSolvPrime = false, fSolvCombustion = false;  
 /*... reordenacao da malha*/
   Reord  *reordMesh=NULL;
 
@@ -125,6 +125,7 @@ int main(int argc,char**argv){
   char loopWord[100][MAX_LINE];
   unsigned short kLoop = 0 ,jLoop = 0;
   bool flWord=false;
+  bool fReadModels=false;
 
 /*... arquivo*/
   char nameIn[MAX_STR_LEN_IN], nameOut[SIZEMAX];
@@ -185,8 +186,7 @@ int main(int argc,char**argv){
 //combModel.edc.type        = FLUENT_CONST_TMIX_EDC;
   combModel.totalHeat       = 0.e0;
   combModel.totalMassFuel   = 0.e0;
-  combModel.nStep           = 1.0;
-  initLeornadJones(&combModel);
+  combModel.nReac           = 1;
 /*..................................................................*/
 
 /*...*/
@@ -975,7 +975,7 @@ int main(int argc,char**argv){
     else if ((!strcmp(word, macro[13])))
     {
       initSec(word, OUTPUT_FOR_FILE);
-      readPropVar(&propVarFluid,propVarD,propVarT,fileIn);
+      readPropVar(&propVarFluid,propVarD,propVarT,&combModel,fileIn);
       endSec(OUTPUT_FOR_FILE);
     }
 /*===================================================================*/
@@ -1686,7 +1686,7 @@ int main(int argc,char**argv){
 /*...*/
      if(!combModel.fCombustion) 
      {
-        printf("Modelos de combustao nao configurado ainda!!!\n");
+        printf("Modelo de combustao nao configurado ainda!!!\n");
         exit(EXIT_FAILURE);
      }  
 /*...................................................................*/
@@ -1759,6 +1759,7 @@ int main(int argc,char**argv){
               , diffModel ,transModel
               , &combModel  
               , fileIn);
+      fReadModels = true;
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
     }   

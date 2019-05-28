@@ -149,7 +149,7 @@
                  , DOUBLE const alpha       , bool const iKelvin    
                  , INT const nEl            , char  const iCod);
 /*... calor especifico da mistura*/
-  void initMixtureSpeciesfiHeat(PropPol *prop, char *s, FILE *file);
+  void initMixtureSpeciesfiHeat(PropPol *prop, char *s,Combustion *cModel, FILE *file);
   DOUBLE mixtureSpecifiHeat(PropPol *sHeat   , DOUBLE *yFrac
                          , DOUBLE const t    , short const nOfPrSp
                          , bool const fKelvin); 

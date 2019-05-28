@@ -1037,8 +1037,8 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
   if(!mpiVar.myId ){
     fName(preName,sc.ddt.timeStep,0,30,nameOut);
 /*...*/
-    wResVtkCombustion(m                        , mesh0->node.x
-               , mesh0->elm.geom.cc       
+    wResVtkCombustion(m                   , cModel                 
+               , mesh0->node.x            , mesh0->elm.geom.cc       
                , mesh0->elm.node          , mesh0->elm.mat    
                , mesh0->elm.nen           , mesh0->elm.geomType
                , mesh0->elm.pressure      , mesh0->node.pressure
@@ -1065,8 +1065,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh0->nnode             , mesh0->numel  
                , mesh0->ndm               , mesh0->maxNo 
                , mesh0->numat             , ndfVel
-               , mesh0->ntn               , nOfPrSp
-               , nComb
+               , mesh0->ntn               
                , nameOut                  , opt
                , eModel->fKelvin          , media
                , sc.ddt                   , fileOut);   

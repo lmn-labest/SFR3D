@@ -7,14 +7,6 @@
 /*...................................................................*/
 
 /*...*/
-  #define SP_FUEL 0
-  #define SP_O2   1
-  #define SP_CO2  2
-  #define SP_H2O  3
-  #define SP_N2   4
-/*...................................................................*/
-
-/*...*/
   #define SL_FUEL 0
   #define SL_AIR  1
   #define SL_PROD 2
@@ -292,7 +284,7 @@
   #define  MAX_NUM_NODE_FACE  4
   #define  MAX_SN            24 
   #define  MAX_NDM            3 
-  #define  MAX_COMB           5
+  #define  MAX_COMB           7
 /*...................................................................*/
 
 /*... reconstrucao de gradiente*/

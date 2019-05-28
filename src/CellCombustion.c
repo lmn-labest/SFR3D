@@ -1,7 +1,7 @@
 #include<CellLib.h>
 /********************************************************************
 * Data de criacao    : 05/08/2018                                   *
-* Data de modificaco : 03/05/2019                                   *
+* Data de modificaco : 27/05/2019                                   *
 *-------------------------------------------------------------------*
 * cellCombustion3D: Celula 3D para combustao                        *
 *-------------------------------------------------------------------*
@@ -98,7 +98,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
                     , short  *RESTRICT lFaceR   , short *RESTRICT lFaceL
                     , short  *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL
                     , DOUBLE *RESTRICT u0       , DOUBLE *RESTRICT gradU0
-                    , DOUBLE const rateFuel     , DOUBLE *RESTRICT vel
+                    , DOUBLE *RESTRICT rateFuel , DOUBLE *RESTRICT vel
                     , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                     , DOUBLE *RESTRICT lDensity , DOUBLE *RESTRICT lDiff 
                     , DOUBLE *RESTRICT lEddyVisc
@@ -107,9 +107,9 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
                     , const short nEn           , short const nFace
                     , const short ndm           , INT const nel)
 {
-  bool fTime, fRes, fTurb, fWallModel, fLump, fDiffCoor;
+  bool fTime, fRes, fTurb, fWallModel, fLump, fDiffCoor, fN2;
   short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf, nCarg1
-    , nCarg2, typeTime, iCodPolFace, nComb, nst, i, nSp, nSpLump;
+    , nCarg2, typeTime, iCodPolFace, nComb, nst, i, j, nSp, kSp, nSpLump, nReac;
 /*...*/
   INT vizNel;
 /*...*/
@@ -145,11 +145,12 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*...................................................................*/
 
 /*...*/
-  fLump      = cModel->fLump;
-  nComb      = cModel->nComb;
-  nSp        = cModel->nOfSpecies;
-  nSpLump    = cModel->nOfSpeciesLump;
-  fDiffCoor  = cModel->fCorrectVel;  
+  fLump     = cModel->fLump;
+  nComb     = cModel->nComb;
+  nSp       = cModel->nOfSpecies;
+  nSpLump   = cModel->nOfSpeciesLump;
+  fDiffCoor = cModel->fCorrectVel;  
+  nReac     = cModel->nReac;   
 /*...................................................................*/
 
 /*...*/
@@ -462,19 +463,31 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*... reacao*/
   if(fLump)
   {
-    tmp1 = rateFuel*volume[idCell];
+    tmp1 = rateFuel[0]*volume[idCell];
     p[SL_FUEL] -= tmp1;
     if( nComb == nSpLump) p[SL_AIR ] -= cModel->sMassAir*tmp1;
     p[SL_PROD] += (1.e0+cModel->sMassAir)*tmp1;
   }
   else
   {
-    tmp1 = rateFuel*volume[idCell];
-    p[SP_FUEL] -= tmp1;
-    p[SP_O2  ] -= cModel->sMassO2*tmp1;
-    if( nComb == nSp) p[SP_N2]   += 0.0e0;
-    p[SP_CO2]  += cModel->sMassCO2p*tmp1; 
-    p[SP_H2O]  += cModel->sMassH2Op*tmp1;
+/*... reacao*/
+    for(i=0;i<nReac;i++)
+    {
+      tmp1 = rateFuel[i]*volume[idCell];
+
+/*... reagentes*/
+      for(j=0;j<cModel->nSpeciesPart[i][0];j++)
+      {
+        kSp    = cModel->speciesPart[i][0][j];
+        p[kSp] -= cModel->sMass[i][0][kSp]*tmp1;
+      }
+/*... produtos*/
+      for (j = 0; j < cModel->nSpeciesPart[i][1]; j++)
+      {
+        kSp = cModel->speciesPart[i][1][j];
+        p[kSp] += cModel->sMass[i][1][kSp]*tmp1;
+      }    
+    }
   }
 /*...................................................................*/
 

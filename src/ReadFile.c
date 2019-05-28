@@ -80,7 +80,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 	   };                                             
   bool rflag[NMACROS],macroFlag,fOneEqK = false,fComb;
   INT nn,nel;
-  short maxno,ndm,numat,maxViz,ndfVel,nComb,nSpPri;
+  short maxno,ndm,numat,maxViz,ndfVel,nComb,nSpPri,nReac;
   char nameAux[MAX_STR_LEN_IN];
   FILE *fileAux=NULL;
   int i;
@@ -100,6 +100,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
   fComb  = cModel->fCombustion;
   nComb  = cModel->nComb;
   nSpPri = cModel->nOfSpecies;
+  nReac  = cModel->nReac;
 /*...................................................................*/
 
 /*...*/
@@ -483,8 +484,8 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 
 /*... */
     HccaAlloc(DOUBLE, m, mesh->elm.rateFuel
-            , nel, "rateFuel", _AD_);
-    zero(mesh->elm.rateFuel, nel, DOUBLEC);
+            , nel*nReac, "rateFuel", _AD_);
+    zero(mesh->elm.rateFuel, nel*nReac, DOUBLEC);
 
 /*... */
     HccaAlloc(DOUBLE, m, mesh->elm.rateHeatReComb
@@ -2412,7 +2413,7 @@ void readPropVarFluid(PropVarFluid *p,FILE *file){
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void readPropVarMixture(PropVarFluid *p,FILE *file)
+void readPropVarMixture(PropVarFluid *p,Combustion *cModel,FILE *file)
 {
 
   char *str={"endmixture"};
@@ -2439,7 +2440,7 @@ void readPropVarMixture(PropVarFluid *p,FILE *file)
       p->fSpecificHeat = true;
       if(!mpiVar.myId && p->fSpecificHeat) 
         fprintf(fileLogExc,"%-25s: %s\n","sHeat variation","Enable\n");
-      initMixtureSpeciesfiHeat(&p->sHeat, word, file);
+      initMixtureSpeciesfiHeat(&p->sHeat, word,cModel, file);
       
     }
 /*...................................................................*/
@@ -2621,7 +2622,7 @@ void readPropVarTrans(PropVarCD *p, FILE *file)
 
 /*********************************************************************
  * Data de criacao    : 19/06/2018                                   *
- * Data de modificaco : 19/08/2018                                   *
+ * Data de modificaco : 26/05/2019                                   *
  *-------------------------------------------------------------------*
  * READPROPVAR : propriedades variaveis                              *
  *-------------------------------------------------------------------*
@@ -2640,7 +2641,8 @@ void readPropVarTrans(PropVarCD *p, FILE *file)
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void readPropVar(PropVarFluid *pf, PropVarCD *pd, PropVarCD *pt, FILE *file)
+void readPropVar(PropVarFluid *pf  , PropVarCD *pd, PropVarCD *pt
+               , Combustion *cModel,FILE *file)
 {
 
   char *str = { "endpropvar" };
@@ -2668,7 +2670,7 @@ void readPropVar(PropVarFluid *pf, PropVarCD *pd, PropVarCD *pt, FILE *file)
 
 /*... mixute*/
     else if (!strcmp(word, macros[3]))
-      readPropVarMixture(pf, file);
+      readPropVarMixture(pf,cModel, file);
 /*...................................................................*/
 
     readMacroV2(file, word, false, true);
@@ -3299,9 +3301,10 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if (!strcmp(word, combustion[3]))
         {
           cModel->fLump                = false;
-          fscanf(file,"%hd %hdf %hd",&(cModel->nComb)
+          fscanf(file,"%hd %hd %hd",&(cModel->nComb)
                                    ,&(cModel->nOfSpecies)
                                    ,&(cModel->nOfSpeciesLump)); 
+
           if (!mpiVar.myId)
           {
             strcpy(format,"%-20s: nComb = %d nOfSp = %d nOfSpLp = %d\n");
@@ -3309,7 +3312,7 @@ void readModel(EnergyModel *e         , Turbulence *t
                               ,cModel->nComb
                               ,cModel->nOfSpecies 
                               ,cModel->nOfSpeciesLump); 
-          }
+          }          
         }
 /*...................................................................*/
 
@@ -3372,6 +3375,7 @@ void readModel(EnergyModel *e         , Turbulence *t
       if (cModel->fLump) initLumpedMatrix(cModel);
       initEntalpyOfFormation(cModel);
       initEntalpyOfCombustion(cModel); 
+      initLeornadJones(cModel);
     }
 /*...................................................................*/
     readMacroV2(file, word, false, true);
@@ -4402,14 +4406,15 @@ void setArrhenius(ArrheniusLaw *a       , FILE *file) {
 
   for(k=0;k<nTerm;k++)
   {
-    fscanf(file,"%lf %lf %lf",&a[k].alpha
+    fscanf(file,"%lf %lf %lf %lf %lf",&a[k].alpha
                              ,&a[k].energyAtivation
-                             ,&a[k].a);
+                             ,&a[k].a
+                             ,&a[k].e1
+                             ,&a[k].e2);
   }
   
 }
 /**********************************************************************/
-
 
 /**********************************************************************
  * Data de criacao    : 28/01/2018                                    *
@@ -6954,7 +6959,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
 
 /*********************************************************************
  * Data de criacao    : 05/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 27/05/2019                                   *
  *-------------------------------------------------------------------*
  * READCOMPARAMETERS : leitura dos paramentros do modelo de combustao*
  *-------------------------------------------------------------------*
@@ -6977,6 +6982,7 @@ void readcombParameters(Combustion *c, FILE *file)
   char macros[][WORD_SIZE] =
              { "airc","fuelc"};  /* 0, 1*/
   char word[WORD_SIZE];
+  short i,n;
 
   readMacroV2(file, word, false, true);
   do 
@@ -6996,13 +7002,35 @@ void readcombParameters(Combustion *c, FILE *file)
 /*... fuelC1*/
     else if (!strcmp(word, macros[1]))
     {
-      fscanf(file, "%hd %hd %hd", &c->fuel.c ,&c->fuel.h, &c->fuel.o);
+      fscanf(file, "%hd", &n);
+      c->nReac = n;
+      for(i=0;i<n;i++)
+      {
+        c->sp_fuel[i] = i;
+        fscanf(file, "%hd %hd %hd %s %lf %lf %lf", &c->fuel[i].c 
+                                     , &c->fuel[i].h
+                                     , &c->fuel[i].o
+                                     , &c->fuel[i].name
+                                     , &c->fuel[i].hf 
+                                     , &c->fuel[i].lj[0]
+                                     , &c->fuel[i].lj[1]);
+      }
+
+      c->sp_O2   = n;
+      c->sp_CO2  = c->sp_O2 + 1;
+      c->sp_H2O  = c->sp_CO2 + 1;
+      c->sp_N2   = c->sp_H2O + 1;
+
       if (!mpiVar.myId)
-         fprintf(fileLogExc, "%-25s: C%hdH%hdO%hd\n"
-                          , "Fuel composition "
-                          , c->fuel.c
-                          , c->fuel.h
-                          , c->fuel.o);
+      {
+        for(i=0;i<n;i++)
+          fprintf(fileLogExc, "%-25s: C%hdH%hdO%hd\nid%s :%hd\n"
+                            , "Fuel composition "
+                            , c->fuel[i].c   , c->fuel[i].h, c->fuel[i].o
+                            , c->fuel[i].name, c->sp_fuel[i]);
+        fprintf(fileLogExc, "idO2  : %hd\nidCO2 : %hd\nidH2O : %hd\nidN2  : %hd\n"
+                            , c->sp_O2, c->sp_CO2, c->sp_H2O, c->sp_N2);
+      }
     }
 /*...................................................................*/
     readMacroV2(file, word, false, true);

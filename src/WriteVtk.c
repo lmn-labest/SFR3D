@@ -2158,7 +2158,7 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
 
 /********************************************************************** 
  * Data de criacao    : 05/08/2018                                    *
- * Data de modificaco : 20/05/2019                                    * 
+ * Data de modificaco : 23/05/2019                                    * 
  *------------------------------------------------------------------- * 
  * wResVtkCombustion :                                                * 
  * ------------------------------------------------------------------ *
@@ -2218,6 +2218,8 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
  * ntn          -> numero de termos no tensor ( 4 ; 6)                *
  * nOfPrSp      -> numero de especies primitivas                      *
  * nComb        -> numero de especies resolvidas                      *
+ * posN2        -> posisao do N2 nos vetores de especies              *
+ * fSpecies     -> especies existentes                                * 
  * nameOut      -> nome de arquivo de saida                           *
  * opt          -> opcoes do arquivo                                  *
  * f            -> arquivo                                            *
@@ -2232,8 +2234,8 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
  *           | du3dx1 du3dx2 du3dx3 |                                 *
  *                                                                    *
  **********************************************************************/
-void wResVtkCombustion(Memoria *m     , DOUBLE *x 
-          , DOUBLE *cc     
+void wResVtkCombustion(Memoria *m, Combustion *cModel     
+          , DOUBLE *x            , DOUBLE *cc     
           , INT *el              , short *mat    
           , short *nen           , short *typeGeom
           , DOUBLE *elPres       , DOUBLE *nPres
@@ -2256,12 +2258,11 @@ void wResVtkCombustion(Memoria *m     , DOUBLE *x
           , DOUBLE *eHeatRe      , DOUBLE *nHeatRe     
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
           , DOUBLE *specificHeat , DOUBLE *tConductivity
-          , DOUBLE *eDiffSp
+          , DOUBLE *eDiffSp      
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf
-          , short const ntn      , short const nOfPrSp
-          , short const nComb
+          , short const ntn      
           , char *nameOut        , FileOpt *opt
           , bool fKelvin         , Mean *media  
           , Temporal ddt         , FILE *f)
@@ -2586,9 +2587,9 @@ void wResVtkCombustion(Memoria *m     , DOUBLE *x
     HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
     ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
 
-    for(i=0;i<nComb;i++)
+    for(i=0;i<cModel->nComb;i++)
     {
-      getColFromMatrix(p,elZcomb,numel,nComb,i); 
+      getColFromMatrix(p,elZcomb,numel,cModel->nComb,i); 
       iota(i,st);
       strcpy(str,"eZ");
       strcat(str,st);
@@ -2596,7 +2597,7 @@ void wResVtkCombustion(Memoria *m     , DOUBLE *x
                   ,DOUBLE_VTK,SCALARS_VTK,f);
     }
 
-    sumFracZ(p,elZcomb,numel,nComb);
+    sumFracZ(p,elZcomb,numel,cModel->nComb);
     strcpy(str,"eZTotal");
     writeVtkProp(&idum,p,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
@@ -2609,7 +2610,7 @@ void wResVtkCombustion(Memoria *m     , DOUBLE *x
   if(opt->gradZcomb &&  opt->fCell )
   {
     strcpy(str,"eGradZcomb");
-    writeVtkProp(&idum,elGradZcomb,numel,nComb*ndm,str,iws
+    writeVtkProp(&idum,elGradZcomb,numel,cModel->nComb*ndm,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
 /*...................................................................*/
@@ -2647,43 +2648,39 @@ void wResVtkCombustion(Memoria *m     , DOUBLE *x
     HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
     ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
 /*... Fuel*/
-    strcpy(str,"eYfuel");
-    getColFromMatrix(p,eYfrac,numel,5,SP_FUEL); 
-    writeVtkProp(&idum,p,numel,1,str,iws
-                ,DOUBLE_VTK,SCALARS_VTK,f);
+    for(i=0;i<cModel->nReac;i++)
+    {
+      strcpy(str,"eY");
+      strcat(str,cModel->fuel[i].name);
+      getColFromMatrix(p,eYfrac,numel,cModel->nOfSpecies,cModel->sp_fuel[i]); 
+      writeVtkProp(&idum,p,numel,1,str,iws
+                  ,DOUBLE_VTK,SCALARS_VTK,f);
+    }
 /*... N2*/
     strcpy(str,"eYN2");
-    getColFromMatrix(p,eYfrac,numel,5,SP_N2); 
+    getColFromMatrix(p,eYfrac,numel,cModel->nOfSpecies,cModel->sp_N2); 
     writeVtkProp(&idum,p,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
+
 /*... O2*/
     strcpy(str,"eYO2");
-    getColFromMatrix(p,eYfrac,numel,5,SP_O2); 
+    getColFromMatrix(p,eYfrac,numel, cModel->nOfSpecies,cModel->sp_O2); 
     writeVtkProp(&idum,p,numel,1,str,iws
-                ,DOUBLE_VTK,SCALARS_VTK,f);
+                  ,DOUBLE_VTK,SCALARS_VTK,f);
+
 /*... CO2*/
     strcpy(str,"eYCO2");
-    getColFromMatrix(p,eYfrac,numel,5,SP_CO2); 
+    getColFromMatrix(p,eYfrac,numel, cModel->nOfSpecies,cModel->sp_CO2); 
     writeVtkProp(&idum,p,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
+
 /*... H2O*/
     strcpy(str,"eYH2O");
-    getColFromMatrix(p,eYfrac,numel,5,SP_H2O); 
+    getColFromMatrix(p,eYfrac,numel, cModel->nOfSpecies,cModel->sp_H2O); 
     writeVtkProp(&idum,p,numel,1,str,iws
-                ,DOUBLE_VTK,SCALARS_VTK,f);
-/*... CO*/
-/*  strcpy(str,"eYCO");
-    getColFromMatrix(p,eYfrac,nnode,7,5); 
-    writeVtkProp(&idum,p,numel,1,str,iws
-                ,DOUBLE_VTK,SCALARS_VTK,f);
-*/
-/*... C*/
-/*  strcpy(str,"eYC");
-    getColFromMatrix(p,eYfrac,nnode,7,6); 
-    writeVtkProp(&idum,p,numel,1,str,iws
-                ,DOUBLE_VTK,SCALARS_VTK,f);
-*/
-    sumFracZ(p,eYfrac,numel,5);
+                  ,DOUBLE_VTK,SCALARS_VTK,f);
+
+    sumFracZ(p,eYfrac,numel, cModel->nOfSpecies);
     strcpy(str,"eYTotal");
     writeVtkProp(&idum,p,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
@@ -2696,7 +2693,7 @@ void wResVtkCombustion(Memoria *m     , DOUBLE *x
   if(opt->coefDiffSp &&  opt->fCell )
   {
     strcpy(str,"eCoefDiffSp");
-    writeVtkProp(&idum,eDiffSp,numel,nComb,str,iws
+    writeVtkProp(&idum,eDiffSp,numel,cModel->nComb,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
 /*...................................................................*/
