@@ -120,9 +120,9 @@
               , DOUBLE *RESTRICT yFrac0, DOUBLE *RESTRICT yFrac
               , DOUBLE *RESTRICT volume, DOUBLE *pTh                               
               , INT const nCell        , bool const fKelvin);
-  void initPresRef(DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT volume
-               , DOUBLE *pTh            , DOUBLE *RESTRICT prop  
-               , short  *RESTRICT mat   , DOUBLE const molarMass                  
+  void initPresRef(DOUBLE *RESTRICT temp, DOUBLE *RESTRICT volume
+               , DOUBLE *pTh            , DOUBLE const densityRef 
+               , DOUBLE const molarMass                  
                , INT const nCell        , bool const fKelvin);
 /*...................................................................*/
 

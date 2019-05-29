@@ -484,9 +484,9 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*... produtos*/
       for (j = 0; j < cModel->nSpeciesPart[i][1]; j++)
       {
-        kSp = cModel->speciesPart[i][1][j];
+        kSp     = cModel->speciesPart[i][1][j];
         p[kSp] += cModel->sMass[i][1][kSp]*tmp1;
-      }    
+      }
     }
   }
 /*...................................................................*/

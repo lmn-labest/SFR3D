@@ -474,8 +474,8 @@ void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
   {
 /*...*/
     case ARRHENIUS:
-/*... KJ/(kmol*kelvin)*/
-      ru = IDEALGASR*1.e-03;
+/*... cal/(mol*kelvin)*/
+      ru = IDEALGASR*2.39006e-04;
       for(i=0;i<cModel->nReac;i++)
       {
         iComb  = cModel->sp_fuel[i];
@@ -645,7 +645,6 @@ void rateHeatRealeseCombustion(Combustion *cModel,PropPol *sHeat
           H = h[kSp] + tempForSpecificEnthalpySpecies(sHeat    , kSp 
                                                        , temp[nel], sHeatRef
                                                        , fsHeat   , fKelvin);
-          H = h[kSp];
           HR += nSp*H;
          
         } 
@@ -660,7 +659,6 @@ void rateHeatRealeseCombustion(Combustion *cModel,PropPol *sHeat
           H = h[kSp] + tempForSpecificEnthalpySpecies(sHeat    , kSp 
                                                        , temp[nel], sHeatRef
                                                        , fsHeat   , fKelvin);
-          H = h[kSp];
           HP += nSp*H;
          
         } 
@@ -703,9 +701,6 @@ void rateHeatRealeseCombustion(Combustion *cModel,PropPol *sHeat
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
- * entalphyOfFormLumped[0] - Air KJ/Kg                               *
- * entalphyOfFormLumped[1] - Fuel KJ/Kg                              *
- * entalphyOfFormLumped[2] - Froduto KJ/Kg                           *
  *********************************************************************/
 DOUBLE totalHeatRealeseComb(DOUBLE *RESTRICT q, DOUBLE *RESTRICT vol  
                           , DOUBLE const dt   , INT const numel)
@@ -868,13 +863,9 @@ void initMolarMass(Combustion *cModel)
 /*...O2*/
   cModel->mW[cModel->sp_O2] =  2.0e0*MW_O;
 /*...H2O*/
-  cModel->mW[cModel->sp_CO2]  = 2.0e0*MW_H + MW_O;
+  cModel->mW[cModel->sp_H2O]  = 2.0e0*MW_H + MW_O;
 /*...CO2*/
-  cModel->mW[cModel->sp_H2O] = MW_C +  2.0e0*MW_O;
-/*...CO*/
-  cModel->mW[cModel->sp_N2] = MW_C + MW_O;
-/*...C*/
-//cModel->mW_C = MW_C;
+  cModel->mW[cModel->sp_CO2] = MW_C +  2.0e0*MW_O;
 /*...N2*/
   cModel->mW[cModel->sp_N2] =  2.0e0*MW_N;
 /*... Air*/
@@ -1270,11 +1261,11 @@ DOUBLE edc(DOUBLE *y
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
+ * omega :kmol/m^3s
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  * Reacao quimica a1A1 + a2A2 => a3A3 + a4A4                         * 
- * A - (m^3/kmol)^(a1+a2)                                            *
  * massa molar kg/kmol                                               *
  *********************************************************************/
 DOUBLE arrhenius(DOUBLE const y1     ,DOUBLE const y2
@@ -1286,7 +1277,7 @@ DOUBLE arrhenius(DOUBLE const y1     ,DOUBLE const y2
 {
   short iCod=3;
   DOUBLE tc;
-  DOUBLE omega,al,c1,c2,k,prodC;
+  DOUBLE omega,al,c1,c2,k,prodC,d;
 
 
   if(fKelvin)
@@ -1298,6 +1289,7 @@ DOUBLE arrhenius(DOUBLE const y1     ,DOUBLE const y2
   {
     c1 = density*y1/mW1;
     c2 = density*y2/mW1;
+    d  = 1.e0;
   }
 /*..................................................................*/
 
@@ -1306,6 +1298,7 @@ DOUBLE arrhenius(DOUBLE const y1     ,DOUBLE const y2
   {
     c1 = 1.e+03*density*y1/mW1;
     c2 = 1.e+03*density*y2/mW1;
+    d  = 1.e-03;
   }
 /*..................................................................*/
 
@@ -1314,6 +1307,7 @@ DOUBLE arrhenius(DOUBLE const y1     ,DOUBLE const y2
   {
     c1 = 1.e-03*density*y1/mW1;
     c2 = 1.e-03*density*y2/mW1;
+    d  = 1.e+03;
   }
 /*..................................................................*/
 
@@ -1322,7 +1316,7 @@ DOUBLE arrhenius(DOUBLE const y1     ,DOUBLE const y2
 /*... exp(Ea/RT)*/
   k = coefA*pow(tc,alpha)*exp(-tA/tc);
 
-  omega = prodC*k;
+  omega = d*prodC*k;
 
   return omega; 
 }

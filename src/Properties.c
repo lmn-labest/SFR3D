@@ -380,7 +380,7 @@ void initMixtureSpeciesfiHeat(PropPol *prop, char *s,Combustion *cModel
     for (j = 0, g =200; j < 40; j++) 
     {
       fprintf(fileOut,"%lf %lf\n",g
-              ,pol(&MAT2D(i,0,prop->a,10),g,prop->nPol[i]));
+              ,pol(&MAT2D(i,0,prop->a,MAXPLODEG),g,prop->nPol[i]));
       g += 200;
     }
   }
@@ -3443,7 +3443,7 @@ void presRefMix(Combustion *cModel
 
 /********************************************************************* 
  * Data de criacao    : 15/09/2017                                   *
- * Data de modificaco : 26/08/2018                                   *
+ * Data de modificaco : 28/05/2019                                   *
  *-------------------------------------------------------------------*
  * INIPRESREF : incializa a pressao ref atrazes da massa especifica  * 
  * de referencia e temperatura media do dominio                      *
@@ -3453,8 +3453,6 @@ void presRefMix(Combustion *cModel
  * temp   - temperatura no passo n + 1                               *
  * volume - volume das celulas                                       *
  * pTh    - pressao termodinamica de referencia                      *
- * prop                                                              *
- * mat                                                               *
  * molarMass                                                         *
  * nCell  - numero da celulas                                        *
  *-------------------------------------------------------------------* 
@@ -3466,8 +3464,8 @@ void presRefMix(Combustion *cModel
  *-------------------------------------------------------------------*
  *********************************************************************/
 void initPresRef(DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT volume
-               , DOUBLE *pTh            , DOUBLE *RESTRICT prop  
-               , short  *RESTRICT mat   , DOUBLE const molarMass                  
+               , DOUBLE *pTh            , DOUBLE const densityRef  
+               , DOUBLE const molarMass                  
                , INT const nCell        , bool const fKelvin)
 {
   INT i;  
@@ -3492,8 +3490,7 @@ void initPresRef(DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT volume
     tm  = CELSIUS_FOR_KELVIN(dm); 
 /*...................................................................*/ 
 
-  dRef = MAT2D(0,DENSITY,prop,MAXPROP);  
-  vm   = PRESREF(dRef, IDEALGASR, tm, molarMass);
+  vm   = PRESREF(densityRef, IDEALGASR, tm, molarMass);
 
   pTh[0] = pTh[1] = pTh[2] = vm;
 

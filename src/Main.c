@@ -600,8 +600,8 @@ int main(int argc,char**argv){
 /*...*/
         if(thDynamic.fPresTh)
           initPresRef(mesh->elm.temp         , mesh->elm.geom.volume  
-                    , thDynamic.pTh          , mesh->elm.material.prop
-                    , mesh->elm.mat          , propVarFluid.molarMass    
+                    , thDynamic.pTh          , propVarFluid.densityRef
+                    , propVarFluid.molarMass                   
                     , mesh->numel            , eModel.fKelvin);
 /*...................................................................*/
 
