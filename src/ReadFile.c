@@ -4405,13 +4405,11 @@ void setArrhenius(ArrheniusLaw *a       , FILE *file) {
   fscanf(file,"%hd",&nTerm);
 
   for(k=0;k<nTerm;k++)
-  {
     fscanf(file,"%lf %lf %lf %lf %lf",&a[k].alpha
                              ,&a[k].energyAtivation
                              ,&a[k].a
                              ,&a[k].e1
                              ,&a[k].e2);
-  }
   
 }
 /**********************************************************************/

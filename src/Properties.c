@@ -269,7 +269,7 @@ void updateMixDensity(PropPol *pDen         , Combustion *cModel
 
 /*********************************************************************
  * Data de criacao    : 25/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 30/05/2019                                   *
  *-------------------------------------------------------------------*
  * initMixtureSpeciesfiHeat:                                         *
  * ----------------------------------------------------------------- *
@@ -286,12 +286,12 @@ void initMixtureSpeciesfiHeat(PropPol *prop, char *s,Combustion *cModel
                             , FILE *file)
 {
   FILE *fileOut;
-  
-  char word[WORD_SIZE],species[MAXSPECIES][WORD_SIZE];
+  bool read;
+  char word[WORD_SIZE],species[MAXSPECIES][WORD_SIZE],name[WORD_SIZE];
   char nameAux[1000];
-  short i,j,k,jk;
+  short i,j,k,jk,kk;
   int nSpecies;
-  double x[MAXPLODEG],g;
+  DOUBLE x[MAXPLODEG],g;
 
 
   if (!strcmp(s, "polinomio")) 
@@ -303,70 +303,81 @@ void initMixtureSpeciesfiHeat(PropPol *prop, char *s,Combustion *cModel
 
     fscanf(fileOut, "%d", &nSpecies);    
 /*...*/
-    for(j=0;j<nSpecies;j++)
+    kk = k = 0;
+    do
     {
+      k++;
+      read = false;
 
       readMacro(fileOut,word,false);
       convStringLower(word);
       
       fscanf(fileOut, "%lf", &g);
-/*...*/
-      for(k=0;k<MAXSPECIES;k++)
-      {
-/*... fuel*/
-        if(!strcmp(word,"fuel1"))
-        {
-          jk = cModel->sp_fuel[0]; 
-          strcpy(species[jk],"fuel1");
-          break;
-        }
-/*... fuel1*/
-        if(!strcmp(word,"fuel2"))
-        {
-          jk = cModel->sp_fuel[1]; 
-          strcpy(species[jk],"fuel2");
-          break;
-        }
 /*... n2*/
-        else if(!strcmp(word,"n2"))
-        {
-          jk = cModel->sp_N2; 
-          strcpy(species[jk],"n2"); 
-          break;
-        } 
+      if(!strcmp(word,"n2"))
+      {
+        jk = cModel->sp_N2; 
+        strcpy(species[jk],"n2"); 
+        kk++;
+        read = true;
+      } 
 /*... o2*/
-        else if(!strcmp(word,"o2"))
-        {
-          jk = cModel->sp_O2;  
-          strcpy(species[jk],"o2");
-          break;
-        } 
+      else if(!strcmp(word,"o2"))
+      {
+        jk = cModel->sp_O2;  
+        strcpy(species[jk],"o2");
+        kk++;
+        read = true;  
+      } 
 /*... co2*/
-        else if(!strcmp(word,"co2"))
-        {
-          jk = cModel->sp_CO2;  
-          strcpy(species[jk],"co2");
-          break;
-        }
+      else if(!strcmp(word,"co2"))
+      {
+        jk = cModel->sp_CO2;  
+        strcpy(species[jk],"co2");
+        kk++;
+        read = true;
+      }
 /*... h2o*/
-        else if(!strcmp(word,"h2o"))
+      else if(!strcmp(word,"h2o"))
+      {
+        jk = cModel->sp_H2O;
+        strcpy(species[jk],"h2o"); 
+        kk++; 
+        read = true;
+      }
+/*... fuel*/
+      else
+      {
+        for(i=0;i<cModel->nReac;i++)
         {
-          jk = cModel->sp_H2O;
-          strcpy(species[jk],"h2o");  
-          break;
-        }    
+          strcpy(name,cModel->fuel[i].name);
+          convStringLower(name);
+          if(!strcmp(word,name))
+          {
+            jk = cModel->sp_fuel[i]; 
+            strcpy(species[jk],name);
+            kk++;
+            read = true;
+            break;
+          }
+        }      
       }
 /*.....................................................................*/
 
-      prop->nPol[jk] = readFileLineSimple(x, fileOut);
-      ERRO_POL_READ(prop->nPol[jk], MAXPLODEG, __FILE__, __func__, __LINE__);
+/*...*/
+      if(read)
+      {
+        prop->nPol[jk] = readFileLineSimple(x, fileOut);
+        ERRO_POL_READ(prop->nPol[jk], MAXPLODEG, __FILE__, __func__, __LINE__);
 
-      for (i = 0; i < prop->nPol[jk]; i++)
-        MAT2D(jk,i,prop->a,MAXPLODEG) = x[i]/g;
-    }
+        for (i = 0; i < prop->nPol[jk]; i++)
+          MAT2D(jk,i,prop->a,MAXPLODEG) = x[i]/g;
+      }
+/*.....................................................................*/
+    }while(kk != cModel->nOfSpecies || k <= nSpecies);
+/*.....................................................................*/
 
     fclose(fileOut);
-
     fprintf(fileLogExc, "%-25s: %s\n", "Type", s);
 
   }
@@ -374,7 +385,7 @@ void initMixtureSpeciesfiHeat(PropPol *prop, char *s,Combustion *cModel
   
   printf("Write SpeciesfiHeat cp(T):\n");
   fileOut = openFile("species_cp.out", "w");
-  for(i=0;i<nSpecies;i++)
+  for(i=0;i<kk;i++)
   {
     fprintf(fileOut,"%s\n",species[i]);
     for (j = 0, g =200; j < 40; j++) 

@@ -462,7 +462,7 @@ void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
   short nComb = cModel->nComb
        , iCod = cModel->reactionKinetic
        , nReac=cModel->nReac;
-  short iComb,i;
+  short iComb,iOx,iProd[3],i,j;
   INT nel;
   DOUBLE s,tMix,eddy,sT[6],*iGradVel,df;
   DOUBLE zFuel, zAir, zO2,zOx, zProp, omega, densityC, alpha, coefA;
@@ -476,6 +476,8 @@ void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
     case ARRHENIUS:
 /*... cal/(mol*kelvin)*/
       ru = IDEALGASR*2.39006e-04;
+ /*J/(mol.kelvin) */
+//    ru = IDEALGASR*1.e-03;
       for(i=0;i<cModel->nReac;i++)
       {
         iComb  = cModel->sp_fuel[i];
@@ -531,7 +533,13 @@ void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
         if(cModel->fLump) 
           s = cModel->sMassAir; 
         else
-          s  = cModel->sMass[i][0][cModel->sp_O2];
+        {
+          iComb   = cModel->sp_fuel[i];
+          iOx     = cModel->sp_O2;  
+          s       = cModel->sMass[i][0][cModel->sp_O2]; 
+          for(j=0;j<cModel->nSpeciesPart[i][1];j++)
+            iProd[j] = cModel->speciesPart[i][1][j];
+        }
 /*...*/
         for(nel = 0; nel < numel; nel++)
         {
@@ -545,12 +553,14 @@ void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
 /*...................................................................*/
           densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
           df    = MAT2D(nel,cModel->sp_fuel[i],diffComb,nComb);
-          omega  = edc(y                
-                       ,s              ,densityC
-                       ,volume[nel]    ,eddyViscosity[nel]
-                       ,c              ,modS
-                       ,dViscosity[nel],df
-                       ,tMix           ,cModel->edc.type);
+          omega  = edc(y              ,iComb
+                      ,iOx            ,iProd 
+                      ,cModel->nSpeciesPart[i][1]
+                      ,s              ,densityC
+                      ,volume[nel]    ,eddyViscosity[nel]
+                      ,c              ,modS
+                      ,dViscosity[nel],df
+                      ,tMix           ,cModel->edc.type);
           MAT2D(nel,i,rate,nReac) = omega;
         }
       }
@@ -620,7 +630,7 @@ void rateHeatRealeseCombustion(Combustion *cModel,PropPol *sHeat
 
   short lMat, iCod = cModel->typeHeatRealese, nReac = cModel->nReac,iComb,i, j, kSp;
   INT nel;
-  DOUBLE *h,hc,H,DH,HP,HR,nSp;
+  DOUBLE *h,hc,H,DH,HP,HR,hs,nSp;
   DOUBLE sHeatRef,sum;
 
 /*... Entalpia de formacao*/
@@ -642,9 +652,10 @@ void rateHeatRealeseCombustion(Combustion *cModel,PropPol *sHeat
 
           sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
 
-          H = h[kSp] + tempForSpecificEnthalpySpecies(sHeat    , kSp 
-                                                       , temp[nel], sHeatRef
-                                                       , fsHeat   , fKelvin);
+          hs = tempForSpecificEnthalpySpecies(sHeat    , kSp 
+                                                     , temp[nel], sHeatRef
+                                                     , fsHeat   , fKelvin);
+          H = h[kSp]/* + hs*/;
           HR += nSp*H;
          
         } 
@@ -656,9 +667,10 @@ void rateHeatRealeseCombustion(Combustion *cModel,PropPol *sHeat
 
           sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
 
-          H = h[kSp] + tempForSpecificEnthalpySpecies(sHeat    , kSp 
-                                                       , temp[nel], sHeatRef
-                                                       , fsHeat   , fKelvin);
+          hs =  tempForSpecificEnthalpySpecies(sHeat    , kSp 
+                                             , temp[nel], sHeatRef
+                                             , fsHeat   , fKelvin);
+          H = h[kSp]/* + hs*/;
           HP += nSp*H;
          
         } 
@@ -1157,21 +1169,25 @@ DOUBLE maxArray(DOUBLE *RESTRICT x,INT const n)
  * y(nel,3) -> H2O                                                   *
  * y(nel,4) -> N2                                                    *
  *********************************************************************/
-DOUBLE edc(DOUBLE *y 
+DOUBLE edc(DOUBLE *y           ,short const iYf
+          ,short const iYox   ,short *iProd
+          ,short const nProd
           ,DOUBLE const s     ,DOUBLE const density
           ,DOUBLE const vol   ,DOUBLE const eddyVisc
           ,DOUBLE *c          ,DOUBLE const modS 
           ,DOUBLE const dVisc ,DOUBLE const df 
           ,DOUBLE const tMix  ,short const iCod)
 {
+  short i;
   DOUBLE omega,r,k,delta,tm,tg,tu,td,tc,tf,itMix;
   DOUBLE x,x1,x2,x3,yF,yOx,yP,yMin,e;
   DOUBLE tmp1,tmp2,tmp3,gEdc,gamma;
 
 /*...*/
-//yF    = y[SP_FUEL];
-//yOx   = y[SP_O2];
-//yP    = y[SP_CO2] + y[SP_H2O];
+  yF    = y[iYf];
+  yOx   = y[iYox];
+  for(i=0,yP=0;i<nProd;i++)
+    yP += y[i];
 /*..................................................................*/
 
 /*... fds*/
@@ -1261,12 +1277,19 @@ DOUBLE edc(DOUBLE *y
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * omega :kmol/m^3s
+ * omega :kmol/m^3s                                                  *
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  * Reacao quimica a1A1 + a2A2 => a3A3 + a4A4                         * 
- * massa molar kg/kmol                                               *
+ * Unidade de Coef                                                   *
+ * (N/L^3)^(1-(e1+e2)*(1/theta^alpha)(1/T)                           *
+ * Exemplo:                                                          *
+ * N     = mol                                                       *
+ * L     = cm                                                        *
+ * theta = Kelvin                                                    *
+ * T     = segundos                                                  *
+ * A = ((mol/cm^3)^(1-(e1+e2))/((K^alpha)(1/s))                      *
  *********************************************************************/
 DOUBLE arrhenius(DOUBLE const y1     ,DOUBLE const y2
                 ,DOUBLE const e1     ,DOUBLE const e2
@@ -1284,32 +1307,40 @@ DOUBLE arrhenius(DOUBLE const y1     ,DOUBLE const y2
     tc = t;  
   else
     tc = CELSIUS_FOR_KELVIN(t);
-/*... kmol/m3*/
+/*... A = ((kmol/m^3)^(1-(e1+e2))/((K^alpha)(1/s))  */
   if(iCod == 1)
   {
     c1 = density*y1/mW1;
-    c2 = density*y2/mW1;
+    c2 = density*y2/mW2;
     d  = 1.e0;
   }
 /*..................................................................*/
 
 /*... mol/m3*/
+/*... A = ((mol/m^3)^(1-(e1+e2))/((K^alpha)(1/s))  */
   else if(iCod == 2)
   {
+/*... kmol/m3 - > mol/m3*/
     c1 = 1.e+03*density*y1/mW1;
-    c2 = 1.e+03*density*y2/mW1;
+    c2 = 1.e+03*density*y2/mW2;
+/*... mol/m^3s -> kmol/m^3s*/
     d  = 1.e-03;
   }
 /*..................................................................*/
 
-/*... mol/cm3*/
+/*... A = ((mol/cm^3)^(1-(e1+e2))/((K^alpha)(1/s))  */
   else if(iCod == 3)
   {
+/*... kmol/m3 - > mol/cm3*/
     c1 = 1.e-03*density*y1/mW1;
-    c2 = 1.e-03*density*y2/mW1;
+    c2 = 1.e-03*density*y2/mW2;
+/*... mol/cm^3s -> kmol/m^3s*/
     d  = 1.e+03;
   }
 /*..................................................................*/
+
+  c1 = max(c1,0.e0);
+  c2 = max(c2,0.e0);
 
 /*... (c1^a1)x(c1^a2)*/
   prodC = pow(c1,e1)*pow(c2,e2);
@@ -1321,6 +1352,111 @@ DOUBLE arrhenius(DOUBLE const y1     ,DOUBLE const y2
   return omega; 
 }
 /*********************************************************************/ 
+
+/*********************************************************************
+ * Data de criacao    : 30/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * arrheniusA : Conversao de unidades da lei e arrhenius             *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * e1       -> expoente                                              *
+ * mW1      -> massa molar                                           *
+ * y2       -> fracao massica                                        *
+ * e2       ->  expoente                                             *
+ * mW2      -> massa molar                                           *
+ * desnity  -> densidade do fluido                                   *
+ * coefA    -> coeficiente                                           *
+ * fKelvin  ->                                                       *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * coefA : modificado para incorporar a mudacao das unidades         *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE arrheniusA(DOUBLE const e1     ,DOUBLE const e2
+                 ,DOUBLE const mW1    ,DOUBLE const mW2
+                 ,DOUBLE const density,DOUBLE const tA    
+                 ,DOUBLE const coefA  ,bool const fKelvin)
+{
+
+  short iCod=3;
+  DOUBLE d;
+
+/*... A = ((kmol/m^3)^(1-(e1+e2))/((K^alpha)(1/s))  */
+  if(iCod == 1)
+    d = pow(density,e1+e2)*pow(mW1,-e1)*pow(mW2,-e2);
+/*..................................................................*/
+
+/*... A = ((mol/m^3)^(1-(e1+e2))/((K^alpha)(1/s))  */
+  else if(iCod == 2)
+    d = 1.e-03*pow(1.e+03*density,e1+e2)*pow(mW1,-e1)*pow(mW2,-e2);
+/*..................................................................*/
+
+/*... A = ((mol/cm^3)^(1-(e1+e2))/((K^alpha)(1/s))  */
+  else if(iCod == 3)
+    d = 1.e+03*pow(1.e-03*density,e1+e2)*pow(mW1,-e1)*pow(mW2,-e2);
+/*..................................................................*/
+
+  return d*coefA;
+
+}
+/*********************************************************************/ 
+
+/*********************************************************************
+ * Data de criacao    : 30/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * arrheniusO : Lei de arrhenius com otimizacao do numero de calculos*
+ * para a conversao de unidades                                      *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * y1       -> fracao massica                                        *
+ * e1       -> expoente                                              *
+ * y2       -> fracao massica                                        *
+ * e2       ->  expoente                                             *
+ * t        -> temperatura                                           *
+ * alpha    -> coeficiente da temperatura                            *
+ * tA       -> temperatura de ativacao                               *
+ * coefA    -> coeficiente com conversao de unidades imbutidades     *
+ * fKelvin  ->                                                       *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * omega :kmol/m^3s                                                  *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ * Uso em conjunto com a funcao arrheniusA                           *
+ *********************************************************************/
+DOUBLE arrheniusO(DOUBLE const y1     ,DOUBLE const y2
+                 ,DOUBLE const e1     ,DOUBLE const e2
+                 ,DOUBLE const t      ,DOUBLE const alpha
+                 ,DOUBLE const tA     ,DOUBLE const coefAl 
+                 ,bool const fKelvin)
+{
+  DOUBLE tc;
+  DOUBLE omega,k,prodC;
+
+  if(fKelvin)
+    tc = t;  
+  else
+    tc = CELSIUS_FOR_KELVIN(t);
+
+/*... (c1^a1)x(c1^a2)*/
+  prodC = pow(y1,e1)*pow(y1,e2);
+/*... exp(Ea/RT)*/
+  k = coefAl*pow(tc,alpha)*exp(-tA/tc);
+
+  omega = prodC*k;
+
+  return omega; 
+}
+/*********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 27/05/2019                                   *
@@ -1386,7 +1522,7 @@ void globalReac(Combustion *c, short const iReac)
   c->stoich[iReac][1][c->sp_H2O] = nH2Op;
   c->stoich[iReac][1][c->sp_CO2] = nCO2p;
   c->stoich[iReac][1][c->sp_N2]  = nN2p;
-  c->stoichAir                        = nAir;
+  c->stoichAir                   = nAir;
 
   c->CO2InProd = pCO2r;
   c->H2OInProd = pH2Or;

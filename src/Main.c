@@ -1344,9 +1344,9 @@ int main(int argc,char**argv){
         }          
 /*...*/        
         if(!mpiVar.myId ) 
-          fprintf(fileLogExc,"dt(s)     : %lf\n",sc.ddt.dt[0]);
+          fprintf(fileLogExc,"dt(s)     : %.10lf\n",sc.ddt.dt[0]);
         if(!mpiVar.myId ) 
-          fprintf(fileLogExc,"Total(s)  : %lf\n",sc.ddt.total);
+          fprintf(fileLogExc,"Total(s)  : %.10lf\n",sc.ddt.total);
       
         if(sc.ddt.type == EULER && !mpiVar.myId)     
           fprintf(fileLogExc,"ddtScheme : EULER\n");
@@ -1408,10 +1408,10 @@ int main(int argc,char**argv){
       {
         if(!mpiVar.myId )
         {
-          printf("dt(n-2) = %lf\n",sc.ddt.dt[TIME_N_MINUS_2]);
-          printf("dt(n-1) = %lf\n",sc.ddt.dt[TIME_N_MINUS_1]);
-          printf("dt(n)   = %lf\n",sc.ddt.dt[TIME_N ]);
-          printf("t(s)    = %lf\n",sc.ddt.t);
+          printf("dt(n-2) = %.10lf\n",sc.ddt.dt[TIME_N_MINUS_2]);
+          printf("dt(n-1) = %.10lf\n",sc.ddt.dt[TIME_N_MINUS_1]);
+          printf("dt(n)   = %.10lf\n",sc.ddt.dt[TIME_N ]);
+          printf("t(s)    = %.10lf\n",sc.ddt.t);
           printf("step    = %d\n" ,sc.ddt.timeStep);
         } 
       }

@@ -33,10 +33,10 @@
   #define PANJWANI_EDC            4
   #define PANJWANI_CONST_TMIX_EDC 5
 /*... Kg/kmol*/
-  #define MW_O 15.9990e0
+  #define MW_O 15.9994e0
   #define MW_H  1.00794e0
-  #define MW_N 14.00670e0 
-  #define MW_C 12.01070e0
+  #define MW_N 14.00674e0 
+  #define MW_C 12.01100e0
 /*...................................................................*/
 
 /*...*/

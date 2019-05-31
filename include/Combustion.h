@@ -103,7 +103,9 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
-  DOUBLE edc(DOUBLE *y 
+  DOUBLE edc(DOUBLE *y           ,short const iYf
+          ,short const iYox   ,short *iProd
+          ,short const nProd
           ,DOUBLE const s     ,DOUBLE const density
           ,DOUBLE const vol   ,DOUBLE const eddyVisc
           ,DOUBLE *c          ,DOUBLE const modS 
