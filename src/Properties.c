@@ -13,6 +13,351 @@ static DOUBLE pol(DOUBLE *RESTRICT a, DOUBLE const x,short const n)
 }
 /********************************************************************/
 
+/********************************************************************/
+static bool searchSpecies(Combustion *cModel,char *species
+                       , short *kk          ,short *jk
+                       , DOUBLE *g          ,FILE *fileAux)
+{
+  bool read;
+  char word[WORD_SIZE],name[WORD_SIZE];
+  short i,j,k;
+/*...*/
+  read = false;
+
+  readMacro(fileAux,word,false);
+  convStringLower(word);
+    
+  fscanf(fileAux, "%lf", g);
+/*... n2*/
+  if(!strcmp(word,"n2"))
+  {
+    *jk = cModel->sp_N2; 
+    strcpy(species,"n2"); 
+    (*kk)++;
+    read = true;
+  } 
+/*... o2*/
+  else if(!strcmp(word,"o2"))
+  {
+    *jk = cModel->sp_O2;  
+    strcpy(species,"o2");
+    (*kk)++;
+    read = true;  
+  } 
+/*... co2*/
+  else if(!strcmp(word,"co2"))
+  {
+    *jk = cModel->sp_CO2;  
+    strcpy(species,"co2");
+    (*kk)++;
+    read = true;
+  }
+/*... h2o*/
+  else if(!strcmp(word,"h2o"))
+  {
+    *jk = cModel->sp_H2O;
+    strcpy(species,"h2o"); 
+    (*kk)++; 
+    read = true;
+  }
+/*... fuel*/
+  else
+  {
+    for(i=0;i<cModel->nReac;i++)
+    {
+      strcpy(name,cModel->fuel[i].name);
+      convStringLower(name);
+      if(!strcmp(word,name))
+      {
+        *jk = cModel->sp_fuel[i]; 
+        strcpy(species,name);
+        (*kk)++;
+        read = true;
+        break;
+      }
+    }      
+  }
+/*..................................................................*/
+  return read;
+}
+/********************************************************************/
+
+
+DOUBLE maxPolNasaCp2Derivada(PolNasa *a,DOUBLE const x0,DOUBLE const x1)
+{
+  
+  short i,m=100;
+  DOUBLE h,xi,ma,mod;
+  
+  h = (x1-x0)/m;
+  xi = x0;
+  for (i = 0, ma = 0.0; i < m; i++)
+  {
+    xi += h;
+    mod = fabs(polNasaCp(a,xi));
+    ma = max(mod,0.e0);
+  }
+
+  return ma;
+}
+
+/*********************************************************************
+ * Data de criacao    : 31/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * intNum : integracao numerica (regrado trapezio)                   *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * a   -> polinomio                                                  *
+ * x   -> valor desejado                                             *   
+ * x0  -> limete inferior                                            *
+ * x1  -> limite superior                                            *
+ * iCod -> 1 regra do trapezio                                       *
+ *         2 regra Simpson’s 1/3 Rule                                *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE intNum(PolNasa *a,DOUBLE const x0,DOUBLE const x1
+             ,short const iCod)
+{
+  short i,m=100;
+  DOUBLE h,xi,sum,integral;
+
+/*... regra do trapezeo*/
+  if(iCod == 1)
+  {
+    h    = (x1-x0)/m;
+    xi   = x0;
+    sum = polNasaCp(a,x0) + polNasaCp(a,x1);
+    for (i = 0; i < m; i++)
+    {
+      xi += h;
+      sum+=2.0e0*polNasaCp(a,xi);
+    }
+    integral = sum*h*0.5e0;
+  }
+/*...................................................................*/
+
+/*Simpson’s 1/3 Rule*/
+  else if(iCod == 2)
+  {
+    h = (x1 - x0)/m;
+    sum = polNasaCp(a,x0)+polNasaCp(a,x1); 
+    xi = x0;
+    for(i=1;i<m;i++){
+      xi+=h;
+      if(i%2==0){
+        sum+=2.e0*polNasaCp(a,xi);
+      }
+      else{
+        sum+=4.e0*polNasaCp(a,xi);
+      }
+    }
+    integral=(h/3.e0)*sum;
+  }
+/*...................................................................*/
+  return integral;
+}
+/********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 31/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * nasaPolRange: Indentifica o renge do pol da nasa                  *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * a   -> polinomio                                                  *
+ * x   -> valor desejado                                             *
+ * c   -> nao definido                                               *
+ * xNew-> nao definido                                               *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * c   -> coeficientes dp pol                                        *
+ * xNew-> caso esteja fora do range xNew=xMin ou xNew=xMax           *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void nasaPolRange(PolNasa *a      , DOUBLE const x
+                 ,DOUBLE **c      , DOUBLE *xNew
+                 ,short const iCod)
+{
+/*... */  
+  if(iCod == 1)
+  {
+    *xNew = x;
+    if( a->range[0][0] <= x && x <= a->range[0][1] )
+      *c = a->a2[0];
+    else if( a->range[1][0] < x && x <= a->range[1][1] )
+      *c = a->a2[1];
+    else
+    {
+      if( x < a->range[0][0])
+      { 
+//      *xNew = a->range[0][0]; 
+        *c    = a->a2[0];
+      }
+      if( a->range[1][1] < x)
+      {
+//      *xNew = a->range[1][1]; 
+        *c    = a->a2[1]; 
+      }
+//  printf("NasaPol fora do limites %lf!!\n",x);
+    }
+/*..................................................................*/
+  }
+/*..................................................................*/
+
+/*... */  
+  else if(iCod == 2)
+  {
+    *xNew = x;
+    if( a->range[0][0] <= x && x <= a->range[0][1] )
+      *c = a->a1[0];
+    else if( a->range[1][0] < x && x <= a->range[1][1] )
+      *c = a->a1[1];
+    else
+    {
+      if( x < a->range[0][0])
+      { 
+//      *xNew = a->range[0][0]; 
+        *c    = a->a1[0];
+      }
+      if( a->range[1][1] < x)
+      {
+//      *xNew = a->range[1][1]; 
+        *c    = a->a1[1]; 
+      }
+//  printf("NasaPol fora do limites %lf!!\n",x);
+    }
+/*..................................................................*/
+  }
+/*..................................................................*/
+}
+/********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 31/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * polNasaCp2Derivada:                                               *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE polNasaCp2Derivada(PolNasa *a     , DOUBLE const x)
+{
+
+  DOUBLE sum,*c=NULL,xi;
+
+  nasaPolRange(a,x,&c,&xi,1);
+
+  if (a->type == 7)
+    sum = 2.e0*c[2] + 6.e0*c[3]*xi + 12.e0*c[4]*xi*xi;
+
+  return sum;
+}
+/********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 31/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * polNasaCp:                                                        *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * x  -> temperatura                                                 *   
+ * R  -> constante dos gases ideias                                  *
+ * mW -> massa molar                                                 *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * cP em KJ/KGK                                                      *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ * nasa7                                                             *
+ * cP(T)/R = a0 + a1T + a2T^2 + a3T^3 + a4T^4                        *
+ * nasa9                                                             *
+ * cP(T)/R = a0T^-2 + a1T^-1 + a2 + a3T + a4T^2 + a5T^3 + a6T^4      *                 *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE polNasaCp(PolNasa *a     , DOUBLE const x)
+{
+
+  DOUBLE sum,*c=NULL,xi;
+
+  nasaPolRange(a,x,&c,&xi,1);
+
+  if (a->type == 7)
+    sum = c[0] + c[1]*xi + c[2]*xi*xi + c[3]*xi*xi*xi + c[4]*xi*xi*xi*xi;
+
+  return sum;
+}
+/********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 31/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * polNasaH:                                                         *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * x  -> temperatura                                                 *   
+ * R  -> constante dos gases ideias                                  *
+ * mW -> massa molar                                                 *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * H em KJ/KMOL                                                      *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ * nasa7                                                             *
+ * H0(T)/RT = a0 + a1/2T + a2/3T^2 + a3/4T^3 + a4/5T^4 + a5/T        *
+ * nasa9                                                             *
+ * H0(T)/RT = -a0/2T^-2 - a1T^-1 + a2lnT + a3T + a4/2T^2 + a5/3T^3   * 
+ *        + a6/4T^4 +a8                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE polNasaH(PolNasa *a     , DOUBLE const x, bool const fKelvin)
+{
+
+  DOUBLE sum,*c=NULL,xi,R,tc;
+
+  if(fKelvin)
+    tc = x;  
+  else
+    tc = CELSIUS_FOR_KELVIN(x);
+
+/*KJ/(Kmol.kelvin) */
+  R = IDEALGASR*1.e-03;
+
+  nasaPolRange(a,tc,&c,&xi,2);
+
+  if (a->type == 7)
+    sum = c[0]                 + 0.5e0*c[1]*xi
+        + c[2]*xi*xi/3.e0      + 0.25e0*c[3]*xi*xi*xi 
+        + c[4]*xi*xi*xi*xi/5.e0+ c[5]/xi;
+
+  return R*xi*sum;
+}
+/********************************************************************/
+
 /*********************************************************************
  * Data de criacao    : 16/05/2019                                   *
  * Data de modificaco : 00/00/0000                                   *
@@ -165,11 +510,11 @@ DOUBLE diffusionCollisionIntegral(DOUBLE const t
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE mixtureSpeciesDensity(PropPol *den        ,DOUBLE const malorMassMix
+DOUBLE mixtureSpeciesDensity(Prop *den        ,DOUBLE const malorMassMix
                             ,DOUBLE const t      ,DOUBLE const p
                             ,DOUBLE const presRef,bool const fKelvin)
 {
-  short i,n=den->nPol[0];
+  short i,n=den->pol.nPol[0];
   DOUBLE tc,y,d;
 //DOUBLE a[MAXPLODEG],tc,y,d;
 
@@ -224,7 +569,7 @@ DOUBLE mixtureSpeciesDensity(PropPol *den        ,DOUBLE const malorMassMix
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateMixDensity(PropPol *pDen         , Combustion *cModel
+void updateMixDensity(Prop *pDen         , Combustion *cModel
                  , DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT pressure
                  , DOUBLE *RESTRICT density , DOUBLE *RESTRICT yComb
                  , DOUBLE const alpha       , bool const iKelvin    
@@ -282,10 +627,10 @@ void updateMixDensity(PropPol *pDen         , Combustion *cModel
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void initMixtureSpeciesfiHeat(PropPol *prop, char *s,Combustion *cModel 
+void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel 
                             , FILE *file)
 {
-  FILE *fileOut;
+  FILE *fileAux;
   bool read;
   char word[WORD_SIZE],species[MAXSPECIES][WORD_SIZE],name[WORD_SIZE];
   char nameAux[1000];
@@ -293,109 +638,121 @@ void initMixtureSpeciesfiHeat(PropPol *prop, char *s,Combustion *cModel
   int nSpecies;
   DOUBLE x[MAXPLODEG],g;
 
-
+/*... polinomio*/
   if (!strcmp(s, "polinomio")) 
   {
     prop->type = POL;
   
     fscanf(file, "%s", nameAux);
-    fileOut = openFile(nameAux, "r");
+    fileAux = openFile(nameAux, "r");
 
-    fscanf(fileOut, "%d", &nSpecies);    
+    fscanf(fileAux, "%d", &nSpecies);   
+
 /*...*/
-    kk = k = 0;
-    do
-    {
+    k = kk = 0;
+    do{
+/*...*/
       k++;
-      read = false;
-
-      readMacro(fileOut,word,false);
-      convStringLower(word);
-      
-      fscanf(fileOut, "%lf", &g);
-/*... n2*/
-      if(!strcmp(word,"n2"))
-      {
-        jk = cModel->sp_N2; 
-        strcpy(species[jk],"n2"); 
-        kk++;
-        read = true;
-      } 
-/*... o2*/
-      else if(!strcmp(word,"o2"))
-      {
-        jk = cModel->sp_O2;  
-        strcpy(species[jk],"o2");
-        kk++;
-        read = true;  
-      } 
-/*... co2*/
-      else if(!strcmp(word,"co2"))
-      {
-        jk = cModel->sp_CO2;  
-        strcpy(species[jk],"co2");
-        kk++;
-        read = true;
-      }
-/*... h2o*/
-      else if(!strcmp(word,"h2o"))
-      {
-        jk = cModel->sp_H2O;
-        strcpy(species[jk],"h2o"); 
-        kk++; 
-        read = true;
-      }
-/*... fuel*/
-      else
-      {
-        for(i=0;i<cModel->nReac;i++)
-        {
-          strcpy(name,cModel->fuel[i].name);
-          convStringLower(name);
-          if(!strcmp(word,name))
-          {
-            jk = cModel->sp_fuel[i]; 
-            strcpy(species[jk],name);
-            kk++;
-            read = true;
-            break;
-          }
-        }      
-      }
+      read = searchSpecies(cModel,name,&kk,&jk,&g,fileAux);  
 /*.....................................................................*/
 
 /*...*/
       if(read)
       {
-        prop->nPol[jk] = readFileLineSimple(x, fileOut);
-        ERRO_POL_READ(prop->nPol[jk], MAXPLODEG, __FILE__, __func__, __LINE__);
+        strcpy(species[jk],name);
+        prop->pol.nPol[jk] = readFileLineSimple(x, fileAux);
+        ERRO_POL_READ(prop->pol.nPol[jk], MAXPLODEG, __FILE__, __func__, __LINE__);
 
-        for (i = 0; i < prop->nPol[jk]; i++)
-          MAT2D(jk,i,prop->a,MAXPLODEG) = x[i]/g;
+        for (i = 0; i < prop->pol.nPol[jk]; i++)
+          MAT2D(jk,i,prop->pol.a,MAXPLODEG) = x[i]/g;
       }
 /*.....................................................................*/
     }while(kk != cModel->nOfSpecies || k <= nSpecies);
 /*.....................................................................*/
 
-    fclose(fileOut);
+    fclose(fileAux);
     fprintf(fileLogExc, "%-25s: %s\n", "Type", s);
 
   }
 /*.....................................................................*/
   
+/*... polinomio*/
+  else if (!strcmp(s,"nasapol7")) 
+  {
+    prop->type = NASAPOL7;
+  
+    fscanf(file, "%s", nameAux);
+    fileAux = openFile(nameAux, "r");
+
+    fscanf(fileAux, "%d", &nSpecies);   
+
+/*...*/
+    k = kk = 0;
+    do{
+/*...*/
+      k++;
+      read = searchSpecies(cModel,name,&kk,&jk,&g,fileAux);  
+/*.....................................................................*/
+
+/*...*/
+      if(read)
+      {
+        strcpy(species[jk],name);
+/*...*/
+        prop->nasa[jk].type = 7;
+
+        for(i=0;i<2;i++)
+        {
+          fscanf(fileAux,"%lf %lf",&prop->nasa[jk].range[i][0]
+                                ,&prop->nasa[jk].range[i][1]);
+          fscanf(fileAux,"%lf %lf %lf %lf %lf %lf %lf\n"
+                ,&prop->nasa[jk].a1[i][0]
+                ,&prop->nasa[jk].a1[i][1]
+                ,&prop->nasa[jk].a1[i][2]
+                ,&prop->nasa[jk].a1[i][3]
+                ,&prop->nasa[jk].a1[i][4]
+                ,&prop->nasa[jk].a1[i][5]
+                ,&prop->nasa[jk].a1[i][6]);
+        }
+/*...*/
+        g = 1.e-03*IDEALGASR/cModel->mW[jk];
+        for(i=0;i<2;i++)
+          for(j=0;j<7;j++)
+            prop->nasa[jk].a2[i][j] = prop->nasa[jk].a1[i][j]*g;
+/*.....................................................................*/       
+      }
+/*.....................................................................*/
+    }while(kk != cModel->nOfSpecies || k <= nSpecies);
+/*.....................................................................*/
+
+    fclose(fileAux);
+    fprintf(fileLogExc, "%-25s: %s\n", "Type", s);
+
+  }
+/*.....................................................................*/
+
   printf("Write SpeciesfiHeat cp(T):\n");
-  fileOut = openFile("species_cp.out", "w");
+  fileAux = openFile("species_cp.out", "w");
   for(i=0;i<kk;i++)
   {
-    fprintf(fileOut,"%s\n",species[i]);
-    for (j = 0, g =200; j < 40; j++) 
+    fprintf(fileAux,"%s\n",species[i]);
+    for (j = 0, g =200.0; j < 40; j++) 
     {
-      fprintf(fileOut,"%lf %lf\n",g
-              ,pol(&MAT2D(i,0,prop->a,MAXPLODEG),g,prop->nPol[i]));
-      g += 200;
+      switch(prop->type)
+      {
+        case POL:
+          fprintf(fileAux,"%lf %lf\n",g
+                ,pol(&MAT2D(i,0,prop->pol.a,MAXPLODEG),g,prop->pol.nPol[i]));
+          g += 100.0;
+          break;
+        case NASAPOL7:
+          fprintf(fileAux,"%10.2lf %lf\n",g,polNasaCp(&prop->nasa[i],g));
+          g += 100.0;
+          break;
+      }
     }
   }
-  fclose(fileOut);
+  fclose(fileAux);
 
 }
 /********************************************************************/
@@ -427,7 +784,7 @@ void initMixtureSpeciesfiHeat(PropPol *prop, char *s,Combustion *cModel
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void getEnergyForTempMix(PropPol *sHeatPol    ,DOUBLE *RESTRICT yFrac 
+void getEnergyForTempMix(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac 
                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                         ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                         ,INT const nCell      ,short const nOfPrSp
@@ -506,7 +863,7 @@ void getEnergyForTempMix(PropPol *sHeatPol    ,DOUBLE *RESTRICT yFrac
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void getTempForEnergyMix(PropPol *sHeatPol    ,DOUBLE *RESTRICT yFrac
+void getTempForEnergyMix(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                         ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                         ,INT const nCell      ,short const nOfPrSp 
@@ -588,7 +945,7 @@ void getTempForEnergyMix(PropPol *sHeatPol    ,DOUBLE *RESTRICT yFrac
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateMixSpecificHeat(PropPol *sHeatPol
+void updateMixSpecificHeat(Prop *sHeatPol
                          , DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT yFrac  
                          , DOUBLE *RESTRICT sHeat , short const nOfPrSp
                          , bool const iKelvin
@@ -628,7 +985,7 @@ void updateMixSpecificHeat(PropPol *sHeatPol
 
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
- * Data de modificaco : 07/05/2019                                   *
+ * Data de modificaco : 31/05/2019                                   *
  *-------------------------------------------------------------------*
  * mixtureSpecifiHeat: kJ/(kg.K)                                     *
  *-------------------------------------------------------------------*
@@ -646,7 +1003,7 @@ void updateMixSpecificHeat(PropPol *sHeatPol
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE mixtureSpecifiHeat(PropPol *sHeat    , DOUBLE *yFrac
+DOUBLE mixtureSpecifiHeat(Prop *sHeat        , DOUBLE *yFrac
                          , DOUBLE const t    , short const mOfPrSp
                          , bool const fKelvin) 
 {
@@ -664,15 +1021,32 @@ DOUBLE mixtureSpecifiHeat(PropPol *sHeat    , DOUBLE *yFrac
 
   for(k=0,cp=0.e0;k<mOfPrSp;k++)
   {
-    n = sHeat->nPol[k];
-    for (i = 0; i < n; i++)
-      a[i] = MAT2D(k,i,sHeat->a,MAXPLODEG);
+    switch (sHeat->type)
+    {
+      case POL:
+      n = sHeat->pol.nPol[k];
+      for (i = 0; i < n; i++)
+        a[i] = MAT2D(k,i,sHeat->pol.a,MAXPLODEG);
   
 /*... polinomio*/
-    cpk = a[0];
-    for (i = 1; i < n; i++)
-      cpk += a[i]*pow(tc,i);
+      cpk = a[0];
+      for (i = 1; i < n; i++)
+        cpk += a[i]*pow(tc,i);
+      break;
 /*.....................................................................*/
+  
+      case NASAPOL7:
+        cpk = polNasaCp(sHeat->nasa+k,tc);
+      break;
+
+/*...*/
+      default:
+        ERRO_OP(__FILE__, __func__, sHeat->type);
+        break;
+/*.....................................................................*/
+    }
+/*.....................................................................*/
+
     yFrac[k] = max(yFrac[k],0.0);
     if (cpk < 0.e0 || yFrac[k] < 0.e0)
     {
@@ -683,7 +1057,6 @@ DOUBLE mixtureSpecifiHeat(PropPol *sHeat    , DOUBLE *yFrac
              "Temperatura      = %lf\n!!",yFrac[k], k,cpk,tc);
       exit(EXIT_FAILURE);
     }
-
 /*...*/
     cp += yFrac[k]*cpk;
 /*.....................................................................*/
@@ -694,13 +1067,6 @@ DOUBLE mixtureSpecifiHeat(PropPol *sHeat    , DOUBLE *yFrac
   d = 1.e0;
 /*.....................................................................*/
 
- if (cp < 0.e0) {
-    printf("Calor especifico negativo!!"
-           "Calor especifico = %e\n"
-           "Temperatura      = %lf\n!!",d*cp,tc);
-    exit(EXIT_FAILURE);
-  }
-
   return d*cp;
 
 }
@@ -708,7 +1074,7 @@ DOUBLE mixtureSpecifiHeat(PropPol *sHeat    , DOUBLE *yFrac
 
 /*********************************************************************
  * Data de criacao    : 06/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 31/05/2019                                   *
  *-------------------------------------------------------------------*
  * specieSpecifiHeat: calor especifico da especie k kJ/(kg.K)        *
  *-------------------------------------------------------------------*
@@ -725,7 +1091,7 @@ DOUBLE mixtureSpecifiHeat(PropPol *sHeat    , DOUBLE *yFrac
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE specieSpecifiHeat(PropPol *sHeat     , short const kSpecie
+DOUBLE specieSpecifiHeat(Prop *sHeat     , short const kSpecie
                         , DOUBLE const t    , bool const fKelvin) 
 {
 
@@ -737,15 +1103,33 @@ DOUBLE specieSpecifiHeat(PropPol *sHeat     , short const kSpecie
   else
     tc = CELSIUS_FOR_KELVIN(t);  
 
-  n=sHeat->nPol[kSpecie];
-
-  for (i = 0; i < n; i++)
-    a[i] = MAT2D(kSpecie,i,sHeat->a,MAXPLODEG);
-  
+  switch (sHeat->type)
+  {
 /*... polinomio*/
-  cp = a[0];
-  for (i = 1; i < n; i++)
-    cp += a[i]*pow(tc,i);
+    case POL:
+      n=sHeat->pol.nPol[kSpecie];
+      for (i = 0; i < n; i++)
+        a[i] = MAT2D(kSpecie,i,sHeat->pol.a,MAXPLODEG);
+      cp = a[0];
+      for (i = 1; i < n; i++)
+        cp += a[i]*pow(tc,i);
+/*.....................................................................*/
+    break;
+
+/*.....................................................................*/
+
+/*... polinomio da nasa*/
+      case NASAPOL7:
+        cp = polNasaCp(sHeat->nasa+kSpecie,tc);
+      break;
+/*.....................................................................*/
+
+/*...*/
+      default:
+        ERRO_OP(__FILE__, __func__, sHeat->type);
+        break;
+/*.....................................................................*/
+  }
 /*.....................................................................*/
 
   if (cp < 0.e0 )
@@ -760,13 +1144,6 @@ DOUBLE specieSpecifiHeat(PropPol *sHeat     , short const kSpecie
 /*...*/
   d = 1.e0;
 /*.....................................................................*/
-
- if (cp < 0.e0) {
-    printf("Calor especifico negativo!!"
-           "Calor especifico = %e\n"
-           "Temperatura      = %lf\n!!",d*cp,tc);
-    exit(EXIT_FAILURE);
-  }
 
   return d*cp;
 
@@ -792,7 +1169,7 @@ DOUBLE specieSpecifiHeat(PropPol *sHeat     , short const kSpecie
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE mixtureDynamicViscosity(PropPol *dVisc      ,Combustion *cModel
+DOUBLE mixtureDynamicViscosity(Prop *dVisc      ,Combustion *cModel
                             ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
                             ,bool const fKelvin)
 {
@@ -935,7 +1312,7 @@ DOUBLE specieViscosity(DOUBLE const molarMass
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateMixDynamicViscosity(PropPol *dVisc    ,Combustion *cModel
+void updateMixDynamicViscosity(Prop *dVisc    ,Combustion *cModel
                           ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
                           ,DOUBLE *RESTRICT visc ,short const nOfPrSp   
                           ,bool const iKelvin    ,INT const nEl)
@@ -1321,7 +1698,7 @@ void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel
  * OBS:                                                              * 
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE specificEnthalpyForTempOfMix(PropPol *sHeatPol
+DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol
                              , DOUBLE const hs        , DOUBLE *yFrac
                              , DOUBLE const sHeatRef  , short const nOfPrSp
                              , bool const fSheat      , bool const fKelvin
@@ -1411,7 +1788,7 @@ DOUBLE specificEnthalpyForTempOfMix(PropPol *sHeatPol
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE tempForSpecificEnthalpyMix(PropPol *sHeat    , DOUBLE *yFrac
+DOUBLE tempForSpecificEnthalpyMix(Prop *sHeat    , DOUBLE *yFrac
                                 , DOUBLE const t    , DOUBLE const sHeatRef
                                 , short const nOfPrSp
                                 , bool const fSheat , bool const fKelvin) 
@@ -1425,30 +1802,53 @@ DOUBLE tempForSpecificEnthalpyMix(PropPol *sHeat    , DOUBLE *yFrac
     tc = t;  
   else
     tc = CELSIUS_FOR_KELVIN(t);  
-
-  hs = 0.e0;
+  
   if(fSheat)
   {
-    for(k = 0; k < nOfPrSp; k++)
+    switch(sHeat->type)
     {
-      n = sHeat->nPol[k];
-      for (i = 0; i < n; i++)
-        a[i] = MAT2D(k,i,sHeat->a,MAXPLODEG);
+/*... polinomio*/
+      case POL:
+        for(k = 0,hs = 0.e0; k < nOfPrSp; k++)
+        {
+          n = sHeat->pol.nPol[k];
+          for (i = 0; i < n; i++)
+            a[i] = MAT2D(k,i,sHeat->pol.a,MAXPLODEG);
   
-      for (i = 0, hk =0.e0; i < n; i++) 
-      {
-        d    = (double) (i + 1);
-        dt   =pow(tc,d) - pow(tRef,d);
-        hk += a[i]*dt/d;
-      }
+          for (i = 0, hk =0.e0; i < n; i++) 
+          {
+            d    = (double) (i + 1);
+            dt   =pow(tc,d) - pow(tRef,d);
+            hk += a[i]*dt/d;
+          }
 
-      hs += yFrac[k]*hk; 
+          hs += yFrac[k]*hk; 
+        }
+        break;
+/*...................................................................*/
+
+/*...*/
+      case NASAPOL7:
+        for(k = 0,hs = 0.e0; k < nOfPrSp; k++)
+        {
+          hk = intNum(&sHeat->nasa[k],tRef,tc,SIMPSON);
+          hs += yFrac[k]*hk; 
+        }
+        break;
+/*...................................................................*/
+
+/*...*/
+      default:
+        ERRO_OP(__FILE__, __func__, sHeat->type);
+        break;
+/*.....................................................................*/
     }
+/*.....................................................................*/
   }
-
+/*...*/
   else 
     hs = TEMP_FOR_ENTHALPY(sHeatRef,tc,TREF);
-
+/*.....................................................................*/
   return hs;
 
 }
@@ -1456,7 +1856,7 @@ DOUBLE tempForSpecificEnthalpyMix(PropPol *sHeat    , DOUBLE *yFrac
 
 /*********************************************************************
  * Data de criacao    : 07/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 31/05/2019                                   *
  *-------------------------------------------------------------------*
  * TEMPFORSPECIFICENTHALPYSPECIES: calcula a entalpia espeficia da   *
  * especie k partir da temperatura                                   *                   *
@@ -1477,7 +1877,7 @@ DOUBLE tempForSpecificEnthalpyMix(PropPol *sHeat    , DOUBLE *yFrac
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE tempForSpecificEnthalpySpecies(PropPol *sHeat, short const kSpecie
+DOUBLE tempForSpecificEnthalpySpecies(Prop *sHeat, short const kSpecie
                                , DOUBLE const t     , DOUBLE const sHeatRef
                                , bool const fSheat  , bool const fKelvin) 
 {
@@ -1493,21 +1893,41 @@ DOUBLE tempForSpecificEnthalpySpecies(PropPol *sHeat, short const kSpecie
 
   if(fSheat)
   {
-    n=sHeat->nPol[kSpecie];
-    for (i = 0; i < n; i++)
-      a[i] = MAT2D(kSpecie,i,sHeat->a,MAXPLODEG);
-  
-    for (i = 0, hk =0.e0; i < n; i++) 
+    switch(sHeat->type)
     {
-      d    = (double) (i + 1);
-      dt   =pow(tc,d) - pow(tRef,d);
-      hk += a[i]*dt/d;
-    }
-  }
+/*... polinomio*/
+      case POL:
+        n=sHeat->pol.nPol[kSpecie];
+        for (i = 0; i < n; i++)
+          a[i] = MAT2D(kSpecie,i,sHeat->pol.a,MAXPLODEG);
+  
+        for (i = 0, hk =0.e0; i < n; i++) 
+        {
+          d    = (double) (i + 1);
+          dt   =pow(tc,d) - pow(tRef,d);
+          hk += a[i]*dt/d;
+        }
+        break;
+/*...................................................................*/
 
+/*...*/
+      case NASAPOL7:
+        hk = intNum(&sHeat->nasa[kSpecie],tRef,tc,SIMPSON);
+        break;
+/*...................................................................*/
+
+/*...*/
+      default:
+        ERRO_OP(__FILE__, __func__, sHeat->type);
+        break;
+/*.....................................................................*/
+    }
+/*.....................................................................*/
+  }
+/*...*/
   else
     hk       = TEMP_FOR_ENTHALPY(sHeatRef,tc,TREF);
-  
+/*.....................................................................*/  
   return hk;
 
 }
@@ -1737,10 +2157,10 @@ void initDiffMix(PropVarFluid *propF    , Combustion *cModel
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE airDensity(PropPol *den
+DOUBLE airDensity(Prop *den
                  ,DOUBLE const t      ,DOUBLE const p
                  ,DOUBLE const presRef,bool const fKelvin) {
-  short i,n=den->nPol[0];
+  short i,n=den->pol.nPol[0];
   DOUBLE a[MAXPLODEG],tc,y,d;
 
   for (i = 0; i < MAXPLODEG; i++)
@@ -1755,7 +2175,7 @@ DOUBLE airDensity(PropPol *den
 /*... polinomio*/
     case POL:
       for (i = 0; i < n; i++)
-        a[i] = den->a[i];
+        a[i] = den->pol.a[i];
 
 /*... polinomio*/
       y = a[0];
@@ -1812,9 +2232,9 @@ DOUBLE airDensity(PropPol *den
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-DOUBLE diffProp(PropPol *pol  , DOUBLE u) 
+DOUBLE diffProp(Prop *pol  , DOUBLE u) 
 {
-  short i, n = pol->nPol[0];
+  short i, n = pol->pol.nPol[0];
   DOUBLE a[MAXPLODEG], y;
 
   for (i = 0; i < MAXPLODEG; i++)
@@ -1825,7 +2245,7 @@ DOUBLE diffProp(PropPol *pol  , DOUBLE u)
 /*... polinomio*/
     case POL:
       for (i = 0; i < n; i++)
-        a[i] = pol->a[i];
+        a[i] = pol->pol.a[i];
 
 /*... polinomio*/
       y = a[0];
@@ -1836,7 +2256,6 @@ DOUBLE diffProp(PropPol *pol  , DOUBLE u)
 /*.....................................................................*/
       break;
 /*.....................................................................*/
-
 
 /*...*/
     default:
@@ -1869,10 +2288,10 @@ DOUBLE diffProp(PropPol *pol  , DOUBLE u)
  * regressao com polinomio de ordem 5 obtido pelo excel              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE airSpecifiHeat(PropPol *sHeat, DOUBLE const t
+DOUBLE airSpecifiHeat(Prop *sHeat, DOUBLE const t
                      ,bool const fKelvin) {
 
-  short i,n=sHeat->nPol[0];  
+  short i,n=sHeat->pol.nPol[0];  
   DOUBLE a[MAXPLODEG],y,d;
   DOUBLE tc;
 
@@ -1884,7 +2303,7 @@ DOUBLE airSpecifiHeat(PropPol *sHeat, DOUBLE const t
     tc = CELSIUS_FOR_KELVIN(t);  
 
   for (i = 0; i < n; i++)
-    a[i] = sHeat->a[i];
+    a[i] = sHeat->pol.a[i];
   
 /*... polinomio*/
   y = a[0];
@@ -1928,10 +2347,10 @@ DOUBLE airSpecifiHeat(PropPol *sHeat, DOUBLE const t
  * regressao com polinomio de ordem 5 obtido pelo excel              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE airDynamicViscosity(PropPol *dVisc,DOUBLE const t
+DOUBLE airDynamicViscosity(Prop *dVisc,DOUBLE const t
                           ,bool const fKelvin) {
 
-  short i,n=dVisc->nPol[0];
+  short i,n=dVisc->pol.nPol[0];
   DOUBLE a[MAXPLODEG],x[MAXPLODEG-1],y,d;
   DOUBLE tc;
 
@@ -1946,7 +2365,7 @@ DOUBLE airDynamicViscosity(PropPol *dVisc,DOUBLE const t
 /*... polinomio*/
     case POL:
       for (i = 0; i < n; i++)
-        a[i] = dVisc->a[i];
+        a[i] = dVisc->pol.a[i];
 /*.....................................................................*/
   
 /*... polinomio*/
@@ -1960,9 +2379,9 @@ DOUBLE airDynamicViscosity(PropPol *dVisc,DOUBLE const t
 
 /*... polinomio*/
     case SUTHERLAND:
-      a[0] = dVisc->a[0]; /*viscosidade de referencia*/
-      a[1] = dVisc->a[1]; /*temperatura de referencia*/ 
-      a[2] = dVisc->a[2]; /*constante de Sutherland*/
+      a[0] = dVisc->surtherland[0]; /*viscosidade de referencia*/
+      a[1] = dVisc->surtherland[1]; /*temperatura de referencia*/ 
+      a[2] = dVisc->surtherland[2]; /*constante de Sutherland*/
 
       x[0] = a[1]+ a[2];
       x[1] = tc  + a[2];
@@ -2015,10 +2434,10 @@ DOUBLE airDynamicViscosity(PropPol *dVisc,DOUBLE const t
  *                                                                   *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE airThermalConductvity(PropPol *thCond, DOUBLE const t 
+DOUBLE airThermalConductvity(Prop *thCond, DOUBLE const t 
                             ,bool const fKelvin) {
 
-  short i,n=thCond->nPol[0];  
+  short i,n=thCond->pol.nPol[0];  
   DOUBLE a[MAXPLODEG],y,d;
   DOUBLE tc;
 
@@ -2032,7 +2451,7 @@ DOUBLE airThermalConductvity(PropPol *thCond, DOUBLE const t
 /*... polinomio*/
     case POL:
       for (i = 0; i < n; i++)
-        a[i] = thCond->a[i];
+        a[i] = thCond->pol.a[i];
 /*.....................................................................*/
 
 /*... polinomio*/
@@ -2087,11 +2506,11 @@ DOUBLE airThermalConductvity(PropPol *thCond, DOUBLE const t
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE tempForSpecificEnthalpy(PropPol *sHeat
+DOUBLE tempForSpecificEnthalpy(Prop *sHeat
                              , DOUBLE const t   , DOUBLE const sHeatRef
                              , bool const fSheat, bool const fKelvin) {
 
-  short i,n=sHeat->nPol[0];
+  short i,n=sHeat->pol.nPol[0];
   DOUBLE a[6],d,dt,tmp;
   DOUBLE tc,tRef= TREF ;
 
@@ -2102,7 +2521,7 @@ DOUBLE tempForSpecificEnthalpy(PropPol *sHeat
 
   if(fSheat){
     for (i = 0; i < n; i++)
-      a[i] = sHeat->a[i];
+      a[i] = sHeat->pol.a[i];
 
     tmp = 0.0;
     for (i = 0; i < n; i++) {
@@ -2142,7 +2561,7 @@ DOUBLE tempForSpecificEnthalpy(PropPol *sHeat
  * OBS:                                                              * 
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE specificEnthalpyForTemp(PropPol *sHeatPol
+DOUBLE specificEnthalpyForTemp(Prop *sHeatPol
                              , DOUBLE const hs  , DOUBLE const sHeatRef
                              , bool const fSheat, bool const fKelvin) 
 {
@@ -2417,7 +2836,7 @@ DOUBLE waterThermalConductvity(DOUBLE const t) {
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateDensity(PropPol *pDen
+void updateDensity(Prop *pDen
                  , DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT pressure
                  , DOUBLE *RESTRICT density                 
                  , DOUBLE const alpha       , bool const iKelvin    
@@ -2470,7 +2889,7 @@ void updateDensity(PropPol *pDen
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateSpecificHeat( PropPol *sHeatPol
+void updateSpecificHeat( Prop *sHeatPol
                        , DOUBLE *RESTRICT temp, DOUBLE *RESTRICT sHeat
                        , bool const iKelvin 
                        ,INT const nEl        , char  const iCod)
@@ -2522,7 +2941,7 @@ void updateSpecificHeat( PropPol *sHeatPol
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateThermalconductivity(PropPol *thC
+void updateThermalconductivity(Prop *thC
                               ,DOUBLE *RESTRICT t,DOUBLE *RESTRICT thCond   
                               ,bool const iKelvin,INT const nEl)
 {
@@ -2554,7 +2973,7 @@ void updateThermalconductivity(PropPol *thC
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateDynamicViscosity(PropPol *dVisc
+void updateDynamicViscosity(Prop *dVisc
                           ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT visc    
                           ,bool const iKelvin    ,INT const nEl)
 {
@@ -2585,7 +3004,7 @@ void updateDynamicViscosity(PropPol *dVisc
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateProp(PropPol *pol         , DOUBLE *RESTRICT u
+void updateProp(Prop *pol         , DOUBLE *RESTRICT u
               , DOUBLE *RESTRICT coef, INT nEl)
 
 {
@@ -2617,7 +3036,7 @@ void updateProp(PropPol *pol         , DOUBLE *RESTRICT u
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void updateDensityCD(PropPol *pol            , DOUBLE *RESTRICT u
+void updateDensityCD(Prop *pol            , DOUBLE *RESTRICT u
                    , DOUBLE *RESTRICT density, INT nEl    
                    , char  iCod)
 
@@ -2748,7 +3167,7 @@ void initPropTemp(PropVarFluid *propFluid
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void initPropCD(PropPol *pol            , DOUBLE *RESTRICT prop   
+void initPropCD(Prop *pol            , DOUBLE *RESTRICT prop   
               , DOUBLE *RESTRICT u      , DOUBLE *RESTRICT propMat
               , short *RESTRICT mat
               , short np                , INT    nCell
@@ -2795,7 +3214,7 @@ void initPropCD(PropPol *pol            , DOUBLE *RESTRICT prop
  * regressao com polinomio de ordem 5 obtido pelo excel              *
  *                                                                   *
  *********************************************************************/
-void initSheatPol(PropPol *prop, char *s, FILE *file) {
+void initSheatPol(Prop *prop, char *s, FILE *file) {
 
   FILE *fileOut;
   char nameAux[1000];
@@ -2807,11 +3226,11 @@ void initSheatPol(PropPol *prop, char *s, FILE *file) {
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
 
-    prop->nPol[0] = readFileLineSimple(x, fileOut);
-    ERRO_POL_READ(prop->nPol[0], MAXPLODEG, __FILE__, __func__, __LINE__);
+    prop->pol.nPol[0] = readFileLineSimple(x, fileOut);
+    ERRO_POL_READ(prop->pol.nPol[0], MAXPLODEG, __FILE__, __func__, __LINE__);
 
-    for (i = 0; i < prop->nPol[0]; i++)
-      prop->a[i] = x[i];
+    for (i = 0; i < prop->pol.nPol[0]; i++)
+      prop->pol.a[i] = x[i];
 
     fclose(fileOut);
 
@@ -2842,7 +3261,7 @@ void initSheatPol(PropPol *prop, char *s, FILE *file) {
  * regressao com polinomio de ordem 5 obtido pelo excel              *
  *                                                                   *
  *********************************************************************/
-void initDviscosityPol(PropPol *prop, char *s, FILE *file) {
+void initDviscosityPol(Prop *prop, char *s, FILE *file) {
 
   FILE *fileOut;
   char nameAux[1000];
@@ -2855,11 +3274,11 @@ void initDviscosityPol(PropPol *prop, char *s, FILE *file) {
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
 
-    prop->nPol[0] = readFileLineSimple(x, fileOut);
-    ERRO_POL_READ(prop->nPol[0], MAXPLODEG, __FILE__, __func__, __LINE__);
+    prop->pol.nPol[0] = readFileLineSimple(x, fileOut);
+    ERRO_POL_READ(prop->pol.nPol[0], MAXPLODEG, __FILE__, __func__, __LINE__);
 
-    for (i = 0; i < prop->nPol[0]; i++)
-      prop->a[i] = x[i];
+    for (i = 0; i < prop->pol.nPol[0]; i++)
+      prop->pol.a[i] = x[i];
 
     fclose(fileOut);
 
@@ -2869,10 +3288,10 @@ void initDviscosityPol(PropPol *prop, char *s, FILE *file) {
 
   else if(!strcmp(s,"sutherland"))
   {
-    prop->type = SUTHERLAND;
-    prop->a[0] = 1.789e-05; /*viscosidade de referencia*/
-    prop->a[1] = 273.11e0;  /*temperatura de referencia*/
-    prop->a[2] = 110.56e0;  /*constante de Sutherland*/
+    prop->type           = SUTHERLAND;
+    prop->surtherland[0] = 1.789e-05; /*viscosidade de referencia*/
+    prop->surtherland[1] = 273.11e0;  /*temperatura de referencia*/
+    prop->surtherland[2] = 110.56e0;  /*constante de Sutherland*/
   }
   
   else if(!strcmp(s,"fdsviscosity"))
@@ -2911,7 +3330,7 @@ void initDviscosityPol(PropPol *prop, char *s, FILE *file) {
  * regressao com polinomio de ordem 5 obtido pelo excel              *
  *                                                                   *
  *********************************************************************/
-void initDensityPol(PropPol *prop, char *s, FILE *file) {
+void initDensityPol(Prop *prop, char *s, FILE *file) {
 
   FILE *fileOut;
   char nameAux[1000];
@@ -2923,11 +3342,11 @@ void initDensityPol(PropPol *prop, char *s, FILE *file) {
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
 
-    prop->nPol[0] = readFileLineSimple(x, fileOut);
-    ERRO_POL_READ(prop->nPol[0], MAXPLODEG, __FILE__, __func__, __LINE__);
+    prop->pol.nPol[0] = readFileLineSimple(x, fileOut);
+    ERRO_POL_READ(prop->pol.nPol[0], MAXPLODEG, __FILE__, __func__, __LINE__);
 
-    for (i = 0; i < prop->nPol[0]; i++)
-      prop->a[i] = x[i];
+    for (i = 0; i < prop->pol.nPol[0]; i++)
+      prop->pol.a[i] = x[i];
 
     fclose(fileOut);
 
@@ -2966,7 +3385,7 @@ void initDensityPol(PropPol *prop, char *s, FILE *file) {
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void initCdPol(PropPol *prop,char *s,FILE *file)
+void initCdPol(Prop *prop,char *s,FILE *file)
 {
 
   FILE *fileOut;  
@@ -2980,11 +3399,11 @@ void initCdPol(PropPol *prop,char *s,FILE *file)
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
 
-    prop->nPol[0] = readFileLineSimple(x,fileOut);
-    ERRO_POL_READ(prop->nPol[0], MAXPLODEG, __FILE__,__func__, __LINE__);
+    prop->pol.nPol[0] = readFileLineSimple(x,fileOut);
+    ERRO_POL_READ(prop->pol.nPol[0], MAXPLODEG, __FILE__,__func__, __LINE__);
 
-    for (i = 0; i < prop->nPol[0]; i++)
-      prop->a[i] = x[i];
+    for (i = 0; i < prop->pol.nPol[0]; i++)
+      prop->pol.a[i] = x[i];
 
     fclose(fileOut);
 
@@ -2999,7 +3418,7 @@ void initCdPol(PropPol *prop,char *s,FILE *file)
 
 /********************************************************************* 
  * Data de criacao    : 16/09/2017                                   *
- * Data de modificaco : 18/05/2019                                   *
+ * Data de modificaco : 31/05/2019                                   *
  *-------------------------------------------------------------------*
  * INITTHCONDPOL: inicializao a estrutura para o calculo da          *
  * condutividade termica via polinomio                               *
@@ -3017,7 +3436,7 @@ void initCdPol(PropPol *prop,char *s,FILE *file)
  * regressao com polinomio de ordem 5 obtido pelo excel              *
  *                                                                   *
  *********************************************************************/
-void initThCondPol(PropPol *prop, char *s, FILE *file) {
+void initThCondPol(Prop *prop, char *s, FILE *file) {
 
   FILE *fileOut;
   char nameAux[1000];
@@ -3031,11 +3450,11 @@ void initThCondPol(PropPol *prop, char *s, FILE *file) {
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
 
-    prop->nPol[0] = readFileLineSimple(x, fileOut);
-    ERRO_POL_READ(prop->nPol[0], MAXPLODEG, __FILE__, __func__, __LINE__);
+    prop->pol.nPol[0] = readFileLineSimple(x, fileOut);
+    ERRO_POL_READ(prop->pol.nPol[0], MAXPLODEG, __FILE__, __func__, __LINE__);
 
-    for (i = 0; i < prop->nPol[0]; i++)
-      prop->a[i] = x[i];
+    for (i = 0; i < prop->pol.nPol[0]; i++)
+      prop->pol.a[i] = x[i];
 
     fclose(fileOut);
 
@@ -3044,19 +3463,17 @@ void initThCondPol(PropPol *prop, char *s, FILE *file) {
   else if(!strcmp(s,"sutherland"))
   {
     prop->type = SUTHERLAND;
-    prop->a[0] = 1.789e-05; /*viscosidade de referencia*/
-    prop->a[1] = 273.11e0;  /*temperatura de referencia*/
-    prop->a[2] = 110.56e0;  /*constante de Sutherland*/
+    prop->surtherland[0] = 1.789e-05; /*viscosidade de referencia*/
+    prop->surtherland[1] = 273.11e0;  /*temperatura de referencia*/
+    prop->surtherland[2] = 110.56e0;  /*constante de Sutherland*/
   }
   else if(!strcmp(s,"fdsthermalcond"))
   {
-    prop->a[0] = 0.7e0;     /*numero de Prandlt*/
     prop->type = FDSTHERMALCOND;
   }
 
   else if(!strcmp(s,"wilkelaw"))
   {
-    prop->a[0] = 0.7e0;     /*numero de Prandlt*/
     prop->type = WILKELAW;
   }
   else {
@@ -3080,7 +3497,7 @@ void initThCondPol(PropPol *prop, char *s, FILE *file) {
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void initDiffSp(PropPol *prop, char *s, FILE *file) {
+void initDiffSp(Prop *prop, char *s, FILE *file) {
 
   FILE *fileOut;
   char nameAux[1000];
@@ -3128,7 +3545,7 @@ void initDiffSp(PropPol *prop, char *s, FILE *file) {
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void getTempForEnergy(PropPol *sHeatPol
+void getTempForEnergy(Prop *sHeatPol
                      ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                      ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                      ,INT const nCell      ,bool const fTemp
@@ -3205,7 +3622,7 @@ void getTempForEnergy(PropPol *sHeatPol
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void getEnergyForTemp(PropPol *sHeatPol
+void getEnergyForTemp(Prop *sHeatPol
                      ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                      ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                      ,INT const nCell     
@@ -3566,12 +3983,12 @@ void initPropStructCD(PropVarCD *propVar, short const n)
 
   for(i=0;i<n;i++)
   {
-    propVar[i].fDensity        = false;
-    propVar[i].fCeofDiff       = false;
-    propVar[i].ceofDiff.type   = -1;
-    propVar[i].ceofDiff.nPol[0] = 0;
-    propVar[i].den.nPol[0]     = 0;
-    propVar[i].den.type        = -1;
+    propVar[i].fDensity             = false;
+    propVar[i].fCeofDiff            = false;
+    propVar[i].ceofDiff.type        = -1;
+    propVar[i].ceofDiff.pol.nPol[0] = 0;
+    propVar[i].den.pol.nPol[0]      = 0;
+    propVar[i].den.type             = -1;
   }
 
 }

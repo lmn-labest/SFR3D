@@ -23,49 +23,49 @@
 /*...................................................................*/
 
 /*... gas ideal incompressivel(Ar)*/
-  DOUBLE airDensity(PropPol *den
+  DOUBLE airDensity(Prop *den
                    ,DOUBLE const t, DOUBLE const presRef
                    ,DOUBLE const p, bool const fKelvin);
-  DOUBLE airSpecifiHeat(PropPol *sHeatPol
+  DOUBLE airSpecifiHeat(Prop *sHeatPol
                        ,DOUBLE const t,bool const fKelvin);
-  DOUBLE airDynamicViscosity(PropPol *dVisc,DOUBLE const t
+  DOUBLE airDynamicViscosity(Prop *dVisc,DOUBLE const t
                             ,bool const fKelvin);
-  DOUBLE airThermalConductvity(PropPol *thC,DOUBLE const t
+  DOUBLE airThermalConductvity(Prop *thC,DOUBLE const t
                               ,bool const fKelvin);
-  DOUBLE specificEnthalpyForTemp(PropPol *sHeatPol
+  DOUBLE specificEnthalpyForTemp(Prop *sHeatPol
                                , DOUBLE const hs, DOUBLE const sHeatRef
                                , bool const fSheat, bool const fKelvin); 
 /*...*/
-  DOUBLE tempForSpecificEnthalpy(PropPol *sHeatPol
+  DOUBLE tempForSpecificEnthalpy(Prop *sHeatPol
                                , DOUBLE const t, DOUBLE const sHeatRef
                                , bool const fSheat, bool const fKelvin);
 /*...................................................................*/
 
 /*...*/
-  void updateDensity(PropPol *pDen
+  void updateDensity(Prop *pDen
                     ,DOUBLE *RESTRICT temp   , DOUBLE *RESTRICT pressure
                     ,DOUBLE *RESTRICT density                 
                     ,DOUBLE const alpha        ,bool const iKelvin 
                     ,INT const nEl             ,char  const iCod);
 
-  void updateSpecificHeat(PropPol *sHeatPol
+  void updateSpecificHeat(Prop *sHeatPol
                          ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT sHeat
                          ,bool const iKelvin  
                          ,INT const nEl        ,char  const iCod);
-  void updateDynamicViscosity(PropPol *dVisc
+  void updateDynamicViscosity(Prop *dVisc
                             ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT visc    
                             ,bool const iKelvin   
                             ,INT const nEl);
-  void updateThermalconductivity(PropPol *thC
+  void updateThermalconductivity(Prop *thC
                               ,DOUBLE *RESTRICT t,DOUBLE *RESTRICT thCond    
                               ,bool const iKelvin       
                               ,INT const nEl);
   
-  void updateDensityCD(PropPol *pol, DOUBLE *RESTRICT u
+  void updateDensityCD(Prop *pol, DOUBLE *RESTRICT u
                      , DOUBLE *RESTRICT density, INT nEl
                      , char  iCod);
 
-  void updateProp(PropPol *pol, DOUBLE *RESTRICT u
+  void updateProp(Prop *pol, DOUBLE *RESTRICT u
                 , DOUBLE *RESTRICT coef, INT nEl);
 
   void initPropRef(PropVarFluid *propF ,DOUBLE *RESTRICT propMat
@@ -77,7 +77,7 @@
                   ,short const np           ,INT const nCell 
                   ,bool const iKelvin       ,short const iProp);
 
-  void initPropCD(PropPol *pol, DOUBLE *RESTRICT prop
+  void initPropCD(Prop *pol, DOUBLE *RESTRICT prop
                  , DOUBLE *RESTRICT u, DOUBLE *RESTRICT propMat
                  , short *RESTRICT mat
                  , short np, INT    nCell
@@ -87,14 +87,14 @@
 /*...................................................................*/
 
 /*...*/
-  void getTempForEnergy(PropPol *sHeatPol
+  void getTempForEnergy(Prop *sHeatPol
                      ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                      ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                      ,INT const nCell      ,bool const fTemp
                      ,bool const fSheat    ,bool const fKelvin
                      ,bool const fOmp      ,short const nThreads );
 
-  void getEnergyForTemp(PropPol *sHeatPol
+  void getEnergyForTemp(Prop *sHeatPol
                      ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                      ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                      ,INT const nCell     
@@ -103,7 +103,7 @@
 /*...................................................................*/
 
 /*...*/
-  DOUBLE diffProp(PropPol *pol, DOUBLE u);
+  DOUBLE diffProp(Prop *pol, DOUBLE u);
 /*...................................................................*/
 
 /*...*/
@@ -127,48 +127,57 @@
 /*...................................................................*/
 
 /*...*/
-  void initDensityPol(PropPol *prop, char *s, FILE *file);
-  void initSheatPol(PropPol *prop, char *s, FILE *file);
-  void initDviscosityPol(PropPol *prop, char *s, FILE *file);
-  void initThCondPol(PropPol *prop, char *s, FILE *file);
-  void initDiffSp(PropPol *prop, char *s, FILE *file);
+  void initDensityPol(Prop *prop, char *s, FILE *file);
+  void initSheatPol(Prop *prop, char *s, FILE *file);
+  void initDviscosityPol(Prop *prop, char *s, FILE *file);
+  void initThCondPol(Prop *prop, char *s, FILE *file);
+  void initDiffSp(Prop *prop, char *s, FILE *file);
 /*...................................................................*/
 
+/*... nasa pol*/
+  DOUBLE polNasaCp(PolNasa *a, DOUBLE x);
+  void nasaPolRange(PolNasa *a      , DOUBLE const x
+                 ,DOUBLE **c      , DOUBLE *xNew
+                 ,short const iCod);
+  DOUBLE polNasaH(PolNasa *a     , DOUBLE const x, bool const fKelvin);
+  DOUBLE polNasaCp2Derivada(PolNasa *a     , DOUBLE const x);
+  DOUBLE intNum(PolNasa *a,DOUBLE const x0,DOUBLE const x1
+               ,short const iCod);
 /*... mistura gasosa*/
   void initLeornadJones(Combustion *cModel);
   DOUBLE collisionIntegral(DOUBLE const t,DOUBLE const ek);
   DOUBLE diffusionCollisionIntegral(DOUBLE const t
                                  ,DOUBLE const ekl,DOUBLE const eki); 
 /*... massa especifica da mistura*/
-  DOUBLE mixtureSpeciesDensity(PropPol *den        ,DOUBLE const malorMassMix
+  DOUBLE mixtureSpeciesDensity(Prop *den        ,DOUBLE const malorMassMix
                             ,DOUBLE const t      ,DOUBLE const p
                             ,DOUBLE const presRef,bool const fKelvin);
-  void updateMixDensity(PropPol *pDen         , Combustion *cModel
+  void updateMixDensity(Prop *pDen         , Combustion *cModel
                  , DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT pressure
                  , DOUBLE *RESTRICT density , DOUBLE *RESTRICT zComb
                  , DOUBLE const alpha       , bool const iKelvin    
                  , INT const nEl            , char  const iCod);
 /*... calor especifico da mistura*/
-  void initMixtureSpeciesfiHeat(PropPol *prop, char *s,Combustion *cModel, FILE *file);
-  DOUBLE mixtureSpecifiHeat(PropPol *sHeat   , DOUBLE *yFrac
+  void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel, FILE *file);
+  DOUBLE mixtureSpecifiHeat(Prop *sHeat       , DOUBLE *yFrac
                          , DOUBLE const t    , short const nOfPrSp
                          , bool const fKelvin); 
-  DOUBLE specieSpecifiHeat(PropPol *sHeat     , short const kSpecie
+  DOUBLE specieSpecifiHeat(Prop *sHeat     , short const kSpecie
                         , DOUBLE const t      , bool const fKelvin); 
-  void updateMixSpecificHeat(PropPol *sHeatPol
+  void updateMixSpecificHeat(Prop *sHeatPol
                          , DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT yFrac  
                          , DOUBLE *RESTRICT sHeat , short const nOfPrSp
                          , bool const iKelvin
                          , INT const nEl          , char  const iCod);
 /*... viscosidae dinamica da mistura*/
-  DOUBLE mixtureDynamicViscosity(PropPol *dVisc    ,Combustion *cModel
+  DOUBLE mixtureDynamicViscosity(Prop *dVisc    ,Combustion *cModel
                             ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
 
                             ,bool const fKelvin);
   DOUBLE specieViscosity(DOUBLE const molarMass
                         ,DOUBLE const sigmaA   ,DOUBLE const ek   
                         ,DOUBLE const t     ); 
-  void updateMixDynamicViscosity(PropPol *dVisc    ,Combustion *cModel
+  void updateMixDynamicViscosity(Prop *dVisc    ,Combustion *cModel
                           ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
                           ,DOUBLE *RESTRICT visc ,short const nOfPrSp   
                           ,bool const iKelvin    ,INT const nEl);
@@ -197,21 +206,21 @@
                        ,bool const iKelvin    ,INT const nEl);
 
 /*...*/
-  DOUBLE specificEnthalpyForTempOfMix(PropPol *sHeatPol
+  DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol
                              , DOUBLE const hs        , DOUBLE *yFrac
                              , DOUBLE const sHeatRef  , short const nOfPrSp
                              , bool const fSheat      , bool const fKelvin
                              , INT const nel ); 
 
-  DOUBLE tempForSpecificEnthalpyMix(PropPol *sHeat    , DOUBLE *yFrac
+  DOUBLE tempForSpecificEnthalpyMix(Prop *sHeat    , DOUBLE *yFrac
                                 , DOUBLE const t    , DOUBLE const sHeatRef
                                 , short const nOfPrSp
                                 , bool const fSheat , bool const fKelvin); 
-  DOUBLE tempForSpecificEnthalpySpecies(PropPol *sHeat, short const kSpecie
+  DOUBLE tempForSpecificEnthalpySpecies(Prop *sHeat, short const kSpecie
                                , DOUBLE const t    , DOUBLE const sHeatRef
                                , bool const fSheat , bool const fKelvin);
 
-  void getEnergyForTempMix(PropPol *sHeatPol  ,DOUBLE *RESTRICT yFrac 
+  void getEnergyForTempMix(Prop *sHeatPol  ,DOUBLE *RESTRICT yFrac 
                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                         ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                         ,INT const nCell      ,short const nOfPrSp
@@ -219,7 +228,7 @@
                         ,bool const fOmp      ,short const nThreads );
 
 
-  void getTempForEnergyMix(PropPol *sHeatPol    ,DOUBLE *RESTRICT yFrac
+  void getTempForEnergyMix(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                         ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                         ,INT const nCell      ,short const nOfPrSp 
@@ -244,7 +253,7 @@
 /*...................................................................*/
 
 /*...*/
-  void initCdPol(PropPol *prop, char *s, FILE *file);
+  void initCdPol(Prop *prop, char *s, FILE *file);
 /*...................................................................*/
 
 /*...*/

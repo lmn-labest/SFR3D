@@ -3,35 +3,35 @@
 /*...funcao de apoio*/
   static void getword(char *line, char*word);
   static int getnumprop2(char *line);
-  static void convLoadsEnergy(PropPol *sHeatProp
+  static void convLoadsEnergy(Prop *sHeatProp
                              ,Loads *loadsEnergy  ,Loads *loadsTemp
                              ,DOUBLE *RESTRICT prop
                              ,bool const fTemp    ,bool const fSheat                             
                              ,bool const fKelvin );
- static void convLoadsEnergyMix(Combustion *cModel   ,PropPol *pDen
-                              ,PropPol *sHeatProp   ,Loads *loadsEnergy
+ static void convLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
+                              ,Prop *sHeatProp   ,Loads *loadsEnergy
                               ,Loads *loadsTemp     ,Loads *loadsZ  
                               ,Loads *loadsVel      ,DOUBLE *RESTRICT prop
                               ,bool const fTemp     ,bool const fSheat 
                               ,bool const iKelvin   ,bool const fDensity
                               ,bool const fGrouped);  
- static void convLoadsZcombMix(Combustion *cModel  ,PropPol *pDen
-                             ,PropPol *sHeatProp   ,Loads *loadsTemp 
+ static void convLoadsZcombMix(Combustion *cModel  ,Prop *pDen
+                             ,Prop *sHeatProp   ,Loads *loadsTemp 
                              ,Loads *loadsZ        ,Loads *loadsVel
                              ,DOUBLE *RESTRICT prop
                              ,bool const fTemp     ,bool const fSheat 
                              ,bool const iKelvin   ,bool const fDensity
                              ,bool const fGrouped);  
 
- static void convLoadsVelMix(Combustion *cModel   ,PropPol *pDen
-                            ,PropPol *sHeatProp   ,Loads *loadsVel   
+ static void convLoadsVelMix(Combustion *cModel   ,Prop *pDen
+                            ,Prop *sHeatProp   ,Loads *loadsVel   
                             ,Loads *loadsTemp     ,Loads *loadsZ     
                             ,DOUBLE *RESTRICT prop
                             ,bool const fTemp     ,bool const fSheat 
                             ,bool const iKelvin   ,bool const fDensity
                             ,bool const fGrouped); 
-  static void convLoadsVel(PropPol *pDen
-                        ,PropPol *sHeatProp   ,Loads *loadsVel
+  static void convLoadsVel(Prop *pDen
+                        ,Prop *sHeatProp   ,Loads *loadsVel
                         ,Loads *loadsTemp     ,DOUBLE *RESTRICT prop
                         ,bool const fTemp     ,bool const fSheat 
                         ,bool const iKelvin   ,bool const fDensity);
@@ -7075,7 +7075,7 @@ static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC){
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-static void convLoadsEnergy(PropPol *sHeatProp
+static void convLoadsEnergy(Prop *sHeatProp
                            ,Loads *loadsEnergy   ,Loads *loadsTemp
                            ,DOUBLE *RESTRICT prop
                            ,bool const fTemp     ,bool const fSheat 
@@ -7159,8 +7159,8 @@ static void convLoadsEnergy(PropPol *sHeatProp
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-static void convLoadsEnergyMix(Combustion *cModel   ,PropPol *pDen
-                              ,PropPol *sHeatProp   ,Loads *loadsEnergy
+static void convLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
+                              ,Prop *sHeatProp   ,Loads *loadsEnergy
                               ,Loads *loadsTemp     ,Loads *loadsZ     
                               ,Loads *loadsVel      ,DOUBLE *RESTRICT prop
                               ,bool const fTemp     ,bool const fSheat 
@@ -7285,8 +7285,8 @@ static void convLoadsEnergyMix(Combustion *cModel   ,PropPol *pDen
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-static void convLoadsZcombMix(Combustion *cModel   ,PropPol *pDen
-                             ,PropPol *sHeatProp   ,Loads *loadsTemp    
+static void convLoadsZcombMix(Combustion *cModel   ,Prop *pDen
+                             ,Prop *sHeatProp   ,Loads *loadsTemp    
                              ,Loads *loadsZ        ,Loads *loadsVel
                              ,DOUBLE *RESTRICT prop
                              ,bool const fTemp     ,bool const fSheat 
@@ -7348,8 +7348,8 @@ static void convLoadsZcombMix(Combustion *cModel   ,PropPol *pDen
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-static void convLoadsVelMix(Combustion *cModel   ,PropPol *pDen
-                           ,PropPol *sHeatProp   ,Loads *loadsVel
+static void convLoadsVelMix(Combustion *cModel   ,Prop *pDen
+                           ,Prop *sHeatProp   ,Loads *loadsVel
                            ,Loads *loadsTemp     ,Loads *loadsZ     
                            ,DOUBLE *RESTRICT prop
                            ,bool const fTemp     ,bool const fSheat 
@@ -7402,8 +7402,8 @@ static void convLoadsVelMix(Combustion *cModel   ,PropPol *pDen
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-static void convLoadsVel(PropPol *pDen
-                        ,PropPol *sHeatProp   ,Loads *loadsVel
+static void convLoadsVel(Prop *pDen
+                        ,Prop *sHeatProp   ,Loads *loadsVel
                         ,Loads *loadsTemp     ,DOUBLE *RESTRICT prop
                         ,bool const fTemp     ,bool const fSheat 
                         ,bool const iKelvin   ,bool const fDensity)

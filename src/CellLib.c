@@ -1822,7 +1822,7 @@ void cellGeom2D(DOUBLE *RESTRICT lx       ,short *RESTRICT lnFace
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 28/04/2018                                   * 
+ * Data de modificaco : 30/05/2019                                   * 
  *-------------------------------------------------------------------* 
  * CELLGEOM3D : calculo geometrico de propriedade de celula 3D       * 
  *-------------------------------------------------------------------* 
@@ -2222,6 +2222,14 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
 
 /*... volume da celula*/
   *volume = volume3DGreenGauss(xm,normal,fArea,lnFace[cCell]);
+
+  if (*volume <= 0.e0)
+  {
+    fprintf(stderr,"Volume negativo da celula %d!",nel);\
+    fprintf(stderr,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"
+           ,__FILE__,__func__,__LINE__);
+    exit(EXIT_FAILURE);
+  }
 
 /*...*/
    vectorKm3d(xc            ,xm

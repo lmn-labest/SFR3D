@@ -619,7 +619,7 @@ void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
  * Produto                                                           *
  * speciesPart[1][1][0] = SP_CO2;                                    *
  *********************************************************************/
-void rateHeatRealeseCombustion(Combustion *cModel,PropPol *sHeat   
+void rateHeatRealeseCombustion(Combustion *cModel,Prop *sHeat   
                    , DOUBLE *RESTRICT q      , DOUBLE *RESTRICT temp
                    , DOUBLE *RESTRICT zComb0 , DOUBLE *RESTRICT zComb
                    , DOUBLE *RESTRICT density, DOUBLE *RESTRICT rateFuel 
@@ -641,43 +641,50 @@ void rateHeatRealeseCombustion(Combustion *cModel,PropPol *sHeat
     {
       lMat  = mat[nel] - 1;
 /*... reacao i*/
-      for(i=0,sum=0;i<nReac;i++)
+      for(i=0,sum=0.0;i<nReac;i++)
       {   
         iComb = cModel->sp_fuel[i];
 /*... reagentes*/
         for(j=0,HR=0.e0;j<cModel->nSpeciesPart[i][0];j++)
         {
           kSp = cModel->speciesPart[i][0][j];
-          nSp = cModel->stoich[i][0][kSp];
-
+//        nSp = cModel->stoich[i][0][kSp];
+          nSp = cModel->sMass[i][0][kSp];
+  
           sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
 
+/*... KJ/KGK*/
           hs = tempForSpecificEnthalpySpecies(sHeat    , kSp 
-                                                     , temp[nel], sHeatRef
-                                                     , fsHeat   , fKelvin);
-          H = h[kSp]/* + hs*/;
+                                            , temp[nel], sHeatRef
+                                            , fsHeat   , fKelvin);
+          H = h[kSp]/cModel->mW[kSp] + hs;
+
+//        if(nel==0)printf("%d %lf %lf\n",kSp,H,cModel->mW[kSp]);
+
           HR += nSp*H;
-         
         } 
 /*... reagentes*/
         for(j=0,HP=0.e0;j<cModel->nSpeciesPart[i][1];j++)
         {
           kSp = cModel->speciesPart[i][1][j];
-          nSp = cModel->stoich[i][1][kSp];
+//        nSp = cModel->stoich[i][1][kSp];
+          nSp = cModel->sMass[i][1][kSp];
 
           sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-
+/*... KJ/KGK*/
           hs =  tempForSpecificEnthalpySpecies(sHeat    , kSp 
-                                             , temp[nel], sHeatRef
+                                             , temp[nel], sHeatRef  
                                              , fsHeat   , fKelvin);
-          H = h[kSp]/* + hs*/;
-          HP += nSp*H;
-         
+          H = h[kSp]/cModel->mW[kSp] + hs;
+
+//        if(nel==0)printf("%d %lf %lf\n",kSp,H,cModel->mW[kSp]);
+          HP += nSp*H;         
         } 
-        sum += (HP-HR)*MAT2D(nel,i,rateFuel,nReac)/cModel->mW[iComb];      
+        sum += (HP-HR)*MAT2D(nel,i,rateFuel,nReac);      
       }
-/*...................................................................*/
+/*...................................................................*/      
       q[nel] = -sum; 
+     
     }
 /*...................................................................*/
   }
@@ -936,13 +943,16 @@ void initEntalpyOfFormation(Combustion *cModel)
     cModel->entalphyOfForm[cModel->sp_fuel[i]] = cModel->fuel[i].hf; 
 
 /*... CO2 - KJ/kMol*/
-  cModel-> entalphyOfForm[cModel->sp_CO2] = -393510.e0;
+  cModel-> entalphyOfForm[cModel->sp_CO2] = -3.93510e+05;
+  cModel-> entalphyOfForm[cModel->sp_CO2] = -3.93507733e+05;
 /*... H2O - KJ/kMol*/
-  cModel-> entalphyOfForm[cModel->sp_H2O] = -241826.e0;
+  cModel-> entalphyOfForm[cModel->sp_H2O] = -2.41826e+05;
+  cModel-> entalphyOfForm[cModel->sp_H2O] = -2.41824607e+05;
+
 /*... O2 - KJ/kMol*/
-  cModel-> entalphyOfForm[cModel->sp_O2] = 0.e0;
+  cModel-> entalphyOfForm[cModel->sp_O2] = 1.63433309e-05;
 /*... N2 - KJ/kMol*/
-  cModel-> entalphyOfForm[cModel->sp_N2] = 0.e0;
+  cModel-> entalphyOfForm[cModel->sp_N2] = 1.42990196e+00;
     
 }
 /********************************************************************/
@@ -1529,8 +1539,8 @@ void globalReac(Combustion *c, short const iReac)
   c->N2InProd  = pN2r;
 
 /*.*/
-  c->nSpeciesPart[iReac][0] = 3;
-  c->nSpeciesPart[iReac][1] = 3;
+  c->nSpeciesPart[iReac][0] = 2;
+  c->nSpeciesPart[iReac][1] = 2;
 /*. reagente*/
   c->speciesPart[iReac][0][0] = c->sp_fuel[iReac];
   c->speciesPart[iReac][0][1] = c->sp_O2;

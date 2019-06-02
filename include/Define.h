@@ -40,7 +40,8 @@
 /*...................................................................*/
 
 /*...*/
-  #define POL           1
+  #define POL            1
+  #define NASAPOL7       2 
 /*... viscosidade*/
   #define SUTHERLAND     2
   #define FDSVISCOSITY   3
@@ -55,9 +56,15 @@
 /*...................................................................*/
 
 /*...*/
+  #define TRAPEZIO 1
+  #define SIMPSON  2 
+/*...................................................................*/
+
+/*...*/
   #define TREF      298.15e+00    /*Kelvin          */
   #define PREREF    1.01325e+05   /*Pa              */
-  #define IDEALGASR 8.3144598e+03 /*J/(Kmol.kelvin) */
+  #define IDEALGASR 8.3144621e+03 /*J/(Kmol.kelvin) */
+//#define IDEALGASR 8.3144598e+03 /*J/(Kmol.kelvin) */
   #define MMOLARAR  2.896e+00     /*kg/Kmol         */
 /*...................................................................*/
 

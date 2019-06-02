@@ -31,11 +31,27 @@
 
 /*...*/
    typedef struct {
-     unsigned char type;
      short nPol[MAXSPECIES];
      DOUBLE range[2];
      DOUBLE a[MAXSPECIES*MAXPLODEG];
-   }PropPol;
+   }Pol;
+/*...................................................................*/
+
+/*...*/
+   typedef struct {
+     short type;
+     DOUBLE range[3][2];
+     DOUBLE a1[2][9],a2[2][9];  /*(KJ/KmolK) (KJ/KGK)*/
+   }PolNasa;
+/*...................................................................*/
+
+/*...*/
+   typedef struct {
+     unsigned char type;
+     Pol     pol;  
+     PolNasa nasa[MAXSPECIES];
+     DOUBLE surtherland[3];
+   }Prop;
 /*...................................................................*/
 
 /*...*/
@@ -45,7 +61,7 @@
      bool fDynamicViscosity;
      bool fThermalConductivity;
      bool fDiffusion;
-     PropPol den, thCond, dVisc, sHeat, diff;
+     Prop den, thCond, dVisc, sHeat, diff;
      DOUBLE molarMass;
      DOUBLE sHeatRef,dViscosityRef,ThermalConductivityRef,densityRef; 
    }PropVarFluid;
@@ -55,7 +71,7 @@
    typedef struct {
      bool fDensity;
      bool fCeofDiff;
-     PropPol den, ceofDiff;
+     Prop den, ceofDiff;
    }PropVarCD;
 /*...................................................................*/
 
@@ -74,7 +90,6 @@
     DOUBLE hf,lj[2];
   }Fuel;
 /*...................................................................*/
-
 
 /*...*/
   typedef struct {
