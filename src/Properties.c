@@ -514,7 +514,7 @@ DOUBLE mixtureSpeciesDensity(Prop *den        ,DOUBLE const malorMassMix
                             ,DOUBLE const t      ,DOUBLE const p
                             ,DOUBLE const presRef,bool const fKelvin)
 {
-  short i,n=den->pol.nPol[0];
+  short i;
   DOUBLE tc,y,d;
 //DOUBLE a[MAXPLODEG],tc,y,d;
 
@@ -660,11 +660,11 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
       if(read)
       {
         strcpy(species[jk],name);
-        prop->pol.nPol[jk] = readFileLineSimple(x, fileAux);
-        ERRO_POL_READ(prop->pol.nPol[jk], MAXPLODEG, __FILE__, __func__, __LINE__);
+        prop->pol[jk].nPol = readFileLineSimple(x, fileAux);
+        ERRO_POL_READ(prop->pol[jk].nPol, MAXPLODEG, __FILE__, __func__, __LINE__);
 
-        for (i = 0; i < prop->pol.nPol[jk]; i++)
-          MAT2D(jk,i,prop->pol.a,MAXPLODEG) = x[i]/g;
+        for (i = 0; i < prop->pol[jk].nPol; i++)
+          prop->pol[jk].a[i] = x[i]/g;
       }
 /*.....................................................................*/
     }while(kk != cModel->nOfSpecies || k <= nSpecies);
@@ -741,8 +741,9 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
       switch(prop->type)
       {
         case POL:
-          fprintf(fileAux,"%lf %lf\n",g
-                ,pol(&MAT2D(i,0,prop->pol.a,MAXPLODEG),g,prop->pol.nPol[i]));
+          fprintf(fileAux,"%lf %lf\n",g,pol(prop->pol[i].a
+                                           ,g
+                                           ,prop->pol[i].nPol));
           g += 100.0;
           break;
         case NASAPOL7:
@@ -1024,9 +1025,9 @@ DOUBLE mixtureSpecifiHeat(Prop *sHeat        , DOUBLE *yFrac
     switch (sHeat->type)
     {
       case POL:
-      n = sHeat->pol.nPol[k];
+      n = sHeat->pol[k].nPol;
       for (i = 0; i < n; i++)
-        a[i] = MAT2D(k,i,sHeat->pol.a,MAXPLODEG);
+        a[i] = sHeat->pol[k].a[i];
   
 /*... polinomio*/
       cpk = a[0];
@@ -1107,9 +1108,9 @@ DOUBLE specieSpecifiHeat(Prop *sHeat     , short const kSpecie
   {
 /*... polinomio*/
     case POL:
-      n=sHeat->pol.nPol[kSpecie];
+      n=sHeat->pol[kSpecie].nPol;
       for (i = 0; i < n; i++)
-        a[i] = MAT2D(kSpecie,i,sHeat->pol.a,MAXPLODEG);
+        a[i] = sHeat->pol[kSpecie].a[i];
       cp = a[0];
       for (i = 1; i < n; i++)
         cp += a[i]*pow(tc,i);
@@ -1811,9 +1812,9 @@ DOUBLE tempForSpecificEnthalpyMix(Prop *sHeat    , DOUBLE *yFrac
       case POL:
         for(k = 0,hs = 0.e0; k < nOfPrSp; k++)
         {
-          n = sHeat->pol.nPol[k];
+          n = sHeat->pol[k].nPol;
           for (i = 0; i < n; i++)
-            a[i] = MAT2D(k,i,sHeat->pol.a,MAXPLODEG);
+            a[i] = sHeat->pol[k].a[i];
   
           for (i = 0, hk =0.e0; i < n; i++) 
           {
@@ -1897,9 +1898,9 @@ DOUBLE tempForSpecificEnthalpySpecies(Prop *sHeat, short const kSpecie
     {
 /*... polinomio*/
       case POL:
-        n=sHeat->pol.nPol[kSpecie];
+        n=sHeat->pol[kSpecie].nPol;
         for (i = 0; i < n; i++)
-          a[i] = MAT2D(kSpecie,i,sHeat->pol.a,MAXPLODEG);
+          a[i] = sHeat->pol[kSpecie].a[i];
   
         for (i = 0, hk =0.e0; i < n; i++) 
         {
@@ -2160,7 +2161,7 @@ void initDiffMix(PropVarFluid *propF    , Combustion *cModel
 DOUBLE airDensity(Prop *den
                  ,DOUBLE const t      ,DOUBLE const p
                  ,DOUBLE const presRef,bool const fKelvin) {
-  short i,n=den->pol.nPol[0];
+  short i,n=den->pol[0].nPol;
   DOUBLE a[MAXPLODEG],tc,y,d;
 
   for (i = 0; i < MAXPLODEG; i++)
@@ -2175,7 +2176,7 @@ DOUBLE airDensity(Prop *den
 /*... polinomio*/
     case POL:
       for (i = 0; i < n; i++)
-        a[i] = den->pol.a[i];
+        a[i] = den->pol[0].a[i];
 
 /*... polinomio*/
       y = a[0];
@@ -2234,7 +2235,7 @@ DOUBLE airDensity(Prop *den
 *********************************************************************/
 DOUBLE diffProp(Prop *pol  , DOUBLE u) 
 {
-  short i, n = pol->pol.nPol[0];
+  short i, n = pol->pol[0].nPol;
   DOUBLE a[MAXPLODEG], y;
 
   for (i = 0; i < MAXPLODEG; i++)
@@ -2245,7 +2246,7 @@ DOUBLE diffProp(Prop *pol  , DOUBLE u)
 /*... polinomio*/
     case POL:
       for (i = 0; i < n; i++)
-        a[i] = pol->pol.a[i];
+        a[i] = pol->pol[0].a[i];
 
 /*... polinomio*/
       y = a[0];
@@ -2291,7 +2292,7 @@ DOUBLE diffProp(Prop *pol  , DOUBLE u)
 DOUBLE airSpecifiHeat(Prop *sHeat, DOUBLE const t
                      ,bool const fKelvin) {
 
-  short i,n=sHeat->pol.nPol[0];  
+  short i,n=sHeat->pol[0].nPol;  
   DOUBLE a[MAXPLODEG],y,d;
   DOUBLE tc;
 
@@ -2303,7 +2304,7 @@ DOUBLE airSpecifiHeat(Prop *sHeat, DOUBLE const t
     tc = CELSIUS_FOR_KELVIN(t);  
 
   for (i = 0; i < n; i++)
-    a[i] = sHeat->pol.a[i];
+    a[i] = sHeat->pol[0].a[i];
   
 /*... polinomio*/
   y = a[0];
@@ -2350,7 +2351,7 @@ DOUBLE airSpecifiHeat(Prop *sHeat, DOUBLE const t
 DOUBLE airDynamicViscosity(Prop *dVisc,DOUBLE const t
                           ,bool const fKelvin) {
 
-  short i,n=dVisc->pol.nPol[0];
+  short i,n=dVisc->pol[0].nPol;
   DOUBLE a[MAXPLODEG],x[MAXPLODEG-1],y,d;
   DOUBLE tc;
 
@@ -2365,7 +2366,7 @@ DOUBLE airDynamicViscosity(Prop *dVisc,DOUBLE const t
 /*... polinomio*/
     case POL:
       for (i = 0; i < n; i++)
-        a[i] = dVisc->pol.a[i];
+        a[i] = dVisc->pol[0].a[i];
 /*.....................................................................*/
   
 /*... polinomio*/
@@ -2437,7 +2438,7 @@ DOUBLE airDynamicViscosity(Prop *dVisc,DOUBLE const t
 DOUBLE airThermalConductvity(Prop *thCond, DOUBLE const t 
                             ,bool const fKelvin) {
 
-  short i,n=thCond->pol.nPol[0];  
+  short i,n=thCond->pol[0].nPol;  
   DOUBLE a[MAXPLODEG],y,d;
   DOUBLE tc;
 
@@ -2451,7 +2452,7 @@ DOUBLE airThermalConductvity(Prop *thCond, DOUBLE const t
 /*... polinomio*/
     case POL:
       for (i = 0; i < n; i++)
-        a[i] = thCond->pol.a[i];
+        a[i] = thCond->pol[0].a[i];
 /*.....................................................................*/
 
 /*... polinomio*/
@@ -2510,7 +2511,7 @@ DOUBLE tempForSpecificEnthalpy(Prop *sHeat
                              , DOUBLE const t   , DOUBLE const sHeatRef
                              , bool const fSheat, bool const fKelvin) {
 
-  short i,n=sHeat->pol.nPol[0];
+  short i,n=sHeat->pol[0].nPol;
   DOUBLE a[6],d,dt,tmp;
   DOUBLE tc,tRef= TREF ;
 
@@ -2521,7 +2522,7 @@ DOUBLE tempForSpecificEnthalpy(Prop *sHeat
 
   if(fSheat){
     for (i = 0; i < n; i++)
-      a[i] = sHeat->pol.a[i];
+      a[i] = sHeat->pol[0].a[i];
 
     tmp = 0.0;
     for (i = 0; i < n; i++) {
@@ -3226,11 +3227,11 @@ void initSheatPol(Prop *prop, char *s, FILE *file) {
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
 
-    prop->pol.nPol[0] = readFileLineSimple(x, fileOut);
-    ERRO_POL_READ(prop->pol.nPol[0], MAXPLODEG, __FILE__, __func__, __LINE__);
+    prop->pol[0].nPol = readFileLineSimple(x, fileOut);
+    ERRO_POL_READ(prop->pol[0].nPol, MAXPLODEG, __FILE__, __func__, __LINE__);
 
-    for (i = 0; i < prop->pol.nPol[0]; i++)
-      prop->pol.a[i] = x[i];
+    for (i = 0; i < prop->pol[0].nPol; i++)
+      prop->pol[0].a[i] = x[i];
 
     fclose(fileOut);
 
@@ -3274,11 +3275,11 @@ void initDviscosityPol(Prop *prop, char *s, FILE *file) {
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
 
-    prop->pol.nPol[0] = readFileLineSimple(x, fileOut);
-    ERRO_POL_READ(prop->pol.nPol[0], MAXPLODEG, __FILE__, __func__, __LINE__);
+    prop->pol[0].nPol = readFileLineSimple(x, fileOut);
+    ERRO_POL_READ(prop->pol[0].nPol, MAXPLODEG, __FILE__, __func__, __LINE__);
 
-    for (i = 0; i < prop->pol.nPol[0]; i++)
-      prop->pol.a[i] = x[i];
+    for (i = 0; i < prop->pol[0].nPol; i++)
+      prop->pol[0].a[i] = x[i];
 
     fclose(fileOut);
 
@@ -3342,11 +3343,11 @@ void initDensityPol(Prop *prop, char *s, FILE *file) {
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
 
-    prop->pol.nPol[0] = readFileLineSimple(x, fileOut);
-    ERRO_POL_READ(prop->pol.nPol[0], MAXPLODEG, __FILE__, __func__, __LINE__);
+    prop->pol[0].nPol = readFileLineSimple(x, fileOut);
+    ERRO_POL_READ(prop->pol[0].nPol, MAXPLODEG, __FILE__, __func__, __LINE__);
 
-    for (i = 0; i < prop->pol.nPol[0]; i++)
-      prop->pol.a[i] = x[i];
+    for (i = 0; i < prop->pol[0].nPol; i++)
+      prop->pol[0].a[i] = x[i];
 
     fclose(fileOut);
 
@@ -3399,11 +3400,11 @@ void initCdPol(Prop *prop,char *s,FILE *file)
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
 
-    prop->pol.nPol[0] = readFileLineSimple(x,fileOut);
-    ERRO_POL_READ(prop->pol.nPol[0], MAXPLODEG, __FILE__,__func__, __LINE__);
+    prop->pol[0].nPol = readFileLineSimple(x,fileOut);
+    ERRO_POL_READ(prop->pol[0].nPol, MAXPLODEG, __FILE__,__func__, __LINE__);
 
-    for (i = 0; i < prop->pol.nPol[0]; i++)
-      prop->pol.a[i] = x[i];
+    for (i = 0; i < prop->pol[0].nPol; i++)
+      prop->pol[0].a[i] = x[i];
 
     fclose(fileOut);
 
@@ -3450,11 +3451,11 @@ void initThCondPol(Prop *prop, char *s, FILE *file) {
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
 
-    prop->pol.nPol[0] = readFileLineSimple(x, fileOut);
-    ERRO_POL_READ(prop->pol.nPol[0], MAXPLODEG, __FILE__, __func__, __LINE__);
+    prop->pol[0].nPol = readFileLineSimple(x, fileOut);
+    ERRO_POL_READ(prop->pol[0].nPol, MAXPLODEG, __FILE__, __func__, __LINE__);
 
-    for (i = 0; i < prop->pol.nPol[0]; i++)
-      prop->pol.a[i] = x[i];
+    for (i = 0; i < prop->pol[0].nPol; i++)
+      prop->pol[0].a[i] = x[i];
 
     fclose(fileOut);
 
@@ -3986,8 +3987,8 @@ void initPropStructCD(PropVarCD *propVar, short const n)
     propVar[i].fDensity             = false;
     propVar[i].fCeofDiff            = false;
     propVar[i].ceofDiff.type        = -1;
-    propVar[i].ceofDiff.pol.nPol[0] = 0;
-    propVar[i].den.pol.nPol[0]      = 0;
+    propVar[i].ceofDiff.pol[0].nPol = 0;
+    propVar[i].den.pol[0].nPol      = 0;
     propVar[i].den.type             = -1;
   }
 

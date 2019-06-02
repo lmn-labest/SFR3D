@@ -31,9 +31,9 @@
 
 /*...*/
    typedef struct {
-     short nPol[MAXSPECIES];
+     short nPol;
      DOUBLE range[2];
-     DOUBLE a[MAXSPECIES*MAXPLODEG];
+     DOUBLE a[MAXPLODEG];
    }Pol;
 /*...................................................................*/
 
@@ -48,7 +48,7 @@
 /*...*/
    typedef struct {
      unsigned char type;
-     Pol     pol;  
+     Pol     pol[MAXSPECIES];  
      PolNasa nasa[MAXSPECIES];
      DOUBLE surtherland[3];
    }Prop;
