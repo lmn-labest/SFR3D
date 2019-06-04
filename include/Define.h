@@ -379,7 +379,7 @@
 
 /*...*/
   DOUBLE gravity[3];
-  FILE *fileLogExc;
+  FILE *fileLogExc,*fileLogDebug;
 /*...................................................................*/
 
 

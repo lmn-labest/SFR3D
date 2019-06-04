@@ -603,6 +603,7 @@ void simpleSolver3D(Memoria *m
      } 
      jj++; 
 /*...................................................................*/
+
   }
 /*...................................................................*/
   timei = getTimeC() -time;
@@ -704,7 +705,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     fDensityRef       = thDynamic->fDensityRef,
     fPresRef          = thDynamic->fPresTh,
     fDeltaTimeDynamic = sc->ddt.fDynamic;
-  DOUBLE cfl, reynolds, peclet,  deltaMass;
+  DOUBLE cfl, reynolds, peclet,  deltaMass, tempMax, tempMed;
   bool fParameter[10];
   char slName[][10] = {"zFuel","zAir","zProd"},
        spName[][10] = {"zO2","zCO2","zH2O","zN2"};
@@ -713,9 +714,9 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   time = getTimeC();
 
 /*...*/
-  relRes       = false;
-//typeResidual = RSQRT;
-  typeResidual = RSCALEDSUM;
+  relRes       = true;
+  typeResidual = RSQRT;
+//typeResidual = RSCALEDSUM;
 //typeResidual = RSCALEDSUMMAX;
 
 /*...*/
@@ -884,16 +885,15 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*... arquivo de log*/
-    if (opt->fItPlot)
-    {
-      fprintf(opt->fileItPlot[FITPLOTSIMPLE]
-            , "istep = %d time = %lf\n",sc->ddt.timeStep,sc->ddt.t);
-    }
+  if (opt->fItPlot)
+    fprintf(opt->fileItPlot[FITPLOTSIMPLE]
+           , "istep = %d time = %lf\n",sc->ddt.timeStep,sc->ddt.t);
 /*...................................................................*/
 
 /*...*/
   for (itSimple = 0; itSimple<sp->maxIt; itSimple++) 
   {
+
 /*...*/
     if ((fStop = fopen("stopSimple.mvf", "r")) != NULL) 
     {
@@ -952,7 +952,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                            , mesh          
                            , sistEqEnergy, solvEnergy
                            , sp          , sc
-                           , pMesh);     
+                           , pMesh);       
 /*...................................................................*/
     
 /*... residual*/
@@ -1016,13 +1016,13 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                           ,mesh->elm.temp         , mesh->elm.yFrac
                           ,mesh->elm.tConductivity,cModel->nOfSpecies
                           ,eModel->fKelvin        , mesh->numel);
+    
     if(fDiff)
       updateMixDiffusion(propF             , cModel 
                        ,mesh->elm.temp     , mesh->elm.yFrac
                        ,mesh->elm.cDiffComb, cModel->nOfSpecies 
                        ,cModel->nComb       
-                       ,eModel->fKelvin    , mesh->numel);
-
+                       ,eModel->fKelvin    , mesh->numel);    
 /*...................................................................*/
 
 /*...*/
@@ -1098,6 +1098,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*..*/
     if(conv == (5 + nComb)) break;
 /*...................................................................*/
+
   }
 /*...................................................................*/
   timei = getTimeC() - time;
@@ -1184,6 +1185,11 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                       , sc->ddt.dt[TIME_N], mesh->numelNov);
 /*...................................................................*/
 
+/*...*/
+  tempMax = maxArray(mesh->elm.temp,mesh->numel);
+  tempMed = getVolumeMed(mesh->elm.temp,mesh->elm.geom.volume
+                        ,mesh->numel);
+/*...................................................................*/
 
 /*...*/
   printf("It simple: %d \n", itSimple + 1);
@@ -1199,6 +1205,8 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   printf("%-20s : %13.6e\n","MassOut             ", mesh->massInOut[1]);
   printf("%-20s : %13.6e\n","Heat Combustion"     ,cModel->totalHeat);
   printf("%-20s : %13.6e\n","Mass consume of fuel",cModel->totalMassFuel);
+  printf("%-20s : %13.6lf\n","Temperatue Max"      ,tempMax);
+  printf("%-20s : %13.6lf\n","Temperatue Med"      ,tempMed);
  
   printf("%-25s : %15s %20s\n","Residuo:","init","final");
   printf("%-25s : %20.8e %20.8e\n","conservacao da massa", rMass0, rMass);

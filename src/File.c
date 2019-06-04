@@ -64,7 +64,7 @@ FILE* openFileBuffer(const char* const name,const char* const mod,bool buffer)
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 15/08/2018                                   * 
+ * Data de modificaco : 02/06/2018                                   * 
  *-------------------------------------------------------------------* 
  * fname: add as extencoes dos arquivos de saida                     *
  * ------------------------------------------------------------------*
@@ -101,6 +101,7 @@ FILE* openFileBuffer(const char* const name,const char* const mod,bool buffer)
  *         26 -> log de residuo do modelo de combustao               *
  *         27 -> log dos paramentros do problema                     *
  *         30 -> resultados do problema de escoamente imconpressivel *
+ *         31 -> arquivo de debug                                    *
  *         60 -> media dos tempos (MPI)                              *      
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
@@ -656,6 +657,23 @@ void fName(const char* const name,INT num1,INT num2, int cod ,char *out){
       break;
 /*...................................................................*/
 
+/*... arquivo com o log do solv*/
+    case 31:
+      strcat(ext,"_debug.txt");
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+        exit(EXIT_FAILURE);      
+      }
+      strcpy(out,name);
+      strcat(out,ext);
+      break;
+/*...................................................................*/
 
 /*... medias do tempos MPI*/
     case 60:

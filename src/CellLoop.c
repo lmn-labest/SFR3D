@@ -3139,7 +3139,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
   DOUBLE lDcca[MAX_NUM_FACE];
   DOUBLE lmvSkew[MAX_NUM_FACE], lvSkew[MAX_NUM_FACE*MAX_NDM];
   DOUBLE lDensity[(MAX_NUM_FACE + 1)], lDiff[(MAX_NUM_FACE + 1)*MAX_COMB];
-  DOUBLE lViscosity[(MAX_NUM_FACE + 1)];
+  DOUBLE lViscosity[(MAX_NUM_FACE + 1)*2];
   DOUBLE lA[(MAX_NUM_FACE + 1)*MAX_COMB], lB[MAX_COMB];
   DOUBLE lProp[(MAX_NUM_FACE + 1)*MAXPROP];
   DOUBLE lu0[(MAX_NUM_FACE + 1)*MAX_NDF], lPres[(MAX_NUM_FACE + 1) * 2];
@@ -3401,9 +3401,9 @@ void systFormComb(Loads *loads              , Loads *ldVel
         MAT2D(aux1, 1, lPres, 2) = pres[nel];
 /*...................................................................*/
 
-/*... turbulentea*/
-        lViscosity[aux1] = eddyVisc[nel];
-/*...................................................................*/
+/*... viscosidade dinamica e turbulentea*/
+        MAT2D(aux1, 0, lViscosity, 2) = 0.e0;
+        MAT2D(aux1, 1, lViscosity, 2) = eddyVisc[nel];
 
 /*...*/
         lId[aux1] = id[nel] - 1;        
@@ -3483,6 +3483,9 @@ void systFormComb(Loads *loads              , Loads *ldVel
             MAT2D(i, 1, lPres, 2) = pres[vizNel];
 /*... turbulentea*/
             lViscosity[i] = eddyVisc[vizNel];
+/*... viscusidade dinamica e turbulentea*/
+            MAT2D(i, 0, lViscosity, 2) = 0.e0;
+            MAT2D(i, 1, lViscosity, 2) = eddyVisc[vizNel];
 /*...................................................................*/
 
 /*...*/
@@ -3523,7 +3526,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
 /*...*/
       for (i = 0; i<nReac; i++)
         lRateFuel[i] = MAT2D(nel,i,rateFuel,nReac); 
-/*...................................................................*/
+/*...................................................................*/  
 
 /*... chamando a biblioteca de celulas*/
         cellLibCombustion(loads        , ldVel

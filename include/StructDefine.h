@@ -4,6 +4,8 @@
   #include<HccaStdBool.h>
   #include<Define.h>
 
+  DOUBLE gStep;
+
 /*...*/
   typedef struct{
     DOUBLE energyAtivation; /* KJ/Kmol*/
@@ -187,6 +189,7 @@
                            */   
     DOUBLE PrandltTwall;   /*Prandtl turbulento */
     DOUBLE PrandltTsgs;    /*Prandtl de sub-grid */
+    DOUBLE SchmidtTsgs;    /*Chmidt  de sub-grid */
 
     EqK eK;
     

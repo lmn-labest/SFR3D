@@ -1029,6 +1029,8 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
   DOUBLE volume3DGreenGauss(DOUBLE *RESTRICT xm,DOUBLE *RESTRICT normal
                          ,DOUBLE *RESTRICT fArea
                          ,short const nFace);
+  DOUBLE volumeHexa(DOUBLE *RESTRICT x);
+  DOUBLE volumeTetra(DOUBLE *RESTRICT x);
   void vectorKm2d(DOUBLE *RESTRICT x      ,DOUBLE *RESTRICT xc
                  ,DOUBLE *RESTRICT xm
                   ,DOUBLE *RESTRICT vSkew ,DOUBLE *RESTRICT mvSkew

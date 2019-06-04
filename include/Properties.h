@@ -190,10 +190,10 @@
                                 ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
                                 ,bool const fKelvin);
 /* ... coeficiente de diffusao da especies*/
-  DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel 
+  DOUBLE mixtureDiffusion(PropVarFluid *propF ,Combustion *cModel 
                        ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
                        ,short const kSpecieA  ,short const kSpecieI 
-                       ,bool const fKelvin);
+                       ,INT const nEl         ,bool const fKelvin);
   DOUBLE specieDiffusionBinary(DOUBLE const mMassA,DOUBLE const mMassB
                             ,DOUBLE const sigmaA,DOUBLE const sigmaB  
                             ,DOUBLE const ekA   ,DOUBLE const ekB

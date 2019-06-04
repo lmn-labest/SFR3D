@@ -118,7 +118,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
         , diffEffC[MAX_COMB], diffEffV[MAX_COMB], diffEff[MAX_COMB]
         , eddyViscosityC, eddyViscosityV, viscosityC
         , tA[MAX_COMB], coef[MAX_COMB]
-        , tmp, tmp1, prTwall, prTsgs;
+        , tmp, tmp1, prTwall, scTsgs;
   DOUBLE p[MAX_COMB], sP, sPc[MAX_COMB], dfd[MAX_COMB], gfKsi[MAX_COMB];
   DOUBLE lvSkew[3], alpha, alphaMenosUm;
   DOUBLE v[3], gradUComp[MAX_COMB][3], lKsi[3], lNormal[3], gf[MAX_COMB][3];
@@ -161,7 +161,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
   fRes = cModel->fRes;
   fTurb = tModel->fTurb;
   prTwall = tModel->PrandltTwall;
-  prTsgs = tModel->PrandltTsgs;
+  scTsgs = tModel->SchmidtTsgs;
   fWallModel = tModel->fWall;
   wallType = tModel->wallType;
 /*...................................................................*/
@@ -169,15 +169,15 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*... propriedades da celula*/
   eddyViscosityC = eddyViscosityV = 0.e0;
   densityC = lDensity[idCell];
-//if (fTurb) eddyViscosityC = MAT2D(idCell, 1, lViscosity, 2);
+  if (fTurb) eddyViscosityC = MAT2D(idCell, 1, lEddyVisc, 2);
 /*...................................................................*/
 
-/*...*/
-  tmp1 = eddyViscosityC / prTsgs;
+/*...*/  
+  tmp1 = eddyViscosityC /scTsgs;
   for(i=0;i<nComb;i++)
   {
 /*... propriedades da celula*/
-    diffCeofC[i] = densityC*MAT2D(idCell, i, lDiff, nComb);
+    diffCeofC[i] = densityC*MAT2D(idCell, i, lDiff, nComb) + tmp1;
 
     diffEffC[i] = diffCeofC[i] + tmp1;
 /*... | du1/dx1 du1/dx2 du1/dx3 |
@@ -215,10 +215,10 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 
 /*... correcao dos coefciente de difusao para o transporte de 
       especies*/
-   if(fDiffCoor)
-     velCorrectCombustion(diffEffC       ,gradUp[0]
-                         , velC          ,ndm
-                         , nComb );
+  if(fDiffCoor)
+    velCorrectCombustion(diffEffC       ,gradUp[0]
+                       , velC          ,ndm
+                       , nComb );
 /*...................................................................*/
 
 /*...*/
@@ -243,7 +243,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
         diffCeofV[i] = densityV*MAT2D(nf, i, lDiff, nComb);
         uV[i]   = MAT2D(nf, i, u0, nComb);
       }
-//    if (fTurb) eddyViscosityV = MAT2D(nf, 1, lViscosity, 2);
+      if (fTurb) eddyViscosityV = MAT2D(nf, 1, lEddyVisc, 2);
 /*... p(n+1)*/
       presV = MAT2D(nf, 1, pres, 2);
       gradPresV[0] = MAT2D(nf, 0, gradPres, 3);
@@ -307,9 +307,15 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*... media harmonica*/
       modE = sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
       tmp = modE / lModKsi;
-      tmp1 = eddyViscosityV / prTsgs;
+      tmp1 = eddyViscosityC /scTsgs;
       for(i=0;i<nComb;i++)
       {
+/*      if (gStep > 58 && nel == 3299)
+        {
+        fprintf(fileLogDebug,"%d %d %d %e %e\n"
+                            ,nel ,vizNel, nf
+                            , diffCeofV[i],densityV);
+        }*/
         diffEffV[i] = diffCeofV[i] + tmp1;
         diffEff[i] = alpha / diffEffC[i] + alphaMenosUm / diffEffV[i];
         diffEff[i] = 1.0e0 / diffEff[i];
@@ -474,7 +480,6 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
     for(i=0;i<nReac;i++)
     {
       tmp1 = rateFuel[i]*volume[idCell];
-
 /*... reagentes*/
       for(j=0;j<cModel->nSpeciesPart[i][0];j++)
       {
@@ -545,6 +550,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
     lRcell[i] = rCell[i];
 /*...................................................................*/
   }
-/*...................................................................*/
+/*...................................................................*/  
+
 }
 /*********************************************************************/

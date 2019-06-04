@@ -68,7 +68,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 
 /*... reconstruindo do gradiente (Fuel)*/
   tm.rcGradComb   = getTimeC() - tm.rcGradComb;
-  rcGradU(m                    , loadsComb
+  rcGradU(m                      , loadsComb
         , mesh->elm.node         , mesh->elm.adj.nelcon
         , mesh->node.x           
         , mesh->elm.nen          , mesh->elm.adj.nViz
@@ -157,6 +157,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
  /*...*/
     fComb[i] = true; 
     if ( tb[i] < SZERO || tb[i] == 0.e0 ) fComb[i] = false;
+//  printf("%d %e\n",i,tb[i]);
   }
 /*...................................................................*/
 
@@ -464,7 +465,7 @@ void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
        , nReac=cModel->nReac;
   short iComb,iOx,iProd[3],i,j;
   INT nel;
-  DOUBLE s,tMix,eddy,sT[6],*iGradVel,df;
+  DOUBLE s,tMix,eddy,sT[6],*iGradVel,df,*pz;
   DOUBLE zFuel, zAir, zO2,zOx, zProp, omega, densityC, alpha, coefA;
   DOUBLE tmp1, tmp2, tmp3, tmp4, modS, c[3], e1, e2;
   DOUBLE mWfuel,mWox, tempA, ru, tc, y[MAXSPECIES]; 
@@ -504,10 +505,10 @@ void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
 /*...*/
         for(nel = 0; nel < numel; nel++)
         {
-
+          pz = &MAT2D(nel,0,zComb,nComb);
           densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
-          getSpeciesPrimitivesCc(cModel,y,zComb);
-          omega = arrhenius(y[iComb]  ,y[cModel->sp_O2]
+          getSpeciesPrimitivesCc(cModel,y,pz);
+          omega = arrhenius(y[iComb]      ,y[cModel->sp_O2]
                                 ,e1       ,e2   
                                 ,mWfuel   ,mWox
                                ,temp[nel] ,alpha
@@ -543,8 +544,9 @@ void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
 /*...*/
         for(nel = 0; nel < numel; nel++)
         {
+          pz = &MAT2D(nel,0,zComb,nComb);
           densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
-          getSpeciesPrimitivesCc(cModel,y,zComb);
+          getSpeciesPrimitivesCc(cModel,y,pz);
 /*.. calculo Sij*/
           iGradVel = &MAT3D(nel,0,0,gradVel,ndm,ndm);
           tensorS(sT,iGradVel,false);
@@ -561,7 +563,8 @@ void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
                       ,c              ,modS
                       ,dViscosity[nel],df
                       ,tMix           ,cModel->edc.type);
-          MAT2D(nel,i,rate,nReac) = omega;
+          MAT2D(nel,i,rate,nReac) = omega; 
+
         }
       }
 /*...................................................................*/
@@ -628,7 +631,9 @@ void rateHeatRealeseCombustion(Combustion *cModel,Prop *sHeat
                    , bool const fsHeat       , bool const fKelvin)
 {
 
-  short lMat, iCod = cModel->typeHeatRealese, nReac = cModel->nReac,iComb,i, j, kSp;
+  short lMat
+      , iCod = cModel->typeHeatRealese
+      , nReac = cModel->nReac,iComb,i, j, kSp;
   INT nel;
   DOUBLE *h,hc,H,DH,HP,HR,hs,nSp;
   DOUBLE sHeatRef,sum;
@@ -1179,7 +1184,7 @@ DOUBLE maxArray(DOUBLE *RESTRICT x,INT const n)
  * y(nel,3) -> H2O                                                   *
  * y(nel,4) -> N2                                                    *
  *********************************************************************/
-DOUBLE edc(DOUBLE *y           ,short const iYf
+DOUBLE edc(DOUBLE *y          ,short const iYf
           ,short const iYox   ,short *iProd
           ,short const nProd
           ,DOUBLE const s     ,DOUBLE const density
@@ -1197,7 +1202,7 @@ DOUBLE edc(DOUBLE *y           ,short const iYf
   yF    = y[iYf];
   yOx   = y[iYox];
   for(i=0,yP=0;i<nProd;i++)
-    yP += y[i];
+    yP += y[iProd[i]];
 /*..................................................................*/
 
 /*... fds*/
@@ -1246,10 +1251,10 @@ DOUBLE edc(DOUBLE *y           ,short const iYf
       gEdc = x/(1.e0 - x*gamma);
       break;
 /*...................................................................*/
-  default:
-    ERRO_OP_NEW(__FILE__,__func__,__LINE__,"Eddy Dissipation model"
+    default:
+      ERRO_OP_NEW(__FILE__,__func__,__LINE__,"Eddy Dissipation model"
                                           ,iCod)
-    break;
+      break;
   }
 
 /*... tempo de mixutura constante e definida pelo usuario*/
@@ -1607,6 +1612,38 @@ void globalReac(Combustion *c, short const iReac)
 
 }
 /*******************************************************************/
+
+/*********************************************************************
+* Data de criacao    : 02/06/2019                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* getVolumeMed : Calula a media volumetria de um gradeza            *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+DOUBLE getVolumeMed(DOUBLE *RESTRICT x,DOUBLE *RESTRICT vol
+                   ,INT const n)
+{
+  INT i;
+  DOUBLE sum,volT;
+ 
+  for (i = 0,sum=volT=0.e0; i < n; i++)
+  {
+    sum+= x[i]*vol[i];
+    volT+=vol[i];
+  }
+  return sum/volT;
+}
+/*******************************************************************/
+
+
 void printt(double *x, int n)
 {
   int i;

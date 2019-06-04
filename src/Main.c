@@ -216,6 +216,7 @@ int main(int argc,char**argv){
   turbModel.c                   = 1.0e0;
   turbModel.PrandltTwall        = 0.85e0;
   turbModel.PrandltTsgs         = 0.85e0;
+  turbModel.SchmidtTsgs         = 0.5e0;
 /*....................................................................*/
 
 /*...*/
@@ -392,6 +393,11 @@ int main(int argc,char**argv){
 /*...*/
   fName(preName,0,0, 23 ,nameOut);
   fileLogExc = openFileBuffer(nameOut,"w",false);
+/*...................................................................*/
+
+/*...*/
+  fName(preName,0,0, 31 ,nameOut);
+  fileLogDebug = openFileBuffer(nameOut,"w",false);
 /*...................................................................*/
 
 /*...*/
@@ -764,7 +770,8 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
       fclose(opt.fileParameters);
-
+      fclose(fileLogExc);
+      fclose(fileLogDebug);
       finalizeMem(&m,false);
       macroFlag = false;
       endSec(OUTPUT_FOR_FILE);
@@ -1394,6 +1401,7 @@ int main(int argc,char**argv){
 //    jLoop            = 0;
       sc.ddt.t        += sc.ddt.dt[0];
       sc.ddt.timeStep ++; 
+      gStep            =  sc.ddt.timeStep;
 /*...................................................................*/
 
 /*...*/

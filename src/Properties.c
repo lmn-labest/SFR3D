@@ -430,12 +430,15 @@ DOUBLE collisionIntegral(DOUBLE const t,DOUBLE const ek)
 
   ta = t/ek;
   
-  if( ta < 0.3 || ta > 100)
+  if( ta < 0.3 || ta > 100.0)
   {    
-    printf("collision Integral out of range!!\n"
-           "0.3 < T* < 100\n"
-           "t*               = %lf\n",ta);
-    exit(EXIT_FAILURE);
+    fprintf(fileLogExc,"collision Integral out of range!!\n"
+                       "0.3 < T* < 100\n"
+                       "t*               = %lf\n",ta);
+
+    if( ta < 0.3)   ta = 0.3;
+    if( ta > 100.0) ta = 100.0;
+
   }
 
   num = A*pow(ta,-B) + C*exp(-D*ta) + E*exp(-F*ta);
@@ -1479,7 +1482,6 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
         sum2 += xA[i]*k[i]/sum1;
       }
 /*...................................................................*/
-
       y = sum2;
       break;
 /*.....................................................................*/
@@ -1518,10 +1520,10 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
 DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel 
                        ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
                        ,short const kSpecieA  ,short const kSpecieI 
-                       ,bool const fKelvin)
+                       ,INT const nEl         ,bool const fKelvin    )
 {
   short j,ns=cModel->nOfSpecies;
-  DOUBLE tc,mWa,sA,mWi,sI,ekA,ekI,y,mMassMix,xA,sum1,d=1.e0;
+  DOUBLE tc,mWa,sA,mWi,sI,ekA,ekI,y,mMassMix,xA,sum1,d=1.e0,yR;
    
   if(fKelvin)
     tc = t;  
@@ -1568,12 +1570,20 @@ DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel
           xA = (cModel->mW[j]*yFrac[j])/mMassMix;
           y  = specieDiffusionBinary( mWa, mWi, sA , sI, ekA, ekI, t);
           sum1 += xA/y;
+          if (gStep > 58 && nEl == 3199)
+          {
+            fprintf(fileLogDebug,"update %d %d %e %e %e\n",kSpecieA,j
+                                                          ,y,tc,t);
+          } 
         }
       }
 /*....................................................................*/
-     
+
+/*...  0 < yR < 1*/
+      yR = min(1.e0,yFrac[kSpecieA]);
+      yR = max(yR,0.e0);
 /*...*/
-      y = (1.e0 - yFrac[kSpecieA])/sum1;
+      y = (1.e0 - yR)/sum1;
 /*....................................................................*/
     break;
 /*.....................................................................*/
@@ -1669,7 +1679,7 @@ void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel
       MAT2D(i,j,diff,nComb) = mixtureDiffusion(propF   ,cModel 
                                               ,yFrac   ,temp[i]
                                               ,j       ,cModel->sp_N2 
-                                              ,iKelvin);
+                                              ,i       ,iKelvin );
   }
 }
 /*********************************************************************/
@@ -2113,7 +2123,7 @@ void initDiffMix(PropVarFluid *propF    , Combustion *cModel
         MAT2D(i,j,diff,nComb) = mixtureDiffusion(propF       ,cModel 
                                 ,yFrac       ,t[i]
                                 ,j           ,cModel->sp_N2
-                                ,iKelvin);
+                                ,i           ,iKelvin);
 /*...................................................................*/
     }
 /*...................................................................*/

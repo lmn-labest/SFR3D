@@ -80,6 +80,8 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
 
 /*...*/
   DOUBLE maxArray(DOUBLE *RESTRICT x,INT const n);
+  DOUBLE getVolumeMed(DOUBLE *RESTRICT x,DOUBLE *RESTRICT vol
+                   ,INT const n);
   void regularZ(DOUBLE *RESTRICT z    , INT const numel
                , short const nComb      , bool fLump);
   void initLumpedMatrix(Combustion *cModel);

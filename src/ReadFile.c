@@ -4352,7 +4352,7 @@ void setEdc(Edc *e       , FILE *file)
     fscanf(file,"%lf %lf",&e->cGamma,&e->tMix);  
     if(!mpiVar.myId) 
       fprintf(fileLogExc,"%-20s: cGamma = %lf  tMix = %lf\n"
-                        , edc[0],e->cGamma,e->tMix);      
+                        , edc[1],e->cGamma,e->tMix);      
   }
 /*...................................................................*/ 
 
@@ -4363,7 +4363,7 @@ void setEdc(Edc *e       , FILE *file)
     fscanf(file,"%lf",&e->cTau);  
     if(!mpiVar.myId) 
       fprintf(fileLogExc,"%-20s:  cTau = %lf\n"
-                        , edc[0], e->cTau);
+                        , edc[2], e->cTau);
   }   
 /*...................................................................*/ 
 
@@ -4374,7 +4374,7 @@ void setEdc(Edc *e       , FILE *file)
     fscanf(file,"%lf",&e->tMix);  
     if(!mpiVar.myId) 
       fprintf(fileLogExc,"%-20s: tMix = %lf\n"
-                        , edc[0],e->tMix);   
+                        , edc[3],e->tMix);   
   }
 /*...................................................................*/ 
 }
@@ -7022,7 +7022,7 @@ void readcombParameters(Combustion *c, FILE *file)
       if (!mpiVar.myId)
       {
         for(i=0;i<n;i++)
-          fprintf(fileLogExc, "%-25s: C%hdH%hdO%hd\nid%s :%hd\n"
+          fprintf(fileLogExc, "%-25s: C%hdH%hdO%hd\nid%s : %hd\n"
                             , "Fuel composition "
                             , c->fuel[i].c   , c->fuel[i].h, c->fuel[i].o
                             , c->fuel[i].name, c->sp_fuel[i]);
