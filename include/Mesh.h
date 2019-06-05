@@ -71,6 +71,7 @@
     INT    *cellFace;   /*faces que gera as celulas*/
     Geom   geom;  
 /*...*/
+    DOUBLE *enthalpyk;    /*Entapia por especie*/
     DOUBLE *energy;       /*energia*/
     DOUBLE *energy0;      /*energia*/
     DOUBLE *pressure;     /*pressao (n+1)*/

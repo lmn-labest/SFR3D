@@ -514,7 +514,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
   DOUBLE *nStressR=NULL,*nEddyV=NULL,*nDvisc=NULL,*nDenFluid=NULL;
   DOUBLE *nMedVel=NULL,*nP2Vel=NULL,*nMedP2Vel=NULL;
   DOUBLE *nCdyn=NULL,*nWall=NULL,*nKturb=NULL,*nRateFuel=NULL;
-  DOUBLE *nYfrac=NULL,*nRaHeReComb=NULL;
+  DOUBLE *nYfrac=NULL,*nRaHeReComb=NULL,*nEnthalpyK=NULL;
   FILE *fileOut=NULL;
 
 /*...*/
@@ -531,7 +531,11 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
   HccaAlloc(DOUBLE, m, nCdyn    , mesh->nnode*2      , "nCdyn"    , _AD_); 
   HccaAlloc(DOUBLE, m, nWall    , mesh->nnode*4      , "nWall"    , _AD_); 
   HccaAlloc(DOUBLE, m, nKturb   , mesh->nnode        , "nKturb"   , _AD_);
-  HccaAlloc(DOUBLE, m, nYfrac   , mesh->nnode*nOfPrSp, "nYfrac"   , _AD_);
+/*...................................................................*/
+
+/*...*/
+  if(opt->yFrac)
+    HccaAlloc(DOUBLE, m, nYfrac   , mesh->nnode*nOfPrSp, "nYfrac"   , _AD_);
 /*...................................................................*/
 
 /*...*/
@@ -1060,6 +1064,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh0->elm.yFrac         , nYfrac
                , mesh0->elm.rateHeatReComb, nRaHeReComb
                , media->mVel              , nMedVel 
+               , mesh0->elm.enthalpyk     , nEnthalpyK
                , mesh0->elm.specificHeat  , mesh0->elm.tConductivity 
                , mesh0->elm.cDiffComb               
                , mesh0->nnode             , mesh0->numel  
@@ -1090,7 +1095,10 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
     HccaDealloc( m, nRateFuel, "nRateFuel"   , _AD_);
 /*...................................................................*/
 
-  HccaDealloc(m, nYfrac   , "nYfrac"   , _AD_);
+/*...*/  
+  if(opt->yFrac)
+    HccaDealloc(m, nYfrac   , "nYfrac"   , _AD_);
+/*...................................................................*/
   HccaDealloc(m, nKturb   , "nKturb"   , _AD_);
   HccaDealloc(m, nWall    , "nWall"    , _AD_);
   HccaDealloc(m, nCdyn    , "nCdyn"    , _AD_); 

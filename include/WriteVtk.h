@@ -159,7 +159,7 @@
 /*...................................................................*/
 
 /*...*/
-  void wResVtkCombustion(Memoria *m,Combustion *cModel     
+  void wResVtkCombustion(Memoria *m, Combustion *cModel     
           , DOUBLE *x            , DOUBLE *cc     
           , INT *el              , short *mat    
           , short *nen           , short *typeGeom
@@ -182,8 +182,9 @@
           , DOUBLE *eYfrac       , DOUBLE *nYfrac 
           , DOUBLE *eHeatRe      , DOUBLE *nHeatRe     
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
+          , DOUBLE *eEnthalpyK   , DOUBLE *nEnthalpyK   
           , DOUBLE *specificHeat , DOUBLE *tConductivity
-          , DOUBLE *cDiffSp
+          , DOUBLE *eDiffSp      
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf

@@ -3123,7 +3123,9 @@ void systFormComb(Loads *loads              , Loads *ldVel
                 , bool calRcell             , bool unsym)
 {
   short i, j, k, lib, aux1, aux2, lMat;
-  short nThreads = ompVar.nThreadsCell, nReac = cModel->nReac;
+  short nThreads = ompVar.nThreadsCell
+      , nReac = cModel->nReac
+      , ns    = cModel->nOfSpecies;
   INT nel, vizNel;
 
   /*... variavel local */
@@ -3413,7 +3415,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
         for (j = 0; j<ndf; j++)
         {
 /*... viscosidade dinamica e turbulentea*/
-          MAT2D(aux1, j, lDiff, ndf) = MAT2D(nel, j, diff, ndf); 
+          MAT2D(aux1, j, lDiff, ndf) = MAT2D(nel, j, diff, ns); 
           MAT2D(aux1, j, lu0, ndf) = MAT2D(nel, j, u0, ndf);    
         }  
 /*...................................................................*/

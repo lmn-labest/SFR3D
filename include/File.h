@@ -68,6 +68,7 @@
     bool rateFuel;
     bool yFrac;
     bool rateHeatComb; 
+    bool enthalpyk;
     bool bconditions;    /*insere as condicoes de contorno nos valores nodais*/
     bool cc;             /*centro geomentrico da celula*/       
     bool pKelvin;        /*plot em kelvin*/  

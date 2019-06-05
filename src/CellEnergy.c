@@ -511,7 +511,7 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
 
 /********************************************************************
  * Data de criacao    : 03/10/2017                                   *
- * Data de modificaco : 18/08/2018                                   *
+ * Data de modificaco : 04/06/2019                                   *
  *-------------------------------------------------------------------*
  * CELLENERGY3D: Celula 3D para transporte                           *
  *-------------------------------------------------------------------*
@@ -607,15 +607,16 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
                 , const short ndm            , INT const nel)
 {
   bool fTime, fDisp, fRes, fPresWork, fTemp, fTurb, fWallModel, fKelvin
-    , fSheat ;
+    , fSheat,fEntalpy;
   short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf, nCarg1
-    , nCarg2, typeTime, iCodPolFace;
+    , nCarg2, typeTime, iCodPolFace, k, ns;
 /*...*/
   INT vizNel;
 /*...*/
   DOUBLE thermCoefC, thermCoefV, densityC, densityV, densityM,
     diffEffC, diffEffV, diffEff, sHeatC, sHeatV, sHeatM,
-    eddyViscosityC, eddyViscosityV, viscosityC, tA, coef,
+    eddyViscosityC, eddyViscosityV, viscosityC,
+    hskV,hskC,hsk, gradYC[3],gradYV[3], dC,dV, tA, coef,
     tmp, tmp1, tmp2, tmp3, prTwall, prTsgs;
   DOUBLE p, sP, dfd, gfKsi, lvSkew[3], alpha, alphaMenosUm;
   DOUBLE v[3], gradUcomp[3], lKsi[3], lNormal[3], gf[3];
@@ -661,6 +662,8 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
   wallType  = tModel->wallType;
   fSheat    = vProp->fSpecificHeat;
   fComb     = cModel->fCombustion;
+  ns        = cModel->nOfSpecies;
+  fEntalpy  = true;
 /*...................................................................*/
 
 /*... propriedades da celula*/
@@ -863,6 +866,39 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
       sP += cv;
 /*... correcao nao ortogonal e do fluxo advectivo*/
       p += dfdc - cv * cvc;
+/*...................................................................*/
+
+/*...*/
+//    tmp1 =  densityM*lFarea;
+//    if(fEntalpy)
+//    {
+//      for(k=0,tmp3=0.e0;k<ns;k++)
+//      {
+//        gradYC[0] = MAT2D(idCell, 0, gradY, 3);
+//        gradYC[1] = MAT2D(idCell, 1, gradY, 3);
+//        gradYC[2] = MAT2D(idCell, 2, gradY, 3); 
+/*...*/
+//        gradYV[0] = MAT2D(nf    , 0, gradY, 3);
+//        gradYV[1] = MAT2D(nf    , 1, gradY, 3);
+//        gradYV[2] = MAT2D(nf    , 2, gradY, 3);
+/*...*/
+//        dC        = MAT2D(idCell, k, lDiff, ns);
+//        dV        = MAT2D(nf    , k, lDiff, ns);
+/*...*/
+//        hskC      = MAT2D(idCell, k, hT   , ns);
+//        hskV      = MAT2D(n     , k, hT   , ns);
+//        hsk       =  alphaMenosUm*hskC*dC + alpha*hskV*dV ;
+/*...*/
+//        tmp2      = alphaMenosUm*gradYC[0]*lNormal[0] 
+//                  + alphaMenosUm*gradYC[1]*lNormal[1] 
+//                  + alphaMenosUm*gradYC[2]*lNormal[2] 
+//                  + alpha*gradYV[0]*lNormal[0] 
+//                  + alpha*gradYV[2]*lNormal[1] 
+//                  + alpha*gradYV[1]*lNormal[2];
+//        tmp3 += hsk*tmp2; 
+//      }
+//      p+=tmp1*tmp3;
+//    }
 /*...................................................................*/
     }
 /*... contorno*/

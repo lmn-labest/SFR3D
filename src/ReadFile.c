@@ -479,8 +479,8 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 
 /*... */
     HccaAlloc(DOUBLE, m, mesh->elm.cDiffComb
-      , nel*nComb, "cDiffComb", _AD_);
-    zero(mesh->elm.cDiffComb, nel*nComb, DOUBLEC);
+      , nel*nSpPri, "cDiffComb", _AD_);
+    zero(mesh->elm.cDiffComb, nel*nSpPri, DOUBLEC);
 
 /*... */
     HccaAlloc(DOUBLE, m, mesh->elm.rateFuel
@@ -500,6 +500,10 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     HccaAlloc(DOUBLE, m, mesh->elm.yFrac0
             , nel*nSpPri, "yFrac0", _AD_);
     zero(mesh->elm.yFrac0, nel*nSpPri, DOUBLEC);
+
+    HccaAlloc(DOUBLE, m, mesh->elm.enthalpyk
+            , nel*nSpPri, "enthalpyk", _AD_);
+    zero(mesh->elm.enthalpyk, nel*nSpPri, DOUBLEC);
 
 
     if (mpiVar.nPrcs < 2)
@@ -1405,15 +1409,23 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     }
 /*...................................................................*/
  
-/*... inicializando a difusividade das especies*/
+/*...*/
     if(fComb)
+    {
+/*... inicializando a difusividade das especies*/
       initDiffMix(propF               , cModel
              ,mesh->elm.cDiffComb     , mesh->elm.temp 
              ,mesh->elm.pressure0     , mesh->elm.yFrac 
              ,mesh->elm.material.prop ,mesh->elm.mat   
              ,cModel->nOfSpecies      ,cModel->nComb   
              ,mesh->numel             ,energyModel->fKelvin);
+/*... inicializando as entalpia das especies*/
+      getEnthalpySpecies(cModel         , propF
+                   , mesh->elm.enthalpyk, mesh->elm.temp 
+                   , mesh->numel        , energyModel->fKelvin);
+/*...................................................................*/
 
+    }
 /*...................................................................*/
   }
 /*...................................................................*/
@@ -3421,7 +3433,7 @@ void readGravity(DOUBLE *gravity,FILE *file){
 
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
- * Data de modificaco : 20/05/2019                                   * 
+ * Data de modificaco : 04/06/2019                                   * 
  *-------------------------------------------------------------------* 
  * SETPPRINT : Seleciona as veriaves que serao impressas na          *
  * macro pFluid, puD1, puT1                                          *
@@ -3456,7 +3468,7 @@ void setPrint(FileOpt *opt,FILE *file){
                ,"densityd1"    ,"coefdiffd1"  ,"densityt1"       /*27,28,29*/
                ,"coefdifft1"   ,"zcomb"       ,"gradzcomb"       /*30,31,32*/
                ,"ratefuel"     ,"yfrac"       ,"rateheatcomb"    /*33,34,35*/                  
-               ,"coefdiffsp"   ,""            ,""                /*36,37,38*/
+               ,"coefdiffsp"   ,"enthalpyk"   ,""                /*36,37,38*/
                ,""             ,""            ,""                /*39,40,41*/
                ,""             ,""            ,""};              /*42,43,44*/
   int tmp;
@@ -3764,6 +3776,14 @@ void setPrint(FileOpt *opt,FILE *file){
     {
       opt->coefDiffSp = true;
       if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "coefDiffSp");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[37]))
+    {
+      opt->enthalpyk = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", macro[37]);
     }
 /*.....................................................................*/
 

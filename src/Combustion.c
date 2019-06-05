@@ -202,6 +202,12 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*...*/
+  getEnthalpySpecies(cModel             , prop
+                   , mesh->elm.enthalpyk, mesh->elm.temp 
+                   , mesh->numel        , eModel->fKelvin);
+/*...................................................................*/
+
+/*...*/
   rateHeatRealeseCombustion(cModel            , &prop->sHeat                
                     , mesh->elm.rateHeatReComb, mesh->elm.temp     
                     , mesh->elm.zComb0        , mesh->elm.zComb
@@ -253,6 +259,50 @@ void regularZ(DOUBLE *RESTRICT z    , INT const numel
     for(j=0;j<nComb;j++)
       if(MAT2D(nel,j,z,nComb) < 0.e0)
         MAT2D(nel,j,z,nComb) = 0.e0;
+  }
+
+}
+/*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 04/06/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * getEnthalpySpecies : obetem as entalpias por especies             *         *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * z            -> fracao massica                                    *
+ * enthalpyk    -> nao definido                                      *
+ * temp         -> temperatura                                       *
+ * numel        -> numero de celulas                                 *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * enthalpyk    -> entalpia por especie                              * 
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void getEnthalpySpecies(Combustion *cModel        ,  PropVarFluid *propF
+                      , DOUBLE *RESTRICT enthalpyk, DOUBLE *RESTRICT temp 
+                      , INT const numel           , bool const fKelvin)
+{
+  short j,ns=cModel->nOfSpecies;
+  INT nel;
+  DOUBLE hs,sHeatRef;
+
+  sHeatRef = propF->sHeatRef;
+
+  for(nel = 0 ; nel < numel; nel++)
+  {
+    for(j=0;j<ns;j++)
+    {
+      hs = tempForSpecificEnthalpySpecies(&propF->sHeat       , j
+                                        , temp[nel]           , sHeatRef
+                                        , propF->fSpecificHeat, fKelvin);
+      MAT2D(nel,j,enthalpyk,ns) = hs;
+    }
   }
 
 }

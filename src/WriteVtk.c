@@ -2206,6 +2206,8 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
  * nYfrac       -> fracao massica das especies primitivas (node)      *
  * eMedVel      -> media das velocidades (cell)                       *
  * nMedVel      -> media das velocidades (node)                       *
+ * eEntkalpyK   -> entalpia por especies (cell)                       *
+ * nEntkalpyK   -> entalpia por especies (node)                       *
  * specificHeat -> massa especifica (cell)                            *
  * tConductivity-> condutividade termica (cell)                       *   
  * nel          -> numeracao do elemento                              *
@@ -2257,6 +2259,7 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
           , DOUBLE *eYfrac       , DOUBLE *nYfrac 
           , DOUBLE *eHeatRe      , DOUBLE *nHeatRe     
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
+          , DOUBLE *eEnthalpyK   , DOUBLE *nEnthalpyK   
           , DOUBLE *specificHeat , DOUBLE *tConductivity
           , DOUBLE *eDiffSp      
           , INT nnode            , INT numel    
@@ -2693,7 +2696,16 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
   if(opt->coefDiffSp &&  opt->fCell )
   {
     strcpy(str,"eCoefDiffSp");
-    writeVtkProp(&idum,eDiffSp,numel,cModel->nComb,str,iws
+    writeVtkProp(&idum,eDiffSp,numel,cModel->nOfSpecies,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+  }
+/*...................................................................*/
+
+/*... coeficiente de difusao das especies */  
+  if(opt->enthalpyk &&  opt->fCell )
+  {
+    strcpy(str,"eEnthalpyK");
+    writeVtkProp(&idum,eEnthalpyK,numel,cModel->nOfSpecies,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
 /*...................................................................*/

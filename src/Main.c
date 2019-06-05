@@ -768,13 +768,12 @@ int main(int argc,char**argv){
       if(fSolvCombustion && opt.fItPlot && !mpiVar.myId)
         fclose(opt.fileItPlot[FITPLOTSIMPLE]);
 /*...................................................................*/
-
       fclose(opt.fileParameters);
-      fclose(fileLogExc);
       fclose(fileLogDebug);
       finalizeMem(&m,false);
       macroFlag = false;
       endSec(OUTPUT_FOR_FILE);
+      fclose(fileLogExc);
     }    
 /*===================================================================*/
 

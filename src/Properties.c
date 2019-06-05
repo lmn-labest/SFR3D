@@ -1675,8 +1675,8 @@ void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel
   for(i=0;i<nEl;i++)
   {
     y = &MAT2D(i,0,yFrac,nOfPrSp);         
-    for(j=0;j<nComb;j++)
-      MAT2D(i,j,diff,nComb) = mixtureDiffusion(propF   ,cModel 
+    for(j=0;j<nOfPrSp;j++)
+      MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF   ,cModel 
                                               ,yFrac   ,temp[i]
                                               ,j       ,cModel->sp_N2 
                                               ,i       ,iKelvin );
@@ -2119,8 +2119,8 @@ void initDiffMix(PropVarFluid *propF    , Combustion *cModel
 /*...................................................................*/
 
 /*...*/
-      for(j=0;j<nComb;j++)
-        MAT2D(i,j,diff,nComb) = mixtureDiffusion(propF       ,cModel 
+      for(j=0;j<nOfPrSp;j++)
+        MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF       ,cModel 
                                 ,yFrac       ,t[i]
                                 ,j           ,cModel->sp_N2
                                 ,i           ,iKelvin);
@@ -2136,8 +2136,8 @@ void initDiffMix(PropVarFluid *propF    , Combustion *cModel
     for(i=0;i<nCell;i++)
     {    
       lMat               = mat[i]-1;
-      for(j=0;j<nComb;j++)
-        MAT2D(i,j,diff,nComb) = 
+      for(j=0;j<nOfPrSp;j++)
+        MAT2D(i,j,diff,nOfPrSp) = 
         MAT2D(lMat,SPECIEDIFUSSIONFUEL+j,propMat,MAXPROP);     
     }
   }
