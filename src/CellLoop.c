@@ -3458,11 +3458,12 @@ void systFormComb(Loads *loads              , Loads *ldVel
 
 /*...*/
         for (j = 0; j<ndf; j++)
-        {
-/*... viscosidade dinamica e turbulentea*/
-          MAT2D(aux1, j, lDiff, ndf) = MAT2D(nel, j, diff, ns); 
-          MAT2D(aux1, j, lu0, ndf) = MAT2D(nel, j, u0, ndf);    
-        }  
+          MAT2D(aux1, j, lu0, ndf) = MAT2D(nel, j, u0, ndf);       
+/*...................................................................*/
+
+/*...*/        
+        for (j = 0; j<ns; j++)
+          MAT2D(aux1, j, lDiff, ns) = MAT2D(nel, j, diff, ns); 
 /*...................................................................*/
 
 /*...*/
@@ -3528,8 +3529,6 @@ void systFormComb(Loads *loads              , Loads *ldVel
 /*...*/
             MAT2D(i, 0, lPres, 2) = pres0[vizNel];
             MAT2D(i, 1, lPres, 2) = pres[vizNel];
-/*... turbulentea*/
-            lViscosity[i] = eddyVisc[vizNel];
 /*... viscusidade dinamica e turbulentea*/
             MAT2D(i, 0, lViscosity, 2) = 0.e0;
             MAT2D(i, 1, lViscosity, 2) = eddyVisc[vizNel];
@@ -3540,12 +3539,17 @@ void systFormComb(Loads *loads              , Loads *ldVel
 /*...................................................................*/
 
             lMat = mat[vizNel] - 1;
+/*...*/  
             for (j = 0; j<ndf; j++)
-            {
-              MAT2D(i, j, lDiff, ndf) = MAT2D(vizNel, j, diff, ndf);
               MAT2D(i, j, lu0, ndf) = MAT2D(vizNel, j, u0, ndf);
-            }
+/*...................................................................*/
 
+/*...*/        
+            for (j = 0; j<ns; j++)
+              MAT2D(i, j, lDiff, ns) = MAT2D(vizNel, j, diff, ns); 
+/*...................................................................*/
+
+/*...*/  
             for (j = 0; j<ndm; j++) 
             {
               MAT2D(i, j, lVel, ndm) = MAT2D(vizNel, j, vel, ndm);
@@ -3553,12 +3557,14 @@ void systFormComb(Loads *loads              , Loads *ldVel
               MAT2D(i, j, lGradPres, ndm) = MAT2D(vizNel, j, gradPres, ndm);
               MAT2D(i, j, lDfield, ndm) = MAT2D(vizNel, j, dField, ndm);
             }
+/*...................................................................*/
 
+/*...*/  
             for (k = 0; k<ndf; k++)
               for (j = 0; j<ndm; j++)
                 MAT3D(i, k, j, lGradU0, ndf, ndm) 
                = MAT3D(vizNel, k, j, gradU0, ndf,ndm);
-
+/*...................................................................*/
             for (j = 0; j<DIFPROP; j++)
               MAT2D(i, j, lProp, MAXPROP) = MAT2D(lMat, j, prop, MAXPROP);
           }

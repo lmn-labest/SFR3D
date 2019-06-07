@@ -695,7 +695,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
        , tolSimpleMass, tolSimpleEnergy;
 /*...*/
   bool xMomentum, yMomentum, zMomentum, pCor, fEnergy, fComb[MAX_COMB];
-  bool relRes;
+  bool relRes = false;
   bool fPrint = false;
   bool fDensity       = propF->fDensity,
     fSheat            = propF->fSpecificHeat,
@@ -751,17 +751,6 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   zero(sistEqPres->b0  ,sistEqPres->neqNov      ,DOUBLEC);
   zero(sistEqEnergy->b0,sistEqEnergy->neqNov    ,DOUBLEC);
   zero(sistEqComb->b0  ,sistEqComb->neqNov*nComb,DOUBLEC)
-/*...................................................................*/
-
-
-/*...*/
-/*rateHeatRealeseCombustion(cModel            , &propF->sHeat                
-                    , mesh->elm.rateHeatReComb, mesh->elm.temp     
-                    , mesh->elm.zComb0        , mesh->elm.zComb
-                    , mesh->elm.densityFluid  , mesh->elm.rateFuel 
-                    , mesh->elm.material.prop , mesh->elm.mat    
-                    , sc->ddt.dt[TIME_N]      , mesh->numelNov
-                    , fSheat                  , eModel->fKelvin );  */
 /*...................................................................*/
 
 /*... restricoes por centro de celula u0 e cargas por volume b0*/

@@ -1546,7 +1546,7 @@ DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel
       ekA    = cModel->leornadJones[kSpecieA][1];
 /*....................................................................*/
 
-      y  = specieDiffusionBinary( mWa, mWi, sA , sI, ekA, ekI, t);
+      y  = specieDiffusionBinary( mWa, mWi, sA , sI, ekA, ekI, tc);
     break;
 /*.....................................................................*/
 
@@ -1568,7 +1568,7 @@ DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel
         ekI    = cModel->leornadJones[j][1];
         if (j != kSpecieA) {
           xA = (cModel->mW[j]*yFrac[j])/mMassMix;
-          y  = specieDiffusionBinary( mWa, mWi, sA , sI, ekA, ekI, t);
+          y  = specieDiffusionBinary( mWa, mWi, sA , sI, ekA, ekI, tc);
           sum1 += xA/y;
         }
       }

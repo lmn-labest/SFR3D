@@ -455,7 +455,7 @@ void getSpeciesPrimitives(Combustion *cModel
           MAT2D(nel,i,y,ns) = MAT2D(nel,i,z,nc);
 ;
         for(i=0,sum=0.e0;i<ns-1;i++)
-          sum+=MAT2D(nel,i,y,ns) ;
+          sum+=MAT2D(nel,i,y,ns);
 
         MAT2D(nel,cModel->sp_N2,y,ns) = 1.e0 - sum;
 
@@ -678,7 +678,8 @@ void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
                       ,dViscosity[nel],df
                       ,tMix           ,cModel->edc.type);
           MAT2D(nel,i,rate,nReac) = omega; 
-
+//        if(nel == 4499 || nel ==5499)
+//          fprintf(fileLogDebug,"%d %.10e %.10e %.10e\n",nel,y[0],y[1],omega);
         }
       }
 /*...................................................................*/
