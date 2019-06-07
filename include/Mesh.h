@@ -108,6 +108,7 @@
     DOUBLE *yFrac0;
     DOUBLE *yFrac;
     DOUBLE *gradZcomb;
+    DOUBLE *gradY;
     DOUBLE *rCellComb; 
     DOUBLE *cDiffComb;
     DOUBLE *rateFuel;

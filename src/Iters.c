@@ -1228,7 +1228,6 @@ void pbicgstab(INT const nEq  ,INT const nAd
 	norm_b   = sqrt(d);
 	conv     = tol*norm_b;
 //breaktol = btol*sqrt(d);
-//printf("%e\n",norm_b);
 /*...................................................................*/
 
 /*... Ax0*/  

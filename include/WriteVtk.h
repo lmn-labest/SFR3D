@@ -180,6 +180,7 @@
           , DOUBLE *eKturb       , DOUBLE *nKturb
           , DOUBLE *eRateFuel    , DOUBLE *nRateFuel
           , DOUBLE *eYfrac       , DOUBLE *nYfrac 
+          , DOUBLE *eGradY       , DOUBLE *nGradY
           , DOUBLE *eHeatRe      , DOUBLE *nHeatRe     
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
           , DOUBLE *eEnthalpyK   , DOUBLE *nEnthalpyK   

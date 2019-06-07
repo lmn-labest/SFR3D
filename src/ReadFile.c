@@ -492,19 +492,23 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
             , nel, "rateHeatCom", _AD_);
     zero(mesh->elm.rateHeatReComb, nel, DOUBLEC);
 
-/*... */
+/*... yFrac*/
     HccaAlloc(DOUBLE, m, mesh->elm.yFrac
             , nel*nSpPri, "yFrac", _AD_);
     zero(mesh->elm.yFrac, nel*nSpPri, DOUBLEC);
-
+/*... yFrac0*/
     HccaAlloc(DOUBLE, m, mesh->elm.yFrac0
             , nel*nSpPri, "yFrac0", _AD_);
     zero(mesh->elm.yFrac0, nel*nSpPri, DOUBLEC);
-
+/*... enthalpy*/
     HccaAlloc(DOUBLE, m, mesh->elm.enthalpyk
             , nel*nSpPri, "enthalpyk", _AD_);
     zero(mesh->elm.enthalpyk, nel*nSpPri, DOUBLEC);
 
+/*... eGradY*/
+    HccaAlloc(DOUBLE, m, mesh->elm.gradY
+      , nel*ndm*nSpPri, "eGradY", _AD_);
+    zero(mesh->elm.gradY, nel*ndm*nSpPri, DOUBLEC);
 
     if (mpiVar.nPrcs < 2)
     {
@@ -3468,7 +3472,7 @@ void setPrint(FileOpt *opt,FILE *file){
                ,"densityd1"    ,"coefdiffd1"  ,"densityt1"       /*27,28,29*/
                ,"coefdifft1"   ,"zcomb"       ,"gradzcomb"       /*30,31,32*/
                ,"ratefuel"     ,"yfrac"       ,"rateheatcomb"    /*33,34,35*/                  
-               ,"coefdiffsp"   ,"enthalpyk"   ,""                /*36,37,38*/
+               ,"coefdiffsp"   ,"enthalpyk"   ,"gradY"           /*36,37,38*/
                ,""             ,""            ,""                /*39,40,41*/
                ,""             ,""            ,""};              /*42,43,44*/
   int tmp;
@@ -3784,6 +3788,14 @@ void setPrint(FileOpt *opt,FILE *file){
     {
       opt->enthalpyk = true;
       if (!mpiVar.myId) fprintf(fileLogExc, format, "print", macro[37]);
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[38]))
+    {
+      opt->gradY = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", macro[38]);
     }
 /*.....................................................................*/
 

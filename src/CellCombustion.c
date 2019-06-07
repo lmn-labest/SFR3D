@@ -107,7 +107,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
                     , const short nEn           , short const nFace
                     , const short ndm           , INT const nel)
 {
-  bool fTime, fRes, fTurb, fWallModel, fLump, fDiffCoor, fN2;
+  bool fTime, fRes, fTurb, fWallModel, fLump, fDiffCoor, fN2, fHarmMed;
   short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf, nCarg1
     , nCarg2, typeTime, iCodPolFace, nComb, nst, i, j, nSp, kSp, nSpLump, nReac;
 /*...*/
@@ -135,7 +135,8 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
   DOUBLE pAdv[NPADV];
 
 /*...*/
-  idCell = nFace;
+  fHarmMed  = false;
+  idCell    = nFace;
   nst = nFace + 1;
   iCodAdv1 = advT->iCod1;
   iCodAdv2 = advT->iCod2;
@@ -271,7 +272,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
       {
         duDksi[i] = (uV[i] - uC[i]) / lModKsi;
 /*... | du1/dx1 du1/dx2 du1/dx3*/
-        gradUv[i][0] = MAT3D(nf, 0, 0, gradU0, nComb, 3);
+        gradUv[i][0] = MAT3D(nf, i, 0, gradU0, nComb, 3);
         gradUv[i][1] = MAT3D(nf, i, 1, gradU0, nComb, 3);
         gradUv[i][2] = MAT3D(nf, i, 2, gradU0, nComb, 3);
       }
@@ -310,15 +311,16 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
       tmp1 = eddyViscosityC /scTsgs;
       for(i=0;i<nComb;i++)
       {
-/*      if (gStep > 58 && nel == 3299)
-        {
-        fprintf(fileLogDebug,"%d %d %d %e %e\n"
-                            ,nel ,vizNel, nf
-                            , diffCeofV[i],densityV);
-        }*/
         diffEffV[i] = diffCeofV[i] + tmp1;
-        diffEff[i] = alpha / diffEffC[i] + alphaMenosUm / diffEffV[i];
-        diffEff[i] = 1.0e0 / diffEff[i];
+/*... media harmonica*/
+        if(fHarmMed)
+        {
+          diffEff[i] = alpha / diffEffC[i] + alphaMenosUm / diffEffV[i];
+          diffEff[i] = 1.0e0 / diffEff[i];
+        }
+/*... media*/ 
+        else
+          diffEff[i] = alphaMenosUm*diffEffC[i] + alpha*diffEffV[i];
 /*... difusao direta*/
         coef[i] = diffEff[i];
         dfd[i] = coef[i] * tmp;
@@ -401,7 +403,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
                     , alphaMenosUm, alpha
                     , pAdv        , ndm
                     , nComb
-                    , iCodAdv1    , iCodAdv2);
+                    , iCodAdv1    , iCodAdv2);  
 /*...................................................................*/
 
 /*...*/

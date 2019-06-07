@@ -82,7 +82,9 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
   void getEnthalpySpecies(Combustion *cModel      ,  PropVarFluid *propF
                       , DOUBLE *RESTRICT enthalpyk, DOUBLE *RESTRICT temp 
                       , INT const numel           , bool const fKelvin);
-
+  void  getGradSpecies(Combustion *cModel   
+                   , DOUBLE *RESTRICT gradZ, DOUBLE *RESTRICT gradY
+                   , INT const numel       , short const ndm);
 /*...*/
   DOUBLE maxArray(DOUBLE *RESTRICT x,INT const n);
   DOUBLE getVolumeMed(DOUBLE *RESTRICT x,DOUBLE *RESTRICT vol

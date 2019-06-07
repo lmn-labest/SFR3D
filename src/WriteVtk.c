@@ -2158,7 +2158,7 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
 
 /********************************************************************** 
  * Data de criacao    : 05/08/2018                                    *
- * Data de modificaco : 23/05/2019                                    * 
+ * Data de modificaco : 06/06/2019                                    * 
  *------------------------------------------------------------------- * 
  * wResVtkCombustion :                                                * 
  * ------------------------------------------------------------------ *
@@ -2204,6 +2204,8 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
  * nRateFuel    -> taxa de consumo do combustivel (node)              *
  * eYfrac       -> fracao massica das especies primitivas (cell)      *
  * nYfrac       -> fracao massica das especies primitivas (node)      *
+ * elGradY      -> campo da grad fra massica das especies primitivas  *
+ * nGradY       -> campo da grad fra massica das especies primitivas  *
  * eMedVel      -> media das velocidades (cell)                       *
  * nMedVel      -> media das velocidades (node)                       *
  * eEntkalpyK   -> entalpia por especies (cell)                       *
@@ -2256,7 +2258,8 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
           , DOUBLE *eWallPar     , DOUBLE *nWallPar
           , DOUBLE *eKturb       , DOUBLE *nKturb
           , DOUBLE *eRateFuel    , DOUBLE *nRateFuel
-          , DOUBLE *eYfrac       , DOUBLE *nYfrac 
+          , DOUBLE *eYfrac       , DOUBLE *nYfrac
+          , DOUBLE *eGradY       , DOUBLE *nGradY 
           , DOUBLE *eHeatRe      , DOUBLE *nHeatRe     
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
           , DOUBLE *eEnthalpyK   , DOUBLE *nEnthalpyK   
@@ -2706,6 +2709,15 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
   {
     strcpy(str,"eEnthalpyK");
     writeVtkProp(&idum,eEnthalpyK,numel,cModel->nOfSpecies,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+  }
+/*...................................................................*/
+
+/*... escreve a zComb*/  
+  if(opt->gradY &&  opt->fCell )
+  {
+    strcpy(str,"eGradY");
+    writeVtkProp(&idum,eGradY,numel,cModel->nOfSpecies*ndm,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
 /*...................................................................*/

@@ -246,43 +246,44 @@
 /*...................................................................*/
 
 /*...*/
-  void systFormEnergy(Loads *loads             , Loads *ldVel
-               , Advection *adv                , Diffusion *diff
-               , Turbulence *tModel            , EnergyModel *eModel
-               , Combustion *cMode             , PropVarFluid *vProp           
-               , INT    *RESTRICT el           , INT    *RESTRICT nelcon
-               , short  *RESTRICT nen          , short  *RESTRICT nFace
-               , INT *RESTRICT cellFace        , INT *RESTRICT fOwner
-               , DOUBLE *RESTRICT gVolume      , DOUBLE *RESTRICT gDcca
-               , DOUBLE *RESTRICT gXmCc        , DOUBLE *RESTRICT gCc
-               , DOUBLE *RESTRICT fModKsi      , DOUBLE *RESTRICT fKsi
-               , DOUBLE *RESTRICT fEta         , DOUBLE *RESTRICT fArea
-               , DOUBLE *RESTRICT fNormal      , DOUBLE *RESTRICT fXm
-               , DOUBLE *RESTRICT fModvSkew    , DOUBLE *RESTRICT fvSkew
-               , short  *RESTRICT geomType     , DOUBLE *RESTRICT prop
-               , short  *RESTRICT calType      , short  *RESTRICT mat
-               , DOUBLE *RESTRICT rateFuel
-               , INT    *RESTRICT ia           , INT    *RESTRICT ja
-               , DOUBLE *RESTRICT a            , DOUBLE *RESTRICT ad
-               , DOUBLE *RESTRICT b            , INT    *RESTRICT id
-               , short  *RESTRICT faceR        , short  *RESTRICT faceL
-               , short  *RESTRICT faceVelR     , short  *RESTRICT faceVelL
-               , DOUBLE *RESTRICT u0           , DOUBLE *RESTRICT gradU0
-               , DOUBLE *RESTRICT vel          , DOUBLE *RESTRICT gradVel
-               , DOUBLE *RESTRICT pres0        , DOUBLE *RESTRICT pres
-               , DOUBLE *RESTRICT gradPres     , DOUBLE *RESTRICT rCell
-               , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT sHeat
-               , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT eddyViscosity
-               , DOUBLE *RESTRICT tConductivity, DOUBLE *RESTRICT dField
-               , DOUBLE *RESTRICT wallPar
-               , Temporal ddt                  , DOUBLE underU
-               , INT nEq                       , INT nEqNov
-               , INT nAd                       , INT nAdR
-               , short maxNo                   , short maxViz
-               , short ndm                     , INT numel
-               , short ndf                     , short storage
-               , bool forces                   , bool matrix
-               , bool calRcell                 , bool unsym);
+void systFormEnergy(Loads *loads       , Loads *ldVel  
+       , Advection *adv                , Diffusion *diff 
+       , Turbulence *tModel            , EnergyModel *eModel 
+       , Combustion *cModel            , PropVarFluid *vProp           
+       , INT    *RESTRICT el           , INT    *RESTRICT nelcon
+       , short  *RESTRICT nen          , short  *RESTRICT nFace
+       , INT *RESTRICT cellFace        , INT *RESTRICT fOwner
+       , DOUBLE *RESTRICT gVolume      , DOUBLE *RESTRICT gDcca
+       , DOUBLE *RESTRICT gXmCc        , DOUBLE *RESTRICT gCc
+       , DOUBLE *RESTRICT fModKsi      , DOUBLE *RESTRICT fKsi
+       , DOUBLE *RESTRICT fEta         , DOUBLE *RESTRICT fArea
+       , DOUBLE *RESTRICT fNormal      , DOUBLE *RESTRICT fXm
+       , DOUBLE *RESTRICT fModvSkew    , DOUBLE *RESTRICT fvSkew
+       , short  *RESTRICT geomType     , DOUBLE *RESTRICT prop
+       , short  *RESTRICT calType      , short  *RESTRICT mat
+       , INT    *RESTRICT ia           , INT    *RESTRICT ja
+       , DOUBLE *RESTRICT a            , DOUBLE *RESTRICT ad
+       , DOUBLE *RESTRICT b            , INT    *RESTRICT id
+       , short  *RESTRICT faceR        , short  *RESTRICT faceL
+       , short  *RESTRICT faceVelR     , short  *RESTRICT faceVelL
+       , DOUBLE *RESTRICT u0           , DOUBLE *RESTRICT gradU0
+       , DOUBLE *RESTRICT vel          , DOUBLE *RESTRICT gradVel
+       , DOUBLE *RESTRICT pres0        , DOUBLE *RESTRICT pres 
+       , DOUBLE *RESTRICT gradPres     , DOUBLE *RESTRICT rCell
+       , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT sHeat
+       , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT eddyViscosity
+       , DOUBLE *RESTRICT tConductivity
+       , DOUBLE *RESTRICT enthalpyk    , DOUBLE *RESTRICT gradY 
+       , DOUBLE *RESTRICT diffY        , DOUBLE *RESTRICT rateHeatComb 
+       , DOUBLE *RESTRICT dField       , DOUBLE *RESTRICT wallPar
+       , Temporal ddt                  , DOUBLE underU
+       , INT nEq                       , INT nEqNov
+       , INT nAd                       , INT nAdR
+       , short maxNo                   , short maxViz
+       , short ndm                     , INT numel
+       , short ndf                     , short storage
+       , bool forces                   , bool matrix
+       , bool calRcell                 , bool unsym);
 /*...................................................................*/
 
 /*...*/

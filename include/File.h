@@ -69,6 +69,7 @@
     bool yFrac;
     bool rateHeatComb; 
     bool enthalpyk;
+    bool gradY;
     bool bconditions;    /*insere as condicoes de contorno nos valores nodais*/
     bool cc;             /*centro geomentrico da celula*/       
     bool pKelvin;        /*plot em kelvin*/  

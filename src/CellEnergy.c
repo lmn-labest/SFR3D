@@ -511,7 +511,7 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
 
 /********************************************************************
  * Data de criacao    : 03/10/2017                                   *
- * Data de modificaco : 04/06/2019                                   *
+ * Data de modificaco : 05/06/2019                                   *
  *-------------------------------------------------------------------*
  * CELLENERGY3D: Celula 3D para transporte                           *
  *-------------------------------------------------------------------*
@@ -546,10 +546,6 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
  * lB        -> nao definido                                         *
  * dcca      -> menor distancia do centroide central a faces desta   *
  *              celula                                               *
- * lDensity  -> massa especifica com variacao temporal               *
- * lSheat    -> calor especifico com variacao temporal               *
- * lDviscosity-> viscosidade dinamica com variacao temporal          *
- * lTconductivity-> condutividade termica com variacao temporal      *
  * dField    -> matriz D do metodo simple                            *
  * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  *
  * lRcell    -> nao definido                                         *
@@ -562,8 +558,15 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
  * gradVel   -> gradiente rescontruido da velocidade                 *
  * pres      -> pressao do tempo atual e do tempo anterior           *
  * gradPres  -> gradiente de pressao do tempo atual                  *
+ * lDensity  -> massa especifica com variacao temporal               *
+ * lSheat    -> calor especifico com variacao temporal               *
+ * lDviscosity-> viscosidade dinamica com variacao temporal          *
+ * lTconductivity-> condutividade termica com variacao temporal      *
+ * lEnthalpyk -> Entalpia das especies                               *
+ * lGradY    -> gradiente das especies                               *
+ * diffY     -> coeficiente de difusao massica por especies          *
+ * rateHeat  -> energia liberada pela combustao (KJ/s )              *
  * cc        -> centroides da celula centra e seus vizinhos          *
- * rateHeatC -> energia liberada pela combustao (KJ/s )              *
  * underU    -> parametro de sob relaxamento                         *
  * fSheat    -> calor especifico com variacao com a Temperatura      *
  * nEn       -> numero de nos da celula central                      *
@@ -601,8 +604,10 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
                 , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres
                 , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lSheat
                 , DOUBLE *RESTRICT lViscosity, DOUBLE *RESTRICT lTconductivity
+                , DOUBLE *RESTRICT enthalpyk , DOUBLE *RESTRICT gradY 
+                , DOUBLE *RESTRICT diffY     , DOUBLE const rateHeat  
                 , DOUBLE *RESTRICT dField    , DOUBLE *RESTRICT wallPar
-                , DOUBLE const rateHeatC     , DOUBLE const underU
+                , DOUBLE const underU
                 , const short nEn            , short const nFace
                 , const short ndm            , INT const nel)
 {
@@ -616,7 +621,8 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
   DOUBLE thermCoefC, thermCoefV, densityC, densityV, densityM,
     diffEffC, diffEffV, diffEff, sHeatC, sHeatV, sHeatM,
     eddyViscosityC, eddyViscosityV, viscosityC,
-    hskV,hskC,hsk, gradYC[3],gradYV[3], dC,dV, tA, coef,
+    hskV,hskC[MAXSPECIES],hsk, gradYC[MAXSPECIES][3],gradYV[3], 
+    diffYC[MAXSPECIES], dV, tA, coef,
     tmp, tmp1, tmp2, tmp3, prTwall, prTsgs;
   DOUBLE p, sP, dfd, gfKsi, lvSkew[3], alpha, alphaMenosUm;
   DOUBLE v[3], gradUcomp[3], lKsi[3], lNormal[3], gf[3];
@@ -663,7 +669,7 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
   fSheat    = vProp->fSpecificHeat;
   fComb     = cModel->fCombustion;
   ns        = cModel->nOfSpecies;
-  fEntalpy  = true;
+  fEntalpy  = false;
 /*...................................................................*/
 
 /*... propriedades da celula*/
@@ -673,7 +679,21 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
   thermCoefC = lTconductivity[idCell];
   viscosityC = MAT2D(idCell, 0, lViscosity, 2);
   if (fTurb) eddyViscosityC = MAT2D(idCell, 1, lViscosity, 2);
-  lambda = -D2DIV3 * (viscosityC + eddyViscosityC);
+  lambda = -D2DIV3 * (viscosityC + eddyViscosityC); 
+  if(fEntalpy)
+  {
+    for(k=0;k<ns;k++)
+    {
+/*... propriedades da celula*/
+      diffYC[k] = MAT2D(idCell, k, diffY, ns);
+/*...*/
+      gradYC[k][0] = MAT3D(idCell, k, 0, gradY, ns, 3);
+      gradYC[k][1] = MAT3D(idCell, k, 1, gradY, ns, 3);
+      gradYC[k][2] = MAT3D(idCell, k, 2, gradY, ns, 3);
+/*...*/
+      hskC[k] = MAT2D(idCell, k, enthalpyk, ns);
+    }
+  }
 /*...................................................................*/
 
 /*...*/
@@ -869,40 +889,55 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
 /*...................................................................*/
 
 /*...*/
-//    tmp1 =  densityM*lFarea;
-//    if(fEntalpy)
-//    {
-//      for(k=0,tmp3=0.e0;k<ns;k++)
-//      {
-//        gradYC[0] = MAT2D(idCell, 0, gradY, 3);
-//        gradYC[1] = MAT2D(idCell, 1, gradY, 3);
-//        gradYC[2] = MAT2D(idCell, 2, gradY, 3); 
+      tmp1 =  densityM*lFarea;
+      if(fEntalpy)
+      {
+        for(k=0,tmp3=0.e0;k<ns;k++)
+        {
 /*...*/
-//        gradYV[0] = MAT2D(nf    , 0, gradY, 3);
-//        gradYV[1] = MAT2D(nf    , 1, gradY, 3);
-//        gradYV[2] = MAT2D(nf    , 2, gradY, 3);
+          gradYV[0] = MAT3D(nf    ,k, 0, gradY, ns ,3);
+          gradYV[1] = MAT3D(nf    ,k, 1, gradY, ns ,3);
+          gradYV[2] = MAT3D(nf    ,k, 2, gradY, ns ,3);
 /*...*/
-//        dC        = MAT2D(idCell, k, lDiff, ns);
-//        dV        = MAT2D(nf    , k, lDiff, ns);
+          dV        = MAT2D(nf    , k, diffY, ns);
 /*...*/
-//        hskC      = MAT2D(idCell, k, hT   , ns);
-//        hskV      = MAT2D(n     , k, hT   , ns);
-//        hsk       =  alphaMenosUm*hskC*dC + alpha*hskV*dV ;
+          hskV      = MAT2D(nf    , k, enthalpyk, ns);
+          hsk       = alphaMenosUm*hskC[k]*diffYC[k] + alpha*hskV*dV;
 /*...*/
-//        tmp2      = alphaMenosUm*gradYC[0]*lNormal[0] 
-//                  + alphaMenosUm*gradYC[1]*lNormal[1] 
-//                  + alphaMenosUm*gradYC[2]*lNormal[2] 
-//                  + alpha*gradYV[0]*lNormal[0] 
-//                  + alpha*gradYV[2]*lNormal[1] 
-//                  + alpha*gradYV[1]*lNormal[2];
-//        tmp3 += hsk*tmp2; 
-//      }
-//      p+=tmp1*tmp3;
-//    }
+          tmp2      = alphaMenosUm*gradYC[k][0]*lNormal[0] 
+                    + alphaMenosUm*gradYC[k][1]*lNormal[1] 
+                    + alphaMenosUm*gradYC[k][2]*lNormal[2] 
+                    + alpha*gradYV[0]*lNormal[0] 
+                    + alpha*gradYV[1]*lNormal[1] 
+                    + alpha*gradYV[2]*lNormal[2];
+          tmp3 += hsk*tmp2; 
+        }
+        p+=tmp1*tmp3;
+      }
 /*...................................................................*/
     }
 /*... contorno*/
     else {
+
+/*...*/
+      tmp1 =  densityC*lFarea;
+      if(fEntalpy)
+      {
+        for(k=0,tmp3=0.e0;k<ns;k++)
+        {     
+/*...*/
+          hsk       = hskC[k]*diffYC[k];
+/*...*/
+          tmp2      = gradYC[k][0]*lNormal[0] 
+                    + gradYC[k][1]*lNormal[1] 
+                    + gradYC[k][2]*lNormal[2]; 
+          tmp3 += hsk*tmp2; 
+        }
+       p+=tmp1*tmp3;
+      }
+/*...................................................................*/
+
+/*...*/
       lA[nf] = 0.e0;
       if (lFaceR[nf]) {
         wfn = velC[0] * lNormal[0]
@@ -1012,7 +1047,7 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
 
 /*...*/
   if(fComb)
-    p += rateHeatC*volume[idCell];
+    p += rateHeat*volume[idCell];
 /*.....................................................................*/
 
 /*... distretizacao temporal*/
@@ -1073,6 +1108,6 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
     lB[0] = p;
 /*...*/
   lRcell[0] = rCell;
-/*...................................................................*/
+/*...................................................................*/  
 }
 /*********************************************************************/

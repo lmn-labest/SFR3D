@@ -4,7 +4,7 @@
   #include<HccaStdBool.h>
   #include<Define.h>
 
-  DOUBLE gStep;
+  INT gStep;
 
 /*...*/
   typedef struct{

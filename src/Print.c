@@ -475,7 +475,7 @@ void printFluid(Memoria *m
 
 /********************************************************************* 
  * Data de criacao    : 05/08/2018                                   *
- * Data de modificaco : 15/05/2019                                   *
+ * Data de modificaco : 06/06/2019                                   *
  *-------------------------------------------------------------------*
  * printCombustion: impressao do fluido                              * 
  *-------------------------------------------------------------------* 
@@ -514,7 +514,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
   DOUBLE *nStressR=NULL,*nEddyV=NULL,*nDvisc=NULL,*nDenFluid=NULL;
   DOUBLE *nMedVel=NULL,*nP2Vel=NULL,*nMedP2Vel=NULL;
   DOUBLE *nCdyn=NULL,*nWall=NULL,*nKturb=NULL,*nRateFuel=NULL;
-  DOUBLE *nYfrac=NULL,*nRaHeReComb=NULL,*nEnthalpyK=NULL;
+  DOUBLE *nYfrac=NULL,*nRaHeReComb=NULL,*nEnthalpyK=NULL,*nGradY=NULL;
   FILE *fileOut=NULL;
 
 /*...*/
@@ -689,12 +689,12 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , opt->bconditions  , 2);
 /*...................................................................*/
 
-/*... calculo da matrix jacobiana das velocidades
+/*... calculo da matrix jacobiana gradZcomb
                             | dz1dx1 du1dx2 dz1dx3 |   
                             | dz2dx1 du2dx2 dz2dx3 |   
                             | dz3dx1 dz3dx2 dz3dx3 |
 */        
-    rcGradU(m                    , loadsComb
+/*  rcGradU(m                    , loadsComb
         , mesh->elm.node         , mesh->elm.adj.nelcon
         , mesh->node.x           
         , mesh->elm.nen          , mesh->elm.adj.nViz
@@ -715,10 +715,10 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
         , nComb                  , mesh->ndm              
         , &pMesh->iNo            , &pMesh->iEl
         , mesh->numelNov         , mesh->numel
-        , mesh->nnodeNov         , mesh->nnode);   
+        , mesh->nnodeNov         , mesh->nnode);   */
 /*...................................................................*/
 
-/*... interpolacao das variaveis da celulas para pos nos (gradVel)*/
+/*... interpolacao das variaveis da celulas para pos nos (gradZComb)*/
   interCellNode(m                      , loadsComb
                , mesh->elm.cellFace    , mesh->face.owner
                , mesh->node.gradZcomb  , mesh->elm.gradZcomb  
@@ -1062,6 +1062,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh0->elm.kTurb         , nKturb
                , mesh0->elm.rateFuel      , nRateFuel
                , mesh0->elm.yFrac         , nYfrac
+               , mesh0->elm.gradY         , nGradY 
                , mesh0->elm.rateHeatReComb, nRaHeReComb
                , media->mVel              , nMedVel 
                , mesh0->elm.enthalpyk     , nEnthalpyK

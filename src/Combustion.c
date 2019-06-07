@@ -66,7 +66,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                   , eModel->fKelvin );    
 /*...................................................................*/
 
-/*... reconstruindo do gradiente (Fuel)*/
+/*... reconstruindo do gradiente (gradZ)*/
   tm.rcGradComb   = getTimeC() - tm.rcGradComb;
   rcGradU(m                      , loadsComb
         , mesh->elm.node         , mesh->elm.adj.nelcon
@@ -208,6 +208,12 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*...*/
+   getGradSpecies(cModel    
+                , mesh->elm.gradZcomb, mesh->elm.gradY
+                , mesh->numel        , mesh->ndm);
+/*...................................................................*/
+
+/*...*/
   rateHeatRealeseCombustion(cModel            , &prop->sHeat                
                     , mesh->elm.rateHeatReComb, mesh->elm.temp     
                     , mesh->elm.zComb0        , mesh->elm.zComb
@@ -305,6 +311,64 @@ void getEnthalpySpecies(Combustion *cModel        ,  PropVarFluid *propF
     }
   }
 
+}
+/*********************************************************************/
+
+
+/*********************************************************************
+ * Data de criacao    : 05/06/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * getGradSpecies : obetem o gradiente te todas das especies         *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * cModel       -> fracao massica                                    *
+ * gradZ        -> gradiente das especie resolvidas explicitamente   *
+ * numel        -> numero de celulas                                 *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * gradZ        -> gradiente das especie resolvidas explicitamente   *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void  getGradSpecies(Combustion *cModel   
+                   , DOUBLE *RESTRICT gradZ, DOUBLE *RESTRICT gradY
+                   , INT const numel       , short const ndm)
+{
+  short j,k,ns=cModel->nOfSpecies,nc=cModel->nComb;
+  INT nel;
+
+  if(ns!=nc)
+  {
+    for(nel = 0 ; nel < numel; nel++)
+    {
+
+      for(k=0;k<ndm;k++)
+      {
+        MAT3D(nel,ns-1,k,gradY,ns,ndm) = 0.e0;
+        for(j=0;j<nc;j++)
+        {
+          MAT3D(nel,j,k,gradY,ns,ndm) = MAT3D(nel,j,k,gradZ,nc,ndm);
+/*... grad(ZN) = - sum(gradZ)*/
+          MAT3D(nel,ns-1,k,gradY,ns,ndm) -= MAT3D(nel,j,k,gradZ,nc,ndm);
+        }
+      }
+    }
+  }
+  else
+  {
+   for(nel = 0 ; nel < numel; nel++)
+     for(j=0;j<ns;j++)
+       for(k=0;k<ndm;k++)
+      {
+        MAT3D(nel,j,k,gradY,ns,ndm) = MAT3D(nel,j,k,gradZ,nc,ndm); 
+      }
+
+//  fprintf(fileLogDebug,"A %.15e %.15e\n",gradY[0],gradZ[0]);
+  }
 }
 /*********************************************************************/
 

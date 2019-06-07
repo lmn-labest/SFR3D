@@ -108,7 +108,7 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
 
 /*********************************************************************
 * Data de criacao    : 22/08/2017                                   *
-* Data de modificaco : 15/08/2018                                   *
+* Data de modificaco : 05/06/2019                                   *
 *-------------------------------------------------------------------*
 * CELLLIBENERGY: chamada de bibliotecas de celulas para             *
 * problema de escoamento de fluidos (Energy)                        *
@@ -158,9 +158,11 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
 * lSheat    -> calor especifico com variacao temporal               *
 * lDviscosity-> viscosidade dinamica com variacao temporal          *
 * ltConductvity -> condutividade termica com variacao temporal      *
+* lEnthalpyk -> Entalpia das especies                               *
+* lGradY    -> gradiente das especies                               *
+* rateHeat  -> taxa de liberacao de energia por reacao quimica      *
 * dField    -> matriz D do metodo simple                            * 
 * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
-* rateFuel  -> taxa de consumo de combustivel                       *
 * underU    -> fator underrelaxtion sinple                          *
 * nEn       -> numero de nos da celula central                      *
 * nFace     -> numero de faces da celula central                    *
@@ -195,8 +197,10 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
      , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres  
      , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lSheat
      , DOUBLE *RESTRICT lDviscosity, DOUBLE *RESTRICT lTconductvity
+     , DOUBLE *RESTRICT lEnthalpyk , DOUBLE *RESTRICT lGradY 
+     , DOUBLE *RESTRICT lDiffY     , DOUBLE const lRateHeat  
      , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT wallPar
-     , DOUBLE const rateFuel       , DOUBLE const underU           
+     , DOUBLE const underU           
      , short const nEn             , short  const nFace
      , short const ndm             , short const lib
      , INT const nel)
@@ -256,8 +260,10 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
                  , pres       , gradPres  
                  , lDensity   , lSheat
                  , lDviscosity, lTconductvity
+                 , lEnthalpyk , lGradY           
+                 , lDiffY     , lRateHeat
                  , dField     , wallPar
-                 , rateFuel   , underU       
+                 , underU       
                  , nEn        , nFace
                  , ndm        , nel);    
 /*..................................................................*/
@@ -6065,7 +6071,7 @@ void advectiveSchemeNdim(DOUBLE *RESTRICT uC ,DOUBLE *RESTRICT uV
 /*...*/
     for(i=0;i<ndf;i++)
     {
-      cvc[i] = deferredCd(uC[0], uV[0], wfn);
+      cvc[i] = deferredCd(uC[i], uV[i], wfn);
 
 /*... interpolacao undirecional*/
 /*    cvc[i] -= MAT2D(i,0,gradVelComp,3)*vSkew[0]
@@ -6082,10 +6088,10 @@ void advectiveSchemeNdim(DOUBLE *RESTRICT uC ,DOUBLE *RESTRICT uV
   case SOUP:
 /*...*/
     for(i=0;i<ndf;i++)
-      cvc[i] = upwindLinearV1(uC[0]    ,uV[0]
-                             ,gradUc   ,gradUv
-                             ,rC         ,rV 
-                             ,wfn        ,ndm);   
+      cvc[i] = upwindLinearV1(uC[i]         , uV[i]
+                             ,&gradUc[i*ndm],&gradUv[i*ndm]
+                             ,rC            ,rV 
+                             ,wfn           ,ndm);   
 
 /*...................................................................*/
   break;
@@ -6096,11 +6102,11 @@ void advectiveSchemeNdim(DOUBLE *RESTRICT uC ,DOUBLE *RESTRICT uV
 /*...*/
     for(i=0;i<ndf;i++)
     {
-      cvc[i] = faceBaseTvdV1(uC[i]      ,uV[i]
-                           ,&gradUc[i] ,&gradUv[i]
-                            ,ksi          ,modKsi
+      cvc[i] = faceBaseTvdV1(uC[i]         ,uV[i]
+                           ,&gradUc[i*ndm] ,&gradUv[i*ndm]
+                            ,ksi           ,modKsi
                             ,wfn 
-                            ,iCod2        ,ndm);
+                            ,iCod2         ,ndm);
 /*... interpolacao undirecional*/
 /*    for(j=0,tmp = 0.e0;j<ndm;j++)
         tmp += MAT2D(i,j,gradUComp,ndm)*vSkew[j];
@@ -6115,8 +6121,8 @@ void advectiveSchemeNdim(DOUBLE *RESTRICT uC ,DOUBLE *RESTRICT uV
 /*...*/
     for(i=0;i<ndf;i++)
     {
-      cvc[i] = faceBaseNvd(uC[i]     , uV[i]
-                          ,&gradUc[i], &gradUv[i]
+      cvc[i] = faceBaseNvd(uC[i]          , uV[i]
+                          ,&gradUc[i*ndm] ,&gradUv[i*ndm]
                           ,ksi, modKsi
                           ,wfn
                           ,iCod2, ndm);
@@ -6134,12 +6140,12 @@ void advectiveSchemeNdim(DOUBLE *RESTRICT uC ,DOUBLE *RESTRICT uV
   case LUST:
 /*...*/
     for(i=0;i<ndf;i++)
-      cvc[i] = deferredLust(uC[i]        ,uV[i]
-                            ,&gradUc[i]  ,&gradUv[i]
-                            ,rC          ,rV  
-                            ,alphaMenosUm,alpha   
+      cvc[i] = deferredLust(uC[i]            ,uV[i]
+                            ,&gradUc[i*ndm]  ,&gradUv[i*ndm]
+                            ,rC              ,rV  
+                            ,alphaMenosUm    ,alpha   
                             ,parameters[0]   
-                            ,wfn         ,ndm);  
+                            ,wfn             ,ndm);  
 /*...................................................................*/
 
   break;

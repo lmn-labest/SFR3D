@@ -73,7 +73,6 @@ bool energyEquation(Memoria *m               , PropVarFluid *prop
             , mesh->face.mvSkew       , mesh->face.vSkew
             , mesh->elm.geomType      , mesh->elm.material.prop
             , mesh->elm.material.type , mesh->elm.mat
-            , mesh->elm.rateHeatReComb
             , sistEqEnergy->ia        , sistEqEnergy->ja
             , sistEqEnergy->al        , sistEqEnergy->ad
             , sistEqEnergy->b         , sistEqEnergy->id
@@ -85,8 +84,10 @@ bool energyEquation(Memoria *m               , PropVarFluid *prop
             , mesh->elm.gradPres      , mesh->elm.rCellEnergy 
             , mesh->elm.densityFluid  , mesh->elm.specificHeat
             , mesh->elm.dViscosity    , mesh->elm.eddyViscosity 
-            , mesh->elm.tConductivity , sp->d
-            , mesh->elm.wallParameters
+            , mesh->elm.tConductivity
+            , mesh->elm.enthalpyk     , mesh->elm.gradY          
+            , mesh->elm.cDiffComb     , mesh->elm.rateHeatReComb
+            , sp->d                   , mesh->elm.wallParameters
             , sc->ddt                 , sp->alphaEnergy
             , sistEqEnergy->neq       , sistEqEnergy->neqNov
             , sistEqEnergy->nad       , sistEqEnergy->nadr

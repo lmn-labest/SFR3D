@@ -202,15 +202,15 @@ void nasaPolRange(PolNasa *a      , DOUBLE const x
     {
       if( x < a->range[0][0])
       { 
-//      *xNew = a->range[0][0]; 
+        *xNew = a->range[0][0]; 
         *c    = a->a2[0];
       }
       if( a->range[1][1] < x)
       {
-//      *xNew = a->range[1][1]; 
+        *xNew = a->range[1][1]; 
         *c    = a->a2[1]; 
       }
-//  printf("NasaPol fora do limites %lf!!\n",x);
+      fprintf(fileLogDebug,"NasaPol fora do limites %lf!!\n",x);
     }
 /*..................................................................*/
   }
@@ -228,15 +228,15 @@ void nasaPolRange(PolNasa *a      , DOUBLE const x
     {
       if( x < a->range[0][0])
       { 
-//      *xNew = a->range[0][0]; 
+        *xNew = a->range[0][0]; 
         *c    = a->a1[0];
       }
       if( a->range[1][1] < x)
       {
-//      *xNew = a->range[1][1]; 
+        *xNew = a->range[1][1]; 
         *c    = a->a1[1]; 
       }
-//  printf("NasaPol fora do limites %lf!!\n",x);
+      fprintf(fileLogDebug,"NasaPol fora do limites %lf!!\n",x);
     }
 /*..................................................................*/
   }
@@ -739,7 +739,7 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
   for(i=0;i<kk;i++)
   {
     fprintf(fileAux,"%s\n",species[i]);
-    for (j = 0, g =200.0; j < 40; j++) 
+    for (j = 0, g =300.0; j < 50; j++) 
     {
       switch(prop->type)
       {
@@ -1570,11 +1570,6 @@ DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel
           xA = (cModel->mW[j]*yFrac[j])/mMassMix;
           y  = specieDiffusionBinary( mWa, mWi, sA , sI, ekA, ekI, t);
           sum1 += xA/y;
-          if (gStep > 58 && nEl == 3199)
-          {
-            fprintf(fileLogDebug,"update %d %d %e %e %e\n",kSpecieA,j
-                                                          ,y,tc,t);
-          } 
         }
       }
 /*....................................................................*/

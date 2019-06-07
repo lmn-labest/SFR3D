@@ -714,9 +714,9 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   time = getTimeC();
 
 /*...*/
-  relRes       = true;
+//relRes       = true;
   typeResidual = RSQRT;
-//typeResidual = RSCALEDSUM;
+  typeResidual = RSCALEDSUM;
 //typeResidual = RSCALEDSUMMAX;
 
 /*...*/
@@ -952,7 +952,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                            , mesh          
                            , sistEqEnergy, solvEnergy
                            , sp          , sc
-                           , pMesh);       
+                           , pMesh);      
 /*...................................................................*/
     
 /*... residual*/
