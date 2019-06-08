@@ -52,7 +52,7 @@ double getTimeC(void){
 
 /**********************************************************************
  * Data de criacao    : 03/12/2017                                    *
- * Data de modificaco : 17/01/2018                                    *
+ * Data de modificaco : 08/06/2019                                    *
  * -------------------------------------------------------------------*
  * initTime : inicializacao da variaveis de tempo                     *
  * -------------------------------------------------------------------*
@@ -91,21 +91,38 @@ void initTime(Time *tm) {
   tm->rcGradT1          = 0.e0;
   tm->solvEdpT1         = 0.e0;
 /*... fluid*/
-  tm->solvPres           = 0.e0;
-  tm->solvVel            = 0.e0;
-  tm->numeqPres          = 0.e0;
-  tm->numeqVel           = 0.e0;
-  tm->dataStructVel      = 0.e0;
-  tm->dataStructPres     = 0.e0;
-  tm->dataStructComb     = 0.e0; 
-  tm->solvEdpFluid       = 0.e0;
-  tm->cellPloadSimple    = 0.e0;
-  tm->cellTransientSimple= 0.e0;
-  tm->systFormPres       = 0.e0;
-  tm->systFormVel        = 0.e0;
-  tm->velExp             = 0.e0;
-  tm->rcGradPres         = 0.e0;
-  tm->rcGradVel          = 0.e0;
+  tm->solvPres            = 0.e0;
+  tm->solvVel             = 0.e0;
+  tm->solvEnergy          = 0.e0;
+  tm->numeqPres           = 0.e0;
+  tm->numeqVel            = 0.e0;
+  tm->numeqEnergy         = 0.e0;
+  tm->dataStructVel       = 0.e0;
+  tm->dataStructPres      = 0.e0;
+  tm->dataStructEnergy    = 0.e0;
+  tm->solvEdpFluid        = 0.e0;
+  tm->cellPloadSimple     = 0.e0;
+  tm->cellTransientSimple = 0.e0; 
+  tm->systFormPres        = 0.e0;
+  tm->systFormVel         = 0.e0;
+  tm->systFormEnergy      = 0.e0;
+  tm->velExp              = 0.e0;
+  tm->rcGradPres          = 0.e0;
+  tm->rcGradVel           = 0.e0;
+  tm->rcGradEnergy        = 0.e0;
+  tm->updateProp          = 0.e0;
+  tm->residualSimple      = 0.e0;
+/*... Combustion*/
+  tm->tempFromTheEnergy  = 0.e0;
+  tm->solvComb           = 0.e0;
+  tm->numeqComb          = 0.e0;
+  tm->dataStructComb     = 0.e0;
+  tm->systFormComb       = 0.e0;
+  tm->rcGradComb         = 0.e0;
+  tm->fuelConsume        = 0.e0;
+  tm->heatRelease        = 0.e0;
+  tm->speciesLoop        = 0.e0;
+  tm->enthalpySpecies    = 0.e0;
 
 /*... Blas*/
   tm->matVecOverHeadMpi = 0.e0;
@@ -130,7 +147,7 @@ void initTime(Time *tm) {
   tm->overHeadGNodMpi   = 0.e0;
   tm->overHeadTotalMpi  = 0.e0;
 /*...*/
-  tm->tempForEnergy     = 0.e0;
+
 /*...*/
   tm->turbulence        = 0.e0;
 /*... precondicionador*/

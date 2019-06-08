@@ -1712,7 +1712,7 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol
 {
   INT i;
   bool flag = false;
-  DOUBLE f,fl,t,conv,tol=1e-03;
+  DOUBLE f,fl,t,conv,tol=1e-04;
  
 /*...*/
   if(fSheat)
@@ -1720,7 +1720,6 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol
 /*... chute inicial usando a massa espeficia constante*/
 
     t = 0.5e0*(TREF + ENTHALPY_FOR_TEMP(sHeatRef,hs,TREF))+tol;
-    if(t > 4000.0) t = 4000.0;
  
 /*...*/
     conv = tol*(hs-tempForSpecificEnthalpyMix(sHeatPol,yFrac

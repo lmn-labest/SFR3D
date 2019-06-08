@@ -850,7 +850,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;
 
 /*...*/
-    tm.cellTransientComb = getTimeC() - tm.cellTransientComb;
+    tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;
 /*... zComb*/
     cellTransientSimple(mesh->elm.geom.volume , sistEqComb->id
                       , mesh->elm.zComb0      , mesh->elm.zComb
@@ -869,7 +869,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     alphaProdVector(1.e0             , mesh->elm.yFrac
                   , mesh->numel*nComb, mesh->elm.yFrac0);
 /*...................................................................*/
-    tm.cellTransientComb = getTimeC() - tm.cellTransientComb;
+    tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;
   }
 /*...................................................................*/
 
@@ -945,6 +945,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
     
 /*... residual*/
+    tm.residualSimple = getTimeC() - tm.residualSimple;
     residualCombustion(mesh->elm.vel      ,mesh->elm.energy
             ,mesh->elm.zComb
             ,mesh->elm.rCellVel           ,rCellPc
@@ -959,10 +960,11 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
             ,sistEqComb->neqNov
             ,mesh->ndm                    ,nComb       
             ,typeResidual ); 
+    tm.residualSimple = getTimeC() - tm.residualSimple;
 /*...................................................................*/
 
 /*...*/
-    tm.tempForEnergy = getTimeC() - tm.tempForEnergy;
+    tm.tempFromTheEnergy = getTimeC() - tm.tempFromTheEnergy;
     getTempForEnergyMix(&propF->sHeat          ,mesh->elm.yFrac
                        ,mesh->elm.temp         ,mesh->elm.energy
                        ,mesh->elm.material.prop,mesh->elm.mat                    
@@ -970,7 +972,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                        ,eModel->fTemperature   ,fSheat           
                        ,eModel->fKelvin
                        ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);  
-    tm.tempForEnergy = getTimeC() - tm.tempForEnergy;
+    tm.tempFromTheEnergy = getTimeC() - tm.tempFromTheEnergy;
 /*...................................................................*/
 
 /*... pressa de referencia*/
@@ -983,6 +985,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
+    tm.updateProp = getTimeC() - tm.updateProp;
     if(fDensity)
       updateMixDensity(&propF->den         , cModel
                  , mesh->elm.temp           , mesh->elm.pressure
@@ -1011,7 +1014,8 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                        ,mesh->elm.temp     , mesh->elm.yFrac
                        ,mesh->elm.cDiffComb, cModel->nOfSpecies 
                        ,cModel->nComb       
-                       ,eModel->fKelvin    , mesh->numel);    
+                       ,eModel->fKelvin    , mesh->numel); 
+    tm.updateProp = getTimeC() - tm.updateProp;   
 /*...................................................................*/
 
 /*...*/
@@ -1495,14 +1499,14 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
-    tm.tempForEnergy = getTimeC() - tm.tempForEnergy;
+    tm.tempFromTheEnergy = getTimeC() - tm.tempFromTheEnergy;
     getTempForEnergy(&propF->sHeat
       , mesh->elm.temp, mesh->elm.energy
       , mesh->elm.material.prop, mesh->elm.mat
       , mesh->numel, eModel->fTemperature
       , fSheat, eModel->fKelvin
       , ompVar.fUpdate, ompVar.nThreadsUpdate);
-    tm.tempForEnergy = getTimeC() - tm.tempForEnergy;
+    tm.tempFromTheEnergy = getTimeC() - tm.tempFromTheEnergy;
 /*...................................................................*/
 
 /*...*/

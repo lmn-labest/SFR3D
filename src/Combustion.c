@@ -56,6 +56,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*... taxa de comsumo do combustivel*/
+  tm.fuelConsume  = getTimeC() - tm.fuelConsume;
   rateFuelConsume(cModel                   , tModel
                   , mesh->elm.zComb        , mesh->elm.cDiffComb
                   , mesh->elm.temp         , mesh->elm.rateFuel 
@@ -63,7 +64,8 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                   , mesh->elm.eddyViscosity,mesh->elm.dViscosity
                   , mesh->elm.geom.volume
                   , mesh->ndm              , mesh->numel
-                  , eModel->fKelvin );    
+                  , eModel->fKelvin );  
+  tm.fuelConsume  = getTimeC() - tm.fuelConsume;  
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (gradZ)*/
@@ -196,15 +198,10 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*...*/
+  tm.speciesLoop = getTimeC() - tm.speciesLoop;
   getSpeciesPrimitives(cModel
                       ,mesh->elm.yFrac,mesh->elm.zComb
                       ,mesh->numelNov);
-/*...................................................................*/
-
-/*...*/
-  getEnthalpySpecies(cModel             , prop
-                   , mesh->elm.enthalpyk, mesh->elm.temp 
-                   , mesh->numel        , eModel->fKelvin);
 /*...................................................................*/
 
 /*...*/
@@ -213,7 +210,19 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                 , mesh->numel        , mesh->ndm);
 /*...................................................................*/
 
+  tm.speciesLoop = getTimeC() - tm.speciesLoop;
+/*...................................................................*/
+
 /*...*/
+  tm.enthalpySpecies = getTimeC() - tm.enthalpySpecies;
+  getEnthalpySpecies(cModel             , prop
+                   , mesh->elm.enthalpyk, mesh->elm.temp 
+                   , mesh->numel        , eModel->fKelvin);
+  tm.enthalpySpecies = getTimeC() - tm.enthalpySpecies;
+/*...................................................................*/
+
+/*...*/
+  tm.heatRelease  = getTimeC() - tm.heatRelease; 
   rateHeatRealeseCombustion(cModel            , &prop->sHeat                
                     , mesh->elm.rateHeatReComb, mesh->elm.temp     
                     , mesh->elm.zComb0        , mesh->elm.zComb
@@ -221,6 +230,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                     , mesh->elm.material.prop , mesh->elm.mat    
                     , sc->ddt.dt[TIME_N]      , mesh->numelNov
                     , fSheat                  , eModel->fKelvin );  
+  tm.heatRelease  = getTimeC() - tm.heatRelease; 
 /*...................................................................*/
 
 /*...*/
@@ -779,8 +789,6 @@ void rateHeatRealeseCombustion(Combustion *cModel,Prop *sHeat
                                             , fsHeat   , fKelvin);
           H = h[kSp]/cModel->mW[kSp] + hs;
 
-//        if(nel==0)printf("%d %lf %lf\n",kSp,H,cModel->mW[kSp]);
-
           HR += nSp*H;
         } 
 /*... reagentes*/
@@ -797,7 +805,6 @@ void rateHeatRealeseCombustion(Combustion *cModel,Prop *sHeat
                                              , fsHeat   , fKelvin);
           H = h[kSp]/cModel->mW[kSp] + hs;
 
-//        if(nel==0)printf("%d %lf %lf\n",kSp,H,cModel->mW[kSp]);
           HP += nSp*H;         
         } 
         sum += (HP-HR)*MAT2D(nel,i,rateFuel,nReac);      

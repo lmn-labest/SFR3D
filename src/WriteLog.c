@@ -1,7 +1,7 @@
 #include<WriteLog.h>
 /********************************************************************* 
  * Data de criacao    : 03/10/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 08/06/2018                                   *
  *-------------------------------------------------------------------* 
  * WRITELOG : escrita do arquivo log de execuao                      * 
  *-------------------------------------------------------------------* 
@@ -14,17 +14,18 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void writeLog(Mesh mesh          ,Scheme sc
-             ,Solv *solvD1       ,SistEq *sistEqD1
-             ,Solv *solvT1       ,SistEq *sistEqT1
-             ,Solv *solvVel      ,SistEq *sistEqVel
-             ,Solv *solvPres     ,SistEq *sistEqPres
-             ,Time t
-             ,bool const fSolvD1 ,bool const fSolvT1
-             ,bool const fSolvVel,bool const fSolvPres
-             ,bool const fEnergy ,bool const fTurb
+void writeLog(Mesh mesh             ,Scheme sc
+             ,Solv *solvD1          ,SistEq *sistEqD1
+             ,Solv *solvT1          ,SistEq *sistEqT1
+             ,Solv *solvVel         ,SistEq *sistEqVel
+             ,Solv *solvPres        ,SistEq *sistEqPres
+             ,Time t                
+             ,bool const fSolvD1    ,bool const fSolvT1
+             ,bool const fSolvVel   ,bool const fSolvPres
+             ,bool const fEnergy    ,bool const fTurb
+             ,bool const fCombustion
              ,Omp omp
-             ,char *nameIn       ,FILE *file){
+             ,char *nameIn          ,FILE *file){
 
   
   fprintf(file,"Log do execucao    : %s\n\n",nameIn); 
@@ -35,111 +36,128 @@ void writeLog(Mesh mesh          ,Scheme sc
   } 
   
   fprintf(file,"Time:\n");
-  fprintf(file,"adjcency           : %lf\n",t.adjcency);
-  fprintf(file,"geom               : %lf\n",t.geom);
+  fprintf(file,"%-25s : %13.3lf\n","adjcency",t.adjcency);
+  fprintf(file,"%-25s : %13.3lf\n","geom"    ,t.geom);
   if( sc.rcGrad == RCLSQUARE )
-    fprintf(file,"lSquareMatrix      : %lf\n",t.leastSquareMatrix);
-  fprintf(file,"reord              : %lf\n",t.reord);
+    fprintf(file,"%-25s : %13.3lf\n","lSquareMatrix",t.leastSquareMatrix);
+  fprintf(file,"%-25s : %13.3lf\n","reord",t.reord);
 
 /*... Blas*/
-  fprintf(file,"matVecSparse       : %lf\n",t.matVecSparse);
-  fprintf(file,"dot                : %lf\n",t.dot); 
+  fprintf(file,"%-25s : %13.3lf\n","matVecSparse",t.matVecSparse);
+  fprintf(file,"%-25s : %13.3lf\n","dot"         ,t.dot); 
 /*... Blas overHead do mpi */
   if(mpiVar.nPrcs > 1){
-    fprintf(file,"matVecOverHead     : %lf\n",t.matVecOverHeadMpi);
-    fprintf(file,"dotOverHead        : %lf\n",t.dotOverHeadMpi);
+    fprintf(file,"%-25s : %13.3lf\n","matVecOverHead",t.matVecOverHeadMpi);
+    fprintf(file,"%-25s : %13.3lf\n","dotOverHead"   ,t.dotOverHeadMpi);
   }
 
 /*... Solver*/
-  fprintf(file,"Pcg                : %lf\n",t.pcg);
-  fprintf(file,"Pbicgstab          : %lf\n",t.pbicgstab);
-  fprintf(file,"Gmres              : %lf\n",t.gmres);
-  fprintf(file,"Pardiso            : %lf\n",t.pardiso);
-  fprintf(file,"precondDiag        : %lf\n",t.precondDiag);
+  fprintf(file,"%-25s : %13.3lf\n","Pcg"        ,t.pcg);
+  fprintf(file,"%-25s : %13.3lf\n","Pbicgstab"  ,t.pbicgstab);
+  fprintf(file,"%-25s : %13.3lf\n","Gmres"      ,t.gmres);
+  fprintf(file,"%-25s : %13.3lf\n","Pardiso"    ,t.pardiso);
+  fprintf(file,"%-25s : %13.3lf\n","precondDiag",t.precondDiag);
 
 /*... particionamento*/
   if(mpiVar.nPrcs > 1){
-    fprintf(file,"partdMesh          : %lf\n",t.partdMesh);
-    fprintf(file,"partdMeshComm      : %lf\n",t.partdMeshCom);
+    fprintf(file,"%-25s : %13.3lf\n","partdMesh"    ,t.partdMesh);
+    fprintf(file,"%-25s : %13.3lf\n","partdMeshComm",t.partdMeshCom);
   }
 /*... comunicacao entre as particoes*/
   if(mpiVar.nPrcs > 1){
-    fprintf(file,"overHeadCelMpi     : %lf\n",t.overHeadCelMpi);
-    fprintf(file,"overHeadNodMpi     : %lf\n",t.overHeadNodMpi);
-    fprintf(file,"overHeadNeqMpi     : %lf\n",t.overHeadNeqMpi);
-    fprintf(file,"overHeadGCelMpi    : %lf\n",t.overHeadGCelMpi);
-    fprintf(file,"overHeadGNodMpi    : %lf\n",t.overHeadGNodMpi);
-    fprintf(file,"overHeadTotalMpi   : %lf\n",t.overHeadTotalMpi);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadCelMpi"  ,t.overHeadCelMpi);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadNodMpi"  ,t.overHeadNodMpi);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadNeqMpi"  ,t.overHeadNeqMpi);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadGCelMpi" ,t.overHeadGCelMpi);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadGNodMpi" ,t.overHeadGNodMpi);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadTotalMpi",t.overHeadTotalMpi);
   }
-
 
 /*... solvD1*/
   if(fSolvD1){
-    fprintf(file,"SolvD1             : %lf\n",t.solvD1);
-    fprintf(file,"numeqD1            : %lf\n",t.numeqD1);
-    fprintf(file,"dataStructD1       : %lf\n",t.dataStructD1);
-    fprintf(file,"CellPloadD1        : %lf\n",t.CellPloadD1);
-    fprintf(file,"CellTransientD1    : %lf\n",t.CellTransientD1);
-    fprintf(file,"systFormD1         : %lf\n",t.systFormD1);
-    fprintf(file,"rcGradD1           : %lf\n",t.rcGradD1);
-    fprintf(file,"solvEdpD1          : %lf\n",t.solvEdpD1);
+    fprintf(file,"%-25s : %13.3lf\n","SolvD1"         ,t.solvD1);
+    fprintf(file,"%-25s : %13.3lf\n","numeqD1"        ,t.numeqD1);
+    fprintf(file,"%-25s : %13.3lf\n","dataStructD1"   ,t.dataStructD1);
+    fprintf(file,"%-25s : %13.3lf\n","CellPloadD1"    ,t.CellPloadD1);
+    fprintf(file,"%-25s : %13.3lf\n","CellTransientD1",t.CellTransientD1);
+    fprintf(file,"%-25s : %13.3lf\n","systFormD1"     ,t.systFormD1);
+    fprintf(file,"%-25s : %13.3lf\n","rcGradD1"       ,t.rcGradD1);
+    fprintf(file,"%-25s : %13.3lf\n","solvEdpD1"      ,t.solvEdpD1);
   }
 /*...................................................................*/
 
 /*... solvT1*/
   if(fSolvT1){
-    fprintf(file,"SolvT1             : %lf\n",t.solvT1);
-    fprintf(file,"numeqT1            : %lf\n",t.numeqT1);
-    fprintf(file,"dataStructT1       : %lf\n",t.dataStructT1);
-    fprintf(file,"CellPloadT1        : %lf\n",t.CellPloadT1);
-    fprintf(file,"CellTransientT1    : %lf\n",t.CellTransientT1);
-    fprintf(file,"systFormT1         : %lf\n",t.systFormT1);
-    fprintf(file,"rcGradT1           : %lf\n",t.rcGradT1);
-    fprintf(file,"solvEdpT1          : %lf\n",t.solvEdpT1);
+    fprintf(file,"%-25s : %13.3lf\n","SolvT1"         ,t.solvT1);
+    fprintf(file,"%-25s : %13.3lf\n","numeqT1"        ,t.numeqT1);
+    fprintf(file,"%-25s : %13.3lf\n","dataStructT1"   ,t.dataStructT1);
+    fprintf(file,"%-25s : %13.3lf\n","CellPloadT1"    ,t.CellPloadT1);
+    fprintf(file,"%-25s : %13.3lf\n","CellTransientT1",t.CellTransientT1);
+    fprintf(file,"%-25s : %13.3lf\n","systFormT1"     ,t.systFormT1);
+    fprintf(file,"%-25s : %13.3lf\n","rcGradT1"       ,t.rcGradT1);
+    fprintf(file,"%-25s : %13.3lf\n","solvEdpT1"      ,t.solvEdpT1);
+  }
+/*...................................................................*/
+
+/*...*/
+  fprintf(file,"%-25s : %13.3lf\n","solvEdpFuild",t.solvEdpFluid);
+
+/*... solvVel*/
+  if(fSolvVel){
+    fprintf(file,"%-25s : %13.3lf\n","SolvVel"            ,t.solvVel);
+    fprintf(file,"%-25s : %13.3lf\n","numeqVel"           ,t.numeqVel);
+    fprintf(file,"%-25s : %13.3lf\n","dataStructVel"      ,t.dataStructVel);
+    fprintf(file,"%-25s : %13.3lf\n","CellPloadSimple"    ,t.cellPloadSimple);
+    fprintf(file,"%-25s : %13.3lf\n","CellTransientSimple",t.cellTransientSimple);
+    fprintf(file,"%-25s : %13.3lf\n","systFormVel"        ,t.systFormVel);
+    fprintf(file,"%-25s : %13.3lf\n","velExp"             ,t.velExp);
+    fprintf(file,"%-25s : %13.3lf\n","rcGradVel"          ,t.rcGradVel);
+    fprintf(file,"%-25s : %13.3lf\n","updateProp"         ,t.updateProp);
+    fprintf(file,"%-25s : %13.3lf\n","residualSimple"     ,t.residualSimple);
+  }
+/*...................................................................*/
+
+/*... energy*/
+  if(fEnergy){
+    fprintf(file,"%-25s : %13.3lf\n","SolvEnergy"       ,t.solvEnergy);
+    fprintf(file,"%-25s : %13.3lf\n","numeqEnergy"      ,t.numeqEnergy);
+    fprintf(file,"%-25s : %13.3lf\n","dataStructEnergy" ,t.dataStructEnergy);
+    fprintf(file,"%-25s : %13.3lf\n","systFormEnergy"   ,t.systFormEnergy);
+    fprintf(file,"%-25s : %13.3lf\n","rcGradEnergy"     ,t.rcGradEnergy);
+    fprintf(file,"%-25s : %13.3lf\n","tempFromTheEnergy",t.tempFromTheEnergy);
+  }
+/*...................................................................*/
+
+/*... combustion*/
+  if(fCombustion){
+    fprintf(file,"%-25s : %13.3lf\n","SolvCombustion"      ,t.solvComb);
+    fprintf(file,"%-25s : %13.3lf\n","numeqCombustion"     ,t.numeqComb);
+    fprintf(file,"%-25s : %13.3lf\n","dataStructCombustion",t.dataStructComb);
+    fprintf(file,"%-25s : %13.3lf\n","systFormCombustion"  ,t.systFormComb);
+    fprintf(file,"%-25s : %13.3lf\n","rcGradCombustion"    ,t.rcGradComb);
+    fprintf(file,"%-25s : %13.3lf\n","fuelConsume"         ,t.fuelConsume);
+    fprintf(file,"%-25s : %13.3lf\n","heatRelease"         ,t.heatRelease);
+    fprintf(file,"%-25s : %13.3lf\n","speciesLoop"         ,t.speciesLoop);
+    fprintf(file,"%-25s : %13.3lf\n","enthalpySpecies "    ,t.enthalpySpecies);
   }
 /*...................................................................*/
 
 /*... solvPres*/
   if(fSolvPres){
-    fprintf(file,"SolvPres           : %lf\n",t.solvPres);
-    fprintf(file,"numeqPres          : %lf\n",t.numeqPres);
-    fprintf(file,"dataStructPres     : %lf\n",t.dataStructPres);
-    fprintf(file,"systFormPres       : %lf\n",t.systFormPres);
-    fprintf(file,"rcGradPres         : %lf\n",t.rcGradPres);
-  }
-/*...................................................................*/
-
-/*... solvVel*/
-  if(fSolvVel){
-    fprintf(file,"SolvVel            : %lf\n",t.solvVel);
-    fprintf(file,"numeqVel           : %lf\n",t.numeqVel);
-    fprintf(file,"dataStructVel      : %lf\n",t.dataStructVel);
-    fprintf(file,"CellPloadSimple    : %lf\n",t.cellPloadSimple);
-    fprintf(file,"CellTransientSimple: %lf\n",t.cellTransientSimple);
-    fprintf(file,"systFormVel        : %lf\n",t.systFormVel);
-    fprintf(file,"velExp             : %lf\n",t.velExp);
-    fprintf(file,"rcGradVel          : %lf\n",t.rcGradVel);
-    fprintf(file,"solvEdpFuild       : %lf\n",t.solvEdpFluid);
-  }
-/*...................................................................*/
-
-/*... solvVel*/
-  if(fEnergy){
-    fprintf(file,"SolvEnergy         : %lf\n",t.solvEnergy);
-    fprintf(file,"numeqEnergy        : %lf\n",t.numeqEnergy);
-    fprintf(file,"dataStructEnergy   : %lf\n",t.dataStructEnergy);
-    fprintf(file,"systFormEnergy     : %lf\n",t.systFormEnergy);
-    fprintf(file,"rcGradEnergy       : %lf\n",t.rcGradEnergy);
-    fprintf(file,"tempForEnergy      : %lf\n",t.tempForEnergy);
+    fprintf(file,"%-25s : %13.3lf\n","SolvPres"      ,t.solvPres);
+    fprintf(file,"%-25s : %13.3lf\n","numeqPres"     ,t.numeqPres);
+    fprintf(file,"%-25s : %13.3lf\n","dataStructPres",t.dataStructPres);
+    fprintf(file,"%-25s : %13.3lf\n","systFormPres"  ,t.systFormPres);
+    fprintf(file,"%-25s : %13.3lf\n","rcGradPres"    ,t.rcGradPres);
   }
 /*...................................................................*/
 
 /*... turbulence*/
   if(fTurb)  
-    fprintf(file,"turbulence         : %lf\n",t.turbulence);
+    fprintf(file,"%-25s : %13.3lf\n","turbulence",t.turbulence);
 /*...................................................................*/
 
-  fprintf(file,"Total              : %lf\n",t.total);
+  fprintf(file,"%-25s : %13.3lf\n","Total",t.total);
 /*...*/
   fprintf(file,"\nMesh:\n");
   fprintf(file,"nnode              : %d\n",mesh.nnode);
@@ -154,7 +172,6 @@ void writeLog(Mesh mesh          ,Scheme sc
   fprintf(file,"skewMax            : %lf\n",mesh.mQuality.skewMax);
   fprintf(file,"aspect ratio max   : %lf\n",mesh.mQuality.aspectRaMax);
   fprintf(file,"aspect ratio min   : %lf\n",mesh.mQuality.aspectRaMin);
-
 
 /*...*/
   if(fSolvD1){

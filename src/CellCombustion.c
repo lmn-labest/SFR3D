@@ -107,7 +107,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
                     , const short nEn           , short const nFace
                     , const short ndm           , INT const nel)
 {
-  bool fTime, fRes, fTurb, fWallModel, fLump, fDiffCoor, fN2, fHarmMed;
+  bool fTime, fRes, fTurb, fWallModel, fLump, fDiffCoor;
   short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf, nCarg1
     , nCarg2, typeTime, iCodPolFace, nComb, nst, i, j, nSp, kSp, nSpLump, nReac;
 /*...*/
@@ -135,7 +135,6 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
   DOUBLE pAdv[NPADV];
 
 /*...*/
-  fHarmMed  = false;
   idCell    = nFace;
   nst = nFace + 1;
   iCodAdv1 = advT->iCod1;
@@ -308,19 +307,15 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*... media harmonica*/
       modE = sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
       tmp = modE / lModKsi;
-      tmp1 = eddyViscosityC /scTsgs;
+      tmp1 = eddyViscosityV /scTsgs;
       for(i=0;i<nComb;i++)
       {
         diffEffV[i] = diffCeofV[i] + tmp1;
 /*... media harmonica*/
-        if(fHarmMed)
-        {
-          diffEff[i] = alpha / diffEffC[i] + alphaMenosUm / diffEffV[i];
-          diffEff[i] = 1.0e0 / diffEff[i];
-        }
+/*      diffEff[i] = alpha / diffEffC[i] + alphaMenosUm / diffEffV[i];
+        diffEff[i] = 1.0e0 / diffEff[i];*/
 /*... media*/ 
-        else
-          diffEff[i] = alphaMenosUm*diffEffC[i] + alpha*diffEffV[i];
+        diffEff[i] = alphaMenosUm*diffEffC[i] + alpha*diffEffV[i];
 /*... difusao direta*/
         coef[i] = diffEff[i];
         dfd[i] = coef[i] * tmp;

@@ -4719,7 +4719,7 @@ void readSetSimple(Memoria *m    , FILE *fileIn
  * Data de criacao    : 08/05/2019                                    *
  * Data de modificaco : 00/00/0000                                    *
  *--------------------------------------------------------------------* 
- * readSetSimpleComb:                                                     *
+ * readSetSimpleComb:                                                 *
  *--------------------------------------------------------------------* 
  * Parametros de entrada:                                             * 
  *--------------------------------------------------------------------* 
@@ -6121,12 +6121,12 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         fprintf(fileLogExc, "%s\n", DIF);
         fprintf(fileLogExc, "Numerando as equacoes.\n");
       }
-      tm.numeqVel = getTimeC() - tm.numeqVel;
+      tm.numeqComb = getTimeC() - tm.numeqComb;
 
       sistEqComb->neq = numEqV1(sistEqComb->id, reordMesh->num
                               , mesh->numel);    
 
-      tm.numeqVel = getTimeC() - tm.numeqVel;
+      tm.numeqComb = getTimeC() - tm.numeqComb;
 
       if (!mpiVar.myId) 
       {

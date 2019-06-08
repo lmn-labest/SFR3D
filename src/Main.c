@@ -710,17 +710,17 @@ int main(int argc,char**argv){
 /*... */
       fName(preName,mpiVar.nPrcs,mpiVar.myId,7,nameOut);
       fileLog = openFile(nameOut,"w");
-      writeLog(*mesh      ,sc
-              ,&solvD1    ,&sistEqD1
-              ,&solvT1    ,&sistEqT1
-              ,&solvVel   ,&sistEqVel
-              ,&solvPres  ,&sistEqPres
-              ,tm       
-              ,fSolvD1    ,fSolvT1     
-              ,fSolvVel   ,fSolvPres 
-              ,fSolvEnergy,turbModel.fTurb  
-              ,ompVar
-              ,nameIn     ,fileLog);
+      writeLog(*mesh          ,sc
+              ,&solvD1        ,&sistEqD1
+              ,&solvT1        ,&sistEqT1
+              ,&solvVel       ,&sistEqVel
+              ,&solvPres      ,&sistEqPres
+              ,tm             
+              ,fSolvD1        ,fSolvT1     
+              ,fSolvVel       ,fSolvPres 
+              ,fSolvEnergy    ,turbModel.fTurb  
+              ,fSolvCombustion,ompVar
+              ,nameIn         ,fileLog);
       fclose(fileLog);
 /*...................................................................*/
 

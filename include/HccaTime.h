@@ -53,15 +53,19 @@
     double rcGradPres;
     double rcGradVel;
     double rcGradEnergy;
+    double updateProp;
+    double residualSimple;
 /*... combustion*/
     double solvComb;
     double solvEdpComb;
     double numeqComb;
     double dataStructComb;
-    double cellPloadComb;
-    double cellTransientComb;
     double systFormComb;
     double rcGradComb;
+    double fuelConsume;
+    double heatRelease;
+    double speciesLoop;
+    double enthalpySpecies;
 /*... blas*/
     double matVecOverHeadMpi;
     double matVecSparse;
@@ -87,7 +91,7 @@
     double overHeadGCelMpi;
     double overHeadTotalMpi;
 /*...*/
-    double tempForEnergy;
+    double tempFromTheEnergy;
 /*...*/
     double turbulence;
 /*...*/
