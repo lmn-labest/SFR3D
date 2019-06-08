@@ -203,6 +203,7 @@
     bool fRes;
     bool fTemperature;
     bool fKelvin;
+    bool fDiffEnergy;
   }EnergyModel;
 /*...................................................................*/  
 

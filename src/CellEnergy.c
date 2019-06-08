@@ -669,7 +669,7 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
   fSheat    = vProp->fSpecificHeat;
   fComb     = cModel->fCombustion;
   ns        = cModel->nOfSpecies;
-  fEntalpy  = false;
+  fEntalpy  = eModel->fDiffEnergy;
 /*...................................................................*/
 
 /*... propriedades da celula*/
@@ -889,7 +889,6 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
 /*...................................................................*/
 
 /*...*/
-      tmp1 =  densityM*lFarea;
       if(fEntalpy)
       {
         for(k=0,tmp3=0.e0;k<ns;k++)
@@ -902,17 +901,16 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
           dV        = MAT2D(nf    , k, diffY, ns);
 /*...*/
           hskV      = MAT2D(nf    , k, enthalpyk, ns);
-          hsk       = alphaMenosUm*hskC[k]*diffYC[k] + alpha*hskV*dV;
+          hsk       = alphaMenosUm*hskC[k]   + alpha*hskV;
+          diffEff   = alphaMenosUm*diffYC[k] + alpha*dV;
 /*...*/
-          tmp2      = alphaMenosUm*gradYC[k][0]*lNormal[0] 
-                    + alphaMenosUm*gradYC[k][1]*lNormal[1] 
-                    + alphaMenosUm*gradYC[k][2]*lNormal[2] 
-                    + alpha*gradYV[0]*lNormal[0] 
-                    + alpha*gradYV[1]*lNormal[1] 
-                    + alpha*gradYV[2]*lNormal[2];
-          tmp3 += hsk*tmp2; 
+          tmp2      = (alphaMenosUm*gradYC[k][0] + alpha*gradYV[0])*lNormal[0] 
+                    + (alphaMenosUm*gradYC[k][1] + alpha*gradYV[1])*lNormal[1] 
+                    + (alphaMenosUm*gradYC[k][2] + alpha*gradYV[2])*lNormal[2]; 
+
+          tmp3      += hsk*diffEff*tmp2; 
         }
-        p+=tmp1*tmp3;
+        p+=densityM*lFarea*tmp3;
       }
 /*...................................................................*/
     }
@@ -920,20 +918,19 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
     else {
 
 /*...*/
-      tmp1 =  densityC*lFarea;
       if(fEntalpy)
       {
         for(k=0,tmp3=0.e0;k<ns;k++)
         {     
 /*...*/
-          hsk       = hskC[k]*diffYC[k];
+          hsk  = hskC[k]*diffYC[k];
 /*...*/
-          tmp2      = gradYC[k][0]*lNormal[0] 
-                    + gradYC[k][1]*lNormal[1] 
-                    + gradYC[k][2]*lNormal[2]; 
+          tmp2 = gradYC[k][0]*lNormal[0] 
+               + gradYC[k][1]*lNormal[1] 
+               + gradYC[k][2]*lNormal[2]; 
           tmp3 += hsk*tmp2; 
         }
-       p+=tmp1*tmp3;
+        p+=densityC*lFarea*tmp3;
       }
 /*...................................................................*/
 

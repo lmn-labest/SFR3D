@@ -2697,7 +2697,7 @@ void readPropVar(PropVarFluid *pf  , PropVarCD *pd, PropVarCD *pt
 
 /*********************************************************************
  * Data de criacao    : 04/09/2017                                   *
- * Data de modificaco : 15/05/2019                                   *
+ * Data de modificaco : 07/06/2019                                   *
  *-------------------------------------------------------------------* 
  * readMode : le as configuraoes dos modelos                         * 
  *-------------------------------------------------------------------* 
@@ -2734,8 +2734,10 @@ void readModel(EnergyModel *e         , Turbulence *t
                              ,"momentum","diffusion" ,"transport"
                              ,"combustion"};
 
-  char energy[][WORD_SIZE] = { "preswork", "dissipation", "residual"  
-                             , "absolute", "temperature", "entalphy"}; 
+  char energy[][WORD_SIZE] = { "preswork"  , "dissipation" /*0,1*/
+                             , "residual"  , "absolute"    /*2,3*/
+                             ,"temperature", "entalphy"    /*4,5*/
+                             , "diffenergy" };             /*6, */  
 
   char turb[][WORD_SIZE] = { "smagorinsky","wallmodel" , "wale"     
                             ,"vreman"     ,"ldynamic"  , "sigmamodel"
@@ -2772,6 +2774,7 @@ void readModel(EnergyModel *e         , Turbulence *t
       e->fDissipation = false;
       e->fRes         = false;
       e->fTemperature = false;
+      e->fDiffEnergy  = false;
       if(!mpiVar.myId)
         fprintf(fileLogExc,"\n%-20s: \n","EnergyModel");  
 /*...................................................................*/      
@@ -2824,6 +2827,14 @@ void readModel(EnergyModel *e         , Turbulence *t
           e->fTemperature = false;
           if(!mpiVar.myId && !e->fTemperature)
             fprintf(fileLogExc,format,"Entalphy","Enable");
+        }
+/*...................................................................*/
+
+/*... Diffusion energy source*/
+        else if(!strcmp(word,energy[6])){
+          e->fDiffEnergy = true;
+          if(!mpiVar.myId && !e->fTemperature)
+            fprintf(fileLogExc,format,"Diffusion Energy","Enable");
         }
 /*...................................................................*/
 
@@ -3829,7 +3840,7 @@ void uniformField(DOUBLE *field, INT const n, short const ndf
 
 /********************************************************************* 
  * Data de criacao    : 11/11/2017                                   *
- * Data de modificaco : 26/05/2019                                   *
+ * Data de modificaco : 07/06/2019                                   *
  *-------------------------------------------------------------------*
  * help : Ajuda em relação a algumas macros                          *
  *-------------------------------------------------------------------*
@@ -3914,9 +3925,11 @@ void help(FILE *f){
   short iModels = 4;
   char models[][WORD_SIZE] = {"energy"  ,"turbulence","mass"     /* 0, 1, 2*/
                              ,"momentum","combustion"};          /* 3, 4*/
-  short iEnergy = 7;
-  char energy[][WORD_SIZE] = { "preswork", "dissipation", "residual"   /* 0, 1, 2*/
-                             , "absolute", "temperature", "entalphy" };/* 2, 3, 4*/
+  short iEnergy = 7;  
+  char energy[][WORD_SIZE] = { "preswork"   , "dissipation" /*0,1*/
+                             , "residual"   , "absolute"    /*2,3*/
+                             , "temperature", "entalphy"    /*4,5*/
+                             , "diffenergy" };              /*6, */  
 
   short iTurb = 14;
   char turbulence[][WORD_SIZE] = {"wallmodel type"                       
