@@ -965,7 +965,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 
 /*...*/
     tm.tempFromTheEnergy = getTimeC() - tm.tempFromTheEnergy;
-    getTempForEnergyMix(&propF->sHeat          ,mesh->elm.yFrac
+     getEnergyFromTheTempMix(&propF->sHeat          ,mesh->elm.yFrac
                        ,mesh->elm.temp         ,mesh->elm.energy
                        ,mesh->elm.material.prop,mesh->elm.mat                    
                        ,mesh->numel            ,cModel->nOfSpecies

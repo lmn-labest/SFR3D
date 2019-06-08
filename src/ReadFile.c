@@ -1273,7 +1273,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     else
     {
       if(fComb)
-        getEnergyForTempMix(&propF->sHeat          ,mesh->elm.yFrac
+        getEnergyFrmTheTempMix(&propF->sHeat          ,mesh->elm.yFrac
                            ,mesh->elm.temp         ,mesh->elm.energy0
                            ,mesh->elm.material.prop,mesh->elm.mat                        
                            ,mesh->numel            ,cModel->nOfSpecies
@@ -7254,7 +7254,7 @@ static void convLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
         n        = loadsZ[i].np;
         getSpeciesPrimitivesCc(cModel,yFrac,loadsZ[i].par);
 
-        tmp = tempForSpecificEnthalpyMix( sHeatProp, yFrac 
+        tmp = tempToSpecificEnthalpyMix( sHeatProp, yFrac 
                                          , t        , sHeat
                                          , n
                                          , fSheat  , iKelvin);
@@ -7268,7 +7268,7 @@ static void convLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
 
         getSpeciesPrimitivesCc(cModel,yFrac,loadsZ[i].par);
         
-        tmp = tempForSpecificEnthalpyMix( sHeatProp  , yFrac 
+        tmp = tempToSpecificEnthalpyMix( sHeatProp  , yFrac 
                                          , t        , sHeat
                                          , ns
                                          , fSheat  , iKelvin);

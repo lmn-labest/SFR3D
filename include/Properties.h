@@ -212,7 +212,7 @@
                              , bool const fSheat      , bool const fKelvin
                              , INT const nel ); 
 
-  DOUBLE tempForSpecificEnthalpyMix(Prop *sHeat    , DOUBLE *yFrac
+  DOUBLE tempToSpecificEnthalpyMix(Prop *sHeat    , DOUBLE *yFrac
                                 , DOUBLE const t    , DOUBLE const sHeatRef
                                 , short const nOfPrSp
                                 , bool const fSheat , bool const fKelvin); 
@@ -220,7 +220,7 @@
                                , DOUBLE const t    , DOUBLE const sHeatRef
                                , bool const fSheat , bool const fKelvin);
 
-  void getEnergyForTempMix(Prop *sHeatPol  ,DOUBLE *RESTRICT yFrac 
+  void getEnergyFrmTheTempMix(Prop *sHeatPol  ,DOUBLE *RESTRICT yFrac 
                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                         ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                         ,INT const nCell      ,short const nOfPrSp
@@ -228,7 +228,7 @@
                         ,bool const fOmp      ,short const nThreads );
 
 
-  void getTempForEnergyMix(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
+  void  getEnergyFromTheTempMix(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                         ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                         ,INT const nCell      ,short const nOfPrSp 

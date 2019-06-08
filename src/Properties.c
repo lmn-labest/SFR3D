@@ -788,7 +788,7 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void getEnergyForTempMix(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac 
+void getEnergyFrmTheTempMix(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac 
                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                         ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                         ,INT const nCell      ,short const nOfPrSp
@@ -810,7 +810,7 @@ void getEnergyForTempMix(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
       lMat  = mat[i] - 1;
       sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
       y = &MAT2D(i,0,yFrac,nOfPrSp);
-      energy[i] = tempForSpecificEnthalpyMix(sHeatPol ,yFrac
+      energy[i] = tempToSpecificEnthalpyMix(sHeatPol ,yFrac
                                             ,temp[i]  ,sHeatRef
                                             ,nOfPrSp
                                             ,fSheat  ,fKelvin);  
@@ -827,7 +827,7 @@ void getEnergyForTempMix(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
       lMat  = mat[i] - 1;
       sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
       y = &MAT2D(i,0,yFrac,nOfPrSp);
-      energy[i] = tempForSpecificEnthalpyMix(sHeatPol ,yFrac
+      energy[i] = tempToSpecificEnthalpyMix(sHeatPol ,yFrac
                                             ,temp[i]  ,sHeatRef
                                             ,nOfPrSp
                                             ,fSheat  ,fKelvin); 
@@ -842,7 +842,7 @@ void getEnergyForTempMix(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
  * Data de criacao    : 20/08/2018                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
- * getTempForEnergyMix : obtem a temperatura apartir da entalpia     *  
+ *  getEnergyFromTheTempMix : obtem a temperatura apartir da entalpia     *  
  * sensivel                                                          *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -867,7 +867,7 @@ void getEnergyForTempMix(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void getTempForEnergyMix(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
+void  getEnergyFromTheTempMix(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                         ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                         ,INT const nCell      ,short const nOfPrSp 
@@ -1722,7 +1722,7 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol
     t = 0.5e0*(TREF + ENTHALPY_FOR_TEMP(sHeatRef,hs,TREF))+tol;
  
 /*...*/
-    conv = tol*(hs-tempForSpecificEnthalpyMix(sHeatPol,yFrac
+    conv = tol*(hs-tempToSpecificEnthalpyMix(sHeatPol,yFrac
                                              ,t       ,sHeatRef
                                              ,nOfPrSp  
                                              ,fSheat  ,true));
@@ -1730,7 +1730,7 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol
 /*... Newton-Raphson*/
     for(i=0;i<1000000;i++)
     {
-      f  = hs-tempForSpecificEnthalpyMix(sHeatPol,yFrac
+      f  = hs-tempToSpecificEnthalpyMix(sHeatPol,yFrac
                                         ,t       ,sHeatRef
                                         ,nOfPrSp 
                                         ,fSheat  ,true);
@@ -1793,7 +1793,7 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE tempForSpecificEnthalpyMix(Prop *sHeat    , DOUBLE *yFrac
+DOUBLE tempToSpecificEnthalpyMix(Prop *sHeat    , DOUBLE *yFrac
                                 , DOUBLE const t    , DOUBLE const sHeatRef
                                 , short const nOfPrSp
                                 , bool const fSheat , bool const fKelvin) 
