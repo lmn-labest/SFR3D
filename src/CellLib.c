@@ -160,6 +160,7 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
 * ltConductvity -> condutividade termica com variacao temporal      *
 * lEnthalpyk -> Entalpia das especies                               *
 * lGradY    -> gradiente das especies                               *
+* yFac      -> fracoes massicas                                     *
 * rateHeat  -> taxa de liberacao de energia por reacao quimica      *
 * dField    -> matriz D do metodo simple                            * 
 * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  * 
@@ -198,7 +199,8 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
      , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lSheat
      , DOUBLE *RESTRICT lDviscosity, DOUBLE *RESTRICT lTconductvity
      , DOUBLE *RESTRICT lEnthalpyk , DOUBLE *RESTRICT lGradY 
-     , DOUBLE *RESTRICT lDiffY     , DOUBLE const lRateHeat  
+     , DOUBLE *RESTRICT lDiffY     , DOUBLE *RESTRICT lYfrac 
+     , DOUBLE const lRateHeat  
      , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT wallPar
      , DOUBLE const underU           
      , short const nEn             , short  const nFace
@@ -261,7 +263,8 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
                  , lDensity   , lSheat
                  , lDviscosity, lTconductvity
                  , lEnthalpyk , lGradY           
-                 , lDiffY     , lRateHeat
+                 , lDiffY     , lYfrac
+                 , lRateHeat
                  , dField     , wallPar
                  , underU       
                  , nEn        , nFace

@@ -564,6 +564,7 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
  * lTconductivity-> condutividade termica com variacao temporal      *
  * lEnthalpyk -> Entalpia das especies                               *
  * lGradY    -> gradiente das especies                               *
+ * yFac      -> fracoes massicas                                     *
  * diffY     -> coeficiente de difusao massica por especies          *
  * rateHeat  -> energia liberada pela combustao (KJ/s )              *
  * cc        -> centroides da celula centra e seus vizinhos          *
@@ -605,7 +606,8 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
                 , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lSheat
                 , DOUBLE *RESTRICT lViscosity, DOUBLE *RESTRICT lTconductivity
                 , DOUBLE *RESTRICT enthalpyk , DOUBLE *RESTRICT gradY 
-                , DOUBLE *RESTRICT diffY     , DOUBLE const rateHeat  
+                , DOUBLE *RESTRICT diffY     , DOUBLE *RESTRICT yFrac     
+                , DOUBLE const rateHeat  
                 , DOUBLE *RESTRICT dField    , DOUBLE *RESTRICT wallPar
                 , DOUBLE const underU
                 , const short nEn            , short const nFace
@@ -622,7 +624,7 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
     diffEffC, diffEffV, diffEff, sHeatC, sHeatV, sHeatM,
     eddyViscosityC, eddyViscosityV, viscosityC,
     hskV,hskC[MAXSPECIES],hsk, gradYC[MAXSPECIES][3],gradYV[3], 
-    diffYC[MAXSPECIES], dV, tA, coef,
+    diffYC[MAXSPECIES], yFracC[MAXSPECIES], dV, tA, coef,
     tmp, tmp1, tmp2, tmp3, prTwall, prTsgs;
   DOUBLE p, sP, dfd, gfKsi, lvSkew[3], alpha, alphaMenosUm;
   DOUBLE v[3], gradUcomp[3], lKsi[3], lNormal[3], gf[3];
@@ -692,6 +694,8 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
       gradYC[k][2] = MAT3D(idCell, k, 2, gradY, ns, 3);
 /*...*/
       hskC[k] = MAT2D(idCell, k, enthalpyk, ns);
+/*...*/
+      yFracC[k] = MAT2D(idCell, k, yFrac, ns);
     }
   }
 /*...................................................................*/
@@ -964,21 +968,40 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
 /*...................................................................*/
 
 /*...*/
-      else {
+      else
+      {
 /*... inertial sub-layer*/
-        if (wallPar[0] > 11.81e0) {
+        if (wallPar[0] > 11.81e0)
+        {
 /*... energia na forma da temperatura*/
           if (fTemp)
             tW = uC;
 /*...................................................................*/
 
 /*... energia na forma da entalpia*/
-          else {
-            tC = specificEnthalpyForTemp(&vProp->sHeat
+          else
+          {
+            if(fComb)
+            {
+              tC = specificEnthalpyForTempOfMix(&vProp->sHeat, 298.15
+                                               , uC          , yFracC 
+                                               , sHeatC      , ns
+                                               , fSheat      , fKelvin
+                                               , nel );
+              tW = tC;
+              tW = tempToSpecificEnthalpyMix(&vProp->sHeat, yFracC
+                                            ,tW           , sHeatC
+                                            ,ns  
+                                            ,fSheat       , fKelvin);
+            }
+            else
+            {
+              tC = specificEnthalpyForTemp(&vProp->sHeat
                                         , uC, sHeatC, fSheat, fKelvin);
-            tW = tC;
-            tW = tempForSpecificEnthalpy( &vProp->sHeat
+              tW = tC;
+              tW = tempForSpecificEnthalpy( &vProp->sHeat
                                         , tW, sHeatC, fSheat, fKelvin);
+            }        
           }
 /*...................................................................*/
 

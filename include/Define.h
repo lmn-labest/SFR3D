@@ -159,6 +159,8 @@
   #define KELVINCONV 273.15E+00
   #define CELSIUS_FOR_KELVIN(t) ((t)+(KELVINCONV)) 
   #define KELVIN_FOR_CELSIUS(t) ((t)-(KELVINCONV)) 
+  #define TEMP(tc,t,fKelvin)  if((fKelvin)){ (tc) = (t);}\
+                              else{(tc) = CELSIUS_FOR_KELVIN((t));}
 /*...................................................................*/
 
 /*...*/

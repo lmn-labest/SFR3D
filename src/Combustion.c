@@ -193,12 +193,12 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*...*/
-//regularZ(mesh->elm.zComb,mesh->numelNov
-//        ,cModel->nComb  ,cModel->fLump);
+  tm.speciesLoop = getTimeC() - tm.speciesLoop;
+  regularZ(mesh->elm.zComb,mesh->numelNov
+          ,cModel->nComb);
 /*...................................................................*/
 
 /*...*/
-  tm.speciesLoop = getTimeC() - tm.speciesLoop;
   getSpeciesPrimitives(cModel
                       ,mesh->elm.yFrac,mesh->elm.zComb
                       ,mesh->numelNov);
@@ -242,7 +242,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 
 /*********************************************************************
  * Data de criacao    : 15/08/2018                                   *
- * Data de modificaco : 15/05/2019                                   *
+ * Data de modificaco : 08/06/2019                                   *
  *-------------------------------------------------------------------*
  * regularZ : mantem o z entre 0 e 1                                 *
  *-------------------------------------------------------------------*
@@ -251,8 +251,6 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
  * z            -> fracao massica                                    *
  * numel        -> numero de elementos                               *
  * nOfSpecies   -> numero de especie agrupadas                       *
- * fLump        -> true  - especies agrupadas                        *
- *                 false - especies primitivas                       *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -262,19 +260,17 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
  *-------------------------------------------------------------------*
  * z < 0.0 -> z = 0.e0                                               *
  *********************************************************************/
-void regularZ(DOUBLE *RESTRICT z    , INT const numel
-            , short const nComb      , bool fLump)
+void regularZ(DOUBLE *RESTRICT y, INT const numel, short const ns)
 {
   short j;
   INT nel;
-/*DOUBLE zSum;*/
 
 /*... z < 0.0*/
   for(nel = 0 ; nel < numel; nel++)
   {
-    for(j=0;j<nComb;j++)
-      if(MAT2D(nel,j,z,nComb) < 0.e0)
-        MAT2D(nel,j,z,nComb) = 0.e0;
+    for(j=0;j<ns;j++)
+      if(MAT2D(nel,j,y,ns) < 0.e0)
+        MAT2D(nel,j,y,ns) = 0.e0;
   }
 
 }
@@ -463,12 +459,13 @@ void getSpeciesPrimitives(Combustion *cModel
       
         for(i=0;i<nc;i++)
           MAT2D(nel,i,y,ns) = MAT2D(nel,i,z,nc);
-;
-        for(i=0,sum=0.e0;i<ns-1;i++)
+
+        for(i=0,sum=0.e0;i<nc;i++)
           sum+=MAT2D(nel,i,y,ns);
+        
+        sum = min(sum,1.e0);
 
         MAT2D(nel,cModel->sp_N2,y,ns) = 1.e0 - sum;
-
       }
   }
 }
@@ -534,7 +531,7 @@ void getSpeciesPrimitivesCc(Combustion *cModel
       for(i=0;i<nc;i++)
         y[i] = z[i];
 
-      for(i=0,sum=0.e0;i<ns-1;i++)
+      for(i=0,sum=0.e0;i<nc;i++)
         sum+=y[i];
       y[cModel->sp_N2] = 1.e0 - sum;
 
@@ -688,8 +685,6 @@ void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
                       ,dViscosity[nel],df
                       ,tMix           ,cModel->edc.type);
           MAT2D(nel,i,rate,nReac) = omega; 
-//        if(nel == 4499 || nel ==5499)
-//          fprintf(fileLogDebug,"%d %.10e %.10e %.10e\n",nel,y[0],y[1],omega);
         }
       }
 /*...................................................................*/

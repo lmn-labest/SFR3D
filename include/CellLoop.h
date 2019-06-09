@@ -274,7 +274,8 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
        , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT eddyViscosity
        , DOUBLE *RESTRICT tConductivity
        , DOUBLE *RESTRICT enthalpyk    , DOUBLE *RESTRICT gradY 
-       , DOUBLE *RESTRICT diffY        , DOUBLE *RESTRICT rateHeatComb 
+       , DOUBLE *RESTRICT diffY        , DOUBLE *RESTRICT yFrac
+       , DOUBLE *RESTRICT rateHeatComb 
        , DOUBLE *RESTRICT dField       , DOUBLE *RESTRICT wallPar
        , Temporal ddt                  , DOUBLE underU
        , INT nEq                       , INT nEqNov

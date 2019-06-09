@@ -159,7 +159,7 @@
                  , INT const nEl            , char  const iCod);
 /*... calor especifico da mistura*/
   void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel, FILE *file);
-  DOUBLE mixtureSpecifiHeat(Prop *sHeat       , DOUBLE *yFrac
+  DOUBLE mixtureSpecifiHeat(Prop *sHeat      , DOUBLE *yFrac
                          , DOUBLE const t    , short const nOfPrSp
                          , bool const fKelvin); 
   DOUBLE specieSpecifiHeat(Prop *sHeat     , short const kSpecie
@@ -206,7 +206,7 @@
                        ,bool const iKelvin    ,INT const nEl);
 
 /*...*/
-  DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol
+  DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol  , DOUBLE const t
                              , DOUBLE const hs        , DOUBLE *yFrac
                              , DOUBLE const sHeatRef  , short const nOfPrSp
                              , bool const fSheat      , bool const fKelvin
@@ -220,20 +220,11 @@
                                , DOUBLE const t    , DOUBLE const sHeatRef
                                , bool const fSheat , bool const fKelvin);
 
-  void getEnergyFrmTheTempMix(Prop *sHeatPol  ,DOUBLE *RESTRICT yFrac 
+  void getEnergyFromTheTempMix(Prop *sHeatPol  ,DOUBLE *RESTRICT yFrac 
                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                         ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                         ,INT const nCell      ,short const nOfPrSp
                         ,bool const fSheat    ,bool const fKelvin
-                        ,bool const fOmp      ,short const nThreads );
-
-
-  void  getEnergyFromTheTempMix(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
-                        ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
-                        ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
-                        ,INT const nCell      ,short const nOfPrSp 
-                        ,bool const fTemp     ,bool const fSheat    
-                        ,bool const fKelvin
                         ,bool const fOmp      ,short const nThreads );
 
   void initPropTempMix(PropVarFluid *propF    , Combustion *cModel

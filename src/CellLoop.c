@@ -2395,7 +2395,7 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
 
 /*********************************************************************
  * Data de criacao    : 22/08/2017                                   *
- * Data de modificaco : 05/06/2019                                   *
+ * Data de modificaco : 08/06/2019                                   *
  *-------------------------------------------------------------------*
  * SYSTFOMENERGY: calculo do sistema de equacoes para problemas      *
  * transporte de energia (Ax=b)                                      *
@@ -2467,8 +2467,9 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
  * tConductvity -> condutividade termica com variacao temporal       *
  * enthalpyk -> entalpia sensivel por especie                        *
  * gradY     -> gradiente das especies                               *
+ * diffY  -> coeficiente de difusao das especie                      *
+ * yFrac  -> fracao massica
  * rateHeatReComb -> taxa de liberacao de energia                    * 
- * diffY  -> coeficiente de difusao das especie                      * 
  * dField    -> matriz D do metodo simple                            * 
  * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  *
  * ddt     -> discretizacao temporal                                 *
@@ -2525,7 +2526,8 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
        , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT eddyViscosity
        , DOUBLE *RESTRICT tConductivity
        , DOUBLE *RESTRICT enthalpyk    , DOUBLE *RESTRICT gradY 
-       , DOUBLE *RESTRICT diffY        , DOUBLE *RESTRICT rateHeatComb 
+       , DOUBLE *RESTRICT diffY        , DOUBLE *RESTRICT yFrac
+       , DOUBLE *RESTRICT rateHeatComb 
        , DOUBLE *RESTRICT dField       , DOUBLE *RESTRICT wallPar
        , Temporal ddt                  , DOUBLE underU
        , INT nEq                       , INT nEqNov
@@ -2565,7 +2567,8 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
   DOUBLE lRcell[MAX_NDF],lWallPar[NWALLPAR];
   DOUBLE lRateHeatC,lEnthalpyk[(MAX_NUM_FACE + 1)*MAXSPECIES]
         ,lGradY[(MAX_NUM_FACE + 1)*MAX_NDM*MAXSPECIES]
-        ,lDiffY[(MAX_NUM_FACE + 1)*MAXSPECIES];
+        ,lDiffY[(MAX_NUM_FACE + 1)*MAXSPECIES]
+        ,lYfrac[(MAX_NUM_FACE + 1)*MAXSPECIES];
 
 /*...*/
   if (ompVar.fCell)
@@ -2862,6 +2865,8 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
           for(j=0;j<ns;j++)
           {
 /*...*/
+            MAT2D(aux1, j, lYfrac, ns) = MAT2D(nel, j, yFrac, ns); 
+/*...*/
             MAT2D(aux1, j, lDiffY, ns) = MAT2D(nel, j, diffY, ns); 
 /*... entalpia sensivel por especies*/
             MAT2D(aux1, j, lEnthalpyk, ns) =
@@ -2946,9 +2951,14 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
             {
               for(j=0;j<ns;j++)
               {
+/*...*/
+                MAT2D(i, j, lYfrac, ns) = MAT2D(vizNel, j, yFrac, ns); 
+/*...*/      
                 MAT2D(i, j, lDiffY, ns) = MAT2D(vizNel, j, diffY, ns);
+/*...*/
                 MAT2D(i, j, lEnthalpyk, ns) =
                     MAT2D(vizNel, j, enthalpyk, ns); 
+/*...*/
                 for (k = 0; k<ndm; k++)
                   MAT3D(i, j, k, lGradY, ns, ndm) =
                          MAT3D(vizNel, j, k, gradY, ns, ndm); 
@@ -2995,7 +3005,8 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                     , lDensity     , lsHeat
                     , lViscosity   , ltConductivity
                     , lEnthalpyk   , lGradY
-                    , lDiffY       , lRateHeatC
+                    , lDiffY       , lYfrac   
+                    , lRateHeatC
                     , lDfield      , lWallPar
                     , underU
                     , nen[nel]     , nFace[nel]

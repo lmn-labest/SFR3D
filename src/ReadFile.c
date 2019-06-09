@@ -101,6 +101,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
   nComb  = cModel->nComb;
   nSpPri = cModel->nOfSpecies;
   nReac  = cModel->nReac;
+  fOneEqK = tModel->fOneEq;
 /*...................................................................*/
 
 /*...*/
@@ -1273,7 +1274,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     else
     {
       if(fComb)
-        getEnergyFrmTheTempMix(&propF->sHeat          ,mesh->elm.yFrac
+        getEnergyFromTheTempMix(&propF->sHeat          ,mesh->elm.yFrac
                            ,mesh->elm.temp         ,mesh->elm.energy0
                            ,mesh->elm.material.prop,mesh->elm.mat                        
                            ,mesh->numel            ,cModel->nOfSpecies
@@ -3045,6 +3046,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->fDynamic    = true;
           t->fTurb       = true;      
           t->type        = LES;
+          t->fOneEq      = true;
           t->typeMixed[FUNMODEL] = ONEEQK;
           t->typeLes = LESFUNCMODELONEEQK;
           t->eK.fRes =  true;

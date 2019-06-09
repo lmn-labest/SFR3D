@@ -173,6 +173,7 @@
     bool fTurb;
     bool fWall;
     bool fDynamic;
+    bool fOneEq;
     short wallType;
     short type;          /* 0 - LES*/
     short typeLes;       /* 0 - funcional

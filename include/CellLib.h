@@ -86,7 +86,8 @@
                    , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lSheat
                    , DOUBLE *RESTRICT lDviscosity, DOUBLE *RESTRICT ltConductvity
                    , DOUBLE *RESTRICT lEnthalpyk , DOUBLE *RESTRICT lGradY 
-                   , DOUBLE *RESTRICT diffY      , DOUBLE const lRateHeat  
+                   , DOUBLE *RESTRICT diffY      , DOUBLE *RESTRICT yFrac 
+                   , DOUBLE const lRateHeat  
                    , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT wallPar
                    , DOUBLE const underU
                    , short const nEn             , short  const nFace
@@ -506,7 +507,8 @@
             , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lSheat
             , DOUBLE *RESTRICT lViscosity , DOUBLE *RESTRICT lTconductivity
             , DOUBLE *RESTRICT enthalpyk  , DOUBLE *RESTRICT gradY 
-            , DOUBLE *RESTRICT diffY      , DOUBLE const rateHeat    
+            , DOUBLE *RESTRICT diffY      , DOUBLE *RESTRICT yFrac     
+            , DOUBLE const rateHeat    
             , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT wallPar
             , DOUBLE const underU           
             , const short nEn             , short const nFace

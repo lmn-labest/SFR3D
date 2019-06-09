@@ -206,6 +206,7 @@ int main(int argc,char**argv){
   turbModel.fWall               = false;
   turbModel.fTurb               = false;
   turbModel.fDynamic            = false;
+  turbModel.fOneEq              = false;
   turbModel.wallType            = STANDARDWALL;
   turbModel.type                = LES;
   turbModel.typeLes             = LESFUNCMODEL;
@@ -486,11 +487,12 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... identifica parede impermevais*/
-      if(mesh0->ndfF > 0 || mesh0->ndfFt > 0){
+      if(mesh0->ndfF > 0 || mesh0->ndfFt > 0)
+      {
         wallFluid(mesh0->elm.faceRvel,mesh0->elm.adj.nelcon
                  ,mesh0->elm.adj.nViz   
                  ,mesh0->numel       ,mesh0->maxViz); 
-        if(turbModel.fTurb)
+        if(turbModel.fOneEq)
           wallFluid(mesh0->elm.faceReKturb,mesh0->elm.adj.nelcon
                    ,mesh0->elm.adj.nViz   
                    ,mesh0->numel          ,mesh0->maxViz);  
