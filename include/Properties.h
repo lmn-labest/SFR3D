@@ -227,6 +227,14 @@
                         ,bool const fSheat    ,bool const fKelvin
                         ,bool const fOmp      ,short const nThreads );
 
+  void  getTempFromTheEnergy(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
+                        ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
+                        ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
+                        ,INT const nCell      ,short const nOfPrSp 
+                        ,bool const fTemp     ,bool const fSheat    
+                        ,bool const fKelvin
+                        ,bool const fOmp      ,short const nThreads );
+
   void initPropTempMix(PropVarFluid *propF    , Combustion *cModel
                  ,DOUBLE *RESTRICT prop     ,DOUBLE *RESTRICT t       
                  ,DOUBLE *RESTRICT pressure ,DOUBLE *RESTRICT yFrac  

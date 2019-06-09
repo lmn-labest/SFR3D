@@ -766,7 +766,7 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
  * Data de criacao    : 20/08/2018                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
- * etEnergyForTempMix: obtem a entalpia sensivel apartir da temp     *
+ * getEnergyForTempMix: obtem a entalpia sensivel apartir da temp    *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------*
@@ -789,7 +789,7 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void getEnergyFromTheTempMix(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac 
+void getEnergyFromTheTempMix(Prop *sHeatPol   ,DOUBLE *RESTRICT yFrac 
                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                         ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                         ,INT const nCell      ,short const nOfPrSp
@@ -838,6 +838,95 @@ void getEnergyFromTheTempMix(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
 /*...................................................................*/ 
 }
 /*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 20/08/2018                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ *  getTempFromTheEnergy : obtem a temperatura apartir da entalpia*  
+ * sensivel                                                          *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * sHeatPol - estrutra par o polinoimio do calor especifico          *
+ * yFrac    - fracao de massa da especies primitivas                 * 
+ * temp   - nao definido                                             *
+ * energy - entalpia sensivel                                        * 
+ * prop   - propriedades por material                                *
+ * mat    - material da celula                                       *
+ * nCell  - numero da celulas                                        *
+ * nOfPrSp  - numero de especies primitivas                          *
+ * fTemp  - equaca da energia na forma de temperatura (true|false)   *
+ * fsHeat - variacao do calor especifico em funcao da Temperatura    *
+ *          (true|false)                                             *
+ * fKelnvin - temperatura em kelvin (true|false)                     *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------*
+ * temp   - temperatura (C ou kelvin)                                * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void  getTempFromTheEnergy(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
+                        ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
+                        ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
+                        ,INT const nCell      ,short const nOfPrSp 
+                        ,bool const fTemp     ,bool const fSheat    
+                        ,bool const fKelvin
+                        ,bool const fOmp      ,short const nThreads )
+{
+  
+  short lMat;
+  INT i;  
+  DOUBLE sHeatRef,*y;
+
+/*... resolucao da eq da energia na forma de temperatura*/ 
+  if(fTemp)
+    for (i = 0; i < nCell; i++)
+      temp[i] = energy[i]; 
+/*...................................................................*/ 
+
+/*... resolucao da eq da energia na forma de entalpia sensivel*/  
+  else{
+    if(fOmp){
+#pragma omp parallel  for default(none) num_threads(nThreads)\
+      private(i,lMat,sHeatRef,y) shared(prop,mat,energy,temp,sHeatPol,nOfPrSp,yFrac)
+      for (i = 0; i < nCell; i++) {
+        lMat  = mat[i] - 1;
+        sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+        y = &MAT2D(i,0,yFrac,nOfPrSp);
+        temp[i] = specificEnthalpyForTempOfMix(sHeatPol,temp[i]
+                                         , energy[i]   , y    
+                                         , sHeatRef   , nOfPrSp
+                                         , fSheat     , fKelvin
+                                         , i);
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*...*/
+    else{
+      for (i = 0; i < nCell; i++) {
+        lMat  = mat[i] - 1;
+        sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+        y = &MAT2D(i,0,yFrac,nOfPrSp);
+        temp[i] = specificEnthalpyForTempOfMix(sHeatPol,temp[i]
+                                         , energy[i]   , y    
+                                         , sHeatRef    , nOfPrSp
+                                         , fSheat      , fKelvin
+                                         , i);
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/ 
+  }
+/*...................................................................*/ 
+
+}
+/*********************************************************************/
+
 
 /*********************************************************************
  * Data de criacao    : 19/08/2018                                   *
