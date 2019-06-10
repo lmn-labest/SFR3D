@@ -1427,7 +1427,8 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*... inicializando as entalpia das especies*/
       getEnthalpySpecies(cModel         , propF
                    , mesh->elm.enthalpyk, mesh->elm.temp 
-                   , mesh->numel        , energyModel->fKelvin);
+                   , mesh->numel        , energyModel->fKelvin
+                   , ompVar.fUpdate     , ompVar.nThreadsUpdate);
 /*...................................................................*/
 
     }

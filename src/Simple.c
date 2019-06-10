@@ -987,34 +987,39 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...*/
     tm.updateProp = getTimeC() - tm.updateProp;
     if(fDensity)
-      updateMixDensity(&propF->den         , cModel
+      updateMixDensity(&propF->den          , cModel
                  , mesh->elm.temp           , mesh->elm.pressure
                  , mesh->elm.densityFluid   , mesh->elm.yFrac         
                  , sp->alphaDensity         , eModel->fKelvin      
-                 , mesh->numelNov           , PROP_UPDATE_NL_LOOP);  
+                 , mesh->numelNov           , PROP_UPDATE_NL_LOOP
+                 , ompVar.fUpdate           , ompVar.nThreadsUpdate);  
     if(fSheat)
       updateMixSpecificHeat(&propF->sHeat
                          , mesh->elm.temp        , mesh->elm.yFrac
                          , mesh->elm.specificHeat, cModel->nOfSpecies
                          , eModel->fKelvin     
-                         , mesh->numel           , PROP_UPDATE_NL_LOOP);
+                         , mesh->numel           , PROP_UPDATE_NL_LOOP
+                         , ompVar.fUpdate        , ompVar.nThreadsUpdate);
     if(fDvisc)
       updateMixDynamicViscosity(&propF->dVisc    ,cModel
                           ,mesh->elm.temp        ,mesh->elm.yFrac 
                           ,mesh->elm.dViscosity  ,cModel->nOfSpecies   
-                          ,eModel->fKelvin       , mesh->numel);
+                          ,eModel->fKelvin       , mesh->numel
+                          ,ompVar.fUpdate        , ompVar.nThreadsUpdate);
     if(fTcond)
       updateMixDynamicThermalCond(propF           ,cModel 
                           ,mesh->elm.temp         , mesh->elm.yFrac
                           ,mesh->elm.tConductivity,cModel->nOfSpecies
-                          ,eModel->fKelvin        , mesh->numel);
+                          ,eModel->fKelvin        , mesh->numel
+                          ,ompVar.fUpdate         , ompVar.nThreadsUpdate);
     
     if(fDiff)
       updateMixDiffusion(propF             , cModel 
                        ,mesh->elm.temp     , mesh->elm.yFrac
                        ,mesh->elm.cDiffComb, cModel->nOfSpecies 
                        ,cModel->nComb       
-                       ,eModel->fKelvin    , mesh->numel); 
+                       ,eModel->fKelvin    , mesh->numel
+                       ,ompVar.fUpdate     , ompVar.nThreadsUpdate); 
     tm.updateProp = getTimeC() - tm.updateProp;   
 /*...................................................................*/
 
@@ -1121,18 +1126,22 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*... guardando as propriedades para o proximo passo*/
+  tm.updateProp = getTimeC() - tm.updateProp;
   if(fDensity)
     updateMixDensity(&propF->den         , cModel
-                 , mesh->elm.temp           , mesh->elm.pressure
-                 , mesh->elm.densityFluid   , mesh->elm.yFrac         
-                 , sp->alphaDensity         , eModel->fKelvin      
-                 , mesh->numelNov           , PROP_UPDATE_OLD_TIME); 
+                 , mesh->elm.temp        , mesh->elm.pressure
+                 , mesh->elm.densityFluid, mesh->elm.yFrac         
+                 , sp->alphaDensity      , eModel->fKelvin      
+                 , mesh->numelNov        , PROP_UPDATE_OLD_TIME
+                 , ompVar.fUpdate        , ompVar.nThreadsUpdate); 
   if(fSheat)
     updateMixSpecificHeat(&propF->sHeat
                          , mesh->elm.temp        , mesh->elm.yFrac
                          , mesh->elm.specificHeat, cModel->nOfSpecies
                          , eModel->fKelvin     
-                         , mesh->numel           , PROP_UPDATE_OLD_TIME);
+                         , mesh->numel           , PROP_UPDATE_OLD_TIME
+                         , ompVar.fUpdate        , ompVar.nThreadsUpdate);
+  tm.updateProp = getTimeC() - tm.updateProp;
 /*...................................................................*/
 
 /*... calcula a massa especifica de referencia*/

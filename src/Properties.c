@@ -559,24 +559,37 @@ DOUBLE mixtureSpeciesDensity(Prop *den        ,DOUBLE const malorMassMix
 
 /*********************************************************************
  * Data de criacao    : 25/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 09/06/2019                                   *
  *-------------------------------------------------------------------*
  * updateMixDensity:                                                 *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
+ * sHeatPol - estrutra par o polinoimio do calor especifico          *
+ * temp     - temperatura (°C/K)                                     *
+ * pressure - pressao                                                *  
+ * density  - densidade                                              *
+ * yFrac    - fracao de massa da especies primitivas                 *
+ * alpha    - parametro sobre relaxamanto                            *
+ * fKelvin  - temperatura dada em kelvin                             *
+ * nEl      - numero total de elmentos                               *
+ * iCod     -                                                        *
+ * fOmp     - openmp                                                 *
+ * nThreads - numero de threads                                      *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
+ * density  - densidade atualizado                                   *
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateMixDensity(Prop *pDen         , Combustion *cModel
+void updateMixDensity(Prop *pDen            , Combustion *cModel
                  , DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT pressure
-                 , DOUBLE *RESTRICT density , DOUBLE *RESTRICT yComb
+                 , DOUBLE *RESTRICT density , DOUBLE *RESTRICT yFrac
                  , DOUBLE const alpha       , bool const iKelvin    
-                 , INT const nEl            , char  const iCod)
+                 , INT const nEl            , char  const iCod
+                 , bool const fOmp         , short const nThreads )
 
 {
   short nD = DENSITY_LEVEL,ns = cModel->nOfSpecies;
@@ -585,29 +598,79 @@ void updateMixDensity(Prop *pDen         , Combustion *cModel
 /*...*/
   switch (iCod){
     case PROP_UPDATE_NL_LOOP:
-      for(i=0;i<nEl;i++)
+/*... omp*/
+      if(fOmp)
       {
-        y = &MAT2D(i,0,yComb,ns);
-        molarMassMix =  mixtureMolarMass(cModel,y); 
-        den0 =  MAT2D(i,TIME_N ,density ,nD);         
-        den =  mixtureSpeciesDensity(pDen            ,molarMassMix
-                                    ,temp[i]         ,pressure[i]
-                                    ,thDynamic.pTh[2],iKelvin);
+#pragma omp parallel  for default(none) num_threads(nThreads)\
+        private(i,y,molarMassMix,den0,den)\
+        shared(cModel,pDen,yFrac,density,pressure,temp,thDynamic,iKelvin,alpha,nD,ns,nEl)
+        for(i=0;i<nEl;i++)
+        {
+          y = &MAT2D(i,0,yFrac,ns);
+          molarMassMix =  mixtureMolarMass(cModel,y); 
+          den0 =  MAT2D(i,TIME_N ,density ,nD);         
+          den =  mixtureSpeciesDensity(pDen            ,molarMassMix
+                                      ,temp[i]         ,pressure[i]
+                                      ,thDynamic.pTh[2],iKelvin);
 /*...*/           
-        MAT2D(i,TIME_N ,density ,nD) =  alpha*den + (1.e0-alpha)*den0;
+          MAT2D(i,TIME_N ,density ,nD) =  alpha*den + (1.e0-alpha)*den0;
+        }
+/*..................................................................*/
+      }
+/*..................................................................*/
+
+/*... seq*/
+      else
+      {
+        for(i=0;i<nEl;i++)
+        {
+          y = &MAT2D(i,0,yFrac,ns);
+          molarMassMix =  mixtureMolarMass(cModel,y); 
+          den0 =  MAT2D(i,TIME_N ,density ,nD);         
+          den =  mixtureSpeciesDensity(pDen            ,molarMassMix
+                                      ,temp[i]         ,pressure[i]
+                                      ,thDynamic.pTh[2],iKelvin);
+/*...*/           
+          MAT2D(i,TIME_N ,density ,nD) =  alpha*den + (1.e0-alpha)*den0;
+        }
+/*..................................................................*/
       }
 /*..................................................................*/
     break;  
+/*..................................................................*/
 
+/*...*/
     case PROP_UPDATE_OLD_TIME:
-      for(i=0;i<nEl;i++)
+/*... omp*/
+      if(fOmp)
       {
+#pragma omp parallel  for default(none) num_threads(nThreads)\
+        private(i)\
+        shared(density,nD,nEl)
+        for(i=0;i<nEl;i++)
+        {
 /*...t(n-2) = t(n-1)*/
-        MAT2D(i,TIME_N_MINUS_2 ,density ,nD) = MAT2D(i,1 ,density ,nD);
+          MAT2D(i,TIME_N_MINUS_2 ,density ,nD) = MAT2D(i,1 ,density ,nD);
 /*...t(n-1) = t(n)*/           
-        MAT2D(i,TIME_N_MINUS_1 ,density ,nD) = MAT2D(i,2 ,density ,nD);
+          MAT2D(i,TIME_N_MINUS_1 ,density ,nD) = MAT2D(i,2 ,density ,nD);
+        }
+/*..................................................................*/
       }
 /*..................................................................*/
+
+/*... seq*/
+      else
+      {
+        for(i=0;i<nEl;i++)
+        {
+/*...t(n-2) = t(n-1)*/
+          MAT2D(i,TIME_N_MINUS_2 ,density ,nD) = MAT2D(i,1 ,density ,nD);
+/*...t(n-1) = t(n)*/           
+          MAT2D(i,TIME_N_MINUS_1 ,density ,nD) = MAT2D(i,2 ,density ,nD);
+        }
+/*..................................................................*/
+/*..................................................................*/
+      }
     break;
   }
 /*..................................................................*/
@@ -781,6 +844,8 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
  * fsHeat - variacao do calor especifico em funcao da Temperatura    *
  *          (true|false)                                             *
  * fKelnvin - temperatura em kelvin (true|false)                     *
+ * fOmp         -> openmp                                            *
+ * nThreads     -> numero de threads                                 *
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------*
@@ -860,6 +925,8 @@ void getEnergyFromTheTempMix(Prop *sHeatPol   ,DOUBLE *RESTRICT yFrac
  * fsHeat - variacao do calor especifico em funcao da Temperatura    *
  *          (true|false)                                             *
  * fKelnvin - temperatura em kelvin (true|false)                     *
+ * fOmp         -> openmp                                            *
+ * nThreads     -> numero de threads                                 *
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------*
@@ -889,10 +956,12 @@ void  getTempFromTheEnergy(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
 
 /*... resolucao da eq da energia na forma de entalpia sensivel*/  
   else{
-    if(fOmp){
+    if(fOmp)
+    {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
       private(i,lMat,sHeatRef,y) shared(prop,mat,energy,temp,sHeatPol,nOfPrSp,yFrac)
-      for (i = 0; i < nCell; i++) {
+      for (i = 0; i < nCell; i++)
+      {
         lMat  = mat[i] - 1;
         sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
         y = &MAT2D(i,0,yFrac,nOfPrSp);
@@ -930,7 +999,7 @@ void  getTempFromTheEnergy(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
 
 /*********************************************************************
  * Data de criacao    : 19/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 09/06/2019                                   *
  *-------------------------------------------------------------------*
  * updateMixSpecificHeat:                                            *
  *-------------------------------------------------------------------*
@@ -943,6 +1012,9 @@ void  getTempFromTheEnergy(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
  * nOfPrSp  - numero de especies primitivas                          * 
  * fKelvin  - temperatura dada em kelvin                             *
  * nEl      - numero total de elmentos                               *
+ * iCod     -                                                        *
+ * fOmp     - openmp                                                 *
+ * nThreads - numero de threads                                      *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -955,7 +1027,8 @@ void updateMixSpecificHeat(Prop *sHeatPol
                          , DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT yFrac  
                          , DOUBLE *RESTRICT sHeat , short const nOfPrSp
                          , bool const iKelvin
-                         , INT const nEl          , char  const iCod)
+                         , INT const nEl          , char  const iCod
+                         , bool const fOmp        , short const nThreads )
 
 {
   short nD = SHEAT_LEVEL;
@@ -966,24 +1039,67 @@ void updateMixSpecificHeat(Prop *sHeatPol
   switch (iCod)
   {
     case PROP_UPDATE_NL_LOOP:
-      for(i=0;i<nEl;i++)
+/*... omp*/
+      if(fOmp)
       {
-        y = &MAT2D(i,0,yFrac,nOfPrSp);
+#pragma omp parallel  for default(none) num_threads(nThreads)\
+        private(i,y)\
+        shared(sHeat,temp,nOfPrSp,temp,sHeatPol,nOfPrSp,yFrac,iKelvin, nD)
+        for(i=0;i<nEl;i++)
+        {
+          y = &MAT2D(i,0,yFrac,nOfPrSp);
 /*...*/           
-        MAT2D(i,TIME_N ,sHeat ,nD) = 
-        mixtureSpecifiHeat(sHeatPol ,y,temp[i]  ,nOfPrSp,iKelvin);
+          MAT2D(i,TIME_N ,sHeat ,nD) = 
+          mixtureSpecifiHeat(sHeatPol ,y,temp[i]  ,nOfPrSp,iKelvin);
+        }
+/*..................................................................*/
       }
 /*..................................................................*/
-    break;  
 
-  case PROP_UPDATE_OLD_TIME:
-    for(i=0;i<nEl;i++){
+/*... seq*/
+      else
+      {
+        for(i=0;i<nEl;i++)
+        {
+          y = &MAT2D(i,0,yFrac,nOfPrSp);
+/*...*/           
+          MAT2D(i,TIME_N ,sHeat ,nD) = 
+          mixtureSpecifiHeat(sHeatPol ,y,temp[i]  ,nOfPrSp,iKelvin);
+        }
+/*..................................................................*/
+      }
+    break;  
+/*..................................................................*/
+
 /*...*/
-      MAT2D(i, TIME_N_MINUS_2, sHeat, nD) = MAT2D(i,1 ,sHeat ,nD);           
-      MAT2D(i, TIME_N_MINUS_1, sHeat, nD) = MAT2D(i,2 ,sHeat ,nD);
-    }
+  case PROP_UPDATE_OLD_TIME:
+/*... omp*/
+      if(fOmp)
+      {
+#pragma omp parallel  for default(none) num_threads(nThreads)\
+       private(i) shared(sHeat,nD,nEl)
+        for(i=0;i<nEl;i++)
+        {        
+          MAT2D(i, TIME_N_MINUS_2, sHeat, nD) = MAT2D(i,1 ,sHeat ,nD);           
+          MAT2D(i, TIME_N_MINUS_1, sHeat, nD) = MAT2D(i,2 ,sHeat ,nD);
+        }
+/*..................................................................*/
+      }
+/*..................................................................*/
+
+/*... seq*/
+      else
+      {
+        for(i=0;i<nEl;i++)
+        {
+          MAT2D(i, TIME_N_MINUS_2, sHeat, nD) = MAT2D(i,1 ,sHeat ,nD);           
+          MAT2D(i, TIME_N_MINUS_1, sHeat, nD) = MAT2D(i,2 ,sHeat ,nD);
+        }
+/*..................................................................*/
+      }
 /*..................................................................*/
     break;
+/*..................................................................*/
   }
 /*..................................................................*/
 }
@@ -1318,22 +1434,45 @@ DOUBLE specieViscosity(DOUBLE const molarMass
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateMixDynamicViscosity(Prop *dVisc    ,Combustion *cModel
+void updateMixDynamicViscosity(Prop *dVisc       ,Combustion *cModel
                           ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
                           ,DOUBLE *RESTRICT visc ,short const nOfPrSp   
-                          ,bool const iKelvin    ,INT const nEl)
+                          ,bool const iKelvin    ,INT const nEl
+                          ,bool const fOmp       , short const nThreads )
 {
   INT i;
   DOUBLE *y;
 
-  for(i=0;i<nEl;i++)
+/*... omp*/
+  if(fOmp)
   {
-    y = &MAT2D(i,0,yFrac,nOfPrSp);      
-    visc[i] = mixtureDynamicViscosity(dVisc    ,cModel
+#pragma omp parallel  for default(none) num_threads(nThreads)\
+        private(i,y)\
+        shared(dVisc,cModel,nOfPrSp,visc,temp,yFrac,iKelvin)
+    for(i=0;i<nEl;i++)
+    {
+      y = &MAT2D(i,0,yFrac,nOfPrSp);      
+      visc[i] = mixtureDynamicViscosity(dVisc  ,cModel
                                      ,y        ,temp[i]  
                                      ,iKelvin);
 
+    }
   }
+/*.....................................................................*/
+
+/*... seq*/
+  else
+  {
+    for(i=0;i<nEl;i++)
+    {
+      y = &MAT2D(i,0,yFrac,nOfPrSp);      
+      visc[i] = mixtureDynamicViscosity(dVisc    ,cModel
+                                      ,y        ,temp[i]  
+                                      ,iKelvin);
+    }
+/*.....................................................................*/
+  }
+/*.....................................................................*/
 }
 /*********************************************************************/
 
@@ -1361,18 +1500,40 @@ void updateMixDynamicViscosity(Prop *dVisc    ,Combustion *cModel
 void updateMixDynamicThermalCond(PropVarFluid *propF,Combustion *cModel 
                           ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
                           ,DOUBLE *RESTRICT thc  ,short const nOfPrSp   
-                          ,bool const iKelvin    ,INT const nEl)
+                          ,bool const iKelvin    ,INT const nEl
+                          ,bool const fOmp       , short const nThreads )
 {
   INT i;
   DOUBLE *y;
 
-  for(i=0;i<nEl;i++)
+/*... omp*/
+  if(fOmp)
   {
-    y = &MAT2D(i,0,yFrac,nOfPrSp);         
-    thc[i] = mixtureThermalConductvity(propF    ,cModel
-                                      ,y        ,temp[i]  
-                                      ,iKelvin);
+#pragma omp parallel  for default(none) num_threads(nThreads)\
+        private(i,y)\
+        shared(propF,thc,cModel,nOfPrSp,temp,yFrac,iKelvin)
+    for(i=0;i<nEl;i++)
+    {
+      y = &MAT2D(i,0,yFrac,nOfPrSp);         
+      thc[i] = mixtureThermalConductvity(propF    ,cModel
+                                        ,y        ,temp[i]  
+                                        ,iKelvin);
+    }
+/*.....................................................................*/
   }
+/*... seq*/
+  else
+  {
+    for(i=0;i<nEl;i++)
+    {
+      y = &MAT2D(i,0,yFrac,nOfPrSp);         
+      thc[i] = mixtureThermalConductvity(propF    ,cModel
+                                        ,y        ,temp[i]  
+                                        ,iKelvin);
+    }
+/*.....................................................................*/
+  }
+/*.....................................................................*/
 }
 /*********************************************************************/
 
@@ -1639,7 +1800,7 @@ DOUBLE specieDiffusionBinary(DOUBLE const mMassA,DOUBLE const mMassB
 
 /*********************************************************************
  * Data de criacao    : 18/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 09/06/2019                                   *
  *-------------------------------------------------------------------*
  * updateMixDynamicThermalCond:                                      *
  *-------------------------------------------------------------------*
@@ -1652,6 +1813,8 @@ DOUBLE specieDiffusionBinary(DOUBLE const mMassA,DOUBLE const mMassB
  * nComb   -> numero de especies explicitamente resolvidas           * 
  * iKelvin -> kelvin ou celsus                                       *
  * nEl     -> numero total de celulas                                *
+ * fOmp         -> openmp                                            *
+ * nThreads     -> numero de threads                                 *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -1663,21 +1826,47 @@ void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel
                        ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
                        ,DOUBLE *RESTRICT diff ,short const nOfPrSp 
                        ,short const nComb       
-                       ,bool const iKelvin    ,INT const nEl)
+                       ,bool const iKelvin    ,INT const nEl
+                       ,bool const fOmp       , short const nThreads )
 {
   short j;
   INT i;
   DOUBLE *y;
 
-  for(i=0;i<nEl;i++)
+/*... omp*/
+  if(fOmp)
   {
-    y = &MAT2D(i,0,yFrac,nOfPrSp);         
-    for(j=0;j<nOfPrSp;j++)
-      MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF   ,cModel 
-                                              ,yFrac   ,temp[i]
-                                              ,j       ,cModel->sp_N2 
-                                              ,i       ,iKelvin );
+#pragma omp parallel  for default(none) num_threads(nThreads)\
+        private(i,j,y)\
+        shared(propF,cModel,diff,temp,nOfPrSp,yFrac,iKelvin)
+    for(i=0;i<nEl;i++)
+    {
+      y = &MAT2D(i,0,yFrac,nOfPrSp);         
+      for(j=0;j<nOfPrSp;j++)
+        MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF,cModel 
+                                                  ,y    ,temp[i]
+                                                  ,j    ,cModel->sp_N2 
+                                                  ,i    ,iKelvin );
+    }
+/*.....................................................................*/
   }
+/*.....................................................................*/
+
+/*... seq*/
+  else
+  {
+   for(i=0;i<nEl;i++)
+    {
+      y = &MAT2D(i,0,yFrac,nOfPrSp);         
+      for(j=0;j<nOfPrSp;j++)
+        MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF   ,cModel 
+                                                  ,y       ,temp[i]
+                                                  ,j       ,cModel->sp_N2 
+                                                  ,i       ,iKelvin );
+    }
+/*.....................................................................*/
+  }
+/*.....................................................................*/
 }
 /*********************************************************************/
 

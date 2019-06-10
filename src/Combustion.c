@@ -205,7 +205,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*...*/
-   getGradSpecies(cModel    
+  getGradSpecies(cModel    
                 , mesh->elm.gradZcomb, mesh->elm.gradY
                 , mesh->numel        , mesh->ndm);
 /*...................................................................*/
@@ -217,7 +217,8 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
   tm.enthalpySpecies = getTimeC() - tm.enthalpySpecies;
   getEnthalpySpecies(cModel             , prop
                    , mesh->elm.enthalpyk, mesh->elm.temp 
-                   , mesh->numel        , eModel->fKelvin);
+                   , mesh->numel        , eModel->fKelvin
+                   , ompVar.fUpdate     , ompVar.nThreadsUpdate);
   tm.enthalpySpecies = getTimeC() - tm.enthalpySpecies;
 /*...................................................................*/
 
@@ -229,7 +230,8 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                     , mesh->elm.densityFluid  , mesh->elm.rateFuel 
                     , mesh->elm.material.prop , mesh->elm.mat    
                     , sc->ddt.dt[TIME_N]      , mesh->numelNov
-                    , fSheat                  , eModel->fKelvin );  
+                    , fSheat                  , eModel->fKelvin
+                    , ompVar.fUpdate     , ompVar.nThreadsUpdate); 
   tm.heatRelease  = getTimeC() - tm.heatRelease; 
 /*...................................................................*/
 
@@ -278,9 +280,9 @@ void regularZ(DOUBLE *RESTRICT y, INT const numel, short const ns)
 
 /*********************************************************************
  * Data de criacao    : 04/06/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 09/06/2019                                   *
  *-------------------------------------------------------------------*
- * getEnthalpySpecies : obetem as entalpias por especies             *         *
+ * getEnthalpySpecies : obetem as entalpias por especies             *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
@@ -288,6 +290,8 @@ void regularZ(DOUBLE *RESTRICT y, INT const numel, short const ns)
  * enthalpyk    -> nao definido                                      *
  * temp         -> temperatura                                       *
  * numel        -> numero de celulas                                 *
+ * fOmp         -> openmp                                            *
+ * nThreads     -> numero de threads                                 *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -298,28 +302,49 @@ void regularZ(DOUBLE *RESTRICT y, INT const numel, short const ns)
  *********************************************************************/
 void getEnthalpySpecies(Combustion *cModel        ,  PropVarFluid *propF
                       , DOUBLE *RESTRICT enthalpyk, DOUBLE *RESTRICT temp 
-                      , INT const numel           , bool const fKelvin)
+                      , INT const numel           , bool const fKelvin
+                      , bool const fOmp           , short const nThreads )
 {
   short j,ns=cModel->nOfSpecies;
   INT nel;
   DOUBLE hs,sHeatRef;
 
   sHeatRef = propF->sHeatRef;
-
-  for(nel = 0 ; nel < numel; nel++)
+/*... omp*/
+  if(fOmp)
   {
-    for(j=0;j<ns;j++)
-    {
-      hs = tempForSpecificEnthalpySpecies(&propF->sHeat       , j
-                                        , temp[nel]           , sHeatRef
-                                        , propF->fSpecificHeat, fKelvin);
-      MAT2D(nel,j,enthalpyk,ns) = hs;
+#pragma omp parallel  for default(none) num_threads(nThreads)\
+        private(nel,j,hs) shared(propF,cModel,enthalpyk,temp,numel,ns,fKelvin,sHeatRef)
+    for(nel = 0 ; nel < numel; nel++)
+    { 
+      for(j=0;j<ns;j++)
+      {
+        hs = tempForSpecificEnthalpySpecies(&propF->sHeat       , j
+                                           , temp[nel]           , sHeatRef
+                                           , propF->fSpecificHeat, fKelvin);
+        MAT2D(nel,j,enthalpyk,ns) = hs;
+      }
     }
   }
+/*.....................................................................*/
 
+/*... seq*/
+  else
+  {
+    for(nel = 0 ; nel < numel; nel++)
+    { 
+      for(j=0;j<ns;j++)
+      {
+        hs = tempForSpecificEnthalpySpecies(&propF->sHeat       , j
+                                           , temp[nel]           , sHeatRef
+                                           , propF->fSpecificHeat, fKelvin);
+        MAT2D(nel,j,enthalpyk,ns) = hs;
+      }
+    }
+  }
+/*.....................................................................*/
 }
 /*********************************************************************/
-
 
 /*********************************************************************
  * Data de criacao    : 05/06/2019                                   *
@@ -697,7 +722,7 @@ void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
 
 /*********************************************************************
  * Data de criacao    : 12/08/2018                                   *
- * Data de modificaco : 07/05/2019                                   *
+ * Data de modificaco : 09/06/2019                                   *
  *-------------------------------------------------------------------*
  * rateHeatRealeseCombustion: calculo da taxa de liberacao de calor  *
  *-------------------------------------------------------------------*
@@ -715,6 +740,8 @@ void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
  * numel   -> numero de elementos                                    *
  * fSheat   - calor especifico com variacao com a Temperatura        *
  * fKelvin  - temperatura dada em kelvin                             *
+ * fOmp         -> openmp                                            *
+ * nThreads     -> numero de threads                                 *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -748,7 +775,8 @@ void rateHeatRealeseCombustion(Combustion *cModel,Prop *sHeat
                    , DOUBLE *RESTRICT density, DOUBLE *RESTRICT rateFuel 
                    , DOUBLE *RESTRICT prop   , short  *RESTRICT mat
                    , DOUBLE const dt         , INT const numel
-                   , bool const fsHeat       , bool const fKelvin)
+                   , bool const fsHeat       , bool const fKelvin
+                   , bool const fOmp         , short const nThreads)
 {
 
   short lMat
@@ -758,69 +786,128 @@ void rateHeatRealeseCombustion(Combustion *cModel,Prop *sHeat
   DOUBLE *h,hc,H,DH,HP,HR,hs,nSp;
   DOUBLE sHeatRef,sum;
 
-/*... Entalpia de formacao*/
-  if(iCod == HFORMATION)
+  switch(iCod) 
   {
+/*... Entalpia de formacao*/
+    case  HFORMATION:
     h     = cModel->entalphyOfForm;
-    for(nel = 0; nel < numel; nel++)
+    if (fOmp)
     {
-      lMat  = mat[nel] - 1;
+#pragma omp parallel  for default(none) num_threads(nThreads)\
+        private(nel,i,j,lMat,sum,iComb,kSp,nSp,HR,HP,hs,H,sHeatRef)\
+        shared(cModel,mat,sHeat,fsHeat,fKelvin,temp,q,prop,nReac,h,rateFuel)    
+      for(nel = 0; nel < numel; nel++)
+      {
+        lMat  = mat[nel] - 1;
 /*... reacao i*/
-      for(i=0,sum=0.0;i<nReac;i++)
-      {   
-        iComb = cModel->sp_fuel[i];
+        for(i=0,sum=0.0;i<nReac;i++)
+        {   
+          iComb = cModel->sp_fuel[i];
 /*... reagentes*/
-        for(j=0,HR=0.e0;j<cModel->nSpeciesPart[i][0];j++)
-        {
-          kSp = cModel->speciesPart[i][0][j];
-//        nSp = cModel->stoich[i][0][kSp];
-          nSp = cModel->sMass[i][0][kSp];
+          for(j=0,HR=0.e0;j<cModel->nSpeciesPart[i][0];j++)
+          {
+            kSp = cModel->speciesPart[i][0][j];
+//          nSp = cModel->stoich[i][0][kSp];
+            nSp = cModel->sMass[i][0][kSp];
   
-          sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+            sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
 
 /*... KJ/KGK*/
-          hs = tempForSpecificEnthalpySpecies(sHeat    , kSp 
+            hs = tempForSpecificEnthalpySpecies(sHeat    , kSp 
                                             , temp[nel], sHeatRef
                                             , fsHeat   , fKelvin);
-          H = h[kSp]/cModel->mW[kSp] + hs;
+            H = h[kSp]/cModel->mW[kSp] + hs;
 
-          HR += nSp*H;
-        } 
+            HR += nSp*H;
+          } 
 /*... reagentes*/
-        for(j=0,HP=0.e0;j<cModel->nSpeciesPart[i][1];j++)
-        {
-          kSp = cModel->speciesPart[i][1][j];
-//        nSp = cModel->stoich[i][1][kSp];
-          nSp = cModel->sMass[i][1][kSp];
+          for(j=0,HP=0.e0;j<cModel->nSpeciesPart[i][1];j++)
+          {
+            kSp = cModel->speciesPart[i][1][j];
+//          nSp = cModel->stoich[i][1][kSp];
+            nSp = cModel->sMass[i][1][kSp];
 
-          sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+            sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
 /*... KJ/KGK*/
-          hs =  tempForSpecificEnthalpySpecies(sHeat    , kSp 
+            hs =  tempForSpecificEnthalpySpecies(sHeat    , kSp 
                                              , temp[nel], sHeatRef  
                                              , fsHeat   , fKelvin);
-          H = h[kSp]/cModel->mW[kSp] + hs;
+            H = h[kSp]/cModel->mW[kSp] + hs;
 
-          HP += nSp*H;         
-        } 
-        sum += (HP-HR)*MAT2D(nel,i,rateFuel,nReac);      
-      }
+            HP += nSp*H;         
+          } 
+          sum += (HP-HR)*MAT2D(nel,i,rateFuel,nReac);      
+        }
 /*...................................................................*/      
-      q[nel] = -sum; 
-     
+        q[nel] = -sum; 
+      }
     }
 /*...................................................................*/
-  }
+
+/*...*/
+    else
+    {
+      for(nel = 0; nel < numel; nel++)
+      {
+        lMat  = mat[nel] - 1;
+/*... reacao i*/
+        for(i=0,sum=0.0;i<nReac;i++)
+        {   
+          iComb = cModel->sp_fuel[i];
+/*... reagentes*/
+          for(j=0,HR=0.e0;j<cModel->nSpeciesPart[i][0];j++)
+          {
+            kSp = cModel->speciesPart[i][0][j];
+//          nSp = cModel->stoich[i][0][kSp];
+            nSp = cModel->sMass[i][0][kSp];
+  
+            sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+
+/*... KJ/KGK*/
+            hs = tempForSpecificEnthalpySpecies(sHeat    , kSp 
+                                            , temp[nel], sHeatRef
+                                            , fsHeat   , fKelvin);
+            H = h[kSp]/cModel->mW[kSp] + hs;
+
+            HR += nSp*H;
+          } 
+/*... reagentes*/
+          for(j=0,HP=0.e0;j<cModel->nSpeciesPart[i][1];j++)
+          {
+            kSp = cModel->speciesPart[i][1][j];
+//          nSp = cModel->stoich[i][1][kSp];
+            nSp = cModel->sMass[i][1][kSp];
+
+            sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+/*... KJ/KGK*/
+            hs =  tempForSpecificEnthalpySpecies(sHeat    , kSp 
+                                             , temp[nel], sHeatRef  
+                                             , fsHeat   , fKelvin);
+            H = h[kSp]/cModel->mW[kSp] + hs;
+
+            HP += nSp*H;         
+          } 
+          sum += (HP-HR)*MAT2D(nel,i,rateFuel,nReac);      
+        }
+/*...................................................................*/      
+        q[nel] = -sum; 
+      }
+/*...................................................................*/
+    }
+    break;
 /*...................................................................*/
 
 /*... Entalpia de combustao*/
-  else if (iCod == HCOMBUSTION)
-  {
+  case HCOMBUSTION:
     hc = cModel->entalphyOfCombustion;
     for(nel = 0; nel < numel; nel++)
     {
       q[nel] = -rateFuel[nel]*hc;
     }
+    break;
+/*...................................................................*/
   }
+/*...................................................................*/
 }
 /*********************************************************************/
 

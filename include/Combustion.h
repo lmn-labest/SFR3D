@@ -67,7 +67,8 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
                    , DOUBLE *RESTRICT density, DOUBLE *RESTRICT rateFuel 
                    , DOUBLE *RESTRICT prop   , short  *RESTRICT mat
                    , DOUBLE const dt         , INT const numel
-                   , bool const fsHeat       , bool const fKelvin);
+                   , bool const fsHeat       , bool const fKelvin
+                   , bool const fOmp         , short const nThreads);
 /*...................................................................*/
 
 /*...*/
@@ -79,9 +80,10 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
-  void getEnthalpySpecies(Combustion *cModel      ,  PropVarFluid *propF
+  void getEnthalpySpecies(Combustion *cModel        ,  PropVarFluid *propF
                       , DOUBLE *RESTRICT enthalpyk, DOUBLE *RESTRICT temp 
-                      , INT const numel           , bool const fKelvin);
+                      , INT const numel           , bool const fKelvin
+                      , bool const fOmp           , short const nThreads );
   void  getGradSpecies(Combustion *cModel   
                    , DOUBLE *RESTRICT gradZ, DOUBLE *RESTRICT gradY
                    , INT const numel       , short const ndm);

@@ -152,11 +152,12 @@
   DOUBLE mixtureSpeciesDensity(Prop *den        ,DOUBLE const malorMassMix
                             ,DOUBLE const t      ,DOUBLE const p
                             ,DOUBLE const presRef,bool const fKelvin);
-  void updateMixDensity(Prop *pDen         , Combustion *cModel
+  void updateMixDensity(Prop *pDen            , Combustion *cModel
                  , DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT pressure
-                 , DOUBLE *RESTRICT density , DOUBLE *RESTRICT zComb
+                 , DOUBLE *RESTRICT density , DOUBLE *RESTRICT yFrac
                  , DOUBLE const alpha       , bool const iKelvin    
-                 , INT const nEl            , char  const iCod);
+                 , INT const nEl            , char  const iCod
+                 , bool const fOmp         , short const nThreads );
 /*... calor especifico da mistura*/
   void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel, FILE *file);
   DOUBLE mixtureSpecifiHeat(Prop *sHeat      , DOUBLE *yFrac
@@ -168,7 +169,8 @@
                          , DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT yFrac  
                          , DOUBLE *RESTRICT sHeat , short const nOfPrSp
                          , bool const iKelvin
-                         , INT const nEl          , char  const iCod);
+                         , INT const nEl          , char  const iCod
+                         , bool const fOmp        , short const nThreads);
 /*... viscosidae dinamica da mistura*/
   DOUBLE mixtureDynamicViscosity(Prop *dVisc    ,Combustion *cModel
                             ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
@@ -180,12 +182,14 @@
   void updateMixDynamicViscosity(Prop *dVisc    ,Combustion *cModel
                           ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
                           ,DOUBLE *RESTRICT visc ,short const nOfPrSp   
-                          ,bool const iKelvin    ,INT const nEl);
+                          ,bool const iKelvin    ,INT const nEl
+                          ,bool const fOmp       , short const nThreads);
 /*... condutividade termica*/
   void updateMixDynamicThermalCond(PropVarFluid *PropF ,Combustion *cModel
                           ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
                           ,DOUBLE *RESTRICT thc  ,short const nOfPrSp   
-                          ,bool const iKelvin    ,INT const nEl);
+                          ,bool const iKelvin    ,INT const nEl
+                          ,bool const fOmp       , short const nThreads );
   DOUBLE mixtureThermalConductvity(PropVarFluid *PropF ,Combustion *cModel 
                                 ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
                                 ,bool const fKelvin);
@@ -203,7 +207,8 @@
                        ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
                        ,DOUBLE *RESTRICT diff ,short const nOfPrSp 
                        ,short const nComb       
-                       ,bool const iKelvin    ,INT const nEl);
+                       ,bool const iKelvin    ,INT const nEl
+                       ,bool const fOmp       , short const nThreads );
 
 /*...*/
   DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol  , DOUBLE const t
