@@ -143,6 +143,23 @@ void openMpSet(FILE *fileIn, Omp *ompVar){
       nOmp--;
     }
 /*...................................................................*/
+
+/*... grad*/
+    else if (!strcmp(word, "Grad") || !strcmp(word, "grad")) {
+      readMacro(fileIn, word, false);
+/*...*/
+      ompVar->nThreadsGrad = (short)atol(word);
+      ompVar->fGrad = true;
+/*...................................................................*/
+
+/*...*/       
+      fprintf(fileLogExc,"%-20s: %d\n","Update nThreads"
+                        , ompVar->nThreadsGrad);
+/*...................................................................*/
+      nOmp--;
+    }
+/*...................................................................*/
+
   } while (nOmp);
 
   openMpCheck(ompVar->flag);
