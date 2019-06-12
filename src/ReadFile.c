@@ -4378,7 +4378,8 @@ void setEdc(Edc *e       , FILE *file)
 
   char word[WORD_SIZE];
   char edc[][WORD_SIZE] = { "pan"        ,"panct"
-                           ,"fluent"     ,"fluentct"}; 
+                           ,"fluent"     ,"fluentct"
+                           ,"fds"                   }; 
 
   readMacro(file,word,false);
   convStringLower(word);
@@ -4425,6 +4426,18 @@ void setEdc(Edc *e       , FILE *file)
                         , edc[3],e->tMix);   
   }
 /*...................................................................*/ 
+
+/*... Fluent com tempo de mistura constante*/
+  else if(!strcmp(word,edc[4])) 
+  {
+    e->type = FDS_EDC;
+    fscanf(file,"%lf %lf",&e->cGamma,&e->cTau);   
+    if(!mpiVar.myId) 
+      fprintf(fileLogExc,"%-20s: tc = %lf tf = %lf\n"
+                        , edc[3],e->cGamma,e->cTau);   
+  }
+/*...................................................................*/ 
+
 }
 /**********************************************************************/
 

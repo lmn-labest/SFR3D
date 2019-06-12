@@ -205,6 +205,10 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*...*/
+  regularZ(mesh->elm.yFrac,mesh->numelNov,cModel->nOfSpecies);
+/*...................................................................*/
+
+/*...*/
   getGradSpecies(cModel    
                 , mesh->elm.gradZcomb, mesh->elm.gradY
                 , mesh->numel        , mesh->ndm);
@@ -1389,8 +1393,8 @@ DOUBLE maxArray(DOUBLE *RESTRICT x,INT const n)
  * y(nel,4) -> N2                                                    *
  *********************************************************************/
 DOUBLE edc(DOUBLE *y          ,short const iYf
-          ,short const iYox   ,short *iProd
-          ,short const nProd
+          ,short const iYox      
+          ,short *iProd       ,short const nProd  
           ,DOUBLE const s     ,DOUBLE const density
           ,DOUBLE const vol   ,DOUBLE const eddyVisc
           ,DOUBLE *c          ,DOUBLE const modS 
@@ -1405,7 +1409,7 @@ DOUBLE edc(DOUBLE *y          ,short const iYf
 /*...*/
   yF    = y[iYf];
   yOx   = y[iYox];
-  for(i=0,yP=0;i<nProd;i++)
+  for(i=0,yP=0.e0;i<nProd;i++)
     yP += y[iProd[i]];
 /*..................................................................*/
 
@@ -1422,9 +1426,10 @@ DOUBLE edc(DOUBLE *y          ,short const iYf
       td = delta*delta/df;
       tu = 0.4*delta/sqrt((2.e0/3.e0)*k);
       tg = sqrt(2.e0*delta/9.81);
-      tc = 1.e-04;
-      tf = 0.125;
-      itMix =1.e0/max(tc,min(tg,min(td,min(tu,tf))));
+      tc = c[0];
+      tf = c[1];
+      itMix = max(tc,min(tg,min(td,min(tu,tf))));
+      itMix = 1.e0/itMix; 
       gEdc  = 1.e0;
       break;
 /*..................................................................*/
@@ -1443,7 +1448,7 @@ DOUBLE edc(DOUBLE *y          ,short const iYf
 /*...*/
       itMix = c[1]*modS;
 /*... calculo */
-      gamma = min(c[0]*pow(dVisc/(eddyVisc+dVisc),0.25),0.95);
+      gamma = min(c[0]*pow(dVisc/(eddyVisc+dVisc),0.25),0.99);
       yMin = min(yF,yOx/s); 
       tmp1 = s + 1;
       tmp2 = yMin + yP/tmp1;
@@ -1468,7 +1473,6 @@ DOUBLE edc(DOUBLE *y          ,short const iYf
 
   r = min(yF,yOx/s);
   omega = density*max(r,0.e0)*itMix*gEdc;
-
   return omega;
 }
 /*********************************************************************/ 
