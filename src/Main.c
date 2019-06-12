@@ -158,7 +158,7 @@ int main(int argc,char**argv){
   ,"pFluid"       ,"setPrint"     ,"reScaleMesh"    /*33,34,35*/
   ,"setPrime"     ,"prime"        ,"combParameters" /*36,37,38*/
   ,"setSolvComb"  ,"pCombustion"  ,"simpleComb"     /*39,40,41*/
-  ,"setSimpleComb",""             ,""               /*42,43,44*/ 
+  ,"setSimpleComb","arrhenius"    ,""               /*42,43,44*/ 
   ,"gravity"      ,"model"        ,"mean"           /*45,46,47*/
   ,"setMean"      ,"save"         ,"load"};         /*48,49,50*/
 /* ..................................................................*/
@@ -1744,6 +1744,19 @@ int main(int argc,char**argv){
     }
 /*===================================================================*/
 
+/*===================================================================*
+ * macro: arrhenius : leitura a lei de arrhenius                      
+ *===================================================================*/
+    else if((!strcmp(word,macro[43])))
+    {
+      initSec(word, OUTPUT_FOR_FILE);
+/*...*/
+      readArrhenius(&combModel, fileIn);
+/*...................................................................*/
+
+      endSec(OUTPUT_FOR_FILE);
+    }
+/*===================================================================*/
 
 /*===================================================================*
  * macro: gravity : gravidade                                                 

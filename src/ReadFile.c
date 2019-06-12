@@ -3362,7 +3362,6 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if (!strcmp(word, combustion[5]))
         {
           cModel->reactionKinetic           = ARRHENIUS;
-          setArrhenius(cModel->arrhenius,file);
           if (!mpiVar.myId)
             fprintf(fileLogExc, format, "ARRHENIUS", "Enable");
           
@@ -4438,40 +4437,6 @@ void setEdc(Edc *e       , FILE *file)
   }
 /*...................................................................*/ 
 
-}
-/**********************************************************************/
-
-/**********************************************************************
- * Data de criacao    : 26/05/2019                                    *
- * Data de modificaco : 00/00/0000                                    *
- *--------------------------------------------------------------------* 
- * setArrhenius :                                                     *
- *--------------------------------------------------------------------* 
- * Parametros de entrada:                                             * 
- *--------------------------------------------------------------------* 
- * a       -> modelo de turbilencia                                   *
- * file    -> arquivo de arquivo                                      * 
- *--------------------------------------------------------------------* 
- * Parametros de saida:                                               * 
- *--------------------------------------------------------------------* 
- * t       -> atualizado                                              * 
- *--------------------------------------------------------------------* 
- * OBS:                                                               * 
- *--------------------------------------------------------------------*
- **********************************************************************/
-void setArrhenius(ArrheniusLaw *a       , FILE *file) {
-
-  short k,nTerm;
- 
-  fscanf(file,"%hd",&nTerm);
-
-  for(k=0;k<nTerm;k++)
-    fscanf(file,"%lf %lf %lf %lf %lf",&a[k].alpha
-                             ,&a[k].energyAtivation
-                             ,&a[k].a
-                             ,&a[k].e1
-                             ,&a[k].e2);
-  
 }
 /**********************************************************************/
 
@@ -7097,6 +7062,59 @@ void readcombParameters(Combustion *c, FILE *file)
 
 }
 /*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 11/06/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * readArrhenius : leitura dos paramentros do modelo de combustao    *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * c       ->                                                        *
+ * file    -> arquivo de arquivo                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void readArrhenius(Combustion *c, FILE *file)
+{
+
+  char *str = { "endarrhenius" };
+  char word[WORD_SIZE];
+  short i;
+  
+  if(!mpiVar.myId)
+    fprintf(fileLogExc,"%s:\n", "Arrhenius");
+  
+  readMacroV2(file, word, false, true);
+  do 
+  {
+    i = atol(word) - 1;
+    fscanf(file, "%lf %lf %lf %lf %lf"
+                      , &c->arrhenius[i].alpha
+                      , &c->arrhenius[i].energyAtivation
+                      , &c->arrhenius[i].a
+                      , &c->arrhenius[i].e1
+                      , &c->arrhenius[i].e2);
+    if(!mpiVar.myId)
+      fprintf(fileLogExc,"nReac %hd alpha = %lf Ea = %lf A = %lf e1 = %lf e2 = %lf\n"
+                        ,i
+                        , &c->arrhenius[i].alpha
+                        , &c->arrhenius[i].energyAtivation
+                        , &c->arrhenius[i].a
+                        , &c->arrhenius[i].e1
+                        , &c->arrhenius[i].e2);
+/*...................................................................*/
+    readMacroV2(file, word, false, true);
+  } while (strcmp(word, str));
+
+}
+/*********************************************************************/
+
 
 /*********************************************************************/
 /*Converte condicoes de contorno da pressao para presssao de correcao*/

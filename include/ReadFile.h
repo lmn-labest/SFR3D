@@ -70,7 +70,6 @@
   void setMixedModelLes(Turbulence *t  , FILE *file);
   void setDynamicModelLes(Turbulence *t, FILE *file);
   void setEdc(Edc *e       , FILE *file);
-  void setArrhenius(ArrheniusLaw *a       , FILE *file);
   void setPrint(FileOpt *opt,FILE *file);
   void setReGrad(short *rcGrad, FILE *fileIn);
 
@@ -89,7 +88,7 @@
    void readSetSimpleComb(Memoria *m    , FILE *fileIn
                      , Mesh *mesh0   , Mesh *mesh
                     , Simple *simple, bool *fSolvComb);
- /*...*/
+/*...*/
    void readSolvFluid(Memoria *m, Mesh *mesh
                     , Reord *reordMesh
                     , Solv *solvVel, SistEq* sistEqVel, bool *fSolvVel
@@ -120,6 +119,7 @@
                 , FILE *fileIn    , FileOpt *opt);
 
    void readcombParameters(Combustion *c, FILE *file);
+   void readArrhenius(Combustion *c, FILE *file);
 
    void readNlIt(Scheme *sc, FILE *fileIn);
    
