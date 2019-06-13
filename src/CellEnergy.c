@@ -620,9 +620,9 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
 /*...*/
   INT vizNel;
 /*...*/
-  DOUBLE thermCoefC, thermCoefV, densityC, densityV, densityM,
-    diffEffC, diffEffV, diffEff, sHeatC, sHeatV, sHeatM,
-    eddyViscosityC, eddyViscosityV, viscosityC,
+  DOUBLE thermCoefF,thermCoefC, thermCoefV, densityC, densityV, densityM,
+    diffEffC, diffEffV, diffEff, sHeatC, sHeatV, sHeatF,
+    diffTurbF, eddyViscosityC, eddyViscosityV, viscosityC,
     hskV,hskC[MAXSPECIES],hsk, gradYC[MAXSPECIES][3],gradYV[3], 
     diffYC[MAXSPECIES], yFracC[MAXSPECIES], dV, tA, coef,
     tmp, tmp1, tmp2, tmp3, prTwall, prTsgs;
@@ -675,7 +675,7 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
 /*...................................................................*/
 
 /*... propriedades da celula*/
-  sHeatM = eddyViscosityC = eddyViscosityV = 0.e0;
+  eddyViscosityC = eddyViscosityV = 0.e0;
   densityC = lDensity[idCell];
   sHeatC = lSheat[idCell];
   thermCoefC = lTconductivity[idCell];
@@ -698,13 +698,6 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
       yFracC[k] = MAT2D(idCell, k, yFrac, ns);
     }
   }
-/*...................................................................*/
-
-/*...*/
-  if (fTemp)
-    diffEffC = thermCoefC + sHeatC * eddyViscosityC / prTsgs;
-  else
-    diffEffC = thermCoefC / sHeatC + eddyViscosityC / prTsgs;
 /*...................................................................*/
 
 /*...*/
@@ -803,14 +796,18 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
 
 /*... media harmonica*/
       if (fTemp) {
-        diffEffV = thermCoefV + sHeatV * eddyViscosityV / prTsgs;
-        diffEff = alpha / diffEffC + alphaMenosUm / diffEffV;
-        diffEff = 1.0e0 / diffEff;
+        sHeatF     = alphaMenosUm*sHeatC + alpha*sHeatV;
+        thermCoefF = alphaMenosUm*thermCoefC + alpha*thermCoefV; 
+        diffTurbF  = (alphaMenosUm*eddyViscosityC 
+                   + alpha*eddyViscosityV)/prTsgs; 
+        diffEff = thermCoefF + sHeatF * diffTurbF;
       }
       else {
-        diffEffV = thermCoefV / sHeatV + eddyViscosityV / prTsgs;
-        diffEff = alpha / diffEffC + alphaMenosUm / diffEffV;
-        diffEff = 1.0e0 / diffEff;
+        thermCoefF = alphaMenosUm*thermCoefC + alpha*thermCoefV;   
+        sHeatF     = alphaMenosUm*sHeatC + alpha*sHeatV;
+        diffTurbF  = (alphaMenosUm*eddyViscosityC 
+                   + alpha*eddyViscosityV)/prTsgs;
+        diffEff = thermCoefF/sHeatF + diffTurbF;
       }
 /*...................................................................*/
 
@@ -828,8 +825,6 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
       dFieldF[1] = alphaMenosUm * dFieldC[1] + alpha * dFieldV[1];
       dFieldF[2] = alphaMenosUm * dFieldC[2] + alpha * dFieldV[2];
       densityM = alphaMenosUm * densityC + alpha * densityV;
-      if (fTemp)
-        sHeatM = alphaMenosUm * sHeatC + alpha * sHeatV;
 /*...................................................................*/
 
 /*... velocidade normal a face*/
@@ -865,7 +860,7 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
 
 /*... fluxo convectivo upwind de primeira ordem*/
       if (fTemp)
-        cv = sHeatM * densityM*wfn*lFarea;
+        cv = sHeatF * densityM*wfn*lFarea;
       else
         cv = densityM * wfn*lFarea;
 /*...................................................................*/

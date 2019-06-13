@@ -714,9 +714,9 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   time = getTimeC();
 
 /*...*/
-  relRes       = true;
-  typeResidual = RSQRT;
-//typeResidual = RSCALEDSUM;
+//relRes       = true;
+//typeResidual = RSQRT;
+  typeResidual = RSCALEDSUM;
 //typeResidual = RSCALEDSUMMAX;
 
 /*...*/
@@ -2590,7 +2590,7 @@ void residualSimpleLm(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
  *-------------------------------------------------------------------* 
  * vel      -  > campo de velocidade                                 *
  * energy     -> campo de energia                                    *  
- * zComb      -> campo com a fracao massica das especies
+ * zComb      -> campo com a fracao massica das especies             *
  * rCellVel   -> residuo das equacoes das velocidade por celulas     * 
  * rCellMass  -> residuo de massa da equacoes de pressao por celulas * 
  * rCellEnergy-> residuo de massa da equacoes de energia por celulas * 
