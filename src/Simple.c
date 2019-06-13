@@ -677,12 +677,12 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   short unsigned ndfVel = mesh->ndfFt - 2;
   short unsigned nComb = cModel->nComb;
   short unsigned conv, i;
-  short unsigned typeResidual;
-  short itSimple;
+  short unsigned itSimple;
   short unsigned kZeroVel    = sp->kZeroVel,
                  kZeroPres   = sp->kZeroPres,
                  kZeroEnergy = sp->kZeroEnergy,
                  kZeroComb   = sp->kZeroComb;
+  short unsigned typeResidual[4];
   INT jj = 1;
   DOUBLE time, timei;
   DOUBLE *rCellPc;
@@ -714,10 +714,15 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   time = getTimeC();
 
 /*...*/
-//relRes       = true;
-//typeResidual = RSQRT;
-  typeResidual = RSCALEDSUM;
-//typeResidual = RSCALEDSUMMAX;
+//relRes          = true;
+/*... vel*/
+  typeResidual[0] = RSCALEDSUMMAX;
+/*... energia*/  
+  typeResidual[1] = RSCALEDSUM; 
+/*... conservao de especie*/ 
+  typeResidual[2] = RSCALEDSUMMAX; 
+/*... conservacao de massa*/
+  typeResidual[3] = RSQRT;         
 
 /*...*/
   tolSimpleU1     = sp->tolVel[0];
@@ -2584,7 +2589,7 @@ void residualSimpleLm(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
  * Data de criacao    : 24/05/2019                                   *
  * Data de modificaco : 00/00/0000                                   * 
  *-------------------------------------------------------------------* 
- * RESIDUALSIMPLE : calculo dos residuos no metodo simple            *
+ * RESIDUALCOMBUSTION : calculo dos residuos no metodo simple        *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -2629,7 +2634,7 @@ void residualSimpleLm(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
  *         | adz1 adz2 ... adznEq |                                  *
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void residualCombustion(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
+void residualCombustionOld(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
             ,DOUBLE *RESTRICT zComb
             ,DOUBLE *RESTRICT rCellVel     ,DOUBLE *RESTRICT rCellMass
             ,DOUBLE *RESTRICT rCellEnergy ,DOUBLE *RESTRICT rCellComb      
@@ -3009,7 +3014,6 @@ void residualCombustion(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
 
 }
 /*********************************************************************/
-
 
 /********************************************************************* 
  * Data de criacao    : 12/11/2017                                   *

@@ -19,6 +19,7 @@
   #include<Properties.h>
   #include<Energy.h>
   #include<Media.h>
+  #include<Residual.h>
 /*...................................................................*/
 
   void simpleSolver3D(Memoria *m        
@@ -92,7 +93,7 @@
             ,INT const nEl                ,INT const nEqVel
             ,short const ndm              ,short iCod);
 
-  void residualCombustion(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
+  void residualCombustionOld(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
             ,DOUBLE *RESTRICT zComb
             ,DOUBLE *RESTRICT rCellVel     ,DOUBLE *RESTRICT rCellMass
             ,DOUBLE *RESTRICT rCellEnergy ,DOUBLE *RESTRICT rCellComb      

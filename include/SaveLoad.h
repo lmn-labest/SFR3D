@@ -10,6 +10,7 @@
   #include<File.h>
   #include<Properties.h>
   #include<Turbulence.h>
+  #include<Residual.h>
 /*...................................................................*/
 
 /*...*/
