@@ -4618,18 +4618,10 @@ void readSetSimple(Memoria *m    , FILE *fileIn
   simple->alphaPres       = 0.3e0; 
   simple->alphaVel        = 0.7e0; 
   simple->type            = SIMPLE;
-  simple->kZeroVel        = 1;
-  simple->kZeroPres       = 0;
   simple->sPressure       = true;
   simple->faceInterpolVel = 1;
   simple->nNonOrth        = 0;
-  simple->tolPres         = 1.e-06;
-  simple->tolVel[0]       = 1.e-06;
-  simple->tolVel[1]       = 1.e-06;
-  simple->tolVel[2]       = 1.e-06;
   if (mesh->ndfFt){
-    simple->kZeroEnergy  = 0;
-    simple->tolEnergy    = 1.e-06;
     simple->alphaEnergy  = 1.e0;
     simple->alphaDensity = 1.0e0; 
     simple->alphaComb    = 1.0e0;
@@ -4659,13 +4651,6 @@ void readSetSimple(Memoria *m    , FILE *fileIn
       fprintf(fileLogExc,"Maxit     : %d\n",simple->maxIt);
       fprintf(fileLogExc,"alphaPres : %lf\n",simple->alphaPres);
       fprintf(fileLogExc,"alphaVel  : %lf\n",simple->alphaVel);
-      fprintf(fileLogExc,"tolPres   : %e\n",simple->tolPres);
-      fprintf(fileLogExc,"tolVelX   : %e\n",simple->tolVel[0]);
-      fprintf(fileLogExc,"tolVelY   : %e\n",simple->tolVel[1]);
-        if(mesh->ndm == 3)
-          fprintf(fileLogExc,"tolVelZ   : %e\n",simple->tolVel[2]);
-      if(mesh->ndfFt)
-        fprintf(fileLogExc,"tolEnergy : %e\n", simple->tolEnergy);
       fprintf(fileLogExc,"nNonOrth  : %d\n",simple->nNonOrth);
       fprintf(fileLogExc,"pSimple   : %d\n",simple->pSimple);
     }
@@ -4724,19 +4709,9 @@ void readSetSimpleComb(Memoria *m    , FILE *fileIn
   simple->alphaPres       = 0.3e0; 
   simple->alphaVel        = 0.7e0; 
   simple->type            = SIMPLE;
-  simple->kZeroVel        = 1;
-  simple->kZeroPres       = 0;
   simple->sPressure       = true;
   simple->faceInterpolVel = 1;
   simple->nNonOrth        = 0;
-  simple->tolPres         = 1.e-06;
-  simple->tolVel[0]       = 1.e-06;
-  simple->tolVel[1]       = 1.e-06;
-  simple->tolVel[2]       = 1.e-06;
-  simple->kZeroEnergy     = 0;
-  simple->tolEnergy       = 1.e-06;
-  simple->kZeroComb       = 0;
-  simple->tolComb         = 1.e-06;
   simple->alphaEnergy     = 1.e0;
   simple->alphaDensity    = 1.0e0; 
   simple->alphaComb       = 1.0e0;
@@ -4766,19 +4741,8 @@ void readSetSimpleComb(Memoria *m    , FILE *fileIn
       fprintf(fileLogExc,"%-15s : %lf\n","alphaVel"   ,simple->alphaVel);
       fprintf(fileLogExc,"%-15s : %lf\n","alphaEnergy",simple->alphaEnergy);
       fprintf(fileLogExc,"%-15s : %lf\n","alphaComb"  ,simple->alphaComb);
-      fprintf(fileLogExc,"%-15s : %e\n","tolPres"    ,simple->tolPres);
-      fprintf(fileLogExc,"%-15s : %e\n","tolVelX"    ,simple->tolVel[0]);
-      fprintf(fileLogExc,"%-15s : %e\n","tolVelY"    ,simple->tolVel[1]);
-      if(mesh->ndm == 3)
-        fprintf(fileLogExc,"%-15s : %e\n","tolVelZ"  ,simple->tolVel[2]);
-      fprintf(fileLogExc,"%-15s : %e\n","tolEnergy"  ,simple->tolEnergy);
-      fprintf(fileLogExc,"%-15s : %e\n","tolComb"    ,simple->tolComb);
       fprintf(fileLogExc,"%-15s : %d\n","nNonOrth"    ,simple->nNonOrth);
       fprintf(fileLogExc,"%-15s : %d\n","pSimple"     ,simple->pSimple);
-      fprintf(fileLogExc,"%-15s : %d\n","kZeroPres"   ,simple->kZeroPres);
-      fprintf(fileLogExc,"%-15s : %d\n","kZeroVel"    ,simple->kZeroVel);
-      fprintf(fileLogExc,"%-15s : %d\n","kZeroEnergy" ,simple->kZeroEnergy);
-      fprintf(fileLogExc,"%-15s : %d\n","kZeroComb"   ,simple->kZeroComb);
     }   
   }
 /*...................................................................*/
@@ -7086,10 +7050,7 @@ void readArrhenius(Combustion *c, FILE *file)
   char *str = { "endarrhenius" };
   char word[WORD_SIZE];
   short i;
-  
-  if(!mpiVar.myId)
-    fprintf(fileLogExc,"%s:\n", "Arrhenius");
-  
+
   readMacroV2(file, word, false, true);
   do 
   {
@@ -7101,13 +7062,13 @@ void readArrhenius(Combustion *c, FILE *file)
                       , &c->arrhenius[i].e1
                       , &c->arrhenius[i].e2);
     if(!mpiVar.myId)
-      fprintf(fileLogExc,"nReac %hd alpha = %lf Ea = %lf A = %lf e1 = %lf e2 = %lf\n"
+      fprintf(fileLogExc,"nReac %hd alpha = %lf Ea = %e A = %e e1 = %lf e2 = %lf\n"
                         ,i
-                        , &c->arrhenius[i].alpha
-                        , &c->arrhenius[i].energyAtivation
-                        , &c->arrhenius[i].a
-                        , &c->arrhenius[i].e1
-                        , &c->arrhenius[i].e2);
+                        , c->arrhenius[i].alpha
+                        , c->arrhenius[i].energyAtivation
+                        , c->arrhenius[i].a
+                        , c->arrhenius[i].e1
+                        , c->arrhenius[i].e2);
 /*...................................................................*/
     readMacroV2(file, word, false, true);
   } while (strcmp(word, str));
@@ -7115,6 +7076,219 @@ void readArrhenius(Combustion *c, FILE *file)
 }
 /*********************************************************************/
 
+/*********************************************************************
+ * Data de criacao    : 11/06/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * readArrhenius : leitura dos paramentros do modelo de combustao    *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * c       ->                                                        *
+ * file    -> arquivo de arquivo                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void readResidual(Simple *sc, FILE *file)
+{
+
+  char *str = { "endresidual" }, ch[10];
+  char word[WORD_SIZE];
+  short i; 
+
+  readMacroV2(file, word, false, true);
+  do 
+  {
+
+/*... vel*/
+      if (!strcmp(word, "vel"))
+      {
+        fscanf(file, "%lf %lf %lf %hd", &sc->vel.tol[0]
+                                      , &sc->vel.tol[1]
+                                      , &sc->vel.tol[2]
+                                      , &sc->vel.k);
+        readMacroV2(file, word, false, true);
+        sc->vel.fRel = readBool(word);
+        readMacroV2(file, word, false, true);
+        typeResidual(word,&sc->vel);
+
+        if (!mpiVar.myId)
+        {
+          fprintf(fileLogExc, "%-20s:\n"   ,"Vel");
+          fprintf(fileLogExc, "%-20s: %e\n","tolU1",sc->vel.tol[0]);
+          fprintf(fileLogExc, "%-20s: %e\n","tolU2",sc->vel.tol[1]);
+          fprintf(fileLogExc, "%-20s: %e\n","tolU3",sc->vel.tol[2]);
+          fprintf(fileLogExc, "%-20s: %hd\n","k"    ,sc->vel.k);
+          if(sc->vel.fRel)
+            fprintf(fileLogExc, "%-20s: %s\n","fRelative","true"); 
+          else
+            fprintf(fileLogExc, "%-20s: %s\n","fRelative","false");
+          fprintf(fileLogExc, "%-20s: %s\n\n","type"       ,sc->vel.name);
+    
+        }
+      }
+/*.....................................................................*/
+
+/*... mass*/
+      else if (!strcmp(word, "mass"))
+      {
+        fscanf(file, "%lf %hd", &sc->mass.tol[0]
+                              , &sc->mass.k);
+        readMacroV2(file, word, false, true);
+        sc->mass.fRel = readBool(word);
+        readMacroV2(file, word, false, true);
+        typeResidual(word,&sc->mass);
+
+        if (!mpiVar.myId)
+        {
+          fprintf(fileLogExc, "%-20s:\n"   ,"Mass");
+          fprintf(fileLogExc, "%-20s: %e\n","tolMass",sc->mass.tol[0]);
+          fprintf(fileLogExc, "%-20s: %hd\n","k"      ,sc->mass.k);
+          if(sc->vel.fRel)
+            fprintf(fileLogExc, "%-20s: %s\n","fRelative","true"); 
+          else
+            fprintf(fileLogExc, "%-20s: %s\n","fRelative","false");
+          fprintf(fileLogExc, "%-20s: %s\n\n","type"       ,sc->mass.name);
+    
+        }
+      }
+/*.....................................................................*/
+
+/*... energy*/
+      else if (!strcmp(word, "energy"))
+      {
+        fscanf(file, "%lf %hd", &sc->energy.tol[0]
+                              , &sc->energy.k);
+        readMacroV2(file, word, false, true);
+        sc->energy.fRel = readBool(word);
+        readMacroV2(file, word, false, true);
+        typeResidual(word,&sc->energy);
+
+        if (!mpiVar.myId)
+        {
+          fprintf(fileLogExc, "%-20s:\n"   ,"Energy");
+          fprintf(fileLogExc, "%-20s: %e\n","tolMass",sc->energy.tol[0]);
+          fprintf(fileLogExc, "%-20s: %hd\n","k"      ,sc->energy.k);
+          if(sc->vel.fRel)
+            fprintf(fileLogExc, "%-20s: %s\n","fRelative","true"); 
+          else
+            fprintf(fileLogExc, "%-20s: %s\n","fRelative","false");
+          fprintf(fileLogExc, "%-20s: %s\n\n","type"       ,sc->energy.name);
+    
+        }
+      }
+/*.....................................................................*/
+
+/*... energy*/
+      else if (!strcmp(word, "z"))
+      {
+        fscanf(file, "%lf %hd", &sc->z.tol[0]
+                              , &sc->z.k);
+        readMacroV2(file, word, false, true);
+        sc->z.fRel = readBool(word);
+        readMacroV2(file, word, false, true);
+        typeResidual(word,&sc->z);
+
+        if (!mpiVar.myId)
+        {
+          fprintf(fileLogExc, "%-20s:\n"   ,"Z");
+          fprintf(fileLogExc, "%-20s: %e\n","tolZ",sc->z.tol[0]);
+          fprintf(fileLogExc, "%-20s: %hd\n","k"      ,sc->z.k);
+          if(sc->vel.fRel)
+            fprintf(fileLogExc, "%-20s: %s\n","fRelative","true"); 
+          else
+            fprintf(fileLogExc, "%-20s: %s\n","fRelative","false");
+          fprintf(fileLogExc, "%-20s: %s\n\n","type"       ,sc->z.name);
+    
+        }
+      }
+/*.....................................................................*/
+
+    readMacroV2(file, word, false, true);
+  } while (strcmp(word, str));
+
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 13/06/2019                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * readBool:                                                         *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+bool readBool(char *word)
+{
+
+  if( word[0] == 'F' || word[0] == 'f')
+    return false;
+  else if( word[0] == 'T' || word[0] == 'f')
+    return true;
+  
+  return -1;
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 13/06/2019                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * typeResidual:                                                     *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------*
+ * word  ->                                                          *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void typeResidual(char *word,Residual *re)
+{
+  char macros[][WORD_SIZE] =
+             {"rscaledsummax","rscaledsum"   /* 0, 1*/
+             ,"rscaled"      ,"rsqrt"     }; /* 2, 3*/  
+
+  if(!strcmp(word, macros[0]))
+  {
+    strcpy(re->name,word);
+    re->type = RSCALEDSUMMAX;
+  } 
+  else if(!strcmp(word, macros[1]))
+  {
+    strcpy(re->name,word);
+    re->type = RSCALEDSUM;
+  }
+  else if(!strcmp(word, macros[2]))
+  {
+   strcpy(re->name,word);
+    re->type = RSCALED;
+  }  
+  else if(!strcmp(word, macros[3]))
+  {
+    strcpy(re->name,word);
+    re->type = RSQRT;
+  }
+  else
+  {
+    ERRO_OP_WORD(__FILE__,__func__,__LINE__,"Residual",word);
+  }
+}
+/*********************************************************************/
 
 /*********************************************************************/
 /*Converte condicoes de contorno da pressao para presssao de correcao*/

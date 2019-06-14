@@ -336,6 +336,17 @@
 
 /*... Simple*/
   typedef struct{
+    bool fRel;
+    unsigned short type;
+    unsigned short k;         /*iteracao com o qual o residuo*/
+    DOUBLE tol[3];
+    char name[50];
+  }Residual;
+/*...................................................................*/
+
+
+/*... Simple*/
+  typedef struct{
     bool   sPressure;
     unsigned short faceInterpolVel;   /*tecnica de interpolacao
                                         das velocidades nas faces para
@@ -343,14 +354,6 @@
                                        */
     short  type;
  
-    unsigned short kZeroVel;          /*iteracao com o qual o residuo
-                                        e normalizado*/
-    unsigned short kZeroPres;         /*iteracao com o qual o residuo
-                                        e normalizado*/
-    unsigned short kZeroEnergy;       /*iteracao com o qual o residuo
-                                     e normalizado*/
-    unsigned short kZeroComb;         /*iteracao com o qual o residuo
-                                       e normalizado*/
     int    pSimple;
     int    maxIt;
     int nNonOrth;
@@ -359,7 +362,7 @@
     DOUBLE *ePresC,*nPresC  ,*eGradPresC;/*Pressao de correcao*/
     DOUBLE *ePresC1;                     /*Pressao de correcao 1*/
     DOUBLE *d;
-    DOUBLE tolPres,tolVel[3],tolEnergy,tolComb;
+    Residual vel,z,mass,energy,kTurb;
   }Simple;
 /*...................................................................*/
 

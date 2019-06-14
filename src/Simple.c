@@ -34,8 +34,8 @@ void simpleSolver3D(Memoria *m
   short unsigned conv;
   int itSimple;
   int nonOrth;
-  short unsigned kZeroVel  = sp->kZeroVel;
-  short unsigned kZeroPres = sp->kZeroPres;
+  short unsigned kZeroVel  = sp->vel.k;
+  short unsigned kZeroPres = sp->mass.k;
   INT jj = 1;
   DOUBLE time,timei;
   DOUBLE *b1,*b2,*b3,*bPc,*xu1,*xu2,*xu3,*xp,*adU1,*adU2,*adU3;
@@ -75,10 +75,10 @@ void simpleSolver3D(Memoria *m
 /*...................................................................*/
 
 /*...*/
-  tolSimpleU1 = sp->tolVel[0];
-  tolSimpleU2 = sp->tolVel[1];
-  tolSimpleU3 = sp->tolVel[2];
-  tolSimpleMass = sp->tolPres;
+  tolSimpleU1 = sp->vel.tol[0];
+  tolSimpleU2 = sp->vel.tol[1];
+  tolSimpleU3 = sp->vel.tol[2];
+  tolSimpleMass = sp->mass.tol[0];
 /*...................................................................*/
 
 /*...*/
@@ -678,10 +678,10 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   short unsigned nComb = cModel->nComb;
   short unsigned conv, i;
   short unsigned itSimple;
-  short unsigned kZeroVel    = sp->kZeroVel,
-                 kZeroPres   = sp->kZeroPres,
-                 kZeroEnergy = sp->kZeroEnergy,
-                 kZeroComb   = sp->kZeroComb;
+  short unsigned kZeroVel    = sp->vel.k,
+                 kZeroPres   = sp->mass.k,
+                 kZeroEnergy = sp->energy.k,
+                 kZeroComb   = sp->z.k;
   short unsigned typeResidual[4];
   INT jj = 1;
   DOUBLE time, timei;
@@ -716,21 +716,21 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...*/
 //relRes          = true;
 /*... vel*/
-  typeResidual[0] = RSCALEDSUMMAX;
+  typeResidual[0] = sp->vel.type;
 /*... energia*/  
-  typeResidual[1] = RSCALEDSUM; 
+  typeResidual[1] = sp->energy.type;
 /*... conservao de especie*/ 
-  typeResidual[2] = RSCALEDSUMMAX; 
+  typeResidual[2] = sp->z.type;
 /*... conservacao de massa*/
-  typeResidual[3] = RSQRT;         
+  typeResidual[3] = sp->mass.type;      
 
 /*...*/
-  tolSimpleU1     = sp->tolVel[0];
-  tolSimpleU2     = sp->tolVel[1];
-  tolSimpleU3     = sp->tolVel[2];
-  tolSimpleMass   = sp->tolPres;
-  tolSimpleEnergy = sp->tolEnergy;
-  tolComb         = sp->tolComb;
+  tolSimpleU1     = sp->vel.tol[0];
+  tolSimpleU2     = sp->vel.tol[1];
+  tolSimpleU3     = sp->vel.tol[2];
+  tolSimpleMass   = sp->mass.tol[0];
+  tolSimpleEnergy = sp->energy.tol[0];
+  tolComb         = sp->z.tol[0];
 /*...................................................................*/
 
 /*...*/
@@ -1288,9 +1288,9 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
   short unsigned conv;
   short unsigned typeResidual;
   short itSimple;
-  short unsigned kZeroVel = sp->kZeroVel,
-    kZeroPres = sp->kZeroPres,
-    kZeroEnergy = sp->kZeroEnergy;
+  short unsigned kZeroVel = sp->vel.k,
+    kZeroPres = sp->mass.k,
+    kZeroEnergy = sp->energy.k;
   INT jj = 1;
   DOUBLE time, timei;
   DOUBLE *rCellPc;
@@ -1320,15 +1320,15 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
 /*...*/
   //relRes       = false;
   //typeResidual = RSQRT;
-  relRes = false;
+  relRes       = false;
   typeResidual = RSCALEDSUM;
 
 /*...*/
-  tolSimpleU1 = sp->tolVel[0];
-  tolSimpleU2 = sp->tolVel[1];
-  tolSimpleU3 = sp->tolVel[2];
-  tolSimpleMass = sp->tolPres;
-  tolSimpleEnergy = sp->tolEnergy;
+  tolSimpleU1 = sp->vel.tol[0];
+  tolSimpleU2 = sp->vel.tol[1];
+  tolSimpleU3 = sp->vel.tol[2];
+  tolSimpleMass = sp->mass.tol[0];
+  tolSimpleEnergy = sp->energy.tol[0];
 /*...................................................................*/
 
 /*...*/
@@ -2032,10 +2032,6 @@ void setSimpleScheme(char *word, short const ndm
   
   fscanf(fileIn,"%lf",&sp->alphaPres); 
   fscanf(fileIn,"%lf",&sp->alphaVel); 
-  fscanf(fileIn,"%lf",&sp->tolPres); 
-  fscanf(fileIn, "%lf", &sp->tolVel[0]);
-  fscanf(fileIn, "%lf", &sp->tolVel[1]);
-  if (ndm == 3)  fscanf(fileIn, "%lf", &sp->tolVel[2]); 
   
   fscanf(fileIn,"%d",&sp->nNonOrth); 
 
@@ -2075,11 +2071,6 @@ void setSimpleLmScheme(char *word, short const ndm
   fscanf(fileIn, "%lf", &sp->alphaPres);
   fscanf(fileIn, "%lf", &sp->alphaVel);
   fscanf(fileIn, "%lf", &sp->alphaEnergy);
-  fscanf(fileIn, "%lf", &sp->tolPres);
-  fscanf(fileIn, "%lf", &sp->tolVel[0]);
-  fscanf(fileIn, "%lf", &sp->tolVel[1]);
-  if (ndm == 3)  fscanf(fileIn, "%lf", &sp->tolVel[2]);
-  fscanf(fileIn, "%lf", &sp->tolEnergy);
 
   fscanf(fileIn, "%d", &sp->nNonOrth);
 
@@ -2122,19 +2113,10 @@ void setSimpleCombustionScheme(char *word , short const ndm
   fscanf(fileIn, "%lf", &sp->alphaVel);
   fscanf(fileIn, "%lf", &sp->alphaEnergy);
   fscanf(fileIn, "%lf", &sp->alphaComb);
-  fscanf(fileIn, "%lf", &sp->tolPres);
-  fscanf(fileIn, "%lf", &sp->tolVel[0]);
-  fscanf(fileIn, "%lf", &sp->tolVel[1]);
-  if (ndm == 3)  fscanf(fileIn, "%lf", &sp->tolVel[2]);
-  fscanf(fileIn, "%lf", &sp->tolEnergy);
-  fscanf(fileIn, "%lf", &sp->tolComb);
 
   fscanf(fileIn, "%d", &sp->nNonOrth);
   fscanf(fileIn, "%d", &sp->pSimple);
-  fscanf(fileIn, "%hd", &sp->kZeroPres);
-  fscanf(fileIn, "%hd", &sp->kZeroVel);
-  fscanf(fileIn, "%hd", &sp->kZeroEnergy);
-  fscanf(fileIn, "%hd", &sp->kZeroComb);
+
 
 }
 /*********************************************************************/

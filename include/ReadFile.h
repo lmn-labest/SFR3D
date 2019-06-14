@@ -120,12 +120,15 @@
 
    void readcombParameters(Combustion *c, FILE *file);
    void readArrhenius(Combustion *c, FILE *file);
-
+   void readResidual(Simple *sc, FILE *file);
    void readNlIt(Scheme *sc, FILE *fileIn);
    
    void readSetPrime(Memoria *m   , FILE *fileIn
                    , Mesh *mesh0  , Mesh *mesh
                    , Prime  *prime, bool *fSolvPrime);
+
+   bool readBool(char *word);
+   void typeResidual(char *word,Residual *re);
 /*...................................................................*/
    void help(FILE *f);
 #endif  /*_READ_FILE_*/

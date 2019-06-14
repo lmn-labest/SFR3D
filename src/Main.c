@@ -158,7 +158,7 @@ int main(int argc,char**argv){
   ,"pFluid"       ,"setPrint"     ,"reScaleMesh"    /*33,34,35*/
   ,"setPrime"     ,"prime"        ,"combParameters" /*36,37,38*/
   ,"setSolvComb"  ,"pCombustion"  ,"simpleComb"     /*39,40,41*/
-  ,"setSimpleComb","arrhenius"    ,""               /*42,43,44*/ 
+  ,"setSimpleComb","arrhenius"    ,"residual"       /*42,43,44*/ 
   ,"gravity"      ,"model"        ,"mean"           /*45,46,47*/
   ,"setMean"      ,"save"         ,"load"};         /*48,49,50*/
 /* ..................................................................*/
@@ -1757,6 +1757,21 @@ int main(int argc,char**argv){
       endSec(OUTPUT_FOR_FILE);
     }
 /*===================================================================*/
+
+/*===================================================================*
+ * macro: residual : leitura dos residuos                      
+ *===================================================================*/
+    else if((!strcmp(word,macro[44])))
+    {
+      initSec(word, OUTPUT_FOR_FILE);
+/*...*/
+      readResidual(&simple, fileIn);
+/*...................................................................*/
+
+      endSec(OUTPUT_FOR_FILE);
+    }
+/*===================================================================*/
+
 
 /*===================================================================*
  * macro: gravity : gravidade                                                 

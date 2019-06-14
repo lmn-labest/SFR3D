@@ -14,6 +14,12 @@
             ,file,func,line);\
     exit(EXIT_FAILURE);
 
+  #define ERRO_OP_WORD(file,func,line,str,op)\
+    fprintf(stderr,"%s\nOpcao %s e invalida!!\n",str,op);\
+    fprintf(stderr,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"\
+            ,file,func,line);\
+    exit(EXIT_FAILURE);
+
   #define ERRO_GERAL(file,func,line,str)\
     {fprintf(stderr,"Erro: %s!!\n",str);\
     fprintf(stderr,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"\
