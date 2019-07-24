@@ -113,6 +113,7 @@
     DOUBLE *cDiffComb;
     DOUBLE *rateFuel;
     DOUBLE *rateHeatReComb;
+    DOUBLE *tReactor;
 /*...*/
     DOUBLE *densityUd1; /*massa especifica do material uD1*/
     DOUBLE *cDiffD1;    /*coefieiente de difusao D1*/

@@ -5,14 +5,49 @@
   #include<Define.h>
 
   INT gStep;
+ 
+/*...*/
+  typedef struct 
+  {
+    DOUBLE A,E,Ta,beta;  
+  } Arrhenius;
+/*...................................................................*/
 
 /*...*/
-  typedef struct{
-    DOUBLE energyAtivation; /* KJ/Kmol*/
-    DOUBLE alpha;
-    DOUBLE a,e1,e2;
-  }ArrheniusLaw;
-/*...................................................................*/  
+  typedef struct 
+  {
+    bool reverse;
+    DOUBLE stch[3][MAXSPECIES];
+    DOUBLE exp[2][MAXSPECIES];
+    Arrhenius ArrF,ArrR; 
+  } Reaction;
+/*...................................................................*/
+
+/*...*/
+  typedef struct 
+  {
+    char  name[MAXNAMELENSP];
+    unsigned short nO,nN,nC,nH;  
+    DOUBLE mW;
+    DOUBLE leornadJones[2]; /*col 1 - sigma, col 2 -e/k*/ 
+/*... entalpia de formacao*/    
+    DOUBLE entalphyOfForm;       /*kj/kg*/
+    DOUBLE entalphyOfFormMolar;  /*kj/kmol*/ 
+ 
+  } Specie;
+/*...................................................................*/
+
+/*...*/
+  typedef struct 
+  {
+    unsigned short nReac,nSp,nEp; 
+    unsigned short eO,eN,eC,eH;
+    unsigned short sCO2,sCO,sH2O,sO2,sN2,sCH4,sC3H8;    
+    DOUBLE mE[MAXELEMENT];
+    Specie sp[MAXSPECIES];
+    Reaction reac[MAXREAC]; 
+  } Chemical;
+/*...................................................................*/
 
 /*...*/
   typedef struct{
@@ -20,7 +55,6 @@
     DOUBLE cGamma,cTau,tMix; /* KJ/Kmol*/    
   }Edc;
 /*...................................................................*/  
-
 
 /*...*/
   typedef struct{
@@ -104,29 +138,8 @@
     short nComb;          /* numero especies transportadas*/
     short typeHeatRealese;
     short reactionKinetic;
-    short nReac; 
-    short sp_fuel[2],sp_CO2,sp_H2O,sp_O2,sp_N2;
-    short speciesPart[2][2][MAXSPECIES],nSpeciesPart[2][2]; /*especie que participam da reacao i*/
-    DOUBLE sMass[2][2][MAXSPECIES],sMassAir;    
-    DOUBLE stoich[2][2][MAXSPECIES],stoichAir;/*(i,j,k) 
-                                              i - reacao quimica
-                                              j - 0 reagente - 1 produtos
-                                              k - especies de 0 a N - 1
-                                              */
            
-    DOUBLE lumpedMatrix[MAXSPECIES*3];
-/*... massa molar*/
-    DOUBLE mW[MAXSPECIES],mW_Air;
-/*... Leornad-Jone parametros*/
-    DOUBLE leornadJones[MAXSPECIES][2]; /*col 1 - sigma, col 2 -e/k
-/*... entalpia de formacao*/    
-    DOUBLE entalphyOfForm[MAXSPECIES]; /*0   - Fuel
-                                         1   - O2   
-                                         3   - CO2     
-                                         4   - H2O
-                                         5   - CO
-                                         6   - ... 
-                                         N-1 - N2*/      
+    DOUBLE lumpedMatrix[MAXSPECIES*3];   
 
     DOUBLE entalphyOfCombustion;        /* Entalpia de combustao calculada 
                                           pelas especies primitivas*/
@@ -139,9 +152,8 @@
 
     DOUBLE CO2InProd,H2OInProd,N2InProd;
 
-    ArrheniusLaw arrhenius[2]; 
     Edc          edc;
-    Fuel         fuel[2];
+    Chemical chem;
   } Combustion;
 /*...................................................................*/
  

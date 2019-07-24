@@ -118,8 +118,7 @@
                 , char* auxName   , char* preName       , char* nameOut
                 , FILE *fileIn    , FileOpt *opt);
 
-   void readcombParameters(Combustion *c, FILE *file);
-   void readArrhenius(Combustion *c, FILE *file);
+   void readChemical(Combustion *c, FILE *file);
    void readResidual(Simple *sc, FILE *file);
    void readNlIt(Scheme *sc, FILE *fileIn);
    

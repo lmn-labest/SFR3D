@@ -3227,7 +3227,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
 {
   short i, j, k, lib, aux1, aux2, lMat;
   short nThreads = ompVar.nThreadsCell
-      , nReac = cModel->nReac
+      , nReac = cModel->chem.nReac
       , ns    = cModel->nOfSpecies;
   INT nel, vizNel;
 

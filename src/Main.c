@@ -156,9 +156,9 @@ int main(int argc,char**argv){
   ,"transient"    ,"timeUpdate"   ,"partd"          /*27,28,29*/
   ,"advection"    ,"edp"          ,"diffusion"      /*30,31,32*/
   ,"pFluid"       ,"setPrint"     ,"reScaleMesh"    /*33,34,35*/
-  ,"setPrime"     ,"prime"        ,"combParameters" /*36,37,38*/
+  ,"setPrime"     ,"prime"        ,""               /*36,37,38*/
   ,"setSolvComb"  ,"pCombustion"  ,"simpleComb"     /*39,40,41*/
-  ,"setSimpleComb","arrhenius"    ,"residual"       /*42,43,44*/ 
+  ,"setSimpleComb","chemical"     ,"residual"       /*42,43,44*/ 
   ,"gravity"      ,"model"        ,"mean"           /*45,46,47*/
   ,"setMean"      ,"save"         ,"load"};         /*48,49,50*/
 /* ..................................................................*/
@@ -186,7 +186,6 @@ int main(int argc,char**argv){
 //combModel.edc.type        = FLUENT_CONST_TMIX_EDC;
   combModel.totalHeat       = 0.e0;
   combModel.totalMassFuel   = 0.e0;
-  combModel.nReac           = 1;
 /*..................................................................*/
 
 /*...*/
@@ -1607,14 +1606,11 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
-* macro: combParameters
+* macro:                  
 *===================================================================*/
     else if ((!strcmp(word, macro[38])))
     {
       initSec(word, OUTPUT_FOR_FILE);
-/*...*/
-      readcombParameters(&combModel, fileIn);
-/*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
     }
 /*===================================================================*/
@@ -1635,6 +1631,10 @@ int main(int argc,char**argv){
                  , combModel.nComb 
                  , auxName    , preName      , nameOut
                  , fileIn                    , &opt);
+/*...................................................................*/
+
+/*...*/
+      initEntalpyOfFormation(&combModel,&propVarFluid.sHeat);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
     }
@@ -1745,13 +1745,13 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: arrhenius : leitura a lei de arrhenius                      
+ * macro:                       
  *===================================================================*/
     else if((!strcmp(word,macro[43])))
     {
       initSec(word, OUTPUT_FOR_FILE);
 /*...*/
-      readArrhenius(&combModel, fileIn);
+      readChemical(&combModel,fileIn);
 /*...................................................................*/
 
       endSec(OUTPUT_FOR_FILE);

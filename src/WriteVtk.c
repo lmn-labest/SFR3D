@@ -2654,39 +2654,16 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
     HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
     ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
 /*... Fuel*/
-    for(i=0;i<cModel->nReac;i++)
+    for(i=0;i<cModel->chem.nSp;i++)
     {
       strcpy(str,"eY");
-      strcat(str,cModel->fuel[i].name);
-      getColFromMatrix(p,eYfrac,numel,cModel->nOfSpecies,cModel->sp_fuel[i]); 
+      strcat(str,cModel->chem.sp[i].name);
+      getColFromMatrix(p,eYfrac,numel,cModel->chem.nSp,i); 
       writeVtkProp(&idum,p,numel,1,str,iws
                   ,DOUBLE_VTK,SCALARS_VTK,f);
     }
-/*... N2*/
-    strcpy(str,"eYN2");
-    getColFromMatrix(p,eYfrac,numel,cModel->nOfSpecies,cModel->sp_N2); 
-    writeVtkProp(&idum,p,numel,1,str,iws
-                ,DOUBLE_VTK,SCALARS_VTK,f);
 
-/*... O2*/
-    strcpy(str,"eYO2");
-    getColFromMatrix(p,eYfrac,numel, cModel->nOfSpecies,cModel->sp_O2); 
-    writeVtkProp(&idum,p,numel,1,str,iws
-                  ,DOUBLE_VTK,SCALARS_VTK,f);
-
-/*... CO2*/
-    strcpy(str,"eYCO2");
-    getColFromMatrix(p,eYfrac,numel, cModel->nOfSpecies,cModel->sp_CO2); 
-    writeVtkProp(&idum,p,numel,1,str,iws
-                ,DOUBLE_VTK,SCALARS_VTK,f);
-
-/*... H2O*/
-    strcpy(str,"eYH2O");
-    getColFromMatrix(p,eYfrac,numel, cModel->nOfSpecies,cModel->sp_H2O); 
-    writeVtkProp(&idum,p,numel,1,str,iws
-                  ,DOUBLE_VTK,SCALARS_VTK,f);
-
-    sumFracZ(p,eYfrac,numel, cModel->nOfSpecies);
+    sumFracZ(p,eYfrac,numel, cModel->chem.nSp);
     strcpy(str,"eYTotal");
     writeVtkProp(&idum,p,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);

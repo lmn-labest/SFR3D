@@ -18,9 +18,12 @@
 /*...................................................................*/
 
 /*... combustion*/
-  #define MAXSPECIES  7
-  #define HFORMATION  1
-  #define HCOMBUSTION 2
+  #define MAXELEMENT   10
+  #define MAXNAMELENSP 10
+  #define MAXREAC       5
+  #define MAXSPECIES   10
+  #define HFORMATION    1
+  #define HCOMBUSTION   2
 
 /*...*/
   #define ARRHENIUS   1
@@ -61,11 +64,12 @@
 /*...................................................................*/
 
 /*...*/
-  #define TREF      298.15e+00    /*Kelvin          */
-  #define PREREF    1.01325e+05   /*Pa              */
-  #define IDEALGASR 8.3144621e+03 /*J/(Kmol.kelvin) */
-//#define IDEALGASR 8.3144598e+03 /*J/(Kmol.kelvin) */
-  #define MMOLARAR  2.896e+00     /*kg/Kmol         */
+  #define TREF       298.15e+00    /*Kelvin          */
+  #define PREREF     1.01325e+05   /*Pa              */
+  #define IDEALGASR  8.3144621e+03 /*J/(kmol.kelvin) */
+  #define IDEALGASRC 1.9872063e+00  /*Cal/(mol.kelvin) */
+//#define IDEALGASR  8.3144598e+03 /*J/(Kmol.kelvin) */
+  #define MMOLARAR   2.896e+00     /*kg/Kmol         */
 /*...................................................................*/
 
 /*...*/

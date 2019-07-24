@@ -37,6 +37,8 @@
                         ,bool const iKelvin   ,bool const fDensity);
 
   static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC);
+
+  static short searchSpeciesId(Chemical *chem,const char *species);
 /*..................................................................*/
 
 /*********************************************************************
@@ -100,7 +102,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
   fComb  = cModel->fCombustion;
   nComb  = cModel->nComb;
   nSpPri = cModel->nOfSpecies;
-  nReac  = cModel->nReac;
+  nReac  = cModel->chem.nReac;
   fOneEqK = tModel->fOneEq;
 /*...................................................................*/
 
@@ -510,6 +512,11 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     HccaAlloc(DOUBLE, m, mesh->elm.gradY
       , nel*ndm*nSpPri, "eGradY", _AD_);
     zero(mesh->elm.gradY, nel*ndm*nSpPri, DOUBLEC);
+
+/*... timeReactor*/
+    HccaAlloc(DOUBLE, m, mesh->elm.tReactor
+      , nel*2, "tReactor", _AD_);
+    zero(mesh->elm.tReactor, nel*2, DOUBLEC);
 
     if (mpiVar.nPrcs < 2)
     {
@@ -3399,12 +3406,8 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*...................................................................*/
       }
 /*...................................................................*/
-      initMolarMass(cModel);
-      stoichiometricCoeff(cModel);
       if (cModel->fLump) initLumpedMatrix(cModel);
-      initEntalpyOfFormation(cModel);
       initEntalpyOfCombustion(cModel); 
-      initLeornadJones(cModel);
     }
 /*...................................................................*/
     readMacroV2(file, word, false, true);
@@ -6946,92 +6949,10 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
 /**********************************************************************/
 
 /*********************************************************************
- * Data de criacao    : 05/05/2019                                   *
- * Data de modificaco : 27/05/2019                                   *
- *-------------------------------------------------------------------*
- * READCOMPARAMETERS : leitura dos paramentros do modelo de combustao*
- *-------------------------------------------------------------------*
- * Parametros de entrada:                                            *
- *-------------------------------------------------------------------*
- * p       ->                                                        *
- * file    -> arquivo de arquivo                                     *
- *-------------------------------------------------------------------*
- * Parametros de saida:                                              *
- *-------------------------------------------------------------------*
- * p       ->                                                        *
- *-------------------------------------------------------------------*
- * OBS:                                                              *
- *-------------------------------------------------------------------*
- *********************************************************************/
-void readcombParameters(Combustion *c, FILE *file)
-{
-
-  char *str = { "endcombparameters" };
-  char macros[][WORD_SIZE] =
-             { "airc","fuelc"};  /* 0, 1*/
-  char word[WORD_SIZE];
-  short i,n;
-
-  readMacroV2(file, word, false, true);
-  do 
-  {
-/*... airC*/
-    if (!strcmp(word, macros[0]))
-    {
-      fscanf(file, "%lf %lf", &c->O2InAir,&c->N2InAir);
-      if (!mpiVar.myId)
-        fprintf(fileLogExc, "%-25s: %lf O2 %lf N2\n"
-                          , "Air composition "
-                          , c->O2InAir
-                          , c->N2InAir);
-    }
-/*...................................................................*/
-
-/*... fuelC1*/
-    else if (!strcmp(word, macros[1]))
-    {
-      fscanf(file, "%hd", &n);
-      c->nReac = n;
-      for(i=0;i<n;i++)
-      {
-        c->sp_fuel[i] = i;
-        fscanf(file, "%hd %hd %hd %s %lf %lf %lf", &c->fuel[i].c 
-                                     , &c->fuel[i].h
-                                     , &c->fuel[i].o
-                                     , &c->fuel[i].name
-                                     , &c->fuel[i].hf 
-                                     , &c->fuel[i].lj[0]
-                                     , &c->fuel[i].lj[1]);
-      }
-
-      c->sp_O2   = n;
-      c->sp_CO2  = c->sp_O2 + 1;
-      c->sp_H2O  = c->sp_CO2 + 1;
-      c->sp_N2   = c->sp_H2O + 1;
-
-      if (!mpiVar.myId)
-      {
-        for(i=0;i<n;i++)
-          fprintf(fileLogExc, "%-25s: C%hdH%hdO%hd\nid%s : %hd\n"
-                            , "Fuel composition "
-                            , c->fuel[i].c   , c->fuel[i].h, c->fuel[i].o
-                            , c->fuel[i].name, c->sp_fuel[i]);
-        fprintf(fileLogExc, "idO2  : %hd\nidCO2 : %hd\nidH2O : %hd\nidN2  : %hd\n"
-                            , c->sp_O2, c->sp_CO2, c->sp_H2O, c->sp_N2);
-      }
-    }
-/*...................................................................*/
-    readMacroV2(file, word, false, true);
-  } while (strcmp(word, str));
-
-}
-/*********************************************************************/
-
-/*********************************************************************
- * Data de criacao    : 11/06/2019                                   *
+ * Data de criacao    : 20/07/2019                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
- * readArrhenius : leitura dos paramentros do modelo de combustao    *
+ * readChemical : leitura do sistema quimico                         *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
@@ -7044,35 +6965,301 @@ void readcombParameters(Combustion *c, FILE *file)
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void readArrhenius(Combustion *c, FILE *file)
+void readChemical(Combustion *c, FILE *file)
 {
-
-  char *str = { "endarrhenius" };
+  FILE *fileAux;
   char word[WORD_SIZE];
-  short i;
+  char macros[][WORD_SIZE] =
+       { "elements"       ,"species"   ,"reactions"};  /* 0, 1, 2*/
+
+  short id;
+  int i,j,n,nn;
+  DOUBLE value,ru;
 
   readMacroV2(file, word, false, true);
-  do 
-  {
-    i = atol(word) - 1;
-    fscanf(file, "%lf %lf %lf %lf %lf"
-                      , &c->arrhenius[i].alpha
-                      , &c->arrhenius[i].energyAtivation
-                      , &c->arrhenius[i].a
-                      , &c->arrhenius[i].e1
-                      , &c->arrhenius[i].e2);
-    if(!mpiVar.myId)
-      fprintf(fileLogExc,"nReac %hd alpha = %lf Ea = %e A = %e e1 = %lf e2 = %lf\n"
-                        ,i
-                        , c->arrhenius[i].alpha
-                        , c->arrhenius[i].energyAtivation
-                        , c->arrhenius[i].a
-                        , c->arrhenius[i].e1
-                        , c->arrhenius[i].e2);
-/*...................................................................*/
-    readMacroV2(file, word, false, true);
-  } while (strcmp(word, str));
+  fileAux = openFile(word, "r");
 
+ /*... incializando com zero*/
+  for(i=0;i<MAXREAC;i++)
+  {
+    c->chem.reac[i].reverse = false;
+    for(j=0;j<MAXSPECIES;j++)
+    {
+      c->chem.reac[i].stch[0][j] = 0.e0;
+      c->chem.reac[i].stch[1][j] = 0.e0;
+      c->chem.reac[i].exp[0][j] = 0.e0;
+      c->chem.reac[i].exp[1][j] = 0.e0;
+    }
+  }
+/*.....................................................................*/
+
+/*...*/
+  do
+  {
+/*... lendo*/
+    readMacroV2(fileAux, word, false, true);
+/*... elements*/
+    if(!strcmp(word,macros[0]))    
+    {
+      fscanf(fileAux, "%d", &n);
+      c->chem.nEp = n;
+      for(i=0;i<n;i++)
+      {
+        readMacroV2(fileAux, word, false, true);  
+/*... C*/
+        if(!strcmp(word,"c"))
+        {
+          c->chem.eC    = i; 
+          fscanf(fileAux,"%lf",&value);
+          c->chem.mE[i] = value;
+        } 
+/*... H*/
+        else if(!strcmp(word,"h"))
+        {
+          c->chem.eH    = i; 
+          fscanf(fileAux,"%lf",&value);
+          c->chem.mE[i] = value;
+        }   
+/*... O*/
+        else if(!strcmp(word,"o"))
+        {
+          c->chem.eO    = i; 
+          fscanf(fileAux,"%lf",&value);
+          c->chem.mE[i] = value;
+        }  
+/*... N*/
+        else if(!strcmp(word,"n"))
+        {
+          c->chem.eN    = i; 
+          fscanf(fileAux,"%lf",&value);
+          c->chem.mE[i] = value;
+        }  
+      }
+    }
+/*...................................................................*/
+
+/*... species*/ 
+    else if(!strcmp(word,macros[1]))
+    {
+      fscanf(fileAux, "%d", &n);
+      c->chem.nSp = n;
+      for(i=0;i<n;i++)
+      {
+        readMacroV2(fileAux, word, false, true);  
+/*... O2*/
+        if(!strcmp(word,"o2"))
+          c->chem.sO2 = i;           
+/*... H2O*/
+        else if(!strcmp(word,"h2o"))
+          c->chem.sH2O = i;           
+/*... CO2*/
+        else if(!strcmp(word,"co2"))
+          c->chem.sCO2 = i; 
+/*... CO*/
+        else if(!strcmp(word,"co"))
+          c->chem.sCO = i; 
+/*... N2*/
+        else if(!strcmp(word,"n2"))
+          c->chem.sN2 = i;
+/*... CH4*/
+        else if(!strcmp(word,"ch4"))
+          c->chem.sCH4 = i;
+/*... C3H8*/
+        else if(!strcmp(word,"c3h8"))
+          c->chem.sC3H8 = i;
+/*...*/
+        strcpy(c->chem.sp[i].name,word);
+        fscanf(fileAux,"%hd",&c->chem.sp[i].nC);
+        fscanf(fileAux,"%hd",&c->chem.sp[i].nH);
+        fscanf(fileAux,"%hd",&c->chem.sp[i].nO);
+        fscanf(fileAux,"%hd",&c->chem.sp[i].nN);
+        fscanf(fileAux,"%lf",&c->chem.sp[i].leornadJones[0]);
+        fscanf(fileAux,"%lf",&c->chem.sp[i].leornadJones[1]);
+/*...................................................................*/
+      }
+    }
+/*...................................................................*/
+
+/*... reaction*/
+    else if(!strcmp(word,macros[2]))
+    {
+      fscanf(fileAux, "%d", &n);
+      c->chem.nReac = n;
+      for(i=0;i<n;i++)
+      {
+        do
+        {
+          readMacroV2(fileAux, word, false, true);  
+/*... */
+          if (!strcmp(word, "r"))
+          {
+            fscanf(fileAux,"%d",&nn);
+            for(j=0;j<nn;j++)
+            {
+              fscanf(fileAux,"%lf %s",&value,word);
+              id = searchSpeciesId(&c->chem,word);
+              c->chem.reac[i].stch[0][id] = value;
+            }
+          }
+/*...................................................................*/
+
+/*... */
+          else if (!strcmp(word, "p"))
+          {
+            fscanf(fileAux,"%d",&nn);
+            for(j=0;j<nn;j++)
+            {
+              fscanf(fileAux,"%lf %s",&value,word);
+              id = searchSpeciesId(&c->chem,word);
+              c->chem.reac[i].stch[1][id] = value;
+            }
+          }
+/*...................................................................*/
+
+/*... */
+          else if (!strcmp(word,"arrd"))
+          {
+            fscanf(fileAux,"%lf %lf %lf",&c->chem.reac[i].ArrF.A
+                                        ,&c->chem.reac[i].ArrF.beta
+                                        ,&c->chem.reac[i].ArrF.E);
+            
+/*... cal/(mol*kelvin)*/
+            ru = IDEALGASRC;
+/*J/(mol.kelvin) */
+//          ru = IDEALGASR*1.e-03;
+            c->chem.reac[i].ArrF.Ta = c->chem.reac[i].ArrF.E/ru;
+
+            fscanf(fileAux,"%d",&nn);
+            for(j=0;j<nn;j++)
+            {
+              fscanf(fileAux,"%s %lf",word,&value);
+              id = searchSpeciesId(&c->chem,word);
+              c->chem.reac[i].exp[0][id] = value;
+            }
+          }
+/*...................................................................*/
+
+/*... */
+          else if (!strcmp(word,"arrr"))
+          {
+            c->chem.reac[i].reverse = true;
+            fscanf(fileAux,"%lf %lf %lf",&c->chem.reac[i].ArrR.A
+                                        ,&c->chem.reac[i].ArrR.beta
+                                        ,&c->chem.reac[i].ArrR.E);
+/*... cal/(mol*kelvin)*/
+            ru = IDEALGASRC;
+/*J/(mol.kelvin) */
+//          ru = IDEALGASR*1.e-03;
+            c->chem.reac[i].ArrR.Ta = c->chem.reac[i].ArrR.E/ru;
+
+            fscanf(fileAux,"%d",&nn);
+            for(j=0;j<nn;j++)
+            {
+              fscanf(fileAux,"%s %lf",word,&value);
+              id = searchSpeciesId(&c->chem,word);
+              c->chem.reac[i].exp[1][id] = value;
+            }
+/*...................................................................*/
+          }
+/*...................................................................*/
+        }while(strcmp(word,"end"));
+/*...................................................................*/
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+  }while(strcmp(word,"end"));
+/*...................................................................*/
+
+/*...*/
+  initMolarMass(c);
+/*...................................................................*/
+
+/*...*/
+  for(i=0;i<MAXREAC;i++)
+    for(j=0;j<MAXSPECIES;j++)
+      c->chem.reac[i].stch[2][j] = c->chem.reac[i].stch[1][j]
+                                 - c->chem.reac[i].stch[0][j];
+/*.....................................................................*/
+
+/*...*/
+  fprintf(fileLogExc, "%-20s:\n","Elements");
+  fprintf(fileLogExc, "%-20s: %d %lf\n","C",c->chem.eC
+                                           ,c->chem.mE[c->chem.eC]); 
+  fprintf(fileLogExc, "%-20s: %d %lf\n","O",c->chem.eO
+                                           ,c->chem.mE[c->chem.eO]);
+  fprintf(fileLogExc, "%-20s: %d %lf\n","H",c->chem.eH
+                                           ,c->chem.mE[c->chem.eH]);
+  fprintf(fileLogExc, "%-20s: %d %lf\n","N",c->chem.eN
+                                           ,c->chem.mE[c->chem.eN]);
+/*...................................................................*/
+
+/*...*/
+  fprintf(fileLogExc, "\n");
+  fprintf(fileLogExc, "%-20s:\n","Species");
+  for(i=0;i<c->chem.nSp;i++)
+    fprintf(fileLogExc, "%-20s: %d C%dH%dO%dN%d %lf\n",c->chem.sp[i].name
+                                     ,i
+                                     ,c->chem.sp[i].nC,c->chem.sp[i].nH
+                                     ,c->chem.sp[i].nO,c->chem.sp[i].nN
+                                     ,c->chem.sp[i].mW); 
+/*...................................................................*/
+
+/*...*/
+  fprintf(fileLogExc, "\n");
+  fprintf(fileLogExc, "%-20s:\n","Reactions");
+/*...*/
+  for(i=0;i<c->chem.nReac;i++)
+  {
+    fprintf(fileLogExc, "%d ",i);
+    for(j=0;j<c->chem.nSp;j++)
+    {
+      value = c->chem.reac[i].stch[0][j];
+      if(value != 0.e0) 
+        fprintf(fileLogExc, " %lf %s ",value,c->chem.sp[j].name);
+    }
+    if(c->chem.reac[i].reverse) fprintf(fileLogExc, " <=> ");
+    else fprintf(fileLogExc, " => ");
+    for(j=0;j<c->chem.nSp;j++)
+    {
+      value = c->chem.reac[i].stch[1][j];
+      if(value != 0.e0)
+        fprintf(fileLogExc, " %lf %s ",value,c->chem.sp[j].name);
+      
+    }
+/*...................................................................*/
+
+/*... Lei de arrhenius da reacao direta*/
+    fprintf(fileLogExc, "arrD %e %e %e %e",c->chem.reac[i].ArrF.A
+                                           ,c->chem.reac[i].ArrF.beta
+                                           ,c->chem.reac[i].ArrF.E
+                                           ,c->chem.reac[i].ArrF.Ta); 
+    for(j=0;j<c->chem.nSp;j++)
+    {
+      value = c->chem.reac[i].exp[0][j];
+      if(value != 0.e0)
+        fprintf(fileLogExc, " %s  %lf ",c->chem.sp[j].name,value);      
+    }
+/*...................................................................*/
+
+/*... Lei de arrhenius da reacao inversa*/
+    if(c->chem.reac[i].reverse)
+    {
+      fprintf(fileLogExc, "arrR %e %e %e %e",c->chem.reac[i].ArrR.A
+                                       ,c->chem.reac[i].ArrR.beta
+                                       ,c->chem.reac[i].ArrR.E
+                                       ,c->chem.reac[i].ArrR.Ta);  
+      for(j=0;j<c->chem.nSp;j++)
+      {
+        value = c->chem.reac[i].exp[1][j];
+        if(value != 0.e0)
+          fprintf(fileLogExc, " %s  %lf ",c->chem.sp[j].name,value);
+      }
+    }
+/*...................................................................*/
+    fprintf(fileLogExc,"\n");
+  }                                 
+/*...................................................................*/
 }
 /*********************************************************************/
 
@@ -7080,7 +7267,7 @@ void readArrhenius(Combustion *c, FILE *file)
  * Data de criacao    : 11/06/2019                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
- * readArrhenius : leitura dos paramentros do modelo de combustao    *
+ * readResidual : leitura dos paramentros do modelo de combustao     *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
@@ -7684,5 +7871,38 @@ static void convLoadsVel(Prop *pDen
     }     
   }
 /*....................................................................*/
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 20/07/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * searchSpecies: retorna o id da especie                            *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+ static short searchSpeciesId(Chemical *chem,const char *species)
+{ 
+   char mc[WORD_SIZE];
+   unsigned short i; 
+  
+   strcpy(mc,species);
+   convStringLower(mc);
+
+   for (i = 0; i < chem->nSp; i++)
+   {
+      if(!strcmp(chem->sp[i].name,mc))
+        return i;
+   }
+
+  return -1;
 }
 /*********************************************************************/

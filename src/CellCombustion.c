@@ -125,11 +125,11 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
   DOUBLE lModKsi, lFarea, du[MAX_COMB], duDksi[MAX_COMB], lXmcc[3], lXm[3];
   DOUBLE gradUp[MAX_COMB][3], gradUv[MAX_COMB][3], ccV[3];
   DOUBLE rCell[MAX_COMB], dt, dt0;
-  DOUBLE uC[MAX_COMB], uV[MAX_COMB];
+  DOUBLE uC[MAX_COMB], uV[MAX_COMB],w[MAXSPECIES];
 /*... nonOrtogonal*/
   DOUBLE e[3], t[3], s[3], modE, dfdc[MAX_COMB], xx[3];
 /*... */
-  DOUBLE presC, presC0, presV, gradPresC[3], gradPresV[3], wfn
+  DOUBLE presC, presC0, presV, gradPresC[3], gradPresV[3], wfn, de
     , velC[3], velV[3], dFieldC[3], dFieldV[3], dFieldF[3], cv, cvc[MAX_COMB];
 /*...*/
   DOUBLE pAdv[NPADV];
@@ -150,7 +150,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
   nSp       = cModel->nOfSpecies;
   nSpLump   = cModel->nOfSpeciesLump;
   fDiffCoor = cModel->fCorrectVel;  
-  nReac     = cModel->nReac;   
+  nReac     = cModel->chem.nReac;   
 /*...................................................................*/
 
 /*...*/
@@ -468,28 +468,16 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
   {
     tmp1 = rateFuel[0]*volume[idCell];
     p[SL_FUEL] -= tmp1;
-    if( nComb == nSpLump) p[SL_AIR ] -= cModel->sMassAir*tmp1;
-    p[SL_PROD] += (1.e0+cModel->sMassAir)*tmp1;
+//  if( nComb == nSpLump) p[SL_AIR ] -= cModel->sMassAir*tmp1;
+//  p[SL_PROD] += (1.e0+cModel->sMassAir)*tmp1;
   }
   else
   {
-/*... reacao*/
-    for(i=0;i<nReac;i++)
-    {
-      tmp1 = rateFuel[i]*volume[idCell];
-/*... reagentes*/
-      for(j=0;j<cModel->nSpeciesPart[i][0];j++)
-      {
-        kSp    = cModel->speciesPart[i][0][j];
-        p[kSp] -= cModel->sMass[i][0][kSp]*tmp1;
-      }
-/*... produtos*/
-      for (j = 0; j < cModel->nSpeciesPart[i][1]; j++)
-      {
-        kSp     = cModel->speciesPart[i][1][j];
-        p[kSp] += cModel->sMass[i][1][kSp]*tmp1;
-      }
-    }
+/*... reacao  kg/m3 s*/
+    massRateReaction(&cModel->chem,rateFuel,w);
+    for(j=0;j<nComb;j++)
+      p[j] += volume[idCell]*w[j];
+/*...................................................................*/
   }
 /*...................................................................*/
 
@@ -548,5 +536,6 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*...................................................................*/
   }
 /*...................................................................*/  
+
 }
 /*********************************************************************/

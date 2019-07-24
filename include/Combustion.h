@@ -15,6 +15,7 @@
 //#include<Properties.h>
   #include<Sisteq.h> 
   #include<Solv.h>
+  #include<Reaction.h>
 /*...................................................................*/
 
 /*...*/
@@ -51,6 +52,7 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
 
 /*...*/
   void rateFuelConsume(Combustion *cModel    , Turbulence *tModel
+             , Prop *sHeatPol 
              , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT diffComb
              , DOUBLE *RESTRICT temp         , DOUBLE *RESTRICT rate
              , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT gradVel
@@ -58,6 +60,16 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
              , DOUBLE *RESTRICT volume
              , short const ndm               , INT const numel
              , bool const fKelvin  );
+/*...................................................................*/
+
+/*...*/
+ void timeChemical(Combustion *cModel      , Turbulence *tModel
+             , DOUBLE *RESTRICT zFrac     , DOUBLE *RESTRICT temp  
+             , DOUBLE *RESTRICT density    
+             , DOUBLE *RESTRICT gradVel   , DOUBLE *RESTRICT eddyViscosity
+             , DOUBLE *RESTRICT dViscosity, DOUBLE *RESTRICT tReactor
+             , short const ndm            , INT const numel   
+             , bool const fKelvin );
 /*...................................................................*/
 
 /*...*/
@@ -97,10 +109,13 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
                   , DOUBLE *RESTRICT z
                   , short const ni    , short const nj);
   void initMolarMass(Combustion *cModel);
-  void initEntalpyOfFormation(Combustion *cModel);
+  void initEntalpyOfFormation(Combustion *cModel, Prop *sHeatPol);
   void stoichiometricCoeff(Combustion *cModel);
   void globalReac(Combustion *c, short const iReac);
   void initEntalpyOfCombustion(Combustion *cModel);
+
+  void concetracionOfSpecies(Combustion *cModel,DOUBLE *RESTRICT z
+                          ,DOUBLE *RESTRICT c,DOUBLE const density);
 
   void sumFracZ(DOUBLE *z      ,DOUBLE *zComb 
               ,INT const n     ,short const nComb);
@@ -120,7 +135,8 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
           ,DOUBLE const vol   ,DOUBLE const eddyVisc
           ,DOUBLE *c          ,DOUBLE const modS 
           ,DOUBLE const dVisc ,DOUBLE const df 
-          ,DOUBLE const tMix  ,short const iCod);
+          ,DOUBLE const tMix  ,DOUBLE const tChemical
+          ,short const iCod);
   DOUBLE arrhenius(DOUBLE const y1   ,DOUBLE const y2
                 ,DOUBLE const a1     ,DOUBLE const a2
                 ,DOUBLE const mW1    ,DOUBLE const mW2

@@ -641,7 +641,7 @@ void simpleSolver3D(Memoria *m
 
 /*********************************************************************
  * Data de criacao    : 30/07/2018                                   *
- * Data de modificaco : 21/05/2019                                   *
+ * Data de modificaco : 23/07/2019                                   *
  *-------------------------------------------------------------------*
  * combustionSolver: metodo simple e simpleC para escoamentos        * 
  * 2D/3D termo ativados                                              *
@@ -675,7 +675,8 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                   , char *nameOut       , FILE *fileOut) {
   FILE *fStop = NULL;
   short unsigned ndfVel = mesh->ndfFt - 2;
-  short unsigned nComb = cModel->nComb;
+  short unsigned nComb = cModel->nComb,
+                 nSp   = cModel->nOfSpecies; 
   short unsigned conv, i;
   short unsigned itSimple;
   short unsigned kZeroVel    = sp->vel.k,
@@ -872,7 +873,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 
 /*... y(n-1) = y(n)*/
     alphaProdVector(1.e0             , mesh->elm.yFrac
-                  , mesh->numel*nComb, mesh->elm.yFrac0);
+                  , mesh->numel*nSp  , mesh->elm.yFrac0);
 /*...................................................................*/
     tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;
   }
@@ -946,7 +947,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                            , mesh          
                            , sistEqEnergy, solvEnergy
                            , sp          , sc
-                           , pMesh);      
+                           , pMesh);  
 /*...................................................................*/
     
 /*... residual*/
@@ -970,13 +971,13 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 
 /*...*/
     tm.tempFromTheEnergy = getTimeC() - tm.tempFromTheEnergy;
-    getTempFromTheEnergy(&propF->sHeat           ,mesh->elm.yFrac
-                         ,mesh->elm.temp         ,mesh->elm.energy
-                         ,mesh->elm.material.prop,mesh->elm.mat    
+    getTempFromTheEnergy(&propF->sHeat          ,mesh->elm.yFrac
+                        ,mesh->elm.temp         ,mesh->elm.energy
+                        ,mesh->elm.material.prop,mesh->elm.mat    
                         ,mesh->numel             ,cModel->nOfSpecies
                         ,eModel->fTemperature    ,fSheat     
                         ,eModel->fKelvin
-                        ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);
+                        ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);  
     tm.tempFromTheEnergy = getTimeC() - tm.tempFromTheEnergy;
 /*...................................................................*/
 
@@ -997,14 +998,14 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                  , mesh->elm.densityFluid   , mesh->elm.yFrac         
                  , sp->alphaDensity         , eModel->fKelvin      
                  , mesh->numelNov           , PROP_UPDATE_NL_LOOP
-                 , ompVar.fUpdate           , ompVar.nThreadsUpdate);  
+                 , ompVar.fUpdate           , ompVar.nThreadsUpdate);    
     if(fSheat)
       updateMixSpecificHeat(&propF->sHeat
                          , mesh->elm.temp        , mesh->elm.yFrac
                          , mesh->elm.specificHeat, cModel->nOfSpecies
                          , eModel->fKelvin     
                          , mesh->numel           , PROP_UPDATE_NL_LOOP
-                         , ompVar.fUpdate        , ompVar.nThreadsUpdate);
+                         , ompVar.fUpdate        , ompVar.nThreadsUpdate);  
     if(fDvisc)
       updateMixDynamicViscosity(&propF->dVisc    ,cModel
                           ,mesh->elm.temp        ,mesh->elm.yFrac 
@@ -1076,13 +1077,11 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
       if (ndfVel == 3)
         printf("%-25s : %20.8e\n","momentum x3", rU[2] / rU0[2]);
       printf("%-25s : %20.8e\n","conservacao da energia",rEnergy/rEnergy0);
-      for(i=0;i<cModel->nReac;i++)
-        printf("%-25s : %20.8e\n",cModel->fuel[i].name,rComb[i]/rComb0[i]);
-      for(i=cModel->nReac;i<nComb;i++)
+      for(i=0;i<nComb;i++)
         if (cModel->fLump) 
-          printf("%-25s : %20.8e\n",slName[i-cModel->nReac],rComb[i]/rComb0[i]);
+          printf("%-25s : %20.8e\n",slName[i],rComb[i]/rComb0[i]);
         else
-          printf("%-25s : %20.8e\n",spName[i-cModel->nReac],rComb[i]/rComb0[i]);
+          printf("%-25s : %20.8e\n",cModel->chem.sp[i].name,rComb[i]/rComb0[i]);
     }
     jj++;   
 /*...................................................................*/
@@ -1222,14 +1221,14 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   if (ndfVel == 3)
     printf("%-25s : %20.8e %20.8e\n","momentum x3", rU0[2], rU[2]);
   printf("%-25s : %20.8e %20.8e\n","conservacao da energia", rEnergy0, rEnergy);
-  for(i=0;i<cModel->nReac;i++)
-    printf("%-25s : %20.8e %20.8e\n",cModel->fuel[i].name,rComb0[i],rComb[i]);
-  for(i=cModel->nReac;i<nComb;i++)
+  for(i=0;i<nComb;i++)
   {
     if (cModel->fLump) 
-      printf("%-25s : %20.8e %20.8e\n",slName[i-cModel->nReac],rComb0[i],rComb[i]);
+      printf("%-25s : %20.8e %20.8e\n",slName[i]
+                                       ,rComb0[i],rComb[i]);
     else
-      printf("%-25s : %20.8e %20.8e\n",spName[i-cModel->nReac],rComb0[i],rComb[i]);
+      printf("%-25s : %20.8e %20.8e\n",cModel->chem.sp[i].name
+                                      ,rComb0[i],rComb[i]);
    }
 /*...................................................................*/
 

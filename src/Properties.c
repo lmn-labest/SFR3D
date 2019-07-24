@@ -31,7 +31,7 @@ static bool searchSpecies(Combustion *cModel,char *species
 /*... n2*/
   if(!strcmp(word,"n2"))
   {
-    *jk = cModel->sp_N2; 
+    *jk = cModel->chem.sN2; 
     strcpy(species,"n2"); 
     (*kk)++;
     read = true;
@@ -39,7 +39,7 @@ static bool searchSpecies(Combustion *cModel,char *species
 /*... o2*/
   else if(!strcmp(word,"o2"))
   {
-    *jk = cModel->sp_O2;  
+    *jk = cModel->chem.sO2;  
     strcpy(species,"o2");
     (*kk)++;
     read = true;  
@@ -47,37 +47,51 @@ static bool searchSpecies(Combustion *cModel,char *species
 /*... co2*/
   else if(!strcmp(word,"co2"))
   {
-    *jk = cModel->sp_CO2;  
+    *jk = cModel->chem.sCO2;  
     strcpy(species,"co2");
     (*kk)++;
     read = true;
   }
+
+/*... co*/
+  else if(!strcmp(word,"co"))
+  {
+    *jk = cModel->chem.sCO;
+    strcpy(species,"co"); 
+    (*kk)++; 
+    read = true;
+  }
+/*..................................................................*/
+
 /*... h2o*/
   else if(!strcmp(word,"h2o"))
   {
-    *jk = cModel->sp_H2O;
+    *jk = cModel->chem.sH2O;
     strcpy(species,"h2o"); 
     (*kk)++; 
     read = true;
   }
-/*... fuel*/
-  else
+
+/*... ch4*/
+  else if(!strcmp(word,"ch4"))
   {
-    for(i=0;i<cModel->nReac;i++)
-    {
-      strcpy(name,cModel->fuel[i].name);
-      convStringLower(name);
-      if(!strcmp(word,name))
-      {
-        *jk = cModel->sp_fuel[i]; 
-        strcpy(species,name);
-        (*kk)++;
-        read = true;
-        break;
-      }
-    }      
+    *jk = cModel->chem.sCH4;
+    strcpy(species,"ch4"); 
+    (*kk)++; 
+    read = true;
   }
 /*..................................................................*/
+
+/*... c3h8*/
+  else if(!strcmp(word,"c3h8"))
+  {
+    *jk = cModel->chem.sC3H8;
+    strcpy(species,"c3h8"); 
+    (*kk)++; 
+    read = true;
+  }
+/*..................................................................*/
+
   return read;
 }
 /********************************************************************/
@@ -781,14 +795,15 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
                 ,&prop->nasa[jk].a1[i][6]);
         }
 /*...*/
-        g = 1.e-03*IDEALGASR/cModel->mW[jk];
+        g = 1.e-03*IDEALGASR/cModel->chem.sp[jk].mW;
         for(i=0;i<2;i++)
           for(j=0;j<7;j++)
             prop->nasa[jk].a2[i][j] = prop->nasa[jk].a1[i][j]*g;
 /*.....................................................................*/       
       }
 /*.....................................................................*/
-    }while(kk != cModel->nOfSpecies || k <= nSpecies);
+//  }while(kk != cModel->nOfSpecies || k <= nSpecies);
+    }while(k <= nSpecies);
 /*.....................................................................*/
 
     fclose(fileAux);
@@ -797,7 +812,7 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
   }
 /*.....................................................................*/
 
-
+/*...*/
   printf("Write SpeciesfiHeat cp(T):\n");
   fileAux = openFile("species_cp.out", "w");
   for(i=0;i<kk;i++)
@@ -820,8 +835,8 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
       }
     }
   }
+/*.....................................................................*/
   fclose(fileAux);
-
 }
 /********************************************************************/
 
@@ -1313,11 +1328,11 @@ DOUBLE mixtureDynamicViscosity(Prop *dVisc      ,Combustion *cModel
       molarMassMix =  mixtureMolarMass(cModel,yFrac);
       for(i=0,sum1=0,sum2=0;i<ns;i++)
       { 
-        mWa = cModel->mW[i];
+        mWa = cModel->chem.sp[i].mW;
         xA[0] = (mWa*yFrac[i])/molarMassMix;
 
-        sigmaA = cModel->leornadJones[i][0];
-        ek     = cModel->leornadJones[i][1];
+        sigmaA = cModel->chem.sp[i].leornadJones[0];
+        ek     = cModel->chem.sp[i].leornadJones[1];
         nuA[0] = specieViscosity(mWa,sigmaA,ek,tc); 
 
         tmp1 = xA[0]*sqrt(mWa);
@@ -1337,9 +1352,9 @@ DOUBLE mixtureDynamicViscosity(Prop *dVisc      ,Combustion *cModel
 /*...*/
       for(i=0;i<ns;i++)
       { 
-        sigmaA = cModel->leornadJones[i][0];
-        ek     = cModel->leornadJones[i][1];
-        mWa    = cModel->mW[i];
+        sigmaA = cModel->chem.sp[i].leornadJones[0];
+        ek     = cModel->chem.sp[i].leornadJones[1];
+        mWa    = cModel->chem.sp[i].mW;
         nuA[i] = specieViscosity(mWa,sigmaA,ek,tc); 
 
         xA[i] = (mWa*yFrac[i])/molarMassMix;
@@ -1354,8 +1369,8 @@ DOUBLE mixtureDynamicViscosity(Prop *dVisc      ,Combustion *cModel
           if(i==j)
             phi = 1.e0;
           else  
-            phi = philn(cModel->mW[i],nuA[i]
-                       ,cModel->mW[j],nuA[j]);
+            phi = philn(cModel->chem.sp[i].mW,nuA[i]
+                       ,cModel->chem.sp[j].mW,nuA[j]);
           sum1+= xA[j]*phi;
         }
         sum2 += xA[i]*nuA[i]/sum1;
@@ -1582,9 +1597,9 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
       for(i=0,sum1=sum2=0;i<ns;i++)
       {        
 /*... viscosidade dinamica da especie i*/
-        mWa    = cModel->mW[i];
-        sigmaA = cModel->leornadJones[i][0];
-        ek     = cModel->leornadJones[i][1];
+        mWa    = cModel->chem.sp[i].mW;
+        sigmaA = cModel->chem.sp[i].leornadJones[0];
+        ek     = cModel->chem.sp[i].leornadJones[1];
         nuA    = specieViscosity(mWa,sigmaA,ek,tc); 
 /*... color especifico da especie i*/
         if(propF->fSpecificHeat)
@@ -1614,9 +1629,9 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
       for(i=0;i<ns;i++)
       { 
 /*... viscosidade dinamica da especie i*/
-        mWa    = cModel->mW[i];
-        sigmaA = cModel->leornadJones[i][0];
-        ek     = cModel->leornadJones[i][1];
+        mWa    = cModel->chem.sp[i].mW;
+        sigmaA = cModel->chem.sp[i].leornadJones[0];
+        ek     = cModel->chem.sp[i].leornadJones[1];
         nuA    = specieViscosity(mWa,sigmaA,ek,tc); 
 /*... color especifico da especie i*/
         if(propF->fSpecificHeat)
@@ -1638,8 +1653,8 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
           if(i==j)
             phi = 1.e0;
           else  
-            phi = philn(cModel->mW[i],k[i]
-                       ,cModel->mW[j],k[j]);
+            phi = philn(cModel->chem.sp[i].mW,k[i]
+                       ,cModel->chem.sp[j].mW,k[j]);
           sum1+= xA[j]*phi;
         }
         sum2 += xA[i]*k[i]/sum1;
@@ -1698,15 +1713,15 @@ DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel
 /*...*/
     case FDSDIFF:
 /*... especie inerte*/
-      mWi    = cModel->mW[kSpecieI];
-      sI     = cModel->leornadJones[kSpecieI][0];
-      ekI    = cModel->leornadJones[kSpecieI][1];
+      mWi    = cModel->chem.sp[kSpecieI].mW;
+      sI     = cModel->chem.sp[kSpecieI].leornadJones[0];
+      ekI    = cModel->chem.sp[kSpecieI].leornadJones[1];
 /*....................................................................*/
   
 /*... especie inerte desejada*/
-      mWa    = cModel->mW[kSpecieA];
-      sA     = cModel->leornadJones[kSpecieA][0];
-      ekA    = cModel->leornadJones[kSpecieA][1];
+      mWa    = cModel->chem.sp[kSpecieA].mW;
+      sA     = cModel->chem.sp[kSpecieA].leornadJones[0];
+      ekA    = cModel->chem.sp[kSpecieA].leornadJones[1];
 /*....................................................................*/
 
       y  = specieDiffusionBinary( mWa, mWi, sA , sI, ekA, ekI, tc);
@@ -1718,19 +1733,19 @@ DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel
 
       mMassMix = mixtureMolarMass(cModel,yFrac);
 /*... especie inerte desejada*/
-      mWa    = cModel->mW[kSpecieA];
-      sA     = cModel->leornadJones[kSpecieA][0];
-      ekA    = cModel->leornadJones[kSpecieA][1];
+      mWa    = cModel->chem.sp[kSpecieA].mW;
+      sA     = cModel->chem.sp[kSpecieA].leornadJones[0];
+      ekA    = cModel->chem.sp[kSpecieA].leornadJones[1];
 /*....................................................................*/
 
 /*...*/
       for(j=0,sum1=0;j<ns;j++)
       {
-        mWi    = cModel->mW[j];
-        sI     = cModel->leornadJones[j][0];
-        ekI    = cModel->leornadJones[j][1];
+        mWi    = cModel->chem.sp[j].mW;
+        sI     = cModel->chem.sp[j].leornadJones[0];
+        ekI    = cModel->chem.sp[j].leornadJones[1];
         if (j != kSpecieA) {
-          xA = (cModel->mW[j]*yFrac[j])/mMassMix;
+          xA = (cModel->chem.sp[j].mW*yFrac[j])/mMassMix;
           y  = specieDiffusionBinary( mWa, mWi, sA , sI, ekA, ekI, tc);
           sum1 += xA/y;
         }
@@ -1845,7 +1860,7 @@ void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel
       for(j=0;j<nOfPrSp;j++)
         MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF,cModel 
                                                   ,y    ,temp[i]
-                                                  ,j    ,cModel->sp_N2 
+                                                  ,j    ,cModel->chem.sN2 
                                                   ,i    ,iKelvin );
     }
 /*.....................................................................*/
@@ -1861,7 +1876,7 @@ void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel
       for(j=0;j<nOfPrSp;j++)
         MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF   ,cModel 
                                                   ,y       ,temp[i]
-                                                  ,j       ,cModel->sp_N2 
+                                                  ,j       ,cModel->chem.sN2 
                                                   ,i       ,iKelvin );
     }
 /*.....................................................................*/
@@ -1903,7 +1918,7 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
 {
   INT i;
   bool flag = false;
-  DOUBLE f,fl,tc,tol=1e-04;
+  DOUBLE f,fl,tc,tol=1e-10;
  
 /*...*/
   if(fSheat)
@@ -2300,7 +2315,7 @@ void initDiffMix(PropVarFluid *propF    , Combustion *cModel
       for(j=0;j<nOfPrSp;j++)
         MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF       ,cModel 
                                 ,yFrac       ,t[i]
-                                ,j           ,cModel->sp_N2
+                                ,j           ,cModel->chem.sN2
                                 ,i           ,iKelvin);
 /*...................................................................*/
     }
@@ -4048,6 +4063,7 @@ void presRefMix(Combustion *cModel
     mW0 = mixtureMolarMass(cModel,y0);
     mW  = mixtureMolarMass(cModel,y);
 /*...................................................................*/
+
 /*...*/   
     dm += ((t*mW0)/(t0*mW))*volume[i];
     vm += volume[i];
@@ -4180,50 +4196,6 @@ void initPropStructCD(PropVarCD *propVar, short const n)
     propVar[i].den.type             = -1;
   }
 
-}
-/**********************************************************************/
-
-/**********************************************************************
- * Data de criacao    : 16/05/2019                                    *
- * Data de modificaco : 27/05/2019                                    *
- *--------------------------------------------------------------------*
- * initLeornadJones : inicializacao                                   *
- *--------------------------------------------------------------------*
- * Parametros de entrada:                                             *
- *--------------------------------------------------------------------*
- *--------------------------------------------------------------------*
- * Parametros de saida:                                               *
- *--------------------------------------------------------------------*
- *--------------------------------------------------------------------*
- * OBS:                                                               *
- *--------------------------------------------------------------------*
- **********************************************************************/
-void initLeornadJones(Combustion *cModel)
-{
-  char name[][20] = {"CH4","C3H8","C2H6"};
-  short i;
-
-/*... Fuel*/
-  for(i=0;i<cModel->nReac;i++)
-  {
-    cModel->leornadJones[cModel->sp_fuel[i]][0] = cModel->fuel[i].lj[0];
-    cModel->leornadJones[cModel->sp_fuel[i]][1] = cModel->fuel[i].lj[1];
-  }
-/*... O2*/
-  cModel->leornadJones[cModel->sp_O2][0] = 3.467e0;
-  cModel->leornadJones[cModel->sp_O2][1] = 106.7e0;
-/*... CO2*/
-  cModel->leornadJones[cModel->sp_CO2][0] = 3.941e0;
-  cModel->leornadJones[cModel->sp_CO2][1] = 195.2e0;
-/*... H2O*/
-  cModel->leornadJones[cModel->sp_H2O][0] = 2.641e0;
-  cModel->leornadJones[cModel->sp_H2O][1] = 809.1e0;
-/*... CO*/
-//cModel->leornadJones[cModel->sp_CO][0] = 3.390e0;
-//cModel->leornadJones[cModel->sp_CO][1] =  91.7e0;
-/*... N2*/
-  cModel->leornadJones[cModel->sp_N2][0] = 3.798e0;
-  cModel->leornadJones[cModel->sp_N2][1] = 71.4e0;
 }
 /**********************************************************************/
 
