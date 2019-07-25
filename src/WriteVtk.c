@@ -2200,8 +2200,8 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
  * nWallPar   -> parametros de parede  ( yPlus, uPlus, uFri) (node)   *
  * eKturb       -> energia cinetrica  turbulenta (Cell)               *
  * nKturb       -> energia cinetrica  turbulenta (node)               *
- * eRateFuel    -> taxa de consumo do combustivel (Cell)              *
- * nRateFuel    -> taxa de consumo do combustivel (node)              *
+ * eQ           -> taxa de reacao (Cell)                              *
+ * nQ           -> taxa de reacao (Node)                              *
  * eYfrac       -> fracao massica das especies primitivas (cell)      *
  * nYfrac       -> fracao massica das especies primitivas (node)      *
  * elGradY      -> campo da grad fra massica das especies primitivas  *
@@ -2257,7 +2257,7 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
           , DOUBLE *eCd          , DOUBLE *nCd
           , DOUBLE *eWallPar     , DOUBLE *nWallPar
           , DOUBLE *eKturb       , DOUBLE *nKturb
-          , DOUBLE *eRateFuel    , DOUBLE *nRateFuel
+          , DOUBLE *eQ           , DOUBLE *nQ       
           , DOUBLE *eYfrac       , DOUBLE *nYfrac
           , DOUBLE *eGradY       , DOUBLE *nGradY 
           , DOUBLE *eHeatRe      , DOUBLE *nHeatRe     
@@ -2631,10 +2631,10 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
 /*...................................................................*/
 
 /*... escreve a energia cinetica turbulenta */  
-  if(opt->rateFuel &&  opt->fCell )
+  if(opt->Q &&  opt->fCell )
   {
-    strcpy(str,"eRateFuel");
-    writeVtkProp(&idum,eRateFuel,numel,1,str,iws
+    strcpy(str,"eQ");
+    writeVtkProp(&idum,eQ,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
 /*...................................................................*/
@@ -2690,7 +2690,7 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
   }
 /*...................................................................*/
 
-/*... escreve a zComb*/  
+/*... escreve a gradY*/  
   if(opt->gradY &&  opt->fCell )
   {
     strcpy(str,"eGradY");
@@ -2971,10 +2971,10 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
 /*...................................................................*/
 
 /*... escreve a energia cinetica turbulenta */  
-  if(opt->rateFuel &&  opt->fNode )
+  if(opt->Q &&  opt->fNode )
   {
-    strcpy(str,"nRateFuel");
-    writeVtkProp(&idum,nRateFuel,nnode,1,str,iws
+    strcpy(str,"nQ");
+    writeVtkProp(&idum,nQ,nnode,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
 /*...................................................................*/

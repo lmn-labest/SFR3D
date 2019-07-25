@@ -113,7 +113,7 @@
                , short  *RESTRICT lFaceR   , short  *RESTRICT lFaceL
                , short  *RESTRICT lFaceVelR, short  *RESTRICT lFaceVelL
                , DOUBLE *RESTRICT u        , DOUBLE *RESTRICT gradU
-               , DOUBLE *RESTRICT rateFuel , DOUBLE *RESTRICT vel
+               , DOUBLE *RESTRICT Q        , DOUBLE *RESTRICT vel
                , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                , DOUBLE *RESTRICT lDensity , DOUBLE *RESTRICT lDiff
                , DOUBLE *RESTRICT lEddyVisc
@@ -779,7 +779,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                   , short  *RESTRICT lFaceR   , short *RESTRICT lFaceL
                   , short  *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL
                   , DOUBLE *RESTRICT u0       , DOUBLE *RESTRICT gradU0
-                  , DOUBLE *RESTRICT rateFuel , DOUBLE *RESTRICT vel
+                  , DOUBLE *RESTRICT Q        , DOUBLE *RESTRICT vel
                   , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                   , DOUBLE *RESTRICT lDensity , DOUBLE *RESTRICT lDiff
                   , DOUBLE *RESTRICT lEddyVisc

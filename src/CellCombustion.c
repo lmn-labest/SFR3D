@@ -48,7 +48,7 @@
 * faceL     -> carga por elemento                                   *
 * u0        -> solucao conhecida                                    *
 * gradU0    -> gradiente rescontruido da solucao conhecida          *
-* rateFuel  -> taxa de consumo de combustivel                       * 
+* Q         -> taxa de reacao                                       * 
 * vel       -> campo de velocidade conhecido                        *
 * pres      -> pressao do tempo atual e do tempo anterior           *
 * gradPres  -> gradiente de pressao do tempo atual                  *
@@ -98,7 +98,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
                     , short  *RESTRICT lFaceR   , short *RESTRICT lFaceL
                     , short  *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL
                     , DOUBLE *RESTRICT u0       , DOUBLE *RESTRICT gradU0
-                    , DOUBLE *RESTRICT rateFuel , DOUBLE *RESTRICT vel
+                    , DOUBLE *RESTRICT Q        , DOUBLE *RESTRICT vel
                     , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                     , DOUBLE *RESTRICT lDensity , DOUBLE *RESTRICT lDiff 
                     , DOUBLE *RESTRICT lEddyVisc
@@ -466,7 +466,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*... reacao*/
   if(fLump)
   {
-    tmp1 = rateFuel[0]*volume[idCell];
+    tmp1 = Q[0]*volume[idCell];
     p[SL_FUEL] -= tmp1;
 //  if( nComb == nSpLump) p[SL_AIR ] -= cModel->sMassAir*tmp1;
 //  p[SL_PROD] += (1.e0+cModel->sMassAir)*tmp1;
@@ -474,7 +474,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
   else
   {
 /*... reacao  kg/m3 s*/
-    massRateReaction(&cModel->chem,rateFuel,w);
+    massRateReaction(&cModel->chem,Q,w);
     for(j=0;j<nComb;j++)
       p[j] += volume[idCell]*w[j];
 /*...................................................................*/

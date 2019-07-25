@@ -84,10 +84,10 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 
 /*... taxa de comsumo do combustivel*/
   tm.fuelConsume  = getTimeC() - tm.fuelConsume;
-  rateFuelConsume(cModel                   , tModel
+  rateReaction(cModel                   , tModel
                   , &prop->sHeat
                   , mesh->elm.zComb        , mesh->elm.cDiffComb
-                  , mesh->elm.temp         , mesh->elm.rateFuel 
+                  , mesh->elm.temp         , mesh->elm.Q 
                   , mesh->elm.densityFluid , mesh->elm.gradVel
                   , mesh->elm.eddyViscosity,mesh->elm.dViscosity
                   , mesh->elm.geom.volume
@@ -146,7 +146,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
              , mesh->elm.faceResZcomb  , mesh->elm.faceLoadZcomb
              , mesh->elm.faceRvel      , mesh->elm.faceLoadVel
              , mesh->elm.zComb         , mesh->elm.gradZcomb  
-             , mesh->elm.rateFuel      , mesh->elm.vel           
+             , mesh->elm.Q      , mesh->elm.vel           
              , mesh->elm.pressure0     , mesh->elm.pressure
              , mesh->elm.gradPres      , mesh->elm.rCellComb
              , mesh->elm.densityFluid  , mesh->elm.cDiffComb
@@ -257,7 +257,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
   rateHeatRealeseCombustion(cModel            , &prop->sHeat                
                     , mesh->elm.rateHeatReComb, mesh->elm.temp     
                     , mesh->elm.zComb0        , mesh->elm.zComb
-                    , mesh->elm.densityFluid  , mesh->elm.rateFuel 
+                    , mesh->elm.densityFluid  , mesh->elm.Q 
                     , mesh->elm.material.prop , mesh->elm.mat    
                     , sc->ddt.dt[TIME_N]      , mesh->numelNov
                     , fSheat                  , eModel->fKelvin
@@ -598,7 +598,7 @@ void getSpeciesPrimitivesCc(Combustion *cModel
  * Data de criacao    : 12/08/2018                                   *
  * Data de modificaco : 16/06/2019                                   *
  *-------------------------------------------------------------------*
- * rateFuelConsume: calculo da taxa de consumo do combustivel        *
+ * rateReaction: calculo da taxa de consumo do combustivel        *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
@@ -626,7 +626,7 @@ void getSpeciesPrimitivesCc(Combustion *cModel
  * z(nel,3) -> H2O                                                   *
  * z(nel,4) -> N2                                                    *
  *********************************************************************/
-void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
+void rateReaction(Combustion *cModel      , Turbulence *tModel
              , Prop *sHeatPol
              , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT diffComb
              , DOUBLE *RESTRICT temp         , DOUBLE *RESTRICT rate
@@ -760,7 +760,7 @@ void rateFuelConsume(Combustion *cModel      , Turbulence *tModel
  * Data de criacao    : 12/08/2018                                   *
  * Data de modificaco : 24/05/2019                                   *
  *-------------------------------------------------------------------*
- * rateFuelConsume: calculo da taxa de consumo do combustivel        *
+ * rateReaction: calculo da taxa de consumo do combustivel        *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
@@ -1017,7 +1017,7 @@ void rateHeatRealeseCombustion(Combustion *cModel,Prop *sHeat
  * Data de criacao    : 12/08/2018                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
- * rateFuelConsume: calculo da taxa de consumo do combustivel        *
+ * rateReaction: calculo da taxa de consumo do combustivel        *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*

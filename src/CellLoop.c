@@ -3147,7 +3147,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
  * faceLd1 -> carga por elemento                                     *
  * u0      -> solucao conhecida                                      *
  * gradU0  -> gradiente da solucao conhecido                         *
- * rateFuel -> taxa de consumo de combustivel
+ * Q        -> taxa de reacao                
  * vel       -> campo de velocidade conhecido                        *
  * gradVel   -> gradiente rescontruido da velocidade                 *
  * pres0     -> pressao do tempo anterior                            *
@@ -3210,7 +3210,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
                 , short  *RESTRICT faceR    , short  *RESTRICT faceL
                 , short  *RESTRICT faceVelR , short  *RESTRICT faceVelL
                 , DOUBLE *RESTRICT u0       , DOUBLE *RESTRICT gradU0
-                , DOUBLE *RESTRICT rateFuel , DOUBLE *RESTRICT vel      
+                , DOUBLE *RESTRICT Q        , DOUBLE *RESTRICT vel      
                 , DOUBLE *RESTRICT pres0    , DOUBLE *RESTRICT pres
                 , DOUBLE *RESTRICT gradPres , DOUBLE *RESTRICT rCell
                 , DOUBLE *RESTRICT density  , DOUBLE *RESTRICT diff
@@ -3253,7 +3253,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
   DOUBLE lGradPres[(MAX_NUM_FACE + 1)*MAX_NDM];
   DOUBLE lVel[(MAX_NUM_FACE + 1)*MAX_NDM];
   DOUBLE lCc[(MAX_NUM_FACE + 1)*MAX_NDM];
-  DOUBLE lRcell[MAX_COMB], lWallPar[NWALLPAR], lRateFuel[2];
+  DOUBLE lRcell[MAX_COMB], lWallPar[NWALLPAR], lQ[2];
 
   /*...*/
   if (ompVar.fCell)
@@ -3267,7 +3267,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
           ,lNormal,lXm,lXmcc,lvSkew,vizNel,lViz,lRcell,lPres,lGradPres\
           ,lFaceVelR,lFaceVelL\
           ,lWallPar,idFace,cellOwner,ch\
-          ,lDiff,lRateFuel)\
+          ,lDiff,lQ)\
      shared(aux2,ndm,ndf,numel,maxViz,calRcell,rCell,nFace,mat\
          ,calType,gVolume,geomType,faceR,faceVelR,faceL,faceVelL\
          ,u0,gCc,loads,ldVel,dField\
@@ -3277,7 +3277,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
          ,ddt,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd,underU \
          ,nAdR,storage,forces,matrix,unsym,tModel,cModel,vProp,wallPar\
          ,fOwner,cellFace\
-         ,ns,nReac,rateFuel,scAdv,scDiff)
+         ,ns,nReac,Q,scAdv,scDiff)
     for (nel = 0; nel<numel; nel++)
     {
 /*...*/
@@ -3441,7 +3441,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
 
 /*...*/
       for (i = 0; i<nReac; i++)
-        lRateFuel[i] = MAT2D(nel,i,rateFuel,nReac); 
+        lQ[i] = MAT2D(nel,i,Q,nReac); 
 /*...................................................................*/  
 
 /*... chamando a biblioteca de celulas*/
@@ -3462,7 +3462,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
                         , lFaceR       , lFaceL
                         , lFaceVelR    , lFaceVelL
                         , lu0          , lGradU0
-                        , lRateFuel    , lVel      
+                        , lQ           , lVel      
                         , lPres        , lGradPres
                         , lDensity     , lDiff
                         , lViscosity
@@ -3664,7 +3664,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
 
 /*...*/
       for (i = 0; i<nReac; i++)
-        lRateFuel[i] = MAT2D(nel,i,rateFuel,nReac); 
+        lQ[i] = MAT2D(nel,i,Q,nReac); 
 /*...................................................................*/  
 
 /*... chamando a biblioteca de celulas*/
@@ -3685,7 +3685,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
                         , lFaceR       , lFaceL
                         , lFaceVelR    , lFaceVelL
                         , lu0          , lGradU0
-                        , lRateFuel    , lVel      
+                        , lQ           , lVel      
                         , lPres        , lGradPres
                         , lDensity     , lDiff
                         , lViscosity

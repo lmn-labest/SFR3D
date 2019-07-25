@@ -178,7 +178,7 @@
           , DOUBLE *eCd          , DOUBLE *nCd
           , DOUBLE *eWallPar     , DOUBLE *nWallPar
           , DOUBLE *eKturb       , DOUBLE *nKturb
-          , DOUBLE *eRateFuel    , DOUBLE *nRateFuel
+          , DOUBLE *eQ           , DOUBLE *nQ       
           , DOUBLE *eYfrac       , DOUBLE *nYfrac 
           , DOUBLE *eGradY       , DOUBLE *nGradY
           , DOUBLE *eHeatRe      , DOUBLE *nHeatRe     

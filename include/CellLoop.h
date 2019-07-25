@@ -452,7 +452,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                   , short  *RESTRICT faceR        , short  *RESTRICT faceL
                   , short  *RESTRICT faceVelR     , short  *RESTRICT faceVelL
                   , DOUBLE *RESTRICT u0           , DOUBLE *RESTRICT gradU0
-                  , DOUBLE *RESTRICT rateFuel     , DOUBLE *RESTRICT vel
+                  , DOUBLE *RESTRICT Q            , DOUBLE *RESTRICT vel
                   , DOUBLE *RESTRICT pres0        , DOUBLE *RESTRICT pres
                   , DOUBLE *RESTRICT gradPres     , DOUBLE *RESTRICT rCell
                   , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT diff

@@ -51,7 +51,7 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
-  void rateFuelConsume(Combustion *cModel    , Turbulence *tModel
+  void rateReaction(Combustion *cModel    , Turbulence *tModel
              , Prop *sHeatPol 
              , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT diffComb
              , DOUBLE *RESTRICT temp         , DOUBLE *RESTRICT rate
@@ -76,7 +76,7 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
   void rateHeatRealeseCombustion(Combustion *cModel,Prop *sHeat   
                    , DOUBLE *RESTRICT q      , DOUBLE *RESTRICT temp
                    , DOUBLE *RESTRICT zComb0 , DOUBLE *RESTRICT zComb
-                   , DOUBLE *RESTRICT density, DOUBLE *RESTRICT rateFuel 
+                   , DOUBLE *RESTRICT density, DOUBLE *RESTRICT Q 
                    , DOUBLE *RESTRICT prop   , short  *RESTRICT mat
                    , DOUBLE const dt         , INT const numel
                    , bool const fsHeat       , bool const fKelvin

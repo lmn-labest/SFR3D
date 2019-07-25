@@ -625,7 +625,7 @@ void cellLibCombustion(Loads *lComb        , Loads *lVel
                , short  *RESTRICT lFaceR   , short  *RESTRICT lFaceL
                , short  *RESTRICT lFaceVelR, short  *RESTRICT lFaceVelL
                , DOUBLE *RESTRICT u        , DOUBLE *RESTRICT gradU
-               , DOUBLE *RESTRICT rateFuel , DOUBLE *RESTRICT vel      
+               , DOUBLE *RESTRICT Q        , DOUBLE *RESTRICT vel      
                , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                , DOUBLE *RESTRICT lDensity , DOUBLE *RESTRICT lDiff 
                , DOUBLE *RESTRICT lEddyVisc
@@ -687,7 +687,7 @@ void cellLibCombustion(Loads *lComb        , Loads *lVel
                      , lFaceR    , lFaceL
                      , lFaceVelR , lFaceVelL
                      , u         , gradU
-                     , rateFuel  , vel       
+                     , Q         , vel       
                      , pres      , gradPres
                      , lDensity  , lDiff
                      , lEddyVisc

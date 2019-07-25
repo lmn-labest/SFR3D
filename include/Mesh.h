@@ -111,7 +111,7 @@
     DOUBLE *gradY;
     DOUBLE *rCellComb; 
     DOUBLE *cDiffComb;
-    DOUBLE *rateFuel;
+    DOUBLE *Q;         
     DOUBLE *rateHeatReComb;
     DOUBLE *tReactor;
 /*...*/

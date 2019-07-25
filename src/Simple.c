@@ -1186,7 +1186,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*... Mass total consumida*/
-  cModel->totalMassFuel += totalHeatRealeseComb(mesh->elm.rateFuel 
+  cModel->totalMassFuel += totalHeatRealeseComb(mesh->elm.Q 
                       , mesh->elm.geom.volume
                       , sc->ddt.dt[TIME_N], mesh->numelNov);
 /*...................................................................*/
