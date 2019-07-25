@@ -1185,12 +1185,6 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                       , sc->ddt.dt[TIME_N], mesh->numelNov); 
 /*...................................................................*/
 
-/*... Mass total consumida*/
-  cModel->totalMassFuel += totalHeatRealeseComb(mesh->elm.Q 
-                      , mesh->elm.geom.volume
-                      , sc->ddt.dt[TIME_N], mesh->numelNov);
-/*...................................................................*/
-
 /*...*/
   tempMax = maxArray(mesh->elm.temp,mesh->numel);
   tempMed = getVolumeMed(mesh->elm.temp,mesh->elm.geom.volume
@@ -1210,7 +1204,6 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   printf("%-20s : %13.6e\n","MassIn              ", mesh->massInOut[0]);
   printf("%-20s : %13.6e\n","MassOut             ", mesh->massInOut[1]);
   printf("%-20s : %13.6e\n","Heat Combustion"     ,cModel->totalHeat);
-  printf("%-20s : %13.6e\n","Mass consume of fuel",cModel->totalMassFuel);
   printf("%-20s : %13.6lf\n","Temperatue Max"      ,tempMax);
   printf("%-20s : %13.6lf\n","Temperatue Med"      ,tempMed);
  

@@ -243,7 +243,7 @@ DOUBLE arrhenius(DOUBLE const y1     ,DOUBLE const y2
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * rate    -> taxa de consumo do combustivel                         * 
+ * rate    -> taxa de consumo massico das especies                   * 
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
@@ -270,13 +270,14 @@ void rateReaction(Combustion *cModel      , Turbulence *tModel
 {
   short nComb = cModel->nComb
        , iCod = cModel->reactionKinetic
-       , nReac=cModel->chem.nReac;
-  short iComb,iOx,iProd[3],i,j;
+       , nReac= cModel->chem.nReac
+       , nSp  = cModel->nOfSpecies;
+  short i,j;
   INT nel;
   DOUBLE s,tMix,eddy,sT[6],*iGradVel,df,*pz;
   DOUBLE omega, densityC, alpha, coefA;
   DOUBLE modS, c[3], e1, e2;
-  DOUBLE tK, ru, y[MAXSPECIES],cM[MAXSPECIES];
+  DOUBLE tK, ru, y[MAXSPECIES],cM[MAXSPECIES],Q[MAXREAC],w[MAXSPECIES];
 
 
 /*...*/
@@ -284,11 +285,11 @@ void rateReaction(Combustion *cModel      , Turbulence *tModel
   {
 /*...*/
     case ARRHENIUS:
-      for(i=0;i<cModel->chem.nReac;i++)
+      for(nel = 0; nel < numel; nel++)
       {
-/*...*/
-        for(nel = 0; nel < numel; nel++)
+        for(i=0;i<cModel->chem.nReac;i++)
         {
+/*...*/
           pz = &MAT2D(nel,0,zComb,nComb);
           densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
           getSpeciesPrimitivesCc(cModel,y,pz);
@@ -301,9 +302,15 @@ void rateReaction(Combustion *cModel      , Turbulence *tModel
                                 ,cM
                                 ,tK                   ,nComb);
 /*... kmol/(m3 s)*/
-          MAT2D(nel,i,rate,nReac) = 1.e+03*omega;
+          Q[i] = 1.e+03*omega;
         }
-/*...................................................................*/ 
+/*...................................................................*/
+
+      massRateReaction(&cModel->chem,Q,w);
+      
+      for(i=0;i<nSp;i++)
+        MAT2D(nel,i,rate,nSp) = w[i];
+ 
     } 
 /*...................................................................*/    
     break;
@@ -311,36 +318,8 @@ void rateReaction(Combustion *cModel      , Turbulence *tModel
 
 /*...*/
     case EDC:
-/*... cal/(mol*kelvin)*/
-//    ru = IDEALGASRC;
-//    tMix = cModel->edc.tMix;
-//    c[0] = cModel->edc.cGamma;
-//    c[1] = cModel->edc.cTau;
-//    c[2] = tModel->cf;
-//    for(i=0;i<cModel->nReac;i++)
+//    for(i=0;i<cModel->chem.nReac;i++)
 //    {
-/*... lei de arrhenius*/
-//      iComb  = cModel->sp_fuel[i];
-//      alpha  = cModel->arrhenius[i].alpha;
-//      mWfuel = cModel->mW[iComb];
-
-//      tempA  = cModel->arrhenius[i].energyAtivation/ru;
-//      coefA  = cModel->arrhenius[i].a;
-//      e1     = cModel->arrhenius[i].e1; 
-//      e2     = cModel->arrhenius[i].e2; 
-/*...................................................................*/
-
-//      if(cModel->fLump) 
-//        s = cModel->sMassAir; 
-//      else
-//      {
-//        iComb   = cModel->sp_fuel[i];
-//        iOx     = cModel->sp_O2;  
-//        s       = cModel->sMass[i][0][cModel->sp_O2]; 
-//        for(j=0;j<cModel->nSpeciesPart[i][1];j++)
-//          iProd[j] = cModel->speciesPart[i][1][j];
-//        mWox   = cModel->mW[cModel->sp_O2];
-//      }
 /*...*/
 //      for(nel = 0; nel < numel; nel++)
 //      {
@@ -353,7 +332,6 @@ void rateReaction(Combustion *cModel      , Turbulence *tModel
 /*... |S| = sqrt(2S:S)*/
 //        modS = sqrt(2.e0*doubleDotSym(sT));
 /*...................................................................*/
-//        densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
 //        df    = MAT2D(nel,cModel->sp_fuel[i],diffComb,nComb);
 /*...*/
 /*        omega  = edc(y              ,iComb
@@ -383,6 +361,7 @@ void rateReaction(Combustion *cModel      , Turbulence *tModel
 /*...................................................................*/
       break;
 /*...................................................................*/
+
   }
 /*...................................................................*/
 }
@@ -476,12 +455,12 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
 /*...................................................................*/ 
 
 /*...*/    
-    MAT2D(nel,0,tReactor,2) = 1.e0/modS;
-    MAT2D(nel,1,tReactor,2) = tChemical; 
-    if( nel == 5599)
-      fprintf(fileLogDebug,"%e %e %e\n", MAT2D(nel,0,tReactor,2)
-                                       , MAT2D(nel,1,tReactor,2)
-                                       , temp[nel]);
+//  MAT2D(nel,0,tReactor,2) = 1.e0/modS;
+//  MAT2D(nel,1,tReactor,2) = tChemical; 
+//  if( nel == 5599)
+//    fprintf(fileLogDebug,"%e %e %e\n", MAT2D(nel,0,tReactor,2)
+//                                     , MAT2D(nel,1,tReactor,2)
+//                                     , temp[nel]);
 /*...................................................................*/
   }
 /*...................................................................*/

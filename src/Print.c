@@ -475,7 +475,7 @@ void printFluid(Memoria *m
 
 /********************************************************************* 
  * Data de criacao    : 05/08/2018                                   *
- * Data de modificaco : 06/06/2019                                   *
+ * Data de modificaco : 25/07/2019                                   *
  *-------------------------------------------------------------------*
  * printCombustion: impressao do fluido                              * 
  *-------------------------------------------------------------------* 
@@ -513,7 +513,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
   short ndfVel,nComb;
   DOUBLE *nStressR=NULL,*nEddyV=NULL,*nDvisc=NULL,*nDenFluid=NULL;
   DOUBLE *nMedVel=NULL,*nP2Vel=NULL,*nMedP2Vel=NULL;
-  DOUBLE *nCdyn=NULL,*nWall=NULL,*nKturb=NULL,*nQ=NULL;
+  DOUBLE *nCdyn=NULL,*nWall=NULL,*nKturb=NULL,*nWk=NULL;
   DOUBLE *nYfrac=NULL,*nRaHeReComb=NULL,*nEnthalpyK=NULL,*nGradY=NULL;
   FILE *fileOut=NULL;
 
@@ -539,8 +539,8 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
 /*...................................................................*/
 
 /*...*/
-  if(opt->Q)
-    HccaAlloc(DOUBLE, m, nQ, mesh->nnode, "nQ", _AD_);
+  if(opt->wk)
+    HccaAlloc(DOUBLE, m, nWk, mesh->nnode, "nWk", _AD_);
 /*...................................................................*/
 
 /*...*/
@@ -981,10 +981,10 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (gradVel)*/
-  if(opt->Q)
+  if(opt->wk)
     interCellNode(m                     , loadsComb
                 , mesh->elm.cellFace    , mesh->face.owner
-                , nQ                    , mesh->elm.Q        
+                , nWk                   , mesh->elm.wk       
                 , mesh->elm.node        , mesh->elm.geomType            
                 , mesh->elm.geom.cc     , mesh->node.x  
                 , mesh->face.xm           
@@ -1060,7 +1060,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh0->elm.cd            , nCdyn
                , mesh0->elm.wallParameters, nWall
                , mesh0->elm.kTurb         , nKturb
-               , mesh0->elm.Q             , nQ       
+               , mesh0->elm.wk            , nWk      
                , mesh0->elm.yFrac         , nYfrac
                , mesh0->elm.gradY         , nGradY 
                , mesh0->elm.rateHeatReComb, nRaHeReComb
@@ -1092,8 +1092,8 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
 /*...................................................................*/
 
 /*...*/
-  if(opt->Q)
-    HccaDealloc( m, nQ, "nQ"   , _AD_);
+  if(opt->wk)
+    HccaDealloc( m, nWk, "nWk", _AD_);
 /*...................................................................*/
 
 /*...*/  
@@ -1655,7 +1655,7 @@ void initPrintVtk(FileOpt *opt)
   opt->Qcriterion    = false;
   opt->kTurb         = false;
   opt->zComb         = false;
-  opt->Q             = false;
+  opt->wk            = false;
   opt->yFrac         = false;
   opt->rateHeatComb  = false;
   opt->enthalpyk     = false;

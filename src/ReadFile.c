@@ -486,9 +486,9 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     zero(mesh->elm.cDiffComb, nel*nSpPri, DOUBLEC);
 
 /*... */
-    HccaAlloc(DOUBLE, m, mesh->elm.Q
-            , nel*nReac, "Q", _AD_);
-    zero(mesh->elm.Q, nel*nReac, DOUBLEC);
+    HccaAlloc(DOUBLE, m, mesh->elm.wk          
+            , nel* nSpPri,"wk", _AD_);
+    zero(mesh->elm.wk, nel* nSpPri, DOUBLEC);
 
 /*... */
     HccaAlloc(DOUBLE, m, mesh->elm.rateHeatReComb
@@ -3769,7 +3769,7 @@ void setPrint(FileOpt *opt,FILE *file){
 /*...*/
     else if (!strcmp(word, macro[33]))
     {
-      opt->Q = true;
+      opt->wk = true;
       if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "Q");
     }
 /*.....................................................................*/

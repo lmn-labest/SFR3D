@@ -111,7 +111,7 @@
     DOUBLE *gradY;
     DOUBLE *rCellComb; 
     DOUBLE *cDiffComb;
-    DOUBLE *Q;         
+    DOUBLE *wk;         /*taxa de consumo das especies kg/(m3 s)*/
     DOUBLE *rateHeatReComb;
     DOUBLE *tReactor;
 /*...*/

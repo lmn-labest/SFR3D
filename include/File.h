@@ -65,7 +65,7 @@
     bool Qcriterion; 
     bool kTurb; 
     bool zComb;
-    bool Q;         
+    bool wk;         
     bool yFrac;
     bool rateHeatComb; 
     bool enthalpyk;

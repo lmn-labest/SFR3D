@@ -87,7 +87,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
   rateReaction(cModel                   , tModel
                   , &prop->sHeat
                   , mesh->elm.zComb        , mesh->elm.cDiffComb
-                  , mesh->elm.temp         , mesh->elm.Q 
+                  , mesh->elm.temp         , mesh->elm.wk
                   , mesh->elm.densityFluid , mesh->elm.gradVel
                   , mesh->elm.eddyViscosity,mesh->elm.dViscosity
                   , mesh->elm.geom.volume
@@ -146,7 +146,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
              , mesh->elm.faceResZcomb  , mesh->elm.faceLoadZcomb
              , mesh->elm.faceRvel      , mesh->elm.faceLoadVel
              , mesh->elm.zComb         , mesh->elm.gradZcomb  
-             , mesh->elm.Q      , mesh->elm.vel           
+             , mesh->elm.wk            , mesh->elm.vel           
              , mesh->elm.pressure0     , mesh->elm.pressure
              , mesh->elm.gradPres      , mesh->elm.rCellComb
              , mesh->elm.densityFluid  , mesh->elm.cDiffComb
@@ -254,10 +254,10 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 
 /*...*/
   tm.heatRelease  = getTimeC() - tm.heatRelease; 
-  rateHeatRealeseCombustion(cModel            , &prop->sHeat                
+  rateHeatReakesedReaction(cModel            , &prop->sHeat                
                     , mesh->elm.rateHeatReComb, mesh->elm.temp     
                     , mesh->elm.zComb0        , mesh->elm.zComb
-                    , mesh->elm.densityFluid  , mesh->elm.Q 
+                    , mesh->elm.densityFluid  , mesh->elm.wk
                     , mesh->elm.material.prop , mesh->elm.mat    
                     , sc->ddt.dt[TIME_N]      , mesh->numelNov
                     , fSheat                  , eModel->fKelvin
@@ -596,9 +596,9 @@ void getSpeciesPrimitivesCc(Combustion *cModel
 
 /*********************************************************************
  * Data de criacao    : 12/08/2018                                   *
- * Data de modificaco : 21/07/2019                                   *
+ * Data de modificaco : 25/07/2019                                   *
  *-------------------------------------------------------------------*
- * rateHeatRealeseCombustion: calculo da taxa de liberacao de calor  *
+ * rateHeatReakesedReaction: calculo da taxa de liberacao de calor  *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
@@ -607,7 +607,7 @@ void getSpeciesPrimitivesCc(Combustion *cModel
  * q       -> nao definido                                           *
  * zComb0  -> fracao de massa agrupada do passo de tempo anterior    *
  * zComb   ->fracao de massa agrupada do passo de tempo atural       *
- * Q       -> taxa de consumo molar da equacoes quimicas             *
+ * wk        -> taxa de consumo massico das especies kg/(m3 s)       * 
  * prop   - propriedades por material                                *
  * mat    - material da celula                                       * 
  * dt      -> delta dessa passo de tempo                             * 
@@ -643,10 +643,10 @@ void getSpeciesPrimitivesCc(Combustion *cModel
  * Produto                                                           *
  * speciesPart[1][1][0] = SP_CO2;                                    *
  *********************************************************************/
-void rateHeatRealeseCombustion(Combustion *cModel,Prop *sHeat   
+void rateHeatReakesedReaction(Combustion *cModel,Prop *sHeat   
                    , DOUBLE *RESTRICT q      , DOUBLE *RESTRICT temp
                    , DOUBLE *RESTRICT zComb0 , DOUBLE *RESTRICT zComb
-                   , DOUBLE *RESTRICT density, DOUBLE *RESTRICT Q 
+                   , DOUBLE *RESTRICT density, DOUBLE *RESTRICT wk
                    , DOUBLE *RESTRICT prop   , short  *RESTRICT mat
                    , DOUBLE const dt         , INT const numel
                    , bool const fsHeat       , bool const fKelvin
@@ -659,7 +659,7 @@ void rateHeatRealeseCombustion(Combustion *cModel,Prop *sHeat
       , nSp   = cModel->chem.nSp;
         
   INT nel;
-  DOUBLE hc,w[MAXSPECIES],h[MAXSPECIES];
+  DOUBLE hc,h[MAXSPECIES];
   DOUBLE sum;
 
   switch(iCod) 
@@ -672,48 +672,17 @@ void rateHeatRealeseCombustion(Combustion *cModel,Prop *sHeat
 
     if (fOmp)
     {
-//#pragma omp parallel  for default(none) num_threads(nThreads)\
-//        private(nel,i,j,sum,nSp,hs,nReac)\
-//        shared(cModel,mat,sHeat,fsHeat,fKelvin,temp,q,prop,nReac,h,Q)    
+#pragma omp parallel  for default(none) num_threads(nThreads)\
+        private(nel,i,sum,nSp,h)\
+        shared(cModel,temp,nReac,wk,q)    
       for(nel = 0; nel < numel; nel++)
       {
-//      lMat  = mat[nel] - 1;
-/*... reacao i*/
-//      for(i=0,sum=0.0;i<nReac;i++)
-//      {   
-//        iComb = cModel->sp_fuel[i];
-/*... reagentes*/
-//        for(j=0,HR=0.e0;j<cModel->nSpeciesPart[i][0];j++)
-//        {
-//          kSp = cModel->speciesPart[i][0][j];
-//          nSp = cModel->stoich[i][0][kSp];
-//          nSp = cModel->sMass[i][0][kSp];
-  
-//          sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-
-/*... KJ/KGK*/
-//          H = h[kSp]/cModel->chem->mW[kSp];
-
-//          HR += nSp*H;
-//        } 
-/*... reagentes*/
-//        for(j=0,HP=0.e0;j<cModel->nSpeciesPart[i][1];j++)
-//        {
-//          kSp = cModel->speciesPart[i][1][j];
-//          nSp = cModel->stoich[i][1][kSp];
-//          nSp = cModel->sMass[i][1][kSp];
-
-//          sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-/*... KJ/KGK*/
-//          H = h[kSp]/cModel->mW[kSp];
-
-//          HP += nSp*H;         
-//        } 
-//        sum += (HP-HR)*MAT2D(nel,i,rateFuel,nReac);      
-//      }
-/*...................................................................*/      
-//      q[nel] = -sum; 
+/*... KJ/KG*/
+         for(i=0,sum=0.e0;i<nSp;i++)
+            sum += wk[i]*h[i];
+        q[nel] = -sum; 
       }
+/*...................................................................*/
     }
 /*...................................................................*/
 
@@ -722,13 +691,9 @@ void rateHeatRealeseCombustion(Combustion *cModel,Prop *sHeat
     {
       for(nel = 0; nel < numel; nel++)
       {
-/*.... KG/(m3 s)*/
-        massRateReaction(&cModel->chem,&MAT2D(nel,0,Q,nReac),w);
-/*...................................................................*/ 
-
 /*... KJ/KG*/
          for(i=0,sum=0.e0;i<nSp;i++)
-            sum += w[i]*h[i];
+            sum += wk[i]*h[i];
         q[nel] = -sum; 
       }
 /*...................................................................*/
@@ -738,11 +703,8 @@ void rateHeatRealeseCombustion(Combustion *cModel,Prop *sHeat
 
 /*... Entalpia de combustao*/
   case HCOMBUSTION:
-    hc = cModel->entalphyOfCombustion;
-    for(nel = 0; nel < numel; nel++)
-    {
-      q[nel] = -Q[nel]*hc;
-    }
+    printf("Nao implementado!!\n");
+    exit(EXIT_FAILURE);
     break;
 /*...................................................................*/
   }
@@ -882,6 +844,122 @@ DOUBLE maxArray(DOUBLE *RESTRICT x,INT const n)
  * y(nel,3) -> H2O                                                   *
  * y(nel,4) -> N2                                                    *
  *********************************************************************/
+DOUBLE edcOld(DOUBLE *y          ,short const iYf
+          ,short const iYox      
+          ,short *iProd       ,short const nProd  
+          ,DOUBLE const s     ,DOUBLE const density
+          ,DOUBLE const vol   ,DOUBLE const eddyVisc
+          ,DOUBLE *c          ,DOUBLE const modS 
+          ,DOUBLE const dVisc ,DOUBLE const df 
+          ,DOUBLE const tMix  ,DOUBLE const tChemical
+          ,short const iCod)
+{
+  short i;
+  DOUBLE omega,r,k,delta,tm,tg,tu,td,tc,tf,itMix;
+  DOUBLE x,x1,x2,x3,yF,yOx,yP,yMin,e;
+  DOUBLE tmp1,tmp2,tmp3,gEdc,gamma;
+
+/*...*/
+  yF    = y[iYf];
+  yOx   = y[iYox];
+  for(i=0,yP=0.e0;i<nProd;i++)
+    yP += y[iProd[i]];
+/*..................................................................*/
+
+/*... fds*/
+  switch (iCod)
+  {
+/*...*/
+    case FDS_EDC:
+      delta = pow(vol,D1DIV3);
+/*... estimativa a energia cinetica turbulenta*/
+      tmp1 = c[2]*c[2]/0.094;
+      k = (tmp1)*(tmp1)*delta*delta*modS;
+/*..................................................................*/
+      td = delta*delta/df;
+      tu = 0.4*delta/sqrt((2.e0/3.e0)*k);
+      tg = sqrt(2.e0*delta/9.81);
+      tc = tChemical;
+      tf = c[1];
+      itMix = max(tc,min(tg,min(td,min(tu,tf))));
+      itMix = 1.e0/itMix; 
+      gEdc  = 1.e0;
+      break;
+/*..................................................................*/
+
+/*...*/    
+    case FLUENT_EDC:
+    case FLUENT_CONST_TMIX_EDC:
+      gEdc  = 1.e0;
+      itMix = c[1]*modS;     
+      break;
+/*..................................................................*/
+
+/*... Balram Panjwani - 2010*/
+    case PANJWANI_EDC:
+    case PANJWANI_CONST_TMIX_EDC:
+/*...*/
+      itMix = c[1]*modS;
+/*... calculo */
+      gamma = min(c[0]*pow(dVisc/(eddyVisc+dVisc),0.25),0.99);
+      yMin = min(yF,yOx/s); 
+      tmp1 = s + 1;
+      tmp2 = yMin + yP/tmp1;
+      tmp3 = yP/tmp1;
+      x1 = (tmp2*tmp2)/(yF+tmp3)*(yOx+tmp3);
+      x2 = min((tmp2)/(gamma*tmp2),1.e0);
+      x3 = (gamma*tmp2/yMin,1.e0);
+      x = x1*x2*x3;
+      gEdc = x/(1.e0 - x*gamma);
+      break;
+/*...................................................................*/
+    default:
+      ERRO_OP_NEW(__FILE__,__func__,__LINE__,"Eddy Dissipation model"
+                                          ,iCod)
+      break;
+  }
+
+/*... tempo de mixutura constante e definida pelo usuario*/
+  if(FLUENT_CONST_TMIX_EDC==iCod 
+  || PANJWANI_CONST_TMIX_EDC==iCod)  itMix = 1.e0/tMix;
+/*....................................................................*/
+
+  r = min(yF,yOx/s);
+  omega = density*max(r,0.e0)*itMix*gEdc;
+  return omega;
+}
+/*********************************************************************/ 
+
+/*********************************************************************
+ * Data de criacao    : 24/05/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * edc : Eddy dissipation concept                                    *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * y        -> fracao massica das especies primitivas                *
+ * s        -> taxa de consumo do oxidante                           *
+ * desnity  -> densidade do fluido dentro do reator/celula           *
+ * vol      -> volume do reator/celula                               *
+ * eddyVisc -> viscosidae turbulenta                                 *
+ * c        -> constantes necessaria                                 *
+ * dVics    ->  viscosidae dinamica                                  *
+ * df       -> coeficiente de dufusao do fuel                        *
+ * tMix     -> tempo de mistura definido pe usuario                  *
+ * iCod     -> metodo escolhido                                      *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ * y(nel,0) -> Fuel(comburante)                                      * 
+ * y(nel,1) -> O2  (oxidante)                                        * 
+ * y(nel,2) -> CO2                                                   *
+ * y(nel,3) -> H2O                                                   *
+ * y(nel,4) -> N2                                                    *
+ *********************************************************************/
 DOUBLE edc(DOUBLE *y          ,short const iYf
           ,short const iYox      
           ,short *iProd       ,short const nProd  
@@ -967,6 +1045,7 @@ DOUBLE edc(DOUBLE *y          ,short const iYf
   return omega;
 }
 /*********************************************************************/ 
+
 
 /*********************************************************************
  * Data de criacao    : 24/05/2019                                   *

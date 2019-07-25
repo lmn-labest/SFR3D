@@ -146,7 +146,6 @@
     DOUBLE entalphyOfCombustionGrouped;  /* Entalpia de combustao calculada 
                                           pelas especies agrupadas*/
     DOUBLE totalHeat;     /* Calor total liberado pela reacao de combustao*/
-    DOUBLE totalMassFuel;  /* massa total de combustivel consumido*/
 /*... composicao do ar*/
     DOUBLE O2InAir,N2InAir;
 
