@@ -51,28 +51,6 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
-  void rateReaction(Combustion *cModel    , Turbulence *tModel
-             , Prop *sHeatPol 
-             , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT diffComb
-             , DOUBLE *RESTRICT temp         , DOUBLE *RESTRICT rate
-             , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT gradVel
-             , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT dViscosity
-             , DOUBLE *RESTRICT volume
-             , short const ndm               , INT const numel
-             , bool const fKelvin  );
-/*...................................................................*/
-
-/*...*/
- void timeChemical(Combustion *cModel      , Turbulence *tModel
-             , DOUBLE *RESTRICT zFrac     , DOUBLE *RESTRICT temp  
-             , DOUBLE *RESTRICT density    
-             , DOUBLE *RESTRICT gradVel   , DOUBLE *RESTRICT eddyViscosity
-             , DOUBLE *RESTRICT dViscosity, DOUBLE *RESTRICT tReactor
-             , short const ndm            , INT const numel   
-             , bool const fKelvin );
-/*...................................................................*/
-
-/*...*/
   void rateHeatRealeseCombustion(Combustion *cModel,Prop *sHeat   
                    , DOUBLE *RESTRICT q      , DOUBLE *RESTRICT temp
                    , DOUBLE *RESTRICT zComb0 , DOUBLE *RESTRICT zComb
@@ -104,28 +82,13 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
   DOUBLE getVolumeMed(DOUBLE *RESTRICT x,DOUBLE *RESTRICT vol
                    ,INT const n);
   void regularZ(DOUBLE *RESTRICT z,INT const numel, short const nComb);
-  void initLumpedMatrix(Combustion *cModel);
-  void yLumpedMatrixZ(DOUBLE *RESTRICT y, DOUBLE *RESTRICT a
-                  , DOUBLE *RESTRICT z
-                  , short const ni    , short const nj);
-  void initMolarMass(Combustion *cModel);
-  void initEntalpyOfFormation(Combustion *cModel, Prop *sHeatPol);
-  void stoichiometricCoeff(Combustion *cModel);
-  void globalReac(Combustion *c, short const iReac);
-  void initEntalpyOfCombustion(Combustion *cModel);
 
-  void concetracionOfSpecies(Combustion *cModel,DOUBLE *RESTRICT z
-                          ,DOUBLE *RESTRICT c,DOUBLE const density);
 
   void sumFracZ(DOUBLE *z      ,DOUBLE *zComb 
               ,INT const n     ,short const nComb);
 
   DOUBLE totalHeatRealeseComb(DOUBLE *RESTRICT q, DOUBLE *RESTRICT vol  
                           , DOUBLE const dt     , INT const numel);
-
-/*...*/
-  DOUBLE mixtureMolarMass(Combustion *cModel,DOUBLE *RESTRICT z);
-/*...................................................................*/
 
 /*...*/
   DOUBLE edc(DOUBLE *y           ,short const iYf
