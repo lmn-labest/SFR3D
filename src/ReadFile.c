@@ -4739,8 +4739,7 @@ void readSetSimpleComb(Memoria *m    , FILE *fileIn
     if(!mpiVar.myId )
     { 
       fprintf(fileLogExc,"%-15s : %d\n","Maxit"       ,simple->maxIt);
-      fprintf(fileLogExc,"%-15s : %lf\n","alphaPres"   ,simple->alphaPres);
-      fprintf(fileLogExc,"%-15s : %lf\n","alphaVel"    ,simple->alphaVel);
+      fprintf(fileLogExc,"%-15s : %lf\n","alphaPres"  ,simple->alphaPres);
       fprintf(fileLogExc,"%-15s : %lf\n","alphaVel"   ,simple->alphaVel);
       fprintf(fileLogExc,"%-15s : %lf\n","alphaEnergy",simple->alphaEnergy);
       fprintf(fileLogExc,"%-15s : %lf\n","alphaComb"  ,simple->alphaComb);

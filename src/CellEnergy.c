@@ -581,7 +581,7 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
  * lB        -> vetor de forca da linha i                            *
  * lRcell    -> residuo por celula                                   *
  *-------------------------------------------------------------------*
- * OBS:                                                              *
+ * OBS: Energia KJ/KG                                                *
  *-------------------------------------------------------------------*
  *********************************************************************/
 void cellEnergy3D(Loads *loads               , Loads *lVel
@@ -635,7 +635,7 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
   DOUBLE e[3], t[3], s[3], modE, dfdc, xx[3];
 /*... */
   DOUBLE presC, presC0, presV, gradPresC[3], gradPresV[3], wfn
-    , velC[3], velV[3], dFieldC[3], dFieldV[3], dFieldF[3], cv, cvc;
+    , velC[3], velV[3], dFieldC[3], dFieldV[3], dFieldF[3], cv, cvc,Pth[3];
 /*...*/
   DOUBLE phi, psi, lambda;
   DOUBLE tW, tC;
@@ -672,6 +672,9 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
   fComb     = cModel->fCombustion;
   ns        = cModel->nOfSpecies;
   fEntalpy  = eModel->fDiffEnergy;
+  Pth[0]    = thDynamic.pTh[0];
+  Pth[1]    = thDynamic.pTh[1];
+  Pth[2]    = thDynamic.pTh[2];
 /*...................................................................*/
 
 /*... propriedades da celula*/
@@ -1049,13 +1052,16 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
 
 /*...*/
   if (fPresWork) {
-/*... derivada materia da pressao*/
+/*... derivada materia da pressao*/  
+/*... pressao termodinamica*/
+    tmp1 = 0.5e-03*(Pth[2] - Pth[0]) / dt;  
+/*... pressao fluidodinamica*/
     tmp = (presC - presC0) / dt
-      + velC[0] * gradPresC[0]
-      + velC[1] * gradPresC[1]
-      + velC[2] * gradPresC[2];
+        + velC[0] * gradPresC[0]
+        + velC[1] * gradPresC[1]
+        + velC[2] * gradPresC[2];
 /*...*/
-    p += tmp * volume[idCell];
+    p += (tmp + tmp1) * volume[idCell];
 /*.....................................................................*/
   }
 /*.....................................................................*/
