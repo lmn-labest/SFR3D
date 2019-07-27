@@ -264,6 +264,8 @@
 //DOUBLE mixtureMolarMass(Combustion *cModel,DOUBLE *RESTRICT z);
 /*...................................................................*/
 
+  short searchSpeciesId(Chemical *chem,const char *species);
+
   int readFileLineSimple(DOUBLE *x, FILE *file);
 
 #endif /*_PROPERTIES_H_*/

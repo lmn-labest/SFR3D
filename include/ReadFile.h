@@ -70,6 +70,7 @@
   void setMixedModelLes(Turbulence *t  , FILE *file);
   void setDynamicModelLes(Turbulence *t, FILE *file);
   void setEdc(Edc *e       , FILE *file);
+  void setEdm(Edm *e       , FILE *file); 
   void setPrint(FileOpt *opt,FILE *file);
   void setReGrad(short *rcGrad, FILE *fileIn);
 

@@ -1226,13 +1226,13 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
-  fprintf(opt->fileParameters,"%9d %lf %e %e %e %e %e %e %e %e %e %e\n"
+  fprintf(opt->fileParameters,"%9d %lf %e %e %e %e %e %e %e %e %e\n"
                              , sc->ddt.timeStep  , sc->ddt.t
                              , cfl               , reynolds
                              , peclet            , thDynamic->pTh[2]
                              , mesh->mass[1]     , mesh->mass[2]
                              , mesh->massInOut[0], mesh->massInOut[1]
-                             , cModel->totalHeat , cModel->totalMassFuel);
+                             , cModel->totalHeat);
 /*...................................................................*/
 
 /*

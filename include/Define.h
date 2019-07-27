@@ -28,6 +28,7 @@
 /*...*/
   #define ARRHENIUS   1
   #define EDC         2 
+  #define EDM         3 
 
 /*...*/
   #define FDS_EDC                 1 

@@ -1048,133 +1048,74 @@ DOUBLE edc(DOUBLE *y          ,short const iYf
 
 
 /*********************************************************************
- * Data de criacao    : 24/05/2019                                   *
+ * Data de criacao    : 26/07/2019                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
- * edc : Eddy dissipation concept                                    *
+ * edm : Eddy dissipation model                                      *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * y        -> fracao massica das especies primitivas                *
- * s        -> taxa de consumo do oxidante                           *
+ * w        -> nao de definido                                       *
  * desnity  -> densidade do fluido dentro do reator/celula           *
- * vol      -> volume do reator/celula                               *
- * eddyVisc -> viscosidae turbulenta                                 *
- * c        -> constantes necessaria                                 *
- * dVics    ->  viscosidae dinamica                                  *
- * df       -> coeficiente de dufusao do fuel                        *
  * tMix     -> tempo de mistura definido pe usuario                  *
- * iCod     -> metodo escolhido                                      *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
+ * w        -> taxa de racao de massa                                *
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
- * y(nel,0) -> Fuel(comburante)                                      * 
- * y(nel,1) -> O2  (oxidante)                                        * 
- * y(nel,2) -> CO2                                                   *
- * y(nel,3) -> H2O                                                   *
- * y(nel,4) -> N2                                                    *
  *********************************************************************/
-DOUBLE edc2(Combustion *cModel,Prop *sHeatPol 
-          ,DOUBLE *y          ,short const iYf
-          ,short const iYox      
-          ,short *iProd       ,short const nProd  
-          ,DOUBLE const s     ,DOUBLE const density
-          ,DOUBLE const vol   ,DOUBLE const eddyVisc
-          ,DOUBLE *c          ,DOUBLE const modS 
-          ,DOUBLE const dVisc ,DOUBLE const df 
-          ,DOUBLE const tMix  ,DOUBLE const tChemical
-          ,DOUBLE const temp   
-          ,short const iCod   ,bool const fKelvin)
+void edm(Combustion *c       ,DOUBLE *RESTRICT y  
+          ,DOUBLE *RESTRICT w  ,DOUBLE const density
+          ,DOUBLE const itMix)
 {
-  short i, ns = cModel->nOfSpecies;
-  DOUBLE omega,r,k,delta,tm,tg,tu,td,tc,tf,itMix,dy[MAXSPECIES];
-  DOUBLE x,x1,x2,x3,yF,yOx,yP,yMin,e;
-  DOUBLE tmp1,tmp2,tmp3,gEdc,gamma;
+  short i,j,id,
+        nSp  = c->nOfSpecies;
+          
+  DOUBLE omega,dy,r1,r2,my,A,B,Q[MAXREAC],itM=itMix;
 
 /*...*/
-  yF    = y[iYf];
-  yOx   = y[iYox];
-  for(i=0,yP=0.e0;i<nProd;i++)
-    yP += y[iProd[i]];
-/*..................................................................*/
+  A = c->edm.coef[0];
+  B = c->edm.coef[1];
+  if(c->edm.tMixConst)
+    itM = 1.e0/c->edm.coef[2];
+/*....................................................................*/
 
-/*... fds*/
-  switch (iCod)
+/*... reagentes*/  
+  for(i=0;i<c->chem.nReac;i++)
   {
-/*...*/
-    case FDS_EDC:
-      delta = pow(vol,D1DIV3);
-/*... estimativa a energia cinetica turbulenta*/
-      tmp1 = c[2]*c[2]/0.094;
-      k = (tmp1)*(tmp1)*delta*delta*modS;
-/*..................................................................*/
-      td = delta*delta/df;
-      tu = 0.4*delta/sqrt((2.e0/3.e0)*k);
-      tg = sqrt(2.e0*delta/9.81);
-      tc = tChemical;
-      tf = c[1];
-      itMix = max(tc,min(tg,min(td,min(tu,tf))));
-      itMix = 1.e0/itMix; 
-      gEdc  = 1.e0;
-      break;
-/*..................................................................*/
+    r1 = 1.e+32;
+    for(j=0;j<c->chem.reac[i].nPartSp[0];j++)
+    {
+      id = c->chem.reac[i].partSp[0][j];
+      dy = y[id]/(c->chem.reac[i].stch[0][id]*c->chem.sp[id].mW);
+      r1  = min(r1,dy);
+    }
+/*....................................................................*/
 
-/*...*/    
-    case FLUENT_EDC:
-    case FLUENT_CONST_TMIX_EDC:
-      gEdc  = 1.e0;
-      itMix = c[1]*modS;     
-      break;
-/*..................................................................*/
+/*... produtos*/  
+    r2 = 1.e+32;
+    if(c->edm.fProd){
+      for(j=0,dy=my=0.e0;j<c->chem.reac[i].nPartSp[1];j++)
+      {
+        id = c->chem.reac[i].partSp[1][j];
+        dy += y[id];
+        my += c->chem.reac[i].stch[1][id]*c->chem.sp[id].mW;
+      }
+      r2 = B*dy/my;
+    }
+/*....................................................................*/
 
-/*... Balram Panjwani - 2010*/
-    case PANJWANI_EDC:
-    case PANJWANI_CONST_TMIX_EDC:
 /*...*/
-      itMix = c[1]*modS;
-/*... calculo */
-      gamma = min(c[0]*pow(dVisc/(eddyVisc+dVisc),0.25),0.99);
-      yMin = min(yF,yOx/s); 
-      tmp1 = s + 1;
-      tmp2 = yMin + yP/tmp1;
-      tmp3 = yP/tmp1;
-      x1 = (tmp2*tmp2)/(yF+tmp3)*(yOx+tmp3);
-      x2 = min((tmp2)/(gamma*tmp2),1.e0);
-      x3 = (gamma*tmp2/yMin,1.e0);
-      x = x1*x2*x3;
-      gEdc = x/(1.e0 - x*gamma);
-      break;
-/*...................................................................*/
-    default:
-      ERRO_OP_NEW(__FILE__,__func__,__LINE__,"Eddy Dissipation model"
-                                          ,iCod)
-      break;
+    Q[i] = density*A*itM*min(r1,r2);
+/*....................................................................*/
   }
-
-/*... tempo de mixutura constante e definida pelo usuario*/
-  if(FLUENT_CONST_TMIX_EDC==iCod 
-  || PANJWANI_CONST_TMIX_EDC==iCod)  itMix = 1.e0/tMix;
 /*....................................................................*/
 
-/*...*/
-//reactor( cModel     , sHeatPol  
-//       , y
-//       , dy         , density
-//       , tMix       , temp 
-//       , fKelvin);
-//fprintf(fileLogDebug,"%e %e\n",dy[1],3.989189*dy[0]);
-//fprintf(fileLogDebug,"%e %e\n",dy[2],2.743281*dy[0]);
-//fprintf(fileLogDebug,"%e %e\n",dy[3],2.245908*dy[0]);
-/*....................................................................*/
+  massRateReaction(&c->chem,Q,w);
 
-/*...*/
-  r = min(yF,yOx/s);
-  omega = density*max(r,0.e0)*itMix*gEdc;
-/*....................................................................*/
-  return omega;
 }
 /*********************************************************************/ 
 

@@ -17,6 +17,8 @@
   typedef struct 
   {
     bool reverse;
+    short nPartSp[2];
+    short partSp[2][MAXSPECIES];
     DOUBLE stch[3][MAXSPECIES];
     DOUBLE exp[2][MAXSPECIES];
     Arrhenius ArrF,ArrR; 
@@ -55,6 +57,15 @@
     DOUBLE cGamma,cTau,tMix; /* KJ/Kmol*/    
   }Edc;
 /*...................................................................*/  
+
+/*...*/
+  typedef struct{
+    bool tMixConst,fProd;
+    DOUBLE coef[3]; /* 0 - A
+                       1 - B
+                       2 - tMix*/
+  }Edm;
+/*...................................................................*/ 
 
 /*...*/
   typedef struct{
@@ -151,7 +162,8 @@
 
     DOUBLE CO2InProd,H2OInProd,N2InProd;
 
-    Edc          edc;
+    Edc      edc;
+    Edm      edm;
     Chemical chem;
   } Combustion;
 /*...................................................................*/

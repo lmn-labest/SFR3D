@@ -185,7 +185,6 @@ int main(int argc,char**argv){
   combModel.edc.type        = PANJWANI_CONST_TMIX_EDC;
 //combModel.edc.type        = FLUENT_CONST_TMIX_EDC;
   combModel.totalHeat       = 0.e0;
-  combModel.totalMassFuel   = 0.e0;
 /*..................................................................*/
 
 /*...*/

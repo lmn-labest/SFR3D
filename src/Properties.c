@@ -27,7 +27,6 @@ static bool searchSpecies(Combustion *cModel,char *species
   readMacro(fileAux,word,false);
   convStringLower(word);
     
-  fscanf(fileAux, "%lf", g);
 /*... n2*/
   if(!strcmp(word,"n2"))
   {
@@ -694,7 +693,7 @@ void updateMixDensity(Prop *pDen            , Combustion *cModel
 
 /*********************************************************************
  * Data de criacao    : 25/08/2018                                   *
- * Data de modificaco : 30/05/2019                                   *
+ * Data de modificaco : 26/07/2019                                   *
  *-------------------------------------------------------------------*
  * initMixtureSpeciesfiHeat:                                         *
  * ----------------------------------------------------------------- *
@@ -712,7 +711,7 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
 {
   FILE *fileAux;
   bool read;
-  char word[WORD_SIZE],species[MAXSPECIES][WORD_SIZE],name[WORD_SIZE];
+  char word[WORD_SIZE];
   char nameAux[1000];
   short i,j,k,jk,kk;
   int nSpecies;
@@ -733,18 +732,18 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
     do{
 /*...*/
       k++;
-      read = searchSpecies(cModel,name,&kk,&jk,&g,fileAux);  
+      readMacroV2(fileAux, word, false, true);
+      jk = searchSpeciesId(&cModel->chem,word);
 /*.....................................................................*/
 
 /*...*/
-      if(read)
+      if(jk > -1)
       {
-        strcpy(species[jk],name);
         prop->pol[jk].nPol = readFileLineSimple(x, fileAux);
         ERRO_POL_READ(prop->pol[jk].nPol, MAXPLODEG, __FILE__, __func__, __LINE__);
 
         for (i = 0; i < prop->pol[jk].nPol; i++)
-          prop->pol[jk].a[i] = x[i]/g;
+          prop->pol[jk].a[i] = x[i];
       }
 /*.....................................................................*/
     }while(kk != cModel->nOfSpecies || k <= nSpecies);
@@ -771,13 +770,14 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
     do{
 /*...*/
       k++;
-      read = searchSpecies(cModel,name,&kk,&jk,&g,fileAux);  
+      readMacroV2(fileAux, word, false, true);
+      jk = searchSpeciesId(&cModel->chem,word);
 /*.....................................................................*/
 
 /*...*/
-      if(read)
+      if(jk > -1)
       {
-        strcpy(species[jk],name);
+        kk++;
 /*...*/
         prop->nasa[jk].type = 7;
 
@@ -802,7 +802,18 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
 /*.....................................................................*/       
       }
 /*.....................................................................*/
-//  }while(kk != cModel->nOfSpecies || k <= nSpecies);
+
+/*...*/
+      else
+      {
+        for(i=0;i<2;i++)
+        {
+          fscanf(fileAux,"%lf %lf",&g,&g);
+          fscanf(fileAux,"%lf %lf %lf %lf %lf %lf %lf\n"
+                ,&g,&g,&g,&g,&g,&g,&g);
+        }    
+      }
+/*.....................................................................*/
     }while(k <= nSpecies);
 /*.....................................................................*/
 
@@ -817,7 +828,7 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
   fileAux = openFile("species_cp.out", "w");
   for(i=0;i<kk;i++)
   {
-    fprintf(fileAux,"%s\n",species[i]);
+    fprintf(fileAux,"%s\n",cModel->chem.sp[i].name);
     for (j = 0, g =300.0; j < 50; j++) 
     {
       switch(prop->type)
@@ -4233,3 +4244,36 @@ void initPropRef(PropVarFluid *propF ,DOUBLE *RESTRICT propMat
 
 }
 /**********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 20/07/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * searchSpecies: retorna o id da especie                            *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+short searchSpeciesId(Chemical *chem,const char *species)
+{ 
+   char mc[WORD_SIZE];
+   unsigned short i; 
+  
+   strcpy(mc,species);
+   convStringLower(mc);
+
+   for (i = 0; i < chem->nSp; i++)
+   {
+      if(!strcmp(chem->sp[i].name,mc))
+        return i;
+   }
+
+  return -1;
+}
+/*********************************************************************/

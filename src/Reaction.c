@@ -128,109 +128,10 @@ DOUBLE massActionMass(Reaction *reac     ,Prop *sHeatPol
 /********************************************************************/
 
 /*********************************************************************
- * Data de criacao    : 26/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
- *-------------------------------------------------------------------*
- * arrhenius :                                                       *
- *-------------------------------------------------------------------*
- * Parametros de entrada:                                            *
- *-------------------------------------------------------------------*
- * y1       -> fracao massica                                        *
- * e1       -> expoente                                              *
- * mW1      -> massa molar                                           *
- * y2       -> fracao massica                                        *
- * e2       ->  expoente                                             *
- * mW2      -> massa molar                                           *
- * t        -> temperatura                                           *
- * alpha    -> coeficiente da temperatura                            *
- * desnity  -> densidade do fluido                                   *
- * tA       -> temperatura de ativacao                               *
- * coefA    -> coeficiente                                           *
- * fKelvin  ->                                                       *
- *-------------------------------------------------------------------*
- * Parametros de saida:                                              *
- *-------------------------------------------------------------------*
- * omega :kmol/m^3s                                                  *
- *-------------------------------------------------------------------*
- * OBS:                                                              *
- *-------------------------------------------------------------------*
- * Reacao quimica a1A1 + a2A2 => a3A3 + a4A4                         * 
- * Unidade de Coef                                                   *
- * (N/L^3)^(1-(e1+e2)*(1/theta^alpha)(1/T)                           *
- * Exemplo:                                                          *
- * N     = mol                                                       *
- * L     = cm                                                        *
- * theta = Kelvin                                                    *
- * T     = segundos                                                  *
- * A = ((mol/cm^3)^(1-(e1+e2))/((K^alpha)(1/s))                      *
- *********************************************************************/
-DOUBLE arrhenius(DOUBLE const y1     ,DOUBLE const y2
-                ,DOUBLE const e1     ,DOUBLE const e2
-                ,DOUBLE const mW1    ,DOUBLE const mW2
-                ,DOUBLE const t      ,DOUBLE const alpha
-                ,DOUBLE const density,DOUBLE const tA    
-                ,DOUBLE const coefA  ,bool const fKelvin)
-{
-  short iCod=3;
-  DOUBLE tc;
-  DOUBLE omega,al,c1,c2,k,prodC,d;
-
-
-  if(fKelvin)
-    tc = t;  
-  else
-    tc = CELSIUS_FOR_KELVIN(t);
-/*... A = ((kmol/m^3)^(1-(e1+e2))/((K^alpha)(1/s))  */
-  if(iCod == 1)
-  {
-    c1 = density*y1/mW1;
-    c2 = density*y2/mW2;
-    d  = 1.e0;
-  }
-/*..................................................................*/
-
-/*... mol/m3*/
-/*... A = ((mol/m^3)^(1-(e1+e2))/((K^alpha)(1/s))  */
-  else if(iCod == 2)
-  {
-/*... kmol/m3 - > mol/m3*/
-    c1 = 1.e+03*density*y1/mW1;
-    c2 = 1.e+03*density*y2/mW2;
-/*... mol/m^3s -> kmol/m^3s*/
-    d  = 1.e-03;
-  }
-/*..................................................................*/
-
-/*... A = ((mol/cm^3)^(1-(e1+e2))/((K^alpha)(1/s))  */
-  else if(iCod == 3)
-  {
-/*... kmol/m3 - > mol/cm3*/
-    c1 = 1.e-03*density*y1/mW1;
-    c2 = 1.e-03*density*y2/mW2;
-/*... mol/cm^3s -> kmol/m^3s*/
-    d  = 1.e+03;
-  }
-/*..................................................................*/
-
-  c1 = max(c1,0.0);
-  c2 = max(c2,0.0);
-
-/*... (c1^a1)x(c1^a2)*/
-  prodC = pow(c1,e1)*pow(c2,e2);
-/*... exp(Ea/RT)*/
-  k = coefA*pow(tc,alpha)*exp(-tA/tc);
-
-  omega = d*prodC*k;
-
-  return omega; 
-}
-/*********************************************************************/ 
-
-/*********************************************************************
  * Data de criacao    : 12/08/2018                                   *
- * Data de modificaco : 16/06/2019                                   *
+ * Data de modificaco : 26/07/2019                                   *
  *-------------------------------------------------------------------*
- * rateReaction: calculo da taxa de consumo do combustivel        *
+ * rateReaction: calculo da taxa de consumo do combustivel           *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
@@ -358,6 +259,29 @@ void rateReaction(Combustion *cModel      , Turbulence *tModel
 //        MAT2D(nel,i,rate,nReac) = omega; 
 //      }
 //    }
+/*...................................................................*/
+      break;
+/*...................................................................*/
+
+/*...*/
+    case EDM:
+/*...*/
+      for(nel = 0; nel < numel; nel++)
+      {
+        pz = &MAT2D(nel,0,zComb,nComb);
+        densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+        getSpeciesPrimitivesCc(cModel,y,pz);
+/*.. calculo Sij*/
+        iGradVel = &MAT3D(nel,0,0,gradVel,ndm,ndm);
+        tensorS(sT,iGradVel,false);
+/*... |S| = sqrt(2S:S)*/
+        modS = sqrt(2.e0*doubleDotSym(sT));
+/*...................................................................*/
+        edm(cModel,y,w,densityC,modS);
+/*...................................................................*/
+        for(i=0;i<nSp;i++)
+          MAT2D(nel,i,rate,nSp) = w[i];
+      }
 /*...................................................................*/
       break;
 /*...................................................................*/
@@ -601,34 +525,17 @@ void yLumpedMatrixZ(DOUBLE *RESTRICT y, DOUBLE *RESTRICT a
 void initMolarMass(Combustion *cModel)
 {
   
-  short eO  = cModel->chem.eO,
+  short i,
+        eO  = cModel->chem.eO,
         eN  = cModel->chem.eN,
         eC  = cModel->chem.eC,
         eH  = cModel->chem.eH;
-  short sH2O = cModel->chem.sH2O,
-        sO2  = cModel->chem.sO2,
-        sCO2 = cModel->chem.sCO2,
-        sCO  = cModel->chem.sCO,
-        sN2  = cModel->chem.sN2,
-        sCH4 = cModel->chem.sCH4;
 
-/*...O2*/
-  cModel->chem.sp[sO2].mW =  2.e0*cModel->chem.mE[eO];
-/*...H2O*/
-  cModel->chem.sp[sH2O].mW = 2.e0*cModel->chem.mE[eH] 
-                             + cModel->chem.mE[eO];
-/*...CO2*/
-  cModel->chem.sp[sCO2].mW = 1.e0*cModel->chem.mE[eC] 
-                        + 2.e0*cModel->chem.mE[eO];
-/*...CO*/
-  cModel->chem.sp[sCO].mW = 1.e0*cModel->chem.mE[eC] 
-                          + 1.e0*cModel->chem.mE[eO];
-/*...N2*/
-  cModel->chem.sp[sN2].mW = 2.e0*cModel->chem.mE[eN];
-
-/*...CH4*/
-  cModel->chem.sp[sCH4].mW = 1.e0*cModel->chem.mE[eC]
-                        + 4.e0*cModel->chem.mE[eH];
+  for(i=0;i<cModel->chem.nSp;i++)
+    cModel->chem.sp[i].mW =  cModel->chem.sp[i].nO*cModel->chem.mE[eO]
+                          +  cModel->chem.sp[i].nN*cModel->chem.mE[eN]
+                          +  cModel->chem.sp[i].nC*cModel->chem.mE[eC]
+                          +  cModel->chem.sp[i].nH*cModel->chem.mE[eH];
 
 }
 /********************************************************************/
@@ -661,7 +568,7 @@ void stoichiometricCoeff(Combustion *cModel)
 
 /*********************************************************************
  * Data de criacao    : 18/08/2018                                   *
- * Data de modificaco : 27/05/2019                                   *
+ * Data de modificaco : 26/07/2019                                   *
  *-------------------------------------------------------------------*
  * initMolarMass: inicializa a massa molar das especies              *
  *-------------------------------------------------------------------*
@@ -676,44 +583,17 @@ void stoichiometricCoeff(Combustion *cModel)
  *********************************************************************/
 void initEntalpyOfFormation(Combustion *cModel, Prop *sHeatPol)
 {
-  short i,
-        sCH4 = cModel->chem.sCH4,
-        sO2 = cModel->chem.sO2,
-        sCO2 = cModel->chem.sCO2,
-        sCO = cModel->chem.sCO,
-        sH2O = cModel->chem.sH2O,
-        sN2  = cModel->chem.sN2;
+  short i;
 
 /*...  CH4*/
-  cModel->chem.sp[sCH4].entalphyOfForm = 
-  cModel->chem.sp[sCH4].entalphyOfFormMolar = polNasaH(&sHeatPol->nasa[sCH4]
+  for(i=0;i<cModel->chem.nSp;i++)
+  {
+    cModel->chem.sp[i].entalphyOfForm = 
+    cModel->chem.sp[i].entalphyOfFormMolar = polNasaH(&sHeatPol->nasa[i]
                                                      , 298.15e0, true);
-  cModel->chem.sp[sCH4].entalphyOfForm /= cModel->chem.sp[sCH4].mW;
-/*... CO2*/
-  cModel->chem.sp[sCO2].entalphyOfForm = 
-  cModel->chem.sp[sCO2].entalphyOfFormMolar = polNasaH(&sHeatPol->nasa[sCO2]
-                                                     , 298.15e0, true);
-  cModel->chem.sp[sCO2].entalphyOfForm /= cModel->chem.sp[sCO2].mW; 
-/*... CO*/
-  cModel->chem.sp[sCO].entalphyOfForm =
-  cModel->chem.sp[sCO].entalphyOfFormMolar = polNasaH(&sHeatPol->nasa[sCO]
-                                         , 298.15e0, true);
-  cModel->chem.sp[sCO].entalphyOfForm /= cModel->chem.sp[sCO].mW; 
-/*... H2O*/
-  cModel->chem.sp[sH2O].entalphyOfForm = 
-  cModel->chem.sp[sH2O].entalphyOfFormMolar = polNasaH(&sHeatPol->nasa[sH2O]
-                                         , 298.15e0, true);
-  cModel->chem.sp[sH2O].entalphyOfForm /= cModel->chem.sp[sH2O].mW; 
-/*... O2*/
-  cModel->chem.sp[sO2].entalphyOfForm =
-  cModel->chem.sp[sO2].entalphyOfFormMolar = polNasaH(&sHeatPol->nasa[sO2]
-                                         , 298.15e0, true);
-  cModel->chem.sp[sO2].entalphyOfForm /= cModel->chem.sp[sO2].mW; 
-/*... N2*/
-  cModel->chem.sp[sN2].entalphyOfForm  = 
-  cModel->chem.sp[sN2].entalphyOfFormMolar = polNasaH(&sHeatPol->nasa[sN2]
-                                         , 298.15e0, true);
-  cModel->chem.sp[sN2].entalphyOfForm /= cModel->chem.sp[sN2].mW; 
+    cModel->chem.sp[i].entalphyOfForm /= cModel->chem.sp[i].mW;
+  }
+/*...................................................................*/
   
 /*...*/
   if(!mpiVar.myId)

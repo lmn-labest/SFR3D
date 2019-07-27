@@ -38,7 +38,6 @@
 
   static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC);
 
-  static short searchSpeciesId(Chemical *chem,const char *species);
 /*..................................................................*/
 
 /*********************************************************************
@@ -2765,7 +2764,7 @@ void readModel(EnergyModel *e         , Turbulence *t
                                  ,"grouped"    ,"ungrouped"     /*2,3*/
                                  ,"edc"        ,"arrhenius"     /*4,5*/ 
                                  ,"hcombustion","hformation"    /*6,7*/   
-                                 ,"correctvel"};                /*8*/
+                                 ,"correctvel" ,"edm"};         /*8*/
   
   char diff[][WORD_SIZE] = { "residual","absolute"};        /*0,1*/
   char tran[][WORD_SIZE] = { "residual","absolute" };       /*0,1*/
@@ -3404,6 +3403,20 @@ void readModel(EnergyModel *e         , Turbulence *t
           
         }
 /*...................................................................*/
+
+/*... edm*/
+        else if (!strcmp(word, combustion[9]))
+        {
+          
+          cModel->reactionKinetic = EDM;
+          setEdm(&cModel->edm,file);
+          if (!mpiVar.myId)
+            fprintf(fileLogExc, format, "EDM", "Enable");
+          
+        }
+/*...................................................................*/
+
+
       }
 /*...................................................................*/
       if (cModel->fLump) initLumpedMatrix(cModel);
@@ -4442,6 +4455,70 @@ void setEdc(Edc *e       , FILE *file)
 
 }
 /**********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 26/05/2019                                    *
+ * Data de modificaco : 26/07/2019                                    *
+ *--------------------------------------------------------------------* 
+ * setEdm : Eddy Disspantion model                                    *                * 
+ *--------------------------------------------------------------------* 
+ * Parametros de entrada:                                             * 
+ *--------------------------------------------------------------------* 
+ * e       -> modelo de EDm                                           *
+ * file    -> arquivo de arquivo                                      * 
+ *--------------------------------------------------------------------* 
+ * Parametros de saida:                                               * 
+ *--------------------------------------------------------------------* 
+ * e       -> atualizado                                              * 
+ *--------------------------------------------------------------------* 
+ * OBS:                                                               * 
+ *--------------------------------------------------------------------*
+ **********************************************************************/
+void setEdm(Edm *e       , FILE *file) 
+{
+
+  char word[WORD_SIZE];
+  char edm[][WORD_SIZE] = { "a"          ,"b"
+                           ,"tmix"};        
+  short i;
+  int nTerms;
+  e->tMixConst = false;
+  e->fProd     = false;
+  fscanf(file,"%d",&nTerms);
+  for(i=0;i<nTerms;i++)
+  {
+    readMacro(file,word,false);
+    convStringLower(word);
+/*...*/
+    if(!strcmp(word,edm[0]))
+      fscanf(file,"%lf",&e->coef[0]);
+/*...................................................................*/ 
+
+/*...*/
+    else if(!strcmp(word,edm[1]))
+      fscanf(file,"%lf",&e->coef[1]);     
+/*...................................................................*/ 
+
+/*...*/
+    else if(!strcmp(word,edm[2]))
+    {
+      e->tMixConst = true;
+      fscanf(file,"%lf",&e->coef[2]);
+    }
+/*...................................................................*/ 
+  }
+/*...................................................................*/
+
+  if(!mpiVar.myId) 
+    if(e->tMixConst)
+      fprintf(fileLogExc,"%-20s: A = %lf  B = %lf tMix = %lf\n"
+                        , "edm",e->coef[0],e->coef[1],e->coef[2]);
+    else
+      fprintf(fileLogExc,"%-20s: A = %lf  B = %lf\n"
+                        , "edm",e->coef[0],e->coef[1]);
+}
+/**********************************************************************/
+
 
 /**********************************************************************
  * Data de criacao    : 28/01/2018                                    *
@@ -6990,6 +7067,12 @@ void readChemical(Combustion *c, FILE *file)
       c->chem.reac[i].exp[1][j] = 0.e0;
     }
   }
+  c->chem.sH2O  = -1;
+  c->chem.sO2   = -1;
+  c->chem.sN2   = -1;
+  c->chem.sCO2  = -1;
+  c->chem.sCO   = -1;
+  c->chem.sCH4  = -1;
 /*.....................................................................*/
 
 /*...*/
@@ -7093,11 +7176,13 @@ void readChemical(Combustion *c, FILE *file)
           if (!strcmp(word, "r"))
           {
             fscanf(fileAux,"%d",&nn);
+            c->chem.reac[i].nPartSp[0] = nn;
             for(j=0;j<nn;j++)
             {
               fscanf(fileAux,"%lf %s",&value,word);
               id = searchSpeciesId(&c->chem,word);
-              c->chem.reac[i].stch[0][id] = value;
+              c->chem.reac[i].stch[0][id]  = value;
+              c->chem.reac[i].partSp[0][j] = id;
             }
           }
 /*...................................................................*/
@@ -7106,11 +7191,13 @@ void readChemical(Combustion *c, FILE *file)
           else if (!strcmp(word, "p"))
           {
             fscanf(fileAux,"%d",&nn);
+            c->chem.reac[i].nPartSp[1] = nn;
             for(j=0;j<nn;j++)
             {
               fscanf(fileAux,"%lf %s",&value,word);
               id = searchSpeciesId(&c->chem,word);
               c->chem.reac[i].stch[1][id] = value;
+              c->chem.reac[i].partSp[1][j] = id;
             }
           }
 /*...................................................................*/
@@ -7870,38 +7957,5 @@ static void convLoadsVel(Prop *pDen
     }     
   }
 /*....................................................................*/
-}
-/*********************************************************************/
-
-/********************************************************************* 
- * Data de criacao    : 20/07/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
- *-------------------------------------------------------------------*
- * searchSpecies: retorna o id da especie                            *
- *-------------------------------------------------------------------*
- * Parametros de entrada:                                            *
- *-------------------------------------------------------------------*
- *-------------------------------------------------------------------*
- * Parametros de saida:                                              *
- *-------------------------------------------------------------------*
- *-------------------------------------------------------------------*
- * OBS:                                                              *
- *-------------------------------------------------------------------*
- *********************************************************************/
- static short searchSpeciesId(Chemical *chem,const char *species)
-{ 
-   char mc[WORD_SIZE];
-   unsigned short i; 
-  
-   strcpy(mc,species);
-   convStringLower(mc);
-
-   for (i = 0; i < chem->nSp; i++)
-   {
-      if(!strcmp(chem->sp[i].name,mc))
-        return i;
-   }
-
-  return -1;
 }
 /*********************************************************************/

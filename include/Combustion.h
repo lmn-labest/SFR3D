@@ -100,12 +100,10 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
           ,DOUBLE const dVisc ,DOUBLE const df 
           ,DOUBLE const tMix  ,DOUBLE const tChemical
           ,short const iCod);
-  DOUBLE arrhenius(DOUBLE const y1   ,DOUBLE const y2
-                ,DOUBLE const a1     ,DOUBLE const a2
-                ,DOUBLE const mW1    ,DOUBLE const mW2
-                ,DOUBLE const t      ,DOUBLE const alpha
-                ,DOUBLE const density,DOUBLE const tA    
-                ,DOUBLE const coefA  ,bool const fKelvin);
+  
+  void edm(Combustion *c       ,DOUBLE *RESTRICT y  
+          ,DOUBLE *RESTRICT w  ,DOUBLE const density
+          ,DOUBLE const itMix);
 /*...................................................................*/
 
 #endif/*_COMBUSTION_H_*/
