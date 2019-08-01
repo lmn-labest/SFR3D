@@ -29,7 +29,8 @@
   #define ARRHENIUS   1
   #define EDC         2 
   #define EDM         3 
-
+/*...*/
+  #define N_TERMS_REACTOR 3
 /*...*/
   #define FDS_EDC                 1 
   #define FLUENT_EDC              2
@@ -360,7 +361,9 @@
   #define DOUBLE    double
 //typedef double DOUBLE;
   #define DOUBLEC  "double"
-  
+  #define LDOUBLE   long double
+  #define LDOUBLEC  "long double"  
+
   #ifdef _MSC_VER
 /*  #define LONG_INT __int64*/
     typedef __int64 LONG_INT;
@@ -382,6 +385,21 @@
   #define max(a, b)  (((a) > (b)) ? (a) : (b))
   #define vectorPlusOne(v,n,i)  for(i=0;i<n;i++) (v[i]++) 
   #define vectorMinusOne(v,n,i) for(i=0;i<n;i++) (v[i]--)  
+/*...................................................................*/
+
+/*...*/
+  #define LDMT           1
+  #define LDLT           2
+  #define GGT            3
+  #define LUKIJ          4
+  #define LUIKJ          5
+  #define LUKJI          6
+  #define LUJKI          7
+  #define DOOLITTLEL     8
+  #define DOOLITTLELC    9
+  #define DOOLITTLECL   10
+  #define LUKIJPP       11
+  #define DOOLITTLECLPP 12
 /*...................................................................*/
 
 /*...*/

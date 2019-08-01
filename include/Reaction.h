@@ -9,15 +9,7 @@
   #include<Define.h>
   #include<StructDefine.h>
   #include<CellLoop.h>
-/*...................................................................*/
-
-/*...*/
-  DOUBLE arrhenius(DOUBLE const y1   ,DOUBLE const y2
-                ,DOUBLE const e1     ,DOUBLE const e2
-                ,DOUBLE const mW1    ,DOUBLE const mW2
-                ,DOUBLE const t      ,DOUBLE const alpha
-                ,DOUBLE const density,DOUBLE const tA    
-                ,DOUBLE const coefA  ,bool const fKelvin);
+  #include<Edo.h>
 /*...................................................................*/
 
 /*...*/
@@ -32,22 +24,23 @@
 /*...................................................................*/
 
 /*...*/
-  void rateReaction(Combustion *cModel    , Turbulence *tModel
-             , Prop *sHeatPol 
-             , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT diffComb
-             , DOUBLE *RESTRICT temp         , DOUBLE *RESTRICT rate
-             , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT gradVel
-             , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT dViscosity
-             , DOUBLE *RESTRICT volume
+  void rateReaction(Combustion *cModel         , Turbulence *tModel
+             , PropVarFluid *pFluid
+             , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT temp        
+             , DOUBLE *RESTRICT rate         , DOUBLE *RESTRICT density 
+             , DOUBLE *RESTRICT gradVel      , DOUBLE *RESTRICT eddyViscosity
+             , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT volume
+             , DOUBLE const dt               , DOUBLE const Pth 
              , short const ndm               , INT const numel
-             , bool const fKelvin  );
+             , bool const fKelvin );
 /*...................................................................*/
 
 /*...*/
  void timeChemical(Combustion *cModel      , Turbulence *tModel
-             , DOUBLE *RESTRICT zFrac     , DOUBLE *RESTRICT temp  
-             , DOUBLE *RESTRICT density    
-             , DOUBLE *RESTRICT gradVel   , DOUBLE *RESTRICT eddyViscosity
+             , PropVarFluid *pFluid
+             , DOUBLE *RESTRICT zComb     , DOUBLE *RESTRICT temp  
+             , DOUBLE *RESTRICT density   , DOUBLE *RESTRICT gradVel 
+             , DOUBLE *RESTRICT eddyViscosity
              , DOUBLE *RESTRICT dViscosity, DOUBLE *RESTRICT tReactor
              , short const ndm            , INT const numel   
              , bool const fKelvin );
@@ -70,6 +63,11 @@
 
 /*...*/
   DOUBLE mixtureMolarMass(Combustion *cModel,DOUBLE *RESTRICT z);
+/*...................................................................*/
+
+/*... reatores*/
+  void plugFlowReactor(DOUBLE const t    ,DOUBLE *RESTRICT y
+                    ,DOUBLE *RESTRICT w,void **pt);
 /*...................................................................*/
 
 #endif/*_REACTION_H_*/

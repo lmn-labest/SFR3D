@@ -18,6 +18,10 @@
               ,DOUBLE *RESTRICT c);
 /*...................................................................*/
 
+/*... normas*/
+  LDOUBLE lnormInf(LDOUBLE *RESTRICT x,INT const lin,INT const col);
+
+/*...................................................................*/
 
 /*======================== level 1 =================================*/
 /*... soma de vetores*/
@@ -60,6 +64,40 @@
 /*==================================================================*/
 
 /*======================== level 2 =================================*/
+
+/*level 2*/
+/* ... matriz cheia*/
+  void matVecFull(DOUBLE *RESTRICT a
+                 ,DOUBLE *RESTRICT x
+                 ,DOUBLE *RESTRICT y
+                 ,INT nLin          ,INT nCol);
+  void matVecFullO2(DOUBLE *RESTRICT a
+                 ,DOUBLE *RESTRICT x
+                 ,DOUBLE *RESTRICT y
+                 ,INT nLin          ,INT nCol);
+  void matVecFullO4(DOUBLE *RESTRICT a
+                   ,DOUBLE *RESTRICT x
+                   ,DOUBLE *RESTRICT y
+                   ,INT nLin          ,INT nCol);
+  void matVecFullO2I2(DOUBLE *RESTRICT a
+                     ,DOUBLE *RESTRICT x
+                     ,DOUBLE *RESTRICT y
+                     ,INT nLin          ,INT nCol);
+  void matVecFullO4I2(DOUBLE *RESTRICT a
+                     ,DOUBLE *RESTRICT x
+                     ,DOUBLE *RESTRICT y
+                     ,INT nLin          ,INT nCol);
+  void matVecFullO4I4(DOUBLE *RESTRICT a
+                     ,DOUBLE *RESTRICT x
+                     ,DOUBLE *RESTRICT y
+                     ,INT nLin          ,INT nCol);
+  void lmatVecFull(LDOUBLE *RESTRICT a
+                  ,LDOUBLE *RESTRICT x
+                  ,LDOUBLE *RESTRICT y
+                  ,INT nLin       
+                  ,INT nCol);
+/*...................................................................*/
+
 
 /*... Csr*/
   void matVecCsr(INT const neq           

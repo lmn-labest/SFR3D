@@ -207,6 +207,7 @@
     DOUBLE massInOut[2]; /* mass que adentra o dominio 
                             mass que sai do dominio*/ 
     DOUBLE xRef[3]; /*... ponto de referencia*/
+    DOUBLE tempMax,tempMed;
 /*...*/    
     Elmt elm;     
     Node node;

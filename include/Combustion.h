@@ -91,15 +91,12 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
                           , DOUBLE const dt     , INT const numel);
 
 /*...*/
-  DOUBLE edc(DOUBLE *y           ,short const iYf
-          ,short const iYox   ,short *iProd
-          ,short const nProd
-          ,DOUBLE const s     ,DOUBLE const density
-          ,DOUBLE const vol   ,DOUBLE const eddyVisc
-          ,DOUBLE *c          ,DOUBLE const modS 
-          ,DOUBLE const dVisc ,DOUBLE const df 
-          ,DOUBLE const tMix  ,DOUBLE const tChemical
-          ,short const iCod);
+  INT edc(Combustion *c       ,PropVarFluid *pFluid
+        ,DOUBLE *RESTRICT y  ,DOUBLE *RESTRICT w
+        ,DOUBLE const density,DOUBLE const modS  
+        ,DOUBLE const dt     ,DOUBLE const temp   
+        ,DOUBLE const Pth    ,bool const fKelvin
+        ,INT const nel);
   
   void edm(Combustion *c       ,DOUBLE *RESTRICT y  
           ,DOUBLE *RESTRICT w  ,DOUBLE const density

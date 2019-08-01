@@ -70,27 +70,28 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*... taxa de comsumo do combustivel*/
-/*m.fuelConsume  = getTimeC() - tm.fuelConsume;
+  tm.fuelConsume  = getTimeC() - tm.fuelConsume;
   timeChemical(cModel                  , tModel
+              , prop 
               , mesh->elm.zComb        , mesh->elm.temp      
               , mesh->elm.densityFluid , mesh->elm.gradVel 
               , mesh->elm.eddyViscosity
               , mesh->elm.dViscosity   , mesh->elm.tReactor
-              , mesh->ndm 
-              , mesh->numel            , eModel->fKelvin ); 
-  tm.fuelConsume  = getTimeC() - tm.fuelConsume;  */
+              , mesh->ndm               , mesh->numel
+              , eModel->fKelvin ); 
+  tm.fuelConsume  = getTimeC() - tm.fuelConsume;    
 /*...................................................................*/
 
 
 /*... taxa de comsumo do combustivel*/
   tm.fuelConsume  = getTimeC() - tm.fuelConsume;
   rateReaction(cModel                   , tModel
-                  , &prop->sHeat
-                  , mesh->elm.zComb        , mesh->elm.cDiffComb
-                  , mesh->elm.temp         , mesh->elm.wk
-                  , mesh->elm.densityFluid , mesh->elm.gradVel
-                  , mesh->elm.eddyViscosity,mesh->elm.dViscosity
-                  , mesh->elm.geom.volume
+                  , prop
+                  , mesh->elm.zComb        , mesh->elm.temp 
+                  , mesh->elm.wk           , mesh->elm.densityFluid 
+                  , mesh->elm.gradVel      , mesh->elm.eddyViscosity
+                  , mesh->elm.dViscosity   , mesh->elm.geom.volume
+                  , sc->ddt.dt[2]          , thDynamic.pTh[2]
                   , mesh->ndm              , mesh->numel
                   , eModel->fKelvin );  
   tm.fuelConsume  = getTimeC() - tm.fuelConsume;  
@@ -932,82 +933,79 @@ DOUBLE edcOld(DOUBLE *y          ,short const iYf
 
 /*********************************************************************
  * Data de criacao    : 24/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 29/07/2019                                   *
  *-------------------------------------------------------------------*
  * edc : Eddy dissipation concept                                    *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * y        -> fracao massica das especies primitivas                *
- * s        -> taxa de consumo do oxidante                           *
+ * w        -> nao de definido                                       *
  * desnity  -> densidade do fluido dentro do reator/celula           *
- * vol      -> volume do reator/celula                               *
- * eddyVisc -> viscosidae turbulenta                                 *
- * c        -> constantes necessaria                                 *
- * dVics    ->  viscosidae dinamica                                  *
- * df       -> coeficiente de dufusao do fuel                        *
- * tMix     -> tempo de mistura definido pe usuario                  *
- * iCod     -> metodo escolhido                                      *
+ * modS     -> tempo de mistura definido pe usuario                  *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
- * y(nel,0) -> Fuel(comburante)                                      * 
- * y(nel,1) -> O2  (oxidante)                                        * 
- * y(nel,2) -> CO2                                                   *
- * y(nel,3) -> H2O                                                   *
- * y(nel,4) -> N2                                                    *
  *********************************************************************/
-DOUBLE edc(DOUBLE *y          ,short const iYf
-          ,short const iYox      
-          ,short *iProd       ,short const nProd  
-          ,DOUBLE const s     ,DOUBLE const density
-          ,DOUBLE const vol   ,DOUBLE const eddyVisc
-          ,DOUBLE *c          ,DOUBLE const modS 
-          ,DOUBLE const dVisc ,DOUBLE const df 
-          ,DOUBLE const tMix  ,DOUBLE const tChemical
-          ,short const iCod)
+INT edc(Combustion *c       ,PropVarFluid *pFluid
+        ,DOUBLE *RESTRICT y  ,DOUBLE *RESTRICT w
+        ,DOUBLE const density,DOUBLE const modS  
+        ,DOUBLE const dt     ,DOUBLE const temp   
+        ,DOUBLE const Pth    ,bool const fKelvin
+        ,INT const nel)
 {
-  short i;
-  DOUBLE omega,r,k,delta,tm,tg,tu,td,tc,tf,itMix;
-  DOUBLE x,x1,x2,x3,yF,yOx,yP,yMin,e;
-  DOUBLE tmp1,tmp2,tmp3,gEdc,gamma;
+  void *pt[10];
+  short i,j,id,iCod;
+  short nSp = c->chem.nSp;
+  INT k;
+  DOUBLE aTol,rTol;
+  DOUBLE x,x1,x2,x3,yMin,dy,pres=Pth,tF;
+  DOUBLE tmp1,tmp2,tmp3,gEdc,gamma,tMix,cTau,itMix,tK,yt[MAXSPECIES],tt;
+  
+/*...*/
+  iCod  = c->edc.type;
+  tMix  = c->edc.tMix;
+  gamma = c->edc.cGamma;
+  cTau  = c->edc.cTau;
+/*...................................................................*/
 
 /*...*/
-  yF    = y[iYf];
-  yOx   = y[iYox];
-  for(i=0,yP=0.e0;i<nProd;i++)
-    yP += y[iProd[i]];
+  aTol = rTol = 1.e-06;
+
+  TEMP(tK,temp,fKelvin);
+
+  pt[0] = c;
+  pt[1] = &pFluid->den;
+  pt[2] = &pFluid->sHeat;
+  pt[3] = &tK;
+  pt[4] = &pres;
+/*...................................................................*/
+
+/*... reagentes*/  
+//for(i=0;i<c->chem.nReac;i++)
+//{
+//  yMin = 1.e+32;
+//  for(j=0;j<c->chem.reac[i].nPartSp[0];j++)
+//  {
+//    id = c->chem.reac[i].partSp[0][j];
+//    dy = y[id]/(c->chem.reac[i].stch[0][id]*c->chem.sp[id].mW);
+//    yMin  = min(yMin,dy);
+//  }
+//}
 /*..................................................................*/
 
-/*... fds*/
+/*...*/
   switch (iCod)
   {
-/*...*/
-    case FDS_EDC:
-      delta = pow(vol,D1DIV3);
-/*... estimativa a energia cinetica turbulenta*/
-      tmp1 = c[2]*c[2]/0.094;
-      k = (tmp1)*(tmp1)*delta*delta*modS;
-/*..................................................................*/
-      td = delta*delta/df;
-      tu = 0.4*delta/sqrt((2.e0/3.e0)*k);
-      tg = sqrt(2.e0*delta/9.81);
-      tc = tChemical;
-      tf = c[1];
-      itMix = max(tc,min(tg,min(td,min(tu,tf))));
-      itMix = 1.e0/itMix; 
-      gEdc  = 1.e0;
-      break;
-/*..................................................................*/
 
 /*...*/    
     case FLUENT_EDC:
     case FLUENT_CONST_TMIX_EDC:
       gEdc  = 1.e0;
-      itMix = c[1]*modS;     
+      itMix = cTau*modS;     
       break;
 /*..................................................................*/
 
@@ -1015,22 +1013,22 @@ DOUBLE edc(DOUBLE *y          ,short const iYf
     case PANJWANI_EDC:
     case PANJWANI_CONST_TMIX_EDC:
 /*...*/
-      itMix = c[1]*modS;
+      itMix = cTau*modS;
 /*... calculo */
-      gamma = min(c[0]*pow(dVisc/(eddyVisc+dVisc),0.25),0.99);
-      yMin = min(yF,yOx/s); 
-      tmp1 = s + 1;
-      tmp2 = yMin + yP/tmp1;
-      tmp3 = yP/tmp1;
-      x1 = (tmp2*tmp2)/(yF+tmp3)*(yOx+tmp3);
-      x2 = min((tmp2)/(gamma*tmp2),1.e0);
-      x3 = (gamma*tmp2/yMin,1.e0);
-      x = x1*x2*x3;
-      gEdc = x/(1.e0 - x*gamma);
+//    gamma = min(c[0]*pow(dVisc/(eddyVisc+dVisc),0.25),0.99);
+//    yMin  = min(yF,yOx/s); 
+//    tmp1  = s + 1;
+//    tmp2  = yMin + yP/tmp1;
+//    tmp3 = yP/tmp1;
+//    x1 = (tmp2*tmp2)/(yF+tmp3)*(yOx+tmp3);
+//    x2 = min((tmp2)/(gamma*tmp2),1.e0);
+//    x3 = (gamma*tmp2/yMin,1.e0);
+//    x = x1*x2*x3;
+//    gEdc = x/(1.e0 - x*gamma);
       break;
 /*...................................................................*/
     default:
-      ERRO_OP_NEW(__FILE__,__func__,__LINE__,"Eddy Dissipation model"
+      ERRO_OP_NEW(__FILE__,__func__,__LINE__,"Eddy Dissipation concept"
                                           ,iCod)
       break;
   }
@@ -1040,9 +1038,38 @@ DOUBLE edc(DOUBLE *y          ,short const iYf
   || PANJWANI_CONST_TMIX_EDC==iCod)  itMix = 1.e0/tMix;
 /*....................................................................*/
 
-  r = min(yF,yOx/s);
-  omega = density*max(r,0.e0)*itMix*gEdc;
-  return omega;
+/*...*/
+  for(i=0;i<c->chem.nSp;i++)
+    yt[i] = y[i];
+/*....................................................................*/
+
+/*...*/
+  tt = min(tMix,dt);
+  k = StepperSie(yt                      , pt
+            , 0                          , tt
+            , 1.0e-02*tt                 , 0.5*dt
+            , aTol                       , rTol        
+            , nSp                        , &tF
+            , 10000                      , true
+            , 0                          , NULL
+            , &plugFlowReactor           , NULL); 
+/*....................................................................*/
+
+  if(nel == 0)
+    printf("%d %e %e\n",k,yt[0]-y[0],tF);
+
+/*...*/
+  for(i=0;i<c->chem.nSp;i++)
+  {
+    dy = yt[i]-y[i];
+    if(yt[i] < 0.e0)
+      dy = 0.e0;
+    w[i] = density*itMix*gEdc*dy;
+  }
+/*....................................................................*/
+
+  return k;
+
 }
 /*********************************************************************/ 
 

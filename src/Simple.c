@@ -706,7 +706,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     fDensityRef       = thDynamic->fDensityRef,
     fPresRef          = thDynamic->fPresTh,
     fDeltaTimeDynamic = sc->ddt.fDynamic;
-  DOUBLE cfl, reynolds, peclet,  deltaMass, tempMax, tempMed;
+  DOUBLE cfl, reynolds, peclet,  deltaMass;
   bool fParameter[10];
   char slName[][10] = {"zFuel","zAir","zProd"},
        spName[][10] = {"zO2","zCO2","zH2O","zN2"};
@@ -1186,8 +1186,8 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
-  tempMax = maxArray(mesh->elm.temp,mesh->numel);
-  tempMed = getVolumeMed(mesh->elm.temp,mesh->elm.geom.volume
+  mesh->tempMax = maxArray(mesh->elm.temp,mesh->numel);
+  mesh->tempMed = getVolumeMed(mesh->elm.temp,mesh->elm.geom.volume
                         ,mesh->numel);
 /*...................................................................*/
 
@@ -1204,8 +1204,8 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   printf("%-20s : %13.6e\n","MassIn              ", mesh->massInOut[0]);
   printf("%-20s : %13.6e\n","MassOut             ", mesh->massInOut[1]);
   printf("%-20s : %13.6e\n","Heat Combustion"     ,cModel->totalHeat);
-  printf("%-20s : %13.6lf\n","Temperatue Max"      ,tempMax);
-  printf("%-20s : %13.6lf\n","Temperatue Med"      ,tempMed);
+  printf("%-20s : %13.6lf\n","Temperatue Max"     ,mesh->tempMax);
+  printf("%-20s : %13.6lf\n","Temperatue Med"     ,mesh->tempMed);
  
   printf("%-25s : %15s %20s\n","Residuo:","init","final");
   printf("%-25s : %20.8e %20.8e\n","conservacao da massa", rMass0, rMass);
@@ -1226,13 +1226,14 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
-  fprintf(opt->fileParameters,"%9d %lf %e %e %e %e %e %e %e %e %e\n"
+  fprintf(opt->fileParameters,"%9d %e %e %e %e %e %e %e %e %e %e %e %e\n"
                              , sc->ddt.timeStep  , sc->ddt.t
                              , cfl               , reynolds
                              , peclet            , thDynamic->pTh[2]
                              , mesh->mass[1]     , mesh->mass[2]
                              , mesh->massInOut[0], mesh->massInOut[1]
-                             , cModel->totalHeat);
+                             , cModel->totalHeat , mesh->tempMax
+                             ,mesh->tempMed);
 /*...................................................................*/
 
 /*

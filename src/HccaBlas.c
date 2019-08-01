@@ -11,10 +11,21 @@
  * pordVet        -> produto vetorial                                 *
  * dgemm          -> op matriz matriz para matriz cheia               * 
  *                                                                    *
+ * -------------------------normas------------------------------------*
+ * lnormInf       -> norma infinita para vetores/matrizes             *
  * ------------------------- VECTOR --------------------------------- *
  *                                                                    *
  * alphaProdVector-> produto de vetor por um escalar                  *
  * addVector      -> adicao de vetores                                *
+ *                                                                    *
+ * ====================== MATVECFULL ================================ * 
+ * matVecFull     -> matriz vetor para matriz cheia                   * 
+ * matVecFullO2   -> matriz vetor para matriz cheia                   * 
+ * matVecFullO4   -> matriz vetor para matriz cheia                   * 
+ * matVecFullO2I2 -> matriz vetor para matriz cheia                   * 
+ * matVecFullO4I2 -> matriz vetor para matriz cheia                   * 
+ * matVecFullO4I4 -> matriz vetor para matriz cheia                   * 
+ * lmatVecFull    -> matriz vetor para matriz cheia                   * 
  *                                                                    *
  * ------------------------- DOT ------------------------------------ *
  *                                                                    *
@@ -226,6 +237,55 @@ void prodVet(DOUBLE *RESTRICT a,DOUBLE *RESTRICT b, DOUBLE *RESTRICT c)
 /********************************************************************/ 
 
 /*======================== level 1 =================================*/
+
+/********************************************************************* 
+ * LNORMINF: norma infinita de vetores/matrizes                      * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * x     -> vetor/matriz                                             * 
+ * lin   -> numero de linhas                                         * 
+ * col   -> numero de colunas                                        * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * retorna o valor da norma                                          * 
+ *-------------------------------------------------------------------* 
+ * OBS: precisao extendida                                           * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+LDOUBLE lnormInf(LDOUBLE *RESTRICT x,INT const lin,INT const col){
+
+  INT i,j,n;
+  LDOUBLE norm=0.0e0,ld;
+  
+  if(col == 0 || lin == 0){
+    ERRO_NORM(__LINE__,__FILE__,__func__,lin,col);
+  }
+
+/*... vetor*/
+  else if(col == 1 || lin == 1){
+    norm = fabs(x[0]);
+    n    = max(lin,col);
+    for(i=0;i<n;i++){
+      norm = max(fabs(x[i]),norm);
+    }
+  }
+/*...................................................................*/
+
+/*... matriz*/
+  else
+    for(i=0;i<lin;i++){
+      ld  =  fabs(MAT2D(i,0,x,col));
+      for(j=1;j<col;j++)
+        ld   += fabs(MAT2D(i,j,x,col));
+      norm = max(norm,ld);
+    }
+/*...................................................................*/
+  return norm;
+}   
+/********************************************************************/
+
 
 /********************************************************************* 
  * ALPAHAPRODVECTOR : produto de vetor por um escalar                * 
@@ -1646,6 +1706,599 @@ double dotOmpO8(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 /*==================================================================*/
 
 /*======================== level 2 =================================*/
+
+/********************* MATRIZ CHEIA *********************************/
+
+/********************************************************************* 
+ * MATVECFULL : operacao matriz vetor para matriz cheias             * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * a  - vetor a                                                      * 
+ * x  - vetor b                                                      * 
+ * y  - indefinido                                                   * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y  - produto vetoria entre a e b                                  * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecFull(DOUBLE *RESTRICT a
+               ,DOUBLE *RESTRICT x
+               ,DOUBLE *RESTRICT y
+               ,INT nLin          ,INT nCol)
+{
+  INT i,j;
+  
+  for(i=0;i<nLin;i++){
+    y[i] =0.0;
+    for(j=0;j<nCol;j++){
+      y[i] += MAT2D(i,j,a,nCol)*x[j];
+    }
+  }
+}
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * lMATVECFULL : operacao matriz vetor para matriz cheias            * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * a  - vetor a                                                      * 
+ * x  - vetor b                                                      * 
+ * y  - indefinido                                                   * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y  - produto vetoria entre a e b                                  * 
+ *-------------------------------------------------------------------* 
+ * OBS: precisao extendida                                           * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void lmatVecFull(LDOUBLE *RESTRICT a
+                ,LDOUBLE *RESTRICT x
+                ,LDOUBLE *RESTRICT y
+                ,INT nLin          ,INT nCol)
+{
+  INT i,j;
+  
+  for(i=0;i<nLin;i++){
+    y[i] =0.0;
+    for(j=0;j<nCol;j++){
+      y[i] += MAT2D(i,j,a,nCol)*x[j];
+    }
+  }
+}
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * MATVECFULLO2: operayyo matriz vetor para matriz cheias            * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * a  - vetor a                                                      * 
+ * x  - vetor b                                                      * 
+ * y  - indefinido                                                   * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y  - produto vetoria entre a e b                                  * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecFullO2(DOUBLE *RESTRICT a
+                 ,DOUBLE *RESTRICT x
+                 ,DOUBLE *RESTRICT y
+                 ,INT nLin          ,INT nCol)
+{
+  INT i,j;
+  int resto;
+  
+  resto = nLin%2;
+/*...*/
+  if(resto){
+    y[0] = 0.0;
+    for(j=0;j<nCol;j++){
+      y[0]   += MAT2D(0  ,j,a,nCol)*x[j];
+    }
+  }
+/*...................................................................*/
+
+/*...*/
+  for(i=resto;i<nLin;i+=2){
+    y[i]   =0.0;
+    y[i+1] =0.0;
+    for(j=0;j<nCol;j++){
+      y[i]   += MAT2D(i    ,j,a,nCol)*x[j];
+      y[i+1] += MAT2D((i+1),j,a,nCol)*x[j];
+    }
+  }
+/*...................................................................*/
+}
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * MATVECFULLO4: operacao matriz vetor para matriz cheias            * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * a  - vetor a                                                      * 
+ * x  - vetor b                                                      * 
+ * y  - indefinido                                                   * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y  - produto vetoria entre a e b                                  * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecFullO4(DOUBLE *RESTRICT a
+                 ,DOUBLE *RESTRICT x
+                 ,DOUBLE *RESTRICT y
+                 ,INT nLin          ,INT nCol)
+{
+  INT i,j;
+  int resto;
+  
+  resto = nLin%4;
+/*...*/
+  if(resto == 1){
+    y[0] = 0.0;
+    for(j=0;j<nCol;j++){
+      y[0]   += MAT2D(0  ,j,a,nCol)*x[j];
+    }
+  }
+  else if(resto == 2){
+    y[0] = 0.0;
+    y[1] = 0.0;
+    for(j=0;j<nCol;j++){
+      y[0]   += MAT2D(0  ,j,a,nCol)*x[j];
+      y[1]   += MAT2D(1  ,j,a,nCol)*x[j];
+    }
+  }
+  else if(resto == 3){
+    y[0] = 0.0;
+    y[1] = 0.0;
+    y[2] = 0.0;
+    for(j=0;j<nCol;j++){
+      y[0]   += MAT2D(0  ,j,a,nCol)*x[j];
+      y[1]   += MAT2D(1  ,j,a,nCol)*x[j];
+      y[2]   += MAT2D(2  ,j,a,nCol)*x[j];
+    }
+  }
+/*...................................................................*/
+
+/*...*/
+  for(i=resto;i<nLin;i+=4){
+    y[i]   =0.0;
+    y[i+1] =0.0;
+    y[i+2] =0.0;
+    y[i+3] =0.0;
+    for(j=0;j<nCol;j++){
+      y[i]   += MAT2D(i    ,j,a,nCol)*x[j];
+      y[i+1] += MAT2D((i+1),j,a,nCol)*x[j];
+      y[i+2] += MAT2D((i+2),j,a,nCol)*x[j];
+      y[i+3] += MAT2D((i+3),j,a,nCol)*x[j];
+    }
+  }
+/*...................................................................*/
+}
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * MATVECFULLO2I2: operacao matriz vetor para matriz cheias          * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * a  - vetor a                                                      * 
+ * x  - vetor b                                                      * 
+ * y  - indefinido                                                   * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y  - produto vetoria entre a e b                                  * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecFullO2I2(DOUBLE *RESTRICT a
+                   ,DOUBLE *RESTRICT x
+                   ,DOUBLE *RESTRICT y
+                   ,INT nLin          ,INT nCol)
+{
+  INT i,j;
+  int resto1,resto2;
+  DOUBLE aux1,aux2,aux3,aux4;
+  
+  resto1 = nLin%2;
+  resto2 = nCol%2;
+/*...*/
+  if(resto1){
+    aux1 = 0.0;
+    aux2 = 0.0;
+    if(resto2)
+      aux1 = MAT2D(0  ,0  ,a,nCol)*x[0];
+    for(j=resto2;j<nCol;j+=2){
+      aux1   += MAT2D(0  ,j    ,a,nCol)*x[j];
+      aux2   += MAT2D(0  ,(j+1),a,nCol)*x[j+1];
+    }
+    y[0] = aux1 + aux2;
+  }
+/*...................................................................*/
+
+/*...*/
+  for(i=resto1;i<nLin;i+=2){
+    aux1   = 0.0;
+    aux2   = 0.0;
+    aux3   = 0.0;
+    aux4   = 0.0;
+    if(resto2){
+      aux1   += MAT2D(i    ,0  ,a,nCol)*x[0];
+      aux2   += MAT2D((i+1),0  ,a,nCol)*x[0];
+    }
+
+    for(j=resto2;j<nCol;j+=2){
+      aux1 += MAT2D(i    ,j    ,a,nCol)*x[j];
+      aux3 += MAT2D(i    ,(j+1),a,nCol)*x[j+1];
+      aux2 += MAT2D((i+1),j    ,a,nCol)*x[j];  
+      aux4 += MAT2D((i+1),(j+1),a,nCol)*x[j+1];
+    }
+    y[i  ] = aux1 + aux3;
+    y[i+1] = aux2 + aux4;
+  }
+/*...................................................................*/
+}
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * MATVECFULLO4I2: operacao matriz vetor para matriz cheias          * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * a  - vetor a                                                      * 
+ * x  - vetor b                                                      * 
+ * y  - indefinido                                                   * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y  - produto vetoria entre a e b                                  * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecFullO4I2(DOUBLE *RESTRICT a
+                   ,DOUBLE *RESTRICT x
+                   ,DOUBLE *RESTRICT y
+                   ,INT nLin          ,INT nCol)
+{
+  INT i,j;
+  int resto1,resto2;
+  DOUBLE aux1,aux2,aux3,aux4,aux5,aux6,aux7,aux8;
+  
+  resto1 = nLin%4;
+  resto2 = nCol%2;
+/*...*/
+  if(resto1 == 1){
+    aux1 = 0.0;
+    aux3 = 0.0;
+    if(resto2)
+      aux1 = MAT2D(0  ,0  ,a,nCol)*x[0];
+    for(j=resto2;j<nCol;j+=2){
+      aux1   += MAT2D(0  ,j    ,a,nCol)*x[j];
+      aux3   += MAT2D(0  ,(j+1),a,nCol)*x[j+1];
+    }
+    y[0] = aux1 + aux3;
+  }
+  else if(resto1 == 2){
+    aux1 = 0.0;
+    aux2 = 0.0;
+    aux3 = 0.0;
+    aux4 = 0.0;
+    if(resto2){
+      aux1 = MAT2D(0  ,0  ,a,nCol)*x[0];
+      aux2 = MAT2D(1  ,0  ,a,nCol)*x[0];
+    }
+    for(j=resto2;j<nCol;j+=2){
+      aux1   += MAT2D(0  ,    j,a,nCol)*x[j];
+      aux3   += MAT2D(0  ,(j+1),a,nCol)*x[j+1];
+      aux2   += MAT2D(1  ,    j,a,nCol)*x[j];
+      aux4   += MAT2D(1  ,(j+1),a,nCol)*x[j+1];
+    }
+    y[0] = aux1 + aux3;
+    y[1] = aux2 + aux4;
+  }
+  else if(resto1 == 3){
+    aux1 = 0.0;
+    aux2 = 0.0;
+    aux3 = 0.0;
+    aux4 = 0.0;
+    aux5 = 0.0;
+    aux6 = 0.0;
+    if(resto2){
+      aux1 = MAT2D(0  ,0  ,a,nCol)*x[0];
+      aux2 = MAT2D(1  ,0  ,a,nCol)*x[0];
+      aux5 = MAT2D(2  ,0  ,a,nCol)*x[0];
+    }
+    for(j=resto2;j<nCol;j+=2){
+      aux1   += MAT2D(0  ,    j,a,nCol)*x[j];
+      aux3   += MAT2D(0  ,(j+1),a,nCol)*x[j+1];
+      aux2   += MAT2D(1  ,    j,a,nCol)*x[j];
+      aux4   += MAT2D(1  ,(j+1),a,nCol)*x[j+1];
+      aux5   += MAT2D(2  ,    j,a,nCol)*x[j];  
+      aux6   += MAT2D(2  ,(j+1),a,nCol)*x[j+1];
+    }
+    y[0] = aux1 + aux3;
+    y[1] = aux2 + aux4;
+    y[2] = aux5 + aux6;
+  }
+/*...................................................................*/
+
+/*...*/
+  for(i=resto1;i<nLin;i+=4){
+    aux1 = 0.0;
+    aux2 = 0.0;
+    aux3 = 0.0;
+    aux4 = 0.0;
+    aux5 = 0.0;
+    aux6 = 0.0;
+    aux7 = 0.0;
+    aux8 = 0.0;
+    if(resto2){
+      aux1 = MAT2D(i    ,0  ,a,nCol)*x[0];
+      aux2 = MAT2D((i+1),0  ,a,nCol)*x[0];
+      aux5 = MAT2D((i+2),0  ,a,nCol)*x[0];
+      aux7 = MAT2D((i+3),0  ,a,nCol)*x[0];
+    }
+    for(j=resto2;j<nCol;j+=2){
+      aux1   += MAT2D(i    ,    j,a,nCol)*x[j];
+      aux3   += MAT2D(i    ,(j+1),a,nCol)*x[j+1];
+      aux2   += MAT2D((i+1),    j,a,nCol)*x[j];
+      aux4   += MAT2D((i+1),(j+1),a,nCol)*x[j+1];
+      aux5   += MAT2D((i+2),    j,a,nCol)*x[j];
+      aux6   += MAT2D((i+2),(j+1),a,nCol)*x[j+1];
+      aux7   += MAT2D((i+3),    j,a,nCol)*x[j];
+      aux8   += MAT2D((i+3),(j+1),a,nCol)*x[j+1];
+    }
+    y[i]   = aux1 + aux3;
+    y[i+1] = aux2 + aux4;
+    y[i+2] = aux5 + aux6;
+    y[i+3] = aux7 + aux8;
+  }
+/*...................................................................*/
+}
+/*********************************************************************/ 
+
+/********************************************************************* 
+ * MATVECFULLO4I4: operacao matriz vetor para matriz cheias          * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * a  - vetor a                                                      * 
+ * x  - vetor b                                                      * 
+ * y  - indefinido                                                   * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y  - produto vetoria entre a e b                                  * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecFullO4I4(DOUBLE *RESTRICT a
+                   ,DOUBLE *RESTRICT x
+                   ,DOUBLE *RESTRICT y
+                   ,INT nLin          ,INT nCol)
+{
+  INT i,j;
+  int resto1,resto2;
+  DOUBLE aux1 , aux2, aux3, aux4;
+  DOUBLE aux5 , aux6, aux7, aux8;
+  DOUBLE aux9 ,aux10,aux11,aux12;
+  DOUBLE aux13,aux14,aux15,aux16;
+  
+  resto1 = nLin%4;
+  resto2 = nCol%4;
+/*...*/
+  if(resto1 == 1){
+    aux1 = 0.0;
+    aux3 = 0.0;
+    aux5 = 0.0;
+    aux7 = 0.0;
+    if(resto2 == 1){
+      aux1 = MAT2D(0  ,0  ,a,nCol)*x[0];
+    }
+    else if(resto2 == 2){
+      aux1 = MAT2D(0  ,0  ,a,nCol)*x[0];
+      aux3 = MAT2D(0  ,1  ,a,nCol)*x[1];
+    }
+    else if(resto2 == 3){ 
+      aux1 = MAT2D(0  ,0  ,a,nCol)*x[0];
+      aux3 = MAT2D(0  ,1  ,a,nCol)*x[1];
+      aux5 = MAT2D(0  ,2  ,a,nCol)*x[2];
+    }
+    for(j=resto2;j<nCol;j+=4){
+      aux1   += MAT2D(0  ,    j,a,nCol)*x[j];
+      aux3   += MAT2D(0  ,(j+1),a,nCol)*x[j+1];
+      aux5   += MAT2D(0  ,(j+2),a,nCol)*x[j+2];
+      aux7   += MAT2D(0  ,(j+3),a,nCol)*x[j+3];
+    }
+    y[0] = aux1 + aux3 + aux5 + aux7;
+  }
+  else if(resto1 == 2){
+    aux1 = 0.0;
+    aux2 = 0.0;
+    aux3 = 0.0;
+    aux4 = 0.0;
+    aux5 = 0.0;
+    aux6 = 0.0;
+    aux7 = 0.0;
+    aux8 = 0.0;
+    if(resto2 == 1){
+      aux1 = MAT2D(0  ,0  ,a,nCol)*x[0];
+      aux2 = MAT2D(1  ,0  ,a,nCol)*x[0];
+    }
+    else if(resto2 == 2){
+      aux1 = MAT2D(0  ,0  ,a,nCol)*x[0];
+      aux3 = MAT2D(0  ,1  ,a,nCol)*x[1];
+      aux2 = MAT2D(1  ,0  ,a,nCol)*x[0];
+      aux4 = MAT2D(1  ,1  ,a,nCol)*x[1];
+    }
+    else if(resto2 == 3){ 
+      aux1 = MAT2D(0  ,0  ,a,nCol)*x[0];
+      aux3 = MAT2D(0  ,1  ,a,nCol)*x[1];
+      aux5 = MAT2D(0  ,2  ,a,nCol)*x[2];
+      aux2 = MAT2D(1  ,0  ,a,nCol)*x[0];
+      aux4 = MAT2D(1  ,1  ,a,nCol)*x[1];
+      aux6 = MAT2D(1  ,2  ,a,nCol)*x[2];
+    }
+    for(j=resto2;j<nCol;j+=4){
+      aux1   += MAT2D(0  ,    j,a,nCol)*x[j];
+      aux3   += MAT2D(0  ,(j+1),a,nCol)*x[j+1];
+      aux5   += MAT2D(0  ,(j+2),a,nCol)*x[j+2];
+      aux7   += MAT2D(0  ,(j+3),a,nCol)*x[j+3];
+      aux2   += MAT2D(1  ,    j,a,nCol)*x[j];
+      aux4   += MAT2D(1  ,(j+1),a,nCol)*x[j+1];
+      aux6   += MAT2D(1  ,(j+2),a,nCol)*x[j+2];
+      aux8   += MAT2D(1  ,(j+3),a,nCol)*x[j+3];
+    }
+    y[0] = aux1 + aux3 + aux5 + aux7;
+    y[1] = aux2 + aux4 + aux6 + aux8;
+  }
+  else if(resto1 == 3){
+    aux1 = 0.0;
+    aux2 = 0.0;
+    aux3 = 0.0;
+    aux4 = 0.0;
+    aux5 = 0.0;
+    aux6 = 0.0;
+    aux7 = 0.0;
+    aux8 = 0.0;
+    aux9 = 0.0;
+    aux10= 0.0;
+    aux11= 0.0;
+    aux12= 0.0;
+    if(resto2 == 1){
+      aux1 = MAT2D(0  ,0  ,a,nCol)*x[0];
+      aux2 = MAT2D(1  ,0  ,a,nCol)*x[0];
+      aux9 = MAT2D(2  ,0  ,a,nCol)*x[0];
+    }
+    else if(resto2 == 2){
+      aux1 = MAT2D(0  ,0  ,a,nCol)*x[0];
+      aux3 = MAT2D(0  ,1  ,a,nCol)*x[1];
+      aux2 = MAT2D(1  ,0  ,a,nCol)*x[0];
+      aux4 = MAT2D(1  ,1  ,a,nCol)*x[1];
+      aux9 = MAT2D(2  ,1  ,a,nCol)*x[0];
+      aux10= MAT2D(2  ,1  ,a,nCol)*x[1];
+    }
+    else if(resto2 == 3){ 
+      aux1 = MAT2D(0  ,0  ,a,nCol)*x[0];
+      aux3 = MAT2D(0  ,1  ,a,nCol)*x[1];
+      aux5 = MAT2D(0  ,2  ,a,nCol)*x[2];
+      aux2 = MAT2D(1  ,0  ,a,nCol)*x[0];
+      aux4 = MAT2D(1  ,1  ,a,nCol)*x[1];
+      aux6 = MAT2D(1  ,2  ,a,nCol)*x[2];
+      aux9 = MAT2D(2  ,0  ,a,nCol)*x[0];
+      aux10= MAT2D(2  ,1  ,a,nCol)*x[1];
+      aux11= MAT2D(2  ,2  ,a,nCol)*x[2];
+    }
+    for(j=resto2;j<nCol;j+=4){
+      aux1   += MAT2D(0  ,    j,a,nCol)*x[j];
+      aux3   += MAT2D(0  ,(j+1),a,nCol)*x[j+1];
+      aux5   += MAT2D(0  ,(j+2),a,nCol)*x[j+2];
+      aux7   += MAT2D(0  ,(j+3),a,nCol)*x[j+3];
+      aux2   += MAT2D(1  ,    j,a,nCol)*x[j];
+      aux4   += MAT2D(1  ,(j+1),a,nCol)*x[j+3];
+      aux6   += MAT2D(1  ,(j+2),a,nCol)*x[j+2];
+      aux8   += MAT2D(1  ,(j+3),a,nCol)*x[j+3];
+      aux9   += MAT2D(2  ,    j,a,nCol)*x[j];
+      aux10  += MAT2D(2  ,(j+1),a,nCol)*x[j+3];
+      aux11  += MAT2D(2  ,(j+2),a,nCol)*x[j+2];
+      aux12  += MAT2D(2  ,(j+3),a,nCol)*x[j+3];
+    }
+    y[0] = aux1 +  aux3 + aux5  +  aux7;
+    y[1] = aux2 +  aux4 + aux6  +  aux8;
+    y[2] = aux9 + aux10 + aux11 + aux12;
+  }
+/*...................................................................*/
+
+/*...*/
+  for(i=resto1;i<nLin;i+=4){
+    aux1  = 0.0;
+    aux2  = 0.0;
+    aux3  = 0.0;
+    aux4  = 0.0;
+    aux5  = 0.0;
+    aux6  = 0.0;
+    aux7  = 0.0;
+    aux8  = 0.0;
+    aux9  = 0.0;
+    aux10 = 0.0;
+    aux11 = 0.0;
+    aux12 = 0.0;
+    aux13 = 0.0;
+    aux14 = 0.0;
+    aux15 = 0.0;
+    aux16 = 0.0;
+    if(resto2 == 1){
+      aux1  = MAT2D(i    ,0  ,a,nCol)*x[0];
+      aux2  = MAT2D((i+1),0  ,a,nCol)*x[0];
+      aux9  = MAT2D((i+2),0  ,a,nCol)*x[0];
+      aux13 = MAT2D((i+3),0  ,a,nCol)*x[0];
+    }
+    else if(resto2 == 2){
+      aux1 = MAT2D(i    ,0  ,a,nCol)*x[0];
+      aux3 = MAT2D(i    ,1  ,a,nCol)*x[1];
+      aux2 = MAT2D((i+1),0  ,a,nCol)*x[0];
+      aux4 = MAT2D((i+1),1  ,a,nCol)*x[1];
+      aux9 = MAT2D((i+2),0  ,a,nCol)*x[0];
+      aux10= MAT2D((i+2),1  ,a,nCol)*x[1];
+      aux13= MAT2D((i+3),0  ,a,nCol)*x[0];
+      aux14= MAT2D((i+3),1  ,a,nCol)*x[1];
+    }
+    else if(resto2 == 3){
+      aux1 = MAT2D(i    ,0  ,a,nCol)*x[0];
+      aux3 = MAT2D(i    ,1  ,a,nCol)*x[1];
+      aux5 = MAT2D(i    ,2  ,a,nCol)*x[2];
+      aux2 = MAT2D((i+1),0  ,a,nCol)*x[0];
+      aux4 = MAT2D((i+1),1  ,a,nCol)*x[1];
+      aux6 = MAT2D((i+1),2  ,a,nCol)*x[2];
+      aux9 = MAT2D((i+2),0  ,a,nCol)*x[0];
+      aux10= MAT2D((i+2),1  ,a,nCol)*x[1];
+      aux11= MAT2D((i+2),2  ,a,nCol)*x[2];
+      aux13= MAT2D((i+3),0  ,a,nCol)*x[0];
+      aux14= MAT2D((i+3),1  ,a,nCol)*x[1];
+      aux15= MAT2D((i+3),2  ,a,nCol)*x[2];
+    }
+    for(j=resto2;j<nCol;j+=4){
+      aux1   += MAT2D(i    ,    j,a,nCol)*x[j];
+      aux3   += MAT2D(i    ,(j+1),a,nCol)*x[j+1];
+      aux5   += MAT2D(i    ,(j+2),a,nCol)*x[j+2];
+      aux7   += MAT2D(i    ,(j+3),a,nCol)*x[j+3];
+      aux2   += MAT2D((i+1),    j,a,nCol)*x[j];
+      aux4   += MAT2D((i+1),(j+1),a,nCol)*x[j+1];
+      aux6   += MAT2D((i+1),(j+2),a,nCol)*x[j+2];
+      aux8   += MAT2D((i+1),(j+3),a,nCol)*x[j+3];
+      aux9   += MAT2D((i+2),    j,a,nCol)*x[j];
+      aux10  += MAT2D((i+2),(j+1),a,nCol)*x[j+1];
+      aux11  += MAT2D((i+2),(j+2),a,nCol)*x[j+2];
+      aux12  += MAT2D((i+2),(j+3),a,nCol)*x[j+3];
+      aux13  += MAT2D((i+3),    j,a,nCol)*x[j];
+      aux14  += MAT2D((i+3),(j+1),a,nCol)*x[j+1];
+      aux15  += MAT2D((i+3),(j+2),a,nCol)*x[j+2];
+      aux16  += MAT2D((i+3),(j+3),a,nCol)*x[j+3];
+    }
+    y[i]   =  aux1 +  aux3 + aux5  + aux7;
+    y[i+1] =  aux2 +  aux4 + aux6  + aux8;
+    y[i+2] =  aux9 + aux10 + aux11 + aux12;
+    y[i+3] = aux13 + aux14 + aux15 + aux16;
+  }
+/*...................................................................*/
+}
+/*********************************************************************/
 
 /*********************** CSRD SIMETRICO *****************************/
 

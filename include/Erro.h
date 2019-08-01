@@ -50,5 +50,13 @@
       exit(EXIT_FAILURE);\
     }
 
+  #define ERRO_NORM(line,file,func,lin,col)\
+    fprintf(stderr,"Erro no calulo da norma!!\n");\
+    fprintf(stderr,"Numero de linha  : %d\n"\
+                   "Numero de colunas: %d\n",lin,col);\
+    fprintf(stderr,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"\
+          ,file,func,line);\
+    exit(EXIT_FAILURE);
+
 /*...................................................................*/
 #endif /*_ERRO_H_*/

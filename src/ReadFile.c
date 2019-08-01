@@ -514,8 +514,8 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 
 /*... timeReactor*/
     HccaAlloc(DOUBLE, m, mesh->elm.tReactor
-      , nel*2, "tReactor", _AD_);
-    zero(mesh->elm.tReactor, nel*2, DOUBLEC);
+      , nel*N_TERMS_REACTOR, "tReactor", _AD_);
+    zero(mesh->elm.tReactor, nel*N_TERMS_REACTOR, DOUBLEC);
 
     if (mpiVar.nPrcs < 2)
     {
