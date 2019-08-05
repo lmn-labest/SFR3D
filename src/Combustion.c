@@ -70,7 +70,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*... taxa de comsumo do combustivel*/
-  tm.fuelConsume  = getTimeC() - tm.fuelConsume;
+  tm.timeChemical = getTimeC() - tm.timeChemical;
   timeChemical(cModel                  , tModel
               , prop 
               , mesh->elm.zComb        , mesh->elm.temp      
@@ -79,12 +79,12 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
               , mesh->elm.dViscosity   , mesh->elm.tReactor
               , mesh->ndm               , mesh->numel
               , eModel->fKelvin ); 
-  tm.fuelConsume  = getTimeC() - tm.fuelConsume;    
+  tm.timeChemical = getTimeC() - tm.timeChemical;    
 /*...................................................................*/
 
 
 /*... taxa de comsumo do combustivel*/
-  tm.fuelConsume  = getTimeC() - tm.fuelConsume;
+  tm.rateReaction  = getTimeC() - tm.rateReaction;
   rateReaction(cModel                   , tModel
                   , prop
                   , mesh->elm.zComb        , mesh->elm.temp 
@@ -94,7 +94,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                   , sc->ddt.dt[2]          , thDynamic.pTh[2]
                   , mesh->ndm              , mesh->numel
                   , eModel->fKelvin );  
-  tm.fuelConsume  = getTimeC() - tm.fuelConsume;  
+  tm.rateReaction  = getTimeC() - tm.rateReaction;  
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (gradZ)*/
@@ -1045,7 +1045,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
   tt = min(tMix,dt);
   k = StepperSie(yt                      , pt
             , 0                          , tt
-            , 1.0e-02*tt                 , 0.5*dt
+            , 1.0e-01*tt                 , dt
             , aTol                       , rTol        
             , nSp                        , &tF
             , 10000                      , true
@@ -1054,6 +1054,8 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
 /*....................................................................*/
 
   tReactor[3] = tF;
+  tReactor[4] = k;
+
 /*...*/
   for(i=0;i<c->chem.nSp;i++)
   {    

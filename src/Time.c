@@ -119,7 +119,8 @@ void initTime(Time *tm) {
   tm->dataStructComb     = 0.e0;
   tm->systFormComb       = 0.e0;
   tm->rcGradComb         = 0.e0;
-  tm->fuelConsume        = 0.e0;
+  tm->rateReaction       = 0.e0;
+  tm->timeChemical       = 0.e0;
   tm->heatRelease        = 0.e0;
   tm->speciesLoop        = 0.e0;
   tm->enthalpySpecies    = 0.e0;

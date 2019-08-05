@@ -135,7 +135,8 @@ void writeLog(Mesh mesh             ,Scheme sc
     fprintf(file,"%-25s : %13.3lf\n","dataStructCombustion",t.dataStructComb);
     fprintf(file,"%-25s : %13.3lf\n","systFormCombustion"  ,t.systFormComb);
     fprintf(file,"%-25s : %13.3lf\n","rcGradCombustion"    ,t.rcGradComb);
-    fprintf(file,"%-25s : %13.3lf\n","fuelConsume"         ,t.fuelConsume);
+    fprintf(file,"%-25s : %13.3lf\n","rateReaction"        ,t.rateReaction);
+    fprintf(file,"%-25s : %13.3lf\n","timeChemical"        ,t.timeChemical);
     fprintf(file,"%-25s : %13.3lf\n","heatRelease"         ,t.heatRelease);
     fprintf(file,"%-25s : %13.3lf\n","speciesLoop"         ,t.speciesLoop);
     fprintf(file,"%-25s : %13.3lf\n","enthalpySpecies "    ,t.enthalpySpecies);
@@ -376,6 +377,14 @@ void writeLog(Mesh mesh             ,Scheme sc
   fprintf(file,   "Cell               :\n");
   if (omp.fCell)
     fprintf(file, "nThreads           : %d\n",omp.nThreadsCell);
+  else
+    fprintf(file, "Disable\n");
+  if (omp.fUpdate)
+    fprintf(file, "nThreads           : %d\n",omp.nThreadsUpdate);
+  else
+    fprintf(file, "Disable\n");
+  if (omp.fGrad)
+    fprintf(file, "nThreads           : %d\n",omp.nThreadsGrad);
   else
     fprintf(file, "Disable\n");
 

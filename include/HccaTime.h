@@ -62,7 +62,8 @@
     double dataStructComb;
     double systFormComb;
     double rcGradComb;
-    double fuelConsume;
+    double rateReaction;
+    double timeChemical;
     double heatRelease;
     double speciesLoop;
     double enthalpySpecies;

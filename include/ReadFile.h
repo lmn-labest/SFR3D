@@ -1,7 +1,7 @@
 #ifndef _READ_FILE_
   #define _READ_FILE_
   #define NPARAMETROS   6
-  #define NCONFIG       5
+  #define NCONFIG       4
   #ifdef NMACROS 
     #undef NMACROS
   #endif  

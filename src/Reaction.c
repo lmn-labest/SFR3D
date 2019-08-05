@@ -328,7 +328,7 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
     massRateReaction(&cModel->chem,Q,w);
     for(i=0,tChemical = 1.e-32;i<nSp;i++)
     {
-      if(fabs(w[i]) > 1.e-06)
+      if(fabs(w[i]) > 1.e-16)
       {
         tmp       = fabs(w[i]/densityC);
         tmp       = y[i]/tmp;

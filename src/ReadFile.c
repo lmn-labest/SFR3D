@@ -1936,7 +1936,7 @@ void readVfLoads(Loads *loads,char *str,FILE* file){
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 10/05/2019                                   *
+ * Data de modificaco : 04/08/2019                                   *
  * ------------------------------------------------------------------*
  * CONFIG : configuraceos gerais                                     *
  * ------------------------------------------------------------------*
@@ -1958,7 +1958,7 @@ void readVfLoads(Loads *loads,char *str,FILE* file){
  *********************************************************************/
 void config(FileOpt *opt,Reord *reordMesh,FILE* file)
 {
-  char config[][WORD_SIZE]={"bvtk"  ,"reord"     ,"memory" 
+  char config[][WORD_SIZE]={"reord"     ,"memory" 
                            ,"fItPlotRes","fItPlot"};
   
   char word[WORD_SIZE];
@@ -1973,31 +1973,15 @@ void config(FileOpt *opt,Reord *reordMesh,FILE* file)
 
   while(i < NCONFIG && i < 20){
     readMacro(file,word,false);
-/*... bvtk*/   
-    if(!strcmp(word,config[0])){
-      fscanf(file,"%s",s);
-      if(!strcmp(s,"true"))
-        opt->bVtk = true;
-      else
-        opt->bVtk = false;
-      flag[0] = true;
-      i++;
-      if(!mpiVar.myId){
-        if(opt->bVtk)
-          fprintf(fileLogExc,"%-20s: %s\n","bVtk","true");
-        else
-          fprintf(fileLogExc,"%-20s: %s\n","bVtk","false");
-      }
-    }
 /*... reord*/   
-    else if(!strcmp(word,config[1])){
+    if(!strcmp(word,config[0])){
       fscanf(file,"%s",s);
       if(!strcmp(s,"true"))
         reordMesh -> flag= true;
       else
         reordMesh -> flag= false;
           
-      flag[1] = true;
+      flag[0] = true;
       i++;
       if(!mpiVar.myId){
         if(reordMesh->flag)
@@ -2007,13 +1991,13 @@ void config(FileOpt *opt,Reord *reordMesh,FILE* file)
       }
     }
 /*... mem*/   
-    else if(!strcmp(word,config[2])){
+    else if(!strcmp(word,config[1])){
       fscanf(file,"%d",&temp);
 //    conv    = CONV_BYTES*CONV_BYTES;
       conv    = 1024*1024;
  			nmax    = (iptx) temp;
 			nmax    =  nmax*conv;
-      flag[2] = true;
+      flag[1] = true;
       i++;
       
       if(!mpiVar.myId)
@@ -2022,7 +2006,7 @@ void config(FileOpt *opt,Reord *reordMesh,FILE* file)
     }
 
 /*... fItPlotRes*/   
-    else if(!strcmp(word,config[3])){
+    else if(!strcmp(word,config[2])){
       fscanf(file,"%s",s);
       if(!strcmp(s,"true")){
         opt->fItPlotRes = true;
@@ -2034,11 +2018,11 @@ void config(FileOpt *opt,Reord *reordMesh,FILE* file)
         if(!mpiVar.myId)
           fprintf(fileLogExc,"%-20s: %s\n","fItPlotRes","false");
       }
-      flag[3] = true;
+      flag[2] = true;
       i++;
     }
 /*... fItPlot*/   
-    else if(!strcmp(word,config[4])){
+    else if(!strcmp(word,config[3])){
       fscanf(file,"%s",s);
       if(!strcmp(s,"true")){
         opt->fItPlot = true;
@@ -2050,7 +2034,7 @@ void config(FileOpt *opt,Reord *reordMesh,FILE* file)
         if(!mpiVar.myId)
           fprintf(fileLogExc,"%-20s: %s\n","fItPlot","false");
       }
-      flag[4] = true;
+      flag[3] = true;
       i++;
     }
     else
