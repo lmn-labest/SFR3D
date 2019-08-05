@@ -16,11 +16,12 @@
 /*...*/
   typedef struct 
   {
-    bool reverse;
+    bool reverse;    
     short nPartSp[2];
     short partSp[2][MAXSPECIES];
     DOUBLE stch[3][MAXSPECIES];
     DOUBLE exp[2][MAXSPECIES];
+    DOUBLE sO2;
     Arrhenius ArrF,ArrR; 
   } Reaction;
 /*...................................................................*/
@@ -44,7 +45,10 @@
   {
     unsigned short nReac,nSp,nEp; 
     unsigned short eO,eN,eC,eH;
-    unsigned short sCO2,sCO,sH2O,sO2,sN2,sCH4,sC3H8;    
+    unsigned short sCO2,sCO,sH2O,sO2,sN2,sCH4,sC3H8; 
+    short fuel[MAXSPECIES],nFuel;
+    short ox[MAXSPECIES],nOx;
+    short prod[MAXSPECIES],nProd;       
     DOUBLE mE[MAXELEMENT];
     Specie sp[MAXSPECIES];
     Reaction reac[MAXREAC]; 

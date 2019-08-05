@@ -1067,7 +1067,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , media->mVel              , nMedVel 
                , mesh0->elm.enthalpyk     , nEnthalpyK
                , mesh0->elm.specificHeat  , mesh0->elm.tConductivity 
-               , mesh0->elm.cDiffComb               
+               , mesh0->elm.cDiffComb     , mesh0->elm.tReactor
                , mesh0->nnode             , mesh0->numel  
                , mesh0->ndm               , mesh0->maxNo 
                , mesh0->numat             , ndfVel
@@ -1595,7 +1595,7 @@ void reScaleMesh(DOUBLE *x,INT nnode, short ndm, FILE *fileIn)
 
 /*********************************************************************
  * Data de criacao    : 01/05/2018                                   *
- * Data de modificaco : 24/07/2019                                   *
+ * Data de modificaco : 03/08/2019                                   *
  *-------------------------------------------------------------------*
  * reScaleMesh : redimensio as coordenada da matriz                  *
  *-------------------------------------------------------------------*
@@ -1660,6 +1660,7 @@ void initPrintVtk(FileOpt *opt)
   opt->rateHeatComb  = false;
   opt->enthalpyk     = false;
   opt->gradY         = false;
+  opt->tReactor     = false;
   opt->bconditions   = false;
   opt->cc            = false;
   opt->pKelvin       = false;

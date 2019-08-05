@@ -185,7 +185,7 @@
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
           , DOUBLE *eEnthalpyK   , DOUBLE *nEnthalpyK   
           , DOUBLE *specificHeat , DOUBLE *tConductivity
-          , DOUBLE *eDiffSp      
+          , DOUBLE *eDiffSp      , DOUBLE *eTreactor
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf

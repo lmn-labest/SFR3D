@@ -2158,7 +2158,7 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
 
 /********************************************************************** 
  * Data de criacao    : 05/08/2018                                    *
- * Data de modificaco : 06/06/2019                                    * 
+ * Data de modificaco : 03/08/2019                                    * 
  *------------------------------------------------------------------- * 
  * wResVtkCombustion :                                                * 
  * ------------------------------------------------------------------ *
@@ -2264,7 +2264,7 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
           , DOUBLE *eEnthalpyK   , DOUBLE *nEnthalpyK   
           , DOUBLE *specificHeat , DOUBLE *tConductivity
-          , DOUBLE *eDiffSp      
+          , DOUBLE *eDiffSp      , DOUBLE *eTreactor  
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf
@@ -2700,6 +2700,16 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
 /*...................................................................*/
+
+/*... escreve a gradY*/  
+  if(opt->tReactor &&  opt->fCell )
+  {
+    strcpy(str,"tReactor");
+    writeVtkProp(&idum,eTreactor,numel,N_TERMS_REACTOR,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+  }
+/*...................................................................*/
+
 
 /*.... campo por no*/
   fprintf(f,"POINT_DATA %ld\n",(long) nnode);

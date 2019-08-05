@@ -90,7 +90,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                   , mesh->elm.zComb        , mesh->elm.temp 
                   , mesh->elm.wk           , mesh->elm.densityFluid 
                   , mesh->elm.gradVel      , mesh->elm.eddyViscosity
-                  , mesh->elm.dViscosity   , mesh->elm.geom.volume
+                  , mesh->elm.dViscosity   , mesh->elm.tReactor
                   , sc->ddt.dt[2]          , thDynamic.pTh[2]
                   , mesh->ndm              , mesh->numel
                   , eModel->fKelvin );  
@@ -656,7 +656,6 @@ void rateHeatReakesedReaction(Combustion *cModel,Prop *sHeat
 
   short i
       , iCod = cModel->typeHeatRealese
-      , nReac = cModel->chem.nReac
       , nSp   = cModel->chem.nSp;
         
   INT nel;
@@ -674,13 +673,13 @@ void rateHeatReakesedReaction(Combustion *cModel,Prop *sHeat
     if (fOmp)
     {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
-        private(nel,i,sum,nSp,h)\
-        shared(cModel,temp,nReac,wk,q)    
+        private(nel,i,sum)\
+        shared(cModel,wk,h,q,numel,nSp)    
       for(nel = 0; nel < numel; nel++)
       {
 /*... KJ/KG*/
          for(i=0,sum=0.e0;i<nSp;i++)
-            sum += wk[i]*h[i];
+           sum += MAT2D(nel,i,wk,nSp)*h[i];
         q[nel] = -sum; 
       }
 /*...................................................................*/
@@ -693,8 +692,8 @@ void rateHeatReakesedReaction(Combustion *cModel,Prop *sHeat
       for(nel = 0; nel < numel; nel++)
       {
 /*... KJ/KG*/
-         for(i=0,sum=0.e0;i<nSp;i++)
-            sum += wk[i]*h[i];
+        for(i=0,sum=0.e0;i<nSp;i++)
+          sum += MAT2D(nel,i,wk,nSp)*h[i];
         q[nel] = -sum; 
       }
 /*...................................................................*/
@@ -941,6 +940,7 @@ DOUBLE edcOld(DOUBLE *y          ,short const iYf
  *-------------------------------------------------------------------*
  * y        -> fracao massica das especies primitivas                *
  * w        -> nao de definido                                       *
+ * tReactor ->
  * desnity  -> densidade do fluido dentro do reator/celula           *
  * modS     -> tempo de mistura definido pe usuario                  *
  *-------------------------------------------------------------------*
@@ -950,11 +950,12 @@ DOUBLE edcOld(DOUBLE *y          ,short const iYf
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-INT edc(Combustion *c       ,PropVarFluid *pFluid
-        ,DOUBLE *RESTRICT y  ,DOUBLE *RESTRICT w
-        ,DOUBLE const density,DOUBLE const modS  
-        ,DOUBLE const dt     ,DOUBLE const temp   
-        ,DOUBLE const Pth    ,bool const fKelvin
+INT edc(Combustion *c             ,PropVarFluid *pFluid
+        ,DOUBLE *RESTRICT y       ,DOUBLE *RESTRICT w
+        ,DOUBLE *RESTRICT tReactor,DOUBLE const density
+        ,DOUBLE const dt          ,DOUBLE const temp 
+        ,DOUBLE const eddyVisc    ,DOUBLE const dVisc
+        ,DOUBLE const Pth         ,bool const fKelvin
         ,INT const nel)
 {
   void *pt[10];
@@ -962,14 +963,24 @@ INT edc(Combustion *c       ,PropVarFluid *pFluid
   short nSp = c->chem.nSp;
   INT k;
   DOUBLE aTol,rTol;
-  DOUBLE x,x1,x2,x3,yMin,dy,pres=Pth,tF;
-  DOUBLE tmp1,tmp2,tmp3,gEdc,gamma,tMix,cTau,itMix,tK,yt[MAXSPECIES],tt;
+  DOUBLE x,dy,pres=Pth,tF,yF,yOx,yP,tMix,tMixC,tChem;
+  DOUBLE tmp1,tmp2,tmp3,gEdc,gamma,cTau,itMix,tK,yt[MAXSPECIES],tt;
   
 /*...*/
+/*for(i=0,yF=0.e0;i<c->chem.nFuel;i++)
+    yF += y[c->chem.fuel[i]];
+  for(i=0,yOx=0.e0;i<c->chem.nOx;i++)
+    yOx += y[c->chem.ox[i]];
+  for(i=0,yP=0.e0;i<c->chem.nProd;i++)
+    yP += y[c->chem.prod[i]];*/
+/*...................................................................*/
+
+/*...*/
   iCod  = c->edc.type;
-  tMix  = c->edc.tMix;
+  tMixC = c->edc.tMix;
   gamma = c->edc.cGamma;
-  cTau  = c->edc.cTau;
+  tMix  = tReactor[0];
+  tChem = tReactor[1];
 /*...................................................................*/
 
 /*...*/
@@ -984,19 +995,6 @@ INT edc(Combustion *c       ,PropVarFluid *pFluid
   pt[4] = &pres;
 /*...................................................................*/
 
-/*... reagentes*/  
-//for(i=0;i<c->chem.nReac;i++)
-//{
-//  yMin = 1.e+32;
-//  for(j=0;j<c->chem.reac[i].nPartSp[0];j++)
-//  {
-//    id = c->chem.reac[i].partSp[0][j];
-//    dy = y[id]/(c->chem.reac[i].stch[0][id]*c->chem.sp[id].mW);
-//    yMin  = min(yMin,dy);
-//  }
-//}
-/*..................................................................*/
-
 /*...*/
   switch (iCod)
   {
@@ -1004,8 +1002,8 @@ INT edc(Combustion *c       ,PropVarFluid *pFluid
 /*...*/    
     case FLUENT_EDC:
     case FLUENT_CONST_TMIX_EDC:
-      gEdc  = 1.e0;
-      itMix = cTau*modS;     
+      gEdc  = 1.e0;   
+      itMix = 1.0/tMix;
       break;
 /*..................................................................*/
 
@@ -1013,9 +1011,9 @@ INT edc(Combustion *c       ,PropVarFluid *pFluid
     case PANJWANI_EDC:
     case PANJWANI_CONST_TMIX_EDC:
 /*...*/
-      itMix = cTau*modS;
+      itMix = 1.0/tMix;
 /*... calculo */
-//    gamma = min(c[0]*pow(dVisc/(eddyVisc+dVisc),0.25),0.99);
+      gamma = min(gamma*pow(dVisc/(eddyVisc+dVisc),0.25),0.99);
 //    yMin  = min(yF,yOx/s); 
 //    tmp1  = s + 1;
 //    tmp2  = yMin + yP/tmp1;
@@ -1023,8 +1021,8 @@ INT edc(Combustion *c       ,PropVarFluid *pFluid
 //    x1 = (tmp2*tmp2)/(yF+tmp3)*(yOx+tmp3);
 //    x2 = min((tmp2)/(gamma*tmp2),1.e0);
 //    x3 = (gamma*tmp2/yMin,1.e0);
-//    x = x1*x2*x3;
-//    gEdc = x/(1.e0 - x*gamma);
+      x = 1.e0;
+      gEdc = x/(1.e0 - x*gamma);
       break;
 /*...................................................................*/
     default:
@@ -1035,7 +1033,7 @@ INT edc(Combustion *c       ,PropVarFluid *pFluid
 
 /*... tempo de mixutura constante e definida pelo usuario*/
   if(FLUENT_CONST_TMIX_EDC==iCod 
-  || PANJWANI_CONST_TMIX_EDC==iCod)  itMix = 1.e0/tMix;
+  || PANJWANI_CONST_TMIX_EDC==iCod)  itMix = 1.e0/tMixC;
 /*....................................................................*/
 
 /*...*/
@@ -1055,15 +1053,13 @@ INT edc(Combustion *c       ,PropVarFluid *pFluid
             , &plugFlowReactor           , NULL); 
 /*....................................................................*/
 
-  if(nel == 0)
-    printf("%d %e %e\n",k,yt[0]-y[0],tF);
-
+  tReactor[3] = tF;
 /*...*/
   for(i=0;i<c->chem.nSp;i++)
-  {
-    dy = yt[i]-y[i];
+  {    
     if(yt[i] < 0.e0)
-      dy = 0.e0;
+      yt[i] = 0.e0;
+    dy = yt[i]-y[i];
     w[i] = density*itMix*gEdc*dy;
   }
 /*....................................................................*/
@@ -1076,7 +1072,7 @@ INT edc(Combustion *c       ,PropVarFluid *pFluid
 
 /*********************************************************************
  * Data de criacao    : 26/07/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 03/08/2019                                   *
  *-------------------------------------------------------------------*
  * edm : Eddy dissipation model                                      *
  *-------------------------------------------------------------------*
@@ -1096,12 +1092,12 @@ INT edc(Combustion *c       ,PropVarFluid *pFluid
  *********************************************************************/
 void edm(Combustion *c       ,DOUBLE *RESTRICT y  
           ,DOUBLE *RESTRICT w  ,DOUBLE const density
-          ,DOUBLE const itMix)
+          ,DOUBLE const tMix)
 {
   short i,j,id,
         nSp  = c->nOfSpecies;
           
-  DOUBLE omega,dy,r1,r2,my,A,B,Q[MAXREAC],itM=itMix;
+  DOUBLE omega,dy,r1,r2,my,A,B,Q[MAXREAC],itM=1.e0/tMix;
 
 /*...*/
   A = c->edm.coef[0];

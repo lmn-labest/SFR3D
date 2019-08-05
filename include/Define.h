@@ -30,7 +30,7 @@
   #define EDC         2 
   #define EDM         3 
 /*...*/
-  #define N_TERMS_REACTOR 3
+  #define N_TERMS_REACTOR 4
 /*...*/
   #define FDS_EDC                 1 
   #define FLUENT_EDC              2

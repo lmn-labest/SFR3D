@@ -3466,7 +3466,7 @@ void readGravity(DOUBLE *gravity,FILE *file){
 
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
- * Data de modificaco : 04/06/2019                                   * 
+ * Data de modificaco : 03/08/2019                                   * 
  *-------------------------------------------------------------------* 
  * SETPPRINT : Seleciona as veriaves que serao impressas na          *
  * macro pFluid, puD1, puT1                                          *
@@ -3502,7 +3502,7 @@ void setPrint(FileOpt *opt,FILE *file){
                ,"coefdifft1"   ,"zcomb"       ,"gradzcomb"       /*30,31,32*/
                ,"ratefuel"     ,"yfrac"       ,"rateheatcomb"    /*33,34,35*/                  
                ,"coefdiffsp"   ,"enthalpyk"   ,"gradY"           /*36,37,38*/
-               ,""             ,""            ,""                /*39,40,41*/
+               ,"treactor"     ,"binary"      ,""                /*39,40,41*/
                ,""             ,""            ,""};              /*42,43,44*/
   int tmp;
 
@@ -3825,6 +3825,22 @@ void setPrint(FileOpt *opt,FILE *file){
     {
       opt->gradY = true;
       if (!mpiVar.myId) fprintf(fileLogExc, format, "print", macro[38]);
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[39]))
+    {
+      opt->tReactor = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", macro[39]);
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[40]))
+    {
+      opt->bVtk = true;
+      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", macro[39]);
     }
 /*.....................................................................*/
 
@@ -7046,11 +7062,12 @@ void readChemical(Combustion *c, FILE *file)
   FILE *fileAux;
   char word[WORD_SIZE];
   char macros[][WORD_SIZE] =
-       { "elements"       ,"species"   ,"reactions"};  /* 0, 1, 2*/
+       { "elements"       ,"species"   ,"reactions"  /* 0, 1, 2*/
+       , "fuel"           ,"ox"        ,"product"};  /* 3, 4, 5*/
 
   short id;
   int i,j,n,nn;
-  DOUBLE value,ru;
+  DOUBLE value,ru,d1,d2;
 
   readMacroV2(file, word, false, true);
   fileAux = openFile(word, "r");
@@ -7253,6 +7270,47 @@ void readChemical(Combustion *c, FILE *file)
       }
 /*...................................................................*/
     }
+/*...................................................................*/
+
+/*... fuel*/ 
+    else if(!strcmp(word,macros[3]))
+    {
+      fscanf(fileAux, "%d", &n);
+      c->chem.nFuel = n;
+      for(i=0;i<n;i++)
+      {
+        readMacroV2(fileAux, word, false, true);  
+        c->chem.fuel[i] = searchSpeciesId(&c->chem,word);
+      }
+    }
+/*...................................................................*/
+
+/*... ox*/ 
+    else if(!strcmp(word,macros[4]))
+    {
+      fscanf(fileAux, "%d", &n);
+      c->chem.nOx = n;
+      for(i=0;i<n;i++)
+      {
+        readMacroV2(fileAux, word, false, true);  
+        c->chem.ox[i] = searchSpeciesId(&c->chem,word);
+      }
+    }
+/*...................................................................*/
+
+/*... product*/ 
+    else if(!strcmp(word,macros[5]))
+    {
+      fscanf(fileAux, "%d", &n);
+      c->chem.nProd = n;
+      for(i=0;i<n;i++)
+      {
+        readMacroV2(fileAux, word, false, true);  
+        c->chem.prod[i] = searchSpeciesId(&c->chem,word);
+      }
+    }
+/*...................................................................*/
+
 /*...................................................................*/
   }while(strcmp(word,"end"));
 /*...................................................................*/

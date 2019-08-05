@@ -125,12 +125,15 @@ DOUBLE massActionMass(Reaction *reac     ,Prop *sHeatPol
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
- * cModel  -> modelo de combustao                                    *
- * zComb   -> fracao massica                                         *
- * temp    -> temperatura                                            *
- * rate    -> nao definido                                           * 
- * density -> densidade                                              *
- * numel   -> numero de elementos                                    *
+ * cModel        -> modelo de combustao                              *
+ * zComb         -> fracao massica                                   *
+ * temp          -> temperatura                                      *
+ * rate          -> nao definido                                     * 
+ * density       -> densidade                                        *
+ * eddyViscosity -> viscosidade turbulenta                           *
+ * dViscosity    -> viscosidade dinamica                             *
+ * tReactor      -> paramentro do reator                             *
+ * numel         -> numero de elementos                              *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -144,7 +147,7 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
              , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT temp        
              , DOUBLE *RESTRICT rate         , DOUBLE *RESTRICT density 
              , DOUBLE *RESTRICT gradVel      , DOUBLE *RESTRICT eddyViscosity
-             , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT volume
+             , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT tReactor 
              , DOUBLE const dt               , DOUBLE const Pth 
              , short const ndm               , INT const numel
              , bool const fKelvin )
@@ -207,25 +210,19 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
       {
         pz = &MAT2D(nel,0,zComb,nComb);
         densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
-        getSpeciesPrimitivesCc(cModel,y,pz);
-/*.. calculo Sij*/
-        iGradVel = &MAT3D(nel,0,0,gradVel,ndm,ndm);
-        tensorS(sT,iGradVel,false);
-/*... |S| = sqrt(2S:S)*/
-        modS = sqrt(2.e0*doubleDotSym(sT));
-/*...................................................................*/
-        it = edc(cModel          ,pFluid
-           ,y               ,w
-           ,densityC        ,modS
-           ,dt              ,temp[nel]
-           ,thDynamic.pTh[2],fKelvin
+        getSpeciesPrimitivesCc(cModel,y,pz);     
+        it = edc(cModel                           ,pFluid
+           ,y                                     ,w
+           ,&MAT2D(nel,0,tReactor,N_TERMS_REACTOR),densityC
+           ,dt                                    ,temp[nel]
+           ,eddyViscosity[nel]                    ,dViscosity[nel]
+           ,thDynamic.pTh[2]                      ,fKelvin
            ,nel );
 //      printf("%d %d\n",nel,it);
 /*...................................................................*/
         for(i=0;i<nSp;i++)
           MAT2D(nel,i,rate,nSp) = w[i];
-      }
-     
+      }     
 /*...................................................................*/
       break;
 /*...................................................................*/
@@ -238,13 +235,8 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
         pz = &MAT2D(nel,0,zComb,nComb);
         densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
         getSpeciesPrimitivesCc(cModel,y,pz);
-/*.. calculo Sij*/
-        iGradVel = &MAT3D(nel,0,0,gradVel,ndm,ndm);
-        tensorS(sT,iGradVel,false);
-/*... |S| = sqrt(2S:S)*/
-        modS = sqrt(2.e0*doubleDotSym(sT));
-/*...................................................................*/
-        edm(cModel,y,w,densityC,modS);
+/*...*/
+        edm(cModel,y,w,densityC,MAT2D(nel,0,tReactor,N_TERMS_REACTOR));
 /*...................................................................*/
         for(i=0;i<nSp;i++)
           MAT2D(nel,i,rate,nSp) = w[i];
@@ -299,8 +291,7 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
   DOUBLE sT[6],*iGradVel,*pz;
   DOUBLE omega, densityC,tmp,modS,tMix;
   DOUBLE tK,y[MAXSPECIES],cM[MAXSPECIES],Q[MAXREAC],w[MAXSPECIES],tChemical; 
-
-  tChemical = 0.e0;
+  DOUBLE cTau  = cModel->edc.cTau;
 
 /*...*/
   for(nel = 0; nel < numel; nel++)
@@ -335,9 +326,9 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
 /*...................................................................*/ 
 
     massRateReaction(&cModel->chem,Q,w);
-    for(i=0;i<nSp;i++)
+    for(i=0,tChemical = 1.e-32;i<nSp;i++)
     {
-      if(fabs(w[i]) > 1.e-16)
+      if(fabs(w[i]) > 1.e-06)
       {
         tmp       = fabs(w[i]/densityC);
         tmp       = y[i]/tmp;
@@ -348,10 +339,10 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
 
       
 /*...*/    
-    if(modS == 0)
-      tMix = 0.e0;
+    if(modS < 1.0e-06)
+      tMix = 1.e+32;
     else
-      tMix = 1.e0/modS;
+      tMix = cTau*(1.e0/modS);
 /*...................................................................*/
 
 /*...*/  
