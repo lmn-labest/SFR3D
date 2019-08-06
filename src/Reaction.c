@@ -119,7 +119,7 @@ DOUBLE massActionMass(Reaction *reac     ,Prop *sHeatPol
 
 /*********************************************************************
  * Data de criacao    : 12/08/2018                                   *
- * Data de modificaco : 26/07/2019                                   *
+ * Data de modificaco : 05/08/2019                                   *
  *-------------------------------------------------------------------*
  * rateReaction: calculo da taxa de consumo do combustivel           *
  *-------------------------------------------------------------------*
@@ -150,7 +150,8 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
              , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT tReactor 
              , DOUBLE const dt               , DOUBLE const Pth 
              , short const ndm               , INT const numel
-             , bool const fKelvin )
+             , bool const fKelvin            , bool const fOmp           
+             , short const nThreads )  
 {
   short nComb = cModel->nComb
        , iCod = cModel->reactionKinetic
@@ -205,24 +206,56 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
 
 /*...*/
     case EDC:
-/*...*/
-      for(nel = 0; nel < numel; nel++)
+/*... omp*/
+      if(fOmp)
       {
-        pz = &MAT2D(nel,0,zComb,nComb);
-        densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
-        getSpeciesPrimitivesCc(cModel,y,pz);     
-        it = edc(cModel                           ,pFluid
+/*...*/
+#pragma omp parallel  for default(none) num_threads(nThreads)\
+        private(nel,pz,i,it,densityC,y,w)\
+        shared(cModel,zComb,nComb,density,numel,nSp,rate,pFluid,dt,temp\
+              ,tReactor,eddyViscosity,dViscosity,thDynamic,fKelvin)
+        for(nel = 0; nel < numel; nel++)
+        {
+          pz = &MAT2D(nel,0,zComb,nComb);
+          densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+          getSpeciesPrimitivesCc(cModel,y,pz);     
+          it = edc(cModel                         ,pFluid
            ,y                                     ,w
            ,&MAT2D(nel,0,tReactor,N_TERMS_REACTOR),densityC
            ,dt                                    ,temp[nel]
            ,eddyViscosity[nel]                    ,dViscosity[nel]
            ,thDynamic.pTh[2]                      ,fKelvin
            ,nel );
-//      printf("%d %d\n",nel,it);
 /*...................................................................*/
-        for(i=0;i<nSp;i++)
-          MAT2D(nel,i,rate,nSp) = w[i];
-      }     
+          for(i=0;i<nSp;i++)
+            MAT2D(nel,i,rate,nSp) = w[i];
+        }     
+/*...................................................................*/
+      }
+/*...................................................................*/ 
+
+/*...*/
+      else
+      {
+/*...*/
+        for(nel = 0; nel < numel; nel++)
+        {
+          pz = &MAT2D(nel,0,zComb,nComb);
+          densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+          getSpeciesPrimitivesCc(cModel,y,pz);     
+          it = edc(cModel                           ,pFluid
+           ,y                                     ,w
+           ,&MAT2D(nel,0,tReactor,N_TERMS_REACTOR),densityC
+           ,dt                                    ,temp[nel]
+           ,eddyViscosity[nel]                    ,dViscosity[nel]
+           ,thDynamic.pTh[2]                      ,fKelvin
+           ,nel );
+/*...................................................................*/
+          for(i=0;i<nSp;i++)
+            MAT2D(nel,i,rate,nSp) = w[i];
+        }     
+/*...................................................................*/
+      }
 /*...................................................................*/
       break;
 /*...................................................................*/
@@ -230,21 +263,48 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
 /*...*/
     case EDM:
 /*...*/
-      for(nel = 0; nel < numel; nel++)
+/*... omp*/
+      if(fOmp)
       {
-        pz = &MAT2D(nel,0,zComb,nComb);
-        densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
-        getSpeciesPrimitivesCc(cModel,y,pz);
 /*...*/
-        edm(cModel,y,w,densityC,MAT2D(nel,0,tReactor,N_TERMS_REACTOR));
+#pragma omp parallel  for default(none) num_threads(nThreads)\
+        private(nel,pz,i,it,densityC,y,w)\
+        shared(cModel,zComb,nComb,density,numel,nSp,rate,tReactor)
+        for(nel = 0; nel < numel; nel++)
+        { 
+          pz = &MAT2D(nel,0,zComb,nComb);
+          densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+          getSpeciesPrimitivesCc(cModel,y,pz);
+/*...*/
+          edm(cModel,y,w,densityC,MAT2D(nel,0,tReactor,N_TERMS_REACTOR));
 /*...................................................................*/
-        for(i=0;i<nSp;i++)
-          MAT2D(nel,i,rate,nSp) = w[i];
+          for(i=0;i<nSp;i++)
+            MAT2D(nel,i,rate,nSp) = w[i];
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+
+/*...*/
+      else
+      {
+/*...*/
+        for(nel = 0; nel < numel; nel++)
+        { 
+          pz = &MAT2D(nel,0,zComb,nComb);
+          densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+          getSpeciesPrimitivesCc(cModel,y,pz);
+/*...*/
+          edm(cModel,y,w,densityC,MAT2D(nel,0,tReactor,N_TERMS_REACTOR));
+/*...................................................................*/
+          for(i=0;i<nSp;i++)
+            MAT2D(nel,i,rate,nSp) = w[i];
+        }
+/*...................................................................*/
       }
 /*...................................................................*/
       break;
 /*...................................................................*/
-
   }
 /*...................................................................*/
 }

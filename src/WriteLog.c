@@ -369,25 +369,36 @@ void writeLog(Mesh mesh             ,Scheme sc
 
 /*... OpenMp*/    
   fprintf(file, "\nOpenMp             :\n");
+/*...*/
   fprintf(file,   "Solver             :\n");
   if(omp.fSolver)
     fprintf(file, "nThreads           : %d\n",omp.nThreadsSolver);
   else
     fprintf(file, "Disable\n");
+/*...*/
   fprintf(file,   "Cell               :\n");
   if (omp.fCell)
     fprintf(file, "nThreads           : %d\n",omp.nThreadsCell);
   else
     fprintf(file, "Disable\n");
+/*...*/
+  fprintf(file,   "Update             :\n");
   if (omp.fUpdate)
     fprintf(file, "nThreads           : %d\n",omp.nThreadsUpdate);
   else
     fprintf(file, "Disable\n");
+/*...*/
+  fprintf(file,   "Grad               :\n");
   if (omp.fGrad)
     fprintf(file, "nThreads           : %d\n",omp.nThreadsGrad);
   else
     fprintf(file, "Disable\n");
-
+/*...*/
+  fprintf(file,   "Reaction           :\n");
+  if (omp.fReaction)
+    fprintf(file, "nThreads           : %d\n",omp.nThreadsReaction);
+  else
+    fprintf(file, "Disable\n");
 }
 /*********************************************************************/ 
 

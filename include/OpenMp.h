@@ -24,11 +24,12 @@
   
 /*... OPENMP*/
   typedef struct {
-    bool           flag,fSolver,fCell,fUpdate,fGrad;
+    bool           flag,fSolver,fCell,fUpdate,fGrad,fReaction;
     unsigned short nThreadsSolver;
     unsigned short nThreadsCell;
     unsigned short nThreadsUpdate;
     unsigned short nThreadsGrad;
+    unsigned short nThreadsReaction;
     INT            nEqMax;
     DOUBLE         *buffer;
   }Omp;

@@ -4158,7 +4158,7 @@ void help(FILE *f){
 /*... openmp*/
   else if (!strcmp(word, help[10])) {
     printf("Ex:\n");
-    printf("openmp 3 solver 2 update 2 cell 2\n");
+    printf("openmp 5 solver 2 update 2 cell 4 grad 2 reaction 2\n");
     exit(EXIT_FAILURE);
   }
 /*.....................................................................*/

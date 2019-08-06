@@ -93,7 +93,8 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                   , mesh->elm.dViscosity   , mesh->elm.tReactor
                   , sc->ddt.dt[2]          , thDynamic.pTh[2]
                   , mesh->ndm              , mesh->numel
-                  , eModel->fKelvin );  
+                  , eModel->fKelvin        , ompVar.fUpdate    
+                  , ompVar.nThreadsUpdate);  
   tm.rateReaction  = getTimeC() - tm.rateReaction;  
 /*...................................................................*/
 
@@ -126,7 +127,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 
 /*... calculo de: A(i),b(i)*/
   tm.systFormComb = getTimeC() - tm.systFormComb;
-  systFormComb(loadsComb             , loadsVel
+  systFormComb(loadsComb               , loadsVel
              , &sc->advComb            , &sc->diffComb  
              , tModel                  , cModel
              , prop                    
@@ -262,7 +263,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                     , mesh->elm.material.prop , mesh->elm.mat    
                     , sc->ddt.dt[TIME_N]      , mesh->numelNov
                     , fSheat                  , eModel->fKelvin
-                    , ompVar.fUpdate     , ompVar.nThreadsUpdate); 
+                    , ompVar.fReaction   , ompVar.nThreadsReaction); 
   tm.heatRelease  = getTimeC() - tm.heatRelease; 
 /*...................................................................*/
 

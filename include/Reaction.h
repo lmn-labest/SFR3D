@@ -32,7 +32,8 @@
              , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT volume
              , DOUBLE const dt               , DOUBLE const Pth 
              , short const ndm               , INT const numel
-             , bool const fKelvin );
+             , bool const fKelvin            , bool const fOmp           
+             , short const nThreads);
 /*...................................................................*/
 
 /*...*/
