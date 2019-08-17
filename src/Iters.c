@@ -279,7 +279,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
         ,Interface *iNeq                      
         ,void(*matvec)()    ,DOUBLE(*dot)())
 {
-#ifdef _MPICH_
+#ifdef _MPI_
   unsigned int j;
   INT i;
   DOUBLE alpha,beta,d,conv,energy;

@@ -682,8 +682,8 @@ void updateMixDensity(Prop *pDen            , Combustion *cModel
           MAT2D(i,TIME_N_MINUS_1 ,density ,nD) = MAT2D(i,2 ,density ,nD);
         }
 /*..................................................................*/
-/*..................................................................*/
       }
+/*..................................................................*/
     break;
   }
 /*..................................................................*/
@@ -693,7 +693,7 @@ void updateMixDensity(Prop *pDen            , Combustion *cModel
 
 /*********************************************************************
  * Data de criacao    : 25/08/2018                                   *
- * Data de modificaco : 26/07/2019                                   *
+ * Data de modificaco : 12/08/2019                                   *
  *-------------------------------------------------------------------*
  * initMixtureSpeciesfiHeat:                                         *
  * ----------------------------------------------------------------- *
@@ -824,30 +824,33 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
 /*.....................................................................*/
 
 /*...*/
-  printf("Write SpeciesfiHeat cp(T):\n");
-  fileAux = openFile("species_cp.out", "w");
-  for(i=0;i<kk;i++)
+  if(!mpiVar.myId)
   {
-    fprintf(fileAux,"%s\n",cModel->chem.sp[i].name);
-    for (j = 0, g =300.0; j < 50; j++) 
+    printf("Write SpeciesfiHeat cp(T):\n");
+    fileAux = openFile("species_cp.out", "w");
+    for(i=0;i<kk;i++)
     {
-      switch(prop->type)
+      fprintf(fileAux,"%s\n",cModel->chem.sp[i].name);
+      for (j = 0, g =300.0; j < 50; j++) 
       {
-        case POL:
-          fprintf(fileAux,"%lf %lf\n",g,pol(prop->pol[i].a
-                                           ,g
-                                           ,prop->pol[i].nPol));
-          g += 100.0;
-          break;
-        case NASAPOL7:
-          fprintf(fileAux,"%10.2lf %lf\n",g,polNasaCp(&prop->nasa[i],g));
-          g += 100.0;
-          break;
+        switch(prop->type)
+        {
+          case POL:
+            fprintf(fileAux,"%lf %lf\n",g,pol(prop->pol[i].a
+                                             ,g
+                                             ,prop->pol[i].nPol));
+            g += 100.0;
+            break;
+          case NASAPOL7:
+            fprintf(fileAux,"%10.2lf %lf\n",g,polNasaCp(&prop->nasa[i],g));
+            g += 100.0;
+            break;
+        }
       }
     }
+    fclose(fileAux);
   }
 /*.....................................................................*/
-  fclose(fileAux);
 }
 /********************************************************************/
 
@@ -3931,7 +3934,7 @@ void specificMassRefOld(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume
 
 /********************************************************************* 
  * Data de criacao    : 21/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 16/08/2019                                   *
  *-------------------------------------------------------------------*
  * SPECIFICMASSREF : calcula a massa especifica de referencia        *
  * atraves da media do valores nas celulas                           * 
@@ -3954,20 +3957,40 @@ DOUBLE specificMassRef(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume
 {
   short nD = DENSITY_LEVEL;
   INT i;  
-  DOUBLE dm,vm;
-
+  DOUBLE dm,vm,rho;
+#ifdef _MPI_
+  DOUBLE gVm,gDm;
+#endif
   dm = vm = 0.e0;
-
+  
   for (i = 0; i < nCell; i++) {
-/*...*/   
+/*...*/      
    dm += MAT2D(i,2 ,density ,nD)*volume[i];
    vm += volume[i];
 /*...................................................................*/ 
   }
 
-  printf("densityRef :%e\n",dm/vm);
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    MPI_Allreduce(&vm,&gVm,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    MPI_Allreduce(&dm,&gDm,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    rho = gDm/gVm;
+  }
+  else  
+    rho = dm/vm;
+#else
+    rho = dm/vm;
+#endif
+/*...................................................................*/
 
-  return dm/vm;
+  if(!mpiVar.myId)
+   printf("densityRef :%e\n",rho);
+
+  return rho;
 }
 /*********************************************************************/
 
@@ -4113,28 +4136,46 @@ void initPresRef(DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT volume
                , INT const nCell        , bool const fKelvin)
 {
   INT i;  
-  DOUBLE dRef,tm,dm,vm;
+  DOUBLE dRef,stm,vm,tMed;
+#ifdef _MPI_
+  DOUBLE gVm,gStm;
+#endif
 
-  dm = vm = 0.e0;
+  stm = vm = 0.e0;
 
   for (i = 0; i < nCell; i++) {
 
 /*...*/   
-    dm += temp[i]*volume[i];
-    vm += volume[i];
+    stm += temp[i]*volume[i];
+    vm  += volume[i];
 /*...................................................................*/ 
   }
-  
-  dm = dm/vm;
+
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    MPI_Allreduce(&vm ,&gVm ,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    MPI_Allreduce(&stm,&gStm,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    tMed = gStm/gVm; 
+  }
+  else  
+    tMed = stm/vm;
+#else
+    tMed = stm/vm;
+#endif
+/*...................................................................*/
 
 /*...*/
   if(fKelvin)
-    tm  = dm;
+    stm  = tMed;
   else
-    tm  = CELSIUS_FOR_KELVIN(dm); 
+    stm  = CELSIUS_FOR_KELVIN(tMed); 
 /*...................................................................*/ 
 
-  vm   = PRESREF(densityRef, IDEALGASR, tm, molarMass);
+  vm   = PRESREF(densityRef, IDEALGASR, stm, molarMass);
 
   pTh[0] = pTh[1] = pTh[2] = vm;
 

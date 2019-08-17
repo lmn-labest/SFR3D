@@ -120,7 +120,7 @@ void fName(const char* const name,INT num1,INT num2, int cod ,char *out){
   strcpy(ext,"");
   strcpy(out,"");
   switch( cod ) {
-/*.... vtk no-overlanping*/
+/*.... vtk overlanping*/
     case 1:
       
       iota(num1,st);
@@ -142,7 +142,7 @@ void fName(const char* const name,INT num1,INT num2, int cod ,char *out){
       break;     
 /*...................................................................*/
 
-/*.... vtk no-overlanping*/
+/*.... vtk particoes individuais*/
     case 2:
       iota(num2,st);
       strcpy(ext,"_n_");
@@ -537,8 +537,11 @@ void fName(const char* const name,INT num1,INT num2, int cod ,char *out){
       break;
 /*...................................................................*/
 
-/*... arquivo com o log do solv*/
+/*... arquivo com o log do exc*/
     case 23:
+      iota(num1,st);
+      strcpy(ext,"_n_");
+      strcat(ext,st);
       strcat(ext,"_exc_log.txt");
       size1 = (int) strlen(name);
       size2 = (int) strlen(ext);
@@ -659,6 +662,9 @@ void fName(const char* const name,INT num1,INT num2, int cod ,char *out){
 
 /*... arquivo com o log do solv*/
     case 31:
+      iota(num1,st);
+      strcpy(ext,"_n_");
+      strcat(ext,st);
       strcat(ext,"_debug.txt");
       size1 = (int) strlen(name);
       size2 = (int) strlen(ext);

@@ -98,10 +98,10 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*...................................................................*/
 
 /*...*/   
-  fComb  = cModel->fCombustion;
-  nComb  = cModel->nComb;
-  nSpPri = cModel->nOfSpecies;
-  nReac  = cModel->chem.nReac;
+  fComb   = cModel->fCombustion;
+  nComb   = cModel->nComb;
+  nSpPri  = cModel->nOfSpecies;
+  nReac   = cModel->chem.nReac;
   fOneEqK = tModel->fOneEq;
 /*...................................................................*/
 
@@ -126,17 +126,16 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*... alocando variavies de elementos*/
 /*... conectividade*/ 
   HccaAlloc(INT,m,mesh->elm.node       ,nel*maxno,"elnode"  ,_AD_);
-  /*... conectividade*/
-  HccaAlloc(INT, m, mesh->elm.cellFace, nel*maxViz,"cellface", _AD_);
 /*... materiais*/ 
   HccaAlloc(short,m,mesh->elm.mat      ,nel       ,"elmat"   ,_AD_);
 /*... nos por elementos*/
   HccaAlloc(short,m,mesh->elm.nen      ,nel      ,"elnen"   ,_AD_);
 /*... tipo geometrico */
   HccaAlloc(short,m,mesh->elm.geomType ,nel      ,"elgT"    ,_AD_);
-
 /*... centroide */
   HccaAlloc(DOUBLE,m,mesh->elm.geom.cc ,nel*ndm,"elCc"    ,_AD_);
+/*... face por elemento*/
+  HccaAlloc(INT, m, mesh->elm.cellFace, nel*maxViz,"cellface", _AD_);
 
   if( mpiVar.nPrcs < 2){
 
@@ -412,7 +411,9 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
        zero(mesh->elm.gradTemp, nel*ndm, DOUBLEC);
 
      }
+/*...................................................................*/
 
+/*...*/
      if( mpiVar.nPrcs < 2)
      {
 /*... rCellVel*/
@@ -502,7 +503,8 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     HccaAlloc(DOUBLE, m, mesh->elm.yFrac0
             , nel*nSpPri, "yFrac0", _AD_);
     zero(mesh->elm.yFrac0, nel*nSpPri, DOUBLEC);
-/*... enthalpy*/
+
+/*... enthalpyK*/
     HccaAlloc(DOUBLE, m, mesh->elm.enthalpyk
             , nel*nSpPri, "enthalpyk", _AD_);
     zero(mesh->elm.enthalpyk, nel*nSpPri, DOUBLEC);
@@ -1983,12 +1985,10 @@ void config(FileOpt *opt,Reord *reordMesh,FILE* file)
           
       flag[0] = true;
       i++;
-      if(!mpiVar.myId){
-        if(reordMesh->flag)
-          fprintf(fileLogExc,"%-20s: %s\n","Reord","true");
-        else
-          fprintf(fileLogExc,"%-20s: %s\n","Reod","false");
-      }
+      if(reordMesh->flag)
+        fprintf(fileLogExc,"%-20s: %s\n","Reord","true");
+      else
+        fprintf(fileLogExc,"%-20s: %s\n","Reod","false");
     }
 /*... mem*/   
     else if(!strcmp(word,config[1])){
@@ -2000,8 +2000,7 @@ void config(FileOpt *opt,Reord *reordMesh,FILE* file)
       flag[1] = true;
       i++;
       
-      if(!mpiVar.myId)
-        fprintf(fileLogExc,"%-20s: %d\n","Memory(MBytes)"
+      fprintf(fileLogExc,"%-20s: %d\n","Memory(MBytes)"
               ,(int)(nmax/conv));
     }
 
@@ -2010,13 +2009,11 @@ void config(FileOpt *opt,Reord *reordMesh,FILE* file)
       fscanf(file,"%s",s);
       if(!strcmp(s,"true")){
         opt->fItPlotRes = true;
-        if(!mpiVar.myId)
-          fprintf(fileLogExc,"%-20s: %s\n","fItPlotRes","true");
+        fprintf(fileLogExc,"%-20s: %s\n","fItPlotRes","true");
       }
       else{
         opt->fItPlotRes = false;
-        if(!mpiVar.myId)
-          fprintf(fileLogExc,"%-20s: %s\n","fItPlotRes","false");
+        fprintf(fileLogExc,"%-20s: %s\n","fItPlotRes","false");
       }
       flag[2] = true;
       i++;
@@ -2026,13 +2023,11 @@ void config(FileOpt *opt,Reord *reordMesh,FILE* file)
       fscanf(file,"%s",s);
       if(!strcmp(s,"true")){
         opt->fItPlot = true;
-        if(!mpiVar.myId)
-          fprintf(fileLogExc,"%-20s: %s\n","fItPlot","true");
+        fprintf(fileLogExc,"%-20s: %s\n","fItPlot","true");
       }
       else{
         opt->fItPlot = false;
-        if(!mpiVar.myId)
-          fprintf(fileLogExc,"%-20s: %s\n","fItPlot","false");
+        fprintf(fileLogExc,"%-20s: %s\n","fItPlot","false");
       }
       flag[3] = true;
       i++;
@@ -2245,8 +2240,7 @@ void readEdo(Mesh *mesh,FILE *file){
     if(!strcmp(word, macros[0])){
       readMacro(file,word,false);
       mesh->ndfT[0]=(short) atol(word);
-      if(!mpiVar.myId ) fprintf(fileLogExc,"transport1 ndf %d\n"
-                              ,mesh->ndfT[0]);
+      fprintf(fileLogExc,"transport1 ndf %d\n",mesh->ndfT[0]);
     }
 /*...................................................................*/
 
@@ -2254,8 +2248,7 @@ void readEdo(Mesh *mesh,FILE *file){
     else if(!strcmp(word, macros[1])){
       readMacro(file,word,false);
       mesh->ndfT[1]= (short) atol(word);
-      if(!mpiVar.myId ) fprintf(fileLogExc,"transport2 ndf %d\n"
-                               ,mesh->ndfT[1]);
+      fprintf(fileLogExc,"transport2 ndf %d\n",mesh->ndfT[1]);
     }
 /*...................................................................*/
 
@@ -2263,8 +2256,7 @@ void readEdo(Mesh *mesh,FILE *file){
     else if(!strcmp(word, macros[2])){
       readMacro(file,word,false);
       mesh->ndfT[2]= (short) atol(word);
-      if(!mpiVar.myId ) fprintf(fileLogExc,"transport3 ndf %d\n"
-                               ,mesh->ndfT[2]);
+      fprintf(fileLogExc,"transport3 ndf %d\n",mesh->ndfT[2]);
     }
 /*...................................................................*/
 
@@ -2272,17 +2264,15 @@ void readEdo(Mesh *mesh,FILE *file){
     else if(!strcmp(word, macros[3])){
       readMacro(file,word,false);
       mesh->ndfD[0]= (short) atol(word);
-      if(!mpiVar.myId ) fprintf(fileLogExc,"diffusion1 ndf %d\n"
-                              ,mesh->ndfD[0]);
+      fprintf(fileLogExc,"diffusion1 ndf %d\n",mesh->ndfD[0]);
     }
 /*...................................................................*/
 
 /*... diffusion2*/
     else if(!strcmp(word, macros[4])){
-     readMacro(file,word,false);
+      readMacro(file,word,false);
       mesh->ndfD[1]= (short) atol(word);
-      if(!mpiVar.myId ) fprintf(fileLogExc,"diffusion2 ndf %d\n"
-                              ,mesh->ndfD[1]);
+      fprintf(fileLogExc,"diffusion2 ndf %d\n",mesh->ndfD[1]);
     }
 /*...................................................................*/
 
@@ -2290,8 +2280,7 @@ void readEdo(Mesh *mesh,FILE *file){
     else if(!strcmp(word, macros[5])){
       readMacro(file,word,false);
       mesh->ndfD[2]= (short) atol(word);
-      if(!mpiVar.myId ) fprintf(fileLogExc,"diffusion3 ndf %d\n"
-                              ,mesh->ndfD[2]);
+      fprintf(fileLogExc,"diffusion3 ndf %d\n",mesh->ndfD[2]);
     }
 /*...................................................................*/
 
@@ -2299,8 +2288,7 @@ void readEdo(Mesh *mesh,FILE *file){
     else if(!strcmp(word,macros[6])){
       readMacro(file,word,false);
       mesh->ndfF= (short) atol(word);
-      if(!mpiVar.myId ) fprintf(fileLogExc,"fluid ndf %d\n"
-                              ,mesh->ndfF);
+      fprintf(fileLogExc,"fluid ndf %d\n",mesh->ndfF);
     }
 /*...................................................................*/
 
@@ -2308,8 +2296,7 @@ void readEdo(Mesh *mesh,FILE *file){
     else if(!strcmp(word, macros[7])){
       readMacro(file,word,false);
       mesh->ndfFt= (short) atol(word);
-      if(!mpiVar.myId ) fprintf(fileLogExc,"fluidt ndf %d\n"
-                              ,mesh->ndfFt);
+      fprintf(fileLogExc,"fluidt ndf %d\n",mesh->ndfFt);
     }
 /*...................................................................*/
     
@@ -2359,7 +2346,7 @@ void readPropVarFluid(PropVarFluid *p,FILE *file){
     if(!strcmp(word,macros[0])){
       readMacroV2(file, word, false, true);
       p->fSpecificHeat = true;
-      if(!mpiVar.myId && p->fSpecificHeat) 
+      if(p->fSpecificHeat) 
         fprintf(fileLogExc,"%-25s: %s\n","sHeat variation","Enable\n");
       initSheatPol(&p->sHeat, word, file);
     }
@@ -2369,7 +2356,7 @@ void readPropVarFluid(PropVarFluid *p,FILE *file){
     else if(!strcmp(word,macros[1])){
       readMacroV2(file, word, false, true);
       p->fDensity = true;
-      if(!mpiVar.myId && p->fDensity) 
+      if(p->fDensity) 
         fprintf(fileLogExc,"%-25s: %s\n","Density variation","Enable");
       initDensityPol(&p->den,word,file);
     }
@@ -2379,7 +2366,7 @@ void readPropVarFluid(PropVarFluid *p,FILE *file){
     else if(!strcmp(word, macros[2])){
       readMacroV2(file, word, false, true);
       p->fDynamicViscosity = true;  
-      if(!mpiVar.myId && p->fDynamicViscosity)
+      if(p->fDynamicViscosity)
         fprintf(fileLogExc,"%-25s: %s\n","dViscosity variation"
                           ,"Enable");
       initDviscosityPol(&p->dVisc, word, file);
@@ -2390,7 +2377,7 @@ void readPropVarFluid(PropVarFluid *p,FILE *file){
     else if(!strcmp(word, macros[3])){
       readMacroV2(file, word, false, true);
       p->fThermalConductivity = true;
-      if(!mpiVar.myId && p->fThermalConductivity)
+      if(p->fThermalConductivity)
         fprintf(fileLogExc,"%-25s: %s\n","tCondutivity variation"
                                         ,"Enable"); 
       initThCondPol(&p->thCond, word, file);
@@ -2446,7 +2433,7 @@ void readPropVarMixture(PropVarFluid *p,Combustion *cModel,FILE *file)
     {
       readMacroV2(file, word, false, true);
       p->fSpecificHeat = true;
-      if(!mpiVar.myId && p->fSpecificHeat) 
+      if(p->fSpecificHeat) 
         fprintf(fileLogExc,"%-25s: %s\n","sHeat variation","Enable\n");
       initMixtureSpeciesfiHeat(&p->sHeat, word,cModel, file);
       
@@ -2458,7 +2445,7 @@ void readPropVarMixture(PropVarFluid *p,Combustion *cModel,FILE *file)
     {
       readMacroV2(file, word, false, true);
       p->fDensity = true;
-      if(!mpiVar.myId && p->fDensity) 
+      if(p->fDensity) 
         fprintf(fileLogExc,"%-25s: %s\n","Density variation","Enable");
       initDensityPol(&p->den,word,file);
     }
@@ -2469,7 +2456,7 @@ void readPropVarMixture(PropVarFluid *p,Combustion *cModel,FILE *file)
     {
       readMacroV2(file, word, false, true);
       p->fDynamicViscosity = true;  
-      if(!mpiVar.myId && p->fDynamicViscosity)
+      if(p->fDynamicViscosity)
         fprintf(fileLogExc,"%-25s: %s\n","dViscosity variation"
                           ,word);
       initDviscosityPol(&p->dVisc, word, file);
@@ -2480,7 +2467,7 @@ void readPropVarMixture(PropVarFluid *p,Combustion *cModel,FILE *file)
     else if(!strcmp(word, macros[3])){
       readMacroV2(file, word, false, true);
       p->fThermalConductivity = true;
-      if(!mpiVar.myId && p->fThermalConductivity)
+      if(p->fThermalConductivity)
         fprintf(fileLogExc,"%-25s: %s\n","tCondutivity variation"
                                         ,word); 
       initThCondPol(&p->thCond, word, file);
@@ -2491,7 +2478,7 @@ void readPropVarMixture(PropVarFluid *p,Combustion *cModel,FILE *file)
     else if(!strcmp(word, macros[4])){
       readMacroV2(file, word, false, true);
       p->fDiffusion = true;
-      if(!mpiVar.myId && p->fDiffusion)
+      if(p->fDiffusion)
         fprintf(fileLogExc,"%-25s: %s\n","Diffusion variation"
                                         ,word); 
       initDiffSp(&p->diff, word, file);
@@ -2544,7 +2531,7 @@ void readPropVarDiff(PropVarCD *p, FILE *file)
       readMacroV2(file, word, false, true);
       p[0].fDensity = true;
       initCdPol(&p[0].den, word,file);
-      if (!mpiVar.myId && p[0].fDensity)
+      if (p[0].fDensity)
         fprintf(fileLogExc, "%-25s: %s\n", "DensityD1 variation"
                                          , "Enable");
     }
@@ -2556,7 +2543,7 @@ void readPropVarDiff(PropVarCD *p, FILE *file)
       readMacroV2(file, word, false, true);
       p[0].fCeofDiff = true;
       initCdPol(&p[0].ceofDiff, word, file);
-      if (!mpiVar.myId && p[0].fCeofDiff)
+      if (p[0].fCeofDiff)
         fprintf(fileLogExc, "%-25s: %s\n", "CeofDiff D1 variation"
                                          , "Enable");
     }
@@ -2606,7 +2593,7 @@ void readPropVarTrans(PropVarCD *p, FILE *file)
       readMacroV2(file, word, false, true);
       p[0].fDensity = true;
       initCdPol(&p[0].den, word, file);
-      if (!mpiVar.myId && p[0].fDensity)
+      if (p[0].fDensity)
         fprintf(fileLogExc, "%-25s: %s\n", "DensityD1 variation"
           , "Enable");
     }
@@ -2618,7 +2605,7 @@ void readPropVarTrans(PropVarCD *p, FILE *file)
       readMacroV2(file, word, false, true);
       p[0].fCeofDiff = true;
       initCdPol(&p[0].ceofDiff, word, file);
-      if (!mpiVar.myId && p[0].fCeofDiff)
+      if (p[0].fCeofDiff)
         fprintf(fileLogExc, "%-25s: %s\n", "CeofDiff D1 variation"
           , "Enable");
     }
@@ -2767,8 +2754,7 @@ void readModel(EnergyModel *e         , Turbulence *t
       e->fRes         = false;
       e->fTemperature = false;
       e->fDiffEnergy  = false;
-      if(!mpiVar.myId)
-        fprintf(fileLogExc,"\n%-20s: \n","EnergyModel");  
+      fprintf(fileLogExc,"\n%-20s: \n","EnergyModel");  
 /*...................................................................*/      
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++){
@@ -2777,7 +2763,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... PresWork*/
         if(!strcmp(word,energy[0])){    
           e->fPresWork = true;
-          if(!mpiVar.myId && e->fPresWork) 
+          if(e->fPresWork) 
             fprintf(fileLogExc,format,"PresWork","Enable");
         }
 /*...................................................................*/
@@ -2785,7 +2771,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... Dissipation*/
         else if(!strcmp(word,energy[1])){        
           e->fDissipation = true;
-          if(!mpiVar.myId && e->fDissipation) 
+          if(e->fDissipation) 
             fprintf(fileLogExc,format,"Dissipation","Enable");                           
         }
 /*...................................................................*/
@@ -2793,7 +2779,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... Residual*/
         else if(!strcmp(word,energy[2])){
           e->fRes = true;
-          if(!mpiVar.myId && e->fRes)
+          if(e->fRes)
             fprintf(fileLogExc,format,"Residual","Enable");
         }
 /*...................................................................*/
@@ -2801,7 +2787,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... Absolute*/
         else if(!strcmp(word,energy[3])){
           e->fRes = false;
-          if(!mpiVar.myId && !e->fRes)
+          if(!e->fRes)
             fprintf(fileLogExc,format,"Absolute","Enable");
         }
 /*...................................................................*/
@@ -2809,7 +2795,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... Temperatura*/
         else if(!strcmp(word,energy[4])){
           e->fTemperature = true;
-          if(!mpiVar.myId && e->fTemperature)
+          if(e->fTemperature)
             fprintf(fileLogExc,format,"Temperatura","Enable");
         }
 /*...................................................................*/
@@ -2817,7 +2803,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... Entalphy*/
         else if(!strcmp(word,energy[5])){
           e->fTemperature = false;
-          if(!mpiVar.myId && !e->fTemperature)
+          if(!e->fTemperature)
             fprintf(fileLogExc,format,"Entalphy","Enable");
         }
 /*...................................................................*/
@@ -2825,7 +2811,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... Diffusion energy source*/
         else if(!strcmp(word,energy[6])){
           e->fDiffEnergy = true;
-          if(!mpiVar.myId && !e->fTemperature)
+          if(!e->fTemperature)
             fprintf(fileLogExc,format,"Diffusion Energy","Enable");
         }
 /*...................................................................*/
@@ -2837,8 +2823,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 
 /*... turbulencia*/
     else if(!strcmp(word,macros[1])){   
-      if(!mpiVar.myId)
-        fprintf(fileLogExc,"\n%-20s: \n","TurbulenceModel");   
+      fprintf(fileLogExc,"\n%-20s: \n","TurbulenceModel");   
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++){
         readMacroV2(file, word, false, true);
@@ -2850,9 +2835,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->typeMixed[FUNMODEL] = SMAGORINSKY;
           t->typeLes             = LESFUNCMODEL; 
           fscanf(file,"%lf",&t->cf);    
-          if(!mpiVar.myId){ 
-            fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[0],t->cf); 
-          }
+          fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[0],t->cf); 
         }
 /*...................................................................*/    
 
@@ -2871,9 +2854,8 @@ void readModel(EnergyModel *e         , Turbulence *t
             t->wallType  = ENHANCEDWALL; 
           }
 /*...................................................................*/
-          if(!mpiVar.myId)
-            fprintf(fileLogExc,"%-20s: %s\n",turb[1]
-                              ,typeWallModel[t->wallType-1]);
+          fprintf(fileLogExc,"%-20s: %s\n",turb[1]
+                            ,typeWallModel[t->wallType-1]);
         }
 /*...................................................................*/
 
@@ -2885,9 +2867,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->typeMixed[FUNMODEL]    = WALEMODEL; 
           t->typeLes = LESFUNCMODEL;
           fscanf(file,"%lf",&t->cf);    
-          if(!mpiVar.myId){ 
-            fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[2],t->cf); 
-          }
+          fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[2],t->cf); 
         }
 /*...................................................................*/ 
 
@@ -2899,9 +2879,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->typeMixed[FUNMODEL]    = VREMAN;
           t->typeLes = LESFUNCMODEL;
           fscanf(file,"%lf",&t->cf);    
-          if(!mpiVar.myId){ 
-             fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[3],t->cf); 
-          }
+          fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[3],t->cf); 
         }
 /*...................................................................*/
 
@@ -2912,9 +2890,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->type        = LES;
           t->typeDynamic = LDYNAMIC;
           fscanf(file,"%lf",&t->c);  
-          if(!mpiVar.myId){ 
-            fprintf(fileLogExc,"%-20s:\n", "lDynamic"); 
-          }
+          fprintf(fileLogExc,"%-20s:\n", "lDynamic"); 
           setDynamicModelLes(t,file);
         }
 /*...................................................................*/ 
@@ -2927,9 +2903,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->typeMixed[FUNMODEL] = SIGMAMODEL;
           t->typeLes = LESFUNCMODEL;
           fscanf(file,"%lf",&t->cf);   
-          if(!mpiVar.myId){ 
-             fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[5],t->cf); 
-          }
+          fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[5],t->cf); 
         }
 /*...................................................................*/ 
 
@@ -2940,9 +2914,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->type    = LES;
           t->typeLes = LESMIXEDMODEL; 
           fscanf(file,"%lf",&t->c);  
-          if(!mpiVar.myId){ 
-            fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[6],t->c); 
-          }
+          fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[6],t->c); 
           setMixedModelLes(t,file);
         }
 /*...................................................................*/
@@ -2955,9 +2927,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->typeMixed[ESTMODEL] = BARDINA;
           t->typeLes = LESSTRUMODEL;
           fscanf(file,"%lf",&t->cs);  
-          if(!mpiVar.myId){ 
-             fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[7],t->cs); 
-          }
+          fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[7],t->cs); 
         }
 /*...................................................................*/  
 
@@ -2969,9 +2939,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->typeMixed[ESTMODEL] = CLARK;
           t->typeLes             = LESSTRUMODEL;
           fscanf(file,"%lf",&t->cs);  
-          if(!mpiVar.myId){ 
-             fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[8],t->cs); 
-          }
+          fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[8],t->cs); 
         }
 /*...................................................................*/ 
 
@@ -2983,9 +2951,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->typeMixed[ESTMODEL] = BARDINAMOD;
           t->typeLes             = LESSTRUMODEL;
           fscanf(file,"%lf",&t->cs);  
-          if(!mpiVar.myId){ 
-            fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[9],t->cs); 
-          }
+          fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[9],t->cs); 
         }
 /*...................................................................*/   
 
@@ -2997,9 +2963,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->typeLes     = LESMIXEDTWOMODEL; 
           t->typeDynamic = TWOPARDYNAMIC;
           fscanf(file,"%lf",&t->c);  
-          if(!mpiVar.myId){ 
-            fprintf(fileLogExc,"%-20s:\n", "TowDynamic"); 
-          }
+          fprintf(fileLogExc,"%-20s:\n", "TowDynamic"); 
           setMixedModelLes(t,file);
         }
 /*...................................................................*/
@@ -3011,9 +2975,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->type        = LES;
           t->typeDynamic = GDYNAMIC;
           fscanf(file,"%lf",&t->c);  
-          if(!mpiVar.myId){ 
-            fprintf(fileLogExc,"%-20s:\n","gDynamic"); 
-          }
+          fprintf(fileLogExc,"%-20s:\n","gDynamic"); 
           setDynamicModelLes(t,file);
         }
 /*...................................................................*/ 
@@ -3025,9 +2987,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->type        = LES;
           t->typeDynamic = GDYNAMICMOD;
           fscanf(file,"%lf",&t->c);  
-          if(!mpiVar.myId){ 
-            fprintf(fileLogExc,"%-20s:\n","gDynamicMod"); 
-          }
+          fprintf(fileLogExc,"%-20s:\n","gDynamicMod"); 
           setDynamicModelLes(t,file);
         }
 /*...................................................................*/
@@ -3046,13 +3006,8 @@ void readModel(EnergyModel *e         , Turbulence *t
                                           ,&(t->eK.sk)
                                           ,&(t->eK.maxIt)
                                           ,&(t->eK.tol) );  
-          if(!mpiVar.myId){ 
-            strcpy(format,"%-20s: Ck = %.3lf Ce = %.3lf Sk = %.3lf\n");
-            fprintf(fileLogExc,format,"oneEqK"
-                              ,t->eK.ck
-                              ,t->eK.ce
-                              ,t->eK.sk); 
-          }
+          strcpy(format,"%-20s: Ck = %.3lf Ce = %.3lf Sk = %.3lf\n");
+          fprintf(fileLogExc,format,"oneEqK",t->eK.ck,t->eK.ce,t->eK.sk); 
         }
 /*...................................................................*/
       }
@@ -3063,8 +3018,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... mass*/
     else if(!strcmp(word,macros[2])){ 
       strcpy(format,"%-20s: %s\n");
-      if(!mpiVar.myId)
-        fprintf(fileLogExc,"\n%-20s: \n","MassEqModel");    
+      fprintf(fileLogExc,"\n%-20s: \n","MassEqModel");    
       eMass->LhsDensity = false;
       eMass->RhsDensity = false;
       fscanf(file,"%d",&nPar);
@@ -3073,7 +3027,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... LhsDensity*/
         if(!strcmp(word,mass[0])){
           eMass->LhsDensity = true;          
-          if(!mpiVar.myId && eMass->LhsDensity){ 
+          if(eMass->LhsDensity){ 
             fprintf(fileLogExc,format,"LhsDensity","Enable");
           }
         }
@@ -3082,7 +3036,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... RhsDensity*/
         else if(!strcmp(word,mass[1])){
           eMass->RhsDensity = true;          
-          if(!mpiVar.myId && eMass->RhsDensity){ 
+          if(eMass->RhsDensity){ 
             fprintf(fileLogExc,format,"RhsDensity","Enable");
           }
         }
@@ -3096,8 +3050,7 @@ void readModel(EnergyModel *e         , Turbulence *t
     else if(!strcmp(word,macros[3]))
     { 
       strcpy(format,"%-20s: %s\n");
-      if(!mpiVar.myId)
-        fprintf(fileLogExc,"\n%-20s: \n","MomentumEqModel");    
+      fprintf(fileLogExc,"\n%-20s: \n","MomentumEqModel");    
       ModelMomentum->fRes             = false;
       ModelMomentum->fRhieChowInt     = false;
       ModelMomentum->fViscosity       = false;
@@ -3110,7 +3063,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         if(!strcmp(word,momentum[0]))
         {
           ModelMomentum->fRes = true;          
-          if(!mpiVar.myId && ModelMomentum->fRes) 
+          if(ModelMomentum->fRes) 
             fprintf(fileLogExc,format,"Residual","Enable");
         }
 /*...................................................................*/
@@ -3119,7 +3072,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if(!strcmp(word,momentum[1]))
         {
           ModelMomentum->fRes = false;            
-          if(!mpiVar.myId && !ModelMomentum->fRes) 
+          if(!ModelMomentum->fRes) 
             fprintf(fileLogExc,format,"Absolute","Enable");
         }
 /*...................................................................*/
@@ -3128,7 +3081,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if(!strcmp(word,momentum[2]))
         {
           ModelMomentum->fRhieChowInt = true;            
-          if(!mpiVar.myId && ModelMomentum->fRhieChowInt) 
+          if(ModelMomentum->fRhieChowInt) 
             fprintf(fileLogExc,format,"RhieChowInt","Enable");
         }
 /*...................................................................*/
@@ -3137,7 +3090,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if(!strcmp(word,momentum[3]))
         {
           ModelMomentum->fViscosity = true;            
-          if(!mpiVar.myId && ModelMomentum->fViscosity) 
+          if(ModelMomentum->fViscosity) 
             fprintf(fileLogExc,format,"Viscosity","Enable");
         }
 /*...................................................................*/
@@ -3146,7 +3099,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if(!strcmp(word,momentum[4]))
         {
           ModelMomentum->fDiv = true;            
-          if(!mpiVar.myId && ModelMomentum->fDiv) 
+          if(ModelMomentum->fDiv) 
             fprintf(fileLogExc,format,"Divergente","Enable");
         }
 /*...................................................................*/
@@ -3155,8 +3108,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if(!strcmp(word,momentum[5]))
         {
           ModelMomentum->iCodBuoyant = BUOYANT_HYDROSTATIC;            
-          if(!mpiVar.myId) 
-            fprintf(fileLogExc,format,"bouyant_hydrostatic","Enable");
+          fprintf(fileLogExc,format,"bouyant_hydrostatic","Enable");
         }
 /*...................................................................*/
 
@@ -3164,8 +3116,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if(!strcmp(word,momentum[6]))
         {
           ModelMomentum->iCodBuoyant = BUOYANT_PRGH;            
-          if(!mpiVar.myId) 
-            fprintf(fileLogExc,format,"bouyant_prgh","Enable");
+          fprintf(fileLogExc,format,"bouyant_prgh","Enable");
         }
 /*...................................................................*/
 
@@ -3173,8 +3124,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if(!strcmp(word,momentum[7]))
         {
           ModelMomentum->iCodBuoyant = BUOYANT_RHOREF;            
-          if(!mpiVar.myId) 
-            fprintf(fileLogExc,format,"bouyant_rofref","Enable");
+          fprintf(fileLogExc,format,"bouyant_rofref","Enable");
         }
       }
     }
@@ -3194,8 +3144,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         id = 2;  
 /*...................................................................*/
 
-      if (!mpiVar.myId)
-        fprintf(fileLogExc, "\n%-20s: D%1d\n", "DiffusionMode",id+1);
+      fprintf(fileLogExc, "\n%-20s: D%1d\n", "DiffusionMode",id+1);
 
       dModel[id].fRes = false;
       fscanf(file, "%d", &nPar);
@@ -3206,7 +3155,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         if (!strcmp(word, diff[0])) 
         {
           dModel[id].fRes = true;
-          if (!mpiVar.myId && dModel[id].fRes)
+          if (dModel[id].fRes)
             fprintf(fileLogExc, format, "Residual", "Enable");
         }
 /*...................................................................*/
@@ -3215,7 +3164,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if (!strcmp(word, diff[1]))
         {
           dModel[id].fRes = false;
-          if (!mpiVar.myId && !dModel[id].fRes)
+          if (!dModel[id].fRes)
             fprintf(fileLogExc, format, "Absolute", "Enable");
         }
 /*...................................................................*/
@@ -3238,8 +3187,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         id = 2;
 /*...................................................................*/
 
-      if (!mpiVar.myId)
-        fprintf(fileLogExc, "\n%-20s: D%1d\n", "TransportMode", id + 1);
+      fprintf(fileLogExc, "\n%-20s: D%1d\n", "TransportMode", id + 1);
 
       tModel[id].fRes = false;
       fscanf(file, "%d", &nPar);
@@ -3250,7 +3198,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         if (!strcmp(word, tran[0]))
         {
           tModel[id].fRes = true;
-          if (!mpiVar.myId && tModel[id].fRes)
+          if (tModel[id].fRes)
             fprintf(fileLogExc, format, "Residual", "Enable");
         }
 /*...................................................................*/
@@ -3259,7 +3207,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if (!strcmp(word, tran[1]))
         {
           tModel[id].fRes = false;
-          if (!mpiVar.myId && !tModel[id].fRes)
+          if (!tModel[id].fRes)
             fprintf(fileLogExc, format, "Absolute", "Enable");
         }
 /*...................................................................*/
@@ -3272,8 +3220,7 @@ void readModel(EnergyModel *e         , Turbulence *t
     else if (!strcmp(word, macros[6]))
     {
       strcpy(format,"%-20s: %s\n");
-      if (!mpiVar.myId)
-        fprintf(fileLogExc, "\n%-20s:\n", "CombustionModel");
+      fprintf(fileLogExc, "\n%-20s:\n", "CombustionModel");
 
       cModel->fCombustion  = true;
       fscanf(file, "%d", &nPar);
@@ -3285,7 +3232,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         if (!strcmp(word, combustion[0]))
         {
           cModel->fRes = true;
-          if (!mpiVar.myId && cModel->fRes)
+          if (cModel->fRes)
             fprintf(fileLogExc, format, "Residual", "Enable");
         }
 /*...................................................................*/
@@ -3294,7 +3241,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if (!strcmp(word, combustion[1]))
         {
           cModel->fRes = false;
-          if (!mpiVar.myId && !cModel->fRes)
+          if (!cModel->fRes)
             fprintf(fileLogExc, format, "Absolute", "Enable");
         }
 /*...................................................................*/
@@ -3306,14 +3253,11 @@ void readModel(EnergyModel *e         , Turbulence *t
           fscanf(file,"%hd %hd %hd",&(cModel->nComb)
                                    ,&(cModel->nOfSpecies)
                                    ,&(cModel->nOfSpeciesLump));
-          if (!mpiVar.myId)
-          {
-            strcpy(format,"%-20s: nComb= %d nOfSp = %d nOfSpLp = %d\n");
-            fprintf(fileLogExc,format,"grouped species"
+          strcpy(format,"%-20s: nComb= %d nOfSp = %d nOfSpLp = %d\n");
+          fprintf(fileLogExc,format,"grouped species"
                               ,cModel->nComb
                               ,cModel->nOfSpecies 
                               ,cModel->nOfSpeciesLump); 
-          }
         }
 /*...................................................................*/
 
@@ -3325,26 +3269,20 @@ void readModel(EnergyModel *e         , Turbulence *t
                                    ,&(cModel->nOfSpecies)
                                    ,&(cModel->nOfSpeciesLump)); 
 
-          if (!mpiVar.myId)
-          {
-            strcpy(format,"%-20s: nComb = %d nOfSp = %d nOfSpLp = %d\n");
-            fprintf(fileLogExc,format,"ungrouped species"
+          strcpy(format,"%-20s: nComb = %d nOfSp = %d nOfSpLp = %d\n");
+          fprintf(fileLogExc,format,"ungrouped species"
                               ,cModel->nComb
                               ,cModel->nOfSpecies 
-                              ,cModel->nOfSpeciesLump); 
-          }          
+                              ,cModel->nOfSpeciesLump);     
         }
 /*...................................................................*/
 
 /*... edu*/
         else if (!strcmp(word, combustion[4]))
-        {
-          
+        {          
           cModel->reactionKinetic = EDC;
           setEdc(&cModel->edc,file);
-          if (!mpiVar.myId)
-            fprintf(fileLogExc, format, "EDC", "Enable");
-          
+          fprintf(fileLogExc, format, "EDC", "Enable");          
         }
 /*...................................................................*/
 
@@ -3352,9 +3290,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if (!strcmp(word, combustion[5]))
         {
           cModel->reactionKinetic           = ARRHENIUS;
-          if (!mpiVar.myId)
-            fprintf(fileLogExc, format, "ARRHENIUS", "Enable");
-          
+          fprintf(fileLogExc, format, "ARRHENIUS", "Enable");          
         }
 /*...................................................................*/
 
@@ -3362,9 +3298,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if (!strcmp(word, combustion[6]))
         {
           cModel->typeHeatRealese  = HCOMBUSTION; 
-          if (!mpiVar.myId)
-            fprintf(fileLogExc, format, "Hcombustion", "Enable");
-          
+          fprintf(fileLogExc, format, "Hcombustion", "Enable");          
         }
 /*...................................................................*/
 
@@ -3372,9 +3306,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if (!strcmp(word, combustion[7]))
         {
           cModel->typeHeatRealese  = HFORMATION; 
-          if (!mpiVar.myId)
-            fprintf(fileLogExc, format, "HFormation", "Enable");
-          
+          fprintf(fileLogExc, format, "HFormation", "Enable");          
         }
 /*...................................................................*/
 
@@ -3382,25 +3314,19 @@ void readModel(EnergyModel *e         , Turbulence *t
         else if (!strcmp(word, combustion[8]))
         {
           cModel->fCorrectVel  = true; 
-          if (!mpiVar.myId && cModel->fCorrectVel)
+          if (cModel->fCorrectVel)
             fprintf(fileLogExc, format, "coorectVel", "Enable");
-          
         }
 /*...................................................................*/
 
 /*... edm*/
         else if (!strcmp(word, combustion[9]))
         {
-          
           cModel->reactionKinetic = EDM;
           setEdm(&cModel->edm,file);
-          if (!mpiVar.myId)
-            fprintf(fileLogExc, format, "EDM", "Enable");
-          
+          fprintf(fileLogExc, format, "EDM", "Enable");
         }
 /*...................................................................*/
-
-
       }
 /*...................................................................*/
       if (cModel->fLump) initLumpedMatrix(cModel);
@@ -3441,9 +3367,8 @@ void readGravity(DOUBLE *gravity,FILE *file){
   for(i=0;i<n;i++)
     fscanf(file,"%lf",gravity+i);
 
-  if(!mpiVar.myId ) 
-    fprintf(fileLogExc,"g = (%lf,%lf,%lf)\n"
-           ,gravity[0],gravity[1],gravity[2]);
+  fprintf(fileLogExc,"g = (%lf,%lf,%lf)\n"
+         ,gravity[0],gravity[1],gravity[2]);
 
 }
 /*********************************************************************/ 
@@ -3503,7 +3428,7 @@ void setPrint(FileOpt *opt,FILE *file){
     if(!strcmp(word,macro[0]))
     { 
       opt->fCell = true;
-      if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","cell");
+      fprintf(fileLogExc,format,"print","cell");
     }
 /*.....................................................................*/
 
@@ -3511,7 +3436,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if(!strcmp(word,macro[1]))
     { 
       opt->fNode = true;
-      if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","node");
+      fprintf(fileLogExc,format,"print","node");
     }
 /*.....................................................................*/
 
@@ -3519,7 +3444,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if(!strcmp(word,macro[2]))
     { 
       opt->vel = true;
-      if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","vel");
+      fprintf(fileLogExc,format,"print","vel");
     }
 /*.....................................................................*/
 
@@ -3527,7 +3452,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if(!strcmp(word,macro[3]))
     { 
       opt->pres = true;
-      if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","pres");
+      fprintf(fileLogExc,format,"print","pres");
     }
 /*.....................................................................*/
 
@@ -3535,7 +3460,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if(!strcmp(word,macro[4]))
     { 
       opt->gradVel = true;
-      if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","gradVel");
+      fprintf(fileLogExc,format,"print","gradVel");
     }
 /*.....................................................................*/
 
@@ -3543,7 +3468,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if(!strcmp(word,macro[5]))
     { 
       opt->gradPres = true;
-      if(!mpiVar.myId ) fprintf(fileLogExc,format,"print","gradPres");
+      fprintf(fileLogExc,format,"print","gradPres");
     }
 /*.....................................................................*/
 
@@ -3551,7 +3476,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[6])) 
     {
       opt->energy = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","temp");
+      fprintf(fileLogExc,format,"print","temp");
     }
 /*.....................................................................*/
 
@@ -3559,7 +3484,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[7])) 
     {
       opt->gradEnergy = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","gradTemp");
+      fprintf(fileLogExc,format,"print","gradTemp");
     }
 /*.....................................................................*/
 
@@ -3567,7 +3492,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[8])) 
     {
       opt->eddyViscosity = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","eddyViscosity");
+      fprintf(fileLogExc,format,"print","eddyViscosity");
     }
 /*.....................................................................*/
 
@@ -3575,7 +3500,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[9])) 
     {
       opt->densityFluid = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","densityFluid");
+      fprintf(fileLogExc,format,"print","densityFluid");
     }
 /*.....................................................................*/
 
@@ -3583,7 +3508,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[10])) 
     {
       opt->specificHeat = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","specificHeat");
+      fprintf(fileLogExc,format,"print","specificHeat");
     }
 /*.....................................................................*/
 
@@ -3591,7 +3516,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[11])) 
     {
       opt->dViscosity = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","dViscosity");
+      fprintf(fileLogExc,format,"print","dViscosity");
     }
 /*.....................................................................*/
 
@@ -3599,7 +3524,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[12])) 
     {
       opt->tConductivity = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","tConductivity");
+      fprintf(fileLogExc,format,"print","tConductivity");
     }
 /*.....................................................................*/
 
@@ -3607,7 +3532,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[13])) 
     {
       opt->vorticity = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","vorticity");
+      fprintf(fileLogExc,format,"print","vorticity");
     }
 /*.....................................................................*/
 
@@ -3615,7 +3540,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[14])) 
     {
       opt->wallParameters = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","wallParameters");
+      fprintf(fileLogExc,format,"print","wallParameters");
     }
 /*.....................................................................*/
 
@@ -3623,7 +3548,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[15])) 
     {
       opt->stress = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","stress");
+      fprintf(fileLogExc,format,"print","stress");
     }
 /*.....................................................................*/
 
@@ -3631,7 +3556,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[16])) 
     {
       opt->kinetic = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","kinecit");
+      fprintf(fileLogExc,format,"print","kinecit");
     }
 /*.....................................................................*/
 
@@ -3639,7 +3564,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[17])) 
     {
       opt->stressR = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","stressR");
+      fprintf(fileLogExc,format,"print","stressR");
     }
 /*.....................................................................*/
 
@@ -3647,7 +3572,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[18])) 
     {
       opt->cDynamic = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","cDynamic");
+      fprintf(fileLogExc,format,"print","cDynamic");
     }
 /*.....................................................................*/
 
@@ -3655,7 +3580,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[19])) 
     {
       opt->Qcriterion = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","Qcriterion");
+      fprintf(fileLogExc,format,"print","Qcriterion");
     }
 /*.....................................................................*/
 
@@ -3663,7 +3588,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[20])) 
     {
       opt->presTotal = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","presTotal");
+      fprintf(fileLogExc,format,"print","presTotal");
     }
 /*.....................................................................*/
 
@@ -3671,7 +3596,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[21])) 
     {
       opt->kTurb = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","kTurb");
+      fprintf(fileLogExc,format,"print","kTurb");
     }
 /*.....................................................................*/
 
@@ -3679,7 +3604,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word,macro[22])) 
     {
       opt->pKelvin = true;
-      if (!mpiVar.myId) fprintf(fileLogExc,format,"print","pKelvin");
+      fprintf(fileLogExc,format,"print","pKelvin");
     }
 /*.....................................................................*/
 
@@ -3687,7 +3612,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[23])) 
     {
       opt->uD1 = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "uD1");
+      fprintf(fileLogExc, format, "print", "uD1");
     }
 /*.....................................................................*/
 
@@ -3695,7 +3620,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[24])) 
     {
       opt->graduD1 = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "graduD1");
+      fprintf(fileLogExc, format, "print", "graduD1");
     }
 /*.....................................................................*/
 
@@ -3703,7 +3628,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[25]))  
     {
       opt->uT1 = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "uT1");
+      fprintf(fileLogExc, format, "print", "uT1");
     }
 /*.....................................................................*/
 
@@ -3711,7 +3636,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[26])) 
     {
       opt->graduT1 = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "graduT1");
+      fprintf(fileLogExc, format, "print", "graduT1");
     }
 /*.....................................................................*/
 
@@ -3719,7 +3644,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[27]))
     {
       opt->densityD1 = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "densityD1");
+      fprintf(fileLogExc, format, "print", "densityD1");
     }
 /*.....................................................................*/
 
@@ -3727,7 +3652,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[28]))
     {
       opt->coefDiffD1 = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "coefDiffD1");
+      fprintf(fileLogExc, format, "print", "coefDiffD1");
     }
 /*.....................................................................*/
 
@@ -3735,7 +3660,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[29]))
     {
       opt->densityT1 = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "densityT1");
+      fprintf(fileLogExc, format, "print", "densityT1");
     }
 /*.....................................................................*/
 
@@ -3743,7 +3668,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[30]))
     {
       opt->coefDiffT1 = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "coefDiffT1");
+      fprintf(fileLogExc, format, "print", "coefDiffT1");
     }
 /*.....................................................................*/
 
@@ -3751,7 +3676,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[31]))
     {
       opt->zComb = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "zComb");
+      fprintf(fileLogExc, format, "print", "zComb");
     }
 /*.....................................................................*/
 
@@ -3759,7 +3684,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[32]))
     {
       opt->gradZcomb = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "gradZcomb");
+      fprintf(fileLogExc, format, "print", "gradZcomb");
     }
 /*.....................................................................*/
 
@@ -3767,7 +3692,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[33]))
     {
       opt->wk = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "Q");
+      fprintf(fileLogExc, format, "print", "Q");
     }
 /*.....................................................................*/
 
@@ -3775,7 +3700,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[34]))
     {
       opt->yFrac = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "yFrac");
+      fprintf(fileLogExc, format, "print", "yFrac");
     }
 /*.....................................................................*/
 
@@ -3783,7 +3708,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[35]))
     {
       opt->rateHeatComb = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print"
+      fprintf(fileLogExc, format, "print"
                                , "rateHeatCombustion");
     }
 /*.....................................................................*/
@@ -3792,7 +3717,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[36]))
     {
       opt->coefDiffSp = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", "coefDiffSp");
+      fprintf(fileLogExc, format, "print", "coefDiffSp");
     }
 /*.....................................................................*/
 
@@ -3800,7 +3725,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[37]))
     {
       opt->enthalpyk = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", macro[37]);
+      fprintf(fileLogExc, format, "print", macro[37]);
     }
 /*.....................................................................*/
 
@@ -3808,7 +3733,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[38]))
     {
       opt->gradY = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", macro[38]);
+      fprintf(fileLogExc, format, "print", macro[38]);
     }
 /*.....................................................................*/
 
@@ -3816,7 +3741,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[39]))
     {
       opt->tReactor = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", macro[39]);
+      fprintf(fileLogExc, format, "print", macro[39]);
     }
 /*.....................................................................*/
 
@@ -3824,7 +3749,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[40]))
     {
       opt->bVtk = true;
-      if (!mpiVar.myId) fprintf(fileLogExc, format, "print", macro[39]);
+      fprintf(fileLogExc, format, "print", macro[39]);
     }
 /*.....................................................................*/
 
@@ -4228,8 +4153,7 @@ void setMixedModelLes(Turbulence *t       , FILE *file) {
       k++;
       t->typeMixed[FUNMODEL] = SMAGORINSKY;
       fscanf(file,"%lf",&t->cf);  
-      if(!mpiVar.myId) 
-        fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[0],t->cf);    
+      fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[0],t->cf);    
     }
 /*...................................................................*/ 
 
@@ -4237,9 +4161,8 @@ void setMixedModelLes(Turbulence *t       , FILE *file) {
     else if(!strcmp(word,turb[1])){ 
       k++;
       t->typeMixed[FUNMODEL] = WALEMODEL;
-      fscanf(file,"%lf",&t->cf);    
-      if(!mpiVar.myId)         
-        fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[1],t->cf);    
+      fscanf(file,"%lf",&t->cf);        
+      fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[1],t->cf);    
     }
 /*...................................................................*/ 
 
@@ -4248,9 +4171,7 @@ void setMixedModelLes(Turbulence *t       , FILE *file) {
       k++; 
       t->typeMixed[FUNMODEL]  = SIGMAMODEL;
       fscanf(file,"%lf",&t->cf);   
-      if(!mpiVar.myId){ 
-        fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[2],t->cf);
-      }
+      fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[2],t->cf);
     }
 /*...................................................................*/ 
 
@@ -4259,9 +4180,7 @@ void setMixedModelLes(Turbulence *t       , FILE *file) {
       k++;   
       t->typeMixed[ESTMODEL] = BARDINA;
       fscanf(file,"%lf",&t->cs);  
-      if(!mpiVar.myId){ 
-         fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[3],t->cs);
-      }
+      fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[3],t->cs);
     }
 /*...................................................................*/  
 
@@ -4270,9 +4189,7 @@ void setMixedModelLes(Turbulence *t       , FILE *file) {
       k++;  
       t->typeMixed[ESTMODEL] = CLARK;
       fscanf(file,"%lf",&t->cs);  
-      if(!mpiVar.myId){
-        fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[4],t->cs);
-      }
+      fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[4],t->cs);
     } 
 /*...................................................................*/ 
 
@@ -4281,9 +4198,7 @@ void setMixedModelLes(Turbulence *t       , FILE *file) {
       k++;   
       t->typeMixed[ESTMODEL] = BARDINAMOD;
       fscanf(file,"%lf",&t->cs);  
-      if(!mpiVar.myId){ 
-        fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[5],t->cs);
-      }
+      fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[5],t->cs);
     }
 /*...................................................................*/ 
   
@@ -4330,8 +4245,7 @@ void setDynamicModelLes(Turbulence *t       , FILE *file) {
     t->typeLes             = LESFUNCMODEL;
     t->typeMixed[FUNMODEL] = SMAGORINSKY;
     fscanf(file,"%lf",&t->cf);  
-    if(!mpiVar.myId) 
-      fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[0],t->cf);    
+    fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[0],t->cf);    
   }
 /*...................................................................*/ 
 
@@ -4341,8 +4255,7 @@ void setDynamicModelLes(Turbulence *t       , FILE *file) {
     t->typeLes             = LESFUNCMODEL;
     t->typeMixed[FUNMODEL] = SIGMAMODEL;
     fscanf(file,"%lf",&t->cf);  
-    if(!mpiVar.myId) 
-      fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[1],t->cf);    
+    fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[1],t->cf);    
   }
 /*...................................................................*/
 
@@ -4352,8 +4265,7 @@ void setDynamicModelLes(Turbulence *t       , FILE *file) {
     t->typeLes             = LESFUNCMODEL;
     t->typeMixed[FUNMODEL] = WALEMODEL;
     fscanf(file,"%lf",&t->cf);  
-    if(!mpiVar.myId) 
-      fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[2],t->cf);    
+    fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[2],t->cf);    
   }
 /*...................................................................*/ 
 
@@ -4363,8 +4275,7 @@ void setDynamicModelLes(Turbulence *t       , FILE *file) {
     t->typeLes             = LESFUNCMODEL;
     t->typeMixed[FUNMODEL] = VREMAN;
     fscanf(file,"%lf",&t->cf);  
-    if(!mpiVar.myId) 
-      fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[3],t->cf);    
+    fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[3],t->cf);    
   }
 /*...................................................................*/ 
 }
@@ -4403,8 +4314,7 @@ void setEdc(Edc *e       , FILE *file)
   { 
     e->type = PANJWANI_EDC;
     fscanf(file,"%lf %lf",&e->cGamma,&e->cTau);  
-    if(!mpiVar.myId) 
-      fprintf(fileLogExc,"%-20s: cGamma = %lf  cTau = %lf\n"
+    fprintf(fileLogExc,"%-20s: cGamma = %lf  cTau = %lf\n"
                         , edc[0],e->cGamma,e->cTau);    
   }
 /*...................................................................*/ 
@@ -4414,8 +4324,7 @@ void setEdc(Edc *e       , FILE *file)
   { 
     e->type = PANJWANI_CONST_TMIX_EDC;
     fscanf(file,"%lf %lf",&e->cGamma,&e->tMix);  
-    if(!mpiVar.myId) 
-      fprintf(fileLogExc,"%-20s: cGamma = %lf  tMix = %lf\n"
+    fprintf(fileLogExc,"%-20s: cGamma = %lf  tMix = %lf\n"
                         , edc[1],e->cGamma,e->tMix);      
   }
 /*...................................................................*/ 
@@ -4425,8 +4334,7 @@ void setEdc(Edc *e       , FILE *file)
   {
     e->type = FLUENT_EDC;
     fscanf(file,"%lf",&e->cTau);  
-    if(!mpiVar.myId) 
-      fprintf(fileLogExc,"%-20s:  cTau = %lf\n"
+    fprintf(fileLogExc,"%-20s:  cTau = %lf\n"
                         , edc[2], e->cTau);
   }   
 /*...................................................................*/ 
@@ -4436,8 +4344,7 @@ void setEdc(Edc *e       , FILE *file)
   {
     e->type = FLUENT_CONST_TMIX_EDC;
     fscanf(file,"%lf",&e->tMix);  
-    if(!mpiVar.myId) 
-      fprintf(fileLogExc,"%-20s: tMix = %lf\n"
+    fprintf(fileLogExc,"%-20s: tMix = %lf\n"
                         , edc[3],e->tMix);   
   }
 /*...................................................................*/ 
@@ -4447,8 +4354,7 @@ void setEdc(Edc *e       , FILE *file)
   {
     e->type = FDS_EDC;
     fscanf(file,"%lf %lf",&e->cGamma,&e->cTau);   
-    if(!mpiVar.myId) 
-      fprintf(fileLogExc,"%-20s: tc = %lf tf = %lf\n"
+    fprintf(fileLogExc,"%-20s: tc = %lf tf = %lf\n"
                         , edc[3],e->cGamma,e->cTau);   
   }
 /*...................................................................*/ 
@@ -4509,13 +4415,14 @@ void setEdm(Edm *e       , FILE *file)
   }
 /*...................................................................*/
 
-  if(!mpiVar.myId) 
-    if(e->tMixConst)
-      fprintf(fileLogExc,"%-20s: A = %lf  B = %lf tMix = %lf\n"
+/*...*/
+   if(e->tMixConst)
+    fprintf(fileLogExc,"%-20s: A = %lf  B = %lf tMix = %lf\n"
                         , "edm",e->coef[0],e->coef[1],e->coef[2]);
-    else
-      fprintf(fileLogExc,"%-20s: A = %lf  B = %lf\n"
+   else
+    fprintf(fileLogExc,"%-20s: A = %lf  B = %lf\n"
                         , "edm",e->coef[0],e->coef[1]);
+/*...................................................................*/
 }
 /**********************************************************************/
 
@@ -4727,13 +4634,11 @@ void readSetSimple(Memoria *m    , FILE *fileIn
       fprintf(fileLogExc,"PRES-VEL  : SIMPLEC\n");
 
 /*...*/        
-    if(!mpiVar.myId ){ 
-      fprintf(fileLogExc,"Maxit     : %d\n",simple->maxIt);
-      fprintf(fileLogExc,"alphaPres : %lf\n",simple->alphaPres);
-      fprintf(fileLogExc,"alphaVel  : %lf\n",simple->alphaVel);
-      fprintf(fileLogExc,"nNonOrth  : %d\n",simple->nNonOrth);
-      fprintf(fileLogExc,"pSimple   : %d\n",simple->pSimple);
-    }
+    fprintf(fileLogExc,"Maxit     : %d\n",simple->maxIt);
+    fprintf(fileLogExc,"alphaPres : %lf\n",simple->alphaPres);
+    fprintf(fileLogExc,"alphaVel  : %lf\n",simple->alphaVel);
+    fprintf(fileLogExc,"nNonOrth  : %d\n",simple->nNonOrth);
+    fprintf(fileLogExc,"pSimple   : %d\n",simple->pSimple);
   }
 /*...................................................................*/
 
@@ -4813,16 +4718,13 @@ void readSetSimpleComb(Memoria *m    , FILE *fileIn
       fprintf(fileLogExc,"PRES-VEL  : SIMPLEC\n");
 
 /*...*/        
-    if(!mpiVar.myId )
-    { 
-      fprintf(fileLogExc,"%-15s : %d\n","Maxit"       ,simple->maxIt);
-      fprintf(fileLogExc,"%-15s : %lf\n","alphaPres"  ,simple->alphaPres);
-      fprintf(fileLogExc,"%-15s : %lf\n","alphaVel"   ,simple->alphaVel);
-      fprintf(fileLogExc,"%-15s : %lf\n","alphaEnergy",simple->alphaEnergy);
-      fprintf(fileLogExc,"%-15s : %lf\n","alphaComb"  ,simple->alphaComb);
-      fprintf(fileLogExc,"%-15s : %d\n","nNonOrth"    ,simple->nNonOrth);
-      fprintf(fileLogExc,"%-15s : %d\n","pSimple"     ,simple->pSimple);
-    }   
+    fprintf(fileLogExc,"%-15s : %d\n","Maxit"       ,simple->maxIt);
+    fprintf(fileLogExc,"%-15s : %lf\n","alphaPres"  ,simple->alphaPres);
+    fprintf(fileLogExc,"%-15s : %lf\n","alphaVel"   ,simple->alphaVel);
+    fprintf(fileLogExc,"%-15s : %lf\n","alphaEnergy",simple->alphaEnergy);
+    fprintf(fileLogExc,"%-15s : %lf\n","alphaComb"  ,simple->alphaComb);
+    fprintf(fileLogExc,"%-15s : %d\n","nNonOrth"    ,simple->nNonOrth);
+    fprintf(fileLogExc,"%-15s : %d\n","pSimple"     ,simple->pSimple);
   }
 /*...................................................................*/
 
@@ -5008,21 +4910,17 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       HccaAlloc(INT, m, sistEqVel->id
         , mesh->numel
         , "sistVelid", _AD_);
-      if (!mpiVar.myId) 
-      {
-        fprintf(fileLogExc, "%s\n", DIF);
-        fprintf(fileLogExc, "Numerando as equacoes.\n");
-      }
+
+      fprintf(fileLogExc, "%s\n", DIF);
+      fprintf(fileLogExc, "Numerando as equacoes.\n");
+
       tm.numeqVel = getTimeC() - tm.numeqVel;
       sistEqVel->neq = numEqV1(sistEqVel->id, reordMesh->num
-        , mesh->numel);
+                             , mesh->numel);
       tm.numeqVel = getTimeC() - tm.numeqVel;
 
-      if (!mpiVar.myId) 
-      {
-        fprintf(fileLogExc, "Equacoes numeradas.\n");
-        fprintf(fileLogExc, "%s\n", DIF);
-      }
+      fprintf(fileLogExc, "Equacoes numeradas.\n");
+      fprintf(fileLogExc, "%s\n", DIF);
 /*...................................................................*/
 
 /*...*/
@@ -5059,9 +4957,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       strcpy(strAd, "adVel");
       strcpy(strA, "aVel");
 
-      if (!mpiVar.myId) fprintf(fileLogExc, "Vel:\n");
-      if (!mpiVar.myId)
-        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
+      fprintf(fileLogExc, "Vel:\n");
+      fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
 
       tm.dataStructVel = getTimeC() - tm.dataStructVel;
       dataStructSimple(m, sistEqVel->id, reordMesh->num
@@ -5071,7 +4968,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         , strAd, strA, sistEqVel);
       tm.dataStructVel = getTimeC() - tm.dataStructVel;
 
-      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+      fprintf(fileLogExc, "Estrutuda montada.\n");
 /*...................................................................*/
 
 /*... dividindo a matriz*/
@@ -5129,21 +5026,17 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       HccaAlloc(INT, m, sistEqPres->id
         , mesh->numel
         , "sistPresid", _AD_);
-      if (!mpiVar.myId) 
-      {
-        fprintf(fileLogExc, "%s\n", DIF);
-        fprintf(fileLogExc, "Numerando as equacoes.\n");
-      }
+
+      fprintf(fileLogExc, "%s\n", DIF);
+      fprintf(fileLogExc, "Numerando as equacoes.\n");
+
       tm.numeqPres = getTimeC() - tm.numeqPres;
       sistEqPres->neq = numEqV2(sistEqPres->id, reordMesh->num
         , mesh->elm.faceRpres, mesh->elm.adj.nViz
         , mesh->numel, mesh->maxViz);
       tm.numeqPres = getTimeC() - tm.numeqPres;
-      if (!mpiVar.myId) 
-      {
-        fprintf(fileLogExc, "Equacoes numeradas.\n");
-        fprintf(fileLogExc, "%s\n", DIF);
-      }
+      fprintf(fileLogExc, "Equacoes numeradas.\n");
+      fprintf(fileLogExc, "%s\n", DIF);
 /*...................................................................*/
 
 /*...*/
@@ -5178,9 +5071,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       strcpy(strAd, "adPres");
       strcpy(strA, "aPres");
 
-      if (!mpiVar.myId) fprintf(fileLogExc, "Pres:\n");
-      if (!mpiVar.myId)
-        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
+      fprintf(fileLogExc, "Pres:\n");
+      fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
 
       tm.dataStructPres = getTimeC() - tm.dataStructPres;
       dataStruct(m, sistEqPres->id, reordMesh->num, mesh->elm.adj.nelcon
@@ -5188,7 +5080,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         , 1, strIa, strJa
         , strAd, strA, sistEqPres);
       tm.dataStructPres = getTimeC() - tm.dataStructPres;
-      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+      fprintf(fileLogExc, "Estrutuda montada.\n");
 /*...................................................................*/
 
 /*... Openmp(Vel,Pres)*/
@@ -5247,21 +5139,16 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       HccaAlloc(INT, m, sistEqEnergy->id
         , mesh->numel
         , "sistEnergyId", _AD_);
-      if (!mpiVar.myId) 
-      {
-        fprintf(fileLogExc, "%s\n", DIF);
-        fprintf(fileLogExc, "Numerando as equacoes.\n");
-      }
+
+      fprintf(fileLogExc, "%s\n", DIF);
+      fprintf(fileLogExc, "Numerando as equacoes.\n");
       tm.numeqEnergy = getTimeC() - tm.numeqEnergy;
       sistEqEnergy->neq = numEqV1(sistEqEnergy->id, reordMesh->num
         , mesh->numel);
       tm.numeqEnergy = getTimeC() - tm.numeqEnergy;
 
-      if (!mpiVar.myId) 
-      {
-        fprintf(fileLogExc, "Equacoes numeradas.\n");
-        fprintf(fileLogExc, "%s\n", DIF);
-      }
+      fprintf(fileLogExc, "Equacoes numeradas.\n");
+      fprintf(fileLogExc, "%s\n", DIF);
 /*...................................................................*/
 
 /*...*/
@@ -5296,11 +5183,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       strcpy(strAd, "adEnergy");
       strcpy(strA, "aEnergy");
 
-      if (!mpiVar.myId) 
-      {
-        fprintf(fileLogExc, "Energy:\n");
-        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
-      }
+      fprintf(fileLogExc, "Energy:\n");
+      fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
 
       tm.dataStructEnergy = getTimeC() - tm.dataStructEnergy;
       //        dataStructSimple(&m,sistEqEnergy->id ,reordMesh->num
@@ -5315,7 +5199,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         , strAd, strA, sistEqEnergy);
       tm.dataStructEnergy = getTimeC() - tm.dataStructEnergy;
 
-      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+      fprintf(fileLogExc, "Estrutuda montada.\n");
 /*...................................................................*/
 
 /*... dividindo a matriz*/
@@ -5375,21 +5259,17 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       HccaAlloc(INT, m, sistEqKturb->id
         , mesh->numel
         , "sistKturbId", _AD_);
-      if (!mpiVar.myId) 
-      {
-        fprintf(fileLogExc, "%s\n", DIF);
-        fprintf(fileLogExc, "Numerando as equacoes.\n");
-      }
+
+      fprintf(fileLogExc, "%s\n", DIF);
+      fprintf(fileLogExc, "Numerando as equacoes.\n");
+
       tm.turbulence = getTimeC() - tm.turbulence;
       sistEqKturb->neq = numEqV1(sistEqKturb->id, reordMesh->num
         , mesh->numel);
       tm.turbulence = getTimeC() - tm.turbulence;
 
-      if (!mpiVar.myId)
-      {
-        fprintf(fileLogExc, "Equacoes numeradas.\n");
-        fprintf(fileLogExc, "%s\n", DIF);
-      }
+      fprintf(fileLogExc, "Equacoes numeradas.\n");
+      fprintf(fileLogExc, "%s\n", DIF);
 /*...................................................................*/
 
 /*...*/
@@ -5424,11 +5304,8 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       strcpy(strAd, "adKturb");
       strcpy(strA, "akTurb");
 
-      if (!mpiVar.myId) 
-      {
-        fprintf(fileLogExc, "Kturb:\n");
-        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
-      }
+      fprintf(fileLogExc, "Kturb:\n");
+      fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
 
       tm.turbulence = getTimeC() - tm.turbulence;
 //        dataStructSimple(&m,sistEqEnergy->id ,reordMesh->num
@@ -5443,7 +5320,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         , strAd, strA, sistEqKturb);
       tm.turbulence = getTimeC() - tm.turbulence;
 
-      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+      fprintf(fileLogExc, "Estrutuda montada.\n");
 /*...................................................................*/
 
 /*... dividindo a matriz*/
@@ -5584,7 +5461,7 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
                 , Solv *solvEnergy, SistEq* sistEqEnergy, bool *fSolvEnergy
                 , Solv *solvKturb , SistEq* sistEqKturb , bool *fSolvKturb
                 , Solv *solvComb  , SistEq* sistEqComb  , bool *fSolvComb
-                , short const nComb
+                , PartMesh *pMesh , short const nComb
                 , char* auxName   , char* preName       , char* nameOut
                 , FILE *fileIn    , FileOpt *opt)
 {
@@ -5648,32 +5525,28 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       HccaAlloc(INT, m, sistEqVel->id
         , mesh->numel
         , "sistVelid", _AD_);
-      if (!mpiVar.myId)
-      {
-        fprintf(fileLogExc, "%s\n", DIF);
-        fprintf(fileLogExc, "Numerando as equacoes.\n");
-      }
+
+      fprintf(fileLogExc, "%s\n", DIF);
+      fprintf(fileLogExc, "Numerando as equacoes.\n");
+
       tm.numeqVel = getTimeC() - tm.numeqVel;
       sistEqVel->neq = numEqV1(sistEqVel->id, reordMesh->num
         , mesh->numel);
       tm.numeqVel = getTimeC() - tm.numeqVel;
 
-      if (!mpiVar.myId)
-      {
-        fprintf(fileLogExc, "Equacoes numeradas.\n");
-        fprintf(fileLogExc, "%s\n", DIF);
-      }
+      fprintf(fileLogExc, "Equacoes numeradas.\n");
+      fprintf(fileLogExc, "%s\n", DIF);
 /*...................................................................*/
 
 /*...*/
       if (mpiVar.nPrcs > 1)
       {
-        //          tm.numeqPres = getTimeC() - tm.numeqPres;
-        //      sistEqT1->neqNov = countEq(reordMesh->num
-        //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
-        //                          ,mesh->numelNov     ,mesh->maxViz
-        //                          ,mesh->ndfT[0]);
-        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+        tm.numeqVel = getTimeC() - tm.numeqVel;
+        sistEqVel->neqNov = countEq(reordMesh->num
+                                  ,mesh->elm.faceRvel ,mesh->elm.adj.nViz
+                                  ,mesh->numelNov     ,mesh->maxViz
+                                  ,1);
+        tm.numeqVel = getTimeC() - tm.numeqVel;
       }
       else
         sistEqVel->neqNov = sistEqVel->neq;
@@ -5699,9 +5572,8 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       strcpy(strAd, "adVel");
       strcpy(strA, "aVel");
 
-      if (!mpiVar.myId) fprintf(fileLogExc, "Vel:\n");
-      if (!mpiVar.myId)
-        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
+      fprintf(fileLogExc, "Vel:\n");
+      fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
 
       tm.dataStructVel = getTimeC() - tm.dataStructVel;
       dataStructSimple(m, sistEqVel->id, reordMesh->num
@@ -5711,7 +5583,7 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         , strAd, strA, sistEqVel);
       tm.dataStructVel = getTimeC() - tm.dataStructVel;
 
-      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+      fprintf(fileLogExc, "Estrutuda montada.\n");
 /*...................................................................*/
 
 /*... dividindo a matriz*/
@@ -5724,6 +5596,15 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         strcpy(str4, "thHeightVel");
         pMatrixSolverOmp(m, sistEqVel, str1, str2, str3, str4);
       }
+/*...................................................................*/
+
+/*... mapa de equacoes para comunicacao*/
+      if( mpiVar.nPrcs > 1)
+        front(m           ,pMesh
+             ,sistEqVel   
+             ,"fMapNeqVel"      ,"iaSendsNeqVel"
+             ,"iaRcvsNeqVel"    ,"xBufferMpiNeqVel"
+             ,"nVizPartNeqVel"  ,1);      
 /*...................................................................*/
     }
 /*...................................................................*/
@@ -5769,32 +5650,29 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       HccaAlloc(INT, m, sistEqPres->id
         , mesh->numel
         , "sistPresid", _AD_);
-      if (!mpiVar.myId)
-      {
-        fprintf(fileLogExc, "%s\n", DIF);
-        fprintf(fileLogExc, "Numerando as equacoes.\n");
-      }
+
+      fprintf(fileLogExc, "%s\n", DIF);
+      fprintf(fileLogExc, "Numerando as equacoes.\n");
+
       tm.numeqPres = getTimeC() - tm.numeqPres;
       sistEqPres->neq = numEqV2(sistEqPres->id, reordMesh->num
         , mesh->elm.faceRpres, mesh->elm.adj.nViz
         , mesh->numel, mesh->maxViz);
       tm.numeqPres = getTimeC() - tm.numeqPres;
-      if (!mpiVar.myId)
-      {
-        fprintf(fileLogExc, "Equacoes numeradas.\n");
-        fprintf(fileLogExc, "%s\n", DIF);
-      }
+
+      fprintf(fileLogExc, "Equacoes numeradas.\n");
+      fprintf(fileLogExc, "%s\n", DIF);
 /*...................................................................*/
 
 /*...*/
       if (mpiVar.nPrcs > 1)
       {
-        //          tm.numeqPres = getTimeC() - tm.numeqPres;
-        //      sistEqT1->neqNov = countEq(reordMesh->num
-        //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
-        //                          ,mesh->numelNov     ,mesh->maxViz
-        //                          ,mesh->ndfT[0]);
-        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+        tm.numeqPres = getTimeC() - tm.numeqPres;
+        sistEqPres->neqNov = countEq(reordMesh->num
+                                  ,mesh->elm.faceRpres,mesh->elm.adj.nViz
+                                  ,mesh->numelNov     ,mesh->maxViz
+                                  ,1);
+        tm.numeqPres = getTimeC() - tm.numeqPres;
       }
       else
         sistEqPres->neqNov = sistEqPres->neq;
@@ -5818,9 +5696,8 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       strcpy(strAd, "adPres");
       strcpy(strA, "aPres");
 
-      if (!mpiVar.myId) fprintf(fileLogExc, "Pres:\n");
-      if (!mpiVar.myId)
-        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
+      fprintf(fileLogExc, "Pres:\n");
+      fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
 
       tm.dataStructPres = getTimeC() - tm.dataStructPres;
       dataStruct(m, sistEqPres->id, reordMesh->num, mesh->elm.adj.nelcon
@@ -5828,7 +5705,7 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         , 1, strIa, strJa
         , strAd, strA, sistEqPres);
       tm.dataStructPres = getTimeC() - tm.dataStructPres;
-      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+      fprintf(fileLogExc, "Estrutuda montada.\n");
 /*...................................................................*/
 
 /*... Openmp(Vel,Pres)*/
@@ -5841,6 +5718,15 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         strcpy(str4, "thHeightPres");
         pMatrixSolverOmp(m, sistEqPres, str1, str2, str3, str4);
       }
+/*...................................................................*/
+
+/*... mapa de equacoes para comunicacao*/
+      if( mpiVar.nPrcs > 1)
+        front(m           ,pMesh
+             ,sistEqPres  
+             ,"fMapNeqP"    ,"iaSendsNeqP"
+             ,"iaRcvsNeqP"  ,"xBufferMpiNeqP"
+             ,"nVizPartNeqP"  ,1);    
 /*...................................................................*/
     }
 /*...................................................................*/
@@ -5887,32 +5773,28 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       HccaAlloc(INT, m, sistEqEnergy->id
         , mesh->numel
         , "sistEnergyId", _AD_);
-      if (!mpiVar.myId)
-      {
-        fprintf(fileLogExc, "%s\n", DIF);
-        fprintf(fileLogExc, "Numerando as equacoes.\n");
-      }
+
+      fprintf(fileLogExc, "%s\n", DIF);
+      fprintf(fileLogExc, "Numerando as equacoes.\n");
+
       tm.numeqEnergy = getTimeC() - tm.numeqEnergy;
       sistEqEnergy->neq = numEqV1(sistEqEnergy->id, reordMesh->num
         , mesh->numel);
       tm.numeqEnergy = getTimeC() - tm.numeqEnergy;
 
-      if (!mpiVar.myId)
-      {
-        fprintf(fileLogExc, "Equacoes numeradas.\n");
-        fprintf(fileLogExc, "%s\n", DIF);
-      }
+      fprintf(fileLogExc, "Equacoes numeradas.\n");
+      fprintf(fileLogExc, "%s\n", DIF);
 /*...................................................................*/
 
 /*...*/
       if (mpiVar.nPrcs > 1)
       {
-        //          tm.numeqPres = getTimeC() - tm.numeqPres;
-        //      sistEqT1->neqNov = countEq(reordMesh->num
-        //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
-        //                          ,mesh->numelNov     ,mesh->maxViz
-        //                          ,mesh->ndfT[0]);
-        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+        tm.numeqEnergy = getTimeC() - tm.numeqEnergy;
+        sistEqEnergy->neqNov = countEq(reordMesh->num
+                                  ,mesh->elm.faceRenergy,mesh->elm.adj.nViz
+                                  ,mesh->numelNov       ,mesh->maxViz
+                                  ,1);
+        tm.numeqEnergy = getTimeC() - tm.numeqEnergy;
       }
       else
         sistEqEnergy->neqNov = sistEqEnergy->neq;
@@ -5936,26 +5818,18 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       strcpy(strAd, "adEnergy");
       strcpy(strA, "aEnergy");
 
-      if (!mpiVar.myId)
-      {
-        fprintf(fileLogExc, "Energy:\n");
-        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
-      }
+      fprintf(fileLogExc, "Energy:\n");
+      fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
 
       tm.dataStructEnergy = getTimeC() - tm.dataStructEnergy;
-//        dataStructSimple(&m,sistEqEnergy->id ,reordMesh->num
-//                        ,mesh->elm.adj.nelcon
-//                        ,mesh->elm.adj.nViz  ,mesh->numelNov,mesh->maxViz  
-//                       ,1                   ,strIa         ,strJa
-//                       ,strAd               ,strA          ,sistEqEnergy);
       dataStruct(m, sistEqEnergy->id, reordMesh->num
-        , mesh->elm.adj.nelcon
-        , mesh->elm.adj.nViz, mesh->numelNov, mesh->maxViz
-        , 1, strIa, strJa
-        , strAd, strA, sistEqEnergy);
+                , mesh->elm.adj.nelcon
+                , mesh->elm.adj.nViz, mesh->numelNov, mesh->maxViz
+                , 1, strIa, strJa
+                , strAd, strA, sistEqEnergy);
       tm.dataStructEnergy = getTimeC() - tm.dataStructEnergy;
 
-      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+      fprintf(fileLogExc, "Estrutuda montada.\n");
 /*...................................................................*/
 
 /*... dividindo a matriz*/
@@ -5969,6 +5843,16 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         pMatrixSolverOmp(m, sistEqEnergy, str1, str2, str3, str4);
       }
 /*...................................................................*/
+
+/*... mapa de equacoes para comunicacao*/
+      if( mpiVar.nPrcs > 1)
+        front(m           ,pMesh
+             ,sistEqEnergy
+             ,"fMapNeqE"    ,"iaSendsNeqE"
+             ,"iaRcvsNeqE"  ,"xBufferMpiNeqE"
+             ,"nVizPartNeqE"  ,1);   
+/*...................................................................*/
+
     }
 /*...................................................................*/
 
@@ -6015,32 +5899,26 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       HccaAlloc(INT, m, sistEqKturb->id
         , mesh->numel
         , "sistKturbId", _AD_);
-      if (!mpiVar.myId)
-      {
-        fprintf(fileLogExc, "%s\n", DIF);
-        fprintf(fileLogExc, "Numerando as equacoes.\n");
-      }
+
+      fprintf(fileLogExc, "%s\n", DIF);
+      fprintf(fileLogExc, "Numerando as equacoes.\n");
+
       tm.turbulence = getTimeC() - tm.turbulence;
       sistEqKturb->neq = numEqV1(sistEqKturb->id, reordMesh->num
         , mesh->numel);
       tm.turbulence = getTimeC() - tm.turbulence;
 
-      if (!mpiVar.myId)
-      {
-        fprintf(fileLogExc, "Equacoes numeradas.\n");
-        fprintf(fileLogExc, "%s\n", DIF);
-      }
 /*...................................................................*/
 
 /*...*/
       if (mpiVar.nPrcs > 1)
       {
-        //          tm.numeqPres = getTimeC() - tm.numeqPres;
-        //      sistEqT1->neqNov = countEq(reordMesh->num
-        //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
-        //                          ,mesh->numelNov     ,mesh->maxViz
-        //                          ,mesh->ndfT[0]);
-        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+        tm.turbulence = getTimeC() - tm.turbulence;
+        sistEqKturb->neqNov = countEq(reordMesh->num
+                                  ,mesh->elm.faceReKturb  ,mesh->elm.adj.nViz
+                                  ,mesh->numelNov         ,mesh->maxViz
+                                  ,1);
+        tm.turbulence = getTimeC() - tm.turbulence;
       }
       else
         sistEqKturb->neqNov = sistEqKturb->neq;
@@ -6064,26 +5942,15 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       strcpy(strAd, "adKturb");
       strcpy(strA, "akTurb");
 
-      if (!mpiVar.myId)
-      {
-        fprintf(fileLogExc, "Kturb:\n");
-        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
-      }
-
       tm.turbulence = getTimeC() - tm.turbulence;
-      //        dataStructSimple(&m,sistEqEnergy->id ,reordMesh->num
-      //                        ,mesh->elm.adj.nelcon
-      //                        ,mesh->elm.adj.nViz  ,mesh->numelNov,mesh->maxViz  
-      //                       ,1                   ,strIa         ,strJa
-      //                       ,strAd               ,strA          ,sistEqEnergy);
-      dataStruct(m, sistEqKturb->id, reordMesh->num
+         dataStruct(m, sistEqKturb->id, reordMesh->num
         , mesh->elm.adj.nelcon
         , mesh->elm.adj.nViz, mesh->numelNov, mesh->maxViz
         , 1, strIa, strJa
         , strAd, strA, sistEqKturb);
       tm.turbulence = getTimeC() - tm.turbulence;
 
-      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+      fprintf(fileLogExc, "Estrutuda montada.\n");
 /*...................................................................*/
 
 /*... dividindo a matriz*/
@@ -6097,6 +5964,16 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         pMatrixSolverOmp(m, sistEqKturb, str1, str2, str3, str4);
       }
 /*...................................................................*/
+
+/*... mapa de equacoes para comunicacao*/
+      if( mpiVar.nPrcs > 1)
+        front(m                 ,pMesh
+             ,sistEqKturb   
+             ,"fMapNeqKt"      ,"iaSendsNeqKt"
+             ,"iaRcvsNeqKt"    ,"xBufferMpiNeqKt"
+             ,"nVizPartNeqKt"  ,1);      
+/*...................................................................*/
+
     }
 /*...................................................................*/
 
@@ -6140,34 +6017,24 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       HccaAlloc(INT, m, sistEqComb->id
               , mesh->numel
               , "sistCombId", _AD_);
-      if (!mpiVar.myId) 
-      {
-        fprintf(fileLogExc, "%s\n", DIF);
-        fprintf(fileLogExc, "Numerando as equacoes.\n");
-      }
+
       tm.numeqComb = getTimeC() - tm.numeqComb;
 
       sistEqComb->neq = numEqV1(sistEqComb->id, reordMesh->num
                               , mesh->numel);    
 
       tm.numeqComb = getTimeC() - tm.numeqComb;
-
-      if (!mpiVar.myId) 
-      {
-        fprintf(fileLogExc, "Equacoes numeradas.\n");
-        fprintf(fileLogExc, "%s\n", DIF);
-      }
 /*...................................................................*/
 
 /*...*/
       if (mpiVar.nPrcs > 1) 
       {
-//          tm.numeqPres = getTimeC() - tm.numeqPres;
-//      sistEqT1->neqNov = countEq(reordMesh->num
-//                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
-//                          ,mesh->numelNov     ,mesh->maxViz
-//                          ,mesh->ndfT[0]);
-//          tm.numeqPres = getTimeC() - tm.numeqPres;
+        tm.numeqComb = getTimeC() - tm.numeqComb;
+        sistEqComb->neqNov = countEq(reordMesh->num
+                            ,mesh->elm.faceResZcomb  ,mesh->elm.adj.nViz
+                            ,mesh->numelNov          ,mesh->maxViz
+                            ,1            );
+        tm.numeqComb = getTimeC() - tm.numeqComb;
       }
       else
         sistEqComb->neqNov = sistEqComb->neq;
@@ -6191,9 +6058,8 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       strcpy(strAd, "adComb");
       strcpy(strA , "aComb");
 
-      if (!mpiVar.myId) fprintf(fileLogExc, "Combustion:\n");
-      if (!mpiVar.myId)
-        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
+      fprintf(fileLogExc, "Combustion:\n");
+      fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
 
       tm.dataStructComb = getTimeC() - tm.dataStructComb;
       dataStructBlock(m                , sistEqComb->id   
@@ -6206,7 +6072,7 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
                     , sistEqComb);
       tm.dataStructComb = getTimeC() - tm.dataStructComb;
 
-      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+      fprintf(fileLogExc, "Estrutuda montada.\n");
 /*...................................................................*/
 
 /*... dividindo a matriz*/
@@ -6220,6 +6086,17 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         pMatrixSolverOmp(m, sistEqComb, str1, str2, str3, str4);
       }
 /*...................................................................*/
+
+/*... mapa de equacoes para comunicacao*/
+/*... mapa de equacoes para comunicacao*/
+      if( mpiVar.nPrcs > 1)
+        front(m                 ,pMesh
+             ,sistEqComb   
+             ,"fMapNeqComb"      ,"iaSendsNeqComb"
+             ,"iaRcvsNeqComb"    ,"xBufferMpiNeqComb"
+             ,"nVizPartNeqComb"  ,1);        
+/*...................................................................*/
+
     }
 /*...................................................................*/
 
@@ -6303,12 +6180,6 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
   }
 /*...................................................................*/
 
-/*... mapa de equacoes para comunicacao*/
-  //    if( mpiVar.nPrcs > 1) {    
-  //      front(&m,pMesh,sistEqT1,mesh->ndfT[0]);  
-  //    } 
-/*...................................................................*/
-
 /*... informacao da memoria total usada*/
   if (!mpiVar.myId)
   {
@@ -6355,11 +6226,9 @@ void readNlIt(Scheme *sc, FILE *fileIn)
       fscanf(fileIn, "%d" ,&sc->nlD1.maxIt);
       fscanf(fileIn, "%lf",&sc->nlD1.tol);
       fscanf(fileIn, "%d" ,&sc->nlD1.pPlot);
-      if (!mpiVar.myId) {
-        fprintf(fileLogExc, "MaxIt: %d\n", sc->nlD1.maxIt);
-        fprintf(fileLogExc, "Tol  : %e\n", sc->nlD1.tol);
-        fprintf(fileLogExc, "pPlot: %d\n", sc->nlD1.pPlot);
-      }
+      fprintf(fileLogExc, "MaxIt: %d\n", sc->nlD1.maxIt);
+      fprintf(fileLogExc, "Tol  : %e\n", sc->nlD1.tol);
+      fprintf(fileLogExc, "pPlot: %d\n", sc->nlD1.pPlot);
     }
 /*...................................................................*/
 
@@ -6370,11 +6239,9 @@ void readNlIt(Scheme *sc, FILE *fileIn)
       fscanf(fileIn, "%d" , &sc->nlT1.maxIt);
       fscanf(fileIn, "%lf", &sc->nlT1.tol);
       fscanf(fileIn, "%d" , &sc->nlT1.pPlot);
-      if (!mpiVar.myId) {
-        fprintf(fileLogExc, "MaxIt: %d\n", sc->nlT1.maxIt);
-        fprintf(fileLogExc, "Tol  : %e\n", sc->nlT1.tol);
-        fprintf(fileLogExc, "pPlot: %d\n", sc->nlT1.pPlot);
-      }
+      fprintf(fileLogExc, "MaxIt: %d\n", sc->nlT1.maxIt);
+      fprintf(fileLogExc, "Tol  : %e\n", sc->nlT1.tol);
+      fprintf(fileLogExc, "pPlot: %d\n", sc->nlT1.pPlot);
     }
 /*...................................................................*/
 
@@ -6464,11 +6331,8 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
 /*... numeracao das equacoes das velocidades*/
       HccaAlloc(INT, m, sistEqD1->id, mesh->numel*mesh->ndfD[0]
                ,"sistD1id", _AD_);
-      if (!mpiVar.myId) 
-      {
-        fprintf(fileLogExc, "%s\n", DIF);
-        fprintf(fileLogExc, "Numerando as equacoes.\n");
-      }
+      fprintf(fileLogExc, "%s\n", DIF);
+      fprintf(fileLogExc, "Numerando as equacoes.\n");
       tm.numeqD1 = getTimeC() - tm.numeqD1;
       sistEqD1->neq = numeq(sistEqD1->id     , reordMesh->num
                           , mesh->elm.faceRd1, mesh->elm.adj.nViz
@@ -6476,11 +6340,8 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
                           , mesh->ndfD[0]);
       tm.numeqD1 = getTimeC() - tm.numeqD1;
 
-      if (!mpiVar.myId) 
-      {
-        fprintf(fileLogExc, "Equacoes numeradas.\n");
-        fprintf(fileLogExc, "%s\n", DIF);
-      }
+      fprintf(fileLogExc, "Equacoes numeradas.\n");
+      fprintf(fileLogExc, "%s\n", DIF);
 /*...................................................................*/
 
 /*...*/
@@ -6515,9 +6376,8 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
       strcpy(strAd, "adD1");
       strcpy(strA , "aD1");
 
-      if (!mpiVar.myId) fprintf(fileLogExc, "D1:\n");
-      if (!mpiVar.myId)
-        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
+      fprintf(fileLogExc, "D1:\n");
+      fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
 
       tm.dataStructD1 = getTimeC() - tm.dataStructD1;
       dataStruct(m, sistEqD1->id, reordMesh->num, mesh->elm.adj.nelcon
@@ -6526,7 +6386,7 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
                , strAd, strA, sistEqD1);
       tm.dataStructD1 = getTimeC() - tm.dataStructD1;
 
-      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+      fprintf(fileLogExc, "Estrutuda montada.\n");
 /*...................................................................*/
 
 /*... dividindo a matriz*/
@@ -6669,11 +6529,10 @@ void readSolvTrans(Memoria *m  , Mesh *mesh      , Reord *reordMesh
 /*... numeracao das equacoes das velocidades*/
       HccaAlloc(INT, m, sistEqT1->id, mesh->numel*mesh->ndfT[0]
               , "sistT1id", _AD_);
-      if (!mpiVar.myId)
-      {
-        fprintf(fileLogExc, "%s\n", DIF);
-        fprintf(fileLogExc, "Numerando as equacoes.\n");
-      }
+
+      fprintf(fileLogExc, "%s\n", DIF);
+      fprintf(fileLogExc, "Numerando as equacoes.\n");
+
       tm.numeqT1 = getTimeC() - tm.numeqT1;
       sistEqT1->neq = numeq(sistEqT1->id     , reordMesh->num
                           , mesh->elm.faceRt1, mesh->elm.adj.nViz
@@ -6681,11 +6540,8 @@ void readSolvTrans(Memoria *m  , Mesh *mesh      , Reord *reordMesh
                           , mesh->ndfT[0]);
       tm.numeqT1 = getTimeC() - tm.numeqT1;
 
-      if (!mpiVar.myId)
-      {
-        fprintf(fileLogExc, "Equacoes numeradas.\n");
-        fprintf(fileLogExc, "%s\n", DIF);
-      }
+      fprintf(fileLogExc, "Equacoes numeradas.\n");
+      fprintf(fileLogExc, "%s\n", DIF);
 /*...................................................................*/
 
 /*...*/
@@ -6720,9 +6576,8 @@ void readSolvTrans(Memoria *m  , Mesh *mesh      , Reord *reordMesh
       strcpy(strAd, "adT1");
       strcpy(strA , "aT1");
 
-      if (!mpiVar.myId) fprintf(fileLogExc, "T1:\n");
-      if (!mpiVar.myId)
-        fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
+      fprintf(fileLogExc, "T1:\n");
+      fprintf(fileLogExc, "Montagem da estrura de dados esparsa.\n");
 
       tm.dataStructT1 = getTimeC() - tm.dataStructT1;
       dataStruct(m               
@@ -6732,7 +6587,7 @@ void readSolvTrans(Memoria *m  , Mesh *mesh      , Reord *reordMesh
                , strAd             , strA          , sistEqT1);
       tm.dataStructT1 = getTimeC() - tm.dataStructT1;
 
-      if (!mpiVar.myId) fprintf(fileLogExc, "Estrutuda montada.\n");
+      fprintf(fileLogExc, "Estrutuda montada.\n");
 /*...................................................................*/
 
 /*... dividindo a matriz*/
@@ -6822,8 +6677,7 @@ void readMean(Memoria *m, FILE *fileIn
 /*...*/
   media->t0 = 0.e0;
   fscanf(fileIn,"%d %d",&media->startSample,&media->endSample);
-  if(!mpiVar.myId) 
-    fprintf(fileLogExc,"%-20s: (%d-%d)\n", "Samples"
+  fprintf(fileLogExc,"%-20s: (%d-%d)\n", "Samples"
                                        , media->startSample 
                                        , media->endSample);    
 /*...................................................................*/
@@ -6838,8 +6692,7 @@ void readMean(Memoria *m, FILE *fileIn
     readMacro(fileIn, word, false);
 /*... velocidade*/
     if (!strcmp(word, "Vel") || !strcmp(word, "vel")) {
-      if(!mpiVar.myId)
-        fprintf(fileLogExc,"%-20s: enable\n", word);
+      fprintf(fileLogExc,"%-20s: enable\n", word);
       media->fVel = true;
       nTerm--;
 /*... media das velcidades*/
@@ -6888,8 +6741,7 @@ void setReGrad(short *rcGrad, FILE *file)
   if(!strcmp(word, macro[0])) 
   {
     *rcGrad = RCGRADGAUSSC;
-    if (!mpiVar.myId)
-      fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "GreenGaussCell");
+    fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "GreenGaussCell");
   }
 /*.....................................................................*/
 
@@ -6897,8 +6749,7 @@ void setReGrad(short *rcGrad, FILE *file)
   else if(!strcmp(word, macro[1]))
   {
     *rcGrad = RCGRADGAUSSN;
-    if (!mpiVar.myId)
-      fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "GreenGaussNode");
+    fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "GreenGaussNode");
   }
 /*.....................................................................*/
 
@@ -6906,8 +6757,7 @@ void setReGrad(short *rcGrad, FILE *file)
   else if(!strcmp(word, macro[2]))
   {
     *rcGrad = RCLSQUARE;
-    if (!mpiVar.myId)
-      fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "LeatSquare");
+    fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "LeatSquare");
   }
 /*.....................................................................*/
 
@@ -6915,8 +6765,7 @@ void setReGrad(short *rcGrad, FILE *file)
   else if(!strcmp(word, macro[3]))
   {
     *rcGrad = RCLSQUAREQR;
-    if (!mpiVar.myId)
-      fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "LeatSquareQR");
+    fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "LeatSquareQR");
   }
 /*.....................................................................*/
   
@@ -6970,8 +6819,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
       {
         fscanf(fileIn, "%d", &aux);
         type[iMat] = (short) aux;
-        if (!mpiVar.myId)
-          fprintf(fileLogExc, "%-20s: %d\n",macro[j-1], type[iMat]);
+        fprintf(fileLogExc, "%-20s: %d\n",macro[j-1], type[iMat]);
       }
 /*.....................................................................*/
 
@@ -6980,8 +6828,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
       {
         fscanf(fileIn,"%lf",&v);
         prop[DENSITY] = v;
-        if (!mpiVar.myId)
-          fprintf(fileLogExc, "%-20s: %lf\n", macro[j-1], prop[DENSITY]);
+        fprintf(fileLogExc, "%-20s: %lf\n", macro[j-1], prop[DENSITY]);
       }
 /*.....................................................................*/
 
@@ -6990,8 +6837,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
       {
         fscanf(fileIn, "%lf", &v);
         prop[COEFDIF] = v;
-        if (!mpiVar.myId)
-          fprintf(fileLogExc, "%-20s: %lf\n", macro[j-1], prop[COEFDIF]);
+        fprintf(fileLogExc, "%-20s: %lf\n", macro[j-1], prop[COEFDIF]);
       }
 /*.....................................................................*/
 
@@ -7000,8 +6846,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
       {
         fscanf(fileIn, "%lf", &v);
         prop[DENSITY] = v;
-        if (!mpiVar.myId)
-          fprintf(fileLogExc, "%-20s: %lf\n", macro[j - 1], prop[DENSITY]);
+        fprintf(fileLogExc, "%-20s: %lf\n", macro[j - 1], prop[DENSITY]);
       }
 /*.....................................................................*/
 
@@ -7010,8 +6855,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
       {
         fscanf(fileIn, "%lf", &v);
         prop[COEFDIF] = v;
-        if (!mpiVar.myId)
-          fprintf(fileLogExc, "%-20s: %lf\n", macro[j - 1], prop[COEFDIF]);
+        fprintf(fileLogExc, "%-20s: %lf\n", macro[j - 1], prop[COEFDIF]);
       }
 /*.....................................................................*/
 
@@ -7431,20 +7275,16 @@ void readResidual(Simple *sc, FILE *file)
         readMacroV2(file, word, false, true);
         typeResidual(word,&sc->vel);
 
-        if (!mpiVar.myId)
-        {
-          fprintf(fileLogExc, "%-20s:\n"   ,"Vel");
-          fprintf(fileLogExc, "%-20s: %e\n","tolU1",sc->vel.tol[0]);
-          fprintf(fileLogExc, "%-20s: %e\n","tolU2",sc->vel.tol[1]);
-          fprintf(fileLogExc, "%-20s: %e\n","tolU3",sc->vel.tol[2]);
-          fprintf(fileLogExc, "%-20s: %hd\n","k"    ,sc->vel.k);
-          if(sc->vel.fRel)
-            fprintf(fileLogExc, "%-20s: %s\n","fRelative","true"); 
-          else
-            fprintf(fileLogExc, "%-20s: %s\n","fRelative","false");
-          fprintf(fileLogExc, "%-20s: %s\n\n","type"       ,sc->vel.name);
-    
-        }
+        fprintf(fileLogExc, "%-20s:\n"   ,"Vel");
+        fprintf(fileLogExc, "%-20s: %e\n","tolU1",sc->vel.tol[0]);
+        fprintf(fileLogExc, "%-20s: %e\n","tolU2",sc->vel.tol[1]);
+        fprintf(fileLogExc, "%-20s: %e\n","tolU3",sc->vel.tol[2]);
+        fprintf(fileLogExc, "%-20s: %hd\n","k"    ,sc->vel.k);
+        if(sc->vel.fRel)
+          fprintf(fileLogExc, "%-20s: %s\n","fRelative","true"); 
+        else
+          fprintf(fileLogExc, "%-20s: %s\n","fRelative","false");
+        fprintf(fileLogExc, "%-20s: %s\n\n","type"       ,sc->vel.name);
       }
 /*.....................................................................*/
 
@@ -7458,18 +7298,14 @@ void readResidual(Simple *sc, FILE *file)
         readMacroV2(file, word, false, true);
         typeResidual(word,&sc->mass);
 
-        if (!mpiVar.myId)
-        {
-          fprintf(fileLogExc, "%-20s:\n"   ,"Mass");
-          fprintf(fileLogExc, "%-20s: %e\n","tolMass",sc->mass.tol[0]);
-          fprintf(fileLogExc, "%-20s: %hd\n","k"      ,sc->mass.k);
-          if(sc->vel.fRel)
-            fprintf(fileLogExc, "%-20s: %s\n","fRelative","true"); 
-          else
-            fprintf(fileLogExc, "%-20s: %s\n","fRelative","false");
-          fprintf(fileLogExc, "%-20s: %s\n\n","type"       ,sc->mass.name);
-    
-        }
+        fprintf(fileLogExc, "%-20s:\n"   ,"Mass");
+        fprintf(fileLogExc, "%-20s: %e\n","tolMass",sc->mass.tol[0]);
+        fprintf(fileLogExc, "%-20s: %hd\n","k"      ,sc->mass.k);
+        if(sc->vel.fRel)
+          fprintf(fileLogExc, "%-20s: %s\n","fRelative","true"); 
+        else
+          fprintf(fileLogExc, "%-20s: %s\n","fRelative","false");
+        fprintf(fileLogExc, "%-20s: %s\n\n","type"       ,sc->mass.name);
       }
 /*.....................................................................*/
 
@@ -7483,18 +7319,14 @@ void readResidual(Simple *sc, FILE *file)
         readMacroV2(file, word, false, true);
         typeResidual(word,&sc->energy);
 
-        if (!mpiVar.myId)
-        {
-          fprintf(fileLogExc, "%-20s:\n"   ,"Energy");
-          fprintf(fileLogExc, "%-20s: %e\n","tolMass",sc->energy.tol[0]);
-          fprintf(fileLogExc, "%-20s: %hd\n","k"      ,sc->energy.k);
-          if(sc->vel.fRel)
-            fprintf(fileLogExc, "%-20s: %s\n","fRelative","true"); 
-          else
-            fprintf(fileLogExc, "%-20s: %s\n","fRelative","false");
-          fprintf(fileLogExc, "%-20s: %s\n\n","type"       ,sc->energy.name);
-    
-        }
+        fprintf(fileLogExc, "%-20s:\n"   ,"Energy");
+        fprintf(fileLogExc, "%-20s: %e\n","tolMass",sc->energy.tol[0]);
+        fprintf(fileLogExc, "%-20s: %hd\n","k"      ,sc->energy.k);
+        if(sc->vel.fRel)
+          fprintf(fileLogExc, "%-20s: %s\n","fRelative","true"); 
+        else
+          fprintf(fileLogExc, "%-20s: %s\n","fRelative","false");
+        fprintf(fileLogExc, "%-20s: %s\n\n","type"       ,sc->energy.name);
       }
 /*.....................................................................*/
 
@@ -7508,18 +7340,14 @@ void readResidual(Simple *sc, FILE *file)
         readMacroV2(file, word, false, true);
         typeResidual(word,&sc->z);
 
-        if (!mpiVar.myId)
-        {
-          fprintf(fileLogExc, "%-20s:\n"   ,"Z");
-          fprintf(fileLogExc, "%-20s: %e\n","tolZ",sc->z.tol[0]);
-          fprintf(fileLogExc, "%-20s: %hd\n","k"      ,sc->z.k);
-          if(sc->vel.fRel)
-            fprintf(fileLogExc, "%-20s: %s\n","fRelative","true"); 
-          else
-            fprintf(fileLogExc, "%-20s: %s\n","fRelative","false");
-          fprintf(fileLogExc, "%-20s: %s\n\n","type"       ,sc->z.name);
-    
-        }
+        fprintf(fileLogExc, "%-20s:\n"   ,"Z");
+        fprintf(fileLogExc, "%-20s: %e\n","tolZ",sc->z.tol[0]);
+        fprintf(fileLogExc, "%-20s: %hd\n","k"      ,sc->z.k);
+        if(sc->vel.fRel)
+          fprintf(fileLogExc, "%-20s: %s\n","fRelative","true"); 
+        else
+          fprintf(fileLogExc, "%-20s: %s\n","fRelative","false");
+        fprintf(fileLogExc, "%-20s: %s\n\n","type"       ,sc->z.name);
       }
 /*.....................................................................*/
 

@@ -2,7 +2,7 @@
 
 /*********************************************************************
  * Data de criacao    : 08/04/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 12/08/2019                                   *
  * ------------------------------------------------------------------*
  * faceStruct: estrutura das faces                                   *
  * ------------------------------------------------------------------*
@@ -15,52 +15,53 @@
  * ------------------------------------------------------------------*
  * ------------------------------------------------------------------*
  * OBS:                                                              *
+ * Nao e preciso calcular as faces das celulas em sobreposicao       *
  * ------------------------------------------------------------------*
  *********************************************************************/
-void faceStruct(Memoria *m, Mesh *mesh0) {
+void faceStruct(Memoria *m, Mesh *mesh) {
 
 
 /*...*/
-  HccaAlloc(INT, m, mesh0->face.node
-          , mesh0->nFaces*mesh0->maxNo, "faceNode", _AD_);
-  HccaAlloc(INT, m, mesh0->face.owner
-          , mesh0->nFaces * 2, "fOwner", _AD_);
-  /*...................................................................*/
-  
+  HccaAlloc(INT, m, mesh->face.node
+          , mesh->nFaces*mesh->maxNo, "faceNode", _AD_);
+  HccaAlloc(INT, m, mesh->face.owner
+          , mesh->nFaces * 2, "fOwner", _AD_);
+/*...................................................................*/
+
 /*... gerando as faces*/ 
-  makeFaces(m                     , mesh0->elm.node
-          , mesh0->elm.adj.nelcon , mesh0->elm.adj.nViz
-          , mesh0->elm.cellFace
-          , mesh0->face.node      , mesh0->face.owner
-          , mesh0->nnode          , mesh0->numel
-          , mesh0->nFaces         , mesh0->maxNo   
-          , mesh0->maxViz         , mesh0->ndm);  
+   makeFaces(m                    , mesh->elm.node
+          , mesh->elm.adj.nelcon , mesh->elm.adj.nViz
+          , mesh->elm.cellFace
+          , mesh->face.node      , mesh->face.owner
+          , mesh->nnode          , mesh->numelNov
+          , mesh->nFaces         , mesh->maxNo   
+          , mesh->maxViz         , mesh->ndm);  
 /*...................................................................*/
 
 /*... alocando */
-  HccaAlloc(DOUBLE, m, mesh0->face.ksi
-           , mesh0->nFaces*mesh0->ndm, "faceKsi", _AD_);
+  HccaAlloc(DOUBLE, m, mesh->face.ksi
+           , mesh->nFaces*mesh->ndm, "faceKsi", _AD_);
   
-  HccaAlloc(DOUBLE, m, mesh0->face.mksi
-           , mesh0->nFaces, "faceModKsi", _AD_);
+  HccaAlloc(DOUBLE, m, mesh->face.mksi
+           , mesh->nFaces, "faceModKsi", _AD_);
 
-  HccaAlloc(DOUBLE, m, mesh0->face.eta
-           , mesh0->nFaces*mesh0->ndm, "faceEta", _AD_);
+  HccaAlloc(DOUBLE, m, mesh->face.eta
+           , mesh->nFaces*mesh->ndm, "faceEta", _AD_);
   
-  HccaAlloc(DOUBLE, m, mesh0->face.area
-           , mesh0->nFaces, "faceArea", _AD_);
+  HccaAlloc(DOUBLE, m, mesh->face.area
+           , mesh->nFaces, "faceArea", _AD_);
   
-  HccaAlloc(DOUBLE, m, mesh0->face.normal
-           , mesh0->nFaces*mesh0->ndm, "faceNormal", _AD_);
+  HccaAlloc(DOUBLE, m, mesh->face.normal
+           , mesh->nFaces*mesh->ndm, "faceNormal", _AD_);
   
-  HccaAlloc(DOUBLE, m, mesh0->face.xm
-           , mesh0->nFaces*mesh0->ndm, "faceXm", _AD_);
+  HccaAlloc(DOUBLE, m, mesh->face.xm
+           , mesh->nFaces*mesh->ndm, "faceXm", _AD_);
   
-  HccaAlloc(DOUBLE, m, mesh0->face.vSkew
-           , mesh0->nFaces*mesh0->ndm, "faceVskew", _AD_);
+  HccaAlloc(DOUBLE, m, mesh->face.vSkew
+           , mesh->nFaces*mesh->ndm, "faceVskew", _AD_);
   
-  HccaAlloc(DOUBLE, m, mesh0->face.mvSkew
-           , mesh0->nFaces           , "faceMvSkew", _AD_);
+  HccaAlloc(DOUBLE, m, mesh->face.mvSkew
+           , mesh->nFaces           , "faceMvSkew", _AD_);
 /*...................................................................*/
 }
 /*********************************************************************/

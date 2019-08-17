@@ -120,6 +120,9 @@ void wMeshPartVtk(Memoria *m
 /*********************************************************************/ 
 
 /********************************************************************** 
+ * Data de criacao    : 00/00/0000                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ * ------------------------------------------------------------------ *
  * WPARTVTK: escreve a malha particionda                              *  
  * ------------------------------------------------------------------ *
  * parametros de entrada:                                             * 
@@ -156,7 +159,7 @@ void wPartVtk(Memoria *m
             ,char *nameOut  ,bool iws
             ,FILE *f)
 {
-  int    *lel=NULL;
+  int *lel=NULL;
   INT i;
   short j;
   char head[]={"GEOM_VOLUME_FINITO"};

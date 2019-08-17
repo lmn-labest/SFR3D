@@ -29,7 +29,7 @@
   
   void printCombustion(Memoria *m         , Turbulence *turbModel
                      , EnergyModel *eModel, Combustion *cModel
-                     , PartMesh *pMesh    , Scheme sc
+                     , PartMesh *pMesh    , Scheme *sc
                      , Loads *loadsVel    , Loads *loadsPres 
                      , Loads *loadsTemp   , Loads *loadsComb
                      , FileOpt *opt

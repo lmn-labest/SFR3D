@@ -1,5 +1,8 @@
 #include<PartMesh.h>
 /********************************************************************* 
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------*
  * PARTMESH :                                                        * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -38,7 +41,6 @@ void partMesh(Memoria *m
   int *options = NULL; 
   int ne,nn,nCommon,nParts,edgeCut;
 #endif
-
 
 /*... alocando variaveis do particionamento*/
   HccaAlloc(INT,m,pMesh->np     ,nNode ,"nNodeP" ,false);
@@ -90,15 +92,15 @@ void partMesh(Memoria *m
 /*...................................................................*/ 
 
 #else
-/*...*/
-  printf("divCoorXY ...\n");
+/*...*/ 
+  fprintf(fileLogExc,"divCoorXY ...\n");
   divCoorXY(x        ,el
            ,nen
            ,nNode    ,nEl
            ,pMesh->np,pMesh->ep
            ,ndm      ,maxNo 
            ,nDiv     ,true);
-  printf("divCoorXY.\n");
+  fprintf(fileLogExc,"divCoorXY.\n");
 /*...................................................................*/
 #endif
 
@@ -702,13 +704,17 @@ void getMapElm(INT *RESTRICT ep
 /*...................................................................*/
 
 /*... numero de elementos sem sobreposicao*/
-  for(i=0;i<nEl;i++){
-    if( ep[i] == rank){
-      for(j=0;j<nFace[i];j++){
+  for(i=0;i<nEl;i++)
+  {
+    if( ep[i] == rank)
+    {
+      for(j=0;j<nFace[i];j++)
+      {
         nelViz = MAT2D(i,j,nelcon,maxViz) - 1;
 /*... elementos vizinhos*/
         if( nelViz != -2 ) 
-          if( ep[nelViz] != rank && fEp[nelViz]){
+          if( ep[nelViz] != rank && fEp[nelViz])
+          {
             elLG[k++]   = nelViz;
             fEp[nelViz] = false;
           }

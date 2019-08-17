@@ -1,5 +1,8 @@
 #ifndef _ERRO_H_
   #define _ERRO_H_
+
+  #define EXIT_MESH_COMM -1
+
 /*... Saida de Erro*/                                                  
   #define ERRO_RCM fprintf(stderr,"\nrcm - fatal error!\n")
 

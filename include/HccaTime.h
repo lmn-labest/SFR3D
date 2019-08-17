@@ -1,10 +1,12 @@
 #ifndef _MYTIME_H_
   #define _MYTIME_H_
-  #if _OPENMP
+  #if _MPI_ 
+    #include<mpi.h>
+  #elif _OPENMP
     #include<omp.h>
   #elif _WIN32 
     #include<time.h> 
-  #elif _MPICH_ 
+  #elif _MPI_ 
     #include<mpi.h>
   #else  
     #include<sys/time.h>
@@ -84,6 +86,8 @@
 /*... particionamento*/
     double partdMesh;
     double partdMeshCom;
+/*...*/
+    double interCellNode;
 /*... comunicacao entre as particoes*/
     double overHeadCelMpi;
     double overHeadNodMpi;

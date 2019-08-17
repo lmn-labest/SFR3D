@@ -167,26 +167,28 @@ INT countEq(INT *RESTRICT num
 /*********************************************************************/ 
 
 /*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 16/08/2019                                   * 
+ *-------------------------------------------------------------------*
  * FRONT : mapa de equacoes na interface de comunicao                *
  * ------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  * ------------------------------------------------------------------* 
- * m     -> memoria principal                                        * 
- * num   -> renumeracao dos elementos                                *
- * rt    -> restricoes                                               * 
- * nFace -> numero de faces por elemento                             * 
- * numel -> numero de elementos                                      * 
- * maxViz-> numero maximo de vizinhos                                * 
- * str   -> nome do vetor                                            * 
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
  * ------------------------------------------------------------------*
  * ------------------------------------------------------------------*
+ * OBS:                                                              *
+ * ------------------------------------------------------------------*
  * *******************************************************************/
-void front(Memoria *m
-          ,PartMesh *pMesh, SistEq *sistEq, short const ndf){
+void front(Memoria *m             ,PartMesh *pMesh
+         , SistEq *sistEq
+         , const char *fMapNeq    , const char *iaSendsNeq
+         , const char *iaRcvsNeq  , const char *xBufferMpiNeq
+         , const char *nVizPartNeq, short const ndf)
+{
 
-#ifdef _MPICH_
+#ifdef _MPI_
   INT sNeq = 0;
   INT rNeq = 0;
   INT k,kk,j,nel,nEq1,aux=0;
@@ -232,18 +234,18 @@ void front(Memoria *m
    
 /*... fMap(buffer de comunicacao)*/ 
   HccaAlloc(INT      ,m,sistEq->iNeq.fMap,kk   
-           ,"fMapNeq",false);
+           ,fMapNeq,false);
   zero(sistEq->iNeq.fMap,kk,INTC);
 
 /*... alocando memoria*/
   kk = nVizParts + 1;
   
   HccaAlloc(INT         ,m    ,sistEq->iNeq.iaSends , kk        
-           ,"iaSendsNeq",false);
+           ,iaSendsNeq,false);
   zero(sistEq->iNeq.iaSends, kk,INTC);
         
   HccaAlloc(INT        ,m   ,sistEq->iNeq.iaRcvs , kk       
-           ,"iaRcvsNeq",false);
+           ,iaRcvsNeq,false);
   zero(sistEq->iNeq.iaRcvs, kk,INTC);
 /*...................................................................*/
 
@@ -251,7 +253,7 @@ void front(Memoria *m
 /*... buffer de comunicacao*/
   kk = rNeq+sNeq;
   HccaAlloc(DOUBLE,m,sistEq->iNeq.xb 
-           ,kk    ,"xBufferMpiNeq"              ,false);
+           ,kk    ,xBufferMpiNeq              ,false);
   zero(sistEq->iNeq.xb, kk,DOUBLEC);
 /*...................................................................*/
 
@@ -295,7 +297,7 @@ void front(Memoria *m
 /*...*/
   sistEq->iNeq.nVizPart = nVizParts;
   HccaAlloc(short,m,sistEq->iNeq.vizPart , nVizParts   
-           ,"nVizPartNeq"                ,false);
+           ,nVizPartNeq                  ,false);
   zero(sistEq->iNeq.vizPart              ,nVizParts,"short");
   for(nPart = 0; nPart < nVizParts; nPart++){
     sistEq->iNeq.vizPart[nPart] = pMesh->iEl.vizPart[nPart];

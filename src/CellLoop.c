@@ -7793,7 +7793,7 @@ void massFluxOpenDomain(Loads *loadVel    , Temporal const ddt
 
 /*********************************************************************
  * Data de criacao    : 01/10/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 16/08/2019                                   *
  *-------------------------------------------------------------------*
  * TOTALMASS ; calculo da massa total do sistema                     *
  *-------------------------------------------------------------------*
@@ -7810,17 +7810,32 @@ DOUBLE totalMass(DOUBLE *RESTRICT density  , DOUBLE *RESTRICT volume
                 ,INT const nEl){
 
   INT i;
-  DOUBLE den, dm, vm;
+  DOUBLE dm, den, gDm;
 
-  dm = vm = 0.e0;
-  for(i=0;i<nEl;i++){
+  dm = 0.e0;
+  for(i=0;i<nEl;i++)
+  {
     den = MAT2D(i, 2, density, DENSITY_LEVEL);
     dm += den*volume[i];
-    vm += volume[i];
    }
 /*..................................................................*/  
-  return dm;
+
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    MPI_Allreduce(&dm,&gDm,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  }
+  else  
+    gDm = dm;
+#else
+    gDm = dm;
+#endif
 /*...................................................................*/
+
+  return gDm;
 
 }
 /*********************************************************************/

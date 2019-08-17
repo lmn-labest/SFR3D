@@ -90,8 +90,11 @@
 
   void setDataStruct(char *word,short *data);
 
-  void front(Memoria *m
-          ,PartMesh *pMesh, SistEq *sistEq, short const ndf);
+  void front(Memoria *m             ,PartMesh *pMesh
+         , SistEq *sistEq
+         , const char *fMapNeq    , const char *iaSendsNeq
+         , const char *iaRcvsNeq  , const char *xBufferMpiNeq
+         , const char *nVizPartNeq, short const ndf);
 
 
 /*  void datastruct(Memoria *,int *,INT *,INT,INT,short,short

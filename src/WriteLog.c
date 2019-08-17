@@ -422,7 +422,7 @@ void writeLogMeanTime(Mesh mesh         ,Scheme sc
              ,bool const fSolvD1,bool const fSolvT1
              ,char *nameIn      ,FILE *file){
 
-#ifdef _MPICH_
+#ifdef _MPI_
   DOUBLE mTime;   
   DOUBLE  nPrcs= (DOUBLE) mpiVar.nPrcs;
 

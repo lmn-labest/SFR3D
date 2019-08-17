@@ -1,7 +1,7 @@
 #ifndef _PARALLELMPI_H_
   #define _PARALLELMPI_H_
 /*...*/
-  #ifdef _MPICH_
+  #ifdef _MPI_
     #include<mpi.h>
   #endif
   #include<stdio.h>
@@ -20,10 +20,15 @@
   void mpiStart(int *argc,char **argv);
   void mpiStop(void);
   void mpiWait(void);
-  void comunicateMesh(Memoria *m
+  void comunicateMesh(Memoria *m    ,Combustion *cModel
+                   ,Turbulence *tModel
                    ,Mesh *mesh0     ,Mesh *mesh
-                   ,PartMesh *pMesh
-                   ,Loads *loadsD1  ,Loads *loadsT1);
+                   ,PartMesh *pMesh 
+                   ,Loads *ldD1     ,Loads *ldT1
+                   ,Loads *ldVel    ,Loads *ldPres
+                   ,Loads *ldPresC  ,Loads *ldEnergy
+                   ,Loads *ldTemp   ,Loads *ldKturb
+                   ,Loads *ldZcomb);  
 /*... equacoes nas interfaces*/  
   void getBuffer(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
               ,INT *RESTRICT fMap    ,INT const nRcvs);
@@ -88,18 +93,12 @@
                ,short const ndf1   ,short const ndf2);
 /*...................................................................*/
 
+/*...*/
   void globalMeshQuality(MeshQuality *mQl,MeshQuality *mQl0);
 /*...................................................................*/
 
 /*...*/
-  void comunicate2(short *m0faceR     ,short *faceR
-                ,short *m0faceL     ,short *faceL
-                ,DOUBLE *m0u0       ,DOUBLE *u0 
-                ,DOUBLE *m0u        ,DOUBLE *u  
-                ,DOUBLE *m0density  ,DOUBLE *density  
-                ,INT const lNel     ,INT *elLG
-                ,short const maxViz ,short const ndf
-                ,short const npart  ,short const iCod);
+  void writeMeshPart(Mesh *mesh,Combustion *cModel);
 /*...................................................................*/
 
 /*... do Mpi*/
@@ -108,7 +107,7 @@
     unsigned short myId;
 	int lString;
 	int ierr;
-#ifdef _MPICH_
+#ifdef _MPI_
     MPI_Comm comm;
 	char errBuffer[MPI_MAX_ERROR_STRING];
     MPI_Request sendRequest[MAX_MPI_PROCESS];

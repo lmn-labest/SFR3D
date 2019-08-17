@@ -40,31 +40,33 @@
 
 static void initSec(char *word,short icod) 
 {
-  if (!mpiVar.myId) {
-    switch(icod){
-      case OUTPUT_FOR_FILE:
-        fprintf(fileLogExc, "%s\n", DIF);
-        fprintf(fileLogExc, "%s\n", word);
-      break;
-      case OUTPUT_FOR_SCREEN:
+
+  switch(icod)
+  {
+    case OUTPUT_FOR_FILE:
+      fprintf(fileLogExc, "%s\n", DIF);
+      fprintf(fileLogExc, "%s\n", word);
+    break;
+    case OUTPUT_FOR_SCREEN:
+      if (!mpiVar.myId)
+      {
         printf("%s\n", DIF);
         printf("%s\n", word);
-      break;
-    }
+      }
+    break;
   }
 }
 
 static void endSec(short icod)
 {
-  if (!mpiVar.myId){
-    switch (icod) {
-      case OUTPUT_FOR_FILE:
-        fprintf(fileLogExc, "%s\n\n", DIF);
-      break;
-      case OUTPUT_FOR_SCREEN:
-        printf("%s\n\n", DIF);
-      break;
-    }
+  switch (icod) 
+  {
+    case OUTPUT_FOR_FILE:
+      fprintf(fileLogExc, "%s\n\n", DIF);
+    break;
+    case OUTPUT_FOR_SCREEN:
+      if (!mpiVar.myId) printf("%s\n\n", DIF);
+    break;
   }
 }
 
@@ -114,7 +116,7 @@ int main(int argc,char**argv){
   bool fSolvKturb = false;
   bool fSolvSimple = false,fSolvPrime = false, fSolvCombustion = false;  
 /*... reordenacao da malha*/
-  Reord  *reordMesh=NULL;
+  Reord  reordMesh;
 
 /*... particionamento*/
   PartMesh *pMesh = NULL;
@@ -136,7 +138,7 @@ int main(int argc,char**argv){
 /*...*/
   Scheme sc;
 /*...................................................................*/
- 
+
 /*... loop nas celulas*/
 /*Lib lib;*/
   
@@ -362,9 +364,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/  
-  reordMesh = (Reord*) malloc(sizeof(Reord));
-  ERRO_MALLOC(reordMesh,"reordMesh",__LINE__,__FILE__,__func__);
-  reordMesh->flag = false; 
+  reordMesh.flag = false; 
 /* ..................................................................*/
     
 /*... abrindo ar quivo de entrada*/ 
@@ -390,22 +390,25 @@ int main(int argc,char**argv){
 /*...................................................................*/
  
 /*...*/
-  fName(preName,0,0, 23 ,nameOut);
+  fName(preName,mpiVar.myId,0, 23 ,nameOut);
   fileLogExc = openFileBuffer(nameOut,"w",false);
 /*...................................................................*/
 
 /*...*/
-  fName(preName,0,0, 31 ,nameOut);
+  fName(preName,mpiVar.myId,0, 31 ,nameOut);
   fileLogDebug = openFileBuffer(nameOut,"w",false);
 /*...................................................................*/
 
 /*...*/
-  fName(preName,0,0, 27 ,nameOut);
-  opt.fileParameters = openFileBuffer(nameOut,"w",true);
-  fprintf(opt.fileParameters,"%s %s %s\n"
+  if(!mpiVar.myId )
+  {
+    fName(preName,0,0, 27 ,nameOut);
+    opt.fileParameters = openFileBuffer(nameOut,"w",true);
+    fprintf(opt.fileParameters,"%s %s %s\n"
                             ,"#step t cfl reynolds peclet P0 "
                             ,"mass(Inc) mass(Avg) massIn massOut "
                             ,"totalHeat temMax temMed");
+  }
 /*...................................................................*/
 
 /*loop de execucao*/
@@ -465,51 +468,53 @@ int main(int argc,char**argv){
       mpiWait();
 /*...................................................................*/
 
-/*...*/
-      if(!mpiVar.myId){
-        tm.adjcency = getTimeC();
-/*... calcula a vizinhaca do elementos*/
-        neighbors(&m                   ,mesh0->elm.node 
+/*... calcula a vizinhaca do elementos da malha completa*/
+      if(!mpiVar.myId)
+        neighbors(&m                 ,mesh0->elm.node 
                  ,mesh0->elm.adj.nelcon,mesh0->elm.adj.nViz
                  ,mesh0->elm.nen       ,&mesh0->nFaces
                  ,mesh0->nnode         ,mesh0->numel     
                  ,mesh0->maxNo         ,mesh0->maxViz   
                  ,mesh0->ndm);        
 /*...................................................................*/
-        
-/*...*/        
-        faceStruct(&m, mesh0);
-/*...................................................................*/
-        tm.adjcency = getTimeC() - tm.adjcency;
-      }
-/*...................................................................*/
 
-/*... identifica parede impermevais*/
-      if(mesh0->ndfF > 0 || mesh0->ndfFt > 0)
+/*... identifica parede impermevais (malha completa)*/
+      if(!mpiVar.myId)
       {
-        wallFluid(mesh0->elm.faceRvel,mesh0->elm.adj.nelcon
-                 ,mesh0->elm.adj.nViz   
-                 ,mesh0->numel       ,mesh0->maxViz); 
-        if(turbModel.fOneEq)
-          wallFluid(mesh0->elm.faceReKturb,mesh0->elm.adj.nelcon
+        if(mesh0->ndfF > 0 || mesh0->ndfFt > 0)
+        {
+          wallFluid(mesh0->elm.faceRvel,mesh0->elm.adj.nelcon
                    ,mesh0->elm.adj.nViz   
-                   ,mesh0->numel          ,mesh0->maxViz);  
+                   ,mesh0->numel       ,mesh0->maxViz); 
+          if(turbModel.fOneEq)
+            wallFluid(mesh0->elm.faceReKturb,mesh0->elm.adj.nelcon
+                     ,mesh0->elm.adj.nViz   
+                     ,mesh0->numel          ,mesh0->maxViz);  
 /*... verifica se o dominio e aberto ou nao*/
-        mesh0->fOpen = openDomain(loadsVel
+          mesh0->fOpen = openDomain(loadsVel
                          , mesh0->elm.faceLoadVel , mesh0->elm.adj.nViz
                          , mesh0->numelNov ,mesh0->maxViz);
 /*...*/
 //      thDynamic.fDensityRef = !mesh0->fOpen;
-        thDynamic.fDensityRef = true;
-        thDynamic.fPresTh     = !mesh0->fOpen;
+          thDynamic.fDensityRef = true;
+          thDynamic.fPresTh     = !mesh0->fOpen;
 /*...................................................................*/   
+        }
       }
-/*...................................................................*/      
-     
+#ifdef _MPI_
+      MPI_Bcast(&thDynamic.fDensityRef,1,MPI_C_BOOL,0,mpiVar.comm);
+      MPI_Bcast(&thDynamic.fPresTh    ,1,MPI_C_BOOL,0,mpiVar.comm);
+#endif
+/*...................................................................*/
+
 /*... particionamento da malha*/
-      if(pMesh->fPartMesh && mpiVar.nPrcs > 1){
+      if(pMesh->fPartMesh && mpiVar.nPrcs > 1)
+      {
         tm.partdMesh = getTimeC() - tm.partdMesh;
-        if(!mpiVar.myId){
+        if(!mpiVar.myId)
+        {
+/*...*/
+          fprintf(fileLogExc, "%s\n", "PartMesh");
           partMesh(&m         
                   ,mesh0->node.x  ,mesh0->elm.node
                   ,mesh0->elm.nen
@@ -517,8 +522,12 @@ int main(int argc,char**argv){
                   ,pMesh   
                   ,mesh0->ndm     ,mesh0->maxNo 
                   ,mpiVar.nPrcs);
+/*...................................................................*/
+
 /*... */
-          if(pMesh->fPrintMesh){
+          if(pMesh->fPrintMesh)
+          {
+            fprintf(fileLogExc, "%s\n", "WritePartMesh");
             fName(preName,mpiVar.nPrcs,0,1,nameOut);
             wPartVtk(&m            
                     ,mesh0->node.x      ,mesh0->elm.node              
@@ -532,19 +541,29 @@ int main(int argc,char**argv){
           }
 /*...................................................................*/
         }
+/*...................................................................*/
+
 /*...*/
         mesh = (Mesh*) malloc(sizeof(Mesh));
         ERRO_MALLOC(mesh,"mesh",__LINE__,__FILE__,__func__);
 /*...*/
         tm.partdMeshCom = getTimeC() - tm.partdMeshCom;
-        comunicateMesh(&m
+        comunicateMesh(&m        ,&combModel
+                      ,&turbModel
                       ,mesh0     ,mesh
                       ,pMesh
-                      ,loadsD1   ,loadsT1);
+                      ,loadsD1   ,loadsT1
+                      ,loadsVel  ,loadsPres 
+                      ,loadsPresC,loadsEnergy
+                      ,loadsTemp ,loadsKturb
+                      ,loadsZcomb);
         tm.partdMeshCom = getTimeC() - tm.partdMeshCom;
 /*...................................................................*/
 
-        if(pMesh->fPrintMeshPart){
+/*... individuais*/
+        if(pMesh->fPrintMeshPart)
+        {
+          fprintf(fileLogExc, "%s\n", "WritePartMeshes");
           fName(preName,mpiVar.nPrcs,mpiVar.myId,2,nameOut);
           wMeshPartVtk(&m            
                       ,mesh->node.x      ,mesh->elm.node              
@@ -571,6 +590,23 @@ int main(int argc,char**argv){
       }
 /*...................................................................*/
 
+/*...*/
+      tm.adjcency = getTimeC();
+/*... calcula a vizinhaca do elementos*/
+      neighbors(&m                  ,mesh->elm.node 
+               ,mesh->elm.adj.nelcon,mesh->elm.adj.nViz
+               ,mesh->elm.nen       ,&mesh->nFaces
+               ,mesh->nnode         ,mesh->numel     
+               ,mesh->maxNo         ,mesh->maxViz   
+               ,mesh->ndm);        
+/*...................................................................*/
+      
+/*...*/        
+      faceStruct(&m, mesh);
+/*...................................................................*/
+      tm.adjcency = getTimeC() - tm.adjcency;
+/*...................................................................*/
+     
 /*... calculo de propriedades geometricas recorrentes*/
       tm.geom = getTimeC() - tm.geom;
       pGeomForm(mesh->node.x         ,mesh->elm.node
@@ -578,7 +614,7 @@ int main(int argc,char**argv){
                ,mesh->elm.geomType   ,mesh->elm.nen        
                ,mesh->elm.cellFace
                ,&mesh->elm.geom      ,&mesh->face   
-               ,mesh->maxNo          ,mesh->maxViz
+               ,mesh->maxNo          ,mesh->maxViz  
                ,mesh->ndm            ,mesh->numelNov);
       tm.geom = getTimeC() - tm.geom;
 /*    testeFace(&mesh->elm.geom    , &mesh->face
@@ -595,26 +631,27 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-     if(mesh->ndfFt > 0){
+      if(mesh->ndfFt > 0)
+      {
 /*...*/
         if(thDynamic.fDensityRef)
           propVarFluid.densityRef = specificMassRef(mesh->elm.densityFluid
-                                                  , mesh->elm.geom.volume                  
-                                                  , mesh->numel);
+                                                , mesh->elm.geom.volume                  
+                                                , mesh->numelNov);
 /*...................................................................*/
 
 /*...*/
         if(thDynamic.fPresTh)
-          initPresRef(mesh->elm.temp         , mesh->elm.geom.volume  
-                    , thDynamic.pTh          , propVarFluid.densityRef
+          initPresRef(mesh->elm.temp        , mesh->elm.geom.volume  
+                    , thDynamic.pTh         , propVarFluid.densityRef
                     , propVarFluid.molarMass                   
-                    , mesh->numel            , eModel.fKelvin);
+                    , mesh->numelNov        , eModel.fKelvin);
 /*...................................................................*/
 
 /*...*/
         mesh->mass[0] = totalMass(mesh->elm.densityFluid
-                                , mesh->elm.geom.volume
-                                , mesh->numel); 
+                              , mesh->elm.geom.volume
+                              , mesh->numelNov); 
         mesh->mass[1] =  mesh->mass[0];
 /*....................................................................*/
 
@@ -683,19 +720,23 @@ int main(int argc,char**argv){
 /*...................................................................*/
          
 /*... reodenando as celulas para dimuincao da banda*/
-      HccaAlloc(INT,&m,reordMesh->num,mesh->numel,"rNum" ,_AD_);
+      HccaAlloc(INT,&m,reordMesh.num,mesh->numel,"rNum" ,_AD_);
       if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n",DIF);
-      if(!mpiVar.myId )fprintf(fileLogExc,"Reordenando a malha ...\n");
+      if(!mpiVar.myId ) fprintf(fileLogExc,"Reordenando a malha ...\n");
       tm.reord = getTimeC() - tm.reord;
-      reord(&m                ,reordMesh->num,mesh->elm.adj.nelcon
+      reord(&m                ,reordMesh.num,mesh->elm.adj.nelcon
            ,mesh->elm.adj.nViz,mesh->maxViz  
            ,mesh->numel       ,mesh->numelNov
-           ,reordMesh->flag   ,mpiVar.nPrcs);
+           ,reordMesh.flag   ,mpiVar.nPrcs);
       tm.reord = getTimeC() - tm.reord;
       if(!mpiVar.myId ){
         fprintf(fileLogExc,"Malha reordenada.\n");
         fprintf(fileLogExc,"%s\n\n",DIF);
       }
+/*...................................................................*/
+
+/*...*/
+      writeMeshPart(mesh,&combModel);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
     }   
@@ -707,6 +748,7 @@ int main(int argc,char**argv){
     else if((!strcmp(word,macro[2]))){
       initSec(word, OUTPUT_FOR_FILE);
       tm.total = getTimeC() - tm.total;
+
 /*... */
       fName(preName,mpiVar.nPrcs,mpiVar.myId,7,nameOut);
       fileLog = openFile(nameOut,"w");
@@ -768,7 +810,9 @@ int main(int argc,char**argv){
       if(fSolvCombustion && opt.fItPlot && !mpiVar.myId)
         fclose(opt.fileItPlot[FITPLOTSIMPLE]);
 /*...................................................................*/
-      fclose(opt.fileParameters);
+
+      if(!mpiVar.myId )
+        fclose(opt.fileParameters);
       fclose(fileLogDebug);
       finalizeMem(&m,false);
       macroFlag = false;
@@ -782,7 +826,7 @@ int main(int argc,char**argv){
  *===================================================================*/
     else if((!strcmp(word,macro[3]))){
       initSec(word, OUTPUT_FOR_FILE);
-      config(&opt,reordMesh ,fileIn);      
+      config(&opt,&reordMesh ,fileIn);      
       endSec(OUTPUT_FOR_FILE);
     }   
 /*===================================================================*/
@@ -909,7 +953,7 @@ int main(int argc,char**argv){
     {
       initSec(word, OUTPUT_FOR_FILE);
       if(!mpiVar.myId )
-      readSolvDiff(&m     , mesh     , reordMesh
+      readSolvDiff(&m     , mesh     , &reordMesh
                   ,&solvD1, &sistEqD1, &fSolvD1
                   ,auxName, preName  , nameOut
                   ,fileIn , &opt);
@@ -923,7 +967,7 @@ int main(int argc,char**argv){
     else if((!strcmp(word,macro[10]))){
       initSec(word, OUTPUT_FOR_FILE);
 /*... inicializando a estrutura de equacoes do problema*/
-      readSolvTrans(&m     , mesh     , reordMesh
+      readSolvTrans(&m     , mesh     , &reordMesh
                   , &solvT1, &sistEqT1, &fSolvT1
                   , auxName, preName  , nameOut
                   , fileIn , &opt);
@@ -1233,7 +1277,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-      readSolvFluid(&m          , mesh          , reordMesh
+      readSolvFluid(&m          , mesh          , &reordMesh
                    , &solvVel   , &sistEqVel    , &fSolvVel
                    , &solvPres  , &sistEqPres   , &fSolvPres
                    , &solvEnergy, &sistEqEnergy , &fSolvEnergy
@@ -1621,13 +1665,13 @@ int main(int argc,char**argv){
     {
       initSec(word, OUTPUT_FOR_FILE);
 /*...*/
-      readSolvComb(&m         , mesh         , reordMesh
+      readSolvComb(&m         , mesh         , &reordMesh
                  , &solvVel   , &sistEqVel   , &fSolvVel
                  , &solvPres  , &sistEqPres  , &fSolvPres
                  , &solvEnergy, &sistEqEnergy, &fSolvEnergy
                  , &solvKturb , &sistEqKturb , &fSolvKturb
                  , &solvComb  , &sistEqComb  , &fSolvComb  
-                 , combModel.nComb 
+                 , pMesh      , combModel.nComb 
                  , auxName    , preName      , nameOut
                  , fileIn                    , &opt);
 /*...................................................................*/
@@ -1654,7 +1698,7 @@ int main(int argc,char**argv){
 /*...*/                     
       printCombustion(&m      , &turbModel
                   , &eModel   , &combModel
-                  , pMesh     , sc
+                  , pMesh     , &sc
                   , loadsVel  , loadsPres 
                   , loadsTemp , loadsZcomb
                   , &opt       

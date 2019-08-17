@@ -393,7 +393,7 @@ DOUBLE dot(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 /*...................................................................*/
 
 /*...*/
-#ifdef _MPICH_
+#ifdef _MPI_
   if(mpiVar.nPrcs>1){ 
     tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
     MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
@@ -458,7 +458,7 @@ DOUBLE dotO2I2(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 
   
 /*...*/
-#ifdef _MPICH_
+#ifdef _MPI_
   if(mpiVar.nPrcs>1){ 
     tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
     MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
@@ -517,7 +517,7 @@ DOUBLE dotI2(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 /*...................................................................*/
 
 /*...*/
-#ifdef _MPICH_
+#ifdef _MPI_
   if(mpiVar.nPrcs>1){ 
     tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
     MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
@@ -584,7 +584,7 @@ DOUBLE dotI4(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 /*...................................................................*/
 
 /*...*/
-#ifdef _MPICH_
+#ifdef _MPI_
   if(mpiVar.nPrcs>1){ 
     tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
     MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
@@ -662,7 +662,7 @@ DOUBLE dotI6(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 /*...................................................................*/
 
 /*...*/
-#ifdef _MPICH_
+#ifdef _MPI_
   if(mpiVar.nPrcs>1){ 
     tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
     MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
@@ -751,7 +751,7 @@ DOUBLE dotI8(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 /*...................................................................*/
 
 /*...*/
-#ifdef _MPICH_
+#ifdef _MPI_
   if(mpiVar.nPrcs>1){ 
     tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
     MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
@@ -808,7 +808,7 @@ DOUBLE dotO2(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 /*...................................................................*/
 
 /*...*/
-#ifdef _MPICH_
+#ifdef _MPI_
   if(mpiVar.nPrcs>1){ 
     tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
     MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
@@ -871,7 +871,7 @@ DOUBLE dotO4(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 /*...................................................................*/
 
 /*...*/
-#ifdef _MPICH_
+#ifdef _MPI_
   if(mpiVar.nPrcs>1){ 
     tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
     MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
@@ -941,7 +941,7 @@ DOUBLE dotO6(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 /*...................................................................*/
   
 /*...*/
-#ifdef _MPICH_
+#ifdef _MPI_
   if(mpiVar.nPrcs>1){ 
     tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
     MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
@@ -1023,7 +1023,7 @@ DOUBLE dotO8(DOUBLE *RESTRICT x1,DOUBLE *RESTRICT x2,INT const n)
 /*...................................................................*/
  
 /*...*/
-#ifdef _MPICH_
+#ifdef _MPI_
   if(mpiVar.nPrcs>1){ 
     tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
     MPI_Allreduce(&tmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
@@ -2389,7 +2389,7 @@ void mpiMatVecCsrDSym(INT const nEq      ,INT const *nAd
                      ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y
                      ,Interface *iNeq)
 {
-#ifdef _MPICH_
+#ifdef _MPI_
   INT    i,k,jak;
   DOUBLE xi,tmp,sAu;
   INT *iar,*jar;
@@ -2471,7 +2471,7 @@ void mpiMatVecCsrDcooSym(INT const nEq      ,INT const *nAd
                         ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y
                         ,Interface *iNeq)
 {
-#ifdef _MPICH_
+#ifdef _MPI_
   INT    i,j,k,jak;
   DOUBLE xi,tmp,sAu;
   INT *iar,*jar;
@@ -3504,7 +3504,7 @@ void mpiMatVecCsrD(INT const neq     ,INT const *nAd
                   ,Interface *iNeq)
 {
 
-#ifdef _MPICH_
+#ifdef _MPI_
   INT i,j;
   DOUBLE tmp;
 
@@ -3798,7 +3798,7 @@ void mpiMatVecCsrC(INT const nEq      ,INT const *nAd
                   ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y
                   ,Interface *iNeq)
 {
-#ifdef _MPICH_
+#ifdef _MPI_
   INT    i,k,jak;
   DOUBLE xi,tmp;
   INT *RESTRICT iar=NULL;
@@ -3885,7 +3885,7 @@ void mpiMatVecCsrCcoo(INT const nEq      ,INT const *nAd
                      ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y
                      ,Interface *iNeq)
 {
-#ifdef _MPICH_
+#ifdef _MPI_
   INT    i,j,k,jak;
   DOUBLE xi,tmp;
   INT *RESTRICT iar=NULL;
@@ -4369,7 +4369,7 @@ void mpiMatVecEllPack(INT const nEq  ,INT const *nAd
                   ,Interface *iNeq)
 {
  
-#ifdef _MPICH_
+#ifdef _MPI_
   INT i,maxLineNzr=ia[0];
   DOUBLE ti;
 

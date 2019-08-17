@@ -13,13 +13,13 @@ double getTimeC(void){
 *********************************************************************/
 
 /*funcao MPI */
-#if _MPICH_
+#if _MPI_
   double t=0.0;
   t = MPI_Wtime();
   return t;
 /*funcao do openmp*/
 #elif _OPENMP 
-  #if _MPICH_
+  #if _MPI_
     double t=0.0;
     t = MPI_Wtime();
     return t;

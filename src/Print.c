@@ -1,5 +1,76 @@
 #include<Print.h>
 /********************************************************************* 
+ * Data de criacao    : 16/08/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * globalCombCel: glabalizacao as arranjos para impressao            * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------*  
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------*  
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+static void globalCombCel(Memoria *m
+                         ,Mesh *mesh0     ,Mesh *mesh
+                         ,PartMesh *pMesh ,FileOpt *opt
+                         ,short const nSp ,short const ndfVel
+                         ,short const ndm ,short const ndfComb )
+{
+
+/*... pres (Cel)*/
+  if(opt->pres)
+    dGlobalCel(m                  , pMesh
+             , mesh0->elm.pressure, mesh->elm.pressure
+             , mesh->numelNov
+             , 1              , 1);
+/*...................................................................*/
+
+/*... vel (Cel)*/
+  if(opt->vel)
+    dGlobalCel(m              , pMesh
+             , mesh0->elm.vel , mesh->elm.vel
+             , mesh->numelNov
+             , ndm            , 1);
+/*...................................................................*/
+
+/*... temp (Cel)*/
+  if(opt->energy)
+    dGlobalCel(m              , pMesh
+             , mesh0->elm.temp, mesh->elm.temp
+             , mesh->numelNov
+             , 1              , 1);
+/*...................................................................*/
+
+/*... yFrac (Cel)*/
+  if(opt->yFrac)
+    dGlobalCel(m                 , pMesh
+             , mesh0->elm.yFrac  , mesh->elm.yFrac
+             , mesh->numelNov
+             , nSp               , 1);
+/*...................................................................*/
+
+/*... yComb (Cel)*/
+  if(opt->zComb)
+    dGlobalCel(m                 , pMesh
+             , mesh0->elm.zComb  , mesh->elm.zComb
+             , mesh->numelNov
+             , ndfComb               , 1);
+/*...................................................................*/
+
+/*... tReactor (Cel)*/
+  if(opt->tReactor)
+    dGlobalCel(m                  , pMesh
+             , mesh0->elm.tReactor, mesh->elm.tReactor
+             , mesh->numelNov
+             , N_TERMS_REACTOR    , 1);
+/*...................................................................*/
+
+}
+/********************************************************************* 
  * Data de criacao    : 02/12/2017                                   *
  * Data de modificaco : 30/01/2018                                   *
  *-------------------------------------------------------------------*
@@ -475,7 +546,7 @@ void printFluid(Memoria *m
 
 /********************************************************************* 
  * Data de criacao    : 05/08/2018                                   *
- * Data de modificaco : 25/07/2019                                   *
+ * Data de modificaco : 16/08/2019                                   *
  *-------------------------------------------------------------------*
  * printCombustion: impressao do fluido                              * 
  *-------------------------------------------------------------------* 
@@ -500,7 +571,7 @@ void printFluid(Memoria *m
  *********************************************************************/
 void printCombustion(Memoria *m      ,Turbulence *turbModel
                ,EnergyModel *eModel  ,Combustion *cModel
-               ,PartMesh *pMesh      ,Scheme sc
+               ,PartMesh *pMesh      ,Scheme *sc
                ,Loads *loadsVel      ,Loads *loadsPres 
                ,Loads *loadsTemp     ,Loads *loadsComb
                ,FileOpt *opt
@@ -508,9 +579,9 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                ,Mean *media      
                ,char *preName        ,char *nameOut){
  
-  short ndm = mesh->ndm, nOfPrSp = cModel->nOfSpecies;
+  short ndm,nSp;
   void *dum=NULL;
-  short ndfVel,nComb;
+  short ndfVel,ndfComb;
   DOUBLE *nStressR=NULL,*nEddyV=NULL,*nDvisc=NULL,*nDenFluid=NULL;
   DOUBLE *nMedVel=NULL,*nP2Vel=NULL,*nMedP2Vel=NULL;
   DOUBLE *nCdyn=NULL,*nWall=NULL,*nKturb=NULL,*nWk=NULL;
@@ -518,13 +589,14 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
   FILE *fileOut=NULL;
 
 /*...*/
-  nComb   = cModel->nComb;
-  nOfPrSp = cModel->nOfSpecies; 
-  ndfVel = max(mesh->ndfF - 1, mesh->ndfFt - 2);
+  ndm     = mesh->ndm;
+  ndfComb = cModel->nComb;
+  nSp     = cModel->nOfSpecies; 
+  ndfVel  = max(mesh->ndfF - 1, mesh->ndfFt - 2);
 /*...................................................................*/
 
 /*...*/
-  HccaAlloc(DOUBLE, m, nDenFluid, mesh->nnode*3      , "nDenFluid", _AD_);
+  HccaAlloc(DOUBLE, m, nDenFluid, mesh->nnode*DENSITY_LEVEL, "nDenFluid", _AD_);
   HccaAlloc(DOUBLE, m, nDvisc   , mesh->nnode        , "nVis"     , _AD_); 
   HccaAlloc(DOUBLE, m, nEddyV   , mesh->nnode        , "nEddyV"   , _AD_);
   HccaAlloc(DOUBLE, m, nStressR , mesh->nnode*6      , "nStressR" , _AD_);
@@ -535,7 +607,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
 
 /*...*/
   if(opt->yFrac)
-    HccaAlloc(DOUBLE, m, nYfrac   , mesh->nnode*nOfPrSp, "nYfrac"   , _AD_);
+    HccaAlloc(DOUBLE, m, nYfrac   , mesh->nnode*nSp, "nYfrac"   , _AD_);
 /*...................................................................*/
 
 /*...*/
@@ -560,34 +632,40 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (Pres)*/
-  tm.rcGradPres = getTimeC() - tm.rcGradPres;
-  rcGradU(m                        , loadsPres
-         , mesh->elm.node          , mesh->elm.adj.nelcon
-         , mesh->node.x
-         , mesh->elm.nen           , mesh->elm.adj.nViz
-         , mesh->elm.cellFace      , mesh->face.owner
-         , mesh->elm.geom.volume   , mesh->elm.geom.dcca
-         , mesh->elm.geom.xmcc     , mesh->elm.geom.cc
-         , mesh->face.mksi         , mesh->face.ksi
-         , mesh->face.eta          , mesh->face.area
-         , mesh->face.normal       , mesh->face.xm
-         , mesh->face.mvSkew       , mesh->face.vSkew
-         , mesh->elm.geomType      , mesh->elm.material.prop
-         , mesh->elm.material.type , mesh->elm.mat
-         , mesh->elm.leastSquare   , mesh->elm.leastSquareR
-         , mesh->elm.faceRpres     , mesh->elm.faceLoadPres
-         , mesh->elm.pressure      , mesh->elm.gradPres                
-         , mesh->node.pressure     , sc.rcGrad
-         , mesh->maxNo             , mesh->maxViz
-         , 1                       , mesh->ndm       
-         , &pMesh->iNo             , &pMesh->iEl  
-         , mesh->numelNov          , mesh->numel        
-         , mesh->nnodeNov          , mesh->nnode);  
-  tm.rcGradPres = getTimeC() - tm.rcGradPres;
+  if(opt->pres)
+  {
+    tm.rcGradPres = getTimeC() - tm.rcGradPres;
+    rcGradU(m                        , loadsPres
+           , mesh->elm.node          , mesh->elm.adj.nelcon
+           , mesh->node.x
+           , mesh->elm.nen           , mesh->elm.adj.nViz
+           , mesh->elm.cellFace      , mesh->face.owner
+           , mesh->elm.geom.volume   , mesh->elm.geom.dcca
+           , mesh->elm.geom.xmcc     , mesh->elm.geom.cc
+           , mesh->face.mksi         , mesh->face.ksi
+           , mesh->face.eta          , mesh->face.area
+           , mesh->face.normal       , mesh->face.xm
+           , mesh->face.mvSkew       , mesh->face.vSkew
+           , mesh->elm.geomType      , mesh->elm.material.prop
+           , mesh->elm.material.type , mesh->elm.mat
+           , mesh->elm.leastSquare   , mesh->elm.leastSquareR
+           , mesh->elm.faceRpres     , mesh->elm.faceLoadPres
+           , mesh->elm.pressure      , mesh->elm.gradPres                
+           , mesh->node.pressure     , sc->rcGrad
+           , mesh->maxNo             , mesh->maxViz
+           , 1                       , mesh->ndm       
+           , &pMesh->iNo             , &pMesh->iEl  
+           , mesh->numelNov          , mesh->numel        
+           , mesh->nnodeNov          , mesh->nnode);  
+    tm.rcGradPres = getTimeC() - tm.rcGradPres;
+  }
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (GradPres)*/
-  interCellNode(m                  , loadsPres
+  if(opt->gradPres && opt->fNode)
+  {
+    tm.interCellNode = getTimeC() - tm.interCellNode;
+    interCellNode(m                  , loadsPres
               , mesh->elm.cellFace , mesh->face.owner
               , mesh->node.gradPres, mesh->elm.gradPres
               , mesh->elm.node     , mesh->elm.geomType            
@@ -602,10 +680,15 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
               , mesh->ndm          , 1
               , mesh->ndm      
               , false              , 2);
+    tm.interCellNode = getTimeC() - tm.interCellNode;
+  }
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (pres)*/
-  interCellNode(m                   , loadsPres
+  if(opt->pres && opt->fNode)
+  {
+    tm.interCellNode = getTimeC() - tm.interCellNode;
+    interCellNode(m                   , loadsPres
                , mesh->elm.cellFace , mesh->face.owner
                , mesh->node.pressure, mesh->elm.pressure   
                , mesh->elm.node     , mesh->elm.geomType            
@@ -620,15 +703,19 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , 1                  , 1
                , mesh->ndm            
                , opt->bconditions   , 2);
+    tm.interCellNode = getTimeC() - tm.interCellNode;
+  }
 /*...................................................................*/
 
 /*... calculo da matrix jacobiana das velocidades
                             | du1dx1 du1dx2 du1dx3 |   
                             | du2dx1 du2dx2 du2dx3 |   
                             | du3dx1 du3dx2 du3dx3 |
-*/        
-  tm.rcGradVel  = getTimeC() - tm.rcGradVel;
-  rcGradU(m                        , loadsVel
+*/  
+  if(opt->gradVel)
+  {      
+    tm.rcGradVel  = getTimeC() - tm.rcGradVel;
+    rcGradU(m                        , loadsVel
          , mesh->elm.node          , mesh->elm.adj.nelcon
          , mesh->node.x
          , mesh->elm.nen           , mesh->elm.adj.nViz
@@ -644,18 +731,21 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
          , mesh->elm.leastSquare   , mesh->elm.leastSquareR
          , mesh->elm.faceRvel      , mesh->elm.faceLoadVel   
          , mesh->elm.vel           , mesh->elm.gradVel                           
-         , mesh->node.vel          , sc.rcGrad
+         , mesh->node.vel          , sc->rcGrad
          , mesh->maxNo             , mesh->maxViz
          , ndfVel                  , mesh->ndm
          , &pMesh->iNo             , &pMesh->iEl  
          , mesh->numelNov          , mesh->numel        
          , mesh->nnodeNov          , mesh->nnode); 
-  tm.rcGradVel = getTimeC() - tm.rcGradVel;  
+    tm.rcGradVel = getTimeC() - tm.rcGradVel;  
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (gradVel)*/
-  interCellNode(m                   , loadsVel
-               , mesh->elm.cellFace , mesh->face.owner
+    if(opt->fNode)
+    {
+      tm.interCellNode = getTimeC() - tm.interCellNode;
+      interCellNode(m                   , loadsVel
+                , mesh->elm.cellFace , mesh->face.owner
                , mesh->node.gradVel , mesh->elm.gradVel    
                , mesh->elm.node     , mesh->elm.geomType            
                , mesh->elm.geom.cc  , mesh->node.x  
@@ -669,32 +759,44 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , ndfVel             , mesh->ndm
                , mesh->ndm            
                , false              , 2);
+      tm.interCellNode = getTimeC() - tm.interCellNode;
+    }
+  }
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
-  interCellNode(m                  , loadsVel
-               , mesh->elm.cellFace, mesh->face.owner
-               , mesh->node.vel    , mesh->elm.vel        
-               , mesh->elm.node    , mesh->elm.geomType            
-               , mesh->elm.geom.cc , mesh->node.x  
-               , mesh->face.xm   
-               , mesh->elm.nen     , mesh->elm.adj.nViz
-               , mesh->elm.faceRvel, mesh->elm.faceLoadVel 
-               , &pMesh->iNo          
-               , mesh->numelNov    , mesh->numel        
-               , mesh->nnodeNov    , mesh->nnode 
-               , mesh->maxNo       , mesh->maxViz   
-               , mesh->ndm         , 1
-               , mesh->ndm      
-               , opt->bconditions  , 2);
+  if(opt->fNode)
+  {
+    tm.interCellNode = getTimeC() - tm.interCellNode;
+    interCellNode(m                  , loadsVel
+                 , mesh->elm.cellFace, mesh->face.owner
+                 , mesh->node.vel    , mesh->elm.vel        
+                 , mesh->elm.node    , mesh->elm.geomType            
+                 , mesh->elm.geom.cc , mesh->node.x  
+                 , mesh->face.xm   
+                 , mesh->elm.nen     , mesh->elm.adj.nViz
+                 , mesh->elm.faceRvel, mesh->elm.faceLoadVel 
+                 , &pMesh->iNo          
+                 , mesh->numelNov    , mesh->numel        
+                 , mesh->nnodeNov    , mesh->nnode 
+                 , mesh->maxNo       , mesh->maxViz   
+                 , mesh->ndm         , 1
+                 , mesh->ndm      
+                 , opt->bconditions  , 2);
+    tm.interCellNode = getTimeC() - tm.interCellNode;
+  }
 /*...................................................................*/
 
 /*... calculo da matrix jacobiana gradZcomb
                             | dz1dx1 du1dx2 dz1dx3 |   
                             | dz2dx1 du2dx2 dz2dx3 |   
                             | dz3dx1 dz3dx2 dz3dx3 |
-*/        
-/*  rcGradU(m                    , loadsComb
+*/      
+/*... reconstruindo do gradiente (gradZ)*/
+  if(opt->gradZcomb)
+  {
+    tm.rcGradComb   = getTimeC() - tm.rcGradComb;
+    rcGradU(m                      , loadsComb
         , mesh->elm.node         , mesh->elm.adj.nelcon
         , mesh->node.x           
         , mesh->elm.nen          , mesh->elm.adj.nViz
@@ -706,20 +808,24 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
         , mesh->face.normal      , mesh->face.xm
         , mesh->face.mvSkew      , mesh->face.vSkew
         , mesh->elm.geomType     , mesh->elm.material.prop
-        , mesh->elm.material.type, mesh->elm.mat
+        , mesh->elm.material.type, mesh->elm.mat 
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceResZcomb , mesh->elm.faceLoadZcomb
         , mesh->elm.zComb        , mesh->elm.gradZcomb
-        , mesh->node.zComb       , sc.rcGrad
+        , mesh->node.zComb       , sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
-        , nComb                  , mesh->ndm              
+        , ndfComb                , mesh->ndm              
         , &pMesh->iNo            , &pMesh->iEl
         , mesh->numelNov         , mesh->numel
-        , mesh->nnodeNov         , mesh->nnode);   */
-/*...................................................................*/
+        , mesh->nnodeNov         , mesh->nnode);      
+    tm.rcGradComb = getTimeC() - tm.rcGradComb;
+/*.................................................................. */  
 
 /*... interpolacao das variaveis da celulas para pos nos (gradZComb)*/
-  interCellNode(m                      , loadsComb
+    if(opt->fNode)
+    {
+      tm.interCellNode = getTimeC() - tm.interCellNode;
+      interCellNode(m                      , loadsComb
                , mesh->elm.cellFace    , mesh->face.owner
                , mesh->node.gradZcomb  , mesh->elm.gradZcomb  
                , mesh->elm.node        , mesh->elm.geomType            
@@ -731,13 +837,19 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh->numelNov        , mesh->numel        
                , mesh->nnodeNov        , mesh->nnode 
                , mesh->maxNo           , mesh->maxViz   
-               , nComb                 , mesh->ndm
+               , ndfComb               , mesh->ndm
                , mesh->ndm            
                , false                 , 2);
+      tm.interCellNode = getTimeC() - tm.interCellNode;
+    }
+  }
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (zComb)*/
-  interCellNode(m                      , loadsComb
+  if(opt->fNode)
+  {
+    tm.interCellNode = getTimeC() - tm.interCellNode;
+    interCellNode(m                      , loadsComb
                , mesh->elm.cellFace    , mesh->face.owner
                , mesh->node.zComb      , mesh->elm.zComb  
                , mesh->elm.node        , mesh->elm.geomType            
@@ -749,16 +861,20 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh->numelNov        , mesh->numel        
                , mesh->nnodeNov        , mesh->nnode 
                , mesh->maxNo           , mesh->maxViz   
-               , nComb                 , 1
+               , ndfComb               , 1
                , mesh->ndm               
                , opt->bconditions      , 2);
+    tm.interCellNode = getTimeC() - tm.interCellNode;
+  }
 /*...................................................................*/
 
 /*... medias*/
-  if (media->fMedia) {
-
+  if (media->fMedia)
+  {
 /*... medias das velociade*/
     if(media->fVel)
+    {
+      tm.interCellNode = getTimeC() - tm.interCellNode;
       interCellNode(m                   , loadsVel
                    , mesh->elm.cellFace , mesh->face.owner
                    , nMedVel            , media->mVel        
@@ -774,12 +890,16 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                    , mesh->ndm          , 1
                    , mesh->ndm            
                    , false              , 2);
+      tm.interCellNode = getTimeC() - tm.interCellNode;
+    }
 /*...................................................................*/
   }
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (Energia)*/
-  if(mesh->ndfFt){
+  if(opt->gradEnergy)
+  {
+    tm.rcGradEnergy = getTimeC() - tm.rcGradEnergy;
     rcGradU(m                       , loadsTemp
            , mesh->elm.node         , mesh->elm.adj.nelcon
            , mesh->node.x
@@ -796,55 +916,67 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRenergy  , mesh->elm.faceLoadEnergy
            , mesh->elm.temp         , mesh->elm.gradTemp  
-           , mesh->node.temp        , sc.rcGrad
+           , mesh->node.temp        , sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
            , 1                      , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
            , mesh->numelNov         , mesh->numel
-           , mesh->nnodeNov         , mesh->nnode); 
+           , mesh->nnodeNov         , mesh->nnode);
+    tm.rcGradEnergy = getTimeC() - tm.rcGradEnergy; 
 /*.................................................................. */
-
-
+  
 /*... interpolacao das variaveis da celulas para pos nos (GradEnergy)*/
-    interCellNode(m                  , loadsTemp  
-              , mesh->elm.cellFace   , mesh->face.owner
-              , mesh->node.gradTemp  , mesh->elm.gradTemp  
-              , mesh->elm.node       , mesh->elm.geomType
-              , mesh->elm.geom.cc    , mesh->node.x
-              , mesh->face.xm          
-              , mesh->elm.nen        , mesh->elm.adj.nViz
-              , mesh->elm.faceRenergy, mesh->elm.faceLoadEnergy
-              , &pMesh->iNo            
-              , mesh->numelNov       , mesh->numel
-              , mesh->nnodeNov       , mesh->nnode
-              , mesh->maxNo          , mesh->maxViz
-              , mesh->ndm            , 1
-              , mesh->ndm              
-              , false                , 2);  
+    if(opt->fNode)
+    {
+      tm.interCellNode = getTimeC() - tm.interCellNode;
+      interCellNode(m                  , loadsTemp  
+            , mesh->elm.cellFace   , mesh->face.owner
+            , mesh->node.gradTemp  , mesh->elm.gradTemp  
+            , mesh->elm.node       , mesh->elm.geomType
+            , mesh->elm.geom.cc    , mesh->node.x
+            , mesh->face.xm          
+            , mesh->elm.nen        , mesh->elm.adj.nViz
+            , mesh->elm.faceRenergy, mesh->elm.faceLoadEnergy
+            , &pMesh->iNo            
+            , mesh->numelNov       , mesh->numel
+            , mesh->nnodeNov       , mesh->nnode
+            , mesh->maxNo          , mesh->maxViz
+            , mesh->ndm            , 1
+            , mesh->ndm              
+            , false                , 2); 
+      tm.interCellNode = getTimeC() - tm.interCellNode; 
+    }
 /*...................................................................*/
+  }
 
 /*... interpolacao das variaveis da celulas para pos nos (energy)*/
+  if(opt->fNode)
+  {
+    tm.interCellNode = getTimeC() - tm.interCellNode;
     interCellNode(m                 , loadsTemp
-             , mesh->elm.cellFace   , mesh->face.owner
-             , mesh->node.temp      , mesh->elm.temp
-             , mesh->elm.node       , mesh->elm.geomType
-             , mesh->elm.geom.cc    , mesh->node.x
-             , mesh->face.xm          
-             , mesh->elm.nen        , mesh->elm.adj.nViz
-             , mesh->elm.faceRenergy, mesh->elm.faceLoadEnergy
-             , &pMesh->iNo            
-             , mesh->numelNov       , mesh->numel
-             , mesh->nnodeNov       , mesh->nnode
-             , mesh->maxNo          , mesh->maxViz
-             , 1                    , 1
-             , mesh->ndm              
-             , opt->bconditions     , 2);  
-/*...................................................................*/
+           , mesh->elm.cellFace   , mesh->face.owner
+           , mesh->node.temp      , mesh->elm.temp
+           , mesh->elm.node       , mesh->elm.geomType
+           , mesh->elm.geom.cc    , mesh->node.x
+           , mesh->face.xm          
+           , mesh->elm.nen        , mesh->elm.adj.nViz
+           , mesh->elm.faceRenergy, mesh->elm.faceLoadEnergy
+           , &pMesh->iNo            
+           , mesh->numelNov       , mesh->numel
+           , mesh->nnodeNov       , mesh->nnode
+           , mesh->maxNo          , mesh->maxViz
+           , 1                    , 1
+           , mesh->ndm              
+           , opt->bconditions     , 2);  
+    tm.interCellNode = getTimeC() - tm.interCellNode;
   }
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (density)*/
-  interCellNode(m                , loadsTemp
+  if(opt->fNode && opt->densityFluid)
+  {
+    tm.interCellNode = getTimeC() - tm.interCellNode;
+    interCellNode(m                , loadsTemp
              , mesh->elm.cellFace, mesh->face.owner
              , nDenFluid         , mesh->elm.densityFluid
              , mesh->elm.node    , mesh->elm.geomType
@@ -859,10 +991,15 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
              , 3                 , 1
              , mesh->ndm           
              , false             , 2);  
+    tm.interCellNode = getTimeC() - tm.interCellNode;
+  }
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (dViscosity)*/
-  interCellNode(m                    , loadsTemp
+  if(opt->fNode && opt->dViscosity)
+  {
+    tm.interCellNode = getTimeC() - tm.interCellNode;
+    interCellNode(m                    , loadsTemp
               , mesh->elm.cellFace   , mesh->face.owner
               , nDvisc               , mesh->elm.dViscosity
               , mesh->elm.node       , mesh->elm.geomType
@@ -877,13 +1014,17 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
               , 1                    , 1
               , mesh->ndm              
               , false                , 2);
+    tm.interCellNode = getTimeC() - tm.interCellNode;
+  }
 /*...................................................................*/
 
 /*...*/
   if (turbModel->fTurb) 
   {
 /*... viscisidade turbulenta*/
-    if(opt->eddyViscosity)       
+    if(opt->eddyViscosity && opt->fNode)
+    {
+      tm.interCellNode = getTimeC() - tm.interCellNode;
       interCellNode(m                  , loadsVel
                    , mesh->elm.cellFace, mesh->face.owner
                    , nEddyV            , mesh->elm.eddyViscosity        
@@ -899,10 +1040,14 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                    , 1                 , 1
                    , mesh->ndm           
                    , false             , 2);
+      tm.interCellNode = getTimeC() - tm.interCellNode;
+    }
 /*...................................................................*/
 
 /*... tensor residual (modelos estruturais)*/
-    if(opt->stressR)
+    if(opt->stressR && opt->fNode)
+    {
+      tm.interCellNode = getTimeC() - tm.interCellNode;
       interCellNode(m                     , loadsVel
                 , mesh->elm.cellFace      , mesh->face.owner
                 , nStressR                , mesh->elm.stressR              
@@ -918,10 +1063,14 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , 6                       , 1
                 , mesh->ndm                 
                 , false                   , 2);
+      tm.interCellNode = getTimeC() - tm.interCellNode;
+    }
 /*...................................................................*/
 
 /*... coeficiente dinamico*/
-    if(opt->cDynamic)
+    if(opt->cDynamic && opt->fNode)
+    {
+      tm.interCellNode = getTimeC() - tm.interCellNode;
       interCellNode(m                      , loadsVel
                 , mesh->elm.cellFace       , mesh->face.owner
                 , nCdyn                    , mesh->elm.cd              
@@ -937,10 +1086,14 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , 2                        , 1
                 , mesh->ndm                  
                 , false                    , 2);
+      tm.interCellNode = getTimeC() - tm.interCellNode;
+    }
 /*...................................................................*/
 
 /*... parametros de parede*/
-    if(opt->wallParameters)
+    if(opt->wallParameters && opt->fNode)
+    {
+      tm.interCellNode = getTimeC() - tm.interCellNode;
       interCellNode(m                     , loadsVel
                 , mesh->elm.cellFace      , mesh->face.owner
                 , nWall                   , mesh->elm.wallParameters              
@@ -956,10 +1109,14 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , 4                       , 1
                 , mesh->ndm                 
                 , false                   , 2);
+      tm.interCellNode = getTimeC() - tm.interCellNode;
+    }
 /*...................................................................*/
 
 /*... energia cinetica turbulenta*/
-    if(opt->kTurb)       
+    if(opt->kTurb && opt->fNode)
+    {
+      tm.interCellNode = getTimeC() - tm.interCellNode;
       interCellNode(m              , loadsVel
             , mesh->elm.cellFace   , mesh->face.owner
             , nKturb               , mesh->elm.kTurb                
@@ -975,13 +1132,16 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
             , 1                    , 1
             , mesh->ndm              
             , false                , 2);
+      tm.interCellNode = getTimeC() - tm.interCellNode;
+    }
 /*...................................................................*/
-
   }                                 
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (gradVel)*/
-  if(opt->wk)
+  if(opt->wk && opt->fNode)
+  {
+    tm.interCellNode = getTimeC() - tm.interCellNode;
     interCellNode(m                     , loadsComb
                 , mesh->elm.cellFace    , mesh->face.owner
                 , nWk                   , mesh->elm.wk       
@@ -997,10 +1157,13 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , 1                     , 1            
                 , mesh->ndm               
                 , false                 , 2);
+  }
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (gradVel)*/
-  if(opt-> rateHeatComb)
+  if(opt-> rateHeatComb && opt->fNode)
+  {
+    tm.interCellNode = getTimeC() - tm.interCellNode;
     interCellNode(m                     , loadsComb
                 , mesh->elm.cellFace    , mesh->face.owner
                 , nRaHeReComb           , mesh->elm.rateHeatReComb
@@ -1016,10 +1179,14 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , 1                     , 1            
                 , mesh->ndm               
                 , false                 , 2);
-/*...................................................................*
+    tm.interCellNode = getTimeC() - tm.interCellNode;
+  }
+/*...................................................................*/
 
 /*...*/
-  if(opt->yFrac)
+  if(opt->yFrac && opt->fNode)
+  {
+    tm.interCellNode = getTimeC() - tm.interCellNode;
     interCellNode(m                     , loadsComb
                 , mesh->elm.cellFace    , mesh->face.owner
                 , nYfrac                , mesh->elm.yFrac
@@ -1032,14 +1199,26 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , mesh->numelNov        , mesh->numel        
                 , mesh->nnodeNov        , mesh->nnode 
                 , mesh->maxNo           , mesh->maxViz   
-                , nOfPrSp               , 1            
+                , nSp                   , 1            
                 , mesh->ndm               
                 , false                 , 2);
+    tm.interCellNode = getTimeC() - tm.interCellNode;
+  }
+/*...................................................................*/
+
+/*... globalizacao das variaveis*/
+  if(opt->fCell)
+      globalCombCel(m
+                   ,mesh0,mesh
+                   ,pMesh,opt
+                   ,nSp  ,ndfVel
+                   ,ndm  ,ndfComb);
 /*...................................................................*/
 
 /*...*/
-  if(!mpiVar.myId ){
-    fName(preName,sc.ddt.timeStep,0,30,nameOut);
+  if(!mpiVar.myId )
+  {
+    fName(preName,sc->ddt.timeStep,0,30,nameOut);
 /*...*/
     wResVtkCombustion(m                   , cModel                 
                , mesh0->node.x            , mesh0->elm.geom.cc       
@@ -1074,13 +1253,14 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh0->ntn               
                , nameOut                  , opt
                , eModel->fKelvin          , media
-               , sc.ddt                   , fileOut);   
+               , sc->ddt                  , fileOut);   
 /*...................................................................*/
   }
 /*...................................................................*/
 
 /*... desalocando memoria*/
-  if (media->fMedia) {
+  if (media->fMedia) 
+  {
     HccaDealloc(m, nMedP2Vel, "nMedP2Vel", _AD_);
     HccaDealloc(m, nP2Vel   , "nP2Vel"   , _AD_);
     HccaDealloc(m, nMedVel  , "nMediaVel", _AD_);
@@ -1111,8 +1291,6 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
 
 }
 /*********************************************************************/
-
-
 
 /*********************************************************************
  * Data de criacao    : 02/06/2018                                   *
