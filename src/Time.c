@@ -146,6 +146,7 @@ void initTime(Time *tm) {
   tm->overHeadNeqMpi    = 0.e0;
   tm->overHeadGCelMpi   = 0.e0;
   tm->overHeadGNodMpi   = 0.e0;
+  tm->overHeadMiscMpi   = 0.e0;
   tm->overHeadTotalMpi  = 0.e0;
 /*...*/
 

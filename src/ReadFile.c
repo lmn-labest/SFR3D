@@ -700,8 +700,9 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       fprintf(fileLogExc,"%s\n",word);
       fprintf(fileLogExc,"%s\n\n",DIF);
       if(!rflag[2]){
-        ERRO_GERAL(__FILE__,__func__,__LINE__
-                  ,"Erro: macro return sem um insert associado!!");
+        ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__
+                  ,"Erro: macro return sem um insert associado!!"
+                  ,EXIT_PROG);
       }
       fclose(file);
       file = fileAux;
@@ -1159,9 +1160,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*...*/
     alphaProdVector(1.e0              , mesh->elm.yFrac
                  , mesh->numel*nSpPri , mesh->elm.yFrac0);
-/*...................................................................*/
-
-    propF->molarMass = mixtureMolarMass(cModel,mesh->elm.yFrac);            
+/*...................................................................*/          
   }
 /*...................................................................*/
 
@@ -3375,7 +3374,7 @@ void readGravity(DOUBLE *gravity,FILE *file){
 
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
- * Data de modificaco : 03/08/2019                                   * 
+ * Data de modificaco : 21/08/2019                                   * 
  *-------------------------------------------------------------------* 
  * SETPPRINT : Seleciona as veriaves que serao impressas na          *
  * macro pFluid, puD1, puT1                                          *
@@ -3409,7 +3408,7 @@ void setPrint(FileOpt *opt,FILE *file){
                ,"gradud1"      ,"ut1"         ,"gradut1"         /*24,25,26*/
                ,"densityd1"    ,"coefdiffd1"  ,"densityt1"       /*27,28,29*/
                ,"coefdifft1"   ,"zcomb"       ,"gradzcomb"       /*30,31,32*/
-               ,"ratefuel"     ,"yfrac"       ,"rateheatcomb"    /*33,34,35*/                  
+               ,"qchemical"    ,"yfrac"       ,"rateheatcomb"    /*33,34,35*/                  
                ,"coefdiffsp"   ,"enthalpyk"   ,"gradY"           /*36,37,38*/
                ,"treactor"     ,"binary"      ,""                /*39,40,41*/
                ,""             ,""            ,""};              /*42,43,44*/
@@ -3692,7 +3691,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[33]))
     {
       opt->wk = true;
-      fprintf(fileLogExc, format, "print", "Q");
+      fprintf(fileLogExc, format, "print", "QChemical");
     }
 /*.....................................................................*/
 
@@ -4206,7 +4205,8 @@ void setMixedModelLes(Turbulence *t       , FILE *file) {
 
 
   if (ii == 10)
-    ERRO_GERAL(__FILE__,__func__,__LINE__,"Erro na leitura");
+    ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__
+              ,"Erro na leitura",EXIT_PROG);
 
 }
 /**********************************************************************/
@@ -5441,7 +5441,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*********************************************************************
  * Data de criacao    : 30/07/2018                                   *
- * Data de modificaco : 03/05/2019                                   *
+ * Data de modificaco : 20/08/2019                                   *
  *-------------------------------------------------------------------*
  * readSolvComb   leitura das configuracoes do solvers utilizados    *
  * no modelo de combustao                                            *
@@ -5456,17 +5456,18 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
  *-------------------------------------------------------------------*
  *********************************************************************/
 void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
+                , Combustion *cModel 
                 , Solv *solvVel   , SistEq* sistEqVel   , bool *fSolvVel
                 , Solv *solvPres  , SistEq* sistEqPres  , bool *fSolvPres
                 , Solv *solvEnergy, SistEq* sistEqEnergy, bool *fSolvEnergy
                 , Solv *solvKturb , SistEq* sistEqKturb , bool *fSolvKturb
                 , Solv *solvComb  , SistEq* sistEqComb  , bool *fSolvComb
-                , PartMesh *pMesh , short const nComb
+                , PartMesh *pMesh 
                 , char* auxName   , char* preName       , char* nameOut
                 , FILE *fileIn    , FileOpt *opt)
 {
 
-  unsigned short i, ndfVel, nSistEq;
+  unsigned short i, ndfVel, nSistEq, ndfComb = cModel->nComb;
 
   INT nEqMax;
 /*... Estrutura de dados*/
@@ -5476,8 +5477,6 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
   char str1[100], str2[100], str3[100], str4[100];
 
   char word[WORD_SIZE];
-  char slName[][10] = {"zFuel","zAir","zProd"},
-       spName[][10] = {"zFuel","zO2","zCO2","zH2O" ,"zN2",};
 
 /*... solver*/
   readMacro(fileIn, word, false);
@@ -5556,13 +5555,13 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       ndfVel = max(mesh->ndfF - 1, mesh->ndfFt - 2);
 /*...................................................................*/
       HccaAlloc(DOUBLE, m, sistEqVel->b0
-        , sistEqVel->neq*ndfVel, "sistVelb0", _AD_);
+        , sistEqVel->neqNov*ndfVel, "sistVelb0", _AD_);
       HccaAlloc(DOUBLE, m, sistEqVel->b
-        , sistEqVel->neq*ndfVel, "sistVelb ", _AD_);
+        , sistEqVel->neqNov*ndfVel, "sistVelb ", _AD_);
       HccaAlloc(DOUBLE, m, sistEqVel->x
         , sistEqVel->neq*ndfVel, "sistVelx ", _AD_);
-      zero(sistEqVel->b0, sistEqVel->neq*ndfVel, DOUBLEC);
-      zero(sistEqVel->b, sistEqVel->neq*ndfVel, DOUBLEC);
+      zero(sistEqVel->b0, sistEqVel->neqNov*ndfVel, DOUBLEC);
+      zero(sistEqVel->b, sistEqVel->neqNov*ndfVel, DOUBLEC);
       zero(sistEqVel->x, sistEqVel->neq*ndfVel, DOUBLEC);
 /*...................................................................*/
 
@@ -5680,13 +5679,13 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*... pressoes*/
       HccaAlloc(DOUBLE, m, sistEqPres->b0
-        , sistEqPres->neq, "sistPresb0", _AD_);
+        , sistEqPres->neqNov, "sistPresb0", _AD_);
       HccaAlloc(DOUBLE, m, sistEqPres->b
-        , sistEqPres->neq, "sistPresb ", _AD_);
+        , sistEqPres->neqNov, "sistPresb", _AD_);
       HccaAlloc(DOUBLE, m, sistEqPres->x
-        , sistEqPres->neq, "sistPresx ", _AD_);
-      zero(sistEqPres->b0, sistEqPres->neq, DOUBLEC);
-      zero(sistEqPres->b, sistEqPres->neq, DOUBLEC);
+        , sistEqPres->neq, "sistPresx", _AD_);
+      zero(sistEqPres->b0, sistEqPres->neqNov, DOUBLEC);
+      zero(sistEqPres->b, sistEqPres->neqNov, DOUBLEC);
       zero(sistEqPres->x, sistEqPres->neq, DOUBLEC);
 /*...................................................................*/
 
@@ -5802,9 +5801,9 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*... energia*/
       HccaAlloc(DOUBLE, m, sistEqEnergy->b0
-        , sistEqEnergy->neq, "sistEnergy0", _AD_);
+        , sistEqEnergy->neqNov, "sistEnergy0", _AD_);
       HccaAlloc(DOUBLE, m, sistEqEnergy->b
-        , sistEqEnergy->neq, "sistEnergyb ", _AD_);
+        , sistEqEnergy->neqNov, "sistEnergyb", _AD_);
       HccaAlloc(DOUBLE, m, sistEqEnergy->x
         , sistEqEnergy->neq, "sistEnergyx ", _AD_);
       zero(sistEqEnergy->b0, sistEqEnergy->neq, DOUBLEC);
@@ -5926,13 +5925,13 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*... energia*/
       HccaAlloc(DOUBLE, m, sistEqKturb->b0
-        , sistEqKturb->neq, "sistKturb0", _AD_);
+        , sistEqKturb->neqNov, "sistKturb0", _AD_);
       HccaAlloc(DOUBLE, m, sistEqKturb->b
-        , sistEqKturb->neq, "sistKturb", _AD_);
+        , sistEqKturb->neqNov, "sistKturb", _AD_);
       HccaAlloc(DOUBLE, m, sistEqKturb->x
         , sistEqKturb->neq, "sistKturbx ", _AD_);
-      zero(sistEqKturb->b0, sistEqKturb->neq, DOUBLEC);
-      zero(sistEqKturb->b, sistEqKturb->neq, DOUBLEC);
+      zero(sistEqKturb->b0, sistEqKturb->neqNov, DOUBLEC);
+      zero(sistEqKturb->b, sistEqKturb->neqNov, DOUBLEC);
       zero(sistEqKturb->x, sistEqKturb->neq, DOUBLEC);
 /*...................................................................*/
 
@@ -6042,14 +6041,14 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*... */
       HccaAlloc(DOUBLE, m, sistEqComb->b0
-              , sistEqComb->neq*nComb, "sistCombb0", _AD_);
+              , sistEqComb->neqNov*ndfComb, "sistCombb0", _AD_);
       HccaAlloc(DOUBLE, m, sistEqComb->b
-              , sistEqComb->neq*nComb, "sistCombb ", _AD_);
+              , sistEqComb->neqNov*ndfComb, "sistCombb ", _AD_);
       HccaAlloc(DOUBLE, m, sistEqComb->x
-              , sistEqComb->neq*nComb, "sistCombx ", _AD_);
-      zero(sistEqComb->b0, sistEqComb->neq*nComb, DOUBLEC);
-      zero(sistEqComb->b , sistEqComb->neq*nComb, DOUBLEC);
-      zero(sistEqComb->x , sistEqComb->neq*nComb, DOUBLEC);
+              , sistEqComb->neq*ndfComb, "sistCombx ", _AD_);
+      zero(sistEqComb->b0, sistEqComb->neqNov*ndfComb, DOUBLEC);
+      zero(sistEqComb->b , sistEqComb->neqNov*ndfComb, DOUBLEC);
+      zero(sistEqComb->x , sistEqComb->neq*ndfComb, DOUBLEC);
 /*...................................................................*/
 
 /*... Estrutura de dados velocidades*/
@@ -6066,7 +6065,7 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
                     , reordMesh->num   , mesh->elm.adj.nelcon
                     , mesh->elm.adj.nViz
                     , mesh->numelNov   , mesh->maxViz
-                    , nComb            , nComb
+                    , ndfComb          , ndfComb
                     , strIa            , strJa
                     , strAd            , strA
                     , sistEqComb);
@@ -6088,9 +6087,8 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...................................................................*/
 
 /*... mapa de equacoes para comunicacao*/
-/*... mapa de equacoes para comunicacao*/
       if( mpiVar.nPrcs > 1)
-        front(m                 ,pMesh
+        front(m                  ,pMesh
              ,sistEqComb   
              ,"fMapNeqComb"      ,"iaSendsNeqComb"
              ,"iaRcvsNeqComb"    ,"xBufferMpiNeqComb"
@@ -6119,20 +6117,14 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...................................................................*/
 
 /*...nComb*/
-    if(nComb == 2)
-      fprintf(opt->fileItPlot[FITPLOTSIMPLE],"||%s|| ||%s||\n"
-             ,slName[0],slName[1]);
-    if(nComb == 3)
-      fprintf(opt->fileItPlot[FITPLOTSIMPLE],"||%s|| ||%s|| ||%s||\n"
-             ,slName[0],slName[1],slName[2]);
-    if(nComb == 4)
-      fprintf(opt->fileItPlot[FITPLOTSIMPLE]
-            ,"||%s|| ||%s|| ||%s|| ||%s||\n"
-             ,spName[0],spName[1],spName[2],spName[3]);
-    if(nComb == 5)
-      fprintf(opt->fileItPlot[FITPLOTSIMPLE]
-            ,"||%s|| ||%s|| ||%s|| ||%s|| ||%s||\n"
-             ,spName[0],spName[1],spName[2],spName[3],spName[4]);
+    if(ndfComb > 0)
+    {
+      fprintf(opt->fileItPlot[FITPLOTSIMPLE],"#Combustion\n#it");
+      for(i=0;i<ndfComb;i++)
+        fprintf(opt->fileItPlot[FITPLOTSIMPLE]," ||%s|| "
+                                              ,cModel->chem.sp[i].name);  
+      fprintf(opt->fileItPlot[FITPLOTSIMPLE],"\n");
+    }
 /*...................................................................*/
   }
 /*...................................................................*/

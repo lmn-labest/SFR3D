@@ -1831,7 +1831,7 @@ void cellGeom2D(DOUBLE *RESTRICT lx       ,short *RESTRICT lnFace
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 30/05/2019                                   * 
+ * Data de modificaco : 21/08/2019                                   * 
  *-------------------------------------------------------------------* 
  * CELLGEOM3D : calculo geometrico de propriedade de celula 3D       * 
  *-------------------------------------------------------------------* 
@@ -2625,9 +2625,10 @@ void greenGaussCell(Loads *loads
 /*...................................................................*/
 
 /*... condicao de robin*/
-          else if(type == ROBINBC || type == CONVECTIONHEAT){
-            ERRO_GERAL(__FILE__,__func__,__LINE__
-            ,"Condicao de robin na implementada");
+          else if(type == ROBINBC || type == CONVECTIONHEAT)
+          {
+            ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__
+            ,"Condicao de robin na implementada",EXIT_FAILURE);
           }
 /*...................................................................*/
 
@@ -2642,8 +2643,8 @@ void greenGaussCell(Loads *loads
 /*... potencial senoidal prescrito 
       ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
           else if(type == SINBC){
-            ERRO_GERAL(__FILE__,__func__,__LINE__
-            ,"Condicao SINBC robin nao implementada");
+            ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__
+            ,"Condicao SINBC robin nao implementada",EXIT_PROG);
           }
 /*...................................................................*/
         } 
@@ -3022,16 +3023,16 @@ void  leastSquare(Loads *loads
 
 /*... condicao de robin*/
             else if(type == ROBINBC || type == CONVECTIONHEAT){
-              ERRO_GERAL(__FILE__,__func__,__LINE__
-              ,"Condicao de robin na implementada");
+              ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__
+              ,"Condicao de robin na implementada",EXIT_PROG);
             }
 /*...................................................................*/
 
 /*... potencial senoidal prescrito 
       ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
             else if(type == SINBC){
-              ERRO_GERAL(__FILE__,__func__,__LINE__
-              ,"Condicao SINBC robin nao implementada");
+              ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__
+              ,"Condicao SINBC robin nao implementada",EXIT_PROG);
             }
 /*...................................................................*/
          
@@ -3279,16 +3280,16 @@ void  leastSquareQR(Loads *loads
 
 /*... condicao de robin*/
             else if(type == ROBINBC || type == CONVECTIONHEAT){
-              ERRO_GERAL(__FILE__,__func__,__LINE__
-              ,"Condicao de robin na implementada");
+              ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__
+              ,"Condicao de robin na implementada",EXIT_PROG);
             }
 /*...................................................................*/
 
 /*... potencial senoidal prescrito 
       ((a1*sin(w1*x1+c1))*(a2*sin(w2*x2+c2)*(a3*sin(w3*x3+c3))*/
             else if(type == SINBC){
-              ERRO_GERAL(__FILE__,__func__,__LINE__
-              ,"Condicao SINBC robin nao implementada");
+              ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__
+              ,"Condicao SINBC robin nao implementada",EXIT_PROG);
             }
 /*...................................................................*/
          

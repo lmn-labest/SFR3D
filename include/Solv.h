@@ -177,18 +177,20 @@
 
 /*... gradiente conjugado bi-ortoganilizados precondicionado (MPI)*/
   void mpiPbicgstab(INT const nEq,INT const nEqNov      
-      ,INT const nAd         ,INT const nAdR
-      ,INT *RESTRICT ia      ,INT *RESTRICT ja
-      ,DOUBLE *RESTRICT al   ,DOUBLE *RESTRICT ad
-      ,DOUBLE *RESTRICT m    ,DOUBLE *RESTRICT b 
-      ,DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT t 
-      ,DOUBLE *RESTRICT v    ,DOUBLE *RESTRICT r
-      ,DOUBLE *RESTRICT p    ,DOUBLE *RESTRICT z 
-      ,DOUBLE const tol
-      ,unsigned int maxIt    ,bool const newX          
-      ,FILE* fLog            ,bool const log
-      ,bool const fPrint     ,Interface *iNeq    
-      ,void(*matvec)()       ,DOUBLE(*dot)());
+          ,INT const nAd       ,INT const nAdR
+          ,INT *RESTRICT ia    ,INT *RESTRICT ja
+          ,DOUBLE *RESTRICT al ,DOUBLE *RESTRICT ad
+          ,DOUBLE *RESTRICT m  ,DOUBLE *RESTRICT b 
+          ,DOUBLE *RESTRICT x  ,DOUBLE *RESTRICT t
+          ,DOUBLE *RESTRICT v  ,DOUBLE *RESTRICT r
+          ,DOUBLE *RESTRICT p  ,DOUBLE *RESTRICT z 
+          ,DOUBLE *RESTRICT r0
+          ,DOUBLE const tol    ,unsigned int maxIt
+          ,bool const newX     ,FILE* fileLog 
+          ,FILE *fileHistLog   ,bool const log
+          ,bool const fHistLog ,bool const fPrint 
+          ,Interface *iNeq    
+          ,void(*matvec)()     ,DOUBLE(*dot)());
 /*...................................................................*/
 
 /*...*/

@@ -63,7 +63,11 @@
 /*...................................................................*/
 
 /*...*/
-  DOUBLE mixtureMolarMass(Combustion *cModel,DOUBLE *RESTRICT z);
+  DOUBLE mixtureMolarMass(Combustion *cModel,DOUBLE *RESTRICT y);
+  DOUBLE mixtureMolarMassMed(Combustion *cModel  ,DOUBLE *RESTRICT y
+                            ,DOUBLE *RESTRICT volume,DOUBLE const numel);
+  DOUBLE mixtureMolarMassMedMpi(Combustion *cModel  ,DOUBLE *RESTRICT y
+                            ,DOUBLE *RESTRICT volume,DOUBLE const numel);
 /*...................................................................*/
 
 /*... reatores*/

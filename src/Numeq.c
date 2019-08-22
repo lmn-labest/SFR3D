@@ -227,7 +227,6 @@ void front(Memoria *m             ,PartMesh *pMesh
 /*...................................................................*/
 
 /*... alocando memoria*/
-
   kk = rNeq+sNeq;
   sistEq->iNeq.nRcvs  = rNeq; 
   sistEq->iNeq.nSends = sNeq;

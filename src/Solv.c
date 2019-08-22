@@ -974,7 +974,7 @@ void callCg(INT const nEq      ,INT const nEqNov
 
 /**********************************************************************
 * Data de criacao    : 27/08/2016                                    *
-* Data de modificaco : 00/00/0000                                    *
+* Data de modificaco : 18/08/2019                                    *
 * -------------------------------------------------------------------*
 * CALLBICGCSTAB : chama o gradiente biconjugados estabilizados       *                   *
 * -------------------------------------------------------------------*
@@ -1004,23 +1004,26 @@ void callBicgStab(INT const nEq     ,INT const nEqNov
 
 /*... MPI*/
   if (mpiVar.nPrcs > 1)
-    mpiPbicgstab(nEq     ,nEqNov
-                ,nAd     ,nAdR
-                ,ia      ,ja
-                ,a       ,ad  
-                ,m       ,b   
-                ,x       ,t   
-                ,v       ,r
-                ,p       ,z  
-                ,tol
-                ,maxIt   ,newX
-                ,fSolvLog,fLog
-                ,fPrint  ,iNeq
-                ,matVec  ,dot);
+    mpiPbicgstab(nEq    ,nEqNov
+                ,nAd    ,nAdR
+                ,ia     ,ja
+                 ,a     ,ad
+                 ,m     ,b 
+                 ,x     ,t   
+                 ,v     ,r
+                 ,p     ,z 
+                 ,h
+                 ,tol   ,maxIt  
+                 ,newX  ,fSolvLog
+                 ,NULL  ,fLog  
+                 ,false ,fPrint
+                 ,iNeq  
+                 ,matVec,dot);
 /*...................................................................*/
 
 /*... */
-  else {
+  else
+  {
 /*... OpenMp*/
     if (ompVar.fSolver) {
       pbicgstabOmp(nEq   ,nAd
@@ -1096,25 +1099,18 @@ void callBicgStabl2(INT const nEq     ,INT const nEqNov
 
 /*... MPI*/
   if (mpiVar.nPrcs > 1)
-    mpiPbicgstab(nEq, nEqNov
-                 , nAd, nAdR
-                 , ia, ja
-                 , a, ad
-                 , m, b
-                 , x, t
-                 , v, r
-                 , p, z
-                 , tol
-                 , maxIt, newX
-                 , fSolvLog, fLog
-                 , fPrint, iNeq
-                 , matVec, dot);  
+  {
+    printf("MpiBicgStabl2: Nao implementado\n");
+    mpiStop();
+    exit(EXIT_FAILURE);
+  }
 /*...................................................................*/
 
 /*... */
   else {
 /*... OpenMp*/
-    if (ompVar.fSolver) {
+    if (ompVar.fSolver) 
+    {
       pbicgstabl2Omp(nEq   ,nAd
                     ,ia    ,ja
                     ,a     ,ad
@@ -1135,7 +1131,8 @@ void callBicgStabl2(INT const nEq     ,INT const nEqNov
 /*...................................................................*/
 
 /*... sequencial*/
-    else {
+    else 
+    {
       pbicgstabl2(nEq   ,nAd
                ,ia    ,ja
                ,a     ,ad

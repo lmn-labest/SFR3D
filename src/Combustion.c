@@ -1,17 +1,17 @@
 #include<Combustion.h>
 
-DOUBLE edc2(Combustion *cModel,Prop *sHeatPol 
-          ,DOUBLE *y          ,short const iYf
-          ,short const iYox      
-          ,short *iProd       ,short const nProd  
-          ,DOUBLE const s     ,DOUBLE const density
-          ,DOUBLE const vol   ,DOUBLE const eddyVisc
-          ,DOUBLE *c          ,DOUBLE const modS 
-          ,DOUBLE const dVisc ,DOUBLE const df 
-          ,DOUBLE const tMix  ,DOUBLE const tChemical
-          ,DOUBLE const temp   
-          ,short const iCod   ,bool const fKelvin);
+void static printSist(DOUBLE *b,INT xi, INT xj)
+{
+  INT i,j;
 
+  for(i=0;i<xi;i++)
+  {
+    fprintf(fileLogDebug,"%d ",i);
+    for(j=0;j<xj;j++)
+      fprintf(fileLogDebug," %e ",MAT2D(i,j,b,xj));
+    fprintf(fileLogDebug,"\n");
+  }
+}
 
 
 /*********************************************************************
@@ -52,11 +52,9 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
   {
     fComb[i] = false; 
 
-    desloc = sistEqComb->neq;
+    desloc = sistEqComb->neqNov;
     b[i] = &sistEqComb->b[i*desloc];
   
-    xu[i] = &sistEqComb->x[i*desloc]; 
-
     ad[i] = &sistEqComb->ad[i*desloc];
 
     desloc = 2*sistEqComb->nad + sistEqComb->nadr;
@@ -64,7 +62,10 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
  
     au[i] = &sistEqComb->au[i*desloc];
 
-    desloc = mesh->numel;
+    desloc = sistEqComb->neq;
+    xu[i] = &sistEqComb->x[i*desloc]; 
+
+    desloc = mesh->numelNov;
     rCellC[i] = &mesh->elm.rCellComb[i*desloc];
   }
 /*...................................................................*/
@@ -77,11 +78,10 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
               , mesh->elm.densityFluid , mesh->elm.gradVel 
               , mesh->elm.eddyViscosity
               , mesh->elm.dViscosity   , mesh->elm.tReactor
-              , mesh->ndm               , mesh->numel
+              , mesh->ndm              , mesh->numelNov
               , eModel->fKelvin ); 
   tm.timeChemical = getTimeC() - tm.timeChemical;    
 /*...................................................................*/
-
 
 /*... taxa de comsumo do combustivel*/
   tm.rateReaction  = getTimeC() - tm.rateReaction;
@@ -92,7 +92,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                   , mesh->elm.gradVel      , mesh->elm.eddyViscosity
                   , mesh->elm.dViscosity   , mesh->elm.tReactor
                   , sc->ddt.dt[2]          , thDynamic.pTh[2]
-                  , mesh->ndm              , mesh->numel
+                  , mesh->ndm              , mesh->numelNov
                   , eModel->fKelvin        , ompVar.fUpdate    
                   , ompVar.nThreadsUpdate);  
   tm.rateReaction  = getTimeC() - tm.rateReaction;  
@@ -189,7 +189,6 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
  /*...*/
     fComb[i] = true; 
     if ( tb[i] < SZERO || tb[i] == 0.e0 ) fComb[i] = false;
-//  printf("%d %e\n",i,tb[i]);
   }
 /*...................................................................*/
 
@@ -233,7 +232,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*...*/
-  regularZ(mesh->elm.yFrac,mesh->numelNov,cModel->nOfSpecies);
+  regularZ(mesh->elm.yFrac,mesh->numel,cModel->nOfSpecies);
 /*...................................................................*/
 
 /*...*/
@@ -241,7 +240,6 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                 , mesh->elm.gradZcomb, mesh->elm.gradY
                 , mesh->numel        , mesh->ndm);
 /*...................................................................*/
-
   tm.speciesLoop = getTimeC() - tm.speciesLoop;
 /*...................................................................*/
 
@@ -256,7 +254,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 
 /*...*/
   tm.heatRelease  = getTimeC() - tm.heatRelease; 
-  rateHeatReakesedReaction(cModel            , &prop->sHeat                
+  rateHeatRealesedReaction(cModel            , &prop->sHeat                
                     , mesh->elm.rateHeatReComb, mesh->elm.temp     
                     , mesh->elm.zComb0        , mesh->elm.zComb
                     , mesh->elm.densityFluid  , mesh->elm.wk
@@ -268,7 +266,9 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*...*/
-  prop->molarMass = mixtureMolarMass(cModel,mesh->elm.yFrac);
+  prop->molarMass = mixtureMolarMassMedMpi(cModel
+                      ,mesh->elm.yFrac
+                      ,mesh->elm.geom.volume,mesh->numelNov);
 /*...................................................................*/
 
 }
@@ -645,7 +645,7 @@ void getSpeciesPrimitivesCc(Combustion *cModel
  * Produto                                                           *
  * speciesPart[1][1][0] = SP_CO2;                                    *
  *********************************************************************/
-void rateHeatReakesedReaction(Combustion *cModel,Prop *sHeat   
+void rateHeatRealesedReaction(Combustion *cModel,Prop *sHeat   
                    , DOUBLE *RESTRICT q      , DOUBLE *RESTRICT temp
                    , DOUBLE *RESTRICT zComb0 , DOUBLE *RESTRICT zComb
                    , DOUBLE *RESTRICT density, DOUBLE *RESTRICT wk
@@ -738,9 +738,26 @@ DOUBLE totalHeatRealeseComb(DOUBLE *RESTRICT q, DOUBLE *RESTRICT vol
 
   INT nel;
   DOUBLE qTotal =0.e0, vTotal = 0.e0;
+#ifdef _MPI_
+  DOUBLE gg;
+#endif
 
+/*...*/
   for(nel = 0; nel < numel; nel++)
     qTotal += q[nel]*vol[nel];
+/*...................................................................*/
+
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    MPI_Allreduce(&qTotal,&gg ,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    qTotal = gg;
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+  }
+#endif
+/*...................................................................*/
 
   return qTotal*dt;
 }
@@ -805,10 +822,29 @@ DOUBLE maxArray(DOUBLE *RESTRICT x,INT const n)
   
   INT j;
   DOUBLE tmp;
+#ifdef _MPI_
+  DOUBLE gg;
+#endif
 
+/*...*/
   tmp = max(x[0], x[1]);
   for(j=2;j<n;j++)
+  {
     tmp = max(tmp, x[j]); 
+  }  
+/*...................................................................*/
+
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    MPI_Allreduce(&tmp,&gg ,1,MPI_DOUBLE,MPI_MAX,mpiVar.comm);
+    tmp = gg;
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+  }
+#endif
+/*...................................................................*/
 
   return tmp;
 
@@ -1070,8 +1106,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
   return k;
 
 }
-/*********************************************************************/ 
-
+/*********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 26/07/2019                                   *
@@ -1286,7 +1321,7 @@ void globalReac(Combustion *c, short const iReac)
 
 /*********************************************************************
 * Data de criacao    : 02/06/2019                                   *
-* Data de modificaco : 00/00/0000                                   *
+* Data de modificaco : 20/08/2019                                   *
 *-------------------------------------------------------------------*
 * getVolumeMed : Calula a media volumetria de um gradeza            *
 *-------------------------------------------------------------------*
@@ -1304,12 +1339,32 @@ DOUBLE getVolumeMed(DOUBLE *RESTRICT x,DOUBLE *RESTRICT vol
 {
   INT i;
   DOUBLE sum,volT;
- 
+#ifdef _MPI_
+  DOUBLE gg;
+#endif
+
+/*....*/
   for (i = 0,sum=volT=0.e0; i < n; i++)
   {
     sum+= x[i]*vol[i];
     volT+=vol[i];
   }
+/*...................................................................*/
+
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    MPI_Allreduce(&volT,&gg ,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    volT = gg;
+    MPI_Allreduce(&sum,&gg ,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    sum = gg;
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+  }
+#endif
+/*...................................................................*/
+
   return sum/volT;
 }
 /*******************************************************************/

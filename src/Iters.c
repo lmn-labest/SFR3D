@@ -1235,7 +1235,8 @@ void pbicgstab(INT const nEq  ,INT const nAd
 /*...................................................................*/
 
 /*...*/
-  for(i = 0; i < nEq; i++)   {
+  for(i = 0; i < nEq; i++)
+  {
 /*... r0 = b - Ax0*/
     r0[i] = b[i] - z[i];
 /*... p = r0*/
@@ -1249,7 +1250,8 @@ void pbicgstab(INT const nEq  ,INT const nAd
 
 /*...*/
 	jj = 1;
-  for(j = 0; j < maxIt; j++)   {
+  for(j = 0; j < maxIt; j++)
+  {
 /* ... v = Az(j) = AM(-1)p(j)*/
     matvec(nEq,ia,ja,al,ad,z,v);
 /*...................................................................*/
@@ -1260,7 +1262,8 @@ void pbicgstab(INT const nEq  ,INT const nAd
 /*...................................................................*/
 
 /*...*/
-    for(i = 0; i < nEq; i++)   {
+    for(i = 0; i < nEq; i++)
+    {
 /*... x(j + 1) = x(j) + alpha*M(-1)p*/
       x[i] += alpha * z[i];
 /*... s(j) = r(j) - alpha*AM(-1)p(j)*/
@@ -1285,7 +1288,8 @@ void pbicgstab(INT const nEq  ,INT const nAd
 /*...................................................................*/
 
 /*...*/
-    for(i = 0; i < nEq; i++)   {
+    for(i = 0; i < nEq; i++) 
+    {
 /* ... x(j + 1) = x(j) + w*M(-1)s*/
       x[i] += w*z[i];
 /* ... r(j + 1) = s(j) - w*AM(-1)s*/
@@ -1308,7 +1312,8 @@ void pbicgstab(INT const nEq  ,INT const nAd
 /*...................................................................*/
 
 /*...*/
-    for(i = 0; i < nEq; i++)   {
+    for(i = 0; i < nEq; i++)
+    {
 /*... p(j + 1) = r(i) + beta*(p(j) - w*v(i))*/
       p[i]  = r[i] + beta*(p[i]-w*v[i]);
 /*... z = M(-1)p*/
@@ -1317,7 +1322,8 @@ void pbicgstab(INT const nEq  ,INT const nAd
 /*...................................................................*/
 
 /*...*/
-		if (jj == 2000) {
+		if (jj == 2000)
+    {
 			jj = 0;
 			printf("BICGSATB: %d %20.9e %20.9e\n"
             ,j + 1, sqrt(fabs(d)), conv);
@@ -1347,7 +1353,7 @@ void pbicgstab(INT const nEq  ,INT const nAd
 		printf("BICGSATB: %20.9e > %20.9e!!\n", norm_r, conv);
 /*...................................................................*/
   timef = getTimeC() - timei;
-
+/*...*/
   if(fPrint){ 
 		printf(" (BICGSATB) solver:\n"
 			"\tEquations      = %20d\n"
@@ -1360,28 +1366,33 @@ void pbicgstab(INT const nEq  ,INT const nAd
 			"\tCPU time(s)    = %20.2lf\n"
 			, nEq, nAd, tol, j + 1, xKx, norm, norm_r, timef);
   }
-  
+ /*..................................................................*/  
+ 
+/*...*/
   if(j == maxIt){ 
     printf(" PBICGSTAB *** WARNING: no convergende reached !\n");
     printf("MAXIT = %d \n",maxIt);
-    exit(EXIT_FAILURE);
+    exit(EXIT_SOLVER);
   }
+/*..................................................................*/
+
+/*...*/ 
   if(log)
     fprintf(fileLog          
            ,"PBICGSTAB: tol %20.2e " 
 						"iteration %d "
 						"xKx %20.12e "
-						"norma(x*x) %20.12e "
+						"||x*x|| %20.12e "
 						"time %20.5lf\n"
 						, tol, j + 1, xKx, norm, timef);
-
+ /*..................................................................*/
 
 }
 /**********************************************************************/
 
 /**********************************************************************
  * Data de criacao    : 28 / 08 / 2016                                *
- * Data de modificaco : 00 / 00 / 0000                                *
+ * Data de modificaco : 18 / 08 / 2019                                *
  * ------------------------------------------------------------------ *
  * MPIPBICGSTAB : metodo do gradiente conjugado bi-ortaganalizado     *
  * com precondiconador diagonal (M-1Ax=M-1b) (matriz geral)           *
@@ -1392,26 +1403,30 @@ void pbicgstab(INT const nEq  ,INT const nAd
  * neqNov-> numero de equacoes nao sobrepostas                        *
  *  nad -> numero de elementos nao nulos fora da diagonal             *
  *  nadR-> numero de elementos nao nulos na parte retangular          *
- *  ia  -> estrutura de dados para matriz esparsa A                   *
- *  ja  -> estrutura de dados para matriz esparsa A                   *
+ *  ia        -> estrutura de dados para matriz esparsa A             *
+ *  ja        -> estrutura de dados para matriz esparsa A             *
  *  a         -> coef fora da diagonal principal                      *
- *  ad  -> diagnal da matriz A                                        *
- *   p  -> precondiconador diagonal                                   *
- *   b  -> vetor b (Ax=b)                                             *
- *   x  -> vetor de solucao                                           *
- *   t  -> vetor auxiliar                                             *
- *   v  -> vetor auxiliar                                             *
- *   r  -> vetor auxiliar                                             *
- *   p  -> vetor auxiliar                                             *
- *   z  -> vetor auxiliar                                             *
- * newX -> vetor inicial iniciado com zero                            *
- * fileLog -> arquivo de log do solver                                *
- * log  -> log de arquivo (true|false)                                *
- * tol  -> tolerancia do solver                                       *
- * maxIt-> numero maximo de iteracoes                                 *
- *  newX-> true zero o vetor inicial                                  *
- *  log -> escreve o log do solver                                    *
- *fPrint-> saida de informacao na tela                                *
+ *  ad        -> diagnal da matriz A                                  *
+ *   p        -> precondiconador diagonal                             *
+ *   b        -> vetor b (Ax=b)                                       *
+ *   x        -> vetor de solucao                                     *
+ *   t        -> vetor auxiliar                                       *
+ *   v        -> vetor auxiliar                                       *
+ *   r        -> vetor auxiliar                                       *
+ *   p        -> vetor auxiliar                                       *
+ *   z        -> vetor auxiliar                                       *
+ * r0          > vetor auxiliar                                       *
+ * newX       -> vetor inicial iniciado com zero                      *
+ * fileLog       -> arquivo de log do solver                          *
+ * log        -> log de arquivo (true|false)                          *
+ * tol        -> tolerancia do solver                                 *
+ * maxIt			-> numero maximo de iteracoes                           *
+ *  newX			-> true zero o vetor inicial                            *
+ * fileLog				-> arquivo de saida do log                          *
+ * fileHistLog-> arquivo de log da iteracoes                          *
+ *  log       -> escreve o log do solver                              *
+ * fPrint			-> saida de informacao na tela                          *
+ * fHistLog		-> log das iteracoes                                    *
  * iNeq -> mapa de interface de equacoes                              *
  * -------------------------------------------------------------------*
  * Parametros de Saida:                                               *
@@ -1420,7 +1435,10 @@ void pbicgstab(INT const nEq  ,INT const nAd
  * b[]-> alterado                                                     *
  * ad,al,au-> inalterado                                              *
  * -------------------------------------------------------------------*
-*********************************************************************/
+ * OBS:                                                               *
+ * A(M-1)y=b precondicionador a direita                               *
+ * -------------------------------------------------------------------*
+ *********************************************************************/
 void mpiPbicgstab(INT const nEq,INT const nEqNov      
           ,INT const nAd       ,INT const nAdR
           ,INT *RESTRICT ia    ,INT *RESTRICT ja
@@ -1429,15 +1447,17 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
           ,DOUBLE *RESTRICT x  ,DOUBLE *RESTRICT t
           ,DOUBLE *RESTRICT v  ,DOUBLE *RESTRICT r
           ,DOUBLE *RESTRICT p  ,DOUBLE *RESTRICT z 
-          ,DOUBLE const tol
-          ,unsigned int maxIt  ,bool const newX          
-          ,FILE* fileLog          ,bool const log
-          ,bool const fPrint   ,Interface *iNeq    
+          ,DOUBLE *RESTRICT r0
+          ,DOUBLE const tol    ,unsigned int maxIt
+          ,bool const newX     ,FILE* fileLog 
+          ,FILE *fileHistLog   ,bool const log
+          ,bool const fHistLog ,bool const fPrint 
+          ,Interface *iNeq    
           ,void(*matvec)()     ,DOUBLE(*dot)())
 {
-	unsigned int j;
-	INT i;
-  DOUBLE alpha,beta,d,conv,energy,w,rr0;
+  unsigned int j,jj;
+  INT i;
+  DOUBLE alpha,beta,d,conv,xKx,norm_r,norm,norm_b,w,rr0;
   DOUBLE timei,timef;
   INT param[2];
 
@@ -1445,83 +1465,184 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
   
   param[0] = nAd;
   param[1] = nAdR;
-
 /* chute inicial*/
   if(newX)  
     for (i = 0; i < nEq; i++)  
       x[i] = 0.e0;
-      
-/* Residuo inicial*/  
+/*...................................................................*/
+
+/*... conv = tol * |b|*/	
+  d        = dot(b,b,nEqNov);
+	norm_b   = sqrt(d);
+	conv     = tol*norm_b;
+//breaktol = btol*sqrt(d);
+
+/*...................................................................*/
+
+/*... Ax0*/ 
   matvec(nEqNov,param,ia,ja,al,ad,x,z,iNeq);
-  for(i = 0; i < nEqNov; i++)   {
-    r[i] = b[i] - z[i];
-    p[i] = r[i];
-    b[i] = p[i];
+/*...................................................................*/
+ 
+/*...*/  
+  for(i = 0; i < nEqNov; i++)
+  {
+/*... r0 = b - Ax0*/
+    r0[i] = b[i] - z[i];
+/*... p = r0*/
+    p[i] = r0[i];
+/*... r = r0*/
+    r[i] = r0[i];
+/*... z = M(-1)p*/
     z[i] = p[i]*m[i];
   }
-  d = dot(r,z,nEqNov);
-  conv = tol * sqrt(fabs(d));
-/*--------------------------------------------------------*/   
-  for(j = 0; j < maxIt; j++)   {
+/*...................................................................*/
+
+/*...*/
+	jj = 1;  
+  for(j = 0; j < maxIt; j++) 
+  {
+/* ... v = Az(j) = AM(-1)p(j)*/
     matvec(nEqNov,param,ia,ja,al,ad,z,v,iNeq);
+/*...................................................................*/
 
-    rr0   = dot(b,r,nEqNov);
-    alpha = rr0/dot(v,r,nEqNov);
-    for(i = 0; i < nEqNov; i++)   {
-      x[i] +=  alpha * z[i];
-      b[i] -=  alpha * v[i];
-      z[i]  = b[i] * m[i];
+/*... alpha = (r(j), r0) / (AM(-1)p(j), r0))*/
+    rr0   = dot(r,r0,nEqNov);
+    alpha = rr0/dot(v,r0,nEqNov);
+/*...................................................................*/
+  
+/*...*/
+    for(i = 0; i < nEqNov; i++)
+    {
+/*... x(j + 1) = x(j) + alpha*M(-1)p*/
+      x[i] += alpha * z[i];
+/*... s(j) = r(j) - alpha*AM(-1)p(j)*/
+      r[i] -= alpha * v[i];
+/*... z = M(-1)s*/
+      z[i]  = r[i] * m[i];
     }
+/*...................................................................*/
+
+/*... (s, s)*/
+		d = dot(r, r, nEqNov);
+/*...*/	
+		if (sqrt(d) < conv) break;
+/*...................................................................*/
+
+/*... t = Az = AM(-1)s(j)*/
     matvec(nEqNov,param,ia,ja,al,ad,z,t,iNeq);
-    w = dot(t,b,nEqNov)/ dot(t,t,nEqNov);
-    for(i = 0; i < nEqNov; i++)   {
-      x[i] += w*z[i];
-      b[i] -= w*t[i];
-    }
+/*... w = (AM(-1)s(j), s(j)) / (AM(-1)s(j), AM(-1)s(j))*/
+    w = dot(t,r,nEqNov)/ dot(t,t,nEqNov);
+/*...................................................................*/
 
-    d = dot(b,z,nEqNov);
+/*...*/    
+    for(i = 0; i < nEqNov; i++)
+    {
+/* ... x(j + 1) = x(j) + w*M(-1)s*/
+      x[i] += w*z[i];
+/* ... r(j + 1) = s(j) - w*AM(-1)s*/
+      r[i] -= w*t[i];
+    }
+/*...................................................................*/
+
+/*... (r, r)*/
+    d = dot(r,r,nEqNov);
     if(sqrt(fabs(d)) < conv) break;
-    beta = (dot(r,b,nEqNov)/rr0)*(alpha/w);
-    for(i = 0; i < nEqNov; i++)   {
-      p[i]  = b[i] + beta*(p[i]-w*v[i]);
+/*...................................................................*/
+
+/*...*/
+		if(!mpiVar.myId  && fHistLog)
+			fprintf(fileHistLog, "%d %20.9e\n", j, sqrt(fabs(d)) / norm_b);
+/*...................................................................*/
+
+/*... beta = (r(j + 1), r0) / (r(j), r0)) * (alpha / w)*/
+    beta = (dot(r,r0,nEqNov)/rr0)*(alpha/w);
+/*...................................................................*/
+
+/*...*/
+    for(i = 0; i < nEqNov; i++)
+    {
+/*... p(j + 1) = r(i) + beta*(p(j) - w*v(i))*/
+      p[i]  = r[i] + beta*(p[i]-w*v[i]);
+/*... z = M(-1)p*/
       z[i]  = p[i]*m[i];
     }
-
+/*...................................................................*/
+ 
+/*...*/
+		if (jj == 2000) 
+    {
+			jj = 0;
+      if(!mpiVar.myId)
+			  printf("MPIBICGSATB: %d %20.9e %20.9e\n"
+              ,j + 1, sqrt(fabs(d)), conv);
+		}
+		jj++;
+/*...................................................................*/
   }
-/* -------------------------------------------------------*/
+/*...................................................................*/
+
+/*... Energy norm:  x*Kx*/
   matvec(nEqNov,param,ia,ja,al,ad,x,z,iNeq);
 /*norma de energia = xT*A*x */
-  energy = dot(x,z,nEqNov);
-/* -------------------------------------------------------*/
+  xKx  = dot(x,z,nEqNov);
+/*...................................................................*/
+
+/*... norm - 2 = || x ||*/
+	norm = sqrt(dot(x, x, nEqNov));
+/*...................................................................*/
+
+/*... r = (b - Ax) (calculo do residuo explicito)*/
+	for (i = 0; i < nEq; i++) {
+		r[i] = b[i] - z[i];
+	}
+	norm_r = dot(r, r, nEq);
+	norm_r = sqrt(norm_r);
+	if(fPrint && norm_r > 3.16e0*conv)
+		if(!mpiVar.myId) printf("BICGSATB: %20.9e > %20.9e!!\n", norm_r, conv);
+/*...................................................................*/
   timef = getTimeC() - timei;
 
-  if(fPrint){ 
-    printf("\tnad         :      %20d\n"  ,nAd);
-    printf("\tnad         :      %20d\n"  ,nAdR);
-    printf("\tSolver tol  :      %20.2e\n",tol);
-    printf(" (PBICGSTAB) solver :\n"
-           "\tEquations   =      %20d\n"
-           "\tEquations   =      %20d\n"
-           "\tIterarions  =      %20d\n"
-	         "\tEnergy norm =      %20.12e\n"
-	         "\tCPU time(s) =      %20.2lf\n" 
-	         ,nEqNov,nEq,j+1,energy,timef);
+/*...*/
+  if(!mpiVar.myId && fPrint)
+  { 
+    printf(" (MPIBICGSATB) solver:\n"
+			"\tEquations      = %20d\n"
+      "\tEquations      = %20d\n"
+			"\tnad            = %20d\n"
+      "\tnadR           = %20d\n"
+			"\tSolver tol     = %20.2e\n"
+			"\tIterarions     = %20d\n"
+			"\tx * Kx         = %20.2e\n"
+			"\t|| x ||        = %20.2e\n"
+			"\t|| b - Ax ||   = %20.2e\n"
+			"\tCPU time(s)    = %20.2lf\n"
+	    ,nEq,nEqNov,nAd,nAdR,tol,j+1,xKx, norm, norm_r,timef);
   }
-  
-  if(j == maxIt){ 
-    printf(" *** WARNING: no convergende reached !\n");
-    printf("MAXIT = %d \n",maxIt);
-    exit(EXIT_FAILURE);
+ /*..................................................................*/
+
+/*...*/
+  if(j == maxIt)
+  { 
+    if(!mpiVar.myId)
+    {
+      printf(" MPIPBICGSTAB *** WARNING: no convergende reached !\n");
+      printf("MAXIT = %d \n",maxIt);
+    }
+    mpiStop();
+    exit(EXIT_SOLVER);
   }
-  
+/*..................................................................*/ 
+
+/*...*/
   if(!mpiVar.myId && log)
     fprintf(fileLog          
            ,"MPIPBICGSTAB: tol %20.2e " 
             "iteration %d " 
-		        "norma %20.12e "
+		        "xKx %20.12e "
+            "||x*x|| %20.12e "
 		        "time %20.5lf\n"
-           ,tol,j+1,energy,timef);
-
+           ,tol,j+1,xKx,norm,timef);
+ /*..................................................................*/
 }
 /**********************************************************************/
 

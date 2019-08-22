@@ -119,7 +119,7 @@ DOUBLE massActionMass(Reaction *reac     ,Prop *sHeatPol
 
 /*********************************************************************
  * Data de criacao    : 12/08/2018                                   *
- * Data de modificaco : 05/08/2019                                   *
+ * Data de modificaco : 17/08/2019                                   *
  *-------------------------------------------------------------------*
  * rateReaction: calculo da taxa de consumo do combustivel           *
  *-------------------------------------------------------------------*
@@ -160,9 +160,9 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
   short i,j;
   INT nel,it;
   DOUBLE s,tMix,eddy,sT[6],*iGradVel,df,*pz;
-  DOUBLE omega, densityC, alpha, coefA;
-  DOUBLE modS, c[3], e1, e2;
-  DOUBLE tK, ru, y[MAXSPECIES],cM[MAXSPECIES],Q[MAXREAC],w[MAXSPECIES];
+  DOUBLE omega, densityC, eddyC;
+  DOUBLE modS;
+  DOUBLE tK, y[MAXSPECIES],cM[MAXSPECIES],Q[MAXREAC],w[MAXSPECIES];
 
 
 /*...*/
@@ -211,19 +211,23 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
       {
 /*...*/
 #pragma omp parallel  for default(none) num_threads(nThreads)\
-        private(nel,pz,i,it,densityC,y,w)\
+        private(nel,pz,i,it,densityC,eddyC,y,w)\
         shared(cModel,zComb,nComb,density,numel,nSp,rate,pFluid,dt,temp\
-              ,tReactor,eddyViscosity,dViscosity,thDynamic,fKelvin)
+              ,tReactor,eddyViscosity,dViscosity,thDynamic,fKelvin\
+              ,tModel)
         for(nel = 0; nel < numel; nel++)
         {
           pz = &MAT2D(nel,0,zComb,nComb);
           densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
           getSpeciesPrimitivesCc(cModel,y,pz);     
+          if(tModel->fTurb)
+            eddyC = eddyViscosity[nel];
+/*...*/
           it = edc(cModel                         ,pFluid
            ,y                                     ,w
            ,&MAT2D(nel,0,tReactor,N_TERMS_REACTOR),densityC
            ,dt                                    ,temp[nel]
-           ,eddyViscosity[nel]                    ,dViscosity[nel]
+           ,eddyC                                 ,dViscosity[nel]
            ,thDynamic.pTh[2]                      ,fKelvin
            ,nel );
 /*...................................................................*/
@@ -242,17 +246,29 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
         {
           pz = &MAT2D(nel,0,zComb,nComb);
           densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
-          getSpeciesPrimitivesCc(cModel,y,pz);     
-          it = edc(cModel                           ,pFluid
+          getSpeciesPrimitivesCc(cModel,y,pz);
+          if(tModel->fTurb)
+            eddyC = eddyViscosity[nel];
+/*...*/
+          it = edc(cModel                         ,pFluid
            ,y                                     ,w
            ,&MAT2D(nel,0,tReactor,N_TERMS_REACTOR),densityC
            ,dt                                    ,temp[nel]
-           ,eddyViscosity[nel]                    ,dViscosity[nel]
+           ,eddyC                                 ,dViscosity[nel]
            ,thDynamic.pTh[2]                      ,fKelvin
            ,nel );
 /*...................................................................*/
           for(i=0;i<nSp;i++)
             MAT2D(nel,i,rate,nSp) = w[i];
+
+/*         fprintf(fileLogDebug,"%4d %e %e %e %e %e %e %e\n",nel,w[0]
+                                                    ,y[0]
+                                                    ,y[1]
+                                                    ,y[2] 
+                                                    ,y[3]
+                                                    ,y[4]
+                                                    ,y[5]);  */
+
         }     
 /*...................................................................*/
       }
@@ -299,6 +315,7 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
 /*...................................................................*/
           for(i=0;i<nSp;i++)
             MAT2D(nel,i,rate,nSp) = w[i];
+
         }
 /*...................................................................*/
       }
@@ -312,7 +329,7 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
 
 /*********************************************************************
  * Data de criacao    : 12/08/2018                                   *
- * Data de modificaco : 24/05/2019                                   *
+ * Data de modificaco : 21/08/2019                                   *
  *-------------------------------------------------------------------*
  * timeChemical: calculo da taxa de consumo do combustivel           *
  *-------------------------------------------------------------------*
@@ -396,7 +413,6 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
       }
     }
 /*...................................................................*/ 
-
       
 /*...*/    
     if(modS < 1.0e-06)
@@ -747,6 +763,106 @@ DOUBLE mixtureMolarMass(Combustion *cModel,DOUBLE *RESTRICT y)
 
 }
 /*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 18/08/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * mixtureMolarMassMed: massa molar media da mistura                 *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * cModel  -> nao definido                                           *
+ * y       -> especies primitivas                                    *
+ * volume  -> volume da celula                                       *
+ * numel   -> numero de elementos                                    *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE mixtureMolarMassMed(Combustion *cModel     ,DOUBLE *RESTRICT y
+                          ,DOUBLE *RESTRICT volume,DOUBLE const numel) 
+{                    
+
+  short i, nSp = cModel->nOfSpecies;
+  INT nel;
+  DOUBLE vm,mm;
+
+  for(nel=0,mm=0.e0,vm=0.e0;nel<numel;nel++)
+  {
+    vm += volume[i];
+    mm += mixtureMolarMass(cModel,&MAT2D(i,0,y,nSp))*volume[i]; 
+  }
+
+  return mm/vm;
+
+}
+/*********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 18/08/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * mixtureMolarMassMedMpi:  massa molar media da mistura             *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * cModel  -> nao definido                                           *
+ * y       -> especies primitivas                                    *
+ * volume  -> volume da celula
+ * numel   -> numero de elementos                                    *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE mixtureMolarMassMedMpi(Combustion *cModel    ,DOUBLE *RESTRICT y
+                            ,DOUBLE *RESTRICT volume,DOUBLE const numel) 
+{                    
+
+  short nSp = cModel->nOfSpecies;
+  INT nel;
+  DOUBLE vm,mm,mW;
+#ifdef _MPI_
+  DOUBLE gVm,gMm;
+#endif
+
+/*...*/
+  for(nel=0,mm=0.e0,vm=0.e0;nel<numel;nel++)
+  {
+    vm += volume[nel];
+    mm += mixtureMolarMass(cModel,&MAT2D(nel,0,y,nSp))*volume[nel]; 
+  }
+/*...................................................................*/
+
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    MPI_Allreduce(&vm ,&gVm ,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    MPI_Allreduce(&mm ,&gMm ,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    mW = gMm/gVm; 
+  }
+  else  
+    mW = mm/vm;
+#else
+    mW = mm/vm;
+#endif
+/*...................................................................*/
+
+  return mW;
+
+}
+/*********************************************************************/
+
+
 
 void plugFlowReactor(DOUBLE const t    ,DOUBLE *RESTRICT y
                     ,DOUBLE *RESTRICT w,void **pt)

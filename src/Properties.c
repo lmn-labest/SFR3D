@@ -1201,7 +1201,7 @@ DOUBLE mixtureSpecifiHeat(Prop *sHeat        , DOUBLE *yFrac
     yFrac[k] = max(yFrac[k],0.0);
     if (cpk < 0.e0 || yFrac[k] < 0.e0)
     {
-      printf("Calor especifico negativo!!\n"
+      fprintf(fileLogDebug,"Calor especifico negativo!!\n"
              "Y                = %e\n"
              "Species          = %d\n"   
              "Calor especifico = %e\n"
@@ -1962,9 +1962,9 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
 
     if(!flag)
     {
-      printf("%i %e %e\n",i,tc,f);
-      ERRO_GERAL(__FILE__,__func__,__LINE__,
-      "sEnthalpy->temperature:\n Newton-raphson did not converge !!");
+      ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,
+      "sEnthalpy->temperature:\n Newton-raphson did not converge !!"
+      ,EXIT_PROG);
     }
   }
 /*...................................................................*/
@@ -2809,8 +2809,9 @@ DOUBLE specificEnthalpyForTemp(Prop *sHeatPol
 
     if(!flag){
       printf("%i %e %e %e\n",i,t,f,conv);
-      ERRO_GERAL(__FILE__,__func__,__LINE__,
-      "sEnthalpy->temperature:\n Newton-raphson did not converge !!");
+      ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,
+      "sEnthalpy->temperature:\n Newton-raphson did not converge !!"
+      ,EXIT_NRP_ET);
     }
   }
 /*...................................................................*/
@@ -3523,7 +3524,7 @@ void initDviscosityPol(Prop *prop, char *s, FILE *file) {
   }
 
   else {
-    ERRO_GERAL(__FILE__,__func__,__LINE__,s);
+    ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,s,EXIT_PROG);
   }
 }
 /*********************************************************************/
@@ -3582,7 +3583,7 @@ void initDensityPol(Prop *prop, char *s, FILE *file) {
     fprintf(fileLogExc,"%-25s: %s\n","Type",s);
   }
   else {
-    ERRO_GERAL(__FILE__,__func__,__LINE__,s);
+    ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,s,EXIT_PROG);
   }
 }
 /*********************************************************************/
@@ -3629,7 +3630,7 @@ void initCdPol(Prop *prop,char *s,FILE *file)
   }
   else 
   {
-    ERRO_GERAL(__FILE__, __func__, __LINE__, s);
+    ERRO_GERAL(fileLogDebug,__FILE__, __func__, __LINE__, s,EXIT_PROG);
   }
 }
 /*********************************************************************/
@@ -3695,7 +3696,7 @@ void initThCondPol(Prop *prop, char *s, FILE *file) {
     prop->type = WILKELAW;
   }
   else {
-    ERRO_GERAL(__FILE__,__func__,__LINE__,s);
+    ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,s,EXIT_PROG);
   }
 }
 /*********************************************************************/
@@ -3731,7 +3732,7 @@ void initDiffSp(Prop *prop, char *s, FILE *file) {
     prop->type = HIRSCHDIFF;
   }
   else {
-    ERRO_GERAL(__FILE__,__func__,__LINE__,s);
+    ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,s,EXIT_PROG);
   }
 }
 /*********************************************************************/
@@ -3974,10 +3975,10 @@ DOUBLE specificMassRef(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume
 #ifdef _MPI_
   if(mpiVar.nPrcs>1)
   { 
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(&vm,&gVm,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
     MPI_Allreduce(&dm,&gDm,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     rho = gDm/gVm;
   }
   else  
@@ -4048,7 +4049,7 @@ void presRef(DOUBLE *RESTRICT temp0         , DOUBLE *RESTRICT temp
 
 /********************************************************************* 
  * Data de criacao    : 15/09/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 18/08/2019                                   *
  *-------------------------------------------------------------------*
  * PRESREF : calcula da pressao de referencia atualizada             *
  *-------------------------------------------------------------------* 
@@ -4075,7 +4076,10 @@ void presRefMix(Combustion *cModel
 {
   short ns = cModel->nOfSpecies;
   INT i;  
-  DOUBLE dm,vm,t,t0,mW,mW0,*y,*y0;
+  DOUBLE dm,vm,t,t0,mW,mW0,*y,*y0,rho;
+#ifdef _MPI_
+  DOUBLE gVm,gDm;
+#endif
 
   dm = vm = 0.e0;
 
@@ -4103,6 +4107,23 @@ void presRefMix(Combustion *cModel
     vm += volume[i];
 /*...................................................................*/ 
   }
+
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    MPI_Allreduce(&vm,&gVm,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    MPI_Allreduce(&dm,&gDm,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    rho = gDm/gVm;
+  }
+  else  
+    rho = dm/vm;
+#else
+    rho = dm/vm;
+#endif
+/*...................................................................*/
 
   pTh[2] = pTh[1]* dm/vm;
 }
@@ -4155,10 +4176,10 @@ void initPresRef(DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT volume
 #ifdef _MPI_
   if(mpiVar.nPrcs>1)
   { 
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(&vm ,&gVm ,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
     MPI_Allreduce(&stm,&gStm,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     tMed = gStm/gVm; 
   }
   else  

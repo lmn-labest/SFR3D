@@ -2686,7 +2686,7 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
   }
 /*...................................................................*/
 
-/*... coeficiente de difusao das especies */  
+/*... entalpiada individuais por especies */  
   if(opt->enthalpyk &&  opt->fCell )
   {
     strcpy(str,"eEnthalpyK");

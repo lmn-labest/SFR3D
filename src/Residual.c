@@ -201,7 +201,7 @@ void residualType(DOUBLE *RESTRICT u      ,DOUBLE *RESTRICT rCellU
 
 /********************************************************************* 
  * Data de criacao    : 12/06/2019                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 18/08/2019                                   * 
  *-------------------------------------------------------------------* 
  * residualMass:                                                     *
  *-------------------------------------------------------------------* 
@@ -238,6 +238,22 @@ DOUBLE residualMass(DOUBLE *RESTRICT rCellMass,INT const nEl
       v    = fabs(rCellMass[i]);
       tmp += v;
     }
+
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    MPI_Allreduce(&tmp ,&v ,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    tmp = v; 
+  }
+  else  
+    tmp = v; 
+#else
+    tmp = v; 
+#endif
+/*...................................................................*/
   } 
 /*...................................................................*/
 
@@ -246,10 +262,9 @@ DOUBLE residualMass(DOUBLE *RESTRICT rCellMass,INT const nEl
 }
 /********************************************************************/
 
-
 /********************************************************************* 
  * Data de criacao    : 12/06/2019                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 18/08/2019                                   * 
  *-------------------------------------------------------------------* 
  * rscaled:                                                          *
  *-------------------------------------------------------------------* 
@@ -278,7 +293,9 @@ void rScaled(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
 {
   INT i,j,lNeq;
   DOUBLE mod,max[MAXSPECIES],v,rScale;
-
+#ifdef _MPI_
+  DOUBLE gMax[MAXSPECIES];
+#endif
 
   for(j=0;j<ndf;j++)
     max[j] = rU[j] = 0.e0;
@@ -299,7 +316,20 @@ void rScaled(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
     }
   }
 /*...................................................................*/
-      
+  
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    MPI_Allreduce(max ,gMax ,ndf,MPI_DOUBLE,MPI_MAX,mpiVar.comm);
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    for(j=0;j<ndf;j++)
+      max[j] = gMax[j]; 
+  }
+#endif
+/*...................................................................*/
+    
 /*... max ( | F - Ax |P / max(Ap*uP) )*/
   for(j=0;j<ndf;j++)
   {
@@ -314,12 +344,26 @@ void rScaled(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
     }
   }  
 /*...................................................................*/
+
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    MPI_Allreduce(rU ,gMax ,ndf,MPI_DOUBLE,MPI_MAX,mpiVar.comm);
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    for(j=0;j<ndf;j++)
+      rU[j] = gMax[j]; 
+  }
+#endif
+/*...................................................................*/
+
 }
 /*********************************************************************/
 
 /********************************************************************* 
  * Data de criacao    : 12/06/2019                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 18/08/2019                                   * 
  *-------------------------------------------------------------------* 
  * rscaledSum:                                                       *
  *-------------------------------------------------------------------* 
@@ -348,7 +392,9 @@ void rScaledSum(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
 {
   INT i,j,lNeq;
   DOUBLE mod,sum[MAXSPECIES],v,rScale;
-
+#ifdef _MPI_
+  DOUBLE gSum[MAXSPECIES];
+#endif
 
   for(j=0;j<ndf;j++)
     sum[j] = rU[j] = 0.e0;
@@ -370,6 +416,19 @@ void rScaledSum(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
   }
 /*...................................................................*/
       
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    MPI_Allreduce(sum ,gSum ,ndf,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    for(j=0;j<ndf;j++)
+      sum[j] = gSum[j]; 
+  }
+#endif
+/*...................................................................*/
+
 /*... max ( | F - Ax |P / max(Ap*uP) )*/
   for(j=0;j<ndf;j++)
   {
@@ -378,16 +437,34 @@ void rScaledSum(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
       mod    = fabs(MAT2D(j,i,rCell,nEl));
       rU[j] += mod;
     }
-    if( sum[j] > rU[j]*SZERO)
-      rU[j]  /=  sum[j];  
   }  
 /*...................................................................*/
+
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    MPI_Allreduce(rU,gSum ,ndf,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    for(j=0;j<ndf;j++)
+      rU[j] = gSum[j]; 
+  }
+#endif
+/*...................................................................*/
+
+/*...*/
+  for(j=0;j<ndf;j++)
+    if( sum[j] > rU[j]*SZERO)
+      rU[j]  /=  sum[j];  
+/*...................................................................*/
+
 }
 /*********************************************************************/
 
 /********************************************************************* 
  * Data de criacao    : 12/06/2019                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 18/08/2019                                   * 
  *-------------------------------------------------------------------* 
  * rscaledSumMax:                                                    *
  *-------------------------------------------------------------------* 
@@ -416,7 +493,9 @@ void rScaledSumMax(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
 {
   INT i,j,lNeq;
   DOUBLE mod,sum[MAXSPECIES],sumMax,v,rScale;
-
+#ifdef _MPI_
+  DOUBLE gSum[MAXSPECIES];
+#endif
 
   for(j=0;j<ndf;j++)
     sum[j] = rU[j] = 0.e0;
@@ -437,7 +516,20 @@ void rScaledSumMax(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
     }
   }
 /*...................................................................*/
-      
+ 
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    MPI_Allreduce(sum,gSum ,ndf,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    for(j=0;j<ndf;j++)
+      sum[j] = gSum[j]; 
+  }
+#endif
+/*...................................................................*/
+    
 /*...*/
   sumMax = sum[0];
   for (j = 1; j < ndf; j++) 
@@ -452,8 +544,26 @@ void rScaledSumMax(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
       mod    = fabs(MAT2D(j,i,rCell,nEl));
       rU[j] += mod;
     }
-    rU[j]  /= sumMax;  
   }  
 /*...................................................................*/
+
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    MPI_Allreduce(rU,gSum ,ndf,MPI_DOUBLE,MPI_MAX,mpiVar.comm);
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    for(j=0;j<ndf;j++)
+      rU[j] = gSum[j]; 
+  }
+#endif
+/*...................................................................*/
+
+/*...*/
+  for(j=0;j<ndf;j++)
+    rU[j]  /=  sumMax ;  
+/*...................................................................*/
+
 }
 /*********************************************************************/

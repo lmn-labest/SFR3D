@@ -143,7 +143,7 @@ void ellPack(INT *RESTRICT  ifEllPack
 /*... */
   else{
     strcpy(str,"Nao implentados ndf > 1");
-    ERRO_GERAL(__FILE__,__func__,__LINE__,str);
+    ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,str,EXIT_PROG);
   }
 /*...................................................................*/
 }

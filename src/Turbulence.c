@@ -303,16 +303,16 @@ void turbulence(Memoria *m
 
 /*...*/
       else      
-        ERRO_GERAL(__FILE__,__func__,__LINE__,
-                  "LES Model: Opcao invalida !! ");
+        ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,
+                  "LES Model: Opcao invalida !! ",EXIT_PROG);
 /*...................................................................*/ 
     break;
 /*...................................................................*/ 
 
 /*...*/
     default:       
-      ERRO_GERAL(__FILE__,__func__,__LINE__,
-                "Turb Model: Opcao invalida !! ");
+      ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,
+                "Turb Model: Opcao invalida !! ",EXIT_PROG);
 /*...................................................................*/ 
   }
 
@@ -2702,7 +2702,8 @@ void wallModel(DOUBLE const vt     , DOUBLE const viscosity
 /*...................................................................*/ 
       yPlus    = fu*dWall/nu;      
       if ( yPlus < 0.e0 )
-        ERRO_GERAL(__FILE__,__func__,__LINE__,"WallModel: y+ < 0");   
+        ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,"WallModel: y+ < 0"
+                  ,EXIT_PROG);   
 /*...................................................................*/        
       break;
 /*...................................................................*/
@@ -2752,7 +2753,8 @@ void wallModel(DOUBLE const vt     , DOUBLE const viscosity
 /*...................................................................*/ 
       yPlus    = fu*dWall/nu;      
       if ( yPlus < 0.e0 )
-        ERRO_GERAL(__FILE__,__func__,__LINE__,"WallModel: y+ < 0");   
+        ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__
+                  ,"WallModel: y+ < 0",EXIT_PROG);   
 /*...................................................................*/        
       break;
 /*...................................................................*/
@@ -2760,8 +2762,8 @@ void wallModel(DOUBLE const vt     , DOUBLE const viscosity
 
 /*...*/
       default: 
-        ERRO_GERAL(__FILE__,__func__,__LINE__,
-                  "Wall Model: Opcao invalida !! ");
+        ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,
+                  "Wall Model: Opcao invalida !! ",EXIT_PROG);
 /*...................................................................*/
   }
 /*...................................................................*/

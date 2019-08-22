@@ -2,6 +2,8 @@
   #define _DEFINE_H_
 	
 /*...*/
+  short debug_flag;
+/*...*/
   #include<stdlib.h>
   #include<stdio.h>
 /*...................................................................*/

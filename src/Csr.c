@@ -504,7 +504,7 @@ INT bandCsrC(INT *ia,INT *ja,INT  neq,short type){
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 01/04/2018                                   * 
+ * Data de modificaco : 17/08/2019                                   * 
 *-------------------------------------------------------------------* 
  * CSR : Montagem do sistema global do CSR                           * 
  *-------------------------------------------------------------------* 
@@ -1059,8 +1059,8 @@ void csrSimple(INT    *RESTRICT  ia,INT *RESTRICT ja
 /*... vetor de forcas*/
       if(forces){
         b[lNeq]     = lB[0];
-        b[nEq+lNeq] = lB[1];
-        if( ndf == 3) b[2*nEq+lNeq] = lB[2];
+        b[nEqNov+lNeq] = lB[1];
+        if( ndf == 3) b[2*nEqNov+lNeq] = lB[2];
       }
 /*...................................................................*/
 
@@ -1070,8 +1070,8 @@ void csrSimple(INT    *RESTRICT  ia,INT *RESTRICT ja
         lNeq     = lId[nFace];
 /*...*/
         ad[lNeq]       = lA[nFace];
-     		ad[nEq+lNeq]   = lA[nFace+1];
-    	  if( ndf == 3) ad[2*nEq+lNeq] = lA[nFace+2];
+     		ad[nEqNov+lNeq]   = lA[nFace+1];
+    	  if( ndf == 3) ad[2*nEqNov+lNeq] = lA[nFace+2];
 /*...................................................................*/
         iPoint   = ia[lNeq];
         iaKneq   = ia[lNeq+1];
@@ -1150,9 +1150,9 @@ void csrSimple(INT    *RESTRICT  ia,INT *RESTRICT ja
 /*... vetor de forcas*/
       if(forces){ 
         b[lNeq]     = lB[0];
-        b[nEq+lNeq] = lB[1];
+        b[nEqNov+lNeq] = lB[1];
         if( ndf == 3){ 
-          b[2*nEq+lNeq] = lB[2];
+          b[2*nEqNov+lNeq] = lB[2];
         }
       }
 /*...................................................................*/
@@ -1163,8 +1163,8 @@ void csrSimple(INT    *RESTRICT  ia,INT *RESTRICT ja
         lNeq     = lId[nFace];
 /*...*/
 				ad[lNeq]     = lA[nFace];
-  		  ad[nEq+lNeq] = lA[nFace+1];
-  		  if (ndf == 3) ad[2*nEq+lNeq] = lA[nFace+2];
+  		  ad[nEqNov+lNeq] = lA[nFace+1];
+  		  if (ndf == 3) ad[2*nEqNov+lNeq] = lA[nFace+2];
 /*...................................................................*/
         iPoint   = ia[lNeq];
         iaKneq   = ia[lNeq+1];
@@ -1445,7 +1445,7 @@ void csrBlock(INT    *RESTRICT  ia, INT *RESTRICT ja
     if (forces) 
     {
       for (l = 0; l<nForceBlock; l++)
-        b[l * nEq + lNeq] = lB[l];
+        b[l * nEqNov + lNeq] = lB[l];
     }
 /*...................................................................*/
 
@@ -1457,7 +1457,7 @@ void csrBlock(INT    *RESTRICT  ia, INT *RESTRICT ja
       for(l=0;l<nAlBlock;l++)
       {
         al[l] = &a[l*nAdT];
-        ad[l * nEq + lNeq] = MAT2D(nFace,l,lA,nAdBlock);
+        ad[l * nEqNov + lNeq] = MAT2D(nFace,l,lA,nAdBlock);
       }
 /*...................................................................*/
       iPoint = ia[lNeq];
@@ -1555,7 +1555,7 @@ void csrBlock(INT    *RESTRICT  ia, INT *RESTRICT ja
     if (forces) 
     {
       for (l = 0; l<nForceBlock; l++)
-        b[l * nEq + lNeq] = lB[l];
+        b[l * nEqNov + lNeq] = lB[l];
     }
 /*...................................................................*/
 
@@ -1565,7 +1565,7 @@ void csrBlock(INT    *RESTRICT  ia, INT *RESTRICT ja
       lNeq = lId[nFace];
 /*...*/
       for (l = 0; l<nAdBlock; l++)
-        ad[l * nEq + lNeq] = MAT2D(l, nFace, lA, nst);
+        ad[l * nEqNov + lNeq] = MAT2D(l, nFace, lA, nst);
 /*...................................................................*/
 
 /*...*/
@@ -1864,8 +1864,8 @@ void partitionCsrByNonzeros(INT *RESTRICT ia      ,INT *RESTRICT ja
           line++;
           if ((thSize[i] + tam) > meanVariables) break;
           if (line > neq) {
-            ERRO_GERAL(__FILE__, __func__,__LINE__
-                      ,"numero de linhas excedido");
+            ERRO_GERAL(fileLogDebug,__FILE__, __func__,__LINE__
+                      ,"numero de linhas excedido",EXIT_PROG);
           }
         }
       }
@@ -1891,8 +1891,8 @@ void partitionCsrByNonzeros(INT *RESTRICT ia      ,INT *RESTRICT ja
           line++;
           if ((thSize[i] + tam) > meanVariables) break;
           if (line > neq) {
-            ERRO_GERAL(__FILE__, __func__, __LINE__
-                       , "numero de linhas excedido");
+            ERRO_GERAL(fileLogDebug,__FILE__, __func__, __LINE__
+                       , "numero de linhas excedido",EXIT_PROG);
           }
         }
       }
@@ -1919,8 +1919,8 @@ void partitionCsrByNonzeros(INT *RESTRICT ia      ,INT *RESTRICT ja
           line++;
           if ((thSize[i] + tam) > meanVariables) break;
           if (line > neq) {
-            ERRO_GERAL(__FILE__, __func__, __LINE__
-                      , "numero de linhas excedido");
+            ERRO_GERAL(fileLogDebug,__FILE__, __func__, __LINE__
+                      , "numero de linhas excedido",EXIT_PROG);
           }
         }
       }

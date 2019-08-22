@@ -109,13 +109,14 @@
                    , char* auxName, char* preName   , char* nameOut
                    , FILE *fileIn , FileOpt *opt);
 
-  void readSolvComb(Memoria *m    , Mesh *mesh          , Reord *reordMesh
+  void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
+                , Combustion *cModel 
                 , Solv *solvVel   , SistEq* sistEqVel   , bool *fSolvVel
                 , Solv *solvPres  , SistEq* sistEqPres  , bool *fSolvPres
                 , Solv *solvEnergy, SistEq* sistEqEnergy, bool *fSolvEnergy
                 , Solv *solvKturb , SistEq* sistEqKturb , bool *fSolvKturb
                 , Solv *solvComb  , SistEq* sistEqComb  , bool *fSolvComb
-                , PartMesh *pMesh , short const nComb
+                , PartMesh *pMesh 
                 , char* auxName   , char* preName       , char* nameOut
                 , FILE *fileIn    , FileOpt *opt);
 

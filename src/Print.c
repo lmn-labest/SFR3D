@@ -29,12 +29,28 @@ static void globalCombCel(Memoria *m
              , 1              , 1);
 /*...................................................................*/
 
+/*... GradPres (Cel)*/
+  if(opt->gradPres)
+    dGlobalCel(m                  , pMesh
+             , mesh0->elm.gradPres, mesh->elm.gradPres
+             , mesh->numelNov
+             , ndm                , 1);
+/*...................................................................*/
+
 /*... vel (Cel)*/
   if(opt->vel)
     dGlobalCel(m              , pMesh
              , mesh0->elm.vel , mesh->elm.vel
              , mesh->numelNov
              , ndm            , 1);
+/*...................................................................*/
+
+/*... GradVel (Cel)*/
+  if(opt->gradPres)
+    dGlobalCel(m                  , pMesh
+             , mesh0->elm.gradVel , mesh->elm.gradVel
+             , mesh->numelNov
+             , ndm                , ndm);
 /*...................................................................*/
 
 /*... temp (Cel)*/
@@ -45,6 +61,14 @@ static void globalCombCel(Memoria *m
              , 1              , 1);
 /*...................................................................*/
 
+/*... gradTemp (Cel)*/
+  if(opt->gradEnergy)
+    dGlobalCel(m                  , pMesh
+             , mesh0->elm.gradTemp, mesh->elm.gradTemp
+             , mesh->numelNov
+             , ndm            , 1);
+/*...................................................................*/
+
 /*... yFrac (Cel)*/
   if(opt->yFrac)
     dGlobalCel(m                 , pMesh
@@ -53,12 +77,36 @@ static void globalCombCel(Memoria *m
              , nSp               , 1);
 /*...................................................................*/
 
-/*... yComb (Cel)*/
+/*... gradY (Cel)*/
+  if(opt->gradY)
+    dGlobalCel(m                 , pMesh
+             , mesh0->elm.gradY  , mesh->elm.gradY
+             , mesh->numelNov
+             , nSp               , ndm);
+/*...................................................................*/
+
+/*... zComb (Cel)*/
   if(opt->zComb)
     dGlobalCel(m                 , pMesh
              , mesh0->elm.zComb  , mesh->elm.zComb
              , mesh->numelNov
              , ndfComb               , 1);
+/*...................................................................*/
+
+/*... gradZ (Cel)*/
+  if(opt->gradZcomb)
+    dGlobalCel(m                   , pMesh
+             , mesh0->elm.gradZcomb, mesh->elm.gradZcomb
+             , mesh->numelNov
+             , ndfComb             , ndm);
+/*...................................................................*/
+
+/*... enthalpyk */
+  if(opt->enthalpyk)
+    dGlobalCel(m                   , pMesh
+             , mesh0->elm.enthalpyk, mesh->elm.enthalpyk
+             , mesh->numelNov
+             , nSp                 , 1  );
 /*...................................................................*/
 
 /*... tReactor (Cel)*/
@@ -69,7 +117,81 @@ static void globalCombCel(Memoria *m
              , N_TERMS_REACTOR    , 1);
 /*...................................................................*/
 
+/*... density (Cel)*/
+  if(opt->densityFluid)
+    dGlobalCel(m                      , pMesh
+             , mesh0->elm.densityFluid, mesh->elm.densityFluid
+             , mesh->numelNov
+             , DENSITY_LEVEL          , 1);
+/*...................................................................*/
+
+/*... viscosity (Cel)*/
+  if(opt->dViscosity)
+    dGlobalCel(m                   , pMesh
+             , mesh0->elm.dViscosity, mesh->elm.dViscosity
+             , mesh->numelNov
+             , 1                    , 1);
+/*...................................................................*/
+
+/*... specificHeat (Cel)*/
+  if(opt->specificHeat)
+    dGlobalCel(m                      , pMesh
+             , mesh0->elm.specificHeat, mesh->elm.specificHeat
+             , mesh->numelNov
+             , SHEAT_LEVEL            , 1);
+/*...................................................................*/
+
+/*... tCondutivity (Cel)*/
+  if(opt->tConductivity)
+    dGlobalCel(m                       , pMesh
+             , mesh0->elm.tConductivity, mesh->elm.tConductivity
+             , mesh->numelNov
+             , 1                       , 1);
+/*...................................................................*/
+
+/*... tCondutivity (Cel)*/
+  if(opt->tConductivity)
+    dGlobalCel(m                       , pMesh
+             , mesh0->elm.tConductivity, mesh->elm.tConductivity
+             , mesh->numelNov
+             , 1                       , 1);
+/*...................................................................*/
+
+/*... tCondutivity (Cel)*/
+  if(opt->coefDiffSp)
+    dGlobalCel(m                       , pMesh
+             , mesh0->elm.cDiffComb    , mesh->elm.cDiffComb
+             , mesh->numelNov
+             , nSp                     , 1);
+/*...................................................................*/
+
+/*... eddyViscosity (Cel)*/
+  if(opt->eddyViscosity)
+    dGlobalCel(m                       , pMesh
+             , mesh0->elm.eddyViscosity, mesh->elm.eddyViscosity
+             , mesh->numelNov
+             , nSp                     , 1);
+/*...................................................................*/
+
+/*... rateHeatRe    (Cel)*/
+  if(opt->rateHeatComb)
+    dGlobalCel(m                        , pMesh
+             , mesh0->elm.rateHeatReComb, mesh->elm.rateHeatReComb
+             , mesh->numelNov
+             , nSp                      , 1);
+/*...................................................................*/
+
+/*... rateHeatRe (Cel)*/
+  if(opt->wk)
+    dGlobalCel(m                        , pMesh
+             , mesh0->elm.wk            , mesh->elm.wk              
+             , mesh->numelNov
+             , nSp                      , 1);
+/*...................................................................*/
+
 }
+/*********************************************************************/
+
 /********************************************************************* 
  * Data de criacao    : 02/12/2017                                   *
  * Data de modificaco : 30/01/2018                                   *
@@ -632,7 +754,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (Pres)*/
-  if(opt->pres)
+  if(opt->gradPres)
   {
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
     rcGradU(m                        , loadsPres

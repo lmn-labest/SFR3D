@@ -95,6 +95,7 @@
     double overHeadGNodMpi;
     double overHeadGCelMpi;
     double overHeadTotalMpi;
+    double overHeadMiscMpi;
 /*...*/
     double tempFromTheEnergy;
 /*...*/

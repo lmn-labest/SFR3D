@@ -913,7 +913,7 @@ static void comunicateFluid(short *m0faceRvel     ,short *faceRvel
         nD   = (DOUBLE *) malloc(size*dSize); 
         ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
 
-        dGetLocalV(m0temp0           ,nD
+        dGetLocalV(m0temp            ,nD
                   ,elLG
                   ,lNel              ,1  ); 
         
@@ -1325,7 +1325,26 @@ static void prMaster(Memoria *m    , Mesh *mesh0
 
 /*... transporte e fluido*/
   if(ndfT[0] > 0 || ndfF > 0 || ndfFt > 0)
-  {     
+  {   
+/*... eVel0*/
+    size = lNel*ndm;
+    nD   = (DOUBLE *) malloc(size*dSize); 
+    ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
+    
+    HccaAlloc(DOUBLE,m,mesh->elm.vel0     ,size        
+             ,"eVel0P"         ,_AD_);
+    zero(mesh->elm.vel0      ,size,DOUBLEC);
+    
+    dGetLocalV(mesh0->elm.vel0   ,nD
+              ,elLG
+              ,lNel              ,ndm); 
+    
+    for(i=0;i<size;i++)
+      mesh->elm.vel0[i] = nD[i];
+    
+    free(nD);  
+/*...................................................................*/
+  
 /*... eVel*/
     size = lNel*ndm;
     nD   = (DOUBLE *) malloc(size*dSize); 
@@ -1466,7 +1485,7 @@ static void prMaster(Memoria *m    , Mesh *mesh0
               ,mesh0->elm.pressure       ,mesh->elm.pressure
               ,mesh0->elm.energy0        ,mesh->elm.energy0
               ,mesh0->elm.energy         ,mesh->elm.energy
-              ,mesh0->elm.temp0          ,mesh->elm.temp   
+              ,mesh0->elm.temp0          ,mesh->elm.temp0  
               ,mesh0->elm.temp           ,mesh->elm.temp       
               ,mesh0->elm.densityFluid   ,mesh->elm.densityFluid
               ,mesh0->elm.specificHeat   ,mesh->elm.specificHeat 
@@ -1739,6 +1758,21 @@ static void sendPart(Memoria *m    , Mesh *mesh0
 /*... transporte e fluido*/
   if(ndfT[0] > 0 || ndfF > 0 || ndfFt > 0)
   {     
+/*... eVel0*/
+    size = lNel*ndm;
+    nD   = (DOUBLE *) malloc(size*dSize); 
+    ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
+    
+    dGetLocalV(mesh0->elm.vel0   ,nD
+              ,elLG
+              ,lNel              ,ndm); 
+    
+    MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,5    
+            ,mpiVar.comm);
+    
+    free(nD);  
+/*...................................................................*/
+
 /*... eVel*/
     size = lNel*ndm;
     nD   = (DOUBLE *) malloc(size*dSize); 
@@ -1792,7 +1826,7 @@ static void sendPart(Memoria *m    , Mesh *mesh0
               ,mesh0->elm.pressure       ,mesh->elm.pressure
               ,mesh0->elm.energy0        ,mesh->elm.energy0
               ,mesh0->elm.energy         ,mesh->elm.energy
-              ,mesh0->elm.temp0          ,mesh->elm.temp   
+              ,mesh0->elm.temp0          ,mesh->elm.temp0  
               ,mesh0->elm.temp           ,mesh->elm.temp       
               ,mesh0->elm.densityFluid   ,mesh->elm.densityFluid
               ,mesh0->elm.specificHeat   ,mesh->elm.specificHeat 
@@ -2082,6 +2116,19 @@ static void recvPart(Memoria *m    , Mesh *mesh0
 /*... transporte e fluido*/
   if(ndfT[0] > 0 || ndfF > 0 || ndfFt > 0)
   {     
+/*... eVel0*/
+    size = (*lNel)*ndm;
+      
+    HccaAlloc(DOUBLE,m,mesh->elm.vel0      ,size        
+         ,"evel0P"   ,_AD_);
+    zero(mesh->elm.vel0       ,size,DOUBLEC);
+    
+    MPI_Recv(mesh->elm.vel0,       size, MPI_DOUBLE,0,5    
+            ,mpiVar.comm,MPI_STATUS_IGNORE);
+    
+    free(nD);  
+/*...................................................................*/
+
 /*... eVel*/
     size = (*lNel)*ndm;
       
@@ -2219,7 +2266,7 @@ static void recvPart(Memoria *m    , Mesh *mesh0
                 ,mesh0->elm.pressure       ,mesh->elm.pressure
                 ,mesh0->elm.energy0        ,mesh->elm.energy0
                 ,mesh0->elm.energy         ,mesh->elm.energy
-                ,mesh0->elm.temp0          ,mesh->elm.temp   
+                ,mesh0->elm.temp0          ,mesh->elm.temp0  
                 ,mesh0->elm.temp           ,mesh->elm.temp       
                 ,mesh0->elm.densityFluid   ,mesh->elm.densityFluid
                 ,mesh0->elm.specificHeat   ,mesh->elm.specificHeat 
@@ -2326,7 +2373,10 @@ void mpiStart(int *argc,char **argv){
 }
 /*********************************************************************/ 
 
-/********************************************************************* 
+/*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 16/08/2019                                   * 
+ *-------------------------------------------------------------------* 
  * STOPMPI: finaliza os processos MPI                                * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -2347,7 +2397,10 @@ void mpiStop(void){
 }
 /*********************************************************************/ 
 
-/********************************************************************* 
+/*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 16/08/2019                                   * 
+ *-------------------------------------------------------------------* 
  * MPIWAIT: sicronza os processos MPI                                * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -2371,6 +2424,9 @@ void mpiWait(void){
 /*********************************************************************/ 
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 16/08/2019                                   * 
+ *-------------------------------------------------------------------*
  * GOBBALMESHQUALITY : obtem as estatistica globais da malha         * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -2555,6 +2611,9 @@ void dGlobalCel(Memoria *m         ,PartMesh *pMesh
 /*********************************************************************/
   
 /********************************************************************* 
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 16/08/2019                                   * 
+ *-------------------------------------------------------------------*
  * DGLABALNODE:globaliza os valores nodais (DOUBLE) no master(myId=0)* 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -2649,6 +2708,9 @@ void dGlobalNode(Memoria *m         ,PartMesh *pMesh
 /*********************************************************************/
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 16/08/2019                                   * 
+ *-------------------------------------------------------------------*
  * GETBUFFER  : obetem os valores do buffer de comunicacao           * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -2678,7 +2740,10 @@ void getBuffer(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
 } 
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 16/08/2019                                   * 
+ *-------------------------------------------------------------------* 
  * MAKEBUFFER  : gera buffer de comunicacao                          * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -2700,7 +2765,8 @@ void makeBuffer(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
     
   INT i,lNeq;
 
-  for(i=0;i<nSends;i++){
+  for(i=0;i<nSends;i++)
+  {
     lNeq   = fMap[i];
     xb[i]  = x[lNeq];
   }
@@ -2709,6 +2775,9 @@ void makeBuffer(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
 /*********************************************************************/
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 16/08/2019                                   * 
+ *-------------------------------------------------------------------*
  * GETBUFFERCEL : obetem os valores do buffer de comunicacao para as * 
  * celulas                                                           * 
  *-------------------------------------------------------------------* 
@@ -2762,7 +2831,10 @@ void getBufferCel(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
 } 
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 16/08/2019                                   * 
+ *-------------------------------------------------------------------* 
  * MAKEBUFFERCEL  : gera buffer de comunicacao para as celulas       * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -2816,6 +2888,9 @@ void makeBufferCel(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
 /********************************************************************/
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 16/08/2019                                   * 
+ *-------------------------------------------------------------------*
  * DGETBUFFERNOD: obetem os valores do buffer de comunicacao para os * 
  * nos (DOUBLE)                                                      * 
  *-------------------------------------------------------------------* 
@@ -2869,7 +2944,10 @@ void dGetBufferNod(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
 } 
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 16/08/2019                                   * 
+ *-------------------------------------------------------------------* 
  * DMAKEBUFFERNOD : gera buffer de comunicacao para os nos (DOUBLE)  * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -2922,7 +3000,10 @@ void dMakeBufferNod(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
 } 
 /********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 16/08/2019                                   * 
+ *-------------------------------------------------------------------* 
  * IGETBUFFERNOD : obetem os valores do buffer de comunicacao para os* 
  * nos (INT)                                                         * 
  *-------------------------------------------------------------------* 
@@ -2976,7 +3057,10 @@ void iGetBufferNod(INT *RESTRICT x     ,INT *RESTRICT xb
 } 
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 16/08/2019                                   * 
+ *-------------------------------------------------------------------* 
  * IMAKEBUFFERNOD  : gera buffer de comunicacao para os nos (INT)    * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -3029,7 +3113,10 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
 } 
 /********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
  * COMUNICATENEQ : comunicao das equacoes de interface               * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -3119,7 +3206,10 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*  
  * COMUNICATECEL : comunicao valores das celulas nas interface       * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -3221,6 +3311,9 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
 /*********************************************************************/
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
  * DCOMUNICATENOD : comunicao valores das nos nas interface (DOUBLE) * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -3317,6 +3410,9 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
 /*********************************************************************/
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
  * ICOMUNICATENOD : comunicao valores das nos nas interface (INT)    * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -3458,6 +3554,9 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
 
 #ifdef _MPI_
   bool *aux1 = NULL,*aux2 = NULL,*aux3=NULL;
+  bool fTurb          = tModel->fTurb,
+       fWall          = tModel->fWall, 
+       fTurbStruct    = false;
   INT i,numelNov,numelOv,lNel,lNnode,nNodeNov,nNodeOv,nno1;
   INT *elLG=NULL,*elGL=NULL,*noLG=NULL,*noGL=NULL;
   INT *lEl=NULL,*fMap=NULL,*iaRcvs=NULL,*iaSends=NULL;
@@ -3945,6 +4044,7 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
   
 /*... alocao de variaveis que não precisao de comunicacao*/
   lNel     = mesh->numel;
+  numelNov = mesh->numelNov;
   lNnode   = mesh->nnode;
   
 /*... centroide */
@@ -3965,7 +4065,7 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
 /*... zerando os variavies*/
   zero(mesh->elm.geom.cc      ,lNel*ndm       ,DOUBLEC);
   zero(mesh->elm.cellFace     ,lNel*maxViz
-    ,DOUBLEC);
+      ,DOUBLEC);
   zero(mesh->elm.geom.volume  ,lNel           ,DOUBLEC);
   zero(mesh->elm.geom.xmcc    ,lNel*ndm*maxViz,DOUBLEC);
   zero(mesh->elm.geom.dcca    ,lNel*maxViz    ,DOUBLEC);
@@ -3993,12 +4093,12 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
               ,lNel*ndm*ndfD[0],"eTGradUd1P"     ,_AD_);
 /*... rCell*/
     HccaAlloc(DOUBLE,m,mesh->elm.rCellUd1  
-             ,lNel*ndm*ndfD[0],"rCellUd1P"      ,_AD_);
+             ,numelNov*ndm*ndfD[0],"rCellUd1P"      ,_AD_);
 /*...................................................................*/
     zero(mesh->node.uD1      ,lNnode*ndfD[0]       ,DOUBLEC);
     zero(mesh->node.gradUd1  ,lNnode*ndm*ndfD[0]   ,DOUBLEC);
     zero(mesh->elm.gradUd1   ,lNel*ndm*ndfD[0]     ,DOUBLEC);
-    zero(mesh->elm.rCellUd1  ,lNel*ndm*ndfD[0]     ,DOUBLEC);
+    zero(mesh->elm.rCellUd1  ,numelNov*ndm*ndfD[0] ,DOUBLEC);
   }
 /*...................................................................*/
 
@@ -4014,16 +4114,37 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
               ,lNel*ndm*ndfT[0],"eTGradUt1P"     ,_AD_);
 /*... rCell*/
     HccaAlloc(DOUBLE,m,mesh->elm.rCellUt1  
-             ,lNel*ndm*ndfT[0],"rCellUt1P"      ,_AD_);
+             ,numelNov*ndm*ndfT[0],"rCellUt1P"      ,_AD_);
 /*...................................................................*/
     zero(mesh->node.uT1      ,lNnode*ndfT[0]       ,DOUBLEC);
     zero(mesh->node.gradUt1  ,lNnode*ndm*ndfT[0]   ,DOUBLEC);
     zero(mesh->elm.gradUt1   ,lNel*ndm*ndfT[0]     ,DOUBLEC);
-    zero(mesh->elm.rCellUt1  ,lNel*ndm*ndfT[0]     ,DOUBLEC);
+    zero(mesh->elm.rCellUt1  ,numelNov*ndm*ndfT[0] ,DOUBLEC);
   }
 /*...................................................................*/
 
 /*... problema de transporte*/
+  if(fTurb)
+  {
+/*... eddyViscosity*/
+    HccaAlloc(DOUBLE,m,mesh->elm.eddyViscosity
+              ,lNel    ,"eddyViscP"              ,_AD_);
+    zero(mesh->elm.eddyViscosity,lNel,DOUBLEC);
+/*...................................................................*/
+
+/*... stressR*/
+    if(fTurbStruct)
+    {
+      HccaAlloc(DOUBLE   ,m,mesh->elm.stressR  
+                ,lNel*ntn  ,"stressRP"      ,_AD_);
+      zero(mesh->elm.eddyViscosity,lNel*ntn,DOUBLEC);
+    }
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+
+/*... problema de escoamento*/
   if(ndfF > 0 || ndfFt > 0)
   {
 /*... pres*/
@@ -4072,12 +4193,12 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
               ,lNel*ndm   ,"eGradEngP"     ,_AD_);
 /*... rCellEnergy*/
       HccaAlloc(DOUBLE     ,m   ,mesh->elm.rCellEnergy
-               ,lNel       ,"nCellEngP"      ,_AD_);
+               ,numelNov   ,"nCellEngP"      ,_AD_);
 /*...*/
       zero(mesh->node.energy     ,lNnode    ,DOUBLEC);
       zero(mesh->node.gradEnergy ,lNnode*ndm,DOUBLEC);
       zero(mesh->elm.gradEnergy  ,lNel*ndm  ,DOUBLEC);
-      zero(mesh->elm.rCellEnergy ,lNel      ,DOUBLEC);
+      zero(mesh->elm.rCellEnergy ,numelNov  ,DOUBLEC);
     }
 /*...................................................................*/
 
@@ -4090,16 +4211,16 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
 
 /*... rCellPres*/
     HccaAlloc(DOUBLE,m,mesh->elm.rCellPres  
-             ,lNel              ,"rCellPresP"  ,_AD_);
-    zero(mesh->elm.rCellPres  ,lNel         ,DOUBLEC);
+             ,numelNov,"rCellPresP"  ,_AD_);
+    zero(mesh->elm.rCellPres  ,numelNov         ,DOUBLEC);
 /*...................................................................*/
 
 /*...*/
     if(tModel->fOneEq)
     {
       HccaAlloc(DOUBLE,m,mesh->elm.rCellKturb  
-               ,lNel          ,"rCellKturbP"  ,_AD_);
-      zero(mesh->elm.rCellKturb,lNel,DOUBLEC);
+               ,numelNov          ,"rCellKturbP"  ,_AD_);
+      zero(mesh->elm.rCellKturb,numelNov,DOUBLEC);
     }
 /*...................................................................*/
   }
@@ -4133,6 +4254,12 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
     HccaAlloc(DOUBLE, m, mesh->elm.rateHeatReComb
           , lNel, "rateHeatComP", _AD_);
     zero(mesh->elm.rateHeatReComb, lNel, DOUBLEC);
+
+/*... enthalpyK*/
+    HccaAlloc(DOUBLE, m, mesh->elm.enthalpyk
+            , lNel*nSp, "enthalpykP", _AD_);
+    zero(mesh->elm.enthalpyk, lNel*nSp, DOUBLEC);
+
 /*... eGradY*/
     HccaAlloc(DOUBLE, m, mesh->elm.gradY
             , lNel*ndm*nSp, "eGradYP", _AD_);
@@ -4145,8 +4272,8 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
 
 /*... rCellComb*/
     HccaAlloc(DOUBLE, m, mesh->elm.rCellComb
-             , lNel*ndfComb, "rCellCombP", _AD_);
-    zero(mesh->elm.rCellComb, lNel*ndfComb, DOUBLEC);
+             , numelNov*ndfComb, "rCellCombP", _AD_);
+    zero(mesh->elm.rCellComb, numelNov*ndfComb, DOUBLEC);
 /*...................................................................*/
 
   }

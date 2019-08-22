@@ -272,7 +272,6 @@ int main(int argc,char**argv){
   propVarFluid.fSpecificHeat        = false;
   propVarFluid.fDynamicViscosity    = false;
   propVarFluid.fThermalConductivity = false;
-  propVarFluid.molarMass            = MMOLARAR;
 /*...................................................................*/
 
 /*... propriedades variaveis*/
@@ -402,7 +401,7 @@ int main(int argc,char**argv){
 /*...*/
   if(!mpiVar.myId )
   {
-    fName(preName,0,0, 27 ,nameOut);
+    fName(preName,mpiVar.nPrcs,0,27 ,nameOut);
     opt.fileParameters = openFileBuffer(nameOut,"w",true);
     fprintf(opt.fileParameters,"%s %s %s\n"
                             ,"#step t cfl reynolds peclet P0 "
@@ -419,8 +418,9 @@ int main(int argc,char**argv){
 
     if(flWord){
       if( jLoop > kLoop) { 
-        ERRO_GERAL(__FILE__,__func__,__LINE__,
-                   "Numero de comandos na string trasient execedido"); 
+        ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,
+                   "Numero de comandos na string trasient execedido"
+                  ,EXIT_PROG); 
       }
       strcpy(word,loopWord[jLoop]);
       jLoop++;
@@ -633,6 +633,10 @@ int main(int argc,char**argv){
 /*...*/
       if(mesh->ndfFt > 0)
       {
+        if(combModel.fCombustion)
+          propVarFluid.molarMass = mixtureMolarMassMedMpi(&combModel
+                              ,mesh->elm.yFrac
+                              ,mesh->elm.geom.volume,mesh->numelNov);
 /*...*/
         if(thDynamic.fDensityRef)
           propVarFluid.densityRef = specificMassRef(mesh->elm.densityFluid
@@ -709,14 +713,13 @@ int main(int argc,char**argv){
       meshQuality(&mesh->mQuality
                 , mesh->elm.cellFace     , mesh->face.owner
                 , mesh->elm.adj.nViz     , mesh->elm.geom.volume
-                , mesh->face.mksi        , mesh->face.normal
+                , mesh->face.ksi         , mesh->face.normal
                 , mesh->face.mvSkew      , mesh->elm.geom.dcca
                 , mesh->maxViz           , mesh->ndm
                 , mesh->numelNov);
 /*... qualidade da malha global*/
-      if(mpiVar.nPrcs > 1){
+      if(mpiVar.nPrcs > 1)
         globalMeshQuality(&mesh->mQuality,&mesh0->mQuality);
-      }  
 /*...................................................................*/
          
 /*... reodenando as celulas para dimuincao da banda*/
@@ -736,7 +739,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-      writeMeshPart(mesh,&combModel);
+//    writeMeshPart(mesh,&combModel);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
     }   
@@ -752,12 +755,14 @@ int main(int argc,char**argv){
 /*... */
       fName(preName,mpiVar.nPrcs,mpiVar.myId,7,nameOut);
       fileLog = openFile(nameOut,"w");
-      writeLog(*mesh          ,sc
+      writeLog(mesh           ,&sc
               ,&solvD1        ,&sistEqD1
               ,&solvT1        ,&sistEqT1
               ,&solvVel       ,&sistEqVel
               ,&solvPres      ,&sistEqPres
-              ,tm             
+              ,&solvEnergy    ,&sistEqEnergy 
+              ,&solvComb      ,&sistEqComb 
+              ,&tm             
               ,fSolvD1        ,fSolvT1     
               ,fSolvVel       ,fSolvPres 
               ,fSolvEnergy    ,turbModel.fTurb  
@@ -767,18 +772,25 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... medias do tempo dos processos Mpi*/
-      if(mpiVar.nPrcs > 1) {
+      if(mpiVar.nPrcs > 1) 
+      {
         if(!mpiVar.myId){
           fName(preName,mpiVar.nPrcs,mpiVar.myId,60,nameOut);
           fileLog = openFile(nameOut,"w");
         }
-        writeLogMeanTime(*mesh0    ,sc
-                        ,&solvD1   ,&sistEqD1
-                        ,&solvT1   ,&sistEqT1
-                        ,tm       
-                        ,fSolvD1   ,fSolvT1     
-                        ,nameIn    ,fileLog);
-        
+        writeLogMeanTime(mesh0          ,&sc
+              ,&solvD1        ,&sistEqD1
+              ,&solvT1        ,&sistEqT1
+              ,&solvVel       ,&sistEqVel
+              ,&solvPres      ,&sistEqPres
+              ,&solvEnergy    ,&sistEqEnergy 
+              ,&solvComb      ,&sistEqComb 
+              ,&tm            ,&ompVar 
+              ,fSolvD1        ,fSolvT1     
+              ,fSolvVel       ,fSolvPres 
+              ,fSolvEnergy    ,turbModel.fTurb  
+              ,fSolvCombustion
+              ,nameIn         ,fileLog);        
         if(!mpiVar.myId) fclose(fileLog);
       } 
 /*...................................................................*/
@@ -1424,8 +1436,9 @@ int main(int argc,char**argv){
         kLoop++;
         if(kLoop > 100)
         {
-          ERRO_GERAL(__FILE__,__func__,__LINE__,
-                   "Numero de comandos na macro trasient execedido"); 
+          ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,
+                   "Numero de comandos na macro trasient execedido"
+                   ,EXIT_PROG); 
         }
       }while(strcmp(word,"endTransient"));
       strcpy(loopWord[kLoop-1],"nextLoop");
@@ -1666,12 +1679,13 @@ int main(int argc,char**argv){
       initSec(word, OUTPUT_FOR_FILE);
 /*...*/
       readSolvComb(&m         , mesh         , &reordMesh
+                 , &combModel
                  , &solvVel   , &sistEqVel   , &fSolvVel
                  , &solvPres  , &sistEqPres  , &fSolvPres
                  , &solvEnergy, &sistEqEnergy, &fSolvEnergy
                  , &solvKturb , &sistEqKturb , &fSolvKturb
                  , &solvComb  , &sistEqComb  , &fSolvComb  
-                 , pMesh      , combModel.nComb 
+                 , pMesh       
                  , auxName    , preName      , nameOut
                  , fileIn                    , &opt);
 /*...................................................................*/

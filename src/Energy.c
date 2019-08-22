@@ -1,4 +1,18 @@
 #include<Energy.h>
+
+void static printSist(DOUBLE *b,INT xi, INT xj)
+{
+  INT i,j;
+
+  for(i=0;i<xi;i++)
+  {
+    fprintf(fileLogDebug,"%d ",i);
+    for(j=0;j<xj;j++)
+      fprintf(fileLogDebug," %e ",MAT2D(i,j,b,xj));
+    fprintf(fileLogDebug,"\n");
+  }
+}
+
 /********************************************************************* 
  * Data de criacao    : 16/01/2018                                   *
  * Data de modificaco : 15/08/2018                                   * 
@@ -148,3 +162,4 @@ bool energyEquation(Memoria *m               , PropVarFluid *prop
   return fEnergy;
 
 }
+/*********************************************************************/

@@ -164,6 +164,13 @@ void divCoorXY(DOUBLE *RESTRICT coor,INT *RESTRICT el
     nx = 1;
     ny = 2;
   }
+
+  else if( nDiv == 3)
+  {
+    nx = 1;
+    ny = 3;
+  }
+
   
   else if( nDiv == 4){
     nx = 2;
@@ -194,6 +201,12 @@ void divCoorXY(DOUBLE *RESTRICT coor,INT *RESTRICT el
     nx = 4;
     ny = 4;
   }
+
+  else if( nDiv == 20){
+    nx = 20;
+    ny = 4;
+  }
+
   
   lx = (xMax - xMin);
   ly = (yMax - yMin);
