@@ -170,7 +170,7 @@ static void globalCombCel(Memoria *m
     dGlobalCel(m                       , pMesh
              , mesh0->elm.eddyViscosity, mesh->elm.eddyViscosity
              , mesh->numelNov
-             , nSp                     , 1);
+             , 1                       , 1);
 /*...................................................................*/
 
 /*... rateHeatRe    (Cel)*/
@@ -178,7 +178,7 @@ static void globalCombCel(Memoria *m
     dGlobalCel(m                        , pMesh
              , mesh0->elm.rateHeatReComb, mesh->elm.rateHeatReComb
              , mesh->numelNov
-             , nSp                      , 1);
+             , 1                        , 1);
 /*...................................................................*/
 
 /*... rateHeatRe (Cel)*/

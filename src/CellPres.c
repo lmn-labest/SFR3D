@@ -1246,7 +1246,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
               , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT lDensity
               , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
               , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
-              , DOUBLE *RESTRICT lRcell    , Temporal const ddt 
+              , DOUBLE *RESTRICT lRcell    , Temporal *ddt 
               , short  *RESTRICT lFaceVelR , short *RESTRICT lFaceVelL
               , short  *RESTRICT lFacePresR, short *RESTRICT lFacePresL
               , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres
@@ -1286,11 +1286,11 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*...................................................................*/
 
 /*...*/
-  ts          = ddt.t;
-  dt          = ddt.dt[0];  
-  dt0         = ddt.dt[1];
-  typeTime    = ddt.type;
-  fTime       = ddt.flag;
+  ts          = ddt->t;
+  dt          = ddt->dt[0];  
+  dt0         = ddt->dt[1];
+  typeTime    = ddt->type;
+  fTime       = ddt->flag;
   fLhsDensity = eMass->LhsDensity;
   fRhsDensity = eMass->RhsDensity; 
   iCodPolFace = INTPOLFACELINEAR;

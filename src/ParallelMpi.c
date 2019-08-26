@@ -201,6 +201,14 @@ static void allocComb(Memoria *m          , Mesh *mesh
            ,"zFracP"            ,_AD_);
   zero(mesh->elm.yFrac          ,size,DOUBLEC);
 /*...................................................................*/
+
+/*... yFrac locais*/
+  size = lNel*nSp;
+  HccaAlloc(DOUBLE,m,mesh->elm.cDiffComb,size        
+           ,"cDiffCombP"        ,_AD_);
+  zero(mesh->elm.cDiffComb,size,DOUBLEC);
+/*...................................................................*/
+
 }
 /*********************************************************************/
 
@@ -439,7 +447,7 @@ static void comunicate2(short *m0faceR     ,short *faceR
 
 /********************************************************************* 
  * Data de criacao    : 15/08/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 23/08/2019                                   *
  * ------------------------------------------------------------------*
  * comunicateComb :                                                  * 
  *-------------------------------------------------------------------* 
@@ -461,6 +469,7 @@ static void comunicateComb(short *m0faceR     ,short *faceR
                 ,DOUBLE *m0z        ,DOUBLE *z  
                 ,DOUBLE *m0y0       ,DOUBLE *y0 
                 ,DOUBLE *m0y        ,DOUBLE *y
+                ,DOUBLE *m0Diff     ,DOUBLE *mDiff
                 ,INT const lNel     ,INT *elLG
                 ,short const maxViz ,short const ndfComb
                 ,short const nSp  
@@ -591,6 +600,26 @@ static void comunicateComb(short *m0faceR     ,short *faceR
       free(nD);
 /*...................................................................*/
 
+/*... diff locais*/
+      size = lNel*nSp;
+      nD   = (DOUBLE *) malloc(size*dSize); 
+      ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
+  
+      dGetLocalV(m0Diff ,nD
+                ,elLG
+                ,lNel   ,nSp); 
+        
+      if(iCod == 1)  
+        for(i=0;i<size;i++)
+          mDiff[i] = nD[i];
+      else if(iCod == 2)
+        MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,28    
+                ,mpiVar.comm);
+
+      free(nD);
+/*...................................................................*/
+
+
    break;
 /*...................................................................*/
 
@@ -627,9 +656,15 @@ static void comunicateComb(short *m0faceR     ,short *faceR
              ,mpiVar.comm,MPI_STATUS_IGNORE);
 /*...................................................................*/
      
-/*... eU locais*/
+/*... eY locais*/
      size = lNel*nSp;
      MPI_Recv(y,size, MPI_DOUBLE,0,27    
+             ,mpiVar.comm,MPI_STATUS_IGNORE);
+/*...................................................................*/
+
+/*... diff locais*/
+     size = lNel*nSp;
+     MPI_Recv(mDiff,size, MPI_DOUBLE,0,28    
              ,mpiVar.comm,MPI_STATUS_IGNORE);
 /*...................................................................*/
      
@@ -1515,6 +1550,7 @@ static void prMaster(Memoria *m    , Mesh *mesh0
                   ,mesh0->elm.zComb        ,mesh->elm.zComb
                   ,mesh0->elm.yFrac0       ,mesh->elm.yFrac0
                   ,mesh0->elm.yFrac        ,mesh->elm.yFrac 
+                  ,mesh0->elm.cDiffComb    ,mesh->elm.cDiffComb
                   ,lNel                    ,elLG
                   ,maxViz                  ,ndfComb
                   ,nSp
@@ -1846,6 +1882,7 @@ static void sendPart(Memoria *m    , Mesh *mesh0
                   ,mesh0->elm.zComb        ,mesh->elm.zComb
                   ,mesh0->elm.yFrac0       ,mesh->elm.yFrac0
                   ,mesh0->elm.yFrac        ,mesh->elm.yFrac 
+                  ,mesh0->elm.cDiffComb    ,mesh->elm.cDiffComb 
                   ,lNel                    ,elLG
                   ,maxViz                  ,ndfComb
                   ,nSp
@@ -2294,6 +2331,7 @@ static void recvPart(Memoria *m    , Mesh *mesh0
                   ,mesh0->elm.zComb        ,mesh->elm.zComb
                   ,mesh0->elm.yFrac0       ,mesh->elm.yFrac0
                   ,mesh0->elm.yFrac        ,mesh->elm.yFrac 
+                  ,mesh0->elm.cDiffComb    ,mesh->elm.cDiffComb 
                   ,*lNel                   ,elLG
                   ,maxViz                  ,ndfComb
                   ,nSp 
@@ -2799,41 +2837,84 @@ void makeBuffer(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
  *********************************************************************/
 void getBufferCel(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
               ,INT *RESTRICT fMap       ,INT const nRcvs
-              ,short const ndf1         ,short const ndf2){
-
+              ,short const ndf1         ,short const ndf2)
+{
+  short j,k;
   INT i,lCel;
 
 /*... ndf = 1 */  
-  if( ndf2 == 1){
+  if( ndf2 == 1)
+  {
 /*... ndm = 3*/
     if( ndf1 == 3)
-      for(i=0;i<nRcvs;i++){
+    {
+      for(i=0;i<nRcvs;i++)
+      {
         lCel    = fMap[i];
         MAT2D(lCel,0,x,3) = MAT2D(i,0,xb,3);
         MAT2D(lCel,1,x,3) = MAT2D(i,1,xb,3);
         MAT2D(lCel,2,x,3) = MAT2D(i,2,xb,3);
       }
+    }
+/*..................................................................*/
+
 /*... ndm = 2*/
     else if( ndf1 == 2)
-      for(i=0;i<nRcvs;i++){
+    {
+      for(i=0;i<nRcvs;i++)
+      {
         lCel    = fMap[i];
         MAT2D(lCel,0,x,2) = MAT2D(i,0,xb,2);
         MAT2D(lCel,1,x,2) = MAT2D(i,1,xb,2);
       }
+    }
+/*..................................................................*/
+
 /*... ndm = 1*/
-    else if(ndf1 == 1) 
-      for(i=0;i<nRcvs;i++){
+    else if(ndf1 == 1)
+    {
+      for(i=0;i<nRcvs;i++)
+      {
         lCel    = fMap[i];
         x[lCel] = xb[i];
       }
+    }
+/*..................................................................*/
+
+/*... */
+    else
+    {
+      for(i=0;i<nRcvs;i++)
+      {
+        lCel    = fMap[i];
+        for(j=0;j<ndf1;j++)
+          MAT2D(lCel,j,x,ndf1) = MAT2D(i,j,xb,ndf1);
+      }
+    }
+/*.....................................................................*/
+
   }
-    
+/*..................................................................*/
+   
+/*...*/
+  else
+  {
+    for(i=0;i<nRcvs;i++)
+    {
+      lCel    = fMap[i];
+      for(j=0;j<ndf1;j++)
+        for(k=0;k<ndf2;k++)
+          MAT3D(lCel,j,k,x,ndf1,ndf2) = MAT3D(i,j,k,xb,ndf1,ndf2);
+    }
+  }
+/*..................................................................*/
+ 
 } 
 /*********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 16/08/2019                                   * 
+ * Data de modificaco : 22/08/2019                                   * 
  *-------------------------------------------------------------------* 
  * MAKEBUFFERCEL  : gera buffer de comunicacao para as celulas       * 
  *-------------------------------------------------------------------* 
@@ -2855,41 +2936,83 @@ void getBufferCel(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
  *********************************************************************/
 void makeBufferCel(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
                   ,INT *RESTRICT fMap    ,INT const nSends
-                  ,short const ndf1          ,short const ndf2){
-    
+                  ,short const ndf1      ,short const ndf2){
+  short j,k;
   INT i,lCel;
 
 /*... ndf = 1 */  
-  if( ndf2 == 1){
+  if( ndf2 == 1)
+  {
 /*... ndm = 3*/
     if( ndf1 == 3)
-      for(i=0;i<nSends;i++){
+    {
+      for(i=0;i<nSends;i++)
+      {
         lCel    = fMap[i];
         MAT2D(i,0,xb,3) = MAT2D(lCel,0,x,3);
         MAT2D(i,1,xb,3) = MAT2D(lCel,1,x,3);
         MAT2D(i,2,xb,3) = MAT2D(lCel,2,x,3);
       }
+    }
+/*.....................................................................*/
+
 /*... ndm = 2*/
     else if( ndf1 == 2)
-      for(i=0;i<nSends;i++){
+    {
+      for(i=0;i<nSends;i++)
+      {
         lCel    = fMap[i];
         MAT2D(i,0,xb,2) = MAT2D(lCel,0,x,2);
         MAT2D(i,1,xb,2) = MAT2D(lCel,1,x,2);
       }
+    }
+/*.....................................................................*/
+
 /*... ndm = 1*/
-    else if(ndf1 == 1) 
-      for(i=0;i<nSends;i++){
+    else if(ndf1 == 1)
+    {
+      for(i=0;i<nSends;i++)
+      {
         lCel    = fMap[i];
         xb[i]   = x[lCel];
       }
+    }
+/*.....................................................................*/
+
+/*... */
+    else
+    {
+      for(i=0;i<nSends;i++)
+      {
+        lCel    = fMap[i];
+        for(j=0;j<ndf1;j++)
+          MAT2D(i,j,xb,ndf1) = MAT2D(lCel,j,x,ndf1);
+      }
+    }
+/*.....................................................................*/
+
   }
-/*..................................................................*/  
+/*.....................................................................*/ 
+
+/*...*/
+  else
+  {
+    for(i=0;i<nSends;i++)
+    {
+      lCel    = fMap[i];
+      for(j=0;j<ndf2;j++)
+        for(k=0;k<ndf1;k++)
+          MAT3D(i,j,k,xb,ndf2,ndf1) = MAT3D(lCel,j,k,x,ndf2,ndf1);
+    }
+  }
+/*....................................................................*/ 
+
 } 
 /********************************************************************/
 
 /********************************************************************* 
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 16/08/2019                                   * 
+ * Data de modificaco : 22/08/2019                                   * 
  *-------------------------------------------------------------------*
  * DGETBUFFERNOD: obetem os valores do buffer de comunicacao para os * 
  * nos (DOUBLE)                                                      * 
@@ -2914,39 +3037,82 @@ void dGetBufferNod(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
               ,INT *RESTRICT fMap        ,INT const nRcvs
               ,short const ndf1          ,short const ndf2){
 
+  short j,k;
   INT i,lNod;
 
 /*... ndf2 = 1 */  
-  if( ndf2 == 1){
+  if( ndf2 == 1)
+  {
 /*... ndf1 = 3*/
     if( ndf1 == 3)
-      for(i=0;i<nRcvs;i++){
+    {
+      for(i=0;i<nRcvs;i++)
+      {
         lNod    = fMap[i];
         MAT2D(lNod,0,x,3) += MAT2D(i,0,xb,3);
         MAT2D(lNod,1,x,3) += MAT2D(i,1,xb,3);
         MAT2D(lNod,2,x,3) += MAT2D(i,2,xb,3);
       }
+    }
+/*...................................................................*/
+
 /*... ndf1 = 2*/
     else if( ndf1 == 2)
-      for(i=0;i<nRcvs;i++){
+    {
+      for(i=0;i<nRcvs;i++)
+      {
         lNod    = fMap[i];
         MAT2D(lNod,0,x,2) += MAT2D(i,0,xb,2);
         MAT2D(lNod,1,x,2) += MAT2D(i,1,xb,2);
       }
+    }
+/*...................................................................*/
+    
 /*... ndf1 = 1*/
-    else if(ndf1 == 1) 
-      for(i=0;i<nRcvs;i++){
+    else if(ndf1 == 1)
+    {
+      for(i=0;i<nRcvs;i++)
+      {
         lNod    = fMap[i];
         x[lNod] += xb[i];
       }
-  }
+    }
+/*...................................................................*/
     
+/*... */
+    else
+    {
+      for(i=0;i<nRcvs;i++)
+      {
+        lNod    = fMap[i];
+        for(j=0;j<ndf1;j++)
+          MAT2D(lNod,j,x,ndf1) = MAT2D(i,j,xb,ndf1);
+      }
+    }
+/*.....................................................................*/
+
+  }
+/*.....................................................................*/ 
+
+/*...*/
+  else
+  {
+    for(i=0;i<nRcvs;i++)
+    {
+      lNod    = fMap[i];
+      for(j=0;j<ndf2;j++)
+        for(k=0;k<ndf1;k++)
+          MAT3D(lNod,j,k,x,ndf2,ndf1) = MAT3D(i,j,k,xb,ndf2,ndf1);
+    }
+  }
+/*....................................................................*/ 
+
 } 
 /*********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 16/08/2019                                   * 
+ * Data de modificaco : 22/08/2019                                   * 
  *-------------------------------------------------------------------* 
  * DMAKEBUFFERNOD : gera buffer de comunicacao para os nos (DOUBLE)  * 
  *-------------------------------------------------------------------* 
@@ -2969,34 +3135,72 @@ void dGetBufferNod(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
 void dMakeBufferNod(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
                   ,INT *RESTRICT fMap    ,INT const nSends
                   ,short const ndf1          ,short const ndf2){
-    
+  short j,k;  
   INT i,lNo;
 
 /*... ndf2 = 1 */  
-  if( ndf2 == 1){
+  if( ndf2 == 1)
+  {
 /*... ndf1 = 3*/
     if( ndf1 == 3)
-      for(i=0;i<nSends;i++){
+    {
+      for(i=0;i<nSends;i++)
+      {
         lNo     = fMap[i];
         MAT2D(i,0,xb,3) = MAT2D(lNo,0,x,3);
         MAT2D(i,1,xb,3) = MAT2D(lNo,1,x,3);
         MAT2D(i,2,xb,3) = MAT2D(lNo,2,x,3);
       }
+    }
 /*... ndf2 = 2*/
     else if( ndf1 == 2)
-      for(i=0;i<nSends;i++){
+    {
+      for(i=0;i<nSends;i++)
+      {
         lNo    = fMap[i];
         MAT2D(i,0,xb,2) = MAT2D(lNo,0,x,2);
         MAT2D(i,1,xb,2) = MAT2D(lNo,1,x,2);
       }
+    }
 /*... ndf3 = 1*/
-    else if(ndf1 == 1) 
-      for(i=0;i<nSends;i++){
+    else if(ndf1 == 1)
+    { 
+      for(i=0;i<nSends;i++)
+      {
         lNo    = fMap[i];
         xb[i]  = x[lNo];
+      } 
+    }
+/*..................................................................*/ 
+
+/*... */
+    else
+    {
+      for(i=0;i<nSends;i++)
+      {
+        lNo    = fMap[i];
+        for(j=0;j<ndf1;j++)
+          MAT2D(i,j,xb,ndf1) = MAT2D(lNo,j,x,ndf1);
       }
+    }
+/*.....................................................................*/
+
   }
-/*..................................................................*/  
+/*.....................................................................*/ 
+
+/*...*/
+  else
+  {
+    for(i=0;i<nSends;i++)
+    {
+      lNo    = fMap[i];
+      for(j=0;j<ndf2;j++)
+        for(k=0;k<ndf1;k++)
+          MAT3D(i,j,k,xb,ndf2,ndf1) = MAT3D(lNo,j,k,x,ndf2,ndf1);
+    }
+  }
+/*....................................................................*/
+ 
 } 
 /********************************************************************/
 
@@ -3033,27 +3237,59 @@ void iGetBufferNod(INT *RESTRICT x     ,INT *RESTRICT xb
   if( ndf2 == 1){
 /*... ndf1 = 3*/
     if( ndf1 == 3)
-      for(i=0;i<nRcvs;i++){
+    {
+      for(i=0;i<nRcvs;i++)
+      {
         lNod    = fMap[i];
         MAT2D(lNod,0,x,3) += MAT2D(i,0,xb,3);
         MAT2D(lNod,1,x,3) += MAT2D(i,1,xb,3);
         MAT2D(lNod,2,x,3) += MAT2D(i,2,xb,3);
       }
+    }
+/*...................................................................*/
+
 /*... ndf1 = 2*/
     else if( ndf1 == 2)
-      for(i=0;i<nRcvs;i++){
+    {
+      for(i=0;i<nRcvs;i++)
+      {
         lNod    = fMap[i];
         MAT2D(lNod,0,x,2) += MAT2D(i,0,xb,2);
         MAT2D(lNod,1,x,2) += MAT2D(i,1,xb,2);
       }
+    }
+/*...................................................................*/
+
 /*... ndf1 = 1*/
-    else if(ndf1 == 1) 
-      for(i=0;i<nRcvs;i++){
+    else if(ndf1 == 1)
+    {
+      for(i=0;i<nRcvs;i++)
+      {
         lNod    = fMap[i];
         x[lNod] += xb[i];
       }
+    } 
+/*...................................................................*/
+
+/*...*/
+    else
+    {
+        printf("Nao implementado!!");
+        mpiStop();
+        exit(EXIT_FAILURE);
+    }
+/*...................................................................*/
   }
-    
+/*...................................................................*/
+
+/*...*/
+  else
+  {
+    printf("Nao implementado!!");
+    mpiStop();
+    exit(EXIT_FAILURE);
+  }
+/*...................................................................*/
 } 
 /*********************************************************************/
 
@@ -3089,25 +3325,46 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
   if( ndf2 == 1){
 /*... ndf = 3*/
     if( ndf1 == 3)
-      for(i=0;i<nSends;i++){
+    {
+      for(i=0;i<nSends;i++)
+      {
         lNo     = fMap[i];
         MAT2D(i,0,xb,3) = MAT2D(lNo,0,x,3);
         MAT2D(i,1,xb,3) = MAT2D(lNo,1,x,3);
         MAT2D(i,2,xb,3) = MAT2D(lNo,2,x,3);
       }
+    }
 /*... ndf = 2*/
     else if( ndf1 == 2)
-      for(i=0;i<nSends;i++){
+    {
+      for(i=0;i<nSends;i++)
+      {
         lNo    = fMap[i];
         MAT2D(i,0,xb,2) = MAT2D(lNo,0,x,2);
         MAT2D(i,1,xb,2) = MAT2D(lNo,1,x,2);
       }
+    }
 /*... ndf = 1*/
     else if(ndf1 == 1) 
-      for(i=0;i<nSends;i++){
+    {
+      for(i=0;i<nSends;i++)
+      {
         lNo    = fMap[i];
         xb[i]  = x[lNo];
       }
+    }
+    else
+    {
+        printf("Nao implementado!!");
+        mpiStop();
+        exit(EXIT_FAILURE);
+    }
+  }
+  else
+  {
+    printf("Nao implementado!!");
+    mpiStop();
+    exit(EXIT_FAILURE);
   }
 /*..................................................................*/  
 } 
@@ -3237,10 +3494,12 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
   unsigned short partId,nPart,nVizParts = iCel->nVizPart; 
 
 /*...*/
+  if(mpiVar.nPrcs < 2 ) return;
+/*...................................................................*/
+
+/*...*/
   tm.overHeadCelMpi    = getTimeC() - tm.overHeadCelMpi;
 /*...................................................................*/    
-  
-  if(mpiVar.nPrcs < 2 ) return;
 
 /*... gerando o buffer de envio*/
    makeBufferCel(x                     ,&iCel->xb[nRcvs*nst]
@@ -3340,10 +3599,12 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
   unsigned short partId,nPart,nVizParts = iNo->nVizPart; 
 
 /*...*/
+  if(mpiVar.nPrcs < 2 ) return;
+/*...................................................................*/
+
+/*...*/
   tm.overHeadNodMpi    = getTimeC() - tm.overHeadNodMpi;
 /*...................................................................*/    
-
-  if(mpiVar.nPrcs < 2 ) return;
 
 /*... gerando o buffer de envio*/
    dMakeBufferNod(x                    ,&iNo->xb[nCom*nst]
@@ -3438,10 +3699,12 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
   unsigned short partId,nPart,nVizParts = iNo->nVizPart; 
 
 /*...*/
-  tm.overHeadNodMpi    = getTimeC() - tm.overHeadNodMpi;
-/*...................................................................*/    
-
   if(mpiVar.nPrcs < 2 ) return;
+/*...................................................................*/
+
+/*...*/
+  tm.overHeadNodMpi    = getTimeC() - tm.overHeadNodMpi;
+/*...................................................................*/
 
 /*... gerando o buffer de envio*/
   iMakeBufferNod(x                     ,&iNo->xi[nCom*nst]
@@ -3556,7 +3819,8 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
   bool *aux1 = NULL,*aux2 = NULL,*aux3=NULL;
   bool fTurb          = tModel->fTurb,
        fWall          = tModel->fWall, 
-       fTurbStruct    = false;
+       fTurbStruct    = tModel->fTurbStruct,
+       fDynamic       = tModel->fDynamic;
   INT i,numelNov,numelOv,lNel,lNnode,nNodeNov,nNodeOv,nno1;
   INT *elLG=NULL,*elGL=NULL,*noLG=NULL,*noGL=NULL;
   INT *lEl=NULL,*fMap=NULL,*iaRcvs=NULL,*iaSends=NULL;
@@ -4140,9 +4404,26 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
       zero(mesh->elm.eddyViscosity,lNel*ntn,DOUBLEC);
     }
 /*...................................................................*/
-  }
+
+/*... paramentros de parede*/
+     if(fWall)
+     {
+        HccaAlloc(DOUBLE, m, mesh->elm.wallParameters
+                 , lNel*NWALLPAR   , "wallParmP", _AD_);
+        zero(mesh->elm.wallParameters, lNel*NWALLPAR, DOUBLEC);
+     }
 /*...................................................................*/
 
+/*... coeficientes dinamicos locais*/
+     if(fDynamic)
+     {
+       HccaAlloc(DOUBLE, m, mesh->elm.cd
+              , lNel*2   , "cDynamicP"     , _AD_);
+       zero(mesh->elm.cd, lNel*2, DOUBLEC);
+     } 
+
+  }
+/*...................................................................*/
 
 /*... problema de escoamento*/
   if(ndfF > 0 || ndfFt > 0)
@@ -4242,10 +4523,6 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
     zero(mesh->elm.gradZcomb  ,lNel*ndm*ndfComb  ,DOUBLEC);
 /*...................................................................*/
 
-/*... cDiffComb*/
-    HccaAlloc(DOUBLE,m,mesh->elm.cDiffComb   
-            ,lNel*nSp ,"cDiffP",_AD_);
-    zero(mesh->elm.cDiffComb, lNel*nSp, DOUBLEC);
 /*... wK*/
     HccaAlloc(DOUBLE,m, mesh->elm.wk
             ,lNel*nSp ,"wkP",_AD_);

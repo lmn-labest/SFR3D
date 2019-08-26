@@ -925,18 +925,21 @@ void callCg(INT const nEq      ,INT const nEqNov
           ,al      ,ad 
           ,m       ,b  
           ,x       ,z
-          ,r 
+          ,r       ,p
           ,tol     ,maxIt
           ,newX    ,fSolvLog
-          ,fLog    ,fPrint
+          ,NULL    ,fLog
+          ,false   ,fPrint
           ,iNeq
           ,matVec  ,dot);
 /*...................................................................*/
 
 /*... PCG*/
-  else{
+  else
+  {
 /*... OpenMp*/
-    if(ompVar.fSolver){
+    if(ompVar.fSolver)
+    {
       pcgOmp(nEq     ,nAd
             ,ia      ,ja
             ,al      ,ad
@@ -953,7 +956,8 @@ void callCg(INT const nEq      ,INT const nEqNov
 /*...................................................................*/
 
 /*... sequencial*/
-    else{  
+    else
+    {  
       pcg(nEq     ,nAd
          ,ia      ,ja
          ,al      ,ad  

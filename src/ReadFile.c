@@ -79,7 +79,8 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
        ,"faceReKturb"  ,"loadsKturb" ,"faceLoadKturb"  /*33,34,35*/
        ,"fileMaterials",""           ,""               /*36,37,38*/
 	   };                                             
-  bool rflag[NMACROS],macroFlag,fOneEqK = false,fComb;
+  bool rflag[NMACROS],macroFlag;
+  bool fOneEqK,fComb,fWallModel,fTurbStruct,fDynamic;
   INT nn,nel;
   short maxno,ndm,numat,maxViz,ndfVel,nComb,nSpPri,nReac;
   char nameAux[MAX_STR_LEN_IN];
@@ -98,11 +99,14 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*...................................................................*/
 
 /*...*/   
-  fComb   = cModel->fCombustion;
-  nComb   = cModel->nComb;
-  nSpPri  = cModel->nOfSpecies;
-  nReac   = cModel->chem.nReac;
-  fOneEqK = tModel->fOneEq;
+  fComb       = cModel->fCombustion;
+  nComb       = cModel->nComb;
+  nSpPri      = cModel->nOfSpecies;
+  nReac       = cModel->chem.nReac;
+  fOneEqK     = tModel->fOneEq;
+  fWallModel  = tModel->fWall;
+  fTurbStruct = tModel->fTurbStruct;
+  fDynamic    = tModel->fDynamic;
 /*...................................................................*/
 
 /*...*/
@@ -271,19 +275,28 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
      zero(mesh->elm.eddyViscosity, nel, DOUBLEC);
 
 /*... tensor residual turbulenta*/
-     HccaAlloc(DOUBLE, m, mesh->elm.stressR        
+     if(fTurbStruct)
+     {
+       HccaAlloc(DOUBLE, m, mesh->elm.stressR        
               , nel*mesh->ntn , "stressR", _AD_);
-     zero(mesh->elm.stressR, nel*mesh->ntn, DOUBLEC);
+       zero(mesh->elm.stressR, nel*mesh->ntn, DOUBLEC);
+     } 
 
 /*... paramentros de parede*/
-     HccaAlloc(DOUBLE, m, mesh->elm.wallParameters
-              , nel*4   , "wallParm", _AD_);
-     zero(mesh->elm.wallParameters, nel*4, DOUBLEC);
+     if(fWallModel)
+     {
+        HccaAlloc(DOUBLE, m, mesh->elm.wallParameters
+                 , nel*NWALLPAR   , "wallParm", _AD_);
+        zero(mesh->elm.wallParameters, nel*NWALLPAR, DOUBLEC);
+     }
 
 /*... coeficientes dinamicos locais*/
-     HccaAlloc(DOUBLE, m, mesh->elm.cd
+     if(fDynamic)
+     {
+       HccaAlloc(DOUBLE, m, mesh->elm.cd
               , nel*2   , "cDynamic"     , _AD_);
-     zero(mesh->elm.cd, nel*2, DOUBLEC);
+       zero(mesh->elm.cd, nel*2, DOUBLEC);
+     } 
 
 /*... energia cinetica turbulenta*/
      if(fOneEqK){
@@ -2908,10 +2921,11 @@ void readModel(EnergyModel *e         , Turbulence *t
 
 /*... mixed*/
         else if(!strcmp(word,turb[6])){
-          t->fDynamic = false;
-          t->fTurb   = true;      
-          t->type    = LES;
-          t->typeLes = LESMIXEDMODEL; 
+          t->fDynamic    = false;
+          t->fTurb       = true;      
+          t->type        = LES;
+          t->typeLes     = LESMIXEDMODEL; 
+          t->fTurbStruct = true;
           fscanf(file,"%lf",&t->c);  
           fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[6],t->c); 
           setMixedModelLes(t,file);
@@ -2924,7 +2938,8 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->fTurb               = true;   
           t->type                = LES;
           t->typeMixed[ESTMODEL] = BARDINA;
-          t->typeLes = LESSTRUMODEL;
+          t->typeLes             = LESSTRUMODEL;
+          t->fTurbStruct         = true;
           fscanf(file,"%lf",&t->cs);  
           fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[7],t->cs); 
         }
@@ -2937,6 +2952,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->type                = LES;
           t->typeMixed[ESTMODEL] = CLARK;
           t->typeLes             = LESSTRUMODEL;
+          t->fTurbStruct         = true;
           fscanf(file,"%lf",&t->cs);  
           fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[8],t->cs); 
         }
@@ -2949,6 +2965,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->type                = LES;
           t->typeMixed[ESTMODEL] = BARDINAMOD;
           t->typeLes             = LESSTRUMODEL;
+          t->fTurbStruct         = true;
           fscanf(file,"%lf",&t->cs);  
           fprintf(fileLogExc,"%-20s: Cf = %lf\n", turb[9],t->cs); 
         }
@@ -2961,6 +2978,7 @@ void readModel(EnergyModel *e         , Turbulence *t
           t->type        = LES;
           t->typeLes     = LESMIXEDTWOMODEL; 
           t->typeDynamic = TWOPARDYNAMIC;
+          t->fTurbStruct = true;
           fscanf(file,"%lf",&t->c);  
           fprintf(fileLogExc,"%-20s:\n", "TowDynamic"); 
           setMixedModelLes(t,file);

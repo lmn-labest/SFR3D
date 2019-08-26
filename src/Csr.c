@@ -1345,8 +1345,6 @@ void csrSimple(INT    *RESTRICT  ia,INT *RESTRICT ja
        exit(EXIT_FAILURE);
      break;
 /*...................................................................*/
-
-
  }
 
 }

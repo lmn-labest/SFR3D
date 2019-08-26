@@ -207,6 +207,7 @@ int main(int argc,char**argv){
   turbModel.fTurb               = false;
   turbModel.fDynamic            = false;
   turbModel.fOneEq              = false;
+  turbModel.fTurbStruct         = false;
   turbModel.wallType            = STANDARDWALL;
   turbModel.type                = LES;
   turbModel.typeLes             = LESFUNCMODEL;
@@ -613,7 +614,8 @@ int main(int argc,char**argv){
                ,mesh->elm.adj.nelcon ,mesh->elm.adj.nViz
                ,mesh->elm.geomType   ,mesh->elm.nen        
                ,mesh->elm.cellFace
-               ,&mesh->elm.geom      ,&mesh->face   
+               ,&mesh->elm.geom      ,&mesh->face 
+               ,&pMesh->iEl   
                ,mesh->maxNo          ,mesh->maxViz  
                ,mesh->ndm            ,mesh->numelNov);
       tm.geom = getTimeC() - tm.geom;
@@ -1399,20 +1401,18 @@ int main(int argc,char**argv){
         if(!strcmp(word,"dynamic"))     
           sc.ddt.fDynamic = true;
         if(sc.ddt.fDynamic){
-          if(!mpiVar.myId) fprintf(fileLogExc,"dynamic : True\n");
+          fprintf(fileLogExc,"dynamic : True\n");
         }
         else {
-          if(!mpiVar.myId) fprintf(fileLogExc,"dynamic : False\n");
+          fprintf(fileLogExc,"dynamic : False\n");
         }          
 /*...*/        
-        if(!mpiVar.myId ) 
-          fprintf(fileLogExc,"dt(s)     : %.10lf\n",sc.ddt.dt[0]);
-        if(!mpiVar.myId ) 
-          fprintf(fileLogExc,"Total(s)  : %.10lf\n",sc.ddt.total);
+        fprintf(fileLogExc,"dt(s)     : %.10lf\n",sc.ddt.dt[0]);
+        fprintf(fileLogExc,"Total(s)  : %.10lf\n",sc.ddt.total);
       
-        if(sc.ddt.type == EULER && !mpiVar.myId)     
+        if(sc.ddt.type == EULER)     
           fprintf(fileLogExc,"ddtScheme : EULER\n");
-        else if(sc.ddt.type == BACKWARD && !mpiVar.myId )     
+        else if(sc.ddt.type == BACKWARD)     
           fprintf(fileLogExc,"ddtScheme : BACKWARD\n");
 
         if(!save.fLoad)

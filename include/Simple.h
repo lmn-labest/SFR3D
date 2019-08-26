@@ -60,14 +60,16 @@
                 ,INT *RESTRICT id    ,INT const nEl
                 ,short const ndm);
 
-  void updateCellSimpleVelR(DOUBLE  *RESTRICT w  , DOUBLE  *RESTRICT u1
-                          , DOUBLE  *RESTRICT u2 , DOUBLE  *RESTRICT u3
-                          , INT  *RESTRICT id    , INT const nEl
-                          , bool const fRes      , short const ndm);
+  void updateCellSimpleVelR(DOUBLE  *RESTRICT w  ,DOUBLE  *RESTRICT u1
+                         ,DOUBLE  *RESTRICT u2 ,DOUBLE  *RESTRICT u3
+                         ,INT  *RESTRICT id    ,Interface *iNeq
+                         ,INT const nEl        ,short const ndm  
+                         ,bool const fRes      ,bool const fCom);
 
 
-  void updateCellSimplePres(DOUBLE *RESTRICT presC,DOUBLE *RESTRICT xp
-                           ,INT *RESTRICT id,INT const nEl);
+  void updateCellSimplePres(DOUBLE  *RESTRICT presC,DOUBLE  *RESTRICT xp   
+                         ,INT  *RESTRICT id      ,Interface *iNeq
+                         ,INT const nEl          ,bool const fCom);
 
   void simpleUpdate(DOUBLE *RESTRICT w     ,DOUBLE *RESTRICT pressure
                  ,DOUBLE *RESTRICT PresC ,DOUBLE *RESTRICT GradPresC

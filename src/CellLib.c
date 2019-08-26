@@ -190,7 +190,7 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
      , DOUBLE *RESTRICT dcca       , DOUBLE *RESTRICT cc
      , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
      , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
-     , DOUBLE *RESTRICT lRcell     , Temporal const ddt
+     , DOUBLE *RESTRICT lRcell     , Temporal *ddt
      , short  *RESTRICT lFaceR     , short  *RESTRICT lFaceL
      , short  *RESTRICT lFaceVelR  , short  *RESTRICT lFaceVelL     
      , DOUBLE *RESTRICT u          , DOUBLE *RESTRICT gradU
@@ -225,7 +225,7 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
                  , dcca       , cc
                  , vSkew      , mvSkew 
                  , lA         , lB
-                 , lRcell     , ddt
+                 , lRcell     , *ddt
                  , lFaceR     , lFaceL
                  , lFaceVelR  , lFaceVelL
                  , u          , gradU    
@@ -473,7 +473,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
              ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT lDensity
              ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
              ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
-             ,DOUBLE *RESTRICT lRcell    ,Temporal const ddt
+             ,DOUBLE *RESTRICT lRcell    ,Temporal *ddt
              ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
              ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
              ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres 
@@ -501,7 +501,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
                  ,dcca        ,lDensity 
                  ,vSkew       ,mvSkew
                  ,lA          ,lB
-                 ,lRcell      ,ddt 
+                 ,lRcell      ,*ddt 
                  ,lFaceVelR   ,lFaceVelL
                  ,lFacePresR  ,lFacePresL
                  ,pres        ,gradPres 
@@ -621,7 +621,7 @@ void cellLibCombustion(Loads *lComb        , Loads *lVel
                , DOUBLE *RESTRICT dcca     , DOUBLE *RESTRICT cc
                , DOUBLE *RESTRICT vSkew    , DOUBLE *RESTRICT mvSkew
                , DOUBLE *RESTRICT lA       , DOUBLE *RESTRICT lB
-               , DOUBLE *RESTRICT lRcell   , Temporal const ddt
+               , DOUBLE *RESTRICT lRcell   , Temporal *ddt
                , short  *RESTRICT lFaceR   , short  *RESTRICT lFaceL
                , short  *RESTRICT lFaceVelR, short  *RESTRICT lFaceVelL
                , DOUBLE *RESTRICT u        , DOUBLE *RESTRICT gradU
@@ -784,7 +784,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
            , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc 
            , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew 
            , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB 
-           , DOUBLE *RESTRICT lRcell    , Temporal const ddt 
+           , DOUBLE *RESTRICT lRcell    , Temporal *ddt 
            , short  *RESTRICT lFaceVelR , short  *RESTRICT lFaceVelL 
            , short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL 
            , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres  
@@ -815,7 +815,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
                      , dcca       , cc 
                      , vSkew      , mvSkew 
                      , lA         , lB 
-                     , lRcell     , ddt  
+                     , lRcell     , *ddt  
                      , lFaceVelR  , lFaceVelL 
                      , lFacePresR , lFacePresL 
                      , pres       , gradPres  
@@ -830,8 +830,9 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
 /*..................................................................*/
 
 /*... 3D*/
-    else if(ndm == 3){
-     cellSimpleVel3DLm(lVel      , lPres    
+    else if(ndm == 3)
+    { 
+      cellSimpleVel3DLm(lVel      , lPres    
                      , advVel     , diffVel 
                      , tModel     , ModelMomentum
                      , typeSimple   
@@ -930,7 +931,7 @@ void cellLibSimplePres(Loads *lVel       ,Loads *lPres
                ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
                ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
                ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-               ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt
+               ,DOUBLE *RESTRICT lRcell  ,Temporal *ddt
                ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
                ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
                ,DOUBLE *RESTRICT pres    ,DOUBLE *RESTRICT gradPres 
@@ -1063,7 +1064,7 @@ void cellLibSimplePresLm(Loads *lVel        , Loads *lPres
                , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT lDensity
                , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
                , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
-               , DOUBLE *RESTRICT lRcell    , Temporal const ddt
+               , DOUBLE *RESTRICT lRcell    , Temporal *ddt
                , short  *RESTRICT lFaceVelR , short  *RESTRICT lFaceVelL
                , short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL
                , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres 
@@ -1089,7 +1090,7 @@ void cellLibSimplePresLm(Loads *lVel        , Loads *lPres
                  , dcca      , lDensity 
                  , vSkew     , mvSkew
                  , lA        , lB
-                 , lRcell    , ddt 
+                 , lRcell    , *ddt 
                  , lFaceVelR , lFaceVelL
                  , lFacePresR, lFacePresL
                  , pres      , gradPres 

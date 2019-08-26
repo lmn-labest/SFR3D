@@ -82,7 +82,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
                     , DOUBLE *RESTRICT dcca     , DOUBLE *RESTRICT cc
                     , DOUBLE *RESTRICT vSkew    , DOUBLE *RESTRICT mvSkew
                     , DOUBLE *RESTRICT lA       , DOUBLE *RESTRICT lB
-                    , DOUBLE *RESTRICT lRcell   , Temporal const ddt
+                    , DOUBLE *RESTRICT lRcell   , Temporal *ddt
                     , short  *RESTRICT lFaceR   , short *RESTRICT lFaceL
                     , short  *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL
                     , DOUBLE *RESTRICT u0       , DOUBLE *RESTRICT gradU0
@@ -142,16 +142,16 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*...................................................................*/
 
 /*...*/
-  dt = ddt.dt[0];
-  dt0 = ddt.dt[1];
-  typeTime = ddt.type;
-  fTime = ddt.flag;
-  fRes = cModel->fRes;
-  fTurb = tModel->fTurb;
-  prTwall = tModel->PrandltTwall;
-  scTsgs = tModel->SchmidtTsgs;
+  dt         = ddt->dt[0];
+  dt0        = ddt->dt[1];
+  typeTime   = ddt->type;
+  fTime      = ddt->flag;
+  fRes       = cModel->fRes;
+  fTurb      = tModel->fTurb;
+  prTwall    = tModel->PrandltTwall;
+  scTsgs     = tModel->SchmidtTsgs;
   fWallModel = tModel->fWall;
-  wallType = tModel->wallType;
+  wallType   = tModel->wallType;
 /*...................................................................*/
 
 /*... propriedades da celula*/

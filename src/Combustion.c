@@ -73,7 +73,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*... taxa de comsumo do combustivel*/
   tm.timeChemical = getTimeC() - tm.timeChemical;
   timeChemical(cModel                  , tModel
-              , prop 
+              , prop   
               , mesh->elm.zComb        , mesh->elm.temp      
               , mesh->elm.densityFluid , mesh->elm.gradVel 
               , mesh->elm.eddyViscosity
@@ -101,27 +101,27 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*... reconstruindo do gradiente (gradZ)*/
   tm.rcGradComb   = getTimeC() - tm.rcGradComb;
   rcGradU(m                      , loadsComb
-        , mesh->elm.node         , mesh->elm.adj.nelcon
-        , mesh->node.x           
-        , mesh->elm.nen          , mesh->elm.adj.nViz
-        , mesh->elm.cellFace     , mesh->face.owner
-        , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-        , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-        , mesh->face.mksi        , mesh->face.ksi
-        , mesh->face.eta         , mesh->face.area
-        , mesh->face.normal      , mesh->face.xm
-        , mesh->face.mvSkew      , mesh->face.vSkew
-        , mesh->elm.geomType     , mesh->elm.material.prop
-        , mesh->elm.material.type, mesh->elm.mat 
-        , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-        , mesh->elm.faceResZcomb , mesh->elm.faceLoadZcomb
-        , mesh->elm.zComb        , mesh->elm.gradZcomb
-        , mesh->node.zComb       , sc->rcGrad
-        , mesh->maxNo            , mesh->maxViz
-        , nComb                  , mesh->ndm              
-        , &pMesh->iNo            , &pMesh->iEl
-        , mesh->numelNov         , mesh->numel
-        , mesh->nnodeNov         , mesh->nnode);      
+       , mesh->elm.node         , mesh->elm.adj.nelcon
+       , mesh->node.x           
+       , mesh->elm.nen          , mesh->elm.adj.nViz
+       , mesh->elm.cellFace     , mesh->face.owner
+       , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+       , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+       , mesh->face.mksi        , mesh->face.ksi
+       , mesh->face.eta         , mesh->face.area
+       , mesh->face.normal      , mesh->face.xm
+       , mesh->face.mvSkew      , mesh->face.vSkew
+       , mesh->elm.geomType     , mesh->elm.material.prop
+       , mesh->elm.material.type, mesh->elm.mat 
+       , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+       , mesh->elm.faceResZcomb , mesh->elm.faceLoadZcomb
+       , mesh->elm.zComb        , mesh->elm.gradZcomb
+       , mesh->node.zComb       , sc->rcGrad
+       , mesh->maxNo            , mesh->maxViz
+       , nComb                  , mesh->ndm              
+       , &pMesh->iNo            , &pMesh->iEl
+       , mesh->numelNov         , mesh->numel
+       , mesh->nnodeNov         , mesh->nnode);      
   tm.rcGradComb = getTimeC() - tm.rcGradComb;
 /*.................................................................. */
 
@@ -154,7 +154,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
              , mesh->elm.densityFluid  , mesh->elm.cDiffComb
              , mesh->elm.eddyViscosity , mesh->elm.wallParameters
              , sp->d
-             , sc->ddt                , sp->alphaComb
+             , &sc->ddt               , sp->alphaComb
              , sistEqComb->neq        , sistEqComb->neqNov
              , sistEqComb->nad        , sistEqComb->nadr
              , mesh->maxNo            , mesh->maxViz
@@ -228,7 +228,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...*/
   getSpeciesPrimitives(cModel
                       ,mesh->elm.yFrac,mesh->elm.zComb
-                      ,mesh->numelNov);
+                      ,mesh->numel);
 /*...................................................................*/
 
 /*...*/
@@ -1021,7 +1021,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
 /*...................................................................*/
 
 /*...*/
-  aTol = rTol = 1.e-06;
+  aTol = rTol = 1.e-11;
 
   TEMP(tK,temp,fKelvin);
 

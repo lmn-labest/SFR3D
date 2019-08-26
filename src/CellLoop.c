@@ -16,6 +16,7 @@
  * cellFace-> faces que componhe a celula                            *
  * geom    -> geometria por celula                                   *
  * face    -> geometria por face                                     *
+ * iCel    -> interface de comunicao dos elmentos
  * maxNo   -> numero de nos por celula maximo da malha               * 
  * maxViz  -> numero vizinhos por celula maximo da malha             * 
  * ndm     -> numero de dimensoes                                    * 
@@ -48,6 +49,7 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
               ,short  *RESTRICT geomType,short *RESTRICT nen
               ,INT *RESTRICT cellFace
               ,Geom *RESTRICT geom      ,Face *RESTRICT face
+              ,Interface *iCel
               ,short maxNo              ,short maxViz
               ,short ndm                ,INT numel)
 {
@@ -191,6 +193,11 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
 /*...................................................................*/
 
   }
+/*...................................................................*/
+
+/*...*/
+  if(mpiVar.nPrcs > 1)
+    comunicateCel(iCel,geom->cc,ndm,1);
 /*...................................................................*/
 }
 /*********************************************************************/ 
@@ -1035,7 +1042,7 @@ void systFormSimpleVel(Loads *loadsVel    , Loads *loadsPres
              , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel
              , DOUBLE *RESTRICT dField    , DOUBLE underU  
              , DOUBLE *RESTRICT rCell     , DOUBLE *RESTRICT density
-             , Temporal ddt                 
+             , Temporal *ddt                 
              , INT nEq                    , INT nEqNov
              , INT nAd                    , INT nAdR                  
              , short maxNo                , short maxViz
@@ -1430,7 +1437,7 @@ void systFormSimpleVel(Loads *loadsVel    , Loads *loadsPres
 
 /********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 17/08/2019                                   * 
+ * Data de modificaco : 23/08/2019                                   * 
  *-------------------------------------------------------------------* 
  * SYSTFOMSIMPLEVELLM: calculo do sistema de equacoes para problemas * 
  * de escomaneto de fluidos ( Vel )                                  * 
@@ -1442,6 +1449,7 @@ void systFormSimpleVel(Loads *loadsVel    , Loads *loadsPres
  * advVel    -> tecnica da discretizacao do termo advecao            *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
  * ModelMomentum -> termos/modelos da equacao de momento linear      *
+ * iCel    -> interface de elementos                                 *
  * typeSimple-> tipo do metodo simple                                *
  * el        -> conetividade dos celulas                             * 
  * nelcon    -> vizinhos dos elementos                               * 
@@ -1520,12 +1528,14 @@ void systFormSimpleVel(Loads *loadsVel    , Loads *loadsPres
  * OBS:                                                              *
  *-------------------------------------------------------------------* 
  * b     = | bx1 bx2 ... bxn by1 by2 ... byn bz1 bz2 ... bzn |       * 
- * rCell = | rx1 rx2 ... rxn ry1 ry2 ... ryn rz1 rz2 ... rzn |       * 
+ * rCell = | rx1 rx2 ... rxn ry1 ry2 ... ryn rz1 rz2 ... rzn |       *
+ *                                                                   *
+ * e necassirio comunicar o arranjo dField                           *   
  *********************************************************************/
 void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres    
     , Advection *advVel                    , Diffusion *diffVel
     , Turbulence *tModel                   , MomentumModel *ModelMomentum
-    , short typeSimple     
+    , Interface *iCel                      , short typeSimple     
     , INT    *RESTRICT el                  , INT    *RESTRICT nelcon 
     , short  *RESTRICT nen                 , short  *RESTRICT nFace
     , INT *RESTRICT cellFace               , INT *RESTRICT fOwner
@@ -1548,7 +1558,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
     , DOUBLE *RESTRICT rCell               , DOUBLE *RESTRICT stressR  
     , DOUBLE *RESTRICT density             , DOUBLE *RESTRICT dViscosity 
     , DOUBLE *RESTRICT eddyViscosity       , DOUBLE *RESTRICT wallPar
-    , DOUBLE const densityMed              , Temporal ddt                     
+    , DOUBLE const densityMed              , Temporal *ddt                     
     , INT nEq                              , INT nEqNov
     , INT nAd                              , INT nAdR                 
     , short maxNo                          , short maxViz
@@ -1662,7 +1672,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
           MAT2D(aux1,j,lVel     ,ndm) = MAT2D(nel,j,vel     ,ndm);
           MAT2D(aux1,j,lCc      ,ndm) = MAT2D(nel,j,gCc      ,ndm);
           MAT2D(aux1,j,lDfield  ,ndm) = MAT2D(nel,j,dField  ,ndm);
-        }
+        }        
 /*...................................................................*/
 
 /*...*/
@@ -1732,7 +1742,6 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
               MAT2D(i,j,lCc      ,ndm) = MAT2D(vizNel,j,gCc      ,ndm);
               MAT2D(i ,j, lDfield, ndm) = MAT2D(vizNel, j, dField, ndm);
             }
-          
             if(fTurbStruct)
               for(j=0;j<ntn;j++)
                 MAT2D(i,j,lStressR,ntn)  = MAT2D(vizNel,j,stressR,ntn);
@@ -1775,7 +1784,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                     , lVel          , lGradVel 
                     , lDensity      , lViscosity 
                     , lDfield       , lStressR 
-                    , lWallPar      ,densityMed 
+                    , lWallPar      , densityMed 
                     , underU        , sPressure 
                     , nen[nel]      , nFace[nel]  
                     , ndm           , lib    
@@ -1855,7 +1864,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
         lDensity[aux1]    = MAT2D(nel,TIME_N,density ,DENSITY_LEVEL);  
 /*... viscosidade dinamica e turbulentea*/
         MAT2D(aux1, 0, lViscosity, 2) = dViscosity[nel];
-        if(fTurb)
+        if(fTurb) 
           MAT2D(aux1, 1, lViscosity, 2) = eddyViscosity[nel];
 
         lPres[aux1]       = pres[nel];
@@ -1877,7 +1886,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
 
 /*...*/
         if(fTurbStruct)
-          for(j=0;j<ntn;j++)
+          for(j=0;j<ntn;j++) 
            MAT2D(aux1,j,lStressR,ntn)  = MAT2D(nel,j,stressR,ntn);
 /*...................................................................*/
 
@@ -1942,7 +1951,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
               MAT2D(i,j,lCc      ,ndm) = MAT2D(vizNel,j,gCc      ,ndm);
               MAT2D(i ,j, lDfield, ndm) = MAT2D(vizNel, j, dField, ndm);
             }
-           
+
             if(fTurbStruct)
               for(j=0;j<ntn;j++)
                 MAT2D(i,j,lStressR,ntn)  = MAT2D(vizNel,j,stressR,ntn);
@@ -1952,7 +1961,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                 MAT3D(i,k,j,lGradVel,ndf,ndm) 
                                = MAT3D(vizNel,k,j,gradVel,ndf,ndm);
 
-            for(j=0;j<DIFPROP;j++)
+            for(j=0;j<MAXPROP;j++)
               MAT2D(i,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);
           }
         }    
@@ -1985,11 +1994,11 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                     , lVel          , lGradVel 
                     , lDensity      , lViscosity 
                     , lDfield       , lStressR 
-                    , lWallPar      ,densityMed 
+                    , lWallPar      , densityMed 
                     , underU        , sPressure 
                     , nen[nel]      , nFace[nel]  
                     , ndm           , lib    
-                    , nel);    
+                    , nel);     
 /*...................................................................*/
 
 /*... residuo da celula*/
@@ -2022,6 +2031,10 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
     }
 /*...................................................................*/
   }
+/*...................................................................*/
+
+/*...*/
+  if(mpiVar.nPrcs > 1 ) comunicateCel(iCel,dField,ndm,1);
 /*...................................................................*/
 }
 /*********************************************************************/ 
@@ -2542,7 +2555,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
        , DOUBLE *RESTRICT diffY        , DOUBLE *RESTRICT yFrac
        , DOUBLE *RESTRICT rateHeatComb 
        , DOUBLE *RESTRICT dField       , DOUBLE *RESTRICT wallPar
-       , Temporal ddt                  , DOUBLE underU
+       , Temporal *ddt                 , DOUBLE underU
        , INT nEq                       , INT nEqNov
        , INT nAd                       , INT nAdR
        , short maxNo                   , short maxViz
@@ -3239,7 +3252,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
                 , DOUBLE *RESTRICT density  , DOUBLE *RESTRICT diff
                 , DOUBLE *RESTRICT eddyVisc , DOUBLE *RESTRICT wallPar
                 , DOUBLE *RESTRICT dField   
-                , Temporal ddt              , DOUBLE underU
+                , Temporal *ddt             , DOUBLE underU
                 , INT nEq                   , INT nEqNov
                 , INT nAd                   , INT nAdR
                 , short maxNo               , short maxViz
@@ -3877,7 +3890,7 @@ void systFormOneEqK(Loads *ldsK        ,Loads *ldsVel
        , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT dViscosity   
        , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT dField
        , DOUBLE *RESTRICT rCell        , DOUBLE *RESTRICT wallPar
-       , DOUBLE *RESTRICT cDyn         , Temporal ddt  
+       , DOUBLE *RESTRICT cDyn         , Temporal *ddt  
        , INT nEq                       , INT nEqNov
        , INT nAd                       , INT nAdR
        , short maxNo                   , short maxViz
@@ -4095,7 +4108,7 @@ void systFormOneEqK(Loads *ldsK        ,Loads *ldsVel
                     , lDcca      , lCc
                     , lvSkew     , lmvSkew
                     , lA         , lB
-                    , lRcell     , &ddt
+                    , lRcell     , ddt
                     , lFaceReK   , lFaceLdK
                     , lFaceReVel , lFaceLdVel
                     , lu0        , lGradU0
@@ -4296,7 +4309,7 @@ void systFormOneEqK(Loads *ldsK        ,Loads *ldsVel
           , lDcca, lCc
           , lvSkew, lmvSkew
           , lA, lB
-          , lRcell, &ddt
+          , lRcell, ddt
           , lFaceReK, lFaceLdK
           , lFaceReVel, lFaceLdVel
           , lu0, lGradU0
@@ -4838,7 +4851,7 @@ void systFormSimplePres(Loads *loadsVel   , Loads *loadsPres
                , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT dField    
                , DOUBLE *RESTRICT rCell    , DOUBLE *RESTRICT density
-               , Temporal ddt              
+               , Temporal *ddt              
                , INT nEq                   , INT  nEqNov
                , INT nAd                   , INT nAdR                  
                , short maxNo               , short  maxViz
@@ -5290,7 +5303,7 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
                , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT dField
                , DOUBLE *RESTRICT temp     , DOUBLE *RESTRICT wallPar  
                , DOUBLE *RESTRICT rCell    , DOUBLE *RESTRICT density
-               , Temporal ddt 
+               , Temporal *ddt 
                , INT nEq                   , INT nEqNov
                , INT nAd                   , INT nAdR                  
                , short maxNo               , short maxViz
@@ -5472,26 +5485,26 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
-        cellLibSimplePresLm(loadsVel, loadsPres
-          , diffPres, eMass
-          , lGeomType, lProp
-          , lViz, lId
-          , lKsi, lmKsi
-          , lEta, lfArea
-          , lNormal, lVolume
-          , lXm, lXmcc
-          , lDcca, lDensity
-          , lvSkew, lmvSkew
-          , lA, lB
-          , &lRcell, ddt
-          , lFaceVelR, lFaceVelL
-          , lFacePresR, lFacePresL
-          , lPres, lGradPres
-          , lVel, lDfield
-          , lTemp, lWallPar
-          , nen[nel], nFace[nel]
-          , ndm, lib
-          , nel);
+        cellLibSimplePresLm(loadsVel  , loadsPres
+                          , diffPres  , eMass
+                          , lGeomType , lProp
+                          , lViz      , lId
+                          , lKsi      , lmKsi
+                          , lEta      , lfArea
+                          , lNormal   , lVolume
+                          , lXm       , lXmcc
+                          , lDcca     , lDensity
+                          , lvSkew    , lmvSkew
+                          , lA, lB
+                          , &lRcell   , ddt
+                          , lFaceVelR , lFaceVelL
+                          , lFacePresR, lFacePresL
+                          , lPres     , lGradPres
+                          , lVel      , lDfield
+                          , lTemp     , lWallPar
+                          , nen[nel]  , nFace[nel]
+                          , ndm       , lib
+                          , nel);
 /*...................................................................*/
 
 /*... residuo da celula*/
@@ -5676,7 +5689,7 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
         if(calRcell)
           rCell[nel] = lRcell;  
 /*...................................................................*/
-
+ 
 /*...*/
         assbly(ia      ,ja
             ,a           ,ad              
@@ -6154,10 +6167,10 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
-                          ,INT *RESTRICT id      ,Interface *iNeq
-                          ,INT const numel       ,INT const nEq
+                          ,INT *RESTRICT id     ,Interface *iNeq
+                          ,INT const numel      ,INT const nEq
                           ,short const ndf                        
-                          ,bool const fAdd       ,bool const fCom)
+                          ,bool const fAdd      ,bool const fCom)
 {
   INT nel,lNeq;
   short jNdf;
@@ -7106,8 +7119,10 @@ void rcGradU(Memoria *m                , Loads *loads
 /*...................................................................*/
   }  
 /*...................................................................*/
-  if(mpiVar.nPrcs > 1 ) comunicateCel(iCel,gradU,ndf,ndm);
 
+/*...*/
+  if(mpiVar.nPrcs > 1 ) comunicateCel(iCel,gradU,ndm,ndf);
+/*...................................................................*/
 }
 /*********************************************************************/
 

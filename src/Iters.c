@@ -67,17 +67,17 @@ c *********************************************************************/
  * OBS:                                                               *
  * ------------------------------------------------------------------ *
 *********************************************************************/
-void pcg(INT const nEq,INT const nAd
-	,INT *RESTRICT ia   ,INT *RESTRICT ja
-	,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
-	,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b
-  ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z
-  ,DOUBLE *RESTRICT r ,DOUBLE *RESTRICT p
-	,DOUBLE const tol   ,unsigned int maxIt
-  ,bool const newX    ,FILE* fileLog   
-  ,FILE *fileHistLog	,bool const log 
-  ,bool const fHistLog,bool const fPrint
-	,void(*matvec)()    ,DOUBLE(*dot)())
+void pcg(INT const nEq      ,INT const nAd
+	      ,INT *RESTRICT ia   ,INT *RESTRICT ja
+	      ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
+	      ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b
+        ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z
+        ,DOUBLE *RESTRICT r ,DOUBLE *RESTRICT p
+	      ,DOUBLE const tol   ,unsigned int maxIt
+        ,bool const newX    ,FILE* fileLog   
+        ,FILE *fileHistLog	,bool const log 
+        ,bool const fHistLog,bool const fPrint
+	      ,void(*matvec)()    ,DOUBLE(*dot)())
 {
 	unsigned int j, jj;
 	INT i;
@@ -93,11 +93,11 @@ void pcg(INT const nEq,INT const nAd
 
 /*... conv = tol * |(M-1)b|m = tol(b,M(-1)b) */
 	for (i = 0; i < nEq; i++)
-		z[i] = b[i] * m[i];
+  z[i] = b[i] * m[i];
 
-	d = dot(b, z, nEq);
+	d      = dot(b, z, nEq);
 	norm_b = sqrt(fabs(d));
-	conv = tol * norm_b;
+	conv   = tol * norm_b;
 /*...................................................................*/
 
 /*... Ax0*/
@@ -105,7 +105,8 @@ void pcg(INT const nEq,INT const nAd
 /*...................................................................*/
 
 /*...*/
-	for (i = 0; i < nEq; i++) {
+	for (i = 0; i < nEq; i++)
+  {
 /* ... r0 = b - Ax0*/
 		r[i] = b[i] - z[i];
 /* ... z0 = (M-1)r0*/
@@ -121,7 +122,8 @@ void pcg(INT const nEq,INT const nAd
 
 /*...*/
 	jj = 1;
-	for (j = 0; j < maxIt; j++) {
+	for (j = 0; j < maxIt; j++)
+  {
 /*... z = Ap(j)*/
 		matvec(nEq, ia, ja, al, ad, p, z);
 /*...................................................................*/
@@ -197,7 +199,8 @@ void pcg(INT const nEq,INT const nAd
 
   timef = getTimeC() - timei;
 
-  if(fPrint){ 
+  if(fPrint)
+  { 
 		printf(" (PCG) solver:\n"
 					"\tEquations      = %20d\n"
           "\tnad            = %20d\n"        
@@ -229,7 +232,7 @@ void pcg(INT const nEq,INT const nAd
 
 /**********************************************************************
  * Data de criacao    : 28 / 08 / 2016                                *
- * Data de modificaco : 00 / 00 / 0000                                *
+ * Data de modificaco : 23 / 08 / 2019                                *
  * ------------------------------------------------------------------ *
  * MPIPCG : metodo do gradiente conjugado com precondiconador diagonal*
  * (M-1Ax=M-1b) (matriz simentrica)                                   *
@@ -249,14 +252,18 @@ void pcg(INT const nEq,INT const nAd
  *   x  -> vetor de solucao                                           *
  *   z  -> vetor auxiliar                                             *
  *   r  -> vetor auxiliar                                             *
- * newX -> vetor inicial iniciado com zero                            *
- * fileLog -> arquivo de log do solver                                *
- * log  -> log de arquivo (true|false)                                *
- * tol  -> tolerancia do solver                                       *
- * maxIt-> numero maximo de iteracoes                                 *
- *  newX-> true zero o vetor inicial                                  *
- *  log -> escreve o log do solver                                    *
- *fPrint-> saida de informacao na tela                                *
+ * tol				-> tolerancia de convergencia                           *
+ * newX				-> vetor inicial iniciado com zero                      *
+ * fileLog				-> arquivo de log do solver                         *
+ * log				-> log de arquivo (true|false)                          *
+ * tol				-> tolerancia do solver                                 *
+ * maxIt			-> numero maximo de iteracoes                           *
+ *  newX			-> true zero o vetor inicial                            *
+ * fileLog				-> arquivo de saida do log                          *
+ * fileHistLog-> arquivo de log da iteracoes                          *
+ *  log       -> escreve o log do solver                              *
+ * fPrint			-> saida de informacao na tela                          *
+ * fHistLog		-> log das iteracoes                                    *
  * iNeq -> mapa de interface de equacoes                              *
  * -------------------------------------------------------------------*
  * Parametros de Saida:                                               *
@@ -272,20 +279,20 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
         ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
         ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b 
         ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z 
-        ,DOUBLE *RESTRICT r 
+        ,DOUBLE *RESTRICT r ,DOUBLE *RESTRICT p
         ,DOUBLE const tol   ,unsigned int maxIt
         ,bool const newX    ,FILE* fileLog  
-        ,bool const log     ,bool const fPrint
+        ,FILE *fileHistLog  ,bool const log     
+        ,bool const fHistLog,bool const fPrint
         ,Interface *iNeq                      
         ,void(*matvec)()    ,DOUBLE(*dot)())
 {
 #ifdef _MPI_
-  unsigned int j;
-  INT i;
-  DOUBLE alpha,beta,d,conv,energy;
+  unsigned int j, jj;
+	INT i;
+	DOUBLE alpha, beta, d, conv, xKx, norm_b, norm, norm_r_m, norm_r, di;
   DOUBLE timei,timef;
   INT param[2];
-  short st=0;
 
   timei = getTimeC();
 
@@ -296,71 +303,158 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
   if(newX)  
     for(i = 0; i < nEq; i++)  
       x[i] = 0.e0;
+/*...................................................................*/
   
+/*... conv = tol * |(M-1)b|m = tol(b,M(-1)b) */
+	for (i = 0; i < nEqNov; i++)
+		z[i] = b[i] * m[i];
+
+	d = dot(b, z, nEqNov);
+	norm_b = sqrt(fabs(d));
+	conv = tol * norm_b;
+/*...................................................................*/
+
+/*... Ax0*/
   matvec(nEqNov,param,ia,ja,al,ad,x,z,iNeq);
+/*...................................................................*/ 
+
+/*...*/
+  for(i = 0; i < nEqNov; i++)
+  {
+/* ... r0 = b - Ax0*/
+		r[i] = b[i] - z[i];
+/* ... z0 = (M-1)r0*/
+		z[i] = r[i] * m[i];
+/* ... p0 = r0*/
+		p[i] = z[i];
+	}
+/*...................................................................*/
   
-  for(i = 0; i < nEqNov; i++)   {
-    r[i] = b[i] - z[i];
-    z[i] = r[i] * m[i];
-    b[i] = z[i];
-  }
-  
-  d    = dot(r,z,nEqNov);
-  conv = tol * sqrt(fabs(d));
-/*--------------------------------------------------------*/   
-  for(j = 0; j < maxIt; j++)   {
-    matvec(nEqNov,param,ia,ja,al,ad,b,z,iNeq);
-    
-    alpha = d / dot(b,z,nEqNov);
-    for(i = 0; i < nEqNov; i++)   {
-      x[i] +=  alpha * b[i];
-      r[i] -=  alpha * z[i];
-      z[i]  =   r[i] * m[i];
-    }
-    beta = dot(r,z,nEqNov)/d;
-    for(i = 0; i < nEqNov; i++)   {
-      b[i] = z[i] + beta * b[i];
-    }
-    d = beta * d;
-    if (sqrt(fabs(d)) < conv) break;
-  }
-/* -------------------------------------------------------*/
+/*... (r(0), z(0)) = (r(0), (M-1)r0)*/
+	d = dot(r, z, nEqNov);
+/*...................................................................*/
+
+/*...*/
+	jj = 1;
+  for(j = 0; j < maxIt; j++)
+  {
+/*... z = Ap(j)*/
+    matvec(nEqNov,param,ia,ja,al,ad,p,z,iNeq);
+/*...................................................................*/
+
+/*... alpha = ( r(j),z(j) ) / ( Ap(j), p(j) ))*/    
+    alpha = d / dot(z,p,nEqNov);
+/*...................................................................*/
+
+/*...*/
+    for(i = 0; i < nEqNov; i++)
+    {
+/*... x(j + 1) = x(j) + alpha*p*/
+			x[i] += alpha * p[i];
+/*... r(j + 1) = r(j) - alpha*Ap*/
+			r[i] -= alpha * z[i];
+/*... z = (M-1)r0*/
+			z[i] = r[i] * m[i];
+		}
+/*...................................................................*/
+
+/* ... (r(j + 1), (M - 1)r(j + 1)) = (r(j + 1), z)*/
+		di = dot(r, z, nEqNov);
+/*... beta = ( r(j+1),(M-1)r(j+1) ) / ( r(j),r(j) ) */
+		beta = di / d;
+/*...................................................................*/
+
+/* ... p(j + 1) = (M - 1)r(j + 1) + beta*p(j) = z + beta*p(j)*/
+ 		for (i = 0; i < nEqNov; i++)
+		  p[i] = z[i] + beta * p[i];
+/*...................................................................*/
+
+/*...*/
+		if (fHistLog && !mpiVar.myId)
+		  fprintf(fileHistLog, "%d %20.9e\n", j, sqrt(fabs(d)) / norm_b);
+/*...................................................................*/
+
+/*...*/
+		d = di;
+		if (sqrt(fabs(d)) < conv) break;
+/*...................................................................*/
+
+/*...*/
+		if (jj == 5000) {
+  		jj = 0;
+			printf("MPIPCG: %d %20.9e %20.9e\n", j+1, sqrt(fabs(d)), conv);
+		}
+		jj++;
+/*...................................................................*/
+	}
+/*...................................................................*/
+
+/*... Energy norm:  x*Kx*/
   matvec(nEqNov,param,ia,ja,al,ad,x,z,iNeq);
 /*norma de energia = xT*A*x */
-  energy = dot(x,z,nEqNov);
-/* -------------------------------------------------------*/
+	xKx    = dot(x, z, nEqNov);
+/*...................................................................*/
+
+/*... norm - 2 = || x ||*/
+	norm = sqrt(dot(x, x, nEqNov));
+/*...................................................................*/
+
+/*... r = M(-1)(b - Ax) (calculo do residuo explicito)*/
+	for (i = 0; i < nEqNov; i++) {
+		r[i] = b[i] - z[i];
+		z[i] = r[i] * m[i];
+	}
+	norm_r_m = dot(r, z, nEqNov);
+	norm_r_m = sqrt(fabs(norm_r_m));
+	norm_r = dot(r, r, nEqNov);
+	norm_r = sqrt(norm_r);
+	if(fPrint && norm_r_m > 3.16e0*conv && !mpiVar.myId)
+	  printf("MPIPCG: %20.9e > %20.9e!!\n", norm_r_m, conv);
+/*...................................................................*/
+
   timef = getTimeC() - timei;
 
-  if(fPrint){ 
-    printf("\tnad         :      %20d\n"  ,nAd);
-    printf("\tnadR        :      %20d\n"  ,nAdR);
-    printf("\tSolver tol  :      %20.2e\n",tol);
+/*...*/
+  if(!mpiVar.myId && fPrint)
+  { 
     printf(" (MPIPCG) solver:\n"
-           "\tEquations   =      %20d\n"
-           "\tEquations   =      %20d\n"
-           "\tIterarions  =      %20d\n"
-	         "\tEnergy norm =      %20.12e\n"
-	         "\tCPU time(s) =      %20.2lf\n" 
-	         ,nEqNov,nEq,j+1,energy,timef);
+			"\tEquations      = %20d\n"
+      "\tEquations      = %20d\n"
+			"\tnad            = %20d\n"
+      "\tnadR           = %20d\n"
+			"\tSolver tol     = %20.2e\n"
+			"\tIterarions     = %20d\n"
+			"\tx * Kx         = %20.2e\n"
+			"\t|| x ||        = %20.2e\n"
+			"\t|| b - Ax ||   = %20.2e\n"
+			"\tCPU time(s)    = %20.2lf\n"
+	    ,nEq,nEqNov,nAd,nAdR,tol,j+1,xKx, norm, norm_r,timef);
   }
-  
-  if(j == maxIt) st = -1; 
-  
-  MPI_Bcast(&st,1,MPI_SHORT,0,mpiVar.comm);
-  if( st == -1){
-    mpiStop();
-    printf(" *** WARNING: no convergende reached !\n");
-    printf("MAXIT = %d \n",maxIt);
-    exit(EXIT_SUCCESS); 
-  }
+ /*..................................................................*/
 
+/*...*/  
+  if(j == maxIt)
+  { 
+    if(!mpiVar.myId)
+    {
+      printf(" MPIPCG *** WARNING: no convergende reached !\n");
+      printf("MAXIT = %d \n",maxIt);
+    }
+    mpiStop();
+    exit(EXIT_SOLVER);
+  }
+/*..................................................................*/ 
+
+/*...*/
   if(!mpiVar.myId && log)
     fprintf(fileLog          
            ,"MPIPCG: tol %20.2e " 
             "iteration %d " 
-		        "norma %20.12e "
+						"xKx %20.12e "
+		        "norma(x*x) %20.12e "
 		        "time %20.5lf\n"
-           ,tol,j+1,energy,timef);
+           ,tol,j+1, xKx,norm,timef);
+ /*..................................................................*/
 #endif
 }
 /**********************************************************************/
@@ -1476,13 +1570,12 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
 	norm_b   = sqrt(d);
 	conv     = tol*norm_b;
 //breaktol = btol*sqrt(d);
-
 /*...................................................................*/
 
 /*... Ax0*/ 
   matvec(nEqNov,param,ia,ja,al,ad,x,z,iNeq);
 /*...................................................................*/
- 
+
 /*...*/  
   for(i = 0; i < nEqNov; i++)
   {
@@ -1598,7 +1691,7 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
 	norm_r = dot(r, r, nEq);
 	norm_r = sqrt(norm_r);
 	if(fPrint && norm_r > 3.16e0*conv)
-		if(!mpiVar.myId) printf("BICGSATB: %20.9e > %20.9e!!\n", norm_r, conv);
+		if(!mpiVar.myId) printf("MPIBICGSATB: %20.9e > %20.9e!!\n", norm_r, conv);
 /*...................................................................*/
   timef = getTimeC() - timei;
 

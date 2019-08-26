@@ -218,7 +218,7 @@ void simpleSolver3D(Memoria *m
                     , mesh->elm.vel           , mesh->elm.gradVel 
                     , sp->d                   , sp->alphaVel          
                     , mesh->elm.rCellVel      ,  mesh->elm.densityFluid
-                    , sc.ddt                    
+                    , &sc.ddt                    
                     , sistEqVel->neq          , sistEqVel->neqNov      
                     , sistEqVel->nad          , sistEqVel->nadr      
                     , mesh->maxNo             , mesh->maxViz
@@ -363,7 +363,7 @@ void simpleSolver3D(Memoria *m
                     , mesh->elm.pressure      , mesh->elm.gradPres           
                     , mesh->elm.vel           , sp->d                           
                     , rCellPc                 , mesh->elm.densityFluid
-                    , sc.ddt                    
+                    , &sc.ddt                    
                     , sistEqPres->neq         , sistEqPres->neqNov      
                     , sistEqPres->nad         , sistEqPres->nadr      
                     , mesh->maxNo             , mesh->maxViz
@@ -420,7 +420,9 @@ void simpleSolver3D(Memoria *m
 /*...................................................................*/
 
 /*... atualizando da pressao de correcao*/
-       updateCellSimplePres(sp->ePresC,xp,sistEqPres->id,mesh->numelNov); 
+       updateCellSimplePres(sp->ePresC    ,xp
+                           ,sistEqPres->id,&sistEqPres->iNeq
+                           ,mesh->numelNov,true); 
 /*...................................................................*/
 
 /*...*/
@@ -496,8 +498,9 @@ void simpleSolver3D(Memoria *m
 /*...................................................................*/
 
 /*... atualizando da pressao de correcao*/
-         updateCellSimplePres(sp->ePresC1,xp,sistEqPres->id
-                             ,mesh->numelNov);  
+         updateCellSimplePres(sp->ePresC1 ,xp
+                           ,sistEqPres->id,&sistEqPres->iNeq
+                           ,mesh->numelNov,true); 
 /*...................................................................*/
 
 /*... soma o vetor presC(i) = presC + presC1*/
@@ -540,9 +543,9 @@ void simpleSolver3D(Memoria *m
 
 /*... atualizacao de u, v, w e p*/
      simpleUpdate(mesh->elm.vel,mesh->elm.pressure
-                ,sp->ePresC,sp->eGradPresC
+                ,sp->ePresC    ,sp->eGradPresC
                 ,sp->d       
-                ,mesh->numel,mesh->ndm
+                ,mesh->numel   ,mesh->ndm
                 ,sp->alphaPres);
 /*...................................................................*/
 
@@ -920,7 +923,6 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                , mesh      , sc
                , sp        , sistEqKturb
                , solvKturb , ndfVel);  
-
       tm.turbulence = getTimeC() - tm.turbulence;
     }
 /*...................................................................*/
@@ -934,7 +936,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                    , sistEqComb, solvComb 
                    , sp        , sc       
                    , pMesh     , opt
-                   , fComb     , itSimple  );   
+                   , fComb     , itSimple  );              
 /*...................................................................*/
 
 /*... equacao de energia*/
@@ -946,7 +948,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                            , mesh          
                            , sistEqEnergy, solvEnergy
                            , sp          , sc
-                           , pMesh);  
+                           , pMesh);    
 /*...................................................................*/
 
 /*... residual*/
@@ -969,7 +971,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
-    tm.tempFromTheEnergy = getTimeC() - tm.tempFromTheEnergy;
+    tm.tempFromTheEnergy = getTimeC() - tm.tempFromTheEnergy;  
     getTempFromTheEnergy(&propF->sHeat          ,mesh->elm.yFrac
                         ,mesh->elm.temp         ,mesh->elm.energy
                         ,mesh->elm.material.prop,mesh->elm.mat    
@@ -1001,7 +1003,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     if(fSheat)
       updateMixSpecificHeat(&propF->sHeat
                          , mesh->elm.temp        , mesh->elm.yFrac
-                         , mesh->elm.specificHeat, cModel->nOfSpecies
+                         , mesh->elm.specificHeat, cModel->nOfSpecies 
                          , eModel->fKelvin     
                          , mesh->numel           , PROP_UPDATE_NL_LOOP
                          , ompVar.fUpdate        , ompVar.nThreadsUpdate);  
@@ -1243,13 +1245,6 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   }
 /*...................................................................*/
 
-/*
-  printf("%lf %lf %lf %e %e\n",mesh->elm.temp[0]
-                ,mesh->elm.densityFluid[0]
-                ,mesh->elm.specificHeat[0]
-                ,mesh->elm.rateHeatReComb[0]
-                ,mesh->elm.rateFuel[0]);
-*/
 }
 /*********************************************************************/
 
@@ -1761,7 +1756,7 @@ void updateCellSimpleVel(DOUBLE  *RESTRICT w
 
 /********************************************************************* 
  * Data de criacao    : 30/08/2017                                   *
- * Data de modificaco : 03/10/2017                                   * 
+ * Data de modificaco : 22/08/2019                                   * 
  *-------------------------------------------------------------------* 
  * UPDATECELLSIMPLEVELR: atualizacao dos valores das velocidades     *
  * estimadas com os valores das respectivas equacoes                 *
@@ -1773,8 +1768,10 @@ void updateCellSimpleVel(DOUBLE  *RESTRICT w
  * u2      -> solucao do sistema                                     *
  * u2      -> solucao do sistema                                     *  
  * id      -> numeracao das equacoes                                 * 
+ * iNeq    -> mapa de equacoes de interface                          *
  * numel   -> numero de elementos                                    * 
  * ndm     -> numero de dimensoes                                    * 
+ * fCom    -> comunica os valores x entre as particoes               * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
@@ -1785,16 +1782,36 @@ void updateCellSimpleVel(DOUBLE  *RESTRICT w
  *********************************************************************/
 void updateCellSimpleVelR(DOUBLE  *RESTRICT w  ,DOUBLE  *RESTRICT u1
                          ,DOUBLE  *RESTRICT u2 ,DOUBLE  *RESTRICT u3
-                         ,INT  *RESTRICT id    ,INT const nEl
-                         ,bool const fRes      ,short const ndm)
+                         ,INT  *RESTRICT id    ,Interface *iNeq
+                         ,INT const nEl        ,short const ndm  
+                         ,bool const fRes      ,bool const fCom)
 {
   INT i,lNeq;
-  if(fRes){
+
+/*... obtem os valores de x das equacoes em overlaping*/  
+  if(fCom)
+  {
+    tm.overHeadCelMpi = getTimeC() - tm.overHeadCelMpi;  
+    comunicateNeq(iNeq,u1);
+    comunicateNeq(iNeq,u2);
+    if(ndm == 3) 
+      comunicateNeq(iNeq,u3);
+
+    tm.overHeadCelMpi = getTimeC() - tm.overHeadCelMpi;
+  }
+/*.................................................................*/
+
 /*...*/
-    if(ndm == 3){    
-      for(i=0;i<nEl;i++){
+  if(fRes)
+  {
+/*...*/
+    if(ndm == 3)
+    {    
+      for(i=0;i<nEl;i++)
+      {
         lNeq             = id[i] - 1;
-        if(lNeq > -1){  
+        if(lNeq > -1)
+        {  
           MAT2D(i,0,w,3) += u1[lNeq];
           MAT2D(i,1,w,3) += u2[lNeq];
           MAT2D(i,2,w,3) += u3[lNeq];
@@ -1804,10 +1821,13 @@ void updateCellSimpleVelR(DOUBLE  *RESTRICT w  ,DOUBLE  *RESTRICT u1
 /*...................................................................*/
 
 /*...*/
-    else{
-      for(i=0;i<nEl;i++){
+    else
+    {
+      for(i=0;i<nEl;i++)
+      {
         lNeq             = id[i] - 1;
-        if(lNeq > -1){  
+        if(lNeq > -1)
+        {  
           MAT2D(i,0,w,2) += u1[lNeq];
           MAT2D(i,1,w,2) += u2[lNeq];
         }
@@ -1817,10 +1837,13 @@ void updateCellSimpleVelR(DOUBLE  *RESTRICT w  ,DOUBLE  *RESTRICT u1
   }
 
 /*...*/
-  else{
+  else
+  {
 /*...*/
-    if(ndm == 3){    
-      for(i=0;i<nEl;i++){
+    if(ndm == 3)
+    {    
+      for(i=0;i<nEl;i++)
+      {
         lNeq             = id[i] - 1;
         if(lNeq > -1){  
           MAT2D(i,0,w,3) = u1[lNeq];
@@ -1832,18 +1855,20 @@ void updateCellSimpleVelR(DOUBLE  *RESTRICT w  ,DOUBLE  *RESTRICT u1
 /*...................................................................*/
 
 /*...*/
-    else{
-      for(i=0;i<nEl;i++){
+    else
+    {
+      for(i=0;i<nEl;i++)
+      {
         lNeq             = id[i] - 1;
-        if(lNeq > -1){  
+        if(lNeq > -1)
+        {  
           MAT2D(i,0,w,2) = u1[lNeq];
           MAT2D(i,1,w,2) = u2[lNeq];
         }
       }
     }
 /*...................................................................*/
-  }
-
+  }    
 
 }
 /*********************************************************************/ 
@@ -1904,7 +1929,9 @@ void updateCellSimpleVel3D(DOUBLE  *RESTRICT w
  * presC   -> variavel nas celulas                                   * 
  * xp      -> solucao do sistema                                     * 
  * id      -> numeracao das equacoes                                 * 
- * numel   -> numero de elementos                                    * 
+ * iNeq    -> mapa de equacoes de interface                          *
+ * numel   -> numero de elementos                                    *
+ * fCom    -> comunica os valores x entre as particoes               *  
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
@@ -1914,9 +1941,20 @@ void updateCellSimpleVel3D(DOUBLE  *RESTRICT w
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void updateCellSimplePres(DOUBLE  *RESTRICT presC,DOUBLE  *RESTRICT xp   
-                          ,INT  *RESTRICT id      ,INT const nEl)
+                         ,INT  *RESTRICT id      ,Interface *iNeq
+                         ,INT const nEl          ,bool const fCom)
 {
   INT i,lNeq;
+
+/*... obtem os valores de x das equacoes em overlaping*/  
+  if(fCom)
+  {
+    tm.overHeadCelMpi = getTimeC() - tm.overHeadCelMpi;  
+    comunicateNeq(iNeq,xp);
+    tm.overHeadCelMpi = getTimeC() - tm.overHeadCelMpi;
+  }
+/*.................................................................*/
+
 
   for(i=0;i<nEl;i++){
     lNeq     = id[i] - 1;
@@ -1962,8 +2000,10 @@ void simpleUpdate(DOUBLE *RESTRICT w     ,DOUBLE *RESTRICT pressure
   INT i; 
 
 /*...*/  
-  if( ndm == 2){
-    for(i=0;i<nEl;i++){
+  if( ndm == 2)
+  {
+    for(i=0;i<nEl;i++)
+    {
 /*... atualizacoes da velocidades*/
       MAT2D(i,0,w,2) -= 
       MAT2D(i,0,dField,2)*MAT2D(i,0,gradPresC,2);
@@ -1980,8 +2020,10 @@ void simpleUpdate(DOUBLE *RESTRICT w     ,DOUBLE *RESTRICT pressure
 /*...................................................................*/
 
 /*...*/  
-  else if( ndm == 3){
-    for(i=0;i<nEl;i++){
+  else if( ndm == 3)
+  {
+    for(i=0;i<nEl;i++)
+    {
 /*... atualizacoes da velocidades*/
       MAT2D(i,0,w,3) -=
       MAT2D(i,0,dField,3)*MAT2D(i,0,gradPresC,3);
@@ -1991,11 +2033,13 @@ void simpleUpdate(DOUBLE *RESTRICT w     ,DOUBLE *RESTRICT pressure
 
       MAT2D(i,2,w,3) -=
       MAT2D(i,2,dField,3)*MAT2D(i,2,gradPresC,3);
+  
 /*...................................................................*/
 
 /*... atualizacoes da velocidades*/
       pressure[i] += alphaPres*presC[i];
 /*...................................................................*/
+
     }
   }
 
@@ -3218,8 +3262,8 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
   bPc = sistEqPres->b;
 
   xu1 = sistEqVel->x;
-  xu2 = &sistEqVel->x[sistEqVel->neqNov];
-  if (ndfVel == 3) xu3 = &sistEqVel->x[2 * sistEqVel->neqNov];
+  xu2 = &sistEqVel->x[sistEqVel->neq];
+  if (ndfVel == 3) xu3 = &sistEqVel->x[2 * sistEqVel->neq];
   xp = sistEqPres->x;
 
   adU1 = sistEqVel->ad;
@@ -3236,55 +3280,55 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
 */
   {
     tm.rcGradVel = getTimeC() - tm.rcGradVel;
-    rcGradU(m, loadsVel
-           , mesh->elm.node, mesh->elm.adj.nelcon
-           , mesh->node.x
-           , mesh->elm.nen, mesh->elm.adj.nViz
-           , mesh->elm.cellFace, mesh->face.owner
-           , mesh->elm.geom.volume, mesh->elm.geom.dcca
-           , mesh->elm.geom.xmcc, mesh->elm.geom.cc
-           , mesh->face.mksi, mesh->face.ksi
-           , mesh->face.eta, mesh->face.area
-           , mesh->face.normal, mesh->face.xm
-           , mesh->face.mvSkew, mesh->face.vSkew
-           , mesh->elm.geomType, mesh->elm.material.prop
+    rcGradU(m                       , loadsVel
+           , mesh->elm.node         , mesh->elm.adj.nelcon
+           , mesh->node.x           
+           , mesh->elm.nen          , mesh->elm.adj.nViz
+           , mesh->elm.cellFace     , mesh->face.owner
+           , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+           , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+           , mesh->face.mksi        , mesh->face.ksi
+           , mesh->face.eta         , mesh->face.area
+           , mesh->face.normal      , mesh->face.xm
+           , mesh->face.mvSkew      , mesh->face.vSkew
+           , mesh->elm.geomType     , mesh->elm.material.prop
            , mesh->elm.material.type, mesh->elm.mat
-           , mesh->elm.leastSquare, mesh->elm.leastSquareR
-           , mesh->elm.faceRvel, mesh->elm.faceLoadVel
-           , mesh->elm.vel, mesh->elm.gradVel
-           , mesh->node.vel, sc->rcGrad
-           , mesh->maxNo, mesh->maxViz
-           , ndfVel, mesh->ndm
-           , &pMesh->iNo, &pMesh->iEl
-           , mesh->numelNov, mesh->numel
-           , mesh->nnodeNov, mesh->nnode);
+           , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+           , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
+           , mesh->elm.vel          , mesh->elm.gradVel
+           , mesh->node.vel         , sc->rcGrad
+           , mesh->maxNo            , mesh->maxViz
+           , ndfVel                 , mesh->ndm
+           , &pMesh->iNo            , &pMesh->iEl
+           , mesh->numelNov         , mesh->numel
+           , mesh->nnodeNov         , mesh->nnode);  
     tm.rcGradVel = getTimeC() - tm.rcGradVel;
 /*...................................................................*/
 
 /*... reconstruindo do gradiente da pressao*/
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
-    rcGradU(m, loadsPres
-           , mesh->elm.node, mesh->elm.adj.nelcon
+    rcGradU(m                       , loadsPres
+           , mesh->elm.node         , mesh->elm.adj.nelcon
            , mesh->node.x
-           , mesh->elm.nen, mesh->elm.adj.nViz
-           , mesh->elm.cellFace, mesh->face.owner
-           , mesh->elm.geom.volume, mesh->elm.geom.dcca
-           , mesh->elm.geom.xmcc, mesh->elm.geom.cc
-           , mesh->face.mksi, mesh->face.ksi
-           , mesh->face.eta, mesh->face.area
-           , mesh->face.normal, mesh->face.xm
-           , mesh->face.mvSkew, mesh->face.vSkew
-           , mesh->elm.geomType, mesh->elm.material.prop
+           , mesh->elm.nen          , mesh->elm.adj.nViz
+           , mesh->elm.cellFace     , mesh->face.owner
+           , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+           , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+           , mesh->face.mksi        , mesh->face.ksi
+           , mesh->face.eta         , mesh->face.area
+           , mesh->face.normal      , mesh->face.xm
+           , mesh->face.mvSkew      , mesh->face.vSkew
+           , mesh->elm.geomType     , mesh->elm.material.prop
            , mesh->elm.material.type, mesh->elm.mat
-           , mesh->elm.leastSquare, mesh->elm.leastSquareR
-           , mesh->elm.faceRpres, mesh->elm.faceLoadPres
-           , mesh->elm.pressure, mesh->elm.gradPres
-           , mesh->node.pressure, sc->rcGrad
-           , mesh->maxNo, mesh->maxViz
-           , 1, mesh->ndm
-           , &pMesh->iNo, &pMesh->iEl
-           , mesh->numelNov, mesh->numel
-           , mesh->nnodeNov, mesh->nnode);
+           , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+           , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
+           , mesh->elm.pressure     , mesh->elm.gradPres
+           , mesh->node.pressure    , sc->rcGrad
+           , mesh->maxNo            , mesh->maxViz
+           , 1                      , mesh->ndm
+           , &pMesh->iNo            , &pMesh->iEl
+           , mesh->numelNov         , mesh->numel
+           , mesh->nnodeNov         , mesh->nnode);  
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
   }
 /*...................................................................*/
@@ -3294,7 +3338,7 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
   systFormSimpleVelLm(loadsVel, loadsPres
     , &sc->advVel             , &sc->diffVel
     , tModel                  , ModelMomentum
-    , sp->type
+    , &pMesh->iEl             , sp->type
     , mesh->elm.node          , mesh->elm.adj.nelcon
     , mesh->elm.nen           , mesh->elm.adj.nViz
     , mesh->elm.cellFace      , mesh->face.owner
@@ -3317,7 +3361,7 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
     , mesh->elm.rCellVel      , mesh->elm.stressR
     , mesh->elm.densityFluid  , mesh->elm.dViscosity
     , mesh->elm.eddyViscosity , mesh->elm.wallParameters
-    , propF->densityRef       , sc->ddt
+    , propF->densityRef       , &sc->ddt
     , sistEqVel->neq          , sistEqVel->neqNov
     , sistEqVel->nad          , sistEqVel->nadr
     , mesh->maxNo             , mesh->maxViz
@@ -3327,8 +3371,8 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
     , true                    , true
     , sistEqVel->unsym        , sp->sPressure);
   tm.systFormVel = getTimeC() - tm.systFormVel;
-/*...................................................................*/
-    
+/*...................................................................*/ 
+
 /*... soma o vetor b(i) = b(i) + b0(i)*/
   addVector(1.0e0                   , sistEqVel->b
           , 1.0e0                   , sistEqVel->b0
@@ -3376,16 +3420,16 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
     if (fPrint) printf("Quantidade de movimento u1:\n");
     tm.solvVel = getTimeC() - tm.solvVel;
     solverC(m
-      , sistEqVel->neq, sistEqVel->neqNov
-      , sistEqVel->nad, sistEqVel->nadr
-      , sistEqVel->ia, sistEqVel->ja
-      , sistEqVel->al, adU1, sistEqVel->au
-      , b1, xu1
-      , &sistEqVel->iNeq, &sistEqVel->omp
-      , solvVel->tol, solvVel->maxIt
+      , sistEqVel->neq    , sistEqVel->neqNov
+      , sistEqVel->nad    , sistEqVel->nadr
+      , sistEqVel->ia     , sistEqVel->ja
+      , sistEqVel->al     , adU1, sistEqVel->au
+      , b1                , xu1
+      , &sistEqVel->iNeq  , &sistEqVel->omp
+      , solvVel->tol      , solvVel->maxIt
       , sistEqVel->storage, solvVel->solver
-      , solvVel->fileSolv, solvVel->log
-      , true, sistEqVel->unsym);
+      , solvVel->fileSolv , solvVel->log
+      , true              , sistEqVel->unsym);
     tm.solvVel = getTimeC() - tm.solvVel;
   }
 /*...................................................................*/
@@ -3395,16 +3439,16 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
     if (fPrint) printf("Quantidade de movimento u2:\n");
     tm.solvVel = getTimeC() - tm.solvVel;
     solverC(m
-      , sistEqVel->neq, sistEqVel->neqNov
-      , sistEqVel->nad, sistEqVel->nadr
-      , sistEqVel->ia, sistEqVel->ja
-      , sistEqVel->al, adU2, sistEqVel->au
-      , b2, xu2
-      , &sistEqVel->iNeq, &sistEqVel->omp
-      , solvVel->tol, solvVel->maxIt
+      , sistEqVel->neq    , sistEqVel->neqNov
+      , sistEqVel->nad    , sistEqVel->nadr
+      , sistEqVel->ia     , sistEqVel->ja
+      , sistEqVel->al     , adU2, sistEqVel->au
+      , b2                , xu2
+      , &sistEqVel->iNeq  , &sistEqVel->omp
+      , solvVel->tol      , solvVel->maxIt
       , sistEqVel->storage, solvVel->solver
-      , solvVel->fileSolv, solvVel->log
-      , true, sistEqVel->unsym);
+      , solvVel->fileSolv , solvVel->log
+      , true              , sistEqVel->unsym);
     tm.solvVel = getTimeC() - tm.solvVel;
   }
 /*...................................................................*/
@@ -3414,16 +3458,16 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
     if (fPrint) printf("Quantidade de movimento u3:\n");
     tm.solvVel = getTimeC() - tm.solvVel;
     solverC(m
-      , sistEqVel->neq, sistEqVel->neqNov
-      , sistEqVel->nad, sistEqVel->nadr
-      , sistEqVel->ia, sistEqVel->ja
-      , sistEqVel->al, adU3, sistEqVel->au
-      , b3, xu3
-      , &sistEqVel->iNeq, &sistEqVel->omp
-      , solvVel->tol, solvVel->maxIt
+      , sistEqVel->neq    , sistEqVel->neqNov
+      , sistEqVel->nad    , sistEqVel->nadr
+      , sistEqVel->ia     , sistEqVel->ja
+      , sistEqVel->al     , adU3, sistEqVel->au
+      , b3                , xu3
+      , &sistEqVel->iNeq  , &sistEqVel->omp
+      , solvVel->tol      , solvVel->maxIt
       , sistEqVel->storage, solvVel->solver
-      , solvVel->fileSolv, solvVel->log
-      , true, sistEqVel->unsym);
+      , solvVel->fileSolv , solvVel->log
+      , true              , sistEqVel->unsym);
     tm.solvVel = getTimeC() - tm.solvVel;
   }
 /*...................................................................*/
@@ -3431,8 +3475,9 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
 /*... atualizando o campo de velociade estimadas*/
   updateCellSimpleVelR(mesh->elm.vel      , xu1
                      , xu2                , xu3
-                     , sistEqVel->id      , mesh->numelNov
-                     , ModelMomentum->fRes, mesh->ndm);
+                     , sistEqVel->id      , &sistEqVel->iNeq 
+                     , mesh->numel        , mesh->ndm
+                     , ModelMomentum->fRes, true);                     
 /*...................................................................*/
 
 /*...*/
@@ -3463,7 +3508,7 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
             , mesh->elm.vel          , sp->d
             , mesh->elm.temp         , mesh->elm.wallParameters
             , rCellPc                , mesh->elm.densityFluid
-            , sc->ddt
+            , &sc->ddt
             , sistEqPres->neq        , sistEqPres->neqNov
             , sistEqPres->nad        , sistEqPres->nadr
             , mesh->maxNo            , mesh->maxViz
@@ -3507,7 +3552,9 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
 /*...................................................................*/
 
 /*... atualizando da pressao de correcao*/
-    updateCellSimplePres(sp->ePresC, xp, sistEqPres->id, mesh->numelNov);
+    updateCellSimplePres(sp->ePresC    , xp
+                       , sistEqPres->id, &sistEqPres->iNeq
+                       , mesh->numel   ,true);
 /*...................................................................*/
 
 /*...*/
@@ -3583,8 +3630,9 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
 /*...................................................................*/
 
 /*... atualizando da pressao de correcao*/
-      updateCellSimplePres(sp->ePresC1, xp, sistEqPres->id
-                         , mesh->numelNov);
+      updateCellSimplePres(sp->ePresC1 , xp
+                       , sistEqPres->id, &sistEqPres->iNeq
+                       , mesh->numel   ,true);
 /*...................................................................*/
 
 /*... soma o vetor presC(i) = presC + presC1*/
@@ -3620,7 +3668,7 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
         , 1                      , mesh->ndm
         , &pMesh->iNo            , &pMesh->iEl
         , mesh->numelNov         , mesh->numel
-        , mesh->nnodeNov         , mesh->nnode);
+        , mesh->nnodeNov         , mesh->nnode);  
   tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 
@@ -3659,7 +3707,7 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
         , ndfVel                 , mesh->ndm
         , &pMesh->iNo            , &pMesh->iEl
         , mesh->numelNov         , mesh->numel
-        , mesh->nnodeNov         , mesh->nnode);
+        , mesh->nnodeNov         , mesh->nnode);  
   tm.rcGradVel = getTimeC() - tm.rcGradVel;
 /*...................................................................*/
 
@@ -3686,7 +3734,7 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
         , 1                      , mesh->ndm
         , &pMesh->iNo            , &pMesh->iEl
         , mesh->numelNov         , mesh->numel
-        , mesh->nnodeNov         , mesh->nnode);
+        , mesh->nnodeNov         , mesh->nnode);  
   tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 

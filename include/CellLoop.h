@@ -26,13 +26,14 @@
 /*...................................................................*/
 
 /* ... calculo das propriedade geometicas*/
-  void pGeomForm(DOUBLE *RESTRICT x        , INT    *RESTRICT el
-                , INT    *RESTRICT nelcon  , short  *RESTRICT nFace
-                , short  *RESTRICT geomType, short *RESTRICT nen
-                , INT *RESTRICT cellFace
-                , Geom *RESTRICT geom      , Face *RESTRICT face
-                , short maxNo              , short maxViz
-                , short ndm                , INT numel);
+  void pGeomForm(DOUBLE *RESTRICT x     ,INT    *RESTRICT el
+              ,INT    *RESTRICT nelcon  ,short  *RESTRICT nFace
+              ,short  *RESTRICT geomType,short *RESTRICT nen
+              ,INT *RESTRICT cellFace
+              ,Geom *RESTRICT geom      ,Face *RESTRICT face
+              ,Interface *iCel
+              ,short maxNo              ,short maxViz
+              ,short ndm                ,INT numel);
 /*...................................................................*/
 
 /*.. reconstrucao de gradiente*/
@@ -156,7 +157,7 @@
                , short  *RESTRICT geomType , DOUBLE *RESTRICT prop
                , short  *RESTRICT calType  , short  *RESTRICT mat
                , INT    *RESTRICT ia       , INT    *RESTRICT ja
-               , DOUBLE *RESTRICT a        ,  DOUBLE *RESTRICT ad
+               , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad
                , DOUBLE *RESTRICT b        , INT    *RESTRICT id
                , short  *RESTRICT faceVelR , short  *RESTRICT faceVelL
                , short  *RESTRICT facePresR, short  *RESTRICT facePresL
@@ -164,7 +165,7 @@
                , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT gradVel
                , DOUBLE *RESTRICT dField   , DOUBLE underU
                , DOUBLE *RESTRICT rCell    , DOUBLE *RESTRICT density
-               , Temporal ddt
+               , Temporal *ddt
                , INT nEq                   , INT nEqNov
                , INT nAd                   , INT nAdR
                , short maxNo               , short maxViz
@@ -176,41 +177,41 @@
 /*...................................................................*/
 
 /* ... montagem do sistemas de equacoes (Simple - VEl - low mach)*/
-  void systFormSimpleVelLm(Loads *loadsVel, Loads *loadsPres
-    , Advection *advVel                   , Diffusion *diffVel
-    , Turbulence *tModel                  , MomentumModel *ModelMomentum
-    , short typeSimple
-    , INT    *RESTRICT el                 , INT    *RESTRICT nelcon
-    , short  *RESTRICT nen                , short  *RESTRICT nFace
-    , INT *RESTRICT cellFace              , INT *RESTRICT fOwner
-    , DOUBLE *RESTRICT gVolume            , DOUBLE *RESTRICT gDcca
-    , DOUBLE *RESTRICT gXmCc              , DOUBLE *RESTRICT gCc
-    , DOUBLE *RESTRICT fModKsi            , DOUBLE *RESTRICT fKsi
-    , DOUBLE *RESTRICT fEta               , DOUBLE *RESTRICT fArea
-    , DOUBLE *RESTRICT fNormal            , DOUBLE *RESTRICT fXm
-    , DOUBLE *RESTRICT fModvSkew          , DOUBLE *RESTRICT fvSkew
-    , short  *RESTRICT geomType           , DOUBLE *RESTRICT prop
-    , short  *RESTRICT calType            , short  *RESTRICT mat
-    , INT    *RESTRICT ia                 , INT    *RESTRICT ja
-    , DOUBLE *RESTRICT a                  , DOUBLE *RESTRICT ad
-    , DOUBLE *RESTRICT b                  , INT    *RESTRICT id
-    , short  *RESTRICT faceVelR           , short  *RESTRICT faceVelL
-    , short  *RESTRICT facePresR          , short  *RESTRICT facePresL
-    , DOUBLE *RESTRICT pres               , DOUBLE *RESTRICT gradPres
-    , DOUBLE *RESTRICT vel                , DOUBLE *RESTRICT gradVel
-    , DOUBLE *RESTRICT dField             , DOUBLE underU
-    , DOUBLE *RESTRICT rCell              , DOUBLE *RESTRICT stressR
-    , DOUBLE *RESTRICT density            , DOUBLE *RESTRICT dViscosity
-    , DOUBLE *RESTRICT eddyViscosity      , DOUBLE *RESTRICT wallPar
-    , DOUBLE const densityMed             , Temporal ddt
-    , INT nEq                             , INT nEqNov
-    , INT nAd                             , INT nAdR
-    , short maxNo                         , short maxViz
-    , short ndm                           , INT numel
-    , short ndf                           , short storage
-    , short ntn                           , bool forces
-    , bool matrix                         , bool calRcell
-    , bool unsym                          , bool sPressure);
+void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres    
+    , Advection *advVel                    , Diffusion *diffVel
+    , Turbulence *tModel                   , MomentumModel *ModelMomentum
+    , Interface *iCel                      , short typeSimple     
+    , INT    *RESTRICT el                  , INT    *RESTRICT nelcon 
+    , short  *RESTRICT nen                 , short  *RESTRICT nFace
+    , INT *RESTRICT cellFace               , INT *RESTRICT fOwner
+    , DOUBLE *RESTRICT gVolume             , DOUBLE *RESTRICT gDcca
+    , DOUBLE *RESTRICT gXmCc               , DOUBLE *RESTRICT gCc
+    , DOUBLE *RESTRICT fModKsi             , DOUBLE *RESTRICT fKsi
+    , DOUBLE *RESTRICT fEta                , DOUBLE *RESTRICT fArea
+    , DOUBLE *RESTRICT fNormal             , DOUBLE *RESTRICT fXm
+    , DOUBLE *RESTRICT fModvSkew           , DOUBLE *RESTRICT fvSkew
+    , short  *RESTRICT geomType            , DOUBLE *RESTRICT prop
+    , short  *RESTRICT calType             , short  *RESTRICT mat
+    , INT    *RESTRICT ia                  , INT    *RESTRICT ja
+    , DOUBLE *RESTRICT a                   , DOUBLE *RESTRICT ad
+    , DOUBLE *RESTRICT b                   , INT    *RESTRICT id
+    , short  *RESTRICT faceVelR            , short  *RESTRICT faceVelL       
+    , short  *RESTRICT facePresR           , short  *RESTRICT facePresL             
+    , DOUBLE *RESTRICT pres                , DOUBLE *RESTRICT gradPres
+    , DOUBLE *RESTRICT vel                 , DOUBLE *RESTRICT gradVel
+    , DOUBLE *RESTRICT dField              , DOUBLE underU 
+    , DOUBLE *RESTRICT rCell               , DOUBLE *RESTRICT stressR  
+    , DOUBLE *RESTRICT density             , DOUBLE *RESTRICT dViscosity 
+    , DOUBLE *RESTRICT eddyViscosity       , DOUBLE *RESTRICT wallPar
+    , DOUBLE const densityMed              , Temporal *ddt                     
+    , INT nEq                              , INT nEqNov
+    , INT nAd                              , INT nAdR                 
+    , short maxNo                          , short maxViz
+    , short ndm                            , INT numel
+    , short ndf                            , short storage
+    , short ntn                            , bool forces      
+    , bool matrix                          , bool calRcell
+    , bool unsym                           , bool sPressure); 
 
 /* ... montagem do sistemas de equacoes (Simple - Pres)*/
   void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres 
@@ -236,7 +237,7 @@
                , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT dField
                , DOUBLE *RESTRICT temp     , DOUBLE *RESTRICT wallPar  
                , DOUBLE *RESTRICT rCell    , DOUBLE *RESTRICT density
-               , Temporal ddt 
+               , Temporal *ddt 
                , INT nEq                   , INT nEqNov
                , INT nAd                   , INT nAdR                  
                , short maxNo               , short maxViz
@@ -278,7 +279,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
        , DOUBLE *RESTRICT diffY        , DOUBLE *RESTRICT yFrac
        , DOUBLE *RESTRICT rateHeatComb 
        , DOUBLE *RESTRICT dField       , DOUBLE *RESTRICT wallPar
-       , Temporal ddt                  , DOUBLE underU
+       , Temporal *ddt                 , DOUBLE underU
        , INT nEq                       , INT nEqNov
        , INT nAd                       , INT nAdR
        , short maxNo                   , short maxViz
@@ -314,7 +315,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
            , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT dViscosity
            , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT dField
            , DOUBLE *RESTRICT rCell        , DOUBLE *RESTRICT wallPar
-           , DOUBLE *RESTRICT cDyn         , Temporal ddt
+           , DOUBLE *RESTRICT cDyn         , Temporal *ddt
            , INT nEq                       , INT nEqNov
            , INT nAd                       , INT nAdR
            , short maxNo                   , short maxViz
@@ -400,7 +401,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                  , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                  , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT dField
                  , DOUBLE *RESTRICT rCell    , DOUBLE *RESTRICT density
-                 , Temporal ddt
+                 , Temporal *ddt
                  , INT nEq                   , INT  nEqNov
                  , INT nAd                   , INT nAdR
                  , short maxNo               , short  maxViz
@@ -459,14 +460,14 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                   , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT diff
                   , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT wallPar
                   , DOUBLE *RESTRICT dField
-                  , Temporal ddt, DOUBLE underU
-                  , INT nEq, INT nEqNov
-                  , INT nAd, INT nAdR
-                  , short maxNo, short maxViz
-                  , short ndm, INT numel
-                  , short ndf, short storage
-                  , bool forces, bool matrix
-                  , bool calRcell, bool unsym);
+                  , Temporal *ddt                 , DOUBLE underU
+                  , INT nEq                       , INT nEqNov
+                  , INT nAd                       , INT nAdR
+                  , short maxNo                   , short maxViz
+                  , short ndm                     , INT numel
+                  , short ndf                     , short storage
+                  , bool forces                   , bool matrix
+                  , bool calRcell                 , bool unsym);
 /*...................................................................*/
 
 /*... carga por elmento e condicoes pescritas por celula*/

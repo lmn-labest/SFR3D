@@ -381,7 +381,7 @@ void rScaled(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
  *-------------------------------------------------------------------* 
  * rU       -> residuo                                               * 
  *-------------------------------------------------------------------* 
- * OBS:                                                              * 
+ * OBS: sum ( | F - Ax |P ) / sum(Ap*uP) )                           * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void rScaledSum(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
@@ -399,7 +399,7 @@ void rScaledSum(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
   for(j=0;j<ndf;j++)
     sum[j] = rU[j] = 0.e0;
 
-/*... max(Ap*uP) */
+/*... sum(Ap*uP) */
   for(i=0;i<nEl;i++)
   {
     lNeq = id[i] - 1;
@@ -429,7 +429,7 @@ void rScaledSum(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
 #endif
 /*...................................................................*/
 
-/*... max ( | F - Ax |P / max(Ap*uP) )*/
+/*... sum ( | F - Ax |P )*/
   for(j=0;j<ndf;j++)
   {
     for(i=0;i<nEl;i++)
@@ -482,7 +482,7 @@ void rScaledSum(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
  *-------------------------------------------------------------------* 
  * rU       -> residuo                                               * 
  *-------------------------------------------------------------------* 
- * OBS:                                                              * 
+ * OBS: sum ( | F - Ax |P ) / max (sum( |Ap*velP|) )                 * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void rScaledSumMax(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
@@ -530,13 +530,13 @@ void rScaledSumMax(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
 #endif
 /*...................................................................*/
     
-/*...*/
+/*... max (sum( |Ap*velP| ) )*/
   sumMax = sum[0];
   for (j = 1; j < ndf; j++) 
     sumMax = max(sumMax,sum[j]);
 /*...................................................................*/
 
-/*... sum ( | F - Ax |P / sum( |Ap*velP| ) )*/
+/*... sum ( | F - Ax |P ) / */
   for(j=0;j<ndf;j++)
   {
     for(i=0;i<nEl;i++)
@@ -552,7 +552,7 @@ void rScaledSumMax(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
   if(mpiVar.nPrcs>1)
   { 
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
-    MPI_Allreduce(rU,gSum ,ndf,MPI_DOUBLE,MPI_MAX,mpiVar.comm);
+    MPI_Allreduce(rU,gSum ,ndf,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     for(j=0;j<ndf;j++)
       rU[j] = gSum[j]; 
@@ -562,7 +562,7 @@ void rScaledSumMax(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
 
 /*...*/
   for(j=0;j<ndf;j++)
-    rU[j]  /=  sumMax ;  
+    rU[j]  /=  sumMax;  
 /*...................................................................*/
 
 }

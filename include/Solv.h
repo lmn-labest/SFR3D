@@ -111,18 +111,19 @@
              ,void(*matvec)(), DOUBLE(*dot)());
 
 /*...  gradiente conjugado precondicionado (MPI)*/
-  void mpiPcg(INT const nEq  ,INT const nEqNov  
-          ,INT const nAd      ,INT const nAdr 
-          ,INT *RESTRICT ia   ,INT *RESTRICT ja
-          ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
-          ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b 
-          ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z
-          ,DOUBLE *RESTRICT r 
-          ,DOUBLE const tol   ,unsigned int maxit 
-          ,bool const newX    ,FILE* fileSolvLog  
-          ,bool const log     ,bool const fPrint
-          ,Interface *iNeq
-          ,void(*matvec)()    ,DOUBLE(*dot)());
+  void mpiPcg(INT const nEq   ,INT const nEqNov
+        ,INT const nAd      ,INT const nAdR  
+        ,INT *RESTRICT ia   ,INT *RESTRICT ja
+        ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
+        ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b 
+        ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z 
+        ,DOUBLE *RESTRICT r ,DOUBLE *RESTRICT p
+        ,DOUBLE const tol   ,unsigned int maxIt
+        ,bool const newX    ,FILE* fileLog  
+        ,FILE *fileHistLog  ,bool const log     
+        ,bool const fHistLog,bool const fPrint
+        ,Interface *iNeq                      
+        ,void(*matvec)()    ,DOUBLE(*dot)());
 /*...................................................................*/
 
 /*...*/

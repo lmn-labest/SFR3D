@@ -91,7 +91,6 @@ void turbulence(Memoria *m
   short type = tModel->type,typeLes = tModel->typeLes;
   DOUBLE *nVel=NULL,*nDen=NULL;
   
-
 /*...*/
   wallParametersCellLoop(lVel    , tModel             
       , mesh->elm.cellFace       , mesh->face.owner
@@ -107,11 +106,13 @@ void turbulence(Memoria *m
 /*...................................................................*/
 
 /*...*/
-  switch (type) { 
+  switch (type)
+  { 
 /*...*/ 
     case LES:
 /*...*/
-      if(typeLes == LESFUNCMODEL ){
+      if(typeLes == LESFUNCMODEL )
+      {
 /*...*/ 
         if(tModel->fDynamic)
           lesDynamicMean(m                      , tModel 
@@ -126,7 +127,8 @@ void turbulence(Memoria *m
 /*...................................................................*/ 
 
 /*...*/ 
-        turbulenceCellLoop(lVel             , tModel               
+        turbulenceCellLoop(lVel             , tModel   
+                   , &pMesh->iEl              
                    , mesh->elm.node         , mesh->elm.adj.nelcon 
                    , mesh->elm.nen          , mesh->elm.adj.nViz 
                    , mesh->elm.cellFace     , mesh->face.owner
@@ -147,17 +149,18 @@ void turbulence(Memoria *m
                    , mesh->ndm              , mesh->numelNov 
                    , ndf);   
 /*...................................................................*/ 
-
       }
 /*...................................................................*/ 
 
 /*...*/
-      else if (typeLes == LESMIXEDMODEL){  
+      else if (typeLes == LESMIXEDMODEL)
+      {  
         HccaAlloc(DOUBLE,m,nVel, mesh->nnode*mesh->ndm,"nU"  ,_AD_); 
         HccaAlloc(DOUBLE,m,nDen, mesh->nnode*3  ,"nDen",_AD_); 
 
 /*... modelo funcional*/ 
         turbulenceCellLoop(lVel            , tModel
+                  , &pMesh->iEl  
                   , mesh->elm.node         , mesh->elm.adj.nelcon
                   , mesh->elm.nen          , mesh->elm.adj.nViz
                   , mesh->elm.cellFace     , mesh->face.owner
@@ -180,7 +183,8 @@ void turbulence(Memoria *m
 /*...................................................................*/ 
 
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
-        if( tModel->typeMixed[ESTMODEL] == BARDINA){
+        if( tModel->typeMixed[ESTMODEL] == BARDINA)
+        {
           interCellNode(m                , lVel
                      , mesh->elm.cellFace, mesh->face.owner
                      , nVel              , mesh->elm.vel        
@@ -238,7 +242,8 @@ void turbulence(Memoria *m
 /*...................................................................*/ 
 
 /*...*/
-      else if (typeLes == LESMIXEDTWOMODEL){
+      else if (typeLes == LESMIXEDTWOMODEL)
+      {
         
         lesDynamicMean(m                      , tModel 
                       , mesh->elm.adj.nelcon  , mesh->elm.nen    
@@ -251,7 +256,8 @@ void turbulence(Memoria *m
                       , ndf                   , tModel->typeDynamic); 
 
 /*...*/ 
-        turbulenceCellLoop(lVel             , tModel               
+        turbulenceCellLoop(lVel             , tModel  
+                   , &pMesh->iEl                      
                    , mesh->elm.node         , mesh->elm.adj.nelcon 
                    , mesh->elm.nen          , mesh->elm.adj.nViz 
                    , mesh->elm.cellFace     , mesh->face.owner
@@ -291,7 +297,8 @@ void turbulence(Memoria *m
 /*...................................................................*/   
 
 /*...*/
-      else if (typeLes == LESFUNCMODELONEEQK){
+      else if (typeLes == LESFUNCMODELONEEQK)
+      {
         oneEquationK(m        
                    , lKturb  , lVel
                    , pMesh   , tModel
@@ -417,7 +424,7 @@ void oneEquationK(Memoria *m
                , mesh->elm.densityFluid  , mesh->elm.dViscosity
                , mesh->elm.eddyViscosity , sp->d                                    
                , mesh->elm.rCellKturb    , mesh->elm.wallParameters
-               , mesh->elm.cd            , sc->ddt
+               , mesh->elm.cd            , &sc->ddt
                , sistEq->neq             , sistEq->neqNov      
                , sistEq->nad             , sistEq->nadr      
                , mesh->maxNo             , mesh->maxViz
@@ -492,12 +499,15 @@ void oneEquationK(Memoria *m
 
 /********************************************************************* 
  * Data de criacao    : 11/09/2017                                   *
- * Data de modificaco : 19/07/2018                                   * 
+ * Data de modificaco : 25/08/2019                                   * 
  *-------------------------------------------------------------------* 
  * turbulenceCellLoop: Calculo da viscosidae turbulenta              *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * loads   -> definicao de cargas de velocidade                      * 
+ * tModel  -> modelo de turbulencia                                  *
+ * iCel    -> interface de elementos                                 * 
  * el        -> conetividade dos celulas                             * 
  * nelcon    -> vizinhos dos elementos                               * 
  * nen       -> numero de nos por celulas                            * 
@@ -542,7 +552,8 @@ void oneEquationK(Memoria *m
  * OBS:                                                              *
  *-------------------------------------------------------------------* 
   *********************************************************************/
-void turbulenceCellLoop(Loads *lVel         , Turbulence *tModel             
+void turbulenceCellLoop(Loads *lVel         , Turbulence *tModel  
+      , Interface *iCel           
       , INT    *RESTRICT el                 , INT    *RESTRICT nelcon 
       , short  *RESTRICT nen                , short  *RESTRICT nFace 
       , INT *RESTRICT cellFace              , INT *RESTRICT fOwner
@@ -564,6 +575,8 @@ void turbulenceCellLoop(Loads *lVel         , Turbulence *tModel
       , short const ndf)                      
 {   
   short i,j,k;
+  bool fWall    = tModel->fWall,
+       fDynamic = tModel->fDynamic; 
   INT nel,vizNel;
   
 /*... variavel local */
@@ -582,7 +595,7 @@ void turbulenceCellLoop(Loads *lVel         , Turbulence *tModel
          lCc[(MAX_NUM_FACE+1)*MAX_NDM],
          lGradVel[(MAX_NUM_FACE+1)*MAX_NDM*MAX_NDF],
          lVel0[(MAX_NUM_FACE+1)*MAX_NDM],
-         lEddyViscosity,lDviscosity,lWallPar[4],lcDyn;
+         lEddyViscosity,lDviscosity,lWallPar[4],lcDyn=0.e0;
            
 /*... loop nas celulas*/
   aux2    = maxViz+1;
@@ -675,13 +688,13 @@ void turbulenceCellLoop(Loads *lVel         , Turbulence *tModel
       }
     }  
 /*...................................................................*/
-
-     lcDyn = MAT2D(nel,0,cDyn,2);
+     if(fDynamic)
+       lcDyn = MAT2D(nel,0,cDyn,2);
 /*...*/
-     lWallPar[0] = MAT2D(nel,0,wallPar,4);
-     lWallPar[1] = MAT2D(nel,1,wallPar,4);
-     lWallPar[2] = MAT2D(nel,2,wallPar,4);
-     lWallPar[3] = MAT2D(nel,3,wallPar,4);
+     if(fWall)
+       for(j=0;j<NWALLPAR;j++)
+         lWallPar[j] = MAT2D(nel,j,wallPar,NWALLPAR);
+
 
 /*... chamando a biblioteca de celulas*/
      cellLibTurbulence(lVel            , *tModel        
@@ -706,6 +719,11 @@ void turbulenceCellLoop(Loads *lVel         , Turbulence *tModel
     eddyViscosity[nel]  = lEddyViscosity;
   }
 /*...................................................................*/
+
+/*...*/
+  if(mpiVar.nPrcs > 1 ) comunicateCel(iCel,eddyViscosity,1,1);
+/*...................................................................*/
+
 }
 /*********************************************************************/ 
 

@@ -77,7 +77,7 @@
                    , DOUBLE *RESTRICT dcca       , DOUBLE *RESTRICT cc
                    , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
                    , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
-                   , DOUBLE *RESTRICT lRcell     , Temporal const ddt
+                   , DOUBLE *RESTRICT lRcell     , Temporal *ddt
                    , short  *RESTRICT lFaceR     , short  *RESTRICT lFaceL
                    , short  *RESTRICT lFaceVelR  , short  *RESTRICT lFaceVelL    
                    , DOUBLE *RESTRICT u          , DOUBLE *RESTRICT gradU
@@ -109,7 +109,7 @@
                , DOUBLE *RESTRICT dcca     , DOUBLE *RESTRICT cc
                , DOUBLE *RESTRICT vSkew    , DOUBLE *RESTRICT mvSkew
                , DOUBLE *RESTRICT lA       , DOUBLE *RESTRICT lB
-               , DOUBLE *RESTRICT lRcell   , Temporal const ddt
+               , DOUBLE *RESTRICT lRcell   , Temporal *ddt
                , short  *RESTRICT lFaceR   , short  *RESTRICT lFaceL
                , short  *RESTRICT lFaceVelR, short  *RESTRICT lFaceVelL
                , DOUBLE *RESTRICT u        , DOUBLE *RESTRICT gradU
@@ -162,7 +162,7 @@
           ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT lDensity
           ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
           ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
-          ,DOUBLE *RESTRICT lRcell    ,Temporal const ddt
+          ,DOUBLE *RESTRICT lRcell    ,Temporal *ddt
           ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
           ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
           ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres 
@@ -175,22 +175,22 @@
 /*... chamada da biblioteca de elementos (escoamento-pres)*/
   void cellLibSimplePres(Loads *loadsVel     ,Loads *loadsPres
 	           	 ,Diffusion *diffPres
-               ,short *RESTRICT lGeomType,DOUBLE *RESTRICT lprop
-               ,INT   *RESTRICT lViz     ,INT *RESTRICT lId  
-               ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
-               ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
-               ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
-               ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
-               ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
-               ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
-               ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-               ,DOUBLE *RESTRICT lRcell  ,Temporal const ddt
+               ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
+               ,INT   *RESTRICT lViz       ,INT *RESTRICT lId  
+               ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
+               ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea
+               ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT volume
+               ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
+               ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT lDensity
+               ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
+               ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
+               ,DOUBLE *RESTRICT lRcell    ,Temporal *ddt
                ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
                ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
-               ,DOUBLE *RESTRICT pres    ,DOUBLE *RESTRICT gradPres 
-               ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT dField 
-               ,short const nEn          ,short  const nFace     
-               ,short const ndm          ,short const lib    
+               ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres 
+               ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT dField 
+               ,short const nEn            ,short  const nFace     
+               ,short const ndm            ,short const lib    
                ,INT const nel);
 /*...................................................................*/
 
@@ -209,7 +209,7 @@
             , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc
             , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
             , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
-            , DOUBLE *RESTRICT lRcell    , Temporal const ddt
+            , DOUBLE *RESTRICT lRcell    , Temporal *ddt
             , short  *RESTRICT lFaceVelR , short  *RESTRICT lFaceVelL
             , short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL
             , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres 
@@ -233,7 +233,7 @@
                , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT lDensity
                , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
                , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
-               , DOUBLE *RESTRICT lRcell    , Temporal const ddt
+               , DOUBLE *RESTRICT lRcell    , Temporal *ddt
                , short  *RESTRICT lFaceVelR , short  *RESTRICT lFaceVelL
                , short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL
                , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres 
@@ -498,7 +498,7 @@
             , DOUBLE *RESTRICT dcca       , DOUBLE *RESTRICT cc
             , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
             , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
-            , DOUBLE *RESTRICT lRcell     , Temporal const ddt
+            , DOUBLE *RESTRICT lRcell     , Temporal *ddt
             , short  *RESTRICT lFaceR     , short *RESTRICT lFaceL
             , short  *RESTRICT lFaceVelR  , short *RESTRICT lFaceVelL
             , DOUBLE *RESTRICT u0         , DOUBLE *RESTRICT gradU0
@@ -579,7 +579,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
               ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT lDensity
               ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
               ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
-              ,DOUBLE *RESTRICT lRcell    ,Temporal const ddt
+              ,DOUBLE *RESTRICT lRcell    ,Temporal *ddt
               ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
               ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
               ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres 
@@ -728,7 +728,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
             , DOUBLE *RESTRICT dcca       , DOUBLE *RESTRICT cc
             , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
             , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
-            , DOUBLE *RESTRICT lRcell     , Temporal const ddt
+            , DOUBLE *RESTRICT lRcell     , Temporal *ddt
             , short  *RESTRICT lFaceVelR  , short *RESTRICT lFaceVelL
             , short  *RESTRICT lFacePresR , short *RESTRICT lFacePresL
             , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres 
@@ -751,7 +751,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
               , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT lDensity
               , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
               , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
-              , DOUBLE *RESTRICT lRcell    , Temporal const ddt 
+              , DOUBLE *RESTRICT lRcell    , Temporal *ddt 
               , short  *RESTRICT lFaceVelR , short *RESTRICT lFaceVelL
               , short  *RESTRICT lFacePresR, short *RESTRICT lFacePresL
               , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres
@@ -775,7 +775,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                   , DOUBLE *RESTRICT dcca     , DOUBLE *RESTRICT cc
                   , DOUBLE *RESTRICT vSkew    , DOUBLE *RESTRICT mvSkew
                   , DOUBLE *RESTRICT lA       , DOUBLE *RESTRICT lB
-                  , DOUBLE *RESTRICT lRcell   , Temporal const ddt
+                  , DOUBLE *RESTRICT lRcell   , Temporal *ddt
                   , short  *RESTRICT lFaceR   , short *RESTRICT lFaceL
                   , short  *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL
                   , DOUBLE *RESTRICT u0       , DOUBLE *RESTRICT gradU0

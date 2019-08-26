@@ -9,6 +9,58 @@
 /*...................................................................*/
 
 /*...*/
+  #define E_WALLMODEL   9.793e0
+  #define VANDRIEST    26.e0
+  #define VONKARMAN     0.4187e0
+  #define AKADER        0.01e0
+  #define BKADER        5.e0
+/*...................................................................*/
+
+/*...*/
+  #define SMAGORINSKY 1
+  #define WALEMODEL   2
+  #define VREMAN      3
+  #define DYNAMIC     4
+  #define SIGMAMODEL  5
+  #define MIXED       6
+  #define BARDINA     7
+  #define CLARK       8 
+  #define BARDINAMOD  9
+  #define ONEEQK     10
+/*...................................................................*/
+  
+/*...*/
+  #define LESFUNCMODEL       0
+  #define LESSTRUMODEL       1
+  #define LESMIXEDMODEL      2
+  #define LESMIXEDTWOMODEL   3
+  #define LESFUNCMODELONEEQK 4
+/*...................................................................*/
+
+/*...*/
+  #define LES 0
+/*...*/
+  #define ESTMODEL 0
+  #define FUNMODEL 1
+/*...................................................................*/
+
+/*... NEAR-WALL_MODEL*/
+  #define STANDARDWALL 1
+  #define ENHANCEDWALL 2
+/*...................................................................*/
+
+/*...*/
+  #define NWALLPAR     4
+/*...................................................................*/
+
+/*...*/
+  #define LDYNAMIC      1
+  #define GDYNAMIC      2
+  #define GDYNAMICMOD   3
+  #define TWOPARDYNAMIC 4 
+/*...................................................................*/
+
+/*...*/
   #define SL_FUEL 0
   #define SL_AIR  1
   #define SL_PROD 2
