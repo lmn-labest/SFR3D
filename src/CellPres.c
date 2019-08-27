@@ -379,7 +379,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  *********************************************************************/
 void cellSimplePres2DLm(Loads *lVel      , Loads *lPres 
 					 , Diffusion *diffPres	       , MassEqModel *eMass
-           , short *RESTRICT lGeomType   , DOUBLE *RESTRICT prop
+           , short *RESTRICT lGeomType   
            , INT *RESTRICT lViz          , INT *RESTRICT lId  
            , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
            , DOUBLE *RESTRICT eta        , DOUBLE *RESTRICT mEta
@@ -1237,7 +1237,7 @@ void cellSimplePres3D(Loads *lVel       ,Loads *lPres
  *********************************************************************/
 void cellSimplePres3DLm(Loads *lVel        , Loads *lPres 
 							, Diffusion *diffPres        , MassEqModel *eMass
-              , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop
+              , short *RESTRICT lGeomType  
               , INT *RESTRICT lViz         , INT *RESTRICT lId  
               , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
               , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea

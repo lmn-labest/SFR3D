@@ -190,7 +190,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
     , DOUBLE *RESTRICT fEta                , DOUBLE *RESTRICT fArea
     , DOUBLE *RESTRICT fNormal             , DOUBLE *RESTRICT fXm
     , DOUBLE *RESTRICT fModvSkew           , DOUBLE *RESTRICT fvSkew
-    , short  *RESTRICT geomType            , DOUBLE *RESTRICT prop
+    , short  *RESTRICT geomType            
     , short  *RESTRICT calType             , short  *RESTRICT mat
     , INT    *RESTRICT ia                  , INT    *RESTRICT ja
     , DOUBLE *RESTRICT a                   , DOUBLE *RESTRICT ad
@@ -226,7 +226,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                , DOUBLE *RESTRICT fEta     , DOUBLE *RESTRICT fArea
                , DOUBLE *RESTRICT fNormal  , DOUBLE *RESTRICT fXm
                , DOUBLE *RESTRICT fModvSkew, DOUBLE *RESTRICT fvSkew
-               , short  *RESTRICT geomType , DOUBLE *RESTRICT prop
+               , short  *RESTRICT geomType 
                , short  *RESTRICT calType  , short  *RESTRICT mat
                , INT    *RESTRICT ia       , INT    *RESTRICT ja
                , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad 
@@ -261,7 +261,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
        , DOUBLE *RESTRICT fEta         , DOUBLE *RESTRICT fArea
        , DOUBLE *RESTRICT fNormal      , DOUBLE *RESTRICT fXm
        , DOUBLE *RESTRICT fModvSkew    , DOUBLE *RESTRICT fvSkew
-       , short  *RESTRICT geomType     , DOUBLE *RESTRICT prop
+       , short  *RESTRICT geomType    
        , short  *RESTRICT calType      , short  *RESTRICT mat
        , INT    *RESTRICT ia           , INT    *RESTRICT ja
        , DOUBLE *RESTRICT a            , DOUBLE *RESTRICT ad
@@ -446,7 +446,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                   , DOUBLE *RESTRICT fEta         , DOUBLE *RESTRICT fArea
                   , DOUBLE *RESTRICT fNormal      , DOUBLE *RESTRICT fXm
                   , DOUBLE *RESTRICT fModvSkew    , DOUBLE *RESTRICT fvSkew
-                  , short  *RESTRICT geomType     , DOUBLE *RESTRICT prop
+                  , short  *RESTRICT geomType     
                   , short  *RESTRICT calType      , short  *RESTRICT mat
                   , INT    *RESTRICT ia           , INT    *RESTRICT ja
                   , DOUBLE *RESTRICT a            , DOUBLE *RESTRICT ad

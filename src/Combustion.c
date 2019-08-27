@@ -140,7 +140,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
              , mesh->face.eta          , mesh->face.area
              , mesh->face.normal       , mesh->face.xm
              , mesh->face.mvSkew       , mesh->face.vSkew
-             , mesh->elm.geomType      , mesh->elm.material.prop
+             , mesh->elm.geomType      
              , mesh->elm.material.type , mesh->elm.mat
              , sistEqComb->ia          , sistEqComb->ja
              , sistEqComb->al          , sistEqComb->ad

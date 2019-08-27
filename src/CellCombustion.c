@@ -16,7 +16,6 @@
 * vProp     -> propedades variaveis (true|false)                    *
 * lnFace    -> numero de faces da celula central e seus vizinhos    *
 * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
-* lprop     -> propriedade fisicas das celulas                      *
 * lViz      -> viznhos da celula central                            *
 * lId       -> numeracoes das equacoes das celulas                  *
 * Ksi       -> vetores que unem centroide da celula central aos     *
@@ -73,7 +72,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
                     , Advection *advT           , Diffusion *diffT
                     , Turbulence *tModel        , Combustion *cModel
                     , PropVarFluid *vProp
-                    , short *RESTRICT lGeomType , DOUBLE *RESTRICT prop
+                    , short *RESTRICT lGeomType 
                     , INT *RESTRICT lViz        , INT *RESTRICT lId
                     , DOUBLE *RESTRICT ksi      , DOUBLE *RESTRICT mKsi
                     , DOUBLE *RESTRICT eta      , DOUBLE *RESTRICT fArea

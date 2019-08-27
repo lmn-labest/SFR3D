@@ -124,7 +124,6 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
 * cModel    -> modelo de combustao                                  *
 * vProp     -> propedades variaveis                                 *
 * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
-* lprop     -> propriedade fisicas das celulas                      *
 * lViz      -> viznhos da celula central                            *
 * lId       -> equa da celula                                       *
 * Ksi       -> vetores que unem centroide da celula central aos     *
@@ -181,7 +180,7 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
      , Advection  *adv             , Diffusion *diff      
      , Turbulence *tModel          , EnergyModel *model  
      , Combustion *cModel          , PropVarFluid *vProp         
-     , short *RESTRICT lGeomType   , DOUBLE *RESTRICT lprop
+     , short *RESTRICT lGeomType   
      , INT   *RESTRICT lViz        , INT *RESTRICT lId
      , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
      , DOUBLE *RESTRICT eta        , DOUBLE *RESTRICT fArea
@@ -216,7 +215,7 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
                  , adv        , diff
                  , tModel     , model 
                  , vProp 
-                 , lGeomType  , lprop
+                 , lGeomType  
                  , lViz       , lId
                  , ksi        , mKsi
                  , eta        , fArea
@@ -245,7 +244,7 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
                  , adv        , diff
                  , tModel     , model 
                  , cModel     , vProp 
-                 , lGeomType  , lprop
+                 , lGeomType  
                  , lViz       , lId
                  , ksi        , mKsi
                  , eta        , fArea
@@ -545,7 +544,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
 
 /*********************************************************************
 * Data de criacao    : 05/08/2018                                   *
-* Data de modificaco : 27/05/2019                                   *
+* Data de modificaco : 27/08/2019                                   *
 *-------------------------------------------------------------------*
 * cellLibCombustion: chamada de bibliotecas de celulas para         *
 * problema de escoamento de fluidos (Energy)                        *
@@ -612,7 +611,7 @@ void cellLibCombustion(Loads *lComb        , Loads *lVel
                , Advection  *adv           , Diffusion *diff
                , Turbulence *tModel        , Combustion *cModel
                , PropVarFluid *vProp
-               , short *RESTRICT lGeomType , DOUBLE *RESTRICT lprop
+               , short *RESTRICT lGeomType 
                , INT   *RESTRICT lViz      , INT *RESTRICT lId
                , DOUBLE *RESTRICT ksi      , DOUBLE *RESTRICT mKsi
                , DOUBLE *RESTRICT eta      , DOUBLE *RESTRICT fArea
@@ -674,7 +673,7 @@ void cellLibCombustion(Loads *lComb        , Loads *lVel
                      , adv       , diff
                      , tModel    , cModel
                      , vProp
-                     , lGeomType , lprop
+                     , lGeomType 
                      , lViz      , lId
                      , ksi       , mKsi
                      , eta       , fArea
@@ -719,8 +718,7 @@ void cellLibCombustion(Loads *lComb        , Loads *lVel
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
  * ModelMomentum -> termos/modelos da equacao de momento linear      *
  * typeSimple-> tipo do metodo simple                                *
- * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
- * lprop     -> propriedade fisicas das celulas                      *
+ * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
  * lViz      -> viznhos da celula central                            *
  * lId       -> equa da celula                                       *
  * Ksi       -> vetores que unem centroide da celula central aos     *
@@ -775,7 +773,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
            , Advection  *advVel         , Diffusion *diffVel    
            , Turbulence *tModel         , MomentumModel *ModelMomentum
            , short const typeSimple 
-           , short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop 
+           , short *RESTRICT lGeomType  
            , INT   *RESTRICT lViz       , INT *RESTRICT lId   
            , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi 
            , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea 
@@ -805,8 +803,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
       cellSimpleVel2DLm(lVel      , lPres    
                      , *advVel    , *diffVel 
                      , *tModel    , *ModelMomentum
-                     , typeSimple   
-                     , lGeomType  , lprop 
+                     , typeSimple , lGeomType  
                      , lViz       , lId 
                      , ksi        , mKsi 
                      , eta        , fArea 
@@ -822,7 +819,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
                      , vel        , gradVel 
                      , lDensity   , lViscosity 
                      , dField     , stressR
-                     , wallPar
+                     , wallPar    , densityMed
                      , underU     , sPressure 
                      , nEn        , nFace  
                      , ndm        , nel);  
@@ -835,8 +832,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
       cellSimpleVel3DLm(lVel      , lPres    
                      , advVel     , diffVel 
                      , tModel     , ModelMomentum
-                     , typeSimple   
-                     , lGeomType  , lprop 
+                     , typeSimple , lGeomType  
                      , lViz       , lId 
                      , ksi        , mKsi 
                      , eta        , fArea 
@@ -1055,7 +1051,7 @@ void cellLibSimplePres(Loads *lVel       ,Loads *lPres
  *********************************************************************/
 void cellLibSimplePresLm(Loads *lVel        , Loads *lPres
 	             , Diffusion *diffPres        , MassEqModel *eMass  
-               , short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop
+               , short *RESTRICT lGeomType  
                , INT   *RESTRICT lViz       , INT *RESTRICT lId  
                , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
                , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea
@@ -1081,7 +1077,7 @@ void cellLibSimplePresLm(Loads *lVel        , Loads *lPres
     if(ndm == 2){
       cellSimplePres2DLm(lVel, lPres
 								 , diffPres	 , eMass 
-                 , lGeomType , lprop
+                 , lGeomType 
                  , lViz      , lId
                  , ksi       , mKsi
                  , eta       , fArea
@@ -1105,7 +1101,7 @@ void cellLibSimplePresLm(Loads *lVel        , Loads *lPres
     else if(ndm == 3){
       cellSimplePres3DLm(lVel, lPres
 								 , diffPres	 , eMass 
-                 , lGeomType , lprop
+                 , lGeomType 
                  , lViz      , lId
                  , ksi       , mKsi
                  , eta       , fArea

@@ -608,6 +608,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 * dField    -> matriz D do metodo simple                            *
 * stressR   -> tensao residual estrutural                           *
 * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  *
+* densityMed-> densidade media do meio                              *
 * cc        -> centroides da celula centra e seus vizinhos          *
 * underU    -> parametro de sobre relaxamento                       *
 * nEn       -> numero de nos da celula central                      *
@@ -644,9 +645,7 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres 
             , Advection advVel           , Diffusion diffVel 
             , Turbulence tModel          , MomentumModel ModelMomentum
-            , short const typeSimple      
-            , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop 
-            , INT *RESTRICT lViz         , INT *RESTRICT lId 
+            , short const typeSimple     , short *RESTRICT lGeomType              , INT *RESTRICT lViz         , INT *RESTRICT lId 
             , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi 
             , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT mEta 
             , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT area 
@@ -661,7 +660,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
             , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel 
             , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lViscosity 
             , DOUBLE *RESTRICT dField    , DOUBLE *RESTRICT stressR
-            , DOUBLE *RESTRICT wallPar
+            , DOUBLE *RESTRICT wallPar   , DOUBLE const densityMed
             , DOUBLE const underU        , const bool sPressure 
             , const short nEn            , short const nFace 
             , const short ndm            , INT const nel)
@@ -734,7 +733,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
   viscosityC    = MAT2D(idCell, 0, lViscosity, 2);
   if(fTurb) eddyViscosityC= MAT2D(idCell, 1, lViscosity, 2);
   effViscosityC = viscosityC + eddyViscosityC;
-  densityRef = MAT2D(idCell, DENSITY, prop, MAXPROP);
+  densityRef    = densityMed;
 /*...................................................................*/
 
 /*... | du1/dx1 du1/dx2*/
@@ -1826,7 +1825,7 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 
 /*********************************************************************
  * Data de criacao    : 03/10/2017                                   *
- * Data de modificaco : 21/05/2019                                   * 
+ * Data de modificaco : 27/08/2019                                   * 
  *-------------------------------------------------------------------* 
  * CELLSIMPLEVE3DLM: Celula 3D para velocidade do metodo simple      * 
  * em escoamento levemento compressivel (Low Mach)                   * 
@@ -1842,7 +1841,6 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
  * typeSimple-> tipo do metodo simple                                *
  * lnFace    -> numero de faces da celula central e seus vizinhos    *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
- * lprop     -> propriedade fisicas das celulas                      *
  * lViz      -> viznhos da celula central                            *
  * lId       -> numeracoes das equacoes das celulas                  *
  * Ksi       -> vetores que unem centroide da celula central aos     *
@@ -1917,7 +1915,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
             , Advection *advVel           , Diffusion *diffVel
             , Turbulence *tModel          , MomentumModel *ModelMomentum            
             , short const typeSimple 
-            , short *RESTRICT lGeomType   , DOUBLE *RESTRICT prop
+            , short *RESTRICT lGeomType   
             , INT *RESTRICT lViz          , INT *RESTRICT lId  
             , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
             , DOUBLE *RESTRICT eta        , DOUBLE *RESTRICT fArea

@@ -1474,8 +1474,7 @@ void systFormSimpleVel(Loads *loadsVel    , Loads *loadsPres
  * fvSkew  -> vetor entre o ponto medio a intersecao que une os      *
  *            centrois compartilhado nessa face                      *
  * calType -> tipo de calculo das celulas                            * 
- * geomType-> tipo geometrico das celulas                            * 
- * prop    -> propriedades dos material                              * 
+ * geomType-> tipo geometrico das celulas                            *  
  * mat     -> material por celula                                    * 
  * ia        -> ponteiro para as linhas da matriz esparsa            * 
  * ja        -> ponteiro para as colunas da matriz esparsa           * 
@@ -1545,7 +1544,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
     , DOUBLE *RESTRICT fEta                , DOUBLE *RESTRICT fArea
     , DOUBLE *RESTRICT fNormal             , DOUBLE *RESTRICT fXm
     , DOUBLE *RESTRICT fModvSkew           , DOUBLE *RESTRICT fvSkew
-    , short  *RESTRICT geomType            , DOUBLE *RESTRICT prop
+    , short  *RESTRICT geomType            
     , short  *RESTRICT calType             , short  *RESTRICT mat
     , INT    *RESTRICT ia                  , INT    *RESTRICT ja
     , DOUBLE *RESTRICT a                   , DOUBLE *RESTRICT ad
@@ -1589,7 +1588,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
          lDcca[MAX_NUM_FACE], lmvSkew[MAX_NUM_FACE],
          lvSkew[MAX_NUM_FACE*MAX_NDM], lDensity[(MAX_NUM_FACE+1)],
          lViscosity[(MAX_NUM_FACE+1)*2], lA[MAX_NUM_FACE+ MAX_NDM],
-         lB[MAX_NDF], lProp[(MAX_NUM_FACE+1)*MAXPROP],
+         lB[MAX_NDF], 
          lPres[(MAX_NUM_FACE+1)], lCc[(MAX_NUM_FACE+1)*MAX_NDM],
          lGradVel[(MAX_NUM_FACE+1)*MAX_NDM*MAX_NDF],
          lGradPres[(MAX_NUM_FACE+1)*MAX_NDM], lRcell[MAX_NDF],
@@ -1604,13 +1603,13 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
   #pragma omp parallel  for default(none) num_threads(nThreads)\
      private(nel,i,j,k,aux1,lId,lPres,lMat,lib,lVolume,lGeomType\
           ,lFaceVelR,lA,lB,lDfield\
-          ,lFaceVelL,lFacePresR,lFacePresL,lDensity,lProp,lGradPres\
+          ,lFaceVelL,lFacePresR,lFacePresL,lDensity,lGradPres\
           ,lVel,lCc,lGradVel,lmKsi,lfArea,lDcca,lmvSkew,lKsi,lEta\
           ,lNormal,lXm,lXmcc,lvSkew,vizNel,lViz,lRcell,lViscosity\
           ,lStressR,lWallPar,idFace,cellOwner,ch)\
      shared(aux2,ndm,ndf,numel,maxViz,calRcell,rCell,nFace,mat,ntn\
          ,calType,gVolume, geomType, faceVelR, faceVelL, facePresR\
-         ,facePresL,density, prop,gradPres,vel,gCc,gradVel,fModKsi\
+         ,facePresL,density,gradPres,vel,gCc,gradVel,fModKsi\
          ,fArea,gDcca,fModvSkew,fKsi,fEta,fNormal,fXm,gXmCc,fvSkew\
          ,nelcon,id,loadsVel,loadsPres,advVel,diffVel,typeSimple\
          ,ddt,underU,sPressure,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd\
@@ -1660,10 +1659,6 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
 
         lPres[aux1]       = pres[nel];
         lId[aux1]         = id[nel] - 1;
-/*...*/      
-        for(j=0;j<MAXPROP;j++)
-          MAT2D(aux1,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);
-/*...................................................................*/
 
 /*...*/
         for(j=0;j<ndm;j++)
@@ -1751,8 +1746,6 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                 MAT3D(i,k,j,lGradVel,ndf,ndm) 
                                = MAT3D(vizNel,k,j,gradVel,ndf,ndm);
 
-            for(j=0;j<DIFPROP;j++)
-              MAT2D(i,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);
           }
         }  
 /*...................................................................*/
@@ -1768,7 +1761,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                     , advVel        , diffVel  
                     , tModel        , ModelMomentum
                     , typeSimple 
-                    , lGeomType     , lProp 
+                    , lGeomType     
                     , lViz          , lId            
                     , lKsi          , lmKsi 
                     , lEta          , lfArea  
@@ -1869,10 +1862,6 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
 
         lPres[aux1]       = pres[nel];
         lId[aux1]         = id[nel] - 1;  
-/*...*/      
-        for(j=0;j<MAXPROP;j++)
-          MAT2D(aux1,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);  
-/*...................................................................*/
 
 /*...*/
         for(j=0;j<ndm;j++)
@@ -1961,8 +1950,6 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                 MAT3D(i,k,j,lGradVel,ndf,ndm) 
                                = MAT3D(vizNel,k,j,gradVel,ndf,ndm);
 
-            for(j=0;j<MAXPROP;j++)
-              MAT2D(i,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);
           }
         }    
 /*...................................................................*/
@@ -1978,7 +1965,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                     , advVel        , diffVel  
                     , tModel        , ModelMomentum
                     , typeSimple 
-                    , lGeomType     , lProp 
+                    , lGeomType     
                     , lViz          , lId            
                     , lKsi          , lmKsi 
                     , lEta          , lfArea  
@@ -2421,7 +2408,7 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
 
 /*********************************************************************
  * Data de criacao    : 22/08/2017                                   *
- * Data de modificaco : 08/06/2019                                   *
+ * Data de modificaco : 27/08/2019                                   *
  *-------------------------------------------------------------------*
  * SYSTFOMENERGY: calculo do sistema de equacoes para problemas      *
  * transporte de energia (Ax=b)                                      *
@@ -2537,7 +2524,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
        , DOUBLE *RESTRICT fEta         , DOUBLE *RESTRICT fArea
        , DOUBLE *RESTRICT fNormal      , DOUBLE *RESTRICT fXm
        , DOUBLE *RESTRICT fModvSkew    , DOUBLE *RESTRICT fvSkew
-       , short  *RESTRICT geomType     , DOUBLE *RESTRICT prop
+       , short  *RESTRICT geomType     
        , short  *RESTRICT calType      , short  *RESTRICT mat
        , INT    *RESTRICT ia           , INT    *RESTRICT ja
        , DOUBLE *RESTRICT a            , DOUBLE *RESTRICT ad
@@ -2586,7 +2573,6 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
   DOUBLE lDensity[(MAX_NUM_FACE + 1)],lsHeat[(MAX_NUM_FACE + 1)],
          lViscosity[(MAX_NUM_FACE + 1)*2],ltConductivity[(MAX_NUM_FACE + 1)];
   DOUBLE lA[(MAX_NUM_FACE + 1)*MAX_NDF], lB[MAX_NDF];
-  DOUBLE lProp[(MAX_NUM_FACE + 1)*MAXPROP];
   DOUBLE lu0[(MAX_NUM_FACE + 1)*MAX_NDF],lPres[(MAX_NUM_FACE + 1)*2];
   DOUBLE lGradVel[(MAX_NUM_FACE + 1)*MAX_NDM*MAX_NDF];
   DOUBLE lGradU0[(MAX_NUM_FACE + 1)*MAX_NDM],lDfield[(MAX_NUM_FACE+1)*MAX_NDM];
@@ -2606,7 +2592,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
     aux2 = maxViz + 1;
 #pragma omp parallel  for default(none) num_threads(nThreads)\
      private(nel,i,j,k,aux1,lId,lMat,lib,lVolume,lGeomType,lu0\
-          ,lFaceR,lA,lB,lFaceL,lDensity,lProp,lGradU0,lDfield\
+          ,lFaceR,lA,lB,lFaceL,lDensity,lGradU0,lDfield\
           ,lVel,lCc,lmKsi,lfArea,lDcca,lmvSkew,lKsi,lEta,lViscosity\
           ,lNormal,lXm,lXmcc,lvSkew,vizNel,lViz,lRcell,lPres,lGradPres\
           ,lFaceVelR,lFaceVelL,lsHeat,ltConductivity,lRateHeatC\
@@ -2615,7 +2601,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
      shared(aux2,ndm,ndf,numel,maxViz,calRcell,rCell,nFace,mat\
          ,calType,gVolume,geomType,faceR,faceVelR,faceL,faceVelL\
          ,u0,gCc,loads,ldVel,dField\
-         ,density,prop,gradU0,vel,fModKsi,dViscosity,eddyViscosity\
+         ,density,gradU0,vel,fModKsi,dViscosity,eddyViscosity\
          ,fArea,gDcca,fModvSkew,fKsi,fEta,fNormal,fXm,gXmCc,fvSkew\
          ,nelcon,id,adv,diff,sHeat,tConductivity,pres0,pres,gradPres\
          ,ddt,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd,gradVel,underU \
@@ -2665,10 +2651,6 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
           MAT2D(aux1, j, lu0, ndf) = MAT2D(nel, j, u0, ndf);
           MAT2D(aux1, j, lId, ndf) = MAT2D(nel, j, id, ndf) - 1;
         }
-/*...................................................................*/
-
-        for (j = 0; j<MAXPROP; j++)
-          MAT2D(aux1, j, lProp, MAXPROP) = MAT2D(lMat, j, prop, MAXPROP);
 /*...................................................................*/
 
 /*...*/
@@ -2774,8 +2756,6 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                 MAT3D(i, k, j, lGradVel, ndm, ndm)
                 = MAT3D(vizNel, k, j, gradVel, ndm, ndm);
 
-            for (j = 0; j<DIFPROP; j++)
-              MAT2D(i, j, lProp, MAXPROP) = MAT2D(lMat, j, prop, MAXPROP);
 /*...*/
             if(cModel->fCombustion)
             {
@@ -2818,7 +2798,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                     , adv          , diff
                     , tModel       , eModel
                     , cModel       , vProp         
-                    , lGeomType    , lProp
+                    , lGeomType    
                     , lViz         , lId
                     , lKsi         , lmKsi
                     , lEta         , lfArea
@@ -2919,10 +2899,6 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
         }
 /*...................................................................*/
 
-        for (j = 0; j<MAXPROP; j++)
-          MAT2D(aux1, j, lProp, MAXPROP) = MAT2D(lMat, j, prop, MAXPROP);
-/*...................................................................*/
-
 /*...*/
         for (j = 0; j<ndm; j++) {
           MAT2D(aux1, j, lGradU0, ndm) = MAT2D(nel, j, gradU0, ndm);
@@ -3026,8 +3002,6 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                 MAT3D(i, k, j, lGradVel, ndm, ndm)
                 = MAT3D(vizNel, k, j, gradVel, ndm, ndm);
 
-            for (j = 0; j<DIFPROP; j++)
-              MAT2D(i, j, lProp, MAXPROP) = MAT2D(lMat, j, prop, MAXPROP);
 /*...*/
             if(cModel->fCombustion)
             {
@@ -3070,7 +3044,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                     , adv          , diff
                     , tModel       , eModel
                     , cModel       , vProp         
-                    , lGeomType    , lProp
+                    , lGeomType   
                     , lViz         , lId
                     , lKsi         , lmKsi
                     , lEta         , lfArea
@@ -3238,7 +3212,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
                 , DOUBLE *RESTRICT fEta     , DOUBLE *RESTRICT fArea
                 , DOUBLE *RESTRICT fNormal  , DOUBLE *RESTRICT fXm
                 , DOUBLE *RESTRICT fModvSkew, DOUBLE *RESTRICT fvSkew
-                , short  *RESTRICT geomType , DOUBLE *RESTRICT prop
+                , short  *RESTRICT geomType 
                 , short  *RESTRICT calType  , short  *RESTRICT mat
                 , INT    *RESTRICT ia       , INT    *RESTRICT ja
                 , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad
@@ -3300,7 +3274,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
     aux2 = maxViz + 1;
 #pragma omp parallel  for default(none) num_threads(nThreads)\
     private(nel,i,j,k,aux1,lId,lMat,lib,lVolume,lGeomType,lu0\
-          ,lFaceR,lA,lB,lFaceL,lDensity,lProp,lGradU0,lDfield\
+          ,lFaceR,lA,lB,lFaceL,lDensity,lGradU0,lDfield\
           ,lVel,lCc,lmKsi,lfArea,lDcca,lmvSkew,lKsi,lEta,lViscosity\
           ,lNormal,lXm,lXmcc,lvSkew,vizNel,lViz,lRcell,lPres,lGradPres\
           ,lFaceVelR,lFaceVelL\
@@ -3309,7 +3283,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
      shared(aux2,ndm,ndf,numel,maxViz,calRcell,rCell,nFace,mat\
          ,calType,gVolume,geomType,faceR,faceVelR,faceL,faceVelL\
          ,u0,gCc,loads,ldVel,dField\
-         ,density,prop,gradU0,vel,fModKsi,eddyVisc\
+         ,density,gradU0,vel,fModKsi,eddyVisc\
          ,fArea,gDcca,fModvSkew,fKsi,fEta,fNormal,fXm,gXmCc,fvSkew\
          ,nelcon,id,diff,pres0,pres,gradPres\
          ,ddt,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd,underU \
@@ -3367,11 +3341,6 @@ void systFormComb(Loads *loads              , Loads *ldVel
 /*...*/        
         for (j = 0; j<ns; j++)
           MAT2D(aux1, j, lDiff, ns) = MAT2D(nel, j, diff, ns); 
-/*...................................................................*/
-
-/*...*/
-        for (j = 0; j<MAXPROP; j++)
-          MAT2D(aux1, j, lProp, MAXPROP) = MAT2D(lMat, j, prop, MAXPROP);
 /*...................................................................*/
 
 /*...*/
@@ -3469,8 +3438,6 @@ void systFormComb(Loads *loads              , Loads *ldVel
                 MAT3D(i, k, j, lGradU0, ndf, ndm) 
                = MAT3D(vizNel, k, j, gradU0, ndf,ndm);
 /*...................................................................*/
-            for (j = 0; j<DIFPROP; j++)
-              MAT2D(i, j, lProp, MAXPROP) = MAT2D(lMat, j, prop, MAXPROP);
           }
         }
 /*...................................................................*/
@@ -3491,7 +3458,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
                         , scAdv        , scDiff
                         , tModel       , cModel
                         , vProp        
-                        , lGeomType    , lProp
+                        , lGeomType    
                         , lViz         , lId
                         , lKsi         , lmKsi
                         , lEta         , lfArea
@@ -3597,11 +3564,6 @@ void systFormComb(Loads *loads              , Loads *ldVel
 /*...................................................................*/
 
 /*...*/
-        for (j = 0; j<MAXPROP; j++)
-          MAT2D(aux1, j, lProp, MAXPROP) = MAT2D(lMat, j, prop, MAXPROP);
-/*...................................................................*/
-
-/*...*/
         for (j = 0; j<ndm; j++)
         {
           MAT2D(aux1, j, lVel, ndm) = MAT2D(nel, j, vel, ndm);
@@ -3696,8 +3658,6 @@ void systFormComb(Loads *loads              , Loads *ldVel
                 MAT3D(i, k, j, lGradU0, ndf, ndm) 
                = MAT3D(vizNel, k, j, gradU0, ndf,ndm);
 /*...................................................................*/
-            for (j = 0; j<DIFPROP; j++)
-              MAT2D(i, j, lProp, MAXPROP) = MAT2D(lMat, j, prop, MAXPROP);
           }
         }
 /*...................................................................*/
@@ -3718,7 +3678,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
                         , scAdv        , scDiff
                         , tModel       , cModel
                         , vProp        
-                        , lGeomType    , lProp
+                        , lGeomType    
                         , lViz         , lId
                         , lKsi         , lmKsi
                         , lEta         , lfArea
@@ -5195,7 +5155,7 @@ void systFormSimplePres(Loads *loadsVel   , Loads *loadsPres
 
 /********************************************************************* 
  * Data de criacao    : 17/09/2017                                   *
- * Data de modificaco : 17/08/2019                                   * 
+ * Data de modificaco : 27/08/2019                                   * 
  *-------------------------------------------------------------------* 
  * SYSTFOMSIMPLEPRESLM:calculo do sistema de equacoes para problemas * 
  * de escomaneto de fluidos para baixo Mach(Pres)                    * 
@@ -5231,7 +5191,6 @@ void systFormSimplePres(Loads *loadsVel   , Loads *loadsPres
  *            centrois compartilhado nessa face                      *
  * calType -> tipo de calculo das celulas                            *
  * geomType-> tipo geometrico das celulas                            *
- * prop    -> propriedades dos material                              *
  * mat     -> material por celula                                    *
  * ia      -> ponteiro para as linhas da matriz esparsa              * 
  * ja      -> ponteiro para as colunas da matriz esparsa             * 
@@ -5292,7 +5251,7 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
                , DOUBLE *RESTRICT fEta     , DOUBLE *RESTRICT fArea
                , DOUBLE *RESTRICT fNormal  , DOUBLE *RESTRICT fXm
                , DOUBLE *RESTRICT fModvSkew, DOUBLE *RESTRICT fvSkew
-               , short  *RESTRICT geomType , DOUBLE *RESTRICT prop
+               , short  *RESTRICT geomType 
                , short  *RESTRICT calType  , short  *RESTRICT mat
                , INT    *RESTRICT ia       , INT    *RESTRICT ja
                , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad 
@@ -5329,7 +5288,6 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
   short  lFaceVelL[MAX_NUM_FACE+1],lFacePresL[MAX_NUM_FACE+1];
   DOUBLE lDensity[(MAX_NUM_FACE+1)*DENSITY_LEVEL];
   DOUBLE lA[(MAX_NUM_FACE+1)*MAX_NDF],lB[MAX_NDF];
-  DOUBLE lProp[(MAX_NUM_FACE+1)*MAXPROP];
   DOUBLE lPres[(MAX_NUM_FACE+1)],lTemp[(MAX_NUM_FACE + 1)];
   DOUBLE lGradPres[(MAX_NUM_FACE+1)*MAX_NDM];
   DOUBLE lVel[(MAX_NUM_FACE+1)*MAX_NDM];
@@ -5346,13 +5304,13 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
 #pragma omp parallel  for default(none) num_threads(nThreads)\
      private(nel,i,j,aux1,lId,lPres,lMat,lib,lVolume,lGeomType\
           ,lFaceVelR,lA,lB,lDfield,lTemp\
-          ,lFaceVelL,lFacePresR,lFacePresL,lDensity,lProp,lGradPres\
+          ,lFaceVelL,lFacePresR,lFacePresL,lDensity,lGradPres\
           ,lVel,lmKsi,lfArea,lDcca,lmvSkew,lKsi,lEta\
           ,lNormal,lXm,lXmcc,lvSkew,vizNel,lViz,lRcell,lWallPar\
           ,idFace,cellOwner,ch)\
      shared(aux2,ndm,ndf,numel,maxViz,calRcell,rCell,nFace,mat\
          ,calType,gVolume, geomType, faceVelR, faceVelL, facePresR,temp\
-         ,facePresL,density, prop,gradPres,vel,fModKsi\
+         ,facePresL,density,gradPres,vel,fModKsi\
          ,fArea,gDcca,fModvSkew,fKsi,fEta,fNormal,fXm,gXmCc,fvSkew\
          ,nelcon,id,loadsVel,loadsPres,diffPres,eMass\
          ,ddt,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd\
@@ -5396,11 +5354,6 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
 /*...*/
         lPres[aux1] = pres[nel];
         lTemp[aux1] = temp[nel];
-/*...................................................................*/
-
-/*...*/
-        for (j = 0; j<MAXPROP; j++)
-          MAT2D(aux1, j, lProp, MAXPROP) = MAT2D(lMat, j, prop, MAXPROP);
 /*...................................................................*/
 
 /*...*/
@@ -5471,9 +5424,6 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
               MAT2D(i, j, lVel, ndm) = MAT2D(vizNel, j, vel, ndm);
               MAT2D(i, j, lDfield, ndm) = MAT2D(vizNel, j, dField, ndm);
             }
-
-            for (j = 0; j<DIFPROP; j++)
-              MAT2D(i, j, lProp, MAXPROP) = MAT2D(lMat, j, prop, MAXPROP);
           }
         }
 /*...................................................................*/
@@ -5487,7 +5437,7 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
 /*... chamando a biblioteca de celulas*/
         cellLibSimplePresLm(loadsVel  , loadsPres
                           , diffPres  , eMass
-                          , lGeomType , lProp
+                          , lGeomType 
                           , lViz      , lId
                           , lKsi      , lmKsi
                           , lEta      , lfArea
@@ -5574,12 +5524,7 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
         lPres[aux1]     = pres[nel];
         lTemp[aux1]     = temp[nel];
 /*...................................................................*/ 
-     
-/*...*/
-        for(j=0;j<MAXPROP;j++)
-          MAT2D(aux1,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);
-/*...................................................................*/
-      
+    
 /*...*/
         lDfield[aux1] = dField[nel];
         for(j=0;j<ndm;j++) 
@@ -5650,8 +5595,6 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
               MAT2D(i,j,lDfield  ,ndm) = MAT2D(vizNel,j,dField  ,ndm);
             }
 
-            for(j=0;j<MAXPROP;j++)
-              MAT2D(i,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);
           }
         }  
 /*...................................................................*/
@@ -5665,7 +5608,7 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
 /*... chamando a biblioteca de celulas*/
         cellLibSimplePresLm(loadsVel,loadsPres 
 											,diffPres   ,eMass
-                      ,lGeomType  ,lProp 
+                      ,lGeomType  
                       ,lViz       ,lId           
                       ,lKsi       ,lmKsi
                       ,lEta       ,lfArea 

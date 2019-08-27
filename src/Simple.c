@@ -3348,7 +3348,7 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
     , mesh->face.eta          , mesh->face.area
     , mesh->face.normal       , mesh->face.xm
     , mesh->face.mvSkew       , mesh->face.vSkew
-    , mesh->elm.geomType      , mesh->elm.material.prop
+    , mesh->elm.geomType      
     , mesh->elm.material.type , mesh->elm.mat
     , sistEqVel->ia           , sistEqVel->ja
     , sistEqVel->al           , sistEqVel->ad
@@ -3497,7 +3497,7 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
             , mesh->face.eta         , mesh->face.area
             , mesh->face.normal      , mesh->face.xm
             , mesh->face.mvSkew      , mesh->face.vSkew
-            , mesh->elm.geomType     , mesh->elm.material.prop
+            , mesh->elm.geomType     
             , mesh->elm.material.type, mesh->elm.mat
             , sistEqPres->ia         , sistEqPres->ja
             , sistEqPres->al         , sistEqPres->ad

@@ -68,7 +68,7 @@
                    , Advection  *adv             , Diffusion *diff
                    , Turbulence *tModel          , EnergyModel *model  
                    , Combustion *cModel          , PropVarFluid *vProp
-                   , short *RESTRICT lGeomType   , DOUBLE *RESTRICT lprop
+                   , short *RESTRICT lGeomType   
                    , INT   *RESTRICT lViz        , INT *RESTRICT lId
                    , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
                    , DOUBLE *RESTRICT eta        , DOUBLE *RESTRICT fArea
@@ -100,7 +100,7 @@
                , Advection  *adv           , Diffusion *diff
                , Turbulence *tModel        , Combustion *cModel
                , PropVarFluid *vProp       
-               , short *RESTRICT lGeomType , DOUBLE *RESTRICT lprop
+               , short *RESTRICT lGeomType 
                , INT   *RESTRICT lViz      , INT *RESTRICT lId
                , DOUBLE *RESTRICT ksi      , DOUBLE *RESTRICT mKsi
                , DOUBLE *RESTRICT eta      , DOUBLE *RESTRICT fArea
@@ -199,8 +199,7 @@
   void cellLibSimpleVelLm(Loads *loadsVel, Loads *loadsPres
             , Advection  *advVel         , Diffusion *diffVel 
             , Turbulence *tModel         , MomentumModel *ModelMomentum
-            , short const typeSimple       
-            , short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop
+            , short const typeSimple     , short *RESTRICT lGeomType  
             , INT   *RESTRICT lViz       , INT *RESTRICT lId
             , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
             , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea
@@ -224,7 +223,7 @@
 /*... chamada da biblioteca de elementos (escoamento-pres-Low Mach)*/
   void cellLibSimplePresLm(Loads *loadsVel  , Loads *loadsPres
 	             , Diffusion *diffPres        , MassEqModel *eMass    
-               , short *RESTRICT lGeomType  , DOUBLE *RESTRICT lprop
+               , short *RESTRICT lGeomType  
                , INT   *RESTRICT lViz       , INT *RESTRICT lId  
                , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
                , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea
@@ -462,8 +461,7 @@
   void cellEnergy2D(Loads *loads           , Loads *loadsVel 
             , Advection *adv               , Diffusion *diff
             , Turbulence *tModel           , EnergyModel *model 
-            , PropVarFluid *vProp
-            , short *RESTRICT lGeomType    , DOUBLE *RESTRICT prop
+            , PropVarFluid *vProp          , short *RESTRICT lGeomType    
             , INT *RESTRICT lViz           , INT *RESTRICT lId
             , DOUBLE *RESTRICT ksi         , DOUBLE *RESTRICT mKsi
             , DOUBLE *RESTRICT eta         , DOUBLE *RESTRICT mEta
@@ -489,7 +487,7 @@
             , Advection *advT             , Diffusion *diffT
             , Turbulence *tModel          , EnergyModel *eModel
             , Combustion *cModel          , PropVarFluid *vProp
-            , short *RESTRICT lGeomType   , DOUBLE *RESTRICT prop
+            , short *RESTRICT lGeomType   
             , INT *RESTRICT lViz          , INT *RESTRICT lId
             , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
             , DOUBLE *RESTRICT eta        , DOUBLE *RESTRICT fArea
@@ -671,8 +669,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
   void cellSimpleVel2DLm(Loads *loadsVel , Loads *loadsPres  
            , Advection advVel           , Diffusion diffVel
            , Turbulence tModel          , MomentumModel ModelMomentum
-           , short const typeSimple      
-           , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop 
+           , short const typeSimple     , short *RESTRICT lGeomType  
            , INT *RESTRICT lViz         , INT *RESTRICT lId 
            , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi 
            , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT mEta 
@@ -688,7 +685,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
            , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel 
            , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lDviscosity 
            , DOUBLE *RESTRICT dField    , DOUBLE *RESTRICT stressR
-           , DOUBLE *RESTRICT wallPar
+           , DOUBLE *RESTRICT wallPar   , DOUBLE const densityMed
            , DOUBLE const underU        , const bool sPressure 
            , const short nEn            , short const nFace 
            , const short ndm            , INT const nel);
@@ -696,7 +693,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
 /*... biblioteca de celulas 3D(simple - pres - low mach)*/
   void cellSimplePres2DLm(Loads *loadsVel, Loads *loadsPres		
     			 , Diffusion *diffPres       	, MassEqModel *eMass
-           , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop
+           , short *RESTRICT lGeomType 
            , INT *RESTRICT lViz         , INT *RESTRICT lId  
            , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
            , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT mEta
@@ -718,8 +715,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
   void cellSimpleVel3DLm(Loads *lVel      , Loads *lPres 
             , Advection *advVel           , Diffusion *diffVel
             , Turbulence *tModel          , MomentumModel *ModelMomentum
-            , short const typeSimple 
-            , short *RESTRICT lGeomType   , DOUBLE *RESTRICT prop
+            , short const typeSimple      , short *RESTRICT lGeomType   
             , INT *RESTRICT lViz          , INT *RESTRICT lId  
             , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
             , DOUBLE *RESTRICT eta        , DOUBLE *RESTRICT fArea
@@ -742,7 +738,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
 /*... biblioteca de celulas 3D(simple - pres - low mach)*/
   void cellSimplePres3DLm(Loads *lVel      , Loads *lPres 
 							, Diffusion *diffPres        , MassEqModel *eMass
-              , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop
+              , short *RESTRICT lGeomType  
               , INT *RESTRICT lViz         , INT *RESTRICT lId  
               , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
               , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea
@@ -765,8 +761,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
   void cellCombustion3D(Loads *loads          , Loads *lVel
                   , Advection *advT           , Diffusion *diffT
                   , Turbulence *tModel        , Combustion *cModel
-                  , PropVarFluid *vProp
-                  , short *RESTRICT lGeomType , DOUBLE *RESTRICT prop
+                  , PropVarFluid *vProp       , short *RESTRICT lGeomType 
                   , INT *RESTRICT lViz        , INT *RESTRICT lId
                   , DOUBLE *RESTRICT ksi      , DOUBLE *RESTRICT mKsi
                   , DOUBLE *RESTRICT eta      , DOUBLE *RESTRICT fArea
