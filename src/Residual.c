@@ -323,9 +323,9 @@ void rScaled(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
   { 
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(max ,gMax ,ndf,MPI_DOUBLE,MPI_MAX,mpiVar.comm);
-    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     for(j=0;j<ndf;j++)
       max[j] = gMax[j]; 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
   }
 #endif
 /*...................................................................*/
@@ -351,9 +351,9 @@ void rScaled(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
   { 
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(rU ,gMax ,ndf,MPI_DOUBLE,MPI_MAX,mpiVar.comm);
-    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     for(j=0;j<ndf;j++)
       rU[j] = gMax[j]; 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
   }
 #endif
 /*...................................................................*/
@@ -422,9 +422,9 @@ void rScaledSum(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
   { 
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(sum ,gSum ,ndf,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     for(j=0;j<ndf;j++)
       sum[j] = gSum[j]; 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
   }
 #endif
 /*...................................................................*/
@@ -446,9 +446,9 @@ void rScaledSum(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
   { 
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(rU,gSum ,ndf,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     for(j=0;j<ndf;j++)
       rU[j] = gSum[j]; 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
   }
 #endif
 /*...................................................................*/
@@ -523,9 +523,9 @@ void rScaledSumMax(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
   { 
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(sum,gSum ,ndf,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     for(j=0;j<ndf;j++)
       sum[j] = gSum[j]; 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
   }
 #endif
 /*...................................................................*/
@@ -553,9 +553,9 @@ void rScaledSumMax(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
   { 
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(rU,gSum ,ndf,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     for(j=0;j<ndf;j++)
       rU[j] = gSum[j]; 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
   }
 #endif
 /*...................................................................*/

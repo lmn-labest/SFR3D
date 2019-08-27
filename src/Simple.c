@@ -1791,13 +1791,10 @@ void updateCellSimpleVelR(DOUBLE  *RESTRICT w  ,DOUBLE  *RESTRICT u1
 /*... obtem os valores de x das equacoes em overlaping*/  
   if(fCom)
   {
-    tm.overHeadCelMpi = getTimeC() - tm.overHeadCelMpi;  
     comunicateNeq(iNeq,u1);
     comunicateNeq(iNeq,u2);
     if(ndm == 3) 
       comunicateNeq(iNeq,u3);
-
-    tm.overHeadCelMpi = getTimeC() - tm.overHeadCelMpi;
   }
 /*.................................................................*/
 
@@ -1948,11 +1945,7 @@ void updateCellSimplePres(DOUBLE  *RESTRICT presC,DOUBLE  *RESTRICT xp
 
 /*... obtem os valores de x das equacoes em overlaping*/  
   if(fCom)
-  {
-    tm.overHeadCelMpi = getTimeC() - tm.overHeadCelMpi;  
     comunicateNeq(iNeq,xp);
-    tm.overHeadCelMpi = getTimeC() - tm.overHeadCelMpi;
-  }
 /*.................................................................*/
 
 

@@ -89,13 +89,16 @@
 /*...*/
     double interCellNode;
 /*... comunicacao entre as particoes*/
+    double overHeadBufferMpi;
     double overHeadCelMpi;
     double overHeadNodMpi;
     double overHeadNeqMpi;
     double overHeadGNodMpi;
     double overHeadGCelMpi;
-    double overHeadTotalMpi;
+    double overHeadWaitMpi;
     double overHeadMiscMpi;
+    double overHeadRecvMpi;
+    double overHeadSendMpi;
 /*...*/
     double tempFromTheEnergy;
 /*...*/

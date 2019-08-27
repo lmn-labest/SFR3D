@@ -6051,11 +6051,8 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
   short jNdf;
 
 /*... obtem os valores de x das equacoes em overlaping*/  
-  if(fCom){
-    tm.overHeadCelMpi = getTimeC() - tm.overHeadCelMpi;
+  if(fCom)
     comunicateNeq(iNeq,x);
-    tm.overHeadCelMpi = getTimeC() - tm.overHeadCelMpi;
-  }
 /*.................................................................*/  
   
 /*...*/
@@ -6121,10 +6118,8 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
 /*... obtem os valores de x das equacoes em overlaping*/  
   if(fCom)
   {
-    tm.overHeadCelMpi = getTimeC() - tm.overHeadCelMpi;  
     for(jNdf = 0;jNdf<ndf;jNdf++)
       comunicateNeq(iNeq,&x[jNdf*nEq]);
-    tm.overHeadCelMpi = getTimeC() - tm.overHeadCelMpi;
   }
 /*.................................................................*/  
   
@@ -6207,11 +6202,8 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
   short jNdf;
 
 /*... obtem os valores de x das equacoes em overlaping*/  
-  if(fCom){
-    tm.overHeadCelMpi = getTimeC() - tm.overHeadCelMpi;
+  if(fCom)
     comunicateNeq(iNeq,x);
-    tm.overHeadCelMpi = getTimeC() - tm.overHeadCelMpi;
-  }
 /*.................................................................*/  
   
 /*...*/

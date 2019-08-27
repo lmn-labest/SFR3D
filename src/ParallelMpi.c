@@ -2453,9 +2453,9 @@ void mpiStop(void){
 void mpiWait(void){
 
 #ifdef _MPI_
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
   MPI_Barrier(mpiVar.comm);
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
 #endif
 
 }
@@ -2463,7 +2463,7 @@ void mpiWait(void){
 
 /********************************************************************* 
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 16/08/2019                                   * 
+ * Data de modificaco : 27/08/2019                                   * 
  *-------------------------------------------------------------------*
  * GOBBALMESHQUALITY : obtem as estatistica globais da malha         * 
  *-------------------------------------------------------------------* 
@@ -2484,42 +2484,32 @@ void globalMeshQuality(MeshQuality *mQl,MeshQuality *mQl0){
 #ifdef _MPI_
   DOUBLE v;
 /*... volume */
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
   MPI_Allreduce(&mQl->volume,&v ,1           ,MPI_DOUBLE
                ,MPI_SUM     ,mpiVar.comm);
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
   mQl0->volume = v;
 /*...................................................................*/
 
 /*... nonOrthMed */
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
   MPI_Allreduce(&mQl->nonOrthMed,&v      ,1          , MPI_DOUBLE
                ,MPI_SUM         , mpiVar.comm);
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
   mQl0->nonOrthMed = v/(DOUBLE) mpiVar.nPrcs;  
 /*...................................................................*/
 
 /*... nonOrthMAX */
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
   MPI_Allreduce(&mQl->nonOrthMax,&v      , 1          , MPI_DOUBLE
             ,MPI_MAX            , mpiVar.comm);
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
   mQl0->nonOrthMax = v;  
 /*...................................................................*/
 
 /*... skewMed*/
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
   MPI_Allreduce(&mQl->skewMed   ,&v      ,1          , MPI_DOUBLE
             ,MPI_SUM            , mpiVar.comm);
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
   mQl0->skewMed = v/(DOUBLE) mpiVar.nPrcs;  
 /*...................................................................*/
 
 /*... skewMax */
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
   MPI_Allreduce(&mQl->skewMax   ,&v      ,1          , MPI_DOUBLE
             ,MPI_MAX            , mpiVar.comm);
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
   mQl0->skewMax = v;  
 /*...................................................................*/
 #endif
@@ -2569,14 +2559,14 @@ void dGlobalCel(Memoria *m         ,PartMesh *pMesh
   DOUBLE *x1=NULL; 
 #endif
 
-/*...*/  
-  tm.overHeadGCelMpi = getTimeC() - tm.overHeadGCelMpi;
-/*...................................................................*/
-   
 /*...*/
   if(mpiVar.nPrcs < 2) return;
 /*...................................................................*/
 
+/*...*/  
+  tm.overHeadGCelMpi = getTimeC() - tm.overHeadGCelMpi;
+/*...................................................................*/
+   
 #ifdef _MPI_
 
 /*...*/
@@ -2631,9 +2621,7 @@ void dGlobalCel(Memoria *m         ,PartMesh *pMesh
 /*...................................................................*/
 
 /*...*/
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
   MPI_Reduce(x1,uG,size,MPI_DOUBLE,MPI_SUM,0,mpiVar.comm);
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
 /*...................................................................*/
 
 
@@ -2729,9 +2717,7 @@ void dGlobalNode(Memoria *m         ,PartMesh *pMesh
 /*...................................................................*/
 
 /*...*/
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
   MPI_Reduce(x1,uG,size,MPI_DOUBLE,MPI_SUM,0,mpiVar.comm);
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
 /*...................................................................*/
 
 /*...*/  
@@ -3397,14 +3383,16 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
   INT k,kk;
   unsigned short partId,nPart,nVizParts = iNeq->nVizPart; 
 
-/*...*/
-  tm.overHeadNeqMpi    = getTimeC() - tm.overHeadNeqMpi;
-/*...................................................................*/    
-  
   if(mpiVar.nPrcs < 2 ) return;
 
+/*...*/
+  tm.overHeadNeqMpi = getTimeC() - tm.overHeadNeqMpi;
+/*...................................................................*/    
+
 /*... gerando o buffer de envio*/
-   makeBuffer(x,&iNeq->xb[nRcvs],&iNeq->fMap[nRcvs],nSends);
+  tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
+  makeBuffer(x,&iNeq->xb[nRcvs],&iNeq->fMap[nRcvs],nSends);
+  tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
 /*...................................................................*/    
 
 /*...*/  
@@ -3413,46 +3401,48 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
 /*... enviando para as particoes vizinhas*/
     k      = iNeq->iaSends[nPart];
     kk     = iNeq->iaSends[nPart+1] - iNeq->iaSends[nPart];
-    tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+    tm.overHeadSendMpi = getTimeC() - tm.overHeadSendMpi;
     MPI_Isend(&iNeq->xb[k]    ,kk
              ,MPI_DOUBLE      ,partId    
              ,mpiVar.myId     ,mpiVar.comm
              ,&mpiVar.sendRequest[nPart]);
-    tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+    tm.overHeadSendMpi = getTimeC() - tm.overHeadSendMpi;
 /*... recebimentos das particoes vizinhas*/
     k      = iNeq->iaRcvs[nPart];
     kk     = iNeq->iaRcvs[nPart+1] - iNeq->iaRcvs[nPart];
-    tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+    tm.overHeadRecvMpi = getTimeC() - tm.overHeadRecvMpi;
     MPI_Irecv(&iNeq->xb[k]   ,kk
              ,MPI_DOUBLE     ,partId    
              ,partId         ,mpiVar.comm
              ,&mpiVar.recvRequest[nPart]);
-    tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+    tm.overHeadRecvMpi = getTimeC() - tm.overHeadRecvMpi;
   }  
 /*...................................................................*/    
     
 /*... espera o recebimentos dos dados*/
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
   mpiVar.ierr = MPI_Waitall(nVizParts,mpiVar.recvRequest,mpiVar.status);
   if (mpiVar.ierr != MPI_SUCCESS) {
     MPI_Error_string(mpiVar.ierr, mpiVar.errBuffer,&mpiVar.lString);
     printf("!%s!\n",mpiVar.errBuffer);
   }
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
 /*...................................................................*/    
   
 /*...*/
+  tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
   getBuffer(x,iNeq->xb,iNeq->fMap,nRcvs);
+  tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
 /*...................................................................*/    
 
 /*... espera o envio de todos os dados*/
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
   mpiVar.ierr = MPI_Waitall(nVizParts,mpiVar.sendRequest,mpiVar.status);
   if (mpiVar.ierr != MPI_SUCCESS) {
     MPI_Error_string(mpiVar.ierr, mpiVar.errBuffer,&mpiVar.lString);
     printf("!%s!\n",mpiVar.errBuffer);
   }
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
 /*...................................................................*/    
 
 /*...*/
@@ -3502,9 +3492,11 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
 /*...................................................................*/    
 
 /*... gerando o buffer de envio*/
-   makeBufferCel(x                     ,&iCel->xb[nRcvs*nst]
+  tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
+  makeBufferCel(x                     ,&iCel->xb[nRcvs*nst]
                 ,&iCel->fMap[nRcvs]    ,nSends
                 ,ndf1                  ,ndf2);
+  tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
 /*...................................................................*/    
 
 /*...*/   
@@ -3515,50 +3507,52 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
     kk     = iCel->iaSends[nPart+1] - iCel->iaSends[nPart];
     k      *= nst;
     kk     *= nst;
-    tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+    tm.overHeadSendMpi = getTimeC() - tm.overHeadSendMpi;
     MPI_Isend(&iCel->xb[k]    ,kk
              ,MPI_DOUBLE      ,partId    
              ,mpiVar.myId     ,mpiVar.comm
              ,&mpiVar.sendRequest[nPart]);
-    tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+    tm.overHeadSendMpi = getTimeC() - tm.overHeadSendMpi;
 /*... recebimentos das particoes vizinhas*/
     k      = iCel->iaRcvs[nPart];
     kk     = iCel->iaRcvs[nPart+1] - iCel->iaRcvs[nPart];
     k      *= nst;
     kk     *= nst;
-    tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+    tm.overHeadRecvMpi = getTimeC() - tm.overHeadRecvMpi;
     MPI_Irecv(&iCel->xb[k]   ,kk
              ,MPI_DOUBLE     ,partId    
              ,partId         ,mpiVar.comm
              ,&mpiVar.recvRequest[nPart]);
-    tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+    tm.overHeadRecvMpi = getTimeC() - tm.overHeadRecvMpi;
   }  
 /*...................................................................*/    
 
 /*... espera o recebimentos dos dados*/
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
   mpiVar.ierr = MPI_Waitall(nVizParts,mpiVar.recvRequest,mpiVar.status);
   if (mpiVar.ierr != MPI_SUCCESS) {
     MPI_Error_string(mpiVar.ierr, mpiVar.errBuffer,&mpiVar.lString);
     printf("!%s!\n",mpiVar.errBuffer);
   }
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
 /*...................................................................*/    
   
 /*...*/
+  tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
   getBufferCel(x         ,iCel->xb
               ,iCel->fMap,nRcvs
               ,ndf1      ,ndf2);
+  tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
 /*...................................................................*/    
 
 /*... espera o envio de todos os dados*/
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
   mpiVar.ierr = MPI_Waitall(nVizParts,mpiVar.sendRequest,mpiVar.status);
   if (mpiVar.ierr != MPI_SUCCESS) {
     MPI_Error_string(mpiVar.ierr, mpiVar.errBuffer,&mpiVar.lString);
     printf("!%s!\n",mpiVar.errBuffer);
   }
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
 /*...................................................................*/    
 
 /*...*/
@@ -3571,7 +3565,7 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
 
 /********************************************************************* 
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 27/08/2019                                   *
  *-------------------------------------------------------------------*
  * DCOMUNICATENOD : comunicao valores das nos nas interface (DOUBLE) * 
  *-------------------------------------------------------------------* 
@@ -3607,9 +3601,11 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
 /*...................................................................*/    
 
 /*... gerando o buffer de envio*/
-   dMakeBufferNod(x                    ,&iNo->xb[nCom*nst]
+  tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
+  dMakeBufferNod(x                    ,&iNo->xb[nCom*nst]
                 ,iNo->fMap             ,nCom   
                 ,ndf1                  ,ndf2);
+  tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
 /*...................................................................*/    
 
 /*...*/   
@@ -3620,46 +3616,48 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
     k      *= nst;
     kk     *= nst;
 /*... enviando para as particoes vizinhas*/
-    tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+    tm.overHeadSendMpi = getTimeC() - tm.overHeadSendMpi;
     MPI_Isend(&iNo->xb[nCom*nst+k]     ,kk
              ,MPI_DOUBLE               ,partId    
              ,mpiVar.myId              ,mpiVar.comm
              ,&mpiVar.sendRequest[nPart]);
-    tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+    tm.overHeadSendMpi = getTimeC() - tm.overHeadSendMpi;
 /*... recebimentos das particoes vizinhas*/
-    tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+    tm.overHeadRecvMpi = getTimeC() - tm.overHeadRecvMpi;
     MPI_Irecv(&iNo->xb[k]   ,kk
              ,MPI_DOUBLE     ,partId    
              ,partId         ,mpiVar.comm
              ,&mpiVar.recvRequest[nPart]);
-    tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+    tm.overHeadRecvMpi = getTimeC() - tm.overHeadRecvMpi;
   }  
 /*...................................................................*/    
 
 /*... espera o recebimentos dos dados*/
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
   mpiVar.ierr = MPI_Waitall(nVizParts,mpiVar.recvRequest,mpiVar.status);
   if (mpiVar.ierr != MPI_SUCCESS) {
     MPI_Error_string(mpiVar.ierr, mpiVar.errBuffer,&mpiVar.lString);
     printf("!%s!\n",mpiVar.errBuffer);
   }
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
 /*...................................................................*/    
   
 /*...*/
+  tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
   dGetBufferNod(x         ,iNo->xb
               ,iNo->fMap ,nCom
               ,ndf1      ,ndf2);
+  tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
 /*...................................................................*/    
 
 /*... espera o envio de todos os dados*/
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
   mpiVar.ierr = MPI_Waitall(nVizParts,mpiVar.sendRequest,mpiVar.status);
   if (mpiVar.ierr != MPI_SUCCESS) {
     MPI_Error_string(mpiVar.ierr, mpiVar.errBuffer,&mpiVar.lString);
     printf("!%s!\n",mpiVar.errBuffer);
   }
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
 /*...................................................................*/    
 
 /*...*/
@@ -3672,7 +3670,7 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
 
 /********************************************************************* 
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 27/08/2019                                   *
  *-------------------------------------------------------------------*
  * ICOMUNICATENOD : comunicao valores das nos nas interface (INT)    * 
  *-------------------------------------------------------------------* 
@@ -3707,9 +3705,11 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
 /*...................................................................*/
 
 /*... gerando o buffer de envio*/
+  tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
   iMakeBufferNod(x                     ,&iNo->xi[nCom*nst]
                 ,iNo->fMap             ,nCom   
                 ,ndf1                  ,ndf2);
+  tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
 /*...................................................................*/    
 
 /*...*/   
@@ -3720,46 +3720,48 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
     k      *= nst;
     kk     *= nst;
 /*... enviando para as particoes vizinhas*/
-    tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+    tm.overHeadSendMpi = getTimeC() - tm.overHeadSendMpi;
     MPI_Isend(&iNo->xi[nCom*nst+k]     ,kk
              ,MPI_INT                  ,partId    
              ,mpiVar.myId              ,mpiVar.comm
              ,&mpiVar.sendRequest[nPart]);
-    tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+    tm.overHeadSendMpi = getTimeC() - tm.overHeadSendMpi;
 /*... recebimentos das particoes vizinhas*/
-    tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+    tm.overHeadRecvMpi = getTimeC() - tm.overHeadRecvMpi;
     MPI_Irecv(&iNo->xi[k]    ,kk
              ,MPI_INT        ,partId    
              ,partId         ,mpiVar.comm
              ,&mpiVar.recvRequest[nPart]);
-    tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+    tm.overHeadRecvMpi = getTimeC() - tm.overHeadRecvMpi;
   }  
 /*...................................................................*/    
 
 /*... espera o recebimentos dos dados*/
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
   mpiVar.ierr = MPI_Waitall(nVizParts,mpiVar.recvRequest,mpiVar.status);
   if (mpiVar.ierr != MPI_SUCCESS) {
     MPI_Error_string(mpiVar.ierr, mpiVar.errBuffer,&mpiVar.lString);
     printf("!%s!\n",mpiVar.errBuffer);
   }
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
 /*...................................................................*/    
   
 /*...*/
+  tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
   iGetBufferNod(x         ,iNo->xi
               ,iNo->fMap ,nCom
               ,ndf1      ,ndf2);
+  tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
 /*...................................................................*/    
 
 /*... espera o envio de todos os dados*/
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
   mpiVar.ierr = MPI_Waitall(nVizParts,mpiVar.sendRequest,mpiVar.status);
   if (mpiVar.ierr != MPI_SUCCESS) {
     MPI_Error_string(mpiVar.ierr, mpiVar.errBuffer,&mpiVar.lString);
     printf("!%s!\n",mpiVar.errBuffer);
   }
-  tm.overHeadTotalMpi = getTimeC() - tm.overHeadTotalMpi;
+  tm.overHeadWaitMpi = getTimeC() - tm.overHeadWaitMpi;
 /*...................................................................*/    
 
 /*...*/

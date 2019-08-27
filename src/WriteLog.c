@@ -98,7 +98,8 @@ void writeLog(Mesh *mesh            ,Scheme *sc
   
   fprintf(file,"Log do execucao    : %s\n\n",nameIn); 
   
-  if(mpiVar.nPrcs > 1){
+  if(mpiVar.nPrcs > 1)
+  {
     fprintf(file,"myId               :%2d\n",mpiVar.myId); 
     fprintf(file,"nPrcs              :%2d\n\n",mpiVar.nPrcs); 
   } 
@@ -114,7 +115,8 @@ void writeLog(Mesh *mesh            ,Scheme *sc
   fprintf(file,"%-25s : %13.3lf\n","matVecSparse",t->matVecSparse);
   fprintf(file,"%-25s : %13.3lf\n","dot"         ,t->dot); 
 /*... Blas overHead do mpi */
-  if(mpiVar.nPrcs > 1){
+  if(mpiVar.nPrcs > 1)
+  {
     fprintf(file,"%-25s : %13.3lf\n","matVecOverHead",t->matVecOverHeadMpi);
     fprintf(file,"%-25s : %13.3lf\n","dotOverHead"   ,t->dotOverHeadMpi);
   }
@@ -127,23 +129,29 @@ void writeLog(Mesh *mesh            ,Scheme *sc
   fprintf(file,"%-25s : %13.3lf\n","precondDiag",t->precondDiag);
 
 /*... particionamento*/
-  if(mpiVar.nPrcs > 1){
+  if(mpiVar.nPrcs > 1)
+  {
     fprintf(file,"%-25s : %13.3lf\n","partdMesh"    ,t->partdMesh);
     fprintf(file,"%-25s : %13.3lf\n","partdMeshComm",t->partdMeshCom);
   }
 /*... comunicacao entre as particoes*/
-  if(mpiVar.nPrcs > 1){
-    fprintf(file,"%-25s : %13.3lf\n","overHeadCelMpi"  ,t->overHeadCelMpi);
-    fprintf(file,"%-25s : %13.3lf\n","overHeadNodMpi"  ,t->overHeadNodMpi);
-    fprintf(file,"%-25s : %13.3lf\n","overHeadNeqMpi"  ,t->overHeadNeqMpi);
-    fprintf(file,"%-25s : %13.3lf\n","overHeadGCelMpi" ,t->overHeadGCelMpi);
-    fprintf(file,"%-25s : %13.3lf\n","overHeadGNodMpi" ,t->overHeadGNodMpi);
-    fprintf(file,"%-25s : %13.3lf\n","overHeadMiscMpi" ,t->overHeadMiscMpi);
-    fprintf(file,"%-25s : %13.3lf\n","overHeadTotalMpi",t->overHeadTotalMpi);
+  if(mpiVar.nPrcs > 1)
+  {
+    fprintf(file,"%-25s : %13.3lf\n","overHeadCelMpi"   ,t->overHeadCelMpi);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadNodMpi"   ,t->overHeadNodMpi);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadNeqMpi"   ,t->overHeadNeqMpi);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadGCelMpi"  ,t->overHeadGCelMpi);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadGNodMpi"  ,t->overHeadGNodMpi);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadMiscMpi"  ,t->overHeadMiscMpi);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadBufferMpi",t->overHeadBufferMpi);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadRecvMpi"  ,t->overHeadRecvMpi);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadSendMpi"  ,t->overHeadSendMpi);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadWaitMpi"  ,t->overHeadWaitMpi);
   }
 
 /*... solvD1*/
-  if(fSolvD1){
+  if(fSolvD1)
+  {
     fprintf(file,"%-25s : %13.3lf\n","SolvD1"         ,t->solvD1);
     fprintf(file,"%-25s : %13.3lf\n","numeqD1"        ,t->numeqD1);
     fprintf(file,"%-25s : %13.3lf\n","dataStructD1"   ,t->dataStructD1);
@@ -156,7 +164,8 @@ void writeLog(Mesh *mesh            ,Scheme *sc
 /*...................................................................*/
 
 /*... solvT1*/
-  if(fSolvT1){
+  if(fSolvT1)
+  {
     fprintf(file,"%-25s : %13.3lf\n","SolvT1"         ,t->solvT1);
     fprintf(file,"%-25s : %13.3lf\n","numeqT1"        ,t->numeqT1);
     fprintf(file,"%-25s : %13.3lf\n","dataStructT1"   ,t->dataStructT1);
@@ -173,7 +182,8 @@ void writeLog(Mesh *mesh            ,Scheme *sc
   fprintf(file,"%-25s : %13.3lf\n","updateProp"         ,t->updateProp);
 
 /*... solvVel*/
-  if(fSolvVel){
+  if(fSolvVel)
+  {
     fprintf(file,"%-25s : %13.3lf\n","SolvVel"            ,t->solvVel);
     fprintf(file,"%-25s : %13.3lf\n","numeqVel"           ,t->numeqVel);
     fprintf(file,"%-25s : %13.3lf\n","dataStructVel"      ,t->dataStructVel);
@@ -187,7 +197,8 @@ void writeLog(Mesh *mesh            ,Scheme *sc
 /*...................................................................*/
 
 /*... solvPres*/
-  if(fSolvPres){
+  if(fSolvPres)
+  {
     fprintf(file,"%-25s : %13.3lf\n","SolvPres"      ,t->solvPres);
     fprintf(file,"%-25s : %13.3lf\n","numeqPres"     ,t->numeqPres);
     fprintf(file,"%-25s : %13.3lf\n","dataStructPres",t->dataStructPres);
@@ -197,7 +208,8 @@ void writeLog(Mesh *mesh            ,Scheme *sc
 /*...................................................................*/
 
 /*... energy*/
-  if(fEnergy){
+  if(fEnergy)
+  {
     fprintf(file,"%-25s : %13.3lf\n","SolvEnergy"       ,t->solvEnergy);
     fprintf(file,"%-25s : %13.3lf\n","numeqEnergy"      ,t->numeqEnergy);
     fprintf(file,"%-25s : %13.3lf\n","dataStructEnergy" ,t->dataStructEnergy);
@@ -208,7 +220,8 @@ void writeLog(Mesh *mesh            ,Scheme *sc
 /*...................................................................*/
 
 /*... combustion*/
-  if(fCombustion){
+  if(fCombustion)
+  {
     fprintf(file,"%-25s : %13.3lf\n","SolvCombustion"      ,t->solvComb);
     fprintf(file,"%-25s : %13.3lf\n","numeqCombustion"     ,t->numeqComb);
     fprintf(file,"%-25s : %13.3lf\n","dataStructCombustion",t->dataStructComb);
@@ -462,12 +475,27 @@ void writeLog(Mesh *mesh            ,Scheme *sc
   MPI_Reduce(&t->overHeadMiscMpi, &mTime , 1, MPI_DOUBLE
             ,MPI_SUM            , 0      , mpiVar.comm);
   if(!mpiVar.myId)
-    fprintf(file,"%-25s : %13.3lf\n","overHeadMislMpi",mTime/nPrcs);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadMisMpi",mTime/nPrcs);
 
-  MPI_Reduce(&t->overHeadTotalMpi, &mTime , 1, MPI_DOUBLE
+  MPI_Reduce(&t->overHeadBufferMpi, &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM              , 0      , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"%-25s : %13.3lf\n","overHeadBufferMpi",mTime/nPrcs);
+
+  MPI_Reduce(&t->overHeadRecvMpi, &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM              , 0      , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"%-25s : %13.3lf\n","overHeadRecvMpi",mTime/nPrcs);
+ 
+  MPI_Reduce(&t->overHeadSendMpi, &mTime , 1, MPI_DOUBLE
+            ,MPI_SUM              , 0      , mpiVar.comm);
+  if(!mpiVar.myId)
+    fprintf(file,"%-25s : %13.3lf\n","overHeadSendMpi",mTime/nPrcs);
+
+  MPI_Reduce(&t->overHeadWaitMpi, &mTime , 1, MPI_DOUBLE
             ,MPI_SUM            , 0      , mpiVar.comm);
   if(!mpiVar.myId)
-    fprintf(file,"%-25s : %13.3lf\n","overHeadTotalMpi",mTime/nPrcs);
+    fprintf(file,"%-25s : %13.3lf\n","overHeadWaitMpi",mTime/nPrcs);
 
 /*... solvD1*/
   if(fSolvD1){

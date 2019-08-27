@@ -52,7 +52,7 @@ double getTimeC(void){
 
 /**********************************************************************
  * Data de criacao    : 03/12/2017                                    *
- * Data de modificaco : 08/06/2019                                    *
+ * Data de modificaco : 27/08/2019                                    *
  * -------------------------------------------------------------------*
  * initTime : inicializacao da variaveis de tempo                     *
  * -------------------------------------------------------------------*
@@ -141,14 +141,16 @@ void initTime(Time *tm) {
   tm->partdMesh         = 0.e0;
   tm->partdMeshCom      = 0.e0;
 /*...*/
+  tm->overHeadBufferMpi = 0.e0;
   tm->overHeadCelMpi    = 0.e0;
   tm->overHeadNodMpi    = 0.e0;
   tm->overHeadNeqMpi    = 0.e0;
   tm->overHeadGCelMpi   = 0.e0;
   tm->overHeadGNodMpi   = 0.e0;
   tm->overHeadMiscMpi   = 0.e0;
-  tm->overHeadTotalMpi  = 0.e0;
-/*...*/
+  tm->overHeadRecvMpi   = 0.e0;
+  tm->overHeadSendMpi   = 0.e0;
+  tm->overHeadWaitMpi   = 0.e0;
 
 /*...*/
   tm->turbulence        = 0.e0;
