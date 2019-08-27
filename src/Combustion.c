@@ -998,7 +998,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
   void *pt[10];
   short i,j,id,iCod;
   short nSp = c->chem.nSp;
-  INT k;
+  INT k,maxIt;
   DOUBLE aTol,rTol;
   DOUBLE x,dy,pres=Pth,tF,yF,yOx,yP,tMix,tMixC,tChem;
   DOUBLE tmp1,tmp2,tmp3,gEdc,gamma,cTau,itMix,tK,yt[MAXSPECIES],tt;
@@ -1021,7 +1021,8 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
 /*...................................................................*/
 
 /*...*/
-  aTol = rTol = 1.e-11;
+  maxIt = c->edc.edo.maxIt;
+  aTol  = rTol = c->edc.edo.tol;
 
   TEMP(tK,temp,fKelvin);
 
@@ -1085,7 +1086,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
             , 1.0e-01*tt                 , dt
             , aTol                       , rTol        
             , nSp                        , &tF
-            , 10000                      , true
+            , maxIt                      , true
             , 0                          , NULL
             , &plugFlowReactor           , NULL); 
 /*....................................................................*/

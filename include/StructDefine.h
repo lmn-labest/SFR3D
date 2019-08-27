@@ -9,6 +9,16 @@
 /*...*/
   typedef struct 
   {
+    short  type;
+    INT maxIt;
+    DOUBLE tol;  
+  } Edo;
+/*...................................................................*/
+
+
+/*...*/
+  typedef struct 
+  {
     DOUBLE A,E,Ta,beta;  
   } Arrhenius;
 /*...................................................................*/
@@ -59,6 +69,7 @@
   typedef struct{
     short type;
     DOUBLE cGamma,cTau,tMix; /* KJ/Kmol*/    
+    Edo edo;
   }Edc;
 /*...................................................................*/  
 

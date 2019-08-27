@@ -152,7 +152,7 @@ int main(int argc,char**argv){
   ,"setSolvDiff"  ,"setSolvTrans" ,"openmp"         /* 9,10,11*/
   ,"solvD1"       ,"propVar"      ,"pD1"            /*12,13,14*/
   ,"nlIt"         ,"pD1CsvCell"   ,"pD1CsvNode"     /*15,16,17*/
-  ,"solvT1"       ,""             ,"pT1"            /*18,19,20*/
+  ,"solvT1"       ,"edo"          ,"pT1"            /*18,19,20*/
   ,""             ,"pT1CsvCell"   ,"pT1CsvNode"     /*21,22,23*/
   ,"setSolvFluid" ,"simple"       ,"setSimple"      /*24,25,26*/
   ,"transient"    ,"timeUpdate"   ,"partd"          /*27,28,29*/
@@ -1172,6 +1172,19 @@ int main(int argc,char**argv){
      tm.solvEdpT1    = getTimeC() - tm.solvEdpT1;
 /*...................................................................*/
      endSec(OUTPUT_FOR_SCREEN);
+    }
+/*===================================================================*/
+
+/*===================================================================*
+ * macro: edo: configura do solver de edo   
+ *===================================================================*/
+    else if((!strcmp(word,macro[19])))
+    {
+      initSec(word, OUTPUT_FOR_SCREEN);
+/*...*/
+      configEdo(&combModel.edc.edo,fileIn);
+/*...................................................................*/
+      endSec(OUTPUT_FOR_SCREEN);
     }
 /*===================================================================*/
 
