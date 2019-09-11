@@ -85,16 +85,16 @@
 
 /*... gradiente conjugado precondicionado*/
 	void pcg(INT const nEq,INT const nAd
-		,INT *RESTRICT ia   ,INT *RESTRICT ja
-		,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
-		,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b
-    ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z
-    ,DOUBLE *RESTRICT r ,DOUBLE *RESTRICT p
-		,DOUBLE const tol   ,unsigned int maxIt
-    ,bool const newX  	,FILE* fLog
-    ,FILE *fileHistLog  ,bool const log 
-    ,bool const fHistLog,bool const fPrint
-		,void(*matvec)()    ,DOUBLE(*dot)());
+		      ,INT *RESTRICT ia   ,INT *RESTRICT ja
+		      ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
+		      ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b
+          ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z
+          ,DOUBLE *RESTRICT r ,DOUBLE *RESTRICT p
+		      ,DOUBLE const tol   ,unsigned int maxIt
+          ,bool const newX  	,FILE* fLog
+          ,FILE *fileHistLog  ,bool const log 
+          ,bool const fHistLog,bool const fPrint
+		      ,void(*matvec)()    ,DOUBLE(*dot)());
 
 /*...  gradiente conjugado precondicionado (OPENMP)*/  
   void pcgOmp(INT const nEq      ,INT const nAd
@@ -124,6 +124,22 @@
         ,bool const fHistLog,bool const fPrint
         ,Interface *iNeq                      
         ,void(*matvec)()    ,DOUBLE(*dot)());
+/*...................................................................*/
+
+/*...*/
+  void mpiPcgOmp(INT const nEq     , INT const nEqNov
+            ,INT const nAd       , INT const nAdR
+            , INT *RESTRICT ia   , INT *RESTRICT ja
+            , DOUBLE *RESTRICT a , DOUBLE *RESTRICT ad
+            , DOUBLE *RESTRICT m , DOUBLE *RESTRICT b
+            , DOUBLE *RESTRICT x , DOUBLE *RESTRICT z
+            , DOUBLE *RESTRICT r , DOUBLE *RESTRICT p
+            , DOUBLE const tol   , unsigned int maxIt
+            , bool const newX    , FILE* fileLog
+            , FILE *fileHistLog  , bool const log
+            , bool const fHistLog, bool const fPrint
+            , BufferOmp *bOmp    ,Interface *iNeq
+            , void(*matvec)()    , DOUBLE(*dot)());
 /*...................................................................*/
 
 /*...*/
@@ -192,6 +208,24 @@
           ,bool const fHistLog ,bool const fPrint 
           ,Interface *iNeq    
           ,void(*matvec)()     ,DOUBLE(*dot)());
+/*...................................................................*/
+
+/*...*/
+  void mpiPbicgstabOmp(INT const nEq,INT const nEqNov   
+               ,INT const nAd      ,INT const nAdR
+               ,INT *RESTRICT ia   ,INT *RESTRICT ja
+               ,DOUBLE *RESTRICT a ,DOUBLE *RESTRICT ad
+               ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b
+               ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT t
+               ,DOUBLE *RESTRICT v ,DOUBLE *RESTRICT r
+               ,DOUBLE *RESTRICT p ,DOUBLE *RESTRICT z
+               ,DOUBLE *RESTRICT r0
+               ,DOUBLE const tol   ,unsigned int maxIt
+               ,bool const newX    ,FILE* fileLog
+               ,FILE *fileHistLog  ,bool const log
+               ,bool const fHistLog,bool const fPrint
+               ,BufferOmp *bOmp    ,Interface *iNeq
+               ,void(*matvec)()    ,DOUBLE(*dot)());
 /*...................................................................*/
 
 /*...*/

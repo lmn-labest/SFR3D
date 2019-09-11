@@ -399,7 +399,7 @@ void rScaledSum(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
   for(j=0;j<ndf;j++)
     sum[j] = rU[j] = 0.e0;
 
-/*... sum(Ap*uP) */
+/*... sum(|Ap*uP|) */
   for(i=0;i<nEl;i++)
   {
     lNeq = id[i] - 1;
@@ -500,7 +500,7 @@ void rScaledSumMax(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
   for(j=0;j<ndf;j++)
     sum[j] = rU[j] = 0.e0;
 
-/*... max(Ap*uP) */
+/*... max(|Ap*uP|) */
   for(i=0;i<nEl;i++)
   {
     lNeq = id[i] - 1;

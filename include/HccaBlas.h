@@ -183,20 +183,34 @@
                      ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
                      ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y
                      ,Interface *iNeq);
+/*...................................................................*/
+
 /*... CSRD+COO*/
   void mpiMatVecCsrDcooSym(INT const nEq      ,INT const *nAd       
                           ,INT *RESTRICT ia   ,INT *RESTRICT ja
                           ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
                           ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y
                           ,Interface *iNeq);
+/*...................................................................*/
+
 /*... Geral*/
   void mpiMatVecCsrD(INT const neq   ,INT const *nAd 
                   ,INT *RESTRICT ia  ,INT *RESTRICT ja
                   ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
                   ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y
                   ,Interface *iNeq);
-  
-  
+/*...................................................................*/
+
+/*... MPI+OPENMP - CsrD */ 
+/*... Simetrico*/
+/*... CSRD+CSR*/
+  void mpiMatVecCsrDSymOmp(INT const nEq       ,INT const *nAd      
+                     ,INT *RESTRICT ia       ,INT *RESTRICT ja
+                     ,DOUBLE *RESTRICT al    ,DOUBLE *RESTRICT ad
+                     ,DOUBLE *RESTRICT x     ,DOUBLE *RESTRICT y
+                      ,INT  *RESTRICT thBegin,INT *RESTRICT thEnd
+                     ,INT  *RESTRICT thHeight,DOUBLE *RESTRICT thY   
+                     ,int const nThreads     ,Interface *iNeq);    
 /*...................................................................*/
 
 /*... CsrC */ 
@@ -206,6 +220,7 @@
                  ,INT *RESTRICT ia  ,INT *RESTRICT ja
                  ,DOUBLE *RESTRICT a,DOUBLE *RESTRICT ad
                  ,DOUBLE *RESTRICT x,DOUBLE *RESTRICT y);
+/*...................................................................*/
 
 /*... CsrCsymOmp*/
   void matVecCsrComp(INT const nEq
@@ -223,16 +238,25 @@
                     ,DOUBLE *RESTRICT a ,DOUBLE *RESTRICT ad
                     ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y
                     ,Interface *iNeq);
+/*...................................................................*/
 
 /*... CSRC+COO*/
   void mpiMatVecCsrCcoo(INT const nEq      ,INT const *nAd      
                        ,INT *RESTRICT ia   ,INT *RESTRICT ja
                        ,DOUBLE *RESTRICT a ,DOUBLE *RESTRICT ad
                        ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y
-                       ,Interface *iNeq);
-  
+                       ,Interface *iNeq);  
 /*...................................................................*/
 
+/*... CSRD+CSR*/
+  void mpiMatVecCsrComp(INT const nEq     ,INT const *nAd      
+                  ,INT *RESTRICT ia       ,INT *RESTRICT ja
+                  ,DOUBLE *RESTRICT a     ,DOUBLE *RESTRICT ad
+                  ,DOUBLE *RESTRICT x     ,DOUBLE *RESTRICT y
+                  ,INT  *RESTRICT thBegin ,INT *RESTRICT thEnd
+                  ,INT  *RESTRICT thHeight,DOUBLE *RESTRICT thY 
+                  ,int const nThreads     ,Interface *iNeq);  
+/*...................................................................*/
 
 /*... EllPack*/ 
   void matVecEllPack(INT const nEq           

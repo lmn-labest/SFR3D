@@ -1,5 +1,28 @@
 #include<Solv.h>
 /**********************************************************************
+c * Metodos iterativos para solucao de sistemas lineares              *
+c * ----------------------------------------------------------------  *
+c * simetricos:                                                       *
+c * ----------------------------------------------------------------  *
+c *                                                                   *
+c * PCG - gradiente conjugados com precondicionador diagonal          *
+c *                                                                   * 
+c * MINRES - MINRES com precondicionador diagonal M=D(1/2)D(1/2)      *
+c * ----------------------------------------------------------------  *
+c * nao - simetricos:                                                 *
+c * ----------------------------------------------------------------  *
+c *                                                                   *
+c * pbicgstab - gradiente bi - conjugados estabilizados  com          *
+c * precondicionador diagonal                                         *
+c *                                                                   *
+c * pbicgstabl2- gradiente bi-conjugados estabilizados (l=2) com      *
+c * precondicionador diagonal                                         *
+c *                                                                   *
+c * gmres      - gmres com precondicionador diagonal                  *
+c *                                                                   *
+c *********************************************************************/
+
+/**********************************************************************
  * Data de criacao    : 00/00/0000                                    *
  * Data de modificaco : 27/08/2016                                    *
  * -------------------------------------------------------------------*
@@ -703,7 +726,7 @@ void setDot(DOUBLE(**dotC)(),short const iCod) {
 
 /**********************************************************************
 * Data de criacao :    22 / 07 / 2016                                 *
-* Data de modificaco : 03 / 12 / 2017  															  *
+* Data de modificaco : 27 / 08 / 2019  															  *
 * ------------------------------------------------------------------- *
 * SETMATVEC: escolhe o produto matriz vetor desejado                  *
 * ------------------------------------------------------------------- *
@@ -799,18 +822,27 @@ void setMatVec(void (**matVecC)(),short const storage
 		fCoo = true;
 	case CSRC:
 /*... nao - simetrica*/
-		if (unSym) {
+		if (unSym) 
+    {
 /*... mpi*/
-			if (mpiVar.nPrcs > 1) {
+			if (mpiVar.nPrcs > 1)
+      {
 /*... CSRC+COO*/
-				if (fCoo) {
+				if (fCoo) 
+        {
 					*matVecC = mpiMatVecCsrCcoo;
 				}
 /*...................................................................*/
 
 /*... CSRC+CSR*/
-				else {
-					*matVecC = mpiMatVecCsrC;
+				else
+        {
+/*... Omp*/
+          if (ompVar.fSolver)
+            *matVecC = mpiMatVecCsrComp;
+/*... sequencial*/
+          else
+  					*matVecC = mpiMatVecCsrC;
 /*...................................................................*/
 				}
 			}
@@ -832,23 +864,30 @@ void setMatVec(void (**matVecC)(),short const storage
 /*... simetrica*/
 		else {
 /*... mpi*/
-			if (mpiVar.nPrcs > 1) {
+			if (mpiVar.nPrcs > 1)
+      {
 /*... CSRD+COO*/
-				if (fCoo) {
+				if (fCoo)
+        {
 					*matVecC = mpiMatVecCsrDcooSym;
 				}
 /*...................................................................*/
 
 /*... CSRD+CSR*/
-				else {
-					*matVecC = mpiMatVecCsrDSym;
+				else
+        {
+          if(ompVar.fSolver)
+            *matVecC = mpiMatVecCsrDSymOmp;
+          else
+				    *matVecC = mpiMatVecCsrDSym;
 /*...................................................................*/
 				}
 			}
 /*..................................................................*/
 
 /*... sequencial*/
-			else {
+			else 
+      {
         if(ompVar.fSolver)
           *matVecC = matVecCsrDsymOmp;
         else
@@ -891,7 +930,7 @@ void setMatVec(void (**matVecC)(),short const storage
 
 /**********************************************************************
 * Data de criacao    : 27/08/2016                                    *
-* Data de modificaco : 00/00/0000                                    *
+* Data de modificaco : 27/08/2019                                    *
 * -------------------------------------------------------------------*
 * CALLCG : chama o gradiente conjugados escolhido                    *
 * -------------------------------------------------------------------*
@@ -919,7 +958,30 @@ void callCg(INT const nEq      ,INT const nEqNov
 
 /*... PCG-MPI*/
   if (mpiVar.nPrcs > 1)
-    mpiPcg(nEq     ,nEqNov
+  {
+/*... OpenMp*/
+    if(ompVar.fSolver)
+    {
+/*    mpiPcg(nEq     ,nEqNov
+          ,nAd     ,nAdR
+          ,ia      ,ja
+          ,al      ,ad 
+          ,m       ,b  
+          ,x       ,z
+          ,r       ,p
+          ,tol     ,maxIt
+          ,newX    ,fSolvLog
+          ,NULL    ,fLog
+          ,false   ,fPrint
+          ,iNeq
+          ,matVec  ,dot);*/
+    }
+/*...................................................................*/
+
+/*... sequencial*/
+    else
+    {
+      mpiPcg(nEq     ,nEqNov
           ,nAd     ,nAdR
           ,ia      ,ja
           ,al      ,ad 
@@ -932,8 +994,9 @@ void callCg(INT const nEq      ,INT const nEqNov
           ,false   ,fPrint
           ,iNeq
           ,matVec  ,dot);
+    }
 /*...................................................................*/
-
+  }
 /*... PCG*/
   else
   {
@@ -978,7 +1041,7 @@ void callCg(INT const nEq      ,INT const nEqNov
 
 /**********************************************************************
 * Data de criacao    : 27/08/2016                                    *
-* Data de modificaco : 18/08/2019                                    *
+* Data de modificaco : 27/08/2019                                    *
 * -------------------------------------------------------------------*
 * CALLBICGCSTAB : chama o gradiente biconjugados estabilizados       *                   *
 * -------------------------------------------------------------------*
@@ -1008,7 +1071,28 @@ void callBicgStab(INT const nEq     ,INT const nEqNov
 
 /*... MPI*/
   if (mpiVar.nPrcs > 1)
-    mpiPbicgstab(nEq    ,nEqNov
+/*... OpenMp*/
+    if (ompVar.fSolver)
+       mpiPbicgstabOmp(nEq    ,nEqNov
+                  ,nAd    ,nAdR
+                  ,ia    ,ja
+                  ,a     ,ad
+                  ,m     ,b
+                  ,x     ,t
+                  ,v     ,r
+                  ,p     ,z
+                  ,h
+                  ,tol   ,maxIt
+                  ,newX  ,fSolvLog
+                  ,NULL  ,fLog
+                  ,false ,fPrint
+                  ,bOmp  ,iNeq
+                  ,matVec,dot);
+/*...................................................................*/
+
+/*... sequencial*/
+    else
+      mpiPbicgstab(nEq    ,nEqNov
                 ,nAd    ,nAdR
                 ,ia     ,ja
                  ,a     ,ad
@@ -1029,7 +1113,8 @@ void callBicgStab(INT const nEq     ,INT const nEqNov
   else
   {
 /*... OpenMp*/
-    if (ompVar.fSolver) {
+    if (ompVar.fSolver)
+    {
       pbicgstabOmp(nEq   ,nAd
                   ,ia    ,ja
                   ,a     ,ad
@@ -1048,7 +1133,8 @@ void callBicgStab(INT const nEq     ,INT const nEqNov
 /*...................................................................*/
 
 /*... sequencial*/
-    else {
+    else
+    {
       pbicgstab(nEq   ,nAd
                ,ia    ,ja
                ,a     ,ad
