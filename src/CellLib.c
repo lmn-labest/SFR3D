@@ -2837,7 +2837,7 @@ void greenGaussNode(INT *RESTRICT lViz   ,DOUBLE *RESTRICT fArea
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 11/05/2019                                   * 
+ * Data de modificaco : 11/09/2019                                   * 
  *-------------------------------------------------------------------* 
  * LEASTSQUARE : calcula o gradiente por minimos quadrados           *
  *-------------------------------------------------------------------* 
@@ -2879,12 +2879,12 @@ void  leastSquare(Loads *loads
   DOUBLE tmp,coefDif;
   INT vizNel;
   short idCell = nFace,nCarg,type;
-  short i,j,k,l;
+  short i,j,k,l,it=1,itNumber=8;
   
   for(j=0;j<MAX_NDF;j++)
     uC[j] = 0.e0;
  
-  for(l=0;l<1;l++){    
+  for(l=0;l<it;l++){    
 /*... um grau de liberdade*/  
     if(ndf == 1){
       uC[0] = u[idCell];  
@@ -2902,7 +2902,8 @@ void  leastSquare(Loads *loads
           if(ndm == 3) xx[2] = MAT2D(i,2,xm,ndm);
           xx[3] = 0.e0;          
 /*... temperatura prescrita na face(extrapolacao linear)*/
-          if(lFaceR[i]){
+          if(lFaceR[i])
+          {
             nCarg = lFaceL[i]-1;
             type  = loads[nCarg].type;
 /*... valor prescrito*/
@@ -2931,7 +2932,9 @@ void  leastSquare(Loads *loads
 /*...................................................................*/
 
 /*... condicao de robin*/
-            else if( type == ROBINBC || type == CONVECTIONHEAT ){
+            else if( type == ROBINBC || type == CONVECTIONHEAT )
+            {
+              if(l==0) it = itNumber;
               du[i] =0.e0;
               for(j=0;j<ndm;j++)
                 du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
@@ -2956,7 +2959,9 @@ void  leastSquare(Loads *loads
 /*...................................................................*/
 
 /*... fluxo nulo*/
-          else{
+          else
+          {
+            if(l==0) it = itNumber;
             du[i] =0.e0;
             for(j=0;j<ndm;j++)
               du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
@@ -2979,11 +2984,13 @@ void  leastSquare(Loads *loads
 /*...................................................................*/
 
 /*... graus de liberdade maior que 1 */
-    else{
+    else
+    {
       for(k=0;k<ndf;k++)
         uC[k] = MAT2D(idCell,k,u,ndf);
 /*... loop nas faces*/
-      for(i=0;i<nFace;i++){
+      for(i=0;i<nFace;i++)
+        {
         for(k=0;k<ndf;k++)
           MAT2D(i,k,du,ndf) = 0.e0;    
         vizNel = lViz[i];
@@ -2992,18 +2999,21 @@ void  leastSquare(Loads *loads
           for(k=0;k<ndf;k++)
             MAT2D(i,k,du,ndf) =  MAT2D(i,k,u,ndf) - uC[k];
 /*... contorno*/
-        else{
+        else
+        {
           xx[0] = MAT2D(i,0,xm,ndm);
           xx[1] = MAT2D(i,1,xm,ndm);
           xx[2] = 0.e0;
           if(ndm == 3) xx[2] = MAT2D(i,2,xm,ndm);
           xx[3] = 0.e0;
 /*... potencial prescrito na face(extrapolacao linear)*/
-          if(lFaceR[i] > 0){
+          if(lFaceR[i] > 0)
+          {
             nCarg= lFaceL[i]-1;
             type = loads[nCarg].type;
 /*... valor prescrito*/
-            if( type == DIRICHLETBC || type == MOVEWALL){
+            if( type == DIRICHLETBC || type == MOVEWALL)
+            {
               getLoads(par,&loads[nCarg],xx);
               for(k=0;k<ndf;k++)
                 MAT2D(i,k,du,ndf) = par[k] - uC[k];
@@ -3011,7 +3021,8 @@ void  leastSquare(Loads *loads
 /*...................................................................*/
 
 /*...*/
-            else if( type == INLET){
+            else if( type == INLET)
+            {
               getLoads(par,&loads[nCarg],xx);
               for(k=0;k<ndf;k++)
                 MAT2D(i,k,du,ndf) = par[k] - uC[k];
@@ -3043,15 +3054,19 @@ void  leastSquare(Loads *loads
 /*...................................................................*/
 
 /*... parede static impermeavel*/
-          else if(lFaceR[i]==STATICWALL){
+          else if(lFaceR[i]==STATICWALL)
+          {
             for(k=0;k<ndf;k++)
               MAT2D(i,k,du,ndf) = - uC[k];
            }
 /*...................................................................*/
 
 /*... fluxo nulo*/
-          else{
-            for(k=0;k<ndf;k++){
+          else
+          {
+            if(l==0) it = itNumber;
+            for(k=0;k<ndf;k++)
+            {
               MAT2D(i,k,du,ndf) = 0.e0;
               for(j=0;j<ndm;j++)
                 MAT2D(i,k,du,ndf) += 

@@ -70,6 +70,26 @@ static void endSec(short icod)
   }
 }
 
+double ff(double x,double y, double z)
+{
+  double pi=PI;
+  return sin(10*0.5*pi*z);
+}
+
+void grad(Mesh *mesh)
+{
+  int i;
+  DOUBLE x,y,z;
+  fprintf(fileLogDebug,"initialTemp\n");
+  for(i=0;i<mesh->numel;i++)
+  {
+    x = MAT2D(i,0,mesh->elm.geom.cc,3);
+    y = MAT2D(i,1,mesh->elm.geom.cc,3);
+    z = MAT2D(i,2,mesh->elm.geom.cc,3);
+    fprintf(fileLogDebug,"%9d %12.6lf\n",i+1,ff(x,y,z));
+  }
+  fprintf(fileLogDebug,"endInitialTemp\nreturn\n");
+}
 
 /*********************************************************************/
 void testeFace(Geom *geom, Face *face
@@ -744,6 +764,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
+      grad(mesh0);
 //    writeMeshPart(mesh,&combModel);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);

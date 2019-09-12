@@ -42,7 +42,7 @@
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 24/05/2019                                   *
+ * Data de modificaco : 11/09/2019                                   *
  *-------------------------------------------------------------------*
  * readFileFvMesh : leitura de arquivo de dados em volume finitos    *
  * ------------------------------------------------------------------*
@@ -77,7 +77,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
        ,"materials"    ,"uniformPres","initialVel"     /*27,28,29*/
        ,"uniformTemp"  ,"uniformVel" ,"uniformZ"       /*30,31,32*/
        ,"faceReKturb"  ,"loadsKturb" ,"faceLoadKturb"  /*33,34,35*/
-       ,"fileMaterials",""           ,""               /*36,37,38*/
+       ,"fileMaterials","initialTemp",""               /*36,37,38*/
 	   };                                             
   bool rflag[NMACROS],macroFlag;
   bool fOneEqK,fComb,fWallModel,fTurbStruct,fDynamic;
@@ -1096,6 +1096,20 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
+
+/*... initTemp - valore de temperatura inicias*/
+    else if ((!strcmp(word, macro[37])) && (!rflag[37])) {
+      fprintf(fileLogExc, "%s\n%s\n", DIF,word);
+      strcpy(macros[nmacro++], word);
+      rflag[36] = true;
+      strcpy(str, "endInitialTemp");
+      fprintf(fileLogExc, "loading endInitTemp ...\n");
+      readVfInitial(mesh->elm.temp0,mesh->numel,1,str,file);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
+    }
+/*...................................................................*/
+
+
 
   }while(macroFlag && (!feof(file)));
   
@@ -3392,7 +3406,7 @@ void readGravity(DOUBLE *gravity,FILE *file){
 
 /********************************************************************* 
  * Data de criacao    : 17/07/2016                                   *
- * Data de modificaco : 21/08/2019                                   * 
+ * Data de modificaco : 11/09/2019                                   * 
  *-------------------------------------------------------------------* 
  * SETPPRINT : Seleciona as veriaves que serao impressas na          *
  * macro pFluid, puD1, puT1                                          *
@@ -3430,7 +3444,7 @@ void setPrint(FileOpt *opt,FILE *file){
                ,"coefdiffsp"   ,"enthalpyk"   ,"gradY"           /*36,37,38*/
                ,"treactor"     ,"binary"      ,""                /*39,40,41*/
                ,""             ,""            ,""};              /*42,43,44*/
-  int tmp;
+  int tmp,i=0,maxWord=100;
 
   strcpy(format,"%-20s: %s\n");
 
@@ -3439,7 +3453,7 @@ void setPrint(FileOpt *opt,FILE *file){
   fscanf(file,"%d",&tmp);
   opt->stepPlot[0] = opt->stepPlot[1] = (short) tmp;
   readMacroV2(file, word, false, true);
-  while(strcmp(word,str))
+  while(strcmp(word,str) && i < maxWord)
   {
 /*... cell*/        
     if(!strcmp(word,macro[0]))
@@ -3771,6 +3785,19 @@ void setPrint(FileOpt *opt,FILE *file){
 /*.....................................................................*/
 
     readMacroV2(file, word, false, true);
+    i += 1;
+  }
+/*.....................................................................*/
+
+/*...*/
+  if (maxWord == i)
+  {
+    fprintf(fileLogDebug
+          ,"Numero maximo de palavras lida na macro setPrint!!\n");
+    fprintf(fileLogDebug
+          ,"Possivel falta na palavra end!!\n");
+    mpiStop();
+    exit(EXIT_FAILURE);
   }
 /*.....................................................................*/
 
