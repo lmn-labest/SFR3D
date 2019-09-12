@@ -2879,7 +2879,7 @@ void  leastSquare(Loads *loads
   DOUBLE tmp,coefDif;
   INT vizNel;
   short idCell = nFace,nCarg,type;
-  short i,j,k,l,it=1,itNumber=8;
+  short i,j,k,l,it=1,itNumber=10;
   
   for(j=0;j<MAX_NDF;j++)
     uC[j] = 0.e0;
@@ -4194,7 +4194,7 @@ DOUBLE volume3DGreenGauss(DOUBLE *RESTRICT xm,DOUBLE *RESTRICT normal
    
 /********************************************************************* 
  * Data de criacao    : 02/06/2019                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 12/09/2019                                   * 
  *-------------------------------------------------------------------* 
  * volumeHexa: volume do hexaedro                                    *
  *-------------------------------------------------------------------* 
@@ -4208,7 +4208,7 @@ DOUBLE volume3DGreenGauss(DOUBLE *RESTRICT xm,DOUBLE *RESTRICT normal
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *                         | v3x v3y v3z |                           *
- * vol = v3 * ( v1 x v2) = | v1x v2y v2z |                           *
+ * vol = v3 * ( v1 x v2) = | v1x v1y v1z |                           *
  *                         | v2x v2y v2z |                           *     
  *********************************************************************/
 DOUBLE volumeHexa(DOUBLE *RESTRICT x)
@@ -4233,7 +4233,7 @@ DOUBLE volumeHexa(DOUBLE *RESTRICT x)
 
 
   det  = d[0][0]*d[1][1]*d[2][2] + d[0][1]*d[1][2]*d[2][0] +
-         d[0][2]*d[1][0]*d[2][1] - d[2][0]*d[1][1]*d[0][1] -
+         d[0][2]*d[1][0]*d[2][1] - d[2][0]*d[1][1]*d[0][2] -
          d[0][1]*d[1][0]*d[2][2] - d[0][0]*d[2][1]*d[1][2];
   
   return det;
@@ -4255,37 +4255,40 @@ DOUBLE volumeHexa(DOUBLE *RESTRICT x)
  *-------------------------------------------------------------------* 
  *-------------------------------------------------------------------* 
  * OBS:                                                              * 
- *-------------------------------------------------------------------* 
- *             | x1 - x4   y1 - y4   z1 - z4 |                        *
- * vol = (1/6) | x2 - x4   y2 - y4   z2 - z4 |                        *
- *             | x3 - x4   z3 - y4   z3 - z4 |                        *        
+ *-------------------------------------------------------------------*
+ *                                      | v3x v3y v3z |              *
+ * vol = (1/6) v3 * ( v1 x v2) =  (1/6) | v1x v1y v1z |              *
+ *                                      | v2x v2y v2z |              *
+ *                                                                   *  
+ *             | x1 - x4   y1 - y4   z1 - z4 |                       *
+ * vol = (1/6) | x2 - x4   y2 - y4   z2 - z4 |                       *
+ *             | x3 - x4   z3 - y4   z3 - z4 |                       *        
  *********************************************************************/
 DOUBLE volumeTetra(DOUBLE *RESTRICT x)
 {
   
   DOUBLE d[3][3],det;
  
-/*... v3 - no1 - no4*/
-  d[0][0] = MAT2D(0,0,x,3) - MAT2D(3,0,x,3); 
-  d[0][1] = MAT2D(0,1,x,3) - MAT2D(3,1,x,3); 
-  d[0][2] = MAT2D(0,2,x,3) - MAT2D(3,2,x,3);
+/*... v3 - no2 - no1*/
+  d[0][0] = MAT2D(1,0,x,3) - MAT2D(0,0,x,3); 
+  d[0][1] = MAT2D(1,1,x,3) - MAT2D(0,1,x,3); 
+  d[0][2] = MAT2D(1,2,x,3) - MAT2D(0,2,x,3);
 
-/*... v1 - no2 - no4*/
-  d[1][0] = MAT2D(1,0,x,3) - MAT2D(3,0,x,3); 
-  d[1][1] = MAT2D(1,1,x,3) - MAT2D(3,1,x,3); 
-  d[1][2] = MAT2D(1,2,x,3) - MAT2D(3,2,x,3); 
+/*... v1 - no3 - no1*/
+  d[1][0] = MAT2D(2,0,x,3) - MAT2D(0,0,x,3); 
+  d[1][1] = MAT2D(2,1,x,3) - MAT2D(0,1,x,3); 
+  d[1][2] = MAT2D(2,2,x,3) - MAT2D(0,2,x,3); 
 
-/*... v2 - no3 - no1*/
-  d[2][0] = MAT2D(2,0,x,3) - MAT2D(3,0,x,3); 
-  d[2][1] = MAT2D(2,1,x,3) - MAT2D(3,1,x,3); 
-  d[2][2] = MAT2D(2,2,x,3) - MAT2D(3,2,x,3); 
+/*... v2 - no4 - no1*/
+  d[2][0] = MAT2D(3,0,x,3) - MAT2D(0,0,x,3); 
+  d[2][1] = MAT2D(3,1,x,3) - MAT2D(0,1,x,3); 
+  d[2][2] = MAT2D(3,2,x,3) - MAT2D(0,2,x,3); 
 
 
   det  = d[0][0]*d[1][1]*d[2][2] + d[0][1]*d[1][2]*d[2][0] +
-         d[0][2]*d[1][0]*d[2][1] - d[2][0]*d[1][1]*d[0][1] -
+         d[0][2]*d[1][0]*d[2][1] - d[2][0]*d[1][1]*d[0][2] -
          d[0][1]*d[1][0]*d[2][2] - d[0][0]*d[2][1]*d[1][2];
-  printf("Volume tetra nao testado ainda!!!\n");
-  exit(0);
+
   return det/6.e0;
 
 }

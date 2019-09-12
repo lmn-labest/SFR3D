@@ -787,14 +787,14 @@ DOUBLE mixtureMolarMassMed(Combustion *cModel     ,DOUBLE *RESTRICT y
                           ,DOUBLE *RESTRICT volume,DOUBLE const numel) 
 {                    
 
-  short i, nSp = cModel->nOfSpecies;
+  short nSp = cModel->nOfSpecies;
   INT nel;
   DOUBLE vm,mm;
 
   for(nel=0,mm=0.e0,vm=0.e0;nel<numel;nel++)
   {
-    vm += volume[i];
-    mm += mixtureMolarMass(cModel,&MAT2D(i,0,y,nSp))*volume[i]; 
+    vm += volume[nel];
+    mm += mixtureMolarMass(cModel,&MAT2D(nel,0,y,nSp))*volume[nel];
   }
 
   return mm/vm;

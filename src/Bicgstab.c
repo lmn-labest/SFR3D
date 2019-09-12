@@ -794,7 +794,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
 /**********************************************************************/
 
 /**********************************************************************
-* Data de criacao    : 28 / 08 / 2016                                 *
+* Data de criacao    : 12 / 09 / 2019                                 *
 * Data de modificaco : 00 / 00 / 0000                                 *
 * ------------------------------------------------------------------- *
 * PBICGSTABOMP : metodo do gradiente conjugado bi - ortaganalizado    *
@@ -1073,7 +1073,7 @@ void mpiPbicgstabOmp(INT const nEq,INT const nEqNov
 			"\t|| x ||        = %20.2e\n"
 			"\t|| b - Ax ||   = %20.2e\n"
 			"\tCPU time(s)    = %20.2lf\n"
-	    ,nEq,nEqNov,nAd,nAdR,tol,j+1,xKx, norm, norm_r,timef);
+	    ,nEq,nEqNov,nAd,nAdR,tol,js+1,xKx, norm, norm_r,timef);
   }
 /*..................................................................*/  
 

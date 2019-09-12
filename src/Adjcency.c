@@ -1223,9 +1223,9 @@ void adjTetra4(INT *RESTRICT el    ,INT *RESTRICT nodcon
 /*********************************************************************/
 
 /***********************************************************************
- * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 00/00/0000                                   *
- *-------------------------------------------------------------------*
+ * Data de criacao    : 00/00/0000                                     *
+ * Data de modificaco : 00/00/0000                                     *
+ * ------------------------------------------------------------------- *
  * TETRA4FNOD -determina os nos da face j do elemento k                *
  * ------------------------------------------------------------------- *
  * Parametros de entrada:                                              *
@@ -1239,6 +1239,13 @@ void adjTetra4(INT *RESTRICT el    ,INT *RESTRICT nodcon
  * Parametros de saida:                                                *
  * ------------------------------------------------------------------- *
  * nodeFace -> nos da face j (numeracao local)                         *
+ *        3                                                            *
+ *      / | \                                                          *
+ *     /  |  \                                                         *
+ *    0 - - - 2                                                        *
+ *     \  |  /                                                         *
+ *      \ | /                                                          *
+ *        1                                                            *
  **********************************************************************/
 void tetra4fNod(INT const nEl     ,short const face
                ,INT *RESTRICT el   ,INT *RESTRICT nodeFace

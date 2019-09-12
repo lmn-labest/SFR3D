@@ -958,7 +958,7 @@ void mpiPcgOmp(INT const nEq     , INT const nEqNov
 			"\t|| x ||        = %20.2e\n"
 			"\t|| b - Ax ||   = %20.2e\n"
 			"\tCPU time(s)    = %20.2lf\n"
-	    ,nEq,nEqNov,nAd,nAdR,tol,j+1,xKx, norm, norm_r,timef);
+	    ,nEq,nEqNov,nAd,nAdR,tol, jG +1,xKx, norm, norm_r,timef);
   }
 /*..................................................................*/
 

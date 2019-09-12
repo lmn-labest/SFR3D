@@ -3105,18 +3105,21 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
   short cCell = maxViz + 1;
   int no,nel,tmp,tmp1;
   
-  for(nel=0;nel<numel;nel++){
+  for(nel=0;nel<numel;nel++)
+  {
     ty = typeGeom[nel];
 
 /*... triangulos*/
-    if( ty == TRIACELL){
+    if( ty == TRIACELL)
+    {
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
       for(j=0;j<maxViz;j++)
         tmp += abs(MAT2D(nel,j,faceR,cCell));
       if(tmp){
 /*... loop nas arestas*/
-        for(j=0;j<3;j++){
+        for(j=0;j<3;j++)
+        {
           tmp = MAT2D(nel,j,faceR,cCell);
 /*...*/
           if(tmp){
@@ -3139,25 +3142,30 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
 /*...................................................................*/
 
 /*... quadrilatero*/
-    else if( ty == QUADCELL){
+    else if( ty == QUADCELL)
+    {
 /*...*/
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
       for(j=0;j<maxViz;j++)
         tmp += abs(MAT2D(nel,j,faceR,cCell));
 /*...*/
-      if(tmp){
+      if(tmp)
+      {
 /*... loop nas arestas*/
-        for(j=0;j<4;j++){
+        for(j=0;j<4;j++)
+        {
           tmp = MAT2D(nel,j,faceR,cCell);
 /*...*/
-          if(tmp){
+          if(tmp)
+          {
             idFace[nf]       = nel + 1;
             typeGeomFace[nf] = LINECELL;
             nenFace[nf]      = sn(isnod,ty,nel);
             lFaceL[nf]       = MAT2D(nel,j,faceL,cCell); 
 /*... loop nos nos da face*/
-            for(k=0;k<nenFace[nf];k++){
+            for(k=0;k<nenFace[nf];k++)
+            {
               no  = MAT2D(j,k,isnod,nenFace[nf]);
               MAT2D(nf,k,face,nenFaceMax) = MAT2D(nel,no,el,maxNo)-1;
             }    
@@ -3171,19 +3179,39 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
 /*...................................................................*/
 
 /*... tetraedro*/
-    else if( ty == TETRCELL){
+    else if( ty == TETRCELL)
+    {
 /*...*/
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
-      for(j=0;j<maxViz;j++)
-        tmp += abs(MAT2D(nel,j,faceR,cCell));
+      for (j = 0; j<maxViz; j++)
+      {
+        if (fWallVel)
+          tmp += abs(MAT2D(nel, j, faceR, cCell));
+        else
+        {
+          tmp1 = MAT2D(nel, j, faceR, cCell);
+          if (tmp1 != -1)
+            tmp += tmp1;
+        }
+      }
 /*...*/
-      if(tmp){
+      if(tmp)
+      {
 /*... loop nas faces*/
-        for(j=0;j<4;j++){
-          tmp = MAT2D(nel,j,faceR,cCell);
+        for(j=0;j<4;j++)
+        {
+          if (fWallVel)
+            tmp = MAT2D(nel, j, faceR, cCell);
+          else
+          {
+            tmp = MAT2D(nel, j, faceR, cCell);
+            if (tmp == -1)
+              tmp = 0;
+          }
 /*...*/
-          if(tmp){
+          if(tmp)
+          {
             idFace[nf]       = nel + 1;
             typeGeomFace[nf] = TRIACELL;
             nenFace[nf]      = sn(isnod,ty,nel);
@@ -3203,11 +3231,13 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
 /*...................................................................*/
 
 /*... hexaedro*/
-    else if( ty == HEXACELL){
+    else if( ty == HEXACELL)
+    {
 /*...*/
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
       for(j=0;j<maxViz;j++)
+      {
         if(fWallVel)
           tmp += abs(MAT2D(nel,j,faceR,cCell));
         else
@@ -3216,26 +3246,31 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
           if(tmp1 != -1)
             tmp += tmp1;  
         }
-          
+      }    
 /*...*/
-      if(tmp){
+      if(tmp)
+      {
 /*... loop nas faces*/
-        for(j=0;j<6;j++){
+        for(j=0;j<6;j++)
+        {
           if(fWallVel)
             tmp = MAT2D(nel,j,faceR,cCell);
-          else {
+          else 
+          {
             tmp = MAT2D(nel,j,faceR,cCell);
             if(tmp == -1)
               tmp = 0;  
           }
 /*...*/
-          if(tmp){
+          if(tmp)
+          {
             idFace[nf]       = nel + 1;
             typeGeomFace[nf] = QUADCELL;
             nenFace[nf]      = sn(isnod,ty,nel); 
             lFaceL[nf]       = MAT2D(nel,j,faceL,cCell); 
 /*... loop nos nos da face*/
-            for(k=0;k<nenFace[nf];k++){
+            for(k=0;k<nenFace[nf];k++)
+            {
               no  = MAT2D(j,k,isnod,nenFace[nf]);
               MAT2D(nf,k,face,nenFaceMax) = MAT2D(nel,no,el,maxNo)-1;
             }    
@@ -3249,19 +3284,23 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
 /*...................................................................*/
 
 /*... hexaedro*/
-    else if (ty == PIRACELL) {
+    else if (ty == PIRACELL) 
+    {
 /*...*/
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
       for (j = 0; j<maxViz; j++)
         tmp += abs(MAT2D(nel, j, faceR, cCell));
 /*...*/
-      if (tmp) {
+      if (tmp)
+      {
 /*... loop nas faces*/
-        for (j = 0; j<5; j++) {
+        for (j = 0; j<5; j++)
+        {
           tmp = MAT2D(nel, j, faceR, cCell);
 /*...*/
-          if (tmp) {
+          if (tmp)
+          {
             idFace[nf] = nel + 1;
             if(j)
               typeGeomFace[nf] = TRIACELL;
@@ -3270,7 +3309,8 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
             nenFace[nf] = sn(isnod, ty, nel);
             lFaceL[nf] = MAT2D(nel, j, faceL, cCell);
 /*... loop nos nos da face*/
-            for (k = 0; k<nenFace[nf]; k++) {
+            for (k = 0; k<nenFace[nf]; k++)
+            {
               no = MAT2D(j, k, isnod, nenFace[nf]);
               MAT2D(nf, k, face, nenFaceMax) = MAT2D(nel, no, el, maxNo) - 1;
             }

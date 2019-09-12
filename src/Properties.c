@@ -1028,7 +1028,7 @@ void  getTempFromTheEnergy(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
 
 /*********************************************************************
  * Data de criacao    : 19/08/2018                                   *
- * Data de modificaco : 09/06/2019                                   *
+ * Data de modificaco : 12/09/2019                                   *
  *-------------------------------------------------------------------*
  * updateMixSpecificHeat:                                            *
  *-------------------------------------------------------------------*
@@ -1073,7 +1073,7 @@ void updateMixSpecificHeat(Prop *sHeatPol
       {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(i,y)\
-        shared(sHeat,temp,nOfPrSp,temp,sHeatPol,nOfPrSp,yFrac,iKelvin, nD)
+        shared(sHeat,temp,nOfPrSp,sHeatPol,yFrac,iKelvin, nD)
         for(i=0;i<nEl;i++)
         {
           y = &MAT2D(i,0,yFrac,nOfPrSp);
