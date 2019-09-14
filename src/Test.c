@@ -23,6 +23,26 @@ void gradFunc1(double x, double y, double z,double *gradZ)
 }  
 
 
+double func2(double x, double y, double z)
+{
+  double pi = PI,r;
+  r = sqrt(x*x + y*y + z*z);
+  return sin(pi*r) + 0.05*sin(8*pi*r);
+}
+
+void gradFunc2(double x, double y, double z,double *gradZ)
+{
+  double pi = PI;
+
+  gradZ[0] = -pi * sin(pi*x);
+  gradZ[1] =  pi * cos(pi*y);
+  gradZ[2] = 3*z*z;
+
+}  
+
+
+
+
 void gradErro(Mesh *mesh)
 {
   int i;
@@ -57,7 +77,7 @@ void grad(Mesh *mesh)
     x = MAT2D(i, 0, mesh->elm.geom.cc, 3);
     y = MAT2D(i, 1, mesh->elm.geom.cc, 3);
     z = MAT2D(i, 2, mesh->elm.geom.cc, 3);
-    fprintf(fileLogDebug, "%9d %12.6lf\n", i + 1, func1(x, y, z));
+    fprintf(fileLogDebug, "%9d %12.6lf\n", i + 1, func2(x, y, z));
   }
   fprintf(fileLogDebug, "endInitialTemp\nreturn\n");
 }

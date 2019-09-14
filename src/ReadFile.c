@@ -316,7 +316,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                 , nn   , "nkTurb" , _AD_);
        zero(mesh->node.kTurb, nn  , DOUBLEC);
 
-/*... eGradPres*/
+/*... eGradTurb*/
        HccaAlloc(DOUBLE,m,mesh->elm.gradKturb
                 ,nel*ndm        ,"eGradKturb",_AD_);
        zero(mesh->elm.gradKturb ,nel*ndm,DOUBLEC);
@@ -459,7 +459,6 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*... modelo de combustao*/
   if (fComb)
   {
-
     HccaAlloc(short, m, mesh->elm.faceResZcomb
             , nel*(maxViz + 1), "faceResComb", _AD_);
     zero(mesh->elm.faceResZcomb, nel*(maxViz + 1), "short");
