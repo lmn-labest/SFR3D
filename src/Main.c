@@ -423,10 +423,9 @@ int main(int argc,char**argv){
   macroFlag = true;
   do{
 /*... macros na marcro trasient*/
-
-
     if(flWord){
-      if( jLoop > kLoop) { 
+      if( jLoop > kLoop)
+      { 
         ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,
                    "Numero de comandos na string trasient execedido"
                   ,EXIT_PROG); 
@@ -749,7 +748,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-      grad(mesh0);
+//    grad(mesh0);
 //    writeMeshPart(mesh,&combModel);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);

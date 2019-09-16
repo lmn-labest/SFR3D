@@ -71,7 +71,7 @@ void diffusion(Memoria *m       ,Loads *loadsDif,DiffModel *dModel
 /*...................................................................*/
 
 /*... correcao nao ortoganal*/ 
-  for(i=0,jj=0;i<sc->nlD1.maxIt;i++){
+  for(i=0,jj=1;i<sc->nlD1.maxIt;i++){
 
 /*... calculo de: A(i),b(i)*/
     tm.systFormD1 = getTimeC() - tm.systFormD1;

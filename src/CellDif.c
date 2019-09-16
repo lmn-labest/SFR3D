@@ -371,29 +371,31 @@ void cellDif3D(Loads *loads               ,Diffusion *diff
 
   p  = 0.0e0;
   sP = 0.0e0;
-  for(nf=0;nf<nFace;nf++){
+  for(nf=0;nf<nFace;nf++)
+  {
     vizNel = lViz[nf];
     lfArea = fArea[nf];
-    lNormal[0] = MAT2D(nf, 0, normal, ndm);
-    lNormal[1] = MAT2D(nf, 1, normal, ndm);
-    lNormal[2] = MAT2D(nf, 2, normal, ndm);
+    lNormal[0] = MAT2D(nf, 0, normal, 3);
+    lNormal[1] = MAT2D(nf, 1, normal, 3);
+    lNormal[2] = MAT2D(nf, 2, normal, 3);
     lXmcc[0] = MAT2D(nf, 0, xmcc, 3);
     lXmcc[1] = MAT2D(nf, 1, xmcc, 3);
     lXmcc[2] = MAT2D(nf, 2, xmcc, 3);
 /*... dominio*/
-    if( vizNel  > -1 ){
+    if( vizNel  > -1 )
+    {
 /*...*/
-      lKsi[0]    = MAT2D(nf,0,ksi,ndm);
-      lKsi[1]    = MAT2D(nf,1,ksi,ndm);
-      lKsi[2]    = MAT2D(nf,2,ksi,ndm);
+      lKsi[0]    = MAT2D(nf,0,ksi,3);
+      lKsi[1]    = MAT2D(nf,1,ksi,3);
+      lKsi[2]    = MAT2D(nf,2,ksi,3);
       lModKsi    = mKsi[nf];
-      lvSkew[0]  = MAT2D(nf,0,vSkew,ndm);
-      lvSkew[1]  = MAT2D(nf,1,vSkew,ndm);
-      lvSkew[2]  = MAT2D(nf,2,vSkew,ndm);
+      lvSkew[0]  = MAT2D(nf,0,vSkew,3);
+      lvSkew[1]  = MAT2D(nf,1,vSkew,3);
+      lvSkew[2]  = MAT2D(nf,2,vSkew,3);
       duDksi     = (u0[nf] - u0[idCell]) / lModKsi;
-      gradUv[0]  = MAT2D(nf,0,gradU0,ndm);
-      gradUv[1]  = MAT2D(nf,1,gradU0,ndm);
-      gradUv[2]  = MAT2D(nf,2,gradU0,ndm);
+      gradUv[0]  = MAT2D(nf,0,gradU0,3);
+      gradUv[1]  = MAT2D(nf,1,gradU0,3);
+      gradUv[2]  = MAT2D(nf,2,gradU0,3);
 /*...................................................................*/
      
 /*... termo difusivo
@@ -450,7 +452,7 @@ void cellDif3D(Loads *loads               ,Diffusion *diff
 /*...................................................................*/
 
 /*... correcao nao-ortogonal*/
-      dfdc = coefDif*lfArea*gfKsi;    
+      dfdc = coefDif*gfKsi;    
 /*...................................................................*/
 
 /*...*/
@@ -459,13 +461,15 @@ void cellDif3D(Loads *loads               ,Diffusion *diff
 /*...................................................................*/
     }
 /*... contorno*/
-    else{
+    else
+    {
       lA[nf] = 0.0e0;
-      if(lFaceR[nf]){
+      if(lFaceR[nf])
+      {
 /*...cargas*/
         nCarg=lFaceL[nf]-1;
-        xx[0] = MAT2D(nf,0,xm,2);
-        xx[1] = MAT2D(nf,1,xm,2);
+        xx[0] = MAT2D(nf,0,xm,3);
+        xx[1] = MAT2D(nf,1,xm,3);
         xx[2] = MAT2D(nf,2,xm,3);        
         pLoad(&sP           ,&p
              ,&tA           ,dum

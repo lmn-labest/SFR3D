@@ -840,6 +840,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       strcpy(str,"endLoadsD1");
       fprintf(fileLogExc,"loading loadsD1 ...\n");
       readVfLoads(loadsD1,str       ,file);
+//    loadsD1[0].nTypeVar = LFUNC;
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
@@ -876,8 +877,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       rflag[19] = true;
       strcpy(str,"endLoadsVel");
       fprintf(fileLogExc,"loading loadsVel ...\n");
-      readVfLoads(loadsVel,str       ,file);
-      loadsVel[0].nTypeVar =  LVARCONST;
+      readVfLoads(loadsVel,str       ,file);      
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
@@ -1883,8 +1883,12 @@ void readVfInitial(DOUBLE *f          ,INT numel
 /*********************************************************************/
 
 /*********************************************************************
+/*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 15/09/2019                                   *
+ * ------------------------------------------------------------------*
  * READVFLOADS : leitura da definicoes das cargas                    *
- *********************************************************************
+ * ------------------------------------------------------------------*
  * Parametro de entrada:                                             *
  * ----------------------------------------------------------------- *
  * load  - indefinido                                                *
@@ -1916,8 +1920,10 @@ void readVfLoads(Loads *loads,char *str,FILE* file){
       exit(EXIT_FAILURE);
 
     }
-    loads[nLoad-1].type = type;
-
+    loads[nLoad-1].type        = type;
+    
+    error = fscanf(file,"%d",&type);
+    loads[nLoad-1].nTypeVar = type;
 /*...*/
     error = fscanf(file,"%d",&nTerm);
     if( error != 1) {

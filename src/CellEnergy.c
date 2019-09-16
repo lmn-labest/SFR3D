@@ -796,14 +796,16 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
 /*...................................................................*/
 
 /*... media harmonica*/
-      if (fTemp) {
+      if (fTemp)
+      {
         sHeatF     = alphaMenosUm*sHeatC + alpha*sHeatV;
         thermCoefF = alphaMenosUm*thermCoefC + alpha*thermCoefV; 
         diffTurbF  = (alphaMenosUm*eddyViscosityC 
                    + alpha*eddyViscosityV)/prTsgs; 
         diffEff = thermCoefF + sHeatF * diffTurbF;
       }
-      else {
+      else
+      {
         thermCoefF = alphaMenosUm*thermCoefC + alpha*thermCoefV;   
         sHeatF     = alphaMenosUm*sHeatC + alpha*sHeatV;
         diffTurbF  = (alphaMenosUm*eddyViscosityC 

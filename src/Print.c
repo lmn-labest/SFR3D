@@ -1895,7 +1895,7 @@ void reScaleMesh(DOUBLE *x,INT nnode, short ndm, FILE *fileIn)
 
 /*********************************************************************
  * Data de criacao    : 01/05/2018                                   *
- * Data de modificaco : 03/08/2019                                   *
+ * Data de modificaco : 15/09/2019                                   *
  *-------------------------------------------------------------------*
  * reScaleMesh : redimensio as coordenada da matriz                  *
  *-------------------------------------------------------------------*
@@ -1920,8 +1920,6 @@ void reScaleMesh(DOUBLE *x,INT nnode, short ndm, FILE *fileIn)
 void initPrintVtk(FileOpt *opt)
 {
   opt->bVtk          = false;    
-  opt->fItPlotRes    = false;
-  opt->fItPlot       = false;
   opt->fCell         = false;
   opt->fNode         = false;
   opt->gradPres      = false;
