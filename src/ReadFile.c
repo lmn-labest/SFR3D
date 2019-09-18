@@ -42,7 +42,7 @@
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 11/09/2019                                   *
+ * Data de modificaco : 16/09/2019                                   *
  *-------------------------------------------------------------------*
  * readFileFvMesh : leitura de arquivo de dados em volume finitos    *
  * ------------------------------------------------------------------*
@@ -70,7 +70,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
        ,"faceLoadT1"   ,"loadsT1"    ,""               /* 6, 7, 8*/ 
        ,"faceResZ"     ,"faceLoadZ"  ,"loadsZ"         /* 9,10,11*/ 
        ,"faceResD1"    ,"uniformD1"  ,"loadsD1"        /*12,13,14*/ 
-       ,"faceLoadD1"   ,""           ,""               /*15,16,17*/ 
+       ,"faceLoadD1"   ,"initialD1"  ,""               /*15,16,17*/ 
        ,"faceResVel"   ,"loadsVel"   ,"faceLoadVel"    /*18,19,20*/ 
        ,"faceResPres"  ,"loadsPres"  ,"faceLoadPres"   /*21,22,23*/
        ,"faceResTemp"  ,"loadsTemp"  ,"faceLoadTemp"   /*24,25,26*/
@@ -857,6 +857,19 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
+
+/*... initialVel */
+    else if ((!strcmp(word, macro[16])) && (!rflag[16])) {
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
+      strcpy(macros[nmacro++], word);
+      rflag[29] = true;
+      strcpy(str, "endInitialD1");
+      fprintf(fileLogExc, "loading initialD1 ...\n");
+      readVfInitial(mesh->elm.u0D1, mesh->numel, 1, str, file);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
+    }
+    /*...................................................................*/
+
 
 /*... faceRvel- condicao de contorno para problemas fluidos (Vel) */
     else if((!strcmp(word,macro[18])) && (!rflag[18])){
@@ -6547,7 +6560,7 @@ void readSolvTrans(Memoria *m  , Mesh *mesh      , Reord *reordMesh
       if (solvT1->log && !mpiVar.myId)
       {
         strcpy(auxName, preName);
-        strcat(auxName, "_D1");
+        strcat(auxName, "_T1");
         fName(auxName, mpiVar.nPrcs, 0, 11, nameOut);
         solvT1->fileSolv = openFile(nameOut, "w");
       }
@@ -6937,7 +6950,7 @@ void readChemical(Combustion *c, FILE *file)
 
   short id;
   int i,j,n,nn;
-  DOUBLE value,ru,d1,d2;
+  DOUBLE value,ru;
 
   readMacroV2(file, word, false, true);
   fileAux = openFile(word, "r");
@@ -7297,9 +7310,8 @@ void readChemical(Combustion *c, FILE *file)
 void readResidual(Simple *sc, FILE *file)
 {
 
-  char *str = { "endresidual" }, ch[10];
+  char *str = { "endresidual" };
   char word[WORD_SIZE];
-  short i; 
 
   readMacroV2(file, word, false, true);
   do 
@@ -7470,7 +7482,8 @@ void typeResidual(char *word,Residual *re)
   }
   else
   {
-    ERRO_OP_WORD(__FILE__,__func__,__LINE__,"Residual",word);
+    ERRO_OP_WORD(fileLogDebug,__FILE__,__func__,__LINE__,"Residual"
+                 ,word,EXIT_FAILURE);
   }
 }
 /*********************************************************************/
@@ -7492,9 +7505,8 @@ void typeResidual(char *word,Residual *re)
  *********************************************************************/
 void configEdo(Edo *edo, FILE *file)
 {
-  char *str = { "endedo" }, ch[10];
+  char *str = { "endedo" };
   char word[WORD_SIZE];
-  short i; 
 
   readMacroV2(file, word, false, true);
   do 
@@ -7647,9 +7659,9 @@ static void convLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
                               ,bool const iKelvin   ,bool const fDensity
                               ,bool const fGrouped)   
 {
-  short i,j,k,type,n;
+  short i,j,n,type;
   short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
-  DOUBLE t,yFrac[MAXSPECIES],zFrac[MAX_COMB],sHeat,tmp,tmp1,molarMassMix;
+  DOUBLE t,yFrac[MAXSPECIES],sHeat,tmp,tmp1,molarMassMix;
   
 /*... cc da equacao da energia e em temperatura*/
   if(fTemp){
@@ -7773,9 +7785,9 @@ static void convLoadsZcombMix(Combustion *cModel   ,Prop *pDen
                              ,bool const iKelvin   ,bool const fDensity
                              ,bool const fGrouped)   
 {
-  short i,k,type,n;
+  short i,type;
   short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
-  DOUBLE t,yFrac[MAXSPECIES],zFrac[MAX_COMB],sHeat,tmp1,molarMassMix;
+  DOUBLE t,yFrac[MAXSPECIES],sHeat,tmp1,molarMassMix;
   
   sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
   for(i=0;i<MAXLOADFLUID;i++)
@@ -7836,9 +7848,9 @@ static void convLoadsVelMix(Combustion *cModel   ,Prop *pDen
                            ,bool const iKelvin   ,bool const fDensity
                            ,bool const fGrouped)   
 {
-  short i,k,type,n;
+  short i,type;
   short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
-  DOUBLE t,yFrac[MAXSPECIES],zFrac[MAX_COMB],sHeat,tmp1,molarMassMix;
+  DOUBLE t,yFrac[MAXSPECIES],sHeat,tmp1,molarMassMix;
   
   sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
   for(i=0;i<MAXLOADFLUID;i++)

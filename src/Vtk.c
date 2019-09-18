@@ -429,9 +429,9 @@ static void write_double(double val,bool cod,FILE *f)
     }
     else
     {
-        char str[128];
-//      sprintf(str, "%20.12e ", val);
-//      fprintf(f, str);
+/*      char str[128];
+        sprintf(str, "%20.12e ", val);
+        fprintf(f, str);*/
         fprintf(f," %.15e ", val);
     }
 }

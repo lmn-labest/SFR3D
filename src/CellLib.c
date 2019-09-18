@@ -2736,7 +2736,7 @@ void greenGaussNode(INT *RESTRICT lViz   ,DOUBLE *RESTRICT fArea
   for(i=0;i<ndm;i++)
     lNormal[i]  = 0.e0;
   
-  for(i=0;i<MAX_NDF;i++)
+  for(i=0;i<ndf;i++)
     uf[i]  = 0.e0;
   
 /*...*/
@@ -2879,9 +2879,9 @@ void  leastSquare(Loads *loads
   DOUBLE tmp,coefDif;
   INT vizNel;
   short idCell = nFace,nCarg,type;
-  short i,j,k,l,it=1,itNumber=10;
+  short i,j,k,l,it=1,itNumber=1;
   
-  for(j=0;j<MAX_NDF;j++)
+  for(j=0;j<ndf;j++)
     uC[j] = 0.e0;
  
   for(l=0;l<it;l++){    
@@ -2963,8 +2963,9 @@ void  leastSquare(Loads *loads
           {
             if(l==0) it = itNumber;
             du[i] =0.e0;
-            for(j=0;j<ndm;j++)
-              du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
+            if(l>1)
+              for(j=0;j<ndm;j++)
+                du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
           }
 /*...................................................................*/
         }
@@ -3068,9 +3069,12 @@ void  leastSquare(Loads *loads
             for(k=0;k<ndf;k++)
             {
               MAT2D(i,k,du,ndf) = 0.e0;
-              for(j=0;j<ndm;j++)
-                MAT2D(i,k,du,ndf) += 
-                MAT2D(k,j,gradU,ndm)*MAT2D(i,j,xmcc,ndm);
+              if (l>1)
+              {
+                for(j=0;j<ndm;j++)
+                  MAT2D(i,k,du,ndf) += 
+                  MAT2D(k,j,gradU,ndm)*MAT2D(i,j,xmcc,ndm);
+              }
             }
           }
 /*...................................................................*/
@@ -3140,7 +3144,7 @@ void  leastSquareQR(Loads *loads
   short idCell = nFace,type;
   short i,j,k,l,nCarg;
 
-  for(j=0;j<MAX_NDF;j++)
+  for(j=0;j<ndf;j++)
     uC[j] = 0.e0;
  
   for(l=0;l<1;l++){
@@ -4924,7 +4928,7 @@ DOUBLE upwindLinearV1(DOUBLE const uC     ,DOUBLE const uV
 
 /********************************************************************* 
  * Data de criacao    : 16/07/2016                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 17/09/2019                                   * 
  *-------------------------------------------------------------------* 
  * DEFERREDCD : Diferencao central com correcao atrasada             * 
  *-------------------------------------------------------------------* 
@@ -4942,19 +4946,20 @@ DOUBLE upwindLinearV1(DOUBLE const uC     ,DOUBLE const uV
  *-------------------------------------------------------------------*
  * valor na face = (Upwind)implicito + (Central - Upwind)explicito   * 
  *********************************************************************/
-DOUBLE deferredCd(DOUBLE const uC,DOUBLE const uV,DOUBLE const wfn)
+DOUBLE deferredCd(DOUBLE const uC          , DOUBLE const uV
+                , DOUBLE const alphaMenosUm, DOUBLE const alpha
+                , DOUBLE const wfn)
 {                    
   
-  DOUBLE cvc=0.0e0;
+  DOUBLE cvc=0.0e0,cd,up;
  
-  if(wfn < 0.0e0) {
-    cvc = 0.5e0*(uC+uV) - uV;
-  }
-  else{
-    cvc = 0.5e0*(uC+uV) - uC;
-  }
+  cd = alphaMenosUm * uC + alpha * uV;
+  if(wfn < 0.0e0) 
+    up = uV;
+  else
+    up = uC;
  
-  return cvc;
+  return cd - up;
 } 
 /*********************************************************************/ 
 
@@ -5029,7 +5034,6 @@ DOUBLE deferredLust(DOUBLE const uC          ,DOUBLE const uV
 
 } 
 /*********************************************************************/ 
-
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
@@ -6083,7 +6087,9 @@ void advectiveSchemeNdim(DOUBLE *RESTRICT uC ,DOUBLE *RESTRICT uV
 /*...*/
     for(i=0;i<ndf;i++)
     {
-      cvc[i] = deferredCd(uC[i], uV[i], wfn);
+      cvc[i] = deferredCd(uC[i]       , uV[i]
+                        , alphaMenosUm, alpha
+                        , wfn);
 
 /*... interpolacao undirecional*/
 /*    cvc[i] -= MAT2D(i,0,gradVelComp,3)*vSkew[0]
@@ -6245,8 +6251,8 @@ void advectiveScheme(DOUBLE *RESTRICT velC   ,DOUBLE *RESTRICT velV
   case CD:
 /*...*/
     if (ndm == 2) {
-      cvc[0] = deferredCd(velC[0], velV[0], wfn);
-      cvc[1] = deferredCd(velC[1], velV[1], wfn);
+      cvc[0] = deferredCd(velC[0], velV[0], alphaMenosUm ,alpha, wfn);
+      cvc[1] = deferredCd(velC[1], velV[1], alphaMenosUm, alpha, wfn);
 /*... interpolacao undirecional*/
       cvc[0] -= MAT2D(0,0,gradVelComp,2)*vSkew[0]
               + MAT2D(0,1,gradVelComp,2)*vSkew[1];
@@ -6259,9 +6265,9 @@ void advectiveScheme(DOUBLE *RESTRICT velC   ,DOUBLE *RESTRICT velV
 
 /*...*/
     else if (ndm == 3) {
-      cvc[0] = deferredCd(velC[0], velV[0], wfn);
-      cvc[1] = deferredCd(velC[1], velV[1], wfn);
-      cvc[2] = deferredCd(velC[2], velV[2], wfn);
+      cvc[0] = deferredCd(velC[0], velV[0], alphaMenosUm, alpha, wfn);
+      cvc[1] = deferredCd(velC[1], velV[1], alphaMenosUm, alpha, wfn);
+      cvc[2] = deferredCd(velC[2], velV[2], alphaMenosUm, alpha, wfn);
 /*... interpolacao undirecional*/
 /*    cvc[0] -= MAT2D(0,0,gradVelComp,3)*vSkew[0]
               + MAT2D(0,1,gradVelComp,3)*vSkew[1] 
@@ -6547,7 +6553,9 @@ void advectiveSchemeScalar(DOUBLE const uC, DOUBLE const uV
 /*... metodo centrado  atraso( up(implicito) + (ucd - up)explicito) */
   case CD:
 /*...*/
-    *cvc = deferredCd(uC,uV,wfn);
+    *cvc = deferredCd(uC          ,uV
+                    , alphaMenosUm, alpha
+                    , wfn);
 /*...................................................................*/
 
 /*... interpolacao undirecional*/

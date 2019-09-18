@@ -1307,7 +1307,7 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
     fDensityRef = thDynamic->fDensityRef,
     fPresRef = thDynamic->fPresTh,
     fDeltaTimeDynamic = sc->ddt.fDynamic;
-  DOUBLE cfl, reynolds, peclet, deltaMass;
+  DOUBLE cfl, reynolds, peclet;
   bool fParameter[10];
 
   time = getTimeC();

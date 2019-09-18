@@ -391,7 +391,7 @@ void rScaledSum(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
                ,short const ndf) 
 {
   INT i,j,lNeq;
-  DOUBLE mod,sum[MAXSPECIES],v,rScale;
+  DOUBLE mod,sum[MAXSPECIES],v;
 #ifdef _MPI_
   DOUBLE gSum[MAXSPECIES];
 #endif
@@ -492,7 +492,7 @@ void rScaledSumMax(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT ad
                   ,short const ndf) 
 {
   INT i,j,lNeq;
-  DOUBLE mod,sum[MAXSPECIES],sumMax,v,rScale;
+  DOUBLE mod,sum[MAXSPECIES],sumMax,v;
 #ifdef _MPI_
   DOUBLE gSum[MAXSPECIES];
 #endif

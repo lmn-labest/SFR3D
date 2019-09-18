@@ -994,8 +994,9 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
               ,DOUBLE *RESTRICT parameters,short const ndm
               ,short const iCod1          ,short const iCod2);
 
-  DOUBLE deferredCd(DOUBLE const velC,DOUBLE const velV
-                   ,DOUBLE const wfn);
+  DOUBLE deferredCd(DOUBLE const uC          , DOUBLE const uV
+                  , DOUBLE const alphaMenosUm, DOUBLE const alpha
+                  , DOUBLE const wfn);
   
   DOUBLE deferredLust(DOUBLE const uC         ,DOUBLE const uV
                    ,DOUBLE *RESTRICT gradUc   ,DOUBLE *RESTRICT gradUv

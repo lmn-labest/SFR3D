@@ -828,6 +828,7 @@ void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
    else if( ld->type == INLET){
      getLoads(par, ld, xm);
      tA[0] = par[0];
+
 /*...*/
      if(fCal)
      {

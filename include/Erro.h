@@ -1,10 +1,11 @@
 #ifndef _ERRO_H_
   #define _ERRO_H_
 
-  #define EXIT_MESH_COMM -1
-  #define EXIT_SOLVER    -2
-  #define EXIT_NRP_ET    -3
-  #define EXIT_PROG      -111
+  #define EXIT_MESH_COMM        -1
+  #define EXIT_SOLVER           -2
+  #define EXIT_SOLVER_CONFIG    -3
+  #define EXIT_NRP_ET           -4
+  #define EXIT_PROG           -111
 
 /*... Saida de Erro*/                                                  
   #define ERRO_RCM fprintf(stderr,"\nrcm - fatal error!\n")
@@ -20,11 +21,12 @@
             ,file,func,line);\
     exit(EXIT_FAILURE);
 
-  #define ERRO_OP_WORD(file,func,line,str,op)\
-    fprintf(stderr,"%s\nOpcao %s e invalida!!\n",str,op);\
-    fprintf(stderr,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"\
-            ,file,func,line);\
-    exit(EXIT_FAILURE);
+  #define ERRO_OP_WORD(file,fileSrc,func,line,str,op,cod)\
+    fprintf(stderr,"Erro !!\nWriting to file .. ");\
+    fprintf(file,"%s\nOpcao %s e invalida!!\n",str,op);\
+    fprintf(file,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"\
+            ,fileSrc,func,line);\
+    exit(cod);
 
   #define ERRO_GERAL(file,fileSrc,func,line,str,cod)\
     {fprintf(stderr,"Erro !!\nWriting to file .. ");\

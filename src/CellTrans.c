@@ -335,7 +335,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 02/06/2018                                   *
+ * Data de modificaco : 17/09/2019                                   *
  *-------------------------------------------------------------------*
  * CELLTRANS3D: Celula 3D para transporte                            * 
  *-------------------------------------------------------------------* 
@@ -419,12 +419,12 @@ void cellTrans3D(Loads *loads
   DOUBLE densityC,densityF,densityM;
   DOUBLE p,sP,dfd,gfKsi,lvSkew[3];
   DOUBLE v[3],gradUcomp[3],lKsi[3],lNormal[3],gf[3];
-  DOUBLE dPviz,lModKsi,lfArea,du,duDksi,lXmcc[3],lXm[3];
+  DOUBLE lModKsi,lfArea,du,duDksi,lXmcc[3],lXm[3];
   DOUBLE gradUp[3],gradUv[3],ccV[3];
   DOUBLE alpha,alphaMenosUm;
-  DOUBLE tA,coef,tmp;
+  DOUBLE tA,tmp;
 /*... nonOrtogonal*/
-  DOUBLE e[3], t[3], modE, dfdc;
+  DOUBLE e[3], t[3],s[3], modE, dfdc;
   DOUBLE xx[3];
 /*...*/
   DOUBLE wfn,wf[3],velC[3],velF[3],cv,cvc;
@@ -435,6 +435,7 @@ void cellTrans3D(Loads *loads
   idCell      = nFace;
   iCodAdv1    = advT->iCod1;
   iCodAdv2    = advT->iCod2;
+  pAdv[0]     = advT->par[0];
   iCodDif     = diffT->iCod;
   iCodPolFace = INTPOLFACELINEAR;
 /*...................................................................*/
@@ -506,18 +507,18 @@ void cellTrans3D(Loads *loads
 
 /*... termo difusivo
 grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
-      difusionScheme(lNormal,lKsi
-                    ,lfArea ,lModKsi
-                    ,e      ,t
-                    ,ndm    ,iCodDif);
+      s[0] = lfArea * lNormal[0];
+      s[1] = lfArea * lNormal[1];
+      s[2] = lfArea * lNormal[2];
+/*...*/
+      difusionSchemeNew(s, lKsi, e, t, ndm, iCodDif);
 /*...................................................................*/
 
 /*...*/
-      v[0]  = lvSkew[0] + lXmcc[0];
-      v[1]  = lvSkew[1] + lXmcc[1];
-      v[2]  = lvSkew[2] + lXmcc[2];
-      dPviz = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2] );
-      alpha        = dPviz/lModKsi;
+      alpha = interpolFace(lvSkew        , lXmcc
+                         , volume[idCell], volume[nf]
+                         , lModKsi       , ndm
+                         , iCodPolFace);
       alphaMenosUm = 1.0e0 - alpha; 
 /*...................................................................*/
 
@@ -528,15 +529,17 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*... difusao direta*/
-      coef = coefDif;
       modE = sqrt(e[0]*e[0] + e[1]*e[1] + e[2]*e[2]);
-      dfd = coef*modE / lModKsi;
+      dfd  = coefDif *modE / lModKsi;
 /*...................................................................*/
       
 /*...*/
       gf[0]    = alphaMenosUm*gradUp[0] + alpha*gradUv[0];
       gf[1]    = alphaMenosUm*gradUp[1] + alpha*gradUv[1];
       gf[2]    = alphaMenosUm*gradUp[2] + alpha*gradUv[2];
+/*...................................................................*/
+
+/*...*/
       wf[0]    =   alphaMenosUm*velC[0] + alpha*velF[0];
       wf[1]    =   alphaMenosUm*velC[1] + alpha*velF[1];
       wf[2]    =   alphaMenosUm*velC[2] + alpha*velF[2];
@@ -604,7 +607,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
             + velC[1]*lNormal[1] 
             + velC[2]*lNormal[2];
 /*...cargas*/
-        nCarg=lFaceL[nf]-1;
+        nCarg = lFaceL[nf]-1;
         xx[0] = MAT2D(nf,0,xm,3);
         xx[1] = MAT2D(nf,1,xm,3);
         xx[2] = MAT2D(nf,2,xm,3);        

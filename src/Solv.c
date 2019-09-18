@@ -618,6 +618,14 @@ void setSolverConfig(char *word,Solv *solv,FILE *fileIn)
     }
   }
 /*...................................................................*/  
+
+/*...*/
+  else
+  {
+    ERRO_OP_WORD(fileLogDebug,__FILE__,__func__,__LINE__
+                ,"Solver config", word, EXIT_SOLVER_CONFIG);
+  }
+
 } 
 /*********************************************************************/      
 
