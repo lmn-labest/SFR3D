@@ -218,7 +218,7 @@ static void globalCombCel(Memoria *m
  *********************************************************************/
 void printFluid(Memoria *m        
                ,Turbulence *turbModel,EnergyModel *eModel
-               ,PartMesh *pMesh      ,Scheme sc
+               ,PartMesh *pMesh      ,Scheme *sc
                ,Loads *loadsVel      ,Loads *loadsPres 
                ,Loads *loadsTemp     ,FileOpt opt
                ,Mesh *mesh0          ,Mesh *mesh  
@@ -277,7 +277,7 @@ void printFluid(Memoria *m
          , mesh->elm.leastSquare   , mesh->elm.leastSquareR
          , mesh->elm.faceRpres     , mesh->elm.faceLoadPres
          , mesh->elm.pressure      , mesh->elm.gradPres                
-         , mesh->node.pressure     , sc.rcGrad
+         , mesh->node.pressure     , &sc->rcGrad
          , mesh->maxNo             , mesh->maxViz
          , 1                       , mesh->ndm       
          , &pMesh->iNo             , &pMesh->iEl  
@@ -344,7 +344,7 @@ void printFluid(Memoria *m
          , mesh->elm.leastSquare   , mesh->elm.leastSquareR
          , mesh->elm.faceRvel      , mesh->elm.faceLoadVel   
          , mesh->elm.vel           , mesh->elm.gradVel                           
-         , mesh->node.vel          , sc.rcGrad
+         , mesh->node.vel          , &sc->rcGrad
          , mesh->maxNo             , mesh->maxViz
          , ndfVel                  , mesh->ndm
          , &pMesh->iNo             , &pMesh->iEl  
@@ -431,7 +431,7 @@ void printFluid(Memoria *m
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRenergy  , mesh->elm.faceLoadEnergy
            , mesh->elm.temp         , mesh->elm.gradTemp  
-           , mesh->node.temp        , sc.rcGrad
+           , mesh->node.temp        , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
            , 1                      , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
@@ -616,7 +616,7 @@ void printFluid(Memoria *m
 
 /*...*/
   if(!mpiVar.myId ){
-    fName(preName,sc.ddt.timeStep,0,21,nameOut);
+    fName(preName,sc->ddt.timeStep,0,21,nameOut);
 /*...*/
     wResVtkFluid(m                        , mesh0->node.x
                , mesh0->elm.geom.cc       
@@ -643,7 +643,7 @@ void printFluid(Memoria *m
                , mesh0->ntn               
                , nameOut                  , opt
                , eModel->fKelvin          , media
-               , sc.ddt                   , fileOut);   
+               , sc->ddt                   , fileOut);   
 /*...................................................................*/
   }
 /*...................................................................*/
@@ -773,7 +773,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
            , mesh->elm.leastSquare   , mesh->elm.leastSquareR
            , mesh->elm.faceRpres     , mesh->elm.faceLoadPres
            , mesh->elm.pressure      , mesh->elm.gradPres                
-           , mesh->node.pressure     , sc->rcGrad
+           , mesh->node.pressure     , &sc->rcGrad
            , mesh->maxNo             , mesh->maxViz
            , 1                       , mesh->ndm       
            , &pMesh->iNo             , &pMesh->iEl  
@@ -853,7 +853,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
          , mesh->elm.leastSquare   , mesh->elm.leastSquareR
          , mesh->elm.faceRvel      , mesh->elm.faceLoadVel   
          , mesh->elm.vel           , mesh->elm.gradVel                           
-         , mesh->node.vel          , sc->rcGrad
+         , mesh->node.vel          , &sc->rcGrad
          , mesh->maxNo             , mesh->maxViz
          , ndfVel                  , mesh->ndm
          , &pMesh->iNo             , &pMesh->iEl  
@@ -934,7 +934,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceResZcomb , mesh->elm.faceLoadZcomb
         , mesh->elm.zComb        , mesh->elm.gradZcomb
-        , mesh->node.zComb       , sc->rcGrad
+        , mesh->node.zComb       , &sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
         , ndfComb                , mesh->ndm              
         , &pMesh->iNo            , &pMesh->iEl
@@ -1038,7 +1038,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRenergy  , mesh->elm.faceLoadEnergy
            , mesh->elm.temp         , mesh->elm.gradTemp  
-           , mesh->node.temp        , sc->rcGrad
+           , mesh->node.temp        , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
            , 1                      , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
@@ -1456,6 +1456,7 @@ void printTrans(Memoria *m
 /*...*/
   HccaAlloc(DOUBLE,m,nDen     ,mesh->nnode*DENSITY_LEVEL,"nDen",_AD_);
   HccaAlloc(DOUBLE,m,nCoefDiff,mesh->nnode          ,"nCeofDiff",_AD_);
+  HccaAlloc(DOUBLE, m,nVel    , mesh->nnode*mesh->ndm, "nV", _AD_);
 /*...................................................................*/
 
 /*... reconstruindo do gradiente*/
@@ -1476,7 +1477,7 @@ void printTrans(Memoria *m
          , mesh->elm.leastSquare  , mesh->elm.leastSquareR
          , mesh->elm.faceRt1      , mesh->elm.faceLoadT1
          , mesh->elm.uT1          , mesh->elm.gradUt1
-         , mesh->node.uT1         , sc->rcGrad
+         , mesh->node.uT1         , &sc->rcGrad
          , mesh->maxNo            , mesh->maxViz
          , mesh->ndfT[0]          , mesh->ndm
          , &pMesh->iNo            , &pMesh->iEl
@@ -1560,7 +1561,7 @@ void printTrans(Memoria *m
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
   interCellNode(m                  , loadsT1
                , mesh->elm.cellFace, mesh->face.owner
-               , mesh->node.vel    , mesh->elm.vel
+               , nVel              , mesh->elm.vel
                , mesh->elm.node    , mesh->elm.geomType
                , mesh->elm.geom.cc , mesh->node.x
                , mesh->face.xm
@@ -1635,6 +1636,7 @@ void printTrans(Memoria *m
 /*...................................................................*/
 
 /*... desalocando memoria*/
+  HccaDealloc(m, nVel     , "nV"       , _AD_);
   HccaDealloc(m, nCoefDiff, "nCeofDiff", _AD_);
   HccaDealloc(m, nDen     , "nDen"     , _AD_);
 /*...................................................................*/
@@ -1699,7 +1701,7 @@ void printDiff(Memoria *m
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceRd1      , mesh->elm.faceLoadD1
         , mesh->elm.uD1          , mesh->elm.gradUd1
-        , mesh->node.uD1         , sc->rcGrad
+        , mesh->node.uD1         , &sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
         , mesh->ndfD[0]          , mesh->ndm
         , &pMesh->iNo            , &pMesh->iEl

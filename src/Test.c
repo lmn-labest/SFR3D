@@ -1,6 +1,6 @@
 #include<Define.h>
 #include<Mesh.h>
-#include<Math.h>
+#include<math.h>
 
 /*############### Teste do gradiente ####################*/
 double func1(double x, double y, double z)
@@ -40,7 +40,15 @@ void gradFunc2(double x, double y, double z,double *gradZ)
 
 }  
 
+void velSmithHutton(double x, double y, double z, double *v)
+{
+  double pi = PI;
 
+  v[0] =  2.e0*y*(1.e0 - x * x);
+  v[1] = -2.e0*x*(1.e0 - y * y);
+  v[2] = 0.0;
+
+}
 
 
 void gradErro(Mesh *mesh)
@@ -81,4 +89,21 @@ void grad(Mesh *mesh)
   }
   fprintf(fileLogDebug, "endInitialTemp\nreturn\n");
 }
+
+void vel(Mesh *mesh)
+{
+  int i;
+  DOUBLE x, y, z,v[3];
+  fprintf(fileLogDebug, "initialVel\n");
+  for (i = 0; i<mesh->numel; i++)
+  {
+    x = MAT2D(i, 0, mesh->elm.geom.cc, 3);
+    y = MAT2D(i, 1, mesh->elm.geom.cc, 3);
+    z = MAT2D(i, 2, mesh->elm.geom.cc, 3);
+    velSmithHutton(x, y, z,v);
+    fprintf(fileLogDebug, "%9d %e %e %e\n", i + 1,v[0],v[1],v[2]);
+  }
+  fprintf(fileLogDebug, "endInitialVel\nreturn\n");
+}
+
 /*#######################################################*/

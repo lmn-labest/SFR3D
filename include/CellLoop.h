@@ -53,7 +53,7 @@
     , DOUBLE *RESTRICT lSquare  , DOUBLE *RESTRICT lSquareR
     , short  *RESTRICT faceR    , short *RESTRICT faceL
     , DOUBLE *RESTRICT u        , DOUBLE *RESTRICT gradU
-    , DOUBLE *RESTRICT nU       , short lib
+    , DOUBLE *RESTRICT nU       , RcGrad *rcGrad
     , short maxNo               , short maxViz
     , short ndf                 , short ndm
     , InterfaceNo *iNo          , Interface *iCel
@@ -203,7 +203,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
     , DOUBLE *RESTRICT rCell               , DOUBLE *RESTRICT stressR  
     , DOUBLE *RESTRICT density             , DOUBLE *RESTRICT dViscosity 
     , DOUBLE *RESTRICT eddyViscosity       , DOUBLE *RESTRICT wallPar
-    , DOUBLE const densityMed              , Temporal *ddt                     
+    , DOUBLE densityMed                    , Temporal *ddt                     
     , INT nEq                              , INT nEqNov
     , INT nAd                              , INT nAdR                 
     , short maxNo                          , short maxViz

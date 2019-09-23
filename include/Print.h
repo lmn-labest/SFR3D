@@ -20,7 +20,7 @@
 
   void printFluid(Memoria *m        
                 , Turbulence *turbModel, EnergyModel *eModel
-                , PartMesh *pMesh      , Scheme sc
+                , PartMesh *pMesh      , Scheme *sc
                 , Loads *loadsVel      , Loads *loadsPres 
                 , Loads *loadsTemp     , FileOpt opt
                 , Mesh *mesh0          , Mesh *mesh  

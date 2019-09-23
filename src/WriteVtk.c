@@ -1505,6 +1505,14 @@ void wResVtkTrans(Memoria *m        , double *x
   }
 /*...................................................................*/
 
+/*... escrever gradiente por celula*/
+  if (opt->fCell && opt->vel)
+  {
+    writeVtkProp(&idum, elVel, numel, ndm, ps[eVel], iws
+      , DOUBLE_VTK, VECTORS_VTK, f);
+  }
+/*...................................................................*/
+
 /*.... campo por no*/
   fprintf(f, "POINT_DATA %ld\n", (long)nnode);
 /*...................................................................*/
@@ -1552,6 +1560,15 @@ void wResVtkTrans(Memoria *m        , double *x
       , DOUBLE_VTK, SCALARS_VTK, f);
   }
 /*...................................................................*/
+
+/*... escrever gradiente por celula*/
+  if (opt->fNode && opt->vel)
+  {
+    writeVtkProp(&idum, noVel, nnode, ndm, ps[nVel], iws
+      , DOUBLE_VTK, VECTORS_VTK, f);
+  }
+/*...................................................................*/
+
   fclose(f);
 }
 /*********************************************************************/

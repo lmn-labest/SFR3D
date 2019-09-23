@@ -592,6 +592,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       
      if( mpiVar.nPrcs < 2){
 /*... rCell*/
+/*... rCell*/
        HccaAlloc(DOUBLE,m,mesh->elm.rCellUt1  
                 ,nel*ndm*mesh->ndfT[0],"rCellUt1"     ,_AD_);
        zero(mesh->elm.rCellUt1  ,nel*mesh->ndfT[0]       ,DOUBLEC);
@@ -858,7 +859,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     }
 /*...................................................................*/
 
-/*... initialVel */
+/*... initialD1 */
     else if ((!strcmp(word, macro[16])) && (!rflag[16])) {
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++], word);
@@ -1015,7 +1016,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       rflag[29] = true;
       strcpy(str,"endInitialVel");
       fprintf(fileLogExc,"loading initialVel ...\n");
-      readVfInitial(mesh->elm.vel,mesh->numel,mesh->ndm,str,file);
+      readVfInitial(mesh->elm.vel0,mesh->numel,mesh->ndm,str,file);
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
@@ -6767,7 +6768,7 @@ void readMean(Memoria *m, FILE *fileIn
 
 /**********************************************************************
  * Data de criacao    : 05/05/2018                                    *
- * Data de modificaco : 00/00/0000                                    *
+ * Data de modificaco : 19/09/2019                                    *
  *--------------------------------------------------------------------*
  * setReGrad:                                                         *
  *--------------------------------------------------------------------*
@@ -6783,19 +6784,22 @@ void readMean(Memoria *m, FILE *fileIn
  * OBS:                                                               *
  *--------------------------------------------------------------------*
  **********************************************************************/
-void setReGrad(short *rcGrad, FILE *file)
+void setReGrad(RcGrad *rcGrad, FILE *file)
 {
   char word[WORD_SIZE];
-  char macro[][WORD_SIZE] = { "greenGaussCell"  ,"greenGaussNode"
-                             ,"leastSquare"     ,"leastSquareQR"};
-
+  char macro[][WORD_SIZE] = { "greengausscell"  ,"greengaussnode"
+                             ,"leastsquare"     ,"leastsquareqr"
+                             ,"limiter"};
+  char name[][WORD_SIZE] = {"barth","barthmod"};
+  short i;
 /*...*/
-  readMacro(file, word, false);
+  readMacroV2(file, word, false, true);
+/*.....................................................................*/
 
 /*...*/
   if(!strcmp(word, macro[0])) 
   {
-    *rcGrad = RCGRADGAUSSC;
+    rcGrad->type = RCGRADGAUSSC;
     fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "GreenGaussCell");
   }
 /*.....................................................................*/
@@ -6803,7 +6807,7 @@ void setReGrad(short *rcGrad, FILE *file)
 /*...*/
   else if(!strcmp(word, macro[1]))
   {
-    *rcGrad = RCGRADGAUSSN;
+    rcGrad->type = RCGRADGAUSSN;
     fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "GreenGaussNode");
   }
 /*.....................................................................*/
@@ -6811,7 +6815,7 @@ void setReGrad(short *rcGrad, FILE *file)
 /*...*/
   else if(!strcmp(word, macro[2]))
   {
-    *rcGrad = RCLSQUARE;
+    rcGrad->type = RCLSQUARE;
     fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "LeatSquare");
   }
 /*.....................................................................*/
@@ -6819,11 +6823,33 @@ void setReGrad(short *rcGrad, FILE *file)
 /*...*/
   else if(!strcmp(word, macro[3]))
   {
-    *rcGrad = RCLSQUAREQR;
+    rcGrad->type = RCLSQUAREQR;
     fprintf(fileLogExc, "%-20s: %s\n", "Gradient", "LeatSquareQR");
   }
 /*.....................................................................*/
   
+  rcGrad->fLimiter = false;
+/*...*/
+  readMacroV2(file, word, false, true);
+/*.....................................................................*/
+  
+/*...*/
+  if(!strcmp(word, macro[4])) 
+  {
+    rcGrad->fLimiter = true;
+    fscanf(file,"%lf",&rcGrad->beta);
+    readMacroV2(file, word, false, true);
+    for(i=0;i<2;i++)
+      if(!strcmp(word, name[i]))
+        rcGrad->func = i;
+      
+    fprintf(fileLogExc, "%-20s: %s beta %lf\n", "Limiter"
+                                         , name[rcGrad->func]
+                                         , rcGrad->beta);
+  }
+/*.....................................................................*/
+
+
 }
 /**********************************************************************/
 

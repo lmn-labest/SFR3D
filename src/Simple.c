@@ -26,7 +26,7 @@ void simpleSolver3D(Memoria *m
                    ,SistEq *sistEqVel ,SistEq *sistEqPres
                    ,Solv *solvVel     ,Solv *solvPres 
                    ,Simple *sp
-                   ,Scheme sc         ,PartMesh *pMesh 
+                   ,Scheme *sc         ,PartMesh *pMesh 
                    ,FileOpt opt       ,char *preName 
                    ,char *nameOut     ,FILE *fileOut){
   FILE *fStop=NULL;
@@ -110,12 +110,12 @@ void simpleSolver3D(Memoria *m
 /*...................................................................*/
 
 /*... discretizacao temporal*/
-  if(sc.ddt.flag){
+  if(sc->ddt.flag){
     tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;
     cellTransientSimple(mesh->elm.geom.volume   ,sistEqVel->id     
                        ,mesh->elm.vel0          ,mesh->elm.vel 
                        ,mesh->elm.densityFluid  ,sistEqVel->b0
-                       ,sc.ddt                  ,sistEqVel->neqNov
+                       ,sc->ddt                  ,sistEqVel->neqNov
                        ,mesh->numelNov          ,ndfVel        
                        ,true);
 /*... vel(n-1) = vel(n)*/
@@ -157,7 +157,7 @@ void simpleSolver3D(Memoria *m
            , mesh->elm.leastSquare   , mesh->elm.leastSquareR
            , mesh->elm.faceRvel      , mesh->elm.faceLoadVel   
            , mesh->elm.vel           , mesh->elm.gradVel
-           , mesh->node.vel          , sc.rcGrad
+           , mesh->node.vel          , &sc->rcGrad
            , mesh->maxNo             , mesh->maxViz
            , ndfVel                  , mesh->ndm
            , &pMesh->iNo             , &pMesh->iEl  
@@ -184,7 +184,7 @@ void simpleSolver3D(Memoria *m
            , mesh->elm.leastSquare   , mesh->elm.leastSquareR
            , mesh->elm.faceRpres     , mesh->elm.faceLoadPres  
            , mesh->elm.pressure      , mesh->elm.gradPres
-           , mesh->node.pressure     , sc.rcGrad
+           , mesh->node.pressure     , &sc->rcGrad
            , mesh->maxNo             , mesh->maxViz
            , 1                       , mesh->ndm
            , &pMesh->iNo             , &pMesh->iEl  
@@ -196,7 +196,7 @@ void simpleSolver3D(Memoria *m
 /*... montagem do sistema u, v e w*/
      tm.systFormVel = getTimeC() - tm.systFormVel;
      systFormSimpleVel(loadsVel               , loadsPres
-                    , &sc.advVel              , &sc.diffVel                
+                    , &sc->advVel             , &sc->diffVel                
                     , sp->type
                     , mesh->elm.node          , mesh->elm.adj.nelcon
                     , mesh->elm.nen           , mesh->elm.adj.nViz
@@ -218,7 +218,7 @@ void simpleSolver3D(Memoria *m
                     , mesh->elm.vel           , mesh->elm.gradVel 
                     , sp->d                   , sp->alphaVel          
                     , mesh->elm.rCellVel      ,  mesh->elm.densityFluid
-                    , &sc.ddt                    
+                    , &sc->ddt                    
                     , sistEqVel->neq          , sistEqVel->neqNov      
                     , sistEqVel->nad          , sistEqVel->nadr      
                     , mesh->maxNo             , mesh->maxViz
@@ -343,7 +343,7 @@ void simpleSolver3D(Memoria *m
 /*... montagem do sistema  da pressao de correca*/
      tm.systFormPres = getTimeC() - tm.systFormPres;
      systFormSimplePres(loadsVel              , loadsPresC
-										, &sc.diffPres
+										, &sc->diffPres
                     , mesh->elm.node          , mesh->elm.adj.nelcon
                     , mesh->elm.nen           , mesh->elm.adj.nViz
                     , mesh->elm.cellFace      , mesh->face.owner
@@ -363,7 +363,7 @@ void simpleSolver3D(Memoria *m
                     , mesh->elm.pressure      , mesh->elm.gradPres           
                     , mesh->elm.vel           , sp->d                           
                     , rCellPc                 , mesh->elm.densityFluid
-                    , &sc.ddt                    
+                    , &sc->ddt                    
                     , sistEqPres->neq         , sistEqPres->neqNov      
                     , sistEqPres->nad         , sistEqPres->nadr      
                     , mesh->maxNo             , mesh->maxViz
@@ -449,7 +449,7 @@ void simpleSolver3D(Memoria *m
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
            , sp->ePresC1            , sp->eGradPresC
-           , sp->nPresC             , sc.rcGrad
+           , sp->nPresC             , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
            , 1                      , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
@@ -460,7 +460,7 @@ void simpleSolver3D(Memoria *m
 
 /*...*/
          tm.systFormPres = getTimeC() - tm.systFormPres;
-         simpleNonOrthPres(&sc.diffPres
+         simpleNonOrthPres(&sc->diffPres
                     , mesh->elm.node          , mesh->elm.adj.nelcon
                     , mesh->elm.nen           , mesh->elm.adj.nViz
                     , mesh->elm.cellFace      , mesh->face.owner
@@ -531,7 +531,7 @@ void simpleSolver3D(Memoria *m
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
            , sp->ePresC             , sp->eGradPresC
-           , sp->nPresC             , sc.rcGrad
+           , sp->nPresC             , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
            , 1                      , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
@@ -618,7 +618,7 @@ void simpleSolver3D(Memoria *m
                ,mesh->elm.densityFluid  ,mesh->elm.geom.volume 
                ,mesh->elm.mat  
                ,&cfl                    ,&reynolds
-               ,fParameter              ,sc.ddt.dt[0]
+               ,fParameter              ,sc->ddt.dt[0]
                ,mesh->numelNov          ,mesh->ndm);
 /*...................................................................*/
 
@@ -626,7 +626,7 @@ void simpleSolver3D(Memoria *m
   printf("It simple: %d \n",itSimple+1);
   printf("Time(s)  : %lf \n",timei);
   printf("Reynolds: %lf\n",reynolds);
-  if(sc.ddt.flag)
+  if(sc->ddt.flag)
     printf("CFL     : %lf\n",cfl);
   printf("Residuo:\n");
   printf("conservacao da massa (init,final): %20.8e %20.8e \n"
@@ -686,7 +686,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                  kZeroPres   = sp->mass.k,
                  kZeroEnergy = sp->energy.k,
                  kZeroComb   = sp->z.k;
-  short unsigned typeResidual[4];
+  short typeResidual[4];
   INT jj = 1;
   DOUBLE time, timei;
   DOUBLE *rCellPc;
@@ -3289,7 +3289,7 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
            , mesh->elm.vel          , mesh->elm.gradVel
-           , mesh->node.vel         , sc->rcGrad
+           , mesh->node.vel         , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
            , ndfVel                 , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
@@ -3316,7 +3316,7 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
            , mesh->elm.pressure     , mesh->elm.gradPres
-           , mesh->node.pressure    , sc->rcGrad
+           , mesh->node.pressure    , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
            , 1                      , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
@@ -3574,7 +3574,7 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
         , mesh->elm.leastSquare, mesh->elm.leastSquareR
         , mesh->elm.faceRpres, mesh->elm.faceLoadPres
         , sp->ePresC1, sp->eGradPresC
-        , sp->nPresC, sc->rcGrad
+        , sp->nPresC, &sc->rcGrad
         , mesh->maxNo, mesh->maxViz
         , 1, mesh->ndm
         , &pMesh->iNo, &pMesh->iEl
@@ -3656,7 +3656,7 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
         , sp->ePresC             , sp->eGradPresC
-        , sp->nPresC             , sc->rcGrad
+        , sp->nPresC             , &sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
         , 1                      , mesh->ndm
         , &pMesh->iNo            , &pMesh->iEl
@@ -3695,7 +3695,7 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
         , mesh->elm.vel          , mesh->elm.gradVel
-        , mesh->node.vel         , sc->rcGrad
+        , mesh->node.vel         , &sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
         , ndfVel                 , mesh->ndm
         , &pMesh->iNo            , &pMesh->iEl
@@ -3722,7 +3722,7 @@ void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
         , mesh->elm.pressure     , mesh->elm.gradPres
-        , mesh->node.pressure    , sc->rcGrad
+        , mesh->node.pressure    , &sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
         , 1                      , mesh->ndm
         , &pMesh->iNo            , &pMesh->iEl

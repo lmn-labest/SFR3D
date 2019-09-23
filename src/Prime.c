@@ -134,7 +134,7 @@ void primeSolver(Memoria *m
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
            , mesh->elm.vel          , mesh->elm.gradVel
-           , mesh->node.vel         , sc.rcGrad
+           , mesh->node.vel         , &sc.rcGrad
            , mesh->maxNo            , mesh->maxViz
            , ndfVel                 , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
@@ -161,7 +161,7 @@ void primeSolver(Memoria *m
             , mesh->elm.leastSquare  , mesh->elm.leastSquareR
             , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
             , mesh->elm.pressure     , mesh->elm.gradPres
-            , mesh->node.pressure    , sc.rcGrad
+            , mesh->node.pressure    , &sc.rcGrad
             , mesh->maxNo            , mesh->maxViz
             , 1, mesh->ndm
             , &pMesh->iNo            , &pMesh->iEl
@@ -335,7 +335,7 @@ void primeSolver(Memoria *m
           , mesh->elm.leastSquare  , mesh->elm.leastSquareR
           , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
           , pr->ePresC             , pr->eGradPresC
-          , pr->nPresC             , sc.rcGrad
+          , pr->nPresC             , &sc.rcGrad
           , mesh->maxNo            , mesh->maxViz
           , 1                      , mesh->ndm
           , &pMesh->iNo            , &pMesh->iEl

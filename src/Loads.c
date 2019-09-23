@@ -56,6 +56,42 @@ DOUBLE functionFace(DOUBLE const x1,DOUBLE const x2, DOUBLE const x3)
 }
 
 /********************************************************************* 
+ * Data de criacao    : 14/08/2019                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * sen:                                                              * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+static void functionGeneral(DOUBLE *x,DOUBLE *c, short const iCod)
+{
+  DOUBLE x1,x2,x3,t;
+
+  x1 = x[0];
+  x2 = x[1];
+  x3 = x[2];
+  t  = x[3];
+  
+  c[0] = 0.e0;
+  if(x1< 0.e0 && x1>-0.5 && x2 < 0.5)
+    c[0] = 1.e0;
+
+  c[1] = 2.e0*x2*(1-x1*x1);
+  c[2] =-2.e0*x1*(1-x2*x2);
+  c[3] = 0.e0;
+
+  c[4] = 1.e0;
+
+}
+/********************************************************************/
+
+/********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
  * Data de modificaco : 14/09/2019                                   * 
  *-------------------------------------------------------------------* 
@@ -89,10 +125,8 @@ void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx)
   {
     if (ld->nTypeVar == LVARCONST)
       for(i = 0; i< ld->np; par[i] = ld->par[i], i++);
-    else if (ld->nTypeVar == LFUNC)
-    {
-      par[0] = functionFace(x1,x2,x3);
-    }
+    else if(ld->nTypeVar == LFUNC)
+      functionGeneral(xx,par,0);
   } 
   else if( ld->type == ROBINBC)
   {
@@ -121,13 +155,8 @@ void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx)
   {
     if (ld->nTypeVar == LVARCONST)
       for(i = 0; i< ld->np; par[i] = ld->par[i], i++);
-    else if (ld->nTypeVar == LFUNCPARABOLIC)
-    {
-      par[0] = ld->par[0];
-//    par[1] = InletFunction(x2);
-      par[2] = 0.0;
-      par[3] = 0.0;
-    }
+    else if(ld->nTypeVar == LFUNC)
+      functionGeneral(xx,par,0);
   }
 
   else if (ld->type == OPEN)

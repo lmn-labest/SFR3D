@@ -77,7 +77,8 @@ void solverC(Memoria *m
   void   (*matVecC)();
   DOUBLE (*dotC)();
   INT nn;
-  unsigned short nKrylov=50;
+  unsigned short nKrylov=15;
+  short mType;
   bool fPrint = false,openMp = ompVar.fSolver;
 /*...*/
 	dotC    = NULL;
@@ -468,9 +469,16 @@ void solverC(Memoria *m
       zero(r,nEq,DOUBLEC);
 /*...................................................................*/
 
+/*...*/
+      if(unSym)
+        mType = 3;
+      else
+        mType = 2;
+/*...................................................................*/
+
 /*... pardiso*/
       tm.pardiso = getTimeC() - tm.pardiso;
-      callMklPardiso(nEq    , 2
+      callMklPardiso(nEq    , mType
                    , ia     , ja
                    , ad     , b
                    , x      , z
@@ -1508,6 +1516,18 @@ void callMklPardiso(INT nEq           , INT mtype
    }             
 /*...................................................................*/
 
+/*... simetrico definido positivo*/
+   else if( mtype == 11){
+     iparm[0]  = 1;/*no solver default*/
+     iparm[1]  = 2;/*fill-in reordering from METIS*/
+     iparm[6]  = 2;/*numbers of iterative refinement steps*/
+//   iparm[16] =-1;
+//   iparm[17] =-1;
+     iparm[23] = 0; /*Parallel factorization control.*/
+     iparm[34] = 1; /*C-style indexing*/
+   }             
+/*...................................................................*/
+
 /*...*/
    time = getTimeC(); 
 /*...................................................................*/
@@ -1516,7 +1536,7 @@ void callMklPardiso(INT nEq           , INT mtype
      r[i] = b[i] - z[i];
 /*...*/
    phase = 13;       
-   msglvl = 0;
+   msglvl = 1;
    mkl_set_num_threads(&nThreads);
    pardiso (pt   , &maxfct, &mnum, &mtype, &phase
           , &nEq , a      , ia   , ja

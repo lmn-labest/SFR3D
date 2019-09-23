@@ -116,7 +116,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
        , mesh->elm.leastSquare  , mesh->elm.leastSquareR
        , mesh->elm.faceResZcomb , mesh->elm.faceLoadZcomb
        , mesh->elm.zComb        , mesh->elm.gradZcomb
-       , mesh->node.zComb       , sc->rcGrad
+       , mesh->node.zComb       , &sc->rcGrad
        , mesh->maxNo            , mesh->maxViz
        , nComb                  , mesh->ndm              
        , &pMesh->iNo            , &pMesh->iEl
@@ -334,8 +334,8 @@ void regularZ(DOUBLE *RESTRICT y, INT const numel, short const ns)
  *********************************************************************/
 void getEnthalpySpecies(Combustion *cModel        ,  PropVarFluid *propF
                       , DOUBLE *RESTRICT enthalpyk, DOUBLE *RESTRICT temp 
-                      , INT const numel           , bool const fKelvin
-                      , bool const fOmp           , short const nThreads )
+                      , INT numel                 , bool fKelvin
+                      , bool fOmp                 , short nThreads )
 {
   short j,ns=cModel->nOfSpecies;
   INT nel;
@@ -675,7 +675,7 @@ void rateHeatRealesedReaction(Combustion *cModel,Prop *sHeat
     {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(nel,i,sum)\
-        shared(cModel,wk,h,q,numel,nSp)    
+        shared(cModel,wk,h,q,nSp)    
       for(nel = 0; nel < numel; nel++)
       {
 /*... KJ/KG*/

@@ -172,7 +172,7 @@ void pbicgstab(INT const nEq  ,INT const nAd
 /*...................................................................*/
 
 /*...*/
-		if (jj == 2000)
+		if (jj == 1000)
     {
 			jj = 0;
 			printf("BICGSATB: %d %20.9e %20.9e\n"

@@ -185,7 +185,7 @@ void transport(Memoria *m      ,Loads *loadsTrans,TransModel *tModel
            , mesh->elm.leastSquare   , mesh->elm.leastSquareR
            , mesh->elm.faceRt1       , mesh->elm.faceLoadT1    
            , mesh->elm.uT1           , mesh->elm.gradUt1                 
-           , mesh->node.uT1          , sc->rcGrad
+           , mesh->node.uT1          , &sc->rcGrad
            , mesh->maxNo             , mesh->maxViz
            , mesh->ndfT[0]           , mesh->ndm
            , &pMesh->iNo             , &pMesh->iEl  

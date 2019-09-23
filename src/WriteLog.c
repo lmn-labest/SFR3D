@@ -107,7 +107,7 @@ void writeLog(Mesh *mesh            ,Scheme *sc
   fprintf(file,"Time:\n");
   fprintf(file,"%-25s : %13.3lf\n","adjcency",t->adjcency);
   fprintf(file,"%-25s : %13.3lf\n","geom"    ,t->geom);
-  if( sc->rcGrad == RCLSQUARE )
+  if( sc->rcGrad.type  == RCLSQUARE )
     fprintf(file,"%-25s : %13.3lf\n","lSquareMatrix",t->leastSquareMatrix);
   fprintf(file,"%-25s : %13.3lf\n","reord",t->reord);
 
@@ -382,7 +382,7 @@ void writeLog(Mesh *mesh            ,Scheme *sc
 /*...*/
   MPI_Reduce(&t->leastSquareMatrix, &mTime , 1, MPI_DOUBLE
             ,MPI_SUM              , 0     , mpiVar.comm);
-  if( sc->rcGrad == RCLSQUARE ) 
+  if( sc->rcGrad.type  == RCLSQUARE ) 
     if(!mpiVar.myId)
       fprintf(file,"%-25s : %13.3lf\n","lSquareMatrix",mTime/nPrcs);
 

@@ -5,6 +5,16 @@
   #include<Define.h>
 
   INT gStep;
+
+
+/*...*/
+  typedef struct 
+  {
+    bool fLimiter;
+    short  type,func;
+    DOUBLE beta;  
+  } RcGrad;
+/*...................................................................*/
  
 /*...*/
   typedef struct 
@@ -14,7 +24,6 @@
     DOUBLE tol;  
   } Edo;
 /*...................................................................*/
-
 
 /*...*/
   typedef struct 
@@ -345,7 +354,7 @@
 
 /*...*/
   typedef struct{
-    short rcGrad; /*tipo de rescontrucao de gradiente*/                     
+    RcGrad rcGrad; /*tipo de rescontrucao de gradiente*/                     
 /*...*/
     Temporal ddt;
 /*...*/
@@ -383,7 +392,6 @@
     char name[50];
   }Residual;
 /*...................................................................*/
-
 
 /*... Simple*/
   typedef struct{

@@ -616,7 +616,7 @@ void updateMixDensity(Prop *pDen            , Combustion *cModel
       {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(i,y,molarMassMix,den0,den)\
-        shared(cModel,pDen,yFrac,density,pressure,temp,thDynamic,iKelvin,alpha,nD,ns,nEl)
+        shared(cModel,pDen,yFrac,density,pressure,temp,thDynamic,nD,ns)
         for(i=0;i<nEl;i++)
         {
           y = &MAT2D(i,0,yFrac,ns);
@@ -659,7 +659,7 @@ void updateMixDensity(Prop *pDen            , Combustion *cModel
       {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(i)\
-        shared(density,nD,nEl)
+        shared(density,nD)
         for(i=0;i<nEl;i++)
         {
 /*...t(n-2) = t(n-1)*/
@@ -899,7 +899,7 @@ void getEnergyFromTheTempMix(Prop *sHeatPol   ,DOUBLE *RESTRICT yFrac
   {
 /*...*/ 
 #pragma omp parallel  for default(none) num_threads(nThreads)\
-    private(i,lMat,sHeatRef,y) shared(prop,mat,energy,temp,sHeatPol,nOfPrSp,yFrac)
+    private(i,lMat,sHeatRef,y) shared(prop,mat,energy,temp,sHeatPol,yFrac)
     for (i = 0; i < nCell; i++) 
     {
       lMat  = mat[i] - 1;
@@ -988,7 +988,7 @@ void  getTempFromTheEnergy(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
     if(fOmp)
     {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
-      private(i,lMat,sHeatRef,y) shared(prop,mat,energy,temp,sHeatPol,nOfPrSp,yFrac)
+      private(i,lMat,sHeatRef,y) shared(prop,mat,energy,temp,sHeatPol,yFrac)
       for (i = 0; i < nCell; i++)
       {
         lMat  = mat[i] - 1;
@@ -1073,7 +1073,7 @@ void updateMixSpecificHeat(Prop *sHeatPol
       {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(i,y)\
-        shared(sHeat,temp,nOfPrSp,sHeatPol,yFrac,iKelvin, nD)
+        shared(sHeat,temp,sHeatPol,yFrac, nD)
         for(i=0;i<nEl;i++)
         {
           y = &MAT2D(i,0,yFrac,nOfPrSp);
@@ -1106,7 +1106,7 @@ void updateMixSpecificHeat(Prop *sHeatPol
       if(fOmp)
       {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
-       private(i) shared(sHeat,nD,nEl)
+       private(i) shared(sHeat,nD)
         for(i=0;i<nEl;i++)
         {        
           MAT2D(i, TIME_N_MINUS_2, sHeat, nD) = MAT2D(i,1 ,sHeat ,nD);           
@@ -1477,7 +1477,7 @@ void updateMixDynamicViscosity(Prop *dVisc       ,Combustion *cModel
   {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(i,y)\
-        shared(dVisc,cModel,nOfPrSp,visc,temp,yFrac,iKelvin)
+        shared(dVisc,cModel,visc,temp,yFrac)
     for(i=0;i<nEl;i++)
     {
       y = &MAT2D(i,0,yFrac,nOfPrSp);      
@@ -1540,7 +1540,7 @@ void updateMixDynamicThermalCond(PropVarFluid *propF,Combustion *cModel
   {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(i,y)\
-        shared(propF,thc,cModel,nOfPrSp,temp,yFrac,iKelvin)
+        shared(propF,thc,cModel,temp,yFrac)
     for(i=0;i<nEl;i++)
     {
       y = &MAT2D(i,0,yFrac,nOfPrSp);         
@@ -1867,7 +1867,7 @@ void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel
   {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(i,j,y)\
-        shared(propF,cModel,diff,temp,nOfPrSp,yFrac,iKelvin)
+        shared(propF,cModel,diff,temp,yFrac)
     for(i=0;i<nEl;i++)
     {
       y = &MAT2D(i,0,yFrac,nOfPrSp);         
@@ -4207,7 +4207,7 @@ void initPresRef(DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT volume
  * Data de criacao    : 12/05/2018                                    *
  * Data de modificaco : 00/00/0000                                    *
  *--------------------------------------------------------------------*
- * setReGrad:                                                         *
+ * :                                                                  *
  *--------------------------------------------------------------------*
  * Parametros de entrada:                                             *
  *--------------------------------------------------------------------*

@@ -1,4 +1,44 @@
 #include<CellLib.h>
+
+/*********************************************************************
+ * Data de criacao    : 18/09/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * limiterFunc: funcao limitadora de gradiente                       *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * r    ->                                                           *
+ * h    -> tamanho caracteristico do elemento                        *
+ * iCod -> tipo da funcao                                            *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+static DOUBLE limiterFunc(DOUBLE const r,DOUBLE const h,short const iCod)
+{
+
+  DOUBLE v=1.0,rr,eps;
+
+  rr = fabs(r);
+
+  switch(iCod)
+  {
+    case GL_BARTH:
+      v = min(1.e0,rr);
+    break;
+    case GL_BARTH_MOD:
+      eps = h*h*h;
+      v = (rr*rr + 2.e0*rr + eps*eps)/(rr*rr + rr + 2.e0 + eps*eps);
+    break;
+
+  }
+  
+  return v;
+}
+/*********************************************************************/
+
 /*********************************************************************
  * Data de criacao    : 10/09/2017                                   *
  * Data de modificaco : 12/12/2017                                   *
@@ -2255,7 +2295,7 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
     
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 18/09/2019                                   * 
  *-------------------------------------------------------------------* 
  * CELLRCGRAD : chamada de bibliotecas de celulas para a reconstrucao*
  * de gradiente.                                                     * 
@@ -2263,6 +2303,7 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * loads     -> definicoes de cargas                                 * 
+ * rcGrad    -> config de reconstrucao de gradiente                  * 
  * lprop     -> propriedade fisicas das celulas                      *
  * lViz      -> viznhos da celula central                            *
  * lSquare -> matriz para a reconstrucao least Square                * 
@@ -2288,7 +2329,6 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
  * faceL     -> carga por elemento                                   * 
  * nFace     -> numero de faces                                      * 
  * ndm       -> numero de dimensoes                                  * 
- * lib       -> tipo de reconstrucao de gradiente                    * 
  * ndf       -> grauss de liberdade                                  * 
  * isNod     -> numeracao dos nos por aresta                         * 
  * nel       -> numero da celula                                     * 
@@ -2298,8 +2338,8 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
  * gradU     -> gradiente calculodo                                  *
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void cellLibRcGrad(Loads *loads
-                 ,INT   *RESTRICT lViz    ,DOUBLE *RESTRICT lProp    
+void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
+                 ,INT   *RESTRICT lViz     ,DOUBLE *RESTRICT lProp    
                  ,DOUBLE *RESTRICT lLsquare,DOUBLE *RESTRICT lLsquareR
                  ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
                  ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
@@ -2311,11 +2351,11 @@ void cellLibRcGrad(Loads *loads
                  ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU 
                  ,DOUBLE *RESTRICT lnU     ,short const ty                
                  ,short const nFace        ,short const ndm      
-                 ,short const lib          ,short const ndf
+                 ,short const ndf
                  ,short *RESTRICT  isNod   ,INT const nel){
   long aux;
     
-  switch(lib){
+  switch(rcGrad->type){
 /*... green-Gauss linear baseado na celula*/  
     case RCGRADGAUSSC:
       greenGaussCell(loads
@@ -2382,6 +2422,20 @@ void cellLibRcGrad(Loads *loads
 /*...................................................................*/ 
 
   }  
+/*...................................................................*/ 
+
+/*... limitador de gradiente*/
+  if(rcGrad->fLimiter)
+    limeterGrad(loads
+                ,u           ,gradU
+                ,lViz    
+                ,xm          ,xmcc
+                ,lFaceR      ,lFaceL
+                ,rcGrad->beta,rcGrad->func
+                ,volume[nFace],nFace
+                ,ndf          ,ndm
+                ,nel);
+/*...................................................................*/ 
 
 }
 /*********************************************************************/ 
@@ -2477,7 +2531,7 @@ void greenGaussCell(Loads *loads
       else{
         xx[0] = MAT2D(i,0,xm,ndm);
         xx[1] = MAT2D(i,1,xm,ndm);
-        xx[2] = 0.e0;
+        xx[2] = MAT2D(i,2,xm,ndm);
         xx[3] = 0.e0;
         if(ndm == 3) xx[2] = MAT2D(i,2,xm,ndm);
 /*... temperatura prescrita na face(extrapolacao linear)*/
@@ -2544,10 +2598,9 @@ void greenGaussCell(Loads *loads
 /*...................................................................*/
     for(k=0;k<ndm;k++){
       tmp = 0.e0;
-      for(i=0;i<nFace;i++){
+      for(i=0;i<nFace;i++)
         tmp += uf[i]*fArea[i]*MAT2D(i,k,normal,ndm);; 
-      gradU[k] = tmp*invVol; 
-      }
+      gradU[k] = tmp*invVol;       
     }
 /*...................................................................*/
   } 
@@ -2731,14 +2784,8 @@ void greenGaussNode(INT *RESTRICT lViz   ,DOUBLE *RESTRICT fArea
   invVol = 1.e0/volume[idCell];
   
   for(i=0;i<ndf*ndm;i++)
-    gradU[i]  = 0.e0;
-  
-  for(i=0;i<ndm;i++)
-    lNormal[i]  = 0.e0;
-  
-  for(i=0;i<ndf;i++)
-    uf[i]  = 0.e0;
-  
+    gradU[i]  = 0.e0; 
+
 /*...*/
   for(i=0;i<nFace;i++)
   {    
@@ -2872,18 +2919,23 @@ void  leastSquare(Loads *loads
                  ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU
                  ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
                  ,short const nFace        ,short const ndf
-                 ,short const ndm          ,INT const nel){
+                 ,short const ndm          ,INT const nel)
+{
 
   DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF];
   DOUBLE uT[MAX_NDF],xx[4],par[MAXLOADPARAMETER];
   DOUBLE tmp,coefDif;
   INT vizNel;
   short idCell = nFace,nCarg,type;
-  short i,j,k,l,it=1,itNumber=1;
+  short i,j,k,l,it=1,itNumber=10;
   
-  for(j=0;j<ndf;j++)
-    uC[j] = 0.e0;
- 
+/*...*/
+  for(k=0;k<ndf;k++)
+    for(i=0;i<ndm;i++)
+      MAT2D(k,i,gradU,ndm) = 0.e0;
+/*.....................................................................*/
+
+/*...*/
   for(l=0;l<it;l++){    
 /*... um grau de liberdade*/  
     if(ndf == 1){
@@ -2901,7 +2953,7 @@ void  leastSquare(Loads *loads
           xx[2] = 0.e0;
           if(ndm == 3) xx[2] = MAT2D(i,2,xm,ndm);
           xx[3] = 0.e0;          
-/*... temperatura prescrita na face(extrapolacao linear)*/
+/*... */
           if(lFaceR[i])
           {
             nCarg = lFaceL[i]-1;
@@ -2963,9 +3015,8 @@ void  leastSquare(Loads *loads
           {
             if(l==0) it = itNumber;
             du[i] =0.e0;
-            if(l>1)
-              for(j=0;j<ndm;j++)
-                du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
+            for(j=0;j<ndm;j++)
+              du[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
           }
 /*...................................................................*/
         }
@@ -2991,7 +3042,7 @@ void  leastSquare(Loads *loads
         uC[k] = MAT2D(idCell,k,u,ndf);
 /*... loop nas faces*/
       for(i=0;i<nFace;i++)
-        {
+      {
         for(k=0;k<ndf;k++)
           MAT2D(i,k,du,ndf) = 0.e0;    
         vizNel = lViz[i];
@@ -3069,12 +3120,9 @@ void  leastSquare(Loads *loads
             for(k=0;k<ndf;k++)
             {
               MAT2D(i,k,du,ndf) = 0.e0;
-              if (l>1)
-              {
-                for(j=0;j<ndm;j++)
-                  MAT2D(i,k,du,ndf) += 
-                  MAT2D(k,j,gradU,ndm)*MAT2D(i,j,xmcc,ndm);
-              }
+              for(j=0;j<ndm;j++)
+                MAT2D(i,k,du,ndf) += 
+                MAT2D(k,j,gradU,ndm)*MAT2D(i,j,xmcc,ndm);
             }
           }
 /*...................................................................*/
@@ -3144,9 +3192,13 @@ void  leastSquareQR(Loads *loads
   short idCell = nFace,type;
   short i,j,k,l,nCarg;
 
-  for(j=0;j<ndf;j++)
-    uC[j] = 0.e0;
- 
+/*...*/
+  for(k=0;k<ndf;k++)
+    for(i=0;i<ndm;i++)
+      MAT2D(k,i,gradU,ndm) = 0.e0;
+/*.....................................................................*/
+
+/*...*/
   for(l=0;l<1;l++){
 /*... um grau de liberdade*/  
     if(ndf == 1){
@@ -7100,3 +7152,146 @@ void velCorrectCombustion(DOUBLE *RESTRICT diff, DOUBLE *RESTRICT gradZ
   }
 }
 /*********************************************************************/   
+
+/*********************************************************************
+ * Data de criacao    : 18/09/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * limiterFunc: funcao limitadora de gradiente                       *
+ *-------------------------------------------------------------------*
+ * loads     -> definicoes de cargas                                 * 
+ * u         -> solucao conhecida                                    * 
+ * gradU     -> gradiente rescontruido da solucao conhecida          *
+ * xm        -> pontos medios das faces das celulas                  * 
+ * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
+ *            faces da celula central                                * 
+ * lViz      -> viznhos da celula central                            * 
+ * lFaceR    -> restricoes por elmento                               * 
+ * lFaceL    -> carga por elemento                                   * 
+ * beta      -> combinacao linear do gradiente limitado e nao        *
+ *              limitado                                             *
+ * tFunc     -> tipo de funcao limitadora
+ * volume    -> volume da celula central                             *
+ * nFace     -> numero vizinhos por celula maximo da malha           * 
+ * ndf       -> grauss de liberdade                                  * 
+ * ndm       -> numero de dimensoes                                  * 
+ * nel       -> numero do elemento                                   * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * gradU     -> modificado                                           * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ * gradNew = beta gradOld + (1-beta)gradLim                          *
+ *********************************************************************/
+void limeterGrad(Loads *loads
+                ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU
+                ,INT *RESTRICT lViz       
+                ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+                ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
+                ,DOUBLE const beta        ,short const tFunc  
+                ,DOUBLE const volume      ,short const nFace
+                ,short const ndf          ,short const ndm
+                ,INT const nel)  
+{
+  short i,j,k;
+  short idCell = nFace,nCarg,type;
+  INT vizNel;
+  DOUBLE uC[MAX_NDF],uV[MAX_NUM_FACE*MAX_NDF],xx[4];
+  DOUBLE par[MAXLOADPARAMETER],maxU,minU,kif,ki[MAX_NDF],gradRf,h;
+
+  h = sizeCar(volume,ndm);
+
+/*...*/
+  for(k=0;k<ndf;k++)
+    uC[k] = MAT2D(idCell,k,u,ndf);
+/*............................................*/
+
+/*...*/
+  for(i=0;i<nFace;i++)
+  {
+    vizNel = lViz[i];
+/*... dominio*/
+    if (vizNel > -1)
+    {
+      for(k=0;k<ndf;k++)
+        MAT2D(i,k,uV,ndf) = MAT2D(i,k,u,ndf);  
+      
+    }
+/*... contorno*/
+    else
+    {
+/*... */
+      if(lFaceR[i])
+      {
+        nCarg = lFaceL[i]-1;
+        type  = loads[nCarg].type;
+/*... valor prescrito*/
+        if (type == DIRICHLETBC || type == MOVEWALL || type == INLET) 
+        {
+          getLoads(par,&loads[nCarg],xx);
+          for(k=0;k<ndf;k++)
+            MAT2D(i,k,uV,ndf) = MAT2D(i,k,par,ndf); 
+        }              
+/*...................................................................*/
+
+/*... derivada nula (condicao localmente parabolica saida)*/
+        else if (type == OUTLET || type == INLETSTAICTPRES
+                  || type == OPEN)
+        {
+          for(k=0;k<ndf;k++)
+            MAT2D(i,k,uV,ndf) = uC[k]; 
+        }
+/*...................................................................*/
+      }
+/*... fluxo nulo*/
+      else
+      {
+        for(k=0;k<ndf;k++)
+        MAT2D(i,k,uV,ndf) = uC[k]; 
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+
+/*...................................................................*/
+  }
+/*..................................................................*/
+
+/*...*/
+  for(k=0;k<ndf;k++)
+  {
+    maxU = minU = uC[k];
+    for(i=0;i<nFace;i++)
+    {
+      maxU = max(MAT2D(i,k,uV,ndf),maxU);
+      minU = min(MAT2D(i,k,uV,ndf),minU);
+    }
+    ki[k] = 1.e0;
+    for(i=0;i<nFace;i++)
+    {
+      for(j=0,gradRf=0.e0;j<ndm;j++)
+        gradRf += MAT2D(k,j,gradU,ndm)*MAT2D(i,j,xmcc,ndm);
+    
+      if(gradRf > 0)
+        kif = limiterFunc((maxU - uC[k])/gradRf,h,tFunc);
+      else if(gradRf < 0)
+        kif = limiterFunc((uC[k] - minU)/gradRf,h,tFunc);
+      else
+      {
+        kif = 1.0;
+      }
+      ki[k] = min(kif,ki[k]);
+
+    }    
+  }
+/*..................................................................*/
+
+/*...*/
+  for(k=0;k<ndf;k++)
+    for(i=0;i<ndm;i++)
+      MAT2D(k,i,gradU,ndm) *=(beta + ki[k] - beta*ki[k]) ;
+/*..................................................................*/
+
+}
+/*******************************************************************/

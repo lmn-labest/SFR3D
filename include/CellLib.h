@@ -809,8 +809,8 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                  ,short const nFace        ,short const ndf
                  ,short const ndm);
 /*... biblioteca de reconstrucao de gradiente*/
-  void cellLibRcGrad(Loads *loads
-           ,INT   *RESTRICT lViz,DOUBLE *RESTRICT lProp
+  void cellLibRcGrad(Loads *loads        ,RcGrad *rcGrad
+           ,INT   *RESTRICT lViz         ,DOUBLE *RESTRICT lProp
            ,DOUBLE *RESTRICT leastSquare ,DOUBLE *RESTRICT leastSquareR
            ,DOUBLE *RESTRICT ksi         ,DOUBLE *RESTRICT mKsi
            ,DOUBLE *RESTRICT eta         ,DOUBLE *RESTRICT fArea
@@ -822,7 +822,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
            ,DOUBLE *RESTRICT u           ,DOUBLE *RESTRICT gradU 
            ,DOUBLE *RESTRICT nU          ,short const ty 
            ,short const nFace            ,short const ndm  
-           ,short const lib              ,short const ndf  
+           ,short const ndf  
            ,short *RESTRICT  isNodIN    ,INT const nel);
 
   void rcLeastSquare(INT *RESTRICT cellFace  , INT *RESTRICT fOwner
@@ -1061,7 +1061,16 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
   DOUBLE qCriterion(DOUBLE *RESTRICT gradVel, short const ndm);
   void velCorrectCombustion(DOUBLE *RESTRICT diff, DOUBLE *RESTRICT gradZ
                   , DOUBLE *RESTRICT velC      , short const ndm           
-                  , short const ns    ); 
+                  , short const ns    );
+  void limeterGrad(Loads *loads
+                ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU
+                ,INT *RESTRICT lViz       
+                ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
+                ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
+                ,DOUBLE const beta        ,short const tFunc      
+                ,DOUBLE const volume      ,short const nFace
+                ,short const ndf          ,short const ndm
+                ,INT const nel);   
 /*...................................................................*/
 
 

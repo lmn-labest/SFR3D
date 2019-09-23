@@ -212,8 +212,8 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
 /*...*/
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(nel,pz,i,it,densityC,eddyC,y,w)\
-        shared(cModel,zComb,nComb,density,numel,nSp,rate,pFluid,dt,temp\
-              ,tReactor,eddyViscosity,dViscosity,thDynamic,fKelvin\
+        shared(cModel,zComb,nComb,density,nSp,rate,pFluid,temp\
+              ,tReactor,eddyViscosity,dViscosity,thDynamic\
               ,tModel)
         for(nel = 0; nel < numel; nel++)
         {
@@ -285,7 +285,7 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
 /*...*/
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(nel,pz,i,it,densityC,y,w)\
-        shared(cModel,zComb,nComb,density,numel,nSp,rate,tReactor)
+        shared(cModel,zComb,nComb,density,nSp,rate,tReactor)
         for(nel = 0; nel < numel; nel++)
         { 
           pz = &MAT2D(nel,0,zComb,nComb);

@@ -74,6 +74,7 @@ static void endSec(short icod)
 /*********************************************************************/
 void grad(Mesh *mesh);
 void gradErro(Mesh *mesh);
+void vel(Mesh *mesh);
 /*********************************************************************/
 
 /*********************************************************************/
@@ -314,7 +315,10 @@ int main(int argc,char**argv){
   ERRO_MALLOC(mesh0,"mesh0",__LINE__,__FILE__,__func__);
 
 /*... tecnica padrao de resconstrucao de gradiente*/
-  sc.rcGrad       = RCGRADGAUSSN;
+  sc.rcGrad.type      = RCGRADGAUSSN;
+  sc.rcGrad.func      = GL_BARTH_MOD;
+  sc.rcGrad.beta      = 1.0;
+  sc.rcGrad.fLimiter  = false;
 /*... D1,T1 */ 
   sc.nlD1.maxIt   = sc.nlT1.maxIt =   100; 
   sc.nlD1.tol     = sc.nlT1.tol   = 1.e-6; 
@@ -679,7 +683,7 @@ int main(int argc,char**argv){
 /*...................................................................*/  
  
 /*... reconstrucao de gradiente least square*/
-      if(sc.rcGrad ==  RCLSQUARE || sc.rcGrad ==  RCLSQUAREQR){
+      if(sc.rcGrad.type ==  RCLSQUARE || sc.rcGrad.type  ==  RCLSQUAREQR){
         if(!mpiVar.myId ){
           fprintf(fileLogExc,"%s\n",DIF);
           fprintf(fileLogExc,"Least Square ...\n");
@@ -689,7 +693,7 @@ int main(int argc,char**argv){
                  ,mesh->numelNov*mesh->maxViz*mesh->ndm
                  ,"leastSquare",_AD_);
 /*... leastSqaure QR*/
-        if(sc.rcGrad ==  RCLSQUAREQR){
+        if(sc.rcGrad.type  ==  RCLSQUAREQR){
           if(mesh->ndm == 2){ 
             HccaAlloc(DOUBLE,&m,mesh->elm.leastSquareR            
                      ,mesh->numelNov*3
@@ -708,7 +712,7 @@ int main(int argc,char**argv){
                     , mesh->elm.leastSquare, mesh->elm.leastSquareR
                     , mesh->elm.adj.nViz       
                     , mesh->numelNov       , mesh->maxViz
-                    , sc.rcGrad            , mesh->ndm);
+                    , sc.rcGrad.type       , mesh->ndm);
         tm.leastSquareMatrix = getTimeC() - tm.leastSquareMatrix;
 /*...................................................................*/
         if(!mpiVar.myId ){
@@ -748,6 +752,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
+//    vel(mesh0);
 //    grad(mesh0);
 //    writeMeshPart(mesh,&combModel);
 /*...................................................................*/
@@ -1354,7 +1359,7 @@ int main(int argc,char**argv){
                       ,&sistEqVel ,&sistEqPres
                       ,&solvVel   ,&solvPres
                       ,&simple
-                      ,sc         ,pMesh
+                      ,&sc         ,pMesh
                       ,opt        ,preName        
                       ,nameOut    ,fileOut);
 /*...................................................................*/
@@ -1590,7 +1595,7 @@ int main(int argc,char**argv){
 /*...*/                     
       printFluid(&m         
                , &turbModel, &eModel
-               , pMesh     , sc
+               , pMesh     , &sc
                , loadsVel  , loadsPres 
                , loadsTemp , opt
                , mesh0     , mesh 

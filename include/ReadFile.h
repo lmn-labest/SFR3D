@@ -72,7 +72,7 @@
   void setEdc(Edc *e       , FILE *file);
   void setEdm(Edm *e       , FILE *file); 
   void setPrint(FileOpt *opt,FILE *file);
-  void setReGrad(short *rcGrad, FILE *fileIn);
+  void setReGrad(RcGrad *rcGrad, FILE *fileIn);
 
   void initProp(DOUBLE *RESTRICT prop 
              ,DOUBLE *RESTRICT propMat,short *RESTRICT mat

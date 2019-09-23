@@ -28,7 +28,7 @@
                    ,SistEq *sistEqVel ,SistEq *sistEqPres
                    ,Solv *solvVel     ,Solv *solvPres 
                    ,Simple *sp
-                   ,Scheme sc         ,PartMesh *pMesh 
+                   ,Scheme *s         ,PartMesh *pMesh 
                    ,FileOpt opt       ,char *preName  
                    ,char *nameOut     ,FILE *fileOut);
   

@@ -53,7 +53,7 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
               ,short maxNo              ,short maxViz
               ,short ndm                ,INT numel)
 {
-  short i, j, k;
+  short i, j, k, aux1, aux2;
   INT nel,no,vizNel,idFace,idCell;
 /*... variavel local */
   DOUBLE lx[MAX_NUM_PONT];
@@ -72,6 +72,8 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
 /*... loop nas celulas*/  
   for(nel=0;nel<numel;nel++){
 
+    aux1 = nFace[nel];
+
 /*... zerando vetores*/
     for(i=0;i<MAX_NUM_PONT;i++){
       lx[i] = 0.0;
@@ -88,14 +90,14 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
     }
 
 /*... loop na celula central*/    
-    lnFace[maxViz]    = nFace[nel];
-    lnEn[maxViz]      = nen[nel];
-    lGeomType[maxViz] = geomType[nel];
+    lnFace[aux1]    = nFace[nel];
+    lnEn[aux1]      = nen[nel];
+    lGeomType[aux1] = geomType[nel];
     for(j=0;j<nen[nel];j++){
 /*...*/
       no = MAT2D(nel,j,el,maxNo) - 1;
       for(k=0;k<ndm;k++){
-        MAT3D(maxViz,j,k,lx,maxNo,ndm) = MAT2D(no,k,x,ndm);
+        MAT3D(aux1,j,k,lx,maxNo,ndm) = MAT2D(no,k,x,ndm);
       }
     }
 
@@ -157,7 +159,7 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
 /*... atribuido valores aos celula global*/
     geom->volume[nel] = lVolume;
     for (i = 0; i<ndm; i++)  
-      MAT2D(nel, i, geom->cc, ndm) = MAT2D(maxViz, i, lCc, ndm);
+      MAT2D(nel, i, geom->cc, ndm) = MAT2D(aux1, i, lCc, ndm);
 /*...................................................................*/
 
 /*... atribuindo valores por face*/
@@ -1557,7 +1559,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
     , DOUBLE *RESTRICT rCell               , DOUBLE *RESTRICT stressR  
     , DOUBLE *RESTRICT density             , DOUBLE *RESTRICT dViscosity 
     , DOUBLE *RESTRICT eddyViscosity       , DOUBLE *RESTRICT wallPar
-    , DOUBLE const densityMed              , Temporal *ddt                     
+    , DOUBLE densityMed                    , Temporal *ddt                     
     , INT nEq                              , INT nEqNov
     , INT nAd                              , INT nAdR                 
     , short maxNo                          , short maxViz
@@ -1614,7 +1616,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
          ,nelcon,id,loadsVel,loadsPres,advVel,diffVel,typeSimple\
          ,ddt,underU,sPressure,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd\
          ,nAdR,storage,forces,matrix,unsym,pres,dField,dViscosity,eddyViscosity\
-         ,stressR,tModel,ModelMomentum,wallPar,densityMed \
+         ,stressR,tModel,ModelMomentum,wallPar,densityMed\
          ,fOwner,cellFace,fTurb,fTurbStruct,fWallModel)
 
 /*... loop nas celulas*/
@@ -2552,7 +2554,6 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
        , bool calRcell                 , bool unsym)
 {
   bool fTurb = tModel->fTurb
-      ,fTurbStruct = false
       ,fWallModel  = tModel->fWall;
   short i, j, k, lib, aux1, aux2, lMat;
   short nThreads = ompVar.nThreadsCell, ns = cModel->nOfSpecies;
@@ -6671,7 +6672,7 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
  * u       -> solucao conhecida por celula (atualizado)              * 
  * gradU   -> gradiente da solucao         (desatualizado)           * 
  * nU      -> solucao conhecida por no     (desatualizado)           * 
- * lib     -> tipo de reconstrucao de gradiente                      * 
+ * rcGrad  -> config do reconstrucao de gradiente                    * 
  * maxNo   -> numero de nos por celula maximo da malha               * 
  * maxViz  -> numero vizinhos por celula maximo da malha             * 
  * ndm     -> numero de dimensoes                                    * 
@@ -6708,7 +6709,7 @@ void rcGradU(Memoria *m                , Loads *loads
            , DOUBLE *RESTRICT lSquare  , DOUBLE *RESTRICT lSquareR
            , short  *RESTRICT faceR    , short *RESTRICT faceL  
            , DOUBLE *RESTRICT u        , DOUBLE *RESTRICT gradU              
-           , DOUBLE *RESTRICT nU       , short lib 
+           , DOUBLE *RESTRICT nU       , RcGrad *rcGrad 
            , short maxNo               , short maxViz
            , short ndf                 , short ndm
            , InterfaceNo *iNo          , Interface *iCel
@@ -6738,7 +6739,7 @@ void rcGradU(Memoria *m                , Loads *loads
   INT idFace, cellOwner, ch;
 
 /*... reconstrucao de gradiente Green-Gauss nodal*/
-  if(lib ==  RCGRADGAUSSN){
+  if(rcGrad->type ==  RCGRADGAUSSN){
     interCellNode(m         ,loads  
                  ,cellFace  ,fOwner
                  ,nU        ,u
@@ -6767,7 +6768,7 @@ void rcGradU(Memoria *m                , Loads *loads
           ,lProp,lLsquare,lLsquareR,lGradU,ty,isNod,no\
           ,idFace,cellOwner,ch)\
      shared(aux2,ndm,ndf,numel,maxViz,nFace,mat,u,nU,lSquare,lSquareR\
-         ,gVolume, geomType,prop,fModKsi,faceL,faceR,gradU,numelNov,lib\
+         ,gVolume, geomType,prop,fModKsi,faceL,faceR,gradU,numelNov,rcGrad\
          ,fArea,gDcca,fKsi,fEta,fNormal,fXm,fXmCc,fvSkew,maxNo\
          ,nelcon,loadsVel,loadsPres,nen,loads,el\
          ,fOwner,cellFace)
@@ -6787,7 +6788,7 @@ void rcGradU(Memoria *m                , Loads *loads
         lProp[j] = MAT2D(lMat, j, prop, MAXPROP);
 
 /*... valor da funcao nodal nodias*/
-      if (lib == RCGRADGAUSSN)
+      if (rcGrad->type == RCGRADGAUSSN)
       {
         for (i = 0; i<nen[nel]; i++)
         {
@@ -6798,7 +6799,7 @@ void rcGradU(Memoria *m                , Loads *loads
       }
 
 /*... leastSquare*/
-      if (lib == RCLSQUARE)
+      if (rcGrad->type == RCLSQUARE)
         for (i = 0; i<ndm; i++)
           for (j = 0; j<aux1; j++)
             MAT2D(i, j, lLsquare, aux1)
@@ -6806,7 +6807,7 @@ void rcGradU(Memoria *m                , Loads *loads
 /*...................................................................*/
 
 /*... leastSquare-QR*/
-      if (lib == RCLSQUAREQR)
+      if (rcGrad->type == RCLSQUAREQR)
       {
         for (i = 0; i<ndm; i++)
           for (j = 0; j<aux1; j++)
@@ -6883,21 +6884,21 @@ void rcGradU(Memoria *m                , Loads *loads
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
-      cellLibRcGrad(loads
-                  , lViz      , lProp
-                  , lLsquare  , lLsquareR
-                  , lKsi      , lmKsi
-                  , lEta      , lfArea
-                  , lNormal   , lVolume
-                  , lvSkew
-                  , lXm       , lXmcc
-                  , lDcca
-                  , lFaceR    , lFaceL
-                  , lu        , lGradU
-                  , lnU       , ty
-                  , nFace[nel], ndm
-                  , lib       , ndf
-                  , isNod     , nel);
+      cellLibRcGrad(loads       , rcGrad
+                  , lViz        , lProp
+                  , lLsquare    , lLsquareR
+                  , lKsi        , lmKsi
+                  , lEta        , lfArea
+                  , lNormal     , lVolume
+                  , lvSkew      
+                  , lXm         , lXmcc
+                  , lDcca       
+                  , lFaceR      , lFaceL
+                  , lu          , lGradU
+                  , lnU         , ty
+                  , nFace[nel]  , ndm
+                  , ndf
+                  , isNod       , nel);
 /*...................................................................*/
 
 /*...*/
@@ -6931,7 +6932,7 @@ void rcGradU(Memoria *m                , Loads *loads
         lProp[j]= MAT2D(lMat,j,prop,MAXPROP);
 
 /*... valor da funcao nodal nodias*/    
-      if(lib ==  RCGRADGAUSSN)
+      if(rcGrad->type ==  RCGRADGAUSSN)
       {
         for(i=0;i<nen[nel];i++)
         {
@@ -6942,7 +6943,7 @@ void rcGradU(Memoria *m                , Loads *loads
       }
 
 /*... leastSquare*/
-      if(lib ==  RCLSQUARE)
+      if(rcGrad->type ==  RCLSQUARE)
         for(i=0;i<ndm;i++)
           for(j=0;j<aux1;j++)
             MAT2D(i,j,lLsquare,aux1) 
@@ -6950,7 +6951,7 @@ void rcGradU(Memoria *m                , Loads *loads
 /*...................................................................*/
 
 /*... leastSquare-QR*/
-      if(lib ==  RCLSQUAREQR)
+      if(rcGrad->type ==  RCLSQUAREQR)
       {
         for(i=0;i<ndm;i++)
           for(j=0;j<aux1;j++)
@@ -7028,21 +7029,21 @@ void rcGradU(Memoria *m                , Loads *loads
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
-      cellLibRcGrad(loads
-                   ,lViz      ,lProp
-                   ,lLsquare  ,lLsquareR
-                   ,lKsi      ,lmKsi
-                   ,lEta      ,lfArea 
-                   ,lNormal   ,lVolume
-                   ,lvSkew    
-                   ,lXm       ,lXmcc 
-                   ,lDcca
-                   ,lFaceR    ,lFaceL
-                   ,lu        ,lGradU
-                   ,lnU       ,ty     
-                   ,nFace[nel],ndm 
-                   ,lib       ,ndf
-                   ,isNod     ,nel);    
+      cellLibRcGrad(loads       ,rcGrad
+                   ,lViz        ,lProp
+                   ,lLsquare    ,lLsquareR
+                   ,lKsi        ,lmKsi
+                   ,lEta        ,lfArea 
+                   ,lNormal     ,lVolume
+                   ,lvSkew      
+                   ,lXm         ,lXmcc 
+                   ,lDcca       
+                   ,lFaceR      ,lFaceL
+                   ,lu          ,lGradU
+                   ,lnU         ,ty     
+                   ,nFace[nel]  ,ndm 
+                   ,ndf
+                   ,isNod       ,nel);    
 /*...................................................................*/
 
 /*...*/
