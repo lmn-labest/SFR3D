@@ -21,8 +21,7 @@ void preCondDiag(DOUBLE *RESTRICT pc,DOUBLE *RESTRICT ad
   INT i;
 
   for(i=0;i<nEq;i++)
-//  pc[i] = 1.e0/ad[i];
-    pc[i] = 1.e0;
+    pc[i] = 1.e0/ad[i];
 
 }
 /*********************************************************************/

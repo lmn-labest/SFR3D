@@ -1,6 +1,7 @@
 #ifndef _ERRO_H_
   #define _ERRO_H_
-
+  
+  #define EXIT_HELP              1
   #define EXIT_MESH_COMM        -1
   #define EXIT_SOLVER           -2
   #define EXIT_SOLVER_CONFIG    -3

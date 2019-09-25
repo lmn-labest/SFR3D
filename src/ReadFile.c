@@ -67,7 +67,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
   char macro[NMACROS][WORD_SIZE]={
         "coordinates"  ,"endMesh"    ,"insert"         /* 0, 1, 2*/
        ,"return"       ,"cells"      ,"faceResT1"      /* 3, 4, 5*/
-       ,"faceLoadT1"   ,"loadsT1"    ,""               /* 6, 7, 8*/ 
+       ,"faceLoadT1"   ,"loadsT1"    ,"uniformT1"      /* 6, 7, 8*/ 
        ,"faceResZ"     ,"faceLoadZ"  ,"loadsZ"         /* 9,10,11*/ 
        ,"faceResD1"    ,"uniformD1"  ,"loadsD1"        /*12,13,14*/ 
        ,"faceLoadD1"   ,"initialD1"  ,""               /*15,16,17*/ 
@@ -774,6 +774,17 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     }
 /*...................................................................*/
 
+/*... uniformT1 */
+    else if ((!strcmp(word, macro[13])) && (!rflag[13])) {
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
+      strcpy(macros[nmacro++], word);
+      rflag[13] = true;
+      uniformField(mesh->elm.u0T1, mesh->numel, 1, file);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
+    }
+/*...................................................................*/
+
+
 /*... faceResZcomb */
     else if((!strcmp(word,macro[9])) && (!rflag[9])){
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
@@ -869,7 +880,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       readVfInitial(mesh->elm.u0D1, mesh->numel, 1, str, file);
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
-    /*...................................................................*/
+/*...................................................................*/
 
 
 /*... faceRvel- condicao de contorno para problemas fluidos (Vel) */
@@ -3846,7 +3857,7 @@ void uniformField(DOUBLE *field, INT const n, short const ndf
 
 /********************************************************************* 
  * Data de criacao    : 11/11/2017                                   *
- * Data de modificaco : 07/06/2019                                   *
+ * Data de modificaco : 25/09/2019                                   *
  *-------------------------------------------------------------------*
  * help : Ajuda em relação a algumas macros                          *
  *-------------------------------------------------------------------*
@@ -3869,7 +3880,24 @@ void help(FILE *f){
                ,"model"    ,"diffusion","nlit"         /* 3, 4, 5*/
                ,"transient","rcgrad"   ,"config"       /* 6, 7, 8*/
                ,"edp"      ,"openmp"   ,"propvar"      /* 9,10,11*/
-               ,""         ,""         ,""    };       /*12,13,14*/
+               ,"mesh"     ,""         ,""    };       /*12,13,14*/
+
+  short iMesh = 39;
+  char mesh[][WORD_SIZE] ={
+       "coordinates"  ,"endMesh"    ,"insert"         /* 0, 1, 2*/
+       ,"return"       ,"cells"      ,"faceResT1"      /* 3, 4, 5*/
+       ,"faceLoadT1"   ,"loadsT1"    ,"uniformT1"      /* 6, 7, 8*/ 
+       ,"faceResZ"     ,"faceLoadZ"  ,"loadsZ"         /* 9,10,11*/ 
+       ,"faceResD1"    ,"uniformD1"  ,"loadsD1"        /*12,13,14*/ 
+       ,"faceLoadD1"   ,"initialD1"  ,""               /*15,16,17*/ 
+       ,"faceResVel"   ,"loadsVel"   ,"faceLoadVel"    /*18,19,20*/ 
+       ,"faceResPres"  ,"loadsPres"  ,"faceLoadPres"   /*21,22,23*/
+       ,"faceResTemp"  ,"loadsTemp"  ,"faceLoadTemp"   /*24,25,26*/
+       ,"materials"    ,"uniformPres","initialVel"     /*27,28,29*/
+       ,"uniformTemp"  ,"uniformVel" ,"uniformZ"       /*30,31,32*/
+       ,"faceReKturb"  ,"loadsKturb" ,"faceLoadKturb"  /*33,34,35*/
+       ,"fileMaterials","initialTemp",""               /*36,37,38*/
+       };
 
   short iMacros = 48;
   char macros[][WORD_SIZE] = 
@@ -4006,7 +4034,7 @@ void help(FILE *f){
     printf("Macros:\n");
     for(i=0;i<iMacros;i++)
       printf("%3d - %s\n",i+1,macros[i]);
-    exit(EXIT_FAILURE);
+    exit(EXIT_HELP);
   }
 /*.....................................................................*/
 
@@ -4017,7 +4045,7 @@ void help(FILE *f){
     printf("options:\n");
     for(i=0;i<iPrint;i++)
       printf("%3d - %s\n",i+1,print[i]);
-    exit(EXIT_FAILURE);
+    exit(EXIT_HELP);
   }
 /*.....................................................................*/
 
@@ -4036,7 +4064,7 @@ void help(FILE *f){
     printf("NVD options:\n");
     for(i=0;i<NFUNCNVD;i++)
       printf("%3d - %s\n",i+1,scheme_nvd[i]);
-    exit(EXIT_FAILURE);
+    exit(EXIT_HELP);
   }
 /*.....................................................................*/
 
@@ -4076,7 +4104,7 @@ void help(FILE *f){
     printf("EDC options:\n");  
     for (i = 0; i < iEdc; i++)
       printf("%3d - %s\n",i+1,edc[i]);
-    exit(EXIT_FAILURE);
+    exit(EXIT_HELP);
   }
 /*.....................................................................*/
 
@@ -4087,7 +4115,7 @@ void help(FILE *f){
     printf("Options:\n");
     for(i=0;i<iDiff;i++)
       printf("%3d - %s\n",i+1,fDif[i]);
-    exit(EXIT_FAILURE);
+    exit(EXIT_HELP);
   }
 /*.....................................................................*/
 
@@ -4096,7 +4124,7 @@ void help(FILE *f){
     printf("Exemplos:\n");
     for (i = 0; i<iNlIt; i++)
       printf("%3d - %s\n", i + 1, sNlTy[i]);
-    exit(EXIT_FAILURE);
+    exit(EXIT_HELP);
   }
 /*.....................................................................*/
 
@@ -4105,7 +4133,7 @@ void help(FILE *f){
     printf("Exemplos:\n");
     for (i = 0; i<iTrans; i++)
       printf("%3d - %s\n", i + 1, sTrans[i]);
-    exit(EXIT_FAILURE);
+    exit(EXIT_HELP);
   }
 /*.....................................................................*/
 
@@ -4117,7 +4145,7 @@ void help(FILE *f){
     printf("Options:\n");
     for (i = 0; i<iRcGrad; i++)
       printf("%3d - %s\n", i + 1, sRcGrad[i]);
-    exit(EXIT_FAILURE);
+    exit(EXIT_HELP);
   }
 /*.....................................................................*/
 
@@ -4128,7 +4156,7 @@ void help(FILE *f){
     printf("reord false bvtk false memory 100 "
            "fItPlotRes false fItPlot true\n");
     printf("endConfig\n");
-    exit(EXIT_FAILURE);
+    exit(EXIT_HELP);
   }
 /*.....................................................................*/
 
@@ -4139,7 +4167,7 @@ void help(FILE *f){
     printf("endEdp\n");
     for (i = 0; i<iEdp; i++)
       printf("%3d - %s\n", i + 1, sEdp[i]);
-    exit(EXIT_FAILURE);
+    exit(EXIT_HELP);
   }
 /*.....................................................................*/
 
@@ -4147,7 +4175,7 @@ void help(FILE *f){
   else if (!strcmp(word, help[10])) {
     printf("Ex:\n");
     printf("openmp 5 solver 2 update 2 cell 4 grad 2 reaction 2\n");
-    exit(EXIT_FAILURE);
+    exit(EXIT_HELP);
   }
 /*.....................................................................*/
 
@@ -4162,7 +4190,17 @@ void help(FILE *f){
     printf("sHeat        polinomio mat/sHeatPol.dat\n");
     printf("endFluid\n");
     printf("endPropVar\n");    
-    exit(EXIT_FAILURE);
+    exit(EXIT_HELP);
+  }
+/*.....................................................................*/
+
+/*... mesh*/
+  else if (!strcmp(word, help[12])) {
+    printf("Ex:\n");
+    printf("Mesh options:\n");
+    for (i = 0; i<iMesh; i++)
+      printf("%3d - %s\n", i + 1, mesh[i]);
+    exit(EXIT_HELP);
   }
 /*.....................................................................*/
 
@@ -4171,11 +4209,11 @@ void help(FILE *f){
     printf("Options:\n");
     for(i=0;i<iHelp;i++)
       printf("%3d - %s\n",i+1,help[i]);
-    exit(EXIT_FAILURE);
+    exit(EXIT_HELP);
   }
 /*.....................................................................*/
 
-  exit(EXIT_FAILURE);
+  exit(EXIT_SUCCESS);
 }
 /***********************************************************************/
 
