@@ -1722,43 +1722,43 @@ void setDataStruct(char *word,short *data)
 {
 
 /*... CSR*/
-  if(!strcmp(word,"CSR")){
-    fprintf(fileLogExc,"DataStruct: CSR\n");
+  if(!strcmp(word,"csr")){
+    fprintf(fileLogExc,"%-20s : %s","DataStruct","CSR\n");
     *data = CSR;
   }
 /*...................................................................*/
 
 /*... CSRD*/
-  else if(!strcmp(word,"CSRD")){
-    fprintf(fileLogExc,"DataStruct: CSRD\n");
+  else if(!strcmp(word,"card")){
+    fprintf(fileLogExc,"%-20s : %s","DataStruct","CSRD\n");
     *data = CSRD;
   }
 /*...................................................................*/
 
 /*... ELLPACK*/
-  else if(!strcmp(word,"ELLPACK")){
-    fprintf(fileLogExc,"DataStruct: ELLPACK\n");
+  else if(!strcmp(word,"ellpack")){
+    fprintf(fileLogExc,"%-20s : %s","DataStruct","ELLPACK\n");
     *data = ELLPACK;
   }
 /*...................................................................*/
 
 /*... CSRDCOO*/
-  else if(!strcmp(word,"CSRDCOO")){
-    fprintf(fileLogExc,"DataStruct: CSRDCOO\n");
+  else if(!strcmp(word,"csrdcoo")){
+    fprintf(fileLogExc,"%-20s : %s","DataStruct","CSRDCOO\n");
     *data = CSRDCOO;
   }
 /*...................................................................*/
 
 /*... CSRC*/
-  else if(!strcmp(word,"CSRC")){
-    fprintf(fileLogExc,"DataStruct: CSRC\n");
+  else if(!strcmp(word,"csrc")){
+    fprintf(fileLogExc,"%-20s : %s","DataStruct","CSRC\n");
     *data = CSRC;
   }
 /*...................................................................*/
 
 /*... CSRCCOO*/
-  else if(!strcmp(word,"CSRCCOO")){
-    fprintf(fileLogExc,"DataStruct: CSRCCOO\n");
+  else if(!strcmp(word,"csrccoo")){
+    fprintf(fileLogExc,"%-20s : %s","DataStruct","CSRCCOO\n");
     *data = CSRCCOO;
   }
 /*...................................................................*/

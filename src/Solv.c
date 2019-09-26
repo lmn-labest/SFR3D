@@ -506,133 +506,108 @@ void solverC(Memoria *m
 /*********************************************************************/      
 
 /**********************************************************************
- *SetSolver : escolhe o solver (versao antiga)                        *
+ *SetSolver : escolhe o solver                                        *
  **********************************************************************/
 void setSolver(char *word,short *solver)
 {
 
-  if(!strcmp(word,"PCG"))
+  if(!strcmp(word,"cg"))
     *solver = PCG;
-  else if(!strcmp(word,"PBICGSTAB"))
+  else if(!strcmp(word,"bicgstab"))
     *solver = PBICGSTAB;
-  else if (!strcmp(word, "PBICGSTABL2"))
+  else if (!strcmp(word, "bicgstabl1"))
     *solver = PBICGSTABL2;
-  else if (!strcmp(word, "GMRES"))
+  else if (!strcmp(word, "gmres"))
     *solver = GMRES;
- else if (!strcmp(word, "MINRES"))
+ else if (!strcmp(word, "minres"))
     *solver = MINRES;
-  else if (!strcmp(word, "PARDISO"))
+  else if (!strcmp(word, "pardiso"))
     *solver = PARDISO;
-
-} 
-/*********************************************************************/      
-
-/**********************************************************************
- *SerSolverConfig : escolhe o solver                                        *
- **********************************************************************/
-void setSolverConfig(char *word,Solv *solv,FILE *fileIn)
-{
-/*...*/
-  if(!strcmp(word,"PCG")){
-    fscanf(fileIn,"%u" ,&solv->maxIt);
-    fscanf(fileIn,"%lf",&solv->tol);
-    solv->solver = PCG;   
-
-    if(solv->tol == 0.e0) 
-      solv->tol = smachn();
-
-    if(!mpiVar.myId ) {
-      fprintf(fileLogExc,"Solver    : PCG\n");
-      fprintf(fileLogExc,"MaxIt     : %d\n",solv->maxIt);
-      fprintf(fileLogExc,"Tol       : %e\n",solv->tol);
-    }
-  }
-/*...................................................................*/
-
-/*...*/
-  else if(!strcmp(word,"PBICGSTAB")){
-    fscanf(fileIn,"%u" ,&solv->maxIt);
-    fscanf(fileIn,"%lf",&solv->tol);
-    solv->solver = PBICGSTAB; 
-
-    if(solv->tol == 0.e0) 
-      solv->tol = smachn(); 
-
-    if(!mpiVar.myId ) {
-      fprintf(fileLogExc,"Solver    : PBICGSTAB\n");
-      fprintf(fileLogExc,"MaxIt     : %d\n",solv->maxIt);
-      fprintf(fileLogExc,"Tol       : %e\n",solv->tol);
-    }
-  }
-/*...................................................................*/
-
-/*...*/
-  else if (!strcmp(word, "PBICGSTABL2")){
-    fscanf(fileIn,"%u" ,&solv->maxIt);
-    fscanf(fileIn,"%lf",&solv->tol);
-    solv->solver = PBICGSTABL2; 
- 
-    if(solv->tol == 0.e0) 
-      solv->tol = smachn();
-
-    if(!mpiVar.myId ) {
-      fprintf(fileLogExc,"Solver    : PBICGSTABL2\n");
-      fprintf(fileLogExc,"MaxIt     : %d\n",solv->maxIt);
-      fprintf(fileLogExc,"Tol       : %e\n",solv->tol);
-    }
-  }
-/*...................................................................*/
-
-/*...*/
-  else if (!strcmp(word, "GMRES")){
-    fscanf(fileIn,"%u" ,&solv->maxIt);
-    fscanf(fileIn,"%lf",&solv->tol);
-    solv->solver = GMRES;  
- 
-    if(solv->tol == 0.e0) 
-      solv->tol = smachn();
-
-    if(!mpiVar.myId ) {
-      fprintf(fileLogExc,"Solver    : GMRES\n");
-      fprintf(fileLogExc,"MaxIt     : %d\n",solv->maxIt);
-      fprintf(fileLogExc,"Tol       : %e\n",solv->tol);
-    }
-  }
-/*...................................................................*/
-
-/*...*/
-  else if(!strcmp(word,"MINRES")){
-    fscanf(fileIn,"%u" ,&solv->maxIt);
-    fscanf(fileIn,"%lf",&solv->tol);
-    solv->solver = MINRES;   
-
-    if(solv->tol == 0.e0) 
-      solv->tol = smachn();
-
-    if(!mpiVar.myId ) {
-      fprintf(fileLogExc,"Solver    : MINRES\n");
-      fprintf(fileLogExc,"MaxIt     : %d\n",solv->maxIt);
-      fprintf(fileLogExc,"Tol       : %e\n",solv->tol);
-    }
-  }
-/*...................................................................*/  
-
-/*...*/
-  else if(!strcmp(word,"PARDISO")){
-    solv->solver = PARDISO;   
-
-    if(!mpiVar.myId ) {
-      fprintf(fileLogExc,"Solver    : PARDISO\n");
-    }
-  }
-/*...................................................................*/  
-
-/*...*/
   else
   {
     ERRO_OP_WORD(fileLogDebug,__FILE__,__func__,__LINE__
                 ,"Solver config", word, EXIT_SOLVER_CONFIG);
   }
+
+} 
+/*********************************************************************/      
+
+/********************************************************************* 
+ * Data de criacao    : 25/09/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * SetSolverConfig : escolhe o solver                                *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * f - arquivo                                                       *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void setSolverConfig(char *fileName,Solv *solv,short *storage)
+{
+  FILE *fileIn=NULL;
+  short j=0;
+  char str[] = {"end"};
+  char word[WORD_SIZE];
+  char macro[][WORD_SIZE] = { "name" ,"tol"             /*0,1*/
+                             ,"maxit","storage"         /*2,3*/   
+                             ,""     ,""                /*4,5*/
+                            };   
+  
+  fileIn = openFile(fileName,"r");
+
+/*...*/
+  readMacroV2(fileIn, word, false, true);
+  do
+    {
+      j = 0;
+/*... name*/
+      if (!strcmp(word, macro[j++]))
+      {
+        readMacroV2(fileIn, word, false, true);
+        setSolver(word   ,&solv->solver);
+        if(!mpiVar.myId )
+          fprintf(fileLogExc,"%-20s : %s\n","Solver",word);
+      }
+/*.....................................................................*/
+
+/*... tol*/
+      else if (!strcmp(word, macro[j++]))
+      {
+        fscanf(fileIn,"%lf",&solv->tol);
+        if(solv->tol == 0.e0) 
+          solv->tol = smachn();
+        if(!mpiVar.myId )
+           fprintf(fileLogExc,"%-20s : %e\n","tol",solv->tol);
+      }
+/*.....................................................................*/
+
+/*... maxIt*/
+      else if (!strcmp(word, macro[j++]))
+      {
+        fscanf(fileIn,"%u" ,&solv->maxIt);
+        if(!mpiVar.myId )
+           fprintf(fileLogExc,"%-20s : %u\n","MaxIt",solv->maxIt);
+      }
+/*.....................................................................*/
+
+/*... storage*/
+      else if (!strcmp(word, macro[j++]))
+      {
+        readMacroV2(fileIn, word, false, true);
+        setDataStruct(word, storage);
+      }
+/*.....................................................................*/
+
+      readMacroV2(fileIn, word, false, true);
+    }while(strcmp(word,str));
+/*.....................................................................*/
+    fclose(fileIn);
 
 } 
 /*********************************************************************/      

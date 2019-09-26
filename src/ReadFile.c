@@ -775,7 +775,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*...................................................................*/
 
 /*... uniformT1 */
-    else if ((!strcmp(word, macro[13])) && (!rflag[13])) {
+    else if ((!strcmp(word, macro[8])) && (!rflag[8])) {
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++], word);
       rflag[13] = true;
@@ -5000,12 +5000,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*... solver*/
       readMacro(fileIn, word, false);
-      setSolverConfig(word, solvVel, fileIn);
-/*...................................................................*/
-
-/*... DataStruct*/
-      readMacro(fileIn, word, false);
-      setDataStruct(word, &sistEqVel->storage);
+      setSolverConfig(word, solvVel, &sistEqVel->storage);
 /*...................................................................*/
 
 /*... numeracao das equacoes das velocidades*/
@@ -5116,12 +5111,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*... solver*/
       readMacro(fileIn, word, false);
-      setSolverConfig(word, solvPres, fileIn);
-/*...................................................................*/
-
-/*... DataStruct*/
-      readMacro(fileIn, word, false);
-      setDataStruct(word, &sistEqPres->storage);
+      setSolverConfig(word, solvPres, &sistEqPres->storage);
 /*...................................................................*/
 
 /*... numeracao das equacoes das pressoes*/
@@ -5229,12 +5219,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*... solver*/
       readMacro(fileIn, word, false);
-      setSolverConfig(word, solvEnergy, fileIn);
-/*...................................................................*/
-
-/*... DataStruct*/
-      readMacro(fileIn, word, false);
-      setDataStruct(word, &sistEqEnergy->storage);
+      setSolverConfig(word, solvEnergy, &sistEqEnergy->storage);
 /*...................................................................*/
 
 /*... numeracao das equacoes das Energy*/
@@ -5349,12 +5334,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*... solver*/
       readMacro(fileIn, word, false);
-      setSolverConfig(word, solvKturb, fileIn);
-/*...................................................................*/
-
-/*... DataStruct*/
-      readMacro(fileIn, word, false);
-      setDataStruct(word, &sistEqKturb->storage);
+      setSolverConfig(word, solvKturb, &sistEqKturb->storage);
 /*...................................................................*/
 
 /*... numeracao das equacoes (Energia cinetica turbulenta)*/
@@ -5614,7 +5594,7 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*... solver*/
       readMacro(fileIn, word, false);
-      setSolverConfig(word, solvVel, fileIn);
+      setSolverConfig(word, solvVel, &sistEqVel->storage);
 /*...................................................................*/
 
 /*... DataStruct*/
@@ -5739,7 +5719,7 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*... solver*/
       readMacro(fileIn, word, false);
-      setSolverConfig(word, solvPres, fileIn);
+      setSolverConfig(word, solvPres, &sistEqPres->storage);
 /*...................................................................*/
 
 /*... DataStruct*/
@@ -5862,7 +5842,7 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*... solver*/
       readMacro(fileIn, word, false);
-      setSolverConfig(word, solvEnergy, fileIn);
+      setSolverConfig(word, solvEnergy, &sistEqEnergy->storage);
 /*...................................................................*/
 
 /*... DataStruct*/
@@ -5988,12 +5968,7 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*... solver*/
       readMacro(fileIn, word, false);
-      setSolverConfig(word, solvKturb, fileIn);
-/*...................................................................*/
-
-/*... DataStruct*/
-      readMacro(fileIn, word, false);
-      setDataStruct(word, &sistEqKturb->storage);
+      setSolverConfig(word, solvKturb, &sistEqKturb->storage);
 /*...................................................................*/
 
 /*... numeracao das equacoes (Energia cinetica turbulenta)*/
@@ -6106,12 +6081,7 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 
 /*... solver*/
       readMacro(fileIn, word, false);
-      setSolverConfig(word, solvComb, fileIn);
-/*...................................................................*/
-
-/*... DataStruct*/
-      readMacro(fileIn, word, false);
-      setDataStruct(word, &sistEqComb->storage);
+      setSolverConfig(word, solvComb, &sistEqComb->storage);
 /*...................................................................*/
 
 /*... numeracao das equacoes das velocidades*/
@@ -6414,12 +6384,7 @@ void readSolvDiff(Memoria *m   , Mesh *mesh, Reord *reordMesh
 
 /*... solver*/
       readMacro(fileIn, word, false);
-      setSolverConfig(word, solvD1, fileIn);
-/*...................................................................*/
-
-/*... DataStruct*/
-      readMacro(fileIn, word, false);
-      setDataStruct(word, &sistEqD1->storage);
+      setSolverConfig(word, solvD1, &sistEqD1->storage);
 /*...................................................................*/
 
 /*... numeracao das equacoes das velocidades*/
@@ -6612,12 +6577,7 @@ void readSolvTrans(Memoria *m  , Mesh *mesh      , Reord *reordMesh
 
 /*... solver*/
       readMacro(fileIn, word, false);
-      setSolverConfig(word, solvT1, fileIn);
-/*...................................................................*/
-
-/*... DataStruct*/
-      readMacro(fileIn, word, false);
-      setDataStruct(word, &sistEqT1->storage);
+      setSolverConfig(word, solvT1, &sistEqT1->storage);
 /*...................................................................*/
 
 /*... numeracao das equacoes das velocidades*/
