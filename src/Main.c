@@ -313,6 +313,7 @@ int main(int argc,char**argv){
 /*... estrutura de dados para malha*/
   mesh0 = (Mesh*) malloc(sizeof(Mesh));
   ERRO_MALLOC(mesh0,"mesh0",__LINE__,__FILE__,__func__);
+  mesh0->mass[2] =  mesh0->mass[1] = mesh0->mass[0] = 0.e0;
 
 /*... tecnica padrao de resconstrucao de gradiente*/
   sc.rcGrad.type      = RCGRADGAUSSN;
@@ -409,18 +410,6 @@ int main(int argc,char**argv){
 /*...*/
   fName(preName,mpiVar.myId,0, 31 ,nameOut);
   fileLogDebug = openFileBuffer(nameOut,"w",false);
-/*...................................................................*/
-
-/*...*/
-  if(!mpiVar.myId )
-  {
-    fName(preName,mpiVar.nPrcs,0,27 ,nameOut);
-    opt.fileParameters = openFileBuffer(nameOut,"w",true);
-    fprintf(opt.fileParameters,"%s %s %s\n"
-                            ,"#step t cfl reynolds peclet P0 "
-                            ,"mass(Inc) mass(Avg) massIn massOut "
-                            ,"totalHeat temMax temMed");
-  }
 /*...................................................................*/
 
 /*loop de execucao*/
@@ -835,11 +824,12 @@ int main(int argc,char**argv){
         fclose(opt.fileItPlot[FITPLOTSIMPLE]);
 /*... fechando o arquivo do log nao linear do simple */      
       if(fSolvCombustion && opt.fItPlot && !mpiVar.myId)
+      {
         fclose(opt.fileItPlot[FITPLOTSIMPLE]);
+        fclose(opt.fileParameters);
+      }
 /*...................................................................*/
 
-      if(!mpiVar.myId )
-        fclose(opt.fileParameters);
       fclose(fileLogDebug);
       finalizeMem(&m,false);
       macroFlag = false;
@@ -1418,7 +1408,7 @@ int main(int argc,char**argv){
       if(!strcmp(word,"config:")){
 /*... timer*/        
         readMacro(fileIn,word,false);
-        setTransientScheme(word,&sc.ddt.type);
+        setTransientScheme(word,&sc.ddt);
 /*...*/ 
         fscanf(fileIn,"%lf",&sc.ddt.dt[0]);
         fscanf(fileIn,"%lf",&sc.ddt.total);
@@ -1436,9 +1426,9 @@ int main(int argc,char**argv){
         fprintf(fileLogExc,"dt(s)     : %.10lf\n",sc.ddt.dt[0]);
         fprintf(fileLogExc,"Total(s)  : %.10lf\n",sc.ddt.total);
       
-        if(sc.ddt.type == EULER)     
+        if(sc.ddt.typeReal == EULER)     
           fprintf(fileLogExc,"ddtScheme : EULER\n");
-        else if(sc.ddt.type == BACKWARD)     
+        else if(sc.ddt.typeReal == BACKWARD)     
           fprintf(fileLogExc,"ddtScheme : BACKWARD\n");
 
         if(!save.fLoad)
@@ -1479,6 +1469,11 @@ int main(int argc,char**argv){
     else if((!strcmp(word,macro[28])))
     {
       initSec(word, OUTPUT_FOR_SCREEN);
+
+/*...*/
+      if (!sc.ddt.timeStep) changeSchemeTemporal(&sc.ddt);
+/*...................................................................*/
+
 /*...*/
 //    jLoop            = 0;
       sc.ddt.t        += sc.ddt.dt[0];
@@ -1745,14 +1740,13 @@ int main(int argc,char**argv){
                   , mesh0     , mesh 
                   , &media      
                   , preName   , nameOut);
-      gradErro(mesh0);
 /*...................................................................*/
       endSec(OUTPUT_FOR_SCREEN);
     }   
 /*===================================================================*/
 
 /*===================================================================*
- * macro: pCombustion : escreve os arquivos dos resultados do escoamente
+ * macro: simpleComb : escreve os arquivos dos resultados do escoamente
  * reativos (combustao)              
  *===================================================================*/
     else if ((!strcmp(word, macro[41])))
@@ -1818,6 +1812,19 @@ int main(int argc,char**argv){
     else if((!strcmp(word,macro[42])))
     {
       initSec(word, OUTPUT_FOR_FILE);
+
+/*...*/
+    if(!mpiVar.myId )
+    {
+      fName(preName,mpiVar.nPrcs,0,27 ,nameOut);
+      opt.fileParameters = openFileBuffer(nameOut,"w",true);
+      fprintf(opt.fileParameters,"%s %s %s\n"
+                            ,"#step t cfl reynolds peclet P0 "
+                            ,"mass(Inc) mass(Avg) massIn massOut "
+                            ,"totalHeat temMax temMed");
+    }
+/*...................................................................*/
+
 /*...*/
       readSetSimpleComb(&m     , fileIn
                      , mesh0  , mesh

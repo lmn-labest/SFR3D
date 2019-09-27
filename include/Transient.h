@@ -7,7 +7,8 @@
   #include<Define.h>
   #include<HccaStdBool.h>
 /*...................................................................*/
-  void setTransientScheme(char *word,short *type);
+  void  changeSchemeTemporal(Temporal *ddt);
+  void setTransientScheme(char *word,Temporal *ddt);
 /*...*/
   void cellTransient(DOUBLE *RESTRICT volume ,INT *RESTRICT id
                     ,DOUBLE *RESTRICT u0     ,DOUBLE *RESTRICT u

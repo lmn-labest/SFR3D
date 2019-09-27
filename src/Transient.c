@@ -1,7 +1,38 @@
 #include<Transient.h>  
+
+
+/********************************************************************* 
+ * Data de criacao    : 25/09/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * changeSchemaTrans : troca a tecnica efetiva da integracao temporal* 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * iStep -> passo de tempo                                           * 
+ * type -> nao definido                                              * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * type -> modificado                                                * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ * o BACKWARD utiliza a tecnica de EULER no primeiro passo de tempo  *
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void changeSchemeTemporal(Temporal *ddt)
+{
+
+  if(ddt->typeReal == BACKWARD)
+    ddt->type = BACKWARD; 
+
+}
+/*********************************************************************/
+
+
 /********************************************************************* 
  * Data de criacao    : 00/00/2016                                   *
- * Data de modificaco : 27/08/2016                                   *
+ * Data de modificaco : 25/09/2019                                   *
  *-------------------------------------------------------------------*
  * SETTRANSIENTSCHEME : set a discretizacao temporal                 * 
  *-------------------------------------------------------------------* 
@@ -17,13 +48,18 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void setTransientScheme(char *word,short *type){
+void setTransientScheme(char *word,Temporal *ddt){
 
   if(!strcmp(word,"EULER"))
-   *type = EULER;
+  {
+    ddt->type     = EULER;
+    ddt->typeReal = EULER;
+  }
   else if(!strcmp(word,"BACKWARD"))
-   *type =  BACKWARD;
-
+  {
+    ddt->type     = EULER;
+    ddt->typeReal = BACKWARD;
+  }
 }
 /*********************************************************************/
 

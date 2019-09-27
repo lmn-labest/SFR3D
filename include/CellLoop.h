@@ -81,17 +81,16 @@
 
 /* ... montagem do sistemas de equacoes (difusao)*/
   void systFormDif(Loads *loads              , Diffusion *diff
-                 , DiffModel *dModel
-                 , INT    *RESTRICT el       , INT    *RESTRICT nelcon
+                 , DiffModel *dModel         
+                 , INT    *RESTRICT el       , INT    *RESTRICT nelcon 
                  , short  *RESTRICT nen      , short  *RESTRICT nFace
                  , INT *RESTRICT cellFace    , INT *RESTRICT fOwner
                  , DOUBLE *RESTRICT gVolume  , DOUBLE *RESTRICT gDcca
-                 , DOUBLE *RESTRICT gXmCc
-                 , DOUBLE *RESTRICT fModksi  , DOUBLE *RESTRICT fKsi
-                 , DOUBLE *RESTRICT fEta     , DOUBLE *RESTRICT fArea
-                 , DOUBLE *RESTRICT fNormal  , DOUBLE *RESTRICT fXm
-                 , DOUBLE *RESTRICT fModvSkew, DOUBLE *RESTRICT fvSkew
-                 , short  *RESTRICT geomType , DOUBLE *RESTRICT prop
+                 , DOUBLE *RESTRICT gXmCc    , DOUBLE *RESTRICT fModksi  
+                 , DOUBLE *RESTRICT fKsi     , DOUBLE *RESTRICT fEta  
+                 , DOUBLE *RESTRICT fArea    , DOUBLE *RESTRICT fNormal 
+                 , DOUBLE *RESTRICT fXm      , DOUBLE *RESTRICT fModvSkew
+                 , DOUBLE *RESTRICT fvSkew   , short  *RESTRICT geomType 
                  , short  *RESTRICT calType  , short  *RESTRICT mat
                  , DOUBLE *RESTRICT density  , DOUBLE *RESTRICT cDiffD
                  , INT    *RESTRICT ia       , INT    *RESTRICT ja

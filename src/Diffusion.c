@@ -76,17 +76,16 @@ void diffusion(Memoria *m       ,Loads *loadsDif,DiffModel *dModel
 /*... calculo de: A(i),b(i)*/
     tm.systFormD1 = getTimeC() - tm.systFormD1;
     systFormDif(loadsDif                ,&sc->diffD1
-               ,dModel 
-               ,mesh->elm.node          ,mesh->elm.adj.nelcon  
-               ,mesh->elm.nen           ,mesh->elm.adj.nViz   
-               ,mesh->elm.cellFace      ,mesh->face.owner
-               ,mesh->elm.geom.volume   ,mesh->elm.geom.dcca
-               ,mesh->elm.geom.xmcc     
-               ,mesh->face.mksi         ,mesh->face.ksi
-               ,mesh->face.eta          ,mesh->face.area       
-               ,mesh->face.normal       ,mesh->face.xm    
-               ,mesh->face.mvSkew       ,mesh->face.vSkew
-               ,mesh->elm.geomType      ,mesh->elm.material.prop 
+               ,dModel                  
+               ,mesh->elm.node          ,mesh->elm.adj.nelcon 
+               ,mesh->elm.nen           ,mesh->elm.adj.nViz    
+               ,mesh->elm.cellFace      ,mesh->face.owner  
+               ,mesh->elm.geom.volume   ,mesh->elm.geom.dcca   
+               ,mesh->elm.geom.xmcc     ,mesh->face.mksi  
+               ,mesh->face.ksi          ,mesh->face.eta     
+               ,mesh->face.area         ,mesh->face.normal 
+               ,mesh->face.xm           ,mesh->face.mvSkew 
+               ,mesh->face.vSkew        ,mesh->elm.geomType      
                ,mesh->elm.material.type ,mesh->elm.mat   
                ,mesh->elm.densityUd1    ,mesh->elm.cDiffD1
                ,sistEqD->ia             ,sistEqD->ja      
@@ -106,8 +105,8 @@ void diffusion(Memoria *m       ,Loads *loadsDif,DiffModel *dModel
 /*...................................................................*/
 
 /*... soma o vetor b(i) = b(i) + b0(i)*/
-    addVector(1.0e0           ,sistEqD->b
-             ,1.0e0           ,sistEqD->b0
+    addVector(1.0e0          ,sistEqD->b
+             ,1.0e0          ,sistEqD->b0
              ,sistEqD->neqNov,sistEqD->b);
 /*...................................................................*/
 

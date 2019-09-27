@@ -21,8 +21,7 @@
 
 /*... chamada da biblioteca de elementos (difusao)*/
   void cellLibDif(Loads *loads               ,Diffusion *diff
-                 ,DiffModel *dModel          
-                 ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
+                 ,DiffModel *dModel          ,short *RESTRICT lGeomType  
                  ,INT   *RESTRICT lViz       ,INT    *RESTRICT lId
                  ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mksi    
                  ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea 
@@ -351,8 +350,7 @@
                 ,short const ndm          ,INT const nel);
   
   void cellDif3D(Loads *loads               ,Diffusion *diff 
-                ,DiffModel *dModel          
-                ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT prop
+                ,DiffModel *dModel          ,short *RESTRICT lGeomType 
                 ,INT *RESTRICT lViz         ,INT *RESTRICT lId  
                 ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
                 ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea

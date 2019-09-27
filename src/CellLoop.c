@@ -206,7 +206,7 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 12/05/2018                                   *
+ * Data de modificaco : 26/09/2019                                   *
  *-------------------------------------------------------------------*
  * SYSTFOMDIF : calculo do sistema de equacoes para problemas        * 
  * difusao (Ax=b)                                                    * 
@@ -239,8 +239,7 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
  * fvSkew  -> vetor entre o ponto medio a intersecao que une os      *
  *            centrois compartilhado nessa face                      *
  * calType -> tipo de calculo das celulas                            * 
- * geomType-> tipo geometrico das celulas                            * 
- * prop    -> propriedades dos material                              * 
+ * geomType-> tipo geometrico das celulas                            *  
  * mat     -> material por celula                                    * 
  * density -> massa especifica com variacao temporal                 *
  * cDiffD  -> coeficiente de difusao com variacao temporal           *
@@ -290,27 +289,26 @@ void systFormDif(Loads *loads             ,Diffusion *diff
                ,short  *RESTRICT nen      ,short  *RESTRICT nFace
                ,INT *RESTRICT cellFace    ,INT *RESTRICT fOwner
                ,DOUBLE *RESTRICT gVolume  ,DOUBLE *RESTRICT gDcca
-               ,DOUBLE *RESTRICT gXmCc   
-               ,DOUBLE *RESTRICT fModksi  ,DOUBLE *RESTRICT fKsi
-               ,DOUBLE *RESTRICT fEta     ,DOUBLE *RESTRICT fArea
-               ,DOUBLE *RESTRICT fNormal  ,DOUBLE *RESTRICT fXm 
-               ,DOUBLE *RESTRICT fModvSkew,DOUBLE *RESTRICT fvSkew            
-               ,short  *RESTRICT geomType,DOUBLE *RESTRICT prop 
-               ,short  *RESTRICT calType ,short  *RESTRICT mat     
-               ,DOUBLE *RESTRICT density ,DOUBLE *RESTRICT cDiffD
-               ,INT    *RESTRICT ia      ,INT    *RESTRICT ja   
-               ,DOUBLE *RESTRICT a       ,DOUBLE *RESTRICT ad
-               ,DOUBLE *RESTRICT b       ,INT    *RESTRICT id
-               ,short  *RESTRICT faceR   ,short  *RESTRICT faceLd1        
-               ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0 
-               ,DOUBLE *RESTRICT rCell   ,Temporal *ddt 
-               ,INT nEq                  ,INT nEqNov     
-               ,INT nAd                  ,INT nAdR                     
-               ,short maxNo              ,short maxViz
-               ,short ndm                ,INT numel
-               ,short ndf                ,short storage
-               ,bool forces              ,bool matrix 
-               ,bool calRcell            ,bool unsym) 
+               ,DOUBLE *RESTRICT gXmCc    ,DOUBLE *RESTRICT fModksi 
+               ,DOUBLE *RESTRICT fKsi     ,DOUBLE *RESTRICT fEta
+               ,DOUBLE *RESTRICT fArea    ,DOUBLE *RESTRICT fNormal 
+               ,DOUBLE *RESTRICT fXm      ,DOUBLE *RESTRICT fModvSkew
+               ,DOUBLE *RESTRICT fvSkew   ,short  *RESTRICT geomType 
+               ,short  *RESTRICT calType  ,short  *RESTRICT mat     
+               ,DOUBLE *RESTRICT density  ,DOUBLE *RESTRICT cDiffD
+               ,INT    *RESTRICT ia       ,INT    *RESTRICT ja   
+               ,DOUBLE *RESTRICT a        ,DOUBLE *RESTRICT ad
+               ,DOUBLE *RESTRICT b        ,INT    *RESTRICT id
+               ,short  *RESTRICT faceR    ,short  *RESTRICT faceLd1        
+               ,DOUBLE *RESTRICT u0       ,DOUBLE *RESTRICT gradU0 
+               ,DOUBLE *RESTRICT rCell    ,Temporal *ddt 
+               ,INT nEq                   ,INT nEqNov     
+               ,INT nAd                   ,INT nAdR                     
+               ,short maxNo               ,short maxViz
+               ,short ndm                 ,INT numel
+               ,short ndf                 ,short storage
+               ,bool forces               ,bool matrix 
+               ,bool calRcell             ,bool unsym) 
 {
   short i,j;
   INT nel, vizNel;
@@ -327,7 +325,6 @@ void systFormDif(Loads *loads             ,Diffusion *diff
   short  lFaceL[MAX_NUM_FACE+1];
   DOUBLE lDensity,lCoefDiffD[MAX_NUM_FACE+1];
   DOUBLE lA[(MAX_NUM_FACE+1)*MAX_NDF],lB[MAX_NDF];
-  DOUBLE lProp[(MAX_NUM_FACE+1)*MAXPROP];
   DOUBLE lu0[(MAX_NUM_FACE+1)*MAX_NDF];
   DOUBLE lGradU0[(MAX_NUM_FACE+1)*MAX_NDM];
   DOUBLE lRcell[MAX_NDF];
@@ -347,12 +344,6 @@ void systFormDif(Loads *loads             ,Diffusion *diff
 /*... elementos com equacoes*/
     if(MAT2D(nel,aux1,faceR ,aux2) != PCCELL){
 
-/*... zerando vetores*/
-      for(j=0;j<(MAX_NUM_FACE+1)*MAX_NDF;j++){
-        lId[j] = -1;
-        lu0[j] = 0.e0;    
-      }   
-
 /*... loop na celula central*/    
       lMat            = mat[nel]-1;
       lib             = calType[lMat];
@@ -366,11 +357,8 @@ void systFormDif(Loads *loads             ,Diffusion *diff
       for(j=0;j<ndf;j++){
         MAT2D(aux1,j,lu0   ,ndf) = MAT2D(nel,j,u0   ,ndf);
         MAT2D(aux1,j,lId   ,ndf) = MAT2D(nel,j,id   ,ndf) - 1;
-      }
-      
-      for(j=0;j<MAXPROP;j++)
-        MAT2D(aux1,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);
-      
+      }   
+     
       for(j=0;j<ndm;j++)
         MAT2D(aux1,j,lGradU0,ndm) = MAT2D(nel,j,gradU0,ndm);      
 
@@ -410,6 +398,9 @@ void systFormDif(Loads *loads             ,Diffusion *diff
       {
         vizNel        = MAT2D(nel,i,nelcon,maxViz) - 1;
         lViz[i] = vizNel;
+        for(j=0;j<ndf;j++)
+          MAT2D(i,j,lId ,ndf) = - 1;
+/*....*/
         if( vizNel != -2)
         {
           lVolume[i]    = gVolume[vizNel]; 
@@ -422,16 +413,13 @@ void systFormDif(Loads *loads             ,Diffusion *diff
           }
           for(j=0;j<ndm;j++)
             MAT2D(i,j,lGradU0,ndm)   = MAT2D(vizNel,j,gradU0,ndm);
-          for(j=0;j<DIFPROP;j++)
-            MAT2D(i,j,lProp,MAXPROP) = MAT2D(lMat,j,prop,MAXPROP);
           }
         }  
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
       cellLibDif(loads     ,diff
-                ,dModel    
-                ,lGeomType ,lProp 
+                ,dModel    ,lGeomType 
                 ,lViz      ,lId           
                 ,lKsi      ,lmKsi
                 ,lEta      ,lfArea 

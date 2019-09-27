@@ -69,7 +69,7 @@ void pcg(INT const nEq      ,INT const nAd
 
 /*... conv = tol * |(M-1)b|m = tol(b,M(-1)b) */
 	for (i = 0; i < nEq; i++)
-  z[i] = b[i] * m[i];
+    z[i] = b[i] * m[i];
 
 	d      = dot(b, z, nEq);
 	norm_b = sqrt(fabs(d));

@@ -258,7 +258,7 @@ void cellDif2D(Loads *loads
 
 /*********************************************************************
  * Data de criacao    : 16/01/2018                                   *
- * Data de modificaco : 13/05/2018                                   *
+ * Data de modificaco : 26/09/2019                                   *
  * ----------------------------------------------------------------- *
  * CELLDIF3D: Celula 3D para difusao pura                            * 
  *------------------------------------------------------------------ * 
@@ -268,7 +268,6 @@ void cellDif2D(Loads *loads
  * diff      -> tecnica da discretizacao do termo difusivo           *
  * lnFace    -> numero de faces da celula central e seus vizinhos    * 
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
- * lprop     -> propriedade fisicas das celulas                      * 
  * lViz      -> viznhos da celula central                            * 
  * lId       -> numeracoes das equacoes das celulas                  * 
  * Ksi       -> vetores que unem centroide da celula central aos     *
@@ -312,8 +311,7 @@ void cellDif2D(Loads *loads
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void cellDif3D(Loads *loads               ,Diffusion *diff
-              ,DiffModel *dModel          
-              ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT prop
+              ,DiffModel *dModel          ,short *RESTRICT lGeomType
               ,INT *RESTRICT lViz         ,INT *RESTRICT lId  
               ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
               ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea

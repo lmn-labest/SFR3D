@@ -1537,7 +1537,7 @@ void cellLibTrans(Loads *loads
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 13/05/2018                                   * 
+ * Data de modificaco : 26/09/2019                                   * 
  *-------------------------------------------------------------------* 
  * CELLLIBDIF : chamada de bibliotecas de celulas para o problema    *
  * de difusao.                                                       * 
@@ -1548,7 +1548,6 @@ void cellLibTrans(Loads *loads
  * diff      -> tecnica da discretizacao do termo difusivo           *
  * dModel   -> configuracoes do modelo difusivo                      *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
- * lprop     -> propriedade fisicas das celulas                      *
  * lViz      -> viznhos da celula central                            * 
  * lId       -> equa da celula                                       * 
  * Ksi       -> vetores que unem centroide da celula central aos     *
@@ -1590,8 +1589,7 @@ void cellLibTrans(Loads *loads
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void cellLibDif(Loads *loads               ,Diffusion *diff
-               ,DiffModel *dModel          
-               ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
+               ,DiffModel *dModel          ,short *RESTRICT lGeomType 
                ,INT   *RESTRICT lViz       ,INT *RESTRICT lId  
                ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
                ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea
@@ -1634,8 +1632,7 @@ void cellLibDif(Loads *loads               ,Diffusion *diff
 /*... 3D*/
     else if(ndm == 3){
       cellDif3D(loads     ,diff
-               ,dModel    
-               ,lGeomType ,lprop
+               ,dModel    ,lGeomType
                ,lViz      ,lId
                ,ksi       ,mKsi
                ,eta       ,fArea
@@ -1970,7 +1967,7 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
         MAT2D(i,j,xc,ndm)*=(1.0e0/((DOUBLE)lnEn[i]));
       }
     }
-  }
+  } 
 /*...................................................................*/
 
 /*... vetor que une o centroide da celula ao vizinho(ksi)*/
@@ -2267,8 +2264,8 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
 /*...................................................................*/
 
 /*... volume da celula*/
-  if( lGeomType[cCell] == HEXACELL )
-    *volume = volumeHexa(&MAT3D(cCell,0,0,lx,maxNo,ndm));
+  if( lGeomType[cCell] == HEXACELL )  
+    *volume = volume3DGreenGauss(xm,normal,fArea,lnFace[cCell]); 
   else if( lGeomType[cCell] == TETRCELL )
     *volume = volumeTetra(&MAT3D(cCell,0,0,lx,maxNo,ndm));
   else if (lGeomType[cCell] = PIRACELL)
@@ -4250,7 +4247,7 @@ DOUBLE volume3DGreenGauss(DOUBLE *RESTRICT xm,DOUBLE *RESTRICT normal
    
 /********************************************************************* 
  * Data de criacao    : 02/06/2019                                   *
- * Data de modificaco : 12/09/2019                                   * 
+ * Data de modificaco : 26/09/2019                                   * 
  *-------------------------------------------------------------------* 
  * volumeHexa: volume do hexaedro                                    *
  *-------------------------------------------------------------------* 
@@ -4263,30 +4260,34 @@ DOUBLE volume3DGreenGauss(DOUBLE *RESTRICT xm,DOUBLE *RESTRICT normal
  *-------------------------------------------------------------------* 
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
- *                         | v3x v3y v3z |                           *
- * vol = v3 * ( v1 x v2) = | v1x v1y v1z |                           *
- *                         | v2x v2y v2z |                           *     
+ *                         | v1x v1y v1z |                           *
+ * vol = v1 * ( v2 x v3) = | v2x v2y v2z |                           *
+ *                         | v3x v3y v3z |                           * 
+ * Penas paraleledideos                                              *         
  *********************************************************************/
 DOUBLE volumeHexa(DOUBLE *RESTRICT x)
 {
   
-  DOUBLE d[3][3],det;
+  DOUBLE d[3][3],det,xi[3];
  
-/*... v3 - no5 - no1*/
-  d[0][0] = MAT2D(4,0,x,3) - MAT2D(0,0,x,3); 
-  d[0][1] = MAT2D(4,1,x,3) - MAT2D(0,1,x,3); 
-  d[0][2] = MAT2D(4,2,x,3) - MAT2D(0,2,x,3);
+  xi[0] = MAT2D(0,0,x,3);
+  xi[1] = MAT2D(0,1,x,3);
+  xi[2] = MAT2D(0,2,x,3);
 
 /*... v1 - no2 - no1*/
-  d[1][0] = MAT2D(1,0,x,3) - MAT2D(0,0,x,3); 
-  d[1][1] = MAT2D(1,1,x,3) - MAT2D(0,1,x,3); 
-  d[1][2] = MAT2D(1,2,x,3) - MAT2D(0,2,x,3); 
+  d[0][0] = MAT2D(1,0,x,3) - xi[0]; 
+  d[0][1] = MAT2D(1,1,x,3) - xi[1]; 
+  d[0][2] = MAT2D(1,2,x,3) - xi[2]; 
 
 /*... v2 - no4 - no1*/
-  d[2][0] = MAT2D(3,0,x,3) - MAT2D(0,0,x,3); 
-  d[2][1] = MAT2D(3,1,x,3) - MAT2D(0,1,x,3); 
-  d[2][2] = MAT2D(3,2,x,3) - MAT2D(0,2,x,3); 
+  d[1][0] = MAT2D(3,0,x,3) - xi[0]; 
+  d[1][1] = MAT2D(3,1,x,3) - xi[1]; 
+  d[1][2] = MAT2D(3,2,x,3) - xi[2]; 
 
+/*... v3 - no5 - no1*/
+  d[2][0] = MAT2D(4,0,x,3) - xi[0]; 
+  d[2][1] = MAT2D(4,1,x,3) - xi[1]; 
+  d[2][2] = MAT2D(4,2,x,3) - xi[2];
 
   det  = d[0][0]*d[1][1]*d[2][2] + d[0][1]*d[1][2]*d[2][0] +
          d[0][2]*d[1][0]*d[2][1] - d[2][0]*d[1][1]*d[0][2] -
