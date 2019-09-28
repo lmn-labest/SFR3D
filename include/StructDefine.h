@@ -3,9 +3,18 @@
 
   #include<HccaStdBool.h>
   #include<Define.h>
+  #include<File.h>
 
   INT gStep;
 
+/*...*/
+  typedef struct 
+  {
+    bool flWord;
+    short  jLoop,kLoop;
+    char loopWord[100][MAX_LINE];  
+  } Macros;
+/*...................................................................*/
 
 /*...*/
   typedef struct 

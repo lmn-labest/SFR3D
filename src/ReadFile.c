@@ -7949,3 +7949,84 @@ static void convLoadsVel(Prop *pDen
 /*....................................................................*/
 }
 /*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 27/09/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * readTransConfig: lendo a configura do termpo transisnte           *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void readTransConfig(Temporal *ddt, Save *save
+                   , Macros *mm   , FILE *fileIn)
+{
+      char word[WORD_SIZE];
+/*...*/
+      ddt->flag = true;
+      readMacro(fileIn,word,false);
+      if(!strcmp(word,"config:")){
+/*... timer*/        
+        readMacro(fileIn,word,false);
+        setTransientScheme(word,ddt);
+/*...*/ 
+        fscanf(fileIn,"%lf",&ddt->dt[0]);
+        fscanf(fileIn,"%lf",&ddt->total);
+/*...*/
+        readMacro(fileIn,word,false);
+        if(!strcmp(word,"dynamic"))     
+          ddt->fDynamic = true;
+        if(ddt->fDynamic){
+          fprintf(fileLogExc,"dynamic : True\n");
+        }
+        else {
+          fprintf(fileLogExc,"dynamic : False\n");
+        }          
+/*...*/        
+        fprintf(fileLogExc,"dt(s)     : %.10lf\n",ddt->dt[0]);
+        fprintf(fileLogExc,"Total(s)  : %.10lf\n",ddt->total);
+      
+        if(ddt->typeReal == EULER)     
+          fprintf(fileLogExc,"ddtScheme : EULER\n");
+        else if(ddt->typeReal == BACKWARD)     
+          fprintf(fileLogExc,"ddtScheme : BACKWARD\n");
+
+        if(!save->fLoad)
+        {
+          ddt->t         = 0.e0;
+          ddt->dtInicial = ddt->dt[0];
+          ddt->dt[1]     = ddt->dt[0];
+          ddt->dt[2]     = ddt->dt[0];
+          ddt->timeStep  = 0;
+        }
+      }
+/*...................................................................*/
+
+/*...*/
+      mm->flWord = true;
+      mm->kLoop  = 0;
+      mm->jLoop  = 0;
+      do{
+        readMacro(fileIn,word,false);
+        strcpy(mm->loopWord[mm->kLoop],word);
+        mm->kLoop++;
+        if(mm->kLoop > 100)
+        {
+          ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,
+                   "Numero de comandos na macro trasient execedido"
+                   ,EXIT_PROG); 
+        }
+      }while(strcmp(word,"endTransient"));
+      strcpy(mm->loopWord[mm->kLoop-1],"nextLoop");
+/*...................................................................*/
+
+
+}
+/*********************************************************************/

@@ -21,6 +21,7 @@
   #include<Simple.h>
   #include<Prime.h>
   #include<Print.h>
+  #include<SaveLoad.h>
 /*...................................................................*/  
 
   void parametros(INT   *nnode,INT *nel    
@@ -119,6 +120,9 @@
                 , PartMesh *pMesh 
                 , char* auxName   , char* preName       , char* nameOut
                 , FILE *fileIn    , FileOpt *opt);
+
+   void readTransConfig(Temporal *ddt,Save *save
+                       ,Macros *mm   ,FILE *fileIn);
 
    void readChemical(Combustion *c, FILE *file);
    void readResidual(Simple *sc, FILE *file);

@@ -130,9 +130,7 @@ int main(int argc,char**argv){
   Save save;
 
 /*...*/
-  char loopWord[100][MAX_LINE];
-  unsigned short kLoop = 0 ,jLoop = 0;
-  bool flWord=false;
+  Macros mm;
   bool fReadModels=false;
 
 /*... arquivo*/
@@ -175,6 +173,8 @@ int main(int argc,char**argv){
   nmax = 200000;
 /* ..................................................................*/
 
+/*...*/
+  mm.flWord = false;
 /*...*/
   diffModel[0].fRes = true;
 /*...*/
@@ -416,15 +416,15 @@ int main(int argc,char**argv){
   macroFlag = true;
   do{
 /*... macros na marcro trasient*/
-    if(flWord){
-      if( jLoop > kLoop)
+    if(mm.flWord){
+      if( mm.jLoop > mm.kLoop)
       { 
         ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,
                    "Numero de comandos na string trasient execedido"
                   ,EXIT_PROG); 
       }
-      strcpy(word,loopWord[jLoop]);
-      jLoop++;
+      strcpy(word,mm.loopWord[mm.jLoop]);
+      mm.jLoop++;
     }
 /*... leitura da macro*/
     else 
@@ -852,7 +852,7 @@ int main(int argc,char**argv){
  * macro: nextLoop : proximo loop tempo            
  *===================================================================*/
     else if((!strcmp(word,macro[4]))){
-      jLoop = 0;
+      mm.jLoop = 0;
     }   
 /*===================================================================*/
 
@@ -1403,61 +1403,7 @@ int main(int argc,char**argv){
     {
       initSec(word, OUTPUT_FOR_FILE);
 /*...*/
-      sc.ddt.flag = true;
-      readMacro(fileIn,word,false);
-      if(!strcmp(word,"config:")){
-/*... timer*/        
-        readMacro(fileIn,word,false);
-        setTransientScheme(word,&sc.ddt);
-/*...*/ 
-        fscanf(fileIn,"%lf",&sc.ddt.dt[0]);
-        fscanf(fileIn,"%lf",&sc.ddt.total);
-/*...*/
-        readMacro(fileIn,word,false);
-        if(!strcmp(word,"dynamic"))     
-          sc.ddt.fDynamic = true;
-        if(sc.ddt.fDynamic){
-          fprintf(fileLogExc,"dynamic : True\n");
-        }
-        else {
-          fprintf(fileLogExc,"dynamic : False\n");
-        }          
-/*...*/        
-        fprintf(fileLogExc,"dt(s)     : %.10lf\n",sc.ddt.dt[0]);
-        fprintf(fileLogExc,"Total(s)  : %.10lf\n",sc.ddt.total);
-      
-        if(sc.ddt.typeReal == EULER)     
-          fprintf(fileLogExc,"ddtScheme : EULER\n");
-        else if(sc.ddt.typeReal == BACKWARD)     
-          fprintf(fileLogExc,"ddtScheme : BACKWARD\n");
-
-        if(!save.fLoad)
-        {
-          sc.ddt.t         = 0.e0;
-          sc.ddt.dtInicial = sc.ddt.dt[0];
-          sc.ddt.dt[1]     = sc.ddt.dt[0];
-          sc.ddt.dt[2]     = sc.ddt.dt[0];
-          sc.ddt.timeStep  = 0;
-        }
-      }
-/*...................................................................*/
-
-/*...*/
-      flWord = true;
-      kLoop  = 0;
-      jLoop  = 0;
-      do{
-        readMacro(fileIn,word,false);
-        strcpy(loopWord[kLoop],word);
-        kLoop++;
-        if(kLoop > 100)
-        {
-          ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,
-                   "Numero de comandos na macro trasient execedido"
-                   ,EXIT_PROG); 
-        }
-      }while(strcmp(word,"endTransient"));
-      strcpy(loopWord[kLoop-1],"nextLoop");
+      readTransConfig(&sc.ddt,&save,&mm,fileIn);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
     }   
@@ -1469,37 +1415,8 @@ int main(int argc,char**argv){
     else if((!strcmp(word,macro[28])))
     {
       initSec(word, OUTPUT_FOR_SCREEN);
-
 /*...*/
-      if (!sc.ddt.timeStep) changeSchemeTemporal(&sc.ddt);
-/*...................................................................*/
-
-/*...*/
-//    jLoop            = 0;
-      sc.ddt.t        += sc.ddt.dt[0];
-      sc.ddt.timeStep ++; 
-      gStep            =  sc.ddt.timeStep;
-/*...................................................................*/
-
-/*...*/
-      if(sc.ddt.t > sc.ddt.total + 0.1e0*sc.ddt.dt[TIME_N])
-        flWord = false;  
-/*    if(sc.ddt.t > sc.ddt.total)
-        flWord = false;  */
-/*...................................................................*/
-      
-/*...*/
-      else
-      {
-        if(!mpiVar.myId )
-        {
-          printf("dt(n-2) = %.10lf\n",sc.ddt.dt[TIME_N_MINUS_2]);
-          printf("dt(n-1) = %.10lf\n",sc.ddt.dt[TIME_N_MINUS_1]);
-          printf("dt(n)   = %.10lf\n",sc.ddt.dt[TIME_N ]);
-          printf("t(s)    = %.10lf\n",sc.ddt.t);
-          printf("step    = %d\n" ,sc.ddt.timeStep);
-        } 
-      }
+      updateTime(&sc.ddt, &mm, mpiVar.myId );
 /*...................................................................*/
       endSec(OUTPUT_FOR_SCREEN);
     }   
