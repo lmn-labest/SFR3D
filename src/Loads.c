@@ -803,7 +803,8 @@ void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
     getLoads(par, ld, xm);
     tA[0]   = par[0];
 /*...*/
-    if(fCal){
+    if(fCal)
+    {
       aP   = coefDifC*fArea/dcca;
       *sP += aP;
       *p  += aP*tA[0];
@@ -854,7 +855,8 @@ void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... potencial prescrito (entra)*/
-   else if( ld->type == INLET){
+   else if( ld->type == INLET)
+   {
      getLoads(par, ld, xm);
      tA[0] = par[0];
 
@@ -870,7 +872,14 @@ void pLoad(DOUBLE *RESTRICT sP  ,DOUBLE *RESTRICT p
          velB[2] = par[3];
          wfn += velB[2] * n[2];
        }
+/*... termo advectivo*/
        *p -= wfn*densityEnv*fArea*tA[0];
+/*... termo difusivo*/
+        aP   = coefDifC*fArea/dcca;
+        *sP += aP;
+        *p  += aP*tA[0];
+/*...................................................................*/
+
      }
    }
 /*...................................................................*/

@@ -6907,7 +6907,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
       {
         fscanf(fileIn,"%lf",&v);
         prop[DENSITY] = v;
-        fprintf(fileLogExc, "%-20s: %lf\n", macro[j-1], prop[DENSITY]);
+        fprintf(fileLogExc, "%-20s: %e\n", macro[j-1], prop[DENSITY]);
       }
 /*.....................................................................*/
 
@@ -6916,7 +6916,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
       {
         fscanf(fileIn, "%lf", &v);
         prop[COEFDIF] = v;
-        fprintf(fileLogExc, "%-20s: %lf\n", macro[j-1], prop[COEFDIF]);
+        fprintf(fileLogExc, "%-20s: %e\n", macro[j-1], prop[COEFDIF]);
       }
 /*.....................................................................*/
 
@@ -6925,7 +6925,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
       {
         fscanf(fileIn, "%lf", &v);
         prop[DENSITY] = v;
-        fprintf(fileLogExc, "%-20s: %lf\n", macro[j - 1], prop[DENSITY]);
+        fprintf(fileLogExc, "%-20s: %e\n", macro[j - 1], prop[DENSITY]);
       }
 /*.....................................................................*/
 
@@ -6934,7 +6934,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
       {
         fscanf(fileIn, "%lf", &v);
         prop[COEFDIF] = v;
-        fprintf(fileLogExc, "%-20s: %lf\n", macro[j - 1], prop[COEFDIF]);
+        fprintf(fileLogExc, "%-20s: %e\n", macro[j - 1], prop[COEFDIF]);
       }
 /*.....................................................................*/
 
