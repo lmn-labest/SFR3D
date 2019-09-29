@@ -186,11 +186,7 @@
   #define DENSITY                    1
   #define THERMALCONDUCTIVITY        2
   #define SPECIFICHEATCAPACITYFLUID  3
-  #define SPECIEDIFUSSIONFUEL        4
-  #define SPECIEDIFUSSIONO2          5
-  #define SPECIEDIFUSSIONCO2         6
-  #define SPECIEDIFUSSIONH2O         7
-  #define SPECIEDIFUSSIONN2          8
+  #define SPECIEDIFUSSION            4
 /*...................................................................*/
 
 /*...*/

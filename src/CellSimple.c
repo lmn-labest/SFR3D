@@ -645,7 +645,8 @@ void cellSimpleVel2D(Loads *loadsVel     ,Loads *loadsPres
 void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres 
             , Advection advVel           , Diffusion diffVel 
             , Turbulence tModel          , MomentumModel ModelMomentum
-            , short const typeSimple     , short *RESTRICT lGeomType              , INT *RESTRICT lViz         , INT *RESTRICT lId 
+            , short const typeSimple     , short *RESTRICT lGeomType  
+            , INT *RESTRICT lViz         , INT *RESTRICT lId 
             , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi 
             , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT mEta 
             , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT area 
@@ -1193,7 +1194,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
 
 /*********************************************************************
  * Data de criacao    : 11/07/2016                                   *
- * Data de modificaco : 19/07/2018                                   * 
+ * Data de modificaco : 28/09/2019                                   * 
  *-------------------------------------------------------------------* 
  * CELLSIMPLEVE3D: Celula 3D para velocidade do metodo simple        * 
  * em escoamento imcompressivel                                      * 
@@ -1204,6 +1205,8 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
  * loadsPres -> definicoes de cargas de pressao                      * 
  * advVel    -> tecnica da discretizacao do termo advecao            *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
+ * tModel    -> modelo de turbulencia                                *
+ * ModelMomentum -> termos/modelos da equacao de momento linear      *
  * typeSimple-> tipo do metodo simple                                *
  * lnFace    -> numero de faces da celula central e seus vizinhos    * 
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
@@ -1220,13 +1223,13 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
  * xm        -> pontos medios das faces da celula central            * 
  * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
  *              faces da celula central                              * 
+ * dcca      -> menor distancia do centroide central a faces desta   *
+ *              celula                                               *
+ * cc        -> centroides da celula centra e seus vizinhos          * 
  * vSkew     -> vetor entre o ponto medio a intersecao que une os    * 
  *            centrois compartilhado nessa face da celula central    * 
  * mvSkew    -> distacia entre o ponto medio a intersecao que une os * 
  *              centrois compartilhado nessa face da celula central  * 
- * dcca      -> menor distancia do centroide central a faces desta   *
- *              celula                                               * 
- * lDensity  -> massa especifica sem variacao temporal               * 
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
@@ -1240,11 +1243,11 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
  * vel       -> campo de velocidade conhecido                        * 
  * gradVel   -> gradiente rescontruido das velocidades               * 
  * dField    -> matriz D do metodo simple                            * 
- * cc        -> centroides da celula centra e seus vizinhos          * 
+ * stressR   -> tensao residual estrutural                           *
+ * eddyVisc  -> viscosidade turbulenta                               *
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  *
  * nEn       -> numero de nos da celula central                      *
  * underU    -> parametro de sobre relaxamento                       * 
- * sPressure -> reconstrucao de segunda ordem para pressoes nas      *
- *              faces                                                *
  * nEn       -> numero de nos da celula central                      * 
  * nFace     -> numero de faces da celula central                    * 
  * ndm       -> numero de dimensoes                                  * 
@@ -1274,8 +1277,9 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
  *                  | du3dx1 du3dx2 du3dx3 |                         *
  *                                                                   *  
  *********************************************************************/
-void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres 
+void cellSimpleVel3D(Loads *lVel         ,Loads *lPres 
             ,Advection *advVel           ,Diffusion *diffVel
+            ,Turbulence *tModel          ,MomentumModel *ModelMomentum
             ,short const typeSimple 
             ,short *RESTRICT lGeomType   ,DOUBLE *RESTRICT prop
             ,INT *RESTRICT lViz          ,INT *RESTRICT lId  
@@ -1283,7 +1287,7 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
             ,DOUBLE *RESTRICT eta        ,DOUBLE *RESTRICT fArea
             ,DOUBLE *RESTRICT normal     ,DOUBLE *RESTRICT volume 
             ,DOUBLE *RESTRICT xm         ,DOUBLE *RESTRICT xmcc
-            ,DOUBLE *RESTRICT dcca       ,DOUBLE *RESTRICT lDensity
+            ,DOUBLE *RESTRICT dcca       ,DOUBLE *RESTRICT cc
             ,DOUBLE *RESTRICT vSkew      ,DOUBLE *RESTRICT mvSkew
             ,DOUBLE *RESTRICT lA         ,DOUBLE *RESTRICT lB
             ,DOUBLE *RESTRICT lRcell     ,Temporal *ddt
@@ -1291,173 +1295,203 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
             ,short  *RESTRICT lFacePresR ,short *RESTRICT lFacePresL
             ,DOUBLE *RESTRICT pres       ,DOUBLE *RESTRICT gradPres 
             ,DOUBLE *RESTRICT vel        ,DOUBLE *RESTRICT gradVel
-            ,DOUBLE *RESTRICT dField     ,DOUBLE *RESTRICT cc
-            ,DOUBLE const underU         ,const bool sPressure
+            ,DOUBLE *RESTRICT dField     ,DOUBLE *RESTRICT stressR
+            ,DOUBLE *RESTRICT eddyVisc   ,DOUBLE *RESTRICT wallPar 
+            ,DOUBLE const underU         
             ,const short nEn             ,short const nFace    
             ,const short ndm             ,INT const nel)
 { 
-  bool fTime;
-  short idCell = nFace;
-  short nf,nCarg,typeTime;
 /*...*/
-  short iCodAdv1, iCodAdv2, iCodDif;
+  bool fTime, fRes, fTurb, fRhieInt, fWallModel, fStruc;
+  bool fViscosity,fSoPressure;
+/*...*/
+  short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf
+       ,nCarg   , typeTime, iCodPolFace, i;
+/*...*/
   INT vizNel;
 /*...*/
-  DOUBLE viscosityC ,viscosityV,viscosity;
-  DOUBLE densityC   ,densityV  ,density;
+  DOUBLE viscosityC    ,viscosityV     ,viscosity
+       , eddyViscosityC, eddyViscosityV, effViscosityC, effViscosityV
+       , densityC      ,densityV       ,density;
 /*...*/
-  DOUBLE rCell[3],dt,dt0;
-  DOUBLE p[3],sP,sPc[3];
+  DOUBLE rCell[3], dt, dt0, p[3], sP, sPc[3], tA[3]
+        ,dFieldC[3], dFieldV[3], dFieldF[3];
 /*...*/
-  DOUBLE v[3],lKsi[3],lNormal[3],lXmcc[3],wf[3],ccV[3];
-  DOUBLE dPviz,lModKsi,lFarea,du[3],duDksi[3],lXm[3];
+  DOUBLE v[3],lKsi[3],lNormal[3],lXmcc[3],ccV[3];
+  DOUBLE lModKsi,lFarea,du[3],duDksi[3],lXm[3],dPviz;
   DOUBLE coef,lAn,tmp;
 /*...*/
   DOUBLE dfd,cv,cvc[3],lvSkew[3];
 /*... nonOrtogonal*/
 	DOUBLE e[3], t[3], modE, dfdc[3];
 /*... interpolacao linear*/
-  DOUBLE alpha,alphaMenosUm;
-  DOUBLE aP;
-//tA[3];
+  DOUBLE alpha,alphaMenosUm, aP;
 /*... */
-  DOUBLE pFace,pf[3],p1,p2;
+  DOUBLE pFace,pf[3],p1,p2,presC,presV,gradPresC[3],gradPresV[3];
 /*... */
-  DOUBLE wfn,velC[3],velV[3],presC,presF;
-  DOUBLE gradPresC[3],gradPresV[3];
-  DOUBLE gradVelC[3][3],gradVelV[3][3],gf[3][3],gfKsi[3];
-  DOUBLE gradVelComp[3][3];
+  DOUBLE gf[3][3],gfKsi[3];
+  DOUBLE wfn,velC[3],velV[3],wf[3];
+  DOUBLE gradVelC[3][3],gradVelV[3][3],gradVelComp[3][3];
+/*...*/
+  DOUBLE stressRc[6],stressRv[6],s[6];
+/*...*/
+  DOUBLE xx[4],ts;
+/*...*/
+  DOUBLE uPlus,yPlus,viscosityWall;
 /*...*/
   DOUBLE pAdv[NPADV];
 
 /*...*/
+  idCell      = nFace;
   iCodAdv1    = advVel->iCod1;
   iCodAdv2    = advVel->iCod2;
   pAdv[0]     = advVel->par[0];
   iCodDif     = diffVel->iCod;
+  iCodPolFace = INTPOLFACELINEAR;
+
+/*...*/  
+  fWallModel       = tModel->fWall;
+  wallType         = tModel->wallType;
+  fTurb            = tModel->fTurb;
+  fStruc           = tModel->fTurbStruct;
+/*...*/  
+  fSoPressure = ModelMomentum->fSoPressure;
+  fRhieInt    = ModelMomentum->fRhieChowInt;
+  fRes        = ModelMomentum->fRes;
+  fViscosity  = ModelMomentum->fViscosity;
+/*...................................................................*/
+
 /*...*/
+  ts       = ddt->t; 
   dt       = ddt->dt[0];
   dt0      = ddt->dt[1];
   typeTime = ddt->type;
   fTime    = ddt->flag;
-  densityC = lDensity[idCell];
 /*...................................................................*/
 
 /*... propriedades da celula*/
+  densityC   = MAT2D(idCell, DENSITY         ,prop,MAXPROP);
   viscosityC = MAT2D(idCell, DYNAMICVISCOSITY,prop,MAXPROP);
 /*...................................................................*/
 
-/*... | du1/dx1 du1/dx2 du1/dx3*/
-  gradVelC[0][0] = MAT3D(idCell,0,0,gradVel,3,ndm);
-  gradVelC[0][1] = MAT3D(idCell,0,1,gradVel,3,ndm);
-  gradVelC[0][2] = MAT3D(idCell,0,2,gradVel,3,ndm);
-/*... | du2/dx1 du2/dx2 du2/dx3*/
-  gradVelC[1][0] = MAT3D(idCell,1,0,gradVel,3,ndm);
-  gradVelC[1][1] = MAT3D(idCell,1,1,gradVel,3,ndm);
-  gradVelC[1][2] = MAT3D(idCell,1,2,gradVel,3,ndm);
-/*... | du3/dx1 du3/dx2 du3/dx3*/
-  gradVelC[2][0] = MAT3D(idCell,2,0,gradVel,3,ndm);
-  gradVelC[2][1] = MAT3D(idCell,2,1,gradVel,3,ndm);
-  gradVelC[2][2] = MAT3D(idCell,2,2,gradVel,3,ndm);
-/*...................................................................*/
-
-  velC[0]   = MAT2D(idCell,0,vel,ndm);
-  velC[1]   = MAT2D(idCell,1,vel,ndm);
-  velC[2]   = MAT2D(idCell,2,vel,ndm);
-
-  presC         = pres[idCell];
-  gradPresC[0]  = MAT2D(idCell,0,gradPres,ndm);
-  gradPresC[1]  = MAT2D(idCell,1,gradPres,ndm);
-  gradPresC[2]  = MAT2D(idCell,2,gradPres,ndm);
-/*...................................................................*/
-
-  p[0]   = 0.0e0;
-  p[1]   = 0.0e0;
-  p[2]   = 0.0e0;
-  pf[0]  = 0.0e0;
-  pf[1]  = 0.0e0;
-  pf[2]  = 0.0e0;
-  sP     = 0.0e0;
-  sPc[0] = 0.0e0;
-  sPc[1] = 0.0e0;
-  sPc[2] = 0.0e0;
-  for(nf=0;nf<nFace;nf++){
-    vizNel     = lViz[nf];
-    lNormal[0] = MAT2D(nf,0,normal,ndm);
-    lNormal[1] = MAT2D(nf,1,normal,ndm);
-    lNormal[2] = MAT2D(nf,2,normal,ndm);
-    lFarea     = fArea[nf];
-    lXmcc[0]   = MAT2D(nf,0,xmcc,ndm);
-    lXmcc[1]   = MAT2D(nf,1,xmcc,ndm);
-    lXmcc[2]   = MAT2D(nf,2,xmcc,ndm);
-/*... dominio*/
-    if( vizNel  > -1 ){
 /*...*/
-      velV[0]        = MAT2D(nf,0,vel,ndm);
-      velV[1]        = MAT2D(nf,1,vel,ndm);
-      velV[2]        = MAT2D(nf,2,vel,ndm);
-      presF          = pres[nf];
-      densityV       = lDensity[nf];
-/*..*/
-      lKsi[0]        = MAT2D(nf,0,ksi,ndm);
-      lKsi[1]        = MAT2D(nf,1,ksi,ndm);
-      lKsi[2]        = MAT2D(nf,2,ksi,ndm);
-      lModKsi        = mKsi[nf];
-/*..*/
-      lvSkew[0]      = MAT2D(nf,0,vSkew,ndm);
-      lvSkew[1]      = MAT2D(nf,1,vSkew,ndm);
-      lvSkew[2]      = MAT2D(nf,2,vSkew,ndm);
-/*..*/
-      duDksi[0]      = (velV[0] - velC[0]) / lModKsi;
-      duDksi[1]      = (velV[1] - velC[1]) / lModKsi;
-      duDksi[2]      = (velV[2] - velC[2]) / lModKsi;
-/*... | du1/dx1 du1/dx2 du1/dx3*/
-      gradVelV[0][0] = MAT3D(nf,0,0,gradVel,3,ndm);
-      gradVelV[0][1] = MAT3D(nf,0,1,gradVel,3,ndm);
-      gradVelV[0][2] = MAT3D(nf,0,2,gradVel,3,ndm);
-/*... | du2/dx1 du2/dx2 du2/dx3*/
-      gradVelV[1][0] = MAT3D(nf,1,0,gradVel,3,ndm);
-      gradVelV[1][1] = MAT3D(nf,1,1,gradVel,3,ndm);
-      gradVelV[1][2] = MAT3D(nf,1,2,gradVel,3,ndm);
-/*... | du3/dx1 du3/dx2 du3/dx3*/
-      gradVelV[2][0] = MAT3D(nf,2,0,gradVel,3,ndm);
-      gradVelV[2][1] = MAT3D(nf,2,1,gradVel,3,ndm);
-      gradVelV[2][2] = MAT3D(nf,2,2,gradVel,3,ndm);
+  eddyViscosityC = eddyViscosityV = 0.0e0;
+  if(fTurb) eddyViscosityC= eddyVisc[idCell];
+  effViscosityC = viscosityC + eddyViscosityC;
 /*...................................................................*/
-      gradPresV[0] =  MAT2D(nf,0,gradPres,ndm);
-      gradPresV[1] =  MAT2D(nf,1,gradPres,ndm);
-      gradPresV[2] =  MAT2D(nf,2,gradPres,ndm);
+
+/*...*/
+  sP    = 0.e0;
+  presC = pres[idCell];
+  for (i = 0; i < 3; i++)
+  {
+/*... | dui/dx1 dui/dx2 dui/dx3*/
+    gradVelC[i][0] = MAT3D(idCell,i,0,gradVel,3,3);
+    gradVelC[i][1] = MAT3D(idCell,i,1,gradVel,3,3);
+    gradVelC[i][2] = MAT3D(idCell,i,2,gradVel,3,3);
+/*...*/
+    gradPresC[i]  = MAT2D(idCell, i, gradPres, 3);
+    dFieldC[i]    = MAT2D(idCell, i, dField  , 3); 
+/*...*/
+    velC[i]  = MAT2D(idCell,i,vel,3);
+/*...................................................................*/
+
+/*...*/
+    p[i]   = 0.e0;
+    pf[i]  = 0.0e0;
+    sPc[i] = 0.0e0;
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... tensor residual*/
+  if(fStruc)
+    for (i = 0; i < 6; i++)
+      stressRc[i] = MAT2D(idCell,i,stressR,6);
+/*...................................................................*/
+
+/*....*/
+  for(nf=0;nf<nFace;nf++)
+  {
+    vizNel  = lViz[nf];
+    lFarea  = fArea[nf];
+    lModKsi = mKsi[nf];
+/*..*/
+    for (i = 0; i < 3; i++)
+    {
+      lNormal[i] = MAT2D(nf,i,normal,ndm);
+      lXmcc[i]   = MAT2D(nf,i,xmcc,ndm);
+      lKsi[i] = MAT2D(nf,i,ksi,3);
+    }
+/*...................................................................*/
+
+/*... dominio*/
+    if( vizNel  > -1 )
+    {
+/*...*/
+      densityV       = MAT2D(nf, DENSITY         ,prop,MAXPROP);
+      viscosityV     = MAT2D(nf, DYNAMICVISCOSITY,prop,MAXPROP);
+/*...*/
+      presV        = pres[nf]; 
+      for(i=0;i<3;i++)
+      {
+        velV[i]        = MAT2D(nf,i,vel,ndm);
+/*...*/
+        gradPresV[i] = MAT2D(nf, i, gradPres, 3);
+        dFieldV[i]   = MAT2D(nf, i, dField, 3);
+/*..*/
+        lvSkew[i]      = MAT2D(nf,i,vSkew,3);
+/*..*/
+        duDksi[i]      = (velV[i] - velC[i]) / lModKsi;
+/*... | dui/dx1 dui/dx2 dui/dx3*/
+        gradVelV[i][0] = MAT3D(nf,i,0,gradVel,3,3);
+        gradVelV[i][1] = MAT3D(nf,i,1,gradVel,3,3);
+        gradVelV[i][2] = MAT3D(nf,i,2,gradVel,3,3);
+      }
+/*...................................................................*/
+
+/*... tensor residual*/
+      if(fStruc)
+     {
+        for(i=0;i<6;i++)
+          stressRv[i] = MAT2D(nf,i,stressR,6);
+      }
+/*...................................................................*/
  
-      ccV[0]       =  MAT2D(nf,0,cc,ndm);
-      ccV[1]       =  MAT2D(nf,1,cc,ndm);
-      ccV[2]       =  MAT2D(nf,2,cc,ndm);
+/*...*/
+      ccV[0]       =  MAT2D(nf,0,cc,3);
+      ccV[1]       =  MAT2D(nf,1,cc,3);
+      ccV[2]       =  MAT2D(nf,2,cc,3);
  
-      lXm[0]       =  MAT2D(nf,0,xm,ndm);
-      lXm[1]       =  MAT2D(nf,1,xm,ndm);
-      lXm[2]       =  MAT2D(nf,2,xm,ndm);
+      lXm[0]       =  MAT2D(nf,0,xm,3);
+      lXm[1]       =  MAT2D(nf,1,xm,3);
+      lXm[2]       =  MAT2D(nf,2,xm,3);
 /*...................................................................*/
 
 /*... termo difusivo
       grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
-      difusionScheme(lNormal,lKsi
-                    ,lFarea ,lModKsi
-                    ,e      ,t
-                    ,ndm    ,iCodDif);
+/*...*/
+      s[0] = lFarea*lNormal[0];
+      s[1] = lFarea*lNormal[1];
+      s[2] = lFarea*lNormal[2];
+/*...*/
+      difusionSchemeNew(s  , lKsi
+                      , e  , t
+                      , ndm, iCodDif);
 /*...................................................................*/
 
 /*...*/
-      v[0]         = lvSkew[0] + MAT2D(nf,0,xmcc,ndm);
-      v[1]         = lvSkew[1] + MAT2D(nf,1,xmcc,ndm);
-      v[2]         = lvSkew[2] + MAT2D(nf,2,xmcc,ndm);
-      dPviz        = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-      alpha        = dPviz/lModKsi;
-      alphaMenosUm = 1.0e0 - alpha; 
+      alpha = interpolFace(lvSkew           ,lXmcc
+                          ,volume[idCell]   ,volume[nf]
+                          ,lModKsi          ,ndm
+                          ,iCodPolFace);
+      alphaMenosUm = 1.0e0 - alpha;
 /*...................................................................*/
 
 /*... media harmonica*/
-      viscosityV = MAT2D(nf, DYNAMICVISCOSITY,prop,MAXPROP);
-      viscosity  = alpha/viscosityC + alphaMenosUm/viscosityV;
-      viscosity  = 1.0e0/viscosity;
+      effViscosityV = viscosityV + eddyViscosityV;
+      viscosity = alpha / effViscosityC + alphaMenosUm / effViscosityV;
+      viscosity = 1.0e0 / viscosity;
 /*...................................................................*/
 
 /*... difusao direta*/
@@ -1467,79 +1501,62 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
       
 /*...*/
-      gf[0][0] = alphaMenosUm*gradVelC[0][0] + alpha*gradVelV[0][0];
-      gf[0][1] = alphaMenosUm*gradVelC[0][1] + alpha*gradVelV[0][1];
-      gf[0][2] = alphaMenosUm*gradVelC[0][2] + alpha*gradVelV[0][2];
+      for(i=0;i<3;i++)
+      {
+        gf[i][0] = alphaMenosUm*gradVelC[i][0] + alpha*gradVelV[i][0];
+        gf[i][1] = alphaMenosUm*gradVelC[i][1] + alpha*gradVelV[i][1];
+        gf[i][2] = alphaMenosUm*gradVelC[i][2] + alpha*gradVelV[i][2];
 /*...*/
-      gf[1][0] = alphaMenosUm*gradVelC[1][0] + alpha*gradVelV[1][0];
-      gf[1][1] = alphaMenosUm*gradVelC[1][1] + alpha*gradVelV[1][1];
-      gf[1][2] = alphaMenosUm*gradVelC[1][2] + alpha*gradVelV[1][2];
-/*...*/
-      gf[2][0] = alphaMenosUm*gradVelC[2][0] + alpha*gradVelV[2][0];
-      gf[2][1] = alphaMenosUm*gradVelC[2][1] + alpha*gradVelV[2][1];
-      gf[2][2] = alphaMenosUm*gradVelC[2][2] + alpha*gradVelV[2][2];
-/*...*/
-      wf[0]    =   alphaMenosUm*velC[0] + alpha*velV[0];
-      wf[1]    =   alphaMenosUm*velC[1] + alpha*velV[1];
-      wf[2]    =   alphaMenosUm*velC[2] + alpha*velV[2];
+        wf[i]    = alphaMenosUm*velC[i] + alpha*velV[i];
+      }
+/*...................................................................*/
       density  = alphaMenosUm*densityC  + alpha*densityV;
 /*...................................................................*/
 
 /*... velocidade normal a face*/
-      wfn = wf[0]*lNormal[0] + wf[1]*lNormal[1] + wf[2]*lNormal[2];
+      if(fRhieInt) {
+        dFieldF[0] = alphaMenosUm*dFieldC[0] + alpha*dFieldV[0];
+        dFieldF[1] = alphaMenosUm*dFieldC[1] + alpha*dFieldV[1];
+        dFieldF[2] = alphaMenosUm*dFieldC[2] + alpha*dFieldV[2];
+        wfn = interpolFaceVel(velC         ,velV
+                             ,presC        ,presV
+                             ,gradPresC    ,gradPresV
+                             ,lNormal      ,lKsi
+                             ,lModKsi      ,dFieldF
+                             ,alphaMenosUm ,alpha
+                             ,ndm);
+      }
+      else
+        wfn   = wf[0]*lNormal[0] + wf[1]*lNormal[1] + wf[2]*lNormal[2];    
 /*...................................................................*/
 
+/*...*/
+      for(i=0;i<3;i++)
+      {
 /*... derivadas direcionais*/
-      gfKsi[0]      = gf[0][0]*lKsi[0] 
-                    + gf[0][1]*lKsi[1] 
-                    + gf[0][2]*lKsi[2];
-/*...*/
-      gfKsi[1]      = gf[1][0]*lKsi[0] 
-                    + gf[1][1]*lKsi[1] 
-                    + gf[1][2]*lKsi[2];
-/*...*/
-      gfKsi[2]      = gf[2][0]*lKsi[0] 
-                    + gf[2][1]*lKsi[1] 
-                    + gf[2][2]*lKsi[2];
+        gfKsi[i] = gf[i][0]*lKsi[0] 
+                 + gf[i][1]*lKsi[1] 
+                 + gf[i][2]*lKsi[2];
 /*...................................................................*/
 
 /*... gradiente compacto (Darwish e Moukalled)*/
-      du[0]             = duDksi[0] - gfKsi[0];
-      du[1]             = duDksi[1] - gfKsi[1];
-      du[2]             = duDksi[2] - gfKsi[2];
+        du[i]             = duDksi[i] - gfKsi[i];
 /*...*/
-      gradVelComp[0][0] = gf[0][0] + du[0]*lKsi[0];
-      gradVelComp[0][1] = gf[0][1] + du[0]*lKsi[1];
-      gradVelComp[0][2] = gf[0][2] + du[0]*lKsi[2];
-/*...*/
-      gradVelComp[1][0] = gf[1][0] + du[1]*lKsi[0];
-      gradVelComp[1][1] = gf[1][1] + du[1]*lKsi[1];
-      gradVelComp[1][2] = gf[1][2] + du[1]*lKsi[2];
-/*...*/
-      gradVelComp[2][0] = gf[2][0] + du[2]*lKsi[0];
-      gradVelComp[2][1] = gf[2][1] + du[2]*lKsi[1];
-      gradVelComp[2][2] = gf[2][2] + du[2]*lKsi[2];
+        gradVelComp[i][0] = gf[i][0] + du[i]*lKsi[0];
+        gradVelComp[i][1] = gf[i][1] + du[i]*lKsi[1];
+        gradVelComp[i][2] = gf[i][2] + du[i]*lKsi[2];
 /*...................................................................*/
 
 /*... derivadas direcionais*/
 /*...*/
-      gfKsi[0] = gradVelComp[0][0]*t[0] 
-               + gradVelComp[0][1]*t[1] 
-               + gradVelComp[0][2]*t[2];
-/*...*/
-      gfKsi[1] = gradVelComp[1][0]*t[0] 
-               + gradVelComp[1][1]*t[1] 
-               + gradVelComp[1][2]*t[2];
-/*...*/
-      gfKsi[2] = gradVelComp[2][0]*t[0] 
-               + gradVelComp[2][1]*t[1] 
-               + gradVelComp[2][2]*t[2];
+        gfKsi[i] = gradVelComp[i][0]*t[0] 
+                 + gradVelComp[i][1]*t[1] 
+                 + gradVelComp[i][2]*t[2];
 /*...................................................................*/
 
 /*... correcao nao-ortogonal*/
-      dfdc[0] = coef*gfKsi[0];
-      dfdc[1] = coef*gfKsi[1];
-      dfdc[2] = coef*gfKsi[2];
+        dfdc[i] = coef*gfKsi[i];
+      }
 /*...................................................................*/
 
 /*... fluxo convectivo upwind de primeira ordem*/
@@ -1572,49 +1589,32 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 
 /*... gradiente da pressao com resconstrucao de segunda ordem
       (forma conservativa)*/
-      if(sPressure){
-/*.. vetor que une o centroide da celula viznha ao ponto medio 
-     da face*/
-        v[0] = lXm[0] - ccV[0];
-        v[1] = lXm[1] - ccV[1];
-        v[2] = lXm[2] - ccV[2];
-
-        p1 = presC + gradPresC[0]*lXmcc[0] 
-                   + gradPresC[1]*lXmcc[1] 
-                   + gradPresC[2]*lXmcc[2];
-
-        p2 = presF + gradPresV[0]*v[0]
-                   + gradPresV[1]*v[1] 
-                   + gradPresV[2]*v[2];
-     
-        pFace = 0.5e0*(p1+p2);
-      }
+      facePressure(gradPresC       ,gradPresV
+                 ,lXmcc            ,lXm
+                 ,ccV              ,pf
+                 ,lNormal          
+                 ,pFace            ,lFarea
+                 ,presC            ,presV
+                 ,alphaMenosUm     ,alpha    
+                 ,fSoPressure      ,false);
 /*...................................................................*/
 
-/*... interpolacao linear*/
-      else
-        pFace = alphaMenosUm*presC + alpha*presF;
-/*...................................................................*/
-      tmp   = pFace*lFarea;
-      pf[0]+= tmp*lNormal[0];
-      pf[1]+= tmp*lNormal[1];
-      pf[2]+= tmp*lNormal[2];
+/*... termos viscosos explicitos*/      
+      if(fViscosity)
+        viscosityPartExp(p          ,gradVelV[0]
+                        ,lNormal
+                        ,viscosityC ,lFarea);
 /*...................................................................*/
 
 /*... termos viscosos explicitos*/
-      aP    = viscosity*lFarea;
-      p[0] += aP*( gradVelV[0][0]*lNormal[0] 
-                 + gradVelV[1][0]*lNormal[1]  
-                 + gradVelV[2][0]*lNormal[2]);
- 
-      p[1] += aP*( gradVelV[0][1]*lNormal[0] 
-                 + gradVelV[1][1]*lNormal[1]  
-                 + gradVelV[2][1]*lNormal[2]);
-      
-      p[2] += aP*( gradVelV[0][2]*lNormal[0] 
-                 + gradVelV[1][2]*lNormal[1]  
-                 + gradVelV[2][2]*lNormal[2]);
+      if(fStruc)
+        turbStructIntegral(stressRc    ,stressRv
+                          ,lNormal     ,p
+                          ,lFarea
+                          ,alphaMenosUm,alpha    
+                          ,false);
 /*...................................................................*/
+
     }
 /*... contorno*/
     else{
@@ -1623,25 +1623,23 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
           + velC[1]*lNormal[1] 
           + velC[2]*lNormal[2];
 
-/*... termos viscosos explicitos*/
-      aP    = viscosityC*lFarea;
-      p[0] += aP*( gradVelC[0][0]*lNormal[0] 
-                 + gradVelC[1][0]*lNormal[1]  
-                 + gradVelC[2][0]*lNormal[2]);
-
-      p[1] += aP*( gradVelC[0][1]*lNormal[0] 
-                 + gradVelC[1][1]*lNormal[1]
-                 + gradVelC[2][1]*lNormal[2]);
-      
-      p[2] += aP*( gradVelC[0][2]*lNormal[0] 
-                 + gradVelC[1][2]*lNormal[1]
-                 + gradVelC[2][2]*lNormal[2]);
+/*... termos viscosos explicitos*/      
+      if(fViscosity)
+        viscosityPartExp(p          ,gradVelC[0]
+                        ,lNormal
+                        ,viscosityC ,lFarea);
 /*...................................................................*/
+
+/*...*/
+      s[0] = dFieldC[0]*lFarea*lNormal[0];
+      s[1] = dFieldC[1]*lFarea*lNormal[1];
+      s[2] = dFieldC[2]*lFarea*lNormal[2];
 
 /*...*/
       pFace = presC;
 /*... pressao prescrita*/
-      if(lFacePresR[nf]){
+      if(lFacePresR[nf])
+      {
 /*...cargas*/
         nCarg = lFacePresL[nf]-1;
         pLoadSimplePres(&sP             , p
@@ -1651,61 +1649,92 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
                       , lNormal         , lNormal
                       , densityC        , velC
                       , lFarea          , dcca[nf]
-                      , &loadsPres[nCarg], ndm 
+                      , &lPres[nCarg]   , ndm 
                       , false); 
 
       } 
 /*...................................................................*/
 
 /*... gradiente da pressao com resconstrucao de segunda ordem*/
-      if(sPressure)  
-        pFace += gradPresC[0]*lXmcc[0] 
-               + gradPresC[1]*lXmcc[1]
-               + gradPresC[2]*lXmcc[2];
-
-      tmp   = pFace*lFarea;
-      pf[0]+= tmp*lNormal[0];
-      pf[1]+= tmp*lNormal[1];
-      pf[2]+= tmp*lNormal[2];
+      facePressure(gradPresC       ,gradPresV
+                 ,lXmcc            ,lXm
+                 ,ccV              ,pf
+                 ,lNormal          
+                 ,pFace            ,lFarea
+                 ,presC            ,presV
+                 ,alphaMenosUm     ,alpha    
+                 ,fSoPressure      ,true);
 /*...................................................................*/
 
+/*... termos viscosos explicitos*/
+      if(fStruc)
+        turbStructIntegral(stressRc    ,stressRv
+                          ,lNormal     ,p
+                          ,lFarea
+                          ,alphaMenosUm,alpha    
+                          ,true);
+/*...................................................................*/
+
+/*...*/
+      s[0] = lFarea*lNormal[0];
+      s[1] = lFarea*lNormal[1];
+      s[2] = lFarea*lNormal[2];
+/*...*/
+      difusionSchemeNew(s   , lKsi
+                       , e  , t
+                       , ndm, iCodDif);
+/*...................................................................*/
 
 /*... velocidades*/
-      if(lFaceVelR[nf] > 0){
+      if(lFaceVelR[nf] > 0)
+      {
+        xx[0] = MAT2D(nf, 0, xm, 3);
+        xx[1] = MAT2D(nf, 1, xm, 3);
+        xx[2] = MAT2D(nf, 2, xm, 3);
+        xx[3] = ts;
 /*...cargas*/
         nCarg = lFaceVelL[nf]-1;
-/*      pLoadSimple(sPc            , p
-                  , tA             , lXmcc
-                  , velC           , gradVelC[0]
-                  , presC         , gradPresC                 
-                  , viscosityC     ,viscosityC
-                  , lNormal  
-                  , densityC
-                  , lFarea         ,dcca[nf]
-                  , loadsVel[nCarg],ndm
-                  , true           ,false
-                  , false          ,0);  */
+        pLoadSimple(sPc         , p
+                  , tA          , lXmcc
+                  , velC        , gradVelC[0] 
+                  , presC       , gradPresC
+                  , viscosityC  , effViscosityC
+                  , xx  
+                  , s           , e         
+                  , t           , lNormal
+                  , densityC    , wallPar
+                  , lFarea      , dcca[nf]
+                  , &lVel[nCarg], ndm
+                  , true        , false
+                  , fWallModel  , wallType);      
       }  
 /*...................................................................*/
 
 /*... parede impermevavel*/
-      else if(lFaceVelR[nf] == STATICWALL){
-        aP   = viscosityC*lFarea /dcca[nf];
-/*...*/
-        sPc[0] += aP*(1.e0 - lNormal[0]*lNormal[0]);
-        sPc[1] += aP*(1.e0 - lNormal[1]*lNormal[1]);
-        sPc[2] += aP*(1.e0 - lNormal[2]*lNormal[2]);
+      else if(lFaceVelR[nf] == STATICWALL)
+      {
+/*... com modelo de parede*/
+        yPlus = 1.e0;
+        uPlus = 1.e0;
+        if (fWallModel) {
+          yPlus = wallPar[0];
+          uPlus = wallPar[1];
+          if(yPlus > 0.01e0)          
+            viscosityWall = viscosityC*yPlus/uPlus;
+          else
+            viscosityWall = viscosityC;   
+        }
 /*...................................................................*/
 
-/*... x*/
-        p[0]+= aP*(velC[1]*lNormal[0]*lNormal[1]
-                  +velC[2]*lNormal[0]*lNormal[2]);
-/*... y*/
-        p[1]+= aP*(velC[0]*lNormal[0]*lNormal[1]
-                  +velC[2]*lNormal[1]*lNormal[2]);
-/*... z*/
-        p[2]+= aP*(velC[0]*lNormal[0]*lNormal[2]
-                  +velC[1]*lNormal[1]*lNormal[2]);
+/*... sem modelo de parede*/
+        else
+          viscosityWall = effViscosityC;
+/*...................................................................*/
+
+/*...*/
+        staticWall(velC     ,lNormal   ,sPc, p    
+                 , dcca[nf],viscosityC, lFarea);
+/*...................................................................*/
       }
 /*...................................................................*/
     }
@@ -1714,12 +1743,14 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
   
 /*... distretização temporal*/
-  if(fTime){
+  if(fTime)
+  {
 /*... EULER*/
     if(typeTime == EULER) 
       sP     += densityC*volume[idCell]/dt;
 /*...BACKWARD*/
-    else if(typeTime == BACKWARD){
+    else if(typeTime == BACKWARD)
+    {
       tmp = 1.e0/dt + 1.e0/(dt+dt0);
       sP += tmp*densityC*volume[idCell];
     }
@@ -1729,12 +1760,8 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 
 /*...*/
   lAn = 0.e0;
-  if(nFace == 4){
-    lAn = lA[0] + lA[1] + lA[2] + lA[3];
-  }
-  else if(nFace == 6){
-    lAn = lA[0] + lA[1] + lA[2] + lA[3] + lA[4] + lA[5];
-  }
+  for (nf = 0; nf<nFace; nf++)
+    lAn += lA[nf];
   lA[idCell  ] = sP + sPc[0] + lAn;
   lA[idCell+1] = sP + sPc[1] + lAn;
   lA[idCell+2] = sP + sPc[2] + lAn;
@@ -1795,27 +1822,23 @@ void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres
 /*...................................................................*/
 
 /*...*/
-  if(nFace == 4){
-    lA[0] *= -1.e0;
-    lA[1] *= -1.e0;
-    lA[2] *= -1.e0;
-    lA[3] *= -1.e0;
-  }
-  else if(nFace == 6){
-    lA[0] *= -1.e0;
-    lA[1] *= -1.e0;
-    lA[2] *= -1.e0;
-    lA[3] *= -1.e0;
-    lA[4] *= -1.e0;
-    lA[5] *= -1.e0;
-  }
+  for (nf = 0; nf<nFace; nf++)
+    lA[nf] *= -1.e0;
 /*...................................................................*/
 
-
 /*...*/
-  lB[0]     = p[0];
-  lB[1]     = p[1];
-  lB[2]     = p[2];
+  if(fRes)
+  {
+    lB[0] = rCell[0];
+    lB[1] = rCell[1];
+    lB[2] = rCell[2];
+  }
+  else
+  {
+    lB[0] = p[0];
+    lB[1] = p[1];
+    lB[2] = p[2];
+  }
   lRcell[0] = rCell[0];
   lRcell[1] = rCell[1];
   lRcell[2] = rCell[2];
@@ -1938,20 +1961,19 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 { 
 /*...*/
   bool fTime, fRes, fTurb, fRhieInt, fWallModel, fStruc;
-  bool fDiv,fViscosity;
-
+  bool fDiv,fViscosity,fSoPressure;
 /*...*/
-  short iCodAdv1, iCodAdv2, iCodDif,wallType, idCell, nf
+  short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf
       , nCarg, typeTime, iCodBuoyant, iCodPolFace;
-
+/*...*/
   INT vizNel;
 /*...*/
   DOUBLE viscosityC, viscosityV, viscosity, 
          eddyViscosityC, eddyViscosityV, effViscosityC, effViscosityV,
          densityC, densityV, density, densityRef;
 /*...*/
-  DOUBLE rCell[3], dt, dt0, p[3], sP, sPc[3], dFieldC[3], dFieldV[3],
-         dFieldF[3], wf[3];
+  DOUBLE rCell[3], dt, dt0, p[3], sP, sPc[3], tA[3]
+        ,dFieldC[3], dFieldV[3], dFieldF[3];
 /*...*/
   DOUBLE v[3], lKsi[3], lNormal[3], lXmcc[3], ccV[3];
   DOUBLE lModKsi, lFarea, du[3], duDksi[3], lXm[3];
@@ -1961,17 +1983,19 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 /*... nonOrtogonal*/
   DOUBLE e[3], t[3], modE, dfdc[3];
 /*... interpolacao linear*/
-  DOUBLE alpha, alphaMenosUm, aP, tA[3];
+  DOUBLE alpha, alphaMenosUm, aP;
 /*... */
   DOUBLE pFace, pf[3], p1, p2, presC, presV, gradPresC[3], gradPresV[3];
 /*... */
-  DOUBLE wfn, velC[3], velV[3], g[3], gf[3][3], gfKsi[3],
-         gradVelC[3][3], gradVelV[3][3], gradVelComp[3][3],
-         stressRc[6],stressRv[6],s[6],xx[4],ts;
-  
+  DOUBLE gf[3][3], gfKsi[3];
+  DOUBLE wfn, velC[3], velV[3], wf[3];
+  DOUBLE gradVelC[3][3], gradVelV[3][3], gradVelComp[3][3];
+/*...*/
+  DOUBLE stressRc[6],stressRv[6],s[6];
+/*...*/
+  DOUBLE xx[4],ts;
 /*... */
-  DOUBLE gradRho[3];
-
+  DOUBLE gradRho[3], g[3];
 /*...*/
   DOUBLE uPlus,yPlus,viscosityWall;
 /*...*/
@@ -1999,15 +2023,13 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   wallType         = tModel->wallType;
   fTurb            = tModel->fTurb;
   fStruc           = tModel->fTurbStruct;
-  
+/*...*/
+  fSoPressure      = ModelMomentum->fSoPressure;
   fRhieInt         = ModelMomentum->fRhieChowInt;
   fRes             = ModelMomentum->fRes;
   fViscosity       = ModelMomentum->fViscosity;
   fDiv             = ModelMomentum->fDiv;
   iCodBuoyant      = ModelMomentum->iCodBuoyant;
-  g[0]             = gravity[0];
-  g[1]             = gravity[1];
-  g[2]             = gravity[2];
 /*...................................................................*/
 
 /*...*/
@@ -2015,16 +2037,19 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   dt0      = ddt->dt[1];
   typeTime = ddt->type;
   fTime    = ddt->flag;
-  densityC = lDensity[idCell];
 /*...................................................................*/
 
-/*... propriedades da celula*/
+/*...*/
+  densityC = lDensity[idCell];
+  densityRef    = densityMed;
+/*...................................................................*/
+
+/*...*/
   eddyViscosityC = eddyViscosityV = 0.0e0;
   densityC       = lDensity[idCell];
   viscosityC     = MAT2D(idCell, 0, lViscosity, 2);
   if(fTurb) eddyViscosityC= MAT2D(idCell, 1, lViscosity, 2);
   effViscosityC = viscosityC + eddyViscosityC;
-  densityRef    = densityMed;
 /*...................................................................*/
 
 /*... | du1/dx1 du1/dx2 du1/dx3*/
@@ -2053,10 +2078,14 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   }
 /*...................................................................*/
 
+/*...*/
   velC[0]   = MAT2D(idCell,0,vel,3);
   velC[1]   = MAT2D(idCell,1,vel,3);
   velC[2]   = MAT2D(idCell,2,vel,3);
+  wf[0] = wf[1] = wf[2]= 0.e0;
+/*...................................................................*/
 
+/*...*/
   presC         = pres[idCell];
   gradPresC[0]  = MAT2D(idCell, 0, gradPres, 3);
   gradPresC[1]  = MAT2D(idCell, 1, gradPres, 3);
@@ -2065,14 +2094,22 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   dFieldC[1]    = MAT2D(idCell, 1, dField  , 3);
   dFieldC[2]    = MAT2D(idCell, 2, dField  , 3);
   dFieldF[0]    = dFieldF[1] = dFieldF[2] = 0.e0;
-  wf[0] = wf[1] = wf[2]= 0.e0;
 /*...................................................................*/
 
-  sP        = 0.0e0;
-  p[0]      = p[1]      = p[2]      = 0.0e0;
-  pf[0]     = pf[1]     = pf[2]     = 0.0e0;
-  sPc[0]    = sPc[1]    = sPc[2]    = 0.0e0;
+/*...*/
+  g[0]             = gravity[0];
+  g[1]             = gravity[1];
+  g[2]             = gravity[2];
+/*...................................................................*/
+
+/*...*/
+  p[0]      = p[1]        = p[2]       = 0.0e0;
+  pf[0]     = pf[1]       = pf[2]      = 0.0e0;
+  sP        = sPc[0]      = sPc[1]     = sPc[2] = 0.0e0;
   gradRho[0] = gradRho[1] = gradRho[2] = 0.0e0;
+/*...................................................................*/
+
+/*...*/
   for(nf=0;nf<nFace;nf++){
 /*...*/
     vizNel     = lViz[nf];
@@ -2132,14 +2169,18 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 /*...................................................................*/
 
 /*... tensor residual*/
-      stressRv[0] = MAT2D(nf,0,stressR,6);
-      stressRv[1] = MAT2D(nf,1,stressR,6);
-      stressRv[2] = MAT2D(nf,2,stressR,6);
-      stressRv[3] = MAT2D(nf,3,stressR,6);
-      stressRv[4] = MAT2D(nf,4,stressR,6);
-      stressRv[5] = MAT2D(nf,5,stressR,6);
+      if(fStruc)
+     {
+        stressRv[0] = MAT2D(nf,0,stressR,6);
+        stressRv[1] = MAT2D(nf,1,stressR,6);
+        stressRv[2] = MAT2D(nf,2,stressR,6);
+        stressRv[3] = MAT2D(nf,3,stressR,6);
+        stressRv[4] = MAT2D(nf,4,stressR,6);
+        stressRv[5] = MAT2D(nf,5,stressR,6);
+      }
 /*...................................................................*/
 
+/*...*/
       ccV[0]       =  MAT2D(nf,0,cc,3);
       ccV[1]       =  MAT2D(nf,1,cc,3);
       ccV[2]       =  MAT2D(nf,2,cc,3);
@@ -2340,9 +2381,10 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       gradRho[2] += tmp*lNormal[2];
 /*...................................................................*/
 
-/*... termos viscosos explicitos*/
-      aP    = viscosity*lFarea;
-      if(fViscosity){
+/*... termos viscosos explicitos*/      
+      if(fViscosity)
+      {
+        aP    = viscosity*lFarea;
         p[0] += aP*( gradVelV[0][0]*lNormal[0] 
                    + gradVelV[1][0]*lNormal[1]  
                    + gradVelV[2][0]*lNormal[2]);
@@ -2369,7 +2411,8 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*... termos viscosos explicitos*/
-      if(fStruc){
+      if(fStruc)
+      {
         s[0] = alphaMenosUm*stressRc[0] + alpha*stressRv[0];
         s[1] = alphaMenosUm*stressRc[1] + alpha*stressRv[1];
         s[2] = alphaMenosUm*stressRc[2] + alpha*stressRv[2];
@@ -2403,9 +2446,10 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
           + velC[1]*lNormal[1] 
           + velC[2]*lNormal[2];
 
-/*... termos viscosos explicitos*/
-      aP    = effViscosityC*lFarea;
-      if(fViscosity){
+/*... termos viscosos explicitos*/      
+      if(fViscosity)
+      {
+        aP    = effViscosityC*lFarea;
         p[0] += aP*( gradVelC[0][0]*lNormal[0] 
                    + gradVelC[1][0]*lNormal[1]  
                    + gradVelC[2][0]*lNormal[2]);
@@ -2442,7 +2486,8 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...*/
       pFace = presC;
 /*... pressao prescrita*/
-      if(lFacePresR[nf]){
+      if(lFacePresR[nf])
+      {
 /*...cargas*/
         nCarg = lFacePresL[nf]-1;
         pLoadSimplePres(&sP             , p
@@ -2512,7 +2557,8 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*... velocidades*/
-      if(lFaceVelR[nf] > 0){
+      if(lFaceVelR[nf] > 0)
+      {
         xx[0] = MAT2D(nf, 0, xm, 3);
         xx[1] = MAT2D(nf, 1, xm, 3);
         xx[2] = MAT2D(nf, 2, xm, 3);

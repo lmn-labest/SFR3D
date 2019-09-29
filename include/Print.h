@@ -22,7 +22,7 @@
                 , Turbulence *turbModel, EnergyModel *eModel
                 , PartMesh *pMesh      , Scheme *sc
                 , Loads *loadsVel      , Loads *loadsPres 
-                , Loads *loadsTemp     , FileOpt opt
+                , Loads *loadsTemp     , FileOpt *opt
                 , Mesh *mesh0          , Mesh *mesh  
                 , Mean *media          
                 , char *preName        , char *nameOut);

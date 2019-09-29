@@ -143,7 +143,8 @@
 /* ... montagem do sistemas de equacoes (Simple - VEl)*/
   void systFormSimpleVel(Loads *loadsVel   , Loads *loadsPres
                , Advection *advVel         , Diffusion *diffVel
-               , short typeSimple          
+               , Turbulence *tModel        ,MomentumModel *ModelMomentum    
+               , Interface *iCel           , short typeSimple          
                , INT    *RESTRICT el       , INT    *RESTRICT nelcon
                , short  *RESTRICT nen      , short  *RESTRICT nFace
                , INT *RESTRICT cellFace    , INT *RESTRICT fOwner
@@ -163,16 +164,17 @@
                , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT gradVel
                , DOUBLE *RESTRICT dField   , DOUBLE underU
-               , DOUBLE *RESTRICT rCell    , DOUBLE *RESTRICT density
+               , DOUBLE *RESTRICT rCell    , DOUBLE *RESTRICT stressR
+               , DOUBLE *RESTRICT eddyVisc , DOUBLE *RESTRICT wallPar 
                , Temporal *ddt
                , INT nEq                   , INT nEqNov
                , INT nAd                   , INT nAdR
                , short maxNo               , short maxViz
                , short ndm                 , INT numel
-               , short ndf                 , short storage
+               , short ndf                 , short ntn
+               , short storage
                , bool forces               , bool matrix
-               , bool calRcell             , bool unsym
-               , bool sPressure);
+               , bool calRcell             , bool unsym);
 /*...................................................................*/
 
 /* ... montagem do sistemas de equacoes (Simple - VEl - low mach)*/
@@ -379,8 +381,8 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
 /*.....................................................................*/
 
 /* ... montagem do sistemas de equacoes (Simple - Pres)*/
-  void systFormSimplePres(Loads *loadsVel, Loads *loadsPres
-                 , Diffusion *diffPres
+  void systFormSimplePres(Loads *loadsVel    , Loads *loadsPres
+                 , Diffusion *diffPres       ,Turbulence *tModel 
                  , INT    *RESTRICT el       , INT    *RESTRICT nelcon
                  , short  *RESTRICT nen      , short  *RESTRICT nFace
                  , INT *RESTRICT cellFace    , INT *RESTRICT fOwner
@@ -399,7 +401,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                  , short  *RESTRICT facePresR, short  *RESTRICT facePresL
                  , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                  , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT dField
-                 , DOUBLE *RESTRICT rCell    , DOUBLE *RESTRICT density
+                 , DOUBLE *RESTRICT wallPar  , DOUBLE *RESTRICT rCell
                  , Temporal *ddt
                  , INT nEq                   , INT  nEqNov
                  , INT nAd                   , INT nAdR

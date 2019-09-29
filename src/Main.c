@@ -244,6 +244,7 @@ int main(int argc,char**argv){
   ModelMomentum.iCodBuoyant      = BUOYANT_RHOREF;
   ModelMomentum.fViscosity       = true;
   ModelMomentum.fDiv             = true;
+  ModelMomentum.fSoPressure     = true;
 /*...................................................................*/
 
 /*...*/
@@ -1342,20 +1343,21 @@ int main(int argc,char**argv){
 /*...................................................................*/
      
 /*...*/
-      if(mesh->ndfF)
-        simpleSolver3D(&m         
-                      ,loadsVel   ,loadsPres 
-                      ,mesh0      ,mesh           
-                      ,&sistEqVel ,&sistEqPres
-                      ,&solvVel   ,&solvPres
-                      ,&simple
-                      ,&sc         ,pMesh
-                      ,opt        ,preName        
-                      ,nameOut    ,fileOut);
+     simpleSolver(&m         
+                 ,loadsVel   ,loadsPres 
+                 ,&eMass     ,&ModelMomentum
+                 ,&turbModel 
+                 ,mesh0      ,mesh           
+                 ,&sistEqVel ,&sistEqPres
+                 ,&solvVel   ,&solvPres
+                 ,&simple
+                 ,&sc        ,pMesh
+                 ,&opt       ,preName        
+                 ,nameOut    ,fileOut);
 /*...................................................................*/
 
 /*...*/
-      else if(mesh->ndfFt)
+ //   else if(mesh->ndfFt)
  /*      simpleSolverLm(&m           , &propVarFluid
                      , loadsVel     , loadsPres 
                      , loadsEnergy  , loadsKturb
@@ -1509,7 +1511,7 @@ int main(int argc,char**argv){
                , &turbModel, &eModel
                , pMesh     , &sc
                , loadsVel  , loadsPres 
-               , loadsTemp , opt
+               , loadsTemp , &opt
                , mesh0     , mesh 
                , &media      
                , preName   , nameOut);

@@ -38,6 +38,8 @@
 
   static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC);
 
+
+
 /*..................................................................*/
 
 /*********************************************************************
@@ -1148,7 +1150,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       convLoadsVelMix(cModel                   ,&propF->den 
                     ,&propF->sHeat            ,loadsVel              
                     ,loadsTemp                ,loadsZcomb
-                     ,mesh->elm.material.prop
+                    ,mesh->elm.material.prop
                     ,energyModel->fTemperature,propF->fSpecificHeat
                     ,energyModel->fKelvin     ,propF->fDensity
                     ,cModel->fLump);   
@@ -2785,7 +2787,8 @@ void readModel(EnergyModel *e         , Turbulence *t
   char momentum[][WORD_SIZE] = {"residual"   ,"absolute"       /*0,1*/                    
                                ,"rhiechow"   ,"viscosity"      /*2,3*/
                                ,"div"        ,"buoyanthy"      /*4,5*/  
-                               ,"buoyantprgh","buoyantrhoref"};/*6,7*/
+                               ,"buoyantprgh","buoyantrhoref"  /*6,7*/
+                               ,"sopressure" };                /*8*/
 
   char combustion[][WORD_SIZE] = {"residual"   ,"absolute"      /*0,1*/                    
                                  ,"grouped"    ,"ungrouped"     /*2,3*/
@@ -3116,6 +3119,7 @@ void readModel(EnergyModel *e         , Turbulence *t
       ModelMomentum->fRhieChowInt     = false;
       ModelMomentum->fViscosity       = false;
       ModelMomentum->fDiv             = false;
+      ModelMomentum->fSoPressure      = false;
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++)
       {
@@ -3187,6 +3191,15 @@ void readModel(EnergyModel *e         , Turbulence *t
           ModelMomentum->iCodBuoyant = BUOYANT_RHOREF;            
           fprintf(fileLogExc,format,"bouyant_rofref","Enable");
         }
+/*...................................................................*/
+
+/*... soPressure*/
+        else if(!strcmp(word,momentum[8]))
+        {
+          ModelMomentum->fSoPressure = true;            
+          fprintf(fileLogExc,format,"SoPressure","Enable");
+        }
+/*...................................................................*/
       }
     }
 /*...................................................................*/
@@ -3479,6 +3492,7 @@ void setPrint(FileOpt *opt,FILE *file){
   strcpy(format,"%-20s: %s\n");
 
   initPrintVtk(opt);
+  opt->bconditions   = true;
 
   fscanf(file,"%d",&tmp);
   opt->stepPlot[0] = opt->stepPlot[1] = (short) tmp;
@@ -3987,7 +4001,8 @@ void help(FILE *f){
   char momentum[][WORD_SIZE] =  {"residual"   ,"absolute"       /*0,1*/                    
                                ,"rhiechow"    ,"viscosity"      /*2,3*/
                                ,"div"         ,"buoyanthy"      /*4,5*/  
-                               ,"buoyantprgh" ,"buoyantrhoref"};/*6,7*/ 
+                               ,"buoyantprgh" ,"buoyantrhoref"  /*6,7*/
+                               ,"sopressure"  };                /*6*/ 
   short iComb = 9;  
   char combustion[][WORD_SIZE] = {"residual"        ,"absolute"          /*0,1*/                    
                                  ,"grouped ns np nl","ungrouped ns np nl"/*2,3*/
@@ -4975,6 +4990,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*... velocidade*/
     if (!strcmp(word, "Vel") || !strcmp(word, "vel")) 
     {
+      fprintf(fileLogExc, "%s.\n",word);
       nSistEq--;
       *fSolvVel = true;
       solvVel->solver = PBICGSTAB;
@@ -5085,6 +5101,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...*/
     else if (!strcmp(word, "Pres") || !strcmp(word, "pres")) 
     {
+      fprintf(fileLogExc, "%s.\n",word);
       nSistEq--;
       *fSolvPres = true;
       solvPres->solver = PCG;
@@ -5192,6 +5209,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*... energy*/
     else if (!strcmp(word, "Energy") || !strcmp(word, "energy")) 
     {
+      fprintf(fileLogExc, "%s.\n",word);
       nSistEq--;
 /*... inicializando a estrutura de equacoes do problema (ENERGY)*/
       *fSolvEnergy = true;
@@ -5306,6 +5324,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*... kTurb*/
     else if (!strcmp(word, "kTurb") || !strcmp(word, "kturb")) 
     {
+      fprintf(fileLogExc, "%s.\n",word);
       nSistEq--;
 /*... inicializando a estrutura de equacoes do problema
       (energica cinetica turbulenta)*/
@@ -6853,7 +6872,7 @@ void setReGrad(RcGrad *rcGrad, FILE *file)
 
 /**********************************************************************
 * Data de criacao    : 19/05/2018                                    *
-* Data de modificaco : 05/05/2019                                    *
+* Data de modificaco : 27/09/2019                                    *
 *--------------------------------------------------------------------*
 * setReGrad:                                                         *
 *--------------------------------------------------------------------*
@@ -6874,9 +6893,10 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
   FILE *fileIn = NULL;
   char str[] = {"end"};
   char word[WORD_SIZE];
-  char macro[][WORD_SIZE] = { "celltype"                    /*0  */
-                            ,"densityd1","coefdiffd1"       /*1,2*/   
-                            ,"densityt1","coefdifft1" };    /*3,4*/
+  char macro[][WORD_SIZE] = { "celltype"                       /*0  */
+                            ,"densityd1"   ,"coefdiffd1"       /*1,2*/   
+                            ,"densityt1"   ,"coefdifft1"       /*3,4*/
+                            ,"densityfluid","dviscosity" };    /*5,6*/
   short i, j,iMat;
   int aux; 
   DOUBLE v;
@@ -6937,6 +6957,25 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
         fprintf(fileLogExc, "%-20s: %e\n", macro[j - 1], prop[COEFDIF]);
       }
 /*.....................................................................*/
+
+/*... densitytFluid*/
+      else if (!strcmp(word, macro[j++]))
+      {
+        fscanf(fileIn, "%lf", &v);
+        prop[DENSITY] = v;
+        fprintf(fileLogExc, "%-20s: %e\n", macro[j - 1], prop[DENSITY]);
+      }
+/*.....................................................................*/
+
+/*... viscosidade dinamica*/
+      else if (!strcmp(word, macro[j++]))
+      {
+        fscanf(fileIn, "%lf", &v);
+        prop[DYNAMICVISCOSITY ] = v;
+        fprintf(fileLogExc, "%-20s: %e\n", macro[j - 1], prop[DYNAMICVISCOSITY]);
+      }
+/*.....................................................................*/
+
 
       readMacro(fileIn, word, false);
     }while(strcmp(word,str));

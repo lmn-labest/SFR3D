@@ -274,7 +274,11 @@
 
 /*...*/
   typedef struct{    
-    bool fRes,fRhieChowInt,fViscosity,fDiv; 
+    bool fRes;
+    bool fRhieChowInt;
+    bool fViscosity;
+    bool fDiv;
+    bool fSoPressure;
     short iCodBuoyant;
   }MomentumModel;
 /*...................................................................*/

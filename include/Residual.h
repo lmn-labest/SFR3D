@@ -25,6 +25,14 @@
             ,short const ndm              ,short const nComb
             ,short *iCod);
 
+  void residualSimple(DOUBLE *RESTRICT vel
+                 ,DOUBLE *RESTRICT rCellVel,DOUBLE *RESTRICT rCellMass
+                 ,DOUBLE *RESTRICT adVel
+                 ,DOUBLE *RESTRICT rU      ,DOUBLE *rMass
+                 ,INT  *RESTRICT idVel     
+                 ,INT const nEl            ,INT const nEqVel
+                 ,short const ndm          ,short *iCod);
+
   void residualType(DOUBLE *RESTRICT u      ,DOUBLE *RESTRICT rCellU
                  ,DOUBLE *RESTRICT adU    ,DOUBLE *RESTRICT rU
                  ,INT  *RESTRICT idU      ,INT const nEl   

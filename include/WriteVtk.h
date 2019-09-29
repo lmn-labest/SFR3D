@@ -153,9 +153,9 @@
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf  
           , short const ntn   
-          , char *nameOut        , FileOpt opt
+          , char *nameOut        , FileOpt *opt
           , bool fKelvin         , Mean *media  
-          , Temporal ddt         , FILE *f);
+          , Temporal *ddt        , FILE *f);
 /*...................................................................*/
 
 /*...*/

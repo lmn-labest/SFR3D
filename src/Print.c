@@ -220,12 +220,13 @@ void printFluid(Memoria *m
                ,Turbulence *turbModel,EnergyModel *eModel
                ,PartMesh *pMesh      ,Scheme *sc
                ,Loads *loadsVel      ,Loads *loadsPres 
-               ,Loads *loadsTemp     ,FileOpt opt
+               ,Loads *loadsTemp     ,FileOpt *opt
                ,Mesh *mesh0          ,Mesh *mesh  
                ,Mean *media      
                ,char *preName        ,char *nameOut){
  
   short ndm = mesh->ndm;
+  
   void *dum=NULL;
   INT ndfVel;
   DOUBLE *nStressR=NULL,*nEddyV=NULL,*nDvisc=NULL,*nDenFluid=NULL;
@@ -238,13 +239,20 @@ void printFluid(Memoria *m
 /*...................................................................*/
 
 /*...*/
-  HccaAlloc(DOUBLE, m, nDenFluid, mesh->nnode*3  , "nDenFluid", _AD_);
-  HccaAlloc(DOUBLE, m, nDvisc   , mesh->nnode    , "nVis"     , _AD_); 
-  HccaAlloc(DOUBLE, m, nEddyV   , mesh->nnode    , "nEddyV"   , _AD_);
-  HccaAlloc(DOUBLE, m, nStressR , mesh->nnode*6  , "nStressR" , _AD_);
-  HccaAlloc(DOUBLE, m, nCdyn    , mesh->nnode*2  , "nCdyn"    , _AD_); 
-  HccaAlloc(DOUBLE, m, nWall    , mesh->nnode*4  , "nWall"    , _AD_); 
-  HccaAlloc(DOUBLE, m, nKturb   , mesh->nnode    , "nKturb"   , _AD_);
+  if(opt->densityFluid)
+    HccaAlloc(DOUBLE, m, nDenFluid, mesh->nnode*DENSITY_LEVEL  , "nDenFluid", _AD_);
+  if(opt->dViscosity)
+    HccaAlloc(DOUBLE, m, nDvisc   , mesh->nnode                 , "nVis"     , _AD_);
+  if(opt->eddyViscosity)
+    HccaAlloc(DOUBLE, m, nEddyV   , mesh->nnode                 , "nEddyV"   , _AD_);
+  if(opt->stressR)
+    HccaAlloc(DOUBLE, m, nStressR , mesh->nnode*mesh->ntn       , "nStressR" , _AD_);
+  if(opt->cDynamic)
+    HccaAlloc(DOUBLE, m, nCdyn    , mesh->nnode*2               , "nCdyn"    , _AD_); 
+  if(opt->wallParameters)
+    HccaAlloc(DOUBLE, m, nWall    , mesh->nnode*NWALLPAR         , "nWall"    , _AD_);
+  if(opt->kTurb)
+    HccaAlloc(DOUBLE, m, nKturb   , mesh->nnode                 , "nKturb"   , _AD_);
 /*...................................................................*/
 
 /*...*/
@@ -260,8 +268,10 @@ void printFluid(Memoria *m
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (Pres)*/
-  tm.rcGradPres = getTimeC() - tm.rcGradPres;
-  rcGradU(m                        , loadsPres
+  if(opt->gradPres)
+  {
+    tm.rcGradPres = getTimeC() - tm.rcGradPres;
+    rcGradU(m                        , loadsPres
          , mesh->elm.node          , mesh->elm.adj.nelcon
          , mesh->node.x
          , mesh->elm.nen           , mesh->elm.adj.nViz
@@ -283,11 +293,11 @@ void printFluid(Memoria *m
          , &pMesh->iNo             , &pMesh->iEl  
          , mesh->numelNov          , mesh->numel        
          , mesh->nnodeNov          , mesh->nnode);  
-  tm.rcGradPres = getTimeC() - tm.rcGradPres;
+    tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (GradPres)*/
-  interCellNode(m                  , loadsPres
+    interCellNode(m                  , loadsPres
               , mesh->elm.cellFace , mesh->face.owner
               , mesh->node.gradPres, mesh->elm.gradPres
               , mesh->elm.node     , mesh->elm.geomType            
@@ -302,10 +312,12 @@ void printFluid(Memoria *m
               , mesh->ndm          , 1
               , mesh->ndm      
               , false              , 2);
+  }
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (pres)*/
-  interCellNode(m                   , loadsPres
+  if(opt->pres)
+    interCellNode(m                   , loadsPres
                , mesh->elm.cellFace , mesh->face.owner
                , mesh->node.pressure, mesh->elm.pressure   
                , mesh->elm.node     , mesh->elm.geomType            
@@ -319,7 +331,7 @@ void printFluid(Memoria *m
                , mesh->maxNo        , mesh->maxViz   
                , 1                  , 1
                , mesh->ndm            
-               , opt.bconditions    , 2);
+               , opt->bconditions    , 2);
 /*...................................................................*/
 
 /*... calculo da matrix jacobiana das velocidades
@@ -327,8 +339,10 @@ void printFluid(Memoria *m
                             | du2dx1 du2dx2 du2dx3 |   
                             | du3dx1 du3dx2 du3dx3 |
 */        
-  tm.rcGradVel  = getTimeC() - tm.rcGradVel;
-  rcGradU(m                        , loadsVel
+  if(opt->gradVel)
+  {
+    tm.rcGradVel  = getTimeC() - tm.rcGradVel;
+    rcGradU(m                        , loadsVel
          , mesh->elm.node          , mesh->elm.adj.nelcon
          , mesh->node.x
          , mesh->elm.nen           , mesh->elm.adj.nViz
@@ -350,11 +364,11 @@ void printFluid(Memoria *m
          , &pMesh->iNo             , &pMesh->iEl  
          , mesh->numelNov          , mesh->numel        
          , mesh->nnodeNov          , mesh->nnode); 
-  tm.rcGradVel = getTimeC() - tm.rcGradVel;  
+    tm.rcGradVel = getTimeC() - tm.rcGradVel;  
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (gradVel)*/
-  interCellNode(m                   , loadsVel
+    interCellNode(m                   , loadsVel
                , mesh->elm.cellFace , mesh->face.owner
                , mesh->node.gradVel , mesh->elm.gradVel    
                , mesh->elm.node     , mesh->elm.geomType            
@@ -369,10 +383,12 @@ void printFluid(Memoria *m
                , ndfVel             , mesh->ndm
                , mesh->ndm            
                , false              , 2);
+  }
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
-  interCellNode(m                  , loadsVel
+  if(opt->fNode && opt->vel)
+    interCellNode(m                  , loadsVel
                , mesh->elm.cellFace, mesh->face.owner
                , mesh->node.vel    , mesh->elm.vel        
                , mesh->elm.node    , mesh->elm.geomType            
@@ -386,7 +402,7 @@ void printFluid(Memoria *m
                , mesh->maxNo       , mesh->maxViz   
                , mesh->ndm         , 1
                , mesh->ndm      
-               , opt.bconditions   , 2);
+               , opt->bconditions   , 2);
 /*...................................................................*/
 
 /*... medias*/
@@ -414,8 +430,10 @@ void printFluid(Memoria *m
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (Energia)*/
-  if(mesh->ndfFt){
-    rcGradU(m                       , loadsTemp
+  if(mesh->ndfFt)
+  {
+    if(opt->gradEnergy)
+      rcGradU(m                       , loadsTemp
            , mesh->elm.node         , mesh->elm.adj.nelcon
            , mesh->node.x
            , mesh->elm.nen          , mesh->elm.adj.nViz
@@ -441,7 +459,8 @@ void printFluid(Memoria *m
 
 
 /*... interpolacao das variaveis da celulas para pos nos (GradEnergy)*/
-    interCellNode(m                  , loadsTemp  
+    if(opt->fNode && opt->gradEnergy)
+      interCellNode(m                  , loadsTemp  
               , mesh->elm.cellFace   , mesh->face.owner
               , mesh->node.gradTemp  , mesh->elm.gradTemp  
               , mesh->elm.node       , mesh->elm.geomType
@@ -459,7 +478,8 @@ void printFluid(Memoria *m
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (energy)*/
-    interCellNode(m                 , loadsTemp
+    if(opt->fNode && opt->energy)
+     interCellNode(m                 , loadsTemp
              , mesh->elm.cellFace   , mesh->face.owner
              , mesh->node.temp      , mesh->elm.temp
              , mesh->elm.node       , mesh->elm.geomType
@@ -473,13 +493,14 @@ void printFluid(Memoria *m
              , mesh->maxNo          , mesh->maxViz
              , 1                    , 1
              , mesh->ndm              
-             , opt.bconditions      , 2);  
+             , opt->bconditions      , 2);  
 /*...................................................................*/
   }
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (density)*/
-  interCellNode(m                , loadsTemp
+  if(opt->densityFluid)
+    interCellNode(m                , loadsTemp
              , mesh->elm.cellFace, mesh->face.owner
              , nDenFluid         , mesh->elm.densityFluid
              , mesh->elm.node    , mesh->elm.geomType
@@ -497,27 +518,28 @@ void printFluid(Memoria *m
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (dViscosity)*/
-  interCellNode(m                    , loadsTemp
-              , mesh->elm.cellFace   , mesh->face.owner
-              , nDvisc               , mesh->elm.dViscosity
-              , mesh->elm.node       , mesh->elm.geomType
-              , mesh->elm.geom.cc    , mesh->node.x
-              , mesh->face.xm          
-              , mesh->elm.nen        , mesh->elm.adj.nViz
-              , dum                  , dum                           
-              , &pMesh->iNo            
-              , mesh->numelNov       , mesh->numel
-              , mesh->nnodeNov       , mesh->nnode
-              , mesh->maxNo          , mesh->maxViz
-              , 1                    , 1
-              , mesh->ndm              
-              , false                , 2);
+  if(opt->dViscosity)
+    interCellNode(m                    , loadsTemp
+                , mesh->elm.cellFace   , mesh->face.owner
+                , nDvisc               , mesh->elm.dViscosity
+                , mesh->elm.node       , mesh->elm.geomType
+                , mesh->elm.geom.cc    , mesh->node.x
+                , mesh->face.xm          
+                , mesh->elm.nen        , mesh->elm.adj.nViz
+                , dum                  , dum                           
+                , &pMesh->iNo            
+                , mesh->numelNov       , mesh->numel
+                , mesh->nnodeNov       , mesh->nnode
+                , mesh->maxNo          , mesh->maxViz
+                , 1                    , 1
+                , mesh->ndm              
+                , false                , 2);
 /*...................................................................*/
 
 /*...*/
   if (turbModel->fTurb) {
 /*... viscisidade turbulenta*/
-    if(opt.eddyViscosity)       
+    if(opt->eddyViscosity)       
       interCellNode(m                  , loadsVel
                    , mesh->elm.cellFace, mesh->face.owner
                    , nEddyV            , mesh->elm.eddyViscosity        
@@ -536,7 +558,7 @@ void printFluid(Memoria *m
 /*...................................................................*/
 
 /*... tensor residual (modelos estruturais)*/
-    if(opt.stressR)
+    if(opt->stressR)
       interCellNode(m                     , loadsVel
                 , mesh->elm.cellFace      , mesh->face.owner
                 , nStressR                , mesh->elm.stressR              
@@ -555,7 +577,7 @@ void printFluid(Memoria *m
 /*...................................................................*/
 
 /*... coeficiente dinamico*/
-    if(opt.cDynamic)
+    if(opt->cDynamic)
       interCellNode(m                      , loadsVel
                 , mesh->elm.cellFace       , mesh->face.owner
                 , nCdyn                    , mesh->elm.cd              
@@ -574,7 +596,7 @@ void printFluid(Memoria *m
 /*...................................................................*/
 
 /*... parametros de parede*/
-    if(opt.wallParameters)
+    if(opt->wallParameters)
       interCellNode(m                     , loadsVel
                 , mesh->elm.cellFace      , mesh->face.owner
                 , nWall                   , mesh->elm.wallParameters              
@@ -593,7 +615,7 @@ void printFluid(Memoria *m
 /*...................................................................*/
 
 /*... energia cinetica turbulenta*/
-    if(opt.kTurb)       
+    if(opt->kTurb)       
       interCellNode(m              , loadsVel
             , mesh->elm.cellFace   , mesh->face.owner
             , nKturb               , mesh->elm.kTurb                
@@ -643,7 +665,7 @@ void printFluid(Memoria *m
                , mesh0->ntn               
                , nameOut                  , opt
                , eModel->fKelvin          , media
-               , sc->ddt                   , fileOut);   
+               , &sc->ddt                 , fileOut);   
 /*...................................................................*/
   }
 /*...................................................................*/
@@ -654,13 +676,20 @@ void printFluid(Memoria *m
     HccaDealloc(m, nP2Vel   , "nP2Vel"   , _AD_);
     HccaDealloc(m, nMedVel  , "nMediaVel", _AD_);
   }
-  HccaDealloc(m, nKturb   , "nKturb"   , _AD_);
-  HccaDealloc(m, nWall    , "nWall"    , _AD_);
-  HccaDealloc(m, nCdyn    , "nCdyn"    , _AD_); 
-  HccaDealloc(m, nStressR , "nStressR" , _AD_); 
-  HccaDealloc(m, nEddyV   , "nEddyV"   , _AD_); 
-  HccaDealloc(m, nDvisc   , "nVis"     , _AD_);   
-  HccaDealloc(m, nDenFluid, "nDenFluid", _AD_);  
+  if(opt->kTurb)
+    HccaDealloc(m, nKturb   , "nKturb"   , _AD_);
+  if(opt->wallParameters)
+    HccaDealloc(m, nWall    , "nWall"    , _AD_);
+  if(opt->cDynamic)
+    HccaDealloc(m, nCdyn    , "nCdyn"    , _AD_); 
+  if(opt->stressR)
+    HccaDealloc(m, nStressR , "nStressR" , _AD_); 
+  if(opt->eddyViscosity)
+    HccaDealloc(m, nEddyV   , "nEddyV"   , _AD_); 
+  if(opt->dViscosity)
+    HccaDealloc(m, nDvisc   , "nVis"     , _AD_);   
+  if(opt->densityFluid)
+    HccaDealloc(m, nDenFluid, "nDenFluid", _AD_);  
 /*...................................................................*/
 
 }

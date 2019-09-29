@@ -2345,7 +2345,7 @@ void initDiffMix(PropVarFluid *propF    , Combustion *cModel
       lMat               = mat[i]-1;
       for(j=0;j<nOfPrSp;j++)
         MAT2D(i,j,diff,nOfPrSp) = 
-        MAT2D(lMat,SPECIEDIFUSSIONFUEL+j,propMat,MAXPROP);     
+        MAT2D(lMat,SPECIEDIFUSSION+j,propMat,MAXPROP);     
     }
   }
 /*...................................................................*/

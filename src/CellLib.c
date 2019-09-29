@@ -439,7 +439,7 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
 
 /*********************************************************************
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 19/07/2018                                   *
+ * Data de modificaco : 28/09/2019                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEVEl: chamada de bibliotecas de celulas para          *
  * problema de escoamento de fluidos (VEL)                           *
@@ -450,6 +450,8 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
  * loadsPres -> definicoes de cargas de pressao                      *
  * advVel    -> tecnica da discretizacao do termo advecao            *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
+ * tModel    -> modelo de turbulencia                                *
+ * ModelMomentum -> termos/modelos da equacao de momento linear      *
  * typeSimple-> tipo do metodo simple                                *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
  * lprop     -> propriedade fisicas das celulas                      *
@@ -465,13 +467,13 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
  * xm        -> pontos medios das faces da celula central            *
  * xmcc      -> vetores que unem o centroide aos pontos medios das   *
  *            faces da celula central                                *
+ * dcca      -> menor distacia do centroide central a faces desta    *
+ *              celula                                               *
+ * cc        -> centroides da celula centra e seus vizinhos          * 
  * vSkew     -> vetor entre o ponto medio a intersecao que une os    *
  *            centrois compartilhado nessa face da celula central    *
  * mvSkew    -> distacia entre o ponto medio a intersecao que une os *
  *            centrois compartilhado nessa face da celula central    *
- * dcca      -> menor distacia do centroide central a faces desta    *
- *              celula                                               *
- * lDensity  -> massa especifica com variacao temporal               *
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
@@ -483,11 +485,12 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
  * pres      -> campo de pressao conhecido                           *
  * gradPes   -> gradiente reconstruido da pressao                    *
  * vel       -> campo de velocidade conhecido                        *
+ * gradVel   -> gradiente reconstruido da Velocidade                 *
  * dField    -> matriz D do metodo simple                            *
- * cc        -> centroides da celula centra e seus vizinhos          *
+ * stressR   -> tensao residual estrutural                           *
+ * eddyVic   -> viscosidade turbulenta                               *
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  *
  * underU    -> fator underrelaxtion sinple                          *
- * sPressure -> reconstrucao de segunda ordem para pressoes nas      *
- *              faces                                                *
  * nEn       -> numero de nos da celula central                      *
  * nFace     -> numero de faces da celula central                    *
  * ndm       -> numero de dimensoes                                  *
@@ -501,7 +504,8 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
  *-------------------------------------------------------------------*
  *********************************************************************/
 void cellLibSimpleVel(Loads *lVel        ,Loads *lPres     
-             ,Advection  *advVel         ,Diffusion *diffVel    
+             ,Advection  *advVel         ,Diffusion *diffVel
+             ,Turbulence *tModel         ,MomentumModel *ModelMomentum    
              ,short const typeSimple 
              ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
              ,INT   *RESTRICT lViz       ,INT *RESTRICT lId  
@@ -509,7 +513,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
              ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea
              ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT volume
              ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
-             ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT lDensity
+             ,DOUBLE *RESTRICT dcca      ,DOUBLE *RESTRICT cc
              ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
              ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
              ,DOUBLE *RESTRICT lRcell    ,Temporal *ddt
@@ -517,8 +521,9 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
              ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
              ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres 
              ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
-             ,DOUBLE *RESTRICT dField    ,DOUBLE *RESTRICT cc
-             ,DOUBLE const underU        ,const bool sPressure
+             ,DOUBLE *RESTRICT dField    ,DOUBLE *RESTRICT stressR
+             ,DOUBLE *RESTRICT eddyVic   ,DOUBLE *RESTRICT wallPar 
+             ,DOUBLE const underU        
              ,short const nEn            ,short  const nFace
              ,short const ndm            ,short const lib
              ,INT const nel)
@@ -528,7 +533,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
   if(lib == 1){
 /*... 2D*/
     if(ndm == 2){
-      cellSimpleVel2D(lVel    ,lPres       
+/*    cellSimpleVel2D(lVel    ,lPres       
                  ,advVel      ,diffVel
                  ,typeSimple
                  ,lGeomType   ,lprop
@@ -548,14 +553,15 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
                  ,dField      ,cc
                  ,underU      ,sPressure
                  ,nEn         ,nFace 
-                 ,ndm         ,nel);  
+                 ,ndm         ,nel);  */
     }
 /*..................................................................*/
 
 /*... 3D*/
     else if(ndm == 3){
       cellSimpleVel3D(lVel    ,lPres       
-                 ,advVel      ,diffVel     
+                 ,advVel      ,diffVel    
+                 ,tModel      ,ModelMomentum 
                  ,typeSimple
                  ,lGeomType   ,lprop
                  ,lViz        ,lId
@@ -563,7 +569,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
                  ,eta         ,fArea
                  ,normal      ,volume
                  ,xm          ,xmcc
-                 ,dcca        ,lDensity 
+                 ,dcca        ,cc    
                  ,vSkew       ,mvSkew
                  ,lA          ,lB
                  ,lRcell      ,ddt 
@@ -571,8 +577,9 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
                  ,lFacePresR  ,lFacePresL
                  ,pres        ,gradPres 
                  ,vel         ,gradVel
-                 ,dField      ,cc
-                 ,underU      ,sPressure
+                 ,dField      ,stressR
+                 ,eddyVic     ,wallPar
+                 ,underU      
                  ,nEn         ,nFace 
                  ,ndm         ,nel);  
     } 
@@ -901,7 +908,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
 
 /*********************************************************************
  * Data de criacao    : 01/07/2016                                   *
- * Data de modificaco : 09/07/2016                                   *
+ * Data de modificaco : 28/09/2019                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEPRES : chamada de bibliotecas de celulas para        *
  * problema de escoamento de fluidos (PRES)                          *
@@ -931,7 +938,6 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
  *            centrois compartilhado nessa face da celula central    *
  * dcca      -> menor distacia do centroide central a faces desta    *
  *              celula                                               *
- * lDensity  -> massa especifica com variacao temporal               *
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
@@ -944,6 +950,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
  * gradPes   -> gradiente reconstruido da pressao                    *
  * vel       -> campo de velocidade conhecido                        *
  * dField    -> matriz D do metodo simple                            *
+ * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  *
  * nEn       -> numero de nos da celula central                      *
  * nFace     -> numero de faces da celula central                    *
  * ndm       -> numero de dimensoes                                  *
@@ -956,24 +963,25 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
  * lB        -> vetor de forca da linha i                            *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void cellLibSimplePres(Loads *lVel       ,Loads *lPres
+void cellLibSimplePres(Loads *lVel         ,Loads *lPres
 	             ,Diffusion *diffPres
-               ,short *RESTRICT lGeomType,DOUBLE *RESTRICT lprop
-               ,INT   *RESTRICT lViz     ,INT *RESTRICT lId  
-               ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
-               ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
-               ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
-               ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
-               ,DOUBLE *RESTRICT dcca    ,DOUBLE *RESTRICT lDensity
-               ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
-               ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
-               ,DOUBLE *RESTRICT lRcell  ,Temporal *ddt
+               ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
+               ,INT   *RESTRICT lViz       ,INT *RESTRICT lId  
+               ,DOUBLE *RESTRICT ksi       ,DOUBLE *RESTRICT mKsi
+               ,DOUBLE *RESTRICT eta       ,DOUBLE *RESTRICT fArea
+               ,DOUBLE *RESTRICT normal    ,DOUBLE *RESTRICT volume
+               ,DOUBLE *RESTRICT xm        ,DOUBLE *RESTRICT xmcc
+               ,DOUBLE *RESTRICT dcca    
+               ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
+               ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
+               ,DOUBLE *RESTRICT lRcell    ,Temporal *ddt
                ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
                ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
-               ,DOUBLE *RESTRICT pres    ,DOUBLE *RESTRICT gradPres 
-               ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT dField 
-               ,short const nEn          ,short  const nFace     
-               ,short const ndm          ,short const lib    
+               ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres 
+               ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT dField 
+               ,DOUBLE *RESTRICT wallPar      
+               ,short const nEn            ,short  const nFace     
+               ,short const ndm            ,short const lib    
                ,INT const nel)
 {
 
@@ -981,7 +989,7 @@ void cellLibSimplePres(Loads *lVel       ,Loads *lPres
   if(lib == 1){
 /*... 2D*/
     if(ndm == 2){
-      cellSimplePres2D(lVel,lPres
+/*    cellSimplePres2D(lVel,lPres
 								 ,diffPres	
                  ,lGeomType,lprop
                  ,lViz     ,lId
@@ -998,30 +1006,31 @@ void cellLibSimplePres(Loads *lVel       ,Loads *lPres
                  ,pres     ,gradPres 
                  ,vel      ,dField
                  ,nEn      ,nFace  
-                 ,ndm      ,nel);  
+                 ,ndm      ,nel);  */
     }
 /*..................................................................*/
 
 /*... 3D*/
     else if(ndm == 3){
-      cellSimplePres3D(lVel,lPres
+      cellSimplePres3D(lVel   ,lPres
 								 ,diffPres
-                 ,lGeomType,lprop
-                 ,lViz     ,lId
-                 ,ksi      ,mKsi
-                 ,eta      ,fArea
-                 ,normal   ,volume
-                 ,xm       ,xmcc
-                 ,dcca     ,lDensity 
-                 ,vSkew    ,mvSkew
-                 ,lA       ,lB
-                 ,lRcell    
+                 ,lGeomType   ,lprop
+                 ,lViz        ,lId
+                 ,ksi         ,mKsi
+                 ,eta         ,fArea
+                 ,normal      ,volume
+                 ,xm          ,xmcc
+                 ,dcca        
+                 ,vSkew       ,mvSkew
+                 ,lA          ,lB
+                 ,lRcell       
                  ,lFaceVelR   ,lFaceVelL
                  ,lFacePresR  ,lFacePresL
-                 ,pres     ,gradPres
-                 ,vel      ,dField
-                 ,nEn      ,nFace
-                 ,ndm      ,nel);
+                 ,pres        ,gradPres
+                 ,vel         ,dField
+                 ,wallPar 
+                 ,nEn         ,nFace
+                 ,ndm         ,nel);
     } 
 /*..................................................................*/
   }
@@ -7159,7 +7168,9 @@ void velCorrectCombustion(DOUBLE *RESTRICT diff, DOUBLE *RESTRICT gradZ
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
  * limiterFunc: funcao limitadora de gradiente                       *
- *-------------------------------------------------------------------*
+ * ----------------------------------------------------------------- *
+ * parametros de entrada:                                            * 
+ * ----------------------------------------------------------------- *
  * loads     -> definicoes de cargas                                 * 
  * u         -> solucao conhecida                                    * 
  * gradU     -> gradiente rescontruido da solucao conhecida          *
@@ -7171,7 +7182,7 @@ void velCorrectCombustion(DOUBLE *RESTRICT diff, DOUBLE *RESTRICT gradZ
  * lFaceL    -> carga por elemento                                   * 
  * beta      -> combinacao linear do gradiente limitado e nao        *
  *              limitado                                             *
- * tFunc     -> tipo de funcao limitadora
+ * tFunc     -> tipo de funcao limitadora                            * 
  * volume    -> volume da celula central                             *
  * nFace     -> numero vizinhos por celula maximo da malha           * 
  * ndf       -> grauss de liberdade                                  * 
@@ -7296,3 +7307,235 @@ void limeterGrad(Loads *loads
 
 }
 /*******************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 28/09/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * viscosityPartExp: parte explicita do tensor viscosidade           *
+ * ------------------------------------------------------------------*
+ * parametros de entrada:                                            * 
+ * ------------------------------------------------------------------*
+ * p           ->                                                    * 
+ * gradVel     -> gradiente de velocidade                            * 
+ * n           -> vetor normal                                       *
+ * viscosidade -> viscosidade dinamica                               * 
+ * lFarea      -> area da face                                       *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * p         -> aturalizado                                          * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *********************************************************************/
+void viscosityPartExp(DOUBLE *p             ,DOUBLE *gradVel
+                     ,DOUBLE *n
+                     ,DOUBLE const viscosity,DOUBLE const lFarea)
+{
+
+  DOUBLE aP    = viscosity*lFarea;
+ 
+
+  p[0] += aP*( MAT2D(0,0,gradVel,3)*n[0] 
+             + MAT2D(1,0,gradVel,3)*n[1]  
+             + MAT2D(1,0,gradVel,3)*n[2]);
+ 
+  p[1] += aP*( MAT2D(0,1,gradVel,3)*n[0] 
+             + MAT2D(1,1,gradVel,3)*n[1]  
+             + MAT2D(1,1,gradVel,3)*n[2]);
+      
+  p[2] += aP*( MAT2D(0,2,gradVel,3)*n[0] 
+             + MAT2D(1,2,gradVel,3)*n[1]  
+             + MAT2D(1,2,gradVel,3)*n[2]);  
+
+
+}
+/**********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 28/09/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * viscosityPartExp: parte explicita do tensor viscosidade           *
+ * ------------------------------------------------------------------*
+ * parametros de entrada:                                            * 
+ * ------------------------------------------------------------------*
+ * gradVelC    -> gradiente de velocidade celula central             * 
+ * gradVelV    -> gradiente de velocidade celula vizinho             * 
+ * lXmcc       -> vetor que unem o centoride ao ponto medio da face  *
+ * lXm         -> ponto medio da face celula central                 *
+ * cc          -> centroide da celula vizinha                        *
+ * pf          ->                                                    *
+ * n           -> vetor normal                                       *
+ * lFarea      -> area da face                                       *
+ * presC       -> pressao na celula central                          *
+ * presV       -> pressao na celula vizinha                          *
+ * g1          ->                                                    * 
+ * g2          ->                                                    *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * pf        -> aturalizado                                          * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *********************************************************************/
+void facePressure(DOUBLE *gradPresC           ,DOUBLE *gradPresV
+                 ,DOUBLE *lXmcc               ,DOUBLE *lXm
+                 ,DOUBLE *ccV                 ,DOUBLE *pf
+                 ,DOUBLE *n
+                 ,DOUBLE pFace                ,DOUBLE const lFarea
+                 ,DOUBLE const presC          ,DOUBLE const presV
+                 ,DOUBLE const g1             ,DOUBLE const g2    
+                 ,bool const fSoPressure      ,bool const fBoundary)
+{
+  DOUBLE p1,p2,v[3],tmp;
+
+/*... contorno*/
+  if(fBoundary)
+  {
+    if(fSoPressure)  
+      pFace += gradPresC[0]*lXmcc[0] 
+             + gradPresC[1]*lXmcc[1]
+             + gradPresC[2]*lXmcc[2];
+  }
+/*...................................................................*/
+
+/*... dominido*/
+  else
+  {
+    if(fSoPressure)
+    {
+      v[0] = lXm[0] - ccV[0];
+      v[1] = lXm[1] - ccV[1];
+      v[2] = lXm[2] - ccV[2];
+
+      p1 = presC + gradPresC[0]*lXmcc[0] 
+                 + gradPresC[1]*lXmcc[1] 
+                 + gradPresC[2]*lXmcc[2];
+
+      p2 = presV + gradPresV[0]*v[0]
+                 + gradPresV[1]*v[1] 
+                 + gradPresV[2]*v[2];
+     
+      pFace = 0.5e0*(p1+p2);
+    }
+    else
+      pFace = g1*presC + g2*presV;
+  }
+/*...................................................................*/
+
+  tmp   = pFace*lFarea;
+  pf[0]+= tmp*n[0];
+  pf[1]+= tmp*n[1];
+  pf[2]+= tmp*n[2];
+
+}
+/***********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 28/09/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * viscosityPartExp: parte explicita do tensor viscosidade           *
+ * ------------------------------------------------------------------*
+ * parametros de entrada:                                            * 
+ * ------------------------------------------------------------------*
+ * n           -> vetor normal                                       *
+ * lFarea      -> area da face                                       *
+ * g1          ->                                                    * 
+ * g2          ->                                                    *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * p         -> aturalizado                                          * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *********************************************************************/  
+void turbStructIntegral(DOUBLE *stressRc    ,DOUBLE *stressRv
+                       ,DOUBLE *n           ,DOUBLE *p
+                       ,DOUBLE const lFarea
+                       ,DOUBLE const g1     ,DOUBLE const g2    
+                       ,bool const fBoundary)
+{
+
+  DOUBLE s[6],tmp;
+
+  if(fBoundary)
+  {
+    tmp  = D1DIV3*(stressRc[0]+stressRc[1]+stressRc[2]);
+    s[0] = stressRc[0] - tmp;
+    s[1] = stressRc[1] - tmp;;
+    s[2] = stressRc[2] - tmp;;
+    
+    s[3] = stressRc[3];
+    s[4] = stressRc[4];
+    s[5] = stressRc[5];
+  }
+
+  else
+  {
+    s[0] = g1*stressRc[0] + g2*stressRv[0];
+    s[1] = g1*stressRc[1] + g2*stressRv[1];
+    s[2] = g1*stressRc[2] + g2*stressRv[2];
+    tmp = D1DIV3*(s[0]+s[1]+s[2]);
+    s[0] -= tmp;
+    s[1] -= tmp;
+    s[2] -= tmp;
+    s[3] = g1*stressRc[3] + g2*stressRv[3];
+    s[4] = g1*stressRc[4] + g2*stressRv[4];
+    s[5] = g1*stressRc[5] + g2*stressRv[5];
+  }
+
+  p[0] -= lFarea*(s[0]*n[0] + s[3]*n[1] + s[5]*n[2]);
+  
+  p[1] -= lFarea*(s[3]*n[0] + s[1]*n[1] + s[4]*n[2]);
+  
+  p[2] -= lFarea*(s[5]*n[0] + s[4]*n[1] + s[2]*n[2]);
+
+} 
+/********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 28/09/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * staticWall: condicao de conotorno para paredes estaticas          *
+ * ------------------------------------------------------------------*
+ * parametros de entrada:                                            * 
+ * ------------------------------------------------------------------*
+ * v           -> velocidade da celula central                       *
+ * n           -> vetor normal a face                                *
+ * lFarea      -> area da face                                       *
+ * viscositiy  -> viscosidade na celula central                      * 
+ * dcca        -> menor distancia do centroide a face                * 
+ * lFarea      -> area da face                                       *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * p, sPc      -> aturalizado                                          * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *********************************************************************/
+void staticWall(DOUBLE *v        ,DOUBLE *n
+              , DOUBLE *sPc      ,DOUBLE *p
+              , DOUBLE const dcca,DOUBLE const viscosityC
+              , DOUBLE const lFarea)
+{
+  DOUBLE aP;
+
+  aP   = viscosityC*lFarea /dcca;
+/*...*/
+  sPc[0] += aP*(1.e0 - n[0]*n[0]);
+  sPc[1] += aP*(1.e0 - n[1]*n[1]);
+  sPc[2] += aP*(1.e0 - n[2]*n[2]);
+/*...................................................................*/
+
+/*... x*/
+  p[0]+= aP*(v[1]*n[0]*n[1] + v[2]*n[0]*n[2]);
+/*... y*/
+  p[1]+= aP*(v[0]*n[0]*n[1] + v[2]*n[1]*n[2]);
+/*... z*/
+  p[2]+= aP*(v[0]*n[0]*n[2] + v[1]*n[1]*n[2]);
+
+}
+/********************************************************************/

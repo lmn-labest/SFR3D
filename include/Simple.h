@@ -22,14 +22,16 @@
   #include<Residual.h>
 /*...................................................................*/
 
-  void simpleSolver3D(Memoria *m        
+  void simpleSolver(Memoria *m        
                    ,Loads *loadsVel   ,Loads *loadsPres 
+                   ,MassEqModel *eMass, MomentumModel *ModelMomentum
+                   ,Turbulence *tModel 
                    ,Mesh *mesh0       ,Mesh *mesh       
                    ,SistEq *sistEqVel ,SistEq *sistEqPres
                    ,Solv *solvVel     ,Solv *solvPres 
                    ,Simple *sp
-                   ,Scheme *s         ,PartMesh *pMesh 
-                   ,FileOpt opt       ,char *preName  
+                   ,Scheme *sc        ,PartMesh *pMesh 
+                   ,FileOpt *opt       ,char *preName 
                    ,char *nameOut     ,FILE *fileOut);
   
   void simpleSolverLm(Memoria *m          , PropVarFluid *prop
@@ -76,15 +78,7 @@
                  ,DOUBLE *RESTRICT dField         
                  ,INT const nEl          ,short const ndm
                  ,DOUBLE const alphaPres);
-  
-  void residualSimple(DOUBLE *RESTRICT vel
-                 ,DOUBLE *RESTRICT rCellVel,DOUBLE *RESTRICT rCellMass
-                 ,DOUBLE *RESTRICT adVel
-                 ,DOUBLE *RESTRICT rU      ,DOUBLE * rMass
-                 ,INT  *RESTRICT idVel     
-                 ,INT const nEl            ,INT const nEqVel
-                 ,short const ndm          ,short iCod);
-  
+ 
   void residualSimpleLm(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
             ,DOUBLE *RESTRICT rCellVel   ,DOUBLE *RESTRICT rCellMass
             ,DOUBLE *RESTRICT rCellEnergy
@@ -129,11 +123,10 @@
 /*...................................................................*/
 
 /*...*/
-  void velPresCouplingLm(Memoria *m       , PropVarFluid *propF
+  void velPresCoupling(Memoria *m         , PropVarFluid *propF
                       , Loads *loadsVel   , Loads *loadsPres
                       , MassEqModel *eMass, MomentumModel *ModelMomentum
-                      , Turbulence *tModel
-                      , Mesh *mesh
+                      , Turbulence *tModel, Mesh *mesh                     
                       , SistEq *sistEqVel , SistEq *sistEqPres
                       , Solv *solvVel     , Solv *solvPres
                       , Simple *sp        , Scheme *sc
