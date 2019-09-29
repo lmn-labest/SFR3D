@@ -177,7 +177,8 @@ void diffusion(Memoria *m       ,Loads *loadsDif,DiffModel *dModel
            , mesh->face.normal       , mesh->face.xm
            , mesh->face.mvSkew       , mesh->face.vSkew
            , mesh->elm.geomType      , mesh->elm.material.prop
-           , mesh->elm.material.type , mesh->elm.mat
+           , mesh->elm.material.type 
+           , mesh->elm.mat           , mesh->elm.cDiffD1
            , mesh->elm.leastSquare   , mesh->elm.leastSquareR
            , mesh->elm.faceRd1       , mesh->elm.faceLoadD1    
            , mesh->elm.uD1           , mesh->elm.gradUd1                 
@@ -186,7 +187,8 @@ void diffusion(Memoria *m       ,Loads *loadsDif,DiffModel *dModel
            , mesh->ndfD[0]           , mesh->ndm
            , &pMesh->iNo             , &pMesh->iEl  
            , mesh->numelNov          , mesh->numel        
-           , mesh->nnodeNov          , mesh->nnode);   
+           , mesh->nnodeNov          , mesh->nnode
+           , prop->fCeofDiff);   
     tm.rcGradD1 = getTimeC() - tm.rcGradD1;
 /*...................................................................*/
 

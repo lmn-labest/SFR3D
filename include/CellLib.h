@@ -790,9 +790,9 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
 
 /*... least square*/
   void leastSquareMatrix(DOUBLE *RESTRICT lKsi, DOUBLE *RESTRICT lmKsi
-                 , DOUBLE *RESTRICT lLsquare, DOUBLE *RESTRICT lSquareR
-                 , short const type         
-                 , short const lnFace       , short const ndm);
+                 , DOUBLE *RESTRICT lLsquare  , DOUBLE *RESTRICT lSquareR
+                 , short const type           , short const lnFace
+                 , short const ndm            , INT const nEl);
 
   void leastSquare(Loads *loads
                  ,DOUBLE *RESTRICT lLsquare,INT *RESTRICT lViz 
@@ -860,13 +860,13 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
 /*...................................................................*/
 
 /*....*/
-  void meshQuality(MeshQuality *mq
-                 , INT *RESTRICT cellFace    , INT *RESTRICT fOwner
-                 , short  *RESTRICT nFace    , DOUBLE *RESTRICT volume
-                 , DOUBLE *RESTRICT fKsi     , DOUBLE *RESTRICT fNormal
-                 , DOUBLE *RESTRICT fModvSkew, DOUBLE *RESTRICT gDcca
-                 , short const maxViz        , short const ndm
-                 , INT const numel);
+  void meshQuality(MeshQuality *mq           , INT *RESTRICT cellFace  
+               , INT *RESTRICT fOwner      , short  *RESTRICT nFace
+               , DOUBLE *RESTRICT volume   , DOUBLE *RESTRICT fArea   
+               , DOUBLE *RESTRICT fKsi     , DOUBLE *RESTRICT fNormal
+               , DOUBLE *RESTRICT fModvSkew, DOUBLE *RESTRICT gDcca
+               , short const maxViz        , short const ndm
+               , INT const numel); 
 /*...................................................................*/
 
 /*...*/
@@ -1098,7 +1098,11 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                 , DOUBLE *sPc      ,DOUBLE *p
                 , DOUBLE const dcca,DOUBLE const viscosityC
                 , DOUBLE const lFarea);
-
+  void gradCorretBoundary(Loads *loads              ,INT *RESTRICT lViz
+                         ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
+                         ,DOUBLE *RESTRICT gradU    ,DOUBLE *RESTRICT normal
+                         ,short const nFace         ,short const ndm
+                         ,short const ndf           ,INT const nel);
 /*...................................................................*/
 
 

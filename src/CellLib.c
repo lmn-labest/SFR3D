@@ -2430,6 +2430,14 @@ void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
   }  
 /*...................................................................*/ 
 
+/*... correcao da condicao de contorno*/
+  gradCorretBoundary(loads   ,lViz
+                    ,lFaceR  ,lFaceL
+                    ,gradU   ,normal 
+                    ,nFace   ,ndm          
+                    ,ndf     ,nel);          
+/*...................................................................*/
+
 /*... limitador de gradiente*/
   if(rcGrad->fLimiter)
     limeterGrad(loads
@@ -2484,7 +2492,7 @@ void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void greenGaussCell(Loads *loads
-               ,INT *RESTRICT lViz   ,DOUBLE *RESTRICT mKsi
+               ,INT *RESTRICT lViz       ,DOUBLE *RESTRICT mKsi
                ,DOUBLE *RESTRICT lProp   ,DOUBLE *RESTRICT lDcca 
                ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
                ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
@@ -2534,14 +2542,15 @@ void greenGaussCell(Loads *loads
 /*...................................................................*/
 
 /*... contorno*/
-      else{
+      else
+      {
         xx[0] = MAT2D(i,0,xm,ndm);
         xx[1] = MAT2D(i,1,xm,ndm);
-        xx[2] = MAT2D(i,2,xm,ndm);
-        xx[3] = 0.e0;
         if(ndm == 3) xx[2] = MAT2D(i,2,xm,ndm);
+        xx[3] = 0.e0;
 /*... temperatura prescrita na face(extrapolacao linear)*/
-        if(lFaceR[i]){
+        if(lFaceR[i])
+        {
           nCarg= lFaceL[i]-1;
           type = loads[nCarg].type;
 /*... valor prescrito*/
@@ -2560,10 +2569,10 @@ void greenGaussCell(Loads *loads
 
 /*... fluxo prescrito*/
           else if (type == NEUMANNBC ){
-            coefDif = lProp[COEFDIF];
+            coefDif = lProp[0];
             if (coefDif != 0.e0) {
               getLoads(par,&loads[nCarg],xx);
-              uf[i] = uC[0] - (par[0]/coefDif)*lDcca[i];
+              uf[i] = uC[0] + (par[0]/coefDif)*lDcca[i];
             }              
           }
 /*...................................................................*/
@@ -2592,7 +2601,8 @@ void greenGaussCell(Loads *loads
 /*...................................................................*/
 
 /*...*/
-        else{
+        else
+        {
           uf[i] =uC[0];
           for(j=0;j<ndm;j++)
             uf[i] += gradU[j]*MAT2D(i,j,xmcc,ndm);
@@ -2669,12 +2679,12 @@ void greenGaussCell(Loads *loads
 
 /*... fluxo prescrito*/
           else if (type == NEUMANNBC ){
-            coefDif = lProp[COEFDIF];
+            coefDif = lProp[0];
             if (coefDif != 0.e0) {
               getLoads(par,&loads[nCarg],xx);
               for(k=0;k<ndf;k++)
                 MAT2D(i,k,uf,ndf) = uC[k] 
-                             - (par[k]/coefDif)*lDcca[i];
+                             + (par[k]/coefDif)*lDcca[i];
             }
               
           }
@@ -2980,7 +2990,7 @@ void  leastSquare(Loads *loads
 
 /*... fluxo prescrito*/
             else if (type == NEUMANNBC){
-              coefDif = lProp[COEFDIF];
+              coefDif = lProp[0];
               if (coefDif != 0.e0) {
                 getLoads(par,&loads[nCarg],xx);
                 du[i] = (par[0]/coefDif)*lDcca[i];
@@ -3441,7 +3451,7 @@ void  leastSquareQR(Loads *loads
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 29/09/2019                                   * 
  *-------------------------------------------------------------------* 
  * LEASTSQUAREMATRIX : calcula a matriz de minimos quadrados para a  * 
  * rescontrucao de gradiente                                         *
@@ -3462,16 +3472,17 @@ void  leastSquareQR(Loads *loads
  * lSquareR  -> fatoracao R (RCLSQUAREQR)                            * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
- void leastSquareMatrix(DOUBLE *RESTRICT lKsi    ,DOUBLE *RESTRICT lmKsi
-                  ,DOUBLE *RESTRICT lLsquare,DOUBLE *RESTRICT lLsquareR
-                  ,short const type        
-                  ,short const lnFace       ,short const ndm){
+ void leastSquareMatrix(DOUBLE *RESTRICT lKsi,DOUBLE *RESTRICT lmKsi
+                  ,DOUBLE *RESTRICT lLsquare ,DOUBLE *RESTRICT lLsquareR
+                  ,short const type          ,short const lnFace
+                  ,short const ndm           ,INT const nEl)
+{
 
   DOUBLE dx[MAX_NUM_FACE*MAX_NDM],w[MAX_NUM_FACE*MAX_NDM];
   DOUBLE aTwA[2*MAX_NDM],inv[2*MAX_NDM];
   DOUBLE r[MAX_NDM*MAX_NDM];
   DOUBLE aux1,detA;
-  short i,j,k,nf;
+  short i,j,k,nf,exp=2;
  
   if(ndm == 2){
     aTwA[0] = 0.e0;
@@ -3496,8 +3507,7 @@ void  leastSquareQR(Loads *loads
 /*...G=inv(aTwA)wAt */
   if(type == RCLSQUARE){
     for(nf=0;nf<lnFace;nf++){
-      w[nf]  = 1.e0/lmKsi[nf];
-      w[nf] *= w[nf];
+      w[nf]  = 1.e0/pow(lmKsi[nf],exp);
 /*... dimensao 2*/
       if(ndm == 2){
         MAT2D(nf,0,dx,ndm) = MAT2D(nf,0,lKsi,ndm)*lmKsi[nf];
@@ -3592,17 +3602,19 @@ void  leastSquareQR(Loads *loads
 /*... fatoracao QR-MGS*/
   else if(type == RCLSQUAREQR){
     for(nf=0;nf<lnFace;nf++){
-      w[nf]  = 1.e0/lmKsi[nf];
-      w[nf] *= w[nf];
+      w[nf]  = 1.e0/pow(lmKsi[nf],exp);
+/*... WA*/
 /*... dimensao 2*/
-      if(ndm == 2){
+      if(ndm == 2)
+      {
         MAT2D(nf,0,dx,ndm) = MAT2D(nf,0,lKsi,ndm)*lmKsi[nf];
         MAT2D(nf,1,dx,ndm) = MAT2D(nf,1,lKsi,ndm)*lmKsi[nf];
       }
 /*...................................................................*/
 
 /*... dimensao 3*/
-      else if(ndm == 3){
+      else if(ndm == 3)
+      {
         MAT2D(nf,0,dx,ndm) = w[nf]*MAT2D(nf,0,lKsi,ndm)*lmKsi[nf];
         MAT2D(nf,1,dx,ndm) = w[nf]*MAT2D(nf,1,lKsi,ndm)*lmKsi[nf];
         MAT2D(nf,2,dx,ndm) = w[nf]*MAT2D(nf,2,lKsi,ndm)*lmKsi[nf];
@@ -3611,7 +3623,8 @@ void  leastSquareQR(Loads *loads
     }
 
 /*... MGS*/
-    for(k=0;k<ndm;k++){
+    for(k=0;k<ndm;k++)
+    {
       aux1 = 0.e0;
       for(i=0;i<lnFace;i++)
         aux1 += MAT2D(i,k,dx,ndm)* MAT2D(i,k,dx,ndm);
@@ -3621,7 +3634,8 @@ void  leastSquareQR(Loads *loads
       for(i=0;i<lnFace;i++)
         MAT2D(i,k,dx,ndm) /= MAT2D(k,k,r,ndm); 
       
-      for(j=k+1;j<ndm;j++){
+      for(j=k+1;j<ndm;j++)
+      {
         aux1 = 0.e0;
         for(i=0;i<lnFace;i++)
           aux1 += MAT2D(i,k,dx,ndm)*MAT2D(i,j,dx,ndm);
@@ -3635,7 +3649,8 @@ void  leastSquareQR(Loads *loads
 /*...................................................................*/
 
 /*... dimensao 2*/
-    if(ndm == 2){
+    if(ndm == 2)
+    {
         lLsquareR[0] = MAT2D(0,0,r,ndm);
         lLsquareR[1] = MAT2D(0,1,r,ndm);
         lLsquareR[2] = MAT2D(1,1,r,ndm);
@@ -3643,7 +3658,8 @@ void  leastSquareQR(Loads *loads
 /*...................................................................*/
 
 /*... R dimensao 3*/
-    else if(ndm == 3){
+    else if(ndm == 3)
+    {
         lLsquareR[0] = MAT2D(0,0,r,ndm);
         lLsquareR[1] = MAT2D(0,1,r,ndm);
         lLsquareR[2] = MAT2D(0,2,r,ndm);
@@ -3653,16 +3669,19 @@ void  leastSquareQR(Loads *loads
     }
 /*...................................................................*/
 
-    for(nf=0;nf<lnFace;nf++){
+    for(nf=0;nf<lnFace;nf++)
+    {
 /*... dimensao 2*/
-      if(ndm == 2){
+      if(ndm == 2)
+      {
         MAT2D(0,nf,lLsquare,lnFace) = MAT2D(nf,0,dx,ndm);
         MAT2D(1,nf,lLsquare,lnFace) = MAT2D(nf,1,dx,ndm);
       }
 /*...................................................................*/
 
-/*... Qt - dimensao 3*/
-      else if(ndm == 3){
+/*... QtW - dimensao 3*/
+      else if(ndm == 3)
+      {
         MAT2D(0,nf,lLsquare,lnFace) = w[nf]*MAT2D(nf,0,dx,ndm);
         MAT2D(1,nf,lLsquare,lnFace) = w[nf]*MAT2D(nf,1,dx,ndm);
         MAT2D(2,nf,lLsquare,lnFace) = w[nf]*MAT2D(nf,2,dx,ndm);
@@ -7539,3 +7558,77 @@ void staticWall(DOUBLE *v        ,DOUBLE *n
 
 }
 /********************************************************************/
+
+void gradCorretBoundary(Loads *loads              ,INT *RESTRICT lViz
+                        ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
+                       ,DOUBLE *RESTRICT gradU    ,DOUBLE *RESTRICT normal
+                       ,short const nFace         ,short const ndm
+                       ,short const ndf           ,INT const nel)
+{
+  short i,j,k;  
+  INT vizNel; 
+  DOUBLE gradn;
+
+
+/*...*/
+  if(ndf == 1)
+  {
+    for(i=0;i<nFace;i++)
+    {
+      vizNel = lViz[i];
+/*... contorno*/
+      if(vizNel < 0)
+      {
+        if(!lFaceR[i])
+        {
+/*... flux nulo*/
+          for(j=0,gradn=0.e0;j<ndm;j++)
+            gradn += gradU[j]*MAT2D(i,j,normal,ndm);
+
+/*...*/
+          for(j=0;j<ndm;j++)
+            gradU[j] -=  gradn*MAT2D(i,j,normal,ndm);      
+/*.....................................................................*/        
+        }
+/*.....................................................................*/ 
+      }
+/*.....................................................................*/ 
+    }
+/*.....................................................................*/ 
+  }
+/*...*/
+  else
+  {
+    for(i=0;i<nFace;i++)
+    {
+      vizNel = lViz[i];
+/*... dominio*/
+      if(vizNel > -1)
+      {
+        if(!lFaceR[i])
+        {
+/*... flux nulo*/
+          for(k=0;k<ndf;k++)
+          {
+/*...*/
+            for(j=0,gradn=0.e0;j<ndm;j++)
+              gradn += MAT2D(k,j,gradU,ndm)*normal[i];
+/*.....................................................................*/ 
+
+/*...*/
+            for(j=0;j<ndm;j++)
+              MAT2D(k,j,gradU,ndm) -=  gradn*normal[j];
+/*.....................................................................*/        
+          }
+/*.....................................................................*/ 
+        }
+/*.....................................................................*/
+      }
+/*.....................................................................*/ 
+    }  
+/*.....................................................................*/ 
+  }
+/*.....................................................................*/ 
+
+}
+/***********************************************************************/

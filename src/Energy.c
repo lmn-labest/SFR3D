@@ -57,8 +57,9 @@ bool energyEquation(Memoria *m               , PropVarFluid *prop
          , mesh->face.normal      , mesh->face.xm
          , mesh->face.mvSkew      , mesh->face.vSkew
          , mesh->elm.geomType     , mesh->elm.material.prop
-         , mesh->elm.material.type, mesh->elm.mat
-         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+         , mesh->elm.material.type
+         , mesh->elm.mat          ,NULL
+         , mesh->elm.leastSquare  ,mesh->elm.leastSquareR
          , mesh->elm.faceRenergy  ,mesh->elm.faceLoadEnergy
          , mesh->elm.energy       ,mesh->elm.gradEnergy
          , mesh->node.energy      ,&sc->rcGrad
@@ -66,7 +67,8 @@ bool energyEquation(Memoria *m               , PropVarFluid *prop
          , 1, mesh->ndm
          , &pMesh->iNo            ,&pMesh->iEl
          , mesh->numelNov         ,mesh->numel
-         , mesh->nnodeNov         ,mesh->nnode);
+         , mesh->nnodeNov         ,mesh->nnode
+         , false);
   tm.rcGradEnergy = getTimeC() - tm.rcGradEnergy;
 /*.................................................................. */
 

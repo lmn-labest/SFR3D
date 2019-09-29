@@ -386,7 +386,8 @@ void oneEquationK(Memoria *m
            , mesh->face.normal      , mesh->face.xm
            , mesh->face.mvSkew      , mesh->face.vSkew
            , mesh->elm.geomType     , mesh->elm.material.prop
-           , mesh->elm.material.type, mesh->elm.mat
+           , mesh->elm.material.type
+           , mesh->elm.mat          , NULL
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceReKturb  , mesh->elm.faceLoadKturb    
            , mesh->elm.kTurb        , mesh->elm.gradKturb               
@@ -395,7 +396,8 @@ void oneEquationK(Memoria *m
            , 1                      , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl  
            , mesh->numelNov         , mesh->numel        
-           , mesh->nnodeNov         , mesh->nnode); 
+           , mesh->nnodeNov         , mesh->nnode
+           , false); 
 /*...................................................................*/           
 
 /*... calculo de: A(i),b(i)*/

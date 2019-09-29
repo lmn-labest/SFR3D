@@ -5685,7 +5685,7 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 04/05/2019                                   *
+ * Data de modificaco : 29/09/2019                                   *
  *-------------------------------------------------------------------*
  * RCGRADU: calculo do gradiente de um campo escalar ou vetorial     * 
  * conhecido.                                                        * 
@@ -5705,6 +5705,7 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
  * geomType-> tipo geometrico das celulas                            * 
  * prop    -> propriedades dos material                              * 
  * mat     -> material por celula                                    * 
+ * ceofDif -> coeficiente de difusao                                 *
  * lSquare -> matriz para a reconstrucao least Square                * 
  * lSquareR-> fatoracao R (RCLSQUAREQR)                              * 
  * gKsi    -> vetores que unem centroide da celula central aos       *
@@ -5748,26 +5749,27 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
  *********************************************************************/
 void rcGradU(Memoria *m                , Loads *loads
            , INT    *RESTRICT el       , INT    *RESTRICT nelcon 
-           , DOUBLE *RESTRICT x
-           , short  *RESTRICT nen      , short  *RESTRICT nFace
-           , INT *RESTRICT cellFace    , INT *RESTRICT fOwner
-           , DOUBLE *RESTRICT gVolume  , DOUBLE *RESTRICT gDcca
-           , DOUBLE *RESTRICT fXmCc    , DOUBLE *RESTRICT gCc
-           , DOUBLE *RESTRICT fModKsi  , DOUBLE *RESTRICT fKsi
-           , DOUBLE *RESTRICT fEta     , DOUBLE *RESTRICT fArea
-           , DOUBLE *RESTRICT fNormal  , DOUBLE *RESTRICT fXm
-           , DOUBLE *RESTRICT fModvSkew, DOUBLE *RESTRICT fvSkew
-           , short  *RESTRICT geomType , DOUBLE *RESTRICT prop
-           , short  *RESTRICT calType  , short  *RESTRICT mat     
-           , DOUBLE *RESTRICT lSquare  , DOUBLE *RESTRICT lSquareR
-           , short  *RESTRICT faceR    , short *RESTRICT faceL  
+           , DOUBLE *RESTRICT x        , short  *RESTRICT nen  
+           , short  *RESTRICT nFace    , INT *RESTRICT cellFace   
+           , INT *RESTRICT fOwner      , DOUBLE *RESTRICT gVolume  
+           , DOUBLE *RESTRICT gDcca    , DOUBLE *RESTRICT fXmCc
+           , DOUBLE *RESTRICT gCc      , DOUBLE *RESTRICT fModKsi 
+           , DOUBLE *RESTRICT fKsi     , DOUBLE *RESTRICT fEta
+           , DOUBLE *RESTRICT fArea    , DOUBLE *RESTRICT fNormal  
+           , DOUBLE *RESTRICT fXm      , DOUBLE *RESTRICT fModvSkew
+           , DOUBLE *RESTRICT fvSkew   , short  *RESTRICT geomType
+           , DOUBLE *RESTRICT prop     , short  *RESTRICT calType  
+           , short  *RESTRICT mat      , DOUBLE *RESTRICT coefDif 
+           , DOUBLE *RESTRICT lSquare  , DOUBLE *RESTRICT lSquareR 
+           , short  *RESTRICT faceR    , short *RESTRICT faceL
            , DOUBLE *RESTRICT u        , DOUBLE *RESTRICT gradU              
            , DOUBLE *RESTRICT nU       , RcGrad *rcGrad 
            , short maxNo               , short maxViz
            , short ndf                 , short ndm
            , InterfaceNo *iNo          , Interface *iCel
            , INT numelNov              , INT numel 
-           , INT nNodeNov              , INT nNode)
+           , INT nNodeNov              , INT nNode
+           , bool const propVar)
 {
   short i,j;
   short nThreads = ompVar.nThreadsGrad;
@@ -5980,9 +5982,13 @@ void rcGradU(Memoria *m                , Loads *loads
       
       for(i=0;i<ndf;i++)
         MAT2D(aux1,i,lu,ndf) = MAT2D(nel,i,u,ndf);
-     
-      for(j=0;j<MAXPROP;j++)
-        lProp[j]= MAT2D(lMat,j,prop,MAXPROP);
+
+/*...*/
+      if(propVar)
+        lProp[0] = coefDif[nel];
+      else
+        lProp[0]= MAT2D(lMat,COEFDIF,prop,MAXPROP);
+/*...................................................................*/
 
 /*... valor da funcao nodal nodias*/    
       if(rcGrad->type ==  RCGRADGAUSSN)
@@ -6171,8 +6177,8 @@ void rcLeastSquare(INT *RESTRICT cellFace, INT *RESTRICT fOwner
 
     leastSquareMatrix(lKsi    ,lmKsi
                      ,lLsquare,lLsquareR
-                     ,type
-                     ,lnFace  ,ndm);
+                     ,type    ,lnFace 
+                     ,ndm     ,nEl);
 
     for(i=0;i<ndm;i++)
       for(j=0;j<lnFace;j++) 
@@ -6241,7 +6247,7 @@ void rcLeastSquare(INT *RESTRICT cellFace, INT *RESTRICT fOwner
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 18/07/2018                                   *
+ * Data de modificaco : 29/09/2019                                   *
  *-------------------------------------------------------------------*
  * MESHQUALITY: calulo das propriedades da malha                     * 
  *-------------------------------------------------------------------* 
@@ -6249,8 +6255,9 @@ void rcLeastSquare(INT *RESTRICT cellFace, INT *RESTRICT fOwner
  *-------------------------------------------------------------------* 
  * cellFace-> faces que formam a celulas                             *
  * owner   -> elementos que compartilham a face(0- o dono,1 - viz)   *
- * nFace     -> numero de faces por celulas                          *
- * gVolume -> volumes das celulas                                    * 
+ * nFace   -> numero de faces por celulas                            *
+ * volume  -> volumes das celulas                                    *
+ * fArea   -> area da face                                           *  
  * fKsi    -> vetores que unem centroide da celula central aos       *
  *            vizinhos destas                                        *
  * fNormal -> vetores normais as faces das celulas                   *
@@ -6272,9 +6279,9 @@ void rcLeastSquare(INT *RESTRICT cellFace, INT *RESTRICT fOwner
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void meshQuality(MeshQuality *mq
-               , INT *RESTRICT cellFace    , INT *RESTRICT fOwner
-               , short  *RESTRICT nFace    , DOUBLE *RESTRICT volume
+void meshQuality(MeshQuality *mq           , INT *RESTRICT cellFace  
+               , INT *RESTRICT fOwner      , short  *RESTRICT nFace
+               , DOUBLE *RESTRICT volume   , DOUBLE *RESTRICT fArea   
                , DOUBLE *RESTRICT fKsi     , DOUBLE *RESTRICT fNormal
                , DOUBLE *RESTRICT fModvSkew, DOUBLE *RESTRICT gDcca
                , short const maxViz        , short const ndm
@@ -6283,7 +6290,7 @@ void meshQuality(MeshQuality *mq
   INT nEl,k=0;
   INT idFace;
   DOUBLE volumeTotal = 0.e0,nk,nkMin=1.e0,nkMed=0.e0;
-  DOUBLE skewMax=0.0e0, skewMed=0.0e0,teta;
+  DOUBLE skewMax=0.0e0, skewMed=0.0e0,teta, area;
   DOUBLE lenth,lMax,lMin,aspectRaMax=0.0,aspectRaMin=1.e+32;
   short nf,j;
 
@@ -6307,7 +6314,8 @@ void meshQuality(MeshQuality *mq
       nkMed += nk;
       nkMin = min(nkMin,nk); 
       k++;   
-      nk       = fModvSkew[idFace];
+      area     = fArea[idFace];
+      nk       = fModvSkew[idFace]/sqrt(area);
       skewMed += nk;
       skewMax  = max(skewMax,nk);
 /*...................................................................*/

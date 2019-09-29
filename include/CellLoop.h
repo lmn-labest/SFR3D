@@ -37,28 +37,29 @@
 /*...................................................................*/
 
 /*.. reconstrucao de gradiente*/
-  void rcGradU(Memoria *m       , Loads *loads
-    , INT    *RESTRICT el       , INT    *RESTRICT nelcon
-    , DOUBLE *RESTRICT x
-    , short  *RESTRICT nen      , short  *RESTRICT nFace
-    , INT *RESTRICT cellFace    , INT *RESTRICT fOwner
-    , DOUBLE *RESTRICT gVolume  , DOUBLE *RESTRICT gDcca
-    , DOUBLE *RESTRICT gXmCc    , DOUBLE *RESTRICT gCc
-    , DOUBLE *RESTRICT fModKsi  , DOUBLE *RESTRICT fKsi
-    , DOUBLE *RESTRICT fEta     , DOUBLE *RESTRICT fArea
-    , DOUBLE *RESTRICT fNormal  , DOUBLE *RESTRICT fXm
-    , DOUBLE *RESTRICT fModvSkew, DOUBLE *RESTRICT fvSkew
-    , short  *RESTRICT geomType , DOUBLE *RESTRICT prop
-    , short  *RESTRICT calType  , short  *RESTRICT mat
-    , DOUBLE *RESTRICT lSquare  , DOUBLE *RESTRICT lSquareR
-    , short  *RESTRICT faceR    , short *RESTRICT faceL
-    , DOUBLE *RESTRICT u        , DOUBLE *RESTRICT gradU
-    , DOUBLE *RESTRICT nU       , RcGrad *rcGrad
-    , short maxNo               , short maxViz
-    , short ndf                 , short ndm
-    , InterfaceNo *iNo          , Interface *iCel
-    , INT numelNov              , INT numel
-    , INT nNodeNov              , INT nNode);
+  void rcGradU(Memoria *m              , Loads *loads
+           , INT    *RESTRICT el       , INT    *RESTRICT nelcon 
+           , DOUBLE *RESTRICT x        , short  *RESTRICT nen  
+           , short  *RESTRICT nFace    , INT *RESTRICT cellFace   
+           , INT *RESTRICT fOwner      , DOUBLE *RESTRICT gVolume  
+           , DOUBLE *RESTRICT gDcca    , DOUBLE *RESTRICT fXmCc
+           , DOUBLE *RESTRICT gCc      , DOUBLE *RESTRICT fModKsi 
+           , DOUBLE *RESTRICT fKsi     , DOUBLE *RESTRICT fEta
+           , DOUBLE *RESTRICT fArea    , DOUBLE *RESTRICT fNormal  
+           , DOUBLE *RESTRICT fXm      , DOUBLE *RESTRICT fModvSkew
+           , DOUBLE *RESTRICT fvSkew   , short  *RESTRICT geomType
+           , DOUBLE *RESTRICT prop     , short  *RESTRICT calType  
+           , short  *RESTRICT mat      , DOUBLE *RESTRICT coefDif 
+           , DOUBLE *RESTRICT lSquare  , DOUBLE *RESTRICT lSquareR 
+           , short  *RESTRICT faceR    , short *RESTRICT faceL
+           , DOUBLE *RESTRICT u        , DOUBLE *RESTRICT gradU              
+           , DOUBLE *RESTRICT nU       , RcGrad *rcGrad 
+           , short maxNo               , short maxViz
+           , short ndf                 , short ndm
+           , InterfaceNo *iNo          , Interface *iCel
+           , INT numelNov              , INT numel 
+           , INT nNodeNov              , INT nNode
+           , bool const propVar);
 /*...................................................................*/
 
 /*... */

@@ -181,7 +181,8 @@ void transport(Memoria *m      ,Loads *loadsTrans,TransModel *tModel
            , mesh->face.normal       , mesh->face.xm
            , mesh->face.mvSkew       , mesh->face.vSkew
            , mesh->elm.geomType      , mesh->elm.material.prop
-           , mesh->elm.material.type , mesh->elm.mat
+           , mesh->elm.material.type 
+           , mesh->elm.mat           , mesh->elm.cDiffT1
            , mesh->elm.leastSquare   , mesh->elm.leastSquareR
            , mesh->elm.faceRt1       , mesh->elm.faceLoadT1    
            , mesh->elm.uT1           , mesh->elm.gradUt1                 
@@ -190,7 +191,8 @@ void transport(Memoria *m      ,Loads *loadsTrans,TransModel *tModel
            , mesh->ndfT[0]           , mesh->ndm
            , &pMesh->iNo             , &pMesh->iEl  
            , mesh->numelNov          , mesh->numel        
-           , mesh->nnodeNov          , mesh->nnode); 
+           , mesh->nnodeNov          , mesh->nnode
+           , prop->fCeofDiff); 
     tm.rcGradT1 = getTimeC() - tm.rcGradT1;
 /*...................................................................*/
 

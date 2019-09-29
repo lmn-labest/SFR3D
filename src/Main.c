@@ -713,9 +713,9 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... qualidade da malha*/
-      meshQuality(&mesh->mQuality
-                , mesh->elm.cellFace     , mesh->face.owner
-                , mesh->elm.adj.nViz     , mesh->elm.geom.volume
+      meshQuality(&mesh->mQuality        , mesh->elm.cellFace     
+                , mesh->face.owner       , mesh->elm.adj.nViz  
+                , mesh->elm.geom.volume  , mesh->face.area
                 , mesh->face.ksi         , mesh->face.normal
                 , mesh->face.mvSkew      , mesh->elm.geom.dcca
                 , mesh->maxViz           , mesh->ndm

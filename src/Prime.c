@@ -130,7 +130,8 @@ void primeSolver(Memoria *m
            , mesh->face.normal      , mesh->face.xm
            , mesh->face.mvSkew      , mesh->face.vSkew
            , mesh->elm.geomType     , mesh->elm.material.prop
-           , mesh->elm.material.type, mesh->elm.mat
+           , mesh->elm.material.type
+           , mesh->elm.mat          , mesh->elm.dViscosity
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
            , mesh->elm.vel          , mesh->elm.gradVel
@@ -139,7 +140,8 @@ void primeSolver(Memoria *m
            , ndfVel                 , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
            , mesh->numelNov         , mesh->numel
-           , mesh->nnodeNov         , mesh->nnode);
+           , mesh->nnodeNov         , mesh->nnode
+           , false);
     tm.rcGradVel = getTimeC() - tm.rcGradVel;
  /*...................................................................*/
 
@@ -157,7 +159,8 @@ void primeSolver(Memoria *m
             , mesh->face.normal      , mesh->face.xm
             , mesh->face.mvSkew      , mesh->face.vSkew
             , mesh->elm.geomType     , mesh->elm.material.prop
-            , mesh->elm.material.type, mesh->elm.mat
+            , mesh->elm.material.type
+            , mesh->elm.mat          , NULL
             , mesh->elm.leastSquare  , mesh->elm.leastSquareR
             , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
             , mesh->elm.pressure     , mesh->elm.gradPres
@@ -166,7 +169,8 @@ void primeSolver(Memoria *m
             , 1, mesh->ndm
             , &pMesh->iNo            , &pMesh->iEl
             , mesh->numelNov         , mesh->numel
-            , mesh->nnodeNov         , mesh->nnode);
+            , mesh->nnodeNov         , mesh->nnode
+            , false);
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 
@@ -331,7 +335,8 @@ void primeSolver(Memoria *m
           , mesh->face.normal      , mesh->face.xm
           , mesh->face.mvSkew      , mesh->face.vSkew
           , mesh->elm.geomType     , mesh->elm.material.prop
-          , mesh->elm.material.type, mesh->elm.mat
+          , mesh->elm.material.type
+          , mesh->elm.mat          , NULL
           , mesh->elm.leastSquare  , mesh->elm.leastSquareR
           , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
           , pr->ePresC             , pr->eGradPresC
@@ -340,7 +345,8 @@ void primeSolver(Memoria *m
           , 1                      , mesh->ndm
           , &pMesh->iNo            , &pMesh->iEl
           , mesh->numelNov         , mesh->numel
-          , mesh->nnodeNov         , mesh->nnode);
+          , mesh->nnodeNov         , mesh->nnode
+          , false);
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 

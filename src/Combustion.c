@@ -100,19 +100,19 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 
 /*... reconstruindo do gradiente (gradZ)*/
   tm.rcGradComb   = getTimeC() - tm.rcGradComb;
-  rcGradU(m                      , loadsComb
+  rcGradU(m                     , loadsComb
        , mesh->elm.node         , mesh->elm.adj.nelcon
-       , mesh->node.x           
-       , mesh->elm.nen          , mesh->elm.adj.nViz
-       , mesh->elm.cellFace     , mesh->face.owner
-       , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-       , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-       , mesh->face.mksi        , mesh->face.ksi
-       , mesh->face.eta         , mesh->face.area
-       , mesh->face.normal      , mesh->face.xm
-       , mesh->face.mvSkew      , mesh->face.vSkew
-       , mesh->elm.geomType     , mesh->elm.material.prop
-       , mesh->elm.material.type, mesh->elm.mat 
+       , mesh->node.x           , mesh->elm.nen  
+       , mesh->elm.adj.nViz     , mesh->elm.cellFace     
+       , mesh->face.owner       , mesh->elm.geom.volume  
+       , mesh->elm.geom.dcca    , mesh->elm.geom.xmcc
+       , mesh->elm.geom.cc      , mesh->face.mksi
+       , mesh->face.ksi         , mesh->face.eta
+       , mesh->face.area        , mesh->face.normal   
+       , mesh->face.xm          , mesh->face.mvSkew 
+       , mesh->face.vSkew       , mesh->elm.geomType   
+       , mesh->elm.material.prop, mesh->elm.material.type
+       , mesh->elm.mat          , mesh->elm.cDiffComb
        , mesh->elm.leastSquare  , mesh->elm.leastSquareR
        , mesh->elm.faceResZcomb , mesh->elm.faceLoadZcomb
        , mesh->elm.zComb        , mesh->elm.gradZcomb
@@ -121,7 +121,8 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
        , nComb                  , mesh->ndm              
        , &pMesh->iNo            , &pMesh->iEl
        , mesh->numelNov         , mesh->numel
-       , mesh->nnodeNov         , mesh->nnode);      
+       , mesh->nnodeNov         , mesh->nnode
+       , prop->fDiffusion);      
   tm.rcGradComb = getTimeC() - tm.rcGradComb;
 /*.................................................................. */
 

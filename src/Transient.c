@@ -734,35 +734,35 @@ void updateTime(Temporal *ddt, Macros *mm, short const myId )
 {
 
 /*...*/
-      if (!ddt->timeStep) changeSchemeTemporal(ddt);
+  if (!ddt->timeStep) changeSchemeTemporal(ddt);
 /*...................................................................*/
 
 /*...*/
 //    jLoop            = 0;
-      ddt->t        += ddt->dt[0];
-      ddt->timeStep ++; 
-      gStep          =  ddt->timeStep;
+  ddt->t        += ddt->dt[0];
+  ddt->timeStep ++; 
+  gStep          =  ddt->timeStep;
 /*...................................................................*/
 
 /*...*/
-      if(ddt->t > ddt->total + 0.1e0*ddt->dt[TIME_N])
-        mm->flWord = false;  
+  if(ddt->t > ddt->total + 0.1e0*ddt->dt[TIME_N])
+    mm->flWord = false;  
 /*    if(sc.ddt.t > sc.ddt.total)
         flWord = false;  */
 /*...................................................................*/
       
 /*...*/
-      else
-      {
-        if(!myId )
-        {
-          printf("dt(n-2) = %.10lf\n",ddt->dt[TIME_N_MINUS_2]);
-          printf("dt(n-1) = %.10lf\n",ddt->dt[TIME_N_MINUS_1]);
-          printf("dt(n)   = %.10lf\n",ddt->dt[TIME_N ]);
-          printf("t(s)    = %.10lf\n",ddt->t);
-          printf("step    = %d\n"    ,ddt->timeStep);
-        } 
-      }
+  else
+  {
+    if(!myId )
+    {
+      printf("dt(n-2) = %.10lf\n",ddt->dt[TIME_N_MINUS_2]);
+      printf("dt(n-1) = %.10lf\n",ddt->dt[TIME_N_MINUS_1]);
+      printf("dt(n)   = %.10lf\n",ddt->dt[TIME_N ]);
+      printf("t(s)    = %.10lf\n",ddt->t);
+      printf("step    = %d\n"    ,ddt->timeStep);
+    } 
+  }
 /*...................................................................*/
 
 }

@@ -271,7 +271,7 @@ void printFluid(Memoria *m
   if(opt->gradPres)
   {
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
-    rcGradU(m                        , loadsPres
+    rcGradU(m                      , loadsPres
          , mesh->elm.node          , mesh->elm.adj.nelcon
          , mesh->node.x
          , mesh->elm.nen           , mesh->elm.adj.nViz
@@ -283,7 +283,8 @@ void printFluid(Memoria *m
          , mesh->face.normal       , mesh->face.xm
          , mesh->face.mvSkew       , mesh->face.vSkew
          , mesh->elm.geomType      , mesh->elm.material.prop
-         , mesh->elm.material.type , mesh->elm.mat
+         , mesh->elm.material.type 
+         , mesh->elm.mat           , NULL
          , mesh->elm.leastSquare   , mesh->elm.leastSquareR
          , mesh->elm.faceRpres     , mesh->elm.faceLoadPres
          , mesh->elm.pressure      , mesh->elm.gradPres                
@@ -292,7 +293,8 @@ void printFluid(Memoria *m
          , 1                       , mesh->ndm       
          , &pMesh->iNo             , &pMesh->iEl  
          , mesh->numelNov          , mesh->numel        
-         , mesh->nnodeNov          , mesh->nnode);  
+         , mesh->nnodeNov          , mesh->nnode
+         , false);  
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 
@@ -354,7 +356,8 @@ void printFluid(Memoria *m
          , mesh->face.normal       , mesh->face.xm
          , mesh->face.mvSkew       , mesh->face.vSkew
          , mesh->elm.geomType      , mesh->elm.material.prop
-         , mesh->elm.material.type , mesh->elm.mat
+         , mesh->elm.material.type 
+         , mesh->elm.mat           , NULL
          , mesh->elm.leastSquare   , mesh->elm.leastSquareR
          , mesh->elm.faceRvel      , mesh->elm.faceLoadVel   
          , mesh->elm.vel           , mesh->elm.gradVel                           
@@ -363,7 +366,8 @@ void printFluid(Memoria *m
          , ndfVel                  , mesh->ndm
          , &pMesh->iNo             , &pMesh->iEl  
          , mesh->numelNov          , mesh->numel        
-         , mesh->nnodeNov          , mesh->nnode); 
+         , mesh->nnodeNov          , mesh->nnode
+         , false); 
     tm.rcGradVel = getTimeC() - tm.rcGradVel;  
 /*...................................................................*/
 
@@ -433,7 +437,7 @@ void printFluid(Memoria *m
   if(mesh->ndfFt)
   {
     if(opt->gradEnergy)
-      rcGradU(m                       , loadsTemp
+      rcGradU(m                     , loadsTemp
            , mesh->elm.node         , mesh->elm.adj.nelcon
            , mesh->node.x
            , mesh->elm.nen          , mesh->elm.adj.nViz
@@ -445,7 +449,8 @@ void printFluid(Memoria *m
            , mesh->face.normal      , mesh->face.xm
            , mesh->face.mvSkew      , mesh->face.vSkew
            , mesh->elm.geomType     , mesh->elm.material.prop
-           , mesh->elm.material.type, mesh->elm.mat
+           , mesh->elm.material.type
+           , mesh->elm.mat          , mesh->elm.tConductivity
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRenergy  , mesh->elm.faceLoadEnergy
            , mesh->elm.temp         , mesh->elm.gradTemp  
@@ -454,7 +459,8 @@ void printFluid(Memoria *m
            , 1                      , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
            , mesh->numelNov         , mesh->numel
-           , mesh->nnodeNov         , mesh->nnode); 
+           , mesh->nnodeNov         , mesh->nnode
+           , false); 
 /*.................................................................. */
 
 
@@ -798,7 +804,8 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
            , mesh->face.normal       , mesh->face.xm
            , mesh->face.mvSkew       , mesh->face.vSkew
            , mesh->elm.geomType      , mesh->elm.material.prop
-           , mesh->elm.material.type , mesh->elm.mat
+           , mesh->elm.material.type 
+           , mesh->elm.mat           , NULL
            , mesh->elm.leastSquare   , mesh->elm.leastSquareR
            , mesh->elm.faceRpres     , mesh->elm.faceLoadPres
            , mesh->elm.pressure      , mesh->elm.gradPres                
@@ -807,7 +814,8 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
            , 1                       , mesh->ndm       
            , &pMesh->iNo             , &pMesh->iEl  
            , mesh->numelNov          , mesh->numel        
-           , mesh->nnodeNov          , mesh->nnode);  
+           , mesh->nnodeNov          , mesh->nnode
+           , false);  
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
   }
 /*...................................................................*/
@@ -878,7 +886,8 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
          , mesh->face.normal       , mesh->face.xm
          , mesh->face.mvSkew       , mesh->face.vSkew
          , mesh->elm.geomType      , mesh->elm.material.prop
-         , mesh->elm.material.type , mesh->elm.mat
+         , mesh->elm.material.type 
+         , mesh->elm.mat           , NULL
          , mesh->elm.leastSquare   , mesh->elm.leastSquareR
          , mesh->elm.faceRvel      , mesh->elm.faceLoadVel   
          , mesh->elm.vel           , mesh->elm.gradVel                           
@@ -887,7 +896,8 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
          , ndfVel                  , mesh->ndm
          , &pMesh->iNo             , &pMesh->iEl  
          , mesh->numelNov          , mesh->numel        
-         , mesh->nnodeNov          , mesh->nnode); 
+         , mesh->nnodeNov          , mesh->nnode
+         , false); 
     tm.rcGradVel = getTimeC() - tm.rcGradVel;  
 /*...................................................................*/
 
@@ -947,7 +957,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
   if(opt->gradZcomb)
   {
     tm.rcGradComb   = getTimeC() - tm.rcGradComb;
-    rcGradU(m                      , loadsComb
+    rcGradU(m                    , loadsComb
         , mesh->elm.node         , mesh->elm.adj.nelcon
         , mesh->node.x           
         , mesh->elm.nen          , mesh->elm.adj.nViz
@@ -959,7 +969,8 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
         , mesh->face.normal      , mesh->face.xm
         , mesh->face.mvSkew      , mesh->face.vSkew
         , mesh->elm.geomType     , mesh->elm.material.prop
-        , mesh->elm.material.type, mesh->elm.mat 
+        , mesh->elm.material.type
+        , mesh->elm.mat          , NULL
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceResZcomb , mesh->elm.faceLoadZcomb
         , mesh->elm.zComb        , mesh->elm.gradZcomb
@@ -968,7 +979,8 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
         , ndfComb                , mesh->ndm              
         , &pMesh->iNo            , &pMesh->iEl
         , mesh->numelNov         , mesh->numel
-        , mesh->nnodeNov         , mesh->nnode);      
+        , mesh->nnodeNov         , mesh->nnode
+        , false);      
     tm.rcGradComb = getTimeC() - tm.rcGradComb;
 /*.................................................................. */  
 
@@ -1063,7 +1075,8 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
            , mesh->face.normal      , mesh->face.xm
            , mesh->face.mvSkew      , mesh->face.vSkew
            , mesh->elm.geomType     , mesh->elm.material.prop
-           , mesh->elm.material.type, mesh->elm.mat
+           , mesh->elm.material.type
+           , mesh->elm.mat          , NULL
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRenergy  , mesh->elm.faceLoadEnergy
            , mesh->elm.temp         , mesh->elm.gradTemp  
@@ -1072,7 +1085,8 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
            , 1                      , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
            , mesh->numelNov         , mesh->numel
-           , mesh->nnodeNov         , mesh->nnode);
+           , mesh->nnodeNov         , mesh->nnode
+           , false);
     tm.rcGradEnergy = getTimeC() - tm.rcGradEnergy; 
 /*.................................................................. */
   
@@ -1502,7 +1516,8 @@ void printTrans(Memoria *m
          , mesh->face.normal      , mesh->face.xm
          , mesh->face.mvSkew      , mesh->face.vSkew
          , mesh->elm.geomType     , mesh->elm.material.prop
-         , mesh->elm.material.type, mesh->elm.mat
+         , mesh->elm.material.type
+         , mesh->elm.mat          , NULL
          , mesh->elm.leastSquare  , mesh->elm.leastSquareR
          , mesh->elm.faceRt1      , mesh->elm.faceLoadT1
          , mesh->elm.uT1          , mesh->elm.gradUt1
@@ -1511,7 +1526,8 @@ void printTrans(Memoria *m
          , mesh->ndfT[0]          , mesh->ndm
          , &pMesh->iNo            , &pMesh->iEl
          , mesh->numelNov         , mesh->numel
-         , mesh->nnodeNov         , mesh->nnode);
+         , mesh->nnodeNov         , mesh->nnode
+         , false);
   tm.rcGradT1 = getTimeC() - tm.rcGradT1;
 /*...................................................................*/
 
@@ -1726,7 +1742,8 @@ void printDiff(Memoria *m
         , mesh->face.normal      , mesh->face.xm
         , mesh->face.mvSkew      , mesh->face.vSkew
         , mesh->elm.geomType     , mesh->elm.material.prop
-        , mesh->elm.material.type, mesh->elm.mat
+        , mesh->elm.material.type
+        , mesh->elm.mat          , NULL
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceRd1      , mesh->elm.faceLoadD1
         , mesh->elm.uD1          , mesh->elm.gradUd1
@@ -1735,7 +1752,8 @@ void printDiff(Memoria *m
         , mesh->ndfD[0]          , mesh->ndm
         , &pMesh->iNo            , &pMesh->iEl
         , mesh->numelNov         , mesh->numel
-        , mesh->nnodeNov         , mesh->nnode);
+        , mesh->nnodeNov         , mesh->nnode
+        , false);
   tm.rcGradD1 = getTimeC() - tm.rcGradD1;
 /*...................................................................*/
 

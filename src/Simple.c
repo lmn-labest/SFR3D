@@ -2717,7 +2717,8 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
            , mesh->face.normal      , mesh->face.xm
            , mesh->face.mvSkew      , mesh->face.vSkew
            , mesh->elm.geomType     , mesh->elm.material.prop
-           , mesh->elm.material.type, mesh->elm.mat
+           , mesh->elm.material.type
+           , mesh->elm.mat          , NULL
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
            , mesh->elm.vel          , mesh->elm.gradVel
@@ -2726,7 +2727,8 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
            , ndfVel                 , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
            , mesh->numelNov         , mesh->numel
-           , mesh->nnodeNov         , mesh->nnode);  
+           , mesh->nnodeNov         , mesh->nnode
+           , false);  
     tm.rcGradVel = getTimeC() - tm.rcGradVel;
 /*...................................................................*/
 
@@ -2744,7 +2746,8 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
            , mesh->face.normal      , mesh->face.xm
            , mesh->face.mvSkew      , mesh->face.vSkew
            , mesh->elm.geomType     , mesh->elm.material.prop
-           , mesh->elm.material.type, mesh->elm.mat
+           , mesh->elm.material.type
+           , mesh->elm.mat          , NULL
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
            , mesh->elm.pressure     , mesh->elm.gradPres
@@ -2753,7 +2756,8 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
            , 1                      , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
            , mesh->numelNov         , mesh->numel
-           , mesh->nnodeNov         , mesh->nnode);  
+           , mesh->nnodeNov         , mesh->nnode
+           , false);  
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
   }
 /*...................................................................*/
@@ -3057,28 +3061,30 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
     for (nonOrth = 0; nonOrth < sp->nNonOrth; nonOrth++) {
 /*... reconstruindo do gradiente da pressao correcao*/
       tm.rcGradPres = getTimeC() - tm.rcGradPres;
-      rcGradU(m, loadsPresC
-        , mesh->elm.node, mesh->elm.adj.nelcon
-        , mesh->node.x
-        , mesh->elm.nen, mesh->elm.adj.nViz
-        , mesh->elm.cellFace, mesh->face.owner
-        , mesh->elm.geom.volume, mesh->elm.geom.dcca
-        , mesh->elm.geom.xmcc, mesh->elm.geom.cc
-        , mesh->face.mksi, mesh->face.ksi
-        , mesh->face.eta, mesh->face.area
-        , mesh->face.normal, mesh->face.xm
-        , mesh->face.mvSkew, mesh->face.vSkew
-        , mesh->elm.geomType, mesh->elm.material.prop
-        , mesh->elm.material.type, mesh->elm.mat
-        , mesh->elm.leastSquare, mesh->elm.leastSquareR
-        , mesh->elm.faceRpres, mesh->elm.faceLoadPres
-        , sp->ePresC1, sp->eGradPresC
-        , sp->nPresC, &sc->rcGrad
-        , mesh->maxNo, mesh->maxViz
-        , 1, mesh->ndm
-        , &pMesh->iNo, &pMesh->iEl
-        , mesh->numelNov, mesh->numel
-        , mesh->nnodeNov, mesh->nnode);
+      rcGradU(m                      , loadsPresC
+            , mesh->elm.node         , mesh->elm.adj.nelcon
+            , mesh->node.x           
+            , mesh->elm.nen          , mesh->elm.adj.nViz
+            , mesh->elm.cellFace     , mesh->face.owner
+            , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+            , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+            , mesh->face.mksi        , mesh->face.ksi
+            , mesh->face.eta         , mesh->face.area
+            , mesh->face.normal      , mesh->face.xm
+            , mesh->face.mvSkew      , mesh->face.vSkew
+            , mesh->elm.geomType     , mesh->elm.material.prop
+            , mesh->elm.material.type
+            , mesh->elm.mat          , NULL
+            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+            , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
+            , sp->ePresC1            , sp->eGradPresC
+            , sp->nPresC             , &sc->rcGrad
+            , mesh->maxNo            , mesh->maxViz
+            , 1                      , mesh->ndm
+            , &pMesh->iNo            , &pMesh->iEl
+            , mesh->numelNov         , mesh->numel
+            , mesh->nnodeNov         , mesh->nnode
+            , false);
       tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 
@@ -3151,7 +3157,8 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
         , mesh->face.normal      , mesh->face.xm
         , mesh->face.mvSkew      , mesh->face.vSkew
         , mesh->elm.geomType     , mesh->elm.material.prop
-        , mesh->elm.material.type, mesh->elm.mat
+        , mesh->elm.material.type
+        , mesh->elm.mat          , NULL
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
         , sp->ePresC             , sp->eGradPresC
@@ -3160,7 +3167,8 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
         , 1                      , mesh->ndm
         , &pMesh->iNo            , &pMesh->iEl
         , mesh->numelNov         , mesh->numel
-        , mesh->nnodeNov         , mesh->nnode);  
+        , mesh->nnodeNov         , mesh->nnode
+        , false);  
   tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 
@@ -3190,7 +3198,8 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
         , mesh->face.normal      , mesh->face.xm
         , mesh->face.mvSkew      , mesh->face.vSkew
         , mesh->elm.geomType     , mesh->elm.material.prop
-        , mesh->elm.material.type, mesh->elm.mat
+        , mesh->elm.material.type
+        , mesh->elm.mat          , NULL
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
         , mesh->elm.vel          , mesh->elm.gradVel
@@ -3199,7 +3208,8 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
         , ndfVel                 , mesh->ndm
         , &pMesh->iNo            , &pMesh->iEl
         , mesh->numelNov         , mesh->numel
-        , mesh->nnodeNov         , mesh->nnode);  
+        , mesh->nnodeNov         , mesh->nnode
+        , false);  
   tm.rcGradVel = getTimeC() - tm.rcGradVel;
 /*...................................................................*/
 
@@ -3217,7 +3227,8 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
         , mesh->face.normal      , mesh->face.xm
         , mesh->face.mvSkew      , mesh->face.vSkew
         , mesh->elm.geomType     , mesh->elm.material.prop
-        , mesh->elm.material.type, mesh->elm.mat
+        , mesh->elm.material.type
+        , mesh->elm.mat          , NULL
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
         , mesh->elm.pressure     , mesh->elm.gradPres
@@ -3226,7 +3237,8 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
         , 1                      , mesh->ndm
         , &pMesh->iNo            , &pMesh->iEl
         , mesh->numelNov         , mesh->numel
-        , mesh->nnodeNov         , mesh->nnode);  
+        , mesh->nnodeNov         , mesh->nnode
+        , false);  
   tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 
