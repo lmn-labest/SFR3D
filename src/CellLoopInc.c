@@ -161,7 +161,8 @@
   DOUBLE lVel[(MAX_NUM_FACE+1)*MAX_NDM];
   DOUBLE lCc[(MAX_NUM_FACE+1)*MAX_NDM];
   DOUBLE lRcell[MAX_NDF],lDfield[(MAX_NUM_FACE+1)*MAX_NDM];
-  DOUBLE lStressR[(MAX_NUM_FACE+1)*6],lEddyVisc[MAX_NUM_FACE+1],lWallPar[NWALLPAR];
+  DOUBLE lStressR[(MAX_NUM_FACE+1)*6],lEddyVisc[MAX_NUM_FACE+1];
+  DOUBLE lWallPar[NWALLPAR];
 
 /*...*/
   if(ompVar.fCell)
@@ -979,8 +980,8 @@ void systFormSimplePres(Loads *loadsVel    , Loads *loadsPres
                       ,lFaceVelR  ,lFaceVelL            
                       ,lFacePresR ,lFacePresL   
                       ,lPres      ,lGradPres    
-                      ,lVel       ,lDfield 
-                      ,lWallPar        
+                      ,lVel       
+                      ,lDfield    ,lWallPar        
                       ,nen[nel]   ,nFace[nel] 
                       ,ndm        ,lib   
                       ,nel);    

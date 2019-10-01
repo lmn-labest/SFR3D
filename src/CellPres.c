@@ -886,7 +886,6 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * pres      -> campo de pressao conhecido                           *
  * gradPes   -> gradiente reconstruido da pressao                    *
  * vel       -> campo de velocidade conhecido                        *
- * gradVel   -> gradiente rescontruido das velocidades               *
  * dField    -> matriz D do metodo simple                            *
  * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  *
  * nEn       -> numero de nos da celula central                      *
@@ -919,8 +918,8 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
               ,short  *RESTRICT lFaceVelR  ,short *RESTRICT lFaceVelL
               ,short  *RESTRICT lFacePresR ,short *RESTRICT lFacePresL
               ,DOUBLE *RESTRICT pres       ,DOUBLE *RESTRICT gradPres
-              ,DOUBLE *RESTRICT vel        ,DOUBLE *RESTRICT dField
-              ,DOUBLE *RESTRICT wallPar
+              ,DOUBLE *RESTRICT vel            
+              ,DOUBLE *RESTRICT dField     ,DOUBLE *RESTRICT wallPar
               ,const short nEn             ,short const nFace
               ,const short ndm             ,INT const nel)
 { 
@@ -928,12 +927,12 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
 	short iCodDif = diffPres->iCod,iCodPolFace;
 /*...*/
   short idCell = nFace;
-  short nf, nCarg;
+  short i, nf, nCarg;
 /*...*/
   INT vizNel;
 /*...*/
   DOUBLE densityC,densityV ,density;
-  DOUBLE dFieldC[3],dFieldV[3],dFieldF[3];
+  DOUBLE dFieldC[3],dFieldV[3],dFieldF[3],gradVelC[3][3];
 /*...*/
   DOUBLE rCell,p,sP;
   DOUBLE tA[3],ddum=0.e0;
@@ -965,19 +964,15 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
 /*...................................................................*/
 
 /*...*/
-  velC[0]      = MAT2D(idCell,0,vel,3);
-  velC[1]      = MAT2D(idCell,1,vel,3);
-  velC[2]      = MAT2D(idCell,2,vel,3);
-  
-  gradPresC[0] = MAT2D(idCell,0,gradPres,3);
-  gradPresC[1] = MAT2D(idCell,1,gradPres,3);
-  gradPresC[2] = MAT2D(idCell,2,gradPres,3);
-
   presC     = pres[idCell];
+  for (i = 0; i < 3; i++)
+  {
+    velC[i]      = MAT2D(idCell,i,vel,3);
+  
+    gradPresC[i] = MAT2D(idCell,i,gradPres,3);
 
-  dFieldC[0] = MAT2D(idCell,0,dField,3);
-  dFieldC[1] = MAT2D(idCell,1,dField,3);
-  dFieldC[2] = MAT2D(idCell,2,dField,3);
+    dFieldC[i] = MAT2D(idCell,i,dField,3);
+  }
 /*...................................................................*/
 
 /*...*/
@@ -1090,6 +1085,7 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
         s[2] = dFieldC[2]*lFarea*lNormal[2];
 /*...*/
         difusionSchemeAnisotropic(s, lKsi, e, t, ndm, iCodDif);
+//      difusionSchemeAnisotropic(s, lKsi, e, t, ndm, 1);
 /*...................................................................*/
 
 /*...cargas*/
@@ -1113,7 +1109,7 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
         nCarg = lFaceVelL[nf]-1;
         pLoadSimple(&sP             , &p
                   , tA              , lXmcc
-                  , velC            , &ddum
+                  , velC            , &ddum       
                   , presC           , gradPresC
                   , ddum            , ddum  
                   , xx         

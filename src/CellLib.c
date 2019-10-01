@@ -908,7 +908,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
 
 /*********************************************************************
  * Data de criacao    : 01/07/2016                                   *
- * Data de modificaco : 28/09/2019                                   *
+ * Data de modificaco : 30/09/2019                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEPRES : chamada de bibliotecas de celulas para        *
  * problema de escoamento de fluidos (PRES)                          *
@@ -978,8 +978,8 @@ void cellLibSimplePres(Loads *lVel         ,Loads *lPres
                ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
                ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
                ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres 
-               ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT dField 
-               ,DOUBLE *RESTRICT wallPar      
+               ,DOUBLE *RESTRICT vel         
+               ,DOUBLE *RESTRICT dField    ,DOUBLE *RESTRICT wallPar      
                ,short const nEn            ,short  const nFace     
                ,short const ndm            ,short const lib    
                ,INT const nel)
@@ -1027,8 +1027,8 @@ void cellLibSimplePres(Loads *lVel         ,Loads *lPres
                  ,lFaceVelR   ,lFaceVelL
                  ,lFacePresR  ,lFacePresL
                  ,pres        ,gradPres
-                 ,vel         ,dField
-                 ,wallPar 
+                 ,vel               
+                 ,dField      ,wallPar 
                  ,nEn         ,nFace
                  ,ndm         ,nel);
     } 
@@ -5982,7 +5982,8 @@ void difusionSchemeAnisotropic(DOUBLE *RESTRICT s,DOUBLE *RESTRICT ksi
 
 /*... Minimal*/
   case ORTHOGONAL:
-    if (ndm == 2) {
+    if (ndm == 2) 
+    {
 /*...*/
       ss = sqrt(s[0]*s[0]+s[1]*s[1]);
 /*...................................................................*/
@@ -6000,7 +6001,8 @@ void difusionSchemeAnisotropic(DOUBLE *RESTRICT s,DOUBLE *RESTRICT ksi
 /*...................................................................*/
 
 /*...*/
-    else if (ndm == 3) {
+    else if (ndm == 3) 
+    {
 /*...*/
       ss = sqrt(s[0]*s[0] + s[1]*s[1] + s[2]*s[2]);
 /*...................................................................*/
@@ -6033,7 +6035,8 @@ void difusionSchemeAnisotropic(DOUBLE *RESTRICT s,DOUBLE *RESTRICT ksi
 
 /*... OverRelaxed*/
   case OVERRELAXED:
-    if (ndm == 2) {
+    if (ndm == 2) 
+    {
 /*...*/
       ss = s[0]*s[0] + s[1]*s[1];
 /*...................................................................*/
@@ -6056,7 +6059,8 @@ void difusionSchemeAnisotropic(DOUBLE *RESTRICT s,DOUBLE *RESTRICT ksi
 /*...................................................................*/
 
 /*...*/
-    else if(ndm == 3) {
+    else if(ndm == 3) 
+    {
 
 /*...*/
       ss = s[0]*s[0] + s[1]*s[1] + s[2]*s[2];
@@ -6929,7 +6933,8 @@ void stress(DOUBLE *RESTRICT s,DOUBLE *RESTRICT gradVel
 
   DOUBLE tmp;
 
-  if (ndm == 3) {
+  if (ndm == 3) 
+  {
     tmp = MAT2D(0,0,gradVel,ndm)
         + MAT2D(1,1,gradVel,ndm) 
         + MAT2D(2,2,gradVel,ndm);
@@ -7336,7 +7341,7 @@ void limeterGrad(Loads *loads
  * parametros de entrada:                                            * 
  * ------------------------------------------------------------------*
  * p           ->                                                    * 
- * gradVel     -> gradiente de velocidade                            * 
+ * gradVel     -> gradiente de velocidade (transposto)               * 
  * n           -> vetor normal                                       *
  * viscosidade -> viscosidade dinamica                               * 
  * lFarea      -> area da face                                       *
@@ -7354,19 +7359,18 @@ void viscosityPartExp(DOUBLE *p             ,DOUBLE *gradVel
 
   DOUBLE aP    = viscosity*lFarea;
  
-
+/*... du1dx1*n1 + du2dx1*n1 + du3dx1*n1*/
   p[0] += aP*( MAT2D(0,0,gradVel,3)*n[0] 
              + MAT2D(1,0,gradVel,3)*n[1]  
-             + MAT2D(1,0,gradVel,3)*n[2]);
- 
+             + MAT2D(2,0,gradVel,3)*n[2]);
+/*... du1dx2*n1 + du2dx2*n1 + du3dx2*n1*/ 
   p[1] += aP*( MAT2D(0,1,gradVel,3)*n[0] 
              + MAT2D(1,1,gradVel,3)*n[1]  
-             + MAT2D(1,1,gradVel,3)*n[2]);
-      
+             + MAT2D(2,1,gradVel,3)*n[2]);
+/*... du1dx3*n1 + du2dx3*n1 + du3dx3*n1*/      
   p[2] += aP*( MAT2D(0,2,gradVel,3)*n[0] 
              + MAT2D(1,2,gradVel,3)*n[1]  
-             + MAT2D(1,2,gradVel,3)*n[2]);  
-
+             + MAT2D(2,2,gradVel,3)*n[2]);  
 
 }
 /**********************************************************************/
@@ -7540,25 +7544,137 @@ void staticWall(DOUBLE *v        ,DOUBLE *n
               , DOUBLE const dcca,DOUBLE const viscosityC
               , DOUBLE const lFarea)
 {
+  bool fDirechlet = false;
   DOUBLE aP;
 
-  aP   = viscosityC*lFarea /dcca;
+  aP   = viscosityC*lFarea/dcca;
+
 /*...*/
-  sPc[0] += aP*(1.e0 - n[0]*n[0]);
-  sPc[1] += aP*(1.e0 - n[1]*n[1]);
-  sPc[2] += aP*(1.e0 - n[2]*n[2]);
+  if(fDirechlet)
+  {
+/*...*/
+    sPc[0] += aP;
+    sPc[1] += aP;
+    sPc[2] += aP;
+/*...................................................................*/
+  }
+/*...................................................................*/
+  
+/*...*/
+  else
+  {
+/*...*/
+    sPc[0] += aP*(1.e0 - n[0]*n[0]);
+    sPc[1] += aP*(1.e0 - n[1]*n[1]);
+    sPc[2] += aP*(1.e0 - n[2]*n[2]);
 /*...................................................................*/
 
 /*... x*/
-  p[0]+= aP*(v[1]*n[0]*n[1] + v[2]*n[0]*n[2]);
+    p[0]+= aP*(v[1]*n[0]*n[1] + v[2]*n[0]*n[2]);
 /*... y*/
-  p[1]+= aP*(v[0]*n[0]*n[1] + v[2]*n[1]*n[2]);
+    p[1]+= aP*(v[0]*n[0]*n[1] + v[2]*n[1]*n[2]);
 /*... z*/
-  p[2]+= aP*(v[0]*n[0]*n[2] + v[1]*n[1]*n[2]);
-
+    p[2]+= aP*(v[0]*n[0]*n[2] + v[1]*n[1]*n[2]);
+/*...................................................................*/
+  }
+/*...................................................................*/
 }
 /********************************************************************/
 
+/*********************************************************************
+ * Data de criacao    : 28/09/2019                                   *
+ * Data de modificaco : 01/10/2019                                   *
+ *-------------------------------------------------------------------*
+ * moveWall: condicao de conotorno para paredes estaticas            *
+ * ------------------------------------------------------------------*
+ * parametros de entrada:                                            * 
+ * ------------------------------------------------------------------*
+ * vb          -> velocidade da parede movel                         *
+ * v           -> velocidade da celula central                       *
+ * n           -> vetor normal a face                                *
+ * lFarea      -> area da face                                       *
+ * viscositiy  -> viscosidade na celula central                      * 
+ * dcca        -> menor distancia do centroide a face                * 
+ * lFarea      -> area da face                                       *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * p, sPc      -> aturalizado                                          * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *********************************************************************/
+void moveWall( DOUBLE *RESTRICT vC       ,DOUBLE *RESTRICT vB        
+             , DOUBLE *RESTRICT n
+             , DOUBLE *RESTRICT sPc      ,DOUBLE *RESTRICT p
+             , DOUBLE const dcca,DOUBLE const viscosityC
+             , DOUBLE const lFarea)
+{
+  bool fDirechlet = true;
+  DOUBLE aP;
+
+  aP   = viscosityC*lFarea /dcca;
+
+/*...*/
+  if(fDirechlet)
+  {
+/*...*/
+    sPc[0] += aP;
+    sPc[1] += aP;
+    sPc[2] += aP;
+/*...................................................................*/
+
+/*... x*/
+      p[0]  += aP*vB[0];
+/*... y*/
+      p[1]  += aP*vB[1];
+/*... z*/
+      p[2]  += aP*vB[2];
+/*...................................................................*/
+
+  }
+/*...................................................................*/
+  
+/*...*/
+  else
+  {
+/*...*/
+    sPc[0] += aP*(1.e0 - n[0]*n[0]);
+    sPc[1] += aP*(1.e0 - n[1]*n[1]);
+    sPc[2] += aP*(1.e0 - n[2]*n[2]);
+/*...................................................................*/
+
+/*... x*/
+      p[0]  += aP*(vB[0]*(1.0-n[0]*n[0]) 
+            + (vC[1]-vB[1])*n[1]*n[0]
+            + (vC[2]-vB[2])*n[2]*n[0]);
+/*... y*/
+      p[1]  += aP*(vB[1]*(1.0-n[1]*n[1]) 
+            + (vC[0]-vB[0])*n[0]*n[1]
+            + (vC[2]-vB[2])*n[2]*n[1]);
+/*... z*/
+      p[2]  += aP*(vB[2]*(1.0-n[2]*n[2]) 
+            + (vC[0]-vB[0])*n[0]*n[2]
+            + (vC[1]-vB[1])*n[1]*n[2]);
+/*...................................................................*/
+  }
+/*...................................................................*/
+}
+/********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 30/09/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * gradCorretBoundary: condicao de conotorno para paredes estaticas  *
+ * ------------------------------------------------------------------*
+ * parametros de entrada:                                            * 
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *********************************************************************/
 void gradCorretBoundary(Loads *loads              ,INT *RESTRICT lViz
                         ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
                        ,DOUBLE *RESTRICT gradU    ,DOUBLE *RESTRICT normal

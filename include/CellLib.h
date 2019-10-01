@@ -189,8 +189,8 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
                ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
                ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
                ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres 
-               ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT dField 
-               ,DOUBLE *RESTRICT wallPar  
+               ,DOUBLE *RESTRICT vel          
+               ,DOUBLE *RESTRICT dField    ,DOUBLE *RESTRICT wallPar  
                ,short const nEn            ,short  const nFace     
                ,short const ndm            ,short const lib    
                ,INT const nel);
@@ -627,8 +627,8 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                       ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
                       ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
                       ,DOUBLE *RESTRICT pres    ,DOUBLE *RESTRICT gradPres 
-                      ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT dField  
-                      ,DOUBLE *RESTRICT wallPar
+                      ,DOUBLE *RESTRICT vel          
+                      ,DOUBLE *RESTRICT dField  ,DOUBLE *RESTRICT wallPar
                       ,const short nEn          ,short const nFace    
                       ,const short ndm          ,INT const nel);
 /*...................................................................*/

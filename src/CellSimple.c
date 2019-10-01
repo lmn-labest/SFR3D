@@ -1241,7 +1241,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
  * pres      -> campo de pressao conhecido                           * 
  * gradPes   -> gradiente reconstruido da pressao                    * 
  * vel       -> campo de velocidade conhecido                        * 
- * gradVel   -> gradiente rescontruido das velocidades               * 
+ * gradVel   -> gradiente rescontruido das velocidades (Transposto)  * 
  * dField    -> matriz D do metodo simple                            * 
  * stressR   -> tensao residual estrutural                           *
  * eddyVisc  -> viscosidade turbulenta                               *
@@ -1265,7 +1265,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
  * gradVel(nFace+1,ndf,ndm) -> gradVel(nFace+1,2,2)                  * 
  *                                                                   *  
  *                  | du1dx1 du1dx2 du1dx3 |                         *
- * grad(viz1,*,*) = | du2dx1 du2dx2 du2dx3 |                         *
+ * grad(viz1,*,*) = | du2dx1 du2dx2 du2dx3 | = djui                  *
  *                  | du3dx1 du3dx2 du3dx3 |                         *
  *                                                                   *  
  *                  | du1dx1 du1dx2 du1dx3 |                         *
@@ -1593,7 +1593,7 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
                  ,lXmcc            ,lXm
                  ,ccV              ,pf
                  ,lNormal          
-                 ,pFace            ,lFarea
+                 ,0.e0             ,lFarea
                  ,presC            ,presV
                  ,alphaMenosUm     ,alpha    
                  ,fSoPressure      ,false);
@@ -1622,13 +1622,6 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
       wfn = velC[0]*lNormal[0] 
           + velC[1]*lNormal[1] 
           + velC[2]*lNormal[2];
-
-/*... termos viscosos explicitos*/      
-      if(fViscosity)
-        viscosityPartExp(p          ,gradVelC[0]
-                        ,lNormal
-                        ,viscosityC ,lFarea);
-/*...................................................................*/
 
 /*...*/
       s[0] = dFieldC[0]*lFarea*lNormal[0];
@@ -1661,8 +1654,8 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
                  ,ccV              ,pf
                  ,lNormal          
                  ,pFace            ,lFarea
-                 ,presC            ,presV
-                 ,alphaMenosUm     ,alpha    
+                 ,presC            ,0.e0
+                 ,0.0              ,0.e0     
                  ,fSoPressure      ,true);
 /*...................................................................*/
 
@@ -1671,7 +1664,7 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
         turbStructIntegral(stressRc    ,stressRv
                           ,lNormal     ,p
                           ,lFarea
-                          ,alphaMenosUm,alpha    
+                          ,0.e0        ,0.e0     
                           ,true);
 /*...................................................................*/
 
@@ -1732,8 +1725,8 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
 /*...................................................................*/
 
 /*...*/
-        staticWall(velC     ,lNormal   ,sPc, p    
-                 , dcca[nf],viscosityC, lFarea);
+        staticWall(velC     ,lNormal     ,sPc, p    
+                 , dcca[nf],viscosityWall, lFarea);
 /*...................................................................*/
       }
 /*...................................................................*/

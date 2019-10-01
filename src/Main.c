@@ -338,10 +338,10 @@ int main(int argc,char**argv){
 
 /*...*/
   sc.advVel.iCod1    = TVD;
-  sc.advVel.iCod2    = VANLEERFACE;
+  sc.advVel.iCod2    = MIDMODFACE;
   sc.advVel.par[0]   = 0.e0;
   sc.advEnergy.iCod1 = TVD;
-  sc.advEnergy.iCod2 = VANLEERFACE;
+  sc.advEnergy.iCod2 = MIDMODFACE;
   sc.advVel.par[0]   = 0.e0;
   sc.advKturb.iCod1  = TVD;
   sc.advKturb.iCod2  = MIDMODFACE;
@@ -351,7 +351,6 @@ int main(int argc,char**argv){
 /*...*/  
   sc.diffVel.iCod    = OVERRELAXED;
   sc.diffPres.iCod   = OVERRELAXED;
-//  sc.diffPres.iCod   = ORTHOGONAL;
   sc.diffEnergy.iCod = OVERRELAXED;
   sc.diffKturb.iCod  = OVERRELAXED;
 /*...................................................................*/

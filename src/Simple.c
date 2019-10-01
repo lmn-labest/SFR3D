@@ -2979,7 +2979,7 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
                , mesh->ndm                 , mesh->numelNov
                , ndfVel                    , sistEqPres->storage
                , true                      , true
-               , true                     , sistEqPres->unsym); 
+               , true                      , sistEqPres->unsym); 
   else
     systFormSimplePresLm(loadsVel, loadsPresC
             , &sc->diffPres          , eMass
