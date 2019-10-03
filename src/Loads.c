@@ -432,9 +432,9 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
       stress(ss        ,gradVel
             ,viscosityC,lambda
             ,3);
-      p[0] += ss[0]*s[0] + ss[3]*s[1] + ss[5]*s[2]; 
+      p[0] += ss[0]*s[0] + ss[3]*s[1] + ss[5]*s[2];  
       p[1] += ss[3]*s[0] + ss[1]*s[1] + ss[4]*s[2]; 
-      p[2] += ss[5]*s[0] + ss[4]*s[1] + ss[2]*s[2]; 
+      p[2] += ss[5]*s[0] + ss[4]*s[1] + ss[2]*s[2];   
 /*....................................................................*/
 
 /*...*/

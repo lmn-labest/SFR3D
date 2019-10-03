@@ -1601,7 +1601,7 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
 
 /*... termos viscosos explicitos*/      
       if(fViscosity)
-        viscosityPartExp(p          ,gradVelV[0]
+        viscosityPartExp(p          ,gradVelComp[0]
                         ,lNormal
                         ,viscosityC ,lFarea);
 /*...................................................................*/
@@ -1656,7 +1656,7 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
                  ,pFace            ,lFarea
                  ,presC            ,0.e0
                  ,0.0              ,0.e0     
-                 ,fSoPressure      ,true);
+                 ,fSoPressure      ,true);  
 /*...................................................................*/
 
 /*... termos viscosos explicitos*/

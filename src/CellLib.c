@@ -2431,11 +2431,11 @@ void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
 /*...................................................................*/ 
 
 /*... correcao da condicao de contorno*/
-  gradCorretBoundary(loads   ,lViz
+/*gradCorrectBoundary(loads   ,lViz
                     ,lFaceR  ,lFaceL
                     ,gradU   ,normal 
                     ,nFace   ,ndm          
-                    ,ndf     ,nel);          
+                    ,ndf     ,nel);*/        
 /*...................................................................*/
 
 /*... limitador de gradiente*/
@@ -2738,15 +2738,15 @@ void greenGaussCell(Loads *loads
     }
 /*...................................................................*/
 
-/*...*/    
+/*...*/
     for(k=0;k<ndf;k++){
       for(j=0;j<ndm;j++){
         tmp = 0.e0;
         for(i=0;i<nFace;i++)
           tmp += MAT2D(i,k,uf,ndf)*fArea[i]*MAT2D(i,j,normal,ndm); 
-        MAT2D(k,j,gradU,ndm) = tmp*invVol; 
+        MAT2D(k,j,gradU,ndm) = tmp*invVol;         
       }
-    }
+    }  
 /*...................................................................*/
   }
 /*...................................................................*/
@@ -7675,7 +7675,7 @@ void moveWall( DOUBLE *RESTRICT vC       ,DOUBLE *RESTRICT vB
  *-------------------------------------------------------------------* 
  * OBS:                                                              *
  *********************************************************************/
-void gradCorretBoundary(Loads *loads              ,INT *RESTRICT lViz
+void gradCorrectBoundary(Loads *loads              ,INT *RESTRICT lViz
                         ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
                        ,DOUBLE *RESTRICT gradU    ,DOUBLE *RESTRICT normal
                        ,short const nFace         ,short const ndm
@@ -7695,7 +7695,7 @@ void gradCorretBoundary(Loads *loads              ,INT *RESTRICT lViz
 /*... contorno*/
       if(vizNel < 0)
       {
-        if(!lFaceR[i])
+        if(lFaceR[i]==-1)
         {
 /*... flux nulo*/
           for(j=0,gradn=0.e0;j<ndm;j++)
@@ -7721,7 +7721,7 @@ void gradCorretBoundary(Loads *loads              ,INT *RESTRICT lViz
 /*... dominio*/
       if(vizNel > -1)
       {
-        if(!lFaceR[i])
+        if(lFaceR[i]==-1)
         {
 /*... flux nulo*/
           for(k=0;k<ndf;k++)

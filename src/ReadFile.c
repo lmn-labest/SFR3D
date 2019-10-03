@@ -4738,12 +4738,7 @@ void readSetSimple(Memoria *m    , FILE *fileIn
   if(!strcmp(word,"config:")){
 /*... timer*/        
     readMacro(fileIn,word,false);
-/*... levemente compressivel*/       
-    if (mesh->ndfFt)
-      setSimpleLmScheme(word,mesh0->ndm,simple,fileIn);
-/*... imcompressivel*/
-    else
-      setSimpleScheme(word,mesh0->ndm, simple, fileIn);
+    setSimpleScheme(word, simple);
 /*...*/        
     if(simple->type == SIMPLE && !mpiVar.myId)     
       fprintf(fileLogExc,"PRES-VEL  : SIMPLE\n");
@@ -8067,5 +8062,83 @@ void readTransConfig(Temporal *ddt, Save *save
 /*...................................................................*/
 
 
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 09/07/2016                                   *
+ * Data de modificaco : 01/10/2019                                   * 
+ *-------------------------------------------------------------------* 
+ * SETSIMPLESCHEME : set o metodo simple incompressivel              *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void setSimpleScheme(char *fileName, Simple *sp)
+{
+
+  FILE *fileIn=NULL;
+  short j=0;
+  char str[] = {"end"};
+  char word[WORD_SIZE];
+  char macro[][WORD_SIZE] = { "name"     ,"alphapres"    /*0,1*/
+                             ,"alphavel" ,"north"        /*2,3*/   
+                             ,"presidual","maxit"       /*4,5*/
+                            };   
+  
+  fileIn = openFile(fileName,"r");
+
+/*...*/
+  readMacroV2(fileIn, word, false, true);
+  do
+    {
+      j = 0;
+/*... name*/
+      if (!strcmp(word, macro[j++]))
+      {
+        readMacroV2(fileIn, word, false, true);
+        if(!strcmp(word,"SIMPLE"))
+          sp->type = SIMPLE;
+        else if(!strcmp(word,"SIMPLEC"))
+          sp->type =  SIMPLEC;
+      }
+/*.....................................................................*/
+
+/*... alphaPres*/
+      else if (!strcmp(word, macro[j++]))
+        fscanf(fileIn,"%lf",&sp->alphaPres); 
+/*.....................................................................*/
+
+/*... alphaVel*/
+      else if (!strcmp(word, macro[j++]))
+        fscanf(fileIn,"%lf" ,&sp->alphaVel);
+
+/*.....................................................................*/
+
+/*... nOrth*/
+      else if (!strcmp(word, macro[j++]))
+        fscanf(fileIn,"%u" ,&sp->nNonOrth);
+/*.....................................................................*/
+
+/*... pResidual*/
+      else if (!strcmp(word, macro[j++]))
+        fscanf(fileIn,"%d" ,&sp->pSimple);
+/*.....................................................................*/
+
+/*... maxit*/
+      else if (!strcmp(word, macro[j++]))
+        fscanf(fileIn,"%d" ,&sp->maxIt);
+/*.....................................................................*/
+
+      readMacroV2(fileIn, word, false, true);
+    }while(strcmp(word,str));
+/*.....................................................................*/
+    fclose(fileIn);
 }
 /*********************************************************************/

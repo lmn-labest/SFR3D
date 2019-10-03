@@ -5979,7 +5979,7 @@ void rcGradU(Memoria *m                , Loads *loads
       lVolume[aux1]   = gVolume[nel]; 
       lFaceR[aux1]    = MAT2D(nel,aux1,faceR ,aux2);
       lFaceL[aux1]    = MAT2D(nel,aux1,faceL ,aux2);
-      
+
       for(i=0;i<ndf;i++)
         MAT2D(aux1,i,lu,ndf) = MAT2D(nel,i,u,ndf);
 
@@ -6057,7 +6057,7 @@ void rcGradU(Memoria *m                , Loads *loads
         {
           lVolume[i] = gVolume[vizNel];
           for (j = 0; j<ndf; j++)
-            MAT2D(i, j, lu, ndf) = MAT2D(vizNel, j, u, ndf);
+             MAT2D(i, j, lu, ndf) = MAT2D(vizNel, j, u, ndf);
         }
       }
 /*...................................................................*/

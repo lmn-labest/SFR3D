@@ -1098,7 +1098,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                 , DOUBLE *sPc      ,DOUBLE *p
                 , DOUBLE const dcca,DOUBLE const viscosityC
                 , DOUBLE const lFarea);
-  void gradCorretBoundary(Loads *loads              ,INT *RESTRICT lViz
+  void gradCorrectBoundary(Loads *loads              ,INT *RESTRICT lViz
                          ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
                          ,DOUBLE *RESTRICT gradU    ,DOUBLE *RESTRICT normal
                          ,short const nFace         ,short const ndm

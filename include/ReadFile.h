@@ -135,6 +135,7 @@
    bool readBool(char *word);
    void typeResidual(char *word,Residual *re);
    void configEdo(Edo *edo, FILE *file);
+   void setSimpleScheme(char *fileName, Simple *sp);
 /*...................................................................*/
    void help(FILE *f);
 #endif  /*_READ_FILE_*/
