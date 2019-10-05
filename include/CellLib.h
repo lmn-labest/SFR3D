@@ -1093,7 +1093,11 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                        ,DOUBLE const lFarea
                        ,DOUBLE const g1     ,DOUBLE const g2    
                        ,bool const fBoundary);
-
+  void moveWall( DOUBLE *RESTRICT vC       ,DOUBLE *RESTRICT vB        
+             , DOUBLE *RESTRICT n
+             , DOUBLE *RESTRICT sPc      ,DOUBLE *RESTRICT p
+             , DOUBLE const dcca,DOUBLE const viscosityC
+             , DOUBLE const lFarea);
   void staticWall(DOUBLE *v        ,DOUBLE *n
                 , DOUBLE *sPc      ,DOUBLE *p
                 , DOUBLE const dcca,DOUBLE const viscosityC

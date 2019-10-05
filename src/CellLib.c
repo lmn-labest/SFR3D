@@ -7609,7 +7609,7 @@ void moveWall( DOUBLE *RESTRICT vC       ,DOUBLE *RESTRICT vB
              , DOUBLE const dcca,DOUBLE const viscosityC
              , DOUBLE const lFarea)
 {
-  bool fDirechlet = true;
+  bool fDirechlet = false;
   DOUBLE aP;
 
   aP   = viscosityC*lFarea /dcca;
