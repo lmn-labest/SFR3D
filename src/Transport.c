@@ -45,7 +45,7 @@ void transport(Memoria *m      ,Loads *loadsTrans,TransModel *tModel
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
   tm.CellPloadT1 = getTimeC() - tm.CellPloadT1;
   cellPload(loadsTrans            ,mesh->elm.geom.cc 
-           ,mesh->elm.faceRt1    ,mesh->elm.faceLoadT1
+           ,mesh->elm.faceRt1    ,mesh->elm.faceRt1
            ,mesh->elm.geom.volume,sistEqT->id 
            ,mesh->elm.uT1        ,sistEqT->b0
            ,mesh->numelNov       ,mesh->ndfT[0]
@@ -92,7 +92,7 @@ void transport(Memoria *m      ,Loads *loadsTrans,TransModel *tModel
                ,sistEqT->ia             ,sistEqT->ja      
                ,sistEqT->al             ,sistEqT->ad       
                ,sistEqT->b              ,sistEqT->id       
-               ,mesh->elm.faceRt1       ,mesh->elm.faceLoadT1  
+               ,mesh->elm.faceRt1       
                ,mesh->elm.uT1           ,mesh->elm.gradUt1           
                ,mesh->elm.vel                                        
                ,mesh->elm.rCellUt1      ,&sc->ddt
@@ -184,7 +184,7 @@ void transport(Memoria *m      ,Loads *loadsTrans,TransModel *tModel
            , mesh->elm.material.type 
            , mesh->elm.mat           , mesh->elm.cDiffT1
            , mesh->elm.leastSquare   , mesh->elm.leastSquareR
-           , mesh->elm.faceRt1       , mesh->elm.faceLoadT1    
+           , mesh->elm.faceRt1         
            , mesh->elm.uT1           , mesh->elm.gradUt1                 
            , mesh->node.uT1          , &sc->rcGrad
            , mesh->maxNo             , mesh->maxViz

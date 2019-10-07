@@ -484,16 +484,18 @@ int main(int argc,char**argv){
       {
         if(mesh0->ndfF > 0 || mesh0->ndfFt > 0)
         {
-          wallFluid(mesh0->elm.faceRvel,mesh0->elm.adj.nelcon
+          wallFluid(loadsVel
+                   ,mesh0->elm.faceRvel,mesh0->elm.adj.nelcon
                    ,mesh0->elm.adj.nViz   
                    ,mesh0->numel       ,mesh0->maxViz); 
           if(turbModel.fOneEq)
-            wallFluid(mesh0->elm.faceReKturb,mesh0->elm.adj.nelcon
+            wallFluid(loadsKturb
+                     ,mesh0->elm.faceReKturb,mesh0->elm.adj.nelcon
                      ,mesh0->elm.adj.nViz   
                      ,mesh0->numel          ,mesh0->maxViz);  
 /*... verifica se o dominio e aberto ou nao*/
           mesh0->fOpen = openDomain(loadsVel
-                         , mesh0->elm.faceLoadVel , mesh0->elm.adj.nViz
+                         , mesh0->elm.faceRvel , mesh0->elm.adj.nViz
                          , mesh0->numelNov ,mesh0->maxViz);
 /*...*/
 //      thDynamic.fDensityRef = !mesh0->fOpen;
@@ -878,10 +880,8 @@ int main(int argc,char**argv){
                ,mesh0->elm.node          ,mesh0->elm.mat    
                ,mesh0->elm.nen           ,mesh0->elm.geomType
                ,mesh0->elm.material.prop ,mesh0->elm.material.type 
-               ,mesh0->elm.faceRd1       ,mesh0->elm.faceLoadD1
-               ,mesh0->elm.faceRt1       ,mesh0->elm.faceLoadT1
-               ,mesh0->elm.faceRvel      ,mesh0->elm.faceLoadVel  
-               ,mesh0->elm.faceRenergy   ,mesh0->elm.faceLoadEnergy
+               ,mesh0->elm.faceRd1       ,mesh0->elm.faceRt1       
+               ,mesh0->elm.faceRvel      ,mesh0->elm.faceRenergy  
                ,mesh0->nnode             ,mesh0->numel    
                ,mesh0->ndm               
                ,mesh0->maxNo             ,mesh0->maxViz

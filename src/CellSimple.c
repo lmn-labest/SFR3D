@@ -1235,9 +1235,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
  * lRcell    -> nao definido                                         *
  * ddt       -> discretizacao temporal                               *
  * faceVelR  -> restricoes por elemento de velocidades               * 
- * faceVelL  -> carga por elemento de velocidades                    * 
  * facePresR -> restricoes por elemento de pressao                   * 
- * facePresL -> carga por elemento de pressao                        * 
  * pres      -> campo de pressao conhecido                           * 
  * gradPes   -> gradiente reconstruido da pressao                    * 
  * vel       -> campo de velocidade conhecido                        * 
@@ -1291,8 +1289,7 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
             ,DOUBLE *RESTRICT vSkew      ,DOUBLE *RESTRICT mvSkew
             ,DOUBLE *RESTRICT lA         ,DOUBLE *RESTRICT lB
             ,DOUBLE *RESTRICT lRcell     ,Temporal *ddt
-            ,short  *RESTRICT lFaceVelR  ,short *RESTRICT lFaceVelL
-            ,short  *RESTRICT lFacePresR ,short *RESTRICT lFacePresL
+            ,short  *RESTRICT lFaceVelR  ,short  *RESTRICT lFacePresR
             ,DOUBLE *RESTRICT pres       ,DOUBLE *RESTRICT gradPres 
             ,DOUBLE *RESTRICT vel        ,DOUBLE *RESTRICT gradVel
             ,DOUBLE *RESTRICT dField     ,DOUBLE *RESTRICT stressR
@@ -1634,7 +1631,7 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
       if(lFacePresR[nf])
       {
 /*...cargas*/
-        nCarg = lFacePresL[nf]-1;
+        nCarg = lFacePresR[nf]-1;
         pLoadSimplePres(&sP             , p
                       , &pFace          , lKsi
                       , presC           , gradPresC
@@ -1679,14 +1676,14 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
 /*...................................................................*/
 
 /*... velocidades*/
-      if(lFaceVelR[nf] > 0)
+      if(lFaceVelR[nf])
       {
         xx[0] = MAT2D(nf, 0, xm, 3);
         xx[1] = MAT2D(nf, 1, xm, 3);
         xx[2] = MAT2D(nf, 2, xm, 3);
         xx[3] = ts;
 /*...cargas*/
-        nCarg = lFaceVelL[nf]-1;
+        nCarg = lFaceVelR[nf]-1;
         pLoadSimple(sPc         , p
                   , tA          , lXmcc
                   , velC        , gradVelC[0] 
@@ -1701,34 +1698,6 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
                   , true        , false
                   , fWallModel  , wallType);      
       }  
-/*...................................................................*/
-
-/*... parede impermevavel*/
-      else if(lFaceVelR[nf] == STATICWALL)
-      {
-/*... com modelo de parede*/
-        yPlus = 1.e0;
-        uPlus = 1.e0;
-        if (fWallModel) {
-          yPlus = wallPar[0];
-          uPlus = wallPar[1];
-          if(yPlus > 0.01e0)          
-            viscosityWall = viscosityC*yPlus/uPlus;
-          else
-            viscosityWall = viscosityC;   
-        }
-/*...................................................................*/
-
-/*... sem modelo de parede*/
-        else
-          viscosityWall = effViscosityC;
-/*...................................................................*/
-
-/*...*/
-        staticWall(velC     ,lNormal     ,sPc, p    
-                 , dcca[nf],viscosityWall, lFarea);
-/*...................................................................*/
-      }
 /*...................................................................*/
     }
 /*...................................................................*/

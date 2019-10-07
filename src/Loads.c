@@ -216,7 +216,7 @@ void loadSenProd(DOUBLE *tA,DOUBLE *par,DOUBLE *xm){
 
 /********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 04/10/2019                                   * 
+ * Data de modificaco : 06/10/2019                                   * 
  *-------------------------------------------------------------------* 
  * pLoadSimple : condicao de contorno para velocidades               *
  *-------------------------------------------------------------------* 
@@ -287,6 +287,42 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
     tA[0] = par[0];
     tA[1] = par[1];
     if(ndm == 3) tA[2] = par[2];
+    if(!fCalVel)return;
+/*...*/
+    yPlus = 0.e0;
+    uPlus = 1.e0;
+    if (fWallModel) {    
+      yPlus = wallPar[0];
+      uPlus = wallPar[1];
+/*...................................................................*/
+      if(yPlus > 0.01e0)          
+        viscosityWall = viscosityC*yPlus/uPlus;
+      else
+        viscosityWall = viscosityC;   
+    }
+/*...................................................................*/ 
+
+/*...*/
+    else
+      viscosityWall = effViscosityC;
+/*...................................................................*/
+
+/*...*/
+    moveWall(velC ,tA 
+           ,n
+           ,sP    ,p
+           ,dcca  ,viscosityWall
+           ,fArea);
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*... parade impermeavel movel*/
+  else if( ld->type == STATICWALL)
+  {
+    tA[0] = 0.e0;
+    tA[1] = 0.e0;
+    if(ndm == 3) tA[2] = 0.e0;
     if(!fCalVel)return;
 /*...*/
     yPlus = 0.e0;
@@ -1459,20 +1495,26 @@ void initLoads()
 {
   short i;
 
-  for(i=0;i<MAXLOADD1;i++)
+  for(i=0;i<MAXLOAD;i++)
   {
-    loadsD1[i].type = 0;
-    loadsT1[i].type = 0;
-  }
-
-  for(i=0;i<MAXLOADFLUID;i++)
-  {
+    loadsD1[i].type      = 0;
+    loadsT1[i].type      = 0;
     loadsPres[i].type    = 0;
     loadsPresC[i].type   = 0;
     loadsEnergy[i].type  = 0;
     loadsTemp[i].type    = 0;
     loadsKturb[i].type   = 0;
     loadsZcomb[i].type   = 0;
+
+    loadsD1[i].fUse      = false;
+    loadsT1[i].fUse      = false;
+    loadsPres[i].fUse    = false;
+    loadsPresC[i].fUse   = false;
+    loadsEnergy[i].fUse  = false;
+    loadsTemp[i].fUse    = false;
+    loadsKturb[i].fUse   = false;
+    loadsZcomb[i].fUse   = false;
+
   }
 }
 /**********************************************************************/

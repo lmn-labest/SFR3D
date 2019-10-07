@@ -88,7 +88,7 @@ void simpleSolver(Memoria *m
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
   tm.cellPloadSimple = getTimeC() - tm.cellPloadSimple;
   cellPloadSimple(loadsPres            ,mesh->elm.geom.cc 
-                 ,mesh->elm.faceRpres  ,mesh->elm.faceLoadPres  
+                 ,mesh->elm.faceRpres  ,mesh->elm.faceRpres  
                  ,mesh->elm.geom.volume
                  ,sistEqVel->id        ,sistEqPres->id
                  ,mesh->elm.vel        ,mesh->elm.pressure 
@@ -356,7 +356,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*... restricoes por centro de celula vel e cargas por volume b0*/
   tm.cellPloadSimple = getTimeC() - tm.cellPloadSimple;
   cellPloadSimple(loadsPres            ,mesh->elm.geom.cc
-                 ,mesh->elm.faceRpres  ,mesh->elm.faceLoadPres
+                 ,mesh->elm.faceRpres  ,mesh->elm.faceRpres
                  ,mesh->elm.geom.volume
                  ,sistEqVel->id        ,sistEqPres->id
                  ,mesh->elm.vel        ,mesh->elm.pressure
@@ -753,7 +753,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*... calculo da taxa de massa atravessando o contorno aberto*/
   massFluxOpenDomain(loadsVel         , sc->ddt 
               , mesh->elm.cellFace    , mesh->face.owner
-              , mesh->elm.faceLoadVel , mesh->elm.adj.nViz 
+              , mesh->elm.faceRvel , mesh->elm.adj.nViz 
               , mesh->face.area       , mesh->face.normal
               , mesh->face.xm  
               , mesh->elm.densityFluid, mesh->elm.vel 
@@ -938,7 +938,7 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
   tm.cellPloadSimple = getTimeC() - tm.cellPloadSimple;
   cellPloadSimple(loadsPres, mesh->elm.geom.cc
-    , mesh->elm.faceRpres, mesh->elm.faceLoadPres
+    , mesh->elm.faceRpres, mesh->elm.faceRpres
     , mesh->elm.geom.volume
     , sistEqVel->id, sistEqPres->id
     , mesh->elm.vel, mesh->elm.pressure
@@ -1255,7 +1255,7 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
 /*... calculo da taxa de massa atravessando o contorno aberto*/
 //deltaMass = massFluxOpenDomain(loadsVel, sc->ddt
 //  , mesh->elm.cellFace, mesh->face.owner
-//  , mesh->elm.faceLoadVel, mesh->elm.adj.nViz
+//  , mesh->elm.faceRvel, mesh->elm.adj.nViz
 //  , mesh->face.area, mesh->face.normal
 //  , mesh->face.xm
 //  , mesh->elm.densityFluid, mesh->elm.vel
@@ -2643,7 +2643,7 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
            , mesh->elm.material.type
            , mesh->elm.mat          , NULL
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-           , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
+           , mesh->elm.faceRvel     
            , mesh->elm.vel          , mesh->elm.gradVel
            , mesh->node.vel         , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
@@ -2672,7 +2672,7 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
            , mesh->elm.material.type
            , mesh->elm.mat          , NULL
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-           , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
+           , mesh->elm.faceRpres    
            , mesh->elm.pressure     , mesh->elm.gradPres
            , mesh->node.pressure    , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
@@ -2706,8 +2706,7 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
                , sistEqVel->ia           , sistEqVel->ja
                , sistEqVel->al           , sistEqVel->ad
                , sistEqVel->b            , sistEqVel->id
-               , mesh->elm.faceRvel      , mesh->elm.faceLoadVel
-               , mesh->elm.faceRpres     , mesh->elm.faceLoadPres
+               , mesh->elm.faceRvel      , mesh->elm.faceRpres
                , mesh->elm.pressure      , mesh->elm.gradPres
                , mesh->elm.vel           , mesh->elm.gradVel
                , sp->d                   , sp->alphaVel
@@ -2741,8 +2740,8 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
                       , sistEqVel->ia           , sistEqVel->ja
                       , sistEqVel->al           , sistEqVel->ad
                       , sistEqVel->b            , sistEqVel->id
-                      , mesh->elm.faceRvel      , mesh->elm.faceLoadVel
-                      , mesh->elm.faceRpres     , mesh->elm.faceLoadPres
+                      , mesh->elm.faceRvel      , mesh->elm.faceRvel
+                      , mesh->elm.faceRpres     , mesh->elm.faceRpres
                       , mesh->elm.pressure      , mesh->elm.gradPres
                       , mesh->elm.vel           , mesh->elm.gradVel
                       , sp->d                   , sp->alphaVel
@@ -2890,8 +2889,7 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
                , sistEqPres->ia            , sistEqPres->ja
                , sistEqPres->al            , sistEqPres->ad
                , bPc                       , sistEqPres->id
-               , mesh->elm.faceRvel        , mesh->elm.faceLoadVel      
-               , mesh->elm.faceRpres       , mesh->elm.faceLoadPres     
+               , mesh->elm.faceRvel        , mesh->elm.faceRpres     
                , mesh->elm.pressure        , mesh->elm.gradPres
                , mesh->elm.vel             , sp->d   
                , mesh->elm.wallParameters  , rCellPc
@@ -2921,8 +2919,8 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
             , sistEqPres->ia         , sistEqPres->ja
             , sistEqPres->al         , sistEqPres->ad
             , bPc                    , sistEqPres->id
-            , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
-            , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
+            , mesh->elm.faceRvel     , mesh->elm.faceRvel
+            , mesh->elm.faceRpres    , mesh->elm.faceRpres
             , mesh->elm.pressure     , mesh->elm.gradPres
             , mesh->elm.vel          , sp->d
             , mesh->elm.temp         , mesh->elm.wallParameters
@@ -2999,7 +2997,7 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
             , mesh->elm.material.type
             , mesh->elm.mat          , NULL
             , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-            , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
+            , mesh->elm.faceRpres    
             , sp->ePresC1            , sp->eGradPresC
             , sp->nPresC             , &sc->rcGrad
             , mesh->maxNo            , mesh->maxViz
@@ -3083,7 +3081,7 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
         , mesh->elm.material.type
         , mesh->elm.mat          , NULL
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-        , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
+        , mesh->elm.faceRpres    
         , sp->ePresC             , sp->eGradPresC
         , sp->nPresC             , &sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
@@ -3124,7 +3122,7 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
         , mesh->elm.material.type
         , mesh->elm.mat          , NULL
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-        , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
+        , mesh->elm.faceRvel     
         , mesh->elm.vel          , mesh->elm.gradVel
         , mesh->node.vel         , &sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
@@ -3153,7 +3151,7 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
         , mesh->elm.material.type
         , mesh->elm.mat          , NULL
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-        , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
+        , mesh->elm.faceRpres    
         , mesh->elm.pressure     , mesh->elm.gradPres
         , mesh->node.pressure    , &sc->rcGrad
         , mesh->maxNo            , mesh->maxViz

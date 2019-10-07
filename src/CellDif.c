@@ -258,7 +258,7 @@ void cellDif2D(Loads *loads
 
 /*********************************************************************
  * Data de criacao    : 16/01/2018                                   *
- * Data de modificaco : 26/09/2019                                   *
+ * Data de modificaco : 06/10/2019                                   *
  * ----------------------------------------------------------------- *
  * CELLDIF3D: Celula 3D para difusao pura                            * 
  *------------------------------------------------------------------ * 
@@ -295,7 +295,6 @@ void cellDif2D(Loads *loads
  * u0        -> solucao conhecida                                    * 
  * gradU0    -> gradiente rescontruido da solucao conhecida          * 
  * faceR     -> restricoes por elemento                              * 
- * faceL     -> carga por elemento                                   * 
  * nEn       -> numero de nos da celula central                      * 
  * nFace     -> numero de faces da celula central                    * 
  * ndm       -> numero de dimensoes                                  * 
@@ -322,7 +321,7 @@ void cellDif3D(Loads *loads               ,Diffusion *diff
               ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
               ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
               ,DOUBLE *RESTRICT lRcell    ,Temporal *ddt             
-              ,short  *RESTRICT lFaceR    ,short  *RESTRICT lFaceL  
+              ,short  *RESTRICT lFaceR    
               ,DOUBLE *RESTRICT u0        ,DOUBLE *RESTRICT gradU0
               ,const short nEn            ,short const nFace    
               ,const short ndm            ,INT const nel)
@@ -465,7 +464,7 @@ void cellDif3D(Loads *loads               ,Diffusion *diff
       if(lFaceR[nf])
       {
 /*...cargas*/
-        nCarg=lFaceL[nf]-1;
+        nCarg = lFaceR[nf]-1;
         xx[0] = MAT2D(nf,0,xm,3);
         xx[1] = MAT2D(nf,1,xm,3);
         xx[2] = MAT2D(nf,2,xm,3);        

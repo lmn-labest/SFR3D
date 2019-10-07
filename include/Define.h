@@ -313,16 +313,14 @@
   #define INLETSTAICTPRES  9
   #define OPEN            10 
   #define CONVECTIONHEAT  11
-  #define STATICWALL      -1  /*parede impermevel para escoamento*/
   #define SLIP            12  /*parede perfeitamente lisa*/
   #define INLETTOTALPRES  13
+  #define STATICWALL      14  /*parede impermevel para escoamento*/
 /*...................................................................*/
 
 /*...*/
-  #define MAXLOADPARAMETER 20
-  #define MAXLOADD1        200
-  #define MAXLOADT1        200
-  #define MAXLOADFLUID     200
+  #define MAXLOADPARAMETER  20
+  #define MAXLOAD          200
   #define MAXINTERPOL      100
 /*...................................................................*/
 

@@ -439,7 +439,7 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
 
 /*********************************************************************
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 28/09/2019                                   *
+ * Data de modificaco : 06/10/2019                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEVEl: chamada de bibliotecas de celulas para          *
  * problema de escoamento de fluidos (VEL)                           *
@@ -479,9 +479,7 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
  * lRcell    -> nao definido                                         *
  * ddt       -> discretizacao temporal                               *
  * faceVelR  -> restricoes por elemento de velocidades               *
- * faceVelL  -> carga por elemento de velocidades                    *
  * facePresR -> restricoes por elemento de pressao                   *
- * facePresL -> carga por elemento de pressao                        *
  * pres      -> campo de pressao conhecido                           *
  * gradPes   -> gradiente reconstruido da pressao                    *
  * vel       -> campo de velocidade conhecido                        *
@@ -517,8 +515,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
              ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
              ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
              ,DOUBLE *RESTRICT lRcell    ,Temporal *ddt
-             ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
-             ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
+             ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFacePresR
              ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres 
              ,DOUBLE *RESTRICT vel       ,DOUBLE *RESTRICT gradVel
              ,DOUBLE *RESTRICT dField    ,DOUBLE *RESTRICT stressR
@@ -558,7 +555,8 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
 /*..................................................................*/
 
 /*... 3D*/
-    else if(ndm == 3){
+    else if(ndm == 3)
+    {
       cellSimpleVel3D(lVel    ,lPres       
                  ,advVel      ,diffVel    
                  ,tModel      ,ModelMomentum 
@@ -573,8 +571,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
                  ,vSkew       ,mvSkew
                  ,lA          ,lB
                  ,lRcell      ,ddt 
-                 ,lFaceVelR   ,lFaceVelL
-                 ,lFacePresR  ,lFacePresL
+                 ,lFaceVelR   ,lFacePresR
                  ,pres        ,gradPres 
                  ,vel         ,gradVel
                  ,dField      ,stressR
@@ -943,9 +940,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
  * lRcell    -> nao definido                                         *
  * ddt       -> discretizacao temporal                               *
  * faceVelR  -> restricoes por elemento de velocidades               *
- * faceVelL  -> carga por elemento de velocidades                    *
  * facePresR -> restricoes por elemento de pressao                   *
- * facePresL -> carga por elemento de pressao                        *
  * pres      -> campo de pressao conhecido                           *
  * gradPes   -> gradiente reconstruido da pressao                    *
  * vel       -> campo de velocidade conhecido                        *
@@ -975,8 +970,7 @@ void cellLibSimplePres(Loads *lVel         ,Loads *lPres
                ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
                ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
                ,DOUBLE *RESTRICT lRcell    ,Temporal *ddt
-               ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFaceVelL
-               ,short  *RESTRICT lFacePresR,short  *RESTRICT lFacePresL
+               ,short  *RESTRICT lFaceVelR ,short  *RESTRICT lFacePresR
                ,DOUBLE *RESTRICT pres      ,DOUBLE *RESTRICT gradPres 
                ,DOUBLE *RESTRICT vel         
                ,DOUBLE *RESTRICT dField    ,DOUBLE *RESTRICT wallPar      
@@ -1024,8 +1018,7 @@ void cellLibSimplePres(Loads *lVel         ,Loads *lPres
                  ,vSkew       ,mvSkew
                  ,lA          ,lB
                  ,lRcell       
-                 ,lFaceVelR   ,lFaceVelL
-                 ,lFacePresR  ,lFacePresL
+                 ,lFaceVelR   ,lFacePresR
                  ,pres        ,gradPres
                  ,vel               
                  ,dField      ,wallPar 
@@ -1453,8 +1446,7 @@ void cellLibSimpleNonOrthPres(Diffusion diffPres
  * lRcell    -> nao definido                                         *
  * ddt       -> discretizacao temporal                               *
  * faceR     -> restricoes por elemento                              * 
- * faceL     -> carga por elemento                                   * 
- * u0        -> solucao conhecida                                    * 
+  * u0        -> solucao conhecida                                    * 
  * gradU0    -> gradiente rescontruido da solucao conhecida          * 
  * vel       -> campo de velocidade conhecido                        *
  * cc        -> centroides da celula centra e seus vizinhos          *
@@ -1484,7 +1476,7 @@ void cellLibTrans(Loads *loads
                ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
                ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
                ,DOUBLE *RESTRICT lRcell  ,Temporal *ddt
-               ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL       
+               ,short  *RESTRICT lFaceR        
                ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
                ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT cc
                ,short const nEn          ,short  const nFace     
@@ -1517,7 +1509,7 @@ void cellLibTrans(Loads *loads
 /*..................................................................*/   
 
 /*... 3D*/
-    else if(ndm == 3){
+    else if(ndm == 3)
       cellTrans3D(loads    
                  ,advT     ,diffT
                  ,tModel
@@ -1532,12 +1524,11 @@ void cellLibTrans(Loads *loads
                  ,vSkew    ,mvSkew
                  ,lA       ,lB
                  ,lRcell   ,ddt 
-                 ,lFaceR   ,lFaceL
+                 ,lFaceR   
                  ,u0       ,gradU0      
                  ,vel      ,cc             
                  ,nEn      ,nFace 
                  ,ndm      ,nel);  
-    } 
 /*..................................................................*/   
   }
 
@@ -1546,7 +1537,7 @@ void cellLibTrans(Loads *loads
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 26/09/2019                                   * 
+ * Data de modificaco : 06/10/2019                                   * 
  *-------------------------------------------------------------------* 
  * CELLLIBDIF : chamada de bibliotecas de celulas para o problema    *
  * de difusao.                                                       * 
@@ -1584,7 +1575,6 @@ void cellLibTrans(Loads *loads
  * u0        -> solucao conhecida                                    * 
  * gradU0    -> gradiente rescontruido da solucao conhecida          * 
  * faceR     -> restricoes por elemento                              * 
- * faceLd1   -> carga por elemento                                   * 
  * nEn       -> numero de nos da celula central                      * 
  * nFace     -> numero de faces da celula central                    * 
  * ndm       -> numero de dimensoes                                  * 
@@ -1609,7 +1599,7 @@ void cellLibDif(Loads *loads               ,Diffusion *diff
                ,DOUBLE *RESTRICT vSkew     ,DOUBLE *RESTRICT mvSkew
                ,DOUBLE *RESTRICT lA        ,DOUBLE *RESTRICT lB
                ,DOUBLE *RESTRICT lRcell    ,Temporal *ddt
-               ,short  *RESTRICT lFaceR    ,short  *RESTRICT lFaceL       
+               ,short  *RESTRICT lFaceR           
                ,DOUBLE *RESTRICT u0        ,DOUBLE *RESTRICT gradU0
                ,short const nEn            ,short  const nFace     
                ,short const ndm            ,short const lib    
@@ -1652,7 +1642,7 @@ void cellLibDif(Loads *loads               ,Diffusion *diff
                ,vSkew     ,mvSkew
                ,lA        ,lB
                ,lRcell    ,ddt
-               ,lFaceR    ,lFaceL 
+               ,lFaceR    
                ,u0        ,gradU0      
                ,nEn       ,nFace 
                ,ndm       ,nel);
@@ -2301,7 +2291,7 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
     
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 18/09/2019                                   * 
+ * Data de modificaco : 06/10/2019                                   * 
  *-------------------------------------------------------------------* 
  * CELLRCGRAD : chamada de bibliotecas de celulas para a reconstrucao*
  * de gradiente.                                                     * 
@@ -2332,7 +2322,6 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
  * gradU     -> gradiente rescontruido da solucao conhecida          * 
  * nU        -> solucao conhecida no no                              * 
  * faceR     -> restricoes por elmento                               * 
- * faceL     -> carga por elemento                                   * 
  * nFace     -> numero de faces                                      * 
  * ndm       -> numero de dimensoes                                  * 
  * ndf       -> grauss de liberdade                                  * 
@@ -2352,8 +2341,7 @@ void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
                  ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
                  ,DOUBLE *RESTRICT vSkew   
                  ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
-                 ,DOUBLE *RESTRICT lDcca 
-                 ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
+                 ,DOUBLE *RESTRICT lDcca   ,short  *RESTRICT lFaceR  
                  ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU 
                  ,DOUBLE *RESTRICT lnU     ,short const ty                
                  ,short const nFace        ,short const ndm      
@@ -2371,8 +2359,8 @@ void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
                     ,normal  ,volume
                     ,vSkew   
                     ,xm      ,xmcc
-                    ,lFaceR  ,lFaceL
-                    ,u       ,gradU 
+                    ,lFaceR  ,u 
+                    ,gradU 
                     ,nFace   ,ndm   
                     ,ndf     ,nel);
     break;
@@ -2396,7 +2384,7 @@ void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
                  ,xm      ,xmcc
                  ,lProp   ,lDcca
                  ,u       ,gradU
-                 ,lFaceR  ,lFaceL
+                 ,lFaceR 
                  ,nFace   ,ndf
                  ,ndm     ,nel);
     break;
@@ -2410,7 +2398,7 @@ void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
                    ,lViz    
                    ,xm      ,xmcc
                    ,u       ,gradU
-                   ,lFaceR  ,lFaceL
+                   ,lFaceR  
                    ,nFace   ,ndf
                    ,ndm);
     break;
@@ -2444,7 +2432,7 @@ void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
                 ,u           ,gradU
                 ,lViz    
                 ,xm          ,xmcc
-                ,lFaceR      ,lFaceL
+                ,lFaceR      ,lFaceR
                 ,rcGrad->beta,rcGrad->func
                 ,volume[nFace],nFace
                 ,ndf          ,ndm
@@ -2478,7 +2466,6 @@ void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
  * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
  *            faces da celula central                                * 
  * lFaceR    -> restricoes por elmento                               * 
- * lFaceS    -> carga por elemento                                   * 
  * u         -> solucao conhecida                                    * 
  * gradU     -> gradiente rescontruido da solucao conhecida          * 
  * nFace     -> numero vizinhos por celula maximo da malha           * 
@@ -2498,7 +2485,7 @@ void greenGaussCell(Loads *loads
                ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
                ,DOUBLE *RESTRICT vSkew   
                ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc 
-               ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
+               ,short  *RESTRICT lFaceR  
                ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU 
                ,short const nFace        ,short const ndm   
                ,short const ndf          ,INT const nel)
@@ -2551,7 +2538,7 @@ void greenGaussCell(Loads *loads
 /*... temperatura prescrita na face(extrapolacao linear)*/
         if(lFaceR[i])
         {
-          nCarg= lFaceL[i]-1;
+          nCarg= lFaceR[i]-1;
           type = loads[nCarg].type;
 /*... valor prescrito*/
           if (type == DIRICHLETBC) {
@@ -2658,14 +2645,23 @@ void greenGaussCell(Loads *loads
 /*... contorno*/
       else{
 /*... temperatura prescrita na face(extrapolacao linear)*/
-        if(lFaceR[i] > 0){
-          nCarg= lFaceL[i]-1;
+        if(lFaceR[i] > 0)
+        {
+          nCarg= lFaceR[i]-1;
           type = loads[nCarg].type;
 /*... valor prescrito*/
           if( type == DIRICHLETBC || type == MOVEWALL){
             getLoads(par,&loads[nCarg],xx);
             for(k=0;k<ndf;k++)
               MAT2D(i,k,uf,ndf) = par[k];            
+          }
+/*...................................................................*/
+
+/*... valor prescrito*/
+          if( type == STATICWALL)
+          {
+            for(k=0;k<ndf;k++)
+              MAT2D(i,k,uf,ndf) = 0.e0;            
           }
 /*...................................................................*/
 
@@ -2714,13 +2710,6 @@ void greenGaussCell(Loads *loads
           }
 /*...................................................................*/
         } 
-/*...................................................................*/
-
-/*... parede static impermeavel*/
-        else if(lFaceR[i]==STATICWALL){
-          for(k=0;k<ndf;k++)
-            MAT2D(i,k,uf,ndf) = 0.e0;
-        }
 /*...................................................................*/
 
 /*... fluxo*/
@@ -2917,7 +2906,6 @@ void greenGaussNode(INT *RESTRICT lViz   ,DOUBLE *RESTRICT fArea
  * u         -> solucao conhecida                                    * 
  * gradU     -> gradiente rescontruido da solucao conhecida          * 
  * lFaceR    -> restricoes por elmento                               * 
- * lFaceS    -> carga por elemento                                   * 
  * nFace     -> numero vizinhos por celula maximo da malha           * 
  * ndf       -> grauss de liberdade                                  * 
  * ndm       -> numero de dimensoes                                  * 
@@ -2933,7 +2921,7 @@ void  leastSquare(Loads *loads
                  ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc 
                  ,DOUBLE *RESTRICT lProp   ,DOUBLE *RESTRICT lDcca 
                  ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU
-                 ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
+                 ,short  *RESTRICT lFaceR  
                  ,short const nFace        ,short const ndf
                  ,short const ndm          ,INT const nel)
 {
@@ -2972,7 +2960,7 @@ void  leastSquare(Loads *loads
 /*... */
           if(lFaceR[i])
           {
-            nCarg = lFaceL[i]-1;
+            nCarg = lFaceR[i]-1;
             type  = loads[nCarg].type;
 /*... valor prescrito*/
             if (type == DIRICHLETBC || type == MOVEWALL) {
@@ -3077,7 +3065,7 @@ void  leastSquare(Loads *loads
 /*... potencial prescrito na face(extrapolacao linear)*/
           if(lFaceR[i] > 0)
           {
-            nCarg= lFaceL[i]-1;
+            nCarg= lFaceR[i]-1;
             type = loads[nCarg].type;
 /*... valor prescrito*/
             if( type == DIRICHLETBC || type == MOVEWALL)
@@ -3085,6 +3073,14 @@ void  leastSquare(Loads *loads
               getLoads(par,&loads[nCarg],xx);
               for(k=0;k<ndf;k++)
                 MAT2D(i,k,du,ndf) = par[k] - uC[k];
+            }
+/*...................................................................*/
+
+/*... parede static impermeavel*/
+            else if(lFaceR[i]==STATICWALL)
+            {
+              for(k=0;k<ndf;k++)
+                MAT2D(i,k,du,ndf) = - uC[k];
             }
 /*...................................................................*/
 
@@ -3119,14 +3115,6 @@ void  leastSquare(Loads *loads
                 MAT2D(i,k,du,ndf) = 0.e0;                          
 /*...................................................................*/
           } 
-/*...................................................................*/
-
-/*... parede static impermeavel*/
-          else if(lFaceR[i]==STATICWALL)
-          {
-            for(k=0;k<ndf;k++)
-              MAT2D(i,k,du,ndf) = - uC[k];
-           }
 /*...................................................................*/
 
 /*... fluxo nulo*/
@@ -3197,7 +3185,7 @@ void  leastSquareQR(Loads *loads
                    ,INT *RESTRICT lViz       
                    ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
                    ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU
-                   ,short  *RESTRICT lFaceR  ,short *RESTRICT lFaceL
+                   ,short  *RESTRICT lFaceR  
                    ,short const nFace        ,short const ndf
                    ,short const ndm){
 
@@ -3234,7 +3222,7 @@ void  leastSquareQR(Loads *loads
           xx[3] = 0.e0;
 /*... temperatura prescrita na face(extrapolacao linear)*/
           if(lFaceR[i]){
-            nCarg=lFaceL[i]-1;
+            nCarg=lFaceR[i]-1;
             type = loads[nCarg].type;
 /*... valor prescrito*/
             if (type == DIRICHLETBC || type == MOVEWALL) {
@@ -3343,14 +3331,23 @@ void  leastSquareQR(Loads *loads
           if(ndm == 3) xx[2] = MAT2D(i,2,xm,ndm);
           xx[3] = 0.e0;
 /*... potencial prescrito na face(extrapolacao linear)*/
-          if(lFaceR[i] > 0){
-            nCarg= lFaceL[i]-1;
+          if(lFaceR[i])
+          {
+            nCarg= lFaceR[i]-1;
             type = loads[nCarg].type;
 /*... valor prescrito*/
             if( type == DIRICHLETBC || type == MOVEWALL){
               getLoads(par,&loads[nCarg],xx);
               for(k=0;k<ndf;k++)
                 MAT2D(i,k,du,ndf) = par[k] - uC[k];
+            }
+/*...................................................................*/
+
+/*... parede static impermeavel*/
+            else if(lFaceR[i]==STATICWALL)
+            {
+              for(k=0;k<ndf;k++)
+                MAT2D(i,k,du,ndf) = - uC[k];
             }
 /*...................................................................*/
 
@@ -3384,13 +3381,6 @@ void  leastSquareQR(Loads *loads
                 MAT2D(i,k,du,ndf) = 0.e0;                          
 /*...................................................................*/
           } 
-/*...................................................................*/
-
-/*... parede static impermeavel*/
-          else if(lFaceR[i]==STATICWALL){
-            for(k=0;k<ndf;k++)
-              MAT2D(i,k,du,ndf) = - uC[k];
-           }
 /*...................................................................*/
 
 /*... fluxo nulo*/

@@ -114,7 +114,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
        , mesh->elm.material.prop, mesh->elm.material.type
        , mesh->elm.mat          , mesh->elm.cDiffComb
        , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-       , mesh->elm.faceResZcomb , mesh->elm.faceLoadZcomb
+       , mesh->elm.faceResZcomb 
        , mesh->elm.zComb        , mesh->elm.gradZcomb
        , mesh->node.zComb       , &sc->rcGrad
        , mesh->maxNo            , mesh->maxViz
@@ -147,7 +147,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
              , sistEqComb->al          , sistEqComb->ad
              , sistEqComb->b           , sistEqComb->id
              , mesh->elm.faceResZcomb  , mesh->elm.faceLoadZcomb
-             , mesh->elm.faceRvel      , mesh->elm.faceLoadVel
+             , mesh->elm.faceRvel      , mesh->elm.faceRvel
              , mesh->elm.zComb         , mesh->elm.gradZcomb  
              , mesh->elm.wk            , mesh->elm.vel           
              , mesh->elm.pressure0     , mesh->elm.pressure

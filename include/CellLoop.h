@@ -51,7 +51,7 @@
            , DOUBLE *RESTRICT prop     , short  *RESTRICT calType  
            , short  *RESTRICT mat      , DOUBLE *RESTRICT coefDif 
            , DOUBLE *RESTRICT lSquare  , DOUBLE *RESTRICT lSquareR 
-           , short  *RESTRICT faceR    , short *RESTRICT faceL
+           , short  *RESTRICT faceR    
            , DOUBLE *RESTRICT u        , DOUBLE *RESTRICT gradU              
            , DOUBLE *RESTRICT nU       , RcGrad *rcGrad 
            , short maxNo               , short maxViz
@@ -70,8 +70,7 @@
                    , DOUBLE *RESTRICT cc   , DOUBLE *RESTRICT x
                    , DOUBLE *RESTRICT fXm
                    , short *RESTRICT nen   , short *RESTRICT nFace
-                   , short  *RESTRICT faceR, short *RESTRICT faceL
-                   , InterfaceNo *iNo
+                   , short  *RESTRICT faceR, InterfaceNo *iNo
                    , INT const numelNov    , INT const numel
                    , INT const nNodeNov    , INT const nNode
                    , short const maxNo     , short const maxViz
@@ -97,7 +96,7 @@
                  , INT    *RESTRICT ia       , INT    *RESTRICT ja
                  , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad
                  , DOUBLE *RESTRICT b        , INT    *RESTRICT id
-                 , short  *RESTRICT faceR    , short  *RESTRICT faceLd1
+                 , short  *RESTRICT faceR    
                  , DOUBLE *RESTRICT u0       , DOUBLE *RESTRICT gradU0
                  , DOUBLE *RESTRICT rCell    , Temporal *ddt
                  , INT nEq                   , INT nEqNov
@@ -128,7 +127,7 @@
                    , INT    *RESTRICT ia       , INT    *RESTRICT ja
                    , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad
                    , DOUBLE *RESTRICT b        , INT    *RESTRICT id
-                   , short  *RESTRICT faceR    , short  *RESTRICT faceL
+                   , short  *RESTRICT faceR   
                    , DOUBLE *RESTRICT u0       , DOUBLE *RESTRICT gradU0
                    , DOUBLE *RESTRICT vel
                    , DOUBLE *RESTRICT rCell    , Temporal *ddt
@@ -160,8 +159,7 @@
                , INT    *RESTRICT ia       , INT    *RESTRICT ja
                , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad
                , DOUBLE *RESTRICT b        , INT    *RESTRICT id
-               , short  *RESTRICT faceVelR , short  *RESTRICT faceVelL
-               , short  *RESTRICT facePresR, short  *RESTRICT facePresL
+               , short  *RESTRICT faceVelR , short  *RESTRICT facePresR
                , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT gradVel
                , DOUBLE *RESTRICT dField   , DOUBLE underU
@@ -398,8 +396,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                  , INT    *RESTRICT ia       , INT    *RESTRICT ja
                  , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad
                  , DOUBLE *RESTRICT b        , INT    *RESTRICT id
-                 , short  *RESTRICT faceVelR , short  *RESTRICT faceVelL
-                 , short  *RESTRICT facePresR, short  *RESTRICT facePresL
+                 , short  *RESTRICT faceVelR , short  *RESTRICT facePresR
                  , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                  , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT dField
                  , DOUBLE *RESTRICT wallPar  , DOUBLE *RESTRICT rCell

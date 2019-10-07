@@ -41,10 +41,8 @@
               ,INT *el           ,short *mat    
               ,short *nen        ,short *typeGeom
               ,double *prop      ,short *typeCal
-              ,short *faceRd1    ,short *faceSd1
-              ,short *faceRt1    ,short *faceSt1
-              ,short *faceRfluid ,short *faceSfluid
-              ,short *faceRenergy,short *faceLenergy 
+              ,short *faceRd1    ,short *faceRt1 
+              ,short *faceRfluid ,short *faceRenergy 
               ,INT nnode         ,INT numel    
               ,short ndm      
               ,short maxno       ,short maxIt 
@@ -66,10 +64,8 @@
   void wGeoFaceVtk(Memoria *m     ,DOUBLE *x      
             ,INT *el              ,short *nen     
             ,short *typeGeom
-            ,short *faceRd1       ,short *faceSd1
-            ,short *faceRt1       ,short *faceSt1
-            ,short *faceRfluid    ,short *faceSfluid
-            ,short *faceRtemp     ,short *faceLtemp
+            ,short *faceRd1       ,short *faceRt1      
+            ,short *faceRfluid    ,short *faceRenergy
             ,INT const nnode      ,INT const numel    
             ,short const ndm      
             ,short const ndfD     ,short const ndfT 
@@ -80,13 +76,12 @@
 
   void wGeoFaceVtk2(Memoria *m          , DOUBLE *x
                   , INT *el             , short *nen
-                  , short *typeGeom     
-                  , short *faceRd       , short *faceLd
+                  , short *typeGeom     , short *faceRd       
                   , INT const nnode     , INT const numel
                   , short const ndm     , short const maxViz
                   , short const ndf     , short const maxNo
                   , char *nameOut       , bool iws
-                  , bool const fWallVel , FILE *f);
+                  , FILE *f);
 /*...................................................................*/
 
 /*... resultados*/  
@@ -196,13 +191,13 @@
 /*...................................................................*/
 
 /*...*/
-  void makeFace(INT *el            ,short *faceR       ,short *faceL 
+  void makeFace(INT *el           ,short *faceR     
              ,short *typeGeom
              ,INT *face          ,int    *lFaceL     ,INT *idFace
              ,short *typeGeomFace,short *nenFace
              ,short const maxViz ,short const maxNo
              ,short const ndf    ,INT const numel   
-             ,INT *nFace         ,bool const fWallVel);
+             ,INT *nFace        );
 
   void makeVorticity(DOUBLE *RESTRICT w, DOUBLE *RESTRICT gradVel
                     ,INT const n       , const short ndm);

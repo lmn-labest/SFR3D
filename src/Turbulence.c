@@ -97,7 +97,7 @@ void turbulence(Memoria *m
       , mesh->elm.adj.nelcon     , mesh->elm.adj.nViz 
       , mesh->face.normal        , mesh->elm.geom.volume
       , mesh->elm.geom.dcca  
-      , mesh->elm.faceRvel       , mesh->elm.faceLoadVel               
+      , mesh->elm.faceRvel       , mesh->elm.faceRvel               
       , mesh->elm.vel            , mesh->elm.densityFluid
       , mesh->elm.dViscosity     , mesh->elm.wallParameters  
       , mesh->maxNo              , mesh->maxViz
@@ -140,7 +140,7 @@ void turbulence(Memoria *m
                    , mesh->face.mvSkew      , mesh->face.vSkew
                    , mesh->elm.geomType     , mesh->elm.material.prop
                    , mesh->elm.material.type, mesh->elm.mat
-                   , mesh->elm.faceRvel     , mesh->elm.faceLoadVel     
+                   , mesh->elm.faceRvel     , mesh->elm.faceRvel     
                    , mesh->elm.vel          , mesh->elm.gradVel      
                    , mesh->elm.densityFluid , mesh->elm.dViscosity
                    , mesh->elm.eddyViscosity, mesh->elm.wallParameters
@@ -172,7 +172,7 @@ void turbulence(Memoria *m
                   , mesh->face.mvSkew      , mesh->face.vSkew
                   , mesh->elm.geomType     , mesh->elm.material.prop
                   , mesh->elm.material.type, mesh->elm.mat
-                  , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
+                  , mesh->elm.faceRvel     , mesh->elm.faceRvel
                   , mesh->elm.vel          , mesh->elm.gradVel
                   , mesh->elm.densityFluid , mesh->elm.dViscosity
                   , mesh->elm.eddyViscosity, mesh->elm.wallParameters
@@ -192,8 +192,7 @@ void turbulence(Memoria *m
                      , mesh->elm.geom.cc , mesh->node.x               
                      , mesh->face.xm           
                      , mesh->elm.nen     , mesh->elm.adj.nViz               
-                     , mesh->elm.faceRvel, mesh->elm.faceLoadVel                
-                     , &pMesh->iNo     
+                     , mesh->elm.faceRvel, &pMesh->iNo     
                      , mesh->numelNov    , mesh->numelNov              
                      , mesh->nnode       , mesh->nnode        
                      , mesh->maxNo       , mesh->maxViz           
@@ -210,8 +209,7 @@ void turbulence(Memoria *m
                      , mesh->elm.geom.cc , mesh->node.x               
                      , mesh->face.xm           
                      , mesh->elm.nen      , mesh->elm.adj.nViz               
-                     , mesh->elm.faceRvel , mesh->elm.faceLoadVel                
-                     , &pMesh->iNo      
+                     , mesh->elm.faceRvel , &pMesh->iNo      
                      , mesh->numelNov     , mesh->numelNov              
                      , mesh->nnode        , mesh->nnode        
                      , mesh->maxNo        , mesh->maxViz            
@@ -269,7 +267,7 @@ void turbulence(Memoria *m
                    , mesh->face.mvSkew      , mesh->face.vSkew
                    , mesh->elm.geomType     , mesh->elm.material.prop
                    , mesh->elm.material.type, mesh->elm.mat
-                   , mesh->elm.faceRvel     , mesh->elm.faceLoadVel     
+                   , mesh->elm.faceRvel     , mesh->elm.faceRvel     
                    , mesh->elm.vel          , mesh->elm.gradVel      
                    , mesh->elm.densityFluid , mesh->elm.dViscosity
                    , mesh->elm.eddyViscosity, mesh->elm.wallParameters
@@ -389,7 +387,7 @@ void oneEquationK(Memoria *m
            , mesh->elm.material.type
            , mesh->elm.mat          , NULL
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-           , mesh->elm.faceReKturb  , mesh->elm.faceLoadKturb    
+           , mesh->elm.faceReKturb      
            , mesh->elm.kTurb        , mesh->elm.gradKturb               
            , mesh->node.kTurb       , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
@@ -419,7 +417,7 @@ void oneEquationK(Memoria *m
                , sistEq->al              , sistEq->ad       
                , sistEq->b               , sistEq->id       
                , mesh->elm.faceReKturb   , mesh->elm.faceLoadKturb  
-               , mesh->elm.faceRvel      , mesh->elm.faceLoadVel  
+               , mesh->elm.faceRvel      , mesh->elm.faceRvel  
                , mesh->elm.kTurb         , mesh->elm.gradKturb             
                , mesh->elm.vel           , mesh->elm.gradVel   
                , mesh->elm.pressure      , mesh->elm.gradPres

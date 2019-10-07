@@ -38,9 +38,7 @@
     short  *rNum;      /*renumeracao dos elementos*/ 
 /*... */               
     short *faceRvel;       /*condicao  contorno na face (fluido)*/
-    short *faceLoadVel;    /*tipo de carga contorno na face (fluido)*/
     short *faceRpres;      /*condicao  contorno na face (fluido)*/
-    short *faceLoadPres;   /*tipo de carga contorno na face (fluido)*/
     short *faceRenergy;    /*condicao  contorno na face (fluido)*/
     short *faceLoadEnergy; /*tipo de carga contorno na face (fluido)*/
 /*...*/
@@ -48,10 +46,8 @@
     short *faceLoadKturb;  /*tipo de carga contorno na face (fluido)*/
 /*... */               
     short *faceRt1;    /*condicao  contorno na face (transporte)*/
-    short *faceLoadT1; /*tipo de carga contorno na face (transporte)*/
 /*...*/
     short *faceRd1;    /*condicao  contorno na face (difusa pura)*/
-    short *faceLoadD1; /*tipo de carga contorno na face (difusa pura)*/
 
 /*...*/
     short *faceResZcomb;

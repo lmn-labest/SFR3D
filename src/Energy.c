@@ -60,7 +60,7 @@ bool energyEquation(Memoria *m               , PropVarFluid *prop
          , mesh->elm.material.type
          , mesh->elm.mat          ,NULL
          , mesh->elm.leastSquare  ,mesh->elm.leastSquareR
-         , mesh->elm.faceRenergy  ,mesh->elm.faceLoadEnergy
+         , mesh->elm.faceRenergy  
          , mesh->elm.energy       ,mesh->elm.gradEnergy
          , mesh->node.energy      ,&sc->rcGrad
          , mesh->maxNo            ,mesh->maxViz
@@ -93,7 +93,7 @@ bool energyEquation(Memoria *m               , PropVarFluid *prop
             , sistEqEnergy->al        , sistEqEnergy->ad
             , sistEqEnergy->b         , sistEqEnergy->id
             , mesh->elm.faceRenergy   , mesh->elm.faceLoadEnergy
-            , mesh->elm.faceRvel      , mesh->elm.faceLoadVel   
+            , mesh->elm.faceRvel      , mesh->elm.faceRvel   
             , mesh->elm.energy        , mesh->elm.gradEnergy
             , mesh->elm.vel           , mesh->elm.gradVel
             , mesh->elm.pressure0     , mesh->elm.pressure  

@@ -244,7 +244,7 @@ void wPartVtk(Memoria *m
 
 /********************************************************************** 
  * Data de criacao    : 00/00/0000                                    *
- * Data de modificaco : 30/04/2018                                    *
+ * Data de modificaco : 06/10/2019                                    *
  *------------------------------------------------------------------- *
  * WGEOVTK : escreve a malha com os resultados e condicao             *  
  * ------------------------------------------------------------------ *
@@ -261,11 +261,8 @@ void wPartVtk(Memoria *m
  * typeCal    -> tipo calculo do elemento                             *
  * nel        -> numeracao do elemento                                *
  * faceRd1    -> condicao de contorno D1                              * 
- * faceLd1    -> tipo da condicao de contorno D1                      * 
  * faceRt1    -> condicao de contorno T1                              * 
- * faceLt1    -> tipo da condicao de contorno T1                      * 
  * faceRfluid -> condicao de contorno fluido                          * 
- * faceLfluid -> tipo da condicao de contorno fluido                  * 
  * nnode      -> numero de nos                                        *  
  * numel      -> numero de elementos                                  *
  * ndm        -> numero de dimensao                                   *
@@ -287,10 +284,8 @@ void wGeoVtk(Memoria *m        ,double *x
             ,INT *el           ,short *mat    
             ,short *nen        ,short *typeGeom
             ,double *prop      ,short *typeCal
-            ,short *faceRd1    ,short *faceLd1
-            ,short *faceRt1    ,short *faceLt1
-            ,short *faceRfluid ,short *faceLfluid
-            ,short *faceRenergy,short *faceLenergy 
+            ,short *faceRd1    ,short *faceRt1
+            ,short *faceRfluid ,short *faceRenergy
             ,INT nnode         ,INT numel    
             ,short ndm      
             ,short maxNo       ,short maxViz  
@@ -398,15 +393,6 @@ void wGeoVtk(Memoria *m        ,double *x
     HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
 
-/*... faceLoadT1*/
-    HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
-    ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
-    for(i=0;i<numel*(maxNo+1);i++)
-      lel[i]=(int) faceLd1[i];
-    writeVtkProp(lel,&ddum,numel,maxViz+1,"faceLd1",iws
-                    ,INTEGER_VTK,1,f);
-    HccaDealloc(m,lel,"el",_AD_);
-/*...................................................................*/
   }
 /*...................................................................*/
 
@@ -422,15 +408,6 @@ void wGeoVtk(Memoria *m        ,double *x
     HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
 
-/*... faceLoadT1*/
-    HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
-    ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
-    for(i=0;i<numel*(maxNo+1);i++)
-      lel[i]=(int) faceLt1[i];
-    writeVtkProp(lel,&ddum,numel,maxViz+1,"faceLt1",iws
-                    ,INTEGER_VTK,1,f);
-    HccaDealloc(m,lel,"el",_AD_);
-/*...................................................................*/
   }
 /*...................................................................*/
 
@@ -446,15 +423,6 @@ void wGeoVtk(Memoria *m        ,double *x
     HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
 
-/*... faceLoadFluid*/
-    HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
-    ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
-    for(i=0;i<numel*(maxNo+1);i++)
-      lel[i]=(int) faceLfluid[i];
-    writeVtkProp(lel,&ddum,numel,maxViz+1,"faceLfluid",iws
-                    ,INTEGER_VTK,1,f);
-    HccaDealloc(m,lel,"el",_AD_);
-/*...................................................................*/
   }
 /*...................................................................*/
 
@@ -470,16 +438,6 @@ void wGeoVtk(Memoria *m        ,double *x
     HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
 
-/*... faceLoadFluid*/
-    HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
-    ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
-    for(i=0;i<numel*(maxNo+1);i++)
-      lel[i]=(int) faceLfluid[i];
-    writeVtkProp(lel,&ddum,numel,maxViz+1,"faceLfluid",iws
-                    ,INTEGER_VTK,1,f);
-    HccaDealloc(m,lel,"el",_AD_);
-/*...................................................................*/
-
 /*... faceRenergy*/
     HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
     ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
@@ -490,15 +448,6 @@ void wGeoVtk(Memoria *m        ,double *x
     HccaDealloc(m,lel,"el",_AD_);
 /*...................................................................*/
 
-/*... faceLoadEnergy*/
-    HccaAlloc(int,m,lel,numel*(maxNo+1),"el",_AD_);
-    ERRO_MALLOC(lel,"lel",__LINE__,__FILE__,__func__);
-    for(i=0;i<numel*(maxNo+1);i++)
-      lel[i]=(int) faceLenergy[i];
-    writeVtkProp(lel,&ddum,numel,maxViz+1,"faceLtemp",iws
-                ,INTEGER_VTK,1,f);
-    HccaDealloc(m,lel,"el",_AD_);
-/*...................................................................*/
   }
 /*...................................................................*/
 
@@ -632,7 +581,7 @@ void wGeoVtk2(Memoria *m        , DOUBLE *x
 
 /**********************************************************************
  * Data de criacao    : 00/00/0000                                    *
- * Data de modificaco : 09/10/2017                                    *
+ * Data de modificaco : 06/10/2019                                    *
  *------------------------------------------------------------------- *
  * WGEOFACEVTK : escreve a malha apenas com os faces com condicao     *  
  * ------------------------------------------------------------------ *
@@ -647,13 +596,8 @@ void wGeoVtk2(Memoria *m        , DOUBLE *x
  * typeGeom   -> tipo geometrico do elemento                          *
  * typeCal    -> tipo calculo do elemento                             *
  * faceRd1    -> condicao de contorno D1                              * 
- * faceLd1    -> tipo da condicao de contorno D1                      * 
- * faceRt1    -> condicao de contorno T1                              * 
- * faceLt1    -> tipo da condicao de contorno T1                      * 
+  * faceRt1    -> condicao de contorno T1                              * 
  * faceRfluid -> condicao de contorno fluido                          * 
- * faceLfluid -> tipo da condicao de contorno fluido                  * 
- * faceRtemp  -> condicao de contorno temp                            * 
- * faceLtemp  -> tipo da condicao de contorn temp                     * 
  * nel        -> numeracao do elemento                                *
  * nnode      -> numero de nos                                        *  
  * numel      -> numero de elementos                                  *
@@ -674,10 +618,8 @@ void wGeoVtk2(Memoria *m        , DOUBLE *x
 void wGeoFaceVtk(Memoria *m       ,DOUBLE *x      
             ,INT *el              ,short *nen     
             ,short *typeGeom
-            ,short *faceRd1       ,short *faceLd1
-            ,short *faceRt1       ,short *faceLt1
-            ,short *faceRfluid    ,short *faceLfluid
-            ,short *faceRenergy   ,short *faceLenergy 
+            ,short *faceRd1       ,short *faceRt1      
+            ,short *faceRfluid    ,short *faceRenergy   
             ,INT const nnode      ,INT const numel    
             ,short const ndm      
             ,short const ndfD1    ,short const ndfT1
@@ -702,54 +644,58 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
   HccaAlloc(short ,m,nenFace     ,numel*MAX_NUM_FACE,"lnenFace",_AD_);
 
 /*... ndfD1*/
-  if(ndfD1 > 0){
+  if(ndfD1 > 0)
+  {
     HccaAlloc(int   ,m,lfaceLd1    ,numel*MAX_NUM_FACE,"lfaceSd1",_AD_);
-    makeFace(el          ,faceRd1   ,faceLd1  
+    makeFace(el          ,faceRd1     
             ,typeGeom    
             ,face        ,lfaceLd1  ,idFace
             ,typeGeomFace,nenFace
             ,maxViz      ,maxNo
             ,ndfD1       ,numel  
-            ,&nFace      ,true);
+            ,&nFace);
   }
 /*...................................................................*/
 
 /*... ndfT1*/
-  if(ndfT1 > 0){
+  if(ndfT1 > 0)
+  {
     HccaAlloc(int   ,m,lfaceLt1    ,numel*MAX_NUM_FACE,"lfaceSt1",_AD_);
-    makeFace(el          ,faceRt1   ,faceLt1  
+    makeFace(el          ,faceRt1     
             ,typeGeom    
             ,face        ,lfaceLt1  ,idFace
             ,typeGeomFace,nenFace
             ,maxViz      ,maxNo
             ,ndfT1       ,numel  
-            ,&nFace      ,true);
+            ,&nFace);
   }
 /*...................................................................*/
 
 /*... ndfF*/
-  if(ndfF > 0){
+  if(ndfF > 0)
+  {
     HccaAlloc(int,m,lfaceLfluid,numel*MAX_NUM_FACE,"lfaceSfluid",_AD_);
-    makeFace(el          ,faceRfluid   ,faceLfluid
+    makeFace(el          ,faceRfluid   
             ,typeGeom    
             ,face        ,lfaceLfluid  ,idFace
             ,typeGeomFace,nenFace
             ,maxViz      ,maxNo
             ,ndfT1       ,numel
-            ,&nFace      ,true);  
+            ,&nFace      );  
   }
 /*...................................................................*/
 
 /*... ndfF*/
-  if(ndfFt > 0){  
+  if(ndfFt > 0)
+  {  
     HccaAlloc(int,m,lfaceLenergy,numel*MAX_NUM_FACE,"lfaceSenergy",_AD_);
-    makeFace(el          ,faceRenergy    ,faceLenergy 
+    makeFace(el          ,faceRenergy    
             ,typeGeom    
             ,face        ,lfaceLenergy   ,idFace
             ,typeGeomFace,nenFace
             ,maxViz      ,maxNo
             ,1           ,numel      
-            ,&nFace      ,true);  
+            ,&nFace);  
   }
 /*...................................................................*/
 
@@ -842,7 +788,7 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
 
 /**********************************************************************
 * Data de criacao    : 20/07/2018                                    *
-* Data de modificaco : 00/00/0000                                    *
+* Data de modificaco : 06/10/2019                                    *
 *------------------------------------------------------------------- *
 * WGEOFACEVTK2: escreve a malha apenas com os faces com condicao     *
 * ------------------------------------------------------------------ *
@@ -857,13 +803,9 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
 * typeGeom   -> tipo geometrico do elemento                          *
 * typeCal    -> tipo calculo do elemento                             *
 * faceRd1    -> condicao de contorno D1                              *
-* faceLd1    -> tipo da condicao de contorno D1                      *
 * faceRt1    -> condicao de contorno T1                              *
-* faceLt1    -> tipo da condicao de contorno T1                      *
 * faceRfluid -> condicao de contorno fluido                          *
-* faceLfluid -> tipo da condicao de contorno fluido                  *
 * faceRtemp  -> condicao de contorno temp                            *
-* faceLtemp  -> tipo da condicao de contorn temp                     *
 * nel        -> numeracao do elemento                                *
 * nnode      -> numero de nos                                        *
 * numel      -> numero de elementos                                  *
@@ -883,13 +825,12 @@ void wGeoFaceVtk(Memoria *m       ,DOUBLE *x
 **********************************************************************/
 void wGeoFaceVtk2(Memoria *m         , DOUBLE *x
                 , INT *el            , short *nen
-                , short *typeGeom    
-                , short *faceRd      , short *faceLd
+                , short *typeGeom    , short *faceRd      
                 , INT const nnode    , INT const numel
                 , short const ndm    , short const maxViz 
                 , short const ndf    , short const maxNo
                 , char *nameOut      , bool iws
-                , bool const fWallVel,     FILE *f)
+                , FILE *f)
 {
   char head[] = { "FACE_VOLUME_FINITO" };
   int nFace = 0;
@@ -908,13 +849,13 @@ void wGeoFaceVtk2(Memoria *m         , DOUBLE *x
 
 /*... ndf*/
   HccaAlloc(int, m, lfaceL, numel*MAX_NUM_FACE, "lfaceS", _AD_);
-  makeFace( el          , faceRd , faceLd
+  makeFace( el          , faceRd 
           , typeGeom
           , face        , lfaceL , idFace
           , typeGeomFace, nenFace
           , maxViz      , maxNo
           , ndf         , numel      
-          , &nFace      , fWallVel);
+          , &nFace      );
 /*...................................................................*/
 
 /*...*/
@@ -3078,7 +3019,7 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
 
 /**********************************************************************
  * Data de criacao    : 00/00/0000                                    *
- * Data de modificaco : 08/05/2019                                    *
+ * Data de modificaco : 06/10/2019                                    *
  * ------------------------------------------------------------------ *
  * MAKEFACE : gera as faces/aresta onde ha carregamento               *  
  * ------------------------------------------------------------------ *
@@ -3089,7 +3030,6 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
  * faceS   -> valor de condicao de contorno                           * 
  * typeGeom-> tipo geometrico do elemento                             *
  * face    -> indefinido                                              *
- * lfaceL  -> indefinido                                              *
  * idFace  -> indefinido                                              *
  * tyGeomF -> indefinido                                              *
  * nenFace -> indefinido                                              *
@@ -3108,13 +3048,13 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
  * nFace   -> numero total de faces                                   *
  * ------------------------------------------------------------------ *
  **********************************************************************/
-void makeFace(INT *el            ,short *faceR       ,short *faceL 
+void makeFace(INT *el            ,short *faceR       
              ,short *typeGeom
              ,INT *face          ,int    *lFaceL     ,INT *idFace
              ,short *typeGeomFace,short *nenFace
              ,short const maxViz ,short const maxNo
              ,short const ndf    ,INT const numel  
-             ,INT *nFace         ,bool const fWallVel){
+             ,INT *nFace         ){
 
   short  isnod[MAX_SN],nenFaceMax=MAX_NUM_NODE_FACE;
   short j,k,ty;
@@ -3143,7 +3083,7 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
             idFace[nf]       = nel + 1;
             typeGeomFace[nf] = LINECELL;
             nenFace[nf]      = sn(isnod,ty,nel);
-            lFaceL[nf]       = MAT2D(nel,j,faceL,cCell); 
+            lFaceL[nf]       = MAT2D(nel,j,faceR,cCell); 
 /*... loop nos nos da face*/
             for(k=0;k<nenFace[nf];k++){
               no  = MAT2D(j,k,isnod,nenFace[nf]);
@@ -3179,7 +3119,7 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
             idFace[nf]       = nel + 1;
             typeGeomFace[nf] = LINECELL;
             nenFace[nf]      = sn(isnod,ty,nel);
-            lFaceL[nf]       = MAT2D(nel,j,faceL,cCell); 
+            lFaceL[nf]       = MAT2D(nel,j,faceR,cCell); 
 /*... loop nos nos da face*/
             for(k=0;k<nenFace[nf];k++)
             {
@@ -3202,37 +3142,23 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
       for (j = 0; j<maxViz; j++)
-      {
-        if (fWallVel)
-          tmp += abs(MAT2D(nel, j, faceR, cCell));
-        else
-        {
-          tmp1 = MAT2D(nel, j, faceR, cCell);
-          if (tmp1 != -1)
-            tmp += tmp1;
-        }
-      }
+        tmp += abs(MAT2D(nel, j, faceR, cCell));
+/*...................................................................*/
+
 /*...*/
       if(tmp)
       {
 /*... loop nas faces*/
         for(j=0;j<4;j++)
         {
-          if (fWallVel)
-            tmp = MAT2D(nel, j, faceR, cCell);
-          else
-          {
-            tmp = MAT2D(nel, j, faceR, cCell);
-            if (tmp == -1)
-              tmp = 0;
-          }
+          tmp = MAT2D(nel, j, faceR, cCell);
 /*...*/
           if(tmp)
           {
             idFace[nf]       = nel + 1;
             typeGeomFace[nf] = TRIACELL;
             nenFace[nf]      = sn(isnod,ty,nel);
-            lFaceL[nf]       = MAT2D(nel,j,faceL,cCell); 
+            lFaceL[nf]       = MAT2D(nel,j,faceR,cCell); 
 /*... loop nos nos da face*/
             for(k=0;k<nenFace[nf];k++){
               no  = MAT2D(j,k,isnod,nenFace[nf]);
@@ -3254,37 +3180,23 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
       tmp = 0;
 /*... checa se ha carga nas faces das celula*/
       for(j=0;j<maxViz;j++)
-      {
-        if(fWallVel)
-          tmp += abs(MAT2D(nel,j,faceR,cCell));
-        else
-        {
-          tmp1 = MAT2D(nel,j,faceR,cCell);
-          if(tmp1 != -1)
-            tmp += tmp1;  
-        }
-      }    
+        tmp += abs(MAT2D(nel,j,faceR,cCell));
+/*...................................................................*/
+  
 /*...*/
       if(tmp)
       {
 /*... loop nas faces*/
         for(j=0;j<6;j++)
         {
-          if(fWallVel)
-            tmp = MAT2D(nel,j,faceR,cCell);
-          else 
-          {
-            tmp = MAT2D(nel,j,faceR,cCell);
-            if(tmp == -1)
-              tmp = 0;  
-          }
+          tmp = MAT2D(nel,j,faceR,cCell);
 /*...*/
           if(tmp)
           {
             idFace[nf]       = nel + 1;
             typeGeomFace[nf] = QUADCELL;
             nenFace[nf]      = sn(isnod,ty,nel); 
-            lFaceL[nf]       = MAT2D(nel,j,faceL,cCell); 
+            lFaceL[nf]       = MAT2D(nel,j,faceR,cCell); 
 /*... loop nos nos da face*/
             for(k=0;k<nenFace[nf];k++)
             {
@@ -3324,7 +3236,7 @@ void makeFace(INT *el            ,short *faceR       ,short *faceL
             else
               typeGeomFace[nf] = QUADCELL;
             nenFace[nf] = sn(isnod, ty, nel);
-            lFaceL[nf] = MAT2D(nel, j, faceL, cCell);
+            lFaceL[nf] = MAT2D(nel, j, faceR, cCell);
 /*... loop nos nos da face*/
             for (k = 0; k<nenFace[nf]; k++)
             {

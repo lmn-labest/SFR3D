@@ -335,7 +335,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 17/09/2019                                   *
+ * Data de modificaco : 06/10/2019                                   *
  *-------------------------------------------------------------------*
  * CELLTRANS3D: Celula 3D para transporte                            * 
  *-------------------------------------------------------------------* 
@@ -373,7 +373,6 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * lRcell    -> nao definido                                         *
  * ddt       -> discretizacao temporal                               *
  * faceR     -> restricoes por elemento                              * 
- * faceL     -> carga por elemento                                   * 
  * u0        -> fsolucao conhecida                                   * 
  * gradU0    -> gradiente rescontruido da solucao conhecida          * 
  * vel       -> campo de velocidade conhecido                        * 
@@ -406,7 +405,7 @@ void cellTrans3D(Loads *loads
                 ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT mvSkew
                 ,DOUBLE *RESTRICT lA      ,DOUBLE *RESTRICT lB
                 ,DOUBLE *RESTRICT lRcell  ,Temporal *ddt             
-                ,short  *RESTRICT lFaceR  ,short  *RESTRICT lFaceL  
+                ,short  *RESTRICT lFaceR    
                 ,DOUBLE *RESTRICT u0      ,DOUBLE *RESTRICT gradU0
                 ,DOUBLE *RESTRICT vel     ,DOUBLE *RESTRICT cc
                 ,const short nEn          ,short const nFace    
@@ -607,7 +606,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
             + velC[1]*lNormal[1] 
             + velC[2]*lNormal[2];
 /*...cargas*/
-        nCarg = lFaceL[nf]-1;
+        nCarg = lFaceR[nf]-1;
         xx[0] = MAT2D(nf,0,xm,3);
         xx[1] = MAT2D(nf,1,xm,3);
         xx[2] = MAT2D(nf,2,xm,3);        

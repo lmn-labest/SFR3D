@@ -8,7 +8,7 @@ double func1(double x, double y, double z)
   double pi = PI,v1,v2,v3;
   v1 = cos(pi*x);
   v2 = sin(pi*y);
-  v3 = z*z*z + 1;
+  v3 = z*z*z -.75*z;
   return v1+v2+v3;
 }
 
@@ -18,7 +18,7 @@ void gradFunc1(double x, double y, double z,double *gradZ)
 
   gradZ[0] = -pi * sin(pi*x);
   gradZ[1] =  pi * cos(pi*y);
-  gradZ[2] = 3*z*z;
+  gradZ[2] = 3*z*z-.75*z;
 
 }  
 
@@ -79,15 +79,15 @@ void grad(Mesh *mesh)
 {
   int i;
   DOUBLE x, y, z;
-  fprintf(fileLogDebug, "initialTemp\n");
+  fprintf(fileLogDebug, "initialD1\n");
   for (i = 0; i<mesh->numel; i++)
   {
     x = MAT2D(i, 0, mesh->elm.geom.cc, 3);
     y = MAT2D(i, 1, mesh->elm.geom.cc, 3);
     z = MAT2D(i, 2, mesh->elm.geom.cc, 3);
-    fprintf(fileLogDebug, "%9d %12.6lf\n", i + 1, func2(x, y, z));
+    fprintf(fileLogDebug, "%9d %12.6lf\n", i + 1, func1(x, y, z));
   }
-  fprintf(fileLogDebug, "endInitialTemp\nreturn\n");
+  fprintf(fileLogDebug, "endInitialD1\nreturn\n");
 }
 
 void vel(Mesh *mesh)

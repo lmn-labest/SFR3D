@@ -20,18 +20,11 @@ static void allocFuild(Memoria *m        , Mesh *mesh
 {
   INT size;
 
-/*... faceRVel locais*/
+/*... faceRvel locais*/
   size = lNel*(maxViz+1);
   HccaAlloc(short,m,mesh->elm.faceRvel  ,size        
-       ,"faceRVelP"  ,_AD_);
+       ,"faceRvelP"  ,_AD_);
   zero(mesh->elm.faceRvel   ,size,"short"  );
-/*...................................................................*/
-
-/*... faceLoadsVel locais*/ 
-  size = lNel*(maxViz+1); 
-  HccaAlloc(short,m,mesh->elm.faceLoadVel ,size        
-           ,"faceLoadsVelP"  ,_AD_);
-  zero(mesh->elm.faceLoadVel   ,size,"short"  );
 /*...................................................................*/
 
 /*... faceRpres locais*/
@@ -39,13 +32,6 @@ static void allocFuild(Memoria *m        , Mesh *mesh
   HccaAlloc(short,m,mesh->elm.faceRpres ,size        
          ,"faceRpresP"  ,_AD_);
   zero(mesh->elm.faceRpres  ,size,"short"  );
-/*...................................................................*/
-
-/*... faceLoadsPres locais*/ 
-  size = lNel*(maxViz+1); 
-  HccaAlloc(short,m,mesh->elm.faceLoadPres,size        
-           ,"faceLoadspresP"  ,_AD_);
-  zero(mesh->elm.faceLoadPres  ,size,"short"  );
 /*...................................................................*/
 
 /*... pres0 locais*/
@@ -214,7 +200,7 @@ static void allocComb(Memoria *m          , Mesh *mesh
 
 /********************************************************************* 
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 06/10/2019                                   *
  * ------------------------------------------------------------------*
  * comunicate2 :                                                     * 
  *-------------------------------------------------------------------* 
@@ -230,8 +216,7 @@ static void allocComb(Memoria *m          , Mesh *mesh
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/ 
-static void comunicate2(short *m0faceR     ,short *faceR
-                ,short *m0faceL     ,short *faceL
+static void comunicateCD(short *m0faceR     ,short *faceR
                 ,DOUBLE *m0u0       ,DOUBLE *u0 
                 ,DOUBLE *m0u        ,DOUBLE *u  
                 ,DOUBLE *m0density  ,DOUBLE *density  
@@ -261,21 +246,6 @@ static void comunicate2(short *m0faceR     ,short *faceR
         faceR[i] = nS[i];
       
       free(nS);  
-/*...................................................................*/
-
-/*... faceL locais*/
-      size = lNel*(maxViz+1)*ndf;
-      nS   = (short *) malloc(size*sSize); 
-      ERRO_MALLOC(nS,"nS"   ,__LINE__,__FILE__,__func__);
-
-      sGetLocalV(m0faceL,nS
-                ,elLG
-                ,lNel   ,(maxViz+1)*ndf); 
-        
-      for(i=0;i<size;i++)
-        faceL[i] = nS[i];
-
-      free(nS);
 /*...................................................................*/
 
 /*... eU0 locais*/
@@ -341,21 +311,6 @@ static void comunicate2(short *m0faceR     ,short *faceR
      free(nS);  
 /*...................................................................*/
 
-/*... faceL locais*/
-     size = lNel*(maxViz+1)*ndf;
-     nS   = (short *) malloc(size*sSize); 
-     ERRO_MALLOC(nS,"nS"   ,__LINE__,__FILE__,__func__);
-
-     sGetLocalV(m0faceL,nS
-               ,elLG
-               ,lNel   ,(maxViz+1)*ndf); 
-        
-     MPI_Send(nS    ,       size, MPI_SHORT,nPart,6    
-             ,mpiVar.comm);
-        
-     free(nS);  
-/*...................................................................*/
-
 /*... eU0 locais*/
      size = lNel*ndf;
      nD   = (DOUBLE *) malloc(size*dSize); 
@@ -412,12 +367,6 @@ static void comunicate2(short *m0faceR     ,short *faceR
              ,mpiVar.comm,MPI_STATUS_IGNORE);
 /*...................................................................*/
      
-/*... faceL locais*/
-     size = lNel*(maxViz+1)*ndf;
-     MPI_Recv(faceL,size, MPI_SHORT,0,6    
-             ,mpiVar.comm,MPI_STATUS_IGNORE);
-/*...................................................................*/
-
 /*... eU0 locais*/
      size = lNel*ndf;
      MPI_Recv(u0  ,size, MPI_DOUBLE,0,7    
@@ -1410,14 +1359,7 @@ static void prMaster(Memoria *m    , Mesh *mesh0
               ,"faceRd1P"      ,_AD_);
      zero(mesh->elm.faceRd1   ,size,"short"  );
 /*...................................................................*/
-  
-/*... faceLoadsD1 locais*/
-     size = lNel*(maxViz+1)*ndfD[0];
-     HccaAlloc(short,m,mesh->elm.faceLoadD1  ,size        
-             ,"faceLoadsD1P"      ,_AD_);
-     zero(mesh->elm.faceLoadD1   ,size,"short"  );
-/*...................................................................*/
-  
+
 /*... eU0d1 locais*/
      size = lNel*ndfD[0];
      HccaAlloc(DOUBLE,m,mesh->elm.u0D1  ,size        
@@ -1440,8 +1382,7 @@ static void prMaster(Memoria *m    , Mesh *mesh0
 /*...................................................................*/
 
 /*... */ 
-     comunicate2(mesh0->elm.faceRd1   ,mesh->elm.faceRd1
-               ,mesh0->elm.faceLoadD1,mesh->elm.faceLoadD1
+     comunicateCD(mesh0->elm.faceRd1   ,mesh->elm.faceRd1
                ,mesh0->elm.u0D1      ,mesh->elm.u0D1
                ,mesh0->elm.uD1       ,mesh->elm.uD1
                ,mesh0->elm.densityUd1,mesh->elm.densityUd1
@@ -1460,13 +1401,6 @@ static void prMaster(Memoria *m    , Mesh *mesh0
     HccaAlloc(short,m,mesh->elm.faceRt1  ,size        
              ,"faceRt1P"      ,_AD_);
     zero(mesh->elm.faceRt1   ,size,"short"  );
-/*...................................................................*/
-
-/*... faceLoadsT1 locais*/
-    size = lNel*(maxViz+1)*ndfT[0];
-    HccaAlloc(short,m,mesh->elm.faceLoadT1  ,size        
-             ,"faceLoadsT1P"      ,_AD_);
-    zero(mesh->elm.faceLoadT1   ,size,"short"  );
 /*...................................................................*/
 
 /*... eU0t1 locais*/
@@ -1491,8 +1425,7 @@ static void prMaster(Memoria *m    , Mesh *mesh0
 /*...................................................................*/
 
 /*... */
-    comunicate2(mesh0->elm.faceRt1   ,mesh->elm.faceRt1
-               ,mesh0->elm.faceLoadT1,mesh->elm.faceLoadT1
+    comunicateCD(mesh0->elm.faceRt1   ,mesh->elm.faceRt1
                ,mesh0->elm.u0T1      ,mesh->elm.u0T1
                ,mesh0->elm.uT1       ,mesh->elm.uT1
                ,mesh0->elm.densityUt1,mesh->elm.densityUt1
@@ -1511,9 +1444,9 @@ static void prMaster(Memoria *m    , Mesh *mesh0
 
 /*...*/
     comunicateFluid(mesh0->elm.faceRvel  ,mesh->elm.faceRvel
-              ,mesh0->elm.faceLoadVel    ,mesh->elm.faceLoadVel
+              ,mesh0->elm.faceRvel       ,mesh->elm.faceRvel
               ,mesh0->elm.faceRpres      ,mesh->elm.faceRpres
-              ,mesh0->elm.faceLoadPres   ,mesh->elm.faceLoadPres
+              ,mesh0->elm.faceRpres      ,mesh->elm.faceRpres
               ,mesh0->elm.faceRenergy    ,mesh->elm.faceRenergy
               ,mesh0->elm.faceLoadEnergy ,mesh->elm.faceLoadEnergy
               ,mesh0->elm.pressure0      ,mesh->elm.pressure0
@@ -1828,8 +1761,7 @@ static void sendPart(Memoria *m    , Mesh *mesh0
 
 /*... */
   if( ndfD[0] > 0)
-    comunicate2(mesh0->elm.faceRd1   ,mesh->elm.faceRd1
-               ,mesh0->elm.faceLoadD1,mesh->elm.faceLoadD1
+    comunicateCD(mesh0->elm.faceRd1   ,mesh->elm.faceRd1
                ,mesh0->elm.u0D1      ,mesh->elm.u0D1
                ,mesh0->elm.uD1       ,mesh->elm.uD1
                ,mesh0->elm.densityUd1,mesh->elm.densityUd1
@@ -1840,8 +1772,7 @@ static void sendPart(Memoria *m    , Mesh *mesh0
 
 /*... */
   if( ndfT[0] > 0)
-    comunicate2(mesh0->elm.faceRt1   ,mesh->elm.faceRt1
-               ,mesh0->elm.faceLoadT1,mesh->elm.faceLoadT1
+    comunicateCD(mesh0->elm.faceRt1   ,mesh->elm.faceRt1
                ,mesh0->elm.u0T1      ,mesh->elm.u0T1
                ,mesh0->elm.uT1       ,mesh->elm.uT1
                ,mesh0->elm.densityUt1,mesh->elm.densityUt1
@@ -1853,9 +1784,9 @@ static void sendPart(Memoria *m    , Mesh *mesh0
 /*...*/
   if(ndfF > 0 || ndfFt > 0)
     comunicateFluid(mesh0->elm.faceRvel  ,mesh->elm.faceRvel
-              ,mesh0->elm.faceLoadVel    ,mesh->elm.faceLoadVel
+              ,mesh0->elm.faceRvel       ,mesh->elm.faceRvel
               ,mesh0->elm.faceRpres      ,mesh->elm.faceRpres
-              ,mesh0->elm.faceLoadPres   ,mesh->elm.faceLoadPres
+              ,mesh0->elm.faceRpres      ,mesh->elm.faceRpres
               ,mesh0->elm.faceRenergy    ,mesh->elm.faceRenergy
               ,mesh0->elm.faceLoadEnergy ,mesh->elm.faceLoadEnergy
               ,mesh0->elm.pressure0      ,mesh->elm.pressure0
@@ -2191,13 +2122,6 @@ static void recvPart(Memoria *m    , Mesh *mesh0
     zero(mesh->elm.faceRd1   ,size,"short"  );
 /*...................................................................*/
 
-/*... faceLoadsD1 locais*/
-     size = (*lNel)*(maxViz+1)*ndfD[0];
-     HccaAlloc(short,m,mesh->elm.faceLoadD1 ,size        
-              ,"faceLoadsD1P"  ,_AD_);
-     zero(mesh->elm.faceLoadD1   ,size,"short"  );
-/*...................................................................*/
-
 /*... eU0d1 locais*/
      size = (*lNel)*ndfD[0];
      HccaAlloc(DOUBLE,m,mesh->elm.u0D1        ,size        
@@ -2220,8 +2144,7 @@ static void recvPart(Memoria *m    , Mesh *mesh0
 /*...................................................................*/
 
 /*...*/
-     comunicate2(mesh0->elm.faceRd1   ,mesh->elm.faceRd1
-                ,mesh0->elm.faceLoadD1,mesh->elm.faceLoadD1
+     comunicateCD(mesh0->elm.faceRd1   ,mesh->elm.faceRd1
                 ,mesh0->elm.u0D1      ,mesh->elm.u0D1
                 ,mesh0->elm.uD1       ,mesh->elm.uD1
                 ,mesh0->elm.densityUd1,mesh->elm.densityUd1
@@ -2240,13 +2163,6 @@ static void recvPart(Memoria *m    , Mesh *mesh0
     HccaAlloc(short,m,mesh->elm.faceRt1  ,size        
            ,"faceRt1P"  ,_AD_);
     zero(mesh->elm.faceRt1   ,size,"short"  );
-/*...................................................................*/
-
-/*... faceLoadsT1 locais*/ 
-    size = (*lNel)*(maxViz+1)*ndfT[0]; 
-    HccaAlloc(short,m,mesh->elm.faceLoadT1 ,size        
-             ,"faceLoadsT1P"  ,_AD_);
-    zero(mesh->elm.faceLoadT1   ,size,"short"  );
 /*...................................................................*/
 
 /*... eU0t1 locais*/
@@ -2271,8 +2187,7 @@ static void recvPart(Memoria *m    , Mesh *mesh0
 /*...................................................................*/
 
 /*...*/
-    comunicate2(mesh0->elm.faceRt1   ,mesh->elm.faceRt1
-               ,mesh0->elm.faceLoadT1,mesh->elm.faceLoadT1
+    comunicateCD(mesh0->elm.faceRt1   ,mesh->elm.faceRt1
                ,mesh0->elm.u0T1      ,mesh->elm.u0T1
                ,mesh0->elm.uT1       ,mesh->elm.uT1
                ,mesh0->elm.densityUt1,mesh->elm.densityUt1
@@ -2294,9 +2209,9 @@ static void recvPart(Memoria *m    , Mesh *mesh0
 
 /*...*/
     comunicateFluid(mesh0->elm.faceRvel    ,mesh->elm.faceRvel
-                ,mesh0->elm.faceLoadVel    ,mesh->elm.faceLoadVel
+                ,mesh0->elm.faceRvel       ,mesh->elm.faceRvel
                 ,mesh0->elm.faceRpres      ,mesh->elm.faceRpres
-                ,mesh0->elm.faceLoadPres   ,mesh->elm.faceLoadPres
+                ,mesh0->elm.faceRpres      ,mesh->elm.faceRpres
                 ,mesh0->elm.faceRenergy    ,mesh->elm.faceRenergy
                 ,mesh0->elm.faceLoadEnergy ,mesh->elm.faceLoadEnergy
                 ,mesh0->elm.pressure0      ,mesh->elm.pressure0
@@ -3954,18 +3869,20 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
   MPI_Bcast(&mesh->ntn   ,1           ,MPI_SHORT,0,mpiVar.comm);
 
 /*... loadsD1*/
-  for(i=0;i<MAXLOADD1;i++)
+  for(i=0;i<MAXLOAD;i++)
   {
-    MPI_Bcast(&ldD1[i].type  ,1 ,MPI_SHORT,0,mpiVar.comm);
-    MPI_Bcast(&ldD1[i].np    ,1 ,MPI_SHORT,0,mpiVar.comm);
+    MPI_Bcast(&ldD1[i].fUse  ,1 ,MPI_C_BOOL,0,mpiVar.comm);
+    MPI_Bcast(&ldD1[i].type  ,1 ,MPI_SHORT ,0,mpiVar.comm);
+    MPI_Bcast(&ldD1[i].np    ,1 ,MPI_SHORT ,0,mpiVar.comm);
     MPI_Bcast(&ldD1[i].par   ,MAXLOADPARAMETER ,MPI_DOUBLE
               ,0,mpiVar.comm);
   }
 /*...................................................................*/
 
 /*... loadsT1*/
-  for(i=0;i<MAXLOADT1;i++)
+  for(i=0;i<MAXLOAD;i++)
   {
+    MPI_Bcast(&ldT1[i].fUse  ,1 ,MPI_C_BOOL,0,mpiVar.comm);
     MPI_Bcast(&ldT1[i].type  ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&ldT1[i].np    ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&ldT1[i].par   ,MAXLOADPARAMETER ,MPI_DOUBLE
@@ -3974,9 +3891,10 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
 /*...................................................................*/
 
 /*... Fluid*/
-  for(i=0;i<MAXLOADFLUID;i++)
+  for(i=0;i<MAXLOAD;i++)
   {
 /*... vel*/
+    MPI_Bcast(&ldVel[i].fUse  ,1 ,MPI_C_BOOL,0,mpiVar.comm);
     MPI_Bcast(&ldVel[i].type  ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&ldVel[i].np    ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&ldVel[i].par   ,MAXLOADPARAMETER ,MPI_DOUBLE
@@ -3986,6 +3904,7 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
     MPI_Bcast(&ldVel[i].density,1              ,MPI_DOUBLE
               ,0,mpiVar.comm);
 /*... pres*/
+    MPI_Bcast(&ldPres[i].fUse  ,1 ,MPI_C_BOOL,0,mpiVar.comm);
     MPI_Bcast(&ldPres[i].type  ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&ldPres[i].np    ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&ldPres[i].par   ,MAXLOADPARAMETER ,MPI_DOUBLE
@@ -3995,6 +3914,7 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
     MPI_Bcast(&ldPres[i].density,1              ,MPI_DOUBLE
               ,0,mpiVar.comm);
 /*... presC*/
+    MPI_Bcast(&ldPresC[i].fUse  ,1 ,MPI_C_BOOL,0,mpiVar.comm);
     MPI_Bcast(&ldPresC[i].type  ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&ldPresC[i].np    ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&ldPresC[i].par   ,MAXLOADPARAMETER ,MPI_DOUBLE
@@ -4004,6 +3924,7 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
     MPI_Bcast(&ldPresC[i].density,1              ,MPI_DOUBLE
               ,0,mpiVar.comm);
 /*... Energy*/
+    MPI_Bcast(&ldEnergy[i].fUse  ,1 ,MPI_C_BOOL,0,mpiVar.comm);
     MPI_Bcast(&ldEnergy[i].type  ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&ldEnergy[i].np    ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&ldEnergy[i].par   ,MAXLOADPARAMETER ,MPI_DOUBLE
@@ -4013,6 +3934,7 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
     MPI_Bcast(&ldEnergy[i].density,1              ,MPI_DOUBLE
               ,0,mpiVar.comm);
 /*... Temp*/
+    MPI_Bcast(&ldTemp[i].fUse  ,1 ,MPI_C_BOOL,0,mpiVar.comm);
     MPI_Bcast(&ldTemp[i].type  ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&ldTemp[i].np    ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&ldTemp[i].par   ,MAXLOADPARAMETER ,MPI_DOUBLE
@@ -4022,6 +3944,7 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
     MPI_Bcast(&ldTemp[i].density,1              ,MPI_DOUBLE
               ,0,mpiVar.comm);
 /*... Kturb*/
+    MPI_Bcast(&ldKturb[i].fUse  ,1 ,MPI_C_BOOL,0,mpiVar.comm);
     MPI_Bcast(&ldKturb[i].type  ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&ldKturb[i].np    ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&ldKturb[i].par   ,MAXLOADPARAMETER ,MPI_DOUBLE
@@ -4031,6 +3954,7 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
     MPI_Bcast(&ldKturb[i].density,1              ,MPI_DOUBLE
               ,0,mpiVar.comm);
 /*... Zcomb*/
+    MPI_Bcast(&ldZcomb[i].fUse  ,1 ,MPI_C_BOOL,0,mpiVar.comm);
     MPI_Bcast(&ldZcomb[i].type  ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&ldZcomb[i].np    ,1 ,MPI_SHORT,0,mpiVar.comm);
     MPI_Bcast(&ldZcomb[i].par   ,MAXLOADPARAMETER ,MPI_DOUBLE

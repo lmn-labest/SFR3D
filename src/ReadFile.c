@@ -69,12 +69,12 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
   char macro[NMACROS][WORD_SIZE]={
         "coordinates"  ,"endMesh"    ,"insert"         /* 0, 1, 2*/
        ,"return"       ,"cells"      ,"faceResT1"      /* 3, 4, 5*/
-       ,"faceLoadT1"   ,"loadsT1"    ,"uniformT1"      /* 6, 7, 8*/ 
+       ,""             ,"loadsT1"    ,"uniformT1"      /* 6, 7, 8*/ 
        ,"faceResZ"     ,"faceLoadZ"  ,"loadsZ"         /* 9,10,11*/ 
        ,"faceResD1"    ,"uniformD1"  ,"loadsD1"        /*12,13,14*/ 
-       ,"faceLoadD1"   ,"initialD1"  ,""               /*15,16,17*/ 
-       ,"faceResVel"   ,"loadsVel"   ,"faceLoadVel"    /*18,19,20*/ 
-       ,"faceResPres"  ,"loadsPres"  ,"faceLoadPres"   /*21,22,23*/
+       ,""             ,"initialD1"  ,""               /*15,16,17*/ 
+       ,"faceResVel"   ,"loadsVel"   ,""               /*18,19,20*/ 
+       ,"faceResPres"  ,"loadsPres"  ,"faceRpres"      /*21,22,23*/
        ,"faceResTemp"  ,"loadsTemp"  ,"faceLoadTemp"   /*24,25,26*/
        ,"materials"    ,"uniformPres","initialVel"     /*27,28,29*/
        ,"uniformTemp"  ,"uniformVel" ,"uniformZ"       /*30,31,32*/
@@ -231,18 +231,18 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
             ,nel*(maxViz+1),"faceRvel"    ,_AD_);
      zero(mesh->elm.faceRvel  ,nel*(maxViz+1),"short"  );
      
-     HccaAlloc(short,m,mesh->elm.faceLoadVel  
+     HccaAlloc(short,m,mesh->elm.faceRvel  
             ,nel*(maxViz+1),"faceLVel"    ,_AD_);
-     zero(mesh->elm.faceLoadVel  ,nel*(maxViz+1),"short"  );
+     zero(mesh->elm.faceRvel  ,nel*(maxViz+1),"short"  );
 
 /*... cc da equacao de pressao*/
      HccaAlloc(short,m,mesh->elm.faceRpres 
             ,nel*(maxViz+1),"faceRpres"   ,_AD_);
      zero(mesh->elm.faceRpres ,nel*(maxViz+1),"short"  );
      
-     HccaAlloc(short,m,mesh->elm.faceLoadPres 
+     HccaAlloc(short,m,mesh->elm.faceRpres 
             ,nel*(maxViz+1),"faceLPres"   ,_AD_);
-     zero(mesh->elm.faceLoadPres ,nel*(maxViz+1),"short"  );
+     zero(mesh->elm.faceRpres ,nel*(maxViz+1),"short"  );
 
 /*... cc da equacao de energia*/
      if (mesh->ndfFt > 0 )
@@ -553,9 +553,6 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
             ,nel*(maxViz+1),"faceRt1"  ,_AD_);
      zero(mesh->elm.faceRt1   ,nel*(maxViz+1),"short"  );
      
-     HccaAlloc(short,m,mesh->elm.faceLoadT1
-            ,nel*(maxViz+1),"faceLt1"  ,_AD_);
-     zero(mesh->elm.faceLoadT1,nel*(maxViz+1),"short"  );
 /*...................................................................*/
 
 /*... eUt1*/
@@ -608,12 +605,8 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*... alocando memoria*/
      HccaAlloc(short,m,mesh->elm.faceRd1
             ,nel*(maxViz+1),"faceRd1"  ,_AD_);
-     zero(mesh->elm.faceRd1   ,nel*(maxViz+1),"short"  );
-     
-     HccaAlloc(short,m,mesh->elm.faceLoadD1
-            ,nel*(maxViz+1),"faceLd1"  ,_AD_);
-     zero(mesh->elm.faceLoadD1,nel*(maxViz+1),"short"  );
-     
+     zero(mesh->elm.faceRd1   ,nel*(maxViz+1),"short"  );    
+      
 /*... eUd1*/
      HccaAlloc(DOUBLE,m,mesh->elm.uD1 
             ,nel*mesh->ndfD[0],"eUd1"              ,_AD_);
@@ -751,19 +744,6 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     }
 /*...................................................................*/
 
-/*... faceLoadT1 - cargas nas faces transporte */
-    else if((!strcmp(word,macro[6])) && (!rflag[6])){
-      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
-      strcpy(macros[nmacro++],word);
-      rflag[6] = true;
-      strcpy(str,"endFaceLoadT1");
-      fprintf(fileLogExc,"loading faceLoadT1 ...\n");
-      readVfRes(mesh->elm.faceLoadT1,mesh->numel
-               ,mesh->maxViz+1       ,str       ,file);
-      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
-    }
-/*...................................................................*/
-
 /*... loadT1 - definicao de cargar transporte */
     else if((!strcmp(word,macro[7])) && (!rflag[7])){
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
@@ -787,7 +767,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*...................................................................*/
 
 
-/*... faceResZcomb */
+/*... faceResZ */
     else if((!strcmp(word,macro[9])) && (!rflag[9])){
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
@@ -799,7 +779,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     }
 /*...................................................................*/
 
-/*... faceLoadZcomb*/
+/*... faceLoadZ*/
     else if((!strcmp(word,macro[10])) && (!rflag[10])){
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
@@ -812,7 +792,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     }
 /*...................................................................*/
 
-/*... loadZcomb*/
+/*... loadZ*/
     else if((!strcmp(word,macro[11])) && (!rflag[11])){
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
@@ -859,19 +839,6 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     }
 /*...................................................................*/
 
-/*... faceLoadD1 - cargas nas faces difusao pura */
-    else if((!strcmp(word,macro[15])) && (!rflag[15])){
-      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
-      strcpy(macros[nmacro++],word);
-      rflag[15] = true;
-      strcpy(str,"endFaceLoadD1");
-      fprintf(fileLogExc,"loading faceLoadD1 ...\n");
-      readVfRes(mesh->elm.faceLoadD1,mesh->numel
-               ,mesh->maxViz+1       ,str       ,file);
-      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
-    }
-/*...................................................................*/
-
 /*... initialD1 */
     else if ((!strcmp(word, macro[16])) && (!rflag[16])) {
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
@@ -884,8 +851,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     }
 /*...................................................................*/
 
-
-/*... faceRvel- condicao de contorno para problemas fluidos (Vel) */
+/*... faceResvel- condicao de contorno para problemas fluidos (Vel) */
     else if((!strcmp(word,macro[18])) && (!rflag[18])){
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
@@ -909,26 +875,13 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     }
 /*...................................................................*/
 
-/*... faceLoadVel - cargas nas faces fluido (Vel)*/
-    else if((!strcmp(word,macro[20])) && (!rflag[20])){
-      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
-      strcpy(macros[nmacro++],word);
-      rflag[20] = true;
-      strcpy(str,"endFaceLoadVel");
-      fprintf(fileLogExc,"loading faceLoadVel ...\n");
-      readVfRes(mesh->elm.faceLoadVel  ,mesh->numel
-               ,mesh->maxViz+1         ,str        ,file);
-      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
-    }
-/*...................................................................*/
-
-/*... faceRpres - condicao de contorno para problemas fluidos (Pres)*/
+/*... faceRespres - condicao de contorno para problemas fluidos (Pres)*/
     else if((!strcmp(word,macro[21])) && (!rflag[21])){
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
       strcpy(macros[nmacro++],word);
       rflag[21] = true;
       strcpy(str,"endFaceResPres");
-      fprintf(fileLogExc,"loading faceRpres ...\n");
+      fprintf(fileLogExc,"loading faceResPres ...\n");
       readVfRes(mesh->elm.faceRpres,mesh->numel
                ,mesh->maxViz+1     ,str        ,file);
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
@@ -944,19 +897,6 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       fprintf(fileLogExc,"loading loadsPres ...\n");
       readVfLoads(loadsPres,str       ,file);
       convLoadsPresC(loadsPres, loadsPresC);
-      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
-    }
-/*...................................................................*/
-
-/*... faceLoadPres - cargas nas faces fluido (Pres)*/
-    else if((!strcmp(word,macro[23])) && (!rflag[23])){
-      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
-      strcpy(macros[nmacro++],word);
-      rflag[23] = true;
-      strcpy(str,"endFaceLoadPres");
-      fprintf(fileLogExc,"loading faceLoadPres ...\n");
-      readVfRes(mesh->elm.faceLoadPres ,mesh->numel
-               ,mesh->maxViz+1         ,str        ,file);
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
@@ -1948,7 +1888,7 @@ void readVfLoads(Loads *loads,char *str,FILE* file){
 
     }
     loads[nLoad-1].type        = type;
-    
+    loads[nLoad-1].fUse        = true;
     error = fscanf(file,"%d",&type);
     loads[nLoad-1].nTypeVar = type;
 /*...*/
@@ -3904,8 +3844,8 @@ void help(FILE *f){
        ,"faceResZ"     ,"faceLoadZ"  ,"loadsZ"         /* 9,10,11*/ 
        ,"faceResD1"    ,"uniformD1"  ,"loadsD1"        /*12,13,14*/ 
        ,"faceLoadD1"   ,"initialD1"  ,""               /*15,16,17*/ 
-       ,"faceResVel"   ,"loadsVel"   ,"faceLoadVel"    /*18,19,20*/ 
-       ,"faceResPres"  ,"loadsPres"  ,"faceLoadPres"   /*21,22,23*/
+       ,"faceResVel"   ,"loadsVel"   ,"faceRvel"    /*18,19,20*/ 
+       ,"faceResPres"  ,"loadsPres"  ,"faceRpres"   /*21,22,23*/
        ,"faceResTemp"  ,"loadsTemp"  ,"faceLoadTemp"   /*24,25,26*/
        ,"materials"    ,"uniformPres","initialVel"     /*27,28,29*/
        ,"uniformTemp"  ,"uniformVel" ,"uniformZ"       /*30,31,32*/
@@ -7594,7 +7534,7 @@ static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC){
 
   short i,j,type;
 
-  for(i=0;i<MAXLOADFLUID;i++){
+  for(i=0;i<MAXLOAD;i++){
     loadsPresC[i].type = loadsPres[i].type;
     loadsPresC[i].np   = loadsPres[i].np;
     for(j=0;j<MAXLOADPARAMETER;j++){
@@ -7637,7 +7577,8 @@ static void convLoadsEnergy(Prop *sHeatProp
 /*... cc da equacao da energia e em temperatura*/
   if(fTemp){
 
-    for(i=0;i<MAXLOADFLUID;i++){
+    for(i=0;i<MAXLOAD;i++){
+      loadsEnergy[i].fUse = loadsTemp[i].fUse;
       loadsEnergy[i].type = loadsTemp[i].type;
       loadsEnergy[i].np   = loadsTemp[i].np;
       for(j=0;j<MAXLOADPARAMETER;j++)
@@ -7658,7 +7599,8 @@ static void convLoadsEnergy(Prop *sHeatProp
 
   else{
     sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-    for(i=0;i<MAXLOADFLUID;i++){
+    for(i=0;i<MAXLOAD;i++){
+      loadsEnergy[i].fUse = loadsTemp[i].fUse;
       loadsEnergy[i].type = loadsTemp[i].type;
       loadsEnergy[i].np   = loadsTemp[i].np;
       type = loadsTemp[i].type;
@@ -7724,7 +7666,8 @@ static void convLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
 /*... cc da equacao da energia e em temperatura*/
   if(fTemp){
 
-    for(i=0;i<MAXLOADFLUID;i++){
+    for(i=0;i<MAXLOAD;i++){
+      loadsEnergy[i].fUse    = loadsTemp[i].fUse;
       loadsEnergy[i].type    = loadsTemp[i].type;
       loadsEnergy[i].np      = loadsTemp[i].np;
       for(j=0;j<MAXLOADPARAMETER;j++)
@@ -7745,7 +7688,8 @@ static void convLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
 
   else{
     sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-    for(i=0;i<MAXLOADFLUID;i++){
+    for(i=0;i<MAXLOAD;i++){
+      loadsEnergy[i].fUse      = loadsTemp[i].fUse;
       loadsEnergy[i].type    = loadsTemp[i].type;
       loadsEnergy[i].np      = loadsTemp[i].np;
       type = loadsTemp[i].type;
@@ -7848,7 +7792,7 @@ static void convLoadsZcombMix(Combustion *cModel   ,Prop *pDen
   DOUBLE t,yFrac[MAXSPECIES],sHeat,tmp1,molarMassMix;
   
   sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-  for(i=0;i<MAXLOADFLUID;i++)
+  for(i=0;i<MAXLOAD;i++)
   {
     type = loadsZ[i].type;
 /*...*/
@@ -7911,7 +7855,7 @@ static void convLoadsVelMix(Combustion *cModel   ,Prop *pDen
   DOUBLE t,yFrac[MAXSPECIES],sHeat,tmp1,molarMassMix;
   
   sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-  for(i=0;i<MAXLOADFLUID;i++)
+  for(i=0;i<MAXLOAD;i++)
   {
     type = loadsVel[i].type;
 /*...*/
@@ -7963,7 +7907,7 @@ static void convLoadsVel(Prop *pDen
   DOUBLE t,sHeat,tmp1;
   
   sHeat   = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-  for(i=0;i<MAXLOADFLUID;i++)
+  for(i=0;i<MAXLOAD;i++)
   {
     type               = loadsVel[i].type;
 /*...*/

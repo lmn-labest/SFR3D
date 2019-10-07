@@ -76,7 +76,7 @@ void primeSolver(Memoria *m
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
 //tm.cellPloadSimple = getTimeC() - tm.cellPloadSimple;
 //cellPloadSimple(loadsPres, mesh->elm.geom.cc
-//                , mesh->elm.faceRpres, mesh->elm.faceLoadPres
+//                , mesh->elm.faceRpres, mesh->elm.faceRpres
 //                , mesh->elm.geom.volume
 //                , sistEqVel->id, sistEqPres->id
 //                , mesh->elm.vel, mesh->elm.pressure
@@ -133,7 +133,7 @@ void primeSolver(Memoria *m
            , mesh->elm.material.type
            , mesh->elm.mat          , mesh->elm.dViscosity
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-           , mesh->elm.faceRvel     , mesh->elm.faceLoadVel
+           , mesh->elm.faceRvel     
            , mesh->elm.vel          , mesh->elm.gradVel
            , mesh->node.vel         , &sc.rcGrad
            , mesh->maxNo            , mesh->maxViz
@@ -162,7 +162,7 @@ void primeSolver(Memoria *m
             , mesh->elm.material.type
             , mesh->elm.mat          , NULL
             , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-            , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
+            , mesh->elm.faceRpres    
             , mesh->elm.pressure     , mesh->elm.gradPres
             , mesh->node.pressure    , &sc.rcGrad
             , mesh->maxNo            , mesh->maxViz
@@ -189,8 +189,8 @@ void primeSolver(Memoria *m
          ,mesh->elm.geom.xm      ,mesh->elm.geom.xmcc
          ,mesh->elm.geom.vSkew   ,mesh->elm.geom.mvSkew
          ,mesh->elm.geom.dcca    ,mesh->elm.densityFluid
-         ,mesh->elm.faceRvel     ,mesh->elm.faceLoadVel
-         ,mesh->elm.faceRpres    ,mesh->elm.faceLoadPres
+         ,mesh->elm.faceRvel     ,mesh->elm.faceRvel
+         ,mesh->elm.faceRpres    ,mesh->elm.faceRpres
          ,mesh->elm.pressure     ,mesh->elm.gradPres
          ,mesh->elm.vel          ,pr->velUp
          ,mesh->elm.gradVel      ,pr->bTemporal
@@ -218,8 +218,8 @@ void primeSolver(Memoria *m
               ,mesh->elm.geom.xm      ,mesh->elm.geom.xmcc
               ,mesh->elm.geom.vSkew   ,mesh->elm.geom.mvSkew
               ,mesh->elm.geom.dcca    ,mesh->elm.densityFluid
-              ,mesh->elm.faceRvel     ,mesh->elm.faceLoadVel
-              ,mesh->elm.faceRpres    ,mesh->elm.faceLoadPres
+              ,mesh->elm.faceRvel     ,mesh->elm.faceRvel
+              ,mesh->elm.faceRpres    ,mesh->elm.faceRpres
               ,mesh->elm.pressure     ,mesh->elm.gradPres
               ,pr->velUp              ,mesh->elm.rCellVel
               ,mesh->elm.gradVel      ,pr->bTemporal
@@ -263,8 +263,8 @@ void primeSolver(Memoria *m
            ,sistEqPres->ia         ,sistEqPres->ja
            ,sistEqPres->al         ,sistEqPres->ad
            ,bPc                    ,sistEqPres->id
-           ,mesh->elm.faceRvel     ,mesh->elm.faceLoadVel
-           ,mesh->elm.faceRpres    ,mesh->elm.faceLoadPres
+           ,mesh->elm.faceRvel     ,mesh->elm.faceRvel
+           ,mesh->elm.faceRpres    ,mesh->elm.faceRpres
            ,mesh->elm.pressure     ,mesh->elm.gradPres
            ,pr->velUp              ,pr->d
            ,rCellPc                ,sc.ddt
@@ -338,7 +338,7 @@ void primeSolver(Memoria *m
           , mesh->elm.material.type
           , mesh->elm.mat          , NULL
           , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-          , mesh->elm.faceRpres    , mesh->elm.faceLoadPres
+          , mesh->elm.faceRpres    
           , pr->ePresC             , pr->eGradPresC
           , pr->nPresC             , &sc.rcGrad
           , mesh->maxNo            , mesh->maxViz

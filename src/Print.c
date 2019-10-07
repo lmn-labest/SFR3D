@@ -286,7 +286,7 @@ void printFluid(Memoria *m
          , mesh->elm.material.type 
          , mesh->elm.mat           , NULL
          , mesh->elm.leastSquare   , mesh->elm.leastSquareR
-         , mesh->elm.faceRpres     , mesh->elm.faceLoadPres
+         , mesh->elm.faceRpres     
          , mesh->elm.pressure      , mesh->elm.gradPres                
          , mesh->node.pressure     , &sc->rcGrad
          , mesh->maxNo             , mesh->maxViz
@@ -306,8 +306,7 @@ void printFluid(Memoria *m
               , mesh->elm.geom.cc  , mesh->node.x  
               , mesh->face.xm
               , mesh->elm.nen      , mesh->elm.adj.nViz
-              , mesh->elm.faceRpres, mesh->elm.faceLoadPres
-              , &pMesh->iNo          
+              , mesh->elm.faceRpres, &pMesh->iNo          
               , mesh->numelNov     , mesh->numel        
               , mesh->nnodeNov     , mesh->nnode 
               , mesh->maxNo        , mesh->maxViz   
@@ -326,8 +325,7 @@ void printFluid(Memoria *m
                , mesh->elm.geom.cc  , mesh->node.x  
                , mesh->face.xm        
                , mesh->elm.nen      , mesh->elm.adj.nViz
-               , mesh->elm.faceRpres, mesh->elm.faceLoadPres  
-               , &pMesh->iNo           
+               , mesh->elm.faceRpres, &pMesh->iNo           
                , mesh->numelNov     , mesh->numel        
                , mesh->nnodeNov     , mesh->nnode 
                , mesh->maxNo        , mesh->maxViz   
@@ -359,7 +357,7 @@ void printFluid(Memoria *m
          , mesh->elm.material.type 
          , mesh->elm.mat           , NULL
          , mesh->elm.leastSquare   , mesh->elm.leastSquareR
-         , mesh->elm.faceRvel      , mesh->elm.faceLoadVel   
+         , mesh->elm.faceRvel       
          , mesh->elm.vel           , mesh->elm.gradVel                           
          , mesh->node.vel          , &sc->rcGrad
          , mesh->maxNo             , mesh->maxViz
@@ -379,8 +377,7 @@ void printFluid(Memoria *m
                , mesh->elm.geom.cc  , mesh->node.x  
                , mesh->face.xm        
                , mesh->elm.nen      , mesh->elm.adj.nViz
-               , mesh->elm.faceRvel , mesh->elm.faceLoadVel 
-               , &pMesh->iNo           
+               , mesh->elm.faceRvel , &pMesh->iNo           
                , mesh->numelNov     , mesh->numel        
                , mesh->nnodeNov     , mesh->nnode 
                , mesh->maxNo        , mesh->maxViz   
@@ -399,8 +396,7 @@ void printFluid(Memoria *m
                , mesh->elm.geom.cc , mesh->node.x  
                , mesh->face.xm   
                , mesh->elm.nen     , mesh->elm.adj.nViz
-               , mesh->elm.faceRvel, mesh->elm.faceLoadVel 
-               , &pMesh->iNo          
+               , mesh->elm.faceRvel, &pMesh->iNo          
                , mesh->numelNov    , mesh->numel        
                , mesh->nnodeNov    , mesh->nnode 
                , mesh->maxNo       , mesh->maxViz   
@@ -421,8 +417,7 @@ void printFluid(Memoria *m
                    , mesh->elm.geom.cc  , mesh->node.x  
                    , mesh->face.xm        
                    , mesh->elm.nen      , mesh->elm.adj.nViz
-                   , mesh->elm.faceRvel , mesh->elm.faceLoadVel 
-                   , &pMesh->iNo           
+                   , mesh->elm.faceRvel , &pMesh->iNo           
                    , mesh->numelNov     , mesh->numel        
                    , mesh->nnodeNov     , mesh->nnode 
                    , mesh->maxNo        , mesh->maxViz   
@@ -452,7 +447,7 @@ void printFluid(Memoria *m
            , mesh->elm.material.type
            , mesh->elm.mat          , mesh->elm.tConductivity
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-           , mesh->elm.faceRenergy  , mesh->elm.faceLoadEnergy
+           , mesh->elm.faceRenergy  
            , mesh->elm.temp         , mesh->elm.gradTemp  
            , mesh->node.temp        , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
@@ -473,8 +468,7 @@ void printFluid(Memoria *m
               , mesh->elm.geom.cc    , mesh->node.x
               , mesh->face.xm          
               , mesh->elm.nen        , mesh->elm.adj.nViz
-              , mesh->elm.faceRenergy, mesh->elm.faceLoadEnergy
-              , &pMesh->iNo            
+              , mesh->elm.faceRenergy, &pMesh->iNo            
               , mesh->numelNov       , mesh->numel
               , mesh->nnodeNov       , mesh->nnode
               , mesh->maxNo          , mesh->maxViz
@@ -492,8 +486,7 @@ void printFluid(Memoria *m
              , mesh->elm.geom.cc    , mesh->node.x
              , mesh->face.xm          
              , mesh->elm.nen        , mesh->elm.adj.nViz
-             , mesh->elm.faceRenergy, mesh->elm.faceLoadEnergy
-             , &pMesh->iNo            
+             , mesh->elm.faceRenergy, &pMesh->iNo            
              , mesh->numelNov       , mesh->numel
              , mesh->nnodeNov       , mesh->nnode
              , mesh->maxNo          , mesh->maxViz
@@ -513,8 +506,7 @@ void printFluid(Memoria *m
              , mesh->elm.geom.cc , mesh->node.x
              , mesh->face.xm   
              , mesh->elm.nen     , mesh->elm.adj.nViz
-             , dum               , dum                           
-             , &pMesh->iNo         
+             , dum               , &pMesh->iNo         
              , mesh->numelNov    , mesh->numel
              , mesh->nnodeNov    , mesh->nnode
              , mesh->maxNo       , mesh->maxViz
@@ -532,8 +524,7 @@ void printFluid(Memoria *m
                 , mesh->elm.geom.cc    , mesh->node.x
                 , mesh->face.xm          
                 , mesh->elm.nen        , mesh->elm.adj.nViz
-                , dum                  , dum                           
-                , &pMesh->iNo            
+                , dum                  , &pMesh->iNo            
                 , mesh->numelNov       , mesh->numel
                 , mesh->nnodeNov       , mesh->nnode
                 , mesh->maxNo          , mesh->maxViz
@@ -553,8 +544,7 @@ void printFluid(Memoria *m
                    , mesh->elm.geom.cc , mesh->node.x  
                    , mesh->face.xm   
                    , mesh->elm.nen     , mesh->elm.adj.nViz
-                   , dum               , dum                   
-                   , &pMesh->iNo          
+                   , dum               , &pMesh->iNo          
                    , mesh->numelNov    , mesh->numel        
                    , mesh->nnodeNov    , mesh->nnode 
                    , mesh->maxNo       , mesh->maxViz   
@@ -572,8 +562,7 @@ void printFluid(Memoria *m
                 , mesh->elm.geom.cc       , mesh->node.x  
                 , mesh->face.xm             
                 , mesh->elm.nen           , mesh->elm.adj.nViz
-                , dum                     , dum                   
-                , &pMesh->iNo                
+                , dum                     , &pMesh->iNo                
                 , mesh->numelNov          , mesh->numel        
                 , mesh->nnodeNov          , mesh->nnode 
                 , mesh->maxNo             , mesh->maxViz   
@@ -591,8 +580,7 @@ void printFluid(Memoria *m
                 , mesh->elm.geom.cc        , mesh->node.x  
                 , mesh->face.xm              
                 , mesh->elm.nen            , mesh->elm.adj.nViz
-                , dum                      , dum                   
-                , &pMesh->iNo                 
+                , dum                      , &pMesh->iNo                 
                 , mesh->numelNov           , mesh->numel        
                 , mesh->nnodeNov           , mesh->nnode 
                 , mesh->maxNo              , mesh->maxViz   
@@ -610,8 +598,7 @@ void printFluid(Memoria *m
                 , mesh->elm.geom.cc       , mesh->node.x  
                 , mesh->face.xm             
                 , mesh->elm.nen           , mesh->elm.adj.nViz
-                , dum                     , dum                   
-                , &pMesh->iNo                
+                , dum                     , &pMesh->iNo                
                 , mesh->numelNov          , mesh->numel        
                 , mesh->nnodeNov          , mesh->nnode 
                 , mesh->maxNo             , mesh->maxViz   
@@ -629,8 +616,7 @@ void printFluid(Memoria *m
             , mesh->elm.geom.cc    , mesh->node.x  
             , mesh->face.xm      
             , mesh->elm.nen        , mesh->elm.adj.nViz
-            , mesh->elm.faceReKturb,mesh->elm.faceLoadKturb                   
-            , &pMesh->iNo          
+            , mesh->elm.faceReKturb, &pMesh->iNo          
             , mesh->numelNov       , mesh->numel        
             , mesh->nnodeNov       , mesh->nnode 
             , mesh->maxNo          , mesh->maxViz   
@@ -807,7 +793,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
            , mesh->elm.material.type 
            , mesh->elm.mat           , NULL
            , mesh->elm.leastSquare   , mesh->elm.leastSquareR
-           , mesh->elm.faceRpres     , mesh->elm.faceLoadPres
+           , mesh->elm.faceRpres    
            , mesh->elm.pressure      , mesh->elm.gradPres                
            , mesh->node.pressure     , &sc->rcGrad
            , mesh->maxNo             , mesh->maxViz
@@ -831,8 +817,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
               , mesh->elm.geom.cc  , mesh->node.x  
               , mesh->face.xm
               , mesh->elm.nen      , mesh->elm.adj.nViz
-              , mesh->elm.faceRpres, mesh->elm.faceLoadPres
-              , &pMesh->iNo          
+              , mesh->elm.faceRpres, &pMesh->iNo          
               , mesh->numelNov     , mesh->numel        
               , mesh->nnodeNov     , mesh->nnode 
               , mesh->maxNo        , mesh->maxViz   
@@ -854,8 +839,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh->elm.geom.cc  , mesh->node.x  
                , mesh->face.xm        
                , mesh->elm.nen      , mesh->elm.adj.nViz
-               , mesh->elm.faceRpres, mesh->elm.faceLoadPres  
-               , &pMesh->iNo           
+               , mesh->elm.faceRpres, &pMesh->iNo           
                , mesh->numelNov     , mesh->numel        
                , mesh->nnodeNov     , mesh->nnode 
                , mesh->maxNo        , mesh->maxViz   
@@ -889,7 +873,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
          , mesh->elm.material.type 
          , mesh->elm.mat           , NULL
          , mesh->elm.leastSquare   , mesh->elm.leastSquareR
-         , mesh->elm.faceRvel      , mesh->elm.faceLoadVel   
+         , mesh->elm.faceRvel        
          , mesh->elm.vel           , mesh->elm.gradVel                           
          , mesh->node.vel          , &sc->rcGrad
          , mesh->maxNo             , mesh->maxViz
@@ -912,8 +896,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh->elm.geom.cc  , mesh->node.x  
                , mesh->face.xm        
                , mesh->elm.nen      , mesh->elm.adj.nViz
-               , mesh->elm.faceRvel , mesh->elm.faceLoadVel 
-               , &pMesh->iNo           
+               , mesh->elm.faceRvel , &pMesh->iNo           
                , mesh->numelNov     , mesh->numel        
                , mesh->nnodeNov     , mesh->nnode 
                , mesh->maxNo        , mesh->maxViz   
@@ -936,8 +919,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                  , mesh->elm.geom.cc , mesh->node.x  
                  , mesh->face.xm   
                  , mesh->elm.nen     , mesh->elm.adj.nViz
-                 , mesh->elm.faceRvel, mesh->elm.faceLoadVel 
-                 , &pMesh->iNo          
+                 , mesh->elm.faceRvel, &pMesh->iNo          
                  , mesh->numelNov    , mesh->numel        
                  , mesh->nnodeNov    , mesh->nnode 
                  , mesh->maxNo       , mesh->maxViz   
@@ -972,7 +954,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
         , mesh->elm.material.type
         , mesh->elm.mat          , NULL
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-        , mesh->elm.faceResZcomb , mesh->elm.faceLoadZcomb
+        , mesh->elm.faceResZcomb 
         , mesh->elm.zComb        , mesh->elm.gradZcomb
         , mesh->node.zComb       , &sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
@@ -995,8 +977,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh->elm.geom.cc     , mesh->node.x  
                , mesh->face.xm           
                , mesh->elm.nen         , mesh->elm.adj.nViz
-               , mesh->elm.faceResZcomb, mesh->elm.faceLoadZcomb 
-               , &pMesh->iNo           
+               , mesh->elm.faceResZcomb, &pMesh->iNo           
                , mesh->numelNov        , mesh->numel        
                , mesh->nnodeNov        , mesh->nnode 
                , mesh->maxNo           , mesh->maxViz   
@@ -1019,8 +1000,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh->elm.geom.cc     , mesh->node.x  
                , mesh->face.xm           
                , mesh->elm.nen         , mesh->elm.adj.nViz
-               , mesh->elm.faceResZcomb, mesh->elm.faceLoadZcomb  
-               , &pMesh->iNo           
+               , mesh->elm.faceResZcomb, &pMesh->iNo           
                , mesh->numelNov        , mesh->numel        
                , mesh->nnodeNov        , mesh->nnode 
                , mesh->maxNo           , mesh->maxViz   
@@ -1045,8 +1025,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                    , mesh->elm.geom.cc  , mesh->node.x  
                    , mesh->face.xm        
                    , mesh->elm.nen      , mesh->elm.adj.nViz
-                   , mesh->elm.faceRvel , mesh->elm.faceLoadVel 
-                   , &pMesh->iNo           
+                   , mesh->elm.faceRvel , &pMesh->iNo           
                    , mesh->numelNov     , mesh->numel        
                    , mesh->nnodeNov     , mesh->nnode 
                    , mesh->maxNo        , mesh->maxViz   
@@ -1078,7 +1057,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
            , mesh->elm.material.type
            , mesh->elm.mat          , NULL
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-           , mesh->elm.faceRenergy  , mesh->elm.faceLoadEnergy
+           , mesh->elm.faceRenergy  
            , mesh->elm.temp         , mesh->elm.gradTemp  
            , mesh->node.temp        , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
@@ -1101,8 +1080,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
             , mesh->elm.geom.cc    , mesh->node.x
             , mesh->face.xm          
             , mesh->elm.nen        , mesh->elm.adj.nViz
-            , mesh->elm.faceRenergy, mesh->elm.faceLoadEnergy
-            , &pMesh->iNo            
+            , mesh->elm.faceRenergy, &pMesh->iNo            
             , mesh->numelNov       , mesh->numel
             , mesh->nnodeNov       , mesh->nnode
             , mesh->maxNo          , mesh->maxViz
@@ -1125,8 +1103,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
            , mesh->elm.geom.cc    , mesh->node.x
            , mesh->face.xm          
            , mesh->elm.nen        , mesh->elm.adj.nViz
-           , mesh->elm.faceRenergy, mesh->elm.faceLoadEnergy
-           , &pMesh->iNo            
+           , mesh->elm.faceRenergy, &pMesh->iNo            
            , mesh->numelNov       , mesh->numel
            , mesh->nnodeNov       , mesh->nnode
            , mesh->maxNo          , mesh->maxViz
@@ -1148,8 +1125,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
              , mesh->elm.geom.cc , mesh->node.x
              , mesh->face.xm   
              , mesh->elm.nen     , mesh->elm.adj.nViz
-             , dum               , dum                           
-             , &pMesh->iNo         
+             , dum               , &pMesh->iNo         
              , mesh->numelNov    , mesh->numel
              , mesh->nnodeNov    , mesh->nnode
              , mesh->maxNo       , mesh->maxViz
@@ -1171,8 +1147,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
               , mesh->elm.geom.cc    , mesh->node.x
               , mesh->face.xm          
               , mesh->elm.nen        , mesh->elm.adj.nViz
-              , dum                  , dum                           
-              , &pMesh->iNo            
+              , dum                  , &pMesh->iNo            
               , mesh->numelNov       , mesh->numel
               , mesh->nnodeNov       , mesh->nnode
               , mesh->maxNo          , mesh->maxViz
@@ -1197,8 +1172,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                    , mesh->elm.geom.cc , mesh->node.x  
                    , mesh->face.xm   
                    , mesh->elm.nen     , mesh->elm.adj.nViz
-                   , dum               , dum                   
-                   , &pMesh->iNo          
+                   , dum               , &pMesh->iNo          
                    , mesh->numelNov    , mesh->numel        
                    , mesh->nnodeNov    , mesh->nnode 
                    , mesh->maxNo       , mesh->maxViz   
@@ -1220,8 +1194,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , mesh->elm.geom.cc       , mesh->node.x  
                 , mesh->face.xm             
                 , mesh->elm.nen           , mesh->elm.adj.nViz
-                , dum                     , dum                   
-                , &pMesh->iNo                
+                , dum                     , &pMesh->iNo                
                 , mesh->numelNov          , mesh->numel        
                 , mesh->nnodeNov          , mesh->nnode 
                 , mesh->maxNo             , mesh->maxViz   
@@ -1243,8 +1216,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , mesh->elm.geom.cc        , mesh->node.x  
                 , mesh->face.xm              
                 , mesh->elm.nen            , mesh->elm.adj.nViz
-                , dum                      , dum                   
-                , &pMesh->iNo                 
+                , dum                      , &pMesh->iNo                 
                 , mesh->numelNov           , mesh->numel        
                 , mesh->nnodeNov           , mesh->nnode 
                 , mesh->maxNo              , mesh->maxViz   
@@ -1266,8 +1238,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , mesh->elm.geom.cc       , mesh->node.x  
                 , mesh->face.xm             
                 , mesh->elm.nen           , mesh->elm.adj.nViz
-                , dum                     , dum                   
-                , &pMesh->iNo                
+                , dum                     , &pMesh->iNo                
                 , mesh->numelNov          , mesh->numel        
                 , mesh->nnodeNov          , mesh->nnode 
                 , mesh->maxNo             , mesh->maxViz   
@@ -1289,8 +1260,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
             , mesh->elm.geom.cc    , mesh->node.x  
             , mesh->face.xm      
             , mesh->elm.nen        , mesh->elm.adj.nViz
-            , mesh->elm.faceReKturb,mesh->elm.faceLoadKturb                   
-            , &pMesh->iNo          
+            , mesh->elm.faceReKturb, &pMesh->iNo          
             , mesh->numelNov       , mesh->numel        
             , mesh->nnodeNov       , mesh->nnode 
             , mesh->maxNo          , mesh->maxViz   
@@ -1314,8 +1284,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , mesh->elm.geom.cc     , mesh->node.x  
                 , mesh->face.xm           
                 , mesh->elm.nen         , mesh->elm.adj.nViz
-                , mesh->elm.faceResZcomb, mesh->elm.faceLoadZcomb 
-                , &pMesh->iNo           
+                , mesh->elm.faceResZcomb, &pMesh->iNo           
                 , mesh->numelNov        , mesh->numel        
                 , mesh->nnodeNov        , mesh->nnode 
                 , mesh->maxNo           , mesh->maxViz   
@@ -1336,8 +1305,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , mesh->elm.geom.cc     , mesh->node.x  
                 , mesh->face.xm           
                 , mesh->elm.nen         , mesh->elm.adj.nViz
-                , mesh->elm.faceResZcomb, mesh->elm.faceLoadZcomb 
-                , &pMesh->iNo           
+                , mesh->elm.faceResZcomb, &pMesh->iNo           
                 , mesh->numelNov        , mesh->numel        
                 , mesh->nnodeNov        , mesh->nnode 
                 , mesh->maxNo           , mesh->maxViz   
@@ -1359,8 +1327,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , mesh->elm.geom.cc     , mesh->node.x  
                 , mesh->face.xm           
                 , mesh->elm.nen         , mesh->elm.adj.nViz
-                , mesh->elm.faceResZcomb, mesh->elm.faceLoadZcomb 
-                , &pMesh->iNo           
+                , mesh->elm.faceResZcomb, &pMesh->iNo           
                 , mesh->numelNov        , mesh->numel        
                 , mesh->nnodeNov        , mesh->nnode 
                 , mesh->maxNo           , mesh->maxViz   
@@ -1519,7 +1486,7 @@ void printTrans(Memoria *m
          , mesh->elm.material.type
          , mesh->elm.mat          , NULL
          , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-         , mesh->elm.faceRt1      , mesh->elm.faceLoadT1
+         , mesh->elm.faceRt1      
          , mesh->elm.uT1          , mesh->elm.gradUt1
          , mesh->node.uT1         , &sc->rcGrad
          , mesh->maxNo            , mesh->maxViz
@@ -1539,8 +1506,7 @@ void printTrans(Memoria *m
               , mesh->elm.geom.cc , mesh->node.x
               , mesh->face.xm
               , mesh->elm.nen     , mesh->elm.adj.nViz
-              , mesh->elm.faceRt1 , mesh->elm.faceLoadT1
-              , &pMesh->iNo
+              , mesh->elm.faceRt1 , &pMesh->iNo
               , mesh->numelNov    , mesh->numel
               , mesh->nnodeNov    , mesh->nnode
               , mesh->maxNo       , mesh->maxViz
@@ -1557,8 +1523,7 @@ void printTrans(Memoria *m
               , mesh->elm.geom.cc , mesh->node.x
               , mesh->face.xm
               , mesh->elm.nen     , mesh->elm.adj.nViz
-              , mesh->elm.faceRt1 , mesh->elm.faceLoadT1
-              , &pMesh->iNo
+              , mesh->elm.faceRt1 , &pMesh->iNo
               , mesh->numelNov    , mesh->numel
               , mesh->nnodeNov    , mesh->nnode
               , mesh->maxNo       , mesh->maxViz
@@ -1575,8 +1540,7 @@ void printTrans(Memoria *m
               , mesh->elm.geom.cc , mesh->node.x
               , mesh->face.xm
               , mesh->elm.nen     , mesh->elm.adj.nViz
-              , dum               , dum
-              , &pMesh->iNo
+              , dum               , &pMesh->iNo
               , mesh->numelNov    , mesh->numel
               , mesh->nnodeNov    , mesh->nnode
               , mesh->maxNo       , mesh->maxViz
@@ -1593,8 +1557,7 @@ void printTrans(Memoria *m
               , mesh->elm.geom.cc , mesh->node.x
               , mesh->face.xm
               , mesh->elm.nen     , mesh->elm.adj.nViz
-              , dum               , dum
-              , &pMesh->iNo
+              , dum               , &pMesh->iNo
               , mesh->numelNov    , mesh->numel
               , mesh->nnodeNov    , mesh->nnode
               , mesh->maxNo       , mesh->maxViz
@@ -1611,8 +1574,7 @@ void printTrans(Memoria *m
                , mesh->elm.geom.cc , mesh->node.x
                , mesh->face.xm
                , mesh->elm.nen     , mesh->elm.adj.nViz
-               , dum               , dum                     
-               , &pMesh->iNo
+               , dum               , &pMesh->iNo
                , mesh->numelNov    , mesh->numel
                , mesh->nnodeNov    , mesh->nnode
                , mesh->maxNo       , mesh->maxViz
@@ -1745,7 +1707,7 @@ void printDiff(Memoria *m
         , mesh->elm.material.type
         , mesh->elm.mat          , NULL
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-        , mesh->elm.faceRd1      , mesh->elm.faceLoadD1
+        , mesh->elm.faceRd1      
         , mesh->elm.uD1          , mesh->elm.gradUd1
         , mesh->node.uD1         , &sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
@@ -1765,8 +1727,7 @@ void printDiff(Memoria *m
                , mesh->elm.geom.cc , mesh->node.x
                , mesh->face.xm
                , mesh->elm.nen     , mesh->elm.adj.nViz
-               , mesh->elm.faceRd1 , mesh->elm.faceLoadD1
-               , &pMesh->iNo
+               , mesh->elm.faceRd1 , &pMesh->iNo
                , mesh->numelNov    , mesh->numel
                , mesh->nnodeNov    , mesh->nnode
                , mesh->maxNo       , mesh->maxViz
@@ -1783,8 +1744,7 @@ void printDiff(Memoria *m
               , mesh->elm.geom.cc , mesh->node.x
               , mesh->face.xm
               , mesh->elm.nen     , mesh->elm.adj.nViz
-              , mesh->elm.faceRd1 , mesh->elm.faceLoadD1
-              , &pMesh->iNo
+              , mesh->elm.faceRd1 , &pMesh->iNo
               , mesh->numelNov    , mesh->numel
               , mesh->nnodeNov    , mesh->nnode
               , mesh->maxNo       , mesh->maxViz
@@ -1802,8 +1762,7 @@ void printDiff(Memoria *m
               , mesh->elm.geom.cc , mesh->node.x
               , mesh->face.xm
               , mesh->elm.nen     , mesh->elm.adj.nViz
-              , dum               , dum
-              , &pMesh->iNo
+              , dum               , &pMesh->iNo
               , mesh->numelNov    , mesh->numel
               , mesh->nnodeNov    , mesh->nnode
               , mesh->maxNo       , mesh->maxViz
@@ -1820,8 +1779,7 @@ void printDiff(Memoria *m
               , mesh->elm.geom.cc , mesh->node.x
               , mesh->face.xm
               , mesh->elm.nen     , mesh->elm.adj.nViz
-              , dum               , dum
-              , &pMesh->iNo
+              , dum               , &pMesh->iNo
               , mesh->numelNov    , mesh->numel
               , mesh->nnodeNov    , mesh->nnode
               , mesh->maxNo       , mesh->maxViz
@@ -2053,13 +2011,12 @@ void printFace(Memoria *m   , Mesh *mesh
     fName(aux, 0, 0, 17, nameOut);
     wGeoFaceVtk2(m        , mesh->node.x
                , mesh->elm.node    , mesh->elm.nen
-               , mesh->elm.geomType
-               , mesh->elm.faceRvel, mesh->elm.faceLoadVel
+               , mesh->elm.geomType, mesh->elm.faceRvel
                , mesh->nnode       , mesh->numel
                , mesh->ndm         , mesh->maxViz
                , mesh->ndfF - 1    , mesh->maxNo
                , nameOut           , bVtk
-               , false             , fileOut);
+               , fileOut);
 
     aux[0] = '\0';
     strcpy(aux, preName);
@@ -2067,13 +2024,12 @@ void printFace(Memoria *m   , Mesh *mesh
     fName(aux, 0, 0, 17, nameOut);
     wGeoFaceVtk2(m                  , mesh->node.x
                , mesh->elm.node     , mesh->elm.nen
-               , mesh->elm.geomType
-               , mesh->elm.faceRpres, mesh->elm.faceLoadPres
+               , mesh->elm.geomType , mesh->elm.faceRpres
                , mesh->nnode        , mesh->numel
                , mesh->ndm          , mesh->maxViz
                , 1                  , mesh->maxNo
                , nameOut            , bVtk
-               , true               , fileOut);
+               , fileOut);
   }
 /*..................................................................*/
 
@@ -2085,14 +2041,13 @@ void printFace(Memoria *m   , Mesh *mesh
     strcat(aux,"_energy");
     fName(aux, 0, 0, 17, nameOut);
     wGeoFaceVtk2(m                   , mesh->node.x
-               , mesh->elm.node       , mesh->elm.nen
-              , mesh->elm.geomType
-              , mesh->elm.faceRenergy, mesh->elm.faceLoadEnergy
+               , mesh->elm.node      , mesh->elm.nen
+              , mesh->elm.geomType   , mesh->elm.faceRenergy
               , mesh->nnode          , mesh->numel
               , mesh->ndm            , mesh->maxViz
               , 1                    , mesh->maxNo          
               , nameOut              , bVtk                 
-              , true                 , fileOut);
+              , fileOut);
     
     aux[0] = '\0';
     strcpy(aux, preName);
@@ -2100,13 +2055,12 @@ void printFace(Memoria *m   , Mesh *mesh
     fName(aux, 0, 0, 17, nameOut);
     wGeoFaceVtk2(m                    , mesh->node.x
                , mesh->elm.node       , mesh->elm.nen
-               , mesh->elm.geomType
-               , mesh->elm.faceRvel   , mesh->elm.faceLoadVel
+               , mesh->elm.geomType   , mesh->elm.faceRvel  
                , mesh->nnode          , mesh->numel
                , mesh->ndm            , mesh->maxViz
                , mesh->ndfFt-1        , mesh->maxNo
                , nameOut              , bVtk
-               , false                , fileOut);
+               , fileOut);
 
     aux[0] = '\0';
     strcpy(aux, preName);
@@ -2114,13 +2068,12 @@ void printFace(Memoria *m   , Mesh *mesh
     fName(aux, 0, 0, 17, nameOut);
     wGeoFaceVtk2(m                  , mesh->node.x
                , mesh->elm.node     , mesh->elm.nen
-               , mesh->elm.geomType
-               , mesh->elm.faceRpres, mesh->elm.faceLoadPres
+               , mesh->elm.geomType , mesh->elm.faceRpres
                , mesh->nnode        , mesh->numel
                , mesh->ndm          , mesh->maxViz
                , 1                  , mesh->maxNo
                , nameOut            , bVtk
-               , true               , fileOut);
+               , fileOut);
   }
 /*..................................................................*/
 
@@ -2133,13 +2086,12 @@ void printFace(Memoria *m   , Mesh *mesh
     fName(aux, 0, 0, 17, nameOut);
     wGeoFaceVtk2(m         , mesh->node.x
       , mesh->elm.node     , mesh->elm.nen
-      , mesh->elm.geomType
-      , mesh->elm.faceRd1  , mesh->elm.faceLoadD1
+      , mesh->elm.geomType , mesh->elm.faceRd1   
       , mesh->nnode        , mesh->numel
       , mesh->ndm          , mesh->maxViz
       , 1                  , mesh->maxNo
       , nameOut            , bVtk
-      , true               , fileOut);
+      , fileOut);
   }
 /*..................................................................*/
 
@@ -2152,13 +2104,12 @@ void printFace(Memoria *m   , Mesh *mesh
     fName(aux, 0, 0, 17, nameOut);
     wGeoFaceVtk2(m                 , mesh->node.x
                , mesh->elm.node    , mesh->elm.nen
-               , mesh->elm.geomType
-               , mesh->elm.faceRt1 , mesh->elm.faceLoadT1
+               , mesh->elm.geomType, mesh->elm.faceRt1 
                , mesh->nnode       , mesh->numel
                , mesh->ndm         , mesh->maxViz
                , 1                 , mesh->maxNo
                , nameOut           , bVtk
-               , true              , fileOut);
+               , fileOut);
   }
 /*..................................................................*/
 
@@ -2171,13 +2122,12 @@ void printFace(Memoria *m   , Mesh *mesh
     fName(aux, 0, 0, 17, nameOut);
     wGeoFaceVtk2(m                     , mesh->node.x
                , mesh->elm.node        , mesh->elm.nen
-               , mesh->elm.geomType
-               , mesh->elm.faceResZcomb, mesh->elm.faceLoadZcomb
+               , mesh->elm.geomType    , mesh->elm.faceResZcomb 
                , mesh->nnode           , mesh->numel
                , mesh->ndm             , mesh->maxViz
                , 1                     , mesh->maxNo
                , nameOut               , bVtk
-               , true                  , fileOut);
+               , fileOut);
   }
 /*..................................................................*/
 

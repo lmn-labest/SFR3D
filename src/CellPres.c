@@ -845,7 +845,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*********************************************************************
  * Data de criacao    : 11/07/2016                                   *
- * Data de modificaco : 28/09/2019                                   *
+ * Data de modificaco : 06/10/2019                                   *
  *-------------------------------------------------------------------*
  * CELLSIMPLEPRES3D: Celula 3D para equacao de correcao de pressao   *
  * metodo simple em escoamento imcompressivel                        *
@@ -880,9 +880,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
  * lB        -> nao definido                                         *
  * lRcell    -> nao definido                                         *
  * faceVelR  -> restricoes por elemento de velocidades               *
- * faceVelL  -> carga por elemento de velocidades                    *
  * facePresR -> restricoes por elemento de pressao                   *
- * facePresL -> carga por elemento de pressao                        *
  * pres      -> campo de pressao conhecido                           *
  * gradPes   -> gradiente reconstruido da pressao                    *
  * vel       -> campo de velocidade conhecido                        *
@@ -915,8 +913,7 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
               ,DOUBLE *RESTRICT vSkew      ,DOUBLE *RESTRICT mvSkew
               ,DOUBLE *RESTRICT lA         ,DOUBLE *RESTRICT lB
               ,DOUBLE *RESTRICT lRcell
-              ,short  *RESTRICT lFaceVelR  ,short *RESTRICT lFaceVelL
-              ,short  *RESTRICT lFacePresR ,short *RESTRICT lFacePresL
+              ,short  *RESTRICT lFaceVelR  ,short  *RESTRICT lFacePresR 
               ,DOUBLE *RESTRICT pres       ,DOUBLE *RESTRICT gradPres
               ,DOUBLE *RESTRICT vel            
               ,DOUBLE *RESTRICT dField     ,DOUBLE *RESTRICT wallPar
@@ -1089,7 +1086,7 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
 /*...................................................................*/
 
 /*...cargas*/
-        nCarg = lFacePresL[nf] - 1;
+        nCarg = lFacePresR[nf] - 1;
         pLoadSimplePres(&sP             , &p
                       , tA              , lKsi
                       , presC           , gradPresC   
@@ -1104,9 +1101,9 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
 /*...................................................................*/
 
 /*... velocidades*/
-      if(lFaceVelR[nf] > 0)
+      if(lFaceVelR[nf])
       {
-        nCarg = lFaceVelL[nf]-1;
+        nCarg = lFaceVelR[nf]-1;
         pLoadSimple(&sP             , &p
                   , tA              , lXmcc
                   , velC            , &ddum       

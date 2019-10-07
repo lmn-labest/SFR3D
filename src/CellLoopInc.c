@@ -2,7 +2,7 @@
 
 /********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 28/09/2019                                   * 
+ * Data de modificaco : 06/10/2019                                   * 
  *-------------------------------------------------------------------* 
  * SYSTFOMSIMPLEVEL: calculo do sistema de equacoes para problemas   * 
  * de escomaneto de fluidos ( Vel )                                  * 
@@ -54,9 +54,7 @@
  * b         -> vetor de forcas                                      * 
  * id        -> numera das equacoes                                  * 
  * faceVelR  -> restricoes por elemento de velocidades               * 
- * faceVelL  -> carga por elemento de velocidades                    * 
  * facePresR -> restricoes por elemento de pressao                   * 
- * facePresL -> carga por elemento de pressao                        * 
  * pres      -> campo de pressao conhecido                           * 
  * grdPres   -> campo de gradiente de pressao conhecido              * 
  * gradVel   -> gradiente da solucao conhecido                       * 
@@ -115,8 +113,7 @@
                , INT    *RESTRICT ia       , INT    *RESTRICT ja
                , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad
                , DOUBLE *RESTRICT b        , INT    *RESTRICT id
-               , short  *RESTRICT faceVelR , short  *RESTRICT faceVelL
-               , short  *RESTRICT facePresR, short  *RESTRICT facePresL
+               , short  *RESTRICT faceVelR , short  *RESTRICT facePresR
                , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT gradVel
                , DOUBLE *RESTRICT dField   , DOUBLE underU
@@ -144,7 +141,6 @@
   short  lGeomType[MAX_NUM_FACE+1];
   short  lib;
   short  lFaceVelR[MAX_NUM_FACE+1],lFacePresR[MAX_NUM_FACE+1];
-  short  lFaceVelL[MAX_NUM_FACE+1],lFacePresL[MAX_NUM_FACE+1];
   INT    idFace, cellOwner, ch;
   INT    lId[(MAX_NUM_FACE+1)*MAX_NDF],lViz[MAX_NUM_FACE];
   DOUBLE lKsi[MAX_NUM_FACE*MAX_NDM],lmKsi[MAX_NUM_FACE];
@@ -171,14 +167,14 @@
     aux2 = maxViz + 1;
   #pragma omp parallel  for default(none) num_threads(nThreads)\
      private(nel,i,j,k,aux1,lId,lPres,lMat,lib,lVolume,lGeomType\
-          ,lFaceVelR,lA,lB,lDfield,lProp,lEddyVisc\
-          ,lFaceVelL,lFacePresR,lFacePresL,lGradPres\
+          ,lA,lB,lDfield,lProp,lEddyVisc\
+          ,lFaceVelR,lFacePresR,lGradPres\
           ,lVel,lCc,lGradVel,lmKsi,lfArea,lDcca,lmvSkew,lKsi,lEta\
           ,lNormal,lXm,lXmcc,lvSkew,vizNel,lViz,lRcell\
           ,lStressR,lWallPar,idFace,cellOwner,ch)\
      shared(aux2,ndm,ndf,numel,maxViz,calRcell,rCell,nFace,mat,ntn\
-         ,calType,gVolume, geomType, faceVelR, faceVelL, facePresR\
-         ,facePresL,gradPres,vel,gCc,gradVel,fModKsi,prop\
+         ,calType,gVolume, geomType, faceVelR, facePresR\
+         ,gradPres,vel,gCc,gradVel,fModKsi,prop\
          ,fArea,gDcca,fModvSkew,fKsi,fEta,fNormal,fXm,gXmCc,fvSkew\
          ,nelcon,id,loadsVel,loadsPres,advVel,diffVel,typeSimple\
          ,ddt,underU,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd\
@@ -209,9 +205,7 @@
         lGeomType[aux1]   = geomType[nel];
         lPres[aux1]       = pres[nel];
         lFaceVelR[aux1]   = MAT2D(nel,aux1,faceVelR ,aux2);
-        lFaceVelL[aux1]   = MAT2D(nel,aux1,faceVelL ,aux2);
         lFacePresR[aux1]  = MAT2D(nel,aux1,facePresR ,aux2);
-        lFacePresL[aux1]  = MAT2D(nel,aux1,facePresL ,aux2);      
 /*... viscosidade dinamica e turbulentea*/
         if(fTurb)
           lEddyVisc[aux1] = eddyVisc[nel];
@@ -254,9 +248,7 @@
         {
           lDcca[i]      = MAT2D(nel,i,gDcca   ,maxViz);
           lFaceVelR[i]  = MAT2D(nel,i,faceVelR ,aux2);
-          lFaceVelL[i]  = MAT2D(nel,i,faceVelL ,aux2);
           lFacePresR[i] = MAT2D(nel,i,facePresR ,aux2);
-          lFacePresL[i] = MAT2D(nel,i,facePresL ,aux2);
 /*... propriedades por face*/
           idFace     = MAT2D(nel, i, cellFace, maxViz) - 1;
           cellOwner  = MAT2D(idFace, 0, fOwner, 2) - 1;
@@ -347,8 +339,7 @@
                       ,lvSkew     ,lmvSkew
                       ,lA         ,lB
                       ,lRcell     ,ddt
-                      ,lFaceVelR  ,lFaceVelL            
-                      ,lFacePresR ,lFacePresL            
+                      ,lFaceVelR  ,lFacePresR           
                       ,lPres      ,lGradPres    
                       ,lVel       ,lGradVel
                       ,lDfield    ,lStressR 
@@ -420,9 +411,7 @@
         lGeomType[aux1]   = geomType[nel];
         lPres[aux1]       = pres[nel];
         lFaceVelR[aux1]   = MAT2D(nel,aux1,faceVelR ,aux2);
-        lFaceVelL[aux1]   = MAT2D(nel,aux1,faceVelL ,aux2);
-        lFacePresR[aux1]  = MAT2D(nel,aux1,facePresR ,aux2);
-        lFacePresL[aux1]  = MAT2D(nel,aux1,facePresL ,aux2);      
+        lFacePresR[aux1]  = MAT2D(nel,aux1,facePresR ,aux2);     
 /*... viscosidade dinamica e turbulentea*/
         if(fTurb)
           lEddyVisc[aux1] = eddyVisc[nel];
@@ -465,9 +454,7 @@
         {
           lDcca[i]      = MAT2D(nel,i,gDcca   ,maxViz);
           lFaceVelR[i]  = MAT2D(nel,i,faceVelR ,aux2);
-          lFaceVelL[i]  = MAT2D(nel,i,faceVelL ,aux2);
           lFacePresR[i] = MAT2D(nel,i,facePresR ,aux2);
-          lFacePresL[i] = MAT2D(nel,i,facePresL ,aux2);
 /*... propriedades por face*/
           idFace     = MAT2D(nel, i, cellFace, maxViz) - 1;
           cellOwner  = MAT2D(idFace, 0, fOwner, 2) - 1;
@@ -558,8 +545,7 @@
                       ,lvSkew     ,lmvSkew
                       ,lA         ,lB
                       ,lRcell     ,ddt
-                      ,lFaceVelR  ,lFaceVelL            
-                      ,lFacePresR ,lFacePresL            
+                      ,lFaceVelR  ,lFacePresR                                 
                       ,lPres      ,lGradPres    
                       ,lVel       ,lGradVel
                       ,lDfield    ,lStressR 
@@ -606,7 +592,7 @@
 
 /********************************************************************* 
  * Data de criacao    : 01/07/2016                                   *
- * Data de modificaco : 28/09/2019                                   * 
+ * Data de modificaco : 06/10/2019                                   * 
  *-------------------------------------------------------------------* 
  * SYSTFOMSIMPLEPRES:calculo do sistema de equacoes para problemas   * 
  * de escomaneto de fluidos (Pres)                                   * 
@@ -654,9 +640,7 @@
  * b       -> vetor de forcas                                        * 
  * id      -> numera das equacoes                                    * 
  * faceVelR  -> restricoes por elemento de velocidades               * 
- * faceVelL  -> carga por elemento de velocidades                    * 
  * facePresR -> restricoes por elemento de pressao                   * 
- * facePresL -> carga por elemento de pressao                        * 
  * pres    -> campo de pressao conhecido                             * 
  * gradVel -> gradiente da solucao conhecido                         * 
  * dField  -> matriz D do metodo simple ( volume/A(i,i) )            * 
@@ -705,8 +689,7 @@ void systFormSimplePres(Loads *loadsVel    , Loads *loadsPres
                , INT    *RESTRICT ia       , INT    *RESTRICT ja
                , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad 
                , DOUBLE *RESTRICT b        , INT    *RESTRICT id
-               , short  *RESTRICT faceVelR , short  *RESTRICT faceVelL       
-               , short  *RESTRICT facePresR, short  *RESTRICT facePresL      
+               , short  *RESTRICT faceVelR , short  *RESTRICT facePresR      
                , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT dField    
                , DOUBLE *RESTRICT wallPar  , DOUBLE *RESTRICT rCell
@@ -733,7 +716,6 @@ void systFormSimplePres(Loads *loadsVel    , Loads *loadsPres
   short  lGeomType[MAX_NUM_FACE+1];
   short  lib;
   short  lFaceVelR[MAX_NUM_FACE+1],lFacePresR[MAX_NUM_FACE+1];
-  short  lFaceVelL[MAX_NUM_FACE+1],lFacePresL[MAX_NUM_FACE+1];
   DOUBLE lA[(MAX_NUM_FACE+1)*MAX_NDF],lB[MAX_NDF];
   DOUBLE lProp[(MAX_NUM_FACE+1)*MAXPROP];
   DOUBLE lPres[(MAX_NUM_FACE+1)];
@@ -752,14 +734,14 @@ void systFormSimplePres(Loads *loadsVel    , Loads *loadsPres
     aux2 = maxViz + 1;
 #pragma omp parallel  for default(none) num_threads(nThreads)\
      private(nel,i,j,aux1,lId,lPres,lMat,lib,lVolume,lGeomType\
-          ,lFaceVelR,lA,lB,lDfield,lProp\
-          ,lFaceVelL,lFacePresR,lFacePresL,lGradPres\
+          ,lA,lB,lDfield,lProp\
+          ,lFaceVelR,lFacePresR,lGradPres\
           ,lVel,lmKsi,lfArea,lDcca,lmvSkew,lKsi,lEta\
           ,lNormal,lXm,lXmcc,lvSkew,vizNel,lViz,lRcell,lWallPar\
           ,idFace,cellOwner,ch)\
      shared(aux2,ndm,ndf,numel,maxViz,calRcell,rCell,nFace,mat\
-         ,calType,gVolume,prop, geomType, faceVelR, faceVelL, facePresR\
-         ,facePresL,gradPres,vel,fModKsi\
+         ,calType,gVolume,prop, geomType, faceVelR, facePresR\
+         ,gradPres,vel,fModKsi\
          ,fArea,gDcca,fModvSkew,fKsi,fEta,fNormal,fXm,gXmCc,fvSkew\
          ,nelcon,id,loadsVel,loadsPres,diffPres\
          ,ddt,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd\
@@ -783,9 +765,7 @@ void systFormSimplePres(Loads *loadsVel    , Loads *loadsPres
         lVolume[aux1]   = gVolume[nel]; 
         lGeomType[aux1] = geomType[nel];
         lFaceVelR[aux1] = MAT2D(nel,aux1,faceVelR ,aux2);
-        lFaceVelL[aux1] = MAT2D(nel,aux1,faceVelL ,aux2);
         lFacePresR[aux1]= MAT2D(nel,aux1,facePresR ,aux2);
-        lFacePresL[aux1]= MAT2D(nel,aux1,facePresL ,aux2);
  
         lPres[aux1]     = pres[nel];
         lId[aux1]       = id[nel] - 1;
@@ -810,9 +790,7 @@ void systFormSimplePres(Loads *loadsVel    , Loads *loadsPres
         {
           lDcca[i]      = MAT2D(nel,i,gDcca   ,maxViz);
           lFaceVelR[i]  = MAT2D(nel,i,faceVelR ,aux2);
-          lFaceVelL[i]  = MAT2D(nel,i,faceVelL ,aux2);
           lFacePresR[i] = MAT2D(nel,i,facePresR ,aux2);
-          lFacePresL[i] = MAT2D(nel,i,facePresL ,aux2);
 /*... propriedades por face*/
           idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
           cellOwner = MAT2D(idFace, 0, fOwner, 2) - 1;
@@ -877,8 +855,7 @@ void systFormSimplePres(Loads *loadsVel    , Loads *loadsPres
                       ,lvSkew     ,lmvSkew
                       ,lA         ,lB
                       ,&lRcell    ,ddt
-                      ,lFaceVelR  ,lFaceVelL            
-                      ,lFacePresR ,lFacePresL   
+                      ,lFaceVelR  ,lFacePresR    
                       ,lPres      ,lGradPres    
                       ,lVel       
                       ,lDfield    ,lWallPar        
@@ -932,9 +909,7 @@ void systFormSimplePres(Loads *loadsVel    , Loads *loadsPres
         lVolume[aux1]   = gVolume[nel]; 
         lGeomType[aux1] = geomType[nel];
         lFaceVelR[aux1] = MAT2D(nel,aux1,faceVelR ,aux2);
-        lFaceVelL[aux1] = MAT2D(nel,aux1,faceVelL ,aux2);
         lFacePresR[aux1]= MAT2D(nel,aux1,facePresR ,aux2);
-        lFacePresL[aux1]= MAT2D(nel,aux1,facePresL ,aux2);
  
         lPres[aux1]     = pres[nel];
         lId[aux1]       = id[nel] - 1;
@@ -959,9 +934,7 @@ void systFormSimplePres(Loads *loadsVel    , Loads *loadsPres
         {
           lDcca[i]      = MAT2D(nel,i,gDcca   ,maxViz);
           lFaceVelR[i]  = MAT2D(nel,i,faceVelR ,aux2);
-          lFaceVelL[i]  = MAT2D(nel,i,faceVelL ,aux2);
           lFacePresR[i] = MAT2D(nel,i,facePresR ,aux2);
-          lFacePresL[i] = MAT2D(nel,i,facePresL ,aux2);
 /*... propriedades por face*/
           idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
           cellOwner = MAT2D(idFace, 0, fOwner, 2) - 1;
@@ -1026,8 +999,7 @@ void systFormSimplePres(Loads *loadsVel    , Loads *loadsPres
                       ,lvSkew     ,lmvSkew
                       ,lA         ,lB
                       ,&lRcell    ,ddt
-                      ,lFaceVelR  ,lFaceVelL            
-                      ,lFacePresR ,lFacePresL   
+                      ,lFaceVelR  ,lFacePresR  
                       ,lPres      ,lGradPres    
                       ,lVel       
                       ,lDfield    ,lWallPar        

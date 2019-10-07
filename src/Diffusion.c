@@ -45,8 +45,8 @@ void diffusion(Memoria *m       ,Loads *loadsDif,DiffModel *dModel
   zero(sistEqD->b0,sistEqD->neqNov,DOUBLEC);
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
   tm.CellPloadD1 = getTimeC() - tm.CellPloadD1;
-  cellPload(loadsDif              ,mesh->elm.geom.cc 
-           ,mesh->elm.faceRd1    ,mesh->elm.faceLoadD1
+  cellPload(loadsDif             ,mesh->elm.geom.cc 
+           ,mesh->elm.faceRd1    ,mesh->elm.faceRd1
            ,mesh->elm.geom.volume,sistEqD->id 
            ,mesh->elm.uD1        ,sistEqD->b0
            ,mesh->numelNov       ,mesh->ndfD[0]
@@ -91,7 +91,7 @@ void diffusion(Memoria *m       ,Loads *loadsDif,DiffModel *dModel
                ,sistEqD->ia             ,sistEqD->ja      
                ,sistEqD->al             ,sistEqD->ad       
                ,sistEqD->b              ,sistEqD->id       
-               ,mesh->elm.faceRd1       ,mesh->elm.faceLoadD1  
+               ,mesh->elm.faceRd1        
                ,mesh->elm.uD1           ,mesh->elm.gradUd1           
                ,mesh->elm.rCellUd1      ,&sc->ddt
                ,sistEqD->neq            ,sistEqD->neqNov        
@@ -180,7 +180,7 @@ void diffusion(Memoria *m       ,Loads *loadsDif,DiffModel *dModel
            , mesh->elm.material.type 
            , mesh->elm.mat           , mesh->elm.cDiffD1
            , mesh->elm.leastSquare   , mesh->elm.leastSquareR
-           , mesh->elm.faceRd1       , mesh->elm.faceLoadD1    
+           , mesh->elm.faceRd1          
            , mesh->elm.uD1           , mesh->elm.gradUd1                 
            , mesh->node.uD1          , &sc->rcGrad
            , mesh->maxNo             , mesh->maxViz
@@ -218,30 +218,3 @@ void diffusion(Memoria *m       ,Loads *loadsDif,DiffModel *dModel
 /*********************************************************************/
 
 
-
-
-/*  systFormDifOld(loadsDif, &sc->diffD1
-, mesh->elm.node, mesh->elm.adj.nelcon
-, mesh->elm.nen, mesh->elm.adj.nViz
-, mesh->elm.geom.volume, mesh->elm.geom.dcca
-, mesh->elm.geom.xmcc
-, mesh->elm.geom.mksi, mesh->elm.geom.ksi
-, mesh->elm.geom.eta, mesh->elm.geom.fArea
-, mesh->elm.geom.normal, mesh->elm.geom.xm
-, mesh->elm.geom.mvSkew, mesh->elm.geom.vSkew
-, mesh->elm.geomType, mesh->elm.material.prop
-, mesh->elm.material.type, mesh->elm.mat
-, mesh->elm.densityUd1
-, sistEqD->ia, sistEqD->ja
-, sistEqD->al, sistEqD->ad
-, sistEqD->b, sistEqD->id
-, mesh->elm.faceRd1, mesh->elm.faceLoadD1
-, mesh->elm.uD1, mesh->elm.gradUd1
-, mesh->elm.rCellUd1, &sc->ddt
-, sistEqD->neq, sistEqD->neqNov
-, sistEqD->nad, sistEqD->nadr
-, mesh->maxNo, mesh->maxViz
-, mesh->ndm, mesh->numelNov
-, mesh->ndfD[0], sistEqD->storage
-, true, true
-, true, sistEqD->unsym);*/
