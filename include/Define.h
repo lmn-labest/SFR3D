@@ -134,7 +134,6 @@
   #define IDEALGASR  8.3144621e+03 /*J/(kmol.kelvin) */
   #define IDEALGASRC 1.9872063e+00  /*Cal/(mol.kelvin) */
 //#define IDEALGASR  8.3144598e+03 /*J/(Kmol.kelvin) */
-  #define MMOLARAR   2.896e+00     /*kg/Kmol         */
 /*...................................................................*/
 
 /*...*/
@@ -187,6 +186,7 @@
   #define THERMALCONDUCTIVITY        2
   #define SPECIFICHEATCAPACITYFLUID  3
   #define SPECIEDIFUSSION            4
+  #define MMOLARMASS                 5
 /*...................................................................*/
 
 /*...*/

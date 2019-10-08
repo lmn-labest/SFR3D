@@ -45,7 +45,7 @@ void transport(Memoria *m      ,Loads *loadsTrans,TransModel *tModel
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
   tm.CellPloadT1 = getTimeC() - tm.CellPloadT1;
   cellPload(loadsTrans            ,mesh->elm.geom.cc 
-           ,mesh->elm.faceRt1    ,mesh->elm.faceRt1
+           ,mesh->elm.faceRt1    
            ,mesh->elm.geom.volume,sistEqT->id 
            ,mesh->elm.uT1        ,sistEqT->b0
            ,mesh->numelNov       ,mesh->ndfT[0]

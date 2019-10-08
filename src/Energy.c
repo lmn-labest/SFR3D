@@ -92,8 +92,7 @@ bool energyEquation(Memoria *m               , PropVarFluid *prop
             , sistEqEnergy->ia        , sistEqEnergy->ja
             , sistEqEnergy->al        , sistEqEnergy->ad
             , sistEqEnergy->b         , sistEqEnergy->id
-            , mesh->elm.faceRenergy   , mesh->elm.faceLoadEnergy
-            , mesh->elm.faceRvel      , mesh->elm.faceRvel   
+            , mesh->elm.faceRenergy   , mesh->elm.faceRvel   
             , mesh->elm.energy        , mesh->elm.gradEnergy
             , mesh->elm.vel           , mesh->elm.gradVel
             , mesh->elm.pressure0     , mesh->elm.pressure  

@@ -39,8 +39,7 @@
 /*... */               
     short *faceRvel;       /*condicao  contorno na face (fluido)*/
     short *faceRpres;      /*condicao  contorno na face (fluido)*/
-    short *faceRenergy;    /*condicao  contorno na face (fluido)*/
-    short *faceLoadEnergy; /*tipo de carga contorno na face (fluido)*/
+    short *faceRenergy;    /*condicao  contorno na face (fluido)*/   
 /*...*/
     short *faceReKturb;     /*condicao  contorno na face (fluido)*/
     short *faceLoadKturb;  /*tipo de carga contorno na face (fluido)*/

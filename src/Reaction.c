@@ -157,13 +157,11 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
        , iCod = cModel->reactionKinetic
        , nReac= cModel->chem.nReac
        , nSp  = cModel->nOfSpecies;
-  short i,j;
-  INT nel,it;
-  DOUBLE s,tMix,eddy,sT[6],*iGradVel,df,*pz;
+  short i;
+  INT nel,it=0;
+  DOUBLE *pz;
   DOUBLE omega, densityC, eddyC;
-  DOUBLE modS;
   DOUBLE tK, y[MAXSPECIES],cM[MAXSPECIES],Q[MAXREAC],w[MAXSPECIES];
-
 
 /*...*/
   switch(iCod)
@@ -363,7 +361,7 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
   short  nComb = cModel->nComb    
        , nReac=cModel->chem.nReac
        , nSp  = cModel->nOfSpecies;
-  short i,j;
+  short i;
   INT nel;
   DOUBLE sT[6],*iGradVel,*pz;
   DOUBLE omega, densityC,tmp,modS,tMix;

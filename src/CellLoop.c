@@ -53,7 +53,7 @@ void pGeomForm(DOUBLE *RESTRICT x       ,INT    *RESTRICT el
               ,short maxNo              ,short maxViz
               ,short ndm                ,INT numel)
 {
-  short i, j, k, aux1, aux2;
+  short i, j, k, aux1;
   INT nel,no,vizNel,idFace,idCell;
 /*... variavel local */
   DOUBLE lx[MAX_NUM_PONT];
@@ -2018,8 +2018,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
        , INT    *RESTRICT ia           , INT    *RESTRICT ja
        , DOUBLE *RESTRICT a            , DOUBLE *RESTRICT ad
        , DOUBLE *RESTRICT b            , INT    *RESTRICT id
-       , short  *RESTRICT faceR        , short  *RESTRICT faceL
-       , short  *RESTRICT faceVelR     , short  *RESTRICT faceVelL
+       , short  *RESTRICT faceR        , short  *RESTRICT faceVelR     
        , DOUBLE *RESTRICT u0           , DOUBLE *RESTRICT gradU0
        , DOUBLE *RESTRICT vel          , DOUBLE *RESTRICT gradVel
        , DOUBLE *RESTRICT pres0        , DOUBLE *RESTRICT pres 
@@ -2048,8 +2047,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
   
 /*... variavel local */
   short  lGeomType[MAX_NUM_FACE + 1],
-          lFaceR[MAX_NUM_FACE + 1], lFaceL[MAX_NUM_FACE + 1],
-          lFaceVelR[MAX_NUM_FACE + 1], lFaceVelL[MAX_NUM_FACE + 1];
+          lFaceR[MAX_NUM_FACE + 1],lFaceVelR[MAX_NUM_FACE + 1];
   INT    lId[(MAX_NUM_FACE + 1)*MAX_NDF], lViz[MAX_NUM_FACE];
   INT    idFace, cellOwner, ch;
   DOUBLE lKsi[MAX_NUM_FACE*MAX_NDM], lmKsi[MAX_NUM_FACE];
@@ -2080,14 +2078,14 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
     aux2 = maxViz + 1;
 #pragma omp parallel  for default(none) num_threads(nThreads)\
      private(nel,i,j,k,aux1,lId,lMat,lib,lVolume,lGeomType,lu0\
-          ,lFaceR,lA,lB,lFaceL,lDensity,lGradU0,lDfield\
+          ,lA,lB,lDensity,lGradU0,lDfield\
           ,lVel,lCc,lmKsi,lfArea,lDcca,lmvSkew,lKsi,lEta,lViscosity\
           ,lNormal,lXm,lXmcc,lvSkew,vizNel,lViz,lRcell,lPres,lGradPres\
-          ,lFaceVelR,lFaceVelL,lsHeat,ltConductivity,lRateHeatC\
+          ,lFaceR,lFaceVelR,lsHeat,ltConductivity,lRateHeatC\
           ,lGradVel,lWallPar,idFace,cellOwner,ch\
           ,lYfrac,lDiffY,lEnthalpyk,lGradY)\
      shared(aux2,ndm,ndf,numel,maxViz,calRcell,rCell,nFace,mat\
-         ,calType,gVolume,geomType,faceR,faceVelR,faceL,faceVelL\
+         ,calType,gVolume,geomType,faceR,faceVelR\
          ,u0,gCc,loads,ldVel,dField\
          ,density,gradU0,vel,fModKsi,dViscosity,eddyViscosity\
          ,fArea,gDcca,fModvSkew,fKsi,fEta,fNormal,fXm,gXmCc,fvSkew\
@@ -2117,9 +2115,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
         lVolume[aux1]   = gVolume[nel];
         lGeomType[aux1] = geomType[nel];
         lFaceR[aux1]    = MAT2D(nel, aux1, faceR, aux2);
-        lFaceL[aux1]    = MAT2D(nel, aux1, faceL, aux2);
         lFaceVelR[aux1] = MAT2D(nel, aux1, faceVelR, aux2);
-        lFaceVelL[aux1] = MAT2D(nel, aux1, faceVelL, aux2);
         lDensity[aux1]  = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
         lsHeat[aux1]    = MAT2D(nel, TIME_N, sHeat  , SHEAT_LEVEL); 
         ltConductivity[aux1] = tConductivity[nel];
@@ -2183,9 +2179,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
         {
           lDcca[i] = MAT2D(nel, i, gDcca, maxViz);
           lFaceR[i] = MAT2D(nel, i, faceR, aux2);
-          lFaceL[i] = MAT2D(nel, i, faceL, aux2);
           lFaceVelR[i] = MAT2D(nel, i, faceVelR, aux2);
-          lFaceVelL[i] = MAT2D(nel, i, faceVelL, aux2);
 /*... propriedades por face*/
           idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
           cellOwner = MAT2D(idFace, 0, fOwner, 2) - 1;
@@ -2296,8 +2290,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                     , lvSkew       , lmvSkew
                     , lA           , lB
                     , lRcell       , ddt
-                    , lFaceR       , lFaceL
-                    , lFaceVelR    , lFaceVelL
+                    , lFaceR       , lFaceVelR 
                     , lu0          , lGradU0
                     , lVel         , lGradVel
                     , lPres        , lGradPres
@@ -2363,9 +2356,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
         lVolume[aux1]   = gVolume[nel];
         lGeomType[aux1] = geomType[nel];
         lFaceR[aux1]    = MAT2D(nel, aux1, faceR, aux2);
-        lFaceL[aux1]    = MAT2D(nel, aux1, faceL, aux2);
         lFaceVelR[aux1] = MAT2D(nel, aux1, faceVelR, aux2);
-        lFaceVelL[aux1] = MAT2D(nel, aux1, faceVelL, aux2);
         lDensity[aux1]  = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
         lsHeat[aux1]    = MAT2D(nel, TIME_N, sHeat  , SHEAT_LEVEL); 
         ltConductivity[aux1] = tConductivity[nel];
@@ -2429,9 +2420,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
         {
           lDcca[i] = MAT2D(nel, i, gDcca, maxViz);
           lFaceR[i] = MAT2D(nel, i, faceR, aux2);
-          lFaceL[i] = MAT2D(nel, i, faceL, aux2);
           lFaceVelR[i] = MAT2D(nel, i, faceVelR, aux2);
-          lFaceVelL[i] = MAT2D(nel, i, faceVelL, aux2);
 /*... propriedades por face*/
           idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
           cellOwner = MAT2D(idFace, 0, fOwner, 2) - 1;
@@ -2542,8 +2531,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                     , lvSkew       , lmvSkew
                     , lA           , lB
                     , lRcell       , ddt
-                    , lFaceR       , lFaceL
-                    , lFaceVelR    , lFaceVelL
+                    , lFaceR       , lFaceVelR   
                     , lu0          , lGradU0
                     , lVel         , lGradVel
                     , lPres        , lGradPres
@@ -2746,7 +2734,6 @@ void systFormComb(Loads *loads              , Loads *ldVel
   DOUBLE lDensity[(MAX_NUM_FACE + 1)], lDiff[(MAX_NUM_FACE + 1)*MAX_COMB];
   DOUBLE lViscosity[(MAX_NUM_FACE + 1)*2];
   DOUBLE lA[(MAX_NUM_FACE + 1)*MAX_COMB], lB[MAX_COMB];
-  DOUBLE lProp[(MAX_NUM_FACE + 1)*MAXPROP];
   DOUBLE lu0[(MAX_NUM_FACE + 1)*MAX_NDF], lPres[(MAX_NUM_FACE + 1) * 2];
   DOUBLE lGradU0[(MAX_NUM_FACE + 1)*MAX_NDM*MAX_COMB];
   DOUBLE lDfield[(MAX_NUM_FACE + 1)*MAX_NDM];
@@ -4902,6 +4889,9 @@ void simpleNonOrthPres(Diffusion *diffPres
 /*********************************************************************/ 
 
 /********************************************************************* 
+* Data de criacao    : 00/00/0000                                    *
+* Data de modificaco : 08/10/2019                                    *
+*------------------------------------------------------------------- *
  * CELLPLOAD : Carregamento prescrito por centro da celula           * 
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
@@ -4909,7 +4899,6 @@ void simpleNonOrthPres(Diffusion *diffPres
  * loads     -> definicoes de cargas                                 * 
  * cc        -> centroide das celulas                                * 
  * faceR     -> restricoes por elmento                               * 
- * faceL     -> carga por elemento                                   * 
  * volume    -> volume das celulas                                   * 
  * id        -> numera das equacoes                                  * 
  * u         -> solucao                                              * 
@@ -4928,7 +4917,7 @@ void simpleNonOrthPres(Diffusion *diffPres
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void cellPload(Loads *loads           ,DOUBLE *RESTRICT cc 
-              ,short  *RESTRICT faceR ,short *RESTRICT faceL
+              ,short  *RESTRICT faceR 
               ,DOUBLE *RESTRICT volume,INT *RESTRICT id 
               ,DOUBLE *RESTRICT u     ,DOUBLE *RESTRICT f
               ,INT const numel        ,short const ndf
@@ -4944,7 +4933,7 @@ void cellPload(Loads *loads           ,DOUBLE *RESTRICT cc
     carg = MAT2D(nel,maxViz,faceR,col);
 /*... variavel prescrita no dominio*/
     if(carg == PCCELL){
-      carg= MAT2D(nel,maxViz,faceL,col)-1;
+      carg = MAT2D(nel,maxViz,faceR,col)-1;
 /*... valor prescrito na celula constante*/
       if( loads[carg].type == CONST)
         for(j = 0; j< ndf;j++)
@@ -4954,7 +4943,7 @@ void cellPload(Loads *loads           ,DOUBLE *RESTRICT cc
 
 /*... carga na celula*/
     else if( carg == SCCELL){
-      carg= MAT2D(nel,maxViz,faceL,col)-1;
+      carg= MAT2D(nel,maxViz,faceR,col)-1;
 /*... carga constante*/
       if( loads[carg].type == CONST)
         for(j = 0; j< ndf;j++){
@@ -4998,7 +4987,7 @@ void cellPload(Loads *loads           ,DOUBLE *RESTRICT cc
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 04/07/2016                                   * 
+ * Data de modificaco : 08/10/2019                                   * 
  *-------------------------------------------------------------------* 
  * CELLPLOADSIMPLE : Carregamento prescrito por centro da celula no  * 
  * metodo simple                                                     * 
@@ -5008,7 +4997,6 @@ void cellPload(Loads *loads           ,DOUBLE *RESTRICT cc
  * loads     -> definicoes de cargas                                 * 
  * cc        -> centroide das celulas                                * 
  * faceR     -> restricoes de pressao por celula                     * 
- * faceL     -> carga de pressao por celula                          * 
  * volume    -> volume das celulas                                   * 
  * idVel     -> numera das equacoes Vel                              * 
  * idPres    -> numera das equacoes Vel                              * 
@@ -5030,8 +5018,7 @@ void cellPload(Loads *loads           ,DOUBLE *RESTRICT cc
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc 
-                ,short  *RESTRICT faceRpres ,short *RESTRICT faceLpres
-                ,DOUBLE *RESTRICT volume
+                ,short  *RESTRICT faceRpres ,DOUBLE *RESTRICT volume
                 ,INT *RESTRICT idVel    ,INT *RESTRICT idPres
                 ,DOUBLE *RESTRICT vel   ,DOUBLE *RESTRICT pres
                 ,DOUBLE *RESTRICT fVel  ,DOUBLE *RESTRICT fPres
@@ -5047,7 +5034,7 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
     carg = MAT2D(nel,maxViz,faceRpres,col);
 /*... variavel prescrita no dominio*/
     if(carg == PCCELL){
-      carg = MAT2D(nel,maxViz,faceLpres,col)-1;
+      carg = MAT2D(nel,maxViz,faceRpres,col)-1;
 /*... valor prescrito constante para pressao na celula*/
       if( loadsPres[carg].type == CONST)
         pres[nel] = loadsPres[carg].par[0];

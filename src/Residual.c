@@ -159,6 +159,84 @@ void residualSimple(DOUBLE *RESTRICT vel
 }
 /*********************************************************************/
 
+/*********************************************************************
+* Data de criacao    : 26/08/2017                                   *
+* Data de modificaco : 24/12/2017                                   *
+*-------------------------------------------------------------------*
+* RESIDUALSIMPLE : calculo dos residuos no metodo simple            *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* vel      -  > campo de velocidade                                 *
+* energy     -> campo de energia                                    *
+* rCellVel   -> residuo das equacoes das velocidade por celulas     *
+* rCellMass  -> residuo de massa da equacoes de pressao por celulas *
+* rCellEnergy-> residuo de massa da equacoes de energia por celulas *
+* adVel    -> diagonal da equacoes de velocidades                   *
+* adEnergy -> diagonal da equacoes de energia                       *
+* rU       -> nao definido                                          *
+* rMass    -> nao definido                                          *
+* rEnergy  -> nao definido                                          *
+* idVel    -> numero da equacao da celula i                         *
+* idEnergy -> numero da equacao da celula i                         *
+* nEl      -> numero de elementos                                   *
+* nEqVel   -> numero de equacoes de velocidade                      *
+* ndm      -> numero de dimensoes                                   *
+* iCod     -> tipo de residuo                                       *
+*          RSCALED - residuo com escala de grandeza                 *
+*          RSQRT   - norma p-2 ( norma euclidiana)                  *
+*          RSCALEDM- residuo com escala de grandeza                 *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* rU       -> residuo das velocidades                               *
+* rMass    -> residuo de mass                                       *
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*            | rvx1 rvx2 ... rvxnEl |                               *
+* rCellVel = | rvy1 rvy2 ... rvynEl |                               *
+*            | rvz1 rvz2 ... rvznEl |                               *
+*                                                                   *
+*         | adx1 adx2 ... adxnEq |                                  *
+* adVel = | ady1 ady2 ... adynEq |                                  *
+*         | adz1 adz2 ... adznEq |                                  *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void residualSimpleLm(DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT energy
+                    , DOUBLE *RESTRICT rCellVel   , DOUBLE *RESTRICT rCellMass
+                    , DOUBLE *RESTRICT rCellEnergy
+                    , DOUBLE *RESTRICT adVel      , DOUBLE *RESTRICT adEnergy
+                    , DOUBLE *RESTRICT rU         , DOUBLE *rMass
+                    , DOUBLE *rEnergy
+                    , INT  *RESTRICT idVel        , INT  *RESTRICT idEnergy
+                    , INT const nEl               , INT const nEqVel
+                    , short const ndm             , short *iCod)
+
+{
+/*... velocidade*/
+  residualType(vel   , rCellVel
+             , adVel , rU
+             , idVel , nEl
+             , nEqVel, ndm
+             , iCod[0]);
+/*...................................................................*/
+
+/*... Energia*/
+  residualType(energy  , rCellEnergy
+             , adEnergy, rEnergy
+             , idEnergy, nEl
+             , 0       , 1
+             , iCod[1]);
+/*...................................................................*/
+
+/*... Conservao de massa*/
+  *rMass = residualMass(rCellMass, nEl, iCod[2]);
+/*...................................................................*/
+
+}
+/*********************************************************************/
+
+
 /********************************************************************* 
  * Data de criacao    : 13/06/2019                                   *
  * Data de modificaco : 00/00/0000                                   * 

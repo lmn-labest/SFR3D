@@ -37,7 +37,7 @@
   void simpleSolverLm(Memoria *m          , PropVarFluid *prop
                     , Loads *loadsVel     , Loads *loadsPres 
                     , Loads *loadsEnergy  , Loads *loadsKturb  
-                    , EnergyModel *eModel
+                    , EnergyModel *eModel , Combustion *cModel
                     , MassEqModel *eMass  , MomentumModel *ModelMomentum
                     , Turbulence *tModel  , ThermoDynamic *thDynamic
                     , Mesh *mesh0         , Mesh *mesh
@@ -47,7 +47,7 @@
                     , Solv *solvEnergy    , Solv *solvKturb      
                     , Simple *sp          , Scheme *sc          
                     , PartMesh *pMesh     , Mean *media
-                    , FileOpt opt         , char *preName
+                    , FileOpt *opt        , char *preName
                     , char *nameOut       , FILE *fileOut);
 
 /*...*/
@@ -79,16 +79,6 @@
                  ,INT const nEl          ,short const ndm
                  ,DOUBLE const alphaPres);
  
-  void residualSimpleLm(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
-            ,DOUBLE *RESTRICT rCellVel   ,DOUBLE *RESTRICT rCellMass
-            ,DOUBLE *RESTRICT rCellEnergy
-            ,DOUBLE *RESTRICT adVel       ,DOUBLE *RESTRICT adEnergy 
-            ,DOUBLE *RESTRICT rU          ,DOUBLE *rMass
-            ,DOUBLE *rEnergy 
-            ,INT  *RESTRICT idVel         ,INT  *RESTRICT idEnergy 
-            ,INT const nEl                ,INT const nEqVel
-            ,short const ndm              ,short iCod);
-
   void residualCombustionOld(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
             ,DOUBLE *RESTRICT zComb
             ,DOUBLE *RESTRICT rCellVel     ,DOUBLE *RESTRICT rCellMass

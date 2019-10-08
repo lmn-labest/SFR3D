@@ -33,6 +33,17 @@
                  ,INT const nEl            ,INT const nEqVel
                  ,short const ndm          ,short *iCod);
 
+  void residualSimpleLm(DOUBLE *RESTRICT vel, DOUBLE *RESTRICT energy
+                     , DOUBLE *RESTRICT rCellVel, DOUBLE *RESTRICT rCellMass
+                     , DOUBLE *RESTRICT rCellEnergy
+                     , DOUBLE *RESTRICT adVel, DOUBLE *RESTRICT adEnergy
+                     , DOUBLE *RESTRICT rU, DOUBLE *rMass
+                     , DOUBLE *rEnergy
+                     , INT  *RESTRICT idVel, INT  *RESTRICT idEnergy
+                     , INT const nEl, INT const nEqVel
+                     , short const ndm, short *iCod);
+
+
   void residualType(DOUBLE *RESTRICT u      ,DOUBLE *RESTRICT rCellU
                  ,DOUBLE *RESTRICT adU    ,DOUBLE *RESTRICT rU
                  ,INT  *RESTRICT idU      ,INT const nEl   

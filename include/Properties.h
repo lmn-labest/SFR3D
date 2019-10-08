@@ -24,8 +24,9 @@
 
 /*... gas ideal incompressivel(Ar)*/
   DOUBLE airDensity(Prop *den
-                   ,DOUBLE const t, DOUBLE const presRef
-                   ,DOUBLE const p, bool const fKelvin);
+                  , DOUBLE const t, DOUBLE const p
+                  , DOUBLE const presRef, DOUBLE const mMolar
+                  , bool const fKelvin);
   DOUBLE airSpecifiHeat(Prop *sHeatPol
                        ,DOUBLE const t,bool const fKelvin);
   DOUBLE airDynamicViscosity(Prop *dVisc,DOUBLE const t
@@ -42,7 +43,7 @@
 /*...................................................................*/
 
 /*...*/
-  void updateDensity(Prop *pDen
+  void updateDensity(PropVarFluid *pf
                     ,DOUBLE *RESTRICT temp   , DOUBLE *RESTRICT pressure
                     ,DOUBLE *RESTRICT density                 
                     ,DOUBLE const alpha        ,bool const iKelvin 
@@ -135,7 +136,7 @@
 /*...................................................................*/
 
 /*... nasa pol*/
-  DOUBLE polNasaCp(PolNasa *a, DOUBLE x);
+  DOUBLE polNasaCp(PolNasa *a, DOUBLE const x);
   void nasaPolRange(PolNasa *a      , DOUBLE const x
                  ,DOUBLE **c      , DOUBLE *xNew
                  ,short const iCod);
@@ -144,7 +145,7 @@
   DOUBLE intNum(PolNasa *a,DOUBLE const x0,DOUBLE const x1
                ,short const iCod);
 /*... mistura gasosa*/
-  void initLeornadJones(Combustion *cModel);
+//void initLeornadJones(Combustion *cModel);
   DOUBLE collisionIntegral(DOUBLE const t,DOUBLE const ek);
   DOUBLE diffusionCollisionIntegral(DOUBLE const t
                                  ,DOUBLE const ekl,DOUBLE const eki); 

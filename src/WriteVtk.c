@@ -3060,7 +3060,7 @@ void makeFace(INT *el            ,short *faceR
   short j,k,ty;
   unsigned int nf = 0;
   short cCell = maxViz + 1;
-  int no,nel,tmp,tmp1;
+  int no,nel,tmp;
   
   for(nel=0;nel<numel;nel++)
   {

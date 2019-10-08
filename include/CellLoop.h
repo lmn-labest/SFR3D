@@ -266,8 +266,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
        , INT    *RESTRICT ia           , INT    *RESTRICT ja
        , DOUBLE *RESTRICT a            , DOUBLE *RESTRICT ad
        , DOUBLE *RESTRICT b            , INT    *RESTRICT id
-       , short  *RESTRICT faceR        , short  *RESTRICT faceL
-       , short  *RESTRICT faceVelR     , short  *RESTRICT faceVelL
+       , short  *RESTRICT faceR        , short  *RESTRICT faceVelR 
        , DOUBLE *RESTRICT u0           , DOUBLE *RESTRICT gradU0
        , DOUBLE *RESTRICT vel          , DOUBLE *RESTRICT gradVel
        , DOUBLE *RESTRICT pres0        , DOUBLE *RESTRICT pres 
@@ -471,7 +470,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
 
 /*... carga por elmento e condicoes pescritas por celula*/
   void cellPload(Loads *loads           ,DOUBLE *RESTRICT gCc
-                ,short  *RESTRICT faceR ,short *RESTRICT faceS
+                ,short  *RESTRICT faceR
                 ,DOUBLE *RESTRICT volume,INT *RESTRICT id 
                 ,DOUBLE *RESTRICT u     ,DOUBLE *RESTRICT f
                 ,INT const numel        ,short const ndf
@@ -481,9 +480,8 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
 
 /*... carga por elmento e condicoes pescritas por celula no metodo 
       simple*/
-  void cellPloadSimple(Loads *loads           ,DOUBLE *RESTRICT cc 
-                    ,short  *RESTRICT faceR ,short *RESTRICT faceL
-                    ,DOUBLE *RESTRICT volume
+  void cellPloadSimple(Loads *loads         ,DOUBLE *RESTRICT cc 
+                    ,short  *RESTRICT faceR ,DOUBLE *RESTRICT volume
                     ,INT *RESTRICT idVel    ,INT *RESTRICT idPres
                     ,DOUBLE *RESTRICT vel   ,DOUBLE *RESTRICT pres
                     ,DOUBLE *RESTRICT fVel  ,DOUBLE *RESTRICT fPres

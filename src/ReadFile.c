@@ -30,11 +30,10 @@
                             ,bool const fTemp     ,bool const fSheat 
                             ,bool const iKelvin   ,bool const fDensity
                             ,bool const fGrouped); 
-  static void convLoadsVel(Prop *pDen
-                        ,Prop *sHeatProp   ,Loads *loadsVel
-                        ,Loads *loadsTemp     ,DOUBLE *RESTRICT prop
-                        ,bool const fTemp     ,bool const fSheat 
-                        ,bool const iKelvin   ,bool const fDensity);
+ static void convLoadsVel(PropVarFluid *propFluid, Loads *loadsVel
+                        , Loads *loadsTemp       , DOUBLE *RESTRICT prop
+                        , bool const fTemp       , bool const fSheat
+                        , bool const iKelvin     , bool const fDensity);
 
   static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC);
 
@@ -75,7 +74,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
        ,""             ,"initialD1"  ,""               /*15,16,17*/ 
        ,"faceResVel"   ,"loadsVel"   ,""               /*18,19,20*/ 
        ,"faceResPres"  ,"loadsPres"  ,"faceRpres"      /*21,22,23*/
-       ,"faceResTemp"  ,"loadsTemp"  ,"faceLoadTemp"   /*24,25,26*/
+       ,"faceResTemp"  ,"loadsTemp"  ,""               /*24,25,26*/
        ,"materials"    ,"uniformPres","initialVel"     /*27,28,29*/
        ,"uniformTemp"  ,"uniformVel" ,"uniformZ"       /*30,31,32*/
        ,"faceReKturb"  ,"loadsKturb" ,"faceLoadKturb"  /*33,34,35*/
@@ -250,10 +249,6 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
         HccaAlloc(short, m, mesh->elm.faceRenergy
                   , nel*(maxViz + 1), "faceRenergy", _AD_);
         zero(mesh->elm.faceRenergy, nel*(maxViz + 1), "short");
-
-        HccaAlloc(short, m, mesh->elm.faceLoadEnergy
-                 , nel*(maxViz + 1), "faceLEnergy", _AD_);
-        zero(mesh->elm.faceLoadEnergy, nel*(maxViz + 1), "short");
 
 /*... calor especifico*/
         HccaAlloc(DOUBLE, m, mesh->elm.specificHeat
@@ -926,19 +921,6 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     }
 /*...................................................................*/
 
-/*... faceLoadEnergy - cargas nas faces fluido (Energy)*/
-    else if ((!strcmp(word, macro[26])) && (!rflag[26])) {
-      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
-      strcpy(macros[nmacro++], word);
-      rflag[26] = true;
-      strcpy(str, "endFaceLoadTemp");
-      fprintf(fileLogExc,"loading faceLoadTemp ...\n");
-      readVfRes(mesh->elm.faceLoadEnergy,mesh->numel
-               ,mesh->maxViz + 1        ,str        ,file);
-      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
-    }
-/*...................................................................*/
-
 /*... materiais */
     else if((!strcmp(word,macro[27])) && (!rflag[27])){
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
@@ -1095,8 +1077,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                     ,energyModel->fKelvin     ,propF->fDensity
                     ,cModel->fLump);   
     else
-      convLoadsVel(&propF->den 
-                    ,&propF->sHeat            ,loadsVel              
+      convLoadsVel(propF                      ,loadsVel              
                     ,loadsTemp                ,mesh->elm.material.prop
                     ,energyModel->fTemperature,propF->fSpecificHeat
                     ,energyModel->fKelvin     ,propF->fDensity);   
@@ -1325,7 +1306,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
         initProp(mesh->elm.densityFluid 
                 ,mesh->elm.material.prop,mesh->elm.mat
                 ,DENSITY_LEVEL          ,mesh->numel
-               ,DENSITY);
+                ,DENSITY);
     }
 /*...................................................................*/
 
@@ -2325,6 +2306,7 @@ void readEdo(Mesh *mesh,FILE *file){
  *********************************************************************/
 void readPropVarFluid(PropVarFluid *p,FILE *file){
 
+  short kk = 0; 
   char *str={"endfluid"};
   char macros[][WORD_SIZE] =
        { "sheat"       ,"density"   ,"dviscosity"   /* 0, 1, 2*/
@@ -2339,7 +2321,7 @@ void readPropVarFluid(PropVarFluid *p,FILE *file){
 /*...................................................................*/
 
   readMacroV2(file,word,false,true);
-  do{
+  do{    
 /*... specific heat*/
     if(!strcmp(word,macros[0])){
       readMacroV2(file, word, false, true);
@@ -2383,8 +2365,13 @@ void readPropVarFluid(PropVarFluid *p,FILE *file){
 /*...................................................................*/
     
     readMacroV2(file, word, false, true);
-  }while(strcmp(word,str));
+    kk++;
+  }while(strcmp(word,str) && kk < 1000);
 
+/*...*/
+  if(kk == 1000)
+    ERRO_READ_LOOP(__LINE__,__FILE__,__func__,EXIT_READ_LOOP);
+  /*...................................................................*/
 }
 /*********************************************************************/ 
 
@@ -4676,21 +4663,10 @@ void readSetSimple(Memoria *m    , FILE *fileIn
 /*...*/
   readMacro(fileIn,word,false);
   if(!strcmp(word,"config:")){
-/*... timer*/        
+/*...*/        
     readMacro(fileIn,word,false);
     setSimpleScheme(word, simple);
-/*...*/        
-    if(simple->type == SIMPLE && !mpiVar.myId)     
-      fprintf(fileLogExc,"PRES-VEL  : SIMPLE\n");
-    else if(simple->type == SIMPLEC && !mpiVar.myId )     
-      fprintf(fileLogExc,"PRES-VEL  : SIMPLEC\n");
-
-/*...*/        
-    fprintf(fileLogExc,"Maxit     : %d\n",simple->maxIt);
-    fprintf(fileLogExc,"alphaPres : %lf\n",simple->alphaPres);
-    fprintf(fileLogExc,"alphaVel  : %lf\n",simple->alphaVel);
-    fprintf(fileLogExc,"nNonOrth  : %d\n",simple->nNonOrth);
-    fprintf(fileLogExc,"pSimple   : %d\n",simple->pSimple);
+/*...................................................................*/    
   }
 /*...................................................................*/
 
@@ -6828,10 +6804,12 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
   FILE *fileIn = NULL;
   char str[] = {"end"};
   char word[WORD_SIZE];
-  char macro[][WORD_SIZE] = { "celltype"                       /*0  */
-                            ,"densityd1"   ,"coefdiffd1"       /*1,2*/   
-                            ,"densityt1"   ,"coefdifft1"       /*3,4*/
-                            ,"densityfluid","dviscosity" };    /*5,6*/
+  char macro[][WORD_SIZE] = { "celltype"                       /* 0  */
+                            ,"densityd1"   ,"coefdiffd1"       /* 1, 2*/   
+                            ,"densityt1"   ,"coefdifft1"       /* 3, 4*/
+                            ,"densityfluid","dviscosity"       /* 5, 6*/
+                            ,"ctherm"      ,"cp"               /* 7, 8*/
+                            ,"mmolar"        };                /* 9,*/
   short i, j,iMat;
   int aux; 
   DOUBLE v;
@@ -6911,7 +6889,32 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
       }
 /*.....................................................................*/
 
+/*... condutividade termica*/
+      else if (!strcmp(word, macro[j++]))
+      {
+        fscanf(fileIn, "%lf", &v);
+        prop[THERMALCONDUCTIVITY] = v;
+        fprintf(fileLogExc, "%-20s: %e\n", macro[j - 1], prop[THERMALCONDUCTIVITY]);
+      }
+/*.....................................................................*/
 
+/*... condutividade termica*/
+      else if (!strcmp(word, macro[j++]))
+      {
+        fscanf(fileIn, "%lf", &v);
+        prop[SPECIFICHEATCAPACITYFLUID] = v;
+        fprintf(fileLogExc, "%-20s: %e\n", macro[j - 1], prop[SPECIFICHEATCAPACITYFLUID]);
+      }
+/*.....................................................................*/
+
+/*... massa molar*/
+      else if (!strcmp(word, macro[j++]))
+      {
+        fscanf(fileIn, "%lf", &v);
+        prop[MMOLARMASS] = v;
+        fprintf(fileLogExc, "%-20s: %e\n", macro[j - 1], prop[MMOLARMASS]);
+      }
+/*.....................................................................*/
       readMacro(fileIn, word, false);
     }while(strcmp(word,str));
 /*.....................................................................*/
@@ -7896,8 +7899,8 @@ static void convLoadsVelMix(Combustion *cModel   ,Prop *pDen
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-static void convLoadsVel(Prop *pDen
-                        ,Prop *sHeatProp   ,Loads *loadsVel
+static void convLoadsVel(PropVarFluid *propFluid
+                        ,Loads *loadsVel
                         ,Loads *loadsTemp     ,DOUBLE *RESTRICT prop
                         ,bool const fTemp     ,bool const fSheat 
                         ,bool const iKelvin   ,bool const fDensity)
@@ -7916,9 +7919,10 @@ static void convLoadsVel(Prop *pDen
       t = loadsTemp[i].par[0];
       if(fDensity)
       {
-        tmp1 = airDensity(pDen
+        tmp1 = airDensity(&propFluid->den
                    ,t               , thDynamic.pTh[2]
-                   ,thDynamic.pTh[2], iKelvin);
+                   ,thDynamic.pTh[2], propFluid->molarMass
+                   , iKelvin);
         loadsVel[i].par[loadsVel[i].np-1] = tmp1; 
       }
 /*....................................................................*/
@@ -8011,7 +8015,7 @@ void readTransConfig(Temporal *ddt, Save *save
 
 /********************************************************************* 
  * Data de criacao    : 09/07/2016                                   *
- * Data de modificaco : 01/10/2019                                   * 
+ * Data de modificaco : 08/10/2019                                   * 
  *-------------------------------------------------------------------* 
  * SETSIMPLESCHEME : set o metodo simple incompressivel              *
  *-------------------------------------------------------------------* 
@@ -8031,53 +8035,98 @@ void setSimpleScheme(char *fileName, Simple *sp)
   short j=0;
   char str[] = {"end"};
   char word[WORD_SIZE];
-  char macro[][WORD_SIZE] = { "name"     ,"alphapres"    /*0,1*/
-                             ,"alphavel" ,"north"        /*2,3*/   
-                             ,"presidual","maxit"       /*4,5*/
-                            };   
+  char macro[][WORD_SIZE] = { "name"       ,"alphapres"    /*0,1*/
+                             ,"alphavel"   ,"north"        /*2,3*/   
+                             ,"presidual"  ,"maxit"        /*4,5*/
+                             ,"alphaenergy","alphaz"       /*6,7*/
+                             ,"alpharho"   };              /*8*/ 
   
   fileIn = openFile(fileName,"r");
 
 /*...*/
   readMacroV2(fileIn, word, false, true);
   do
-    {
+  {
       j = 0;
 /*... name*/
       if (!strcmp(word, macro[j++]))
       {
         readMacroV2(fileIn, word, false, true);
         if(!strcmp(word,"SIMPLE"))
+        {
           sp->type = SIMPLE;
+          fprintf(fileLogExc, "%-20s : %s\n", "PRES-VEL", "SIMPLE");
+        }
         else if(!strcmp(word,"SIMPLEC"))
+        {
           sp->type =  SIMPLEC;
+          fprintf(fileLogExc,"%-20s : %s\n","PRES-VEL","SIMPLEC");
+        }
       }
 /*.....................................................................*/
 
 /*... alphaPres*/
       else if (!strcmp(word, macro[j++]))
+      {
         fscanf(fileIn,"%lf",&sp->alphaPres); 
+        fprintf(fileLogExc,"%-20s : %lf\n","alphaPres", sp->alphaPres);
+      }
 /*.....................................................................*/
 
 /*... alphaVel*/
       else if (!strcmp(word, macro[j++]))
+      {
         fscanf(fileIn,"%lf" ,&sp->alphaVel);
-
+        fprintf(fileLogExc, "%-20s : %lf\n","alphaVel", sp->alphaVel);
+      }
 /*.....................................................................*/
 
 /*... nOrth*/
       else if (!strcmp(word, macro[j++]))
+      {
         fscanf(fileIn,"%u" ,&sp->nNonOrth);
+        fprintf(fileLogExc, "%-20s : %u\n","nNonOrth", sp->nNonOrth);
+      }
 /*.....................................................................*/
 
 /*... pResidual*/
       else if (!strcmp(word, macro[j++]))
+      {
         fscanf(fileIn,"%d" ,&sp->pSimple);
+        fprintf(fileLogExc,"%-20s : %d\n","pSimple", sp->pSimple);
+      }
 /*.....................................................................*/
 
 /*... maxit*/
       else if (!strcmp(word, macro[j++]))
+      {
         fscanf(fileIn,"%d" ,&sp->maxIt);
+        fprintf(fileLogExc,"%-20s : %d\n","Maxit", sp->maxIt);
+      }
+/*.....................................................................*/
+
+/*... alphaEnergy*/
+      else if (!strcmp(word, macro[j++]))
+      {
+        fscanf(fileIn, "%lf", &sp->alphaEnergy);
+        fprintf(fileLogExc, "%-20s : %lf\n", "alphaEnergy", sp->alphaEnergy);
+      }
+/*.....................................................................*/
+
+/*... alphaZ*/
+      else if (!strcmp(word, macro[j++]))
+      {
+        fscanf(fileIn, "%lf", &sp->alphaComb);
+        fprintf(fileLogExc, "%-20s : %lf\n","alphaZ", sp->alphaComb);
+      }
+/*.....................................................................*/
+
+/*... rho*/
+      else if (!strcmp(word, macro[j++]))
+      {
+        fscanf(fileIn, "%lf", &sp->alphaDensity);
+        fprintf(fileLogExc,"%-20s : %lf\n","alphaEnergy", sp->alphaEnergy);
+      }
 /*.....................................................................*/
 
       readMacroV2(fileIn, word, false, true);

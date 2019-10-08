@@ -1115,8 +1115,8 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
                   , densityC        , wallPar
                   , lFarea          , lModKsi
                   , &loadsVel[nCarg], ndm
-                  , nel
                   , false           , true
+                  , nel
                   , false           , 0);     
       } 
 /*...................................................................*/
@@ -1413,7 +1413,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*...................................................................*/
 
 /*...cargas*/
-        nCarg = lFacePresL[nf] - 1;
+        nCarg = lFacePresR[nf] - 1;
         pLoadSimplePres(&sP             , &p
                       , tA              , lXmcc
                       , presC           , gradPresC      
@@ -1428,8 +1428,9 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*...................................................................*/
 
 /*... velocidades*/
-      if(lFaceVelR[nf] > 0){
-        nCarg = lFaceVelL[nf]-1;
+      if(lFaceVelR[nf])
+      {
+        nCarg = lFaceVelR[nf]-1;
         pLoadSimple(&sP             , &p
                   , tA              , lXmcc
                   , velC            , &ddum
@@ -1441,8 +1442,8 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
                   , densityC        , wallPar
                   , lFarea          , lModKsi
                   , &loadsVel[nCarg], ndm
-                  , nel
                   , false           , true
+                  , nel
                   , false           , 0);     
       } 
 /*...................................................................*/

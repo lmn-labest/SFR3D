@@ -157,7 +157,7 @@ int main(int argc,char**argv){
   ,"solvD1"       ,"propVar"      ,"pD1"            /*12,13,14*/
   ,"nlIt"         ,"pD1CsvCell"   ,"pD1CsvNode"     /*15,16,17*/
   ,"solvT1"       ,"edo"          ,"pT1"            /*18,19,20*/
-  ,""             ,"pT1CsvCell"   ,"pT1CsvNode"     /*21,22,23*/
+  ,"simpleLm"     ,"pT1CsvCell"   ,"pT1CsvNode"     /*21,22,23*/
   ,"setSolvFluid" ,"simple"       ,"setSimple"      /*24,25,26*/
   ,"transient"    ,"timeUpdate"   ,"partd"          /*27,28,29*/
   ,"advection"    ,"edp"          ,"diffusion"      /*30,31,32*/
@@ -1209,13 +1209,50 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro:             
- *===================================================================*/
-    else if((!strcmp(word,macro[21])))
+* macro: simpleLm: escoamento de fluidos (SIMPLELM)
+*===================================================================*/
+    else if ((!strcmp(word, macro[21])))
     {
-      initSec(word, OUTPUT_FOR_FILE);
-      endSec(OUTPUT_FOR_FILE);
-    }   
+      initSec(word, OUTPUT_FOR_SCREEN);
+      mpiWait();
+      tm.solvEdpFluid = getTimeC() - tm.solvEdpFluid;
+/*...*/
+      if (!fSolvVel || !fSolvPres) {
+        printf("Estrutara de dados nao montada para o solvFluid!!!\n");
+        exit(EXIT_FAILURE);
+      }
+/*...................................................................*/
+
+/*...*/
+      if (!fSolvSimple) {
+        printf("Simple nao configurado ainda!!!\n");
+        exit(EXIT_FAILURE);
+      }
+/*...................................................................*/
+
+/*...*/
+      simpleSolverLm(&m           , &propVarFluid
+                   , loadsVel     , loadsPres
+                   , loadsEnergy  , loadsKturb
+                   , &eModel      , &combModel
+                   , &eMass       , &ModelMomentum
+                   , &turbModel   , &thDynamic
+                   , mesh0        , mesh
+                   , &sistEqVel   , &sistEqPres
+                   , &sistEqEnergy, &sistEqKturb
+                   , &solvVel     , &solvPres
+                   , &solvEnergy  , &solvKturb
+                   , &simple      , &sc
+                   , pMesh        , &media
+                   , &opt         , preName
+                   , nameOut      , fileOut);
+/*...................................................................*/
+
+/*...*/
+      tm.solvEdpFluid = getTimeC() - tm.solvEdpFluid;
+/*...................................................................*/
+      endSec(OUTPUT_FOR_SCREEN);
+    }
 /*===================================================================*/
 
 /*===================================================================*

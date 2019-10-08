@@ -254,11 +254,11 @@ void loadSenProd(DOUBLE *tA,DOUBLE *par,DOUBLE *xm){
  *               celula                                              * 
  * ld         -> definicao da carga                                  * 
  * ndm        -> numero de dimensoes                                 * 
- * nEl        -> numero do elemento                                  *
  * fCalVel    -> true - atualizada sP e p pela equacao de velocidades* 
  *               false- nao atualizada sP e p                        * 
  * fCalPres   -> true - atualizada sP e p pela da pressao            * 
  *               false- nao atualizada sP e p                        * 
+ * nEl        -> numero do elemento                                  *
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
@@ -279,10 +279,11 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
           , DOUBLE *RESTRICT t      , DOUBLE *RESTRICT n  
           , DOUBLE const densityC   , DOUBLE *RESTRICT wallPar   
           , DOUBLE const fArea      , DOUBLE const dcca
-          , Loads *ld               , short  const ndm 
-          , INT const nEl         
+          , Loads *ld               , short  const ndm     
           , bool const fCalVel      , bool const fCalPres
-          , bool const fWallModel   , short const wallType){
+          , INT const nEl
+          , bool const fWallModel   , short const wallType)
+{
 
   DOUBLE aP,wfn,m,tmp[5],gradVelFace[9],modVel,yPlus,uPlus,lambda;
   DOUBLE viscosityWall,densityEnv,par[MAXLOADPARAMETER],ev[3],ss[6];

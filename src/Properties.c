@@ -19,8 +19,8 @@ static bool searchSpecies(Combustion *cModel,char *species
                        , DOUBLE *g          ,FILE *fileAux)
 {
   bool read;
-  char word[WORD_SIZE],name[WORD_SIZE];
-  short i,j,k;
+  char word[WORD_SIZE];
+
 /*...*/
   read = false;
 
@@ -530,7 +530,6 @@ DOUBLE mixtureSpeciesDensity(Prop *den        ,DOUBLE const malorMassMix
                             ,DOUBLE const t      ,DOUBLE const p
                             ,DOUBLE const presRef,bool const fKelvin)
 {
-  short i;
   DOUBLE tc,y,d;
 //DOUBLE a[MAXPLODEG],tc,y,d;
 
@@ -710,7 +709,6 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
                             , FILE *file)
 {
   FILE *fileAux;
-  bool read;
   char word[WORD_SIZE];
   char nameAux[1000];
   short i,j,k,jk,kk;
@@ -1431,7 +1429,6 @@ DOUBLE specieViscosity(DOUBLE const molarMass
                       ,DOUBLE const t     ) 
 {
 
-  short i,n;
   DOUBLE omega,visc;
 
   omega     = collisionIntegral(t,ek);
@@ -1816,7 +1813,6 @@ DOUBLE specieDiffusionBinary(DOUBLE const mMassA,DOUBLE const mMassB
                             ,DOUBLE const t     ) 
 {
 
-  short i,n;
   DOUBLE omega,diffAB,mMassAB,sigmaAB;
   mMassAB = 2.e0*mMassA*mMassB/(mMassA + mMassB);
   sigmaAB = sqrt(0.5e0*(sigmaA + sigmaB));
@@ -2190,7 +2186,7 @@ void initPropTempMix(PropVarFluid *propF    , Combustion *cModel
                  ,short const iProp)
 {    
   INT i;
-  unsigned short j,k,lMat;
+  unsigned short j,lMat;
   DOUBLE *y,molarMassMix,v;
          
   for(i=0;i<nCell;i++){    
@@ -2312,7 +2308,7 @@ void initDiffMix(PropVarFluid *propF    , Combustion *cModel
                 ,INT    const nCell        ,bool const iKelvin)
 {    
   INT i;
-  unsigned short j,k,lMat;
+  unsigned short j,lMat;
   DOUBLE *y;
 
 /*...*/
@@ -2359,7 +2355,7 @@ void initDiffMix(PropVarFluid *propF    , Combustion *cModel
 
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
- * Data de modificaco : 12/07/2018                                   *
+ * Data de modificaco : 08/10/2019                                   *
  *-------------------------------------------------------------------*
  * airDensity: kg/(m^3)                                              *
  *-------------------------------------------------------------------*
@@ -2377,13 +2373,12 @@ void initDiffMix(PropVarFluid *propF    , Combustion *cModel
  *********************************************************************/
 DOUBLE airDensity(Prop *den
                  ,DOUBLE const t      ,DOUBLE const p
-                 ,DOUBLE const presRef,bool const fKelvin) {
+                 ,DOUBLE const presRef,DOUBLE const mMolar
+                 ,bool const fKelvin)
+{
   short i,n=den->pol[0].nPol;
   DOUBLE a[MAXPLODEG],tc,y,d;
 
-  for (i = 0; i < MAXPLODEG; i++)
-    a[i] = 0.0e0;
-  
   if(fKelvin)
     tc = t;  
   else
@@ -2408,14 +2403,14 @@ DOUBLE airDensity(Prop *den
  
 /*...*/
     case IDEALGAS:
-      y = (MMOLARAR*p)/(IDEALGASR*tc);
+      y = (mMolar*p)/(IDEALGASR*tc);
       d = 1.e0; 
       break;
 /*.....................................................................*/
 
 /*...*/
     case INCIDEALGAS:
-      y = (MMOLARAR*presRef)/(IDEALGASR*tc);
+      y = (mMolar*presRef)/(IDEALGASR*tc);
       d = 1.e0; 
       break;
 /*.....................................................................*/
@@ -3055,7 +3050,7 @@ DOUBLE waterThermalConductvity(DOUBLE const t) {
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateDensity(Prop *pDen
+void updateDensity(PropVarFluid *pf
                  , DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT pressure
                  , DOUBLE *RESTRICT density                 
                  , DOUBLE const alpha       , bool const iKelvin    
@@ -3070,7 +3065,9 @@ void updateDensity(Prop *pDen
     case PROP_UPDATE_NL_LOOP:
       for(i=0;i<nEl;i++){
         den0 =  MAT2D(i,2 ,density ,nD);         
-        den = airDensity(pDen,temp[i],pressure[i],thDynamic.pTh[2]
+        den = airDensity(&pf->den  
+                        ,temp[i]         ,pressure[i]
+                        ,thDynamic.pTh[2],pf->molarMass
                         ,iKelvin);
 /*...*/           
         MAT2D(i,TIME_N ,density ,nD) =  alpha*den + (1.e0-alpha)*den0;
@@ -3331,7 +3328,8 @@ void initPropTemp(PropVarFluid *propFluid
     if( iProp == DENSITY )
       MAT2D(lMat, iProp, propMat, MAXPROP) 
         = airDensity(&propFluid->den,t[i], pressure[i]
-                    ,thDynamic.pTh[2], iKelvin);
+                    ,thDynamic.pTh[2]    , propFluid->molarMass
+                    , iKelvin);
 /*...................................................................*/
 
 /*...*/
@@ -3717,11 +3715,6 @@ void initThCondPol(Prop *prop, char *s, FILE *file) {
  *-------------------------------------------------------------------*
  *********************************************************************/
 void initDiffSp(Prop *prop, char *s, FILE *file) {
-
-  FILE *fileOut;
-  char nameAux[1000];
-  short i;
-  double x[MAXPLODEG];
 
   if(!strcmp(s,"fdsdiff"))
   {
@@ -4157,7 +4150,7 @@ void initPresRef(DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT volume
                , INT const nCell        , bool const fKelvin)
 {
   INT i;  
-  DOUBLE dRef,stm,vm,tMed;
+  DOUBLE stm,vm,tMed;
 #ifdef _MPI_
   DOUBLE gVm,gStm;
 #endif
@@ -4274,7 +4267,7 @@ void initPropStructCD(PropVarCD *propVar, short const n)
 
 /*********************************************************************
  * Data de criacao    : 18/05/2019                                   *
- * Data de modificaco : 24/05/2019                                   * 
+ * Data de modificaco : 08/10/2019                                   * 
  *-------------------------------------------------------------------*
  * INITPROPREF: inicializao de propriedades de referencia            * 
  *-------------------------------------------------------------------* 
@@ -4303,6 +4296,9 @@ void initPropRef(PropVarFluid *propF ,DOUBLE *RESTRICT propMat
                                           ,propMat,MAXPROP);
   propF->ThermalConductivityRef =   MAT2D(lMat,THERMALCONDUCTIVITY
                                          ,propMat,MAXPROP);
+
+  propF->molarMass              = MAT2D(lMat, MMOLARMASS
+                                      , propMat, MAXPROP);
 
 }
 /**********************************************************************/

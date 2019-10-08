@@ -58,13 +58,6 @@ static void allocFuild(Memoria *m        , Mesh *mesh
     zero(mesh->elm.faceRenergy,size,"short"  );
 /*...................................................................*/
 
-/*... faceLoadsEnergy locais*/ 
-    size = lNel*(maxViz+1); 
-    HccaAlloc(short,m,mesh->elm.faceLoadEnergy,size        
-           ,"faceLoadsEnP"  ,_AD_);
-    zero(mesh->elm.faceLoadEnergy  ,size,"short"  );
-/*...................................................................*/
-
 /*... Energy0 locais*/
     size = lNel;
     HccaAlloc(DOUBLE,m,mesh->elm.energy0     ,size        
@@ -628,7 +621,7 @@ static void comunicateComb(short *m0faceR     ,short *faceR
 
 /********************************************************************* 
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 08/10/2019                                   *
  * ------------------------------------------------------------------*
  * comunicateFluid :                                                 * 
  *-------------------------------------------------------------------* 
@@ -645,11 +638,8 @@ static void comunicateComb(short *m0faceR     ,short *faceR
  *-------------------------------------------------------------------* 
  *********************************************************************/ 
 static void comunicateFluid(short *m0faceRvel     ,short *faceRvel
-                ,short *m0faceLvel     ,short *faceLvel
                 ,short *m0faceRpres    ,short *faceRpres
-                ,short *m0faceLpres    ,short *faceLpres
                 ,short *m0faceRenergy  ,short *faceRenergy
-                ,short *m0faceLenergy  ,short *faceLenergy
                 ,DOUBLE *m0pres0       ,DOUBLE *pres0
                 ,DOUBLE *m0pres        ,DOUBLE *pres
                 ,DOUBLE *m0energy0     ,DOUBLE *energy0
@@ -699,25 +689,6 @@ static void comunicateFluid(short *m0faceRvel     ,short *faceRvel
       free(nS);  
 /*...................................................................*/
 
-/*... faceLvel locais*/
-      size = lNel*(maxViz+1);
-      nS   = (short *) malloc(size*sSize); 
-      ERRO_MALLOC(nS,"nS"   ,__LINE__,__FILE__,__func__);
-
-      sGetLocalV(m0faceLvel,nS
-                ,elLG
-                ,lNel   ,maxViz+1); 
-        
-      if(iCod == 1)
-        for(i=0;i<size;i++) 
-          faceLvel[i] = nS[i];
-      else if(iCod == 2)
-        MPI_Send(nS    ,       size, MPI_SHORT,nPart,7    
-                ,mpiVar.comm);
-
-      free(nS);
-/*...................................................................*/
-
 /*... faceRpres locais*/
       size = lNel*(maxViz+1);
       nS   = (short *) malloc(size*sSize); 
@@ -735,25 +706,6 @@ static void comunicateFluid(short *m0faceRvel     ,short *faceRvel
                 ,mpiVar.comm);
       
       free(nS);  
-/*...................................................................*/
-
-/*... faceLpres locais*/
-      size = lNel*(maxViz+1);
-      nS   = (short *) malloc(size*sSize); 
-      ERRO_MALLOC(nS,"nS"   ,__LINE__,__FILE__,__func__);
-
-      sGetLocalV(m0faceLpres,nS
-                ,elLG
-                ,lNel       ,maxViz+1); 
-        
-      if(iCod == 1)
-        for(i=0;i<size;i++) 
-          faceLpres[i] = nS[i];
-      else if(iCod == 2)
-        MPI_Send(nS    ,       size, MPI_SHORT,nPart,9    
-                ,mpiVar.comm);
-
-      free(nS);
 /*...................................................................*/
 
 /*... pres0 locais*/
@@ -813,25 +765,6 @@ static void comunicateFluid(short *m0faceRvel     ,short *faceRvel
           MPI_Send(nS    ,       size, MPI_SHORT,nPart,12   
                 ,mpiVar.comm);
       
-        free(nS);
-/*...................................................................*/
-
-/*... faceLpres locais*/
-        size = lNel*(maxViz+1);
-        nS   = (short *) malloc(size*sSize); 
-        ERRO_MALLOC(nS,"nS"   ,__LINE__,__FILE__,__func__);
-
-        sGetLocalV(m0faceLenergy,nS
-                  ,elLG
-                  ,lNel         ,maxViz+1); 
-        
-        if(iCod == 1)
-          for(i=0;i<size;i++) 
-            faceLenergy[i] = nS[i];
-        else if(iCod == 2)
-          MPI_Send(nS    ,       size, MPI_SHORT,nPart,13   
-                ,mpiVar.comm);
-
         free(nS);
 /*...................................................................*/
 
@@ -1000,24 +933,12 @@ static void comunicateFluid(short *m0faceRvel     ,short *faceRvel
              ,mpiVar.comm,MPI_STATUS_IGNORE);
 /*...................................................................*/
      
-/*... faceLvel locais*/
-     size = lNel*(maxViz+1);
-     MPI_Recv(faceLvel,size, MPI_SHORT,0,7    
-             ,mpiVar.comm,MPI_STATUS_IGNORE);
-/*...................................................................*/
-
 /*... faceRpres locais*/
      size = lNel*(maxViz+1);
      MPI_Recv(faceRpres,size, MPI_SHORT,0,8    
              ,mpiVar.comm,MPI_STATUS_IGNORE);
 /*...................................................................*/
      
-/*... faceLpres locais*/
-     size = lNel*(maxViz+1);
-     MPI_Recv(faceLpres,size, MPI_SHORT,0,9    
-             ,mpiVar.comm,MPI_STATUS_IGNORE);
-/*...................................................................*/
-
 /*... pres0 locais*/
      size = lNel;
      MPI_Recv(pres0      ,size, MPI_DOUBLE,0,10  
@@ -1037,12 +958,6 @@ static void comunicateFluid(short *m0faceRvel     ,short *faceRvel
         size = lNel*(maxViz+1);
         MPI_Recv(faceRenergy,size, MPI_SHORT,0,12   
                 ,mpiVar.comm,MPI_STATUS_IGNORE);
-/*...................................................................*/
-
-/*... faceLenergy locais*/
-        size = lNel*(maxViz+1);
-        MPI_Recv(faceLenergy,size, MPI_SHORT,0,13   
-             ,mpiVar.comm,MPI_STATUS_IGNORE);
 /*...................................................................*/
 
 /*... energy0 locais*/
@@ -1444,11 +1359,8 @@ static void prMaster(Memoria *m    , Mesh *mesh0
 
 /*...*/
     comunicateFluid(mesh0->elm.faceRvel  ,mesh->elm.faceRvel
-              ,mesh0->elm.faceRvel       ,mesh->elm.faceRvel
-              ,mesh0->elm.faceRpres      ,mesh->elm.faceRpres
               ,mesh0->elm.faceRpres      ,mesh->elm.faceRpres
               ,mesh0->elm.faceRenergy    ,mesh->elm.faceRenergy
-              ,mesh0->elm.faceLoadEnergy ,mesh->elm.faceLoadEnergy
               ,mesh0->elm.pressure0      ,mesh->elm.pressure0
               ,mesh0->elm.pressure       ,mesh->elm.pressure
               ,mesh0->elm.energy0        ,mesh->elm.energy0
@@ -1784,11 +1696,8 @@ static void sendPart(Memoria *m    , Mesh *mesh0
 /*...*/
   if(ndfF > 0 || ndfFt > 0)
     comunicateFluid(mesh0->elm.faceRvel  ,mesh->elm.faceRvel
-              ,mesh0->elm.faceRvel       ,mesh->elm.faceRvel
-              ,mesh0->elm.faceRpres      ,mesh->elm.faceRpres
               ,mesh0->elm.faceRpres      ,mesh->elm.faceRpres
               ,mesh0->elm.faceRenergy    ,mesh->elm.faceRenergy
-              ,mesh0->elm.faceLoadEnergy ,mesh->elm.faceLoadEnergy
               ,mesh0->elm.pressure0      ,mesh->elm.pressure0
               ,mesh0->elm.pressure       ,mesh->elm.pressure
               ,mesh0->elm.energy0        ,mesh->elm.energy0
@@ -1906,7 +1815,7 @@ static void recvPart(Memoria *m    , Mesh *mesh0
     , unsigned short const nPart )
 {
 
-
+#if _MPI_
   short sSize=sizeof(short), 
         iSize=sizeof(INT), 
         dSize=sizeof(DOUBLE);
@@ -1914,7 +1823,7 @@ static void recvPart(Memoria *m    , Mesh *mesh0
   INT i,kk,size;
   INT *lEl=NULL;
   DOUBLE *nD=NULL;
-#if _MPI_
+
   MPI_Recv(lNnode    , 1, MPI_INT,0,nPart,
            mpiVar.comm,MPI_STATUS_IGNORE); 
   MPI_Recv(lNel      , 1, MPI_INT,0,nPart,
@@ -2209,11 +2118,8 @@ static void recvPart(Memoria *m    , Mesh *mesh0
 
 /*...*/
     comunicateFluid(mesh0->elm.faceRvel    ,mesh->elm.faceRvel
-                ,mesh0->elm.faceRvel       ,mesh->elm.faceRvel
-                ,mesh0->elm.faceRpres      ,mesh->elm.faceRpres
                 ,mesh0->elm.faceRpres      ,mesh->elm.faceRpres
                 ,mesh0->elm.faceRenergy    ,mesh->elm.faceRenergy
-                ,mesh0->elm.faceLoadEnergy ,mesh->elm.faceLoadEnergy
                 ,mesh0->elm.pressure0      ,mesh->elm.pressure0
                 ,mesh0->elm.pressure       ,mesh->elm.pressure
                 ,mesh0->elm.energy0        ,mesh->elm.energy0

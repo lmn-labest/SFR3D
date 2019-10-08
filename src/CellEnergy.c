@@ -509,7 +509,7 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
 
 /********************************************************************
  * Data de criacao    : 03/10/2017                                   *
- * Data de modificaco : 05/06/2019                                   *
+ * Data de modificaco : 08/10/2019                                   *
  *-------------------------------------------------------------------*
  * CELLENERGY3D: Celula 3D para transporte                           *
  *-------------------------------------------------------------------*
@@ -596,8 +596,7 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
                 , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
                 , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
                 , DOUBLE *RESTRICT lRcell    , Temporal *ddt
-                , short  *RESTRICT lFaceR    , short *RESTRICT lFaceL
-                , short  *RESTRICT lFaceVelR , short *RESTRICT lFaceVelL
+                , short  *RESTRICT lFaceR    , short  *RESTRICT lFaceVelR 
                 , DOUBLE *RESTRICT u0        , DOUBLE *RESTRICT gradU0
                 , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel
                 , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres
@@ -938,29 +937,30 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
 
 /*...*/
       lA[nf] = 0.e0;
-      if (lFaceR[nf]) {
+      if (lFaceR[nf])
+      {
         wfn = velC[0] * lNormal[0]
           + velC[1] * lNormal[1]
           + velC[2] * lNormal[2];
 /*...cargas*/
-        nCarg1 = lFaceL[nf] - 1;
-        nCarg2 = lFaceVelL[nf] - 1;
+        nCarg1 = lFaceR[nf] - 1;
+        nCarg2 = lFaceVelR[nf] - 1;
         xx[0] = MAT2D(nf, 0, xm, 3);
         xx[1] = MAT2D(nf, 1, xm, 3);
         xx[2] = MAT2D(nf, 2, xm, 3);
         pLoadEnergy(vProp
-          , &sP, &p
-          , &tA, velC
-          , uC, lNormal
-          , thermCoefC, densityC
-          , viscosityC, sHeatC
-          , prTwall, xx
-          , lFarea, dcca[nf]
+          , &sP           , &p
+          , &tA           , velC
+          , uC            , lNormal
+          , thermCoefC    , densityC
+          , viscosityC    , sHeatC
+          , prTwall       , xx
+          , lFarea        , dcca[nf]
           , &loads[nCarg1], &loadsVel[nCarg2]
-          , wallPar, ndm
-          , true, fTemp
-          , fKelvin, fSheat
-          , fWallModel, wallType);
+          , wallPar       , ndm
+          , true          , fTemp
+          , fKelvin       , fSheat
+          , fWallModel    , wallType);
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -1033,7 +1033,8 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
 /*...................................................................*/
 
 /*...*/
-  if (fDisp) {
+  if (fDisp)
+  {
     tmp = gradVelC[0][0] + gradVelC[1][1] + gradVelC[2][2];
     psi = tmp * tmp;
 /*...*/
@@ -1051,7 +1052,8 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
 /*.....................................................................*/
 
 /*...*/
-  if (fPresWork) {
+  if (fPresWork)
+  {
 /*... derivada materia da pressao*/  
 /*... pressao termodinamica*/
     tmp1 = 0.5e-03*(Pth[2] - Pth[0]) / dt;  

@@ -1316,16 +1316,16 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
         ,dFieldC[3], dFieldV[3], dFieldF[3];
 /*...*/
   DOUBLE v[3],lKsi[3],lNormal[3],lXmcc[3],ccV[3];
-  DOUBLE lModKsi,lFarea,du[3],duDksi[3],lXm[3],dPviz;
+  DOUBLE lModKsi,lFarea,du[3],duDksi[3],lXm[3];
   DOUBLE coef,lAn,tmp;
 /*...*/
   DOUBLE dfd,cv,cvc[3],lvSkew[3];
 /*... nonOrtogonal*/
 	DOUBLE e[3], t[3], modE, dfdc[3];
 /*... interpolacao linear*/
-  DOUBLE alpha,alphaMenosUm, aP;
+  DOUBLE alpha,alphaMenosUm;
 /*... */
-  DOUBLE pFace,pf[3],p1,p2,presC,presV,gradPresC[3],gradPresV[3];
+  DOUBLE pFace,pf[3],presC,presV,gradPresC[3],gradPresV[3];
 /*... */
   DOUBLE gf[3][3],gfKsi[3];
   DOUBLE wfn,velC[3],velV[3],wf[3];
@@ -1334,8 +1334,6 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
   DOUBLE stressRc[6],stressRv[6],s[6];
 /*...*/
   DOUBLE xx[4],ts;
-/*...*/
-  DOUBLE uPlus,yPlus,viscosityWall;
 /*...*/
   DOUBLE pAdv[NPADV];
 
@@ -1346,6 +1344,7 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
   pAdv[0]     = advVel->par[0];
   iCodDif     = diffVel->iCod;
   iCodPolFace = INTPOLFACELINEAR;
+/*...................................................................*/
 
 /*...*/  
   fWallModel       = tModel->fWall;
@@ -1429,6 +1428,7 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
 /*...*/
       densityV       = MAT2D(nf, DENSITY         ,prop,MAXPROP);
       viscosityV     = MAT2D(nf, DYNAMICVISCOSITY,prop,MAXPROP);
+      if (fTurb) eddyViscosityV = eddyVisc[nf];
 /*...*/
       presV        = pres[nf]; 
       for(i=0;i<3;i++)
@@ -1441,31 +1441,23 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
         lvSkew[i]      = MAT2D(nf,i,vSkew,3);
 /*..*/
         duDksi[i]      = (velV[i] - velC[i]) / lModKsi;
-/*... | dui/dx1 dui/dx2 dui/dx3*/
+/*... | dui/dx1 dui/dx2 dui/dx3|*/
         gradVelV[i][0] = MAT3D(nf,i,0,gradVel,3,3);
         gradVelV[i][1] = MAT3D(nf,i,1,gradVel,3,3);
         gradVelV[i][2] = MAT3D(nf,i,2,gradVel,3,3);
+/*...*/
+        ccV[i] = MAT2D(nf, i, cc, 3);
+        lXm[i] = MAT2D(nf, i, xm, 3);
+/*...................................................................*/
       }
 /*...................................................................*/
 
 /*... tensor residual*/
       if(fStruc)
-     {
         for(i=0;i<6;i++)
           stressRv[i] = MAT2D(nf,i,stressR,6);
-      }
 /*...................................................................*/
  
-/*...*/
-      ccV[0]       =  MAT2D(nf,0,cc,3);
-      ccV[1]       =  MAT2D(nf,1,cc,3);
-      ccV[2]       =  MAT2D(nf,2,cc,3);
- 
-      lXm[0]       =  MAT2D(nf,0,xm,3);
-      lXm[1]       =  MAT2D(nf,1,xm,3);
-      lXm[2]       =  MAT2D(nf,2,xm,3);
-/*...................................................................*/
-
 /*... termo difusivo
       grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...*/
@@ -1512,7 +1504,8 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
 /*...................................................................*/
 
 /*... velocidade normal a face*/
-      if(fRhieInt) {
+      if(fRhieInt) 
+      {
         dFieldF[0] = alphaMenosUm*dFieldC[0] + alpha*dFieldV[0];
         dFieldF[1] = alphaMenosUm*dFieldC[1] + alpha*dFieldV[1];
         dFieldF[2] = alphaMenosUm*dFieldC[2] + alpha*dFieldV[2];
@@ -1601,7 +1594,8 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
       if(fViscosity)
         viscosityPartExp(p          ,gradVelComp[0]
                         ,lNormal
-                        ,viscosityC ,lFarea);
+                        ,viscosityC ,lFarea
+                        ,false);
 /*...................................................................*/
 
 /*... termos viscosos explicitos*/
@@ -1625,7 +1619,6 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
       s[0] = dFieldC[0]*lFarea*lNormal[0];
       s[1] = dFieldC[1]*lFarea*lNormal[1];
       s[2] = dFieldC[2]*lFarea*lNormal[2];
-
 /*...*/
       pFace = presC;
 /*... pressao prescrita*/
@@ -1642,7 +1635,6 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
                       , lFarea          , dcca[nf]
                       , &lPres[nCarg]   , ndm 
                       , false); 
-
       } 
 /*...................................................................*/
 
@@ -1720,7 +1712,6 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
     }
   }
 /*...................................................................*/
-
 
 /*...*/
   lAn = 0.e0;
@@ -1928,7 +1919,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   bool fDiv,fViscosity,fSoPressure;
 /*...*/
   short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf
-      , nCarg, typeTime, iCodBuoyant, iCodPolFace;
+      , nCarg, typeTime, iCodBuoyant, iCodPolFace, i;
 /*...*/
   INT vizNel;
 /*...*/
@@ -1947,9 +1938,9 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 /*... nonOrtogonal*/
   DOUBLE e[3], t[3], modE, dfdc[3];
 /*... interpolacao linear*/
-  DOUBLE alpha, alphaMenosUm, aP;
+  DOUBLE alpha, alphaMenosUm;
 /*... */
-  DOUBLE pFace, pf[3], p1, p2, presC, presV, gradPresC[3], gradPresV[3];
+  DOUBLE pFace, pf[3], presC, presV, gradPresC[3], gradPresV[3];
 /*... */
   DOUBLE gf[3][3], gfKsi[3];
   DOUBLE wfn, velC[3], velV[3], wf[3];
@@ -1960,8 +1951,6 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   DOUBLE xx[4],ts;
 /*... */
   DOUBLE gradRho[3], g[3];
-/*...*/
-  DOUBLE uPlus,yPlus,viscosityWall;
 /*...*/
   DOUBLE pAdv[NPADV];
   
@@ -1997,6 +1986,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 /*...................................................................*/
 
 /*...*/
+  ts       = ddt->t;
   dt       = ddt->dt[0];
   dt0      = ddt->dt[1];
   typeTime = ddt->type;
@@ -2004,154 +1994,101 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 /*...................................................................*/
 
 /*...*/
-  densityC = lDensity[idCell];
+  densityC      = lDensity[idCell];
   densityRef    = densityMed;
 /*...................................................................*/
 
 /*...*/
   eddyViscosityC = eddyViscosityV = 0.0e0;
-  densityC       = lDensity[idCell];
   viscosityC     = MAT2D(idCell, 0, lViscosity, 2);
   if(fTurb) eddyViscosityC= MAT2D(idCell, 1, lViscosity, 2);
   effViscosityC = viscosityC + eddyViscosityC;
 /*...................................................................*/
 
-/*... | du1/dx1 du1/dx2 du1/dx3*/
-  gradVelC[0][0] = MAT3D(idCell,0,0,gradVel,3,3);
-  gradVelC[0][1] = MAT3D(idCell,0,1,gradVel,3,3);
-  gradVelC[0][2] = MAT3D(idCell,0,2,gradVel,3,3);
-/*... | du2/dx1 du2/dx2 du2/dx3*/
-  gradVelC[1][0] = MAT3D(idCell,1,0,gradVel,3,3);
-  gradVelC[1][1] = MAT3D(idCell,1,1,gradVel,3,3);
-  gradVelC[1][2] = MAT3D(idCell,1,2,gradVel,3,3);
-/*... | du3/dx1 du3/dx2 du3/dx3*/
-  gradVelC[2][0] = MAT3D(idCell,2,0,gradVel,3,3);
-  gradVelC[2][1] = MAT3D(idCell,2,1,gradVel,3,3);
-  gradVelC[2][2] = MAT3D(idCell,2,2,gradVel,3,3);
+/*...*/
+  sP = 0.e0;
+  presC = pres[idCell];
+  for (i = 0; i < 3; i++)
+  {
+/*... | dui/dx1 dui/dx2 dui/dx3*/
+    gradVelC[i][0] = MAT3D(idCell, i, 0, gradVel, 3, 3);
+    gradVelC[i][1] = MAT3D(idCell, i, 1, gradVel, 3, 3);
+    gradVelC[i][2] = MAT3D(idCell, i, 2, gradVel, 3, 3);
+/*...*/
+    gradPresC[i] = MAT2D(idCell, i, gradPres, 3);
+    dFieldC[i] = MAT2D(idCell, i, dField, 3);
+/*...*/
+    velC[i] = MAT2D(idCell, i, vel, 3);
 /*...................................................................*/
 
-/*... tensor residual*/
-  if(fStruc)
-  {
-    stressRc[0] = MAT2D(idCell,0,stressR,6);
-    stressRc[1] = MAT2D(idCell,1,stressR,6);
-    stressRc[2] = MAT2D(idCell,2,stressR,6);
-    stressRc[3] = MAT2D(idCell,3,stressR,6);
-    stressRc[4] = MAT2D(idCell,4,stressR,6);
-    stressRc[5] = MAT2D(idCell,5,stressR,6);
+/*...*/
+    p[i] = pf[i] = sPc[i] =  0.e0;
+/*...................................................................*/
+
+/*...*/
+    g[i]       = gravity[i];
+    gradRho[i] = 0.e0;
+/*...................................................................*/
+
   }
 /*...................................................................*/
 
-/*...*/
-  velC[0]   = MAT2D(idCell,0,vel,3);
-  velC[1]   = MAT2D(idCell,1,vel,3);
-  velC[2]   = MAT2D(idCell,2,vel,3);
-  wf[0] = wf[1] = wf[2]= 0.e0;
+/*... tensor residual*/
+  if (fStruc)
+    for (i = 0; i < 6; i++)
+      stressRc[i] = MAT2D(idCell, i, stressR, 6);
 /*...................................................................*/
 
 /*...*/
-  presC         = pres[idCell];
-  gradPresC[0]  = MAT2D(idCell, 0, gradPres, 3);
-  gradPresC[1]  = MAT2D(idCell, 1, gradPres, 3);
-  gradPresC[2]  = MAT2D(idCell, 2, gradPres, 3);
-  dFieldC[0]    = MAT2D(idCell, 0, dField  , 3); 
-  dFieldC[1]    = MAT2D(idCell, 1, dField  , 3);
-  dFieldC[2]    = MAT2D(idCell, 2, dField  , 3);
-  dFieldF[0]    = dFieldF[1] = dFieldF[2] = 0.e0;
-/*...................................................................*/
-
-/*...*/
-  g[0]             = gravity[0];
-  g[1]             = gravity[1];
-  g[2]             = gravity[2];
-/*...................................................................*/
-
-/*...*/
-  p[0]      = p[1]        = p[2]       = 0.0e0;
-  pf[0]     = pf[1]       = pf[2]      = 0.0e0;
-  sP        = sPc[0]      = sPc[1]     = sPc[2] = 0.0e0;
-  gradRho[0] = gradRho[1] = gradRho[2] = 0.0e0;
-/*...................................................................*/
-
-/*...*/
-  for(nf=0;nf<nFace;nf++){
-/*...*/
-    vizNel     = lViz[nf];
-    lNormal[0] = MAT2D(nf,0,normal,3);
-    lNormal[1] = MAT2D(nf,1,normal,3);
-    lNormal[2] = MAT2D(nf,2,normal,3);
-    lFarea     = fArea[nf];
-    lXmcc[0]   = MAT2D(nf,0,xmcc,3);
-    lXmcc[1]   = MAT2D(nf,1,xmcc,3);
-    lXmcc[2]   = MAT2D(nf,2,xmcc,3);
-/*..*/
-    lKsi[0] = MAT2D(nf,0,ksi,3);
-    lKsi[1] = MAT2D(nf,1,ksi,3);
-    lKsi[2] = MAT2D(nf,2,ksi,3);
+  for(nf=0;nf<nFace;nf++)
+  {
+    vizNel = lViz[nf];
+    lFarea = fArea[nf];
     lModKsi = mKsi[nf];
+    /*..*/
+    for (i = 0; i < 3; i++)
+    {
+      lNormal[i] = MAT2D(nf, i, normal, ndm);
+      lXmcc[i] = MAT2D(nf, i, xmcc, ndm);
+      lKsi[i] = MAT2D(nf, i, ksi, 3);
+    }
 /*...................................................................*/
 
 /*... dominio*/
-    if( vizNel  > -1 ){
+    if( vizNel  > -1 )
+    {
 /*...*/
       densityV    = lDensity[nf];
       viscosityV  = MAT2D(nf, 0, lViscosity, 2);
       if(fTurb) eddyViscosityV = MAT2D(nf, 1, lViscosity, 2);
 /*...*/
-      velV[0]        = MAT2D(nf,0,vel,3);
-      velV[1]        = MAT2D(nf,1,vel,3);
-      velV[2]        = MAT2D(nf,2,vel,3);
+      presV = pres[nf];
+      for (i = 0; i<3; i++)
+      {
+        velV[i] = MAT2D(nf, i, vel, ndm);
 /*...*/
-      presV        = pres[nf];      
-      gradPresV[0] = MAT2D(nf, 0, gradPres, 3);
-      gradPresV[1] = MAT2D(nf, 1, gradPres, 3);
-      gradPresV[2] = MAT2D(nf, 2, gradPres, 3);
-      dFieldV[0]   = MAT2D(nf, 0, dField, 3);
-      dFieldV[1]   = MAT2D(nf, 1, dField, 3);
-      dFieldV[2]   = MAT2D(nf, 2, dField, 3);
-
+        gradPresV[i] = MAT2D(nf, i, gradPres, 3);
+        dFieldV[i] = MAT2D(nf, i, dField, 3);
 /*..*/
-      lvSkew[0]      = MAT2D(nf,0,vSkew,3);
-      lvSkew[1]      = MAT2D(nf,1,vSkew,3);
-      lvSkew[2]      = MAT2D(nf,2,vSkew,3);
+        lvSkew[i] = MAT2D(nf, i, vSkew, 3);
 /*..*/
-      duDksi[0]      = (velV[0] - velC[0]) / lModKsi;
-      duDksi[1]      = (velV[1] - velC[1]) / lModKsi;
-      duDksi[2]      = (velV[2] - velC[2]) / lModKsi;
-/*... | du1/dx1 du1/dx2 du1/dx3*/
-      gradVelV[0][0] = MAT3D(nf,0,0,gradVel,3,3);
-      gradVelV[0][1] = MAT3D(nf,0,1,gradVel,3,3);
-      gradVelV[0][2] = MAT3D(nf,0,2,gradVel,3,3);
-/*... | du2/dx1 du2/dx2 du2/dx3*/
-      gradVelV[1][0] = MAT3D(nf,1,0,gradVel,3,3);
-      gradVelV[1][1] = MAT3D(nf,1,1,gradVel,3,3);
-      gradVelV[1][2] = MAT3D(nf,1,2,gradVel,3,3);
-/*... | du3/dx1 du3/dx2 du3/dx3*/
-      gradVelV[2][0] = MAT3D(nf,2,0,gradVel,3,3);
-      gradVelV[2][1] = MAT3D(nf,2,1,gradVel,3,3);
-      gradVelV[2][2] = MAT3D(nf,2,2,gradVel,3,3);
+        duDksi[i] = (velV[i] - velC[i]) / lModKsi;
+/*... | dui/dx1 dui/dx2 dui/dx3*/
+        gradVelV[i][0] = MAT3D(nf, i, 0, gradVel, 3, 3);
+        gradVelV[i][1] = MAT3D(nf, i, 1, gradVel, 3, 3);
+        gradVelV[i][2] = MAT3D(nf, i, 2, gradVel, 3, 3);
+/*...*/
+        ccV[i] = MAT2D(nf, i, cc, 3);
+        lXm[i] = MAT2D(nf, i, xm, 3);
 /*...................................................................*/
 
-/*... tensor residual*/
-      if(fStruc)
-     {
-        stressRv[0] = MAT2D(nf,0,stressR,6);
-        stressRv[1] = MAT2D(nf,1,stressR,6);
-        stressRv[2] = MAT2D(nf,2,stressR,6);
-        stressRv[3] = MAT2D(nf,3,stressR,6);
-        stressRv[4] = MAT2D(nf,4,stressR,6);
-        stressRv[5] = MAT2D(nf,5,stressR,6);
       }
 /*...................................................................*/
 
-/*...*/
-      ccV[0]       =  MAT2D(nf,0,cc,3);
-      ccV[1]       =  MAT2D(nf,1,cc,3);
-      ccV[2]       =  MAT2D(nf,2,cc,3);
- 
-      lXm[0]       =  MAT2D(nf,0,xm,3);
-      lXm[1]       =  MAT2D(nf,1,xm,3);
-      lXm[2]       =  MAT2D(nf,2,xm,3);
+/*... tensor residual*/
+      if (fStruc)
+        for (i = 0; i<6; i++)
+          stressRv[i] = MAT2D(nf, i, stressR, 6);
 /*...................................................................*/
 
 /*... termo difusivo
@@ -2187,26 +2124,21 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
       
 /*...*/
-      gf[0][0] = alphaMenosUm*gradVelC[0][0] + alpha*gradVelV[0][0];
-      gf[0][1] = alphaMenosUm*gradVelC[0][1] + alpha*gradVelV[0][1];
-      gf[0][2] = alphaMenosUm*gradVelC[0][2] + alpha*gradVelV[0][2];
+      for (i = 0; i<3; i++)
+      {
+        gf[i][0] = alphaMenosUm * gradVelC[i][0] + alpha * gradVelV[i][0];
+        gf[i][1] = alphaMenosUm * gradVelC[i][1] + alpha * gradVelV[i][1];
+        gf[i][2] = alphaMenosUm * gradVelC[i][2] + alpha * gradVelV[i][2];
 /*...*/
-      gf[1][0] = alphaMenosUm*gradVelC[1][0] + alpha*gradVelV[1][0];
-      gf[1][1] = alphaMenosUm*gradVelC[1][1] + alpha*gradVelV[1][1];
-      gf[1][2] = alphaMenosUm*gradVelC[1][2] + alpha*gradVelV[1][2];
-/*...*/
-      gf[2][0] = alphaMenosUm*gradVelC[2][0] + alpha*gradVelV[2][0];
-      gf[2][1] = alphaMenosUm*gradVelC[2][1] + alpha*gradVelV[2][1];
-      gf[2][2] = alphaMenosUm*gradVelC[2][2] + alpha*gradVelV[2][2];
-/*...*/
-      wf[0]    =   alphaMenosUm*velC[0] + alpha*velV[0];
-      wf[1]    =   alphaMenosUm*velC[1] + alpha*velV[1];
-      wf[2]    =   alphaMenosUm*velC[2] + alpha*velV[2];
+        wf[i] = alphaMenosUm * velC[i] + alpha * velV[i];
+      }
+/*...................................................................*/
       density  = alphaMenosUm*densityC  + alpha*densityV;
 /*...................................................................*/
 
 /*... velocidade normal a face*/
-      if(fRhieInt) {
+      if(fRhieInt)
+      {
         dFieldF[0] = alphaMenosUm*dFieldC[0] + alpha*dFieldV[0];
         dFieldF[1] = alphaMenosUm*dFieldC[1] + alpha*dFieldV[1];
         dFieldF[2] = alphaMenosUm*dFieldC[2] + alpha*dFieldV[2];
@@ -2218,65 +2150,37 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                              ,alphaMenosUm ,alpha
                              ,ndm);
       }
-      else {
-        wf[0] = alphaMenosUm*velC[0] + alpha*velV[0];
-        wf[1] = alphaMenosUm*velC[1] + alpha*velV[1];
-        wf[2] = alphaMenosUm*velC[2] + alpha*velV[2];
-        wfn   = wf[0]*lNormal[0] + wf[1]*lNormal[1] + wf[2]*lNormal[2];
-      }     
+      else 
+        wfn   = wf[0]*lNormal[0] + wf[1]*lNormal[1] + wf[2]*lNormal[2]; 
 /*...................................................................*/
 
+/*...*/
+      for (i = 0; i<3; i++)
+      {
 /*... derivadas direcionais*/
-      gfKsi[0]      = gf[0][0]*lKsi[0] 
-                    + gf[0][1]*lKsi[1] 
-                    + gf[0][2]*lKsi[2];
-/*...*/
-      gfKsi[1]      = gf[1][0]*lKsi[0] 
-                    + gf[1][1]*lKsi[1] 
-                    + gf[1][2]*lKsi[2];
-/*...*/
-      gfKsi[2]      = gf[2][0]*lKsi[0] 
-                    + gf[2][1]*lKsi[1] 
-                    + gf[2][2]*lKsi[2];
+        gfKsi[i] = gf[i][0] * lKsi[0]
+          + gf[i][1] * lKsi[1]
+          + gf[i][2] * lKsi[2];
 /*...................................................................*/
 
 /*... gradiente compacto (Darwish e Moukalled)*/
-      du[0]             = duDksi[0] - gfKsi[0];
-      du[1]             = duDksi[1] - gfKsi[1];
-      du[2]             = duDksi[2] - gfKsi[2];
+        du[i] = duDksi[i] - gfKsi[i];
 /*...*/
-      gradVelComp[0][0] = gf[0][0] + du[0]*lKsi[0];
-      gradVelComp[0][1] = gf[0][1] + du[0]*lKsi[1];
-      gradVelComp[0][2] = gf[0][2] + du[0]*lKsi[2];
-/*...*/
-      gradVelComp[1][0] = gf[1][0] + du[1]*lKsi[0];
-      gradVelComp[1][1] = gf[1][1] + du[1]*lKsi[1];
-      gradVelComp[1][2] = gf[1][2] + du[1]*lKsi[2];
-/*...*/
-      gradVelComp[2][0] = gf[2][0] + du[2]*lKsi[0];
-      gradVelComp[2][1] = gf[2][1] + du[2]*lKsi[1];
-      gradVelComp[2][2] = gf[2][2] + du[2]*lKsi[2];
+        gradVelComp[i][0] = gf[i][0] + du[i] * lKsi[0];
+        gradVelComp[i][1] = gf[i][1] + du[i] * lKsi[1];
+        gradVelComp[i][2] = gf[i][2] + du[i] * lKsi[2];
 /*...................................................................*/
 
 /*... derivadas direcionais*/
 /*...*/
-      gfKsi[0] = gradVelComp[0][0]*t[0] 
-               + gradVelComp[0][1]*t[1] 
-               + gradVelComp[0][2]*t[2];
-/*...*/
-      gfKsi[1] = gradVelComp[1][0]*t[0] 
-               + gradVelComp[1][1]*t[1] 
-               + gradVelComp[1][2]*t[2];
-/*...*/
-      gfKsi[2] = gradVelComp[2][0]*t[0] 
-               + gradVelComp[2][1]*t[1] 
-               + gradVelComp[2][2]*t[2];
+        gfKsi[i] = gradVelComp[i][0] * t[0]
+          + gradVelComp[i][1] * t[1]
+          + gradVelComp[i][2] * t[2];
 /*...................................................................*/
 
 /*... correcao nao-ortogonal*/
-      dfdc[0] = coef*gfKsi[0];
-      dfdc[1] = coef*gfKsi[1];
-      dfdc[2] = coef*gfKsi[2];
+        dfdc[i] = coef * gfKsi[i];
+      }
 /*...................................................................*/
 
 /*... fluxo convectivo upwind de primeira ordem*/
@@ -2308,34 +2212,15 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*... gradiente da pressao com resconstrucao de segunda ordem
-      (forma conservativa)*/
-      if(sPressure){
-/*.. vetor que une o centroide da celula viznha ao ponto medio 
-     da face*/
-        v[0] = lXm[0] - ccV[0];
-        v[1] = lXm[1] - ccV[1];
-        v[2] = lXm[2] - ccV[2];
-
-        p1 = presC + gradPresC[0]*lXmcc[0] 
-                   + gradPresC[1]*lXmcc[1] 
-                   + gradPresC[2]*lXmcc[2];
-
-        p2 = presV + gradPresV[0]*v[0]
-                   + gradPresV[1]*v[1] 
-                   + gradPresV[2]*v[2];
-     
-        pFace = 0.5e0*(p1+p2);
-      }
-/*...................................................................*/
-
-/*... interpolacao linear*/
-      else
-        pFace = alphaMenosUm*presC + alpha*presV;
-/*...................................................................*/
-      tmp   = pFace*lFarea;
-      pf[0]+= tmp*lNormal[0];
-      pf[1]+= tmp*lNormal[1];
-      pf[2]+= tmp*lNormal[2];
+(forma conservativa)*/
+      facePressure(gradPresC, gradPresV
+        , lXmcc, lXm
+        , ccV, pf
+        , lNormal
+        , 0.e0, lFarea
+        , presC, presV
+        , alphaMenosUm, alpha
+        , fSoPressure, false);
 /*...................................................................*/
 
 /*... gradiente de densidade*/
@@ -2345,61 +2230,21 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       gradRho[2] += tmp*lNormal[2];
 /*...................................................................*/
 
-/*... termos viscosos explicitos*/      
-      if(fViscosity)
-      {
-        aP    = viscosity*lFarea;
-        p[0] += aP*( gradVelV[0][0]*lNormal[0] 
-                   + gradVelV[1][0]*lNormal[1]  
-                   + gradVelV[2][0]*lNormal[2]);
- 
-        p[1] += aP*( gradVelV[0][1]*lNormal[0] 
-                   + gradVelV[1][1]*lNormal[1]  
-                   + gradVelV[2][1]*lNormal[2]);
-      
-        p[2] += aP*( gradVelV[0][2]*lNormal[0] 
-                   + gradVelV[1][2]*lNormal[1]  
-                   + gradVelV[2][2]*lNormal[2]);  
-      }
-/*...................................................................*/
-
-/*... divergente*/
-      if(fDiv){
-        tmp = D2DIV3*aP*(gradVelV[0][0] 
-                       + gradVelV[1][1]
-                       + gradVelV[2][2]);
-        p[0] -= tmp*lNormal[0];
-        p[1] -= tmp*lNormal[1];
-        p[2] -= tmp*lNormal[2];  
-      }
+/*... termos viscosos explicitos*/
+      if (fViscosity)
+        viscosityPartExp(p         , gradVelComp[0]
+                       , lNormal
+                       , viscosityC, lFarea
+                       , fDiv);
 /*...................................................................*/
 
 /*... termos viscosos explicitos*/
-      if(fStruc)
-      {
-        s[0] = alphaMenosUm*stressRc[0] + alpha*stressRv[0];
-        s[1] = alphaMenosUm*stressRc[1] + alpha*stressRv[1];
-        s[2] = alphaMenosUm*stressRc[2] + alpha*stressRv[2];
-        tmp = D1DIV3*(s[0]+s[1]+s[2]);
-        s[0] -= tmp;
-        s[1] -= tmp;
-        s[2] -= tmp;
-        s[3] = alphaMenosUm*stressRc[3] + alpha*stressRv[3];
-        s[4] = alphaMenosUm*stressRc[4] + alpha*stressRv[4];
-        s[5] = alphaMenosUm*stressRc[5] + alpha*stressRv[5];
-        aP   = lFarea;
-        p[0] -= aP*(s[0]*lNormal[0] 
-                  + s[3]*lNormal[1] 
-                  + s[5]*lNormal[2]);
- 
-        p[1] -= aP*(s[3]*lNormal[0] 
-                  + s[1]*lNormal[1] 
-                  + s[4]*lNormal[2]);
-      
-        p[2] -= aP*(s[5]*lNormal[0] 
-                  + s[4]*lNormal[1] 
-                  + s[2]*lNormal[2]);
-      }
+      if (fStruc)
+        turbStructIntegral(stressRc, stressRv
+          , lNormal, p
+          , lFarea
+          , alphaMenosUm, alpha
+          , false);
 /*...................................................................*/
 
     }
@@ -2409,36 +2254,6 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       wfn = velC[0]*lNormal[0] 
           + velC[1]*lNormal[1] 
           + velC[2]*lNormal[2];
-
-/*... termos viscosos explicitos*/      
-      if(fViscosity)
-      {
-        aP    = effViscosityC*lFarea;
-        p[0] += aP*( gradVelC[0][0]*lNormal[0] 
-                   + gradVelC[1][0]*lNormal[1]  
-                   + gradVelC[2][0]*lNormal[2]);
-
-        p[1] += aP*( gradVelC[0][1]*lNormal[0] 
-                   + gradVelC[1][1]*lNormal[1]
-                   + gradVelC[2][1]*lNormal[2]);
-      
-        p[2] += aP*( gradVelC[0][2]*lNormal[0] 
-                   + gradVelC[1][2]*lNormal[1]
-                   + gradVelC[2][2]*lNormal[2]);    
-      }
-/*...................................................................*/
-  
-/*... divergente*/
-      if(fDiv){
-        tmp = D2DIV3*aP*(gradVelC[0][0] 
-                       + gradVelC[1][1]
-                       + gradVelC[2][2]);
-        p[0] -= tmp*lNormal[0];
-        p[1] -= tmp*lNormal[1];
-        p[2] -= tmp*lNormal[2];  
-      }
-/*...................................................................*/
-
 /*...*/
       s[0] = dFieldC[0]*lFarea*lNormal[0];
       s[1] = dFieldC[1]*lFarea*lNormal[1];
@@ -2467,15 +2282,23 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*... gradiente da pressao com resconstrucao de segunda ordem*/
-      if(sPressure)  
-        pFace += gradPresC[0]*lXmcc[0] 
-               + gradPresC[1]*lXmcc[1]
-               + gradPresC[2]*lXmcc[2];
+      facePressure(gradPresC  , gradPresV
+                 , lXmcc      , lXm
+                 , ccV        , pf
+                 , lNormal    
+                 , pFace      , lFarea
+                 , presC      , 0.e0
+                 , 0.0        , 0.e0
+                 , fSoPressure, true);
+/*...................................................................*/
 
-      tmp   = pFace*lFarea;
-      pf[0] += tmp*lNormal[0];
-      pf[1] += tmp*lNormal[1];
-      pf[2] += tmp*lNormal[2];
+/*... termos viscosos explicitos*/
+      if (fStruc)
+        turbStructIntegral(stressRc, stressRv
+                        , lNormal, p
+                        , lFarea
+                        , 0.e0, 0.e0
+                        , true);
 /*...................................................................*/
 
 /*... gradiente de densidade*/
@@ -2483,31 +2306,6 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       gradRho[0] += tmp*lNormal[0];
       gradRho[1] += tmp*lNormal[1];
       gradRho[2] += tmp*lNormal[2];
-/*...................................................................*/
-
-/*... termos viscosos explicitos*/
-      if(fStruc){
-        tmp  = D1DIV3*(stressRc[0]+stressRc[1]+stressRc[2]);
-        s[0] = stressRc[0] - tmp;
-        s[1] = stressRc[1] - tmp;;
-        s[2] = stressRc[2] - tmp;;
-        
-        s[3] = stressRc[3];
-        s[4] = stressRc[4];
-        s[5] = stressRc[5];
-        aP   = lFarea;
-        p[0] -= aP*(s[0]*lNormal[0] 
-                  + s[3]*lNormal[1] 
-                  + s[5]*lNormal[2]);
- 
-        p[1] -= aP*(s[3]*lNormal[0] 
-                  + s[1]*lNormal[1] 
-                  + s[4]*lNormal[2]);
-      
-        p[2] -= aP*(s[5]*lNormal[0] 
-                  + s[4]*lNormal[1] 
-                  + s[2]*lNormal[2]);
-      }
 /*...................................................................*/
 
 /*...*/
@@ -2521,14 +2319,14 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*... velocidades*/
-      if(lFaceVelR[nf] > 0)
+      if(lFaceVelR[nf])
       {
         xx[0] = MAT2D(nf, 0, xm, 3);
         xx[1] = MAT2D(nf, 1, xm, 3);
         xx[2] = MAT2D(nf, 2, xm, 3);
         xx[3] = ts;
 /*...cargas*/
-        nCarg = lFaceVelL[nf]-1;
+        nCarg = lFaceVelR[nf]-1;
         pLoadSimple(sPc         , p
                   , tA          , lXmcc
                   , velC        , gradVelC[0] 
@@ -2546,56 +2344,21 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       }  
 /*...................................................................*/
 
-/*... parede impermevavel*/
-      else if(lFaceVelR[nf] == STATICWALL){
-/*... com modelo de parede*/
-        yPlus = 1.e0;
-        uPlus = 1.e0;
-        if (fWallModel) {
-          yPlus = wallPar[0];
-          uPlus = wallPar[1];
-          if(yPlus > 0.01e0)          
-            viscosityWall = viscosityC*yPlus/uPlus;
-          else
-            viscosityWall = viscosityC;   
-        }
-/*...................................................................*/
-
-/*... sem modelo de parede*/
-        else
-          viscosityWall = effViscosityC;
-/*...................................................................*/
-        aP = viscosityWall*lFarea / dcca[nf];
-/*...*/
-        sPc[0] += aP*(1.e0 - lNormal[0] * lNormal[0]);
-        sPc[1] += aP*(1.e0 - lNormal[1] * lNormal[1]);
-        sPc[2] += aP*(1.e0 - lNormal[2] * lNormal[2]);
-/*...................................................................*/
-
-/*... x*/
-        p[0]+= aP*(velC[1]*lNormal[0]*lNormal[1]
-                  +velC[2]*lNormal[0]*lNormal[2]);
-/*... y*/
-        p[1]+= aP*(velC[0]*lNormal[0]*lNormal[1]
-                  +velC[2]*lNormal[1]*lNormal[2]);
-/*... z*/
-        p[2]+= aP*(velC[0]*lNormal[0]*lNormal[2]
-                  +velC[1]*lNormal[1]*lNormal[2]);
-      }
-/*...................................................................*/
     }
 /*...................................................................*/
   }
 /*...................................................................*/
 
 /*...*/
-  if(iCodBuoyant == BUOYANT_HYDROSTATIC){
+  if(iCodBuoyant == BUOYANT_HYDROSTATIC)
+  {
     tmp   = densityC*volume[idCell];
     p[0] += tmp*g[0];
     p[1] += tmp*g[1];
     p[2] += tmp*g[2];
   }
-  else if (iCodBuoyant == BUOYANT_PRGH) {
+  else if (iCodBuoyant == BUOYANT_PRGH) 
+  {
     ccV[0] = MAT2D(idCell,0,cc,3);
     ccV[1] = MAT2D(idCell,1,cc,3);
     ccV[2] = MAT2D(idCell,2,cc,3);
@@ -2604,7 +2367,8 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
     p[1] -= tmp*gradRho[1];
     p[2] -= tmp*gradRho[2]; 
   }
-  else if (iCodBuoyant == BUOYANT_RHOREF){
+  else if (iCodBuoyant == BUOYANT_RHOREF)
+  {
     tmp   = (densityC-densityRef)*volume[idCell];
     p[0] += tmp*g[0];
     p[1] += tmp*g[1];
@@ -2613,12 +2377,14 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
   
 /*... distretização temporal*/
-  if(fTime){
+  if(fTime)
+  {
 /*... EULER*/
     if(typeTime == EULER) 
       sP     += densityC*volume[idCell]/dt;
 /*...BACKWARD*/
-    else if(typeTime == BACKWARD){
+    else if(typeTime == BACKWARD)
+    {
       tmp = 1.e0/dt + 1.e0/(dt+dt0);
       sP += tmp*densityC*volume[idCell];
     }

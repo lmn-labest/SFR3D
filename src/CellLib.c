@@ -148,7 +148,7 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
 
 /*********************************************************************
 * Data de criacao    : 22/08/2017                                   *
-* Data de modificaco : 05/06/2019                                   *
+* Data de modificaco : 08/10/2019                                   *
 *-------------------------------------------------------------------*
 * CELLLIBENERGY: chamada de bibliotecas de celulas para             *
 * problema de escoamento de fluidos (Energy)                        *
@@ -188,9 +188,7 @@ void cellLibTurbulence(Loads *lVel    , Turbulence tModel
 * lRcell    -> nao definido                                         *
 * ddt       -> discretizacao temporal                               *
 * faceVelR  -> restricoes por elemento de velocidades               *
-* faceVelL  -> carga por elemento de velocidades                    *
 * facePresR -> restricoes por elemento de pressao                   *
-* facePresL -> carga por elemento de pressao                        *
 * vel       -> campo de velocidade conhecido                        *
 * dField    -> matriz D do metodo simple                            *
 * lDensity  -> massa especifica com variacao temporal               *
@@ -230,8 +228,7 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
      , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
      , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
      , DOUBLE *RESTRICT lRcell     , Temporal *ddt
-     , short  *RESTRICT lFaceR     , short  *RESTRICT lFaceL
-     , short  *RESTRICT lFaceVelR  , short  *RESTRICT lFaceVelL     
+     , short  *RESTRICT lFaceR     , short  *RESTRICT lFaceVelR 
      , DOUBLE *RESTRICT u          , DOUBLE *RESTRICT gradU
      , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
      , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres  
@@ -248,10 +245,11 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
 {
 
 /*... */
-  if (lib == 1) {
+  if (lib == 1) 
+  {
 /*... 2D*/
-    if (ndm == 2)  
-      cellEnergy2D(lEnergy    , lVel
+    if (ndm == 2);  
+/*    cellEnergy2D(lEnergy    , lVel
                  , adv        , diff
                  , tModel     , model 
                  , vProp 
@@ -275,11 +273,11 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
                  , dField     , wallPar
                  , underU       
                  , nEn        , nFace
-                 , ndm        , nel);    
+                 , ndm        , nel); */ 
 /*..................................................................*/
 
 /*... 3D*/
-      else if (ndm == 3) {
+      else if (ndm == 3) 
         cellEnergy3D(lEnergy  , lVel
                  , adv        , diff
                  , tModel     , model 
@@ -294,8 +292,7 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
                  , vSkew      , mvSkew 
                  , lA         , lB
                  , lRcell     , ddt
-                 , lFaceR     , lFaceL
-                 , lFaceVelR  , lFaceVelL
+                 , lFaceR     , lFaceVelR  
                  , u          , gradU    
                  , vel        , gradVel
                  , pres       , gradPres  
@@ -309,7 +306,7 @@ void cellLibEnergy(Loads *lEnergy  , Loads *lVel
                  , nEn        , nFace
                  , ndm        , nel);    
 /*..................................................................*/
-    }  
+
 /*..................................................................*/
   }
 
@@ -7324,7 +7321,7 @@ void limeterGrad(Loads *loads
 
 /*********************************************************************
  * Data de criacao    : 28/09/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 08/10/2019                                   *
  *-------------------------------------------------------------------*
  * viscosityPartExp: parte explicita do tensor viscosidade           *
  * ------------------------------------------------------------------*
@@ -7335,6 +7332,7 @@ void limeterGrad(Loads *loads
  * n           -> vetor normal                                       *
  * viscosidade -> viscosidade dinamica                               * 
  * lFarea      -> area da face                                       *
+ * fDiv        -> parcela do divergente                              *
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
@@ -7344,10 +7342,11 @@ void limeterGrad(Loads *loads
  *********************************************************************/
 void viscosityPartExp(DOUBLE *p             ,DOUBLE *gradVel
                      ,DOUBLE *n
-                     ,DOUBLE const viscosity,DOUBLE const lFarea)
+                     ,DOUBLE const viscosity,DOUBLE const lFarea
+                     ,bool const fDiv)
 {
 
-  DOUBLE aP    = viscosity*lFarea;
+  DOUBLE aP = viscosity*lFarea,tmp;
  
 /*... du1dx1*n1 + du2dx1*n1 + du3dx1*n1*/
   p[0] += aP*( MAT2D(0,0,gradVel,3)*n[0] 
@@ -7361,7 +7360,16 @@ void viscosityPartExp(DOUBLE *p             ,DOUBLE *gradVel
   p[2] += aP*( MAT2D(0,2,gradVel,3)*n[0] 
              + MAT2D(1,2,gradVel,3)*n[1]  
              + MAT2D(2,2,gradVel,3)*n[2]);  
-
+/*...divergente*/
+  if(fDiv)
+  {
+   tmp = D2DIV3 * aP*(MAT2D(0, 2, gradVel, 3)
+                   + MAT2D(1, 1, gradVel, 3)
+                   + MAT2D(2, 2, gradVel, 3));
+    p[0] -= tmp * n[0];
+    p[1] -= tmp * n[1];
+    p[2] -= tmp * n[2];
+  }
 }
 /**********************************************************************/
 

@@ -46,7 +46,7 @@ void diffusion(Memoria *m       ,Loads *loadsDif,DiffModel *dModel
 /*... restricoes por centro de celula u0 e cargas por volume b0*/
   tm.CellPloadD1 = getTimeC() - tm.CellPloadD1;
   cellPload(loadsDif             ,mesh->elm.geom.cc 
-           ,mesh->elm.faceRd1    ,mesh->elm.faceRd1
+           ,mesh->elm.faceRd1    
            ,mesh->elm.geom.volume,sistEqD->id 
            ,mesh->elm.uD1        ,sistEqD->b0
            ,mesh->numelNov       ,mesh->ndfD[0]
