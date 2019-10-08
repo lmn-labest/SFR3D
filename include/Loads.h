@@ -33,6 +33,7 @@
           , DOUBLE const densityC   , DOUBLE *RESTRICT wallPar 
           , DOUBLE const fArea      , DOUBLE const dcca
           , Loads *ld               , short  const ndm 
+          , INT const nEl
           , bool const fCalVel      , bool const fCalPres
           , bool const fWallModel   , short const wallType);
 

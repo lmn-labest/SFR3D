@@ -1104,6 +1104,4 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                          ,short const nFace         ,short const ndm
                          ,short const ndf           ,INT const nel);
 /*...................................................................*/
-
-
 #endif/*_CELLLIB_H_*/

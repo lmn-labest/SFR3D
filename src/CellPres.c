@@ -1115,6 +1115,7 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
                   , densityC        , wallPar
                   , lFarea          , lModKsi
                   , &loadsVel[nCarg], ndm
+                  , nel
                   , false           , true
                   , false           , 0);     
       } 
@@ -1440,6 +1441,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
                   , densityC        , wallPar
                   , lFarea          , lModKsi
                   , &loadsVel[nCarg], ndm
+                  , nel
                   , false           , true
                   , false           , 0);     
       } 

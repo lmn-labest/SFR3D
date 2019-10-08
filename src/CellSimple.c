@@ -1032,6 +1032,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
                   , densityC        , wallPar
                   , lModEta         , dcca[nAresta]
                   , &loadsVel[nCarg], ndm
+                  , nel
                   , true            , false
                   , fWallModel      , wallType);
       }
@@ -1696,6 +1697,7 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
                   , lFarea      , dcca[nf]
                   , &lVel[nCarg], ndm
                   , true        , false
+                  , nel
                   , fWallModel  , wallType);      
       }  
 /*...................................................................*/
@@ -2539,6 +2541,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                   , lFarea      , dcca[nf]
                   , &lVel[nCarg], ndm
                   , true        , false
+                  , nel
                   , fWallModel  , wallType);      
       }  
 /*...................................................................*/

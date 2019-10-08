@@ -1,4 +1,5 @@
 #include<Loads.h>
+#include<MyLibs.h>
 
 /********************************************************************* 
  * Data de criacao    : 27/01/2017                                   *
@@ -71,13 +72,13 @@ DOUBLE functionFace(DOUBLE const x1,DOUBLE const x2, DOUBLE const x3)
  *********************************************************************/
 static void functionGeneral(DOUBLE *x,DOUBLE *c, short const iCod)
 {
-  DOUBLE x1,x2,x3,t;
+  DOUBLE x1,x2,x3,t,r,R,Vel;
 
   x1 = x[0];
   x2 = x[1];
   x3 = x[2];
   t  = x[3];
-  
+/* 
   c[0] = 0.e0;
   if(x1< 0.e0 && x1>-0.5 && x2 < 0.5)
     c[0] = 1.e0;
@@ -87,7 +88,15 @@ static void functionGeneral(DOUBLE *x,DOUBLE *c, short const iCod)
   c[3] = 0.e0;
 
   c[4] = 1.e0;
+*/
 
+  r = x1*x1 + x2*x2;
+  R = 1.e0;
+  Vel = 1.e0;
+
+  c[0] = c[1] = 0.e0;
+  c[2] = 2.e0*Vel*(1.e0 - r/(R*R));
+  c[3] = 1.e0;
 }
 /********************************************************************/
 
@@ -126,7 +135,7 @@ void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx)
     if (ld->nTypeVar == LVARCONST)
       for(i = 0; i< ld->np; par[i] = ld->par[i], i++);
     else if(ld->nTypeVar == LFUNC)
-      functionGeneral(xx,par,0);
+      functionGeneralLib(xx,par,0);
   } 
   else if( ld->type == ROBINBC)
   {
@@ -156,7 +165,7 @@ void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx)
     if (ld->nTypeVar == LVARCONST)
       for(i = 0; i< ld->np; par[i] = ld->par[i], i++);
     else if(ld->nTypeVar == LFUNC)
-      functionGeneral(xx,par,0);
+      functionGeneralLib(xx,par,0);
   }
 
   else if (ld->type == OPEN)
@@ -245,6 +254,7 @@ void loadSenProd(DOUBLE *tA,DOUBLE *par,DOUBLE *xm){
  *               celula                                              * 
  * ld         -> definicao da carga                                  * 
  * ndm        -> numero de dimensoes                                 * 
+ * nEl        -> numero do elemento                                  *
  * fCalVel    -> true - atualizada sP e p pela equacao de velocidades* 
  *               false- nao atualizada sP e p                        * 
  * fCalPres   -> true - atualizada sP e p pela da pressao            * 
@@ -270,10 +280,10 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
           , DOUBLE const densityC   , DOUBLE *RESTRICT wallPar   
           , DOUBLE const fArea      , DOUBLE const dcca
           , Loads *ld               , short  const ndm 
+          , INT const nEl         
           , bool const fCalVel      , bool const fCalPres
           , bool const fWallModel   , short const wallType){
 
-  short i;
   DOUBLE aP,wfn,m,tmp[5],gradVelFace[9],modVel,yPlus,uPlus,lambda;
   DOUBLE viscosityWall,densityEnv,par[MAXLOADPARAMETER],ev[3],ss[6];
   lambda = 0.e0;
@@ -398,6 +408,7 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
       tA[2] = par[2];
       wfn  += tA[2]*n[2];
     }
+    
  /*... eq momentum*/
     densityEnv = par[ld->np-1];
     m  = densityEnv*wfn*fArea;
