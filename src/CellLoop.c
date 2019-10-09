@@ -340,7 +340,7 @@ void systFormDif(Loads *loads             ,Diffusion *diff
 /*...*/
     aux1    = nFace[nel];
 /*... elementos com equacoes*/
-    if(MAT2D(nel,aux1,faceR ,aux2) != PCCELL){
+    if(MAT2D(nel,aux1,faceR ,aux2) < 1){
 
 /*... loop na celula central*/    
       lMat            = mat[nel]-1;
@@ -618,7 +618,7 @@ void systFormTrans(Loads *loads
 /*...*/
       aux1 = nFace[nel];
 /*... elementos com equacoes*/
-      if (MAT2D(nel, aux1, faceR, aux2) != PCCELL)
+      if (MAT2D(nel, aux1, faceR, aux2) < 1)
       {
 
 /*... zerando vetores*/
@@ -771,7 +771,7 @@ void systFormTrans(Loads *loads
 /*...*/
       aux1    = nFace[nel];
 /*... elementos com equacoes*/
-      if(MAT2D(nel,aux1,faceR ,aux2) != PCCELL){
+      if(MAT2D(nel,aux1,faceR ,aux2) < 1){
 
 /*... zerando vetores*/
         for(j=0;j<(MAX_NUM_FACE+1)*MAX_NDF;j++){
@@ -1105,7 +1105,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
 /*...*/
       aux1    = nFace[nel];
 /*... elementos com equacoes*/
-      if(MAT2D(nel,aux1,faceVelR ,aux2) != PCCELL)
+      if(MAT2D(nel,aux1,faceVelR ,aux2) < 1)
       {
  
 /*... zerando vetores*/
@@ -1324,7 +1324,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
 /*...*/
       aux1    = nFace[nel];
 /*... elementos com equacoes*/
-      if(MAT2D(nel,aux1,faceVelR ,aux2) != PCCELL)
+      if(MAT2D(nel,aux1,faceVelR ,aux2) < 1)
       {
  
 /*... zerando vetores*/
@@ -1650,7 +1650,7 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
 /*...*/
       aux1 = nFace[nel];
 /*... elementos com equacoes*/
-      if (MAT2D(nel,aux1,faceVelR,aux2) != PCCELL) {
+      if (MAT2D(nel,aux1,faceVelR,aux2) < 1) {
 
         for(j=0;j<MAX_NUM_FACE+1;j++)
           lPres[j] = 0.e0;
@@ -1776,7 +1776,7 @@ void velExp(Loads *loadsVel        ,Loads *loadsPres
 /*...*/
       aux1 = nFace[nel];
       /*... elementos com equacoes*/
-      if (MAT2D(nel, aux1, faceVelR, aux2) != PCCELL) {
+      if (MAT2D(nel, aux1, faceVelR, aux2) < 1) {
 
 /*... zerando vetores*/
         for (j = 0; j<MAX_NUM_FACE + 1; j++)
@@ -2102,7 +2102,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
 /*...*/
       aux1 = nFace[nel];
 /*... elementos com equacoes*/
-      if (MAT2D(nel, aux1, faceR, aux2) != PCCELL) {
+      if (MAT2D(nel, aux1, faceR, aux2) < 1) {
 
 /*... zerando vetores*/
         for (j = 0; j<(MAX_NUM_FACE + 1)*MAX_NDF; j++) {
@@ -2343,7 +2343,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
 /*...*/
       aux1 = nFace[nel];
 /*... elementos com equacoes*/
-      if (MAT2D(nel, aux1, faceR, aux2) != PCCELL) {
+      if (MAT2D(nel, aux1, faceR, aux2) < 1) {
 
 /*... zerando vetores*/
         for (j = 0; j<(MAX_NUM_FACE + 1)*MAX_NDF; j++) {
@@ -2774,7 +2774,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
 /*...*/
       aux1 = nFace[nel];
 /*... elementos com equacoes*/
-      if (MAT2D(nel, aux1, faceR, aux2) != PCCELL) 
+      if (MAT2D(nel, aux1, faceR, aux2) < 1) 
       {
 
 /*... zerando vetores*/
@@ -2994,7 +2994,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
 /*...*/
       aux1 = nFace[nel];
 /*... elementos com equacoes*/
-      if (MAT2D(nel, aux1, faceR, aux2) != PCCELL) 
+      if (MAT2D(nel, aux1, faceR, aux2) < 1) 
       {
 
 /*... zerando vetores*/
@@ -3392,7 +3392,7 @@ void systFormOneEqK(Loads *ldsK        ,Loads *ldsVel
 /*...*/
       aux1 = nFace[nel];
 /*... elementos com equacoes*/
-      if (MAT2D(nel, aux1, faceReK, aux2) != PCCELL)
+      if (MAT2D(nel, aux1, faceReK, aux2) < 1)
       {
 
 /*... zerando vetores*/
@@ -3593,7 +3593,7 @@ void systFormOneEqK(Loads *ldsK        ,Loads *ldsVel
 /*...*/
       aux1 = nFace[nel];
 /*... elementos com equacoes*/
-      if (MAT2D(nel, aux1, faceReK, aux2) != PCCELL)
+      if (MAT2D(nel, aux1, faceReK, aux2) < 1)
       {
 
 /*... zerando vetores*/
@@ -3918,7 +3918,7 @@ void velResidual(Loads *loadsVel            , Loads *loadsPres
 /*...*/
       aux1 = nFace[nel];
 /*... elementos com equacoes*/
-      if (MAT2D(nel, aux1, faceVelR, aux2) != PCCELL) {
+      if (MAT2D(nel, aux1, faceVelR, aux2) < 1) {
 
         for (j = 0; j<MAX_NUM_FACE + 1; j++)
           lPres[j] = 0.e0;
@@ -4053,7 +4053,7 @@ void velResidual(Loads *loadsVel            , Loads *loadsPres
 /*...*/
       aux1 = nFace[nel];
 /*... elementos com equacoes*/
-      if (MAT2D(nel, aux1, faceVelR, aux2) != PCCELL) {
+      if (MAT2D(nel, aux1, faceVelR, aux2) < 1) {
 
 /*... zerando vetores*/
         for (j = 0; j<MAX_NUM_FACE + 1; j++)
@@ -4352,7 +4352,7 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
 /*...*/
       aux1 = nFace[nel];
 /*... elementos com equacoes*/
-      if (MAT2D(nel, aux1, facePresR, aux2) != PCCELL) {
+      if (MAT2D(nel, aux1, facePresR, aux2) < 1) {
 
 /*... zerando vetores*/
         for (j = 0; j<(MAX_NUM_FACE + 1)*MAX_NDF; j++)
@@ -4521,7 +4521,7 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
 /*...*/
       aux1    = nFace[nel];
 /*... elementos com equacoes*/
-      if(MAT2D(nel,aux1,facePresR ,aux2) != PCCELL){
+      if(MAT2D(nel,aux1,facePresR ,aux2) < 1){
 
 /*... zerando vetores*/
         for(j=0;j<(MAX_NUM_FACE+1)*MAX_NDF;j++) 
@@ -4787,7 +4787,7 @@ void simpleNonOrthPres(Diffusion *diffPres
 /*...*/
     aux1    = nFace[nel];
 /*... elementos com equacoes*/
-    if(MAT2D(nel,aux1,facePresR ,aux2) != PCCELL)
+    if(MAT2D(nel,aux1,facePresR ,aux2) < 1)
     {
 
 /*... loop na celula central*/    
@@ -4932,7 +4932,7 @@ void cellPload(Loads *loads           ,DOUBLE *RESTRICT cc
   for(nel = 0; nel < numel;nel++){
     carg = MAT2D(nel,maxViz,faceR,col);
 /*... variavel prescrita no dominio*/
-    if(carg == PCCELL){
+    if(carg > 0){
       carg = MAT2D(nel,maxViz,faceR,col)-1;
 /*... valor prescrito na celula constante*/
       if( loads[carg].type == CONST)
@@ -4942,8 +4942,8 @@ void cellPload(Loads *loads           ,DOUBLE *RESTRICT cc
     }
 
 /*... carga na celula*/
-    else if( carg == SCCELL){
-      carg= MAT2D(nel,maxViz,faceR,col)-1;
+    else if( carg < 0){
+      carg = -(MAT2D(nel,maxViz,faceR,col)-1);
 /*... carga constante*/
       if( loads[carg].type == CONST)
         for(j = 0; j< ndf;j++){
@@ -5033,7 +5033,7 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
   for(nel = 0; nel < numel;nel++){
     carg = MAT2D(nel,maxViz,faceRpres,col);
 /*... variavel prescrita no dominio*/
-    if(carg == PCCELL){
+    if(carg > 0){
       carg = MAT2D(nel,maxViz,faceRpres,col)-1;
 /*... valor prescrito constante para pressao na celula*/
       if( loadsPres[carg].type == CONST)
@@ -7062,7 +7062,7 @@ void systFormDifOld(Loads *loads, Diffusion *diff
     /*...*/
     aux1 = nFace[nel];
 /*... elementos com equacoes*/
-    if (MAT2D(nel, aux1, faceR, aux2) != PCCELL) {
+    if (MAT2D(nel, aux1, faceR, aux2) < 0) {
 
 /*... zerando vetores*/
       for (j = 0; j<(MAX_NUM_FACE + 1)*MAX_NDF; j++) {

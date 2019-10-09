@@ -1,5 +1,8 @@
 #include<Sisteq.h>
 /*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 09/10/2019                                   *
+ *-------------------------------------------------------------------*
  * numEq : numeracao das equacoes                                    *
  * ------------------------------------------------------------------*
  * Parametros de entrada:                                            *
@@ -33,7 +36,7 @@ INT numeq(INT *RESTRICT id       ,INT *RESTRICT num
     nel = num[i] -1;
     for(j=0;j<ndf;j++){
       aux = nFace[nel]*ndf+j;
-      if( MAT2D(nel,aux,rt,maxRes) == PCCELL)
+      if( MAT2D(nel,aux,rt,maxRes) > 0)
         MAT2D(nel,j,id,ndf) = -1; 
       else
         MAT2D(nel,j,id,ndf) = ++neq;
@@ -82,6 +85,9 @@ INT numEqV1(INT *RESTRICT id       ,INT *RESTRICT num
 /*********************************************************************/ 
 
 /*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 09/10/2019                                   *
+ *-------------------------------------------------------------------*
  * numEqV2: numeracao das equacoes das pressoes do metodo simple     *
  * ------------------------------------------------------------------*
  * Parametros de entrada:                                            *
@@ -113,7 +119,7 @@ INT numEqV2(INT *RESTRICT id       ,INT *RESTRICT num
   for(i=0;i<numel;i++){
     nel = num[i] -1;
     aux = nFace[nel];
-    if( MAT2D(nel,aux,rt,maxRes) == PCCELL)
+    if( MAT2D(nel,aux,rt,maxRes) > 0)
       id[nel] = -1; 
     else
       id[nel] = ++neq;

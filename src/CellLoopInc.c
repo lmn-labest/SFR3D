@@ -195,7 +195,7 @@
 /*...*/
       aux1    = nFace[nel];
 /*... elementos com equacoes*/
-      if(MAT2D(nel,aux1,faceVelR ,aux2) != PCCELL)
+      if(MAT2D(nel,aux1,faceVelR ,aux2) < 1)
       {
 
 /*... loop na celula central*/    
@@ -401,7 +401,7 @@
 /*...*/
       aux1    = nFace[nel];
 /*... elementos com equacoes*/
-      if(MAT2D(nel,aux1,faceVelR ,aux2) != PCCELL)
+      if(MAT2D(nel,aux1,faceVelR ,aux2) < 1)
       {
 
 /*... loop na celula central*/    
@@ -756,7 +756,7 @@ void systFormSimplePres(Loads *loadsVel    , Loads *loadsPres
 /*...*/
       aux1    = nFace[nel];
 /*... elementos com equacoes*/
-      if(MAT2D(nel,aux1,facePresR ,aux2) != PCCELL)
+      if(MAT2D(nel,aux1,facePresR ,aux2) < 1)
       {
 
 /*... loop na celula central*/    
@@ -900,7 +900,7 @@ void systFormSimplePres(Loads *loadsVel    , Loads *loadsPres
 /*...*/
       aux1    = nFace[nel];
 /*... elementos com equacoes*/
-      if(MAT2D(nel,aux1,facePresR ,aux2) != PCCELL)
+      if(MAT2D(nel,aux1,facePresR ,aux2) < 1)
       {
 
 /*... loop na celula central*/    

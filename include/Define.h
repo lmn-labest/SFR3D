@@ -241,11 +241,6 @@
   #define radToDeg(teta) (180.e0*(teta)/(PI))
 /*...................................................................*/
 
-/*... tipo de cargr no volume*/
-  #define PCCELL       1 /*valor pescrito*/
-  #define SCCELL       2 /*fonte*/
-/*...................................................................*/
-  
 /*... ADVECTION*/
   #define NFUNCLIMTFACE 5
   #define NFUNCNVD      9

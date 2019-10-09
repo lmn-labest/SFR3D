@@ -1,5 +1,5 @@
 #include<Loads.h>
-#include<MyLibs.h>
+//#include<MyLibs.h>
 
 /********************************************************************* 
  * Data de criacao    : 27/01/2017                                   *
@@ -135,7 +135,7 @@ void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx)
     if (ld->nTypeVar == LVARCONST)
       for(i = 0; i< ld->np; par[i] = ld->par[i], i++);
     else if(ld->nTypeVar == LFUNC)
-      functionGeneralLib(xx,par,0);
+       functionGeneral(xx,par,0);
   } 
   else if( ld->type == ROBINBC)
   {
@@ -165,7 +165,7 @@ void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx)
     if (ld->nTypeVar == LVARCONST)
       for(i = 0; i< ld->np; par[i] = ld->par[i], i++);
     else if(ld->nTypeVar == LFUNC)
-      functionGeneralLib(xx,par,0);
+      functionGeneral(xx,par,0);
   }
 
   else if (ld->type == OPEN)
