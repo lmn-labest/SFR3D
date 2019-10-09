@@ -1516,7 +1516,7 @@ void wResVtkTrans(Memoria *m        , double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                    *
- * Data de modificaco : 28/09/2019                                    * 
+ * Data de modificaco : 09/10/2019                                    * 
  *------------------------------------------------------------------- * 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1590,7 +1590,8 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
           , DOUBLE *eWallPar     , DOUBLE *nWallPar
           , DOUBLE *eKturb       , DOUBLE *nKturb
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
-          , DOUBLE *specificHeat , DOUBLE *tConductivity
+          , DOUBLE *eSheat       , DOUBLE *nSheat
+          , DOUBLE *eTCond       , DOUBLE *nTCond
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf
@@ -1772,7 +1773,7 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
 /*... escrever gradiente de velocidade por celula*/  
   if(opt->tConductivity && opt->fCell ){
     strcpy(str,"eThermoCondutivity");
-    writeVtkProp(&idum,tConductivity,numel,1,str,iws
+    writeVtkProp(&idum,eTCond,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
 /*...................................................................*/
@@ -1783,7 +1784,7 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
     HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
     ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
     for(i=0;i<numel;i++)
-      p[i] = MAT2D(i,TIME_N, specificHeat, SHEAT_LEVEL);
+      p[i] = MAT2D(i,TIME_N, eSheat, SHEAT_LEVEL);
     writeVtkProp(&idum,p,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
     HccaDealloc(m,p,"p",_AD_);
@@ -2096,6 +2097,22 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
   if(opt->kTurb &&  opt->fNode ){
     strcpy(str,"nKturbl");
     writeVtkProp(&idum,nKturb,nnode,1,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+  }
+/*...................................................................*/
+
+/*... escrever gradiente de velocidade por celula*/  
+  if(opt->tConductivity && opt->fNode ){
+    strcpy(str,"nThermoCondutivity");
+    writeVtkProp(&idum,nTCond,nnode,1,str,iws
+                ,DOUBLE_VTK,SCALARS_VTK,f);
+  }
+/*...................................................................*/
+
+/*... escrever calor especifico por celula*/  
+  if(opt->specificHeat && opt->fNode ){
+    strcpy(str,"nSpecificHeat");
+    writeVtkProp(&idum,nSheat,nnode,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
 /*...................................................................*/

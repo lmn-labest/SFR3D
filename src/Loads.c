@@ -281,14 +281,16 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
           , DOUBLE const fArea      , DOUBLE const dcca
           , Loads *ld               , short  const ndm     
           , bool const fCalVel      , bool const fCalPres
-          , INT const nEl
-          , bool const fWallModel   , short const wallType)
+          , bool const fDiv         , bool const fWallModel
+          , short const wallType    , INT const nEl )
 {
 
   DOUBLE aP,wfn,m,tmp[5],gradVelFace[9],modVel,yPlus,uPlus,lambda;
   DOUBLE viscosityWall,densityEnv,par[MAXLOADPARAMETER],ev[3],ss[6];
-  lambda = 0.e0;
-//lambda = -2.e0/3.e0*viscosityC;
+
+  lambda = 0.0e+00;
+  if(fDiv)
+    lambda = -2.e0/3.e0*viscosityC;
   tmp[0] = tmp[1] = tmp[2] = tmp[3] = 0.e0;
     
 /*... parade impermeavel movel*/

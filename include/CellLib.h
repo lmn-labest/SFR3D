@@ -1102,5 +1102,9 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                          ,DOUBLE *RESTRICT gradU    ,DOUBLE *RESTRICT normal
                          ,short const nFace         ,short const ndm
                          ,short const ndf           ,INT const nel);
+
+  DOUBLE mediaHarmonica(DOUBLE const uV,DOUBLE const uC
+                       ,DOUBLE const gV,DOUBLE const gC);
+
 /*...................................................................*/
 #endif/*_CELLLIB_H_*/

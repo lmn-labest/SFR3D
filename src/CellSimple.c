@@ -1021,7 +1021,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
         xx[3] = ts;
 /*...cargas*/
         nCarg = lFaceVelL[nAresta] - 1;
-        pLoadSimple(sPc             , p
+/*      pLoadSimple(sPc             , p
                   , tA              , lXmcc
                   , velC            , gradVelC[0]
                   , presC           , gradPresC
@@ -1034,7 +1034,7 @@ void cellSimpleVel2DLm(Loads *loadsVel   , Loads *loadsPres
                   , &loadsVel[nCarg], ndm
                   , nel
                   , true            , false
-                  , fWallModel      , wallType);
+                  , fWallModel      , wallType);*/
       }
 /*...................................................................*/
 
@@ -1480,8 +1480,8 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
 
 /*... media harmonica*/
       effViscosityV = viscosityV + eddyViscosityV;
-      viscosity = alpha / effViscosityC + alphaMenosUm / effViscosityV;
-      viscosity = 1.0e0 / viscosity;
+      viscosity = mediaHarmonica(effViscosityV,effViscosityC
+                                ,alphaMenosUm ,alpha        );
 /*...................................................................*/
 
 /*... difusao direta*/
@@ -1689,8 +1689,8 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
                   , lFarea      , dcca[nf]
                   , &lVel[nCarg], ndm
                   , true        , false
-                  , nel
-                  , fWallModel  , wallType);      
+                  , false       , fWallModel 
+                  , wallType     , nel );      
       }  
 /*...................................................................*/
     }
@@ -2113,8 +2113,8 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*... media harmonica*/
       effViscosityV = viscosityV + eddyViscosityV;
-      viscosity = alpha / effViscosityC + alphaMenosUm / effViscosityV;
-      viscosity = 1.0e0 / viscosity;
+      viscosity = mediaHarmonica(effViscosityV,effViscosityC
+                                ,alphaMenosUm ,alpha        );
 /*...................................................................*/
 
 /*... difusao direta*/
@@ -2339,8 +2339,8 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                   , lFarea      , dcca[nf]
                   , &lVel[nCarg], ndm
                   , true        , false
-                  , nel
-                  , fWallModel  , wallType);      
+                  , fDiv        , fWallModel 
+                  , wallType     , nel );    
       }  
 /*...................................................................*/
 

@@ -194,7 +194,7 @@ static void globalCombCel(Memoria *m
 
 /********************************************************************* 
  * Data de criacao    : 02/12/2017                                   *
- * Data de modificaco : 30/01/2018                                   *
+ * Data de modificaco : 09/10/2019                                   *
  *-------------------------------------------------------------------*
  * printFluid: impressao do fluido                                   * 
  *-------------------------------------------------------------------* 
@@ -230,6 +230,7 @@ void printFluid(Memoria *m
   void *dum=NULL;
   INT ndfVel;
   DOUBLE *nStressR=NULL,*nEddyV=NULL,*nDvisc=NULL,*nDenFluid=NULL;
+  DOUBLE *nSheat=NULL,*nTCond=NULL;
   DOUBLE *nMedVel=NULL,*nP2Vel=NULL,*nMedP2Vel=NULL;
   DOUBLE *nCdyn=NULL,*nWall=NULL,*nKturb=NULL;
   FILE *fileOut=NULL;
@@ -239,6 +240,10 @@ void printFluid(Memoria *m
 /*...................................................................*/
 
 /*...*/
+  if(opt->specificHeat)
+    HccaAlloc(DOUBLE, m, nSheat   , mesh->nnode                 , "nSheat"   , _AD_);
+  if(opt->tConductivity)
+    HccaAlloc(DOUBLE, m, nTCond   , mesh->nnode                 , "nTcond"   , _AD_);
   if(opt->densityFluid)
     HccaAlloc(DOUBLE, m, nDenFluid, mesh->nnode*DENSITY_LEVEL  , "nDenFluid", _AD_);
   if(opt->dViscosity)
@@ -494,12 +499,10 @@ void printFluid(Memoria *m
              , mesh->ndm              
              , opt->bconditions      , 2);  
 /*...................................................................*/
-  }
-/*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (density)*/
-  if(opt->densityFluid)
-    interCellNode(m                , loadsTemp
+    if(opt->fNode && opt->densityFluid)
+      interCellNode(m                , loadsTemp
              , mesh->elm.cellFace, mesh->face.owner
              , nDenFluid         , mesh->elm.densityFluid
              , mesh->elm.node    , mesh->elm.geomType
@@ -516,8 +519,8 @@ void printFluid(Memoria *m
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (dViscosity)*/
-  if(opt->dViscosity)
-    interCellNode(m                    , loadsTemp
+    if(opt->fNode && opt->dViscosity)
+      interCellNode(m                    , loadsTemp
                 , mesh->elm.cellFace   , mesh->face.owner
                 , nDvisc               , mesh->elm.dViscosity
                 , mesh->elm.node       , mesh->elm.geomType
@@ -533,8 +536,47 @@ void printFluid(Memoria *m
                 , false                , 2);
 /*...................................................................*/
 
+/*... interpolacao das variaveis da celulas para pos nos (sHeat)*/
+    if(opt->fNode && opt->specificHeat)
+      interCellNode(m                    , loadsTemp
+                , mesh->elm.cellFace   , mesh->face.owner
+                , nSheat               , mesh->elm.specificHeat
+                , mesh->elm.node       , mesh->elm.geomType
+                , mesh->elm.geom.cc    , mesh->node.x
+                , mesh->face.xm          
+                , mesh->elm.nen        , mesh->elm.adj.nViz
+                , dum                  , &pMesh->iNo            
+                , mesh->numelNov       , mesh->numel
+                , mesh->nnodeNov       , mesh->nnode
+                , mesh->maxNo          , mesh->maxViz
+                , 1                    , 1
+                , mesh->ndm              
+                , false                , 2);
+/*...................................................................*/
+
+/*... interpolacao das variaveis da celulas para pos nos (sHeat)*/
+    if(opt->fNode && opt->tConductivity)
+      interCellNode(m                    , loadsTemp
+                , mesh->elm.cellFace   , mesh->face.owner
+                , nTCond               , mesh->elm.tConductivity
+                , mesh->elm.node       , mesh->elm.geomType
+                , mesh->elm.geom.cc    , mesh->node.x
+                , mesh->face.xm          
+                , mesh->elm.nen        , mesh->elm.adj.nViz
+                , dum                  , &pMesh->iNo            
+                , mesh->numelNov       , mesh->numel
+                , mesh->nnodeNov       , mesh->nnode
+                , mesh->maxNo          , mesh->maxViz
+                , 1                    , 1
+                , mesh->ndm              
+                , false                , 2);
+/*...................................................................*/
+  }
+/*...................................................................*/
+
 /*...*/
-  if (turbModel->fTurb) {
+  if (turbModel->fTurb) 
+  {
 /*... viscisidade turbulenta*/
     if(opt->eddyViscosity)       
       interCellNode(m                  , loadsVel
@@ -650,7 +692,8 @@ void printFluid(Memoria *m
                , mesh0->elm.wallParameters, nWall
                , mesh0->elm.kTurb         , nKturb
                , media->mVel              , nMedVel
-               , mesh0->elm.specificHeat  , mesh0->elm.tConductivity                                               
+               , mesh0->elm.specificHeat  , nSheat
+               , mesh0->elm.tConductivity , nTCond                                              
                , mesh0->nnode             , mesh0->numel  
                , mesh0->ndm               , mesh0->maxNo 
                , mesh0->numat             , ndfVel
@@ -681,7 +724,11 @@ void printFluid(Memoria *m
   if(opt->dViscosity)
     HccaDealloc(m, nDvisc   , "nVis"     , _AD_);   
   if(opt->densityFluid)
-    HccaDealloc(m, nDenFluid, "nDenFluid", _AD_);  
+    HccaDealloc(m, nDenFluid, "nDenFluid", _AD_);
+  if(opt->tConductivity)
+    HccaDealloc(m, nTCond, "nTcond", _AD_);
+  if(opt->specificHeat)
+    HccaDealloc(m, nSheat, "nSheat", _AD_);  
 /*...................................................................*/
 
 }

@@ -143,7 +143,8 @@
           , DOUBLE *eWallPar     , DOUBLE *nWallPar 
           , DOUBLE *eKturb       , DOUBLE *nKturb
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
-          , DOUBLE *specificHeat , DOUBLE *tConductivity               
+          , DOUBLE *eSheat       , DOUBLE *nSheat
+          , DOUBLE *eTCon        , DOUBLE *nTCond       
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf  

@@ -456,6 +456,7 @@
 
 /*...*/
   DOUBLE gravity[3];
+  DOUBLE xRef[3];
   FILE *fileLogExc,*fileLogDebug;
 /*...................................................................*/
 

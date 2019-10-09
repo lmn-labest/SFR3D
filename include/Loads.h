@@ -28,14 +28,14 @@
           , DOUBLE const presC      , DOUBLE *RESTRICT gradPresC
           , DOUBLE const viscosityC , DOUBLE const effViscosityC  
           , DOUBLE *RESTRICT xx
-          , DOUBLE *RESTRICT sl     , DOUBLE *RESTRICT e        
+          , DOUBLE *RESTRICT s      , DOUBLE *RESTRICT e        
           , DOUBLE *RESTRICT t      , DOUBLE *RESTRICT n  
-          , DOUBLE const densityC   , DOUBLE *RESTRICT wallPar 
+          , DOUBLE const densityC   , DOUBLE *RESTRICT wallPar   
           , DOUBLE const fArea      , DOUBLE const dcca
-          , Loads *ld               , short  const ndm 
+          , Loads *ld               , short  const ndm     
           , bool const fCalVel      , bool const fCalPres
-          , INT const nEl
-          , bool const fWallModel   , short const wallType);
+          , bool const fDiv         , bool const fWallModel
+          , short const wallType    , INT const nEl );
 
   void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
           , DOUBLE *RESTRICT tA         , DOUBLE *RESTRICT ksi
