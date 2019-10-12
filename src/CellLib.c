@@ -746,7 +746,7 @@ void cellLibCombustion(Loads *lComb        , Loads *lVel
 
 /*********************************************************************
  * Data de criacao    : 27/08/2017                                   *
- * Data de modificaco : 21/05/2019                                   *
+ * Data de modificaco : 12/10/2019                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEVEl: chamada de bibliotecas de celulas para          *
  * problema de escoamento de fluidos (VEL -low mach)                 *
@@ -784,9 +784,7 @@ void cellLibCombustion(Loads *lComb        , Loads *lVel
  * lRcell    -> nao definido                                         *
  * ddt       -> discretizacao temporal                               *
  * faceVelR  -> restricoes por elemento de velocidades               *
- * faceVelL  -> carga por elemento de velocidades                    *
  * facePresR -> restricoes por elemento de pressao                   *
- * facePresL -> carga por elemento de pressao                        *
  * pres      -> campo de pressao conhecido                           *
  * gradPes   -> gradiente reconstruido da pressao                    *
  * vel       -> campo de velocidade conhecido                        *
@@ -824,10 +822,10 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
            , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew 
            , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB 
            , DOUBLE *RESTRICT lRcell    , Temporal *ddt 
-           , short  *RESTRICT lFaceVelR , short  *RESTRICT lFaceVelL 
-           , short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL 
+           , short  *RESTRICT lFaceVelR , short  *RESTRICT lFacePresR 
            , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres  
            , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel 
+           , DOUBLE *RESTRICT gradRho
            , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lViscosity 
            , DOUBLE *RESTRICT dField    , DOUBLE *RESTRICT stressR   
            , DOUBLE *RESTRICT wallPar   , DOUBLE const densityMed
@@ -854,8 +852,8 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
                      , vSkew      , mvSkew 
                      , lA         , lB 
                      , lRcell     , *ddt  
-                     , lFaceVelR  , lFaceVelL 
-                     , lFacePresR , lFacePresL 
+                     , lFaceVelR  , lFaceVelR 
+                     , lFacePresR , lFacePresR 
                      , pres       , gradPres  
                      , vel        , gradVel 
                      , lDensity   , lViscosity 
@@ -883,10 +881,10 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
                      , vSkew      , mvSkew 
                      , lA         , lB 
                      , lRcell     , ddt  
-                     , lFaceVelR  , lFaceVelL 
-                     , lFacePresR , lFacePresL 
+                     , lFaceVelR  , lFacePresR  
                      , pres       , gradPres  
                      , vel        , gradVel 
+                     , gradRho
                      , lDensity   , lViscosity 
                      , dField     , stressR
                      , wallPar    , densityMed
@@ -1030,7 +1028,7 @@ void cellLibSimplePres(Loads *lVel         ,Loads *lPres
 
 /*********************************************************************
  * Data de criacao    : 17/09/2017                                   *
- * Data de modificaco : 17/07/2018                                   *
+ * Data de modificaco : 12/10/2019                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEPRESLM: chamada de bibliotecas de celulas para       *
  * problema de escoamento de fluidos a baixo Mach (PRES)             *
@@ -1067,9 +1065,7 @@ void cellLibSimplePres(Loads *lVel         ,Loads *lPres
  * lRcell    -> nao definido                                         *
  * ddt       -> discretizacao temporal                               *
  * faceVelR  -> restricoes por elemento de velocidades               *
- * faceVelL  -> carga por elemento de velocidades                    *
  * facePresR -> restricoes por elemento de pressao                   *
- * facePresL -> carga por elemento de pressao                        *
  * pres      -> campo de pressao conhecido                           *
  * gradPes   -> gradiente reconstruido da pressao                    *
  * vel       -> campo de velocidade conhecido                        *
@@ -1100,8 +1096,7 @@ void cellLibSimplePresLm(Loads *lVel        , Loads *lPres
                , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
                , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
                , DOUBLE *RESTRICT lRcell    , Temporal *ddt
-               , short  *RESTRICT lFaceVelR , short  *RESTRICT lFaceVelL
-               , short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL
+               , short  *RESTRICT lFaceVelR , short  *RESTRICT lFacePresR
                , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres 
                , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField 
                , DOUBLE *RESTRICT temp      , DOUBLE *RESTRICT wallPar
@@ -1126,8 +1121,8 @@ void cellLibSimplePresLm(Loads *lVel        , Loads *lPres
                  , vSkew     , mvSkew
                  , lA        , lB
                  , lRcell    , *ddt 
-                 , lFaceVelR , lFaceVelL
-                 , lFacePresR, lFacePresL
+                 , lFaceVelR , lFacePresR
+                 , lFaceVelR , lFacePresR
                  , pres      , gradPres 
                  , vel       , dField
                  , temp
@@ -1150,8 +1145,7 @@ void cellLibSimplePresLm(Loads *lVel        , Loads *lPres
                  , vSkew     , mvSkew
                  , lA        , lB
                  , lRcell    , ddt 
-                 , lFaceVelR , lFaceVelL
-                 , lFacePresR, lFacePresL
+                 , lFaceVelR , lFacePresR
                  , pres      , gradPres 
                  , vel       , dField
                  , temp      , wallPar
@@ -7403,28 +7397,55 @@ void viscosityPartExp(DOUBLE *p             ,DOUBLE *gradVel
 void facePressure(DOUBLE *gradPresC           ,DOUBLE *gradPresV
                  ,DOUBLE *lXmcc               ,DOUBLE *lXm
                  ,DOUBLE *ccV                 ,DOUBLE *pf
-                 ,DOUBLE *n
-                 ,DOUBLE pFace                ,DOUBLE const lFarea
+                 ,DOUBLE *n                   ,DOUBLE *g
+                 ,DOUBLE pFace                ,DOUBLE rho 
+                 ,DOUBLE const lFarea
                  ,DOUBLE const presC          ,DOUBLE const presV
                  ,DOUBLE const g1             ,DOUBLE const g2    
-                 ,bool const fSoPressure      ,bool const fBoundary)
+                 ,bool const fBoundary        ,short const typeFacePres)
 {
   DOUBLE p1,p2,v[3],tmp;
 
 /*... contorno*/
   if(fBoundary)
   {
-    if(fSoPressure)  
+    if(typeFacePres == INT_BUOYANT_FORCE)
+      pFace += (rho*g[0]*lXmcc[0]
+              + rho*g[1]*lXmcc[1]
+              + rho*g[2]*lXmcc[2]); 
+    
+    else if(typeFacePres == INT_PRESSURE_SO)
       pFace += gradPresC[0]*lXmcc[0] 
              + gradPresC[1]*lXmcc[1]
              + gradPresC[2]*lXmcc[2];
+
   }
 /*...................................................................*/
 
 /*... dominido*/
   else
   {
-    if(fSoPressure)
+/*...*/
+    if(typeFacePres == INT_BUOYANT_FORCE)
+    {
+      v[0] = lXm[0] - ccV[0];
+      v[1] = lXm[1] - ccV[1];
+      v[2] = lXm[2] - ccV[2];
+
+      p1 = presC + (rho*g[0]*lXmcc[0]
+                  + rho*g[1]*lXmcc[1]
+                  + rho*g[2]*lXmcc[2]); 
+
+      p2 = presV + (rho*g[0]*v[0]
+                  + rho*g[1]*v[1]
+                  + rho*g[2]*v[2]); 
+     
+      pFace = 0.5e0*(p1+p2);
+    }
+/*...................................................................*/
+
+/*..*/
+    else if(typeFacePres == INT_PRESSURE_SO)
     {
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
@@ -7440,8 +7461,12 @@ void facePressure(DOUBLE *gradPresC           ,DOUBLE *gradPresV
      
       pFace = 0.5e0*(p1+p2);
     }
-    else
+/*...................................................................*/
+
+/*...*/
+    else if (typeFacePres == INT_PRESSURE_FO)
       pFace = g1*presC + g2*presV;
+/*...................................................................*/
   }
 /*...................................................................*/
 

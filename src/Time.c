@@ -110,6 +110,7 @@ void initTime(Time *tm) {
   tm->rcGradPres          = 0.e0;
   tm->rcGradVel           = 0.e0;
   tm->rcGradEnergy        = 0.e0;
+  tm->rcGradRho           = 0.e0;
   tm->updateProp          = 0.e0;
   tm->residualSimple      = 0.e0;
 /*... Combustion*/

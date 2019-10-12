@@ -39,7 +39,8 @@
 /*... */               
     short *faceRvel;       /*condicao  contorno na face (fluido)*/
     short *faceRpres;      /*condicao  contorno na face (fluido)*/
-    short *faceRenergy;    /*condicao  contorno na face (fluido)*/   
+    short *faceRenergy;    /*condicao  contorno na face (fluido)*/  
+    short *faceRrho;          
 /*...*/
     short *faceReKturb;     /*condicao  contorno na face (fluido)*/
     short *faceLoadKturb;  /*tipo de carga contorno na face (fluido)*/
@@ -71,10 +72,11 @@
     DOUBLE *dViscosity;   /*viscosidade dinamica*/
     DOUBLE *tConductivity;/*condutividae termica*/
 /*...*/
-    DOUBLE *gradVel;    /*gradiente do campo de velocidade*/    
-    DOUBLE *gradPres;   /*gradiente do campo de pressao*/    
-    DOUBLE *gradEnergy; /*gradiente do campo de energia*/
-    DOUBLE *gradTemp;   /*gradiente da temperatura*/
+    DOUBLE *gradVel;      /*gradiente do campo de velocidade*/    
+    DOUBLE *gradPres;     /*gradiente do campo de pressao*/    
+    DOUBLE *gradEnergy;   /*gradiente do campo de energia*/
+    DOUBLE *gradTemp;     /*gradiente da temperatura*/
+    DOUBLE *gradRhoFluid; /*gradiente da densidade*/
 /*...*/
     DOUBLE *rCellVel;   /*residuo da celula*/
     DOUBLE *rCellPres;  /*residuo da celula*/
@@ -133,6 +135,7 @@
     DOUBLE *energy;    /*energia*/
     DOUBLE *kTurb ;    /*energia cinetica turbulenta*/
     DOUBLE *pressure;  /*pressao*/
+    DOUBLE *rhoFluid;  /*massa especifica nodal*/
     DOUBLE *temp;      /*temperatura*/
     DOUBLE *uD1;       /*difusao pura uD1*/
     DOUBLE *uT1;       /*difusao pura uT1*/

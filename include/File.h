@@ -71,6 +71,7 @@
     bool enthalpyk;
     bool gradY;
     bool tReactor;
+    bool gradRho;
     bool bconditions;    /*insere as condicoes de contorno nos valores nodais*/
     bool cc;             /*centro geomentrico da celula*/       
     bool pKelvin;        /*plot em kelvin*/  

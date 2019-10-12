@@ -2303,6 +2303,7 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
 
   short unsigned ndfVel = mesh->ndfFt - 2;
   short nonOrth;
+  DOUBLE *rho=NULL;
   DOUBLE *b1, *b2, *b3, *bPc, *xu1, *xu2, *xu3, *xp;
   DOUBLE *adU1, *adU2, *adU3;
 /*...*/
@@ -2329,6 +2330,40 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
   adU1 = sistEqVel->ad;
   adU2 = &sistEqVel->ad[sistEqVel->neqNov];
   if (ndfVel == 3) adU3 = &sistEqVel->ad[2 * sistEqVel->neqNov];
+/*...................................................................*/
+
+/*... reconstruindo do gradiente da massa especifica*/
+  tm.rcGradRho = getTimeC() - tm.rcGradRho;
+  HccaAlloc(DOUBLE, m, rho , mesh->numel, "rhot"  , _AD_);
+  getColFromMatrix(rho         ,mesh->elm.densityFluid
+                  ,mesh->numel ,DENSITY_LEVEL
+                  ,TIME_N);
+  rcGradU(m                         , loadsRhoFluid
+           , mesh->elm.node         , mesh->elm.adj.nelcon
+           , mesh->node.x
+           , mesh->elm.nen          , mesh->elm.adj.nViz
+           , mesh->elm.cellFace     , mesh->face.owner
+           , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+           , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+           , mesh->face.mksi        , mesh->face.ksi
+           , mesh->face.eta         , mesh->face.area
+           , mesh->face.normal      , mesh->face.xm
+           , mesh->face.mvSkew      , mesh->face.vSkew
+           , mesh->elm.geomType     , mesh->elm.material.prop
+           , mesh->elm.material.type
+           , mesh->elm.mat          , NULL
+           , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+           , mesh->elm.faceRrho    
+           , rho                    , mesh->elm.gradRhoFluid
+           , mesh->node.rhoFluid    , &sc->rcGrad
+           , mesh->maxNo            , mesh->maxViz
+           , 1                      , mesh->ndm
+           , &pMesh->iNo            , &pMesh->iEl
+           , mesh->numelNov         , mesh->numel
+           , mesh->nnodeNov         , mesh->nnode
+           , false);  
+  HccaDealloc(m, rho,  "rhot", _AD_);
+  tm.rcGradRho = getTimeC() - tm.rcGradRho;
 /*...................................................................*/
 
 /*...*/
@@ -2394,6 +2429,7 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
            , mesh->nnodeNov         , mesh->nnode
            , false);  
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
+/*...................................................................*/
   }
 /*...................................................................*/
 
@@ -2452,10 +2488,10 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
                       , sistEqVel->ia           , sistEqVel->ja
                       , sistEqVel->al           , sistEqVel->ad
                       , sistEqVel->b            , sistEqVel->id
-                      , mesh->elm.faceRvel      , mesh->elm.faceRvel
-                      , mesh->elm.faceRpres     , mesh->elm.faceRpres
+                      , mesh->elm.faceRvel      , mesh->elm.faceRpres
                       , mesh->elm.pressure      , mesh->elm.gradPres
                       , mesh->elm.vel           , mesh->elm.gradVel
+                      , mesh->elm.gradRhoFluid
                       , sp->d                   , sp->alphaVel
                       , mesh->elm.rCellVel      , mesh->elm.stressR
                       , mesh->elm.densityFluid  , mesh->elm.dViscosity
@@ -2632,7 +2668,6 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
             , sistEqPres->al         , sistEqPres->ad
             , bPc                    , sistEqPres->id
             , mesh->elm.faceRvel     , mesh->elm.faceRvel
-            , mesh->elm.faceRpres    , mesh->elm.faceRpres
             , mesh->elm.pressure     , mesh->elm.gradPres
             , mesh->elm.vel          , sp->d
             , mesh->elm.temp         , mesh->elm.wallParameters
@@ -2877,3 +2912,5 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
 
 }
 /*********************************************************************/
+
+

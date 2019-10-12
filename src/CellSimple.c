@@ -1304,7 +1304,7 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
   bool fViscosity,fSoPressure;
 /*...*/
   short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf
-       ,nCarg   , typeTime, iCodPolFace, i;
+       ,nCarg   , typeTime, iCodPolFace, i, typeFacePres;
 /*...*/
   INT vizNel;
 /*...*/
@@ -1356,6 +1356,11 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
   fRhieInt    = ModelMomentum->fRhieChowInt;
   fRes        = ModelMomentum->fRes;
   fViscosity  = ModelMomentum->fViscosity;
+  typeFacePres     = INT_BUOYANT_FORCE;
+/*if(fSoPressure)
+    typeFacePres   = INT_PRESSURE_SO;
+  else
+    typeFacePres   = INT_PRESSURE_FO;*/
 /*...................................................................*/
 
 /*...*/
@@ -1583,11 +1588,12 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
       facePressure(gradPresC       ,gradPresV
                  ,lXmcc            ,lXm
                  ,ccV              ,pf
-                 ,lNormal          
-                 ,0.e0             ,lFarea
+                 ,lNormal          ,NULL
+                 ,0.e0             ,0.e0
+                 ,lFarea
                  ,presC            ,presV
                  ,alphaMenosUm     ,alpha    
-                 ,fSoPressure      ,false);
+                 ,false            ,typeFacePres);
 /*...................................................................*/
 
 /*... termos viscosos explicitos*/      
@@ -1642,11 +1648,12 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
       facePressure(gradPresC       ,gradPresV
                  ,lXmcc            ,lXm
                  ,ccV              ,pf
-                 ,lNormal          
-                 ,pFace            ,lFarea
+                 ,lNormal          ,NULL
+                 ,pFace            ,0.e0    
+                 ,lFarea
                  ,presC            ,0.e0
                  ,0.0              ,0.e0     
-                 ,fSoPressure      ,true);  
+                 ,true             ,typeFacePres);
 /*...................................................................*/
 
 /*... termos viscosos explicitos*/
@@ -1803,7 +1810,7 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
 
 /*********************************************************************
  * Data de criacao    : 03/10/2017                                   *
- * Data de modificaco : 27/08/2019                                   * 
+ * Data de modificaco : 12/10/2019                                   * 
  *-------------------------------------------------------------------* 
  * CELLSIMPLEVE3DLM: Celula 3D para velocidade do metodo simple      * 
  * em escoamento levemento compressivel (Low Mach)                   * 
@@ -1843,13 +1850,12 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
  * lRcell    -> nao definido                                         *
  * ddt       -> discretizacao temporal                               *
  * faceVelR  -> restricoes por elemento de velocidades               *
- * faceVelL  -> carga por elemento de velocidades                    *
  * facePresR -> restricoes por elemento de pressao                   *
- * facePresL -> carga por elemento de pressao                        *
  * pres      -> campo de pressao conhecido                           *
  * gradPes   -> gradiente reconstruido da pressao                    *
  * vel       -> campo de velocidade conhecido                        *
  * gradVel   -> gradiente rescontruido das velocidades               *
+ * gradRho   -> gradiente rescontruido das densidade                 *
  * lDensity  -> massa especifica sem variacao temporal               *
  * lDviscosity-> viscosidade dinamica com variacao temporal          *
  * dField    -> matriz D do metodo simple                            * 
@@ -1903,10 +1909,10 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
             , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
             , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
             , DOUBLE *RESTRICT lRcell     , Temporal *ddt
-            , short  *RESTRICT lFaceVelR  , short *RESTRICT lFaceVelL
-            , short  *RESTRICT lFacePresR , short *RESTRICT lFacePresL
+            , short  *RESTRICT lFaceVelR  , short *RESTRICT lFacePresR
             , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres 
             , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
+            , DOUBLE *RESTRICT gradRho
             , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lViscosity 
             , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT stressR
             , DOUBLE *RESTRICT wallPar    , DOUBLE const densityMed
@@ -1919,13 +1925,13 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   bool fDiv,fViscosity,fSoPressure;
 /*...*/
   short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf
-      , nCarg, typeTime, iCodBuoyant, iCodPolFace, i;
+      , nCarg, typeTime, iCodBuoyant, iCodPolFace, i,typeFacePres;
 /*...*/
   INT vizNel;
 /*...*/
   DOUBLE viscosityC, viscosityV, viscosity, 
          eddyViscosityC, eddyViscosityV, effViscosityC, effViscosityV,
-         densityC, densityV, density, densityRef;
+         densityC, densityV, density, densityBd;
 /*...*/
   DOUBLE rCell[3], dt, dt0, p[3], sP, sPc[3], tA[3]
         ,dFieldC[3], dFieldV[3], dFieldF[3];
@@ -1950,7 +1956,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 /*...*/
   DOUBLE xx[4],ts;
 /*... */
-  DOUBLE gradRho[3], g[3];
+  DOUBLE g[3];
 /*...*/
   DOUBLE pAdv[NPADV];
   
@@ -1983,6 +1989,11 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   fViscosity       = ModelMomentum->fViscosity;
   fDiv             = ModelMomentum->fDiv;
   iCodBuoyant      = ModelMomentum->iCodBuoyant;
+//typeFacePres     = INT_BUOYANT_FORCE;
+  if(fSoPressure)
+    typeFacePres   = INT_PRESSURE_SO;
+  else
+    typeFacePres   = INT_PRESSURE_FO;  
 /*...................................................................*/
 
 /*...*/
@@ -1995,7 +2006,10 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 
 /*...*/
   densityC      = lDensity[idCell];
-  densityRef    = densityMed;
+  if(iCodBuoyant = BUOYANT_PRGH)
+    densityBd = densityC;
+  else if (iCodBuoyant = BUOYANT_RHOREF)
+    densityBd = densityMed;
 /*...................................................................*/
 
 /*...*/
@@ -2027,7 +2041,6 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 
 /*...*/
     g[i]       = gravity[i];
-    gradRho[i] = 0.e0;
 /*...................................................................*/
 
   }
@@ -2213,21 +2226,15 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*... gradiente da pressao com resconstrucao de segunda ordem
 (forma conservativa)*/
-      facePressure(gradPresC, gradPresV
-        , lXmcc, lXm
-        , ccV, pf
-        , lNormal
-        , 0.e0, lFarea
-        , presC, presV
-        , alphaMenosUm, alpha
-        , fSoPressure, false);
-/*...................................................................*/
-
-/*... gradiente de densidade*/
-      tmp         = density*lFarea;
-      gradRho[0] += tmp*lNormal[0];
-      gradRho[1] += tmp*lNormal[1];
-      gradRho[2] += tmp*lNormal[2];
+      facePressure(gradPresC   , gradPresV
+                 , lXmcc       , lXm
+                 , ccV         , pf
+                 , lNormal     , g
+                 , 0.e0        , densityBd
+                 , lFarea
+                 , presC       , presV
+                 , alphaMenosUm, alpha
+                 , false       , typeFacePres);
 /*...................................................................*/
 
 /*... termos viscosos explicitos*/
@@ -2268,7 +2275,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       if(lFacePresR[nf])
       {
 /*...cargas*/
-        nCarg = lFacePresL[nf]-1;
+        nCarg = lFacePresR[nf]-1;
         pLoadSimplePres(&sP             , p
                       , &pFace          , lXmcc
                       , presC           , gradPresC   
@@ -2285,11 +2292,12 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
       facePressure(gradPresC  , gradPresV
                  , lXmcc      , lXm
                  , ccV        , pf
-                 , lNormal    
-                 , pFace      , lFarea
+                 , lNormal    , g
+                 , pFace      , densityBd
+                 , lFarea
                  , presC      , 0.e0
                  , 0.0        , 0.e0
-                 , fSoPressure, true);
+                 , true       , typeFacePres);
 /*...................................................................*/
 
 /*... termos viscosos explicitos*/
@@ -2299,13 +2307,6 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                         , lFarea
                         , 0.e0, 0.e0
                         , true);
-/*...................................................................*/
-
-/*... gradiente de densidade*/
-      tmp         = densityC*lFarea;
-      gradRho[0] += tmp*lNormal[0];
-      gradRho[1] += tmp*lNormal[1];
-      gradRho[2] += tmp*lNormal[2];
 /*...................................................................*/
 
 /*...*/
@@ -2359,17 +2360,17 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
   }
   else if (iCodBuoyant == BUOYANT_PRGH) 
   {
-    ccV[0] = MAT2D(idCell,0,cc,3);
-    ccV[1] = MAT2D(idCell,1,cc,3);
-    ccV[2] = MAT2D(idCell,2,cc,3);
-    tmp   = ccV[0]*g[0] + ccV[1]*g[1] + ccV[2]*g[2];
+    ccV[0] = MAT2D(idCell,0,cc,3) - xRef[0];
+    ccV[1] = MAT2D(idCell,1,cc,3) - xRef[1];
+    ccV[2] = MAT2D(idCell,2,cc,3) - xRef[2];
+    tmp   = (ccV[0]*g[0] + ccV[1]*g[1] + ccV[2]*g[2])*volume[idCell];
     p[0] -= tmp*gradRho[0];
     p[1] -= tmp*gradRho[1];
     p[2] -= tmp*gradRho[2]; 
   }
   else if (iCodBuoyant == BUOYANT_RHOREF)
   {
-    tmp   = (densityC-densityRef)*volume[idCell];
+    tmp   = (densityC-densityMed)*volume[idCell];
     p[0] += tmp*g[0];
     p[1] += tmp*g[1];
     p[2] += tmp*g[2];

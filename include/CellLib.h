@@ -208,10 +208,10 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
             , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
             , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
             , DOUBLE *RESTRICT lRcell    , Temporal *ddt
-            , short  *RESTRICT lFaceVelR , short  *RESTRICT lFaceVelL
-            , short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL
+            , short  *RESTRICT lFaceVelR , short  *RESTRICT lFacePresR
             , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres 
             , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel
+            , DOUBLE *RESTRICT gradRho
             , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT lViscosity
             , DOUBLE *RESTRICT dField    , DOUBLE *RESTRICT stressR
             , DOUBLE *RESTRICT wallPar   , DOUBLE const densityMed
@@ -232,8 +232,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
                , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
                , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
                , DOUBLE *RESTRICT lRcell    , Temporal *ddt
-               , short  *RESTRICT lFaceVelR , short  *RESTRICT lFaceVelL
-               , short  *RESTRICT lFacePresR, short  *RESTRICT lFacePresL
+               , short  *RESTRICT lFaceVelR , short  *RESTRICT lFacePresR
                , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres 
                , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField 
                , DOUBLE *RESTRICT temp      , DOUBLE *RESTRICT wallPar
@@ -723,10 +722,10 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
             , DOUBLE *RESTRICT vSkew      , DOUBLE *RESTRICT mvSkew
             , DOUBLE *RESTRICT lA         , DOUBLE *RESTRICT lB
             , DOUBLE *RESTRICT lRcell     , Temporal *ddt
-            , short  *RESTRICT lFaceVelR  , short *RESTRICT lFaceVelL
-            , short  *RESTRICT lFacePresR , short *RESTRICT lFacePresL
+            , short  *RESTRICT lFaceVelR  , short  *RESTRICT lFacePresR
             , DOUBLE *RESTRICT pres       , DOUBLE *RESTRICT gradPres 
             , DOUBLE *RESTRICT vel        , DOUBLE *RESTRICT gradVel
+            , DOUBLE *RESTRICT gradRho
             , DOUBLE *RESTRICT lDensity   , DOUBLE *RESTRICT lViscosity 
             , DOUBLE *RESTRICT dField     , DOUBLE *RESTRICT stressR
             , DOUBLE *RESTRICT wallPar    , DOUBLE const densityMed
@@ -746,8 +745,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
               , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
               , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
               , DOUBLE *RESTRICT lRcell    , Temporal *ddt 
-              , short  *RESTRICT lFaceVelR , short *RESTRICT lFaceVelL
-              , short  *RESTRICT lFacePresR, short *RESTRICT lFacePresL
+              , short  *RESTRICT lFaceVelR , short  *RESTRICT lFacePresR
               , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres
               , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField
               , DOUBLE *RESTRICT temp      , DOUBLE *RESTRICT wallPar
@@ -1074,14 +1072,15 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                       , DOUBLE *n
                       , DOUBLE const viscosity, DOUBLE const lFarea
                       , bool const fDiv);
-  void facePressure(DOUBLE *gradPresC           ,DOUBLE *gradPresV
+  void facePressure(DOUBLE *gradPresC         ,DOUBLE *gradPresV
                  ,DOUBLE *lXmcc               ,DOUBLE *lXm
                  ,DOUBLE *ccV                 ,DOUBLE *pf
-                 ,DOUBLE *n
-                 ,DOUBLE pFace                ,DOUBLE const lFarea
+                 ,DOUBLE *n                   ,DOUBLE *g
+                 ,DOUBLE const pFace          ,DOUBLE const rho 
+                 ,DOUBLE const lFarea
                  ,DOUBLE const presC          ,DOUBLE const presV
                  ,DOUBLE const g1             ,DOUBLE const g2    
-                 ,bool const fSoPressure      ,bool const fBoundary);
+                 ,bool const fSoPressure      ,short const typeFacePres);
 
   void turbStructIntegral(DOUBLE *stressRc    ,DOUBLE *stressRv
                        ,DOUBLE *n           ,DOUBLE *p

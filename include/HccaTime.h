@@ -55,6 +55,7 @@
     double rcGradPres;
     double rcGradVel;
     double rcGradEnergy;
+    double rcGradRho;
     double updateProp;
     double residualSimple;
 /*... combustion*/

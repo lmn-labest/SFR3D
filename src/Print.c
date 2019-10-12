@@ -228,9 +228,9 @@ void printFluid(Memoria *m
   short ndm = mesh->ndm;
   
   void *dum=NULL;
-  INT ndfVel;
-  DOUBLE *nStressR=NULL,*nEddyV=NULL,*nDvisc=NULL,*nDenFluid=NULL;
-  DOUBLE *nSheat=NULL,*nTCond=NULL;
+  short ndfVel;
+  DOUBLE *nStressR=NULL,*nEddyV=NULL,*nDvisc=NULL;
+  DOUBLE *nSheat=NULL,*nTCond=NULL,*nGradRho=NULL,*eRho=NULL;
   DOUBLE *nMedVel=NULL,*nP2Vel=NULL,*nMedP2Vel=NULL;
   DOUBLE *nCdyn=NULL,*nWall=NULL,*nKturb=NULL;
   FILE *fileOut=NULL;
@@ -240,12 +240,15 @@ void printFluid(Memoria *m
 /*...................................................................*/
 
 /*...*/
+  if(opt->gradRho)
+  {
+    HccaAlloc(DOUBLE, m, nGradRho , mesh->nnode*ndm   , "nGR"   , _AD_);
+    HccaAlloc(DOUBLE, m, eRho     , mesh->numel       , "eRho"  , _AD_);
+  } 
   if(opt->specificHeat)
-    HccaAlloc(DOUBLE, m, nSheat   , mesh->nnode                 , "nSheat"   , _AD_);
+    HccaAlloc(DOUBLE, m, nSheat   , mesh->nnode    , "nSheat"   , _AD_);
   if(opt->tConductivity)
     HccaAlloc(DOUBLE, m, nTCond   , mesh->nnode                 , "nTcond"   , _AD_);
-  if(opt->densityFluid)
-    HccaAlloc(DOUBLE, m, nDenFluid, mesh->nnode*DENSITY_LEVEL  , "nDenFluid", _AD_);
   if(opt->dViscosity)
     HccaAlloc(DOUBLE, m, nDvisc   , mesh->nnode                 , "nVis"     , _AD_);
   if(opt->eddyViscosity)
@@ -433,9 +436,62 @@ void printFluid(Memoria *m
   }
 /*...................................................................*/
 
-/*... reconstruindo do gradiente (Energia)*/
+/*...*/
   if(mesh->ndfFt)
   {
+
+/*... reconstruindo do gradiente (gradRho)*/
+    if (opt->gradRho)
+    {
+      getColFromMatrix(eRho         ,mesh->elm.densityFluid
+                      ,mesh->numel ,DENSITY_LEVEL
+                      ,TIME_N);
+      rcGradU(m                     , loadsRhoFluid
+           , mesh->elm.node         , mesh->elm.adj.nelcon
+           , mesh->node.x
+           , mesh->elm.nen          , mesh->elm.adj.nViz
+           , mesh->elm.cellFace     , mesh->face.owner
+           , mesh->elm.geom.volume  , mesh->elm.geom.dcca
+           , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
+           , mesh->face.mksi        , mesh->face.ksi
+           , mesh->face.eta         , mesh->face.area
+           , mesh->face.normal      , mesh->face.xm
+           , mesh->face.mvSkew      , mesh->face.vSkew
+           , mesh->elm.geomType     , mesh->elm.material.prop
+           , mesh->elm.material.type
+           , mesh->elm.mat          , NULL
+           , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+           , mesh->elm.faceRrho  
+           , eRho                   , mesh->elm.gradRhoFluid
+           , mesh->node.rhoFluid    , &sc->rcGrad
+           , mesh->maxNo            , mesh->maxViz
+           , 1                      , mesh->ndm       
+           , &pMesh->iNo            , &pMesh->iEl 
+           , mesh->numelNov         , mesh->numel
+           , mesh->nnodeNov         , mesh->nnode
+           , false); 
+    }
+/*.................................................................. */
+
+/*... interpolacao das variaveis da celulas para pos nos (GradEnergy)*/
+    if(opt->fNode && opt->gradRho)
+      interCellNode(m                , loadsRhoFluid  
+              , mesh->elm.cellFace   , mesh->face.owner
+              , nGradRho             , mesh->elm.gradRhoFluid
+              , mesh->elm.node       , mesh->elm.geomType
+              , mesh->elm.geom.cc    , mesh->node.x
+              , mesh->face.xm          
+              , mesh->elm.nen        , mesh->elm.adj.nViz
+              , mesh->elm.faceRrho   , &pMesh->iNo            
+              , mesh->numelNov       , mesh->numel
+              , mesh->nnodeNov       , mesh->nnode
+              , mesh->maxNo          , mesh->maxViz
+              , 1                    , mesh->ndm   
+              , mesh->ndm              
+              , false                , 2);  
+/*...................................................................*/
+
+/*... reconstruindo do gradiente (Energia)*/
     if(opt->gradEnergy)
       rcGradU(m                     , loadsTemp
            , mesh->elm.node         , mesh->elm.adj.nelcon
@@ -462,7 +518,6 @@ void printFluid(Memoria *m
            , mesh->nnodeNov         , mesh->nnode
            , false); 
 /*.................................................................. */
-
 
 /*... interpolacao das variaveis da celulas para pos nos (GradEnergy)*/
     if(opt->fNode && opt->gradEnergy)
@@ -502,25 +557,25 @@ void printFluid(Memoria *m
 
 /*... interpolacao das variaveis da celulas para pos nos (density)*/
     if(opt->fNode && opt->densityFluid)
-      interCellNode(m                , loadsTemp
-             , mesh->elm.cellFace, mesh->face.owner
-             , nDenFluid         , mesh->elm.densityFluid
-             , mesh->elm.node    , mesh->elm.geomType
-             , mesh->elm.geom.cc , mesh->node.x
-             , mesh->face.xm   
-             , mesh->elm.nen     , mesh->elm.adj.nViz
-             , dum               , &pMesh->iNo         
-             , mesh->numelNov    , mesh->numel
-             , mesh->nnodeNov    , mesh->nnode
-             , mesh->maxNo       , mesh->maxViz
-             , 3                 , 1
-             , mesh->ndm           
-             , false             , 2);  
+      interCellNode(m             ,  loadsRhoFluid 
+             , mesh->elm.cellFace , mesh->face.owner
+             , mesh->node.rhoFluid, mesh->elm.densityFluid
+             , mesh->elm.node     , mesh->elm.geomType
+             , mesh->elm.geom.cc  , mesh->node.x
+             , mesh->face.xm      
+             , mesh->elm.nen      , mesh->elm.adj.nViz
+             , dum                , &pMesh->iNo         
+             , mesh->numelNov     , mesh->numel
+             , mesh->nnodeNov     , mesh->nnode
+             , mesh->maxNo        , mesh->maxViz
+             , 3                  , 1
+             , mesh->ndm            
+             , false              , 2);  
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (dViscosity)*/
     if(opt->fNode && opt->dViscosity)
-      interCellNode(m                    , loadsTemp
+      interCellNode(m                  , loadsTemp
                 , mesh->elm.cellFace   , mesh->face.owner
                 , nDvisc               , mesh->elm.dViscosity
                 , mesh->elm.node       , mesh->elm.geomType
@@ -685,7 +740,7 @@ void printFluid(Memoria *m
                , mesh0->elm.temp          , mesh0->node.temp   
                , mesh0->elm.gradTemp      , mesh0->node.gradTemp
                , mesh0->elm.eddyViscosity , nEddyV
-               , mesh0->elm.densityFluid  , nDenFluid
+               , mesh0->elm.densityFluid  , mesh0->node.rhoFluid
                , mesh0->elm.dViscosity    , nDvisc
                , mesh0->elm.stressR       , nStressR
                , mesh0->elm.cd            , nCdyn
@@ -693,7 +748,8 @@ void printFluid(Memoria *m
                , mesh0->elm.kTurb         , nKturb
                , media->mVel              , nMedVel
                , mesh0->elm.specificHeat  , nSheat
-               , mesh0->elm.tConductivity , nTCond                                              
+               , mesh0->elm.tConductivity , nTCond    
+               , mesh0->elm.gradRhoFluid  , nGradRho                                                           
                , mesh0->nnode             , mesh0->numel  
                , mesh0->ndm               , mesh0->maxNo 
                , mesh0->numat             , ndfVel
@@ -723,12 +779,15 @@ void printFluid(Memoria *m
     HccaDealloc(m, nEddyV   , "nEddyV"   , _AD_); 
   if(opt->dViscosity)
     HccaDealloc(m, nDvisc   , "nVis"     , _AD_);   
-  if(opt->densityFluid)
-    HccaDealloc(m, nDenFluid, "nDenFluid", _AD_);
   if(opt->tConductivity)
     HccaDealloc(m, nTCond, "nTcond", _AD_);
   if(opt->specificHeat)
     HccaDealloc(m, nSheat, "nSheat", _AD_);  
+  if(opt->gradRho)
+  {
+    HccaDealloc(m, eRho    , "eRho", _AD_);
+    HccaDealloc(m, nGradRho, "nGR", _AD_);
+  }
 /*...................................................................*/
 
 }
@@ -2012,7 +2071,8 @@ void initPrintVtk(FileOpt *opt)
   opt->rateHeatComb  = false;
   opt->enthalpyk     = false;
   opt->gradY         = false;
-  opt->tReactor     = false;
+  opt->tReactor      = false;
+  opt->gradRho       = false;
   opt->bconditions   = false;
   opt->cc            = false;
   opt->pKelvin       = false;

@@ -1222,8 +1222,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
               , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
               , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
               , DOUBLE *RESTRICT lRcell    , Temporal *ddt 
-              , short  *RESTRICT lFaceVelR , short *RESTRICT lFaceVelL
-              , short  *RESTRICT lFacePresR, short *RESTRICT lFacePresL
+              , short  *RESTRICT lFaceVelR , short  *RESTRICT lFacePresR
               , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres
               , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField
               , DOUBLE *RESTRICT temp      , DOUBLE *RESTRICT wallPar

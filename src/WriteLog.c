@@ -193,6 +193,7 @@ void writeLog(Mesh *mesh            ,Scheme *sc
     fprintf(file,"%-25s : %13.3lf\n","velExp"             ,t->velExp);
     fprintf(file,"%-25s : %13.3lf\n","rcGradVel"          ,t->rcGradVel);
     fprintf(file,"%-25s : %13.3lf\n","residualSimple"     ,t->residualSimple);
+    fprintf(file,"%-25s : %13.3lf\n","rcGradRho"          ,t->rcGradRho);
   }
 /*...................................................................*/
 

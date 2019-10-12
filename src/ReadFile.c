@@ -243,29 +243,6 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
             ,nel*(maxViz+1),"faceLPres"   ,_AD_);
      zero(mesh->elm.faceRpres ,nel*(maxViz+1),"short"  );
 
-/*... cc da equacao de energia*/
-     if (mesh->ndfFt > 0 )
-     {
-        HccaAlloc(short, m, mesh->elm.faceRenergy
-                  , nel*(maxViz + 1), "faceRenergy", _AD_);
-        zero(mesh->elm.faceRenergy, nel*(maxViz + 1), "short");
-
-/*... calor especifico*/
-        HccaAlloc(DOUBLE, m, mesh->elm.specificHeat
-                 , nel * SHEAT_LEVEL, "sHeat", _AD_);
-        zero(mesh->elm.specificHeat, nel * SHEAT_LEVEL, DOUBLEC);
-
-/*... viscosidade dinamica*/
-        HccaAlloc(DOUBLE, m, mesh->elm.dViscosity
-                 , nel  , "dVis", _AD_);
-        zero(mesh->elm.dViscosity, nel, DOUBLEC);
-        
-/*... condutividade termica*/
-        HccaAlloc(DOUBLE, m, mesh->elm.tConductivity
-                 , nel  , "tCon", _AD_);
-        zero(mesh->elm.tConductivity, nel, DOUBLEC);
-     }
-
 /*... viscosidade turbulenta*/
      HccaAlloc(DOUBLE, m, mesh->elm.eddyViscosity
               , nel  , "eddyVis", _AD_);
@@ -369,7 +346,17 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
      zero(mesh->elm.gradPres  ,nel*ndm,DOUBLEC);
 
 /*... */
-     if (mesh->ndfFt > 0) {
+     if (mesh->ndfFt > 0) 
+     {
+/*...*/
+       HccaAlloc(short, m, mesh->elm.faceRenergy
+                , nel*(maxViz + 1), "faceRenergy", _AD_);
+       zero(mesh->elm.faceRenergy, nel*(maxViz + 1), "short");
+/*...*/
+       HccaAlloc(short, m, mesh->elm.faceRrho    
+                , nel*(maxViz + 1), "faceRrho", _AD_);
+       zero(mesh->elm.faceRrho, nel*(maxViz + 1), "short");
+
 /*... eEnergy0*/
        HccaAlloc(DOUBLE,m         ,mesh->elm.energy0
                 ,nel   ,"eEnergy0",_AD_);
@@ -419,6 +406,31 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
        HccaAlloc(DOUBLE ,m            ,mesh->elm.gradTemp
                 ,nel*ndm,"eGradTemp",_AD_);
        zero(mesh->elm.gradTemp, nel*ndm, DOUBLEC);
+
+/*... calor especifico*/
+        HccaAlloc(DOUBLE, m, mesh->elm.specificHeat
+                 , nel * SHEAT_LEVEL, "sHeat", _AD_);
+        zero(mesh->elm.specificHeat, nel * SHEAT_LEVEL, DOUBLEC);
+
+/*... viscosidade dinamica*/
+        HccaAlloc(DOUBLE, m, mesh->elm.dViscosity
+                 , nel  , "dVis", _AD_);
+        zero(mesh->elm.dViscosity, nel, DOUBLEC);
+        
+/*... condutividade termica*/
+        HccaAlloc(DOUBLE, m, mesh->elm.tConductivity
+                 , nel  , "tCon", _AD_);
+        zero(mesh->elm.tConductivity, nel, DOUBLEC);
+
+/*... nRhoFluid*/
+       HccaAlloc(DOUBLE, m, mesh->node.rhoFluid 
+                ,nn*DENSITY_LEVEL, "nRhoFluid", _AD_);
+       zero(mesh->node.rhoFluid, nn*DENSITY_LEVEL, DOUBLEC);
+
+/*... eGradRho*/
+       HccaAlloc(DOUBLE ,m            ,mesh->elm.gradRhoFluid
+                ,nel*ndm,"eGradFluid",_AD_);
+       zero(mesh->elm.gradRhoFluid, nel*ndm, DOUBLEC);
 
      }
 /*...................................................................*/
@@ -585,7 +597,6 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
      zero(mesh->elm.gradUt1   ,nel*ndm*mesh->ndfT[0]       ,DOUBLEC);
       
      if( mpiVar.nPrcs < 2){
-/*... rCell*/
 /*... rCell*/
        HccaAlloc(DOUBLE,m,mesh->elm.rCellUt1  
                 ,nel*ndm*mesh->ndfT[0],"rCellUt1"     ,_AD_);
@@ -3411,8 +3422,8 @@ void setPrint(FileOpt *opt,FILE *file){
                ,"densityd1"    ,"coefdiffd1"  ,"densityt1"       /*27,28,29*/
                ,"coefdifft1"   ,"zcomb"       ,"gradzcomb"       /*30,31,32*/
                ,"qchemical"    ,"yfrac"       ,"rateheatcomb"    /*33,34,35*/                  
-               ,"coefdiffsp"   ,"enthalpyk"   ,"gradY"           /*36,37,38*/
-               ,"treactor"     ,"binary"      ,""                /*39,40,41*/
+               ,"coefdiffsp"   ,"enthalpyk"   ,"grady"           /*36,37,38*/
+               ,"treactor"     ,"binary"      ,"gradrho"         /*39,40,41*/
                ,""             ,""            ,""};              /*42,43,44*/
   int tmp,i=0,maxWord=100;
 
@@ -3751,7 +3762,15 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[40]))
     {
       opt->bVtk = true;
-      fprintf(fileLogExc, format, "print", macro[39]);
+      fprintf(fileLogExc, format, "print", macro[40]);
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[41]))
+    {
+      opt->gradRho = true;
+      fprintf(fileLogExc, format, "print", "gradRho");
     }
 /*.....................................................................*/
 

@@ -909,7 +909,7 @@ void systFormTrans(Loads *loads
 
 /********************************************************************* 
  * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 23/08/2019                                   * 
+ * Data de modificaco : 09/10/2019                                   * 
  *-------------------------------------------------------------------* 
  * SYSTFOMSIMPLEVELLM: calculo do sistema de equacoes para problemas * 
  * de escomaneto de fluidos ( Vel )                                  * 
@@ -959,11 +959,10 @@ void systFormTrans(Loads *loads
  * b         -> vetor de forcas                                      * 
  * id        -> numera das equacoes                                  * 
  * faceVelR  -> restricoes por elemento de velocidades               * 
- * faceVelL  -> carga por elemento de velocidades                    * 
  * facePresR -> restricoes por elemento de pressao                   * 
- * facePresL -> carga por elemento de pressao                        * 
  * pres      -> campo de pressao conhecido                           * 
  * gradVel   -> gradiente da solucao conhecido                       * 
+ * gradRho   -> gradiente da massa especifica                        *
  * dField    -> matriz D do metodo simple                            * 
  * underU    -> fator underrelaxtion sinple                          * 
  * vel       -> campo de velocidade conhecido                        * 
@@ -1022,10 +1021,10 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
     , INT    *RESTRICT ia                  , INT    *RESTRICT ja
     , DOUBLE *RESTRICT a                   , DOUBLE *RESTRICT ad
     , DOUBLE *RESTRICT b                   , INT    *RESTRICT id
-    , short  *RESTRICT faceVelR            , short  *RESTRICT faceVelL       
-    , short  *RESTRICT facePresR           , short  *RESTRICT facePresL             
+    , short  *RESTRICT faceVelR            , short  *RESTRICT facePresR                  
     , DOUBLE *RESTRICT pres                , DOUBLE *RESTRICT gradPres
     , DOUBLE *RESTRICT vel                 , DOUBLE *RESTRICT gradVel
+    , DOUBLE *RESTRICT gradRho
     , DOUBLE *RESTRICT dField              , DOUBLE underU 
     , DOUBLE *RESTRICT rCell               , DOUBLE *RESTRICT stressR  
     , DOUBLE *RESTRICT density             , DOUBLE *RESTRICT dViscosity 
@@ -1050,8 +1049,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
 /*... variavel local */
   short  aux1,aux2,lMat,lib;
   short  lGeomType[MAX_NUM_FACE+1],
-         lFaceVelR[MAX_NUM_FACE+1], lFaceVelL[MAX_NUM_FACE+1],
-         lFacePresR[MAX_NUM_FACE+1], lFacePresL[MAX_NUM_FACE+1];
+         lFaceVelR[MAX_NUM_FACE+1], lFacePresR[MAX_NUM_FACE+1];
   INT    lId[(MAX_NUM_FACE+1)*MAX_NDF], lViz[MAX_NUM_FACE];
   INT    idFace, cellOwner, ch;
   DOUBLE lKsi[MAX_NUM_FACE*MAX_NDM]    , lmKsi[MAX_NUM_FACE],
@@ -1061,189 +1059,165 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
          lDcca[MAX_NUM_FACE]           , lmvSkew[MAX_NUM_FACE],
          lvSkew[MAX_NUM_FACE*MAX_NDM]  , lDensity[(MAX_NUM_FACE+1)],
          lViscosity[(MAX_NUM_FACE+1)*2], lA[MAX_NUM_FACE+ MAX_NDM],
-         lB[MAX_NDF], 
+         lB[MAX_NDF]                   , lGradRho[MAX_NDM],
          lPres[(MAX_NUM_FACE+1)]       , lCc[(MAX_NUM_FACE+1)*MAX_NDM],
          lGradVel[(MAX_NUM_FACE+1)*MAX_NDM*MAX_NDF],
          lGradPres[(MAX_NUM_FACE+1)*MAX_NDM], lRcell[MAX_NDF],
          lVel[(MAX_NUM_FACE+1)*MAX_NDM]     , lDfield[(MAX_NUM_FACE+1)*MAX_NDM],
          lStressR[(MAX_NUM_FACE+1)*6]       ,lWallPar[NWALLPAR];
   
-/*...*/
-  if(ompVar.fCell)
-  {
 /*... loop nas celulas*/
-    aux2 = maxViz + 1;
-  #pragma omp parallel  for default(none) num_threads(nThreads)\
-     private(nel,i,j,k,aux1,lId,lPres,lMat,lib,lVolume,lGeomType\
-          ,lFaceVelR,lA,lB,lDfield\
-          ,lFaceVelL,lFacePresR,lFacePresL,lDensity,lGradPres\
+  aux2 = maxViz + 1;
+#pragma omp parallel  for default(none) if(ompVar.fCell)\
+  num_threads(nThreads)\
+  private(nel,i,j,k,aux1,lId,lPres,lMat,lib,lVolume,lGeomType\
+          ,lA,lB,lDfield,lGradRho\
+          ,lFaceVelR,lFacePresR,lDensity,lGradPres\
           ,lVel,lCc,lGradVel,lmKsi,lfArea,lDcca,lmvSkew,lKsi,lEta\
           ,lNormal,lXm,lXmcc,lvSkew,vizNel,lViz,lRcell,lViscosity\
           ,lStressR,lWallPar,idFace,cellOwner,ch)\
-     shared(aux2,ndm,ndf,numel,maxViz,calRcell,rCell,nFace,mat,ntn\
-         ,calType,gVolume, geomType, faceVelR, faceVelL, facePresR\
-         ,facePresL,density,gradPres,vel,gCc,gradVel,fModKsi\
+  shared(aux2,ndm,ndf,numel,maxViz,calRcell,rCell,nFace,mat,ntn\
+         ,calType,gVolume, geomType, faceVelR, facePresR\
+         ,density,gradPres,vel,gCc,gradVel,fModKsi,gradRho\
          ,fArea,gDcca,fModvSkew,fKsi,fEta,fNormal,fXm,gXmCc,fvSkew\
          ,nelcon,id,loadsVel,loadsPres,advVel,diffVel,typeSimple\
          ,ddt,underU,sPressure,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd\
          ,nAdR,storage,forces,matrix,unsym,pres,dField,dViscosity,eddyViscosity\
          ,stressR,tModel,ModelMomentum,wallPar,densityMed\
          ,fOwner,cellFace,fTurb,fTurbStruct,fWallModel)
-
-/*... loop nas celulas*/
-   for(nel=0;nel<numel;nel++)
-    {
+  for(nel=0;nel<numel;nel++)
+  {
 /*...*/
-      if(calRcell)
+    if(calRcell)
+    {
+      rCell[nel]       = 0.e0;  
+      rCell[numel+nel] = 0.e0;  
+      if(ndf == 3 ) rCell[2*numel+nel] = 0.e0; 
+    }  
+/*...................................................................*/
+
+/*...*/
+    aux1    = nFace[nel];
+/*... elementos com equacoes*/
+    if(MAT2D(nel,aux1,faceVelR ,aux2) < 1)
+    {
+ 
+/*... zerando vetores*/
+      for(j=0;j<(MAX_NUM_FACE+1)*MAX_NDF;j++) 
+        lId[j]  = -1;       
+/*... loop na celula central*/    
+      lMat              = mat[nel]-1;
+      lib               = calType[lMat];
+      lVolume[aux1]     = gVolume[nel]; 
+      lGeomType[aux1]   = geomType[nel];
+      lPres[aux1]       = pres[nel];
+      lFaceVelR[aux1]   = MAT2D(nel,aux1,faceVelR ,aux2);
+      lFacePresR[aux1]  = MAT2D(nel,aux1,facePresR ,aux2);
+      lDensity[aux1]    = MAT2D(nel,TIME_N,density ,DENSITY_LEVEL);    
+/*... viscosidade dinamica e turbulentea*/
+      MAT2D(aux1, 0, lViscosity, 2) = dViscosity[nel];
+      if(fTurb) 
+        MAT2D(aux1, 1, lViscosity, 2) = eddyViscosity[nel];
+
+/*...*/
+      lId[aux1]         = id[nel] - 1;  
+/*...................................................................*/
+
+/*...*/
+      for(j=0;j<ndm;j++)
       {
-        rCell[nel]       = 0.e0;  
-        rCell[numel+nel] = 0.e0;  
-        if(ndf == 3 ) rCell[2*numel+nel] = 0.e0; 
+        lGradRho[j]                 = MAT2D(nel,j,gradRho ,ndm);
+        MAT2D(aux1,j,lGradPres,ndm) = MAT2D(nel,j,gradPres,ndm);
+        MAT2D(aux1,j,lVel     ,ndm) = MAT2D(nel,j,vel     ,ndm);
+        MAT2D(aux1,j,lCc      ,ndm) = MAT2D(nel,j,gCc      ,ndm);
+        MAT2D(aux1,j,lDfield  ,ndm) = MAT2D(nel,j,dField  ,ndm);
       }  
 /*...................................................................*/
 
 /*...*/
-      aux1    = nFace[nel];
-/*... elementos com equacoes*/
-      if(MAT2D(nel,aux1,faceVelR ,aux2) < 1)
-      {
- 
-/*... zerando vetores*/
-        for(j=0;j<(MAX_NUM_FACE+1)*MAX_NDF;j++) 
-          lId[j]  = -1;
-       
-        for(j=0;j<MAX_NUM_FACE+1;j++) 
-          lPres[j] = 0.e0;    
-       
-/*... loop na celula central*/    
-        lMat              = mat[nel]-1;
-        lib               = calType[lMat];
-        lVolume[aux1]     = gVolume[nel]; 
-        lGeomType[aux1]   = geomType[nel];
-        lPres[aux1]       = pres[nel];
-        lFaceVelR[aux1]   = MAT2D(nel,aux1,faceVelR ,aux2);
-        lFaceVelL[aux1]   = MAT2D(nel,aux1,faceVelL ,aux2);
-        lFacePresR[aux1]  = MAT2D(nel,aux1,facePresR ,aux2);
-        lFacePresL[aux1]  = MAT2D(nel,aux1,facePresL ,aux2);
-/*... viscosidade dinamica e turbulentea*/
-        MAT2D(aux1, 0, lViscosity, 2) = dViscosity[nel];
-        if(fTurb)
-          MAT2D(aux1, 1, lViscosity, 2) = eddyViscosity[nel];
+      if(fTurbStruct)
+        for(j=0;j<ntn;j++) 
+         MAT2D(aux1,j,lStressR,ntn)  = MAT2D(nel,j,stressR,ntn);
 /*...................................................................*/
 
 /*...*/
-        lDensity[aux1]    = MAT2D(nel,TIME_N,density ,DENSITY_LEVEL);
-/*...................................................................*/
-
-/*...*/
-        lId[aux1]         = id[nel] - 1;
-/*...................................................................*/
-
-/*...*/
+      for(i=0;i<ndf;i++)
         for(j=0;j<ndm;j++)
-        {
-          MAT2D(aux1,j,lGradPres,ndm) = MAT2D(nel,j,gradPres,ndm);
-          MAT2D(aux1,j,lVel     ,ndm) = MAT2D(nel,j,vel     ,ndm);
-          MAT2D(aux1,j,lCc      ,ndm) = MAT2D(nel,j,gCc      ,ndm);
-          MAT2D(aux1,j,lDfield  ,ndm) = MAT2D(nel,j,dField  ,ndm);
-        }        
+          MAT3D(aux1,i,j,lGradVel,ndf,ndm) 
+                             = MAT3D(nel,i,j,gradVel,ndf,ndm);  
 /*...................................................................*/
 
 /*...*/
-        if(fTurbStruct)
-          for(j=0;j<ntn;j++)
-            MAT2D(aux1,j,lStressR,ntn)  = MAT2D(nel,j,stressR,ntn);
-/*...................................................................*/
-
-/*...*/
-        for(i=0;i<ndf;i++)
-          for(j=0;j<ndm;j++)
-            MAT3D(aux1,i,j,lGradVel,ndf,ndm) 
-                               = MAT3D(nel,i,j,gradVel,ndf,ndm);
-/*...................................................................*/
-
-/*...*/
-        for (i = 0; i<aux1; i++)
-        {
-          lDcca[i] = MAT2D(nel, i, gDcca, maxViz);
-          lFaceVelR[i] = MAT2D(nel, i, faceVelR, aux2);
-          lFaceVelL[i] = MAT2D(nel, i, faceVelL, aux2);
-          lFacePresR[i] = MAT2D(nel, i, facePresR, aux2);
-          lFacePresL[i] = MAT2D(nel, i, facePresL, aux2);
+      for (i = 0; i<aux1; i++)
+      {
+        lDcca[i] = MAT2D(nel, i, gDcca, maxViz);
+        lFaceVelR[i] = MAT2D(nel, i, faceVelR, aux2);
+        lFacePresR[i] = MAT2D(nel, i, facePresR, aux2); 
 /*... propriedades por face*/
-          idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
-          cellOwner = MAT2D(idFace, 0, fOwner, 2) - 1;
-          ch = OWNER(cellOwner, nel);
-          lmKsi[i] = fModKsi[idFace];
-          lfArea[i] = fArea[idFace];
-          lmvSkew[i] = fModvSkew[idFace];
-          for (j = 0; j<ndm; j++)
-          {
-            MAT2D(i, j, lXmcc, ndm) = MAT3D(nel, i, j, gXmCc, maxViz, ndm);
+        idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
+        cellOwner = MAT2D(idFace, 0, fOwner, 2) - 1;
+        ch = OWNER(cellOwner, nel);
+        lmKsi[i] = fModKsi[idFace];
+        lfArea[i] = fArea[idFace];
+        lmvSkew[i] = fModvSkew[idFace];
+        for (j = 0; j<ndm; j++)
+        {
+          MAT2D(i, j, lXmcc, ndm) = MAT3D(nel, i, j, gXmCc, maxViz, ndm);  
 /*... propriedades por face*/
-            MAT2D(i, j, lKsi, ndm) = ch * MAT2D(idFace, j, fKsi, ndm);
-            MAT2D(i, j, lEta, ndm) = ch * MAT2D(idFace, j, fEta, ndm);
-            MAT2D(i, j, lNormal, ndm) = ch * MAT2D(idFace, j, fNormal, ndm);
-            MAT2D(i, j, lXm, ndm) = MAT2D(idFace, j, fXm, ndm);
-            MAT2D(i, j, lvSkew, ndm) = MAT2D(idFace, j, fvSkew, ndm);
-          }
+          MAT2D(i, j, lKsi, ndm) = ch * MAT2D(idFace, j, fKsi, ndm);
+          MAT2D(i, j, lEta, ndm) = ch * MAT2D(idFace, j, fEta, ndm);
+          MAT2D(i, j, lNormal, ndm) = ch * MAT2D(idFace, j, fNormal, ndm);
+          MAT2D(i, j, lXm, ndm) = MAT2D(idFace, j, fXm, ndm);
+          MAT2D(i, j, lvSkew, ndm) = MAT2D(idFace, j, fvSkew, ndm);
         }
+      }  
 /*...................................................................*/
 
 /*... loop na celulas vizinhas*/    
-        for(i=0;i<aux1;i++)
+      for(i=0;i<aux1;i++)
+      {
+        vizNel  = MAT2D(nel,i,nelcon,maxViz) - 1;
+        lViz[i] = vizNel;
+        lId[i]  = - 1;
+        if( vizNel != -2) 
         {
-          vizNel  = MAT2D(nel,i,nelcon,maxViz) - 1;
-          lViz[i] = vizNel;
-          if( vizNel != -2) 
-          {
-            lVolume[i]   = gVolume[vizNel]; 
-            lGeomType[i] = geomType[vizNel];
-            lMat         = mat[vizNel]-1;
-            lPres[i]     = pres[vizNel];
+          lVolume[i]   = gVolume[vizNel]; 
+          lGeomType[i] = geomType[vizNel];
+          lDensity[i]  = MAT2D(vizNel, TIME_N,density ,DENSITY_LEVEL);  
 /*... viscusidade dinamica e turbulentea*/
-            MAT2D(i, 0, lViscosity, 2) = dViscosity[vizNel];
-            if(fTurb)
-             MAT2D(i, 1, lViscosity, 2) = eddyViscosity[vizNel];
-/*...*/
-            lDensity[i]  = MAT2D(vizNel, TIME_N,density ,DENSITY_LEVEL);
-/*.....................................................................*/
+          MAT2D(i, 0, lViscosity, 2) = dViscosity[vizNel];
+          if(fTurb)
+            MAT2D(i, 1, lViscosity, 2) = eddyViscosity[vizNel];
 
-/*...*/
-            lId[i]       = id[vizNel] - 1;
-/*.....................................................................*/
+          lMat         = mat[vizNel]-1;
+          lPres[i]     = pres[vizNel];
+          lId[i]       = id[vizNel] - 1;
 
-/*...*/
-            for(j=0;j<ndm;j++)
-            {
-              MAT2D(i,j,lGradPres,ndm) = MAT2D(vizNel,j,gradPres,ndm);
-              MAT2D(i,j,lVel     ,ndm) = MAT2D(vizNel,j,vel     ,ndm);
-              MAT2D(i,j,lCc      ,ndm) = MAT2D(vizNel,j,gCc      ,ndm);
-              MAT2D(i ,j, lDfield, ndm) = MAT2D(vizNel, j, dField, ndm);
-            }
-/*.....................................................................*/
- 
-/*...*/
-            if(fTurbStruct)
-              for(j=0;j<ntn;j++)
-                MAT2D(i,j,lStressR,ntn)  = MAT2D(vizNel,j,stressR,ntn);
-/*.....................................................................*/
- 
-/*...*/
-            for(k=0;k<ndf;k++)
-              for(j=0;j<ndm;j++)
-                MAT3D(i,k,j,lGradVel,ndf,ndm) 
-                               = MAT3D(vizNel,k,j,gradVel,ndf,ndm);
-/*.....................................................................*/
-
+          for(j=0;j<ndm;j++)
+          {
+            MAT2D(i,j,lGradPres,ndm) = MAT2D(vizNel,j,gradPres,ndm);
+            MAT2D(i,j,lVel     ,ndm) = MAT2D(vizNel,j,vel     ,ndm);
+            MAT2D(i,j,lCc      ,ndm) = MAT2D(vizNel,j,gCc      ,ndm);
+            MAT2D(i ,j, lDfield, ndm) = MAT2D(vizNel, j, dField, ndm);
           }
-        }  
+
+          if(fTurbStruct)
+            for(j=0;j<ntn;j++)
+              MAT2D(i,j,lStressR,ntn)  = MAT2D(vizNel,j,stressR,ntn);
+
+          for(k=0;k<ndf;k++)
+            for(j=0;j<ndm;j++)
+              MAT3D(i,k,j,lGradVel,ndf,ndm) 
+                             = MAT3D(vizNel,k,j,gradVel,ndf,ndm);
+
+        }
+      }    
 /*...................................................................*/
 
-/*...*/ 
-        if(fWallModel)   
-          for(i=0;i<NWALLPAR;i++)
-            lWallPar[i] = MAT2D(nel,i,wallPar,NWALLPAR);
+/*...*/  
+      if(fWallModel)
+        for(i=0;i<NWALLPAR;i++)
+          lWallPar[i] = MAT2D(nel,i,wallPar,NWALLPAR);
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
@@ -1260,214 +1234,10 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                     , lvSkew        , lmvSkew 
                     , lA            , lB 
                     , lRcell        , ddt 
-                    , lFaceVelR     , lFaceVelL 
-                    , lFacePresR    , lFacePresL             
+                    , lFaceVelR     , lFacePresR
                     , lPres         , lGradPres     
                     , lVel          , lGradVel 
-                    , lDensity      , lViscosity 
-                    , lDfield       , lStressR 
-                    , lWallPar      , densityMed 
-                    , underU        , sPressure 
-                    , nen[nel]      , nFace[nel]  
-                    , ndm           , lib    
-                    , nel);    
-/*...................................................................*/
-
-/*... residuo da celula*/
-        if(calRcell)
-        {
-          rCell[nel]       = lRcell[0];  
-          rCell[numel+nel] = lRcell[1];  
-          if(ndf == 3 ) rCell[2*numel+nel] = lRcell[2];  
-        }
-/*...................................................................*/
-
-/*...*/
-        for(j=0;j<ndm;j++)
-   	      MAT2D(nel,j,dField,ndm) = MAT2D(aux1, j, lDfield, ndm);
-/*...................................................................*/
-      
-/*...*/
-        assblySimple(ia    ,ja
-                    ,a           ,ad              
-                    ,b           ,lId 
-                    ,lA          ,lB
-                    ,nEq         ,nEqNov
-                    ,nAd         ,nAdR     
-                    ,nFace[nel]  ,ndf 
-                    ,storage     ,forces
-                    ,matrix      ,unsym); 
-/*...................................................................*/
-      }
-/*...................................................................*/
-    }
-/*...................................................................*/
-  }
-/*...................................................................*/
-
-/*... sequencial*/
-  else
-  {
-/*... loop nas celulas*/
-    aux2    = maxViz+1;
-    for(nel=0;nel<numel;nel++)
-    {
-/*...*/
-      if(calRcell)
-      {
-        rCell[nel]       = 0.e0;  
-        rCell[numel+nel] = 0.e0;  
-        if(ndf == 3 ) rCell[2*numel+nel] = 0.e0; 
-      }  
-/*...................................................................*/
-
-/*...*/
-      aux1    = nFace[nel];
-/*... elementos com equacoes*/
-      if(MAT2D(nel,aux1,faceVelR ,aux2) < 1)
-      {
- 
-/*... zerando vetores*/
-        for(j=0;j<(MAX_NUM_FACE+1)*MAX_NDF;j++) 
-          lId[j]  = -1;
-       
-        for(j=0;j<MAX_NUM_FACE+1;j++) 
-          lPres[j] = 0.e0;    
-       
-/*... loop na celula central*/    
-        lMat              = mat[nel]-1;
-        lib               = calType[lMat];
-        lVolume[aux1]     = gVolume[nel]; 
-        lGeomType[aux1]   = geomType[nel];
-        lFaceVelR[aux1]   = MAT2D(nel,aux1,faceVelR ,aux2);
-        lFaceVelL[aux1]   = MAT2D(nel,aux1,faceVelL ,aux2);
-        lFacePresR[aux1]  = MAT2D(nel,aux1,facePresR ,aux2);
-        lFacePresL[aux1]  = MAT2D(nel,aux1,facePresL ,aux2);
-        lDensity[aux1]    = MAT2D(nel,TIME_N,density ,DENSITY_LEVEL);  
-/*... viscosidade dinamica e turbulentea*/
-        MAT2D(aux1, 0, lViscosity, 2) = dViscosity[nel];
-        if(fTurb) 
-          MAT2D(aux1, 1, lViscosity, 2) = eddyViscosity[nel];
-
-        lPres[aux1]       = pres[nel];
-        lId[aux1]         = id[nel] - 1;  
-
-/*...*/
-        for(j=0;j<ndm;j++)
-        {
-          MAT2D(aux1,j,lGradPres,ndm) = MAT2D(nel,j,gradPres,ndm);
-          MAT2D(aux1,j,lVel     ,ndm) = MAT2D(nel,j,vel     ,ndm);
-          MAT2D(aux1,j,lCc      ,ndm) = MAT2D(nel,j,gCc      ,ndm);
-          MAT2D(aux1,j,lDfield  ,ndm) = MAT2D(nel,j,dField  ,ndm);
-        }  
-/*...................................................................*/
-
-/*...*/
-        if(fTurbStruct)
-          for(j=0;j<ntn;j++) 
-           MAT2D(aux1,j,lStressR,ntn)  = MAT2D(nel,j,stressR,ntn);
-/*...................................................................*/
-
-/*...*/
-        for(i=0;i<ndf;i++)
-          for(j=0;j<ndm;j++)
-            MAT3D(aux1,i,j,lGradVel,ndf,ndm) 
-                               = MAT3D(nel,i,j,gradVel,ndf,ndm);  
-/*...................................................................*/
-
-/*...*/
-        for (i = 0; i<aux1; i++)
-        {
-          lDcca[i] = MAT2D(nel, i, gDcca, maxViz);
-          lFaceVelR[i] = MAT2D(nel, i, faceVelR, aux2);
-          lFaceVelL[i] = MAT2D(nel, i, faceVelL, aux2);
-          lFacePresR[i] = MAT2D(nel, i, facePresR, aux2);
-          lFacePresL[i] = MAT2D(nel, i, facePresL, aux2);  
-/*... propriedades por face*/
-          idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
-          cellOwner = MAT2D(idFace, 0, fOwner, 2) - 1;
-          ch = OWNER(cellOwner, nel);
-          lmKsi[i] = fModKsi[idFace];
-          lfArea[i] = fArea[idFace];
-          lmvSkew[i] = fModvSkew[idFace];
-          for (j = 0; j<ndm; j++)
-          {
-            MAT2D(i, j, lXmcc, ndm) = MAT3D(nel, i, j, gXmCc, maxViz, ndm);  
-/*... propriedades por face*/
-            MAT2D(i, j, lKsi, ndm) = ch * MAT2D(idFace, j, fKsi, ndm);
-            MAT2D(i, j, lEta, ndm) = ch * MAT2D(idFace, j, fEta, ndm);
-            MAT2D(i, j, lNormal, ndm) = ch * MAT2D(idFace, j, fNormal, ndm);
-            MAT2D(i, j, lXm, ndm) = MAT2D(idFace, j, fXm, ndm);
-            MAT2D(i, j, lvSkew, ndm) = MAT2D(idFace, j, fvSkew, ndm);
-          }
-        }  
-/*...................................................................*/
-
-/*... loop na celulas vizinhas*/    
-        for(i=0;i<aux1;i++)
-        {
-          vizNel  = MAT2D(nel,i,nelcon,maxViz) - 1;
-          lViz[i] = vizNel;
-          if( vizNel != -2) 
-          {
-            lVolume[i]   = gVolume[vizNel]; 
-            lGeomType[i] = geomType[vizNel];
-            lDensity[i]  = MAT2D(vizNel, TIME_N,density ,DENSITY_LEVEL);  
-/*... viscusidade dinamica e turbulentea*/
-            MAT2D(i, 0, lViscosity, 2) = dViscosity[vizNel];
-            if(fTurb)
-              MAT2D(i, 1, lViscosity, 2) = eddyViscosity[vizNel];
-
-            lMat         = mat[vizNel]-1;
-            lPres[i]     = pres[vizNel];
-            lId[i]       = id[vizNel] - 1;
-
-            for(j=0;j<ndm;j++)
-            {
-              MAT2D(i,j,lGradPres,ndm) = MAT2D(vizNel,j,gradPres,ndm);
-              MAT2D(i,j,lVel     ,ndm) = MAT2D(vizNel,j,vel     ,ndm);
-              MAT2D(i,j,lCc      ,ndm) = MAT2D(vizNel,j,gCc      ,ndm);
-              MAT2D(i ,j, lDfield, ndm) = MAT2D(vizNel, j, dField, ndm);
-            }
-
-            if(fTurbStruct)
-              for(j=0;j<ntn;j++)
-                MAT2D(i,j,lStressR,ntn)  = MAT2D(vizNel,j,stressR,ntn);
-
-            for(k=0;k<ndf;k++)
-              for(j=0;j<ndm;j++)
-                MAT3D(i,k,j,lGradVel,ndf,ndm) 
-                               = MAT3D(vizNel,k,j,gradVel,ndf,ndm);
-
-          }
-        }    
-/*...................................................................*/
-
-/*...*/  
-        if(fWallModel)
-          for(i=0;i<NWALLPAR;i++)
-            lWallPar[i] = MAT2D(nel,i,wallPar,NWALLPAR);
-/*...................................................................*/
-
-/*... chamando a biblioteca de celulas*/
-        cellLibSimpleVelLm(loadsVel , loadsPres    
-                    , advVel        , diffVel  
-                    , tModel        , ModelMomentum
-                    , typeSimple 
-                    , lGeomType     
-                    , lViz          , lId            
-                    , lKsi          , lmKsi 
-                    , lEta          , lfArea  
-                    , lNormal       , lVolume 
-                    , lXm           , lXmcc 
-                    , lDcca         , lCc 
-                    , lvSkew        , lmvSkew 
-                    , lA            , lB 
-                    , lRcell        , ddt 
-                    , lFaceVelR     , lFaceVelL 
-                    , lFacePresR    , lFacePresL             
-                    , lPres         , lGradPres     
-                    , lVel          , lGradVel 
+                    , lGradRho
                     , lDensity      , lViscosity 
                     , lDfield       , lStressR 
                     , lWallPar      , densityMed 
@@ -1478,21 +1248,21 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
 /*...................................................................*/
 
 /*... residuo da celula*/
-        if(calRcell)
-        {
-          rCell[nel]       = lRcell[0];  
-          rCell[numel+nel] = lRcell[1];  
-          if(ndf == 3 ) rCell[2*numel+nel] = lRcell[2];  
-        }  
+      if(calRcell)
+      {
+        rCell[nel]       = lRcell[0];  
+        rCell[numel+nel] = lRcell[1];  
+        if(ndf == 3 ) rCell[2*numel+nel] = lRcell[2];  
+      }  
 /*...................................................................*/
 
 /*...*/
-        for(j=0;j<ndm;j++)
-   	      MAT2D(nel,j,dField,ndm) = MAT2D(aux1, j, lDfield, ndm);  
+      for(j=0;j<ndm;j++)
+   	    MAT2D(nel,j,dField,ndm) = MAT2D(aux1, j, lDfield, ndm);  
 /*...................................................................*/
       
 /*...*/
-        assblySimple(ia    ,ja
+      assblySimple(ia    ,ja
                     ,a           ,ad              
                     ,b           ,lId 
                     ,lA          ,lB
@@ -1501,8 +1271,6 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                     ,nFace[nel]  ,ndf 
                     ,storage     ,forces
                     ,matrix      ,unsym);     
-/*...................................................................*/
-      }
 /*...................................................................*/
     }
 /*...................................................................*/
@@ -4232,9 +4000,7 @@ void velResidual(Loads *loadsVel            , Loads *loadsPres
  * b       -> vetor de forcas                                        * 
  * id      -> numera das equacoes                                    * 
  * faceVelR  -> restricoes por elemento de velocidades               * 
- * faceVelL  -> carga por elemento de velocidades                    * 
  * facePresR -> restricoes por elemento de pressao                   * 
- * facePresL -> carga por elemento de pressao                        * 
  * pres    -> campo de pressao conhecido                             * 
  * gradVel -> gradiente da solucao conhecido                         * 
  * vel     -> campo de velocidade conhecido                          * 
@@ -4285,8 +4051,7 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
                , INT    *RESTRICT ia       , INT    *RESTRICT ja
                , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad 
                , DOUBLE *RESTRICT b        , INT    *RESTRICT id
-               , short  *RESTRICT faceVelR , short  *RESTRICT faceVelL       
-               , short  *RESTRICT facePresR, short  *RESTRICT facePresL      
+               , short  *RESTRICT faceVelR , short  *RESTRICT facePresR           
                , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT dField
                , DOUBLE *RESTRICT temp     , DOUBLE *RESTRICT wallPar  
@@ -4314,7 +4079,6 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
   short  lGeomType[MAX_NUM_FACE+1];
   short  lib;
   short  lFaceVelR[MAX_NUM_FACE+1],lFacePresR[MAX_NUM_FACE+1];
-  short  lFaceVelL[MAX_NUM_FACE+1],lFacePresL[MAX_NUM_FACE+1];
   DOUBLE lDensity[(MAX_NUM_FACE+1)*DENSITY_LEVEL];
   DOUBLE lA[(MAX_NUM_FACE+1)*MAX_NDF],lB[MAX_NDF];
   DOUBLE lPres[(MAX_NUM_FACE+1)],lTemp[(MAX_NUM_FACE + 1)];
@@ -4325,355 +4089,175 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
   INT    lId[(MAX_NUM_FACE+1)*MAX_NDF],lViz[MAX_NUM_FACE];
   INT idFace, cellOwner, ch;
   short  aux1,aux2,lMat;
-/*...*/
-  if(ompVar.fCell)
-  {
+
 /*... loop nas celulas*/
-    aux2 = maxViz + 1;
-#pragma omp parallel  for default(none) num_threads(nThreads)\
-     private(nel,i,j,aux1,lId,lPres,lMat,lib,lVolume,lGeomType\
-          ,lFaceVelR,lA,lB,lDfield,lTemp\
-          ,lFaceVelL,lFacePresR,lFacePresL,lDensity,lGradPres\
+  aux2 = maxViz + 1;
+#pragma omp parallel  for default(none) if(ompVar.fCell)\
+  num_threads(nThreads)\
+  private(nel,i,j,aux1,lId,lPres,lMat,lib,lVolume,lGeomType\
+          ,lA,lB,lDfield,lTemp\
+          ,lFaceVelR,lFacePresR,lDensity,lGradPres\
           ,lVel,lmKsi,lfArea,lDcca,lmvSkew,lKsi,lEta\
           ,lNormal,lXm,lXmcc,lvSkew,vizNel,lViz,lRcell,lWallPar\
           ,idFace,cellOwner,ch)\
-     shared(aux2,ndm,ndf,numel,maxViz,calRcell,rCell,nFace,mat\
-         ,calType,gVolume, geomType, faceVelR, faceVelL, facePresR,temp\
-         ,facePresL,density,gradPres,vel,fModKsi\
+  shared(aux2,ndm,ndf,numel,maxViz,calRcell,rCell,nFace,mat\
+         ,calType,gVolume, geomType, faceVelR, facePresR,temp\
+         ,density,gradPres,vel,fModKsi\
          ,fArea,gDcca,fModvSkew,fKsi,fEta,fNormal,fXm,gXmCc,fvSkew\
          ,nelcon,id,loadsVel,loadsPres,diffPres,eMass\
          ,ddt,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd\
          ,nAdR,storage,forces,matrix,unsym,pres,dField,wallPar\
          ,fOwner,cellFace,fWallModel)
-    for (nel = 0; nel<numel; nel++) {
-/*...*/
-      if (calRcell)
-        rCell[nel] = 0.e0;;
-/*...*/
-      aux1 = nFace[nel];
-/*... elementos com equacoes*/
-      if (MAT2D(nel, aux1, facePresR, aux2) < 1) {
-
-/*... zerando vetores*/
-        for (j = 0; j<(MAX_NUM_FACE + 1)*MAX_NDF; j++)
-          lId[j] = -1;
-
-        for (j = 0; j<MAX_NUM_FACE + 1; j++)
-          lPres[j] = 0.e0;
-
-/*... loop na celula central*/
-        lMat = mat[nel] - 1;
-        lib = calType[lMat];
-        lVolume[aux1] = gVolume[nel];
-        lGeomType[aux1] = geomType[nel];
-        lId[aux1] = id[nel] - 1;
-        lFaceVelR[aux1] = MAT2D(nel, aux1, faceVelR, aux2);
-        lFaceVelL[aux1] = MAT2D(nel, aux1, faceVelL, aux2);
-        lFacePresR[aux1] = MAT2D(nel, aux1, facePresR, aux2);
-        lFacePresL[aux1] = MAT2D(nel, aux1, facePresL, aux2);
-/*...*/
-        MAT2D(aux1, 0, lDensity, DENSITY_LEVEL) = MAT2D(nel
-          , TIME_N_MINUS_2, density, DENSITY_LEVEL);
-        MAT2D(aux1, 1, lDensity, DENSITY_LEVEL) = MAT2D(nel
-          , TIME_N_MINUS_1, density, DENSITY_LEVEL);
-        MAT2D(aux1, 2, lDensity, DENSITY_LEVEL) = MAT2D(nel
-          , TIME_N, density, DENSITY_LEVEL);
-/*...................................................................*/
-
-/*...*/
-        lPres[aux1] = pres[nel];
-        lTemp[aux1] = temp[nel];
-/*...................................................................*/
-
-/*...*/
-        lDfield[aux1] = dField[nel];
-        for (j = 0; j<ndm; j++)
-        {
-          MAT2D(aux1, j, lGradPres, ndm) = MAT2D(nel, j, gradPres, ndm);
-          MAT2D(aux1, j, lVel, ndm) = MAT2D(nel, j, vel, ndm);
-          MAT2D(aux1, j, lDfield, ndm) = MAT2D(nel, j, dField, ndm);
-        }
-/*...................................................................*/
-
-/*...*/
-        for (i = 0; i<aux1; i++)
-        {
-          lDcca[i] = MAT2D(nel, i, gDcca, maxViz);
-          lFaceVelR[i] = MAT2D(nel, i, faceVelR, aux2);
-          lFaceVelL[i] = MAT2D(nel, i, faceVelL, aux2);
-          lFacePresR[i] = MAT2D(nel, i, facePresR, aux2);
-          lFacePresL[i] = MAT2D(nel, i, facePresL, aux2);
-/*... propriedades por face*/
-          idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
-          cellOwner = MAT2D(idFace, 0, fOwner, 2) - 1;
-          ch = OWNER(cellOwner, nel);
-          lmKsi[i] = fModKsi[idFace];
-          lfArea[i] = fArea[idFace];
-          lmvSkew[i] = fModvSkew[idFace];
-          for (j = 0; j<ndm; j++)
-          {
-            MAT2D(i, j, lXmcc, ndm) = MAT3D(nel, i, j, gXmCc, maxViz, ndm);
-/*... propriedades por face*/
-            MAT2D(i, j, lKsi, ndm) = ch * MAT2D(idFace, j, fKsi, ndm);
-            MAT2D(i, j, lEta, ndm) = ch * MAT2D(idFace, j, fEta, ndm);
-            MAT2D(i, j, lNormal, ndm) = ch * MAT2D(idFace, j, fNormal, ndm);
-            MAT2D(i, j, lXm, ndm) = MAT2D(idFace, j, fXm, ndm);
-            MAT2D(i, j, lvSkew, ndm) = MAT2D(idFace, j, fvSkew, ndm);
-          } 
-        }
-/*...................................................................*/
-
-/*... loop na celulas vizinhas*/
-        for (i = 0; i<aux1; i++)
-        {
-          vizNel = MAT2D(nel, i, nelcon, maxViz) - 1;
-          lViz[i] = vizNel;
-          if (vizNel != -2) {
-            lVolume[i] = gVolume[vizNel];
-            lGeomType[i] = geomType[vizNel];
-            lMat = mat[vizNel] - 1;
-            lId[i] = id[vizNel] - 1;
-/*...*/
-            MAT2D(i, 0, lDensity, DENSITY_LEVEL) = MAT2D(vizNel
-              , TIME_N_MINUS_2, density, DENSITY_LEVEL);
-            MAT2D(i, 1, lDensity, DENSITY_LEVEL) = MAT2D(vizNel
-              , TIME_N_MINUS_1, density, DENSITY_LEVEL);
-            MAT2D(i, 2, lDensity, DENSITY_LEVEL) = MAT2D(vizNel
-              , TIME_N, density, DENSITY_LEVEL);
-/*...................................................................*/
-
-/*...*/
-            lPres[i] = pres[vizNel];
-            lTemp[i] = temp[vizNel];
-/*...................................................................*/
-
-            for (j = 0; j<ndm; j++)
-            {
-              MAT2D(i, j, lGradPres, ndm) = MAT2D(vizNel, j, gradPres, ndm);
-              MAT2D(i, j, lVel, ndm) = MAT2D(vizNel, j, vel, ndm);
-              MAT2D(i, j, lDfield, ndm) = MAT2D(vizNel, j, dField, ndm);
-            }
-          }
-        }
-/*...................................................................*/
-
-/*...*/
-        if(fWallModel)
-          for (i = 0; i<NWALLPAR; i++)
-            lWallPar[i] = MAT2D(nel, i, wallPar, NWALLPAR);
-/*...................................................................*/
-
-/*... chamando a biblioteca de celulas*/
-        cellLibSimplePresLm(loadsVel  , loadsPres
-                          , diffPres  , eMass
-                          , lGeomType 
-                          , lViz      , lId
-                          , lKsi      , lmKsi
-                          , lEta      , lfArea
-                          , lNormal   , lVolume
-                          , lXm       , lXmcc
-                          , lDcca     , lDensity
-                          , lvSkew    , lmvSkew
-                          , lA, lB
-                          , &lRcell   , ddt
-                          , lFaceVelR , lFaceVelL
-                          , lFacePresR, lFacePresL
-                          , lPres     , lGradPres
-                          , lVel      , lDfield
-                          , lTemp     , lWallPar
-                          , nen[nel]  , nFace[nel]
-                          , ndm       , lib
-                          , nel);
-/*...................................................................*/
-
-/*... residuo da celula*/
-        if (calRcell)
-          rCell[nel] = lRcell;
-/*...................................................................*/
-
-/*...*/
-        assbly(ia, ja
-          , a, ad
-          , b, lId
-          , lA, lB
-          , nEq, nEqNov
-          , nAd, nAdR
-          , nFace[nel], 1
-          , storage, forces
-          , matrix, unsym);
-/*...................................................................*/
-      }
-/*...................................................................*/
-    }
-/*...................................................................*/
-  }
-/*...................................................................*/
-
-/*...*/
-  else
-  {
 /*... loop nas celulas*/
-    aux2    = maxViz+1;
-    for(nel=0;nel<numel;nel++){
+  for(nel=0;nel<numel;nel++)
+  {
 /*...*/
-      if(calRcell)
-        rCell[nel] = 0.e0;;
+    if(calRcell)
+      rCell[nel] = 0.e0;;
 /*...*/
-      aux1    = nFace[nel];
+    aux1    = nFace[nel];
 /*... elementos com equacoes*/
-      if(MAT2D(nel,aux1,facePresR ,aux2) < 1){
-
-/*... zerando vetores*/
-        for(j=0;j<(MAX_NUM_FACE+1)*MAX_NDF;j++) 
-          lId[j]  = -1;
-       
-        for(j=0;j<MAX_NUM_FACE+1;j++) 
-          lPres[j] = 0.e0;    
+    if(MAT2D(nel,aux1,facePresR ,aux2) < 1)
+    {
 
 /*... loop na celula central*/    
-        lMat            = mat[nel]-1;
-        lib             = calType[lMat];
-        lVolume[aux1]   = gVolume[nel]; 
-        lGeomType[aux1] = geomType[nel];
-        lId[aux1]       = id[nel] - 1;
-        lFaceVelR[aux1] = MAT2D(nel,aux1,faceVelR ,aux2);
-        lFaceVelL[aux1] = MAT2D(nel,aux1,faceVelL ,aux2);
-        lFacePresR[aux1]= MAT2D(nel,aux1,facePresR ,aux2);
-        lFacePresL[aux1]= MAT2D(nel,aux1,facePresL ,aux2);
+      lMat            = mat[nel]-1;
+      lib             = calType[lMat];
+      lVolume[aux1]   = gVolume[nel]; 
+      lGeomType[aux1] = geomType[nel];
+      lPres[aux1]     = pres[nel];
+      lTemp[aux1]     = temp[nel];
+      lFaceVelR[aux1] = MAT2D(nel,aux1,faceVelR ,aux2);
+      lFacePresR[aux1]= MAT2D(nel,aux1,facePresR ,aux2);
 /*...*/
-        MAT2D(aux1,0,lDensity, DENSITY_LEVEL) = MAT2D(nel 
-                             , TIME_N_MINUS_2,density, DENSITY_LEVEL);
-        MAT2D(aux1,1,lDensity, DENSITY_LEVEL) = MAT2D(nel
-                             , TIME_N_MINUS_1,density, DENSITY_LEVEL);
-        MAT2D(aux1,2,lDensity, DENSITY_LEVEL) = MAT2D(nel
-                             , TIME_N,density, DENSITY_LEVEL);
+      MAT2D(aux1,0,lDensity, DENSITY_LEVEL) = MAT2D(nel 
+                           , TIME_N_MINUS_2,density, DENSITY_LEVEL);
+      MAT2D(aux1,1,lDensity, DENSITY_LEVEL) = MAT2D(nel
+                           , TIME_N_MINUS_1,density, DENSITY_LEVEL);
+      MAT2D(aux1,2,lDensity, DENSITY_LEVEL) = MAT2D(nel
+                           , TIME_N,density, DENSITY_LEVEL);
 /*...................................................................*/ 
 
 /*...*/
-        lPres[aux1]     = pres[nel];
-        lTemp[aux1]     = temp[nel];
-/*...................................................................*/ 
-    
-/*...*/
-        lDfield[aux1] = dField[nel];
-        for(j=0;j<ndm;j++) 
-        {
-          MAT2D(aux1,j,lGradPres,ndm) = MAT2D(nel,j,gradPres,ndm); 
-          MAT2D(aux1,j,lVel     ,ndm) = MAT2D(nel,j,vel     ,ndm);
-          MAT2D(aux1,j,lDfield  ,ndm) = MAT2D(nel,j,dField  ,ndm);
-        }
+      lId[aux1]       = id[nel] - 1;
 /*...................................................................*/
 
 /*...*/
-        for (i = 0; i<aux1; i++)
+      lDfield[aux1] = dField[nel];
+      for(j=0;j<ndm;j++) 
+      {
+        MAT2D(aux1,j,lGradPres,ndm) = MAT2D(nel,j,gradPres,ndm); 
+        MAT2D(aux1,j,lVel     ,ndm) = MAT2D(nel,j,vel     ,ndm);
+        MAT2D(aux1,j,lDfield  ,ndm) = MAT2D(nel,j,dField  ,ndm);
+      }
+/*...................................................................*/
+
+/*...*/
+      for (i = 0; i<aux1; i++)
+      {
+        lDcca[i]      = MAT2D(nel, i, gDcca, maxViz);
+        lFaceVelR[i]  = MAT2D(nel, i, faceVelR, aux2);
+        lFacePresR[i] = MAT2D(nel, i, facePresR, aux2);
+/*... propriedades por face*/
+        idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
+        cellOwner = MAT2D(idFace, 0, fOwner, 2) - 1;
+        ch = OWNER(cellOwner, nel);
+        lmKsi[i] = fModKsi[idFace];
+        lfArea[i] = fArea[idFace];
+        lmvSkew[i] = fModvSkew[idFace];
+        for (j = 0; j<ndm; j++)
         {
-          lDcca[i] = MAT2D(nel, i, gDcca, maxViz);
-          lFaceVelR[i] = MAT2D(nel, i, faceVelR, aux2);
-          lFaceVelL[i] = MAT2D(nel, i, faceVelL, aux2);
-          lFacePresR[i] = MAT2D(nel, i, facePresR, aux2);
-          lFacePresL[i] = MAT2D(nel, i, facePresL, aux2);
+          MAT2D(i, j, lXmcc, ndm) = MAT3D(nel, i, j, gXmCc, maxViz, ndm);
 /*... propriedades por face*/
-          idFace = MAT2D(nel, i, cellFace, maxViz) - 1;
-          cellOwner = MAT2D(idFace, 0, fOwner, 2) - 1;
-          ch = OWNER(cellOwner, nel);
-          lmKsi[i] = fModKsi[idFace];
-          lfArea[i] = fArea[idFace];
-          lmvSkew[i] = fModvSkew[idFace];
-          for (j = 0; j<ndm; j++)
-          {
-            MAT2D(i, j, lXmcc, ndm) = MAT3D(nel, i, j, gXmCc, maxViz, ndm);
-/*... propriedades por face*/
-            MAT2D(i, j, lKsi, ndm) = ch * MAT2D(idFace, j, fKsi, ndm);
-            MAT2D(i, j, lEta, ndm) = ch * MAT2D(idFace, j, fEta, ndm);
-            MAT2D(i, j, lNormal, ndm) = ch * MAT2D(idFace, j, fNormal, ndm);
-            MAT2D(i, j, lXm, ndm) = MAT2D(idFace, j, fXm, ndm);
-            MAT2D(i, j, lvSkew, ndm) = MAT2D(idFace, j, fvSkew, ndm);
-          }
+          MAT2D(i, j, lKsi, ndm) = ch * MAT2D(idFace, j, fKsi, ndm);
+          MAT2D(i, j, lEta, ndm) = ch * MAT2D(idFace, j, fEta, ndm);
+          MAT2D(i, j, lNormal, ndm) = ch * MAT2D(idFace, j, fNormal, ndm);
+          MAT2D(i, j, lXm, ndm) = MAT2D(idFace, j, fXm, ndm);
+          MAT2D(i, j, lvSkew, ndm) = MAT2D(idFace, j, fvSkew, ndm);
         }
+      }
 /*...................................................................*/
 
 /*... loop na celulas vizinhas*/    
-        for(i=0;i<aux1;i++)
+      for(i=0;i<aux1;i++)
+      {
+        vizNel  = MAT2D(nel,i,nelcon,maxViz) - 1;
+        lViz[i] = vizNel;
+        lId[i]  = - 1;
+        if( vizNel != -2)
         {
-          vizNel  = MAT2D(nel,i,nelcon,maxViz) - 1;
-          lViz[i] = vizNel;
-          if( vizNel != -2)
-          {
-            lVolume[i]    = gVolume[vizNel]; 
-            lGeomType[i]  = geomType[vizNel];
-            lMat          = mat[vizNel]-1;
-            lId[i]        = id[vizNel] - 1;
+          lVolume[i]    = gVolume[vizNel]; 
+          lGeomType[i]  = geomType[vizNel];
+          lMat          = mat[vizNel]-1;
+          lId[i]        = id[vizNel] - 1;
 /*...*/
-            MAT2D(i,0,lDensity, DENSITY_LEVEL) = MAT2D(vizNel
-                              , TIME_N_MINUS_2,density ,DENSITY_LEVEL);
-            MAT2D(i,1,lDensity, DENSITY_LEVEL) = MAT2D(vizNel
-                              , TIME_N_MINUS_1,density ,DENSITY_LEVEL);
-            MAT2D(i,2,lDensity, DENSITY_LEVEL) = MAT2D(vizNel
-                              ,TIME_N,density ,DENSITY_LEVEL);
+          MAT2D(i,0,lDensity, DENSITY_LEVEL) = MAT2D(vizNel
+                            , TIME_N_MINUS_2,density ,DENSITY_LEVEL);
+          MAT2D(i,1,lDensity, DENSITY_LEVEL) = MAT2D(vizNel
+                            , TIME_N_MINUS_1,density ,DENSITY_LEVEL);
+          MAT2D(i,2,lDensity, DENSITY_LEVEL) = MAT2D(vizNel
+                            ,TIME_N,density ,DENSITY_LEVEL);
 /*...................................................................*/
            
 /*...*/
-            lPres[i] = pres[vizNel];
-            lTemp[i] = temp[vizNel];
+           lPres[i] = pres[vizNel];
+           lTemp[i] = temp[vizNel];
 /*...................................................................*/ 
 
-            for(j=0;j<ndm;j++)
-            {
-              MAT2D(i,j,lGradPres,ndm) = MAT2D(vizNel,j,gradPres,ndm);
-              MAT2D(i,j,lVel     ,ndm) = MAT2D(vizNel,j,vel     ,ndm);
-              MAT2D(i,j,lDfield  ,ndm) = MAT2D(vizNel,j,dField  ,ndm);
-            }
-
+          for(j=0;j<ndm;j++)
+          {
+            MAT2D(i,j,lGradPres,ndm) = MAT2D(vizNel,j,gradPres,ndm);
+            MAT2D(i,j,lVel     ,ndm) = MAT2D(vizNel,j,vel     ,ndm);
+            MAT2D(i,j,lDfield  ,ndm) = MAT2D(vizNel,j,dField  ,ndm);
           }
-        }  
+
+        }
+      }  
 /*...................................................................*/
 
 /*...*/ 
-        if(fWallModel)   
-          for(i=0;i<NWALLPAR;i++)
-            lWallPar[i] = MAT2D(nel,i,wallPar,NWALLPAR);
+      if(fWallModel)   
+        for(i=0;i<NWALLPAR;i++)
+          lWallPar[i] = MAT2D(nel,i,wallPar,NWALLPAR);
 /*...................................................................*/
 
 /*... chamando a biblioteca de celulas*/
-        cellLibSimplePresLm(loadsVel,loadsPres 
-											,diffPres   ,eMass
-                      ,lGeomType  
-                      ,lViz       ,lId           
-                      ,lKsi       ,lmKsi
-                      ,lEta       ,lfArea 
-                      ,lNormal    ,lVolume
-                      ,lXm        ,lXmcc
-                      ,lDcca      ,lDensity
-                      ,lvSkew     ,lmvSkew
-                      ,lA         ,lB
-                      ,&lRcell    ,ddt
-                      ,lFaceVelR  ,lFaceVelL            
-                      ,lFacePresR ,lFacePresL   
-                      ,lPres      ,lGradPres    
-                      ,lVel       ,lDfield 
-                      ,lTemp      ,lWallPar
-                      ,nen[nel]   ,nFace[nel] 
-                      ,ndm        ,lib   
-                      ,nel);      
+      cellLibSimplePresLm(loadsVel,loadsPres 
+									,diffPres   ,eMass
+                    ,lGeomType  
+                    ,lViz       ,lId           
+                    ,lKsi       ,lmKsi
+                    ,lEta       ,lfArea 
+                    ,lNormal    ,lVolume
+                    ,lXm        ,lXmcc
+                    ,lDcca      ,lDensity
+                    ,lvSkew     ,lmvSkew
+                    ,lA         ,lB
+                    ,&lRcell    ,ddt
+                    ,lFaceVelR  ,lFacePresR                          
+                    ,lPres      ,lGradPres    
+                    ,lVel       ,lDfield 
+                    ,lTemp      ,lWallPar
+                    ,nen[nel]   ,nFace[nel] 
+                    ,ndm        ,lib   
+                    ,nel);      
 /*...................................................................*/
 
 /*... residuo da celula*/
-        if(calRcell)
-          rCell[nel] = lRcell;  
+      if(calRcell)
+        rCell[nel] = lRcell;  
 /*...................................................................*/
  
 /*...*/
-        assbly(ia      ,ja
-            ,a           ,ad              
-            ,b           ,lId 
-            ,lA          ,lB
-            ,nEq         ,nEqNov
-            ,nAd         ,nAdR     
-            ,nFace[nel]  ,1 
-            ,storage     ,forces
-            ,matrix      ,unsym);   
-/*...................................................................*/
-      }
+      assbly(ia      ,ja
+          ,a           ,ad              
+          ,b           ,lId 
+          ,lA          ,lB
+          ,nEq         ,nEqNov
+          ,nAd         ,nAdR     
+          ,nFace[nel]  ,1 
+          ,storage     ,forces
+          ,matrix      ,unsym);   
 /*...................................................................*/
     }
 /*...................................................................*/
@@ -7187,3 +6771,36 @@ void systFormDifOld(Loads *loads, Diffusion *diff
 /*...................................................................*/
 }
 /*********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 15/08/2018                                    *
+ * Data de modificaco : 10/05/2019                                    *
+ *------------------------------------------------------------------- * 
+ * getColFromMatrix : pega um coluna de uma matriz                    *  
+ * ------------------------------------------------------------------ *
+ * parametros de entrada:                                             * 
+ * ------------------------------------------------------------------ *
+ * v   -> nao definido                                                * 
+ * m   -> matriz                                                      * 
+ * nl  -> numero de linhas na matriz                                  * 
+ * col -> numero de colunas                                           * 
+ * jCol-> caluna a ser obtida                                         *
+ * ------------------------------------------------------------------ *
+ * parametros de saida  :                                             * 
+ * ------------------------------------------------------------------ *
+ * v -> coluna jCol da matrix m                                       * 
+ * ------------------------------------------------------------------ *
+ * OBS:                                                               *
+ *------------------------------------------------------------------- *
+ **********************************************************************/
+void getColFromMatrix(DOUBLE *v   ,DOUBLE *m     
+                    ,INT const nl,short const col
+                    ,short const jCol)
+{
+  INT i;
+
+  for(i=0;i<nl;i++)
+    v[i] = MAT2D(i,jCol,m,col);
+
+}
+/**********************************************************************/

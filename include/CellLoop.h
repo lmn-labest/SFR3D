@@ -195,10 +195,10 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
     , INT    *RESTRICT ia                  , INT    *RESTRICT ja
     , DOUBLE *RESTRICT a                   , DOUBLE *RESTRICT ad
     , DOUBLE *RESTRICT b                   , INT    *RESTRICT id
-    , short  *RESTRICT faceVelR            , short  *RESTRICT faceVelL       
-    , short  *RESTRICT facePresR           , short  *RESTRICT facePresL             
+    , short  *RESTRICT faceVelR            , short  *RESTRICT facePresR          
     , DOUBLE *RESTRICT pres                , DOUBLE *RESTRICT gradPres
     , DOUBLE *RESTRICT vel                 , DOUBLE *RESTRICT gradVel
+    , DOUBLE *RESTRICT gradRho
     , DOUBLE *RESTRICT dField              , DOUBLE underU 
     , DOUBLE *RESTRICT rCell               , DOUBLE *RESTRICT stressR  
     , DOUBLE *RESTRICT density             , DOUBLE *RESTRICT dViscosity 
@@ -231,8 +231,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                , INT    *RESTRICT ia       , INT    *RESTRICT ja
                , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad 
                , DOUBLE *RESTRICT b        , INT    *RESTRICT id
-               , short  *RESTRICT faceVelR , short  *RESTRICT faceVelL       
-               , short  *RESTRICT facePresR, short  *RESTRICT facePresL      
+               , short  *RESTRICT faceVelR , short  *RESTRICT facePresR
                , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
                , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT dField
                , DOUBLE *RESTRICT temp     , DOUBLE *RESTRICT wallPar  
@@ -536,4 +535,9 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                     , bool calRcell             , bool unsym);
 /*...................................................................*/
 
+/*...*/
+  void getColFromMatrix(DOUBLE *v   ,DOUBLE *m     
+                    ,INT const nl,short const col
+                    ,short const jCol);
+/*...................................................................*/
 #endif/*_CELLLOOP_H_*/

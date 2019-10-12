@@ -1592,6 +1592,7 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
           , DOUBLE *eSheat       , DOUBLE *nSheat
           , DOUBLE *eTCond       , DOUBLE *nTCond
+          , DOUBLE *eGradRho     , DOUBLE *nGradRho
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf
@@ -1861,7 +1862,7 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
   }
 /*...................................................................*/
 
-/*... coeficiente dinmicamente calculados */  
+/*... coeficiente dinamicamente calculados */  
   if(opt->cDynamic && opt->fCell){
     strcpy(str,"eCdyn");
     writeVtkProp(&idum,eCd,numel,2,str,iws
@@ -1900,6 +1901,15 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
 /*...................................................................*/
+
+/*... escrever gradiente da pressao por celula*/  
+  if(opt->gradRho && opt->fCell){
+    strcpy(str,"eGradRho");
+    writeVtkProp(&idum,eGradRho,numel,ndm,str ,iws
+                ,DOUBLE_VTK,VECTORS_VTK,f);
+  }
+/*...................................................................*/
+
 
 /*.... campo por no*/
   fprintf(f,"POINT_DATA %ld\n",(long) nnode);
@@ -2127,6 +2137,14 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
     writeVtkProp(&idum,p,nnode,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
     HccaDealloc(m,p,"p",_AD_);
+  }
+/*...................................................................*/
+
+/*... escrever gradiente da pressao por celula*/  
+  if(opt->gradRho && opt->fNode){
+    strcpy(str,"nGradRho");
+    writeVtkProp(&idum,nGradRho,nnode,ndm,str ,iws
+                ,DOUBLE_VTK,VECTORS_VTK,f);
   }
 /*...................................................................*/
 
@@ -3532,39 +3550,6 @@ void makeModuleVel(DOUBLE *RESTRICT p,DOUBLE *RESTRICT vel
     }
     p[i] = sqrt(vv);
   }
-
-}
-/**********************************************************************/
-
-/**********************************************************************
- * Data de criacao    : 15/08/2018                                    *
- * Data de modificaco : 10/05/2019                                    *
- *------------------------------------------------------------------- * 
- * getColFromMatrix : pega um coluna de uma matriz                    *  
- * ------------------------------------------------------------------ *
- * parametros de entrada:                                             * 
- * ------------------------------------------------------------------ *
- * v   -> nao definido                                                * 
- * m   -> matriz                                                      * 
- * nl  -> numero de linhas na matriz                                  * 
- * col -> numero de colunas                                           * 
- * jCol-> caluna a ser obtida                                         *
- * ------------------------------------------------------------------ *
- * parametros de saida  :                                             * 
- * ------------------------------------------------------------------ *
- * v -> coluna jCol da matrix m                                       * 
- * ------------------------------------------------------------------ *
- * OBS:                                                               *
- *------------------------------------------------------------------- *
- **********************************************************************/
-void getColFromMatrix(DOUBLE *v   ,DOUBLE *m     
-                    ,INT const nl,short const col
-                    ,short const jCol)
-{
-  INT i;
-
-  for(i=0;i<nl;i++)
-    v[i] = MAT2D(i,jCol,m,col);
 
 }
 /**********************************************************************/

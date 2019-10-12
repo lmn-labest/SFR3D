@@ -355,15 +355,16 @@
     DOUBLE vel[3],density;
     Interpol *intPol;               /*interpolacao*/
   }Loads;
-  Loads  loadsD1[MAXLOAD]         /*tipo de cargas (difusao pura)*/
-        ,loadsT1[MAXLOAD]         /*tipo de cargas (difusao-transporte)*/
+  Loads  loadsD1[MAXLOAD]      /*tipo de cargas (difusao pura)*/
+        ,loadsT1[MAXLOAD]      /*tipo de cargas (difusao-transporte)*/
         ,loadsVel[MAXLOAD]     /*tipo de cargas (fluid-Vel)*/
         ,loadsPres[MAXLOAD]    /*tipo de cargas (fluid-Pres)*/
         ,loadsPresC[MAXLOAD]   /*tipo de cargas (fluid-Pres-correcao)*/
         ,loadsEnergy[MAXLOAD]  /*tipo de cargas (fluid-energia)*/
         ,loadsTemp[MAXLOAD]    /*tipo de cargas (fluid-temperatura)*/
         ,loadsKturb[MAXLOAD]   /*tipo de cargas (fluid-turbulencia)*/
-        ,loadsZcomb[MAXLOAD];   /*tipo de cargas (combustivel      )*/
+        ,loadsZcomb[MAXLOAD]    /*tipo de cargas (combustivel      )*/
+        ,loadsRhoFluid[MAXLOAD];
 /*...................................................................*/
 
 /*...*/

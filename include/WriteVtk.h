@@ -144,7 +144,8 @@
           , DOUBLE *eKturb       , DOUBLE *nKturb
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
           , DOUBLE *eSheat       , DOUBLE *nSheat
-          , DOUBLE *eTCon        , DOUBLE *nTCond       
+          , DOUBLE *eTCon        , DOUBLE *nTCond  
+          , DOUBLE *eGradRho     , DOUBLE *nGradRho     
           , INT nnode            , INT numel    
           , short const ndm      , short const maxNo 
           , short const numat    , short const ndf  
