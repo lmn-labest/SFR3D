@@ -839,7 +839,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
   if(lib == 1){
 /*... 2D*/
     if(ndm == 2){
-      cellSimpleVel2DLm(lVel      , lPres    
+ /*   cellSimpleVel2DLm(lVel      , lPres    
                      , *advVel    , *diffVel 
                      , *tModel    , *ModelMomentum
                      , typeSimple , lGeomType  
@@ -861,7 +861,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
                      , wallPar    , densityMed
                      , underU     , sPressure 
                      , nEn        , nFace  
-                     , ndm        , nel);  
+                     , ndm        , nel);  */
     }
 /*..................................................................*/
 
@@ -1059,6 +1059,7 @@ void cellLibSimplePres(Loads *lVel         ,Loads *lPres
  *            centrois compartilhado nessa face da celula central    *
  * dcca      -> menor distacia do centroide central a faces desta    *
  *              celula                                               *
+ * cc        -> centroides da celula centra e seus vizinhos          *   
  * lDensity  -> massa especifica com variacao temporal               *
  * lA        -> nao definido                                         *
  * lB        -> nao definido                                         *
@@ -1068,10 +1069,12 @@ void cellLibSimplePres(Loads *lVel         ,Loads *lPres
  * facePresR -> restricoes por elemento de pressao                   *
  * pres      -> campo de pressao conhecido                           *
  * gradPes   -> gradiente reconstruido da pressao                    *
+ * gradRho   -> gradiente rescontruido da densidade                  *
  * vel       -> campo de velocidade conhecido                        *
  * dField    -> matriz D do metodo simple                            *
  * temp    -> temperatura                                            *   
  * wallPar -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)    *
+ * densityMed-> densidade media do meio                              *
  * nEn       -> numero de nos da celula central                      *
  * nFace     -> numero de faces da celula central                    *
  * ndm       -> numero de dimensoes                                  *
@@ -1085,21 +1088,25 @@ void cellLibSimplePres(Loads *lVel         ,Loads *lPres
  *-------------------------------------------------------------------*
  *********************************************************************/
 void cellLibSimplePresLm(Loads *lVel        , Loads *lPres
-	             , Diffusion *diffPres        , MassEqModel *eMass  
+	             , Diffusion *diffPres        
+               , MassEqModel *eMass         , MomentumModel *mMom     
                , short *RESTRICT lGeomType  
                , INT   *RESTRICT lViz       , INT *RESTRICT lId  
                , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
                , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea
                , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume
                , DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc
-               , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT lDensity
+               , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc 
+               , DOUBLE *RESTRICT lDensity
                , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
                , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
                , DOUBLE *RESTRICT lRcell    , Temporal *ddt
                , short  *RESTRICT lFaceVelR , short  *RESTRICT lFacePresR
-               , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres 
+               , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres
+               , DOUBLE *RESTRICT gradRho 
                , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField 
                , DOUBLE *RESTRICT temp      , DOUBLE *RESTRICT wallPar
+               , DOUBLE const densityMed
                , short const nEn            , short  const nFace     
                , short const ndm            , short const lib    
                , INT const nel)
@@ -1108,47 +1115,31 @@ void cellLibSimplePresLm(Loads *lVel        , Loads *lPres
 /*... */
   if(lib == 1){
 /*... 2D*/
-    if(ndm == 2){
-      cellSimplePres2DLm(lVel, lPres
-								 , diffPres	 , eMass 
-                 , lGeomType 
-                 , lViz      , lId
-                 , ksi       , mKsi
-                 , eta       , fArea
-                 , normal    , volume
-                 , xm        , xmcc
-                 , dcca      , lDensity 
-                 , vSkew     , mvSkew
-                 , lA        , lB
-                 , lRcell    , *ddt 
-                 , lFaceVelR , lFacePresR
-                 , lFaceVelR , lFacePresR
-                 , pres      , gradPres 
-                 , vel       , dField
-                 , temp
-                 , nEn       , nFace  
-                 , ndm       , nel);  
-    }
+    if(ndm == 2);
 /*..................................................................*/
 
 /*... 3D*/
     else if(ndm == 3){
       cellSimplePres3DLm(lVel, lPres
-								 , diffPres	 , eMass 
+								 , diffPres	 
+                 , eMass     , mMom
                  , lGeomType 
                  , lViz      , lId
                  , ksi       , mKsi
                  , eta       , fArea
                  , normal    , volume
                  , xm        , xmcc
-                 , dcca      , lDensity 
+                 , dcca      , cc
+                 , lDensity 
                  , vSkew     , mvSkew
                  , lA        , lB
                  , lRcell    , ddt 
                  , lFaceVelR , lFacePresR
                  , pres      , gradPres 
+                 , gradRho
                  , vel       , dField
                  , temp      , wallPar
+                 , densityMed
                  , nEn       , nFace  
                  , ndm       , nel);  
     } 
@@ -2375,7 +2366,7 @@ void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
                  ,xm      ,xmcc
                  ,lProp   ,lDcca
                  ,u       ,gradU
-                 ,lFaceR 
+                 ,normal  ,lFaceR 
                  ,nFace   ,ndf
                  ,ndm     ,nel);
     break;
@@ -2891,11 +2882,12 @@ void greenGaussNode(INT *RESTRICT lViz   ,DOUBLE *RESTRICT fArea
  * xm        -> pontos medios das faces das celulas                  * 
  * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
  *            faces da celula central                                * 
- * lProp     -> propriedades dos material                            *
+ * lPara     -> paramentros auxiliares para o calulo do gradiente    *
  * lDcca     -> menor distancia do centroide a faces desta celula    * 
  * lViz      -> viznhos da celula central                            * 
  * u         -> solucao conhecida                                    * 
  * gradU     -> gradiente rescontruido da solucao conhecida          * 
+ * n         -> vetor normal                                         *  
  * lFaceR    -> restricoes por elmento                               * 
  * nFace     -> numero vizinhos por celula maximo da malha           * 
  * ndf       -> grauss de liberdade                                  * 
@@ -2910,9 +2902,9 @@ void greenGaussNode(INT *RESTRICT lViz   ,DOUBLE *RESTRICT fArea
 void  leastSquare(Loads *loads
                  ,DOUBLE *RESTRICT lLsquare,INT *RESTRICT lViz
                  ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc 
-                 ,DOUBLE *RESTRICT lProp   ,DOUBLE *RESTRICT lDcca 
+                 ,DOUBLE *RESTRICT lPara   ,DOUBLE *RESTRICT lDcca 
                  ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU
-                 ,short  *RESTRICT lFaceR  
+                 ,DOUBLE *RESTRICT n        ,short  *RESTRICT lFaceR  
                  ,short const nFace        ,short const ndf
                  ,short const ndm          ,INT const nel)
 {
@@ -2922,7 +2914,7 @@ void  leastSquare(Loads *loads
   DOUBLE tmp,coefDif;
   INT vizNel;
   short idCell = nFace,nCarg,type;
-  short i,j,k,l,it=1,itNumber=10;
+  short i,j,k,l,it=1,itNumber=2;
   
 /*...*/
   for(k=0;k<ndf;k++)
@@ -2967,9 +2959,22 @@ void  leastSquare(Loads *loads
             }                          
 /*...................................................................*/
 
+/*...*/
+            else if (type == FLUXPRES)
+            { 
+//            gradPbBuoyant(xx        , &lPara[3]
+//                        , gravity   , 0.e0
+//                        , lPara[2]  , lPara[1] 
+//                        , 3);
+//            du[i] = (xx[0]*MAT2D(i,0,xmcc,ndm)
+//                   + xx[1]*MAT2D(i,1,xmcc,ndm) 
+//                   + xx[2]*MAT2D(i,2,xmcc,ndm));
+            }                            
+/*...................................................................*/
+
 /*... fluxo prescrito*/
             else if (type == NEUMANNBC){
-              coefDif = lProp[0];
+              coefDif = lPara[0];
               if (coefDif != 0.e0) {
                 getLoads(par,&loads[nCarg],xx);
                 du[i] = (par[0]/coefDif)*lDcca[i];
@@ -7406,24 +7411,8 @@ void facePressure(DOUBLE *gradPresC           ,DOUBLE *gradPresV
 {
   DOUBLE p1,p2,v[3],tmp;
 
-/*... contorno*/
-  if(fBoundary)
-  {
-    if(typeFacePres == INT_BUOYANT_FORCE)
-      pFace += (rho*g[0]*lXmcc[0]
-              + rho*g[1]*lXmcc[1]
-              + rho*g[2]*lXmcc[2]); 
-    
-    else if(typeFacePres == INT_PRESSURE_SO)
-      pFace += gradPresC[0]*lXmcc[0] 
-             + gradPresC[1]*lXmcc[1]
-             + gradPresC[2]*lXmcc[2];
-
-  }
-/*...................................................................*/
-
 /*... dominido*/
-  else
+  if(!fBoundary)
   {
 /*...*/
     if(typeFacePres == INT_BUOYANT_FORCE)

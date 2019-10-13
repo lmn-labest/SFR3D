@@ -488,15 +488,16 @@ int main(int argc,char**argv){
       {
         if(mesh0->ndfF > 0 || mesh0->ndfFt > 0)
         {
-          wallFluid(loadsVel
-                   ,mesh0->elm.faceRvel,mesh0->elm.adj.nelcon
-                   ,mesh0->elm.adj.nViz   
-                   ,mesh0->numel       ,mesh0->maxViz); 
+          wallFluidVelPres(loadsVel
+                   ,loadsPresC           ,loadsPres           
+                   ,mesh0->elm.faceRvel  ,mesh0->elm.faceRpres
+                   ,mesh0->elm.adj.nelcon,mesh0->elm.adj.nViz   
+                   ,mesh0->numel         ,mesh0->maxViz); 
           if(turbModel.fOneEq)
-            wallFluid(loadsKturb
+            wallFluid(loadsKturb                  
                      ,mesh0->elm.faceReKturb,mesh0->elm.adj.nelcon
                      ,mesh0->elm.adj.nViz   
-                     ,mesh0->numel          ,mesh0->maxViz);  
+                     ,mesh0->numel          ,mesh0->maxViz);   
 /*... verifica se o dominio e aberto ou nao*/
           mesh0->fOpen = openDomain(loadsVel
                          , mesh0->elm.faceRvel , mesh0->elm.adj.nViz

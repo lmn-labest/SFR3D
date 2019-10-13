@@ -247,7 +247,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*...cargas*/
         nCarg = lFacePresL[nAresta]-1;
-        pLoadSimplePres(&sP             , &p
+/*      pLoadSimplePres(&sP             , &p
                       , tA              , lKsi
                       , presC           , gradPresC    
                       , s               , e
@@ -255,7 +255,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                       , densityC        , velC                      
                       , lModEta         , lModKsi         
                       , &loadsPres[nCarg], ndm
-                      , true);
+                      , true);*/
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -540,7 +540,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*...cargas*/
         nCarg = lFacePresL[nAresta]-1;
-        pLoadSimplePres(&sP             , &p
+/*      pLoadSimplePres(&sP             , &p
                       , tA              , lKsi
                       , presC           , gradPresC      
                       , s               , e
@@ -548,7 +548,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                       , densityC        , velC                      
                       , lModEta         , lModKsi         
                       , &lPres[nCarg]    , ndm
-                      , true);
+                      , true);*/
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -1088,14 +1088,17 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
 /*...cargas*/
         nCarg = lFacePresR[nf] - 1;
         pLoadSimplePres(&sP             , &p
-                      , tA              , lKsi
+                      , tA              , lXmcc
                       , presC           , gradPresC   
-                      , s               , e
-                      , t               , lNormal  
-                      , densityC        , velC
-                      , lFarea          , lModKsi
-                      , &lPres[nCarg]    , ndm
-                      , true);
+                      , s               , e         
+                      , t               , lNormal
+                      , NULL            , NULL
+                      , velC            , 0.e0 
+                      , densityC        , densityC
+                      , lFarea          , dcca[nf]
+                      , &lPres[nCarg]   , ndm
+                      , 0               , false     
+                      , true); 
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -1149,7 +1152,7 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
 
 /*********************************************************************
  * Data de criacao    : 03/10/2017                                   *
- * Data de modificaco : 17/07/2018                                   *
+ * Data de modificaco : 13/10/2019                                   *
  *-------------------------------------------------------------------*
  * CELLSIMPLEPRES3D: Celula 3D para equacao de correcao de pressao   *
  * metodo simple em escoamento levemene compressivel                 *
@@ -1159,6 +1162,7 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
  * loadsVel  -> definicoes de cargas de velocidades                  *
  * loadsPres -> definicoes de cargas de pressao                      *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
+ * ModelMomentum -> termos/modelos da equacao de momento linear      *
  * lnFace    -> numero de faces da celula central e seus vizinhos    *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
  * lprop     -> propriedade fisicas das celulas                      *
@@ -1190,11 +1194,13 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
  * facePresL -> carga por elemento de pressao                        *
  * pres      -> campo de pressao conhecido                           *
  * gradPes   -> gradiente reconstruido da pressao                    *
+ * gradRho   -> gradiente rescontruido das densidade                 *
  * vel       -> campo de velocidade conhecido                        *
  * gradVel   -> gradiente rescontruido das velocidades               *
  * dField    -> matriz D do metodo simple                            *
  * temp      -> temperatura                                          *  
  * wallPar   -> parametros de parede  ( yPlus, uPlus, uFri,sTressW)  *  
+ * densityMed-> densidade media do meio                              *
  * nEn       -> numero de nos da celula central                      *
  * nFace     -> numero de faces da celula central                    *
  * ndm       -> numero de dimensoes                                  *
@@ -1211,27 +1217,31 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
  *-------------------------------------------------------------------*
  *********************************************************************/
 void cellSimplePres3DLm(Loads *lVel        , Loads *lPres 
-							, Diffusion *diffPres        , MassEqModel *eMass
+							, Diffusion *diffPres        
+              , MassEqModel *eMass         , MomentumModel *ModelMomentum
               , short *RESTRICT lGeomType  
               , INT *RESTRICT lViz         , INT *RESTRICT lId  
               , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
               , DOUBLE *RESTRICT eta       , DOUBLE *RESTRICT fArea
               , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume
               , DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc
-              , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT lDensity
+              , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc   
+              , DOUBLE *RESTRICT lDensity
               , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
               , DOUBLE *RESTRICT lA        , DOUBLE *RESTRICT lB
               , DOUBLE *RESTRICT lRcell    , Temporal *ddt 
               , short  *RESTRICT lFaceVelR , short  *RESTRICT lFacePresR
               , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres
+              , DOUBLE *RESTRICT gradRho
               , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField
               , DOUBLE *RESTRICT temp      , DOUBLE *RESTRICT wallPar
+              , DOUBLE const densityMed
               , const short nEn            , short const nFace
               , const short ndm            , INT const nel)
 { 
 
 /*...*/
-	short iCodDif = diffPres->iCod,iCodPolFace;
+	short iCodDif = diffPres->iCod,iCodPolFace,iCodBuoyant;
 /*...*/
   short idCell = nFace;
   short nf, nCarg, typeTime;
@@ -1257,7 +1267,8 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
   DOUBLE wfn,velC[3],velF[3],tempC;
 /*...*/
   DOUBLE ts,xx[4];
-
+/*...*/
+  DOUBLE g[3],gh;
 /*...*/
   densityC = lDensity[idCell];
 /*...................................................................*/
@@ -1271,6 +1282,10 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
   fLhsDensity = eMass->LhsDensity;
   fRhsDensity = eMass->RhsDensity; 
   iCodPolFace = INTPOLFACELINEAR;
+/*...................................................................*/
+
+/*...*/
+  iCodBuoyant = ModelMomentum->iCodBuoyant;
 /*...................................................................*/
 
 /*...*/
@@ -1294,6 +1309,14 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
   dFieldC[0] = MAT2D(idCell,0,dField,3); 
   dFieldC[1] = MAT2D(idCell,1,dField,3);
   dFieldC[2] = MAT2D(idCell,2,dField,3);
+
+  g[0] = gravity[0];
+  g[1] = gravity[1];
+  g[2] = gravity[2];
+
+  gh  = (MAT2D(idCell,0,cc,3) - xRef[0])*g[0]
+      + (MAT2D(idCell,1,cc,3) - xRef[1])*g[1]
+      + (MAT2D(idCell,2,cc,3) - xRef[2])*g[2];
 /*...................................................................*/
 
 /*...*/
@@ -1415,13 +1438,16 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
         nCarg = lFacePresR[nf] - 1;
         pLoadSimplePres(&sP             , &p
                       , tA              , lXmcc
-                      , presC           , gradPresC      
-                      , s               , e        
+                      , presC           , gradPresC   
+                      , s               , e         
                       , t               , lNormal
-                      , densityC        , velC
-                      , lFarea          , lModKsi
+                      , g               , gradRho
+                      , velC            , gh  
+                      , densityC        , densityMed
+                      , lFarea          , dcca[nf]
                       , &lPres[nCarg]   , ndm
-                      , true);
+                      , iCodBuoyant     , true      
+                      , true); 
 /*...................................................................*/
       }
 /*...................................................................*/

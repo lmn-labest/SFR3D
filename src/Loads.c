@@ -735,15 +735,19 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
           , DOUBLE *RESTRICT tA         , DOUBLE *RESTRICT xmcc
           , DOUBLE const presC          , DOUBLE *RESTRICT gradPresC 
-          , DOUBLE *RESTRICT sl         , DOUBLE *RESTRICT e        
-          , DOUBLE *RESTRICT t          , DOUBLE *RESTRICT n      
-          , DOUBLE const densityC       , DOUBLE *RESTRICT velC
+          , DOUBLE *RESTRICT s          , DOUBLE *RESTRICT e        
+          , DOUBLE *RESTRICT t          , DOUBLE *RESTRICT n
+          , DOUBLE *RESTRICT g          , DOUBLE *RESTRICT gradRho      
+          , DOUBLE *RESTRICT velC       , DOUBLE const gh
+          , DOUBLE const densityC       , DOUBLE const densityRef
           , DOUBLE const fArea          , DOUBLE const dd
           , Loads *ld                   , short  const ndm 
-          , bool const fCal){              
+          , short const iCodPres        , bool const fBuoyant
+          , bool const fCal)
+{              
 
   DOUBLE modVel,par[MAXLOADPARAMETER],ev[3],dc,densityEnv,m,presT;
-  DOUBLE tmp[5],modE,xx[4];
+  DOUBLE tmp[5],modE,xx[4],gradPb[3],gradPs;
 
 /*...*/
   tmp[0] = e[0]*e[0] + e[1]*e[1];
@@ -757,6 +761,26 @@ void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
     if(fCal){
       *sP += densityC*modE/dd;
     }
+  }
+/*...................................................................*/
+
+/*... pressao prescrita*/
+  else if( ld->type == FLUXPRES)
+  {
+    if(fBuoyant)
+    {
+      gradPbBuoyant(gradPb  , gradRho
+                  , g       , gh  
+                  , densityC, densityRef
+                  , iCodPres);
+/*...................................................................*/
+
+/*...*/
+       tA[0] += (gradPb[0]*n[0]+gradPb[1]*n[1]+gradPb[2]*n[2])*dd;
+/*...................................................................*/
+
+    }
+/*...................................................................*/
   }
 /*...................................................................*/
 
@@ -1532,3 +1556,43 @@ void initLoads()
   }
 }
 /**********************************************************************/
+
+/**********************************************************************
+ * Data de criacao    : 13/10/2019                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *--------------------------------------------------------------------*
+ * gradPbBuoyant :                                                    *
+ *--------------------------------------------------------------------*
+ * Parametros de entrada:                                             *
+ *--------------------------------------------------------------------*
+ *--------------------------------------------------------------------*
+ * Parametros de saida:                                               *
+ *--------------------------------------------------------------------*
+ *--------------------------------------------------------------------*
+ * OBS:                                                               *
+ *--------------------------------------------------------------------*
+ **********************************************************************/
+void gradPbBuoyant(DOUBLE *RESTRICT gradPb, DOUBLE *RESTRICT gradRho
+                 , DOUBLE *RESTRICT g     , DOUBLE const gh  
+                 , DOUBLE const densityC  , DOUBLE const densityRef
+                 , short const iCod)
+{
+
+  DOUBLE tmp;
+
+  if(iCod == BUOYANT_RHOREF)
+  {
+    tmp       = densityC - densityRef;
+    gradPb[0] = tmp*g[0];
+    gradPb[1] = tmp*g[1];
+    gradPb[2] = tmp*g[2];    
+  }
+  else if(iCod == BUOYANT_PRGH)
+  {
+    gradPb[0] =-gh*gradRho[0];
+    gradPb[1] =-gh*gradRho[1];
+    gradPb[2] =-gh*gradRho[2];
+  }
+/*...................................................................*/
+
+}

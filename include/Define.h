@@ -317,6 +317,7 @@
   #define SLIP            12  /*parede perfeitamente lisa*/
   #define INLETTOTALPRES  13
   #define STATICWALL      14  /*parede impermevel para escoamento*/
+  #define FLUXPRES        15  /*parede impermevel para escoamento*/
 /*...................................................................*/
 
 /*...*/

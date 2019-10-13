@@ -2287,7 +2287,7 @@ static DOUBLE trunkNumber(DOUBLE const a){
  * velocidade e D atualizados                                        * 
  *-------------------------------------------------------------------*
 *********************************************************************/
-void velPresCoupling(Memoria *m       , PropVarFluid *propF
+void velPresCoupling(Memoria *m         , PropVarFluid *propF
                     , Loads *loadsVel   , Loads *loadsPres
                     , MassEqModel *eMass, MomentumModel *ModelMomentum
                     , Turbulence *tModel
@@ -2355,7 +2355,10 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRrho    
            , rho                    , mesh->elm.gradRhoFluid
-           , mesh->node.rhoFluid    , &sc->rcGrad
+           , mesh->node.rhoFluid   
+           , NULL                   , NULL
+           , propF->densityRef
+           , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
            , 1                      , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
@@ -2392,7 +2395,10 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRvel     
            , mesh->elm.vel          , mesh->elm.gradVel
-           , mesh->node.vel         , &sc->rcGrad
+           , mesh->node.vel         
+           , NULL                   , NULL
+           , 0
+           , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
            , ndfVel                 , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
@@ -2421,7 +2427,10 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRpres    
            , mesh->elm.pressure     , mesh->elm.gradPres
-           , mesh->node.pressure    , &sc->rcGrad
+           , mesh->node.pressure    
+           , mesh->elm.densityFluid , mesh->elm.gradRhoFluid 
+           , propF->densityRef
+           , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
            , 1                      , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
@@ -2651,7 +2660,8 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
                , true                      , sistEqPres->unsym); 
   else
     systFormSimplePresLm(loadsVel, loadsPresC
-            , &sc->diffPres          , eMass
+            , &sc->diffPres         
+            , eMass                  , ModelMomentum 
             , tModel
             , mesh->elm.node         , mesh->elm.adj.nelcon
             , mesh->elm.nen          , mesh->elm.adj.nViz
@@ -2667,12 +2677,13 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
             , sistEqPres->ia         , sistEqPres->ja
             , sistEqPres->al         , sistEqPres->ad
             , bPc                    , sistEqPres->id
-            , mesh->elm.faceRvel     , mesh->elm.faceRvel
+            , mesh->elm.faceRvel     , mesh->elm.faceRpres
             , mesh->elm.pressure     , mesh->elm.gradPres
+            , mesh->elm.gradRhoFluid 
             , mesh->elm.vel          , sp->d
             , mesh->elm.temp         , mesh->elm.wallParameters
             , rCellPc                , mesh->elm.densityFluid
-            , &sc->ddt
+            , propF->densityRef      , &sc->ddt
             , sistEqPres->neq        , sistEqPres->neqNov
             , sistEqPres->nad        , sistEqPres->nadr
             , mesh->maxNo            , mesh->maxViz
@@ -2746,7 +2757,10 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
             , mesh->elm.leastSquare  , mesh->elm.leastSquareR
             , mesh->elm.faceRpres    
             , sp->ePresC1            , sp->eGradPresC
-            , sp->nPresC             , &sc->rcGrad
+            , sp->nPresC             
+            , mesh->elm.densityFluid , mesh->elm.gradRhoFluid 
+            , propF->densityRef
+            , &sc->rcGrad
             , mesh->maxNo            , mesh->maxViz
             , 1                      , mesh->ndm
             , &pMesh->iNo            , &pMesh->iEl
@@ -2813,7 +2827,7 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
 
 /*... reconstruindo do gradiente da pressao correcao*/
   tm.rcGradPres = getTimeC() - tm.rcGradPres;
-  rcGradU(m              , loadsPresC
+  rcGradU(m                      , loadsPresC
         , mesh->elm.node         , mesh->elm.adj.nelcon
         , mesh->node.x           
         , mesh->elm.nen          , mesh->elm.adj.nViz
@@ -2830,7 +2844,10 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceRpres    
         , sp->ePresC             , sp->eGradPresC
-        , sp->nPresC             , &sc->rcGrad
+        , sp->nPresC             
+        , mesh->elm.densityFluid , mesh->elm.gradRhoFluid 
+        , propF->densityRef
+        , &sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
         , 1                      , mesh->ndm
         , &pMesh->iNo            , &pMesh->iEl
@@ -2871,7 +2888,10 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceRvel     
         , mesh->elm.vel          , mesh->elm.gradVel
-        , mesh->node.vel         , &sc->rcGrad
+        , mesh->node.vel         
+        , NULL                   , NULL
+        , 0
+        , &sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
         , ndfVel                 , mesh->ndm
         , &pMesh->iNo            , &pMesh->iEl
@@ -2900,7 +2920,10 @@ void velPresCoupling(Memoria *m       , PropVarFluid *propF
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceRpres    
         , mesh->elm.pressure     , mesh->elm.gradPres
-        , mesh->node.pressure    , &sc->rcGrad
+        , mesh->node.pressure    
+        , mesh->elm.densityFluid , mesh->elm.gradRhoFluid 
+        , propF->densityRef
+        , &sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
         , 1                      , mesh->ndm
         , &pMesh->iNo            , &pMesh->iEl

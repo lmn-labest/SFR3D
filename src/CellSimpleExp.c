@@ -362,7 +362,7 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
       if (lFacePresR[nAresta]) {
 /*...cargas*/
         nCarg = lFacePresL[nAresta] - 1;        
-        pLoadSimplePres(&sP             , p
+/*      pLoadSimplePres(&sP             , p
                       , &pFace          , lKsi
                       , presC           , gradPresC 
                       , lNormal         , lNormal
@@ -370,7 +370,7 @@ void cellVelExp2D(Loads *loadsVel    ,Loads *loadsPres
                       , densityC        , velC
                       , lModEta         , dcca[nAresta]
                       , &loadsPres[nCarg], ndm
-                      , false); 
+                      , false); */
       }
 /*...................................................................*/
 
@@ -958,7 +958,7 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
       if (lFacePresR[nf]) {
 /*...cargas*/
         nCarg = lFacePresL[nf] - 1;
-        pLoadSimplePres(&sP             , p
+/*      pLoadSimplePres(&sP             , p
                       , &pFace          , lKsi
                       , presC           , gradPresC
                       , lNormal         , lNormal
@@ -966,7 +966,7 @@ void cellVelExp3D(Loads *loadsVel            ,Loads *loadsPres
                       , densityC        , velC
                       , lFarea          , dcca[nf]
                       , &loadsPres[nCarg], ndm
-                      , false);
+                      , false);*/
       }
 /*...................................................................*/
 

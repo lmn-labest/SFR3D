@@ -62,9 +62,12 @@ bool energyEquation(Memoria *m               , PropVarFluid *prop
          , mesh->elm.leastSquare  ,mesh->elm.leastSquareR
          , mesh->elm.faceRenergy  
          , mesh->elm.energy       ,mesh->elm.gradEnergy
-         , mesh->node.energy      ,&sc->rcGrad
+         , mesh->node.energy      
+         , NULL                   , NULL
+         , 0
+         , &sc->rcGrad
          , mesh->maxNo            ,mesh->maxViz
-         , 1, mesh->ndm
+         , 1                      , mesh->ndm
          , &pMesh->iNo            ,&pMesh->iEl
          , mesh->numelNov         ,mesh->numel
          , mesh->nnodeNov         ,mesh->nnode

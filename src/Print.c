@@ -296,7 +296,10 @@ void printFluid(Memoria *m
          , mesh->elm.leastSquare   , mesh->elm.leastSquareR
          , mesh->elm.faceRpres     
          , mesh->elm.pressure      , mesh->elm.gradPres                
-         , mesh->node.pressure     , &sc->rcGrad
+         , mesh->node.pressure     
+         , NULL                   , NULL
+         , 0
+         , &sc->rcGrad
          , mesh->maxNo             , mesh->maxViz
          , 1                       , mesh->ndm       
          , &pMesh->iNo             , &pMesh->iEl  
@@ -367,7 +370,10 @@ void printFluid(Memoria *m
          , mesh->elm.leastSquare   , mesh->elm.leastSquareR
          , mesh->elm.faceRvel       
          , mesh->elm.vel           , mesh->elm.gradVel                           
-         , mesh->node.vel          , &sc->rcGrad
+         , mesh->node.vel          
+         , NULL                   , NULL
+         , 0
+         , &sc->rcGrad
          , mesh->maxNo             , mesh->maxViz
          , ndfVel                  , mesh->ndm
          , &pMesh->iNo             , &pMesh->iEl  
@@ -463,7 +469,10 @@ void printFluid(Memoria *m
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRrho  
            , eRho                   , mesh->elm.gradRhoFluid
-           , mesh->node.rhoFluid    , &sc->rcGrad
+           , mesh->node.rhoFluid    
+           , NULL                   , NULL
+           , 0
+           , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
            , 1                      , mesh->ndm       
            , &pMesh->iNo            , &pMesh->iEl 
@@ -510,7 +519,10 @@ void printFluid(Memoria *m
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRenergy  
            , mesh->elm.temp         , mesh->elm.gradTemp  
-           , mesh->node.temp        , &sc->rcGrad
+           , mesh->node.temp        
+           , NULL                   , NULL
+           , 0
+           , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
            , 1                      , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
@@ -884,7 +896,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
   if(opt->gradPres)
   {
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
-    rcGradU(m                        , loadsPres
+/*  rcGradU(m                        , loadsPres
            , mesh->elm.node          , mesh->elm.adj.nelcon
            , mesh->node.x
            , mesh->elm.nen           , mesh->elm.adj.nViz
@@ -901,13 +913,16 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
            , mesh->elm.leastSquare   , mesh->elm.leastSquareR
            , mesh->elm.faceRpres    
            , mesh->elm.pressure      , mesh->elm.gradPres                
-           , mesh->node.pressure     , &sc->rcGrad
+           , mesh->node.pressure  
+           , mesh->elm.densityFluid  , mesh->elm.gradRhoFluid 
+           , 0.0   
+           , &sc->rcGrad
            , mesh->maxNo             , mesh->maxViz
            , 1                       , mesh->ndm       
            , &pMesh->iNo             , &pMesh->iEl  
            , mesh->numelNov          , mesh->numel        
            , mesh->nnodeNov          , mesh->nnode
-           , false);  
+           , false);  */
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
   }
 /*...................................................................*/
@@ -981,7 +996,10 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
          , mesh->elm.leastSquare   , mesh->elm.leastSquareR
          , mesh->elm.faceRvel        
          , mesh->elm.vel           , mesh->elm.gradVel                           
-         , mesh->node.vel          , &sc->rcGrad
+         , mesh->node.vel          
+         , NULL                   , NULL
+         , 0
+         , &sc->rcGrad
          , mesh->maxNo             , mesh->maxViz
          , ndfVel                  , mesh->ndm
          , &pMesh->iNo             , &pMesh->iEl  
@@ -1062,7 +1080,10 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceResZcomb 
         , mesh->elm.zComb        , mesh->elm.gradZcomb
-        , mesh->node.zComb       , &sc->rcGrad
+        , mesh->node.zComb       
+        , NULL                   , NULL
+        , 0
+        , &sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
         , ndfComb                , mesh->ndm              
         , &pMesh->iNo            , &pMesh->iEl
@@ -1165,7 +1186,10 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRenergy  
            , mesh->elm.temp         , mesh->elm.gradTemp  
-           , mesh->node.temp        , &sc->rcGrad
+           , mesh->node.temp        
+           , NULL                   , NULL
+           , 0
+           , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
            , 1                      , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl
@@ -1594,7 +1618,10 @@ void printTrans(Memoria *m
          , mesh->elm.leastSquare  , mesh->elm.leastSquareR
          , mesh->elm.faceRt1      
          , mesh->elm.uT1          , mesh->elm.gradUt1
-         , mesh->node.uT1         , &sc->rcGrad
+         , mesh->node.uT1         
+         , NULL                   , NULL
+         , 0
+         , &sc->rcGrad
          , mesh->maxNo            , mesh->maxViz
          , mesh->ndfT[0]          , mesh->ndm
          , &pMesh->iNo            , &pMesh->iEl
@@ -1815,7 +1842,10 @@ void printDiff(Memoria *m
         , mesh->elm.leastSquare  , mesh->elm.leastSquareR
         , mesh->elm.faceRd1      
         , mesh->elm.uD1          , mesh->elm.gradUd1
-        , mesh->node.uD1         , &sc->rcGrad
+        , mesh->node.uD1         
+        , NULL                   , NULL
+        , 0
+        , &sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
         , mesh->ndfD[0]          , mesh->ndm
         , &pMesh->iNo            , &pMesh->iEl

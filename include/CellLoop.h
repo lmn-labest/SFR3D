@@ -53,7 +53,10 @@
            , DOUBLE *RESTRICT lSquare  , DOUBLE *RESTRICT lSquareR 
            , short  *RESTRICT faceR    
            , DOUBLE *RESTRICT u        , DOUBLE *RESTRICT gradU              
-           , DOUBLE *RESTRICT nU       , RcGrad *rcGrad 
+           , DOUBLE *RESTRICT nU       
+           , DOUBLE *RESTRICT density  , DOUBLE *RESTRICT gradRho
+           , DOUBLE const densityRef
+           , RcGrad *rcGrad 
            , short maxNo               , short maxViz
            , short ndf                 , short ndm
            , InterfaceNo *iNo          , Interface *iCel
@@ -215,8 +218,9 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
 
 /* ... montagem do sistemas de equacoes (Simple - Pres)*/
   void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres 
-							 ,Diffusion *diffPres        , MassEqModel *eMass 
-               ,Turbulence *tModel   
+							 ,Diffusion *diffPres        
+               , MassEqModel *eMass        , MomentumModel *mMom 
+               , Turbulence *tModel   
                ,INT    *RESTRICT el        , INT    *RESTRICT nelcon 
                ,short  *RESTRICT nen       , short  *RESTRICT nFace
                , INT *RESTRICT cellFace    , INT *RESTRICT fOwner
@@ -231,12 +235,13 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                , INT    *RESTRICT ia       , INT    *RESTRICT ja
                , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad 
                , DOUBLE *RESTRICT b        , INT    *RESTRICT id
-               , short  *RESTRICT faceVelR , short  *RESTRICT facePresR
+               , short  *RESTRICT faceVelR , short  *RESTRICT facePresR           
                , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
+               , DOUBLE *RESTRICT gradRho
                , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT dField
                , DOUBLE *RESTRICT temp     , DOUBLE *RESTRICT wallPar  
                , DOUBLE *RESTRICT rCell    , DOUBLE *RESTRICT density
-               , Temporal *ddt 
+               , DOUBLE densityMed         , Temporal *ddt 
                , INT nEq                   , INT nEqNov
                , INT nAd                   , INT nAdR                  
                , short maxNo               , short maxViz

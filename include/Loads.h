@@ -38,13 +38,16 @@
           , short const wallType    , INT const nEl );
 
   void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
-          , DOUBLE *RESTRICT tA         , DOUBLE *RESTRICT ksi
+          , DOUBLE *RESTRICT tA         , DOUBLE *RESTRICT xmcc
           , DOUBLE const presC          , DOUBLE *RESTRICT gradPresC 
           , DOUBLE *RESTRICT sl         , DOUBLE *RESTRICT e        
-          , DOUBLE *RESTRICT t          , DOUBLE *RESTRICT n      
-          , DOUBLE const densityC       , DOUBLE *RESTRICT velC                                             
+          , DOUBLE *RESTRICT t          , DOUBLE *RESTRICT n
+          , DOUBLE *RESTRICT g          , DOUBLE *RESTRICT gradRho      
+          , DOUBLE *RESTRICT velC       , DOUBLE const gh
+          , DOUBLE const densityC       , DOUBLE const densityRef
           , DOUBLE const fArea          , DOUBLE const dd
           , Loads *ld                   , short  const ndm 
+          , short const iCodPres        , bool const fBuoyant
           , bool const fCal);
 
   void pLoadEnergy(PropVarFluid *vProp
@@ -93,6 +96,11 @@
                , DOUBLE *RESTRICT wallPar , short  const ndm          
                , bool const fCal          , bool const fWallModel  
                , short const nComb        , short const wallType);
+
+  void gradPbBuoyant(DOUBLE *RESTRICT gradPb, DOUBLE *RESTRICT gradRho
+                   , DOUBLE *RESTRICT g     , DOUBLE const gh  
+                   , DOUBLE const densityC  , DOUBLE const densityRef
+                   , short const iCod);
 /*...................................................................*/
 
 

@@ -389,7 +389,10 @@ void oneEquationK(Memoria *m
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceReKturb      
            , mesh->elm.kTurb        , mesh->elm.gradKturb               
-           , mesh->node.kTurb       , &sc->rcGrad
+           , mesh->node.kTurb       
+           , NULL                   , NULL
+           , 0
+           , &sc->rcGrad
            , mesh->maxNo            , mesh->maxViz
            , 1                      , mesh->ndm
            , &pMesh->iNo            , &pMesh->iEl  

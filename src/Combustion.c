@@ -116,7 +116,10 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
        , mesh->elm.leastSquare  , mesh->elm.leastSquareR
        , mesh->elm.faceResZcomb 
        , mesh->elm.zComb        , mesh->elm.gradZcomb
-       , mesh->node.zComb       , &sc->rcGrad
+       , mesh->node.zComb       
+       , NULL                   , NULL
+       , 0
+       , &sc->rcGrad
        , mesh->maxNo            , mesh->maxViz
        , nComb                  , mesh->ndm              
        , &pMesh->iNo            , &pMesh->iEl

@@ -182,7 +182,10 @@ void diffusion(Memoria *m       ,Loads *loadsDif,DiffModel *dModel
            , mesh->elm.leastSquare   , mesh->elm.leastSquareR
            , mesh->elm.faceRd1          
            , mesh->elm.uD1           , mesh->elm.gradUd1                 
-           , mesh->node.uD1          , &sc->rcGrad
+           , mesh->node.uD1          
+           , NULL                    , NULL
+           , 0
+           , &sc->rcGrad
            , mesh->maxNo             , mesh->maxViz
            , mesh->ndfD[0]           , mesh->ndm
            , &pMesh->iNo             , &pMesh->iEl  
