@@ -4646,7 +4646,6 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
  * ndf1    -> graus de liberdade linha  (tensor)                     * 
  * ndf2    -> graus de liberdade coluna (tensor)                     * 
  * ndm     -> numero de dimensao                                     * 
- * fBc     -> forca condicao de controno conhecida                   * 
  * type    -> tipo de interpolacao                                   * 
  *            1 - media simples                                      * 
  *            2 - media ponderada                                    * 
@@ -4672,19 +4671,17 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
                    ,INT const nNodeNov     ,INT const nNode
                    ,short const maxNo      ,short const maxViz     
                    ,short const ndf1       ,short const ndf2
-                   ,short const ndm
-                   ,bool const fBc         ,short const type)
+                   ,short const ndm        ,short const type)
 
 {
-  int *md=NULL;
+ int *md=NULL;
   DOUBLE *mdf=NULL;
-  bool *flag=NULL;
   INT    idFace;
   short i,j,k,l,n,nodeFace,aux=maxViz+1;
   INT nel,no1,no[4];
   short  isNod[MAX_SN],nCarg,ty,typed;
   DOUBLE dist, dx;
-  DOUBLE uT[MAX_NDF], xx[4], par[MAXLOADPARAMETER];;
+  DOUBLE uT[MAX_NDF], xx[4], par[MAXLOADPARAMETER];
   
   switch(type)
   {
@@ -4884,137 +4881,6 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
     break;
   }
 /*...................................................................*/
-
-/*...*/
-  if(fBc)
-  {
-    HccaAlloc(int ,m,md  ,nNode,"md",false);
-    HccaAlloc(bool,m,flag,nNode,"flag",false);
-    zero(md  ,nNode,"int");
-    zero(flag,nNode,"bool");
-    for(nel = 0; nel < numel; nel++)
-    {
-      for(i = 0; i < nFace[nel]; i++)
-      {
-        idFace    = MAT2D(nel   , i, cellFace, maxViz) - 1;
-        if(MAT2D(nel,i,faceR,aux)>0)
-        {
-/*...*/
-          xx[0] = MAT2D(idFace, 0, fXm, ndm);
-          xx[1] = MAT2D(idFace, 1, fXm, ndm);
-          xx[2] = 0.0e0;                             
-          if(ndm == 3) xx[2] = MAT2D(idFace, 2, fXm, ndm);
-/*...................................................................*/
-          nCarg=MAT2D(nel,i,faceR,aux)-1;
-          typed = loads[nCarg].type;
-/*... valor pescrito */
-          if( typed == DIRICHLETBC || typed == MOVEWALL)
-          {
-            ty = geomType[nel];
-            nodeFace =  sn(isNod,ty,nel); 
-            for(n=0;n<nodeFace ;n++)
-            {
-              no[n] = MAT2D(i,n,isNod,nodeFace );
-              no[n] = MAT2D(nel,no[n],el,maxNo) - 1;
-              if(flag[no[n]] == false)
-              {
-                flag[no[n]] = true;
-                for(k = 0; k   < ndf1;k++)
-                  MAT2D(no[n],k,noU,ndf1) = 0.e0;
-              }
-              getLoads(par,&loads[nCarg],xx);
-              for(k = 0; k   < ndf1;k++) 
-                MAT2D(no[n],k,noU,ndf1) += par[k];
-              md[no[n]]++;
-            }
-          }
-/*...................................................................*/
-
-/*... valor pescrito */
-          else if( typed == INLET )
-          {
-            ty = geomType[nel];
-            nodeFace =  sn(isNod,ty,nel); 
-            for(n=0;n<nodeFace ;n++){
-              no[n] = MAT2D(i,n,isNod,nodeFace );
-              no[n] = MAT2D(nel,no[n],el,maxNo) - 1;
-              if(flag[no[n]] == false)
-              {
-                flag[no[n]] = true;
-                for(k = 0; k   < ndf1;k++)
-                  MAT2D(no[n],k,noU,ndf1) = 0.e0;
-              }
-              getLoads(par,&loads[nCarg],xx);
-              for(k = 0; k   < ndf1;k++) 
-                MAT2D(no[n],k,noU,ndf1) += par[k];
-              md[no[n]]++;
-            }
-          }
-/*...................................................................*/
-
-/*... valor pescrito  senoidal*/
-          else if( typed == SINBC)
-          {
-            ty = geomType[nel];
-            nodeFace =  sn(isNod,ty,nel); 
-            for(n=0;n<nodeFace ;n++)
-            {
-              no[n] = MAT2D(i,n,isNod,nodeFace );
-              no[n] = MAT2D(nel,no[n],el,maxNo) - 1;
-              if(flag[no[n]] == false)
-              {
-                flag[no[n]] = true;
-                for(k = 0; k   < ndf1;k++)
-                  MAT2D(no[n],k,noU,ndf1) = 0.e0;
-              }
-              loadSenProd(uT,loads[nCarg].par,xx);
-              for(k = 0; k   < ndf1;k++) 
-                MAT2D(no[n],k,noU,ndf1) += uT[k];
-              md[no[n]]++;
-            }
-/*...................................................................*/
-          }
-/*...................................................................*/
-
-/*... condicao de parede estatica*/
-          else if(typed == STATICWALL)
-          {
-            ty = geomType[nel];
-            nodeFace =  sn(isNod,ty,nel); 
-            for(n=0;n<nodeFace ;n++)
-            {
-              no[n] = MAT2D(i,n,isNod,nodeFace );
-              no[n] = MAT2D(nel,no[n],el,maxNo) - 1;
-              if(flag[no[n]] == false)
-              {
-                flag[no[n]] = true;
-                for(k = 0; k   < ndf1;k++)
-                  MAT2D(no[n],k,noU,ndf1) = 0.e0;
-              }
-              md[no[n]]++;
-            }
-          }
-/*...................................................................*/
-        }
-/*...................................................................*/
-      }
-/*...................................................................*/
-    } 
-/*...................................................................*/
-
-/*...*/
-    for(no1 = 0; no1 < nNodeNov; no1++)
-      if(flag[no1])
-        for(k = 0; k < ndf1; k++)
-          MAT2D(no1,k,noU,ndf1) /= md[no1];
-/*...................................................................*/
-
-/*...*/
-    HccaDealloc(m,flag,"flag",false);
-    HccaDealloc(m,md  ,"md"  ,false);
-/*...................................................................*/
-  }
-/*...................................................................*/
 }
 /*********************************************************************/
 
@@ -5115,7 +4981,7 @@ void rcGradU(Memoria *m                , Loads *loads
   DOUBLE lKsi[MAX_NUM_FACE*3],lmKsi[MAX_NUM_FACE];
   DOUBLE lEta[MAX_NUM_FACE*3],lfArea[MAX_NUM_FACE];
   DOUBLE lNormal[MAX_NUM_FACE*3],lVolume[MAX_NUM_FACE+1];
-  DOUBLE lvSkew[MAX_NUM_FACE*3];
+  DOUBLE lvSkew[MAX_NUM_FACE*3],lCc[(MAX_NUM_FACE+1)*MAX_NDM];
   DOUBLE lXm[MAX_NUM_FACE*MAX_NDM],lXmcc[MAX_NUM_FACE*3];
   short  lFaceR[MAX_NUM_FACE+1];
   DOUBLE lu[(MAX_NUM_FACE+1)*MAX_NDF];
@@ -5130,7 +4996,8 @@ void rcGradU(Memoria *m                , Loads *loads
   INT idFace, cellOwner, ch;
 
 /*... reconstrucao de gradiente Green-Gauss nodal*/
-  if(rcGrad->type ==  RCGRADGAUSSN){
+  if(rcGrad->type ==  RCGRADGAUSSN)
+  {
     interCellNode(m         ,loads  
                  ,cellFace  ,fOwner
                  ,nU        ,u
@@ -5143,8 +5010,24 @@ void rcGradU(Memoria *m                , Loads *loads
                  ,nNodeNov  ,nNode  
                  ,maxNo     ,maxViz
                  ,ndf       ,1  
-                 ,ndm    
-                 ,true      ,2);                
+                 ,ndm       ,2);    
+/*... condicao de contorno para os nos*/
+    boundaryNode(m       ,loads  
+              ,cellFace  ,fOwner
+              ,nU        ,u
+              ,el        ,geomType
+              ,gCc       ,x
+              ,fXm       ,fXmCc 
+              ,density   ,gradRho
+              ,densityRef 
+              ,nen       ,nFace
+              ,faceR           
+              ,numelNov  ,numel     
+              ,nNodeNov  ,nNode  
+              ,maxNo     ,maxViz
+              ,ndf       ,1  
+              ,ndm       ); 
+/*.....................................................................*/            
   }
 /*.....................................................................*/
 
@@ -5154,14 +5037,13 @@ void rcGradU(Memoria *m                , Loads *loads
      num_threads(nThreads)\
      private(nel,i,j,aux1,lMat,lVolume,lmKsi,lfArea,lDcca,lKsi,lEta\
           ,lNormal,lXm,lXmcc,lvSkew,vizNel,lViz,lFaceR,lu,lnU\
-          ,lPara,lLsquare,lLsquareR,lGradU,ty,isNod,no\
+          ,lPara,lLsquare,lLsquareR,lGradU,ty,isNod,no,lCc\
           ,idFace,cellOwner,ch)\
      shared(aux2,ndm,ndf,numel,maxViz,nFace,mat,u,nU,lSquare,lSquareR\
          ,gVolume, geomType,prop,fModKsi,faceR,gradU,numelNov,rcGrad\
          ,fArea,gDcca,fKsi,fEta,fNormal,fXm,fXmCc,fvSkew,maxNo\
          ,nelcon,loadsVel,loadsPres,nen,loads,el,density,densityRef\
-         ,gradRho\
-         ,fOwner,cellFace)
+         ,gradRho,gCc,fOwner,cellFace,gravity,xRef)
   for (nel = 0; nel<numelNov; nel++)
   {
     aux1 = nFace[nel];
@@ -5174,6 +5056,9 @@ void rcGradU(Memoria *m                , Loads *loads
     for (i = 0; i<ndf; i++)
       MAT2D(aux1, i, lu, ndf) = MAT2D(nel, i, u, ndf);
 
+    for (j = 0; j<ndm; j++) 
+      MAT2D(aux1, j, lCc, ndm) = MAT2D(nel, j, gCc, ndm);
+       
 /*...*/
     lPara[0] = MAT2D(lMat, COEFDIF, prop, MAXPROP);    
     if( density != NULL )
@@ -5186,6 +5071,8 @@ void rcGradU(Memoria *m                , Loads *loads
       lPara[3] = MAT2D(nel,0,gradRho ,3);
       lPara[4] = MAT2D(nel,1,gradRho ,3);  
       lPara[5] = MAT2D(nel,2,gradRho ,3); 
+      for(i = 0, lPara[6] = 0.e0; i < ndm;i++)
+        lPara[6] += (MAT2D(nel,i,gCc,ndm) - xRef[i])*gravity[i];       
     }
 /*.....................................................................
 */
@@ -5247,7 +5134,10 @@ void rcGradU(Memoria *m                , Loads *loads
       lFaceR[i] = MAT2D(nel, i, faceR, aux2);
 
       for (j = 0; j<ndm; j++)
+      {
         MAT2D(i, j, lXmcc, ndm) = MAT3D(nel, i, j, fXmCc, maxViz, ndm);
+        MAT2D(i, j, lCc, ndm)   = MAT2D(nel, j, gCc, ndm);
+      }
 
       vizNel = MAT2D(nel, i, nelcon, maxViz) - 1;
       lViz[i] = vizNel;
@@ -5291,7 +5181,7 @@ void rcGradU(Memoria *m                , Loads *loads
                 , lKsi        , lmKsi
                 , lEta        , lfArea
                 , lNormal     , lVolume
-                , lvSkew      
+                , lvSkew      , lCc
                 , lXm         , lXmcc
                 , lDcca       , lFaceR     
                 , lu          , lGradU
@@ -5629,6 +5519,7 @@ void wallFluid(Loads *ldVel
  * nFace   -> numero de faces por celulas                            * 
  * nEl     -> numero de toral de celulas                             * 
  * maxViz  -> numero vizinhos por celula maximo da malha             * 
+ * iCod    -> tipo do termo de empuxo                                *
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------*
@@ -5641,7 +5532,8 @@ void wallFluidVelPres(Loads *ldVel
               ,Loads *ldPresC          ,Loads *ldPres 
               ,short *RESTRICT faceRvel,short *RESTRICT faceRpres
               ,INT *RESTRICT nelcon    ,short *RESTRICT nFace     
-              ,INT const nEl           ,short const maxViz)
+              ,INT const nEl           ,short const maxViz
+              ,short const iCod)
 {
   short nCargVel,nCargPres;
   INT i,j,vizNel,aux2;                   
@@ -5672,12 +5564,13 @@ void wallFluidVelPres(Loads *ldVel
         {
           MAT2D(i,j,faceRvel ,aux2) = nCargVel+1;
           MAT2D(i,j,faceRpres,aux2) = nCargPres+1;
-          ldVel[nCargVel].fUse    = true;
-          ldVel[nCargVel].type    = STATICWALL;
-          ldPres[nCargPres].fUse  = true;
-          ldPres[nCargPres].type  = FLUXPRES;
-          ldPresC[nCargPres].fUse = true;
-          ldPresC[nCargPres].type = FLUXPRES;
+          ldVel[nCargVel].fUse      = true;
+          ldVel[nCargVel].type      = STATICWALL;
+          ldPres[nCargPres].fUse    = true;
+          ldPres[nCargPres].type    = FLUXPRES;
+          ldPres[nCargPres].iCod[0] = iCod;
+          ldPresC[nCargPres].fUse   = true;
+          ldPresC[nCargPres].type   = FLUXPRESC;
         }
 /*....................................................................*/
 
@@ -5686,12 +5579,13 @@ void wallFluidVelPres(Loads *ldVel
         {
           MAT2D(i,j,faceRvel ,aux2) = nCargVel+1;
           MAT2D(i,j,faceRpres,aux2) = nCargPres+1;
-          ldVel[nCargVel].fUse    = true;
-          ldVel[nCargVel].type    = SLIP;
-          ldPres[nCargPres].fUse  = true;
-          ldPres[nCargPres].type  = FLUXPRES;
-          ldPresC[nCargPres].fUse = true;
-          ldPresC[nCargPres].type = FLUXPRES;
+          ldVel[nCargVel].fUse      = true;
+          ldVel[nCargVel].type      = SLIP;
+          ldPres[nCargPres].fUse    = true;
+          ldPres[nCargPres].type    = FLUXPRES;
+          ldPres[nCargPres].iCod[0] = iCod;
+          ldPresC[nCargPres].fUse   = true;
+          ldPresC[nCargPres].type   = FLUXPRESC;
         }
 /*....................................................................*/
       }
@@ -6529,3 +6423,230 @@ void getColFromMatrix(DOUBLE *v   ,DOUBLE *m
 
 }
 /**********************************************************************/
+
+
+/**********************************************************************
+ * Data de criacao    : 14/10/2019                                    *
+ * Data de modificaco : 00/00/0000                                    *
+ *------------------------------------------------------------------- * 
+ * boundaryNode : pega um coluna de uma matriz                        *  
+ * ------------------------------------------------------------------ *
+ * parametros de entrada:                                             * 
+ * ------------------------------------------------------------------ *
+ * cellFace   -> faces que formam a celulas                           *
+ * owner      -> elementos que compartilham a face(0- o dono,1 - viz) *
+ * el         -> conetividade dos celulas                             *
+ * cc         -> centroide do elemento                                * 
+ * fXm        -> pontos medios das faces das celulas                  *
+ * gXmCc      -> vetores que unem o centroide aos pontos medios das   *
+ * gXmCc      -> vetores que unem o centroide aos pontos medios das   *
+ * density    -> densidade por celula                                 *
+ * densidyRef -> densidade media/referencia                           *
+ * gradRho    -> gradeiente de densidade                              *
+ * nen        -> numero de nos por celulas                            *
+ * nFace      -> numero de faces por celulas                          *
+ * maxNo      -> numero de nos por celula maximo da malha             *
+ * maxViz     -> numero vizinhos por celula maximo da malha           *
+ * ndf1       -> graus de liberdade linha  (tensor)                   * 
+ * ndf2       -> graus de liberdade coluna (tensor)                   * 
+ * ndm       -> numero de dimensoes                                   * 
+ * ------------------------------------------------------------------ *
+ * parametros de saida  :                                             * 
+ * ------------------------------------------------------------------ *
+ * ------------------------------------------------------------------ *
+ * OBS:                                                               *
+ * u      -> atualizado | u1 u2 u3 |                                  * 
+ *                      | v1 v2 v3 |                                  *
+ *                      | w1 w2 w3 |                                  *
+ *------------------------------------------------------------------- *
+ **********************************************************************/
+void boundaryNode(Memoria *m              ,Loads *loads 
+                 ,INT *RESTRICT cellFace  ,INT *RESTRICT fOwner
+                 ,DOUBLE *RESTRICT noU    ,DOUBLE *RESTRICT elU
+                 ,INT *RESTRICT el        ,short  *RESTRICT geomType 
+                 ,DOUBLE *RESTRICT cc     ,DOUBLE *RESTRICT x
+                 ,DOUBLE *RESTRICT fXm    ,DOUBLE *RESTRICT gXmCc 
+                 ,DOUBLE *RESTRICT density,DOUBLE *RESTRICT gradRho
+                 ,DOUBLE const densityRef
+                 ,short *RESTRICT nen     ,short *RESTRICT nFace
+                 ,short  *RESTRICT faceR  
+                 ,INT const numelNov      ,INT const numel        
+                 ,INT const nNodeNov      ,INT const nNode
+                 ,short const maxNo       ,short const maxViz     
+                 ,short const ndf1        ,short const ndf2
+                 ,short const ndm         )
+{
+
+  bool *flag = NULL;
+  short i,j,k,l,n,nodeFace,aux=maxViz+1,isNod[MAX_SN]
+       ,nCarg,ty,typed;
+  int *md=NULL;
+  DOUBLE *mdf=NULL;
+  INT nel, idFace, no1, no[4];
+  DOUBLE xx[4],par[MAXLOADPARAMETER],uT[MAX_NDF];
+  DOUBLE gradPb[3],dx,gh,lDensity;
+
+  HccaAlloc(int ,m,md  ,nNode,"md",false);
+  HccaAlloc(bool,m,flag,nNode,"flag",false);
+  zero(md  ,nNode,"int");
+  zero(flag,nNode,"bool");
+  for(nel = 0; nel < numel; nel++)
+  {
+    for(i = 0; i < nFace[nel]; i++)
+    {
+      idFace    = MAT2D(nel   , i, cellFace, maxViz) - 1;
+      if(MAT2D(nel,i,faceR,aux)>0)
+      {
+/*...*/
+        xx[0] = MAT2D(idFace, 0, fXm, ndm);
+        xx[1] = MAT2D(idFace, 1, fXm, ndm);
+        xx[2] = 0.0e0;                             
+        if(ndm == 3) xx[2] = MAT2D(idFace, 2, fXm, ndm);
+/*...................................................................*/
+        nCarg=MAT2D(nel,i,faceR,aux)-1;
+        typed = loads[nCarg].type;
+/*... valor pescrito */
+        if( typed == DIRICHLETBC || typed == MOVEWALL)
+        {
+          ty = geomType[nel];
+          nodeFace =  sn(isNod,ty,nel); 
+          for(n=0;n<nodeFace ;n++)
+          {
+            no[n] = MAT2D(i,n,isNod,nodeFace );
+            no[n] = MAT2D(nel,no[n],el,maxNo) - 1;
+            if(flag[no[n]] == false)
+            {
+              flag[no[n]] = true;
+              for(k = 0; k   < ndf1;k++)
+                MAT2D(no[n],k,noU,ndf1) = 0.e0;
+            }
+            getLoads(par,&loads[nCarg],xx);
+            for(k = 0; k   < ndf1;k++) 
+              MAT2D(no[n],k,noU,ndf1) += par[k];
+            md[no[n]]++;
+          }
+        }
+/*...................................................................*/
+
+/*... valor pescrito */
+        else if( typed == INLET )
+        {
+          ty = geomType[nel];
+          nodeFace =  sn(isNod,ty,nel); 
+          for(n=0;n<nodeFace ;n++){
+            no[n] = MAT2D(i,n,isNod,nodeFace );
+            no[n] = MAT2D(nel,no[n],el,maxNo) - 1;
+            if(flag[no[n]] == false)
+            {
+              flag[no[n]] = true;
+              for(k = 0; k   < ndf1;k++)
+                MAT2D(no[n],k,noU,ndf1) = 0.e0;
+            }
+            getLoads(par,&loads[nCarg],xx);
+            for(k = 0; k   < ndf1;k++) 
+              MAT2D(no[n],k,noU,ndf1) += par[k];
+            md[no[n]]++;
+          }
+        }
+/*...................................................................*/
+
+/*... valor pescrito */
+        else if( typed == FLUXPRES )
+        {
+          ty = geomType[nel];
+          nodeFace =  sn(isNod,ty,nel); 
+          for(n=0;n<nodeFace ;n++){
+            no[n] = MAT2D(i,n,isNod,nodeFace);
+            no[n] = MAT2D(nel,no[n],el,maxNo) - 1;
+            if(flag[no[n]] == false)
+            {
+              flag[no[n]] = true;
+              for(k = 0; k < ndf1;k++)
+                MAT2D(no[n],k,noU,ndf1) = 0.e0;
+            }
+            lDensity = MAT2D(nel,TIME_N,density ,DENSITY_LEVEL);
+
+            for(k = 0, gh = 0.e0; k < ndm;k++)
+              gh += (MAT2D(nel,k,cc,ndm) - xRef[k])*gravity[k];
+
+            gradPbBuoyant(gradPb    , &MAT2D(nel,0,gradRho,ndm)
+                        , gravity   , gh 
+                        , lDensity  , densityRef 
+                        , loads[nCarg].iCod[0]);
+//          gradPb[0] = gradPb[1] = gradPb[2] = 0.0;
+            noU[no[n]] += elU[nel];
+            for(k = 0; k < ndm;k++)
+            {
+              dx = MAT2D(no[n],k,x,ndm) - MAT2D(nel,k,cc,ndm);
+              noU[no[n]] += gradPb[k]*dx;
+            }
+            md[no[n]]++;
+          }
+        }
+/*...................................................................*/
+
+
+/*... valor pescrito  senoidal*/
+        else if( typed == SINBC)
+        {
+          ty = geomType[nel];
+          nodeFace =  sn(isNod,ty,nel); 
+          for(n=0;n<nodeFace ;n++)
+          {
+            no[n] = MAT2D(i,n,isNod,nodeFace );
+            no[n] = MAT2D(nel,no[n],el,maxNo) - 1;
+            if(flag[no[n]] == false)
+            {
+              flag[no[n]] = true;
+              for(k = 0; k   < ndf1;k++)
+                MAT2D(no[n],k,noU,ndf1) = 0.e0;
+            }
+            loadSenProd(uT,loads[nCarg].par,xx);
+            for(k = 0; k   < ndf1;k++) 
+              MAT2D(no[n],k,noU,ndf1) += uT[k];
+            md[no[n]]++;
+          }
+/*...................................................................*/
+        }
+/*...................................................................*/
+
+/*... condicao de parede estatica*/
+        else if(typed == STATICWALL)
+        {
+          ty = geomType[nel];
+          nodeFace =  sn(isNod,ty,nel); 
+          for(n=0;n<nodeFace ;n++)
+          {
+            no[n] = MAT2D(i,n,isNod,nodeFace );
+            no[n] = MAT2D(nel,no[n],el,maxNo) - 1;
+            if(flag[no[n]] == false)
+            {
+              flag[no[n]] = true;
+              for(k = 0; k   < ndf1;k++)
+                MAT2D(no[n],k,noU,ndf1) = 0.e0;
+            }
+            md[no[n]]++;
+          }
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+    }
+/*...................................................................*/
+  } 
+/*...................................................................*/
+
+/*...*/
+    for(no1 = 0; no1 < nNodeNov; no1++)
+      if(flag[no1])
+        for(k = 0; k < ndf1; k++)
+          MAT2D(no1,k,noU,ndf1) /= md[no1];
+/*...................................................................*/
+
+/*...*/
+  HccaDealloc(m,flag,"flag",false);
+  HccaDealloc(m,md  ,"md"  ,false);
+/*...................................................................*/
+
+}
+/*********************************************************************/

@@ -786,7 +786,7 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 /*...*/
   DOUBLE xx[4],ts;
 /*... */
-  DOUBLE g[3],gh,ghF;
+  DOUBLE g[3],gh;
 /*...*/
   DOUBLE pAdv[NPADV];
   
@@ -873,7 +873,6 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
 /*...*/
     g[i]  = gravity[i];
     gh   += (MAT2D(idCell,i,cc  ,3) - xRef[i])*g[i];
-    ghF  += (MAT2D(idCell,i,xmcc,3) - xRef[i])*g[i];
 /*...................................................................*/
 
   }
@@ -1115,7 +1114,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
                       , s               , e         
                       , t               , lNormal
                       , g               , gradRho
-                      , velC            , ghF    
+                      , velC            , gh    
                       , densityC        , densityMed  
                       , lFarea          , dcca[nf]
                       , &lPres[nCarg]   , ndm

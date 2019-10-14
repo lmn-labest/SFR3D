@@ -194,7 +194,7 @@ static void globalCombCel(Memoria *m
 
 /********************************************************************* 
  * Data de criacao    : 02/12/2017                                   *
- * Data de modificaco : 09/10/2019                                   *
+ * Data de modificaco : 14/10/2019                                   *
  *-------------------------------------------------------------------*
  * printFluid: impressao do fluido                                   * 
  *-------------------------------------------------------------------* 
@@ -216,14 +216,15 @@ static void globalCombCel(Memoria *m
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void printFluid(Memoria *m        
+void printFluid(Memoria *m           ,PropVarFluid *propF
                ,Turbulence *turbModel,EnergyModel *eModel
                ,PartMesh *pMesh      ,Scheme *sc
                ,Loads *loadsVel      ,Loads *loadsPres 
                ,Loads *loadsTemp     ,FileOpt *opt
                ,Mesh *mesh0          ,Mesh *mesh  
                ,Mean *media      
-               ,char *preName        ,char *nameOut){
+               ,char *preName        ,char *nameOut)
+{
  
   short ndm = mesh->ndm;
   
@@ -297,8 +298,8 @@ void printFluid(Memoria *m
          , mesh->elm.faceRpres     
          , mesh->elm.pressure      , mesh->elm.gradPres                
          , mesh->node.pressure     
-         , NULL                   , NULL
-         , 0
+         , mesh->elm.densityFluid , mesh->elm.gradRhoFluid
+         , propF->densityRef
          , &sc->rcGrad
          , mesh->maxNo             , mesh->maxViz
          , 1                       , mesh->ndm       
@@ -310,7 +311,7 @@ void printFluid(Memoria *m
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (GradPres)*/
-    interCellNode(m                  , loadsPres
+    interCellNode(m                 , loadsPres
               , mesh->elm.cellFace , mesh->face.owner
               , mesh->node.gradPres, mesh->elm.gradPres
               , mesh->elm.node     , mesh->elm.geomType            
@@ -322,14 +323,14 @@ void printFluid(Memoria *m
               , mesh->nnodeNov     , mesh->nnode 
               , mesh->maxNo        , mesh->maxViz   
               , mesh->ndm          , 1
-              , mesh->ndm      
-              , false              , 2);
+              , mesh->ndm          , 2);
   }
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (pres)*/
   if(opt->pres)
-    interCellNode(m                   , loadsPres
+  {
+    interCellNode(m                 , loadsPres
                , mesh->elm.cellFace , mesh->face.owner
                , mesh->node.pressure, mesh->elm.pressure   
                , mesh->elm.node     , mesh->elm.geomType            
@@ -341,8 +342,23 @@ void printFluid(Memoria *m
                , mesh->nnodeNov     , mesh->nnode 
                , mesh->maxNo        , mesh->maxViz   
                , 1                  , 1
-               , mesh->ndm            
-               , opt->bconditions    , 2);
+               , mesh->ndm          , 2);
+    boundaryNode(m                     , loadsPres  
+               , mesh->elm.cellFace    , mesh->face.owner
+               , mesh->node.pressure   , mesh->elm.pressure   
+               , mesh->elm.node        , mesh->elm.geomType            
+               , mesh->elm.geom.cc     , mesh->node.x  
+               , mesh->face.xm         , mesh->elm.geom.xmcc 
+               , mesh->elm.densityFluid, mesh->elm.gradRhoFluid
+               , propF->densityRef 
+               , mesh->elm.nen         , mesh->elm.adj.nViz
+               , mesh->elm.faceRpres             
+               , mesh->numelNov        , mesh->numel      
+               , mesh->nnodeNov        , mesh->nnode   
+               , mesh->maxNo           , mesh->maxViz
+               , 1                     ,1  
+               , mesh->ndm       ); 
+  }
 /*...................................................................*/
 
 /*... calculo da matrix jacobiana das velocidades
@@ -396,13 +412,13 @@ void printFluid(Memoria *m
                , mesh->nnodeNov     , mesh->nnode 
                , mesh->maxNo        , mesh->maxViz   
                , ndfVel             , mesh->ndm
-               , mesh->ndm            
-               , false              , 2);
+               , mesh->ndm          , 2);
   }
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
   if(opt->fNode && opt->vel)
+  {
     interCellNode(m                  , loadsVel
                , mesh->elm.cellFace, mesh->face.owner
                , mesh->node.vel    , mesh->elm.vel        
@@ -415,8 +431,24 @@ void printFluid(Memoria *m
                , mesh->nnodeNov    , mesh->nnode 
                , mesh->maxNo       , mesh->maxViz   
                , mesh->ndm         , 1
-               , mesh->ndm      
-               , opt->bconditions   , 2);
+               , mesh->ndm         , 2);
+
+    boundaryNode(m                     , loadsVel  
+               , mesh->elm.cellFace    , mesh->face.owner
+               , mesh->node.vel        , mesh->elm.vel    
+               , mesh->elm.node        , mesh->elm.geomType            
+               , mesh->elm.geom.cc     , mesh->node.x  
+               , mesh->face.xm         , mesh->elm.geom.xmcc 
+               , mesh->elm.densityFluid, mesh->elm.gradRhoFluid
+               , propF->densityRef 
+               , mesh->elm.nen         , mesh->elm.adj.nViz
+               , mesh->elm.faceRvel             
+               , mesh->numelNov        , mesh->numel      
+               , mesh->nnodeNov        , mesh->nnode   
+               , mesh->maxNo           , mesh->maxViz
+               , ndfVel                , 1  
+               , mesh->ndm       );
+  }
 /*...................................................................*/
 
 /*... medias*/
@@ -436,8 +468,7 @@ void printFluid(Memoria *m
                    , mesh->nnodeNov     , mesh->nnode 
                    , mesh->maxNo        , mesh->maxViz   
                    , mesh->ndm          , 1
-                   , mesh->ndm            
-                   , false              , 2);
+                   , mesh->ndm          , 2);
 /*...................................................................*/
   }
 /*...................................................................*/
@@ -496,8 +527,7 @@ void printFluid(Memoria *m
               , mesh->nnodeNov       , mesh->nnode
               , mesh->maxNo          , mesh->maxViz
               , 1                    , mesh->ndm   
-              , mesh->ndm              
-              , false                , 2);  
+              , mesh->ndm            , 2);  
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (Energia)*/
@@ -545,13 +575,13 @@ void printFluid(Memoria *m
               , mesh->nnodeNov       , mesh->nnode
               , mesh->maxNo          , mesh->maxViz
               , mesh->ndm            , 1
-              , mesh->ndm              
-              , false                , 2);  
+              , mesh->ndm            , 2);  
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (energy)*/
     if(opt->fNode && opt->energy)
-     interCellNode(m                 , loadsTemp
+    {
+     interCellNode(m                , loadsTemp
              , mesh->elm.cellFace   , mesh->face.owner
              , mesh->node.temp      , mesh->elm.temp
              , mesh->elm.node       , mesh->elm.geomType
@@ -563,8 +593,24 @@ void printFluid(Memoria *m
              , mesh->nnodeNov       , mesh->nnode
              , mesh->maxNo          , mesh->maxViz
              , 1                    , 1
-             , mesh->ndm              
-             , opt->bconditions      , 2);  
+             , mesh->ndm            , 2);  
+
+      boundaryNode(m                   , loadsTemp   
+               , mesh->elm.cellFace    , mesh->face.owner
+               , mesh->node.vel        , mesh->elm.vel    
+               , mesh->elm.node        , mesh->elm.geomType            
+               , mesh->elm.geom.cc     , mesh->node.x  
+               , mesh->face.xm         , mesh->elm.geom.xmcc 
+               , mesh->elm.densityFluid, mesh->elm.gradRhoFluid
+               , propF->densityRef 
+               , mesh->elm.nen         , mesh->elm.adj.nViz
+               , mesh->elm.faceRenergy             
+               , mesh->numelNov        , mesh->numel      
+               , mesh->nnodeNov        , mesh->nnode   
+               , mesh->maxNo           , mesh->maxViz
+               , 1                     , 1  
+               , mesh->ndm       );
+    }
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (density)*/
@@ -581,8 +627,7 @@ void printFluid(Memoria *m
              , mesh->nnodeNov     , mesh->nnode
              , mesh->maxNo        , mesh->maxViz
              , 3                  , 1
-             , mesh->ndm            
-             , false              , 2);  
+             , mesh->ndm          , 2);  
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (dViscosity)*/
@@ -599,8 +644,7 @@ void printFluid(Memoria *m
                 , mesh->nnodeNov       , mesh->nnode
                 , mesh->maxNo          , mesh->maxViz
                 , 1                    , 1
-                , mesh->ndm              
-                , false                , 2);
+                , mesh->ndm            , 2);
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (sHeat)*/
@@ -617,8 +661,7 @@ void printFluid(Memoria *m
                 , mesh->nnodeNov       , mesh->nnode
                 , mesh->maxNo          , mesh->maxViz
                 , 1                    , 1
-                , mesh->ndm              
-                , false                , 2);
+                , mesh->ndm            , 2);
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (sHeat)*/
@@ -635,8 +678,7 @@ void printFluid(Memoria *m
                 , mesh->nnodeNov       , mesh->nnode
                 , mesh->maxNo          , mesh->maxViz
                 , 1                    , 1
-                , mesh->ndm              
-                , false                , 2);
+                , mesh->ndm            , 2);
 /*...................................................................*/
   }
 /*...................................................................*/
@@ -658,8 +700,7 @@ void printFluid(Memoria *m
                    , mesh->nnodeNov    , mesh->nnode 
                    , mesh->maxNo       , mesh->maxViz   
                    , 1                 , 1
-                   , mesh->ndm           
-                   , false             , 2);
+                   , mesh->ndm         , 2);
 /*...................................................................*/
 
 /*... tensor residual (modelos estruturais)*/
@@ -676,8 +717,7 @@ void printFluid(Memoria *m
                 , mesh->nnodeNov          , mesh->nnode 
                 , mesh->maxNo             , mesh->maxViz   
                 , 6                       , 1
-                , mesh->ndm                 
-                , false                   , 2);
+                , mesh->ndm               , 2);
 /*...................................................................*/
 
 /*... coeficiente dinamico*/
@@ -694,8 +734,7 @@ void printFluid(Memoria *m
                 , mesh->nnodeNov           , mesh->nnode 
                 , mesh->maxNo              , mesh->maxViz   
                 , 2                        , 1
-                , mesh->ndm                  
-                , false                    , 2);
+                , mesh->ndm                , 2);
 /*...................................................................*/
 
 /*... parametros de parede*/
@@ -712,8 +751,7 @@ void printFluid(Memoria *m
                 , mesh->nnodeNov          , mesh->nnode 
                 , mesh->maxNo             , mesh->maxViz   
                 , 4                       , 1
-                , mesh->ndm                 
-                , false                   , 2);
+                , mesh->ndm               , 2);
 /*...................................................................*/
 
 /*... energia cinetica turbulenta*/
@@ -730,8 +768,7 @@ void printFluid(Memoria *m
             , mesh->nnodeNov       , mesh->nnode 
             , mesh->maxNo          , mesh->maxViz   
             , 1                    , 1
-            , mesh->ndm              
-            , false                , 2);
+            , mesh->ndm            , 2);
 /*...................................................................*/
 
   }                                 
@@ -943,8 +980,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
               , mesh->nnodeNov     , mesh->nnode 
               , mesh->maxNo        , mesh->maxViz   
               , mesh->ndm          , 1
-              , mesh->ndm      
-              , false              , 2);
+              , mesh->ndm          , 2);
     tm.interCellNode = getTimeC() - tm.interCellNode;
   }
 /*...................................................................*/
@@ -965,8 +1001,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh->nnodeNov     , mesh->nnode 
                , mesh->maxNo        , mesh->maxViz   
                , 1                  , 1
-               , mesh->ndm            
-               , opt->bconditions   , 2);
+               , mesh->ndm         , 2);
     tm.interCellNode = getTimeC() - tm.interCellNode;
   }
 /*...................................................................*/
@@ -1025,8 +1060,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh->nnodeNov     , mesh->nnode 
                , mesh->maxNo        , mesh->maxViz   
                , ndfVel             , mesh->ndm
-               , mesh->ndm            
-               , false              , 2);
+               , mesh->ndm          , 2);
       tm.interCellNode = getTimeC() - tm.interCellNode;
     }
   }
@@ -1048,8 +1082,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                  , mesh->nnodeNov    , mesh->nnode 
                  , mesh->maxNo       , mesh->maxViz   
                  , mesh->ndm         , 1
-                 , mesh->ndm      
-                 , opt->bconditions  , 2);
+                 , mesh->ndm         , 2);
     tm.interCellNode = getTimeC() - tm.interCellNode;
   }
 /*...................................................................*/
@@ -1109,8 +1142,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh->nnodeNov        , mesh->nnode 
                , mesh->maxNo           , mesh->maxViz   
                , ndfComb               , mesh->ndm
-               , mesh->ndm            
-               , false                 , 2);
+               , mesh->ndm             , 2);
       tm.interCellNode = getTimeC() - tm.interCellNode;
     }
   }
@@ -1132,8 +1164,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                , mesh->nnodeNov        , mesh->nnode 
                , mesh->maxNo           , mesh->maxViz   
                , ndfComb               , 1
-               , mesh->ndm               
-               , opt->bconditions      , 2);
+               , mesh->ndm             , 2);
     tm.interCellNode = getTimeC() - tm.interCellNode;
   }
 /*...................................................................*/
@@ -1157,8 +1188,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                    , mesh->nnodeNov     , mesh->nnode 
                    , mesh->maxNo        , mesh->maxViz   
                    , mesh->ndm          , 1
-                   , mesh->ndm            
-                   , false              , 2);
+                   , mesh->ndm          , 2);
       tm.interCellNode = getTimeC() - tm.interCellNode;
     }
 /*...................................................................*/
@@ -1215,8 +1245,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
             , mesh->nnodeNov       , mesh->nnode
             , mesh->maxNo          , mesh->maxViz
             , mesh->ndm            , 1
-            , mesh->ndm              
-            , false                , 2); 
+            , mesh->ndm            , 2); 
       tm.interCellNode = getTimeC() - tm.interCellNode; 
     }
 /*...................................................................*/
@@ -1238,8 +1267,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
            , mesh->nnodeNov       , mesh->nnode
            , mesh->maxNo          , mesh->maxViz
            , 1                    , 1
-           , mesh->ndm              
-           , opt->bconditions     , 2);  
+           , mesh->ndm            , 2);  
     tm.interCellNode = getTimeC() - tm.interCellNode;
   }
 /*...................................................................*/
@@ -1260,8 +1288,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
              , mesh->nnodeNov    , mesh->nnode
              , mesh->maxNo       , mesh->maxViz
              , 3                 , 1
-             , mesh->ndm           
-             , false             , 2);  
+             , mesh->ndm         , 2);  
     tm.interCellNode = getTimeC() - tm.interCellNode;
   }
 /*...................................................................*/
@@ -1282,8 +1309,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
               , mesh->nnodeNov       , mesh->nnode
               , mesh->maxNo          , mesh->maxViz
               , 1                    , 1
-              , mesh->ndm              
-              , false                , 2);
+              , mesh->ndm            , 2);
     tm.interCellNode = getTimeC() - tm.interCellNode;
   }
 /*...................................................................*/
@@ -1307,8 +1333,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                    , mesh->nnodeNov    , mesh->nnode 
                    , mesh->maxNo       , mesh->maxViz   
                    , 1                 , 1
-                   , mesh->ndm           
-                   , false             , 2);
+                   , mesh->ndm         , 2);
       tm.interCellNode = getTimeC() - tm.interCellNode;
     }
 /*...................................................................*/
@@ -1329,8 +1354,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , mesh->nnodeNov          , mesh->nnode 
                 , mesh->maxNo             , mesh->maxViz   
                 , 6                       , 1
-                , mesh->ndm                 
-                , false                   , 2);
+                , mesh->ndm               , 2);
       tm.interCellNode = getTimeC() - tm.interCellNode;
     }
 /*...................................................................*/
@@ -1351,8 +1375,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , mesh->nnodeNov           , mesh->nnode 
                 , mesh->maxNo              , mesh->maxViz   
                 , 2                        , 1
-                , mesh->ndm                  
-                , false                    , 2);
+                , mesh->ndm                , 2);
       tm.interCellNode = getTimeC() - tm.interCellNode;
     }
 /*...................................................................*/
@@ -1373,8 +1396,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , mesh->nnodeNov          , mesh->nnode 
                 , mesh->maxNo             , mesh->maxViz   
                 , 4                       , 1
-                , mesh->ndm                 
-                , false                   , 2);
+                , mesh->ndm               , 2);
       tm.interCellNode = getTimeC() - tm.interCellNode;
     }
 /*...................................................................*/
@@ -1395,8 +1417,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
             , mesh->nnodeNov       , mesh->nnode 
             , mesh->maxNo          , mesh->maxViz   
             , 1                    , 1
-            , mesh->ndm              
-            , false                , 2);
+            , mesh->ndm            , 2);
       tm.interCellNode = getTimeC() - tm.interCellNode;
     }
 /*...................................................................*/
@@ -1419,8 +1440,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , mesh->nnodeNov        , mesh->nnode 
                 , mesh->maxNo           , mesh->maxViz   
                 , 1                     , 1            
-                , mesh->ndm               
-                , false                 , 2);
+                , mesh->ndm             , 2);
   }
 /*...................................................................*/
 
@@ -1440,8 +1460,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , mesh->nnodeNov        , mesh->nnode 
                 , mesh->maxNo           , mesh->maxViz   
                 , 1                     , 1            
-                , mesh->ndm               
-                , false                 , 2);
+                , mesh->ndm             , 2);
     tm.interCellNode = getTimeC() - tm.interCellNode;
   }
 /*...................................................................*/
@@ -1462,8 +1481,7 @@ void printCombustion(Memoria *m      ,Turbulence *turbModel
                 , mesh->nnodeNov        , mesh->nnode 
                 , mesh->maxNo           , mesh->maxViz   
                 , nSp                   , 1            
-                , mesh->ndm               
-                , false                 , 2);
+                , mesh->ndm             , 2);
     tm.interCellNode = getTimeC() - tm.interCellNode;
   }
 /*...................................................................*/
@@ -1644,8 +1662,7 @@ void printTrans(Memoria *m
               , mesh->nnodeNov    , mesh->nnode
               , mesh->maxNo       , mesh->maxViz
               , mesh->ndm         , 1
-              , mesh->ndm
-              , false             , 2);
+              , mesh->ndm         , 2);
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (uT1)*/
@@ -1661,8 +1678,7 @@ void printTrans(Memoria *m
               , mesh->nnodeNov    , mesh->nnode
               , mesh->maxNo       , mesh->maxViz
               , mesh->ndfT[0]     , 1
-              , mesh->ndm
-              , true              , 2);
+              , mesh->ndm         , 2);
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (density)*/
@@ -1678,8 +1694,7 @@ void printTrans(Memoria *m
               , mesh->nnodeNov    , mesh->nnode
               , mesh->maxNo       , mesh->maxViz
               , 3                 , 1
-              , mesh->ndm
-              , false             , 2);
+              , mesh->ndm         , 2);
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (coefDif)*/
@@ -1695,8 +1710,7 @@ void printTrans(Memoria *m
               , mesh->nnodeNov    , mesh->nnode
               , mesh->maxNo       , mesh->maxViz
               , 1                 , 1
-              , mesh->ndm
-              , false             , 2);
+              , mesh->ndm         , 2);
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
@@ -1712,8 +1726,7 @@ void printTrans(Memoria *m
                , mesh->nnodeNov    , mesh->nnode
                , mesh->maxNo       , mesh->maxViz
                , mesh->ndm         , 1
-               , mesh->ndm
-               , false             , 2);
+               , mesh->ndm         , 2);
 /*...................................................................*/
 
 /*... globalizacao das variaveis*/
@@ -1868,8 +1881,7 @@ void printDiff(Memoria *m
                , mesh->nnodeNov    , mesh->nnode
                , mesh->maxNo       , mesh->maxViz
                , mesh->ndm         , 1
-               , mesh->ndm
-               , false             , 2);
+               , mesh->ndm        , 2);
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (uD1)*/
@@ -1885,8 +1897,7 @@ void printDiff(Memoria *m
               , mesh->nnodeNov    , mesh->nnode
               , mesh->maxNo       , mesh->maxViz
               , mesh->ndfD[0]     , 1
-              , mesh->ndm
-              , true              , 2);
+              , mesh->ndm         , 2);
 /*...................................................................*/
 
 
@@ -1903,8 +1914,7 @@ void printDiff(Memoria *m
               , mesh->nnodeNov    , mesh->nnode
               , mesh->maxNo       , mesh->maxViz
               , 3                 , 1
-              , mesh->ndm
-              , false             , 2);
+              , mesh->ndm         , 2);
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (coefDif)*/
@@ -1920,8 +1930,7 @@ void printDiff(Memoria *m
               , mesh->nnodeNov    , mesh->nnode
               , mesh->maxNo       , mesh->maxViz
               , 1                 , 1
-              , mesh->ndm
-              , false             , 2);
+              , mesh->ndm         , 2);
 /*...................................................................*/
 
 /*... globalizacao das variaveis*/

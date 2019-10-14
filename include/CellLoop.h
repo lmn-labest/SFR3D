@@ -78,8 +78,7 @@
                    , INT const nNodeNov    , INT const nNode
                    , short const maxNo     , short const maxViz
                    , short const ndf1      , short const ndf2
-                   , short const ndm
-                   , bool const fBc        , short const type);
+                   , short const ndm       , short const type);
 /*...................................................................*/
 
 /* ... montagem do sistemas de equacoes (difusao)*/
@@ -545,4 +544,23 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                     ,INT const nl,short const col
                     ,short const jCol);
 /*...................................................................*/
+
+/*...*/
+  void boundaryNode(Memoria *m            ,Loads *loads 
+                 ,INT *RESTRICT cellFace  ,INT *RESTRICT fOwner
+                 ,DOUBLE *RESTRICT noU    ,DOUBLE *RESTRICT elU
+                 ,INT *RESTRICT el        ,short  *RESTRICT geomType 
+                 ,DOUBLE *RESTRICT cc     ,DOUBLE *RESTRICT x
+                 ,DOUBLE *RESTRICT fXm    ,DOUBLE *RESTRICT fXmCc 
+                 ,DOUBLE *RESTRICT density,DOUBLE *gradRho
+                 ,DOUBLE const densityRef
+                 ,short *RESTRICT nen     ,short *RESTRICT nFace
+                 ,short  *RESTRICT faceR  
+                 ,INT const numelNov      ,INT const numel        
+                 ,INT const nNodeNov      ,INT const nNode
+                 ,short const maxNo       ,short const maxViz     
+                 ,short const ndf1        ,short const ndf2
+                 ,short const ndm         );
+/*...................................................................*/
+
 #endif/*_CELLLOOP_H_*/

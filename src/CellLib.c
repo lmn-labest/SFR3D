@@ -2295,6 +2295,7 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
  * area      -> area da celula central                               * 
  * vSkew     -> vetor entre o ponto medio a intersecao que une os    * 
  *            centrois compartilhado nessa face                      * 
+ * lCc       -> centroide dos vizinhos
  * xm        -> pontos medios das faces das celulas                  * 
  * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
  *            faces da celula central                                * 
@@ -2321,7 +2322,7 @@ void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
                  ,DOUBLE *RESTRICT ksi     ,DOUBLE *RESTRICT mKsi
                  ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
                  ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
-                 ,DOUBLE *RESTRICT vSkew   
+                 ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT cc 
                  ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc
                  ,DOUBLE *RESTRICT lDcca   ,short  *RESTRICT lFaceR  
                  ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU 
@@ -2339,7 +2340,7 @@ void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
                     ,lProp   ,lDcca
                     ,eta     ,fArea
                     ,normal  ,volume
-                    ,vSkew   
+                    ,vSkew   ,cc
                     ,xm      ,xmcc
                     ,lFaceR  ,u 
                     ,gradU 
@@ -2366,7 +2367,8 @@ void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
                  ,xm      ,xmcc
                  ,lProp   ,lDcca
                  ,u       ,gradU
-                 ,normal  ,lFaceR 
+                 ,normal  ,cc
+                 ,lFaceR 
                  ,nFace   ,ndf
                  ,ndm     ,nel);
     break;
@@ -2426,7 +2428,7 @@ void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 11/05/2019                                   * 
+ * Data de modificaco : 14/10/2019                                   * 
  *-------------------------------------------------------------------* 
  * GRREENGAUSSCELL: reconstrucao de gradiente green-gauss linear por * 
  * celula                                                            *
@@ -2444,7 +2446,8 @@ void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
  * volume    -> area da celula central                               * 
  * vSkew      -> vetor entre o ponto medio a intersecao que une os   * 
  *            centrois compartilhado nessa face                      * 
- * xm        -> pontos medios das faces das celulas (x1,x2,x3,t)     * 
+ * cc        -> centroide da celula                                  *
+ * xm        -> pontos medios das faces das celulas                  * 
  * xmcc      -> vetores que unem o centroide aos pontos medios das   * 
  *            faces da celula central                                * 
  * lFaceR    -> restricoes por elmento                               * 
@@ -2462,10 +2465,10 @@ void cellLibRcGrad(Loads *loads            , RcGrad *rcGrad
  *********************************************************************/
 void greenGaussCell(Loads *loads
                ,INT *RESTRICT lViz       ,DOUBLE *RESTRICT mKsi
-               ,DOUBLE *RESTRICT lProp   ,DOUBLE *RESTRICT lDcca 
+               ,DOUBLE *RESTRICT lPara   ,DOUBLE *RESTRICT lDcca 
                ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT fArea
                ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
-               ,DOUBLE *RESTRICT vSkew   
+               ,DOUBLE *RESTRICT vSkew   ,DOUBLE *RESTRICT cc 
                ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc 
                ,short  *RESTRICT lFaceR  
                ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU 
@@ -2474,10 +2477,11 @@ void greenGaussCell(Loads *loads
 {
   DOUBLE v,dPviz,coefDif,tmp;
   DOUBLE uf[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF],par[MAXLOADPARAMETER];
-  DOUBLE lModKsi,alpha,alphaMenosUm,invVol,xx[4];
+  DOUBLE lModKsi,alpha,alphaMenosUm,invVol,xx[4],gh;
   INT vizNel;
   short idCell = nFace,nCarg,type;
   short i,j,k;
+  short iCodPolFace = INTPOLFACELINEAR;
 
 	invVol = 1.e0/volume[idCell];
 /*...*/
@@ -2491,17 +2495,11 @@ void greenGaussCell(Loads *loads
       if(vizNel > -1){
         lModKsi    = mKsi[i];
 /*...*/
-        dPviz = 0.e0;
-        for(j=0;j<ndm;j++){
-          v          = MAT2D(i,j,vSkew,ndm) + MAT2D(i,j,xmcc,ndm);
-          dPviz     += v*v;
-        }
-/*...................................................................*/
-
-/*...*/
-        dPviz        = sqrt(dPviz);
-        alpha        = dPviz/lModKsi;
-        alphaMenosUm = 1.e0 - alpha;
+        alpha = interpolFace(vSkew          ,xmcc
+                          ,volume[idCell]   ,volume[i]
+                          ,lModKsi          ,ndm
+                          ,iCodPolFace);
+        alphaMenosUm = 1.0e0 - alpha;
 /*...................................................................*/
 
 /*...*/
@@ -2536,9 +2534,29 @@ void greenGaussCell(Loads *loads
           }
 /*...................................................................*/
 
+/*...*/
+          else if (type == FLUXPRES)
+          { 
+            gradPbBuoyant(xx        , &lPara[3]
+                        , gravity   , lPara[6]
+                        , lPara[2]  , lPara[1] 
+                        , loads[nCarg].iCod[0]);
+            uf[i] =  uC[0] + (xx[0]*MAT2D(i,0,xmcc,ndm)
+                            + xx[1]*MAT2D(i,1,xmcc,ndm) 
+                            + xx[2]*MAT2D(i,2,xmcc,ndm));
+          }                            
+/*...................................................................*/
+
+/*...*/
+            else if (type == FLUXPRESC)
+            { 
+              uf[i] =  uC[0];
+            }                            
+/*...................................................................*/
+
 /*... fluxo prescrito*/
           else if (type == NEUMANNBC ){
-            coefDif = lProp[0];
+            coefDif = lPara[0];
             if (coefDif != 0.e0) {
               getLoads(par,&loads[nCarg],xx);
               uf[i] = uC[0] + (par[0]/coefDif)*lDcca[i];
@@ -2602,18 +2620,13 @@ void greenGaussCell(Loads *loads
 /*... dominio*/
       if(vizNel > -1){
         lModKsi    = mKsi[i];
-/*...*/
-        dPviz = 0.e0;
-        for(j=0;j<ndm;j++){
-          v          = MAT2D(i,j,vSkew,ndm) + MAT2D(i,j,xmcc,ndm);
-          dPviz     += v*v;
-        }
-/*...................................................................*/
 
 /*...*/
-        dPviz        = sqrt(dPviz);
-        alpha        = dPviz/lModKsi;
-        alphaMenosUm = 1.e0 - alpha;
+        alpha = interpolFace(vSkew          ,xmcc
+                          ,volume[idCell]   ,volume[i]
+                          ,lModKsi          ,ndm
+                          ,iCodPolFace);
+        alphaMenosUm = 1.0e0 - alpha;
 /*...................................................................*/
 
 /*...*/
@@ -2657,7 +2670,7 @@ void greenGaussCell(Loads *loads
 
 /*... fluxo prescrito*/
           else if (type == NEUMANNBC ){
-            coefDif = lProp[0];
+            coefDif = lPara[0];
             if (coefDif != 0.e0) {
               getLoads(par,&loads[nCarg],xx);
               for(k=0;k<ndf;k++)
@@ -2887,7 +2900,8 @@ void greenGaussNode(INT *RESTRICT lViz   ,DOUBLE *RESTRICT fArea
  * lViz      -> viznhos da celula central                            * 
  * u         -> solucao conhecida                                    * 
  * gradU     -> gradiente rescontruido da solucao conhecida          * 
- * n         -> vetor normal                                         *  
+ * n         -> vetor normal                                         *
+ * cc        -> centroide dos vizinhos                               *  
  * lFaceR    -> restricoes por elmento                               * 
  * nFace     -> numero vizinhos por celula maximo da malha           * 
  * ndf       -> grauss de liberdade                                  * 
@@ -2904,14 +2918,15 @@ void  leastSquare(Loads *loads
                  ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc 
                  ,DOUBLE *RESTRICT lPara   ,DOUBLE *RESTRICT lDcca 
                  ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU
-                 ,DOUBLE *RESTRICT n        ,short  *RESTRICT lFaceR  
+                 ,DOUBLE *RESTRICT n       ,DOUBLE *RESTRICT cc
+                 ,short  *RESTRICT lFaceR  
                  ,short const nFace        ,short const ndf
                  ,short const ndm          ,INT const nel)
 {
 
   DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF];
   DOUBLE uT[MAX_NDF],xx[4],par[MAXLOADPARAMETER];
-  DOUBLE tmp,coefDif;
+  DOUBLE tmp,coefDif,gh;
   INT vizNel;
   short idCell = nFace,nCarg,type;
   short i,j,k,l,it=1,itNumber=2;
@@ -2962,13 +2977,22 @@ void  leastSquare(Loads *loads
 /*...*/
             else if (type == FLUXPRES)
             { 
-//            gradPbBuoyant(xx        , &lPara[3]
-//                        , gravity   , 0.e0
-//                        , lPara[2]  , lPara[1] 
-//                        , 3);
-//            du[i] = (xx[0]*MAT2D(i,0,xmcc,ndm)
-//                   + xx[1]*MAT2D(i,1,xmcc,ndm) 
-//                   + xx[2]*MAT2D(i,2,xmcc,ndm));
+              for(k = 0, gh = 0.e0; k < ndm;k++)
+                gh += (MAT2D(idCell,k,cc,ndm) - xRef[k])*gravity[k];
+              gradPbBuoyant(xx        , &lPara[3]
+                          , gravity   , gh 
+                          , lPara[2]  , lPara[1] 
+                          , loads[nCarg].iCod[0]);
+              du[i] = (xx[0]*MAT2D(i,0,xmcc,ndm)
+                     + xx[1]*MAT2D(i,1,xmcc,ndm) 
+                     + xx[2]*MAT2D(i,2,xmcc,ndm));
+            }                            
+/*...................................................................*/
+
+/*...*/
+            else if (type == FLUXPRESC)
+            { 
+              du[i] = 0.e0;
             }                            
 /*...................................................................*/
 

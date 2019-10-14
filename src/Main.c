@@ -492,7 +492,8 @@ int main(int argc,char**argv){
                    ,loadsPresC           ,loadsPres           
                    ,mesh0->elm.faceRvel  ,mesh0->elm.faceRpres
                    ,mesh0->elm.adj.nelcon,mesh0->elm.adj.nViz   
-                   ,mesh0->numel         ,mesh0->maxViz); 
+                   ,mesh0->numel         ,mesh0->maxViz
+                   ,ModelMomentum.iCodBuoyant); 
           if(turbModel.fOneEq)
             wallFluid(loadsKturb                  
                      ,mesh0->elm.faceReKturb,mesh0->elm.adj.nelcon
@@ -1398,25 +1399,6 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
- //   else if(mesh->ndfFt)
- /*      simpleSolverLm(&m           , &propVarFluid
-                     , loadsVel     , loadsPres 
-                     , loadsEnergy  , loadsKturb
-                     , &eModel       
-                     , &eMass       , &ModelMomentum
-                     , &turbModel   , &thDynamic   
-                     , mesh0        , mesh
-                     , &sistEqVel   , &sistEqPres
-                     , &sistEqEnergy, &sistEqKturb   
-                     , &solvVel     , &solvPres
-                     , &solvEnergy  , &solvKturb  
-                     , &simple      , &sc     
-                     , pMesh        , &media 
-                     , opt          , preName
-                     , nameOut      , fileOut);  */
-/*...................................................................*/
-
-/*...*/
       tm.solvEdpFluid    = getTimeC() - tm.solvEdpFluid;
 /*...................................................................*/
       endSec(OUTPUT_FOR_SCREEN);
@@ -1548,7 +1530,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/                     
-      printFluid(&m         
+      printFluid(&m        , &propVarFluid 
                , &turbModel, &eModel
                , pMesh     , &sc
                , loadsVel  , loadsPres 

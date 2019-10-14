@@ -755,7 +755,8 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                  ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc 
                  ,DOUBLE *RESTRICT lPara   ,DOUBLE *RESTRICT lDcca 
                  ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU
-                 ,DOUBLE *RESTRICT n        ,short  *RESTRICT lFaceR  
+                 ,DOUBLE *RESTRICT n       ,DOUBLE *RESTRICT cc
+                 ,short  *RESTRICT lFaceR  
                  ,short const nFace        ,short const ndf
                  ,short const ndm          ,INT const nel);
 
@@ -775,7 +776,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
            ,DOUBLE *RESTRICT ksi         ,DOUBLE *RESTRICT mKsi
            ,DOUBLE *RESTRICT eta         ,DOUBLE *RESTRICT fArea
            ,DOUBLE *RESTRICT normal      ,DOUBLE *RESTRICT volume
-           ,DOUBLE *RESTRICT vSkew       
+           ,DOUBLE *RESTRICT vSkew       ,DOUBLE *RESTRICT lCc
            ,DOUBLE *RESTRICT xm          ,DOUBLE *RESTRICT xmcc 
            ,DOUBLE *RESTRICT lDcca       ,short  *RESTRICT lFaceR      
            ,DOUBLE *RESTRICT u           ,DOUBLE *RESTRICT gradU 
@@ -800,12 +801,13 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                ,DOUBLE *RESTRICT lProp   ,DOUBLE *RESTRICT lDcca
                ,DOUBLE *RESTRICT eta     ,DOUBLE *RESTRICT mfArea
                ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
-               ,DOUBLE *RESTRICT mvSkew
+               ,DOUBLE *RESTRICT mvSkew  ,DOUBLE *RESTRICT cc
                ,DOUBLE *RESTRICT xm      ,DOUBLE *RESTRICT xmcc    
                ,short  *RESTRICT lFaceR  
                ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU 
                ,short const nFace        ,short const ndm   
                ,short const ndf          ,INT const nel);
+
   void greenGaussNode(INT *RESTRICT lViz   ,DOUBLE *RESTRICT mEta
                ,DOUBLE *RESTRICT normal  ,DOUBLE *RESTRICT volume
                ,DOUBLE *RESTRICT u       ,DOUBLE *RESTRICT gradU 
@@ -838,7 +840,8 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
               ,Loads *ldPresC          ,Loads *ldPres 
               ,short *RESTRICT faceRvel,short *RESTRICT faceRpres
               ,INT *RESTRICT nelcon    ,short *RESTRICT nFace     
-              ,INT const nEl           ,short const maxViz);
+              ,INT const nEl           ,short const maxViz
+              ,short const iCod);
   
   DOUBLE totalMass(DOUBLE *RESTRICT density  , DOUBLE *RESTRICT volume
                   ,INT const nEl) ;

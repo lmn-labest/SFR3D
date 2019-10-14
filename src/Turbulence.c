@@ -197,8 +197,7 @@ void turbulence(Memoria *m
                      , mesh->nnode       , mesh->nnode        
                      , mesh->maxNo       , mesh->maxViz           
                      , mesh->ndm         , 1
-                     , mesh->ndm     
-                     , false             , 2);
+                     , mesh->ndm         , 2);
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
@@ -214,8 +213,7 @@ void turbulence(Memoria *m
                      , mesh->nnode        , mesh->nnode        
                      , mesh->maxNo        , mesh->maxViz            
                      , 3                  , 1
-                     , mesh->ndm     
-                     , false              , 2);
+                     , mesh->ndm          , 2);
 /*...................................................................*/
         }
 /*... modelo estrutual*/

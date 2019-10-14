@@ -348,7 +348,8 @@
   typedef struct{
     bool fUse;
     short nTypeVar;               /*0 - constante
-                                    1 - funcao parabolica*/  
+                                    1 - funcao*/ 
+    short iCod[2];               /* conjunto de codigos*/
     short type;                     /*tipo*/
     short np;                       /*numero de particoes*/  
     DOUBLE par[MAXLOADPARAMETER];

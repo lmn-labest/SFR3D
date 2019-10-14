@@ -18,14 +18,14 @@
   void initPrintVtk(FileOpt *opt);
 
 
-  void printFluid(Memoria *m        
-                , Turbulence *turbModel, EnergyModel *eModel
-                , PartMesh *pMesh      , Scheme *sc
-                , Loads *loadsVel      , Loads *loadsPres 
-                , Loads *loadsTemp     , FileOpt *opt
-                , Mesh *mesh0          , Mesh *mesh  
-                , Mean *media          
-                , char *preName        , char *nameOut);
+  void printFluid(Memoria *m         ,PropVarFluid *propF
+               ,Turbulence *turbModel,EnergyModel *eModel
+               ,PartMesh *pMesh      ,Scheme *sc
+               ,Loads *loadsVel      ,Loads *loadsPres 
+               ,Loads *loadsTemp     ,FileOpt *opt
+               ,Mesh *mesh0          ,Mesh *mesh  
+               ,Mean *media      
+               ,char *preName        ,char *nameOut);
   
   void printCombustion(Memoria *m         , Turbulence *turbModel
                      , EnergyModel *eModel, Combustion *cModel

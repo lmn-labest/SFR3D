@@ -318,6 +318,7 @@
   #define INLETTOTALPRES  13
   #define STATICWALL      14  /*parede impermevel para escoamento*/
   #define FLUXPRES        15  /*parede impermevel para escoamento*/
+  #define FLUXPRESC       16  /*parede impermevel para escoamento*/
 /*...................................................................*/
 
 /*...*/
