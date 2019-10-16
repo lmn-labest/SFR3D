@@ -1,9 +1,5 @@
 #include<WriteVtk.h>
 
-static void getColFromMatrix(DOUBLE *v   ,DOUBLE *m     
-                            ,INT const nl,short const col
-                            ,short const jCol);
-
 /********************************************************************** 
  * Data de criacao    : 00/00/0000                                    *
  * Data de modificaco : 00/00/0000                                    * 

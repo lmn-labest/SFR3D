@@ -22,7 +22,7 @@ void testeSist(INT *ia      ,INT *ja
  *********************************************************************/
 void simpleSolver(Memoria *m        
                    ,Loads *loadsVel   ,Loads *loadsPres 
-                   ,MassEqModel *eMass, MomentumModel *ModelMomentum
+                   ,MassEqModel *eMass, MomentumModel *momentumModel
                    ,Turbulence *tModel 
                    ,Mesh *mesh0       ,Mesh *mesh       
                    ,SistEq *sistEqVel ,SistEq *sistEqPres
@@ -134,7 +134,7 @@ void simpleSolver(Memoria *m
 /*... pressao-velociade*/
     velPresCoupling(m           , NULL
                     , loadsVel  , loadsPres
-                    , eMass     , ModelMomentum
+                    , eMass     , momentumModel
                     , tModel
                     , mesh
                     , sistEqVel , sistEqPres
@@ -263,7 +263,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                   , Loads *loadsEnergy  , Loads *loadsKturb
                   , Loads *loadsComb    
                   , EnergyModel *eModel , Combustion *cModel
-                  , MassEqModel *eMass  , MomentumModel *ModelMomentum
+                  , MassEqModel *eMass  , MomentumModel *momentumModel
                   , Turbulence *tModel  , ThermoDynamic *thDynamic
                   , Mesh *mesh0         , Mesh *mesh
                   , SistEq *sistEqVel   , SistEq *sistEqPres
@@ -502,7 +502,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*... pressao-velociade*/
     velPresCoupling(m           , propF
                     , loadsVel  , loadsPres
-                    , eMass     , ModelMomentum
+                    , eMass     , momentumModel
                     , tModel    , mesh
                     , sistEqVel , sistEqPres
                     , solvVel   , solvPres
@@ -866,7 +866,7 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
                  , Loads *loadsVel     , Loads *loadsPres
                  , Loads *loadsEnergy  , Loads *loadsKturb
                  , EnergyModel *eModel , Combustion *cModel
-                 , MassEqModel *eMass  , MomentumModel *ModelMomentum
+                 , MassEqModel *eMass  , MomentumModel *momentumModel
                  , Turbulence *tModel  , ThermoDynamic *thDynamic
                  , Mesh *mesh0         , Mesh *mesh
                  , SistEq *sistEqVel   , SistEq *sistEqPres
@@ -1059,7 +1059,7 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
 /*... pressao-velociade*/
     velPresCoupling(m         , propF
                   , loadsVel  , loadsPres
-                  , eMass     , ModelMomentum
+                  , eMass     , momentumModel
                   , tModel    , mesh
                   , sistEqVel , sistEqPres
                   , solvVel   , solvPres
@@ -2289,7 +2289,7 @@ static DOUBLE trunkNumber(DOUBLE const a){
 *********************************************************************/
 void velPresCoupling(Memoria *m         , PropVarFluid *propF
                     , Loads *loadsVel   , Loads *loadsPres
-                    , MassEqModel *eMass, MomentumModel *ModelMomentum
+                    , MassEqModel *eMass, MomentumModel *momentumModel
                     , Turbulence *tModel
                     , Mesh *mesh
                     , SistEq *sistEqVel , SistEq *sistEqPres
@@ -2447,7 +2447,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
   if(propF == NULL)
     systFormSimpleVel(loadsVel           , loadsPres
                , &sc->advVel             , &sc->diffVel
-               , tModel                  , ModelMomentum
+               , tModel                  , momentumModel
                , &pMesh->iEl             , sp->type          
                , mesh->elm.node          , mesh->elm.adj.nelcon
                , mesh->elm.nen           , mesh->elm.adj.nViz
@@ -2481,7 +2481,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
   else
     systFormSimpleVelLm(loadsVel, loadsPres
                       , &sc->advVel             , &sc->diffVel
-                      , tModel                  , ModelMomentum
+                      , tModel                  , momentumModel
                       , &pMesh->iEl             , sp->type
                       , mesh->elm.node          , mesh->elm.adj.nelcon
                       , mesh->elm.nen           , mesh->elm.adj.nViz
@@ -2621,7 +2621,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
                      , xu2                , xu3
                      , sistEqVel->id      , &sistEqVel->iNeq 
                      , mesh->numel        , mesh->ndm
-                     , ModelMomentum->fRes, true);                     
+                     , momentumModel->fRes, true);                     
 /*...................................................................*/
 
 /*...*/
@@ -2661,7 +2661,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
   else
     systFormSimplePresLm(loadsVel, loadsPresC
             , &sc->diffPres         
-            , eMass                  , ModelMomentum 
+            , eMass                  , momentumModel 
             , tModel
             , mesh->elm.node         , mesh->elm.adj.nelcon
             , mesh->elm.nen          , mesh->elm.adj.nViz

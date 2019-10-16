@@ -105,7 +105,7 @@ int main(int argc,char**argv){
 /*...*/
   EnergyModel eModel;
   MassEqModel eMass;
-  MomentumModel ModelMomentum;
+  MomentumModel momentumModel;
   DiffModel diffModel[3];
   TransModel transModel[3];
   Combustion combModel;
@@ -243,12 +243,12 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-  ModelMomentum.fRes             = true;
-  ModelMomentum.fRhieChowInt     = false;
-  ModelMomentum.iCodBuoyant      = BUOYANT_RHOREF;
-  ModelMomentum.fViscosity       = true;
-  ModelMomentum.fDiv             = true;
-  ModelMomentum.fSoPressure     = true;
+  momentumModel.fRes             = true;
+  momentumModel.fRhieChowInt     = false;
+  momentumModel.iCodBuoyant      = BUOYANT_RHOREF;
+  momentumModel.fViscosity       = true;
+  momentumModel.fDiv             = true;
+  momentumModel.fSoPressure     = true;
 /*...................................................................*/
 
 /*...*/
@@ -266,6 +266,12 @@ int main(int argc,char**argv){
 
   ompVar.nThreadsUpdate = 1;
   ompVar.fUpdate        = false;
+
+  ompVar.nThreadsGrad = 1;
+  ompVar.fGrad        = false;
+
+  ompVar.nThreadsReaction = 1;
+  ompVar.fReaction        = false;
 /* ..................................................................*/
 
 /* ... opcoes de arquivos */
@@ -468,7 +474,8 @@ int main(int argc,char**argv){
                       ,&propVarFluid
                       ,propVarD     ,propVarT
                       ,&eModel      ,&turbModel 
-                      ,&combModel   ,&media       
+                      ,&combModel   ,&momentumModel
+                      ,&media       
                       ,fileIn);
       mpiWait();
 /*...................................................................*/
@@ -493,7 +500,7 @@ int main(int argc,char**argv){
                    ,mesh0->elm.faceRvel  ,mesh0->elm.faceRpres
                    ,mesh0->elm.adj.nelcon,mesh0->elm.adj.nViz   
                    ,mesh0->numel         ,mesh0->maxViz
-                   ,ModelMomentum.iCodBuoyant); 
+                   ,momentumModel.iCodBuoyant); 
           if(turbModel.fOneEq)
             wallFluid(loadsKturb                  
                      ,mesh0->elm.faceReKturb,mesh0->elm.adj.nelcon
@@ -670,7 +677,7 @@ int main(int argc,char**argv){
 /*....................................................................*/
 
 /*... gera a pressao inicial hidrostatica*/
-        if(ModelMomentum.iCodBuoyant == BUOYANT_HYDROSTATIC)
+        if(momentumModel.iCodBuoyant == BUOYANT_HYDROSTATIC)
           hPres(mesh->elm.pressure0   , mesh->elm.pressure
               , mesh->elm.densityFluid, mesh->elm.geom.cc
               , gravity               , mesh->xRef
@@ -1241,7 +1248,7 @@ int main(int argc,char**argv){
                    , loadsVel     , loadsPres
                    , loadsEnergy  , loadsKturb
                    , &eModel      , &combModel
-                   , &eMass       , &ModelMomentum
+                   , &eMass       , &momentumModel
                    , &turbModel   , &thDynamic
                    , mesh0        , mesh
                    , &sistEqVel   , &sistEqPres
@@ -1387,7 +1394,7 @@ int main(int argc,char**argv){
 /*...*/
      simpleSolver(&m         
                  ,loadsVel   ,loadsPres 
-                 ,&eMass     ,&ModelMomentum
+                 ,&eMass     ,&momentumModel
                  ,&turbModel 
                  ,mesh0      ,mesh           
                  ,&sistEqVel ,&sistEqPres
@@ -1726,7 +1733,7 @@ int main(int argc,char**argv){
                     , loadsEnergy    , loadsKturb
                     , loadsZcomb
                     , &eModel        , &combModel
-                    , &eMass         , &ModelMomentum
+                    , &eMass         , &momentumModel
                     , &turbModel     , &thDynamic
                     , mesh0          , mesh
                     , &sistEqVel      , &sistEqPres
@@ -1825,7 +1832,7 @@ int main(int argc,char**argv){
     {
       initSec(word, OUTPUT_FOR_FILE);
       readModel(&eModel   ,&turbModel
-              , &eMass    ,&ModelMomentum
+              , &eMass    ,&momentumModel
               , diffModel ,transModel
               , &combModel  
               , fileIn);

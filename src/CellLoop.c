@@ -920,7 +920,7 @@ void systFormTrans(Loads *loads
  * loadsPres -> definicoes de cargas de pressao                      * 
  * advVel    -> tecnica da discretizacao do termo advecao            *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
- * ModelMomentum -> termos/modelos da equacao de momento linear      *
+ * momentumModel -> termos/modelos da equacao de momento linear      *
  * iCel    -> interface de elementos                                 *
  * typeSimple-> tipo do metodo simple                                *
  * el        -> conetividade dos celulas                             * 
@@ -1005,7 +1005,7 @@ void systFormTrans(Loads *loads
  *********************************************************************/
 void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres    
     , Advection *advVel                    , Diffusion *diffVel
-    , Turbulence *tModel                   , MomentumModel *ModelMomentum
+    , Turbulence *tModel                   , MomentumModel *momentumModel
     , Interface *iCel                      , short typeSimple     
     , INT    *RESTRICT el                  , INT    *RESTRICT nelcon 
     , short  *RESTRICT nen                 , short  *RESTRICT nFace
@@ -1083,7 +1083,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
          ,nelcon,id,loadsVel,loadsPres,advVel,diffVel,typeSimple\
          ,ddt,underU,sPressure,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd\
          ,nAdR,storage,forces,matrix,unsym,pres,dField,dViscosity,eddyViscosity\
-         ,stressR,tModel,ModelMomentum,wallPar,densityMed\
+         ,stressR,tModel,momentumModel,wallPar,densityMed\
          ,fOwner,cellFace,fTurb,fTurbStruct,fWallModel)
   for(nel=0;nel<numel;nel++)
   {
@@ -1219,7 +1219,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
 /*... chamando a biblioteca de celulas*/
         cellLibSimpleVelLm(loadsVel , loadsPres    
                     , advVel        , diffVel  
-                    , tModel        , ModelMomentum
+                    , tModel        , momentumModel
                     , typeSimple    , lGeomType     
                     , lViz          , lId            
                     , lKsi          , lmKsi 

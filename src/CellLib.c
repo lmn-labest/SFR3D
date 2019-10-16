@@ -448,7 +448,7 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
  * advVel    -> tecnica da discretizacao do termo advecao            *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
  * tModel    -> modelo de turbulencia                                *
- * ModelMomentum -> termos/modelos da equacao de momento linear      *
+ * momentumModel -> termos/modelos da equacao de momento linear      *
  * typeSimple-> tipo do metodo simple                                *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
  * lprop     -> propriedade fisicas das celulas                      *
@@ -500,7 +500,7 @@ void cellLibOneEqK(Loads *ldsK     , Loads *ldsVel
  *********************************************************************/
 void cellLibSimpleVel(Loads *lVel        ,Loads *lPres     
              ,Advection  *advVel         ,Diffusion *diffVel
-             ,Turbulence *tModel         ,MomentumModel *ModelMomentum    
+             ,Turbulence *tModel         ,MomentumModel *momentumModel    
              ,short const typeSimple 
              ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
              ,INT   *RESTRICT lViz       ,INT *RESTRICT lId  
@@ -556,7 +556,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
     {
       cellSimpleVel3D(lVel    ,lPres       
                  ,advVel      ,diffVel    
-                 ,tModel      ,ModelMomentum 
+                 ,tModel      ,momentumModel 
                  ,typeSimple
                  ,lGeomType   ,lprop
                  ,lViz        ,lId
@@ -757,7 +757,7 @@ void cellLibCombustion(Loads *lComb        , Loads *lVel
  * loadsPres -> definicoes de cargas de pressao                      *
  * advVel    -> tecnica da discretizacao do termo advecao            *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
- * ModelMomentum -> termos/modelos da equacao de momento linear      *
+ * momentumModel -> termos/modelos da equacao de momento linear      *
  * typeSimple-> tipo do metodo simple                                *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
  * lViz      -> viznhos da celula central                            *
@@ -810,7 +810,7 @@ void cellLibCombustion(Loads *lComb        , Loads *lVel
  *********************************************************************/
 void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
            , Advection  *advVel         , Diffusion *diffVel    
-           , Turbulence *tModel         , MomentumModel *ModelMomentum
+           , Turbulence *tModel         , MomentumModel *momentumModel
            , short const typeSimple 
            , short *RESTRICT lGeomType  
            , INT   *RESTRICT lViz       , INT *RESTRICT lId   
@@ -841,7 +841,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
     if(ndm == 2){
  /*   cellSimpleVel2DLm(lVel      , lPres    
                      , *advVel    , *diffVel 
-                     , *tModel    , *ModelMomentum
+                     , *tModel    , *momentumModel
                      , typeSimple , lGeomType  
                      , lViz       , lId 
                      , ksi        , mKsi 
@@ -870,7 +870,7 @@ void cellLibSimpleVelLm(Loads *lVel     , Loads *lPres
     { 
       cellSimpleVel3DLm(lVel      , lPres    
                      , advVel     , diffVel 
-                     , tModel     , ModelMomentum
+                     , tModel     , momentumModel
                      , typeSimple , lGeomType  
                      , lViz       , lId 
                      , ksi        , mKsi 

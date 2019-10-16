@@ -24,7 +24,7 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
                     , Loads *loadsEnergy  , Loads *loadsKturb
                     , Loads *loadsComb
                     , EnergyModel *eModel , Combustion *cModel
-                    , MassEqModel *eMass  , MomentumModel *ModelMomentum
+                    , MassEqModel *eMass  , MomentumModel *momentumModel
                     , Turbulence *tModel  , ThermoDynamic *thDynamic
                     , Mesh *mesh0         , Mesh *mesh
                     , SistEq *sistEqVel   , SistEq *sistEqPres

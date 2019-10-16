@@ -145,7 +145,7 @@
 /* ... montagem do sistemas de equacoes (Simple - VEl)*/
   void systFormSimpleVel(Loads *loadsVel   , Loads *loadsPres
                , Advection *advVel         , Diffusion *diffVel
-               , Turbulence *tModel        ,MomentumModel *ModelMomentum    
+               , Turbulence *tModel        ,MomentumModel *momentumModel    
                , Interface *iCel           , short typeSimple          
                , INT    *RESTRICT el       , INT    *RESTRICT nelcon
                , short  *RESTRICT nen      , short  *RESTRICT nFace
@@ -181,7 +181,7 @@
 /* ... montagem do sistemas de equacoes (Simple - VEl - low mach)*/
 void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres    
     , Advection *advVel                    , Diffusion *diffVel
-    , Turbulence *tModel                   , MomentumModel *ModelMomentum
+    , Turbulence *tModel                   , MomentumModel *momentumModel
     , Interface *iCel                      , short typeSimple     
     , INT    *RESTRICT el                  , INT    *RESTRICT nelcon 
     , short  *RESTRICT nen                 , short  *RESTRICT nFace

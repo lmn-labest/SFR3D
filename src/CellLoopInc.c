@@ -14,7 +14,7 @@
  * advVel    -> tecnica da discretizacao do termo advecao            *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
  * tModel    -> modelo de turbulencia                                *
- * ModelMomentum -> termos/modelos da equacao de momento linear      *
+ * momentumModel -> termos/modelos da equacao de momento linear      *
  * iCel    -> interface de elementos                                 *
  * typeSimple-> tipo do metodo simple                                *
  * el        -> conetividade dos celulas                             * 
@@ -97,7 +97,7 @@
  *********************************************************************/
   void systFormSimpleVel(Loads *loadsVel   , Loads *loadsPres
                , Advection *advVel         , Diffusion *diffVel
-               , Turbulence *tModel        , MomentumModel *ModelMomentum    
+               , Turbulence *tModel        , MomentumModel *momentumModel    
                , Interface *iCel           , short typeSimple          
                , INT    *RESTRICT el       , INT    *RESTRICT nelcon
                , short  *RESTRICT nen      , short  *RESTRICT nFace
@@ -179,7 +179,7 @@
          ,nelcon,id,loadsVel,loadsPres,advVel,diffVel,typeSimple\
          ,ddt,underU,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd\
          ,nAdR,storage,forces,matrix,unsym,pres,dField,eddyVisc\
-         ,stressR,tModel,ModelMomentum,wallPar\
+         ,stressR,tModel,momentumModel,wallPar\
          ,fOwner,cellFace,fTurb,fTurbStruct,fWallModel)
     for(nel=0;nel<numel;nel++)
     {
@@ -327,7 +327,7 @@
 /*... chamando a biblioteca de celulas*/
         cellLibSimpleVel(loadsVel ,loadsPres   
                       ,advVel     ,diffVel
-                      ,tModel     ,ModelMomentum     
+                      ,tModel     ,momentumModel     
                       ,typeSimple
                       ,lGeomType  ,lProp 
                       ,lViz       ,lId           
@@ -533,7 +533,7 @@
 /*... chamando a biblioteca de celulas*/
         cellLibSimpleVel(loadsVel ,loadsPres   
                       ,advVel     ,diffVel
-                      ,tModel     ,ModelMomentum     
+                      ,tModel     ,momentumModel     
                       ,typeSimple
                       ,lGeomType  ,lProp 
                       ,lViz       ,lId           

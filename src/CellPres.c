@@ -1162,7 +1162,7 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
  * loadsVel  -> definicoes de cargas de velocidades                  *
  * loadsPres -> definicoes de cargas de pressao                      *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
- * ModelMomentum -> termos/modelos da equacao de momento linear      *
+ * momentumModel -> termos/modelos da equacao de momento linear      *
  * lnFace    -> numero de faces da celula central e seus vizinhos    *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
  * lprop     -> propriedade fisicas das celulas                      *
@@ -1218,7 +1218,7 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
  *********************************************************************/
 void cellSimplePres3DLm(Loads *lVel        , Loads *lPres 
 							, Diffusion *diffPres        
-              , MassEqModel *eMass         , MomentumModel *ModelMomentum
+              , MassEqModel *eMass         , MomentumModel *momentumModel
               , short *RESTRICT lGeomType  
               , INT *RESTRICT lViz         , INT *RESTRICT lId  
               , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
@@ -1285,7 +1285,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*...................................................................*/
 
 /*...*/
-  iCodBuoyant = ModelMomentum->iCodBuoyant;
+  iCodBuoyant = momentumModel->iCodBuoyant;
 /*...................................................................*/
 
 /*...*/

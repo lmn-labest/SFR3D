@@ -150,7 +150,7 @@
 /*... chamada da biblioteca de elementos (escoamento-vel)*/
 void cellLibSimpleVel(Loads *lVel        ,Loads *lPres     
              ,Advection  *advVel         ,Diffusion *diffVel
-             ,Turbulence *tModel         ,MomentumModel *ModelMomentum    
+             ,Turbulence *tModel         ,MomentumModel *momentumModel    
              ,short const typeSimple 
              ,short *RESTRICT lGeomType  ,DOUBLE *RESTRICT lprop
              ,INT   *RESTRICT lViz       ,INT *RESTRICT lId  
@@ -197,7 +197,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
 /*... chamada da biblioteca de elementos (escoamento-vel-Low Mach)*/
   void cellLibSimpleVelLm(Loads *loadsVel, Loads *loadsPres
             , Advection  *advVel         , Diffusion *diffVel 
-            , Turbulence *tModel         , MomentumModel *ModelMomentum
+            , Turbulence *tModel         , MomentumModel *momentumModel
             , short const typeSimple     , short *RESTRICT lGeomType  
             , INT   *RESTRICT lViz       , INT *RESTRICT lId
             , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi
@@ -546,7 +546,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
 /*... biblioteca de celulas (simple - vel)*/
   void cellSimpleVel3D(Loads *loadsVel     ,Loads *loadsPres 
             ,Advection *advVel           ,Diffusion *diffVel
-            ,Turbulence *tModel          ,MomentumModel *ModelMomentum
+            ,Turbulence *tModel          ,MomentumModel *momentumModel
             ,short const typeSimple 
             ,short *RESTRICT lGeomType   ,DOUBLE *RESTRICT prop
             ,INT *RESTRICT lViz          ,INT *RESTRICT lId  
@@ -671,7 +671,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
 /*... biblioteca de celulas 3D(simple - vel - low mach)*/
   void cellSimpleVel3DLm(Loads *lVel      , Loads *lPres 
             , Advection *advVel           , Diffusion *diffVel
-            , Turbulence *tModel          , MomentumModel *ModelMomentum
+            , Turbulence *tModel          , MomentumModel *momentumModel
             , short const typeSimple      , short *RESTRICT lGeomType   
             , INT *RESTRICT lViz          , INT *RESTRICT lId  
             , DOUBLE *RESTRICT ksi        , DOUBLE *RESTRICT mKsi
@@ -695,7 +695,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
 /*... biblioteca de celulas 3D(simple - pres - low mach)*/
   void cellSimplePres3DLm(Loads *lVel        , Loads *lPres 
 							, Diffusion *diffPres        
-              , MassEqModel *eMass         , MomentumModel *ModelMomentum
+              , MassEqModel *eMass         , MomentumModel *momentumModel
               , short *RESTRICT lGeomType  
               , INT *RESTRICT lViz         , INT *RESTRICT lId  
               , DOUBLE *RESTRICT ksi       , DOUBLE *RESTRICT mKsi

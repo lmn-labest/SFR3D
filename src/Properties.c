@@ -512,7 +512,7 @@ DOUBLE diffusionCollisionIntegral(DOUBLE const t
  * Data de criacao    : 29/08/2017                                   *
  * Data de modificaco : 04/05/2019                                   *
  *-------------------------------------------------------------------*
- * airDensity: kg/(m^3)                                              *
+ * mixtureSpeciesDensity: kg/(m^3)                                   *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
@@ -526,7 +526,7 @@ DOUBLE diffusionCollisionIntegral(DOUBLE const t
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE mixtureSpeciesDensity(Prop *den        ,DOUBLE const malorMassMix
+DOUBLE mixtureSpeciesDensity(Prop *den           ,DOUBLE const malorMassMix
                             ,DOUBLE const t      ,DOUBLE const p
                             ,DOUBLE const presRef,bool const fKelvin)
 {

@@ -34,7 +34,7 @@
  * advVel    -> tecnica da discretizacao do termo advecao            *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
  * tModel    -> modelo de turbulencia                                *
- * ModelMomentum -> termos/modelos da equacao de momento linear      *
+ * momentumModel -> termos/modelos da equacao de momento linear      *
  * typeSimple-> tipo do metodo simple                                *
  * lnFace    -> numero de faces da celula central e seus vizinhos    * 
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    * 
@@ -105,7 +105,7 @@
  *********************************************************************/
 void cellSimpleVel3D(Loads *lVel         ,Loads *lPres 
             ,Advection *advVel           ,Diffusion *diffVel
-            ,Turbulence *tModel          ,MomentumModel *ModelMomentum
+            ,Turbulence *tModel          ,MomentumModel *momentumModel
             ,short const typeSimple 
             ,short *RESTRICT lGeomType   ,DOUBLE *RESTRICT prop
             ,INT *RESTRICT lViz          ,INT *RESTRICT lId  
@@ -179,10 +179,10 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
   fTurb            = tModel->fTurb;
   fStruc           = tModel->fTurbStruct;
 /*...*/  
-  fSoPressure = ModelMomentum->fSoPressure;
-  fRhieInt    = ModelMomentum->fRhieChowInt;
-  fRes        = ModelMomentum->fRes;
-  fViscosity  = ModelMomentum->fViscosity;
+  fSoPressure = momentumModel->fSoPressure;
+  fRhieInt    = momentumModel->fRhieChowInt;
+  fRes        = momentumModel->fRes;
+  fViscosity  = momentumModel->fViscosity;
 //typeFacePres     = INT_BUOYANT_FORCE;
   if(fSoPressure)
     typeFacePres   = INT_PRESSURE_SO;
@@ -652,7 +652,7 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
  * advVel    -> tecnica da discretizacao do termo advecao            *
  * diffVel   -> tecnica da discretizacao do termo difusivo           *
  * tModel    -> modelo de turbulencia                                *
- * ModelMomentum -> termos/modelos da equacao de momento linear      *
+ * momentumModel -> termos/modelos da equacao de momento linear      *
  * typeSimple-> tipo do metodo simple                                *
  * lnFace    -> numero de faces da celula central e seus vizinhos    *
  * lGeomType -> tipo geometrico da celula central e seus vizinhos    *
@@ -727,7 +727,7 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
  *********************************************************************/
 void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres 
             , Advection *advVel           , Diffusion *diffVel
-            , Turbulence *tModel          , MomentumModel *ModelMomentum            
+            , Turbulence *tModel          , MomentumModel *momentumModel            
             , short const typeSimple 
             , short *RESTRICT lGeomType   
             , INT *RESTRICT lViz          , INT *RESTRICT lId  
@@ -814,12 +814,12 @@ void cellSimpleVel3DLm(Loads *lVel        , Loads *lPres
   fTurb            = tModel->fTurb;
   fStruc           = tModel->fTurbStruct;
 /*...*/
-  fSoPressure      = ModelMomentum->fSoPressure;
-  fRhieInt         = ModelMomentum->fRhieChowInt;
-  fRes             = ModelMomentum->fRes;
-  fViscosity       = ModelMomentum->fViscosity;
-  fDiv             = ModelMomentum->fDiv;
-  iCodBuoyant      = ModelMomentum->iCodBuoyant;
+  fSoPressure      = momentumModel->fSoPressure;
+  fRhieInt         = momentumModel->fRhieChowInt;
+  fRes             = momentumModel->fRes;
+  fViscosity       = momentumModel->fViscosity;
+  fDiv             = momentumModel->fDiv;
+  iCodBuoyant      = momentumModel->iCodBuoyant;
 //typeFacePres     = INT_BUOYANT_FORCE;
   if(fSoPressure)
     typeFacePres   = INT_PRESSURE_SO;

@@ -24,7 +24,7 @@
 
   void simpleSolver(Memoria *m        
                    ,Loads *loadsVel   ,Loads *loadsPres 
-                   ,MassEqModel *eMass, MomentumModel *ModelMomentum
+                   ,MassEqModel *eMass, MomentumModel *momentumModel
                    ,Turbulence *tModel 
                    ,Mesh *mesh0       ,Mesh *mesh       
                    ,SistEq *sistEqVel ,SistEq *sistEqPres
@@ -38,7 +38,7 @@
                     , Loads *loadsVel     , Loads *loadsPres 
                     , Loads *loadsEnergy  , Loads *loadsKturb  
                     , EnergyModel *eModel , Combustion *cModel
-                    , MassEqModel *eMass  , MomentumModel *ModelMomentum
+                    , MassEqModel *eMass  , MomentumModel *momentumModel
                     , Turbulence *tModel  , ThermoDynamic *thDynamic
                     , Mesh *mesh0         , Mesh *mesh
                     , SistEq *sistEqVel   , SistEq *sistEqPres
@@ -111,7 +111,7 @@
 /*...*/
   void velPresCoupling(Memoria *m         , PropVarFluid *propF
                       , Loads *loadsVel   , Loads *loadsPres
-                      , MassEqModel *eMass, MomentumModel *ModelMomentum
+                      , MassEqModel *eMass, MomentumModel *momentumModel
                       , Turbulence *tModel, Mesh *mesh                     
                       , SistEq *sistEqVel , SistEq *sistEqPres
                       , Solv *solvVel     , Solv *solvPres

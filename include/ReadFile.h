@@ -33,7 +33,8 @@
                    , PropVarFluid *propF           
                    , PropVarCD *propD        , PropVarCD *propT
                    , EnergyModel *energyModel, Turbulence *tModel     
-                   , Combustion *cModel      , Mean *media
+                   , Combustion *cModel      , MomentumModel *mModel
+                   , Mean *media
                    , FILE* file);
 
   void readVfMat(DOUBLE *prop,short *type,short numat,FILE *file);
@@ -62,7 +63,7 @@
   void readPropVarMixture(PropVarFluid *p,Combustion *cModel,FILE *file);
   void readGravity(DOUBLE *gravity,FILE *file);
   void readModel(EnergyModel *e    , Turbulence *t
-               , MassEqModel *eMass, MomentumModel *ModelMomentum
+               , MassEqModel *eMass, MomentumModel *momentumModel
                , DiffModel *dModel , TransModel *tModel
                , Combustion *cModel
                , FILE *file);

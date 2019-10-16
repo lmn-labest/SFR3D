@@ -3,12 +3,11 @@
 /*...funcao de apoio*/
   static void getword(char *line, char*word);
   static int getnumprop2(char *line);
-  static void convLoadsEnergy(Prop *sHeatProp
-                             ,Loads *loadsEnergy  ,Loads *loadsTemp
-                             ,DOUBLE *RESTRICT prop
-                             ,bool const fTemp    ,bool const fSheat                             
-                             ,bool const fKelvin );
- static void convLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
+  static void setLoadsEnergy(PropVarFluid *pF
+                           ,Loads *loadsEnergy   ,Loads *loadsTemp
+                           ,Loads *loadsVel      ,DOUBLE *RESTRICT prop
+                           ,bool const fTemp     ,bool const iKelvin);
+ static void setLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
                               ,Prop *sHeatProp   ,Loads *loadsEnergy
                               ,Loads *loadsTemp     ,Loads *loadsZ  
                               ,Loads *loadsVel      ,DOUBLE *RESTRICT prop
@@ -30,12 +29,12 @@
                             ,bool const fTemp     ,bool const fSheat 
                             ,bool const iKelvin   ,bool const fDensity
                             ,bool const fGrouped); 
- static void convLoadsVel(PropVarFluid *propFluid, Loads *loadsVel
+ static void setLoadsVel(PropVarFluid *propFluid ,Loads *loadsVel
                         , Loads *loadsTemp       , DOUBLE *RESTRICT prop
-                        , bool const fTemp       , bool const fSheat
-                        , bool const iKelvin     , bool const fDensity);
+                        , bool const fTemp       , bool const iKelvin);
 
-  static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC);
+  static void setLoadsPresC(Loads *loadsPres,Loads *loadsPresC
+                           ,short const iCod);
 
 
 
@@ -43,7 +42,7 @@
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 16/09/2019                                   *
+ * Data de modificaco : 16/20/2019                                   *
  *-------------------------------------------------------------------*
  * readFileFvMesh : leitura de arquivo de dados em volume finitos    *
  * ------------------------------------------------------------------*
@@ -51,7 +50,14 @@
  * ------------------------------------------------------------------* 
  * m     -> memoria principal                                        * 
  * mesh  -> malha                                                    *
- * FILE  -> arquivo de entrada                                       * 
+ * propF -> propriedades variavei do fluido                          *
+ * propD -> propriedades variavei do problema de difusao             *
+ * propT -> propriedades variavei do problema de transporte          *
+ * eModel-> modelo da eq energia                                     *
+ * tModel-> modelo de turbulencia                                    *
+ * cModel-> modelo de combustao                                      *
+ * mModel-> modelo da equacao de momento                             *
+ * file  -> arquivo de entrada                                       * 
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
  * ------------------------------------------------------------------*
@@ -61,8 +67,8 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                    , PropVarFluid *propF           
                    , PropVarCD *propD        , PropVarCD *propT
                    , EnergyModel *energyModel, Turbulence *tModel     
-                   , Combustion *cModel      , Mean *media
-                   , FILE* file)
+                   , Combustion *cModel      , MomentumModel *mModel     
+                   , Mean *media             , FILE* file)
 {
   char word[WORD_SIZE],str[WORD_SIZE];
   char macro[NMACROS][WORD_SIZE]={
@@ -902,7 +908,6 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       strcpy(str,"endLoadsPres");
       fprintf(fileLogExc,"loading loadsPres ...\n");
       readVfLoads(loadsPres,str       ,file);
-      convLoadsPresC(loadsPres, loadsPresC);
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
@@ -1076,6 +1081,11 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
   initPropRef(propF,mesh->elm.material.prop,0);
 /*...................................................................*/
 
+/*... incializando as condicoes de contorno da PresVel*/
+  if(rflag[22])
+    setLoadsPresC(loadsPres, loadsPresC,mModel->iCodBuoyant);
+/*...................................................................*/
+
 /*... incializando as condicoes de contorno da Vel*/
   if(rflag[19])
   {
@@ -1088,10 +1098,9 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                     ,energyModel->fKelvin     ,propF->fDensity
                     ,cModel->fLump);   
     else
-      convLoadsVel(propF                      ,loadsVel              
-                    ,loadsTemp                ,mesh->elm.material.prop
-                    ,energyModel->fTemperature,propF->fSpecificHeat
-                    ,energyModel->fKelvin     ,propF->fDensity);   
+      setLoadsVel(propF                      ,loadsVel              
+                 ,loadsTemp                 ,mesh->elm.material.prop
+                 ,energyModel->fTemperature ,energyModel->fKelvin);   
   }
 /*...................................................................*/
 
@@ -1099,7 +1108,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
   if(rflag[25])
   {
     if(fComb)
-      convLoadsEnergyMix(cModel                 ,&propF->den 
+      setLoadsEnergyMix(cModel                 ,&propF->den 
                       ,&propF->sHeat            ,loadsEnergy              
                       ,loadsTemp                ,loadsZcomb
                       ,loadsVel                 ,mesh->elm.material.prop
@@ -1107,11 +1116,10 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                       ,energyModel->fKelvin     ,propF->fDensity
                       ,cModel->fLump);  
     else
-      convLoadsEnergy(&propF->sHeat
-                       ,loadsEnergy              ,loadsTemp
-                       ,mesh->elm.material.prop
-                       ,energyModel->fTemperature,propF->fSpecificHeat
-                       ,energyModel->fKelvin     );  
+      setLoadsEnergy(propF
+                     ,loadsEnergy              ,loadsTemp
+                     ,loadsVel                 ,mesh->elm.material.prop
+                     ,energyModel->fTemperature,energyModel->fKelvin);  
   }
 /*...................................................................*/
 
@@ -2681,7 +2689,7 @@ void readPropVar(PropVarFluid *pf  , PropVarCD *pd, PropVarCD *pt
  * e       -> modelos/termos usandos na eq energia                   * 
  * t       -> modelo de turbilencia                                  *
  * eMass   -> modelos/termos usados na equacao da conv de mass       * 
- * ModelMomentum  -> modelos/termos usados na equacao da conv de mass*
+ * momentumModel  -> modelos/termos usados na equacao da conv de mass*
  * dModel  -> modelos/termos usados nas equacoes de diffusao         *
  * tModel  -> modelos/termos usados nas equacoes de transporte       *
  * cModel  -> modelos/termos usados na equacoes de combustao         *
@@ -2697,7 +2705,7 @@ void readPropVar(PropVarFluid *pf  , PropVarCD *pd, PropVarCD *pt
  *-------------------------------------------------------------------* 
  *********************************************************************/
 void readModel(EnergyModel *e         , Turbulence *t
-             , MassEqModel *eMass     , MomentumModel *ModelMomentum
+             , MassEqModel *eMass     , MomentumModel *momentumModel
              , DiffModel   *dModel    , TransModel *tModel
              , Combustion *cModel
              , FILE *file){
@@ -3053,11 +3061,11 @@ void readModel(EnergyModel *e         , Turbulence *t
     { 
       strcpy(format,"%-20s: %s\n");
       fprintf(fileLogExc,"\n%-20s: \n","MomentumEqModel");    
-      ModelMomentum->fRes             = false;
-      ModelMomentum->fRhieChowInt     = false;
-      ModelMomentum->fViscosity       = false;
-      ModelMomentum->fDiv             = false;
-      ModelMomentum->fSoPressure      = false;
+      momentumModel->fRes             = false;
+      momentumModel->fRhieChowInt     = false;
+      momentumModel->fViscosity       = false;
+      momentumModel->fDiv             = false;
+      momentumModel->fSoPressure      = false;
       fscanf(file,"%d",&nPar);
       for(i=0;i<nPar;i++)
       {
@@ -3065,8 +3073,8 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... residual*/
         if(!strcmp(word,momentum[0]))
         {
-          ModelMomentum->fRes = true;          
-          if(ModelMomentum->fRes) 
+          momentumModel->fRes = true;          
+          if(momentumModel->fRes) 
             fprintf(fileLogExc,format,"Residual","Enable");
         }
 /*...................................................................*/
@@ -3074,8 +3082,8 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... Absolute*/
         else if(!strcmp(word,momentum[1]))
         {
-          ModelMomentum->fRes = false;            
-          if(!ModelMomentum->fRes) 
+          momentumModel->fRes = false;            
+          if(!momentumModel->fRes) 
             fprintf(fileLogExc,format,"Absolute","Enable");
         }
 /*...................................................................*/
@@ -3083,8 +3091,8 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... RhieChow*/
         else if(!strcmp(word,momentum[2]))
         {
-          ModelMomentum->fRhieChowInt = true;            
-          if(ModelMomentum->fRhieChowInt) 
+          momentumModel->fRhieChowInt = true;            
+          if(momentumModel->fRhieChowInt) 
             fprintf(fileLogExc,format,"RhieChowInt","Enable");
         }
 /*...................................................................*/
@@ -3092,8 +3100,8 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... Viscosity*/
         else if(!strcmp(word,momentum[3]))
         {
-          ModelMomentum->fViscosity = true;            
-          if(ModelMomentum->fViscosity) 
+          momentumModel->fViscosity = true;            
+          if(momentumModel->fViscosity) 
             fprintf(fileLogExc,format,"Viscosity","Enable");
         }
 /*...................................................................*/
@@ -3101,8 +3109,8 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... div*/
         else if(!strcmp(word,momentum[4]))
         {
-          ModelMomentum->fDiv = true;            
-          if(ModelMomentum->fDiv) 
+          momentumModel->fDiv = true;            
+          if(momentumModel->fDiv) 
             fprintf(fileLogExc,format,"Divergente","Enable");
         }
 /*...................................................................*/
@@ -3110,7 +3118,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... bouyant_hydrostatic*/
         else if(!strcmp(word,momentum[5]))
         {
-          ModelMomentum->iCodBuoyant = BUOYANT_HYDROSTATIC;            
+          momentumModel->iCodBuoyant = BUOYANT_HYDROSTATIC;            
           fprintf(fileLogExc,format,"bouyant_hydrostatic","Enable");
         }
 /*...................................................................*/
@@ -3118,7 +3126,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... bouyant_prgh*/
         else if(!strcmp(word,momentum[6]))
         {
-          ModelMomentum->iCodBuoyant = BUOYANT_PRGH;            
+          momentumModel->iCodBuoyant = BUOYANT_PRGH;            
           fprintf(fileLogExc,format,"bouyant_prgh","Enable");
         }
 /*...................................................................*/
@@ -3126,7 +3134,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... bouyant_prgh*/
         else if(!strcmp(word,momentum[7]))
         {
-          ModelMomentum->iCodBuoyant = BUOYANT_RHOREF;            
+          momentumModel->iCodBuoyant = BUOYANT_RHOREF;            
           fprintf(fileLogExc,format,"bouyant_rofref","Enable");
         }
 /*...................................................................*/
@@ -3134,7 +3142,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 /*... soPressure*/
         else if(!strcmp(word,momentum[8]))
         {
-          ModelMomentum->fSoPressure = true;            
+          momentumModel->fSoPressure = true;            
           fprintf(fileLogExc,format,"SoPressure","Enable");
         }
 /*...................................................................*/
@@ -7549,10 +7557,24 @@ void configEdo(Edo *edo, FILE *file)
 
 
 
-/*********************************************************************/
-/*Converte condicoes de contorno da pressao para presssao de correcao*/
-/*********************************************************************/
-static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC){
+/********************************************************************
+* Data de criacao    : 00/00/0000                                   *
+* Data de modificaco : 16/10/2019                                   *
+*-------------------------------------------------------------------*
+* CONVLOADSPRESC : Converte condicoes de contorno da Temperatura    *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+static void setLoadsPresC(Loads *loadsPres,Loads *loadsPresC
+                         ,short const iCod)
+{
 
   short i,j,type;
 
@@ -7568,15 +7590,21 @@ static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC){
       loadsPresC[i].par[0] = 0.e0;
     else if(type == INLETTOTALPRES)
       loadsPresC[i].par[1] = 0.e0;
+    else if (type == FLUXPRES)
+    {
+      loadsPresC[i].type    = FLUXPRESC;
+      loadsPres[i].iCod[0]  = iCod;
+      loadsPresC[i].iCod[0] = iCod;
+    }
   }
 }
+/*********************************************************************/
 
 /********************************************************************* 
- * Data de criacao    : 30/06/2016                                   *
- * Data de modificaco : 05/09/2017                                   *
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 09/05/2019                                   *
  *-------------------------------------------------------------------*
- * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
- * de C para kelvin                                                  *
+ * setLoadsEnergy:                                                   *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
@@ -7587,22 +7615,22 @@ static void convLoadsPresC(Loads *loadsPres,Loads *loadsPresC){
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-static void convLoadsEnergy(Prop *sHeatProp
+static void setLoadsEnergy(PropVarFluid *pF
                            ,Loads *loadsEnergy   ,Loads *loadsTemp
-                           ,DOUBLE *RESTRICT prop
-                           ,bool const fTemp     ,bool const fSheat 
-                           ,bool const iKelvin   ){
-
+                           ,Loads *loadsVel      ,DOUBLE *RESTRICT prop
+                           ,bool const fTemp     ,bool const iKelvin   )
+{
+  bool fDensity = pF->fDensity, fSheat = pF->fSpecificHeat;
   short i,j,type;
-  DOUBLE t,sHeat,tmp;
+  DOUBLE t,sHeat,tmp,tmp1;
   
 /*... cc da equacao da energia e em temperatura*/
   if(fTemp){
 
     for(i=0;i<MAXLOAD;i++){
-      loadsEnergy[i].fUse = loadsTemp[i].fUse;
-      loadsEnergy[i].type = loadsTemp[i].type;
-      loadsEnergy[i].np   = loadsTemp[i].np;
+      loadsEnergy[i].fUse    = loadsTemp[i].fUse;
+      loadsEnergy[i].type    = loadsTemp[i].type;
+      loadsEnergy[i].np      = loadsTemp[i].np;
       for(j=0;j<MAXLOADPARAMETER;j++)
         loadsEnergy[i].par[j] = loadsTemp[i].par[j];
     }
@@ -7622,17 +7650,19 @@ static void convLoadsEnergy(Prop *sHeatProp
   else{
     sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
     for(i=0;i<MAXLOAD;i++){
-      loadsEnergy[i].fUse = loadsTemp[i].fUse;
-      loadsEnergy[i].type = loadsTemp[i].type;
-      loadsEnergy[i].np   = loadsTemp[i].np;
+      loadsEnergy[i].fUse    = loadsTemp[i].fUse;
+      loadsEnergy[i].type    = loadsTemp[i].type;
+      loadsEnergy[i].np      = loadsTemp[i].np;
       type = loadsTemp[i].type;
       for(j=0;j<MAXLOADPARAMETER;j++)
         loadsEnergy[i].par[j] = loadsTemp[i].par[j];
 
 /*...*/
       if( type == DIRICHLETBC ){
-        t = loadsTemp[i].par[0];
-        tmp = tempForSpecificEnthalpy(sHeatProp,t, sHeat, fSheat, iKelvin);
+        t        = loadsTemp[i].par[0];
+        tmp = tempForSpecificEnthalpy(&pF->sHeat,t 
+                                     , pF->sHeatRef
+                                     , fSheat   , iKelvin);
         loadsEnergy[i].par[0] = tmp;               
       }
 /*....................................................................*/
@@ -7640,8 +7670,36 @@ static void convLoadsEnergy(Prop *sHeatProp
 /*...*/
       else if ( type == INLET ||  type == OPEN) {
         t = loadsTemp[i].par[0];
-        tmp = tempForSpecificEnthalpy(sHeatProp,t, sHeat, fSheat, iKelvin);
-        loadsEnergy[i].par[0] = tmp;  
+        tmp = tempForSpecificEnthalpy(&pF->sHeat  ,t
+                                    , pF->sHeatRef
+                                    , fSheat    , iKelvin);       
+        loadsEnergy[i].par[0] = tmp;
+/*... densidade*/
+        if(fDensity)
+        {         
+          tmp1 = airDensity(&pF->den          
+                           ,t               ,thDynamic.pTh[2]
+                           ,thDynamic.pTh[2],pF->molarMass
+                           ,iKelvin);
+          loadsEnergy[i].density = tmp1;
+          loadsTemp[i].density   = tmp1;
+        }       
+        else
+        {
+          loadsEnergy[i].density = loadsVel[i].par[loadsVel[i].np-1];
+          loadsTemp[i].density = loadsVel[i].par[loadsVel[i].np-1];
+        }
+/*....................................................................*/
+
+/*... velocidades*/
+        loadsEnergy[i].vel[0] = loadsVel[i].par[0];
+        loadsEnergy[i].vel[1] = loadsVel[i].par[1]; 
+        loadsEnergy[i].vel[2] = loadsVel[i].par[2];
+   
+        loadsTemp[i].vel[0] = loadsVel[i].par[0];
+        loadsTemp[i].vel[1] = loadsVel[i].par[1]; 
+        loadsTemp[i].vel[2] = loadsVel[i].par[2];
+/*....................................................................*/
       }
 /*....................................................................*/
 
@@ -7661,9 +7719,8 @@ static void convLoadsEnergy(Prop *sHeatProp
  * Data de criacao    : 09/05/2019                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
- * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
- * de C para kelvin                                                  *
- *-------------------------------------------------------------------*
+ * setLoadsEnergy:                                                   *
+  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  *-------------------------------------------------------------------*
@@ -7673,8 +7730,8 @@ static void convLoadsEnergy(Prop *sHeatProp
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-static void convLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
-                              ,Prop *sHeatProp   ,Loads *loadsEnergy
+static void setLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
+                              ,Prop *sHeatProp      ,Loads *loadsEnergy
                               ,Loads *loadsTemp     ,Loads *loadsZ     
                               ,Loads *loadsVel      ,DOUBLE *RESTRICT prop
                               ,bool const fTemp     ,bool const fSheat 
@@ -7789,8 +7846,7 @@ static void convLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
  * Data de criacao    : 08/05/2019                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
- * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
- * de C para kelvin                                                  *
+ * setLoadsEnergy:                                                  *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
@@ -7852,7 +7908,7 @@ static void convLoadsZcombMix(Combustion *cModel   ,Prop *pDen
  * Data de criacao    : 08/05/2019                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
- * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
+ * setLoadsEnergy: Converte condicoes de contorno da Temperatura    *
  * de C para kelvin                                                  *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
@@ -7904,10 +7960,9 @@ static void convLoadsVelMix(Combustion *cModel   ,Prop *pDen
 
 /********************************************************************* 
  * Data de criacao    : 10/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 16/10/2019                                   *
  *-------------------------------------------------------------------*
- * CONVLOADSENERGY: Converte condicoes de contorno da Temperatura    *
- * de C para kelvin                                                  *
+ * setLoadsVel:                                                      *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
@@ -7918,13 +7973,14 @@ static void convLoadsVelMix(Combustion *cModel   ,Prop *pDen
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-static void convLoadsVel(PropVarFluid *propFluid
-                        ,Loads *loadsVel
-                        ,Loads *loadsTemp     ,DOUBLE *RESTRICT prop
-                        ,bool const fTemp     ,bool const fSheat 
-                        ,bool const iKelvin   ,bool const fDensity)
+static void setLoadsVel(PropVarFluid *propFluid
+                        ,Loads *loadsVel      ,Loads *loadsTemp
+                        ,DOUBLE *RESTRICT prop
+                        ,bool const fTemp     ,bool const iKelvin)
 
 {
+
+  bool fDensity = propFluid->fDensity, fSheat = propFluid->fSpecificHeat;
   short i,type;
   DOUBLE t,sHeat,tmp1;
   

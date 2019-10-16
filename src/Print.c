@@ -597,7 +597,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 
       boundaryNode(m                   , loadsTemp   
                , mesh->elm.cellFace    , mesh->face.owner
-               , mesh->node.vel        , mesh->elm.vel    
+               , mesh->node.energy     , mesh->elm.energy 
                , mesh->elm.node        , mesh->elm.geomType            
                , mesh->elm.geom.cc     , mesh->node.x  
                , mesh->face.xm         , mesh->elm.geom.xmcc 
