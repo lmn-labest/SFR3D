@@ -913,7 +913,8 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                 , DOUBLE *RESTRICT tCond    , DOUBLE *RESTRICT viscosity
                 , DOUBLE *RESTRICT volume   , short  *RESTRICT mat        
                 , DOUBLE *cfl               , DOUBLE *reynolds
-                , DOUBLE *peclet            , DOUBLE *mass     
+                , DOUBLE *peclet            , DOUBLE *mass  
+                , DOUBLE *prMax   
                 , bool *fParameter          , DOUBLE const dt
                 , INT const nEl             , short const ndm);
 /*...................................................................*/

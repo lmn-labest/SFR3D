@@ -5042,7 +5042,7 @@ void rcGradU(Memoria *m                , Loads *loads
      shared(aux2,ndm,ndf,numel,maxViz,nFace,mat,u,nU,lSquare,lSquareR\
          ,gVolume, geomType,prop,fModKsi,faceR,gradU,numelNov,rcGrad\
          ,fArea,gDcca,fKsi,fEta,fNormal,fXm,fXmCc,fvSkew,maxNo\
-         ,nelcon,loadsVel,loadsPres,nen,loads,el,density,densityRef\
+         ,nelcon,loadsVel,loadsPres,nen,loads,el,density\
          ,gradRho,gCc,fOwner,cellFace,gravity,xRef)
   for (nel = 0; nel<numelNov; nel++)
   {
@@ -5597,7 +5597,7 @@ void wallFluidVelPres(Loads *ldVel
 
 /*********************************************************************
  * Data de criacao    : 28/08/2017                                   *
- * Data de modificaco : 20/08/2019                                   *
+ * Data de modificaco : 18/10/2019                                   *
  *-------------------------------------------------------------------*
  * PARAMETERCELLLM:                                                  *
  *-------------------------------------------------------------------*
@@ -5610,15 +5610,17 @@ void wallFluidVelPres(Loads *ldVel
  * tCond     - condutividade termica                                 *
  * viscosity -  viscosidade dinamica                                 *
  * volume    - volume                                                *
- * mat        - material por celula                                  *
- * cfl        - cfl                                                  *
- * reynolds- numero de reynolds                                      *
- * peclet  - peclet                                                  *
+ * mat       - material por celula                                   *
+ * cfl       - cfl                                                   *
+ * reynolds  - numero de reynolds                                    *
+ * peclet    - peclet                                                *
+ * pr        - numero Prandtl                                        *
  * fPrameter - parametro a serem calculados                          *
  *              0 - cfl                                              *
  *              1 - reynolds                                         *
  *              2 - peclet                                           *
  *              3 - massa total                                      *
+ *              4 - numero de Prandtl                                *
  * dt         - passo de tempo                                       *
  * nEl        - numero de celulas                                    *
  * ndm        - numero de dimensoes                                  *
@@ -5637,7 +5639,8 @@ void parameterCellLm(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT prop
                 , DOUBLE *RESTRICT tCond     , DOUBLE *RESTRICT dViscosity
                 , DOUBLE *RESTRICT volume    , short  *RESTRICT mat      
                 , DOUBLE *cfl                , DOUBLE *reynolds
-                , DOUBLE *peclet             , DOUBLE *mass   
+                , DOUBLE *peclet             , DOUBLE *mass  
+                , DOUBLE *pr 
                 , bool *fParameter           , DOUBLE const dt
                 , INT const nEl              , short const ndm)
 
@@ -5645,7 +5648,7 @@ void parameterCellLm(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT prop
   INT i;
   DOUBLE modVel,lc,den,sHeat0,viscosity,coefDif,tmp,v[3]
         ,dm=0.e0;
-  DOUBLE cflMax=0.0e0,reynoldsMax=0.e0,pecletMax=0.e0;
+  DOUBLE cflMax=0.0e0,reynoldsMax=0.e0,pecletMax=0.e0,prMax=0.e0;
 #ifdef _MPI_
   DOUBLE gg;
 #endif
@@ -5762,6 +5765,22 @@ void parameterCellLm(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT prop
       }
 /*..................................................................*/
 
+/*... numero de Prandtl*/
+    if(fParameter[4])
+    {
+/*...*/
+      coefDif   = tCond[i];
+      sHeat0    = MAT2D(i, 2, sHeat  , SHEAT_LEVEL);
+      viscosity = dViscosity[i];
+      tmp       = sHeat0*viscosity/coefDif;
+/*..................................................................*/
+
+/*...*/
+      prMax = max(tmp,prMax);  
+/*..................................................................*/
+    }
+/*..................................................................*/
+
   }
 /*..................................................................*/  
 
@@ -5790,6 +5809,11 @@ void parameterCellLm(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT prop
       MPI_Allreduce(&dm,&gg ,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
       dm = gg;
     }
+    if(fParameter[4])
+    {
+      MPI_Allreduce(&prMax,&gg ,1,MPI_DOUBLE,MPI_MAX,mpiVar.comm);
+      prMax = gg;
+    }
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
   }
 #endif
@@ -5800,6 +5824,7 @@ void parameterCellLm(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT prop
   *reynolds = reynoldsMax;
   *peclet   = pecletMax;
   *mass     = dm;
+  *pr       = prMax;
 /*...................................................................*/
 }
 /*********************************************************************/ 

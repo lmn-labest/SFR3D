@@ -309,7 +309,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     fDensityRef       = thDynamic->fDensityRef,
     fPresRef          = thDynamic->fPresTh,
     fDeltaTimeDynamic = sc->ddt.fDynamic;
-  DOUBLE cfl, reynolds, peclet,  deltaMass;
+  DOUBLE cfl, reynolds, peclet,  deltaMass, prMax;
   bool fParameter[10];
   char slName[][10] = {"zFuel","zAir","zProd"},
        spName[][10] = {"zO2","zCO2","zH2O","zN2"};
@@ -713,12 +713,14 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   fParameter[1] = true;
   fParameter[2] = true;
   fParameter[3] = true;
+  fParameter[4] = true;
   parameterCellLm(mesh->elm.vel         , mesh->elm.material.prop
                , mesh->elm.densityFluid , mesh->elm.specificHeat
                , mesh->elm.tConductivity, mesh->elm.dViscosity
                , mesh->elm.geom.volume  , mesh->elm.mat            
                , &cfl                   , &reynolds
                , &peclet                , &mesh->mass[2]
+               , &prMax
                , fParameter             , sc->ddt.dt[0]
                , mesh->numelNov         , mesh->ndm);  
 /*...................................................................*/
@@ -906,7 +908,7 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
     fDensityRef = thDynamic->fDensityRef,
     fPresRef = thDynamic->fPresTh,
     fDeltaTimeDynamic = sc->ddt.fDynamic;
-  DOUBLE cfl, reynolds, peclet;
+  DOUBLE cfl, reynolds, peclet, deltaMass, prMax;
   bool fParameter[10];
 
   time = getTimeC();
@@ -1212,12 +1214,14 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
   fParameter[1] = true;
   fParameter[2] = true;
   fParameter[3] = true;
+  fParameter[4] = true;
   parameterCellLm(mesh->elm.vel          , mesh->elm.material.prop
                 , mesh->elm.densityFluid , mesh->elm.specificHeat
                 , mesh->elm.tConductivity, mesh->elm.dViscosity
                 , mesh->elm.geom.volume  , mesh->elm.mat
                 , &cfl                   , &reynolds
                 , &peclet                , &mesh->mass[2]
+                , &prMax
                 , fParameter             , sc->ddt.dt[0]
                 , mesh->numelNov, mesh->ndm);
 /*...................................................................*/
@@ -1251,15 +1255,16 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
 /*...................................................................*/
 
 /*... calculo da taxa de massa atravessando o contorno aberto*/
-//deltaMass = massFluxOpenDomain(loadsVel, sc->ddt
-//  , mesh->elm.cellFace, mesh->face.owner
-//  , mesh->elm.faceRvel, mesh->elm.adj.nViz
-//  , mesh->face.area, mesh->face.normal
-//  , mesh->face.xm
-//  , mesh->elm.densityFluid, mesh->elm.vel
-//  , mesh->numelNov, mesh->ndm
-//  , mesh->maxViz);
-//mesh->mass[1] = mesh->mass[1] + deltaMass;
+  massFluxOpenDomain(loadsVel         , sc->ddt 
+              , mesh->elm.cellFace    , mesh->face.owner
+              , mesh->elm.faceRvel , mesh->elm.adj.nViz 
+              , mesh->face.area       , mesh->face.normal
+              , mesh->face.xm  
+              , mesh->elm.densityFluid, mesh->elm.vel 
+              , mesh->massInOut       , &deltaMass
+              , mesh->numelNov        , mesh->ndm  
+              , mesh->maxViz  );
+  mesh->mass[1] += deltaMass;  
 /*...................................................................*/
 
 /*... temp(n) = temp(n+1)*/
@@ -1277,26 +1282,22 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
   printf("It simple: %d \n", itSimple + 1);
   printf("Time(s) : %lf \n", timei);
   if (sc->ddt.flag)
-    printf("CFL                    : %lf\n", cfl);
-  printf("Reynolds               : %.3e\n", reynolds);
-  printf("Peclet                 : %.3e\n", peclet);
-  printf("PresRef                : %.6e\n", thDynamic->pTh[2]);
-  printf("(Increment) Mass/Mass0 : %.6e\n", mesh->mass[1] / mesh->mass[0]);
-  printf("(Average) Mass/Mass0   : %.6e\n", mesh->mass[2] / mesh->mass[0]);
-
-
-  printf("Residuo:\n");
-  printf("conservacao da massa   (init,final): %20.8e %20.8e \n"
-    , rMass0, rMass);
-  printf("momentum x1            (init,final): %20.8e %20.8e\n"
-    , rU0[0], rU[0]);
-  printf("momentum x2            (init,final): %20.8e %20.8e\n"
-    , rU0[1], rU[1]);
+    printf("%-20s : %13.6lf\n","CFL", cfl);
+  printf("%-20s : %13.6lf\n","Reynolds", reynolds);
+  printf("%-20s : %13.6lf\n","Peclet"  , peclet);
+  printf("%-20s : %13.6lf\n","Prandtl" , prMax);
+  printf("%-20s : %13.6e\n","PresRef"  , thDynamic->pTh[2]);
+  printf("%-20s : %13.6e\n","(Inc    ) Mass/Mass0", mesh->mass[1]/mesh->mass[0]);
+  printf("%-20s : %13.6e\n","(Average) Mass/Mass0", mesh->mass[2]/mesh->mass[0]);
+  printf("%-20s : %13.6e\n","MassIn              ", mesh->massInOut[0]);
+  printf("%-20s : %13.6e\n","MassOut             ", mesh->massInOut[1]);
+  printf("%-25s : %15s %20s\n","Residuo:","init","final");
+  printf("%-25s : %20.8e %20.8e\n","conservacao da massa", rMass0, rMass);
+  printf("%-25s : %20.8e %20.8e\n","momentum x1",rU0[0], rU[0]);
+  printf("%-25s : %20.8e %20.8e\n","momentum x2 ",rU0[1], rU[1]);
   if (ndfVel == 3)
-    printf("momentum x3            (init,final): %20.8e %20.8e\n"
-      , rU0[2], rU[2]);
-  printf("conservacao da energia (init,final): %20.8e %20.8e\n"
-    , rEnergy0, rEnergy);
+    printf("%-25s : %20.8e %20.8e\n","momentum x3", rU0[2], rU[2]);
+  printf("%-25s : %20.8e %20.8e\n","conservacao da energia", rEnergy0, rEnergy);
 /*...................................................................*/
 
 }

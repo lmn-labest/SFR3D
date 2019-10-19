@@ -476,7 +476,6 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 /*...*/
   if(mesh->ndfFt)
   {
-
 /*... reconstruindo do gradiente (gradRho)*/
     if (opt->gradRho)
     {
@@ -510,14 +509,14 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
            , mesh->numelNov         , mesh->numel
            , mesh->nnodeNov         , mesh->nnode
            , false); 
-    }
+
 /*.................................................................. */
 
 /*... interpolacao das variaveis da celulas para pos nos (GradEnergy)*/
-    if(opt->fNode && opt->gradRho)
-      interCellNode(m                , loadsRhoFluid  
+      if(opt->fNode && opt->gradRho)
+        interCellNode(m              , loadsRhoFluid  
               , mesh->elm.cellFace   , mesh->face.owner
-              , nGradRho             , mesh->elm.gradRhoFluid
+              , nGradRho             , mesh->elm.gradRhoFluid 
               , mesh->elm.node       , mesh->elm.geomType
               , mesh->elm.geom.cc    , mesh->node.x
               , mesh->face.xm          
@@ -528,6 +527,8 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
               , mesh->maxNo          , mesh->maxViz
               , 1                    , mesh->ndm   
               , mesh->ndm            , 2);  
+/*...................................................................*/
+    }
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (Energia)*/
