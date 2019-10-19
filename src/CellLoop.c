@@ -4875,7 +4875,7 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
     break;
 /*...................................................................*/
 
-/*... media simple*/
+/*...*/
     default:
       ERRO_OP(__FILE__,__func__,type);
     break;

@@ -479,7 +479,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 /*... reconstruindo do gradiente (gradRho)*/
     if (opt->gradRho)
     {
-      getColFromMatrix(eRho         ,mesh->elm.densityFluid
+      getColFromMatrix(eRho        ,mesh->elm.densityFluid
                       ,mesh->numel ,DENSITY_LEVEL
                       ,TIME_N);
       rcGradU(m                     , loadsRhoFluid
@@ -512,7 +512,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 
 /*.................................................................. */
 
-/*... interpolacao das variaveis da celulas para pos nos (GradEnergy)*/
+/*... interpolacao das variaveis da celulas para pos nos (GradRho)*/
       if(opt->fNode && opt->gradRho)
         interCellNode(m              , loadsRhoFluid  
               , mesh->elm.cellFace   , mesh->face.owner
@@ -525,7 +525,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
               , mesh->numelNov       , mesh->numel
               , mesh->nnodeNov       , mesh->nnode
               , mesh->maxNo          , mesh->maxViz
-              , 1                    , mesh->ndm   
+              , mesh->ndm            , 1
               , mesh->ndm            , 2);  
 /*...................................................................*/
     }
