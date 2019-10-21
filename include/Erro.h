@@ -54,7 +54,7 @@
   #define ERRO_POL_READ(a,b,file,func,line)\
     if(a > b)\
     {\
-      fprintf(stderr,"Numero de grau do polinomios execedido!!");\
+      fprintf(stderr,"Numero de grau do polinomials execedido!!");\
       fprintf(stderr,"%d > %d",a,b);\
       fprintf(stderr,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"\
              ,file,func,line);\

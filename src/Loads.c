@@ -1028,9 +1028,6 @@ void pLoadEnergy(PropVarFluid *vProp
   
   velB[0] = velB[1] = velB[2] = 0.e0;
 
-  for(i=0;i<MAXLOADPARAMETER;i++)
-    par[i] = 0.e0;
-
 /*...*/
   tempPlus = uPlus = yPlus = 0.e0;
   wf[0] = wf[1] = wf[2] = 0.e0;
@@ -1056,10 +1053,12 @@ void pLoadEnergy(PropVarFluid *vProp
         tC = uC;  
       }
       else{
-        tW =specificEnthalpyForTemp(&vProp->sHeat
-                                   ,tA[0],sHeatC,fSheat,iKelvin);
-        tC =specificEnthalpyForTemp(&vProp->sHeat
-                                   ,uC   ,sHeatC,fSheat,iKelvin); 
+        tW =specificEnthalpyForTemp(&vProp->sHeat,298.15
+                                   ,tA[0]        ,sHeatC
+                                   ,fSheat       ,iKelvin);
+        tC =specificEnthalpyForTemp(&vProp->sHeat,298.15
+                                   ,uC            ,sHeatC
+                                   ,fSheat        ,iKelvin); 
       }
 /*...................................................................*/ 
 
@@ -1144,11 +1143,13 @@ void pLoadEnergy(PropVarFluid *vProp
       
 /*... energia na forma da entalpia*/
       else{
-        tC = specificEnthalpyForTemp(&vProp->sHeat
-                                    ,uC ,sHeatC,fSheat,iKelvin); 
+        tC = specificEnthalpyForTemp(&vProp->sHeat,298.15
+                                    ,uC           ,sHeatC
+                                    ,fSheat       ,iKelvin); 
         tW = tC + tA[0]*dcca*tempPlus/(sHeatC*viscosityC*yPlus);
         tW = tempForSpecificEnthalpy(&vProp->sHeat
-                                    ,tW,sHeatC,fSheat,iKelvin); 
+                                    ,tW           ,sHeatC
+                                    ,fSheat       ,iKelvin); 
        }
 /*...................................................................*/
       

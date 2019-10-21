@@ -378,7 +378,7 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
 
 /*... energia na forma da entalpia*/
           else {
-            tC = specificEnthalpyForTemp(&vProp->sHeat
+            tC = specificEnthalpyForTemp(&vProp->sHeat     ,298.15
                                         ,uC, sHeatC, fSheat, fKelvin);
             tW = tC;
             tW = tempForSpecificEnthalpy(&vProp->sHeat
@@ -984,7 +984,7 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
             }
             else
             {
-              tC = specificEnthalpyForTemp(&vProp->sHeat
+              tC = specificEnthalpyForTemp(&vProp->sHeat    , 298.15 
                                         , uC, sHeatC, fSheat, fKelvin);
               tW = tC;
               tW = tempForSpecificEnthalpy( &vProp->sHeat
@@ -1612,11 +1612,13 @@ void cellEnergy3DOld(Loads *loads               , Loads *lVel
             }
             else
             {
-              tC = specificEnthalpyForTemp(&vProp->sHeat
-                                        , uC, sHeatC, fSheat, fKelvin);
+              tC = specificEnthalpyForTemp(&vProp->sHeat, 298.15
+                                          , uC          , sHeatC
+                                          , fSheat      , fKelvin);
               tW = tC;
               tW = tempForSpecificEnthalpy( &vProp->sHeat
-                                        , tW, sHeatC, fSheat, fKelvin);
+                                          , tW           , sHeatC
+                                          , fSheat       , fKelvin);
             }        
           }
 /*...................................................................*/

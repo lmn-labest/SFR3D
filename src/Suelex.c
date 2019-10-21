@@ -6,7 +6,7 @@
  * Data de criacao    : 16/06/2019                                   *
  * Data de modificaco : 00/00/0000                                   *
  * ------------------------------------------------------------------*
- * polYextr: polinomio de interpolacao                               *
+ * polYextr: polinomial de interpolacao                               *
  * ------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  * ------------------------------------------------------------------*

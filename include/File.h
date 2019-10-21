@@ -37,6 +37,7 @@
     bool gradPres;       
     bool gradVel;        
     bool gradEnergy; 
+    bool gradTemp; 
     bool graduD1; 
     bool graduT1;
     bool gradZcomb;
@@ -45,7 +46,8 @@
     bool vel;            
     bool pres;
     bool presTotal;           
-    bool energy;         
+    bool energy;   
+    bool temp;      
     bool eddyViscosity;  
     bool densityFluid;   
     bool specificHeat;   

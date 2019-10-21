@@ -580,7 +580,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (energy)*/
-    if(opt->fNode && opt->energy)
+    if(opt->fNode && opt->temp)
     {
      interCellNode(m                , loadsTemp
              , mesh->elm.cellFace   , mesh->face.owner
@@ -594,11 +594,11 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
              , mesh->nnodeNov       , mesh->nnode
              , mesh->maxNo          , mesh->maxViz
              , 1                    , 1
-             , mesh->ndm            , 2);  
+             , mesh->ndm            , 2); 
 
       boundaryNode(m                   , loadsTemp   
                , mesh->elm.cellFace    , mesh->face.owner
-               , mesh->node.energy     , mesh->elm.energy 
+               , mesh->node.temp       , mesh->elm.temp 
                , mesh->elm.node        , mesh->elm.geomType            
                , mesh->elm.geom.cc     , mesh->node.x  
                , mesh->face.xm         , mesh->elm.geom.xmcc 
@@ -2078,6 +2078,7 @@ void initPrintVtk(FileOpt *opt)
   opt->gradPres      = false;
   opt->gradVel       = false;
   opt->gradEnergy    = false;
+  opt->gradTemp      = false;
   opt->graduD1       = false;
   opt->graduT1       = false;
   opt->gradZcomb     = false;
@@ -2087,6 +2088,7 @@ void initPrintVtk(FileOpt *opt)
   opt->pres          = false;
   opt->presTotal     = false;
   opt->energy        = false;
+  opt->temp          = false;
   opt->eddyViscosity = false;
   opt->densityFluid  = false;
   opt->specificHeat  = false;

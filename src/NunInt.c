@@ -110,7 +110,7 @@ double intponto(short const nint, short const i){
  * ------------------------------------------------------------------ *
  * parametros de entrada:                                             * 
  * ------------------------------------------------------------------ *
- * igrau - grau do polinomio                                          *
+ * igrau - grau do polinomial                                          *
  * ------------------------------------------------------------------ *
  * parametros de saida  :                                             * 
  * npint - numero de pontos de integracao                             * 
@@ -171,7 +171,7 @@ double peps1(short const igrau, short const i){
         alf[6]= 0.101286507323456;
       break;
     default:  
-      printf("Numero do grau do polinomio invalido %d!\n"
+      printf("Numero do grau do polinomial invalido %d!\n"
              "funcao peps1.\n",igrau);
       exit(EXIT_FAILURE);
     }
@@ -224,7 +224,7 @@ double peps2(short const igrau, short const i){
       alf[6]= 0.101286507323456;
       break;
     default:  
-      printf("Numero do grau do polinomio invalido!\n"
+      printf("Numero do grau do polinomial invalido!\n"
              "funcao peps2.\n");
       exit(EXIT_FAILURE);
     }
@@ -276,7 +276,7 @@ double pesot(short const igrau, short const i){
         alf[6]=  0.125939180544827;
       break;
     default:  
-      printf("Grau do polinomio invalido.\n!"
+      printf("Grau do polinomial invalido.\n!"
              "funcao pesot.\n");
       exit(EXIT_FAILURE);
   }

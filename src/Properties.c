@@ -122,7 +122,7 @@ DOUBLE maxPolNasaCp2Derivada(PolNasa *a,DOUBLE const x0,DOUBLE const x1)
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
- * a   -> polinomio                                                  *
+ * a   -> polinomial                                                  *
  * x   -> valor desejado                                             *   
  * x0  -> limete inferior                                            *
  * x1  -> limite superior                                            *
@@ -186,7 +186,7 @@ DOUBLE intNum(PolNasa *a,DOUBLE const x0,DOUBLE const x1
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
- * a   -> polinomio                                                  *
+ * a   -> polinomial                                                  *
  * x   -> valor desejado                                             *
  * c   -> nao definido                                               *
  * xNew-> nao definido                                               *
@@ -715,8 +715,8 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
   int nSpecies;
   DOUBLE x[MAXPLODEG],g;
 
-/*... polinomio*/
-  if (!strcmp(s, "polinomio")) 
+/*... polinomial*/
+  if (!strcmp(s, "polinomial")) 
   {
     prop->type = POL;
   
@@ -753,7 +753,7 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
   }
 /*.....................................................................*/
   
-/*... polinomio*/
+/*... polinomial*/
   else if (!strcmp(s,"nasapol7")) 
   {
     prop->type = NASAPOL7;
@@ -1177,7 +1177,7 @@ DOUBLE mixtureSpecifiHeat(Prop *sHeat        , DOUBLE *yFrac
       for (i = 0; i < n; i++)
         a[i] = sHeat->pol[k].a[i];
   
-/*... polinomio*/
+/*... polinomial*/
       cpk = a[0];
       for (i = 1; i < n; i++)
         cpk += a[i]*pow(tc,i);
@@ -1254,7 +1254,7 @@ DOUBLE specieSpecifiHeat(Prop *sHeat     , short const kSpecie
 
   switch (sHeat->type)
   {
-/*... polinomio*/
+/*... polinomial*/
     case POL:
       n=sHeat->pol[kSpecie].nPol;
       for (i = 0; i < n; i++)
@@ -1267,7 +1267,7 @@ DOUBLE specieSpecifiHeat(Prop *sHeat     , short const kSpecie
 
 /*.....................................................................*/
 
-/*... polinomio da nasa*/
+/*... polinomial da nasa*/
       case NASAPOL7:
         cp = polNasaCp(sHeat->nasa+kSpecie,tc);
       break;
@@ -2021,7 +2021,7 @@ DOUBLE tempToSpecificEnthalpyMix(Prop *sHeat    , DOUBLE *yFrac
   {
     switch(sHeat->type)
     {
-/*... polinomio*/
+/*... polinomial*/
       case POL:
         for(k = 0,hs = 0.e0; k < nOfPrSp; k++)
         {
@@ -2109,7 +2109,7 @@ DOUBLE tempForSpecificEnthalpySpecies(Prop *sHeat, short const kSpecie
   {
     switch(sHeat->type)
     {
-/*... polinomio*/
+/*... polinomial*/
       case POL:
         n=sHeat->pol[kSpecie].nPol;
         for (i = 0; i < n; i++)
@@ -2385,12 +2385,12 @@ DOUBLE airDensity(Prop *den
     tc = CELSIUS_FOR_KELVIN(t);  
 
   switch (den->type) {
-/*... polinomio*/
+/*... polinomial*/
     case POL:
       for (i = 0; i < n; i++)
         a[i] = den->pol[0].a[i];
 
-/*... polinomio*/
+/*... polinomial*/
       y = a[0];
       for (i = 1; i < n; i++)
         y += a[i]*pow(tc,i);
@@ -2455,12 +2455,12 @@ DOUBLE diffProp(Prop *pol  , DOUBLE u)
 
   switch (pol->type)
   {
-/*... polinomio*/
+/*... polinomial*/
     case POL:
       for (i = 0; i < n; i++)
         a[i] = pol->pol[0].a[i];
 
-/*... polinomio*/
+/*... polinomial*/
       y = a[0];
       for (i = 1; i < n; i++)
         y += a[i] * pow(u, i);
@@ -2484,7 +2484,7 @@ DOUBLE diffProp(Prop *pol  , DOUBLE u)
 
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
- * Data de modificaco : 07/05/2019                                   *
+ * Data de modificaco : 20/10/2019                                   *
  *-------------------------------------------------------------------*
  * AIRSPECIFIHEAT: kJ/(kg.K)                                         *
  *-------------------------------------------------------------------*
@@ -2498,30 +2498,25 @@ DOUBLE diffProp(Prop *pol  , DOUBLE u)
  * OBS:                                                              *
  * http://www.engineeringtoolbox.com/air-properties-d_156.html   	   *
  *                                                                   *
- * regressao com polinomio de ordem 5 obtido pelo excel              *
+ * regressao com polinomial de ordem 5 obtido pelo excel              *
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE airSpecifiHeat(Prop *sHeat, DOUBLE const t
                      ,bool const fKelvin) {
 
   short i,n=sHeat->pol[0].nPol;  
-  DOUBLE a[MAXPLODEG],y,d;
+  DOUBLE y,d;
   DOUBLE tc;
 
-  a[0] = 0.0e0;
-  
   if(fKelvin)
     tc = t;  
   else
     tc = CELSIUS_FOR_KELVIN(t);  
-
-  for (i = 0; i < n; i++)
-    a[i] = sHeat->pol[0].a[i];
-  
-/*... polinomio*/
-  y = a[0];
+ 
+/*... polinomial*/
+  y = sHeat->pol[0].a[0];
   for (i = 1; i < n; i++)
-    y += a[i]*pow(tc,i);
+    y += sHeat->pol[0].a[i]*pow(tc,i);
 /*.....................................................................*/
 
 /*...*/
@@ -2543,7 +2538,7 @@ DOUBLE airSpecifiHeat(Prop *sHeat, DOUBLE const t
 
 /*********************************************************************
  * Data de criacao    : 29/08/2017                                   *
- * Data de modificaco : 07/05/2019                                   *
+ * Data de modificaco : 20/10/2019                                   *
  *-------------------------------------------------------------------*
  * AIRDYNAMICVISCOSITY: kg/(m.s)                                     *
  *-------------------------------------------------------------------*
@@ -2557,7 +2552,7 @@ DOUBLE airSpecifiHeat(Prop *sHeat, DOUBLE const t
  * OBS:                                                              *
  * http://www.engineeringtoolbox.com/air-properties-d_156.html       *
  *                                                                   *
- * regressao com polinomio de ordem 5 obtido pelo excel              *
+ * regressao com polinomial de ordem 5 obtido pelo excel              *
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE airDynamicViscosity(Prop *dVisc,DOUBLE const t
@@ -2575,22 +2570,18 @@ DOUBLE airDynamicViscosity(Prop *dVisc,DOUBLE const t
     tc = CELSIUS_FOR_KELVIN(t);  
 
   switch (dVisc->type) {
-/*... polinomio*/
-    case POL:
-      for (i = 0; i < n; i++)
-        a[i] = dVisc->pol[0].a[i];
-/*.....................................................................*/
-  
-/*... polinomio*/
+/*... polinomial*/
+    case POL: 
+/*... polinomial*/
       y = a[0];
       for (i = 1; i < n; i++)
-        y += a[i]*pow(tc,i);
-      d = 1.e-05;
+        y += dVisc->pol[0].a[i]*pow(tc,i);
+      d = 1.e+00;
 /*.....................................................................*/
       break;
 /*.....................................................................*/
 
-/*... polinomio*/
+/*... polinomial*/
     case SUTHERLAND:
       a[0] = dVisc->surtherland[0]; /*viscosidade de referencia*/
       a[1] = dVisc->surtherland[1]; /*temperatura de referencia*/ 
@@ -2643,7 +2634,7 @@ DOUBLE airDynamicViscosity(Prop *dVisc,DOUBLE const t
  *-------------------------------------------------------------------*
  * http://www.engineeringtoolbox.com/air-properties-d_156.html   	   *
  *                                                                   *
- * regressao com polinomio de ordem 5 obtido pelo excel              *
+ * regressao com polinomial de ordem 5 obtido pelo excel              *
  *                                                                   *
  *-------------------------------------------------------------------*
  *********************************************************************/
@@ -2661,17 +2652,17 @@ DOUBLE airThermalConductvity(Prop *thCond, DOUBLE const t
   else
     tc = CELSIUS_FOR_KELVIN(t);  
   switch (thCond->type) {
-/*... polinomio*/
+/*... polinomial*/
     case POL:
       for (i = 0; i < n; i++)
         a[i] = thCond->pol[0].a[i];
 /*.....................................................................*/
 
-/*... polinomio*/
+/*... polinomial*/
       y = a[0];
       for (i = 1; i < n; i++)
         y += a[i]*pow(tc,i);
-      d = 1.e-05;
+      d = 1.e+00;
 /*.....................................................................*/
       break;
 /*.....................................................................*/
@@ -2754,7 +2745,7 @@ DOUBLE tempForSpecificEnthalpy(Prop *sHeat
 
 /*********************************************************************
  * Data de criacao    : 28/08/2017                                   *
- * Data de modificaco : 15/07/2018                                   *
+ * Data de modificaco : 20/10/2019                                   *
  *-------------------------------------------------------------------*
  * SPECIFICENTHALPYFORTEMP:  calcula a temperatura apartir da        *
  * entalpia especifica                                               * 
@@ -2774,38 +2765,36 @@ DOUBLE tempForSpecificEnthalpy(Prop *sHeat
  * OBS:                                                              * 
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE specificEnthalpyForTemp(Prop *sHeatPol
+DOUBLE specificEnthalpyForTemp(Prop *sHeatPol   , DOUBLE const t
                              , DOUBLE const hs  , DOUBLE const sHeatRef
                              , bool const fSheat, bool const fKelvin) 
 {
   unsigned short i;
   bool flag = false;
-  DOUBLE f,fl,t,conv,tol=1e-04;
+  DOUBLE f,fl,tc,conv,tol=1e-10;
  
 /*...*/
   if(fSheat){
-/*... chute inicial usando a massa espeficia constante*/
-    t = ENTHALPY_FOR_TEMP(sHeatRef,hs,TREF);
-/*...*/
-    conv = (hs-tempForSpecificEnthalpy(sHeatPol,t,sHeatRef,fSheat,true))*tol;
-    conv = fabs(conv);
+/*... chute inicial*/
+    TEMP(tc,t,fKelvin);
+
 /*... Newton-Raphson*/
-    for(i=0;i<10000000;i++){
-      f  = hs-tempForSpecificEnthalpy(sHeatPol,t,sHeatRef,fSheat,true);
-      if(fabs(f) < conv) {
+    for(i=0;i<1000;i++){
+      f  = hs-tempForSpecificEnthalpy(sHeatPol,tc
+                                     ,sHeatRef,fSheat,true);
+      if(fabs(f) < tol) {
         flag = true;
         break;
       }
     
-      fl = airSpecifiHeat(sHeatPol,t,true);
-      t += f/fl;   
+      fl = airSpecifiHeat(sHeatPol,tc,true);
+      tc += f/fl;   
     }
 /*...................................................................*/
 
     if(!flag){
-      printf("%i %e %e %e\n",i,t,f,conv);
       ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,
-      "sEnthalpy->temperature:\n Newton-raphson did not converge !!"
+      "sEnthalpy->temperature:\nNewton-raphson did not converge !!"
       ,EXIT_NRP_ET);
     }
   }
@@ -2813,13 +2802,13 @@ DOUBLE specificEnthalpyForTemp(Prop *sHeatPol
 
 /*...*/
   else
-    t = ENTHALPY_FOR_TEMP(sHeatRef,hs,TREF);
+    tc = ENTHALPY_FOR_TEMP(sHeatRef,hs,TREF);
 /*...................................................................*/
 
   if(!fKelvin)
-    t = KELVIN_FOR_CELSIUS(t);  
+    tc = KELVIN_FOR_CELSIUS(tc);
 
-  return t;
+  return tc;
 
 }
 /**********************************************************************/
@@ -2883,7 +2872,7 @@ DOUBLE waterDensity(DOUBLE const t) {
  * OBS:                                                              *
  * www.engineeringtoolbox.com/water-thermal-properties-d_162.html	   *
  *                                                                   *
- * regressao com polinomio de ordem 5 obtido pelo excel              *
+ * regressao com polinomial de ordem 5 obtido pelo excel              *
  *                                                                   *
  * range  T=]0,100[                                                  * 
  *-------------------------------------------------------------------*
@@ -2907,7 +2896,7 @@ DOUBLE waterSpecifiHeat(DOUBLE const t) {
 /*... t*t*t*t */
   x[3] = t*x[2];
   
-/*... polinomio*/
+/*... polinomial*/
   y = a[0] + a[1]*x[0] + a[2]*x[1] + a[3]*x[2] + a[4]*x[3];
 /*.....................................................................*/
 
@@ -2941,7 +2930,7 @@ DOUBLE waterSpecifiHeat(DOUBLE const t) {
  * OBS:                                                              *
  * www.engineeringtoolbox.com/water-thermal-properties-d_162.html	   *
  *                                                                   *
- * regressao com polinomio de ordem 5 obtido pelo excel              *
+ * regressao com polinomial de ordem 5 obtido pelo excel              *
  *                                                                   *
  * range  T=]0,100[                                                  * 
  *-------------------------------------------------------------------*
@@ -2965,7 +2954,7 @@ DOUBLE waterDynamicViscosity(DOUBLE const t) {
 /*... t*t*t*t */
   x[3] = t*x[2];
   
-/*... polinomio*/
+/*... polinomial*/
   y = a[0] + a[1]*x[0] + a[2]*x[1] + a[3]*x[2] + a[4]*x[3];
 /*.....................................................................*/
   
@@ -2999,7 +2988,7 @@ DOUBLE waterDynamicViscosity(DOUBLE const t) {
  * OBS:                                                              *
  * www.engineeringtoolbox.com/water-thermal-properties-d_162.html	   *
  *                                                                   *
- * regressao com polinomio de ordem 5 obtido pelo excel              *
+ * regressao com polinomial de ordem 5 obtido pelo excel              *
  *                                                                   *
  * range  T=]0,100[                                                  * 
  *-------------------------------------------------------------------*
@@ -3017,7 +3006,7 @@ DOUBLE waterThermalConductvity(DOUBLE const t) {
 /*... t*t */
   x[1] = t*t;
   
-/*... polinomio*/
+/*... polinomial*/
   y = a[0] + a[1]*x[0] + a[2]*x[1];
 /*.....................................................................*/
   
@@ -3368,7 +3357,7 @@ void initPropTemp(PropVarFluid *propFluid
 *-------------------------------------------------------------------*
 * Parametros de entrada:                                            *
 *-------------------------------------------------------------------*
-* pol     -> polinomio de baixa ordem                               *
+* pol     -> polinomial de baixa ordem                               *
 * prop    -> nao definido                                           *
 * u       -> temperatura                                            *
 * propMat -> propriedade de referencia por material                 *
@@ -3416,7 +3405,7 @@ void initPropCD(Prop *pol            , DOUBLE *RESTRICT prop
  * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
  * INITSHEATPOL: inicializao a estrutura para o calculo do calor     *
- * especifico em funcao da temperatura via polinomio                 *
+ * especifico em funcao da temperatura via polinomial                 *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -3428,7 +3417,7 @@ void initPropCD(Prop *pol            , DOUBLE *RESTRICT prop
  *-------------------------------------------------------------------*
  * http://www.engineeringtoolbox.com/air-properties-d_156.html  	   *
  *                                                                   *
- * regressao com polinomio de ordem 5 obtido pelo excel              *
+ * regressao com polinomial de ordem 5 obtido pelo excel              *
  *                                                                   *
  *********************************************************************/
 void initSheatPol(Prop *prop, char *s, FILE *file) {
@@ -3438,7 +3427,7 @@ void initSheatPol(Prop *prop, char *s, FILE *file) {
   short i;
   double x[MAXPLODEG];
 
-  if (!strcmp(s, "polinomio")) {
+  if (!strcmp(s, "polinomial")) {
     prop->type = POL;
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
@@ -3463,7 +3452,7 @@ void initSheatPol(Prop *prop, char *s, FILE *file) {
  * Data de modificaco : 16/05/2019                                   *
  *-------------------------------------------------------------------*
  * INITVISCOSITYPOL: inicializao a estrutura para o calculo da       *
- * viscosidade dinamica via polinomio                                *
+ * viscosidade dinamica via polinomial                                *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -3475,7 +3464,7 @@ void initSheatPol(Prop *prop, char *s, FILE *file) {
  *-------------------------------------------------------------------*
  * http://www.engineeringtoolbox.com/air-properties-d_156.html  	   *
  *                                                                   *
- * regressao com polinomio de ordem 5 obtido pelo excel              *
+ * regressao com polinomial de ordem 5 obtido pelo excel              *
  *                                                                   *
  *********************************************************************/
 void initDviscosityPol(Prop *prop, char *s, FILE *file) {
@@ -3485,7 +3474,7 @@ void initDviscosityPol(Prop *prop, char *s, FILE *file) {
   short i;
   double x[MAXPLODEG];
 
-  if (!strcmp(s, "polinomio")) 
+  if (!strcmp(s, "polinomial")) 
   {
     prop->type = POL;
     fscanf(file, "%s", nameAux);
@@ -3532,7 +3521,7 @@ void initDviscosityPol(Prop *prop, char *s, FILE *file) {
  * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
  * INITDENSITY: inicializao a estrutura para o calculo da            *
- * densidade via polinomio                                           *
+ * densidade via polinomial                                           *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -3544,7 +3533,7 @@ void initDviscosityPol(Prop *prop, char *s, FILE *file) {
  *-------------------------------------------------------------------*
  * http://www.engineeringtoolbox.com/air-properties-d_156.html  	   *
  *                                                                   *
- * regressao com polinomio de ordem 5 obtido pelo excel              *
+ * regressao com polinomial de ordem 5 obtido pelo excel              *
  *                                                                   *
  *********************************************************************/
 void initDensityPol(Prop *prop, char *s, FILE *file) {
@@ -3554,7 +3543,7 @@ void initDensityPol(Prop *prop, char *s, FILE *file) {
   short i;
   double x[MAXPLODEG];
 
-  if(!strcmp(s,"polinomio")){
+  if(!strcmp(s,"polinomial")){
     prop->type = POL;
     fscanf(file, "%s", nameAux);
     fileOut = openFile(nameAux, "r");
@@ -3591,7 +3580,7 @@ void initDensityPol(Prop *prop, char *s, FILE *file) {
 * Data de modificaco : 07/05/2019                                   *
 *-------------------------------------------------------------------*
 * initCdPol: inicializao a estrutura para o calculo da              *
-* propriedade via polinomio                                         *
+* propriedade via polinomial                                         *
 *-------------------------------------------------------------------*
 * Parametros de entrada:                                            *
 *-------------------------------------------------------------------*
@@ -3610,7 +3599,7 @@ void initCdPol(Prop *prop,char *s,FILE *file)
   short i;
   double x[MAXPLODEG];
 
-  if (!strcmp(s, "polinomio")) 
+  if (!strcmp(s, "polinomial")) 
   {
     prop->type = POL;
     fscanf(file, "%s", nameAux);
@@ -3638,7 +3627,7 @@ void initCdPol(Prop *prop,char *s,FILE *file)
  * Data de modificaco : 31/05/2019                                   *
  *-------------------------------------------------------------------*
  * INITTHCONDPOL: inicializao a estrutura para o calculo da          *
- * condutividade termica via polinomio                               *
+ * condutividade termica via polinomial                               *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
@@ -3650,7 +3639,7 @@ void initCdPol(Prop *prop,char *s,FILE *file)
  *-------------------------------------------------------------------*
  * http://www.engineeringtoolbox.com/air-properties-d_156.html  	   *
  *                                                                   *
- * regressao com polinomio de ordem 5 obtido pelo excel              *
+ * regressao com polinomial de ordem 5 obtido pelo excel              *
  *                                                                   *
  *********************************************************************/
 void initThCondPol(Prop *prop, char *s, FILE *file) {
@@ -3660,7 +3649,7 @@ void initThCondPol(Prop *prop, char *s, FILE *file) {
   short i;
   double x[MAXPLODEG];
 
-  if(!strcmp(s,"polinomio"))
+  if(!strcmp(s,"polinomial"))
   {
 
     prop->type = POL;
@@ -3739,11 +3728,9 @@ void initDiffSp(Prop *prop, char *s, FILE *file) {
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
- * sHeatPol - estrutra par o polinoimio do calor especifico          *
+ * pf     - propriedade do fluido                                    *
  * temp   - nao definido                                             *
  * energy - entalpia sensivel                                        * 
- * prop   - propriedades por material                                *
- * mat    - material da celula                                       *
  * nCell  - numero da celulas                                        *
  * fTemp  - equaca da energia na forma de temperatura (true|false)   *
  * fsHeat - variacao do calor especifico em funcao da Temperatura    *
@@ -3757,16 +3744,14 @@ void initDiffSp(Prop *prop, char *s, FILE *file) {
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void getTempForEnergy(Prop *sHeatPol
+void getTempForEnergy(PropVarFluid *pf    
                      ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
-                     ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                      ,INT const nCell      ,bool const fTemp
                      ,bool const fSheat    ,bool const fKelvin
-                     ,bool const fOmp      ,short const nThreads ){
+                     ,bool const fOmp      ,short const nThreads )
+{
   
-  short lMat;
   INT i;  
-  DOUBLE sHeatRef;
 
 /*... resolucao da eq da energia na forma de temperatura*/ 
   if(fTemp)
@@ -3774,53 +3759,35 @@ void getTempForEnergy(Prop *sHeatPol
       temp[i] = energy[i]; 
 /*...................................................................*/ 
 
-/*... resolucao da eq da energia na forma de entalpia sensivel*/  
-  else{
-    if(fOmp){
-#pragma omp parallel  for default(none) num_threads(nThreads)\
-      private(i,lMat,sHeatRef) shared(prop,mat,energy,temp,sHeatPol)
-      for (i = 0; i < nCell; i++) {
-        lMat  = mat[i] - 1;
-        sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-        temp[i] = specificEnthalpyForTemp(sHeatPol
-                                         , energy[i], sHeatRef
-                                         , fSheat  , fKelvin);
-      }
-/*...................................................................*/
-    }
-/*...................................................................*/
-
 /*...*/
-    else{
-      for (i = 0; i < nCell; i++) {
-        lMat  = mat[i] - 1;
-        sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-        temp[i] = specificEnthalpyForTemp(sHeatPol
-                                         , energy[i], sHeatRef
-                                         , fSheat   , fKelvin);
-      }
-/*...................................................................*/
+  else
+  {
+/*... resolucao da eq da energia na forma de entalpia sensivel*/  
+#pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
+  private(i) shared(energy,temp,pf)
+    for (i = 0; i < nCell; i++)
+    {
+      temp[i] = specificEnthalpyForTemp(&pf->sHeat , 298.15
+                                      , energy[i]  , pf->sHeatRef
+                                      , fSheat     , fKelvin);
     }
-/*...................................................................*/ 
+/*...................................................................*/
   }
-/*...................................................................*/ 
-
+/*...................................................................*/
 }
 /*********************************************************************/
 
 /********************************************************************* 
  * Data de criacao    : 20/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 20/10/2019                                   *
  *-------------------------------------------------------------------*
  * etEnergyForTemp   : obtem a entalpia sensivel apartir da temp     *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------*
- * sHeatPol - estrutra par o polinoimio do calor especifico          *
+ * pf     - propriedade de fluido                                    *
  * temp   - temp                                                     *
  * energy - nao definido                                             * 
- * prop   - propriedades por material                                *
- * mat    - material da celula                                       *
  * nCell  - numero da celulas                                        *
  * fTemp  - equaca da energia na forma de temperatura (true|false)   *
  * fsHeat - variacao do calor especifico em funcao da Temperatura    *
@@ -3834,47 +3801,22 @@ void getTempForEnergy(Prop *sHeatPol
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void getEnergyForTemp(Prop *sHeatPol
+void getEnergyForTemp(PropVarFluid *pf
                      ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
-                     ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                      ,INT const nCell     
                      ,bool const fSheat    ,bool const fKelvin
                      ,bool const fOmp      ,short const nThreads ) 
 {
-  short lMat;
   INT i;  
-  DOUBLE sHeatRef;
 
-/*...*/
-  if (fOmp) 
-  {
 /*...*/ 
-#pragma omp parallel  for default(none) num_threads(nThreads)\
-    private(i,lMat,sHeatRef) shared(prop,mat,energy,temp,sHeatPol)
-    for (i = 0; i < nCell; i++) 
-    {
-      lMat  = mat[i] - 1;
-      sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-      energy[i] = tempForSpecificEnthalpy(sHeatPol
-                                         ,temp[i]  ,sHeatRef
-                                         ,fSheat  ,fKelvin);
-    }
-/*...................................................................*/ 
-  }
-/*...................................................................*/ 
-
-  else
+#pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
+    private(i) shared(energy,temp,pf)
+  for (i = 0; i < nCell; i++) 
   {
-/*...*/ 
-    for (i = 0; i < nCell; i++) 
-    {
-      lMat  = mat[i] - 1;
-      sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-      energy[i] = tempForSpecificEnthalpy(sHeatPol
-                                         ,temp[i] ,sHeatRef
-                                         ,fSheat  ,fKelvin);
-    }
-/*...................................................................*/ 
+    energy[i] = tempForSpecificEnthalpy(&pf->sHeat
+                                      ,temp[i]  ,pf->sHeatRef
+                                      ,fSheat  ,fKelvin);
   }
 /*...................................................................*/ 
 }
@@ -4288,7 +4230,8 @@ void initPropRef(PropVarFluid *propF ,DOUBLE *RESTRICT propMat
                 ,short const lMat)
 {
 
-  propF->densityRef            =   MAT2D(lMat,DENSITY                                         ,propMat,MAXPROP);
+  propF->densityRef            =   MAT2D(lMat   ,DENSITY
+                                        ,propMat,MAXPROP);
 
   propF->sHeatRef               =   MAT2D(lMat,SPECIFICHEATCAPACITYFLUID
                                          ,propMat,MAXPROP);

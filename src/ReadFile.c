@@ -1281,9 +1281,8 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                            ,propF->fSpecificHeat   ,energyModel->fKelvin
                            ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);
       else
-        getEnergyForTemp(&propF->sHeat
-                        ,mesh->elm.temp         ,mesh->elm.energy0
-                        ,mesh->elm.material.prop,mesh->elm.mat                        
+        getEnergyForTemp(propF
+                        ,mesh->elm.temp         ,mesh->elm.energy0                     
                         ,mesh->numel            
                         ,propF->fSpecificHeat   ,energyModel->fKelvin
                         ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);
@@ -3496,7 +3495,7 @@ void setPrint(FileOpt *opt,FILE *file){
 /*...*/
     else if (!strcmp(word,macro[6])) 
     {
-      opt->energy = true;
+      opt->temp = true;
       fprintf(fileLogExc,format,"print","temp");
     }
 /*.....................................................................*/
@@ -3504,7 +3503,7 @@ void setPrint(FileOpt *opt,FILE *file){
 /*...*/
     else if (!strcmp(word,macro[7])) 
     {
-      opt->gradEnergy = true;
+      opt->gradTemp = true;
       fprintf(fileLogExc,format,"print","gradTemp");
     }
 /*.....................................................................*/
@@ -4153,10 +4152,10 @@ void help(FILE *f){
     printf("Ex:\n");
     printf("PropVar\n");
     printf("Fluid\n");
-    printf("density      polinomio mat/denPol.dat\n");
-    printf("tcondutivity polinomio mat/ThCondPol.dat\n");
-    printf("dviscosity   polinomio mat/dViscPol.dat\n");
-    printf("sHeat        polinomio mat/sHeatPol.dat\n");
+    printf("density      polinomial mat/denPol.dat\n");
+    printf("tcondutivity polinomial mat/ThCondPol.dat\n");
+    printf("dviscosity   polinomial mat/dViscPol.dat\n");
+    printf("sHeat        polinomial mat/sHeatPol.dat\n");
     printf("endFluid\n");
     printf("endPropVar\n");    
     exit(EXIT_HELP);

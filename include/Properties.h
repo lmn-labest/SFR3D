@@ -33,8 +33,8 @@
                             ,bool const fKelvin);
   DOUBLE airThermalConductvity(Prop *thC,DOUBLE const t
                               ,bool const fKelvin);
-  DOUBLE specificEnthalpyForTemp(Prop *sHeatPol
-                               , DOUBLE const hs, DOUBLE const sHeatRef
+  DOUBLE specificEnthalpyForTemp(Prop *sHeatPol   , DOUBLE const t
+                               , DOUBLE const hs  , DOUBLE const sHeatRef
                                , bool const fSheat, bool const fKelvin); 
 /*...*/
   DOUBLE tempForSpecificEnthalpy(Prop *sHeatPol
@@ -88,16 +88,14 @@
 /*...................................................................*/
 
 /*...*/
-  void getTempForEnergy(Prop *sHeatPol
+  void getTempForEnergy(PropVarFluid *pf    
                      ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
-                     ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                      ,INT const nCell      ,bool const fTemp
                      ,bool const fSheat    ,bool const fKelvin
-                     ,bool const fOmp      ,short const nThreads );
+                     ,bool const fOmp      ,short const nThreads );  
 
-  void getEnergyForTemp(Prop *sHeatPol
+  void getEnergyForTemp(PropVarFluid *pf
                      ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
-                     ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                      ,INT const nCell     
                      ,bool const fSheat    ,bool const fKelvin
                      ,bool const fOmp      ,short const nThreads );

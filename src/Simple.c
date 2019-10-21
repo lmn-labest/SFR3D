@@ -1113,12 +1113,11 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
 
 /*...*/
     tm.tempFromTheEnergy = getTimeC() - tm.tempFromTheEnergy;
-    getTempForEnergy(&propF->sHeat
-      , mesh->elm.temp, mesh->elm.energy
-      , mesh->elm.material.prop, mesh->elm.mat
-      , mesh->numel, eModel->fTemperature
-      , fSheat, eModel->fKelvin
-      , ompVar.fUpdate, ompVar.nThreadsUpdate);
+    getTempForEnergy( propF
+                    , mesh->elm.temp         , mesh->elm.energy
+                    , mesh->numel            , eModel->fTemperature
+                    , fSheat                 , eModel->fKelvin
+                    , ompVar.fUpdate         , ompVar.nThreadsUpdate);
     tm.tempFromTheEnergy = getTimeC() - tm.tempFromTheEnergy;
 /*...................................................................*/
 

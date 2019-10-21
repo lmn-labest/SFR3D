@@ -1512,7 +1512,7 @@ void wResVtkTrans(Memoria *m        , double *x
 
 /********************************************************************** 
  * Data de criacao    : 30/06/2016                                    *
- * Data de modificaco : 09/10/2019                                    * 
+ * Data de modificaco : 20/10/2019                                    * 
  *------------------------------------------------------------------- * 
  * WRESVTKFLUID:escreve a malha com os resultados para problemas de   *  
  * de escomentos de fluidos imcompressivel                            *  
@@ -1577,7 +1577,7 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
           , DOUBLE *elVel        , DOUBLE *nVel      
           , DOUBLE *elGradVel    , DOUBLE *nGradVel 
           , DOUBLE *elTemp       , DOUBLE *nTemp
-          , DOUBLE *elGradEnergy , DOUBLE *nGradEnergy
+          , DOUBLE *elGradTemp   , DOUBLE *nGradTemp  
           , DOUBLE *elEddyVis    , DOUBLE *nEddyVis
           , DOUBLE *eDensityFluid, DOUBLE *nDensityFluid
           , DOUBLE *eDyViscosity , DOUBLE *nDyViscosity
@@ -1724,7 +1724,7 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
 /*...................................................................*/
 
 /*... escrever campo de energia por celula*/
-  if (opt->energy && opt->fCell){
+  if (opt->temp && opt->fCell){
     strcpy(str,"eTemp");
     HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
     ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
@@ -1744,9 +1744,9 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
 /*...................................................................*/
 
 /*... escrever gradiente de velocidade por celula*/
-  if (opt->gradEnergy && opt->fCell) {
+  if (opt->gradTemp && opt->fCell) {
     strcpy(str,"eGradTemp");
-    writeVtkProp(&idum,elGradEnergy,numel,ndm,str,iws
+    writeVtkProp(&idum,elGradTemp,numel,ndm,str,iws
                ,DOUBLE_VTK,VECTORS_VTK,f);
   }
 /*...................................................................*/
@@ -1974,7 +1974,7 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
 /*...................................................................*/
 
 /*... escrever resultados de energia por nos*/
-  if (opt->energy && opt->fNode){
+  if (opt->temp && opt->fNode){
     strcpy(str,"NodeTemp");
     HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
     ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
@@ -2002,9 +2002,9 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
 /*...................................................................*/
 
 /*... escrever os gradiente de pressao por nos*/
-  if (opt->gradEnergy && opt->fNode){ 
+  if (opt->gradTemp && opt->fNode){ 
     strcpy(str,"NodeGradTemp");
-    writeVtkProp(&idum, nGradEnergy, nnode, ndm, str,iws
+    writeVtkProp(&idum, nGradTemp, nnode, ndm, str,iws
                , DOUBLE_VTK, VECTORS_VTK, f);
   }
 /*...................................................................*/
@@ -2239,7 +2239,7 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
           , DOUBLE *elVel        , DOUBLE *nVel      
           , DOUBLE *elGradVel    , DOUBLE *nGradVel 
           , DOUBLE *elTemp       , DOUBLE *nTemp
-          , DOUBLE *elGradEnergy , DOUBLE *nGradEnergy
+          , DOUBLE *elGradTemp   , DOUBLE *nGradTemp  
           , DOUBLE *elZcomb      , DOUBLE *nZcomb  
           , DOUBLE *elGradZcomb  , DOUBLE *nGradZcomb 
           , DOUBLE *elEddyVis    , DOUBLE *nEddyVis
@@ -2399,7 +2399,7 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
 /*...................................................................*/
 
 /*... escrever campo de energia por celula*/
-  if (opt->energy && opt->fCell)
+  if (opt->temp && opt->fCell)
   {
     strcpy(str,"eTemp");
     HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
@@ -2422,10 +2422,10 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
 /*...................................................................*/
 
 /*... escrever gradiente de velocidade por celula*/
-  if (opt->gradEnergy && opt->fCell) 
+  if (opt->gradTemp && opt->fCell) 
   {
     strcpy(str,"eGradTemp");
-    writeVtkProp(&idum,elGradEnergy,numel,ndm,str,iws
+    writeVtkProp(&idum,elGradTemp,numel,ndm,str,iws
                ,DOUBLE_VTK,VECTORS_VTK,f);
   }
 /*...................................................................*/
@@ -2775,7 +2775,7 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
 /*...................................................................*/
 
 /*... escrever resultados de energia por nos*/
-  if (opt->energy && opt->fNode)
+  if (opt->temp && opt->fNode)
   {
     strcpy(str,"NodeTemp");
     HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
@@ -2807,10 +2807,10 @@ void wResVtkCombustion(Memoria *m, Combustion *cModel
 /*...................................................................*/
 
 /*... escrever os gradiente de pressao por nos*/
-  if (opt->gradEnergy && opt->fNode)
+  if (opt->gradTemp && opt->fNode)
   { 
     strcpy(str,"NodeGradTemp");
-    writeVtkProp(&idum, nGradEnergy, nnode, ndm, str,iws
+    writeVtkProp(&idum, nGradTemp, nnode, ndm, str,iws
                , DOUBLE_VTK, VECTORS_VTK, f);
   }
 /*...................................................................*/
