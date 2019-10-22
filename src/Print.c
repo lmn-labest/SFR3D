@@ -231,7 +231,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
   void *dum=NULL;
   short ndfVel;
   DOUBLE *nStressR=NULL,*nEddyV=NULL,*nDvisc=NULL;
-  DOUBLE *nSheat=NULL,*nTCond=NULL,*nGradRho=NULL,*eRho=NULL;
+  DOUBLE *nSheat=NULL,*nTCond=NULL,*nGradRho=NULL,*cell=NULL;
   DOUBLE *nMedVel=NULL,*nP2Vel=NULL,*nMedP2Vel=NULL;
   DOUBLE *nCdyn=NULL,*nWall=NULL,*nKturb=NULL;
   FILE *fileOut=NULL;
@@ -241,27 +241,27 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
+  HccaAlloc(DOUBLE, m, cell, mesh->numel, "AuxCell"  , _AD_);
   if(opt->gradRho)
   {
-    HccaAlloc(DOUBLE, m, nGradRho , mesh->nnode*ndm   , "nGR"   , _AD_);
-    HccaAlloc(DOUBLE, m, eRho     , mesh->numel       , "eRho"  , _AD_);
+    HccaAlloc(DOUBLE, m, nGradRho , mesh->nnode*ndm   , "nGR"   , _AD_);   
   } 
   if(opt->specificHeat)
     HccaAlloc(DOUBLE, m, nSheat   , mesh->nnode    , "nSheat"   , _AD_);
   if(opt->tConductivity)
-    HccaAlloc(DOUBLE, m, nTCond   , mesh->nnode                 , "nTcond"   , _AD_);
+    HccaAlloc(DOUBLE, m, nTCond   , mesh->nnode          , "nTcond"   , _AD_);
   if(opt->dViscosity)
-    HccaAlloc(DOUBLE, m, nDvisc   , mesh->nnode                 , "nVis"     , _AD_);
+    HccaAlloc(DOUBLE, m, nDvisc   , mesh->nnode          , "nVis"     , _AD_);
   if(opt->eddyViscosity)
-    HccaAlloc(DOUBLE, m, nEddyV   , mesh->nnode                 , "nEddyV"   , _AD_);
+    HccaAlloc(DOUBLE, m, nEddyV   , mesh->nnode          , "nEddyV"   , _AD_);
   if(opt->stressR)
-    HccaAlloc(DOUBLE, m, nStressR , mesh->nnode*mesh->ntn       , "nStressR" , _AD_);
+    HccaAlloc(DOUBLE, m, nStressR , mesh->nnode*mesh->ntn, "nStressR" , _AD_);
   if(opt->cDynamic)
-    HccaAlloc(DOUBLE, m, nCdyn    , mesh->nnode*2               , "nCdyn"    , _AD_); 
+    HccaAlloc(DOUBLE, m, nCdyn    , mesh->nnode*2        , "nCdyn"    , _AD_); 
   if(opt->wallParameters)
-    HccaAlloc(DOUBLE, m, nWall    , mesh->nnode*NWALLPAR         , "nWall"    , _AD_);
+    HccaAlloc(DOUBLE, m, nWall    , mesh->nnode*NWALLPAR , "nWall"    , _AD_);
   if(opt->kTurb)
-    HccaAlloc(DOUBLE, m, nKturb   , mesh->nnode                 , "nKturb"   , _AD_);
+    HccaAlloc(DOUBLE, m, nKturb   , mesh->nnode           , "nKturb"   , _AD_);
 /*...................................................................*/
 
 /*...*/
@@ -479,7 +479,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 /*... reconstruindo do gradiente (gradRho)*/
     if (opt->gradRho)
     {
-      getColFromMatrix(eRho        ,mesh->elm.densityFluid
+      getColFromMatrix(cell        ,mesh->elm.densityFluid
                       ,mesh->numel ,DENSITY_LEVEL
                       ,TIME_N);
       rcGradU(m                     , loadsRhoFluid
@@ -498,7 +498,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
            , mesh->elm.mat          , NULL
            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
            , mesh->elm.faceRrho  
-           , eRho                   , mesh->elm.gradRhoFluid
+           , cell                   , mesh->elm.gradRhoFluid
            , mesh->node.rhoFluid    
            , NULL                   , NULL
            , 0
@@ -650,9 +650,14 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 
 /*... interpolacao das variaveis da celulas para pos nos (sHeat)*/
     if(opt->fNode && opt->specificHeat)
+    {
+      getColFromMatrix(cell        ,mesh->elm.specificHeat
+                      ,mesh->numel ,SHEAT_LEVEL
+                      ,TIME_N);
+
       interCellNode(m                    , loadsTemp
                 , mesh->elm.cellFace   , mesh->face.owner
-                , nSheat               , mesh->elm.specificHeat
+                , nSheat               , cell
                 , mesh->elm.node       , mesh->elm.geomType
                 , mesh->elm.geom.cc    , mesh->node.x
                 , mesh->face.xm          
@@ -663,6 +668,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
                 , mesh->maxNo          , mesh->maxViz
                 , 1                    , 1
                 , mesh->ndm            , 2);
+    }
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (sHeat)*/
@@ -835,9 +841,9 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
     HccaDealloc(m, nSheat, "nSheat", _AD_);  
   if(opt->gradRho)
   {
-    HccaDealloc(m, eRho    , "eRho", _AD_);
     HccaDealloc(m, nGradRho, "nGR", _AD_);
   }
+  HccaDealloc(m, cell    , "AuxCell", _AD_);
 /*...................................................................*/
 
 }
