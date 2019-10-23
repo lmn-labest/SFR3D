@@ -508,12 +508,13 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
            , &pMesh->iNo            , &pMesh->iEl 
            , mesh->numelNov         , mesh->numel
            , mesh->nnodeNov         , mesh->nnode
-           , false); 
+           , true); 
 
 /*.................................................................. */
 
 /*... interpolacao das variaveis da celulas para pos nos (GradRho)*/
       if(opt->fNode && opt->gradRho)
+      {
         interCellNode(m              , loadsRhoFluid  
               , mesh->elm.cellFace   , mesh->face.owner
               , nGradRho             , mesh->elm.gradRhoFluid 
@@ -527,6 +528,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
               , mesh->maxNo          , mesh->maxViz
               , mesh->ndm            , 1
               , mesh->ndm            , 2);  
+      }
 /*...................................................................*/
     }
 /*...................................................................*/

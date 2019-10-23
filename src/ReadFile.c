@@ -33,11 +33,16 @@
                         , Loads *loadsTemp       , DOUBLE *RESTRICT prop
                         , bool const fTemp       , bool const iKelvin);
 
-  static void setLoadsPresC(Loads *loadsPres,Loads *loadsPresC
+ static void setLoadsPresC(Loads *loadsPres,Loads *loadsPresC
                            ,short const iCod);
 
-
-
+ static void setLoadsRho(PropVarFluid *pf       ,Loads *loadsRho      
+                          ,Loads *loadsVel     ,Loads *loadsTemp
+                          ,bool const iKelvin );
+ static void initFaceRrho(Loads *ldVel
+                , short  *RESTRICT faceRvel, short  *RESTRICT faceRrho
+                , short  *RESTRICT nFace   , short const maxViz
+                , INT numel);
 /*..................................................................*/
 
 /*********************************************************************
@@ -1098,7 +1103,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                     ,energyModel->fKelvin     ,propF->fDensity
                     ,cModel->fLump);   
     else
-      setLoadsVel(propF                      ,loadsVel              
+      setLoadsVel(propF                     ,loadsVel              
                  ,loadsTemp                 ,mesh->elm.material.prop
                  ,energyModel->fTemperature ,energyModel->fKelvin);   
   }
@@ -1134,6 +1139,17 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                  ,energyModel->fKelvin     ,propF->fDensity
                  ,cModel->fLump);  
   }
+/*...................................................................*/
+
+/*... incializando as condicoes de contorno o rho*/
+  setLoadsRho(propF               , loadsRhoFluid
+            , loadsVel            , loadsTemp
+            , energyModel->fKelvin );
+  if(rflag[18])
+    initFaceRrho( loadsVel
+                , mesh->elm.faceRvel       , mesh->elm.faceRrho  
+                , mesh->elm.adj.nViz       , mesh->maxViz
+                , mesh->numelNov);
 /*...................................................................*/
 
 /*... combustao*/
@@ -7554,8 +7570,6 @@ void configEdo(Edo *edo, FILE *file)
 }
 /*********************************************************************/
 
-
-
 /********************************************************************
 * Data de criacao    : 00/00/0000                                   *
 * Data de modificaco : 16/10/2019                                   *
@@ -7998,6 +8012,7 @@ static void setLoadsVel(PropVarFluid *propFluid
                    ,thDynamic.pTh[2], propFluid->molarMass
                    , iKelvin);
         loadsVel[i].par[loadsVel[i].np-1] = tmp1; 
+        loadsVel[i].density               = tmp1;
       }
 /*....................................................................*/
     }     
@@ -8005,6 +8020,60 @@ static void setLoadsVel(PropVarFluid *propFluid
 /*....................................................................*/
 }
 /*********************************************************************/
+
+
+/********************************************************************* 
+ * Data de criacao    : 10/05/2019                                   *
+ * Data de modificaco : 16/10/2019                                   *
+ *-------------------------------------------------------------------*
+ * setLoadsVel:                                                      *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+static void setLoadsRho(PropVarFluid *pf       ,Loads *loadsRho      
+                          ,Loads *loadsVel     ,Loads *loadsTemp
+                          ,bool const iKelvin )
+
+{
+  short i,type;
+  DOUBLE tmp1,t;
+
+  for(i=0;i<MAXLOAD;i++)
+  {
+    type               = loadsVel[i].type;
+/*...*/
+    if ( type == INLET ||  type == OPEN) 
+    {
+      t = loadsTemp[i].par[0];
+      loadsRho[i].type  = type == INLET ? INLET:OPEN; 
+      loadsRho[i].nTypeVar = loadsVel[i].nTypeVar;
+      loadsRho[i].np       = loadsVel[i].np;
+      loadsRho[i].fUse     = loadsVel[i].fUse;      
+      if(pf->fDensity)
+      {
+        tmp1 = airDensity(&pf->den
+                   ,t               , thDynamic.pTh[2]
+                   ,thDynamic.pTh[2], pf->molarMass
+                   ,iKelvin);
+        loadsRho[i].par[0] = tmp1; 
+        
+      }
+      else
+        loadsRho[i].par[0] = loadsVel[i].density; 
+/*....................................................................*/
+    }     
+  }
+/*....................................................................*/
+}
+/*********************************************************************/
+
 
 /********************************************************************* 
  * Data de criacao    : 27/09/2019                                   *
@@ -8209,3 +8278,43 @@ void setSimpleScheme(char *fileName, Simple *sp)
     fclose(fileIn);
 }
 /*********************************************************************/
+
+
+/********************************************************************* 
+ * Data de criacao    : 21/10/2019                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * initFaceRrho : set o metodo simple incompressivel                 *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void initFaceRrho(Loads *ldVel
+                , short  *RESTRICT faceRvel, short  *RESTRICT faceRrho
+                , short  *RESTRICT nFace   , short const maxViz
+                , INT numel)
+{
+  short j,ty;
+  INT nel,aux1=maxViz+1;
+
+  for(nel=0;nel<numel;nel++)
+  {
+    for(j=0;j<nFace[nel];j++)
+    {
+      ty = MAT2D(nel, j, faceRvel, aux1);
+      if(ty>0)
+      {
+        if(ldVel[ty-1].type == INLET)
+          MAT2D(nel, j, faceRrho, aux1) = ty;      
+      }  
+    }
+  }
+    
+
+}
