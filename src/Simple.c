@@ -797,7 +797,8 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     if (sc->ddt.flag)
       printf("%-20s : %13.6lf\n","CFL", cfl);
     printf("%-20s : %13.6lf\n","Reynolds", reynolds);
-    printf("%-20s : %13.6lf\n","Peclet"              , peclet);
+    printf("%-20s : %13.6lf\n","Peclet"  , peclet);
+    printf("%-20s : %13.6lf\n","Prandtl" , prMax);
     printf("%-20s : %13.6e\n","PresRef"             , thDynamic->pTh[2]);
     printf("%-20s : %13.6e\n","(Inc    ) Mass/Mass0", mesh->mass[1]/mesh->mass[0]);
     printf("%-20s : %13.6e\n","(Average) Mass/Mass0", mesh->mass[2]/mesh->mass[0]);

@@ -4419,7 +4419,7 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
- void interCellNode(Memoria *m             ,Loads *loads 
+ void interCellNode(Memoria *m            
                    ,INT *RESTRICT cellFace, INT *RESTRICT fOwner
                    ,DOUBLE *RESTRICT noU   ,DOUBLE *RESTRICT elU
                    ,INT *RESTRICT el       ,short  *RESTRICT geomType 
@@ -4758,7 +4758,7 @@ void rcGradU(Memoria *m                , Loads *loads
 /*... reconstrucao de gradiente Green-Gauss nodal*/
   if(rcGrad->type ==  RCGRADGAUSSN)
   {
-    interCellNode(m         ,loads  
+    interCellNode(m         
                  ,cellFace  ,fOwner
                  ,nU        ,u
                  ,el        ,geomType

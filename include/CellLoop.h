@@ -66,7 +66,7 @@
 /*...................................................................*/
 
 /*... */
-  void interCellNode(Memoria *m            , Loads *loads
+  void interCellNode(Memoria *m           
                    , INT *RESTRICT cellFace, INT *RESTRICT fOwner
                    , DOUBLE *RESTRICT noU  , DOUBLE *RESTRICT elU
                    , INT *RESTRICT el      , short  *RESTRICT geomType

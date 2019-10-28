@@ -952,54 +952,6 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
 /*...................................................................*/
       }
 /*...................................................................*/
-
-/*...*/
-      else
-      {
-/*... inertial sub-layer*/
-        if (wallPar[0] > 11.81e0 && fWallModel)
-        {
-/*... energia na forma da temperatura*/
-          if (fTemp)
-            tW = uC;
-/*...................................................................*/
-
-/*... energia na forma da entalpia*/
-          else
-          {
-            if(fComb)
-            {
-              tC = specificEnthalpyForTempOfMix(&vProp->sHeat, 25.0
-                                               , uC          , yFracC 
-                                               , sHeatC      , ns
-                                               , fSheat      , fKelvin
-                                               , nel );
-              tW = tC;
-              tW = tempToSpecificEnthalpyMix(&vProp->sHeat, yFracC
-                                            ,tW           , sHeatC
-                                            ,ns  
-                                            ,fSheat       , fKelvin);
-            }
-            else
-            {
-              tC = specificEnthalpyForTemp(&vProp->sHeat    , 25.0 
-                                        , uC, sHeatC, fSheat, fKelvin);
-              tW = tC;
-              tW = tempForSpecificEnthalpy( &vProp->sHeat
-                                        , tW, sHeatC, fSheat, fKelvin);
-            }        
-          }
-/*...................................................................*/
-
-/*...*/
-          tmp = diffCoefC * lFarea / dcca[nf];
-          sP += tmp;
-          p  += tmp * tW;
-/*...................................................................*/
-        }
-/*...................................................................*/
-      }
-/*...................................................................*/
     }
 /*...................................................................*/
   }

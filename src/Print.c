@@ -315,7 +315,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
   if(opt->gradPres && opt->fNode)
   {
     tm.interCellNode = getTimeC() - tm.interCellNode;
-    interCellNode(m                 , loadsPres
+    interCellNode(m                
               , mesh->elm.cellFace , mesh->face.owner
               , mesh->node.gradPres, mesh->elm.gradPres
               , mesh->elm.node     , mesh->elm.geomType            
@@ -336,7 +336,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
   if(opt->pres && opt->fNode )
   {
     tm.interCellNode = getTimeC() - tm.interCellNode;
-    interCellNode(m                 , loadsPres
+    interCellNode(m                
                , mesh->elm.cellFace , mesh->face.owner
                , mesh->node.pressure, mesh->elm.pressure   
                , mesh->elm.node     , mesh->elm.geomType            
@@ -410,7 +410,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
     if(opt->fNode)
     {
       tm.interCellNode = getTimeC() - tm.interCellNode;
-      interCellNode(m                   , loadsVel
+      interCellNode(m                 
                   , mesh->elm.cellFace , mesh->face.owner
                   , mesh->node.gradVel , mesh->elm.gradVel    
                   , mesh->elm.node     , mesh->elm.geomType            
@@ -431,7 +431,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
   if(opt->fNode && opt->vel)
   {
-    interCellNode(m                  , loadsVel
+    interCellNode(m                
                , mesh->elm.cellFace, mesh->face.owner
                , mesh->node.vel    , mesh->elm.vel        
                , mesh->elm.node    , mesh->elm.geomType            
@@ -468,7 +468,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 
 /*... medias das velociade*/
     if(media->fVel)
-      interCellNode(m                   , loadsVel
+      interCellNode(m                   
                    , mesh->elm.cellFace , mesh->face.owner
                    , nMedVel            , media->mVel        
                    , mesh->elm.node     , mesh->elm.geomType            
@@ -527,7 +527,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 /*... interpolacao das variaveis da celulas para pos nos (GradRho)*/
       if(opt->fNode && opt->gradRho)
       {
-        interCellNode(m              , loadsRhoFluid  
+        interCellNode(m               
               , mesh->elm.cellFace   , mesh->face.owner
               , nGradRho             , mesh->elm.gradRhoFluid 
               , mesh->elm.node       , mesh->elm.geomType
@@ -578,7 +578,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 
 /*... interpolacao das variaveis da celulas para pos nos (GradEnergy)*/
     if(opt->fNode && opt->gradEnergy)
-      interCellNode(m                  , loadsTemp  
+      interCellNode(m                 
               , mesh->elm.cellFace   , mesh->face.owner
               , mesh->node.gradTemp  , mesh->elm.gradTemp  
               , mesh->elm.node       , mesh->elm.geomType
@@ -596,7 +596,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 /*... interpolacao das variaveis da celulas para pos nos (energy)*/
     if(opt->fNode && opt->temp)
     {
-     interCellNode(m                , loadsTemp
+     interCellNode(m                
              , mesh->elm.cellFace   , mesh->face.owner
              , mesh->node.temp      , mesh->elm.temp
              , mesh->elm.node       , mesh->elm.geomType
@@ -630,7 +630,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 
 /*... interpolacao das variaveis da celulas para pos nos (density)*/
     if(opt->fNode && opt->densityFluid)
-      interCellNode(m             ,  loadsRhoFluid 
+      interCellNode(m             
              , mesh->elm.cellFace , mesh->face.owner
              , mesh->node.rhoFluid, mesh->elm.densityFluid
              , mesh->elm.node     , mesh->elm.geomType
@@ -647,7 +647,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 
 /*... interpolacao das variaveis da celulas para pos nos (dViscosity)*/
     if(opt->fNode && opt->dViscosity)
-      interCellNode(m                  , loadsTemp
+      interCellNode(m                  
                 , mesh->elm.cellFace   , mesh->face.owner
                 , nDvisc               , mesh->elm.dViscosity
                 , mesh->elm.node       , mesh->elm.geomType
@@ -669,7 +669,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
                       ,mesh->numel ,SHEAT_LEVEL
                       ,TIME_N);
 
-      interCellNode(m                    , loadsTemp
+      interCellNode(m                 
                 , mesh->elm.cellFace   , mesh->face.owner
                 , nSheat               , cell
                 , mesh->elm.node       , mesh->elm.geomType
@@ -687,7 +687,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 
 /*... interpolacao das variaveis da celulas para pos nos (sHeat)*/
     if(opt->fNode && opt->tConductivity)
-      interCellNode(m                    , loadsTemp
+      interCellNode(m                  
                 , mesh->elm.cellFace   , mesh->face.owner
                 , nTCond               , mesh->elm.tConductivity
                 , mesh->elm.node       , mesh->elm.geomType
@@ -709,7 +709,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
   {
 /*... viscisidade turbulenta*/
     if(opt->eddyViscosity)       
-      interCellNode(m                  , loadsVel
+      interCellNode(m                  
                    , mesh->elm.cellFace, mesh->face.owner
                    , nEddyV            , mesh->elm.eddyViscosity        
                    , mesh->elm.node    , mesh->elm.geomType            
@@ -726,7 +726,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 
 /*... tensor residual (modelos estruturais)*/
     if(opt->stressR)
-      interCellNode(m                     , loadsVel
+      interCellNode(m                     
                 , mesh->elm.cellFace      , mesh->face.owner
                 , nStressR                , mesh->elm.stressR              
                 , mesh->elm.node          , mesh->elm.geomType            
@@ -743,7 +743,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 
 /*... coeficiente dinamico*/
     if(opt->cDynamic)
-      interCellNode(m                      , loadsVel
+      interCellNode(m                      
                 , mesh->elm.cellFace       , mesh->face.owner
                 , nCdyn                    , mesh->elm.cd              
                 , mesh->elm.node           , mesh->elm.geomType            
@@ -760,7 +760,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 
 /*... parametros de parede*/
     if(opt->wallParameters)
-      interCellNode(m                     , loadsVel
+      interCellNode(m                     
                 , mesh->elm.cellFace      , mesh->face.owner
                 , nWall                   , mesh->elm.wallParameters              
                 , mesh->elm.node          , mesh->elm.geomType            
@@ -777,7 +777,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 
 /*... energia cinetica turbulenta*/
     if(opt->kTurb)       
-      interCellNode(m              , loadsVel
+      interCellNode(m              
             , mesh->elm.cellFace   , mesh->face.owner
             , nKturb               , mesh->elm.kTurb                
             , mesh->elm.node       , mesh->elm.geomType            
@@ -1010,7 +1010,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
   if(opt->gradPres && opt->fNode)
   {
     tm.interCellNode = getTimeC() - tm.interCellNode;
-    interCellNode(m                  , loadsPres
+    interCellNode(m             
               , mesh->elm.cellFace , mesh->face.owner
               , mesh->node.gradPres, mesh->elm.gradPres
               , mesh->elm.node     , mesh->elm.geomType            
@@ -1031,7 +1031,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
   if(opt->pres && opt->fNode)
   {
     tm.interCellNode = getTimeC() - tm.interCellNode;
-    interCellNode(m                 , loadsPres
+    interCellNode(m                
                , mesh->elm.cellFace , mesh->face.owner
                , mesh->node.pressure, mesh->elm.pressure   
                , mesh->elm.node     , mesh->elm.geomType            
@@ -1105,7 +1105,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
     if(opt->fNode)
     {
       tm.interCellNode = getTimeC() - tm.interCellNode;
-      interCellNode(m                   , loadsVel
+      interCellNode(m                
                 , mesh->elm.cellFace , mesh->face.owner
                , mesh->node.gradVel , mesh->elm.gradVel    
                , mesh->elm.node     , mesh->elm.geomType            
@@ -1127,7 +1127,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
   if(opt->fNode && opt->vel)
   {
     tm.interCellNode = getTimeC() - tm.interCellNode;
-    interCellNode(m                  , loadsVel
+    interCellNode(m                 
                , mesh->elm.cellFace, mesh->face.owner
                , mesh->node.vel    , mesh->elm.vel        
                , mesh->elm.node    , mesh->elm.geomType            
@@ -1162,7 +1162,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
 
 /*... interpolacao das variaveis da celulas para pos nos (density)*/
   if(opt->fNode && opt->densityFluid)
-    interCellNode(m             ,  loadsRhoFluid 
+    interCellNode(m              
              , mesh->elm.cellFace , mesh->face.owner
              , mesh->node.rhoFluid, mesh->elm.densityFluid
              , mesh->elm.node     , mesh->elm.geomType
@@ -1179,7 +1179,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
 
 /*... interpolacao das variaveis da celulas para pos nos (dViscosity)*/
   if(opt->fNode && opt->dViscosity)
-    interCellNode(m                  , loadsTemp
+    interCellNode(m                 
                 , mesh->elm.cellFace   , mesh->face.owner
                 , nDvisc               , mesh->elm.dViscosity
                 , mesh->elm.node       , mesh->elm.geomType
@@ -1201,7 +1201,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
                     ,mesh->numel ,SHEAT_LEVEL
                     ,TIME_N);
 
-    interCellNode(m                    , loadsTemp
+    interCellNode(m                    
                 , mesh->elm.cellFace   , mesh->face.owner
                 , nSheat               , cell
                 , mesh->elm.node       , mesh->elm.geomType
@@ -1219,7 +1219,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
 
 /*... interpolacao das variaveis da celulas para pos nos (sHeat)*/
   if(opt->fNode && opt->tConductivity)
-    interCellNode(m                    , loadsTemp
+    interCellNode(m                   
                 , mesh->elm.cellFace   , mesh->face.owner
                 , nTCond               , mesh->elm.tConductivity
                 , mesh->elm.node       , mesh->elm.geomType
@@ -1241,7 +1241,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
     if(media->fVel)
     {
       tm.interCellNode = getTimeC() - tm.interCellNode;
-      interCellNode(m                   , loadsVel
+      interCellNode(m                   
                    , mesh->elm.cellFace , mesh->face.owner
                    , nMedVel            , media->mVel        
                    , mesh->elm.node     , mesh->elm.geomType            
@@ -1302,7 +1302,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
 /*... interpolacao das variaveis da celulas para pos nos (GradRho)*/
       if(opt->fNode && opt->gradRho)
       {
-        interCellNode(m              , loadsRhoFluid  
+        interCellNode(m              
               , mesh->elm.cellFace   , mesh->face.owner
               , nGradRho             , mesh->elm.gradRhoFluid 
               , mesh->elm.node       , mesh->elm.geomType
@@ -1353,7 +1353,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
 
 /*... interpolacao das variaveis da celulas para pos nos (GradEnergy)*/
     if(opt->fNode && opt->gradEnergy)
-      interCellNode(m                  , loadsTemp  
+      interCellNode(m                
               , mesh->elm.cellFace   , mesh->face.owner
               , mesh->node.gradTemp  , mesh->elm.gradTemp  
               , mesh->elm.node       , mesh->elm.geomType
@@ -1371,7 +1371,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
 /*... interpolacao das variaveis da celulas para pos nos (energy)*/
     if(opt->fNode && opt->temp)
     {
-     interCellNode(m                , loadsTemp
+     interCellNode(m               
              , mesh->elm.cellFace   , mesh->face.owner
              , mesh->node.temp      , mesh->elm.temp
              , mesh->elm.node       , mesh->elm.geomType
@@ -1405,7 +1405,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
 
 /*... interpolacao das variaveis da celulas para pos nos (density)*/
     if(opt->fNode && opt->densityFluid)
-      interCellNode(m             ,  loadsRhoFluid 
+      interCellNode(m             
              , mesh->elm.cellFace , mesh->face.owner
              , mesh->node.rhoFluid, mesh->elm.densityFluid
              , mesh->elm.node     , mesh->elm.geomType
@@ -1422,7 +1422,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
 
 /*... interpolacao das variaveis da celulas para pos nos (dViscosity)*/
     if(opt->fNode && opt->dViscosity)
-      interCellNode(m                  , loadsTemp
+      interCellNode(m                 
                 , mesh->elm.cellFace   , mesh->face.owner
                 , nDvisc               , mesh->elm.dViscosity
                 , mesh->elm.node       , mesh->elm.geomType
@@ -1444,7 +1444,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
                       ,mesh->numel ,SHEAT_LEVEL
                       ,TIME_N);
 
-      interCellNode(m                    , loadsTemp
+      interCellNode(m                  
                 , mesh->elm.cellFace   , mesh->face.owner
                 , nSheat               , cell
                 , mesh->elm.node       , mesh->elm.geomType
@@ -1462,7 +1462,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
 
 /*... interpolacao das variaveis da celulas para pos nos (sHeat)*/
     if(opt->fNode && opt->tConductivity)
-      interCellNode(m                    , loadsTemp
+      interCellNode(m                 
                 , mesh->elm.cellFace   , mesh->face.owner
                 , nTCond               , mesh->elm.tConductivity
                 , mesh->elm.node       , mesh->elm.geomType
@@ -1484,7 +1484,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
   {
 /*... viscisidade turbulenta*/
     if(opt->eddyViscosity)       
-      interCellNode(m                  , loadsVel
+      interCellNode(m                  
                    , mesh->elm.cellFace, mesh->face.owner
                    , nEddyV            , mesh->elm.eddyViscosity        
                    , mesh->elm.node    , mesh->elm.geomType            
@@ -1501,7 +1501,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
 
 /*... tensor residual (modelos estruturais)*/
     if(opt->stressR)
-      interCellNode(m                     , loadsVel
+      interCellNode(m                    
                 , mesh->elm.cellFace      , mesh->face.owner
                 , nStressR                , mesh->elm.stressR              
                 , mesh->elm.node          , mesh->elm.geomType            
@@ -1518,7 +1518,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
 
 /*... coeficiente dinamico*/
     if(opt->cDynamic)
-      interCellNode(m                      , loadsVel
+      interCellNode(m                     
                 , mesh->elm.cellFace       , mesh->face.owner
                 , nCdyn                    , mesh->elm.cd              
                 , mesh->elm.node           , mesh->elm.geomType            
@@ -1535,7 +1535,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
 
 /*... parametros de parede*/
     if(opt->wallParameters)
-      interCellNode(m                     , loadsVel
+      interCellNode(m                    
                 , mesh->elm.cellFace      , mesh->face.owner
                 , nWall                   , mesh->elm.wallParameters              
                 , mesh->elm.node          , mesh->elm.geomType            
@@ -1552,7 +1552,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
 
 /*... energia cinetica turbulenta*/
     if(opt->kTurb)       
-      interCellNode(m              , loadsVel
+      interCellNode(m             
             , mesh->elm.cellFace   , mesh->face.owner
             , nKturb               , mesh->elm.kTurb                
             , mesh->elm.node       , mesh->elm.geomType            
@@ -1574,7 +1574,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
   if(opt->wk && opt->fNode)
   {
     tm.interCellNode = getTimeC() - tm.interCellNode;
-    interCellNode(m                     , loadsComb
+    interCellNode(m                     
                 , mesh->elm.cellFace    , mesh->face.owner
                 , nWk                   , mesh->elm.wk       
                 , mesh->elm.node        , mesh->elm.geomType            
@@ -1594,7 +1594,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
   if(opt-> rateHeatComb && opt->fNode)
   {
     tm.interCellNode = getTimeC() - tm.interCellNode;
-    interCellNode(m                     , loadsComb
+    interCellNode(m                     
                 , mesh->elm.cellFace    , mesh->face.owner
                 , nRaHeReComb           , mesh->elm.rateHeatReComb
                 , mesh->elm.node        , mesh->elm.geomType            
@@ -1615,7 +1615,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
   if(opt->yFrac && opt->fNode)
   {
     tm.interCellNode = getTimeC() - tm.interCellNode;
-    interCellNode(m                     , loadsComb
+    interCellNode(m                     
                 , mesh->elm.cellFace    , mesh->face.owner
                 , nYfrac                , mesh->elm.yFrac
                 , mesh->elm.node        , mesh->elm.geomType            
@@ -1675,7 +1675,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
     if(opt->fNode)
     {
       tm.interCellNode = getTimeC() - tm.interCellNode;
-      interCellNode(m                  , loadsComb
+      interCellNode(m                 
                , mesh->elm.cellFace    , mesh->face.owner
                , mesh->node.gradZcomb  , mesh->elm.gradZcomb  
                , mesh->elm.node        , mesh->elm.geomType            
@@ -1697,7 +1697,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
   if(opt->fNode && opt->zComb)
   {
     tm.interCellNode = getTimeC() - tm.interCellNode;
-    interCellNode(m                    , loadsComb
+    interCellNode(m                    
                , mesh->elm.cellFace    , mesh->face.owner
                , mesh->node.zComb      , mesh->elm.zComb  
                , mesh->elm.node        , mesh->elm.geomType            
@@ -1734,7 +1734,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
   if(opt->fNode && opt->coefDiffSp)
   {
     tm.interCellNode = getTimeC() - tm.interCellNode;
-    interCellNode(m                    , loadsComb
+    interCellNode(m                    
                , mesh->elm.cellFace    , mesh->face.owner
                , nDiffY                , mesh->elm.cDiffComb  
                , mesh->elm.node        , mesh->elm.geomType            
@@ -1934,7 +1934,7 @@ void printTrans(Memoria *m
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (Grad)*/
-  interCellNode(m                 , loadsT1
+  interCellNode(m                 
               , mesh->elm.cellFace, mesh->face.owner
               , mesh->node.gradUt1, mesh->elm.gradUt1
               , mesh->elm.node    , mesh->elm.geomType
@@ -1950,7 +1950,7 @@ void printTrans(Memoria *m
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (uT1)*/
-  interCellNode(m                 , loadsT1
+  interCellNode(m                 
               , mesh->elm.cellFace, mesh->face.owner
               , mesh->node.uT1    , mesh->elm.uT1
               , mesh->elm.node    , mesh->elm.geomType
@@ -1966,7 +1966,7 @@ void printTrans(Memoria *m
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (density)*/
-  interCellNode(m                 , loadsT1
+  interCellNode(m                 
               , mesh->elm.cellFace, mesh->face.owner
               , nDen              , mesh->elm.densityUt1
               , mesh->elm.node    , mesh->elm.geomType
@@ -1982,7 +1982,7 @@ void printTrans(Memoria *m
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (coefDif)*/
-  interCellNode(m                 , loadsD1
+  interCellNode(m                 
               , mesh->elm.cellFace, mesh->face.owner
               , nCoefDiff         , mesh->elm.cDiffT1
               , mesh->elm.node    , mesh->elm.geomType
@@ -1998,7 +1998,7 @@ void printTrans(Memoria *m
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
-  interCellNode(m                  , loadsT1
+  interCellNode(m                 
                , mesh->elm.cellFace, mesh->face.owner
                , nVel              , mesh->elm.vel
                , mesh->elm.node    , mesh->elm.geomType
@@ -2153,7 +2153,7 @@ void printDiff(Memoria *m
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (Grad)*/
-  interCellNode(m                 , loadsD1
+  interCellNode(m                
                , mesh->elm.cellFace, mesh->face.owner
                , mesh->node.gradUd1, mesh->elm.gradUd1
                , mesh->elm.node    , mesh->elm.geomType
@@ -2169,7 +2169,7 @@ void printDiff(Memoria *m
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (uD1)*/
-  interCellNode(m                 , loadsD1
+  interCellNode(m                
               , mesh->elm.cellFace, mesh->face.owner
               , mesh->node.uD1    , mesh->elm.uD1
               , mesh->elm.node    , mesh->elm.geomType
@@ -2186,7 +2186,7 @@ void printDiff(Memoria *m
 
 
 /*... interpolacao das variaveis da celulas para pos nos (density)*/
-  interCellNode(m                 , loadsD1
+  interCellNode(m                 
               , mesh->elm.cellFace, mesh->face.owner
               , nDenD             , mesh->elm.densityUd1
               , mesh->elm.node    , mesh->elm.geomType
@@ -2202,7 +2202,7 @@ void printDiff(Memoria *m
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (coefDif)*/
-  interCellNode(m                 , loadsD1
+  interCellNode(m                 
               , mesh->elm.cellFace, mesh->face.owner
               , nCoefDiffD        , mesh->elm.cDiffD1
               , mesh->elm.node    , mesh->elm.geomType
