@@ -223,7 +223,8 @@ void nasaPolRange(PolNasa *a      , DOUBLE const x
         *xNew = a->range[1][1]; 
         *c    = a->a2[1]; 
       }
-      fprintf(fileLogDebug,"NasaPol fora do limites %lf!!\n",x);
+      fprintf(fileLogDebug,"A: NasaPol fora do limites %lf!!\n",x);
+      exit(0);
     }
 /*..................................................................*/
   }
@@ -249,7 +250,7 @@ void nasaPolRange(PolNasa *a      , DOUBLE const x
         *xNew = a->range[1][1]; 
         *c    = a->a1[1]; 
       }
-      fprintf(fileLogDebug,"NasaPol fora do limites %lf!!\n",x);
+      fprintf(fileLogDebug,"B: NasaPol fora do limites %lf!!\n",x);
     }
 /*..................................................................*/
   }
@@ -825,28 +826,26 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
   if(!mpiVar.myId)
   {
     printf("Write SpeciesfiHeat cp(T):\n");
-    fileAux = openFile("species_cp.out", "w");
     for(i=0;i<kk;i++)
     {
-      fprintf(fileAux,"%s\n",cModel->chem.sp[i].name);
+      fprintf(fileLogDebug,"%s\n",cModel->chem.sp[i].name);
       for (j = 0, g =300.0; j < 50; j++) 
       {
         switch(prop->type)
         {
           case POL:
-            fprintf(fileAux,"%lf %lf\n",g,pol(prop->pol[i].a
+            fprintf(fileLogDebug,"%lf %lf\n",g,pol(prop->pol[i].a
                                              ,g
                                              ,prop->pol[i].nPol));
             g += 100.0;
             break;
           case NASAPOL7:
-            fprintf(fileAux,"%10.2lf %lf\n",g,polNasaCp(&prop->nasa[i],g));
+            fprintf(fileLogDebug,"%10.2lf %lf\n",g,polNasaCp(&prop->nasa[i],g));
             g += 100.0;
             break;
         }
       }
     }
-    fclose(fileAux);
   }
 /*.....................................................................*/
 }
@@ -860,12 +859,10 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------*
- * sHeatPol - estrutra par o polinoimio do calor especifico          *
+ * pf     - propriedade de fluido                                    *
  * yFrac    - fracao de massa da especies primitivas                 * 
  * temp   - temp                                                     *
  * energy - nao definido                                             * 
- * prop   - propriedades por material                                *
- * mat    - material da celula                                       *
  * nCell  - numero da celulas                                        *
  * nOfPrSp  - numero de especies primitivas                          *
  * fsHeat - variacao do calor especifico em funcao da Temperatura    *
@@ -881,67 +878,42 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void getEnergyFromTheTempMix(Prop *sHeatPol   ,DOUBLE *RESTRICT yFrac 
+void getEnergyFromTheTempMix(PropVarFluid *pf  ,DOUBLE *RESTRICT yFrac 
                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
-                        ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                         ,INT const nCell      ,short const nOfPrSp
-                        ,bool const fSheat    ,bool const fKelvin
+                        ,bool const fKelvin
                         ,bool const fOmp      ,short const nThreads ) 
 {
-  short lMat;
+  bool fSheat = pf->fSpecificHeat;
   INT i;  
-  DOUBLE sHeatRef,*y;
+  DOUBLE*y;
 
-/*...*/
-  if (fOmp) 
+#pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
+  private(i,y) shared(energy,temp,yFrac,pf,fSheat)
+  for (i = 0; i < nCell; i++) 
   {
-/*...*/ 
-#pragma omp parallel  for default(none) num_threads(nThreads)\
-    private(i,lMat,sHeatRef,y) shared(prop,mat,energy,temp,sHeatPol,yFrac)
-    for (i = 0; i < nCell; i++) 
-    {
-      lMat  = mat[i] - 1;
-      sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-      y = &MAT2D(i,0,yFrac,nOfPrSp);
-      energy[i] = tempToSpecificEnthalpyMix(sHeatPol ,yFrac
-                                            ,temp[i]  ,sHeatRef
-                                            ,nOfPrSp
-                                            ,fSheat  ,fKelvin);  
-    }
-/*...................................................................*/ 
+    y = &MAT2D(i,0,yFrac,nOfPrSp);
+    energy[i] = tempToSpecificEnthalpyMix(&pf->sHeat,yFrac
+                                         ,temp[i]   ,pf->sHeatRef
+                                         ,nOfPrSp
+                                         ,fSheat   ,fKelvin);  
   }
 /*...................................................................*/ 
 
-  else
-  {
-/*...*/ 
-    for (i = 0; i < nCell; i++) 
-    {
-      lMat  = mat[i] - 1;
-      sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-      y = &MAT2D(i,0,yFrac,nOfPrSp);
-      energy[i] = tempToSpecificEnthalpyMix(sHeatPol ,yFrac
-                                            ,temp[i]  ,sHeatRef
-                                            ,nOfPrSp
-                                            ,fSheat  ,fKelvin); 
-    }
-/*...................................................................*/ 
-  }
-/*...................................................................*/ 
 }
 /*********************************************************************/
 
 /********************************************************************* 
  * Data de criacao    : 20/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 28/10/2019                                   *
  *-------------------------------------------------------------------*
- *  getTempFromTheEnergy : obtem a temperatura apartir da entalpia*  
+ *  getTempFromTheEnergy : obtem a temperatura apartir da entalpia   *  
  * sensivel                                                          *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
- * sHeatPol - estrutra par o polinoimio do calor especifico          *
- * yFrac    - fracao de massa da especies primitivas                 * 
+ * pf     - propriedade do fluido                                    *
+ * yFrac  - fracao de massa da especies primitivas                   * 
  * temp   - nao definido                                             *
  * energy - entalpia sensivel                                        * 
  * prop   - propriedades por material                                *
@@ -949,8 +921,6 @@ void getEnergyFromTheTempMix(Prop *sHeatPol   ,DOUBLE *RESTRICT yFrac
  * nCell  - numero da celulas                                        *
  * nOfPrSp  - numero de especies primitivas                          *
  * fTemp  - equaca da energia na forma de temperatura (true|false)   *
- * fsHeat - variacao do calor especifico em funcao da Temperatura    *
- *          (true|false)                                             *
  * fKelnvin - temperatura em kelvin (true|false)                     *
  * fOmp         -> openmp                                            *
  * nThreads     -> numero de threads                                 *
@@ -962,18 +932,15 @@ void getEnergyFromTheTempMix(Prop *sHeatPol   ,DOUBLE *RESTRICT yFrac
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void  getTempFromTheEnergy(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
+void  getTempFromTheEnergyMix(PropVarFluid *pf,DOUBLE *RESTRICT yFrac
                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
-                        ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                         ,INT const nCell      ,short const nOfPrSp 
-                        ,bool const fTemp     ,bool const fSheat    
-                        ,bool const fKelvin
+                        ,bool const fTemp     ,bool const fKelvin
                         ,bool const fOmp      ,short const nThreads )
 {
   
-  short lMat;
   INT i;  
-  DOUBLE sHeatRef,*y;
+  DOUBLE *y;
 
 /*... resolucao da eq da energia na forma de temperatura*/ 
   if(fTemp)
@@ -982,44 +949,22 @@ void  getTempFromTheEnergy(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
 /*...................................................................*/ 
 
 /*... resolucao da eq da energia na forma de entalpia sensivel*/  
-  else{
-    if(fOmp)
+  else
+  {
+#pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
+  private(i,y) shared(energy,temp,pf,yFrac)
+    for (i = 0; i < nCell; i++)
     {
-#pragma omp parallel  for default(none) num_threads(nThreads)\
-      private(i,lMat,sHeatRef,y) shared(prop,mat,energy,temp,sHeatPol,yFrac)
-      for (i = 0; i < nCell; i++)
-      {
-        lMat  = mat[i] - 1;
-        sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-        y = &MAT2D(i,0,yFrac,nOfPrSp);
-        temp[i] = specificEnthalpyForTempOfMix(sHeatPol,temp[i]
-                                         , energy[i]   , y    
-                                         , sHeatRef   , nOfPrSp
-                                         , fSheat     , fKelvin
+      y = &MAT2D(i,0,yFrac,nOfPrSp);
+      temp[i] = specificEnthalpyForTempOfMix(&pf->sHeat     , temp[i]
+                                         , energy[i]        , y    
+                                         , pf->sHeatRef     , nOfPrSp
+                                         , pf->fSpecificHeat, fKelvin
                                          , i);
-      }
-/*...................................................................*/
     }
 /*...................................................................*/
-
-/*...*/
-    else{
-      for (i = 0; i < nCell; i++) {
-        lMat  = mat[i] - 1;
-        sHeatRef = MAT2D(lMat, SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
-        y = &MAT2D(i,0,yFrac,nOfPrSp);
-        temp[i] = specificEnthalpyForTempOfMix(sHeatPol,temp[i]
-                                         , energy[i]   , y    
-                                         , sHeatRef    , nOfPrSp
-                                         , fSheat      , fKelvin
-                                         , i);
-      }
-/*...................................................................*/
-    }
-/*...................................................................*/ 
   }
 /*...................................................................*/ 
-
 }
 /*********************************************************************/
 
@@ -1067,34 +1012,17 @@ void updateMixSpecificHeat(Prop *sHeatPol
   {
     case PROP_UPDATE_NL_LOOP:
 /*... omp*/
-      if(fOmp)
+#pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
+      private(i,y)\
+      shared(sHeat,temp,sHeatPol,yFrac, nD,fileLogDebug)
+      for(i=0;i<nEl;i++)
       {
-#pragma omp parallel  for default(none) num_threads(nThreads)\
-        private(i,y)\
-        shared(sHeat,temp,sHeatPol,yFrac, nD)
-        for(i=0;i<nEl;i++)
-        {
-          y = &MAT2D(i,0,yFrac,nOfPrSp);
+        y = &MAT2D(i,0,yFrac,nOfPrSp);
 /*...*/           
-          MAT2D(i,TIME_N ,sHeat ,nD) = 
-          mixtureSpecifiHeat(sHeatPol ,y,temp[i]  ,nOfPrSp,iKelvin);
-        }
-/*..................................................................*/
+        MAT2D(i,TIME_N ,sHeat ,nD) = 
+        mixtureSpecifiHeat(sHeatPol ,y,temp[i]  ,nOfPrSp,iKelvin);
       }
 /*..................................................................*/
-
-/*... seq*/
-      else
-      {
-        for(i=0;i<nEl;i++)
-        {
-          y = &MAT2D(i,0,yFrac,nOfPrSp);
-/*...*/           
-          MAT2D(i,TIME_N ,sHeat ,nD) = 
-          mixtureSpecifiHeat(sHeatPol ,y,temp[i]  ,nOfPrSp,iKelvin);
-        }
-/*..................................................................*/
-      }
     break;  
 /*..................................................................*/
 
@@ -1173,14 +1101,11 @@ DOUBLE mixtureSpecifiHeat(Prop *sHeat        , DOUBLE *yFrac
     switch (sHeat->type)
     {
       case POL:
-      n = sHeat->pol[k].nPol;
-      for (i = 0; i < n; i++)
-        a[i] = sHeat->pol[k].a[i];
-  
+      n = sHeat->pol[k].nPol; 
 /*... polinomial*/
-      cpk = a[0];
+      cpk = sHeat->pol[k].a[0];
       for (i = 1; i < n; i++)
-        cpk += a[i]*pow(tc,i);
+        cpk += sHeat->pol[k].a[i]*pow(tc,i);
       break;
 /*.....................................................................*/
   
@@ -1897,7 +1822,7 @@ void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel
 
 /*********************************************************************
  * Data de criacao    : 19/08/2018                                   *
- * Data de modificaco : 07/05/2019                                   *
+ * Data de modificaco : 28/10/2019                                   *
  *-------------------------------------------------------------------*
  * SPECIFICENTHALPYFORTEMPMIX:  calcula a temperatura apartir da     *
  * entalpia especifica                                               * 
@@ -1948,7 +1873,6 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
         flag = true;
         break;
       }
-    
       fl = mixtureSpecifiHeat(sHeatPol,yFrac
                              ,tc      ,nOfPrSp
                              ,true);
@@ -2059,7 +1983,7 @@ DOUBLE tempToSpecificEnthalpyMix(Prop *sHeat    , DOUBLE *yFrac
     }
 /*.....................................................................*/
   }
-/*...*/
+/*... calor especifico iguais*/
   else 
     hs = TEMP_FOR_ENTHALPY(sHeatRef,tc,TREF);
 /*.....................................................................*/
@@ -3779,9 +3703,9 @@ void getTempForEnergy(PropVarFluid *pf
 
 /********************************************************************* 
  * Data de criacao    : 20/08/2018                                   *
- * Data de modificaco : 20/10/2019                                   *
+ * Data de modificaco : 26/10/2019                                   *
  *-------------------------------------------------------------------*
- * etEnergyForTemp   : obtem a entalpia sensivel apartir da temp     *
+ * getEnergyForTemp   : obtem a entalpia sensivel apartir da temp    *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------*
@@ -3790,8 +3714,6 @@ void getTempForEnergy(PropVarFluid *pf
  * energy - nao definido                                             * 
  * nCell  - numero da celulas                                        *
  * fTemp  - equaca da energia na forma de temperatura (true|false)   *
- * fsHeat - variacao do calor especifico em funcao da Temperatura    *
- *          (true|false)                                             *
  * fKelnvin - temperatura em kelvin (true|false)                     *
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
@@ -3803,19 +3725,19 @@ void getTempForEnergy(PropVarFluid *pf
  *********************************************************************/
 void getEnergyForTemp(PropVarFluid *pf
                      ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
-                     ,INT const nCell     
-                     ,bool const fSheat    ,bool const fKelvin
+                     ,INT const nCell      ,bool const fKelvin
                      ,bool const fOmp      ,short const nThreads ) 
 {
+  bool fSheat = pf->fSpecificHeat;
   INT i;  
 
 /*...*/ 
 #pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
-    private(i) shared(energy,temp,pf)
+    private(i) shared(energy,temp,pf,fSheat)
   for (i = 0; i < nCell; i++) 
   {
     energy[i] = tempForSpecificEnthalpy(&pf->sHeat
-                                      ,temp[i]  ,pf->sHeatRef
+                                      ,temp[i] ,pf->sHeatRef
                                       ,fSheat  ,fKelvin);
   }
 /*...................................................................*/ 

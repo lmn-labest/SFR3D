@@ -58,7 +58,7 @@
                , DOUBLE const viscosityC , DOUBLE const sHeatC
                , DOUBLE const prT        , DOUBLE *RESTRICT xm                   
                , DOUBLE const fArea      , DOUBLE const dcca
-               , Loads *ld               , Loads *ldVel 
+               , Loads *ld                
                , DOUBLE *RESTRICT wallPar, short  const ndm        
                , bool const fCal         , bool const fTemp
                , bool const iKelvin      , bool const fSheat
@@ -92,7 +92,7 @@
                , DOUBLE const viscosityC 
                , DOUBLE const prT         , DOUBLE *RESTRICT xx                   
                , DOUBLE const fArea       , DOUBLE const dcca
-               , Loads *ld                , Loads *ldVel 
+               , Loads *ld                
                , DOUBLE *RESTRICT wallPar , short  const ndm          
                , bool const fCal          , bool const fWallModel  
                , short const nComb        , short const wallType);

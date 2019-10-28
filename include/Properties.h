@@ -96,8 +96,7 @@
 
   void getEnergyForTemp(PropVarFluid *pf
                      ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
-                     ,INT const nCell     
-                     ,bool const fSheat    ,bool const fKelvin
+                     ,INT const nCell      ,bool const fKelvin
                      ,bool const fOmp      ,short const nThreads );
 /*...................................................................*/
 
@@ -224,20 +223,17 @@
                                , DOUBLE const t    , DOUBLE const sHeatRef
                                , bool const fSheat , bool const fKelvin);
 
-  void getEnergyFromTheTempMix(Prop *sHeatPol  ,DOUBLE *RESTRICT yFrac 
+  void getEnergyFromTheTempMix(PropVarFluid *pf  ,DOUBLE *RESTRICT yFrac 
                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
-                        ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
                         ,INT const nCell      ,short const nOfPrSp
-                        ,bool const fSheat    ,bool const fKelvin
-                        ,bool const fOmp      ,short const nThreads );
-
-  void  getTempFromTheEnergy(Prop *sHeatPol    ,DOUBLE *RESTRICT yFrac
-                        ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
-                        ,DOUBLE *RESTRICT prop,short  *RESTRICT mat 
-                        ,INT const nCell      ,short const nOfPrSp 
-                        ,bool const fTemp     ,bool const fSheat    
                         ,bool const fKelvin
-                        ,bool const fOmp      ,short const nThreads );
+                        ,bool const fOmp      ,short const nThreads ); 
+
+  void  getTempFromTheEnergyMix(PropVarFluid *pf,DOUBLE *RESTRICT yFrac
+                        ,DOUBLE *RESTRICT temp  ,DOUBLE *RESTRICT energy
+                        ,INT const nCell        ,short const nOfPrSp 
+                        ,bool const fTemp       ,bool const fKelvin
+                        ,bool const fOmp        ,short const nThreads );
 
   void initPropTempMix(PropVarFluid *propF    , Combustion *cModel
                  ,DOUBLE *RESTRICT prop     ,DOUBLE *RESTRICT t       

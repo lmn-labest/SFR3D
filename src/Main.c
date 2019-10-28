@@ -120,7 +120,7 @@ int main(int argc,char**argv){
   bool fSolvVel = false,fSolvPres = false, fSolvEnergy = false;
   bool fSolvComb = false;
   bool fSolvKturb = false;
-  bool fSolvSimple = false,fSolvPrime = false, fSolvCombustion = false;  
+  bool fSolvSimple = false,fSolvPrime = false;  
 /*... reordenacao da malha*/
   Reord  reordMesh;
 
@@ -164,7 +164,7 @@ int main(int argc,char**argv){
   ,"pFluid"       ,"setPrint"     ,"reScaleMesh"    /*33,34,35*/
   ,"setPrime"     ,"prime"        ,""               /*36,37,38*/
   ,"setSolvComb"  ,"pCombustion"  ,"simpleComb"     /*39,40,41*/
-  ,"setSimpleComb","chemical"     ,"residual"       /*42,43,44*/ 
+  ,""             ,"chemical"     ,"residual"       /*42,43,44*/ 
   ,"gravity"      ,"model"        ,"mean"           /*45,46,47*/
   ,"setMean"      ,"save"         ,"load"};         /*48,49,50*/
 /* ..................................................................*/
@@ -293,6 +293,7 @@ int main(int argc,char**argv){
   propVarFluid.fSpecificHeat        = false;
   propVarFluid.fDynamicViscosity    = false;
   propVarFluid.fThermalConductivity = false;
+  propVarFluid.fDiffusion           = false;
 /*...................................................................*/
 
 /*... propriedades variaveis*/
@@ -785,7 +786,7 @@ int main(int argc,char**argv){
               ,fSolvD1        ,fSolvT1     
               ,fSolvVel       ,fSolvPres 
               ,fSolvEnergy    ,turbModel.fTurb  
-              ,fSolvCombustion,ompVar
+              ,fSolvComb      ,ompVar
               ,nameIn         ,fileLog);
       fclose(fileLog);
 /*...................................................................*/
@@ -808,7 +809,7 @@ int main(int argc,char**argv){
               ,fSolvD1        ,fSolvT1     
               ,fSolvVel       ,fSolvPres 
               ,fSolvEnergy    ,turbModel.fTurb  
-              ,fSolvCombustion
+              ,fSolvComb 
               ,nameIn         ,fileLog);        
         if(!mpiVar.myId) fclose(fileLog);
       } 
@@ -838,7 +839,7 @@ int main(int argc,char**argv){
       if(fSolvSimple && opt.fItPlot && !mpiVar.myId)  
         fclose(opt.fileItPlot[FITPLOTSIMPLE]);
 /*... fechando o arquivo do log nao linear do simple */      
-      if(fSolvCombustion && opt.fItPlot && !mpiVar.myId)
+      if(fSolvComb && opt.fItPlot && !mpiVar.myId)
       {
         fclose(opt.fileItPlot[FITPLOTSIMPLE]);
         fclose(opt.fileParameters);
@@ -1417,7 +1418,19 @@ int main(int argc,char**argv){
  *===================================================================*/
     else if((!strcmp(word,macro[26])))
     {
-      initSec(word, OUTPUT_FOR_FILE);
+    initSec(word, OUTPUT_FOR_FILE);
+/*...*/
+    if(!mpiVar.myId )
+    {
+      fName(preName,mpiVar.nPrcs,0,27 ,nameOut);
+      opt.fileParameters = openFileBuffer(nameOut,"w",true);
+      fprintf(opt.fileParameters,"%s %s %s\n"
+                            ,"#step t cfl reynolds peclet P0 "
+                            ,"mass(Inc) mass(Avg) massIn massOut "
+                            ,"totalHeat temMax temMed");
+    }
+/*...................................................................*/
+
 /*...*/
       readSetSimple(&m     , fileIn
                   , mesh0  , mesh
@@ -1680,7 +1693,8 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/                     
-      printCombustion(&m      , &turbModel
+      printCombustion(&m      , &propVarFluid
+                  , &turbModel
                   , &eModel   , &combModel
                   , pMesh     , &sc
                   , loadsVel  , loadsPres 
@@ -1712,7 +1726,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-     if(!fSolvCombustion) 
+     if(!fSolvSimple) 
      {
         printf("Simple nao configurado ainda!!!\n");
         exit(EXIT_FAILURE);
@@ -1756,30 +1770,11 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: setSimpleComb: configuracoe do metodo simple com combustao
+ * macro:                                                           
  *===================================================================*/
     else if((!strcmp(word,macro[42])))
     {
       initSec(word, OUTPUT_FOR_FILE);
-
-/*...*/
-    if(!mpiVar.myId )
-    {
-      fName(preName,mpiVar.nPrcs,0,27 ,nameOut);
-      opt.fileParameters = openFileBuffer(nameOut,"w",true);
-      fprintf(opt.fileParameters,"%s %s %s\n"
-                            ,"#step t cfl reynolds peclet P0 "
-                            ,"mass(Inc) mass(Avg) massIn massOut "
-                            ,"totalHeat temMax temMed");
-    }
-/*...................................................................*/
-
-/*...*/
-      readSetSimpleComb(&m     , fileIn
-                     , mesh0  , mesh
-                     , &simple, &fSolvCombustion);
-/*...................................................................*/
-
       endSec(OUTPUT_FOR_FILE);
     }
 /*===================================================================*/

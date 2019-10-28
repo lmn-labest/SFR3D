@@ -51,7 +51,6 @@
 
 /*...*/
     short *faceResZcomb;
-    short *faceLoadZcomb;
 /*...................................................................*/
 
     INT    *node;       /*conectividades*/

@@ -7,15 +7,13 @@
                            ,Loads *loadsEnergy   ,Loads *loadsTemp
                            ,Loads *loadsVel      ,DOUBLE *RESTRICT prop
                            ,bool const fTemp     ,bool const iKelvin);
- static void setLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
-                              ,Prop *sHeatProp   ,Loads *loadsEnergy
-                              ,Loads *loadsTemp     ,Loads *loadsZ  
-                              ,Loads *loadsVel      ,DOUBLE *RESTRICT prop
-                              ,bool const fTemp     ,bool const fSheat 
-                              ,bool const iKelvin   ,bool const fDensity
+ static void setLoadsEnergyMix(Combustion *cModel   ,PropVarFluid *pF
+                              ,Loads *loadsEnergy   ,Loads *loadsTemp   
+                              ,Loads *loadsZ        ,Loads *loadsVel     
+                              ,bool const fTemp     ,bool const iKelvin   
                               ,bool const fGrouped);  
  static void convLoadsZcombMix(Combustion *cModel  ,Prop *pDen
-                             ,Prop *sHeatProp   ,Loads *loadsTemp 
+                             ,Prop *sHeatProp      ,Loads *loadsTemp 
                              ,Loads *loadsZ        ,Loads *loadsVel
                              ,DOUBLE *RESTRICT prop
                              ,bool const fTemp     ,bool const fSheat 
@@ -80,7 +78,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
         "coordinates"  ,"endMesh"    ,"insert"         /* 0, 1, 2*/
        ,"return"       ,"cells"      ,"faceResT1"      /* 3, 4, 5*/
        ,""             ,"loadsT1"    ,"uniformT1"      /* 6, 7, 8*/ 
-       ,"faceResZ"     ,"faceLoadZ"  ,"loadsZ"         /* 9,10,11*/ 
+       ,"faceResZ"     ,""           ,"loadsZ"         /* 9,10,11*/ 
        ,"faceResD1"    ,"uniformD1"  ,"loadsD1"        /*12,13,14*/ 
        ,""             ,"initialD1"  ,""               /*15,16,17*/ 
        ,"faceResVel"   ,"loadsVel"   ,""               /*18,19,20*/ 
@@ -241,19 +239,11 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
             ,nel*(maxViz+1),"faceRvel"    ,_AD_);
      zero(mesh->elm.faceRvel  ,nel*(maxViz+1),"short"  );
      
-     HccaAlloc(short,m,mesh->elm.faceRvel  
-            ,nel*(maxViz+1),"faceLVel"    ,_AD_);
-     zero(mesh->elm.faceRvel  ,nel*(maxViz+1),"short"  );
-
 /*... cc da equacao de pressao*/
      HccaAlloc(short,m,mesh->elm.faceRpres 
             ,nel*(maxViz+1),"faceRpres"   ,_AD_);
      zero(mesh->elm.faceRpres ,nel*(maxViz+1),"short"  );
      
-     HccaAlloc(short,m,mesh->elm.faceRpres 
-            ,nel*(maxViz+1),"faceLPres"   ,_AD_);
-     zero(mesh->elm.faceRpres ,nel*(maxViz+1),"short"  );
-
 /*... viscosidade turbulenta*/
      HccaAlloc(DOUBLE, m, mesh->elm.eddyViscosity
               , nel  , "eddyVis", _AD_);
@@ -482,10 +472,6 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     HccaAlloc(short, m, mesh->elm.faceResZcomb
             , nel*(maxViz + 1), "faceResComb", _AD_);
     zero(mesh->elm.faceResZcomb, nel*(maxViz + 1), "short");
-
-    HccaAlloc(short, m, mesh->elm.faceLoadZcomb
-      , nel*(maxViz + 1), "faceLoadComb", _AD_);
-    zero(mesh->elm.faceLoadZcomb, nel*(maxViz + 1), "short");
 
 /*... eZcomb*/
     HccaAlloc(DOUBLE, m, mesh->elm.zComb
@@ -796,19 +782,6 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     }
 /*...................................................................*/
 
-/*... faceLoadZ*/
-    else if((!strcmp(word,macro[10])) && (!rflag[10])){
-      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
-      strcpy(macros[nmacro++],word);
-      rflag[10] = true;
-      strcpy(str,"endFaceLoadZ");
-      fprintf(fileLogExc,"loading faceLoadZ ...\n");
-      readVfRes(mesh->elm.faceLoadZcomb,mesh->numel
-               ,mesh->maxViz+1       ,str       ,file);
-      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
-    }
-/*...................................................................*/
-
 /*... loadZ*/
     else if((!strcmp(word,macro[11])) && (!rflag[11])){
       fprintf(fileLogExc, "%s\n%s\n", DIF, word);
@@ -1113,12 +1086,10 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
   if(rflag[25])
   {
     if(fComb)
-      setLoadsEnergyMix(cModel                 ,&propF->den 
-                      ,&propF->sHeat            ,loadsEnergy              
-                      ,loadsTemp                ,loadsZcomb
-                      ,loadsVel                 ,mesh->elm.material.prop
-                      ,energyModel->fTemperature,propF->fSpecificHeat
-                      ,energyModel->fKelvin     ,propF->fDensity
+      setLoadsEnergyMix(cModel                  ,propF 
+                       ,loadsEnergy             ,loadsTemp
+                      ,loadsZcomb               ,loadsVel     
+                      ,energyModel->fTemperature,energyModel->fKelvin
                       ,cModel->fLump);  
     else
       setLoadsEnergy(propF
@@ -1290,17 +1261,15 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     else
     {
       if(fComb)
-        getEnergyFromTheTempMix(&propF->sHeat          ,mesh->elm.yFrac
-                           ,mesh->elm.temp         ,mesh->elm.energy0
-                           ,mesh->elm.material.prop,mesh->elm.mat                        
+        getEnergyFromTheTempMix(propF              ,mesh->elm.yFrac
+                           ,mesh->elm.temp         ,mesh->elm.energy0                    
                            ,mesh->numel            ,cModel->nOfSpecies
-                           ,propF->fSpecificHeat   ,energyModel->fKelvin
+                           ,energyModel->fKelvin
                            ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);
       else
         getEnergyForTemp(propF
                         ,mesh->elm.temp         ,mesh->elm.energy0                     
-                        ,mesh->numel            
-                        ,propF->fSpecificHeat   ,energyModel->fKelvin
+                        ,mesh->numel            ,energyModel->fKelvin
                         ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);
 /*...*/
       alphaProdVector(1.e0        ,mesh->elm.energy0
@@ -1319,12 +1288,12 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*... inicializando a densidade*/
 /*... mixtura*/
     if(fComb)
-      initPropTempMix(propF              ,cModel
-                     ,mesh->elm.densityFluid,mesh->elm.temp
-                     ,mesh->elm.pressure0   ,mesh->elm.yFrac
+      initPropTempMix(propF                   ,cModel
+                     ,mesh->elm.densityFluid  ,mesh->elm.temp
+                     ,mesh->elm.pressure0     ,mesh->elm.yFrac
                      ,mesh->elm.material.prop ,mesh->elm.mat
-                     ,cModel->nOfSpecies    ,DENSITY_LEVEL   
-                     ,mesh->numel           ,energyModel->fKelvin 
+                     ,cModel->nOfSpecies      ,DENSITY_LEVEL   
+                     ,mesh->numel             ,energyModel->fKelvin 
                      ,DENSITY);
 /*...*/
     else
@@ -1433,12 +1402,12 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     if(fComb)
     {
 /*... inicializando a difusividade das especies*/
-      initDiffMix(propF               , cModel
-             ,mesh->elm.cDiffComb     , mesh->elm.temp 
-             ,mesh->elm.pressure0     , mesh->elm.yFrac 
-             ,mesh->elm.material.prop ,mesh->elm.mat   
-             ,cModel->nOfSpecies      ,cModel->nComb   
-             ,mesh->numel             ,energyModel->fKelvin);
+      initDiffMix(propF                , cModel
+             , mesh->elm.cDiffComb     , mesh->elm.temp 
+             , mesh->elm.pressure0     , mesh->elm.yFrac 
+             , mesh->elm.material.prop , mesh->elm.mat   
+             , cModel->nOfSpecies      , cModel->nComb   
+             , mesh->numel             , energyModel->fKelvin);
 /*... inicializando as entalpia das especies*/
       getEnthalpySpecies(cModel         , propF
                    , mesh->elm.enthalpyk, mesh->elm.temp 
@@ -4570,8 +4539,8 @@ void readAdvectionScheme(FILE *fileIn, Scheme *sc) {
       setAdvectionScheme(word, &sc->advKturb, fileIn);
       nScheme--;
     }
-/*... Zcomb*/
-    else if (!strcmp(word, "Zcomb") || !strcmp(word, "zcomb")) {
+/*... Z*/
+    else if (!strcmp(word, "Z") || !strcmp(word, "z")) {
       fprintf(fileLogExc,"%s:\n", word);
       readMacro(fileIn, word, false);
  /*... codigo da da funcao limitadora de fluxo*/
@@ -4694,7 +4663,8 @@ void readSetSimple(Memoria *m    , FILE *fileIn
   simple->sPressure       = true;
   simple->faceInterpolVel = 1;
   simple->nNonOrth        = 0;
-  if (mesh->ndfFt){
+  if (mesh->ndfFt)
+  {
     simple->alphaEnergy  = 1.e0;
     simple->alphaDensity = 1.0e0; 
     simple->alphaComb    = 1.0e0;
@@ -4770,31 +4740,16 @@ void readSetSimpleComb(Memoria *m    , FILE *fileIn
   simple->alphaEnergy     = 1.e0;
   simple->alphaDensity    = 1.0e0; 
   simple->alphaComb       = 1.0e0;
-
   simple->pSimple         = 500;
 /*...................................................................*/
       
 /*...*/
   readMacro(fileIn,word,false);
   if(!strcmp(word,"config:")){
-/*... timer*/        
+/*...*/        
     readMacro(fileIn,word,false);
-/*... levemente compressivel*/       
-    setSimpleCombustionScheme(word,mesh0->ndm,simple,fileIn);
-/*...*/        
-    if(simple->type == SIMPLE && !mpiVar.myId)     
-      fprintf(fileLogExc,"PRES-VEL  : SIMPLE\n");
-    else if(simple->type == SIMPLEC && !mpiVar.myId )     
-      fprintf(fileLogExc,"PRES-VEL  : SIMPLEC\n");
-
-/*...*/        
-    fprintf(fileLogExc,"%-15s : %d\n","Maxit"       ,simple->maxIt);
-    fprintf(fileLogExc,"%-15s : %lf\n","alphaPres"  ,simple->alphaPres);
-    fprintf(fileLogExc,"%-15s : %lf\n","alphaVel"   ,simple->alphaVel);
-    fprintf(fileLogExc,"%-15s : %lf\n","alphaEnergy",simple->alphaEnergy);
-    fprintf(fileLogExc,"%-15s : %lf\n","alphaComb"  ,simple->alphaComb);
-    fprintf(fileLogExc,"%-15s : %d\n","nNonOrth"    ,simple->nNonOrth);
-    fprintf(fileLogExc,"%-15s : %d\n","pSimple"     ,simple->pSimple);
+    setSimpleScheme(word, simple);
+/*...................................................................*/    
   }
 /*...................................................................*/
 
@@ -5542,13 +5497,13 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
     if (!strcmp(word, "Vel") || !strcmp(word, "vel"))
     {
       nSistEq--;
-      *fSolvVel = true;
-      solvVel->solver = PBICGSTAB;
-      solvVel->tol = smachn();
-      solvVel->maxIt = 50000;
+      *fSolvVel         = true;
+      solvVel->solver   = PBICGSTAB;
+      solvVel->tol      = smachn();
+      solvVel->maxIt    = 50000;
       solvVel->fileSolv = NULL;
-      solvVel->log = true;
-      solvVel->flag = true;
+      solvVel->log      = true;
+      solvVel->flag     = true;
 /*...................................................................*/
 
 /*...*/
@@ -5567,11 +5522,6 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*... solver*/
       readMacro(fileIn, word, false);
       setSolverConfig(word, solvVel, &sistEqVel->storage);
-/*...................................................................*/
-
-/*... DataStruct*/
-      readMacro(fileIn, word, false);
-      setDataStruct(word, &sistEqVel->storage);
 /*...................................................................*/
 
 /*... numeracao das equacoes das velocidades*/
@@ -5694,11 +5644,6 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
       setSolverConfig(word, solvPres, &sistEqPres->storage);
 /*...................................................................*/
 
-/*... DataStruct*/
-      readMacro(fileIn, word, false);
-      setDataStruct(word, &sistEqPres->storage);
-/*...................................................................*/
-
 /*... numeracao das equacoes das pressoes*/
       HccaAlloc(INT, m, sistEqPres->id
         , mesh->numel
@@ -5815,11 +5760,6 @@ void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*... solver*/
       readMacro(fileIn, word, false);
       setSolverConfig(word, solvEnergy, &sistEqEnergy->storage);
-/*...................................................................*/
-
-/*... DataStruct*/
-      readMacro(fileIn, word, false);
-      setDataStruct(word, &sistEqEnergy->storage);
 /*...................................................................*/
 
 /*... numeracao das equacoes das Energy*/
@@ -6825,7 +6765,7 @@ void setReGrad(RcGrad *rcGrad, FILE *file)
 
 /**********************************************************************
 * Data de criacao    : 19/05/2018                                    *
-* Data de modificaco : 27/09/2019                                    *
+* Data de modificaco : 26/10/2019                                    *
 *--------------------------------------------------------------------*
 * setReGrad:                                                         *
 *--------------------------------------------------------------------*
@@ -6851,7 +6791,7 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
                             ,"densityt1"   ,"coefdifft1"       /* 3, 4*/
                             ,"densityfluid","dviscosity"       /* 5, 6*/
                             ,"ctherm"      ,"cp"               /* 7, 8*/
-                            ,"mmolar"        };                /* 9,*/
+                            ,"mmolar"      ,"massdiff"  };     /* 9,10*/
   short i, j,iMat;
   int aux; 
   DOUBLE v;
@@ -6957,6 +6897,21 @@ void readFileMat(DOUBLE *prop, short *type, short numat,FILE *file)
         fprintf(fileLogExc, "%-20s: %e\n", macro[j - 1], prop[MMOLARMASS]);
       }
 /*.....................................................................*/
+
+/*... massDiff */
+      else if (!strcmp(word, macro[j++]))
+      {
+        fscanf(fileIn, "%d", &aux);
+        fprintf(fileLogExc, "%-20s:", macro[j - 1]);
+        for(i=0;i<aux;i++)
+        {
+          fscanf(fileIn, "%lf", &prop[i+SPECIEDIFUSSION]);
+          fprintf(fileLogExc, " %e ", prop[i+SPECIEDIFUSSION]);
+        } 
+        fprintf(fileLogExc, "\n");
+      }
+/*.....................................................................*/
+
       readMacro(fileIn, word, false);
     }while(strcmp(word,str));
 /*.....................................................................*/
@@ -7242,6 +7197,10 @@ void readChemical(Combustion *c, FILE *file)
 /*...................................................................*/
 
 /*...*/
+  fclose(fileAux);
+/*...................................................................*/
+
+/*...*/
   initMolarMass(c);
 /*...................................................................*/
 
@@ -7329,6 +7288,10 @@ void readChemical(Combustion *c, FILE *file)
 /*...................................................................*/
     fprintf(fileLogExc,"\n");
   }                                 
+/*...................................................................*/
+
+/*...*/
+  readMacroV2(file, word, false, true);
 /*...................................................................*/
 }
 /*********************************************************************/
@@ -7730,7 +7693,7 @@ static void setLoadsEnergy(PropVarFluid *pF
 
 /********************************************************************* 
  * Data de criacao    : 09/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 27/10/2019                                   *
  *-------------------------------------------------------------------*
  * setLoadsEnergy:                                                   *
   *-------------------------------------------------------------------*
@@ -7743,17 +7706,17 @@ static void setLoadsEnergy(PropVarFluid *pF
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-static void setLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
-                              ,Prop *sHeatProp      ,Loads *loadsEnergy
-                              ,Loads *loadsTemp     ,Loads *loadsZ     
-                              ,Loads *loadsVel      ,DOUBLE *RESTRICT prop
-                              ,bool const fTemp     ,bool const fSheat 
-                              ,bool const iKelvin   ,bool const fDensity
+static void setLoadsEnergyMix(Combustion *cModel    ,PropVarFluid *pF
+                              ,Loads *loadsEnergy   ,Loads *loadsTemp   
+                              ,Loads *loadsZ        ,Loads *loadsVel     
+                              ,bool const fTemp     ,bool const iKelvin   
                               ,bool const fGrouped)   
 {
-  short i,j,n,type;
+  bool fSheat   = pF->fSpecificHeat,
+       fDensity = pF->fDensity;
+  short i,j,n,type,id;
   short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
-  DOUBLE t,yFrac[MAXSPECIES],sHeat,tmp,tmp1,molarMassMix;
+  DOUBLE t,yFrac[MAXSPECIES],sHeat,tmp,tmp1,molarMassMix,z[MAXSPECIES];
   
 /*... cc da equacao da energia e em temperatura*/
   if(fTemp){
@@ -7779,9 +7742,9 @@ static void setLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
 /*....................................................................*/
 
   else{
-    sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
+    sHeat = pF->sHeatRef;
     for(i=0;i<MAXLOAD;i++){
-      loadsEnergy[i].fUse      = loadsTemp[i].fUse;
+      loadsEnergy[i].fUse    = loadsTemp[i].fUse;
       loadsEnergy[i].type    = loadsTemp[i].type;
       loadsEnergy[i].np      = loadsTemp[i].np;
       type = loadsTemp[i].type;
@@ -7789,13 +7752,15 @@ static void setLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
         loadsEnergy[i].par[j] = loadsTemp[i].par[j];
 
 /*...*/
-      if( type == DIRICHLETBC ){
+      if( type == DIRICHLETBC )
+      {
         t        = loadsTemp[i].par[0];
         
-        n        = loadsZ[i].np;
-        getSpeciesPrimitivesCc(cModel,yFrac,loadsZ[i].par);
+        n        = ns;
+        
+        getSpeciesPrimitivesCc(cModel,yFrac,&loadsTemp[i].par[1]);
 
-        tmp = tempToSpecificEnthalpyMix( sHeatProp, yFrac 
+        tmp = tempToSpecificEnthalpyMix( &pF->sHeat , yFrac 
                                          , t        , sHeat
                                          , n
                                          , fSheat  , iKelvin);
@@ -7804,21 +7769,22 @@ static void setLoadsEnergyMix(Combustion *cModel   ,Prop *pDen
 /*....................................................................*/
 
 /*...*/
-      else if ( type == INLET ||  type == OPEN) {
+      else if ( type == INLET ||  type == OPEN) 
+      {
         t = loadsTemp[i].par[0];
 
         getSpeciesPrimitivesCc(cModel,yFrac,loadsZ[i].par);
         
-        tmp = tempToSpecificEnthalpyMix( sHeatProp  , yFrac 
-                                         , t        , sHeat
-                                         , ns
-                                         , fSheat  , iKelvin);
+        tmp = tempToSpecificEnthalpyMix( &pF->sHeat, yFrac 
+                                       , t         , sHeat
+                                       , ns
+                                       , fSheat    , iKelvin);
         loadsEnergy[i].par[0] = tmp;
 /*... densidade*/
         if(fDensity)
         {
           molarMassMix =  mixtureMolarMass(cModel,yFrac); 
-          tmp1 = mixtureSpeciesDensity(pDen           ,molarMassMix
+          tmp1 = mixtureSpeciesDensity(&pF->den        ,molarMassMix
                                      ,t               ,thDynamic.pTh[2]
                                      ,thDynamic.pTh[2],iKelvin);
           loadsEnergy[i].density = tmp1;

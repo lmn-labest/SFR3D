@@ -311,8 +311,6 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     fDeltaTimeDynamic = sc->ddt.fDynamic;
   DOUBLE cfl, reynolds, peclet,  deltaMass, prMax;
   bool fParameter[10];
-  char slName[][10] = {"zFuel","zAir","zProd"},
-       spName[][10] = {"zO2","zCO2","zH2O","zN2"};
 
 /*...*/
   time = getTimeC();
@@ -571,12 +569,10 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 
 /*...*/
     tm.tempFromTheEnergy = getTimeC() - tm.tempFromTheEnergy;  
-    getTempFromTheEnergy(&propF->sHeat          ,mesh->elm.yFrac
+    getTempFromTheEnergyMix(propF               ,mesh->elm.yFrac
                         ,mesh->elm.temp         ,mesh->elm.energy
-                        ,mesh->elm.material.prop,mesh->elm.mat    
                         ,mesh->numel            ,cModel->nOfSpecies
-                        ,eModel->fTemperature   ,fSheat     
-                        ,eModel->fKelvin
+                        ,eModel->fTemperature   ,eModel->fKelvin
                         ,ompVar.fUpdate         ,ompVar.nThreadsUpdate);  
     tm.tempFromTheEnergy = getTimeC() - tm.tempFromTheEnergy;
 /*...................................................................*/
@@ -680,10 +676,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
           printf("%-25s : %20.8e\n","momentum x3", rU[2] / rU0[2]);
         printf("%-25s : %20.8e\n","conservacao da energia",rEnergy/rEnergy0);
         for(i=0;i<nComb;i++)
-          if (cModel->fLump) 
-            printf("%-25s : %20.8e\n",slName[i],rComb[i]/rComb0[i]);
-          else
-            printf("%-25s : %20.8e\n",cModel->chem.sp[i].name,rComb[i]/rComb0[i]);
+          printf("%-25s : %20.8e\n",cModel->chem.sp[i].name,rComb[i]/rComb0[i]);
       }
     }
     jj++; 
@@ -823,12 +816,8 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     printf("%-25s : %20.8e %20.8e\n","conservacao da energia", rEnergy0, rEnergy);
     for(i=0;i<nComb;i++)
     {
-      if (cModel->fLump) 
-        printf("%-25s : %20.8e %20.8e\n",slName[i]
-                                         ,rComb0[i],rComb[i]);
-      else
-        printf("%-25s : %20.8e %20.8e\n",cModel->chem.sp[i].name
-                                        ,rComb0[i],rComb[i]);
+      printf("%-25s : %20.8e %20.8e\n",cModel->chem.sp[i].name
+                                      ,rComb0[i],rComb[i]);
     }
 /*...................................................................*/
 

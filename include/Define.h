@@ -135,11 +135,17 @@
 /*...................................................................*/
 
 /*...*/
+  #define MASS_FRAC_AIR_O2    0.231163e+00
+  #define MASS_FRAC_AIR_N2    0.763017e+00
+  #define MASS_FRAC_AIR_CO2   0.000592e+00
+  #define MASS_FRAC_AIR_H2O   0.005228e+00
+/*...................................................................*/
+
+/*...*/
   #define TREF       298.15e+00    /*Kelvin          */
   #define PREREF     1.01325e+05   /*Pa              */
   #define IDEALGASR  8.3144621e+03 /*J/(kmol.kelvin) */
   #define IDEALGASRC 1.9872063e+00  /*Cal/(mol.kelvin) */
-//#define IDEALGASR  8.3144598e+03 /*J/(Kmol.kelvin) */
 /*...................................................................*/
 
 /*...*/
@@ -191,8 +197,8 @@
   #define DENSITY                    1
   #define THERMALCONDUCTIVITY        2
   #define SPECIFICHEATCAPACITYFLUID  3
-  #define SPECIEDIFUSSION            4
-  #define MMOLARMASS                 5
+  #define MMOLARMASS                 4
+  #define SPECIEDIFUSSION            5
 /*...................................................................*/
 
 /*...*/

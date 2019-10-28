@@ -1015,7 +1015,7 @@ void pLoadEnergy(PropVarFluid *vProp
                , DOUBLE const viscosityC , DOUBLE const sHeatC
                , DOUBLE const prT        , DOUBLE *RESTRICT xx                   
                , DOUBLE const fArea      , DOUBLE const dcca
-               , Loads *ld               , Loads *ldVel 
+               , Loads *ld               
                , DOUBLE *RESTRICT wallPar, short  const ndm          
                , bool const fCal         , bool const fTemp
                , bool const iKelvin      , bool const fSheat
@@ -1041,22 +1041,27 @@ void pLoadEnergy(PropVarFluid *vProp
 /*...................................................................*/ 
 
 /*... potencial prescrito (Parede)*/
-  if( ld->type == DIRICHLETBC){
+  if( ld->type == DIRICHLETBC)
+  {
     getLoads(par,ld,xx);
     tA[0]   = par[0];
     if(!fCal) return;
 /*... inertial sub-layer*/
-    if ( yPlus > 11.81e0 ){
+    if ( yPlus > 11.81e0 )
+    {
 /*...*/
-      if (fTemp) {
+      if (fTemp)
+      {
         tW = tA[0];
         tC = uC;  
       }
-      else{
-        tW =specificEnthalpyForTemp(&vProp->sHeat,298.15
-                                   ,tA[0]        ,sHeatC
-                                   ,fSheat       ,iKelvin);
-        tC =specificEnthalpyForTemp(&vProp->sHeat,298.15
+      else
+      {
+        tW =specificEnthalpyForTemp(&vProp->sHeat ,25.0
+                                   ,tA[0]         ,sHeatC
+                                   ,fSheat        ,iKelvin);
+
+        tC =specificEnthalpyForTemp(&vProp->sHeat ,25.0
                                    ,uC            ,sHeatC
                                    ,fSheat        ,iKelvin); 
       }
@@ -1068,8 +1073,8 @@ void pLoadEnergy(PropVarFluid *vProp
 /*...................................................................*/ 
     }
 /*... viscosity sub-layer*/
-    else{
-    
+    else
+    {    
 /*...*/
       aP   = thermCoef*fArea/dcca;
       if(!fTemp) aP /=  sHeatC;
@@ -1282,7 +1287,7 @@ void pLoadCombustion(PropVarFluid *vProp
                , DOUBLE const viscosityC 
                , DOUBLE const prT         , DOUBLE *RESTRICT xx                   
                , DOUBLE const fArea       , DOUBLE const dcca
-               , Loads *ld                , Loads *ldVel 
+               , Loads *ld                
                , DOUBLE *RESTRICT wallPar , short  const ndm          
                , bool const fCal          , bool const fWallModel  
                , short const nComb        , short const wallType)

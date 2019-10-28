@@ -149,8 +149,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
              , sistEqComb->ia          , sistEqComb->ja
              , sistEqComb->al          , sistEqComb->ad
              , sistEqComb->b           , sistEqComb->id
-             , mesh->elm.faceResZcomb  , mesh->elm.faceLoadZcomb
-             , mesh->elm.faceRvel      , mesh->elm.faceRvel
+             , mesh->elm.faceResZcomb  
              , mesh->elm.zComb         , mesh->elm.gradZcomb  
              , mesh->elm.wk            , mesh->elm.vel           
              , mesh->elm.pressure0     , mesh->elm.pressure

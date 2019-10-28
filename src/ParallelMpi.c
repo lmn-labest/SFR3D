@@ -146,13 +146,6 @@ static void allocComb(Memoria *m          , Mesh *mesh
   zero(mesh->elm.faceResZcomb,size,"short"  );
 /*...................................................................*/
 
-/*... faceLoadsZcomb locais*/ 
-  size = lNel*(maxViz+1); 
-  HccaAlloc(short,m,mesh->elm.faceLoadZcomb,size        
-         ,"faceLoadsZP"  ,_AD_);
-  zero(mesh->elm.faceLoadZcomb  ,size,"short"  );    
-/*...................................................................*/
-
 /*... zComb0 locais*/
   size = lNel*ndfComb;
   HccaAlloc(DOUBLE,m,mesh->elm.zComb0     ,size        
@@ -406,7 +399,6 @@ static void comunicateCD(short *m0faceR     ,short *faceR
  *-------------------------------------------------------------------* 
  *********************************************************************/ 
 static void comunicateComb(short *m0faceR     ,short *faceR
-                ,short *m0faceL     ,short *faceL
                 ,DOUBLE *m0z0       ,DOUBLE *z0 
                 ,DOUBLE *m0z        ,DOUBLE *z  
                 ,DOUBLE *m0y0       ,DOUBLE *y0 
@@ -446,25 +438,6 @@ static void comunicateComb(short *m0faceR     ,short *faceR
                  ,mpiVar.comm);
 
       free(nS); 
-/*...................................................................*/
-
-/*... faceLzComb locais*/
-      size = lNel*(maxViz+1);
-      nS   = (short *) malloc(size*sSize); 
-      ERRO_MALLOC(nS,"nS"   ,__LINE__,__FILE__,__func__);
-
-      sGetLocalV(m0faceL,nS
-                ,elLG
-                ,lNel   ,maxViz+1); 
-
-      if(iCod == 1)
-        for(i=0;i<size;i++) 
-          faceL[i] = nS[i];
-      else if(iCod == 2)
-        MPI_Send(nS    ,       size, MPI_SHORT,nPart,23   
-                 ,mpiVar.comm);     
-
-      free(nS);
 /*...................................................................*/
 
 /*... eZcomb0 locais*/
@@ -574,12 +547,6 @@ static void comunicateComb(short *m0faceR     ,short *faceR
              ,mpiVar.comm,MPI_STATUS_IGNORE);
 /*...................................................................*/
      
-/*... faceLzComb locais*/
-     size = lNel*(maxViz+1);
-     MPI_Recv(faceL,size, MPI_SHORT,0,23   
-             ,mpiVar.comm,MPI_STATUS_IGNORE);
-/*...................................................................*/
-
 /*... eZ0 locais*/
      size = lNel*ndfComb;
      MPI_Recv(z0  ,size, MPI_DOUBLE,0,24   
@@ -1390,7 +1357,6 @@ static void prMaster(Memoria *m    , Mesh *mesh0
 
 /*...*/
     comunicateComb(mesh0->elm.faceResZcomb ,mesh->elm.faceResZcomb
-                  ,mesh0->elm.faceLoadZcomb,mesh->elm.faceLoadZcomb
                   ,mesh0->elm.zComb0       ,mesh->elm.zComb0
                   ,mesh0->elm.zComb        ,mesh->elm.zComb
                   ,mesh0->elm.yFrac0       ,mesh->elm.yFrac0
@@ -1717,7 +1683,6 @@ static void sendPart(Memoria *m    , Mesh *mesh0
 /*...*/
   if(ndfComb>0)
     comunicateComb(mesh0->elm.faceResZcomb ,mesh->elm.faceResZcomb
-                  ,mesh0->elm.faceLoadZcomb,mesh->elm.faceLoadZcomb
                   ,mesh0->elm.zComb0       ,mesh->elm.zComb0
                   ,mesh0->elm.zComb        ,mesh->elm.zComb
                   ,mesh0->elm.yFrac0       ,mesh->elm.yFrac0
@@ -2147,7 +2112,6 @@ static void recvPart(Memoria *m    , Mesh *mesh0
 
 /*...*/
     comunicateComb(mesh0->elm.faceResZcomb ,mesh->elm.faceResZcomb
-                  ,mesh0->elm.faceLoadZcomb,mesh->elm.faceLoadZcomb
                   ,mesh0->elm.zComb0       ,mesh->elm.zComb0
                   ,mesh0->elm.zComb        ,mesh->elm.zComb
                   ,mesh0->elm.yFrac0       ,mesh->elm.yFrac0

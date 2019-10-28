@@ -623,7 +623,7 @@ void initEntalpyOfFormation(Combustion *cModel, Prop *sHeatPol)
 {
   short i;
 
-/*...  CH4*/
+/*...*/
   for(i=0;i<cModel->chem.nSp;i++)
   {
     cModel->chem.sp[i].entalphyOfForm = 
@@ -638,11 +638,11 @@ void initEntalpyOfFormation(Combustion *cModel, Prop *sHeatPol)
   {
     fprintf(fileLogExc, "%-20s:\n","entalphy of Form (kj/kmol)");
     for(i=0;i<cModel->chem.nSp;i++)
-      fprintf(fileLogExc, "%-20s: %lf\n",cModel->chem.sp[i].name
+      fprintf(fileLogExc, "%-20s: %+.6e\n",cModel->chem.sp[i].name
                               ,cModel->chem.sp[i].entalphyOfFormMolar);
     fprintf(fileLogExc, "%-20s:\n","entalphy of Form (kj/kg)");
     for(i=0;i<cModel->chem.nSp;i++)
-      fprintf(fileLogExc, "%-20s: %lf\n",cModel->chem.sp[i].name
+      fprintf(fileLogExc, "%-20s: %+.6e\n",cModel->chem.sp[i].name
                               ,cModel->chem.sp[i].entalphyOfForm);  
   }
 /*..................................................................*/

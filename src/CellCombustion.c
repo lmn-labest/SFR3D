@@ -82,8 +82,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
                     , DOUBLE *RESTRICT vSkew    , DOUBLE *RESTRICT mvSkew
                     , DOUBLE *RESTRICT lA       , DOUBLE *RESTRICT lB
                     , DOUBLE *RESTRICT lRcell   , Temporal *ddt
-                    , short  *RESTRICT lFaceR   , short *RESTRICT lFaceL
-                    , short  *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL
+                    , short  *RESTRICT lFaceR   
                     , DOUBLE *RESTRICT u0       , DOUBLE *RESTRICT gradU0
                     , DOUBLE *RESTRICT wk       , DOUBLE *RESTRICT vel
                     , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
@@ -410,8 +409,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
             + velC[1] * lNormal[1]
             + velC[2] * lNormal[2];
 /*...cargas*/
-        nCarg1 = lFaceL[nf] - 1;
-        nCarg2 = lFaceVelL[nf] - 1;
+        nCarg1 = lFaceR[nf] - 1;
         xx[0] = MAT2D(nf, 0, xm, 3);
         xx[1] = MAT2D(nf, 1, xm, 3);
         xx[2] = MAT2D(nf, 2, xm, 3);
@@ -423,7 +421,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
                       , densityC
                       , prTwall       , xx
                       , lFarea        , dcca[nf]
-                      , &loads[nCarg1], &loadsVel[nCarg2]
+                      , &loads[nCarg1]
                       , wallPar       , ndm
                       , true          , fWallModel
                       , nComb         , wallType);    

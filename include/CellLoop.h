@@ -452,8 +452,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                   , INT    *RESTRICT ia           , INT    *RESTRICT ja
                   , DOUBLE *RESTRICT a            , DOUBLE *RESTRICT ad
                   , DOUBLE *RESTRICT b            , INT    *RESTRICT id
-                  , short  *RESTRICT faceR        , short  *RESTRICT faceL
-                  , short  *RESTRICT faceVelR     , short  *RESTRICT faceVelL
+                  , short  *RESTRICT faceR      
                   , DOUBLE *RESTRICT u0           , DOUBLE *RESTRICT gradU0
                   , DOUBLE *RESTRICT Q            , DOUBLE *RESTRICT vel
                   , DOUBLE *RESTRICT pres0        , DOUBLE *RESTRICT pres

@@ -108,8 +108,7 @@
                , DOUBLE *RESTRICT vSkew    , DOUBLE *RESTRICT mvSkew
                , DOUBLE *RESTRICT lA       , DOUBLE *RESTRICT lB
                , DOUBLE *RESTRICT lRcell   , Temporal *ddt
-               , short  *RESTRICT lFaceR   , short  *RESTRICT lFaceL
-               , short  *RESTRICT lFaceVelR, short  *RESTRICT lFaceVelL
+               , short  *RESTRICT lFaceR   
                , DOUBLE *RESTRICT u        , DOUBLE *RESTRICT gradU
                , DOUBLE *RESTRICT Q        , DOUBLE *RESTRICT vel
                , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
@@ -731,8 +730,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
                   , DOUBLE *RESTRICT vSkew    , DOUBLE *RESTRICT mvSkew
                   , DOUBLE *RESTRICT lA       , DOUBLE *RESTRICT lB
                   , DOUBLE *RESTRICT lRcell   , Temporal *ddt
-                  , short  *RESTRICT lFaceR   , short *RESTRICT lFaceL
-                  , short  *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL
+                  , short  *RESTRICT lFaceR                    
                   , DOUBLE *RESTRICT u0       , DOUBLE *RESTRICT gradU0
                   , DOUBLE *RESTRICT Q        , DOUBLE *RESTRICT vel
                   , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres

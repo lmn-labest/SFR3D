@@ -346,7 +346,6 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
         wfn = velC[0] * lNormal[0] + velC[1] * lNormal[1];
 /*...cargas*/
         nCarg1 = lFaceL[nAresta] - 1;
-        nCarg2 = lFaceVelL[nAresta] - 1;
         xx[0] = MAT2D(nAresta, 0, xm, 2);
         xx[1] = MAT2D(nAresta, 1, xm, 2);
         xx[2] = 0.e0;
@@ -358,7 +357,7 @@ void cellEnergy2D(Loads *loads , Loads *loadsVel
                   , viscosityC, sHeatC
                   , prTwall, xx
                   , lModEta, dcca[nAresta]
-                  , &loads[nCarg1], &loadsVel[nCarg2]
+                  , &loads[nCarg1]
                   , wallPar, ndm
                   , true, fTemp
                   , fKelvin, fSheat
@@ -934,7 +933,6 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
           + velC[2] * lNormal[2];
 /*...cargas*/
         nCarg1 = lFaceR[nf] - 1;
-        nCarg2 = lFaceVelR[nf] - 1;
         xx[0] = MAT2D(nf, 0, xm, 3);
         xx[1] = MAT2D(nf, 1, xm, 3);
         xx[2] = MAT2D(nf, 2, xm, 3);
@@ -946,7 +944,7 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
                   , viscosityC    , sHeatC
                   , prTwall       , xx
                   , lFarea        , dcca[nf]
-                  , &loads[nCarg1], &loadsVel[nCarg2]
+                  , &loads[nCarg1]
                   , wallPar       , ndm
                   , true          , fTemp
                   , fKelvin       , fSheat
@@ -959,7 +957,7 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
       else
       {
 /*... inertial sub-layer*/
-        if (wallPar[0] > 11.81e0)
+        if (wallPar[0] > 11.81e0 && fWallModel)
         {
 /*... energia na forma da temperatura*/
           if (fTemp)
@@ -971,7 +969,7 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
           {
             if(fComb)
             {
-              tC = specificEnthalpyForTempOfMix(&vProp->sHeat, 298.15
+              tC = specificEnthalpyForTempOfMix(&vProp->sHeat, 25.0
                                                , uC          , yFracC 
                                                , sHeatC      , ns
                                                , fSheat      , fKelvin
@@ -984,7 +982,7 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
             }
             else
             {
-              tC = specificEnthalpyForTemp(&vProp->sHeat    , 298.15 
+              tC = specificEnthalpyForTemp(&vProp->sHeat    , 25.0 
                                         , uC, sHeatC, fSheat, fKelvin);
               tW = tC;
               tW = tempForSpecificEnthalpy( &vProp->sHeat
@@ -1574,7 +1572,7 @@ void cellEnergy3DOld(Loads *loads               , Loads *lVel
           , viscosityC    , sHeatC
           , prTwall       , xx
           , lFarea        , dcca[nf]
-          , &loads[nCarg1], &loadsVel[nCarg2]
+          , &loads[nCarg1]
           , wallPar       , ndm
           , true          , fTemp
           , fKelvin       , fSheat

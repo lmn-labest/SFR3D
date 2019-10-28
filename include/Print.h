@@ -27,15 +27,16 @@
                ,Mean *media      
                ,char *preName        ,char *nameOut);
   
-  void printCombustion(Memoria *m         , Turbulence *turbModel
-                     , EnergyModel *eModel, Combustion *cModel
-                     , PartMesh *pMesh    , Scheme *sc
-                     , Loads *loadsVel    , Loads *loadsPres 
-                     , Loads *loadsTemp   , Loads *loadsComb
-                     , FileOpt *opt
-                     , Mesh *mesh0        , Mesh *mesh  
-                     , Mean *media        
-                     , char *preName      , char *nameOut);  
+  void printCombustion(Memoria *m      ,PropVarFluid *propF
+               ,Turbulence *turbModel,EnergyModel *eModel 
+               ,Combustion *cModel
+               ,PartMesh *pMesh      ,Scheme *sc
+               ,Loads *loadsVel      ,Loads *loadsPres 
+               ,Loads *loadsTemp     ,Loads *loadsComb
+               ,FileOpt *opt
+               ,Mesh *mesh0          ,Mesh *mesh  
+               ,Mean *media      
+               ,char *preName        ,char *nameOut);
 
   void printDiff(Memoria *m
                , PartMesh *pMesh, Scheme *sc

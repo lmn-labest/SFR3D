@@ -585,7 +585,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
 
 /*********************************************************************
 * Data de criacao    : 05/08/2018                                   *
-* Data de modificaco : 27/08/2019                                   *
+* Data de modificaco : 27/10/2019                                   *
 *-------------------------------------------------------------------*
 * cellLibCombustion: chamada de bibliotecas de celulas para         *
 * problema de escoamento de fluidos (Energy)                        *
@@ -624,10 +624,8 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
 * lB        -> nao definido                                         *
 * lRcell    -> nao definido                                         *
 * ddt       -> discretizacao temporal                               *
+* faceR     -> restricoes por elemento de especies                  *
 * faceVelR  -> restricoes por elemento de velocidades               *
-* faceVelL  -> carga por elemento de velocidades                    *
-* facePresR -> restricoes por elemento de pressao                   *
-* facePresL -> carga por elemento de pressao                        *
 * vel       -> campo de velocidade conhecido                        *
 * dField    -> matriz D do metodo simple                            *
 * lDensity  -> massa especifica com variacao temporal               *
@@ -662,8 +660,7 @@ void cellLibCombustion(Loads *lComb        , Loads *lVel
                , DOUBLE *RESTRICT vSkew    , DOUBLE *RESTRICT mvSkew
                , DOUBLE *RESTRICT lA       , DOUBLE *RESTRICT lB
                , DOUBLE *RESTRICT lRcell   , Temporal *ddt
-               , short  *RESTRICT lFaceR   , short  *RESTRICT lFaceL
-               , short  *RESTRICT lFaceVelR, short  *RESTRICT lFaceVelL
+               , short  *RESTRICT lFaceR   
                , DOUBLE *RESTRICT u        , DOUBLE *RESTRICT gradU
                , DOUBLE *RESTRICT Q        , DOUBLE *RESTRICT vel      
                , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
@@ -724,8 +721,7 @@ void cellLibCombustion(Loads *lComb        , Loads *lVel
                      , vSkew     , mvSkew
                      , lA        , lB
                      , lRcell    , ddt
-                     , lFaceR    , lFaceL
-                     , lFaceVelR , lFaceVelL
+                     , lFaceR    
                      , u         , gradU
                      , Q         , vel       
                      , pres      , gradPres

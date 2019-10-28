@@ -156,40 +156,43 @@
 /*...................................................................*/
 
 /*...*/
-  void wResVtkCombustion(Memoria *m, Combustion *cModel     
-          , DOUBLE *x            , DOUBLE *cc     
-          , INT *el              , short *mat    
-          , short *nen           , short *typeGeom
-          , DOUBLE *elPres       , DOUBLE *nPres
-          , DOUBLE *elGradPres   , DOUBLE *nGradPres
-          , DOUBLE *elVel        , DOUBLE *nVel      
-          , DOUBLE *elGradVel    , DOUBLE *nGradVel 
-          , DOUBLE *elTemp       , DOUBLE *nTemp
-          , DOUBLE *elGradEnergy , DOUBLE *nGradEnergy
-          , DOUBLE *elZcomb      , DOUBLE *nZcomb  
-          , DOUBLE *elGradZcomb  , DOUBLE *nGradZcomb 
-          , DOUBLE *elEddyVis    , DOUBLE *nEddyVis
-          , DOUBLE *eDensityFluid, DOUBLE *nDensityFluid
-          , DOUBLE *eDyViscosity , DOUBLE *nDyViscosity
-          , DOUBLE *eStressR     , DOUBLE *nStressR
-          , DOUBLE *eCd          , DOUBLE *nCd
-          , DOUBLE *eWallPar     , DOUBLE *nWallPar
-          , DOUBLE *eKturb       , DOUBLE *nKturb
-          , DOUBLE *eQ           , DOUBLE *nQ       
-          , DOUBLE *eYfrac       , DOUBLE *nYfrac 
-          , DOUBLE *eGradY       , DOUBLE *nGradY
-          , DOUBLE *eHeatRe      , DOUBLE *nHeatRe     
-          , DOUBLE *eMedVel      , DOUBLE *nMedVel
-          , DOUBLE *eEnthalpyK   , DOUBLE *nEnthalpyK   
-          , DOUBLE *specificHeat , DOUBLE *tConductivity
-          , DOUBLE *eDiffSp      , DOUBLE *eTreactor
-          , INT nnode            , INT numel    
-          , short const ndm      , short const maxNo 
-          , short const numat    , short const ndf
-          , short const ntn      
-          , char *nameOut        , FileOpt *opt
-          , bool fKelvin         , Mean *media  
-          , Temporal ddt         , FILE *f);
+void wResVtkCombustion(Memoria *m , Combustion *cModel     
+          , DOUBLE *x             , DOUBLE *cc     
+          , INT *el               , short *mat    
+          , short *nen            , short *typeGeom
+          , DOUBLE *elPres        , DOUBLE *nPres
+          , DOUBLE *elGradPres    , DOUBLE *nGradPres
+          , DOUBLE *elVel         , DOUBLE *nVel      
+          , DOUBLE *elGradVel     , DOUBLE *nGradVel 
+          , DOUBLE *elTemp        , DOUBLE *nTemp
+          , DOUBLE *elGradTemp    , DOUBLE *nGradTemp  
+          , DOUBLE *elZcomb       , DOUBLE *nZcomb  
+          , DOUBLE *elGradZcomb   , DOUBLE *nGradZcomb 
+          , DOUBLE *elEddyVis     , DOUBLE *nEddyVis
+          , DOUBLE *eDensityFluid , DOUBLE *nDensityFluid
+          , DOUBLE *eDyViscosity  , DOUBLE *nDyViscosity
+          , DOUBLE *eStressR      , DOUBLE *nStressR
+          , DOUBLE *eCd           , DOUBLE *nCd
+          , DOUBLE *eWallPar      , DOUBLE *nWallPar
+          , DOUBLE *eKturb        , DOUBLE *nKturb
+          , DOUBLE *eWk           , DOUBLE *nWk      
+          , DOUBLE *eYfrac        , DOUBLE *nYfrac
+          , DOUBLE *eGradY        , DOUBLE *nGradY 
+          , DOUBLE *eHeatRe       , DOUBLE *nHeatRe     
+          , DOUBLE *eMedVel       , DOUBLE *nMedVel
+          , DOUBLE *eEnthalpyK    , DOUBLE *nEnthalpyK   
+          , DOUBLE *eSheat        , DOUBLE *nSheat
+          , DOUBLE *eTCond        , DOUBLE *nTCond
+          , DOUBLE *eDiffSp       , DOUBLE *nDiffSp  
+           , DOUBLE *eGradRho     , DOUBLE *nGradRho
+          , DOUBLE *eTreactor  
+          , INT nnode             , INT numel    
+          , short const ndm       , short const maxNo 
+          , short const numat     , short const ndf
+          , short const ntn       
+          , char *nameOut         , FileOpt *opt
+          , bool fKelvin          , Mean *media  
+          , Temporal ddt          , FILE *f);
 /*...................................................................*/
 
 /*...*/
