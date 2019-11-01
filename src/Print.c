@@ -933,7 +933,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
   if(opt->eddyViscosity)
     HccaAlloc(DOUBLE, m, nEddyV   , mesh->nnode          , "nEddyV"   , _AD_);
   if(opt->coefDiffSp)
-    HccaAlloc(DOUBLE, m, nDiffY   , mesh->nnode*ndfZ     , "cDiffZ"   , _AD_);
+    HccaAlloc(DOUBLE, m, nDiffY   , mesh->nnode*nSp      , "cDiffZ"   , _AD_);
   if(opt->stressR)
     HccaAlloc(DOUBLE, m, nStressR , mesh->nnode*mesh->ntn, "nStressR" , _AD_);
   if(opt->cDynamic)
@@ -2276,7 +2276,7 @@ void printDiff(Memoria *m
 
 /*********************************************************************
  * Data de criacao    : 01/05/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 30/10/2019                                   *
  *-------------------------------------------------------------------*
  * reScaleMesh : redimensio as coordenada da matriz                  *
  *-------------------------------------------------------------------*
@@ -2298,7 +2298,7 @@ void printDiff(Memoria *m
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void reScaleMesh(DOUBLE *x,INT nnode, short ndm, FILE *fileIn)
+void reScaleMesh(Mesh *mesh, FILE *fileIn)
 {
   char word[WORD_SIZE], fNomeOut[MAX_STR_LEN_SUFIXO];
   short j;
@@ -2306,26 +2306,14 @@ void reScaleMesh(DOUBLE *x,INT nnode, short ndm, FILE *fileIn)
   DOUBLE sC[MAX_NDM];
 
 /*... lendo os valores de escala*/  
-  if(ndm == 2)
-    fscanf(fileIn,"%lf %lf", &sC[0],&sC[1]);
-  else if (ndm == 3)
-    fscanf(fileIn, "%lf %lf %lf", &sC[0], &sC[1], &sC[2]);
-  readMacro(fileIn, word, false);
+  if(mesh->ndm == 2)
+    fscanf(fileIn,"%lf %lf", mesh->scaleX,mesh->scaleX+1);
+  else if (mesh->ndm == 3)
+    fscanf(fileIn, "%lf %lf %lf", mesh->scaleX
+                                , mesh->scaleX+1
+                                , mesh->scaleX+2);
 /*...................................................................*/
 
-/*... lendo o nome do arquivo de saida*/
-  strcpy(fNomeOut,word);
-/*...................................................................*/
-
-/*...*/
-  for(i=0;i<nnode;i++)
-  {
-    for (j = 0; j < ndm; j++) 
-    {
-      MAT2D(i,j,x,ndm) *= sC[j];
-    }
-  }
-/*...................................................................*/
 }
 /*********************************************************************/
 

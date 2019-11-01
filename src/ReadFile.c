@@ -83,7 +83,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
        ,""             ,"initialD1"  ,""               /*15,16,17*/ 
        ,"faceResVel"   ,"loadsVel"   ,""               /*18,19,20*/ 
        ,"faceResPres"  ,"loadsPres"  ,"faceRpres"      /*21,22,23*/
-       ,"faceResTemp"  ,"loadsTemp"  ,""               /*24,25,26*/
+       ,"faceResTemp"  ,"loadsTemp"  ,"initialZ"       /*24,25,26*/
        ,"materials"    ,"uniformPres","initialVel"     /*27,28,29*/
        ,"uniformTemp"  ,"uniformVel" ,"uniformZ"       /*30,31,32*/
        ,"faceReKturb"  ,"loadsKturb" ,"faceLoadKturb"  /*33,34,35*/
@@ -676,7 +676,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       strcpy(macros[nmacro++],word);
       rflag[0] = true;
       fprintf(fileLogExc,"loading coordinates...\n");
-      readVfCoor(mesh->node.x,mesh->nnode,mesh->ndm,file);      
+      readVfCoor(mesh->node.x,mesh->nnode,mesh->scaleX,mesh->ndm,file);      
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
@@ -911,6 +911,18 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       strcpy(str, "endLoadsTemp");
       fprintf(fileLogExc,"loading loadsTemp ...\n");
       readVfLoads(loadsTemp, str, file);
+      fprintf(fileLogExc, "done.\n%s\n\n", DIF);
+    }
+/*...................................................................*/
+
+/*... initialZ */
+    else if((!strcmp(word,macro[26])) && (!rflag[26])){
+      fprintf(fileLogExc, "%s\n%s\n", DIF, word);
+      strcpy(macros[nmacro++],word);
+      rflag[26] = true;
+      strcpy(str,"endInitialZ");
+      fprintf(fileLogExc,"loading initialZ ...\n");
+      readVfInitial(mesh->elm.zComb0,mesh->numel,nComb,str,file);
       fprintf(fileLogExc, "done.\n%s\n\n", DIF);
     }
 /*...................................................................*/
@@ -1403,14 +1415,14 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     {
 /*... inicializando a difusividade das especies*/
       initDiffMix(propF                , cModel
-             , mesh->elm.cDiffComb     , mesh->elm.temp 
-             , mesh->elm.pressure0     , mesh->elm.yFrac 
+             , mesh->elm.cDiffComb     , mesh->elm.temp0
+             , mesh->elm.pressure0     , mesh->elm.yFrac0
              , mesh->elm.material.prop , mesh->elm.mat   
              , cModel->nOfSpecies      , cModel->nComb   
              , mesh->numel             , energyModel->fKelvin);
 /*... inicializando as entalpia das especies*/
       getEnthalpySpecies(cModel         , propF
-                   , mesh->elm.enthalpyk, mesh->elm.temp 
+                   , mesh->elm.enthalpyk, mesh->elm.temp0
                    , mesh->numel        , energyModel->fKelvin
                    , ompVar.fUpdate     , ompVar.nThreadsUpdate);
 /*...................................................................*/
@@ -1544,8 +1556,11 @@ void parametros(INT  *nn    ,INT *nel
 /*********************************************************************/
 
 /*********************************************************************
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 30/10/2019                                   *
+ *-------------------------------------------------------------------*
  * READVFCOOR: leitura das coordenadas                               *
- *********************************************************************
+ *-------------------------------------------------------------------*
  * ------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  * ------------------------------------------------------------------*
@@ -1559,7 +1574,7 @@ void parametros(INT  *nn    ,INT *nel
  * x    -> coordenada                                                *
  * ------------------------------------------------------------------*
  *********************************************************************/
-void readVfCoor(DOUBLE *x,INT nn, short ndm,FILE *file){
+void readVfCoor(DOUBLE *x,INT nn, DOUBLE *sc,short ndm,FILE *file){
   INT i,k;
   long idum;
   int j;
@@ -1571,10 +1586,10 @@ void readVfCoor(DOUBLE *x,INT nn, short ndm,FILE *file){
     for(j=0;j<ndm;j++)
     {
       fscanf(file,"%lf",&MAT2D(k,j,x,ndm));
+      MAT2D(k,j,x,ndm) *=sc[j];
     }
   }
 
-//alphaProdVector(0.1,x,nn*ndm,x);
 #ifdef _DEBUG_MESH_ 
   for(i=0;i<nn;i++){
     fprintf(stderr,"%ld",i+1);

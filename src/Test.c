@@ -106,4 +106,35 @@ void vel(Mesh *mesh)
   fprintf(fileLogDebug, "endInitialVel\nreturn\n");
 }
 
+
+void initialZ(Mesh *mesh)
+{
+  int i;
+  DOUBLE x, y, z;
+  fprintf(fileLogDebug, "initialZ\n");
+  for (i = 0; i<mesh->numel; i++)
+  {
+    x = MAT2D(i, 0, mesh->elm.geom.cc, 3);
+    y = MAT2D(i, 1, mesh->elm.geom.cc, 3);
+    z = MAT2D(i, 2, mesh->elm.geom.cc, 3);
+    if(y>0.0)
+      fprintf(fileLogDebug, "%9d %e %e %e %e\n", i + 1,0.2,0.0,0.0,0.0);
+    else
+      fprintf(fileLogDebug, "%9d %e %e %e %e\n", i + 1,0.0,0.2,0.0,0.0);
+  }
+  fprintf(fileLogDebug, "endInitialZ\nreturn\n");
+
+  fprintf(fileLogDebug, "coordinates\n");
+  for (i = 0; i<mesh->nnode; i++)
+  {
+    x = MAT2D(i, 0, mesh->node.x, 3);
+    y = MAT2D(i, 1, mesh->node.x, 3); 
+    z = MAT2D(i, 2, mesh->node.x, 3);
+    fprintf(fileLogDebug, "%9d %e %e %e\n", i + 1,x/10,y/10,z/10);
+  }
+  fprintf(fileLogDebug, "endCoordinates\n");
+  exit(0);
+}
+
+
 /*#######################################################*/

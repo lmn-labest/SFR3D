@@ -292,16 +292,14 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 
 /*... media harmonica*/
       modE = sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
-      tmp = modE / lModKsi;
+      tmp  = modE / lModKsi;
       tmp1 = eddyViscosityV /scTsgs;
       for(i=0;i<nComb;i++)
       {
         diffEffV[i] = diffCeofV[i] + tmp1;
 /*... media harmonica*/
-/*      diffEff[i] = alpha / diffEffC[i] + alphaMenosUm / diffEffV[i];
-        diffEff[i] = 1.0e0 / diffEff[i];*/
-/*... media*/ 
-        diffEff[i] = alphaMenosUm*diffEffC[i] + alpha*diffEffV[i];
+        diffEff[i] = mediaHarmonica(diffEffV[i]   ,diffEffC[i]
+                                   ,alphaMenosUm  ,alpha);
 /*... difusao direta*/
         coef[i] = diffEff[i];
         dfd[i] = coef[i] * tmp;
@@ -508,6 +506,5 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*...................................................................*/
   }
 /*...................................................................*/  
-
 }
 /*********************************************************************/

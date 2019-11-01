@@ -185,7 +185,7 @@ void turbulence(Memoria *m
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
         if( tModel->typeMixed[ESTMODEL] == BARDINA)
         {
-          interCellNode(m                , lVel
+          interCellNode(m                
                      , mesh->elm.cellFace, mesh->face.owner
                      , nVel              , mesh->elm.vel        
                      , mesh->elm.node    , mesh->elm.geomType                      
@@ -201,7 +201,7 @@ void turbulence(Memoria *m
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
-          interCellNode(m                , lVel
+          interCellNode(m                
                      , mesh->elm.cellFace, mesh->face.owner
                      , nDen              , mesh->elm.densityFluid        
                      , mesh->elm.node    , mesh->elm.geomType                      

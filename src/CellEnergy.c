@@ -994,8 +994,8 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
   if (fPresWork)
   {
 /*... derivada materia da pressao*/  
-/*... pressao termodinamica*/
-    tmp1 = 0.5e-03*(Pth[2] - Pth[0]) / dt;  
+/*... pressao termodinamica (pressao em Pa)*/
+    tmp1 = 0.5e+0*(Pth[2] - Pth[0]) / dt;  
 /*... pressao fluidodinamica*/
     tmp = (presC - presC0) / dt
         + velC[0] * gradPresC[0]

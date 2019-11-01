@@ -1691,8 +1691,11 @@ DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel
 /*...  0 < yR < 1*/
       yR = min(1.e0,yFrac[kSpecieA]);
       yR = max(yR,0.e0);
-/*...*/
-      y = (1.e0 - yR)/sum1;
+/*... mistura pura*/
+      if(yR == 1.e0 || sum1 == 0.e0)
+        y = 0.e0;
+      else
+        y = (1.e0 - yR)/sum1;
 /*....................................................................*/
     break;
 /*.....................................................................*/
@@ -2198,7 +2201,7 @@ void initPropTempMix(PropVarFluid *propF    , Combustion *cModel
 
 /********************************************************************* 
  * Data de criacao    : 20/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 30/10/2019                                   *
  *-------------------------------------------------------------------*
  * initDiffMix: inicializao do coeficiente de diffusao das especies  *
  *-------------------------------------------------------------------* 
@@ -2248,7 +2251,7 @@ void initDiffMix(PropVarFluid *propF    , Combustion *cModel
 /*...*/
       for(j=0;j<nOfPrSp;j++)
         MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF       ,cModel 
-                                ,yFrac       ,t[i]
+                                ,y           ,t[i]
                                 ,j           ,cModel->chem.sN2
                                 ,i           ,iKelvin);
 /*...................................................................*/

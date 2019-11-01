@@ -453,7 +453,6 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     alphaProdVector(1.e0       ,mesh->elm.pressure
                    ,mesh->numel,mesh->elm.pressure0);
 /*...................................................................*/
-    tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;
 
 /*...*/
     tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;

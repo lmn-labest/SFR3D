@@ -2639,7 +2639,7 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
   }
 /*...................................................................*/
 
-/*... escreve a energia cinetica turbulenta */  
+/*... escreve as fracoes massicas por elmento */  
   if(opt->yFrac &&  opt->fCell )
   {
     HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
@@ -3019,7 +3019,7 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
   }
 /*...................................................................*/
 
-/*... escreve a energia cinetica turbulenta */  
+/*... escreve a fracao massica por elemento*/  
   if(opt->yFrac && opt->fNode)
   {
     HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
@@ -3029,12 +3029,12 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
     {
       strcpy(str,"nY");
       strcat(str,cModel->chem.sp[i].name);
-      getColFromMatrix(p,eYfrac,nnode,cModel->chem.nSp,i); 
+      getColFromMatrix(p,nYfrac,nnode,cModel->chem.nSp,i); 
       writeVtkProp(&idum,p,nnode,1,str,iws
                   ,DOUBLE_VTK,SCALARS_VTK,f);
     }
 
-    sumFracZ(p,eYfrac,nnode, cModel->chem.nSp);
+    sumFracZ(p,nYfrac,nnode, cModel->chem.nSp);
     strcpy(str,"nYTotal");
     writeVtkProp(&idum,p,nnode,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);

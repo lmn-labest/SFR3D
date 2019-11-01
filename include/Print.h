@@ -55,7 +55,7 @@
                , bool bVtk    , FILE *fileOut);
 
 
-  void reScaleMesh(DOUBLE *x, INT nnode, short ndm, FILE *fileIn);
+  void reScaleMesh(Mesh *mesh,  FILE *fileIn);
 
 
 #endif/*_WRITE_VTK_H_*/

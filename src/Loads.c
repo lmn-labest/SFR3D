@@ -1147,12 +1147,13 @@ void pLoadEnergy(PropVarFluid *vProp
 /*...................................................................*/
       
 /*... energia na forma da entalpia*/
-      else{
-        tC = specificEnthalpyForTemp(&vProp->sHeat,298.15
+       else
+       {
+         tC = specificEnthalpyForTemp(&vProp->sHeat,298.15
                                     ,uC           ,sHeatC
                                     ,fSheat       ,iKelvin); 
-        tW = tC + tA[0]*dcca*tempPlus/(sHeatC*viscosityC*yPlus);
-        tW = tempForSpecificEnthalpy(&vProp->sHeat
+         tW = tC + tA[0]*dcca*tempPlus/(sHeatC*viscosityC*yPlus);
+         tW = tempForSpecificEnthalpy(&vProp->sHeat
                                     ,tW           ,sHeatC
                                     ,fSheat       ,iKelvin); 
        }

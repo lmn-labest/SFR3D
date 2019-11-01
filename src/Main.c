@@ -75,6 +75,7 @@ static void endSec(short icod)
 void grad(Mesh *mesh);
 void gradErro(Mesh *mesh);
 void vel(Mesh *mesh);
+void initialZ(Mesh *mesh);
 /*********************************************************************/
 
 /*********************************************************************/
@@ -326,7 +327,7 @@ int main(int argc,char**argv){
   mesh0 = (Mesh*) malloc(sizeof(Mesh));
   ERRO_MALLOC(mesh0,"mesh0",__LINE__,__FILE__,__func__);
   mesh0->mass[2] =  mesh0->mass[1] = mesh0->mass[0] = 0.e0;
-
+  mesh0->scaleX[0] = mesh0->scaleX[1] = mesh0->scaleX[2] = 1.0; 
 /*... tecnica padrao de resconstrucao de gradiente*/
   sc.rcGrad.type      = RCGRADGAUSSN;
   sc.rcGrad.func      = GL_BARTH_MOD;
@@ -757,6 +758,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
+//    initialZ(mesh0);
 //    vel(mesh0);
 //    grad(mesh0);
 //    writeMeshPart(mesh,&combModel);
@@ -1583,7 +1585,7 @@ int main(int argc,char**argv){
     {
       initSec(word, OUTPUT_FOR_FILE);
 /*...*/
-      reScaleMesh(mesh->node.x, mesh->nnode,mesh->ndm,fileIn);
+      reScaleMesh(mesh0,fileIn);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
     }
