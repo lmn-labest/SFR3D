@@ -536,25 +536,24 @@ DOUBLE mixtureSpeciesDensity(Prop *den           ,DOUBLE const malorMassMix
 
 /*for (i = 0; i < MAXPLODEG; i++)
     a[i] = 0.0e0;*/
-  
   if(fKelvin)
     tc = t;  
   else
     tc = CELSIUS_FOR_KELVIN(t);  
   
+  d  = den->unit;
+
   switch (den->type)
   {
 /*...*/
     case IDEALGAS:
       y = (malorMassMix*p)/(IDEALGASR*tc);
-      d = 1.e+00; 
       break;
 /*.....................................................................*/
 
 /*...*/
     case INCIDEALGAS:
       y = (malorMassMix*presRef)/(IDEALGASR*tc);
-      d = 1.e+00;
       break;
 /*.....................................................................*/
 
@@ -968,7 +967,6 @@ void  getTempFromTheEnergyMix(PropVarFluid *pf,DOUBLE *RESTRICT yFrac
 }
 /*********************************************************************/
 
-
 /*********************************************************************
  * Data de criacao    : 19/08/2018                                   *
  * Data de modificaco : 12/09/2019                                   *
@@ -1138,7 +1136,7 @@ DOUBLE mixtureSpecifiHeat(Prop *sHeat        , DOUBLE *yFrac
 /*.....................................................................*/
 
 /*...*/
-  d = 1.e0;
+  d = sHeat->unit;
 /*.....................................................................*/
 
   return d*cp;
@@ -1216,7 +1214,7 @@ DOUBLE specieSpecifiHeat(Prop *sHeat     , short const kSpecie
   }
 
 /*...*/
-  d = 1.e0;
+  d = sHeat->unit;
 /*.....................................................................*/
 
   return d*cp;
@@ -1226,7 +1224,7 @@ DOUBLE specieSpecifiHeat(Prop *sHeat     , short const kSpecie
 
 /*********************************************************************
  * Data de criacao    : 16/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 01/11/2019                                   *
  *-------------------------------------------------------------------*
  * specieViscosity: viscosidade dinamica kg/(m.s)                    *
  *-------------------------------------------------------------------*
@@ -1255,12 +1253,13 @@ DOUBLE mixtureDynamicViscosity(Prop *dVisc      ,Combustion *cModel
     tc = t;  
   else
     tc = CELSIUS_FOR_KELVIN(t);  
+
+  d  = dVisc->unit;
     
   switch (dVisc->type)
   {
 /*...*/
     case FDSVISCOSITY:
-      d  = 1.e0;
       ns = cModel->nOfSpecies;
       molarMassMix =  mixtureMolarMass(cModel,yFrac);
       for(i=0,sum1=0,sum2=0;i<ns;i++)
@@ -1516,6 +1515,8 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
   DOUBLE nuA,cP,xA[MAXSPECIES],k[MAXSPECIES];
   DOUBLE Pr=0.7;
    
+  d = propF->thCond.unit;
+
   if(fKelvin)
     tc = t;  
   else
@@ -1526,7 +1527,6 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
   {
 /*...*/
     case FDSTHERMALCOND:
-      d  = 1.e0;
       ns = cModel->nOfSpecies;
       molarMassMix =  mixtureMolarMass(cModel,yFrac);
 /*...*/
@@ -1557,7 +1557,6 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
 
 /*...*/
     case WILKELAW:
-      d  = 1.e0;
       ns = cModel->nOfSpecies;
       molarMassMix =  mixtureMolarMass(cModel,yFrac);
 
@@ -1614,7 +1613,7 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
 
 /*********************************************************************
  * Data de criacao    : 16/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 01/11/2019                                   *
  *-------------------------------------------------------------------*
  * mixtureDiffusion : coeficiente de difusacao da especie  A  [m2/s] *
  *-------------------------------------------------------------------*
@@ -1637,12 +1636,14 @@ DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel
                        ,INT const nEl         ,bool const fKelvin    )
 {
   short j,ns=cModel->nOfSpecies;
-  DOUBLE tc,mWa,sA,mWi,sI,ekA,ekI,y,mMassMix,xA,sum1,d=1.e0,yR;
+  DOUBLE tc,mWa,sA,mWi,sI,ekA,ekI,y,mMassMix,xA,sum1,yR,d;
    
   if(fKelvin)
     tc = t;  
   else
     tc = CELSIUS_FOR_KELVIN(t);  
+
+  d = propF->diff.unit;
 
   switch (propF->diff.type)
   {
@@ -1825,7 +1826,7 @@ void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel
 
 /*********************************************************************
  * Data de criacao    : 19/08/2018                                   *
- * Data de modificaco : 28/10/2019                                   *
+ * Data de modificaco : 01/11/2019                                   *
  *-------------------------------------------------------------------*
  * SPECIFICENTHALPYFORTEMPMIX:  calcula a temperatura apartir da     *
  * entalpia especifica                                               * 
@@ -1858,12 +1859,13 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
   bool flag = false;
   DOUBLE f,fl,tc,tol=1e-10;
  
+
+
 /*...*/
   if(fSheat)
   {
 /*... chute inicial*/
     TEMP(tc,t,fKelvin);
-
 /*... Newton-Raphson*/
     for(i=0;i<1000;i++)
     {
@@ -2698,8 +2700,9 @@ DOUBLE specificEnthalpyForTemp(Prop *sHeatPol   , DOUBLE const t
 {
   unsigned short i;
   bool flag = false;
-  DOUBLE f,fl,tc,conv,tol=1e-10;
- 
+  DOUBLE f,fl,tc,tol=1e-10;
+  
+
 /*...*/
   if(fSheat){
 /*... chute inicial*/

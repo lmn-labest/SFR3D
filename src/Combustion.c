@@ -76,7 +76,8 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
               , prop   
               , mesh->elm.zComb        , mesh->elm.temp      
               , mesh->elm.densityFluid , mesh->elm.gradVel 
-              , mesh->elm.eddyViscosity
+              , mesh->elm.eddyViscosity, mesh->elm.specificHeat
+              , mesh->elm.tConductivity, mesh->elm.geom.volume
               , mesh->elm.dViscosity   , mesh->elm.tReactor
               , mesh->ndm              , mesh->numelNov
               , eModel->fKelvin ); 
@@ -1003,7 +1004,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
   short nSp = c->chem.nSp;
   INT k,maxIt;
   DOUBLE aTol,rTol;
-  DOUBLE x,dy,pres=Pth,tF,yF,yOx,yP,tMix,tMixC,tChem;
+  DOUBLE x,dy,pres=Pth,tF,yF,yOx,yP,tMix,tMixC,tChem,tStar;
   DOUBLE tmp1,tmp2,tmp3,gEdc,gamma,cTau,itMix,tK,yt[MAXSPECIES],tt;
   
 /*...*/
@@ -1019,6 +1020,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
   iCod  = c->edc.type;
   tMixC = c->edc.tMix;
   gamma = c->edc.cGamma;
+  cTau  = c->edc.cTau;
   tMix  = tReactor[0];
   tChem = tReactor[1];
 /*...................................................................*/
@@ -1054,7 +1056,8 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
 /*...*/
       itMix = 1.0/tMix;
 /*... calculo */
-      gamma = min(gamma*pow(dVisc/(eddyVisc+dVisc),0.25),0.99);
+      gamma  = min(gamma*pow(dVisc/(eddyVisc+dVisc),0.25),0.99);
+      tStar  = cTau*sqrt(0.5*dVisc/(eddyVisc+dVisc))*tMix;
 //    yMin  = min(yF,yOx/s); 
 //    tmp1  = s + 1;
 //    tmp2  = yMin + yP/tmp1;
@@ -1074,7 +1077,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
 
 /*... tempo de mixutura constante e definida pelo usuario*/
   if(FLUENT_CONST_TMIX_EDC==iCod 
-  || PANJWANI_CONST_TMIX_EDC==iCod)  itMix = 1.e0/tMixC;
+  || PANJWANI_CONST_TMIX_EDC==iCod) tStar = tMixC;
 /*....................................................................*/
 
 /*...*/
@@ -1083,7 +1086,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
 /*....................................................................*/
 
 /*...*/
-  tt = min(tMix,dt);
+  tt = min(tStar,dt);
   k = StepperSie(yt                      , pt
             , 0                          , tt
             , 1.0e-01*tt                 , dt
@@ -1103,7 +1106,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
     if(yt[i] < 0.e0)
       yt[i] = 0.e0;
     dy = yt[i]-y[i];
-    w[i] = density*itMix*gEdc*dy;
+    w[i] = density*gEdc*dy/tStar;
   }
 /*....................................................................*/
 
@@ -1162,7 +1165,8 @@ void edm(Combustion *c       ,DOUBLE *RESTRICT y
 
 /*... produtos*/  
     r2 = 1.e+32;
-    if(c->edm.fProd){
+    if(c->edm.fProd)
+    {
       for(j=0,dy=my=0.e0;j<c->chem.reac[i].nPartSp[1];j++)
       {
         id = c->chem.reac[i].partSp[1][j];
@@ -1174,7 +1178,10 @@ void edm(Combustion *c       ,DOUBLE *RESTRICT y
 /*....................................................................*/
 
 /*...*/
-    Q[i] = density*A*itM*min(r1,r2);
+    if(c->edm.fProd) 
+      Q[i] = density*A*itM*min(r1,r2);
+    else  
+      Q[i] = density*A*itM*r1;            
 /*....................................................................*/
   }
 /*....................................................................*/

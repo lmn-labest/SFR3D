@@ -131,6 +131,7 @@
      Pol     pol[MAXSPECIES];  
      PolNasa nasa[MAXSPECIES];
      DOUBLE surtherland[3];
+     DOUBLE unit;
    }Prop;
 /*...................................................................*/
 

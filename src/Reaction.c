@@ -258,15 +258,6 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
 /*...................................................................*/
           for(i=0;i<nSp;i++)
             MAT2D(nel,i,rate,nSp) = w[i];
-
-/*         fprintf(fileLogDebug,"%4d %e %e %e %e %e %e %e\n",nel,w[0]
-                                                    ,y[0]
-                                                    ,y[1]
-                                                    ,y[2] 
-                                                    ,y[3]
-                                                    ,y[4]
-                                                    ,y[5]);  */
-
         }     
 /*...................................................................*/
       }
@@ -327,7 +318,7 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
 
 /*********************************************************************
  * Data de criacao    : 12/08/2018                                   *
- * Data de modificaco : 21/08/2019                                   *
+ * Data de modificaco : 01/11/2019                                   *
  *-------------------------------------------------------------------*
  * timeChemical: calculo da taxa de consumo do combustivel           *
  *-------------------------------------------------------------------*
@@ -351,11 +342,12 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
  *********************************************************************/
 void timeChemical(Combustion *cModel      , Turbulence *tModel
              , PropVarFluid *pFluid
-             , DOUBLE *RESTRICT zComb     , DOUBLE *RESTRICT temp  
-             , DOUBLE *RESTRICT density   , DOUBLE *RESTRICT gradVel 
-             , DOUBLE *RESTRICT eddyViscosity
-             , DOUBLE *RESTRICT dViscosity, DOUBLE *RESTRICT tReactor
-             , short const ndm            , INT const numel   
+             , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT temp  
+             , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT gradVel 
+             , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT sHeat
+             , DOUBLE *RESTRICT tCond        , DOUBLE *RESTRICT volume  
+             , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT tReactor
+             , short const ndm               , INT const numel   
              , bool const fKelvin )
 {
   short  nComb = cModel->nComb    
@@ -365,8 +357,8 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
   INT nel;
   DOUBLE sT[6],*iGradVel,*pz;
   DOUBLE omega, densityC,tmp,modS,tMix;
+  DOUBLE tTurb,tDiff;
   DOUBLE tK,y[MAXSPECIES],cM[MAXSPECIES],Q[MAXREAC],w[MAXSPECIES],tChemical; 
-  DOUBLE cTau  = cModel->edc.cTau;
 
 /*...*/
   for(nel = 0; nel < numel; nel++)
@@ -383,7 +375,7 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
     iGradVel = &MAT3D(nel,0,0,gradVel,ndm,ndm);
     tensorS(sT,iGradVel,false);
 /*... |S| = sqrt(2S:S)*/
-    modS = sqrt(2.e0*doubleDotSym(sT));
+    modS = sqrt(2.e0*doubleDotSym(sT)) + 1.0e-32;
 /*...................................................................*/
 
 /*...*/
@@ -412,11 +404,10 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
     }
 /*...................................................................*/ 
       
-/*...*/    
-    if(modS < 1.0e-06)
-      tMix = 1.e+32;
-    else
-      tMix = cTau*(1.e0/modS);
+/*...*/ 
+    tDiff = sHeat[nel]*pow(volume[nel],2.0)/tCond[nel];
+    tTurb = 1.e0/modS;
+    tMix  = min(tTurb,tDiff);
 /*...................................................................*/
 
 /*...*/  

@@ -986,7 +986,7 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
     phi = 2.0*tmp + tmp1 * tmp1 + tmp2 * tmp2 + tmp3 * tmp3;
     tmp = (lambda*psi + (viscosityC + eddyViscosityC)*phi);
 /*...*/
-    p += tmp * volume[idCell];
+    p += 1.0e-03*tmp * volume[idCell];
   }
 /*.....................................................................*/
 
@@ -994,15 +994,15 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
   if (fPresWork)
   {
 /*... derivada materia da pressao*/  
-/*... pressao termodinamica (pressao em Pa)*/
-    tmp1 = 0.5e+0*(Pth[2] - Pth[0]) / dt;  
+/*... pressao termodinamica (pressao em kPa)*/
+    tmp1 = (Pth[2] - Pth[1]) / dt;  
 /*... pressao fluidodinamica*/
     tmp = (presC - presC0) / dt
         + velC[0] * gradPresC[0]
         + velC[1] * gradPresC[1]
         + velC[2] * gradPresC[2];
 /*...*/
-    p += (tmp + tmp1) * volume[idCell];
+    p += 1.0e-03*(tmp + tmp1) * volume[idCell];
 /*.....................................................................*/
   }
 /*.....................................................................*/

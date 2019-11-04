@@ -2347,6 +2347,7 @@ void readPropVarFluid(PropVarFluid *p,FILE *file){
       if(p->fSpecificHeat) 
         fprintf(fileLogExc,"%-25s: %s\n","sHeat variation","Enable\n");
       initSheatPol(&p->sHeat, word, file);
+      p->sHeat.unit = 1.0;
     }
 /*...................................................................*/
 
@@ -2357,6 +2358,7 @@ void readPropVarFluid(PropVarFluid *p,FILE *file){
       if(p->fDensity) 
         fprintf(fileLogExc,"%-25s: %s\n","Density variation","Enable");
       initDensityPol(&p->den,word,file);
+      p->den.unit = 1.0;
     }
 /*...................................................................*/
 
@@ -2368,6 +2370,7 @@ void readPropVarFluid(PropVarFluid *p,FILE *file){
         fprintf(fileLogExc,"%-25s: %s\n","dViscosity variation"
                           ,"Enable");
       initDviscosityPol(&p->dVisc, word, file);
+      p->dVisc.unit = 1.0;
     }
 /*...................................................................*/
 
@@ -2379,6 +2382,7 @@ void readPropVarFluid(PropVarFluid *p,FILE *file){
         fprintf(fileLogExc,"%-25s: %s\n","tCondutivity variation"
                                         ,"Enable"); 
       initThCondPol(&p->thCond, word, file);
+      p->thCond.unit = 1.0;
     }
 /*...................................................................*/
     
@@ -2439,7 +2443,7 @@ void readPropVarMixture(PropVarFluid *p,Combustion *cModel,FILE *file)
       if(p->fSpecificHeat) 
         fprintf(fileLogExc,"%-25s: %s\n","sHeat variation","Enable\n");
       initMixtureSpeciesfiHeat(&p->sHeat, word,cModel, file);
-      
+      p->sHeat.unit = 1.0;
     }
 /*...................................................................*/
 
@@ -2451,6 +2455,7 @@ void readPropVarMixture(PropVarFluid *p,Combustion *cModel,FILE *file)
       if(p->fDensity) 
         fprintf(fileLogExc,"%-25s: %s\n","Density variation","Enable");
       initDensityPol(&p->den,word,file);
+      p->den.unit = 1.0;
     }
 /*...................................................................*/
 
@@ -2463,6 +2468,7 @@ void readPropVarMixture(PropVarFluid *p,Combustion *cModel,FILE *file)
         fprintf(fileLogExc,"%-25s: %s\n","dViscosity variation"
                           ,word);
       initDviscosityPol(&p->dVisc, word, file);
+      p->dVisc.unit = 1.0;
     }
 /*...................................................................*/
 
@@ -2474,6 +2480,7 @@ void readPropVarMixture(PropVarFluid *p,Combustion *cModel,FILE *file)
         fprintf(fileLogExc,"%-25s: %s\n","tCondutivity variation"
                                         ,word); 
       initThCondPol(&p->thCond, word, file);
+      p->thCond.unit = 1.0;
     }
 /*...................................................................*/
     
@@ -2485,6 +2492,7 @@ void readPropVarMixture(PropVarFluid *p,Combustion *cModel,FILE *file)
         fprintf(fileLogExc,"%-25s: %s\n","Diffusion variation"
                                         ,word); 
       initDiffSp(&p->diff, word, file);
+      p->diff.unit = 1.0;
     }
 /*...................................................................*/
 
@@ -2716,9 +2724,9 @@ void readModel(EnergyModel *e         , Turbulence *t
                              ,"momentum","diffusion" ,"transport"
                              ,"combustion"};
 
-  char energy[][WORD_SIZE] = { "preswork"  , "dissipation" /*0,1*/
-                             , "residual"  , "absolute"    /*2,3*/
-                             ,"temperature", "entalphy"    /*4,5*/
+  char energy[][WORD_SIZE] = { "preswork"   , "dissipation" /*0,1*/
+                             , "residual"   , "absolute"    /*2,3*/
+                             , "temperature", "entalphy"    /*4,5*/
                              , "diffenergy" };             /*6, */  
 
   char turb[][WORD_SIZE] = { "smagorinsky","wallmodel" , "wale"     
@@ -3296,7 +3304,7 @@ void readModel(EnergyModel *e         , Turbulence *t
         }
 /*...................................................................*/
 
-/*... edu*/
+/*... edc*/
         else if (!strcmp(word, combustion[4]))
         {          
           cModel->reactionKinetic = EDC;
@@ -3824,7 +3832,7 @@ void uniformField(DOUBLE *field, INT const n, short const ndf
 
 /********************************************************************* 
  * Data de criacao    : 11/11/2017                                   *
- * Data de modificaco : 25/09/2019                                   *
+ * Data de modificaco : 02/11/2019                                   *
  *-------------------------------------------------------------------*
  * help : Ajuda em relação a algumas macros                          *
  *-------------------------------------------------------------------*
@@ -3847,7 +3855,7 @@ void help(FILE *f){
                ,"model"    ,"diffusion","nlit"         /* 3, 4, 5*/
                ,"transient","rcgrad"   ,"config"       /* 6, 7, 8*/
                ,"edp"      ,"openmp"   ,"propvar"      /* 9,10,11*/
-               ,"mesh"     ,""         ,""    };       /*12,13,14*/
+               ,"mesh"     ,"edo"      ,""    };       /*12,13,14*/
 
   short iMesh = 39;
   char mesh[][WORD_SIZE] ={
@@ -3992,6 +4000,10 @@ void help(FILE *f){
      ,"fluid"     ,"fluidt"    ,"" };
 /*....................................................................*/
 
+/*... edo*/
+  short iEdo= 1;
+  char sEdo[][WORD_SIZE] ={ "sie" ,"10000","1.e-11"};
+/*....................................................................*/
   int i;                                                     
 
   printf("Help options:\n");
@@ -4168,6 +4180,17 @@ void help(FILE *f){
     printf("Mesh options:\n");
     for (i = 0; i<iMesh; i++)
       printf("%3d - %s\n", i + 1, mesh[i]);
+    exit(EXIT_HELP);
+  }
+/*.....................................................................*/
+
+
+/*... mesh*/
+  else if (!strcmp(word, help[13])) {
+    printf("Ex:\n");
+    printf("Mesh options:\n");
+    for (i = 0; i<iEdo; i++)
+      printf("%3d - %s\n", i + 1, sEdo[i]);
     exit(EXIT_HELP);
   }
 /*.....................................................................*/
