@@ -858,9 +858,9 @@ void readMacroV2(FILE* file, char *mc, bool allline,bool lower)
 /*... se encontrado '//' discarta a linha lida*/
   if (mc[0] == '/' && mc[1] == '/')
   {
-    // mc[0] = '\0'; 
-    while ((c = getc(file)) != '\n'&& c != EOF);
-    // printf("linha discartada\n");
+    mc[0] = '\0'; 
+    while ((c = getc(file)) != '\n'&& c != EOF);    
+    return;
   }
 
 /*... converte as letras para minisculas*/

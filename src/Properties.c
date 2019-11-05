@@ -1715,7 +1715,7 @@ DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel
 
 /*********************************************************************
  * Data de criacao    : 20/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 05/11/2019                                   *
  *-------------------------------------------------------------------*
  * specieDiffusionBinary: coeficiente de diffusao da especie A na    *
  * especie B [m2/s]                                                  *
@@ -1746,7 +1746,7 @@ DOUBLE specieDiffusionBinary(DOUBLE const mMassA,DOUBLE const mMassB
   mMassAB = 2.e0*mMassA*mMassB/(mMassA + mMassB);
   sigmaAB = sqrt(0.5e0*(sigmaA + sigmaB));
   omega   = diffusionCollisionIntegral(t,ekA,ekB);
-  diffAB  = 2.66e-07*pow(t,1.5)/(sigmaA*sigmaA*omega);
+  diffAB  = 2.66e-07*pow(t,1.5)/(sqrt(mMassAB)*sigmaAB*sigmaAB*omega);
 
   return diffAB;
 }

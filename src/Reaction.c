@@ -329,8 +329,9 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
  * temp    -> temperatura                                            *
  * density -> densidade                                              *
  * eddyVis -> viscosidade turbulenta                                 * 
+ * cDiffY  -> coeficiente de difusaõ massico                         *
  * dVisc   -> viscosidade dinamica                                   *
- * tReacot -> escala de tempo do reator                              * 
+ * tReactor-> escala de tempo do reator                              * 
  * numel   -> numero de elementos                                    *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
@@ -344,8 +345,8 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
              , PropVarFluid *pFluid
              , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT temp  
              , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT gradVel 
-             , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT sHeat
-             , DOUBLE *RESTRICT tCond        , DOUBLE *RESTRICT volume  
+             , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT cDiffY
+             , DOUBLE *RESTRICT volume  
              , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT tReactor
              , short const ndm               , INT const numel   
              , bool const fKelvin )
@@ -356,7 +357,7 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
   short i;
   INT nel;
   DOUBLE sT[6],*iGradVel,*pz;
-  DOUBLE omega, densityC,tmp,modS,tMix;
+  DOUBLE omega, densityC,tmp,modS,tMix,dF;
   DOUBLE tTurb,tDiff;
   DOUBLE tK,y[MAXSPECIES],cM[MAXSPECIES],Q[MAXREAC],w[MAXSPECIES],tChemical; 
 
@@ -392,8 +393,9 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
     }
 /*...................................................................*/ 
 
-    massRateReaction(&cModel->chem,Q,w);
-    for(i=0,tChemical = 1.e-32;i<nSp;i++)
+    massRateReaction(&cModel->chem,Q ,w);
+    dF = MAT2D(nel,0,cDiffY,nSp);
+    for(i=0,tChemical = 1.e+32;i<nSp;i++)
     {
       if(fabs(w[i]) > 1.e-16)
       {
@@ -401,11 +403,12 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
         tmp       = y[i]/tmp;
         tChemical = max(tmp,tChemical); 
       }
+      dF = min(dF,MAT2D(nel,i,cDiffY,nSp));
     }
 /*...................................................................*/ 
       
 /*...*/ 
-    tDiff = sHeat[nel]*pow(volume[nel],2.0)/tCond[nel];
+    tDiff = pow(volume[nel], D2DIV3)/dF;
     tTurb = 1.e0/modS;
     tMix  = min(tTurb,tDiff);
 /*...................................................................*/

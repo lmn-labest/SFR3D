@@ -41,8 +41,8 @@
              , PropVarFluid *pFluid
              , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT temp  
              , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT gradVel 
-             , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT sHeat
-             , DOUBLE *RESTRICT tCond        , DOUBLE *RESTRICT volume  
+             , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT cDiffY
+             , DOUBLE *RESTRICT volume  
              , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT tReactor
              , short const ndm               , INT const numel   
              , bool const fKelvin );

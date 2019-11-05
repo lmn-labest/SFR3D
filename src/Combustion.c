@@ -76,8 +76,8 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
               , prop   
               , mesh->elm.zComb        , mesh->elm.temp      
               , mesh->elm.densityFluid , mesh->elm.gradVel 
-              , mesh->elm.eddyViscosity, mesh->elm.specificHeat
-              , mesh->elm.tConductivity, mesh->elm.geom.volume
+              , mesh->elm.eddyViscosity, mesh->elm.cDiffComb
+              , mesh->elm.geom.volume
               , mesh->elm.dViscosity   , mesh->elm.tReactor
               , mesh->ndm              , mesh->numelNov
               , eModel->fKelvin ); 
@@ -1053,8 +1053,6 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
 /*... Balram Panjwani - 2010*/
     case PANJWANI_EDC:
     case PANJWANI_CONST_TMIX_EDC:
-/*...*/
-      itMix = 1.0/tMix;
 /*... calculo */
       gamma  = min(gamma*pow(dVisc/(eddyVisc+dVisc),0.25),0.99);
       tStar  = cTau*sqrt(0.5*dVisc/(eddyVisc+dVisc))*tMix;
