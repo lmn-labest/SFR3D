@@ -615,12 +615,13 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                           ,ompVar.fUpdate         , ompVar.nThreadsUpdate);
     
     if(fDiff)
-      updateMixDiffusion(propF             , cModel 
-                       ,mesh->elm.temp     , mesh->elm.yFrac
-                       ,mesh->elm.cDiffComb, cModel->nOfSpecies 
-                       ,cModel->nComb       
-                       ,eModel->fKelvin    , mesh->numel
-                       ,ompVar.fUpdate     , ompVar.nThreadsUpdate); 
+      updateMixDiffusion(propF                 , cModel 
+                       ,mesh->elm.temp         , mesh->elm.yFrac
+                       ,mesh->elm.cDiffComb    , mesh->elm.densityFluid
+                       ,mesh->elm.tConductivity, mesh->elm.specificHeat
+                       ,cModel->nOfSpecies     ,cModel->nComb       
+                       ,eModel->fKelvin        , mesh->numel
+                       ,ompVar.fUpdate         , ompVar.nThreadsUpdate); 
     tm.updateProp = getTimeC() - tm.updateProp;   
 /*...................................................................*/
 

@@ -1613,7 +1613,7 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
 
 /*********************************************************************
  * Data de criacao    : 16/05/2019                                   *
- * Data de modificaco : 01/11/2019                                   *
+ * Data de modificaco : 06/11/2019                                   *
  *-------------------------------------------------------------------*
  * mixtureDiffusion : coeficiente de difusacao da especie  A  [m2/s] *
  *-------------------------------------------------------------------*
@@ -1623,6 +1623,11 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
  * cModel    - massa molar da especie                                *
  * yFrac     - fracao massica da mistura                             *
  * t         - temperatura                                           *
+ * rho       - massa especifica                                      *
+ * tcond     - condutividade termica                                 *
+ * cP        - calor especifico                                      *
+ * kSpeciaA  - especie desejada                                      *
+ * kSpeciaB  - especie inerte                                        * 
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -1631,17 +1636,17 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel 
-                       ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
+                       ,DOUBLE *RESTRICT yFrac,DOUBLE const t
+                       ,DOUBLE const rho      ,DOUBLE const tCond
+                       ,DOUBLE const cP
                        ,short const kSpecieA  ,short const kSpecieI 
                        ,INT const nEl         ,bool const fKelvin    )
 {
   short j,ns=cModel->nOfSpecies;
   DOUBLE tc,mWa,sA,mWi,sI,ekA,ekI,y,mMassMix,xA,sum1,yR,d;
    
-  if(fKelvin)
-    tc = t;  
-  else
-    tc = CELSIUS_FOR_KELVIN(t);  
+
+  TEMP(tc,t,fKelvin);
 
   d = propF->diff.unit;
 
@@ -1702,6 +1707,14 @@ DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel
 /*.....................................................................*/
 
 /*...*/
+    case OPENFOAMDIFF:
+      y  = tCond/(rho*cP);
+    break;
+/*.....................................................................*/
+
+
+
+/*...*/
     default:  
       ERRO_OP(__FILE__,__func__,propF->diff.type);
       break;
@@ -1754,7 +1767,7 @@ DOUBLE specieDiffusionBinary(DOUBLE const mMassA,DOUBLE const mMassB
 
 /*********************************************************************
  * Data de criacao    : 18/05/2019                                   *
- * Data de modificaco : 09/06/2019                                   *
+ * Data de modificaco : 05/11/2019                                   *
  *-------------------------------------------------------------------*
  * updateMixDynamicThermalCond:                                      *
  *-------------------------------------------------------------------*
@@ -1763,6 +1776,9 @@ DOUBLE specieDiffusionBinary(DOUBLE const mMassA,DOUBLE const mMassB
  * propF   -> proprieade variavel do fluido                          *
  * temp    -> temperatura                                            *
  * diff    -> vetor de difusao das especies                          *
+ * rho     -> massa especifica                                       *
+ * tCond   -> condutividade termica                                  *
+ * cP      -> calor especifico                                       *
  * nOfPrSp -> numero de especies primitivas                          * 
  * nComb   -> numero de especies explicitamente resolvidas           * 
  * iKelvin -> kelvin ou celsus                                       *
@@ -1778,49 +1794,35 @@ DOUBLE specieDiffusionBinary(DOUBLE const mMassA,DOUBLE const mMassB
  *********************************************************************/
 void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel 
                        ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
-                       ,DOUBLE *RESTRICT diff ,short const nOfPrSp 
-                       ,short const nComb       
+                       ,DOUBLE *RESTRICT diff ,DOUBLE *RESTRICT rho
+                       ,DOUBLE *RESTRICT tCond,DOUBLE *RESTRICT cP
+                       ,short const nOfPrSp   ,short const nComb       
                        ,bool const iKelvin    ,INT const nEl
                        ,bool const fOmp       , short const nThreads )
 {
   short j;
   INT i;
-  DOUBLE *y;
+  DOUBLE *y,rhoI,cPI;
 
 /*... omp*/
-  if(fOmp)
+#pragma omp parallel  for default(none) num_threads(nThreads) if (fOmp)\
+  private(i,j,y,rhoI,cPI)\
+  shared(propF,cModel,diff,rho,tCond,cP,temp,yFrac)
+  for(i=0;i<nEl;i++)
   {
-#pragma omp parallel  for default(none) num_threads(nThreads)\
-        private(i,j,y)\
-        shared(propF,cModel,diff,temp,yFrac)
-    for(i=0;i<nEl;i++)
-    {
-      y = &MAT2D(i,0,yFrac,nOfPrSp);         
-      for(j=0;j<nOfPrSp;j++)
-        MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF,cModel 
-                                                  ,y    ,temp[i]
-                                                  ,j    ,cModel->chem.sN2 
-                                                  ,i    ,iKelvin );
-    }
-/*.....................................................................*/
+    y    = &MAT2D(i,0,yFrac,nOfPrSp);  
+    rhoI = MAT2D(i,TIME_N,rho,DENSITY_LEVEL);
+    cPI  = MAT2D(i,TIME_N,cP ,SHEAT_LEVEL);
+    for(j=0;j<nOfPrSp;j++)
+      MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF,cModel 
+                                                ,y    ,temp[i]
+                                                ,rhoI ,tCond[i]
+                                                ,cPI 
+                                                ,j    ,cModel->chem.sN2 
+                                                ,i    ,iKelvin );
   }
 /*.....................................................................*/
-
-/*... seq*/
-  else
-  {
-   for(i=0;i<nEl;i++)
-    {
-      y = &MAT2D(i,0,yFrac,nOfPrSp);         
-      for(j=0;j<nOfPrSp;j++)
-        MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF   ,cModel 
-                                                  ,y       ,temp[i]
-                                                  ,j       ,cModel->chem.sN2 
-                                                  ,i       ,iKelvin );
-    }
-/*.....................................................................*/
-  }
-/*.....................................................................*/
+ 
 }
 /*********************************************************************/
 
@@ -2203,17 +2205,20 @@ void initPropTempMix(PropVarFluid *propF    , Combustion *cModel
 
 /********************************************************************* 
  * Data de criacao    : 20/05/2019                                   *
- * Data de modificaco : 30/10/2019                                   *
+ * Data de modificaco : 06/11/2019                                   *
  *-------------------------------------------------------------------*
  * initDiffMix: inicializao do coeficiente de diffusao das especies  *
  *-------------------------------------------------------------------* 
  * Parametros de entrada:                                            * 
  *-------------------------------------------------------------------* 
  * propFluid -> estrutura de dados das propriedades varaiveis        *
- * diff      -> nao definido                                         * 
  * t         -> temperatura                                          *
- * pressure  -> pressao                                              *
- * yFrac    - fracao de massa da especies primitivas                 *  
+ * diff      -> nao definido                                         * 
+ * rho     -> massa especifica                                       *
+ * tCond   -> condutividade termica                                  *
+ * cP      -> calor especifico                                       *
+ * yFrac    - fracao de massa da especies primitivas                 * 
+ * pressure  -> pressao                                              * 
  * propMat -> propriedade de referencia por material                 * 
  * mat     -> material por celula                                    * 
  * nOfPrSp  - numero de especies primitivas                          *
@@ -2229,16 +2234,18 @@ void initPropTempMix(PropVarFluid *propF    , Combustion *cModel
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
   *********************************************************************/
-void initDiffMix(PropVarFluid *propF    , Combustion *cModel
-                ,DOUBLE *RESTRICT diff     ,DOUBLE *RESTRICT t  
-                ,DOUBLE *RESTRICT pressure ,DOUBLE *RESTRICT yFrac 
+void initDiffMix(PropVarFluid *propF       , Combustion *cModel
+                ,DOUBLE *RESTRICT t        ,DOUBLE *RESTRICT yFrac 
+                ,DOUBLE *RESTRICT diff     ,DOUBLE *RESTRICT rho
+                ,DOUBLE *RESTRICT tCond    ,DOUBLE *RESTRICT cP
+                ,DOUBLE *RESTRICT pressure 
                 ,DOUBLE *RESTRICT propMat  ,short *RESTRICT mat    
                 ,short const nOfPrSp       ,short const nComb   
                 ,INT    const nCell        ,bool const iKelvin)
 {    
   INT i;
   unsigned short j,lMat;
-  DOUBLE *y;
+  DOUBLE *y,rhoI,cPI;
 
 /*...*/
   if(propF->fDiffusion)
@@ -2247,13 +2254,17 @@ void initDiffMix(PropVarFluid *propF    , Combustion *cModel
     {    
 
 /*...*/
-      y = &MAT2D(i,0,yFrac, nOfPrSp);
+      y    = &MAT2D(i,0,yFrac, nOfPrSp);
+      rhoI = MAT2D(i,TIME_N,rho,DENSITY_LEVEL);
+      cPI  = MAT2D(i,TIME_N,cP ,SHEAT_LEVEL);
 /*...................................................................*/
 
 /*...*/
       for(j=0;j<nOfPrSp;j++)
         MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF       ,cModel 
                                 ,y           ,t[i]
+                                ,rhoI        ,tCond[i]
+                                ,cPI
                                 ,j           ,cModel->chem.sN2
                                 ,i           ,iKelvin);
 /*...................................................................*/
@@ -3619,8 +3630,8 @@ void initThCondPol(Prop *prop, char *s, FILE *file) {
 /*********************************************************************/
 
 /********************************************************************* 
- * Data de criacao    : 21/09/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 06/11/2019                                   *
  *-------------------------------------------------------------------*
  * INITDIFFSP:                                                       *
  *-------------------------------------------------------------------* 
@@ -3642,6 +3653,10 @@ void initDiffSp(Prop *prop, char *s, FILE *file) {
   else if(!strcmp(s,"hirsch"))
   {
     prop->type = HIRSCHDIFF;
+  }
+  else if(!strcmp(s,"openfoam"))
+  {
+    prop->type = OPENFOAMDIFF;
   }
   else {
     ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,s,EXIT_PROG);

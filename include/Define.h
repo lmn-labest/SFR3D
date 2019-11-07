@@ -122,7 +122,8 @@
   #define FDSTHERMALCOND 3
   #define WILKELAW       4
   #define FDSDIFF        2
-  #define HIRSCHDIFF     3  
+  #define HIRSCHDIFF     3
+  #define OPENFOAMDIFF   5    
 /*... densidade*/
   #define IDEALGAS   2
 /*... densidade*/

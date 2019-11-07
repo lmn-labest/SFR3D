@@ -7806,3 +7806,66 @@ DOUBLE mediaHarmonica(DOUBLE const uV,DOUBLE const uC
   return 1.e0/(gC/uC + gV/uV);
 }
 /***********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 06/11/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * DpDt:derivada material da pressao                                 *
+ * ------------------------------------------------------------------*
+ * parametros de entrada:                                            * 
+ *-------------------------------------------------------------------*
+ * pTh     -> Presso termodinamica no tempo atual                    *
+ * Pth0    -> Presso termodinamica no tempo anterior                 *                             *
+ * presC   -> Presso fluidodinamica no tempo atual                   *                                *
+ * presC0  -> Presso fluidodinamica no tempo anterior                *                                *
+ * vel     -> campo de velocidade                                    *
+ * gradRho -> gradeiente de densidade                                *
+ * gradPres-> gradiente de pressao                                   *
+ * g       -> campo de gradvidade                                    *
+ * h       -> altura de referencia                                   *
+ * rho     -> densidade no tempo atual                               *                    *
+ * rho0    -> densidade no tempo anterior                            * 
+ * rhoMed  -> densidade media                                        *                              *
+ * dt      -> passo de tempo                                         *
+ * iCod    -> tipo do termo de empuxo                                *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *********************************************************************/
+DOUBLE DpDt(DOUBLE const Pth   ,DOUBLE const Pth0
+           ,DOUBLE const presC ,DOUBLE const presC0
+           ,DOUBLE *vel        ,DOUBLE *gradRho
+           ,DOUBLE *gradPres   ,DOUBLE *g
+           ,DOUBLE *h
+           ,DOUBLE const rho   ,DOUBLE rho0
+           ,DOUBLE const rhoMed
+           ,DOUBLE const dt    ,short const iCod)
+{
+
+  DOUBLE tmp1,tmp2,tmp3,gh;
+/*... pressao termodinamica*/
+   tmp1 = (Pth - Pth0) / dt;  
+/*... pressao fluidodinamica*/
+   tmp2 = (presC - presC0) / dt
+         + vel[0] * gradPres[0]
+         + vel[1] * gradPres[1]
+         + vel[2] * gradPres[2];
+/*... */
+  if(iCod == BUOYANT_PRGH)
+  {
+    gh = g[0]*h[0] + g[1]*h[1] + g[2]*h[2];
+    tmp3 = gh*(rho-rho0)/dt 
+         + vel[0]*( gh*gradRho[0] + rho*g[0])
+         + vel[1]*( gh*gradRho[1] + rho*g[1])
+         + vel[2]*( gh*gradRho[2] + rho*g[2]) ;
+  }
+  else if (iCod == BUOYANT_RHOREF)
+    tmp3 = rhoMed*(vel[0]*g[0] + vel[1]*g[1] +  vel[2]*g[2]);
+/*.....................................................................*/
+
+  return tmp1+tmp2+tmp3;
+}
+/***********************************************************************/

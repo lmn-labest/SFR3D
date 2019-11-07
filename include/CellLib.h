@@ -1077,5 +1077,13 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
   DOUBLE mediaHarmonica(DOUBLE const uV,DOUBLE const uC
                        ,DOUBLE const gV,DOUBLE const gC);
 
+  DOUBLE DpDt(DOUBLE const Pth ,DOUBLE const Pth0
+           ,DOUBLE const presC ,DOUBLE const presC0
+           ,DOUBLE *vel        ,DOUBLE *gradRho
+           ,DOUBLE *gradPres   ,DOUBLE *g
+           ,DOUBLE *h
+           ,DOUBLE const rho   ,DOUBLE rho0
+           ,DOUBLE const rhoMed
+           ,DOUBLE const dt    ,short const iCod);
 /*...................................................................*/
 #endif/*_CELLLIB_H_*/

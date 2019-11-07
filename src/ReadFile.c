@@ -1415,8 +1415,10 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     {
 /*... inicializando a difusividade das especies*/
       initDiffMix(propF                , cModel
-             , mesh->elm.cDiffComb     , mesh->elm.temp0
-             , mesh->elm.pressure0     , mesh->elm.yFrac0
+             , mesh->elm.temp0         , mesh->elm.yFrac0
+             , mesh->elm.cDiffComb     , mesh->elm.densityFluid
+             , mesh->elm.tConductivity , mesh->elm.specificHeat
+             , mesh->elm.pressure0     
              , mesh->elm.material.prop , mesh->elm.mat   
              , cModel->nOfSpecies      , cModel->nComb   
              , mesh->numel             , energyModel->fKelvin);
@@ -2484,7 +2486,7 @@ void readPropVarMixture(PropVarFluid *p,Combustion *cModel,FILE *file)
     }
 /*...................................................................*/
     
-/*... coeficient de difusao*/
+/*... coeficient de difusao massica*/
     else if(!strcmp(word, macros[4])){
       readMacroV2(file, word, false, true);
       p->fDiffusion = true;

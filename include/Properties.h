@@ -192,10 +192,12 @@
                                 ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
                                 ,bool const fKelvin);
 /* ... coeficiente de diffusao da especies*/
-  DOUBLE mixtureDiffusion(PropVarFluid *propF ,Combustion *cModel 
-                       ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
+  DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel 
+                       ,DOUBLE *RESTRICT yFrac,DOUBLE const t
+                       ,DOUBLE const rho      ,DOUBLE const tCond
+                       ,DOUBLE const cP
                        ,short const kSpecieA  ,short const kSpecieI 
-                       ,INT const nEl         ,bool const fKelvin);
+                       ,INT const nEl         ,bool const fKelvin    );
   DOUBLE specieDiffusionBinary(DOUBLE const mMassA,DOUBLE const mMassB
                             ,DOUBLE const sigmaA,DOUBLE const sigmaB  
                             ,DOUBLE const ekA   ,DOUBLE const ekB
@@ -203,8 +205,9 @@
 
   void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel 
                        ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
-                       ,DOUBLE *RESTRICT diff ,short const nOfPrSp 
-                       ,short const nComb       
+                       ,DOUBLE *RESTRICT diff ,DOUBLE *RESTRICT rho
+                       ,DOUBLE *RESTRICT tCond,DOUBLE *RESTRICT cP
+                       ,short const nOfPrSp   ,short const nComb       
                        ,bool const iKelvin    ,INT const nEl
                        ,bool const fOmp       , short const nThreads );
 
@@ -243,9 +246,11 @@
                  ,INT    const nCell        ,bool const iKelvin 
                  ,short const iProp);
   
-  void initDiffMix(PropVarFluid *propFluid, Combustion *cModel
-                ,DOUBLE *RESTRICT diff     ,DOUBLE *RESTRICT t  
-                ,DOUBLE *RESTRICT pressure ,DOUBLE *RESTRICT yFrac 
+  void initDiffMix(PropVarFluid *propF       , Combustion *cModel
+                ,DOUBLE *RESTRICT t        ,DOUBLE *RESTRICT yFrac 
+                ,DOUBLE *RESTRICT diff     ,DOUBLE *RESTRICT rho
+                ,DOUBLE *RESTRICT tCond    ,DOUBLE *RESTRICT cP
+                ,DOUBLE *RESTRICT pressure 
                 ,DOUBLE *RESTRICT propMat  ,short *RESTRICT mat    
                 ,short const nOfPrSp       ,short const nComb   
                 ,INT    const nCell        ,bool const iKelvin);

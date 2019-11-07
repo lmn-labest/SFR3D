@@ -612,7 +612,7 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
   bool fTime, fDisp, fRes, fPresWork, fTemp, fTurb, fWallModel, fKelvin
     , fSheat,fEntalpy;
   short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf, nCarg1
-    , nCarg2, typeTime, iCodPolFace, k, ns, i;
+    , nCarg2, typeTime, iCodPolFace, iCodBuoyant, k, ns, i;
 /*...*/
   INT vizNel;
 /*...*/
@@ -655,27 +655,28 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
 /*...................................................................*/
 
 /*...*/
-  dt        = ddt->dt[0];
-  dt0       = ddt->dt[1];
-  typeTime  = ddt->type;
-  fTime     = ddt->flag;
-  fDisp     = eModel->fDissipation;
-  fRes      = eModel->fRes;
-  fPresWork = eModel->fPresWork;
-  fTemp     = eModel->fTemperature;
-  fKelvin   = eModel->fKelvin;
-  fTurb     = tModel->fTurb;
-  prTwall   = tModel->PrandltTwall;
-  prTsgs    = tModel->PrandltTsgs;
-  fWallModel= tModel->fWall;
-  wallType  = tModel->wallType;
-  fSheat    = vProp->fSpecificHeat;
-  fComb     = cModel->fCombustion;
-  ns        = cModel->nOfSpecies;
-  fEntalpy  = eModel->fDiffEnergy;
-  Pth[0]    = thDynamic.pTh[0];
-  Pth[1]    = thDynamic.pTh[1];
-  Pth[2]    = thDynamic.pTh[2];
+  dt          = ddt->dt[0];
+  dt0         = ddt->dt[1];
+  typeTime    = ddt->type;
+  fTime       = ddt->flag;
+  fDisp       = eModel->fDissipation;
+  fRes        = eModel->fRes;
+  fPresWork   = eModel->fPresWork;
+  fTemp       = eModel->fTemperature;
+  fKelvin     = eModel->fKelvin;
+  fTurb       = tModel->fTurb;
+  prTwall     = tModel->PrandltTwall;
+  prTsgs      = tModel->PrandltTsgs;
+  fWallModel  = tModel->fWall;
+  wallType    = tModel->wallType;
+  fSheat      = vProp->fSpecificHeat;
+  fComb       = cModel->fCombustion;
+  ns          = cModel->nOfSpecies;
+  fEntalpy    = eModel->fDiffEnergy;
+  Pth[0]      = thDynamic.pTh[0];
+  Pth[1]      = thDynamic.pTh[1];
+  Pth[2]      = thDynamic.pTh[2];
+  iCodBuoyant = 0;
 /*...................................................................*/
 
 /*... propriedades da celula*/
@@ -993,16 +994,18 @@ void cellEnergy3D(Loads *loads               , Loads *lVel
 /*...*/
   if (fPresWork)
   {
-/*... derivada materia da pressao*/  
-/*... pressao termodinamica (pressao em kPa)*/
-    tmp1 = (Pth[2] - Pth[1]) / dt;  
-/*... pressao fluidodinamica*/
-    tmp = (presC - presC0) / dt
-        + velC[0] * gradPresC[0]
-        + velC[1] * gradPresC[1]
-        + velC[2] * gradPresC[2];
-/*...*/
-    p += 1.0e-03*(tmp + tmp1) * volume[idCell];
+
+     tmp1 = DpDt(Pth[2]            ,Pth[1]
+                ,presC             ,presC0
+                ,velC              ,NULL
+                ,gradPresC         ,gravity
+                ,xRef
+                ,densityC          ,0.0
+                ,0.0
+                ,dt                ,iCodBuoyant);
+
+/*... 1.e-3 devido a equacao de energia ser kJ*/
+    p += 1.0e-03*tmp1*volume[idCell];
 /*.....................................................................*/
   }
 /*.....................................................................*/
