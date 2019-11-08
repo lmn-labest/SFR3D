@@ -1757,7 +1757,7 @@ DOUBLE specieDiffusionBinary(DOUBLE const mMassA,DOUBLE const mMassB
 
   DOUBLE omega,diffAB,mMassAB,sigmaAB;
   mMassAB = 2.e0*mMassA*mMassB/(mMassA + mMassB);
-  sigmaAB = sqrt(0.5e0*(sigmaA + sigmaB));
+  sigmaAB = 0.5e0*(sigmaA + sigmaB);
   omega   = diffusionCollisionIntegral(t,ekA,ekB);
   diffAB  = 2.66e-07*pow(t,1.5)/(sqrt(mMassAB)*sigmaAB*sigmaAB*omega);
 

@@ -74,7 +74,8 @@
             ,char *nameOut        ,bool iws
             ,FILE *f);
 
-  void wGeoFaceVtk2(Memoria *m          , DOUBLE *x
+  void wGeoFaceVtk2(Memoria *m          , Loads *ld
+                  , DOUBLE *x
                   , INT *el             , short *nen
                   , short *typeGeom     , short *faceRd       
                   , INT const nnode     , INT const numel
@@ -196,13 +197,14 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
 /*...................................................................*/
 
 /*...*/
-  void makeFace(INT *el           ,short *faceR     
-             ,short *typeGeom
-             ,INT *face          ,int    *lFaceL     ,INT *idFace
-             ,short *typeGeomFace,short *nenFace
-             ,short const maxViz ,short const maxNo
-             ,short const ndf    ,INT const numel   
-             ,INT *nFace        );
+  void makeFace(INT *el            ,Loads *ld
+               ,short *faceR       ,short *typeGeom
+               ,INT *face          ,int    *lFaceL   
+               ,int    *lFaceTy    ,INT *idFace
+               ,short *typeGeomFace,short *nenFace
+               ,short const maxViz ,short const maxNo
+               ,short const ndf    ,INT const numel  
+               ,INT *nFace         );
 
   void makeVorticity(DOUBLE *RESTRICT w, DOUBLE *RESTRICT gradVel
                     ,INT const n       , const short ndm);

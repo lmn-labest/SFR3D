@@ -20,13 +20,12 @@
                              ,bool const iKelvin   ,bool const fDensity
                              ,bool const fGrouped);  
 
- static void convLoadsVelMix(Combustion *cModel   ,Prop *pDen
-                            ,Prop *sHeatProp   ,Loads *loadsVel   
-                            ,Loads *loadsTemp     ,Loads *loadsZ     
-                            ,DOUBLE *RESTRICT prop
-                            ,bool const fTemp     ,bool const fSheat 
-                            ,bool const iKelvin   ,bool const fDensity
-                            ,bool const fGrouped); 
+ static void setLoadsVelMix(Combustion *cModel ,PropVarFluid *propFluid
+                           ,Loads *loadsVel   ,Loads *loadsTemp
+                           ,Loads *loadsZ     
+                           ,bool const fTemp     ,bool const fSheat 
+                           ,bool const iKelvin   ,bool const fDensity
+                           ,bool const fGrouped);   
  static void setLoadsVel(PropVarFluid *propFluid ,Loads *loadsVel
                         , Loads *loadsTemp       , DOUBLE *RESTRICT prop
                         , bool const fTemp       , bool const iKelvin);
@@ -1080,10 +1079,9 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
   if(rflag[19])
   {
     if(fComb)
-      convLoadsVelMix(cModel                   ,&propF->den 
-                    ,&propF->sHeat            ,loadsVel              
-                    ,loadsTemp                ,loadsZcomb
-                    ,mesh->elm.material.prop
+      setLoadsVelMix(cModel                   ,propF 
+                    ,loadsVel                 ,loadsTemp                
+                    ,loadsZcomb               
                     ,energyModel->fTemperature,propF->fSpecificHeat
                     ,energyModel->fKelvin     ,propF->fDensity
                     ,cModel->fLump);   
@@ -7925,7 +7923,7 @@ static void convLoadsZcombMix(Combustion *cModel   ,Prop *pDen
 
 /********************************************************************* 
  * Data de criacao    : 08/05/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 07/11/2019                                   *
  *-------------------------------------------------------------------*
  * setLoadsEnergy: Converte condicoes de contorno da Temperatura    *
  * de C para kelvin                                                  *
@@ -7939,10 +7937,9 @@ static void convLoadsZcombMix(Combustion *cModel   ,Prop *pDen
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-static void convLoadsVelMix(Combustion *cModel   ,Prop *pDen
-                           ,Prop *sHeatProp   ,Loads *loadsVel
-                           ,Loads *loadsTemp     ,Loads *loadsZ     
-                           ,DOUBLE *RESTRICT prop
+static void setLoadsVelMix(Combustion *cModel ,PropVarFluid *propFluid
+                           ,Loads *loadsVel   ,Loads *loadsTemp
+                           ,Loads *loadsZ     
                            ,bool const fTemp     ,bool const fSheat 
                            ,bool const iKelvin   ,bool const fDensity
                            ,bool const fGrouped)   
@@ -7951,7 +7948,6 @@ static void convLoadsVelMix(Combustion *cModel   ,Prop *pDen
   short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
   DOUBLE t,yFrac[MAXSPECIES],sHeat,tmp1,molarMassMix;
   
-  sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
   for(i=0;i<MAXLOAD;i++)
   {
     type = loadsVel[i].type;
@@ -7965,10 +7961,11 @@ static void convLoadsVelMix(Combustion *cModel   ,Prop *pDen
       if(fDensity)
       {
         molarMassMix =  mixtureMolarMass(cModel,yFrac); 
-        tmp1 = mixtureSpeciesDensity(pDen           ,molarMassMix
+        tmp1 = mixtureSpeciesDensity(&propFluid->den ,molarMassMix
                                     ,t               ,thDynamic.pTh[2]
                                    ,thDynamic.pTh[2],iKelvin);
         loadsVel[i].par[loadsVel[i].np-1] = tmp1;  
+        loadsVel[i].density               = tmp1;
       }
 /*....................................................................*/
     }     
@@ -8003,7 +8000,6 @@ static void setLoadsVel(PropVarFluid *propFluid
   short i,type;
   DOUBLE t,sHeat,tmp1;
   
-  sHeat   = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
   for(i=0;i<MAXLOAD;i++)
   {
     type               = loadsVel[i].type;

@@ -921,7 +921,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... face com cargas*/
-      printFace(&m      , mesh0
+        printFace(&m      , mesh0
               , preName , combModel.fCombustion
               , opt.bVtk, fileOut);
 /*...................................................................*/

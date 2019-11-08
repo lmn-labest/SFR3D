@@ -2429,7 +2429,8 @@ void printFace(Memoria *m   , Mesh *mesh
     strcpy(aux, preName);
     strcat(aux, "_vel");
     fName(aux, 0, 0, 17, nameOut);
-    wGeoFaceVtk2(m        , mesh->node.x
+    wGeoFaceVtk2(m                 , loadsVel
+               , mesh->node.x
                , mesh->elm.node    , mesh->elm.nen
                , mesh->elm.geomType, mesh->elm.faceRvel
                , mesh->nnode       , mesh->numel
@@ -2442,7 +2443,8 @@ void printFace(Memoria *m   , Mesh *mesh
     strcpy(aux, preName);
     strcat(aux, "_pres");
     fName(aux, 0, 0, 17, nameOut);
-    wGeoFaceVtk2(m                  , mesh->node.x
+    wGeoFaceVtk2(m                  , loadsPres
+               , mesh->node.x
                , mesh->elm.node     , mesh->elm.nen
                , mesh->elm.geomType , mesh->elm.faceRpres
                , mesh->nnode        , mesh->numel
@@ -2460,8 +2462,9 @@ void printFace(Memoria *m   , Mesh *mesh
     strcpy(aux,preName);
     strcat(aux,"_energy");
     fName(aux, 0, 0, 17, nameOut);
-    wGeoFaceVtk2(m                   , mesh->node.x
-               , mesh->elm.node      , mesh->elm.nen
+    wGeoFaceVtk2(m                   , loadsEnergy 
+              , mesh->node.x        
+              , mesh->elm.node       , mesh->elm.nen
               , mesh->elm.geomType   , mesh->elm.faceRenergy
               , mesh->nnode          , mesh->numel
               , mesh->ndm            , mesh->maxViz
@@ -2473,7 +2476,8 @@ void printFace(Memoria *m   , Mesh *mesh
     strcpy(aux, preName);
     strcat(aux, "_vel");
     fName(aux, 0, 0, 17, nameOut);
-    wGeoFaceVtk2(m                    , mesh->node.x
+    wGeoFaceVtk2(m                    , loadsVel
+               , mesh->node.x
                , mesh->elm.node       , mesh->elm.nen
                , mesh->elm.geomType   , mesh->elm.faceRvel  
                , mesh->nnode          , mesh->numel
@@ -2486,7 +2490,8 @@ void printFace(Memoria *m   , Mesh *mesh
     strcpy(aux, preName);
     strcat(aux, "_pres");
     fName(aux, 0, 0, 17, nameOut);
-    wGeoFaceVtk2(m                  , mesh->node.x
+    wGeoFaceVtk2(m                  , loadsPres
+               , mesh->node.x
                , mesh->elm.node     , mesh->elm.nen
                , mesh->elm.geomType , mesh->elm.faceRpres
                , mesh->nnode        , mesh->numel
@@ -2504,7 +2509,8 @@ void printFace(Memoria *m   , Mesh *mesh
     strcpy(aux, preName);
     strcat(aux, "_D1");
     fName(aux, 0, 0, 17, nameOut);
-    wGeoFaceVtk2(m         , mesh->node.x
+    wGeoFaceVtk2(m         , loadsD1
+      , mesh->node.x
       , mesh->elm.node     , mesh->elm.nen
       , mesh->elm.geomType , mesh->elm.faceRd1   
       , mesh->nnode        , mesh->numel
@@ -2522,7 +2528,8 @@ void printFace(Memoria *m   , Mesh *mesh
     strcpy(aux, preName);
     strcat(aux, "_T1");
     fName(aux, 0, 0, 17, nameOut);
-    wGeoFaceVtk2(m                 , mesh->node.x
+    wGeoFaceVtk2(m                 , loadsT1
+               , mesh->node.x
                , mesh->elm.node    , mesh->elm.nen
                , mesh->elm.geomType, mesh->elm.faceRt1 
                , mesh->nnode       , mesh->numel
@@ -2538,9 +2545,10 @@ void printFace(Memoria *m   , Mesh *mesh
   {
     aux[0] = '\0';
     strcpy(aux, preName);
-    strcat(aux, "_combustion");
+    strcat(aux, "_Z");
     fName(aux, 0, 0, 17, nameOut);
-    wGeoFaceVtk2(m                     , mesh->node.x
+    wGeoFaceVtk2(m                     , loadsZcomb
+               , mesh->node.x
                , mesh->elm.node        , mesh->elm.nen
                , mesh->elm.geomType    , mesh->elm.faceResZcomb 
                , mesh->nnode           , mesh->numel
