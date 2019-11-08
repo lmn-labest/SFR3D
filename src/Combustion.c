@@ -1005,7 +1005,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
   INT k,maxIt;
   DOUBLE aTol,rTol;
   DOUBLE x,dy,pres=Pth,tF,yF,yOx,yP,tMix,tMixC,tChem,tStar;
-  DOUBLE tmp1,tmp2,tmp3,gEdc,gamma,cTau,itMix,tK,yt[MAXSPECIES],tt;
+  DOUBLE tmp1,tmp2,tmp3,gEdc,gamma,cTau,itMix,tK,yt[MAXSPECIES],tt,yy;
   
 /*...*/
 /*for(i=0,yF=0.e0;i<c->chem.nFuel;i++)
@@ -1080,7 +1080,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
 
 /*...*/
   for(i=0;i<c->chem.nSp;i++)
-    yt[i] = y[i];
+    yt[i] = FRACMAX(y[i],FRACZERO);
 /*....................................................................*/
 
 /*...*/
@@ -1103,7 +1103,8 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
   {    
     if(yt[i] < 0.e0)
       yt[i] = 0.e0;
-    dy = yt[i]-y[i];
+    yy = FRACMAX(yt[i],FRACZERO);
+    dy = yy-y[i];
     w[i] = density*gEdc*dy/tStar;
   }
 /*....................................................................*/
@@ -1140,7 +1141,7 @@ void edm(Combustion *c       ,DOUBLE *RESTRICT y
   short i,j,id,
         nSp  = c->nOfSpecies;
           
-  DOUBLE omega,dy,r1,r2,my,A,B,Q[MAXREAC],itM=1.e0/tMix;
+  DOUBLE omega,dy,r1,r2,my,A,B,Q[MAXREAC],itM=1.e0/tMix,yy;
 
 /*...*/
   A = c->edm.coef[0];
@@ -1156,6 +1157,7 @@ void edm(Combustion *c       ,DOUBLE *RESTRICT y
     for(j=0;j<c->chem.reac[i].nPartSp[0];j++)
     {
       id = c->chem.reac[i].partSp[0][j];
+      yy = FRACMAX(y[id],FRACZERO);
       dy = y[id]/(c->chem.reac[i].stch[0][id]*c->chem.sp[id].mW);
       r1  = min(r1,dy);
     }
@@ -1168,7 +1170,8 @@ void edm(Combustion *c       ,DOUBLE *RESTRICT y
       for(j=0,dy=my=0.e0;j<c->chem.reac[i].nPartSp[1];j++)
       {
         id = c->chem.reac[i].partSp[1][j];
-        dy += y[id];
+        yy = FRACMAX(y[id],FRACZERO);
+        dy += yy;
         my += c->chem.reac[i].stch[1][id]*c->chem.sp[id].mW;
       }
       r2 = B*dy/my;

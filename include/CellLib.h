@@ -1085,5 +1085,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
            ,DOUBLE const rho   ,DOUBLE rho0
            ,DOUBLE const rhoMed
            ,DOUBLE const dt    ,short const iCod);
+
+  DOUBLE fKsi(DOUBLE const molarMass, DOUBLE const temp,DOUBLE R);
 /*...................................................................*/
 #endif/*_CELLLIB_H_*/

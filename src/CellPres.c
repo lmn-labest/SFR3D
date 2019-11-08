@@ -1285,6 +1285,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*...................................................................*/
 
 /*...*/
+
   iCodBuoyant = momentumModel->iCodBuoyant;
 /*...................................................................*/
 
@@ -1478,27 +1479,31 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*...................................................................*/
 
 /*...*/
-  if(fTime){
+  if(fTime)
+  {
 /*... EULER*/
     if (typeTime == EULER){    
       tmp = (densityC - densityC0)/dt;
-      if( fRhsDensity) p  -= tmp*volume[idCell];
+      if( fRhsDensity) p -= tmp*volume[idCell];
 /*...*/
       tempC = CELSIUS_FOR_KELVIN(tempC);
       tmp1 = 1.e0/(IDEALGASR*tempC);
+//    tmp1 = fKsi(28,tempC,IDEALGASR);
       if( fLhsDensity) sP += tmp1*volume[idCell]/dt;
     } 
 /*...BACKWARD*/
-    else if (typeTime == BACKWARD) {
+    else if (typeTime == BACKWARD) 
+    {
       tmp1  = dt + dt0 ;
       tmp   = 1.e0 / dt + 1.e0 / tmp1;
       tmp0  = -tmp1/(dt*dt0);
       tmp00 = dt/( dt0*tmp1 );
       tmp1 = tmp*densityC + tmp0*densityC0 + tmp00*densityC00; 
-      if( fRhsDensity) p -= tmp1*volume[idCell];
+      if(fRhsDensity) p -= tmp1*volume[idCell];
 /*...*/
       tempC = CELSIUS_FOR_KELVIN(tempC);
       tmp1 = 1.e0/(IDEALGASR*tempC);
+//    tmp1 = fKsi(28,tempC,IDEALGASR);
       if(fLhsDensity) sP += tmp1*tmp*volume[idCell];
     }
   }

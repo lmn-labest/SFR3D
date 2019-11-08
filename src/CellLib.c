@@ -7869,3 +7869,36 @@ DOUBLE DpDt(DOUBLE const Pth   ,DOUBLE const Pth0
   return tmp1+tmp2+tmp3;
 }
 /***********************************************************************/
+
+/*********************************************************************
+ * Data de criacao    : 08/11/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * DpDt:derivada material da pressao                                 *
+ * ------------------------------------------------------------------*
+ * parametros de entrada:                                            * 
+ *-------------------------------------------------------------------*
+ * pTh     -> Presso termodinamica no tempo atual                    *
+ * Pth0    -> Presso termodinamica no tempo anterior                 *                             *
+ * presC   -> Presso fluidodinamica no tempo atual                   *                                *
+ * presC0  -> Presso fluidodinamica no tempo anterior                *                                *
+ * vel     -> campo de velocidade                                    *
+ * gradRho -> gradeiente de densidade                                *
+ * gradPres-> gradiente de pressao                                   *
+ * g       -> campo de gradvidade                                    *
+ * h       -> altura de referencia                                   *
+ * rho     -> densidade no tempo atual                               *                    *
+ * rho0    -> densidade no tempo anterior                            * 
+ * rhoMed  -> densidade media                                        *                              *
+ * dt      -> passo de tempo                                         *
+ * iCod    -> tipo do termo de empuxo                                *
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              *
+ *********************************************************************/
+DOUBLE fKsi(DOUBLE const molarMass, DOUBLE const temp,DOUBLE R)
+{
+  return molarMass/(R*temp);
+}
