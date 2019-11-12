@@ -2246,7 +2246,7 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
     *volume = volume3DGreenGauss(xm,normal,fArea,lnFace[cCell]); 
   else if( lGeomType[cCell] == TETRCELL )
     *volume = volumeTetra(&MAT3D(cCell,0,0,lx,maxNo,ndm));
-  else if (lGeomType[cCell] = PIRACELL)
+  else if (lGeomType[cCell] == PIRACELL)
     *volume = volume3DGreenGauss(xm,normal,fArea,lnFace[cCell]);
 /*...................................................................*/
 
@@ -2472,9 +2472,9 @@ void greenGaussCell(Loads *loads
                ,short const nFace        ,short const ndm   
                ,short const ndf          ,INT const nel)
 {
-  DOUBLE v,dPviz,coefDif,tmp;
+  DOUBLE coefDif,tmp;
   DOUBLE uf[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF],par[MAXLOADPARAMETER];
-  DOUBLE lModKsi,alpha,alphaMenosUm,invVol,xx[4],gh;
+  DOUBLE lModKsi,alpha,alphaMenosUm,invVol,xx[4];
   INT vizNel;
   short idCell = nFace,nCarg,type;
   short i,j,k;
@@ -5039,7 +5039,7 @@ DOUBLE deferredCd(DOUBLE const uC          , DOUBLE const uV
                 , DOUBLE const wfn)
 {                    
   
-  DOUBLE cvc=0.0e0,cd,up;
+  DOUBLE cd,up;
  
   cd = alphaMenosUm * uC + alpha * uV;
   if(wfn < 0.0e0) 
@@ -6186,7 +6186,7 @@ void advectiveSchemeNdim(DOUBLE *RESTRICT uC ,DOUBLE *RESTRICT uV
 /*... interpolacao undirecional*/
 /*    cvc[i] -= MAT2D(i,0,gradVelComp,3)*vSkew[0]
               + MAT2D(i,1,gradVelComp,3)*vSkew[1] 
-              + MAT2D(i,2,gradVelComp,3)*vSkew[2];
+              + MAT2D(i,2,gradVelComp,3)*vSkew[2];*/
 /*...................................................................*/
     }
 /*...................................................................*/
@@ -7846,7 +7846,7 @@ DOUBLE DpDt(DOUBLE const Pth   ,DOUBLE const Pth0
            ,DOUBLE const dt    ,short const iCod)
 {
 
-  DOUBLE tmp1,tmp2,tmp3,gh;
+  DOUBLE tmp1,tmp2,tmp3=0.e0,gh;
 /*... pressao termodinamica*/
    tmp1 = (Pth - Pth0) / dt;  
 /*... pressao fluidodinamica*/

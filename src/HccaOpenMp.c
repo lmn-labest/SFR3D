@@ -59,14 +59,14 @@ void pMatrixSolverOmp(Memoria *m,SistEq *eq
 *********************************************************************/
 void openMpCheck(bool omp) {
 
+#ifndef _OPENMP
  char str[] = "Opnemp enable in run-time but disable in compile-time ";
 
-  if(omp){
-#ifndef _OPENMP
+  if(omp)
+  {
     ERRO_GERAL(__FILE__,__func__,__LINE__,str);
-#endif
   }
-
+#endif
 }
 /*********************************************************************/
 

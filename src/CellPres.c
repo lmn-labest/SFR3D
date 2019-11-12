@@ -132,14 +132,13 @@ void cellSimplePres2D(Loads *loadsVel     ,Loads *loadsPres
 	DOUBLE e[2],t[2],s[2],modE;
 /*... interpolacao linear*/
   DOUBLE alpha,alphaMenosUm;
-  DOUBLE tA[2];
 /*... */
   DOUBLE wfn,velC[2],velF[2],presC,presV;
 /*...*/
 	short iCodDif = diffPres->iCod;
 /*...*/
   short idCell = nFace;
-  short nAresta,nCarg;
+  short nAresta;
   INT vizNel;
 
 /*...*/
@@ -246,7 +245,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 /*...................................................................*/
 
 /*...cargas*/
-        nCarg = lFacePresL[nAresta]-1;
+//      nCarg = lFacePresL[nAresta]-1;
 /*      pLoadSimplePres(&sP             , &p
                       , tA              , lKsi
                       , presC           , gradPresC    
@@ -262,7 +261,7 @@ grad(phi)*S = (grad(phi)*E)Imp + (grad(phi)*T)Exp*/
 
 /*... velocidades*/
       if(lFaceVelR[nAresta] > 0){
-        nCarg = lFaceVelL[nAresta]-1;
+//      nCarg = lFaceVelL[nAresta]-1;
 /*      pLoadSimple(&sP            , &p
                   , tA             , &ddum
                   , velC           , &ddum
@@ -419,7 +418,7 @@ void cellSimplePres2DLm(Loads *lVel      , Loads *lPres
 /*... nonOrtogonal*/
 	DOUBLE e[2],t[2],s[2],modE;
 /*... interpolacao linear*/
-  DOUBLE alpha,alphaMenosUm,tA[2];
+  DOUBLE alpha,alphaMenosUm;
 /*... */
   DOUBLE wfn,velC[2],velF[2],presC,presV,tempC;
 
@@ -929,7 +928,7 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
   INT vizNel;
 /*...*/
   DOUBLE densityC,densityV ,density;
-  DOUBLE dFieldC[3],dFieldV[3],dFieldF[3],gradVelC[3][3];
+  DOUBLE dFieldC[3],dFieldV[3],dFieldF[3];
 /*...*/
   DOUBLE rCell,p,sP;
   DOUBLE tA[3],ddum=0.e0;
@@ -938,7 +937,7 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
 /*...*/
   DOUBLE gradPresC[3],gradPresV[3],presC,presV;
 /*...*/
-  DOUBLE nk,dfd,coef,lvSkew[3];
+  DOUBLE dfd,coef,lvSkew[3];
 /*... nonOrtogonal*/
 	DOUBLE e[3],t[3],s[3],modE;
 /*... interpolacao linear*/
@@ -1271,9 +1270,8 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*...*/
   DOUBLE g[3],gh;
 /*...*/
-  DOUBLE ks,ks0;
-/*...*/
-  DOUBLE mW,mW0,mW00;
+//DOUBLE mW,mW0,mW00;
+  DOUBLE mW;
 
 /*...*/
   ts          = ddt->t;
@@ -1298,8 +1296,8 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*...................................................................*/
 
 /*...*/
-  mW00       = mMolar[TIME_N_MINUS_2];
-  mW0        = mMolar[TIME_N_MINUS_1];
+/*mW00       = mMolar[TIME_N_MINUS_2];
+  mW0        = mMolar[TIME_N_MINUS_1];*/
   mW         = mMolar[TIME_N];
 /*...................................................................*/
 

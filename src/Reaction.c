@@ -217,7 +217,8 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
         {
           pz = &MAT2D(nel,0,zComb,nComb);
           densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
-          getSpeciesPrimitivesCc(cModel,y,pz);     
+          getSpeciesPrimitivesCc(cModel,y,pz);
+          eddyC = 0.e0;     
           if(tModel->fTurb)
             eddyC = eddyViscosity[nel];
 /*...*/
@@ -245,6 +246,7 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
           pz = &MAT2D(nel,0,zComb,nComb);
           densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
           getSpeciesPrimitivesCc(cModel,y,pz);
+          eddyC = 0.e0;
           if(tModel->fTurb)
             eddyC = eddyViscosity[nel];
 /*...*/
@@ -352,8 +354,7 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
              , bool const fKelvin )
 {
   short  nComb = cModel->nComb    
-       , nReac=cModel->chem.nReac
-       , nSp  = cModel->nOfSpecies;
+       , nSp   = cModel->nOfSpecies;
   short i;
   INT nel;
   DOUBLE sT[6],*iGradVel,*pz;
@@ -443,7 +444,6 @@ void initLumpedMatrix(Combustion *cModel)
 {
   
   short nl = cModel->nOfSpeciesLump
-      , ns =  cModel->nOfSpecies 
       , posN2 = cModel->chem.sN2;
   DOUBLE mO2,mN2,mCO2p,mH2Op,mN2p,mAir,mProd;
 
@@ -661,10 +661,7 @@ void initEntalpyOfFormation(Combustion *cModel, Prop *sHeatPol)
 void initEntalpyOfCombustion(Combustion *cModel)
 {
   
-  DOUBLE pCO2,pH2O,hFuel,hCO2,hH2O;
-
-  pCO2 = cModel->CO2InProd;
-  pH2O = cModel->H2OInProd;
+  DOUBLE hFuel,hCO2,hH2O;
 
 /*...  Fuel - KJ/kMol*/
   hFuel = -74870.e0; 
@@ -864,7 +861,7 @@ void plugFlowReactor(DOUBLE const t    ,DOUBLE *RESTRICT y
        *sHeat  = pt[2];
   DOUBLE *T    = pt[3];
   DOUBLE *pres = pt[4];
-  DOUBLE rho,cp,molarMassGas,c[MAXSPECIES],Q[MAXREAC];
+  DOUBLE rho,molarMassGas,c[MAXSPECIES],Q[MAXREAC];
   short i,
         nSp =cModel->nOfSpecies;
 
@@ -876,7 +873,7 @@ void plugFlowReactor(DOUBLE const t    ,DOUBLE *RESTRICT y
 /*...............................................................*/
 
 /*... calor especifico*/
-  cp = mixtureSpecifiHeat(sHeat,y,*T,nSp,true);
+//cp = mixtureSpecifiHeat(sHeat,y,*T,nSp,true);
 /*...............................................................*/
 
 /*...*/

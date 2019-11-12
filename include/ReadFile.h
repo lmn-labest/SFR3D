@@ -85,9 +85,9 @@
                     , FILE* file);
    void readAdvectionScheme(FILE *fileIn, Scheme *sc);
    void readDiffusionScheme(FILE *fileIn, Scheme *sc);
-   void readSetSimple(Memoria *m    , FILE *fileIn
-                 , Mesh *mesh0   , Mesh *mesh
-                 , Simple *simple, bool *fSolvSimple);
+   bool readSetSimple(Memoria *m    , FILE *fileIn
+                    , Mesh *mesh0   , Mesh *mesh
+                    , Simple *simple);
    void readSetSimpleComb(Memoria *m    , FILE *fileIn
                      , Mesh *mesh0   , Mesh *mesh
                     , Simple *simple, bool *fSolvComb);

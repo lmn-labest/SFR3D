@@ -217,7 +217,7 @@ int StepperSie(DOUBLE *y                  , void **pt
   long INT fac[KMAXX + 1];
   INT kTarg,kOpt,kMax=0;
   DOUBLE logFact,ratio,coeff[KMAXX + 1][KMAXX + 1];
-  DOUBLE theta,jacRedo,hNext,hNew,hDid,h,x,xOld,err,errOld,eps;
+  DOUBLE theta,jacRedo,hNext,hNew,h,x,err,errOld,eps;
   DOUBLE cost[KMAXX+1],work[KMAXX+1],hOpt[KMAXX+1],expo;
   DOUBLE facMin,fa,ySafe,delt,uround;  
   unsigned INT it,IntegralStepMax;
@@ -538,9 +538,7 @@ int StepperSie(DOUBLE *y                  , void **pt
 /*...*/
     calcJac = false;  /*Successful step. Allow Jacobian to be recomputed
                                                    if theta too big.*/  
-    xOld     = x;
     x       += h;
-    hDid     = h;
     firstStep=false;
     kMax     = max(kMax,kTarg);
 

@@ -93,16 +93,16 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
                     , const short nEn           , short const nFace
                     , const short ndm           , INT const nel)
 {
-  bool fTime, fRes, fTurb, fWallModel, fLump, fDiffCoor;
+  bool fTime, fRes, fTurb, fWallModel, fDiffCoor;
   short iCodAdv1, iCodAdv2, iCodDif, wallType, idCell, nf, nCarg1
-    , nCarg2, typeTime, iCodPolFace, nComb, nst, i, j, nSp, kSp, nSpLump, nReac;
+      , typeTime, iCodPolFace, nComb, nst, i, j, nSp;
 /*...*/
   INT vizNel;
 /*...*/
   DOUBLE densityC, densityV, densityM, diffCeofC[MAX_COMB]
         , diffCeofV[MAX_COMB]
         , diffEffC[MAX_COMB], diffEffV[MAX_COMB], diffEff[MAX_COMB]
-        , eddyViscosityC, eddyViscosityV, viscosityC
+        , eddyViscosityC, eddyViscosityV
         , tA[MAX_COMB], coef[MAX_COMB]
         , tmp, tmp1, prTwall, scTsgs;
   DOUBLE p[MAX_COMB], sP, sPc[MAX_COMB], dfd[MAX_COMB], gfKsi[MAX_COMB];
@@ -111,11 +111,11 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
   DOUBLE lModKsi, lFarea, du[MAX_COMB], duDksi[MAX_COMB], lXmcc[3], lXm[3];
   DOUBLE gradUp[MAX_COMB][3], gradUv[MAX_COMB][3], ccV[3];
   DOUBLE rCell[MAX_COMB], dt, dt0;
-  DOUBLE uC[MAX_COMB], uV[MAX_COMB],w[MAXSPECIES];
+  DOUBLE uC[MAX_COMB], uV[MAX_COMB];
 /*... nonOrtogonal*/
   DOUBLE e[3], t[3], s[3], modE, dfdc[MAX_COMB], xx[3];
 /*... */
-  DOUBLE presC, presC0, presV, gradPresC[3], gradPresV[3], wfn, de
+  DOUBLE presC, presV, gradPresC[3], gradPresV[3], wfn
     , velC[3], velV[3], dFieldC[3], dFieldV[3], dFieldF[3], cv, cvc[MAX_COMB];
 /*...*/
   DOUBLE pAdv[NPADV];
@@ -131,12 +131,9 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
 /*...................................................................*/
 
 /*...*/
-  fLump     = cModel->fLump;
   nComb     = cModel->nComb;
   nSp       = cModel->nOfSpecies;
-  nSpLump   = cModel->nOfSpeciesLump;
   fDiffCoor = cModel->fCorrectVel;  
-  nReac     = cModel->chem.nReac;   
 /*...................................................................*/
 
 /*...*/
@@ -187,7 +184,7 @@ void cellCombustion3D(Loads *loads              , Loads *lVel
   velC[1] = MAT2D(idCell, 1, vel, 3);
   velC[2] = MAT2D(idCell, 2, vel, 3);
 /*... p(n)*/
-  presC0 = MAT2D(idCell, 0, pres, 2);
+//presC0 = MAT2D(idCell, 0, pres, 2);
 /*... p(n+1)*/
   presC = MAT2D(idCell, 1, pres, 2);
 /*...*/

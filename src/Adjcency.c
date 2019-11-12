@@ -177,9 +177,9 @@ void face3d(INT *RESTRICT el    , INT *RESTRICT nelcon
           , INT nnode           , INT numel
           , short maxNo         , short maxNoFace
           , short maxFace       , INT nFace) {
-  short is1, is2, noPface;
+  short is1, is2, noPface = 0;
   INT  nel1, vizNel, iFace,node[4];
-  int   i ,j, k, idFace;
+  int   i ,j, k, idFace=0;
 
   vizNel = 0;
   for (k = 0; k<maxNoFace; k++)

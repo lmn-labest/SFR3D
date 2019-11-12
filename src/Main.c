@@ -132,7 +132,7 @@ int main(int argc,char**argv){
 
 /*...*/
   Macros mm;
-  bool fReadModels=false;
+//bool fReadModels=false;
 
 /*... arquivo*/
   char nameIn[MAX_STR_LEN_IN], nameOut[SIZEMAX];
@@ -833,17 +833,17 @@ int main(int argc,char**argv){
 
 /*... fechando o arquivo do log nao linear D1*/      
       if(fSolvD1 && opt.fItPlot && !mpiVar.myId)  
-        fclose(opt.fileItPlot[FITPLOTD1]);
+        fclose(&opt.fileItPlot[FITPLOTD1]);
 /*... fechando o arquivo do log nao linear T1*/      
       if(fSolvT1 && opt.fItPlot && !mpiVar.myId)  
-        fclose(opt.fileItPlot[FITPLOTT1]);
+        fclose(&opt.fileItPlot[FITPLOTT1]);
 /*... fechando o arquivo do log nao linear do simple */      
       if(fSolvSimple && opt.fItPlot && !mpiVar.myId)  
-        fclose(opt.fileItPlot[FITPLOTSIMPLE]);
+        fclose(&opt.fileItPlot[FITPLOTSIMPLE]);
 /*... fechando o arquivo do log nao linear do simple */      
       if(fSolvComb && opt.fItPlot && !mpiVar.myId)
       {
-        fclose(opt.fileItPlot[FITPLOTSIMPLE]);
+        fclose(&opt.fileItPlot[FITPLOTSIMPLE]);
         fclose(opt.fileParameters);
       }
 /*...................................................................*/
@@ -985,7 +985,6 @@ int main(int argc,char**argv){
     else if((!strcmp(word,macro[9])))
     {
       initSec(word, OUTPUT_FOR_FILE);
-      if(!mpiVar.myId )
       readSolvDiff(&m     , mesh     , &reordMesh
                   ,&solvD1, &sistEqD1, &fSolvD1
                   ,auxName, preName  , nameOut
@@ -1434,9 +1433,9 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-      readSetSimple(&m     , fileIn
-                  , mesh0  , mesh
-                  , &simple, &fSolvSimple);
+      fSolvSimple = readSetSimple(&m     , fileIn
+                                , mesh0  , mesh
+                                , &simple);
 /*...................................................................*/
 
       endSec(OUTPUT_FOR_FILE);
@@ -1833,7 +1832,7 @@ int main(int argc,char**argv){
               , diffModel ,transModel
               , &combModel  
               , fileIn);
-      fReadModels = true;
+//    fReadModels = true;
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
     }   

@@ -2081,7 +2081,6 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
   DOUBLE *p=NULL,*w=NULL;
   INT i;
   short j,
-        nComb = cModel->nComb, 
         nSp   = cModel->nOfSpecies;
   char head[]={"FLUID_VOLUME_FINITO"};
   double ddum;

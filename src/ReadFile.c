@@ -5,17 +5,16 @@
   static int getnumprop2(char *line);
   static void setLoadsEnergy(PropVarFluid *pF
                            ,Loads *loadsEnergy   ,Loads *loadsTemp
-                           ,Loads *loadsVel      ,DOUBLE *RESTRICT prop
+                           ,Loads *loadsVel      
                            ,bool const fTemp     ,bool const iKelvin);
  static void setLoadsEnergyMix(Combustion *cModel   ,PropVarFluid *pF
                               ,Loads *loadsEnergy   ,Loads *loadsTemp   
                               ,Loads *loadsZ        ,Loads *loadsVel     
                               ,bool const fTemp     ,bool const iKelvin   
                               ,bool const fGrouped);  
- static void convLoadsZcombMix(Combustion *cModel  ,Prop *pDen
+ static void setLoadsZcombMix(Combustion *cModel  ,Prop *pDen
                              ,Prop *sHeatProp      ,Loads *loadsTemp 
                              ,Loads *loadsZ        ,Loads *loadsVel
-                             ,DOUBLE *RESTRICT prop
                              ,bool const fTemp     ,bool const fSheat 
                              ,bool const iKelvin   ,bool const fDensity
                              ,bool const fGrouped);  
@@ -27,7 +26,7 @@
                            ,bool const iKelvin   ,bool const fDensity
                            ,bool const fGrouped);   
  static void setLoadsVel(PropVarFluid *propFluid ,Loads *loadsVel
-                        , Loads *loadsTemp       , DOUBLE *RESTRICT prop
+                        , Loads *loadsTemp      
                         , bool const fTemp       , bool const iKelvin);
 
  static void setLoadsPresC(Loads *loadsPres,Loads *loadsPresC
@@ -91,7 +90,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
   bool rflag[NMACROS],macroFlag;
   bool fOneEqK,fComb,fWallModel,fTurbStruct,fDynamic;
   INT nn,nel;
-  short maxno,ndm,numat,maxViz,ndfVel,nComb,nSpPri,nReac;
+  short maxno,ndm,numat,maxViz,ndfVel,nComb,nSpPri;
   char nameAux[MAX_STR_LEN_IN];
   FILE *fileAux=NULL;
   int i;
@@ -111,7 +110,6 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
   fComb       = cModel->fCombustion;
   nComb       = cModel->nComb;
   nSpPri      = cModel->nOfSpecies;
-  nReac       = cModel->chem.nReac;
   fOneEqK     = tModel->fOneEq;
   fWallModel  = tModel->fWall;
   fTurbStruct = tModel->fTurbStruct;
@@ -1092,7 +1090,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                     ,cModel->fLump);   
     else
       setLoadsVel(propF                     ,loadsVel              
-                 ,loadsTemp                 ,mesh->elm.material.prop
+                 ,loadsTemp                 
                  ,energyModel->fTemperature ,energyModel->fKelvin);   
   }
 /*...................................................................*/
@@ -1109,7 +1107,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     else
       setLoadsEnergy(propF
                      ,loadsEnergy              ,loadsTemp
-                     ,loadsVel                 ,mesh->elm.material.prop
+                     ,loadsVel                 
                      ,energyModel->fTemperature,energyModel->fKelvin);  
   }
 /*...................................................................*/
@@ -1117,10 +1115,9 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*... incializando as condicoes de contorno da Zcomb*/
   if(rflag[11])
   {
-    convLoadsZcombMix(cModel               ,&propF->den 
+    setLoadsZcombMix(cModel               ,&propF->den 
                  ,&propF->sHeat            ,loadsTemp   
                  ,loadsZcomb               ,loadsVel    
-                 ,mesh->elm.material.prop
                  ,energyModel->fTemperature,propF->fSpecificHeat
                  ,energyModel->fKelvin     ,propF->fDensity
                  ,cModel->fLump);  
@@ -1860,7 +1857,6 @@ void readVfInitial(DOUBLE *f          ,INT numel
 }
 /*********************************************************************/
 
-/*********************************************************************
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
  * Data de modificaco : 15/09/2019                                   *
@@ -2766,7 +2762,7 @@ void readModel(EnergyModel *e         , Turbulence *t
 
   char typeWallModel[][WORD_SIZE] ={"standard","enhanced"};
   
-  int i,nPar,id;
+  int i,nPar,id=0;
 
   readMacroV2(file, word, false, true);
   do{
@@ -4692,7 +4688,7 @@ void readDiffusionScheme(FILE *fileIn, Scheme *sc) {
 
 /**********************************************************************
  * Data de criacao    : 28/01/2018                                    *
- * Data de modificaco : 31/03/2018                                    *
+ * Data de modificaco : 12/11/2019                                    *
  *--------------------------------------------------------------------* 
  * readSetSimple:                                                     *
  *--------------------------------------------------------------------* 
@@ -4706,14 +4702,14 @@ void readDiffusionScheme(FILE *fileIn, Scheme *sc) {
  * OBS:                                                               * 
  *--------------------------------------------------------------------*
  **********************************************************************/
-void readSetSimple(Memoria *m    , FILE *fileIn
+bool readSetSimple(Memoria *m    , FILE *fileIn
                  , Mesh *mesh0   , Mesh *mesh
-                 , Simple *simple, bool *fSolvSimple) {
+                 , Simple *simple)
+{
 
   char word[WORD_SIZE];
 
 /*...*/
-  *fSolvSimple            = true;  
   simple->maxIt           = 1000;
   simple->alphaPres       = 0.3e0; 
   simple->alphaVel        = 0.7e0; 
@@ -4761,6 +4757,8 @@ void readSetSimple(Memoria *m    , FILE *fileIn
            ,mesh->numel,"ePresC1",false);
   zero(simple->ePresC,mesh->numel  ,DOUBLEC);
 /*...................................................................*/
+
+  return true;
 }
 /**********************************************************************/
 
@@ -7651,12 +7649,12 @@ static void setLoadsPresC(Loads *loadsPres,Loads *loadsPresC
  *********************************************************************/
 static void setLoadsEnergy(PropVarFluid *pF
                            ,Loads *loadsEnergy   ,Loads *loadsTemp
-                           ,Loads *loadsVel      ,DOUBLE *RESTRICT prop
+                           ,Loads *loadsVel      
                            ,bool const fTemp     ,bool const iKelvin   )
 {
   bool fDensity = pF->fDensity, fSheat = pF->fSpecificHeat;
   short i,j,type;
-  DOUBLE t,sHeat,tmp,tmp1;
+  DOUBLE t,tmp,tmp1;
   
 /*... cc da equacao da energia e em temperatura*/
   if(fTemp){
@@ -7682,7 +7680,6 @@ static void setLoadsEnergy(PropVarFluid *pF
 /*....................................................................*/
 
   else{
-    sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
     for(i=0;i<MAXLOAD;i++){
       loadsEnergy[i].fUse    = loadsTemp[i].fUse;
       loadsEnergy[i].type    = loadsTemp[i].type;
@@ -7772,9 +7769,9 @@ static void setLoadsEnergyMix(Combustion *cModel    ,PropVarFluid *pF
 {
   bool fSheat   = pF->fSpecificHeat,
        fDensity = pF->fDensity;
-  short i,j,n,type,id;
-  short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
-  DOUBLE t,yFrac[MAXSPECIES],sHeat,tmp,tmp1,molarMassMix,z[MAXSPECIES];
+  short i,j,n,type;
+  short ns = cModel->nOfSpecies;
+  DOUBLE t,yFrac[MAXSPECIES],sHeat,tmp,tmp1,molarMassMix;
   
 /*... cc da equacao da energia e em temperatura*/
   if(fTemp){
@@ -7894,19 +7891,16 @@ static void setLoadsEnergyMix(Combustion *cModel    ,PropVarFluid *pF
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-static void convLoadsZcombMix(Combustion *cModel   ,Prop *pDen
-                             ,Prop *sHeatProp   ,Loads *loadsTemp    
+static void setLoadsZcombMix(Combustion *cModel   ,Prop *pDen
+                             ,Prop *sHeatProp      ,Loads *loadsTemp    
                              ,Loads *loadsZ        ,Loads *loadsVel
-                             ,DOUBLE *RESTRICT prop
                              ,bool const fTemp     ,bool const fSheat 
                              ,bool const iKelvin   ,bool const fDensity
                              ,bool const fGrouped)   
 {
   short i,type;
-  short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
-  DOUBLE t,yFrac[MAXSPECIES],sHeat,tmp1,molarMassMix;
+  DOUBLE t,yFrac[MAXSPECIES],tmp1,molarMassMix;
   
-  sHeat = MAT2D(0,SPECIFICHEATCAPACITYFLUID, prop, MAXPROP);
   for(i=0;i<MAXLOAD;i++)
   {
     type = loadsZ[i].type;
@@ -7965,8 +7959,7 @@ static void setLoadsVelMix(Combustion *cModel ,PropVarFluid *propFluid
                            ,bool const fGrouped)   
 {
   short i,type;
-  short ns = cModel->nOfSpecies, nl =cModel->nOfSpeciesLump;
-  DOUBLE t,yFrac[MAXSPECIES],sHeat,tmp1,molarMassMix;
+  DOUBLE t,yFrac[MAXSPECIES],tmp1,molarMassMix;
   
   for(i=0;i<MAXLOAD;i++)
   {
@@ -8011,14 +8004,13 @@ static void setLoadsVelMix(Combustion *cModel ,PropVarFluid *propFluid
  *********************************************************************/
 static void setLoadsVel(PropVarFluid *propFluid
                         ,Loads *loadsVel      ,Loads *loadsTemp
-                        ,DOUBLE *RESTRICT prop
                         ,bool const fTemp     ,bool const iKelvin)
 
 {
 
-  bool fDensity = propFluid->fDensity, fSheat = propFluid->fSpecificHeat;
+  bool fDensity = propFluid->fDensity;
   short i,type;
-  DOUBLE t,sHeat,tmp1;
+  DOUBLE t,tmp1;
   
   for(i=0;i<MAXLOAD;i++)
   {
@@ -8249,7 +8241,7 @@ void setSimpleScheme(char *fileName, Simple *sp)
 /*... nOrth*/
       else if (!strcmp(word, macro[j++]))
       {
-        fscanf(fileIn,"%u" ,&sp->nNonOrth);
+        fscanf(fileIn,"%d" ,&sp->nNonOrth);
         fprintf(fileLogExc, "%-20s : %u\n","nNonOrth", sp->nNonOrth);
       }
 /*.....................................................................*/

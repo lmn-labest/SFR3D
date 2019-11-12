@@ -2043,6 +2043,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
 /*...................................................................*/
 
 /*...*/
+    lRateHeatC = 0.e0;
     if(cModel->fCombustion)
       lRateHeatC = rateHeatComb[nel];
   
@@ -2242,13 +2243,11 @@ void systFormComb(Loads *loads              , Loads *ldVel
       ,fWallModel = tModel->fWall;
   short i, j, k, lib, aux1, aux2, lMat;
   short nThreads = ompVar.nThreadsCell
-      , nReac = cModel->chem.nReac
       , ns    = cModel->nOfSpecies;
   INT nel, vizNel;
 
   /*... variavel local */
-  short  lGeomType[MAX_NUM_FACE + 1],
-    lFaceR[MAX_NUM_FACE + 1],lFaceVelR[MAX_NUM_FACE + 1];
+  short  lGeomType[MAX_NUM_FACE + 1],lFaceR[MAX_NUM_FACE + 1];
   INT    lId[(MAX_NUM_FACE + 1)*MAX_NDF], lViz[MAX_NUM_FACE];
   INT    idFace, cellOwner, ch;
   DOUBLE lKsi[MAX_NUM_FACE*MAX_NDM], lmKsi[MAX_NUM_FACE];
@@ -2286,7 +2285,7 @@ void systFormComb(Loads *loads              , Loads *ldVel
          ,ddt,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd,underU \
          ,nAdR,storage,forces,matrix,unsym,tModel,cModel,vProp,wallPar\
          ,fOwner,cellFace\
-         ,ns,nReac,wk,scAdv,scDiff,fTurb,fWallModel)
+         ,ns,wk,scAdv,scDiff,fTurb,fWallModel)
   for (nel = 0; nel<numel; nel++)
   {
 /*...*/
@@ -4442,12 +4441,9 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
 {
  int *md=NULL;
   DOUBLE *mdf=NULL;
-  INT    idFace;
-  short i,j,k,l,n,nodeFace,aux=maxViz+1;
-  INT nel,no1,no[4];
-  short  isNod[MAX_SN],nCarg,ty,typed;
+  short j,k,l;
+  INT nel,no1;
   DOUBLE dist, dx;
-  DOUBLE uT[MAX_NDF], xx[4], par[MAXLOADPARAMETER];
   
   switch(type)
   {
@@ -5998,190 +5994,6 @@ void hPres(DOUBLE *RESTRICT pres0  , DOUBLE *RESTRICT pres
 }
 /*********************************************************************/
 
-void systFormDifOld(Loads *loads, Diffusion *diff
-                  , INT    *RESTRICT el, INT    *RESTRICT nelcon
-                  , short  *RESTRICT nen, short  *RESTRICT nFace
-                  , DOUBLE *RESTRICT gVolume, DOUBLE *RESTRICT gDcca
-                  , DOUBLE *RESTRICT gXmCc
-                  , DOUBLE *RESTRICT gModksi, DOUBLE *RESTRICT gKsi
-                  , DOUBLE *RESTRICT gEta, DOUBLE *RESTRICT gfArea
-                  , DOUBLE *RESTRICT gNormal, DOUBLE *RESTRICT gXm
-                  , DOUBLE *RESTRICT gModvSkew, DOUBLE *RESTRICT gvSkew
-                  , short  *RESTRICT geomType, DOUBLE *RESTRICT prop
-                  , short  *RESTRICT calType, short  *RESTRICT mat
-                  , DOUBLE *RESTRICT density
-                  , INT    *RESTRICT ia, INT    *RESTRICT ja
-                  , DOUBLE *RESTRICT a, DOUBLE *RESTRICT ad
-                  , DOUBLE *RESTRICT b, INT    *RESTRICT id
-                  , short  *RESTRICT faceR, short  *RESTRICT faceL
-                  , DOUBLE *RESTRICT u0, DOUBLE *RESTRICT gradU0
-                  , DOUBLE *RESTRICT rCell, Temporal *ddt
-                  , INT nEq, INT nEqNov
-                  , INT nAd, INT nAdR
-                  , short maxNo, short maxViz
-                  , short ndm, INT numel
-                  , short ndf, short storage
-                  , bool forces, bool matrix
-                  , bool calRcell, bool unsym)
-{
-  short i, j;
-  INT nel, vizNel;
-  /*... variavel local */
-  DOUBLE lKsi[MAX_NUM_FACE*MAX_NDM], lmKsi[MAX_NUM_FACE];
-  DOUBLE lEta[MAX_NUM_FACE*MAX_NDM], lfArea[MAX_NUM_FACE];
-  DOUBLE lNormal[MAX_NUM_FACE*MAX_NDM], lVolume[MAX_NUM_FACE + 1];
-  DOUBLE lXm[MAX_NUM_FACE*MAX_NDM], lXmcc[MAX_NUM_FACE*MAX_NDM];
-  DOUBLE lDcca[MAX_NUM_FACE];
-  DOUBLE lmvSkew[MAX_NUM_FACE], lvSkew[MAX_NUM_FACE*MAX_NDM];
-  short  lGeomType[MAX_NUM_FACE + 1];
-  short  lib;
-  short  lFaceR[MAX_NUM_FACE + 1];
-  short  lFaceL[MAX_NUM_FACE + 1];
-  DOUBLE lDensity;
-  DOUBLE lA[(MAX_NUM_FACE + 1)*MAX_NDF], lB[MAX_NDF];
-  DOUBLE lProp[(MAX_NUM_FACE + 1)*MAXPROP];
-  DOUBLE lu0[(MAX_NUM_FACE + 1)*MAX_NDF];
-  DOUBLE lGradU0[(MAX_NUM_FACE + 1)*MAX_NDM];
-  DOUBLE lRcell[MAX_NDF];
-  INT    lId[(MAX_NUM_FACE + 1)*MAX_NDF], lViz[MAX_NUM_FACE];
-  short  aux1, aux2, lMat;
-
-/*... loop nas celulas*/
-  aux2 = maxViz + 1;
-  for (nel = 0; nel<numel; nel++) {
-/*...*/
-    if (calRcell)
-      for (j = 0; j<ndf; j++)
-        MAT2D(nel, j, rCell, ndf) = 0.e0;;
-    /*...*/
-    aux1 = nFace[nel];
-/*... elementos com equacoes*/
-    if (MAT2D(nel, aux1, faceR, aux2) < 0) {
-
-/*... zerando vetores*/
-      for (j = 0; j<(MAX_NUM_FACE + 1)*MAX_NDF; j++) {
-        lId[j] = -1;
-        lu0[j] = 0.e0;
-      }
-
-/*... loop na celula central*/
-      lMat = mat[nel] - 1;
-      lib = calType[lMat];
-      lVolume[aux1] = gVolume[nel];
-      lGeomType[aux1] = geomType[nel];
-      lFaceR[aux1] = MAT2D(nel, aux1, faceR, aux2);
-      lFaceL[aux1] = MAT2D(nel, aux1, faceL, aux2);
-      lDensity = MAT2D(nel, 0, density, DENSITY_LEVEL);
-
-      for (j = 0; j<ndf; j++) {
-        MAT2D(aux1, j, lu0, ndf) = MAT2D(nel, j, u0, ndf);
-        MAT2D(aux1, j, lId, ndf) = MAT2D(nel, j, id, ndf) - 1;
-      }
-
-      for (j = 0; j<MAXPROP; j++)
-        MAT2D(aux1, j, lProp, MAXPROP) = MAT2D(lMat, j, prop, MAXPROP);
-
-      for (j = 0; j<ndm; j++)
-        MAT2D(aux1, j, lGradU0, ndm) = MAT2D(nel, j, gradU0, ndm);
-
-      for (i = 0; i<aux1; i++)
-      {
-        lDcca[i] = MAT2D(nel, i, gDcca, maxViz);
-        aux2 = (maxViz + 1);
-        lFaceR[i] = MAT2D(nel, i, faceR, aux2);
-        lFaceL[i] = MAT2D(nel, i, faceL, aux2);
-        for (j = 0; j<ndm; j++)
-        {
-          MAT2D(i, j, lXmcc, ndm) = MAT3D(nel, i, j, gXmCc, maxViz, ndm);
-        }
-      }
-
-      for (i = 0; i<aux1; i++) 
-      {
-        lmKsi[i]   = MAT2D(nel, i, gModksi, maxViz);
-        lfArea[i]  = MAT2D(nel, i, gfArea, maxViz);
-        lDcca[i]   = MAT2D(nel, i, gDcca, maxViz);
-        lmvSkew[i] = MAT2D(nel, i, gModvSkew, maxViz);
-        aux2 = (maxViz + 1);
-        lFaceR[i] = MAT2D(nel, i, faceR, aux2);
-        lFaceL[i] = MAT2D(nel, i, faceL, aux2);
-        for (j = 0; j<ndm; j++) 
-        {
-          MAT2D(i, j, lKsi, ndm) = MAT3D(nel, i, j, gKsi, maxViz, ndm);
-          MAT2D(i, j, lEta, ndm) = MAT3D(nel, i, j, gEta, maxViz, ndm);
-          MAT2D(i, j, lNormal, ndm) = MAT3D(nel, i, j, gNormal, maxViz, ndm);
-          MAT2D(i, j, lXm, ndm) = MAT3D(nel, i, j, gXm, maxViz, ndm);
-          MAT2D(i, j, lXmcc, ndm) = MAT3D(nel, i, j, gXmCc, maxViz, ndm);
-          MAT2D(i, j, lvSkew, ndm) = MAT3D(nel, i, j, gvSkew, maxViz, ndm);
-        }
-      }
-
-/*... loop na celulas vizinhas*/
-      for (i = 0; i<aux1; i++)
-      {
-        vizNel = MAT2D(nel, i, nelcon, maxViz) - 1;
-        lViz[i] = vizNel;
-        if (vizNel != -2)
-        {
-          lVolume[i] = gVolume[vizNel];
-          lGeomType[i] = geomType[vizNel];
-          lMat = mat[vizNel] - 1;
-          for (j = 0; j<ndf; j++) {
-            MAT2D(i, j, lu0, ndf) = MAT2D(vizNel, j, u0, ndf);
-            MAT2D(i, j, lId, ndf) = MAT2D(vizNel, j, id, ndf) - 1;
-          }
-          for (j = 0; j<ndm; j++)
-            MAT2D(i, j, lGradU0, ndm) = MAT2D(vizNel, j, gradU0, ndm);
-          for (j = 0; j<DIFPROP; j++)
-            MAT2D(i, j, lProp, MAXPROP) = MAT2D(lMat, j, prop, MAXPROP);
-        }
-      }
-/*...................................................................*/
-
-/*... chamando a biblioteca de celulas*/
-/*    cellLibDif(loads    , diff
-               , lGeomType, lProp
-               , lViz     , lId
-               , lKsi     , lmKsi
-               , lEta     , lfArea
-               , lNormal  , lVolume
-               , lXm      , lXmcc
-               , lDcca    , &lDensity
-               , lvSkew   , lmvSkew
-               , lA       , lB
-               , lRcell   , ddt
-               , lFaceR   , lFaceL
-               , lu0      , lGradU0
-               , nen[nel] , nFace[nel]
-               , ndm      , lib
-               , nel);*/
-/*...................................................................*/
-
-/*... residuo da celula*/
-      if (calRcell)
-        for (j = 0; j<ndf; j++)
-          MAT2D(nel, j, rCell, ndf) = lRcell[j];
-/*...................................................................*/
-
-/*...*/
-      assbly(ia, ja
-        , a, ad
-        , b
-        , lId
-        , lA, lB
-        , nEq, nEqNov
-        , nAd, nAdR
-        , nFace[nel], ndf
-        , storage, forces
-        , matrix, unsym);
-/*...................................................................*/
-    }
-/*...................................................................*/
-  }
-/*...................................................................*/
-}
-/*********************************************************************/
-
 /**********************************************************************
  * Data de criacao    : 15/08/2018                                    *
  * Data de modificaco : 10/05/2019                                    *
@@ -6269,10 +6081,9 @@ void boundaryNode(Memoria *m              ,Loads *loads
 {
 
   bool *flag = NULL;
-  short i,j,k,l,n,nodeFace,aux=maxViz+1,isNod[MAX_SN]
+  short i,k,n,nodeFace,aux=maxViz+1,isNod[MAX_SN]
        ,nCarg,ty,typed;
   int *md=NULL;
-  DOUBLE *mdf=NULL;
   INT nel, idFace, no1, no[4];
   DOUBLE xx[4],par[MAXLOADPARAMETER],uT[MAX_NDF];
   DOUBLE gradPb[3],dx,gh,lDensity;

@@ -1924,7 +1924,8 @@ void printTrans(Memoria *m
               , char *preName  , char *nameOut)
 {
   void *dum = NULL;
-  char i,str[10][100],*ps[10];
+  char str[10][100],*ps[10];
+  short i;
   FILE *fileOut = NULL;
   DOUBLE *nDen = NULL, *nCoefDiff = NULL, *nVel = NULL;
 
@@ -2337,11 +2338,6 @@ void printDiff(Memoria *m
  *********************************************************************/
 void reScaleMesh(Mesh *mesh, FILE *fileIn)
 {
-  char word[WORD_SIZE], fNomeOut[MAX_STR_LEN_SUFIXO];
-  short j;
-  int i;
-  DOUBLE sC[MAX_NDM];
-
 /*... lendo os valores de escala*/  
   if(mesh->ndm == 2)
     fscanf(fileIn,"%lf %lf", mesh->scaleX,mesh->scaleX+1);
@@ -2429,7 +2425,7 @@ void initPrintVtk(FileOpt *opt)
   opt->pKelvin       = false;
   opt->stepPlot[0] = 5;
   opt->stepPlot[1] = opt->stepPlot[0];
-
+  opt->fileParameters= NULL;
 }
 /*********************************************************************
 * Data de criacao    : 20/07/2018                                   *

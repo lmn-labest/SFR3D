@@ -42,7 +42,7 @@ void simpleSolver(Memoria *m
   INT jj = 1;
   DOUBLE time,timei;
 /*...*/
-  DOUBLE rU[3],rU0[3],tmp,tb[3],rMass0,rMass;
+  DOUBLE rU[3],rU0[3],tb[3],rMass0,rMass;
   DOUBLE *rCellPc;
 /*...*/
   DOUBLE tolSimpleU1,tolSimpleU2,tolSimpleU3,tolSimpleMass;
@@ -76,7 +76,7 @@ void simpleSolver(Memoria *m
   rU0[0] = rU0[1] = rU0[2] = 1.e0;
   conv = 0;
   xMomentum = yMomentum = zMomentum = true;
-  tmp = tb[0] = tb[1] = tb[2] = 0.e0;
+  tb[0] = tb[1] = tb[2] = 0.e0;
   rCellPc = mesh->elm.rCellPres;
 /*...................................................................*/
 

@@ -35,7 +35,7 @@ DOUBLE InletFunction(DOUBLE const x) {
   return  f;
 
 }
-/********************************************************************* 
+/*********************************************************************/ 
 
 /********************************************************************* 
  * Data de criacao    : 14/08/2019                                   *
@@ -72,12 +72,12 @@ DOUBLE functionFace(DOUBLE const x1,DOUBLE const x2, DOUBLE const x3)
  *********************************************************************/
 static void functionGeneral(DOUBLE *x,DOUBLE *c, short const iCod)
 {
-  DOUBLE x1,x2,x3,t,r,R,Vel;
+//DOUBLE x1,x2,x3,t,r,R,Vel;
 
-  x1 = x[0];
-  x2 = x[1];
-  x3 = x[2];
-  t  = x[3];
+//x1 = x[0];
+//x2 = x[1];
+//x3 = x[2];
+//t  = x[3];
 /* 
   c[0] = 0.e0;
   if(x1< 0.e0 && x1>-0.5 && x2 < 0.5)
@@ -90,13 +90,13 @@ static void functionGeneral(DOUBLE *x,DOUBLE *c, short const iCod)
   c[4] = 1.e0;
 */
 
-  r = x1*x1 + x2*x2;
-  R = 1.e0;
-  Vel = 1.e0;
+//r = x1*x1 + x2*x2;
+//R = 1.e0;
+//Vel = 1.e0;
 
-  c[0] = c[1] = 0.e0;
-  c[2] = 2.e0*Vel*(1.e0 - r/(R*R));
-  c[3] = 1.e0;
+//c[0] = c[1] = 0.e0;
+//c[2] = 2.e0*Vel*(1.e0 - r/(R*R));
+//c[3] = 1.e0;
 }
 /********************************************************************/
 
@@ -122,13 +122,7 @@ static void functionGeneral(DOUBLE *x,DOUBLE *c, short const iCod)
 void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx)
 {
 
-  char i;
-  DOUBLE x1,x2,x3;
-
-  x1=xx[0];
-  x2=xx[1];
-  x3=xx[2];
-//t =xx[3];
+  short i;
 
   if (ld->type == DIRICHLETBC)
   {
@@ -747,7 +741,7 @@ void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 {              
 
   DOUBLE modVel,par[MAXLOADPARAMETER],ev[3],dc,densityEnv,m,presT;
-  DOUBLE tmp[5],modE,xx[4],gradPb[3],gradPs;
+  DOUBLE tmp[5],modE,xx[4],gradPb[3];
 
 /*...*/
   tmp[0] = e[0]*e[0] + e[1]*e[1];
@@ -1021,7 +1015,6 @@ void pLoadEnergy(PropVarFluid *vProp
                , bool const iKelvin      , bool const fSheat
                , bool const fWallModel   , short const wallType){
 
-  short i;
   DOUBLE aP,h,wfn,wf[3],tempPlus,yPlus,uPlus,tC,tW,densityEnv;
   DOUBLE prM = viscosityC*sHeatC/thermCoef,diff;
   DOUBLE par[MAXLOADPARAMETER],velB[3];
@@ -1295,7 +1288,7 @@ void pLoadCombustion(PropVarFluid *vProp
 {
 
   short i;
-  DOUBLE aP,wfn,wf[3],tempPlus,yPlus,uPlus,densityEnv;
+  DOUBLE aP,wfn,wf[3],yPlus,uPlus,densityEnv;
   DOUBLE par[MAXLOADPARAMETER],velB[3];
   
   velB[0] = velB[1] = velB[2] = 0.e0;
@@ -1304,7 +1297,7 @@ void pLoadCombustion(PropVarFluid *vProp
     par[i] = 0.e0;
 
 /*...*/
-  tempPlus = uPlus = yPlus = 0.e0;
+//tempPlus = uPlus = yPlus = 0.e0;
   wf[0] = wf[1] = wf[2] = 0.e0;
 //if (fWallModel && fCal) {
 /*... calculo da velocidade paralela a face*/

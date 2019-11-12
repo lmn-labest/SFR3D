@@ -362,7 +362,7 @@ DOUBLE residualMass(DOUBLE *RESTRICT rCellMass,INT const nEl
 {
 
   INT i;
-  DOUBLE tmp,v;
+  DOUBLE tmp=0.e0,v=0.e0;
 
 /*...*/
   if( iCod == RSQRT)

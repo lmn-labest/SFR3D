@@ -139,7 +139,7 @@ DOUBLE intNum(PolNasa *a,DOUBLE const x0,DOUBLE const x1
              ,short const iCod)
 {
   short i,m=100;
-  DOUBLE h,xi,sum,integral;
+  DOUBLE h,xi,sum,integral=0.e0;
 
 /*... regra do trapezeo*/
   if(iCod == 1)
@@ -280,6 +280,7 @@ DOUBLE polNasaCp2Derivada(PolNasa *a     , DOUBLE const x)
 
   nasaPolRange(a,x,&c,&xi,1);
 
+  sum = 0.e0;
   if (a->type == 7)
     sum = 2.e0*c[2] + 6.e0*c[3]*xi + 12.e0*c[4]*xi*xi;
 
@@ -313,7 +314,7 @@ DOUBLE polNasaCp2Derivada(PolNasa *a     , DOUBLE const x)
 DOUBLE polNasaCp(PolNasa *a     , DOUBLE const x)
 {
 
-  DOUBLE sum,*c=NULL,xi;
+  DOUBLE sum=0.0e0,*c=NULL,xi;
 
   nasaPolRange(a,x,&c,&xi,1);
 
@@ -351,7 +352,7 @@ DOUBLE polNasaCp(PolNasa *a     , DOUBLE const x)
 DOUBLE polNasaH(PolNasa *a     , DOUBLE const x, bool const fKelvin)
 {
 
-  DOUBLE sum,*c=NULL,xi,R,tc;
+  DOUBLE sum=0.e0,*c=NULL,xi,R,tc;
 
   if(fKelvin)
     tc = x;  
@@ -364,9 +365,9 @@ DOUBLE polNasaH(PolNasa *a     , DOUBLE const x, bool const fKelvin)
   nasaPolRange(a,tc,&c,&xi,2);
 
   if (a->type == 7)
-    sum = c[0]                 + 0.5e0*c[1]*xi
-        + c[2]*xi*xi/3.e0      + 0.25e0*c[3]*xi*xi*xi 
-        + c[4]*xi*xi*xi*xi/5.e0+ c[5]/xi;
+    sum = c[0]                  + 0.5e0*c[1]*xi
+        + c[2]*xi*xi/3.e0       + 0.25e0*c[3]*xi*xi*xi 
+        + c[4]*xi*xi*xi*xi/5.e0 + c[5]/xi;
 
   return R*xi*sum;
 }
@@ -779,7 +780,7 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
   FILE *fileAux;
   char word[WORD_SIZE];
   char nameAux[1000];
-  short i,j,k,jk,kk;
+  short i,j,k,kk=0,jk;
   int nSpecies;
   DOUBLE x[MAXPLODEG],g;
 
@@ -951,16 +952,16 @@ void getEnergyFromTheTempMix(PropVarFluid *pf  ,DOUBLE *RESTRICT yFrac
                         ,bool const fKelvin
                         ,bool const fOmp      ,short const nThreads ) 
 {
+  DOUBLE *y;
   bool fSheat = pf->fSpecificHeat;
   INT i;  
-  DOUBLE*y;
 
 #pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
   private(i,y) shared(energy,temp,yFrac,pf,fSheat)
   for (i = 0; i < nCell; i++) 
   {
     y = &MAT2D(i,0,yFrac,nOfPrSp);
-    energy[i] = tempToSpecificEnthalpyMix(&pf->sHeat,yFrac
+    energy[i] = tempToSpecificEnthalpyMix(&pf->sHeat,y
                                          ,temp[i]   ,pf->sHeatRef
                                          ,nOfPrSp
                                          ,fSheat   ,fKelvin);  
@@ -1152,11 +1153,9 @@ DOUBLE mixtureSpecifiHeat(Prop *sHeat        , DOUBLE *yFrac
 {
 
   short i,k,n;  
-  DOUBLE a[MAXPLODEG],cpk,cp,d;
+  DOUBLE cpk,cp,d;
   DOUBLE tc;
-
-  a[0] = 0.0e0;
-  
+ 
   if(fKelvin)
     tc = t;  
   else
@@ -1236,7 +1235,7 @@ DOUBLE specieSpecifiHeat(Prop *sHeat     , short const kSpecie
 {
 
   short i,n;
-  DOUBLE a[MAXPLODEG],cp,d,tc;
+  DOUBLE cp,d,tc;
 
   if(fKelvin)
     tc = t;  
@@ -1248,11 +1247,9 @@ DOUBLE specieSpecifiHeat(Prop *sHeat     , short const kSpecie
 /*... polinomial*/
     case POL:
       n=sHeat->pol[kSpecie].nPol;
-      for (i = 0; i < n; i++)
-        a[i] = sHeat->pol[kSpecie].a[i];
-      cp = a[0];
+      cp = sHeat->pol[kSpecie].a[0];
       for (i = 1; i < n; i++)
-        cp += a[i]*pow(tc,i);
+        cp += sHeat->pol[kSpecie].a[i]*pow(tc,i);
 /*.....................................................................*/
     break;
 
@@ -2191,7 +2188,7 @@ void initPropTempMix(PropVarFluid *propF    , Combustion *cModel
 {    
   INT i;
   unsigned short j,lMat;
-  DOUBLE *y,molarMassMix,v;
+  DOUBLE *y,molarMassMix,v=0.e0;
          
   for(i=0;i<nCell;i++){    
 
@@ -2453,7 +2450,7 @@ DOUBLE airDensity(Prop *den
                  ,bool const fKelvin)
 {
   short i,n=den->pol[0].nPol;
-  DOUBLE a[MAXPLODEG],tc,y,d;
+  DOUBLE tc,y,d;
 
   if(fKelvin)
     tc = t;  
@@ -2463,13 +2460,10 @@ DOUBLE airDensity(Prop *den
   switch (den->type) {
 /*... polinomial*/
     case POL:
-      for (i = 0; i < n; i++)
-        a[i] = den->pol[0].a[i];
-
 /*... polinomial*/
-      y = a[0];
+      y = den->pol[0].a[0];
       for (i = 1; i < n; i++)
-        y += a[i]*pow(tc,i);
+        y += den->pol[0].a[i]*pow(tc,i);
 /*.....................................................................*/
 
 /*.....................................................................*/
@@ -4090,7 +4084,7 @@ void presRefMix(Combustion *cModel
 {
   short ns = cModel->nOfSpecies;
   INT i;  
-  DOUBLE dm,vm,t,t0,mW,mW0,*y,*y0,rho;
+  DOUBLE dm,vm,t,t0,mW,mW0,*y,*y0,tmp;
 #ifdef _MPI_
   DOUBLE gVm,gDm;
 #endif
@@ -4130,16 +4124,16 @@ void presRefMix(Combustion *cModel
     MPI_Allreduce(&vm,&gVm,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
     MPI_Allreduce(&dm,&gDm,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
-    rho = gDm/gVm;
+    tmp = gDm/gVm;
   }
   else  
-    rho = dm/vm;
+    tmp = dm/vm;
 #else
-    rho = dm/vm;
+    tmp = dm/vm;
 #endif
 /*...................................................................*/
 
-  pTh[2] = pTh[1]* dm/vm;
+  pTh[2] = pTh[1]* tmp;
 }
 /*********************************************************************/
 
