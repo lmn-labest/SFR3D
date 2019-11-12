@@ -1956,7 +1956,7 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
 
 /********************************************************************** 
  * Data de criacao    : 05/08/2018                                    *
- * Data de modificaco : 26/10/2019                                    * 
+ * Data de modificaco : 09/11/2019                                    * 
  *------------------------------------------------------------------- * 
  * wResVtkCombustion :                                                * 
  * ------------------------------------------------------------------ *
@@ -2064,7 +2064,8 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
           , DOUBLE *eSheat        , DOUBLE *nSheat
           , DOUBLE *eTCond        , DOUBLE *nTCond
           , DOUBLE *eDiffSp       , DOUBLE *nDiffSp  
-           , DOUBLE *eGradRho     , DOUBLE *nGradRho
+          , DOUBLE *eGradRho      , DOUBLE *nGradRho
+          , DOUBLE *eMolar        , DOUBLE *nMolar
           , DOUBLE *eTreactor  
           , INT nnode             , INT numel    
           , short const ndm       , short const maxNo 
@@ -2514,6 +2515,15 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
   }
 /*...................................................................*/
 
+/*... escrever a massa molar da mistura por celula*/
+  if (opt->mMolar && opt->fCell) 
+  {
+    strcpy(str,"eMolar");
+    writeVtkProp(&idum,eMolar,numel,1,str,iws
+               ,DOUBLE_VTK,SCALARS_VTK,f);
+  }
+/*...................................................................*/
+
 /*.... campo por no*/
   fprintf(f,"POINT_DATA %ld\n",(long) nnode);
 /*...................................................................*/
@@ -2867,7 +2877,18 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
   }
 /*...................................................................*/
 
+/*... escrever a massa molar da mistura por celula*/
+  if (opt->mMolar && opt->fNode) 
+  {
+    strcpy(str,"nMolar");
+    writeVtkProp(&idum,nMolar,nnode,1,str,iws
+               ,DOUBLE_VTK,SCALARS_VTK,f);
+  }
+/*...................................................................*/
+
+/*...*/
   fclose(f);
+/*...................................................................*/
 }
 /*********************************************************************/
 

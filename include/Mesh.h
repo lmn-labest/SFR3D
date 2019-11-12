@@ -116,6 +116,8 @@
     DOUBLE *gradUt1;    /*gradiente da difusao pura uT1*/
     DOUBLE *rCellUt1;   /*residuo da celula*/
 /*...*/
+    DOUBLE *mMolar;     /*massa molar da mixtura*/
+/*...*/
     DOUBLE *leastSquare; /*matriz de aproxima leastSquare*/
     DOUBLE *leastSquareR;/*fatoracao QR*/
 /*...*/

@@ -252,7 +252,8 @@
   #define SHEAT_LEVEL           3
   #define TCONDUCTIVITY_LEVEL   1
   #define COEFDIFF_LEVEL        1
-  #define SPECIEDIFUSSION_LEVEL 1   
+  #define SPECIEDIFUSSION_LEVEL 1
+  #define MOLAR_LEVEL           3   
 /*...................................................................*/
 
 /*... conv radianos para graus*/

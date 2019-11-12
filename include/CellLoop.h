@@ -236,7 +236,7 @@ void systFormSimpleVelLm(Loads *loadsVel   , Loads *loadsPres
                , DOUBLE *RESTRICT b        , INT    *RESTRICT id
                , short  *RESTRICT faceVelR , short  *RESTRICT facePresR           
                , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
-               , DOUBLE *RESTRICT gradRho
+               , DOUBLE *RESTRICT gradRho  , DOUBLE *RESTRICT mMolar
                , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT dField
                , DOUBLE *RESTRICT temp     , DOUBLE *RESTRICT wallPar  
                , DOUBLE *RESTRICT rCell    , DOUBLE *RESTRICT density

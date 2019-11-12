@@ -3473,7 +3473,7 @@ void velResidual(Loads *loadsVel            , Loads *loadsPres
 
 /********************************************************************* 
  * Data de criacao    : 17/09/2017                                   *
- * Data de modificaco : 28/10/2019                                   * 
+ * Data de modificaco : 10/11/2019                                   * 
  *-------------------------------------------------------------------* 
  * SYSTFOMSIMPLEPRESLM:calculo do sistema de equacoes para problemas * 
  * de escomaneto de fluidos para baixo Mach(Pres)                    * 
@@ -3575,7 +3575,7 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
                , DOUBLE *RESTRICT b        , INT    *RESTRICT id
                , short  *RESTRICT faceVelR , short  *RESTRICT facePresR           
                , DOUBLE *RESTRICT pres     , DOUBLE *RESTRICT gradPres
-               , DOUBLE *RESTRICT gradRho
+               , DOUBLE *RESTRICT gradRho  , DOUBLE *RESTRICT mMolar
                , DOUBLE *RESTRICT vel      , DOUBLE *RESTRICT dField
                , DOUBLE *RESTRICT temp     , DOUBLE *RESTRICT wallPar  
                , DOUBLE *RESTRICT rCell    , DOUBLE *RESTRICT density
@@ -3609,7 +3609,7 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
   DOUBLE lGradRho[MAX_NDM],lCc[(MAX_NUM_FACE+1)*MAX_NDM];
   DOUBLE lVel[(MAX_NUM_FACE+1)*MAX_NDM];
   DOUBLE lDfield[(MAX_NUM_FACE+1)*MAX_NDM];
-  DOUBLE lRcell,lWallPar[NWALLPAR];
+  DOUBLE lRcell,lWallPar[NWALLPAR],lMolar[DENSITY_LEVEL];
   INT    lId[(MAX_NUM_FACE+1)*MAX_NDF],lViz[MAX_NUM_FACE];
   INT idFace, cellOwner, ch;
   short  aux1,aux2,lMat;
@@ -3619,7 +3619,7 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
 #pragma omp parallel  for default(none) if(ompVar.fCell)\
   num_threads(nThreads)\
   private(nel,i,j,aux1,lId,lPres,lMat,lib,lVolume,lGeomType\
-          ,lA,lB,lDfield,lTemp,lCc\
+          ,lA,lB,lDfield,lTemp,lMolar,lCc\
           ,lFaceVelR,lFacePresR,lDensity,lGradPres,lGradRho\
           ,lVel,lmKsi,lfArea,lDcca,lmvSkew,lKsi,lEta\
           ,lNormal,lXm,lXmcc,lvSkew,vizNel,lViz,lRcell,lWallPar\
@@ -3631,7 +3631,7 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
          ,nelcon,id,loadsVel,loadsPres,diffPres,eMass,mMom\
          ,ddt,nen,ia,ja,a,ad,b,nEq,nEqNov,nAd\
          ,nAdR,storage,forces,matrix,unsym,pres,dField,wallPar\
-         ,fOwner,cellFace,fWallModel)
+         ,fOwner,cellFace,fWallModel,mMolar)
 /*... loop nas celulas*/
   for(nel=0;nel<numel;nel++)
   {
@@ -3662,6 +3662,12 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
                            , TIME_N_MINUS_1,density, DENSITY_LEVEL);
     MAT2D(aux1,2,lDensity, DENSITY_LEVEL) = MAT2D(nel
                            , TIME_N,density, DENSITY_LEVEL);
+/*...................................................................*/ 
+
+/*...*/
+    lMolar[0] = MAT2D(nel, TIME_N_MINUS_2,mMolar, MOLAR_LEVEL);
+    lMolar[1] = MAT2D(nel, TIME_N_MINUS_1,mMolar, MOLAR_LEVEL);
+    lMolar[2] = MAT2D(nel, TIME_N        ,mMolar, MOLAR_LEVEL);
 /*...................................................................*/ 
 
 /*...*/
@@ -3767,7 +3773,7 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
                   ,&lRcell    ,ddt
                   ,lFaceVelR  ,lFacePresR                          
                   ,lPres      ,lGradPres 
-                  ,lGradRho   
+                  ,lGradRho   ,lMolar
                   ,lVel       ,lDfield 
                   ,lTemp      ,lWallPar
                   ,densityMed

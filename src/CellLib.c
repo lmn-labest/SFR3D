@@ -1024,7 +1024,7 @@ void cellLibSimplePres(Loads *lVel         ,Loads *lPres
 
 /*********************************************************************
  * Data de criacao    : 17/09/2017                                   *
- * Data de modificaco : 12/10/2019                                   *
+ * Data de modificaco : 10/11/2019                                   *
  *-------------------------------------------------------------------*
  * CELLLIBSIMPLEPRESLM: chamada de bibliotecas de celulas para       *
  * problema de escoamento de fluidos a baixo Mach (PRES)             *
@@ -1066,6 +1066,7 @@ void cellLibSimplePres(Loads *lVel         ,Loads *lPres
  * pres      -> campo de pressao conhecido                           *
  * gradPes   -> gradiente reconstruido da pressao                    *
  * gradRho   -> gradiente rescontruido da densidade                  *
+ * mMolar    -> massa molar                                          *
  * vel       -> campo de velocidade conhecido                        *
  * dField    -> matriz D do metodo simple                            *
  * temp    -> temperatura                                            *   
@@ -1099,7 +1100,7 @@ void cellLibSimplePresLm(Loads *lVel        , Loads *lPres
                , DOUBLE *RESTRICT lRcell    , Temporal *ddt
                , short  *RESTRICT lFaceVelR , short  *RESTRICT lFacePresR
                , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres
-               , DOUBLE *RESTRICT gradRho 
+               , DOUBLE *RESTRICT gradRho   , DOUBLE *RESTRICT mMolar
                , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField 
                , DOUBLE *RESTRICT temp      , DOUBLE *RESTRICT wallPar
                , DOUBLE const densityMed
@@ -1132,7 +1133,7 @@ void cellLibSimplePresLm(Loads *lVel        , Loads *lPres
                  , lRcell    , ddt 
                  , lFaceVelR , lFacePresR
                  , pres      , gradPres 
-                 , gradRho
+                 , gradRho   , mMolar
                  , vel       , dField
                  , temp      , wallPar
                  , densityMed
@@ -7878,27 +7879,17 @@ DOUBLE DpDt(DOUBLE const Pth   ,DOUBLE const Pth0
  * ------------------------------------------------------------------*
  * parametros de entrada:                                            * 
  *-------------------------------------------------------------------*
- * pTh     -> Presso termodinamica no tempo atual                    *
- * Pth0    -> Presso termodinamica no tempo anterior                 *                             *
- * presC   -> Presso fluidodinamica no tempo atual                   *                                *
- * presC0  -> Presso fluidodinamica no tempo anterior                *                                *
- * vel     -> campo de velocidade                                    *
- * gradRho -> gradeiente de densidade                                *
- * gradPres-> gradiente de pressao                                   *
- * g       -> campo de gradvidade                                    *
- * h       -> altura de referencia                                   *
- * rho     -> densidade no tempo atual                               *                    *
- * rho0    -> densidade no tempo anterior                            * 
- * rhoMed  -> densidade media                                        *                              *
- * dt      -> passo de tempo                                         *
- * iCod    -> tipo do termo de empuxo                                *
- *-------------------------------------------------------------------* 
+ * molarMass -> massa molar da mistura                               *
+ * temp      -> temperatura                                          *                             *
+ * R         -> constante dos gasese ideais                          *                                *
+ * iCod      ->                                                      *                                *
+*-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
  *-------------------------------------------------------------------* 
  * OBS:                                                              *
  *********************************************************************/
-DOUBLE fKsi(DOUBLE const molarMass, DOUBLE const temp,DOUBLE R)
+DOUBLE fKsi(DOUBLE const molarMass, DOUBLE const temp,DOUBLE const R)
 {
   return molarMass/(R*temp);
 }

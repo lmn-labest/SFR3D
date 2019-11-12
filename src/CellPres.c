@@ -1195,6 +1195,7 @@ void cellSimplePres3D(Loads *lVel          ,Loads *lPres
  * pres      -> campo de pressao conhecido                           *
  * gradPes   -> gradiente reconstruido da pressao                    *
  * gradRho   -> gradiente rescontruido das densidade                 *
+ * mMolar    -> massa molar da mistura                               *
  * vel       -> campo de velocidade conhecido                        *
  * gradVel   -> gradiente rescontruido das velocidades               *
  * dField    -> matriz D do metodo simple                            *
@@ -1232,7 +1233,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
               , DOUBLE *RESTRICT lRcell    , Temporal *ddt 
               , short  *RESTRICT lFaceVelR , short  *RESTRICT lFacePresR
               , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres
-              , DOUBLE *RESTRICT gradRho
+              , DOUBLE *RESTRICT gradRho   , DOUBLE *RESTRICT mMolar  
               , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField
               , DOUBLE *RESTRICT temp      , DOUBLE *RESTRICT wallPar
               , DOUBLE const densityMed
@@ -1270,8 +1271,9 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*...*/
   DOUBLE g[3],gh;
 /*...*/
-  densityC = lDensity[idCell];
-/*...................................................................*/
+  DOUBLE ks,ks0;
+/*...*/
+  DOUBLE mW,mW0,mW00;
 
 /*...*/
   ts          = ddt->t;
@@ -1293,6 +1295,12 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
   densityC00 = MAT2D(idCell,TIME_N_MINUS_2,lDensity,DENSITY_LEVEL);
   densityC0  = MAT2D(idCell,TIME_N_MINUS_1,lDensity,DENSITY_LEVEL);
   densityC   = MAT2D(idCell,TIME_N        ,lDensity,DENSITY_LEVEL);
+/*...................................................................*/
+
+/*...*/
+  mW00       = mMolar[TIME_N_MINUS_2];
+  mW0        = mMolar[TIME_N_MINUS_1];
+  mW         = mMolar[TIME_N];
 /*...................................................................*/
 
 /*...*/
@@ -1487,8 +1495,8 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
       if( fRhsDensity) p -= tmp*volume[idCell];
 /*...*/
       tempC = CELSIUS_FOR_KELVIN(tempC);
-      tmp1 = 1.e0/(IDEALGASR*tempC);
-//    tmp1 = fKsi(28,tempC,IDEALGASR);
+//    tmp1 = 1.e0/(IDEALGASR*tempC);
+      tmp1 = fKsi(mW,tempC,IDEALGASR);
       if( fLhsDensity) sP += tmp1*volume[idCell]/dt;
     } 
 /*...BACKWARD*/
@@ -1502,8 +1510,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
       if(fRhsDensity) p -= tmp1*volume[idCell];
 /*...*/
       tempC = CELSIUS_FOR_KELVIN(tempC);
-      tmp1 = 1.e0/(IDEALGASR*tempC);
-//    tmp1 = fKsi(28,tempC,IDEALGASR);
+      tmp1 = fKsi(mW,tempC,IDEALGASR);
       if(fLhsDensity) sP += tmp1*tmp*volume[idCell];
     }
   }

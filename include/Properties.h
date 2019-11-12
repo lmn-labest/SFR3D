@@ -254,14 +254,23 @@
                 ,DOUBLE *RESTRICT propMat  ,short *RESTRICT mat    
                 ,short const nOfPrSp       ,short const nComb   
                 ,INT    const nCell        ,bool const iKelvin);
+
+  void initMolarMassCell(Combustion *cModel
+                  ,DOUBLE *RESTRICT mMolar   ,DOUBLE *RESTRICT yFrac 
+                  ,DOUBLE *RESTRICT prop     ,short *RESTRICT mat           
+                  ,short const nOfPrSp       ,short const nComb   
+                  ,INT    const nCell        ,bool const fComb);
+/*...................................................................*/
+
+/*...*/
+  void updateMolarMass(Combustion *cModel
+                 , DOUBLE *RESTRICT mMolar  , DOUBLE *RESTRICT yFrac 
+                 , INT const nEl            , char  const iCod
+                 , bool const fOmp          , short const nThreads );
 /*...................................................................*/
 
 /*...*/
   void initCdPol(Prop *prop, char *s, FILE *file);
-/*...................................................................*/
-
-/*...*/
-//DOUBLE mixtureMolarMass(Combustion *cModel,DOUBLE *RESTRICT z);
 /*...................................................................*/
 
   short searchSpeciesId(Chemical *chem,const char *species);

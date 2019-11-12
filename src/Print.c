@@ -865,7 +865,7 @@ void printFluid(Memoria *m           ,PropVarFluid *propF
 
 /********************************************************************* 
  * Data de criacao    : 05/08/2018                                   *
- * Data de modificaco : 26/10/2019                                   *
+ * Data de modificaco : 09/11/2019                                   *
  *-------------------------------------------------------------------*
  * printCombustion: impressao do fluido                              * 
  *-------------------------------------------------------------------* 
@@ -908,7 +908,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
   DOUBLE *nMedVel=NULL,*nP2Vel=NULL,*nMedP2Vel=NULL;
   DOUBLE *nCdyn=NULL,*nWall=NULL,*nKturb=NULL,*nWk=NULL;
   DOUBLE *nYfrac=NULL,*nRaHeReComb=NULL,*nEnthalpyK=NULL,*nGradY=NULL;
-  DOUBLE *nDiffY=NULL;
+  DOUBLE *nDiffY=NULL,*nMolar=NULL,*cMolar=NULL;
   FILE *fileOut=NULL;
 
 /*...*/
@@ -920,6 +920,11 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
 
 /*...*/
   HccaAlloc(DOUBLE, m, cell, mesh->numel, "AuxCell"  , _AD_);
+  if(opt->mMolar)
+  {
+    HccaAlloc(DOUBLE, m, nMolar , mesh->nnode   , "nMolar"   , _AD_);  
+    HccaAlloc(DOUBLE, m, cMolar , mesh->numel   , "cMolar"   , _AD_);
+  }  
   if(opt->gradRho)
   {
     HccaAlloc(DOUBLE, m, nGradRho , mesh->nnode*ndm   , "nGR"   , _AD_);   
@@ -970,6 +975,32 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
     zero(nMedVel, mesh->nnode*ndm,DOUBLEC);
   }
 /*...................................................................*/
+
+/*...*/
+  if(opt->mMolar)
+  {
+    tm.interCellNode = getTimeC() - tm.interCellNode;
+    getColFromMatrix(cMolar      ,mesh->elm.mMolar
+                    ,mesh->numel ,MOLAR_LEVEL
+                    ,TIME_N);
+    if(opt->fNode)
+      interCellNode(m                
+                 , mesh->elm.cellFace , mesh->face.owner
+                 , nMolar             , cMolar 
+                 , mesh->elm.node     , mesh->elm.geomType            
+                 , mesh->elm.geom.cc  , mesh->node.x  
+                 , mesh->face.xm        
+                 , mesh->elm.nen      , mesh->elm.adj.nViz
+                 , mesh->elm.faceRpres, &pMesh->iNo           
+                 , mesh->numelNov     , mesh->numel        
+                 , mesh->nnodeNov     , mesh->nnode 
+                 , mesh->maxNo        , mesh->maxViz   
+                 , 1                  , 1
+                 , mesh->ndm          , 2);
+    tm.interCellNode = getTimeC() - tm.interCellNode;
+  }
+/*...................................................................*/
+
 
 /*... reconstruindo do gradiente (Pres)*/
   if(opt->gradPres)
@@ -1793,7 +1824,8 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
                , mesh0->elm.specificHeat  , nSheat
                , mesh0->elm.tConductivity , nTCond
                , mesh0->elm.cDiffComb     , nDiffY  
-               , mesh0->elm.gradRhoFluid  , nGradRho            
+               , mesh0->elm.gradRhoFluid  , nGradRho   
+               , cMolar                   , nMolar          
                , mesh0->elm.tReactor
                , mesh0->nnode             , mesh0->numel  
                , mesh0->ndm               , mesh0->maxNo 
@@ -1850,6 +1882,11 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
   {
     HccaDealloc(m, nGradRho, "nGR", _AD_);
   }
+  if(opt->mMolar)
+  {
+    HccaDealloc( m, cMolar, "cMolar"   , _AD_);
+    HccaDealloc( m, nMolar, "nMolar"   , _AD_);  
+  }  
   HccaDealloc(m, cell    , "AuxCell", _AD_);
 /*...................................................................*/ 
 
@@ -2319,7 +2356,7 @@ void reScaleMesh(Mesh *mesh, FILE *fileIn)
 
 /*********************************************************************
  * Data de criacao    : 01/05/2018                                   *
- * Data de modificaco : 15/09/2019                                   *
+ * Data de modificaco : 09/11/2019                                   *
  *-------------------------------------------------------------------*
  * reScaleMesh : redimensio as coordenada da matriz                  *
  *-------------------------------------------------------------------*
@@ -2386,6 +2423,7 @@ void initPrintVtk(FileOpt *opt)
   opt->gradY         = false;
   opt->tReactor      = false;
   opt->gradRho       = false;
+  opt->mMolar        = false;
   opt->bconditions   = false;
   opt->cc            = false;
   opt->pKelvin       = false;

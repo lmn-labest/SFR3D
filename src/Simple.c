@@ -619,9 +619,14 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                        ,mesh->elm.temp         , mesh->elm.yFrac
                        ,mesh->elm.cDiffComb    , mesh->elm.densityFluid
                        ,mesh->elm.tConductivity, mesh->elm.specificHeat
-                       ,cModel->nOfSpecies     ,cModel->nComb       
+                       ,cModel->nOfSpecies     , cModel->nComb       
                        ,eModel->fKelvin        , mesh->numel
                        ,ompVar.fUpdate         , ompVar.nThreadsUpdate); 
+    
+    updateMolarMass(cModel 
+                    ,mesh->elm.mMolar       , mesh->elm.yFrac    
+                    ,mesh->numel            , PROP_UPDATE_NL_LOOP 
+                    ,ompVar.fUpdate         , ompVar.nThreadsUpdate); 
     tm.updateProp = getTimeC() - tm.updateProp;   
 /*...................................................................*/
 
@@ -743,6 +748,10 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                          , eModel->fKelvin     
                          , mesh->numel           , PROP_UPDATE_OLD_TIME
                          , ompVar.fUpdate        , ompVar.nThreadsUpdate);
+  updateMolarMass(cModel 
+                 ,mesh->elm.mMolar       , mesh->elm.yFrac    
+                 ,mesh->numel            , PROP_UPDATE_OLD_TIME 
+                 ,ompVar.fUpdate         , ompVar.nThreadsUpdate);
   tm.updateProp = getTimeC() - tm.updateProp;
 /*...................................................................*/
 
@@ -2669,7 +2678,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
             , bPc                    , sistEqPres->id
             , mesh->elm.faceRvel     , mesh->elm.faceRpres
             , mesh->elm.pressure     , mesh->elm.gradPres
-            , mesh->elm.gradRhoFluid 
+            , mesh->elm.gradRhoFluid , mesh->elm.mMolar
             , mesh->elm.vel          , sp->d
             , mesh->elm.temp         , mesh->elm.wallParameters
             , rCellPc                , mesh->elm.densityFluid

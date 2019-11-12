@@ -570,6 +570,74 @@ DOUBLE mixtureSpeciesDensity(Prop *den           ,DOUBLE const malorMassMix
 /**********************************************************************/
 
 /*********************************************************************
+ * Data de criacao    : 09/11/2019                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * updateMolarMass:                                                 *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * cModel   -                                                        *
+ * mMolar   - temperatura (°C/K)                                     *
+ * yFrac    - fracao de massa da especies primitivas                 *
+ * nEl      - numero total de elmentos                               *
+ * iCod     -                                                        *
+ * fOmp     - openmp                                                 *
+ * nThreads - numero de threads                                      *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+void updateMolarMass(Combustion *cModel
+                 , DOUBLE *RESTRICT mMolar  , DOUBLE *RESTRICT yFrac 
+                 , INT const nEl            , char  const iCod
+                 , bool const fOmp          , short const nThreads )
+
+{
+  short nD = MOLAR_LEVEL,ns = cModel->nOfSpecies;
+  INT i;
+  DOUBLE *y=NULL;
+/*...*/
+  switch (iCod){
+    case PROP_UPDATE_NL_LOOP:
+/*... omp*/
+#pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
+     private(i,y) shared(cModel,yFrac,mMolar,nD,ns)
+     for(i=0;i<nEl;i++)
+     {
+       y            = &MAT2D(i,0,yFrac,ns);    
+/*...*/           
+       MAT2D(i,TIME_N ,mMolar ,nD) = mixtureMolarMass(cModel,y);
+     }
+/*..................................................................*/
+    break;  
+/*..................................................................*/
+
+/*...*/
+    case PROP_UPDATE_OLD_TIME:
+/*... omp*/
+#pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
+    private(i) shared(mMolar,nD)
+    for(i=0;i<nEl;i++)
+    {
+/*...t(n-2) = t(n-1)*/
+      MAT2D(i,TIME_N_MINUS_2 ,mMolar ,nD) = MAT2D(i,1 ,mMolar ,nD);
+/*...t(n-1) = t(n)*/           
+      MAT2D(i,TIME_N_MINUS_1 ,mMolar ,nD) = MAT2D(i,2 ,mMolar ,nD);
+    }
+/*..................................................................*/
+    break;
+  }
+/*..................................................................*/
+
+}
+/*********************************************************************/ 
+
+
+/*********************************************************************
  * Data de criacao    : 25/08/2018                                   *
  * Data de modificaco : 09/06/2019                                   *
  *-------------------------------------------------------------------*
@@ -1826,6 +1894,11 @@ void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel
 }
 /*********************************************************************/
 
+
+
+
+
+
 /*********************************************************************
  * Data de criacao    : 19/08/2018                                   *
  * Data de modificaco : 01/11/2019                                   *
@@ -1859,7 +1932,7 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
 {
   INT i;
   bool flag = false;
-  DOUBLE f,fl,tc,tol=1e-10;
+  DOUBLE f,fl,tc,tol=1e-06;
  
 
 
@@ -2283,6 +2356,69 @@ void initDiffMix(PropVarFluid *propF       , Combustion *cModel
         MAT2D(i,j,diff,nOfPrSp) = 
         MAT2D(lMat,SPECIEDIFUSSION+j,propMat,MAXPROP);     
     }
+  }
+/*...................................................................*/
+}
+/*********************************************************************/
+
+
+/********************************************************************* 
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * initMolarMass:                                                    *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+  *********************************************************************/
+  void  initMolarMassCell(Combustion *cModel
+                    ,DOUBLE *RESTRICT mMolar   ,DOUBLE *RESTRICT yFrac 
+                    ,DOUBLE *RESTRICT prop     ,short *RESTRICT mat           
+                    ,short const nOfPrSp       ,short const nComb   
+                    ,INT    const nCell        ,bool const fComb)
+  {    
+  INT i;
+  unsigned short j,lMat;
+  DOUBLE *y,mW;
+
+/*...*/
+  if(fComb) 
+  {
+/*...*/
+    for(i=0;i<nCell;i++)
+    {    
+/*...*/
+      y    = &MAT2D(i,0,yFrac, nOfPrSp);
+      mW   = mixtureMolarMass(cModel,y);
+/*...................................................................*/
+
+/*...*/
+      for(j=0;j<MOLAR_LEVEL;j++)
+        MAT2D(i,j,mMolar,MOLAR_LEVEL) = mW;
+/*...................................................................*/
+    }
+/*...................................................................*/
+  }
+/*...................................................................*/
+
+/*...*/
+  else
+  {
+/*...*/
+    for(i=0;i<nCell;i++)
+    {    
+      lMat               = mat[i]-1;
+      for(j=0;j<MOLAR_LEVEL;j++)
+        MAT2D(i,j,mMolar,MOLAR_LEVEL) = 
+        MAT2D(lMat,MMOLARMASS,prop,MAXPROP);  
+    }
+/*...................................................................*/
   }
 /*...................................................................*/
 }

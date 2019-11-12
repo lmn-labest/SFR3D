@@ -536,6 +536,11 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
       , nel*N_TERMS_REACTOR, "tReactor", _AD_);
     zero(mesh->elm.tReactor, nel*N_TERMS_REACTOR, DOUBLEC);
 
+/*... mMolar*/
+    HccaAlloc(DOUBLE, m, mesh->elm.mMolar
+      , nel*MOLAR_LEVEL, "mMolar", _AD_);
+    zero(mesh->elm.mMolar, nel*MOLAR_LEVEL, DOUBLEC);
+
     if (mpiVar.nPrcs < 2)
     {
       if (fComb)
@@ -1426,12 +1431,19 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                    , mesh->numel        , energyModel->fKelvin
                    , ompVar.fUpdate     , ompVar.nThreadsUpdate);
 /*...................................................................*/
-
     }
 /*...................................................................*/
-  }
+
+/*... Massa molar da mixtura*/
+    initMolarMassCell(cModel      
+                , mesh->elm.mMolar        , mesh->elm.yFrac0              
+                , mesh->elm.material.prop , mesh->elm.mat 
+                , cModel->nOfSpecies      , cModel->nComb    
+                , mesh->numel             , fComb );
 /*...................................................................*/
 
+  }
+/*...................................................................*/
 
 }
 /*********************************************************************/
@@ -3439,7 +3451,7 @@ void setPrint(FileOpt *opt,FILE *file){
                ,"qchemical"    ,"yfrac"       ,"rateheatcomb"    /*33,34,35*/                  
                ,"coefdiffsp"   ,"enthalpyk"   ,"grady"           /*36,37,38*/
                ,"treactor"     ,"binary"      ,"gradrho"         /*39,40,41*/
-               ,""             ,""            ,""};              /*42,43,44*/
+               ,"mmolar"       ,""            ,""};              /*42,43,44*/
   int tmp,i=0,maxWord=100;
 
   strcpy(format,"%-20s: %s\n");
@@ -3786,6 +3798,14 @@ void setPrint(FileOpt *opt,FILE *file){
     {
       opt->gradRho = true;
       fprintf(fileLogExc, format, "print", "gradRho");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[42]))
+    {
+      opt->mMolar = true;
+      fprintf(fileLogExc, format, "print", "mMolar");
     }
 /*.....................................................................*/
 
@@ -4731,7 +4751,7 @@ void readSetSimple(Memoria *m    , FILE *fileIn
 
   HccaAlloc(DOUBLE     ,m       ,simple->nPresC
            ,mesh->nnode,"nPresC" ,false);
-  zero(simple->nPresC    ,mesh->numel  ,DOUBLEC);
+  zero(simple->nPresC    ,mesh->nnode  ,DOUBLEC);
 
   HccaAlloc(DOUBLE     ,m      ,simple->eGradPresC
            ,mesh->numel*mesh->ndm,"eGradPresC",false);

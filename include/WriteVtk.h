@@ -185,7 +185,8 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
           , DOUBLE *eSheat        , DOUBLE *nSheat
           , DOUBLE *eTCond        , DOUBLE *nTCond
           , DOUBLE *eDiffSp       , DOUBLE *nDiffSp  
-           , DOUBLE *eGradRho     , DOUBLE *nGradRho
+          , DOUBLE *eGradRho      , DOUBLE *nGradRho
+          , DOUBLE *eMolar        , DOUBLE *nMolar  
           , DOUBLE *eTreactor  
           , INT nnode             , INT numel    
           , short const ndm       , short const maxNo 

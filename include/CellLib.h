@@ -235,7 +235,7 @@ void cellLibSimpleVel(Loads *lVel        ,Loads *lPres
                , DOUBLE *RESTRICT lRcell    , Temporal *ddt
                , short  *RESTRICT lFaceVelR , short  *RESTRICT lFacePresR
                , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres
-               , DOUBLE *RESTRICT gradRho 
+               , DOUBLE *RESTRICT gradRho   , DOUBLE *RESTRICT lMolar
                , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField 
                , DOUBLE *RESTRICT temp      , DOUBLE *RESTRICT wallPar
                , DOUBLE const densityMed
@@ -708,7 +708,7 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
               , DOUBLE *RESTRICT lRcell    , Temporal *ddt 
               , short  *RESTRICT lFaceVelR , short  *RESTRICT lFacePresR
               , DOUBLE *RESTRICT pres      , DOUBLE *RESTRICT gradPres
-              , DOUBLE *RESTRICT gradRho
+              , DOUBLE *RESTRICT gradRho   , DOUBLE *RESTRICT mMolar
               , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT dField
               , DOUBLE *RESTRICT temp      , DOUBLE *RESTRICT wallPar
               , DOUBLE const densityMed
@@ -1086,6 +1086,6 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
            ,DOUBLE const rhoMed
            ,DOUBLE const dt    ,short const iCod);
 
-  DOUBLE fKsi(DOUBLE const molarMass, DOUBLE const temp,DOUBLE R);
+  DOUBLE fKsi(DOUBLE const molarMass, DOUBLE const temp,DOUBLE const R);
 /*...................................................................*/
 #endif/*_CELLLIB_H_*/
