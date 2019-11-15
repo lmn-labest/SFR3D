@@ -29,6 +29,7 @@
   
 /*...................................................................*/  
   typedef struct{
+    bool fPolt;
     bool bVtk;           /*escrita do arquivo binario*/
     bool fItPlotRes; 
     bool fItPlot;
@@ -75,10 +76,19 @@
     bool tReactor;
     bool gradRho;
     bool mMolar;
+
     bool bconditions;    /*insere as condicoes de contorno nos valores nodais*/
     bool cc;             /*centro geomentrico da celula*/       
     bool pKelvin;        /*plot em kelvin*/  
+
+
+    short timeFile;
     short stepPlot[2];
+    bool fStepPlot;
+
+    DOUBLE t,ta,tNext;
+    bool fTimePlot;
+
     FILE *fileItPlot[8];
     FILE *fileParameters;
     

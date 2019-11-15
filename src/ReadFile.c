@@ -3447,16 +3447,17 @@ void setPrint(FileOpt *opt,FILE *file){
                ,"qchemical"    ,"yfrac"       ,"rateheatcomb"    /*33,34,35*/                  
                ,"coefdiffsp"   ,"enthalpyk"   ,"grady"           /*36,37,38*/
                ,"treactor"     ,"binary"      ,"gradrho"         /*39,40,41*/
-               ,"mmolar"       ,""            ,""};              /*42,43,44*/
+               ,"mmolar"       ,"step"        ,"time"};              /*42,43,44*/
   int tmp,i=0,maxWord=100;
 
   strcpy(format,"%-20s: %s\n");
 
   initPrintVtk(opt);
   opt->bconditions   = true;
-
-  fscanf(file,"%d",&tmp);
-  opt->stepPlot[0] = opt->stepPlot[1] = (short) tmp;
+  opt->fPolt         = true;
+  opt->fStepPlot     = false;
+  opt->fTimePlot     = false;
+  opt->timeFile      = 0;
   readMacroV2(file, word, false, true);
   while(strcmp(word,str) && i < maxWord)
   {
@@ -3802,6 +3803,27 @@ void setPrint(FileOpt *opt,FILE *file){
     {
       opt->mMolar = true;
       fprintf(fileLogExc, format, "print", "mMolar");
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[43]))
+    {
+      fscanf(file,"%d",&tmp);
+      opt->stepPlot[0] = opt->stepPlot[1] = (short) tmp;
+      opt->fStepPlot = true;
+      fprintf(fileLogExc, "%-20s: %lf\n", "step", tmp);
+    }
+/*.....................................................................*/
+
+/*...*/
+    else if (!strcmp(word, macro[44]))
+    {
+      opt->fTimePlot = true;
+      fscanf(file,"%lf",&opt->t);
+      opt->ta    = 0.e0;
+      opt->tNext = opt->t;
+      fprintf(fileLogExc, "%-20s: %lf\n", "time", opt->t);
     }
 /*.....................................................................*/
 

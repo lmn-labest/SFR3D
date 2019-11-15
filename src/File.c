@@ -681,6 +681,27 @@ void fName(const char* const name,INT num1,INT num2, int cod ,char *out){
       break;
 /*...................................................................*/
 
+/*... resultados geral 3D*/
+    case 32:
+      iota(num1,st);
+      strcpy(ext,"_3D_step_");
+      strcat(ext,st);
+      strcat(ext,".vtk");
+      size1 = (int) strlen(name);
+      size2 = (int) strlen(ext);
+      if( (size1+size2)  > SIZEMAX){
+        fprintf(stderr,"Nome do arquivo muito extenso.\n"
+	               "name : \"%s\"\n"
+		       "Name maximo : %d\n"
+		       "Funcao %s, arquivo fonte \"%s\"\n" 
+		       ,name,SIZEMAX,__func__,__FILE__);
+        exit(EXIT_FAILURE);      
+      }
+      strcpy(out,name);
+      strcat(out,ext);
+      break;
+/*...................................................................*/
+
 /*... medias do tempos MPI*/
     case 60:
       strcpy(ext,"_mTime_");

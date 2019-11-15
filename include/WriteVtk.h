@@ -194,7 +194,7 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
           , short const ntn       
           , char *nameOut         , FileOpt *opt
           , bool fKelvin          , Mean *media  
-          , Temporal ddt          , FILE *f);
+          , DOUBLE const ts       , FILE *f);
 /*...................................................................*/
 
 /*...*/

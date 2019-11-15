@@ -718,7 +718,7 @@ void cellTransientPrime(DOUBLE *RESTRICT volume
 
 /*********************************************************************
  * Data de criacao    : 27/09/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 13/11/2019                                   *
  *-------------------------------------------------------------------*
  * updateTime : atualização do tempo                                 *
  *-------------------------------------------------------------------*
@@ -730,7 +730,8 @@ void cellTransientPrime(DOUBLE *RESTRICT volume
  *-------------------------------------------------------------------*
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateTime(Temporal *ddt, Macros *mm, short const myId )
+void updateTime(Temporal *ddt, FileOpt *opt
+               , Macros *mm  , short const myId )
 {
 
 /*...*/
@@ -739,9 +740,15 @@ void updateTime(Temporal *ddt, Macros *mm, short const myId )
 
 /*...*/
 //    jLoop            = 0;
-  ddt->t        += ddt->dt[0];
+  ddt->t0        = ddt->t;
+  ddt->t        += ddt->dt[TIME_N];
   ddt->timeStep ++; 
-  gStep          =  ddt->timeStep;
+  gStep          = ddt->timeStep;
+/*...................................................................*/
+
+/*...*/
+  opt->ta       += ddt->dt[TIME_N];
+  opt->stepPlot[1]++;
 /*...................................................................*/
 
 /*...*/
@@ -752,16 +759,13 @@ void updateTime(Temporal *ddt, Macros *mm, short const myId )
 /*...................................................................*/
       
 /*...*/
-  else
+  if(!myId )
   {
-    if(!myId )
-    {
-      printf("dt(n-2) = %.10lf\n",ddt->dt[TIME_N_MINUS_2]);
-      printf("dt(n-1) = %.10lf\n",ddt->dt[TIME_N_MINUS_1]);
-      printf("dt(n)   = %.10lf\n",ddt->dt[TIME_N ]);
-      printf("t(s)    = %.10lf\n",ddt->t);
-      printf("step    = %d\n"    ,ddt->timeStep);
-    } 
+    printf("dt(n-2) = %.10lf\n",ddt->dt[TIME_N_MINUS_2]);
+    printf("dt(n-1) = %.10lf\n",ddt->dt[TIME_N_MINUS_1]);
+    printf("dt(n)   = %.10lf\n",ddt->dt[TIME_N ]);
+    printf("t(s)    = %.10lf\n",ddt->t);
+    printf("step    = %d\n"    ,ddt->timeStep);
   }
 /*...................................................................*/
 

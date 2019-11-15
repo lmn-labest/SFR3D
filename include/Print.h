@@ -14,9 +14,31 @@
   #include<WriteVtk.h>
   #include<ParallelMpi.h>
   #include<Media.h>
+  #include<TimeInterpol.h>
 
   void initPrintVtk(FileOpt *opt);
+  
+  void printCall(Memoria *m            ,PropVarFluid *propF
+              ,Turbulence *tModel   ,EnergyModel *eModel 
+              ,Combustion *cModel   ,TimeInterpol *ti
+              ,PartMesh *pMesh      ,Scheme *sc
+              ,Loads *loadsVel      ,Loads *loadsPres 
+              ,Loads *loadsTemp     ,Loads *loadsComb
+              ,FileOpt *opt
+              ,Mesh *mesh0          ,Mesh *mesh  
+              ,Mean *media      
+              ,char *preName        ,char *nameOut);
 
+  void print3D(Memoria *m          ,PropVarFluid *propF
+           ,Turbulence *turbModel,EnergyModel *eModel 
+           ,Combustion *cModel
+           ,PartMesh *pMesh      ,Scheme *sc
+           ,Loads *loadsVel      ,Loads *loadsPres 
+           ,Loads *loadsTemp     ,Loads *loadsComb
+           ,TimeInterpol *ti     ,FileOpt *opt
+           ,Mesh *mesh0          ,Mesh *mesh  
+           ,Mean *media          ,DOUBLE const ts
+           ,char *preName        ,char *nameOut);
 
   void printFluid(Memoria *m         ,PropVarFluid *propF
                ,Turbulence *turbModel,EnergyModel *eModel

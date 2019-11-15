@@ -45,6 +45,7 @@
 /*...................................................................*/
 
 /*...*/
-  void updateTime(Temporal *ddt, Macros *mm, short const myId );
+  void updateTime(Temporal *ddt, FileOpt *opt
+                , Macros *mm   , short const myId );
 /*...................................................................*/
 #endif /*_TRANSIENT_H_*/

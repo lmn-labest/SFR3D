@@ -2187,24 +2187,24 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
   
 /*....*/
 #ifdef _MPI_
-  if(mpiVar.nPrcs>1)
-  { 
-    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
-    MPI_Allreduce(&cfl  ,&gg ,1,MPI_DOUBLE,MPI_MAX,mpiVar.comm);
-    cfl = gg;
-    MPI_Allreduce(&dtCfl,&gg ,1,MPI_DOUBLE,MPI_MIN,mpiVar.comm);
-    dtCfl = gg;
-    MPI_Allreduce(&dtVn,&gg ,1,MPI_DOUBLE,MPI_MIN,mpiVar.comm);
-    dtVn = gg;
-    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
-  }
+      if(mpiVar.nPrcs>1)
+      { 
+        tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+        MPI_Allreduce(&cfl  ,&gg ,1,MPI_DOUBLE,MPI_MAX,mpiVar.comm);
+        cfl = gg;
+        MPI_Allreduce(&dtCfl,&gg ,1,MPI_DOUBLE,MPI_MIN,mpiVar.comm);
+        dtCfl = gg;
+        MPI_Allreduce(&dtVn,&gg ,1,MPI_DOUBLE,MPI_MIN,mpiVar.comm);
+        dtVn = gg;
+        tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+      }
 #endif
 /*...................................................................*/
 
     
 /*...*/
-      deltaT  = dt[0] ;
-      deltaT0 = dt[1];
+      deltaT  = dt[TIME_N] ;
+      deltaT0 = dt[TIME_N_MINUS_1];
 /*    if (deltaT > dtCfl || deltaT > dtVn ) {
         dt[0] = min(dtCfl,dtVn);
         printf("change dt for: %lf\n",dt[0]);
@@ -2212,11 +2212,11 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 */
       if (deltaT > dtCfl) 
       {
-        dt[0] = trunkNumber(dtCfl);
-        printf("change dt for: %lf\n",dt[0]);
+        dt[TIME_N] = trunkNumber(dtCfl);
+        printf("change dt for: %lf\n",dt[TIME_N]);
       }  
-      dt[1] = deltaT;  
-      dt[2] = deltaT0;
+      dt[TIME_N_MINUS_1] = deltaT;  
+      dt[TIME_N_MINUS_2] = deltaT0;
 /*...................................................................*/
       break;
 /*...................................................................*/

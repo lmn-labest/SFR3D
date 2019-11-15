@@ -33,5 +33,6 @@
                        ,FILE *f);
  
   void timeVtk(double t,int iStep,bool cod,FILE *f);
+  void timeVtk2(double t,bool cod,FILE *f);
 
 #endif /*_VTK_*/

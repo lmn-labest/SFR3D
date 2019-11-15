@@ -27,6 +27,7 @@
 #include<Reord.h>
 #include<Transient.h>
 #include<Transport.h>
+#include<TimeInterpol.h>
 #include<Print.h>
 #include<OpenMp.h>
 #include<SaveLoad.h>
@@ -113,6 +114,8 @@ int main(int argc,char**argv){
 /*... propriedade variaveis*/
   PropVarFluid propVarFluid;
   PropVarCD propVarD[3],propVarT[3];
+/*...*/
+  TimeInterpol tInterpol;
 
 /*... solver*/
   Solv solvD1, solvT1;
@@ -165,7 +168,7 @@ int main(int argc,char**argv){
   ,"pFluid"       ,"setPrint"     ,"reScaleMesh"    /*33,34,35*/
   ,"setPrime"     ,"prime"        ,""               /*36,37,38*/
   ,"setSolvComb"  ,"pCombustion"  ,"simpleComb"     /*39,40,41*/
-  ,""             ,"chemical"     ,"residual"       /*42,43,44*/ 
+  ,"pRes"         ,"chemical"     ,"residual"       /*42,43,44*/ 
   ,"gravity"      ,"model"        ,"mean"           /*45,46,47*/
   ,"setMean"      ,"save"         ,"load"};         /*48,49,50*/
 /* ..................................................................*/
@@ -833,20 +836,16 @@ int main(int argc,char**argv){
 
 /*... fechando o arquivo do log nao linear D1*/      
       if(fSolvD1 && opt.fItPlot && !mpiVar.myId)  
-        fclose(&opt.fileItPlot[FITPLOTD1]);
+        fclose(opt.fileItPlot[FITPLOTD1]);
 /*... fechando o arquivo do log nao linear T1*/      
       if(fSolvT1 && opt.fItPlot && !mpiVar.myId)  
-        fclose(&opt.fileItPlot[FITPLOTT1]);
+        fclose(opt.fileItPlot[FITPLOTT1]);
 /*... fechando o arquivo do log nao linear do simple */      
-      if(fSolvSimple && opt.fItPlot && !mpiVar.myId)  
-        fclose(&opt.fileItPlot[FITPLOTSIMPLE]);
-/*... fechando o arquivo do log nao linear do simple */      
-      if(fSolvComb && opt.fItPlot && !mpiVar.myId)
+      if(fSolvSimple && opt.fItPlot && !mpiVar.myId)
       {
-        fclose(&opt.fileItPlot[FITPLOTSIMPLE]);
+        fclose(opt.fileItPlot[FITPLOTSIMPLE]);
         fclose(opt.fileParameters);
       }
-/*...................................................................*/
 
       fclose(fileLogDebug);
       finalizeMem(&m,false);
@@ -1462,7 +1461,26 @@ int main(int argc,char**argv){
     {
       initSec(word, OUTPUT_FOR_SCREEN);
 /*...*/
-      updateTime(&sc.ddt, &mm, mpiVar.myId );
+      updateTime(&sc.ddt,&opt, &mm, mpiVar.myId );
+/*...................................................................*/
+
+/*...*/
+      if(opt.fPolt)
+      {
+        printCall(&m        , &propVarFluid
+                , &turbModel, &eModel 
+                , &combModel, &tInterpol
+                , pMesh     , &sc
+                , loadsVel  , loadsPres 
+                , loadsTemp , loadsZcomb
+                , &opt       
+                , mesh0     , mesh 
+                , &media      
+                , preName   , nameOut); 
+      }
+      updateTimeStruct(&m       ,&tInterpol
+                     ,mesh
+                     ,&combModel,&opt); 
 /*...................................................................*/
       endSec(OUTPUT_FOR_SCREEN);
     }   
@@ -1572,6 +1590,12 @@ int main(int argc,char**argv){
       initSec(word, OUTPUT_FOR_FILE);
 /*...*/
       setPrint(&opt,fileIn);
+      initTimeStruct(&m        ,&tInterpol
+                    ,mesh0     ,mesh 
+                    ,&combModel,&opt);
+      updateTimeStruct(&m       ,&tInterpol
+                     ,mesh
+                     ,&combModel,&opt); 
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
     }   
@@ -1771,13 +1795,15 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro:                                                           
+ *             
  *===================================================================*/
     else if((!strcmp(word,macro[42])))
     {
-      initSec(word, OUTPUT_FOR_FILE);
-      endSec(OUTPUT_FOR_FILE);
-    }
+/*...*/
+      initSec(word, OUTPUT_FOR_SCREEN);
+      endSec(OUTPUT_FOR_SCREEN);
+/*...................................................................*/
+    }   
 /*===================================================================*/
 
 /*===================================================================*

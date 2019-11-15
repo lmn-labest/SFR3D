@@ -2073,7 +2073,7 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
           , short const ntn       
           , char *nameOut         , FileOpt *opt
           , bool fKelvin          , Mean *media  
-          , Temporal ddt          , FILE *f)
+          , DOUBLE const ts       , FILE *f)
 {
   bool iws = opt->bVtk;
   char str[50], st[MAX_STR_NUMBER];;
@@ -2096,8 +2096,7 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
 /* ..................................................................*/
 
 /* ...*/
-  if(ddt.flag)
-    timeVtk(ddt.t,ddt.timeStep,iws,f);
+  timeVtk2(ts,iws,f);
 /* ..................................................................*/
 
 /*... coordenadas*/

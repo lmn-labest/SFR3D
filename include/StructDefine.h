@@ -289,7 +289,7 @@
     bool flag,fDynamic;
     short iCod,type,typeReal;
     INT timeStep;
-    DOUBLE total,dt[3],dtInicial,t;   
+    DOUBLE total,dt[3],dtInicial,t,t0;   
   }Temporal;
 /*...................................................................*/  
 
@@ -453,4 +453,24 @@
     DOUBLE tolPres, tolVel;
   }Prime;
 /*...................................................................*/
+
+/*... interpolacao da variaveis temporais*/
+  typedef struct
+  {
+    DOUBLE *vel0,*vel, *veli  ,*velG;
+    DOUBLE *gradVeli,*gradVelG;
+    DOUBLE *p0  ,*p  , *pi    ,*pG;
+    DOUBLE *gradPresi,*gradPresG;
+    DOUBLE *temp0,*temp,*tempi,*tempG;
+    DOUBLE *gradTempi,*gradTempG;
+    DOUBLE *y0   ,*y   ,*yi   ,*yG;
+    DOUBLE *gradYi,*gradYG;
+    DOUBLE *wT0  ,*wT  ,*wTi  ,*wTG;
+    DOUBLE *rho0,*rho,*rhoi,*rhoG;
+    DOUBLE *dVisc0,*dVisc,*dVisci,*dViscG;
+    DOUBLE *tCond0,*tCond,*tCondi,*tCondG;
+    DOUBLE *cDiff0,*cDiff,*cDiffi,*cDiffG;
+  }TimeInterpol; 
+/*...................................................................*/
+
 #endif /*_MESH_*/
