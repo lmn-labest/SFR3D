@@ -3557,14 +3557,16 @@ void print3D(Memoria *m          ,PropVarFluid *propF
  * Data de criacao    : 15/11/2019                                    *
  * Data de modificaco : 00/00/0000                                    * 
  *------------------------------------------------------------------- * 
- * writeVtkProp :  escreve propriedades                               *
+ * printCall:                                                         *
  * -------------------------------------------------------------------*
  * Parametro de entrada :                                             *
  * -------------------------------------------------------------------*
  * -------------------------------------------------------------------*
  * Parametro de saida :                                               *
  * -------------------------------------------------------------------*
- * -------------------------------------------------------------------* 
+ *--------------------------------------------------------------------*
+ * OBS:                                                               *
+ *--------------------------------------------------------------------*
  *********************************************************************/
 void printCall(Memoria *m           ,PropVarFluid *propF
               ,Turbulence *tModel   ,EnergyModel *eModel 
@@ -3574,24 +3576,42 @@ void printCall(Memoria *m           ,PropVarFluid *propF
               ,Loads *loadsTemp     ,Loads *loadsComb
               ,FileOpt *opt
               ,Mesh *mesh0          ,Mesh *mesh  
-              ,Mean *media      
+              ,Mean *media          ,short const iCod
               ,char *preName        ,char *nameOut)
 {
   bool fPrint;
   short ns = cModel->nOfSpecies;
   INT maxIt = 0;
-  DOUBLE ts;
+  DOUBLE ts,t0,t1;
 /*... por tempo fisico*/
   do
   {
     fPrint=false;
-    if (opt->fTimePlot)
+    if(iCod == PINITIAL_TIME)
+    {
+      fPrint      = true;
+      ts          = 0.0;  
+      t1          = 1;
+      t0          = 0;
+    }
+
+    else if(iCod == PLAST_TIME)
+    {
+      fPrint      = true;
+      ts          = sc->ddt.total;  
+      t1          = sc->ddt.t;
+      t0          = sc->ddt.t0;
+    }
+
+    else if (opt->fTimePlot)
     {
       if(opt->tNext >= sc->ddt.t0  && opt->tNext <= sc->ddt.t )
       {
         ts          = opt->tNext; 
         opt->tNext += opt->t;
         fPrint      = true;  
+        t1          = sc->ddt.t;
+        t0          = sc->ddt.t0;
       }    
     }
 
@@ -3603,7 +3623,6 @@ void printCall(Memoria *m           ,PropVarFluid *propF
 /*...*/
     if(fPrint)
     {
-      opt->timeFile++;
       fprintf(fileLogExc,"Print3D: %e\n",ts);
 
 /*... vel*/
@@ -3611,35 +3630,35 @@ void printCall(Memoria *m           ,PropVarFluid *propF
       if(opt->vel || opt->gradVel)
         interPolTime(ti->veli            ,ti->vel       
                 ,ti->vel0            ,ts
-                ,sc->ddt.t           ,sc->ddt.t0
+                ,t1                  ,t0            
                 ,mesh->numelNov      ,mesh->ndm       
                 ,opt->fTimePlot      ,opt->fStepPlot);
 /*... pres*/
       if(opt->pres || opt->gradPres)
         interPolTime(ti->pi              ,ti->p             
                   ,ti->p0              ,ts
-                  ,sc->ddt.t           ,sc->ddt.t0
+                  ,t1                  ,t0             
                   ,mesh->numelNov      ,1               
                   ,opt->fTimePlot      ,opt->fStepPlot);
 /*... temp*/ 
       if(opt->temp || opt->gradTemp) 
         interPolTime(ti->tempi         ,ti->temp         
                   ,ti->temp0           ,ts
-                  ,sc->ddt.t           ,sc->ddt.t0
+                  ,t1                  ,t0 
                   ,mesh->numelNov      ,1               
                   ,opt->fTimePlot      ,opt->fStepPlot);
 /*... yFrac*/
       if(opt->yFrac || opt->gradY) 
         interPolTime(ti->yi              ,ti->y             
                   ,ti->y0              ,ts
-                  ,sc->ddt.t           ,sc->ddt.t0
+                  ,t1                  ,t0
                   ,mesh->numelNov      ,ns              
                   ,opt->fTimePlot      ,opt->fStepPlot);
 /*... wT*/
       if(opt->rateHeatComb)
         interPolTime(ti->wTi           ,ti->wT   
                   ,ti->wT0             ,ts
-                  ,sc->ddt.t           ,sc->ddt.t0
+                  ,t1                  ,t0
                   ,mesh->numelNov      ,1               
                   ,opt->fTimePlot      ,opt->fStepPlot);
   
@@ -3647,7 +3666,7 @@ void printCall(Memoria *m           ,PropVarFluid *propF
       if(opt->dViscosity)
         interPolTime(ti->dVisci        ,ti->dVisc
                   ,ti->dVisc0          ,ts
-                  ,sc->ddt.t           ,sc->ddt.t0
+                  ,t1                  ,t0
                   ,mesh->numelNov      ,1               
                   ,opt->fTimePlot      ,opt->fStepPlot);
 
@@ -3655,7 +3674,7 @@ void printCall(Memoria *m           ,PropVarFluid *propF
       if(opt->tConductivity)
         interPolTime(ti->tCondi        ,ti->tCond   
                   ,ti->tCond0          ,ts
-                  ,sc->ddt.t           ,sc->ddt.t0
+                  ,t1                  ,t0
                   ,mesh->numelNov      ,1               
                   ,opt->fTimePlot      ,opt->fStepPlot);
 
@@ -3663,10 +3682,9 @@ void printCall(Memoria *m           ,PropVarFluid *propF
       if(opt->coefDiffSp)
         interPolTime(ti->cDiffi        ,ti->cDiff   
                   ,ti->cDiff0          ,ts
-                  ,sc->ddt.t           ,sc->ddt.t0
+                  ,t1                  ,t0
                   ,mesh->numelNov      ,ns              
                   ,opt->fTimePlot      ,opt->fStepPlot);
-
 
 /*...*/   
       print3D(m               ,propF
@@ -3679,10 +3697,15 @@ void printCall(Memoria *m           ,PropVarFluid *propF
            ,mesh0             ,mesh  
            ,media             ,ts  
            ,preName           ,nameOut);
+      opt->timeFile++;
 /*...................................................................*/
     }
 /*...................................................................*/
-  maxIt++;
+    maxIt++;
+/*...*/
+    if(iCod == PINITIAL_TIME)
+      break;
+/*...................................................................*/
   }while(fPrint && maxIt <= 10000);
 /*...................................................................*/
 

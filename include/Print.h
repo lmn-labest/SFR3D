@@ -18,7 +18,7 @@
 
   void initPrintVtk(FileOpt *opt);
   
-  void printCall(Memoria *m            ,PropVarFluid *propF
+  void printCall(Memoria *m           ,PropVarFluid *propF
               ,Turbulence *tModel   ,EnergyModel *eModel 
               ,Combustion *cModel   ,TimeInterpol *ti
               ,PartMesh *pMesh      ,Scheme *sc
@@ -26,7 +26,7 @@
               ,Loads *loadsTemp     ,Loads *loadsComb
               ,FileOpt *opt
               ,Mesh *mesh0          ,Mesh *mesh  
-              ,Mean *media      
+              ,Mean *media          ,short const iCod
               ,char *preName        ,char *nameOut);
 
   void print3D(Memoria *m          ,PropVarFluid *propF

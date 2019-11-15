@@ -1475,7 +1475,7 @@ int main(int argc,char**argv){
                 , loadsTemp , loadsZcomb
                 , &opt       
                 , mesh0     , mesh 
-                , &media      
+                , &media    , PINT_TIME  
                 , preName   , nameOut); 
       }
       updateTimeStruct(&m       ,&tInterpol
@@ -1596,6 +1596,16 @@ int main(int argc,char**argv){
       updateTimeStruct(&m       ,&tInterpol
                      ,mesh
                      ,&combModel,&opt); 
+      printCall(&m        , &propVarFluid
+              , &turbModel, &eModel 
+              , &combModel, &tInterpol
+              , pMesh     , &sc
+              , loadsVel  , loadsPres 
+              , loadsTemp , loadsZcomb
+              , &opt       
+              , mesh0     , mesh 
+              , &media    , PINITIAL_TIME  
+              , preName   , nameOut); 
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
     }   
