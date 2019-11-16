@@ -83,7 +83,7 @@
 
 
     short timeFile;
-    short stepPlot[2];
+    short stepPlot[2],nextStepPlot[2];
     bool fStepPlot;
 
     DOUBLE t,ta,tNext;

@@ -38,7 +38,7 @@ static void eddyViscKtEq(Turbulence *tModel
     if(kTurb[i] < 0.0)
       kTurb[i] = 0.e0;
     
-    lDensity = MAT2D(i, 0, density, DENSITY_LEVEL);
+    lDensity = density[i];
 
     if(fDynamic)
       ck = MAT2D(i, 0, cDyn, 2);
@@ -98,7 +98,7 @@ void turbulence(Memoria *m
       , mesh->face.normal        , mesh->elm.geom.volume
       , mesh->elm.geom.dcca  
       , mesh->elm.faceRvel       , mesh->elm.faceRvel               
-      , mesh->elm.vel            , mesh->elm.densityFluid
+      , mesh->elm.vel            , mesh->elm.densityFluid.t
       , mesh->elm.dViscosity     , mesh->elm.wallParameters  
       , mesh->maxNo              , mesh->maxViz
       , mesh->ndm                , mesh->numelNov     
@@ -115,38 +115,38 @@ void turbulence(Memoria *m
       {
 /*...*/ 
         if(tModel->fDynamic)
-          lesDynamicMean(m                      , tModel 
-                        , mesh->elm.adj.nelcon  , mesh->elm.nen    
-                        , mesh->elm.adj.nViz    , mesh->elm.geom.volume  
-                        , mesh->elm.vel         , mesh->elm.gradVel 
-                        , mesh->elm.densityFluid, mesh->elm.dViscosity
+          lesDynamicMean(m                        , tModel 
+                        , mesh->elm.adj.nelcon    , mesh->elm.nen    
+                        , mesh->elm.adj.nViz      , mesh->elm.geom.volume  
+                        , mesh->elm.vel           , mesh->elm.gradVel 
+                        , mesh->elm.densityFluid.t, mesh->elm.dViscosity
                         , mesh->elm.cd
-                        , mesh->maxNo           , mesh->maxViz         
-                        , mesh->ndm             , mesh->numelNov 
-                        , ndf                   , tModel->typeDynamic); 
+                        , mesh->maxNo             , mesh->maxViz         
+                        , mesh->ndm               , mesh->numelNov 
+                        , ndf                     , tModel->typeDynamic); 
 /*...................................................................*/ 
 
 /*...*/ 
-        turbulenceCellLoop(lVel             , tModel   
-                   , &pMesh->iEl              
-                   , mesh->elm.node         , mesh->elm.adj.nelcon 
-                   , mesh->elm.nen          , mesh->elm.adj.nViz 
-                   , mesh->elm.cellFace     , mesh->face.owner
-                   , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-                   , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-                   , mesh->face.mksi        , mesh->face.ksi
-                   , mesh->face.eta         , mesh->face.area
-                   , mesh->face.normal      , mesh->face.xm
-                   , mesh->face.mvSkew      , mesh->face.vSkew
-                   , mesh->elm.geomType     , mesh->elm.material.prop
-                   , mesh->elm.material.type, mesh->elm.mat
-                   , mesh->elm.faceRvel     , mesh->elm.faceRvel     
-                   , mesh->elm.vel          , mesh->elm.gradVel      
-                   , mesh->elm.densityFluid , mesh->elm.dViscosity
-                   , mesh->elm.eddyViscosity, mesh->elm.wallParameters
-                   , mesh->elm.cd   
-                   , mesh->maxNo            , mesh->maxViz         
-                   , mesh->ndm              , mesh->numelNov 
+        turbulenceCellLoop(lVel              , tModel   
+                   , &pMesh->iEl               
+                   , mesh->elm.node          , mesh->elm.adj.nelcon 
+                   , mesh->elm.nen           , mesh->elm.adj.nViz 
+                   , mesh->elm.cellFace      , mesh->face.owner
+                   , mesh->elm.geom.volume   , mesh->elm.geom.dcca
+                   , mesh->elm.geom.xmcc     , mesh->elm.geom.cc
+                   , mesh->face.mksi         , mesh->face.ksi
+                   , mesh->face.eta          , mesh->face.area
+                   , mesh->face.normal       , mesh->face.xm
+                   , mesh->face.mvSkew       , mesh->face.vSkew
+                   , mesh->elm.geomType      , mesh->elm.material.prop
+                   , mesh->elm.material.type , mesh->elm.mat
+                   , mesh->elm.faceRvel      , mesh->elm.faceRvel     
+                   , mesh->elm.vel           , mesh->elm.gradVel      
+                   , mesh->elm.densityFluid.t, mesh->elm.dViscosity
+                   , mesh->elm.eddyViscosity , mesh->elm.wallParameters
+                   , mesh->elm.cd            
+                   , mesh->maxNo             , mesh->maxViz         
+                   , mesh->ndm               , mesh->numelNov 
                    , ndf);   
 /*...................................................................*/ 
       }
@@ -174,7 +174,7 @@ void turbulence(Memoria *m
                   , mesh->elm.material.type, mesh->elm.mat
                   , mesh->elm.faceRvel     , mesh->elm.faceRvel
                   , mesh->elm.vel          , mesh->elm.gradVel
-                  , mesh->elm.densityFluid , mesh->elm.dViscosity
+                  , mesh->elm.densityFluid.t, mesh->elm.dViscosity
                   , mesh->elm.eddyViscosity, mesh->elm.wallParameters
                   , mesh->elm.cd
                   , mesh->maxNo            , mesh->maxViz
@@ -203,7 +203,7 @@ void turbulence(Memoria *m
 /*... interpolacao das variaveis da celulas para pos nos (vel)*/
           interCellNode(m                
                      , mesh->elm.cellFace, mesh->face.owner
-                     , nDen              , mesh->elm.densityFluid        
+                     , nDen              , mesh->elm.densityFluid.t        
                      , mesh->elm.node    , mesh->elm.geomType                      
                      , mesh->elm.geom.cc , mesh->node.x               
                      , mesh->face.xm           
@@ -222,7 +222,7 @@ void turbulence(Memoria *m
                      , mesh->elm.adj.nelcon, mesh->elm.nen 
                      , mesh->elm.adj.nViz  , mesh->elm.geom.volume    
                      , nVel                , mesh->elm.vel           
-                     , nDen                , mesh->elm.densityFluid
+                     , nDen                , mesh->elm.densityFluid.t
                      , mesh->elm.gradVel   ,  mesh->elm.stressR 
                      , mesh->elm.cd
                      , mesh->maxNo         , mesh->maxViz         
@@ -241,37 +241,37 @@ void turbulence(Memoria *m
       else if (typeLes == LESMIXEDTWOMODEL)
       {
         
-        lesDynamicMean(m                      , tModel 
-                      , mesh->elm.adj.nelcon  , mesh->elm.nen    
-                      , mesh->elm.adj.nViz    , mesh->elm.geom.volume  
-                      , mesh->elm.vel         , mesh->elm.gradVel 
-                      , mesh->elm.densityFluid, mesh->elm.dViscosity
+        lesDynamicMean(m                        , tModel 
+                      , mesh->elm.adj.nelcon    , mesh->elm.nen    
+                      , mesh->elm.adj.nViz      , mesh->elm.geom.volume  
+                      , mesh->elm.vel           , mesh->elm.gradVel 
+                      , mesh->elm.densityFluid.t, mesh->elm.dViscosity
                       , mesh->elm.cd
-                      , mesh->maxNo           , mesh->maxViz         
-                      , mesh->ndm             , mesh->numelNov 
-                      , ndf                   , tModel->typeDynamic); 
+                      , mesh->maxNo             , mesh->maxViz         
+                      , mesh->ndm               , mesh->numelNov 
+                      , ndf                     , tModel->typeDynamic); 
 
 /*...*/ 
-        turbulenceCellLoop(lVel             , tModel  
-                   , &pMesh->iEl                      
-                   , mesh->elm.node         , mesh->elm.adj.nelcon 
-                   , mesh->elm.nen          , mesh->elm.adj.nViz 
-                   , mesh->elm.cellFace     , mesh->face.owner
-                   , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-                   , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-                   , mesh->face.mksi        , mesh->face.ksi
-                   , mesh->face.eta         , mesh->face.area
-                   , mesh->face.normal      , mesh->face.xm
-                   , mesh->face.mvSkew      , mesh->face.vSkew
-                   , mesh->elm.geomType     , mesh->elm.material.prop
-                   , mesh->elm.material.type, mesh->elm.mat
-                   , mesh->elm.faceRvel     , mesh->elm.faceRvel     
-                   , mesh->elm.vel          , mesh->elm.gradVel      
-                   , mesh->elm.densityFluid , mesh->elm.dViscosity
-                   , mesh->elm.eddyViscosity, mesh->elm.wallParameters
+        turbulenceCellLoop(lVel               , tModel  
+                   , &pMesh->iEl                        
+                   , mesh->elm.node           , mesh->elm.adj.nelcon 
+                   , mesh->elm.nen            , mesh->elm.adj.nViz 
+                   , mesh->elm.cellFace       , mesh->face.owner
+                   , mesh->elm.geom.volume    , mesh->elm.geom.dcca
+                   , mesh->elm.geom.xmcc      , mesh->elm.geom.cc
+                   , mesh->face.mksi          , mesh->face.ksi
+                   , mesh->face.eta           , mesh->face.area
+                   , mesh->face.normal        , mesh->face.xm
+                   , mesh->face.mvSkew        , mesh->face.vSkew
+                   , mesh->elm.geomType       , mesh->elm.material.prop
+                   , mesh->elm.material.type  , mesh->elm.mat
+                   , mesh->elm.faceRvel       , mesh->elm.faceRvel     
+                   , mesh->elm.vel            , mesh->elm.gradVel      
+                   , mesh->elm.densityFluid.t , mesh->elm.dViscosity
+                   , mesh->elm.eddyViscosity  , mesh->elm.wallParameters
                    , mesh->elm.cd   
-                   , mesh->maxNo            , mesh->maxViz         
-                   , mesh->ndm             , mesh->numelNov 
+                   , mesh->maxNo              , mesh->maxViz         
+                   , mesh->ndm                , mesh->numelNov 
                    , ndf);   
 /*...................................................................*/ 
 
@@ -281,7 +281,7 @@ void turbulence(Memoria *m
                      , mesh->elm.adj.nelcon, mesh->elm.nen 
                      , mesh->elm.adj.nViz  , mesh->elm.geom.volume    
                      , nVel                , mesh->elm.vel           
-                     , nDen                , mesh->elm.densityFluid
+                     , nDen                , mesh->elm.densityFluid.t
                      , mesh->elm.gradVel   , mesh->elm.stressR 
                      , mesh->elm.cd
                      , mesh->maxNo         , mesh->maxViz         
@@ -359,14 +359,14 @@ void oneEquationK(Memoria *m
 /*... dinamico oneKtEq*/ 
     if (tModel->fDynamic)
       lesDynamicOneKeq(m                    , tModel
-                  , mesh->elm.adj.nelcon   , mesh->elm.nen    
-                  , mesh->elm.adj.nViz     , mesh->elm.geom.volume 
-                  , mesh->elm.vel          , mesh->elm.gradVel
-                  , mesh->elm.densityFluid , mesh->elm.dViscosity
-                  , mesh->elm.eddyViscosity, mesh->elm.cd                                      
-                  , mesh->maxNo            , mesh->maxViz
-                  , mesh->ndm              , mesh->numelNov   
-                  , ndfVel                 , 1); 
+                  , mesh->elm.adj.nelcon    , mesh->elm.nen    
+                  , mesh->elm.adj.nViz      , mesh->elm.geom.volume 
+                  , mesh->elm.vel           , mesh->elm.gradVel
+                  , mesh->elm.densityFluid.t, mesh->elm.dViscosity
+                  , mesh->elm.eddyViscosity , mesh->elm.cd                                      
+                  , mesh->maxNo             , mesh->maxViz
+                  , mesh->ndm               , mesh->numelNov   
+                  , ndfVel                  , 1); 
 /*...................................................................*/
 
 /*... reconstruindo do gradiente*/
@@ -422,7 +422,7 @@ void oneEquationK(Memoria *m
                , mesh->elm.kTurb         , mesh->elm.gradKturb             
                , mesh->elm.vel           , mesh->elm.gradVel   
                , mesh->elm.pressure      , mesh->elm.gradPres
-               , mesh->elm.densityFluid  , mesh->elm.dViscosity
+               , mesh->elm.densityFluid.t, mesh->elm.dViscosity
                , mesh->elm.eddyViscosity , sp->d                                    
                , mesh->elm.rCellKturb    , mesh->elm.wallParameters
                , mesh->elm.cd            , &sc->ddt
@@ -487,10 +487,10 @@ void oneEquationK(Memoria *m
 
 /*...*/
      eddyViscKtEq(tModel
-                , mesh->elm.kTurb       , mesh->elm.eddyViscosity
-                , mesh->elm.densityFluid, mesh->elm.geom.volume
+                , mesh->elm.kTurb         , mesh->elm.eddyViscosity
+                , mesh->elm.densityFluid.t, mesh->elm.geom.volume
                 , mesh->elm.cd         
-                , numel                 , mesh->ndm);
+                , numel                   , mesh->ndm);
 /*...................................................................*/
 
    }
@@ -611,7 +611,7 @@ void turbulenceCellLoop(Loads *lVel         , Turbulence *tModel
     lGeomType[aux1]      = geomType[nel];
     lFaceVelR[aux1]      = MAT2D(nel,aux1,faceVelR ,aux2);
     lFaceVelL[aux1]      = MAT2D(nel,aux1,faceVelL ,aux2);
-    lDensity[aux1]       = MAT2D(nel,2   ,density ,DENSITY_LEVEL);
+    lDensity[aux1]       = density[nel];
     
 /*...*/
     lDviscosity       = dViscosity[nel];
@@ -669,7 +669,7 @@ void turbulenceCellLoop(Loads *lVel         , Turbulence *tModel
       {
         lVolume[i]   = gVolume[vizNel]; 
         lGeomType[i] = geomType[vizNel];
-        lDensity[i]  = MAT2D(vizNel,2   ,density ,DENSITY_LEVEL);
+        lDensity[i]  =  density[vizNel];
 
         lMat         = mat[vizNel]-1;
  
@@ -793,7 +793,7 @@ void wallParametersCellLoop(Loads *lVel, Turbulence *tModel
 /*... loop na celula central*/    
     lFaceVelR[aux1] = MAT2D(nel,aux1,faceVelR ,aux2);
     lFaceVelL[aux1] = MAT2D(nel,aux1,faceVelL ,aux2);
-    lDensityC       = MAT2D(nel,2   ,density ,DENSITY_LEVEL);
+    lDensityC       = density[nel];
     
 /*...*/
     lDviscosityC = dViscosity[nel];
@@ -928,7 +928,7 @@ void lesDynamicMean(Memoria *m               , Turbulence *tModel
 
 /*... loop na celula central*/    
     lVolume[aux1]     = gVolume[nel]; 
-    lDensity[aux1]    = MAT2D(nel,2   ,density ,DENSITY_LEVEL);
+    lDensity[aux1]    = density[nel];
 
 /*...*/
     for(j=0;j<ndm;j++){
@@ -949,7 +949,7 @@ void lesDynamicMean(Memoria *m               , Turbulence *tModel
       lViz[i] = vizNel;
       if( vizNel != -2) {
         lVolume[i]   = gVolume[vizNel]; 
-        lDensity[i]  = MAT2D(vizNel,2   ,density ,DENSITY_LEVEL);
+        lDensity[i]  =density[vizNel];
 
         for(j=0;j<ndm;j++){
           MAT2D(i,j,lVel      ,ndm) = MAT2D(vizNel,j,vel     ,ndm);
@@ -1061,7 +1061,7 @@ void lesDynamicMean(Memoria *m               , Turbulence *tModel
   }
   else if(iCod == GDYNAMICMOD ){
     for (nel = 0; nel < numel; nel++){
-      lDensity[0] = MAT2D(nel,2   ,density ,DENSITY_LEVEL); 
+      lDensity[0] = density[nel]; 
       lViscosity = dViscosity[nel];
       MAT2D(nel,0,cDyn,2) = oneGoParLesMod(tModel     , gmm
                                          , lDensity[0], lViscosity
@@ -1143,7 +1143,7 @@ void lesDynamicOneKeq(Memoria *m             , Turbulence *tModel
 
 /*... loop na celula central*/    
     lVolume[aux1]  = gVolume[nel]; 
-    lDensity[aux1] = MAT2D(nel,2   ,density ,DENSITY_LEVEL);
+    lDensity[aux1] = density[nel];
 
 /*...*/
     for(j=0;j<ndm;j++){
@@ -1164,7 +1164,7 @@ void lesDynamicOneKeq(Memoria *m             , Turbulence *tModel
       lViz[i] = vizNel;
       if( vizNel != -2) {
         lVolume[i]   = gVolume[vizNel]; 
-        lDensity[i]  = MAT2D(vizNel,2   ,density ,DENSITY_LEVEL);
+        lDensity[i]  = density[vizNel];
 
         for(j=0;j<ndm;j++){
           MAT2D(i,j,lVel      ,ndm) = MAT2D(vizNel,j,vel     ,ndm);
@@ -1312,7 +1312,7 @@ void sLesModCellLoop(Turbulence *tModel
 /*...*/
         no = MAT2D(nel,j,el,maxNo) - 1;
 
-        lnDensity[j] = MAT2D(no,2,nDensity ,DENSITY_LEVEL);
+        lnDensity[j] = nDensity[no];
         for(k=0;k<ndm;k++){
           MAT2D(j,k,lx,ndm)    = MAT2D(no,k,x,ndm);
           MAT2D(j,k,lnVel,ndm) = MAT2D(no,k,nVel,ndm);
@@ -1322,7 +1322,7 @@ void sLesModCellLoop(Turbulence *tModel
 
 /*... loop na celula central*/    
     lVolume[aux1]     = gVolume[nel]; 
-    lDensity[aux1]    = MAT2D(nel,2   ,eDensity ,DENSITY_LEVEL);
+    lDensity[aux1]    = eDensity[nel];
 
 /*...*/
     for(j=0;j<ndm;j++){
@@ -1343,7 +1343,7 @@ void sLesModCellLoop(Turbulence *tModel
       lViz[i] = vizNel;
       if( vizNel != -2) {
         lVolume[i]   = gVolume[vizNel]; 
-        lDensity[i]  = MAT2D(vizNel,2   ,eDensity ,DENSITY_LEVEL);
+        lDensity[i]  = eDensity[vizNel];
 
         for(j=0;j<ndm;j++){
           MAT2D(i,j,lVel,ndm) = MAT2D(vizNel,j,eVel,ndm);

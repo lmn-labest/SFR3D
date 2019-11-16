@@ -87,7 +87,7 @@ void diffusion(Memoria *m       ,Loads *loadsDif,DiffModel *dModel
                ,mesh->face.xm           ,mesh->face.mvSkew 
                ,mesh->face.vSkew        ,mesh->elm.geomType      
                ,mesh->elm.material.type ,mesh->elm.mat   
-               ,mesh->elm.densityUd1    ,mesh->elm.cDiffD1
+               ,mesh->elm.densityUd1.t  ,mesh->elm.cDiffD1
                ,sistEqD->ia             ,sistEqD->ja      
                ,sistEqD->al             ,sistEqD->ad       
                ,sistEqD->b              ,sistEqD->id       

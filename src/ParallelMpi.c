@@ -87,17 +87,29 @@ static void allocFuild(Memoria *m        , Mesh *mesh
 /*...................................................................*/
 
 /*... densitytFluid locais*/
-    size = lNel*DENSITY_LEVEL;
-    HccaAlloc(DOUBLE,m,mesh->elm.densityFluid  ,size        
+    size = lNel;
+    HccaAlloc(DOUBLE,m,mesh->elm.densityFluid.t00  ,size        
+           ,"densityFluidP00"            ,_AD_);
+    HccaAlloc(DOUBLE,m,mesh->elm.densityFluid.t0  ,size        
+           ,"densityFluidP0"            ,_AD_);
+    HccaAlloc(DOUBLE,m,mesh->elm.densityFluid.t  ,size        
            ,"densityFluidP"            ,_AD_);
-    zero(mesh->elm.densityFluid,size,DOUBLEC);
+    zero(mesh->elm.densityFluid.t00,size,DOUBLEC);
+    zero(mesh->elm.densityFluid.t0 ,size,DOUBLEC);
+    zero(mesh->elm.densityFluid.t  ,size,DOUBLEC);
 /*...................................................................*/
 
 /*... calor especifico locais*/
-    size = lNel*SHEAT_LEVEL;
-    HccaAlloc(DOUBLE,m,mesh->elm.specificHeat  ,size        
+    size = lNel;
+    HccaAlloc(DOUBLE,m,mesh->elm.specificHeat.t00 ,size        
+           ,"sHeatP00",_AD_);
+    HccaAlloc(DOUBLE,m,mesh->elm.specificHeat.t0  ,size        
+           ,"sHeatP0",_AD_);
+    HccaAlloc(DOUBLE,m,mesh->elm.specificHeat.t0  ,size        
            ,"sHeatP",_AD_);
-    zero(mesh->elm.specificHeat,size,DOUBLEC);
+    zero(mesh->elm.specificHeat.t00,size,DOUBLEC);
+    zero(mesh->elm.specificHeat.t0 ,size,DOUBLEC);
+    zero(mesh->elm.specificHeat.t  ,size,DOUBLEC);
 /*...................................................................*/
 
 /*... calor especifico locais*/
@@ -186,7 +198,7 @@ static void allocComb(Memoria *m          , Mesh *mesh
 
 /********************************************************************* 
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 06/10/2019                                   *
+ * Data de modificaco : 15/11/2019                                   *
  * ------------------------------------------------------------------*
  * comunicate2 :                                                     * 
  *-------------------------------------------------------------------* 
@@ -202,13 +214,13 @@ static void allocComb(Memoria *m          , Mesh *mesh
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/ 
-static void comunicateCD(short *m0faceR     ,short *faceR
-                ,DOUBLE *m0u0       ,DOUBLE *u0 
-                ,DOUBLE *m0u        ,DOUBLE *u  
-                ,DOUBLE *m0density  ,DOUBLE *density  
-                ,INT const lNel     ,INT *elLG
-                ,short const maxViz ,short const ndf
-                ,short const nPart  ,short const iCod)
+static void comunicateCD(short *m0faceR,short *faceR
+                ,DOUBLE *m0u0          ,DOUBLE *u0 
+                ,DOUBLE *m0u           ,DOUBLE *u  
+                ,LevelTime m0density   ,LevelTime density  
+                ,INT const lNel        ,INT *elLG
+                ,short const maxViz    ,short const ndf
+                ,short const nPart     ,short const iCod)
 {
 #ifdef _MPI_
   INT i,size;
@@ -219,6 +231,7 @@ static void comunicateCD(short *m0faceR     ,short *faceR
   short dSize=sizeof(DOUBLE); 
   switch(iCod){
     case 1: 
+    case 2:
 /*... faceR locais*/
       size = lNel*(maxViz+1)*ndf;
       nS   = (short *) malloc(size*sSize); 
@@ -227,9 +240,12 @@ static void comunicateCD(short *m0faceR     ,short *faceR
       sGetLocalV(m0faceR           ,nS
                 ,elLG
                 ,lNel              ,(maxViz+1)*ndf); 
-      
-      for(i=0;i<size;i++) 
-        faceR[i] = nS[i];
+      if(iCod == 1)
+        for(i=0;i<size;i++) 
+          faceR[i] = nS[i];
+      else if(iCod == 2)
+        MPI_Send(nS    ,       size, MPI_SHORT,nPart,5    
+                ,mpiVar.comm); 
       
       free(nS);  
 /*...................................................................*/
@@ -242,10 +258,12 @@ static void comunicateCD(short *m0faceR     ,short *faceR
       dGetLocalV(m0u0              ,nD
                 ,elLG
                 ,lNel              ,ndf); 
-        
-      for(i=0;i<size;i++)
-        u0[i] = nD[i];
-
+      if(iCod == 1)  
+        for(i=0;i<size;i++)
+          u0[i] = nD[i];
+      else if(iCod == 2)
+        MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,7    
+                ,mpiVar.comm);
       free(nD);
 /*...................................................................*/
 
@@ -257,92 +275,58 @@ static void comunicateCD(short *m0faceR     ,short *faceR
       dGetLocalV(m0u    ,nD
                 ,elLG
                 ,lNel   ,ndf); 
-        
-      for(i=0;i<size;i++)
-        u[i] = nD[i];
-
+      if(iCod == 1)   
+        for(i=0;i<size;i++)
+          u[i] = nD[i];
+      else if(iCod == 2)
+        MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,8    
+                ,mpiVar.comm);;
       free(nD);
 /*...................................................................*/
 
 /*... density locais*/
-      size = lNel*2;
+      size = lNel;
       nD   = (DOUBLE *) malloc(size*dSize); 
       ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
-
-      dGetLocalV(m0density  ,nD
+/*... t00*/
+      dGetLocalV(m0density.t00,nD
                 ,elLG
-                ,lNel       ,2); 
+                ,lNel       ,1); 
+       
+      if(iCod == 1)    
+        for(i=0;i<size;i++)
+          density.t00[i] = nD[i];
+      else if(iCod == 2)
+        MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,9    
+               ,mpiVar.comm);
+/*... t0*/
+      dGetLocalV(m0density.t0,nD
+                ,elLG
+                ,lNel       ,1); 
         
-      for(i=0;i<size;i++)
-        density[i] = nD[i];
+      if(iCod == 1)    
+        for(i=0;i<size;i++)
+          density.t0[i] = nD[i];
+      else if(iCod == 2)
+        MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,9    
+               ,mpiVar.comm);
+
+/*... t*/
+      dGetLocalV(m0density.t,nD
+                ,elLG
+                ,lNel       ,1); 
+        
+      if(iCod == 1)    
+        for(i=0;i<size;i++)
+          density.t[i] = nD[i];
+      else if(iCod == 2)
+        MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,9    
+               ,mpiVar.comm);
+
 
       free(nD);
 /*...................................................................*/
    break;
-
-   case 2:
-
-/*... faceR locais*/
-     size = lNel*(maxViz+1)*ndf;
-     nS   = (short *) malloc(size*sSize); 
-     ERRO_MALLOC(nS,"nS"   ,__LINE__,__FILE__,__func__);
-
-     sGetLocalV(m0faceR,nS
-               ,elLG
-               ,lNel   ,(maxViz+1)*ndf); 
-        
-     MPI_Send(nS    ,       size, MPI_SHORT,nPart,5    
-             ,mpiVar.comm);
-        
-     free(nS);  
-/*...................................................................*/
-
-/*... eU0 locais*/
-     size = lNel*ndf;
-     nD   = (DOUBLE *) malloc(size*dSize); 
-     ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
-
-     dGetLocalV(m0u0     ,nD
-               ,elLG
-               ,lNel     ,ndf); 
-        
-     MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,7    
-             ,mpiVar.comm);
-        
-     free(nD);  
-/*...................................................................*/
-
-/*... eU locais*/
-     size = lNel*ndf;
-     nD   = (DOUBLE *) malloc(size*dSize); 
-     ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
-
-     dGetLocalV(m0u      ,nD
-               ,elLG
-               ,lNel     ,ndf); 
-        
-     MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,8    
-             ,mpiVar.comm);
-        
-     free(nD);  
-/*...................................................................*/
-
-/*... density locais*/
-     size = lNel*DENSITY_LEVEL;
-     nD   = (DOUBLE *) malloc(size*dSize); 
-     ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
-
-     dGetLocalV(m0density,nD
-               ,elLG
-               ,lNel     ,2); 
-        
-     MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,9    
-               ,mpiVar.comm);
-        
-     free(nD);  
-/*...................................................................*/
-   break; 
-/*...................................................................*/
 
 /*...*/
    case 3:
@@ -366,8 +350,12 @@ static void comunicateCD(short *m0faceR     ,short *faceR
 /*...................................................................*/
      
 /*... density locais*/
-     size = lNel*DENSITY_LEVEL;
-     MPI_Recv(density,size, MPI_DOUBLE,0,9    
+     size = lNel;
+     MPI_Recv(density.t00,size, MPI_DOUBLE,0,9    
+             ,mpiVar.comm,MPI_STATUS_IGNORE);
+     MPI_Recv(density.t0 ,size, MPI_DOUBLE,0,9    
+             ,mpiVar.comm,MPI_STATUS_IGNORE);
+     MPI_Recv(density.t  ,size, MPI_DOUBLE,0,9    
              ,mpiVar.comm,MPI_STATUS_IGNORE);
 /*...................................................................*/
 
@@ -613,8 +601,8 @@ static void comunicateFluid(short *m0faceRvel     ,short *faceRvel
                 ,DOUBLE *m0energy      ,DOUBLE *energy
                 ,DOUBLE *m0temp0       ,DOUBLE *temp0
                 ,DOUBLE *m0temp        ,DOUBLE *temp
-                ,DOUBLE *m0density     ,DOUBLE *density
-                ,DOUBLE *m0sHeat       ,DOUBLE *sHeat 
+                ,LevelTime m0density   ,LevelTime density
+                ,LevelTime m0sHeat     ,LevelTime sHeat 
                 ,DOUBLE *m0dVisc       ,DOUBLE *dVisc
                 ,DOUBLE *m0tCond       ,DOUBLE *tCond 
                 ,INT const lNel        ,INT *elLG
@@ -812,17 +800,40 @@ static void comunicateFluid(short *m0faceRvel     ,short *faceRvel
 /*...................................................................*/
 
 /*... density locais*/
-        size = lNel*DENSITY_LEVEL;
+        size = lNel;
         nD   = (DOUBLE *) malloc(size*dSize); 
         ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
-        
-        dGetLocalV(m0density  ,nD
+/*... t00*/
+        dGetLocalV(m0density.t00  ,nD
                   ,elLG
-                  ,lNel       ,DENSITY_LEVEL); 
+                  ,lNel         ,1); 
           
         if(iCod == 1)
           for(i=0;i<size;i++) 
-            density[i] = nD[i];
+            density.t00[i] = nD[i];
+        else if(iCod == 2)
+          MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,18   
+                  ,mpiVar.comm);
+/*... t0*/
+        dGetLocalV(m0density.t0  ,nD
+                  ,elLG
+                  ,lNel         ,1); 
+          
+        if(iCod == 1)
+          for(i=0;i<size;i++) 
+            density.t0[i] = nD[i];
+        else if(iCod == 2)
+          MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,18   
+                  ,mpiVar.comm);
+
+/*... t*/
+        dGetLocalV(m0density.t  ,nD
+                  ,elLG
+                  ,lNel         ,1); 
+          
+        if(iCod == 1)
+          for(i=0;i<size;i++) 
+            density.t[i] = nD[i];
         else if(iCod == 2)
           MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,18   
                   ,mpiVar.comm);
@@ -830,22 +841,45 @@ static void comunicateFluid(short *m0faceRvel     ,short *faceRvel
         free(nD);
 /*...................................................................*/
 
-/*... massa especifica locais*/
-        size = lNel*SHEAT_LEVEL;
+/*... calor especifico*/
+        size = lNel;
         nD   = (DOUBLE *) malloc(size*dSize); 
         ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
-        
-        dGetLocalV(m0sHeat    ,nD
+/*... t*/        
+        dGetLocalV(m0sHeat.t  ,nD
                   ,elLG
-                  ,lNel       ,SHEAT_LEVEL); 
+                  ,lNel       ,1); 
           
         if(iCod == 1)
           for(i=0;i<size;i++) 
-            sHeat[i] = nD[i];
+            sHeat.t[i] = nD[i];
         else if(iCod == 2)
           MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,19   
                   ,mpiVar.comm);
-        
+/*... t0*/
+
+        dGetLocalV(m0sHeat.t0 ,nD
+                  ,elLG
+                  ,lNel       ,1); 
+          
+        if(iCod == 1)
+          for(i=0;i<size;i++) 
+            sHeat.t0[i] = nD[i];
+        else if(iCod == 2)
+          MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,19   
+                  ,mpiVar.comm);
+/*... t00*/
+        dGetLocalV(m0sHeat.t00,nD
+                  ,elLG
+                  ,lNel       ,1); 
+          
+        if(iCod == 1)
+          for(i=0;i<size;i++) 
+            sHeat.t00[i] = nD[i];
+        else if(iCod == 2)
+          MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,19   
+                  ,mpiVar.comm);        
+
         free(nD);
 /*...................................................................*/
 
@@ -951,15 +985,24 @@ static void comunicateFluid(short *m0faceRvel     ,short *faceRvel
                ,mpiVar.comm,MPI_STATUS_IGNORE);
 /*...................................................................*/
 
-/*... density locais*/
-       size = lNel*DENSITY_LEVEL;
-       MPI_Recv(density,size, MPI_DOUBLE,0,18    
+/*... massa especifica locais*/
+       size = lNel;
+       MPI_Recv(density.t,size, MPI_DOUBLE,0,18    
+               ,mpiVar.comm,MPI_STATUS_IGNORE);
+       MPI_Recv(density.t0,size, MPI_DOUBLE,0,18    
+               ,mpiVar.comm,MPI_STATUS_IGNORE);
+       MPI_Recv(density.t00,size, MPI_DOUBLE,0,18    
                ,mpiVar.comm,MPI_STATUS_IGNORE);
 /*...................................................................*/
 
-/*... massa especifica locais*/
-       size = lNel*SHEAT_LEVEL;
-       MPI_Recv(sHeat,size, MPI_DOUBLE,0,19    
+
+/*... calor especifico locais*/
+       size = lNel;
+       MPI_Recv(sHeat.t,size, MPI_DOUBLE,0,19    
+               ,mpiVar.comm,MPI_STATUS_IGNORE);
+       MPI_Recv(sHeat.t0,size, MPI_DOUBLE,0,19    
+               ,mpiVar.comm,MPI_STATUS_IGNORE);
+       MPI_Recv(sHeat.t00,size, MPI_DOUBLE,0,19    
                ,mpiVar.comm,MPI_STATUS_IGNORE);
 /*...................................................................*/
 
@@ -1257,10 +1300,16 @@ static void prMaster(Memoria *m    , Mesh *mesh0
 /*...................................................................*/
   
 /*... density locais*/
-     size = lNel*DENSITY_LEVEL;
-     HccaAlloc(DOUBLE,m,mesh->elm.densityUd1  ,size        
+     size = lNel;
+     HccaAlloc(DOUBLE,m,mesh->elm.densityUd1.t00  ,size        
+              ,"densityP00"            ,_AD_); 
+     HccaAlloc(DOUBLE,m,mesh->elm.densityUd1.t0  ,size        
+              ,"densityP0"            ,_AD_); 
+     HccaAlloc(DOUBLE,m,mesh->elm.densityUd1.t  ,size        
               ,"densityP"            ,_AD_); 
-     zero(mesh->elm.densityUd1,size,DOUBLEC);
+     zero(mesh->elm.densityUd1.t00,size,DOUBLEC);
+     zero(mesh->elm.densityUd1.t0,size,DOUBLEC)
+     zero(mesh->elm.densityUd1.t,size,DOUBLEC)
 /*...................................................................*/
 
 /*... */ 
@@ -1300,10 +1349,16 @@ static void prMaster(Memoria *m    , Mesh *mesh0
 /*...................................................................*/
 
 /*... density locais*/
-    size = lNel*DENSITY_LEVEL;
-    HccaAlloc(DOUBLE,m,mesh->elm.densityUt1  ,size          
+    size = lNel;
+    HccaAlloc(DOUBLE,m,mesh->elm.densityUt1.t00  ,size          
+             ,"densityT1P00"          ,_AD_);
+    HccaAlloc(DOUBLE,m,mesh->elm.densityUt1.t0  ,size          
+             ,"densityT1P0"          ,_AD_);
+    HccaAlloc(DOUBLE,m,mesh->elm.densityUt1.t  ,size          
              ,"densityT1P"          ,_AD_);
-    zero(mesh->elm.densityUt1,size,DOUBLEC);
+    zero(mesh->elm.densityUt1.t00,size,DOUBLEC);
+    zero(mesh->elm.densityUt1.t0,size,DOUBLEC);
+    zero(mesh->elm.densityUt1.t,size,DOUBLEC);
 /*...................................................................*/
 
 /*... */
@@ -2011,10 +2066,16 @@ static void recvPart(Memoria *m    , Mesh *mesh0
 /*...................................................................*/
 
 /*... density locais*/
-     size = (*lNel)*DENSITY_LEVEL;
-     HccaAlloc(DOUBLE,m,mesh->elm.densityUd1  ,size        
+     size = (*lNel);
+     HccaAlloc(DOUBLE,m,mesh->elm.densityUd1.t00  ,size        
+              ,"densityP00"            ,_AD_);
+     HccaAlloc(DOUBLE,m,mesh->elm.densityUd1.t0  ,size        
+              ,"densityP0"            ,_AD_);
+     HccaAlloc(DOUBLE,m,mesh->elm.densityUd1.t  ,size        
               ,"densityP"            ,_AD_);
-     zero(mesh->elm.densityUd1,size,DOUBLEC);
+     zero(mesh->elm.densityUd1.t00,size,DOUBLEC);
+     zero(mesh->elm.densityUd1.t0 ,size,DOUBLEC);
+     zero(mesh->elm.densityUd1.t  ,size,DOUBLEC);
 /*...................................................................*/
 
 /*...*/
@@ -2054,10 +2115,16 @@ static void recvPart(Memoria *m    , Mesh *mesh0
 /*...................................................................*/
 
 /*... densityt1 locais*/
-    size = (*lNel)*DENSITY_LEVEL;
-    HccaAlloc(DOUBLE,m,mesh->elm.densityUt1  ,size        
-             ,"densityT1P"            ,_AD_);
-    zero(mesh->elm.densityUt1,size,DOUBLEC);
+     size = (*lNel);
+     HccaAlloc(DOUBLE,m,mesh->elm.densityUt1.t00  ,size        
+              ,"densityP00"            ,_AD_);
+     HccaAlloc(DOUBLE,m,mesh->elm.densityUt1.t0  ,size        
+              ,"densityP0"            ,_AD_);
+     HccaAlloc(DOUBLE,m,mesh->elm.densityUt1.t  ,size        
+              ,"densityP"            ,_AD_);
+     zero(mesh->elm.densityUt1.t00,size,DOUBLEC);
+     zero(mesh->elm.densityUt1.t0 ,size,DOUBLEC);
+     zero(mesh->elm.densityUt1.t  ,size,DOUBLEC);
 /*...................................................................*/
 
 /*...*/
@@ -4387,25 +4454,27 @@ void writeMeshPart(Mesh *mesh,Combustion *cModel)
   INT i;
 
 /*... densityFluid*/
-  nD = DENSITY_LEVEL;
   fprintf(fileLogDebug,"Densisty\n");
   for(i=0;i<mesh->numel;i++)
   {
     fprintf(fileLogDebug,"%d ",i);
-    for(j=0;j<nD;j++)
-      fprintf(fileLogDebug," %e ",MAT2D(i,j,mesh->elm.densityFluid,nD));
+    fprintf(fileLogDebug," %e %e %e\n"
+                               ,mesh->elm.densityFluid.t[i]
+                               ,mesh->elm.densityFluid.t0[i]
+                               ,mesh->elm.densityFluid.t00[i]);
     fprintf(fileLogDebug,"\n");
   }
 /*......................................................................*/
 
 /*... specific heat*/
-  nD = SHEAT_LEVEL;
   fprintf(fileLogDebug,"Specific heat\n");
   for(i=0;i<mesh->numel;i++)
   {
     fprintf(fileLogDebug,"%d ",i);
-    for(j=0;j<nD;j++)
-      fprintf(fileLogDebug," %e ",MAT2D(i,j,mesh->elm.specificHeat,nD));
+    fprintf(fileLogDebug," %e %e %e\n"
+                               ,mesh->elm.specificHeat.t[i]
+                               ,mesh->elm.specificHeat.t0[i]
+                               ,mesh->elm.specificHeat.t00[i]);
     fprintf(fileLogDebug,"\n");
   }
 /*......................................................................*/
@@ -4425,7 +4494,6 @@ void writeMeshPart(Mesh *mesh,Combustion *cModel)
 /*......................................................................*/
 
 /*... diffusion species*/
-  nD = cModel->nOfSpecies;
   fprintf(fileLogDebug,"Difusao massica\n");
   for(i=0;i<mesh->numel;i++)
   {

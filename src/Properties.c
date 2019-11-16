@@ -593,12 +593,12 @@ DOUBLE mixtureSpeciesDensity(Prop *den           ,DOUBLE const malorMassMix
  *-------------------------------------------------------------------*
  *********************************************************************/
 void updateMolarMass(Combustion *cModel
-                 , DOUBLE *RESTRICT mMolar  , DOUBLE *RESTRICT yFrac 
+                 , LevelTime        mMolar  , DOUBLE *RESTRICT yFrac 
                  , INT const nEl            , char  const iCod
                  , bool const fOmp          , short const nThreads )
 
 {
-  short nD = MOLAR_LEVEL,ns = cModel->nOfSpecies;
+  short ns = cModel->nOfSpecies;
   INT i;
   DOUBLE *y=NULL;
 /*...*/
@@ -606,12 +606,12 @@ void updateMolarMass(Combustion *cModel
     case PROP_UPDATE_NL_LOOP:
 /*... omp*/
 #pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
-     private(i,y) shared(cModel,yFrac,mMolar,nD,ns)
+     private(i,y) shared(cModel,yFrac,mMolar,ns)
      for(i=0;i<nEl;i++)
      {
        y            = &MAT2D(i,0,yFrac,ns);    
 /*...*/           
-       MAT2D(i,TIME_N ,mMolar ,nD) = mixtureMolarMass(cModel,y);
+       mMolar.t[i] = mixtureMolarMass(cModel,y);
      }
 /*..................................................................*/
     break;  
@@ -621,13 +621,13 @@ void updateMolarMass(Combustion *cModel
     case PROP_UPDATE_OLD_TIME:
 /*... omp*/
 #pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
-    private(i) shared(mMolar,nD)
+    private(i) shared(mMolar)
     for(i=0;i<nEl;i++)
     {
 /*...t(n-2) = t(n-1)*/
-      MAT2D(i,TIME_N_MINUS_2 ,mMolar ,nD) = MAT2D(i,1 ,mMolar ,nD);
+      mMolar.t00[i] =  mMolar.t0[i];
 /*...t(n-1) = t(n)*/           
-      MAT2D(i,TIME_N_MINUS_1 ,mMolar ,nD) = MAT2D(i,2 ,mMolar ,nD);
+      mMolar.t0[i]  =  mMolar.t[i];
     }
 /*..................................................................*/
     break;
@@ -667,13 +667,13 @@ void updateMolarMass(Combustion *cModel
  *********************************************************************/
 void updateMixDensity(Prop *pDen            , Combustion *cModel
                  , DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT pressure
-                 , DOUBLE *RESTRICT density , DOUBLE *RESTRICT yFrac
+                 , LevelTime density        , DOUBLE *RESTRICT yFrac
                  , DOUBLE const alpha       , bool const iKelvin    
                  , INT const nEl            , char  const iCod
                  , bool const fOmp         , short const nThreads )
 
 {
-  short nD = DENSITY_LEVEL,ns = cModel->nOfSpecies;
+  short ns = cModel->nOfSpecies;
   INT i;
   DOUBLE den,den0,molarMassMix,*y=NULL;
 /*...*/
@@ -684,17 +684,17 @@ void updateMixDensity(Prop *pDen            , Combustion *cModel
       {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(i,y,molarMassMix,den0,den)\
-        shared(cModel,pDen,yFrac,density,pressure,temp,thDynamic,nD,ns)
+        shared(cModel,pDen,yFrac,density,pressure,temp,thDynamic,ns)
         for(i=0;i<nEl;i++)
         {
           y = &MAT2D(i,0,yFrac,ns);
           molarMassMix =  mixtureMolarMass(cModel,y); 
-          den0 =  MAT2D(i,TIME_N ,density ,nD);         
+          den0 =  density.t[i];         
           den =  mixtureSpeciesDensity(pDen            ,molarMassMix
                                       ,temp[i]         ,pressure[i]
                                       ,thDynamic.pTh[2],iKelvin);
 /*...*/           
-          MAT2D(i,TIME_N ,density ,nD) =  alpha*den + (1.e0-alpha)*den0;
+          density.t[i] =  alpha*den + (1.e0-alpha)*den0;
         }
 /*..................................................................*/
       }
@@ -707,12 +707,12 @@ void updateMixDensity(Prop *pDen            , Combustion *cModel
         {
           y = &MAT2D(i,0,yFrac,ns);
           molarMassMix =  mixtureMolarMass(cModel,y); 
-          den0 =  MAT2D(i,TIME_N ,density ,nD);         
+          den0 =  density.t[i];         
           den =  mixtureSpeciesDensity(pDen            ,molarMassMix
                                       ,temp[i]         ,pressure[i]
                                       ,thDynamic.pTh[2],iKelvin);
 /*...*/           
-          MAT2D(i,TIME_N ,density ,nD) =  alpha*den + (1.e0-alpha)*den0;
+          density.t[i] =  alpha*den + (1.e0-alpha)*den0;
         }
 /*..................................................................*/
       }
@@ -727,13 +727,13 @@ void updateMixDensity(Prop *pDen            , Combustion *cModel
       {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(i)\
-        shared(density,nD)
+        shared(density)
         for(i=0;i<nEl;i++)
         {
 /*...t(n-2) = t(n-1)*/
-          MAT2D(i,TIME_N_MINUS_2 ,density ,nD) = MAT2D(i,1 ,density ,nD);
-/*...t(n-1) = t(n)*/           
-          MAT2D(i,TIME_N_MINUS_1 ,density ,nD) = MAT2D(i,2 ,density ,nD);
+          density.t00[i] = density.t0[i]; 
+/*...t(n-1) = t(n)*/    
+          density.t0[i] = density.t[i];       
         }
 /*..................................................................*/
       }
@@ -745,9 +745,9 @@ void updateMixDensity(Prop *pDen            , Combustion *cModel
         for(i=0;i<nEl;i++)
         {
 /*...t(n-2) = t(n-1)*/
-          MAT2D(i,TIME_N_MINUS_2 ,density ,nD) = MAT2D(i,1 ,density ,nD);
-/*...t(n-1) = t(n)*/           
-          MAT2D(i,TIME_N_MINUS_1 ,density ,nD) = MAT2D(i,2 ,density ,nD);
+          density.t00[i] = density.t0[i]; 
+/*...t(n-1) = t(n)*/    
+          density.t0[i] = density.t[i]; 
         }
 /*..................................................................*/
       }
@@ -1064,13 +1064,12 @@ void  getTempFromTheEnergyMix(PropVarFluid *pf,DOUBLE *RESTRICT yFrac
  *********************************************************************/
 void updateMixSpecificHeat(Prop *sHeatPol
                          , DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT yFrac  
-                         , DOUBLE *RESTRICT sHeat , short const nOfPrSp
+                         , LevelTime sHeat        , short const nOfPrSp
                          , bool const iKelvin
                          , INT const nEl          , char  const iCod
                          , bool const fOmp        , short const nThreads )
 
 {
-  short nD = SHEAT_LEVEL;
   INT i;
   DOUBLE *y;  
   
@@ -1081,12 +1080,12 @@ void updateMixSpecificHeat(Prop *sHeatPol
 /*... omp*/
 #pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
       private(i,y)\
-      shared(sHeat,temp,sHeatPol,yFrac, nD,fileLogDebug)
+      shared(sHeat,temp,sHeatPol,yFrac, fileLogDebug)
       for(i=0;i<nEl;i++)
       {
         y = &MAT2D(i,0,yFrac,nOfPrSp);
 /*...*/           
-        MAT2D(i,TIME_N ,sHeat ,nD) = 
+        sHeat.t[i] = 
         mixtureSpecifiHeat(sHeatPol ,y,temp[i]  ,nOfPrSp,iKelvin);
       }
 /*..................................................................*/
@@ -1095,30 +1094,13 @@ void updateMixSpecificHeat(Prop *sHeatPol
 
 /*...*/
   case PROP_UPDATE_OLD_TIME:
-/*... omp*/
-      if(fOmp)
-      {
-#pragma omp parallel  for default(none) num_threads(nThreads)\
-       private(i) shared(sHeat,nD)
-        for(i=0;i<nEl;i++)
-        {        
-          MAT2D(i, TIME_N_MINUS_2, sHeat, nD) = MAT2D(i,1 ,sHeat ,nD);           
-          MAT2D(i, TIME_N_MINUS_1, sHeat, nD) = MAT2D(i,2 ,sHeat ,nD);
-        }
-/*..................................................................*/
-      }
-/*..................................................................*/
-
-/*... seq*/
-      else
-      {
-        for(i=0;i<nEl;i++)
-        {
-          MAT2D(i, TIME_N_MINUS_2, sHeat, nD) = MAT2D(i,1 ,sHeat ,nD);           
-          MAT2D(i, TIME_N_MINUS_1, sHeat, nD) = MAT2D(i,2 ,sHeat ,nD);
-        }
-/*..................................................................*/
-      }
+#pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
+    private(i) shared(sHeat)
+    for(i=0;i<nEl;i++)
+    {        
+      sHeat.t00[i] = sHeat.t0[i];
+      sHeat.t0[i]  = sHeat.t[i];
+    }
 /*..................................................................*/
     break;
 /*..................................................................*/
@@ -1876,8 +1858,8 @@ void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel
   for(i=0;i<nEl;i++)
   {
     y    = &MAT2D(i,0,yFrac,nOfPrSp);  
-    rhoI = MAT2D(i,TIME_N,rho,DENSITY_LEVEL);
-    cPI  = MAT2D(i,TIME_N,cP ,SHEAT_LEVEL);
+    rhoI = rho[i];
+    cPI  = cP[i];
     for(j=0;j<nOfPrSp;j++)
       MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF,cModel 
                                                 ,y    ,temp[i]
@@ -2325,8 +2307,8 @@ void initDiffMix(PropVarFluid *propF       , Combustion *cModel
 
 /*...*/
       y    = &MAT2D(i,0,yFrac, nOfPrSp);
-      rhoI = MAT2D(i,TIME_N,rho,DENSITY_LEVEL);
-      cPI  = MAT2D(i,TIME_N,cP ,SHEAT_LEVEL);
+      rhoI = rho[i];
+      cPI  = cP[i];
 /*...................................................................*/
 
 /*...*/
@@ -2375,7 +2357,7 @@ void initDiffMix(PropVarFluid *propF       , Combustion *cModel
  *-------------------------------------------------------------------* 
   *********************************************************************/
   void  initMolarMassCell(Combustion *cModel
-                    ,DOUBLE *RESTRICT mMolar   ,DOUBLE *RESTRICT yFrac 
+                    ,LevelTime mMolar          ,DOUBLE *RESTRICT yFrac 
                     ,DOUBLE *RESTRICT prop     ,short *RESTRICT mat           
                     ,short const nOfPrSp       ,short const nComb   
                     ,INT    const nCell        ,bool const fComb)
@@ -2396,8 +2378,9 @@ void initDiffMix(PropVarFluid *propF       , Combustion *cModel
 /*...................................................................*/
 
 /*...*/
-      for(j=0;j<MOLAR_LEVEL;j++)
-        MAT2D(i,j,mMolar,MOLAR_LEVEL) = mW;
+      mMolar.t00[i] = mW;
+      mMolar.t0[i]  = mW;
+      mMolar.t[i]   = mW;
 /*...................................................................*/
     }
 /*...................................................................*/
@@ -2411,9 +2394,9 @@ void initDiffMix(PropVarFluid *propF       , Combustion *cModel
     for(i=0;i<nCell;i++)
     {    
       lMat               = mat[i]-1;
-      for(j=0;j<MOLAR_LEVEL;j++)
-        MAT2D(i,j,mMolar,MOLAR_LEVEL) = 
-        MAT2D(lMat,MMOLARMASS,prop,MAXPROP);  
+      mMolar.t00[i] = MAT2D(lMat,MMOLARMASS,prop,MAXPROP);
+      mMolar.t0[i]  = MAT2D(lMat,MMOLARMASS,prop,MAXPROP);
+      mMolar.t[i]   = MAT2D(lMat,MMOLARMASS,prop,MAXPROP);
     }
 /*...................................................................*/
   }
@@ -3112,25 +3095,24 @@ DOUBLE waterThermalConductvity(DOUBLE const t) {
  *********************************************************************/
 void updateDensity(PropVarFluid *pf
                  , DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT pressure
-                 , DOUBLE *RESTRICT density                 
+                 , LevelTime density                 
                  , DOUBLE const alpha       , bool const iKelvin    
                  , INT const nEl            , char  const iCod)
 
 {
-  short nD = DENSITY_LEVEL;
   INT i;
   DOUBLE den,den0;
 /*...*/
   switch (iCod){
     case PROP_UPDATE_NL_LOOP:
       for(i=0;i<nEl;i++){
-        den0 =  MAT2D(i,2 ,density ,nD);         
+        den0 = density.t[i];         
         den = airDensity(&pf->den  
                         ,temp[i]         ,pressure[i]
                         ,thDynamic.pTh[2],pf->molarMass
                         ,iKelvin);
 /*...*/           
-        MAT2D(i,TIME_N ,density ,nD) =  alpha*den + (1.e0-alpha)*den0;
+        density.t[i] =  alpha*den + (1.e0-alpha)*den0;
       }
 /*..................................................................*/
     break;  
@@ -3138,9 +3120,9 @@ void updateDensity(PropVarFluid *pf
   case PROP_UPDATE_OLD_TIME:
     for(i=0;i<nEl;i++){
 /*...t(n-2) = t(n-1)*/
-      MAT2D(i,TIME_N_MINUS_2 ,density ,nD) = MAT2D(i,1 ,density ,nD);
-/*...t(n-1) = t(n)*/           
-      MAT2D(i,TIME_N_MINUS_1 ,density ,nD) = MAT2D(i,2 ,density ,nD);
+      density.t00[i] = density.t0[i]; 
+/*...t(n-1) = t(n)*/  
+      density.t0[i] = density.t[i];          
     }
 /*..................................................................*/
     break;
@@ -3166,12 +3148,11 @@ void updateDensity(PropVarFluid *pf
  *-------------------------------------------------------------------*
  *********************************************************************/
 void updateSpecificHeat( Prop *sHeatPol
-                       , DOUBLE *RESTRICT temp, DOUBLE *RESTRICT sHeat
+                       , DOUBLE *RESTRICT temp, LevelTime sHeat
                        , bool const iKelvin 
                        ,INT const nEl        , char  const iCod)
 
 {
-  short nD = SHEAT_LEVEL;
   INT i;  
   
 /*...*/
@@ -3180,15 +3161,15 @@ void updateSpecificHeat( Prop *sHeatPol
     case PROP_UPDATE_NL_LOOP:
       for(i=0;i<nEl;i++)
 /*...*/           
-        MAT2D(i,TIME_N ,sHeat ,nD) = airSpecifiHeat(sHeatPol,temp[i],iKelvin);
+        sHeat.t[i] = airSpecifiHeat(sHeatPol,temp[i],iKelvin);
 /*..................................................................*/
     break;  
 
   case PROP_UPDATE_OLD_TIME:
     for(i=0;i<nEl;i++){
 /*...*/
-      MAT2D(i, TIME_N_MINUS_2, sHeat, nD) = MAT2D(i,1 ,sHeat ,nD);           
-      MAT2D(i, TIME_N_MINUS_1, sHeat, nD) = MAT2D(i,2 ,sHeat ,nD);
+      sHeat.t00[i] = sHeat.t0[i];
+      sHeat.t0[i]  = sHeat.t[i];
     }
 /*..................................................................*/
     break;
@@ -3313,11 +3294,10 @@ void updateProp(Prop *pol         , DOUBLE *RESTRICT u
 *-------------------------------------------------------------------*
 *********************************************************************/
 void updateDensityCD(Prop *pol            , DOUBLE *RESTRICT u
-                   , DOUBLE *RESTRICT density, INT nEl    
+                   , LevelTime density    , INT nEl    
                    , char  iCod)
 
 {
-  short nD = SHEAT_LEVEL;
   INT i;
 
 /*...*/
@@ -3325,15 +3305,15 @@ void updateDensityCD(Prop *pol            , DOUBLE *RESTRICT u
   case PROP_UPDATE_NL_LOOP:
     for (i = 0; i<nEl; i++)
 /*...*/
-      MAT2D(i, TIME_N, density, nD) = diffProp(pol,u[i]);
+      density.t[i] = diffProp(pol,u[i]);
 /*..................................................................*/
     break;
 
   case PROP_UPDATE_OLD_TIME:
     for (i = 0; i<nEl; i++) {
 /*...*/
-      MAT2D(i,TIME_N_MINUS_2,density, nD) = MAT2D(i,1,density, nD);
-      MAT2D(i,TIME_N_MINUS_1,density, nD) = MAT2D(i,2,density, nD);
+      density.t00[i] = density.t0[i];
+      density.t0[i]  = density.t[i];;
     }
 /*..................................................................*/
     break;
@@ -3896,52 +3876,6 @@ void getEnergyForTemp(PropVarFluid *pf
 /*********************************************************************/
 
 /********************************************************************* 
- * Data de criacao    : 15/09/2017                                   *
- * Data de modificaco : 00/00/0000                                   *
- *-------------------------------------------------------------------*
- * SPECIFICMASSREF : calcula a massa especifica de referencia        *
- * atraves da media do valores nas celulas                           * 
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
- * temp   - temp                                                     *
- * volume - volume das celulas                                       *
- * prop   - propriedades por material                                *
- * mat    - material da celula                                       *
- * nCell  - numero da celulas                                        *
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
- *-------------------------------------------------------------------*
- * densidade de referencia - entalpia sensivel                       * 
- *-------------------------------------------------------------------* 
- * OBS:                                                              *
- *-------------------------------------------------------------------*
- *********************************************************************/
-void specificMassRefOld(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume                  
-                  , DOUBLE *RESTRICT prop    , short  *RESTRICT mat
-                  , INT const nCell)
-{
-  short nD = DENSITY_LEVEL;
-  INT i;  
-  DOUBLE dm,vm;
-
-  dm = vm = 0.e0;
-
-  for (i = 0; i < nCell; i++) {
-/*...*/   
-   dm += MAT2D(i,2 ,density ,nD)*volume[i];
-   vm += volume[i];
-/*...................................................................*/ 
-  }
-
-  MAT2D(0,DENSITY,prop,MAXPROP) = dm/vm;  
-
-  printf("densityRef :%e\n",MAT2D(0,DENSITY,prop,MAXPROP));
-
-}
-/*********************************************************************/
-
-/********************************************************************* 
  * Data de criacao    : 21/05/2019                                   *
  * Data de modificaco : 16/08/2019                                   *
  *-------------------------------------------------------------------*
@@ -3964,7 +3898,6 @@ void specificMassRefOld(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume
 DOUBLE specificMassRef(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume                  
                     , INT const nCell)
 {
-  short nD = DENSITY_LEVEL;
   INT i;  
   DOUBLE dm,vm,rho;
 #ifdef _MPI_
@@ -3974,7 +3907,7 @@ DOUBLE specificMassRef(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume
   
   for (i = 0; i < nCell; i++) {
 /*...*/      
-   dm += MAT2D(i,2 ,density ,nD)*volume[i];
+   dm += density[i]*volume[i];
    vm += volume[i];
 /*...................................................................*/ 
   }

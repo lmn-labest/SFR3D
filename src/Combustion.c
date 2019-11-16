@@ -71,14 +71,14 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 
 /*... taxa de comsumo do combustivel*/
   tm.timeChemical = getTimeC() - tm.timeChemical;
-  timeChemical(cModel                  , tModel
+  timeChemical(cModel                   , tModel
               , prop   
-              , mesh->elm.zComb        , mesh->elm.temp      
-              , mesh->elm.densityFluid , mesh->elm.gradVel 
-              , mesh->elm.eddyViscosity, mesh->elm.cDiffComb
+              , mesh->elm.zComb         , mesh->elm.temp      
+              , mesh->elm.densityFluid.t, mesh->elm.gradVel 
+              , mesh->elm.eddyViscosity , mesh->elm.cDiffComb
               , mesh->elm.geom.volume
-              , mesh->elm.dViscosity   , mesh->elm.tReactor
-              , mesh->ndm              , mesh->numelNov
+              , mesh->elm.dViscosity    , mesh->elm.tReactor
+              , mesh->ndm               , mesh->numelNov
               , eModel->fKelvin ); 
   tm.timeChemical = getTimeC() - tm.timeChemical;    
 /*...................................................................*/
@@ -88,7 +88,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
   rateReaction(cModel                   , tModel
                   , prop
                   , mesh->elm.zComb        , mesh->elm.temp 
-                  , mesh->elm.wk           , mesh->elm.densityFluid 
+                  , mesh->elm.wk           , mesh->elm.densityFluid.t 
                   , mesh->elm.gradVel      , mesh->elm.eddyViscosity
                   , mesh->elm.dViscosity   , mesh->elm.tReactor
                   , sc->ddt.dt[2]          , thDynamic.pTh[2]
@@ -154,7 +154,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
              , mesh->elm.wk            , mesh->elm.vel           
              , mesh->elm.pressure0     , mesh->elm.pressure
              , mesh->elm.gradPres      , mesh->elm.rCellComb
-             , mesh->elm.densityFluid  , mesh->elm.cDiffComb
+             , mesh->elm.densityFluid.t, mesh->elm.cDiffComb
              , mesh->elm.eddyViscosity , mesh->elm.wallParameters
              , sp->d
              , &sc->ddt               , sp->alphaComb
@@ -259,7 +259,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
   rateHeatRealesedReaction(cModel            , &prop->sHeat                
                     , mesh->elm.rateHeatReComb, mesh->elm.temp     
                     , mesh->elm.zComb0        , mesh->elm.zComb
-                    , mesh->elm.densityFluid  , mesh->elm.wk
+                    , mesh->elm.densityFluid.t, mesh->elm.wk
                     , mesh->elm.material.prop , mesh->elm.mat    
                     , sc->ddt.dt[TIME_N]      , mesh->numelNov
                     , fSheat                  , eModel->fKelvin

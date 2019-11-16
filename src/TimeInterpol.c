@@ -64,8 +64,7 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
                    ,Combustion *cModel,FileOpt *opt)
 {
   short ndm = mesh->ndm
-       ,ns  = cModel->nOfSpecies 
-       ,nD  = DENSITY_LEVEL;
+       ,ns  = cModel->nOfSpecies; 
   INT nel = mesh->numelNov
      ,nelG = mesh->numel;
 
@@ -84,7 +83,7 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
 /*...*/
     else if(opt->fStepPlot)
     {
-      ti->vel0 = ti->vel = NULL;
+      ti->vel0 = ti->vel = mesh->elm.vel;
     }
     HccaAlloc(DOUBLE,m,ti->veli,nel*ndm,"iveli"  ,_AD_);
     ti->velG = ti->veli;
@@ -99,12 +98,11 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     if(opt->fTimePlot)
     {
       HccaAlloc(DOUBLE,m,ti->p0,nel,"p0"  ,_AD_);
-      ti->p0 = mesh->elm.pressure0;
       ti->p  = mesh->elm.pressure;
     }  
     else if(opt->fStepPlot)
     {
-      ti->p0 = ti->p = NULL;
+      ti->p0 = ti->p = mesh->elm.pressure;
     }
     HccaAlloc(DOUBLE,m,ti->pi,nel,"pi"  ,_AD_);
     ti->pG = ti->pi;
@@ -114,7 +112,7 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
 /*...................................................................*/
 
 /*... temp*/
-  if(opt->temp)
+  if(opt->temp || opt->gradTemp)
   {
     if(opt->fTimePlot)
     {
@@ -123,7 +121,7 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     }  
     else if(opt->fStepPlot)
     {
-      ti->temp0 = ti->temp = NULL;
+      ti->temp0 = ti->temp = mesh->elm.temp;
     }
     HccaAlloc(DOUBLE,m,ti->tempi,nel,"tempi"  ,_AD_);
     ti->tempG = ti->tempi;
@@ -142,7 +140,7 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     }  
     else if(opt->fStepPlot)
     {
-      ti->y0 = ti->y = NULL;
+      ti->y0 = ti->y = mesh->elm.yFrac;
     }
     HccaAlloc(DOUBLE,m,ti->yi,nel*ns,"yi"  ,_AD_);
     ti->yG = ti->yi;
@@ -161,32 +159,13 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     }  
     else if(opt->fStepPlot)
     {
-      ti->wT0 = ti->wT = NULL;
+      ti->wT0 = ti->wT = mesh->elm.rateHeatReComb;
     }
     HccaAlloc(DOUBLE,m,ti->wTi,nel,"tIwTi",_AD_);
     ti->wTG = ti->wTi;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->wTG,nelG,"tIwTG"  ,_AD_);
   } 
-/*...................................................................*/
-
-/*... densityFluid*/
-  //if(opt->densityFluid)
- // {
-//  if(opt->fTimePlot)
-//  {
-//    HccaAlloc(DOUBLE,m,ti->rho,nel,"irho0"  ,_AD_);
-//    ti->wT  = &mesh->elm.densityFluid[nel*nD];
-//  }  
-//  else if(opt->fStepPlot)
- // {
- //   ti->rho0 = ti->rho = NULL;
- // }
- // HccaAlloc(DOUBLE,m,ti->wTi,nel,"irho0",_AD_);
- // ti->rhoG = ti->rhoi;
- // if(!mpiVar.myId && mpiVar.nPrcs>1)
- //   HccaAlloc(DOUBLE,m,ti->rhoG,nelG,"irhoG"  ,_AD_);
-//} 
 /*...................................................................*/
 
 /*... dVisc*/
@@ -199,7 +178,7 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     }  
     else if(opt->fStepPlot)
     {
-      ti->dVisc0 = ti->dVisc = NULL;
+      ti->dVisc0 = ti->dVisc = mesh->elm.dViscosity;
     }
     HccaAlloc(DOUBLE,m,ti->dVisci,nel,"dVisci",_AD_);
     ti->dViscG = ti->dVisci;
@@ -218,7 +197,7 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     }  
     else if(opt->fStepPlot)
     {
-      ti->tCond0 = ti->tCond = NULL;
+      ti->tCond0 = ti->tCond = mesh->elm.tConductivity;
     }
     HccaAlloc(DOUBLE,m,ti->tCondi,nel,"tCondi",_AD_);
     ti->tCondG = ti->tCondi;
@@ -237,12 +216,89 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     }  
     else if(opt->fStepPlot)
     {
-      ti->cDiff0 = ti->cDiff = NULL;
+      ti->cDiff0 = ti->cDiff = mesh->elm.cDiffComb;
     }
     HccaAlloc(DOUBLE,m,ti->cDiffi,nel*ns,"cDiffi",_AD_);
     ti->cDiffG = ti->cDiffi;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->cDiffG,nelG*ns,"cDiffG"  ,_AD_);
+  } 
+/*...................................................................*/
+
+/*... sHeat*/
+  if(opt->specificHeat)
+  {
+    if(opt->fTimePlot)
+    {
+      HccaAlloc(DOUBLE,m,ti->sHeat0,nel,"iSheat0"  ,_AD_);
+      ti->sHeat = mesh->elm.specificHeat.t;
+    }  
+    else if(opt->fStepPlot)
+    {
+      ti->sHeat0 = ti->sHeat = mesh->elm.specificHeat.t;
+    }
+    HccaAlloc(DOUBLE,m,ti->sHeati,nel,"iSheati",_AD_);
+    ti->sHeatG = ti->sHeati;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)
+      HccaAlloc(DOUBLE,m,ti->sHeatG,nelG,"iSheatG"  ,_AD_);
+  } 
+/*...................................................................*/
+
+/*... density*/
+  if(opt->densityFluid)
+  {
+    if(opt->fTimePlot)
+    {
+      HccaAlloc(DOUBLE,m,ti->rho0,nel,"iRhot0"  ,_AD_);
+      ti->rho = mesh->elm.densityFluid.t;
+    }  
+    else if(opt->fStepPlot)
+    {
+      ti->rho0 = ti->rho = mesh->elm.densityFluid.t;
+    }
+    HccaAlloc(DOUBLE,m,ti->rhoi,nel,"iRhoi",_AD_);
+    ti->rhoG = ti->rhoi;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)
+      HccaAlloc(DOUBLE,m,ti->rhoG,nelG,"iRhoG"  ,_AD_);
+  } 
+/*...................................................................*/
+
+/*... molarMass*/
+  if(opt->mMolar)
+  {
+    if(opt->fTimePlot)
+    {
+      HccaAlloc(DOUBLE,m,ti->mMolar0,nel,"iMmolar0"  ,_AD_);
+      ti->mMolar = mesh->elm.mMolar.t;
+    }  
+    else if(opt->fStepPlot)
+    {
+      ti->mMolar0 = ti->mMolar = mesh->elm.mMolar.t;
+    }
+    HccaAlloc(DOUBLE,m,ti->mMolari,nel,"iMmolari",_AD_);
+    ti->mMolarG = ti->mMolari;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)
+      HccaAlloc(DOUBLE,m,ti->mMolarG,nelG,"iMmolarG"  ,_AD_);
+  } 
+/*...................................................................*/
+
+/*... gradTemp*/
+  if(opt->gradTemp)
+  {
+    ti->gradTempi = mesh->elm.gradTemp;
+    ti->gradTempG = ti->gradTempi;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)
+      HccaAlloc(DOUBLE,m,ti->gradTempG,nelG*ndm,"iGradTG"  ,_AD_);
+  } 
+/*...................................................................*/
+
+/*... gradVel*/
+  if(opt->gradVel)
+  {
+    ti->gradVeli = mesh->elm.gradVel;
+    ti->gradVelG = ti->gradVeli;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)
+      HccaAlloc(DOUBLE,m,ti->gradVelG,nelG*ndm*ndm,"iGradVelG"  ,_AD_);
   } 
 /*...................................................................*/
 
@@ -345,5 +401,28 @@ void updateTimeStruct(Memoria *m        ,TimeInterpol *ti
   } 
 /*...................................................................*/
 
+/*... sHeat*/
+  if(opt->specificHeat)
+  {
+    for(i=0;i<nel;i++)
+      ti->sHeat0[i] = mesh->elm.specificHeat.t[i];
+  } 
+/*...................................................................*/
+
+/*... density*/
+  if(opt->densityFluid)
+  {
+    for(i=0;i<nel;i++)
+      ti->rho0[i] = mesh->elm.densityFluid.t[i];
+  } 
+/*...................................................................*/
+
+/*... mMolar*/
+  if(opt->mMolar)
+  {
+    for(i=0;i<nel;i++)
+      ti->mMolar0[i] = mesh->elm.mMolar.t[i];
+  } 
+/*...................................................................*/
 }
 /*********************************************************************/

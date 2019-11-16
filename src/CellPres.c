@@ -1290,9 +1290,9 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*...................................................................*/
 
 /*...*/
-  densityC00 = MAT2D(idCell,TIME_N_MINUS_2,lDensity,DENSITY_LEVEL);
-  densityC0  = MAT2D(idCell,TIME_N_MINUS_1,lDensity,DENSITY_LEVEL);
-  densityC   = MAT2D(idCell,TIME_N        ,lDensity,DENSITY_LEVEL);
+  densityC00 = MAT2D(idCell,TIME_N_MINUS_2,lDensity,3);
+  densityC0  = MAT2D(idCell,TIME_N_MINUS_1,lDensity,3);
+  densityC   = MAT2D(idCell,TIME_N        ,lDensity,3);
 /*...................................................................*/
 
 /*...*/

@@ -88,7 +88,7 @@ void transport(Memoria *m      ,Loads *loadsTrans,TransModel *tModel
                ,mesh->face.mvSkew       ,mesh->face.vSkew
                ,mesh->elm.geomType      ,mesh->elm.material.prop
                ,mesh->elm.material.type ,mesh->elm.mat
-               ,mesh->elm.densityUt1    ,mesh->elm.cDiffT1
+               ,mesh->elm.densityUt1.t  ,mesh->elm.cDiffT1
                ,sistEqT->ia             ,sistEqT->ja      
                ,sistEqT->al             ,sistEqT->ad       
                ,sistEqT->b              ,sistEqT->id       

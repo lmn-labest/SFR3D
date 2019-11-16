@@ -109,24 +109,23 @@ void wSave(PropVarFluid *prop           ,Turbulence *tModel
 /*.....................................................................*/
 
 /*... desnsity*/
-  nD = DENSITY_LEVEL;
   fprintf(file,"/densityFluid/\n");
   for (i = 0; i < mesh->numel; i++){
-    for (j = 0; j < nD; j++)
-      fprintf(file,"%.15e "
-             ,MAT2D(i,j,mesh->elm.densityFluid,nD));
+    fprintf(file,"%.15e %.15e %.15e\n"
+            ,mesh->elm.densityFluid.t[i]
+            ,mesh->elm.densityFluid.t0[i]
+            ,mesh->elm.densityFluid.t00[i]);
      fprintf(file,"\n");
   }
 /*.....................................................................*/
 
 /*... specificHeat*/
-  nD = SHEAT_LEVEL;
   fprintf(file,"/specificHeat/\n");
   for (i = 0; i < mesh->numel; i++){
-    for (j = 0; j < nD; j++)
-      fprintf(file,"%.15e "
-             ,MAT2D(i,j,mesh->elm.specificHeat,nD));
-     fprintf(file,"\n");
+    fprintf(file,"%.15e %.15e %.15e\n"
+            ,mesh->elm.specificHeat.t[i]
+            ,mesh->elm.specificHeat.t0[i]
+            ,mesh->elm.specificHeat.t00[i]);
   }
 /*.....................................................................*/
 
@@ -303,22 +302,22 @@ void load(PropVarFluid *prop           ,Turbulence *tModel
 /*.....................................................................*/
 
 /*... desnsity*/
-  nD = DENSITY_LEVEL;
   fscanf(file,"%s",str);
   for (i = 0; i < mesh->numel; i++){
-    for (j = 0; j < nD; j++)
-      fscanf(file,"%lf"
-             ,&MAT2D(i,j,mesh->elm.densityFluid,nD));
+    fscanf(file,"%lf %lf %lf"
+               ,&mesh->elm.densityFluid.t[i]
+               ,&mesh->elm.densityFluid.t0[i]
+               ,&mesh->elm.densityFluid.t00[i]);
   }
 /*.....................................................................*/
 
 /*... specificHeat*/
-  nD = SHEAT_LEVEL;
   fscanf(file,"%s",str);
   for (i = 0; i < mesh->numel; i++){
-    for (j = 0; j < nD; j++)
-      fscanf(file,"%lf"
-             ,&MAT2D(i,j,mesh->elm.specificHeat,nD));
+    fscanf(file,"%lf %lf %lf"
+               ,&mesh->elm.specificHeat.t[i]
+               ,&mesh->elm.specificHeat.t0[i]
+               ,&mesh->elm.specificHeat.t00[i]);
   }
 /*.....................................................................*/
 

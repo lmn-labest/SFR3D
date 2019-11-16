@@ -93,7 +93,7 @@ void setTransientScheme(char *word,Temporal *ddt){
 *********************************************************************/
 void cellTransient(DOUBLE *RESTRICT volume ,INT *RESTRICT id
                   ,DOUBLE *RESTRICT u0     ,DOUBLE *RESTRICT u
-                  ,DOUBLE *RESTRICT density,DOUBLE *RESTRICT f
+                  ,LevelTime density       ,DOUBLE *RESTRICT f
                   ,Temporal const ddt      ,INT const numel
                   ,short const ndf         ,bool const fAdd)
 {
@@ -101,7 +101,7 @@ void cellTransient(DOUBLE *RESTRICT volume ,INT *RESTRICT id
   DOUBLE t0, t00, tmp1;
   DOUBLE dt = ddt.dt[0], dt0 = ddt.dt[1];
   short type = ddt.type;
-  short j, nD = DENSITY_LEVEL;
+  short j;
 
 /*...*/
   switch (type) 
@@ -119,7 +119,7 @@ void cellTransient(DOUBLE *RESTRICT volume ,INT *RESTRICT id
             lNeq = id[nel] - 1;
             if (lNeq > -1) 
             {
-              t0 = MAT2D(nel, TIME_N_MINUS_1, density, nD)*u[nel];
+              t0 = density.t0[nel]*u[nel];
               f[lNeq] += volume[nel]*t0/dt;
             }
           }
@@ -136,8 +136,7 @@ void cellTransient(DOUBLE *RESTRICT volume ,INT *RESTRICT id
               lNeq = MAT2D(nel, j, id, ndf) - 1;
               if (lNeq > -1) 
               {
-                t0 = MAT2D(nel,TIME_N_MINUS_1,density,nD)
-                    *MAT2D(nel,j,u,ndf);
+                t0 = density.t0[nel]*MAT2D(nel,j,u,ndf);
                 MAT2D(lNeq, j, f, ndf) += volume[nel] * t0 / dt;
               }
             }
@@ -158,7 +157,7 @@ void cellTransient(DOUBLE *RESTRICT volume ,INT *RESTRICT id
             lNeq = id[nel] - 1;
             if (lNeq > -1)
             {
-              t0 = MAT2D(nel, TIME_N_MINUS_1, density, nD)*u[nel];
+              t0 = density.t0[nel]*u[nel];
               f[lNeq] = volume[nel]*t0/dt;
             }
           }
@@ -175,8 +174,7 @@ void cellTransient(DOUBLE *RESTRICT volume ,INT *RESTRICT id
               lNeq = MAT2D(nel, j, id, ndf) - 1;
               if (lNeq > -1) 
               {
-                t0 = MAT2D(nel,TIME_N_MINUS_1,density,nD)
-                    *MAT2D(nel,j,u,ndf);
+                t0 = density.t0[nel]*MAT2D(nel,j,u,ndf);
                 MAT2D(lNeq,j,f,ndf) = volume[nel]*t0/dt;
               }
             }
@@ -203,12 +201,12 @@ void cellTransient(DOUBLE *RESTRICT volume ,INT *RESTRICT id
           {
             tmp1 = dt + dt0;
 /*...*/
-            t0 = MAT2D(nel, TIME_N_MINUS_1, density, nD)*u[nel];
+            t0 = density.t0[nel]*u[nel];
             t0 *= (tmp1/(dt*dt0));
 /*...................................................................*/
 
 /*...*/
-            t00= MAT2D(nel, TIME_N_MINUS_2, density, nD)*u0[nel];
+            t00= density.t00[nel]*u0[nel];
             t00*= (dt/(dt0*tmp1));
 /*...................................................................*/
             f[lNeq] += volume[nel]*(t0-t00);
@@ -229,14 +227,12 @@ void cellTransient(DOUBLE *RESTRICT volume ,INT *RESTRICT id
             {
               tmp1 = dt + dt0;
 /*...*/
-              t0 = MAT2D(nel,TIME_N_MINUS_1,density,nD)
-                  *MAT2D(nel, j, u, ndf);
+              t0 = density.t0[nel]*MAT2D(nel, j, u, ndf);
               t0 *= (tmp1 / (dt*dt0));
 /*...................................................................*/
 
 /*...*/
-              t00= MAT2D(nel, TIME_N_MINUS_2, density, nD)
-                  *MAT2D(nel, j, u0, ndf);
+              t00= density.t00[nel]*MAT2D(nel, j, u0, ndf);
               t00*= (dt / (dt0*tmp1));
 /*...................................................................*/
               MAT2D(lNeq,j,f,ndf) += volume[nel] * (t0 - t00);
@@ -261,12 +257,12 @@ void cellTransient(DOUBLE *RESTRICT volume ,INT *RESTRICT id
           {
             tmp1 = dt + dt0;
 /*...*/
-            t0 = MAT2D(nel, TIME_N_MINUS_1, density, nD)*u[nel];
+            t0 = density.t0[nel]*u[nel];
             t0 *= (tmp1 / (dt*dt0));
 /*...................................................................*/
 
 /*...*/
-            t00= MAT2D(nel, TIME_N_MINUS_2, density, nD)*u0[nel];
+            t00= density.t00[nel]*u0[nel];
             t00*= (dt / (dt0*tmp1));
 /*...................................................................*/
             f[lNeq] = volume[nel] *(t0-t00);
@@ -287,12 +283,12 @@ void cellTransient(DOUBLE *RESTRICT volume ,INT *RESTRICT id
             {
               tmp1 = dt + dt0;
 /*...*/
-              t0 = MAT2D(nel,TIME_N_MINUS_1,density,nD)*MAT2D(nel,j,u,ndf);
+              t0 = density.t0[nel]*MAT2D(nel,j,u,ndf);
               t0 *= (tmp1 / (dt*dt0));
 /*...................................................................*/
 
 /*...*/
-              t00= MAT2D(nel,TIME_N_MINUS_2,density,nD)*MAT2D(nel,j,u0,ndf);
+              t00= density.t00[nel]*MAT2D(nel,j,u0,ndf);
               t00*= (dt / (dt0*tmp1));
 /*...................................................................*/
               MAT2D(lNeq,j,f,ndf) = volume[nel]*(t0-t00);
@@ -338,7 +334,7 @@ void cellTransient(DOUBLE *RESTRICT volume ,INT *RESTRICT id
 *********************************************************************/
 void cellTransientEnergy(DOUBLE *RESTRICT volume ,INT *RESTRICT id
                         ,DOUBLE *RESTRICT u0     ,DOUBLE *RESTRICT u
-                        ,DOUBLE *RESTRICT density, DOUBLE *RESTRICT sHeat
+                        ,LevelTime density       ,LevelTime sHeat
                         ,DOUBLE *RESTRICT f
                         ,Temporal const ddt      ,INT const numel
                         ,bool const fAdd)
@@ -347,7 +343,6 @@ void cellTransientEnergy(DOUBLE *RESTRICT volume ,INT *RESTRICT id
   DOUBLE t0, t00, tmp1,density0,sHeat0;
   DOUBLE dt = ddt.dt[0], dt0 = ddt.dt[1];
   short type = ddt.type;
-  short nD = DENSITY_LEVEL,nH = SHEAT_LEVEL;
 
 /*...*/
   switch (type) {
@@ -360,8 +355,8 @@ void cellTransientEnergy(DOUBLE *RESTRICT volume ,INT *RESTRICT id
         lNeq = id[nel] - 1;
         if (lNeq > -1) {
 /*...*/
-          density0 = MAT2D(nel, TIME_N_MINUS_1, density, nD);
-          sHeat0   = MAT2D(nel, TIME_N_MINUS_1, sHeat  , nH);
+          density0 = density.t0[nel];
+          sHeat0   = sHeat.t0[nel];
 /*...................................................................*/
           f[lNeq] += volume[nel] * sHeat0*density0*u[nel] / dt;
         }
@@ -378,8 +373,8 @@ void cellTransientEnergy(DOUBLE *RESTRICT volume ,INT *RESTRICT id
         lNeq = id[nel] - 1;
         if (lNeq > -1){
 /*...*/
-          density0 = MAT2D(nel, TIME_N_MINUS_1, density, nD);
-          sHeat0   = MAT2D(nel, TIME_N_MINUS_1, sHeat, nH);
+          density0 = density.t0[nel];
+          sHeat0   = sHeat.t0[nel];
 /*...................................................................*/
           f[lNeq] = volume[nel]*sHeat0*density0*u[nel] / dt;
         }
@@ -400,8 +395,8 @@ void cellTransientEnergy(DOUBLE *RESTRICT volume ,INT *RESTRICT id
         if (lNeq > -1) {
           tmp1 = dt + dt0;
  /*... t(n-1)*/
-          density0 = MAT2D(nel, TIME_N_MINUS_1, density, nD);
-          sHeat0   = MAT2D(nel, TIME_N_MINUS_1, sHeat, nH);
+          density0 = density.t0[nel];
+          sHeat0   = sHeat.t0[nel];
  /*...................................................................*/
 
  /*...*/
@@ -410,8 +405,8 @@ void cellTransientEnergy(DOUBLE *RESTRICT volume ,INT *RESTRICT id
  /*...................................................................*/
 
  /*...t(n-2)*/
-          density0 = MAT2D(nel, TIME_N_MINUS_2, density, nD);
-          sHeat0   = MAT2D(nel, TIME_N_MINUS_2, sHeat, nH);
+          density0 = density.t00[nel];
+          sHeat0   = sHeat.t00[nel];
  /*...................................................................*/
 
  /*...*/
@@ -433,8 +428,8 @@ void cellTransientEnergy(DOUBLE *RESTRICT volume ,INT *RESTRICT id
         if (lNeq > -1) {
           tmp1 = dt + dt0;
  /*... t(n-1)*/
-          density0 = MAT2D(nel, TIME_N_MINUS_1, density, nD);
-          sHeat0   = MAT2D(nel, TIME_N_MINUS_1, sHeat, nH);
+          density0 = density.t0[nel];
+          sHeat0   = sHeat.t0[nel];
 /*...................................................................*/
 
 /*... t(n-2)*/
@@ -443,8 +438,8 @@ void cellTransientEnergy(DOUBLE *RESTRICT volume ,INT *RESTRICT id
 /*...................................................................*/
 
 /*...*/ 
-          density0 = MAT2D(nel, TIME_N_MINUS_2, density, nD);
-          sHeat0   = MAT2D(nel, TIME_N_MINUS_2, sHeat, nH);
+          density0 = density.t00[nel];
+          sHeat0   = sHeat.t00[nel];
 /*...................................................................*/
 
 /*...*/
@@ -496,7 +491,7 @@ void cellTransientEnergy(DOUBLE *RESTRICT volume ,INT *RESTRICT id
 *********************************************************************/
 void cellTransientSimple(DOUBLE *RESTRICT volume ,INT *RESTRICT id
                         ,DOUBLE *RESTRICT u0     ,DOUBLE *RESTRICT u
-                        ,DOUBLE *RESTRICT density,DOUBLE *RESTRICT f
+                        ,LevelTime density       ,DOUBLE *RESTRICT f
                         ,Temporal const ddt      ,INT const nEq
                         ,INT const numel         ,short const ndf
                         ,bool const fAdd)
@@ -505,7 +500,7 @@ void cellTransientSimple(DOUBLE *RESTRICT volume ,INT *RESTRICT id
   DOUBLE t0,t00,tmp1;
   DOUBLE dt=ddt.dt[0],dt0 = ddt.dt[1];
   short type = ddt.type;
-  short j,nD = DENSITY_LEVEL;
+  short j;
 
   /*...*/
   switch (type) {
@@ -517,7 +512,7 @@ void cellTransientSimple(DOUBLE *RESTRICT volume ,INT *RESTRICT id
           for (nel = 0; nel < numel; nel++) {
             lNeq = id[nel] - 1;
             if (lNeq > -1) {
-              t0 = MAT2D(nel,TIME_N_MINUS_1,density,nD)*MAT2D(nel,j,u,ndf);
+              t0 = density.t0[nel]*MAT2D(nel,j,u,ndf);
               MAT2D(j, lNeq, f, nEq) += volume[nel]*t0/dt;
             }
           }
@@ -532,7 +527,7 @@ void cellTransientSimple(DOUBLE *RESTRICT volume ,INT *RESTRICT id
           for (nel = 0; nel < numel; nel++) {
             lNeq = id[nel] - 1;
             if (lNeq > -1) {
-              t0 = MAT2D(nel,TIME_N_MINUS_1,density,nD)*MAT2D(nel,j,u,ndf);
+              t0 = density.t0[nel]*MAT2D(nel,j,u,ndf);
               MAT2D(j, lNeq, f, nEq) = volume[nel]*t0/dt;
             }
           }
@@ -553,12 +548,12 @@ void cellTransientSimple(DOUBLE *RESTRICT volume ,INT *RESTRICT id
             if (lNeq > -1) {
               tmp1 = dt + dt0;
 /*...*/
-              t0 = MAT2D(nel,TIME_N_MINUS_1,density,nD)*MAT2D(nel,j,u,ndf);
+              t0 = density.t0[nel]*MAT2D(nel,j,u,ndf);
               t0 *= (tmp1/(dt*dt0));
 /*...................................................................*/
 
 /*...*/
-              t00 = MAT2D(nel,TIME_N_MINUS_2,density,nD)*MAT2D(nel,j,u0,ndf);
+              t00 = density.t00[nel]*MAT2D(nel,j,u0,ndf);
               t00*= (dt/(dt0*tmp1));
 /*...................................................................*/
               MAT2D(j,lNeq,f,nEq) += volume[nel]*(t0-t00);
@@ -576,12 +571,12 @@ void cellTransientSimple(DOUBLE *RESTRICT volume ,INT *RESTRICT id
             if (lNeq > -1) {
               tmp1 = dt + dt0;
 /*..*/
-              t0 = MAT2D(nel, TIME_N_MINUS_1, density, nD)*MAT2D(nel, j, u, ndf);
+              t0 = density.t0[nel]*MAT2D(nel, j, u, ndf);
               t0 *= (tmp1 / (dt*dt0));
 /*...................................................................*/
 
 /*..*/
-              t00= MAT2D(nel, TIME_N_MINUS_1, density, nD)*MAT2D(nel, j, u0, ndf);
+              t00= density.t00[nel]*MAT2D(nel, j, u0, ndf);
               t00*= (dt / (dt0*tmp1));
 /*...................................................................*/
               MAT2D(j, lNeq, f, nEq) = volume[nel] * (t0 - t00);
@@ -635,7 +630,7 @@ void cellTransientPrime(DOUBLE *RESTRICT volume
   DOUBLE t0,t00,tmp1;
   DOUBLE dt=ddt.dt[0],dt0 = ddt.dt[1];
   short type = ddt.type;
-  short j,nD = DENSITY_LEVEL;
+  short j;
 
   /*...*/
   switch (type) {
@@ -645,7 +640,7 @@ void cellTransientPrime(DOUBLE *RESTRICT volume
       if (fAdd) {
         for (nel = 0; nel < numel; nel++) { 
           for (j = 0; j< ndf; j++) {
-            t0 = MAT2D(nel,0,density,nD)*MAT2D(nel,j,u,ndf);
+//          t0 = MAT2D(nel,0,density,nD)*MAT2D(nel,j,u,ndf);
             MAT2D(nel,j,f,ndf) += volume[nel]*t0/dt;
           }
         }
@@ -656,7 +651,7 @@ void cellTransientPrime(DOUBLE *RESTRICT volume
       else {
        for (nel = 0; nel < numel; nel++) { 
           for (j = 0; j< ndf; j++) {
-            t0 = MAT2D(nel,0,density,nD)*MAT2D(nel,j,u,ndf);
+//          t0 = MAT2D(nel,0,density,nD)*MAT2D(nel,j,u,ndf);
             MAT2D(nel,j,f,ndf) = volume[nel]*t0/dt;
           }
         }
@@ -673,13 +668,13 @@ void cellTransientPrime(DOUBLE *RESTRICT volume
           for (j = 0; j< ndf; j++) {
             tmp1 = dt + dt0;
 /*...*/
-            t0 = MAT2D(nel,0,density,nD)*MAT2D(nel,j,u,ndf);
-            t0 *= (tmp1/(dt*dt0));
+//          t0 = MAT2D(nel,0,density,nD)*MAT2D(nel,j,u,ndf);
+//          t0 *= (tmp1/(dt*dt0));
 /*...................................................................*/
 
 /*...*/
-            t00 = MAT2D(nel,1,density,nD)*MAT2D(nel,j,u0,ndf);
-            t00*= (dt/(dt0*tmp1));
+ //         t00 = MAT2D(nel,1,density,nD)*MAT2D(nel,j,u0,ndf);
+ //         t00*= (dt/(dt0*tmp1));
 /*...................................................................*/
             MAT2D(nel,j,f,ndf) += volume[nel]*(t0-t00);
           }
@@ -695,13 +690,13 @@ void cellTransientPrime(DOUBLE *RESTRICT volume
           for (j = 0; j< ndf; j++) {
             tmp1 = dt + dt0;
 /*..*/
-            t0 = MAT2D(nel, 0, density, nD)*MAT2D(nel, j, u, ndf);
-            t0 *= (tmp1 / (dt*dt0));
+//          t0 = MAT2D(nel, 0, density, nD)*MAT2D(nel, j, u, ndf);
+//          t0 *= (tmp1 / (dt*dt0));
 /*...................................................................*/
 
 /*..*/
-            t00= MAT2D(nel, 1, density, nD)*MAT2D(nel, j, u0, ndf);
-            t00*= (dt / (dt0*tmp1));
+//          t00= MAT2D(nel, 1, density, nD)*MAT2D(nel, j, u0, ndf);
+//          t00*= (dt / (dt0*tmp1));
 /*...................................................................*/
             MAT2D(nel,j,f,ndf) = volume[nel]*(t0 - t00);
           }

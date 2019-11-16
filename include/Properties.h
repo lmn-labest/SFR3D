@@ -45,12 +45,12 @@
 /*...*/
   void updateDensity(PropVarFluid *pf
                     ,DOUBLE *RESTRICT temp   , DOUBLE *RESTRICT pressure
-                    ,DOUBLE *RESTRICT density                 
+                    ,LevelTime density                 
                     ,DOUBLE const alpha        ,bool const iKelvin 
                     ,INT const nEl             ,char  const iCod);
 
   void updateSpecificHeat(Prop *sHeatPol
-                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT sHeat
+                         ,DOUBLE *RESTRICT temp,LevelTime sHeat
                          ,bool const iKelvin  
                          ,INT const nEl        ,char  const iCod);
   void updateDynamicViscosity(Prop *dVisc
@@ -62,8 +62,8 @@
                               ,bool const iKelvin       
                               ,INT const nEl);
   
-  void updateDensityCD(Prop *pol, DOUBLE *RESTRICT u
-                     , DOUBLE *RESTRICT density, INT nEl
+  void updateDensityCD(Prop *pol        , DOUBLE *RESTRICT u
+                     , LevelTime density, INT nEl
                      , char  iCod);
 
   void updateProp(Prop *pol, DOUBLE *RESTRICT u
@@ -105,9 +105,6 @@
 /*...................................................................*/
 
 /*...*/
-  void specificMassRefOld(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume                  
-                  , DOUBLE *RESTRICT prop      , short  *RESTRICT mat
-                  , INT const nCell);
   DOUBLE specificMassRef(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume                  
                        , INT const nCell);
   void presRef(DOUBLE *RESTRICT temp0 , DOUBLE *RESTRICT temp  
@@ -150,12 +147,12 @@
   DOUBLE mixtureSpeciesDensity(Prop *den        ,DOUBLE const malorMassMix
                             ,DOUBLE const t      ,DOUBLE const p
                             ,DOUBLE const presRef,bool const fKelvin);
-  void updateMixDensity(Prop *pDen            , Combustion *cModel
+  void updateMixDensity(Prop *pDen          , Combustion *cModel
                  , DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT pressure
-                 , DOUBLE *RESTRICT density , DOUBLE *RESTRICT yFrac
+                 ,LevelTime density         , DOUBLE *RESTRICT yFrac
                  , DOUBLE const alpha       , bool const iKelvin    
                  , INT const nEl            , char  const iCod
-                 , bool const fOmp         , short const nThreads );
+                 , bool const fOmp          , short const nThreads );
 /*... calor especifico da mistura*/
   void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel, FILE *file);
   DOUBLE mixtureSpecifiHeat(Prop *sHeat      , DOUBLE *yFrac
@@ -165,7 +162,7 @@
                         , DOUBLE const t      , bool const fKelvin); 
   void updateMixSpecificHeat(Prop *sHeatPol
                          , DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT yFrac  
-                         , DOUBLE *RESTRICT sHeat , short const nOfPrSp
+                         , LevelTime sHeat        , short const nOfPrSp
                          , bool const iKelvin
                          , INT const nEl          , char  const iCod
                          , bool const fOmp        , short const nThreads);
@@ -256,7 +253,7 @@
                 ,INT    const nCell        ,bool const iKelvin);
 
   void initMolarMassCell(Combustion *cModel
-                  ,DOUBLE *RESTRICT mMolar   ,DOUBLE *RESTRICT yFrac 
+                  ,LevelTime        mMolar   ,DOUBLE *RESTRICT yFrac 
                   ,DOUBLE *RESTRICT prop     ,short *RESTRICT mat           
                   ,short const nOfPrSp       ,short const nComb   
                   ,INT    const nCell        ,bool const fComb);
@@ -264,7 +261,7 @@
 
 /*...*/
   void updateMolarMass(Combustion *cModel
-                 , DOUBLE *RESTRICT mMolar  , DOUBLE *RESTRICT yFrac 
+                 , LevelTime        mMolar  , DOUBLE *RESTRICT yFrac 
                  , INT const nEl            , char  const iCod
                  , bool const fOmp          , short const nThreads );
 /*...................................................................*/

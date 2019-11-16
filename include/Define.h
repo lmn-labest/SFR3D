@@ -247,16 +247,6 @@
 /*...................................................................*/
 
 /*...*/
-  #define DVISCOSITY_LEVEL      1
-  #define DENSITY_LEVEL         3
-  #define SHEAT_LEVEL           3
-  #define TCONDUCTIVITY_LEVEL   1
-  #define COEFDIFF_LEVEL        1
-  #define SPECIEDIFUSSION_LEVEL 1
-  #define MOLAR_LEVEL           3   
-/*...................................................................*/
-
-/*...*/
   #define PINITIAL_TIME 1
   #define PINT_TIME     2  
   #define PLAST_TIME    3

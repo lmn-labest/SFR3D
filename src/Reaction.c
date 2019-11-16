@@ -172,7 +172,7 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
       {
 /*...*/
         pz = &MAT2D(nel,0,zComb,nComb);
-        densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+        densityC = density[nel];
         getSpeciesPrimitivesCc(cModel,y,pz);
         concetracionOfSpecies(cModel            ,y
                              ,cM                ,densityC);
@@ -216,7 +216,7 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
         for(nel = 0; nel < numel; nel++)
         {
           pz = &MAT2D(nel,0,zComb,nComb);
-          densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+          densityC = density[nel];
           getSpeciesPrimitivesCc(cModel,y,pz);
           eddyC = 0.e0;     
           if(tModel->fTurb)
@@ -244,7 +244,7 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
         for(nel = 0; nel < numel; nel++)
         {
           pz = &MAT2D(nel,0,zComb,nComb);
-          densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+          densityC = density[nel];
           getSpeciesPrimitivesCc(cModel,y,pz);
           eddyC = 0.e0;
           if(tModel->fTurb)
@@ -280,7 +280,7 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
         for(nel = 0; nel < numel; nel++)
         { 
           pz = &MAT2D(nel,0,zComb,nComb);
-          densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+          densityC = density[nel];
           getSpeciesPrimitivesCc(cModel,y,pz);
 /*...*/
           edm(cModel,y,w,densityC,MAT2D(nel,0,tReactor,N_TERMS_REACTOR));
@@ -299,7 +299,7 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
         for(nel = 0; nel < numel; nel++)
         { 
           pz = &MAT2D(nel,0,zComb,nComb);
-          densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+          densityC = density[nel];
           getSpeciesPrimitivesCc(cModel,y,pz);
 /*...*/
           edm(cModel,y,w,densityC,MAT2D(nel,0,tReactor,N_TERMS_REACTOR));
@@ -366,7 +366,7 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
   for(nel = 0; nel < numel; nel++)
   {
     pz = &MAT2D(nel,0,zComb,nComb);
-    densityC = MAT2D(nel, TIME_N, density, DENSITY_LEVEL);
+    densityC = density[nel];
     getSpeciesPrimitivesCc(cModel,y,pz);
     concetracionOfSpecies(cModel            ,y
                          ,cM                ,densityC);

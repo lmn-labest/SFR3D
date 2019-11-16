@@ -100,7 +100,7 @@ bool energyEquation(Memoria *m               , PropVarFluid *prop
             , mesh->elm.vel           , mesh->elm.gradVel
             , mesh->elm.pressure0     , mesh->elm.pressure  
             , mesh->elm.gradPres      , mesh->elm.rCellEnergy 
-            , mesh->elm.densityFluid  , mesh->elm.specificHeat
+            , mesh->elm.densityFluid.t, mesh->elm.specificHeat.t
             , mesh->elm.dViscosity    , mesh->elm.eddyViscosity 
             , mesh->elm.tConductivity
             , mesh->elm.enthalpyk     , mesh->elm.gradY          

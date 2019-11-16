@@ -1014,13 +1014,8 @@ void wResVtkDif(Memoria *m        ,double *x
   if (opt->fCell && opt->densityD1)
   {
     strcpy(str, "eDensity");
-    HccaAlloc(DOUBLE, m, p, numel, "p", _AD_);
-    ERRO_MALLOC(p, "p", __LINE__, __FILE__, __func__);
-    for (i = 0; i<numel; i++)
-      p[i] = MAT2D(i, TIME_N, elDensity, DENSITY_LEVEL);
-    writeVtkProp(&idum, p, numel, 1, str, iws
+    writeVtkProp(&idum, elDensity, numel, 1, str, iws
                , DOUBLE_VTK, SCALARS_VTK, f);
-    HccaDealloc(m, p, "p", _AD_);
   }  
 /*...................................................................*/
 
@@ -1064,13 +1059,8 @@ void wResVtkDif(Memoria *m        ,double *x
   if (opt->fNode && opt->densityD1)
   {
     strcpy(str, "nDensity");
-    HccaAlloc(DOUBLE, m, p, nnode, "p", _AD_);
-    ERRO_MALLOC(p, "p", __LINE__, __FILE__, __func__);
-    for (i = 0; i<nnode; i++)
-      p[i] = MAT2D(i, TIME_N, nDensity, DENSITY_LEVEL);
-    writeVtkProp(&idum, p, nnode, 1, str, iws
+    writeVtkProp(&idum, nDensity, nnode, 1, str, iws
                 , DOUBLE_VTK, SCALARS_VTK, f);
-    HccaDealloc(m, p, "p", _AD_);
   }
 /*...................................................................*/
 
@@ -1231,13 +1221,8 @@ void wResVtkTrans(Memoria *m        , double *x
 /*... escrever gradiente por celula*/
   if (opt->fCell && opt->densityT1)
   {
-    HccaAlloc(DOUBLE, m, p, numel, "p", _AD_);
-    ERRO_MALLOC(p, "p", __LINE__, __FILE__, __func__);
-    for (i = 0; i<numel; i++)
-      p[i] = MAT2D(i, TIME_N, elDensity, DENSITY_LEVEL);
-    writeVtkProp(&idum      , p, numel, 1, ps[eDen], iws
+    writeVtkProp(&idum      , elDensity, numel, 1, ps[eDen], iws
                 , DOUBLE_VTK, SCALARS_VTK, f);
-    HccaDealloc(m, p, "p", _AD_);
   }
 /*...................................................................*/
 
@@ -1287,13 +1272,8 @@ void wResVtkTrans(Memoria *m        , double *x
 /*... escrever gradiente por celula*/
   if (opt->fNode && opt->densityT1)
   {
-    HccaAlloc(DOUBLE, m, p, nnode, "p", _AD_);
-    ERRO_MALLOC(p, "p", __LINE__, __FILE__, __func__);
-    for (i = 0; i<nnode; i++)
-      p[i] = MAT2D(i, TIME_N, noDensity, DENSITY_LEVEL);
-    writeVtkProp(&idum, p, nnode, 1, ps[nDen], iws
+    writeVtkProp(&idum, noDensity, nnode, 1, ps[nDen], iws
       , DOUBLE_VTK, SCALARS_VTK, f);
-    HccaDealloc(m, p, "p", _AD_);
   }
 /*...................................................................*/
 
@@ -1586,25 +1566,16 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
   if(opt->specificHeat && opt->fCell ){
     strcpy(str,"eSpecificHeat");
     HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
-    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
-    for(i=0;i<numel;i++)
-      p[i] = MAT2D(i,TIME_N, eSheat, SHEAT_LEVEL);
-    writeVtkProp(&idum,p,numel,1,str,iws
+    writeVtkProp(&idum,eSheat,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
-    HccaDealloc(m,p,"p",_AD_);
   }
 /*...................................................................*/
 
 /*... escreve a massa especifica por celula*/  
   if(opt->densityFluid && opt->fCell ){
     strcpy(str,"eRho");
-    HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
-    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
-    for(i=0;i<numel;i++)
-      p[i] = MAT2D(i,TIME_N, eDensityFluid, DENSITY_LEVEL);
-    writeVtkProp(&idum,p,numel,1,str,iws
+    writeVtkProp(&idum,eDensityFluid,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
-    HccaDealloc(m,p,"p",_AD_);
   }
 /*...................................................................*/
 
@@ -1932,13 +1903,8 @@ void wResVtkFluid(Memoria *m     , DOUBLE *x
 /*...  escreve a massa especifica por no*/  
   if(opt->densityFluid && opt->fNode ){
     strcpy(str,"nDensityFluid");
-    HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
-    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
-    for(i=0;i<nnode;i++)
-      p[i] = MAT2D(i,TIME_N, nDensityFluid, DENSITY_LEVEL);
-    writeVtkProp(&idum,p,nnode,1,str,iws
+    writeVtkProp(&idum,nDensityFluid,nnode,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
-    HccaDealloc(m,p,"p",_AD_);
   }
 /*...................................................................*/
 
@@ -2265,26 +2231,16 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
 /*... escreve o calor especifico por celula*/  
   if(opt->specificHeat && opt->fCell ){
     strcpy(str,"eSpecificHeat");
-    HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
-    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
-    for(i=0;i<numel;i++)
-      p[i] = MAT2D(i,TIME_N, eSheat, SHEAT_LEVEL);
-    writeVtkProp(&idum,p,numel,1,str,iws
+    writeVtkProp(&idum,eSheat,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
-    HccaDealloc(m,p,"p",_AD_);
   }
 /*...................................................................*/
 
 /*... escreve a massa especifica por celula*/  
   if(opt->densityFluid && opt->fCell ){
     strcpy(str,"eRho");
-    HccaAlloc(DOUBLE,m,p,numel,"p",_AD_);
-    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
-    for(i=0;i<numel;i++)
-      p[i] = MAT2D(i,TIME_N, eDensityFluid, DENSITY_LEVEL);
-    writeVtkProp(&idum,p,numel,1,str,iws
+    writeVtkProp(&idum,eDensityFluid,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
-    HccaDealloc(m,p,"p",_AD_);
   }
 /*...................................................................*/
 
@@ -2767,13 +2723,9 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
 /*...  escreve a massa especifica por no*/  
   if(opt->densityFluid && opt->fNode ){
     strcpy(str,"nRho");
-    HccaAlloc(DOUBLE,m,p,nnode,"p",_AD_);
-    ERRO_MALLOC(p,"p",__LINE__,__FILE__,__func__);
-    for(i=0;i<nnode;i++)
-      p[i] = MAT2D(i,TIME_N, nDensityFluid, DENSITY_LEVEL);
-    writeVtkProp(&idum,p,nnode,1,str,iws
+    writeVtkProp(&idum,nDensityFluid,nnode,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
-    HccaDealloc(m,p,"p",_AD_);
+
   }
 /*...................................................................*/
 
@@ -3270,7 +3222,7 @@ void makeKineticEnergy(DOUBLE *RESTRICT e      , DOUBLE *RESTRICT vel
   DOUBLE vv,den,v[3];
 
   for (i = 0; i < n; i++) {
-    den  = MAT2D(i, 2, density, DENSITY_LEVEL);
+    den  =  density[i];
     v[0] =  MAT2D(i, 0, vel, ndm);
     v[1] =  MAT2D(i, 1, vel, ndm);
     vv = v[0]*v[0] + v[1]*v[1];
@@ -3346,7 +3298,7 @@ void makePresTotal(DOUBLE *RESTRICT presT, DOUBLE *RESTRICT pres
   DOUBLE vv,den,v[3];
 
   for (i = 0; i < n; i++) {
-    den  = MAT2D(i, 2, density, DENSITY_LEVEL);
+    den  =  density[i];
     v[0] =  MAT2D(i, 0, vel, ndm);
     v[1] =  MAT2D(i, 1, vel, ndm);
     vv = v[0]*v[0] + v[1]*v[1];

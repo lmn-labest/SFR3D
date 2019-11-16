@@ -661,7 +661,7 @@ int main(int argc,char**argv){
                               ,mesh->elm.geom.volume,mesh->numelNov);
 /*...*/
         if(thDynamic.fDensityRef)
-          propVarFluid.densityRef = specificMassRef(mesh->elm.densityFluid
+          propVarFluid.densityRef = specificMassRef(mesh->elm.densityFluid.t
                                                 , mesh->elm.geom.volume                  
                                                 , mesh->numelNov);
 /*...................................................................*/
@@ -675,7 +675,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-        mesh->mass[0] = totalMass(mesh->elm.densityFluid
+        mesh->mass[0] = totalMass(mesh->elm.densityFluid.t
                               , mesh->elm.geom.volume
                               , mesh->numelNov); 
         mesh->mass[1] =  mesh->mass[0];
@@ -683,10 +683,10 @@ int main(int argc,char**argv){
 
 /*... gera a pressao inicial hidrostatica*/
         if(momentumModel.iCodBuoyant == BUOYANT_HYDROSTATIC)
-          hPres(mesh->elm.pressure0   , mesh->elm.pressure
-              , mesh->elm.densityFluid, mesh->elm.geom.cc
-              , gravity               , mesh->xRef
-              , mesh->numel           , mesh->ndm );      
+          hPres(mesh->elm.pressure0     , mesh->elm.pressure
+              , mesh->elm.densityFluid.t, mesh->elm.geom.cc
+              , gravity                 , mesh->xRef
+              , mesh->numel             , mesh->ndm );      
 /*...................................................................*/
       }
 /*...................................................................*/  
@@ -1451,6 +1451,20 @@ int main(int argc,char**argv){
       readTransConfig(&sc.ddt,&save,&mm,fileIn);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
+/*...*/
+      if(opt.fPolt)
+        printCall(&m        , &propVarFluid
+              , &turbModel, &eModel 
+              , &combModel, &tInterpol
+              , pMesh     , &sc
+              , loadsVel  , loadsPres 
+              , loadsTemp , loadsZcomb
+              , &opt       
+              , mesh0     , mesh 
+              , &media    , PINITIAL_TIME  
+              , preName   , nameOut); 
+/*...................................................................*/
+
     }   
 /*===================================================================*/
 
@@ -1596,16 +1610,6 @@ int main(int argc,char**argv){
       updateTimeStruct(&m       ,&tInterpol
                      ,mesh
                      ,&combModel,&opt); 
-      printCall(&m        , &propVarFluid
-              , &turbModel, &eModel 
-              , &combModel, &tInterpol
-              , pMesh     , &sc
-              , loadsVel  , loadsPres 
-              , loadsTemp , loadsZcomb
-              , &opt       
-              , mesh0     , mesh 
-              , &media    , PINITIAL_TIME  
-              , preName   , nameOut); 
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
     }   

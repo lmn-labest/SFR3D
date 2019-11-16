@@ -218,7 +218,7 @@ void simpleSolver(Memoria *m
   fParameter[0] = true;
   fParameter[1] = true;
   parameterCell(mesh->elm.vel           ,mesh->elm.material.prop
-               ,mesh->elm.densityFluid  ,mesh->elm.geom.volume 
+               ,mesh->elm.densityFluid.t,mesh->elm.geom.volume 
                ,mesh->elm.mat  
                ,&cfl                    ,&reynolds
                ,fParameter              ,sc->ddt.dt[0]
@@ -617,8 +617,8 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     if(fDiff)
       updateMixDiffusion(propF                 , cModel 
                        ,mesh->elm.temp         , mesh->elm.yFrac
-                       ,mesh->elm.cDiffComb    , mesh->elm.densityFluid
-                       ,mesh->elm.tConductivity, mesh->elm.specificHeat
+                       ,mesh->elm.cDiffComb    , mesh->elm.densityFluid.t
+                       ,mesh->elm.tConductivity, mesh->elm.specificHeat.t
                        ,cModel->nOfSpecies     , cModel->nComb       
                        ,eModel->fKelvin        , mesh->numel
                        ,ompVar.fUpdate         , ompVar.nThreadsUpdate); 
@@ -712,24 +712,24 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
   fParameter[2] = true;
   fParameter[3] = true;
   fParameter[4] = true;
-  parameterCellLm(mesh->elm.vel         , mesh->elm.material.prop
-               , mesh->elm.densityFluid , mesh->elm.specificHeat
-               , mesh->elm.tConductivity, mesh->elm.dViscosity
-               , mesh->elm.geom.volume  , mesh->elm.mat            
-               , &cfl                   , &reynolds
-               , &peclet                , &mesh->mass[2]
+  parameterCellLm(mesh->elm.vel          , mesh->elm.material.prop
+               , mesh->elm.densityFluid.t, mesh->elm.specificHeat.t
+               , mesh->elm.tConductivity , mesh->elm.dViscosity
+               , mesh->elm.geom.volume   , mesh->elm.mat            
+               , &cfl                    , &reynolds
+               , &peclet                 , &mesh->mass[2]
                , &prMax
-               , fParameter             , sc->ddt.dt[0]
-               , mesh->numelNov         , mesh->ndm);  
+               , fParameter              , sc->ddt.dt[0]
+               , mesh->numelNov          , mesh->ndm);  
 /*...................................................................*/
 
 /*...*/
   if(fDeltaTimeDynamic)
-    dynamicDeltat(mesh->elm.vel          , mesh->elm.geom.volume 
-                 , mesh->elm.densityFluid , mesh->elm.specificHeat
-                 , mesh->elm.tConductivity, mesh->elm.dViscosity
-                 , sc->ddt.dt             , mesh->numelNov
-                 , mesh->ndm              , CFL);  
+    dynamicDeltat(mesh->elm.vel            , mesh->elm.geom.volume 
+                 , mesh->elm.densityFluid.t, mesh->elm.specificHeat.t
+                 , mesh->elm.tConductivity , mesh->elm.dViscosity
+                 , sc->ddt.dt              , mesh->numelNov
+                 , mesh->ndm               , CFL);  
 /*...................................................................*/
 
 /*... guardando as propriedades para o proximo passo*/
@@ -757,7 +757,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 
 /*... calcula a massa especifica de referencia*/
   if(fDensityRef)
-    propF->densityRef = specificMassRef(mesh->elm.densityFluid
+    propF->densityRef = specificMassRef(mesh->elm.densityFluid.t
                                       , mesh->elm.geom.volume                  
                                       , mesh->numel);  
 /*...................................................................*/
@@ -768,7 +768,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
               , mesh->elm.faceRvel , mesh->elm.adj.nViz 
               , mesh->face.area       , mesh->face.normal
               , mesh->face.xm  
-              , mesh->elm.densityFluid, mesh->elm.vel 
+              , mesh->elm.densityFluid.t, mesh->elm.vel 
               , mesh->massInOut       , &deltaMass
               , mesh->numelNov        , mesh->ndm  
               , mesh->maxViz  );
@@ -1213,30 +1213,30 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
   fParameter[2] = true;
   fParameter[3] = true;
   fParameter[4] = true;
-  parameterCellLm(mesh->elm.vel          , mesh->elm.material.prop
-                , mesh->elm.densityFluid , mesh->elm.specificHeat
-                , mesh->elm.tConductivity, mesh->elm.dViscosity
-                , mesh->elm.geom.volume  , mesh->elm.mat
-                , &cfl                   , &reynolds
-                , &peclet                , &mesh->mass[2]
+  parameterCellLm(mesh->elm.vel           , mesh->elm.material.prop
+                , mesh->elm.densityFluid.t, mesh->elm.specificHeat.t
+                , mesh->elm.tConductivity , mesh->elm.dViscosity
+                , mesh->elm.geom.volume   , mesh->elm.mat
+                , &cfl                    , &reynolds
+                , &peclet                 , &mesh->mass[2]
                 , &prMax
-                , fParameter             , sc->ddt.dt[0]
+                , fParameter              , sc->ddt.dt[0]
                 , mesh->numelNov, mesh->ndm);
 /*...................................................................*/
 
 /*...*/
   if (fDeltaTimeDynamic)
-    dynamicDeltat(mesh->elm.vel, mesh->elm.geom.volume
-      , mesh->elm.densityFluid, mesh->elm.specificHeat
-      , mesh->elm.tConductivity, mesh->elm.dViscosity
-      , sc->ddt.dt, mesh->numelNov
-      , mesh->ndm, CFL);
+    dynamicDeltat(mesh->elm.vel   , mesh->elm.geom.volume
+       , mesh->elm.densityFluid.t , mesh->elm.specificHeat.t
+       , mesh->elm.tConductivity  , mesh->elm.dViscosity
+       , sc->ddt.dt               , mesh->numelNov
+       , mesh->ndm, CFL);
 /*...................................................................*/
 
 /*... guardando as propriedades para o proximo passo*/
   if (fDensity) updateDensity(propF
                             , mesh->elm.temp, mesh->elm.pressure0
-                            , mesh->elm.densityFluid
+                            , mesh->elm.densityFluid  
                             , sp->alphaDensity, eModel->fKelvin
                             , mesh->numel, PROP_UPDATE_OLD_TIME);
   if (fSheat) updateSpecificHeat(&propF->sHeat
@@ -1247,20 +1247,20 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
 
 /*... calcula a massa especifica de referencia*/
   if (fDensityRef)
-    propF->densityRef = specificMassRef(mesh->elm.densityFluid
+    propF->densityRef = specificMassRef(mesh->elm.densityFluid.t
                                       , mesh->elm.geom.volume
                                       , mesh->numel);
 /*...................................................................*/
 
 /*... calculo da taxa de massa atravessando o contorno aberto*/
-  massFluxOpenDomain(loadsVel         , sc->ddt 
-              , mesh->elm.cellFace    , mesh->face.owner
-              , mesh->elm.faceRvel , mesh->elm.adj.nViz 
-              , mesh->face.area       , mesh->face.normal
+  massFluxOpenDomain(loadsVel           , sc->ddt 
+              , mesh->elm.cellFace      , mesh->face.owner
+              , mesh->elm.faceRvel      , mesh->elm.adj.nViz 
+              , mesh->face.area         , mesh->face.normal
               , mesh->face.xm  
-              , mesh->elm.densityFluid, mesh->elm.vel 
-              , mesh->massInOut       , &deltaMass
-              , mesh->numelNov        , mesh->ndm  
+              , mesh->elm.densityFluid.t, mesh->elm.vel 
+              , mesh->massInOut         , &deltaMass
+              , mesh->numelNov          , mesh->ndm  
               , mesh->maxViz  );
   mesh->mass[1] += deltaMass;  
 /*...................................................................*/
@@ -2135,7 +2135,6 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
                  , short const ndm         , short const iCod)
 
 {
-  short nD = DENSITY_LEVEL;
   INT i;
   DOUBLE dtCfl,dtVn,modVel,nCfl,cfl,lc,v[3],deltaT,deltaT0,diff,den;
 #ifdef _MPI_
@@ -2174,7 +2173,7 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 
 /*...*/
         diff = tCond[i]/sHeat[i];
-        den  = MAT2D(i,2,density,nD);
+        den  = density[i];
 /*...................................................................*/
 
 /*...*/
@@ -2302,7 +2301,6 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
 
   short unsigned ndfVel = mesh->ndfFt - 2;
   short nonOrth;
-  DOUBLE *rho=NULL;
   DOUBLE *b1, *b2, *b3, *bPc, *xu1, *xu2, *xu3, *xp;
   DOUBLE *adU1, *adU2, *adU3;
 /*...*/
@@ -2333,38 +2331,33 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
 
 /*... reconstruindo do gradiente da massa especifica*/
   tm.rcGradRho = getTimeC() - tm.rcGradRho;
-  HccaAlloc(DOUBLE, m, rho , mesh->numel, "rhot"  , _AD_);
-  getColFromMatrix(rho         ,mesh->elm.densityFluid
-                  ,mesh->numel ,DENSITY_LEVEL
-                  ,TIME_N);
-  rcGradU(m                         , loadsRhoFluid
-           , mesh->elm.node         , mesh->elm.adj.nelcon
-           , mesh->node.x
-           , mesh->elm.nen          , mesh->elm.adj.nViz
-           , mesh->elm.cellFace     , mesh->face.owner
-           , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-           , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-           , mesh->face.mksi        , mesh->face.ksi
-           , mesh->face.eta         , mesh->face.area
-           , mesh->face.normal      , mesh->face.xm
-           , mesh->face.mvSkew      , mesh->face.vSkew
-           , mesh->elm.geomType     , mesh->elm.material.prop
-           , mesh->elm.material.type
-           , mesh->elm.mat          , NULL
-           , mesh->elm.leastSquare  , mesh->elm.leastSquareR
+  rcGradU(m                          , loadsRhoFluid
+           , mesh->elm.node          , mesh->elm.adj.nelcon
+           , mesh->node.x            
+           , mesh->elm.nen           , mesh->elm.adj.nViz
+           , mesh->elm.cellFace      , mesh->face.owner
+           , mesh->elm.geom.volume   , mesh->elm.geom.dcca
+           , mesh->elm.geom.xmcc     , mesh->elm.geom.cc
+           , mesh->face.mksi         , mesh->face.ksi
+           , mesh->face.eta          , mesh->face.area
+           , mesh->face.normal       , mesh->face.xm
+           , mesh->face.mvSkew       , mesh->face.vSkew
+           , mesh->elm.geomType      , mesh->elm.material.prop
+           , mesh->elm.material.type 
+           , mesh->elm.mat           , NULL
+           , mesh->elm.leastSquare   , mesh->elm.leastSquareR
            , mesh->elm.faceRrho    
-           , rho                    , mesh->elm.gradRhoFluid
+           , mesh->elm.densityFluid.t, mesh->elm.gradRhoFluid
            , mesh->node.rhoFluid   
-           , NULL                   , NULL
+           , NULL                    , NULL
            , propF->densityRef
            , &sc->rcGrad
-           , mesh->maxNo            , mesh->maxViz
-           , 1                      , mesh->ndm
-           , &pMesh->iNo            , &pMesh->iEl
-           , mesh->numelNov         , mesh->numel
-           , mesh->nnodeNov         , mesh->nnode
+           , mesh->maxNo             , mesh->maxViz
+           , 1                       , mesh->ndm
+           , &pMesh->iNo             , &pMesh->iEl
+           , mesh->numelNov          , mesh->numel
+           , mesh->nnodeNov          , mesh->nnode
            , false);  
-  HccaDealloc(m, rho,  "rhot", _AD_);
   tm.rcGradRho = getTimeC() - tm.rcGradRho;
 /*...................................................................*/
 
@@ -2409,32 +2402,32 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
 
 /*... reconstruindo do gradiente da pressao*/
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
-    rcGradU(m                       , loadsPres
-           , mesh->elm.node         , mesh->elm.adj.nelcon
-           , mesh->node.x
-           , mesh->elm.nen          , mesh->elm.adj.nViz
-           , mesh->elm.cellFace     , mesh->face.owner
-           , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-           , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-           , mesh->face.mksi        , mesh->face.ksi
-           , mesh->face.eta         , mesh->face.area
-           , mesh->face.normal      , mesh->face.xm
-           , mesh->face.mvSkew      , mesh->face.vSkew
-           , mesh->elm.geomType     , mesh->elm.material.prop
-           , mesh->elm.material.type
-           , mesh->elm.mat          , NULL
-           , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-           , mesh->elm.faceRpres    
-           , mesh->elm.pressure     , mesh->elm.gradPres
+    rcGradU(m                        , loadsPres
+           , mesh->elm.node          , mesh->elm.adj.nelcon
+           , mesh->node.x            
+           , mesh->elm.nen           , mesh->elm.adj.nViz
+           , mesh->elm.cellFace      , mesh->face.owner
+           , mesh->elm.geom.volume   , mesh->elm.geom.dcca
+           , mesh->elm.geom.xmcc     , mesh->elm.geom.cc
+           , mesh->face.mksi         , mesh->face.ksi
+           , mesh->face.eta          , mesh->face.area
+           , mesh->face.normal       , mesh->face.xm
+           , mesh->face.mvSkew       , mesh->face.vSkew
+           , mesh->elm.geomType      , mesh->elm.material.prop
+           , mesh->elm.material.type 
+           , mesh->elm.mat           , NULL
+           , mesh->elm.leastSquare   , mesh->elm.leastSquareR
+           , mesh->elm.faceRpres     
+           , mesh->elm.pressure      , mesh->elm.gradPres
            , mesh->node.pressure    
-           , mesh->elm.densityFluid , mesh->elm.gradRhoFluid 
+           , mesh->elm.densityFluid.t, mesh->elm.gradRhoFluid 
            , propF->densityRef
            , &sc->rcGrad
-           , mesh->maxNo            , mesh->maxViz
-           , 1                      , mesh->ndm
-           , &pMesh->iNo            , &pMesh->iEl
-           , mesh->numelNov         , mesh->numel
-           , mesh->nnodeNov         , mesh->nnode
+           , mesh->maxNo             , mesh->maxViz
+           , 1                       , mesh->ndm
+           , &pMesh->iNo             , &pMesh->iEl
+           , mesh->numelNov          , mesh->numel
+           , mesh->nnodeNov          , mesh->nnode
            , false);  
     tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
@@ -2502,7 +2495,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
                       , mesh->elm.gradRhoFluid
                       , sp->d                   , sp->alphaVel
                       , mesh->elm.rCellVel      , mesh->elm.stressR
-                      , mesh->elm.densityFluid  , mesh->elm.dViscosity
+                      , mesh->elm.densityFluid.t, mesh->elm.dViscosity
                       , mesh->elm.eddyViscosity , mesh->elm.wallParameters
                       , propF->densityRef       , &sc->ddt
                       , sistEqVel->neq          , sistEqVel->neqNov
@@ -2739,32 +2732,32 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
     for (nonOrth = 0; nonOrth < sp->nNonOrth; nonOrth++) {
 /*... reconstruindo do gradiente da pressao correcao*/
       tm.rcGradPres = getTimeC() - tm.rcGradPres;
-      rcGradU(m                      , loadsPresC
-            , mesh->elm.node         , mesh->elm.adj.nelcon
-            , mesh->node.x           
-            , mesh->elm.nen          , mesh->elm.adj.nViz
-            , mesh->elm.cellFace     , mesh->face.owner
-            , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-            , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-            , mesh->face.mksi        , mesh->face.ksi
-            , mesh->face.eta         , mesh->face.area
-            , mesh->face.normal      , mesh->face.xm
-            , mesh->face.mvSkew      , mesh->face.vSkew
-            , mesh->elm.geomType     , mesh->elm.material.prop
-            , mesh->elm.material.type
-            , mesh->elm.mat          , NULL
-            , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-            , mesh->elm.faceRpres    
-            , sp->ePresC1            , sp->eGradPresC
+      rcGradU(m                       , loadsPresC
+            , mesh->elm.node          , mesh->elm.adj.nelcon
+            , mesh->node.x            
+            , mesh->elm.nen           , mesh->elm.adj.nViz
+            , mesh->elm.cellFace      , mesh->face.owner
+            , mesh->elm.geom.volume   , mesh->elm.geom.dcca
+            , mesh->elm.geom.xmcc     , mesh->elm.geom.cc
+            , mesh->face.mksi         , mesh->face.ksi
+            , mesh->face.eta          , mesh->face.area
+            , mesh->face.normal       , mesh->face.xm
+            , mesh->face.mvSkew       , mesh->face.vSkew
+            , mesh->elm.geomType      , mesh->elm.material.prop
+            , mesh->elm.material.type 
+            , mesh->elm.mat           , NULL
+            , mesh->elm.leastSquare   , mesh->elm.leastSquareR
+            , mesh->elm.faceRpres     
+            , sp->ePresC1             , sp->eGradPresC
             , sp->nPresC             
-            , mesh->elm.densityFluid , mesh->elm.gradRhoFluid 
+            , mesh->elm.densityFluid.t, mesh->elm.gradRhoFluid 
             , propF->densityRef
             , &sc->rcGrad
-            , mesh->maxNo            , mesh->maxViz
-            , 1                      , mesh->ndm
-            , &pMesh->iNo            , &pMesh->iEl
-            , mesh->numelNov         , mesh->numel
-            , mesh->nnodeNov         , mesh->nnode
+            , mesh->maxNo             , mesh->maxViz
+            , 1                       , mesh->ndm
+            , &pMesh->iNo             , &pMesh->iEl
+            , mesh->numelNov          , mesh->numel
+            , mesh->nnodeNov          , mesh->nnode
             , false);
       tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
@@ -2783,7 +2776,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
         , mesh->face.mvSkew, mesh->face.vSkew
         , mesh->elm.geomType, mesh->elm.material.prop
         , mesh->elm.material.type, mesh->elm.mat
-        , mesh->elm.densityFluid
+        , mesh->elm.densityFluid.t
         , bPc, sistEqPres->id
         , mesh->elm.faceRpres, sp->ePresC1
         , sp->eGradPresC, sp->d
@@ -2826,32 +2819,32 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
 
 /*... reconstruindo do gradiente da pressao correcao*/
   tm.rcGradPres = getTimeC() - tm.rcGradPres;
-  rcGradU(m                      , loadsPresC
-        , mesh->elm.node         , mesh->elm.adj.nelcon
-        , mesh->node.x           
-        , mesh->elm.nen          , mesh->elm.adj.nViz
-        , mesh->elm.cellFace     , mesh->face.owner
-        , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-        , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-        , mesh->face.mksi        , mesh->face.ksi
-        , mesh->face.eta         , mesh->face.area
-        , mesh->face.normal      , mesh->face.xm
-        , mesh->face.mvSkew      , mesh->face.vSkew
-        , mesh->elm.geomType     , mesh->elm.material.prop
-        , mesh->elm.material.type
-        , mesh->elm.mat          , NULL
-        , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-        , mesh->elm.faceRpres    
-        , sp->ePresC             , sp->eGradPresC
+  rcGradU(m                       , loadsPresC
+        , mesh->elm.node          , mesh->elm.adj.nelcon
+        , mesh->node.x            
+        , mesh->elm.nen           , mesh->elm.adj.nViz
+        , mesh->elm.cellFace      , mesh->face.owner
+        , mesh->elm.geom.volume   , mesh->elm.geom.dcca
+        , mesh->elm.geom.xmcc     , mesh->elm.geom.cc
+        , mesh->face.mksi         , mesh->face.ksi
+        , mesh->face.eta          , mesh->face.area
+        , mesh->face.normal       , mesh->face.xm
+        , mesh->face.mvSkew       , mesh->face.vSkew
+        , mesh->elm.geomType      , mesh->elm.material.prop
+        , mesh->elm.material.type 
+        , mesh->elm.mat           , NULL
+        , mesh->elm.leastSquare   , mesh->elm.leastSquareR
+        , mesh->elm.faceRpres     
+        , sp->ePresC              , sp->eGradPresC
         , sp->nPresC             
-        , mesh->elm.densityFluid , mesh->elm.gradRhoFluid 
+        , mesh->elm.densityFluid.t , mesh->elm.gradRhoFluid 
         , propF->densityRef
         , &sc->rcGrad
-        , mesh->maxNo            , mesh->maxViz
-        , 1                      , mesh->ndm
-        , &pMesh->iNo            , &pMesh->iEl
-        , mesh->numelNov         , mesh->numel
-        , mesh->nnodeNov         , mesh->nnode
+        , mesh->maxNo             , mesh->maxViz
+        , 1                       , mesh->ndm
+        , &pMesh->iNo             , &pMesh->iEl
+        , mesh->numelNov          , mesh->numel
+        , mesh->nnodeNov          , mesh->nnode
         , false);  
   tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
@@ -2902,32 +2895,32 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
 
 /*... reconstruindo do gradiente da pressao*/
   tm.rcGradPres = getTimeC() - tm.rcGradPres;
-  rcGradU(m                      , loadsPres
-        , mesh->elm.node         , mesh->elm.adj.nelcon
-        , mesh->node.x
-        , mesh->elm.nen          , mesh->elm.adj.nViz
-        , mesh->elm.cellFace     , mesh->face.owner
-        , mesh->elm.geom.volume  , mesh->elm.geom.dcca
-        , mesh->elm.geom.xmcc    , mesh->elm.geom.cc
-        , mesh->face.mksi        , mesh->face.ksi
-        , mesh->face.eta         , mesh->face.area
-        , mesh->face.normal      , mesh->face.xm
-        , mesh->face.mvSkew      , mesh->face.vSkew
-        , mesh->elm.geomType     , mesh->elm.material.prop
-        , mesh->elm.material.type
-        , mesh->elm.mat          , NULL
-        , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-        , mesh->elm.faceRpres    
-        , mesh->elm.pressure     , mesh->elm.gradPres
+  rcGradU(m                       , loadsPres
+        , mesh->elm.node          , mesh->elm.adj.nelcon
+        , mesh->node.x            
+        , mesh->elm.nen           , mesh->elm.adj.nViz
+        , mesh->elm.cellFace      , mesh->face.owner
+        , mesh->elm.geom.volume   , mesh->elm.geom.dcca
+        , mesh->elm.geom.xmcc     , mesh->elm.geom.cc
+        , mesh->face.mksi         , mesh->face.ksi
+        , mesh->face.eta          , mesh->face.area
+        , mesh->face.normal       , mesh->face.xm
+        , mesh->face.mvSkew       , mesh->face.vSkew
+        , mesh->elm.geomType      , mesh->elm.material.prop
+        , mesh->elm.material.type 
+        , mesh->elm.mat           , NULL
+        , mesh->elm.leastSquare   , mesh->elm.leastSquareR
+        , mesh->elm.faceRpres     
+        , mesh->elm.pressure      , mesh->elm.gradPres
         , mesh->node.pressure    
-        , mesh->elm.densityFluid , mesh->elm.gradRhoFluid 
+        , mesh->elm.densityFluid.t, mesh->elm.gradRhoFluid 
         , propF->densityRef
         , &sc->rcGrad
-        , mesh->maxNo            , mesh->maxViz
-        , 1                      , mesh->ndm
-        , &pMesh->iNo            , &pMesh->iEl
-        , mesh->numelNov         , mesh->numel
-        , mesh->nnodeNov         , mesh->nnode
+        , mesh->maxNo             , mesh->maxViz
+        , 1                       , mesh->ndm
+        , &pMesh->iNo             , &pMesh->iEl
+        , mesh->numelNov          , mesh->numel
+        , mesh->nnodeNov          , mesh->nnode
         , false);  
   tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/

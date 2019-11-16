@@ -10,6 +10,13 @@
 /*...*/
   typedef struct 
   {
+    DOUBLE *t00,*t0,*t;
+  } LevelTime;
+/*...................................................................*/
+
+/*...*/
+  typedef struct 
+  {
     bool flWord;
     short  jLoop,kLoop;
     char loopWord[100][MAX_LINE];  
@@ -467,9 +474,11 @@
     DOUBLE *gradYi,*gradYG;
     DOUBLE *wT0  ,*wT  ,*wTi  ,*wTG;
     DOUBLE *rho0,*rho,*rhoi,*rhoG;
+    DOUBLE *sHeat0,*sHeat,*sHeati,*sHeatG;
     DOUBLE *dVisc0,*dVisc,*dVisci,*dViscG;
     DOUBLE *tCond0,*tCond,*tCondi,*tCondG;
     DOUBLE *cDiff0,*cDiff,*cDiffi,*cDiffG;
+    DOUBLE *mMolar0,*mMolar,*mMolari,*mMolarG;
   }TimeInterpol; 
 /*...................................................................*/
 

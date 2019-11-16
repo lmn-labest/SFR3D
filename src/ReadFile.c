@@ -304,9 +304,15 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
      }
  
 /*... densityFluid*/
-     HccaAlloc(DOUBLE , m         , mesh->elm.densityFluid
-              ,nel * DENSITY_LEVEL, "eDenFluid", _AD_);
-     zero(mesh->elm.densityFluid, nel * DENSITY_LEVEL, DOUBLEC);
+     HccaAlloc(DOUBLE , m, mesh->elm.densityFluid.t00
+              ,nel, "eDenFluid00", _AD_);
+     HccaAlloc(DOUBLE , m, mesh->elm.densityFluid.t0
+              ,nel, "eDenFluid0", _AD_);
+     HccaAlloc(DOUBLE , m, mesh->elm.densityFluid.t
+              ,nel, "eDenFluid", _AD_);
+     zero(mesh->elm.densityFluid.t00, nel, DOUBLEC);
+     zero(mesh->elm.densityFluid.t0 , nel, DOUBLEC);
+     zero(mesh->elm.densityFluid.t  , nel, DOUBLEC);
 
 /*... ePres(n+1)*/
      HccaAlloc(DOUBLE,m,mesh->elm.pressure 
@@ -406,24 +412,26 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
        zero(mesh->elm.gradTemp, nel*ndm, DOUBLEC);
 
 /*... calor especifico*/
-        HccaAlloc(DOUBLE, m, mesh->elm.specificHeat
-                 , nel * SHEAT_LEVEL, "sHeat", _AD_);
-        zero(mesh->elm.specificHeat, nel * SHEAT_LEVEL, DOUBLEC);
+       HccaAlloc(DOUBLE, m, mesh->elm.specificHeat.t00,nel , "sHeat00", _AD_);
+       HccaAlloc(DOUBLE, m, mesh->elm.specificHeat.t0 ,nel , "sHeat0", _AD_);
+       HccaAlloc(DOUBLE, m, mesh->elm.specificHeat.t  ,nel , "sHeat", _AD_);
+       zero(mesh->elm.specificHeat.t00, nel, DOUBLEC);
+       zero(mesh->elm.specificHeat.t0 , nel, DOUBLEC);
+       zero(mesh->elm.specificHeat.t  , nel, DOUBLEC);
 
 /*... viscosidade dinamica*/
-        HccaAlloc(DOUBLE, m, mesh->elm.dViscosity
+       HccaAlloc(DOUBLE, m, mesh->elm.dViscosity
                  , nel  , "dVis", _AD_);
-        zero(mesh->elm.dViscosity, nel, DOUBLEC);
+       zero(mesh->elm.dViscosity, nel, DOUBLEC);
         
 /*... condutividade termica*/
-        HccaAlloc(DOUBLE, m, mesh->elm.tConductivity
+       HccaAlloc(DOUBLE, m, mesh->elm.tConductivity
                  , nel  , "tCon", _AD_);
-        zero(mesh->elm.tConductivity, nel, DOUBLEC);
+       zero(mesh->elm.tConductivity, nel, DOUBLEC);
 
 /*... nRhoFluid*/
-       HccaAlloc(DOUBLE, m, mesh->node.rhoFluid 
-                ,nn*DENSITY_LEVEL, "nRhoFluid", _AD_);
-       zero(mesh->node.rhoFluid, nn*DENSITY_LEVEL, DOUBLEC);
+       HccaAlloc(DOUBLE, m, mesh->node.rhoFluid,nn, "nRhoFluid", _AD_);
+       zero(mesh->node.rhoFluid, nn, DOUBLEC);
 
 /*... eGradRho*/
        HccaAlloc(DOUBLE ,m            ,mesh->elm.gradRhoFluid
@@ -535,9 +543,12 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     zero(mesh->elm.tReactor, nel*N_TERMS_REACTOR, DOUBLEC);
 
 /*... mMolar*/
-    HccaAlloc(DOUBLE, m, mesh->elm.mMolar
-      , nel*MOLAR_LEVEL, "mMolar", _AD_);
-    zero(mesh->elm.mMolar, nel*MOLAR_LEVEL, DOUBLEC);
+    HccaAlloc(DOUBLE, m, mesh->elm.mMolar.t00, nel, "mMolar00", _AD_);
+    HccaAlloc(DOUBLE, m, mesh->elm.mMolar.t0 , nel, "mMolar0" , _AD_);
+    HccaAlloc(DOUBLE, m, mesh->elm.mMolar.t  , nel, "mMolar"  , _AD_);
+    zero(mesh->elm.mMolar.t00, nel, DOUBLEC);
+    zero(mesh->elm.mMolar.t0 , nel, DOUBLEC);
+    zero(mesh->elm.mMolar.t  , nel, DOUBLEC);
 
     if (mpiVar.nPrcs < 2)
     {
@@ -572,9 +583,15 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
      zero(mesh->elm.u0T1        ,nel*mesh->ndfT[0]           ,DOUBLEC);
 
 /*... densityUt1*/
-     HccaAlloc(DOUBLE, m, mesh->elm.densityUt1
-             , nel*DENSITY_LEVEL, "densityUt1", _AD_);
-     zero(mesh->elm.densityUt1, nel*DENSITY_LEVEL, DOUBLEC);
+     HccaAlloc(DOUBLE, m, mesh->elm.densityUt1.t00
+             , nel   , "densityUt100", _AD_);
+     HccaAlloc(DOUBLE, m, mesh->elm.densityUt1.t0
+             , nel   , "densityUt10", _AD_);
+     HccaAlloc(DOUBLE, m, mesh->elm.densityUt1.t
+             , nel   , "densityUt1", _AD_);
+     zero(mesh->elm.densityUt1.t00, nel, DOUBLEC);
+     zero(mesh->elm.densityUt1.t0 , nel, DOUBLEC);
+     zero(mesh->elm.densityUt1.t  , nel, DOUBLEC);
 
 /*... ceoficiente de diffusividae T1*/
      HccaAlloc(DOUBLE, m, mesh->elm.cDiffT1, nel, "cDiffT1", _AD_);
@@ -623,9 +640,15 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
      zero(mesh->elm.u0D1        ,nel*mesh->ndfD[0]           ,DOUBLEC);
 
 /*... densityUd1*/ 
-     HccaAlloc(DOUBLE,m,mesh->elm.densityUd1
-              ,nel*DENSITY_LEVEL ,"densityUd1" ,_AD_);
-     zero(mesh->elm.densityUd1  ,nel*DENSITY_LEVEL,DOUBLEC);
+     HccaAlloc(DOUBLE, m, mesh->elm.densityUd1.t00
+             , nel   , "densityUd100", _AD_);
+     HccaAlloc(DOUBLE, m, mesh->elm.densityUd1.t0
+             , nel   , "densityUd10", _AD_);
+     HccaAlloc(DOUBLE, m, mesh->elm.densityUd1.t
+             , nel   , "densityUd1", _AD_);
+     zero(mesh->elm.densityUd1.t00, nel, DOUBLEC);
+     zero(mesh->elm.densityUd1.t0 , nel, DOUBLEC);
+     zero(mesh->elm.densityUd1.t  , nel, DOUBLEC);
 
 /*... ceoficiente de diffusividae D1*/
      HccaAlloc(DOUBLE, m, mesh->elm.cDiffD1, nel, "cDiffD1", _AD_);
@@ -1164,29 +1187,32 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                   , mesh->numel*mesh->ndfD[0], mesh->elm.uD1);
     if(propD[0].fDensity)
 /*... inicia a massa especifica com o campo inicial*/
-      initPropCD(&propD[0].den          , mesh->elm.densityUd1
+      initPropCD(&propD[0].den          , mesh->elm.densityUd1.t
                , mesh->elm.u0D1         , mesh->elm.material.prop
                , mesh->elm.mat
-               , DENSITY_LEVEL          , mesh->numel
+               , 1                      , mesh->numel
                , DENSITY);
     else
-      initProp(mesh->elm.densityUd1
+      initProp(mesh->elm.densityUd1.t
             ,mesh->elm.material.prop,mesh->elm.mat
-            ,DENSITY_LEVEL          ,mesh->numel
+            ,1                      ,mesh->numel
             ,DENSITY);    
 
-
+    alphaProdVector(1.e0        ,mesh->elm.densityUd1.t
+                   ,mesh->numel ,mesh->elm.densityUd1.t0);
+    alphaProdVector(1.e0        ,mesh->elm.densityUd1.t
+                   ,mesh->numel ,mesh->elm.densityUd1.t00);
 /*... inicializando o coeficiente de difusao*/
     if (propD[0].fCeofDiff)
       initPropCD(&propD[0].ceofDiff, mesh->elm.cDiffD1
         , mesh->elm.u0D1, mesh->elm.material.prop
         , mesh->elm.mat
-        , COEFDIFF_LEVEL, mesh->numel
+        , 1             , mesh->numel
         , COEFDIF);
     else
       initProp(mesh->elm.cDiffD1
              , mesh->elm.material.prop, mesh->elm.mat
-             , COEFDIFF_LEVEL         , mesh->numel
+             , 1                      , mesh->numel
              , COEFDIF);
 /*...................................................................*/
 
@@ -1204,29 +1230,32 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                   , mesh->numel*mesh->ndfT[0], mesh->elm.uT1);
     if (propT[0].fDensity)
 /*... inicia a massa especifica com o campo inicial*/
-      initPropCD(&propT[0].den , mesh->elm.densityUt1
+      initPropCD(&propT[0].den , mesh->elm.densityUt1.t
                 , mesh->elm.u0T1, mesh->elm.material.prop
                 , mesh->elm.mat
-                , DENSITY_LEVEL , mesh->numel
+                , 1             , mesh->numel
                 , DENSITY);
     else
-      initProp(mesh->elm.densityUt1
+      initProp(mesh->elm.densityUt1.t
              , mesh->elm.material.prop, mesh->elm.mat
-             , DENSITY_LEVEL, mesh->numel
+             , 1                      , mesh->numel
              , DENSITY);
 
-
+    alphaProdVector(1.e0        ,mesh->elm.densityUt1.t
+                   ,mesh->numel ,mesh->elm.densityUt1.t0);
+    alphaProdVector(1.e0        ,mesh->elm.densityUt1.t
+                   ,mesh->numel ,mesh->elm.densityUt1.t00);
 /*... inicializando o coeficiente de difusao*/
     if (propT[0].fCeofDiff)
       initPropCD(&propT[0].ceofDiff, mesh->elm.cDiffT1
                , mesh->elm.u0T1    , mesh->elm.material.prop
                , mesh->elm.mat
-               , COEFDIFF_LEVEL    , mesh->numel
+               , 1                 , mesh->numel
                , COEFDIF);
   else
     initProp(mesh->elm.cDiffT1
            , mesh->elm.material.prop, mesh->elm.mat
-           , COEFDIFF_LEVEL         , mesh->numel
+           , 1                      , mesh->numel
            , COEFDIF);
 /*...................................................................*/
   }
@@ -1234,12 +1263,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 
 /*...*/
   if(mesh->ndfF > 0) 
-  {   
-    initProp(mesh->elm.densityFluid
-            ,mesh->elm.material.prop,mesh->elm.mat
-            ,DENSITY_LEVEL          ,mesh->numel
-            ,DENSITY); 
-
+  {     
 /*...*/
     alphaProdVector(1.e0, mesh->elm.vel0
                   , mesh->numel*ndfVel, mesh->elm.vel);
@@ -1301,10 +1325,10 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*... mixtura*/
     if(fComb)
       initPropTempMix(propF                   ,cModel
-                     ,mesh->elm.densityFluid  ,mesh->elm.temp
+                     ,mesh->elm.densityFluid.t,mesh->elm.temp
                      ,mesh->elm.pressure0     ,mesh->elm.yFrac
                      ,mesh->elm.material.prop ,mesh->elm.mat
-                     ,cModel->nOfSpecies      ,DENSITY_LEVEL   
+                     ,cModel->nOfSpecies      ,1   
                      ,mesh->numel             ,energyModel->fKelvin 
                      ,DENSITY);
 /*...*/
@@ -1312,46 +1336,58 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     {
       if(propF->fDensity)
         initPropTemp(propF
-                  ,mesh->elm.densityFluid ,mesh->elm.temp 
+                  ,mesh->elm.densityFluid.t,mesh->elm.temp 
                   ,mesh->elm.pressure0    ,mesh->elm.material.prop
                   ,mesh->elm.mat
-                  ,DENSITY_LEVEL          ,mesh->numel
+                  ,1                      ,mesh->numel
                   ,energyModel->fKelvin   ,DENSITY);
       else
-        initProp(mesh->elm.densityFluid 
+        initProp(mesh->elm.densityFluid.t
                 ,mesh->elm.material.prop,mesh->elm.mat
-                ,DENSITY_LEVEL          ,mesh->numel
+                ,1                      ,mesh->numel
                 ,DENSITY);
     }
+    alphaProdVector(1.e0        ,mesh->elm.densityFluid.t
+                   ,mesh->numel ,mesh->elm.densityFluid.t0);
+    alphaProdVector(1.e0        ,mesh->elm.densityFluid.t
+                   ,mesh->numel ,mesh->elm.densityFluid.t00);
 /*...................................................................*/
 
 /*... inicializando o calor especifico*/
 /*... mixtura*/
     if(fComb)
-      initPropTempMix(propF              ,cModel
-                    ,mesh->elm.specificHeat,mesh->elm.temp   
-                    ,mesh->elm.pressure0   ,mesh->elm.yFrac  
+    {
+      initPropTempMix(propF                  ,cModel
+                    ,mesh->elm.specificHeat.t,mesh->elm.temp   
+                    ,mesh->elm.pressure0     ,mesh->elm.yFrac  
                     ,mesh->elm.material.prop ,mesh->elm.mat  
-                    ,cModel->nOfSpecies    ,SHEAT_LEVEL 
-                    ,mesh->numel           ,energyModel->fKelvin 
+                    ,cModel->nOfSpecies      ,1 
+                    ,mesh->numel             ,energyModel->fKelvin 
                     ,SPECIFICHEATCAPACITYFLUID); 
+        
+
+    }
     else
     {
       if(propF->fSpecificHeat)
       {
         initPropTemp(propF
-                    ,mesh->elm.specificHeat   ,mesh->elm.temp 
-                    ,mesh->elm.pressure0      ,mesh->elm.material.prop  
+                    ,mesh->elm.specificHeat.t   ,mesh->elm.temp 
+                    ,mesh->elm.pressure0        ,mesh->elm.material.prop  
                     ,mesh->elm.mat
-                    ,SHEAT_LEVEL              ,mesh->numel
-                    ,energyModel->fKelvin     ,SPECIFICHEATCAPACITYFLUID);
+                    ,1                          ,mesh->numel
+                    ,energyModel->fKelvin       ,SPECIFICHEATCAPACITYFLUID);
       }
       else
-        initProp(mesh->elm.specificHeat   
+        initProp(mesh->elm.specificHeat.t 
              ,mesh->elm.material.prop  ,mesh->elm.mat
-             ,SHEAT_LEVEL              ,mesh->numel
+             ,1                        ,mesh->numel
              ,SPECIFICHEATCAPACITYFLUID);
     }
+    alphaProdVector(1.e0        ,mesh->elm.specificHeat.t
+                   ,mesh->numel ,mesh->elm.specificHeat.t0);
+    alphaProdVector(1.e0        ,mesh->elm.specificHeat.t
+                   ,mesh->numel ,mesh->elm.specificHeat.t00);
 /*...................................................................*/
 
 /*... inicializando a viscosidade dinamica*/   
@@ -1361,7 +1397,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                     ,mesh->elm.dViscosity    ,mesh->elm.temp   
                     ,mesh->elm.pressure0     ,mesh->elm.yFrac  
                     ,mesh->elm.material.prop ,mesh->elm.mat
-                    ,cModel->nOfSpecies      ,DVISCOSITY_LEVEL
+                    ,cModel->nOfSpecies      ,1               
                     ,mesh->numel             ,energyModel->fKelvin  
                     ,DYNAMICVISCOSITY);
     else
@@ -1372,13 +1408,13 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                 ,mesh->elm.dViscosity     ,mesh->elm.temp 
                 ,mesh->elm.pressure0      ,mesh->elm.material.prop  
                 ,mesh->elm.mat
-                ,DVISCOSITY_LEVEL         ,mesh->numel
+                ,1                        ,mesh->numel
                 ,energyModel->fKelvin     ,DYNAMICVISCOSITY);
       }
       else
         initProp(mesh->elm.dViscosity 
               ,mesh->elm.material.prop  ,mesh->elm.mat
-              ,DVISCOSITY_LEVEL         ,mesh->numel
+              ,1                        ,mesh->numel
               ,DYNAMICVISCOSITY);
     }
 /*...................................................................*/
@@ -1390,7 +1426,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                     ,mesh->elm.tConductivity,mesh->elm.temp      
                     ,mesh->elm.pressure0    ,mesh->elm.yFrac 
                     ,mesh->elm.material.prop ,mesh->elm.mat  
-                    ,cModel->nOfSpecies     ,TCONDUCTIVITY_LEVEL
+                    ,cModel->nOfSpecies     ,1                   
                     ,mesh->numel            ,energyModel->fKelvin
                     ,THERMALCONDUCTIVITY);
     else
@@ -1400,12 +1436,12 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
                     ,mesh->elm.tConductivity ,mesh->elm.temp 
                     ,mesh->elm.pressure0 
                     ,mesh->elm.material.prop   ,mesh->elm.mat
-                    ,TCONDUCTIVITY_LEVEL       ,mesh->numel
+                    ,1                         ,mesh->numel
                     ,energyModel->fKelvin      ,THERMALCONDUCTIVITY);
       else
         initProp(mesh->elm.tConductivity 
               ,mesh->elm.material.prop     ,mesh->elm.mat
-              ,TCONDUCTIVITY_LEVEL         ,mesh->numel
+              ,1                           ,mesh->numel
               ,THERMALCONDUCTIVITY);
     }
 /*...................................................................*/
@@ -1416,8 +1452,8 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
 /*... inicializando a difusividade das especies*/
       initDiffMix(propF                , cModel
              , mesh->elm.temp0         , mesh->elm.yFrac0
-             , mesh->elm.cDiffComb     , mesh->elm.densityFluid
-             , mesh->elm.tConductivity , mesh->elm.specificHeat
+             , mesh->elm.cDiffComb     , mesh->elm.densityFluid.t
+             , mesh->elm.tConductivity , mesh->elm.specificHeat.t
              , mesh->elm.pressure0     
              , mesh->elm.material.prop , mesh->elm.mat   
              , cModel->nOfSpecies      , cModel->nComb   
@@ -3810,7 +3846,7 @@ void setPrint(FileOpt *opt,FILE *file){
     else if (!strcmp(word, macro[43]))
     {
       fscanf(file,"%d",&tmp);
-      opt->stepPlot[0] = opt->stepPlot[1] = (short) tmp;
+      opt->nextStepPlot[0] = opt->nextStepPlot[1] = (short) tmp;
       opt->fStepPlot = true;
       fprintf(fileLogExc, "%-20s: %lf\n", "step", tmp);
     }

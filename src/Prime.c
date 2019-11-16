@@ -89,12 +89,12 @@ void primeSolver(Memoria *m
 /*... discretizacao temporal*/
   if (sc.ddt.flag) {  
     tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;
-    cellTransientPrime(mesh->elm.geom.volume
-                      ,mesh->elm.vel0        ,mesh->elm.vel
-                      ,mesh->elm.densityFluid,pr->bTemporal
-                      ,sc.ddt
-                      ,mesh->numelNov        ,ndfVel
-                      ,false);
+//  cellTransientPrime(mesh->elm.geom.volume
+//                    ,mesh->elm.vel0        ,mesh->elm.vel
+//                    ,mesh->elm.densityFluid,pr->bTemporal
+//                    ,sc.ddt
+//                    ,mesh->numelNov        ,ndfVel
+//                    ,false);
 /*... vel(n-1) = vel(n)*/
     alphaProdVector(1.e0, mesh->elm.vel
                     , mesh->numel*ndfVel, mesh->elm.vel0);
@@ -430,12 +430,12 @@ void primeSolver(Memoria *m
 /*...*/
   fParameter[0] = true;
   fParameter[1] = true;
-  parameterCell(mesh->elm.vel         ,mesh->elm.material.prop
-               ,mesh->elm.densityFluid,mesh->elm.geom.volume
+  parameterCell(mesh->elm.vel           ,mesh->elm.material.prop
+               ,mesh->elm.densityFluid.t,mesh->elm.geom.volume
                ,mesh->elm.mat
-               ,&cfl                  ,&reynolds
-               ,fParameter            ,sc.ddt.dt[0]
-               ,mesh->numelNov        ,mesh->ndm);
+               ,&cfl                    ,&reynolds
+               ,fParameter              ,sc.ddt.dt[0]
+               ,mesh->numelNov          ,mesh->ndm);
 /*...................................................................*/
 
 /*...*/
