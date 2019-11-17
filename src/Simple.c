@@ -719,7 +719,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                , &cfl                    , &reynolds
                , &peclet                 , &mesh->mass[2]
                , &prMax
-               , fParameter              , sc->ddt.dt[0]
+               , fParameter              , sc->ddt.dt[TIME_N]
                , mesh->numelNov          , mesh->ndm);  
 /*...................................................................*/
 
@@ -728,7 +728,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     dynamicDeltat(mesh->elm.vel            , mesh->elm.geom.volume 
                  , mesh->elm.densityFluid.t, mesh->elm.specificHeat.t
                  , mesh->elm.tConductivity , mesh->elm.dViscosity
-                 , sc->ddt.dt              , mesh->numelNov
+                 ,&sc->ddt                 , mesh->numelNov
                  , mesh->ndm               , CFL);  
 /*...................................................................*/
 
@@ -1229,7 +1229,7 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
     dynamicDeltat(mesh->elm.vel   , mesh->elm.geom.volume
        , mesh->elm.densityFluid.t , mesh->elm.specificHeat.t
        , mesh->elm.tConductivity  , mesh->elm.dViscosity
-       , sc->ddt.dt               , mesh->numelNov
+       ,&sc->ddt                  , mesh->numelNov
        , mesh->ndm, CFL);
 /*...................................................................*/
 
@@ -2131,40 +2131,31 @@ void residualCombustionOld(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
 void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
                  , DOUBLE *RESTRICT density, DOUBLE *RESTRICT sHeat
                  , DOUBLE *RESTRICT tCond  , DOUBLE *RESTRICT dViscosity
-                 , DOUBLE *dt              , INT const nEl
+                 , Temporal *ddt           , INT const nEl
                  , short const ndm         , short const iCod)
 
 {
+  short j;
   INT i;
-  DOUBLE dtCfl,dtVn,modVel,nCfl,cfl,lc,v[3],deltaT,deltaT0,diff,den;
+  DOUBLE dtCfl,dtVn,modVel,lc,deltaT,deltaT0,diff,den,dtNew;
+  DOUBLE deltaMax=ddt->dtMax
+        ,deltaMin=ddt->dtMin
+        ,nCfl    =ddt->cfl;
 #ifdef _MPI_
   DOUBLE gg;
 #endif  
 /*...*/
   switch(iCod)
   {
-
-/*... scaled*/
+/*... CFL*/
     case CFL:
-      nCfl = 1.5e0;
-      cfl  = 0.0e0;
       dtVn = dtCfl = 86400.e0; /*24*3600*/
       for(i=0;i<nEl;i++)
       {
  /*... modulo das velocidades*/
-        if (ndm == 2)
-        {
-          v[0] = MAT2D(i, 0, vel, ndm)*MAT2D(i, 0, vel, ndm);
-          v[1] = MAT2D(i, 1, vel, ndm)*MAT2D(i, 1, vel, ndm);
-          modVel = sqrt(v[0] + v[1]);
-        }
-        else
-        {
-          v[0] = MAT2D(i, 0, vel, ndm)*MAT2D(i, 0, vel, ndm);
-          v[1] = MAT2D(i, 1, vel, ndm)*MAT2D(i, 1, vel, ndm);
-          v[2] = MAT2D(i, 2, vel, ndm)*MAT2D(i, 2, vel, ndm);
-          modVel = sqrt(v[0] + v[1] + v[2]);
-        }
+        for(j=0,modVel=1.e-32;j<ndm;j++)
+          modVel += MAT2D(i, j, vel, ndm)*MAT2D(i, j, vel, ndm);   
+        modVel = sqrt(modVel);
 /*...................................................................*/
 
 /*... tamanho caracteristico*/
@@ -2172,14 +2163,13 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 /*...................................................................*/
 
 /*...*/
-        diff = tCond[i]/sHeat[i];
+        diff = tCond[i]/sHeat[i] + 1.e-32;
         den  = density[i];
 /*...................................................................*/
 
 /*...*/
-        cfl   = max(cfl,lc/modVel);
         dtCfl = min(dtCfl,nCfl*lc/modVel);
-        dtVn  = min(dtVn,(den*lc*lc)/(2.0*diff));
+        dtVn  = min(dtVn,(den*lc*lc)/(2.0*diff));      
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -2189,8 +2179,6 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
       if(mpiVar.nPrcs>1)
       { 
         tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
-        MPI_Allreduce(&cfl  ,&gg ,1,MPI_DOUBLE,MPI_MAX,mpiVar.comm);
-        cfl = gg;
         MPI_Allreduce(&dtCfl,&gg ,1,MPI_DOUBLE,MPI_MIN,mpiVar.comm);
         dtCfl = gg;
         MPI_Allreduce(&dtVn,&gg ,1,MPI_DOUBLE,MPI_MIN,mpiVar.comm);
@@ -2202,20 +2190,22 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 
     
 /*...*/
-      deltaT  = dt[TIME_N] ;
-      deltaT0 = dt[TIME_N_MINUS_1];
-/*    if (deltaT > dtCfl || deltaT > dtVn ) {
-        dt[0] = min(dtCfl,dtVn);
-        printf("change dt for: %lf\n",dt[0]);
-      }
-*/
-      if (deltaT > dtCfl) 
+//    dtNew   = min(dtVn,dtCfl);
+      dtNew   = dtCfl;
+      deltaT  = ddt->dt[TIME_N] ;
+      deltaT0 = ddt->dt[TIME_N_MINUS_1];
+      if(deltaT > dtNew) 
       {
-        dt[TIME_N] = trunkNumber(dtCfl);
-        printf("change dt for: %lf\n",dt[TIME_N]);
-      }  
-      dt[TIME_N_MINUS_1] = deltaT;  
-      dt[TIME_N_MINUS_2] = deltaT0;
+        ddt->dt[TIME_N] = trunkNumber(dtNew);
+        fprintf(fileLogExc,"change dt for: %lf\n",ddt->dt[TIME_N]);
+      } 
+      if(deltaT < dtNew)
+      {
+        ddt->dt[TIME_N] = min(trunkNumber(dtNew),deltaMax);
+        fprintf(fileLogExc,"change dt for: %lf\n",ddt->dt[TIME_N]);
+      }       
+      ddt->dt[TIME_N_MINUS_1] = deltaT;  
+      ddt->dt[TIME_N_MINUS_2] = deltaT0;
 /*...................................................................*/
       break;
 /*...................................................................*/

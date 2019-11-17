@@ -296,7 +296,7 @@
     bool flag,fDynamic;
     short iCod,type,typeReal;
     INT timeStep;
-    DOUBLE total,dt[3],dtInicial,t,t0;   
+    DOUBLE total,dt[3],dtInicial,t,t0,dtMax,dtMin,cfl;   
   }Temporal;
 /*...................................................................*/  
 

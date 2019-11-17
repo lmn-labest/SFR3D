@@ -8178,14 +8178,29 @@ void readTransConfig(Temporal *ddt, Save *save
         fscanf(fileIn,"%lf",&ddt->total);
 /*...*/
         readMacro(fileIn,word,false);
-        if(!strcmp(word,"dynamic"))     
+        if(!strcmp(word,"dynamic"))
+        {
           ddt->fDynamic = true;
-        if(ddt->fDynamic){
+          fscanf(fileIn,"%lf",&ddt->dtMin);
+          fscanf(fileIn,"%lf",&ddt->dtMax);
+          fscanf(fileIn,"%lf",&ddt->cfl);
+        }  
+/*...................................................................*/
+
+/*...*/
+        if(ddt->fDynamic)
+        {
           fprintf(fileLogExc,"dynamic : True\n");
+          fprintf(fileLogExc,"dtMin(s)  : %.10lf\n",ddt->dtMin);
+          fprintf(fileLogExc,"dtMax(s)  : %.10lf\n",ddt->dtMax);
+          fprintf(fileLogExc,"cfl       : %.10lf\n",ddt->cfl);
         }
-        else {
+        else
+        {
           fprintf(fileLogExc,"dynamic : False\n");
-        }          
+        }
+/*...................................................................*/
+          
 /*...*/        
         fprintf(fileLogExc,"dt(s)     : %.10lf\n",ddt->dt[0]);
         fprintf(fileLogExc,"Total(s)  : %.10lf\n",ddt->total);
