@@ -257,7 +257,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...*/
   tm.heatRelease  = getTimeC() - tm.heatRelease; 
   rateHeatRealesedReaction(cModel            , &prop->sHeat                
-                    , mesh->elm.rateHeatReComb, mesh->elm.temp     
+                    , mesh->elm.wT            , mesh->elm.temp     
                     , mesh->elm.zComb0        , mesh->elm.zComb
                     , mesh->elm.densityFluid.t, mesh->elm.wk
                     , mesh->elm.material.prop , mesh->elm.mat    

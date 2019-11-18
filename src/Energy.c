@@ -105,7 +105,7 @@ bool energyEquation(Memoria *m               , PropVarFluid *prop
             , mesh->elm.tConductivity
             , mesh->elm.enthalpyk     , mesh->elm.gradY          
             , mesh->elm.cDiffComb     , mesh->elm.yFrac
-            , mesh->elm.rateHeatReComb
+            , mesh->elm.wT            
             , sp->d                   , mesh->elm.wallParameters
             , &sc->ddt                , sp->alphaEnergy
             , sistEqEnergy->neq       , sistEqEnergy->neqNov

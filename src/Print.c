@@ -53,7 +53,7 @@
               ,mesh->numelNov      ,ns              
               ,opt->fTimePlot      ,opt->fStepPlot);
 /*... wT*/
-  if(opt->rateHeatComb)
+  if(opt->wT)
     interPolTime(ti->wTi           ,ti->wT   
               ,ti->wT0             ,ts
               ,t1                  ,t0
@@ -286,7 +286,7 @@ static void globalCombCel(Memoria *m      ,TimeInterpol *ti
 /*...................................................................*/
 
 /*... rateHeatRe    (Cel)*/
-  if(opt->rateHeatComb)
+  if(opt->wT)
     dGlobalCel(m                     , pMesh
              , ti->wTG               , ti->wTi
              , nelNov
@@ -1072,7 +1072,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
-  if(opt->rateHeatComb)
+  if(opt->wT)
     HccaAlloc(DOUBLE, m, nRaHeReComb, mesh->nnode, "nRaHeComb",_AD_);
 /*...................................................................*/
 
@@ -1720,12 +1720,12 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (wt)*/
-  if(opt-> rateHeatComb && opt->fNode)
+  if(opt-> wT && opt->fNode)
   {
     tm.interCellNode = getTimeC() - tm.interCellNode;
     interCellNode(m                     
                 , mesh->elm.cellFace    , mesh->face.owner
-                , nRaHeReComb           , mesh->elm.rateHeatReComb
+                , nRaHeReComb           , mesh->elm.wT
                 , mesh->elm.node        , mesh->elm.geomType            
                 , mesh->elm.geom.cc     , mesh->node.x  
                 , mesh->face.xm           
@@ -1916,7 +1916,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
                , mesh0->elm.wk            , nWk      
                , mesh0->elm.yFrac         , nYfrac
                , mesh0->elm.gradY         , nGradY 
-               , mesh0->elm.rateHeatReComb, nRaHeReComb
+               , mesh0->elm.wT            , nRaHeReComb
                , media->mVel              , nMedVel 
                , mesh0->elm.enthalpyk     , nEnthalpyK
                , mesh0->elm.specificHeat.t, nSheat
@@ -1945,7 +1945,7 @@ void printCombustion(Memoria *m      ,PropVarFluid *propF
   }
 
 /*...*/
-  if(opt->rateHeatComb)
+  if(opt->wT)
     HccaDealloc( m, nRaHeReComb, "nRaHeComb",_AD_);
 /*...................................................................*/
 
@@ -2512,7 +2512,7 @@ void initPrintVtk(FileOpt *opt)
   opt->zComb         = false;
   opt->wk            = false;
   opt->yFrac         = false;
-  opt->rateHeatComb  = false;
+  opt->wT            = false;
   opt->enthalpyk     = false;
   opt->gradY         = false;
   opt->tReactor      = false;
@@ -2791,7 +2791,7 @@ void print3D(Memoria *m          ,PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
-  if(opt->rateHeatComb)
+  if(opt->wT)
     HccaAlloc(DOUBLE, m, nRaHeReComb, mesh->nnode, "nRaHeComb",_AD_);
 /*...................................................................*/
 
@@ -3371,7 +3371,7 @@ void print3D(Memoria *m          ,PropVarFluid *propF
 /*...................................................................*/
 
 /*... interpolacao das variaveis da celulas para pos nos (wt)*/
-  if(opt-> rateHeatComb && opt->fNode)
+  if(opt-> wT && opt->fNode)
   {
     tm.interCellNode = getTimeC() - tm.interCellNode;
     interCellNode(m                     
@@ -3596,7 +3596,7 @@ void print3D(Memoria *m          ,PropVarFluid *propF
   }
 
 /*...*/
-  if(opt->rateHeatComb)
+  if(opt->wT)
     HccaDealloc( m, nRaHeReComb, "nRaHeComb",_AD_);
 /*...................................................................*/
 

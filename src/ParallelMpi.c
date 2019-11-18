@@ -392,6 +392,7 @@ static void comunicateComb(short *m0faceR     ,short *faceR
                 ,DOUBLE *m0y0       ,DOUBLE *y0 
                 ,DOUBLE *m0y        ,DOUBLE *y
                 ,DOUBLE *m0Diff     ,DOUBLE *mDiff
+                ,LevelTime m0mMolar ,LevelTime mmMolar
                 ,INT const lNel     ,INT *elLG
                 ,short const maxViz ,short const ndfComb
                 ,short const nSp  
@@ -522,6 +523,48 @@ static void comunicateComb(short *m0faceR     ,short *faceR
       free(nD);
 /*...................................................................*/
 
+/*... density locais*/
+        size = lNel;
+        nD   = (DOUBLE *) malloc(size*dSize); 
+        ERRO_MALLOC(nD,"nD"   ,__LINE__,__FILE__,__func__);
+/*... t00*/
+        dGetLocalV(m0mMolar.t00  ,nD
+                  ,elLG
+                  ,lNel         ,1); 
+          
+        if(iCod == 1)
+          for(i=0;i<size;i++) 
+            m0mMolar.t00[i] = nD[i];
+        else if(iCod == 2)
+          MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,18   
+                  ,mpiVar.comm);
+/*... t0*/
+        dGetLocalV(m0mMolar.t0  ,nD
+                  ,elLG
+                  ,lNel         ,1); 
+          
+        if(iCod == 1)
+          for(i=0;i<size;i++) 
+            m0mMolar.t0[i] = nD[i];
+        else if(iCod == 2)
+          MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,18   
+                  ,mpiVar.comm);
+
+/*... t*/
+        dGetLocalV(m0mMolar.t  ,nD
+                  ,elLG
+                  ,lNel         ,1); 
+          
+        if(iCod == 1)
+          for(i=0;i<size;i++) 
+            m0mMolar.t[i] = nD[i];
+        else if(iCod == 2)
+          MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,18   
+                  ,mpiVar.comm);
+        
+        free(nD);
+/*...................................................................*/
+
 
    break;
 /*...................................................................*/
@@ -565,6 +608,16 @@ static void comunicateComb(short *m0faceR     ,short *faceR
              ,mpiVar.comm,MPI_STATUS_IGNORE);
 /*...................................................................*/
      
+/*... massa molar*/
+     size = lNel;
+     MPI_Recv(mmMolar.t,size, MPI_DOUBLE,0,19    
+             ,mpiVar.comm,MPI_STATUS_IGNORE);
+     MPI_Recv(mmMolar.t0,size, MPI_DOUBLE,0,19    
+             ,mpiVar.comm,MPI_STATUS_IGNORE);
+     MPI_Recv(mmMolar.t00,size, MPI_DOUBLE,0,19    
+             ,mpiVar.comm,MPI_STATUS_IGNORE);
+/*...................................................................*/
+
    break; 
 /*...................................................................*/
 
@@ -995,7 +1048,6 @@ static void comunicateFluid(short *m0faceRvel     ,short *faceRvel
                ,mpiVar.comm,MPI_STATUS_IGNORE);
 /*...................................................................*/
 
-
 /*... calor especifico locais*/
        size = lNel;
        MPI_Recv(sHeat.t,size, MPI_DOUBLE,0,19    
@@ -1417,6 +1469,7 @@ static void prMaster(Memoria *m    , Mesh *mesh0
                   ,mesh0->elm.yFrac0       ,mesh->elm.yFrac0
                   ,mesh0->elm.yFrac        ,mesh->elm.yFrac 
                   ,mesh0->elm.cDiffComb    ,mesh->elm.cDiffComb
+                  ,mesh0->elm.mMolar       ,mesh->elm.mMolar
                   ,lNel                    ,elLG
                   ,maxViz                  ,ndfComb
                   ,nSp
@@ -1743,6 +1796,7 @@ static void sendPart(Memoria *m    , Mesh *mesh0
                   ,mesh0->elm.yFrac0       ,mesh->elm.yFrac0
                   ,mesh0->elm.yFrac        ,mesh->elm.yFrac 
                   ,mesh0->elm.cDiffComb    ,mesh->elm.cDiffComb 
+                  ,mesh0->elm.mMolar       ,mesh->elm.mMolar       
                   ,lNel                    ,elLG
                   ,maxViz                  ,ndfComb
                   ,nSp
@@ -2184,6 +2238,7 @@ static void recvPart(Memoria *m    , Mesh *mesh0
                   ,mesh0->elm.yFrac0       ,mesh->elm.yFrac0
                   ,mesh0->elm.yFrac        ,mesh->elm.yFrac 
                   ,mesh0->elm.cDiffComb    ,mesh->elm.cDiffComb 
+                  ,mesh0->elm.mMolar       ,mesh->elm.mMolar     
                   ,*lNel                   ,elLG
                   ,maxViz                  ,ndfComb
                   ,nSp 
@@ -4391,9 +4446,8 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
             ,lNel*nSp ,"wkP",_AD_);
     zero(mesh->elm.wk, lNel* nSp, DOUBLEC);
 /*... HeatRe*/
-    HccaAlloc(DOUBLE, m, mesh->elm.rateHeatReComb
-          , lNel, "rateHeatComP", _AD_);
-    zero(mesh->elm.rateHeatReComb, lNel, DOUBLEC);
+    HccaAlloc(DOUBLE, m, mesh->elm.wT, lNel, "wT",_AD_);
+    zero(mesh->elm.wT, lNel, DOUBLEC);
 
 /*... enthalpyK*/
     HccaAlloc(DOUBLE, m, mesh->elm.enthalpyk
@@ -4409,6 +4463,14 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
     HccaAlloc(DOUBLE, m, mesh->elm.tReactor
             , lNel*N_TERMS_REACTOR, "tReactorP", _AD_);
     zero(mesh->elm.tReactor, lNel*N_TERMS_REACTOR, DOUBLEC);
+
+/*... mMolar*/
+    HccaAlloc(DOUBLE, m, mesh->elm.mMolar.t00, lNel, "mMolar00", _AD_);
+    HccaAlloc(DOUBLE, m, mesh->elm.mMolar.t0 , lNel, "mMolar0" , _AD_);
+    HccaAlloc(DOUBLE, m, mesh->elm.mMolar.t  , lNel, "mMolar"  , _AD_);
+    zero(mesh->elm.mMolar.t00, lNel, DOUBLEC);
+    zero(mesh->elm.mMolar.t0 , lNel, DOUBLEC);
+    zero(mesh->elm.mMolar.t  , lNel, DOUBLEC);
 
 /*... rCellComb*/
     HccaAlloc(DOUBLE, m, mesh->elm.rCellComb

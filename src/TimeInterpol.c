@@ -150,16 +150,16 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
 /*...................................................................*/
 
 /*... wT*/
-  if(opt->rateHeatComb)
+  if(opt->wT)
   {
     if(opt->fTimePlot)
     {
       HccaAlloc(DOUBLE,m,ti->wT0,nel,"tIwT0"  ,_AD_);
-      ti->wT  = mesh->elm.rateHeatReComb;
+      ti->wT  = mesh->elm.wT;
     }  
     else if(opt->fStepPlot)
     {
-      ti->wT0 = ti->wT = mesh->elm.rateHeatReComb;
+      ti->wT0 = ti->wT = mesh->elm.wT;
     }
     HccaAlloc(DOUBLE,m,ti->wTi,nel,"tIwTi",_AD_);
     ti->wTG = ti->wTi;
@@ -369,10 +369,10 @@ void updateTimeStruct(Memoria *m        ,TimeInterpol *ti
 /*...................................................................*/
 
 /*... wT*/
-  if(opt->rateHeatComb)
+  if(opt->wT)
   {
     for(i=0;i<nel;i++)
-      ti->wT0[i] = mesh->elm.rateHeatReComb[i];
+      ti->wT0[i] = mesh->elm.wT[i];
   } 
 /*...................................................................*/
 

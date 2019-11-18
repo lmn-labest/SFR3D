@@ -787,7 +787,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*... Enegia total liberada*/
-  cModel->totalHeat += totalHeatRealeseComb(mesh->elm.rateHeatReComb
+  cModel->totalHeat += totalHeatRealeseComb(mesh->elm.wT
                       , mesh->elm.geom.volume
                       , sc->ddt.dt[TIME_N], mesh->numelNov); 
 /*...................................................................*/
@@ -2190,16 +2190,15 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 
     
 /*...*/
-//    dtNew   = min(dtVn,dtCfl);
-      dtNew   = dtCfl;
+      dtNew   = min(dtVn,dtCfl);
       deltaT  = ddt->dt[TIME_N] ;
       deltaT0 = ddt->dt[TIME_N_MINUS_1];
-      if(deltaT > dtNew) 
+      if(deltaT > trunkNumber(dtNew)) 
       {
         ddt->dt[TIME_N] = trunkNumber(dtNew);
         fprintf(fileLogExc,"change dt for: %lf\n",ddt->dt[TIME_N]);
       } 
-      if(deltaT < dtNew)
+      if(deltaT < trunkNumber(dtNew))
       {
         ddt->dt[TIME_N] = min(trunkNumber(dtNew),deltaMax);
         fprintf(fileLogExc,"change dt for: %lf\n",ddt->dt[TIME_N]);

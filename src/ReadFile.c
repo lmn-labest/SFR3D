@@ -509,14 +509,12 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     zero(mesh->elm.cDiffComb, nel*nSpPri, DOUBLEC);
 
 /*... */
-    HccaAlloc(DOUBLE, m, mesh->elm.wk          
-            , nel* nSpPri,"wk", _AD_);
+    HccaAlloc(DOUBLE, m, mesh->elm.wk, nel* nSpPri,"wk", _AD_);
     zero(mesh->elm.wk, nel* nSpPri, DOUBLEC);
 
 /*... */
-    HccaAlloc(DOUBLE, m, mesh->elm.rateHeatReComb
-            , nel, "rateHeatCom", _AD_);
-    zero(mesh->elm.rateHeatReComb, nel, DOUBLEC);
+    HccaAlloc(DOUBLE, m, mesh->elm.wT, nel, "rateHeatCom", _AD_);
+    zero(mesh->elm.wT, nel, DOUBLEC);
 
 /*... yFrac*/
     HccaAlloc(DOUBLE, m, mesh->elm.yFrac
@@ -3480,7 +3478,7 @@ void setPrint(FileOpt *opt,FILE *file){
                ,"gradud1"      ,"ut1"         ,"gradut1"         /*24,25,26*/
                ,"densityd1"    ,"coefdiffd1"  ,"densityt1"       /*27,28,29*/
                ,"coefdifft1"   ,"zcomb"       ,"gradzcomb"       /*30,31,32*/
-               ,"qchemical"    ,"yfrac"       ,"rateheatcomb"    /*33,34,35*/                  
+               ,"qchemical"    ,"yfrac"       ,"wt"              /*33,34,35*/                  
                ,"coefdiffsp"   ,"enthalpyk"   ,"grady"           /*36,37,38*/
                ,"treactor"     ,"binary"      ,"gradrho"         /*39,40,41*/
                ,"mmolar"       ,"step"        ,"time"};              /*42,43,44*/
@@ -3780,9 +3778,9 @@ void setPrint(FileOpt *opt,FILE *file){
 /*...*/
     else if (!strcmp(word, macro[35]))
     {
-      opt->rateHeatComb = true;
+      opt->wT = true;
       fprintf(fileLogExc, format, "print"
-                               , "rateHeatCombustion");
+                               , "wT");
     }
 /*.....................................................................*/
 

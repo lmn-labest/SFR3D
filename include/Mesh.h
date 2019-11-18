@@ -99,7 +99,7 @@
     DOUBLE *rCellComb; 
     DOUBLE *cDiffComb;
     DOUBLE *wk;         /*taxa de consumo das especies kg/(m3 s)*/
-    DOUBLE *rateHeatReComb;
+    DOUBLE *wT;         /*taxa de liberacao de energia*/
     DOUBLE *tReactor;
 /*...*/
     LevelTime densityUd1; /*massa especifica do material uD1*/

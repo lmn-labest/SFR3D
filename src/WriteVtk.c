@@ -2393,9 +2393,9 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
 /*...................................................................*/
 
 /*... escreve a taxa de liberacao de calor pela reacao quimica */  
-  if(opt->rateHeatComb &&  opt->fCell )
+  if(opt->wT &&  opt->fCell )
   {
-    strcpy(str,"eRateHeatComb");
+    strcpy(str,"ewT");
     writeVtkProp(&idum,eHeatRe,numel,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }
@@ -2778,9 +2778,9 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
 /*...................................................................*/
 
 /*... escreve a energia cinetica turbulenta */  
-  if(opt->rateHeatComb &&  opt->fNode )
+  if(opt->wT &&  opt->fNode )
   {
-    strcpy(str,"nRateHeatComb");
+    strcpy(str,"nwT");
     writeVtkProp(&idum,nHeatRe,nnode,1,str,iws
                 ,DOUBLE_VTK,SCALARS_VTK,f);
   }

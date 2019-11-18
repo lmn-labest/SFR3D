@@ -70,7 +70,7 @@
     bool zComb;
     bool wk;         
     bool yFrac;
-    bool rateHeatComb; 
+    bool wT; 
     bool enthalpyk;
     bool gradY;
     bool tReactor;
