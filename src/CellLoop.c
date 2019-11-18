@@ -5420,7 +5420,7 @@ void parameterCellLm(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT prop
 
 /*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 26/08/2017                                   *
+ * Data de modificaco : 18/11/2097                                   *
  *-------------------------------------------------------------------*
  * PARAMETERCELL:                                                    *
  *-------------------------------------------------------------------*
@@ -5434,8 +5434,7 @@ void parameterCellLm(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT prop
  *-------------------------------------------------------------------*
 *********************************************************************/
 void parameterCell(DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT prop
-                 , DOUBLE *RESTRICT density , DOUBLE *RESTRICT volume
-                 , short  *RESTRICT mat       
+                 , DOUBLE *RESTRICT volume  , short  *RESTRICT mat       
                  , DOUBLE *cfl              , DOUBLE *reynolds
                  , bool *fParameter         , DOUBLE const dt
                  , INT const nEl            , short const ndm)
@@ -5504,7 +5503,7 @@ void parameterCell(DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT prop
 
 /*...*/
       lMat = mat[i] - 1;
-      den = density[i];
+      den = MAT2D(lMat, DENSITY, prop, MAXPROP);;
       viscosity = MAT2D(lMat, DYNAMICVISCOSITY, prop, MAXPROP);
 /*..................................................................*/
 

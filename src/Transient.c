@@ -460,6 +460,146 @@ void cellTransientEnergy(DOUBLE *RESTRICT volume ,INT *RESTRICT id
 /*********************************************************************/
 
 /*********************************************************************
+* Data de criacao    : 18/11/2019                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* CELLTRANSIENTSIMPLEINC : discretizacao temporal                   *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* volume    -> volume das celulas                                   *
+* id        -> numera das equacoes                                  *
+* u0        -> solucao (n-1)                                        *
+* u         -> solucao (n)                                          *
+* f         -> vetor de forcas                                      *
+* ddt       -> delta t                                              *
+* nEq       -> numero de equacoes                                   *
+* numel     -> numero de elementos                                  *
+* ndf       -> graus de liberade                                    *
+* fAdd      -> acumula o valor em f                                 *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+* f -> atualizado com a discreticao temporal ( fAdd = true)         *
+*      sobreescreve com a discreticao temporal (fAdd = false)       *
+*-------------------------------------------------------------------*
+* OBS: f | bu(1) bu(2) ... bu(neq) |                                *
+*        | bv(1) bv(2) ... bv(neq) |                                *
+*        | bw(1) bw(2) ... bw(neq) |                                *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void cellTransientSimpleInc(DOUBLE *RESTRICT volume ,INT *RESTRICT id
+                        ,DOUBLE *RESTRICT prop      ,short  *RESTRICT mat  
+                        ,DOUBLE *RESTRICT u0        ,DOUBLE *RESTRICT u
+                        ,DOUBLE *RESTRICT f
+                        ,Temporal const ddt         ,INT const nEq
+                        ,INT const numel            ,short const ndf
+                        ,bool const fAdd)
+{
+  INT nel,lNeq;
+  DOUBLE t0,t00,tmp1,den;
+  DOUBLE dt=ddt.dt[0],dt0 = ddt.dt[1];
+  short type = ddt.type;
+  short j,lMat;
+
+  /*...*/
+  switch (type) {
+/*... EULER de primeira ordem*/
+    case EULER:
+/*... acumula em f*/
+      if (fAdd) {
+        for (j = 0; j< ndf; j++) {
+          for (nel = 0; nel < numel; nel++) {
+            lMat = mat[nel] - 1;
+            den = MAT2D(lMat, DENSITY, prop, MAXPROP);
+            lNeq = id[nel] - 1;
+            if (lNeq > -1) {
+              t0 = den*MAT2D(nel,j,u,ndf);
+              MAT2D(j, lNeq, f, nEq) += volume[nel]*t0/dt;
+            }
+          }
+        } 
+/*...................................................................*/
+      }
+/*...................................................................*/
+
+/*... sobrecreve f*/
+      else {
+        for (j = 0; j< ndf; j++) {
+          for (nel = 0; nel < numel; nel++) {
+            lMat = mat[nel] - 1;
+            den = MAT2D(lMat, DENSITY, prop, MAXPROP);
+            lNeq = id[nel] - 1;
+            if (lNeq > -1) {
+              t0 = den*MAT2D(nel,j,u,ndf);
+              MAT2D(j, lNeq, f, nEq) = volume[nel]*t0/dt;
+            }
+          }
+        }
+/*...................................................................*/
+      }
+/*...................................................................*/
+    break;
+/*...................................................................*/
+
+/*... BACKWARD de segunda ordem*/
+    case BACKWARD:
+/*... acumula em f*/
+      if (fAdd) {
+        for (j = 0; j< ndf; j++) {
+          for (nel = 0; nel < numel; nel++) {
+            lNeq = id[nel] - 1;
+            lMat = mat[nel] - 1;
+            den = MAT2D(lMat, DENSITY, prop, MAXPROP);
+            if (lNeq > -1) {
+              tmp1 = dt + dt0;
+/*...*/
+              t0 = den*MAT2D(nel,j,u,ndf);
+              t0 *= (tmp1/(dt*dt0));
+/*...................................................................*/
+
+/*...*/
+              t00 = den*MAT2D(nel,j,u0,ndf);
+              t00*= (dt/(dt0*tmp1));
+/*...................................................................*/
+              MAT2D(j,lNeq,f,nEq) += volume[nel]*(t0-t00);
+            }
+          }
+        }
+      }
+/*...................................................................*/
+
+/*... sobrecreve f*/
+      else {
+        for (j = 0; j< ndf; j++) {
+          for (nel = 0; nel < numel; nel++) {
+            lNeq = id[nel] - 1;
+            lMat = mat[nel] - 1;
+            den = MAT2D(lMat, DENSITY, prop, MAXPROP);
+            if (lNeq > -1) {
+              tmp1 = dt + dt0;
+/*..*/
+              t0 = den*MAT2D(nel, j, u, ndf);
+              t0 *= (tmp1 / (dt*dt0));
+/*...................................................................*/
+
+/*..*/
+              t00= den*MAT2D(nel, j, u0, ndf);
+              t00*= (dt / (dt0*tmp1));
+/*...................................................................*/
+              MAT2D(j, lNeq, f, nEq) = volume[nel] * (t0 - t00);
+            }
+          }
+        }
+      }
+/*...................................................................*/
+    break;
+  }
+}
+/*********************************************************************/
+
+
+/*********************************************************************
 * Data de criacao    : 00/00/2016                                   *
 * Data de modificaco : 27/08/2016                                   *
 *-------------------------------------------------------------------*

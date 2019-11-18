@@ -897,12 +897,11 @@ void cellKinectTurb3D(Loads *ldsK         , Loads *ldsVel
 /*...................................................................*/
 
 /*... parametro fisicos do escoamento*/
-  void parameterCell(DOUBLE *RESTRICT vel, DOUBLE *RESTRICT prop
-                    , DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume
-                    , short  *RESTRICT mat
-                    , DOUBLE *cfl, DOUBLE *reynolds
-                    , bool *fParameter, DOUBLE const dt
-                    , INT const nEl, short const ndm);
+  void parameterCell(DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT prop
+                 , DOUBLE *RESTRICT volume  , short  *RESTRICT mat       
+                 , DOUBLE *cfl              , DOUBLE *reynolds
+                 , bool *fParameter         , DOUBLE const dt
+                 , INT const nEl            , short const ndm);
 /*...................................................................*/
 
 /*... parametro fisicos do escoamento*/  

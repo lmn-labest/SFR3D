@@ -52,6 +52,7 @@ void simpleSolver(Memoria *m
   bool fPrint  = false;
   DOUBLE cfl,reynolds;
   bool fParameter[2];
+  bool fDeltaTimeDynamic = sc->ddt.fDynamic;
 
 /*...*/
   time = getTimeC();
@@ -102,12 +103,13 @@ void simpleSolver(Memoria *m
   if(sc->ddt.flag){
     tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;
 /*...*/
-    cellTransientSimple(mesh->elm.geom.volume   ,sistEqVel->id     
-                       ,mesh->elm.vel0          ,mesh->elm.vel 
-                       ,mesh->elm.densityFluid  ,sistEqVel->b0
-                       ,sc->ddt                  ,sistEqVel->neqNov
-                       ,mesh->numelNov          ,ndfVel        
-                       ,true);
+    cellTransientSimpleInc(mesh->elm.geom.volume   ,sistEqVel->id    
+                          ,mesh->elm.material.prop ,mesh->elm.mat   
+                          ,mesh->elm.vel0          ,mesh->elm.vel 
+                          ,sistEqVel->b0
+                          ,sc->ddt                  ,sistEqVel->neqNov
+                          ,mesh->numelNov          ,ndfVel        
+                          ,true);
 /*... vel(n-1) = vel(n)*/
     alphaProdVector(1.e0,mesh->elm.vel
                    ,mesh->numel*ndfVel ,mesh->elm.vel0); 
@@ -218,12 +220,21 @@ void simpleSolver(Memoria *m
   fParameter[0] = true;
   fParameter[1] = true;
   parameterCell(mesh->elm.vel           ,mesh->elm.material.prop
-               ,mesh->elm.densityFluid.t,mesh->elm.geom.volume 
-               ,mesh->elm.mat  
+               ,mesh->elm.geom.volume   ,mesh->elm.mat  
                ,&cfl                    ,&reynolds
                ,fParameter              ,sc->ddt.dt[0]
                ,mesh->numelNov          ,mesh->ndm);
 /*...................................................................*/
+
+/*...*/
+  if(fDeltaTimeDynamic)
+    dynamicDeltat(mesh->elm.vel            , mesh->elm.geom.volume 
+                 , mesh->elm.densityFluid.t, mesh->elm.specificHeat.t
+                 , mesh->elm.tConductivity , mesh->elm.dViscosity
+                 ,&sc->ddt                 , mesh->numelNov
+                 , mesh->ndm               , CFL);  
+/*...................................................................*/
+
 
 /*...*/
   printf("It simple: %d \n",itSimple+1);
@@ -729,7 +740,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                  , mesh->elm.densityFluid.t, mesh->elm.specificHeat.t
                  , mesh->elm.tConductivity , mesh->elm.dViscosity
                  ,&sc->ddt                 , mesh->numelNov
-                 , mesh->ndm               , CFL);  
+                 , mesh->ndm               , CFLVN);  
 /*...................................................................*/
 
 /*... guardando as propriedades para o proximo passo*/
@@ -2115,7 +2126,7 @@ void residualCombustionOld(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
  * nEl      -> numero de elementos                                   * 
  * dt       -> dt                                                    * 
  * ndm      -> numero de dimensoes                                   * 
- * iCod     -> tipo de residuo                                       * 
+ * iCod     -> tipo                                                  * 
  *-------------------------------------------------------------------* 
  * Parametros de saida:                                              * 
  *-------------------------------------------------------------------* 
@@ -2137,18 +2148,22 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 {
   short j;
   INT i;
-  DOUBLE dtCfl,dtVn,modVel,lc,deltaT,deltaT0,diff,den,dtNew;
+  DOUBLE dtCfl,dtVn,modVel,lc,deltaT,deltaT0,diff,den,dtNew,cfl;
   DOUBLE deltaMax=ddt->dtMax
         ,deltaMin=ddt->dtMin
         ,nCfl    =ddt->cfl;
 #ifdef _MPI_
   DOUBLE gg;
 #endif  
+
+  deltaT  = ddt->dt[TIME_N] ;
+  deltaT0 = ddt->dt[TIME_N_MINUS_1];
+
 /*...*/
   switch(iCod)
   {
 /*... CFL*/
-    case CFL:
+    case CFLVN:
       dtVn = dtCfl = 86400.e0; /*24*3600*/
       for(i=0;i<nEl;i++)
       {
@@ -2187,24 +2202,49 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
       }
 #endif
 /*...................................................................*/
-
     
 /*...*/
-      dtNew   = min(dtVn,dtCfl);
-      deltaT  = ddt->dt[TIME_N] ;
-      deltaT0 = ddt->dt[TIME_N_MINUS_1];
-      if(deltaT > trunkNumber(dtNew)) 
+      dtNew   = min(dtVn,dtCfl);  
+/*...................................................................*/
+      break;
+/*...................................................................*/
+
+/*... CFLI*/
+    case  CFL:
+      cfl   = 0.e0;
+      dtCfl = 86400.e0; /*24*3600*/
+      for(i=0;i<nEl;i++)
       {
-        ddt->dt[TIME_N] = trunkNumber(dtNew);
-        fprintf(fileLogExc,"change dt for: %lf\n",ddt->dt[TIME_N]);
-      } 
-      if(deltaT < trunkNumber(dtNew))
-      {
-        ddt->dt[TIME_N] = min(trunkNumber(dtNew),deltaMax);
-        fprintf(fileLogExc,"change dt for: %lf\n",ddt->dt[TIME_N]);
-      }       
-      ddt->dt[TIME_N_MINUS_1] = deltaT;  
-      ddt->dt[TIME_N_MINUS_2] = deltaT0;
+ /*... modulo das velocidades*/
+        for(j=0,modVel=1.e-32;j<ndm;j++)
+          modVel += MAT2D(i, j, vel, ndm)*MAT2D(i, j, vel, ndm);   
+        modVel = sqrt(modVel);
+/*...................................................................*/
+
+/*... tamanho caracteristico*/
+        lc = sizeCar(volume[i],ndm);
+/*...................................................................*/
+
+/*...*/
+        cfl   = max(cfl,modVel*deltaT/lc);
+        dtCfl = min(dtCfl,nCfl*lc/modVel);
+/*...................................................................*/
+      }
+/*...................................................................*/
+  
+/*....*/
+#ifdef _MPI_
+      if(mpiVar.nPrcs>1)
+      { 
+        tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+        MPI_Allreduce(&dtCfl,&gg ,1,MPI_DOUBLE,MPI_MIN,mpiVar.comm);
+        dtCfl = gg;
+      }
+#endif
+/*...................................................................*/
+    
+/*...*/
+      dtNew   = dtCfl;
 /*...................................................................*/
       break;
 /*...................................................................*/
@@ -2215,6 +2255,21 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
     break;
 /*...................................................................*/
   }
+
+/*...*/
+  if(deltaT > trunkNumber(dtNew)) 
+  {
+    ddt->dt[TIME_N] = trunkNumber(dtNew);
+    fprintf(fileLogExc,"change dt for: %lf\n",ddt->dt[TIME_N]);
+  } 
+  if(deltaT < trunkNumber(dtNew))
+  {
+    ddt->dt[TIME_N] = min(trunkNumber(dtNew),deltaMax);
+    fprintf(fileLogExc,"change dt for: %lf\n",ddt->dt[TIME_N]);
+  }       
+  ddt->dt[TIME_N_MINUS_1] = deltaT;  
+  ddt->dt[TIME_N_MINUS_2] = deltaT0;
+/*...................................................................*/
 
 }
 /*********************************************************************/
@@ -2292,11 +2347,15 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
   short nonOrth;
   DOUBLE *b1, *b2, *b3, *bPc, *xu1, *xu2, *xu3, *xp;
   DOUBLE *adU1, *adU2, *adU3;
+  DOUBLE densityRef = 0.e0;
 /*...*/
   DOUBLE tb[3], tmp;
   tmp = tb[0] = tb[1] = tb[2] = 0.e0;
 
   ndfVel = max(mesh->ndfF - 1,mesh->ndfFt - 2);
+
+  if(propF != NULL)
+    densityRef = propF->densityRef;  
 
 /*...*/
   b1 = b2 = b3 = bPc = NULL;
@@ -2319,8 +2378,10 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
 /*...................................................................*/
 
 /*... reconstruindo do gradiente da massa especifica*/
-  tm.rcGradRho = getTimeC() - tm.rcGradRho;
-  rcGradU(m                          , loadsRhoFluid
+  if(propF != NULL)
+  {
+    tm.rcGradRho = getTimeC() - tm.rcGradRho;
+    rcGradU(m                          , loadsRhoFluid
            , mesh->elm.node          , mesh->elm.adj.nelcon
            , mesh->node.x            
            , mesh->elm.nen           , mesh->elm.adj.nViz
@@ -2339,7 +2400,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
            , mesh->elm.densityFluid.t, mesh->elm.gradRhoFluid
            , mesh->node.rhoFluid   
            , NULL                    , NULL
-           , propF->densityRef
+           , densityRef
            , &sc->rcGrad
            , mesh->maxNo             , mesh->maxViz
            , 1                       , mesh->ndm
@@ -2347,7 +2408,8 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
            , mesh->numelNov          , mesh->numel
            , mesh->nnodeNov          , mesh->nnode
            , false);  
-  tm.rcGradRho = getTimeC() - tm.rcGradRho;
+    tm.rcGradRho = getTimeC() - tm.rcGradRho;
+  }
 /*...................................................................*/
 
 /*...*/
@@ -2410,7 +2472,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
            , mesh->elm.pressure      , mesh->elm.gradPres
            , mesh->node.pressure    
            , mesh->elm.densityFluid.t, mesh->elm.gradRhoFluid 
-           , propF->densityRef
+           , densityRef
            , &sc->rcGrad
            , mesh->maxNo             , mesh->maxViz
            , 1                       , mesh->ndm
@@ -2740,7 +2802,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
             , sp->ePresC1             , sp->eGradPresC
             , sp->nPresC             
             , mesh->elm.densityFluid.t, mesh->elm.gradRhoFluid 
-            , propF->densityRef
+            , densityRef
             , &sc->rcGrad
             , mesh->maxNo             , mesh->maxViz
             , 1                       , mesh->ndm
@@ -2827,7 +2889,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
         , sp->ePresC              , sp->eGradPresC
         , sp->nPresC             
         , mesh->elm.densityFluid.t , mesh->elm.gradRhoFluid 
-        , propF->densityRef
+        , densityRef
         , &sc->rcGrad
         , mesh->maxNo             , mesh->maxViz
         , 1                       , mesh->ndm
@@ -2871,7 +2933,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
         , mesh->elm.vel          , mesh->elm.gradVel
         , mesh->node.vel         
         , NULL                   , NULL
-        , 0
+        , densityRef
         , &sc->rcGrad
         , mesh->maxNo            , mesh->maxViz
         , ndfVel                 , mesh->ndm
@@ -2903,7 +2965,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
         , mesh->elm.pressure      , mesh->elm.gradPres
         , mesh->node.pressure    
         , mesh->elm.densityFluid.t, mesh->elm.gradRhoFluid 
-        , propF->densityRef
+        , densityRef
         , &sc->rcGrad
         , mesh->maxNo             , mesh->maxViz
         , 1                       , mesh->ndm

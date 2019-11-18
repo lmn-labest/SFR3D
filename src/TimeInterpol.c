@@ -292,6 +292,17 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
   } 
 /*...................................................................*/
 
+/*... gradTemp*/
+  if(opt->gradPres)
+  {
+    ti->gradPresi = mesh->elm.gradPres;
+    ti->gradPresG = ti->gradPresi;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)
+      HccaAlloc(DOUBLE,m,ti->gradPresG,nelG*ndm,"iGradPresG"  ,_AD_);
+  } 
+/*...................................................................*/
+
+
 /*... gradVel*/
   if(opt->gradVel)
   {

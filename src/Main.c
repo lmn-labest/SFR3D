@@ -279,17 +279,7 @@ int main(int argc,char**argv){
 /* ..................................................................*/
 
 /* ... opcoes de arquivos */
-  initPrintVtk(&opt);
-  opt.fNode         = true;
-  opt.vel           = true;
-  opt.pres          = true;
-  opt.presTotal     = true;
-  opt.uD1           = true;
-  opt.uT1           = true;
-  opt.energy        = true;
-  opt.graduD1       = true;
-  opt.graduT1       = true;
-  opt.bconditions   = true;
+  initPrintVtk(&opt);  
 /* ..................................................................*/
 
 /*... propriedades variaveis*/
@@ -327,7 +317,8 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... estrutura de dados para malha*/
-  mesh0 = (Mesh*) malloc(sizeof(Mesh));
+//mesh0 = (Mesh*) malloc(sizeof(Mesh));
+  mesh0 = (Mesh*) calloc(1,sizeof(Mesh));
   ERRO_MALLOC(mesh0,"mesh0",__LINE__,__FILE__,__func__);
   mesh0->mass[2] =  mesh0->mass[1] = mesh0->mass[0] = 0.e0;
   mesh0->scaleX[0] = mesh0->scaleX[1] = mesh0->scaleX[2] = 1.0; 
@@ -565,7 +556,8 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-        mesh = (Mesh*) malloc(sizeof(Mesh));
+//      mesh = (Mesh*) malloc(sizeof(Mesh));
+        mesh = (Mesh*) calloc(1,sizeof(Mesh));
         ERRO_MALLOC(mesh,"mesh",__LINE__,__FILE__,__func__);
 /*...*/
         tm.partdMeshCom = getTimeC() - tm.partdMeshCom;
@@ -1572,7 +1564,7 @@ int main(int argc,char**argv){
 
 /*===================================================================*
  * macro: pFluid : escreve os arquivos dos resultados do escoamente
- * imcompressivel                    
+   no regime permanente               
  *===================================================================*/
     else if( (!strcmp(word,macro[33])) && 
              (opt.stepPlot[1]++) == opt.stepPlot[0])
@@ -1583,14 +1575,17 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/                     
-      printFluid(&m        , &propVarFluid 
-               , &turbModel, &eModel
-               , pMesh     , &sc
-               , loadsVel  , loadsPres 
-               , loadsTemp , &opt
-               , mesh0     , mesh 
-               , &media      
-               , preName   , nameOut);
+      printCall(&m        , &propVarFluid
+              , &turbModel, &eModel 
+              , &combModel, &tInterpol
+              , pMesh     , &sc
+              , loadsVel  , loadsPres 
+              , loadsTemp , loadsZcomb
+              , &opt       
+              , mesh0     , mesh 
+              , &media    , PLAST_TIME  
+              , preName   , nameOut); 
+
 /*...................................................................*/
       endSec(OUTPUT_FOR_SCREEN);
     }   

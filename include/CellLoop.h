@@ -510,34 +510,6 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
                           ,bool const fAdd   ,bool const fCom);
 /*...................................................................*/
 
-/*... funcoes antigas*/
-  void systFormDifOld(Loads *loads              , Diffusion *diff
-                    , INT    *RESTRICT el       , INT    *RESTRICT nelcon
-                    , short  *RESTRICT nen      , short  *RESTRICT nFace
-                    , DOUBLE *RESTRICT gVolume  , DOUBLE *RESTRICT gDcca
-                    , DOUBLE *RESTRICT gXmCc
-                    , DOUBLE *RESTRICT gModksi  , DOUBLE *RESTRICT gKsi
-                    , DOUBLE *RESTRICT gEta     , DOUBLE *RESTRICT gfArea
-                    , DOUBLE *RESTRICT gNormal  , DOUBLE *RESTRICT gXm
-                    , DOUBLE *RESTRICT gModvSkew, DOUBLE *RESTRICT gvSkew
-                    , short  *RESTRICT geomType , DOUBLE *RESTRICT prop
-                    , short  *RESTRICT calType  , short  *RESTRICT mat
-                    , DOUBLE *RESTRICT density
-                    , INT    *RESTRICT ia       , INT    *RESTRICT ja
-                    , DOUBLE *RESTRICT a        , DOUBLE *RESTRICT ad
-                    , DOUBLE *RESTRICT b        , INT    *RESTRICT id
-                    , short  *RESTRICT faceR    , short  *RESTRICT faceL
-                    , DOUBLE *RESTRICT u0       , DOUBLE *RESTRICT gradU0
-                    , DOUBLE *RESTRICT rCell    , Temporal *ddt
-                    , INT nEq                   , INT nEqNov
-                    , INT nAd                   , INT nAdR
-                    , short maxNo               , short maxViz
-                    , short ndm                 , INT numel
-                    , short ndf                 , short storage
-                    , bool forces               , bool matrix
-                    , bool calRcell             , bool unsym);
-/*...................................................................*/
-
 /*...*/
   void getColFromMatrix(DOUBLE *v   ,DOUBLE *m     
                     ,INT const nl,short const col

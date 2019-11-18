@@ -158,7 +158,7 @@ static void globalCombCel(Memoria *m      ,TimeInterpol *ti
 /*...................................................................*/
 
 /*... GradVel (Cel)*/
-  if(opt->gradPres)
+  if(opt->gradVel)
     dGlobalCel(m                  , pMesh
              , ti->gradVelG       , ti->gradVeli
              , nelNov
@@ -2474,6 +2474,7 @@ void reScaleMesh(Mesh *mesh, FILE *fileIn)
  *********************************************************************/
 void initPrintVtk(FileOpt *opt)
 {
+  opt->fPolt         = false;
   opt->bVtk          = false;    
   opt->fCell         = false;
   opt->fNode         = false;
@@ -2741,9 +2742,12 @@ void print3D(Memoria *m          ,PropVarFluid *propF
   DOUBLE *nCdyn=NULL,*nWall=NULL,*nKturb=NULL,*nWk=NULL;
   DOUBLE *nYfrac=NULL,*nRaHeReComb=NULL,*nEnthalpyK=NULL,*nGradY=NULL;
   DOUBLE *nDiffY=NULL,*nMolar=NULL;
+  DOUBLE densityRef;
   FILE *fileOut=NULL;
 
 /*...*/
+  if(propF != NULL)
+    densityRef = propF->densityRef;
   ndm     = mesh->ndm;
   ndfZ    = cModel->nComb;
   nSp     = cModel->nOfSpecies; 
@@ -2853,7 +2857,7 @@ void print3D(Memoria *m          ,PropVarFluid *propF
          , ti->pi                  , mesh->elm.gradPres                
          , mesh->node.pressure     
          , mesh->elm.densityFluid.t, mesh->elm.gradRhoFluid
-         , propF->densityRef
+         , densityRef
          , &sc->rcGrad
          , mesh->maxNo             , mesh->maxViz
          , 1                       , mesh->ndm       
@@ -2910,7 +2914,7 @@ void print3D(Memoria *m          ,PropVarFluid *propF
                , mesh->elm.geom.cc       , mesh->node.x  
                , mesh->face.xm           , mesh->elm.geom.xmcc 
                , mesh->elm.densityFluid.t, mesh->elm.gradRhoFluid
-               , propF->densityRef 
+               , densityRef 
                , mesh->elm.nen           , mesh->elm.adj.nViz
                , mesh->elm.faceRpres             
                , mesh->numelNov          , mesh->numel      
@@ -3708,8 +3712,16 @@ void printCall(Memoria *m           ,PropVarFluid *propF
         fPrint                 = true;
         opt->nextStepPlot[1]   = opt->nextStepPlot[0];
         ts                     = 0.0;  
-        t1                     = 1;
-        t0                     = 0;
+        t1                     = 1.0;
+        t0                     = 0.0;
+      }
+      else if(iCod == PLAST_TIME)
+      {
+        fPrint                 = true;
+        opt->nextStepPlot[1]   = opt->nextStepPlot[0];
+        ts                     = 0.0;  
+        t1                     = 1.0;
+        t0                     = 0.0;
       }
       else if(opt->nextStepPlot[1] == sc->ddt.timeStep)
       {

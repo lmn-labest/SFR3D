@@ -431,8 +431,7 @@ void primeSolver(Memoria *m
   fParameter[0] = true;
   fParameter[1] = true;
   parameterCell(mesh->elm.vel           ,mesh->elm.material.prop
-               ,mesh->elm.densityFluid.t,mesh->elm.geom.volume
-               ,mesh->elm.mat
+               ,mesh->elm.geom.volume   ,mesh->elm.mat
                ,&cfl                    ,&reynolds
                ,fParameter              ,sc.ddt.dt[0]
                ,mesh->numelNov          ,mesh->ndm);

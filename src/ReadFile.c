@@ -132,7 +132,9 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
     mesh->ntn = 6;
   else
     mesh->ntn = 4;
+
 /*...................................................................*/
+
 
 /*... alocando variavies de elementos*/
 /*... conectividade*/ 
