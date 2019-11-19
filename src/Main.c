@@ -192,6 +192,7 @@ int main(int argc,char**argv){
 
 /*...*/
   combModel.fCombustion     = false;
+  combModel.nComb           = 0;
   combModel.fRes            = true;
   combModel.fCorrectVel     = false;
   combModel.typeHeatRealese = HFORMATION; 
@@ -527,9 +528,8 @@ int main(int argc,char**argv){
         {
 /*...*/
           fprintf(fileLogExc, "%s\n", "PartMesh");
-          partMesh(&m         
-                  ,mesh0->node.x  ,mesh0->elm.node
-                  ,mesh0->elm.nen
+          fPartMesh(&m            ,mesh0->node.x  
+                  ,mesh0->elm.node,mesh0->elm.nen
                   ,mesh0->nnode   ,mesh0->numel
                   ,pMesh   
                   ,mesh0->ndm     ,mesh0->maxNo 
@@ -1350,11 +1350,14 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-      readSolvFluid(&m          , mesh          , &reordMesh
+      readSolvComb(&m          , mesh           , &reordMesh
+                   , &combModel 
                    , &solvVel   , &sistEqVel    , &fSolvVel
                    , &solvPres  , &sistEqPres   , &fSolvPres
                    , &solvEnergy, &sistEqEnergy , &fSolvEnergy
                    , &solvKturb , &sistEqKturb  , &fSolvKturb
+                   , &solvComb  , &sistEqComb   , &fSolvComb 
+                   , pMesh
                    , auxName    , preName       , nameOut
                    , fileIn                     , &opt);
 /*...................................................................*/

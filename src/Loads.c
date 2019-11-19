@@ -1580,6 +1580,7 @@ void gradPbBuoyant(DOUBLE *RESTRICT gradPb, DOUBLE *RESTRICT gradRho
 
   DOUBLE tmp;
 
+  
   if(iCod == BUOYANT_RHOREF)
   {
     tmp       = densityC - densityRef;
@@ -1593,6 +1594,10 @@ void gradPbBuoyant(DOUBLE *RESTRICT gradPb, DOUBLE *RESTRICT gradRho
     gradPb[1] =-gh*gradRho[1];
     gradPb[2] =-gh*gradRho[2];
   }
+  else
+    gradPb[0] = gradPb[1] = gradPb[2] = 0.e0;
 /*...................................................................*/
+
+
 
 }

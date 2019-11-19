@@ -4272,8 +4272,8 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
   INT nel,no1;
   DOUBLE dist, dx;
   
-  switch(type)
-  {
+ switch(type)
+ {
 /*... media simple*/
     case 1:
       if(ndf2 != 1)
@@ -4284,7 +4284,7 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
 /*...*/
       HccaAlloc(int,m,md,nNodeNov,"md",false);
       zero(md,nNodeNov,"int");
-      zero(noU,ndf1*nNodeNov,DOUBLEC);
+      zero(noU,ndf2*ndf1*nNodeNov,DOUBLEC);
 /*...................................................................*/
 
 /*...*/
@@ -4347,7 +4347,7 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
 /*...*/
       HccaAlloc(DOUBLE,m,mdf,nNodeNov,"mdf",false);
       zero(mdf,nNodeNov,"double");
-      zero(noU,ndf1*nNodeNov,DOUBLEC);
+      zero(noU,ndf2*ndf1*nNodeNov,DOUBLEC);
 /*...................................................................*/
 
 /*...*/
@@ -4385,7 +4385,7 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
             {
               no1 = MAT2D(nel,j,el,maxNo) - 1;
               dist = 0.e0;
-              for(k = 0; k   < ndm;k++)
+              for(k = 0; k  < ndm;k++)
               {
                 dx = MAT2D(no1,k,x,ndm) - MAT2D(nel,k,cc,ndm);
                 dist += dx*dx;
@@ -4415,9 +4415,12 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
               }
               dist = 1.e0/sqrt(dist);
               for(k = 0; k < ndf1;k++)
+              {
                 for(l = 0; l < ndf2;l++)
-                  MAT3D(no1,k,l,noU,ndf1,ndf2) 
-                 += MAT3D(nel,k,l,elU,ndf1,ndf2)*dist;
+                {
+                  MAT3D(no1,k,l,noU,ndf1,ndf2) += MAT3D(nel,k,l,elU,ndf1,ndf2)*dist;
+                } 
+              }
               mdf[no1]+=dist;
             }
           }
@@ -4468,7 +4471,7 @@ void updateCellValueBlock(DOUBLE *RESTRICT u    ,DOUBLE *RESTRICT x
     default:
       ERRO_OP(__FILE__,__func__,type);
     break;
-  }
+ }
 /*...................................................................*/
 }
 /*********************************************************************/
@@ -5440,11 +5443,13 @@ void parameterCell(DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT prop
                  , INT const nEl            , short const ndm)
 
 {
-
+  short lMat;
+  INT i;
   DOUBLE modVel, lc, den, viscosity, tmp, v[3];
   DOUBLE cflMax = 0.0e0, reynoldsMax = 0.e0;
-  INT i;
-  short lMat;
+#ifdef _MPI_
+  DOUBLE gg;
+#endif
 
 /*...*/
   for (i = 0; i<nEl; i++)
@@ -5519,7 +5524,28 @@ void parameterCell(DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT prop
   }
 /*..................................................................*/
 
-  *cfl = cflMax;
+
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    if(fParameter[0])
+    {      
+      MPI_Allreduce(&cflMax,&gg ,1,MPI_DOUBLE,MPI_MAX,mpiVar.comm);
+      cflMax = gg;
+    } 
+    if(fParameter[1])
+    {
+      MPI_Allreduce(&reynoldsMax,&gg ,1,MPI_DOUBLE,MPI_MAX,mpiVar.comm);
+      reynoldsMax = gg;
+    }   
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+  }
+#endif
+/*...................................................................*/
+
+  *cfl      = cflMax;
   *reynolds = reynoldsMax;
 }
 /*********************************************************************/

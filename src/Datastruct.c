@@ -103,11 +103,9 @@ void dataStruct(Memoria *m      ,INT *id
                         ,sistEqX->neqNov
                         ,BANDCSRMIN);
 
-       if(!mpiVar.myId  ) {
-         fprintf(fileLogExc,"band Maxima: %d\n",sistEqX->bandCsr[BANDCSRMAX]);
-         fprintf(fileLogExc,"band Media : %d\n",sistEqX->bandCsr[BANDCSRMED]);
-         fprintf(fileLogExc,"band Minima: %d\n",sistEqX->bandCsr[BANDCSRMIN]);
-       }
+       fprintf(fileLogExc,"band Maxima: %d\n",sistEqX->bandCsr[BANDCSRMAX]);
+       fprintf(fileLogExc,"band Media : %d\n",sistEqX->bandCsr[BANDCSRMED]);
+       fprintf(fileLogExc,"band Minima: %d\n",sistEqX->bandCsr[BANDCSRMIN]);
 /*...................................................................*/
      break;
 /*...................................................................*/
@@ -326,12 +324,9 @@ void dataStruct(Memoria *m      ,INT *id
                         ,sistEqX->neqNov
                         ,BANDCSRMIN);
 
-       if(!mpiVar.myId  ) 
-       {
-         fprintf(fileLogExc,"band Maxima: %d\n",sistEqX->bandCsr[BANDCSRMAX]);
-         fprintf(fileLogExc,"band Media : %d\n",sistEqX->bandCsr[BANDCSRMED]);
-         fprintf(fileLogExc,"band Minima: %d\n",sistEqX->bandCsr[BANDCSRMIN]);
-       }
+       fprintf(fileLogExc,"band Maxima: %d\n",sistEqX->bandCsr[BANDCSRMAX]);
+       fprintf(fileLogExc,"band Media : %d\n",sistEqX->bandCsr[BANDCSRMED]);
+       fprintf(fileLogExc,"band Minima: %d\n",sistEqX->bandCsr[BANDCSRMIN]);
 /*...................................................................*/
      break;
 /*...................................................................*/
@@ -568,12 +563,9 @@ void dataStruct(Memoria *m      ,INT *id
                         ,sistEqX->neqNov
                         ,BANDCSRMIN);
 
-       if(!mpiVar.myId  ) 
-       {
-         fprintf(fileLogExc,"band Maxima: %d\n",sistEqX->bandCsr[BANDCSRMAX]);
-         fprintf(fileLogExc,"band Media : %d\n",sistEqX->bandCsr[BANDCSRMED]);
-         fprintf(fileLogExc,"band Minima: %d\n",sistEqX->bandCsr[BANDCSRMIN]);
-       }  
+       fprintf(fileLogExc,"band Maxima: %d\n",sistEqX->bandCsr[BANDCSRMAX]);
+       fprintf(fileLogExc,"band Media : %d\n",sistEqX->bandCsr[BANDCSRMED]);
+       fprintf(fileLogExc,"band Minima: %d\n",sistEqX->bandCsr[BANDCSRMIN]);
 /*...................................................................*/
      break;
 /*...................................................................*/
@@ -603,15 +595,12 @@ void dataStruct(Memoria *m      ,INT *id
 /*...................................................................*/
 
 /*... banda da matriz*/
-       if(!mpiVar.myId) 
-       {
-         fprintf(fileLogExc,"band Maxima: %ld\n"
-         ,(long) bandEllPack(sistEqX->ia,sistEqX->ja,n1,1));
-         fprintf(fileLogExc,"band Minima: %ld\n"
-         ,(long) bandEllPack(sistEqX->ia,sistEqX->ja,n1,3));
-         fprintf(fileLogExc,"band Media : %ld\n"
-         ,(long) bandEllPack(sistEqX->ia,sistEqX->ja,n1,2));
-       }
+       fprintf(fileLogExc,"band Maxima: %ld\n"
+       ,(long) bandEllPack(sistEqX->ia,sistEqX->ja,n1,1));
+       fprintf(fileLogExc,"band Minima: %ld\n"
+       ,(long) bandEllPack(sistEqX->ia,sistEqX->ja,n1,3));
+       fprintf(fileLogExc,"band Media : %ld\n"
+       ,(long) bandEllPack(sistEqX->ia,sistEqX->ja,n1,2));
 /*...................................................................*/
      break;
 /*...................................................................*/
@@ -880,11 +869,10 @@ void dataStructSimple(Memoria *m      ,INT *id
         , sistEqX->neqNov
         , BANDCSRMIN);
 
-    if (!mpiVar.myId) {
-      fprintf(fileLogExc,"band Maxima: %d\n", sistEqX->bandCsr[BANDCSRMAX]);
-      fprintf(fileLogExc,"band Media : %d\n", sistEqX->bandCsr[BANDCSRMED]);
-      fprintf(fileLogExc,"band Minima: %d\n", sistEqX->bandCsr[BANDCSRMIN]);
-    }
+    fprintf(fileLogExc,"band Maxima: %d\n", sistEqX->bandCsr[BANDCSRMAX]);
+    fprintf(fileLogExc,"band Media : %d\n", sistEqX->bandCsr[BANDCSRMED]);
+    fprintf(fileLogExc,"band Minima: %d\n", sistEqX->bandCsr[BANDCSRMIN]);
+
 /*...................................................................*/
     break;
 /*...................................................................*/
@@ -1118,11 +1106,9 @@ void dataStructSimple(Memoria *m      ,INT *id
         , sistEqX->neqNov
         , BANDCSRMIN);
 
-    if (!mpiVar.myId) {
-      fprintf(fileLogExc,"band Maxima: %d\n", sistEqX->bandCsr[BANDCSRMAX]);
-      fprintf(fileLogExc,"band Media : %d\n", sistEqX->bandCsr[BANDCSRMED]);
-      fprintf(fileLogExc,"band Minima: %d\n", sistEqX->bandCsr[BANDCSRMIN]);
-    }
+    fprintf(fileLogExc,"band Maxima: %d\n", sistEqX->bandCsr[BANDCSRMAX]);
+    fprintf(fileLogExc,"band Media : %d\n", sistEqX->bandCsr[BANDCSRMED]);
+    fprintf(fileLogExc,"band Minima: %d\n", sistEqX->bandCsr[BANDCSRMIN]);
 /*...................................................................*/
     break;
 /*...................................................................*/

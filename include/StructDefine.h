@@ -464,21 +464,21 @@
 /*... interpolacao da variaveis temporais*/
   typedef struct
   {
-    DOUBLE *vel0,*vel, *veli  ,*velG;
-    DOUBLE *gradVeli,*gradVelG;
-    DOUBLE *p0  ,*p  , *pi    ,*pG;
-    DOUBLE *gradPresi,*gradPresG;
-    DOUBLE *temp0,*temp,*tempi,*tempG;
-    DOUBLE *gradTempi,*gradTempG;
-    DOUBLE *y0   ,*y   ,*yi   ,*yG;
-    DOUBLE *gradYi,*gradYG;
-    DOUBLE *wT0  ,*wT  ,*wTi  ,*wTG;
-    DOUBLE *rho0,*rho,*rhoi,*rhoG;
-    DOUBLE *sHeat0,*sHeat,*sHeati,*sHeatG;
-    DOUBLE *dVisc0,*dVisc,*dVisci,*dViscG;
-    DOUBLE *tCond0,*tCond,*tCondi,*tCondG;
-    DOUBLE *cDiff0,*cDiff,*cDiffi,*cDiffG;
-    DOUBLE *mMolar0,*mMolar,*mMolari,*mMolarG;
+    DOUBLE *vel0,*vel, *veli  ,*velG, *nVelI,*nVelG;
+    DOUBLE *gradVeli,*gradVelG,*nGradVelI, *nGradVelG;
+    DOUBLE *p0  ,*p  , *pi    ,*pG, *nPresI,*nPresG;;
+    DOUBLE *gradPresi,*gradPresG,*nGradPresI,*nGradPresG;;
+    DOUBLE *temp0,*temp,*tempi,*tempG,*nTempI,*nTempG;
+    DOUBLE *gradTempi,*gradTempG,*nGradTempI,*nGradTempG;
+    DOUBLE *y0 ,*y,*yi,*yG,nYI,*nYG;
+    DOUBLE *gradYi,*gradYG,*nGradYI,*nGradYG;;
+    DOUBLE *wT0  ,*wT  ,*wTi  ,*wTG,*nWTI,*nWTG;
+    DOUBLE *rho0,*rho,*rhoi,*rhoG,nRhoI,*nRhoG;
+    DOUBLE *sHeat0,*sHeat,*sHeati,*sHeatG,*nsHeatI,*nsHeatG;
+    DOUBLE *dVisc0,*dVisc,*dVisci,*dViscG,*ndViscI,*ndViscG;
+    DOUBLE *tCond0,*tCond,*tCondi,*tCondG,*ntCondI,*ntCondG;
+    DOUBLE *cDiff0,*cDiff,*cDiffi,*cDiffG,*ncDiffI,*ncDiffG;
+    DOUBLE *mMolar0,*mMolar,*mMolari,*mMolarG,*nmMolari,*nmMolarG;
   }TimeInterpol; 
 /*...................................................................*/
 

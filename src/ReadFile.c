@@ -4821,77 +4821,6 @@ bool readSetSimple(Memoria *m    , FILE *fileIn
 /**********************************************************************/
 
 /**********************************************************************
- * Data de criacao    : 08/05/2019                                    *
- * Data de modificaco : 00/00/0000                                    *
- *--------------------------------------------------------------------* 
- * readSetSimpleComb:                                                 *
- *--------------------------------------------------------------------* 
- * Parametros de entrada:                                             * 
- *--------------------------------------------------------------------* 
- * file    -> arquivo de arquivo                                      * 
- *--------------------------------------------------------------------* 
- * Parametros de saida:                                               * 
- *--------------------------------------------------------------------* 
- *--------------------------------------------------------------------* 
- * OBS:                                                               * 
- *--------------------------------------------------------------------*
- **********************************************************************/
-void readSetSimpleComb(Memoria *m    , FILE *fileIn
-                     , Mesh *mesh0   , Mesh *mesh
-                    , Simple *simple, bool *fSolvComb) {
-
-  char word[WORD_SIZE];
-
-/*...*/
-  *fSolvComb              = true;  
-  simple->maxIt           = 1000;
-  simple->alphaPres       = 0.3e0; 
-  simple->alphaVel        = 0.7e0; 
-  simple->type            = SIMPLE;
-  simple->sPressure       = true;
-  simple->faceInterpolVel = 1;
-  simple->nNonOrth        = 0;
-  simple->alphaEnergy     = 1.e0;
-  simple->alphaDensity    = 1.0e0; 
-  simple->alphaComb       = 1.0e0;
-  simple->pSimple         = 500;
-/*...................................................................*/
-      
-/*...*/
-  readMacro(fileIn,word,false);
-  if(!strcmp(word,"config:")){
-/*...*/        
-    readMacro(fileIn,word,false);
-    setSimpleScheme(word, simple);
-/*...................................................................*/    
-  }
-/*...................................................................*/
-
-/*...*/
-  HccaAlloc(DOUBLE     ,m       ,simple->d
-           ,mesh->numel*mesh->ndm,"dField" ,false);
-  zero(simple->d    ,mesh->numel*mesh->ndm,DOUBLEC);
-
-  HccaAlloc(DOUBLE     ,m       ,simple->ePresC
-           ,mesh->numel,"ePresC" ,false);
-  zero(simple->ePresC,mesh->numel  ,DOUBLEC);
-
-  HccaAlloc(DOUBLE     ,m       ,simple->nPresC
-           ,mesh->nnode,"nPresC" ,false);
-  zero(simple->nPresC    ,mesh->numel  ,DOUBLEC);
-
-  HccaAlloc(DOUBLE     ,m      ,simple->eGradPresC
-           ,mesh->numel*mesh->ndm,"eGradPresC",false);
-  zero(simple->eGradPresC,mesh->numel*mesh->ndm  ,DOUBLEC);
-  
-  HccaAlloc(DOUBLE     ,m       ,simple->ePresC1
-           ,mesh->numel,"ePresC1",false);
-  zero(simple->ePresC,mesh->numel  ,DOUBLEC);
-/*...................................................................*/
-}
-/**********************************************************************/
-
-/**********************************************************************
 * Data de criacao    : 31/03/2018                                    *
 * Data de modificaco : 00/00/0000                                    *
 *--------------------------------------------------------------------*
@@ -4983,7 +4912,7 @@ void readSetPrime(Memoria *m    , FILE *fileIn
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh                 
+void readSolvFluid1(Memoria *m      , Mesh *mesh          , Reord *reordMesh                 
                  , Solv *solvVel   , SistEq* sistEqVel   , bool *fSolvVel
                  , Solv *solvPres  , SistEq* sistEqPres  , bool *fSolvPres
                  , Solv *solvEnergy, SistEq* sistEqEnergy, bool *fSolvEnergy
@@ -5061,12 +4990,12 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...*/
       if (mpiVar.nPrcs > 1) 
       {
-        //          tm.numeqPres = getTimeC() - tm.numeqPres;
-        //      sistEqT1->neqNov = countEq(reordMesh->num
-        //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
-        //                          ,mesh->numelNov     ,mesh->maxViz
-        //                          ,mesh->ndfT[0]);
-        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+        tm.numeqVel = getTimeC() - tm.numeqVel;
+        sistEqVel->neqNov = countEq(reordMesh->num
+                                  ,mesh->elm.faceRvel ,mesh->elm.adj.nViz
+                                  ,mesh->numelNov     ,mesh->maxViz
+                                  ,1);
+        tm.numeqVel = getTimeC() - tm.numeqVel;
       }
       else
         sistEqVel->neqNov = sistEqVel->neq;
@@ -5117,6 +5046,7 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
         pMatrixSolverOmp(m, sistEqVel, str1, str2, str3, str4);
       }
 /*...................................................................*/
+
     }
 /*...................................................................*/
 
@@ -5173,12 +5103,12 @@ void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
 /*...*/
       if (mpiVar.nPrcs > 1) 
       {
-        //          tm.numeqPres = getTimeC() - tm.numeqPres;
-        //      sistEqT1->neqNov = countEq(reordMesh->num
-        //                          ,mesh->elm.faceRt1  ,mesh->elm.adj.nViz
-        //                          ,mesh->numelNov     ,mesh->maxViz
-        //                          ,mesh->ndfT[0]);
-        //          tm.numeqPres = getTimeC() - tm.numeqPres;
+        tm.numeqPres = getTimeC() - tm.numeqPres;
+        sistEqPres->neqNov = countEq(reordMesh->num
+                                  ,mesh->elm.faceRpres,mesh->elm.adj.nViz
+                                  ,mesh->numelNov     ,mesh->maxViz
+                                  ,1);
+        tm.numeqPres = getTimeC() - tm.numeqPres;
       }
       else
         sistEqPres->neqNov = sistEqPres->neq;

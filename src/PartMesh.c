@@ -1,7 +1,7 @@
 #include<PartMesh.h>
 /********************************************************************* 
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 18/11/2019                                   * 
  *-------------------------------------------------------------------*
  * PARTMESH :                                                        * 
  *-------------------------------------------------------------------* 
@@ -25,9 +25,8 @@
  * OBS:                                                              * 
  *-------------------------------------------------------------------* 
  *********************************************************************/
-void partMesh(Memoria *m      
-             ,DOUBLE *RESTRICT x   ,INT *RESTRICT el
-             ,short  *RESTRICT nen
+void fPartMesh(Memoria *m          ,DOUBLE *RESTRICT x  
+              ,INT *RESTRICT el    ,short  *RESTRICT nen
              ,INT const nNode      ,INT const nEl   
              ,PartMesh *pMesh  
              ,short const ndm      ,short const maxNo     
@@ -93,15 +92,25 @@ void partMesh(Memoria *m
 
 #else
 /*...*/ 
-  fprintf(fileLogExc,"divCoorXY ...\n");
-  divCoorXY(x        ,el
-           ,nen
+//fprintf(fileLogExc,"divCoorXY ...\n");
+//divCoorXY(x        ,el
+//         ,nen
+//         ,nNode    ,nEl
+//         ,pMesh->np,pMesh->ep
+//         ,ndm      ,maxNo 
+//         ,nDiv     ,true);
+//fprintf(fileLogExc,"divCoorXY.\n");
+/*...................................................................*/
+
+  fprintf(fileLogExc,"divCoorXYZ ...\n");
+  divCoorXYZ(x       
+           ,el       ,nen
            ,nNode    ,nEl
            ,pMesh->np,pMesh->ep
            ,ndm      ,maxNo 
            ,nDiv     ,true);
-  fprintf(fileLogExc,"divCoorXY.\n");
-/*...................................................................*/
+  fprintf(fileLogExc,"divCoorXYZ.\n");
+
 #endif
 
 }
@@ -172,39 +181,58 @@ void divCoorXY(DOUBLE *RESTRICT coor,INT *RESTRICT el
   }
 
   
-  else if( nDiv == 4){
+  else if( nDiv == 4)
+  {
     nx = 2;
     ny = 2;
   }
   
-  else if( nDiv == 6){
+  else if( nDiv == 6)
+  {
     nx = 3;
     ny = 2;
   }
   
-  else if( nDiv == 8){
+  else if( nDiv == 8)
+  {
     nx = 4;
     ny = 2;
   }
   
-  else if( nDiv == 10){
+  else if( nDiv == 10)
+  {
     nx = 5;
     ny = 2;
   }
   
-  else if( nDiv == 12){
+  else if( nDiv == 12)
+  {
     nx = 4;
     ny = 3;
   }
   
-  else if( nDiv == 16){
+  else if( nDiv == 16)
+  {
     nx = 4;
     ny = 4;
   }
 
-  else if( nDiv == 20){
-    nx = 20;
+  else if( nDiv == 20)
+  {
+    nx = 5;
     ny = 4;
+  }
+
+  else if( nDiv == 32)
+  {
+    nx = 8;
+    ny = 4;
+  }
+
+  else if( nDiv == 64)
+  {
+    nx = 8;
+    ny = 8;
   }
 
   
@@ -267,6 +295,250 @@ void divCoorXY(DOUBLE *RESTRICT coor,INT *RESTRICT el
 }
 /*********************************************************************/
   
+/*********************************************************************
+ * Data de criacao    : 18/11/2019                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------*  
+ * DIVCOORXYZ: Divisao da malha pelas coordenadas                    * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * coor    -> coordenadas                                            * 
+ * xm      -> pontos medios dos elementos                            * 
+ * el      -> conectividade dos elementos                            * 
+ * nen     -> numero de nos por celulas                              * 
+ * nNode   -> numero do nos da malha                                 * 
+ * nEl     -> numero de elementos da malha                           * 
+ * np      -> nao definido                                           * 
+ * ep      -> nao definido                                           * 
+ * ndm     -> numero de dimensoes                                    * 
+ * maxNo   -> numero maximo de nos por celula                        * 
+ * nDiv    -> numero de divisoes                                     * 
+ * fC      -> true numeracao iniciando em 0                          * 
+ *            false numeracao iniciando em 1                         * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * np      -> divisao dos nos                                        * 
+ * ep      -> divisao dos elementos                                  * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void divCoorXYZ(DOUBLE *RESTRICT coor       
+              ,INT *RESTRICT el      ,short  *RESTRICT nen                          
+              ,INT const nNode       ,INT const nEl   
+              ,INT *RESTRICT np      ,INT *RESTRICT ep   
+              ,short const ndm       ,short const maxNo
+              ,short const nDiv      ,bool const fC)
+{
+
+  short nx=1,ny=1,nz=1,i,j,k,m;   
+  INT l,kk,no;
+  DOUBLE yMax,yMin,xMax,xMin,zMin,zMax;
+  DOUBLE lx,ly,lz,dx,dy,dz,x,y,z,hx[3],hx0[3],xm[3];
+
+
+  for(l=0;l<nEl;l++)
+    ep[l]=0;
+  
+  xMax = xMin = MAT2D(0,0,coor,ndm);
+  yMax = yMin = MAT2D(0,1,coor,ndm);
+  zMax = zMin = MAT2D(0,2,coor,ndm);
+ 
+  for(l=1;l<nNode;l++){
+    xMax = max(MAT2D(l,0,coor,ndm),xMax);
+    yMax = max(MAT2D(l,1,coor,ndm),yMax);
+    zMax = max(MAT2D(l,2,coor,ndm),zMax);
+    xMin = min(MAT2D(l,0,coor,ndm),xMin);
+    yMin = min(MAT2D(l,1,coor,ndm),yMin);
+    zMin = min(MAT2D(l,2,coor,ndm),zMin);
+  }
+
+  if( nDiv == 2){
+    nx = 1;
+    ny = 2;
+    nz = 1;
+  }
+
+  else if( nDiv == 3)
+  {
+    nx = 1;
+    ny = 3;
+    nz = 1;
+  }
+  
+  else if( nDiv == 4)
+  {
+    nx = 2;
+    ny = 2;
+    nz = 1;
+  }
+  
+  else if( nDiv == 6)
+  {
+    nx = 3;
+    ny = 2;
+    nz = 1;
+  }
+  
+  else if( nDiv == 8)
+  {
+    nx = 2;
+    ny = 2;
+    nz = 2;
+  }
+  
+  else if( nDiv == 10)
+  {
+    nx = 5;
+    ny = 2;
+    nz = 1;
+  }
+  
+  else if( nDiv == 12)
+  {
+    nx = 2;
+    ny = 3;
+    nz = 2;
+  }
+  
+  else if( nDiv == 16)
+  {
+    nx = 4;
+    ny = 2;
+    nz = 2;
+  }
+
+  else if( nDiv == 20)
+  {
+    nx = 5;
+    ny = 2;
+    nz = 2;
+  }
+
+  else if( nDiv == 32)
+  {
+    nx = 4;
+    ny = 4;
+    nz = 2;
+  }
+
+  else if( nDiv == 64)
+  {
+    nx = 8;
+    ny = 2;
+    nz = 4;
+  }
+
+/*....*/
+  kk= 0;
+  lx = (xMax - xMin);
+  ly = (yMax - yMin);
+  lz = (zMax - zMin);
+  dx = lx/((DOUBLE) nx);
+  dy = ly/((DOUBLE) ny);
+  dz = lz/((DOUBLE) nz);
+/*.....................................................................*/
+
+/*...*/
+  hx0[2] = zMin;
+  for (i = 0; i < nz; i++) 
+  {
+    hx[2]  = hx0[2] + dz;
+    hx0[1] = yMin;
+    for (j = 0; j < ny; j++) 
+    {
+      hx[1]  = hx0[1] + dy;
+      hx0[0] = xMin;
+      for (k = 0; k < nx; k++) 
+      {
+        hx[0]  = hx0[0] + dx;
+        kk++;
+        for(l=0;l<nEl;l++)
+        {
+          xm[0] = xm[1] = xm[2] = 0.e0;
+          for(m=0;m<nen[l];m++)
+          { 
+            no = MAT2D(l,m,el,maxNo)-1;
+            xm[0] += MAT2D(no,0,coor,ndm);
+            xm[1] += MAT2D(no,1,coor,ndm);
+            xm[2] += MAT2D(no,2,coor,ndm);
+          }
+          xm[0]*=(1.0e0/((DOUBLE)nen[l]));
+          xm[1]*=(1.0e0/((DOUBLE)nen[l]));
+          xm[2]*=(1.0e0/((DOUBLE)nen[l]));
+
+          if( (xm[0] <= hx[0] && xm[1] <= hx[1] && xm[2] <= hx[2])
+              &&
+             (xm[0] >= hx0[0] && xm[1] >= hx0[1] && xm[2] >= hx0[2]))
+          {
+            ep[l] = kk;
+          }
+        }
+        hx0[0] = hx[0];
+      }  
+      hx0[1] = hx[1];
+    }
+    hx0[2] = hx[2];
+  }
+/*.....................................................................*/
+
+/*...*/
+  for(l=0;l<nEl;l++)
+  {
+    for(j=0;j<nen[l];j++)
+    { 
+      no = MAT2D(l,j,el,maxNo);
+      if(np[no-1] == -1)
+        np[no-1] = ep[l];
+      else
+        if((no % 2) == 0)
+          np[no-1] = ep[l];
+    }
+  } 
+/*.....................................................................*/  
+
+  if(fC){
+    for(l=0;l<nNode;l++)
+      np[l]--;
+  
+    for(l=0;l<nEl;l++)
+      ep[l]--;
+  }
+
+/*
+  printf("np\n");
+  for(i=0;i<nNode;i++)
+    printf("%6d %3d\n",i+1,np[i]);
+  
+  printf("ep\n");
+  for(i=0;i<nEl;i++)
+    printf("%6d %3d\n",i+1,ep[i]);
+*/
+
+/*
+  ep[ 0] = 0;
+  ep[ 1] = 0;
+  ep[ 2] = 0;
+  ep[ 3] = 0;
+  ep[ 4] = 0;
+  ep[ 5] = 0;
+  ep[ 6] = 0;
+  ep[ 7] = 0;
+  ep[ 8] = 0;
+  ep[ 9] = 1;
+  ep[10] = 1;
+  ep[11] = 1;
+  ep[12] = 2;
+  ep[13] = 2;
+  ep[14] = 2;
+  ep[15] = 2;
+*/
+}
+/*********************************************************************/
+
+
 /********************************************************************* 
  * GETNUMEBERLOCALMESH : obtem o numero de elementos e nos da malha  * 
  * local                                                             * 

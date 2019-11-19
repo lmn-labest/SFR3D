@@ -2923,7 +2923,7 @@ void  leastSquare(Loads *loads
 
   DOUBLE du[MAX_NUM_FACE*MAX_NDF],uC[MAX_NDF];
   DOUBLE uT[MAX_NDF],xx[4],par[MAXLOADPARAMETER];
-  DOUBLE tmp,coefDif,gh;
+  DOUBLE tmp,coefDif,gh,gradPb[3];
   INT vizNel;
   short idCell = nFace,nCarg,type;
   short i,j,k,l,it=1,itNumber=2;
@@ -2976,13 +2976,13 @@ void  leastSquare(Loads *loads
             { 
               for(k = 0, gh = 0.e0; k < ndm;k++)
                 gh += (MAT2D(idCell,k,cc,ndm) - xRef[k])*gravity[k];
-              gradPbBuoyant(xx        , &lPara[3]
+              gradPbBuoyant(gradPb     , &lPara[3]
                           , gravity   , gh 
                           , lPara[2]  , lPara[1] 
                           , loads[nCarg].iCod[0]);
-              du[i] = (xx[0]*MAT2D(i,0,xmcc,ndm)
-                     + xx[1]*MAT2D(i,1,xmcc,ndm) 
-                     + xx[2]*MAT2D(i,2,xmcc,ndm));
+              du[i] = (gradPb[0]*MAT2D(i,0,xmcc,ndm)
+                     + gradPb[1]*MAT2D(i,1,xmcc,ndm) 
+                     + gradPb[2]*MAT2D(i,2,xmcc,ndm));
             }                            
 /*...................................................................*/
 
@@ -7463,12 +7463,12 @@ void facePressure(DOUBLE *gradPresC           ,DOUBLE *gradPresV
 
       p1 = presC + gradPresC[0]*lXmcc[0] 
                  + gradPresC[1]*lXmcc[1] 
-                 + gradPresC[2]*lXmcc[2];
+                 + gradPresC[2]*lXmcc[2];  
 
       p2 = presV + gradPresV[0]*v[0]
                  + gradPresV[1]*v[1] 
-                 + gradPresV[2]*v[2];
-     
+                 + gradPresV[2]*v[2];  
+
       pFace = 0.5e0*(p1+p2);
     }
 /*...................................................................*/

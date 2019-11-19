@@ -119,7 +119,7 @@ void simpleSolver(Memoria *m
 /*...................................................................*/
 
 /*... arquivo de log*/
-  if (opt->fItPlot)
+  if (!mpiVar.myId && opt->fItPlot)
     fprintf(opt->fileItPlot[FITPLOTSIMPLE]
            , "istep = %d time = %lf\n",sc->ddt.timeStep,sc->ddt.t);
 /*...................................................................*/
@@ -173,7 +173,7 @@ void simpleSolver(Memoria *m
 /*...*/
      timei = getTimeC() -time;
 /*... arquivo de log*/
-     if(opt->fItPlot)
+     if(!mpiVar.myId && opt->fItPlot)
      {
        if (ndfVel == 3)
          fprintf(opt->fileItPlot[FITPLOTSIMPLE]
@@ -189,14 +189,17 @@ void simpleSolver(Memoria *m
 /*...*/
      if( jj == sp->pSimple) {
        jj = 0; 
-       printf("It simple: %d \n",itSimple+1);
-       printf("CPU Time(s)  : %lf \n", timei);
-       printf("Residuo:\n");
-       printf("%-25s : %20.8e\n","conservacao da massa",rMass/rMass0);
-       printf("%-25s : %20.8e\n","momentum x1", rU[0] / rU0[0]);
-       printf("%-25s : %20.8e\n","momentum x2", rU[1] / rU0[1]);
-       if (ndfVel == 3)
-          printf("%-25s : %20.8e\n","momentum x3", rU[2] / rU0[2]);
+       if(!mpiVar.myId)
+       {    
+         printf("It simple: %d \n",itSimple+1);
+         printf("CPU Time(s)  : %lf \n", timei);
+         printf("Residuo:\n");
+         printf("%-25s : %20.8e\n","conservacao da massa",rMass/rMass0);
+         printf("%-25s : %20.8e\n","momentum x1", rU[0] / rU0[0]);
+         printf("%-25s : %20.8e\n","momentum x2", rU[1] / rU0[1]);
+         if (ndfVel == 3)
+           printf("%-25s : %20.8e\n","momentum x3", rU[2] / rU0[2]);
+       }
      } 
      jj++; 
 /*...................................................................*/
@@ -237,17 +240,20 @@ void simpleSolver(Memoria *m
 
 
 /*...*/
-  printf("It simple: %d \n",itSimple+1);
-  printf("Time(s)  : %lf \n",timei);
-  printf("Reynolds: %lf\n",reynolds);
-  if(sc->ddt.flag)
-    printf("%-20s : %13.6lf\n","CFL", cfl);
-  printf("%-25s : %15s %20s\n","Residuo:","init","final");
-  printf("%-25s : %20.8e %20.8e\n","conservacao da massa", rMass0, rMass);
-  printf("%-25s : %20.8e %20.8e\n","momentum x1",rU0[0], rU[0]);
-  printf("%-25s : %20.8e %20.8e\n","momentum x2 ",rU0[1], rU[1]);
-  if (ndfVel == 3)
-    printf("%-25s : %20.8e %20.8e\n","momentum x3", rU0[2], rU[2]);
+  if(!mpiVar.myId)
+  {
+    printf("It simple: %d \n",itSimple+1);
+    printf("Time(s)  : %lf \n",timei);
+    printf("Reynolds: %lf\n",reynolds);
+    if(sc->ddt.flag)
+      printf("%-20s : %13.6lf\n","CFL", cfl);
+    printf("%-25s : %15s %20s\n","Residuo:","init","final");
+    printf("%-25s : %20.8e %20.8e\n","conservacao da massa", rMass0, rMass);
+    printf("%-25s : %20.8e %20.8e\n","momentum x1",rU0[0], rU[0]);
+    printf("%-25s : %20.8e %20.8e\n","momentum x2 ",rU0[1], rU[1]);
+    if (ndfVel == 3)
+      printf("%-25s : %20.8e %20.8e\n","momentum x3", rU0[2], rU[2]);
+  }
 /*...................................................................*/
 
 } 
@@ -2447,7 +2453,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
            , &pMesh->iNo            , &pMesh->iEl
            , mesh->numelNov         , mesh->numel
            , mesh->nnodeNov         , mesh->nnode
-           , false);  
+           , false);    
     tm.rcGradVel = getTimeC() - tm.rcGradVel;
 /*...................................................................*/
 
@@ -2578,6 +2584,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
   tb[0] = sqrt(dot(b1, b1, sistEqVel->neqNov));
   tb[1] = sqrt(dot(b2, b2, sistEqVel->neqNov));
   if (ndfVel == 3) tb[2] = sqrt(dot(b3, b3, sistEqVel->neqNov));
+
   if (itSimple == 0)
   {
     tmp = max(tb[0], tb[1]);

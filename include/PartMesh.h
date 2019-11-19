@@ -11,9 +11,8 @@
     #include<metis/metis.h>
   #endif
 
-  void partMesh(Memoria *m      
-             ,DOUBLE *RESTRICT x ,INT *RESTRICT el
-             ,short *RESTRICT nen
+  void fPartMesh(Memoria *m       ,DOUBLE *RESTRICT x 
+             ,INT *RESTRICT el   ,short *RESTRICT nen
              ,INT const nNode    ,INT const nNumel
              ,PartMesh *pMesh  
              ,short const ndm    ,short const maxViz
@@ -33,6 +32,15 @@
                 ,INT *RESTRICT np  ,INT *RESTRICT eq   
                 ,short const ndm   ,short const maxNo 
                 ,short const nDiv  ,bool const fC);
+/*...................................................................*/
+
+/*... divisao da malha na coordenadas XYZ*/
+  void divCoorXYZ(DOUBLE *RESTRICT coor   
+              ,INT *RESTRICT el      ,short  *RESTRICT nen                          
+              ,INT const nNode       ,INT const nEl   
+              ,INT *RESTRICT np      ,INT *RESTRICT ep   
+              ,short const ndm       ,short const maxNo
+              ,short const nDiv      ,bool const fC);
 /*...................................................................*/
 
 /*... convertendo a malha para o formato CSR*/

@@ -413,7 +413,7 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
 /*... gradiente da pressao com resconstrucao de segunda ordem
       (forma conservativa)*/
       facePressure(gradPresC       ,gradPresV
-                 ,lXmcc            ,lXm
+                 ,lXmcc            ,lXm 
                  ,ccV              ,pf
                  ,lNormal          ,NULL
                  ,0.e0             ,0.e0
@@ -534,7 +534,7 @@ void cellSimpleVel3D(Loads *lVel         ,Loads *lPres
 /*...................................................................*/
   }
 /*...................................................................*/
-  
+
 /*... distretização temporal*/
   if(fTime)
   {

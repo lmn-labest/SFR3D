@@ -65,11 +65,13 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
 {
   short ndm = mesh->ndm
        ,ns  = cModel->nOfSpecies; 
-  INT nel = mesh->numelNov
-     ,nelG = mesh->numel;
+  INT nel =  mesh->numel
+     ,nelG  = mesh0->numel
+     ,nno  = mesh->nnode
+     ,nnoG = mesh0->nnode;
 
 /*... vel*/ 
-  if(opt->vel)
+  if(opt->vel || opt->gradVel)
   {
 
     if(opt->fTimePlot)
@@ -85,15 +87,22 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     {
       ti->vel0 = ti->vel = mesh->elm.vel;
     }
+    
     HccaAlloc(DOUBLE,m,ti->veli,nel*ndm,"iveli"  ,_AD_);
     ti->velG = ti->veli;
-    if(!mpiVar.myId && mpiVar.nPrcs>1)
-      HccaAlloc(DOUBLE,m,ti->velG,nelG*ndm,"ivelG"  ,_AD_);
+    if(!mpiVar.myId && mpiVar.nPrcs>1)   
+      HccaAlloc(DOUBLE,m,ti->velG,nelG*ndm,"ivelG"  ,_AD_);      
+    
+    HccaAlloc(DOUBLE,m,ti->nVelI,nno*ndm,"nveli"  ,_AD_);
+    ti->nVelG = ti->nVelI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)   
+      HccaAlloc(DOUBLE,m,ti->nVelG,nnoG*ndm,"nvelG"  ,_AD_);
+
   } 
 /*...................................................................*/
 
 /*... pres*/
-  if(opt->pres)
+  if(opt->pres || opt->gradPres )
   {
     if(opt->fTimePlot)
     {
@@ -108,6 +117,12 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     ti->pG = ti->pi;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->pG,nelG,"pG"  ,_AD_);
+
+    HccaAlloc(DOUBLE,m,ti->nPresI,nno,"npi"  ,_AD_);
+    ti->nPresG = ti->nPresI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)   
+      HccaAlloc(DOUBLE,m,ti->nPresG,nnoG,"npG"  ,_AD_);
+
   } 
 /*...................................................................*/
 
@@ -299,9 +314,14 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     ti->gradPresG = ti->gradPresi;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->gradPresG,nelG*ndm,"iGradPresG"  ,_AD_);
+
+    HccaAlloc(DOUBLE,m,ti->nGradPresI,nno*ndm,"nGradPresI"  ,_AD_);
+    ti->nGradPresG = ti->nGradPresI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)   
+      HccaAlloc(DOUBLE,m,ti->nGradPresG,nnoG*ndm,"nGradPresG"  ,_AD_);
+
   } 
 /*...................................................................*/
-
 
 /*... gradVel*/
   if(opt->gradVel)
@@ -310,6 +330,11 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     ti->gradVelG = ti->gradVeli;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->gradVelG,nelG*ndm*ndm,"iGradVelG"  ,_AD_);
+    
+    HccaAlloc(DOUBLE,m,ti->nGradVelI,nno*ndm*ndm,"nGradVeli"  ,_AD_);
+    ti->nGradVelG = ti->nGradVelI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)   
+      HccaAlloc(DOUBLE,m,ti->nGradVelG,nnoG*ndm*ndm,"nGradVelG"  ,_AD_);  
   } 
 /*...................................................................*/
 
@@ -339,7 +364,7 @@ void updateTimeStruct(Memoria *m        ,TimeInterpol *ti
   short j
        ,ndm = mesh->ndm
        ,ns  = cModel->nOfSpecies;
-  INT nel = mesh->numelNov
+  INT nel = mesh->numel
      ,i;
 
   if(opt->fStepPlot) 

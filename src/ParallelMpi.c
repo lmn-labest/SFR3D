@@ -2531,7 +2531,6 @@ void dGlobalCel(Memoria *m         ,PartMesh *pMesh
   MPI_Reduce(x1,uG,size,MPI_DOUBLE,MPI_SUM,0,mpiVar.comm);
 /*...................................................................*/
 
-
 /*...*/  
   HccaDealloc(m,x1,"x1Gmpi",false);
 /*...................................................................*/
@@ -2545,7 +2544,7 @@ void dGlobalCel(Memoria *m         ,PartMesh *pMesh
   
 /********************************************************************* 
  * Data de criacao    : 00/00/0000                                   *
- * Data de modificaco : 16/08/2019                                   * 
+ * Data de modificaco : 19/11/2019                                   * 
  *-------------------------------------------------------------------*
  * DGLABALNODE:globaliza os valores nodais (DOUBLE) no master(myId=0)* 
  *-------------------------------------------------------------------* 
@@ -2570,9 +2569,9 @@ void dGlobalNode(Memoria *m         ,PartMesh *pMesh
                 ,short const ndf1   ,short const ndf2)
             
 {           
-#ifdef _MPI_
-  INT i,lNo;
-  INT nno1   = pMesh->nno1;
+#ifdef _MPI_  
+  INT i,j,k,lNo;
+  INT nno    = pMesh->nno1;
   INT nnG    = pMesh->nnG;
   INT *noLG  = pMesh->noLG;
   INT size=nnG*ndf1*ndf2;
@@ -2599,28 +2598,42 @@ void dGlobalNode(Memoria *m         ,PartMesh *pMesh
   zero(x1,size,DOUBLEC);
 /*...................................................................*/
 
+/*... ndf2 = 1*/
+  if(ndf2 == 1)
+  {
 /*...*/
-  if(ndf1 == 1){
-    for(i=0;i<nno1;i++){
+    if(ndf1 == 1)
+    {
+      for(i=0;i<nno;i++){
+        lNo    = noLG[i];
+        x1[lNo] = uL[i]; 
+      }
+    }
+/*...................................................................*/
+
+/*...*/
+    else
+    {
+      for(i=0;i<nno;i++)
+      {
+        lNo    = noLG[i];
+        for(j=0;j<ndf1;j++)
+          MAT2D(lNo,j,x1,ndf1) = MAT2D(i,j,uL,ndf1); 
+      }
+    } 
+/*...................................................................*/
+  } 
+/*...................................................................*/
+  else
+  {
+    for(i=0;i<nno;i++)
+    {
       lNo    = noLG[i];
-      x1[lNo] = uL[i]; 
+      for(j=0;j<ndf1;j++)
+        for(k=0;k<ndf2;k++)
+          MAT3D(lNo,j,k,x1,ndf1,ndf2) = MAT3D(i,j,k,uL,ndf1,ndf2); 
     }
   }
-  else if(ndf1 == 2){
-    for(i=0;i<nno1;i++){
-      lNo    = noLG[i];
-      MAT2D(lNo,0,x1,2) = MAT2D(i,0,uL,2); 
-      MAT2D(lNo,1,x1,2) = MAT2D(i,1,uL,2); 
-    }
-  }
-  else{
-    for(i=0;i<nno1;i++){
-      lNo    = noLG[i];
-      MAT2D(lNo,0,x1,3) = MAT2D(i,0,uL,3); 
-      MAT2D(lNo,1,x1,3) = MAT2D(i,1,uL,3); 
-      MAT2D(lNo,2,x1,3) = MAT2D(i,2,uL,3); 
-    }
-  }  
 /*...................................................................*/
 
 /*...*/
@@ -2893,9 +2906,9 @@ void makeBufferCel(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
     for(i=0;i<nSends;i++)
     {
       lCel    = fMap[i];
-      for(j=0;j<ndf2;j++)
-        for(k=0;k<ndf1;k++)
-          MAT3D(i,j,k,xb,ndf2,ndf1) = MAT3D(lCel,j,k,x,ndf2,ndf1);
+      for(j=0;j<ndf1;j++)
+        for(k=0;k<ndf2;k++)
+          MAT3D(i,j,k,xb,ndf1,ndf2) = MAT3D(lCel,j,k,x,ndf1,ndf2);
     }
   }
 /*....................................................................*/ 
@@ -2979,7 +2992,7 @@ void dGetBufferNod(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
       {
         lNod    = fMap[i];
         for(j=0;j<ndf1;j++)
-          MAT2D(lNod,j,x,ndf1) = MAT2D(i,j,xb,ndf1);
+          MAT2D(lNod,j,x,ndf1) += MAT2D(i,j,xb,ndf1);
       }
     }
 /*.....................................................................*/
@@ -2993,12 +3006,13 @@ void dGetBufferNod(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
     for(i=0;i<nRcvs;i++)
     {
       lNod    = fMap[i];
-      for(j=0;j<ndf2;j++)
-        for(k=0;k<ndf1;k++)
-          MAT3D(lNod,j,k,x,ndf2,ndf1) = MAT3D(i,j,k,xb,ndf2,ndf1);
+      for(j=0;j<ndf1;j++)
+        for(k=0;k<ndf2;k++)
+          MAT3D(lNod,j,k,x,ndf1,ndf2) += MAT3D(i,j,k,xb,ndf1,ndf2);
     }
   }
 /*....................................................................*/ 
+
 
 } 
 /*********************************************************************/
@@ -3087,9 +3101,9 @@ void dMakeBufferNod(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
     for(i=0;i<nSends;i++)
     {
       lNo    = fMap[i];
-      for(j=0;j<ndf2;j++)
-        for(k=0;k<ndf1;k++)
-          MAT3D(i,j,k,xb,ndf2,ndf1) = MAT3D(lNo,j,k,x,ndf2,ndf1);
+      for(j=0;j<ndf1;j++)
+        for(k=0;k<ndf2;k++)
+          MAT3D(i,j,k,xb,ndf1,ndf2) = MAT3D(lNo,j,k,x,ndf1,ndf2);
     }
   }
 /*....................................................................*/
@@ -3509,7 +3523,7 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
 
 /*... gerando o buffer de envio*/
   tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
-  dMakeBufferNod(x                    ,&iNo->xb[nCom*nst]
+  dMakeBufferNod(x                     ,&iNo->xb[nCom*nst]
                 ,iNo->fMap             ,nCom   
                 ,ndf1                  ,ndf2);
   tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
@@ -3551,7 +3565,7 @@ void iMakeBufferNod(INT *RESTRICT x       ,INT *RESTRICT xb
   
 /*...*/
   tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
-  dGetBufferNod(x         ,iNo->xb
+  dGetBufferNod(x        ,iNo->xb
               ,iNo->fMap ,nCom
               ,ndf1      ,ndf2);
   tm.overHeadBufferMpi = getTimeC() - tm.overHeadBufferMpi;
