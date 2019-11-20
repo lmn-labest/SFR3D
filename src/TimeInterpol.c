@@ -88,8 +88,8 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
       ti->vel0 = ti->vel = mesh->elm.vel;
     }
     
-    HccaAlloc(DOUBLE,m,ti->veli,nel*ndm,"iveli"  ,_AD_);
-    ti->velG = ti->veli;
+    HccaAlloc(DOUBLE,m,ti->velI,nel*ndm,"iveli"  ,_AD_);
+    ti->velG = ti->velI;
     if(!mpiVar.myId && mpiVar.nPrcs>1)   
       HccaAlloc(DOUBLE,m,ti->velG,nelG*ndm,"ivelG"  ,_AD_);      
     
@@ -113,8 +113,8 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     {
       ti->p0 = ti->p = mesh->elm.pressure;
     }
-    HccaAlloc(DOUBLE,m,ti->pi,nel,"pi"  ,_AD_);
-    ti->pG = ti->pi;
+    HccaAlloc(DOUBLE,m,ti->pI,nel,"pi"  ,_AD_);
+    ti->pG = ti->pI;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->pG,nelG,"pG"  ,_AD_);
 
@@ -138,10 +138,16 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     {
       ti->temp0 = ti->temp = mesh->elm.temp;
     }
-    HccaAlloc(DOUBLE,m,ti->tempi,nel,"tempi"  ,_AD_);
-    ti->tempG = ti->tempi;
+    HccaAlloc(DOUBLE,m,ti->tempI,nel,"tempi"  ,_AD_);
+    ti->tempG = ti->tempI;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->tempG,nelG,"tempG"  ,_AD_);
+    
+    HccaAlloc(DOUBLE,m,ti->nTempI,nno,"nTempI"  ,_AD_);
+    ti->nTempG = ti->nTempI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)   
+      HccaAlloc(DOUBLE,m,ti->nTempG,nnoG,"nTempG"  ,_AD_);
+
   } 
 /*...................................................................*/
 
@@ -157,10 +163,16 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     {
       ti->y0 = ti->y = mesh->elm.yFrac;
     }
-    HccaAlloc(DOUBLE,m,ti->yi,nel*ns,"yi"  ,_AD_);
-    ti->yG = ti->yi;
+    HccaAlloc(DOUBLE,m,ti->yI,nel*ns,"yi"  ,_AD_);
+    ti->yG = ti->yI;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->yG,nelG*ns,"yG"  ,_AD_);
+
+    HccaAlloc(DOUBLE,m,ti->nYI,nno*ns,"nYI"  ,_AD_);
+    ti->nYG = ti->nYI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)   
+      HccaAlloc(DOUBLE,m,ti->nYG,nnoG*ns,"nYG"  ,_AD_);
+
   } 
 /*...................................................................*/
 
@@ -176,10 +188,15 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     {
       ti->wT0 = ti->wT = mesh->elm.wT;
     }
-    HccaAlloc(DOUBLE,m,ti->wTi,nel,"tIwTi",_AD_);
-    ti->wTG = ti->wTi;
+    HccaAlloc(DOUBLE,m,ti->wTI,nel,"tIwTi",_AD_);
+    ti->wTG = ti->wTI;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->wTG,nelG,"tIwTG"  ,_AD_);
+
+    HccaAlloc(DOUBLE,m,ti->nWTI,nno,"nWGI",_AD_);
+    ti->nWTG = ti->nWTI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)
+      HccaAlloc(DOUBLE,m,ti->nWTG,nnoG,"nWTG"  ,_AD_);
   } 
 /*...................................................................*/
 
@@ -195,10 +212,16 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     {
       ti->dVisc0 = ti->dVisc = mesh->elm.dViscosity;
     }
-    HccaAlloc(DOUBLE,m,ti->dVisci,nel,"dVisci",_AD_);
-    ti->dViscG = ti->dVisci;
+    HccaAlloc(DOUBLE,m,ti->dViscI,nel,"dVisci",_AD_);
+    ti->dViscG = ti->dViscI;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->dViscG,nelG,"dViscG"  ,_AD_);
+
+    HccaAlloc(DOUBLE,m,ti->ndViscI,nno,"ndViscI",_AD_);
+    ti->ndViscG = ti->ndViscI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)
+      HccaAlloc(DOUBLE,m,ti->ndViscG,nnoG,"ndViscG"  ,_AD_);
+
   } 
 /*...................................................................*/
 
@@ -214,10 +237,16 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     {
       ti->tCond0 = ti->tCond = mesh->elm.tConductivity;
     }
-    HccaAlloc(DOUBLE,m,ti->tCondi,nel,"tCondi",_AD_);
-    ti->tCondG = ti->tCondi;
+    HccaAlloc(DOUBLE,m,ti->tCondI,nel,"tCondi",_AD_);
+    ti->tCondG = ti->tCondI;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->tCondG,nelG,"tCondG"  ,_AD_);
+
+    HccaAlloc(DOUBLE,m,ti->ntCondI,nno,"ntCondI",_AD_);
+    ti->ntCondG = ti->ntCondI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)
+      HccaAlloc(DOUBLE,m,ti->ntCondG,nnoG,"ntCondG"  ,_AD_);
+
   } 
 /*...................................................................*/
 
@@ -233,10 +262,16 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     {
       ti->cDiff0 = ti->cDiff = mesh->elm.cDiffComb;
     }
-    HccaAlloc(DOUBLE,m,ti->cDiffi,nel*ns,"cDiffi",_AD_);
-    ti->cDiffG = ti->cDiffi;
+    HccaAlloc(DOUBLE,m,ti->cDiffI,nel*ns,"cDiffi",_AD_);
+    ti->cDiffG = ti->cDiffI;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->cDiffG,nelG*ns,"cDiffG"  ,_AD_);
+
+    HccaAlloc(DOUBLE,m,ti->ncDiffI,nno*ns,"ncDiffIi",_AD_);
+    ti->ncDiffG = ti->ncDiffI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)
+      HccaAlloc(DOUBLE,m,ti->ncDiffG,nnoG*ns,"ncDiffG"  ,_AD_);
+
   } 
 /*...................................................................*/
 
@@ -252,10 +287,16 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     {
       ti->sHeat0 = ti->sHeat = mesh->elm.specificHeat.t;
     }
-    HccaAlloc(DOUBLE,m,ti->sHeati,nel,"iSheati",_AD_);
-    ti->sHeatG = ti->sHeati;
+    HccaAlloc(DOUBLE,m,ti->sHeatI,nel,"iSheati",_AD_);
+    ti->sHeatG = ti->sHeatI;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->sHeatG,nelG,"iSheatG"  ,_AD_);
+
+     HccaAlloc(DOUBLE,m,ti->nsHeatI,nno,"nsHeatI",_AD_);
+    ti->nsHeatG = ti->nsHeatI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)
+      HccaAlloc(DOUBLE,m,ti->nsHeatG,nnoG,"nsHeatG"  ,_AD_);
+
   } 
 /*...................................................................*/
 
@@ -271,10 +312,18 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     {
       ti->rho0 = ti->rho = mesh->elm.densityFluid.t;
     }
-    HccaAlloc(DOUBLE,m,ti->rhoi,nel,"iRhoi",_AD_);
-    ti->rhoG = ti->rhoi;
+
+    HccaAlloc(DOUBLE,m,ti->rhoI,nel,"iRhoi",_AD_);
+    ti->rhoG = ti->rhoI;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->rhoG,nelG,"iRhoG"  ,_AD_);
+
+    HccaAlloc(DOUBLE,m,ti->nRhoI,nno,"nRhoI",_AD_);
+    ti->nRhoG = ti->nRhoI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)
+      HccaAlloc(DOUBLE,m,ti->nRhoG,nnoG,"nRhoG"  ,_AD_);
+
+
   } 
 /*...................................................................*/
 
@@ -290,28 +339,40 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     {
       ti->mMolar0 = ti->mMolar = mesh->elm.mMolar.t;
     }
-    HccaAlloc(DOUBLE,m,ti->mMolari,nel,"iMmolari",_AD_);
-    ti->mMolarG = ti->mMolari;
+    HccaAlloc(DOUBLE,m,ti->mMolarI,nel,"iMmolari",_AD_);
+    ti->mMolarG = ti->mMolarI;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->mMolarG,nelG,"iMmolarG"  ,_AD_);
+
+    HccaAlloc(DOUBLE,m,ti->nmMolarI,nno,"nMmolarI",_AD_);
+    ti->nmMolarG = ti->nmMolarI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)
+      HccaAlloc(DOUBLE,m,ti->nmMolarG,nnoG,"nMmolarG"  ,_AD_);
+
   } 
 /*...................................................................*/
 
 /*... gradTemp*/
   if(opt->gradTemp)
   {
-    ti->gradTempi = mesh->elm.gradTemp;
-    ti->gradTempG = ti->gradTempi;
+    ti->gradTempI = mesh->elm.gradTemp;
+    ti->gradTempG = ti->gradTempI;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->gradTempG,nelG*ndm,"iGradTG"  ,_AD_);
+
+    HccaAlloc(DOUBLE,m,ti->nGradTempI,nno*ndm,"nGradTempI"  ,_AD_);
+    ti->nGradTempG = ti->nGradTempI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)   
+      HccaAlloc(DOUBLE,m,ti->nGradTempG,nnoG*ndm,"nGradTempG"  ,_AD_);
+
   } 
 /*...................................................................*/
 
-/*... gradTemp*/
+/*... gradPres*/
   if(opt->gradPres)
   {
-    ti->gradPresi = mesh->elm.gradPres;
-    ti->gradPresG = ti->gradPresi;
+    ti->gradPresI = mesh->elm.gradPres;
+    ti->gradPresG = ti->gradPresI;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->gradPresG,nelG*ndm,"iGradPresG"  ,_AD_);
 
@@ -326,8 +387,8 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
 /*... gradVel*/
   if(opt->gradVel)
   {
-    ti->gradVeli = mesh->elm.gradVel;
-    ti->gradVelG = ti->gradVeli;
+    ti->gradVelI = mesh->elm.gradVel;
+    ti->gradVelG = ti->gradVelI;
     if(!mpiVar.myId && mpiVar.nPrcs>1)
       HccaAlloc(DOUBLE,m,ti->gradVelG,nelG*ndm*ndm,"iGradVelG"  ,_AD_);
     
@@ -335,6 +396,22 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
     ti->nGradVelG = ti->nGradVelI;
     if(!mpiVar.myId && mpiVar.nPrcs>1)   
       HccaAlloc(DOUBLE,m,ti->nGradVelG,nnoG*ndm*ndm,"nGradVelG"  ,_AD_);  
+  } 
+/*...................................................................*/
+
+
+/*... gradY*/
+  if(opt->gradVel)
+  {
+    HccaAlloc(DOUBLE,m,ti->gradYI,nel*ndm*ns,"iGradYI"  ,_AD_);
+    ti->gradYG = ti->gradYI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)
+      HccaAlloc(DOUBLE,m,ti->gradYG,nelG*ndm*ns,"iGradYG"  ,_AD_);
+    
+    HccaAlloc(DOUBLE,m,ti->nGradYI,nno*ndm*ns,"nGradYI"  ,_AD_);
+    ti->nGradYG = ti->nGradYI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)   
+      HccaAlloc(DOUBLE,m,ti->nGradVelG,nnoG*ndm*ns,"nGradYG"  ,_AD_);  
   } 
 /*...................................................................*/
 

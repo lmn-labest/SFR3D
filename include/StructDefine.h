@@ -464,21 +464,21 @@
 /*... interpolacao da variaveis temporais*/
   typedef struct
   {
-    DOUBLE *vel0,*vel, *veli  ,*velG, *nVelI,*nVelG;
-    DOUBLE *gradVeli,*gradVelG,*nGradVelI, *nGradVelG;
-    DOUBLE *p0  ,*p  , *pi    ,*pG, *nPresI,*nPresG;;
-    DOUBLE *gradPresi,*gradPresG,*nGradPresI,*nGradPresG;;
-    DOUBLE *temp0,*temp,*tempi,*tempG,*nTempI,*nTempG;
-    DOUBLE *gradTempi,*gradTempG,*nGradTempI,*nGradTempG;
-    DOUBLE *y0 ,*y,*yi,*yG,nYI,*nYG;
-    DOUBLE *gradYi,*gradYG,*nGradYI,*nGradYG;;
-    DOUBLE *wT0  ,*wT  ,*wTi  ,*wTG,*nWTI,*nWTG;
-    DOUBLE *rho0,*rho,*rhoi,*rhoG,nRhoI,*nRhoG;
-    DOUBLE *sHeat0,*sHeat,*sHeati,*sHeatG,*nsHeatI,*nsHeatG;
-    DOUBLE *dVisc0,*dVisc,*dVisci,*dViscG,*ndViscI,*ndViscG;
-    DOUBLE *tCond0,*tCond,*tCondi,*tCondG,*ntCondI,*ntCondG;
-    DOUBLE *cDiff0,*cDiff,*cDiffi,*cDiffG,*ncDiffI,*ncDiffG;
-    DOUBLE *mMolar0,*mMolar,*mMolari,*mMolarG,*nmMolari,*nmMolarG;
+    DOUBLE *vel0,*vel, *velI  ,*velG, *nVelI,*nVelG;
+    DOUBLE *gradVelI,*gradVelG,*nGradVelI, *nGradVelG;
+    DOUBLE *p0  ,*p  , *pI    ,*pG, *nPresI,*nPresG;;
+    DOUBLE *gradPresI,*gradPresG,*nGradPresI,*nGradPresG;;
+    DOUBLE *temp0,*temp,*tempI,*tempG,*nTempI,*nTempG;
+    DOUBLE *gradTempI,*gradTempG,*nGradTempI,*nGradTempG;
+    DOUBLE *y0 ,*y,*yI,*yG,*nYI,*nYG;
+    DOUBLE *gradYI,*gradYG,*nGradYI,*nGradYG;;
+    DOUBLE *wT0  ,*wT  ,*wTI  ,*wTG,*nWTI,*nWTG;
+    DOUBLE *rho0,*rho,*rhoI,*rhoG,*nRhoI,*nRhoG;
+    DOUBLE *sHeat0,*sHeat,*sHeatI,*sHeatG,*nsHeatI,*nsHeatG;
+    DOUBLE *dVisc0,*dVisc,*dViscI,*dViscG,*ndViscI,*ndViscG;
+    DOUBLE *tCond0,*tCond,*tCondI,*tCondG,*ntCondI,*ntCondG;
+    DOUBLE *cDiff0,*cDiff,*cDiffI,*cDiffG,*ncDiffI,*ncDiffG;
+    DOUBLE *mMolar0,*mMolar,*mMolarI,*mMolarG,*nmMolarI,*nmMolarG;
   }TimeInterpol; 
 /*...................................................................*/
 

@@ -474,7 +474,7 @@ int main(int argc,char**argv){
                       ,&combModel   ,&momentumModel
                       ,&media       
                       ,fileIn);
-      mpiWait();
+      mpiWait();      
 /*...................................................................*/
 
 /*... calcula a vizinhaca do elementos da malha completa*/

@@ -496,11 +496,11 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*... arquivo de log*/
-  if (opt->fItPlot)
+   if (!mpiVar.myId && opt->fItPlot)
     fprintf(opt->fileItPlot[FITPLOTSIMPLE]
            , "istep = %d time = %lf\n",sc->ddt.timeStep,sc->ddt.t);
 /*...................................................................*/
-
+ 
 /*...*/
   for (itSimple = 0; itSimple<sp->maxIt; itSimple++) 
   {
@@ -2359,7 +2359,6 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
   tmp = tb[0] = tb[1] = tb[2] = 0.e0;
 
   ndfVel = max(mesh->ndfF - 1,mesh->ndfFt - 2);
-
   if(propF != NULL)
     densityRef = propF->densityRef;  
 
