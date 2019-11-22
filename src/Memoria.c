@@ -70,6 +70,9 @@ void finalizeMem(Memoria *m, bool iws)
 /*********************************************************************/
 
 /********************************************************************* 
+ * Data de criacao    : 00/00/0000                                   *
+ * Data de modificaco : 22/11/2019                                   *
+ *-------------------------------------------------------------------* 
  * ALLOC    : inicia a estrutura basica da memodira                  * 
  * ----------------------------------------------------------------- * 
  * Parametro de entrada:                                             * 
@@ -96,6 +99,12 @@ void* alloc(Memoria *m      , TYPEADRESS **end
 {
 	iptx livre,nec,necA,nv;
   int resto;
+
+  if(comp < 0 )
+  {
+     fprintf(fileLogDebug,"Dimensao do vetor %s negativa !!\n",s);
+     exit(EXIT_FAILURE); 
+  }
 
 /*se o tamanho do vetor for zero transforma em 1 para nao haver
  problemas*/

@@ -936,7 +936,6 @@ void wResVtkDif(Memoria *m        ,double *x
   short j;
   int    *lel=NULL;
   INT i;
-  DOUBLE *p=NULL;
 
   char head[]={"DIF_VOLUME_FINITO"};
   double ddum;
@@ -1139,7 +1138,7 @@ void wResVtkTrans(Memoria *m        , double *x
   short j;
   int    *lel = NULL;
   INT i;
-  DOUBLE *p = NULL;
+
   enum { eT1     = 0, nT1      = 1 
        , eGradT1 = 2, nGradT1  = 3   
        , eVel    = 4, nVel     = 5

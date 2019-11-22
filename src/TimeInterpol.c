@@ -401,7 +401,7 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
 
 
 /*... gradY*/
-  if(opt->gradVel)
+  if(opt->gradY)
   {
     HccaAlloc(DOUBLE,m,ti->gradYI,nel*ndm*ns,"iGradYI"  ,_AD_);
     ti->gradYG = ti->gradYI;

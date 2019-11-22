@@ -147,7 +147,7 @@ void simpleSolver(Memoria *m
                     , &zMomentum, &pCor
                     , fPrint    , itSimple);     
 /*...................................................................*/
-      
+
 /*... residual*/
      tm.residualSimple = getTimeC() - tm.residualSimple;
      residualSimple(mesh->elm.vel 

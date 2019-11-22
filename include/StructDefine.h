@@ -466,12 +466,12 @@
   {
     DOUBLE *vel0,*vel, *velI  ,*velG, *nVelI,*nVelG;
     DOUBLE *gradVelI,*gradVelG,*nGradVelI, *nGradVelG;
-    DOUBLE *p0  ,*p  , *pI    ,*pG, *nPresI,*nPresG;;
-    DOUBLE *gradPresI,*gradPresG,*nGradPresI,*nGradPresG;;
+    DOUBLE *p0  ,*p  , *pI    ,*pG, *nPresI,*nPresG;
+    DOUBLE *gradPresI,*gradPresG,*nGradPresI,*nGradPresG;
     DOUBLE *temp0,*temp,*tempI,*tempG,*nTempI,*nTempG;
     DOUBLE *gradTempI,*gradTempG,*nGradTempI,*nGradTempG;
     DOUBLE *y0 ,*y,*yI,*yG,*nYI,*nYG;
-    DOUBLE *gradYI,*gradYG,*nGradYI,*nGradYG;;
+    DOUBLE *gradYI,*gradYG,*nGradYI,*nGradYG;
     DOUBLE *wT0  ,*wT  ,*wTI  ,*wTG,*nWTI,*nWTG;
     DOUBLE *rho0,*rho,*rhoI,*rhoG,*nRhoI,*nRhoG;
     DOUBLE *sHeat0,*sHeat,*sHeatI,*sHeatG,*nsHeatI,*nsHeatG;

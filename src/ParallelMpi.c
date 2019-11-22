@@ -15,7 +15,7 @@
  *-------------------------------------------------------------------* 
  *********************************************************************/ 
 static void allocFuild(Memoria *m        , Mesh *mesh
-                     , short const maxViz, short const lNel
+                     , short const maxViz, INT const lNel
                      , short const ndfFt)
 {
   INT size;
@@ -153,7 +153,7 @@ static void allocFuild(Memoria *m        , Mesh *mesh
  *-------------------------------------------------------------------* 
  *********************************************************************/ 
 static void allocComb(Memoria *m          , Mesh *mesh
-                     , short const maxViz , short const lNel
+                     , short const maxViz , INT const lNel
                      , short const ndfComb, short const nSp)
 {
   INT size;
@@ -1474,7 +1474,6 @@ static void prMaster(Memoria *m    , Mesh *mesh0
     allocFuild(m     , mesh
               ,maxViz, lNel
               ,ndfFt);
-
 /*...*/
     comunicateFluid(mesh0->elm.faceRvel  ,mesh->elm.faceRvel
               ,mesh0->elm.faceRpres      ,mesh->elm.faceRpres
@@ -1493,8 +1492,9 @@ static void prMaster(Memoria *m    , Mesh *mesh0
               ,lNel                      ,elLG
               ,maxViz                    ,ndfF
               ,ndfFt
-              ,0                         ,1);
+              ,0                         ,1);  
 /*...................................................................*/
+
   }
 /*...................................................................*/
 
@@ -1560,17 +1560,17 @@ static void prMaster(Memoria *m    , Mesh *mesh0
     mesh->elm.adj.nViz[i] = nS[i];
   
   free(nS);  
+
 /*...................................................................*/
 
 /*... no locais*/
   size = lNnode*ndm;
   nD   = (DOUBLE *) malloc(size*dSize); 
   ERRO_MALLOC(nD,"nD"  ,__LINE__,__FILE__,__func__);
-  
   HccaAlloc(DOUBLE,m,mesh->node.x,size 
            ,"xnodeP",_AD_);   
   zero(mesh->node.x,size,DOUBLEC);
-  
+
   dGetLocalV(mesh0->node.x,nD
             ,noLG
             ,lNnode      ,ndm); 
@@ -1579,8 +1579,8 @@ static void prMaster(Memoria *m    , Mesh *mesh0
     mesh->node.x[i] = nD[i];
   
   free(nD);  
+  
 /*...................................................................*/
-
 
 }
 /*********************************************************************/
@@ -1831,7 +1831,7 @@ static void sendPart(Memoria *m    , Mesh *mesh0
               ,lNel                      ,elLG
               ,maxViz                    ,ndfF
               ,ndfFt
-              ,nPart                     ,2);
+              ,nPart                     ,2);  
 /*...................................................................*/
 
 /*...*/
@@ -1879,6 +1879,7 @@ static void sendPart(Memoria *m    , Mesh *mesh0
           ,mpiVar.comm);
         
   free(nS);  
+
 /*...................................................................*/
 
 /*... no locais*/
@@ -2246,6 +2247,7 @@ static void recvPart(Memoria *m    , Mesh *mesh0
     allocFuild(m     , mesh
               ,maxViz,*lNel
               ,ndfFt);
+
 /*...................................................................*/
 
 /*...*/
@@ -2266,7 +2268,7 @@ static void recvPart(Memoria *m    , Mesh *mesh0
                 ,*lNel                     ,elLG
                 ,maxViz                    ,ndfF
                 ,ndfFt
-                ,0                         ,3);
+                ,0                         ,3);  
 /*...................................................................*/
   }
 /*...................................................................*/
@@ -2277,7 +2279,6 @@ static void recvPart(Memoria *m    , Mesh *mesh0
     allocComb(m      , mesh
             , maxViz , *lNel
             , ndfComb, nSp);
-
 /*...*/
     comunicateComb(mesh0->elm.faceResZcomb ,mesh->elm.faceResZcomb
                   ,mesh0->elm.zComb0       ,mesh->elm.zComb0
@@ -2313,7 +2314,8 @@ static void recvPart(Memoria *m    , Mesh *mesh0
   zero(mesh->elm.adj.nViz  ,size      ,"short");
   
   MPI_Recv(mesh->elm.adj.nViz,size, MPI_SHORT,0,11   
-          ,mpiVar.comm,MPI_STATUS_IGNORE);      
+          ,mpiVar.comm,MPI_STATUS_IGNORE);     
+
 /*...................................................................*/
 
 /*... no locais*/
@@ -2324,7 +2326,7 @@ static void recvPart(Memoria *m    , Mesh *mesh0
   zero(mesh->node.x,size,DOUBLEC);
   
   MPI_Recv(mesh->node.x    ,size, MPI_DOUBLE,0,12   
-          ,mpiVar.comm,MPI_STATUS_IGNORE);      
+          ,mpiVar.comm,MPI_STATUS_IGNORE);   
 /*...................................................................*/
 #endif
 }
@@ -4198,7 +4200,7 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
                 , ndfF             , ndfFt
                 , ndfComb          , nSp
                 , ndm              , maxViz
-                , nVizPart         , nVizPartNo);  
+                , nVizPart         , nVizPartNo);    
       }
 /*...................................................................*/
 
@@ -4224,7 +4226,7 @@ void comunicateMesh(Memoria *m        ,Combustion *cModel
                 , ndfComb   , nSp
                 , ndm       , maxViz
                 , nVizPart  , nVizPartNo
-                , nPart );      
+                , nPart );        
       } 
 /*...................................................................*/
     }

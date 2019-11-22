@@ -3977,13 +3977,15 @@ void cellPloadSimple(Loads *loadsPres       ,DOUBLE *RESTRICT cc
   short col = maxViz + 1;
 
 /*...*/  
-  for(nel = 0; nel < numel;nel++){
+  for(nel = 0; nel < numel;nel++)
+  {
     carg = MAT2D(nel,maxViz,faceRpres,col);
 /*... variavel prescrita no dominio*/
-    if(carg > 0){
+    if(carg > 0)
+    {
       carg = MAT2D(nel,maxViz,faceRpres,col)-1;
 /*... valor prescrito constante para pressao na celula*/
-      if( loadsPres[carg].type == CONST)
+      if( loadsPres[carg].type == CONST) 
         pres[nel] = loadsPres[carg].par[0];
 /*...................................................................*/
     }
