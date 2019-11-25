@@ -5129,7 +5129,7 @@ void wallFluidVelPres(Loads *ldVel
               ,INT const nEl           ,short const maxViz
               ,short const iCod)
 {
-  short nCargVel,nCargPres;
+  short nCargVel,nCargPres,nc;
   INT i,j,vizNel,aux2;                   
 
 /*... definicao de carga disponivel*/
@@ -5153,8 +5153,9 @@ void wallFluidVelPres(Loads *ldVel
 /*... contorno*/
       if( vizNel == -1)
       {
+        nc = MAT2D(i,j,faceRvel,aux2);
 /*... parede estatic*/
-        if(MAT2D(i,j,faceRvel,aux2) == 0)
+        if(nc == 0)
         {
           MAT2D(i,j,faceRvel ,aux2) = nCargVel+1;
           MAT2D(i,j,faceRpres,aux2) = nCargPres+1;
@@ -5169,7 +5170,7 @@ void wallFluidVelPres(Loads *ldVel
 /*....................................................................*/
 
 /*... parede perfeitamente lisa*/
-        else if(MAT2D(i,j,faceRvel,aux2) == SLIP)
+        else if(ldVel[nc-1].type == SLIP)
         {
           MAT2D(i,j,faceRvel ,aux2) = nCargVel+1;
           MAT2D(i,j,faceRpres,aux2) = nCargPres+1;
@@ -5182,6 +5183,19 @@ void wallFluidVelPres(Loads *ldVel
           ldPresC[nCargPres].type   = FLUXPRESC;
         }
 /*....................................................................*/
+
+/*... parede movel*/
+        else if(ldVel[nc-1].type == MOVEWALL)
+        {
+          MAT2D(i,j,faceRpres,aux2) = nCargPres+1;
+          ldPres[nCargPres].fUse    = true;
+          ldPres[nCargPres].type    = FLUXPRES;
+          ldPres[nCargPres].iCod[0] = iCod;
+          ldPresC[nCargPres].fUse   = true;
+          ldPresC[nCargPres].type   = FLUXPRESC;
+        }
+/*....................................................................*/
+
       }
 /*....................................................................*/
     }
