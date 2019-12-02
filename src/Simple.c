@@ -471,8 +471,6 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                    ,mesh->numel,mesh->elm.pressure0);
 /*...................................................................*/
 
-/*...*/
-    tm.cellTransientSimple = getTimeC() - tm.cellTransientSimple;
 /*... zComb*/
     cellTransientSimple(mesh->elm.geom.volume , sistEqComb->id
                       , mesh->elm.zComb0      , mesh->elm.zComb

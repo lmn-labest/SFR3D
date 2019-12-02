@@ -135,7 +135,7 @@ bool energyEquation(Memoria *m               , PropVarFluid *prop
   tmp = sqrt(dot(sistEqEnergy->b,sistEqEnergy->b
                   ,sistEqEnergy->neqNov));
   fEnergy = true;
-  if (tmp == 0.e0) fEnergy = false;  
+  if (tmp == 0.e0 || tmp < SZERO) fEnergy = false;  
 /*...................................................................*/
 
 /*...Ae=bE*/

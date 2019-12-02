@@ -887,7 +887,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
   INT k,maxIt;
   DOUBLE aTol,rTol;
   DOUBLE x,dy,pres=Pth,tF,yF,yOx,yP,tMix,tChem,tStar;
-  DOUBLE gEdc,gamma,cTau,itMix,tK,yt[MAXSPECIES],tt,yy;
+  DOUBLE gEdc,gamma,cTau,itMix,tK,yt[MAXSPECIES],yt0[MAXSPECIES],tt,yy;
   
 /*...*/
 /*for(i=0,yF=0.e0;i<c->chem.nFuel;i++)
@@ -945,7 +945,8 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
 //    x2 = min((tmp2)/(gamma*tmp2),1.e0);
 //    x3 = (gamma*tmp2/yMin,1.e0);
       x = 1.e0;
-      gEdc = x/(1.e0 - x*gamma);
+//    gEdc = x/(1.e0 - x*gamma);
+      gEdc = 1.e0;
       break;
 /*...................................................................*/
     default:
@@ -961,7 +962,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
 
 /*...*/
   for(i=0;i<c->chem.nSp;i++)
-    yt[i] = FRACMAX(y[i],FRACZERO);
+    yt[i] = yt0[i] = FRACMAX(y[i],FRACZERO);
 /*....................................................................*/
 
 /*...*/
@@ -978,17 +979,22 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
 
   tReactor[3] = tF;
   tReactor[4] = k;
-
 /*...*/
   for(i=0;i<c->chem.nSp;i++)
   {    
     if(yt[i] < 0.e0)
       yt[i] = 0.e0;
     yy = FRACMAX(yt[i],FRACZERO);
-    dy = yy-y[i];
+    yy = FRACONE(yt[i]);
+    dy = yy-yt0[i];
     w[i] = density*gEdc*dy/tStar;
   }
 /*....................................................................*/
+
+    if(nel == 0) fprintf(fileLogDebug,"%d %e %e %e %e %e %e\n",nel
+                                                        ,yt0[0],yt0[1]
+                                                        ,yt[0] ,yt[1]
+                                                        ,w[0]  ,w[1]);
 
   return k;
 

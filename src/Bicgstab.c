@@ -419,7 +419,7 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
 /*...................................................................*/
  
 /*...*/
-		if (jj == 2000) 
+		if (jj == 1000) 
     {
 			jj = 0;
       if(!mpiVar.myId)

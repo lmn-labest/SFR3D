@@ -256,7 +256,7 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
            ,dt                                    ,temp[nel]
            ,eddyC                                 ,dViscosity[nel]
            ,thDynamic.pTh[2]                      ,fKelvin
-           ,nel );
+           ,nel );          
 /*...................................................................*/
           for(i=0;i<nSp;i++)
             MAT2D(nel,i,rate,nSp) = w[i];
