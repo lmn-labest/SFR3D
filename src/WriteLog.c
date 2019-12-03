@@ -122,10 +122,10 @@ void writeLog(Mesh *mesh            ,Scheme *sc
   }
 
 /*... Solver*/
-  fprintf(file,"%-25s : %13.3lf\n","Pcg"        ,t->pcg);
-  fprintf(file,"%-25s : %13.3lf\n","Pbicgstab"  ,t->pbicgstab);
-  fprintf(file,"%-25s : %13.3lf\n","Gmres"      ,t->gmres);
-  fprintf(file,"%-25s : %13.3lf\n","Pardiso"    ,t->pardiso);
+  fprintf(file,"%-25s : %13.3lf\n","pcg"        ,t->pcg);
+  fprintf(file,"%-25s : %13.3lf\n","pbicgstab"  ,t->pbicgstab);
+  fprintf(file,"%-25s : %13.3lf\n","gmres"      ,t->gmres);
+  fprintf(file,"%-25s : %13.3lf\n","pardiso"    ,t->pardiso);
   fprintf(file,"%-25s : %13.3lf\n","precondDiag",t->precondDiag);
 
 /*... particionamento*/
@@ -152,11 +152,11 @@ void writeLog(Mesh *mesh            ,Scheme *sc
 /*... solvD1*/
   if(fSolvD1)
   {
-    fprintf(file,"%-25s : %13.3lf\n","SolvD1"         ,t->solvD1);
+    fprintf(file,"%-25s : %13.3lf\n","solvD1"         ,t->solvD1);
     fprintf(file,"%-25s : %13.3lf\n","numeqD1"        ,t->numeqD1);
     fprintf(file,"%-25s : %13.3lf\n","dataStructD1"   ,t->dataStructD1);
-    fprintf(file,"%-25s : %13.3lf\n","CellPloadD1"    ,t->CellPloadD1);
-    fprintf(file,"%-25s : %13.3lf\n","CellTransientD1",t->CellTransientD1);
+    fprintf(file,"%-25s : %13.3lf\n","cellPloadD1"    ,t->CellPloadD1);
+    fprintf(file,"%-25s : %13.3lf\n","cellTransientD1",t->CellTransientD1);
     fprintf(file,"%-25s : %13.3lf\n","systFormD1"     ,t->systFormD1);
     fprintf(file,"%-25s : %13.3lf\n","rcGradD1"       ,t->rcGradD1);
     fprintf(file,"%-25s : %13.3lf\n","solvEdpD1"      ,t->solvEdpD1);
@@ -166,7 +166,7 @@ void writeLog(Mesh *mesh            ,Scheme *sc
 /*... solvT1*/
   if(fSolvT1)
   {
-    fprintf(file,"%-25s : %13.3lf\n","SolvT1"         ,t->solvT1);
+    fprintf(file,"%-25s : %13.3lf\n","solvT1"         ,t->solvT1);
     fprintf(file,"%-25s : %13.3lf\n","numeqT1"        ,t->numeqT1);
     fprintf(file,"%-25s : %13.3lf\n","dataStructT1"   ,t->dataStructT1);
     fprintf(file,"%-25s : %13.3lf\n","CellPloadT1"    ,t->CellPloadT1);
@@ -178,17 +178,17 @@ void writeLog(Mesh *mesh            ,Scheme *sc
 /*...................................................................*/
 
 /*...*/
-  fprintf(file,"%-25s : %13.3lf\n","solvEdpFuild",t->solvEdpFluid);
+  fprintf(file,"%-25s : %13.3lf\n","solvEdpFluid",t->solvEdpFluid);
   fprintf(file,"%-25s : %13.3lf\n","updateProp"         ,t->updateProp);
 
 /*... solvVel*/
   if(fSolvVel)
   {
-    fprintf(file,"%-25s : %13.3lf\n","SolvVel"            ,t->solvVel);
+    fprintf(file,"%-25s : %13.3lf\n","solvVel"            ,t->solvVel);
     fprintf(file,"%-25s : %13.3lf\n","numeqVel"           ,t->numeqVel);
     fprintf(file,"%-25s : %13.3lf\n","dataStructVel"      ,t->dataStructVel);
-    fprintf(file,"%-25s : %13.3lf\n","CellPloadSimple"    ,t->cellPloadSimple);
-    fprintf(file,"%-25s : %13.3lf\n","CellTransientSimple",t->cellTransientSimple);
+    fprintf(file,"%-25s : %13.3lf\n","cellPloadSimple"    ,t->cellPloadSimple);
+    fprintf(file,"%-25s : %13.3lf\n","cellTransientSimple",t->cellTransientSimple);
     fprintf(file,"%-25s : %13.3lf\n","systFormVel"        ,t->systFormVel);
     fprintf(file,"%-25s : %13.3lf\n","velExp"             ,t->velExp);
     fprintf(file,"%-25s : %13.3lf\n","rcGradVel"          ,t->rcGradVel);
@@ -200,7 +200,7 @@ void writeLog(Mesh *mesh            ,Scheme *sc
 /*... solvPres*/
   if(fSolvPres)
   {
-    fprintf(file,"%-25s : %13.3lf\n","SolvPres"      ,t->solvPres);
+    fprintf(file,"%-25s : %13.3lf\n","solvPres"      ,t->solvPres);
     fprintf(file,"%-25s : %13.3lf\n","numeqPres"     ,t->numeqPres);
     fprintf(file,"%-25s : %13.3lf\n","dataStructPres",t->dataStructPres);
     fprintf(file,"%-25s : %13.3lf\n","systFormPres"  ,t->systFormPres);
@@ -211,7 +211,7 @@ void writeLog(Mesh *mesh            ,Scheme *sc
 /*... energy*/
   if(fEnergy)
   {
-    fprintf(file,"%-25s : %13.3lf\n","SolvEnergy"       ,t->solvEnergy);
+    fprintf(file,"%-25s : %13.3lf\n","solvEnergy"       ,t->solvEnergy);
     fprintf(file,"%-25s : %13.3lf\n","numeqEnergy"      ,t->numeqEnergy);
     fprintf(file,"%-25s : %13.3lf\n","dataStructEnergy" ,t->dataStructEnergy);
     fprintf(file,"%-25s : %13.3lf\n","systFormEnergy"   ,t->systFormEnergy);
@@ -223,7 +223,7 @@ void writeLog(Mesh *mesh            ,Scheme *sc
 /*... combustion*/
   if(fCombustion)
   {
-    fprintf(file,"%-25s : %13.3lf\n","SolvCombustion"      ,t->solvComb);
+    fprintf(file,"%-25s : %13.3lf\n","solvCombustion"      ,t->solvComb);
     fprintf(file,"%-25s : %13.3lf\n","numeqCombustion"     ,t->numeqComb);
     fprintf(file,"%-25s : %13.3lf\n","dataStructCombustion",t->dataStructComb);
     fprintf(file,"%-25s : %13.3lf\n","systFormCombustion"  ,t->systFormComb);
@@ -241,7 +241,7 @@ void writeLog(Mesh *mesh            ,Scheme *sc
     fprintf(file,"%-25s : %13.3lf\n","turbulence",t->turbulence);
 /*...................................................................*/
 
-  fprintf(file,"%-25s : %13.3lf\n","Total",t->total);
+  fprintf(file,"%-25s : %13.3lf\n","total",t->total);
 /*...*/
   fprintf(file,"\nMesh:\n");
   fprintf(file,"nnode              : %d\n",mesh->nnode);
@@ -418,17 +418,17 @@ void writeLog(Mesh *mesh            ,Scheme *sc
   MPI_Reduce(&t->pcg           , &mTime , 1, MPI_DOUBLE
             ,MPI_SUM          , 0      , mpiVar.comm);
   if(!mpiVar.myId)
-    fprintf(file,"%-25s : %13.3lf\n","Pcg",mTime/nPrcs);
+    fprintf(file,"%-25s : %13.3lf\n","pcg",mTime/nPrcs);
 
   MPI_Reduce(&t->pbicgstab   , &mTime , 1, MPI_DOUBLE
             ,MPI_SUM          , 0      , mpiVar.comm);
   if(!mpiVar.myId)
-    fprintf(file,"%-25s : %13.3lf\n","Pbicgstab",mTime/nPrcs);
+    fprintf(file,"%-25s : %13.3lf\n","pbicgstab",mTime/nPrcs);
 
   MPI_Reduce(&t->gmres         , &mTime , 1, MPI_DOUBLE
             ,MPI_SUM          , 0      , mpiVar.comm);
   if(!mpiVar.myId)
-    fprintf(file,"%-25s : %13.3lf\n","Gmres",mTime/nPrcs);
+    fprintf(file,"%-25s : %13.3lf\n","gmres",mTime/nPrcs);
 
   MPI_Reduce(&t->precondDiag   , &mTime , 1, MPI_DOUBLE
             ,MPI_SUM          , 0      , mpiVar.comm);
@@ -503,7 +503,7 @@ void writeLog(Mesh *mesh            ,Scheme *sc
     MPI_Reduce(&t->solvD1          , &mTime , 1, MPI_DOUBLE
               ,MPI_SUM            , 0      , mpiVar.comm);
     if(!mpiVar.myId)
-      fprintf(file,"%-25s : %13.3lf\n","SolvD1",mTime/nPrcs);
+      fprintf(file,"%-25s : %13.3lf\n","solvD1",mTime/nPrcs);
     
     MPI_Reduce(&t->numeqD1          , &mTime , 1, MPI_DOUBLE
               ,MPI_SUM            , 0      , mpiVar.comm);
@@ -518,7 +518,7 @@ void writeLog(Mesh *mesh            ,Scheme *sc
     MPI_Reduce(&t->CellPloadD1     , &mTime , 1, MPI_DOUBLE
               ,MPI_SUM            , 0      , mpiVar.comm);
     if(!mpiVar.myId)
-      fprintf(file,"%-25s : %13.3lf\n","CellPloadD1",mTime/nPrcs);
+      fprintf(file,"%-25s : %13.3lf\n","cellPloadD1",mTime/nPrcs);
     
     MPI_Reduce(&t->CellTransientD1 , &mTime , 1, MPI_DOUBLE
               ,MPI_SUM            , 0      , mpiVar.comm);
@@ -628,12 +628,12 @@ void writeLog(Mesh *mesh            ,Scheme *sc
     MPI_Reduce(&t->systFormVel    , &mTime , 1, MPI_DOUBLE
               ,MPI_SUM            , 0      , mpiVar.comm);
     if(!mpiVar.myId)
-      fprintf(file,"%-25s : %13.3lf\n","systFormaVeltSimple",mTime/nPrcs);
+      fprintf(file,"%-25s : %13.3lf\n","systFormVel",mTime/nPrcs);
 
     MPI_Reduce(&t->rcGradVel      , &mTime , 1, MPI_DOUBLE
               ,MPI_SUM            , 0      , mpiVar.comm);
     if(!mpiVar.myId)
-      fprintf(file,"%-25s : %13.3lf\n","rcGraVel",mTime/nPrcs);
+      fprintf(file,"%-25s : %13.3lf\n","rcGradVel",mTime/nPrcs);
 
   }
 /*...................................................................*/
@@ -644,7 +644,7 @@ void writeLog(Mesh *mesh            ,Scheme *sc
     MPI_Reduce(&t->solvPres    , &mTime , 1, MPI_DOUBLE
               ,MPI_SUM            , 0      , mpiVar.comm);
     if(!mpiVar.myId)
-      fprintf(file,"%-25s : %13.3lf\n","SolvPres",mTime/nPrcs);
+      fprintf(file,"%-25s : %13.3lf\n","solvPres",mTime/nPrcs);
 
     MPI_Reduce(&t->numeqPres         , &mTime , 1, MPI_DOUBLE
               ,MPI_SUM            , 0      , mpiVar.comm);
@@ -762,7 +762,7 @@ void writeLog(Mesh *mesh            ,Scheme *sc
   MPI_Reduce(&t->total           , &mTime , 1, MPI_DOUBLE
             ,MPI_SUM            , 0      , mpiVar.comm);
   if(!mpiVar.myId)
-    fprintf(file,"%-25s : %13.3lf\n","Total",mTime/nPrcs);
+    fprintf(file,"%-25s : %13.3lf\n","total",mTime/nPrcs);
 
 
 /*...*/
