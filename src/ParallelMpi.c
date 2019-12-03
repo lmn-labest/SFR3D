@@ -747,7 +747,7 @@ static void comunicateFluid(short *m0faceRvel     ,short *faceRvel
         for(i=0;i<size;i++) 
           pres0[i] = nD[i];
       else if(iCod == 2)
-         MPI_Send(nD    ,       size, MPI_SHORT,nPart,10  
+         MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,10  
                  ,mpiVar.comm);
 
       free(nD);
@@ -766,7 +766,7 @@ static void comunicateFluid(short *m0faceRvel     ,short *faceRvel
         for(i=0;i<size;i++) 
           pres[i] = nD[i];
       else if(iCod == 2)
-         MPI_Send(nD    ,       size, MPI_SHORT,nPart,11   
+         MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,11   
                  ,mpiVar.comm);
 
       free(nD);

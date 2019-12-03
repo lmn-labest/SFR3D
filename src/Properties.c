@@ -1020,7 +1020,7 @@ void  getTempFromTheEnergyMix(PropVarFluid *pf,DOUBLE *RESTRICT yFrac
   else
   {
 #pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
-  private(i,y) shared(energy,temp,pf,yFrac)
+  private(i,y) shared(energy,temp,pf,yFrac) schedule(static)
     for (i = 0; i < nCell; i++)
     {
       y = &MAT2D(i,0,yFrac,nOfPrSp);
