@@ -783,7 +783,7 @@ void mpiPcgOmp(INT const nEq     , INT const nEqNov
 #pragma omp parallel default(none) num_threads(nThreads)\
   private(i,j,jj,conv,norm_b,tmp,norm,d,di,alpha,beta)\
   shared(ia,ja,a,ad,m,b,x,z,r,p,maxIt,fileLog,xKx,norm_r_m,norm_r\
-         ,fileHistLog,matvec,dot,bOmp,nThreads,jG,param,iNeq,mpiVar)
+         ,fileHistLog,matvec,dot,bOmp,nThreads,jG,param,iNeq,mpiVar,fileLogDebug)
   {
 /*... chute inicial*/
     if (newX)

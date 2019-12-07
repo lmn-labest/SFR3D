@@ -419,7 +419,7 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
 /*...................................................................*/
  
 /*...*/
-		if (jj == 1000) 
+		if (jj == 2000) 
     {
 			jj = 0;
       if(!mpiVar.myId)
@@ -789,7 +789,6 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
             "time %20.5lf\n"
             , tol, js + 1, xKx, norm, timef);
 /*..................................................................*/  
-
 }
 /**********************************************************************/
 
@@ -874,7 +873,7 @@ void mpiPbicgstabOmp(INT const nEq,INT const nEqNov
 #pragma omp parallel default(none) num_threads(nThreads)\
   private(i,j,jj,conv,norm_b,tmp,d,alpha,beta,rr0,w)\
   shared(js,ia,ja,a,ad,m,b,x,z,r,p,r0,v,t,maxIt,xKx,norm,norm_r\
-         ,fileHistLog,matvec,dot,bOmp,nThreads,param,iNeq)
+         ,fileHistLog,matvec,dot,bOmp,nThreads,param,iNeq,fileLogDebug)
   {
 /*... chute inicial*/
     if (newX)
@@ -884,7 +883,7 @@ void mpiPbicgstabOmp(INT const nEq,INT const nEqNov
 /*...................................................................*/
 
 /*... conv = tol * |b|*/
-    d      = dot(b, b, nEqNov);
+    d      = dot(b, b, nEqNov);    
     norm_b = sqrt(d);
     conv   = tol*norm_b;
   //breaktol = btol*sqrt(d);
@@ -893,7 +892,7 @@ void mpiPbicgstabOmp(INT const nEq,INT const nEqNov
 /*... Ax0*/
     matvec(nEqNov        ,param  
           ,ia            ,ja 
-          ,a             ,a
+          ,a             ,ad
           ,x             ,z
           ,bOmp->thBegin ,bOmp->thEnd
           ,bOmp->thHeight,bOmp->thY
@@ -980,7 +979,7 @@ void mpiPbicgstabOmp(INT const nEq,INT const nEqNov
 
 /*... (r, r)*/
       d = dot(r,r,nEqNov);
-      if (sqrt(d) < conv) break;
+      if (sqrt(fabs(d)) < conv) break;
 /*...................................................................*/
 
 /*...*/
@@ -1027,7 +1026,7 @@ void mpiPbicgstabOmp(INT const nEq,INT const nEqNov
           ,x             ,z
           ,bOmp->thBegin ,bOmp->thEnd
           ,bOmp->thHeight,bOmp->thY
-          ,nThreads);
+          ,nThreads      ,iNeq);
 /*norma de energia = xT*A*x */
     tmp = dot(x, z, nEqNov);
 #pragma omp master

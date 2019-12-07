@@ -921,7 +921,7 @@ void setMatVec(void (**matVecC)(),short const storage
 
 /**********************************************************************
 * Data de criacao    : 27/08/2016                                    *
-* Data de modificaco : 27/08/2019                                    *
+* Data de modificaco : 07/12/2019                                    *
 * -------------------------------------------------------------------*
 * CALLCG : chama o gradiente conjugados escolhido                    *
 * -------------------------------------------------------------------*
@@ -953,19 +953,19 @@ void callCg(INT const nEq      ,INT const nEqNov
 /*... OpenMp*/
     if(ompVar.fSolver)
     {
-/*    mpiPcg(nEq     ,nEqNov
-          ,nAd     ,nAdR
-          ,ia      ,ja
-          ,al      ,ad 
-          ,m       ,b  
-          ,x       ,z
-          ,r       ,p
-          ,tol     ,maxIt
-          ,newX    ,fSolvLog
-          ,NULL    ,fLog
-          ,false   ,fPrint
-          ,iNeq
-          ,matVec  ,dot);*/
+      mpiPcgOmp( nEq     , nEqNov
+               , nAd     , nAdR
+               , ia      , ja
+               , al      , ad
+               , m       , b
+               , x       , z
+               , r       , p
+               , tol     , maxIt
+               , newX    , fSolvLog
+               , NULL    , fLog
+               , false   , fPrint
+               , bOmp    , iNeq
+               , matVec  , dot);
     }
 /*...................................................................*/
 

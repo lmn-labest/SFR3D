@@ -2,7 +2,7 @@
 
 /**********************************************************************
  * Data de criacao    : 28/08/2016                                    *
- * Data de modificaco : 00/00/0000                                    *
+ * Data de modificaco : 07/12/2019                                    *
  * -------------------------------------------------------------------*
  * PMATRIXSOLVEROMP: balanciamento do treabalho no openmp no solver   *
  * -------------------------------------------------------------------*
@@ -33,7 +33,7 @@ void pMatrixSolverOmp(Memoria *m,SistEq *eq
   HccaAlloc(INT, m, eq->omp.thHeight, nth, s4, false);
 
   partitionCsrByNonzeros(eq->ia          ,eq->ja
-                        ,eq->neq
+                        ,eq->neqNov
                         ,nth             ,eq->omp.thBegin
                         ,eq->omp.thEnd   ,eq->omp.thSize
                         ,eq->omp.thHeight,eq->storage);
@@ -146,9 +146,9 @@ void openMpSet(FILE *fileIn, Omp *ompVar){
       ompVar->fUpdate = true;
       nth = atol(word);
       if(nth<0)
-        ompVar->fUpdate  = (short) nthMax;
+        ompVar->nThreadsUpdate  = (short) nthMax;
       else
-        ompVar->fUpdate  = (short) nth;
+        ompVar->nThreadsUpdate  = (short) nth;
 /*...................................................................*/
 
 /*...*/       
@@ -166,13 +166,13 @@ void openMpSet(FILE *fileIn, Omp *ompVar){
       ompVar->fGrad = true;
       nth = atol(word);
       if(nth<0)
-        ompVar->fGrad = (short) nthMax;
+        ompVar->nThreadsGrad = (short) nthMax;
       else
-        ompVar->fGrad = (short) nth;
+        ompVar->nThreadsGrad = (short) nth;
 /*...................................................................*/
 
 /*...*/       
-      fprintf(fileLogExc,"%-20s: %d\n","Update nThreads"
+      fprintf(fileLogExc,"%-20s: %d\n","Grad nThreads"
                         , ompVar->nThreadsGrad);
 /*...................................................................*/
       nOmp--;

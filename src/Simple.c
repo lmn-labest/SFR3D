@@ -2243,6 +2243,7 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
         tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
         MPI_Allreduce(&dtCfl,&gg ,1,MPI_DOUBLE,MPI_MIN,mpiVar.comm);
         dtCfl = gg;
+        tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
       }
 #endif
 /*...................................................................*/
@@ -2605,7 +2606,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
     if (tb[2] <= tmp * SZERO || tb[2] == 0.e0) *zMomentum = false;
   }
 /*...................................................................*/
-
+ 
 /*... solver Au = bu (velocidade estimadas)*/
   if (*xMomentum) {
     if (fPrint) printf("Quantidade de movimento u1:\n");

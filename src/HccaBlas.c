@@ -1121,10 +1121,16 @@ DOUBLE dotOmp(DOUBLE *RESTRICT x1, DOUBLE *RESTRICT x2, INT const n)
 
 /*...*/
 #ifdef _MPI_
-  if(mpiVar.nPrcs>1){ 
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
-    MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  if(mpiVar.nPrcs>1)
+  { 
+    #pragma omp single
+    {
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+      MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+      tmpDotOmp = dot;
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    }
+    dot = tmpDotOmp;
   }
   else  
     dot = tmpDotOmp;
@@ -1194,10 +1200,14 @@ double dotOmpO2I2(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 
 /*...*/
 #ifdef _MPI_
-  if(mpiVar.nPrcs>1){ 
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
-    MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  if(mpiVar.nPrcs>1)
+  { 
+    #pragma omp single
+    {
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+      MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    }
   }
   else  
     dot = tmpDotOmp;
@@ -2882,7 +2892,7 @@ void matVecCsrDsymOmp(INT const nEq
  * x   -> vetor a ser multiplicado                                   * 
  * y   -> indefinido                                                 * 
  * thBegin -> linha inicial do thread i                              *
- * thEnd   -> linha final do thread i                                *                       *
+ * thEnd   -> linha final do thread i                                *
  * thHeight-> menor linha que o thread i acessa no vertor y          *
  * thY     -> buffer Y                                               *
  * tThreads-> numero de threads                                      *
@@ -2969,7 +2979,7 @@ void mpiMatVecCsrDSymOmp(INT const nEq       ,INT const *nAd
       tmp += ar[k]*x[jak];
     } 
 /*... armazena o resultado em y(i) */
-    y[i] = tmp;
+    thY[i+inc] = tmp;
   }
 /*...................................................................*/
   
@@ -4314,8 +4324,7 @@ void mpiMatVecCsrComp(INT const nEq       ,INT const *nAd
   }
 /*...................................................................*/
 
-  inc = id*nEq;
-      
+  inc = id*nEq;  
 /*...*/
   for(i=thBegin[id];i<thEnd[id];i++)
   {
@@ -4328,7 +4337,7 @@ void mpiMatVecCsrComp(INT const nEq       ,INT const *nAd
 /*... produto da linha i pelo vetor x*/
       tmp    += al[k]*x[jak];
 /*... produto dos coef. da parte superior da matriz por x(i)*/
-      y[jak] += au[k]*xi;
+      jak       = jak + inc;
       thY[jak] += au[k]*xi;
     }
     
