@@ -72,7 +72,7 @@ void openMpCheck(bool omp) {
 
 /**********************************************************************
  * Data de criacao    : 28/01/2018                                    *
- * Data de modificaco : 05/08/2019                                    *
+ * Data de modificaco : 07/12/2019                                    *
  * -------------------------------------------------------------------*
  * openMpSet: configuracao do openMP                                  *
  * -------------------------------------------------------------------*
@@ -89,7 +89,10 @@ void openMpCheck(bool omp) {
 void openMpSet(FILE *fileIn, Omp *ompVar){
   char word[WORD_SIZE];
   unsigned short nOmp;
-  
+  int nthMax,nth;
+  #if _OPENMP
+    nthMax = omp_get_max_threads();
+  #endif
   readMacroV2(fileIn, word, false, true);
   fprintf(fileLogExc,"%-20s:\n","OpenMp:");
   nOmp = (short)atol(word);
@@ -100,8 +103,12 @@ void openMpSet(FILE *fileIn, Omp *ompVar){
     if (!strcmp(word, "solver")) {
       readMacroV2(fileIn, word, false, true);
 /*... codigo da da funcao limitadora de fluxo*/
-      ompVar->nThreadsSolver = (short)atol(word);
       ompVar->fSolver        = true;
+      nth = atol(word);
+      if(nth<0)
+        ompVar->nThreadsSolver = (short)nthMax;
+      else
+        ompVar->nThreadsSolver = (short) nth;
 /*...................................................................*/
 
 /*...*/    
@@ -113,27 +120,35 @@ void openMpSet(FILE *fileIn, Omp *ompVar){
 /*...................................................................*/
 
 /*... cell*/
-   else if (!strcmp(word, "cell")) {
-     readMacroV2(fileIn, word, false, true);
+    else if (!strcmp(word, "cell")) {
+      readMacroV2(fileIn, word, false, true);
 /*...*/
-     ompVar->nThreadsCell = (short)atol(word);
-     ompVar->fCell = true;
+      ompVar->fCell = true;
+      nth = atol(word);
+      if(nth<0)
+        ompVar->nThreadsCell = (short) nthMax;
+      else
+        ompVar->nThreadsCell = (short) nth;
 /*...................................................................*/
 
 /*...*/       
-     fprintf(fileLogExc,"%-20s: %d\n","Cell nThreads"
+      fprintf(fileLogExc,"%-20s: %d\n","Cell nThreads"
                        , ompVar->nThreadsCell);
 /*...................................................................*/
-     nOmp--;
-   }
+      nOmp--;
+    }
 /*...................................................................*/
 
 /*... update*/
     else if (!strcmp(word, "update")) {
       readMacroV2(fileIn, word, false, true);
 /*...*/
-      ompVar->nThreadsUpdate = (short)atol(word);
       ompVar->fUpdate = true;
+      nth = atol(word);
+      if(nth<0)
+        ompVar->fUpdate  = (short) nthMax;
+      else
+        ompVar->fUpdate  = (short) nth;
 /*...................................................................*/
 
 /*...*/       
@@ -148,8 +163,12 @@ void openMpSet(FILE *fileIn, Omp *ompVar){
     else if (!strcmp(word, "grad")) {
       readMacroV2(fileIn, word, false, true);
 /*...*/
-      ompVar->nThreadsGrad = (short)atol(word);
       ompVar->fGrad = true;
+      nth = atol(word);
+      if(nth<0)
+        ompVar->fGrad = (short) nthMax;
+      else
+        ompVar->fGrad = (short) nth;
 /*...................................................................*/
 
 /*...*/       
@@ -164,8 +183,12 @@ void openMpSet(FILE *fileIn, Omp *ompVar){
     else if (!strcmp(word, "reaction")) {
       readMacroV2(fileIn, word, false, true);
 /*...*/
-      ompVar->nThreadsReaction = (short)atol(word);
       ompVar->fReaction = true;
+      nth = atol(word);
+      if(nth<0)
+        ompVar->nThreadsReaction = (short) nthMax;
+      else
+        ompVar->nThreadsReaction = (short) nth;
 /*...................................................................*/
 
 /*...*/       
