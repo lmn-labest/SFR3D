@@ -1350,7 +1350,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-      readSolvComb(&m          , mesh           , &reordMesh
+      readSolvFluid(&m          , mesh           , &reordMesh
                    , &combModel 
                    , &solvVel   , &sistEqVel    , &fSolvVel
                    , &solvPres  , &sistEqPres   , &fSolvPres
@@ -1698,7 +1698,7 @@ int main(int argc,char**argv){
     {
       initSec(word, OUTPUT_FOR_FILE);
 /*...*/
-      readSolvComb(&m         , mesh         , &reordMesh
+      readSolvFluid(&m         , mesh         , &reordMesh
                  , &combModel
                  , &solvVel   , &sistEqVel   , &fSolvVel
                  , &solvPres  , &sistEqPres  , &fSolvPres

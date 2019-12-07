@@ -100,9 +100,6 @@ void solverC(Memoria *m
       HccaAlloc(DOUBLE,m,z,nEq,"z",false);
       HccaAlloc(DOUBLE,m,r,nEq,"r",false);
 			HccaAlloc(DOUBLE,m,p,nEq,"p",false);
-      zero(z,nEq,DOUBLEC);
-      zero(r,nEq,DOUBLEC);
-			zero(p,nEq, DOUBLEC);
 /*...................................................................*/
       
 /*...*/
@@ -162,12 +159,6 @@ void solverC(Memoria *m
       HccaAlloc(DOUBLE,m,v,nEq,"vv",false);
       HccaAlloc(DOUBLE,m,p,nEq,"pp",false);
 			HccaAlloc(DOUBLE,m,h,nEq,"hh", false);
-      zero(z,nEq,DOUBLEC);
-      zero(r,nEq,DOUBLEC);
-      zero(t,nEq,DOUBLEC);
-      zero(v,nEq,DOUBLEC);
-      zero(p,nEq,DOUBLEC);
-			zero(h,nEq,DOUBLEC);
 /*...................................................................*/
 
 /*...*/

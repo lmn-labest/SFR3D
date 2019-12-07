@@ -88,18 +88,7 @@
    bool readSetSimple(Memoria *m    , FILE *fileIn
                     , Mesh *mesh0   , Mesh *mesh
                     , Simple *simple);
-   void readSetSimpleComb(Memoria *m    , FILE *fileIn
-                     , Mesh *mesh0   , Mesh *mesh
-                    , Simple *simple, bool *fSolvComb);
-/*...*/
-   void readSolvFluid(Memoria *m, Mesh *mesh
-                    , Reord *reordMesh
-                    , Solv *solvVel, SistEq* sistEqVel, bool *fSolvVel
-                    , Solv *solvPres, SistEq* sistEqPres, bool *fSolvPres
-                    , Solv *solvEnergy, SistEq* sistEqEnergy, bool *fSolvEnergy
-                    , Solv *solvKturb, SistEq* sistEqKturb, bool *fSolvKturb
-                    , char* auxName, char* preName, char* nameOut
-                    , FILE *fileIn, FileOpt *opt);
+
 /*...*/
   void readSolvDiff (Memoria *m   , Mesh *mesh      , Reord *reordMesh
                    , Solv *solvD1 , SistEq* sistEqD1, bool *fSolvD1
@@ -111,7 +100,7 @@
                    , char* auxName, char* preName   , char* nameOut
                    , FILE *fileIn , FileOpt *opt);
 
-  void readSolvComb(Memoria *m      , Mesh *mesh          , Reord *reordMesh
+  void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
                 , Combustion *cModel 
                 , Solv *solvVel   , SistEq* sistEqVel   , bool *fSolvVel
                 , Solv *solvPres  , SistEq* sistEqPres  , bool *fSolvPres
