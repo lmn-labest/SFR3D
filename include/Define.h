@@ -346,7 +346,7 @@
 /*...*/
   #define DIFPROP        5  /*numero de propriedade de 
                             problemas difusao pura*/
-  #define MAXPROP       20  /*numero maximo de propriedades*/
+  #define MAXPROP       10  /*numero maximo de propriedades*/
   #define MAXMAT       200 /*numero maximo de materias*/
   #define MAX_TRANS_EQ   3 /*numero maximo de equacoes de transporte*/ 
   #define MAX_DIF_EQ     3 /*numero maximo de equacoes de difusa*/ 

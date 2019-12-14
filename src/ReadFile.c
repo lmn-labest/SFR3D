@@ -1151,7 +1151,7 @@ void readFileFvMesh( Memoria *m              , Mesh *mesh
   setLoadsRho(propF               , loadsRhoFluid
             , loadsVel            , loadsTemp
             , energyModel->fKelvin );
-  if(rflag[18])
+  if(mesh->ndfFt)
     initFaceRrho( loadsVel
                 , mesh->elm.faceRvel       , mesh->elm.faceRrho  
                 , mesh->elm.adj.nViz       , mesh->maxViz

@@ -1198,7 +1198,6 @@ double dotOmpO2I2(double *RESTRICT x1, double *RESTRICT x2, INT const n)
     tmpDotOmp = tmpDotOmp1 + tmpDotOmp2;
   }
 
-/*...*/
 #ifdef _MPI_
   if(mpiVar.nPrcs>1)
   { 
@@ -1206,15 +1205,16 @@ double dotOmpO2I2(double *RESTRICT x1, double *RESTRICT x2, INT const n)
     {
       tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
       MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+      tmpDotOmp = dot;
       tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
     }
+    dot = tmpDotOmp;
   }
   else  
     dot = tmpDotOmp;
 #else
     dot = tmpDotOmp;
 #endif
-/*...................................................................*/
 
 /*...*/
 #pragma omp single
@@ -1301,19 +1301,23 @@ double dotOmpO2I4(double *RESTRICT x1, double *RESTRICT x2, INT const n)
   }
 /*...................................................................*/
 
-/*...*/
 #ifdef _MPI_
-  if(mpiVar.nPrcs>1){ 
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
-    MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  if(mpiVar.nPrcs>1)
+  { 
+    #pragma omp single
+    {
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+      MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+      tmpDotOmp = dot;
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    }
+    dot = tmpDotOmp;
   }
   else  
     dot = tmpDotOmp;
 #else
     dot = tmpDotOmp;
 #endif
-/*...................................................................*/
 
 /*...*/
 #pragma omp single
@@ -1368,19 +1372,23 @@ double dotOmpI2(double *RESTRICT x1, double *RESTRICT x2, INT const n)
     tmpDotOmp = tmpDotOmp1 + tmpDotOmp2;
   }
 
-/*...*/
 #ifdef _MPI_
-  if(mpiVar.nPrcs>1){ 
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
-    MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  if(mpiVar.nPrcs>1)
+  { 
+    #pragma omp single
+    {
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+      MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+      tmpDotOmp = dot;
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    }
+    dot = tmpDotOmp;
   }
   else  
     dot = tmpDotOmp;
 #else
     dot = tmpDotOmp;
 #endif
-/*...................................................................*/
 
 /*...*/
 #pragma omp single
@@ -1444,19 +1452,23 @@ double dotOmpI4(double *RESTRICT x1, double *RESTRICT x2, INT const n)
     tmpDotOmp = tmpDotOmp1 + tmpDotOmp2 + tmpDotOmp3 + tmpDotOmp4;
   }
 
-/*...*/
 #ifdef _MPI_
-  if(mpiVar.nPrcs>1){ 
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
-    MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  if(mpiVar.nPrcs>1)
+  { 
+    #pragma omp single
+    {
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+      MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+      tmpDotOmp = dot;
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    }
+    dot = tmpDotOmp;
   }
   else  
     dot = tmpDotOmp;
 #else
     dot = tmpDotOmp;
 #endif
-/*...................................................................*/
 
 /*...*/
 #pragma omp single
@@ -1534,19 +1546,23 @@ double dotOmpI6(double *RESTRICT x1, double *RESTRICT x2, INT const n)
   }
 
 
-/*...*/
 #ifdef _MPI_
-  if(mpiVar.nPrcs>1){ 
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
-    MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  if(mpiVar.nPrcs>1)
+  { 
+    #pragma omp single
+    {
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+      MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+      tmpDotOmp = dot;
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    }
+    dot = tmpDotOmp;
   }
   else  
     dot = tmpDotOmp;
 #else
     dot = tmpDotOmp;
 #endif
-/*...................................................................*/
 
 /*...*/
 #pragma omp single
@@ -1638,10 +1654,16 @@ double dotOmpI8(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 
 /*...*/
 #ifdef _MPI_
-  if(mpiVar.nPrcs>1){ 
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
-    MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  if(mpiVar.nPrcs>1)
+  { 
+    #pragma omp single
+    {
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+      MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+      tmpDotOmp = dot;
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    }
+    dot = tmpDotOmp;
   }
   else  
     dot = tmpDotOmp;
@@ -1702,10 +1724,16 @@ double dotOmpO2(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 
 /*...*/
 #ifdef _MPI_
-  if(mpiVar.nPrcs>1){ 
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
-    MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  if(mpiVar.nPrcs>1)
+  { 
+    #pragma omp single
+    {
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+      MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+      tmpDotOmp = dot;
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    }
+    dot = tmpDotOmp;
   }
   else  
     dot = tmpDotOmp;
@@ -1770,10 +1798,16 @@ double dotOmpO4(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 
 /*...*/
 #ifdef _MPI_
-  if(mpiVar.nPrcs>1){ 
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
-    MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  if(mpiVar.nPrcs>1)
+  { 
+    #pragma omp single
+    {
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+      MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+      tmpDotOmp = dot;
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    }
+    dot = tmpDotOmp;
   }
   else  
     dot = tmpDotOmp;
@@ -1846,10 +1880,16 @@ double dotOmpO6(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 
 /*...*/
 #ifdef _MPI_
-  if(mpiVar.nPrcs>1){ 
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
-    MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  if(mpiVar.nPrcs>1)
+  { 
+    #pragma omp single
+    {
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+      MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+      tmpDotOmp = dot;
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    }
+    dot = tmpDotOmp;
   }
   else  
     dot = tmpDotOmp;
@@ -1931,10 +1971,16 @@ double dotOmpO8(double *RESTRICT x1, double *RESTRICT x2, INT const n)
 
 /*...*/
 #ifdef _MPI_
-  if(mpiVar.nPrcs>1){ 
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
-    MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
-    tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+  if(mpiVar.nPrcs>1)
+  { 
+    #pragma omp single
+    {
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+      MPI_Allreduce(&tmpDotOmp,&dot,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+      tmpDotOmp = dot;
+      tm.dotOverHeadMpi = getTimeC() - tm.dotOverHeadMpi;
+    }
+    dot = tmpDotOmp;
   }
   else  
     dot = tmpDotOmp;
