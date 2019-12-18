@@ -873,7 +873,11 @@ void setMatVec(void (**matVecC)(),short const storage
         if(ompVar.fSolver)
           *matVecC = matVecCsrDsymOmp;
         else
-				  *matVecC = matVecCsrDSym;
+        {
+    		  *matVecC = matVecCsrDSym;
+//        *matVecC = matVecCsrDSymI2;
+//        *matVecC = matVecCsrDSymO2;
+        }
 			}
 /*..................................................................*/
 		}

@@ -2651,6 +2651,172 @@ void matVecCsrDSym(INT const neq
 } 
 /*********************************************************************/ 
 
+/*********************************************************************
+ * Data de criacao    : 14/12/2019                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------*  
+ * MATVECCSRDSYMO2:produto matriz vetor para uma matriz no formato   *
+ * CSRD (y=Ax, A uma matriz simentrica)                              * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * al  -> vetor com os valores inferiores da matriz                  * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS: ja guarda os indiceis da parte inferior da matriz            * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecCsrDSymO2(INT const neq           
+                  ,INT *RESTRICT ia   ,INT *RESTRICT ja
+                  ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
+                  ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y)
+{
+  INT    i,ii,k,ia1,ia2,ia3,jak,resto;
+  DOUBLE xi1,xi2,tmp1,tmp2,sAu;
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+ 
+  resto = neq%2;
+  if(resto)
+    y[0]  = ad[0]*x[0];
+
+  for(i=resto;i<neq;i+=2)
+  {
+    ii   = i+1;
+    xi1  = x[i]; 
+    xi2  = x[ii];   
+    tmp1 = ad[i ]*xi1;
+    tmp2 = ad[ii]*xi2;
+    ia1  = ia[i];
+    ia2  = ia[ii];
+    ia3  = ia[i+2];
+    if(ia1 == ia2) goto linhai1;
+/*linha i*/
+    for(k=ia1;k<ia2;k++)
+    {
+      jak = ja[k];
+      sAu = al[k];
+/*... produto da linha i pelo vetor x*/
+      tmp1    += sAu*x[jak];
+/*... produto dos coef. da parte superior da matriz por x(i)*/
+      y[jak] += sAu*xi1;
+    }
+/*...................................................................*/
+
+/*linha i+1*/
+linhai1:
+    y[i] = tmp1;
+    if(ia2 == ia3) goto linhai2;
+    for(k=ia2;k<ia3;k++)
+    {
+      jak = ja[k];
+      sAu = al[k];
+/*... produto da linha i pelo vetor x*/
+      tmp2    += sAu*x[jak];
+/*... produto dos coef. da parte superior da matriz por x(i)*/
+      y[jak] += sAu*xi2;
+    }
+/*...................................................................*/
+linhai2:
+    y[ii] = tmp2;
+  }
+/*...................................................................*/
+  
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+} 
+/*********************************************************************/ 
+
+/*********************************************************************
+ * Data de criacao    : 14/12/2019                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------*  
+ * MATVECCSRDSYMI2:produto matriz vetor para uma matriz no formato   *
+ * CSRD (y=Ax, A uma matriz simentrica)                              * 
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * neq -> numero de equacoes                                         * 
+ * ia  -> vetor csr                                                  * 
+ * ja  -> vetor csr                                                  * 
+ * al  -> vetor com os valores inferiores da matriz                  * 
+ * ad  -> vetor com os valores da diagonal principal da matriz       * 
+ * x   -> vetor a ser multiplicado                                   * 
+ * y   -> indefinido                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * y   -> vetor com o resultado da multiplicacao                     * 
+ *-------------------------------------------------------------------* 
+ * OBS: ja guarda os indiceis da parte inferior da matriz            * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void matVecCsrDSymI2(INT const neq           
+                  ,INT *RESTRICT ia   ,INT *RESTRICT ja
+                  ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
+                  ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y)
+{
+  INT    i,k,kk,jak1,jak2,ia1,ia2,n,resto;
+  DOUBLE xi,tmp,sAu1,sAu2;
+
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+ 
+  y[0] = ad[0]*x[0]; 
+  for(i=1;i<neq;i++){
+    xi  = x[i];
+    tmp = ad[i]*xi;
+    ia1 = ia[i  ];
+    ia2 = ia[i+1];
+    n   = ia2 - ia1;
+    if(!n)
+      goto lineF;
+    resto = n%2; 
+
+    if(resto)
+    {
+      jak1      = ja[ia1];
+      tmp      += al[ia1]*x[jak1];
+      y[jak1]  += al[ia1]*xi;
+    }
+
+    for(k=ia1+resto;k<ia2;k+=2)
+    {
+      kk   = k+1;
+      jak1 = ja[k];
+      jak2 = ja[kk];
+      sAu1 = al[k];
+      sAu2 = al[kk];
+/*... produto da linha i pelo vetor x*/
+      tmp    += sAu1*x[jak1] + sAu2*x[jak2];
+/*... produto dos coef. da parte superior da matriz por x(i)*/
+      y[jak1] += sAu1*xi;
+      y[jak2] += sAu2*xi;
+    }
+lineF:
+/*... armazena o resultado em y(i) */
+    y[i] = tmp;
+  }
+  
+/*...*/ 
+  tm.matVecSparse             = getTimeC() - tm.matVecSparse;
+/*...................................................................*/
+} 
+/*********************************************************************/ 
+
 /********************************************************************* 
  * MPIMATVECCSRDSYM:produto matriz vetor para uma matriz no formato  *
  * CSRD+CSR (y=Ax, A uma matriz simentrica)                          * 
@@ -3497,6 +3663,7 @@ linhai1:
 linhai2:
     y[i+1] = tmp2;
   }
+/*...................................................................*/
 
 /*...*/ 
   tm.matVecSparse             = getTimeC() - tm.matVecSparse;

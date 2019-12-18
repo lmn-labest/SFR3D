@@ -118,6 +118,16 @@
                     ,INT *RESTRICT ia   ,INT *RESTRICT ja
                     ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
                     ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y);
+
+  void matVecCsrDSymI2(INT const neq           
+                  ,INT *RESTRICT ia   ,INT *RESTRICT ja
+                  ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
+                  ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y);
+
+  void matVecCsrDSymO2(INT const neq           
+                  ,INT *RESTRICT ia   ,INT *RESTRICT ja
+                  ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
+                  ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT y);
 /*...................................................................*/
 
 /*... CsrDSymOmp*/
