@@ -424,10 +424,24 @@ void divCoorXYZ(DOUBLE *RESTRICT coor
     nz = 2;
   }
 
+  else if( nDiv == 40)
+  {
+    nx = 8;
+    ny = 2;
+    nz = 4;
+  }
+
   else if( nDiv == 64)
   {
     nx = 8;
     ny = 2;
+    nz = 4;
+  }
+
+  else if( nDiv == 80)
+  {
+    nx = 5;
+    ny = 4;
     nz = 4;
   }
 

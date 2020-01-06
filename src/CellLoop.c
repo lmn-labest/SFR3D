@@ -1696,7 +1696,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
 /*...*/
     if (calRcell)
       for (j = 0; j<ndf; j++)
-        MAT2D(nel, j, rCell, ndf) = 0.e0;;
+        MAT2D(nel, j, rCell, ndf) = 0.e0;
 /*...*/
     aux1 = nFace[nel];
 /*... elementos sem equacoes*/
@@ -1754,7 +1754,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
 /*...................................................................*/
 
 /*...*/
-    if(cModel->fCombustion)
+    if(eModel->fDiffEnergy)
     {
       for(j=0;j<ns;j++)
       {
@@ -1846,7 +1846,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
             = MAT3D(vizNel, k, j, gradVel, ndm, ndm);
 
 /*...*/
-        if(cModel->fCombustion)
+        if(eModel->fDiffEnergy)
         {
           for(j=0;j<ns;j++)
           {

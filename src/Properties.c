@@ -1911,7 +1911,7 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
 {
   INT i;
   bool flag = false;
-  DOUBLE f,fl,tc,tol=1e-06;
+  DOUBLE f,fl,tc,tol=1e-08;
  
 
 

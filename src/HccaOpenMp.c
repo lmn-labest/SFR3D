@@ -88,7 +88,7 @@ void openMpCheck(bool omp) {
 *********************************************************************/
 void openMpSet(FILE *fileIn, Omp *ompVar){
   char word[WORD_SIZE];
-  unsigned short nOmp;
+  unsigned short nOmp,kk=0;
   int nthMax,nth;
   #if _OPENMP
     nthMax = omp_get_max_threads();
@@ -99,6 +99,7 @@ void openMpSet(FILE *fileIn, Omp *ompVar){
   ompVar->flag = true;
   do {
     readMacroV2(fileIn, word, false, true);
+    kk++;
 /*... solver*/
     if (!strcmp(word, "solver")) {
       readMacroV2(fileIn, word, false, true);
@@ -200,7 +201,14 @@ void openMpSet(FILE *fileIn, Omp *ompVar){
 /*...................................................................*/
 
 
-  } while (nOmp);
+  } while (nOmp && kk < 100 );
+
+  if(kk == 100)
+  {
+    fprintf(fileLogDebug,"Erro leitura config omp!!\n");
+    exit(EXIT_FAILURE);
+  }
+  
 
   openMpCheck(ompVar->flag);
 

@@ -246,12 +246,15 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*...*/
-  tm.enthalpySpecies = getTimeC() - tm.enthalpySpecies;
-  getEnthalpySpecies(cModel             , prop
-                   , mesh->elm.enthalpyk, mesh->elm.temp 
-                   , mesh->numel        , eModel->fKelvin
-                   , ompVar.fUpdate     , ompVar.nThreadsUpdate);
-  tm.enthalpySpecies = getTimeC() - tm.enthalpySpecies;
+  if(eModel->fDiffEnergy)
+  {
+    tm.enthalpySpecies = getTimeC() - tm.enthalpySpecies;
+    getEnthalpySpecies(cModel             , prop
+                     , mesh->elm.enthalpyk, mesh->elm.temp 
+                     , mesh->numel        , eModel->fKelvin
+                     , ompVar.fUpdate     , ompVar.nThreadsUpdate);
+    tm.enthalpySpecies = getTimeC() - tm.enthalpySpecies;
+  }
 /*...................................................................*/
 
 /*...*/
