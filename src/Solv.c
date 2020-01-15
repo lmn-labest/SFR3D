@@ -85,6 +85,7 @@ void solverC(Memoria *m
 	matVecC = NULL;
 /*...................................................................*/
 
+/*...*/
   switch(solver){
 /*... gradientes conjugados com precondicionador diagonal*/
     case PCG:
