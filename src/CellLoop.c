@@ -5172,10 +5172,8 @@ void wallFluidVelPres(Loads *ldVel
 /*... parede perfeitamente lisa*/
         else if(ldVel[nc-1].type == SLIP)
         {
-          MAT2D(i,j,faceRvel ,aux2) = nCargVel+1;
           MAT2D(i,j,faceRpres,aux2) = nCargPres+1;
           ldVel[nCargVel].fUse      = true;
-          ldVel[nCargVel].type      = SLIP;
           ldPres[nCargPres].fUse    = true;
           ldPres[nCargPres].type    = FLUXPRES;
           ldPres[nCargPres].iCod[0] = iCod;

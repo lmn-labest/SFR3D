@@ -164,8 +164,7 @@ void getLoads(DOUBLE *par, Loads *ld, DOUBLE *xx)
 
   else if (ld->type == OPEN)
   {
-    par[0]   = ld->par[0];
-    par[1]   = ld->par[1];
+    for(i = 0; i< ld->np; par[i] = ld->par[i], i++);
   }
 }
 /********************************************************************/
@@ -607,7 +606,7 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
     else
     {
 /*...*/
-      densityEnv = ld->par[0];
+      densityEnv = ld->density;
 /*...................................................................*/
       m = densityEnv*wfn*fArea;
 /*... eq momentum*/
@@ -624,10 +623,10 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... direcao normal*/
-        aP = m*wfn;
-        p[0] -= aP*n[0];
-        p[1] -= aP*n[1];
-        if (ndm == 3) p[2] -=  aP*n[2];  
+//      aP = m*wfn;
+//      p[0] -= aP*n[0];
+//      p[1] -= aP*n[1];
+//      if (ndm == 3) p[2] -=  aP*n[2];  
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -690,7 +689,7 @@ void pLoadSimple(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 
 /********************************************************************* 
  * Data de criacao    : 01/07/2016                                   *
- * Data de modificaco : 27/01/2018                                   * 
+ * Data de modificaco : 16/01/2020                                   * 
  *-------------------------------------------------------------------* 
  * pLoadSimplePres : condicao de contorno para pressao               *
  *-------------------------------------------------------------------* 
@@ -750,7 +749,8 @@ void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
 /*...................................................................*/
 
 /*... pressao prescrita*/
-  if( ld->type == DIRICHLETBC){
+  if( ld->type == DIRICHLETBC)
+  {
     tA[0]   = ld->par[0];
     if(fCal){
       *sP += densityC*modE/dd;
@@ -815,6 +815,30 @@ void pLoadSimplePres(DOUBLE *RESTRICT sP, DOUBLE *RESTRICT p
       *sP += densityEnv*m*dc/tmp[1];
 //    *sP += densityC*modE/dd;
     }
+  }
+/*...................................................................*/
+
+/*... pressao prescrita*/
+  else if( ld->type == OPEN)
+  {
+    getLoads(par,ld,xx);
+    tmp[0] = velC[0]*n[0] + velC[1]*n[1];
+    if(ndm==3)  tmp[0] += velC[2]*n[2]; 
+
+/*... saida*/
+    if(tmp[0] > 0.e0)
+    {
+      tA[0]   = par[0];
+      if(fCal)
+      {
+        *sP += densityC*modE/dd;
+      }
+      if(fCal){
+      *sP += densityC*modE/dd;
+      }
+    }
+/*...................................................................*/
+
   }
 /*...................................................................*/
 
@@ -1215,9 +1239,9 @@ void pLoadEnergy(PropVarFluid *vProp
 /*...................................................................*/
 
 /*... fronteira aberta(Pressao estatica)*/
-  else if (ld->type == OPEN) {
+  else if (ld->type == OPEN)
+  {
     getLoads(par,ld,xx); 
-    tA[0]   = par[1];
     if(!fCal) return;
 /*...*/
     wfn  = velC[0]*n[0] + velC[1]*n[1];
@@ -1228,9 +1252,10 @@ void pLoadEnergy(PropVarFluid *vProp
 /*...................................................................*/
 
 /*... entrada*/
-    else{
-      densityEnv = par[0];
-      densityEnv = densityC;
+    else
+    {
+      tA[0]      = par[0];
+      densityEnv = ld->density;
       *p -= wfn*densityEnv*fArea*tA[0]; 
     } 
 /*...................................................................*/
@@ -1292,9 +1317,6 @@ void pLoadCombustion(PropVarFluid *vProp
   DOUBLE par[MAXLOADPARAMETER],velB[3];
   
   velB[0] = velB[1] = velB[2] = 0.e0;
-
-  for(i=0;i<MAXLOADPARAMETER;i++)
-    par[i] = 0.e0;
 
 /*...*/
 //tempPlus = uPlus = yPlus = 0.e0;
@@ -1394,7 +1416,36 @@ void pLoadCombustion(PropVarFluid *vProp
 /*...................................................................*/
 
 /*... fronteira aberta(Pressao estatica)*/
-  else if (ld->type == OPEN);
+  else if (ld->type == OPEN)
+  {
+    getLoads(par,ld,xx); 
+/*...*/
+    wfn  = velC[0]*n[0] + velC[1]*n[1];
+    if (ndm == 3) wfn += velC[2]*n[2];
+/*... saida de massa*/
+    if(wfn >= 0.e0)
+    {
+      if(!fCal) return;
+      for(i=0;i<nComb;i++)
+        sP[i] += wfn*densityC*fArea;
+    }
+/*...................................................................*/
+
+/*... entrada*/
+    else
+    {
+      densityEnv = ld->density;
+      for(i=0;i<nComb;i++)
+      {
+        tA[i] = par[i];
+        if(fCal) 
+          p[i] -= wfn*densityEnv*fArea*tA[i];
+      }
+      
+    } 
+/*...................................................................*/
+   }
+/*...................................................................*/
 /*...................................................................*/
 }
 /*********************************************************************/

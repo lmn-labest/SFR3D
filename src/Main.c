@@ -508,8 +508,8 @@ int main(int argc,char**argv){
                          , mesh0->elm.faceRvel , mesh0->elm.adj.nViz
                          , mesh0->numelNov ,mesh0->maxViz);
 /*...*/
-//      thDynamic.fDensityRef = !mesh0->fOpen;
-          thDynamic.fDensityRef = true;
+          thDynamic.fDensityRef = !mesh0->fOpen;          
+//        thDynamic.fDensityRef = true;
           thDynamic.fPresTh     = !mesh0->fOpen;
 /*...................................................................*/   
         }
@@ -652,7 +652,7 @@ int main(int argc,char**argv){
                               ,mesh->elm.yFrac
                               ,mesh->elm.geom.volume,mesh->numelNov);
 /*...*/
-        if(thDynamic.fDensityRef)
+//      if(thDynamic.fDensityRef)
           propVarFluid.densityRef = specificMassRef(mesh->elm.densityFluid.t
                                                 , mesh->elm.geom.volume                  
                                                 , mesh->numelNov);
