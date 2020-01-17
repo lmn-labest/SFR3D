@@ -110,6 +110,14 @@ if(opt->mMolar)
             ,nel                 ,1               
             ,opt->fTimePlot      ,opt->fStepPlot);
 
+/*... eddyVisc*/
+if(opt->eddyViscosity)
+  interPolTime(ti->eddyViscI     ,ti->eddyVisc    
+            ,ti->eddyVisc0       ,ts
+            ,t1                  ,t0
+            ,nel                 ,1               
+            ,opt->fTimePlot      ,opt->fStepPlot);
+
 }
 /*********************************************************************/
 
@@ -272,11 +280,11 @@ static void globalCel(Memoria *m      ,TimeInterpol *ti
 /*...................................................................*/
 
 /*... eddyViscosity (Cel)*/
-//if(opt->eddyViscosity)
-//  dGlobalCel(m                       , pMesh
-//           , mesh0->elm.eddyViscosity, mesh->elm.eddyViscosity
-//           , mesh->numelNov
-//           , 1                       , 1);
+  if(opt->eddyViscosity)
+    dGlobalCel(m                       , pMesh
+             , ti->eddyViscG           , ti->eddyVisc
+             , nelNov 
+             , 1                       , 1);
 /*...................................................................*/
 
 /*... rateHeatRe    (Cel)*/
@@ -307,7 +315,7 @@ static void globalCel(Memoria *m      ,TimeInterpol *ti
 
 /********************************************************************* 
  * Data de criacao    : 19/11/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 17/01/2020                                   *
  *-------------------------------------------------------------------*
  * globalNoCel: glabalizacao as arranjos para impressao              * 
  *-------------------------------------------------------------------* 
@@ -446,18 +454,17 @@ static void globalNode(Memoria *m         ,TimeInterpol *ti
   if(opt->coefDiffSp)
     dGlobalNode(m                       , pMesh
              , ti->ncDiffG              , ti->ncDiffI
-             , nSp                     , 1);
+             , nSp                      , 1);
 /*...................................................................*/
 
-/*... eddyViscosity (Cel)*/
-//if(opt->eddyViscosity)
-//  dGlobalCel(m                       , pMesh
-//           , mesh0->elm.eddyViscosity, mesh->elm.eddyViscosity
-//           , mesh->numelNov
-//           , 1                       , 1);
+/*... eddyViscosity*/
+  if(opt->eddyViscosity)
+    dGlobalNode(m                      , pMesh
+             , ti->neddyViscG          , ti->neddyViscI
+             , 1                       , 1);
 /*...................................................................*/
 
-/*... rateHeatRe    (Cel)*/
+/*... rateHeatRe*/
   if(opt->wT)
     dGlobalNode(m            , pMesh                       
              , ti->nWTG      , ti->nWTI                  
@@ -3410,10 +3417,10 @@ void print3D(Memoria *m          ,PropVarFluid *propF
   if (turbModel->fTurb) 
   {
 /*... viscisidade turbulenta*/
-    if(opt->eddyViscosity)       
+    if(opt->fNode && opt->eddyViscosity)       
       interCellNode(m                  
                    , mesh->elm.cellFace, mesh->face.owner
-                   , nEddyV            , mesh->elm.eddyViscosity        
+                   , ti->neddyViscI    , ti->eddyViscI        
                    , mesh->elm.node    , mesh->elm.geomType            
                    , mesh->elm.geom.cc , mesh->node.x  
                    , mesh->face.xm   
@@ -3712,7 +3719,7 @@ void print3D(Memoria *m          ,PropVarFluid *propF
                , ti->gradTempG            , ti->nGradTempG          
                , mesh0->elm.zComb         , mesh0->node.zComb
                , mesh0->elm.gradZcomb     , mesh0->node.gradZcomb
-               , mesh0->elm.eddyViscosity , nEddyV
+               , ti->eddyViscG            , ti->neddyViscG
                , ti->rhoG                 , ti->nRhoG                 
                , ti->dViscG               , ti->ndViscG
                , mesh0->elm.stressR       , nStressR

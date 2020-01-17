@@ -808,6 +808,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
+  mesh->velMax  = maxArray(mesh->elm.vel,mesh->numelNov*mesh->ndm);
   mesh->tempMax = maxArray(mesh->elm.temp,mesh->numelNov);
   mesh->tempMed = getVolumeMed(mesh->elm.temp,mesh->elm.geom.volume
                               ,mesh->numelNov);
@@ -831,6 +832,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     printf("%-20s : %13.6e\n","Heat Combustion"     ,cModel->totalHeat);
     printf("%-20s : %13.6lf\n","Temperatue Max"     ,mesh->tempMax);
     printf("%-20s : %13.6lf\n","Temperatue Med"     ,mesh->tempMed);
+    printf("%-20s : %13.6lf\n","Vel Max"            ,mesh->velMax);
     
     printf("%-25s : %15s %20s\n","Residuo:","init","final");
     printf("%-25s : %20.8e %20.8e\n","conservacao da massa", rMass0, rMass);

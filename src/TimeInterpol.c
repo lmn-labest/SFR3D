@@ -416,12 +416,36 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
 /*...................................................................*/
 
 
+/*... eddyViscosity*/
+  if(opt->eddyViscosity)
+  {
+    if(opt->fTimePlot)
+    {
+      HccaAlloc(DOUBLE,m,ti->eddyVisc0,nel,"eddyVisc0"  ,_AD_);
+      ti->eddyVisc = mesh->elm.eddyViscosity;
+    }  
+    else if(opt->fStepPlot)
+    {
+      ti->eddyVisc = ti->dVisc = mesh->elm.eddyViscosity;
+    }
+    HccaAlloc(DOUBLE,m,ti->eddyViscI,nel,"eddyVisci",_AD_);
+    ti->eddyViscG = ti->eddyViscI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)
+      HccaAlloc(DOUBLE,m,ti->eddyViscG,nelG,"eddyViscG"  ,_AD_);
+
+    HccaAlloc(DOUBLE,m,ti->neddyViscI,nno,"neddydViscI",_AD_);
+    ti->neddyViscG = ti->neddyViscI;
+    if(!mpiVar.myId && mpiVar.nPrcs>1)
+      HccaAlloc(DOUBLE,m,ti->neddyViscG,nnoG,"neddyViscG"  ,_AD_);
+
+  } 
+/*...................................................................*/
 }
 /*********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 14/11/2019                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 17/01/2019                                   *
  *-------------------------------------------------------------------*
  * initTimeStruct:                                                   *
  *-------------------------------------------------------------------*
@@ -537,5 +561,15 @@ void updateTimeStruct(Memoria *m        ,TimeInterpol *ti
       ti->mMolar0[i] = mesh->elm.mMolar.t[i];
   } 
 /*...................................................................*/
+
+/*... eddyVisc*/
+  if(opt->eddyViscosity)
+  {
+    for(i=0;i<nel;i++)
+      ti->eddyVisc0[i] = mesh->elm.eddyViscosity[i];
+  } 
+/*...................................................................*/
+
+
 }
 /*********************************************************************/

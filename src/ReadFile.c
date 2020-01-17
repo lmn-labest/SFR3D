@@ -3906,7 +3906,7 @@ void uniformField(DOUBLE *field, INT const n, short const ndf
 
 /********************************************************************* 
  * Data de criacao    : 11/11/2017                                   *
- * Data de modificaco : 02/11/2019                                   *
+ * Data de modificaco : 17/01/2020                                   *
  *-------------------------------------------------------------------*
  * help : Ajuda em relação a algumas macros                          *
  *-------------------------------------------------------------------*
@@ -3980,10 +3980,10 @@ void help(FILE *f){
                ,"gradud1"      ,"ut1"         ,"gradut1"         /*24,25,26*/
                ,"densityd1"    ,"coefdiffd1"  ,"densityt1"       /*27,28,29*/
                ,"coefdifft1"   ,"zcomb"       ,"gradzcomb"       /*30,31,32*/
-               ,"ratefuel"     ,"yfrac"       ,"rateheatcomb"    /*33,34,35*/                  
-               ,""             ,""            ,""                /*36,37,38*/
-               ,""             ,""            ,""                /*39,40,41*/
-               ,""             ,""            ,""};              /*42,43,44*/
+               ,"qchemical"    ,"yfrac"       ,"wt"              /*33,34,35*/                  
+               ,"coefdiffsp"   ,"enthalpyk"   ,"grady"           /*36,37,38*/
+               ,"treactor"     ,"binary"      ,"gradrho"         /*39,40,41*/
+               ,"mmolar"       ,"step 5"      ,"time 0.1"};      /*42,43,44*/
 ;
 /*... adveccao*/
   char fAdv[][WORD_SIZE] =                                   

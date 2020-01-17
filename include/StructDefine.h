@@ -479,6 +479,7 @@
     DOUBLE *tCond0,*tCond,*tCondI,*tCondG,*ntCondI,*ntCondG;
     DOUBLE *cDiff0,*cDiff,*cDiffI,*cDiffG,*ncDiffI,*ncDiffG;
     DOUBLE *mMolar0,*mMolar,*mMolarI,*mMolarG,*nmMolarI,*nmMolarG;
+    DOUBLE *eddyVisc0,*eddyVisc,*eddyViscI,*eddyViscG,*neddyViscI,*neddyViscG;
   }TimeInterpol; 
 /*...................................................................*/
 
