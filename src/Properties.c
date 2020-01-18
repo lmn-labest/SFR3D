@@ -223,8 +223,7 @@ void nasaPolRange(PolNasa *a      , DOUBLE const x
         *xNew = a->range[1][1]; 
         *c    = a->a2[1]; 
       }
-      fprintf(fileLogDebug,"A: NasaPol fora do limites %lf!!\n",x);
-      exit(0);
+      fprintf(fileLogDebug,"A: NasaPol fora do limites %lf!!\n",x);      
     }
 /*..................................................................*/
   }

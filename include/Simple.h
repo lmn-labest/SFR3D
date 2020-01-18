@@ -101,6 +101,13 @@
                   , DOUBLE *RESTRICT tCond  , DOUBLE *RESTRICT dViscosity
                   , Temporal *ddt           , INT const nEl
                   , short const ndm         , short const iCod); 
+
+  void dynamicDeltatChe(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
+                    , DOUBLE *RESTRICT density, DOUBLE *RESTRICT sHeat
+                    , DOUBLE *RESTRICT tCond  , DOUBLE *RESTRICT dViscosity
+                    , DOUBLE *RESTRICT wk     , Temporal *ddt        
+                    , INT const nEl           , short const ns
+                    , short const ndm         , short const iCod); 
 /*...................................................................*/
 
 /*...*/

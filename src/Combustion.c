@@ -13,6 +13,32 @@ void static printSist(DOUBLE *b,INT xi, INT xj)
   }
 }
 
+/*********************************************************************
+ * Data de criacao    : 18/01/2020                                   *
+ * Data de modificaco : 00/00/0000                                   *
+ *-------------------------------------------------------------------*
+ * regulation :                                                      *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ *********************************************************************/
+DOUBLE static regulation(DOUBLE const y)
+{
+  DOUBLE yy=y;
+/*...*/
+  if(yy < 0.e0)
+    yy = 0.e0;
+  yy = FRACMAX(yy,FRACZERO);
+  yy = FRACONE(yy);
+/* ...................................................................*/
+  return yy; 
+}
+/********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 30/07/2018                                   *
@@ -858,7 +884,7 @@ DOUBLE maxArray(DOUBLE *RESTRICT x,INT const n)
 
 /*********************************************************************
  * Data de criacao    : 24/05/2019                                   *
- * Data de modificaco : 29/07/2019                                   *
+ * Data de modificaco : 18/01/2020                                   *
  *-------------------------------------------------------------------*
  * edc : Eddy dissipation concept                                    *
  *-------------------------------------------------------------------*
@@ -965,7 +991,10 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
 
 /*...*/
   for(i=0;i<c->chem.nSp;i++)
-    yt[i] = yt0[i] = FRACMAX(y[i],FRACZERO);
+  {
+    yy = regulation(y[i]);
+    yt[i] = yt0[i] = yy;
+  } 
 /*....................................................................*/
 
 /*...*/
@@ -984,11 +1013,8 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
   tReactor[4] = k;
 /*...*/
   for(i=0;i<c->chem.nSp;i++)
-  {    
-    if(yt[i] < 0.e0)
-      yt[i] = 0.e0;
-    yy = FRACMAX(yt[i],FRACZERO);
-    yy = FRACONE(yt[i]);
+  { 
+    yy = regulation(yt[i]);
     dy = yy-yt0[i];
     w[i] = density*gEdc*dy/tStar;
   }
@@ -1006,7 +1032,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
 
 /*********************************************************************
  * Data de criacao    : 26/07/2019                                   *
- * Data de modificaco : 03/08/2019                                   *
+ * Data de modificaco : 18/01/2020                                   *
  *-------------------------------------------------------------------*
  * edm : Eddy dissipation model                                      *
  *-------------------------------------------------------------------*
@@ -1046,8 +1072,10 @@ void edm(Combustion *c       ,DOUBLE *RESTRICT y
     for(j=0;j<c->chem.reac[i].nPartSp[0];j++)
     {
       id = c->chem.reac[i].partSp[0][j];
-      yy = FRACMAX(y[id],FRACZERO);
-      dy = y[id]/(c->chem.reac[i].stch[0][id]*c->chem.sp[id].mW);
+/*...*/
+      yy = regulation(y[id]);
+/* ...................................................................*/
+      dy = yy/(c->chem.reac[i].stch[0][id]*c->chem.sp[id].mW);
       r1  = min(r1,dy);
     }
 /*....................................................................*/
@@ -1059,7 +1087,9 @@ void edm(Combustion *c       ,DOUBLE *RESTRICT y
       for(j=0,dy=my=0.e0;j<c->chem.reac[i].nPartSp[1];j++)
       {
         id = c->chem.reac[i].partSp[1][j];
-        yy = FRACMAX(y[id],FRACZERO);
+/*...*/
+        yy = regulation(y[id]);
+/* ...................................................................*/
         dy += yy;
         my += c->chem.reac[i].stch[1][id]*c->chem.sp[id].mW;
       }

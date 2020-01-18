@@ -740,11 +740,12 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 
 /*...*/
   if(fDeltaTimeDynamic)
-    dynamicDeltat(mesh->elm.vel            , mesh->elm.geom.volume 
+    dynamicDeltatChe(mesh->elm.vel            , mesh->elm.geom.volume 
                  , mesh->elm.densityFluid.t, mesh->elm.specificHeat.t
                  , mesh->elm.tConductivity , mesh->elm.dViscosity
-                 ,&sc->ddt                 , mesh->numelNov
-                 , mesh->ndm               , CFLVN);  
+                 , mesh->elm.wk            , &sc->ddt
+                 , mesh->numelNov          , cModel->nComb  
+                 , mesh->ndm               , CFLCHE); 
 /*...................................................................*/
 
 /*... guardando as propriedades para o proximo passo*/
@@ -2264,6 +2265,229 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
   }
 
 /*...*/
+  if(deltaT > trunkNumber(dtNew)) 
+  {
+    ddt->dt[TIME_N] = trunkNumber(dtNew);
+    fprintf(fileLogExc,"change dt for: %lf\n",ddt->dt[TIME_N]);
+  } 
+  if(deltaT < trunkNumber(dtNew))
+  {
+    ddt->dt[TIME_N] = min(trunkNumber(dtNew),deltaMax);
+    fprintf(fileLogExc,"change dt for: %lf\n",ddt->dt[TIME_N]);
+  }       
+  ddt->dt[TIME_N_MINUS_1] = deltaT;  
+  ddt->dt[TIME_N_MINUS_2] = deltaT0;
+/*...................................................................*/
+
+}
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 18/01/2020                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * dinamicyDeltat : calculo dos residuos no metodo simple            *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * vel       -> campo de velocidade                                  *
+ * density   -> densidade por celula                                 *
+ * sHeat     -> calor especifico por celula                          *
+ * tCond     -> condutividade termica                                *
+ * viscosity -> viscosidade dinamica                                 *
+ * wk        -> taxa de reacao massica                               *
+ * ns        -> numero de especies explicitamente resolvidas         * 
+ * volume    -> volume                                               *
+ * nEl       -> numero de elementos                                  * 
+ * dt        -> dt                                                   * 
+ * ndm       -> numero de dimensoes                                  * 
+ * iCod      -> tipo                                                 * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * ddt.dt   -> dt atualizado                                         *  
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *                                                                   *
+ * ddt.dt[0] - delta atual                      (n)                  * 
+ * ddt.dt[1] - delta do passo anterior          (n-1)                * 
+ * ddt.dt[2] - delta do passo anterior anterior (n-2)                *  
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void dynamicDeltatChe(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
+                    , DOUBLE *RESTRICT density, DOUBLE *RESTRICT sHeat
+                    , DOUBLE *RESTRICT tCond  , DOUBLE *RESTRICT dViscosity
+                    , DOUBLE *RESTRICT wk     , Temporal *ddt        
+                    , INT const nEl           , short const ns
+                    , short const ndm         , short const iCod)
+
+{
+  short j;
+  INT i;
+  DOUBLE dtCfl,dtVn,modVel,lc,deltaT,deltaT0,diff,den,dtNew,cfl,wMax,dtChem,tmp;
+  DOUBLE deltaMax=ddt->dtMax
+        ,deltaMin=ddt->dtMin
+        ,nCfl    =ddt->cfl;
+#ifdef _MPI_
+  DOUBLE gg;
+#endif  
+
+  deltaT  = ddt->dt[TIME_N] ;
+  deltaT0 = ddt->dt[TIME_N_MINUS_1];
+
+/*...*/
+  switch(iCod)
+  {
+/*... CFL*/
+    case CFLVN:
+      dtVn = dtCfl = 86400.e0; /*24*3600*/
+      for(i=0;i<nEl;i++)
+      {
+ /*... modulo das velocidades*/
+        for(j=0,modVel=1.e-32;j<ndm;j++)
+          modVel += MAT2D(i, j, vel, ndm)*MAT2D(i, j, vel, ndm);   
+        modVel = sqrt(modVel);
+/*...................................................................*/
+
+/*... tamanho caracteristico*/
+        lc = sizeCar(volume[i],ndm);
+/*...................................................................*/
+
+/*...*/
+        diff = tCond[i]/sHeat[i] + 1.e-32;
+        den  = density[i];
+/*...................................................................*/
+
+/*...*/
+        dtCfl = min(dtCfl,nCfl*lc/modVel);
+        dtVn  = min(dtVn,(den*lc*lc)/(2.0*diff));      
+/*...................................................................*/
+      }
+/*...................................................................*/
+  
+/*....*/
+#ifdef _MPI_
+      if(mpiVar.nPrcs>1)
+      { 
+        tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+        MPI_Allreduce(&dtCfl,&gg ,1,MPI_DOUBLE,MPI_MIN,mpiVar.comm);
+        dtCfl = gg;
+        MPI_Allreduce(&dtVn,&gg ,1,MPI_DOUBLE,MPI_MIN,mpiVar.comm);
+        dtVn = gg;
+        tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+      }
+#endif
+/*...................................................................*/
+    
+/*...*/
+      dtNew   = min(dtVn,dtCfl);  
+/*...................................................................*/
+      break;
+/*...................................................................*/
+
+/*... CFLI*/
+    case  CFL:
+      cfl   = 0.e0;
+      dtCfl = 86400.e0; /*24*3600*/
+      for(i=0;i<nEl;i++)
+      {
+ /*... modulo das velocidades*/
+        for(j=0,modVel=1.e-32;j<ndm;j++)
+          modVel += MAT2D(i, j, vel, ndm)*MAT2D(i, j, vel, ndm);   
+        modVel = sqrt(modVel);
+/*...................................................................*/
+
+/*... tamanho caracteristico*/
+        lc = sizeCar(volume[i],ndm);
+/*...................................................................*/
+
+/*...*/
+        cfl   = max(cfl,modVel*deltaT/lc);
+        dtCfl = min(dtCfl,nCfl*lc/modVel);
+/*...................................................................*/
+      }
+/*...................................................................*/
+  
+/*....*/
+#ifdef _MPI_
+      if(mpiVar.nPrcs>1)
+      { 
+        tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+        MPI_Allreduce(&dtCfl,&gg ,1,MPI_DOUBLE,MPI_MIN,mpiVar.comm);
+        dtCfl = gg;
+        tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+      }
+#endif
+/*...................................................................*/
+    
+/*...*/
+      dtNew   = dtCfl;
+/*...................................................................*/
+      break;
+/*...................................................................*/
+
+/*... CFLI*/
+    case  CFLCHE:
+      cfl    = 0.e0;
+      dtChem = dtCfl = 86400.e0; /*24*3600*/
+      for(i=0;i<nEl;i++)
+      {
+/*... modulo das velocidades*/
+        for(j=0,modVel=1.e-32;j<ndm;j++)
+          modVel += MAT2D(i, j, vel, ndm)*MAT2D(i, j, vel, ndm);   
+        modVel = sqrt(modVel);
+/*...................................................................*/
+
+/*... maior taxa de reacao*/        
+        for(j=0,wMax = 1.e-32;j<ns;j++)
+        {
+          tmp  = fabs(MAT2D(i, j, wk, ns));         
+          wMax = max(tmp,wMax);
+        }         
+/*...................................................................*/
+
+/*... tamanho caracteristico*/
+        lc = sizeCar(volume[i],ndm);
+/*...................................................................*/
+
+/*...*/
+        cfl    = max(cfl,modVel*deltaT/lc);
+        dtCfl  = min(dtCfl,nCfl*lc/modVel);
+        dtChem = min(dtChem,0.1*density[i]/wMax); 
+/*...................................................................*/
+      }
+/*...................................................................*/
+  
+/*....*/
+#ifdef _MPI_
+      if(mpiVar.nPrcs>1)
+      { 
+        tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+        MPI_Allreduce(&dtCfl,&gg ,1,MPI_DOUBLE,MPI_MIN,mpiVar.comm);
+        dtCfl = gg;
+        MPI_Allreduce(&dtChem,&gg ,1,MPI_DOUBLE,MPI_MIN,mpiVar.comm);
+        dtChem = gg;
+        tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+      }
+#endif
+/*...................................................................*/
+    
+/*...*/
+      dtNew   = min(dtCfl,dtChem);
+/*...................................................................*/
+      break;
+/*...................................................................*/
+
+
+/*... */
+    default:
+       ERRO_OP(__FILE__,__func__,iCod);
+    break;
+/*...................................................................*/
+  }
+
+/*...*/
+  fprintf(fileLogExc,"cdl %lf chem %lf\n",dtCfl,dtChem);
   if(deltaT > trunkNumber(dtNew)) 
   {
     ddt->dt[TIME_N] = trunkNumber(dtNew);
