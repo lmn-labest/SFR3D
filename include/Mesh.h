@@ -198,7 +198,7 @@
                             mass que sai do dominio*/ 
     DOUBLE xRef[3];     /*ponto de referencia*/
     DOUBLE scaleX[3];   /*fator de escala da malha*/
-    DOUBLE tempMax,tempMed,velMax;
+    DOUBLE tempMax,tempMed,tempMin,velMax;
 /*...*/    
     Elmt elm;     
     Node node;

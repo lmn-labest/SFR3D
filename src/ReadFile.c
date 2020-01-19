@@ -7518,6 +7518,7 @@ void readTransConfig(Temporal *ddt, Save *save
           fscanf(fileIn,"%lf",&ddt->dtMin);
           fscanf(fileIn,"%lf",&ddt->dtMax);
           fscanf(fileIn,"%lf",&ddt->cfl);
+          fscanf(fileIn,"%lf",&ddt->chem);
         }  
 /*...................................................................*/
 
@@ -7528,6 +7529,7 @@ void readTransConfig(Temporal *ddt, Save *save
           fprintf(fileLogExc,"dtMin(s)  : %.10lf\n",ddt->dtMin);
           fprintf(fileLogExc,"dtMax(s)  : %.10lf\n",ddt->dtMax);
           fprintf(fileLogExc,"cfl       : %.10lf\n",ddt->cfl);
+          fprintf(fileLogExc,"chemical  : %.10lf\n",ddt->chem);
         }
         else
         {

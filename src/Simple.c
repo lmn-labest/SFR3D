@@ -811,6 +811,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...*/
   mesh->velMax  = maxArray(mesh->elm.vel,mesh->numelNov*mesh->ndm);
   mesh->tempMax = maxArray(mesh->elm.temp,mesh->numelNov);
+  mesh->tempMin = minArray(mesh->elm.temp,mesh->numelNov);
   mesh->tempMed = getVolumeMed(mesh->elm.temp,mesh->elm.geom.volume
                               ,mesh->numelNov);
 /*...................................................................*/
@@ -833,6 +834,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     printf("%-20s : %13.6e\n","Heat Combustion"     ,cModel->totalHeat);
     printf("%-20s : %13.6lf\n","Temperatue Max"     ,mesh->tempMax);
     printf("%-20s : %13.6lf\n","Temperatue Med"     ,mesh->tempMed);
+    printf("%-20s : %13.6lf\n","Temperatue Min"     ,mesh->tempMin);
     printf("%-20s : %13.6lf\n","Vel Max"            ,mesh->velMax);
     
     printf("%-25s : %15s %20s\n","Residuo:","init","final");
@@ -2327,7 +2329,8 @@ void dynamicDeltatChe(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
   DOUBLE dtCfl,dtVn,modVel,lc,deltaT,deltaT0,diff,den,dtNew,cfl,wMax,dtChem,tmp;
   DOUBLE deltaMax=ddt->dtMax
         ,deltaMin=ddt->dtMin
-        ,nCfl    =ddt->cfl;
+        ,nCfl    =ddt->cfl
+        ,chem    =ddt->chem;
 #ifdef _MPI_
   DOUBLE gg;
 #endif  
@@ -2453,7 +2456,7 @@ void dynamicDeltatChe(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 /*...*/
         cfl    = max(cfl,modVel*deltaT/lc);
         dtCfl  = min(dtCfl,nCfl*lc/modVel);
-        dtChem = min(dtChem,0.1*density[i]/wMax); 
+        dtChem = min(dtChem,chem*density[i]/wMax); 
 /*...................................................................*/
       }
 /*...................................................................*/

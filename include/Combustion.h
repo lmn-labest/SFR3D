@@ -78,6 +78,7 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
                    , DOUBLE *RESTRICT gradZ, DOUBLE *RESTRICT gradY
                    , INT const numel       , short const ndm);
 /*...*/
+  DOUBLE minArray(DOUBLE *RESTRICT x,INT const n);
   DOUBLE maxArray(DOUBLE *RESTRICT x,INT const n);
   DOUBLE getVolumeMed(DOUBLE *RESTRICT x,DOUBLE *RESTRICT vol
                    ,INT const n);
