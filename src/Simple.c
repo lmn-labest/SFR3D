@@ -502,7 +502,6 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...*/
   for (itSimple = 0; itSimple<sp->maxIt; itSimple++) 
   {
-
 /*...*/
     if ((fStop = fopen("stopSimple.mvf", "r")) != NULL) 
     {
@@ -526,7 +525,8 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*... modelo de turbulencia*/
-    if(tModel->fTurb){
+    if(tModel->fTurb)
+    {
       tm.turbulence = getTimeC() - tm.turbulence;
       turbulence(m    
                , loadsKturb, loadsVel  
@@ -2893,7 +2893,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
   }
 /*...................................................................*/
 
-/*... atualizando o campo de velociade estimadas*/
+/*... atualizando o campo de velocidade estimadas*/
   updateCellSimpleVelR(mesh->elm.vel      , xu1
                      , xu2                , xu3
                      , sistEqVel->id      , &sistEqVel->iNeq 
@@ -2981,7 +2981,8 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
 /*...................................................................*/
 
 /*... solver ApPc = bpC (velocidade estimadas)*/
-  if (*pCor) {
+  if (*pCor)
+  {
 /*...*/
     zero(sp->ePresC , mesh->numel, DOUBLEC);
     zero(sp->ePresC1, mesh->numel, DOUBLEC);

@@ -71,7 +71,7 @@ void pcg(INT const nEq      ,INT const nAd
 	for (i = 0; i < nEq; i++)
     z[i] = b[i] * m[i];
 
-	d      = dot(b, z, nEq);
+  d      = dot(b, z, nEq);
 	norm_b = sqrt(fabs(d));
 	conv   = tol * norm_b;
 /*...................................................................*/
@@ -285,7 +285,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
 	for (i = 0; i < nEqNov; i++)
 		z[i] = b[i] * m[i];
 
-	d = dot(b, z, nEqNov);
+  d = dot(b, z, nEqNov);
 	norm_b = sqrt(fabs(d));
 	conv = tol * norm_b;
 /*...................................................................*/

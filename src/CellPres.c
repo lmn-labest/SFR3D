@@ -1444,7 +1444,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
 /*...cargas*/
         nCarg = lFacePresR[nf] - 1;
         pLoadSimplePres(&sP             , &p
-                      , tA              , lXmcc
+                      , tA              , lXmcc  
                       , presC           , gradPresC   
                       , s               , e         
                       , t               , lNormal
@@ -1495,7 +1495,7 @@ void cellSimplePres3DLm(Loads *lVel        , Loads *lPres
       tempC = CELSIUS_FOR_KELVIN(tempC);
 //    tmp1 = 1.e0/(IDEALGASR*tempC);
       tmp1 = fKsi(mW,tempC,IDEALGASR);
-      if( fLhsDensity) sP += tmp1*volume[idCell]/dt;
+      if(fLhsDensity) sP += tmp1*volume[idCell]/dt;
     } 
 /*...BACKWARD*/
     else if (typeTime == BACKWARD) 

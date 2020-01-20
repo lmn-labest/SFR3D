@@ -551,7 +551,7 @@ static void comunicateComb(short *m0faceR     ,short *faceR
           
         if(iCod == 1)
           for(i=0;i<size;i++) 
-            m0mMolar.t00[i] = nD[i];
+            mmMolar.t00[i] = nD[i];
         else if(iCod == 2)
           MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,29   
                   ,mpiVar.comm);
@@ -562,7 +562,7 @@ static void comunicateComb(short *m0faceR     ,short *faceR
           
         if(iCod == 1)
           for(i=0;i<size;i++) 
-            m0mMolar.t0[i] = nD[i];
+            mmMolar.t0[i] = nD[i];
         else if(iCod == 2)
           MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,29   
                   ,mpiVar.comm);
@@ -574,15 +574,13 @@ static void comunicateComb(short *m0faceR     ,short *faceR
           
         if(iCod == 1)
           for(i=0;i<size;i++) 
-            m0mMolar.t[i] = nD[i];
+            mmMolar.t[i] = nD[i];
         else if(iCod == 2)
           MPI_Send(nD    ,       size, MPI_DOUBLE,nPart,29   
                   ,mpiVar.comm);
         
         free(nD);
 /*...................................................................*/
-
-
    break;
 /*...................................................................*/
 

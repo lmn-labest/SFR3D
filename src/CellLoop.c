@@ -3584,7 +3584,7 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
 
 /*... chamando a biblioteca de celulas*/
     cellLibSimplePresLm(loadsVel,loadsPres 
-							  ,diffPres 
+							    ,diffPres 
                   ,eMass      ,mMom
                   ,lGeomType  
                   ,lViz       ,lId           
@@ -3612,7 +3612,7 @@ void systFormSimplePresLm(Loads *loadsVel  , Loads *loadsPres
     if(calRcell)
       rCell[nel] = lRcell;  
 /*...................................................................*/
- 
+
 /*...*/
     assbly(ia      ,ja
         ,a           ,ad              
