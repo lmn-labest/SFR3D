@@ -1913,7 +1913,8 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
 {
   short i,j,k,cCell = maxViz;
   short no1,no2,no3,no4,nenFaces=0;
-  DOUBLE x1,x2,x3,x4,v1[3],v2[3],n[3],dot;
+  DOUBLE x1,x2,x3,x4,v1[3],v2[3],v3[3],v4[3],dot;
+  DOUBLE n[3],n1[3],n2[3],n3[3],n4[3];
 
   for(i=0;i<lnFace[cCell];i++){
     mksi[i]  = 0.0e0;
@@ -1976,17 +1977,21 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
         x3 = MAT3D(cCell,no3,j,lx,maxNo,ndm);
         x4 = MAT3D(cCell,no4,j,lx,maxNo,ndm);
         v1[j] = MAT2D(0,j,eta,ndm) = x2 - x1;
-        MAT2D(1,j,eta,ndm) = x3 - x2;
-        MAT2D(2,j,eta,ndm) = x4 - x3;
-        v2[j] = MAT2D(3,j,eta,ndm) = x1 - x4;
+        v2[j] = MAT2D(1,j,eta,ndm) = x3 - x2;
+        v3[j] = MAT2D(2,j,eta,ndm) = x4 - x3;
+        v4[j] = MAT2D(3,j,eta,ndm) = x1 - x4;
       }
 /*... area da face*/
       fArea[i] = areaCell(eta,QUADCELL,ndm,nel);
 /*... normal a face*/
-      prodVet(v2,v1,n);
+      prodVet(v4,v1,n1);
+      prodVet(v1,v2,n2);
+      prodVet(v2,v3,n3);
+      prodVet(v3,v4,n4);
 /*... normal do vetor normal*/
-      dot = 0.e0;
-      for(j=0;j<ndm;j++){
+      for(j=0,dot=0.e0;j<ndm;j++)
+      {
+        n[j] = 0.25e0*(n1[j]+n2[j]+n3[j]+n4[j]);
         dot += n[j]*n[j];                             
       }
       dot = sqrt(dot);
@@ -7460,14 +7465,14 @@ void facePressure(DOUBLE *gradPresC           ,DOUBLE *gradPresV
       v[0] = lXm[0] - ccV[0];
       v[1] = lXm[1] - ccV[1];
       v[2] = lXm[2] - ccV[2];
-
+ 
       p1 = presC + gradPresC[0]*lXmcc[0] 
                  + gradPresC[1]*lXmcc[1] 
                  + gradPresC[2]*lXmcc[2];  
 
       p2 = presV + gradPresV[0]*v[0]
                  + gradPresV[1]*v[1] 
-                 + gradPresV[2]*v[2];  
+                 + gradPresV[2]*v[2];
 
       pFace = 0.5e0*(p1+p2);
     }

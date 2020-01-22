@@ -442,10 +442,10 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
 /*...................................................................*/
 
 /*... r = (b - Ax) (calculo do residuo explicito)*/
-	for (i = 0; i < nEq; i++) {
+	for (i = 0; i < nEqNov; i++) {
 		r[i] = b[i] - z[i];
 	}
-	norm_r = dot(r, r, nEq);
+	norm_r = dot(r, r, nEqNov);
 	norm_r = sqrt(norm_r);
 	if(fPrint && norm_r > 3.16e0*conv)
 		if(!mpiVar.myId) printf("MPIBICGSATB: %20.9e > %20.9e!!\n", norm_r, conv);
