@@ -539,7 +539,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*... modelo de combustao*/
-   if (fPrint) printf("Modelo de combustao:\n");
+   if (fPrint) fprintf(fileLogExc,"Modelo de combustao:\n");
    combustionModel(m          , propF
                    , loadsComb , loadsVel
                    , tModel    , cModel
@@ -551,7 +551,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*... equacao de energia*/
-    if (fPrint) printf("Conservacao de Energia:\n");
+    if (fPrint) fprintf(fileLogExc,"Conservacao de Energia:\n");
     fEnergy = energyEquation(m            , propF 
                            , loadsVel     , loadsEnergy  
                            , eModel       , tModel      
@@ -2286,7 +2286,7 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 
 /********************************************************************* 
  * Data de criacao    : 18/01/2020                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 24/01/2020                                   * 
  *-------------------------------------------------------------------* 
  * dinamicyDeltat : calculo dos residuos no metodo simple            *
  *-------------------------------------------------------------------* 
@@ -2489,8 +2489,11 @@ void dynamicDeltatChe(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 /*...................................................................*/
   }
 
+  dtNew = min(dtNew,deltaMax);
+  dtNew = max(dtNew,deltaMin);
+
 /*...*/
-  fprintf(fileLogExc,"cdl %lf chem %lf\n",dtCfl,dtChem);
+  fprintf(fileLogExc,"cfl %lf chem %lf\n",dtCfl,dtChem);
   if(deltaT > trunkNumber(dtNew)) 
   {
     ddt->dt[TIME_N] = trunkNumber(dtNew);
@@ -2838,7 +2841,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
  
 /*... solver Au = bu (velocidade estimadas)*/
   if (*xMomentum) {
-    if (fPrint) printf("Quantidade de movimento u1:\n");
+    if (fPrint) fprintf(fileLogExc,"Quantidade de movimento u1:\n");
     tm.solvVel = getTimeC() - tm.solvVel;
     solverC(m
       , sistEqVel->neq    , sistEqVel->neqNov
@@ -2857,7 +2860,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
 
 /*... solver Av = bv (velocidade estimadas)*/
   if (*yMomentum) {
-    if (fPrint) printf("Quantidade de movimento u2:\n");
+    if (fPrint) fprintf(fileLogExc,"Quantidade de movimento u2:\n");
     tm.solvVel = getTimeC() - tm.solvVel;
     solverC(m
       , sistEqVel->neq    , sistEqVel->neqNov
@@ -2876,7 +2879,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
 
 /*... solver Aw = bw (velocidade estimadas)*/
   if (*zMomentum && ndfVel == 3) {
-    if (fPrint) printf("Quantidade de movimento u3:\n");
+    if (fPrint) fprintf(fileLogExc,"Quantidade de movimento u3:\n");
     tm.solvVel = getTimeC() - tm.solvVel;
     solverC(m
       , sistEqVel->neq    , sistEqVel->neqNov
@@ -2902,7 +2905,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
 /*...................................................................*/
 
 /*...*/
-  if (fPrint) printf("Correcao de pressao:\n");
+  if (fPrint) fprintf(fileLogExc,"Correcao de pressao:\n");
 
 /*... montagem do sistema  da pressao de correca*/
   tm.systFormPres = getTimeC() - tm.systFormPres;
