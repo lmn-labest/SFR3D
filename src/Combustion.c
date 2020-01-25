@@ -91,7 +91,6 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
     desloc = sistEqComb->neq;
     xu[i] = &sistEqComb->x[i*desloc]; 
 
-    desloc = mesh->numelNov;
   }
 /*...................................................................*/
 

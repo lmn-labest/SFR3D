@@ -1813,7 +1813,7 @@ void systFormEnergy(Loads *loads       , Loads *ldVel
         lVolume[i]       = gVolume[vizNel];
         lGeomType[i]     = geomType[vizNel];
         lDensity[i]      = density[vizNel];
-        lsHeat[aux1]     = sHeat[vizNel]; 
+        lsHeat[i]        = sHeat[vizNel]; 
         ltConductivity[i]= tConductivity[vizNel];
 /*...*/
         MAT2D(i, 0, lPres, 2) = pres0[vizNel];
