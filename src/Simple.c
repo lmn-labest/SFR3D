@@ -326,7 +326,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     fDensityRef       = thDynamic->fDensityRef,
     fPresRef          = thDynamic->fPresTh,
     fDeltaTimeDynamic = sc->ddt.fDynamic;
-  DOUBLE cfl, reynolds, peclet,  deltaMass, prMax;
+  DOUBLE cfl, reynolds, peclet,  deltaMass, prMax, wt;
   bool fParameter[10];
 
 /*...*/
@@ -803,9 +803,10 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*... Enegia total liberada*/
-  cModel->totalHeat += totalHeatRealeseComb(mesh->elm.wT
+  wt = totalHeatRealeseComb(mesh->elm.wT
                       , mesh->elm.geom.volume
                       , sc->ddt.dt[TIME_N], mesh->numelNov); 
+  cModel->totalHeat += wt;
 /*...................................................................*/
 
 /*...*/
@@ -853,14 +854,14 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 
 /*...*/
     fprintf(opt->fileParameters
-           ,"%9d %e %e %e %e %e %e %e %e %e %e %e %e\n"
+           ,"%9d %e %e %e %e %e %e %e %e %e %e %e %e %e\n"
                                , sc->ddt.timeStep  , sc->ddt.t
                                , cfl               , reynolds
                                , peclet            , thDynamic->pTh[2]
                                , mesh->mass[1]     , mesh->mass[2]
                                , mesh->massInOut[0], mesh->massInOut[1]
-                               , cModel->totalHeat , mesh->tempMax
-                               ,mesh->tempMed);
+                               , cModel->totalHeat , wt
+                               , mesh->tempMax     , mesh->tempMed);
 /*...................................................................*/
   }
 /*...................................................................*/

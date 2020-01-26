@@ -1422,7 +1422,7 @@ int main(int argc,char**argv){
       fprintf(opt.fileParameters,"%s %s %s\n"
                             ,"#step t cfl reynolds peclet P0 "
                             ,"mass(Inc) mass(Avg) massIn massOut "
-                            ,"totalHeat temMax temMed");
+                            ,"totalHeat Heat temMax temMed");
     }
 /*...................................................................*/
 
