@@ -1965,13 +1965,16 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
 /*...................................................................*/
 
 /*... calculo do vetor normal e area da face*/
-  if( lGeomType[cCell] == HEXACELL ){
-    for(i=0;i<lnFace[cCell];i++){
+  if( lGeomType[cCell] == HEXACELL )
+  {
+    for(i=0;i<lnFace[cCell];i++)
+    {
       no1 = MAT2D(i,0,sn,nenFaces);
       no2 = MAT2D(i,1,sn,nenFaces);
       no3 = MAT2D(i,2,sn,nenFaces);
       no4 = MAT2D(i,3,sn,nenFaces);
-      for(j=0;j<ndm;j++){
+      for(j=0;j<ndm;j++)
+      {
         x1 = MAT3D(cCell,no1,j,lx,maxNo,ndm);
         x2 = MAT3D(cCell,no2,j,lx,maxNo,ndm);
         x3 = MAT3D(cCell,no3,j,lx,maxNo,ndm);
@@ -2003,25 +2006,32 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
 /*...................................................................*/
 
 /*... calculo do vetor normal e area da face*/
-  else if( lGeomType[cCell] == TETRCELL ){
-    for(i=0;i<lnFace[cCell];i++){
+  else if( lGeomType[cCell] == TETRCELL )
+  {
+    for(i=0;i<lnFace[cCell];i++)
+    {
       no1 = MAT2D(i,0,sn,nenFaces);
       no2 = MAT2D(i,1,sn,nenFaces);
       no3 = MAT2D(i,2,sn,nenFaces);
-      for(j=0;j<ndm;j++){
+      for(j=0;j<ndm;j++)
+      {
         x1 = MAT3D(cCell,no1,j,lx,maxNo,ndm);
         x2 = MAT3D(cCell,no2,j,lx,maxNo,ndm);
         x3 = MAT3D(cCell,no3,j,lx,maxNo,ndm);
         v1[j] = MAT2D(0,j,eta,ndm) = x2 - x1;
-        v2[j] = MAT2D(1,j,eta,ndm) = x3 - x1;
+        v2[j] = MAT2D(1,j,eta,ndm) = x3 - x2;
+        v3[j] = MAT2D(2,j,eta,ndm) = x1 - x3;
       }
 /*... area da face*/
       fArea[i] = areaCell(eta,TRIACELL,ndm,nel);
 /*... normal a face*/
-      prodVet(v1,v2,n);
+      prodVet(v1,v2,n1);
+      prodVet(v2,v3,n2);
+      prodVet(v3,v1,n3);
 /*... normal do vetor normal*/
       dot = 0.e0;
       for(j=0;j<ndm;j++){
+        n[j] = (n1[j]+n2[j]+n3[j])/3.e0;
         dot += n[j]*n[j];                             
       }
       dot = sqrt(dot);
@@ -2035,13 +2045,14 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
 /*... calculo do vetor normal e area da face*/
   else if (lGeomType[cCell] == PIRACELL)
   {
-    for (i = 0; i<lnFace[cCell]; i++) {
+    for (i = 0; i<lnFace[cCell]; i++) 
+    {
 /*... face triangular*/
       if (i)
-      {
+      {  
         no1 = MAT2D(i, 0, sn, nenFaces);
         no2 = MAT2D(i, 1, sn, nenFaces);
-        no3 = MAT2D(i, 2, sn, nenFaces);
+        no3 = MAT2D(i, 2, sn, nenFaces); 
         for (j = 0; j<ndm; j++) {
           x1 = MAT3D(cCell, no1, j, lx, maxNo, ndm);
           x2 = MAT3D(cCell, no2, j, lx, maxNo, ndm);
@@ -2101,8 +2112,10 @@ void cellGeom3D(DOUBLE *RESTRICT lx       ,short  *RESTRICT lGeomType
 
 /*... ponto medio da aresta(xm) e vetor que une este ponto ao 
       centroide(mxcc) */
-  if( lGeomType[cCell] == HEXACELL ){
-    for(i=0;i<lnFace[cCell];i++){
+  if( lGeomType[cCell] == HEXACELL )
+  {
+    for(i=0;i<lnFace[cCell];i++)
+    {
       no1 = MAT2D(i,0,sn,nenFaces);
       no2 = MAT2D(i,1,sn,nenFaces);
       no3 = MAT2D(i,2,sn,nenFaces);
@@ -3875,7 +3888,7 @@ DOUBLE areaCell(DOUBLE *eta,short ty,short ndm,INT nel)
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 27/10/2020                                   * 
  *-------------------------------------------------------------------* 
  * AREATRIACELL: calculo da area da celula triangular                * 
  *-------------------------------------------------------------------* 
@@ -3893,30 +3906,77 @@ DOUBLE areaCell(DOUBLE *eta,short ty,short ndm,INT nel)
  *********************************************************************/
 DOUBLE areaTriaCell(DOUBLE *RESTRICT eta, short ndm)
 {
-  double v1[3],v2[3],v3[3],a,dot;
+  short no1,no2;
+  DOUBLE v1[3],v2[3],c[3],a[3],dot;
 
-/*... aresta 1*/
-  v1[0] = MAT2D(0,0,eta,ndm);
-  v1[1] = MAT2D(0,1,eta,ndm);
+/*... v1 - v2*/
+  no1 = 0;
+  no2 = 1; 
+  v1[0] = MAT2D(no1,0,eta,ndm);
+  v1[1] = MAT2D(no1,1,eta,ndm);
   if( ndm == 2)
     v1[2] = 0.0e0;               
   else
-    v1[2] = MAT2D(0,2,eta,ndm);
-  
+    v1[2] = MAT2D(no1,2,eta,ndm);
 
-/*... aresta 2*/
-  v2[0] = MAT2D(1,0,eta,ndm);
-  v2[1] = MAT2D(1,1,eta,ndm);
+  v2[0] = MAT2D(no2,0,eta,ndm);
+  v2[1] = MAT2D(no2,1,eta,ndm);
   if( ndm == 2)
     v2[2] = 0.0e0;               
   else
-    v2[2] = MAT2D(1,2,eta,ndm);
+    v2[2] = MAT2D(no2,2,eta,ndm);
 
 /*...*/
-  prodVet(v1,v2,v3);
-  dot = v3[0]*v3[0] + v3[1]*v3[1] + v3[2]*v3[2];
-  a = 0.5e0*sqrt(dot); 
-  return a;
+  prodVet(v1,v2,c);
+  dot = c[0]*c[0] + c[1]*c[1] + c[2]*c[2];
+  a[0] = 0.5e0*sqrt(dot); 
+
+/*... v2 - v3*/
+  no1 = 1;
+  no2 = 2; 
+  v1[0] = MAT2D(no1,0,eta,ndm);
+  v1[1] = MAT2D(no1,1,eta,ndm);
+  if( ndm == 2)
+    v1[2] = 0.0e0;               
+  else
+    v1[2] = MAT2D(no1,2,eta,ndm);
+
+  v2[0] = MAT2D(no2,0,eta,ndm);
+  v2[1] = MAT2D(no2,1,eta,ndm);
+  if( ndm == 2)
+    v2[2] = 0.0e0;               
+  else
+    v2[2] = MAT2D(no2,2,eta,ndm);
+
+/*...*/
+  prodVet(v1,v2,c);
+  dot = c[0]*c[0] + c[1]*c[1] + c[2]*c[2];
+  a[1] = 0.5e0*sqrt(dot); 
+
+/*... v3 - v1*/
+  no1 = 0;
+  no2 = 1; 
+  v1[0] = MAT2D(no1,0,eta,ndm);
+  v1[1] = MAT2D(no1,1,eta,ndm);
+  if( ndm == 2)
+    v1[2] = 0.0e0;               
+  else
+    v1[2] = MAT2D(no1,2,eta,ndm);
+
+  v2[0] = MAT2D(no2,0,eta,ndm);
+  v2[1] = MAT2D(no2,1,eta,ndm);
+  if( ndm == 2)
+    v2[2] = 0.0e0;               
+  else
+    v2[2] = MAT2D(no2,2,eta,ndm);
+
+/*...*/
+  prodVet(v1,v2,c);
+  dot = c[0]*c[0] + c[1]*c[1] + c[2]*c[2];
+  a[2] = 0.5e0*sqrt(dot); 
+  
+
+  return (a[0] + a[1] + a[2])/3.e0;
 }
 /*********************************************************************/ 
 
