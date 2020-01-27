@@ -745,9 +745,9 @@ void rateHeatRealesedReaction(Combustion *cModel,Prop *sHeat
 
 /*********************************************************************
  * Data de criacao    : 12/08/2018                                   *
- * Data de modificaco : 00/00/0000                                   *
+ * Data de modificaco : 27/01/2020                                   *
  *-------------------------------------------------------------------*
- * rateReaction: calculo da taxa de consumo do combustivel        *
+ * HeatReleaseRate: calculo da taxa de liberacao de energia          *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
@@ -757,13 +757,13 @@ void rateHeatRealesedReaction(Combustion *cModel,Prop *sHeat
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * q -> energia total liberada KJ                                    * 
+ * q -> energia total liberada KJ/s                                  * 
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE totalHeatRealeseComb(DOUBLE *RESTRICT q, DOUBLE *RESTRICT vol  
-                          , DOUBLE const dt   , INT const numel)
+DOUBLE heatReleaseRate(DOUBLE *RESTRICT q, DOUBLE *RESTRICT vol  
+                      , INT const numel)
 {
 
   INT nel;
@@ -789,7 +789,7 @@ DOUBLE totalHeatRealeseComb(DOUBLE *RESTRICT q, DOUBLE *RESTRICT vol
 #endif
 /*...................................................................*/
 
-  return qTotal*dt;
+  return qTotal;
 }
 /*********************************************************************/
 

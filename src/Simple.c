@@ -803,10 +803,9 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*... Enegia total liberada*/
-  wt = totalHeatRealeseComb(mesh->elm.wT
-                      , mesh->elm.geom.volume
-                      , sc->ddt.dt[TIME_N], mesh->numelNov); 
-  cModel->totalHeat += wt;
+  wt = heatReleaseRate(mesh->elm.wT
+                      , mesh->elm.geom.volume,  mesh->numelNov); 
+  cModel->totalHeat += wt*sc->ddt.dt[TIME_N];
 /*...................................................................*/
 
 /*...*/

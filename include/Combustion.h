@@ -88,8 +88,8 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
   void sumFracZ(DOUBLE *z      ,DOUBLE *zComb 
               ,INT const n     ,short const nComb);
 
-  DOUBLE totalHeatRealeseComb(DOUBLE *RESTRICT q, DOUBLE *RESTRICT vol  
-                          , DOUBLE const dt     , INT const numel);
+  DOUBLE heatReleaseRate(DOUBLE *RESTRICT q, DOUBLE *RESTRICT vol  
+                        , INT const numel);
 
 /*...*/
   INT edc(Combustion *c           ,PropVarFluid *pFluid

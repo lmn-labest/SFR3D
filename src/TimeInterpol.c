@@ -440,6 +440,15 @@ void initTimeStruct(Memoria *m        ,TimeInterpol *ti
 
   } 
 /*...................................................................*/
+
+/*... eddyViscosity*/
+  if(opt->tReactor)
+  {
+    fprintf(fileLogDebug,"Print: Nao implementado tReactor!!\n");
+    exit(-1);
+  } 
+/*...................................................................*/
+
 }
 /*********************************************************************/
 
