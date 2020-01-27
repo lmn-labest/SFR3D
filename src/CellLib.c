@@ -3922,7 +3922,7 @@ DOUBLE areaTriaCell(DOUBLE *RESTRICT eta, short ndm)
 
 /********************************************************************* 
  * Data de criacao    : 00/00/2015                                   *
- * Data de modificaco : 00/00/0000                                   * 
+ * Data de modificaco : 27/01/2020                                   * 
  *-------------------------------------------------------------------* 
  * AREAQUADCELL: calculo da area da celula quadrangular              * 
  *-------------------------------------------------------------------* 
@@ -3935,98 +3935,109 @@ DOUBLE areaTriaCell(DOUBLE *RESTRICT eta, short ndm)
  *-------------------------------------------------------------------* 
  * retorna o valores da area da celula                               * 
  *-------------------------------------------------------------------* 
- * OBS:                                                              * 
+ * OBS:                                                              *
+ *   4_________3        4_______3         4_______3                  *  
+ *   |         /        /\  A2 /          / A3   /                   *
+ *   |        /        /  \   /    +     /      /                    * 
+ *   |       /        / A4 \ /          /   A1 /                     *
+ *   1______2        1______2          1______2                      *     
  *-------------------------------------------------------------------* 
  *********************************************************************/
 DOUBLE areaQuadCell(DOUBLE *RESTRICT eta,short ndm)
 {
+  short no1,no2;
+  DOUBLE v1[3],v2[3],c[3],a[4],dot;
 
-  double v1[3],v2[3],c[3];
-  double a,dot;
-
-/*...*/
-  v1[0] = MAT2D(0,0,eta,ndm);
-  v1[1] = MAT2D(0,1,eta,ndm);
+/*... v1-v2*/
+  no1 = 0;
+  no2 = 1;
+  v1[0] = MAT2D(no1,0,eta,ndm);
+  v1[1] = MAT2D(no1,1,eta,ndm);
   if(ndm == 2) 
     v1[2] = 0.0e0;
   else
-    v1[2] = MAT2D(0,2,eta,ndm);
+    v1[2] = MAT2D(no1,2,eta,ndm);
     
-  v2[0] = MAT2D(1,0,eta,ndm);
-  v2[1] = MAT2D(1,1,eta,ndm);
+  v2[0] = MAT2D(no2,0,eta,ndm);
+  v2[1] = MAT2D(no2,1,eta,ndm);
   if(ndm == 2) 
     v2[2] = 0.0e0;
   else
-    v2[2] = MAT2D(1,2,eta,ndm);
+    v2[2] = MAT2D(no2,2,eta,ndm);
   
   prodVet(v1,v2,c);
   dot = c[0]*c[0] + c[1]*c[1] + c[2]*c[2];
-  a = 0.5e0*sqrt(dot);
+  a[0] = 0.5e0*sqrt(dot);
 /*...................................................................*/
 
-/*...*/
-  v1[0] = MAT2D(2,0,eta,ndm);
-  v1[1] = MAT2D(2,1,eta,ndm);
+/*... v2-v3*/
+  no1 = 1;
+  no2 = 2;
+  v1[0] = MAT2D(no1,0,eta,ndm);
+  v1[1] = MAT2D(no1,1,eta,ndm);
   if(ndm == 2) 
     v1[2] = 0.0e0;
   else
-    v1[2] = MAT2D(2,2,eta,ndm);
-  
-
-  v2[0] = MAT2D(3,0,eta,ndm);
-  v2[1] = MAT2D(3,1,eta,ndm);
+    v1[2] = MAT2D(no1,2,eta,ndm);
+    
+  v2[0] = MAT2D(no2,0,eta,ndm);
+  v2[1] = MAT2D(no2,1,eta,ndm);
   if(ndm == 2) 
     v2[2] = 0.0e0;
   else
-    v2[2] = MAT2D(3,2,eta,ndm);
+    v2[2] = MAT2D(no2,2,eta,ndm);
   
   prodVet(v1,v2,c);
   dot = c[0]*c[0] + c[1]*c[1] + c[2]*c[2];
-  a += 0.5e0*sqrt(dot);
+  a[1] = 0.5e0*sqrt(dot);
+/*...................................................................*/
+
+
+/*... v3-v4*/
+  no1 = 2;
+  no2 = 3;
+  v1[0] = MAT2D(no1,0,eta,ndm);
+  v1[1] = MAT2D(no1,1,eta,ndm);
+  if(ndm == 2) 
+    v1[2] = 0.0e0;
+  else
+    v1[2] = MAT2D(no1,2,eta,ndm);
+    
+  v2[0] = MAT2D(no2,0,eta,ndm);
+  v2[1] = MAT2D(no2,1,eta,ndm);
+  if(ndm == 2) 
+    v2[2] = 0.0e0;
+  else
+    v2[2] = MAT2D(no2,2,eta,ndm);
+  
+  prodVet(v1,v2,c);
+  dot = c[0]*c[0] + c[1]*c[1] + c[2]*c[2];
+  a[2] = 0.5e0*sqrt(dot);
 /*...................................................................*/
 
 
 /*...*/
-  v1[0] = MAT2D(0,0,eta,ndm);
-  v1[1] = MAT2D(0,1,eta,ndm);
+  no1 = 3;
+  no2 = 0;
+  v1[0] = MAT2D(no1,0,eta,ndm);
+  v1[1] = MAT2D(no1,1,eta,ndm);
   if(ndm == 2) 
     v1[2] = 0.0e0;
   else
-    v1[2] = MAT2D(0,2,eta,ndm);
-  
-  v2[0] = MAT2D(3,0,eta,ndm);
-  v2[1] = MAT2D(3,1,eta,ndm);
+    v1[2] = MAT2D(no1,2,eta,ndm);
+    
+  v2[0] = MAT2D(no2,0,eta,ndm);
+  v2[1] = MAT2D(no2,1,eta,ndm);
   if(ndm == 2) 
     v2[2] = 0.0e0;
   else
-    v2[2] = MAT2D(3,2,eta,ndm);
+    v2[2] = MAT2D(no2,2,eta,ndm);
   
   prodVet(v1,v2,c);
   dot = c[0]*c[0] + c[1]*c[1] + c[2]*c[2];
-  a += 0.5e0*sqrt(dot);
+  a[3] = 0.5e0*sqrt(dot);
 /*...................................................................*/
-
-
-/*...*/
-  v1[0] = MAT2D(1,0,eta,ndm);
-  v1[1] = MAT2D(1,1,eta,ndm);
-  if(ndm == 2) 
-    v1[2] = 0.0e0;
-  else
-    v1[2] = MAT2D(1,2,eta,ndm);
-  
-  v2[0] = MAT2D(2,0,eta,ndm);
-  v2[1] = MAT2D(2,1,eta,ndm);
-  if(ndm == 2) 
-    v2[2] = 0.0e0;
-  else
-    v2[2] = MAT2D(2,2,eta,ndm);
-  
-  prodVet(v1,v2,c);
-  dot = c[0]*c[0] + c[1]*c[1] + c[2]*c[2];
-  a += 0.5e0*sqrt(dot);
-/*...................................................................*/
-  return 0.5e0*a;
+  return (a[0]+a[1]+a[2]+a[3])*0.5e0;
 }
 /*********************************************************************/ 
 
