@@ -1069,11 +1069,6 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
   }
 /*....................................................................*/
 
-    if(nel == 0) fprintf(fileLogDebug,"%d %e %e %e %e %e %e\n",nel
-                                                        ,yt0[0],yt0[1]
-                                                        ,yt[0] ,yt[1]
-                                                        ,w[0]  ,w[1]);
-
   return k;
 
 }

@@ -737,15 +737,17 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                , fParameter              , sc->ddt.dt[TIME_N]
                , mesh->numelNov          , mesh->ndm);  
 /*...................................................................*/
-
+  printf("%lf\n",cfl);
 /*...*/
   if(fDeltaTimeDynamic)
-    dynamicDeltatChe(mesh->elm.vel            , mesh->elm.geom.volume 
+    dynamicDeltatChe(mesh->elm.vel         , mesh->elm.geom.volume 
                  , mesh->elm.densityFluid.t, mesh->elm.specificHeat.t
                  , mesh->elm.tConductivity , mesh->elm.dViscosity
-                 , mesh->elm.wk            , &sc->ddt
+                 , mesh->elm.wk            , mesh->elm.gradVel
+                 , &sc->ddt                , &cfl
                  , mesh->numelNov          , cModel->nComb  
                  , mesh->ndm               , CFLCHE); 
+  printf("%lf\n",cfl);
 /*...................................................................*/
 
 /*... guardando as propriedades para o proximo passo*/
@@ -2286,7 +2288,7 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 
 /********************************************************************* 
  * Data de criacao    : 18/01/2020                                   *
- * Data de modificaco : 24/01/2020                                   * 
+ * Data de modificaco : 28/01/2020                                   * 
  *-------------------------------------------------------------------* 
  * dinamicyDeltat : calculo dos residuos no metodo simple            *
  *-------------------------------------------------------------------* 
@@ -2298,6 +2300,7 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
  * tCond     -> condutividade termica                                *
  * viscosity -> viscosidade dinamica                                 *
  * wk        -> taxa de reacao massica                               *
+ * gradVel   -> gradiente de velocidade                              *
  * ns        -> numero de especies explicitamente resolvidas         * 
  * volume    -> volume                                               *
  * nEl       -> numero de elementos                                  * 
@@ -2319,14 +2322,15 @@ void dynamicDeltat(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 void dynamicDeltatChe(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
                     , DOUBLE *RESTRICT density, DOUBLE *RESTRICT sHeat
                     , DOUBLE *RESTRICT tCond  , DOUBLE *RESTRICT dViscosity
-                    , DOUBLE *RESTRICT wk     , Temporal *ddt        
+                    , DOUBLE *RESTRICT wk     , DOUBLE *RESTRICT gradVel
+                    , Temporal *ddt           , DOUBLE *gCfl
                     , INT const nEl           , short const ns
                     , short const ndm         , short const iCod)
 
 {
   short j;
   INT i;
-  DOUBLE dtCfl,dtVn,modVel,lc,deltaT,deltaT0,diff,den,dtNew,cfl,wMax,dtChem,tmp;
+  DOUBLE dtCfl,dtVn,modVel,lc,deltaT,deltaT0,diff,den,dtNew,wMax,dtChem,modDiv,tmp,cfl;
   DOUBLE deltaMax=ddt->dtMax
         ,deltaMin=ddt->dtMin
         ,nCfl    =ddt->cfl
@@ -2395,9 +2399,14 @@ void dynamicDeltatChe(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
       for(i=0;i<nEl;i++)
       {
  /*... modulo das velocidades*/
-        for(j=0,modVel=1.e-32;j<ndm;j++)
+        for(j=0,modVel=modDiv=1.e-32;j<ndm;j++)
+        {
           modVel += MAT2D(i, j, vel, ndm)*MAT2D(i, j, vel, ndm);   
+          modDiv += MAT3D(i, j, j, gradVel, ndm, ndm)
+                   *MAT3D(i, j, j, gradVel, ndm, ndm);
+        }
         modVel = sqrt(modVel);
+        modDiv = sqrt(modDiv);
 /*...................................................................*/
 
 /*... tamanho caracteristico*/
@@ -2405,8 +2414,8 @@ void dynamicDeltatChe(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 /*...................................................................*/
 
 /*...*/
-        cfl   = max(cfl,modVel*deltaT/lc);
-        dtCfl = min(dtCfl,nCfl*lc/modVel);
+        cfl  = max(cfl,(modVel+modDiv)*deltaT/lc);
+        dtCfl = min(dtCfl,nCfl*lc/(modVel+modDiv));
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -2436,17 +2445,22 @@ void dynamicDeltatChe(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
       for(i=0;i<nEl;i++)
       {
 /*... modulo das velocidades*/
-        for(j=0,modVel=1.e-32;j<ndm;j++)
+        for(j=0,modVel=modDiv=1.e-32;j<ndm;j++)
+        {
           modVel += MAT2D(i, j, vel, ndm)*MAT2D(i, j, vel, ndm);   
+          modDiv += MAT3D(i, j, j, gradVel, ndm, ndm)
+                   *MAT3D(i, j, j, gradVel, ndm, ndm);
+        }
         modVel = sqrt(modVel);
+        modDiv = sqrt(modDiv);
 /*...................................................................*/
 
 /*... maior taxa de reacao*/        
-        for(j=0,wMax = 1.e-32;j<ns;j++)
-        {
-          tmp  = fabs(MAT2D(i, j, wk, ns));         
-          wMax = max(tmp,wMax);
-        }         
+      for(j=0,wMax = 1.e-32;j<ns;j++)
+      {
+        tmp  = fabs(MAT2D(i, j, wk, ns));         
+        wMax = max(tmp,wMax);
+      }
 /*...................................................................*/
 
 /*... tamanho caracteristico*/
@@ -2454,8 +2468,9 @@ void dynamicDeltatChe(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 /*...................................................................*/
 
 /*...*/
-        cfl    = max(cfl,modVel*deltaT/lc);
-        dtCfl  = min(dtCfl,nCfl*lc/modVel);
+        tmp    = modVel/lc + modDiv;
+        cfl    = max(cfl   , tmp*deltaT);
+        dtCfl  = min(dtCfl , nCfl/tmp);
         dtChem = min(dtChem,chem*density[i]/wMax); 
 /*...................................................................*/
       }
@@ -2466,6 +2481,8 @@ void dynamicDeltatChe(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
       if(mpiVar.nPrcs>1)
       { 
         tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+        MPI_Allreduce(&cfl,&gg ,1,MPI_DOUBLE,MPI_MAX,mpiVar.comm);
+        cfl = gg;
         MPI_Allreduce(&dtCfl,&gg ,1,MPI_DOUBLE,MPI_MIN,mpiVar.comm);
         dtCfl = gg;
         MPI_Allreduce(&dtChem,&gg ,1,MPI_DOUBLE,MPI_MIN,mpiVar.comm);
@@ -2491,9 +2508,9 @@ void dynamicDeltatChe(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
 
   dtNew = min(dtNew,deltaMax);
   dtNew = max(dtNew,deltaMin);
-
+  
 /*...*/
-  fprintf(fileLogExc,"cfl %lf chem %lf\n",dtCfl,dtChem);
+  fprintf(fileLogExc,"dtcfl %lf dtchem %lf\n",dtCfl,dtChem);
   if(deltaT > trunkNumber(dtNew)) 
   {
     ddt->dt[TIME_N] = trunkNumber(dtNew);
@@ -2501,6 +2518,7 @@ void dynamicDeltatChe(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
   } 
   if(deltaT < trunkNumber(dtNew))
   {
+    dtNew = min(2.e0*ddt->dt[TIME_N],dtNew);
     ddt->dt[TIME_N] = min(trunkNumber(dtNew),deltaMax);
     fprintf(fileLogExc,"change dt for: %lf\n",ddt->dt[TIME_N]);
   }       
@@ -2508,6 +2526,9 @@ void dynamicDeltatChe(DOUBLE *RESTRICT vel    , DOUBLE *RESTRICT volume
   ddt->dt[TIME_N_MINUS_2] = deltaT0;
 /*...................................................................*/
 
+/*...*/
+  *gCfl = cfl;
+/*...................................................................*/
 }
 /*********************************************************************/
 
