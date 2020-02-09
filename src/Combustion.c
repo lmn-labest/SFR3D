@@ -941,7 +941,7 @@ DOUBLE minArray(DOUBLE *RESTRICT x,INT const n)
  *-------------------------------------------------------------------*
  * y        -> fracao massica das especies primitivas                *
  * w        -> nao de definido                                       *
- * tReactor ->
+ * tReactor ->                                                       * 
  * desnity  -> densidade do fluido dentro do reator/celula           *
  * modS     -> tempo de mistura definido pe usuario                  *
  *-------------------------------------------------------------------*
@@ -1344,7 +1344,68 @@ DOUBLE getVolumeMed(DOUBLE *RESTRICT x,DOUBLE *RESTRICT vol
 }
 /*******************************************************************/
 
+/*********************************************************************
+* Data de criacao    : 08/02/2020                                   *
+* Data de modificaco : 00/00/0000                                   *
+*-------------------------------------------------------------------*
+* getMassSpecie : Calula a massa total das especies no dominio      *
+*-------------------------------------------------------------------*
+* Parametros de entrada:                                            *
+*-------------------------------------------------------------------*
+* desnity  -> densidade do fluido dentro                            *
+* y        -> fracao massica das especies primitivas                *
+* vol      -> volume do elemento                                    *
+* nEl      -> numero de elementos                                   *
+* ns       -> numero de especies primitivas                         *
+*-------------------------------------------------------------------*
+* Parametros de saida:                                              *
+*-------------------------------------------------------------------*
+*-------------------------------------------------------------------*
+* OBS:                                                              *
+*-------------------------------------------------------------------*
+*********************************************************************/
+void getMassSpecie(DOUBLE *RESTRICT density,DOUBLE *RESTRICT y
+                   ,DOUBLE *RESTRICT vol   ,DOUBLE *RESTRICT mass
+                   ,INT const nEl           , short const ns)
+{
+  short j;
+  INT i;
+  DOUBLE sum[MAXSPECIES],tmp;
+#ifdef _MPI_
+  DOUBLE gg[MAXSPECIES];
+#endif
 
+  for(j=0;j<ns;j++)
+    sum[j] = 0.e0;
+
+/*....*/
+  for (i = 0; i < nEl; i++)
+  {
+    tmp = density[i]*vol[i];
+    for(j=0;j<ns;j++)
+      sum[j] += tmp*MAT2D(i,j,y,ns);
+  }
+/*...................................................................*/
+
+/*....*/
+#ifdef _MPI_
+  if(mpiVar.nPrcs>1)
+  { 
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+    MPI_Allreduce(&sum,&gg ,ns,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
+    for(j=0;j<ns;j++)
+      sum[j] = gg[j];
+    tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
+  }
+#endif
+/*...................................................................*/
+  
+/*...*/
+  for(j=0;j<ns;j++)
+    mass[j] = sum[j];
+/*...................................................................*/
+}
+/*******************************************************************/
 
 void printt(double *x, int n)
 {

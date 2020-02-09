@@ -92,6 +92,12 @@ void combustionSolver(Memoria *m          , PropVarFluid *propF
                         , INT const numel);
 
 /*...*/
+  void getMassSpecie(DOUBLE *RESTRICT density,DOUBLE *RESTRICT y
+                   ,DOUBLE *RESTRICT vol   ,DOUBLE *RESTRICT mass
+                   ,INT const nEl           , short const ns);
+/*...................................................................*/
+
+/*...*/
   INT edc(Combustion *c           ,PropVarFluid *pFluid
         ,DOUBLE *RESTRICT y       ,DOUBLE *RESTRICT w
         ,DOUBLE *RESTRICT tReactor,DOUBLE const density   

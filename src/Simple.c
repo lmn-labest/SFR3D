@@ -326,7 +326,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     fDensityRef       = thDynamic->fDensityRef,
     fPresRef          = thDynamic->fPresTh,
     fDeltaTimeDynamic = sc->ddt.fDynamic;
-  DOUBLE cfl, reynolds, peclet,  deltaMass, prMax, wt;
+  DOUBLE cfl, reynolds, peclet,  deltaMass, prMax, wt,massSpecies[MAXSPECIES];
   bool fParameter[10];
 
 /*...*/
@@ -737,7 +737,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                , fParameter              , sc->ddt.dt[TIME_N]
                , mesh->numelNov          , mesh->ndm);  
 /*...................................................................*/
-  printf("%lf\n",cfl);
+
 /*...*/
   if(fDeltaTimeDynamic)
     dynamicDeltatChe(mesh->elm.vel         , mesh->elm.geom.volume 
@@ -747,7 +747,6 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                  , &sc->ddt                , &cfl
                  , mesh->numelNov          , cModel->nComb  
                  , mesh->ndm               , CFLCHE); 
-  printf("%lf\n",cfl);
 /*...................................................................*/
 
 /*... guardando as propriedades para o proximo passo*/
@@ -781,18 +780,23 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 /*...................................................................*/
 
 /*... calculo da taxa de massa atravessando o contorno aberto*/
-  massFluxOpenDomain(loadsVel         , sc->ddt 
-              , mesh->elm.cellFace    , mesh->face.owner
-              , mesh->elm.faceRvel , mesh->elm.adj.nViz 
-              , mesh->face.area       , mesh->face.normal
+  massFluxOpenDomain(loadsVel           , sc->ddt 
+              , mesh->elm.cellFace      , mesh->face.owner
+              , mesh->elm.faceRvel      , mesh->elm.adj.nViz 
+              , mesh->face.area         , mesh->face.normal
               , mesh->face.xm  
               , mesh->elm.densityFluid.t, mesh->elm.vel 
-              , mesh->massInOut       , &deltaMass
-              , mesh->numelNov        , mesh->ndm  
+              , mesh->massInOut         , &deltaMass
+              , mesh->numelNov          , mesh->ndm  
               , mesh->maxViz  );
   mesh->mass[1] += deltaMass;  
 /*...................................................................*/
 
+/*... caclulo da massa das especies*/
+  getMassSpecie(mesh->elm.densityFluid.t,mesh->elm.yFrac 
+               , mesh->elm.geom.volume  ,massSpecies
+               ,mesh->numelNov          ,cModel->nOfSpecies);
+/*...................................................................*/
 /*... temp(n) = temp(n+1)*/
   alphaProdVector(1.e0        ,mesh->elm.temp
                  ,mesh->numel ,mesh->elm.temp0);  
@@ -838,7 +842,8 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     printf("%-20s : %13.6lf\n","Temperatue Med"     ,mesh->tempMed);
     printf("%-20s : %13.6lf\n","Temperatue Min"     ,mesh->tempMin);
     printf("%-20s : %13.6lf\n","Vel Max"            ,mesh->velMax);
-    
+    for(i=0;i<cModel->nOfSpecies;i++)
+      printf("Mass %-15s : %13.6e\n",cModel->chem.sp[i].name,massSpecies[i]);  
     printf("%-25s : %15s %20s\n","Residuo:","init","final");
     printf("%-25s : %20.8e %20.8e\n","conservacao da massa", rMass0, rMass);
     printf("%-25s : %20.8e %20.8e\n","momentum x1",rU0[0], rU[0]);
@@ -855,7 +860,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 
 /*...*/
     fprintf(opt->fileParameters
-           ,"%9d %e %e %e %e %e %e %e %e %e %e %e %e %e\n"
+           ,"%9d %e %e %e %e %e %e %e %e %e %e %e %e %e"
                                , sc->ddt.timeStep  , sc->ddt.t
                                , cfl               , reynolds
                                , peclet            , thDynamic->pTh[2]
@@ -863,6 +868,9 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                                , mesh->massInOut[0], mesh->massInOut[1]
                                , cModel->totalHeat , wt
                                , mesh->tempMax     , mesh->tempMed);
+    for(i=0;i<cModel->nOfSpecies;i++)
+      fprintf(opt->fileParameters," %e ",massSpecies[i]);
+    fprintf(opt->fileParameters,"\n",massSpecies[i]);
 /*...................................................................*/
   }
 /*...................................................................*/
