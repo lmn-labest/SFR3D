@@ -1879,7 +1879,7 @@ void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel
 
 /*********************************************************************
  * Data de criacao    : 19/08/2018                                   *
- * Data de modificaco : 01/11/2019                                   *
+ * Data de modificaco : 25/02/2020                                   *
  *-------------------------------------------------------------------*
  * SPECIFICENTHALPYFORTEMPMIX:  calcula a temperatura apartir da     *
  * entalpia especifica                                               * 
@@ -1908,24 +1908,54 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
                              , bool const fSheat      , bool const fKelvin
                              , INT const nel ) 
 {
+  short tent=0,maxIt=50,maxTent=24;
   INT i;
   bool flag = false;
   DOUBLE f,fl,tc,tol=1e-08;
- 
-
-
+  DOUBLE ti[] ={100 ,200 ,300
+               ,400 ,500 ,600
+               ,700 ,800 ,900
+               ,1000,1100,1200
+               ,1300,1400,1500
+               ,1600,1700,1800
+               ,1900,2000,2100};  
 /*...*/
   if(fSheat)
   {
 /*... chute inicial*/
-    TEMP(tc,t,fKelvin);
-/*... Newton-Raphson*/
-    for(i=0;i<1000;i++)
+    NEW:
+    if(!tent)
     {
-      f  = hs-tempToSpecificEnthalpyMix(sHeatPol,yFrac
-                                        ,tc      ,sHeatRef
-                                        ,nOfPrSp 
-                                        ,fSheat  ,true);
+      TEMP(tc,t,fKelvin);
+    }
+    else if(tent==1)
+    {
+      tc =273.15e0;
+    }
+    else if(tent==2)
+    {
+      TEMP(tc,t,fKelvin)
+      tc = (tc + 273.15e0)*.5e0;
+    }
+    else if(tent>2 && tent<24)
+    {
+      TEMP(tc,ti[tent-3],fKelvin)      
+    }
+    else
+    {
+      maxIt = 10000;
+      tol   = 1e-04;
+      tc    = 273.15e0;
+    }
+/*...................................................................*/
+
+/*... Newton-Raphson*/
+    for(i=0;i<maxIt;i++)
+    {
+      f = hs-tempToSpecificEnthalpyMix(sHeatPol,yFrac
+                                      ,tc      ,sHeatRef
+                                      ,nOfPrSp 
+                                      ,fSheat  ,true);
       if(fabs(f) < tol) 
       {
         flag = true;
@@ -1938,12 +1968,21 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
     }
 /*...................................................................*/
 
+/*...*/
     if(!flag)
     {
-      ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,
-      "sEnthalpy->temperature:\n Newton-raphson did not converge !!"
-      ,EXIT_PROG);
+      fprintf(stderr,"Erro !!\nWriting to file .. ");
+      fprintf(fileLogDebug,"Erro: %s!!\n"
+             ,"sEnthalpy->temperature:\n Newton-raphson did not converge !!");
+      fprintf(fileLogDebug,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"
+           ,__FILE__,__func__,__LINE__);
+      fprintf(fileLogDebug,"tentativa = %d Res = %e T=%e hs=%e\n",tent+1,f,tc,hs);
+      tent++;
+      if(tent < maxTent)
+        goto NEW;
+      exit(EXIT_NR_HS_T);
     }
+/*...................................................................*/
   }
 /*...................................................................*/
 

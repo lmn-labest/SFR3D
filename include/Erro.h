@@ -7,6 +7,7 @@
   #define EXIT_SOLVER_CONFIG    -3
   #define EXIT_NRP_ET           -4
   #define EXIT_READ_LOOP        -5
+  #define EXIT_NR_HS_T          -6
   #define EXIT_PROG           -111
 
 /*... Saida de Erro*/                                                  
