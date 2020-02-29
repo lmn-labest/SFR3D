@@ -1908,10 +1908,10 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
                              , bool const fSheat      , bool const fKelvin
                              , INT const nel ) 
 {
-  short tent=0,maxIt=50,maxTent=24;
+  short tent=0,maxIt=2,maxTent=24;
   INT i;
-  bool flag = false;
-  DOUBLE f,fl,tc,tol=1e-08;
+  bool flag = false,fPlot = false;
+  DOUBLE f,hs0,fl,tc,tol=1e-08;
   DOUBLE ti[] ={100 ,200 ,300
                ,400 ,500 ,600
                ,700 ,800 ,900
@@ -1943,19 +1943,21 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
     }
     else
     {
-      maxIt = 10000;
-      tol   = 1e-04;
-      tc    = 273.15e0;
+      fPlot  = true;
+      maxIt = 1000;
+      tol   = 1e-05;
+      tc    = 273.15e0;      
     }
 /*...................................................................*/
 
 /*... Newton-Raphson*/
     for(i=0;i<maxIt;i++)
     {
-      f = hs-tempToSpecificEnthalpyMix(sHeatPol,yFrac
+      hs0 =  tempToSpecificEnthalpyMix(sHeatPol,yFrac
                                       ,tc      ,sHeatRef
                                       ,nOfPrSp 
                                       ,fSheat  ,true);
+      f  = hs - hs0;
       if(fabs(f) < tol) 
       {
         flag = true;
@@ -1965,20 +1967,26 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
                              ,tc      ,nOfPrSp
                              ,true);
       tc += f/fl;   
+      
+      if(fPlot)
+        fprintf(fileLogDebug,"it %d Res = %e f'=%e T=%e hs=%e hsi=%e\n"
+                            ,i,f,fl,tc,hs,hs0);
+
     }
 /*...................................................................*/
 
 /*...*/
     if(!flag)
     {
-      fprintf(stderr,"Erro !!\nWriting to file .. ");
+      fprintf(stderr,"Erro !!\nWriting to file of proc %d ... ",mpiVar.myId);
       fprintf(fileLogDebug,"Erro: %s!!\n"
              ,"sEnthalpy->temperature:\n Newton-raphson did not converge !!");
       fprintf(fileLogDebug,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"
            ,__FILE__,__func__,__LINE__);
-      fprintf(fileLogDebug,"tentativa = %d Res = %e T=%e hs=%e\n",tent+1,f,tc,hs);
+      fprintf(fileLogDebug,"tentativa = %d Res = %e T=%e hs=%e tol=%e\n\n"
+                          ,tent+1,f,tc,hs,tol);
       tent++;
-      if(tent < maxTent)
+      if(tent <= maxTent)
         goto NEW;
       exit(EXIT_NR_HS_T);
     }
