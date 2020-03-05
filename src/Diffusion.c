@@ -152,7 +152,8 @@ void diffusion(Memoria *m       ,Loads *loadsDif,DiffModel *dModel
            ,solvD->tol         ,solvD->maxIt     
            ,sistEqD->storage   ,solvD->solver
            ,solvD->fileSolv    ,solvD->log  
-           ,false              ,sistEqD->unsym);
+           ,false              ,sistEqD->unsym
+           ,"solvD");
     tm.solvD1 = getTimeC() - tm.solvD1;
 /*...................................................................*/
 

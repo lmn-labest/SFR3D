@@ -156,7 +156,8 @@ void transport(Memoria *m      ,Loads *loadsTrans,TransModel *tModel
            ,solvT->tol         ,solvT->maxIt     
            ,sistEqT->storage   ,solvT->solver
            ,solvT->fileSolv    ,solvT->log  
-           ,true               ,sistEqT->unsym);  
+           ,true               ,sistEqT->unsym
+           ,"solvT");  
     tm.solvT1 = getTimeC() - tm.solvT1;
 /*...................................................................*/
 

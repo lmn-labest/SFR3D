@@ -2,7 +2,7 @@
 
 /**********************************************************************
  * Data de criacao    : 00/00/0000                                    *
- * Data de modificaco : 19/07/2016                                    *
+ * Data de modificaco : 05/03/2020                                    *
  * -------------------------------------------------------------------*
  * PCG  : metodo do gradiente conjugado com precondiconador diagonal  *
  * (M-1Ax=M-1b) (matriz simentrica)                                   *
@@ -33,6 +33,7 @@
  *  log       -> escreve o log do solver                              *
  * fPrint			-> saida de informacao na tela                          *
  * fHistLog		-> log das iteracoes                                    *
+ * name    -> nome dos sistema de equacoes                            *
  * -------------------------------------------------------------------*
  * Parametros de Saida:                                               *
  * -------------------------------------------------------------------*
@@ -53,7 +54,8 @@ void pcg(INT const nEq      ,INT const nAd
         ,bool const newX    ,FILE* fileLog   
         ,FILE *fileHistLog	,bool const log 
         ,bool const fHistLog,bool const fPrint
-	      ,void(*matvec)()    ,DOUBLE(*dot)())
+	      ,void(*matvec)()    ,DOUBLE(*dot)()
+        ,const char *name)
 {
 	unsigned int j, jj;
 	INT i;
@@ -191,6 +193,7 @@ void pcg(INT const nEq      ,INT const nAd
   }
   
   if(j == maxIt){ 
+    printf("name : %s\n",name);
     printf("PCG: *** WARNING: no convergende reached !\n");
     printf("MAXIT = %d \n",maxIt);
     exit(EXIT_FAILURE);
@@ -208,7 +211,7 @@ void pcg(INT const nEq      ,INT const nAd
 
 /**********************************************************************
  * Data de criacao    : 28 / 08 / 2016                                *
- * Data de modificaco : 23 / 08 / 2019                                *
+ * Data de modificaco : 05 / 03 / 2020                                *
  * ------------------------------------------------------------------ *
  * MPIPCG : metodo do gradiente conjugado com precondiconador diagonal*
  * (M-1Ax=M-1b) (matriz simentrica)                                   *
@@ -241,6 +244,7 @@ void pcg(INT const nEq      ,INT const nAd
  * fPrint			-> saida de informacao na tela                          *
  * fHistLog		-> log das iteracoes                                    *
  * iNeq -> mapa de interface de equacoes                              *
+ * name    -> nome dos sistema de equacoes                            *
  * -------------------------------------------------------------------*
  * Parametros de Saida:                                               *
  * -------------------------------------------------------------------*
@@ -261,7 +265,8 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
         ,FILE *fileHistLog  ,bool const log     
         ,bool const fHistLog,bool const fPrint
         ,Interface *iNeq                      
-        ,void(*matvec)()    ,DOUBLE(*dot)())
+        ,void(*matvec)()    ,DOUBLE(*dot)()
+        ,const char *name)
 {
 #ifdef _MPI_
   unsigned int j, jj;
@@ -414,6 +419,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
   { 
     if(!mpiVar.myId)
     {
+      printf("name : %s\n",name);
       printf(" MPIPCG *** WARNING: no convergende reached !\n");
       printf("MAXIT = %d \n",maxIt);
     }
@@ -438,7 +444,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
 
 /**********************************************************************
 * Data de criacao    : 28/08/2016                                    *
-* Data de modificaco : 00/00/0000                                    *
+* Data de modificaco : 05/03/2020                                    *
 * -------------------------------------------------------------------*
 * PCGOMP: metodo do gradiente conjugado com precondiconador diagonal *
 * (M-1Ax=M-1b) (matriz simentrica)                                   *
@@ -470,6 +476,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
 * fPrint			-> saida de informacao na tela                         *
 * fHistLog		-> log das iteracoes                                   *
 * bOmp        -> Openmp                                              *
+* name    -> nome dos sistema de equacoes                            *
 * -------------------------------------------------------------------*
 * Parametros de Saida:                                               *
 * -------------------------------------------------------------------*
@@ -491,7 +498,8 @@ void pcgOmp(INT const nEq, INT const nAd
             , FILE *fileHistLog, bool const log
             , bool const fHistLog, bool const fPrint
             , BufferOmp *bOmp
-            , void(*matvec)(), DOUBLE(*dot)())
+            , void(*matvec)(), DOUBLE(*dot)()
+            , const char *name)
 {
   short nThreads = ompVar.nThreadsSolver;
   unsigned int j, jj, jG;
@@ -685,6 +693,7 @@ void pcgOmp(INT const nEq, INT const nAd
 /*...*/  
   if (jG == maxIt) 
   {
+    printf("name : %s\n",name);
     printf("PCGOMP: *** WARNING: no convergende reached !\n");
     printf("MAXIT = %d \n", maxIt);
     exit(EXIT_SOLVER);
@@ -707,7 +716,7 @@ void pcgOmp(INT const nEq, INT const nAd
 
 /**********************************************************************
 * Data de criacao    : 27/08/2019                                    *
-* Data de modificaco : 00/00/0000                                    *
+* Data de modificaco : 05/03/2020                                    *
 * -------------------------------------------------------------------*
 * MPIPCGOMP: metodo do gradiente conjugado com precondiconador       *
 * diagonal (M-1Ax=M-1b) (matriz simentrica)                          *
@@ -741,7 +750,8 @@ void pcgOmp(INT const nEq, INT const nAd
 * fPrint			-> saida de informacao na tela                         *
 * fHistLog		-> log das iteracoes                                   *
 * bOmp        -> Openmp                                              *
- * iNeq -> mapa de interface de equacoes                              *
+* iNeq -> mapa de interface de equacoes                              *
+* name    -> nome dos sistema de equacoes                            *
 * -------------------------------------------------------------------*
 * Parametros de Saida:                                               *
 * -------------------------------------------------------------------*
@@ -764,7 +774,8 @@ void mpiPcgOmp(INT const nEq     , INT const nEqNov
             , FILE *fileHistLog  , bool const log
             , bool const fHistLog, bool const fPrint
             , BufferOmp *bOmp    ,Interface *iNeq
-            , void(*matvec)()    , DOUBLE(*dot)())
+            , void(*matvec)()    , DOUBLE(*dot)()
+            , const char *name)
 {
   short nThreads = ompVar.nThreadsSolver;
   unsigned int j, jj, jG;
@@ -967,6 +978,7 @@ void mpiPcgOmp(INT const nEq     , INT const nEqNov
   {
     if(!mpiVar.myId)
     {
+      printf("name : %s\n",name);
       printf("MPIPCGOMP: *** WARNING: no convergende reached !\n");
       printf("MAXIT = %d \n", maxIt);
     }

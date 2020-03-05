@@ -151,7 +151,8 @@ bool energyEquation(Memoria *m               , PropVarFluid *prop
         ,solvEnergy->tol      ,solvEnergy->maxIt
         ,sistEqEnergy->storage,solvEnergy->solver
         ,solvEnergy->fileSolv ,solvEnergy->log
-        ,true                 ,sistEqEnergy->unsym);  
+        ,true                 ,sistEqEnergy->unsym
+        ,"solvE");  
     tm.solvEnergy = getTimeC() - tm.solvEnergy;
   }
 /*...................................................................*/

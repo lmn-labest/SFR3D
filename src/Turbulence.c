@@ -475,7 +475,8 @@ void oneEquationK(Memoria *m
            ,solv->tol         ,solv->maxIt     
            ,sistEq->storage   ,solv->solver
            ,solv->fileSolv    ,solv->log  
-           ,true              ,sistEq->unsym);  
+           ,true              ,sistEq->unsym
+           ,"solvK");  
 /*...................................................................*/
 
 /*... x -> kTur*/

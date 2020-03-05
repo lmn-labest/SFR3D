@@ -2990,7 +2990,8 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
       , solvVel->tol      , solvVel->maxIt
       , sistEqVel->storage, solvVel->solver
       , solvVel->fileSolv , solvVel->log
-      , true              , sistEqVel->unsym);
+      , true              , sistEqVel->unsym
+      , "solvVel");
     tm.solvVel = getTimeC() - tm.solvVel;
   }
 /*...................................................................*/
@@ -3009,7 +3010,8 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
       , solvVel->tol      , solvVel->maxIt
       , sistEqVel->storage, solvVel->solver
       , solvVel->fileSolv , solvVel->log
-      , true              , sistEqVel->unsym);
+      , true              , sistEqVel->unsym
+      , "solvVel");
     tm.solvVel = getTimeC() - tm.solvVel;
   }
 /*...................................................................*/
@@ -3028,7 +3030,8 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
       , solvVel->tol      , solvVel->maxIt
       , sistEqVel->storage, solvVel->solver
       , solvVel->fileSolv , solvVel->log
-      , true              , sistEqVel->unsym);
+      , true              , sistEqVel->unsym
+       , "solvVel");
     tm.solvVel = getTimeC() - tm.solvVel;
   }
 /*...................................................................*/
@@ -3140,7 +3143,8 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
       , solvPres->tol, solvPres->maxIt
       , sistEqPres->storage, solvPres->solver
       , solvPres->fileSolv, solvPres->log
-      , true, sistEqPres->unsym);
+      , true, sistEqPres->unsym
+      , "solvPres");
     tm.solvPres = getTimeC() - tm.solvPres;
 /*...................................................................*/
 
@@ -3223,7 +3227,8 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
         , solvPres->tol, solvPres->maxIt
         , sistEqPres->storage, solvPres->solver
         , solvPres->fileSolv, solvPres->log
-        , true, sistEqPres->unsym);
+        , true, sistEqPres->unsym
+        , "solvPres");
       tm.solvPres = getTimeC() - tm.solvPres;
 /*...................................................................*/
 

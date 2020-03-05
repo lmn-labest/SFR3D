@@ -235,7 +235,8 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
               , solvComb->tol      , solvComb->maxIt
               , sistEqComb->storage, solvComb->solver
               , solvComb->fileSolv , solvComb->log
-              , true               , sistEqComb->unsym);
+              , true               , sistEqComb->unsym
+              , "solvY");
     tm.solvComb = getTimeC() - tm.solvComb;    
   }
 /*...................................................................*/

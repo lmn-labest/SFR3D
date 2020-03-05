@@ -24,7 +24,7 @@ c *********************************************************************/
 
 /**********************************************************************
  * Data de criacao    : 00/00/0000                                    *
- * Data de modificaco : 27/08/2016                                    *
+ * Data de modificaco : 05/03/2020                                    *
  * -------------------------------------------------------------------*
  * SOLVERC: resolucao do sistema linear(Ax=b)                         *
  * -------------------------------------------------------------------*
@@ -52,6 +52,7 @@ c *********************************************************************/
  * fLog    -> log de arquivo (true|false)                             *
  * newX    -> vetor inicial iniciado com zero                         *
  * unsym   -> matriz nao simetrica                                    *
+ * name    -> nome dos sistema de equacoes                            *
  * -------------------------------------------------------------------*
  * Parametro de saida :                                               * 
  * -------------------------------------------------------------------*
@@ -61,16 +62,17 @@ c *********************************************************************/
  * OBS: csrD e csrC sao iguais para matrizes simetricas               *
  **********************************************************************/
 void solverC(Memoria *m    
-            ,INT const nEq       ,INT const nEqNov  
-            ,INT const nAd       ,INT const nAdR
-            ,INT *ia             ,INT *ja   
-            ,DOUBLE *al          ,DOUBLE *ad,DOUBLE *au
-            ,DOUBLE *b           ,DOUBLE *x
-            ,Interface *iNeq     ,BufferOmp *bOmp
-            ,DOUBLE const tol    ,unsigned int maxIt
-            ,short const storage ,short const solver
-            ,FILE* fSolvLog      ,bool const fLog
-            ,bool const newX     ,bool const unSym    )
+            ,INT const nEq         ,INT const nEqNov  
+            ,INT const nAd         ,INT const nAdR
+            ,INT *ia               ,INT *ja   
+            ,DOUBLE *al            ,DOUBLE *ad,DOUBLE *au
+            ,DOUBLE *b             ,DOUBLE *x
+            ,Interface *iNeq       ,BufferOmp *bOmp
+            ,DOUBLE const tol      ,unsigned int maxIt
+            ,short const storage   ,short const solver
+            ,FILE* fSolvLog        ,bool const fLog
+            ,bool const newX       ,bool const unSym   
+            ,const char *name)
 {
   DOUBLE *z=NULL,*r=NULL,*pc=NULL,*t=NULL,*v=NULL,*p=NULL,*h=NULL
         ,*i=NULL,*o=NULL,*s=NULL,*d=NULL;
@@ -125,7 +127,8 @@ void solverC(Memoria *m
              ,fSolvLog   ,fLog
              ,fPrint     
              ,iNeq       ,bOmp
-             ,matVecC    ,dotC);
+             ,matVecC    ,dotC
+             ,name);
 /*...................................................................*/
       tm.pcg = getTimeC() - tm.pcg;
 /*...................................................................*/
@@ -186,7 +189,8 @@ void solverC(Memoria *m
                  ,newX   ,fSolvLog
                  ,fLog   ,fPrint
                  ,iNeq   ,bOmp           
-                 ,matVecC,dotC);  
+                 ,matVecC,dotC
+                 ,name);  
 /*...................................................................*/
 
 /*...*/
@@ -917,7 +921,7 @@ void setMatVec(void (**matVecC)(),short const storage
 
 /**********************************************************************
 * Data de criacao    : 27/08/2016                                    *
-* Data de modificaco : 07/12/2019                                    *
+* Data de modificaco : 05/03/2020                                    *
 * -------------------------------------------------------------------*
 * CALLCG : chama o gradiente conjugados escolhido                    *
 * -------------------------------------------------------------------*
@@ -940,7 +944,8 @@ void callCg(INT const nEq      ,INT const nEqNov
             ,bool const newX    ,FILE* fSolvLog     
             ,bool const fLog    ,bool const fPrint  
             ,Interface *iNeq    ,BufferOmp *bOmp
-            ,void(*matVec)()    ,DOUBLE(*dot)())
+            ,void(*matVec)()    ,DOUBLE(*dot)()
+            ,const char *name)
 {
 
 /*... PCG-MPI*/
@@ -961,7 +966,8 @@ void callCg(INT const nEq      ,INT const nEqNov
                , NULL    , fLog
                , false   , fPrint
                , bOmp    , iNeq
-               , matVec  , dot);
+               , matVec  , dot
+               , name);
     }
 /*...................................................................*/
 
@@ -980,7 +986,8 @@ void callCg(INT const nEq      ,INT const nEqNov
           ,NULL    ,fLog
           ,false   ,fPrint
           ,iNeq
-          ,matVec  ,dot);
+          ,matVec  ,dot
+          ,name);
     }
 /*...................................................................*/
   }
@@ -1001,7 +1008,8 @@ void callCg(INT const nEq      ,INT const nEqNov
             ,NULL    ,fLog    
             ,false   ,fPrint
             ,bOmp
-            ,matVec  ,dot);
+            ,matVec  ,dot
+            ,name);
     }
 /*...................................................................*/
 
@@ -1018,7 +1026,8 @@ void callCg(INT const nEq      ,INT const nEqNov
          ,newX    ,fSolvLog
          ,NULL    ,fLog 
          ,false   ,fPrint
-         ,matVec  ,dot);
+         ,matVec  ,dot
+         ,name);
     }  
 /*...................................................................*/
   }
@@ -1028,7 +1037,7 @@ void callCg(INT const nEq      ,INT const nEqNov
 
 /**********************************************************************
 * Data de criacao    : 27/08/2016                                    *
-* Data de modificaco : 27/08/2019                                    *
+* Data de modificaco : 05/03/2020                                    *
 * -------------------------------------------------------------------*
 * CALLBICGCSTAB : chama o gradiente biconjugados estabilizados       *                   *
 * -------------------------------------------------------------------*
@@ -1053,7 +1062,8 @@ void callBicgStab(INT const nEq     ,INT const nEqNov
                  ,bool const newX   ,FILE* fSolvLog
                  ,bool const fLog   ,bool const fPrint
                  ,Interface *iNeq   ,BufferOmp *bOmp
-                 ,void(*matVec)()   ,DOUBLE(*dot)())
+                 ,void(*matVec)()   ,DOUBLE(*dot)()
+                 ,const char *name)
 {
 
 /*... MPI*/
@@ -1074,7 +1084,8 @@ void callBicgStab(INT const nEq     ,INT const nEqNov
                   ,NULL  ,fLog
                   ,false ,fPrint
                   ,bOmp  ,iNeq
-                  ,matVec,dot);
+                  ,matVec,dot
+                  ,name); 
 /*...................................................................*/
 
 /*... sequencial*/
@@ -1093,7 +1104,8 @@ void callBicgStab(INT const nEq     ,INT const nEqNov
                  ,NULL  ,fLog  
                  ,false ,fPrint
                  ,iNeq  
-                 ,matVec,dot);
+                 ,matVec,dot
+                 ,name);
 /*...................................................................*/
 
 /*... */
@@ -1115,7 +1127,8 @@ void callBicgStab(INT const nEq     ,INT const nEqNov
                   ,NULL  ,fLog
                   ,false ,fPrint
                   ,bOmp
-                  ,matVec,dot);
+                  ,matVec,dot
+                  ,name);
     }
 /*...................................................................*/
 
@@ -1134,7 +1147,8 @@ void callBicgStab(INT const nEq     ,INT const nEqNov
                ,newX  ,fSolvLog
                ,NULL  ,fLog  
                ,false ,fPrint
-               ,matVec,dot);
+               ,matVec,dot
+               ,name);
     }
 /*...................................................................*/
   }

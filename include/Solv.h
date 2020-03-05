@@ -56,17 +56,18 @@
 /*...................................................................*/
 
 /*....*/
-  void solverC(Memoria *m     
-              ,INT const nEq       ,INT const nEqNov
-              ,INT const nAd       ,INT const nAdR
-              ,INT *ia             ,INT *ja   
-              ,DOUBLE *al          ,DOUBLE *ad        ,DOUBLE *au
-              ,DOUBLE *b           ,DOUBLE *x
-              ,Interface *iNeq     ,BufferOmp *bOmp
-              ,DOUBLE const tol    ,unsigned int maxit
-              ,short const storage ,short const solver
-              ,FILE* fileSolvLog   ,bool const fLog
-              ,bool const newX     ,bool const unsym    );
+  void solverC(Memoria *m    
+            ,INT const nEq         ,INT const nEqNov  
+            ,INT const nAd         ,INT const nAdR
+            ,INT *ia               ,INT *ja   
+            ,DOUBLE *al            ,DOUBLE *ad,DOUBLE *au
+            ,DOUBLE *b             ,DOUBLE *x
+            ,Interface *iNeq       ,BufferOmp *bOmp
+            ,DOUBLE const tol      ,unsigned int maxIt
+            ,short const storage   ,short const solver
+            ,FILE* fSolvLog        ,bool const fLog
+            ,bool const newX       ,bool const unSym   
+            ,const char * name);
 /*...................................................................*/
 
 /*========================= Iterativos ==============================*/
@@ -81,7 +82,8 @@
               ,bool const newX    ,FILE* fileSolvLog  
               ,bool const log     ,bool const fPrint  
               ,Interface *iNeq    ,BufferOmp *bOmp
-              ,void(*matvec)()    ,DOUBLE(*dot)());
+              ,void(*matvec)()    ,DOUBLE(*dot)()
+              ,const char *name);
 
 /*... gradiente conjugado precondicionado*/
 	void pcg(INT const nEq,INT const nAd
@@ -94,7 +96,8 @@
           ,bool const newX  	,FILE* fLog
           ,FILE *fileHistLog  ,bool const log 
           ,bool const fHistLog,bool const fPrint
-		      ,void(*matvec)()    ,DOUBLE(*dot)());
+		      ,void(*matvec)()    ,DOUBLE(*dot)()
+          ,const char *name);
 
 /*...  gradiente conjugado precondicionado (OPENMP)*/  
   void pcgOmp(INT const nEq      ,INT const nAd
@@ -108,7 +111,8 @@
              ,FILE *fileHistLog  ,bool const log
              ,bool const fHistLog, bool const fPrint
              ,BufferOmp *bOmp
-             ,void(*matvec)(), DOUBLE(*dot)());
+             ,void(*matvec)(), DOUBLE(*dot)()
+             ,const char *name);
 
 /*...  gradiente conjugado precondicionado (MPI)*/
   void mpiPcg(INT const nEq   ,INT const nEqNov
@@ -123,7 +127,8 @@
         ,FILE *fileHistLog  ,bool const log     
         ,bool const fHistLog,bool const fPrint
         ,Interface *iNeq                      
-        ,void(*matvec)()    ,DOUBLE(*dot)());
+        ,void(*matvec)()    ,DOUBLE(*dot)()
+        ,const char *name);
 /*...................................................................*/
 
 /*...*/
@@ -139,7 +144,8 @@
             , FILE *fileHistLog  , bool const log
             , bool const fHistLog, bool const fPrint
             , BufferOmp *bOmp    ,Interface *iNeq
-            , void(*matvec)()    , DOUBLE(*dot)());
+            , void(*matvec)()    , DOUBLE(*dot)()
+            , const char *name);
 /*...................................................................*/
 
 /*...*/
@@ -156,7 +162,8 @@
                    ,bool const newX, FILE* fSolvLog
                    ,bool const fLog, bool const fPrint
                    ,Interface *iNeq, BufferOmp *bOmp
-                   ,void(*matVec)(), DOUBLE(*dot)());
+                   ,void(*matVec)(), DOUBLE(*dot)()
+                   ,const char *name);
 /*...................................................................*/
 
 /*... gradiente conjugado bi-ortoganilizados precondicionado*/
@@ -172,7 +179,8 @@
 	     ,FILE* fLog         ,FILE *fileHistLog
 	     ,bool const log     , bool const fHistLog
        ,bool const fPrint
-       ,void(*matvec)()    ,DOUBLE(*dot)());
+       ,void(*matvec)()    ,DOUBLE(*dot)()
+       ,const char *name);
 /*...................................................................*/
 
 /*... gradiente conjugado bi-ortoganilizados precondicionado (OMP)*/
@@ -189,7 +197,8 @@
                    ,FILE *fileHistLog, bool const log
                    ,bool const fHistLog, bool const fPrint
                    ,BufferOmp *bOmp
-                   ,void(*matvec)(), DOUBLE(*dot)());
+                   ,void(*matvec)(), DOUBLE(*dot)()
+                   ,const char *name);
 /*...................................................................*/
 
 /*... gradiente conjugado bi-ortoganilizados precondicionado (MPI)*/
@@ -207,7 +216,8 @@
           ,FILE *fileHistLog   ,bool const log
           ,bool const fHistLog ,bool const fPrint 
           ,Interface *iNeq    
-          ,void(*matvec)()     ,DOUBLE(*dot)());
+          ,void(*matvec)()     ,DOUBLE(*dot)()
+          ,const char *name);
 /*...................................................................*/
 
 /*...*/
@@ -225,7 +235,8 @@
                ,FILE *fileHistLog  ,bool const log
                ,bool const fHistLog,bool const fPrint
                ,BufferOmp *bOmp    ,Interface *iNeq
-               ,void(*matvec)()    ,DOUBLE(*dot)());
+               ,void(*matvec)()    ,DOUBLE(*dot)()
+               ,const char *name);  
 /*...................................................................*/
 
 /*...*/

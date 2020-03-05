@@ -317,7 +317,8 @@ void primeSolver(Memoria *m
               , solvPres->tol, solvPres->maxIt
               , sistEqPres->storage, solvPres->solver
               , solvPres->fileSolv, solvPres->log
-              , false, sistEqPres->unsym);
+              , false, sistEqPres->unsym
+              , "solvPres");
       tm.solvPres = getTimeC() - tm.solvPres;
     }
 /*...................................................................*/
