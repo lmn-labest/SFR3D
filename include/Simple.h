@@ -79,6 +79,12 @@
                  ,INT const nEl          ,short const ndm
                  ,DOUBLE const alphaPres);
  
+  void simpleUpdateVel(DOUBLE *RESTRICT w     ,DOUBLE *RESTRICT gradPresC
+                    ,DOUBLE *RESTRICT dField         
+                    ,INT const nEl          ,short const ndm);
+  void simpleUpdatePres(DOUBLE *RESTRICT pressure,DOUBLE *RESTRICT presC
+                     ,INT const nEl            ,DOUBLE const alphaPres);
+
   void residualCombustionOld(DOUBLE *RESTRICT vel ,DOUBLE *RESTRICT energy
             ,DOUBLE *RESTRICT zComb
             ,DOUBLE *RESTRICT rCellVel     ,DOUBLE *RESTRICT rCellMass

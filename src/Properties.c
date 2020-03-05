@@ -1908,7 +1908,7 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
                              , bool const fSheat      , bool const fKelvin
                              , INT const nel ) 
 {
-  short tent=0,maxIt=2,maxTent=24;
+  short tent=0,maxIt=100,maxTent=24;
   INT i;
   bool flag = false,fPlot = false;
   DOUBLE f,hs0,fl,tc,tol=1e-08;
@@ -1945,8 +1945,8 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
     {
       fPlot  = true;
       maxIt = 1000;
-      tol   = 1e-05;
-      tc    = 273.15e0;      
+      tol   = 1e-04;
+      TEMP(tc,t,fKelvin);   
     }
 /*...................................................................*/
 

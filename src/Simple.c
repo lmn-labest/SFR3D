@@ -261,7 +261,7 @@ void simpleSolver(Memoria *m
 
 /*********************************************************************
  * Data de criacao    : 30/07/2018                                   *
- * Data de modificaco : 23/07/2019                                   *
+ * Data de modificaco : 29/02/2020                                   *
  *-------------------------------------------------------------------*
  * combustionSolver: metodo simple e simpleC para escoamentos        * 
  * 2D/3D termo ativados                                              *
@@ -591,6 +591,11 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
     tm.tempFromTheEnergy = getTimeC() - tm.tempFromTheEnergy;
 /*...................................................................*/
 
+/*... atualiza da pressooes do metodo simple*/
+    simpleUpdatePres( mesh->elm.pressure,sp->ePresC
+                    , mesh->numel       ,sp->alphaPres);
+/*...................................................................*/
+
 /*... pressa de referencia*/
     if(fPresRef)
       presRefMix(cModel
@@ -870,7 +875,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
                                , mesh->tempMax     , mesh->tempMed);
     for(i=0;i<cModel->nOfSpecies;i++)
       fprintf(opt->fileParameters," %e ",massSpecies[i]);
-    fprintf(opt->fileParameters,"\n",massSpecies[i]);
+    fprintf(opt->fileParameters,"\n");
 /*...................................................................*/
   }
 /*...................................................................*/
@@ -880,7 +885,7 @@ void combustionSolver(Memoria *m        , PropVarFluid *propF
 
 /*********************************************************************
 * Data de criacao    : 21/08/2017                                   *
-* Data de modificaco : 30/07/2018                                   *
+* Data de modificaco : 29/02/2020                                   *
 *-------------------------------------------------------------------*
 * SIMPLESOLVERENERGY: metodo simple e simpleC para escoamentos      *
 * 2D/3D termo ativados                                              *
@@ -1126,6 +1131,11 @@ void simpleSolverLm(Memoria *m         , PropVarFluid *propF
                            , sistEqEnergy, solvEnergy
                            , sp          , sc
                            , pMesh);
+/*...................................................................*/
+
+/*... atualiza da pressooes do metodo simple*/
+    simpleUpdatePres( mesh->elm.pressure,sp->ePresC
+                    , mesh->numel       ,sp->alphaPres);
 /*...................................................................*/
 
 /*... residual*/
@@ -1653,6 +1663,104 @@ void simpleUpdate(DOUBLE *RESTRICT w     ,DOUBLE *RESTRICT pressure
     }
   }
 
+}               
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 29/02/2020                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * SIMPLEUPDATEVEL: atualizacao das variasveis do metodo simple      * 
+ * levemente compressivel                                            *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * w         -> velocidades estimadas                                * 
+ * gradPresC -> gradiente da pressao de correcao                     * 
+ * dField    -> matriz D do metodo simple                            * 
+ * nEl       -> numero de elementos                                  * 
+ * ndm       -> numero de dimensoes                                  * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * w        -> atualizado                                            * 
+ * pressure -> atualizado                                            * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void simpleUpdateVel(DOUBLE *RESTRICT w     ,DOUBLE *RESTRICT gradPresC
+                    ,DOUBLE *RESTRICT dField         
+                    ,INT const nEl          ,short const ndm)
+{
+  INT i; 
+
+/*...*/  
+  if( ndm == 2)
+  {
+    for(i=0;i<nEl;i++)
+    {
+/*... atualizacoes da velocidades*/
+      MAT2D(i,0,w,2) -= 
+      MAT2D(i,0,dField,2)*MAT2D(i,0,gradPresC,2);
+      
+      MAT2D(i,1,w,2) -=
+      MAT2D(i,1,dField,2)*MAT2D(i,1,gradPresC,2);
+/*...................................................................*/
+    }
+  }
+/*...................................................................*/
+
+/*...*/  
+  else if( ndm == 3)
+  {
+    for(i=0;i<nEl;i++)
+    {
+/*... atualizacoes da velocidades*/
+      MAT2D(i,0,w,3) -=
+      MAT2D(i,0,dField,3)*MAT2D(i,0,gradPresC,3);
+
+      MAT2D(i,1,w,3) -=
+      MAT2D(i,1,dField,3)*MAT2D(i,1,gradPresC,3);
+
+      MAT2D(i,2,w,3) -=
+      MAT2D(i,2,dField,3)*MAT2D(i,2,gradPresC,3);  
+/*...................................................................*/
+    }
+  }
+/*...................................................................*/
+}               
+/*********************************************************************/
+
+/********************************************************************* 
+ * Data de criacao    : 29/02/2020                                   *
+ * Data de modificaco : 00/00/0000                                   * 
+ *-------------------------------------------------------------------* 
+ * SIMPLEUPDATEVEL: atualizacao das variasveis do metodo simple      * 
+ * levemente compressivel                                            *
+ *-------------------------------------------------------------------* 
+ * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------* 
+ * pressure  -> pressao desatualizado                                * 
+ * presC     -> pressao de correcao                                  * 
+ * nEl       -> numero de elementos                                  * 
+ * alphaPres -> under-relaxationmensoes                              * 
+ *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------* 
+ * pressure -> atualizado                                            * 
+ *-------------------------------------------------------------------* 
+ * OBS:                                                              * 
+ *-------------------------------------------------------------------* 
+ *********************************************************************/
+void simpleUpdatePres(DOUBLE *RESTRICT pressure,DOUBLE *RESTRICT presC
+                     ,INT const nEl            ,DOUBLE const alphaPres)
+{
+  INT i; 
+/*... atualizacoes da velocidades*/
+  for(i=0;i<nEl;i++)
+    pressure[i] += alphaPres*presC[i];
+/*...................................................................*/
 }               
 /*********************************************************************/
 
@@ -2715,10 +2823,12 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
            , false);    
     tm.rcGradVel = getTimeC() - tm.rcGradVel;
 /*...................................................................*/
+  }
+/*...................................................................*/
 
 /*... reconstruindo do gradiente da pressao*/
-    tm.rcGradPres = getTimeC() - tm.rcGradPres;
-    rcGradU(m                        , loadsPres
+  tm.rcGradPres = getTimeC() - tm.rcGradPres;
+  rcGradU(m                        , loadsPres
            , mesh->elm.node          , mesh->elm.adj.nelcon
            , mesh->node.x            
            , mesh->elm.nen           , mesh->elm.adj.nViz
@@ -2745,9 +2855,7 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
            , mesh->numelNov          , mesh->numel
            , mesh->nnodeNov          , mesh->nnode
            , false);  
-    tm.rcGradPres = getTimeC() - tm.rcGradPres;
-/*...................................................................*/
-  }
+  tm.rcGradPres = getTimeC() - tm.rcGradPres;
 /*...................................................................*/
 
 /*... montagem do sistema u, v e w*/
@@ -3168,11 +3276,16 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
 /*...................................................................*/
 
 /*... atualizacao de u, v, w e p*/
-  simpleUpdate(mesh->elm.vel, mesh->elm.pressure
-             , sp->ePresC   , sp->eGradPresC
-             , sp->d
-             , mesh->numel  , mesh->ndm
-             , sp->alphaPres);
+  if(propF == NULL)
+    simpleUpdate(mesh->elm.vel, mesh->elm.pressure
+               , sp->ePresC   , sp->eGradPresC
+               , sp->d
+               , mesh->numel  , mesh->ndm
+               , sp->alphaPres);
+  else
+    simpleUpdateVel(mesh->elm.vel , sp->eGradPresC
+                  , sp->d         
+                  , mesh->numel  , mesh->ndm);
 /*...................................................................*/
 
 /*... calculo da matrix jacobiana das velocidades
@@ -3212,35 +3325,38 @@ void velPresCoupling(Memoria *m         , PropVarFluid *propF
 /*...................................................................*/
 
 /*... reconstruindo do gradiente da pressao*/
-  tm.rcGradPres = getTimeC() - tm.rcGradPres;
-  rcGradU(m                       , loadsPres
-        , mesh->elm.node          , mesh->elm.adj.nelcon
-        , mesh->node.x            
-        , mesh->elm.nen           , mesh->elm.adj.nViz
-        , mesh->elm.cellFace      , mesh->face.owner
-        , mesh->elm.geom.volume   , mesh->elm.geom.dcca
-        , mesh->elm.geom.xmcc     , mesh->elm.geom.cc
-        , mesh->face.mksi         , mesh->face.ksi
-        , mesh->face.eta          , mesh->face.area
-        , mesh->face.normal       , mesh->face.xm
-        , mesh->face.mvSkew       , mesh->face.vSkew
-        , mesh->elm.geomType      , mesh->elm.material.prop
-        , mesh->elm.material.type 
-        , mesh->elm.mat           , NULL
-        , mesh->elm.leastSquare   , mesh->elm.leastSquareR
-        , mesh->elm.faceRpres     
-        , mesh->elm.pressure      , mesh->elm.gradPres
-        , mesh->node.pressure    
-        , mesh->elm.densityFluid.t, mesh->elm.gradRhoFluid 
-        , densityRef
-        , &sc->rcGrad
-        , mesh->maxNo             , mesh->maxViz
-        , 1                       , mesh->ndm
-        , &pMesh->iNo             , &pMesh->iEl
-        , mesh->numelNov          , mesh->numel
-        , mesh->nnodeNov          , mesh->nnode
-        , false);  
-  tm.rcGradPres = getTimeC() - tm.rcGradPres;
+  if(propF == NULL)
+  {
+    tm.rcGradPres = getTimeC() - tm.rcGradPres;
+    rcGradU(m                       , loadsPres
+          , mesh->elm.node          , mesh->elm.adj.nelcon
+          , mesh->node.x            
+          , mesh->elm.nen           , mesh->elm.adj.nViz
+          , mesh->elm.cellFace      , mesh->face.owner
+          , mesh->elm.geom.volume   , mesh->elm.geom.dcca
+          , mesh->elm.geom.xmcc     , mesh->elm.geom.cc
+          , mesh->face.mksi         , mesh->face.ksi
+          , mesh->face.eta          , mesh->face.area
+          , mesh->face.normal       , mesh->face.xm
+          , mesh->face.mvSkew       , mesh->face.vSkew
+          , mesh->elm.geomType      , mesh->elm.material.prop
+          , mesh->elm.material.type 
+          , mesh->elm.mat           , NULL
+          , mesh->elm.leastSquare   , mesh->elm.leastSquareR
+          , mesh->elm.faceRpres     
+          , mesh->elm.pressure      , mesh->elm.gradPres
+          , mesh->node.pressure    
+          , mesh->elm.densityFluid.t, mesh->elm.gradRhoFluid 
+          , densityRef
+          , &sc->rcGrad
+          , mesh->maxNo             , mesh->maxViz
+          , 1                       , mesh->ndm
+          , &pMesh->iNo             , &pMesh->iEl
+          , mesh->numelNov          , mesh->numel
+          , mesh->nnodeNov          , mesh->nnode
+          , false);  
+    tm.rcGradPres = getTimeC() - tm.rcGradPres;
+  }
 /*...................................................................*/
 
 }
