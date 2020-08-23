@@ -1,0 +1,20 @@
+config
+reord true bvtk false mem 400 rcGrad gglc fItPlotRes true fItPlot true
+endConfig
+nlItD1
+50 1.e-12
+endNlItD1
+mesh
+nnode 13829 numel 74911 ndm 3 maxno 4 numat 1 ndf 1 maxviz 4 
+materials
+1 1 1.0 
+endMaterials
+insert test/binTest/ex1_3d_tetra_1_ccr.dat
+endMesh
+pgeo
+presolvD1 noConfig:
+solvD1
+pD1
+pD1CsvCell
+pD1CsvNode
+stop
