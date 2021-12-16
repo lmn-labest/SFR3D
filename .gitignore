@@ -1,0 +1,4 @@
+bin
+*.o
+logOpt.txt
+Makefile
