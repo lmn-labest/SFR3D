@@ -20,7 +20,7 @@ mvfCell input.dat output
 
 ### 🌀 Problema da cavidade quadrada
 
-Descompatanto o exemplo e preparando o diretorio:
+Descompactanto o exemplo e preparando o diretorio:
 
 ```console
 cp exemplos/lid_driven_cavity bin/
