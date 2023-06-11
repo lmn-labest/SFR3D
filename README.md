@@ -28,12 +28,13 @@ Descompactanto o exemplo e preparando o diretorio:
 cp exemplos/lid_driven_cavity.zip bin/
 cd bin
 unzip lid_driven_cavity.zip
-mkdir lid_driven_cavity/output
-mv mvfCell lid_driven_cavity
+mkdir -p lid_driven_cavity/output
+cp -v mfvCell_gnu_O3 lid_driven_cavity
+cd lid_driven_cavity
 ```
 
 Rodando o exemplo
 
 ```console
-mvfCell cavidadeQH2.dat output/cavidadeQH2
+./mfvCell_gnu_O3 cavidadeQH2.dat output/cavidadeQH2
 ```

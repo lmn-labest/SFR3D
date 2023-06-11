@@ -1,0 +1,30 @@
+name: SFR3D
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Compile
+      run: |
+        cp -v contrib/Makefile_base Makefile
+        make
+
+    - name: Run Case 1
+      run: |
+        cp exemplos/lid_driven_cavity.zip bin/
+        cd bin
+        unzip lid_driven_cavity.zip
+        cp mfvCell_gnu_O3 lid_driven_cavity
+        cd lid_driven_cavity
+        ./mfvCell_gnu_O3 cavidadeQH2.dat cavidadeQH2
