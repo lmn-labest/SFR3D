@@ -64,7 +64,7 @@ void openMpCheck(bool omp) {
 
   if(omp)
   {
-    ERRO_GERAL(__FILE__,__func__,__LINE__,str);
+    ERRO_GERAL(fileLogDebug, __FILE__,__func__,__LINE__,str, EXIT_OPENMP);
   }
 #endif
 }
@@ -112,7 +112,7 @@ void openMpSet(FILE *fileIn, Omp *ompVar){
         ompVar->nThreadsSolver = (short) nth;
 /*...................................................................*/
 
-/*...*/    
+/*...*/
       fprintf(fileLogExc,"%-20s: %d\n","Solver nThreads"
                         ,ompVar->nThreadsSolver);
 /*...................................................................*/
@@ -132,7 +132,7 @@ void openMpSet(FILE *fileIn, Omp *ompVar){
         ompVar->nThreadsCell = (short) nth;
 /*...................................................................*/
 
-/*...*/       
+/*...*/
       fprintf(fileLogExc,"%-20s: %d\n","Cell nThreads"
                        , ompVar->nThreadsCell);
 /*...................................................................*/
@@ -152,7 +152,7 @@ void openMpSet(FILE *fileIn, Omp *ompVar){
         ompVar->nThreadsUpdate  = (short) nth;
 /*...................................................................*/
 
-/*...*/       
+/*...*/
       fprintf(fileLogExc,"%-20s: %d\n","Update nThreads"
                         , ompVar->nThreadsUpdate);
 /*...................................................................*/
@@ -172,7 +172,7 @@ void openMpSet(FILE *fileIn, Omp *ompVar){
         ompVar->nThreadsGrad = (short) nth;
 /*...................................................................*/
 
-/*...*/       
+/*...*/
       fprintf(fileLogExc,"%-20s: %d\n","Grad nThreads"
                         , ompVar->nThreadsGrad);
 /*...................................................................*/
@@ -192,7 +192,7 @@ void openMpSet(FILE *fileIn, Omp *ompVar){
         ompVar->nThreadsReaction = (short) nth;
 /*...................................................................*/
 
-/*...*/       
+/*...*/
       fprintf(fileLogExc,"%-20s: %d\n","Update nThreads"
                         , ompVar->nThreadsReaction);
 /*...................................................................*/
@@ -208,7 +208,7 @@ void openMpSet(FILE *fileIn, Omp *ompVar){
     fprintf(fileLogDebug,"Erro leitura config omp!!\n");
     exit(EXIT_FAILURE);
   }
-  
+
 
   openMpCheck(ompVar->flag);
 

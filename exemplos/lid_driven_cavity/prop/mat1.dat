@@ -1,0 +1,4 @@
+cellType      1
+densityFluid  1.e0
+dViscosity    2.0e-03
+end

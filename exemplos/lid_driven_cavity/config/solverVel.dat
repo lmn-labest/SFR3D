@@ -1,0 +1,5 @@
+name    BICGSTAB
+tol     1.e-11
+maxIt   1000
+storage CSRC
+end

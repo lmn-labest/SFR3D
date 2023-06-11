@@ -5,98 +5,98 @@
   #include<Define.h>
   #include<File.h>
 
-  INT gStep;
+  extern INT gStep;
 
 /*...*/
-  typedef struct 
+  typedef struct
   {
     DOUBLE *t00,*t0,*t;
   } LevelTime;
 /*...................................................................*/
 
 /*...*/
-  typedef struct 
+  typedef struct
   {
     bool flWord;
     short  jLoop,kLoop;
-    char loopWord[100][MAX_LINE];  
+    char loopWord[100][MAX_LINE];
   } Macros;
 /*...................................................................*/
 
 /*...*/
-  typedef struct 
+  typedef struct
   {
     bool fLimiter;
     short  type,func;
-    DOUBLE beta;  
+    DOUBLE beta;
   } RcGrad;
 /*...................................................................*/
- 
+
 /*...*/
-  typedef struct 
+  typedef struct
   {
     short  type;
     INT maxIt;
-    DOUBLE tol;  
+    DOUBLE tol;
   } Edo;
 /*...................................................................*/
 
 /*...*/
-  typedef struct 
+  typedef struct
   {
-    DOUBLE A,E,Ta,beta;  
+    DOUBLE A,E,Ta,beta;
   } Arrhenius;
 /*...................................................................*/
 
 /*...*/
-  typedef struct 
+  typedef struct
   {
-    bool reverse;    
+    bool reverse;
     short nPartSp[2];
     short partSp[2][MAXSPECIES];
     DOUBLE stch[3][MAXSPECIES];
     DOUBLE exp[2][MAXSPECIES];
     DOUBLE sO2;
-    Arrhenius ArrF,ArrR; 
+    Arrhenius ArrF,ArrR;
   } Reaction;
 /*...................................................................*/
 
 /*...*/
-  typedef struct 
+  typedef struct
   {
     char  name[MAXNAMELENSP];
-    unsigned short nO,nN,nC,nH;  
+    unsigned short nO,nN,nC,nH;
     DOUBLE mW;
-    DOUBLE leornadJones[2]; /*col 1 - sigma, col 2 -e/k*/ 
-/*... entalpia de formacao*/    
+    DOUBLE leornadJones[2]; /*col 1 - sigma, col 2 -e/k*/
+/*... entalpia de formacao*/
     DOUBLE entalphyOfForm;       /*kj/kg*/
-    DOUBLE entalphyOfFormMolar;  /*kj/kmol*/ 
- 
+    DOUBLE entalphyOfFormMolar;  /*kj/kmol*/
+
   } Specie;
 /*...................................................................*/
 
 /*...*/
-  typedef struct 
+  typedef struct
   {
-    unsigned short nReac,nSp,nEp; 
+    unsigned short nReac,nSp,nEp;
     unsigned short eO,eN,eC,eH;
-    unsigned short sCO2,sCO,sH2O,sO2,sN2,sCH4,sC3H8; 
+    unsigned short sCO2,sCO,sH2O,sO2,sN2,sCH4,sC3H8;
     short fuel[MAXSPECIES],nFuel;
     short ox[MAXSPECIES],nOx;
-    short prod[MAXSPECIES],nProd;       
+    short prod[MAXSPECIES],nProd;
     DOUBLE mE[MAXELEMENT];
     Specie sp[MAXSPECIES];
-    Reaction reac[MAXREAC]; 
+    Reaction reac[MAXREAC];
   } Chemical;
 /*...................................................................*/
 
 /*...*/
   typedef struct{
     short type;
-    DOUBLE cGamma,cTau,tMix; /* KJ/Kmol*/    
+    DOUBLE cGamma,cTau,tMix; /* KJ/Kmol*/
     Edo edo;
   }Edc;
-/*...................................................................*/  
+/*...................................................................*/
 
 /*...*/
   typedef struct{
@@ -105,7 +105,7 @@
                        1 - B
                        2 - tMix*/
   }Edm;
-/*...................................................................*/ 
+/*...................................................................*/
 
 /*...*/
   typedef struct{
@@ -113,8 +113,8 @@
     bool fPresTh;
     DOUBLE pTh[3];
   }ThermoDynamic;
-   ThermoDynamic thDynamic;
-/*...................................................................*/  
+  extern ThermoDynamic thDynamic;
+/*...................................................................*/
 
 /*...*/
    typedef struct {
@@ -135,7 +135,7 @@
 /*...*/
    typedef struct {
      unsigned char type;
-     Pol     pol[MAXSPECIES];  
+     Pol     pol[MAXSPECIES];
      PolNasa nasa[MAXSPECIES];
      DOUBLE surtherland[3];
      DOUBLE unit;
@@ -151,7 +151,7 @@
      bool fDiffusion;
      Prop den, thCond, dVisc, sHeat, diff;
      DOUBLE molarMass;
-     DOUBLE sHeatRef,dViscosityRef,ThermalConductivityRef,densityRef; 
+     DOUBLE sHeatRef,dViscosityRef,ThermalConductivityRef,densityRef;
    }PropVarFluid;
 /*...................................................................*/
 
@@ -165,11 +165,11 @@
 
 /*... interpol*/
   typedef struct{
-    unsigned short np;                       /*numero de particoes*/  
+    unsigned short np;                       /*numero de particoes*/
     DOUBLE *x,*y;                            /*interpolacao*/
   }Interpol;
-  Interpol iPol[MAXINTERPOL];
-/*...................................................................*/  
+  extern Interpol iPol[MAXINTERPOL];
+/*...................................................................*/
 
 /*...*/
   typedef struct{
@@ -190,12 +190,12 @@
     short nComb;          /* numero especies transportadas*/
     short typeHeatRealese;
     short reactionKinetic;
-           
-    DOUBLE lumpedMatrix[MAXSPECIES*3];   
 
-    DOUBLE entalphyOfCombustion;        /* Entalpia de combustao calculada 
+    DOUBLE lumpedMatrix[MAXSPECIES*3];
+
+    DOUBLE entalphyOfCombustion;        /* Entalpia de combustao calculada
                                           pelas especies primitivas*/
-    DOUBLE entalphyOfCombustionGrouped;  /* Entalpia de combustao calculada 
+    DOUBLE entalphyOfCombustionGrouped;  /* Entalpia de combustao calculada
                                           pelas especies agrupadas*/
     DOUBLE totalHeat;     /* Calor total liberado pela reacao de combustao*/
 /*... composicao do ar*/
@@ -208,11 +208,11 @@
     Chemical chem;
   } Combustion;
 /*...................................................................*/
- 
+
 /*... Material*/
   typedef struct{
-    short  *type;      /*tipo de calculo da celula*/ 
-    double *prop;      /*valores numericos da propriedade*/    
+    short  *type;      /*tipo de calculo da celula*/
+    double *prop;      /*valores numericos da propriedade*/
   } Material;
 /*...................................................................*/
 
@@ -221,7 +221,7 @@
     short *nViz;
     INT  *nelcon;
   }Adjacency;
-/*...................................................................*/  
+/*...................................................................*/
 
 /*...*/
   typedef struct{
@@ -229,38 +229,38 @@
     INT maxIt;
     DOUBLE ck,ce,sk,tol;
   }EqK;
-/*...................................................................*/  
+/*...................................................................*/
 
 
 /*...*/
-  typedef struct{  
+  typedef struct{
     bool fTurb;
     bool fWall;
     bool fDynamic;
     bool fOneEq;
     bool fTurbStruct;
-  
+
     short wallType;
     short type;          /* 0 - LES*/
     short typeLes;       /* 0 - funcional
                             1 - estrutural
-                            2 - misto*/ 
+                            2 - misto*/
     short typeMixed[2];  /*[0] - estrutural - [1] funcional*/
-    short typeDynamic;    /* 1 - um paremetro local 
+    short typeDynamic;    /* 1 - um paremetro local
                             2 - um parametro global padrao
                             3 - um parametro global modicado
                             4 - 2 paramento local*/
 
-    DOUBLE cs,cf,c; /*constante    
-                           1 -        
-                           */   
+    DOUBLE cs,cf,c; /*constante
+                           1 -
+                           */
     DOUBLE PrandltTwall;   /*Prandtl turbulento */
     DOUBLE PrandltTsgs;    /*Prandtl de sub-grid */
     DOUBLE SchmidtTsgs;    /*Chmidt  de sub-grid */
 
     EqK eK;
-    
-  }Turbulence; 
+
+  }Turbulence;
 /*...................................................................*/
 
 /*...*/
@@ -272,7 +272,7 @@
     bool fKelvin;
     bool fDiffEnergy;
   }EnergyModel;
-/*...................................................................*/  
+/*...................................................................*/
 
 /*...*/
   typedef struct{
@@ -281,7 +281,7 @@
 /*...................................................................*/
 
 /*...*/
-  typedef struct{    
+  typedef struct{
     bool fRes;
     bool fRhieChowInt;
     bool fViscosity;
@@ -296,16 +296,16 @@
     bool flag,fDynamic;
     short iCod,type,typeReal;
     INT timeStep;
-    DOUBLE total,dt[3],dtInicial,t,t0,dtMax,dtMin,cfl,chem;   
+    DOUBLE total,dt[3],dtInicial,t,t0,dtMax,dtMin,cfl,chem;
   }Temporal;
-/*...................................................................*/  
+/*...................................................................*/
 
 /*...*/
   typedef struct{
     bool fRes;
     DOUBLE cEq[3];
   }kModel;
-/*...................................................................*/  
+/*...................................................................*/
 
 /*...*/
   typedef struct{
@@ -325,21 +325,21 @@
     short  iCod2;
     DOUBLE par[NPADV];
   }Advection;
-/*...................................................................*/  
+/*...................................................................*/
 
 /*...*/
   typedef struct{
     short  iCod;
   }Diffusion;
-/*...................................................................*/ 
+/*...................................................................*/
 
 /*...*/
   typedef struct{
     int maxIt;
     int pPlot;
-    DOUBLE tol;                               
+    DOUBLE tol;
   }NonLinear;
-/*...................................................................*/  
+/*...................................................................*/
 
 /*...*/
   typedef struct{
@@ -347,38 +347,40 @@
     bool fMedia;
     bool fVel;
     int startSample,endSample;
-    DOUBLE *mVel,*sVel;  
-    DOUBLE t0;                             
+    DOUBLE *mVel,*sVel;
+    DOUBLE t0;
   }Mean;
-/*...................................................................*/  
+/*...................................................................*/
 
 /*... loads*/
   typedef struct{
     bool fUse;
     short nTypeVar;               /*0 - constante
-                                    1 - funcao*/ 
+                                    1 - funcao*/
     short iCod[2];               /* conjunto de codigos*/
     short type;                     /*tipo*/
-    short np;                       /*numero de particoes*/  
+    short np;                       /*numero de particoes*/
     DOUBLE par[MAXLOADPARAMETER];
     DOUBLE vel[3],density;
     Interpol *intPol;               /*interpolacao*/
   }Loads;
-  Loads  loadsD1[MAXLOAD]      /*tipo de cargas (difusao pura)*/
-        ,loadsT1[MAXLOAD]      /*tipo de cargas (difusao-transporte)*/
-        ,loadsVel[MAXLOAD]     /*tipo de cargas (fluid-Vel)*/
-        ,loadsPres[MAXLOAD]    /*tipo de cargas (fluid-Pres)*/
-        ,loadsPresC[MAXLOAD]   /*tipo de cargas (fluid-Pres-correcao)*/
-        ,loadsEnergy[MAXLOAD]  /*tipo de cargas (fluid-energia)*/
-        ,loadsTemp[MAXLOAD]    /*tipo de cargas (fluid-temperatura)*/
-        ,loadsKturb[MAXLOAD]   /*tipo de cargas (fluid-turbulencia)*/
-        ,loadsZcomb[MAXLOAD]    /*tipo de cargas (combustivel      )*/
-        ,loadsRhoFluid[MAXLOAD];
+
+  extern Loads
+        loadsD1[MAXLOAD],      /*tipo de cargas (difusao pura)*/
+        loadsT1[MAXLOAD],      /*tipo de cargas (difusao-transporte)*/
+        loadsVel[MAXLOAD],     /*tipo de cargas (fluid-Vel)*/
+        loadsPres[MAXLOAD],    /*tipo de cargas (fluid-Pres)*/
+        loadsPresC[MAXLOAD],   /*tipo de cargas (fluid-Pres-correcao)*/
+        loadsEnergy[MAXLOAD],  /*tipo de cargas (fluid-energia)*/
+        loadsTemp[MAXLOAD],    /*tipo de cargas (fluid-temperatura)*/
+        loadsKturb[MAXLOAD],   /*tipo de cargas (fluid-turbulencia)*/
+        loadsZcomb[MAXLOAD],    /*tipo de cargas (combustivel      )*/
+        loadsRhoFluid[MAXLOAD];
 /*...................................................................*/
 
 /*...*/
   typedef struct{
-    RcGrad rcGrad; /*tipo de rescontrucao de gradiente*/                     
+    RcGrad rcGrad; /*tipo de rescontrucao de gradiente*/
 /*...*/
     Temporal ddt;
 /*...*/
@@ -425,12 +427,12 @@
                                         evitar o problema checkboard
                                        */
     short  type;
- 
+
     int    pSimple;
     int    maxIt;
     int nNonOrth;
     DOUBLE alphaPres,alphaVel,alphaEnergy
-          ,alphaDensity,alphaComb;       /*under-relaxation*/   
+          ,alphaDensity,alphaComb;       /*under-relaxation*/
     DOUBLE *ePresC,*nPresC  ,*eGradPresC;/*Pressao de correcao*/
     DOUBLE *ePresC1;                     /*Pressao de correcao 1*/
     DOUBLE *d;
@@ -451,7 +453,7 @@
     unsigned short kZeroPres;         /*iteracao com o qual o residuo
                                       e normalizado*/
     int nNonOrth;
-    int    pPrime;          /*iteracao que serao imprisas na tela*/ 
+    int    pPrime;          /*iteracao que serao imprisas na tela*/
     int    maxIt;
     DOUBLE alphaPres, alphaVel;           /*under-relaxation*/
     DOUBLE *ePresC, *nPresC, *eGradPresC;/*Pressao de correcao*/
@@ -480,7 +482,7 @@
     DOUBLE *cDiff0,*cDiff,*cDiffI,*cDiffG,*ncDiffI,*ncDiffG;
     DOUBLE *mMolar0,*mMolar,*mMolarI,*mMolarG,*nmMolarI,*nmMolarG;
     DOUBLE *eddyVisc0,*eddyVisc,*eddyViscI,*eddyViscG,*neddyViscI,*neddyViscG;
-  }TimeInterpol; 
+  }TimeInterpol;
 /*...................................................................*/
 
 #endif /*_MESH_*/

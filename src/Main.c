@@ -35,12 +35,12 @@
 /*********************************************************************/
 
 /*********************************************************************/
-#ifdef _DEBUG_ 
+#ifdef _DEBUG_
   #include<Debug.h>
 #endif
 /*********************************************************************/
 
-static void initSec(char *word,short icod) 
+static void initSec(char *word,short icod)
 {
 
   switch(icod)
@@ -61,7 +61,7 @@ static void initSec(char *word,short icod)
 
 static void endSec(short icod)
 {
-  switch (icod) 
+  switch (icod)
   {
     case OUTPUT_FOR_FILE:
       fprintf(fileLogExc, "%s\n\n", DIF);
@@ -87,9 +87,58 @@ void testeFace(Geom *geom, Face *face
 
 /*********************************************************************/
 
+/*... Memoria*/
+iptx nmax;
+
+/*... HccaTime.h*/
+Time tm;
+
+
+/*... Define.h*/
+short debug_flag;
+DOUBLE gravity[3];
+DOUBLE xRef[3];
+FILE *fileLogExc,*fileLogDebug;
+
+
+/*....OpenMp.h*/
+DOUBLE tmpDotOmp;
+DOUBLE tmpDotOmp1;
+DOUBLE tmpDotOmp2;
+DOUBLE tmpDotOmp3;
+DOUBLE tmpDotOmp4;
+DOUBLE tmpDotOmp5;
+DOUBLE tmpDotOmp6;
+DOUBLE tmpDotOmp7;
+DOUBLE tmpDotOmp8;
+
+Omp ompVar;
+
+Mpi mpiVar;
+
+/*... StructDefine.h*/
+INT gStep;
+Interpol iPol[MAXINTERPOL];
+ThermoDynamic thDynamic;
+Loads loadsD1[MAXLOAD],      /*tipo de cargas (difusao pura)*/
+      loadsT1[MAXLOAD],      /*tipo de cargas (difusao-transporte)*/
+      loadsVel[MAXLOAD],     /*tipo de cargas (fluid-Vel)*/
+      loadsPres[MAXLOAD],    /*tipo de cargas (fluid-Pres)*/
+      loadsPresC[MAXLOAD],   /*tipo de cargas (fluid-Pres-correcao)*/
+      loadsEnergy[MAXLOAD],  /*tipo de cargas (fluid-energia)*/
+      loadsTemp[MAXLOAD],    /*tipo de cargas (fluid-temperatura)*/
+      loadsKturb[MAXLOAD],   /*tipo de cargas (fluid-turbulencia)*/
+      loadsZcomb[MAXLOAD],   /*tipo de cargas (combustivel      )*/
+      loadsRhoFluid[MAXLOAD];
+
+/*... Arquivo File.h*/
+char macros[MAX_LINE][WORD_SIZE]; /*todas as macros lidas no arquivo*/
+int  nmacro;
+
+
 int main(int argc,char**argv){
 
-/*...Memoria principal*/  
+/*...Memoria principal*/
   Memoria m;
 /*... estrutura da dados para a malha*/
   Mesh *mesh=NULL,*mesh0=NULL;
@@ -124,7 +173,7 @@ int main(int argc,char**argv){
   bool fSolvVel = false,fSolvPres = false, fSolvEnergy = false;
   bool fSolvComb = false;
   bool fSolvKturb = false;
-  bool fSolvSimple = false,fSolvPrime = false;  
+  bool fSolvSimple = false,fSolvPrime = false;
 /*... reordenacao da malha*/
   Reord  reordMesh;
 
@@ -149,14 +198,14 @@ int main(int argc,char**argv){
 
 /*... loop nas celulas*/
 /*Lib lib;*/
-  
+
 /* ... macro camandos de leitura*/
-  bool macroFlag; 
+  bool macroFlag;
   char word[WORD_SIZE];
   char macro[][WORD_SIZE] =
   {"help"         ,"mesh"         ,"stop"           /* 0, 1, 2*/
   ,"config"       ,"nextLoop"     ,"rcGrad"         /* 3, 4, 5*/
-  ,"pgeo"         ,"pcoob"        ,"pcoo"           /* 6, 7, 8*/ 
+  ,"pgeo"         ,"pcoob"        ,"pcoo"           /* 6, 7, 8*/
   ,"setSolvDiff"  ,"setSolvTrans" ,"openmp"         /* 9,10,11*/
   ,"solvD1"       ,"propVar"      ,"pD1"            /*12,13,14*/
   ,"nlIt"         ,"pD1CsvCell"   ,"pD1CsvNode"     /*15,16,17*/
@@ -168,7 +217,7 @@ int main(int argc,char**argv){
   ,"pFluid"       ,"setPrint"     ,"reScaleMesh"    /*33,34,35*/
   ,"setPrime"     ,"prime"        ,""               /*36,37,38*/
   ,"setSolvComb"  ,"pCombustion"  ,"simpleComb"     /*39,40,41*/
-  ,"pRes"         ,"chemical"     ,"residual"       /*42,43,44*/ 
+  ,"pRes"         ,"chemical"     ,"residual"       /*42,43,44*/
   ,"gravity"      ,"model"        ,"mean"           /*45,46,47*/
   ,"setMean"      ,"save"         ,"load"};         /*48,49,50*/
 /* ..................................................................*/
@@ -195,7 +244,7 @@ int main(int argc,char**argv){
   combModel.nComb           = 0;
   combModel.fRes            = true;
   combModel.fCorrectVel     = false;
-  combModel.typeHeatRealese = HFORMATION; 
+  combModel.typeHeatRealese = HFORMATION;
   combModel.edc.tMix        = 0.125;
   combModel.edc.cGamma      = 1.01;
   combModel.edc.cTau        = 2.1377;
@@ -214,7 +263,7 @@ int main(int argc,char**argv){
   save.step[1] = save.step[0];
 /*..................................................................*/
 
-/*...*/  
+/*...*/
   thDynamic.pTh[0]      = PREREF;
   thDynamic.pTh[1]      = PREREF;
   thDynamic.pTh[2]      = PREREF;
@@ -280,7 +329,7 @@ int main(int argc,char**argv){
 /* ..................................................................*/
 
 /* ... opcoes de arquivos */
-  initPrintVtk(&opt);  
+  initPrintVtk(&opt);
 /* ..................................................................*/
 
 /*... propriedades variaveis*/
@@ -322,15 +371,15 @@ int main(int argc,char**argv){
   mesh0 = (Mesh*) calloc(1,sizeof(Mesh));
   ERRO_MALLOC(mesh0,"mesh0",__LINE__,__FILE__,__func__);
   mesh0->mass[2] =  mesh0->mass[1] = mesh0->mass[0] = 0.e0;
-  mesh0->scaleX[0] = mesh0->scaleX[1] = mesh0->scaleX[2] = 1.0; 
+  mesh0->scaleX[0] = mesh0->scaleX[1] = mesh0->scaleX[2] = 1.0;
 /*... tecnica padrao de resconstrucao de gradiente*/
   sc.rcGrad.type      = RCGRADGAUSSN;
   sc.rcGrad.func      = GL_BARTH_MOD;
   sc.rcGrad.beta      = 1.0;
   sc.rcGrad.fLimiter  = false;
-/*... D1,T1 */ 
-  sc.nlD1.maxIt   = sc.nlT1.maxIt =   100; 
-  sc.nlD1.tol     = sc.nlT1.tol   = 1.e-6; 
+/*... D1,T1 */
+  sc.nlD1.maxIt   = sc.nlT1.maxIt =   100;
+  sc.nlD1.tol     = sc.nlT1.tol   = 1.e-6;
   sc.nlD1.pPlot   = sc.nlT1.pPlot = 1;
 /*...................................................................*/
 
@@ -355,7 +404,7 @@ int main(int argc,char**argv){
   sc.advVel.par[0]   = 0.e0;
 /*...................................................................*/
 
-/*...*/  
+/*...*/
   sc.diffVel.iCod    = OVERRELAXED;
   sc.diffPres.iCod   = OVERRELAXED;
   sc.diffEnergy.iCod = OVERRELAXED;
@@ -370,7 +419,7 @@ int main(int argc,char**argv){
   sc.advComb.par[0] = 0.e0;
 /*...................................................................*/
 
-/*...*/  
+/*...*/
   sc.ddt.flag     = false;
   sc.ddt.fDynamic = false;
   sc.ddt.dt[0]    = 1.e0;
@@ -383,14 +432,14 @@ int main(int argc,char**argv){
   sc.ddt.iCod     = TDF;
 /*...................................................................*/
 
-/*...*/  
-  reordMesh.flag = false; 
+/*...*/
+  reordMesh.flag = false;
 /* ..................................................................*/
-    
-/*... abrindo ar quivo de entrada*/ 
 
-  if( argc > 1){    
-    strcpy(nameIn,argv[1]);  
+/*... abrindo ar quivo de entrada*/
+
+  if( argc > 1){
+    strcpy(nameIn,argv[1]);
   }
   else{
     if(!mpiVar.myId ) printf("Arquivo de dados:\n");
@@ -400,7 +449,7 @@ int main(int argc,char**argv){
   fileIn = openFile(nameIn,"r");
 /*...................................................................*/
 
-/*... arquivos de saida*/    
+/*... arquivos de saida*/
   if( argc > 2)
     strcpy(preName,argv[2]);
   else{
@@ -408,7 +457,7 @@ int main(int argc,char**argv){
     if(!mpiVar.myId ) scanf("%s",preName);
   }
 /*...................................................................*/
- 
+
 /*...*/
   fName(preName,mpiVar.myId,0, 23 ,nameOut);
   fileLogExc = openFileBuffer(nameOut,"w",false);
@@ -425,22 +474,22 @@ int main(int argc,char**argv){
 /*... macros na marcro trasient*/
     if(mm.flWord){
       if( mm.jLoop > mm.kLoop)
-      { 
+      {
         ERRO_GERAL(fileLogDebug,__FILE__,__func__,__LINE__,
                    "Numero de comandos na string trasient execedido"
-                  ,EXIT_PROG); 
+                  ,EXIT_PROG);
       }
       strcpy(word,mm.loopWord[mm.jLoop]);
       mm.jLoop++;
     }
 /*... leitura da macro*/
-    else 
+    else
       readMacro(fileIn,word,false);
 /*...................................................................*/
 
 /*===================================================================*
  * macro: help - leitura da malha e inicializa das estruturas        *
- * de resolucao do problema                                          * 
+ * de resolucao do problema                                          *
  *===================================================================*/
     if(!strcmp(word,macro[0])){
       initSec(word, OUTPUT_FOR_SCREEN);
@@ -451,7 +500,7 @@ int main(int argc,char**argv){
 
 /*===================================================================*
  * macro: mesh - leitura da malha e inicializa das estruturas        *
- * de resolucao do problema                                          * 
+ * de resolucao do problema                                          *
  *===================================================================*/
     else if((!strcmp(word,macro[1]))){
       initSec(word, OUTPUT_FOR_FILE);
@@ -470,21 +519,21 @@ int main(int argc,char**argv){
         readFileFvMesh(&m           ,mesh0
                       ,&propVarFluid
                       ,propVarD     ,propVarT
-                      ,&eModel      ,&turbModel 
+                      ,&eModel      ,&turbModel
                       ,&combModel   ,&momentumModel
-                      ,&media       
+                      ,&media
                       ,fileIn);
-      mpiWait(); 
+      mpiWait();
 /*...................................................................*/
 
 /*... calcula a vizinhaca do elementos da malha completa*/
       if(!mpiVar.myId)
-        neighbors(&m                 ,mesh0->elm.node 
+        neighbors(&m                 ,mesh0->elm.node
                  ,mesh0->elm.adj.nelcon,mesh0->elm.adj.nViz
                  ,mesh0->elm.nen       ,&mesh0->nFaces
-                 ,mesh0->nnode         ,mesh0->numel     
-                 ,mesh0->maxNo         ,mesh0->maxViz   
-                 ,mesh0->ndm);        
+                 ,mesh0->nnode         ,mesh0->numel
+                 ,mesh0->maxNo         ,mesh0->maxViz
+                 ,mesh0->ndm);
 /*...................................................................*/
 
 /*... identifica parede impermevais (malha completa)*/
@@ -493,25 +542,25 @@ int main(int argc,char**argv){
         if(mesh0->ndfF > 0 || mesh0->ndfFt > 0)
         {
           wallFluidVelPres(loadsVel
-                   ,loadsPresC           ,loadsPres           
+                   ,loadsPresC           ,loadsPres
                    ,mesh0->elm.faceRvel  ,mesh0->elm.faceRpres
-                   ,mesh0->elm.adj.nelcon,mesh0->elm.adj.nViz   
+                   ,mesh0->elm.adj.nelcon,mesh0->elm.adj.nViz
                    ,mesh0->numel         ,mesh0->maxViz
-                   ,momentumModel.iCodBuoyant); 
+                   ,momentumModel.iCodBuoyant);
           if(turbModel.fOneEq)
-            wallFluid(loadsKturb                  
+            wallFluid(loadsKturb
                      ,mesh0->elm.faceReKturb,mesh0->elm.adj.nelcon
-                     ,mesh0->elm.adj.nViz   
-                     ,mesh0->numel          ,mesh0->maxViz);   
+                     ,mesh0->elm.adj.nViz
+                     ,mesh0->numel          ,mesh0->maxViz);
 /*... verifica se o dominio e aberto ou nao*/
           mesh0->fOpen = openDomain(loadsVel
                          , mesh0->elm.faceRvel , mesh0->elm.adj.nViz
                          , mesh0->numelNov ,mesh0->maxViz);
 /*...*/
-          thDynamic.fDensityRef = !mesh0->fOpen;          
+          thDynamic.fDensityRef = !mesh0->fOpen;
 //        thDynamic.fDensityRef = true;
           thDynamic.fPresTh     = !mesh0->fOpen;
-/*...................................................................*/   
+/*...................................................................*/
         }
       }
 #ifdef _MPI_
@@ -528,11 +577,11 @@ int main(int argc,char**argv){
         {
 /*...*/
           fprintf(fileLogExc, "%s\n", "PartMesh");
-          fPartMesh(&m            ,mesh0->node.x  
+          fPartMesh(&m            ,mesh0->node.x
                   ,mesh0->elm.node,mesh0->elm.nen
                   ,mesh0->nnode   ,mesh0->numel
-                  ,pMesh   
-                  ,mesh0->ndm     ,mesh0->maxNo 
+                  ,pMesh
+                  ,mesh0->ndm     ,mesh0->maxNo
                   ,mpiVar.nPrcs);
 /*...................................................................*/
 
@@ -541,14 +590,14 @@ int main(int argc,char**argv){
           {
             fprintf(fileLogExc, "%s\n", "WritePartMesh");
             fName(preName,mpiVar.nPrcs,0,1,nameOut);
-            wPartVtk(&m            
-                    ,mesh0->node.x      ,mesh0->elm.node              
+            wPartVtk(&m
+                    ,mesh0->node.x      ,mesh0->elm.node
                     ,mesh0->elm.nen     ,mesh0->elm.geomType
-                    ,pMesh->np          ,pMesh->ep          
-                    ,mesh0->nnode       ,mesh0->numel    
-                    ,mesh0->ndm               
+                    ,pMesh->np          ,pMesh->ep
+                    ,mesh0->nnode       ,mesh0->numel
+                    ,mesh0->ndm
                     ,mesh0->maxNo       ,mesh0->maxViz
-                    ,nameOut            ,opt.bVtk             
+                    ,nameOut            ,opt.bVtk
                     ,fileOut);
           }
 /*...................................................................*/
@@ -566,7 +615,7 @@ int main(int argc,char**argv){
                       ,mesh0     ,mesh
                       ,pMesh
                       ,loadsD1   ,loadsT1
-                      ,loadsVel  ,loadsPres 
+                      ,loadsVel  ,loadsPres
                       ,loadsPresC,loadsEnergy
                       ,loadsTemp ,loadsKturb
                       ,loadsZcomb);
@@ -578,13 +627,13 @@ int main(int argc,char**argv){
         {
           fprintf(fileLogExc, "%s\n", "WritePartMeshes");
           fName(preName,mpiVar.nPrcs,mpiVar.myId,2,nameOut);
-          wMeshPartVtk(&m            
-                      ,mesh->node.x      ,mesh->elm.node              
+          wMeshPartVtk(&m
+                      ,mesh->node.x      ,mesh->elm.node
                       ,mesh->elm.nen     ,mesh->elm.geomType
-                      ,mesh->nnode       ,mesh->numel    
-                      ,mesh->ndm               
+                      ,mesh->nnode       ,mesh->numel
+                      ,mesh->ndm
                       ,mesh->maxNo       ,mesh->maxViz
-                      ,nameOut           ,opt.bVtk             
+                      ,nameOut           ,opt.bVtk
                       ,fileOut);
           fName(preName,mpiVar.nPrcs,mpiVar.myId,18,nameOut);
           printMap(*pMesh
@@ -606,29 +655,29 @@ int main(int argc,char**argv){
 /*...*/
       tm.adjcency = getTimeC();
 /*... calcula a vizinhaca do elementos*/
-      neighbors(&m                  ,mesh->elm.node 
+      neighbors(&m                  ,mesh->elm.node
                ,mesh->elm.adj.nelcon,mesh->elm.adj.nViz
                ,mesh->elm.nen       ,&mesh->nFaces
-               ,mesh->nnode         ,mesh->numel     
-               ,mesh->maxNo         ,mesh->maxViz   
-               ,mesh->ndm);        
+               ,mesh->nnode         ,mesh->numel
+               ,mesh->maxNo         ,mesh->maxViz
+               ,mesh->ndm);
 /*...................................................................*/
-      
-/*...*/        
+
+/*...*/
       faceStruct(&m, mesh);
 /*...................................................................*/
       tm.adjcency = getTimeC() - tm.adjcency;
 /*...................................................................*/
-     
+
 /*... calculo de propriedades geometricas recorrentes*/
       tm.geom = getTimeC() - tm.geom;
       pGeomForm(mesh->node.x         ,mesh->elm.node
                ,mesh->elm.adj.nelcon ,mesh->elm.adj.nViz
-               ,mesh->elm.geomType   ,mesh->elm.nen        
+               ,mesh->elm.geomType   ,mesh->elm.nen
                ,mesh->elm.cellFace
-               ,&mesh->elm.geom      ,&mesh->face 
-               ,&pMesh->iEl   
-               ,mesh->maxNo          ,mesh->maxViz  
+               ,&mesh->elm.geom      ,&mesh->face
+               ,&pMesh->iEl
+               ,mesh->maxNo          ,mesh->maxViz
                ,mesh->ndm            ,mesh->numelNov);
       tm.geom = getTimeC() - tm.geom;
 /*    testeFace(&mesh->elm.geom    , &mesh->face
@@ -640,7 +689,7 @@ int main(int argc,char**argv){
 /*... geom(Cel)*/
       dGlobalCel(&m                  ,pMesh
                 ,mesh0->elm.geom.cc  ,mesh->elm.geom.cc
-                ,mesh->numelNov 
+                ,mesh->numelNov
                 ,mesh->ndm           ,1);
 /*...................................................................*/
 
@@ -654,22 +703,22 @@ int main(int argc,char**argv){
 /*...*/
 //      if(thDynamic.fDensityRef)
           propVarFluid.densityRef = specificMassRef(mesh->elm.densityFluid.t
-                                                , mesh->elm.geom.volume                  
+                                                , mesh->elm.geom.volume
                                                 , mesh->numelNov);
 /*...................................................................*/
 
 /*...*/
         if(thDynamic.fPresTh)
-          initPresRef(mesh->elm.temp        , mesh->elm.geom.volume  
+          initPresRef(mesh->elm.temp        , mesh->elm.geom.volume
                     , thDynamic.pTh         , propVarFluid.densityRef
-                    , propVarFluid.molarMass                   
+                    , propVarFluid.molarMass
                     , mesh->numelNov        , eModel.fKelvin);
 /*...................................................................*/
 
 /*...*/
         mesh->mass[0] = totalMass(mesh->elm.densityFluid.t
                               , mesh->elm.geom.volume
-                              , mesh->numelNov); 
+                              , mesh->numelNov);
         mesh->mass[1] =  mesh->mass[0];
 /*....................................................................*/
 
@@ -678,11 +727,11 @@ int main(int argc,char**argv){
           hPres(mesh->elm.pressure0     , mesh->elm.pressure
               , mesh->elm.densityFluid.t, mesh->elm.geom.cc
               , gravity                 , mesh->xRef
-              , mesh->numel             , mesh->ndm );      
+              , mesh->numel             , mesh->ndm );
 /*...................................................................*/
       }
-/*...................................................................*/  
- 
+/*...................................................................*/
+
 /*... reconstrucao de gradiente least square*/
       if(sc.rcGrad.type ==  RCLSQUARE || sc.rcGrad.type  ==  RCLSQUAREQR){
         if(!mpiVar.myId ){
@@ -695,13 +744,13 @@ int main(int argc,char**argv){
                  ,"leastSquare",_AD_);
 /*... leastSqaure QR*/
         if(sc.rcGrad.type  ==  RCLSQUAREQR){
-          if(mesh->ndm == 2){ 
-            HccaAlloc(DOUBLE,&m,mesh->elm.leastSquareR            
+          if(mesh->ndm == 2){
+            HccaAlloc(DOUBLE,&m,mesh->elm.leastSquareR
                      ,mesh->numelNov*3
                      ,"lSquareR   ",_AD_);
           }
-          else if(mesh->ndm == 3){ 
-            HccaAlloc(DOUBLE,&m,mesh->elm.leastSquareR            
+          else if(mesh->ndm == 3){
+            HccaAlloc(DOUBLE,&m,mesh->elm.leastSquareR
                      ,mesh->numelNov*6
                      ,"lSquareR   ",_AD_);
           }
@@ -711,7 +760,7 @@ int main(int argc,char**argv){
         rcLeastSquare(mesh->elm.cellFace   , mesh->face.owner
                     , mesh->face.mksi      , mesh->face.ksi
                     , mesh->elm.leastSquare, mesh->elm.leastSquareR
-                    , mesh->elm.adj.nViz       
+                    , mesh->elm.adj.nViz
                     , mesh->numelNov       , mesh->maxViz
                     , sc.rcGrad.type       , mesh->ndm);
         tm.leastSquareMatrix = getTimeC() - tm.leastSquareMatrix;
@@ -724,8 +773,8 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*... qualidade da malha*/
-      meshQuality(&mesh->mQuality        , mesh->elm.cellFace     
-                , mesh->face.owner       , mesh->elm.adj.nViz  
+      meshQuality(&mesh->mQuality        , mesh->elm.cellFace
+                , mesh->face.owner       , mesh->elm.adj.nViz
                 , mesh->elm.geom.volume  , mesh->face.area
                 , mesh->face.ksi         , mesh->face.normal
                 , mesh->face.mvSkew      , mesh->elm.geom.dcca
@@ -735,14 +784,14 @@ int main(int argc,char**argv){
       if(mpiVar.nPrcs > 1)
         globalMeshQuality(&mesh->mQuality,&mesh0->mQuality);
 /*...................................................................*/
-         
+
 /*... reodenando as celulas para dimuincao da banda*/
       HccaAlloc(INT,&m,reordMesh.num,mesh->numel,"rNum" ,_AD_);
       if(!mpiVar.myId ) fprintf(fileLogExc,"%s\n",DIF);
       if(!mpiVar.myId ) fprintf(fileLogExc,"Reordenando a malha ...\n");
       tm.reord = getTimeC() - tm.reord;
       reord(&m                ,reordMesh.num,mesh->elm.adj.nelcon
-           ,mesh->elm.adj.nViz,mesh->maxViz  
+           ,mesh->elm.adj.nViz,mesh->maxViz
            ,mesh->numel       ,mesh->numelNov
            ,reordMesh.flag   ,mpiVar.nPrcs);
       tm.reord = getTimeC() - tm.reord;
@@ -759,7 +808,7 @@ int main(int argc,char**argv){
 //    writeMeshPart(mesh,&combModel);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
@@ -777,19 +826,19 @@ int main(int argc,char**argv){
               ,&solvT1        ,&sistEqT1
               ,&solvVel       ,&sistEqVel
               ,&solvPres      ,&sistEqPres
-              ,&solvEnergy    ,&sistEqEnergy 
-              ,&solvComb      ,&sistEqComb 
-              ,&tm             
-              ,fSolvD1        ,fSolvT1     
-              ,fSolvVel       ,fSolvPres 
-              ,fSolvEnergy    ,turbModel.fTurb  
+              ,&solvEnergy    ,&sistEqEnergy
+              ,&solvComb      ,&sistEqComb
+              ,&tm
+              ,fSolvD1        ,fSolvT1
+              ,fSolvVel       ,fSolvPres
+              ,fSolvEnergy    ,turbModel.fTurb
               ,fSolvComb      ,ompVar
               ,nameIn         ,fileLog);
       fclose(fileLog);
 /*...................................................................*/
 
 /*... medias do tempo dos processos Mpi*/
-      if(mpiVar.nPrcs > 1) 
+      if(mpiVar.nPrcs > 1)
       {
         if(!mpiVar.myId){
           fName(preName,mpiVar.nPrcs,mpiVar.myId,60,nameOut);
@@ -800,39 +849,39 @@ int main(int argc,char**argv){
               ,&solvT1        ,&sistEqT1
               ,&solvVel       ,&sistEqVel
               ,&solvPres      ,&sistEqPres
-              ,&solvEnergy    ,&sistEqEnergy 
-              ,&solvComb      ,&sistEqComb 
-              ,&tm            ,&ompVar 
-              ,fSolvD1        ,fSolvT1     
-              ,fSolvVel       ,fSolvPres 
-              ,fSolvEnergy    ,turbModel.fTurb  
-              ,fSolvComb 
-              ,nameIn         ,fileLog);        
+              ,&solvEnergy    ,&sistEqEnergy
+              ,&solvComb      ,&sistEqComb
+              ,&tm            ,&ompVar
+              ,fSolvD1        ,fSolvT1
+              ,fSolvVel       ,fSolvPres
+              ,fSolvEnergy    ,turbModel.fTurb
+              ,fSolvComb
+              ,nameIn         ,fileLog);
         if(!mpiVar.myId) fclose(fileLog);
-      } 
+      }
 /*...................................................................*/
 
 /*... fechando o arquivo do log do solver linear Pres*/
-      if(fSolvPres && solvPres.log && !mpiVar.myId)  
+      if(fSolvPres && solvPres.log && !mpiVar.myId)
         fclose(solvPres.fileSolv);
 /*... fechando o arquivo do log do solver linear Vel*/
-      if(fSolvVel && solvVel.log && !mpiVar.myId)  
+      if(fSolvVel && solvVel.log && !mpiVar.myId)
         fclose(solvVel.fileSolv);
 /*... fechando o arquivo do log do solver linear T1*/
-      if(fSolvD1 && solvD1.log && !mpiVar.myId)  
+      if(fSolvD1 && solvD1.log && !mpiVar.myId)
         fclose(solvD1.fileSolv);
 /*... fechando o arquivo do log do solver linear T1*/
-      if(fSolvT1 && solvT1.log && !mpiVar.myId)  
+      if(fSolvT1 && solvT1.log && !mpiVar.myId)
         fclose(solvT1.fileSolv);
 /*...................................................................*/
 
-/*... fechando o arquivo do log nao linear D1*/      
-      if(fSolvD1 && opt.fItPlot && !mpiVar.myId)  
+/*... fechando o arquivo do log nao linear D1*/
+      if(fSolvD1 && opt.fItPlot && !mpiVar.myId)
         fclose(opt.fileItPlot[FITPLOTD1]);
-/*... fechando o arquivo do log nao linear T1*/      
-      if(fSolvT1 && opt.fItPlot && !mpiVar.myId)  
+/*... fechando o arquivo do log nao linear T1*/
+      if(fSolvT1 && opt.fItPlot && !mpiVar.myId)
         fclose(opt.fileItPlot[FITPLOTT1]);
-/*... fechando o arquivo do log nao linear do simple */      
+/*... fechando o arquivo do log nao linear do simple */
       if(fSolvSimple && opt.fItPlot && !mpiVar.myId)
       {
         fclose(opt.fileItPlot[FITPLOTSIMPLE]);
@@ -844,7 +893,7 @@ int main(int argc,char**argv){
       macroFlag = false;
       endSec(OUTPUT_FOR_FILE);
       fclose(fileLogExc);
-    }    
+    }
 /*===================================================================*/
 
 /*===================================================================*
@@ -852,17 +901,17 @@ int main(int argc,char**argv){
  *===================================================================*/
     else if((!strcmp(word,macro[3]))){
       initSec(word, OUTPUT_FOR_FILE);
-      config(&opt,&reordMesh ,fileIn);      
+      config(&opt,&reordMesh ,fileIn);
       endSec(OUTPUT_FOR_FILE);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: nextLoop : proximo loop tempo            
+ * macro: nextLoop : proximo loop tempo
  *===================================================================*/
     else if((!strcmp(word,macro[4]))){
       mm.jLoop = 0;
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
@@ -883,20 +932,20 @@ int main(int argc,char**argv){
         printf("%s\n",word);
 /*... geometrica completa*/
         fName(preName,0,0,6,nameOut);
-        wGeoVtk(&m                       ,mesh0->node.x   
-               ,mesh0->elm.node          ,mesh0->elm.mat    
+        wGeoVtk(&m                       ,mesh0->node.x
+               ,mesh0->elm.node          ,mesh0->elm.mat
                ,mesh0->elm.nen           ,mesh0->elm.geomType
-               ,mesh0->elm.material.prop ,mesh0->elm.material.type 
-               ,mesh0->elm.faceRd1       ,mesh0->elm.faceRt1       
-               ,mesh0->elm.faceRvel      ,mesh0->elm.faceRenergy  
-               ,mesh0->nnode             ,mesh0->numel    
-               ,mesh0->ndm               
+               ,mesh0->elm.material.prop ,mesh0->elm.material.type
+               ,mesh0->elm.faceRd1       ,mesh0->elm.faceRt1
+               ,mesh0->elm.faceRvel      ,mesh0->elm.faceRenergy
+               ,mesh0->nnode             ,mesh0->numel
+               ,mesh0->ndm
                ,mesh0->maxNo             ,mesh0->maxViz
-               ,mesh0->numat             
-               ,mesh0->ndfD              ,mesh0->ndfT 
+               ,mesh0->numat
+               ,mesh0->ndfD              ,mesh0->ndfT
                ,mesh0->ndfF              ,mesh0->ndfFt
-               ,nameOut                  ,opt.bVtk             
-               ,fileOut);  
+               ,nameOut                  ,opt.bVtk
+               ,fileOut);
 /*...................................................................*/
 
 /*... geometrica completa*/
@@ -905,7 +954,7 @@ int main(int argc,char**argv){
                , mesh0->elm.geom.cc   , mesh0->elm.node
                , mesh0->elm.nen       , mesh0->elm.geomType
                , mesh0->nnode         , mesh0->numel
-               , mesh0->ndm           , mesh0->maxNo 
+               , mesh0->ndm           , mesh0->maxNo
                , mesh0->maxViz
                , nameOut              , opt.bVtk
                , fileOut);
@@ -917,9 +966,9 @@ int main(int argc,char**argv){
               , opt.bVtk, fileOut);
 /*...................................................................*/
       }
-    }   
+    }
 /*===================================================================*/
-   
+
 /*===================================================================*
  * macro: pcoob : escreve a matriz de coeficientes no formato COO
  *===================================================================*/
@@ -927,18 +976,18 @@ int main(int argc,char**argv){
       if(mpiVar.nPrcs == 1){
         printf("%s\n",DIF);
         printf("%s\n",word);
-       
+
         fName(preName,0,0,13,nameOut);
 /*...*/
         writeCoo(&m,sistEqD1.ia,sistEqD1.ja,sistEqD1.neq
-                ,sistEqD1.au   ,sistEqD1.ad,sistEqD1.al        
+                ,sistEqD1.au   ,sistEqD1.ad,sistEqD1.al
                 ,sistEqD1.nad  ,sistEqD1.storage
                 ,sistEqD1.unsym,true
                 ,nameOut);
 /*...................................................................*/
         printf("%s\n\n",DIF);
       }
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
@@ -948,17 +997,17 @@ int main(int argc,char**argv){
       if( mpiVar.nPrcs == 1 ){
         printf("%s\n",DIF);
         printf("%s\n",word);
-      
+
         fName(preName,0,0,12,nameOut);
 /*... matriz A*/
         writeCoo(&m,sistEqD1.ia,sistEqD1.ja,sistEqD1.neq
-                ,sistEqD1.au   ,sistEqD1.ad,sistEqD1.al        
+                ,sistEqD1.au   ,sistEqD1.ad,sistEqD1.al
                 ,sistEqD1.nad  ,sistEqD1.storage
-                ,sistEqD1.unsym,false 
+                ,sistEqD1.unsym,false
                 ,nameOut);
 /*...................................................................*/
 
-/*... vetor de forcas b*/      
+/*... vetor de forcas b*/
 //      fName(preName,0,0,14,nameOut);
 //      for(i=0;i<sistEqD1.neq;i++)
 //        sistEqD1.b[i] /= sistEqD1.ad[i];
@@ -967,7 +1016,7 @@ int main(int argc,char**argv){
 /*...................................................................*/
         printf("%s\n\n",DIF);
       }
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
@@ -981,11 +1030,11 @@ int main(int argc,char**argv){
                   ,auxName, preName  , nameOut
                   ,fileIn , &opt);
       endSec(OUTPUT_FOR_FILE);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: setSolvTrans : problema de transporte  
+ * macro: setSolvTrans : problema de transporte
  *===================================================================*/
     else if((!strcmp(word,macro[10]))){
       initSec(word, OUTPUT_FOR_FILE);
@@ -995,11 +1044,11 @@ int main(int argc,char**argv){
                   , auxName, preName  , nameOut
                   , fileIn , &opt);
       endSec(OUTPUT_FOR_FILE);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
-* macro: openmp: configuracao do openmp  
+* macro: openmp: configuracao do openmp
 *===================================================================*/
     else if ((!strcmp(word, macro[11]))) {
       initSec(word, OUTPUT_FOR_FILE);
@@ -1026,12 +1075,12 @@ int main(int argc,char**argv){
         exit(EXIT_FAILURE);
       }
 /*...................................................................*/
-     
+
 /*...*/
       diffusion(&m          ,loadsD1        ,&diffModel[0]
                ,mesh0       ,mesh           ,&sistEqD1
                ,&solvD1     ,&sc            ,pMesh
-               ,&propVarD[0],&opt           ,preName    
+               ,&propVarD[0],&opt           ,preName
                ,nameOut     ,fileOut);
 /*...................................................................*/
 
@@ -1054,9 +1103,9 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: puD1 : escreve os arquivos dos resultados da uD1          
+ * macro: puD1 : escreve os arquivos dos resultados da uD1
  *===================================================================*/
-    else if((!strcmp(word,macro[14]) && 
+    else if((!strcmp(word,macro[14]) &&
             (opt.stepPlot[1]++) == opt.stepPlot[0]))
     {
 /*...*/
@@ -1068,11 +1117,11 @@ int main(int argc,char**argv){
               , mesh0   , mesh
               , preName , nameOut);
       endSec(OUTPUT_FOR_SCREEN);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: nlIt: configura das iteracoes nao lineares             
+ * macro: nlIt: configura das iteracoes nao lineares
  *===================================================================*/
     else if((!strcmp(word,macro[15])))
     {
@@ -1080,11 +1129,11 @@ int main(int argc,char**argv){
       readNlIt(&sc, fileIn);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: pD1CellCsv:imprime os resultados no formato csv                  
+ * macro: pD1CellCsv:imprime os resultados no formato csv
  *===================================================================*/
     else if((!strcmp(word,macro[16])))
     {
@@ -1093,17 +1142,17 @@ int main(int argc,char**argv){
 /*... uD1(Cel)*/
       dGlobalCel(&m                  ,pMesh
                 ,mesh0->elm.uD1      ,mesh->elm.uD1
-                ,mesh->numelNov 
+                ,mesh->numelNov
                 ,mesh->ndfD[0]      ,1);
 /*... gradUd1(Cel)*/
       dGlobalCel(&m                  ,pMesh
                 ,mesh0->elm.gradUd1  ,mesh->elm.gradUd1
-                ,mesh->numelNov 
+                ,mesh->numelNov
                 ,mesh->ndm           ,1);
-        
+
 /*...*/
       if(!mpiVar.myId )
-      {    
+      {
 /*...*/
         strcpy(auxName,preName);
         strcat(auxName,"_D1_cell_");
@@ -1111,18 +1160,18 @@ int main(int argc,char**argv){
         fileOut = openFile(nameOut,"w");
 /*...*/
         writeCsvCell(mesh0->elm.uD1    ,mesh0->elm.gradUd1
-                    ,mesh0->elm.geom.cc                  
+                    ,mesh0->elm.geom.cc
                     ,mesh0->numel      ,mesh0->ndfD[0]
                     ,mesh0->ndm        ,fileOut);
 /*...*/
         fclose(fileOut);
 /*...................................................................*/
       }
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: pD1CsvNode:imprime os resultados no formato csv                  
+ * macro: pD1CsvNode:imprime os resultados no formato csv
  *===================================================================*/
     else if((!strcmp(word,macro[17])))
     {
@@ -1130,12 +1179,12 @@ int main(int argc,char**argv){
 /*... globalizacao das variaveis*/
 /*... uD1(Node)*/
       dGlobalNode(&m                 ,pMesh
-                 ,mesh0->node.uD1    ,mesh->node.uD1     
+                 ,mesh0->node.uD1    ,mesh->node.uD1
                  ,mesh->ndfD[0]      ,1               );
-          
+
 /*... gradUd1(Node)*/
       dGlobalNode(&m                 ,pMesh
-                 ,mesh0->node.gradUd1,mesh->node.gradUd1     
+                 ,mesh0->node.gradUd1,mesh->node.gradUd1
                  ,mesh->ndm          ,1               );
 
 /*...................................................................*/
@@ -1150,25 +1199,25 @@ int main(int argc,char**argv){
         fileOut = openFile(nameOut,"w");
 /*...*/
         writeCsvNode(mesh0->node.uD1,mesh0->node.gradUd1
-                    ,mesh0->node.x                  
+                    ,mesh0->node.x
                     ,mesh0->nnode   ,mesh0->ndfD[0]
                     ,mesh0->ndm     ,fileOut);
 /*...*/
         fclose(fileOut);
 /*...................................................................*/
       }
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: solvt1: problema de transporte  
+ * macro: solvt1: problema de transporte
  *===================================================================*/
     else if((!strcmp(word,macro[18])))
     {
       initSec(word, OUTPUT_FOR_SCREEN);
       mpiWait();
       tm.solvEdpT1    = getTimeC() - tm.solvEdpT1;
-     
+
 /*...*/
       transport(&m          ,loadsT1        ,&transModel[0]
                ,mesh0       ,mesh           ,&sistEqT1
@@ -1185,7 +1234,7 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: edo: configura do solver de edo   
+ * macro: edo: configura do solver de edo
  *===================================================================*/
     else if((!strcmp(word,macro[19])))
     {
@@ -1198,9 +1247,9 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: puT1 : escreve os arquivos dos resultados da uT1          
+ * macro: puT1 : escreve os arquivos dos resultados da uT1
  *===================================================================*/
-    else if((!strcmp(word,macro[20]) && 
+    else if((!strcmp(word,macro[20]) &&
             (opt.stepPlot[1]++) == opt.stepPlot[0]) )
     {
       opt.stepPlot[1] = 1;
@@ -1211,7 +1260,7 @@ int main(int argc,char**argv){
                , mesh0   ,mesh
                , preName ,nameOut);
       endSec(OUTPUT_FOR_SCREEN);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
@@ -1262,7 +1311,7 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: pT1CellCsv:imprime os resultados no formato csv                  
+ * macro: pT1CellCsv:imprime os resultados no formato csv
  *===================================================================*/
     else if((!strcmp(word,macro[22])))
     {
@@ -1270,19 +1319,19 @@ int main(int argc,char**argv){
 /*... uT1(Cel)*/
       dGlobalCel(&m                  ,pMesh
                 ,mesh0->elm.uT1      ,mesh->elm.uT1
-                ,mesh->numelNov 
+                ,mesh->numelNov
                 ,mesh->ndfT[0]      ,1);
 /*... gradUt1(Cel)*/
       dGlobalCel(&m                  ,pMesh
                 ,mesh0->elm.gradUt1  ,mesh->elm.gradUt1
-                ,mesh->numelNov 
+                ,mesh->numelNov
                 ,mesh->ndm           ,1);
-        
+
 /*...*/
       if(!mpiVar.myId ){
         fprintf(fileLogExc,"%s\n",DIF);
         fprintf(fileLogExc,"%s\n",word);
-      
+
 /*...*/
         strcpy(auxName,preName);
         strcat(auxName,"_T1_cell_");
@@ -1290,7 +1339,7 @@ int main(int argc,char**argv){
         fileOut = openFile(nameOut,"w");
 /*...*/
         writeCsvCell(mesh0->elm.uT1    ,mesh0->elm.gradUt1
-                    ,mesh0->elm.geom.cc                  
+                    ,mesh0->elm.geom.cc
                     ,mesh0->numel      ,mesh0->ndfT[0]
                     ,mesh0->ndm        ,fileOut);
 /*...*/
@@ -1298,23 +1347,23 @@ int main(int argc,char**argv){
 /*...................................................................*/
         fprintf(fileLogExc,"%s\n\n",DIF);
       }
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: pT1CsvNode:imprime os resultados no formato csv                  
+ * macro: pT1CsvNode:imprime os resultados no formato csv
  *===================================================================*/
     else if((!strcmp(word,macro[23])))
     {
 /*... globalizacao das variaveis*/
 /*... uT1(Node)*/
       dGlobalNode(&m                 ,pMesh
-                 ,mesh0->node.uT1    ,mesh->node.uT1     
+                 ,mesh0->node.uT1    ,mesh->node.uT1
                  ,mesh->ndfT[0]      ,1               );
-          
+
 /*... gradUd1(Node)*/
       dGlobalNode(&m                 ,pMesh
-                 ,mesh0->node.gradUd1,mesh->node.gradUd1     
+                 ,mesh0->node.gradUd1,mesh->node.gradUd1
                  ,mesh->ndm          ,1               );
 
 /*...................................................................*/
@@ -1330,7 +1379,7 @@ int main(int argc,char**argv){
         fileOut = openFile(nameOut,"w");
 /*...*/
         writeCsvNode(mesh0->node.uT1    ,mesh0->node.gradUt1
-                  ,mesh0->node.x                  
+                  ,mesh0->node.x
                   ,mesh0->nnode         ,mesh0->ndfT[0]
                   ,mesh0->ndm           ,fileOut);
 /*...*/
@@ -1338,11 +1387,11 @@ int main(int argc,char**argv){
 /*...................................................................*/
         fprintf(fileLogExc,"%s\n\n",DIF);
       }
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: setSolv : escoamento de fluidos  
+ * macro: setSolv : escoamento de fluidos
  *===================================================================*/
     else if((!strcmp(word,macro[24])))
     {
@@ -1351,18 +1400,18 @@ int main(int argc,char**argv){
 
 /*...*/
       readSolvFluid(&m          , mesh           , &reordMesh
-                   , &combModel 
+                   , &combModel
                    , &solvVel   , &sistEqVel    , &fSolvVel
                    , &solvPres  , &sistEqPres   , &fSolvPres
                    , &solvEnergy, &sistEqEnergy , &fSolvEnergy
                    , &solvKturb , &sistEqKturb  , &fSolvKturb
-                   , &solvComb  , &sistEqComb   , &fSolvComb 
+                   , &solvComb  , &sistEqComb   , &fSolvComb
                    , pMesh
                    , auxName    , preName       , nameOut
                    , fileIn                     , &opt);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
@@ -1384,20 +1433,20 @@ int main(int argc,char**argv){
      if(!fSolvSimple) {
         printf("Simple nao configurado ainda!!!\n");
         exit(EXIT_FAILURE);
-     }  
+     }
 /*...................................................................*/
-     
+
 /*...*/
-     simpleSolver(&m         
-                 ,loadsVel   ,loadsPres 
+     simpleSolver(&m
+                 ,loadsVel   ,loadsPres
                  ,&eMass     ,&momentumModel
-                 ,&turbModel 
-                 ,mesh0      ,mesh           
+                 ,&turbModel
+                 ,mesh0      ,mesh
                  ,&sistEqVel ,&sistEqPres
                  ,&solvVel   ,&solvPres
                  ,&simple
                  ,&sc        ,pMesh
-                 ,&opt       ,preName        
+                 ,&opt       ,preName
                  ,nameOut    ,fileOut);
 /*...................................................................*/
 
@@ -1437,7 +1486,7 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: transient:configuracao da discretizacao temporal                 
+ * macro: transient:configuracao da discretizacao temporal
  *===================================================================*/
     else if((!strcmp(word,macro[27])))
     {
@@ -1449,22 +1498,22 @@ int main(int argc,char**argv){
 /*...*/
       if(opt.fPolt)
         printCall(&m        , &propVarFluid
-              , &turbModel, &eModel 
+              , &turbModel, &eModel
               , &combModel, &tInterpol
               , pMesh     , &sc
-              , loadsVel  , loadsPres 
+              , loadsVel  , loadsPres
               , loadsTemp , loadsZcomb
-              , &opt       
-              , mesh0     , mesh 
-              , &media    , PINITIAL_TIME  
-              , preName   , nameOut); 
+              , &opt
+              , mesh0     , mesh
+              , &media    , PINITIAL_TIME
+              , preName   , nameOut);
 /*...................................................................*/
 
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: timeUpdate : macro de atualizaco do tempo                       
+ * macro: timeUpdate : macro de atualizaco do tempo
  *===================================================================*/
     else if((!strcmp(word,macro[28])))
     {
@@ -1477,26 +1526,26 @@ int main(int argc,char**argv){
       if(opt.fPolt)
       {
         printCall(&m        , &propVarFluid
-                , &turbModel, &eModel 
+                , &turbModel, &eModel
                 , &combModel, &tInterpol
                 , pMesh     , &sc
-                , loadsVel  , loadsPres 
+                , loadsVel  , loadsPres
                 , loadsTemp , loadsZcomb
-                , &opt       
-                , mesh0     , mesh 
-                , &media    , PINT_TIME  
-                , preName   , nameOut); 
+                , &opt
+                , mesh0     , mesh
+                , &media    , PINT_TIME
+                , preName   , nameOut);
       }
       updateTimeStruct(&m       ,&tInterpol
                      ,mesh
-                     ,&combModel,&opt); 
+                     ,&combModel,&opt);
 /*...................................................................*/
       endSec(OUTPUT_FOR_SCREEN);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: partd particionamento da malha                                   
+ * macro: partd particionamento da malha
  *===================================================================*/
     else if((!strcmp(word,macro[29])))
     {
@@ -1506,29 +1555,29 @@ int main(int argc,char**argv){
       readMacro(fileIn,word,false);
       if(!strcmp(word,"config:"))
       {
-/*... fPrintMesh*/        
+/*... fPrintMesh*/
         readMacro(fileIn,word,false);
         if(!strcmp(word,"true"))
-        { 
+        {
           pMesh->fPrintMesh = true;
           if(!mpiVar.myId ) fprintf(fileLogExc,"fPrintMesh    : true\n");
         }
 
-/*... fPrintMeshPart*/        
+/*... fPrintMeshPart*/
         readMacro(fileIn,word,false);
         if(!strcmp(word,"true"))
-        { 
+        {
           pMesh->fPrintMeshPart = true;
           if(!mpiVar.myId ) fprintf(fileLogExc,"fPrintMeshPart: true\n");
         }
       }
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: advection tecnica aplicada no termo advectivo          
+ * macro: advection tecnica aplicada no termo advectivo
  *===================================================================*/
     else if((!strcmp(word,macro[30])))
     {
@@ -1537,11 +1586,11 @@ int main(int argc,char**argv){
       readAdvectionScheme(fileIn, &sc);
  /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: edp equacoes diferencias resolvidas                    
+ * macro: edp equacoes diferencias resolvidas
  *===================================================================*/
     else if((!strcmp(word,macro[31])))
     {
@@ -1549,11 +1598,11 @@ int main(int argc,char**argv){
       readEdo(mesh0,fileIn);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: diffusion tecnica aplicada no termo difusivo           
+ * macro: diffusion tecnica aplicada no termo difusivo
  *===================================================================*/
     else if((!strcmp(word,macro[32])))
     {
@@ -1562,40 +1611,40 @@ int main(int argc,char**argv){
       readDiffusionScheme(fileIn, &sc);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
  * macro: pFluid : escreve os arquivos dos resultados do escoamente
-   no regime permanente               
+   no regime permanente
  *===================================================================*/
-    else if( (!strcmp(word,macro[33])) && 
+    else if( (!strcmp(word,macro[33])) &&
              (opt.stepPlot[1]++) == opt.stepPlot[0])
-    {      
+    {
 /*...*/
       opt.stepPlot[1] = 1;
       initSec(word, OUTPUT_FOR_SCREEN);
 /*...................................................................*/
 
-/*...*/                     
+/*...*/
       printCall(&m        , &propVarFluid
-              , &turbModel, &eModel 
+              , &turbModel, &eModel
               , &combModel, &tInterpol
               , pMesh     , &sc
-              , loadsVel  , loadsPres 
+              , loadsVel  , loadsPres
               , loadsTemp , loadsZcomb
-              , &opt       
-              , mesh0     , mesh 
-              , &media    , PLAST_TIME  
-              , preName   , nameOut); 
+              , &opt
+              , mesh0     , mesh
+              , &media    , PLAST_TIME
+              , preName   , nameOut);
 
 /*...................................................................*/
       endSec(OUTPUT_FOR_SCREEN);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: setPrint                                   
+ * macro: setPrint
  *===================================================================*/
     else if((!strcmp(word,macro[34])))
     {
@@ -1603,14 +1652,14 @@ int main(int argc,char**argv){
 /*...*/
       setPrint(&opt,fileIn);
       initTimeStruct(&m        ,&tInterpol
-                    ,mesh0     ,mesh 
+                    ,mesh0     ,mesh
                     ,&combModel,&opt);
       updateTimeStruct(&m       ,&tInterpol
                      ,mesh
-                     ,&combModel,&opt); 
+                     ,&combModel,&opt);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
@@ -1660,7 +1709,7 @@ int main(int argc,char**argv){
      if(!fSolvPrime) {
         printf("Prime nao configurado ainda!!!\n");
         exit(EXIT_FAILURE);
-     }  
+     }
 /*...................................................................*/
 
 /*...*/
@@ -1668,7 +1717,7 @@ int main(int argc,char**argv){
                  ,loadsVel   ,loadsPres
                  ,mesh0      ,mesh
                  ,&sistEqPres,&solvPres
-                 ,&prime     ,sc 
+                 ,&prime     ,sc
                  ,pMesh      ,opt
                  ,preName    ,nameOut
                  ,fileOut   );
@@ -1682,7 +1731,7 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
-* macro:                  
+* macro:
 *===================================================================*/
     else if ((!strcmp(word, macro[38])))
     {
@@ -1704,8 +1753,8 @@ int main(int argc,char**argv){
                  , &solvPres  , &sistEqPres  , &fSolvPres
                  , &solvEnergy, &sistEqEnergy, &fSolvEnergy
                  , &solvKturb , &sistEqKturb , &fSolvKturb
-                 , &solvComb  , &sistEqComb  , &fSolvComb  
-                 , pMesh       
+                 , &solvComb  , &sistEqComb  , &fSolvComb
+                 , pMesh
                  , auxName    , preName      , nameOut
                  , fileIn                    , &opt);
 /*...................................................................*/
@@ -1719,38 +1768,38 @@ int main(int argc,char**argv){
 
 /*===================================================================*
  * macro: pCombustion : escreve os arquivos dos resultados do escoamente
- * reativos (combustao)              
+ * reativos (combustao)
  *===================================================================*/
-    else if( (!strcmp(word,macro[40])) && 
+    else if( (!strcmp(word,macro[40])) &&
              (opt.stepPlot[1]++) == opt.stepPlot[0])
-    {      
+    {
 /*...*/
       opt.stepPlot[1] = 1;
       initSec(word, OUTPUT_FOR_SCREEN);
 /*...................................................................*/
 
-/*...*/                     
+/*...*/
       printCombustion(&m      , &propVarFluid
                   , &turbModel
                   , &eModel   , &combModel
                   , pMesh     , &sc
-                  , loadsVel  , loadsPres 
+                  , loadsVel  , loadsPres
                   , loadsTemp , loadsZcomb
-                  , &opt       
-                  , mesh0     , mesh 
-                  , &media      
+                  , &opt
+                  , mesh0     , mesh
+                  , &media
                   , preName   , nameOut);
 /*...................................................................*/
       endSec(OUTPUT_FOR_SCREEN);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
  * macro: simpleComb : escreve os arquivos dos resultados do escoamente
- * reativos (combustao)              
+ * reativos (combustao)
  *===================================================================*/
     else if ((!strcmp(word, macro[41])))
-    {      
+    {
       initSec(word, OUTPUT_FOR_SCREEN);
       mpiWait();
       tm.solvEdpFluid = getTimeC() - tm.solvEdpFluid;
@@ -1763,19 +1812,19 @@ int main(int argc,char**argv){
 /*...................................................................*/
 
 /*...*/
-     if(!fSolvSimple) 
+     if(!fSolvSimple)
      {
         printf("Simple nao configurado ainda!!!\n");
         exit(EXIT_FAILURE);
-     }  
+     }
 /*...................................................................*/
 
 /*...*/
-     if(!combModel.fCombustion) 
+     if(!combModel.fCombustion)
      {
         printf("Modelo de combustao nao configurado ainda!!!\n");
         exit(EXIT_FAILURE);
-     }  
+     }
 /*...................................................................*/
 
 /*...*/
@@ -1803,11 +1852,11 @@ int main(int argc,char**argv){
       tm.solvEdpFluid    = getTimeC() - tm.solvEdpFluid;
 /*...................................................................*/
       endSec(OUTPUT_FOR_SCREEN);
-   }   
+   }
 /*===================================================================*/
 
 /*===================================================================*
- *             
+ *
  *===================================================================*/
     else if((!strcmp(word,macro[42])))
     {
@@ -1815,11 +1864,11 @@ int main(int argc,char**argv){
       initSec(word, OUTPUT_FOR_SCREEN);
       endSec(OUTPUT_FOR_SCREEN);
 /*...................................................................*/
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro:                       
+ * macro:
  *===================================================================*/
     else if((!strcmp(word,macro[43])))
     {
@@ -1833,7 +1882,7 @@ int main(int argc,char**argv){
 /*===================================================================*/
 
 /*===================================================================*
- * macro: residual : leitura dos residuos                      
+ * macro: residual : leitura dos residuos
  *===================================================================*/
     else if((!strcmp(word,macro[44])))
     {
@@ -1848,7 +1897,7 @@ int main(int argc,char**argv){
 
 
 /*===================================================================*
- * macro: gravity : gravidade                                                 
+ * macro: gravity : gravidade
  *===================================================================*/
     else if((!strcmp(word,macro[45])))
     {
@@ -1856,11 +1905,11 @@ int main(int argc,char**argv){
       readGravity(gravity,fileIn);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: model: modelos utilizados nas equacao diferencias         
+ * macro: model: modelos utilizados nas equacao diferencias
  *===================================================================*/
     else if((!strcmp(word,macro[46])))
     {
@@ -1868,16 +1917,16 @@ int main(int argc,char**argv){
       readModel(&eModel   ,&turbModel
               , &eMass    ,&momentumModel
               , diffModel ,transModel
-              , &combModel  
+              , &combModel
               , fileIn);
 //    fReadModels = true;
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: mean : calcula a media                                                        
+ * macro: mean : calcula a media
  *===================================================================*/
     else if(!strcmp(word,macro[47]))
     {
@@ -1886,22 +1935,22 @@ int main(int argc,char**argv){
             , sc.ddt.t,sc.ddt.timeStep);
 /*...................................................................*/
       endSec(OUTPUT_FOR_SCREEN);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: setMean : configuracao das medias temporais                                   
+ * macro: setMean : configuracao das medias temporais
  *===================================================================*/
     else if(!strcmp(word,macro[48])){
       initSec(word, OUTPUT_FOR_FILE);
       readMean(&m,fileIn,mesh,&media);
 /*...................................................................*/
       endSec(OUTPUT_FOR_FILE);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: save : salva o estado do programa                                          
+ * macro: save : salva o estado do programa
  *===================================================================*/
     else if( (!strcmp(word,macro[49])) &&
              (save.step[1]++ == save.step[0]) ){
@@ -1914,11 +1963,11 @@ int main(int argc,char**argv){
           ,preName      ,nameOut);
 /*...................................................................*/
       endSec(OUTPUT_FOR_SCREEN);
-    }   
+    }
 /*===================================================================*/
 
 /*===================================================================*
- * macro: load : carrega um estado do sistema especifico                             
+ * macro: load : carrega um estado do sistema especifico
  *===================================================================*/
     else if((!strcmp(word,macro[50]))){
       initSec(word, OUTPUT_FOR_SCREEN);
@@ -1930,7 +1979,7 @@ int main(int argc,char**argv){
           ,fileIn);
 /*...................................................................*/
       endSec(OUTPUT_FOR_SCREEN);
-    }   
+    }
 /*===================================================================*/
 
 
@@ -1939,7 +1988,7 @@ int main(int argc,char**argv){
 
   mpiStop();
   return EXIT_SUCCESS;
-}    
+}
 /*********************************************************************/
 
 
@@ -1965,7 +2014,7 @@ void testeFace(Geom *geom, Face *face
 
     printf("volume\nnel %d\n", nel + 1);
     printf("%lf\n",geom->volume[nel]);
- 
+
     printf("cc\nnel %d\n", nel + 1);
     printf("%lf %lf %lf\n", MAT2D(nel, 0,geom->cc,ndm)
                           , MAT2D(nel, 1, geom->cc, ndm)
@@ -1982,7 +2031,7 @@ void testeFace(Geom *geom, Face *face
           , lG[3], lG[4], lG[5]);
     printf("%lf %lf %lf %lf %lf %lf\n"
           , lF[0], lF[1], lF[2]
-          , lF[3], lF[4], lF[5]); 
+          , lF[3], lF[4], lF[5]);
 
     for (i = 0; i < nFace[nel]; i++) {
 //      lG[i] =   MAT2D(nel, i, geom->fArea, maxViz);
@@ -2187,4 +2236,3 @@ void testeFace(Geom *geom, Face *face
 
 }
 /***************************************************************************/
- 

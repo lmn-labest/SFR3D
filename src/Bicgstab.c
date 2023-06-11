@@ -39,7 +39,7 @@
  * -------------------------------------------------------------------*
  * Parametros de Saida:                                               *
  * -------------------------------------------------------------------*
- * x[]-> atualizado                                                   *  
+ * x[]-> atualizado                                                   *
  * b[]-> inalterado                                                   *
  * ad,a-> inalterado                                                  *
  * -------------------------------------------------------------------*
@@ -50,14 +50,14 @@
 void pbicgstab(INT const nEq  ,INT const nAd
           ,INT *RESTRICT ia   ,INT *RESTRICT ja
           ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
-          ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b 
+          ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b
           ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT t
           ,DOUBLE *RESTRICT v ,DOUBLE *RESTRICT r
           ,DOUBLE *RESTRICT p ,DOUBLE *RESTRICT z
           ,DOUBLE *RESTRICT r0
 					,DOUBLE const tol   ,unsigned int maxIt
-          ,bool const newX    ,FILE* fileLog 
-          ,FILE *fileHistLog  ,bool const log     
+          ,bool const newX    ,FILE* fileLog
+          ,FILE *fileHistLog  ,bool const log
           ,bool const fHistLog,bool const fPrint
           ,void(*matvec)()    ,DOUBLE(*dot)()
           ,const char *name)
@@ -68,21 +68,21 @@ void pbicgstab(INT const nEq  ,INT const nAd
   DOUBLE timei,timef;
 
   timei = getTimeC();
-  
+
 /*... chute inicial*/
-  if(newX)  
-    for (i = 0; i < nEq; i++)  
+  if(newX)
+    for (i = 0; i < nEq; i++)
       x[i] = 0.e0;
 /*...................................................................*/
 
-/*... conv = tol * |b|*/	
+/*... conv = tol * |b|*/
   d        = dot(b,b,nEq);
 	norm_b   = sqrt(d);
 	conv     = tol*norm_b;
 //breaktol = btol*sqrt(d);
 /*...................................................................*/
 
-/*... Ax0*/  
+/*... Ax0*/
   matvec(nEq,ia,ja,al,ad,x,z);
 /*...................................................................*/
 
@@ -127,7 +127,7 @@ void pbicgstab(INT const nEq  ,INT const nAd
 
 /*... (s, s)*/
 		d = dot(r, r, nEq);
-/*...*/	
+/*...*/
 		if (sqrt(d) < conv) break;
 /*...................................................................*/
 
@@ -140,7 +140,7 @@ void pbicgstab(INT const nEq  ,INT const nAd
 /*...................................................................*/
 
 /*...*/
-    for(i = 0; i < nEq; i++) 
+    for(i = 0; i < nEq; i++)
     {
 /* ... x(j + 1) = x(j) + w*M(-1)s*/
       x[i] += w*z[i];
@@ -207,7 +207,7 @@ void pbicgstab(INT const nEq  ,INT const nAd
   timef = getTimeC() - timei;
 /*...*/
   if(fPrint)
-  { 
+  {
 		printf(" (BICGSATB) solver:\n"
 			"\tEquations      = %20d\n"
 			"\tnad            = %20d\n"
@@ -219,11 +219,11 @@ void pbicgstab(INT const nEq  ,INT const nAd
 			"\tCPU time(s)    = %20.2lf\n"
 			, nEq, nAd, tol, j + 1, xKx, norm, norm_r, timef);
   }
-/*..................................................................*/  
- 
+/*..................................................................*/
+
 /*...*/
   if(j == maxIt)
-  { 
+  {
     printf("name : %s\n",name);
     printf(" PBICGSTAB *** WARNING: no convergende reached !\n");
     printf("MAXIT = %d \n",maxIt);
@@ -231,10 +231,10 @@ void pbicgstab(INT const nEq  ,INT const nAd
   }
 /*..................................................................*/
 
-/*...*/ 
+/*...*/
   if(log)
-    fprintf(fileLog          
-           ,"PBICGSTAB: tol %20.2e " 
+    fprintf(fileLog
+           ,"PBICGSTAB: tol %20.2e "
 						"iteration %d "
 						"xKx %20.12e "
 						"||x*x|| %20.12e "
@@ -287,7 +287,7 @@ void pbicgstab(INT const nEq  ,INT const nAd
  * -------------------------------------------------------------------*
  * Parametros de Saida:                                               *
  * -------------------------------------------------------------------*
- * x[]-> atualizado                                                   *  
+ * x[]-> atualizado                                                   *
  * b[]-> alterado                                                     *
  * ad,al,au-> inalterado                                              *
  * -------------------------------------------------------------------*
@@ -295,20 +295,20 @@ void pbicgstab(INT const nEq  ,INT const nAd
  * A(M-1)y=b precondicionador a direita                               *
  * -------------------------------------------------------------------*
  *********************************************************************/
-void mpiPbicgstab(INT const nEq,INT const nEqNov      
+void mpiPbicgstab(INT const nEq,INT const nEqNov
           ,INT const nAd       ,INT const nAdR
           ,INT *RESTRICT ia    ,INT *RESTRICT ja
           ,DOUBLE *RESTRICT al ,DOUBLE *RESTRICT ad
-          ,DOUBLE *RESTRICT m  ,DOUBLE *RESTRICT b 
+          ,DOUBLE *RESTRICT m  ,DOUBLE *RESTRICT b
           ,DOUBLE *RESTRICT x  ,DOUBLE *RESTRICT t
           ,DOUBLE *RESTRICT v  ,DOUBLE *RESTRICT r
-          ,DOUBLE *RESTRICT p  ,DOUBLE *RESTRICT z 
+          ,DOUBLE *RESTRICT p  ,DOUBLE *RESTRICT z
           ,DOUBLE *RESTRICT r0
           ,DOUBLE const tol    ,unsigned int maxIt
-          ,bool const newX     ,FILE* fileLog 
+          ,bool const newX     ,FILE* fileLog
           ,FILE *fileHistLog   ,bool const log
-          ,bool const fHistLog ,bool const fPrint 
-          ,Interface *iNeq    
+          ,bool const fHistLog ,bool const fPrint
+          ,Interface *iNeq
           ,void(*matvec)()     ,DOUBLE(*dot)()
           ,const char *name)
 {
@@ -319,27 +319,27 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
   INT param[2];
 
   timei = getTimeC();
-  
+
   param[0] = nAd;
   param[1] = nAdR;
 /* chute inicial*/
-  if(newX)  
-    for (i = 0; i < nEq; i++)  
+  if(newX)
+    for (i = 0; i < nEq; i++)
       x[i] = 0.e0;
 /*...................................................................*/
 
-/*... conv = tol * |b|*/	
+/*... conv = tol * |b|*/
   d        = dot(b,b,nEqNov);
 	norm_b   = sqrt(d);
 	conv     = tol*norm_b;
 //breaktol = btol*sqrt(d);
 /*...................................................................*/
 
-/*... Ax0*/ 
+/*... Ax0*/
   matvec(nEqNov,param,ia,ja,al,ad,x,z,iNeq);
 /*...................................................................*/
 
-/*...*/  
+/*...*/
   for(i = 0; i < nEqNov; i++)
   {
 /*... r0 = b - Ax0*/
@@ -354,8 +354,8 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
 /*...................................................................*/
 
 /*...*/
-	jj = 1;  
-  for(j = 0; j < maxIt; j++) 
+	jj = 1;
+  for(j = 0; j < maxIt; j++)
   {
 /* ... v = Az(j) = AM(-1)p(j)*/
     matvec(nEqNov,param,ia,ja,al,ad,z,v,iNeq);
@@ -365,7 +365,7 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
     rr0   = dot(r,r0,nEqNov);
     alpha = rr0/dot(v,r0,nEqNov);
 /*...................................................................*/
-  
+
 /*...*/
     for(i = 0; i < nEqNov; i++)
     {
@@ -380,7 +380,7 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
 
 /*... (s, s)*/
 		d = dot(r, r, nEqNov);
-/*...*/	
+/*...*/
 		if (sqrt(d) < conv) break;
 /*...................................................................*/
 
@@ -390,7 +390,7 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
     w = dot(t,r,nEqNov)/ dot(t,t,nEqNov);
 /*...................................................................*/
 
-/*...*/    
+/*...*/
     for(i = 0; i < nEqNov; i++)
     {
 /* ... x(j + 1) = x(j) + w*M(-1)s*/
@@ -423,9 +423,9 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
       z[i]  = p[i]*m[i];
     }
 /*...................................................................*/
- 
+
 /*...*/
-		if (jj == 2000) 
+		if (jj == 2000)
     {
 			jj = 0;
       if(!mpiVar.myId)
@@ -460,7 +460,7 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
 
 /*...*/
   if(!mpiVar.myId && fPrint)
-  { 
+  {
     printf(" (MPIBICGSATB) solver:\n"
 			"\tEquations      = %20d\n"
       "\tEquations      = %20d\n"
@@ -478,7 +478,7 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
 
 /*...*/
   if(j == maxIt)
-  { 
+  {
     if(!mpiVar.myId)
     {
       printf("name : %s\n",name);
@@ -488,13 +488,13 @@ void mpiPbicgstab(INT const nEq,INT const nEqNov
     mpiStop();
     exit(EXIT_SOLVER);
   }
-/*..................................................................*/ 
+/*..................................................................*/
 
 /*...*/
   if(!mpiVar.myId && log)
-    fprintf(fileLog          
-           ,"MPIPBICGSTAB: tol %20.2e " 
-            "iteration %d " 
+    fprintf(fileLog
+           ,"MPIPBICGSTAB: tol %20.2e "
+            "iteration %d "
 		        "xKx %20.12e "
             "||x*x|| %20.12e "
 		        "time %20.5lf\n"
@@ -577,8 +577,9 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
 
 #pragma omp parallel default(none) num_threads(nThreads)\
   private(i,j,jj,conv,norm_b,tmp,d,alpha,beta,rr0,w)\
-  shared(js,ia,ja,a,ad,m,b,x,z,r,p,r0,v,t,maxIt,xKx,norm,norm_r\
-         ,fileHistLog,matvec,dot,bOmp,nThreads)
+  shared(js,ia,ja,a,ad,m,b,x,z,r,p,r0,v,t,maxIt,xKx,norm,norm_r,\
+        fileHistLog,matvec,dot,bOmp,nThreads,newX, nEq, tol,\
+        fHistLog, fPrint)
   {
 /*... chute inicial*/
     if (newX)
@@ -596,7 +597,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
 
 /*... Ax0*/
     matvec(nEq
-          ,ia            ,ja 
+          ,ia            ,ja
           ,a             ,a
           ,x             ,z
           ,bOmp->thBegin ,bOmp->thEnd
@@ -735,7 +736,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
 /*norma de energia = xT*A*x */
     tmp = dot(x, z, nEq);
 #pragma omp master
-    xKx = tmp; 
+    xKx = tmp;
 /*...................................................................*/
 
 /*... norm - 2 = || x ||*/
@@ -777,7 +778,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
            "\tCPU time(s)    = %20.2lf\n"
            , nEq, nAd, tol, js + 1, xKx, norm, norm_r, timef);
   }
-/*..................................................................*/  
+/*..................................................................*/
 
 /*...*/
   if (js == maxIt )
@@ -787,7 +788,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
     printf("MAXIT = %d \n", maxIt);
     exit(EXIT_FAILURE);
   }
-/*..................................................................*/  
+/*..................................................................*/
 
 /*...*/
   if (log)
@@ -798,7 +799,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
             "norma(x*x) %20.12e "
             "time %20.5lf\n"
             , tol, js + 1, xKx, norm, timef);
-/*..................................................................*/  
+/*..................................................................*/
 }
 /**********************************************************************/
 
@@ -853,7 +854,7 @@ void pbicgstabOmp(INT const nEq    ,INT const nAd
 * A(M - 1)y = b precondicionador a direita                            *
 * ------------------------------------------------------------------- *
 ***********************************************************************/
-void mpiPbicgstabOmp(INT const nEq,INT const nEqNov   
+void mpiPbicgstabOmp(INT const nEq,INT const nEqNov
                ,INT const nAd      ,INT const nAdR
                ,INT *RESTRICT ia   ,INT *RESTRICT ja
                ,DOUBLE *RESTRICT a ,DOUBLE *RESTRICT ad
@@ -884,8 +885,9 @@ void mpiPbicgstabOmp(INT const nEq,INT const nEqNov
 
 #pragma omp parallel default(none) num_threads(nThreads)\
   private(i,j,jj,conv,norm_b,tmp,d,alpha,beta,rr0,w)\
-  shared(js,ia,ja,a,ad,m,b,x,z,r,p,r0,v,t,maxIt,xKx,norm,norm_r\
-         ,fileHistLog,matvec,dot,bOmp,nThreads,param,iNeq,fileLogDebug)
+  shared(js,ia,ja,a,ad,m,b,x,z,r,p,r0,v,t,maxIt,xKx,norm,norm_r,\
+         fileHistLog,matvec,dot,bOmp,nThreads,param,iNeq,fileLogDebug,\
+         newX, nEq, nEqNov, tol, fHistLog, fPrint)
   {
 /*... chute inicial*/
     if (newX)
@@ -895,15 +897,15 @@ void mpiPbicgstabOmp(INT const nEq,INT const nEqNov
 /*...................................................................*/
 
 /*... conv = tol * |b|*/
-    d      = dot(b, b, nEqNov);    
+    d      = dot(b, b, nEqNov);
     norm_b = sqrt(d);
     conv   = tol*norm_b;
   //breaktol = btol*sqrt(d);
 /*...................................................................*/
 
 /*... Ax0*/
-    matvec(nEqNov        ,param  
-          ,ia            ,ja 
+    matvec(nEqNov        ,param
+          ,ia            ,ja
           ,a             ,ad
           ,x             ,z
           ,bOmp->thBegin ,bOmp->thEnd
@@ -1042,7 +1044,7 @@ void mpiPbicgstabOmp(INT const nEq,INT const nEqNov
 /*norma de energia = xT*A*x */
     tmp = dot(x, z, nEqNov);
 #pragma omp master
-    xKx = tmp; 
+    xKx = tmp;
 /*...................................................................*/
 
 /*... norm - 2 = || x ||*/
@@ -1086,7 +1088,7 @@ void mpiPbicgstabOmp(INT const nEq,INT const nEqNov
 			"\tCPU time(s)    = %20.2lf\n"
 	    ,nEq,nEqNov,nAd,nAdR,tol,js+1,xKx, norm, norm_r,timef);
   }
-/*..................................................................*/  
+/*..................................................................*/
 
 /*...*/
   if (js == maxIt )
@@ -1100,7 +1102,7 @@ void mpiPbicgstabOmp(INT const nEq,INT const nEqNov
     mpiStop();
     exit(EXIT_SOLVER);
   }
-/*..................................................................*/  
+/*..................................................................*/
 
 /*...*/
   if (!mpiVar.myId && log)
@@ -1111,7 +1113,7 @@ void mpiPbicgstabOmp(INT const nEq,INT const nEqNov
             "norma(x*x) %20.12e "
             "time %20.5lf\n"
             , tol, js + 1, xKx, norm, timef);
-/*..................................................................*/  
+/*..................................................................*/
 
 }
 /**********************************************************************/
@@ -1163,7 +1165,7 @@ void mpiPbicgstabOmp(INT const nEq,INT const nEqNov
 * ad,a-> inalterado                                                  *
 * -------------------------------------------------------------------*
 * OBS:                                                               *
-c * Versão do livro Iterative krylov Method for large linear Systems *
+c * Versï¿½o do livro Iterative krylov Method for large linear Systems *
 c * A(M-1)y=b precondicionador a direita                             *
 * -------------------------------------------------------------------*
 ***********************************************************************/
@@ -1176,7 +1178,7 @@ void pbicgstabl2(INT const nEq      ,INT const nAd
                ,DOUBLE *RESTRICT u ,DOUBLE *RESTRICT r0
                ,DOUBLE *RESTRICT w ,DOUBLE *RESTRICT s
                ,DOUBLE *RESTRICT p ,DOUBLE *RESTRICT h
-               ,DOUBLE *RESTRICT z 
+               ,DOUBLE *RESTRICT z
                ,DOUBLE const tol   ,unsigned int maxIt
                ,bool const newX    ,FILE* fileLog
                ,FILE *fileHistLog  ,bool const log
@@ -1222,7 +1224,7 @@ void pbicgstabl2(INT const nEq      ,INT const nAd
 /*...*/
   rr0    = 1.e0;
   alpha  = 0.e0;
-  omega2 = 1.e0; 
+  omega2 = 1.e0;
 /*...................................................................*/
 
 /*...*/
@@ -1287,7 +1289,7 @@ void pbicgstabl2(INT const nEq      ,INT const nAd
 /*... rr0 = rr1*/
     rr0 = rr1;
 /*...................................................................*/
-        
+
 /*...*/
     for(i=0;i<nEq;i++){
 /*... v(j) = s(j) - beta*v*/
@@ -1423,7 +1425,7 @@ void pbicgstabl2(INT const nEq      ,INT const nAd
            "\tCPU time(s)    = %20.2lf\n"
            , nEq, nAd, tol, j + 1, xKx, norm, norm_r, timef);
   }
-/*..................................................................*/  
+/*..................................................................*/
 
 /*...*/
   if (j == maxIt) {
@@ -1494,7 +1496,7 @@ void pbicgstabl2(INT const nEq      ,INT const nAd
 * ad,a-> inalterado                                                  *
 * -------------------------------------------------------------------*
 * OBS:                                                               *
-c * Versão do livro Iterative krylov Method for large linear Systems *
+c * Versï¿½o do livro Iterative krylov Method for large linear Systems *
 c * A(M-1)y=b precondicionador a direita                             *
 * -------------------------------------------------------------------*
 ***********************************************************************/
@@ -1527,8 +1529,9 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
 #pragma omp parallel default(none) num_threads(nThreads)\
   private(i,j,jj,conv,norm_b,tmp,d,alpha,beta,rr0,rr1,omega1,omega2\
           ,gamma,mi,ni,tau)\
-  shared(js,ia,ja,a,ad,m,b,x,t,v,r,u,r0,w,s,p,h,z,maxIt,fileLog\
-         ,xKx,norm,norm_r,fileHistLog,matvec,dot,bOmp,nThreads)
+  shared(js,ia,ja,a,ad,m,b,x,t,v,r,u,r0,w,s,p,h,z,maxIt,fileLog,\
+         xKx,norm,norm_r,fileHistLog,matvec,dot,bOmp,nThreads,\
+         newX, nEq, tol, fHistLog, fPrint)
   {
 /*... chute inicial*/
     if (newX)
@@ -1632,7 +1635,7 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
           ,bOmp->thHeight,bOmp->thY
           ,nThreads);
 /*...................................................................*/
-     
+
 /*...*/
 #pragma omp for
       for (i = 0; i<nEq; i++)
@@ -1653,7 +1656,7 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
 
 /*...*/
 #pragma omp for
-      for (i = 0; i<nEq; i++) 
+      for (i = 0; i<nEq; i++)
       {
 /*... v(j) = s(j) - beta*v*/
         v[i] = s[i] - beta*v[i];
@@ -1665,7 +1668,7 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
 /*... s = Ap(j) = AM(-1)v*/
       matvec(nEq
             ,ia            ,ja
-            ,a             ,ad 
+            ,a             ,ad
             ,p             ,w
             ,bOmp->thBegin ,bOmp->thEnd
             ,bOmp->thHeight,bOmp->thY
@@ -1679,7 +1682,7 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
 
 /*...*/
 #pragma omp for
-      for (i = 0; i<nEq; i++) 
+      for (i = 0; i<nEq; i++)
       {
 /*... u(j) = r(j) - beta*u(i)*/
         u[i] = r[i] - beta*u[i];
@@ -1727,7 +1730,7 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
 
 /*...*/
 #pragma omp for
-      for (i = 0; i < nEq; i++) 
+      for (i = 0; i < nEq; i++)
       {
 /*... x(j + 2) = x(i) + w1 * r(i) + w2 * s(i) + alpha * u(i)*/
         x[i] += omega1*h[i] + omega2 *p[i] + alpha*z[i];
@@ -1755,7 +1758,7 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
 /*...................................................................*/
 
 /*...*/
-      if (jj == 2000) 
+      if (jj == 2000)
       {
         jj = 0;
 #pragma omp master
@@ -1792,13 +1795,13 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
 
 /*... r = (b - Ax) (calculo do residuo explicito)*/
 #pragma omp for
-    for (i = 0; i < nEq; i++) 
+    for (i = 0; i < nEq; i++)
     {
       r[i] = b[i] - z[i];
     }
     tmp = dot(r, r, nEq);
 #pragma omp single
-    {  
+    {
       norm_r = sqrt(tmp);
       if (fPrint && norm_r > 3.16e0*conv)
       printf("BICGSATBOMP(2): %20.9e > %20.9e!!\n", norm_r, conv);
@@ -1809,7 +1812,7 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
 
   timef = getTimeC() - timei;
 /*...*/
-  if (fPrint) 
+  if (fPrint)
   {
     printf(" (BICGSATBOMP(2) solver:\n"
            "\tEquations      = %20d\n"
@@ -1822,7 +1825,7 @@ void pbicgstabl2Omp(INT const nEq, INT const nAd
            "\tCPU time(s)    = %20.2lf\n"
            , nEq, nAd, tol, js + 1, xKx, norm, norm_r, timef);
   }
-/*..................................................................*/  
+/*..................................................................*/
 
 /*...*/
   if (js == maxIt)

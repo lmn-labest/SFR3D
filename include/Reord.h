@@ -1,8 +1,8 @@
-#ifndef _REORD_H_  
+#ifndef _REORD_H_
   #define _REORD_H_
    #ifdef _AD_
     #undef  _AD_
-  #endif  
+  #endif
   #define _AD_ false
 
 /*...*/
@@ -18,7 +18,7 @@
     INT flag;
   }Reord;
 /*...................................................................*/
-  
+
 /*...*/
   void reord(Memoria *m         ,INT *num          ,INT const *adj
             ,short const *nViz  ,short const maxViz

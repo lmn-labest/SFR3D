@@ -1,8 +1,7 @@
 #ifndef _DEFINE_H_
   #define _DEFINE_H_
-	
-/*...*/
-  short debug_flag;
+
+
 /*...*/
   #include<stdlib.h>
   #include<stdio.h>
@@ -39,11 +38,11 @@
   #define SIGMAMODEL  5
   #define MIXED       6
   #define BARDINA     7
-  #define CLARK       8 
+  #define CLARK       8
   #define BARDINAMOD  9
   #define ONEEQK     10
 /*...................................................................*/
-  
+
 /*...*/
   #define LESFUNCMODEL       0
   #define LESSTRUMODEL       1
@@ -72,7 +71,7 @@
   #define LDYNAMIC      1
   #define GDYNAMIC      2
   #define GDYNAMICMOD   3
-  #define TWOPARDYNAMIC 4 
+  #define TWOPARDYNAMIC 4
 /*...................................................................*/
 
 /*...*/
@@ -96,12 +95,12 @@
 
 /*...*/
   #define ARRHENIUS   1
-  #define EDC         2 
-  #define EDM         3 
+  #define EDC         2
+  #define EDM         3
 /*...*/
   #define N_TERMS_REACTOR 5
 /*...*/
-  #define FDS_EDC                 1 
+  #define FDS_EDC                 1
   #define FLUENT_EDC              2
   #define FLUENT_CONST_TMIX_EDC   3
   #define PANJWANI_EDC            4
@@ -109,13 +108,13 @@
 /*... Kg/kmol*/
   #define MW_O 15.9994e0
   #define MW_H  1.00794e0
-  #define MW_N 14.00674e0 
+  #define MW_N 14.00674e0
   #define MW_C 12.01100e0
 /*...................................................................*/
 
 /*...*/
   #define POL            1
-  #define NASAPOL7       2 
+  #define NASAPOL7       2
 /*... viscosidade*/
   #define SUTHERLAND     2
   #define FDSVISCOSITY   3
@@ -123,7 +122,7 @@
   #define WILKELAW       4
   #define FDSDIFF        2
   #define HIRSCHDIFF     3
-  #define OPENFOAMDIFF   5    
+  #define OPENFOAMDIFF   5
 /*... densidade*/
   #define IDEALGAS   2
 /*... densidade*/
@@ -132,7 +131,7 @@
 
 /*...*/
   #define TRAPEZIO 1
-  #define SIMPSON  2 
+  #define SIMPSON  2
 /*...................................................................*/
 
 /*...*/
@@ -155,7 +154,7 @@
 /*...................................................................*/
 
 /*...*/
-  #define PRESREF(dRef,R,T,Mg) ((dRef)*(R)*(T)/(Mg)) 
+  #define PRESREF(dRef,R,T,Mg) ((dRef)*(R)*(T)/(Mg))
 /*...................................................................*/
 
 /*...*/
@@ -170,7 +169,7 @@
 /*...................................................................*/
 
 /*...*/
-  #define MAXPLODEG  15  
+  #define MAXPLODEG  15
 /*...................................................................*/
 
 /*...*/
@@ -183,7 +182,7 @@
 
 /*... residuos*/
   #define RSCALED       1
-  #define RSQRT         2 
+  #define RSQRT         2
   #define RSCALEDSUM    3
   #define RSCALEDSUMMAX 4
 /*...................................................................*/
@@ -195,7 +194,7 @@
 
 /*...*/
   #define TDF 1          /*Discretizacao temporal em diferenca finita*/
-  #define TVF 2          /*Discretizacao temporal em volume finito"*/ 
+  #define TVF 2          /*Discretizacao temporal em volume finito"*/
 /*...................................................................*/
 
 /*...*/
@@ -241,17 +240,17 @@
   #define OWNER(cell,nel) ((cell) == (nel) ? 1:-1)
 /*...................................................................*/
 
-/*... */            
+/*... */
   #define KELVINCONV 273.15E+00
-  #define CELSIUS_FOR_KELVIN(t) ((t)+(KELVINCONV)) 
-  #define KELVIN_FOR_CELSIUS(t) ((t)-(KELVINCONV)) 
+  #define CELSIUS_FOR_KELVIN(t) ((t)+(KELVINCONV))
+  #define KELVIN_FOR_CELSIUS(t) ((t)-(KELVINCONV))
   #define TEMP(tc,t,fKelvin)  if((fKelvin)){ (tc) = (t);}\
                               else{(tc) = CELSIUS_FOR_KELVIN((t));}
 /*...................................................................*/
 
 /*...*/
   #define PINITIAL_TIME 1
-  #define PINT_TIME     2  
+  #define PINT_TIME     2
   #define PLAST_TIME    3
 /*...................................................................*/
 
@@ -289,13 +288,13 @@
   #define MUSCL_NVD     2
   #define SMART_NVD     3
   #define MSMART_NVD    4
-  #define SUPERBEE_NVD  5    
+  #define SUPERBEE_NVD  5
   #define MSUPERBEE_NVD 6
-  #define STOIC_NVD     7 
-  #define MINMOD_NVD    8   
-  #define MBCD_NVD      9 
+  #define STOIC_NVD     7
+  #define MINMOD_NVD    8
+  #define MBCD_NVD      9
 /*...................................................................*/
- 
+
 /*... ADVECTION*/
   #define FBASE 1 /*limitacao por face*/
   #define VBASE 2 /*limitacao por volume*/
@@ -311,7 +310,7 @@
 /*... BUOYANT*/
   #define BUOYANT_HYDROSTATIC 1
   #define BUOYANT_PRGH        2
-  #define BUOYANT_RHOREF      3      
+  #define BUOYANT_RHOREF      3
 /*...................................................................*/
 
 /*... tipos de CC (faces)*/
@@ -324,7 +323,7 @@
   #define OUTLET           7
   #define MOVEWALL         8
   #define INLETSTAICTPRES  9
-  #define OPEN            10 
+  #define OPEN            10
   #define CONVECTIONHEAT  11
   #define SLIP            12  /*parede perfeitamente lisa*/
   #define INLETTOTALPRES  13
@@ -345,20 +344,20 @@
 /*...................................................................*/
 
 /*...*/
-  #define DIFPROP        5  /*numero de propriedade de 
+  #define DIFPROP        5  /*numero de propriedade de
                             problemas difusao pura*/
   #define MAXPROP       10  /*numero maximo de propriedades*/
   #define MAXMAT       200 /*numero maximo de materias*/
-  #define MAX_TRANS_EQ   3 /*numero maximo de equacoes de transporte*/ 
-  #define MAX_DIF_EQ     3 /*numero maximo de equacoes de difusa*/ 
+  #define MAX_TRANS_EQ   3 /*numero maximo de equacoes de transporte*/
+  #define MAX_DIF_EQ     3 /*numero maximo de equacoes de difusa*/
 /*...................................................................*/
 
 /*... Tipo geometrica da celula*/
   #define LINECELL  1
   #define TRIACELL  2
-  #define QUADCELL  3  
-  #define TETRCELL  4  
-  #define HEXACELL  5  
+  #define QUADCELL  3
+  #define TETRCELL  4
+  #define HEXACELL  5
   #define PIRACELL  6
   #define DOTCELL   7
 /*...................................................................*/
@@ -369,16 +368,16 @@
   #define  MAX_NUM_PONT     168
   #define  MAX_NUM_FACE       6
   #define  MAX_NUM_NODE_FACE  4
-  #define  MAX_SN            24 
-  #define  MAX_NDM            3 
+  #define  MAX_SN            24
+  #define  MAX_NDM            3
   #define  MAX_COMB           7
 /*...................................................................*/
 
 /*... reconstrucao de gradiente*/
-  #define  RCGRADGAUSSC 1 
-  #define  RCGRADGAUSSN 2 
-  #define  RCLSQUARE    3 
-  #define  RCLSQUAREQR  4    
+  #define  RCGRADGAUSSC 1
+  #define  RCGRADGAUSSN 2
+  #define  RCLSQUARE    3
+  #define  RCLSQUAREQR  4
 /*...................................................................*/
 
 /*... simple*/
@@ -427,21 +426,21 @@
 /*...................................................................*/
 
 /*... definicao do tipo de inteiros usados*/
-  #define INT         int   
+  #define INT         int
 //typedef int INT;
   #define INTC       "int"
   #define DOUBLE    double
 //typedef double DOUBLE;
   #define DOUBLEC  "double"
   #define LDOUBLE   long double
-  #define LDOUBLEC  "long double"  
+  #define LDOUBLEC  "long double"
 
   #ifdef _MSC_VER
 /*  #define LONG_INT __int64*/
     typedef __int64 LONG_INT;
     #define RESTRICT __restrict
   #else
-    #define LONG_INT long  
+    #define LONG_INT long
 /*  typedef __int64 LONG_INT;*/
     #define RESTRICT restrict
   #endif
@@ -455,8 +454,8 @@
 /*... definicao de funcoes*/
   #define min(a, b)  (((a) < (b)) ? (a) : (b))
   #define max(a, b)  (((a) > (b)) ? (a) : (b))
-  #define vectorPlusOne(v,n,i)  for(i=0;i<n;i++) (v[i]++) 
-  #define vectorMinusOne(v,n,i) for(i=0;i<n;i++) (v[i]--)  
+  #define vectorPlusOne(v,n,i)  for(i=0;i<n;i++) (v[i]++)
+  #define vectorMinusOne(v,n,i) for(i=0;i<n;i++) (v[i]--)
 /*...................................................................*/
 
 /*...*/
@@ -475,9 +474,10 @@
 /*...................................................................*/
 
 /*...*/
-  DOUBLE gravity[3];
-  DOUBLE xRef[3];
-  FILE *fileLogExc,*fileLogDebug;
+  extern short debug_flag;
+  extern DOUBLE gravity[3];
+  extern DOUBLE xRef[3];
+  extern FILE *fileLogExc,*fileLogDebug;
 /*...................................................................*/
 
 

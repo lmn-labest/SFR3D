@@ -4,7 +4,7 @@
   #include<Adjcency.h>
   #include<Mesh.h>
   #include<Memoria.h>
-    
+
   void faceStruct(Memoria *m, Mesh *mesh0);
 
 #endif  /*_FACE_STRUTC_*/

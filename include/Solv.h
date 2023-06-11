@@ -12,7 +12,7 @@
       #define MKL_INT long long
     #else
       #define MKL_INT int
-    #endif  
+    #endif
     extern MKL_INT pardiso
     (void *, MKL_INT *, MKL_INT *, MKL_INT *, MKL_INT *, MKL_INT *,
     double *, MKL_INT *, MKL_INT *, MKL_INT *, MKL_INT *, MKL_INT *,
@@ -30,9 +30,9 @@
   #include<Mesh.h>
   #include<OpenMp.h>
 /*...................................................................*/
-  
+
 /*...*/
-  #define SING1(x) x > 0.0 ? 1.e0:-1.e0 
+  #define SING1(x) x > 0.0 ? 1.e0:-1.e0
 /*...................................................................*/
 
 /*....*/
@@ -56,17 +56,17 @@
 /*...................................................................*/
 
 /*....*/
-  void solverC(Memoria *m    
-            ,INT const nEq         ,INT const nEqNov  
+  void solverC(Memoria *m
+            ,INT const nEq         ,INT const nEqNov
             ,INT const nAd         ,INT const nAdR
-            ,INT *ia               ,INT *ja   
+            ,INT *ia               ,INT *ja
             ,DOUBLE *al            ,DOUBLE *ad,DOUBLE *au
             ,DOUBLE *b             ,DOUBLE *x
             ,Interface *iNeq       ,BufferOmp *bOmp
             ,DOUBLE const tol      ,unsigned int maxIt
             ,short const storage   ,short const solver
             ,FILE* fSolvLog        ,bool const fLog
-            ,bool const newX       ,bool const unSym   
+            ,bool const newX       ,bool const unSym
             ,const char * name);
 /*...................................................................*/
 
@@ -76,11 +76,11 @@
               ,INT *RESTRICT ia   ,INT *RESTRICT ja
               ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
               ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b
-              ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z 
+              ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z
               ,DOUBLE *RESTRICT r ,DOUBLE *RESTRICT p
-              ,DOUBLE const tol   ,unsigned int maxit 
-              ,bool const newX    ,FILE* fileSolvLog  
-              ,bool const log     ,bool const fPrint  
+              ,DOUBLE const tol   ,unsigned int maxit
+              ,bool const newX    ,FILE* fileSolvLog
+              ,bool const log     ,bool const fPrint
               ,Interface *iNeq    ,BufferOmp *bOmp
               ,void(*matvec)()    ,DOUBLE(*dot)()
               ,const char *name);
@@ -94,12 +94,12 @@
           ,DOUBLE *RESTRICT r ,DOUBLE *RESTRICT p
 		      ,DOUBLE const tol   ,unsigned int maxIt
           ,bool const newX  	,FILE* fLog
-          ,FILE *fileHistLog  ,bool const log 
+          ,FILE *fileHistLog  ,bool const log
           ,bool const fHistLog,bool const fPrint
 		      ,void(*matvec)()    ,DOUBLE(*dot)()
           ,const char *name);
 
-/*...  gradiente conjugado precondicionado (OPENMP)*/  
+/*...  gradiente conjugado precondicionado (OPENMP)*/
   void pcgOmp(INT const nEq      ,INT const nAd
              ,INT *RESTRICT ia   ,INT *RESTRICT ja
              ,DOUBLE *RESTRICT a ,DOUBLE *RESTRICT ad
@@ -116,17 +116,17 @@
 
 /*...  gradiente conjugado precondicionado (MPI)*/
   void mpiPcg(INT const nEq   ,INT const nEqNov
-        ,INT const nAd      ,INT const nAdR  
+        ,INT const nAd      ,INT const nAdR
         ,INT *RESTRICT ia   ,INT *RESTRICT ja
         ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
-        ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b 
-        ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z 
+        ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b
+        ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z
         ,DOUBLE *RESTRICT r ,DOUBLE *RESTRICT p
         ,DOUBLE const tol   ,unsigned int maxIt
-        ,bool const newX    ,FILE* fileLog  
-        ,FILE *fileHistLog  ,bool const log     
+        ,bool const newX    ,FILE* fileLog
+        ,FILE *fileHistLog  ,bool const log
         ,bool const fHistLog,bool const fPrint
-        ,Interface *iNeq                      
+        ,Interface *iNeq
         ,void(*matvec)()    ,DOUBLE(*dot)()
         ,const char *name);
 /*...................................................................*/
@@ -170,12 +170,12 @@
   void pbicgstab(INT const nEq    ,INT const nAd
        ,INT *RESTRICT ia   ,INT *RESTRICT ja
        ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
-       ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b 
-       ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT t 
+       ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b
+       ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT t
        ,DOUBLE *RESTRICT v ,DOUBLE *RESTRICT r
-       ,DOUBLE *RESTRICT p ,DOUBLE *RESTRICT z 
+       ,DOUBLE *RESTRICT p ,DOUBLE *RESTRICT z
        ,DOUBLE *RESTRICT r0,DOUBLE const tol
-       ,unsigned int maxIt ,bool const newX          
+       ,unsigned int maxIt ,bool const newX
 	     ,FILE* fLog         ,FILE *fileHistLog
 	     ,bool const log     , bool const fHistLog
        ,bool const fPrint
@@ -202,26 +202,26 @@
 /*...................................................................*/
 
 /*... gradiente conjugado bi-ortoganilizados precondicionado (MPI)*/
-  void mpiPbicgstab(INT const nEq,INT const nEqNov      
+  void mpiPbicgstab(INT const nEq,INT const nEqNov
           ,INT const nAd       ,INT const nAdR
           ,INT *RESTRICT ia    ,INT *RESTRICT ja
           ,DOUBLE *RESTRICT al ,DOUBLE *RESTRICT ad
-          ,DOUBLE *RESTRICT m  ,DOUBLE *RESTRICT b 
+          ,DOUBLE *RESTRICT m  ,DOUBLE *RESTRICT b
           ,DOUBLE *RESTRICT x  ,DOUBLE *RESTRICT t
           ,DOUBLE *RESTRICT v  ,DOUBLE *RESTRICT r
-          ,DOUBLE *RESTRICT p  ,DOUBLE *RESTRICT z 
+          ,DOUBLE *RESTRICT p  ,DOUBLE *RESTRICT z
           ,DOUBLE *RESTRICT r0
           ,DOUBLE const tol    ,unsigned int maxIt
-          ,bool const newX     ,FILE* fileLog 
+          ,bool const newX     ,FILE* fileLog
           ,FILE *fileHistLog   ,bool const log
-          ,bool const fHistLog ,bool const fPrint 
-          ,Interface *iNeq    
+          ,bool const fHistLog ,bool const fPrint
+          ,Interface *iNeq
           ,void(*matvec)()     ,DOUBLE(*dot)()
           ,const char *name);
 /*...................................................................*/
 
 /*...*/
-  void mpiPbicgstabOmp(INT const nEq,INT const nEqNov   
+  void mpiPbicgstabOmp(INT const nEq,INT const nEqNov
                ,INT const nAd      ,INT const nAdR
                ,INT *RESTRICT ia   ,INT *RESTRICT ja
                ,DOUBLE *RESTRICT a ,DOUBLE *RESTRICT ad
@@ -236,7 +236,7 @@
                ,bool const fHistLog,bool const fPrint
                ,BufferOmp *bOmp    ,Interface *iNeq
                ,void(*matvec)()    ,DOUBLE(*dot)()
-               ,const char *name);  
+               ,const char *name);
 /*...................................................................*/
 
 /*...*/
@@ -331,14 +331,14 @@
   void minres(INT const nEq        , INT const nAd
 	        , INT *RESTRICT ia    , INT *RESTRICT ja
 	        , DOUBLE *RESTRICT al , DOUBLE *RESTRICT ad
-	        , DOUBLE *RESTRICT b  , DOUBLE *RESTRICT x 
+	        , DOUBLE *RESTRICT b  , DOUBLE *RESTRICT x
           , DOUBLE *RESTRICT v0 , DOUBLE *RESTRICT v
           , DOUBLE *RESTRICT w  , DOUBLE *RESTRICT w0
-          , DOUBLE *RESTRICT w00, DOUBLE *RESTRICT z 
+          , DOUBLE *RESTRICT w00, DOUBLE *RESTRICT z
           , DOUBLE *RESTRICT p
 	        , DOUBLE const tol   , unsigned int maxIt
-          , bool const newX    , FILE* fileLog   
-          , FILE *fileHistLog	, bool const log 
+          , bool const newX    , FILE* fileLog
+          , FILE *fileHistLog	, bool const log
           , bool const fHistLog, bool const fPrint
 	        , void(*matvec)()    , DOUBLE(*dot)());
 
@@ -353,8 +353,8 @@
            , DOUBLE *RESTRICT z , DOUBLE *RESTRICT z0
            , DOUBLE *RESTRICT p
 	         , DOUBLE const tol   , unsigned int maxIt
-           , bool const newX    , FILE* fileLog   
-           , FILE *fileHistLog	, bool const log 
+           , bool const newX    , FILE* fileLog
+           , FILE *fileHistLog	, bool const log
            , bool const fHistLog, bool const fPrint
 	         , void(*matvec)()    , DOUBLE(*dot)());
 /*...................................................................*/
@@ -414,8 +414,8 @@
   void callMklPardiso(INT  nEq          , INT  mtype
                     , INT   *RESTRICT ia, INT   *RESTRICT ja
                     , DOUBLE *RESTRICT a, DOUBLE *RESTRICT b
-                    , DOUBLE *RESTRICT x, DOUBLE *RESTRICT z  
-                    , DOUBLE *RESTRICT r                        
+                    , DOUBLE *RESTRICT x, DOUBLE *RESTRICT z
+                    , DOUBLE *RESTRICT r
                     , bool const fPrint);
 /*...................................................................*/
 /*===================================================================*/

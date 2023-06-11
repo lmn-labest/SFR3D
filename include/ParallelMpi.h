@@ -14,7 +14,7 @@
   #include<PartMesh.h>
   #include<ElIncid.h>
   #include<HccaTime.h>
-  
+
 
 /*...*/
   void mpiStart(int *argc,char **argv);
@@ -23,37 +23,37 @@
   void comunicateMesh(Memoria *m    ,Combustion *cModel
                    ,Turbulence *tModel
                    ,Mesh *mesh0     ,Mesh *mesh
-                   ,PartMesh *pMesh 
+                   ,PartMesh *pMesh
                    ,Loads *ldD1     ,Loads *ldT1
                    ,Loads *ldVel    ,Loads *ldPres
                    ,Loads *ldPresC  ,Loads *ldEnergy
                    ,Loads *ldTemp   ,Loads *ldKturb
-                   ,Loads *ldZcomb);  
-/*... equacoes nas interfaces*/  
+                   ,Loads *ldZcomb);
+/*... equacoes nas interfaces*/
   void getBuffer(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
               ,INT *RESTRICT fMap    ,INT const nRcvs);
-  
+
   void makeBuffer(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
                ,INT *RESTRICT fMap    ,INT const nSends);
-  
+
   void comunicateNeq(Interface *iNeq,DOUBLE *RESTRICT x);
 /*...................................................................*/
 
-/*... celulas nas interfaces*/  
+/*... celulas nas interfaces*/
   void makeBufferCel(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
                   ,INT *RESTRICT fMap    ,INT const nSends
                   ,short const ndf       ,short const ndm);
-  
+
   void getBufferCel(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
               ,INT *RESTRICT fMap       ,INT const nRcvs
               ,short const ndf          ,short const ndm);
-  
+
   void comunicateCel(Interface *iCel,DOUBLE *RESTRICT x
                     ,short const ndf,short const ndm);
 /*...................................................................*/
 
 
-/*... nos nas interfaces*/  
+/*... nos nas interfaces*/
   void dGetBufferNod(DOUBLE *RESTRICT x    ,DOUBLE *RESTRICT xb
                     ,INT *RESTRICT fMap       ,INT const nRcvs
                     ,short const ndf          ,short const ndm);
@@ -89,7 +89,7 @@
 /*... globaliza os valores das celulas no processo master(0)*/
   void dGlobalCel(Memoria *m         ,PartMesh *pMesh
                ,DOUBLE *RESTRICT uG,DOUBLE *RESTRICT uL
-               ,INT const numelNov 
+               ,INT const numelNov
                ,short const ndf1   ,short const ndf2);
 /*...................................................................*/
 
@@ -117,7 +117,7 @@
 
   }Mpi;
 
-  Mpi mpiVar;
+  extern Mpi mpiVar;
 /*...................................................................*/
- 
+
 #endif /*_PARALLELMPI_H_*/

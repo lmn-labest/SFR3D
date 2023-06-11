@@ -1,0 +1,5 @@
+name    CG
+tol     1.e-11
+maxIt   10000
+storage CSRC
+end

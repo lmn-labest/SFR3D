@@ -1,0 +1,7 @@
+name         SIMPLE
+alphaPres    0.3
+alphaVel     0.7
+north        0
+pResidual    20
+maxIt        5000
+end

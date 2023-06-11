@@ -37,7 +37,7 @@
  * -------------------------------------------------------------------*
  * Parametros de Saida:                                               *
  * -------------------------------------------------------------------*
- * x[]-> atualizado                                                   *  
+ * x[]-> atualizado                                                   *
  * b[]-> inalterado                                                   *
  * ad,al-> inalterado                                                 *
  * ------------------------------------------------------------------ *
@@ -51,8 +51,8 @@ void pcg(INT const nEq      ,INT const nAd
         ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z
         ,DOUBLE *RESTRICT r ,DOUBLE *RESTRICT p
 	      ,DOUBLE const tol   ,unsigned int maxIt
-        ,bool const newX    ,FILE* fileLog   
-        ,FILE *fileHistLog	,bool const log 
+        ,bool const newX    ,FILE* fileLog
+        ,FILE *fileHistLog	,bool const log
         ,bool const fHistLog,bool const fPrint
 	      ,void(*matvec)()    ,DOUBLE(*dot)()
         ,const char *name)
@@ -178,30 +178,30 @@ void pcg(INT const nEq      ,INT const nAd
   timef = getTimeC() - timei;
 
   if(fPrint)
-  { 
+  {
 		printf(" (PCG) solver:\n"
 					"\tEquations      = %20d\n"
-          "\tnad            = %20d\n"        
-          "\tSolver tol     = %20.2e\n"      
+          "\tnad            = %20d\n"
+          "\tSolver tol     = %20.2e\n"
           "\tIterarions     = %20d\n"
 					"\tx * Kx         = %20.2e\n"
 				  "\t|| x ||        = %20.2e\n"
 					"\t|| b - Ax ||   = %20.2e\n"
 					"\t|| b - Ax || m = %20.2e\n"
-	        "\tCPU time(s)    = %20.2lf\n" 
+	        "\tCPU time(s)    = %20.2lf\n"
 	         ,nEq,nAd,tol,j+1,xKx,norm,norm_r,norm_r_m,timef);
   }
-  
-  if(j == maxIt){ 
+
+  if(j == maxIt){
     printf("name : %s\n",name);
     printf("PCG: *** WARNING: no convergende reached !\n");
     printf("MAXIT = %d \n",maxIt);
     exit(EXIT_FAILURE);
   }
   if(log)
-    fprintf(fileLog          
-           ,"PCG: tol %20.2e " 
-            "iteration %d " 
+    fprintf(fileLog
+           ,"PCG: tol %20.2e "
+            "iteration %d "
 						"xKx %20.12e "
 		        "norma(x*x) %20.12e "
 		        "time %20.5lf\n"
@@ -248,23 +248,23 @@ void pcg(INT const nEq      ,INT const nAd
  * -------------------------------------------------------------------*
  * Parametros de Saida:                                               *
  * -------------------------------------------------------------------*
- * x[]-> atualizado                                                   *  
+ * x[]-> atualizado                                                   *
  * b[]-> alterado                                                     *
  * ad,al-> inalterado                                                 *
  * -------------------------------------------------------------------*
 *********************************************************************/
 void mpiPcg(INT const nEq   ,INT const nEqNov
-        ,INT const nAd      ,INT const nAdR  
+        ,INT const nAd      ,INT const nAdR
         ,INT *RESTRICT ia   ,INT *RESTRICT ja
         ,DOUBLE *RESTRICT al,DOUBLE *RESTRICT ad
-        ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b 
-        ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z 
+        ,DOUBLE *RESTRICT m ,DOUBLE *RESTRICT b
+        ,DOUBLE *RESTRICT x ,DOUBLE *RESTRICT z
         ,DOUBLE *RESTRICT r ,DOUBLE *RESTRICT p
         ,DOUBLE const tol   ,unsigned int maxIt
-        ,bool const newX    ,FILE* fileLog  
-        ,FILE *fileHistLog  ,bool const log     
+        ,bool const newX    ,FILE* fileLog
+        ,FILE *fileHistLog  ,bool const log
         ,bool const fHistLog,bool const fPrint
-        ,Interface *iNeq                      
+        ,Interface *iNeq
         ,void(*matvec)()    ,DOUBLE(*dot)()
         ,const char *name)
 {
@@ -281,11 +281,11 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
   param[1] = nAdR;
 
 /* chute inicial*/
-  if(newX)  
-    for(i = 0; i < nEq; i++)  
+  if(newX)
+    for(i = 0; i < nEq; i++)
       x[i] = 0.e0;
 /*...................................................................*/
-  
+
 /*... conv = tol * |(M-1)b|m = tol(b,M(-1)b) */
 	for (i = 0; i < nEqNov; i++)
 		z[i] = b[i] * m[i];
@@ -297,7 +297,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
 
 /*... Ax0*/
   matvec(nEqNov,param,ia,ja,al,ad,x,z,iNeq);
-/*...................................................................*/ 
+/*...................................................................*/
 
 /*...*/
   for(i = 0; i < nEqNov; i++)
@@ -310,7 +310,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
 		p[i] = z[i];
 	}
 /*...................................................................*/
-  
+
 /*... (r(0), z(0)) = (r(0), (M-1)r0)*/
 	d = dot(r, z, nEqNov);
 /*...................................................................*/
@@ -323,7 +323,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
     matvec(nEqNov,param,ia,ja,al,ad,p,z,iNeq);
 /*...................................................................*/
 
-/*... alpha = ( r(j),z(j) ) / ( Ap(j), p(j) ))*/    
+/*... alpha = ( r(j),z(j) ) / ( Ap(j), p(j) ))*/
     alpha = d / dot(z,p,nEqNov);
 /*...................................................................*/
 
@@ -398,7 +398,7 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
 
 /*...*/
   if(!mpiVar.myId && fPrint)
-  { 
+  {
     printf(" (MPIPCG) solver:\n"
 			"\tEquations      = %20d\n"
       "\tEquations      = %20d\n"
@@ -414,9 +414,9 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
   }
 /*..................................................................*/
 
-/*...*/  
+/*...*/
   if(j == maxIt)
-  { 
+  {
     if(!mpiVar.myId)
     {
       printf("name : %s\n",name);
@@ -426,13 +426,13 @@ void mpiPcg(INT const nEq   ,INT const nEqNov
     mpiStop();
     exit(EXIT_SOLVER);
   }
-/*..................................................................*/ 
+/*..................................................................*/
 
 /*...*/
   if(!mpiVar.myId && log)
-    fprintf(fileLog          
-           ,"MPIPCG: tol %20.2e " 
-            "iteration %d " 
+    fprintf(fileLog
+           ,"MPIPCG: tol %20.2e "
+            "iteration %d "
 						"xKx %20.12e "
 		        "norma(x*x) %20.12e "
 		        "time %20.5lf\n"
@@ -513,8 +513,9 @@ void pcgOmp(INT const nEq, INT const nAd
 
 #pragma omp parallel default(none) num_threads(nThreads)\
   private(i,j,jj,conv,norm_b,tmp,norm,d,di,alpha,beta)\
-  shared(ia,ja,a,ad,m,b,x,z,r,p,maxIt,fileLog,xKx,norm_r_m,norm_r\
-         ,fileHistLog,matvec,dot,bOmp,nThreads,jG)
+  shared(ia,ja,a,ad,m,b,x,z,r,p,maxIt,fileLog,xKx,norm_r_m,norm_r,\
+         fileHistLog,matvec,dot,bOmp,nThreads,jG, newX, nEq, tol,\
+         fHistLog,fPrint)
   {
 /*... chute inicial*/
     if (newX)
@@ -580,7 +581,7 @@ void pcgOmp(INT const nEq, INT const nAd
 
 /*...*/
 #pragma omp for
-      for (i = 0; i < nEq; i++) 
+      for (i = 0; i < nEq; i++)
       {
 /*... x(j + 1) = x(j) + alpha*p*/
         x[i] += alpha * p[i];
@@ -615,7 +616,7 @@ void pcgOmp(INT const nEq, INT const nAd
 /*...................................................................*/
 
 /*...*/
-      if (jj == 5000) 
+      if (jj == 5000)
       {
         jj = 0;
 #pragma omp master
@@ -651,7 +652,7 @@ void pcgOmp(INT const nEq, INT const nAd
 
 /*... r = M(-1)(b - Ax) (calculo do residuo explicito)*/
 #pragma omp for
-    for (i = 0; i < nEq; i++) 
+    for (i = 0; i < nEq; i++)
     {
       r[i] = b[i] - z[i];
       z[i] = r[i] * m[i];
@@ -660,7 +661,7 @@ void pcgOmp(INT const nEq, INT const nAd
     tmp = dot(r, z, nEq);
 #pragma omp master
     norm_r_m = sqrt(fabs(tmp));
-    
+
     tmp = dot(r, r, nEq);
 #pragma omp master
     norm_r = sqrt(tmp);
@@ -690,15 +691,15 @@ void pcgOmp(INT const nEq, INT const nAd
   }
 /*..................................................................*/
 
-/*...*/  
-  if (jG == maxIt) 
+/*...*/
+  if (jG == maxIt)
   {
     printf("name : %s\n",name);
     printf("PCGOMP: *** WARNING: no convergende reached !\n");
     printf("MAXIT = %d \n", maxIt);
     exit(EXIT_SOLVER);
   }
-/*..................................................................*/ 
+/*..................................................................*/
 
 
 /*...*/
@@ -793,8 +794,9 @@ void mpiPcgOmp(INT const nEq     , INT const nEqNov
 
 #pragma omp parallel default(none) num_threads(nThreads)\
   private(i,j,jj,conv,norm_b,tmp,norm,d,di,alpha,beta)\
-  shared(ia,ja,a,ad,m,b,x,z,r,p,maxIt,fileLog,xKx,norm_r_m,norm_r\
-         ,fileHistLog,matvec,dot,bOmp,nThreads,jG,param,iNeq,mpiVar,fileLogDebug)
+  shared(ia,ja,a,ad,m,b,x,z,r,p,maxIt,fileLog,xKx,norm_r_m,norm_r,\
+         fileHistLog,matvec,dot,bOmp,nThreads,jG,param,iNeq,mpiVar,\
+         fileLogDebug, newX, tol, fHistLog, nEqNov, fPrint)
   {
 /*... chute inicial*/
     if (newX)
@@ -860,7 +862,7 @@ void mpiPcgOmp(INT const nEq     , INT const nEqNov
 
 /*...*/
 #pragma omp for
-      for (i = 0; i < nEqNov; i++) 
+      for (i = 0; i < nEqNov; i++)
       {
 /*... x(j + 1) = x(j) + alpha*p*/
         x[i] += alpha * p[i];
@@ -895,7 +897,7 @@ void mpiPcgOmp(INT const nEq     , INT const nEqNov
 /*...................................................................*/
 
 /*...*/
-      if (jj == 5000) 
+      if (jj == 5000)
       {
         jj = 0;
 #pragma omp master
@@ -911,7 +913,7 @@ void mpiPcgOmp(INT const nEq     , INT const nEqNov
     jG = j;
 
 /*... Energy norm:  x*Kx*/
-    matvec(nEqNov          , param 
+    matvec(nEqNov          , param
            , ia            , ja
            , a             , ad
            , x             , z
@@ -932,7 +934,7 @@ void mpiPcgOmp(INT const nEq     , INT const nEqNov
 
 /*... r = M(-1)(b - Ax) (calculo do residuo explicito)*/
 #pragma omp for
-    for (i = 0; i < nEqNov; i++) 
+    for (i = 0; i < nEqNov; i++)
     {
       r[i] = b[i] - z[i];
       z[i] = r[i] * m[i];
@@ -941,7 +943,7 @@ void mpiPcgOmp(INT const nEq     , INT const nEqNov
     tmp = dot(r, z, nEqNov);
 #pragma omp master
     norm_r_m = sqrt(fabs(tmp));
-    
+
     tmp = dot(r, r, nEqNov);
 #pragma omp master
     norm_r = sqrt(tmp);
@@ -957,7 +959,7 @@ void mpiPcgOmp(INT const nEq     , INT const nEqNov
 
 /*...*/
   if(!mpiVar.myId && fPrint)
-  { 
+  {
     printf(" (MPIPCG) solver:\n"
 			"\tEquations      = %20d\n"
       "\tEquations      = %20d\n"
@@ -973,8 +975,8 @@ void mpiPcgOmp(INT const nEq     , INT const nEqNov
   }
 /*..................................................................*/
 
-/*...*/  
-  if (jG == maxIt) 
+/*...*/
+  if (jG == maxIt)
   {
     if(!mpiVar.myId)
     {
@@ -985,7 +987,7 @@ void mpiPcgOmp(INT const nEq     , INT const nEqNov
     mpiStop();
     exit(EXIT_SOLVER);
   }
-/*..................................................................*/ 
+/*..................................................................*/
 
 
 /*...*/

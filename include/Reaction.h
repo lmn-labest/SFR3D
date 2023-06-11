@@ -13,7 +13,7 @@
 /*...................................................................*/
 
 /*...*/
-  DOUBLE massActionMass(Reaction *reac     ,Prop *sHeatPol 
+  DOUBLE massActionMass(Reaction *reac     ,Prop *sHeatPol
                      ,DOUBLE  *RESTRICT c
                      ,DOUBLE const T     ,unsigned short const nSp);
 /*...................................................................*/
@@ -26,25 +26,25 @@
 /*...*/
   void rateReaction(Combustion *cModel         , Turbulence *tModel
              , PropVarFluid *pFluid
-             , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT temp        
-             , DOUBLE *RESTRICT rate         , DOUBLE *RESTRICT density 
+             , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT temp
+             , DOUBLE *RESTRICT rate         , DOUBLE *RESTRICT density
              , DOUBLE *RESTRICT gradVel      , DOUBLE *RESTRICT eddyViscosity
              , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT volume
-             , DOUBLE const dt               , DOUBLE const Pth 
+             , DOUBLE const dt               , DOUBLE const Pth
              , short const ndm               , INT const numel
-             , bool const fKelvin            , bool const fOmp           
+             , bool const fKelvin            , bool const fOmp
              , short const nThreads);
 /*...................................................................*/
 
 /*...*/
   void timeChemical(Combustion *cModel      , Turbulence *tModel
              , PropVarFluid *pFluid
-             , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT temp  
-             , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT gradVel 
+             , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT temp
+             , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT gradVel
              , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT cDiffY
-             , DOUBLE *RESTRICT volume  
+             , DOUBLE *RESTRICT volume
              , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT tReactor
-             , short const ndm               , INT const numel   
+             , short const ndm               , INT const numel
              , bool const fKelvin );
 /*...................................................................*/
 

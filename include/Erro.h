@@ -1,6 +1,6 @@
 #ifndef _ERRO_H_
   #define _ERRO_H_
-  
+
   #define EXIT_HELP              1
   #define EXIT_MESH_COMM        -1
   #define EXIT_SOLVER           -2
@@ -8,16 +8,17 @@
   #define EXIT_NRP_ET           -4
   #define EXIT_READ_LOOP        -5
   #define EXIT_NR_HS_T          -6
+  #define EXIT_OPENMP           -7
   #define EXIT_PROG           -111
 
-/*... Saida de Erro*/                                                  
+/*... Saida de Erro*/
   #define ERRO_RCM fprintf(stderr,"\nrcm - fatal error!\n")
 
   #define ERRO_OP(file,func,op)\
     {fprintf(stderr,"Opcao %d e invalida!!\n",op);\
     fprintf(stderr,"Arquivo:%s\nFonte:  %s\n",file,func);\
     exit(EXIT_FAILURE);}
- 
+
   #define ERRO_OP_NEW(file,func,line,str,op)\
     {fprintf(stderr,"%s\nOpcao %d e invalida!!\n",str,op);\
     fprintf(stderr,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"\
@@ -44,7 +45,7 @@
      fprintf(stderr,"Arquivo:%s\nFonte:  %s\nLinha:  %d\n"\
             ,file,func,line);\
      exit(EXIT_FAILURE);}
-  
+
   #define ERRO_MALLOC_MPI(point,str,line,file,func,a)\
      if(point == NULL){\
      fprintf(stderr,"Erro na alocacao do vetor %s\n",str);\

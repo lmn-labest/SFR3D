@@ -5,14 +5,14 @@
 
 /*... Cell*/
   void writeCsvCell(DOUBLE *u      ,DOUBLE *gradU
-                 ,DOUBLE *cc 
+                 ,DOUBLE *cc
                  ,INT const numel,short const ndf
                  ,short const ndm,FILE *file);
-  
+
 /*... Node*/
   void writeCsvNode(DOUBLE *u      ,DOUBLE *gradU
-                   ,DOUBLE *x  
+                   ,DOUBLE *x
                    ,INT const nNode,short const ndf
                    ,short const ndm,FILE *file);
-  
+
 #endif/*_WRITECSV_*/

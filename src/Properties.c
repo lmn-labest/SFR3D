@@ -3,7 +3,7 @@
 /*******************   MISTURA GASOSA  ******************************/
 static DOUBLE pol(DOUBLE *RESTRICT a, DOUBLE const x,short const n)
 {
-  int i; 
+  int i;
   DOUBLE tmp = a[0];
 
   for(i=1;i<n;i++)
@@ -26,27 +26,27 @@ static bool searchSpecies(Combustion *cModel,char *species
 
   readMacro(fileAux,word,false);
   convStringLower(word);
-    
+
 /*... n2*/
   if(!strcmp(word,"n2"))
   {
-    *jk = cModel->chem.sN2; 
-    strcpy(species,"n2"); 
+    *jk = cModel->chem.sN2;
+    strcpy(species,"n2");
     (*kk)++;
     read = true;
-  } 
+  }
 /*... o2*/
   else if(!strcmp(word,"o2"))
   {
-    *jk = cModel->chem.sO2;  
+    *jk = cModel->chem.sO2;
     strcpy(species,"o2");
     (*kk)++;
-    read = true;  
-  } 
+    read = true;
+  }
 /*... co2*/
   else if(!strcmp(word,"co2"))
   {
-    *jk = cModel->chem.sCO2;  
+    *jk = cModel->chem.sCO2;
     strcpy(species,"co2");
     (*kk)++;
     read = true;
@@ -56,8 +56,8 @@ static bool searchSpecies(Combustion *cModel,char *species
   else if(!strcmp(word,"co"))
   {
     *jk = cModel->chem.sCO;
-    strcpy(species,"co"); 
-    (*kk)++; 
+    strcpy(species,"co");
+    (*kk)++;
     read = true;
   }
 /*..................................................................*/
@@ -66,8 +66,8 @@ static bool searchSpecies(Combustion *cModel,char *species
   else if(!strcmp(word,"h2o"))
   {
     *jk = cModel->chem.sH2O;
-    strcpy(species,"h2o"); 
-    (*kk)++; 
+    strcpy(species,"h2o");
+    (*kk)++;
     read = true;
   }
 
@@ -75,8 +75,8 @@ static bool searchSpecies(Combustion *cModel,char *species
   else if(!strcmp(word,"ch4"))
   {
     *jk = cModel->chem.sCH4;
-    strcpy(species,"ch4"); 
-    (*kk)++; 
+    strcpy(species,"ch4");
+    (*kk)++;
     read = true;
   }
 /*..................................................................*/
@@ -85,8 +85,8 @@ static bool searchSpecies(Combustion *cModel,char *species
   else if(!strcmp(word,"c3h8"))
   {
     *jk = cModel->chem.sC3H8;
-    strcpy(species,"c3h8"); 
-    (*kk)++; 
+    strcpy(species,"c3h8");
+    (*kk)++;
     read = true;
   }
 /*..................................................................*/
@@ -98,10 +98,10 @@ static bool searchSpecies(Combustion *cModel,char *species
 
 DOUBLE maxPolNasaCp2Derivada(PolNasa *a,DOUBLE const x0,DOUBLE const x1)
 {
-  
+
   short i,m=100;
   DOUBLE h,xi,ma,mod;
-  
+
   h = (x1-x0)/m;
   xi = x0;
   for (i = 0, ma = 0.0; i < m; i++)
@@ -123,11 +123,11 @@ DOUBLE maxPolNasaCp2Derivada(PolNasa *a,DOUBLE const x0,DOUBLE const x1)
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * a   -> polinomial                                                  *
- * x   -> valor desejado                                             *   
+ * x   -> valor desejado                                             *
  * x0  -> limete inferior                                            *
  * x1  -> limite superior                                            *
  * iCod -> 1 regra do trapezio                                       *
- *         2 regra Simpson’s 1/3 Rule                                *
+ *         2 regra Simpsonï¿½s 1/3 Rule                                *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -156,11 +156,11 @@ DOUBLE intNum(PolNasa *a,DOUBLE const x0,DOUBLE const x1
   }
 /*...................................................................*/
 
-/*Simpson’s 1/3 Rule*/
+/*Simpsonï¿½s 1/3 Rule*/
   else if(iCod == 2)
   {
     h = (x1 - x0)/m;
-    sum = polNasaCp(a,x0)+polNasaCp(a,x1); 
+    sum = polNasaCp(a,x0)+polNasaCp(a,x1);
     xi = x0;
     for(i=1;i<m;i++){
       xi+=h;
@@ -203,7 +203,7 @@ void nasaPolRange(PolNasa *a      , DOUBLE const x
                  ,DOUBLE **c      , DOUBLE *xNew
                  ,short const iCod)
 {
-/*... */  
+/*... */
   if(iCod == 1)
   {
     *xNew = x;
@@ -214,22 +214,22 @@ void nasaPolRange(PolNasa *a      , DOUBLE const x
     else
     {
       if( x < a->range[0][0])
-      { 
-        *xNew = a->range[0][0]; 
+      {
+        *xNew = a->range[0][0];
         *c    = a->a2[0];
       }
       if( a->range[1][1] < x)
       {
-        *xNew = a->range[1][1]; 
-        *c    = a->a2[1]; 
+        *xNew = a->range[1][1];
+        *c    = a->a2[1];
       }
-      fprintf(fileLogDebug,"A: NasaPol fora do limites %lf!!\n",x);      
+      fprintf(fileLogDebug,"A: NasaPol fora do limites %lf!!\n",x);
     }
 /*..................................................................*/
   }
 /*..................................................................*/
 
-/*... */  
+/*... */
   else if(iCod == 2)
   {
     *xNew = x;
@@ -240,14 +240,14 @@ void nasaPolRange(PolNasa *a      , DOUBLE const x
     else
     {
       if( x < a->range[0][0])
-      { 
-        *xNew = a->range[0][0]; 
+      {
+        *xNew = a->range[0][0];
         *c    = a->a1[0];
       }
       if( a->range[1][1] < x)
       {
-        *xNew = a->range[1][1]; 
-        *c    = a->a1[1]; 
+        *xNew = a->range[1][1];
+        *c    = a->a1[1];
       }
       fprintf(fileLogDebug,"B: NasaPol fora do limites %lf!!\n",x);
     }
@@ -295,7 +295,7 @@ DOUBLE polNasaCp2Derivada(PolNasa *a     , DOUBLE const x)
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
- * x  -> temperatura                                                 *   
+ * x  -> temperatura                                                 *
  * R  -> constante dos gases ideias                                  *
  * mW -> massa molar                                                 *
  *-------------------------------------------------------------------*
@@ -332,7 +332,7 @@ DOUBLE polNasaCp(PolNasa *a     , DOUBLE const x)
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
- * x  -> temperatura                                                 *   
+ * x  -> temperatura                                                 *
  * R  -> constante dos gases ideias                                  *
  * mW -> massa molar                                                 *
  *-------------------------------------------------------------------*
@@ -344,7 +344,7 @@ DOUBLE polNasaCp(PolNasa *a     , DOUBLE const x)
  * nasa7                                                             *
  * H0(T)/RT = a0 + a1/2T + a2/3T^2 + a3/4T^3 + a4/5T^4 + a5/T        *
  * nasa9                                                             *
- * H0(T)/RT = -a0/2T^-2 - a1T^-1 + a2lnT + a3T + a4/2T^2 + a5/3T^3   * 
+ * H0(T)/RT = -a0/2T^-2 - a1T^-1 + a2lnT + a3T + a4/2T^2 + a5/3T^3   *
  *        + a6/4T^4 +a8                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
@@ -354,7 +354,7 @@ DOUBLE polNasaH(PolNasa *a     , DOUBLE const x, bool const fKelvin)
   DOUBLE sum=0.e0,*c=NULL,xi,R,tc;
 
   if(fKelvin)
-    tc = x;  
+    tc = x;
   else
     tc = CELSIUS_FOR_KELVIN(x);
 
@@ -365,7 +365,7 @@ DOUBLE polNasaH(PolNasa *a     , DOUBLE const x, bool const fKelvin)
 
   if (a->type == 7)
     sum = c[0]                  + 0.5e0*c[1]*xi
-        + c[2]*xi*xi/3.e0       + 0.25e0*c[3]*xi*xi*xi 
+        + c[2]*xi*xi/3.e0       + 0.25e0*c[3]*xi*xi*xi
         + c[4]*xi*xi*xi*xi/5.e0 + c[5]/xi;
 
   return R*xi*sum;
@@ -386,7 +386,7 @@ DOUBLE polNasaH(PolNasa *a     , DOUBLE const x, bool const fKelvin)
  * parametro omega                                                   *
  *-------------------------------------------------------------------*
  * OBS:                                                              *
- *        The properies of gase and liquids (5ª)                     *
+ *        The properies of gase and liquids (5ï¿½)                     *
  *        pag 95                                                     *
  * A Simple and Accurate Method for Calculating Viscosity of Gas     *
  * Mixtures                                                          *
@@ -425,12 +425,12 @@ static DOUBLE philn(DOUBLE const mWi, DOUBLE const nui
  * fonte: Manual do FDS                                              *
  *        livro computional fluid dynamics in fire engineering       *
  *        pag 486                                                    *
- *        The properies of gase and liquids (5ª)                     *
+ *        The properies of gase and liquids (5ï¿½)                     *
  *        pag 95                                                     *
  * 0.3 < T* < 100                                                    *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE collisionIntegral(DOUBLE const t,DOUBLE const ek) 
+DOUBLE collisionIntegral(DOUBLE const t,DOUBLE const ek)
 {
   DOUBLE ta,num;
   DOUBLE A,B,C,D,E,F;
@@ -443,9 +443,9 @@ DOUBLE collisionIntegral(DOUBLE const t,DOUBLE const ek)
   F =  2.43787e0;
 
   ta = t/ek;
-  
+
   if( ta < 0.3 || ta > 100.0)
-  {    
+  {
     fprintf(fileLogExc,"collision Integral out of range!!\n"
                        "0.3 < T* < 100\n"
                        "t*               = %lf\n",ta);
@@ -482,11 +482,11 @@ DOUBLE collisionIntegral(DOUBLE const t,DOUBLE const ek)
  * fonte: Manual do FDS                                              *
  *        livro computional fluid dynamics in fire engineering       *
  *        pag 486                                                    *
- *        The properies of gase and liquids (5ª)                     *
+ *        The properies of gase and liquids (5ï¿½)                     *
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE diffusionCollisionIntegral(DOUBLE const t
-                                 ,DOUBLE const ekl,DOUBLE const eki) 
+                                 ,DOUBLE const ekl,DOUBLE const eki)
 {
   DOUBLE ekli,ta,num;
   DOUBLE A,B,C,D,E,F;
@@ -501,7 +501,7 @@ DOUBLE diffusionCollisionIntegral(DOUBLE const t
   ekli = sqrt(ekl*eki);
 
   ta = t/ekli;
-  
+
   num = A*pow(ta,-B) + C*exp(-D*ta) + E*exp(-F*ta);
 
   return num;
@@ -537,10 +537,10 @@ DOUBLE mixtureSpeciesDensity(Prop *den           ,DOUBLE const malorMassMix
 /*for (i = 0; i < MAXPLODEG; i++)
     a[i] = 0.0e0;*/
   if(fKelvin)
-    tc = t;  
+    tc = t;
   else
-    tc = CELSIUS_FOR_KELVIN(t);  
-  
+    tc = CELSIUS_FOR_KELVIN(t);
+
   d  = den->unit;
 
   switch (den->type)
@@ -558,7 +558,7 @@ DOUBLE mixtureSpeciesDensity(Prop *den           ,DOUBLE const malorMassMix
 /*.....................................................................*/
 
 /*...*/
-    default:  
+    default:
       ERRO_OP(__FILE__,__func__,den->type);
       break;
 /*.....................................................................*/
@@ -578,7 +578,7 @@ DOUBLE mixtureSpeciesDensity(Prop *den           ,DOUBLE const malorMassMix
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * cModel   -                                                        *
- * mMolar   - temperatura (°C/K)                                     *
+ * mMolar   - temperatura (ï¿½C/K)                                     *
  * yFrac    - fracao de massa da especies primitivas                 *
  * nEl      - numero total de elmentos                               *
  * iCod     -                                                        *
@@ -592,7 +592,7 @@ DOUBLE mixtureSpeciesDensity(Prop *den           ,DOUBLE const malorMassMix
  *-------------------------------------------------------------------*
  *********************************************************************/
 void updateMolarMass(Combustion *cModel
-                 , LevelTime        mMolar  , DOUBLE *RESTRICT yFrac 
+                 , LevelTime        mMolar  , DOUBLE *RESTRICT yFrac
                  , INT const nEl            , char  const iCod
                  , bool const fOmp          , short const nThreads )
 
@@ -605,27 +605,27 @@ void updateMolarMass(Combustion *cModel
     case PROP_UPDATE_NL_LOOP:
 /*... omp*/
 #pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
-     private(i,y) shared(cModel,yFrac,mMolar,ns)
+     private(i,y) shared(cModel,yFrac,mMolar,ns,nEl)
      for(i=0;i<nEl;i++)
      {
-       y            = &MAT2D(i,0,yFrac,ns);    
-/*...*/           
+       y            = &MAT2D(i,0,yFrac,ns);
+/*...*/
        mMolar.t[i] = mixtureMolarMass(cModel,y);
      }
 /*..................................................................*/
-    break;  
+    break;
 /*..................................................................*/
 
 /*...*/
     case PROP_UPDATE_OLD_TIME:
 /*... omp*/
 #pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
-    private(i) shared(mMolar)
+    private(i) shared(mMolar,nEl)
     for(i=0;i<nEl;i++)
     {
 /*...t(n-2) = t(n-1)*/
       mMolar.t00[i] =  mMolar.t0[i];
-/*...t(n-1) = t(n)*/           
+/*...t(n-1) = t(n)*/
       mMolar.t0[i]  =  mMolar.t[i];
     }
 /*..................................................................*/
@@ -634,7 +634,7 @@ void updateMolarMass(Combustion *cModel
 /*..................................................................*/
 
 }
-/*********************************************************************/ 
+/*********************************************************************/
 
 
 /*********************************************************************
@@ -646,8 +646,8 @@ void updateMolarMass(Combustion *cModel
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * sHeatPol - estrutra par o polinoimio do calor especifico          *
- * temp     - temperatura (°C/K)                                     *
- * pressure - pressao                                                *  
+ * temp     - temperatura (ï¿½C/K)                                     *
+ * pressure - pressao                                                *
  * density  - densidade                                              *
  * yFrac    - fracao de massa da especies primitivas                 *
  * alpha    - parametro sobre relaxamanto                            *
@@ -667,7 +667,7 @@ void updateMolarMass(Combustion *cModel
 void updateMixDensity(Prop *pDen            , Combustion *cModel
                  , DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT pressure
                  , LevelTime density        , DOUBLE *RESTRICT yFrac
-                 , DOUBLE const alpha       , bool const iKelvin    
+                 , DOUBLE const alpha       , bool const iKelvin
                  , INT const nEl            , char  const iCod
                  , bool const fOmp         , short const nThreads )
 
@@ -683,16 +683,16 @@ void updateMixDensity(Prop *pDen            , Combustion *cModel
       {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(i,y,molarMassMix,den0,den)\
-        shared(cModel,pDen,yFrac,density,pressure,temp,thDynamic,ns)
+        shared(cModel,pDen,yFrac,density,pressure,temp,thDynamic,ns,alpha,iKelvin,nEl)
         for(i=0;i<nEl;i++)
         {
           y = &MAT2D(i,0,yFrac,ns);
-          molarMassMix =  mixtureMolarMass(cModel,y); 
-          den0 =  density.t[i];         
+          molarMassMix =  mixtureMolarMass(cModel,y);
+          den0 =  density.t[i];
           den =  mixtureSpeciesDensity(pDen            ,molarMassMix
                                       ,temp[i]         ,pressure[i]
                                       ,thDynamic.pTh[2],iKelvin);
-/*...*/           
+/*...*/
           density.t[i] =  alpha*den + (1.e0-alpha)*den0;
         }
 /*..................................................................*/
@@ -705,18 +705,18 @@ void updateMixDensity(Prop *pDen            , Combustion *cModel
         for(i=0;i<nEl;i++)
         {
           y = &MAT2D(i,0,yFrac,ns);
-          molarMassMix =  mixtureMolarMass(cModel,y); 
-          den0 =  density.t[i];         
+          molarMassMix =  mixtureMolarMass(cModel,y);
+          den0 =  density.t[i];
           den =  mixtureSpeciesDensity(pDen            ,molarMassMix
                                       ,temp[i]         ,pressure[i]
                                       ,thDynamic.pTh[2],iKelvin);
-/*...*/           
+/*...*/
           density.t[i] =  alpha*den + (1.e0-alpha)*den0;
         }
 /*..................................................................*/
       }
 /*..................................................................*/
-    break;  
+    break;
 /*..................................................................*/
 
 /*...*/
@@ -726,13 +726,13 @@ void updateMixDensity(Prop *pDen            , Combustion *cModel
       {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(i)\
-        shared(density)
+        shared(density,nEl)
         for(i=0;i<nEl;i++)
         {
 /*...t(n-2) = t(n-1)*/
-          density.t00[i] = density.t0[i]; 
-/*...t(n-1) = t(n)*/    
-          density.t0[i] = density.t[i];       
+          density.t00[i] = density.t0[i];
+/*...t(n-1) = t(n)*/
+          density.t0[i] = density.t[i];
         }
 /*..................................................................*/
       }
@@ -744,9 +744,9 @@ void updateMixDensity(Prop *pDen            , Combustion *cModel
         for(i=0;i<nEl;i++)
         {
 /*...t(n-2) = t(n-1)*/
-          density.t00[i] = density.t0[i]; 
-/*...t(n-1) = t(n)*/    
-          density.t0[i] = density.t[i]; 
+          density.t00[i] = density.t0[i];
+/*...t(n-1) = t(n)*/
+          density.t0[i] = density.t[i];
         }
 /*..................................................................*/
       }
@@ -756,7 +756,7 @@ void updateMixDensity(Prop *pDen            , Combustion *cModel
 /*..................................................................*/
 
 }
-/*********************************************************************/ 
+/*********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 25/08/2018                                   *
@@ -773,7 +773,7 @@ void updateMixDensity(Prop *pDen            , Combustion *cModel
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel 
+void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
                             , FILE *file)
 {
   FILE *fileAux;
@@ -784,14 +784,14 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
   DOUBLE x[MAXPLODEG],g;
 
 /*... polinomial*/
-  if (!strcmp(s, "polinomial")) 
+  if (!strcmp(s, "polinomial"))
   {
     prop->type = POL;
-  
+
     fscanf(file, "%s", nameAux);
     fileAux = openFile(nameAux, "r");
 
-    fscanf(fileAux, "%d", &nSpecies);   
+    fscanf(fileAux, "%d", &nSpecies);
 
 /*...*/
     k = kk = 0;
@@ -820,16 +820,16 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
 
   }
 /*.....................................................................*/
-  
+
 /*... polinomial*/
-  else if (!strcmp(s,"nasapol7")) 
+  else if (!strcmp(s,"nasapol7"))
   {
     prop->type = NASAPOL7;
-  
+
     fscanf(file, "%s", nameAux);
     fileAux = openFile(nameAux, "r");
 
-    fscanf(fileAux, "%d", &nSpecies);   
+    fscanf(fileAux, "%d", &nSpecies);
 
 /*...*/
     k = kk = 0;
@@ -865,7 +865,7 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
         for(i=0;i<2;i++)
           for(j=0;j<7;j++)
             prop->nasa[jk].a2[i][j] = prop->nasa[jk].a1[i][j]*g;
-/*.....................................................................*/       
+/*.....................................................................*/
       }
 /*.....................................................................*/
 
@@ -877,7 +877,7 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
           fscanf(fileAux,"%lf %lf",&g,&g);
           fscanf(fileAux,"%lf %lf %lf %lf %lf %lf %lf\n"
                 ,&g,&g,&g,&g,&g,&g,&g);
-        }    
+        }
       }
 /*.....................................................................*/
     }while(k <= nSpecies);
@@ -896,7 +896,7 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
     for(i=0;i<kk;i++)
     {
       fprintf(fileLogDebug,"%s\n",cModel->chem.sp[i].name);
-      for (j = 0, g =300.0; j < 50; j++) 
+      for (j = 0, g =300.0; j < 50; j++)
       {
         switch(prop->type)
         {
@@ -918,18 +918,18 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
 }
 /********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 20/08/2018                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
  * getEnergyForTempMix: obtem a entalpia sensivel apartir da temp    *
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * pf     - propriedade de fluido                                    *
- * yFrac    - fracao de massa da especies primitivas                 * 
+ * yFrac    - fracao de massa da especies primitivas                 *
  * temp   - temp                                                     *
- * energy - nao definido                                             * 
+ * energy - nao definido                                             *
  * nCell  - numero da celulas                                        *
  * nOfPrSp  - numero de especies primitivas                          *
  * fsHeat - variacao do calor especifico em funcao da Temperatura    *
@@ -937,52 +937,52 @@ void initMixtureSpeciesfiHeat(Prop *prop, char *s,Combustion *cModel
  * fKelnvin - temperatura em kelvin (true|false)                     *
  * fOmp         -> openmp                                            *
  * nThreads     -> numero de threads                                 *
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
  *-------------------------------------------------------------------*
- * energy - entalpia sensivel                                        * 
- *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * energy - entalpia sensivel                                        *
+ *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void getEnergyFromTheTempMix(PropVarFluid *pf  ,DOUBLE *RESTRICT yFrac 
+void getEnergyFromTheTempMix(PropVarFluid *pf  ,DOUBLE *RESTRICT yFrac
                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                         ,INT const nCell      ,short const nOfPrSp
                         ,bool const fKelvin
-                        ,bool const fOmp      ,short const nThreads ) 
+                        ,bool const fOmp      ,short const nThreads )
 {
   DOUBLE *y;
   bool fSheat = pf->fSpecificHeat;
-  INT i;  
+  INT i;
 
 #pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
-  private(i,y) shared(energy,temp,yFrac,pf,fSheat)
-  for (i = 0; i < nCell; i++) 
+  private(i,y) shared(energy,temp,yFrac,pf,fSheat,nOfPrSp,fKelvin,nCell)
+  for (i = 0; i < nCell; i++)
   {
     y = &MAT2D(i,0,yFrac,nOfPrSp);
     energy[i] = tempToSpecificEnthalpyMix(&pf->sHeat,y
                                          ,temp[i]   ,pf->sHeatRef
                                          ,nOfPrSp
-                                         ,fSheat   ,fKelvin);  
+                                         ,fSheat   ,fKelvin);
   }
-/*...................................................................*/ 
+/*...................................................................*/
 
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 20/08/2018                                   *
  * Data de modificaco : 28/10/2019                                   *
  *-------------------------------------------------------------------*
- *  getTempFromTheEnergy : obtem a temperatura apartir da entalpia   *  
+ *  getTempFromTheEnergy : obtem a temperatura apartir da entalpia   *
  * sensivel                                                          *
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
  * pf     - propriedade do fluido                                    *
- * yFrac  - fracao de massa da especies primitivas                   * 
+ * yFrac  - fracao de massa da especies primitivas                   *
  * temp   - nao definido                                             *
- * energy - entalpia sensivel                                        * 
+ * energy - entalpia sensivel                                        *
  * prop   - propriedades por material                                *
  * mat    - material da celula                                       *
  * nCell  - numero da celulas                                        *
@@ -991,47 +991,47 @@ void getEnergyFromTheTempMix(PropVarFluid *pf  ,DOUBLE *RESTRICT yFrac
  * fKelnvin - temperatura em kelvin (true|false)                     *
  * fOmp         -> openmp                                            *
  * nThreads     -> numero de threads                                 *
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
  *-------------------------------------------------------------------*
- * temp   - temperatura (C ou kelvin)                                * 
- *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * temp   - temperatura (C ou kelvin)                                *
+ *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
 void  getTempFromTheEnergyMix(PropVarFluid *pf,DOUBLE *RESTRICT yFrac
                         ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
-                        ,INT const nCell      ,short const nOfPrSp 
+                        ,INT const nCell      ,short const nOfPrSp
                         ,bool const fTemp     ,bool const fKelvin
                         ,bool const fOmp      ,short const nThreads )
 {
-  
-  INT i;  
+
+  INT i;
   DOUBLE *y;
 
-/*... resolucao da eq da energia na forma de temperatura*/ 
+/*... resolucao da eq da energia na forma de temperatura*/
   if(fTemp)
     for (i = 0; i < nCell; i++)
-      temp[i] = energy[i]; 
-/*...................................................................*/ 
+      temp[i] = energy[i];
+/*...................................................................*/
 
-/*... resolucao da eq da energia na forma de entalpia sensivel*/  
+/*... resolucao da eq da energia na forma de entalpia sensivel*/
   else
   {
 #pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
-  private(i,y) shared(energy,temp,pf,yFrac) schedule(static)
+  private(i,y) shared(energy,temp,pf,yFrac,fKelvin,nOfPrSp,nCell) schedule(static)
     for (i = 0; i < nCell; i++)
     {
       y = &MAT2D(i,0,yFrac,nOfPrSp);
       temp[i] = specificEnthalpyForTempOfMix(&pf->sHeat     , temp[i]
-                                         , energy[i]        , y    
+                                         , energy[i]        , y
                                          , pf->sHeatRef     , nOfPrSp
                                          , pf->fSpecificHeat, fKelvin
                                          , i);
     }
 /*...................................................................*/
   }
-/*...................................................................*/ 
+/*...................................................................*/
 }
 /*********************************************************************/
 
@@ -1044,10 +1044,10 @@ void  getTempFromTheEnergyMix(PropVarFluid *pf,DOUBLE *RESTRICT yFrac
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * sHeatPol - estrutra par o polinoimio do calor especifico          *
- * temp     - temperatura (°C/K)                                     *
+ * temp     - temperatura (ï¿½C/K)                                     *
  * yFrac    - fracao de massa da especies primitivas                 *
  * sHeat    - calor especifico por celula                            *
- * nOfPrSp  - numero de especies primitivas                          * 
+ * nOfPrSp  - numero de especies primitivas                          *
  * fKelvin  - temperatura dada em kelvin                             *
  * nEl      - numero total de elmentos                               *
  * iCod     -                                                        *
@@ -1062,7 +1062,7 @@ void  getTempFromTheEnergyMix(PropVarFluid *pf,DOUBLE *RESTRICT yFrac
  *-------------------------------------------------------------------*
  *********************************************************************/
 void updateMixSpecificHeat(Prop *sHeatPol
-                         , DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT yFrac  
+                         , DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT yFrac
                          , LevelTime sHeat        , short const nOfPrSp
                          , bool const iKelvin
                          , INT const nEl          , char  const iCod
@@ -1070,8 +1070,8 @@ void updateMixSpecificHeat(Prop *sHeatPol
 
 {
   INT i;
-  DOUBLE *y;  
-  
+  DOUBLE *y;
+
 /*...*/
   switch (iCod)
   {
@@ -1079,24 +1079,24 @@ void updateMixSpecificHeat(Prop *sHeatPol
 /*... omp*/
 #pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
       private(i,y)\
-      shared(sHeat,temp,sHeatPol,yFrac, fileLogDebug)
+      shared(sHeat,temp,sHeatPol,yFrac,fileLogDebug,iKelvin,nOfPrSp,nEl)
       for(i=0;i<nEl;i++)
       {
         y = &MAT2D(i,0,yFrac,nOfPrSp);
-/*...*/           
-        sHeat.t[i] = 
+/*...*/
+        sHeat.t[i] =
         mixtureSpecifiHeat(sHeatPol ,y,temp[i]  ,nOfPrSp,iKelvin);
       }
 /*..................................................................*/
-    break;  
+    break;
 /*..................................................................*/
 
 /*...*/
   case PROP_UPDATE_OLD_TIME:
 #pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
-    private(i) shared(sHeat)
+    private(i) shared(sHeat,nEl)
     for(i=0;i<nEl;i++)
-    {        
+    {
       sHeat.t00[i] = sHeat.t0[i];
       sHeat.t0[i]  = sHeat.t[i];
     }
@@ -1117,7 +1117,7 @@ void updateMixSpecificHeat(Prop *sHeatPol
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * sHeatPol - estrutra par o polinoimio do calor especifico          *
- * yFrac    - fracao de massa da especies primitivas                 * 
+ * yFrac    - fracao de massa da especies primitivas                 *
  * t - temperatura em Kelvin                                         *
  * nOfPrSp  - numero de especies primitivas                          *
  * fKelvin  - temperatura dada em kelvin                             *
@@ -1130,31 +1130,31 @@ void updateMixSpecificHeat(Prop *sHeatPol
  *********************************************************************/
 DOUBLE mixtureSpecifiHeat(Prop *sHeat        , DOUBLE *yFrac
                          , DOUBLE const t    , short const mOfPrSp
-                         , bool const fKelvin) 
+                         , bool const fKelvin)
 {
 
-  short i,k,n;  
+  short i,k,n;
   DOUBLE cpk,cp,d;
   DOUBLE tc;
- 
+
   if(fKelvin)
-    tc = t;  
+    tc = t;
   else
-    tc = CELSIUS_FOR_KELVIN(t);  
+    tc = CELSIUS_FOR_KELVIN(t);
 
   for(k=0,cp=0.e0;k<mOfPrSp;k++)
   {
     switch (sHeat->type)
     {
       case POL:
-      n = sHeat->pol[k].nPol; 
+      n = sHeat->pol[k].nPol;
 /*... polinomial*/
       cpk = sHeat->pol[k].a[0];
       for (i = 1; i < n; i++)
         cpk += sHeat->pol[k].a[i]*pow(tc,i);
       break;
 /*.....................................................................*/
-  
+
       case NASAPOL7:
         cpk = polNasaCp(sHeat->nasa+k,tc);
       break;
@@ -1172,7 +1172,7 @@ DOUBLE mixtureSpecifiHeat(Prop *sHeat        , DOUBLE *yFrac
     {
       fprintf(fileLogDebug,"Calor especifico negativo!!\n"
              "Y                = %e\n"
-             "Species          = %d\n"   
+             "Species          = %d\n"
              "Calor especifico = %e\n"
              "Temperatura      = %lf\n!!",yFrac[k], k,cpk,tc);
       exit(EXIT_FAILURE);
@@ -1201,7 +1201,7 @@ DOUBLE mixtureSpecifiHeat(Prop *sHeat        , DOUBLE *yFrac
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * sHeat    - estrutra par o polinoimio do calor especifico          *
- * kSpecie  - fracao de massa da especies primitivas                 * 
+ * kSpecie  - fracao de massa da especies primitivas                 *
  * t - temperatura em Kelvin                                         *
  * fKelvin  - temperatura dada em kelvin                             *
  *-------------------------------------------------------------------*
@@ -1212,16 +1212,16 @@ DOUBLE mixtureSpecifiHeat(Prop *sHeat        , DOUBLE *yFrac
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE specieSpecifiHeat(Prop *sHeat     , short const kSpecie
-                        , DOUBLE const t    , bool const fKelvin) 
+                        , DOUBLE const t    , bool const fKelvin)
 {
 
   short i,n;
   DOUBLE cp,d,tc;
 
   if(fKelvin)
-    tc = t;  
+    tc = t;
   else
-    tc = CELSIUS_FOR_KELVIN(t);  
+    tc = CELSIUS_FOR_KELVIN(t);
 
   switch (sHeat->type)
   {
@@ -1253,7 +1253,7 @@ DOUBLE specieSpecifiHeat(Prop *sHeat     , short const kSpecie
   if (cp < 0.e0 )
   {
     printf("Calor especifico negativo!!"
-           "Species          = %hd "   
+           "Species          = %hd "
            "Calor especifico = %e\n"
            "Temperatura      = %lf\n!!",kSpecie, cp, tc);
     exit(EXIT_FAILURE);
@@ -1288,20 +1288,20 @@ DOUBLE specieSpecifiHeat(Prop *sHeat     , short const kSpecie
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE mixtureDynamicViscosity(Prop *dVisc      ,Combustion *cModel
-                            ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
+                            ,DOUBLE *RESTRICT yFrac,DOUBLE const t
                             ,bool const fKelvin)
 {
   short i,j,ns;
   DOUBLE molarMassMix,tc,y,d,mWa,sum1,sum2,tmp1,sigmaA,ek,phi;
   DOUBLE nuA[MAXSPECIES],xA[MAXSPECIES];
-   
+
   if(fKelvin)
-    tc = t;  
+    tc = t;
   else
-    tc = CELSIUS_FOR_KELVIN(t);  
+    tc = CELSIUS_FOR_KELVIN(t);
 
   d  = dVisc->unit;
-    
+
   switch (dVisc->type)
   {
 /*...*/
@@ -1309,17 +1309,17 @@ DOUBLE mixtureDynamicViscosity(Prop *dVisc      ,Combustion *cModel
       ns = cModel->nOfSpecies;
       molarMassMix =  mixtureMolarMass(cModel,yFrac);
       for(i=0,sum1=0,sum2=0;i<ns;i++)
-      { 
+      {
         mWa = cModel->chem.sp[i].mW;
         xA[0] = (mWa*yFrac[i])/molarMassMix;
 
         sigmaA = cModel->chem.sp[i].leornadJones[0];
         ek     = cModel->chem.sp[i].leornadJones[1];
-        nuA[0] = specieViscosity(mWa,sigmaA,ek,tc); 
+        nuA[0] = specieViscosity(mWa,sigmaA,ek,tc);
 
         tmp1 = xA[0]*sqrt(mWa);
         sum1 += nuA[0]*tmp1;
-        sum2 += tmp1; 
+        sum2 += tmp1;
       }
       y = sum1/sum2;
       break;
@@ -1333,14 +1333,14 @@ DOUBLE mixtureDynamicViscosity(Prop *dVisc      ,Combustion *cModel
 
 /*...*/
       for(i=0;i<ns;i++)
-      { 
+      {
         sigmaA = cModel->chem.sp[i].leornadJones[0];
         ek     = cModel->chem.sp[i].leornadJones[1];
         mWa    = cModel->chem.sp[i].mW;
-        nuA[i] = specieViscosity(mWa,sigmaA,ek,tc); 
+        nuA[i] = specieViscosity(mWa,sigmaA,ek,tc);
 
         xA[i] = (mWa*yFrac[i])/molarMassMix;
-      }  
+      }
 /*...................................................................*/
 
 /*...*/
@@ -1350,7 +1350,7 @@ DOUBLE mixtureDynamicViscosity(Prop *dVisc      ,Combustion *cModel
         {
           if(i==j)
             phi = 1.e0;
-          else  
+          else
             phi = philn(cModel->chem.sp[i].mW,nuA[i]
                        ,cModel->chem.sp[j].mW,nuA[j]);
           sum1+= xA[j]*phi;
@@ -1364,7 +1364,7 @@ DOUBLE mixtureDynamicViscosity(Prop *dVisc      ,Combustion *cModel
 /*.....................................................................*/
 
 /*...*/
-    default:  
+    default:
       ERRO_OP(__FILE__,__func__,dVisc->type);
       break;
 /*.....................................................................*/
@@ -1395,8 +1395,8 @@ DOUBLE mixtureDynamicViscosity(Prop *dVisc      ,Combustion *cModel
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE specieViscosity(DOUBLE const molarMass
-                      ,DOUBLE const sigmaA   ,DOUBLE const ek   
-                      ,DOUBLE const t     ) 
+                      ,DOUBLE const sigmaA   ,DOUBLE const ek
+                      ,DOUBLE const t     )
 {
 
   DOUBLE omega,visc;
@@ -1420,7 +1420,7 @@ DOUBLE specieViscosity(DOUBLE const molarMass
  * cModel  ->                                                        *
  * temp    -> temperatura                                            *
  * visc    -> vetor de viscosidades dianamica por celula             *
- * nOfPrSp  - numero de especies primitivas                          * 
+ * nOfPrSp  - numero de especies primitivas                          *
  * iKelvin -> kelvin ou celsus                                       *
  * nEl     -> numero total de celulas                                *
  *-------------------------------------------------------------------*
@@ -1432,7 +1432,7 @@ DOUBLE specieViscosity(DOUBLE const molarMass
  *********************************************************************/
 void updateMixDynamicViscosity(Prop *dVisc       ,Combustion *cModel
                           ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
-                          ,DOUBLE *RESTRICT visc ,short const nOfPrSp   
+                          ,DOUBLE *RESTRICT visc ,short const nOfPrSp
                           ,bool const iKelvin    ,INT const nEl
                           ,bool const fOmp       , short const nThreads )
 {
@@ -1444,12 +1444,12 @@ void updateMixDynamicViscosity(Prop *dVisc       ,Combustion *cModel
   {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(i,y)\
-        shared(dVisc,cModel,visc,temp,yFrac)
+        shared(dVisc,cModel,visc,temp,yFrac,iKelvin,nOfPrSp,nEl)
     for(i=0;i<nEl;i++)
     {
-      y = &MAT2D(i,0,yFrac,nOfPrSp);      
+      y = &MAT2D(i,0,yFrac,nOfPrSp);
       visc[i] = mixtureDynamicViscosity(dVisc  ,cModel
-                                     ,y        ,temp[i]  
+                                     ,y        ,temp[i]
                                      ,iKelvin);
 
     }
@@ -1461,9 +1461,9 @@ void updateMixDynamicViscosity(Prop *dVisc       ,Combustion *cModel
   {
     for(i=0;i<nEl;i++)
     {
-      y = &MAT2D(i,0,yFrac,nOfPrSp);      
+      y = &MAT2D(i,0,yFrac,nOfPrSp);
       visc[i] = mixtureDynamicViscosity(dVisc    ,cModel
-                                      ,y        ,temp[i]  
+                                      ,y        ,temp[i]
                                       ,iKelvin);
     }
 /*.....................................................................*/
@@ -1483,7 +1483,7 @@ void updateMixDynamicViscosity(Prop *dVisc       ,Combustion *cModel
  * propF     - proprieade variavel do fluido                         *
  * temp    -> temperatura                                            *
  * thc     -> vetor de condutividade termica por celula              *
- * nOfPrSp  - numero de especies primitivas                          * 
+ * nOfPrSp  - numero de especies primitivas                          *
  * iKelvin -> kelvin ou celsus                                       *
  * nEl     -> numero total de celulas                                *
  *-------------------------------------------------------------------*
@@ -1493,9 +1493,9 @@ void updateMixDynamicViscosity(Prop *dVisc       ,Combustion *cModel
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateMixDynamicThermalCond(PropVarFluid *propF,Combustion *cModel 
+void updateMixDynamicThermalCond(PropVarFluid *propF,Combustion *cModel
                           ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
-                          ,DOUBLE *RESTRICT thc  ,short const nOfPrSp   
+                          ,DOUBLE *RESTRICT thc  ,short const nOfPrSp
                           ,bool const iKelvin    ,INT const nEl
                           ,bool const fOmp       , short const nThreads )
 {
@@ -1507,12 +1507,12 @@ void updateMixDynamicThermalCond(PropVarFluid *propF,Combustion *cModel
   {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(i,y)\
-        shared(propF,thc,cModel,temp,yFrac)
+        shared(propF,thc,cModel,temp,yFrac,iKelvin,nOfPrSp,nEl)
     for(i=0;i<nEl;i++)
     {
-      y = &MAT2D(i,0,yFrac,nOfPrSp);         
+      y = &MAT2D(i,0,yFrac,nOfPrSp);
       thc[i] = mixtureThermalConductvity(propF    ,cModel
-                                        ,y        ,temp[i]  
+                                        ,y        ,temp[i]
                                         ,iKelvin);
     }
 /*.....................................................................*/
@@ -1522,9 +1522,9 @@ void updateMixDynamicThermalCond(PropVarFluid *propF,Combustion *cModel
   {
     for(i=0;i<nEl;i++)
     {
-      y = &MAT2D(i,0,yFrac,nOfPrSp);         
+      y = &MAT2D(i,0,yFrac,nOfPrSp);
       thc[i] = mixtureThermalConductvity(propF    ,cModel
-                                        ,y        ,temp[i]  
+                                        ,y        ,temp[i]
                                         ,iKelvin);
     }
 /*.....................................................................*/
@@ -1552,23 +1552,23 @@ void updateMixDynamicThermalCond(PropVarFluid *propF,Combustion *cModel
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel 
-                                ,DOUBLE *RESTRICT yFrac,DOUBLE const t 
+DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
+                                ,DOUBLE *RESTRICT yFrac,DOUBLE const t
                                 ,bool const fKelvin)
 {
   short i,j,ns;
   DOUBLE molarMassMix,tc,y,d,mWa,sum1,sum2,tmp1,sigmaA,ek,phi;
   DOUBLE nuA,cP,xA[MAXSPECIES],k[MAXSPECIES];
   DOUBLE Pr=0.7;
-   
+
   d = propF->thCond.unit;
 
   if(fKelvin)
-    tc = t;  
+    tc = t;
   else
-    tc = CELSIUS_FOR_KELVIN(t);  
-  
-  
+    tc = CELSIUS_FOR_KELVIN(t);
+
+
   switch (propF->thCond.type)
   {
 /*...*/
@@ -1577,15 +1577,15 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
       molarMassMix =  mixtureMolarMass(cModel,yFrac);
 /*...*/
       for(i=0,sum1=sum2=0;i<ns;i++)
-      {        
+      {
 /*... viscosidade dinamica da especie i*/
         mWa    = cModel->chem.sp[i].mW;
         sigmaA = cModel->chem.sp[i].leornadJones[0];
         ek     = cModel->chem.sp[i].leornadJones[1];
-        nuA    = specieViscosity(mWa,sigmaA,ek,tc); 
+        nuA    = specieViscosity(mWa,sigmaA,ek,tc);
 /*... color especifico da especie i*/
         if(propF->fSpecificHeat)
-          cP = specieSpecifiHeat(&propF->sHeat,i,t,fKelvin); 
+          cP = specieSpecifiHeat(&propF->sHeat,i,t,fKelvin);
         else
           cP = propF->sHeatRef;
 /*... condutividade termica*/
@@ -1595,7 +1595,7 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
 /*...*/
         tmp1 = xA[0]*sqrt(mWa);
         sum1 += k[0]*tmp1;
-        sum2 += tmp1; 
+        sum2 += tmp1;
       }
       y = sum1/sum2;
       break;
@@ -1608,22 +1608,22 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
 
 /*...*/
       for(i=0;i<ns;i++)
-      { 
+      {
 /*... viscosidade dinamica da especie i*/
         mWa    = cModel->chem.sp[i].mW;
         sigmaA = cModel->chem.sp[i].leornadJones[0];
         ek     = cModel->chem.sp[i].leornadJones[1];
-        nuA    = specieViscosity(mWa,sigmaA,ek,tc); 
+        nuA    = specieViscosity(mWa,sigmaA,ek,tc);
 /*... color especifico da especie i*/
         if(propF->fSpecificHeat)
-          cP = specieSpecifiHeat(&propF->sHeat,i,t,fKelvin); 
+          cP = specieSpecifiHeat(&propF->sHeat,i,t,fKelvin);
         else
           cP = propF->sHeatRef;
 /*... condutividade termica*/
         k[i] = nuA*cP/Pr;
 /*... fracao molar*/
         xA[i] = (mWa*yFrac[i])/molarMassMix;
-      }  
+      }
 /*...................................................................*/
 
 /*...*/
@@ -1633,7 +1633,7 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
         {
           if(i==j)
             phi = 1.e0;
-          else  
+          else
             phi = philn(cModel->chem.sp[i].mW,k[i]
                        ,cModel->chem.sp[j].mW,k[j]);
           sum1+= xA[j]*phi;
@@ -1646,7 +1646,7 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
 /*.....................................................................*/
 
 /*...*/
-    default:  
+    default:
       ERRO_OP(__FILE__,__func__,propF->thCond.type);
       break;
 /*.....................................................................*/
@@ -1673,7 +1673,7 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
  * tcond     - condutividade termica                                 *
  * cP        - calor especifico                                      *
  * kSpeciaA  - especie desejada                                      *
- * kSpeciaB  - especie inerte                                        * 
+ * kSpeciaB  - especie inerte                                        *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -1681,16 +1681,16 @@ DOUBLE mixtureThermalConductvity(PropVarFluid *propF   ,Combustion *cModel
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel 
+DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel
                        ,DOUBLE *RESTRICT yFrac,DOUBLE const t
                        ,DOUBLE const rho      ,DOUBLE const tCond
                        ,DOUBLE const cP
-                       ,short const kSpecieA  ,short const kSpecieI 
+                       ,short const kSpecieA  ,short const kSpecieI
                        ,INT const nEl         ,bool const fKelvin    )
 {
   short j,ns=cModel->nOfSpecies;
   DOUBLE tc,mWa,sA,mWi,sI,ekA,ekI,y,mMassMix,xA,sum1,yR,d;
-   
+
 
   TEMP(tc,t,fKelvin);
 
@@ -1705,7 +1705,7 @@ DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel
       sI     = cModel->chem.sp[kSpecieI].leornadJones[0];
       ekI    = cModel->chem.sp[kSpecieI].leornadJones[1];
 /*....................................................................*/
-  
+
 /*... especie inerte desejada*/
       mWa    = cModel->chem.sp[kSpecieA].mW;
       sA     = cModel->chem.sp[kSpecieA].leornadJones[0];
@@ -1761,12 +1761,12 @@ DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel
 
 
 /*...*/
-    default:  
+    default:
       ERRO_OP(__FILE__,__func__,propF->diff.type);
       break;
 /*.....................................................................*/
-  } 
- 
+  }
+
   return y*d;
 
 }
@@ -1796,9 +1796,9 @@ DOUBLE mixtureDiffusion(PropVarFluid *propF   ,Combustion *cModel
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE specieDiffusionBinary(DOUBLE const mMassA,DOUBLE const mMassB
-                            ,DOUBLE const sigmaA,DOUBLE const sigmaB  
+                            ,DOUBLE const sigmaA,DOUBLE const sigmaB
                             ,DOUBLE const ekA   ,DOUBLE const ekB
-                            ,DOUBLE const t     ) 
+                            ,DOUBLE const t     )
 {
 
   DOUBLE omega,diffAB,mMassAB,sigmaAB;
@@ -1825,8 +1825,8 @@ DOUBLE specieDiffusionBinary(DOUBLE const mMassA,DOUBLE const mMassB
  * rho     -> massa especifica                                       *
  * tCond   -> condutividade termica                                  *
  * cP      -> calor especifico                                       *
- * nOfPrSp -> numero de especies primitivas                          * 
- * nComb   -> numero de especies explicitamente resolvidas           * 
+ * nOfPrSp -> numero de especies primitivas                          *
+ * nComb   -> numero de especies explicitamente resolvidas           *
  * iKelvin -> kelvin ou celsus                                       *
  * nEl     -> numero total de celulas                                *
  * fOmp         -> openmp                                            *
@@ -1838,11 +1838,11 @@ DOUBLE specieDiffusionBinary(DOUBLE const mMassA,DOUBLE const mMassB
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel 
+void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel
                        ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT yFrac
                        ,DOUBLE *RESTRICT diff ,DOUBLE *RESTRICT rho
                        ,DOUBLE *RESTRICT tCond,DOUBLE *RESTRICT cP
-                       ,short const nOfPrSp   ,short const nComb       
+                       ,short const nOfPrSp   ,short const nComb
                        ,bool const iKelvin    ,INT const nEl
                        ,bool const fOmp       , short const nThreads )
 {
@@ -1853,22 +1853,22 @@ void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel
 /*... omp*/
 #pragma omp parallel  for default(none) num_threads(nThreads) if (fOmp)\
   private(i,j,y,rhoI,cPI)\
-  shared(propF,cModel,diff,rho,tCond,cP,temp,yFrac)
+  shared(propF,cModel,diff,rho,tCond,cP,temp,yFrac, iKelvin, nOfPrSp, nEl)
   for(i=0;i<nEl;i++)
   {
-    y    = &MAT2D(i,0,yFrac,nOfPrSp);  
+    y    = &MAT2D(i,0,yFrac,nOfPrSp);
     rhoI = rho[i];
     cPI  = cP[i];
     for(j=0;j<nOfPrSp;j++)
-      MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF,cModel 
+      MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF,cModel
                                                 ,y    ,temp[i]
                                                 ,rhoI ,tCond[i]
-                                                ,cPI 
-                                                ,j    ,cModel->chem.sN2 
+                                                ,cPI
+                                                ,j    ,cModel->chem.sN2
                                                 ,i    ,iKelvin );
   }
 /*.....................................................................*/
- 
+
 }
 /*********************************************************************/
 
@@ -1882,31 +1882,31 @@ void updateMixDiffusion(PropVarFluid *propF,Combustion *cModel
  * Data de modificaco : 25/02/2020                                   *
  *-------------------------------------------------------------------*
  * SPECIFICENTHALPYFORTEMPMIX:  calcula a temperatura apartir da     *
- * entalpia especifica                                               * 
+ * entalpia especifica                                               *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * sHeatPol - estrutra par o polinoimio do calor especifico          *
  * hs       - entalpia sensivel                                      *
- * yFrac    - fracao de massa da especies primitivas                 * 
+ * yFrac    - fracao de massa da especies primitivas                 *
  * sHeatRef - calor especifico de referencia constante com temp      *
  * nOfPrSp  - numero de especies primitivas                          *
  * fSheat   - calor especifico com variacao com a Temperatura        *
  * fKelvin  - temperatura dada em kelvin                             *
- * nel      - numero da celula  
+ * nel      - numero da celula
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * temperatura (°C/Kelvin)                                           *
+ * temperatura (ï¿½C/Kelvin)                                           *
  *-------------------------------------------------------------------*
- * OBS:                                                              * 
+ * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t 
+DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
                              , DOUBLE const hs        , DOUBLE *yFrac
                              , DOUBLE const sHeatRef  , short const nOfPrSp
                              , bool const fSheat      , bool const fKelvin
-                             , INT const nel ) 
+                             , INT const nel )
 {
   short tent=0,maxIt=100,maxTent=24;
   INT i;
@@ -1918,7 +1918,7 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
                ,1000,1100,1200
                ,1300,1400,1500
                ,1600,1700,1800
-               ,1900,2000,2100};  
+               ,1900,2000,2100};
 /*...*/
   if(fSheat)
   {
@@ -1939,14 +1939,14 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
     }
     else if(tent>2 && tent<24)
     {
-      TEMP(tc,ti[tent-3],fKelvin)      
+      TEMP(tc,ti[tent-3],fKelvin)
     }
     else
     {
       fPlot  = true;
       maxIt = 1000;
       tol   = 1e-04;
-      TEMP(tc,t,fKelvin);   
+      TEMP(tc,t,fKelvin);
     }
 /*...................................................................*/
 
@@ -1955,10 +1955,10 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
     {
       hs0 =  tempToSpecificEnthalpyMix(sHeatPol,yFrac
                                       ,tc      ,sHeatRef
-                                      ,nOfPrSp 
+                                      ,nOfPrSp
                                       ,fSheat  ,true);
       f  = hs - hs0;
-      if(fabs(f) < tol) 
+      if(fabs(f) < tol)
       {
         flag = true;
         break;
@@ -1966,8 +1966,8 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
       fl = mixtureSpecifiHeat(sHeatPol,yFrac
                              ,tc      ,nOfPrSp
                              ,true);
-      tc += f/fl;   
-      
+      tc += f/fl;
+
       if(fPlot)
         fprintf(fileLogDebug,"it %d Res = %e f'=%e T=%e hs=%e hsi=%e\n"
                             ,i,f,fl,tc,hs,hs0);
@@ -2000,7 +2000,7 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
 /*...................................................................*/
 
   if(!fKelvin)
-    tc = KELVIN_FOR_CELSIUS(tc);  
+    tc = KELVIN_FOR_CELSIUS(tc);
 
   return tc;
 
@@ -2018,7 +2018,7 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
  *-------------------------------------------------------------------*
  * sHeat    - estrutra par o polinoimio do calor especifico          *
  * yFrac    - fracao de massa da especies primitivas                 *
- * t        - temperatura (°C/K)                                     *
+ * t        - temperatura (ï¿½C/K)                                     *
  * sHeatRef - calor especifico de referencia constante com temp      *
  * nOfPrSp  - numero de especies primitivas                          *
  * fSheat   - calor especifico com variacao com a Temperatura        *
@@ -2027,14 +2027,14 @@ DOUBLE specificEnthalpyForTempOfMix(Prop *sHeatPol    , DOUBLE const t
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
  * entalpia sensivel                                                 *
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE tempToSpecificEnthalpyMix(Prop *sHeat    , DOUBLE *yFrac
                                 , DOUBLE const t    , DOUBLE const sHeatRef
                                 , short const nOfPrSp
-                                , bool const fSheat , bool const fKelvin) 
+                                , bool const fSheat , bool const fKelvin)
 {
 
   short i,k,n;
@@ -2042,10 +2042,10 @@ DOUBLE tempToSpecificEnthalpyMix(Prop *sHeat    , DOUBLE *yFrac
   DOUBLE tc,tRef= TREF ;
 
   if(fKelvin)
-    tc = t;  
+    tc = t;
   else
-    tc = CELSIUS_FOR_KELVIN(t);  
-  
+    tc = CELSIUS_FOR_KELVIN(t);
+
   if(fSheat)
   {
     switch(sHeat->type)
@@ -2057,15 +2057,15 @@ DOUBLE tempToSpecificEnthalpyMix(Prop *sHeat    , DOUBLE *yFrac
           n = sHeat->pol[k].nPol;
           for (i = 0; i < n; i++)
             a[i] = sHeat->pol[k].a[i];
-  
-          for (i = 0, hk =0.e0; i < n; i++) 
+
+          for (i = 0, hk =0.e0; i < n; i++)
           {
             d    = (double) (i + 1);
             dt   =pow(tc,d) - pow(tRef,d);
             hk += a[i]*dt/d;
           }
 
-          hs += yFrac[k]*hk; 
+          hs += yFrac[k]*hk;
         }
         break;
 /*...................................................................*/
@@ -2075,7 +2075,7 @@ DOUBLE tempToSpecificEnthalpyMix(Prop *sHeat    , DOUBLE *yFrac
         for(k = 0,hs = 0.e0; k < nOfPrSp; k++)
         {
           hk = intNum(&sHeat->nasa[k],tRef,tc,SIMPSON);
-          hs += yFrac[k]*hk; 
+          hs += yFrac[k]*hk;
         }
         break;
 /*...................................................................*/
@@ -2089,7 +2089,7 @@ DOUBLE tempToSpecificEnthalpyMix(Prop *sHeat    , DOUBLE *yFrac
 /*.....................................................................*/
   }
 /*... calor especifico iguais*/
-  else 
+  else
     hs = TEMP_FOR_ENTHALPY(sHeatRef,tc,TREF);
 /*.....................................................................*/
   return hs;
@@ -2108,7 +2108,7 @@ DOUBLE tempToSpecificEnthalpyMix(Prop *sHeat    , DOUBLE *yFrac
  *-------------------------------------------------------------------*
  * sHeat    - estrutra par o polinoimio do calor especifico          *
  * yFrac    - fracao de massa da especies primitivas                 *
- * t        - temperatura (°C/K)                                     *
+ * t        - temperatura (ï¿½C/K)                                     *
  * nOfPrSp  - numero de especies primitivas                          *
  * fSheat   - calor especifico com variacao com a Temperatura        *
  * fKelvin  - temperatura dada em kelvin                             *
@@ -2116,13 +2116,13 @@ DOUBLE tempToSpecificEnthalpyMix(Prop *sHeat    , DOUBLE *yFrac
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
  * entalpia sensivel                                                 *
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE tempForSpecificEnthalpySpecies(Prop *sHeat, short const kSpecie
                                , DOUBLE const t     , DOUBLE const sHeatRef
-                               , bool const fSheat  , bool const fKelvin) 
+                               , bool const fSheat  , bool const fKelvin)
 {
 
   short i,n;
@@ -2130,9 +2130,9 @@ DOUBLE tempForSpecificEnthalpySpecies(Prop *sHeat, short const kSpecie
   DOUBLE tc,tRef= TREF;
 
   if(fKelvin)
-    tc = t;  
+    tc = t;
   else
-    tc = CELSIUS_FOR_KELVIN(t);  
+    tc = CELSIUS_FOR_KELVIN(t);
 
   if(fSheat)
   {
@@ -2143,8 +2143,8 @@ DOUBLE tempForSpecificEnthalpySpecies(Prop *sHeat, short const kSpecie
         n=sHeat->pol[kSpecie].nPol;
         for (i = 0; i < n; i++)
           a[i] = sHeat->pol[kSpecie].a[i];
-  
-        for (i = 0, hk =0.e0; i < n; i++) 
+
+        for (i = 0, hk =0.e0; i < n; i++)
         {
           d    = (double) (i + 1);
           dt   =pow(tc,d) - pow(tRef,d);
@@ -2170,55 +2170,55 @@ DOUBLE tempForSpecificEnthalpySpecies(Prop *sHeat, short const kSpecie
 /*...*/
   else
     hk       = TEMP_FOR_ENTHALPY(sHeatRef,tc,TREF);
-/*.....................................................................*/  
+/*.....................................................................*/
   return hk;
 
 }
 /**********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 20/08/2018                                   *
  * Data de modificaco : 24/05/2019                                   *
  *-------------------------------------------------------------------*
  * initPropTempMix: inicializao de propriedades com variacao temporal*
  * dependentes da temperatura                                        *
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
  * propFluid -> estrutura de dados das propriedades varaiveis        *
- * cModel    -> modelo de combustao                                  *  
- * prop      -> nao definido                                         * 
+ * cModel    -> modelo de combustao                                  *
+ * prop      -> nao definido                                         *
  * t         -> temperatura                                          *
  * pressure  -> pressao                                              *
  * yFrac    - fracao de massa da especies primitivas                 *
- * propMat -> propriedade de referencia por material                 * 
- * mat     -> material por celula                                    * 
+ * propMat -> propriedade de referencia por material                 *
+ * mat     -> material por celula                                    *
  * nOfPrSp  - numero de especies primitivas                          *
- * np        -> numero niveis de tempos                              * 
- * nCell     -> numero de celulas                                    * 
+ * np        -> numero niveis de tempos                              *
+ * nCell     -> numero de celulas                                    *
  * iKelvin   -> temperatura em kelvin (true|false)                   *
- * iProp     -> numero da propriedade                                * 
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
- *-------------------------------------------------------------------* 
- * prop    -> propriedade iniciacializada                            * 
- *-------------------------------------------------------------------* 
- * OBS:                                                              * 
- *-------------------------------------------------------------------* 
+ * iProp     -> numero da propriedade                                *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * prop    -> propriedade iniciacializada                            *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
   *********************************************************************/
 void initPropTempMix(PropVarFluid *propF    , Combustion *cModel
-                 ,DOUBLE *RESTRICT prop     ,DOUBLE *RESTRICT t       
-                 ,DOUBLE *RESTRICT pressure ,DOUBLE *RESTRICT yFrac  
-                 ,DOUBLE *RESTRICT propMat  ,short *RESTRICT mat  
-                 ,short const nOfPrSp       ,short const np  
-                 ,INT    const nCell        ,bool const iKelvin 
+                 ,DOUBLE *RESTRICT prop     ,DOUBLE *RESTRICT t
+                 ,DOUBLE *RESTRICT pressure ,DOUBLE *RESTRICT yFrac
+                 ,DOUBLE *RESTRICT propMat  ,short *RESTRICT mat
+                 ,short const nOfPrSp       ,short const np
+                 ,INT    const nCell        ,bool const iKelvin
                  ,short const iProp)
-{    
+{
   INT i;
   unsigned short j,lMat;
   DOUBLE *y,molarMassMix,v=0.e0;
-         
-  for(i=0;i<nCell;i++){    
+
+  for(i=0;i<nCell;i++){
 
 /*...*/
     y = &MAT2D(i,0,yFrac, nOfPrSp);
@@ -2229,7 +2229,7 @@ void initPropTempMix(PropVarFluid *propF    , Combustion *cModel
     {
       if(propF->fDensity)
       {
-        molarMassMix =  mixtureMolarMass(cModel,y); 
+        molarMassMix =  mixtureMolarMass(cModel,y);
         v = mixtureSpeciesDensity(&propF->den         , molarMassMix
                                  ,t[i]                , pressure[i]
                                 ,thDynamic.pTh[2]     , iKelvin);
@@ -2237,7 +2237,7 @@ void initPropTempMix(PropVarFluid *propF    , Combustion *cModel
       else
       {
         lMat = mat[i]-1;
-        v = MAT2D(lMat,iProp,propMat,MAXPROP); 
+        v = MAT2D(lMat,iProp,propMat,MAXPROP);
       }
     }
 /*...................................................................*/
@@ -2254,7 +2254,7 @@ void initPropTempMix(PropVarFluid *propF    , Combustion *cModel
       else
       {
         lMat = mat[i]-1;
-        v = MAT2D(lMat,iProp,propMat,MAXPROP); 
+        v = MAT2D(lMat,iProp,propMat,MAXPROP);
       }
     }
 /*...................................................................*/
@@ -2271,7 +2271,7 @@ void initPropTempMix(PropVarFluid *propF    , Combustion *cModel
       else
       {
         lMat = mat[i]-1;
-        v = MAT2D(lMat,iProp,propMat,MAXPROP); 
+        v = MAT2D(lMat,iProp,propMat,MAXPROP);
       }
     }
 /*...................................................................*/
@@ -2288,59 +2288,59 @@ void initPropTempMix(PropVarFluid *propF    , Combustion *cModel
       else
       {
         lMat = mat[i]-1;
-        v = MAT2D(lMat,iProp,propMat,MAXPROP); 
+        v = MAT2D(lMat,iProp,propMat,MAXPROP);
       }
     }
 /*...................................................................*/
 
 /*...*/
-    for(j=0;j<np;j++)      
-      MAT2D(i,j,prop,np) = v; 
-/*...................................................................*/  
+    for(j=0;j<np;j++)
+      MAT2D(i,j,prop,np) = v;
+/*...................................................................*/
   }
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 20/05/2019                                   *
  * Data de modificaco : 06/11/2019                                   *
  *-------------------------------------------------------------------*
  * initDiffMix: inicializao do coeficiente de diffusao das especies  *
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
  * propFluid -> estrutura de dados das propriedades varaiveis        *
  * t         -> temperatura                                          *
- * diff      -> nao definido                                         * 
+ * diff      -> nao definido                                         *
  * rho     -> massa especifica                                       *
  * tCond   -> condutividade termica                                  *
  * cP      -> calor especifico                                       *
- * yFrac    - fracao de massa da especies primitivas                 * 
- * pressure  -> pressao                                              * 
- * propMat -> propriedade de referencia por material                 * 
- * mat     -> material por celula                                    * 
+ * yFrac    - fracao de massa da especies primitivas                 *
+ * pressure  -> pressao                                              *
+ * propMat -> propriedade de referencia por material                 *
+ * mat     -> material por celula                                    *
  * nOfPrSp  - numero de especies primitivas                          *
- * nComb     -> numero de especies resolvidas pela eq de transporte  * 
- * nCell     -> numero de celulas                                    * 
+ * nComb     -> numero de especies resolvidas pela eq de transporte  *
+ * nCell     -> numero de celulas                                    *
  * iKelvin   -> temperatura em kelvin (true|false)                   *
- * iProp     -> numero da propriedade                                * 
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
- *-------------------------------------------------------------------* 
- * prop    -> propriedade iniciacializada                            * 
- *-------------------------------------------------------------------* 
- * OBS:                                                              * 
- *-------------------------------------------------------------------* 
+ * iProp     -> numero da propriedade                                *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * prop    -> propriedade iniciacializada                            *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
   *********************************************************************/
 void initDiffMix(PropVarFluid *propF       , Combustion *cModel
-                ,DOUBLE *RESTRICT t        ,DOUBLE *RESTRICT yFrac 
+                ,DOUBLE *RESTRICT t        ,DOUBLE *RESTRICT yFrac
                 ,DOUBLE *RESTRICT diff     ,DOUBLE *RESTRICT rho
                 ,DOUBLE *RESTRICT tCond    ,DOUBLE *RESTRICT cP
-                ,DOUBLE *RESTRICT pressure 
-                ,DOUBLE *RESTRICT propMat  ,short *RESTRICT mat    
-                ,short const nOfPrSp       ,short const nComb   
+                ,DOUBLE *RESTRICT pressure
+                ,DOUBLE *RESTRICT propMat  ,short *RESTRICT mat
+                ,short const nOfPrSp       ,short const nComb
                 ,INT    const nCell        ,bool const iKelvin)
-{    
+{
   INT i;
   unsigned short j,lMat;
   DOUBLE *y,rhoI,cPI;
@@ -2349,7 +2349,7 @@ void initDiffMix(PropVarFluid *propF       , Combustion *cModel
   if(propF->fDiffusion)
   {
     for(i=0;i<nCell;i++)
-    {    
+    {
 
 /*...*/
       y    = &MAT2D(i,0,yFrac, nOfPrSp);
@@ -2359,7 +2359,7 @@ void initDiffMix(PropVarFluid *propF       , Combustion *cModel
 
 /*...*/
       for(j=0;j<nOfPrSp;j++)
-        MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF       ,cModel 
+        MAT2D(i,j,diff,nOfPrSp) = mixtureDiffusion(propF       ,cModel
                                 ,y           ,t[i]
                                 ,rhoI        ,tCond[i]
                                 ,cPI
@@ -2375,11 +2375,11 @@ void initDiffMix(PropVarFluid *propF       , Combustion *cModel
   else
   {
     for(i=0;i<nCell;i++)
-    {    
+    {
       lMat               = mat[i]-1;
       for(j=0;j<nOfPrSp;j++)
-        MAT2D(i,j,diff,nOfPrSp) = 
-        MAT2D(lMat,SPECIEDIFUSSION+j,propMat,MAXPROP);     
+        MAT2D(i,j,diff,nOfPrSp) =
+        MAT2D(lMat,SPECIEDIFUSSION+j,propMat,MAXPROP);
     }
   }
 /*...................................................................*/
@@ -2387,37 +2387,37 @@ void initDiffMix(PropVarFluid *propF       , Combustion *cModel
 /*********************************************************************/
 
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
  * initMolarMass:                                                    *
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
- *-------------------------------------------------------------------* 
- *-------------------------------------------------------------------* 
- * OBS:                                                              * 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
   *********************************************************************/
   void  initMolarMassCell(Combustion *cModel
-                    ,LevelTime mMolar          ,DOUBLE *RESTRICT yFrac 
-                    ,DOUBLE *RESTRICT prop     ,short *RESTRICT mat           
-                    ,short const nOfPrSp       ,short const nComb   
+                    ,LevelTime mMolar          ,DOUBLE *RESTRICT yFrac
+                    ,DOUBLE *RESTRICT prop     ,short *RESTRICT mat
+                    ,short const nOfPrSp       ,short const nComb
                     ,INT    const nCell        ,bool const fComb)
-  {    
+  {
   INT i;
   unsigned short j,lMat;
   DOUBLE *y,mW;
 
 /*...*/
-  if(fComb) 
+  if(fComb)
   {
 /*...*/
     for(i=0;i<nCell;i++)
-    {    
+    {
 /*...*/
       y    = &MAT2D(i,0,yFrac, nOfPrSp);
       mW   = mixtureMolarMass(cModel,y);
@@ -2438,7 +2438,7 @@ void initDiffMix(PropVarFluid *propF       , Combustion *cModel
   {
 /*...*/
     for(i=0;i<nCell;i++)
-    {    
+    {
       lMat               = mat[i]-1;
       mMolar.t00[i] = MAT2D(lMat,MMOLARMASS,prop,MAXPROP);
       mMolar.t0[i]  = MAT2D(lMat,MMOLARMASS,prop,MAXPROP);
@@ -2482,9 +2482,9 @@ DOUBLE airDensity(Prop *den
   DOUBLE tc,y,d;
 
   if(fKelvin)
-    tc = t;  
+    tc = t;
   else
-    tc = CELSIUS_FOR_KELVIN(t);  
+    tc = CELSIUS_FOR_KELVIN(t);
 
   switch (den->type) {
 /*... polinomial*/
@@ -2496,27 +2496,27 @@ DOUBLE airDensity(Prop *den
 /*.....................................................................*/
 
 /*.....................................................................*/
-      d = 1.e0; 
+      d = 1.e0;
       break;
 /*.....................................................................*/
- 
+
 /*...*/
     case IDEALGAS:
       y = (mMolar*p)/(IDEALGASR*tc);
-      d = 1.e0; 
+      d = 1.e0;
       break;
 /*.....................................................................*/
 
 /*...*/
     case INCIDEALGAS:
       y = (mMolar*presRef)/(IDEALGASR*tc);
-      d = 1.e0; 
+      d = 1.e0;
       break;
 /*.....................................................................*/
 
 
 /*...*/
-    default:  
+    default:
       ERRO_OP(__FILE__,__func__,den->type);
       break;
 /*.....................................................................*/
@@ -2544,7 +2544,7 @@ DOUBLE airDensity(Prop *den
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-DOUBLE diffProp(Prop *pol  , DOUBLE u) 
+DOUBLE diffProp(Prop *pol  , DOUBLE u)
 {
   short i, n = pol->pol[0].nPol;
   DOUBLE a[MAXPLODEG], y;
@@ -2603,15 +2603,15 @@ DOUBLE diffProp(Prop *pol  , DOUBLE u)
 DOUBLE airSpecifiHeat(Prop *sHeat, DOUBLE const t
                      ,bool const fKelvin) {
 
-  short i,n=sHeat->pol[0].nPol;  
+  short i,n=sHeat->pol[0].nPol;
   DOUBLE y,d;
   DOUBLE tc;
 
   if(fKelvin)
-    tc = t;  
+    tc = t;
   else
-    tc = CELSIUS_FOR_KELVIN(t);  
- 
+    tc = CELSIUS_FOR_KELVIN(t);
+
 /*... polinomial*/
   y = sHeat->pol[0].a[0];
   for (i = 1; i < n; i++)
@@ -2662,15 +2662,15 @@ DOUBLE airDynamicViscosity(Prop *dVisc,DOUBLE const t
   DOUBLE tc;
 
   a[0] = 0.0e0;
-  
+
   if(fKelvin)
-    tc = t;  
+    tc = t;
   else
-    tc = CELSIUS_FOR_KELVIN(t);  
+    tc = CELSIUS_FOR_KELVIN(t);
 
   switch (dVisc->type) {
 /*... polinomial*/
-    case POL: 
+    case POL:
 /*... polinomial*/
       y = a[0];
       for (i = 1; i < n; i++)
@@ -2683,7 +2683,7 @@ DOUBLE airDynamicViscosity(Prop *dVisc,DOUBLE const t
 /*... polinomial*/
     case SUTHERLAND:
       a[0] = dVisc->surtherland[0]; /*viscosidade de referencia*/
-      a[1] = dVisc->surtherland[1]; /*temperatura de referencia*/ 
+      a[1] = dVisc->surtherland[1]; /*temperatura de referencia*/
       a[2] = dVisc->surtherland[2]; /*constante de Sutherland*/
 
       x[0] = a[1]+ a[2];
@@ -2697,13 +2697,13 @@ DOUBLE airDynamicViscosity(Prop *dVisc,DOUBLE const t
 /*.....................................................................*/
 
 /*...*/
-    default:  
+    default:
       ERRO_OP(__FILE__,__func__,dVisc->type);
       break;
 /*.....................................................................*/
   }
 /*.....................................................................*/
- 
+
   if (y < 0) {
     printf("Viscosidade dinamica negativa!!\n"
            "Viscosidade dinamica = %e\n"
@@ -2737,19 +2737,19 @@ DOUBLE airDynamicViscosity(Prop *dVisc,DOUBLE const t
  *                                                                   *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE airThermalConductvity(Prop *thCond, DOUBLE const t 
+DOUBLE airThermalConductvity(Prop *thCond, DOUBLE const t
                             ,bool const fKelvin) {
 
-  short i,n=thCond->pol[0].nPol;  
+  short i,n=thCond->pol[0].nPol;
   DOUBLE a[MAXPLODEG],y,d;
   DOUBLE tc;
 
   a[0] = 0.0e0;
 
   if(fKelvin)
-    tc = t;  
+    tc = t;
   else
-    tc = CELSIUS_FOR_KELVIN(t);  
+    tc = CELSIUS_FOR_KELVIN(t);
   switch (thCond->type) {
 /*... polinomial*/
     case POL:
@@ -2766,14 +2766,14 @@ DOUBLE airThermalConductvity(Prop *thCond, DOUBLE const t
       break;
 /*.....................................................................*/
  /*...*/
-    default:  
+    default:
       ERRO_OP(__FILE__,__func__,thCond->type);
       break;
 /*.....................................................................*/
   }
 /*.....................................................................*/
 
-/*...*/ 
+/*...*/
   if (y < 0) {
     printf("Condutividade termica negativa!!\n"
            "Condutividade termica = %e\n"
@@ -2797,7 +2797,7 @@ DOUBLE airThermalConductvity(Prop *thCond, DOUBLE const t
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * sHeat    - estrutra par o polinoimio do calor especifico          *
- * t        - temperatura (°C/K)                                     *
+ * t        - temperatura (ï¿½C/K)                                     *
  * sHeatRef - calor especifico de referencia constante com temp      *
  * fSheat   - calor especifico com variacao com a Temperatura        *
  * fKelvin  - temperatura dada em kelvin                             *
@@ -2805,7 +2805,7 @@ DOUBLE airThermalConductvity(Prop *thCond, DOUBLE const t
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
  * entalpia sensivel                                                 *
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
@@ -2818,9 +2818,9 @@ DOUBLE tempForSpecificEnthalpy(Prop *sHeat
   DOUBLE tc,tRef= TREF ;
 
   if(fKelvin)
-    tc = t;  
+    tc = t;
   else
-    tc = CELSIUS_FOR_KELVIN(t);  
+    tc = CELSIUS_FOR_KELVIN(t);
 
   if(fSheat){
     for (i = 0; i < n; i++)
@@ -2834,7 +2834,7 @@ DOUBLE tempForSpecificEnthalpy(Prop *sHeat
     }
   }
 
-  else 
+  else
     tmp = TEMP_FOR_ENTHALPY(sHeatRef,tc,TREF);
 
   return tmp;
@@ -2847,7 +2847,7 @@ DOUBLE tempForSpecificEnthalpy(Prop *sHeat
  * Data de modificaco : 20/10/2019                                   *
  *-------------------------------------------------------------------*
  * SPECIFICENTHALPYFORTEMP:  calcula a temperatura apartir da        *
- * entalpia especifica                                               * 
+ * entalpia especifica                                               *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
@@ -2859,19 +2859,19 @@ DOUBLE tempForSpecificEnthalpy(Prop *sHeat
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * temperatura (°C/Kelvin)                                          *
+ * temperatura (ï¿½C/Kelvin)                                          *
  *-------------------------------------------------------------------*
- * OBS:                                                              * 
+ * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE specificEnthalpyForTemp(Prop *sHeatPol   , DOUBLE const t
                              , DOUBLE const hs  , DOUBLE const sHeatRef
-                             , bool const fSheat, bool const fKelvin) 
+                             , bool const fSheat, bool const fKelvin)
 {
   unsigned short i;
   bool flag = false;
   DOUBLE f,fl,tc,tol=1e-10;
-  
+
 
 /*...*/
   if(fSheat){
@@ -2886,9 +2886,9 @@ DOUBLE specificEnthalpyForTemp(Prop *sHeatPol   , DOUBLE const t
         flag = true;
         break;
       }
-    
+
       fl = airSpecifiHeat(sHeatPol,tc,true);
-      tc += f/fl;   
+      tc += f/fl;
     }
 /*...................................................................*/
 
@@ -2921,7 +2921,7 @@ DOUBLE specificEnthalpyForTemp(Prop *sHeatPol   , DOUBLE const t
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
- * t - temperatura em °C                                             *
+ * t - temperatura em ï¿½C                                             *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -2938,13 +2938,13 @@ DOUBLE waterDensity(DOUBLE const t) {
   b = 508929.2e0;
   c = 68.12963e0;
   d = 3.9863e0;
-  
+
   tmp1 = t + a;
   tmp2 = b*(t+c);
-  tmp3 = (t-d)*(t-d);  
+  tmp3 = (t-d)*(t-d);
 
   tmp4 =  1.e0 - tmp1/tmp2*tmp3;
-  
+
   if (tmp4 < 0) {
     printf("Massa especifica negativa\n!!");
     exit(EXIT_FAILURE);
@@ -2960,11 +2960,11 @@ DOUBLE waterDensity(DOUBLE const t) {
  * Data de criacao    : 27/08/2017                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
- * WATERSPECIFIHEAT: kJ/(kg.°C)                                      *
+ * WATERSPECIFIHEAT: kJ/(kg.ï¿½C)                                      *
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
- * t - temperatura em °C                                             *
+ * t - temperatura em ï¿½C                                             *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -2974,7 +2974,7 @@ DOUBLE waterDensity(DOUBLE const t) {
  *                                                                   *
  * regressao com polinomial de ordem 5 obtido pelo excel              *
  *                                                                   *
- * range  T=]0,100[                                                  * 
+ * range  T=]0,100[                                                  *
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE waterSpecifiHeat(DOUBLE const t) {
@@ -2987,7 +2987,7 @@ DOUBLE waterSpecifiHeat(DOUBLE const t) {
   a[3] =-7.93659500485961e-07;
   a[4] = 3.28899958033620e-09;
 
-/*... t */  
+/*... t */
   x[0] = t;
 /*... t*t */
   x[1] = t*t;
@@ -2995,7 +2995,7 @@ DOUBLE waterSpecifiHeat(DOUBLE const t) {
   x[2] = t*x[1];
 /*... t*t*t*t */
   x[3] = t*x[2];
-  
+
 /*... polinomial*/
   y = a[0] + a[1]*x[0] + a[2]*x[1] + a[3]*x[2] + a[4]*x[3];
 /*.....................................................................*/
@@ -3022,7 +3022,7 @@ DOUBLE waterSpecifiHeat(DOUBLE const t) {
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
- * t - temperatura em °C                                             *
+ * t - temperatura em ï¿½C                                             *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -3032,7 +3032,7 @@ DOUBLE waterSpecifiHeat(DOUBLE const t) {
  *                                                                   *
  * regressao com polinomial de ordem 5 obtido pelo excel              *
  *                                                                   *
- * range  T=]0,100[                                                  * 
+ * range  T=]0,100[                                                  *
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE waterDynamicViscosity(DOUBLE const t) {
@@ -3045,7 +3045,7 @@ DOUBLE waterDynamicViscosity(DOUBLE const t) {
   a[3] =-7.60339598706936e-06;
   a[4] = 2.96188559332536E-16;
 
-/*... t */  
+/*... t */
   x[0] = t;
 /*... t*t */
   x[1] = t*t;
@@ -3053,11 +3053,11 @@ DOUBLE waterDynamicViscosity(DOUBLE const t) {
   x[2] = t*x[1];
 /*... t*t*t*t */
   x[3] = t*x[2];
-  
+
 /*... polinomial*/
   y = a[0] + a[1]*x[0] + a[2]*x[1] + a[3]*x[2] + a[4]*x[3];
 /*.....................................................................*/
-  
+
    if (y < 0) {
     printf("Visosidade dinamica negativa\n!!");
     exit(EXIT_FAILURE);
@@ -3080,7 +3080,7 @@ DOUBLE waterDynamicViscosity(DOUBLE const t) {
  *-------------------------------------------------------------------*
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
- * t - temperatura em °C                                             *
+ * t - temperatura em ï¿½C                                             *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
@@ -3090,7 +3090,7 @@ DOUBLE waterDynamicViscosity(DOUBLE const t) {
  *                                                                   *
  * regressao com polinomial de ordem 5 obtido pelo excel              *
  *                                                                   *
- * range  T=]0,100[                                                  * 
+ * range  T=]0,100[                                                  *
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE waterThermalConductvity(DOUBLE const t) {
@@ -3101,15 +3101,15 @@ DOUBLE waterThermalConductvity(DOUBLE const t) {
   a[1] = 1.756e-03;
   a[2] = 6.46e-06;
 
-/*... t */  
+/*... t */
   x[0] = t;
 /*... t*t */
   x[1] = t*t;
-  
+
 /*... polinomial*/
   y = a[0] + a[1]*x[0] + a[2]*x[1];
 /*.....................................................................*/
-  
+
    if (y < 0) {
     printf("Condutividade termica negativa\n!!");
     exit(EXIT_FAILURE);
@@ -3141,8 +3141,8 @@ DOUBLE waterThermalConductvity(DOUBLE const t) {
  *********************************************************************/
 void updateDensity(PropVarFluid *pf
                  , DOUBLE *RESTRICT temp    , DOUBLE *RESTRICT pressure
-                 , LevelTime density                 
-                 , DOUBLE const alpha       , bool const iKelvin    
+                 , LevelTime density
+                 , DOUBLE const alpha       , bool const iKelvin
                  , INT const nEl            , char  const iCod)
 
 {
@@ -3152,23 +3152,23 @@ void updateDensity(PropVarFluid *pf
   switch (iCod){
     case PROP_UPDATE_NL_LOOP:
       for(i=0;i<nEl;i++){
-        den0 = density.t[i];         
-        den = airDensity(&pf->den  
+        den0 = density.t[i];
+        den = airDensity(&pf->den
                         ,temp[i]         ,pressure[i]
                         ,thDynamic.pTh[2],pf->molarMass
                         ,iKelvin);
-/*...*/           
+/*...*/
         density.t[i] =  alpha*den + (1.e0-alpha)*den0;
       }
 /*..................................................................*/
-    break;  
+    break;
 
   case PROP_UPDATE_OLD_TIME:
     for(i=0;i<nEl;i++){
 /*...t(n-2) = t(n-1)*/
-      density.t00[i] = density.t0[i]; 
-/*...t(n-1) = t(n)*/  
-      density.t0[i] = density.t[i];          
+      density.t00[i] = density.t0[i];
+/*...t(n-1) = t(n)*/
+      density.t0[i] = density.t[i];
     }
 /*..................................................................*/
     break;
@@ -3176,7 +3176,7 @@ void updateDensity(PropVarFluid *pf
 /*..................................................................*/
 
 }
-/*********************************************************************/ 
+/*********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 27/08/2017                                   *
@@ -3195,21 +3195,21 @@ void updateDensity(PropVarFluid *pf
  *********************************************************************/
 void updateSpecificHeat( Prop *sHeatPol
                        , DOUBLE *RESTRICT temp, LevelTime sHeat
-                       , bool const iKelvin 
+                       , bool const iKelvin
                        ,INT const nEl        , char  const iCod)
 
 {
-  INT i;  
-  
+  INT i;
+
 /*...*/
   switch (iCod)
   {
     case PROP_UPDATE_NL_LOOP:
       for(i=0;i<nEl;i++)
-/*...*/           
+/*...*/
         sHeat.t[i] = airSpecifiHeat(sHeatPol,temp[i],iKelvin);
 /*..................................................................*/
-    break;  
+    break;
 
   case PROP_UPDATE_OLD_TIME:
     for(i=0;i<nEl;i++){
@@ -3245,12 +3245,12 @@ void updateSpecificHeat( Prop *sHeatPol
  *-------------------------------------------------------------------*
  *********************************************************************/
 void updateThermalconductivity(Prop *thC
-                              ,DOUBLE *RESTRICT t,DOUBLE *RESTRICT thCond   
+                              ,DOUBLE *RESTRICT t,DOUBLE *RESTRICT thCond
                               ,bool const iKelvin,INT const nEl)
 {
   INT i;
 
-  for(i=0;i<nEl;i++)         
+  for(i=0;i<nEl;i++)
     thCond[i] = airThermalConductvity(thC,t[i],iKelvin);
 
 }
@@ -3277,12 +3277,12 @@ void updateThermalconductivity(Prop *thC
  *-------------------------------------------------------------------*
  *********************************************************************/
 void updateDynamicViscosity(Prop *dVisc
-                          ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT visc    
+                          ,DOUBLE *RESTRICT temp ,DOUBLE *RESTRICT visc
                           ,bool const iKelvin    ,INT const nEl)
 {
   INT i;
 
-  for(i=0;i<nEl;i++)         
+  for(i=0;i<nEl;i++)
     visc[i] = airDynamicViscosity(dVisc,temp[i],iKelvin);
 
 }
@@ -3340,7 +3340,7 @@ void updateProp(Prop *pol         , DOUBLE *RESTRICT u
 *-------------------------------------------------------------------*
 *********************************************************************/
 void updateDensityCD(Prop *pol            , DOUBLE *RESTRICT u
-                   , LevelTime density    , INT nEl    
+                   , LevelTime density    , INT nEl
                    , char  iCod)
 
 {
@@ -3368,43 +3368,43 @@ void updateDensityCD(Prop *pol            , DOUBLE *RESTRICT u
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 27/08/2017                                   *
  * Data de modificaco : 12/07/2018                                   *
  *-------------------------------------------------------------------*
  * INITPROPTEMP: inicializao de propriedades com variacao temporal   *
  * dependentes da temperatura                                        *
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
  * propFluid -> estrutura de dados das propriedades varaiveis        *
- * prop      -> nao definido                                         * 
+ * prop      -> nao definido                                         *
  * t         -> temperatura                                          *
  * pressure  -> pressao                                              *
- * propMat   -> propriedade de referencia por material               * 
- * mat       -> material por celula                                  * 
- * np        -> numero niveis de tempos                              * 
- * nCell     -> numero de celulas                                    * 
+ * propMat   -> propriedade de referencia por material               *
+ * mat       -> material por celula                                  *
+ * np        -> numero niveis de tempos                              *
+ * nCell     -> numero de celulas                                    *
  * iKelvin   -> temperatura em kelvin (true|false)                   *
- * iProp     -> numero da propriedade                                * 
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
- *-------------------------------------------------------------------* 
- * prop    -> propriedade iniciacializada                            * 
- *-------------------------------------------------------------------* 
- * OBS:                                                              * 
- *-------------------------------------------------------------------* 
+ * iProp     -> numero da propriedade                                *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * prop    -> propriedade iniciacializada                            *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
   *********************************************************************/
 void initPropTemp(PropVarFluid *propFluid
-                 ,DOUBLE *RESTRICT prop   ,DOUBLE *RESTRICT t 
+                 ,DOUBLE *RESTRICT prop   ,DOUBLE *RESTRICT t
                  ,DOUBLE *RESTRICT pressure,DOUBLE *RESTRICT propMat
                  ,short *RESTRICT mat
-                 ,short const np          ,INT    const nCell 
+                 ,short const np          ,INT    const nCell
                  ,bool const iKelvin      ,short const iProp)
-{    
+{
   INT i;
-  unsigned short j,lMat;         
-  for(i=0;i<nCell;i++){    
+  unsigned short j,lMat;
+  for(i=0;i<nCell;i++){
 
 /*...*/
     lMat               = mat[i]-1;
@@ -3412,35 +3412,35 @@ void initPropTemp(PropVarFluid *propFluid
 
 /*...*/
     if( iProp == DENSITY )
-      MAT2D(lMat, iProp, propMat, MAXPROP) 
+      MAT2D(lMat, iProp, propMat, MAXPROP)
         = airDensity(&propFluid->den,t[i], pressure[i]
                     ,thDynamic.pTh[2]    , propFluid->molarMass
                     , iKelvin);
 /*...................................................................*/
 
 /*...*/
-    else if( iProp == SPECIFICHEATCAPACITYFLUID)  
-      MAT2D(lMat, iProp, propMat, MAXPROP) 
+    else if( iProp == SPECIFICHEATCAPACITYFLUID)
+      MAT2D(lMat, iProp, propMat, MAXPROP)
       = airSpecifiHeat(&propFluid->sHeat,t[i],iKelvin);
 /*...................................................................*/
 
 /*...*/
-    else if( iProp == DYNAMICVISCOSITY)  
-      MAT2D(lMat, iProp, propMat, MAXPROP) 
+    else if( iProp == DYNAMICVISCOSITY)
+      MAT2D(lMat, iProp, propMat, MAXPROP)
       = airDynamicViscosity(&propFluid->dVisc,t[i],iKelvin);
 /*...................................................................*/
 
 /*...*/
-    else if( iProp == THERMALCONDUCTIVITY)  
-      MAT2D(lMat,iProp,propMat,MAXPROP) 
+    else if( iProp == THERMALCONDUCTIVITY)
+      MAT2D(lMat,iProp,propMat,MAXPROP)
       = airThermalConductvity(&propFluid->thCond,t[i],iKelvin);
 /*...................................................................*/
 
 /*...*/
-    for(j=0;j<np;j++)      
-      MAT2D(i,j,prop,np) = MAT2D(lMat,iProp,propMat,MAXPROP); 
+    for(j=0;j<np;j++)
+      MAT2D(i,j,prop,np) = MAT2D(lMat,iProp,propMat,MAXPROP);
 /*...................................................................*/
-  
+
   }
 }
 /*********************************************************************/
@@ -3470,7 +3470,7 @@ void initPropTemp(PropVarFluid *propFluid
 * OBS:                                                              *
 *-------------------------------------------------------------------*
 *********************************************************************/
-void initPropCD(Prop *pol            , DOUBLE *RESTRICT prop   
+void initPropCD(Prop *pol            , DOUBLE *RESTRICT prop
               , DOUBLE *RESTRICT u      , DOUBLE *RESTRICT propMat
               , short *RESTRICT mat
               , short np                , INT    nCell
@@ -3479,7 +3479,7 @@ void initPropCD(Prop *pol            , DOUBLE *RESTRICT prop
   INT i;
   unsigned short j, lMat;
 /*...*/
-  for (i = 0; i<nCell; i++) 
+  for (i = 0; i<nCell; i++)
   {
 /*...*/
     lMat = mat[i] - 1;
@@ -3497,19 +3497,19 @@ void initPropCD(Prop *pol            , DOUBLE *RESTRICT prop
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 04/09/2017                                   *
  * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
  * INITSHEATPOL: inicializao a estrutura para o calculo do calor     *
  * especifico em funcao da temperatura via polinomial                 *
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
- *-------------------------------------------------------------------* 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  * http://www.engineeringtoolbox.com/air-properties-d_156.html  	   *
@@ -3544,19 +3544,19 @@ void initSheatPol(Prop *prop, char *s, FILE *file) {
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 16/09/2017                                   *
  * Data de modificaco : 16/05/2019                                   *
  *-------------------------------------------------------------------*
  * INITVISCOSITYPOL: inicializao a estrutura para o calculo da       *
  * viscosidade dinamica via polinomial                                *
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
- *-------------------------------------------------------------------* 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  * http://www.engineeringtoolbox.com/air-properties-d_156.html  	   *
@@ -3571,7 +3571,7 @@ void initDviscosityPol(Prop *prop, char *s, FILE *file) {
   short i;
   double x[MAXPLODEG];
 
-  if (!strcmp(s, "polinomial")) 
+  if (!strcmp(s, "polinomial"))
   {
     prop->type = POL;
     fscanf(file, "%s", nameAux);
@@ -3596,7 +3596,7 @@ void initDviscosityPol(Prop *prop, char *s, FILE *file) {
     prop->surtherland[1] = 273.11e0;  /*temperatura de referencia*/
     prop->surtherland[2] = 110.56e0;  /*constante de Sutherland*/
   }
-  
+
   else if(!strcmp(s,"fdsviscosity"))
   {
     prop->type = FDSVISCOSITY;
@@ -3613,19 +3613,19 @@ void initDviscosityPol(Prop *prop, char *s, FILE *file) {
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 05/11/2017                                   *
  * Data de modificaco : 07/05/2019                                   *
  *-------------------------------------------------------------------*
  * INITDENSITY: inicializao a estrutura para o calculo da            *
  * densidade via polinomial                                           *
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
- *-------------------------------------------------------------------* 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  * http://www.engineeringtoolbox.com/air-properties-d_156.html  	   *
@@ -3691,12 +3691,12 @@ void initDensityPol(Prop *prop, char *s, FILE *file) {
 void initCdPol(Prop *prop,char *s,FILE *file)
 {
 
-  FILE *fileOut;  
+  FILE *fileOut;
   char nameAux[1000];
   short i;
   double x[MAXPLODEG];
 
-  if (!strcmp(s, "polinomial")) 
+  if (!strcmp(s, "polinomial"))
   {
     prop->type = POL;
     fscanf(file, "%s", nameAux);
@@ -3712,26 +3712,26 @@ void initCdPol(Prop *prop,char *s,FILE *file)
 
     fprintf(fileLogExc, "%-25s: %s\n", "Type", s);
   }
-  else 
+  else
   {
     ERRO_GERAL(fileLogDebug,__FILE__, __func__, __LINE__, s,EXIT_PROG);
   }
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 16/09/2017                                   *
  * Data de modificaco : 31/05/2019                                   *
  *-------------------------------------------------------------------*
  * INITTHCONDPOL: inicializao a estrutura para o calculo da          *
  * condutividade termica via polinomial                               *
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
- *-------------------------------------------------------------------* 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  * http://www.engineeringtoolbox.com/air-properties-d_156.html  	   *
@@ -3785,18 +3785,18 @@ void initThCondPol(Prop *prop, char *s, FILE *file) {
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 00/00/0000                                   *
  * Data de modificaco : 06/11/2019                                   *
  *-------------------------------------------------------------------*
  * INITDIFFSP:                                                       *
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
- *-------------------------------------------------------------------* 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
@@ -3821,51 +3821,51 @@ void initDiffSp(Prop *prop, char *s, FILE *file) {
 /*********************************************************************/
 
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 06/09/2017                                   *
  * Data de modificaco : 15/07/2018                                   *
  *-------------------------------------------------------------------*
  * GETTEMPFORENERGY: obtem a temperatura aprtir da entalpia sensivel *
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
  * pf     - propriedade do fluido                                    *
  * temp   - nao definido                                             *
- * energy - entalpia sensivel                                        * 
+ * energy - entalpia sensivel                                        *
  * nCell  - numero da celulas                                        *
  * fTemp  - equaca da energia na forma de temperatura (true|false)   *
  * fsHeat - variacao do calor especifico em funcao da Temperatura    *
  *          (true|false)                                             *
  * fKelnvin - temperatura em kelvin (true|false)                     *
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
  *-------------------------------------------------------------------*
- * temp   - temperatura (C ou kelvin)                                * 
- *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * temp   - temperatura (C ou kelvin)                                *
+ *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void getTempForEnergy(PropVarFluid *pf    
+void getTempForEnergy(PropVarFluid *pf
                      ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                      ,INT const nCell      ,bool const fTemp
                      ,bool const fSheat    ,bool const fKelvin
                      ,bool const fOmp      ,short const nThreads )
 {
-  
-  INT i;  
 
-/*... resolucao da eq da energia na forma de temperatura*/ 
+  INT i;
+
+/*... resolucao da eq da energia na forma de temperatura*/
   if(fTemp)
     for (i = 0; i < nCell; i++)
-      temp[i] = energy[i]; 
-/*...................................................................*/ 
+      temp[i] = energy[i];
+/*...................................................................*/
 
 /*...*/
   else
   {
-/*... resolucao da eq da energia na forma de entalpia sensivel*/  
+/*... resolucao da eq da energia na forma de entalpia sensivel*/
 #pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
-  private(i) shared(energy,temp,pf)
+  private(i) shared(energy,temp,pf,nCell, fKelvin, fSheat)
     for (i = 0; i < nCell; i++)
     {
       temp[i] = specificEnthalpyForTemp(&pf->sHeat , 298.15
@@ -3878,97 +3878,97 @@ void getTempForEnergy(PropVarFluid *pf
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 20/08/2018                                   *
  * Data de modificaco : 26/10/2019                                   *
  *-------------------------------------------------------------------*
  * getEnergyForTemp   : obtem a entalpia sensivel apartir da temp    *
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * pf     - propriedade de fluido                                    *
  * temp   - temp                                                     *
- * energy - nao definido                                             * 
+ * energy - nao definido                                             *
  * nCell  - numero da celulas                                        *
  * fTemp  - equaca da energia na forma de temperatura (true|false)   *
  * fKelnvin - temperatura em kelvin (true|false)                     *
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
  *-------------------------------------------------------------------*
- * energy - entalpia sensivel                                        * 
- *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * energy - entalpia sensivel                                        *
+ *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
 void getEnergyForTemp(PropVarFluid *pf
                      ,DOUBLE *RESTRICT temp,DOUBLE *RESTRICT energy
                      ,INT const nCell      ,bool const fKelvin
-                     ,bool const fOmp      ,short const nThreads ) 
+                     ,bool const fOmp      ,short const nThreads )
 {
   bool fSheat = pf->fSpecificHeat;
-  INT i;  
+  INT i;
 
-/*...*/ 
+/*...*/
 #pragma omp parallel  for default(none) num_threads(nThreads) if(fOmp)\
-    private(i) shared(energy,temp,pf,fSheat)
-  for (i = 0; i < nCell; i++) 
+    private(i) shared(energy,temp,pf,fSheat,fKelvin,nCell)
+  for (i = 0; i < nCell; i++)
   {
     energy[i] = tempForSpecificEnthalpy(&pf->sHeat
                                       ,temp[i] ,pf->sHeatRef
                                       ,fSheat  ,fKelvin);
   }
-/*...................................................................*/ 
+/*...................................................................*/
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 21/05/2019                                   *
  * Data de modificaco : 16/08/2019                                   *
  *-------------------------------------------------------------------*
  * SPECIFICMASSREF : calcula a massa especifica de referencia        *
- * atraves da media do valores nas celulas                           * 
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
+ * atraves da media do valores nas celulas                           *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
  * temp   - temp                                                     *
  * volume - volume das celulas                                       *
  * nCell  - numero da celulas                                        *
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
  *-------------------------------------------------------------------*
- * densidade de referencia                                           * 
- *-------------------------------------------------------------------* 
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * densidade de referencia                                           *
+ *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE specificMassRef(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume                  
+DOUBLE specificMassRef(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume
                     , INT const nCell)
 {
-  INT i;  
+  INT i;
   DOUBLE dm,vm,rho;
 #ifdef _MPI_
   DOUBLE gVm,gDm;
 #endif
   dm = vm = 0.e0;
-  
+
   for (i = 0; i < nCell; i++) {
-/*...*/      
+/*...*/
    dm += density[i]*volume[i];
    vm += volume[i];
-/*...................................................................*/ 
+/*...................................................................*/
   }
 
 /*....*/
 #ifdef _MPI_
   if(mpiVar.nPrcs>1)
-  { 
+  {
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(&vm,&gVm,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
     MPI_Allreduce(&dm,&gDm,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     rho = gDm/gVm;
   }
-  else  
+  else
     rho = dm/vm;
 #else
     rho = dm/vm;
@@ -3982,32 +3982,32 @@ DOUBLE specificMassRef(DOUBLE *RESTRICT density, DOUBLE *RESTRICT volume
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 15/09/2017                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
  * PRESREF : calcula da pressao de referencia atualizada             *
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
  * temp0  - temperatura no passo n                                   *
  * temp   - temperatura no passo n + 1                               *
  * volume - volume das celulas                                       *
  * pTh    - pressao termodinamica de referencia                      *
  * nCell  - numero da celulas                                        *
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
  * pTh    - pressao termodinamica de referencia atualizada           *
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void presRef(DOUBLE *RESTRICT temp0         , DOUBLE *RESTRICT temp  
-                   , DOUBLE *RESTRICT volume, DOUBLE *pTh                               
+void presRef(DOUBLE *RESTRICT temp0         , DOUBLE *RESTRICT temp
+                   , DOUBLE *RESTRICT volume, DOUBLE *pTh
                    , INT const nCell        , bool const fKelvin)
 {
-  INT i;  
+  INT i;
   DOUBLE dm,vm,t,t0;
 
   dm = vm = 0.e0;
@@ -4017,52 +4017,52 @@ void presRef(DOUBLE *RESTRICT temp0         , DOUBLE *RESTRICT temp
     if(fKelvin){
       t  = temp[i];
       t0 = temp0[i];
-    }  
-    else{
-      t  = CELSIUS_FOR_KELVIN(temp[i]); 
-      t0 = CELSIUS_FOR_KELVIN(temp0[i]);  
     }
-/*...................................................................*/ 
+    else{
+      t  = CELSIUS_FOR_KELVIN(temp[i]);
+      t0 = CELSIUS_FOR_KELVIN(temp0[i]);
+    }
+/*...................................................................*/
 
-/*...*/   
+/*...*/
     dm += t/t0*volume[i];
     vm += volume[i];
-/*...................................................................*/ 
+/*...................................................................*/
   }
 
   pTh[2] = pTh[1]* dm/vm;
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 15/09/2017                                   *
  * Data de modificaco : 18/08/2019                                   *
  *-------------------------------------------------------------------*
  * PRESREF : calcula da pressao de referencia atualizada             *
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
  * temp0  - temperatura no passo n                                   *
  * temp   - temperatura no passo n + 1                               *
  * volume - volume das celulas                                       *
  * pTh    - pressao termodinamica de referencia                      *
  * nCell  - numero da celulas                                        *
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
  * pTh    - pressao termodinamica de referencia atualizada           *
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
 void presRefMix(Combustion *cModel
-              , DOUBLE *RESTRICT temp0 , DOUBLE *RESTRICT temp  
+              , DOUBLE *RESTRICT temp0 , DOUBLE *RESTRICT temp
               , DOUBLE *RESTRICT yFrac0, DOUBLE *RESTRICT yFrac
-              , DOUBLE *RESTRICT volume, DOUBLE *pTh                               
+              , DOUBLE *RESTRICT volume, DOUBLE *pTh
               , INT const nCell        , bool const fKelvin)
 {
   short ns = cModel->nOfSpecies;
-  INT i;  
+  INT i;
   DOUBLE dm,vm,t,t0,mW,mW0,*y,*y0,tmp;
 #ifdef _MPI_
   DOUBLE gVm,gDm;
@@ -4075,12 +4075,12 @@ void presRefMix(Combustion *cModel
     if(fKelvin){
       t  = temp[i];
       t0 = temp0[i];
-    }  
-    else{
-      t  = CELSIUS_FOR_KELVIN(temp[i]); 
-      t0 = CELSIUS_FOR_KELVIN(temp0[i]);  
     }
-/*...................................................................*/ 
+    else{
+      t  = CELSIUS_FOR_KELVIN(temp[i]);
+      t0 = CELSIUS_FOR_KELVIN(temp0[i]);
+    }
+/*...................................................................*/
 
 /*...*/
     y  = &MAT2D(i,0,yFrac,ns);
@@ -4089,23 +4089,23 @@ void presRefMix(Combustion *cModel
     mW  = mixtureMolarMass(cModel,y);
 /*...................................................................*/
 
-/*...*/   
+/*...*/
     dm += ((t*mW0)/(t0*mW))*volume[i];
     vm += volume[i];
-/*...................................................................*/ 
+/*...................................................................*/
   }
 
 /*....*/
 #ifdef _MPI_
   if(mpiVar.nPrcs>1)
-  { 
+  {
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(&vm,&gVm,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
     MPI_Allreduce(&dm,&gDm,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     tmp = gDm/gVm;
   }
-  else  
+  else
     tmp = dm/vm;
 #else
     tmp = dm/vm;
@@ -4116,34 +4116,34 @@ void presRefMix(Combustion *cModel
 }
 /*********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 15/09/2017                                   *
  * Data de modificaco : 28/05/2019                                   *
  *-------------------------------------------------------------------*
- * INIPRESREF : incializa a pressao ref atrazes da massa especifica  * 
+ * INIPRESREF : incializa a pressao ref atrazes da massa especifica  *
  * de referencia e temperatura media do dominio                      *
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
  * temp   - temperatura no passo n + 1                               *
  * volume - volume das celulas                                       *
  * pTh    - pressao termodinamica de referencia                      *
  * molarMass                                                         *
  * nCell  - numero da celulas                                        *
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
  * pTh    - pressao termodinamica de referencia atualizada           *
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
 void initPresRef(DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT volume
-               , DOUBLE *pTh            , DOUBLE const densityRef  
-               , DOUBLE const molarMass                  
+               , DOUBLE *pTh            , DOUBLE const densityRef
+               , DOUBLE const molarMass
                , INT const nCell        , bool const fKelvin)
 {
-  INT i;  
+  INT i;
   DOUBLE stm,vm,tMed;
 #ifdef _MPI_
   DOUBLE gVm,gStm;
@@ -4153,23 +4153,23 @@ void initPresRef(DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT volume
 
   for (i = 0; i < nCell; i++) {
 
-/*...*/   
+/*...*/
     stm += temp[i]*volume[i];
     vm  += volume[i];
-/*...................................................................*/ 
+/*...................................................................*/
   }
 
 /*....*/
 #ifdef _MPI_
   if(mpiVar.nPrcs>1)
-  { 
+  {
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(&vm ,&gVm ,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
     MPI_Allreduce(&stm,&gStm,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
-    tMed = gStm/gVm; 
+    tMed = gStm/gVm;
   }
-  else  
+  else
     tMed = stm/vm;
 #else
     tMed = stm/vm;
@@ -4180,8 +4180,8 @@ void initPresRef(DOUBLE *RESTRICT temp  , DOUBLE *RESTRICT volume
   if(fKelvin)
     stm  = tMed;
   else
-    stm  = CELSIUS_FOR_KELVIN(tMed); 
-/*...................................................................*/ 
+    stm  = CELSIUS_FOR_KELVIN(tMed);
+/*...................................................................*/
 
   vm   = PRESREF(densityRef, IDEALGASR, stm, molarMass);
 
@@ -4261,22 +4261,22 @@ void initPropStructCD(PropVarCD *propVar, short const n)
 
 /*********************************************************************
  * Data de criacao    : 18/05/2019                                   *
- * Data de modificaco : 08/10/2019                                   * 
+ * Data de modificaco : 08/10/2019                                   *
  *-------------------------------------------------------------------*
- * INITPROPREF: inicializao de propriedades de referencia            * 
- *-------------------------------------------------------------------* 
- * Parametros de entrada:                                            * 
- *-------------------------------------------------------------------* 
- * propF   -> estrutura de propriedades variaveis                    * 
- * propMat -> propriedade de referencia por material                 * 
- * lMat    -> matetial do Fluido                                     * 
- *-------------------------------------------------------------------* 
- * Parametros de saida:                                              * 
- *-------------------------------------------------------------------* 
- * propF   -> atualizado                                             * 
- *-------------------------------------------------------------------* 
- * OBS:                                                              * 
- *-------------------------------------------------------------------* 
+ * INITPROPREF: inicializao de propriedades de referencia            *
+ *-------------------------------------------------------------------*
+ * Parametros de entrada:                                            *
+ *-------------------------------------------------------------------*
+ * propF   -> estrutura de propriedades variaveis                    *
+ * propMat -> propriedade de referencia por material                 *
+ * lMat    -> matetial do Fluido                                     *
+ *-------------------------------------------------------------------*
+ * Parametros de saida:                                              *
+ *-------------------------------------------------------------------*
+ * propF   -> atualizado                                             *
+ *-------------------------------------------------------------------*
+ * OBS:                                                              *
+ *-------------------------------------------------------------------*
  *********************************************************************/
 void initPropRef(PropVarFluid *propF ,DOUBLE *RESTRICT propMat
                 ,short const lMat)
@@ -4298,7 +4298,7 @@ void initPropRef(PropVarFluid *propF ,DOUBLE *RESTRICT propMat
 }
 /**********************************************************************/
 
-/********************************************************************* 
+/*********************************************************************
  * Data de criacao    : 20/07/2019                                   *
  * Data de modificaco : 00/00/0000                                   *
  *-------------------------------------------------------------------*
@@ -4314,10 +4314,10 @@ void initPropRef(PropVarFluid *propF ,DOUBLE *RESTRICT propMat
  *-------------------------------------------------------------------*
  *********************************************************************/
 short searchSpeciesId(Chemical *chem,const char *species)
-{ 
+{
    char mc[WORD_SIZE];
-   unsigned short i; 
-  
+   unsigned short i;
+
    strcpy(mc,species);
    convStringLower(mc);
 

@@ -1,8 +1,8 @@
 #ifndef _OPENMP_H_
-  #define _OPENMP_H_
-  
+    #define _OPENMP_H_
+
 /*...*/
-    #include<omp.h> 
+    #include<omp.h>
 /*...................................................................*/
 
 /*...*/
@@ -11,17 +11,17 @@
     #include<Memoria.h>
     #include<Sisteq.h>
 /*...................................................................*/
-  
-    DOUBLE tmpDotOmp;
-    DOUBLE tmpDotOmp1;
-    DOUBLE tmpDotOmp2;
-    DOUBLE tmpDotOmp3;
-    DOUBLE tmpDotOmp4;
-    DOUBLE tmpDotOmp5;
-    DOUBLE tmpDotOmp6;
-    DOUBLE tmpDotOmp7;
-    DOUBLE tmpDotOmp8;
-  
+
+    extern DOUBLE tmpDotOmp;
+    extern DOUBLE tmpDotOmp1;
+    extern DOUBLE tmpDotOmp2;
+    extern DOUBLE tmpDotOmp3;
+    extern DOUBLE tmpDotOmp4;
+    extern DOUBLE tmpDotOmp5;
+    extern DOUBLE tmpDotOmp6;
+    extern DOUBLE tmpDotOmp7;
+    extern DOUBLE tmpDotOmp8;
+
 /*... OPENMP*/
   typedef struct {
     bool           flag,fSolver,fCell,fUpdate,fGrad,fReaction;
@@ -34,14 +34,14 @@
     DOUBLE         *buffer;
   }Omp;
 /*...................................................................*/
-  Omp ompVar;
-  
+
+  extern Omp ompVar;
+
   void openMpCheck(bool omp);
 
   void pMatrixSolverOmp(Memoria *m,SistEq *eq
                        ,char *s1  ,char *s2
                        ,char *s3  ,char *s4);
 
-  void openMpSet(FILE *fileIn, Omp *ompVar);  
-
+  void openMpSet(FILE *fileIn, Omp *ompVar);
 #endif /*_OPENMP_H_*/

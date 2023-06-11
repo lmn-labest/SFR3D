@@ -36,7 +36,7 @@ DOUBLE static regulation(DOUBLE const y)
   yy = FRACMAX(yy,FRACZERO);
   yy = FRACONE(yy);
 /* ...................................................................*/
-  return yy; 
+  return yy;
 }
 /********************************************************************/
 
@@ -58,10 +58,10 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                    , Loads *loadsComb   , Loads *loadsVel
                    , Turbulence *tModel , Combustion *cModel
                    , EnergyModel *eModel, Mesh *mesh
-                   , SistEq *sistEqComb , Solv *solvComb  
-                   , Simple *sp         , Scheme *sc        
+                   , SistEq *sistEqComb , Solv *solvComb
+                   , Simple *sp         , Scheme *sc
                    , PartMesh *pMesh    , FileOpt *opt
-                   , bool *fComb        , short itSimple    ) 
+                   , bool *fComb        , short itSimple    )
 {
   bool fSheat = prop->fSpecificHeat;
   short i, nComb;
@@ -69,27 +69,27 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
   DOUBLE tb[MAX_COMB];
   DOUBLE *b[MAX_COMB], *xu[MAX_COMB];
   DOUBLE *ad[MAX_COMB],*al[MAX_COMB],*au[MAX_COMB];
-/*... nComb - numero de especies transportadas*/     
+/*... nComb - numero de especies transportadas*/
   nComb   = cModel->nComb;
 /*...................................................................*/
 
 /*...*/
   for(i=0;i<nComb; i++)
   {
-    fComb[i] = false; 
+    fComb[i] = false;
 
     desloc = sistEqComb->neqNov;
     b[i] = &sistEqComb->b[i*desloc];
-  
+
     ad[i] = &sistEqComb->ad[i*desloc];
 
     desloc = 2*sistEqComb->nad + sistEqComb->nadr;
     al[i] = &sistEqComb->al[i*desloc];
- 
+
     au[i] = &sistEqComb->au[i*desloc];
 
     desloc = sistEqComb->neq;
-    xu[i] = &sistEqComb->x[i*desloc]; 
+    xu[i] = &sistEqComb->x[i*desloc];
 
   }
 /*...................................................................*/
@@ -97,69 +97,69 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*... taxa de comsumo do combustivel*/
   tm.timeChemical = getTimeC() - tm.timeChemical;
   timeChemical(cModel                   , tModel
-              , prop   
-              , mesh->elm.zComb         , mesh->elm.temp      
-              , mesh->elm.densityFluid.t, mesh->elm.gradVel 
+              , prop
+              , mesh->elm.zComb         , mesh->elm.temp
+              , mesh->elm.densityFluid.t, mesh->elm.gradVel
               , mesh->elm.eddyViscosity , mesh->elm.cDiffComb
               , mesh->elm.geom.volume
               , mesh->elm.dViscosity    , mesh->elm.tReactor
               , mesh->ndm               , mesh->numelNov
-              , eModel->fKelvin ); 
-  tm.timeChemical = getTimeC() - tm.timeChemical;    
+              , eModel->fKelvin );
+  tm.timeChemical = getTimeC() - tm.timeChemical;
 /*...................................................................*/
 
 /*... taxa de comsumo do combustivel*/
   tm.rateReaction  = getTimeC() - tm.rateReaction;
   rateReaction(cModel                   , tModel
                   , prop
-                  , mesh->elm.zComb        , mesh->elm.temp 
-                  , mesh->elm.wk           , mesh->elm.densityFluid.t 
+                  , mesh->elm.zComb        , mesh->elm.temp
+                  , mesh->elm.wk           , mesh->elm.densityFluid.t
                   , mesh->elm.gradVel      , mesh->elm.eddyViscosity
                   , mesh->elm.dViscosity   , mesh->elm.tReactor
                   , sc->ddt.dt[2]          , thDynamic.pTh[2]
                   , mesh->ndm              , mesh->numelNov
-                  , eModel->fKelvin        , ompVar.fUpdate    
-                  , ompVar.nThreadsUpdate);  
-  tm.rateReaction  = getTimeC() - tm.rateReaction;  
+                  , eModel->fKelvin        , ompVar.fUpdate
+                  , ompVar.nThreadsUpdate);
+  tm.rateReaction  = getTimeC() - tm.rateReaction;
 /*...................................................................*/
 
 /*... reconstruindo do gradiente (gradZ)*/
   tm.rcGradComb   = getTimeC() - tm.rcGradComb;
   rcGradU(m                     , loadsComb
        , mesh->elm.node         , mesh->elm.adj.nelcon
-       , mesh->node.x           , mesh->elm.nen  
-       , mesh->elm.adj.nViz     , mesh->elm.cellFace     
-       , mesh->face.owner       , mesh->elm.geom.volume  
+       , mesh->node.x           , mesh->elm.nen
+       , mesh->elm.adj.nViz     , mesh->elm.cellFace
+       , mesh->face.owner       , mesh->elm.geom.volume
        , mesh->elm.geom.dcca    , mesh->elm.geom.xmcc
        , mesh->elm.geom.cc      , mesh->face.mksi
        , mesh->face.ksi         , mesh->face.eta
-       , mesh->face.area        , mesh->face.normal   
-       , mesh->face.xm          , mesh->face.mvSkew 
-       , mesh->face.vSkew       , mesh->elm.geomType   
+       , mesh->face.area        , mesh->face.normal
+       , mesh->face.xm          , mesh->face.mvSkew
+       , mesh->face.vSkew       , mesh->elm.geomType
        , mesh->elm.material.prop, mesh->elm.material.type
        , mesh->elm.mat          , mesh->elm.cDiffComb
        , mesh->elm.leastSquare  , mesh->elm.leastSquareR
-       , mesh->elm.faceResZcomb 
+       , mesh->elm.faceResZcomb
        , mesh->elm.zComb        , mesh->elm.gradZcomb
-       , mesh->node.zComb       
+       , mesh->node.zComb
        , NULL                   , NULL
        , 0
        , &sc->rcGrad
        , mesh->maxNo            , mesh->maxViz
-       , nComb                  , mesh->ndm              
+       , nComb                  , mesh->ndm
        , &pMesh->iNo            , &pMesh->iEl
        , mesh->numelNov         , mesh->numel
        , mesh->nnodeNov         , mesh->nnode
-       , prop->fDiffusion);      
+       , prop->fDiffusion);
   tm.rcGradComb = getTimeC() - tm.rcGradComb;
 /*.................................................................. */
 
 /*... calculo de: A(i),b(i)*/
   tm.systFormComb = getTimeC() - tm.systFormComb;
   systFormComb(loadsComb               , loadsVel
-             , &sc->advComb            , &sc->diffComb  
+             , &sc->advComb            , &sc->diffComb
              , tModel                  , cModel
-             , prop                    
+             , prop
              , mesh->elm.node          , mesh->elm.adj.nelcon
              , mesh->elm.nen           , mesh->elm.adj.nViz
              , mesh->elm.cellFace      , mesh->face.owner
@@ -169,14 +169,14 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
              , mesh->face.eta          , mesh->face.area
              , mesh->face.normal       , mesh->face.xm
              , mesh->face.mvSkew       , mesh->face.vSkew
-             , mesh->elm.geomType      
+             , mesh->elm.geomType
              , mesh->elm.material.type , mesh->elm.mat
              , sistEqComb->ia          , sistEqComb->ja
              , sistEqComb->al          , sistEqComb->ad
              , sistEqComb->b           , sistEqComb->id
-             , mesh->elm.faceResZcomb  
-             , mesh->elm.zComb         , mesh->elm.gradZcomb  
-             , mesh->elm.wk            , mesh->elm.vel           
+             , mesh->elm.faceResZcomb
+             , mesh->elm.zComb         , mesh->elm.gradZcomb
+             , mesh->elm.wk            , mesh->elm.vel
              , mesh->elm.pressure0     , mesh->elm.pressure
              , mesh->elm.gradPres      , mesh->elm.rCellComb
              , mesh->elm.densityFluid.t, mesh->elm.cDiffComb
@@ -204,9 +204,9 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
                       , sistEqComb->id       , &sistEqComb->iNeq
                       , mesh->numelNov       , sistEqComb->neqNov
                       , nComb
-                      , true                 , false);  
+                      , true                 , false);
 /*...................................................................*/
-    
+
 /*...*/
   for(i=0;i<nComb;i++)
   {
@@ -214,7 +214,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
  /*...*/
-    fComb[i] = true; 
+    fComb[i] = true;
     if ( tb[i] < SZERO || tb[i] == 0.e0 ) fComb[i] = false;
   }
 /*...................................................................*/
@@ -230,23 +230,23 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
               , sistEqComb->nad    , sistEqComb->nadr
               , sistEqComb->ia     , sistEqComb->ja
               , al[i]              , ad[i]           , au[i]
-              , b[i]               , xu[i]              
+              , b[i]               , xu[i]
               , &sistEqComb->iNeq  , &sistEqComb->omp
               , solvComb->tol      , solvComb->maxIt
               , sistEqComb->storage, solvComb->solver
               , solvComb->fileSolv , solvComb->log
               , true               , sistEqComb->unsym
               , "solvY");
-    tm.solvComb = getTimeC() - tm.solvComb;    
+    tm.solvComb = getTimeC() - tm.solvComb;
   }
 /*...................................................................*/
 
 /*... x -> zComb*/
   updateCellValueBlock(mesh->elm.zComb , sistEqComb->x
                      , sistEqComb->id  , &sistEqComb->iNeq
-                     , mesh->numel     , sistEqComb->neq 
-                     , cModel->nComb   
-                     , cModel->fRes    , true);  
+                     , mesh->numel     , sistEqComb->neq
+                     , cModel->nComb
+                     , cModel->fRes    , true);
 /*...................................................................*/
 
 /*...*/
@@ -264,7 +264,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*...*/
-  getGradSpecies(cModel    
+  getGradSpecies(cModel
                 , mesh->elm.gradZcomb, mesh->elm.gradY
                 , mesh->numel        , mesh->ndm);
 /*...................................................................*/
@@ -276,7 +276,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
   {
     tm.enthalpySpecies = getTimeC() - tm.enthalpySpecies;
     getEnthalpySpecies(cModel             , prop
-                     , mesh->elm.enthalpyk, mesh->elm.temp 
+                     , mesh->elm.enthalpyk, mesh->elm.temp
                      , mesh->numel        , eModel->fKelvin
                      , ompVar.fUpdate     , ompVar.nThreadsUpdate);
     tm.enthalpySpecies = getTimeC() - tm.enthalpySpecies;
@@ -284,16 +284,16 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
 /*...................................................................*/
 
 /*...*/
-  tm.heatRelease  = getTimeC() - tm.heatRelease; 
-  rateHeatRealesedReaction(cModel            , &prop->sHeat                
-                    , mesh->elm.wT            , mesh->elm.temp     
+  tm.heatRelease  = getTimeC() - tm.heatRelease;
+  rateHeatRealesedReaction(cModel            , &prop->sHeat
+                    , mesh->elm.wT            , mesh->elm.temp
                     , mesh->elm.zComb0        , mesh->elm.zComb
                     , mesh->elm.densityFluid.t, mesh->elm.wk
-                    , mesh->elm.material.prop , mesh->elm.mat    
+                    , mesh->elm.material.prop , mesh->elm.mat
                     , sc->ddt.dt[TIME_N]      , mesh->numelNov
                     , fSheat                  , eModel->fKelvin
-                    , ompVar.fReaction   , ompVar.nThreadsReaction); 
-  tm.heatRelease  = getTimeC() - tm.heatRelease; 
+                    , ompVar.fReaction   , ompVar.nThreadsReaction);
+  tm.heatRelease  = getTimeC() - tm.heatRelease;
 /*...................................................................*/
 
 /*...*/
@@ -319,7 +319,7 @@ void combustionModel(Memoria *m         , PropVarFluid *prop
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * z -> fracao de massa de regularizadas                             * 
+ * z -> fracao de massa de regularizadas                             *
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
@@ -358,13 +358,13 @@ void regularZ(DOUBLE *RESTRICT y, INT const numel, short const ns)
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * enthalpyk    -> entalpia por especie                              * 
+ * enthalpyk    -> entalpia por especie                              *
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
 void getEnthalpySpecies(Combustion *cModel        ,  PropVarFluid *propF
-                      , DOUBLE *RESTRICT enthalpyk, DOUBLE *RESTRICT temp 
+                      , DOUBLE *RESTRICT enthalpyk, DOUBLE *RESTRICT temp
                       , INT numel                 , bool fKelvin
                       , bool fOmp                 , short nThreads )
 {
@@ -379,7 +379,7 @@ void getEnthalpySpecies(Combustion *cModel        ,  PropVarFluid *propF
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(nel,j,hs) shared(propF,cModel,enthalpyk,temp,numel,ns,fKelvin,sHeatRef)
     for(nel = 0 ; nel < numel; nel++)
-    { 
+    {
       for(j=0;j<ns;j++)
       {
         hs = tempForSpecificEnthalpySpecies(&propF->sHeat       , j
@@ -395,7 +395,7 @@ void getEnthalpySpecies(Combustion *cModel        ,  PropVarFluid *propF
   else
   {
     for(nel = 0 ; nel < numel; nel++)
-    { 
+    {
       for(j=0;j<ns;j++)
       {
         hs = tempForSpecificEnthalpySpecies(&propF->sHeat       , j
@@ -428,7 +428,7 @@ void getEnthalpySpecies(Combustion *cModel        ,  PropVarFluid *propF
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void  getGradSpecies(Combustion *cModel   
+void  getGradSpecies(Combustion *cModel
                    , DOUBLE *RESTRICT gradZ, DOUBLE *RESTRICT gradY
                    , INT const numel       , short const ndm)
 {
@@ -458,7 +458,7 @@ void  getGradSpecies(Combustion *cModel
      for(j=0;j<ns;j++)
        for(k=0;k<ndm;k++)
       {
-        MAT3D(nel,j,k,gradY,ns,ndm) = MAT3D(nel,j,k,gradZ,nc,ndm); 
+        MAT3D(nel,j,k,gradY,ns,ndm) = MAT3D(nel,j,k,gradZ,nc,ndm);
       }
 
   }
@@ -481,14 +481,14 @@ void  getGradSpecies(Combustion *cModel
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * y -> fracao de massa de especies primitivas                       * 
+ * y -> fracao de massa de especies primitivas                       *
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  * z(nel,1) -> air (oxidante)                                        *
  * z(nel,2) -> fuel(comburente)                                      *
  * z(nel,3) -> produto                                               *
- *                                                                   * 
+ *                                                                   *
  * y[0] - CH4                                                        *
  * y[1] - O2                                                         *
  * y[2] - N2                                                         *
@@ -497,7 +497,7 @@ void  getGradSpecies(Combustion *cModel
  * y[5] - CO                                                         *
  * y[6] - C                                                          *
  *********************************************************************/
-void getSpeciesPrimitives(Combustion *cModel 
+void getSpeciesPrimitives(Combustion *cModel
                         , DOUBLE *RESTRICT y,DOUBLE *RESTRICT z
                         , INT const numel   )
 {
@@ -507,7 +507,7 @@ void getSpeciesPrimitives(Combustion *cModel
 
   if(cModel->fLump)
   {
-    ns = cModel->nOfSpecies; 
+    ns = cModel->nOfSpecies;
     nl = cModel->nOfSpeciesLump;
     nc = cModel->nComb;
     a  = cModel->lumpedMatrix;
@@ -531,7 +531,7 @@ void getSpeciesPrimitives(Combustion *cModel
   }
   else
   {
-    ns = cModel->nOfSpecies; 
+    ns = cModel->nOfSpecies;
     nc = cModel->nComb;
 /*... resolvendo as N especies*/
     if (ns == nc)
@@ -543,13 +543,13 @@ void getSpeciesPrimitives(Combustion *cModel
     else
       for(nel = 0 ; nel < numel; nel++)
       {
-      
+
         for(i=0;i<nc;i++)
           MAT2D(nel,i,y,ns) = MAT2D(nel,i,z,nc);
 
         for(i=0,sum=0.e0;i<nc;i++)
           sum+=MAT2D(nel,i,y,ns);
-        
+
         sum = min(sum,1.e0);
 
         MAT2D(nel,cModel->chem.sN2,y,ns) = 1.e0 - sum;
@@ -573,20 +573,20 @@ void getSpeciesPrimitives(Combustion *cModel
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * y -> fracao de massa de especies primitivas                       * 
+ * y -> fracao de massa de especies primitivas                       *
  *-------------------------------------------------------------------*
  * OBS:                                                              *
- *-------------------------------------------------------------------* 
+ *-------------------------------------------------------------------*
  *********************************************************************/
-void getSpeciesPrimitivesCc(Combustion *cModel 
+void getSpeciesPrimitivesCc(Combustion *cModel
                            , DOUBLE *RESTRICT y,DOUBLE *RESTRICT z)
 {
   short i,ns,nl,nc;
   DOUBLE zLumped[3],sum;
   if(cModel->fLump)
   {
-    ns = cModel->nOfSpecies; 
-    nl = cModel->nOfSpeciesLump; 
+    ns = cModel->nOfSpecies;
+    nl = cModel->nOfSpeciesLump;
     nc = cModel->nComb;
     if (nc != nl)
     {
@@ -604,7 +604,7 @@ void getSpeciesPrimitivesCc(Combustion *cModel
   }
   else
   {
-    ns = cModel->nOfSpecies; 
+    ns = cModel->nOfSpecies;
     nc = cModel->nComb;
 /*... resolvendo as N especies*/
     if (ns == nc)
@@ -640,10 +640,10 @@ void getSpeciesPrimitivesCc(Combustion *cModel
  * q       -> nao definido                                           *
  * zComb0  -> fracao de massa agrupada do passo de tempo anterior    *
  * zComb   ->fracao de massa agrupada do passo de tempo atural       *
- * wk        -> taxa de consumo massico das especies kg/(m3 s)       * 
+ * wk        -> taxa de consumo massico das especies kg/(m3 s)       *
  * prop   - propriedades por material                                *
- * mat    - material da celula                                       * 
- * dt      -> delta dessa passo de tempo                             * 
+ * mat    - material da celula                                       *
+ * dt      -> delta dessa passo de tempo                             *
  * numel   -> numero de elementos                                    *
  * fSheat   - calor especifico com variacao com a Temperatura        *
  * fKelvin  - temperatura dada em kelvin                             *
@@ -652,13 +652,13 @@ void getSpeciesPrimitivesCc(Combustion *cModel
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * q -> taxa de energia liberada KJ/s                                * 
+ * q -> taxa de energia liberada KJ/s                                *
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  * 1) aCH4 + bO2 + cN2 -> dCO + eH2O + fN2                           *
  * nSpeciePart[0][0] = 3                                             *
- * nSpeciePart[0][1] = 3                                             * 
+ * nSpeciePart[0][1] = 3                                             *
  * Reagente                                                          *
  * speciesPart[0][0][0] = SP_FUEL;                                   *
  * speciesPart[0][0][1] = SP_O2;                                     *
@@ -669,14 +669,14 @@ void getSpeciesPrimitivesCc(Combustion *cModel
  * speciesPart[0][1][2] = posN2;                                     *
  * 2) aCO + bO2 -> dCO2                                              *
  * nSpeciePart[1][0] = 2                                             *
- * nSpeciePart[1][1] = 1                                             *                      
+ * nSpeciePart[1][1] = 1                                             *
  * Reagente                                                          *
  * speciesPart[1][0][0] = SP_CO;                                     *
  * speciesPart[1][0][1] = SP_O2;                                     *
  * Produto                                                           *
  * speciesPart[1][1][0] = SP_CO2;                                    *
  *********************************************************************/
-void rateHeatRealesedReaction(Combustion *cModel,Prop *sHeat   
+void rateHeatRealesedReaction(Combustion *cModel,Prop *sHeat
                    , DOUBLE *RESTRICT q      , DOUBLE *RESTRICT temp
                    , DOUBLE *RESTRICT zComb0 , DOUBLE *RESTRICT zComb
                    , DOUBLE *RESTRICT density, DOUBLE *RESTRICT wk
@@ -689,16 +689,16 @@ void rateHeatRealesedReaction(Combustion *cModel,Prop *sHeat
   short i
       , iCod = cModel->typeHeatRealese
       , nSp   = cModel->chem.nSp;
-        
+
   INT nel;
   DOUBLE hc,h[MAXSPECIES];
   DOUBLE sum;
 
-  switch(iCod) 
+  switch(iCod)
   {
 /*... Entalpia de formacao*/
     case  HFORMATION:
-    
+
     for(i=0;i<nSp;i++)
       h[i] = cModel->chem.sp[i].entalphyOfForm;
 
@@ -706,13 +706,13 @@ void rateHeatRealesedReaction(Combustion *cModel,Prop *sHeat
     {
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(nel,i,sum)\
-        shared(cModel,wk,h,q,nSp)    
+        shared(cModel,wk,h,q,nSp,numel)
       for(nel = 0; nel < numel; nel++)
       {
 /*... KJ/KG*/
          for(i=0,sum=0.e0;i<nSp;i++)
            sum += MAT2D(nel,i,wk,nSp)*h[i];
-        q[nel] = -sum; 
+        q[nel] = -sum;
       }
 /*...................................................................*/
     }
@@ -726,7 +726,7 @@ void rateHeatRealesedReaction(Combustion *cModel,Prop *sHeat
 /*... KJ/KG*/
         for(i=0,sum=0.e0;i<nSp;i++)
           sum += MAT2D(nel,i,wk,nSp)*h[i];
-        q[nel] = -sum; 
+        q[nel] = -sum;
       }
 /*...................................................................*/
     }
@@ -753,17 +753,17 @@ void rateHeatRealesedReaction(Combustion *cModel,Prop *sHeat
  * Parametros de entrada:                                            *
  *-------------------------------------------------------------------*
  * q       -> nao definido                                           *
- * rate    -> taxa de consumo de combustivel                         * 
+ * rate    -> taxa de consumo de combustivel                         *
  * numel   -> numero de elementos                                    *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * q -> energia total liberada KJ/s                                  * 
+ * q -> energia total liberada KJ/s                                  *
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE heatReleaseRate(DOUBLE *RESTRICT q, DOUBLE *RESTRICT vol  
+DOUBLE heatReleaseRate(DOUBLE *RESTRICT q, DOUBLE *RESTRICT vol
                       , INT const numel)
 {
 
@@ -781,7 +781,7 @@ DOUBLE heatReleaseRate(DOUBLE *RESTRICT q, DOUBLE *RESTRICT vol
 /*....*/
 #ifdef _MPI_
   if(mpiVar.nPrcs>1)
-  { 
+  {
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(&qTotal,&gg ,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
     qTotal = gg;
@@ -797,24 +797,24 @@ DOUBLE heatReleaseRate(DOUBLE *RESTRICT q, DOUBLE *RESTRICT vol
 /**********************************************************************
  * Data de criacao    : 15/08/2018                                    *
  * Data de modificaco : 10/05/2019                                    *
- *------------------------------------------------------------------- * 
- * sumFracZ : Soma todas as fracoes de massa                          *  
+ *------------------------------------------------------------------- *
+ * sumFracZ : Soma todas as fracoes de massa                          *
  * ------------------------------------------------------------------ *
- * parametros de entrada:                                             * 
+ * parametros de entrada:                                             *
  * ------------------------------------------------------------------ *
- * z     -> nao definido                                              * 
- * zComb -> fracoes de massa                                          * 
- * n     -> numero de linhas na matriz                                * 
- * nComb -> numero de componentes na mistura                          * 
+ * z     -> nao definido                                              *
+ * zComb -> fracoes de massa                                          *
+ * n     -> numero de linhas na matriz                                *
+ * nComb -> numero de componentes na mistura                          *
  * ------------------------------------------------------------------ *
- * parametros de saida  :                                             * 
+ * parametros de saida  :                                             *
  * ------------------------------------------------------------------ *
- * z -> soma ( deve ser igual 1)                                      * 
+ * z -> soma ( deve ser igual 1)                                      *
  * ------------------------------------------------------------------ *
  * OBS:                                                               *
  *------------------------------------------------------------------- *
  **********************************************************************/
-void sumFracZ(DOUBLE *z       ,DOUBLE *zComb 
+void sumFracZ(DOUBLE *z       ,DOUBLE *zComb
          ,INT const n     ,short const nComb)
 {
   short j;
@@ -848,7 +848,7 @@ void sumFracZ(DOUBLE *z       ,DOUBLE *zComb
  *********************************************************************/
 DOUBLE maxArray(DOUBLE *RESTRICT x,INT const n)
 {
-  
+
   INT j;
   DOUBLE tmp;
 #ifdef _MPI_
@@ -859,14 +859,14 @@ DOUBLE maxArray(DOUBLE *RESTRICT x,INT const n)
   tmp = max(x[0], x[1]);
   for(j=2;j<n;j++)
   {
-    tmp = max(tmp, x[j]); 
-  }  
+    tmp = max(tmp, x[j]);
+  }
 /*...................................................................*/
 
 /*....*/
 #ifdef _MPI_
   if(mpiVar.nPrcs>1)
-  { 
+  {
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(&tmp,&gg ,1,MPI_DOUBLE,MPI_MAX,mpiVar.comm);
     tmp = gg;
@@ -878,7 +878,7 @@ DOUBLE maxArray(DOUBLE *RESTRICT x,INT const n)
   return tmp;
 
 }
-/*********************************************************************/ 
+/*********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 18/01/2020                                   *
@@ -899,7 +899,7 @@ DOUBLE maxArray(DOUBLE *RESTRICT x,INT const n)
  *********************************************************************/
 DOUBLE minArray(DOUBLE *RESTRICT x,INT const n)
 {
-  
+
   INT j;
   DOUBLE tmp;
 #ifdef _MPI_
@@ -910,14 +910,14 @@ DOUBLE minArray(DOUBLE *RESTRICT x,INT const n)
   tmp = min(x[0], x[1]);
   for(j=2;j<n;j++)
   {
-    tmp = min(tmp, x[j]); 
-  }  
+    tmp = min(tmp, x[j]);
+  }
 /*...................................................................*/
 
 /*....*/
 #ifdef _MPI_
   if(mpiVar.nPrcs>1)
-  { 
+  {
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(&tmp,&gg ,1,MPI_DOUBLE,MPI_MIN,mpiVar.comm);
     tmp = gg;
@@ -929,7 +929,7 @@ DOUBLE minArray(DOUBLE *RESTRICT x,INT const n)
   return tmp;
 
 }
-/*********************************************************************/ 
+/*********************************************************************/
 
 
 /*********************************************************************
@@ -942,7 +942,7 @@ DOUBLE minArray(DOUBLE *RESTRICT x,INT const n)
  *-------------------------------------------------------------------*
  * y        -> fracao massica das especies primitivas                *
  * w        -> nao de definido                                       *
- * tReactor ->                                                       * 
+ * tReactor ->                                                       *
  * desnity  -> densidade do fluido dentro do reator/celula           *
  * modS     -> tempo de mistura definido pe usuario                  *
  *-------------------------------------------------------------------*
@@ -955,7 +955,7 @@ DOUBLE minArray(DOUBLE *RESTRICT x,INT const n)
 INT edc(Combustion *c             ,PropVarFluid *pFluid
         ,DOUBLE *RESTRICT y       ,DOUBLE *RESTRICT w
         ,DOUBLE *RESTRICT tReactor,DOUBLE const density
-        ,DOUBLE const dt          ,DOUBLE const temp 
+        ,DOUBLE const dt          ,DOUBLE const temp
         ,DOUBLE const eddyVisc    ,DOUBLE const dVisc
         ,DOUBLE const Pth         ,bool const fKelvin
         ,INT const nel)
@@ -967,7 +967,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
   DOUBLE aTol,rTol;
   DOUBLE x,dy,pres=Pth,tF,yF,yOx,yP,tMix,tChem,tStar;
   DOUBLE gEdc,gamma,cTau,itMix,tK,yt[MAXSPECIES],yt0[MAXSPECIES],tt,yy;
-  
+
 /*...*/
 /*for(i=0,yF=0.e0;i<c->chem.nFuel;i++)
     yF += y[c->chem.fuel[i]];
@@ -1002,10 +1002,10 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
   switch (iCod)
   {
 
-/*...*/    
+/*...*/
     case FLUENT_EDC:
     case FLUENT_CONST_TMIX_EDC:
-      gEdc  = 1.e0;   
+      gEdc  = 1.e0;
       tStar = 1.0/tMix;
       break;
 /*..................................................................*/
@@ -1016,7 +1016,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
 /*... calculo */
       gamma  = min(gamma*pow(dVisc/(eddyVisc+dVisc),0.25),0.99);
       tStar  = cTau*sqrt(0.5*dVisc/(eddyVisc+dVisc))*tMix;
-//    yMin  = min(yF,yOx/s); 
+//    yMin  = min(yF,yOx/s);
 //    tmp1  = s + 1;
 //    tmp2  = yMin + yP/tmp1;
 //    tmp3 = yP/tmp1;
@@ -1035,7 +1035,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
   }
 
 /*... tempo de mixutura constante e definida pelo usuario*/
-  if(FLUENT_CONST_TMIX_EDC==iCod 
+  if(FLUENT_CONST_TMIX_EDC==iCod
   || PANJWANI_CONST_TMIX_EDC==iCod) tStar = c->edc.tMix;
 /*....................................................................*/
 
@@ -1044,7 +1044,7 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
   {
     yy = regulation(y[i]);
     yt[i] = yt0[i] = yy;
-  } 
+  }
 /*....................................................................*/
 
 /*...*/
@@ -1052,18 +1052,18 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
   k = StepperSie(yt                      , pt
             , 0                          , tt
             , 1.0e-01*tt                 , dt
-            , aTol                       , rTol        
+            , aTol                       , rTol
             , nSp                        , &tF
             , maxIt                      , true
             , 0                          , NULL
-            , &plugFlowReactor           , NULL); 
+            , &plugFlowReactor           , NULL);
 /*....................................................................*/
 
   tReactor[3] = tF;
   tReactor[4] = k;
 /*...*/
   for(i=0;i<c->chem.nSp;i++)
-  { 
+  {
     yy = regulation(yt[i]);
     dy = yy-yt0[i];
     w[i] = density*gEdc*dy/tStar;
@@ -1095,12 +1095,12 @@ INT edc(Combustion *c             ,PropVarFluid *pFluid
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-void edm(Combustion *c       ,DOUBLE *RESTRICT y  
+void edm(Combustion *c       ,DOUBLE *RESTRICT y
           ,DOUBLE *RESTRICT w  ,DOUBLE const density
           ,DOUBLE const tMix)
 {
   short i,j,id;
-          
+
   DOUBLE dy,r1,r2,my,A,B,Q[MAXREAC],itM=1.e0/tMix,yy;
 
 /*...*/
@@ -1110,7 +1110,7 @@ void edm(Combustion *c       ,DOUBLE *RESTRICT y
     itM = 1.e0/c->edm.coef[2];
 /*....................................................................*/
 
-/*... reagentes*/  
+/*... reagentes*/
   for(i=0;i<c->chem.nReac;i++)
   {
     r1 = 1.e+32;
@@ -1125,7 +1125,7 @@ void edm(Combustion *c       ,DOUBLE *RESTRICT y
     }
 /*....................................................................*/
 
-/*... produtos*/  
+/*... produtos*/
     r2 = 1.e+32;
     if(c->edm.fProd)
     {
@@ -1143,10 +1143,10 @@ void edm(Combustion *c       ,DOUBLE *RESTRICT y
 /*....................................................................*/
 
 /*...*/
-    if(c->edm.fProd) 
+    if(c->edm.fProd)
       Q[i] = density*A*itM*min(r1,r2);
-    else  
-      Q[i] = density*A*itM*r1;            
+    else
+      Q[i] = density*A*itM*r1;
 /*....................................................................*/
   }
 /*....................................................................*/
@@ -1154,7 +1154,7 @@ void edm(Combustion *c       ,DOUBLE *RESTRICT y
   massRateReaction(&c->chem,Q,w);
 
 }
-/*********************************************************************/ 
+/*********************************************************************/
 
 /*********************************************************************
  * Data de criacao    : 27/05/2019                                   *
@@ -1171,7 +1171,7 @@ void edm(Combustion *c       ,DOUBLE *RESTRICT y
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *                                                                   *
- * 1*(CmHnOl) + nO2*(O2) + (nO2*pN2/pO2)*N2                          * 
+ * 1*(CmHnOl) + nO2*(O2) + (nO2*pN2/pO2)*N2                          *
  * -> nCO2*(CO2) + nH2O*(H2O) + nN2*(N2)                             *                              *
  *                                                                   *
  * C - m = nCO2   :.                                                 *
@@ -1206,7 +1206,7 @@ void globalReac(Combustion *c, short const iReac)
 /*... produto  */
 //nN2p  = (m + n/4.e0)*pN2/pO2;
 //nCO2p = m;
-//nH2Op = n/2.e0;  
+//nH2Op = n/2.e0;
 
 //nTotal = nCO2p + nH2Op + nN2p;
 //pCO2r = nCO2p/nTotal;
@@ -1247,30 +1247,30 @@ void globalReac(Combustion *c, short const iReac)
 //c->sMass[iReac][1][c->sp_H2O]  = nH2Op*c->mW[c->sp_H2O]/c->mW[c->sp_fuel[iReac]];
 //c->sMass[iReac][1][c->sp_N2]   = nN2p*c->mW[c->sp_N2]/c->mW[c->sp_fuel[iReac]];
 
-/* fprintf(fileLogExc,"\nReaction:\n\n"); 
+/* fprintf(fileLogExc,"\nReaction:\n\n");
 /*...*/
 //if(c->fLump)
 //{
-//  fprintf(fileLogExc,"C%dH%dO%d" 
+//  fprintf(fileLogExc,"C%dH%dO%d"
 //         " + %lf (%lf O2 + %lf N2)\n"
 //         " -> %lf (%lf CO2 + %lf H2O + %lf N2)\n\n"
 //        ,m    ,n     ,l
 //        ,nAir ,pO2   ,pN2
 //        ,nProd,pCO2r, pH2Or,pN2r);
-    
-//  fprintf(fileLogExc,"1 kg C%dH%dO%d" 
+
+//  fprintf(fileLogExc,"1 kg C%dH%dO%d"
 //         " + %lf (%lf O2 + %lf N2)\n"
 //         " -> %lf (%lf CO2 + %lf H2O + %lf N2)\n\n"
 //        ,m                ,n     ,l
 //        ,c->sMassAir    ,pO2   ,pN2
 //        ,c->sMassAir + 1,pCO2r,pH2Or,pN2r);
-//} 
+//}
 /*..................................................................*/
 
-/*...*/ 
+/*...*/
 //else
 //{
-//  fprintf(fileLogExc,"C%dH%dO%d" 
+//  fprintf(fileLogExc,"C%dH%dO%d"
 //         " + %lf O2 + %lf N2\n"
  //        " -> %lf CO2 + %lf H2O + %lf N2\n\n"
 //        ,m    ,n    ,l
@@ -1280,15 +1280,15 @@ void globalReac(Combustion *c, short const iReac)
 //        ,c->stoich[iReac][1][c->sp_H2O]
 //        ,c->stoich[iReac][1][c->sp_N2]);
 
-//  fprintf(fileLogExc,"1 kg C%dH%dO%d" 
+//  fprintf(fileLogExc,"1 kg C%dH%dO%d"
 //         " + %lf  kg O2 + %lf  kg N2\n"
 //         " -> %lf kg CO2 + %lf kg H2O + %lf kg N2\n\n"
 //        ,m    ,n    ,l
-//        ,c->sMass[iReac][0][c->sp_O2]  
+//        ,c->sMass[iReac][0][c->sp_O2]
 //        ,c->sMass[iReac][0][c->sp_N2]
 //        ,c->sMass[iReac][1][c->sp_CO2]
 //        ,c->sMass[iReac][1][c->sp_H2O]
-//        ,c->sMass[iReac][1][c->sp_N2]);  
+//        ,c->sMass[iReac][1][c->sp_N2]);
 //}
 /*..................................................................*/
 
@@ -1330,7 +1330,7 @@ DOUBLE getVolumeMed(DOUBLE *RESTRICT x,DOUBLE *RESTRICT vol
 /*....*/
 #ifdef _MPI_
   if(mpiVar.nPrcs>1)
-  { 
+  {
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(&volT,&gg ,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
     volT = gg;
@@ -1391,7 +1391,7 @@ void getMassSpecie(DOUBLE *RESTRICT density,DOUBLE *RESTRICT y
 /*....*/
 #ifdef _MPI_
   if(mpiVar.nPrcs>1)
-  { 
+  {
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(&sum,&gg ,ns,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
     for(j=0;j<ns;j++)
@@ -1400,7 +1400,7 @@ void getMassSpecie(DOUBLE *RESTRICT density,DOUBLE *RESTRICT y
   }
 #endif
 /*...................................................................*/
-  
+
 /*...*/
   for(j=0;j<ns;j++)
     mass[j] = sum[j];

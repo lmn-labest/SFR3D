@@ -15,13 +15,13 @@
 /*...................................................................*/
 
 /*...*/
-bool energyEquation(Memoria *m               , PropVarFluid *prop 
-                   , Loads *loadsVel         , Loads *loadsEnergy  
+bool energyEquation(Memoria *m               , PropVarFluid *prop
+                   , Loads *loadsVel         , Loads *loadsEnergy
                    , EnergyModel *eModel     , Turbulence *tModel
                    , Combustion *cModel
-                   , ThermoDynamic *thDynamic, Mesh *mesh          
+                   , ThermoDynamic *thDynamic, Mesh *mesh
                    , SistEq *sistEqEnergy    , Solv *solvEnergy
-                   , Simple *sp  
+                   , Simple *sp
                    , Scheme *sc              , PartMesh *pMesh);
 /*...................................................................*/
 

@@ -1,6 +1,6 @@
 #ifndef _WRITELOG_H_
   #define _WRITELOG_H_
-/*...*/  
+/*...*/
   #include<Mesh.h>
   #include<Sisteq.h>
   #include<Solv.h>
@@ -15,8 +15,8 @@
              ,Solv *solvVel         ,SistEq *sistEqVel
              ,Solv *solvPres        ,SistEq *sistEqPres
              ,Solv *solvEnergy      ,SistEq *sistEqEnergy
-             ,Solv *solvComb        ,SistEq *sistEqComb  
-             ,Time *t                
+             ,Solv *solvComb        ,SistEq *sistEqComb
+             ,Time *t
              ,bool const fSolvD1    ,bool const fSolvT1
              ,bool const fSolvVel   ,bool const fSolvPres
              ,bool const fEnergy    ,bool const fTurb
@@ -30,12 +30,12 @@
              ,Solv *solvVel                ,SistEq *sistEqVel
              ,Solv *solvPres               ,SistEq *sistEqPres
              ,Solv *solvEnergy             ,SistEq *sistEqEnergy
-             ,Solv *solvComb               ,SistEq *sistEqComb  
-             ,Time *t                      ,Omp *omp 
+             ,Solv *solvComb               ,SistEq *sistEqComb
+             ,Time *t                      ,Omp *omp
              ,bool const fSolvD1           ,bool const fSolvT1
              ,bool const fSolvVel          ,bool const fSolvPres
              ,bool const fEnergy           ,bool const fTurb
-             ,bool const fCombustion             
+             ,bool const fCombustion
              ,char *nameIn                 ,FILE *file);
 
 #endif/*_WRITELOG_H_*/

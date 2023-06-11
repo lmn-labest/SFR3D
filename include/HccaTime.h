@@ -1,14 +1,14 @@
 #ifndef _MYTIME_H_
   #define _MYTIME_H_
-  #if _MPI_ 
+  #if _MPI_
     #include<mpi.h>
   #elif _OPENMP
     #include<omp.h>
-  #elif _WIN32 
-    #include<time.h> 
-  #elif _MPI_ 
+  #elif _WIN32
+    #include<time.h>
+  #elif _MPI_
     #include<mpi.h>
-  #else  
+  #else
     #include<sys/time.h>
   #endif
   #include<stdio.h>
@@ -48,7 +48,7 @@
     double solvEdpFluid;
     double cellPloadSimple;
     double cellTransientSimple;
-    double systFormPres;                                 
+    double systFormPres;
     double systFormVel;
     double systFormEnergy;
     double velExp;
@@ -107,7 +107,7 @@
 /*...*/
     double total;
   }Time;
-  Time tm;
+  extern Time tm; /*TODO: Troca essa nome para algo mais expressivo*/
   double getTimeC(void);
   void initTime(Time *tm);
 #endif/*_MYTIME_H_*/

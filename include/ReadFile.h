@@ -2,11 +2,11 @@
   #define _READ_FILE_
   #define NPARAMETROS   6
   #define NCONFIG       4
-  #ifdef NMACROS 
+  #ifdef NMACROS
     #undef NMACROS
-  #endif  
+  #endif
   #define NMACROS       39
-/*...................................................................*/  
+/*...................................................................*/
   #include<stdio.h>
   #include<stdlib.h>
 /*...*/
@@ -22,17 +22,17 @@
   #include<Prime.h>
   #include<Print.h>
   #include<SaveLoad.h>
-/*...................................................................*/  
+/*...................................................................*/
 
-  void parametros(INT   *nnode,INT *nel    
+  void parametros(INT   *nnode,INT *nel
                  ,short *maxNo,short *maxViz
                  ,short *ndm  ,short *numat
                  ,FILE  *file);
-  
+
   void readFileFvMesh( Memoria *m              , Mesh *mesh
-                   , PropVarFluid *propF           
+                   , PropVarFluid *propF
                    , PropVarCD *propD        , PropVarCD *propT
-                   , EnergyModel *energyModel, Turbulence *tModel     
+                   , EnergyModel *energyModel, Turbulence *tModel
                    , Combustion *cModel      , MomentumModel *mModel
                    , Mean *media
                    , FILE* file);
@@ -53,8 +53,8 @@
   void readVfLoads(Loads *loads,char *str,FILE* file);
 
   void config(FileOpt *opt ,Reord *reord,FILE* f);
-  
-  void readEdo(Mesh *mesh,FILE *file);  
+
+  void readEdo(Mesh *mesh,FILE *file);
   void readPropVar(PropVarFluid *pf, PropVarCD *pd, PropVarCD *pt,Combustion *cModel
                  , FILE *file);
   void readPropVarDiff(PropVarCD *p, FILE *file);
@@ -72,15 +72,15 @@
   void setMixedModelLes(Turbulence *t  , FILE *file);
   void setDynamicModelLes(Turbulence *t, FILE *file);
   void setEdc(Edc *e       , FILE *file);
-  void setEdm(Edm *e       , FILE *file); 
+  void setEdm(Edm *e       , FILE *file);
   void setPrint(FileOpt *opt,FILE *file);
   void setReGrad(RcGrad *rcGrad, FILE *fileIn);
 
-  void initProp(DOUBLE *RESTRICT prop 
+  void initProp(DOUBLE *RESTRICT prop
              ,DOUBLE *RESTRICT propMat,short *RESTRICT mat
-             ,short const np          ,INT const nCell 
+             ,short const np          ,INT const nCell
              ,short const iProp);
-  
+
    void uniformField(DOUBLE *field, INT const n, short const ndf
                     , FILE* file);
    void readAdvectionScheme(FILE *fileIn, Scheme *sc);
@@ -101,13 +101,13 @@
                    , FILE *fileIn , FileOpt *opt);
 
   void readSolvFluid(Memoria *m      , Mesh *mesh          , Reord *reordMesh
-                , Combustion *cModel 
+                , Combustion *cModel
                 , Solv *solvVel   , SistEq* sistEqVel   , bool *fSolvVel
                 , Solv *solvPres  , SistEq* sistEqPres  , bool *fSolvPres
                 , Solv *solvEnergy, SistEq* sistEqEnergy, bool *fSolvEnergy
                 , Solv *solvKturb , SistEq* sistEqKturb , bool *fSolvKturb
                 , Solv *solvComb  , SistEq* sistEqComb  , bool *fSolvComb
-                , PartMesh *pMesh 
+                , PartMesh *pMesh
                 , char* auxName   , char* preName       , char* nameOut
                 , FILE *fileIn    , FileOpt *opt);
 
@@ -117,7 +117,7 @@
    void readChemical(Combustion *c, FILE *file);
    void readResidual(Simple *sc, FILE *file);
    void readNlIt(Scheme *sc, FILE *fileIn);
-   
+
    void readSetPrime(Memoria *m   , FILE *fileIn
                    , Mesh *mesh0  , Mesh *mesh
                    , Prime  *prime, bool *fSolvPrime);

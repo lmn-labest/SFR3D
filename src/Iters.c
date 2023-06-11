@@ -39,26 +39,26 @@ void symOrtho(DOUBLE const a, DOUBLE const b
  * -------------------------------------------------------------------*
  * Parametros de Saida:                                               *
  * -------------------------------------------------------------------*
- * x[]-> atualizado                                                   *  
+ * x[]-> atualizado                                                   *
  * b[]-> inalterado                                                   *
  * ad,al-> inalterado                                                 *
  * ------------------------------------------------------------------ *
  * OBS:                                                               *
  * fonte: Iterative Krylov Methods for Large Linear Systems           *
  * Henk A. van de Vorst                                               *
- * ------------------------------------------------------------------ * 
+ * ------------------------------------------------------------------ *
 *********************************************************************/
 void minres(INT const nEq        , INT const nAd
 	        , INT *RESTRICT ia    , INT *RESTRICT ja
 	        , DOUBLE *RESTRICT al , DOUBLE *RESTRICT ad
-	        , DOUBLE *RESTRICT b  , DOUBLE *RESTRICT x 
+	        , DOUBLE *RESTRICT b  , DOUBLE *RESTRICT x
           , DOUBLE *RESTRICT v0 , DOUBLE *RESTRICT v
           , DOUBLE *RESTRICT w  , DOUBLE *RESTRICT w0
-          , DOUBLE *RESTRICT w00, DOUBLE *RESTRICT z 
+          , DOUBLE *RESTRICT w00, DOUBLE *RESTRICT z
           , DOUBLE *RESTRICT p
 	        , DOUBLE const tol   , unsigned int maxIt
-          , bool const newX    , FILE* fileLog   
-          , FILE *fileHistLog	, bool const log 
+          , bool const newX    , FILE* fileLog
+          , FILE *fileHistLog	, bool const log
           , bool const fHistLog, bool const fPrint
 	        , void(*matvec)()    , DOUBLE(*dot)())
 {
@@ -67,7 +67,7 @@ void minres(INT const nEq        , INT const nAd
   DOUBLE tmp1, tmp2, conv, beta, beta_old, neta
        , c, c_old, s, s_old, ro1, ro2, ro3, alpha, delta, xKx
        , norm_r, norm_b, norm;
-       
+
   DOUBLE timei, timef;
 	timei = getTimeC();
   it       = 0;
@@ -148,8 +148,8 @@ void minres(INT const nEq        , INT const nAd
     ro2 = s*alpha + c_old*c*beta_old;
 /*... ro3 = s(j-1)*beta(j)*/
     ro3 = s_old*beta_old;
-/*...................................................................*/  
- 
+/*...................................................................*/
+
 /*...*/
     c_old = c;
     s_old = s;
@@ -159,12 +159,12 @@ void minres(INT const nEq        , INT const nAd
     symOrtho(delta,beta,&c,&s,&ro1);
 /* ..................................................................*/
 
-/*... Update of solution (W = VR^-1)*/ 
+/*... Update of solution (W = VR^-1)*/
     tmp1 = 1.e0/ro1;
     tmp2 = c*neta;
     for (i = 0; i < nEq; i++) {
 /*... w(j) = (v(j) - ro3*w(j-2) - ro2*w(j-1))/ro1*/
-      w[i] = (v[i] - ro3*w00[i] - ro2*w0[i])*tmp1;  
+      w[i] = (v[i] - ro3*w00[i] - ro2*w0[i])*tmp1;
 /*... x(j) = x(j-1) + c(j+1)*neta*w(i)*/
       x[i] += tmp2*w[i];
 
@@ -172,23 +172,23 @@ void minres(INT const nEq        , INT const nAd
       v[i]  = p[i];
 
       w00[i] = w0[i];
-      w0[i]  = w[i];  
-    }                
-/*...................................................................*/  
+      w0[i]  = w[i];
+    }
+/*...................................................................*/
 
 /*... ||r(j) || = |c(j+1)| || r(j-1) ||*/
-    norm_r = fabs(s)*norm_r; 
-    if ( norm_r < conv) break;  
-/*...................................................................*/  
+    norm_r = fabs(s)*norm_r;
+    if ( norm_r < conv) break;
+/*...................................................................*/
 
 /*...*/
 		if (fHistLog)
 		  fprintf(fileHistLog, "%d %20.9e\n", j, norm_r / norm_b);
 /*...................................................................*/
- 
+
 /*... neta = - s(j+1) * neta*/
     neta = - s*neta;
-/*...................................................................*/  
+/*...................................................................*/
 
 /*...*/
 		if (jj == 2000) {
@@ -226,29 +226,29 @@ void minres(INT const nEq        , INT const nAd
 
   timef = getTimeC() - timei;
 
-  if(fPrint){ 
+  if(fPrint){
 		printf(" (PMINRES) solver:\n"
 					"\tEquations            = %20d\n"
-          "\tnad                  = %20d\n"        
+          "\tnad                  = %20d\n"
           "\tSolver tol           = %20.2e\n"
-          "\ttol * || b ||        = %20.2e\n"     
+          "\ttol * || b ||        = %20.2e\n"
           "\tIterarions           = %20d\n"
 					"\tx * Kx               = %20.2e\n"
 				  "\t|| x ||              = %20.2e\n"
 					"\t|| b - Ax ||         = %20.2e\n"
-	        "\tCPU time(s)          = %20.2lf\n" 
+	        "\tCPU time(s)          = %20.2lf\n"
 	         ,nEq,nAd,tol,conv,j+1,xKx,norm,norm_r,timef);
   }
-  
-  if(j == maxIt){ 
+
+  if(j == maxIt){
     printf("PMINRES: *** WARNING: no convergende reached !\n");
     printf("MAXIT = %d \n",maxIt);
 //  exit(EXIT_FAILURE);
   }
   if(log)
-    fprintf(fileLog          
-           ,"PMINRES: tol %20.2e " 
-            "iteration %d " 
+    fprintf(fileLog
+           ,"PMINRES: tol %20.2e "
+            "iteration %d "
 						"xKx %20.12e "
 		        "norma(x*x) %20.12e "
 		        "time %20.5lf\n"
@@ -292,7 +292,7 @@ void minres(INT const nEq        , INT const nAd
  * -------------------------------------------------------------------*
  * Parametros de Saida:                                               *
  * -------------------------------------------------------------------*
- * x[]-> atualizado                                                   *  
+ * x[]-> atualizado                                                   *
  * b[]-> inalterado                                                   *
  * ad,al-> inalterado                                                 *
  * ------------------------------------------------------------------ *
@@ -300,11 +300,11 @@ void minres(INT const nEq        , INT const nAd
  * fonte:                                                             *
  * 1. Iterative Krylov Methods for Large Linear Systems               *
  * Henk A. van de Vorst                                               *
- * 2. Precondicionador Iterative methods for singular linear          *  
- * equations and lest-squares problems                                * 
+ * 2. Precondicionador Iterative methods for singular linear          *
+ * equations and lest-squares problems                                *
  *( Sou-Cheng (Terrya) Choi - 2006                                    *
  * D(-1/2)AD(-1/2)x = D(-1/2)b                                        *
- * ------------------------------------------------------------------ * 
+ * ------------------------------------------------------------------ *
 *********************************************************************/
 void pminres(INT const nEq      , INT const nAd
 	         , INT *RESTRICT ia   , INT *RESTRICT ja
@@ -316,8 +316,8 @@ void pminres(INT const nEq      , INT const nAd
            , DOUBLE *RESTRICT z , DOUBLE *RESTRICT z0
            , DOUBLE *RESTRICT p
 	         , DOUBLE const tol   , unsigned int maxIt
-           , bool const newX    , FILE* fileLog   
-           , FILE *fileHistLog	, bool const log 
+           , bool const newX    , FILE* fileLog
+           , FILE *fileHistLog	, bool const log
            , bool const fHistLog, bool const fPrint
 	         , void(*matvec)()    , DOUBLE(*dot)())
 {
@@ -326,7 +326,7 @@ void pminres(INT const nEq      , INT const nAd
   DOUBLE tmp1, tmp2, tmp3, tmp4, conv, beta, beta_old, neta
        , c, c_old, s, s_old, ro1, ro2, ro3, alpha, delta, xKx
        , norm_r, norm_b, norm, norm_r_m;
-       
+
   DOUBLE timei, timef;
 	timei = getTimeC();
   it       = 0;
@@ -416,8 +416,8 @@ void pminres(INT const nEq      , INT const nAd
     ro2 = s*alpha + c_old*c*beta_old;
 /*... ro3 = s(j-1)*beta(j)*/
     ro3 = s_old*beta_old;
-/*...................................................................*/  
- 
+/*...................................................................*/
+
 /*...*/
     c_old = c;
     s_old = s;
@@ -432,14 +432,14 @@ void pminres(INT const nEq      , INT const nAd
 //  s = beta/ro1;
 /* ..................................................................*/
 
-/*... Update of solution (W = VR^-1)*/ 
+/*... Update of solution (W = VR^-1)*/
     tmp1 = 1.e0/(beta_old*ro1);
-    tmp2 = -ro2/ro1;       
+    tmp2 = -ro2/ro1;
     tmp3 = -ro3/ro1;
     tmp4 = c*neta;
     for (i = 0; i < nEq; i++) {
 /*    w(j) = (v(j)/beta(j) - ro2*w(j-1) - ro3*w(j-2))/ro1*/
-      w[i] = tmp1*z0[i] + tmp2*w0[i] + tmp3*w00[i];  
+      w[i] = tmp1*z0[i] + tmp2*w0[i] + tmp3*w00[i];
 /*... x(j) = x(j-1) + c(j+1)*neta*w(i)*/
       x[i] += tmp4*w[i];
 
@@ -449,23 +449,23 @@ void pminres(INT const nEq      , INT const nAd
       z0[i] = z[i];
 
       w00[i] = w0[i];
-      w0[i]  = w[i];  
-    }                
-/*...................................................................*/  
+      w0[i]  = w[i];
+    }
+/*...................................................................*/
 
 /*... ||r(j) || = |c(j+1)| || r(j-1) ||*/
-    norm_r = fabs(s)*norm_r; 
-    if ( norm_r < conv) break;  
-/*...................................................................*/  
+    norm_r = fabs(s)*norm_r;
+    if ( norm_r < conv) break;
+/*...................................................................*/
 
 /*...*/
 		if (fHistLog)
 		  fprintf(fileHistLog, "%d %20.9e\n", j, norm_r / norm_b);
 /*...................................................................*/
- 
+
 /*... neta = - s(j+1) * neta*/
     neta = - s*neta;
-/*...................................................................*/  
+/*...................................................................*/
 
 /*...*/
 		if (jj == 10000) {
@@ -477,7 +477,7 @@ void pminres(INT const nEq      , INT const nAd
 /*...................................................................*/
 	}
 /*...................................................................*/
- 
+
 /*... Energy norm:  x*Kx*/
 	matvec(nEq, ia, ja, al, ad, x, z);
 /*norma de energia = xT*A*x */
@@ -501,30 +501,30 @@ void pminres(INT const nEq      , INT const nAd
 
   timef = getTimeC() - timei;
 
-  if(fPrint){ 
+  if(fPrint){
 		printf(" (PMINRES) solver:\n"
 					"\tEquations            = %20d\n"
-          "\tnad                  = %20d\n"        
+          "\tnad                  = %20d\n"
           "\tSolver tol           = %20.2e\n"
-          "\ttol * || M(-1/2)b || = %20.2e\n"     
+          "\ttol * || M(-1/2)b || = %20.2e\n"
           "\tIterarions           = %20d\n"
 					"\tx * Kx               = %20.2e\n"
 				  "\t|| x ||              = %20.2e\n"
 					"\t|| b - Ax ||         = %20.2e\n"
 					"\t|| b - Ax || m       = %20.2e\n"
-	        "\tCPU time(s)          = %20.2lf\n" 
+	        "\tCPU time(s)          = %20.2lf\n"
 	         ,nEq,nAd,tol,conv,j+1,xKx,norm,norm_r,norm_r_m,timef);
   }
-  
-  if(j == maxIt){ 
+
+  if(j == maxIt){
     printf("PMINRES: *** WARNING: no convergende reached !\n");
     printf("MAXIT = %d \n",maxIt);
 //  exit(EXIT_FAILURE);
   }
   if(log)
-    fprintf(fileLog          
-           ,"PMINRES: tol %20.2e " 
-            "iteration %d " 
+    fprintf(fileLog
+           ,"PMINRES: tol %20.2e "
+            "iteration %d "
 						"xKx %20.12e "
 		        "norma(x*x) %20.12e "
 		        "time %20.5lf\n"
@@ -575,7 +575,7 @@ void pminres(INT const nEq      , INT const nAd
  * ad,a-> inalterado                                                  *
  * -------------------------------------------------------------------*
  * OBS:                                                               *
- * Versão do livro Iterative krylov Method for large linear Systems   *
+ * Versï¿½o do livro Iterative krylov Method for large linear Systems   *
  *                                                                    *
  * g(nKrylov+1,neq)                                                   *
  * h(nKrylov+1,nKrylov)                                               *
@@ -590,7 +590,7 @@ void gmres(INT const nEq       ,INT const nAd
           ,DOUBLE *RESTRICT m  ,DOUBLE *RESTRICT b
           ,DOUBLE *RESTRICT x  ,DOUBLE *RESTRICT g
           ,DOUBLE *RESTRICT h  ,DOUBLE *RESTRICT y
-          ,DOUBLE *RESTRICT c  ,DOUBLE *RESTRICT s 
+          ,DOUBLE *RESTRICT c  ,DOUBLE *RESTRICT s
           ,DOUBLE *RESTRICT e  ,short const nKrylov
           ,DOUBLE const tol    ,unsigned int nCycles
           ,bool const newX     ,FILE* fileLog
@@ -684,7 +684,7 @@ void gmres(INT const nEq       ,INT const nAd
       for (iLong = 0; iLong < nEq; iLong++)
         g2[iLong] *= tmp;
 /*...................................................................*/
-     
+
 /*...*/
       for(j=0; j<ni ; j++) {
         h1                   = MAT2D(j  ,ni,h,nCol);
@@ -726,7 +726,7 @@ void gmres(INT const nEq       ,INT const nAd
 /*... x = Vy = (Vt)y*/
      for (j = 0; j<ni; j++){
         tmp = y[j];
-        for (iLong = 0; iLong<nEq; iLong++)    
+        for (iLong = 0; iLong<nEq; iLong++)
           x[iLong] += MAT2D(j, iLong, g, nEq)*tmp;
      }
 /*...................................................................*/
@@ -845,7 +845,7 @@ void gmres(INT const nEq       ,INT const nAd
 * ad,a-> inalterado                                                  *
 * -------------------------------------------------------------------*
 * OBS:                                                               *
-* Versão do livro Iterative krylov Method for large linear Systems   *
+* Versï¿½o do livro Iterative krylov Method for large linear Systems   *
 *                                                                    *
 * g(nKrylov+1,neq)                                                   *
 * h(nKrylov+1,nKrylov)                                               *
@@ -891,7 +891,7 @@ void gmresOmp(INT const nEq      ,INT const nAd
 
 /*...g(1,i) = (M-1)*b*/
 #pragma omp parallel default(none) private(tmp,iLong)\
-        shared(g,b,m,norm,dot)
+        shared(g,b,m,norm,dot,nEq)
   {
   #pragma omp for
     for (iLong = 0; iLong < nEq; iLong++)
@@ -914,7 +914,7 @@ void gmresOmp(INT const nEq      ,INT const nAd
   for (l = 0; l < nCycles; l++) {
 /*... Residuo g1 = b - Ax*/
 #pragma omp parallel default(none) private(tmp)\
-        shared(ia,ja,a,ad,x,g,b,m,e,bOmp,nThreads,matvec,dot)
+        shared(ia,ja,a,ad,x,g,b,m,e,bOmp,nThreads,matvec,dot,nEq)
   {
     matvec(nEq
           ,ia            ,ja
@@ -953,7 +953,7 @@ void gmresOmp(INT const nEq      ,INT const nAd
 /*... g2 = g(ni+1)*/
       g2 = &g[(ni + 1)*nEq];
 #pragma omp parallel default(none) private(tmp)\
-        shared(ia,ja,a,ad,g1,g2,m,bOmp,nThreads,matvec,dot)
+        shared(ia,ja,a,ad,g1,g2,m,bOmp,nThreads,matvec,dot,nEq)
   {
 /*... Residuo  g(ni+1) = A*g(ni)*/
       matvec(nEq
@@ -978,11 +978,11 @@ void gmresOmp(INT const nEq      ,INT const nAd
 /*... g1 = g(j)*/
         g1   = &g[j*nEq];
 #pragma omp  parallel default(none) private(tmp,iLong)\
-       shared(g1,g2,beta,dot) 
+       shared(g1,g2,beta,dot,nEq)
   {
         tmp = dot(g2, g1, nEq);
     #pragma omp single
-        beta = tmp;  
+        beta = tmp;
 /*...................................................................*/
 
 /*...*/
@@ -996,8 +996,8 @@ void gmresOmp(INT const nEq      ,INT const nAd
 /*...................................................................*/
 
 #pragma omp parallel default(none) private(tmp,iLong)\
-      shared(norm,h,g1,g2,beta,dot,ni,nCol)
-  { 
+      shared(norm,h,g1,g2,beta,dot,ni,nCol,nEq)
+  {
 /*... g(i+1) = |g(i+1)|*/
       tmp  = sqrt(dot(g2, g2, nEq));
     #pragma omp single
@@ -1058,7 +1058,7 @@ void gmresOmp(INT const nEq      ,INT const nAd
 /*... x = Vy = (Vt)y*/
     for (j = 0; j<ni; j++) {
       tmp = y[j];
-#pragma omp parallel for default (none) private(iLong) shared(tmp,x,g,j)
+#pragma omp parallel for default (none) private(iLong) shared(tmp,x,g,j,nEq)
       for (iLong = 0; iLong<nEq; iLong++)
         x[iLong] += MAT2D(j, iLong, g, nEq)*tmp;
     }
@@ -1071,7 +1071,7 @@ void gmresOmp(INT const nEq      ,INT const nAd
 
 /*... Energy norm:  x*Kx*/
 #pragma omp parallel default(none) private(tmp)\
-        shared(ia,ja,a,ad,x,g,bOmp,nThreads,xKx,norm,matvec,dot)
+        shared(ia,ja,a,ad,x,g,bOmp,nThreads,xKx,norm,matvec,dot,nEq)
   {
     matvec(nEq
           ,ia            ,ja
@@ -1141,13 +1141,13 @@ void gmresOmp(INT const nEq      ,INT const nAd
 }
 /**********************************************************************/
 
-/*********************************************************************** 
+/***********************************************************************
   * Data de criacao    : 18/09/2017                                    *
-  * Data de modificaco : 00/00/0000                                    * 
+  * Data de modificaco : 00/00/0000                                    *
   * ------------------------------------------------------------------ *
-  * SYM_ORTHO: Givens rotation                                         * 
-  * (versa com melhor comportamento numerico)                          *      
-  * ------------------------------------------------------------------ * 
+  * SYM_ORTHO: Givens rotation                                         *
+  * (versa com melhor comportamento numerico)                          *
+  * ------------------------------------------------------------------ *
   * Parametros de entrada:                                             *
   * ------------------------------------------------------------------ *
   * a   - paramentro                                                   *
@@ -1155,13 +1155,13 @@ void gmresOmp(INT const nEq      ,INT const nAd
   * c   - nao definido                                                 *
   * s   - nao definido                                                 *
   * r   - nao definido                                                 *
-  * ------------------------------------------------------------------ * 
+  * ------------------------------------------------------------------ *
   * Parametros de saida:                                               *
-  * ------------------------------------------------------------------ * 
+  * ------------------------------------------------------------------ *
   * c   - cos(teta)                                                    *
   * s   - seno(teta)                                                   *
   * r   - raiz(a^2 + b^2)                                              *
-  * ------------------------------------------------------------------ * 
+  * ------------------------------------------------------------------ *
   * OBS:                                                               *
   * | c  s | | a |    | raiz(a^2 + b^2) |   | r |                      *
     |      | |   |  = |                 | = |   |                      *
@@ -1173,14 +1173,14 @@ void gmresOmp(INT const nEq      ,INT const nAd
                    , DOUBLE *r)
 {
       DOUBLE ma, mb, sa, sb, t;
-/*...*/      
+/*...*/
       ma = fabs(a);
       mb = fabs(b);
       sa = SING1(a);
       sb = SING1(b);
 /*.....................................................................*/
 
-/*...*/     
+/*...*/
      if(b == 0.e0){
         *s = 0.e0;
         *r = ma;
@@ -1188,12 +1188,12 @@ void gmresOmp(INT const nEq      ,INT const nAd
           *c = 1.0e0;
         else
           *c = sa;
-     } 
+     }
      else if( a == 0.e0){
        *c = 0.e0;
        *s = sb;
        *r = mb;
-     } 
+     }
      else if( mb > a){
        t = a/b;
        *s = sb/sqrt(1.e0 + t*t);
@@ -1208,4 +1208,4 @@ void gmresOmp(INT const nEq      ,INT const nAd
      }
 /*.....................................................................*/
  }
-/**********************************************************************/ 
+/**********************************************************************/

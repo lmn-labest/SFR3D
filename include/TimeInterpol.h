@@ -2,7 +2,7 @@
   #define _TI_H_
 /*...*/
   #include<Erro.h>
-  #include<HccaStdBool.h>  
+  #include<HccaStdBool.h>
   #include<Define.h>
   #include<Memoria.h>
   #include<Mesh.h>
@@ -16,7 +16,7 @@
                  ,DOUBLE const t1       ,DOUBLE const t0
                  ,INT const nl          ,short const nc
                  ,bool const fTimePlot  ,bool const fStepPlot);
-  
+
   void updateTimeStruct(Memoria *m        ,TimeInterpol *ti
                        ,Mesh *mesh
                        ,Combustion *cModel,FileOpt *opt);

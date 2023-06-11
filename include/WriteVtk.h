@@ -1,6 +1,6 @@
 #ifndef _WRITE_VTK_H_
   #define _WRITE_VTK_H_
-  
+
 
 /*...*/
   #include<stdio.h>
@@ -16,40 +16,40 @@
   #include<Properties.h>
   #include<Erro.h>
 /*... particionamento*/
-  void wPartVtk(Memoria *m   ,double *x      
-               ,INT *el            
+  void wPartVtk(Memoria *m   ,double *x
+               ,INT *el
                ,short *nen   ,short *typeGeom
-               ,INT   *np    ,INT   *ep      
-               ,INT nnode    ,INT numel    
-               ,short ndm      
-               ,short maxNo  ,short maxViz  
+               ,INT   *np    ,INT   *ep
+               ,INT nnode    ,INT numel
+               ,short ndm
+               ,short maxNo  ,short maxViz
                ,char *nameOut,bool iws
                ,FILE *f);
 
-  void wMeshPartVtk(Memoria *m     
-            ,double *x      ,INT *el            
+  void wMeshPartVtk(Memoria *m
+            ,double *x      ,INT *el
             ,short *nen     ,short *typeGeom
-            ,INT nnode      ,INT numel    
-            ,short ndm      
-            ,short maxNo    ,short maxViz  
+            ,INT nnode      ,INT numel
+            ,short ndm
+            ,short maxNo    ,short maxViz
             ,char *nameOut  ,bool iws
             ,FILE *f);
 /*...................................................................*/
 
-/*... geom*/  
-  void wGeoVtk(Memoria *m        ,double *x  
-              ,INT *el           ,short *mat    
+/*... geom*/
+  void wGeoVtk(Memoria *m        ,double *x
+              ,INT *el           ,short *mat
               ,short *nen        ,short *typeGeom
               ,double *prop      ,short *typeCal
-              ,short *faceRd1    ,short *faceRt1 
-              ,short *faceRfluid ,short *faceRenergy 
-              ,INT nnode         ,INT numel    
-              ,short ndm      
-              ,short maxno       ,short maxIt 
-              ,short numat    
-              ,short *ndfD       ,short *ndfT   
+              ,short *faceRd1    ,short *faceRt1
+              ,short *faceRfluid ,short *faceRenergy
+              ,INT nnode         ,INT numel
+              ,short ndm
+              ,short maxno       ,short maxIt
+              ,short numat
+              ,short *ndfD       ,short *ndfT
               ,short const ndfF  ,short const ndfFt
-              ,char *nameOut     ,bool iws      
+              ,char *nameOut     ,bool iws
               ,FILE *f);
 
   void wGeoVtk2(Memoria *m   , DOUBLE *x
@@ -61,14 +61,14 @@
               , char *nameOut, bool iws
               , FILE *f);
 
-  void wGeoFaceVtk(Memoria *m     ,DOUBLE *x      
-            ,INT *el              ,short *nen     
+  void wGeoFaceVtk(Memoria *m     ,DOUBLE *x
+            ,INT *el              ,short *nen
             ,short *typeGeom
-            ,short *faceRd1       ,short *faceRt1      
+            ,short *faceRd1       ,short *faceRt1
             ,short *faceRfluid    ,short *faceRenergy
-            ,INT const nnode      ,INT const numel    
-            ,short const ndm      
-            ,short const ndfD     ,short const ndfT 
+            ,INT const nnode      ,INT const numel
+            ,short const ndm
+            ,short const ndfD     ,short const ndfT
             ,short const ndfF     ,short const ndfFt
             ,short const maxViz   ,short const maxNo
             ,char *nameOut        ,bool iws
@@ -77,7 +77,7 @@
   void wGeoFaceVtk2(Memoria *m          , Loads *ld
                   , DOUBLE *x
                   , INT *el             , short *nen
-                  , short *typeGeom     , short *faceRd       
+                  , short *typeGeom     , short *faceRd
                   , INT const nnode     , INT const numel
                   , short const ndm     , short const maxViz
                   , short const ndf     , short const maxNo
@@ -85,14 +85,14 @@
                   , FILE *f);
 /*...................................................................*/
 
-/*... resultados*/  
-  void wResVtk(Memoria *m     ,double *x      
-            ,INT *el        ,short *mat    
+/*... resultados*/
+  void wResVtk(Memoria *m     ,double *x
+            ,INT *el        ,short *mat
             ,short *nen     ,short *typeGeom
             ,DOUBLE *elU    ,DOUBLE *nU
-            ,INT nnode      ,INT numel    
-            ,short ndm      ,short maxNo 
-            ,short numat    ,short *ndfD   
+            ,INT nnode      ,INT numel
+            ,short ndm      ,short maxNo
+            ,short numat    ,short *ndfD
             ,char *nameOut  ,bool iws
             ,FILE *f);
 
@@ -110,7 +110,7 @@
                 , char *gradResEl   , char *gradResNo
                 , char *nameOut     , FileOpt *opt
                 , Temporal *ddt     , FILE *f);
-  
+
   void wResVtkTrans(Memoria *m        , double *x
                   , INT *el           , short *mat
                   , short *nen        , short *typeGeom
@@ -122,53 +122,53 @@
                   , INT nnode         , INT numel
                   , short ndm         , short maxNo
                   , short numat       , short ndf
-                  , char **ps    
+                  , char **ps
                   , char *nameOut     , FileOpt *opt
                   , Temporal *ddt     , FILE *f);
 
   void wResVtkFluid(Memoria *m   , DOUBLE *x
-          , DOUBLE *cc      
-          , INT *el              , short *mat    
+          , DOUBLE *cc
+          , INT *el              , short *mat
           , short *nen           , short *typeGeom
           , DOUBLE *elPres       , DOUBLE *nPres
           , DOUBLE *elGradPres   , DOUBLE *nGradPres
-          , DOUBLE *elVel        , DOUBLE *nVel      
-          , DOUBLE *elGradVel    , DOUBLE *nGradVel 
+          , DOUBLE *elVel        , DOUBLE *nVel
+          , DOUBLE *elGradVel    , DOUBLE *nGradVel
           , DOUBLE *elEnergy     , DOUBLE *nEnergy
           , DOUBLE *elGradEnergy , DOUBLE *nGradEnergy
           , DOUBLE *elEddyVis    , DOUBLE *nEddyVis
           , DOUBLE *eDensityFluid, DOUBLE *nDensityFluid
           , DOUBLE *eDyViscosity , DOUBLE *nDyViscosity
           , DOUBLE *eStressR     , DOUBLE *nStressR
-          , DOUBLE *eCd          , DOUBLE *nCd 
-          , DOUBLE *eWallPar     , DOUBLE *nWallPar 
+          , DOUBLE *eCd          , DOUBLE *nCd
+          , DOUBLE *eWallPar     , DOUBLE *nWallPar
           , DOUBLE *eKturb       , DOUBLE *nKturb
           , DOUBLE *eMedVel      , DOUBLE *nMedVel
           , DOUBLE *eSheat       , DOUBLE *nSheat
-          , DOUBLE *eTCon        , DOUBLE *nTCond  
-          , DOUBLE *eGradRho     , DOUBLE *nGradRho     
-          , INT nnode            , INT numel    
-          , short const ndm      , short const maxNo 
-          , short const numat    , short const ndf  
-          , short const ntn   
+          , DOUBLE *eTCon        , DOUBLE *nTCond
+          , DOUBLE *eGradRho     , DOUBLE *nGradRho
+          , INT nnode            , INT numel
+          , short const ndm      , short const maxNo
+          , short const numat    , short const ndf
+          , short const ntn
           , char *nameOut        , FileOpt *opt
-          , bool fKelvin         , Mean *media  
+          , bool fKelvin         , Mean *media
           , Temporal *ddt        , FILE *f);
 /*...................................................................*/
 
 /*...*/
-void wResVtkCombustion(Memoria *m , Combustion *cModel     
-          , DOUBLE *x             , DOUBLE *cc     
-          , INT *el               , short *mat    
+void wResVtkCombustion(Memoria *m , Combustion *cModel
+          , DOUBLE *x             , DOUBLE *cc
+          , INT *el               , short *mat
           , short *nen            , short *typeGeom
           , DOUBLE *elPres        , DOUBLE *nPres
           , DOUBLE *elGradPres    , DOUBLE *nGradPres
-          , DOUBLE *elVel         , DOUBLE *nVel      
-          , DOUBLE *elGradVel     , DOUBLE *nGradVel 
+          , DOUBLE *elVel         , DOUBLE *nVel
+          , DOUBLE *elGradVel     , DOUBLE *nGradVel
           , DOUBLE *elTemp        , DOUBLE *nTemp
-          , DOUBLE *elGradTemp    , DOUBLE *nGradTemp  
-          , DOUBLE *elZcomb       , DOUBLE *nZcomb  
-          , DOUBLE *elGradZcomb   , DOUBLE *nGradZcomb 
+          , DOUBLE *elGradTemp    , DOUBLE *nGradTemp
+          , DOUBLE *elZcomb       , DOUBLE *nZcomb
+          , DOUBLE *elGradZcomb   , DOUBLE *nGradZcomb
           , DOUBLE *elEddyVis     , DOUBLE *nEddyVis
           , DOUBLE *eDensityFluid , DOUBLE *nDensityFluid
           , DOUBLE *eDyViscosity  , DOUBLE *nDyViscosity
@@ -176,51 +176,51 @@ void wResVtkCombustion(Memoria *m , Combustion *cModel
           , DOUBLE *eCd           , DOUBLE *nCd
           , DOUBLE *eWallPar      , DOUBLE *nWallPar
           , DOUBLE *eKturb        , DOUBLE *nKturb
-          , DOUBLE *eWk           , DOUBLE *nWk      
+          , DOUBLE *eWk           , DOUBLE *nWk
           , DOUBLE *eYfrac        , DOUBLE *nYfrac
-          , DOUBLE *eGradY        , DOUBLE *nGradY 
-          , DOUBLE *eHeatRe       , DOUBLE *nHeatRe     
+          , DOUBLE *eGradY        , DOUBLE *nGradY
+          , DOUBLE *eHeatRe       , DOUBLE *nHeatRe
           , DOUBLE *eMedVel       , DOUBLE *nMedVel
-          , DOUBLE *eEnthalpyK    , DOUBLE *nEnthalpyK   
+          , DOUBLE *eEnthalpyK    , DOUBLE *nEnthalpyK
           , DOUBLE *eSheat        , DOUBLE *nSheat
           , DOUBLE *eTCond        , DOUBLE *nTCond
-          , DOUBLE *eDiffSp       , DOUBLE *nDiffSp  
+          , DOUBLE *eDiffSp       , DOUBLE *nDiffSp
           , DOUBLE *eGradRho      , DOUBLE *nGradRho
-          , DOUBLE *eMolar        , DOUBLE *nMolar  
-          , DOUBLE *eTreactor  
-          , INT nnode             , INT numel    
-          , short const ndm       , short const maxNo 
+          , DOUBLE *eMolar        , DOUBLE *nMolar
+          , DOUBLE *eTreactor
+          , INT nnode             , INT numel
+          , short const ndm       , short const maxNo
           , short const numat     , short const ndf
-          , short const ntn       
+          , short const ntn
           , char *nameOut         , FileOpt *opt
-          , bool fKelvin          , Mean *media  
+          , bool fKelvin          , Mean *media
           , DOUBLE const ts       , FILE *f);
 /*...................................................................*/
 
 /*...*/
   void makeFace(INT *el            ,Loads *ld
                ,short *faceR       ,short *typeGeom
-               ,INT *face          ,int    *lFaceL   
+               ,INT *face          ,int    *lFaceL
                ,int    *lFaceTy    ,INT *idFace
                ,short *typeGeomFace,short *nenFace
                ,short const maxViz ,short const maxNo
-               ,short const ndf    ,INT const numel  
+               ,short const ndf    ,INT const numel
                ,INT *nFace         );
 
   void makeVorticity(DOUBLE *RESTRICT w, DOUBLE *RESTRICT gradVel
                     ,INT const n       , const short ndm);
   void makeStress(DOUBLE *RESTRICT str      , DOUBLE *RESTRICT gradVel
-                 , DOUBLE *RESTRICT viscosity,INT const n          
-                 , short const ndm           , short const ntn           
+                 , DOUBLE *RESTRICT viscosity,INT const n
+                 , short const ndm           , short const ntn
                  , bool const flag );
   void makeKineticEnergy(DOUBLE *RESTRICT e    , DOUBLE *RESTRICT vel
-                    ,DOUBLE *RESTRICT density 
+                    ,DOUBLE *RESTRICT density
                     ,INT const n               , short const ndm);
 
   void makeQcriterion(DOUBLE *RESTRICT gradVel, DOUBLE *RESTRICT q
                     , INT const n             , short const ndm);
   void makePresTotal(DOUBLE *RESTRICT presT, DOUBLE *RESTRICT pres
-                 , DOUBLE *RESTRICT vel  , DOUBLE *RESTRICT density 
+                 , DOUBLE *RESTRICT vel  , DOUBLE *RESTRICT density
                  , INT const n           , short const ndm);
   void makeModuleVel(DOUBLE *RESTRICT p,DOUBLE *RESTRICT elVel
                  , INT const n           , short const ndm);

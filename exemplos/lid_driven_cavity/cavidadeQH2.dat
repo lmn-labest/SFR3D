@@ -1,0 +1,57 @@
+config
+reord true memory  500 fItPlotRes false fItPlot true
+endConfig
+//openmp 3 cell 4 solver 4 grad 4 
+//
+advection 1 Vel SoUp
+//advection 1 Vel LUST 0.25
+//advection 1 Vel TVD MidMod
+//
+rcGrad leastSquare noLimiter
+//rcGrad greenGaussNodeCell noLimiter
+//
+edp
+fluid 4
+endEdp
+//
+residual
+vel     1.e-06 1.e-06 1.e-06 0 F RSCALEDSUMMAX
+mass    1.e-06 F RSQRT
+endResidual
+//
+model
+momentum 4 residual soPressure rhiechow viscosity  
+turbulence 2 wale 0.325 wallModel standard
+endModel
+//
+mesh
+nnode 68921 numel 64000 ndm 3 maxno 8 numat 1 maxviz 6 
+fileMaterials
+1 prop/mat2.dat
+endFileMaterials
+insert mesh/cavidadeQH2_mesh.dat
+insert mesh/cavidadeQH2_res.dat
+loadsVel
+1 8 0 3 1.0 0.0 0.0
+endLoadsVel
+faceResPres
+1 7 0 0 0 0 0 0 1
+endFaceResPres
+loadsPres
+1 1 0 1 0.0 
+endLoadsPres
+endMesh
+//
+setPrint time 0.1 binary node cell vel pres eddyViscosity end
+//
+setSolvFluid 2 Vel config/solverVel.dat Pres config/solverPres.dat
+//
+setSimple config: config/simple.dat 
+//
+transient config: BACKWARD 0.05e0 120.0e+00 static
+simple
+timeUpdate
+pFluid
+endTransient
+stop
+

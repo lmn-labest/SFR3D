@@ -1,8 +1,8 @@
-#ifndef _CSR_H_  
+#ifndef _CSR_H_
   #define _CSR_H_
    #ifdef _AD_
     #undef  _AD_
-  #endif  
+  #endif
   #define _AD_ false
 /*...*/
   #include<stdio.h>
@@ -17,55 +17,55 @@
 /*...................................................................*/
 
 /*...*/
-  INT csrIa(INT *RESTRICT ia     ,INT *RESTRICT id 
+  INT csrIa(INT *RESTRICT ia     ,INT *RESTRICT id
            ,INT *RESTRICT num    ,INT *RESTRICT adj
            ,short *RESTRICT nViz
-           ,INT const numel      ,INT const neq  
-           ,short const maxViz   ,short const ndf 
-           ,bool const upper     ,bool const diag 
+           ,INT const numel      ,INT const neq
+           ,short const maxViz   ,short const ndf
+           ,bool const upper     ,bool const diag
            ,bool const lower     );
 
-  INT csrIaR(INT *RESTRICT ia     ,INT *RESTRICT id   
+  INT csrIaR(INT *RESTRICT ia     ,INT *RESTRICT id
             ,INT *RESTRICT num    ,INT *RESTRICT adj
             ,short *RESTRICT nViz
             ,INT const numel      ,INT const neq
             ,short const maxViz   ,short  const ndf);
 
-  void csrJa(INT *RESTRICT ia   ,INT *RESTRICT ja 
+  void csrJa(INT *RESTRICT ia   ,INT *RESTRICT ja
            ,INT *RESTRICT id    ,INT *RESTRICT num
            ,INT *RESTRICT adj   ,short *RESTRICT nViz
-           ,INT const numel     ,INT const neq 
+           ,INT const numel     ,INT const neq
            ,short const maxViz  ,short const ndf
            ,bool const upper    ,bool const diag
            ,bool const lower);
-  
-  void csrJaR(INT *RESTRICT ia   ,INT *RESTRICT ja 
+
+  void csrJaR(INT *RESTRICT ia   ,INT *RESTRICT ja
              ,INT *RESTRICT id    ,INT *RESTRICT num
              ,INT *RESTRICT adj   ,short *RESTRICT nViz
-             ,INT const numel     ,INT const neq 
+             ,INT const numel     ,INT const neq
              ,short const maxViz  ,short const ndf);
 /*...................................................................*/
 
-/*...*/  
-  void csr(INT    *RESTRICT  ia,INT *RESTRICT ja 
+/*...*/
+  void csr(INT    *RESTRICT  ia,INT *RESTRICT ja
           ,DOUBLE *RESTRICT a  ,DOUBLE *RESTRICT ad
-          ,DOUBLE *RESTRICT b  ,INT *RESTRICT lId                       
-          ,DOUBLE *RESTRICT lA ,DOUBLE *RESTRICT lB 
-          ,INT const nEq       ,INT const nEqNov 
-          ,INT const nAd       ,INT const nAdR 
-          ,short const nFace   ,short const ndf  
+          ,DOUBLE *RESTRICT b  ,INT *RESTRICT lId
+          ,DOUBLE *RESTRICT lA ,DOUBLE *RESTRICT lB
+          ,INT const nEq       ,INT const nEqNov
+          ,INT const nAd       ,INT const nAdR
+          ,short const nFace   ,short const ndf
           ,short const storade ,bool  const forces
           ,bool const matrix   ,bool  const  unsym);
 /*...................................................................*/
 
-/*...*/  
-  void csrSimple(INT    *RESTRICT  ia,INT *RESTRICT ja 
+/*...*/
+  void csrSimple(INT    *RESTRICT  ia,INT *RESTRICT ja
           ,DOUBLE *RESTRICT a  ,DOUBLE *RESTRICT ad
-          ,DOUBLE *RESTRICT b  ,INT *RESTRICT lId                       
-          ,DOUBLE *RESTRICT lA ,DOUBLE *RESTRICT lB 
-          ,INT const nEq       ,INT const nEqNov 
-          ,INT const nAd       ,INT const nAdR 
-          ,short const nFace   ,short const ndf  
+          ,DOUBLE *RESTRICT b  ,INT *RESTRICT lId
+          ,DOUBLE *RESTRICT lA ,DOUBLE *RESTRICT lB
+          ,INT const nEq       ,INT const nEqNov
+          ,INT const nAd       ,INT const nAdR
+          ,short const nFace   ,short const ndf
           ,short const storade ,bool  const forces
           ,bool const matrix   ,bool  const  unsym);
 /*...................................................................*/

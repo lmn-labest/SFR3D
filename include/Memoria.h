@@ -10,12 +10,12 @@
   #ifdef _MSC_VER
 	  typedef __int64 iptx;
   #else
-	  typedef long iptx; 
+	  typedef long iptx;
   #endif
 /*...*/
   #ifdef _AD_
     #undef  _AD_
-  #endif  
+  #endif
   #define _AD_ false
 /*.....................................................................*/
   #define ALIGN         64
@@ -27,13 +27,13 @@
 /*...Tipo de variavel usado no enderessamento de vetores*/
   #define TYPEADRESS void
 
-  iptx nmax;
+  extern iptx nmax;
 
   typedef struct{
     char *ia;/*arroanjo principal*/
     char nome_ponteiro[NPONTEIRO][MNOMEPONTEIRO+1];/*nome dos ponterios alocados*/
 	  unsigned int npont;/*numero de ponteiros alocados*/
-    iptx pont[NPONTEIRO][2];/*localizacao do ponteiro no ia*/    
+    iptx pont[NPONTEIRO][2];/*localizacao do ponteiro no ia*/
 	  TYPEADRESS **end[NPONTEIRO];/*endereco dos ponterios allocados*/
 	  iptx iespont;/*localizacao do ultimo ponteiro allocado no ia*/
     double   tempmem;/*tempo total de excucao das funcoes*/
@@ -52,7 +52,7 @@
   iptx usoMemoria(Memoria *, const char *const);
   void   mapVector       (Memoria*);
   double memoriaTotal(const char *const );
-  double memoriaVector(Memoria *        , const char *const 
+  double memoriaVector(Memoria *        , const char *const
                      , const char *const, bool);
   void   vzero(char*,long,char*);
 /*********************************************************************/

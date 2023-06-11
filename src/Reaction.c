@@ -7,20 +7,20 @@
  * arrheniusLaw: Lei de arrhenius                                    *
  * ------------------------------------------------------------------*
  * Parametros de entrada:                                            *
- * ------------------------------------------------------------------* 
+ * ------------------------------------------------------------------*
  * T     -> temperatura em kelvin                                    *
  * ------------------------------------------------------------------*
  * Paramanetros de saida:                                            *
  * ------------------------------------------------------------------*
  * ------------------------------------------------------------------*
  * OBS:                                                              *
- * ------------------------------------------------------------------*  
+ * ------------------------------------------------------------------*
  *********************************************************************/
 static DOUBLE arrheniusLaw(Arrhenius *arr,DOUBLE const T)
 {
-  DOUBLE A = arr->A, beta = arr->beta, Ta = arr->Ta;   
+  DOUBLE A = arr->A, beta = arr->beta, Ta = arr->Ta;
 
-  return A*pow(T,beta)*exp(-Ta/T);    
+  return A*pow(T,beta)*exp(-Ta/T);
 
 }
 /********************************************************************/
@@ -32,7 +32,7 @@ static DOUBLE arrheniusLaw(Arrhenius *arr,DOUBLE const T)
  * molaRateReaction: taxa de reacao molar                            *
  * ------------------------------------------------------------------*
  * Parametros de entrada:                                            *
- * ------------------------------------------------------------------* 
+ * ------------------------------------------------------------------*
  * chem  -> concentracao molar das especies                          *
  * Q     -> taxe de reacao molar o reacao (kmol/m3s)                 *
  * w     -> nao definido                                             *
@@ -42,19 +42,19 @@ static DOUBLE arrheniusLaw(Arrhenius *arr,DOUBLE const T)
  * w     -> taxa de reacao das especies em kg/m3 s                   *
  * ------------------------------------------------------------------*
  * OBS:                                                              *
- * ------------------------------------------------------------------*  
+ * ------------------------------------------------------------------*
  *********************************************************************/
 void massRateReaction(Chemical *chem  ,DOUBLE *RESTRICT Q
                      ,DOUBLE *RESTRICT w)
 {
   unsigned short i, j, nReac =chem->nReac, nSp = chem->nSp;
   DOUBLE de;
-  
+
   for(j=0;j<nSp;j++)
     w[j] = 0.e0;
 
   for(i=0;i<nReac;i++)
-  { 
+  {
     for(j=0;j<nSp;j++)
     {
 /*... */
@@ -74,7 +74,7 @@ void massRateReaction(Chemical *chem  ,DOUBLE *RESTRICT Q
  * massActionMass:                                                   *
  * ------------------------------------------------------------------*
  * Parametros de entrada:                                            *
- * ------------------------------------------------------------------* 
+ * ------------------------------------------------------------------*
  * c     -> concentracao molar das especies                          *
  * w     -> nao definido                                             *
  * T     -> temperatura em kelvin                                    *
@@ -84,14 +84,14 @@ void massRateReaction(Chemical *chem  ,DOUBLE *RESTRICT Q
  * ------------------------------------------------------------------*
  * ------------------------------------------------------------------*
  * OBS: mol/(cm3 s)                                                  *
- * ------------------------------------------------------------------*  
+ * ------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE massActionMass(Reaction *reac     ,Prop *sHeatPol 
+DOUBLE massActionMass(Reaction *reac     ,Prop *sHeatPol
                      ,DOUBLE  *RESTRICT c
                      ,DOUBLE const T     ,unsigned short const nSp)
 {
   unsigned short i;
-  DOUBLE kf,kr,qf,qr;  
+  DOUBLE kf,kr,qf,qr;
 
 /*... reacao direta*/
   kf = arrheniusLaw(&reac->ArrF, T);
@@ -103,9 +103,9 @@ DOUBLE massActionMass(Reaction *reac     ,Prop *sHeatPol
   qr = 0.e0;
   if(reac->reverse)
   {
-/*  kr = reverseK(reac       ,sHeatPol 
+/*  kr = reverseK(reac       ,sHeatPol
                  ,T          ,R
-                 ,kf         ,1.0     
+                 ,kf         ,1.0
                  ,nSp);*/
     kr = arrheniusLaw(&reac->ArrR, T);
 
@@ -128,7 +128,7 @@ DOUBLE massActionMass(Reaction *reac     ,Prop *sHeatPol
  * cModel        -> modelo de combustao                              *
  * zComb         -> fracao massica                                   *
  * temp          -> temperatura                                      *
- * rate          -> nao definido                                     * 
+ * rate          -> nao definido                                     *
  * density       -> densidade                                        *
  * eddyViscosity -> viscosidade turbulenta                           *
  * dViscosity    -> viscosidade dinamica                             *
@@ -137,21 +137,21 @@ DOUBLE massActionMass(Reaction *reac     ,Prop *sHeatPol
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * rate    -> taxa de consumo massico das especies                   * 
+ * rate    -> taxa de consumo massico das especies                   *
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
 void rateReaction(Combustion *cModel         , Turbulence *tModel
              , PropVarFluid *pFluid
-             , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT temp        
-             , DOUBLE *RESTRICT rate         , DOUBLE *RESTRICT density 
+             , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT temp
+             , DOUBLE *RESTRICT rate         , DOUBLE *RESTRICT density
              , DOUBLE *RESTRICT gradVel      , DOUBLE *RESTRICT eddyViscosity
-             , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT tReactor 
-             , DOUBLE const dt               , DOUBLE const Pth 
+             , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT tReactor
+             , DOUBLE const dt               , DOUBLE const Pth
              , short const ndm               , INT const numel
-             , bool const fKelvin            , bool const fOmp           
-             , short const nThreads )  
+             , bool const fKelvin            , bool const fOmp
+             , short const nThreads )
 {
   short nComb = cModel->nComb
        , iCod = cModel->reactionKinetic
@@ -184,7 +184,7 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
         for(i=0;i<nReac;i++)
         {
 /*... mol/(cm3 s)*/
-          omega = massActionMass(&cModel->chem.reac[i],&pFluid->sHeat 
+          omega = massActionMass(&cModel->chem.reac[i],&pFluid->sHeat
                                 ,cM
                                 ,tK                   ,nComb);
 /*... kmol/(m3 s)*/
@@ -193,12 +193,12 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
 /*...................................................................*/
 
       massRateReaction(&cModel->chem,Q,w);
-/*... */     
+/*... */
       for(i=0;i<nSp;i++)
         MAT2D(nel,i,rate,nSp) = w[i];
 /*...................................................................*/
-    } 
-/*...................................................................*/    
+    }
+/*...................................................................*/
     break;
 /*...................................................................*/
 
@@ -212,13 +212,13 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
         private(nel,pz,i,it,densityC,eddyC,y,w)\
         shared(cModel,zComb,nComb,density,nSp,rate,pFluid,temp\
               ,tReactor,eddyViscosity,dViscosity,thDynamic\
-              ,tModel)
+              ,tModel,numel,fKelvin,dt)
         for(nel = 0; nel < numel; nel++)
         {
           pz = &MAT2D(nel,0,zComb,nComb);
           densityC = density[nel];
           getSpeciesPrimitivesCc(cModel,y,pz);
-          eddyC = 0.e0;     
+          eddyC = 0.e0;
           if(tModel->fTurb)
             eddyC = eddyViscosity[nel];
 /*...*/
@@ -232,10 +232,10 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
 /*...................................................................*/
           for(i=0;i<nSp;i++)
             MAT2D(nel,i,rate,nSp) = w[i];
-        }     
+        }
 /*...................................................................*/
       }
-/*...................................................................*/ 
+/*...................................................................*/
 
 /*...*/
       else
@@ -256,11 +256,11 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
            ,dt                                    ,temp[nel]
            ,eddyC                                 ,dViscosity[nel]
            ,thDynamic.pTh[2]                      ,fKelvin
-           ,nel );          
+           ,nel );
 /*...................................................................*/
           for(i=0;i<nSp;i++)
             MAT2D(nel,i,rate,nSp) = w[i];
-        }     
+        }
 /*...................................................................*/
       }
 /*...................................................................*/
@@ -276,9 +276,9 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
 /*...*/
 #pragma omp parallel  for default(none) num_threads(nThreads)\
         private(nel,pz,i,it,densityC,y,w)\
-        shared(cModel,zComb,nComb,density,nSp,rate,tReactor)
+        shared(cModel,zComb,nComb,density,nSp,rate,tReactor,numel)
         for(nel = 0; nel < numel; nel++)
-        { 
+        {
           pz = &MAT2D(nel,0,zComb,nComb);
           densityC = density[nel];
           getSpeciesPrimitivesCc(cModel,y,pz);
@@ -297,7 +297,7 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
       {
 /*...*/
         for(nel = 0; nel < numel; nel++)
-        { 
+        {
           pz = &MAT2D(nel,0,zComb,nComb);
           densityC = density[nel];
           getSpeciesPrimitivesCc(cModel,y,pz);
@@ -330,37 +330,37 @@ void rateReaction(Combustion *cModel         , Turbulence *tModel
  * zFrac   -> fracao massica                                         *
  * temp    -> temperatura                                            *
  * density -> densidade                                              *
- * eddyVis -> viscosidade turbulenta                                 * 
- * cDiffY  -> coeficiente de difusaõ massico                         *
+ * eddyVis -> viscosidade turbulenta                                 *
+ * cDiffY  -> coeficiente de difusaï¿½ massico                         *
  * dVisc   -> viscosidade dinamica                                   *
- * tReactor-> escala de tempo do reator                              * 
+ * tReactor-> escala de tempo do reator                              *
  * numel   -> numero de elementos                                    *
  *-------------------------------------------------------------------*
  * Parametros de saida:                                              *
  *-------------------------------------------------------------------*
- * rate    -> taxa de consumo do combustivel                         * 
+ * rate    -> taxa de consumo do combustivel                         *
  *-------------------------------------------------------------------*
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
 void timeChemical(Combustion *cModel      , Turbulence *tModel
              , PropVarFluid *pFluid
-             , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT temp  
-             , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT gradVel 
+             , DOUBLE *RESTRICT zComb        , DOUBLE *RESTRICT temp
+             , DOUBLE *RESTRICT density      , DOUBLE *RESTRICT gradVel
              , DOUBLE *RESTRICT eddyViscosity, DOUBLE *RESTRICT cDiffY
-             , DOUBLE *RESTRICT volume  
+             , DOUBLE *RESTRICT volume
              , DOUBLE *RESTRICT dViscosity   , DOUBLE *RESTRICT tReactor
-             , short const ndm               , INT const numel   
+             , short const ndm               , INT const numel
              , bool const fKelvin )
 {
-  short  nComb = cModel->nComb    
+  short  nComb = cModel->nComb
        , nSp   = cModel->nOfSpecies;
   short i;
   INT nel;
   DOUBLE sT[6],*iGradVel,*pz;
   DOUBLE omega, densityC,tmp,modS,tMix,dF;
   DOUBLE tTurb,tDiff;
-  DOUBLE tK,y[MAXSPECIES],cM[MAXSPECIES],Q[MAXREAC],w[MAXSPECIES],tChemical; 
+  DOUBLE tK,y[MAXSPECIES],cM[MAXSPECIES],Q[MAXREAC],w[MAXSPECIES],tChemical;
 
 /*...*/
   for(nel = 0; nel < numel; nel++)
@@ -384,7 +384,7 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
     for(i=0;i<cModel->chem.nReac;i++)
     {
 /*... mol/(cm3 s)*/
-      omega = massActionMass(&cModel->chem.reac[i],&pFluid->sHeat 
+      omega = massActionMass(&cModel->chem.reac[i],&pFluid->sHeat
                             ,cM
                             ,tK                   ,nComb);
 /*...................................................................*/
@@ -392,7 +392,7 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
 /*... kmol/(m3 s)*/
       Q[i] = 1.e+03*omega;
     }
-/*...................................................................*/ 
+/*...................................................................*/
 
     massRateReaction(&cModel->chem,Q ,w);
     dF = MAT2D(nel,0,cDiffY,nSp);
@@ -402,22 +402,22 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
       {
         tmp       = fabs(w[i]/densityC);
         tmp       = y[i]/tmp;
-        tChemical = max(tmp,tChemical); 
+        tChemical = max(tmp,tChemical);
       }
       dF = min(dF,MAT2D(nel,i,cDiffY,nSp));
     }
-/*...................................................................*/ 
-      
-/*...*/ 
+/*...................................................................*/
+
+/*...*/
     tDiff = pow(volume[nel], D2DIV3)/dF;
     tTurb = 1.e0/modS;
     tMix  = min(tTurb,tDiff);
 /*...................................................................*/
 
-/*...*/  
+/*...*/
     MAT2D(nel,0,tReactor,N_TERMS_REACTOR) = tMix;
-    MAT2D(nel,1,tReactor,N_TERMS_REACTOR) = tChemical; 
-    MAT2D(nel,2,tReactor,N_TERMS_REACTOR) = tMix/tChemical; 
+    MAT2D(nel,1,tReactor,N_TERMS_REACTOR) = tChemical;
+    MAT2D(nel,2,tReactor,N_TERMS_REACTOR) = tMix/tChemical;
 /*...................................................................*/
   }
 /*...................................................................*/
@@ -442,12 +442,12 @@ void timeChemical(Combustion *cModel      , Turbulence *tModel
  *********************************************************************/
 void initLumpedMatrix(Combustion *cModel)
 {
-  
+
   short nl = cModel->nOfSpeciesLump
       , posN2 = cModel->chem.sN2;
   DOUBLE mO2,mN2,mCO2p,mH2Op,mN2p,mAir,mProd;
 
-  mO2 = mN2 = mCO2p = mH2Op = mN2p = 0.e0; 
+  mO2 = mN2 = mCO2p = mH2Op = mN2p = 0.e0;
 
   mO2   = cModel->chem.reac[0].stch[cModel->chem.sO2][0]
          *cModel->chem.sp[cModel->chem.sO2].mW;
@@ -463,33 +463,33 @@ void initLumpedMatrix(Combustion *cModel)
   mAir  = mO2 + mN2;
   mProd = mCO2p + mH2Op + mN2p;
 /*... Fuel*/
-  MAT2D(cModel->chem.sCH4,0,cModel->lumpedMatrix,nl) = 1.e0; 
-  MAT2D(cModel->chem.sCH4,1,cModel->lumpedMatrix,nl) = 0.e0; 
-  MAT2D(cModel->chem.sCH4,2,cModel->lumpedMatrix,nl) = 0.e0; 
+  MAT2D(cModel->chem.sCH4,0,cModel->lumpedMatrix,nl) = 1.e0;
+  MAT2D(cModel->chem.sCH4,1,cModel->lumpedMatrix,nl) = 0.e0;
+  MAT2D(cModel->chem.sCH4,2,cModel->lumpedMatrix,nl) = 0.e0;
 /*...................................................................*/
 
 /*... O2*/
   MAT2D(cModel->chem.sO2,0,cModel->lumpedMatrix,nl) = 0.e0;
-  MAT2D(cModel->chem.sO2,1,cModel->lumpedMatrix,nl) = mO2/mAir; 
-  MAT2D(cModel->chem.sO2,2,cModel->lumpedMatrix,nl) = 0.0e0; 
+  MAT2D(cModel->chem.sO2,1,cModel->lumpedMatrix,nl) = mO2/mAir;
+  MAT2D(cModel->chem.sO2,2,cModel->lumpedMatrix,nl) = 0.0e0;
 /*...................................................................*/
 
 /*... CO2*/
-  MAT2D(cModel->chem.sCO2,0,cModel->lumpedMatrix,nl) = 0.e0; 
-  MAT2D(cModel->chem.sCO2,1,cModel->lumpedMatrix,nl) = 0.0e0; 
-  MAT2D(cModel->chem.sCO2,2,cModel->lumpedMatrix,nl) = mCO2p/mProd;  
+  MAT2D(cModel->chem.sCO2,0,cModel->lumpedMatrix,nl) = 0.e0;
+  MAT2D(cModel->chem.sCO2,1,cModel->lumpedMatrix,nl) = 0.0e0;
+  MAT2D(cModel->chem.sCO2,2,cModel->lumpedMatrix,nl) = mCO2p/mProd;
 /*...................................................................*/
 
 /*... H2O*/
-  MAT2D(cModel->chem.sH2O,0,cModel->lumpedMatrix,nl) = 0.e0; 
-  MAT2D(cModel->chem.sH2O,1,cModel->lumpedMatrix,nl) = 0.e0; 
-  MAT2D(cModel->chem.sH2O,2,cModel->lumpedMatrix,nl) =  mH2Op/mProd; 
+  MAT2D(cModel->chem.sH2O,0,cModel->lumpedMatrix,nl) = 0.e0;
+  MAT2D(cModel->chem.sH2O,1,cModel->lumpedMatrix,nl) = 0.e0;
+  MAT2D(cModel->chem.sH2O,2,cModel->lumpedMatrix,nl) =  mH2Op/mProd;
 /*...................................................................*/
 
 /*... N2*/
-  MAT2D(cModel->chem.sN2,0,cModel->lumpedMatrix,nl) = 0.e0; 
-  MAT2D(cModel->chem.sN2,1,cModel->lumpedMatrix,nl) = mN2/mAir; 
-  MAT2D(cModel->chem.sN2,2,cModel->lumpedMatrix,nl) = mN2p/mProd;  
+  MAT2D(cModel->chem.sN2,0,cModel->lumpedMatrix,nl) = 0.e0;
+  MAT2D(cModel->chem.sN2,1,cModel->lumpedMatrix,nl) = mN2/mAir;
+  MAT2D(cModel->chem.sN2,2,cModel->lumpedMatrix,nl) = mN2p/mProd;
 /*...................................................................*/
 
 
@@ -532,7 +532,7 @@ void yLumpedMatrixZ(DOUBLE *RESTRICT y, DOUBLE *RESTRICT a
   for(i=0;i<ns;i++){
     y[i] = 0.e0;
     for(j=0;j<nl;j++)
-      y[i] += MAT2D(i,j,a,nl)*z[j];  
+      y[i] += MAT2D(i,j,a,nl)*z[j];
   }
 /*...................................................................*/
 
@@ -556,7 +556,7 @@ void yLumpedMatrixZ(DOUBLE *RESTRICT y, DOUBLE *RESTRICT a
  *********************************************************************/
 void initMolarMass(Combustion *cModel)
 {
-  
+
   short i,
         eO  = cModel->chem.eO,
         eN  = cModel->chem.eN,
@@ -620,13 +620,13 @@ void initEntalpyOfFormation(Combustion *cModel, Prop *sHeatPol)
 /*...*/
   for(i=0;i<cModel->chem.nSp;i++)
   {
-    cModel->chem.sp[i].entalphyOfForm = 
+    cModel->chem.sp[i].entalphyOfForm =
     cModel->chem.sp[i].entalphyOfFormMolar = polNasaH(&sHeatPol->nasa[i]
                                                      , 298.15e0, true);
     cModel->chem.sp[i].entalphyOfForm /= cModel->chem.sp[i].mW;
   }
 /*...................................................................*/
-  
+
 /*...*/
   if(!mpiVar.myId)
   {
@@ -637,7 +637,7 @@ void initEntalpyOfFormation(Combustion *cModel, Prop *sHeatPol)
     fprintf(fileLogExc, "%-20s:\n","entalphy of Form (kj/kg)");
     for(i=0;i<cModel->chem.nSp;i++)
       fprintf(fileLogExc, "%-20s: %+.6e\n",cModel->chem.sp[i].name
-                              ,cModel->chem.sp[i].entalphyOfForm);  
+                              ,cModel->chem.sp[i].entalphyOfForm);
   }
 /*..................................................................*/
 }
@@ -660,11 +660,11 @@ void initEntalpyOfFormation(Combustion *cModel, Prop *sHeatPol)
  *********************************************************************/
 void initEntalpyOfCombustion(Combustion *cModel)
 {
-  
+
   DOUBLE hFuel,hCO2,hH2O;
 
 /*...  Fuel - KJ/kMol*/
-  hFuel = -74870.e0; 
+  hFuel = -74870.e0;
 /*... CO2 - KJ/kMol*/
   hCO2 = -393520.e0;
 /*... H2O - KJ/kMol*/
@@ -675,14 +675,14 @@ void initEntalpyOfCombustion(Combustion *cModel)
 
   fprintf(fileLogExc,"Primitives species:\n");
 
-  fprintf(fileLogExc,"Entalphy of combustion (KJ/Kmol) = %lf\n"  
+  fprintf(fileLogExc,"Entalphy of combustion (KJ/Kmol) = %lf\n"
                     ,cModel->entalphyOfCombustion);
 
 
 /*... KJ/KG de fuel */
   cModel->entalphyOfCombustion  /= cModel->chem.sp[cModel->chem.sCH4].mW;
 
-  fprintf(fileLogExc,"Entalphy of combustion (KJ/KG)   = %lf\n\n"  
+  fprintf(fileLogExc,"Entalphy of combustion (KJ/KG)   = %lf\n\n"
                     ,cModel->entalphyOfCombustion);
 }
 /********************************************************************/
@@ -717,7 +717,7 @@ void concetracionOfSpecies(Combustion *cModel,DOUBLE *RESTRICT y
     tmp  = max(y[i],0.e0);
     c[i] =1.e-03*tmp*density/cModel->chem.sp[i].mW;
   }
- 
+
 
 }
 /*********************************************************************/
@@ -739,8 +739,8 @@ void concetracionOfSpecies(Combustion *cModel,DOUBLE *RESTRICT y
  * OBS:                                                              *
  *-------------------------------------------------------------------*
  *********************************************************************/
-DOUBLE mixtureMolarMass(Combustion *cModel,DOUBLE *RESTRICT y) 
-{                    
+DOUBLE mixtureMolarMass(Combustion *cModel,DOUBLE *RESTRICT y)
+{
 
   short i, ns = cModel->nOfSpecies;
   DOUBLE tmp;
@@ -773,8 +773,8 @@ DOUBLE mixtureMolarMass(Combustion *cModel,DOUBLE *RESTRICT y)
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE mixtureMolarMassMed(Combustion *cModel     ,DOUBLE *RESTRICT y
-                          ,DOUBLE *RESTRICT volume,DOUBLE const numel) 
-{                    
+                          ,DOUBLE *RESTRICT volume,DOUBLE const numel)
+{
 
   short nSp = cModel->nOfSpecies;
   INT nel;
@@ -811,8 +811,8 @@ DOUBLE mixtureMolarMassMed(Combustion *cModel     ,DOUBLE *RESTRICT y
  *-------------------------------------------------------------------*
  *********************************************************************/
 DOUBLE mixtureMolarMassMedMpi(Combustion *cModel    ,DOUBLE *RESTRICT y
-                            ,DOUBLE *RESTRICT volume,DOUBLE const numel) 
-{                    
+                            ,DOUBLE *RESTRICT volume,DOUBLE const numel)
+{
 
   short nSp = cModel->nOfSpecies;
   INT nel;
@@ -825,21 +825,21 @@ DOUBLE mixtureMolarMassMedMpi(Combustion *cModel    ,DOUBLE *RESTRICT y
   for(nel=0,mm=0.e0,vm=0.e0;nel<numel;nel++)
   {
     vm += volume[nel];
-    mm += mixtureMolarMass(cModel,&MAT2D(nel,0,y,nSp))*volume[nel]; 
+    mm += mixtureMolarMass(cModel,&MAT2D(nel,0,y,nSp))*volume[nel];
   }
 /*...................................................................*/
 
 /*....*/
 #ifdef _MPI_
   if(mpiVar.nPrcs>1)
-  { 
+  {
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
     MPI_Allreduce(&vm ,&gVm ,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
     MPI_Allreduce(&mm ,&gMm ,1,MPI_DOUBLE,MPI_SUM,mpiVar.comm);
     tm.overHeadMiscMpi = getTimeC() - tm.overHeadMiscMpi;
-    mW = gMm/gVm; 
+    mW = gMm/gVm;
   }
-  else  
+  else
     mW = mm/vm;
 #else
     mW = mm/vm;
@@ -882,9 +882,9 @@ void plugFlowReactor(DOUBLE const t    ,DOUBLE *RESTRICT y
 
 /*...*/
   for(i=0;i<cModel->chem.nReac;i++)
-    Q[i] = massActionMass(&cModel->chem.reac[i],sHeat 
+    Q[i] = massActionMass(&cModel->chem.reac[i],sHeat
                   ,c
-                  ,*T                 ,nSp);  
+                  ,*T                 ,nSp);
   massRateReaction(&cModel->chem  ,Q,w);
 /*...............................................................*/
 

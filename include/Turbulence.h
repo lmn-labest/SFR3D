@@ -17,29 +17,29 @@
 /*...................................................................*/
 
 /*...*/
-  void turbulence(Memoria *m            
+  void turbulence(Memoria *m
                 , Loads *lKturb  , Loads *lVel
                 , PartMesh *pMesh, Turbulence *tModel
                 , Mesh *mesh     , Scheme *sc
-                , Simple *sp     , SistEq *sistEq    
-                , Solv *solv     , short const ndf);   
+                , Simple *sp     , SistEq *sistEq
+                , Solv *solv     , short const ndf);
 /*...................................................................*/
 
 /*...*/
   void lesDynamicMean(Memoria *m              , Turbulence *tModel
-                   , INT    *RESTRICT nelcon  , short  *RESTRICT nen    
-                   , short  *RESTRICT nFace   , DOUBLE *RESTRICT gVolume 
-                   , DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT gradVel 
+                   , INT    *RESTRICT nelcon  , short  *RESTRICT nen
+                   , short  *RESTRICT nFace   , DOUBLE *RESTRICT gVolume
+                   , DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT gradVel
                    , DOUBLE *RESTRICT density , DOUBLE *RESTRICT dViscosity
-                   , DOUBLE *RESTRICT cDyn                                   
+                   , DOUBLE *RESTRICT cDyn
                    , short const maxNo        , short const maxViz
-                   , short const ndm          , INT const numel     
-                   , short const ndf          , short const iCod) ; 
+                   , short const ndm          , INT const numel
+                   , short const ndf          , short const iCod) ;
 /*...................................................................*/
 
 /*...*/
   void turbulenceCellLoop(Loads *lVel     , Turbulence *tModel
-          , Interface *iCel 
+          , Interface *iCel
           , INT    *RESTRICT el           , INT    *RESTRICT nelcon
           , short  *RESTRICT nen          , short  *RESTRICT nFace
           , INT *RESTRICT cellFace        , INT *RESTRICT fOwner
@@ -63,21 +63,21 @@
 
 
 /*...*/
-  void sLesModCellLoop(Turbulence *tModel      
-                   , DOUBLE *RESTRICT x       , INT *RESTRICT el       
-                   , INT *RESTRICT nelcon     , short  *RESTRICT nen    
-                   , short *RESTRICT nFace    , DOUBLE *RESTRICT gVolume 
-                   , DOUBLE *RESTRICT nVel    , DOUBLE *RESTRICT eVel 
-                   , DOUBLE *RESTRICT nDensity, DOUBLE *RESTRICT eDensity  
-                   , DOUBLE *RESTRICT gradVel , DOUBLE *RESTRICT stressR                                  
+  void sLesModCellLoop(Turbulence *tModel
+                   , DOUBLE *RESTRICT x       , INT *RESTRICT el
+                   , INT *RESTRICT nelcon     , short  *RESTRICT nen
+                   , short *RESTRICT nFace    , DOUBLE *RESTRICT gVolume
+                   , DOUBLE *RESTRICT nVel    , DOUBLE *RESTRICT eVel
+                   , DOUBLE *RESTRICT nDensity, DOUBLE *RESTRICT eDensity
+                   , DOUBLE *RESTRICT gradVel , DOUBLE *RESTRICT stressR
                    , DOUBLE *RESTRICT cd
                    , short const maxNo        , short const maxViz
-                   , short const ndm          , INT const numel     
-                   , short const ndf          , bool const fNode);  
+                   , short const ndm          , INT const numel
+                   , short const ndf          , bool const fNode);
 /*...................................................................*/
 
 /*...*/
-  void cellLes(Loads *loadsVel         , Turbulence tModel           
+  void cellLes(Loads *loadsVel         , Turbulence tModel
           , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop
           , INT *RESTRICT lViz         , DOUBLE *RESTRICT ksi
           , DOUBLE *RESTRICT mKsi
@@ -86,24 +86,24 @@
           , DOUBLE *RESTRICT xm        , DOUBLE *RESTRICT xmcc
           , DOUBLE *RESTRICT dcca      , DOUBLE *RESTRICT cc
           , DOUBLE *RESTRICT vSkew     , DOUBLE *RESTRICT mvSkew
-          , short  *RESTRICT faceVelR  , short *RESTRICT faceVelL      
-          , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel   
+          , short  *RESTRICT faceVelR  , short *RESTRICT faceVelL
+          , DOUBLE *RESTRICT vel       , DOUBLE *RESTRICT gradVel
           , DOUBLE *RESTRICT lDensity  , DOUBLE const dViscosity
-          , DOUBLE *viscosity          
+          , DOUBLE *viscosity
           , const short nEn            , short const nFace
           , const short ndm            , INT const nel);
 
-  void eddyViscosity3D(Loads *lVel             , Turbulence tModel           
-          , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop 
+  void eddyViscosity3D(Loads *lVel             , Turbulence tModel
+          , short *RESTRICT lGeomType  , DOUBLE *RESTRICT prop
           , INT *RESTRICT lViz         , DOUBLE *RESTRICT fArea
-          , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume 
-          , DOUBLE *RESTRICT dcca      , short *RESTRICT lFaceVelR  
-          , short *RESTRICT lFaceVelL  , DOUBLE *RESTRICT vel       
-          , DOUBLE *RESTRICT gradVel   , DOUBLE *RESTRICT lDensity  
-          , DOUBLE const dViscosity    , DOUBLE *viscosity          
+          , DOUBLE *RESTRICT normal    , DOUBLE *RESTRICT volume
+          , DOUBLE *RESTRICT dcca      , short *RESTRICT lFaceVelR
+          , short *RESTRICT lFaceVelL  , DOUBLE *RESTRICT vel
+          , DOUBLE *RESTRICT gradVel   , DOUBLE *RESTRICT lDensity
+          , DOUBLE const dViscosity    , DOUBLE *viscosity
           , DOUBLE *RESTRICT wallPar   , DOUBLE const nDyn
-          , const short nEn            , short const nFace 
-          , const short ndm            , INT const nel); 
+          , const short nEn            , short const nFace
+          , const short ndm            , INT const nel);
 /*...................................................................*/
 
 /*...*/
@@ -111,11 +111,11 @@
                 , DOUBLE *RESTRICT lDensity  , DOUBLE *RESTRICT vel
                 , DOUBLE *RESTRICT gradVel   , DOUBLE *RESTRICT lDynamic
                 , short const typeLesFunc    , short const nFace  );
-  
+
   void lesDynOneParG(INT *RESTRICT lViz      , DOUBLE *RESTRICT volume
                 , DOUBLE *RESTRICT gradVel , DOUBLE *RESTRICT lDynamic
                 , short const typeLesFunc  , short const nFace  );
-  
+
   void lesDynTwoPar(INT *RESTRICT lViz       , DOUBLE *RESTRICT volume
                 , DOUBLE *RESTRICT lDensity, DOUBLE *RESTRICT vel
                 , DOUBLE *RESTRICT gradVel , DOUBLE *RESTRICT lDynamic
@@ -124,7 +124,7 @@
 
 /*...*/
   void wallModel(DOUBLE const vt     , DOUBLE const viscosity
-               , DOUBLE const density, DOUBLE const dWall 
+               , DOUBLE const density, DOUBLE const dWall
                , DOUBLE *yP          , DOUBLE *uP
                , short const iCod);
   DOUBLE wallModelHeat(DOUBLE const yPlus,DOUBLE const prM
@@ -132,27 +132,27 @@
 /*...................................................................*/
 
 /*...*/
-  void wallParametersCellLoop(Loads *lVel , Turbulence *tModel  
+  void wallParametersCellLoop(Loads *lVel , Turbulence *tModel
       , INT *RESTRICT cellFace          , INT *RESTRICT fOwner
-      , INT    *RESTRICT nelcon         , short  *RESTRICT nFace 
+      , INT    *RESTRICT nelcon         , short  *RESTRICT nFace
       , DOUBLE *RESTRICT fNormal        , DOUBLE *RESTRICT gVolume
-      , DOUBLE *RESTRICT gDcca  
-      , short  *RESTRICT faceVelR       , short *RESTRICT faceVelL               
+      , DOUBLE *RESTRICT gDcca
+      , short  *RESTRICT faceVelR       , short *RESTRICT faceVelL
       , DOUBLE *RESTRICT vel            , DOUBLE *RESTRICT density
-      , DOUBLE *RESTRICT dViscosity     , DOUBLE *RESTRICT wallPar  
+      , DOUBLE *RESTRICT dViscosity     , DOUBLE *RESTRICT wallPar
       , short const maxNo               , short const maxViz
-      , short const ndm                 , INT const numel     
-      , short const ndf);                      
+      , short const ndm                 , INT const numel
+      , short const ndf);
 /*...................................................................*/
 
 /*...*/
-  void oneEquationK(Memoria *m        
+  void oneEquationK(Memoria *m
                 , Loads *lKturb     , Loads *lVel
                 , PartMesh *pMesh   , Turbulence *tModel
                 , Mesh *mesh        , Scheme *sc
-                , Simple *sp  
+                , Simple *sp
                 , SistEq *sistEq    , Solv *solv);
-  
+
   void lesOneKeqLoc(INT *RESTRICT lViz     , DOUBLE *RESTRICT volume
                 , DOUBLE *RESTRICT lDensity, DOUBLE *RESTRICT vel
                 , DOUBLE *RESTRICT gradVel , DOUBLE *RESTRICT lDynamic
@@ -162,57 +162,57 @@
   void lesOneKeqPar(Turbulence *tModel, INT *RESTRICT lViz
          , DOUBLE *RESTRICT dynamic , DOUBLE *RESTRICT cDyn
          , DOUBLE *RESTRICT volume  , short const nFace
-         , INT const nel            , short const nPar 
-         , bool const fCap); 
+         , INT const nel            , short const nPar
+         , bool const fCap);
 
   void lesDynamicOneKeq(Memoria *m             , Turbulence *tModel
-                  , INT    *RESTRICT nelcon  , short  *RESTRICT nen    
-                  , short  *RESTRICT nFace   , DOUBLE *RESTRICT gVolume 
-                  , DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT gradVel 
+                  , INT    *RESTRICT nelcon  , short  *RESTRICT nen
+                  , short  *RESTRICT nFace   , DOUBLE *RESTRICT gVolume
+                  , DOUBLE *RESTRICT vel     , DOUBLE *RESTRICT gradVel
                   , DOUBLE *RESTRICT density , DOUBLE *RESTRICT dViscosity
-                  , DOUBLE *RESTRICT eddyVis , DOUBLE *RESTRICT cDyn                                      
+                  , DOUBLE *RESTRICT eddyVis , DOUBLE *RESTRICT cDyn
                   , short const maxNo        , short const maxViz
-                  , short const ndm          , INT const numel     
+                  , short const ndm          , INT const numel
                   , short const ndf          , short const iCod) ;
 /*...................................................................*/
 
 /*...*/
-  bool wallParameters(Loads *lVel               
-             , INT *RESTRICT lViz       , DOUBLE *RESTRICT v 
+  bool wallParameters(Loads *lVel
+             , INT *RESTRICT lViz       , DOUBLE *RESTRICT v
              , DOUBLE *RESTRICT normal  , DOUBLE *RESTRICT dcca
              , short *RESTRICT lFaceVelR, short *RESTRICT lFaceVelL
              , DOUBLE const viscosity   , DOUBLE const density
-             , DOUBLE *RESTRICT wallPar , DOUBLE *dWall     
+             , DOUBLE *RESTRICT wallPar , DOUBLE *dWall
              , short const wallType     , short const nFace );
 /*...................................................................*/
 
 /*...*/
-  DOUBLE sigmaModel( DOUBLE *RESTRICT gradVel 
+  DOUBLE sigmaModel( DOUBLE *RESTRICT gradVel
                    , short const nFace , short const ndm);
   DOUBLE waleModel(DOUBLE *RESTRICT gradVel);
   DOUBLE svs(DOUBLE *RESTRICT gradVel);
 /*...................................................................*/
 
 /*...*/
-  void bardinaModel(DOUBLE *RESTRICT xl   , DOUBLE *RESTRICT stressR  
+  void bardinaModel(DOUBLE *RESTRICT xl   , DOUBLE *RESTRICT stressR
                 , DOUBLE *RESTRICT nVel , DOUBLE *RESTRICT nDensity
                 , DOUBLE const vol
                 , DOUBLE const cs       , INT const nEl
                 , short const ndm       , short const nFace);
 
-  void bardinaModelMod(INT *RESTRICT lViz  , DOUBLE *RESTRICT stressR  
+  void bardinaModelMod(INT *RESTRICT lViz  , DOUBLE *RESTRICT stressR
                       , DOUBLE *RESTRICT vel, DOUBLE *RESTRICT gradVel
                       , DOUBLE *RESTRICT vol, DOUBLE *RESTRICT lDensity
-                      , DOUBLE const cs 
+                      , DOUBLE const cs
                       , short const ndm     , short const nFace);
 
   void structuralStress(Turbulence tModel , DOUBLE *RESTRICT xl
-                , INT *RESTRICT lViz      , DOUBLE *RESTRICT stressR  
+                , INT *RESTRICT lViz      , DOUBLE *RESTRICT stressR
                 , DOUBLE *RESTRICT nVel   , DOUBLE *RESTRICT eVel
                 , DOUBLE *RESTRICT nDen   , DOUBLE *RESTRICT eDen
-                , DOUBLE *RESTRICT gradVel, DOUBLE *RESTRICT vol 
-                , DOUBLE const cd                   
-                , short const ndm         , short const nFace                
+                , DOUBLE *RESTRICT gradVel, DOUBLE *RESTRICT vol
+                , DOUBLE const cd
+                , short const ndm         , short const nFace
                 , INT const nEl);
 /*...................................................................*/
 
@@ -232,7 +232,7 @@
                     , DOUBLE const density, DOUBLE const viscosity
                     , bool const cap);
   void twoParLes(Turbulence *tModel      , INT *RESTRICT lViz
-               , DOUBLE *RESTRICT dynamic, DOUBLE *RESTRICT cDyn             
+               , DOUBLE *RESTRICT dynamic, DOUBLE *RESTRICT cDyn
                , short const nFace       , bool const cap);
   void tensorS( DOUBLE *RESTRICT s,  DOUBLE *RESTRICT gradVel
               , bool const flag );
@@ -245,16 +245,16 @@
 
 /*...*/
   void sfHexa8(DOUBLE const eps ,DOUBLE const nn
-           , DOUBLE const ze  
+           , DOUBLE const ze
            , DOUBLE *RESTRICT N        ,DOUBLE *RESTRICT de
            , DOUBLE *RESTRICT dn       ,DOUBLE *RESTRICT dz
            , bool const ninter         ,bool const dev);
 
 
   DOUBLE jacob3d(DOUBLE *RESTRICT xl, DOUBLE *RESTRICT de
-           , DOUBLE *RESTRICT dn  , DOUBLE *RESTRICT dz 
+           , DOUBLE *RESTRICT dn  , DOUBLE *RESTRICT dz
            , DOUBLE *RESTRICT hx  , DOUBLE *RESTRICT hy
-           , DOUBLE *RESTRICT hz   
+           , DOUBLE *RESTRICT hz
  	         , short const nen      , bool const afl
            , bool const dev       , INT const nel );
 /*...................................................................*/
