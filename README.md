@@ -38,3 +38,8 @@ Rodando o exemplo
 ```console
 ./mfvCell_gnu_O3 cavidadeQH2.dat output/cavidadeQH2
 ```
+
+## Referência:
+
+1. [A parallel finite volume method for incompressible and slightly compressible reactive flows](doc/FullText.pdf)
+
